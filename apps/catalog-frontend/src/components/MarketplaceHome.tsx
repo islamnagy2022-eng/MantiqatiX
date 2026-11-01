@@ -111,16 +111,16 @@ const SectionHeading: React.FC<{ title: string; subtitle?: string; icon: React.R
 export const MarketplaceHome: React.FC = () => {
   const {
     directoryBusinesses, directoryProducts, directoryLoading, businesses,
-    authSession, adminSettings, setCurrentView, setSelectedBusinessId,
+    authSession, adminSettings, setCurrentView, openPublicBusiness,
     setIsLoginModalOpen,
   } = useApp();
   const [advertisements, setAdvertisements] = useState<TargetedAdvertisement[]>([]);
   const [adsLoading, setAdsLoading] = useState(true);
 
   const openSearch = () => setCurrentView('directory');
-  const openBusiness = (business: Business) => {
-    setSelectedBusinessId(business.id);
-    setCurrentView('public_storefront');
+  const openBusiness = async (business: Business): Promise<void> => {
+    const opened = await openPublicBusiness(business.id);
+    if (!opened) window.alert('تعذر فتح الكتالوج العام لهذا النشاط حاليًا. حاول مرة أخرى.');
   };
   const eligibleBusinesses = useMemo(() => directoryBusinesses.filter((business) =>
     Boolean(business.publicEnabled || business.isOfficialShowcase) &&
