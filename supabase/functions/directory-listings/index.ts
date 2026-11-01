@@ -289,9 +289,16 @@ Deno.serve(async (req: Request) => {
       const sourceUrl = clean(row.sourceUrl || row.source_url, 1000) || null;
       const sourcePermissionStatus = clean(row.sourcePermissionStatus || row.source_permission_status, 40).toUpperCase();
       const allowedSourcePermissionStatuses = new Set(["LICENSED", "OWNER_PROVIDED", "PUBLIC_PERMISSION_CONFIRMED"]);
+      let validSourceUrl = false;
+      try {
+        const parsedSourceUrl = new URL(String(sourceUrl || ""));
+        validSourceUrl = parsedSourceUrl.protocol === "https:" || parsedSourceUrl.protocol === "http:";
+      } catch {
+        validSourceUrl = false;
+      }
       const hasPhone = Boolean(phone || secondaryPhone);
 
-      if (displayName.length < 2 || !specialty || !governorate || !district || !sourceName || !sourceUrl ||
+      if (displayName.length < 2 || !specialty || !governorate || !district || !sourceName || !validSourceUrl ||
           !allowedSourcePermissionStatuses.has(sourcePermissionStatus) ||
           !taxonomyCategoryId.startsWith("cat_medical_health_") && !taxonomyCategoryId.startsWith("cat_custom_")) {
         failed += 1;
