@@ -19,3 +19,35 @@ export function buildDirectoryPaginationOrFilter(searchValue, cursor) {
   }
   return cursorExpression ? cursorExpression.slice(3, -1) : null;
 }
+
+/** @param {unknown} value @returns {number | null} */
+export function parseDirectoryPaginationLimit(value) {
+  const limit = Number(value || "100");
+  return Number.isInteger(limit) && limit >= 1 && limit <= 100 ? limit : null;
+}
+
+/** @param {unknown} value @returns {{ created_at: string, id: string } | null} */
+export function decodeDirectoryPaginationCursor(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return null;
+  if (raw.length > 1200) throw new Error("invalid cursor");
+  try {
+    const normalized = raw.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - raw.length % 4) % 4);
+    const decoded = JSON.parse(atob(normalized));
+    if (!decoded || typeof decoded.created_at !== "string" ||
+      Number.isNaN(Date.parse(decoded.created_at)) ||
+      typeof decoded.id !== "string" ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(decoded.id)) {
+      throw new Error("invalid cursor");
+    }
+    return { created_at: new Date(decoded.created_at).toISOString(), id: decoded.id };
+  } catch {
+    throw new Error("invalid cursor");
+  }
+}
+
+/** @param {{ created_at: string, id: string }} cursor @returns {string} */
+export function encodeDirectoryPaginationCursor(cursor) {
+  return btoa(JSON.stringify({ created_at: cursor.created_at, id: cursor.id }))
+    .replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/g, "");
+}
