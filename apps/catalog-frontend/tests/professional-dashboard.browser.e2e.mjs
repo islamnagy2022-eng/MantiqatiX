@@ -1004,7 +1004,7 @@ try {
       branches: [],
       items: [],
     };
-    const { context, page } = await newScenario(browser, null, [zeftaFixture]);
+    const { context, page } = await newScenario(browser, null, [zeftaFixture], { initialRoute: '?view=directory' });
     try {
       await page.getByRole('heading', { name: 'شعير للأدوات الصحية', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       const govSelect = page.locator('label').filter({ hasText: 'المحافظة' }).locator('select');
