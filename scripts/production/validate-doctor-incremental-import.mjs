@@ -38,7 +38,7 @@ assert.match(action, /!approvedEvidence\.revoked_at/, "Revoked source evidence m
 assert.match(action, /approvedEvidence\.expires_at/, "Expired source evidence must be rejected");
 assert.match(action, /sourceHost !== approvedEvidence\.source_host/, "Source host must match the approved evidence scope");
 assert.match(action, /sourceName\.toLocaleLowerCase\(\) !== String\(approvedEvidence\.source_name/, "Source name must match the approved evidence");
-assert.match(edge, /approved_by <> created_by/, "Evidence registry must enforce two-person approval");
+assert.match(evidenceMigration, /approved_by <> created_by/, "Evidence registry must enforce two-person approval");
 assert.match(edge, /String\\(evidence\\.created_by\\) === String\\(user\\.id\\)/, "The evidence creator cannot approve their own evidence");
 assert.match(action, /parsedSourceUrl\.protocol === "https:" \|\| parsedSourceUrl\.protocol === "http:"/, "Source URL must be HTTP or HTTPS");
 assert.match(action, /INVALID_SOURCE_CHECKED_AT/, "Invalid source timestamps must be rejected");
