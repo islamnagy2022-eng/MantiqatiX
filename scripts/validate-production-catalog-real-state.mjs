@@ -4,6 +4,8 @@ import {
   buildDirectoryPaginationOrFilter,
   decodeDirectoryPaginationCursor,
   encodeDirectoryPaginationCursor,
+  expandDirectoryFunctionalGroupIds,
+  expandDirectoryTaxonomyCategoryIds,
   parseDirectoryPaginationLimit,
   sanitizeDirectoryPaginationSearch,
 } from '../supabase/functions/directory-listings/pagination-filter.mjs';
@@ -274,10 +276,10 @@ assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("address"
   'Area/address must be applied to the database query before the page limit.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("specialty",/,
   'Specialty must be applied to the database query before the page limit.');
-assert.match(directoryListingsFunction, /pageQuery = pageQuery\.eq\("functional_group_id", functionalGroupId\)/,
-  'Functional group must be applied to the database query before the page limit.');
-assert.match(directoryListingsFunction, /pageQuery = pageQuery\.eq\("taxonomy_category_id", taxonomyCategoryId\)/,
-  'Taxonomy category must be applied to the database query before the page limit.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.in\("functional_group_id", expandDirectoryFunctionalGroupIds\(functionalGroupId\)\)/,
+  'Functional group must be applied to the database query with legacy ID compatibility before the page limit.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.in\("taxonomy_category_id", expandDirectoryTaxonomyCategoryIds\(taxonomyCategoryId\)\)/,
+  'Taxonomy category must be applied to the database query with legacy ID compatibility before the page limit.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.eq\("taxonomy_specialty", taxonomySpecialty\)/,
   'Taxonomy specialty must be applied to the database query before the page limit.');
 assert.match(directoryPaginationHelper, /created_at\.lt\.[\s\S]*id\.lt\./,
@@ -348,6 +350,19 @@ assert.equal(buildDirectoryPaginationOrFilter('', null), null,
   'No search and no cursor must not add a logical OR filter.');
 assert.equal(sanitizeDirectoryPaginationSearch('دكتور,(x)%";drop'), 'دكتور x drop',
   'Free-text search must remove PostgREST grammar delimiters and wildcard injection characters.');
+assert.deepEqual(expandDirectoryFunctionalGroupIds('medical_health').sort(),
+  ['healthcare', 'medical_health'].sort(), 'Canonical medical group filtering must include audited legacy group IDs.');
+assert.ok(expandDirectoryFunctionalGroupIds('home_maintenance').includes('construction_decor'),
+  'Canonical home maintenance filtering must include the former construction/decor group.');
+assert.ok(expandDirectoryFunctionalGroupIds('fashion_beauty').includes('trade_ecommerce'),
+  'Canonical retail filtering must include the former trade/e-commerce group.');
+assert.ok(expandDirectoryTaxonomyCategoryIds('cat_medical_health_medical_practices').includes('cat_medical_health_doctor'),
+  'Canonical medical practices filtering must include the legacy doctor category.');
+assert.ok(expandDirectoryTaxonomyCategoryIds('cat_medical_health_diagnostic_labs').includes('cat_medical_health_labs'),
+  'Canonical diagnostic labs filtering must include the legacy labs category.');
+assert.ok(expandDirectoryTaxonomyCategoryIds('cat_home_maintenance_finishing_companies').includes('cat_construction_decor_interior_design'),
+  'Canonical finishing-company filtering must include legacy interior-design category IDs.');
+
 assert.match(directoryPaginationHelper, /"address", "governorate", "district", "village"/,
   'Directory search helper must include address and administrative hierarchy fields.');
 assert.match(directory, /fetchPublicDirectoryListingPage\(directoryListingRequestFilters\)/,
