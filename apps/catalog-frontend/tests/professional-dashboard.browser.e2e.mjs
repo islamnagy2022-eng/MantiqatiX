@@ -164,6 +164,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
   const platformAdminRequests = [];
   const platformSettingsState = { settings: options.platformSettings || {} };
   const directoryListingsState = options.directoryListingsState || { listings: [] };
+  const directoryListingPageRequests = [];
   const page = await context.newPage();
   await page.route(supabaseOrigin + '/**', async (route) => {
     const request = route.request();
@@ -301,7 +302,21 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
     if (url.pathname.endsWith('/functions/v1/directory-listings')) {
       let body = {};
       try { body = request.method() === 'POST' ? request.postDataJSON() || {} : {}; } catch { /* no JSON body */ }
-      if (request.method() === 'GET') return json({ listings: directoryListingsState.listings });
+      if (request.method() === 'GET') {
+        if (url.searchParams.has('limit')) {
+          const params = Object.fromEntries(url.searchParams.entries());
+          directoryListingPageRequests.push(params);
+          const cursor = url.searchParams.get('cursor') || 'first';
+          const pageResult = options.directoryListingPages?.[cursor] || {
+            listings: directoryListingsState.listings,
+            nextCursor: null,
+            hasMore: false,
+            pageSize: Number(url.searchParams.get('limit')) || 20,
+          };
+          return json(pageResult);
+        }
+        return json({ listings: directoryListingsState.listings });
+      }
       if (body.action === 'ADMIN_LIST') {
         directoryAdminRequests.push({ action: body.action, authorization: request.headers().authorization || '' });
         return json({ listings: directoryListingsState.listings, claims: [], businesses: [] });
@@ -349,7 +364,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
   });
 
   await page.goto(baseUrl + (options.initialRoute || '?view=professional_dashboard'), { waitUntil: 'domcontentloaded' });
-  return { context, page, rpcObservation, catalogReadRequests, directoryAdminRequests, directoryListingsState, platformAdminRequests, platformSettingsState };
+  return { context, page, rpcObservation, catalogReadRequests, directoryAdminRequests, directoryListingsState, directoryListingPageRequests, platformAdminRequests, platformSettingsState };
 }
 
 async function waitForDashboard(page) {
@@ -419,6 +434,70 @@ async function auditAccessibility(page, label) {
 }
 
 try {
+  // 0. National directory uses stable server cursors and retains specialty/geographic filters.
+  {
+    const makeDoctorListing = (index) => ({
+      id: 'doctor-pagination-' + String(index).padStart(2, '0'),
+      slug: 'doctor-pagination-' + String(index).padStart(2, '0'),
+      display_name: 'طبيب اختبار الدفعة ' + String(index).padStart(2, '0'),
+      listing_type: 'doctor',
+      functional_group_id: 'medical_health',
+      taxonomy_category_id: 'cat_medical_health_doctors',
+      taxonomy_specialty: 'باطنة',
+      specialty: 'باطنة',
+      phone: '0100000' + String(index).padStart(4, '0'),
+      secondary_phone: null,
+      address: 'شارع التحرير',
+      governorate: 'المنوفية',
+      district: 'بركة السبع',
+      village: 'كفر هلال',
+      listing_status: 'PUBLISHED',
+      claim_status: 'UNCLAIMED',
+      created_at: new Date(Date.UTC(2026, 0, 1, 0, 0, 45 - index)).toISOString(),
+    });
+    const firstPage = {
+      listings: Array.from({ length: 20 }, (_, index) => makeDoctorListing(index + 1)),
+      nextCursor: 'cursor-page-2',
+      hasMore: true,
+      pageSize: 20,
+    };
+    const secondPage = {
+      listings: Array.from({ length: 5 }, (_, index) => makeDoctorListing(index + 21)),
+      nextCursor: null,
+      hasMore: false,
+      pageSize: 20,
+    };
+    const { context, page, directoryListingPageRequests } = await newScenario(browser, null, [], {
+      initialRoute: '?activity=cat_medical_health_doctors&specialty=' + encodeURIComponent('باطنة'),
+      geoPreference: { completed: true, mode: 'manual', governorate: 'المنوفية', markaz: 'بركة السبع', village: 'كفر هلال', area: 'شارع التحرير' },
+      directoryListingPages: { first: firstPage, 'cursor-page-2': secondPage },
+    });
+    try {
+      const cards = page.getByRole('heading').filter({ hasText: /^طبيب اختبار الدفعة \d{2}$/ });
+      await cards.first().waitFor({ state: 'visible', timeout: 15000 });
+      await page.waitForFunction(() => [...document.querySelectorAll('h3')]
+        .filter((node) => /^طبيب اختبار الدفعة \d{2}$/.test((node.textContent || '').trim())).length === 20);
+      assert.equal(await cards.count(), 20, 'first server page must render exactly 20 doctor listings');
+      const more = page.getByRole('button', { name: 'رؤية المزيد من هذا التخصص', exact: true });
+      await more.waitFor({ state: 'visible', timeout: 10000 });
+      await more.click();
+      await page.waitForFunction(() => [...document.querySelectorAll('h3')]
+        .filter((node) => /^طبيب اختبار الدفعة \d{2}$/.test((node.textContent || '').trim())).length === 25);
+      assert.equal(await cards.count(), 25, 'cursor continuation must append the next five listings without duplicates');
+      const continuation = directoryListingPageRequests.filter((request) => request.cursor === 'cursor-page-2');
+      assert.equal(continuation.length, 1, 'the next page must be requested exactly once');
+      assert.equal(continuation[0].limit, '20');
+      assert.equal(continuation[0].taxonomyCategoryId, 'cat_medical_health_doctors');
+      assert.equal(continuation[0].taxonomySpecialty, 'باطنة');
+      assert.equal(continuation[0].governorate, 'المنوفية');
+      assert.equal(continuation[0].district, 'بركة السبع');
+      assert.equal(continuation[0].village, 'كفر هلال');
+      assert.equal(continuation[0].address, 'شارع التحرير');
+      assert.equal(new Set(await cards.allTextContents()).size, 25, 'all rendered doctor listing headings must be unique');
+      results.push('national-directory-cursor-pagination-20-plus-5-retains-geography-and-specialty');
+    } finally { await context.close(); }
+  }
+
   // 1. Guest direct URL must not render privileged dashboard UI.
   {
     const { context, page } = await newScenario(browser);
