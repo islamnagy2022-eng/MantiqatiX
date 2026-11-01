@@ -1692,3 +1692,13 @@ A separate source review found a second platform-root authorization model: the n
 - Added static production-contract assertions. The directory root UI has not yet been migrated to use the page helper; this is explicitly tracked as open work. Exact-head CI, merge, Edge deployment and deployed-origin verification are not yet complete.
 - Current production Edge Function remains v8. No production Edge deployment, database/data/schema/RLS/grant/Auth mutation or doctor import was performed.
 - Nationwide doctor data sourcing remains subject to official verification and source reuse permission. The official Egyptian Medical Syndicate has a public doctor registration/specialty lookup; it is a verification reference, not yet confirmed as a bulk clinic-address dataset. No third-party directory bulk copy was performed.
+
+
+## 2026-11-01 — National directory pagination UI integration
+
+- Continued `feat/national-doctor-directory-pagination-20261101` after the initial Edge Function pagination groundwork.
+- Replaced the main `DirectoryView` legacy unbounded/500-row listing fetch with `fetchPublicDirectoryListingPage` and a 20-row first page. The root view now exposes a «رؤية المزيد» action that continues via `nextCursor` and deduplicates appended rows.
+- Connected `ActivityModuleView` search and specialty-folder changes to the same server pagination filters. Requests retain the current governorate, district/markaz, village and area; activity and specialty requests add their taxonomy scope.
+- Added address filtering and widened q-search across name, specialty, phone, secondary phone, address and administrative fields. Administrative labels use substring matching to tolerate prefixed Arabic names.
+- Updated production-catalog static contracts to assert UI integration and 20-row paging. TypeScript/build/browser E2E on the exact current head must still pass before review/merge.
+- Production `directory-listings` remains deployed at v8; no Edge deployment or production data/schema/permission change took place. No doctors were imported. The 27-governorate coverage target remains IN PROGRESS.
