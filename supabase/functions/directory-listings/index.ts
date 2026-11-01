@@ -73,7 +73,7 @@ Deno.serve(async (req: Request) => {
       return out(origin, { listing: { ...publicListing, can_edit: canEdit, owned_business_id: canEdit ? String(data.claimed_business_id || "") : null } });
     }
     const type = clean(url.searchParams.get("type"), 40);
-    const pageMode = ["limit","cursor","governorate","district","village","specialty","functionalGroupId","taxonomyCategoryId","taxonomySpecialty","q"].some((key) => url.searchParams.has(key));
+    const pageMode = ["limit","cursor","type","governorate","district","village","address","specialty","functionalGroupId","taxonomyCategoryId","taxonomySpecialty","q"].some((key) => url.searchParams.has(key));
     if (!pageMode) {
       let legacyQuery = service.from("public_directory_listings").select(publicFields)
         .eq("listing_status", "PUBLISHED").order("specialty", { ascending: true }).order("display_name", { ascending: true }).limit(500);
@@ -114,19 +114,34 @@ Deno.serve(async (req: Request) => {
     const governorate = clean(url.searchParams.get("governorate"), 100);
     const district = clean(url.searchParams.get("district"), 100);
     const village = clean(url.searchParams.get("village"), 100);
+    const address = clean(url.searchParams.get("address"), 250);
     const specialty = clean(url.searchParams.get("specialty"), 160);
     const functionalGroupId = clean(url.searchParams.get("functionalGroupId"), 100);
     const taxonomyCategoryId = clean(url.searchParams.get("taxonomyCategoryId"), 180);
     const taxonomySpecialty = clean(url.searchParams.get("taxonomySpecialty"), 160);
-    const search = clean(url.searchParams.get("q"), 100).replace(/[%,()]/g, " ").replace(/\s+/g, " ").trim();
+    const search = clean(url.searchParams.get("q"), 100).replace(/[%,().]/g, " ").replace(/\s+/g, " ").trim();
     if (governorate) pageQuery = pageQuery.eq("governorate", governorate);
     if (district) pageQuery = pageQuery.eq("district", district);
     if (village) pageQuery = pageQuery.eq("village", village);
+    if (address) pageQuery = pageQuery.ilike("address", "%" + address.replace(/[%]/g, " ") + "%");
     if (specialty) pageQuery = pageQuery.ilike("specialty", "%" + specialty + "%");
     if (functionalGroupId) pageQuery = pageQuery.eq("functional_group_id", functionalGroupId);
     if (taxonomyCategoryId) pageQuery = pageQuery.eq("taxonomy_category_id", taxonomyCategoryId);
     if (taxonomySpecialty) pageQuery = pageQuery.ilike("taxonomy_specialty", "%" + taxonomySpecialty + "%");
-    if (search) pageQuery = pageQuery.ilike("display_name", "%" + search + "%");
+    if (search) {
+      const pattern = "%" + search + "%";
+      pageQuery = pageQuery.or([
+        "display_name.ilike." + pattern,
+        "specialty.ilike." + pattern,
+        "taxonomy_specialty.ilike." + pattern,
+        "phone.ilike." + pattern,
+        "secondary_phone.ilike." + pattern,
+        "address.ilike." + pattern,
+        "governorate.ilike." + pattern,
+        "district.ilike." + pattern,
+        "village.ilike." + pattern,
+      ].join(","));
+    }
     if (cursor) {
       pageQuery = pageQuery.or("created_at.lt."+cursor.created_at+",and(created_at.eq."+cursor.created_at+",id.lt."+cursor.id+")");
     }
