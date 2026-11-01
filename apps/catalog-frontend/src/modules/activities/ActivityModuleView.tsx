@@ -4,6 +4,7 @@ import type { ActivityCategory, Business } from '../../types';
 import type { PublicDirectoryListing } from '../../lib/directoryListings';
 import { useApp } from '../../context/AppContext';
 import { resolveActivityModuleConfig } from './activityModuleRegistry';
+import { resolveCanonicalSpecialty } from '../../data/productionDefaults';
 
 type Section = 'overview' | 'specialties' | 'marketing' | 'operations';
 interface Props {
@@ -45,23 +46,32 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
   const marketing = moduleConfig.marketing;
   const normalizeDirectorySearch = (value: unknown) => String(value || '').toLocaleLowerCase('ar-EG')
     .normalize('NFKC').replace(/[أإآ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه')
-    .replace(/[\\u064B-\\u065F\\u0670]/g, '').replace(/\\s+/g, ' ').trim();
-  const matchesSpecialty = (value: string) => !selectedSpecialty ||
+    .replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim();
+  const matchesSpecialty = (value: string) => Boolean(selectedSpecialty) &&
     resolveCanonicalSpecialty(value, category.id) === resolveCanonicalSpecialty(selectedSpecialty, category.id);
+  const matchesBusinessSpecialty = (business: Business, specialty = selectedSpecialty) => {
+    if (!specialty) return true;
+    const categorySuffix = business.category.startsWith(category.name)
+      ? business.category.slice(category.name.length).replace(/^\\s*—\\s*/, '')
+      : business.category;
+    const target = resolveCanonicalSpecialty(specialty, category.id);
+    return resolveCanonicalSpecialty(business.activitySpecialty || '', category.id) === target ||
+      resolveCanonicalSpecialty(categorySuffix, category.id) === target;
+  };
   const normalizedQuery = normalizeDirectorySearch(searchQuery);
   const matchesSearch = (values: Array<string | null | undefined>) => !normalizedQuery ||
     normalizeDirectorySearch(values.filter(Boolean).join(' ')).includes(normalizedQuery);
   const verifiedBusinesses = businesses.filter((business) => business.isVerified &&
-    matchesSpecialty(business.activitySpecialty || business.category || '') &&
+    matchesBusinessSpecialty(business) &&
     matchesSearch([business.name, business.activitySpecialty, business.category, business.phone, business.ownerWhatsApp, business.village, business.markaz, business.governorate]));
   const unverifiedBusinesses = businesses.filter((business) => !business.isVerified &&
-    matchesSpecialty(business.activitySpecialty || business.category || '') &&
+    matchesBusinessSpecialty(business) &&
     matchesSearch([business.name, business.activitySpecialty, business.category, business.phone, business.ownerWhatsApp, business.village, business.markaz, business.governorate]));
   const visibleListings = listings.filter((listing) =>
-    matchesSpecialty(listing.taxonomy_specialty || listing.specialty || '') &&
+    (!selectedSpecialty || matchesSpecialty(listing.taxonomy_specialty || listing.specialty || '')) &&
     matchesSearch([listing.display_name, listing.taxonomy_specialty, listing.specialty, listing.phone, listing.secondary_phone, listing.village, listing.district, listing.governorate]));
   const countForSpecialty = (specialty: string) => businesses.filter((business) =>
-    resolveCanonicalSpecialty(business.activitySpecialty || business.category || '', category.id) === resolveCanonicalSpecialty(specialty, category.id)).length +
+    matchesBusinessSpecialty(business, specialty)).length +
     listings.filter((listing) => resolveCanonicalSpecialty(listing.taxonomy_specialty || listing.specialty || '', category.id) === resolveCanonicalSpecialty(specialty, category.id)).length;
   const openSpecialtyFolder = (specialty: string) => {
     const url = new URL(window.location.href);
