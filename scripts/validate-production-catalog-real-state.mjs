@@ -257,8 +257,8 @@ assert.match(directoryListingsFunction, /const pageMode = \["limit","cursor","go
   'The paginated GET mode must be opt-in through explicit pagination or search filters.');
 assert.doesNotMatch(directoryListingsFunction, /const pageMode = \[[^\]]*"type"/,
   'Legacy type-only GET requests must preserve their existing unpaginated response contract.');
-assert.match(directoryListingsFunction, /rawLimit > 100/,
-  'Public directory page size must be bounded to protect the public Edge Function.');
+assert.match(directoryListingsFunction, /parseDirectoryPaginationLimit\(url\.searchParams\.get\("limit"\)\)/,
+  'Public directory page size must be bounded through the tested limit parser.');
 assert.match(directoryListingsFunction, /INVALID_PAGE_CURSOR/,
   'Malformed cursors must fail closed with a clear client error.');
 assert.match(directoryListingsFunction, /\.eq\("listing_status", "PUBLISHED"\)/,
