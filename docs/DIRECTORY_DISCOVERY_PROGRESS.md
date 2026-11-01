@@ -182,3 +182,47 @@ Partial execution started: 34 verified insertions across the documented batches 
 - Source discovery: Dalil140 exposes Egypt-wide and governorate/specialty doctor pages with names, phone numbers and addresses; Egyptian Medical Syndicate describes an official lookup by doctor name/registration number and medical facilities by governorate. Reuse terms and source-level freshness must be reviewed; do not bulk-copy other aggregators absent explicit reuse permission. Every new record must retain its exact source URL and retrieval date.
 - No records were inserted and no production data/schema/permissions/functions were changed during this baseline audit. The new national expansion task is tracked in TODO_PRODUCTION.md and master request issue #599.
 - Next: map the 27-governorate / 365-district hierarchy to source coverage; identify source terms and actual geocoding path; then process bounded governorate batches with global normalized Arabic-name/phone duplicate checks, correct individual-doctor taxonomy, exact clinic location, owner-unverified status, and read-after-write verification.
+
+
+## 2026-11-01 — National doctor directory pagination source implementation
+
+- Added backward-compatible keyset pagination to the directory Edge Function source on `feat/national-doctor-directory-pagination-20261101`.
+- New paginated mode supports a maximum of 100 records per request, stable created_at/id cursor, PUBLISHED-only rows and geographic/taxonomy filters. The old GET contract remains unchanged for legacy clients.
+- Added typed frontend page-fetch helper and static assertions. Root `DirectoryView` and activity-folder pagination integration remain open; this is not yet a complete nationwide browsing experience.
+- No production function deployment or data import. Keep the national coverage task IN PROGRESS.
+
+
+### Nationwide source and reuse review — 2026-11-01
+
+- Egyptian Medical Syndicate states that its public service lets citizens search a doctor's name or registration number and see registered specialty/registration status. This is a useful identity/credential cross-check, but the reviewed public material does not establish an open bulk export of clinic addresses and phone numbers. Official site: https://www.ems.org.eg/; guidance: https://www.ems.org.eg/news/cmutlhb0o00009k8yo3p6nkxw.
+- Dakatra Misr's own About page describes a directory of 49,001 doctors/clinics and says it compiles public data from Google Maps, clinic Facebook pages/websites, booking platforms and directories. Its privacy page explicitly states phone numbers are not exposed in the page HTML and are designed not to be harvested automatically. No bulk-copy or automated phone extraction is authorized by these pages; pursue a written data partnership/licence instead of scraping or cloning their database.
+- The UK FCDO's public Egypt doctor/facility list includes some English-speaking doctors and clinics but is dated 18 July 2022 and is not a current comprehensive national registry. It can be a secondary lead only after each clinic/contact is rechecked at its original source; do not treat it as current or exhaustive.
+- Therefore no 49k-record bulk import was attempted. Each imported record must be independently sourced from a page that permits republication, or be provided/confirmed by the doctor/clinic, and must retain provenance and retrieval date.
+
+
+## 2026-11-01 — Root and activity directory pagination integration
+
+- Connected the main directory to `fetchPublicDirectoryListingPage` on the national-directory feature branch. Each initial server request returns 20 rows; the «رؤية المزيد» control continues with the returned keyset cursor instead of fetching the capped legacy 500-row list.
+- Wired the same request pipeline into activity modules and specialty folders. Changing a specialty or the module's search term requests a new server-filtered page, while pagination keeps the chosen governorate, district/markaz, village and address/area scope.
+- Extended public search to match name, specialty, phone, secondary phone, address and administrative location fields; added a server-side address filter and Arabic administrative-label substring matching.
+- Public endpoint continues to constrain reads to `listing_status='PUBLISHED'`; client-side rendering excludes claimed rows from the unclaimed directory cards. No table/schema/RLS/GRANT/Auth mutation, production Edge deployment, or doctor-record import was performed.
+- Exact-head frontend validation and browser E2E are still pending on the current branch head. Isolated Edge Function tests for cursor continuation and the combined search/cursor predicates remain a release requirement. National coverage is still IN PROGRESS; the production baseline remains 57 doctors in one governorate and zero confirmed clinic coordinate pairs.
+
+
+## 2026-11-01 — Geographic prefix matching and pagination contract
+
+- Updated the paginated Edge Function so governorate, district/markaz, village, address, and specialty filters are applied in the SQL query before the bounded page limit. Geographic/address/specialty text is sanitized and matched with `ILIKE '%…%'` to tolerate common administrative prefixes such as «محافظة»، «مركز»، and «قرية».
+- Preserved legacy functional-group and taxonomy-category IDs by expanding known aliases to canonical ID sets before applying the server-side `IN` filters.
+- The keyset helper validates page size (1–100), validates UUID/timestamp cursors, preserves PostgreSQL microsecond timestamp precision, and builds one PostgREST logic tree when text search and cursor continuation are used together.
+- Read-only SQL verification against production returned the 57 currently published doctor listings as 20 + 20 + 17 rows with 57 distinct IDs, with no cursor gaps/duplicates. A second filtered query confirmed 54 records under the canonical medical-practices category plus its legacy aliases; the selected «أطفال» specialty predicate matched six rows across the current/legacy specialty columns.
+- On branch commit `46d6098aa2fd90ba5aa807651a07fd318b371162`, TypeScript/build, canonical taxonomy, persisted-catalog contract validation, geographic/GPS contracts, CORS boundary checks, and employee RBAC PostgreSQL passed. Browser E2E was still in progress when this note was recorded; rerun after documentation changes.
+- Production Edge Function is currently version 9 and still serves the legacy capped GET path; no deployment of the paginated code has occurred. No database/schema/RLS/GRANT/Auth mutation or live doctor import has been performed.
+
+
+## 2026-11-01 — Egypt-wide doctor-source review (current public terms)
+
+- Egyptian Medical Syndicate's latest public notices describe two useful official lookup paths: doctor search by name or registration number to verify registration and registered specialty; and medical-facility search with facility-type and governorate filters. These are verification/discovery interfaces, not evidence of an open bulk-export licence or a complete nationwide clinic-address dataset. References: doctor-registration lookup https://www.ems.org.eg/news/cmutlhb0o00009k8yo3p6nkxw; medical-facility search https://www.ems.org.eg/news/cmsq68cuk00009kv2xynj9gxe.
+- GAHAR's current public analytics page reports 97,505 registered medical professionals in its summary but currently renders zero accredited facilities / zero covered governorates in the visible dashboard output. This is an aggregate signal only, not a list of doctors or a verified clinic-address feed. Reference: https://www.gahar.gov.eg/ar/facilities/analytics.
+- Public medical directories reviewed in this pass explicitly restrict automated extraction and/or commercial republication without written permission, including Tabeeb-EG, MasrDoctors, and DocLine. Do not scrape or republish their directory records absent written licence/permission. References: https://www.tabeeb-eg.com/ar/terms-conditions, https://www.masrdoctors.com/page?slug=terms-conditions, https://www.docline-eg.com/terms.
+- Dakatra Misr's privacy notice describes collection from already-public sources but does not itself grant MantiqatiX permission to scrape/republish. No bulk extraction was performed.
+- Next permitted acquisition path: request a formal data-access/republication agreement from EMS or facility owners; otherwise use provider-submitted/owner-confirmed records and independently source only fields whose republication terms permit. Keep syndicate registration verification distinct from clinic-address verification, and retain source URL, retrieval date, and exact clinic location evidence per record.

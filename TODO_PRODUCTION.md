@@ -6,7 +6,10 @@
 ## UX policy — Activity list progressive loading
 - [x] Main activity directory and public unverified-listing views now render an initial batch of 20 items, with an explicit «رؤية المزيد» action that appends the next 20; changing search, group, specialty, or geographic filters resets the visible batch to 20.
 - [x] VERIFIED on branch commit `1c7946fae3edd4df741323d40ffc430f73c0416f`: TypeScript, production build, canonical taxonomy/GPS contracts, Postgres/RBAC checks, and browser regression all pass. The browser regression proves 20 initially, 40 after the first click, and the remaining 5 after the second click with no duplicates; source-contract checks preserve filter reset behavior and the existing verified-first sort.
-- [ ] Follow-up architecture review: the existing public directory API still returns its bounded result set before client-side filtering; true server-side cursor pagination must preserve taxonomy, specialty, geographic filtering, and verified-first ordering before replacing the current client-side progressive rendering.
+- [IN PROGRESS] PR #634 adds backward-compatible server-side keyset pagination for published directory listings, with a 20-row frontend page, stable `created_at DESC, id DESC` cursor, filter-before-limit behavior, stale-request protection, and ID deduplication. It preserves the existing client-side 20-item batch for registered businesses and verified-first ordering.
+- [IN PROGRESS] Server filters cover governorate, markaz/district, village, area/address, text search, and specialty across both current and legacy fields. Canonical group/category filters expand the audited legacy ID aliases (23 groups / 67 categories).
+- [NOT VERIFIED] Exact-head browser E2E and live Supabase Edge Function/PostgREST parity remain release gates. Production Edge Function is still version 9; the branch changes have not been deployed.
+- [IN PROGRESS] National doctor coverage remains separate from pagination: the read-only production baseline is 57 published doctors in المنوفية / بركة السبع, with no confirmed clinic coordinate pairs. Only verified and permissioned sources may be added.
 
 
 ## P0 — بوابة الإطلاق (لقطة تحقق مجمعة 2026-10-31)

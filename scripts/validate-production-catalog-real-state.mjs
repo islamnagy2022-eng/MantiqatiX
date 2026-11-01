@@ -1,5 +1,14 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import {
+  buildDirectoryPaginationOrFilter,
+  decodeDirectoryPaginationCursor,
+  encodeDirectoryPaginationCursor,
+  expandDirectoryFunctionalGroupIds,
+  expandDirectoryTaxonomyCategoryIds,
+  parseDirectoryPaginationLimit,
+  sanitizeDirectoryPaginationSearch,
+} from '../supabase/functions/directory-listings/pagination-filter.mjs';
 
 const admin = fs.readFileSync('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx', 'utf8');
 const context = fs.readFileSync('apps/catalog-frontend/src/context/AppContext.tsx', 'utf8');
@@ -11,7 +20,9 @@ const webConfig = fs.readFileSync('web/config.js', 'utf8');
 const directory = fs.readFileSync('apps/catalog-frontend/src/components/DirectoryView.tsx', 'utf8');
 const directoryListingsView = fs.readFileSync('apps/catalog-frontend/src/components/DirectoryListingsView.tsx', 'utf8');
 const directoryListingsLib = fs.readFileSync('apps/catalog-frontend/src/lib/directoryListings.ts', 'utf8');
+const activityModuleView = fs.readFileSync('apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx', 'utf8');
 const directoryListingsFunction = fs.readFileSync('supabase/functions/directory-listings/index.ts', 'utf8');
+const directoryPaginationHelper = fs.readFileSync('supabase/functions/directory-listings/pagination-filter.mjs', 'utf8');
 const placeholder = fs.readFileSync('apps/catalog-frontend/public/business-placeholder.svg', 'utf8');
 const itemPlaceholder = fs.readFileSync('apps/catalog-frontend/public/catalog-item-placeholder.svg', 'utf8');
 const defaultImages = fs.readFileSync('apps/catalog-frontend/src/utils/defaultImages.ts', 'utf8');
@@ -250,4 +261,222 @@ assert.match(aiGeminiProxy, /service\.storage\.from\(IMAGE_BUCKET\)\.upload/, 'G
 assert.match(aiGeminiProxy, /imageKind === "cover" \? "16:9" : "1:1"/, 'Generated covers and square catalogue images must use suitable aspect ratios.');
 
 
+assert.match(directoryListingsFunction, /Stable keyset pagination/,
+  'Public directory pagination must use stable keyset pagination rather than offset pagination.');
+assert.match(directoryListingsFunction, /const pageMode = \["limit","cursor","governorate"/,
+  'The paginated GET mode must be opt-in through explicit pagination or search filters.');
+assert.doesNotMatch(directoryListingsFunction, /const pageMode = \[[^\]]*"type"/,
+  'Legacy type-only GET requests must preserve their existing unpaginated response contract.');
+assert.match(directoryListingsFunction, /parseDirectoryPaginationLimit\(url\.searchParams\.get\("limit"\)\)/,
+  'Public directory page size must be bounded through the tested limit parser.');
+assert.match(directoryListingsFunction, /INVALID_PAGE_CURSOR/,
+  'Malformed cursors must fail closed with a clear client error.');
+assert.match(directoryListingsFunction, /\.eq\("listing_status", "PUBLISHED"\)/,
+  'Paginated public directory reads must never expose draft or hidden listings.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("governorate",/,
+  'Governorate must be applied with prefix-tolerant matching before the page limit.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("district",/,
+  'Markaz/district must be applied with prefix-tolerant matching before the page limit.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("village",/,
+  'Village must be applied with prefix-tolerant matching before the page limit.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("address",/,
+  'Area/address must be applied to the database query before the page limit.');
+assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(search, cursor, taxonomySpecialty \|\| specialty\)/,
+  'Selected specialty must be applied before the page limit through the combined server-side filter expression.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.in\("functional_group_id", expandDirectoryFunctionalGroupIds\(functionalGroupId\)\)/,
+  'Functional group must be applied to the database query with legacy ID compatibility before the page limit.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.in\("taxonomy_category_id", expandDirectoryTaxonomyCategoryIds\(taxonomyCategoryId\)\)/,
+  'Taxonomy category must be applied to the database query with legacy ID compatibility before the page limit.');
+assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(search, cursor, taxonomySpecialty \|\| specialty\)/,
+  'Selected taxonomy specialty must be applied across canonical and legacy fields inside the same search/cursor logic tree.');
+assert.match(directoryPaginationHelper, /taxonomy_specialty\.ilike\./,
+  'Specialty filter helper must match the taxonomy specialty field.');
+assert.match(directoryPaginationHelper, /specialty\.ilike\./,
+  'Specialty filter helper must match the legacy specialty field.');
+assert.match(directoryPaginationHelper, /created_at\.lt\.[\s\S]*id\.lt\./,
+  'Pagination cursor helper must use a deterministic created_at/id keyset.');
+assert.match(directoryListingsLib, /fetchPublicDirectoryListingPage/,
+  'Frontend must expose a typed paginated directory client.');
+assert.match(directoryListingsLib, /functionalGroupId[\s\S]*taxonomyCategoryId[\s\S]*taxonomySpecialty[\s\S]*nextCursor/,
+  'Typed directory pagination client must pass taxonomy filters and return its continuation cursor.');
+
+assert.match(directoryListingsLib, /address: filters\.address/,
+  'The public directory client must pass the selected street/area filter to the paginated API.');
+assert.match(directoryListingsFunction, /address = clean\(url\.searchParams\.get\("address"\)/,
+  'The paginated API must support server-side street/area filtering.');
+assert.match(directoryPaginationHelper, /"phone", "secondary_phone"/,
+  'Directory search helper must include both primary and secondary phone fields.');
+
+assert.match(directoryListingsFunction, /parseDirectoryPaginationLimit\(url\.searchParams\.get\("limit"\)\)/,
+  'The Edge Function must validate bounded page sizes through the tested helper.');
+assert.match(directoryListingsFunction, /decodeDirectoryPaginationCursor\(clean\(url\.searchParams\.get\("cursor"\)/,
+  'The Edge Function must reject malformed cursors through the tested decoder.');
+assert.match(directoryListingsFunction, /encodeDirectoryPaginationCursor\(/,
+  'The Edge Function must return URL-safe keyset cursors through the tested encoder.');
+assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(search, cursor, taxonomySpecialty \|\| specialty\)/,
+  'The Edge Function must apply the combined search, specialty and cursor filter builder.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.or\(logicalFilter\)/,
+  'A paginated request must attach its logical filter tree exactly once.');
+assert.match(directoryListingsFunction, /from "\.\/pagination-filter\.mjs"/,
+  'The Edge Function must import the independently testable pagination filter builder from its deployable function package.');
+assert.ok(fs.existsSync('supabase/functions/directory-listings/pagination-filter.mjs'),
+  'The Edge Function pagination helper must exist inside the deployable directory-listings package.');
+
+const testCursor = { created_at: '2026-11-01T00:00:00.000Z', id: '123e4567-e89b-42d3-a456-426614174000' };
+assert.equal(parseDirectoryPaginationLimit(null), 100, 'Missing page size must retain the safe 100-row legacy page default.');
+assert.equal(parseDirectoryPaginationLimit('20'), 20);
+assert.equal(parseDirectoryPaginationLimit('1'), 1);
+assert.equal(parseDirectoryPaginationLimit('100'), 100);
+for (const invalidLimit of ['0', '101', '-1', '1.5', 'invalid']) {
+  assert.equal(parseDirectoryPaginationLimit(invalidLimit), null, 'Invalid page size must be rejected: ' + invalidLimit);
+}
+const encodedTestCursor = encodeDirectoryPaginationCursor(testCursor);
+assert.doesNotMatch(encodedTestCursor, /[+/=]/, 'Continuation cursors must be URL-safe and unpadded.');
+assert.deepEqual(decodeDirectoryPaginationCursor(encodedTestCursor), testCursor, 'Cursor encoding and decoding must round-trip without changing the keyset.');
+const microsecondCursor = { created_at: '2026-11-01T00:00:00.123456+00:00', id: testCursor.id };
+assert.deepEqual(decodeDirectoryPaginationCursor(encodeDirectoryPaginationCursor(microsecondCursor)), microsecondCursor,
+  'Cursor decoding must preserve PostgreSQL microsecond timestamp precision.');
+assert.equal(decodeDirectoryPaginationCursor(''), null, 'An omitted cursor must represent the first page.');
+assert.throws(() => decodeDirectoryPaginationCursor('not-a-cursor'), /invalid cursor/, 'Malformed cursor data must be rejected.');
+assert.throws(() => decodeDirectoryPaginationCursor(encodeDirectoryPaginationCursor({ created_at: 'not-a-date', id: 'bad-id' })), /invalid cursor/, 'Invalid cursor timestamps and IDs must be rejected.');
+assert.throws(() => decodeDirectoryPaginationCursor('x'.repeat(1201)), /invalid cursor/, 'Oversized cursor values must be rejected.');
+
+const combinedDirectoryFilter = buildDirectoryPaginationOrFilter('طبيب', testCursor);
+assert.ok(combinedDirectoryFilter, 'Search + cursor must produce a PostgREST filter expression.');
+assert.match(combinedDirectoryFilter, /and\(or\(display_name\.ilike\.%طبيب%/,
+  'Search + cursor must compose the searchable columns as a single OR clause.');
+assert.match(combinedDirectoryFilter, /secondary_phone\.ilike\.%طبيب%/,
+  'Search + cursor must include secondary contact fields.');
+assert.match(combinedDirectoryFilter, /village\.ilike\.%طبيب%/,
+  'Search + cursor must include administrative location fields.');
+assert.match(combinedDirectoryFilter, /or\(created_at\.lt\.[\s\S]*id\.lt\./,
+  'Search + cursor must constrain the entire search clause by one deterministic keyset cursor.');
+assert.equal((combinedDirectoryFilter.match(/created_at\.lt\./g) || []).length, 1,
+  'Search + cursor must not duplicate cursor predicates across the searchable columns.');
+const combinedSpecialtyFilter = buildDirectoryPaginationOrFilter('طبيب', testCursor, 'نساء وتوليد');
+assert.match(combinedSpecialtyFilter, /taxonomy_specialty\.ilike\.%نساء وتوليد%/,
+  'Selected specialty must match the public taxonomy specialty field.');
+assert.match(combinedSpecialtyFilter, /specialty\.ilike\.%نساء وتوليد%/,
+  'Selected specialty must also match legacy specialty values.');
+assert.match(combinedSpecialtyFilter, /and\(or\(display_name\.ilike/,
+  'Text search, specialty and cursor must be joined as ANDed clauses of one PostgREST logic tree.');
+const specialtyOnlyFilter = buildDirectoryPaginationOrFilter('', null, 'أطفال');
+assert.match(specialtyOnlyFilter, /taxonomy_specialty\.ilike\.%أطفال%/);
+assert.match(specialtyOnlyFilter, /specialty\.ilike\.%أطفال%/);
+const cursorOnlyFilter = buildDirectoryPaginationOrFilter('', testCursor);
+assert.equal(cursorOnlyFilter, 'created_at.lt.2026-11-01T00:00:00.000Z,and(created_at.eq.2026-11-01T00:00:00.000Z,id.lt.123e4567-e89b-42d3-a456-426614174000)',
+  'Cursor-only pagination must preserve the deterministic timestamp/id continuation.');
+const searchOnlyFilter = buildDirectoryPaginationOrFilter('عيادة', null);
+assert.match(searchOnlyFilter, /display_name\.ilike\.%عيادة%/);
+assert.match(searchOnlyFilter, /phone\.ilike\.%عيادة%/);
+assert.equal(buildDirectoryPaginationOrFilter('', null), null,
+  'No search and no cursor must not add a logical OR filter.');
+assert.equal(sanitizeDirectoryPaginationSearch('دكتور,(x)%";drop'), 'دكتور x drop',
+  'Free-text search must remove PostgREST grammar delimiters and wildcard injection characters.');
+assert.deepEqual(expandDirectoryFunctionalGroupIds('medical_health').sort(),
+  ['healthcare', 'medical_health'].sort(), 'Canonical medical group filtering must include audited legacy group IDs.');
+assert.ok(expandDirectoryFunctionalGroupIds('home_maintenance').includes('construction_decor'),
+  'Canonical home maintenance filtering must include the former construction/decor group.');
+assert.ok(expandDirectoryFunctionalGroupIds('fashion_beauty').includes('trade_ecommerce'),
+  'Canonical retail filtering must include the former trade/e-commerce group.');
+assert.ok(expandDirectoryTaxonomyCategoryIds('cat_medical_health_medical_practices').includes('cat_medical_health_doctor'),
+  'Canonical medical practices filtering must include the legacy doctor category.');
+assert.ok(expandDirectoryTaxonomyCategoryIds('cat_medical_health_diagnostic_labs').includes('cat_medical_health_labs'),
+  'Canonical diagnostic labs filtering must include the legacy labs category.');
+assert.ok(expandDirectoryTaxonomyCategoryIds('cat_home_maintenance_finishing_companies').includes('cat_construction_decor_interior_design'),
+  'Canonical finishing-company filtering must include legacy interior-design category IDs.');
+
+// In-memory keyset continuation regression: exercise repeated timestamps, pre-limit filters,
+// public-only visibility, and every page boundary without needing a production or shared database.
+const paginationFixtures = Array.from({ length: 73 }, (_, index) => {
+  const minute = String(Math.floor(index / 3)).padStart(2, '0');
+  const second = '00';
+  return {
+    id: '123e4567-e89b-42d3-a456-' + index.toString(16).padStart(12, '0'),
+    created_at: '2026-11-01T00:' + minute + ':' + second + '.000Z',
+    listing_status: index % 17 === 0 ? 'DRAFT' : index % 19 === 0 ? 'HIDDEN' : 'PUBLISHED',
+    governorate: index % 2 === 0 ? 'محافظة الجيزة' : 'الجيزة',
+    district: 'مركز الصف',
+    village: index % 3 === 0 ? 'قرية الأخصاص' : 'الأخصاص',
+    specialty: index % 4 === 0 ? 'طب أطفال' : 'باطنة',
+    display_name: 'طبيب اختبار ' + String(index).padStart(2, '0'),
+    phone: '0100000' + String(index).padStart(4, '0'),
+  };
+});
+const compareDirectoryOrder = (left, right) =>
+  right.created_at.localeCompare(left.created_at) || right.id.localeCompare(left.id);
+function readFixturePage({ limit, cursor = null, governorate = '', district = '', village = '', specialty = '', q = '' }) {
+  const query = sanitizeDirectoryPaginationSearch(q).toLocaleLowerCase('ar-EG');
+  const rows = paginationFixtures
+    .filter((row) => row.listing_status === 'PUBLISHED')
+    .filter((row) => !governorate || row.governorate.includes(governorate))
+    .filter((row) => !district || row.district.includes(district))
+    .filter((row) => !village || row.village.includes(village))
+    .filter((row) => !specialty || row.specialty.includes(specialty))
+    .filter((row) => !query || [row.display_name, row.specialty, row.phone, row.governorate, row.district, row.village]
+      .some((value) => value.toLocaleLowerCase('ar-EG').includes(query)))
+    .filter((row) => !cursor || row.created_at < cursor.created_at ||
+      (row.created_at === cursor.created_at && row.id < cursor.id))
+    .sort(compareDirectoryOrder);
+  const fetched = rows.slice(0, limit + 1);
+  const hasMore = fetched.length > limit;
+  const listings = hasMore ? fetched.slice(0, limit) : fetched;
+  const last = listings[listings.length - 1];
+  return {
+    listings,
+    hasMore,
+    nextCursor: hasMore && last ? { created_at: last.created_at, id: last.id } : null,
+  };
+}
+function collectFixturePages(filters) {
+  const collected = [];
+  let cursor = null;
+  let pageCount = 0;
+  do {
+    const page = readFixturePage({ ...filters, cursor });
+    collected.push(...page.listings);
+    cursor = page.nextCursor;
+    pageCount += 1;
+    assert.ok(pageCount < 20, 'Fixture pagination must terminate without cursor loops.');
+  } while (cursor);
+  return collected;
+}
+const expectedPublished = paginationFixtures
+  .filter((row) => row.listing_status === 'PUBLISHED')
+  .sort(compareDirectoryOrder);
+const allPublishedPages = collectFixturePages({ limit: 17 });
+assert.deepEqual(allPublishedPages.map((row) => row.id), expectedPublished.map((row) => row.id),
+  'Keyset continuation must neither duplicate nor omit any published fixture across repeated timestamps.');
+assert.equal(new Set(allPublishedPages.map((row) => row.id)).size, allPublishedPages.length,
+  'Keyset pages must not repeat a listing ID.');
+assert.ok(allPublishedPages.every((row) => row.listing_status === 'PUBLISHED'),
+  'Draft and hidden listings must never leak into public pages.');
+const geoSpecialtyPages = collectFixturePages({
+  limit: 7, governorate: 'الجيزة', district: 'الصف', village: 'الأخصاص', specialty: 'أطفال', q: 'طبيب اختبار',
+});
+const expectedGeoSpecialty = expectedPublished.filter((row) =>
+  row.governorate.includes('الجيزة') && row.district.includes('الصف') &&
+  row.village.includes('الأخصاص') && row.specialty.includes('أطفال') &&
+  row.display_name.includes('طبيب اختبار'));
+assert.deepEqual(geoSpecialtyPages.map((row) => row.id), expectedGeoSpecialty.map((row) => row.id),
+  'Geographic + specialty + text filters must apply before the keyset page limit.');
+assert.equal(new Set(geoSpecialtyPages.map((row) => row.id)).size, geoSpecialtyPages.length,
+  'Filtered keyset pages must not duplicate records across continuation requests.');
+
+assert.match(directoryPaginationHelper, /"address", "governorate", "district", "village"/,
+  'Directory search helper must include address and administrative hierarchy fields.');
+assert.match(directory, /fetchPublicDirectoryListingPage\(directoryListingRequestFilters\)/,
+  'The main directory must load a server-filtered first page rather than the legacy 500-row list.');
+assert.match(directory, /limit: 20/,
+  'The public directory must start with a 20-row page.');
+assert.match(directory, /loadMoreDirectoryListings/,
+  'The public directory must expose cursor-based continuation.');
+assert.match(directory, /governorate: selectedGovFilter !== 'all'/,
+  'Directory pagination must retain the chosen governorate scope.');
+assert.match(activityModuleView, /onDirectoryListingFiltersChange/,
+  'Activity and specialty folders must request server-side filters as their search changes.');
+assert.match(activityModuleView, /onLoadMoreListings/,
+  'Activity and specialty folders must expose their own load-more action.');
+assert.doesNotMatch(directory, /fetchPublicDirectoryListings\(\)/,
+  'The main directory must not fall back to the capped legacy directory fetch.');
 console.log('PRODUCTION_CATALOG_REAL_STATE=PASS');

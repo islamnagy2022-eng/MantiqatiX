@@ -3151,20 +3151,30 @@ A separate source review found a second platform-root authorization model: the n
 
 ### DIR-DOCTORS-EGYPT-NATIONAL — prerequisite: scalable public directory query
 
-- **Status:** OPEN — source finding confirmed in current Edge Function source.
-- `directory-listings` GET currently returns at most 500 published rows per request and supports only a listing-type filter; it does not expose governorate/district/village filters or cursor pagination.
-- Nationwide doctor expansion cannot rely on client-side filtering of that capped response. Add backward-compatible server-side geographic/specialty filters and stable keyset/cursor pagination, with a bounded page size; keep the UI's 20-item initial display and «رؤية المزيد» progressive loading.
-- Preserve public-only PUBLISHED visibility, existing ordering, no draft/hidden leakage, and current RLS/service boundary. Add tests for cursor stability, duplicates/missing rows across pages, geographic filtering, invalid limits/cursors, and empty/error states.
-- No backend function deployment is authorized or implied by this audit. Implement source/tests first, then follow the normal reviewed Edge Function deployment and deployed-origin verification gate.
+- **Status:** IMPLEMENTED ON FEATURE BRANCH; awaiting exact-head CI and review/merge.
+- The former 500-row legacy response remains backward-compatible for callers without pagination/filter parameters. The new bounded GET mode adds keyset pagination plus geographic, address, specialty, taxonomy and text filters; all filters execute in the database query before the page limit.
+- The root directory, activity module and specialty folders now use this paginated mode. Initial batch remains 20 with an explicit «رؤية المزيد» continuation.
+- Public visibility remains restricted to `PUBLISHED`; draft/hidden leakage, direct table access and changes to RLS/grants were not introduced. Production Edge deployment is still a separate reviewed release action.
 
 
-## CAT-DEFAULT-COVERS-20261101 — استخدام الصور الافتراضية كأغلفة للأطباء والصيدليات
-- **Request ledger:** GitHub issue [#633](https://github.com/islamnagy2022-eng/MantiqatiX/issues/633).
-- **Status:** COMPLETE — merged to `main` and deployed to GitHub Pages; deployment and deployed-origin browser verification passed.
-- **Requirement:** reuse the existing unverified doctor default image as both profile/logo and cover; apply the same rule to unverified pharmacies.
-- **Registered businesses:** production mapper supplies the doctor/pharmacy fallback cover only when unverified and without an owner/admin-selected cover. Explicit owner cover takes precedence; verified businesses and unrelated activities retain their previous behavior.
-- **Standalone public directory pages:** the detail-page hero reuses the same doctor/pharmacy fallback image as its background cover while retaining the square profile image. An explicit metadata cover URL takes precedence.
-- **Regression contracts:** verify both category fallbacks, owner-selected cover precedence, and standalone detail-page hero rendering.
-- **Safety:** frontend and validation only; no schema, RLS, Auth, Edge Function, or production data changes.
-- **Completed verification:** exact-head TypeScript/build, PostgreSQL checks, browser E2E and supporting workflows passed; PR #635 merged as `4796ef4736748e22f465d4fbdc1fb779ff7d8097`. GitHub Pages deploy job passed, including `Deploy to GitHub Pages`, primary catalog root verification, and deployed-origin Playwright checks for dashboard routes, mobile layout, membership scopes and permanent QR links.
-- **Deployment run:** [41269309153](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41269309153). **Post-merge frontend validation:** [41269309136](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41269309136).
+## DIR-DOCTORS-EGYPT-NATIONAL — server-side directory pagination implementation
+
+- **Status:** API + root/activity/specialty UI pagination IMPLEMENTED ON FEATURE BRANCH; helper/contract tests added; exact-head CI, browser E2E, review/merge, Edge deployment, deployed-origin verification and national data coverage OPEN.
+- Branch: `feat/national-doctor-directory-pagination-20261101`.
+- `directory-listings` GET now has a backward-compatible paginated mode activated by `limit`/cursor/filter parameters. It uses deterministic `created_at DESC, id DESC` keyset pagination, caps pages at 100, and returns `nextCursor`, `hasMore` and `pageSize`.
+- Added server-side filters for listing type, governorate, district, village, address, specialty, functional group, taxonomy category, taxonomy specialty, and text search across name, specialty, phone and location fields. Administrative/address/specialty labels use sanitized substring matching to tolerate prefixes/aliases; legacy group/category IDs expand to their canonical equivalents. Every filter executes before the SQL page limit. The public query always constrains `listing_status='PUBLISHED'`; drafts/hidden records remain inaccessible.
+- Added typed frontend `fetchPublicDirectoryListingPage` helper and connected the root `DirectoryView`, `ActivityModuleView`, and specialty-folder search to it. The public directory now requests 20 rows per page and uses «رؤية المزيد» with the next keyset cursor; activity/specialty searches are passed to the server, and selected governorate/markaz/village/area filters are preserved. The legacy helper remains for other callers.
+- Added executable helper-level tests for 1–100 page-size bounds, URL-safe cursor round-trip, malformed/oversized cursors, PostgreSQL microsecond timestamp preservation, search sanitization, combined q+cursor logic tree, deterministic keyset continuation, and legacy taxonomy/group aliases. Static release-contract assertions cover SQL-side filters, published-only visibility, typed client behavior, 20-row root loading, module/specialty server search, and continuation controls. Full isolated DB-backed pagination continuity tests remain open.
+- **Integration status:** root directory and activity/specialty folders now use server-side pagination. This does not mean the directory contains nationwide data; current production inventory remains 57 doctor listings in المنوفية / بركة السبع pending licensed sourcing and verified clinic locations.
+- Current Supabase inspection confirms `directory-listings` Production Edge Function is active at v9; this branch does not deploy it. No Production database, rows, RLS, grants, Auth, or Edge Function was changed.
+- Next: complete exact-head CI including Playwright/browser E2E, add/run isolated DB-backed Edge Function tests (cursor continuity with duplicate/missing row checks, search + geographic filters, hidden/draft exclusion), complete query/CORS review, then merge. After merge, deploy the Edge Function through the reviewed release path and verify live pagination. National data import remains a separate licensed-source and exact-clinic-geocoding workstream.
+
+
+## CAT-DEFAULT-COVERS-20261101 — أغلفة الأطباء والصيدليات غير الموثقة
+- **Request ledger:** GitHub issue #633; source fix merged to main in commit `4796ef4736748e22f465d4fbdc1fb779ff7d8097` and carried into the national-directory branch.
+- **Requirement:** use the shared unverified-doctor default image as both profile and cover; apply the shared pharmacy default the same way.
+- **Registered businesses:** fallback cover is used only for unverified doctors/pharmacies without an owner/admin-selected cover. Owner-selected cover wins; verified businesses and other categories retain existing behavior.
+- **Standalone public directory pages:** doctor/pharmacy unclaimed pages use the resolved profile default as the hero cover unless an explicit HTTPS `metadata.coverImageUrl` / `cover_image_url` is provided.
+- **Regression checks:** production mapper verifies doctor/pharmacy default cover assignment and owner-cover precedence; directory page verifies separate cover resolution and hero rendering.
+- **Safety:** frontend and validation only; no schema, RLS, Auth, Edge Function, or production data mutation.
+- **Status:** COMPLETE on `main`; carried forward to the national-directory pagination branch. Main PR #635 merged as `4796ef4736748e22f465d4fbdc1fb779ff7d8097`; GitHub Pages deployment and deployed-origin verification passed in runs #41269309153 and #41269309136. The pagination branch still requires its own combined exact-head CI and merge.

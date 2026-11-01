@@ -1684,20 +1684,44 @@ A separate source review found a second platform-root authorization model: the n
 - No production rows, schema, grants, RLS, Auth, Edge Functions or deployments were changed. National coverage remains IN PROGRESS, not complete.
 
 
-## 2026-11-01 — CAT-DEFAULT-COVERS — doctor and pharmacy default covers
-- User requested that the existing default personal image for unverified doctors also be used as the cover, and the same for pharmacies.
-- Tracked in GitHub issue #633.
-- Rebased onto the latest main after a merge-conflict response; preserved concurrent directory updates rather than overwriting them.
-- Production mapper uses the exact doctor/pharmacy default as cover only when unverified and no owner-selected cover exists; explicit owner cover wins.
-- Standalone public directory detail pages use the resolved profile image as the hero cover for unclaimed doctor/pharmacy pages; explicit metadata.coverImageUrl/cover_image_url wins.
-- Static assertions cover both categories, owner-selected cover precedence and standalone detail-page hero rendering.
-- **Verification pending on rebased head:** exact-head CI, browser E2E, merge and deployed-origin checks. No production schema/data/security/payment changes.
+## 2026-11-01 — National doctor directory pagination source implementation
+
+- Created feature branch `feat/national-doctor-directory-pagination-20261101` from main `b860d592487d9c5ab060edaf398aac442fca0961`.
+- Implemented backward-compatible keyset pagination in `supabase/functions/directory-listings/index.ts`: page size 1–100, deterministic created_at/id cursor, cursor validation, PUBLISHED-only results, and filters for type, governorate, district, village, specialty, functional group, category, taxonomy specialty and name search.
+- Added typed `fetchPublicDirectoryListingPage` frontend helper while preserving the existing legacy API function for untouched callers.
+- Added static production-contract assertions. The directory root UI has not yet been migrated to use the page helper; this is explicitly tracked as open work. Exact-head CI, merge, Edge deployment and deployed-origin verification are not yet complete.
+- Current Supabase inspection shows production `directory-listings` is v9 and still lacks keyset pagination. No production Edge deployment, database/data/schema/RLS/grant/Auth mutation or doctor import was performed.
+- Nationwide doctor data sourcing remains subject to official verification and source reuse permission. The official Egyptian Medical Syndicate has a public doctor registration/specialty lookup; it is a verification reference, not yet confirmed as a bulk clinic-address dataset. No third-party directory bulk copy was performed.
 
 
-## 2026-11-01 — CAT-DEFAULT-COVERS — merge and production deployment completed
-- Exact-head PR #635 browser E2E, TypeScript/build and PostgreSQL checks passed.
-- PR #635 was squash-merged into `main` as commit `4796ef4736748e22f465d4fbdc1fb779ff7d8097`.
-- Push-to-main frontend validation and Production Health Monitor completed successfully.
-- GitHub Pages deployment run #41269309153 completed successfully. The `Deploy to GitHub Pages` step, primary catalog root verification, and deployed-origin Playwright checks all passed.
-- Deployed-origin checks covered dashboard routes, mobile layout, membership scopes and permanent QR links.
-- No production schema, RLS, Auth, Edge Function or production data changes were made.
+## 2026-11-01 — National directory pagination UI integration
+
+- Continued `feat/national-doctor-directory-pagination-20261101` after the initial Edge Function pagination groundwork.
+- Replaced the main `DirectoryView` legacy unbounded/500-row listing fetch with `fetchPublicDirectoryListingPage` and a 20-row first page. The root view now exposes a «رؤية المزيد» action that continues via `nextCursor` and deduplicates appended rows.
+- Connected `ActivityModuleView` search and specialty-folder changes to the same server pagination filters. Requests retain the current governorate, district/markaz, village and area; activity and specialty requests add their taxonomy scope.
+- Added address filtering and widened q-search across name, specialty, phone, secondary phone, address and administrative fields. Administrative labels use substring matching to tolerate prefixed Arabic names.
+- Updated production-catalog static contracts to assert UI integration and 20-row paging. TypeScript/build/browser E2E on the exact current head must still pass before review/merge.
+- Production `directory-listings` remains deployed at v9; no Edge deployment or production data/schema/permission change took place. No doctors were imported. The 27-governorate coverage target remains IN PROGRESS.
+
+
+## 2026-11-01 — Geographic filtering hardening for national directory pagination
+
+- Reviewed the current Edge Function query path and changed governorate, district/markaz and village matching from strict equality to sanitized substring `ILIKE`, matching the existing client-side administrative-name tolerance. Address and specialty filters use the same sanitized substring behavior.
+- Confirmed that geographic, taxonomy and specialty predicates are applied before SQL `LIMIT`, preventing valid results from being skipped between pages.
+- Legacy taxonomy group/category alias expansion is included and covered by executable helper assertions; keyset cursor tests preserve microsecond timestamp precision.
+- Exact-head CI, browser E2E, isolated DB-backed page-continuity tests, merge, and production Edge deployment remain separate release gates. Current production directory coverage has not changed.
+
+
+## 2026-11-01 — carry forward doctor/pharmacy default cover change
+- Preserved main commit `4796ef4736748e22f465d4fbdc1fb779ff7d8097` while continuing national directory pagination work.
+- Applied the shared default doctor/pharmacy cover fallback to the production mapper and to unclaimed directory detail-page hero covers.
+- Explicit owner/admin cover URLs retain precedence; verified businesses and other categories keep their existing behavior.
+- Added matching static regression contracts. The pagination branch will be merged with current main ancestry before final CI/review.
+- No database/schema/RLS/Auth/Edge Function or doctor-record changes.
+
+
+## 2026-11-01 — doctor/pharmacy default cover production deployment carried forward
+- Main PR #635 merged as `4796ef4736748e22f465d4fbdc1fb779ff7d8097`.
+- GitHub Pages deployment run #41269309153 and post-merge frontend validation #41269309136 passed, including deployed-origin browser checks.
+- The exact doctor/pharmacy fallback cover changes and their static assertions have been carried into the national-directory pagination branch; no production Edge or directory data change is included.
+- This does not close the separate national pagination workstream; its browser cursor test and exact-head CI must pass before PR #634 can merge.

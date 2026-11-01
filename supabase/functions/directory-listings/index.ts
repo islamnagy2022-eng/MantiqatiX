@@ -1,4 +1,13 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import {
+  buildDirectoryPaginationOrFilter,
+  decodeDirectoryPaginationCursor,
+  encodeDirectoryPaginationCursor,
+  expandDirectoryFunctionalGroupIds,
+  expandDirectoryTaxonomyCategoryIds,
+  parseDirectoryPaginationLimit,
+  sanitizeDirectoryPaginationSearch,
+} from "./pagination-filter.mjs";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const allowedOrigins = new Set([
@@ -73,12 +82,71 @@ Deno.serve(async (req: Request) => {
       return out(origin, { listing: { ...publicListing, can_edit: canEdit, owned_business_id: canEdit ? String(data.claimed_business_id || "") : null } });
     }
     const type = clean(url.searchParams.get("type"), 40);
-    let query = service.from("public_directory_listings").select(publicFields)
-      .eq("listing_status", "PUBLISHED").order("specialty", { ascending: true }).order("display_name", { ascending: true }).limit(500);
-    if (type && listingTypes.has(type)) query = query.eq("listing_type", type);
-    const { data, error } = await query;
+    const pageMode = ["limit","cursor","governorate","district","village","address","specialty","functionalGroupId","taxonomyCategoryId","taxonomySpecialty","q"].some((key) => url.searchParams.has(key));
+    if (!pageMode) {
+      let legacyQuery = service.from("public_directory_listings").select(publicFields)
+        .eq("listing_status", "PUBLISHED").order("specialty", { ascending: true }).order("display_name", { ascending: true }).limit(500);
+      if (type && listingTypes.has(type)) legacyQuery = legacyQuery.eq("listing_type", type);
+      const { data, error } = await legacyQuery;
+      if (error) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
+      return out(origin, { listings: data || [] });
+    }
+
+    // Stable keyset pagination: never use offset for the growing national directory.
+    const limit = parseDirectoryPaginationLimit(url.searchParams.get("limit"));
+    if (limit === null) {
+      return out(origin, { error: "INVALID_PAGE_LIMIT", message: "حجم الصفحة يجب أن يكون بين 1 و100." }, 400);
+    }
+    let cursor: { created_at: string; id: string } | null;
+    try {
+      cursor = decodeDirectoryPaginationCursor(clean(url.searchParams.get("cursor"), 1200));
+    } catch {
+      return out(origin, { error: "INVALID_PAGE_CURSOR", message: "مؤشر تحميل النتائج غير صالح. أعد تحميل الدليل." }, 400);
+    }
+
+    let pageQuery = service.from("public_directory_listings").select(publicFields)
+      .eq("listing_status", "PUBLISHED")
+      .order("created_at", { ascending: false }).order("id", { ascending: false })
+      .limit(limit + 1);
+    if (type && listingTypes.has(type)) pageQuery = pageQuery.eq("listing_type", type);
+    const governorate = clean(url.searchParams.get("governorate"), 100);
+    const district = clean(url.searchParams.get("district"), 100);
+    const village = clean(url.searchParams.get("village"), 100);
+    const address = clean(url.searchParams.get("address"), 250);
+    const specialty = clean(url.searchParams.get("specialty"), 160);
+    const functionalGroupId = clean(url.searchParams.get("functionalGroupId"), 100);
+    const taxonomyCategoryId = clean(url.searchParams.get("taxonomyCategoryId"), 180);
+    const taxonomySpecialty = clean(url.searchParams.get("taxonomySpecialty"), 160);
+
+    // Apply every explicit public filter in SQL before limiting the page.
+    // This is essential: filtering after a 20-row fetch would silently omit valid matches.
+    // Match canonical labels against common stored prefixes such as "محافظة" / "مركز" / "قرية".
+    // Sanitization removes PostgREST wildcards and logical-filter delimiters before building ILIKE values.
+    const governorateSearch = sanitizeDirectoryPaginationSearch(governorate);
+    const districtSearch = sanitizeDirectoryPaginationSearch(district);
+    const villageSearch = sanitizeDirectoryPaginationSearch(village);
+    if (governorateSearch) pageQuery = pageQuery.ilike("governorate", "%" + governorateSearch + "%");
+    if (districtSearch) pageQuery = pageQuery.ilike("district", "%" + districtSearch + "%");
+    if (villageSearch) pageQuery = pageQuery.ilike("village", "%" + villageSearch + "%");
+    if (address) {
+      const addressSearch = sanitizeDirectoryPaginationSearch(address);
+      if (addressSearch) pageQuery = pageQuery.ilike("address", "%" + addressSearch + "%");
+    }
+    if (functionalGroupId) pageQuery = pageQuery.in("functional_group_id", expandDirectoryFunctionalGroupIds(functionalGroupId));
+    if (taxonomyCategoryId) pageQuery = pageQuery.in("taxonomy_category_id", expandDirectoryTaxonomyCategoryIds(taxonomyCategoryId));
+
+    const search = sanitizeDirectoryPaginationSearch(url.searchParams.get("q"));
+    // Keep free-text search, the selected specialty across both stored fields, and the keyset cursor in one logic tree.
+    const logicalFilter = buildDirectoryPaginationOrFilter(search, cursor, taxonomySpecialty || specialty);
+    if (logicalFilter) pageQuery = pageQuery.or(logicalFilter);
+    const { data, error } = await pageQuery;
     if (error) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
-    return out(origin, { listings: data || [] });
+    const rows = data || [];
+    const hasMore = rows.length > limit;
+    const listings = hasMore ? rows.slice(0, limit) : rows;
+    const last = listings[listings.length - 1];
+    const nextCursor = hasMore && last ? encodeDirectoryPaginationCursor({ created_at: last.created_at, id: last.id }) : null;
+    return out(origin, { listings, nextCursor, hasMore, pageSize: limit });
   }
   if (req.method !== "POST") return out(origin, { error: "METHOD_NOT_ALLOWED" }, 405);
   let body: any;
