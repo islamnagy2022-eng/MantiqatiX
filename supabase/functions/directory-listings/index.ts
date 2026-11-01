@@ -132,17 +132,12 @@ Deno.serve(async (req: Request) => {
       const addressSearch = sanitizeDirectoryPaginationSearch(address);
       if (addressSearch) pageQuery = pageQuery.ilike("address", "%" + addressSearch + "%");
     }
-    if (specialty) {
-      const specialtySearch = sanitizeDirectoryPaginationSearch(specialty);
-      if (specialtySearch) pageQuery = pageQuery.ilike("specialty", "%" + specialtySearch + "%");
-    }
     if (functionalGroupId) pageQuery = pageQuery.in("functional_group_id", expandDirectoryFunctionalGroupIds(functionalGroupId));
     if (taxonomyCategoryId) pageQuery = pageQuery.in("taxonomy_category_id", expandDirectoryTaxonomyCategoryIds(taxonomyCategoryId));
-    if (taxonomySpecialty) pageQuery = pageQuery.eq("taxonomy_specialty", taxonomySpecialty);
 
     const search = sanitizeDirectoryPaginationSearch(url.searchParams.get("q"));
-    // Keep q and keyset continuation in one PostgREST logic tree.
-    const logicalFilter = buildDirectoryPaginationOrFilter(search, cursor);
+    // Keep free-text search, the selected specialty across both stored fields, and the keyset cursor in one logic tree.
+    const logicalFilter = buildDirectoryPaginationOrFilter(search, cursor, taxonomySpecialty || specialty);
     if (logicalFilter) pageQuery = pageQuery.or(logicalFilter);
     const { data, error } = await pageQuery;
     if (error) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
