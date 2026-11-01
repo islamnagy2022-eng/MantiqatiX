@@ -17,7 +17,7 @@ const SEARCH_COLUMNS = [
 export function sanitizeDirectoryPaginationSearch(value: unknown): string {
   return String(value ?? "")
     .slice(0, 100)
-    .replace(/[%,()."\\_]/g, " ")
+    .replace(/[%,;()."\\_]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -49,5 +49,5 @@ export function buildDirectoryPaginationOrFilter(
     return SEARCH_COLUMNS.map((column) => column + ".ilike." + pattern).join(",");
   }
 
-  return cursorExpression ? cursorExpression.slice(3, -1) : "";
+  return cursorExpression ? cursorExpression.slice(3, -1) : null;
 }
