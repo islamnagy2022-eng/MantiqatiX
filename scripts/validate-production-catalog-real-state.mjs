@@ -269,8 +269,8 @@ assert.match(directoryListingsLib, /address: filters\.address/,
   'The public directory client must pass the selected street/area filter to the paginated API.');
 assert.match(directoryListingsFunction, /address = clean\(url\.searchParams\.get\("address"\)/,
   'The paginated API must support server-side street/area filtering.');
-assert.match(directoryListingsFunction, /secondary_phone\.ilike\./,
-  'Directory search must match public contact fields as well as listing names.');
+assert.match(directoryListingsFunction, /"phone", "secondary_phone"/,
+  'Directory search must include both primary and secondary phone fields.');
 
 assert.match(directoryListingsFunction, /if \(search && cursor\)[\s\S]*pageQuery = pageQuery\.or\(searchColumns\.map/,
   'Search plus cursor pagination must be expressed as one combined PostgREST logic tree.');
@@ -280,8 +280,8 @@ assert.doesNotMatch(directoryListingsFunction, /if \(cursor\)\s*\{\s*pageQuery =
   'Search and cursor predicates must not be attached as separate OR query parameters.');
 assert.match(directoryListingsFunction, /replace\(\/\[%,\(\)\."\\\\\]\/g, " "\)/,
   'Search syntax delimiters must be removed before constructing the PostgREST filter tree.');
-assert.match(directoryListingsFunction, /village\.ilike\./,
-  'Directory search must match address hierarchy fields.');
+assert.match(directoryListingsFunction, /"address", "governorate", "district", "village"/,
+  'Directory search must include address and administrative hierarchy fields.');
 assert.match(directory, /fetchPublicDirectoryListingPage\(directoryListingRequestFilters\)/,
   'The main directory must load a server-filtered first page rather than the legacy 500-row list.');
 assert.match(directory, /limit: 20/,
