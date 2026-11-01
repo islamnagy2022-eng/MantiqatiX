@@ -274,8 +274,8 @@ assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("village"
   'Village must be applied with prefix-tolerant matching before the page limit.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("address",/,
   'Area/address must be applied to the database query before the page limit.');
-assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("specialty",/,
-  'Specialty must be applied to the database query before the page limit.');
+assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(search, cursor, taxonomySpecialty \|\| specialty\)/,
+  'Selected specialty must be applied before the page limit through the combined server-side filter expression.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.in\("functional_group_id", expandDirectoryFunctionalGroupIds\(functionalGroupId\)\)/,
   'Functional group must be applied to the database query with legacy ID compatibility before the page limit.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.in\("taxonomy_category_id", expandDirectoryTaxonomyCategoryIds\(taxonomyCategoryId\)\)/,
