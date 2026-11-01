@@ -1644,3 +1644,16 @@ PR: [#640](https://github.com/islamnagy2022-eng/MantiqatiX/pull/640). Feature br
 
 
 - [!] Importer limitation found during source-rights review: `sourcePermissionStatus` is currently an admin-entered declaration; the function does not independently validate or persist the underlying licence/consent artifact. It must not be described as verified permission. Add a private, auditable evidence registry (licence/consent reference, evidence date, reviewer, expiry/revocation state) and enforce it before autonomous or high-volume ingestion.
+
+
+## 2026-11-01 — Two-person source-permission evidence registry
+
+- [x] Add migration `20261101150000_directory_source_permission_evidence.sql` with a private evidence table, FORCE RLS, no anon/authenticated grants, and service-role-only access.
+- [x] Add platform-Super-Admin-guarded actions to register PENDING evidence, list registry entries, approve with a second distinct administrator, and revoke.
+- [x] Change doctor batch imports to require an approved evidence UUID, exact source-name and normalized hostname match, doctor-profile plus commercial republication scope, current validity, and no revocation. Free-text `sourcePermissionStatus` no longer authorizes an import.
+- [x] Expand the static contract validator to assert private RLS isolation, second-person approval, scope matching, expiry, revocation, and frontend enforcement.
+- [!] Runtime migration replay and authenticated function-invocation tests have not yet run. The Supabase tool connection currently does not expose the required Edge Function invoke operation; do not deploy this migration/function to Production until an isolated invocation path is available.
+- [!] Registry review is a human attestation against a private document reference. It does not itself establish legal sufficiency; source owner / legal approval is still required.
+- [ ] Run exact-head Deno, contract, build, RBAC, and browser E2E checks after the evidence-registry changes. Resolve all failures.
+- [ ] Run isolated database migration replay, plus synthetic Edge Function tests for register → second-person approve → evidence scope match → insert/update; reject creator self-approval, mismatched host/name, expired/revoked evidence, no-phone publication, and non-admin access.
+- [ ] Keep production version unchanged until all release gates pass; then merge, apply migration, deploy function, verify a disposable synthetic listing, and audited-clean it.
