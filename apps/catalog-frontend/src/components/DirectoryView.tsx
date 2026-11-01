@@ -388,7 +388,7 @@ export const DirectoryView: React.FC = () => {
         cursor: directoryListingsCursor,
       });
       setUnconfirmedListings((current) => {
-        const unique = new Map(current.map((listing) => [listing.id, listing]));
+        const unique = new Map<string, PublicDirectoryListing>(current.map((listing) => [listing.id, listing] as const));
         page.listings.forEach((listing) => {
           if (listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED') unique.set(listing.id, listing);
         });
