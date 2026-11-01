@@ -207,7 +207,7 @@ export type DoctorDirectoryImportRow = {
   sourceUrl: string;
   sourcePermissionStatus: "LICENSED" | "OWNER_PROVIDED" | "PUBLIC_PERMISSION_CONFIRMED";
   sourceCheckedAt?: string;
-  listingStatus?: "PUBLISHED" | "DRAFT";
+  listingStatus?: "PUBLISHED" | "DRAFT" | "HIDDEN";
   metadata?: Record<string, unknown>;
 };
 
