@@ -182,3 +182,11 @@ Partial execution started: 34 verified insertions across the documented batches 
 - Source discovery: Dalil140 exposes Egypt-wide and governorate/specialty doctor pages with names, phone numbers and addresses; Egyptian Medical Syndicate describes an official lookup by doctor name/registration number and medical facilities by governorate. Reuse terms and source-level freshness must be reviewed; do not bulk-copy other aggregators absent explicit reuse permission. Every new record must retain its exact source URL and retrieval date.
 - No records were inserted and no production data/schema/permissions/functions were changed during this baseline audit. The new national expansion task is tracked in TODO_PRODUCTION.md and master request issue #599.
 - Next: map the 27-governorate / 365-district hierarchy to source coverage; identify source terms and actual geocoding path; then process bounded governorate batches with global normalized Arabic-name/phone duplicate checks, correct individual-doctor taxonomy, exact clinic location, owner-unverified status, and read-after-write verification.
+
+
+## 2026-11-01 — National doctor directory pagination source implementation
+
+- Added backward-compatible keyset pagination to the directory Edge Function source on `feat/national-doctor-directory-pagination-20261101`.
+- New paginated mode supports a maximum of 100 records per request, stable created_at/id cursor, PUBLISHED-only rows and geographic/taxonomy filters. The old GET contract remains unchanged for legacy clients.
+- Added typed frontend page-fetch helper and static assertions. Root `DirectoryView` and activity-folder pagination integration remain open; this is not yet a complete nationwide browsing experience.
+- No production function deployment or data import. Keep the national coverage task IN PROGRESS.
