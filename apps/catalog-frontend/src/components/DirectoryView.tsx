@@ -32,7 +32,7 @@ import {
   Utensils,
 } from 'lucide-react';
 import { formatEgyptianLocation } from '../utils/rules';
-import { resolveDefaultImage } from '../utils/defaultImages';
+import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from '../utils/defaultImages';
 import { DirectoryListingsView } from './DirectoryListingsView';
 import { ActivityModuleView } from '../modules/activities/ActivityModuleView';
 import { fetchPublicDirectoryListingPage, type PublicDirectoryListing, type PublicDirectoryListingFilters } from '../lib/directoryListings';
@@ -77,6 +77,20 @@ interface CoverSlide {
   businessId?: string;
 }
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
+
+// Resolve a category-specific cover for unverified directory activities.
+// The generic store icon is only a last-resort fallback, never the normal cover.
+const directoryCoverImage = (biz: Business): string => {
+  const categoryText = [biz.name, biz.category, biz.bio].filter(Boolean).join(' ').toLocaleLowerCase();
+  if (!biz.isVerified && /صيدل|pharmacy|chemist/.test(categoryText)) return UNVERIFIED_PHARMACY_IMAGE_URL;
+  if (!biz.isVerified && /طبيب|دكتور|عياد|مركز طبي|medical|doctor|clinic|hospital/.test(categoryText)) return UNVERIFIED_DOCTOR_IMAGE_URL;
+  return String(biz.coverUrl || '').trim() || resolveDefaultImage({
+    name: biz.name,
+    description: biz.bio,
+    category: biz.category,
+    kind: 'cover',
+  });
+};
 const GEO_DISCOVERY_STORAGE_KEY = 'mantiqatix.geo-discovery.v1';
 
 const normalizeGeoName = (value: unknown) => String(value || '').toLocaleLowerCase('ar-EG')
@@ -1050,14 +1064,20 @@ export const DirectoryView: React.FC = () => {
                       {/* Cover Photo & Badges */}
                       <div className="relative h-20 sm:h-36 bg-slate-800 overflow-hidden">
                         <img
-                          src={biz.coverUrl || BUSINESS_PLACEHOLDER}
+                          src={directoryCoverImage(biz)}
                           alt={biz.name}
                           loading="lazy"
                           decoding="async"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           onError={(e) => {
                             const image = e.currentTarget;
-                            if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
+                            const fallback = directoryCoverImage({ ...biz, coverUrl: '' });
+                            if (image.dataset.fallbackApplied !== 'true') {
+                              image.dataset.fallbackApplied = 'true';
+                              image.src = fallback || BUSINESS_PLACEHOLDER;
+                            } else if (!image.src.endsWith('/business-placeholder.svg')) {
+                              image.src = BUSINESS_PLACEHOLDER;
+                            }
                           }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
