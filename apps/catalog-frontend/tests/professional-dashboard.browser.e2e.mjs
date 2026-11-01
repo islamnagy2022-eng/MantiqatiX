@@ -303,7 +303,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
       let body = {};
       try { body = request.method() === 'POST' ? request.postDataJSON() || {} : {}; } catch { /* no JSON body */ }
       if (request.method() === 'POST') {
-        directoryAdminRequests.push({ action: String(body.action || ''), authorization: request.headers().authorization || '' });
+        directoryAdminRequests.push({ action: String(body.action || ''), payload: body, authorization: request.headers().authorization || '' });
       }
       if (request.method() === 'GET') {
         const params = Object.fromEntries(url.searchParams.entries());
