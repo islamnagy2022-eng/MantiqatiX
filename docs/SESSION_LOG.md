@@ -1682,3 +1682,13 @@ A separate source review found a second platform-root authorization model: the n
 - Confirmed existing schema supports governorate/district/village/address and metadata; directory Edge Function upsert is platform-Super-Admin-only, publication requires a valid phone, and the table remains RLS/FORCE RLS protected with anon/authenticated grants revoked.
 - Source discovery identified Dalil140's Egypt-wide doctor directory and official Egyptian Medical Syndicate doctor/facility lookup. No bulk import was performed; reuse rights, source freshness, geocoding and exact branch locations must be validated before insertion.
 - No production rows, schema, grants, RLS, Auth, Edge Functions or deployments were changed. National coverage remains IN PROGRESS, not complete.
+
+
+## 2026-11-01 — CAT-DEFAULT-COVERS — doctor and pharmacy default covers
+- User requested that the existing default personal image for unverified doctors also be used as the cover, and the same for pharmacies.
+- Tracked in GitHub issue #633.
+- Rebased onto the latest main after a merge-conflict response; preserved concurrent directory updates rather than overwriting them.
+- Production mapper uses the exact doctor/pharmacy default as cover only when unverified and no owner-selected cover exists; explicit owner cover wins.
+- Standalone public directory detail pages use the resolved profile image as the hero cover for unclaimed doctor/pharmacy pages; explicit metadata.coverImageUrl/cover_image_url wins.
+- Static assertions cover both categories, owner-selected cover precedence and standalone detail-page hero rendering.
+- **Verification pending on rebased head:** exact-head CI, browser E2E, merge and deployed-origin checks. No production schema/data/security/payment changes.
