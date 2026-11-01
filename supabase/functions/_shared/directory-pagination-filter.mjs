@@ -17,8 +17,8 @@ const DIRECTORY_SEARCH_COLUMNS = Object.freeze([
 export function sanitizeDirectoryPaginationSearch(value) {
   return String(value ?? "")
     .slice(0, 100)
-    .replace(/[^\\p{L}\\p{N}\\s+-]/gu, " ")
-    .replace(/\\s+/g, " ")
+    .replace(/[^\p{L}\p{N}\s+-]/gu, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
