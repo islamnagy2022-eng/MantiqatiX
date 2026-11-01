@@ -1641,3 +1641,6 @@ PR: [#640](https://github.com/islamnagy2022-eng/MantiqatiX/pull/640). Feature br
 - [ ] Arrange an authorized isolated Edge Function invocation path and run insert, duplicate update, no-phone DRAFT, DRAFT/HIDDEN/CLAIM preservation, and unauthorized rejection tests using disposable synthetic records only.
 - [ ] Only after rights review and authenticated tests: merge PR #640, deploy the updated function, verify the public directory with a disposable record, then perform audited cleanup.
 - [ ] After source permission exists, resume discovery in persisted batches; do not resume automated scraping from terms-restricted directories.
+
+
+- [!] Importer limitation found during source-rights review: `sourcePermissionStatus` is currently an admin-entered declaration; the function does not independently validate or persist the underlying licence/consent artifact. It must not be described as verified permission. Add a private, auditable evidence registry (licence/consent reference, evidence date, reviewer, expiry/revocation state) and enforce it before autonomous or high-volume ingestion.
