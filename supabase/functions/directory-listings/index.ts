@@ -50,7 +50,7 @@ const normalizeDirectorySourceHost = (value: unknown): string => {
     const parsed = new URL(raw.includes("://") ? raw : "https://" + raw);
     if (!["https:", "http:"].includes(parsed.protocol) || parsed.username || parsed.password || parsed.port ||
         parsed.pathname !== "/" || parsed.search || parsed.hash) return "";
-    return parsed.hostname.replace(/^www\\./, "").toLowerCase();
+    return parsed.hostname.replace(/^www\./, "").toLowerCase();
   } catch {
     return "";
   }
