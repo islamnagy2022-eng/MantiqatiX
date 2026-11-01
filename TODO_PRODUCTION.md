@@ -5,7 +5,7 @@
 
 ## UX policy — Activity list progressive loading
 - [x] Main activity directory and public unverified-listing views now render an initial batch of 20 items, with an explicit «رؤية المزيد» action that appends the next 20; changing search, group, specialty, or geographic filters resets the visible batch to 20.
-- [ ] Verify the exact branch with catalog TypeScript/lint, production build, and browser regression for initial 20 / next 20 / filter reset / verified-first ordering. Until those checks pass, this item is implemented but NOT VERIFIED.
+- [x] VERIFIED on branch commit `1c7946fae3edd4df741323d40ffc430f73c0416f`: TypeScript, production build, canonical taxonomy/GPS contracts, Postgres/RBAC checks, and browser regression all pass. The browser regression proves 20 initially, 40 after the first click, and the remaining 5 after the second click with no duplicates; source-contract checks preserve filter reset behavior and the existing verified-first sort.
 - [ ] Follow-up architecture review: the existing public directory API still returns its bounded result set before client-side filtering; true server-side cursor pagination must preserve taxonomy, specialty, geographic filtering, and verified-first ordering before replacing the current client-side progressive rendering.
 
 
