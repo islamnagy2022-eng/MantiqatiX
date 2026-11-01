@@ -1598,7 +1598,7 @@ A separate source review found a second platform-root authorization model: the n
 
 ## 2026-11-01 — Incremental Doctor Directory Ingestion
 
-- [ ] Add and verify `IMPORT_DOCTOR_BATCH` in `directory-listings`: sequential batches of 1–50 doctors, row-level results, and immediate persistence.
+- [x] Add `IMPORT_DOCTOR_BATCH` in `directory-listings`: sequential batches of 1–20 doctors, row-level results, and immediate persistence (code committed; runtime verification remains pending).
 - [ ] Verify duplicate matching by phone and exact name + governorate + district; update existing rows instead of duplicating.
 - [ ] Keep the existing publication guard: records with a valid phone may publish; records without a valid phone remain DRAFT and must not receive invented contact details.
 - [ ] Preserve already-published rows when later source snapshots omit a phone number.
