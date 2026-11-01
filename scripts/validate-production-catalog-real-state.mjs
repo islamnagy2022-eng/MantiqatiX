@@ -1,5 +1,9 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import {
+  buildDirectoryPaginationOrFilter,
+  sanitizeDirectoryPaginationSearch,
+} from '../supabase/functions/_shared/directory-pagination-filter.mjs';
 
 const admin = fs.readFileSync('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx', 'utf8');
 const context = fs.readFileSync('apps/catalog-frontend/src/context/AppContext.tsx', 'utf8');
@@ -272,14 +276,34 @@ assert.match(directoryListingsFunction, /address = clean\(url\.searchParams\.get
 assert.match(directoryListingsFunction, /"phone", "secondary_phone"/,
   'Directory search must include both primary and secondary phone fields.');
 
-assert.match(directoryListingsFunction, /if \(search && cursor\)[\s\S]*pageQuery = pageQuery\.or\(searchColumns\.map/,
-  'Search plus cursor pagination must be expressed as one combined PostgREST logic tree.');
-assert.match(directoryListingsFunction, /const cursorExpression = cursor/,
-  'Keyset continuation must be represented explicitly for both search and non-search requests.');
-assert.doesNotMatch(directoryListingsFunction, /if \(cursor\)\s*\{\s*pageQuery = pageQuery\.or/,
-  'Search and cursor predicates must not be attached as separate OR query parameters.');
-assert.match(directoryListingsFunction, /replace\(\/\[%,\(\)\."\\\\\]\/g, " "\)/,
-  'Search syntax delimiters must be removed before constructing the PostgREST filter tree.');
+assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(search, cursor\)/,
+  'The Edge Function must apply the isolated search + cursor filter builder.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.or\(logicalFilter\)/,
+  'A paginated request must attach its logical filter tree exactly once.');
+assert.match(directoryListingsFunction, /directory-pagination-filter\.mjs/,
+  'The Edge Function must import the independently testable pagination filter builder.');
+
+const testCursor = { created_at: '2026-11-01T00:00:00.000Z', id: '123e4567-e89b-42d3-a456-426614174000' };
+const combinedDirectoryFilter = buildDirectoryPaginationOrFilter('طبيب', testCursor);
+assert.ok(combinedDirectoryFilter, 'Search + cursor must produce a PostgREST filter expression.');
+assert.match(combinedDirectoryFilter, /and\(display_name\.ilike\.%طبيب%,or\(created_at\.lt\./,
+  'Search + cursor must constrain each searched field by the same keyset cursor.');
+assert.match(combinedDirectoryFilter, /secondary_phone\.ilike\.%طبيب%/,
+  'Search + cursor must include secondary contact fields.');
+assert.match(combinedDirectoryFilter, /village\.ilike\.%طبيب%/,
+  'Search + cursor must include administrative location fields.');
+assert.equal((combinedDirectoryFilter.match(/created_at\.lt\./g) || []).length, 9,
+  'Search + cursor must apply the cursor to all nine searchable fields.');
+const cursorOnlyFilter = buildDirectoryPaginationOrFilter('', testCursor);
+assert.equal(cursorOnlyFilter, 'created_at.lt.2026-11-01T00:00:00.000Z,and(created_at.eq.2026-11-01T00:00:00.000Z,id.lt.123e4567-e89b-42d3-a456-426614174000)',
+  'Cursor-only pagination must preserve the deterministic timestamp/id continuation.');
+const searchOnlyFilter = buildDirectoryPaginationOrFilter('عيادة', null);
+assert.match(searchOnlyFilter, /display_name\.ilike\.%عيادة%/);
+assert.match(searchOnlyFilter, /phone\.ilike\.%عيادة%/);
+assert.equal(buildDirectoryPaginationOrFilter('', null), null,
+  'No search and no cursor must not add a logical OR filter.');
+assert.equal(sanitizeDirectoryPaginationSearch('دكتور,(x)%";drop'), 'دكتور x drop',
+  'Free-text search must remove PostgREST grammar delimiters and wildcard injection characters.');
 assert.match(directoryListingsFunction, /"address", "governorate", "district", "village"/,
   'Directory search must include address and administrative hierarchy fields.');
 assert.match(directory, /fetchPublicDirectoryListingPage\(directoryListingRequestFilters\)/,
