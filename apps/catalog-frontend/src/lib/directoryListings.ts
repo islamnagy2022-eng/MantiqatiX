@@ -203,8 +203,9 @@ export type DoctorDirectoryImportRow = {
   address?: string;
   village?: string;
   taxonomySpecialty?: string;
-  sourceName?: string;
-  sourceUrl?: string;
+  sourceName: string;
+  sourceUrl: string;
+  sourcePermissionStatus: "LICENSED" | "OWNER_PROVIDED" | "PUBLIC_PERMISSION_CONFIRMED";
   sourceCheckedAt?: string;
   listingStatus?: "PUBLISHED" | "DRAFT";
   metadata?: Record<string, unknown>;
