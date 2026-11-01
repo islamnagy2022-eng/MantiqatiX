@@ -133,9 +133,11 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
       const rows = Array.isArray(parsed) ? parsed : parsed?.rows;
       if (!Array.isArray(rows)) throw new Error("أدخل مصفوفة JSON أو كائنًا يحتوي على rows.");
       const result = await importDoctorDirectoryBatch(rows);
-      setBatchSummary(`تمت معالجة ${result.processed} طبيبًا: ${result.inserted} جديد، ${result.updated} تحديث، ${result.drafted} مسودة، ${result.failed} فشل.`);
-      setMessage(result.failed ? "اكتمل الاستيراد مع وجود سجلات تحتاج مراجعة." : "تم حفظ دفعة الأطباء بنجاح.");
-      setBatchJson("");
+      const failedRows = result.results.filter((item) => item.status === "failed");
+      const failuresText = failedRows.map((item) => `السجل ${item.index + 1}: ${item.reason || "فشل غير محدد"}`).join("؛ ");
+      setBatchSummary(`تمت معالجة ${result.processed} طبيبًا: ${result.inserted} جديد، ${result.updated} تحديث، ${result.drafted} مسودة، ${result.failed} فشل.${failuresText ? " " + failuresText : ""}`);
+      setMessage(result.failed ? "تم حفظ السجلات الناجحة. أصلح السجلات الفاشلة وأعد إرسالها." : "تم حفظ دفعة الأطباء بنجاح.");
+      if (!result.failed) setBatchJson("");
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "تعذر استيراد دفعة الأطباء.");
