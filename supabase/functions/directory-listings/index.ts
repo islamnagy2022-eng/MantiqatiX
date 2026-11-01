@@ -279,12 +279,15 @@ Deno.serve(async (req: Request) => {
     const evidenceReference = clean(body.evidenceReference, 500);
     const evidenceSha256 = clean(body.evidenceSha256, 64).toLowerCase();
     const expiresAt = body.expiresAt ? dateOrNull(body.expiresAt) : null;
+    const allowsDoctorProfileRepublication = body.allowsDoctorProfileRepublication === true;
+    const allowsCommercialRepublication = body.allowsCommercialRepublication === true;
     const validBases = new Set(["LICENSED", "OWNER_PROVIDED", "PUBLIC_PERMISSION_CONFIRMED"]);
     if (sourceName.length < 2 || !sourceHost || !validBases.has(permissionBasis) ||
         evidenceReference.length < 3 || !/^(private:\/\/[A-Za-z0-9._/-]{1,480}|contract:[A-Za-z0-9._:-]{1,480})$/.test(evidenceReference) ||
         evidenceReference.includes("..") || (body.expiresAt && !expiresAt) ||
+        !allowsDoctorProfileRepublication || !allowsCommercialRepublication ||
         (evidenceSha256 && !/^[0-9a-f]{64}$/.test(evidenceSha256))) {
-      return out(origin, { error: "INVALID_SOURCE_PERMISSION_EVIDENCE", message: "أدخل اسم المصدر ونطاقه ومرجع مستند داخلي صالح وأساس الإذن." }, 400);
+      return out(origin, { error: "INVALID_SOURCE_PERMISSION_EVIDENCE", message: "لا تسجل المصدر إلا إذا كان المستند يسمح صراحة بإعادة نشر ملفات الأطباء وبالاستخدام التجاري، مع مرجع داخلي صالح." }, 400);
     }
     const { data, error } = await service.from("directory_source_permission_evidence").insert({
       source_name: sourceName,
@@ -292,8 +295,8 @@ Deno.serve(async (req: Request) => {
       permission_basis: permissionBasis,
       evidence_reference: evidenceReference,
       evidence_sha256: evidenceSha256 || null,
-      allows_doctor_profile_republication: true,
-      allows_commercial_republication: true,
+      allows_doctor_profile_republication: allowsDoctorProfileRepublication,
+      allows_commercial_republication: allowsCommercialRepublication,
       expires_at: expiresAt,
       status: "PENDING",
       created_by: user.id,
@@ -449,7 +452,7 @@ Deno.serve(async (req: Request) => {
         results.push({ index, status: "failed", reason: "PHONE_REQUIRED_FOR_PUBLICATION" });
         continue;
       }
-      const listingStatus = hasPhone && allowedListingStatuses.has(requestedStatus) ? requestedStatus : "DRAFT";
+      const listingStatus = requestedStatus === "PUBLISHED" && !hasPhone ? "DRAFT" : requestedStatus;
       const completeness = {
         name: true,
         specialty: true,
@@ -506,15 +509,20 @@ Deno.serve(async (req: Request) => {
       try {
         let existing: any = null;
         if (hasPhone) {
-          const byPrimaryPhone = await service.from("public_directory_listings")
-            .select("id,slug,listing_status,metadata,source_checked_at,completeness").eq("listing_type", "doctor").eq("phone", phone).limit(1).maybeSingle();
-          if (byPrimaryPhone.error) throw byPrimaryPhone.error;
-          existing = byPrimaryPhone.data;
-          if (!existing && secondaryPhone) {
+          const phoneCandidates = Array.from(new Set([phone, secondaryPhone].filter(Boolean)));
+          for (const candidatePhone of phoneCandidates) {
+            const byPrimaryPhone = await service.from("public_directory_listings")
+              .select("id,slug,listing_status,metadata,source_checked_at,completeness")
+              .eq("listing_type", "doctor").eq("phone", candidatePhone).limit(1).maybeSingle();
+            if (byPrimaryPhone.error) throw byPrimaryPhone.error;
+            existing = byPrimaryPhone.data;
+            if (existing) break;
             const bySecondaryPhone = await service.from("public_directory_listings")
-              .select("id,slug,listing_status,metadata,source_checked_at,completeness").eq("listing_type", "doctor").eq("secondary_phone", secondaryPhone).limit(1).maybeSingle();
+              .select("id,slug,listing_status,metadata,source_checked_at,completeness")
+              .eq("listing_type", "doctor").eq("secondary_phone", candidatePhone).limit(1).maybeSingle();
             if (bySecondaryPhone.error) throw bySecondaryPhone.error;
             existing = bySecondaryPhone.data;
+            if (existing) break;
           }
         }
         if (!existing) {
@@ -552,14 +560,14 @@ Deno.serve(async (req: Request) => {
           if (saved.error) throw saved.error;
           updated += 1;
           if (saved.data.listing_status === "DRAFT") drafted += 1;
-          results.push({ index, status: saved.data.listing_status === "PUBLISHED" ? "updated_published" : "updated_draft", id: saved.data.id });
+          results.push({ index, status: "updated_" + String(saved.data.listing_status).toLowerCase(), id: saved.data.id });
         } else {
           const saved = await service.from("public_directory_listings")
             .insert({ ...patch, created_by: user.id }).select("id,listing_status").single();
           if (saved.error) throw saved.error;
           inserted += 1;
           if (saved.data.listing_status === "DRAFT") drafted += 1;
-          results.push({ index, status: saved.data.listing_status === "PUBLISHED" ? "inserted_published" : "inserted_draft", id: saved.data.id });
+          results.push({ index, status: "inserted_" + String(saved.data.listing_status).toLowerCase(), id: saved.data.id });
         }
       } catch (error) {
         failed += 1;
