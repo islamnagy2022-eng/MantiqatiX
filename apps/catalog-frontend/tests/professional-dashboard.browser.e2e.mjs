@@ -812,7 +812,6 @@ try {
       { initialRoute: '?view=super_admin&tab=directory_listings', directoryListingsState },
     );
     try {
-      await waitForDashboard(page);
       await page.getByRole('button', { name: /دليل الأنشطة والمطالبات/ }).click();
       await page.getByText('عيادة اختبار قديمة', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       const evidenceListRequest = directoryAdminRequests.find((request) => request.action === 'ADMIN_LIST_SOURCE_PERMISSION_EVIDENCE');
