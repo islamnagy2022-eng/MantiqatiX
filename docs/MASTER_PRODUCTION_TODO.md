@@ -3129,3 +3129,14 @@ A separate source review found a second platform-root authorization model: the n
 - **Production URL:** https://islamnagy2022-eng.github.io/MantiqatiX/.
 - **Scope:** frontend routing/search, tests and documentation only; no production schema/RLS/Auth/Edge Function/payment/finance/data changes.
 - **Boundary:** this closes only the activity/specialty directory task. It does not certify or clear the separate full-platform production gate; its existing open migration, finance/payment, backup/restore and security evidence items remain independently tracked.
+
+
+## CAT-DEFAULT-COVERS-20261101 — استخدام الصور الافتراضية كأغلفة للأطباء والصيدليات
+- **Request ledger:** GitHub issue [#633](https://github.com/islamnagy2022-eng/MantiqatiX/issues/633).
+- **Status:** IMPLEMENTED ON BRANCH; exact-head CI, merge and deployed-origin checks pending.
+- **Requirement:** reuse the existing unverified doctor default image as both profile/logo and cover; apply the same rule to unverified pharmacies.
+- **Registered businesses:** production mapper now supplies the doctor/pharmacy fallback cover only when the business is unverified and has no owner/admin-selected cover. Existing explicit owner cover takes precedence; verified businesses and unrelated activities retain their previous behavior.
+- **Standalone public directory pages:** the detail-page hero now reuses the same doctor/pharmacy fallback image as its background cover, while retaining the square profile image. An explicit metadata cover URL takes precedence.
+- **Regression contracts:** verify doctor/pharmacy cover fallbacks, owner-selected cover precedence, and standalone directory detail cover resolution.
+- **Safety:** frontend and validation only; no schema, RLS, Auth, Edge Function, or production data changes.
+- **Next:** exact-head TypeScript/build, production real-state validator, browser E2E, supporting checks, merge, Pages deployment and deployed-origin verification.
