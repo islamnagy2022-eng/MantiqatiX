@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   buildDirectoryPaginationOrFilter,
   sanitizeDirectoryPaginationSearch,
-} from '../supabase/functions/_shared/directory-pagination-filter.mjs';
+} from '../supabase/functions/directory-listings/pagination-filter.mjs';
 
 const admin = fs.readFileSync('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx', 'utf8');
 const context = fs.readFileSync('apps/catalog-frontend/src/context/AppContext.tsx', 'utf8');
