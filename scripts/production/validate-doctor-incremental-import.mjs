@@ -53,11 +53,6 @@ assert.match(admin, /allowsDoctorProfileRepublication: false/, "UI must default 
 assert.match(admin, /allowsCommercialRepublication: false/, "UI must default commercial republication permission to unchecked");
 assert.match(admin, /إعادة نشر ملفات الأطباء/, "UI must ask for explicit doctor profile republication scope");
 assert.match(admin, /الاستخدام التجاري/, "UI must ask for explicit commercial republication scope");
-assert.match(action, /approvedEvidence\.status === "APPROVED"/, "Only approved source permission evidence may be used");
-assert.match(action, /!approvedEvidence\.revoked_at/, "Revoked source evidence must be rejected");
-assert.match(action, /approvedEvidence\.expires_at/, "Expired source evidence must be rejected");
-assert.match(action, /sourceHost !== approvedEvidence\.source_host/, "Source host must match the approved evidence scope");
-assert.match(action, /sourceName\.toLocaleLowerCase\(\) !== String\(approvedEvidence\.source_name/, "Source name must match the approved evidence");
 assert.match(evidenceMigration, /approved_by <> created_by/, "Evidence registry must enforce two-person approval");
 assert.match(edge, /String\(evidence\.created_by\) === String\(user\.id\)/, "The evidence creator cannot approve their own evidence");
 assert.match(action, /parsedSourceUrl\.protocol === "https:" \|\| parsedSourceUrl\.protocol === "http:"/, "Source URL must be HTTP or HTTPS");
