@@ -82,3 +82,12 @@ Current production function remains unchanged until this PR passes runtime tests
 - Import rows must carry `sourcePermissionEvidenceId`; source name and normalized hostname must match exactly; evidence must be approved, unrevoked, in date, and grant both doctor-profile and commercial republication scope.
 - Important limitation: the Edge Function validates registry state and the operator's review action, but it cannot independently decide whether a contract is legally sufficient. A human reviewer must inspect the private evidence document, and the legal/data owner must approve the intended commercial use.
 - Migration and UI are feature-branch changes only. They have not been applied to Production. An isolated migration replay and authenticated Edge Function runtime tests remain mandatory.
+
+
+## Scope controls added before publication
+
+- Permission evidence registration requires two explicit, unchecked-by-default attestations: the document must allow republication of doctor profiles in a public directory, and it must allow commercial republication by MantiqatiX. The backend rejects registration unless both are explicitly true; it no longer silently grants either scope.
+- The second-person approval prompt asks the reviewer to inspect the original document and confirm both scopes. The registry displays the saved scope flags.
+- Phone de-duplication compares both incoming numbers against both stored phone columns, avoiding cross-column misses.
+- Explicit HIDDEN status is retained even when a row has no phone; the no-phone publication guard only converts an otherwise-PUBLISHED listing to DRAFT.
+- Row-level results distinguish PUBLISHED, DRAFT, and HIDDEN instead of reporting HIDDEN as DRAFT.
