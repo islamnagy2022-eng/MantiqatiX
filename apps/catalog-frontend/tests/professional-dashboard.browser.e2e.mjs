@@ -445,11 +445,11 @@ try {
       await testCards.first().waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(await testCards.count(), 20, 'directory must render exactly the first 20 activity cards');
       await page.getByRole('button', { name: 'رؤية المزيد من الأنشطة', exact: true }).click();
-      await page.waitForFunction(() => [...document.querySelectorAll('main[dir="rtl"] h3')]
+      await page.waitForFunction(() => [...document.querySelectorAll('h3')]
         .filter((node) => /^نشاط اختبار التصفح \d{2}$/.test((node.textContent || '').trim())).length === 40);
       assert.equal(await testCards.count(), 40, 'first load-more action must append exactly 20 activity cards');
       await page.getByRole('button', { name: 'رؤية المزيد من الأنشطة', exact: true }).click();
-      await page.waitForFunction(() => [...document.querySelectorAll('main[dir="rtl"] h3')]
+      await page.waitForFunction(() => [...document.querySelectorAll('h3')]
         .filter((node) => /^نشاط اختبار التصفح \d{2}$/.test((node.textContent || '').trim())).length === 45);
       assert.equal(await testCards.count(), 45, 'last load-more action must append the remaining activities without duplicates');
       results.push('directory-progressive-pagination-20-20-remaining-five');
