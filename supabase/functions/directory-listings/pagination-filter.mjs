@@ -49,5 +49,5 @@ export function decodeDirectoryPaginationCursor(value) {
 /** @param {{ created_at: string, id: string }} cursor @returns {string} */
 export function encodeDirectoryPaginationCursor(cursor) {
   return btoa(JSON.stringify({ created_at: cursor.created_at, id: cursor.id }))
-    .replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/g, "");
+    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
