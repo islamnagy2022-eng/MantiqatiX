@@ -126,8 +126,8 @@ export const MarketplaceHome: React.FC = () => {
     Boolean(business.publicEnabled || business.isOfficialShowcase) &&
     business.operationalStatus === 'ACTIVE' && !business.isFrozen && Boolean(business.name.trim())
   ), [directoryBusinesses]);
-  const businessById = useMemo(() => new Map<string, Business>(eligibleBusinesses.map((business) => [business.id, business] as const)), [eligibleBusinesses]);
   const verifiedBusinesses = useMemo(() => eligibleBusinesses.filter((business) => business.isVerified), [eligibleBusinesses]);
+  const businessById = useMemo(() => new Map<string, Business>(verifiedBusinesses.map((business) => [business.id, business] as const)), [verifiedBusinesses]);
   const medicalBusinesses = useMemo(() => verifiedBusinesses.filter((business) =>
     business.functionalGroupId === 'medical_health' || /طب|طبي|صحي|صيدل|مستشفى|عياد|معمل|مركز طبي/.test(business.category)
   ).slice(0, 8), [verifiedBusinesses]);
