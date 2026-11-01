@@ -1180,3 +1180,9 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 ### PR #628 browser E2E follow-up — 2026-11-01
 - Latest browser run exposed another stale test assumption: the specialty reset control is `عرض كل أنشطة المجموعة`, not `عرض كل الأنشطة`; the directory landmark is `section[aria-label="المجموعات والأنشطة"]`, not a heading named `الأنشطة`.
 - Updated both duplicated specialty-return assertions to match the real UI. This is test-only; no production UI, role, or authorization behavior was changed. Awaiting fresh CI on the new HEAD.
+
+
+## PR #628 browser E2E follow-up — 2026-11-01 (parent group navigation)
+- Exact-head run `41254516117` failed only in `professional_dashboard_browser_e2e` at test line 865: a duplicated specialty-filter scenario attempted to click the medical-practices activity card without first opening its parent “الطب والصحة” group.
+- Corrected the test to follow the actual navigation sequence (open group → open activity → choose specialty). The source UI, routing, and authorization checks were not changed or weakened.
+- Fresh CI is required on the new branch HEAD. Keep PR #628 unmerged and do not claim deployment until all required checks pass and the production release workflow actually deploys. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
