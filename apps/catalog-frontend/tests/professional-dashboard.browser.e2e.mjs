@@ -519,16 +519,28 @@ try {
       await page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first().click();
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
-      await modulePage.getByRole('button', { name: /باطنة/ }).first().click();
       const cursorCards = page.getByRole('heading').filter({ hasText: /^عيادة اختبار المؤشر \d{2}$/ });
       try {
         await cursorCards.first().waitFor({ state: 'visible', timeout: 15000 });
       } catch {
-        throw new Error('Server-cursor E2E did not render first-page cards. Page requests: ' +
+        throw new Error('Activity module did not show its unscoped first page before specialty selection. Page requests: ' +
           JSON.stringify(directoryListingPageRequests) + '; visible page text: ' +
           JSON.stringify((await page.locator('body').innerText().catch(() => '')).slice(0, 1800)));
       }
-      assert.equal(await cursorCards.count(), 20, 'public directory must initially render exactly one 20-row server page');
+      assert.equal(await cursorCards.count(), 20, 'opening an activity must immediately render its first 20 listings before opening a specialty folder');
+      const activityPageRequest = directoryListingPageRequests.find((request) =>
+        request.taxonomyCategoryId === 'cat_medical_health_medical_practices' && !request.taxonomySpecialty && !request.cursor);
+      assert.ok(activityPageRequest, 'opening the activity must request its full category without a specialty filter');
+      const specialtyFolderButton = modulePage.getByRole('button', { name: /باطنة/ }).first();
+      await specialtyFolderButton.click();
+      try {
+        await cursorCards.first().waitFor({ state: 'visible', timeout: 15000 });
+      } catch {
+        throw new Error('Server-cursor E2E did not render the specialty first page. Page requests: ' +
+          JSON.stringify(directoryListingPageRequests) + '; visible page text: ' +
+          JSON.stringify((await page.locator('body').innerText().catch(() => '')).slice(0, 1800)));
+      }
+      assert.equal(await cursorCards.count(), 20, 'specialty folder must render its first 20-row server page');
       await page.getByRole('button', { name: 'رؤية المزيد من هذا التخصص', exact: true }).click();
       await page.waitForFunction(() => [...document.querySelectorAll('h3')]
         .filter((node) => /^عيادة اختبار المؤشر \d{2}$/.test((node.textContent || '').trim())).length === 25);
