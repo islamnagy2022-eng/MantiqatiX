@@ -257,6 +257,139 @@ Deno.serve(async (req: Request) => {
     return out(origin, { listings: listingsResult.data || [], claims: claimsResult.data || [], businesses: businessesResult.data || [] });
   }
 
+  // Incremental doctor ingestion: accept small batches and persist each record
+  // before moving to the next one. This action is restricted by the platform-admin
+  // check above and is idempotent for matching phone or name/location records.
+  if (action === "IMPORT_DOCTOR_BATCH") {
+    const rows = Array.isArray(body.rows) ? body.rows : [];
+    if (!rows.length || rows.length > 50) {
+      return out(origin, { error: "INVALID_IMPORT_BATCH", message: "أرسل من 1 إلى 50 طبيبًا في الدفعة الواحدة." }, 400);
+    }
+
+    const results: Array<{ index: number; status: string; id?: string; reason?: string }> = [];
+    let inserted = 0;
+    let updated = 0;
+    let drafted = 0;
+    let failed = 0;
+
+    for (let index = 0; index < rows.length; index += 1) {
+      const row = rows[index] && typeof rows[index] === "object" && !Array.isArray(rows[index]) ? rows[index] : {};
+      const displayName = clean(row.displayName || row.display_name, 200);
+      const specialty = clean(row.specialty || row.taxonomySpecialty, 160);
+      const governorate = clean(row.governorate, 100);
+      const district = clean(row.district, 100);
+      const village = clean(row.village, 100);
+      const phone = clean(row.phone, 40).replace(/[^0-9+]/g, "");
+      const secondaryPhone = clean(row.secondaryPhone || row.secondary_phone, 40).replace(/[^0-9+]/g, "");
+      const taxonomyCategoryId = clean(row.taxonomyCategoryId || row.taxonomy_category_id, 180);
+      const taxonomySpecialty = clean(row.taxonomySpecialty || row.taxonomy_specialty || specialty, 160) || null;
+      const sourceName = clean(row.sourceName || row.source_name || "Doctor directory import", 160);
+      const sourceUrl = clean(row.sourceUrl || row.source_url, 1000) || null;
+      const hasPhone = phone.replace(/\\D/g, "").length >= 7 || secondaryPhone.replace(/\\D/g, "").length >= 7;
+
+      if (displayName.length < 2 || !specialty || !governorate || !district ||
+          !taxonomyCategoryId.startsWith("cat_medical_health_") && !taxonomyCategoryId.startsWith("cat_custom_")) {
+        failed += 1;
+        results.push({ index, status: "failed", reason: "REQUIRED_FIELDS_OR_MEDICAL_CATEGORY_MISSING" });
+        continue;
+      }
+
+      const slug = slugify(row.slug || [displayName, district, village].filter(Boolean).join("-"));
+      const requestedStatus = clean(row.listingStatus || row.listing_status || "PUBLISHED", 20).toUpperCase();
+      const listingStatus = hasPhone && requestedStatus === "PUBLISHED" ? "PUBLISHED" : "DRAFT";
+      const completeness = {
+        name: true,
+        specialty: true,
+        phone: hasPhone,
+        address: Boolean(clean(row.address, 500)),
+        governorate: true,
+        district: true,
+        village: Boolean(village),
+      };
+      const metadataInput = row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata) ? row.metadata : {};
+      const patch: Record<string, unknown> = {
+        slug,
+        display_name: displayName,
+        listing_type: "doctor",
+        functional_group_id: "medical_health",
+        taxonomy_category_id: taxonomyCategoryId,
+        taxonomy_specialty: taxonomySpecialty,
+        specialty,
+        phone: phone || null,
+        secondary_phone: secondaryPhone || null,
+        address: clean(row.address, 500) || null,
+        governorate,
+        district,
+        village: village || null,
+        source_name: sourceName,
+        source_url: sourceUrl,
+        source_checked_at: dateOrNull(row.sourceCheckedAt || row.source_checked_at) || new Date().toISOString(),
+        listing_status: listingStatus,
+        claim_status: "UNCLAIMED",
+        completeness,
+        metadata: { ...metadataInput, ingestion: "incremental_doctor_batch" },
+        updated_by: user.id,
+      };
+
+      try {
+        let existing: any = null;
+        if (hasPhone) {
+          const byPrimaryPhone = await service.from("public_directory_listings")
+            .select("id,listing_status").eq("listing_type", "doctor").eq("phone", phone).limit(1).maybeSingle();
+          if (byPrimaryPhone.error) throw byPrimaryPhone.error;
+          existing = byPrimaryPhone.data;
+          if (!existing && secondaryPhone) {
+            const bySecondaryPhone = await service.from("public_directory_listings")
+              .select("id,listing_status").eq("listing_type", "doctor").eq("secondary_phone", secondaryPhone).limit(1).maybeSingle();
+            if (bySecondaryPhone.error) throw bySecondaryPhone.error;
+            existing = bySecondaryPhone.data;
+          }
+        }
+        if (!existing) {
+          const byIdentity = await service.from("public_directory_listings")
+            .select("id,listing_status").eq("listing_type", "doctor")
+            .eq("display_name", displayName).eq("governorate", governorate).eq("district", district)
+            .limit(1).maybeSingle();
+          if (byIdentity.error) throw byIdentity.error;
+          existing = byIdentity.data;
+        }
+
+        if (existing) {
+          // Never downgrade an already-public record merely because a later source
+          // snapshot omitted a phone number.
+          if (existing.listing_status === "PUBLISHED" && !hasPhone) patch.listing_status = "PUBLISHED";
+          const saved = await service.from("public_directory_listings")
+            .update(patch).eq("id", existing.id).select("id,listing_status").single();
+          if (saved.error) throw saved.error;
+          updated += 1;
+          if (saved.data.listing_status === "DRAFT") drafted += 1;
+          results.push({ index, status: saved.data.listing_status === "PUBLISHED" ? "updated_published" : "updated_draft", id: saved.data.id });
+        } else {
+          const saved = await service.from("public_directory_listings")
+            .insert({ ...patch, created_by: user.id }).select("id,listing_status").single();
+          if (saved.error) throw saved.error;
+          inserted += 1;
+          if (saved.data.listing_status === "DRAFT") drafted += 1;
+          results.push({ index, status: saved.data.listing_status === "PUBLISHED" ? "inserted_published" : "inserted_draft", id: saved.data.id });
+        }
+      } catch (error) {
+        failed += 1;
+        const errorCode = (error as { code?: string })?.code || "IMPORT_ROW_FAILED";
+        results.push({ index, status: "failed", reason: errorCode });
+      }
+    }
+
+    return out(origin, {
+      success: failed === 0,
+      processed: rows.length,
+      inserted,
+      updated,
+      drafted,
+      failed,
+      results,
+    }, failed === rows.length ? 422 : 200);
+  }
+
   if (action === "UPSERT_LISTING") {
     const id = clean(body.id, 80);
     const displayName = clean(body.displayName, 200);
