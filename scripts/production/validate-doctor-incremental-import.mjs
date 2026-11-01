@@ -73,7 +73,7 @@ assert.match(action, /owner_confirmation_required: true/, "New imports must requ
 
 assert.match(frontend, /export async function importDoctorDirectoryBatch/, "Authenticated frontend importer must exist");
 assert.match(frontend, /rows\.length > 20/, "Frontend must enforce the same batch maximum");
-assert.match(frontend, /sourcePermissionEvidenceId\?: string/, "Permission evidence ID must be optional for doctor imports");
+assert.doesNotMatch(frontend, /sourcePermissionEvidenceId/, "Doctor import frontend contract must not expose a permission evidence ID");
 assert.doesNotMatch(frontend, /sourcePermissionStatus:/, "Free-text permission declarations must not authorize imports");
 assert.match(frontend, /sourceUrl: string/, "Typed import row must retain source attribution");
 assert.match(admin, /importDoctorDirectoryBatch\(rows\)/, "Admin screen must call the incremental batch importer");
