@@ -1682,3 +1682,13 @@ A separate source review found a second platform-root authorization model: the n
 - Confirmed existing schema supports governorate/district/village/address and metadata; directory Edge Function upsert is platform-Super-Admin-only, publication requires a valid phone, and the table remains RLS/FORCE RLS protected with anon/authenticated grants revoked.
 - Source discovery identified Dalil140's Egypt-wide doctor directory and official Egyptian Medical Syndicate doctor/facility lookup. No bulk import was performed; reuse rights, source freshness, geocoding and exact branch locations must be validated before insertion.
 - No production rows, schema, grants, RLS, Auth, Edge Functions or deployments were changed. National coverage remains IN PROGRESS, not complete.
+
+
+## 2026-11-01 — National doctor directory pagination source implementation
+
+- Created feature branch `feat/national-doctor-directory-pagination-20261101` from main `b860d592487d9c5ab060edaf398aac442fca0961`.
+- Implemented backward-compatible keyset pagination in `supabase/functions/directory-listings/index.ts`: page size 1–100, deterministic created_at/id cursor, cursor validation, PUBLISHED-only results, and filters for type, governorate, district, village, specialty, functional group, category, taxonomy specialty and name search.
+- Added typed `fetchPublicDirectoryListingPage` frontend helper while preserving the existing legacy API function for untouched callers.
+- Added static production-contract assertions. The directory root UI has not yet been migrated to use the page helper; this is explicitly tracked as open work. Exact-head CI, merge, Edge deployment and deployed-origin verification are not yet complete.
+- Current production Edge Function remains v8. No production Edge deployment, database/data/schema/RLS/grant/Auth mutation or doctor import was performed.
+- Nationwide doctor data sourcing remains subject to official verification and source reuse permission. The official Egyptian Medical Syndicate has a public doctor registration/specialty lookup; it is a verification reference, not yet confirmed as a bulk clinic-address dataset. No third-party directory bulk copy was performed.
