@@ -163,13 +163,13 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
         </div>
       </section>}
 
-      {activeSection === 'specialties' && <section className="space-y-4">
+      {activeSection === 'specialties' && <section className="flex flex-col gap-4">
         <div>
-          <h2 className="text-lg font-black text-slate-900">{selectedSpecialty || `تخصصات ${category.name}`}</h2>
+          <h2 className="text-lg font-black text-slate-900">{selectedSpecialty ? selectedSpecialty : `كل ${category.name}`}</h2>
           <p className="mt-1 text-xs text-slate-500">
             {selectedSpecialty
               ? 'هذا مجلد مستقل يعرض الجهات التابعة لهذا التخصص فقط.'
-              : 'اختر مجلد التخصص لعرض الجهات التابعة له ومحرك البحث الخاص به.'}
+              : `تظهر هنا جميع ${category.name} أولًا، ثم يمكنك استخدام التصنيفات الفرعية لتضييق النتائج.`}
           </p>
         </div>
 
@@ -178,7 +178,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
           <button type="button" onClick={closeSpecialtyFolder} className="rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-black text-emerald-900 hover:bg-emerald-100">العودة إلى التخصصات</button>
         </div>}
 
-        {!selectedSpecialty && specialties.length > 0 && <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {!selectedSpecialty && specialties.length > 0 && <div className="order-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {specialties.map((specialty) => {
             const total = countForSpecialty(specialty);
             return <button key={specialty} type="button" onClick={() => openSpecialtyFolder(specialty)}
@@ -190,12 +190,12 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
           })}
         </div>}
 
-        {(selectedSpecialty || specialties.length === 0) && <div className="space-y-4">
+        {<div className="order-2 space-y-4">
           <label className="relative block">
             <Search className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
             <input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder={`ابحث داخل ${selectedSpecialty || category.name} بالاسم أو الهاتف أو المنطقة`}
-              aria-label={`البحث داخل ${selectedSpecialty || category.name}`}
+              placeholder={`ابحث داخل ${selectedSpecialty || `كل ${category.name}`} بالاسم أو الهاتف أو المنطقة`}
+              aria-label={`البحث داخل ${selectedSpecialty || `كل ${category.name}`}`}
               className="min-h-12 w-full rounded-2xl border border-slate-200 bg-white py-3 pr-12 pl-4 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" />
           </label>
           <div className="flex flex-wrap gap-2 text-xs font-bold">
@@ -223,9 +223,9 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
               <div className="p-3"><h3 className="font-black text-slate-900">{listing.display_name}</h3><p className="mt-1 text-xs text-slate-500">{listing.taxonomy_specialty || listing.specialty || category.name}</p>
                 <p className="mt-1 text-xs text-slate-500">{[listing.village, listing.district, listing.governorate].filter(Boolean).join('، ')}</p><p className="mt-2 text-xs font-bold text-red-700">{listing.phone || listing.secondary_phone}</p></div>
             </button>)}
-            {listingsLoading && <p role="status" className="col-span-full rounded-xl bg-slate-50 p-4 text-center text-xs font-bold text-slate-600">جارٍ تحميل نتائج الدليل لهذا التخصص…</p>}
+            {listingsLoading && <p role="status" className="col-span-full rounded-xl bg-slate-50 p-4 text-center text-xs font-bold text-slate-600">جارٍ تحميل نتائج الدليل لهذا النشاط…</p>}
             {!listingsLoading && verifiedBusinesses.length + unverifiedBusinesses.length + visibleListings.length === 0 &&
-              <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">لا توجد نتائج مطابقة داخل هذا التخصص والنطاق الجغرافي المحدد.</p>}
+              <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">لا توجد نتائج مطابقة داخل هذا النشاط والنطاق الجغرافي المحدد.</p>}
           </div>
           {hasMoreActivityResults && (
             <div className="flex justify-center pt-2">
@@ -234,11 +234,11 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
                 if (hasMoreListings) onLoadMoreListings();
               }} disabled={loadingMoreListings}
                 className="min-h-11 rounded-xl border border-emerald-200 bg-white px-6 py-3 text-xs font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60">
-                {loadingMoreListings ? 'جارٍ تحميل المزيد…' : 'رؤية المزيد من هذا التخصص'}
+                {loadingMoreListings ? 'جارٍ تحميل المزيد…' : 'رؤية المزيد من النتائج'}
               </button>
             </div>
           )}
-        </div>}
+        </div>
       </section>}
 
       {activeSection === 'marketing' && <section className="space-y-5">
