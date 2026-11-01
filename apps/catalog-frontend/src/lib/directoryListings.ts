@@ -94,6 +94,7 @@ export type PublicDirectoryListingFilters = {
   governorate?: string;
   district?: string;
   village?: string;
+  address?: string;
   specialty?: string;
   functionalGroupId?: string;
   taxonomyCategoryId?: string;
@@ -112,6 +113,7 @@ export async function fetchPublicDirectoryListingPage(
     governorate: filters.governorate,
     district: filters.district,
     village: filters.village,
+    address: filters.address,
     specialty: filters.specialty,
     functionalGroupId: filters.functionalGroupId,
     taxonomyCategoryId: filters.taxonomyCategoryId,
