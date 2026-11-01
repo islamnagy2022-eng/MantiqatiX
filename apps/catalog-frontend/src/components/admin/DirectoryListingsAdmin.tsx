@@ -4,11 +4,17 @@ import type { ActivityCategory, Business, FunctionalGroup } from "../../types";
 import { resolveCanonicalSpecialty } from "../../data/productionDefaults";
 import {
   fetchDirectoryAdminBundle,
+  fetchDirectorySourcePermissionEvidence,
+  registerDirectorySourcePermissionEvidence,
+  approveDirectorySourcePermissionEvidence,
+  revokeDirectorySourcePermissionEvidence,
+  importDoctorDirectoryBatch,
   reviewDirectoryClaim,
   saveDirectoryListing,
   type DirectoryAdminBundle,
   type PublicDirectoryListing,
   type DirectoryClaimRequest,
+  type DirectorySourcePermissionEvidence,
 } from "../../lib/directoryListings";
 
 type Props = { businesses: Business[]; categories: ActivityCategory[]; functionalGroups: FunctionalGroup[] };
@@ -49,12 +55,26 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
   const [claimBusinessIds, setClaimBusinessIds] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [batchJson, setBatchJson] = useState("");
+  const [batchSummary, setBatchSummary] = useState("");
+  const [sourceEvidence, setSourceEvidence] = useState<DirectorySourcePermissionEvidence[]>([]);
+  const [sourceEvidenceForm, setSourceEvidenceForm] = useState({
+    sourceName: "", sourceHost: "", permissionBasis: "LICENSED" as DirectorySourcePermissionEvidence["permission_basis"],
+    evidenceReference: "", evidenceSha256: "", expiresAt: "",
+    allowsDoctorProfileRepublication: false, allowsCommercialRepublication: false,
+  });
+
 
   const load = async () => {
     setLoading(true);
     setError("");
     try {
-      setBundle(await fetchDirectoryAdminBundle());
+      const [adminBundle, evidenceRows] = await Promise.all([
+        fetchDirectoryAdminBundle(),
+        fetchDirectorySourcePermissionEvidence(),
+      ]);
+      setBundle(adminBundle);
+      setSourceEvidence(evidenceRows);
     } catch (e) {
       setError(e instanceof Error ? e.message : "تعذر تحميل دليل الصفحات وطلبات الاستلام.");
     } finally {
@@ -123,6 +143,74 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
       setError(e instanceof Error ? e.message : "تعذر حفظ الصفحة.");
     } finally { setBusy(false); }
   };
+  const handleRegisterSourceEvidence = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setBusy(true); setError(""); setMessage("");
+    try {
+      await registerDirectorySourcePermissionEvidence({
+        sourceName: sourceEvidenceForm.sourceName.trim(),
+        sourceHost: sourceEvidenceForm.sourceHost.trim(),
+        permissionBasis: sourceEvidenceForm.permissionBasis,
+        evidenceReference: sourceEvidenceForm.evidenceReference.trim(),
+        evidenceSha256: sourceEvidenceForm.evidenceSha256.trim() || undefined,
+        expiresAt: sourceEvidenceForm.expiresAt || undefined,
+        allowsDoctorProfileRepublication: sourceEvidenceForm.allowsDoctorProfileRepublication,
+        allowsCommercialRepublication: sourceEvidenceForm.allowsCommercialRepublication,
+      });
+      setSourceEvidenceForm({ sourceName: "", sourceHost: "", permissionBasis: "LICENSED", evidenceReference: "", evidenceSha256: "", expiresAt: "", allowsDoctorProfileRepublication: false, allowsCommercialRepublication: false });
+      setMessage("تم تسجيل مرجع الدليل بحالة انتظار المراجعة. لا يمكن استخدامه للاستيراد قبل اعتماد مسؤول آخر.");
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر تسجيل دليل الإذن.");
+    } finally { setBusy(false); }
+  };
+
+  const handleApproveSourceEvidence = async (evidence: DirectorySourcePermissionEvidence) => {
+    if (!window.confirm("هل راجعت مستند الإذن الأصلي وتأكدت أنه يسمح صراحة بنشر ملفات الأطباء في دليل عام وبإعادة النشر التجاري بواسطة MantiqatiX؟ يجب اعتماد النطاقين كما وردا في المستند. الاعتماد يسجل موافقة مسؤول ثانٍ.")) return;
+    setBusy(true); setError(""); setMessage("");
+    try {
+      await approveDirectorySourcePermissionEvidence({
+        evidenceId: evidence.id, reviewConfirmed: true,
+        reviewerNote: window.prompt("ملاحظة المراجع (اختياري):") || "",
+      });
+      setMessage("تم اعتماد دليل المصدر. سيظل صالحًا فقط للنطاق والنطاق الإلكتروني المسجلين وحتى تاريخ الانتهاء.");
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر اعتماد دليل الإذن.");
+    } finally { setBusy(false); }
+  };
+
+  const handleRevokeSourceEvidence = async (evidence: DirectorySourcePermissionEvidence) => {
+    const reason = window.prompt("سبب إلغاء الإذن؟");
+    if (!reason?.trim()) return;
+    setBusy(true); setError(""); setMessage("");
+    try {
+      await revokeDirectorySourcePermissionEvidence({ evidenceId: evidence.id, reason: reason.trim() });
+      setMessage("تم إلغاء دليل الإذن، ولن تقبل دفعات جديدة منه.");
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر إلغاء دليل الإذن.");
+    } finally { setBusy(false); }
+  };
+
+  const handleDoctorBatchImport = async () => {
+    setBusy(true); setError(""); setMessage(""); setBatchSummary("");
+    try {
+      const parsed = JSON.parse(batchJson);
+      const rows = Array.isArray(parsed) ? parsed : parsed?.rows;
+      if (!Array.isArray(rows)) throw new Error("أدخل مصفوفة JSON أو كائنًا يحتوي على rows.");
+      const result = await importDoctorDirectoryBatch(rows);
+      const failedRows = result.results.filter((item) => item.status === "failed");
+      const failuresText = failedRows.map((item) => `السجل ${item.index + 1}: ${item.reason || "فشل غير محدد"}`).join("؛ ");
+      setBatchSummary(`تمت معالجة ${result.processed} طبيبًا: ${result.inserted} جديد، ${result.updated} تحديث، ${result.drafted} مسودة، ${result.failed} فشل.${failuresText ? " " + failuresText : ""}`);
+      setMessage(result.failed ? "تم حفظ السجلات الناجحة. أصلح السجلات الفاشلة وأعد إرسالها." : "تم حفظ دفعة الأطباء بنجاح.");
+      if (!result.failed) setBatchJson("");
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر استيراد دفعة الأطباء.");
+    } finally { setBusy(false); }
+  };
+
   const handleReview = async (claim: DirectoryClaimRequest, decision: "REVIEWING" | "REJECTED" | "APPROVED") => {
     setBusy(true); setError(""); setMessage("");
     try {
@@ -166,6 +254,48 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
       </div>
 
       {activePane === "listings" ? (
+        <>
+        <details className="rounded-2xl border border-sky-200 bg-sky-50/50 p-4">
+          <summary className="cursor-pointer text-sm font-black text-sky-950">أدلة إذن إعادة النشر — مراجعة ثنائية</summary>
+          <p className="mt-2 text-xs leading-6 text-sky-900">سجّل مرجعًا داخليًا لعقد أو موافقة محفوظة في مخزن خاص. يبدأ السجل «بانتظار المراجعة» ولا يقبل الاستيراد إلا بعد اعتماد مسؤول آخر غير منشئ السجل، وبعد مطابقة نطاق المصدر وتاريخ الصلاحية. لا تضع رابط مستند عام أو بيانات شخصية في هذا الحقل.</p>
+          <form onSubmit={handleRegisterSourceEvidence} className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <label className="text-xs font-bold text-slate-700">اسم المصدر<input required minLength={2} value={sourceEvidenceForm.sourceName} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, sourceName: e.target.value })} className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2" /></label>
+            <label className="text-xs font-bold text-slate-700">النطاق الإلكتروني فقط<input required placeholder="example.org" dir="ltr" value={sourceEvidenceForm.sourceHost} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, sourceHost: e.target.value })} className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-left" /></label>
+            <label className="text-xs font-bold text-slate-700">أساس الإذن<select value={sourceEvidenceForm.permissionBasis} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, permissionBasis: e.target.value as DirectorySourcePermissionEvidence["permission_basis"] })} className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2"><option value="LICENSED">ترخيص مكتوب</option><option value="OWNER_PROVIDED">بيانات مقدمة من صاحبها</option><option value="PUBLIC_PERMISSION_CONFIRMED">إذن نشر صريح من المصدر</option></select></label>
+            <label className="text-xs font-bold text-slate-700">مرجع المستند الخاص<input required minLength={3} placeholder="private://directory-source-evidence/source-license.pdf" dir="ltr" value={sourceEvidenceForm.evidenceReference} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, evidenceReference: e.target.value })} className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-left" /></label>
+            <label className="text-xs font-bold text-slate-700">SHA-256 للمستند (اختياري)<input pattern="[A-Fa-f0-9]{64}" dir="ltr" value={sourceEvidenceForm.evidenceSha256} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, evidenceSha256: e.target.value })} className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-left font-mono" /></label>
+            <label className="text-xs font-bold text-slate-700">تاريخ انتهاء الإذن<input type="date" value={sourceEvidenceForm.expiresAt} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, expiresAt: e.target.value })} className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2" /></label>
+            <label className="flex items-start gap-2 rounded-lg border border-sky-200 bg-white p-3 text-xs font-bold leading-5 text-slate-700"><input type="checkbox" required checked={sourceEvidenceForm.allowsDoctorProfileRepublication} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, allowsDoctorProfileRepublication: e.target.checked })} className="mt-0.5" /><span>المستند يسمح صراحة بإعادة نشر ملفات الأطباء في الدليل.</span></label>
+            <label className="flex items-start gap-2 rounded-lg border border-sky-200 bg-white p-3 text-xs font-bold leading-5 text-slate-700"><input type="checkbox" required checked={sourceEvidenceForm.allowsCommercialRepublication} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, allowsCommercialRepublication: e.target.checked })} className="mt-0.5" /><span>المستند يسمح صراحة بالاستخدام التجاري وإعادة النشر بواسطة MantiqatiX.</span></label>
+            <div className="sm:col-span-2"><button type="submit" disabled={busy || !sourceEvidenceForm.allowsDoctorProfileRepublication || !sourceEvidenceForm.allowsCommercialRepublication} className="rounded-lg bg-sky-800 px-4 py-2.5 text-xs font-black text-white disabled:opacity-50">تسجيل الدليل للمراجعة</button></div>
+          </form>
+          <div className="mt-4 space-y-2">
+            {sourceEvidence.length === 0 ? <p className="text-xs text-sky-900">لا توجد أدلة مسجلة.</p> : sourceEvidence.map((evidence) => (
+              <article key={evidence.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-sky-200 bg-white p-3">
+                <div className="min-w-0 text-xs">
+                  <p className="font-black text-slate-900">{evidence.source_name} — {evidence.source_host}</p>
+                  <p className="mt-1 text-slate-600">الأساس: {evidence.permission_basis} • الحالة: {evidence.status} • الانتهاء: {evidence.expires_at ? dateField(evidence.expires_at) : "غير محدد"}</p>
+                  <p className="mt-1 text-slate-600">إعادة نشر ملفات الأطباء: {evidence.allows_doctor_profile_republication ? "مسموح" : "غير مسموح"} • الاستخدام التجاري: {evidence.allows_commercial_republication ? "مسموح" : "غير مسموح"}</p>
+                  <p className="mt-1 break-all font-mono text-[10px] text-slate-500">مرجع خاص: {evidence.evidence_reference}</p>
+                  {evidence.status === "APPROVED" && <p className="mt-1 text-emerald-800">اعتمده مسؤول مختلف عن المنشئ.</p>}
+                </div>
+                <div className="flex gap-2">
+                  {evidence.status === "PENDING" && <button type="button" disabled={busy} onClick={() => void handleApproveSourceEvidence(evidence)} className="rounded-lg bg-emerald-700 px-3 py-2 text-[11px] font-black text-white disabled:opacity-50">مراجعة واعتماد</button>}
+                  {evidence.status !== "REVOKED" && <button type="button" disabled={busy} onClick={() => void handleRevokeSourceEvidence(evidence)} className="rounded-lg border border-rose-200 px-3 py-2 text-[11px] font-black text-rose-700 disabled:opacity-50">إلغاء</button>}
+                </div>
+              </article>
+            ))}
+          </div>
+        </details>
+        <details className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-4">
+          <summary className="cursor-pointer text-sm font-black text-indigo-950">استيراد دفعة أطباء — حتى 20 طبيبًا</summary>
+          <p className="mt-2 text-xs leading-6 text-indigo-900">الصق بيانات موثقة بصيغة JSON. كل سجل يُحفظ فور معالجته؛ التكرارات تُحدّث بدل إنشاء سجل جديد. يجب أن يتضمن كل سجل معرّف دليل إذن معتمدًا ومطابقًا لنطاق المصدر واسمه. الطبيب الذي لا يتوفر له رقم هاتف صحيح يُحفظ كمسودة للمراجعة.</p>
+          <textarea value={batchJson} onChange={(e) => setBatchJson(e.target.value)} rows={8} dir="ltr" placeholder={'[{"displayName":"اسم الطبيب","specialty":"التخصص","governorate":"المحافظة","district":"المركز","taxonomyCategoryId":"cat_medical_health_doctor","phone":"01000000000","sourceName":"مطابق تمامًا لاسم الدليل","sourceUrl":"https://example.org/doctor","sourcePermissionEvidenceId":"UUID-الدليل-المعتمد"}]'} className="mt-3 w-full rounded-xl border border-indigo-200 bg-white p-3 font-mono text-xs" />
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <button type="button" disabled={busy || !batchJson.trim()} onClick={() => void handleDoctorBatchImport()} className="rounded-xl bg-indigo-700 px-4 py-2.5 text-xs font-black text-white disabled:opacity-50">{busy ? "جارٍ الاستيراد…" : "استيراد وحفظ الدفعة"}</button>
+            {batchSummary && <span role="status" className="text-xs font-bold text-indigo-950">{batchSummary}</span>}
+          </div>
+        </details>
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
           <div className="space-y-3">
             <label className="relative block"><Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="ابحث باسم أو تخصص أو رقم" className="w-full rounded-xl border border-slate-200 bg-white py-3 pr-10 pl-3 text-sm" /></label>
@@ -213,6 +343,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
             <button disabled={busy} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-black text-white disabled:opacity-50"><Save className="h-4 w-4" /> {busy ? "جارٍ الحفظ…" : "حفظ البيانات"}</button>
           </form>
         </div>
+        </>
       ) : (
         <div className="space-y-3">
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-6 text-amber-950"><AlertTriangle className="ml-1 inline h-4 w-4" /> قبل الاعتماد، تواصل مباشرة مع الطبيب أو العيادة وتحقق من الهوية والملكية. الموافقة لا تتم إلا بعد اختيار نشاط نشط تم تأكيد اشتراكه المدفوع.</div>

@@ -28,6 +28,11 @@ const out = (origin: string | null, body: unknown, status = 200) =>
 const publicFields = "id,slug,display_name,listing_type,functional_group_id,taxonomy_category_id,taxonomy_specialty,specialty,phone,secondary_phone,address,governorate,district,village,source_name,source_url,source_checked_at,listing_status,claim_status,completeness,metadata,created_at,updated_at";
 const listingTypes = new Set(["doctor","clinic","pharmacy","medical_center","hospital","laboratory","health_provider","business"]);
 const listingStatuses = new Set(["DRAFT","PUBLISHED","HIDDEN"]);
+type DirectoryListingWithClaim = Record<string, unknown> & {
+  claim_status: string;
+  claimed_user_id: string | null;
+  claimed_business_id: string | null;
+};
 const outreachStatuses = new Set(["NEW","CONTACTED","INTERESTED","OFFER_SENT","FOLLOW_UP","SUBSCRIPTION_PENDING","SUBSCRIBED","NOT_INTERESTED","CORRECTION_REQUESTED"]);
 const dateOrNull = (value: unknown): string | null => { if (!value) return null; const date = new Date(String(value)); return Number.isNaN(date.getTime()) ? null : date.toISOString(); };
 const slugify = (value: unknown) => {
@@ -38,6 +43,18 @@ const slugify = (value: unknown) => {
   return slug || ("listing-" + crypto.randomUUID().slice(0, 8));
 };
 const clean = (value: unknown, max = 500) => String(value ?? "").trim().slice(0, max);
+const normalizeDirectorySourceHost = (value: unknown): string => {
+  const raw = clean(value, 300).toLowerCase();
+  if (!raw || raw.includes("/") || raw.includes("@") || raw.includes("?") || raw.includes("#")) return "";
+  try {
+    const parsed = new URL(raw.includes("://") ? raw : "https://" + raw);
+    if (!["https:", "http:"].includes(parsed.protocol) || parsed.username || parsed.password || parsed.port ||
+        parsed.pathname !== "/" || parsed.search || parsed.hash) return "";
+    return parsed.hostname.replace(/^www\./, "").toLowerCase();
+  } catch {
+    return "";
+  }
+};
 const platformAdmin = (membership: any) =>
   String(membership?.role || "").toUpperCase() === "SUPER_ADMIN" &&
   !membership?.business_id && !membership?.branch_id &&
@@ -57,10 +74,11 @@ Deno.serve(async (req: Request) => {
     const url = new URL(req.url);
     const slug = clean(url.searchParams.get("slug"), 140);
     if (slug) {
-      const { data, error } = await service.from("public_directory_listings")
+      const { data: rawData, error } = await service.from("public_directory_listings")
         .select(publicFields + ",claimed_user_id,claimed_business_id")
         .eq("slug", slug).eq("listing_status", "PUBLISHED").maybeSingle();
       if (error) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
+      const data = rawData as unknown as DirectoryListingWithClaim | null;
       if (!data) return out(origin, { error: "LISTING_NOT_FOUND" }, 404);
       let canEdit = false;
       const authHeader = req.headers.get("Authorization") || "";
@@ -246,6 +264,90 @@ Deno.serve(async (req: Request) => {
   if (membershipsError) return out(origin, { error: "ADMIN_PERMISSION_LOOKUP_FAILED" }, 500);
   if (!(memberships || []).some(platformAdmin)) return out(origin, { error: "PLATFORM_ADMIN_REQUIRED" }, 403);
 
+  if (action === "ADMIN_LIST_SOURCE_PERMISSION_EVIDENCE") {
+    const { data, error } = await service.from("directory_source_permission_evidence")
+      .select("id,source_name,source_host,permission_basis,evidence_reference,evidence_sha256,allows_doctor_profile_republication,allows_commercial_republication,valid_from,expires_at,status,created_by,approved_by,approved_at,revoked_by,revoked_at,revocation_reason,reviewer_note,created_at,updated_at")
+      .order("created_at", { ascending: false }).limit(250);
+    if (error) return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_READ_FAILED" }, 500);
+    return out(origin, { evidence: data || [] });
+  }
+
+  if (action === "ADMIN_REGISTER_SOURCE_PERMISSION_EVIDENCE") {
+    const sourceName = clean(body.sourceName, 160);
+    const sourceHost = normalizeDirectorySourceHost(body.sourceHost);
+    const permissionBasis = clean(body.permissionBasis, 40).toUpperCase();
+    const evidenceReference = clean(body.evidenceReference, 500);
+    const evidenceSha256 = clean(body.evidenceSha256, 64).toLowerCase();
+    const expiresAt = body.expiresAt ? dateOrNull(body.expiresAt) : null;
+    const allowsDoctorProfileRepublication = body.allowsDoctorProfileRepublication === true;
+    const allowsCommercialRepublication = body.allowsCommercialRepublication === true;
+    const validBases = new Set(["LICENSED", "OWNER_PROVIDED", "PUBLIC_PERMISSION_CONFIRMED"]);
+    if (sourceName.length < 2 || !sourceHost || !validBases.has(permissionBasis) ||
+        evidenceReference.length < 3 || !/^(private:\/\/[A-Za-z0-9._/-]{1,480}|contract:[A-Za-z0-9._:-]{1,480})$/.test(evidenceReference) ||
+        evidenceReference.includes("..") || (body.expiresAt && !expiresAt) ||
+        !allowsDoctorProfileRepublication || !allowsCommercialRepublication ||
+        (evidenceSha256 && !/^[0-9a-f]{64}$/.test(evidenceSha256))) {
+      return out(origin, { error: "INVALID_SOURCE_PERMISSION_EVIDENCE", message: "لا تسجل المصدر إلا إذا كان المستند يسمح صراحة بإعادة نشر ملفات الأطباء وبالاستخدام التجاري، مع مرجع داخلي صالح." }, 400);
+    }
+    const { data, error } = await service.from("directory_source_permission_evidence").insert({
+      source_name: sourceName,
+      source_host: sourceHost,
+      permission_basis: permissionBasis,
+      evidence_reference: evidenceReference,
+      evidence_sha256: evidenceSha256 || null,
+      allows_doctor_profile_republication: allowsDoctorProfileRepublication,
+      allows_commercial_republication: allowsCommercialRepublication,
+      expires_at: expiresAt,
+      status: "PENDING",
+      created_by: user.id,
+    }).select("id,source_name,source_host,permission_basis,status,created_at").single();
+    if (error) return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_CREATE_FAILED", code: (error as { code?: string }).code || null }, 500);
+    return out(origin, { success: true, evidence: data }, 201);
+  }
+
+  if (action === "ADMIN_APPROVE_SOURCE_PERMISSION_EVIDENCE") {
+    const evidenceId = clean(body.evidenceId, 80);
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(evidenceId) || body.reviewConfirmed !== true) {
+      return out(origin, { error: "SOURCE_PERMISSION_REVIEW_CONFIRMATION_REQUIRED" }, 400);
+    }
+    const { data: evidence, error: readError } = await service.from("directory_source_permission_evidence")
+      .select("id,created_by,status,valid_from,expires_at,allows_doctor_profile_republication,allows_commercial_republication")
+      .eq("id", evidenceId).maybeSingle();
+    if (readError) return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_READ_FAILED" }, 500);
+    if (!evidence || evidence.status !== "PENDING") return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_NOT_PENDING" }, 409);
+    if (String(evidence.created_by) === String(user.id)) {
+      return out(origin, { error: "TWO_PERSON_APPROVAL_REQUIRED", message: "يجب أن يعتمد مستند الإذن مسؤول آخر غير منشئ السجل." }, 403);
+    }
+    const now = new Date();
+    if (new Date(evidence.valid_from).getTime() > now.getTime() ||
+        (evidence.expires_at && new Date(evidence.expires_at).getTime() <= now.getTime()) ||
+        evidence.allows_doctor_profile_republication !== true ||
+        evidence.allows_commercial_republication !== true) {
+      return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_OUT_OF_SCOPE_OR_EXPIRED" }, 409);
+    }
+    const { data, error } = await service.from("directory_source_permission_evidence").update({
+      status: "APPROVED", approved_by: user.id, approved_at: now.toISOString(),
+      reviewer_note: clean(body.reviewerNote, 1200) || null,
+    }).eq("id", evidenceId).eq("status", "PENDING").select("id,status,approved_by,approved_at").maybeSingle();
+    if (error) return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_APPROVE_FAILED" }, 500);
+    if (!data) return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_STATE_CHANGED" }, 409);
+    return out(origin, { success: true, evidence: data });
+  }
+
+  if (action === "ADMIN_REVOKE_SOURCE_PERMISSION_EVIDENCE") {
+    const evidenceId = clean(body.evidenceId, 80);
+    const reason = clean(body.reason, 1200);
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(evidenceId) || reason.length < 3) {
+      return out(origin, { error: "SOURCE_PERMISSION_REVOCATION_REASON_REQUIRED" }, 400);
+    }
+    const { data, error } = await service.from("directory_source_permission_evidence").update({
+      status: "REVOKED", revoked_by: user.id, revoked_at: new Date().toISOString(), revocation_reason: reason,
+    }).eq("id", evidenceId).in("status", ["PENDING", "APPROVED"]).select("id,status,revoked_at").maybeSingle();
+    if (error) return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_REVOKE_FAILED" }, 500);
+    if (!data) return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_NOT_ACTIVE" }, 409);
+    return out(origin, { success: true, evidence: data });
+  }
+
   if (action === "ADMIN_LIST") {
     const [listingsResult, claimsResult, businessesResult] = await Promise.all([
       service.from("public_directory_listings").select("*").order("created_at", { ascending: false }).limit(1000),
@@ -255,6 +357,234 @@ Deno.serve(async (req: Request) => {
     const error = listingsResult.error || claimsResult.error || businessesResult.error;
     if (error) return out(origin, { error: "ADMIN_DIRECTORY_READ_FAILED" }, 500);
     return out(origin, { listings: listingsResult.data || [], claims: claimsResult.data || [], businesses: businessesResult.data || [] });
+  }
+
+  // Incremental doctor ingestion: accept small batches and persist each record
+  // before moving to the next one. This action is restricted by the platform-admin
+  // check above and is idempotent for matching phone or name/location records.
+  if (action === "IMPORT_DOCTOR_BATCH") {
+    const rows = Array.isArray(body.rows) ? body.rows : [];
+    if (!rows.length || rows.length > 20) {
+      return out(origin, { error: "INVALID_IMPORT_BATCH", message: "أرسل من 1 إلى 20 طبيبًا في الدفعة الواحدة." }, 400);
+    }
+
+    const results: Array<{ index: number; status: string; id?: string; reason?: string }> = [];
+    let inserted = 0;
+    let updated = 0;
+    let drafted = 0;
+    let failed = 0;
+
+    for (let index = 0; index < rows.length; index += 1) {
+      const row = rows[index] && typeof rows[index] === "object" && !Array.isArray(rows[index]) ? rows[index] : {};
+      const displayName = clean(row.displayName || row.display_name, 200);
+      const specialty = clean(row.specialty || row.taxonomySpecialty, 160);
+      const governorate = clean(row.governorate, 100);
+      const district = clean(row.district, 100);
+      const village = clean(row.village, 100);
+      const rawPhone = clean(row.phone, 40).replace(/[^0-9+]/g, "");
+      const rawSecondaryPhone = clean(row.secondaryPhone || row.secondary_phone, 40).replace(/[^0-9+]/g, "");
+      const phone = rawPhone.replace(/\D/g, "").length >= 7 ? rawPhone : "";
+      const secondaryPhone = rawSecondaryPhone.replace(/\D/g, "").length >= 7 ? rawSecondaryPhone : "";
+      const taxonomyCategoryId = clean(row.taxonomyCategoryId || row.taxonomy_category_id, 180);
+      const taxonomySpecialty = clean(row.taxonomySpecialty || row.taxonomy_specialty || specialty, 160) || null;
+      const sourceName = clean(row.sourceName || row.source_name, 160);
+      const sourceUrl = clean(row.sourceUrl || row.source_url, 1000) || null;
+      const sourcePermissionEvidenceId = clean(row.sourcePermissionEvidenceId || row.source_permission_evidence_id, 80);
+      const sourceCheckedAtInput = row.sourceCheckedAt || row.source_checked_at;
+      const sourceCheckedAt = dateOrNull(sourceCheckedAtInput);
+      let validSourceUrl = false;
+      try {
+        const parsedSourceUrl = new URL(String(sourceUrl || ""));
+        validSourceUrl = parsedSourceUrl.protocol === "https:" || parsedSourceUrl.protocol === "http:";
+      } catch {
+        validSourceUrl = false;
+      }
+      const hasPhone = Boolean(phone || secondaryPhone);
+
+      if (sourceCheckedAtInput && !sourceCheckedAt) {
+        failed += 1;
+        results.push({ index, status: "failed", reason: "INVALID_SOURCE_CHECKED_AT" });
+        continue;
+      }
+      if (displayName.length < 2 || !specialty || !governorate || !district || !sourceName || !validSourceUrl ||
+          !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(sourcePermissionEvidenceId) ||
+          !taxonomyCategoryId.startsWith("cat_medical_health_") && !taxonomyCategoryId.startsWith("cat_custom_")) {
+        failed += 1;
+        results.push({ index, status: "failed", reason: "REQUIRED_FIELDS_OR_APPROVED_SOURCE_EVIDENCE_MISSING" });
+        continue;
+      }
+
+      const sourcePermissionEvidence = await service.from("directory_source_permission_evidence")
+        .select("id,source_name,source_host,permission_basis,allows_doctor_profile_republication,allows_commercial_republication,valid_from,expires_at,status,revoked_at")
+        .eq("id", sourcePermissionEvidenceId).maybeSingle();
+      if (sourcePermissionEvidence.error || !sourcePermissionEvidence.data) {
+        failed += 1;
+        results.push({ index, status: "failed", reason: "SOURCE_PERMISSION_EVIDENCE_NOT_FOUND" });
+        continue;
+      }
+      const approvedEvidence = sourcePermissionEvidence.data;
+      const sourceHost = normalizeDirectorySourceHost(new URL(String(sourceUrl)).hostname);
+      const evidenceIsCurrent = approvedEvidence.status === "APPROVED" &&
+        !approvedEvidence.revoked_at &&
+        new Date(approvedEvidence.valid_from).getTime() <= Date.now() &&
+        (!approvedEvidence.expires_at || new Date(approvedEvidence.expires_at).getTime() > Date.now()) &&
+        approvedEvidence.allows_doctor_profile_republication === true &&
+        approvedEvidence.allows_commercial_republication === true;
+      if (!evidenceIsCurrent || sourceHost !== approvedEvidence.source_host ||
+          sourceName.toLocaleLowerCase() !== String(approvedEvidence.source_name || "").trim().toLocaleLowerCase()) {
+        failed += 1;
+        results.push({ index, status: "failed", reason: "SOURCE_PERMISSION_EVIDENCE_SCOPE_MISMATCH_OR_EXPIRED" });
+        continue;
+      }
+      const sourcePermissionStatus = String(approvedEvidence.permission_basis);
+
+      const slug = slugify(row.slug || [displayName, district, village].filter(Boolean).join("-"));
+      const hasRequestedStatus = Object.prototype.hasOwnProperty.call(row, "listingStatus") || Object.prototype.hasOwnProperty.call(row, "listing_status");
+      const requestedStatus = clean(row.listingStatus || row.listing_status || "PUBLISHED", 20).toUpperCase();
+      const allowedListingStatuses = new Set(["PUBLISHED", "DRAFT", "HIDDEN"]);
+      if (hasRequestedStatus && !allowedListingStatuses.has(requestedStatus)) {
+        failed += 1;
+        results.push({ index, status: "failed", reason: "INVALID_LISTING_STATUS" });
+        continue;
+      }
+      if (hasRequestedStatus && requestedStatus === "PUBLISHED" && !hasPhone) {
+        failed += 1;
+        results.push({ index, status: "failed", reason: "PHONE_REQUIRED_FOR_PUBLICATION" });
+        continue;
+      }
+      const listingStatus = requestedStatus === "PUBLISHED" && !hasPhone ? "DRAFT" : requestedStatus;
+      const completeness = {
+        name: true,
+        specialty: true,
+        phone: hasPhone,
+        address: Boolean(clean(row.address, 500)),
+        governorate: true,
+        district: true,
+        village: Boolean(village),
+      };
+      const metadataInput = row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
+        ? { ...row.metadata } as Record<string, unknown>
+        : {};
+      for (const protectedKey of [
+        "source_status","source_phone_verified","sourcePhoneVerified","phone_verified","phoneVerified","phone_verification_status",
+        "owner_confirmation_required","ownerConfirmationRequired","owner_confirmed","ownerConfirmed","owner_verified","ownerVerified",
+        "professional_registration_verified","professionalRegistrationVerified","registration_verified","registrationVerified",
+        "verified","is_verified","isVerified","coordinates_status","coordinatesStatus","coordinates_method","coordinatesMethod",
+      ]) {
+        delete metadataInput[protectedKey];
+      }
+      const patch: Record<string, unknown> = {
+        slug,
+        display_name: displayName,
+        listing_type: "doctor",
+        functional_group_id: "medical_health",
+        taxonomy_category_id: taxonomyCategoryId,
+        taxonomy_specialty: taxonomySpecialty,
+        specialty,
+        phone: phone || null,
+        secondary_phone: secondaryPhone || null,
+        address: clean(row.address, 500) || null,
+        governorate,
+        district,
+        village: village || null,
+        source_name: sourceName,
+        source_url: sourceUrl,
+        source_checked_at: sourceCheckedAt || new Date().toISOString(),
+        listing_status: listingStatus,
+        claim_status: "UNCLAIMED",
+        completeness,
+        metadata: {
+          ...metadataInput,
+          ingestion: "incremental_doctor_batch",
+          source_permission_status: sourcePermissionStatus,
+          source_permission_evidence_id: approvedEvidence.id,
+          source_status: "UNVERIFIED_IMPORTED_DATA",
+          source_phone_verified: false,
+          owner_confirmation_required: true,
+          professional_registration_verified: false,
+        },
+        updated_by: user.id,
+      };
+
+      try {
+        let existing: any = null;
+        if (hasPhone) {
+          const phoneCandidates = Array.from(new Set([phone, secondaryPhone].filter(Boolean)));
+          for (const candidatePhone of phoneCandidates) {
+            const byPrimaryPhone = await service.from("public_directory_listings")
+              .select("id,slug,listing_status,metadata,source_checked_at,completeness")
+              .eq("listing_type", "doctor").eq("phone", candidatePhone).limit(1).maybeSingle();
+            if (byPrimaryPhone.error) throw byPrimaryPhone.error;
+            existing = byPrimaryPhone.data;
+            if (existing) break;
+            const bySecondaryPhone = await service.from("public_directory_listings")
+              .select("id,slug,listing_status,metadata,source_checked_at,completeness")
+              .eq("listing_type", "doctor").eq("secondary_phone", candidatePhone).limit(1).maybeSingle();
+            if (bySecondaryPhone.error) throw bySecondaryPhone.error;
+            existing = bySecondaryPhone.data;
+            if (existing) break;
+          }
+        }
+        if (!existing) {
+          const byIdentity = await service.from("public_directory_listings")
+            .select("id,slug,listing_status,metadata,source_checked_at,completeness").eq("listing_type", "doctor")
+            .eq("display_name", displayName).eq("governorate", governorate).eq("district", district)
+            .limit(1).maybeSingle();
+          if (byIdentity.error) throw byIdentity.error;
+          existing = byIdentity.data;
+        }
+
+        if (existing) {
+          // Partial snapshots must not erase existing contact, slug, claim, source or review history.
+          if (!phone) delete patch.phone;
+          if (!secondaryPhone) delete patch.secondary_phone;
+          if (!row.slug) delete patch.slug;
+          if (!row.sourceName && !row.source_name) delete patch.source_name;
+          if (!sourceUrl) delete patch.source_url;
+          if (!row.sourceCheckedAt && !row.source_checked_at) delete patch.source_checked_at;
+          if (!hasRequestedStatus) delete patch.listing_status;
+          delete patch.claim_status;
+          patch.completeness = {
+            ...(existing.completeness && typeof existing.completeness === "object" ? existing.completeness : {}),
+            ...Object.fromEntries(Object.entries(completeness).filter(([, value]) => value === true)),
+          };
+          patch.metadata = {
+            ...(existing.metadata && typeof existing.metadata === "object" ? existing.metadata : {}),
+            ...(metadataInput as Record<string, unknown>),
+            ingestion: "incremental_doctor_batch",
+            source_permission_status: sourcePermissionStatus,
+            source_permission_evidence_id: approvedEvidence.id,
+          };
+          const saved = await service.from("public_directory_listings")
+            .update(patch).eq("id", existing.id).select("id,listing_status").single();
+          if (saved.error) throw saved.error;
+          updated += 1;
+          if (saved.data.listing_status === "DRAFT") drafted += 1;
+          results.push({ index, status: "updated_" + String(saved.data.listing_status).toLowerCase(), id: saved.data.id });
+        } else {
+          const saved = await service.from("public_directory_listings")
+            .insert({ ...patch, created_by: user.id }).select("id,listing_status").single();
+          if (saved.error) throw saved.error;
+          inserted += 1;
+          if (saved.data.listing_status === "DRAFT") drafted += 1;
+          results.push({ index, status: "inserted_" + String(saved.data.listing_status).toLowerCase(), id: saved.data.id });
+        }
+      } catch (error) {
+        failed += 1;
+        const errorCode = (error as { code?: string })?.code || "IMPORT_ROW_FAILED";
+        results.push({ index, status: "failed", reason: errorCode });
+      }
+    }
+
+    return out(origin, {
+      success: failed === 0,
+      processed: rows.length,
+      inserted,
+      updated,
+      drafted,
+      failed,
+      results,
+    }, failed === rows.length ? 422 : 200);
   }
 
   if (action === "UPSERT_LISTING") {
@@ -275,7 +605,7 @@ Deno.serve(async (req: Request) => {
     }
     const phone = clean(body.phone, 40);
     const secondaryPhone = clean(body.secondaryPhone, 40);
-    const hasPhone = phone.replace(/\\D/g, "").length >= 7 || secondaryPhone.replace(/\\D/g, "").length >= 7;
+    const hasPhone = phone.replace(/\D/g, "").length >= 7 || secondaryPhone.replace(/\D/g, "").length >= 7;
     if (listingStatus === "PUBLISHED" && !hasPhone) {
       return out(origin, { error: "PHONE_REQUIRED_FOR_PUBLICATION", message: "لا يمكن نشر النشاط قبل إضافة رقم هاتف صحيح من 7 أرقام على الأقل." }, 400);
     }

@@ -1,0 +1,40 @@
+name: Doctor Incremental Import Contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/functions/directory-listings/**"
+      - "supabase/migrations/20261101150000_directory_source_permission_evidence.sql"
+      - "apps/catalog-frontend/src/lib/directoryListings.ts"
+      - "apps/catalog-frontend/src/components/admin/DirectoryListingsAdmin.tsx"
+      - "scripts/production/validate-doctor-incremental-import.mjs"
+      - ".github/workflows/doctor-incremental-import-contract.yml"
+  push:
+    branches:
+      - feat/doctor-incremental-ingestion-20261101
+    paths:
+      - "supabase/functions/directory-listings/**"
+      - "apps/catalog-frontend/src/lib/directoryListings.ts"
+      - "apps/catalog-frontend/src/components/admin/DirectoryListingsAdmin.tsx"
+      - "scripts/production/validate-doctor-incremental-import.mjs"
+      - ".github/workflows/doctor-incremental-import-contract.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check directory Edge Function
+        run: deno check --node-modules-dir=auto --no-lock supabase/functions/directory-listings/index.ts
+      - name: Validate incremental doctor import contract
+        run: node scripts/production/validate-doctor-incremental-import.mjs

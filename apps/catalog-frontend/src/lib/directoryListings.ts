@@ -192,6 +192,100 @@ export async function fetchDirectoryAdminBundle(): Promise<DirectoryAdminBundle>
   };
 }
 
+export type DoctorDirectoryImportRow = {
+  displayName: string;
+  specialty: string;
+  governorate: string;
+  district: string;
+  taxonomyCategoryId: string;
+  phone?: string;
+  secondaryPhone?: string;
+  address?: string;
+  village?: string;
+  taxonomySpecialty?: string;
+  sourceName: string;
+  sourceUrl: string;
+  sourcePermissionEvidenceId: string;
+  sourceCheckedAt?: string;
+  listingStatus?: "PUBLISHED" | "DRAFT" | "HIDDEN";
+  metadata?: Record<string, unknown>;
+};
+
+export type DirectorySourcePermissionEvidence = {
+  id: string;
+  source_name: string;
+  source_host: string;
+  permission_basis: "LICENSED" | "OWNER_PROVIDED" | "PUBLIC_PERMISSION_CONFIRMED";
+  evidence_reference: string;
+  evidence_sha256: string | null;
+  allows_doctor_profile_republication: boolean;
+  allows_commercial_republication: boolean;
+  valid_from: string;
+  expires_at: string | null;
+  status: "PENDING" | "APPROVED" | "REVOKED";
+  created_by: string;
+  approved_by: string | null;
+  approved_at: string | null;
+  revoked_by: string | null;
+  revoked_at: string | null;
+  revocation_reason: string | null;
+  reviewer_note: string | null;
+  created_at: string;
+};
+
+export async function fetchDirectorySourcePermissionEvidence(): Promise<DirectorySourcePermissionEvidence[]> {
+  const body = await callDirectoryAdmin({ action: "ADMIN_LIST_SOURCE_PERMISSION_EVIDENCE" });
+  return Array.isArray(body.evidence) ? body.evidence as DirectorySourcePermissionEvidence[] : [];
+}
+
+export async function registerDirectorySourcePermissionEvidence(input: {
+  sourceName: string;
+  sourceHost: string;
+  permissionBasis: DirectorySourcePermissionEvidence["permission_basis"];
+  evidenceReference: string;
+  evidenceSha256?: string;
+  expiresAt?: string;
+  allowsDoctorProfileRepublication: boolean;
+  allowsCommercialRepublication: boolean;
+}): Promise<DirectorySourcePermissionEvidence> {
+  const body = await callDirectoryAdmin({ action: "ADMIN_REGISTER_SOURCE_PERMISSION_EVIDENCE", ...input });
+  return body.evidence as DirectorySourcePermissionEvidence;
+}
+
+export async function approveDirectorySourcePermissionEvidence(input: {
+  evidenceId: string;
+  reviewConfirmed: true;
+  reviewerNote?: string;
+}): Promise<void> {
+  await callDirectoryAdmin({ action: "ADMIN_APPROVE_SOURCE_PERMISSION_EVIDENCE", ...input });
+}
+
+export async function revokeDirectorySourcePermissionEvidence(input: {
+  evidenceId: string;
+  reason: string;
+}): Promise<void> {
+  await callDirectoryAdmin({ action: "ADMIN_REVOKE_SOURCE_PERMISSION_EVIDENCE", ...input });
+}
+
+export type DoctorDirectoryImportResult = {
+  success: boolean;
+  processed: number;
+  inserted: number;
+  updated: number;
+  drafted: number;
+  failed: number;
+  results: Array<{ index: number; status: string; id?: string; reason?: string }>;
+};
+
+export async function importDoctorDirectoryBatch(
+  rows: DoctorDirectoryImportRow[],
+): Promise<DoctorDirectoryImportResult> {
+  if (!Array.isArray(rows) || rows.length < 1 || rows.length > 20) {
+    throw new Error("استيراد الأطباء يقبل من طبيب واحد إلى 20 طبيبًا في الدفعة.");
+  }
+  return callDirectoryAdmin({ action: "IMPORT_DOCTOR_BATCH", rows }) as Promise<DoctorDirectoryImportResult>;
+}
+
 export async function saveDirectoryListing(input: Record<string, unknown>): Promise<PublicDirectoryListing> {
   const body = await callDirectoryAdmin({ action: "UPSERT_LISTING", ...input });
   return normalizeDirectoryListingTaxonomy(body.listing as PublicDirectoryListing);

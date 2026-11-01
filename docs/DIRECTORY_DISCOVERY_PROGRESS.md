@@ -226,3 +226,37 @@ Partial execution started: 34 verified insertions across the documented batches 
 - Public medical directories reviewed in this pass explicitly restrict automated extraction and/or commercial republication without written permission, including Tabeeb-EG, MasrDoctors, and DocLine. Do not scrape or republish their directory records absent written licence/permission. References: https://www.tabeeb-eg.com/ar/terms-conditions, https://www.masrdoctors.com/page?slug=terms-conditions, https://www.docline-eg.com/terms.
 - Dakatra Misr's privacy notice describes collection from already-public sources but does not itself grant MantiqatiX permission to scrape/republish. No bulk extraction was performed.
 - Next permitted acquisition path: request a formal data-access/republication agreement from EMS or facility owners; otherwise use provider-submitted/owner-confirmed records and independently source only fields whose republication terms permit. Keep syndicate registration verification distinct from clinic-address verification, and retain source URL, retrieval date, and exact clinic location evidence per record.
+
+
+## 2026-11-01 — Verified production snapshot superseding the earlier 57-doctor baseline
+
+The earlier baseline above was superseded by subsequent national import batches. A fresh read-only query against Production now confirms:
+
+- 568 PUBLISHED doctor-type listings across all 27 governorates.
+- Every current published doctor listing has a non-empty source URL.
+- No doctor listing is missing both primary and secondary phone numbers.
+- A normalized cross-check across primary and secondary phone fields found no duplicate phone numbers across different doctor records.
+- 511 records explicitly carry `coordinates_status=NOT_PROVIDED_BY_SOURCE`; zero are marked `PROVIDED_BY_SOURCE` or `GEOCODED` by the same metadata audit. The other 57 need a separate metadata/location review; this is not proof that their physical clinic coordinates are accurate.
+- Coverage means at least one listing in each governorate, not a complete census, current operational check, professional-registration verification, or verified clinic geolocation.
+- Existing source mix includes 497 Dalil140-labelled rows plus records attributed to other directories and official sources. A source URL is provenance, not a republication licence. Existing rows were not modified in this read-only audit; their source-term/republication basis remains a separate legal/data-governance audit.
+
+Incremental ingestion work is being added on PR #640. Its new batch path requires a per-row republication basis (`LICENSED`, `OWNER_PROVIDED`, or `PUBLIC_PERMISSION_CONFIRMED`), an exact HTTP(S) source URL, sequential writes of 1–20 rows, duplicate checks, and protection of existing slugs, publication states, claim state, source-check timestamps, and verification metadata. The new endpoint is not yet deployed to Production.
+
+
+## 2026-11-01 — Latest doctor-ingestion verification and licensing gate
+
+- Exact-head GitHub Actions checks on `081322fb0d80bf3a871c5770a4eb7d3061eaf03e`: incremental-import contract PASS, Deno type-check PASS, Catalog build/TypeScript PASS, isolated professional-dashboard RBAC PostgreSQL PASS, and dashboard browser E2E PASS (job `124789206800`). PR #640 remains open/draft.
+- Production `directory-listings` Edge Function remains version 10; the new batch importer has not been deployed. Authenticated isolated write tests remain pending because the available Supabase tool connection has no Edge Function invocation operation. No direct production writes or test deployment were used to bypass that missing test path.
+- Reviewed Egypt's 2025 Open Data Policy. It describes a national open licence intended to permit reuse of approved government datasets with attribution, but datasets must be reviewed/approved and the policy excludes personal data protected by Law 151/2020 as well as third-party copyrighted or contract-restricted datasets. This policy is not proof that the EMS doctor registry or private directory records are licensed for MantiqatiX republication. Reference: https://ai.gov.eg/SynchedFiles/en/Resources/Open%20Data%20Policy.pdf.
+- The EMS offers individual doctor lookup by name/registration number and specialty, and a medical-facility search path. Treat these as verification/discovery interfaces only; no open bulk export or republication licence was identified. Doctor lookup: https://ems.org.eg/ar/inquiries/doctor-specialist. Facility search news/reference: https://www.ems.org.eg/news/cmsq68cuk00009kv2xynj9gxe.
+- Next acquisition route remains a written EMS/data-owner agreement, dataset-specific open licence, or direct doctor/clinic owner submission. Preserve the source URL, source timestamp, exact permission basis, and independent status of professional-registration vs clinic-address checks for every imported row.
+
+
+## 2026-11-01 — Source permission evidence hardening and official statistical source
+
+- A second source review found the previous `sourcePermissionStatus` import field was only an operator-entered declaration and did not reference evidence. It has been removed as an authorization mechanism.
+- Feature branch now adds a private `directory_source_permission_evidence` registry with FORCE RLS and service-role-only access. Evidence records are pending until reviewed; approval requires a second distinct platform Super Admin; revocation immediately blocks future imports.
+- Doctor imports now require an approved evidence UUID. The source name and normalized hostname must match the evidence record; the record must not be revoked or expired and must include doctor-profile and commercial-republication scope. This is still a human evidence review process, not an automated legal determination.
+- The Central Agency for Public Mobilization and Statistics (CAPMAS) health services 2024 metadata lists a file named `SPSS_doctors_2024` with 31,937 records. This is a statistical data file rather than an individual public phone/address directory; it may support aggregate analysis, not direct contact enrichment. Reference: https://censusinfo.capmas.gov.eg/Metadata-ar-v4.2/index.php/catalog/1944/datafile/F2.
+- The official Egyptian Medical Syndicate page now describes a searchable doctor directory by name or registration number, plus a medical-facility search by facility type and governorate. No bulk-export or commercial republication licence is stated on that page. Reference: https://www.ems.org.eg/news/cmsq68cuk00009kv2xynj9gxe.
+- The new migration, admin UI and Edge Function changes are on the feature branch only. No production migration or deployment has been performed. Isolated migration replay and authenticated invocation tests remain release blockers.

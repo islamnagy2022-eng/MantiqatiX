@@ -1604,3 +1604,66 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] بعد اجتياز الاختبارات، مراجعة PR/دمج التعديلات وفق سياسة الفرع، ثم التحقق من نشر Pages الفعلي. لا نشر أو تفعيل تكاملات إعلانية ضمن التغيير الحالي.
 - [!] تحقق آلي سابق كشف assertion قديمًا في `validate-canonical-activity-taxonomy.mjs` كان يمنع وجود مجلدات المجموعات. تم تحديثه ليتحقق من المجموعة ← النشاط بدل فرض عرض الأنشطة مباشرة. Commit: `234f6d2e36705eadd70c0b1d871311026717eeb3`. يجب إعادة تشغيل exact-head CI قبل اعتماد الإصلاح.
 - [!] إعادة التشغيل كشفت assertion قديمًا ثانيًا يطلب `aria-label="الأنشطة"` بدل تسمية قسم المجموعات والأنشطة. تم تحديثه ليتحقق من `aria-label="المجموعات والأنشطة"` ومن وحدة النشاط. Commit: `2e9546d1cf1bc864d19bc6b8e5f1c7132f466909`. يلزم إعادة exact-head CI.
+
+
+## 2026-11-01 — Incremental Doctor Directory Ingestion
+
+- [x] Add `IMPORT_DOCTOR_BATCH` in `directory-listings`: sequential batches of 1–20 doctors, row-level results, and immediate persistence (code committed; runtime verification remains pending).
+- [ ] Verify duplicate matching by phone and exact name + governorate + district; update existing rows instead of duplicating (logic implemented; runtime test pending).
+- [ ] Keep the existing publication guard: records with a valid phone may publish; records without a valid phone remain DRAFT and must not receive invented contact details.
+- [ ] Preserve already-published rows when later source snapshots omit a phone number.
+- [ ] Run type/lint checks and authenticated smoke tests for insert, update/deduplication, draft-without-phone, and unauthorized rejection.
+- [ ] After tests pass, merge the feature branch and deploy the updated `directory-listings` Edge Function; verify one test record appears in the public directory.
+- [x] Add an authenticated platform-admin JSON batch-import panel and client helper to submit collected doctors in batches.
+- [ ] Connect the actual doctor research/collection workflow to this batch action so each completed research batch is persisted before research continues; current UI accepts a collected JSON batch but does not run autonomous nationwide source discovery.
+
+Implementation notes: see `docs/doctor-incremental-ingestion.md`. Feature branch: `feat/doctor-incremental-ingestion-20261101`. Production deployment remains blocked until the verification checklist above passes.
+
+
+## 2026-11-01 — Incremental doctor import and current Production audit
+
+- [x] Add platform-admin-only `IMPORT_DOCTOR_BATCH` with sequential row persistence, 1–20 records per request, row-level results, and idempotent matching by phone or exact name/location.
+- [x] Add authenticated admin JSON import panel and typed frontend helper.
+- [x] Require per-row source name, HTTP(S) source URL, and republication basis: `LICENSED`, `OWNER_PROVIDED`, or `PUBLIC_PERMISSION_CONFIRMED`. A public web page is not automatically a republication licence.
+- [x] Preserve existing slug, publication state, ownership/claim state, source-check timestamp, existing contact data, and prior metadata when an incoming snapshot omits those fields.
+- [x] Prevent imported metadata from setting owner/phone/professional-registration verification flags. New imports remain unverified until separate checks.
+- [x] Add dedicated static import-contract validator and GitHub Actions workflow.
+- [x] Fresh read-only live audit: 568 published doctor-type records across 27/27 governorates; all 568 have a source URL; zero are missing both phone fields; normalized primary/secondary phone duplicate audit returned no duplicates.
+- [!] Geolocation is not complete: 511 rows explicitly say coordinates were not supplied by source, and zero rows are marked PROVIDED_BY_SOURCE or GEOCODED by the metadata query. The other 57 require separate metadata review. Never infer coordinates from the district or governorate.
+- [!] Existing source rights are not yet audited: 497 rows are labelled Dalil140, and other rows cite mixed directories/official sources. Source URL does not establish permission to republish. Do not bulk collect/re-publish further records from a restricted directory without written permission.
+- [ ] Wait for exact-head CI, including the dedicated import contract, TypeScript/build, and browser E2E; address any failure before merge.
+- [ ] Run authenticated isolated smoke tests for new insert, phone/name duplicate update, missing-phone draft, preserved DRAFT/HIDDEN/CLAIM state, and unauthorized rejection. Do not use a real doctor row as a test fixture.
+- [ ] After successful tests and reviewed merge, deploy the updated `directory-listings` Edge Function and verify a disposable authorized test entry through the public directory, then remove the test entry with an audited cleanup.
+- [ ] Connect any future source-discovery job only to sources with a recorded republication basis and persist each finished batch before discovery continues. The present admin JSON importer does not autonomously crawl websites or discover doctors.
+
+PR: [#640](https://github.com/islamnagy2022-eng/MantiqatiX/pull/640). Feature branch: `feat/doctor-incremental-ingestion-20261101`. Production deployment remains blocked until the release checks above pass.
+
+
+## 2026-11-01 — Doctor ingestion exact-head verification and source-rights gate update
+
+- [x] Dedicated doctor-import contract workflow passed on head `081322fb0d80bf3a871c5770a4eb7d3061eaf03e`.
+- [x] Deno type-check, catalog build/TypeScript, isolated RBAC PostgreSQL, and dashboard browser E2E all passed on the same head. Browser job `124789206800` completed successfully.
+- [x] PR #640 release notes updated to reflect the completed browser E2E and the remaining release blockers.
+- [!] The production `directory-listings` Edge Function is still version 10. No deployment was performed.
+- [!] Authenticated isolated write smoke tests remain unverified: the connected Supabase tool surface does not expose an Edge Function invoke operation. Do not substitute direct production SQL writes or deploy first and test later.
+- [!] Source rights are still not cleared for the existing 568 published doctor rows. A URL or public visibility is not a licence. Egypt's 2025 Open Data Policy describes a future/open licensing framework for approved datasets but excludes personal data and third-party copyrighted/contracted material; it is not a blanket licence for the Syndicate's doctor registry or commercial directory datasets. Reference: https://ai.gov.eg/SynchedFiles/en/Resources/Open%20Data%20Policy.pdf.
+- [ ] Obtain a written data-sharing/republication agreement or a dataset-specific open licence from the Egyptian Medical Syndicate / data owner before bulk reuse. Official doctor lookup is available at https://ems.org.eg/ar/inquiries/doctor-specialist; facility search/lookup is described at https://www.ems.org.eg/news/cmsq68cuk00009kv2xynj9gxe. These lookup pages are useful for individual verification, not evidence of bulk-export permission.
+- [ ] Arrange an authorized isolated Edge Function invocation path and run insert, duplicate update, no-phone DRAFT, DRAFT/HIDDEN/CLAIM preservation, and unauthorized rejection tests using disposable synthetic records only.
+- [ ] Only after rights review and authenticated tests: merge PR #640, deploy the updated function, verify the public directory with a disposable record, then perform audited cleanup.
+- [ ] After source permission exists, resume discovery in persisted batches; do not resume automated scraping from terms-restricted directories.
+
+
+- [!] Importer limitation found during source-rights review: `sourcePermissionStatus` is currently an admin-entered declaration; the function does not independently validate or persist the underlying licence/consent artifact. It must not be described as verified permission. Add a private, auditable evidence registry (licence/consent reference, evidence date, reviewer, expiry/revocation state) and enforce it before autonomous or high-volume ingestion.
+
+
+## 2026-11-01 — Two-person source-permission evidence registry
+
+- [x] Add migration `20261101150000_directory_source_permission_evidence.sql` with a private evidence table, FORCE RLS, no anon/authenticated grants, and service-role-only access.
+- [x] Add platform-Super-Admin-guarded actions to register PENDING evidence, list registry entries, approve with a second distinct administrator, and revoke.
+- [x] Change doctor batch imports to require an approved evidence UUID, exact source-name and normalized hostname match, doctor-profile plus commercial republication scope, current validity, and no revocation. Free-text `sourcePermissionStatus` no longer authorizes an import.
+- [x] Expand the static contract validator to assert private RLS isolation, second-person approval, scope matching, expiry, revocation, and frontend enforcement.
+- [!] Runtime migration replay and authenticated function-invocation tests have not yet run. The Supabase tool connection currently does not expose the required Edge Function invoke operation; do not deploy this migration/function to Production until an isolated invocation path is available.
+- [!] Registry review is a human attestation against a private document reference. It does not itself establish legal sufficiency; source owner / legal approval is still required.
+- [ ] Run exact-head Deno, contract, build, RBAC, and browser E2E checks after the evidence-registry changes. Resolve all failures.
+- [ ] Run isolated database migration replay, plus synthetic Edge Function tests for register → second-person approve → evidence scope match → insert/update; reject creator self-approval, mismatched host/name, expired/revoked evidence, no-phone publication, and non-admin access.
+- [ ] Keep production version unchanged until all release gates pass; then merge, apply migration, deploy function, verify a disposable synthetic listing, and audited-clean it.
