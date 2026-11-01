@@ -264,8 +264,22 @@ assert.match(directoryListingsFunction, /INVALID_PAGE_CURSOR/,
   'Malformed cursors must fail closed with a clear client error.');
 assert.match(directoryListingsFunction, /\.eq\("listing_status", "PUBLISHED"\)/,
   'Paginated public directory reads must never expose draft or hidden listings.');
-assert.match(directoryListingsFunction, /governorate[s\S]*district[s\S]*village[s\S]*taxonomyCategoryId/,
-  'Public directory pagination must support geographic and taxonomy filters.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.eq\("governorate", governorate\)/,
+  'Governorate must be applied to the database query before the page limit.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.eq\("district", district\)/,
+  'Markaz/district must be applied to the database query before the page limit.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.eq\("village", village\)/,
+  'Village must be applied to the database query before the page limit.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("address",/,
+  'Area/address must be applied to the database query before the page limit.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("specialty",/,
+  'Specialty must be applied to the database query before the page limit.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.eq\("functional_group_id", functionalGroupId\)/,
+  'Functional group must be applied to the database query before the page limit.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.eq\("taxonomy_category_id", taxonomyCategoryId\)/,
+  'Taxonomy category must be applied to the database query before the page limit.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.eq\("taxonomy_specialty", taxonomySpecialty\)/,
+  'Taxonomy specialty must be applied to the database query before the page limit.');
 assert.match(directoryPaginationHelper, /created_at\.lt\.[\s\S]*id\.lt\./,
   'Pagination cursor helper must use a deterministic created_at/id keyset.');
 assert.match(directoryListingsLib, /fetchPublicDirectoryListingPage/,
