@@ -16,6 +16,11 @@ interface Props {
   listings: PublicDirectoryListing[];
   onOpenListing: (slug: string) => void;
   onOpenBusiness: (businessId: string) => void;
+  onDirectoryListingFiltersChange: (query: string, specialty: string) => void;
+  onLoadMoreListings: () => void;
+  hasMoreListings: boolean;
+  loadingMoreListings: boolean;
+  listingsLoading: boolean;
   parentGroupName?: string;
 }
 
@@ -30,7 +35,7 @@ const Metric: React.FC<{ label: string; value: number; color: string }> = ({ lab
   <article className={`rounded-2xl border p-4 ${color}`}><p className="text-xs font-bold">{label}</p><p className="mt-2 text-2xl font-black">{value.toLocaleString('ar-EG')}</p></article>
 );
 
-export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, unconfirmedCount, onBack, businesses, listings, onOpenListing, onOpenBusiness, parentGroupName }) => {
+export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, unconfirmedCount, onBack, businesses, listings, onOpenListing, onOpenBusiness, onDirectoryListingFiltersChange, onLoadMoreListings, hasMoreListings, loadingMoreListings, listingsLoading, parentGroupName }) => {
   const [activeSection, setActiveSection] = useState<Section>('specialties');
   const specialtyFromUrl = new URLSearchParams(window.location.search).get('specialty');
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(specialtyFromUrl);
@@ -41,6 +46,9 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
   const [selectedChannels, setSelectedChannels] = useState<string[]>(['فيسبوك', 'واتساب', 'إنستجرام']);
   const [campaignPrepared, setCampaignPrepared] = useState(false);
   const { adminSettings } = useApp();
+  useEffect(() => {
+    onDirectoryListingFiltersChange(searchQuery, selectedSpecialty || 'all');
+  }, [searchQuery, selectedSpecialty, onDirectoryListingFiltersChange]);
   const specialties = useMemo(() => category.specialties || [], [category.specialties]);
   const moduleConfig = useMemo(() => resolveActivityModuleConfig(category, adminSettings.activityModuleOverrides), [category, adminSettings.activityModuleOverrides]);
   const marketing = moduleConfig.marketing;
@@ -171,7 +179,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
               className="group flex min-h-32 flex-col items-start justify-between rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50/50">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><Package className="h-6 w-6" /></span>
               <span className="mt-3 block w-full font-black text-slate-900">{specialty}</span>
-              <span className="mt-1 text-xs font-bold text-slate-500">{total.toLocaleString('ar-EG')} جهة</span>
+              <span className="mt-1 text-xs font-bold text-slate-500">{total.toLocaleString('ar-EG')} جهة ضمن النتائج المحمّلة</span>
             </button>;
           })}
         </div>}
@@ -209,9 +217,18 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
               <div className="p-3"><h3 className="font-black text-slate-900">{listing.display_name}</h3><p className="mt-1 text-xs text-slate-500">{listing.taxonomy_specialty || listing.specialty || category.name}</p>
                 <p className="mt-1 text-xs text-slate-500">{[listing.village, listing.district, listing.governorate].filter(Boolean).join('، ')}</p><p className="mt-2 text-xs font-bold text-red-700">{listing.phone || listing.secondary_phone}</p></div>
             </button>)}
-            {verifiedBusinesses.length + unverifiedBusinesses.length + visibleListings.length === 0 &&
+            {listingsLoading && <p role="status" className="col-span-full rounded-xl bg-slate-50 p-4 text-center text-xs font-bold text-slate-600">جارٍ تحميل نتائج الدليل لهذا التخصص…</p>}
+            {!listingsLoading && verifiedBusinesses.length + unverifiedBusinesses.length + visibleListings.length === 0 &&
               <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">لا توجد نتائج مطابقة داخل هذا التخصص والنطاق الجغرافي المحدد.</p>}
           </div>
+          {hasMoreListings && (
+            <div className="flex justify-center pt-2">
+              <button type="button" onClick={onLoadMoreListings} disabled={loadingMoreListings}
+                className="min-h-11 rounded-xl border border-emerald-200 bg-white px-6 py-3 text-xs font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60">
+                {loadingMoreListings ? 'جارٍ تحميل المزيد…' : 'رؤية المزيد من هذا التخصص'}
+              </button>
+            </div>
+          )}
         </div>}
       </section>}
 
