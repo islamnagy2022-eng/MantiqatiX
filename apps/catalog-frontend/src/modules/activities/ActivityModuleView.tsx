@@ -40,6 +40,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
   const specialtyFromUrl = new URLSearchParams(window.location.search).get('specialty');
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(specialtyFromUrl);
   const [searchQuery, setSearchQuery] = useState('');
+  const [visibleActivityCount, setVisibleActivityCount] = useState(20);
   const [campaignGoal, setCampaignGoal] = useState('زيادة الطلبات والاستفسارات');
   const [campaignBudget, setCampaignBudget] = useState('3000');
   const [campaignDuration, setCampaignDuration] = useState('30');
@@ -47,6 +48,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
   const [campaignPrepared, setCampaignPrepared] = useState(false);
   const { adminSettings } = useApp();
   useEffect(() => {
+    setVisibleActivityCount(20);
     onDirectoryListingFiltersChange(searchQuery, selectedSpecialty || 'all');
   }, [searchQuery, selectedSpecialty, onDirectoryListingFiltersChange]);
   const specialties = useMemo(() => category.specialties || [], [category.specialties]);
@@ -78,6 +80,10 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
   const visibleListings = listings.filter((listing) =>
     (!selectedSpecialty || matchesSpecialty(listing.taxonomy_specialty || listing.specialty || '')) &&
     matchesSearch([listing.display_name, listing.taxonomy_specialty, listing.specialty, listing.phone, listing.secondary_phone, listing.village, listing.district, listing.governorate]));
+    const allVisibleBusinesses = [...verifiedBusinesses, ...unverifiedBusinesses];
+  const visibleBusinesses = allVisibleBusinesses.slice(0, visibleActivityCount);
+  const renderedListings = visibleListings.slice(0, Math.max(0, visibleActivityCount - visibleBusinesses.length));
+  const hasMoreActivityResults = allVisibleBusinesses.length + visibleListings.length > visibleActivityCount || hasMoreListings;
   const countForSpecialty = (specialty: string) => businesses.filter((business) =>
     matchesBusinessSpecialty(business, specialty)).length +
     listings.filter((listing) => resolveCanonicalSpecialty(listing.taxonomy_specialty || listing.specialty || '', category.id) === resolveCanonicalSpecialty(specialty, category.id)).length;
@@ -197,7 +203,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
             <span className="rounded-full bg-red-50 px-3 py-2 text-red-700">غير موثق: {(unverifiedBusinesses.length + visibleListings.length).toLocaleString('ar-EG')}</span>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {[...verifiedBusinesses, ...unverifiedBusinesses].map((business) => <article key={business.id} className={`overflow-hidden rounded-2xl border bg-white shadow-sm ${business.isVerified ? 'border-emerald-200' : 'border-red-200'}`}>
+            {visibleBusinesses.map((business) => <article key={business.id} className={`overflow-hidden rounded-2xl border bg-white shadow-sm ${business.isVerified ? 'border-emerald-200' : 'border-red-200'}`}>
               <div className="relative h-28 bg-slate-100">
                 {business.coverUrl && <img src={business.coverUrl} alt="" loading="lazy" className="h-full w-full object-cover" />}
                 <span className={`absolute right-2 top-2 rounded-full px-2 py-1 text-[10px] font-black text-white ${business.isVerified ? 'bg-emerald-700' : 'bg-red-700'}`}>{business.isVerified ? 'موثق' : 'غير موثق'}</span>
@@ -212,7 +218,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
                 {business.publicEnabled ? <button type="button" onClick={() => onOpenBusiness(business.id)} className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white">عرض الكتالوج</button> : <span className="rounded-lg bg-slate-50 px-3 py-2 text-[10px] font-bold text-slate-500">ضمن الدليل</span>}
               </div>
             </article>)}
-            {visibleListings.map((listing) => <button key={listing.id} type="button" onClick={() => onOpenListing(listing.slug)} className="overflow-hidden rounded-2xl border border-red-200 bg-white text-right shadow-sm">
+            {renderedListings.map((listing) => <button key={listing.id} type="button" onClick={() => onOpenListing(listing.slug)} className="overflow-hidden rounded-2xl border border-red-200 bg-white text-right shadow-sm">
               <div className="relative flex h-28 items-center justify-center bg-slate-100"><Store className="h-10 w-10 text-slate-400" /><span className="absolute right-2 top-2 rounded-full bg-red-700 px-2 py-1 text-[10px] font-black text-white">غير موثق</span></div>
               <div className="p-3"><h3 className="font-black text-slate-900">{listing.display_name}</h3><p className="mt-1 text-xs text-slate-500">{listing.taxonomy_specialty || listing.specialty || category.name}</p>
                 <p className="mt-1 text-xs text-slate-500">{[listing.village, listing.district, listing.governorate].filter(Boolean).join('، ')}</p><p className="mt-2 text-xs font-bold text-red-700">{listing.phone || listing.secondary_phone}</p></div>
@@ -221,9 +227,12 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
             {!listingsLoading && verifiedBusinesses.length + unverifiedBusinesses.length + visibleListings.length === 0 &&
               <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">لا توجد نتائج مطابقة داخل هذا التخصص والنطاق الجغرافي المحدد.</p>}
           </div>
-          {hasMoreListings && (
+          {hasMoreActivityResults && (
             <div className="flex justify-center pt-2">
-              <button type="button" onClick={onLoadMoreListings} disabled={loadingMoreListings}
+              <button type="button" onClick={() => {
+                setVisibleActivityCount((current) => current + 20);
+                if (hasMoreListings) onLoadMoreListings();
+              }} disabled={loadingMoreListings}
                 className="min-h-11 rounded-xl border border-emerald-200 bg-white px-6 py-3 text-xs font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60">
                 {loadingMoreListings ? 'جارٍ تحميل المزيد…' : 'رؤية المزيد من هذا التخصص'}
               </button>
