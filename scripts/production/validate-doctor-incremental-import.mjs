@@ -4,10 +4,12 @@ import { readFileSync } from "node:fs";
 const edgePath = "supabase/functions/directory-listings/index.ts";
 const frontendPath = "apps/catalog-frontend/src/lib/directoryListings.ts";
 const adminPath = "apps/catalog-frontend/src/components/admin/DirectoryListingsAdmin.tsx";
+const evidenceMigrationPath = "supabase/migrations/20261101150000_directory_source_permission_evidence.sql";
 
 const edge = readFileSync(edgePath, "utf8");
 const frontend = readFileSync(frontendPath, "utf8");
 const admin = readFileSync(adminPath, "utf8");
+const evidenceMigration = readFileSync(evidenceMigrationPath, "utf8");
 
 const actionStart = edge.indexOf('if (action === "IMPORT_DOCTOR_BATCH")');
 assert.notEqual(actionStart, -1, "IMPORT_DOCTOR_BATCH action must exist");
@@ -29,7 +31,15 @@ assert.match(action, /\.eq\("display_name", displayName\)/, "Deduplication must 
 assert.match(action, /\.eq\("governorate", governorate\)/, "Name deduplication must include governorate");
 assert.match(action, /\.eq\("district", district\)/, "Name deduplication must include district");
 
-assert.match(action, /allowedSourcePermissionStatuses = new Set\(\["LICENSED", "OWNER_PROVIDED", "PUBLIC_PERMISSION_CONFIRMED"\]\)/, "Each new batch row must declare its republication basis");
+assert.match(action, /sourcePermissionEvidenceId/, "Each import row must reference an approved permission evidence record");
+assert.match(action, /directory_source_permission_evidence/, "Import must validate against the private evidence registry");
+assert.match(action, /approvedEvidence\\.status === "APPROVED"/, "Only approved source permission evidence may be used");
+assert.match(action, /!approvedEvidence\\.revoked_at/, "Revoked source evidence must be rejected");
+assert.match(action, /approvedEvidence\\.expires_at/, "Expired source evidence must be rejected");
+assert.match(action, /sourceHost !== approvedEvidence\\.source_host/, "Source host must match the approved evidence scope");
+assert.match(action, /sourceName\\.toLocaleLowerCase\\(\\) !== String\\(approvedEvidence\\.source_name/, "Source name must match the approved evidence");
+assert.match(edge, /approved_by <> created_by/, "Evidence registry must enforce two-person approval");
+assert.match(edge, /String\\(evidence\\.created_by\\) === String\\(user\\.id\\)/, "The evidence creator cannot approve their own evidence");
 assert.match(action, /parsedSourceUrl\.protocol === "https:" \|\| parsedSourceUrl\.protocol === "http:"/, "Source URL must be HTTP or HTTPS");
 assert.match(action, /INVALID_SOURCE_CHECKED_AT/, "Invalid source timestamps must be rejected");
 assert.match(action, /PHONE_REQUIRED_FOR_PUBLICATION/, "Publication without a valid phone must be rejected when explicitly requested");
@@ -48,9 +58,20 @@ assert.match(action, /owner_confirmation_required: true/, "New imports must requ
 
 assert.match(frontend, /export async function importDoctorDirectoryBatch/, "Authenticated frontend importer must exist");
 assert.match(frontend, /rows\.length > 20/, "Frontend must enforce the same batch maximum");
-assert.match(frontend, /sourcePermissionStatus:/, "Typed import row must require a source republication basis");
+assert.match(frontend, /sourcePermissionEvidenceId: string/, "Typed import row must require a permission evidence ID");
+assert.doesNotMatch(frontend, /sourcePermissionStatus:/, "Free-text permission declarations must not authorize imports");
+assert.match(frontend, /ADMIN_REGISTER_SOURCE_PERMISSION_EVIDENCE/, "Admin UI must be able to register permission evidence");
+assert.match(frontend, /ADMIN_APPROVE_SOURCE_PERMISSION_EVIDENCE/, "Admin UI must support second-person approval");
 assert.match(admin, /importDoctorDirectoryBatch\(rows\)/, "Admin screen must call the incremental batch importer");
 assert.match(admin, /استيراد دفعة أطباء/, "Admin screen must expose the batch import panel");
 
+assert.match(evidenceMigration, /create table if not exists public\\.directory_source_permission_evidence/, "Private source permission evidence table must exist");
+assert.match(evidenceMigration, /enable row level security/i, "Evidence registry must enable RLS");
+assert.match(evidenceMigration, /force row level security/i, "Evidence registry must FORCE RLS");
+assert.match(evidenceMigration, /revoke all on table public\\.directory_source_permission_evidence from anon, authenticated/i, "Evidence registry must deny direct client access");
+assert.match(evidenceMigration, /grant all on table public\\.directory_source_permission_evidence to service_role/i, "Evidence registry must be service-role only");
+assert.match(evidenceMigration, /approved_by <> created_by/, "Database must enforce two-person approval");
+assert.match(evidenceMigration, /status in \\('PENDING','APPROVED','REVOKED'\\)/, "Evidence status must be constrained");
+
 console.log("DOCTOR_INCREMENTAL_IMPORT_CONTRACT=PASS");
-console.log("checks=platform_admin,20_row_cap,sequential_persistence,deduplication,source_rights,valid_source_url,phone_gate,state_preservation,ownership_preservation,verification_protection,admin_ui");
+console.log("checks=platform_admin,20_row_cap,sequential_persistence,deduplication,approved_source_evidence,two_person_approval,source_scope,expiry_revocation,valid_source_url,phone_gate,state_preservation,ownership_preservation,verification_protection,admin_ui,private_rls_registry");
