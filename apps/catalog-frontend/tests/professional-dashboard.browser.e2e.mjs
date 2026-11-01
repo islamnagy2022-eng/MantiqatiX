@@ -164,6 +164,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
   const platformAdminRequests = [];
   const platformSettingsState = { settings: options.platformSettings || {} };
   const directoryListingsState = options.directoryListingsState || { listings: [] };
+  const directoryListingPageRequests = [];
   const page = await context.newPage();
   await page.route(supabaseOrigin + '/**', async (route) => {
     const request = route.request();
@@ -301,7 +302,14 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
     if (url.pathname.endsWith('/functions/v1/directory-listings')) {
       let body = {};
       try { body = request.method() === 'POST' ? request.postDataJSON() || {} : {}; } catch { /* no JSON body */ }
-      if (request.method() === 'GET') return json({ listings: directoryListingsState.listings });
+      if (request.method() === 'GET') {
+        const params = Object.fromEntries(url.searchParams.entries());
+        if (options.directoryListingsPageHandler) {
+          directoryListingPageRequests.push(params);
+          return json(options.directoryListingsPageHandler(params));
+        }
+        return json({ listings: directoryListingsState.listings });
+      }
       if (body.action === 'ADMIN_LIST') {
         directoryAdminRequests.push({ action: body.action, authorization: request.headers().authorization || '' });
         return json({ listings: directoryListingsState.listings, claims: [], businesses: [] });
@@ -349,7 +357,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
   });
 
   await page.goto(baseUrl + (options.initialRoute || '?view=professional_dashboard'), { waitUntil: 'domcontentloaded' });
-  return { context, page, rpcObservation, catalogReadRequests, directoryAdminRequests, directoryListingsState, platformAdminRequests, platformSettingsState };
+  return { context, page, rpcObservation, catalogReadRequests, directoryAdminRequests, directoryListingsState, directoryListingPageRequests, platformAdminRequests, platformSettingsState };
 }
 
 async function waitForDashboard(page) {
@@ -453,6 +461,69 @@ try {
         .filter((node) => /^نشاط اختبار التصفح \d{2}$/.test((node.textContent || '').trim())).length === 45);
       assert.equal(await testCards.count(), 45, 'last load-more action must append the remaining activities without duplicates');
       results.push('directory-progressive-pagination-20-20-remaining-five');
+    } finally { await context.close(); }
+  }
+
+  // 0b. Public directory uses a 20-row server page and continues with the returned keyset cursor.
+  {
+    const pageRows = Array.from({ length: 25 }, (_, index) => {
+      const suffix = String(index + 1).padStart(2, '0');
+      return {
+        id: '123e4567-e89b-42d3-a456-' + String(index + 1).padStart(12, '0'),
+        slug: 'cursor-doctor-' + suffix,
+        display_name: 'عيادة اختبار المؤشر ' + suffix,
+        listing_type: 'doctor',
+        functional_group_id: 'medical_health',
+        taxonomy_category_id: 'cat_medical_health_medical_practices',
+        taxonomy_specialty: 'طب أطفال',
+        specialty: 'طب أطفال',
+        phone: '0100000' + String(index + 1).padStart(4, '0'),
+        secondary_phone: null,
+        address: 'شارع العيادة ' + suffix,
+        governorate: 'محافظة المنوفية',
+        district: 'مركز بركة السبع',
+        village: 'قرية بركة السبع',
+        listing_status: 'PUBLISHED',
+        claim_status: 'UNCLAIMED',
+        metadata: {},
+        created_at: '2026-11-01T00:00:00.000Z',
+      };
+    });
+    const { context, page, directoryListingPageRequests } = await newScenario(browser, null, [], {
+      geoPreference: {
+        completed: true, mode: 'manual',
+        governorate: 'المنوفية', markaz: 'بركة السبع',
+        village: 'all', area: 'all',
+      },
+      directoryListingsPageHandler: (params) => {
+        const secondPage = params.cursor === 'e2e-cursor-page-two';
+        return {
+          listings: secondPage ? pageRows.slice(20) : pageRows.slice(0, 20),
+          nextCursor: secondPage ? null : 'e2e-cursor-page-two',
+          hasMore: !secondPage,
+          pageSize: 20,
+        };
+      },
+    });
+    try {
+      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      const cursorCards = page.locator('main[dir="rtl"] h3').filter({ hasText: /^عيادة اختبار المؤشر \d{2}$/ });
+      await cursorCards.first().waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(await cursorCards.count(), 20, 'public directory must initially render exactly one 20-row server page');
+      await page.getByRole('button', { name: 'رؤية المزيد من الأنشطة', exact: true }).click();
+      await page.waitForFunction(() => [...document.querySelectorAll('main[dir="rtl"] h3')]
+        .filter((node) => /^عيادة اختبار المؤشر \d{2}$/.test((node.textContent || '').trim())).length === 25);
+      assert.equal(await cursorCards.count(), 25, 'cursor continuation must append the remaining five public listings without duplicates');
+      assert.ok(directoryListingPageRequests.length >= 2, 'the root directory must request a second server page after load more');
+      assert.equal(directoryListingPageRequests[0].limit, '20', 'the first server request must be bounded to 20 rows');
+      assert.equal(directoryListingPageRequests[0].governorate, 'المنوفية', 'the first server request must retain the selected governorate');
+      assert.equal(directoryListingPageRequests[0].district, 'بركة السبع', 'the first server request must retain the selected markaz/district');
+      const continuationRequest = directoryListingPageRequests.find((request) => request.cursor === 'e2e-cursor-page-two');
+      assert.ok(continuationRequest, 'the continuation request must carry the exact nextCursor returned by the first page');
+      assert.equal(continuationRequest.limit, '20', 'continuation must preserve the page-size bound');
+      assert.equal(continuationRequest.governorate, 'المنوفية', 'continuation must preserve the selected governorate');
+      assert.equal(continuationRequest.district, 'بركة السبع', 'continuation must preserve the selected markaz/district');
+      results.push('directory-server-cursor-pagination-20-plus-5-geographic-scope');
     } finally { await context.close(); }
   }
 
