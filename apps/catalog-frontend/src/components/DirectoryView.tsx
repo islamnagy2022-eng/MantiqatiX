@@ -154,6 +154,7 @@ export const DirectoryView: React.FC = () => {
   const [directoryListingsLoadingMore, setDirectoryListingsLoadingMore] = useState(false);
   const [directoryListingsError, setDirectoryListingsError] = useState('');
   const directoryPaginationGeneration = useRef(0);
+  const [visibleActivityCount, setVisibleActivityCount] = useState(20);
   const [activityListingSearchQuery, setActivityListingSearchQuery] = useState('');
   const [activityListingSpecialty, setActivityListingSpecialty] = useState('all');
 
@@ -349,6 +350,14 @@ export const DirectoryView: React.FC = () => {
   ]);
 
   useEffect(() => {
+    setVisibleActivityCount(20);
+  }, [
+    searchQuery, selectedGroupFilter, selectedCategoryId, selectedSpecialty,
+    selectedGovFilter, selectedMarkazFilter, selectedVillageFilter, selectedAreaFilter,
+    activityModuleId, activityListingSearchQuery, activityListingSpecialty,
+  ]);
+
+  useEffect(() => {
     let cancelled = false;
     const requestGeneration = ++directoryPaginationGeneration.current;
     setDirectoryListingsLoaded(false);
@@ -407,6 +416,11 @@ export const DirectoryView: React.FC = () => {
       if (requestGeneration === directoryPaginationGeneration.current) setDirectoryListingsLoadingMore(false);
     }
   }, [directoryListingsHasMore, directoryListingsCursor, directoryListingsLoadingMore, directoryListingRequestFilters]);
+  const showMoreDirectoryActivities = useCallback(() => {
+    setVisibleActivityCount((current) => current + 20);
+    if (directoryListingsHasMore) void loadMoreDirectoryListings();
+  }, [directoryListingsHasMore, loadMoreDirectoryListings]);
+
   const [administrativeShiyakhas, setAdministrativeShiyakhas] = useState<EgyptGeoShiyakha[]>([]);
   const [shiyakhaLoadStatus, setShiyakhaLoadStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
 
@@ -634,6 +648,15 @@ export const DirectoryView: React.FC = () => {
   });
 
   // Keep the selected geographic scope stable. Widening is always an explicit visitor action.
+  // Render a maximum of 20 total activities initially, preserving verified-first ordering.
+  const visibleBusinesses = filteredBusinesses.slice(0, visibleActivityCount);
+  const visibleUnconfirmedListings = filteredUnconfirmedListings.slice(
+    0,
+    Math.max(0, visibleActivityCount - visibleBusinesses.length),
+  );
+  const totalFilteredActivities = filteredBusinesses.length + filteredUnconfirmedListings.length;
+  const visibleActivityTotal = visibleBusinesses.length + visibleUnconfirmedListings.length;
+
   const hasNoSearchResults = !directoryLoading && directoryListingsLoaded &&
     filteredBusinesses.length + filteredUnconfirmedListings.length === 0;
   const canWidenGeographicSearch = selectedAreaFilter !== 'all' ||
@@ -1017,7 +1040,7 @@ export const DirectoryView: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-6">
-              {filteredBusinesses.map((biz) => {
+              {visibleBusinesses.map((biz) => {
                 return (
                   <div
                     key={biz.id}
@@ -1147,7 +1170,7 @@ export const DirectoryView: React.FC = () => {
                   </div>
                 );
               })}
-              {filteredUnconfirmedListings.map((listing) => (
+              {visibleUnconfirmedListings.map((listing) => (
                 <button
                   key={`directory-${listing.id}`}
                   type="button"
@@ -1170,13 +1193,13 @@ export const DirectoryView: React.FC = () => {
               ))}
             </div>
           )}
-          {directoryListingsHasMore && (
+          {(visibleActivityTotal < totalFilteredActivities || directoryListingsHasMore) && (
             <div className="flex flex-col items-center gap-2 pt-2">
-              <button type="button" onClick={loadMoreDirectoryListings} disabled={directoryListingsLoadingMore}
+              <button type="button" onClick={showMoreDirectoryActivities} disabled={directoryListingsLoadingMore}
                 className="min-h-11 rounded-xl border border-emerald-200 bg-white px-6 py-3 text-xs font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60">
-                {directoryListingsLoadingMore ? 'جارٍ تحميل المزيد…' : 'رؤية المزيد من النتائج'}
+                {directoryListingsLoadingMore ? 'جارٍ تحميل المزيد…' : 'رؤية المزيد من الأنشطة'}
               </button>
-              <p className="text-[11px] text-slate-500">يتم تحميل النتائج على دفعات، مع الاحتفاظ بنطاق المحافظة والمركز والقرية المحدد.</p>
+              <p className="text-[11px] text-slate-500">يتم عرض الأنشطة على دفعات من 20، مع الاحتفاظ بنطاق المحافظة والمركز والقرية المحدد.</p>
             </div>
           )}
           {directoryListingsError && <p role="status" className="text-center text-xs font-bold text-amber-800">{directoryListingsError}</p>}
