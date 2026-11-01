@@ -3014,3 +3014,86 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Exact-head CI on code/test commit `43483d855bb08a63a37f78be564f5eb670f8a465`: RC463 integration on PostgreSQL 17.11 (matching the Production PostgreSQL 17 major), 75-migration disposable forward replay, build, RBAC PostgreSQL, Playwright E2E, migration immutability/uniqueness/collision guards and supporting backend/privacy/payment workflows all passed. Pages validation passed; PR deploy was skipped by design. See `docs/audits/RC463_TRIGGER_ONLY_SECURITY_DEFINER_ACL.md` for run IDs.
 - [ ] Current-Oct-31 schema-faithful restore, backup/restore and rollback rehearsal are not covered by the older checkpoint replay and remain required before Production rollout.
 - [ ] **No Production migration, function, trigger, ACL, database data, Edge Function, Auth or RLS change was performed. RC463 is not approved for Production.**
+
+
+## CAT-PHARMACY-DEFAULT-IMAGE-20261101 — صورة افتراضية للصيدليات غير الموثقة
+
+- **Request ledger:** GitHub master issue #599 (comment 6550632491).
+- **Priority:** P2 — catalog presentation consistency.
+- **Status:** SOURCE IMPLEMENTED ON BRANCH; exact-head tests and deployed-origin verification OPEN.
+- **Branch:** `fix/unverified-pharmacy-default-image-20261101`.
+- **Requested fallback:** `https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSe8i4AsKE3GHO82zlHDPbKEE4HLFtfcZ-jhNqF9eHI6w&s=10`.
+- **Acceptance criteria:**
+  - Apply only to pharmacy listings that are not verified and have no owner/admin-selected logo.
+  - Preserve owner/admin and AI-selected images; a newly saved replacement must take precedence.
+  - Verified pharmacies and all non-pharmacy activities remain unchanged.
+  - Do not modify listing records, verification state, database schema, or production data.
+  - Regression checks cover unverified pharmacy fallback, custom image precedence, verified pharmacy, and non-pharmacy isolation.
+- **Implementation:** frontend production mapper only; no migration or Edge Function change.
+- **Tests/evidence:** static regression assertions added; execution pending exact-head CI.
+- **Deployment:** NOT CLAIMED. Deploy only through reviewed merge-to-main workflow after CI.
+- **Next action:** run exact-head catalog validation and browser E2E; verify deployed-origin fallback and replacement-image behavior after merge.
+
+
+## CAT-DOCTOR-DEFAULT-IMAGE-20261101 — صورة افتراضية للأطباء غير الموثقين
+
+- **Request ledger:** GitHub master issue #599; added to PR #628 continuation.
+- **Priority:** P2 — catalog presentation consistency.
+- **Status:** SOURCE IMPLEMENTED ON BRANCH; exact-head tests and deployed-origin verification OPEN.
+- **Branch / PR:** `fix/unverified-pharmacy-default-image-20261101` / [PR #628](https://github.com/islamnagy2022-eng/MantiqatiX/pull/628).
+- **Requested fallback:** `https://play-lh.googleusercontent.com/0V8K7Jgj4E0DP0dsn2tnkaipdrUG1tbkslu7ajn6kADRRUL4e1lcFKBFU1W0971GMwV-IYW09XuI-E0n_7F9roI`.
+- Refinement: doctor detection also recognizes normalized individual medical professionals (`functionalGroupId === 'medical_health'` and `classificationType === 'profession'`), in addition to explicit doctor type/name markers. This is needed because historical doctor category IDs are read-compatible-mapped into the canonical medical-practices activity while profession-vs-activity remains a preserved distinction.
+- **Acceptance criteria:**
+  - Apply only to doctor listings that are not verified and have no owner/admin-selected image.
+  - Preserve owner/admin/AI-selected images; a saved replacement takes precedence.
+  - Verified doctors, pharmacies, and non-doctor activities retain their existing behavior.
+  - No listing data, verification state, database schema, or production mutation.
+  - Regression assertions cover exact URL, unverified doctor scope, and custom-image precedence.
+- **Implementation:** frontend production mapper only; pharmacy fallback remains intact.
+- **Tests/evidence:** static regression assertions added; exact-head CI pending.
+- **Deployment:** NOT CLAIMED. Deploy only through reviewed merge-to-main workflow after CI.
+- **Next action:** run exact-head catalog validation and browser E2E; verify deployed-origin doctor fallback and replacement-image behavior after merge.
+
+
+## CAT-DIRECTORY-8COL-20261101 — استعادة عرض الأنشطة في 8 أعمدة
+
+- **Status:** SOURCE UPDATE ON PR #628; CI verification pending.
+- **Context:** Prior owner requirement requested eight activity cards beside each other. Exact-head taxonomy validation failed because the current activity grid no longer contained the required eight-column layout.
+- **Implementation:** selected-group activity cards now use `grid grid-cols-8 gap-1` with compact icon, name, total count, verified count, and unverified count indicators. Group folders and search-result business cards are not changed.
+- **Regression:** existing canonical taxonomy validator requires the eight-column grid marker twice and should now pass against the activity-grid source.
+- **Safety:** UI change is limited to the existing activity-card grid; no route, data, backend, schema, or production mutation.
+- **Next:** exact-head build, taxonomy validator, browser E2E and deployed-origin checks.
+
+
+### Directory-listing coverage for the doctor default photo
+- The requested defaults are shared by registered unverified doctor/pharmacy activities and standalone unclaimed `public_directory_listings` doctor/pharmacy pages.
+- `DirectoryListingsView` now displays a valid owner-provided `metadata.profileImageUrl` first; otherwise, only `listing_type=doctor` or `listing_type=pharmacy` with `claim_status` other than `CLAIMED` receives its respective shared image.
+- Both doctor/pharmacy listing cards and detail pages use the same helper. Claimed pages and other listing types do not receive the default.
+- The two defaults are stored once in `utils/defaultImages.ts`; pharmacy and doctor consumers import from this common registry.
+- Exact-head validation is still pending.
+
+
+### Owner-controlled replacement for unclaimed doctor/pharmacy fallback images
+- Added an HTTPS image URL field to the existing owner page editor. A valid saved `metadata.profileImageUrl` takes precedence over the shared default in listing cards and detail pages.
+- Clearing the URL returns an unclaimed doctor/pharmacy page to its category default. The server's existing UPDATE_OWNED_LISTING allowlist already includes `profileImageUrl`; the frontend now passes that field through.
+- The field remains behind the existing claimed-page owner authorization; no ownership or access policy changed.
+- Validation and CI must pass on the final PR head before merge/deployment.
+
+
+## CAT-PR628-BROWSER-ROUTE-ASSERTION-20261101 — تصحيح اختبار رفض مسار الإدارة
+- **Status:** FIXED IN PR #628; rerun required.
+- The browser E2E timed out because it expected a standalone heading `الأنشطة` after an unsupported role was redirected to the public directory. The current public homepage exposes the directory as the labeled section `المجموعات والأنشطة`, not that obsolete heading.
+- Updated the test to wait for the real public directory section, while retaining the security assertions that the admin tab is absent and no `ADMIN_LIST` request is made.
+- This is a test-selector correction only; no application behavior or authorization logic is weakened.
+- **Next:** rerun full browser E2E on the exact updated PR head before merge/deployment.
+
+
+### CAT-PR628-SPECIALTY-RESET-BROWSER-ASSERTION-20261101
+- [x] Correct the browser E2E assertions to use the actual directory control label `عرض كل أنشطة المجموعة` and the stable `section[aria-label="المجموعات والأنشطة"]` landmark after specialty selection. The prior test expected obsolete button/heading labels; no production UI or authorization behavior was weakened.
+- [ ] Re-run latest-head catalog CI and confirm browser E2E passes before merge/deploy.
+
+
+## 2026-11-01 — PR #628 browser E2E follow-up: specialty scenario navigation
+- Latest exact-head browser run `41254516117` failed at `professional-dashboard.browser.e2e.mjs:865` because the duplicated specialty-filter scenario tried to open the “ممارسات وعيادات طبية” activity card before opening its parent “الطب والصحة” group.
+- The production UI route is intentionally group → activity → specialty. Updated only the test to open the parent group before selecting the activity; no UI or authorization assertion was relaxed.
+- Re-run all exact-head CI before merge. PR #628 remains open/unmerged and no production deployment is claimed. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.

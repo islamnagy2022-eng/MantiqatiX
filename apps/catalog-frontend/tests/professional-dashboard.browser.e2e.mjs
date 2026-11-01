@@ -727,7 +727,7 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      await page.getByRole('heading', { name: 'الأنشطة', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.locator('section[aria-label="المجموعات والأنشطة"]').waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(await page.getByText('دليل الأنشطة والمطالبات', { exact: true }).count(), 0, 'non-platform roles must not render the directory admin tab');
       assert.equal(directoryAdminRequests.some((request) => request.action === 'ADMIN_LIST'), false, 'non-platform roles must not request the admin directory bundle');
       results.push('non-platform-role-denied-directory-admin-route');
@@ -845,8 +845,8 @@ try {
       await assertNoHorizontalOverflow(page, '768px selected activity specialty');
       await page.setViewportSize({ width: 1440, height: 900 });
       await assertNoHorizontalOverflow(page, '1440px selected activity specialty');
-      await page.getByRole('button', { name: 'عرض كل الأنشطة', exact: true }).click();
-      await page.getByRole('heading', { name: 'الأنشطة', exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: 'عرض كل أنشطة المجموعة', exact: true }).click();
+      await page.locator('section[aria-label="المجموعات والأنشطة"]').waitFor({ state: 'visible' });
       results.push('direct-activity-specialty-filter-returns-to-directory-and-clears');
     } finally { await context.close(); }
   }
@@ -861,6 +861,7 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
+      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
       const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
       await activityCard.click();
       const modulePage = page.locator('main[dir="rtl"]');
@@ -872,8 +873,8 @@ try {
       await assertNoHorizontalOverflow(page, '768px selected activity specialty');
       await page.setViewportSize({ width: 1440, height: 900 });
       await assertNoHorizontalOverflow(page, '1440px selected activity specialty');
-      await page.getByRole('button', { name: 'عرض كل الأنشطة', exact: true }).click();
-      await page.getByRole('heading', { name: 'الأنشطة', exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: 'عرض كل أنشطة المجموعة', exact: true }).click();
+      await page.locator('section[aria-label="المجموعات والأنشطة"]').waitFor({ state: 'visible' });
       results.push('direct-activity-specialty-filter-returns-to-directory-and-clears');
     } finally { await context.close(); }
   }

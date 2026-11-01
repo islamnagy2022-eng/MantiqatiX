@@ -1140,3 +1140,49 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Source-only changes on the PR branch: frontend, Edge Function source, static validator and workflow configuration.
 - No production migration, schema/data mutation, grant/RLS/Auth change, Edge deployment, campaign execution, advertising spend, payment or financial operation.
 - `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## Request continuation — CAT-PHARMACY-DEFAULT-IMAGE-20261101
+
+- Master request #599 comment 6550632491; detailed record in `docs/MASTER_PRODUCTION_TODO.md`.
+- Branch `fix/unverified-pharmacy-default-image-20261101`: frontend mapper selects the requested shared image only for unverified pharmacy records without a selected custom image. Existing owner/admin/AI images and verified/non-pharmacy records are intended to remain unchanged.
+- Static regression assertions added; exact-head CI and deployed-origin checks are still pending. No production data, schema, or Edge Function was changed; no deployment is claimed.
+- Overall `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+
+## Request continuation — CAT-DOCTOR-DEFAULT-IMAGE-20261101
+
+- Added to master TODO and PR #628 alongside the unverified-pharmacy fallback.
+- Refinement: doctor detection also recognizes normalized individual medical professionals (`functionalGroupId === 'medical_health'` and `classificationType === 'profession'`), in addition to explicit doctor type/name markers. This is needed because historical doctor category IDs are read-compatible-mapped into the canonical medical-practices activity while profession-vs-activity remains a preserved distinction.
+- The exact supplied Google Play image is selected only for unverified doctor listings without a saved owner/admin/AI-selected image; pharmacy fallback logic is preserved.
+- Exact-head CI and deployed-origin verification remain pending. No production data/schema/Edge Function changes or deployment are claimed.
+- Overall `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+
+## Request continuation — CAT-DIRECTORY-8COL-20261101
+
+- Restored the requested compact eight-column layout for activity cards inside a selected group, with total/verified/unverified counts retained.
+- Group-folder layout and unified search result cards are unchanged. Exact-head CI and deployed-origin checks pending; included in PR #628.
+
+
+- Coverage refinement: the unverified-doctor and unverified-pharmacy images now apply to standalone public directory doctor/pharmacy listings as well as registered business records. Directory cards/detail show `metadata.profileImageUrl` when a valid HTTPS owner image exists, otherwise the matching default applies only to the relevant listing type and non-CLAIMED records. Both URLs moved to the common `defaultImages.ts` registry. CI/deployed-origin verification pending.
+
+
+- Owner change path completed for standalone directory pages: the existing owner-only editor now exposes an optional HTTPS profile-image URL and persists it as metadata.profileImageUrl through the already-allowlisted UPDATE_OWNED_LISTING route. Existing owner image is shown first; clearing the field restores the doctor/pharmacy default for unclaimed records. No permission or backend policy changed.
+
+
+## PR #628 browser E2E correction — 2026-11-01
+- Browser E2E exposed a stale expectation for a heading named `الأنشطة` after an unsupported admin route. The current public directory is exposed as `section[aria-label="المجموعات والأنشطة"]`.
+- Updated only the test selector to wait for that real public directory section; kept assertions that the admin tab is hidden and no `ADMIN_LIST` request is sent for unsupported roles.
+- Rerun exact-head browser E2E. Do not merge or claim deployment until it passes. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+
+### PR #628 browser E2E follow-up — 2026-11-01
+- Latest browser run exposed another stale test assumption: the specialty reset control is `عرض كل أنشطة المجموعة`, not `عرض كل الأنشطة`; the directory landmark is `section[aria-label="المجموعات والأنشطة"]`, not a heading named `الأنشطة`.
+- Updated both duplicated specialty-return assertions to match the real UI. This is test-only; no production UI, role, or authorization behavior was changed. Awaiting fresh CI on the new HEAD.
+
+
+## PR #628 browser E2E follow-up — 2026-11-01 (parent group navigation)
+- Exact-head run `41254516117` failed only in `professional_dashboard_browser_e2e` at test line 865: a duplicated specialty-filter scenario attempted to click the medical-practices activity card without first opening its parent “الطب والصحة” group.
+- Corrected the test to follow the actual navigation sequence (open group → open activity → choose specialty). The source UI, routing, and authorization checks were not changed or weakened.
+- Fresh CI is required on the new branch HEAD. Keep PR #628 unmerged and do not claim deployment until all required checks pass and the production release workflow actually deploys. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.

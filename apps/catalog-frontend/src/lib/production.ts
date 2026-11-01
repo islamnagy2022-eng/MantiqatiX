@@ -1,7 +1,7 @@
 import { createClient, type User } from '@supabase/supabase-js';
 import type { ActivityModuleOverrides, AdminSettings, AuthSession, Business, FunctionalGroupId, Product, Subscriber } from '../types';
 import { DEFAULT_CATEGORIES, DEFAULT_FUNCTIONAL_GROUPS, DEFAULT_PAYMOB_CONFIG, INITIAL_ADMIN_SETTINGS, normalizeCanonicalTaxonomySettings, resolveCanonicalGroupId, resolveCanonicalActivityCategoryId } from '../data/productionDefaults';
-import { resolveDefaultImage } from '../utils/defaultImages';
+import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from '../utils/defaultImages';
 
 const runtime = (window as any).MANTIQATIX_CONFIG || (window as any).MNTY_CONFIG;
 if (!runtime?.supabaseUrl || !runtime?.supabaseKey) {
@@ -199,18 +199,39 @@ export function mapBusiness(raw: any, provider: any): Business {
     raw.settings?.activityCategoryCode || meta.activity_category_code || profile.activity_category_code || '',
   ).trim();
   const canonicalCategoryId = resolveCanonicalActivityCategoryId(activityGroupCode, activityCategoryCode);
+  const classificationType: 'activity' | 'profession' = String(
+    raw.activityClassificationType || raw.activity_classification_type || raw.settings?.activity_classification_type ||
+    meta.activity_classification_type || profile.activity_classification_type || 'activity',
+  ).toLowerCase() === 'profession' ? 'profession' : 'activity';
   const officialShowcase = Boolean(raw.isOfficialShowcase || raw.settings?.source === 'OFFICIAL_PLATFORM_SHOWCASE' || raw.settings?.managed_by === 'SUPER_ADMIN');
   const savedLogo = String(profile.logoUrl || profile.logo_url || raw.logoUrl || '');
   const savedCover = String(profile.coverUrl || profile.cover_url || raw.coverUrl || '');
   const externalLogoUrl = String(profile.externalLogoUrl ?? profile.external_logo_url ?? profile.logo_url ?? raw.externalLogoUrl ?? '');
   const externalCoverUrl = String(profile.externalCoverUrl ?? profile.external_cover_url ?? profile.cover_url ?? raw.externalCoverUrl ?? '');
+  const isVerified = Boolean(provider?.verified ?? provider?.is_verified ?? raw.isVerified);
+  const isPharmacy = /صيدل|pharmacy/i.test([name, category, activityCategoryCode, raw.activityGroupCode, raw.activity_group_code].join(' '));
+  const savedLogoSource = String(profile.logo_image_source || profile.logoImageSource || '').toLowerCase();
+  const hasOwnerSelectedLogo = Boolean(savedLogo) && savedLogoSource !== 'auto' &&
+    !/(?:business-placeholder|catalog-item-placeholder)\.svg|\/legacy\/(?:activity|activities)\//i.test(savedLogo);
+  const pharmacyFallbackLogo = isPharmacy && !isVerified && !hasOwnerSelectedLogo
+    ? UNVERIFIED_PHARMACY_IMAGE_URL
+    : '';
+  const isDoctor = /طبيب|طبيبة|دكتور|دكتورة|doctor|physician/i.test([
+    name, category, activityCategoryCode, raw.activityGroupCode, raw.activity_group_code,
+    raw.activitySpecialty, raw.activity_specialty, profile.activity_specialty,
+    provider?.kind, provider?.providerKind, provider?.provider_kind,
+    raw.providerKind, raw.provider_kind, raw.kind, raw.type, raw.listingType, raw.listing_type,
+  ].join(' ')) || (functionalGroupId === 'medical_health' && classificationType === 'profession');
+  const doctorFallbackLogo = isDoctor && !isVerified && !hasOwnerSelectedLogo
+    ? UNVERIFIED_DOCTOR_IMAGE_URL
+    : '';
   return {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
     categoryId: DEFAULT_CATEGORIES.find((x) => x.id === canonicalCategoryId)?.id || DEFAULT_CATEGORIES.find((x) => x.name === category || category.startsWith(x.name + ' — '))?.id,
     functionalGroupId,
-    categoryClassificationType: String(raw.activityClassificationType || raw.activity_classification_type || raw.settings?.activity_classification_type || meta.activity_classification_type || profile.activity_classification_type || 'activity').toLowerCase() === 'profession' ? 'profession' : 'activity',
+    categoryClassificationType: classificationType,
     activitySpecialty: String(raw.activitySpecialty || raw.activity_specialty || raw.settings?.activity_specialty || meta.activity_specialty || profile.activity_specialty || '') || undefined,
-    logoUrl: isStockImageUrl(savedLogo) && !officialShowcase ? '' : savedLogo,
+    logoUrl: doctorFallbackLogo || pharmacyFallbackLogo || (isStockImageUrl(savedLogo) && !officialShowcase ? '' : savedLogo),
     coverUrl: isStockImageUrl(savedCover) && !officialShowcase ? '' : savedCover,
     externalLogoUrl: /^https:\/\//i.test(externalLogoUrl) ? externalLogoUrl : '',
     externalCoverUrl: /^https:\/\//i.test(externalCoverUrl) ? externalCoverUrl : '',
@@ -250,7 +271,7 @@ export function mapBusiness(raw: any, provider: any): Business {
       rawMetadata.location?.longitude, rawMetadata.location?.lng, rawMetadata.location?.lon,
     ], -180, 180),
     workingHours: String(profile.workingHours || profile.working_hours || raw.workingHours || ''),
-    isVerified: Boolean(provider?.verified ?? provider?.is_verified ?? raw.isVerified),
+    isVerified,
     maxProductsLimit: 150, createdAt: String(created).slice(0, 10),
     registrationDate: String(meta.registrationDate || created).slice(0, 10),
     paymentDueDay: Number(meta.paymentDueDay || 0), paymentDueDate: String(meta.paymentDueDate || ''),

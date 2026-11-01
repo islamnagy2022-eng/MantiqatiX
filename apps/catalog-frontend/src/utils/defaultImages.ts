@@ -5,6 +5,9 @@
  */
 export type DefaultImageKind = 'activity' | 'product' | 'service' | 'cover';
 
+export const UNVERIFIED_PHARMACY_IMAGE_URL = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSe8i4AsKE3GHO82zlHDPbKEE4HLFtfcZ-jhNqF9eHI6w&s=10';
+export const UNVERIFIED_DOCTOR_IMAGE_URL = 'https://play-lh.googleusercontent.com/0V8K7Jgj4E0DP0dsn2tnkaipdrUG1tbkslu7ajn6kADRRUL4e1lcFKBFU1W0971GMwV-IYW09XuI-E0n_7F9roI';
+
 export interface DefaultImageInput {
   name?: string | null;
   description?: string | null;
