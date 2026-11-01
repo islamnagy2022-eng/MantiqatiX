@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "supabase/functions/directory-listings/**"
+      - "supabase/migrations/20261101150000_directory_source_permission_evidence.sql"
       - "apps/catalog-frontend/src/lib/directoryListings.ts"
       - "apps/catalog-frontend/src/components/admin/DirectoryListingsAdmin.tsx"
       - "scripts/production/validate-doctor-incremental-import.mjs"
