@@ -280,8 +280,10 @@ assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(searc
   'The Edge Function must apply the isolated search + cursor filter builder.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.or\(logicalFilter\)/,
   'A paginated request must attach its logical filter tree exactly once.');
-assert.match(directoryListingsFunction, /directory-pagination-filter\.mjs/,
-  'The Edge Function must import the independently testable pagination filter builder.');
+assert.match(directoryListingsFunction, /from "\.\/pagination-filter\.mjs"/,
+  'The Edge Function must import the independently testable pagination filter builder from its deployable function package.');
+assert.ok(fs.existsSync('supabase/functions/directory-listings/pagination-filter.mjs'),
+  'The Edge Function pagination helper must exist inside the deployable directory-listings package.');
 
 const testCursor = { created_at: '2026-11-01T00:00:00.000Z', id: '123e4567-e89b-42d3-a456-426614174000' };
 const combinedDirectoryFilter = buildDirectoryPaginationOrFilter('طبيب', testCursor);
