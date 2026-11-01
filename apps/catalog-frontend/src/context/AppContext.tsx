@@ -789,7 +789,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const openPublicBusiness = async (businessId: string): Promise<boolean> => {
     const sequence = ++publicCatalogOpenSequenceRef.current;
     const knownBusiness = businesses.find((business) => business.id === businessId);
-    if (knownBusiness && (knownBusiness.publicEnabled || knownBusiness.isOfficialShowcase) && !knownBusiness.isFrozen) {
+    if (knownBusiness && (knownBusiness.publicEnabled || knownBusiness.isOfficialShowcase) && knownBusiness.operationalStatus === 'ACTIVE' && !knownBusiness.isFrozen) {
       setCartItems([]);
       commitSelectedBusinessId(knownBusiness.id);
       setCurrentView('public_storefront');
