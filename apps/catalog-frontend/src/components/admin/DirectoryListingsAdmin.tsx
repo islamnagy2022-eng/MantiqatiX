@@ -66,7 +66,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
       const missingSource = rows.filter((row) => !row || typeof row !== "object" || !String(row.sourceName || row.source_name || "").trim() || !String(row.sourceUrl || row.source_url || "").trim()).length;
       return { count: rows.length, missingSource, error: "" };
     } catch {
-      return { count: 0, missingEvidence: 0, error: "JSON غير صالح. راجع التنسيق قبل الاستيراد." };
+      return { count: 0, missingSource: 0, error: "JSON غير صالح. راجع التنسيق قبل الاستيراد." };
     }
   }, [batchJson]);
 
