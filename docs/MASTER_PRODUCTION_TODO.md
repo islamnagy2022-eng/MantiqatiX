@@ -3129,3 +3129,21 @@ A separate source review found a second platform-root authorization model: the n
 - **Production URL:** https://islamnagy2022-eng.github.io/MantiqatiX/.
 - **Scope:** frontend routing/search, tests and documentation only; no production schema/RLS/Auth/Edge Function/payment/finance/data changes.
 - **Boundary:** this closes only the activity/specialty directory task. It does not certify or clear the separate full-platform production gate; its existing open migration, finance/payment, backup/restore and security evidence items remain independently tracked.
+
+
+## DIR-DOCTORS-EGYPT-NATIONAL-20261101 — استكمال دليل الأطباء على مستوى الجمهورية
+
+- **Priority:** P1 — Public directory data coverage.
+- **Status:** IN PROGRESS — scope recorded; nationwide source/permission audit and governorate batches remain open.
+- **Owner request:** استكمال إضافة الأطباء على مستوى مصر، مع إسناد كل طبيب إلى موقع عيادته/منشأته الفعلي، وليس مجرد المحافظة العامة.
+- **Current verified baseline:** the prior directory discovery work covered Berket El Sabaa and added three doctor records after global normalized name/phone duplicate checks. Those records remain PUBLISHED/UNCLAIMED and their contact numbers are not owner-verified. This is not nationwide coverage.
+- **Geographic hierarchy:** governorate → markaz/city → district/neighborhood/village → address; save latitude/longitude only when supported by a reliable source or geocoding result tied to the actual clinic address. Do not infer a doctor's clinic location from home/residence, specialty, or a broad governorate label.
+- **Sources:** prioritize Egyptian Medical Syndicate's official doctor/facility lookup and other sources whose reuse terms permit structured republication. Public listings may be used only after checking source terms, provenance, freshness, and whether each field is actually published. Do not bulk-copy third-party directories or scrape 49k-record datasets without permission/licence review.
+- **Record quality:** require a defensible identity and clinic location; retain source URL and retrieval date; preserve phone-required publication rule; no invented names, specialties, addresses, phones, coordinates, opening hours, ratings, or credentials. Where data is incomplete, keep as draft/not published according to existing backend rules.
+- **Deduplication:** normalized Arabic name + phone cross-catalog check before each insert; phone alone is not sufficient to merge different identities; detect multiple clinic branches as separate locations only when source evidence supports them.
+- **Trust:** new public-source records remain UNCLAIMED; owner confirmation is required; do not award verified status or use verification badge from third-party directory presence.
+- **Batching:** work governorate by governorate and center by center; publish a coverage ledger with source, counts discovered/eligible/duplicate/rejected/inserted, and missing-data reasons. Start with a complete source/coverage inventory, then proceed in bounded batches.
+- **UI:** use the existing group → activity → specialty folders and activity-scoped search; preserve verified-first ordering, geo filters, 20-item initial loading with رؤية المزيد, and existing visual identity. Each doctor must open at their own clinic's actual map/location.
+- **Safety:** no production schema/RLS/Auth/grant/Edge Function changes, no destructive edits, and no unreviewed bulk production write. Any import must use the approved existing public-listing path, respect RLS/phone constraints, and be read-after-write verified.
+- **Acceptance:** every inserted doctor has source provenance, dedupe evidence, correct specialty and hierarchical address; map coordinates resolve to the clinic; search works by governorate/markaz/area/specialty; duplicate audit passes; record counts reconcile; deployed-origin spot checks pass. Nationwide completion must not be claimed until all 27 governorates and their relevant centers have a documented coverage result.
+- **Next action:** audit available official and licensed sources and the existing listing schema/import path; then start the first eligible governorate batch and update the coverage ledger after every batch.
