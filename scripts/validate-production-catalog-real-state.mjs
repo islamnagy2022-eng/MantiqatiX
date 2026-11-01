@@ -305,6 +305,9 @@ for (const invalidLimit of ['0', '101', '-1', '1.5', 'invalid']) {
 const encodedTestCursor = encodeDirectoryPaginationCursor(testCursor);
 assert.doesNotMatch(encodedTestCursor, /[+/=]/, 'Continuation cursors must be URL-safe and unpadded.');
 assert.deepEqual(decodeDirectoryPaginationCursor(encodedTestCursor), testCursor, 'Cursor encoding and decoding must round-trip without changing the keyset.');
+const microsecondCursor = { created_at: '2026-11-01T00:00:00.123456+00:00', id: testCursor.id };
+assert.deepEqual(decodeDirectoryPaginationCursor(encodeDirectoryPaginationCursor(microsecondCursor)), microsecondCursor,
+  'Cursor decoding must preserve PostgreSQL microsecond timestamp precision.');
 assert.equal(decodeDirectoryPaginationCursor(''), null, 'An omitted cursor must represent the first page.');
 assert.throws(() => decodeDirectoryPaginationCursor('not-a-cursor'), /invalid cursor/, 'Malformed cursor data must be rejected.');
 assert.throws(() => decodeDirectoryPaginationCursor(encodeDirectoryPaginationCursor({ created_at: 'not-a-date', id: 'bad-id' })), /invalid cursor/, 'Invalid cursor timestamps and IDs must be rejected.');
