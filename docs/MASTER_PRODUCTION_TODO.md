@@ -3091,3 +3091,9 @@ A separate source review found a second platform-root authorization model: the n
 ### CAT-PR628-SPECIALTY-RESET-BROWSER-ASSERTION-20261101
 - [x] Correct the browser E2E assertions to use the actual directory control label `عرض كل أنشطة المجموعة` and the stable `section[aria-label="المجموعات والأنشطة"]` landmark after specialty selection. The prior test expected obsolete button/heading labels; no production UI or authorization behavior was weakened.
 - [ ] Re-run latest-head catalog CI and confirm browser E2E passes before merge/deploy.
+
+
+## 2026-11-01 — PR #628 browser E2E follow-up: specialty scenario navigation
+- Latest exact-head browser run `41254516117` failed at `professional-dashboard.browser.e2e.mjs:865` because the duplicated specialty-filter scenario tried to open the “ممارسات وعيادات طبية” activity card before opening its parent “الطب والصحة” group.
+- The production UI route is intentionally group → activity → specialty. Updated only the test to open the parent group before selecting the activity; no UI or authorization assertion was relaxed.
+- Re-run all exact-head CI before merge. PR #628 remains open/unmerged and no production deployment is claimed. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
