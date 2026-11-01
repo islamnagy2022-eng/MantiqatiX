@@ -225,7 +225,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
             </button>)}
             {listingsLoading && <p role="status" className="col-span-full rounded-xl bg-slate-50 p-4 text-center text-xs font-bold text-slate-600">جارٍ تحميل نتائج الدليل لهذا النشاط…</p>}
             {!listingsLoading && verifiedBusinesses.length + unverifiedBusinesses.length + visibleListings.length === 0 &&
-              <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">لا توجد نتائج مطابقة داخل هذا النشاط والنطاق الجغرافي المحدد.</p>}
+              <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">{selectedSpecialty ? 'لا توجد نتائج مطابقة داخل هذا التخصص والنطاق الجغرافي المحدد.' : 'لا توجد نتائج مطابقة داخل هذا النشاط والنطاق الجغرافي المحدد.'}</p>}
           </div>
           {hasMoreActivityResults && (
             <div className="flex justify-center pt-2">
