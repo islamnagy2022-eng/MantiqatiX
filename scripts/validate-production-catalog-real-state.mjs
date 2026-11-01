@@ -75,11 +75,18 @@ assert.ok(defaultImages.includes('https://play-lh.googleusercontent.com/0V8K7Jgj
 assert.match(productionMapper, /isDoctor && !isVerified && !hasOwnerSelectedLogo/, 'doctor fallback must be limited to unverified doctors without an owner-selected logo');
 assert.match(productionMapper, /functionalGroupId === 'medical_health' && classificationType === 'profession'/, 'legacy individual medical professionals normalized under the medical-practices activity must receive the doctor fallback');
 assert.match(productionMapper, /logoUrl: doctorFallbackLogo \\|\\| pharmacyFallbackLogo/, 'custom doctor logos and all pharmacy fallback behavior must be preserved');
+assert.match(productionMapper, /pharmacyFallbackCover = isPharmacy && !isVerified && !hasOwnerSelectedCover/, 'unverified pharmacies without an owner-selected cover must reuse their pharmacy default image as the cover');
+assert.match(productionMapper, /doctorFallbackCover = isDoctor && !isVerified && !hasOwnerSelectedCover/, 'unverified doctors without an owner-selected cover must reuse their doctor default image as the cover');
+assert.match(productionMapper, /coverUrl: doctorFallbackCover \\|\\| pharmacyFallbackCover \\|\\|/, 'owner-selected doctor/pharmacy covers must take precedence over category defaults');
+assert.ok(productionMapper.includes('const hasOwnerSelectedCover = Boolean(savedCover)') && productionMapper.includes('!isStockImageUrl(savedCover)'), 'generated, placeholder, and stock cover assets must not suppress the default doctor/pharmacy cover');
 assert.ok(directoryListingsView.includes('if (listing.claim_status === "CLAIMED") return "";') && directoryListingsView.includes('const listingType = String(listing.listing_type || "").toLowerCase();'), 'claimed directory pages must keep their saved image behavior and public directory types must be classified explicitly before choosing a fallback');
 assert.ok(directoryListingsView.includes('if (listingType === "doctor") return UNVERIFIED_DOCTOR_IMAGE_URL;'), 'unclaimed doctor listing cards and details must use the shared doctor photo');
 assert.ok(directoryListingsView.includes('if (listingType === "pharmacy") return UNVERIFIED_PHARMACY_IMAGE_URL;'), 'unclaimed pharmacy listing cards and details must use the shared pharmacy photo');
 assert.ok(directoryListingsView.includes('listing.metadata?.profileImageUrl'), 'an owner-selected directory profile image must take precedence over the doctor default photo');
 assert.ok(directoryListingsView.includes('listingProfileImage(detail)'), 'unclaimed doctor detail pages must display the default photo');
+assert.ok(directoryListingsView.includes('function listingCoverImage(listing: PublicDirectoryListing): string'), 'standalone public directory pages must resolve a cover image separately from the profile thumbnail');
+assert.ok(directoryListingsView.includes('return listingProfileImage(listing);'), 'unclaimed doctor and pharmacy directory pages must reuse their exact default profile image as cover');
+assert.ok(directoryListingsView.includes('listingCoverImage(detail)'), 'the standalone doctor/pharmacy detail hero must display the resolved cover image');
 assert.ok(directoryListingsView.includes('listingProfileImage(listing)'), 'unclaimed doctor directory cards must display the default photo');
 assert.ok(directoryListingsView.includes('رابط صورة الصفحة (اختياري — رابط HTTPS)') && directoryListingsView.includes('pattern="https://.*"'), 'the claimed page owner editor must expose an HTTPS-only replacement image URL field');
 assert.ok(directoryListingsView.includes('profileImageUrl: asText(meta.profileImageUrl)'), 'the owner image URL must be loaded into the edit form');
