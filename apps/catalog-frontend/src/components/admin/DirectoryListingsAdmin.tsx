@@ -4,6 +4,7 @@ import type { ActivityCategory, Business, FunctionalGroup } from "../../types";
 import { resolveCanonicalSpecialty } from "../../data/productionDefaults";
 import {
   fetchDirectoryAdminBundle,
+  importDoctorDirectoryBatch,
   reviewDirectoryClaim,
   saveDirectoryListing,
   type DirectoryAdminBundle,
@@ -49,6 +50,8 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
   const [claimBusinessIds, setClaimBusinessIds] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [batchJson, setBatchJson] = useState("");
+  const [batchSummary, setBatchSummary] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -123,6 +126,22 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
       setError(e instanceof Error ? e.message : "تعذر حفظ الصفحة.");
     } finally { setBusy(false); }
   };
+  const handleDoctorBatchImport = async () => {
+    setBusy(true); setError(""); setMessage(""); setBatchSummary("");
+    try {
+      const parsed = JSON.parse(batchJson);
+      const rows = Array.isArray(parsed) ? parsed : parsed?.rows;
+      if (!Array.isArray(rows)) throw new Error("أدخل مصفوفة JSON أو كائنًا يحتوي على rows.");
+      const result = await importDoctorDirectoryBatch(rows);
+      setBatchSummary(`تمت معالجة ${result.processed} طبيبًا: ${result.inserted} جديد، ${result.updated} تحديث، ${result.drafted} مسودة، ${result.failed} فشل.`);
+      setMessage(result.failed ? "اكتمل الاستيراد مع وجود سجلات تحتاج مراجعة." : "تم حفظ دفعة الأطباء بنجاح.");
+      setBatchJson("");
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر استيراد دفعة الأطباء.");
+    } finally { setBusy(false); }
+  };
+
   const handleReview = async (claim: DirectoryClaimRequest, decision: "REVIEWING" | "REJECTED" | "APPROVED") => {
     setBusy(true); setError(""); setMessage("");
     try {
@@ -166,6 +185,16 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
       </div>
 
       {activePane === "listings" ? (
+        <>
+        <details className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-4">
+          <summary className="cursor-pointer text-sm font-black text-indigo-950">استيراد دفعة أطباء — حتى 20 طبيبًا</summary>
+          <p className="mt-2 text-xs leading-6 text-indigo-900">الصق بيانات موثقة بصيغة JSON. كل سجل يُحفظ فور معالجته؛ التكرارات تُحدّث بدل إنشاء سجل جديد. الطبيب الذي لا يتوفر له رقم هاتف صحيح يُحفظ كمسودة للمراجعة.</p>
+          <textarea value={batchJson} onChange={(e) => setBatchJson(e.target.value)} rows={8} dir="ltr" placeholder={'[{"displayName":"اسم الطبيب","specialty":"التخصص","governorate":"المحافظة","district":"المركز","taxonomyCategoryId":"cat_medical_health_...","phone":"01000000000","sourceName":"المصدر","sourceUrl":"https://..."}]'} className="mt-3 w-full rounded-xl border border-indigo-200 bg-white p-3 font-mono text-xs" />
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <button type="button" disabled={busy || !batchJson.trim()} onClick={() => void handleDoctorBatchImport()} className="rounded-xl bg-indigo-700 px-4 py-2.5 text-xs font-black text-white disabled:opacity-50">{busy ? "جارٍ الاستيراد…" : "استيراد وحفظ الدفعة"}</button>
+            {batchSummary && <span role="status" className="text-xs font-bold text-indigo-950">{batchSummary}</span>}
+          </div>
+        </details>
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
           <div className="space-y-3">
             <label className="relative block"><Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="ابحث باسم أو تخصص أو رقم" className="w-full rounded-xl border border-slate-200 bg-white py-3 pr-10 pl-3 text-sm" /></label>
@@ -213,6 +242,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
             <button disabled={busy} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-black text-white disabled:opacity-50"><Save className="h-4 w-4" /> {busy ? "جارٍ الحفظ…" : "حفظ البيانات"}</button>
           </form>
         </div>
+        </>
       ) : (
         <div className="space-y-3">
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-6 text-amber-950"><AlertTriangle className="ml-1 inline h-4 w-4" /> قبل الاعتماد، تواصل مباشرة مع الطبيب أو العيادة وتحقق من الهوية والملكية. الموافقة لا تتم إلا بعد اختيار نشاط نشط تم تأكيد اشتراكه المدفوع.</div>
