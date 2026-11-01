@@ -475,8 +475,8 @@ try {
         listing_type: 'doctor',
         functional_group_id: 'medical_health',
         taxonomy_category_id: 'cat_medical_health_medical_practices',
-        taxonomy_specialty: 'طب أطفال',
-        specialty: 'طب أطفال',
+        taxonomy_specialty: 'باطنة',
+        specialty: 'باطنة',
         phone: '0100000' + String(index + 1).padStart(4, '0'),
         secondary_phone: null,
         address: 'شارع العيادة ' + suffix,
@@ -507,6 +507,17 @@ try {
     });
     try {
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+      if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
+        await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+        await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      }
+      // The root screen shows activity groups, not listing cards. Follow the public folder navigation.
+      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
+      await page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first().click();
+      const modulePage = page.locator('main[dir="rtl"]');
+      await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
+      await modulePage.getByRole('button', { name: /باطنة/ }).first().click();
       const cursorCards = page.getByRole('heading').filter({ hasText: /^عيادة اختبار المؤشر \d{2}$/ });
       try {
         await cursorCards.first().waitFor({ state: 'visible', timeout: 15000 });
@@ -516,19 +527,23 @@ try {
           JSON.stringify((await page.locator('body').innerText().catch(() => '')).slice(0, 1800)));
       }
       assert.equal(await cursorCards.count(), 20, 'public directory must initially render exactly one 20-row server page');
-      await page.getByRole('button', { name: 'رؤية المزيد من الأنشطة', exact: true }).click();
+      await page.getByRole('button', { name: 'رؤية المزيد من هذا التخصص', exact: true }).click();
       await page.waitForFunction(() => [...document.querySelectorAll('h3')]
         .filter((node) => /^عيادة اختبار المؤشر \d{2}$/.test((node.textContent || '').trim())).length === 25);
       assert.equal(await cursorCards.count(), 25, 'cursor continuation must append the remaining five public listings without duplicates');
-      assert.ok(directoryListingPageRequests.length >= 2, 'the root directory must request a second server page after load more');
-      assert.equal(directoryListingPageRequests[0].limit, '20', 'the first server request must be bounded to 20 rows');
-      assert.equal(directoryListingPageRequests[0].governorate, 'المنوفية', 'the first server request must retain the selected governorate');
-      assert.equal(directoryListingPageRequests[0].district, 'بركة السبع', 'the first server request must retain the selected markaz/district');
+      const specialtyPageRequest = directoryListingPageRequests.find((request) =>
+        request.taxonomyCategoryId === 'cat_medical_health_medical_practices' && request.taxonomySpecialty === 'باطنة' && !request.cursor);
+      assert.ok(specialtyPageRequest, 'opening the specialty folder must request a server-filtered first page');
+      assert.equal(specialtyPageRequest.limit, '20', 'the specialty first request must be bounded to 20 rows');
+      assert.equal(specialtyPageRequest.governorate, 'المنوفية', 'the specialty request must retain the selected governorate');
+      assert.equal(specialtyPageRequest.district, 'بركة السبع', 'the specialty request must retain the selected markaz/district');
       const continuationRequest = directoryListingPageRequests.find((request) => request.cursor === 'e2e-cursor-page-two');
       assert.ok(continuationRequest, 'the continuation request must carry the exact nextCursor returned by the first page');
       assert.equal(continuationRequest.limit, '20', 'continuation must preserve the page-size bound');
       assert.equal(continuationRequest.governorate, 'المنوفية', 'continuation must preserve the selected governorate');
       assert.equal(continuationRequest.district, 'بركة السبع', 'continuation must preserve the selected markaz/district');
+      assert.equal(continuationRequest.taxonomyCategoryId, 'cat_medical_health_medical_practices', 'continuation must preserve the activity category');
+      assert.equal(continuationRequest.taxonomySpecialty, 'باطنة', 'continuation must preserve the selected specialty');
       results.push('directory-server-cursor-pagination-20-plus-5-geographic-scope');
     } finally { await context.close(); }
   }
