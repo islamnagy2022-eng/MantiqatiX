@@ -61,6 +61,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
   const [sourceEvidenceForm, setSourceEvidenceForm] = useState({
     sourceName: "", sourceHost: "", permissionBasis: "LICENSED" as DirectorySourcePermissionEvidence["permission_basis"],
     evidenceReference: "", evidenceSha256: "", expiresAt: "",
+    allowsDoctorProfileRepublication: false, allowsCommercialRepublication: false,
   });
 
 
@@ -153,8 +154,10 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
         evidenceReference: sourceEvidenceForm.evidenceReference.trim(),
         evidenceSha256: sourceEvidenceForm.evidenceSha256.trim() || undefined,
         expiresAt: sourceEvidenceForm.expiresAt || undefined,
+        allowsDoctorProfileRepublication: sourceEvidenceForm.allowsDoctorProfileRepublication,
+        allowsCommercialRepublication: sourceEvidenceForm.allowsCommercialRepublication,
       });
-      setSourceEvidenceForm({ sourceName: "", sourceHost: "", permissionBasis: "LICENSED", evidenceReference: "", evidenceSha256: "", expiresAt: "" });
+      setSourceEvidenceForm({ sourceName: "", sourceHost: "", permissionBasis: "LICENSED", evidenceReference: "", evidenceSha256: "", expiresAt: "", allowsDoctorProfileRepublication: false, allowsCommercialRepublication: false });
       setMessage("تم تسجيل مرجع الدليل بحالة انتظار المراجعة. لا يمكن استخدامه للاستيراد قبل اعتماد مسؤول آخر.");
       await load();
     } catch (e) {
@@ -163,7 +166,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
   };
 
   const handleApproveSourceEvidence = async (evidence: DirectorySourcePermissionEvidence) => {
-    if (!window.confirm("هل راجعت مستند الإذن نفسه وتأكدت أنه يسمح صراحة بإعادة نشر بيانات الأطباء تجاريًا؟ الاعتماد يسجل موافقة مسؤول ثانٍ.")) return;
+    if (!window.confirm("هل راجعت مستند الإذن الأصلي وتأكدت أنه يسمح صراحة بنشر ملفات الأطباء في دليل عام وبإعادة النشر التجاري بواسطة MantiqatiX؟ يجب اعتماد النطاقين كما وردا في المستند. الاعتماد يسجل موافقة مسؤول ثانٍ.")) return;
     setBusy(true); setError(""); setMessage("");
     try {
       await approveDirectorySourcePermissionEvidence({
@@ -262,7 +265,9 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
             <label className="text-xs font-bold text-slate-700">مرجع المستند الخاص<input required minLength={3} placeholder="private://directory-source-evidence/source-license.pdf" dir="ltr" value={sourceEvidenceForm.evidenceReference} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, evidenceReference: e.target.value })} className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-left" /></label>
             <label className="text-xs font-bold text-slate-700">SHA-256 للمستند (اختياري)<input pattern="[A-Fa-f0-9]{64}" dir="ltr" value={sourceEvidenceForm.evidenceSha256} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, evidenceSha256: e.target.value })} className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-left font-mono" /></label>
             <label className="text-xs font-bold text-slate-700">تاريخ انتهاء الإذن<input type="date" value={sourceEvidenceForm.expiresAt} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, expiresAt: e.target.value })} className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2" /></label>
-            <div className="sm:col-span-2"><button type="submit" disabled={busy} className="rounded-lg bg-sky-800 px-4 py-2.5 text-xs font-black text-white disabled:opacity-50">تسجيل الدليل للمراجعة</button></div>
+            <label className="flex items-start gap-2 rounded-lg border border-sky-200 bg-white p-3 text-xs font-bold leading-5 text-slate-700"><input type="checkbox" required checked={sourceEvidenceForm.allowsDoctorProfileRepublication} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, allowsDoctorProfileRepublication: e.target.checked })} className="mt-0.5" /><span>المستند يسمح صراحة بإعادة نشر ملفات الأطباء في الدليل.</span></label>
+            <label className="flex items-start gap-2 rounded-lg border border-sky-200 bg-white p-3 text-xs font-bold leading-5 text-slate-700"><input type="checkbox" required checked={sourceEvidenceForm.allowsCommercialRepublication} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, allowsCommercialRepublication: e.target.checked })} className="mt-0.5" /><span>المستند يسمح صراحة بالاستخدام التجاري وإعادة النشر بواسطة MantiqatiX.</span></label>
+            <div className="sm:col-span-2"><button type="submit" disabled={busy || !sourceEvidenceForm.allowsDoctorProfileRepublication || !sourceEvidenceForm.allowsCommercialRepublication} className="rounded-lg bg-sky-800 px-4 py-2.5 text-xs font-black text-white disabled:opacity-50">تسجيل الدليل للمراجعة</button></div>
           </form>
           <div className="mt-4 space-y-2">
             {sourceEvidence.length === 0 ? <p className="text-xs text-sky-900">لا توجد أدلة مسجلة.</p> : sourceEvidence.map((evidence) => (
@@ -270,6 +275,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
                 <div className="min-w-0 text-xs">
                   <p className="font-black text-slate-900">{evidence.source_name} — {evidence.source_host}</p>
                   <p className="mt-1 text-slate-600">الأساس: {evidence.permission_basis} • الحالة: {evidence.status} • الانتهاء: {evidence.expires_at ? dateField(evidence.expires_at) : "غير محدد"}</p>
+                  <p className="mt-1 text-slate-600">إعادة نشر ملفات الأطباء: {evidence.allows_doctor_profile_republication ? "مسموح" : "غير مسموح"} • الاستخدام التجاري: {evidence.allows_commercial_republication ? "مسموح" : "غير مسموح"}</p>
                   <p className="mt-1 break-all font-mono text-[10px] text-slate-500">مرجع خاص: {evidence.evidence_reference}</p>
                   {evidence.status === "APPROVED" && <p className="mt-1 text-emerald-800">اعتمده مسؤول مختلف عن المنشئ.</p>}
                 </div>
