@@ -2,6 +2,9 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {
   buildDirectoryPaginationOrFilter,
+  decodeDirectoryPaginationCursor,
+  encodeDirectoryPaginationCursor,
+  parseDirectoryPaginationLimit,
   sanitizeDirectoryPaginationSearch,
 } from '../supabase/functions/directory-listings/pagination-filter.mjs';
 
@@ -276,6 +279,12 @@ assert.match(directoryListingsFunction, /address = clean\(url\.searchParams\.get
 assert.match(directoryListingsFunction, /"phone", "secondary_phone"/,
   'Directory search must include both primary and secondary phone fields.');
 
+assert.match(directoryListingsFunction, /parseDirectoryPaginationLimit\(url\.searchParams\.get\("limit"\)\)/,
+  'The Edge Function must validate bounded page sizes through the tested helper.');
+assert.match(directoryListingsFunction, /decodeDirectoryPaginationCursor\(clean\(url\.searchParams\.get\("cursor"\)/,
+  'The Edge Function must reject malformed cursors through the tested decoder.');
+assert.match(directoryListingsFunction, /encodeDirectoryPaginationCursor\(/,
+  'The Edge Function must return URL-safe keyset cursors through the tested encoder.');
 assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(search, cursor\)/,
   'The Edge Function must apply the isolated search + cursor filter builder.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.or\(logicalFilter\)/,
@@ -286,6 +295,21 @@ assert.ok(fs.existsSync('supabase/functions/directory-listings/pagination-filter
   'The Edge Function pagination helper must exist inside the deployable directory-listings package.');
 
 const testCursor = { created_at: '2026-11-01T00:00:00.000Z', id: '123e4567-e89b-42d3-a456-426614174000' };
+assert.equal(parseDirectoryPaginationLimit(null), 100, 'Missing page size must retain the safe 100-row legacy page default.');
+assert.equal(parseDirectoryPaginationLimit('20'), 20);
+assert.equal(parseDirectoryPaginationLimit('1'), 1);
+assert.equal(parseDirectoryPaginationLimit('100'), 100);
+for (const invalidLimit of ['0', '101', '-1', '1.5', 'invalid']) {
+  assert.equal(parseDirectoryPaginationLimit(invalidLimit), null, 'Invalid page size must be rejected: ' + invalidLimit);
+}
+const encodedTestCursor = encodeDirectoryPaginationCursor(testCursor);
+assert.doesNotMatch(encodedTestCursor, /[+/=]/, 'Continuation cursors must be URL-safe and unpadded.');
+assert.deepEqual(decodeDirectoryPaginationCursor(encodedTestCursor), testCursor, 'Cursor encoding and decoding must round-trip without changing the keyset.');
+assert.equal(decodeDirectoryPaginationCursor(''), null, 'An omitted cursor must represent the first page.');
+assert.throws(() => decodeDirectoryPaginationCursor('not-a-cursor'), /invalid cursor/, 'Malformed cursor data must be rejected.');
+assert.throws(() => decodeDirectoryPaginationCursor(encodeDirectoryPaginationCursor({ created_at: 'not-a-date', id: 'bad-id' })), /invalid cursor/, 'Invalid cursor timestamps and IDs must be rejected.');
+assert.throws(() => decodeDirectoryPaginationCursor('x'.repeat(1201)), /invalid cursor/, 'Oversized cursor values must be rejected.');
+
 const combinedDirectoryFilter = buildDirectoryPaginationOrFilter('طبيب', testCursor);
 assert.ok(combinedDirectoryFilter, 'Search + cursor must produce a PostgREST filter expression.');
 assert.match(combinedDirectoryFilter, /and\(display_name\.ilike\.%طبيب%,or\(created_at\.lt\./,
