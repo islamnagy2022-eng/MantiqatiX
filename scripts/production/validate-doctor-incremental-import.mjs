@@ -43,6 +43,8 @@ assert.match(importContract, /sourceHost === evidence.source_host/, "Source host
 assert.match(importContract, /allows_doctor_profile_republication === true/, "Doctor republication scope must be true");
 assert.match(importContract, /allows_commercial_republication === true/, "Commercial republication scope must be true");
 assert.match(action, /resolveDoctorImportStatus\(row, hasPhone\)/, "Import must call tested publication-state validation");
+assert.match(importContract, /PHONE_REQUIRED_FOR_PUBLICATION/, "Publication without a phone must be rejected when explicitly requested");
+assert.match(importContract, /requestedStatus === "PUBLISHED" && !hasPhone \? "DRAFT" : requestedStatus/, "Explicit HIDDEN status must not be downgraded to DRAFT when phone is absent");
 assert.match(action, /sanitizeDoctorImportMetadata\(row.metadata\)/, "Import must sanitize caller metadata");
 assert.match(action, /directory_source_permission_evidence/, "Import must validate against the private evidence registry");
 assert.match(edge, /allowsDoctorProfileRepublication === true/, "Evidence registration must require explicit doctor profile republication scope");
@@ -57,14 +59,12 @@ assert.match(evidenceMigration, /approved_by <> created_by/, "Evidence registry 
 assert.match(edge, /String\(evidence\.created_by\) === String\(user\.id\)/, "The evidence creator cannot approve their own evidence");
 assert.match(action, /parsedSourceUrl\.protocol === "https:" \|\| parsedSourceUrl\.protocol === "http:"/, "Source URL must be HTTP or HTTPS");
 assert.match(action, /INVALID_SOURCE_CHECKED_AT/, "Invalid source timestamps must be rejected");
-assert.match(action, /PHONE_REQUIRED_FOR_PUBLICATION/, "Publication without a valid phone must be rejected when explicitly requested");
 assert.match(action, /rawPhone\.replace\(\/\\D\/g, ""\)\.length >= 7/, "Primary phone must be validated");
 assert.match(action, /rawSecondaryPhone\.replace\(\/\\D\/g, ""\)\.length >= 7/, "Secondary phone must be validated");
 
 assert.match(action, /if \(!row\.slug\) delete patch\.slug/, "Existing slug must survive imports that omit a new slug");
 assert.match(action, /if \(!row\.sourceCheckedAt && !row\.source_checked_at\) delete patch\.source_checked_at/, "Source checked date must not be refreshed without a new observation date");
 assert.match(action, /if \(!hasRequestedStatus\) delete patch\.listing_status/, "Existing DRAFT/HIDDEN/PUBLISHED status must be preserved unless explicitly changed");
-assert.match(action, /requestedStatus === "PUBLISHED" && !hasPhone \? "DRAFT" : requestedStatus/, "Explicit HIDDEN status must not be downgraded to DRAFT when phone is absent");
 assert.match(action, /"updated_" \+ String\(saved\.data\.listing_status\)\.toLowerCase\(\)/, "Update result must preserve the actual saved status label");
 assert.match(action, /"inserted_" \+ String\(saved\.data\.listing_status\)\.toLowerCase\(\)/, "Insert result must preserve the actual saved status label");
 assert.match(action, /delete patch\.claim_status/, "Import must not reset claim/ownership state");
