@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Business } from '../types';
 import {
@@ -153,6 +153,7 @@ export const DirectoryView: React.FC = () => {
   const [directoryListingsCursor, setDirectoryListingsCursor] = useState<string | null>(null);
   const [directoryListingsLoadingMore, setDirectoryListingsLoadingMore] = useState(false);
   const [directoryListingsError, setDirectoryListingsError] = useState('');
+  const directoryPaginationGeneration = useRef(0);
   const [activityListingSearchQuery, setActivityListingSearchQuery] = useState('');
   const [activityListingSpecialty, setActivityListingSpecialty] = useState('all');
 
@@ -349,6 +350,7 @@ export const DirectoryView: React.FC = () => {
 
   useEffect(() => {
     let cancelled = false;
+    const requestGeneration = ++directoryPaginationGeneration.current;
     setDirectoryListingsLoaded(false);
     setDirectoryListingsHasMore(false);
     setDirectoryListingsCursor(null);
@@ -358,18 +360,18 @@ export const DirectoryView: React.FC = () => {
     const timer = window.setTimeout(async () => {
       try {
         const page = await fetchPublicDirectoryListingPage(directoryListingRequestFilters);
-        if (cancelled) return;
+        if (cancelled || requestGeneration !== directoryPaginationGeneration.current) return;
         setUnconfirmedListings(page.listings.filter((row) => row.listing_status === 'PUBLISHED' && row.claim_status !== 'CLAIMED'));
         setDirectoryListingsCursor(page.nextCursor);
         setDirectoryListingsHasMore(page.hasMore);
       } catch (error) {
-        if (cancelled) return;
+        if (cancelled || requestGeneration !== directoryPaginationGeneration.current) return;
         setUnconfirmedListings([]);
         setDirectoryListingsHasMore(false);
         setDirectoryListingsCursor(null);
         setDirectoryListingsError(error instanceof Error ? error.message : 'تعذر تحميل نتائج الدليل.');
       } finally {
-        if (!cancelled) setDirectoryListingsLoaded(true);
+        if (!cancelled && requestGeneration === directoryPaginationGeneration.current) setDirectoryListingsLoaded(true);
       }
     }, 250);
     return () => {
@@ -380,6 +382,7 @@ export const DirectoryView: React.FC = () => {
 
   const loadMoreDirectoryListings = useCallback(async () => {
     if (!directoryListingsHasMore || !directoryListingsCursor || directoryListingsLoadingMore) return;
+    const requestGeneration = directoryPaginationGeneration.current;
     setDirectoryListingsLoadingMore(true);
     setDirectoryListingsError('');
     try {
@@ -387,6 +390,7 @@ export const DirectoryView: React.FC = () => {
         ...directoryListingRequestFilters,
         cursor: directoryListingsCursor,
       });
+      if (requestGeneration !== directoryPaginationGeneration.current) return;
       setUnconfirmedListings((current) => {
         const unique = new Map<string, PublicDirectoryListing>(current.map((listing) => [listing.id, listing] as const));
         page.listings.forEach((listing) => {
@@ -397,9 +401,10 @@ export const DirectoryView: React.FC = () => {
       setDirectoryListingsCursor(page.nextCursor);
       setDirectoryListingsHasMore(page.hasMore);
     } catch (error) {
+      if (requestGeneration !== directoryPaginationGeneration.current) return;
       setDirectoryListingsError(error instanceof Error ? error.message : 'تعذر تحميل الدفعة التالية.');
     } finally {
-      setDirectoryListingsLoadingMore(false);
+      if (requestGeneration === directoryPaginationGeneration.current) setDirectoryListingsLoadingMore(false);
     }
   }, [directoryListingsHasMore, directoryListingsCursor, directoryListingsLoadingMore, directoryListingRequestFilters]);
   const [administrativeShiyakhas, setAdministrativeShiyakhas] = useState<EgyptGeoShiyakha[]>([]);
