@@ -9,7 +9,6 @@ import {
   sanitizeDirectoryPaginationSearch,
 } from "./pagination-filter.mjs";
 import {
-  isCurrentDoctorRepublicationEvidence,
   normalizeDirectorySourceHost,
   resolveDoctorImportStatus,
   sanitizeDoctorImportMetadata,
@@ -383,7 +382,6 @@ Deno.serve(async (req: Request) => {
       const taxonomySpecialty = clean(row.taxonomySpecialty || row.taxonomy_specialty || specialty, 160) || null;
       const sourceName = clean(row.sourceName || row.source_name, 160);
       const sourceUrl = clean(row.sourceUrl || row.source_url, 1000) || null;
-      const sourcePermissionEvidenceId = clean(row.sourcePermissionEvidenceId || row.source_permission_evidence_id, 80);
       const sourceCheckedAtInput = row.sourceCheckedAt || row.source_checked_at;
       const sourceCheckedAt = dateOrNull(sourceCheckedAtInput);
       let validSourceUrl = false;
@@ -401,29 +399,11 @@ Deno.serve(async (req: Request) => {
         continue;
       }
       if (displayName.length < 2 || !specialty || !governorate || !district || !sourceName || !validSourceUrl ||
-          !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(sourcePermissionEvidenceId) ||
           !taxonomyCategoryId.startsWith("cat_medical_health_") && !taxonomyCategoryId.startsWith("cat_custom_")) {
         failed += 1;
-        results.push({ index, status: "failed", reason: "REQUIRED_FIELDS_OR_APPROVED_SOURCE_EVIDENCE_MISSING" });
+        results.push({ index, status: "failed", reason: "REQUIRED_FIELDS_OR_PUBLIC_SOURCE_REFERENCE_MISSING" });
         continue;
       }
-
-      const sourcePermissionEvidence = await service.from("directory_source_permission_evidence")
-        .select("id,source_name,source_host,permission_basis,allows_doctor_profile_republication,allows_commercial_republication,valid_from,expires_at,status,revoked_at")
-        .eq("id", sourcePermissionEvidenceId).maybeSingle();
-      if (sourcePermissionEvidence.error || !sourcePermissionEvidence.data) {
-        failed += 1;
-        results.push({ index, status: "failed", reason: "SOURCE_PERMISSION_EVIDENCE_NOT_FOUND" });
-        continue;
-      }
-      const approvedEvidence = sourcePermissionEvidence.data;
-      const evidenceIsCurrent = isCurrentDoctorRepublicationEvidence(approvedEvidence, sourceUrl, sourceName);
-      if (!evidenceIsCurrent) {
-        failed += 1;
-        results.push({ index, status: "failed", reason: "SOURCE_PERMISSION_EVIDENCE_SCOPE_MISMATCH_OR_EXPIRED" });
-        continue;
-      }
-      const sourcePermissionStatus = String(approvedEvidence.permission_basis);
 
       const slug = slugify(row.slug || [displayName, district, village].filter(Boolean).join("-"));
       const importStatus = resolveDoctorImportStatus(row, hasPhone);
@@ -468,8 +448,10 @@ Deno.serve(async (req: Request) => {
         metadata: {
           ...metadataInput,
           ingestion: "incremental_doctor_batch",
-          source_permission_status: sourcePermissionStatus,
-          source_permission_evidence_id: approvedEvidence.id,
+          source_status: "UNVERIFIED_IMPORTED_DATA",
+          source_phone_verified: false,
+          owner_confirmation_required: true,
+          professional_registration_verified: false,
           source_status: "UNVERIFIED_IMPORTED_DATA",
           source_phone_verified: false,
           owner_confirmation_required: true,
@@ -524,8 +506,10 @@ Deno.serve(async (req: Request) => {
             ...(existing.metadata && typeof existing.metadata === "object" ? existing.metadata : {}),
             ...(metadataInput as Record<string, unknown>),
             ingestion: "incremental_doctor_batch",
-            source_permission_status: sourcePermissionStatus,
-            source_permission_evidence_id: approvedEvidence.id,
+            source_status: "UNVERIFIED_IMPORTED_DATA",
+            source_phone_verified: false,
+            owner_confirmation_required: true,
+            professional_registration_verified: false,
           };
           const saved = await service.from("public_directory_listings")
             .update(patch).eq("id", existing.id).select("id,listing_status").single();
