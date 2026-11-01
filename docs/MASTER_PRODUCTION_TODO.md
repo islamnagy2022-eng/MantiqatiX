@@ -3156,3 +3156,14 @@ A separate source review found a second platform-root authorization model: the n
 - Nationwide doctor expansion cannot rely on client-side filtering of that capped response. Add backward-compatible server-side geographic/specialty filters and stable keyset/cursor pagination, with a bounded page size; keep the UI's 20-item initial display and «رؤية المزيد» progressive loading.
 - Preserve public-only PUBLISHED visibility, existing ordering, no draft/hidden leakage, and current RLS/service boundary. Add tests for cursor stability, duplicates/missing rows across pages, geographic filtering, invalid limits/cursors, and empty/error states.
 - No backend function deployment is authorized or implied by this audit. Implement source/tests first, then follow the normal reviewed Edge Function deployment and deployed-origin verification gate.
+
+
+## CAT-DEFAULT-COVERS-20261101 — استخدام الصور الافتراضية كأغلفة للأطباء والصيدليات
+- **Request ledger:** GitHub issue [#633](https://github.com/islamnagy2022-eng/MantiqatiX/issues/633).
+- **Status:** REBASED ON CURRENT MAIN; exact-head CI, merge and deployed-origin checks pending.
+- **Requirement:** reuse the existing unverified doctor default image as both profile/logo and cover; apply the same rule to unverified pharmacies.
+- **Registered businesses:** production mapper supplies the doctor/pharmacy fallback cover only when unverified and without an owner/admin-selected cover. Explicit owner cover takes precedence; verified businesses and unrelated activities retain their previous behavior.
+- **Standalone public directory pages:** the detail-page hero reuses the same doctor/pharmacy fallback image as its background cover while retaining the square profile image. An explicit metadata cover URL takes precedence.
+- **Regression contracts:** verify both category fallbacks, owner-selected cover precedence, and standalone detail-page hero rendering.
+- **Safety:** frontend and validation only; no schema, RLS, Auth, Edge Function, or production data changes.
+- **Next:** exact-head TypeScript/build, production real-state validator, browser E2E, supporting checks, merge, Pages deployment and deployed-origin verification.
