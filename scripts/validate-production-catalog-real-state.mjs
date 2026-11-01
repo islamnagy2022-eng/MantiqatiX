@@ -306,8 +306,8 @@ assert.match(directoryListingsFunction, /decodeDirectoryPaginationCursor\(clean\
   'The Edge Function must reject malformed cursors through the tested decoder.');
 assert.match(directoryListingsFunction, /encodeDirectoryPaginationCursor\(/,
   'The Edge Function must return URL-safe keyset cursors through the tested encoder.');
-assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(search, cursor\)/,
-  'The Edge Function must apply the isolated search + cursor filter builder.');
+assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(search, cursor, taxonomySpecialty \|\| specialty\)/,
+  'The Edge Function must apply the combined search, specialty and cursor filter builder.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.or\(logicalFilter\)/,
   'A paginated request must attach its logical filter tree exactly once.');
 assert.match(directoryListingsFunction, /from "\.\/pagination-filter\.mjs"/,
