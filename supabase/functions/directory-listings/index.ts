@@ -281,7 +281,7 @@ Deno.serve(async (req: Request) => {
     const expiresAt = body.expiresAt ? dateOrNull(body.expiresAt) : null;
     const validBases = new Set(["LICENSED", "OWNER_PROVIDED", "PUBLIC_PERMISSION_CONFIRMED"]);
     if (sourceName.length < 2 || !sourceHost || !validBases.has(permissionBasis) ||
-        evidenceReference.length < 3 || /^https?:\\/\\//i.test(evidenceReference) ||
+        evidenceReference.length < 3 || !/^(private:\/\/[A-Za-z0-9._/-]{1,480}|contract:[A-Za-z0-9._:-]{1,480})$/.test(evidenceReference) ||
         evidenceReference.includes("..") || (body.expiresAt && !expiresAt) ||
         (evidenceSha256 && !/^[0-9a-f]{64}$/.test(evidenceSha256))) {
       return out(origin, { error: "INVALID_SOURCE_PERMISSION_EVIDENCE", message: "أدخل اسم المصدر ونطاقه ومرجع مستند داخلي صالح وأساس الإذن." }, 400);
