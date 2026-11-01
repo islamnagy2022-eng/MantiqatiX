@@ -8,13 +8,14 @@ const SEARCH_COLUMNS = [
   "governorate",
   "district",
   "village",
-] as const;
+];
 
 /**
  * Normalize free-text before embedding it in a PostgREST logic-tree expression.
  * Reserved delimiters and SQL LIKE wildcards are replaced rather than interpreted.
  */
-export function sanitizeDirectoryPaginationSearch(value: unknown): string {
+/** @param {unknown} value @returns {string} */
+export function sanitizeDirectoryPaginationSearch(value) {
   return String(value ?? "")
     .slice(0, 100)
     .replace(/[%,;()."\\_]/g, " ")
@@ -27,10 +28,8 @@ export function sanitizeDirectoryPaginationSearch(value: unknown): string {
  * present, every searchable column is ANDed with the same keyset predicate,
  * which is equivalent to: (any searchable column matches) AND (cursor).
  */
-export function buildDirectoryPaginationOrFilter(
-  searchValue: string,
-  cursor: DirectoryPaginationCursor | null,
-): string {
+/** @param {string} searchValue @param {{ created_at: string, id: string } | null} cursor @returns {string | null} */
+export function buildDirectoryPaginationOrFilter(searchValue, cursor) {
   const search = sanitizeDirectoryPaginationSearch(searchValue);
   const cursorExpression = cursor
     ? "or(created_at.lt." + cursor.created_at +
