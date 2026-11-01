@@ -417,7 +417,7 @@ const results = [];
     assert.equal(new URL(page.url()).searchParams.has('view'), false, 'the root URL must resolve to marketplace home');
     assert.equal(await page.locator('nav').getByRole('button', { name: 'بحث الأنشطة والخدمات', exact: true }).count(), 1, 'search must be exposed as its own navigation destination');
 
-    await page.getByRole('button', { name: 'فتح كتالوج ' + firstVerified.name }).click();
+    await page.getByRole('region', { name: 'الأنشطة الموثقة' }).getByRole('button', { name: 'فتح كتالوج ' + firstVerified.name }).click();
     await page.getByRole('heading', { name: 'قائمة عروض وكتالوج ' + firstVerified.name, exact: true }).waitFor({ state: 'visible', timeout: 15000 });
     assert.equal(new URL(page.url()).searchParams.get('store'), firstVerified.id, 'opening a public homepage card must load the correct stable public storefront route');
     await page.locator('nav').getByRole('button', { name: 'الرئيسية', exact: true }).click();
