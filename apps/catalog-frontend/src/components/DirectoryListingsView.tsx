@@ -295,7 +295,7 @@ export const DirectoryListingsView: React.FC<{
             رؤية المزيد
           </button>
         </div>
-      }
+      )}
       <div className="flex items-start gap-2 border-t border-slate-100 pt-4 text-xs leading-6 text-slate-500"><ClipboardList className="mt-0.5 h-4 w-4 shrink-0" /><p>كل صفحة يمكن استكمالها لاحقًا بالصور والمواعيد والخدمات ووسائل التواصل. لا يتم نقل ملكية الصفحة أو تفعيل صلاحيات المالك بمجرد إنشاء القائمة.</p></div>
     </section>
   );
