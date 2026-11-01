@@ -1599,11 +1599,12 @@ A separate source review found a second platform-root authorization model: the n
 ## 2026-11-01 — Incremental Doctor Directory Ingestion
 
 - [x] Add `IMPORT_DOCTOR_BATCH` in `directory-listings`: sequential batches of 1–20 doctors, row-level results, and immediate persistence (code committed; runtime verification remains pending).
-- [ ] Verify duplicate matching by phone and exact name + governorate + district; update existing rows instead of duplicating.
+- [ ] Verify duplicate matching by phone and exact name + governorate + district; update existing rows instead of duplicating (logic implemented; runtime test pending).
 - [ ] Keep the existing publication guard: records with a valid phone may publish; records without a valid phone remain DRAFT and must not receive invented contact details.
 - [ ] Preserve already-published rows when later source snapshots omit a phone number.
 - [ ] Run type/lint checks and authenticated smoke tests for insert, update/deduplication, draft-without-phone, and unauthorized rejection.
 - [ ] After tests pass, merge the feature branch and deploy the updated `directory-listings` Edge Function; verify one test record appears in the public directory.
-- [ ] Connect the actual doctor research/collection workflow to this batch action so each completed batch is persisted before research continues.
+- [x] Add an authenticated platform-admin JSON batch-import panel and client helper to submit collected doctors in batches.
+- [ ] Connect the actual doctor research/collection workflow to this batch action so each completed research batch is persisted before research continues; current UI accepts a collected JSON batch but does not run autonomous nationwide source discovery.
 
 Implementation notes: see `docs/doctor-incremental-ingestion.md`. Feature branch: `feat/doctor-incremental-ingestion-20261101`. Production deployment remains blocked until the verification checklist above passes.
