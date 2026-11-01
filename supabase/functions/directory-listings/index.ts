@@ -262,8 +262,8 @@ Deno.serve(async (req: Request) => {
   // check above and is idempotent for matching phone or name/location records.
   if (action === "IMPORT_DOCTOR_BATCH") {
     const rows = Array.isArray(body.rows) ? body.rows : [];
-    if (!rows.length || rows.length > 50) {
-      return out(origin, { error: "INVALID_IMPORT_BATCH", message: "أرسل من 1 إلى 50 طبيبًا في الدفعة الواحدة." }, 400);
+    if (!rows.length || rows.length > 20) {
+      return out(origin, { error: "INVALID_IMPORT_BATCH", message: "أرسل من 1 إلى 20 طبيبًا في الدفعة الواحدة." }, 400);
     }
 
     const results: Array<{ index: number; status: string; id?: string; reason?: string }> = [];
@@ -337,19 +337,19 @@ Deno.serve(async (req: Request) => {
         let existing: any = null;
         if (hasPhone) {
           const byPrimaryPhone = await service.from("public_directory_listings")
-            .select("id,listing_status").eq("listing_type", "doctor").eq("phone", phone).limit(1).maybeSingle();
+            .select("id,listing_status,metadata").eq("listing_type", "doctor").eq("phone", phone).limit(1).maybeSingle();
           if (byPrimaryPhone.error) throw byPrimaryPhone.error;
           existing = byPrimaryPhone.data;
           if (!existing && secondaryPhone) {
             const bySecondaryPhone = await service.from("public_directory_listings")
-              .select("id,listing_status").eq("listing_type", "doctor").eq("secondary_phone", secondaryPhone).limit(1).maybeSingle();
+              .select("id,listing_status,metadata").eq("listing_type", "doctor").eq("secondary_phone", secondaryPhone).limit(1).maybeSingle();
             if (bySecondaryPhone.error) throw bySecondaryPhone.error;
             existing = bySecondaryPhone.data;
           }
         }
         if (!existing) {
           const byIdentity = await service.from("public_directory_listings")
-            .select("id,listing_status").eq("listing_type", "doctor")
+            .select("id,listing_status,metadata").eq("listing_type", "doctor")
             .eq("display_name", displayName).eq("governorate", governorate).eq("district", district)
             .limit(1).maybeSingle();
           if (byIdentity.error) throw byIdentity.error;
@@ -357,11 +357,17 @@ Deno.serve(async (req: Request) => {
         }
 
         if (existing) {
-          // An incomplete source snapshot must not erase previously known contact data.
-          if (!hasPhone) {
-            delete patch.phone;
-            delete patch.secondary_phone;
-          }
+          // Partial snapshots must not erase previously known contact or ownership data.
+          if (!phone) delete patch.phone;
+          if (!secondaryPhone) delete patch.secondary_phone;
+          delete patch.claim_status;
+          patch.metadata = {
+            ...(metadataInput as Record<string, unknown>),
+            ...(existing.metadata && typeof existing.metadata === "object" ? existing.metadata : {}),
+            ingestion: "incremental_doctor_batch",
+          };
+          if (!row.sourceName && !row.source_name) delete patch.source_name;
+          if (!sourceUrl) delete patch.source_url;
           // Never downgrade an already-public record merely because a later source
           // snapshot omitted a phone number.
           if (existing.listing_status === "PUBLISHED" && !hasPhone) patch.listing_status = "PUBLISHED";
