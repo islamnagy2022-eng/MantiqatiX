@@ -3168,3 +3168,13 @@ A separate source review found a second platform-root authorization model: the n
 - **Integration status:** root directory and activity/specialty folders now use server-side pagination. This does not mean the directory contains nationwide data; current production inventory remains 57 doctor listings in المنوفية / بركة السبع pending licensed sourcing and verified clinic locations.
 - Existing `directory-listings` Production Edge Function remains deployed at v8; this branch does not deploy it. No Production database, rows, RLS, grants, Auth, or Edge Function was changed.
 - Next: complete exact-head CI including Playwright/browser E2E, add/run isolated DB-backed Edge Function tests (cursor continuity with duplicate/missing row checks, search + geographic filters, hidden/draft exclusion), complete query/CORS review, then merge. After merge, deploy the Edge Function through the reviewed release path and verify live pagination. National data import remains a separate licensed-source and exact-clinic-geocoding workstream.
+
+
+## CAT-DEFAULT-COVERS-20261101 — أغلفة الأطباء والصيدليات غير الموثقة
+- **Request ledger:** GitHub issue #633; source fix merged to main in commit `4796ef4736748e22f465d4fbdc1fb779ff7d8097` and carried into the national-directory branch.
+- **Requirement:** use the shared unverified-doctor default image as both profile and cover; apply the shared pharmacy default the same way.
+- **Registered businesses:** fallback cover is used only for unverified doctors/pharmacies without an owner/admin-selected cover. Owner-selected cover wins; verified businesses and other categories retain existing behavior.
+- **Standalone public directory pages:** doctor/pharmacy unclaimed pages use the resolved profile default as the hero cover unless an explicit HTTPS `metadata.coverImageUrl` / `cover_image_url` is provided.
+- **Regression checks:** production mapper verifies doctor/pharmacy default cover assignment and owner-cover precedence; directory page verifies separate cover resolution and hero rendering.
+- **Safety:** frontend and validation only; no schema, RLS, Auth, Edge Function, or production data mutation.
+- **Status:** source change carried forward to the pagination branch; exact-head CI and deployed-origin checks remain required.
