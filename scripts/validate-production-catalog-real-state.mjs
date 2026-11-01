@@ -246,6 +246,10 @@ assert.match(aiGeminiProxy, /imageKind === "cover" \? "16:9" : "1:1"/, 'Generate
 
 assert.match(directoryListingsFunction, /Stable keyset pagination/,
   'Public directory pagination must use stable keyset pagination rather than offset pagination.');
+assert.match(directoryListingsFunction, /const pageMode = \["limit","cursor","governorate"/,
+  'The paginated GET mode must be opt-in through explicit pagination or search filters.');
+assert.doesNotMatch(directoryListingsFunction, /const pageMode = \[[^\]]*"type"/,
+  'Legacy type-only GET requests must preserve their existing unpaginated response contract.');
 assert.match(directoryListingsFunction, /rawLimit > 100/,
   'Public directory page size must be bounded to protect the public Edge Function.');
 assert.match(directoryListingsFunction, /INVALID_PAGE_CURSOR/,
