@@ -30,5 +30,10 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check directory Edge Function
+        run: deno check --no-lock supabase/functions/directory-listings/index.ts
       - name: Validate incremental doctor import contract
         run: node scripts/production/validate-doctor-incremental-import.mjs
