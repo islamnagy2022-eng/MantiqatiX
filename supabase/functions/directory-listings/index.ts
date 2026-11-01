@@ -3,6 +3,8 @@ import {
   buildDirectoryPaginationOrFilter,
   decodeDirectoryPaginationCursor,
   encodeDirectoryPaginationCursor,
+  expandDirectoryFunctionalGroupIds,
+  expandDirectoryTaxonomyCategoryIds,
   parseDirectoryPaginationLimit,
   sanitizeDirectoryPaginationSearch,
 } from "./pagination-filter.mjs";
@@ -129,8 +131,8 @@ Deno.serve(async (req: Request) => {
       const specialtySearch = sanitizeDirectoryPaginationSearch(specialty);
       if (specialtySearch) pageQuery = pageQuery.ilike("specialty", "%" + specialtySearch + "%");
     }
-    if (functionalGroupId) pageQuery = pageQuery.eq("functional_group_id", functionalGroupId);
-    if (taxonomyCategoryId) pageQuery = pageQuery.eq("taxonomy_category_id", taxonomyCategoryId);
+    if (functionalGroupId) pageQuery = pageQuery.in("functional_group_id", expandDirectoryFunctionalGroupIds(functionalGroupId));
+    if (taxonomyCategoryId) pageQuery = pageQuery.in("taxonomy_category_id", expandDirectoryTaxonomyCategoryIds(taxonomyCategoryId));
     if (taxonomySpecialty) pageQuery = pageQuery.eq("taxonomy_specialty", taxonomySpecialty);
 
     const search = sanitizeDirectoryPaginationSearch(url.searchParams.get("q"));
