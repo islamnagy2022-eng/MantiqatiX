@@ -38,10 +38,10 @@ assert.match(edge, /allowsDoctorProfileRepublication === true/, "Evidence regist
 assert.match(edge, /allowsCommercialRepublication === true/, "Evidence registration must require explicit commercial republication scope");
 assert.match(edge, /allows_doctor_profile_republication: allowsDoctorProfileRepublication/, "Doctor profile scope must be stored from explicit input");
 assert.match(edge, /allows_commercial_republication: allowsCommercialRepublication/, "Commercial scope must be stored from explicit input");
-assert.match(ui, /allowsDoctorProfileRepublication: false/, "UI must default doctor republication permission to unchecked");
-assert.match(ui, /allowsCommercialRepublication: false/, "UI must default commercial republication permission to unchecked");
-assert.match(ui, /إعادة نشر ملفات الأطباء/, "UI must ask for explicit doctor profile republication scope");
-assert.match(ui, /الاستخدام التجاري/, "UI must ask for explicit commercial republication scope");
+assert.match(admin, /allowsDoctorProfileRepublication: false/, "UI must default doctor republication permission to unchecked");
+assert.match(admin, /allowsCommercialRepublication: false/, "UI must default commercial republication permission to unchecked");
+assert.match(admin, /إعادة نشر ملفات الأطباء/, "UI must ask for explicit doctor profile republication scope");
+assert.match(admin, /الاستخدام التجاري/, "UI must ask for explicit commercial republication scope");
 assert.match(action, /approvedEvidence\.status === "APPROVED"/, "Only approved source permission evidence may be used");
 assert.match(action, /!approvedEvidence\.revoked_at/, "Revoked source evidence must be rejected");
 assert.match(action, /approvedEvidence\.expires_at/, "Expired source evidence must be rejected");
