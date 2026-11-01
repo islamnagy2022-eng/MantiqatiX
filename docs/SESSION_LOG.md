@@ -1662,3 +1662,13 @@ A separate source review found a second platform-root authorization model: the n
 - Added browser coverage for specialty route/search, empty search results, phone requirement, geo scope, refresh/history and responsive layouts at 390/768/1440px. Updated the canonical taxonomy contract and Master TODO.
 - **Verification pending:** exact-head TypeScript/build, taxonomy validator, employee RBAC/PostgreSQL, Playwright browser E2E and supporting release workflows. No merge or deployment is claimed at this checkpoint.
 - **Safety:** no production database/schema/RLS/Auth/Edge Function/payment/financial mutation was performed. Global platform release gates remain independent and unchanged.
+
+
+## 2026-11-01 — DIR-ACTIVITY-SEARCH — post-merge and deployed-origin closure
+
+- PR #631 merged to `main` by squash merge. Merge commit: `7bf77ba1d07df59034371c4f869e8de584f99336`.
+- Post-merge Primary Catalog Frontend Validation passed: [41266169625](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41266169625). Build/TypeScript/taxonomy, isolated employee RBAC PostgreSQL and Playwright browser E2E all completed successfully.
+- GitHub Pages production deployment passed: [41266169617](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41266169617). The deploy step, production root verification and deployed-origin Playwright checks for dashboard routes, mobile layout, membership scopes and permanent QR links all succeeded.
+- Supporting post-merge workflows passed: Module Professionalization [41266169641](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41266169641), MantiGO privacy [41266169622](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41266169622), Backend-only Module Boundary [41266169620](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41266169620), and Production Health Monitor [41266169610](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41266169610).
+- **Result:** nested specialty folders and per-specialty search are merged, validated on main, deployed and verified against the deployed origin. Production URL: https://islamnagy2022-eng.github.io/MantiqatiX/.
+- **Scope/safety:** no production database/schema/RLS/Auth/Edge Function/payment/finance/data mutation. This feature closure does not change the independent full-platform release gate, which remains blocked/not certified pending its separate evidence and migration work.
