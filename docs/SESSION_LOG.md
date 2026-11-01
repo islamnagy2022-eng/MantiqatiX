@@ -1701,7 +1701,7 @@ A separate source review found a second platform-root authorization model: the n
 - Connected `ActivityModuleView` search and specialty-folder changes to the same server pagination filters. Requests retain the current governorate, district/markaz, village and area; activity and specialty requests add their taxonomy scope.
 - Added address filtering and widened q-search across name, specialty, phone, secondary phone, address and administrative fields. Administrative labels use substring matching to tolerate prefixed Arabic names.
 - Updated production-catalog static contracts to assert UI integration and 20-row paging. TypeScript/build/browser E2E on the exact current head must still pass before review/merge.
-- Production `directory-listings` remains deployed at v8; no Edge deployment or production data/schema/permission change took place. No doctors were imported. The 27-governorate coverage target remains IN PROGRESS.
+- Production `directory-listings` remains deployed at v9; no Edge deployment or production data/schema/permission change took place. No doctors were imported. The 27-governorate coverage target remains IN PROGRESS.
 
 
 ## 2026-11-01 — Geographic filtering hardening for national directory pagination
