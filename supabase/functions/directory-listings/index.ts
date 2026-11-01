@@ -303,6 +303,16 @@ Deno.serve(async (req: Request) => {
       const hasRequestedStatus = Object.prototype.hasOwnProperty.call(row, "listingStatus") || Object.prototype.hasOwnProperty.call(row, "listing_status");
       const requestedStatus = clean(row.listingStatus || row.listing_status || "PUBLISHED", 20).toUpperCase();
       const allowedListingStatuses = new Set(["PUBLISHED", "DRAFT", "HIDDEN"]);
+      if (hasRequestedStatus && !allowedListingStatuses.has(requestedStatus)) {
+        failed += 1;
+        results.push({ index, status: "failed", reason: "INVALID_LISTING_STATUS" });
+        continue;
+      }
+      if (hasRequestedStatus && requestedStatus === "PUBLISHED" && !hasPhone) {
+        failed += 1;
+        results.push({ index, status: "failed", reason: "PHONE_REQUIRED_FOR_PUBLICATION" });
+        continue;
+      }
       const listingStatus = hasPhone && allowedListingStatuses.has(requestedStatus) ? requestedStatus : "DRAFT";
       const completeness = {
         name: true,
@@ -313,7 +323,12 @@ Deno.serve(async (req: Request) => {
         district: true,
         village: Boolean(village),
       };
-      const metadataInput = row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata) ? row.metadata : {};
+      const metadataInput = row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
+        ? { ...row.metadata } as Record<string, unknown>
+        : {};
+      for (const protectedKey of ["source_status","source_phone_verified","owner_confirmation_required","professional_registration_verified","verified","is_verified","coordinates_status","coordinates_method"]) {
+        delete metadataInput[protectedKey];
+      }
       const patch: Record<string, unknown> = {
         slug,
         display_name: displayName,
@@ -334,7 +349,15 @@ Deno.serve(async (req: Request) => {
         listing_status: listingStatus,
         claim_status: "UNCLAIMED",
         completeness,
-        metadata: { ...metadataInput, ingestion: "incremental_doctor_batch", source_permission_status: sourcePermissionStatus },
+        metadata: {
+          ...metadataInput,
+          ingestion: "incremental_doctor_batch",
+          source_permission_status: sourcePermissionStatus,
+          source_status: "UNVERIFIED_IMPORTED_DATA",
+          source_phone_verified: false,
+          owner_confirmation_required: true,
+          professional_registration_verified: false,
+        },
         updated_by: user.id,
       };
 
