@@ -17,6 +17,11 @@ Every row must include a source name, an exact HTTP(S) source URL, and `sourcePe
 
 A public webpage by itself is not proof of republication permission. Do not scrape or re-publish directories whose terms prohibit automated extraction or commercial republication without written permission.
 
+
+### Important limitation: permission status is an operator declaration
+
+The importer validates that the platform administrator selects one of the allowed permission-basis values, but it does **not** independently verify or store the underlying contract, consent, or licence document. Therefore, `LICENSED`, `OWNER_PROVIDED`, and `PUBLIC_PERMISSION_CONFIRMED` are operator declarations, not proof that republication rights have been verified. Do not use these values as a substitute for reviewing the actual evidence. Before accepting a batch, the responsible reviewer must confirm the applicable consent/licence outside the public listing record. A private, auditable evidence registry is a required hardening task before autonomous nationwide ingestion or high-volume batch operations.
+
 ## Required row fields
 - `displayName`: doctor's public name
 - `specialty`: specialty label
@@ -57,7 +62,8 @@ A public webpage by itself is not proof of republication permission. Do not scra
       "phone": "01000000000",
       "taxonomyCategoryId": "cat_medical_health_...",
       "sourceName": "مصدر الدليل",
-      "sourceUrl": "https://example.com/profile"
+      "sourceUrl": "https://example.com/profile",
+      "sourcePermissionStatus": "OWNER_PROVIDED"
     }
   ]
 }
