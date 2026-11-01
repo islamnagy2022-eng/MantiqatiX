@@ -414,7 +414,10 @@ Deno.serve(async (req: Request) => {
       }
       const hasRequestedStatus = importStatus.hasRequestedStatus;
       const requestedStatus = importStatus.requestedStatus;
-      const listingStatus = importStatus.listingStatus;
+      // Batch ingestion is a staging path only: it must never make an imported
+      // doctor profile public. Publication remains a separate reviewed action.
+      const listingStatus = requestedStatus === "PUBLISHED" ? "DRAFT" : importStatus.listingStatus;
+      const canApplyRequestedStatus = hasRequestedStatus && requestedStatus !== "PUBLISHED";
       const completeness = {
         name: true,
         specialty: true,
@@ -492,7 +495,7 @@ Deno.serve(async (req: Request) => {
           if (!row.sourceName && !row.source_name) delete patch.source_name;
           if (!sourceUrl) delete patch.source_url;
           if (!row.sourceCheckedAt && !row.source_checked_at) delete patch.source_checked_at;
-          if (!hasRequestedStatus) delete patch.listing_status;
+          if (!canApplyRequestedStatus) delete patch.listing_status;
           delete patch.claim_status;
           patch.completeness = {
             ...(existing.completeness && typeof existing.completeness === "object" ? existing.completeness : {}),
