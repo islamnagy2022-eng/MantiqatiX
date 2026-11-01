@@ -111,3 +111,40 @@ The production Edge Function and admin import/evidence UI have been deployed. Th
 Production's `supabase_migrations.schema_migrations` ledger records `20261101140105 / directory_source_permission_evidence`, while the repository migration file is named `20261101150000_directory_source_permission_evidence.sql`. Live schema introspection confirmed that the table, columns, constraints, indexes, trigger, RLS, and grants match the repository migration. This is a migration-history mismatch, not evidence that the table is missing.
 
 Do not change the historical migration file, manually edit `schema_migrations` with SQL, or run `supabase db push` until the mismatch is reconciled. Use the Supabase CLI's supported `supabase migration repair` workflow in a controlled environment, then compare `supabase migration list` local and remote output before any further push. Repairing migration history changes ledger records; it does not apply or reverse the table DDL. See the [Supabase CLI migration repair reference](https://supabase.com/docs/reference/cli/supabase-migration-repair).
+
+
+## Monufia governorate doctor expansion — 2026-11-01
+
+### Live production inventory (read-only)
+- Current published `listing_type='doctor'` count for `governorate='المنوفية'`: **57**.
+- All 57 are currently assigned to `district='بركة السبع'`; the other Monufia localities have **zero published doctor-type records** in the current canonical doctor listing type.
+- All 57 have a primary phone number and are PUBLISHED. This does not prove the phone is current, owner-confirmed, or that the doctor is currently practicing at the recorded location.
+- Current specialty distribution includes 8 obstetrics/gynecology, 7 general surgery, 6 pediatrics, 6 general dentistry, 5 internal medicine, and several smaller specialties; 8 rows have an unconfirmed/unspecified specialty label and need review.
+- Existing records were not changed during this inventory.
+
+### Geographic expansion targets
+Track coverage independently for:
+1. شبين الكوم
+2. منوف
+3. أشمون
+4. قويسنا
+5. الباجور
+6. تلا
+7. الشهداء
+8. سرس الليان
+9. مدينة السادات
+10. بركة السبع (existing baseline; continue village-level gap review)
+
+The third-party directory Dakatra Misr currently claims 420 general-practice listings across ten localities in Monufia (https://dakatramisr.com/general-practice/monufia-governorate). Treat this only as a discovery lead, not a verified census or an import source. Its public privacy/terms material does not grant MantiqatiX automated harvesting or commercial republication rights.
+
+### Source and publication gate
+- Menoufia University Faculty of Medicine publishes academic staff/department information and current institutional news (for example https://mu.menofia.edu.eg/med/StaffSearch/ar and https://mu.menofia.edu.eg/med/NewsDetails/170348/ar). These pages can support institutional affiliation and specialty leads, but do not provide a complete current private-clinic roster, direct clinic contact details, or an explicit commercial-republication licence.
+- The Egyptian Medical Syndicate provides individual doctor-registration lookup and medical-facility discovery. The reviewed public material does not establish an open bulk export or a commercial-republication licence for doctor contact records.
+- Do not scrape or bulk-copy private medical directories such as Dakatra Misr, Vudoctor, Vezeeta, or similar services without written permission covering both doctor-profile republication and commercial use.
+- Do not turn university academic staff names into clinic listings unless an active clinical practice/location and a permitted publication basis are independently established.
+- The production evidence registry currently has **zero approved permission records**. Therefore no new third-party-source doctor batch can be lawfully authorized through the current importer yet.
+- Permitted next paths: a written data-sharing/republication agreement from a source owner; an applicable open licence that explicitly covers the personal/professional contact fields and commercial republication; or direct doctor/clinic-owner submission and consent captured in the private evidence registry.
+- Once evidence is approved by a second distinct Super Admin, import in batches of 1–20, check global normalized name/primary+secondary phone duplicates first, preserve exact district/village, keep owner and professional-registration status unverified, and perform read-after-write verification.
+
+### Current status
+**IN PROGRESS — inventory established; geographic expansion blocked on an approved source/owner-consent basis.** No new Monufia doctor records were inserted or modified by this pass.
