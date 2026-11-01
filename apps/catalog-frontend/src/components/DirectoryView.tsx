@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Business } from '../types';
 import {
@@ -35,7 +35,7 @@ import { formatEgyptianLocation } from '../utils/rules';
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { DirectoryListingsView } from './DirectoryListingsView';
 import { ActivityModuleView } from '../modules/activities/ActivityModuleView';
-import { fetchPublicDirectoryListings, type PublicDirectoryListing } from '../lib/directoryListings';
+import { fetchPublicDirectoryListingPage, type PublicDirectoryListing, type PublicDirectoryListingFilters } from '../lib/directoryListings';
 import { DEFAULT_FUNCTIONAL_GROUPS, resolveCanonicalSpecialty } from '../data/productionDefaults';
 import { EGYPT_GEO_DISTRICTS, EGYPT_GEO_GOVERNORATES, loadEgyptDistrictShiyakhas, resolveEgyptAdministrativeLocation, type EgyptGeoShiyakha } from '../data/egyptGeoDiscovery';
 
@@ -149,6 +149,12 @@ export const DirectoryView: React.FC = () => {
   const [locationMessage, setLocationMessage] = useState('');
   const [unconfirmedListings, setUnconfirmedListings] = useState<PublicDirectoryListing[]>([]);
   const [directoryListingsLoaded, setDirectoryListingsLoaded] = useState(false);
+  const [directoryListingsHasMore, setDirectoryListingsHasMore] = useState(false);
+  const [directoryListingsCursor, setDirectoryListingsCursor] = useState<string | null>(null);
+  const [directoryListingsLoadingMore, setDirectoryListingsLoadingMore] = useState(false);
+  const [directoryListingsError, setDirectoryListingsError] = useState('');
+  const [activityListingSearchQuery, setActivityListingSearchQuery] = useState('');
+  const [activityListingSpecialty, setActivityListingSpecialty] = useState('all');
 
   const completeGeoSetup = (mode: 'auto' | 'manual') => {
     // Persist completion synchronously before hiding the first-visit dialog,
@@ -276,19 +282,6 @@ export const DirectoryView: React.FC = () => {
     return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    fetchPublicDirectoryListings().then((rows) => {
-      if (!cancelled && Array.isArray(rows)) setUnconfirmedListings(rows.filter((row) => row.listing_status === 'PUBLISHED' && row.claim_status !== 'CLAIMED'));
-      if (!cancelled) setDirectoryListingsLoaded(true);
-    }).catch(() => {
-      if (!cancelled) {
-        setUnconfirmedListings([]);
-        setDirectoryListingsLoaded(true);
-      }
-    });
-    return () => { cancelled = true; };
-  }, []);
   const [activityModuleId, setActivityModuleId] = useState<string>(() => new URLSearchParams(window.location.search).get('activity') || '');
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>(() => new URLSearchParams(window.location.search).get('group') || 'all');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
@@ -301,6 +294,8 @@ export const DirectoryView: React.FC = () => {
     if (selectedGroupFilter !== 'all') url.searchParams.set('group', selectedGroupFilter);
     else url.searchParams.delete('group');
     window.history.pushState({ mantiqatixActivityModule: activityId, mantiqatixGroupFolder: selectedGroupFilter }, '', url.pathname + url.search + url.hash);
+    setActivityListingSearchQuery('');
+    setActivityListingSpecialty('all');
     setActivityModuleId(activityId);
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   };
@@ -309,6 +304,8 @@ export const DirectoryView: React.FC = () => {
     url.searchParams.delete('activity');
     url.searchParams.delete('specialty');
     window.history.pushState({ mantiqatixActivityModule: null }, '', url.pathname + url.search + url.hash);
+    setActivityListingSearchQuery('');
+    setActivityListingSpecialty('all');
     setActivityModuleId('');
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   };
@@ -325,6 +322,86 @@ export const DirectoryView: React.FC = () => {
   const [selectedMarkazFilter, setSelectedMarkazFilter] = useState<string>(initialGeoPreference?.markaz || 'all');
   const [selectedVillageFilter, setSelectedVillageFilter] = useState<string>(initialGeoPreference?.village || 'all');
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>(initialGeoPreference?.area || 'all');
+  const handleActivityListingFiltersChange = useCallback((query: string, specialty: string) => {
+    setActivityListingSearchQuery(query);
+    setActivityListingSpecialty(specialty || 'all');
+  }, []);
+  const directoryListingRequestFilters = useMemo<PublicDirectoryListingFilters>(() => {
+    const insideActivityModule = Boolean(activityModuleId);
+    const query = insideActivityModule ? activityListingSearchQuery : searchQuery;
+    const specialty = insideActivityModule ? activityListingSpecialty : selectedSpecialty;
+    return {
+      limit: 20,
+      governorate: selectedGovFilter !== 'all' ? selectedGovFilter : undefined,
+      district: selectedMarkazFilter !== 'all' ? selectedMarkazFilter : undefined,
+      village: selectedVillageFilter !== 'all' ? selectedVillageFilter : undefined,
+      address: selectedAreaFilter !== 'all' ? selectedAreaFilter : undefined,
+      functionalGroupId: !insideActivityModule && selectedCategoryId === 'all' && selectedGroupFilter !== 'all' ? selectedGroupFilter : undefined,
+      taxonomyCategoryId: insideActivityModule ? activityModuleId : selectedCategoryId !== 'all' ? selectedCategoryId : undefined,
+      taxonomySpecialty: specialty !== 'all' ? specialty : undefined,
+      q: query.trim() || undefined,
+    };
+  }, [
+    activityModuleId, activityListingSearchQuery, activityListingSpecialty, searchQuery,
+    selectedGovFilter, selectedMarkazFilter, selectedVillageFilter, selectedAreaFilter,
+    selectedGroupFilter, selectedCategoryId, selectedSpecialty,
+  ]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setDirectoryListingsLoaded(false);
+    setDirectoryListingsHasMore(false);
+    setDirectoryListingsCursor(null);
+    setDirectoryListingsLoadingMore(false);
+    setDirectoryListingsError('');
+    setUnconfirmedListings([]);
+    const timer = window.setTimeout(async () => {
+      try {
+        const page = await fetchPublicDirectoryListingPage(directoryListingRequestFilters);
+        if (cancelled) return;
+        setUnconfirmedListings(page.listings.filter((row) => row.listing_status === 'PUBLISHED' && row.claim_status !== 'CLAIMED'));
+        setDirectoryListingsCursor(page.nextCursor);
+        setDirectoryListingsHasMore(page.hasMore);
+      } catch (error) {
+        if (cancelled) return;
+        setUnconfirmedListings([]);
+        setDirectoryListingsHasMore(false);
+        setDirectoryListingsCursor(null);
+        setDirectoryListingsError(error instanceof Error ? error.message : 'تعذر تحميل نتائج الدليل.');
+      } finally {
+        if (!cancelled) setDirectoryListingsLoaded(true);
+      }
+    }, 250);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [directoryListingRequestFilters]);
+
+  const loadMoreDirectoryListings = useCallback(async () => {
+    if (!directoryListingsHasMore || !directoryListingsCursor || directoryListingsLoadingMore) return;
+    setDirectoryListingsLoadingMore(true);
+    setDirectoryListingsError('');
+    try {
+      const page = await fetchPublicDirectoryListingPage({
+        ...directoryListingRequestFilters,
+        cursor: directoryListingsCursor,
+      });
+      setUnconfirmedListings((current) => {
+        const unique = new Map(current.map((listing) => [listing.id, listing]));
+        page.listings.forEach((listing) => {
+          if (listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED') unique.set(listing.id, listing);
+        });
+        return Array.from(unique.values());
+      });
+      setDirectoryListingsCursor(page.nextCursor);
+      setDirectoryListingsHasMore(page.hasMore);
+    } catch (error) {
+      setDirectoryListingsError(error instanceof Error ? error.message : 'تعذر تحميل الدفعة التالية.');
+    } finally {
+      setDirectoryListingsLoadingMore(false);
+    }
+  }, [directoryListingsHasMore, directoryListingsCursor, directoryListingsLoadingMore, directoryListingRequestFilters]);
   const [administrativeShiyakhas, setAdministrativeShiyakhas] = useState<EgyptGeoShiyakha[]>([]);
   const [shiyakhaLoadStatus, setShiyakhaLoadStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
 
@@ -666,6 +743,11 @@ export const DirectoryView: React.FC = () => {
         onOpenBusiness={(businessId) => { setSelectedBusinessId(businessId); setCurrentView('public_storefront'); }}
         onBack={closeActivityModule}
         parentGroupName={selectedGroupFilter !== 'all' ? availableGroups.find((group) => group.id === activityCategory.functionalGroupId)?.name : undefined}
+        onDirectoryListingFiltersChange={handleActivityListingFiltersChange}
+        onLoadMoreListings={loadMoreDirectoryListings}
+        hasMoreListings={directoryListingsHasMore}
+        loadingMoreListings={directoryListingsLoadingMore}
+        listingsLoading={!directoryListingsLoaded}
       />;
     }
   }
@@ -1083,6 +1165,16 @@ export const DirectoryView: React.FC = () => {
               ))}
             </div>
           )}
+          {directoryListingsHasMore && (
+            <div className="flex flex-col items-center gap-2 pt-2">
+              <button type="button" onClick={loadMoreDirectoryListings} disabled={directoryListingsLoadingMore}
+                className="min-h-11 rounded-xl border border-emerald-200 bg-white px-6 py-3 text-xs font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60">
+                {directoryListingsLoadingMore ? 'جارٍ تحميل المزيد…' : 'رؤية المزيد من النتائج'}
+              </button>
+              <p className="text-[11px] text-slate-500">يتم تحميل النتائج على دفعات، مع الاحتفاظ بنطاق المحافظة والمركز والقرية المحدد.</p>
+            </div>
+          )}
+          {directoryListingsError && <p role="status" className="text-center text-xs font-bold text-amber-800">{directoryListingsError}</p>}
         </div>
       </div>
     </div>
