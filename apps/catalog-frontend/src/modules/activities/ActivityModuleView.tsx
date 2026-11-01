@@ -234,7 +234,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
                 if (hasMoreListings) onLoadMoreListings();
               }} disabled={loadingMoreListings}
                 className="min-h-11 rounded-xl border border-emerald-200 bg-white px-6 py-3 text-xs font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60">
-                {loadingMoreListings ? 'جارٍ تحميل المزيد…' : 'رؤية المزيد من النتائج'}
+                {loadingMoreListings ? 'جارٍ تحميل المزيد…' : selectedSpecialty ? 'رؤية المزيد من هذا التخصص' : 'رؤية المزيد من النتائج'}
               </button>
             </div>
           )}
