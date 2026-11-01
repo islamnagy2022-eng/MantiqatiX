@@ -192,6 +192,43 @@ export async function fetchDirectoryAdminBundle(): Promise<DirectoryAdminBundle>
   };
 }
 
+export type DoctorDirectoryImportRow = {
+  displayName: string;
+  specialty: string;
+  governorate: string;
+  district: string;
+  taxonomyCategoryId: string;
+  phone?: string;
+  secondaryPhone?: string;
+  address?: string;
+  village?: string;
+  taxonomySpecialty?: string;
+  sourceName?: string;
+  sourceUrl?: string;
+  sourceCheckedAt?: string;
+  listingStatus?: "PUBLISHED" | "DRAFT";
+  metadata?: Record<string, unknown>;
+};
+
+export type DoctorDirectoryImportResult = {
+  success: boolean;
+  processed: number;
+  inserted: number;
+  updated: number;
+  drafted: number;
+  failed: number;
+  results: Array<{ index: number; status: string; id?: string; reason?: string }>;
+};
+
+export async function importDoctorDirectoryBatch(
+  rows: DoctorDirectoryImportRow[],
+): Promise<DoctorDirectoryImportResult> {
+  if (!Array.isArray(rows) || rows.length < 1 || rows.length > 20) {
+    throw new Error("استيراد الأطباء يقبل من طبيب واحد إلى 20 طبيبًا في الدفعة.");
+  }
+  return callDirectoryAdmin({ action: "IMPORT_DOCTOR_BATCH", rows }) as Promise<DoctorDirectoryImportResult>;
+}
+
 export async function saveDirectoryListing(input: Record<string, unknown>): Promise<PublicDirectoryListing> {
   const body = await callDirectoryAdmin({ action: "UPSERT_LISTING", ...input });
   return normalizeDirectoryListingTaxonomy(body.listing as PublicDirectoryListing);
