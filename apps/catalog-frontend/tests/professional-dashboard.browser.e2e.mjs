@@ -438,14 +438,8 @@ try {
         provider: { ...(paginationSource.provider || {}), name, verified: index < 3 },
       };
     });
-    const { context, page } = await newScenario(browser, null, paginationFixtures, { initialRoute: '?view=directory' });
+    const { context, page } = await newScenario(browser, null, paginationFixtures);
     try {
-      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
-      const locationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
-      if (await locationDialog.isVisible().catch(() => false)) {
-        await locationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
-        await locationDialog.waitFor({ state: 'hidden', timeout: 5000 });
-      }
       await page.getByText('نتائج البحث الموحدة (45)', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       const testCards = page.getByRole('heading').filter({ hasText: /^نشاط اختبار التصفح \d{2}$/ });
       await testCards.first().waitFor({ state: 'visible', timeout: 15000 });
