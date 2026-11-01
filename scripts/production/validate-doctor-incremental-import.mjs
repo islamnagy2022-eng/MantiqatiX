@@ -31,6 +31,7 @@ assert.match(action, /\.eq\("district", district\)/, "Name deduplication must in
 
 assert.match(action, /allowedSourcePermissionStatuses = new Set\(\["LICENSED", "OWNER_PROVIDED", "PUBLIC_PERMISSION_CONFIRMED"\]\)/, "Each new batch row must declare its republication basis");
 assert.match(action, /parsedSourceUrl\.protocol === "https:" \|\| parsedSourceUrl\.protocol === "http:"/, "Source URL must be HTTP or HTTPS");
+assert.match(action, /INVALID_SOURCE_CHECKED_AT/, "Invalid source timestamps must be rejected");
 assert.match(action, /PHONE_REQUIRED_FOR_PUBLICATION/, "Publication without a valid phone must be rejected when explicitly requested");
 assert.match(action, /rawPhone\.replace\(\/\\D\/g, ""\)\.length >= 7/, "Primary phone must be validated");
 assert.match(action, /rawSecondaryPhone\.replace\(\/\\D\/g, ""\)\.length >= 7/, "Secondary phone must be validated");
