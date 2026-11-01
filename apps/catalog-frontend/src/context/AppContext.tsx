@@ -155,7 +155,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else {
       url.searchParams.delete('view');
       if (view !== 'super_admin') url.searchParams.delete('tab');
-      if (view !== 'directory' && view !== 'login' && view !== 'home') url.searchParams.set('view', view);
+      if (view !== 'login' && view !== 'home') url.searchParams.set('view', view);
       if ((view === 'super_admin' || view === 'merchant_admin') && businessId) {
         url.searchParams.set('manage', businessId);
       }
