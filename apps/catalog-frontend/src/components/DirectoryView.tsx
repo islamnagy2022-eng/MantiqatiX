@@ -295,6 +295,7 @@ export const DirectoryView: React.FC = () => {
   const openActivityModule = (activityId: string) => {
     const url = new URL(window.location.href);
     url.searchParams.delete('listing');
+    url.searchParams.delete('specialty');
     url.searchParams.set('activity', activityId);
     window.history.pushState({ mantiqatixActivityModule: activityId }, '', url.pathname + url.search + url.hash);
     setActivityModuleId(activityId);
@@ -303,6 +304,7 @@ export const DirectoryView: React.FC = () => {
   const closeActivityModule = () => {
     const url = new URL(window.location.href);
     url.searchParams.delete('activity');
+    url.searchParams.delete('specialty');
     window.history.pushState({ mantiqatixActivityModule: null }, '', url.pathname + url.search + url.hash);
     setActivityModuleId('');
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
