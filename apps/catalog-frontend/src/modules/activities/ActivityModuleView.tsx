@@ -48,11 +48,11 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
     .normalize('NFKC').replace(/[أإآ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه')
     .replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim();
   const matchesSpecialty = (value: string) => Boolean(selectedSpecialty) &&
-    resolveCanonicalSpecialty(value, category.id) === resolveCanonicalSpecialty(selectedSpecialty, category.id);
+    resolveCanonicalSpecialty(value, category.id) === resolveCanonicalSpecialty(selectedSpecialty || '', category.id);
   const matchesBusinessSpecialty = (business: Business, specialty = selectedSpecialty) => {
     if (!specialty) return true;
     const categorySuffix = business.category.startsWith(category.name)
-      ? business.category.slice(category.name.length).replace(/^\\s*—\\s*/, '')
+      ? business.category.slice(category.name.length).replace(/^\s*—\s*/, '')
       : business.category;
     const target = resolveCanonicalSpecialty(specialty, category.id);
     return resolveCanonicalSpecialty(business.activitySpecialty || '', category.id) === target ||
