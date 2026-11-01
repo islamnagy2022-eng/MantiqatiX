@@ -96,7 +96,7 @@ export const Navbar: React.FC = () => {
               <span className="text-slate-300 text-[11px] font-bold">جارٍ التحقق من جلسة Google...</span>
             ) : authSession.isAuthenticated ? (
               <div className="flex items-center gap-2 text-[11px]">
-                {authSession.role === 'admin' && (currentView === 'account_portal' || currentView === 'super_admin') ? (
+                {authSession.role === 'admin' ? (
                   <span className="text-amber-300 font-bold flex items-center gap-1">
                     <Crown className="w-3 h-3" />
                     جلسة إدارة MantiqatiX
@@ -175,7 +175,7 @@ export const Navbar: React.FC = () => {
             </div>
 
             {/* ONLY ADMIN sees the global switcher dropdown! */}
-            {authSession.role === 'admin' ? (
+            {authSession.role === 'admin' && (currentView === 'account_portal' || currentView === 'super_admin') ? (
               <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200/80 rounded-xl px-2 py-1 max-w-[240px] sm:max-w-xs flex-1 sm:flex-initial">
                 <span className="text-[10px] text-amber-800 font-bold whitespace-nowrap hidden sm:inline">
                   عرض كإدارة:
