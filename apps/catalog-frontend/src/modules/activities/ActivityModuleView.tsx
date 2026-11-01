@@ -190,7 +190,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
           })}
         </div>}
 
-        {<div className="order-2 space-y-4">
+        <div className="order-2 space-y-4">
           <label className="relative block">
             <Search className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
             <input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)}
@@ -225,7 +225,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
             </button>)}
             {listingsLoading && <p role="status" className="col-span-full rounded-xl bg-slate-50 p-4 text-center text-xs font-bold text-slate-600">جارٍ تحميل نتائج الدليل لهذا النشاط…</p>}
             {!listingsLoading && verifiedBusinesses.length + unverifiedBusinesses.length + visibleListings.length === 0 &&
-              <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">لا توجد نتائج مطابقة داخل هذا النشاط والنطاق الجغرافي المحدد.</p>}
+              <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">{selectedSpecialty ? 'لا توجد نتائج مطابقة داخل هذا التخصص والنطاق الجغرافي المحدد.' : 'لا توجد نتائج مطابقة داخل هذا النشاط والنطاق الجغرافي المحدد.'}</p>}
           </div>
           {hasMoreActivityResults && (
             <div className="flex justify-center pt-2">
@@ -234,7 +234,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
                 if (hasMoreListings) onLoadMoreListings();
               }} disabled={loadingMoreListings}
                 className="min-h-11 rounded-xl border border-emerald-200 bg-white px-6 py-3 text-xs font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60">
-                {loadingMoreListings ? 'جارٍ تحميل المزيد…' : 'رؤية المزيد من النتائج'}
+                {loadingMoreListings ? 'جارٍ تحميل المزيد…' : selectedSpecialty ? 'رؤية المزيد من هذا التخصص' : 'رؤية المزيد من النتائج'}
               </button>
             </div>
           )}
