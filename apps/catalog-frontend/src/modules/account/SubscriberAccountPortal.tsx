@@ -57,7 +57,7 @@ export const SubscriberAccountPortal: React.FC = () => {
   const canProfessional = canAccessProfessionalDashboard(authSession);
   // Only the business bound to the current authenticated membership is displayed.
   // Cross-membership switching is intentionally unavailable in this portal.
-  const business = isAdmin ? undefined : currentBusiness;
+  const business = authSession.role === 'subscriber' ? currentBusiness : undefined;
   const accountBusinesses = business ? [business] : [];
   const currency = adminSettings.currency || 'ج.م';
   const permissions = isAdmin ? [] : PERMISSION_ITEMS.map((item) => ({
