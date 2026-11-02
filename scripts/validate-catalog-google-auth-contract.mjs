@@ -58,6 +58,8 @@ console.log('Catalog Google OAuth hydration, identity-vs-membership, and role-ga
 assert.match(context, /const defaultView: ViewMode = 'directory'/, 'Every freshly authenticated account must land on the public home directory by default');
 assert.ok(
   context.includes("requestedView === 'medical_directory'") &&
+  context.includes("requestedView === 'medical_directory'") &&
+  context.includes("requestedView === 'medical_directory'") &&
   context.includes("requestedView === 'marketplace_home'") &&
   context.includes("requestedView === 'contact_us'") &&
   context.includes("requestedView === 'site_map'"),
