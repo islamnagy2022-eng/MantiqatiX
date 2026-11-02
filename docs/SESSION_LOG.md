@@ -1738,3 +1738,17 @@ A separate source review found a second platform-root authorization model: the n
 - **Not performed:** no application source code changed, no Supabase/production data/schema/Auth/RLS/Edge/payment mutation, no PR merge, and no production deployment.
 - **Next:** complete v4-to-current-main screen/feature/data-source parity matrix; identify current website-only capabilities and present them for owner decision; then implement approved slices with exact-head tests.
 - **Status:** IN PROGRESS; no parity implementation claimed.
+
+
+## 2026-11-02 — Google AI Studio v4 parity map and first visual slice
+
+- **Baseline:** `main` commit `e408f8137b6e6e62ab50f8629a17af59cf6c38e2`.
+- **Archive:** `bizcatalog-manager (4).zip`, SHA-256 `e49e202716c38c5564b8a82db9a74b4fe2c93ebbdecb4a347a7a110b799d6df2`.
+- **Comparison:** added `docs/AISTUDIO_V4_WEBSITE_PARITY_20261102.md`, listing archive screens, current website equivalents, reference-only gaps, current website-only capabilities to preserve, and prototype-only items excluded from production.
+- **Website-only additions recorded for preservation:** Google Auth + membership/branch authorization; live Supabase data contracts; server keyset pagination/20-row progressive loading; verified-first directory and canonical activity→specialty routing; activity module registry; Super Admin custom roles/permission matrix/audit; employee and branch controls; public directory listing administration; commission rules; CSV import; Facebook Page media mirroring; category-aware image fallback; fail-closed route guards.
+- **Reference gaps identified for later contract review:** contact/messages/sitemap routes; owner finance/custom-links screen parity; separate medical directory UX; ad request/wallet/marketing/sector/AI Studio modal parity. No prototype-only persistence or simulated balances are being copied.
+- **Source changes on isolated branch:** `BusinessProfileHeader.tsx` now uses a full-width wide cover hero; `MerchantDashboard.tsx` uses the reference dark navy hero and updated matching title. No business logic, data fields, API calls or access rules changed.
+- **Draft PR:** [#650](https://github.com/islamnagy2022-eng/MantiqatiX/pull/650), head `4d580d1926dd12af6e181c8be00628cb723a9f2e`.
+- **CI state at log time:** Primary Catalog Frontend Validation and Pages workflow running; Pages deploy/public-only jobs are skipped on PR events as designed. RBAC PostgreSQL and supporting security/module workflows were still in progress/queued. Do not merge until all required checks pass and independent visual review is complete.
+- **Production impact:** no production data/schema/Auth/RLS/GRANT/Edge/payment/finance mutation, merge, or production deployment.
+- **Next:** complete exact-head checks, inspect the two UI changes in browser at desktop and mobile widths, and continue Wave A for directory/global navigation. Preserve all website-only features and keep production gate status unchanged.
