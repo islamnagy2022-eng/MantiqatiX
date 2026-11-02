@@ -331,7 +331,23 @@ export const Navbar: React.FC = () => {
                 </button>
               )}
 
-              {/* Merchant Dashboard Tab */}
+              {authSession.isAuthenticated && (
+                <button
+                  type="button"
+                  onClick={() => setCurrentView('account_portal')}
+                  aria-current={currentView === 'account_portal' ? 'page' : undefined}
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                    currentView === 'account_portal'
+                      ? 'bg-white text-emerald-700 font-bold shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>حسابي / اشتراكي</span>
+                </button>
+              )}
+
+              {/* Merchant Dashboard Tab — retained alongside the additive account portal. */}
               {canAccessMerchantDashboard(authSession) && (
                 <button
                   onClick={() => setCurrentView('merchant_admin')}
