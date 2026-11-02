@@ -403,6 +403,35 @@ async function assertNoHorizontalOverflow(page, label) {
 const browser = await chromium.launch({ headless: true });
 const results = [];
 
+// The canonical site root is the marketplace home; the directory remains a separate reload-safe route.
+{
+  const { context, page } = await newScenario(browser, null, liveDirectory.businesses);
+  try {
+    await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+    await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
+    await page.getByRole('heading', { name: /كل الأنشطة والخدمات والعروض/ }).waitFor({ state: 'visible' });
+    await page.getByText('جارٍ التحقق من تسجيل الدخول وتجهيز الصلاحيات… يمكنك تصفح الأنشطة المنشورة أثناء ذلك.').waitFor({ state: 'detached', timeout: 15000 });
+    assert.equal(new URL(page.url()).searchParams.has('view'), false, 'the canonical root must not require a view query parameter');
+    const nav = page.locator('header nav');
+    assert.equal(await nav.getByRole('button', { name: 'الرئيسية', exact: true }).count(), 1, 'the marketplace homepage must have a distinct navigation tab');
+    assert.equal(await nav.getByRole('button', { name: 'بحث الأنشطة والخدمات', exact: true }).count(), 1, 'activity and service search must have a distinct navigation tab');
+    await nav.getByRole('button', { name: 'بحث الأنشطة والخدمات', exact: true }).click();
+    await page.getByRole('heading', { name: /اكتشف كافة المشاريع والخدمات في/ }).waitFor({ state: 'visible', timeout: 15000 });
+    assert.equal(new URL(page.url()).searchParams.get('view'), 'directory', 'directory search must use an explicit route');
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.getByRole('heading', { name: /اكتشف كافة المشاريع والخدمات في/ }).waitFor({ state: 'visible', timeout: 15000 });
+    assert.equal(new URL(page.url()).searchParams.get('view'), 'directory', 'directory search must survive direct reload');
+    await page.locator('header nav').getByRole('button', { name: 'الرئيسية', exact: true }).click();
+    await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
+    assert.equal(new URL(page.url()).searchParams.has('view'), false, 'homepage navigation must restore the canonical root URL');
+    for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+      await page.setViewportSize(viewport);
+      await assertNoHorizontalOverflow(page, 'marketplace homepage at ' + viewport.width + 'px');
+    }
+    results.push('canonical-marketplace-home-root-and-separate-reload-safe-directory-search');
+  } finally { await context.close(); }
+}
+
 async function auditAccessibility(page, label) {
   const axePath = process.env.AXE_CORE_SCRIPT;
   if (!axePath) return;

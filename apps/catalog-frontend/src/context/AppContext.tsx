@@ -129,9 +129,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const params = new URLSearchParams(window.location.search);
     if (params.has('store') || params.has('businessId')) return 'public_storefront';
     const requestedView = params.get('view');
+    if (params.has('activity') || params.has('listing') || params.has('group')) return 'directory';
     return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'account_portal' || requestedView === 'medical_directory' || requestedView === 'marketplace_home' || requestedView === 'contact_us' || requestedView === 'site_map' || requestedView === 'directory'
       ? requestedView
-      : 'directory';
+      : 'marketplace_home';
   });
 
   // Keep the SPA's visible view in the URL so refreshes and copied links reopen
@@ -150,7 +151,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else {
       url.searchParams.delete('view');
       if (view !== 'super_admin') url.searchParams.delete('tab');
-      if (view !== 'directory' && view !== 'login') url.searchParams.set('view', view);
+      if (view !== 'marketplace_home' && view !== 'login') url.searchParams.set('view', view);
+      if (view !== 'directory') {
+        url.searchParams.delete('activity');
+        url.searchParams.delete('listing');
+        url.searchParams.delete('group');
+        url.searchParams.delete('specialty');
+      }
       if ((view === 'super_admin' || view === 'merchant_admin') && businessId) {
         url.searchParams.set('manage', businessId);
       }
@@ -252,9 +259,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const params = new URLSearchParams(window.location.search);
     const requestedId = params.get('store') || params.get('businessId') || '';
     const requestedView = params.get('view');
-    // A newly signed-in account always lands on the public home directory.
-    // Explicit, role-authorized dashboard routes are still restorable on refresh.
-    const defaultView: ViewMode = 'directory';
+    // The marketplace is the canonical public landing page; search remains a separate directory route.
+    // Explicit dashboard routes and directory deep links remain restorable on refresh.
+    const defaultView: ViewMode = 'marketplace_home';
 
     // A share URL must continue to open its public catalog for signed-in and guest
     // users alike, but it must never bypass the public-catalog API's publication gate.
@@ -285,7 +292,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
 
-    const safeRequestedView: ViewMode = requestedView === 'directory'
+    const isDirectoryDeepLink = params.has('activity') || params.has('listing') || params.has('group');
+    const safeRequestedView: ViewMode = requestedView === 'directory' || isDirectoryDeepLink
       ? 'directory'
       : requestedView === 'account_portal' && Boolean(boot.authSession.isAuthenticated)
         ? 'account_portal'
@@ -303,7 +311,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               ? 'merchant_admin'
               : requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(boot.authSession)
                 ? 'professional_dashboard'
-                : 'directory';
+                : 'marketplace_home';
 
     const requestedManagedId = params.get('manage') || '';
     const requestedManagedBusiness = boot.businesses.find((business) => business.id === requestedManagedId);
@@ -442,6 +450,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return;
       }
       const requestedView = params.get('view');
+      const isDirectoryDeepLink = params.has('activity') || params.has('listing') || params.has('group');
       const requestedManagedId = requestedView === 'super_admin' || requestedView === 'merchant_admin'
         ? params.get('manage') || ''
         : '';
@@ -450,15 +459,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ? Boolean(requestedManagedBusiness)
         : Boolean(authSession.businessId && authSession.businessId === requestedManagedId);
       const restoredView: ViewMode =
-        requestedView === 'medical_directory' || requestedView === 'marketplace_home' || requestedView === 'contact_us' || requestedView === 'site_map' || requestedView === 'directory'
-          ? requestedView
+        isDirectoryDeepLink
+          ? 'directory'
+          : requestedView === 'medical_directory' || requestedView === 'marketplace_home' || requestedView === 'contact_us' || requestedView === 'site_map' || requestedView === 'directory'
+            ? requestedView
+            : requestedView === 'account_portal' && authSession.isAuthenticated
+              ? 'account_portal'
           : requestedView === 'super_admin' && authSession.role === 'admin'
             ? 'super_admin'
             : requestedView === 'merchant_admin' && canAccessMerchantDashboard(authSession) && managedBusinessAllowed
               ? 'merchant_admin'
               : requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(authSession)
                 ? 'professional_dashboard'
-                : 'directory';
+                : 'marketplace_home';
       const safeManagedId = restoredView === 'super_admin' || restoredView === 'merchant_admin'
         ? requestedManagedId
         : '';

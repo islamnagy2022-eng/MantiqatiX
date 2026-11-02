@@ -29,20 +29,24 @@ const MainContent: React.FC = () => {
   // Never expose a dashboard without a production role. Guests may view a
   // storefront only through its direct share link, never through a generic tab.
   const visibleView = authLoading
-    ? (currentView === 'public_storefront' && hasDirectPublicCatalogLink ? 'public_storefront' : currentView === 'medical_directory' || currentView === 'marketplace_home' || currentView === 'contact_us' || currentView === 'site_map' ? currentView : 'directory')
+    ? (currentView === 'public_storefront' && hasDirectPublicCatalogLink
+      ? 'public_storefront'
+      : currentView === 'directory' || currentView === 'medical_directory' || currentView === 'marketplace_home' || currentView === 'contact_us' || currentView === 'site_map'
+        ? currentView
+        : 'marketplace_home')
     : currentView === 'super_admin' && authSession.role !== 'admin'
-      ? 'directory'
+      ? 'marketplace_home'
       : currentView === 'merchant_admin' &&
           (!canAccessMerchantDashboard(authSession) || !currentBusiness)
-        ? 'directory'
+        ? 'marketplace_home'
         : currentView === 'professional_dashboard' &&
           !canAccessProfessionalDashboard(authSession)
-        ? 'directory'
+        ? 'marketplace_home'
         : currentView === 'account_portal' && !authSession.isAuthenticated
-          ? 'directory'
+          ? 'marketplace_home'
           : currentView === 'public_storefront' &&
             authSession.role === 'guest' && !hasDirectPublicCatalogLink
-          ? 'directory'
+          ? 'marketplace_home'
           : currentView;
 
   return (
