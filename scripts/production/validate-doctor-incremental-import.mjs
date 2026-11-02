@@ -72,6 +72,9 @@ assert.match(action, /rawSecondaryPhone\.replace\(\/\\D\/g, ""\)\.length >= 7/, 
 assert.match(action, /if \(!row\.slug\) delete patch\.slug/, "Existing slug must survive imports that omit a new slug");
 assert.match(action, /if \(!row\.sourceCheckedAt && !row\.source_checked_at\) delete patch\.source_checked_at/, "Source checked date must not be refreshed without a new observation date");
 assert.match(action, /if \(!canApplyRequestedStatus\) delete patch\.listing_status/, "Existing status must be preserved unless a non-public batch status is explicitly requested");
+assert.match(action, /existing\.listing_status === "PUBLISHED"[\s\S]{0,320}PUBLISHED_SOURCE_CHANGE_REQUIRES_REVIEWED_PUBLICATION/, "Batch ingestion must reject source attribution changes on already published doctor records");
+assert.match(action, /source_name,source_url,metadata/, "Deduplication lookup must load existing source attribution before updating a listing");
+assert.match(action, /preservePublishedVerification \? \{\} : \{[\s\S]{0,260}source_phone_verified: false/, "Updates to already published doctor profiles must not downgrade existing verification metadata");
 assert.match(action, /"updated_" \+ String\(saved\.data\.listing_status\)\.toLowerCase\(\)/, "Update result must preserve the actual saved status label");
 assert.match(action, /"inserted_" \+ String\(saved\.data\.listing_status\)\.toLowerCase\(\)/, "Insert result must preserve the actual saved status label");
 assert.match(action, /delete patch\.claim_status/, "Import must not reset claim/ownership state");

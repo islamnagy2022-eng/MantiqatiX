@@ -466,13 +466,13 @@ Deno.serve(async (req: Request) => {
           const phoneCandidates = Array.from(new Set([phone, secondaryPhone].filter(Boolean)));
           for (const candidatePhone of phoneCandidates) {
             const byPrimaryPhone = await service.from("public_directory_listings")
-              .select("id,slug,listing_status,metadata,source_checked_at,completeness")
+              .select("id,slug,listing_status,source_name,source_url,metadata,source_checked_at,completeness")
               .eq("listing_type", "doctor").eq("phone", candidatePhone).limit(1).maybeSingle();
             if (byPrimaryPhone.error) throw byPrimaryPhone.error;
             existing = byPrimaryPhone.data;
             if (existing) break;
             const bySecondaryPhone = await service.from("public_directory_listings")
-              .select("id,slug,listing_status,metadata,source_checked_at,completeness")
+              .select("id,slug,listing_status,source_name,source_url,metadata,source_checked_at,completeness")
               .eq("listing_type", "doctor").eq("secondary_phone", candidatePhone).limit(1).maybeSingle();
             if (bySecondaryPhone.error) throw bySecondaryPhone.error;
             existing = bySecondaryPhone.data;
@@ -481,7 +481,7 @@ Deno.serve(async (req: Request) => {
         }
         if (!existing) {
           const byIdentity = await service.from("public_directory_listings")
-            .select("id,slug,listing_status,metadata,source_checked_at,completeness").eq("listing_type", "doctor")
+            .select("id,slug,listing_status,source_name,source_url,metadata,source_checked_at,completeness").eq("listing_type", "doctor")
             .eq("display_name", displayName).eq("governorate", governorate).eq("district", district)
             .limit(1).maybeSingle();
           if (byIdentity.error) throw byIdentity.error;
@@ -489,6 +489,15 @@ Deno.serve(async (req: Request) => {
         }
 
         if (existing) {
+          // Never let draft ingestion replace the attribution of an already public doctor.
+          // A changed source must go through UPSERT_LISTING's reviewed publication gate.
+          if (existing.listing_status === "PUBLISHED" &&
+              (String(existing.source_name || "") !== sourceName ||
+               String(existing.source_url || "") !== String(sourceUrl || ""))) {
+            failed += 1;
+            results.push({ index, status: "failed", reason: "PUBLISHED_SOURCE_CHANGE_REQUIRES_REVIEWED_PUBLICATION" });
+            continue;
+          }
           // Partial snapshots must not erase existing contact, slug, claim, source or review history.
           if (!phone) delete patch.phone;
           if (!secondaryPhone) delete patch.secondary_phone;
@@ -502,14 +511,18 @@ Deno.serve(async (req: Request) => {
             ...(existing.completeness && typeof existing.completeness === "object" ? existing.completeness : {}),
             ...Object.fromEntries(Object.entries(completeness).filter(([, value]) => value === true)),
           };
+          const existingMetadata = existing.metadata && typeof existing.metadata === "object" ? existing.metadata : {};
+          const preservePublishedVerification = existing.listing_status === "PUBLISHED";
           patch.metadata = {
-            ...(existing.metadata && typeof existing.metadata === "object" ? existing.metadata : {}),
+            ...existingMetadata,
             ...(metadataInput as Record<string, unknown>),
             ingestion: "incremental_doctor_batch",
-            source_status: "UNVERIFIED_IMPORTED_DATA",
-            source_phone_verified: false,
-            owner_confirmation_required: true,
-            professional_registration_verified: false,
+            ...(preservePublishedVerification ? {} : {
+              source_status: "UNVERIFIED_IMPORTED_DATA",
+              source_phone_verified: false,
+              owner_confirmation_required: true,
+              professional_registration_verified: false,
+            }),
           };
           const saved = await service.from("public_directory_listings")
             .update(patch).eq("id", existing.id).select("id,listing_status").single();
