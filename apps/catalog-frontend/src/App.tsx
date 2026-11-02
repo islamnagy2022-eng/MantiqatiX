@@ -1,26 +1,31 @@
 import React, { lazy, Suspense } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
-import { BusinessProfileHeader } from './components/storefront/BusinessProfileHeader';
-import { CatalogSection } from './components/storefront/CatalogSection';
-import { MerchantDashboard } from './components/merchant/MerchantDashboard';
-import { AdminDashboard } from './components/admin/AdminDashboard';
-import { ProfessionalDashboard } from './modules/dashboard/ProfessionalDashboard';
 import { DirectoryView } from './components/DirectoryView';
 import { MarketplaceHome } from './components/MarketplaceHome';
-import { MedicalDirectoryView } from './components/MedicalDirectoryView';
-import { ContactUsView } from './components/ContactUsView';
-import { SiteMapView } from './components/SiteMapView';
-import { CartDrawer } from './components/cart/CartDrawer';
-import { LoginModal } from './components/auth/LoginModal';
 import { MessageCircle } from 'lucide-react';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from './utils/dashboardAccess';
 
+const BusinessProfileHeader = lazy(() => import('./components/storefront/BusinessProfileHeader').then((module) => ({ default: module.BusinessProfileHeader })));
+const CatalogSection = lazy(() => import('./components/storefront/CatalogSection').then((module) => ({ default: module.CatalogSection })));
+const MerchantDashboard = lazy(() => import('./components/merchant/MerchantDashboard').then((module) => ({ default: module.MerchantDashboard })));
+const AdminDashboard = lazy(() => import('./components/admin/AdminDashboard').then((module) => ({ default: module.AdminDashboard })));
+const ProfessionalDashboard = lazy(() => import('./modules/dashboard/ProfessionalDashboard').then((module) => ({ default: module.ProfessionalDashboard })));
+const MedicalDirectoryView = lazy(() => import('./components/MedicalDirectoryView').then((module) => ({ default: module.MedicalDirectoryView })));
+const ContactUsView = lazy(() => import('./components/ContactUsView').then((module) => ({ default: module.ContactUsView })));
+const SiteMapView = lazy(() => import('./components/SiteMapView').then((module) => ({ default: module.SiteMapView })));
+const CartDrawer = lazy(() => import('./components/cart/CartDrawer').then((module) => ({ default: module.CartDrawer })));
+const LoginModal = lazy(() => import('./components/auth/LoginModal').then((module) => ({ default: module.LoginModal })));
 const SubscriberAccountPortal = lazy(() => import('./modules/account/SubscriberAccountPortal').then((module) => ({ default: module.SubscriberAccountPortal })));
-const AccountPortalFallback = () => <div role="status" className="mx-auto mt-4 w-[calc(100%-2rem)] max-w-7xl rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">جارٍ تجهيز شاشة الحساب…</div>;
+
+const ScreenFallback = () => (
+  <div role="status" aria-live="polite" className="mx-auto mt-4 w-[calc(100%-2rem)] max-w-7xl rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+    جارٍ تجهيز الشاشة…
+  </div>
+);
 
 const MainContent: React.FC = () => {
-  const { currentView, setCurrentView, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp, authSession, authLoading } = useApp();
+  const { currentView, setCurrentView, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp, authSession, authLoading, isCartOpen, isLoginModalOpen } = useApp();
   const params = new URLSearchParams(window.location.search);
   const hasDirectPublicCatalogLink = params.has('store') || params.has('businessId');
   const catalogRequestUrl = requestCatalogViaAdminWhatsApp(currentBusiness);
@@ -65,32 +70,50 @@ const MainContent: React.FC = () => {
 
         {visibleView === 'marketplace_home' && <MarketplaceHome />}
 
-        {visibleView === 'medical_directory' && <MedicalDirectoryView />}
+        {visibleView === 'medical_directory' && (
+          <Suspense fallback={<ScreenFallback />}><MedicalDirectoryView /></Suspense>
+        )}
 
         {visibleView === 'public_storefront' && (
-          <div>
-            <BusinessProfileHeader />
-            <CatalogSection />
-          </div>
+          <Suspense fallback={<ScreenFallback />}>
+            <div>
+              <BusinessProfileHeader />
+              <CatalogSection />
+            </div>
+          </Suspense>
         )}
 
-        {visibleView === 'merchant_admin' && <MerchantDashboard />}
+        {visibleView === 'merchant_admin' && (
+          <Suspense fallback={<ScreenFallback />}><MerchantDashboard /></Suspense>
+        )}
 
-        {visibleView === 'super_admin' && <AdminDashboard />}
+        {visibleView === 'super_admin' && (
+          <Suspense fallback={<ScreenFallback />}><AdminDashboard /></Suspense>
+        )}
 
-        {visibleView === 'professional_dashboard' && <ProfessionalDashboard />}
+        {visibleView === 'professional_dashboard' && (
+          <Suspense fallback={<ScreenFallback />}><ProfessionalDashboard /></Suspense>
+        )}
 
         {visibleView === 'account_portal' && (
-          <Suspense fallback={<AccountPortalFallback />}><SubscriberAccountPortal /></Suspense>
+          <Suspense fallback={<ScreenFallback />}><SubscriberAccountPortal /></Suspense>
         )}
 
-        {visibleView === 'contact_us' && <ContactUsView />}
+        {visibleView === 'contact_us' && (
+          <Suspense fallback={<ScreenFallback />}><ContactUsView /></Suspense>
+        )}
 
-        {visibleView === 'site_map' && <SiteMapView />}
+        {visibleView === 'site_map' && (
+          <Suspense fallback={<ScreenFallback />}><SiteMapView /></Suspense>
+        )}
       </main>
 
-      <CartDrawer />
-      <LoginModal />
+      {isCartOpen && (
+        <Suspense fallback={null}><CartDrawer /></Suspense>
+      )}
+      {isLoginModalOpen && (
+        <Suspense fallback={null}><LoginModal /></Suspense>
+      )}
 
       {/* Modern MantiqatiX Footer */}
       <footer className="bg-white border-t border-slate-200 mt-auto py-8">
