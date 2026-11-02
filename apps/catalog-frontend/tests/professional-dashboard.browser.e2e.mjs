@@ -518,19 +518,19 @@ try {
     } finally { await context.close(); }
   }
 
-  // 0a. Additional Marketplace Home is a separate route; the V4 directory remains the default public entry.
+  // The Marketplace Home is the canonical root; search is a separate directory route.
   {
     const { context, page } = await newScenario(browser, null, [], { initialRoute: '?view=marketplace_home' });
     try {
       await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
-      assert.equal(new URL(page.url()).searchParams.get('view'), 'marketplace_home', 'marketplace home must be directly refreshable');
+      assert.equal(new URL(page.url()).searchParams.has('view'), false, 'marketplace home must normalize to the canonical root URL');
       assert.equal(await page.getByRole('dialog').count(), 0, 'marketplace home must not request location separately from the directory');
       await page.getByTestId('home-search-button').click();
-      await page.waitForFunction(() => !new URL(window.location.href).searchParams.has('view'));
+      await page.waitForFunction(() => new URL(window.location.href).searchParams.get('view') === 'directory');
       await page.goBack();
       await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 10000 });
-      assert.equal(new URL(page.url()).searchParams.get('view'), 'marketplace_home', 'browser Back must restore the Marketplace screen');
-      results.push('additional-marketplace-home-route-history-and-directory-owned-location-consent');
+      assert.equal(new URL(page.url()).searchParams.has('view'), false, 'browser Back must restore the canonical Marketplace root');
+      results.push('canonical-marketplace-home-root-history-and-directory-owned-location-consent');
     } finally { await context.close(); }
   }
 
