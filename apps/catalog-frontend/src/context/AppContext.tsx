@@ -29,7 +29,7 @@ import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPlat
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../utils/dashboardAccess';
 
-export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'login' | 'directory';
+export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'marketplace_home' | 'medical_directory' | 'contact_us' | 'site_map' | 'login' | 'directory';
 
 interface AppContextType {
   currentView: ViewMode;
@@ -58,7 +58,9 @@ interface AppContextType {
   setIsLoginModalOpen: (open: boolean) => void;
   businesses: Business[];
   directoryBusinesses: Business[];
+  directoryProducts: Product[];
   directoryLoading: boolean;
+  openPublicBusiness: (businessId: string) => Promise<boolean>;
   products: Product[];
   subscribers: Subscriber[];
   subscribersLoading: boolean;
@@ -105,6 +107,7 @@ const publicBaseUrl = () => `${window.location.origin}${baseUrl.endsWith('/') ? 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [directoryBusinesses, setDirectoryBusinesses] = useState<Business[]>([]);
+  const [directoryProducts, setDirectoryProducts] = useState<Product[]>([]);
   const [directoryLoading, setDirectoryLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
@@ -126,7 +129,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const params = new URLSearchParams(window.location.search);
     if (params.has('store') || params.has('businessId')) return 'public_storefront';
     const requestedView = params.get('view');
-    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'directory'
+    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'medical_directory' || requestedView === 'marketplace_home' || requestedView === 'contact_us' || requestedView === 'site_map' || requestedView === 'directory'
       ? requestedView
       : 'directory';
   });
@@ -284,13 +287,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const safeRequestedView: ViewMode = requestedView === 'directory'
       ? 'directory'
-      : requestedView === 'super_admin' && boot.authSession.role === 'admin'
-        ? 'super_admin'
-        : requestedView === 'merchant_admin' && canAccessMerchantDashboard(boot.authSession)
-          ? 'merchant_admin'
-          : requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(boot.authSession)
-            ? 'professional_dashboard'
-            : 'directory';
+      : requestedView === 'medical_directory'
+        ? 'medical_directory'
+        : requestedView === 'marketplace_home'
+          ? 'marketplace_home'
+        : requestedView === 'contact_us'
+        ? 'contact_us'
+        : requestedView === 'site_map'
+          ? 'site_map'
+          : requestedView === 'super_admin' && boot.authSession.role === 'admin'
+            ? 'super_admin'
+            : requestedView === 'merchant_admin' && canAccessMerchantDashboard(boot.authSession)
+              ? 'merchant_admin'
+              : requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(boot.authSession)
+                ? 'professional_dashboard'
+                : 'directory';
 
     const requestedManagedId = params.get('manage') || '';
     const requestedManagedBusiness = boot.businesses.find((business) => business.id === requestedManagedId);
@@ -305,7 +316,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     let active = true;
     fetchPublicDirectory()
-      .then((directory) => { if (active) { setDirectoryBusinesses(directory.businesses); if (directory.activityModuleOverridesAvailable) setAdminSettings((current) => ({ ...current, activityModuleOverrides: directory.activityModuleOverrides })); } })
+      .then((directory) => { if (active) { setDirectoryBusinesses(directory.businesses); setDirectoryProducts(directory.products || []); if (directory.activityModuleOverridesAvailable) setAdminSettings((current) => ({ ...current, activityModuleOverrides: directory.activityModuleOverrides })); } })
       .catch((error) => { console.warn('[MantiqatiX public directory]', error); })
       .finally(() => { if (active) setDirectoryLoading(false); });
     return () => { active = false; };
@@ -432,17 +443,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const requestedManagedId = requestedView === 'super_admin' || requestedView === 'merchant_admin'
         ? params.get('manage') || ''
         : '';
-      routeBusinessIdRef.current = requestedManagedId;
-      setSelectedBusinessIdState(requestedManagedId);
-      setCurrentViewState(
-        requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'directory'
+      const requestedManagedBusiness = businesses.find((business) => business.id === requestedManagedId);
+      const managedBusinessAllowed = authSession.role === 'admin'
+        ? Boolean(requestedManagedBusiness)
+        : Boolean(authSession.businessId && authSession.businessId === requestedManagedId);
+      const restoredView: ViewMode =
+        requestedView === 'medical_directory' || requestedView === 'marketplace_home' || requestedView === 'contact_us' || requestedView === 'site_map' || requestedView === 'directory'
           ? requestedView
-          : 'directory'
-      );
+          : requestedView === 'super_admin' && authSession.role === 'admin'
+            ? 'super_admin'
+            : requestedView === 'merchant_admin' && canAccessMerchantDashboard(authSession) && managedBusinessAllowed
+              ? 'merchant_admin'
+              : requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(authSession)
+                ? 'professional_dashboard'
+                : 'directory';
+      const safeManagedId = restoredView === 'super_admin' || restoredView === 'merchant_admin'
+        ? requestedManagedId
+        : '';
+      routeBusinessIdRef.current = safeManagedId;
+      setSelectedBusinessIdState(safeManagedId);
+      setCurrentViewState(restoredView);
     };
     window.addEventListener('popstate', restoreRouteFromLocation);
     return () => window.removeEventListener('popstate', restoreRouteFromLocation);
-  }, [businesses]);
+  }, [businesses, authSession]);
 
   const loginWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -775,6 +799,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const getStorePublicLink = (business: Business) =>
     generateStorePublicUrl(window.location.origin, business.id, getCurrentAppBasePath(window.location.pathname));
+
+  const openPublicBusiness = async (businessId: string): Promise<boolean> => {
+    if (!businessId) return false;
+    const catalog = await fetchPublicCatalog(businessId).catch(() => null);
+    if (!catalog) return false;
+    setBusinesses((previous) => [catalog.business, ...previous.filter((business) => business.id !== catalog.business.id)]);
+    setProducts((previous) => [...previous.filter((product) => product.businessId !== catalog.business.id), ...catalog.products]);
+    commitSelectedBusinessId(catalog.business.id);
+    setCurrentView('public_storefront');
+    return true;
+  };
   const addProduct = async (data: Omit<Product, 'id'> & { deferAiImageGeneration?: boolean }): Promise<{ success: boolean; message?: string }> => {
     const business = businesses.find((b) => b.id === data.businessId);
     if (!business?.tenantId || !business.branchId) return { success: false, message: 'النشاط أو الفرع غير مرتبط ببيانات الإنتاج.' };
@@ -1020,7 +1055,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     currentView, setCurrentView, selectedBusinessId, setSelectedBusinessId, currentBusiness,
     functionalGroups, categories, addCategory, updateCategory, deleteCategory, selectedFunctionalGroupFilter, setSelectedFunctionalGroupFilter, selectedCategoryFilter, setSelectedCategoryFilter,
     authSession, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
-    businesses, directoryBusinesses, directoryLoading, products, subscribers, subscribersLoading, refreshPlatformSubscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
+    businesses, directoryBusinesses, directoryProducts, directoryLoading, openPublicBusiness, products, subscribers, subscribersLoading, refreshPlatformSubscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
     confirmAdminPayment, updateBillingSetting, toggleBusinessFreeze,
     businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, saveSubscriberMembership, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,
     cartItems, addToCart, removeFromCart, updateCartQuantity, clearCart, isCartOpen, setIsCartOpen, submitOrderViaWhatsApp, requestCatalogViaAdminWhatsApp,

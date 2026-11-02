@@ -7,21 +7,26 @@ import { MerchantDashboard } from './components/merchant/MerchantDashboard';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { ProfessionalDashboard } from './modules/dashboard/ProfessionalDashboard';
 import { DirectoryView } from './components/DirectoryView';
+import { MarketplaceHome } from './components/MarketplaceHome';
+import { MedicalDirectoryView } from './components/MedicalDirectoryView';
+import { ContactUsView } from './components/ContactUsView';
+import { SiteMapView } from './components/SiteMapView';
 import { CartDrawer } from './components/cart/CartDrawer';
 import { LoginModal } from './components/auth/LoginModal';
 import { MessageCircle } from 'lucide-react';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from './utils/dashboardAccess';
 
 const MainContent: React.FC = () => {
-  const { currentView, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp, authSession, authLoading } = useApp();
+  const { currentView, setCurrentView, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp, authSession, authLoading } = useApp();
   const params = new URLSearchParams(window.location.search);
   const hasDirectPublicCatalogLink = params.has('store') || params.has('businessId');
   const catalogRequestUrl = requestCatalogViaAdminWhatsApp(currentBusiness);
+  const useFooterNavigate = (view: 'contact_us' | 'site_map') => setCurrentView(view);
 
   // Never expose a dashboard without a production role. Guests may view a
   // storefront only through its direct share link, never through a generic tab.
   const visibleView = authLoading
-    ? (currentView === 'public_storefront' && hasDirectPublicCatalogLink ? 'public_storefront' : 'directory')
+    ? (currentView === 'public_storefront' && hasDirectPublicCatalogLink ? 'public_storefront' : currentView === 'medical_directory' || currentView === 'marketplace_home' || currentView === 'contact_us' || currentView === 'site_map' ? currentView : 'directory')
     : currentView === 'super_admin' && authSession.role !== 'admin'
       ? 'directory'
       : currentView === 'merchant_admin' &&
@@ -49,6 +54,10 @@ const MainContent: React.FC = () => {
         {/* Isolated Business Storefront: Opens directly for the specific business without seeing other businesses or external taxonomy bars */}
         {visibleView === 'directory' && <DirectoryView />}
 
+        {visibleView === 'marketplace_home' && <MarketplaceHome />}
+
+        {visibleView === 'medical_directory' && <MedicalDirectoryView />}
+
         {visibleView === 'public_storefront' && (
           <div>
             <BusinessProfileHeader />
@@ -61,6 +70,10 @@ const MainContent: React.FC = () => {
         {visibleView === 'super_admin' && <AdminDashboard />}
 
         {visibleView === 'professional_dashboard' && <ProfessionalDashboard />}
+
+        {visibleView === 'contact_us' && <ContactUsView />}
+
+        {visibleView === 'site_map' && <SiteMapView />}
       </main>
 
       <CartDrawer />
@@ -79,6 +92,10 @@ const MainContent: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-4 flex-wrap justify-center">
+              <button type="button" onClick={() => useFooterNavigate('site_map')} className="font-bold text-slate-600 hover:text-emerald-700">خريطة الموقع</button>
+              <span>•</span>
+              <button type="button" onClick={() => useFooterNavigate('contact_us')} className="font-bold text-slate-600 hover:text-emerald-700">تواصل معنا</button>
+              <span>•</span>
               <span>حد المنتجات: 150 منتج/خدمة لكل مشترك</span>
               <span>•</span>
               <span>العملة: الجنيه المصري ({adminSettings.currency || 'ج.م'})</span>

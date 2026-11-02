@@ -1725,3 +1725,108 @@ A separate source review found a second platform-root authorization model: the n
 - GitHub Pages deployment run #41269309153 and post-merge frontend validation #41269309136 passed, including deployed-origin browser checks.
 - The exact doctor/pharmacy fallback cover changes and their static assertions have been carried into the national-directory pagination branch; no production Edge or directory data change is included.
 - This does not close the separate national pagination workstream; its browser cursor test and exact-head CI must pass before PR #634 can merge.
+
+
+## 2026-11-02 — Google AI Studio v4 website convergence intake
+
+- **Exact owner request:** Evolve the current website to match the version developed in Google AI Studio and supplied as `bizcatalog-manager (4).zip`; any website capability missing from that version must be surfaced to the owner with its rationale before removal/integration; keep the activities genuine and as they are, with profile data edits deferred.
+- **Archive SHA-256:** `e49e202716c38c5564b8a82db9a74b4fe2c93ebbdecb4a347a7a110b799d6df2`.
+- **Current repository baseline inspected:** `islamnagy2022-eng/MantiqatiX`, `main` at `e408f8137b6e6e62ab50f8629a17af59cf6c38e2` (2026-11-02).
+- **Archive inventory:** React/TypeScript/Vite app with directory, merchant/storefront/cart, medical, member messaging, admin, contact and sitemap screens. Its `INITIAL_BUSINESSES` contains 32 prototype business fixtures; AppContext uses localStorage and the server notification example is in-memory. None of those demo records/persistence paths are authoritative production data sources.
+- **Prior audit:** `docs/CATALOG_SOURCE_CONVERGENCE_AUDIT_20261030.md` documents archive v3. It explicitly excludes seed data and browser-side persistence. v4 needs a new comparison, not an assumption that v3 mapping is sufficient.
+- **Actions performed:** request recorded in Issue #599 comment 6572488271; isolated branch `feat/aistudio-v4-website-convergence-20261102` created from current main; this TODO/session record is being added.
+- **Not performed:** no application source code changed, no Supabase/production data/schema/Auth/RLS/Edge/payment mutation, no PR merge, and no production deployment.
+- **Next:** complete v4-to-current-main screen/feature/data-source parity matrix; identify current website-only capabilities and present them for owner decision; then implement approved slices with exact-head tests.
+- **Status:** IN PROGRESS; no parity implementation claimed.
+
+
+## 2026-11-02 — Google AI Studio v4 parity map and first visual slice
+
+- **Baseline:** `main` commit `e408f8137b6e6e62ab50f8629a17af59cf6c38e2`.
+- **Archive:** `bizcatalog-manager (4).zip`, SHA-256 `e49e202716c38c5564b8a82db9a74b4fe2c93ebbdecb4a347a7a110b799d6df2`.
+- **Comparison:** added `docs/AISTUDIO_V4_WEBSITE_PARITY_20261102.md`, listing archive screens, current website equivalents, reference-only gaps, current website-only capabilities to preserve, and prototype-only items excluded from production.
+- **Website-only additions recorded for preservation:** Google Auth + membership/branch authorization; live Supabase data contracts; server keyset pagination/20-row progressive loading; verified-first directory and canonical activity→specialty routing; activity module registry; Super Admin custom roles/permission matrix/audit; employee and branch controls; public directory listing administration; commission rules; CSV import; Facebook Page media mirroring; category-aware image fallback; fail-closed route guards.
+- **Reference gaps identified for later contract review:** contact/messages/sitemap routes; owner finance/custom-links screen parity; separate medical directory UX; ad request/wallet/marketing/sector/AI Studio modal parity. No prototype-only persistence or simulated balances are being copied.
+- **Source changes on isolated branch:** `BusinessProfileHeader.tsx` now uses a full-width wide cover hero; `MerchantDashboard.tsx` uses the reference dark navy hero and updated matching title. No business logic, data fields, API calls or access rules changed.
+- **Draft PR:** [#650](https://github.com/islamnagy2022-eng/MantiqatiX/pull/650), head `4d580d1926dd12af6e181c8be00628cb723a9f2e`.
+- **CI state at log time:** Primary Catalog Frontend Validation and Pages workflow running; Pages deploy/public-only jobs are skipped on PR events as designed. RBAC PostgreSQL and supporting security/module workflows were still in progress/queued. Do not merge until all required checks pass and independent visual review is complete.
+- **Production impact:** no production data/schema/Auth/RLS/GRANT/Edge/payment/finance mutation, merge, or production deployment.
+- **Next:** complete exact-head checks, inspect the two UI changes in browser at desktop and mobile widths, and continue Wave A for directory/global navigation. Preserve all website-only features and keep production gate status unchanged.
+
+
+## 2026-11-02 — V4 visual refinement and in-flight website additions review
+
+- **Reference screenshot comparison:** inspected the uploaded storefront and merchant dashboard screenshots directly.
+- **Additional UI changes on branch:** storefront cover gradient is now always present and full-bleed; owner dashboard hero adds working actions for storefront preview and the current add-product/service modal. Both buttons reuse existing application functions; no persisted data/API logic changed.
+- **Latest source head:** `824aa33048667c2aa073a3f1e99e4ba9dc2f8b95` on `feat/aistudio-v4-website-convergence-20261102`. Exact-head CI has restarted; do not infer PASS from the superseded earlier head.
+- **Open website-only enhancements assessed:** PR #647 marketplace home/separate search is a candidate additional home experience (checks passed on its earlier head, still unmerged/undeployed); PR #648 taxonomy precedence/mobile eight-column regression is a test guard to keep; PR #646 subscriber portal is a candidate but cannot be merged as-is because its current Navbar changes remove existing merchant/professional/Super Admin dashboard navigation. Preserve all current dashboard links if its account view is later ported.
+- **No changes to main or production:** PR #650 remains Draft; no merge/deploy; no production DB or business data writes.
+- **Next:** complete exact-head validation on 824aa..., continue matching directory and owner dashboard surfaces, and keep the open website-only candidates separated for owner review.
+
+
+## 2026-11-02 — Preserve cover overlay rule pending owner decision
+
+- Latest exact-head CI on `216ec1a89ac3971a04773813fdacac81a07699c2` found one failure in `scripts/validate-business-social-links.mjs`: it requires activity covers to remain bright by default and darken only on hover or keyboard focus.
+- This is a direct conflict between the AI Studio v4 screenshot (permanent dark gradient) and an existing validated website UX behavior. The other current-head results were: employee RBAC PostgreSQL PASS, owner dashboard browser E2E PASS, supporting security/module checks PASS; frontend build + Pages validation failed only at this overlay contract assertion. PR Pages deploy was skipped as designed.
+- **Correction:** reverted only the persistent overlay class to the existing contract. Full-width `1440/390` cover geometry is preserved. No data/route/backend logic changed.
+- **Pending owner decision:** retain current bright-default behavior or let AI Studio v4 supersede it with permanent darkening. Do not override either behavior silently.
+- Latest correction is committed at `b6fc6e5880d884d28a7080bf85c5635f60e2a615`; exact-head CI must rerun.
+
+
+## 2026-11-02 — PR #650 exact-head checks passed
+
+- **Exact source/test head:** `4e4b25fdecd02bf18f8587d014c01ed1f601ec34`.
+- **Result:** 20 non-skipped check runs SUCCESS, 0 failures, 0 pending. Primary Catalog `build`, owner dashboard browser E2E, employee RBAC PostgreSQL, Pages validation, TypeScript/build/security contracts, and all supporting validation workflows passed.
+- **Deployment:** Pages `deploy` and `validate_public_only` were skipped on the PR event by design; no production deployment occurred.
+- **Overlay contract:** a prior attempt at permanent darkening failed the existing cover UX validator; this was corrected by restoring bright default / darkening on hover or keyboard focus. The difference from the AI Studio screenshot remains an owner decision.
+- **Prototype gaps:** AI Studio's financial tab writes manually entered sample sale records and local defaults in localStorage; custom-links uses prototype AppContext/localStorage. Neither has a verified production contract. Do not port these actions or pretend their values are production data. Keep the visual screens blocked until backend/API contracts and independent financial controls are proven.
+- **Current website extras:** preserve CSV import, employee/branch management, server-side pagination, active membership checks, Super Admin roles/audit, current data sources and safe directory controls. Preserve official MantiqatiX branding.
+- **PR:** [#650](https://github.com/islamnagy2022-eng/MantiqatiX/pull/650) remains Draft/open for independent visual review and owner decisions; no merge or deploy.
+
+
+## 2026-11-02 — Safe Contact and Site Map parity screens added
+
+- **New components:** `apps/catalog-frontend/src/components/ContactUsView.tsx` and `SiteMapView.tsx`.
+- **Routes:** added public `?view=contact_us` and `?view=site_map` view modes with direct URL restoration; footer now links to both.
+- **Contact behavior:** form prepares a message and displays a user-clicked WhatsApp link to the configured platform-admin number. It explicitly tells the user the message is not stored in the site. No localStorage, fake inbox insertion or server persistence claim.
+- **Site Map behavior:** lists actual current website screens and exposes owner/admin routes only when current auth session has the right dashboard access. No fake development-progress percentage or unavailable modules are advertised as active.
+- **Member Messages excluded for now:** AI Studio's implementation is local AppContext/localStorage. Porting it without durable server APIs, tenant/recipient privacy, audit and authorization would create a false messaging feature, so it stays out until backend contract verification.
+- **Owner dashboard refinement:** hero now has responsive content/actions, full-width quota progress and a copy-public-store-link action; current dashboard employee/import/branding/profile/QR tabs remain untouched.
+- **Production:** no production DB changes, message data writes, merge or deployment.
+- **Latest head at this log entry:** `c80266c721ad62a49f14e9ab036925b6c730bc5d`; exact-head CI was queued when inspected and must be checked again before claiming validation.
+
+
+## 2026-11-02 — Existing Marketplace Home integrated as an optional V4 screen
+
+- **Source reference:** current-site Marketplace Home work from PR #647 was audited. Its verified-business cards, targeted-ad RPC, current catalogue offer filtering and separate directory-search action were retained.
+- **Integration decision:** created a separate `?view=marketplace_home` route and navigation tab. AI Studio's existing `DirectoryView` remains the default root/home and the single directory search/geolocation-consent flow.
+- **Data integration:** AppContext exposes `directoryProducts` from existing `fetchPublicDirectory()` results and `openPublicBusiness()` through the current public-catalog API contract. No new endpoint or database writes.
+- **Marketplace safeguards:** cards filter to active public verified businesses; product/service discounts appear only when real current/compare prices support a discount; advertisements load only from current `get_mnty_targeted_advertisements` RPC. Empty states remain honest.
+- **Location:** removed Marketplace's duplicate GPS prompt. The existing directory remains responsible for explicit location consent and all geographic filters.
+- **Recommendation wording:** the “smart picks” section describes initial choices based on available verified data, not a personalized AI result.
+- **Rewards:** program is marked in preparation and no fabricated points/balance/coupons are shown.
+- **Regression test:** added Playwright coverage for direct route restoration, navigation back to default Directory, and absence of a second location prompt.
+- **No production data/schema/Auth/RLS/GRANT/Edge/payment mutation, merge, or deployment.**
+- **Latest test head before this documentation checkpoint:** `b3d748138da14dc65639130279f19baf7f9a007e`; exact-head CI was queued and must be checked again.
+
+
+
+## 2026-11-02 — Medical Directory integrated; Member Messages safely deferred
+
+- **Component/route:** added `apps/catalog-frontend/src/components/MedicalDirectoryView.tsx` and public `?view=medical_directory`; added Navbar and Site Map entries.
+- **Data source:** current public directory feed and canonical `medical_health` activity definitions only; no seed businesses or synthetic medical records.
+- **Filters:** text, type, taxonomy specialty, governorate, markaz and village.
+- **Verification:** accurate verified/unverified status and verified-first ordering.
+- **Location:** explicit click only; coordinates stay in component memory and are not persisted or posted to any API.
+- **Pagination:** 20 initially, then 20 per user action.
+- **Actions:** opens the current public storefront through the existing API; WhatsApp is displayed only for a valid published contact number.
+- **Unsafe source behavior excluded:** AI Studio's one-click medical auto-register created a fabricated activity with fallback phone/location, paid subscription and verified status. It was not ported.
+- **Member Messages audit:** the AI Studio view relies on local AppContext state. Current website source search found no active shared messaging table/API contract. Member messaging remains NOT IMPLEMENTED until durable storage, tenant/recipient privacy, authorization, audit and notification behavior exist.
+- **Production:** no medical records created, no schema/RLS/Auth/Edge/payment changes, no merge or deployment.
+
+
+## 2026-11-02 — Browser E2E test selector fix
+- Inspected failed run `41428692611` on PR #650. Build, TypeScript, canonical taxonomy, Google OAuth contract, RBAC PostgreSQL and supporting checks passed; the Playwright browser job failed because `getByLabel('التخصص')` matched both the medical search input and specialty select.
+- Changed only the E2E locator to exact matching: `getByLabel('التخصص', { exact: true })`.
+- Fix commit: `92bf4c9cc5dfe0912ecdb49138b31467f9762efd`.
+- The new exact-head CI result has not yet been confirmed. No production deployment or production data/schema/security changes.

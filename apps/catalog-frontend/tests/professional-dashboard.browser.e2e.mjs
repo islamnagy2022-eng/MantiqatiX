@@ -468,6 +468,60 @@ try {
     } finally { await context.close(); }
   }
 
+  // 0a. Dedicated Medical Directory is a public, read-only view over real published activities.
+  {
+    const { context, page } = await newScenario(browser, null, [], { initialRoute: '?view=medical_directory' });
+    try {
+      await page.getByRole('heading', { name: 'الدليل الطبي لمنطقتك في مكان واحد', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(new URL(page.url()).searchParams.get('view'), 'medical_directory', 'medical directory must retain a direct-link route');
+      const medicalFilters = page.locator('select');
+      assert.equal(await medicalFilters.count(), 5, 'medical directory must expose its five structured filters');
+      for (let index = 0; index < 5; index += 1) {
+        await medicalFilters.nth(index).waitFor({ state: 'visible' });
+      }
+      assert.equal(await page.getByRole('button', { name: 'تسجيل ذكي بالذكاء الاصطناعي' }).count(), 0, 'search must not fabricate or auto-register medical activities');
+      assert.equal(await page.getByRole('dialog').count(), 0, 'medical page must not request GPS until the visitor explicitly clicks');
+      await page.getByRole('button', { name: 'العودة إلى الدليل العام' }).click();
+      await page.waitForFunction(() => !new URL(window.location.href).searchParams.has('view'));
+      await page.goBack();
+      await page.getByRole('heading', { name: 'الدليل الطبي لمنطقتك في مكان واحد', exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+      results.push('medical-directory-public-filters-route-history-no-fabricated-medical-records');
+    } finally { await context.close(); }
+  }
+
+  // 0a. Additional Marketplace Home is a separate route; the V4 directory remains the default public entry.
+  {
+    const { context, page } = await newScenario(browser, null, [], { initialRoute: '?view=marketplace_home' });
+    try {
+      await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(new URL(page.url()).searchParams.get('view'), 'marketplace_home', 'marketplace home must be directly refreshable');
+      assert.equal(await page.getByRole('dialog').count(), 0, 'marketplace home must not request location separately from the directory');
+      await page.getByTestId('home-search-button').click();
+      await page.waitForFunction(() => !new URL(window.location.href).searchParams.has('view'));
+      await page.goBack();
+      await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(new URL(page.url()).searchParams.get('view'), 'marketplace_home', 'browser Back must restore the Marketplace screen');
+      results.push('additional-marketplace-home-route-history-and-directory-owned-location-consent');
+    } finally { await context.close(); }
+  }
+
+  // 0a. Public Contact and Site Map pages restore from direct links and never claim local message persistence.
+  {
+    const { context, page } = await newScenario(browser, null, [], { initialRoute: '?view=site_map' });
+    try {
+      await page.getByRole('heading', { name: 'كل أقسام MantiqatiX في مكان واحد', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(new URL(page.url()).searchParams.get('view'), 'site_map', 'site map must retain a refreshable public route');
+      await page.locator('main').getByRole('button', { name: /تواصل معنا/ }).click();
+      await page.getByRole('heading', { name: 'تواصل مع إدارة MantiqatiX', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(new URL(page.url()).searchParams.get('view'), 'contact_us', 'contact page must retain a refreshable public route');
+      await page.getByText(/لن يتم تخزين الرسالة داخل الموقع/).waitFor({ state: 'visible', timeout: 5000 });
+      assert.equal(await page.getByRole('heading', { name: 'كل أقسام MantiqatiX في مكان واحد', exact: true }).count(), 0);
+      await page.goBack();
+      await page.getByRole('heading', { name: 'كل أقسام MantiqatiX في مكان واحد', exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+      results.push('public-contact-and-site-map-route-history-with-transparent-whatsapp-only-delivery');
+    } finally { await context.close(); }
+  }
+
   // 0b. Public directory uses a 20-row server page and continues with the returned keyset cursor.
   {
     const pageRows = Array.from({ length: 25 }, (_, index) => {
@@ -941,6 +995,54 @@ try {
     } finally { await context.close(); }
   }
 
+
+  // Canonical activity codes override conflicting legacy labels; the activity grid stays eight columns on mobile.
+  {
+    const conflictingLegacyBusiness = {
+      id: '10000000-0000-0000-0000-000000000777',
+      tenantId: 'tenant-taxonomy-e2e',
+      organizationId: 'org-taxonomy-e2e',
+      name: 'صيدلية اختبار التصنيف',
+      category: 'مطاعم — برجر',
+      activityGroupCode: 'medical_health',
+      activityCategoryCode: 'pharmacies',
+      activityClassificationType: 'activity',
+      activitySpecialty: 'صيدلية عامة',
+      status: 'ACTIVE',
+      operationalStatus: 'ACTIVE',
+      publicEnabled: true,
+      isOfficialShowcase: false,
+      provider: { kind: 'OFFICIAL', verified: true, featured: false },
+      profile: { governorate: 'المنوفية', markaz: 'بركة السبع', village: '' },
+      branches: [{ id: 'branch-taxonomy-e2e', tenantId: 'tenant-taxonomy-e2e', name: 'الفرع الرئيسي', status: 'ACTIVE' }],
+      selectedBranchId: 'branch-taxonomy-e2e',
+      catalogPublished: true,
+      bizcatalog: { operationalStatus: 'ACTIVE' },
+    };
+    const { context, page } = await newScenario(browser, null, [conflictingLegacyBusiness]);
+    try {
+      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      const activitySection = page.locator('section[aria-label="المجموعات والأنشطة"]');
+      await activitySection.getByRole('button', { name: /الطب والصحة/ }).first().click();
+      const activityGrid = activitySection.locator('.grid.grid-cols-8').first();
+      const columnCount = await activityGrid.evaluate((element) =>
+        getComputedStyle(element).gridTemplateColumns.split(' ').length
+      );
+      assert.equal(columnCount, 8, 'activity directory must show eight activity cards per row at a 390px phone viewport');
+
+      const pharmacy = activitySection.getByRole('button', { name: /صيدليات/ }).first();
+      await pharmacy.waitFor({ state: 'visible' });
+      assert.match(
+        await pharmacy.getAttribute('aria-label') || '',
+        /إجمالي\s*[١1]/,
+        'canonical pharmacy activity must receive the business even when the legacy category says restaurants'
+      );
+      await pharmacy.click();
+      await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'صيدليات', exact: true }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px canonical activity grid');
+      results.push('canonical-activity-code-precedence-and-eight-column-mobile-grid');
+    } finally { await context.close(); }
+  }
 
   // 11. Direct activity cards open a dedicated, refreshable activity module page.
   {

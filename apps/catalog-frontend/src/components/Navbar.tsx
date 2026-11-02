@@ -16,6 +16,7 @@ import {
   ExternalLink,
   Layers,
   Megaphone,
+  HeartPulse,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -282,6 +283,32 @@ export const Navbar: React.FC = () => {
               >
                 <Layers className="w-3.5 h-3.5" />
                 <span>الرئيسية والدليل الشامل</span>
+              </button>
+
+              <button
+                onClick={() => setCurrentView('medical_directory')}
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                  currentView === 'medical_directory'
+                    ? 'bg-white text-emerald-700 font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                aria-current={currentView === 'medical_directory' ? 'page' : undefined}
+              >
+                <HeartPulse className="w-3.5 h-3.5 text-rose-600" />
+                <span>الدليل الطبي</span>
+              </button>
+
+              {/* Additional Marketplace Home from the current website roadmap; V4 directory remains the default home. */}
+              <button
+                onClick={() => setCurrentView('marketplace_home')}
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                  currentView === 'marketplace_home'
+                    ? 'bg-white text-emerald-700 font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
+                <span>سوق الأنشطة والعروض</span>
               </button>
 
               {/* Public storefront preview is a subscriber/admin navigation item.

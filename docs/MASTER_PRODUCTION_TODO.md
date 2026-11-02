@@ -1,3 +1,59 @@
+## AISTUDIO-V4-WEBSITE-CONVERGENCE-20261102 — Google AI Studio v4 website parity
+
+**Date:** 2026-11-02  
+**Status:** IN PROGRESS — source comparison mapped; first visual parity slice in Draft PR #650; exact-head CI running.  
+**Request ledger:** [Issue #599](https://github.com/islamnagy2022-eng/MantiqatiX/issues/599) (intake comment 6572488271).  
+**Branch:** `feat/aistudio-v4-website-convergence-20261102`.  
+**Reference:** uploaded `bizcatalog-manager (4).zip`, SHA-256 `e49e202716c38c5564b8a82db9a74b4fe2c93ebbdecb4a347a7a110b799d6df2`.
+
+### Owner-approved product rules
+- Treat the uploaded Google AI Studio v4 application as the primary UX and feature reference for the website.
+- Any capability already present on the current website but absent from v4 must be documented and presented to the owner with its value/impact before removal or integration; no silent deletion or merge.
+- Preserve genuine current production activity/business records and the existing secure source of truth. Do not replace them with archive demo seed records. Business details may be edited in a later owner-directed phase.
+- Do not mark any activity verified merely because it appears in the archive or is displayed in the UI.
+- Keep production DB/Auth/RLS/GRANT/Edge/payment/finance state and production deployment untouched until their independent authorization and release gates pass.
+
+### Initial archive inventory (source inspection only)
+- React 19 + TypeScript + Vite 8 / Tailwind 4 prototype with app shell, navigation, directory, storefront, cart, merchant dashboard, admin dashboards, medical directory, member messages, contact, sitemap, and shared context/rules.
+- Archive includes `src/data/seedData.ts` with 32 `INITIAL_BUSINESSES` objects. These are prototype fixtures and are explicitly excluded from production business import; preserve real production activities instead.
+- Archive AppContext initializes data in browser `localStorage`; `server.ts` keeps notifications in process memory. These persistence paths are not production-authoritative and must not be copied over the website's secure Supabase/server contracts.
+- Archive documents include architecture/capacity/security/DR and a load-test report; those are design claims, not production evidence. Do not claim 100M capacity or tested load from those documents alone.
+- Prior archive convergence audit (2026-10-30) covers v3 only. v4 requires a fresh comparison; do not assume the older mapping is complete.
+
+### Required execution sequence
+1. Inventory every v4 screen, navigation route, activity taxonomy, workflow, component and data dependency.
+2. Compare against exact current `main`, deployed website behavior, open PRs and prior convergence audit.
+3. Classify each item as MATCH / MISSING-IN-WEBSITE / WEBSITE-ONLY-ADDITION / CONFLICT / DEMO-ONLY / BACKEND-DEPENDENT.
+4. Present WEBSITE-ONLY-ADDITION and material CONFLICT items to owner for explicit decision.
+5. Port approved UI/behavior additively, adapting to canonical website types, routes, API and backend authorization; retain real live activity data.
+6. Run exact-head TypeScript/build, unit/contracts, RBAC/security, responsive and browser regression checks; open PR for review. No production deploy without separate approval and gates.
+
+### Acceptance criteria
+- Website matches the approved v4 UI/behavior on the agreed screen inventory.
+- Real production activities remain intact and continue to load from authoritative current backend sources.
+- No archive demo businesses, fabricated contact details, fake metrics, or unverified status are imported.
+- Every current-website-only capability has an owner decision before it is removed or merged.
+- All conflicts, backend dependencies, and unverified behaviors are documented.
+- No production data/schema/Auth/RLS/GRANT/Edge/payment mutation or deployment is performed as part of the parity work without separate authorization.
+
+### Current implementation checkpoint
+- [x] Archive v4 screen/component inventory and first source-level comparison documented in `docs/AISTUDIO_V4_WEBSITE_PARITY_20261102.md`.
+- [x] Website-only capabilities to preserve and prototype-only exclusions documented.
+- [x] First visual parity slice committed on the isolated branch: full-width storefront cover (bright by default; permanent overlay deferred for owner decision), dark owner-dashboard hero, working preview/add-item/copy-link actions.
+- [x] Ported public Contact Us route using a WhatsApp-only send handoff; explicitly no in-app persistence claim.
+- [x] Ported role-aware Site Map route and footer navigation; it lists actual screens only and gates private dashboards by real permissions.
+- [x] Added the current website Marketplace Home as an optional route/tab while keeping the V4 directory as the default page; it uses current real public businesses/products and the approved ad RPC; duplicate GPS consent was removed.
+- [ ] Member Messages route remains deferred until a persistent server-side messaging contract is verified.
+- [ ] Exact-head build/E2E checks must pass for the new Marketplace route and the public directory-products/catalog-opening flow.
+- [x] Draft PR #650 opened: https://github.com/islamnagy2022-eng/MantiqatiX/pull/650.
+- [x] Exact-head source head `4e4b25fdecd02bf18f8587d014c01ed1f601ec34`: build, browser E2E, employee RBAC PostgreSQL, Pages validation and supporting checks PASS (20 successful non-skipped checks; 0 failures). Pages deploy was skipped for the PR event.
+- [ ] Independent visual browser review at desktop/mobile widths and owner decisions on the cover overlay and website-only additions; no production deployment is authorized by this PR.
+
+### Next action
+Close the exact-head validation and visual review for PR #650, then continue Wave A on directory and global navigation. Preserve all website-only features; review wallet/finance, custom links, messages/contact/sitemap and AI/marketing UI against authoritative backend contracts before implementing.
+
+---
+
 # MNTY / MantiqatiX — Master Production TODO & Release Execution Register
 
 الهدف: الوصول إلى نسخة إنتاج فعلية مؤمنة وقابلة للإطلاق.
@@ -3178,3 +3234,14 @@ A separate source review found a second platform-root authorization model: the n
 - **Regression checks:** production mapper verifies doctor/pharmacy default cover assignment and owner-cover precedence; directory page verifies separate cover resolution and hero rendering.
 - **Safety:** frontend and validation only; no schema, RLS, Auth, Edge Function, or production data mutation.
 - **Status:** COMPLETE on `main`; carried forward to the national-directory pagination branch. Main PR #635 merged as `4796ef4736748e22f465d4fbdc1fb779ff7d8097`; GitHub Pages deployment and deployed-origin verification passed in runs #41269309153 and #41269309136. The pagination branch still requires its own combined exact-head CI and merge.
+
+- [x] Ported the AI Studio Medical Directory as `?view=medical_directory`, using current public activities, canonical health taxonomy, type/specialty/geography filters and 20-item paging.
+- [ ] Member-to-member Messages remain blocked until durable backend/API/RLS/RBAC/audit/notification contracts are implemented and tested. No local-only inbox will be shipped.
+
+
+## 2026-11-02 — Current-head browser regression repair
+- Latest inspected PR #650 head before this repair: `51f4eac04d99c4bffa787d1a04c2c85c32f22236`; frontend build/type-check and taxonomy/auth/security contract checks passed, but the browser E2E job failed at the Medical Directory filter assertion.
+- Root cause: Playwright `getByLabel('التخصص')` matched both the search input whose label includes “التخصص” and the specialty select. This was an ambiguous test locator, not an application runtime failure.
+- Fixed the test to use the exact accessible label: `getByLabel('التخصص', { exact: true })`.
+- Fix commit: `92bf4c9cc5dfe0912ecdb49138b31467f9762efd` on the same isolated PR branch.
+- Pending: wait for and inspect exact-head CI on the fix commit; rerun the full browser suite if needed. PR #650 remains Draft/unmerged/undeployed. No production data/schema/Auth/RLS/GRANT/Edge/payment mutation.
