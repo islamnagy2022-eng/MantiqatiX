@@ -29,7 +29,7 @@ import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPlat
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../utils/dashboardAccess';
 
-export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'login' | 'directory';
+export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'contact_us' | 'site_map' | 'login' | 'directory';
 
 interface AppContextType {
   currentView: ViewMode;
@@ -126,7 +126,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const params = new URLSearchParams(window.location.search);
     if (params.has('store') || params.has('businessId')) return 'public_storefront';
     const requestedView = params.get('view');
-    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'directory'
+    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'contact_us' || requestedView === 'site_map' || requestedView === 'directory'
       ? requestedView
       : 'directory';
   });
@@ -284,13 +284,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const safeRequestedView: ViewMode = requestedView === 'directory'
       ? 'directory'
-      : requestedView === 'super_admin' && boot.authSession.role === 'admin'
-        ? 'super_admin'
-        : requestedView === 'merchant_admin' && canAccessMerchantDashboard(boot.authSession)
-          ? 'merchant_admin'
-          : requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(boot.authSession)
-            ? 'professional_dashboard'
-            : 'directory';
+      : requestedView === 'contact_us'
+        ? 'contact_us'
+        : requestedView === 'site_map'
+          ? 'site_map'
+          : requestedView === 'super_admin' && boot.authSession.role === 'admin'
+            ? 'super_admin'
+            : requestedView === 'merchant_admin' && canAccessMerchantDashboard(boot.authSession)
+              ? 'merchant_admin'
+              : requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(boot.authSession)
+                ? 'professional_dashboard'
+                : 'directory';
 
     const requestedManagedId = params.get('manage') || '';
     const requestedManagedBusiness = boot.businesses.find((business) => business.id === requestedManagedId);
