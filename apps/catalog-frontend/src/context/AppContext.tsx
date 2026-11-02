@@ -448,7 +448,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ? Boolean(requestedManagedBusiness)
         : Boolean(authSession.businessId && authSession.businessId === requestedManagedId);
       const restoredView: ViewMode =
-        requestedView === 'marketplace_home' || requestedView === 'contact_us' || requestedView === 'site_map' || requestedView === 'directory'
+        requestedView === 'medical_directory' || requestedView === 'marketplace_home' || requestedView === 'contact_us' || requestedView === 'site_map' || requestedView === 'directory'
           ? requestedView
           : requestedView === 'super_admin' && authSession.role === 'admin'
             ? 'super_admin'
