@@ -152,3 +152,18 @@ None of these open PRs is part of current `main` or the deployed website at this
 - Latest source head is `824aa33048667c2aa073a3f1e99e4ba9dc2f8b95`. Exact-head CI has restarted after the UI changes; build, RBAC PostgreSQL, browser E2E and supporting workflows are pending/in progress. Earlier source head `5e85ac34626401e0becf03fa0055cba86a2b056e` had Build PASS, employee RBAC PostgreSQL PASS and Pages validation PASS; browser E2E was still running when superseded.
 - No production DB/Auth/RLS/GRANT/Edge/payment/finance changes and no production deployment occurred.
 - Next: finish exact-head checks; visually inspect desktop/mobile behavior; then continue Wave A across the directory and top navigation before owner-dashboard functional additions.
+
+
+## Medical Directory parity checkpoint — implemented on convergence branch
+
+- The AI Studio archive includes a dedicated `MedicalDirectoryView.tsx`. It is now ported as public route `?view=medical_directory`, with Navbar and Site Map entries.
+- The screen reads only the existing `directoryBusinesses` public feed and current canonical `medical_health` taxonomy. It does not introduce a second medical data store.
+- Filters: medical activity type, taxonomy specialty, governorate, markaz and village. Results are verified-first and show the actual verified/unverified state.
+- Pagination starts at 20 and appends 20 on explicit request. Optional distance sorting starts only after a visitor clicks for GPS; coordinates remain in component memory and are not persisted or sent to the server.
+- Opening a medical activity uses the existing public catalog API. WhatsApp appears only for a published valid phone.
+- The archive's automatic medical registration code was excluded because it creates a fabricated record with assumed phone, location, paid status and verification status.
+
+## Member Messages — NOT IMPLEMENTED / BACKEND BLOCKER
+
+- The AI Studio `MemberMessagesView` depends on local AppContext state. Current website source contains no verified `member_direct_messages`, `sendMemberDirectMessage`, `replyToMemberDirectMessage` or `openMemberMessagingForTarget` contract.
+- It must not be ported as a fake shared inbox. A real feature requires durable server APIs/tables, recipient and tenant privacy, membership-scoped authorization, audit trail, notification delivery and end-to-end verification.
