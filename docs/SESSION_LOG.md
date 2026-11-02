@@ -1771,3 +1771,14 @@ A separate source review found a second platform-root authorization model: the n
 - **Correction:** reverted only the persistent overlay class to the existing contract. Full-width `1440/390` cover geometry is preserved. No data/route/backend logic changed.
 - **Pending owner decision:** retain current bright-default behavior or let AI Studio v4 supersede it with permanent darkening. Do not override either behavior silently.
 - Latest correction is committed at `b6fc6e5880d884d28a7080bf85c5635f60e2a615`; exact-head CI must rerun.
+
+
+## 2026-11-02 — PR #650 exact-head checks passed
+
+- **Exact source/test head:** `4e4b25fdecd02bf18f8587d014c01ed1f601ec34`.
+- **Result:** 20 non-skipped check runs SUCCESS, 0 failures, 0 pending. Primary Catalog `build`, owner dashboard browser E2E, employee RBAC PostgreSQL, Pages validation, TypeScript/build/security contracts, and all supporting validation workflows passed.
+- **Deployment:** Pages `deploy` and `validate_public_only` were skipped on the PR event by design; no production deployment occurred.
+- **Overlay contract:** a prior attempt at permanent darkening failed the existing cover UX validator; this was corrected by restoring bright default / darkening on hover or keyboard focus. The difference from the AI Studio screenshot remains an owner decision.
+- **Prototype gaps:** AI Studio's financial tab writes manually entered sample sale records and local defaults in localStorage; custom-links uses prototype AppContext/localStorage. Neither has a verified production contract. Do not port these actions or pretend their values are production data. Keep the visual screens blocked until backend/API contracts and independent financial controls are proven.
+- **Current website extras:** preserve CSV import, employee/branch management, server-side pagination, active membership checks, Super Admin roles/audit, current data sources and safe directory controls. Preserve official MantiqatiX branding.
+- **PR:** [#650](https://github.com/islamnagy2022-eng/MantiqatiX/pull/650) remains Draft/open for independent visual review and owner decisions; no merge or deploy.
