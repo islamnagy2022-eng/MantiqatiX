@@ -1,7 +1,7 @@
 ## AISTUDIO-V4-WEBSITE-CONVERGENCE-20261102 — Google AI Studio v4 website parity
 
 **Date:** 2026-11-02  
-**Status:** IN PROGRESS — source archive inventoried; current-main comparison and implementation map pending.  
+**Status:** IN PROGRESS — source comparison mapped; first visual parity slice in Draft PR #650; exact-head CI running.  
 **Request ledger:** [Issue #599](https://github.com/islamnagy2022-eng/MantiqatiX/issues/599) (intake comment 6572488271).  
 **Branch:** `feat/aistudio-v4-website-convergence-20261102`.  
 **Reference:** uploaded `bizcatalog-manager (4).zip`, SHA-256 `e49e202716c38c5564b8a82db9a74b4fe2c93ebbdecb4a347a7a110b799d6df2`.
@@ -36,8 +36,16 @@
 - All conflicts, backend dependencies, and unverified behaviors are documented.
 - No production data/schema/Auth/RLS/GRANT/Edge/payment mutation or deployment is performed as part of the parity work without separate authorization.
 
+### Current implementation checkpoint
+- [x] Archive v4 screen/component inventory and first source-level comparison documented in `docs/AISTUDIO_V4_WEBSITE_PARITY_20261102.md`.
+- [x] Website-only capabilities to preserve and prototype-only exclusions documented.
+- [x] First visual parity slice committed on the isolated branch: full-width storefront cover/profile hero and dark owner-dashboard hero.
+- [x] Draft PR #650 opened: https://github.com/islamnagy2022-eng/MantiqatiX/pull/650.
+- [ ] Exact-head build, browser E2E, RBAC and supporting CI checks complete successfully.
+- [ ] Visual browser review at desktop/mobile widths; no production deployment is authorized by this PR.
+
 ### Next action
-Complete screen/component and behavior comparison of archive v4 against current main and deployed website; deliver a parity matrix and the list of website-only features requiring owner approval before implementing the first approved slice.
+Close the exact-head validation and visual review for PR #650, then continue Wave A on directory and global navigation. Preserve all website-only features; review wallet/finance, custom links, messages/contact/sitemap and AI/marketing UI against authoritative backend contracts before implementing.
 
 ---
 
