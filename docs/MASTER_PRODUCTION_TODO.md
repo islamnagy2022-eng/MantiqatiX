@@ -39,7 +39,7 @@
 ### Current implementation checkpoint
 - [x] Archive v4 screen/component inventory and first source-level comparison documented in `docs/AISTUDIO_V4_WEBSITE_PARITY_20261102.md`.
 - [x] Website-only capabilities to preserve and prototype-only exclusions documented.
-- [x] First visual parity slice committed on the isolated branch: full-width storefront cover with fixed dark overlay, dark owner-dashboard hero, and working preview/add-item actions.
+- [x] First visual parity slice committed on the isolated branch: full-width storefront cover (bright by default; permanent overlay deferred for owner decision), dark owner-dashboard hero, and working preview/add-item actions.
 - [x] Draft PR #650 opened: https://github.com/islamnagy2022-eng/MantiqatiX/pull/650.
 - [ ] Exact-head build, browser E2E, RBAC and supporting CI checks complete successfully.
 - [ ] Visual browser review at desktop/mobile widths; no production deployment is authorized by this PR.
