@@ -57,6 +57,7 @@ console.log('Catalog Google OAuth hydration, identity-vs-membership, and role-ga
 
 assert.match(context, /const defaultView: ViewMode = 'directory'/, 'Every freshly authenticated account must land on the public home directory by default');
 assert.ok(
+  context.includes("requestedView === 'medical_directory'") &&
   context.includes("requestedView === 'marketplace_home'") &&
   context.includes("requestedView === 'contact_us'") &&
   context.includes("requestedView === 'site_map'"),
@@ -71,10 +72,11 @@ assert.ok(
 );
 assert.ok(context.includes("setCurrentView('directory');"), 'Email login and session-backed registration must return to the home directory');
 assert.ok(
+  context.includes("requestedView === 'medical_directory'") &&
   context.includes("requestedView === 'marketplace_home'") &&
   context.includes("requestedView === 'contact_us'") &&
   context.includes("requestedView === 'site_map'"),
-  'Browser history must restore all public V4 information and marketplace routes.'
+  'Browser history must restore the medical directory and all public V4 information and marketplace routes.'
 );
 assert.ok(
   context.includes("requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(authSession)") &&
