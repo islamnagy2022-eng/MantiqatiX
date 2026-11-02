@@ -55,7 +55,7 @@ assert.ok(modal.includes("handleGoogle('login')") && modal.includes("handleGoogl
 
 console.log('Catalog Google OAuth hydration, identity-vs-membership, and role-gated UI contract: PASS');
 
-assert.match(context, /const defaultView: ViewMode = 'directory'/, 'Every freshly authenticated account must land on the public home directory by default');
+assert.match(context, /const defaultView: ViewMode = 'marketplace_home'/, 'Every freshly authenticated account must land on the canonical marketplace home by default');
 assert.ok(
   context.includes("requestedView === 'medical_directory'") &&
   context.includes("requestedView === 'marketplace_home'") &&
@@ -67,10 +67,16 @@ assert.ok(
   context.includes("requestedView === 'super_admin' && boot.authSession.role === 'admin'") &&
   context.includes("requestedView === 'merchant_admin' && canAccessMerchantDashboard(boot.authSession)") &&
   context.includes("requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(boot.authSession)") &&
-  context.includes("                : 'directory';"),
-  'Role bootstrap must preserve only explicitly authorized dashboard routes and otherwise fall back to the public home directory.'
+  context.includes("                : 'directory';") &&
+  context.includes("const isDirectoryDeepLink = params.has('activity') || params.has('listing') || params.has('group')") &&
+  context.includes("!requestedView && !isDirectoryDeepLink"),
+  'Role bootstrap must preserve only explicitly authorized dashboard routes and directory deep links, otherwise falling back to the public directory.'
 );
-assert.ok(context.includes("setCurrentView('directory');"), 'Email login and session-backed registration must return to the home directory');
+assert.ok(context.includes("setCurrentView('directory');"), 'Email login and registration may open the dedicated directory search.');
+assert.ok(context.includes("if (view !== 'marketplace_home' && view !== 'login') url.searchParams.set('view', view);"), 'The canonical marketplace home must keep the root URL while other public routes remain addressable.');
+assert.ok(context.includes("url.searchParams.delete('activity')") && context.includes("url.searchParams.delete('listing')") && context.includes("url.searchParams.delete('group')"), 'Returning home must clear stale directory deep-link parameters.');
+assert.ok(app.includes("visibleView === 'marketplace_home' && <MarketplaceHome />"), 'The marketplace component must remain mounted as a public route.');
+assert.ok(navbar.includes("setCurrentView('marketplace_home')") && navbar.includes("setCurrentView('directory')"), 'Homepage and directory search must be separate navigation destinations.');
 assert.ok(
   context.includes("requestedView === 'medical_directory'") &&
   context.includes("requestedView === 'marketplace_home'") &&

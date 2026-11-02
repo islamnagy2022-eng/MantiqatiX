@@ -272,17 +272,18 @@ export const Navbar: React.FC = () => {
           {/* Bottom Line: Accessible View Mode Tabs */}
           <div className="flex items-center justify-start overflow-x-auto pb-0.5 no-scrollbar">
             <nav className="flex min-w-max items-center p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium w-full sm:w-auto">
-              {/* Directory Home Tab */}
+              {/* Canonical marketplace homepage. */}
               <button
-                onClick={() => setCurrentView('directory')}
+                onClick={() => setCurrentView('marketplace_home')}
+                aria-current={currentView === 'marketplace_home' ? 'page' : undefined}
                 className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
-                  currentView === 'directory'
+                  currentView === 'marketplace_home'
                     ? 'bg-white text-emerald-700 font-bold shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Layers className="w-3.5 h-3.5" />
-                <span>الرئيسية والدليل الشامل</span>
+                <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
+                <span>الرئيسية</span>
               </button>
 
               <button
@@ -298,17 +299,18 @@ export const Navbar: React.FC = () => {
                 <span>الدليل الطبي</span>
               </button>
 
-              {/* Additional Marketplace Home from the current website roadmap; V4 directory remains the default home. */}
+              {/* Dedicated activity and service search remains separate from the homepage. */}
               <button
-                onClick={() => setCurrentView('marketplace_home')}
+                onClick={() => setCurrentView('directory')}
+                aria-current={currentView === 'directory' ? 'page' : undefined}
                 className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
-                  currentView === 'marketplace_home'
+                  currentView === 'directory'
                     ? 'bg-white text-emerald-700 font-bold shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
-                <span>سوق الأنشطة والعروض</span>
+                <Layers className="w-3.5 h-3.5" />
+                <span>بحث الأنشطة والخدمات</span>
               </button>
 
               {/* Public storefront preview is a subscriber/admin navigation item.
