@@ -1762,3 +1762,12 @@ A separate source review found a second platform-root authorization model: the n
 - **Open website-only enhancements assessed:** PR #647 marketplace home/separate search is a candidate additional home experience (checks passed on its earlier head, still unmerged/undeployed); PR #648 taxonomy precedence/mobile eight-column regression is a test guard to keep; PR #646 subscriber portal is a candidate but cannot be merged as-is because its current Navbar changes remove existing merchant/professional/Super Admin dashboard navigation. Preserve all current dashboard links if its account view is later ported.
 - **No changes to main or production:** PR #650 remains Draft; no merge/deploy; no production DB or business data writes.
 - **Next:** complete exact-head validation on 824aa..., continue matching directory and owner dashboard surfaces, and keep the open website-only candidates separated for owner review.
+
+
+## 2026-11-02 — Preserve cover overlay rule pending owner decision
+
+- Latest exact-head CI on `216ec1a89ac3971a04773813fdacac81a07699c2` found one failure in `scripts/validate-business-social-links.mjs`: it requires activity covers to remain bright by default and darken only on hover or keyboard focus.
+- This is a direct conflict between the AI Studio v4 screenshot (permanent dark gradient) and an existing validated website UX behavior. The other current-head results were: employee RBAC PostgreSQL PASS, owner dashboard browser E2E PASS, supporting security/module checks PASS; frontend build + Pages validation failed only at this overlay contract assertion. PR Pages deploy was skipped as designed.
+- **Correction:** reverted only the persistent overlay class to the existing contract. Full-width `1440/390` cover geometry is preserved. No data/route/backend logic changed.
+- **Pending owner decision:** retain current bright-default behavior or let AI Studio v4 supersede it with permanent darkening. Do not override either behavior silently.
+- Latest correction is committed at `b6fc6e5880d884d28a7080bf85c5635f60e2a615`; exact-head CI must rerun.
