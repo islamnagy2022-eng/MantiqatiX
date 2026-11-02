@@ -3,9 +3,9 @@
 **Date:** 2026-11-02  
 **Reference archive:** `bizcatalog-manager (4).zip`  
 **Archive SHA-256:** `e49e202716c38c5564b8a82db9a74b4fe2c93ebbdecb4a347a7a110b799d6df2`  
-**Website baseline:** `main` at `e408f8137b6e6e62ab50f8629a17af59cf6c38e2`  
-**Working branch:** `feat/aistudio-v4-website-convergence-20261102`  
-**Status:** Initial source comparison complete; first visual parity slice is in Draft PR #650; exact-head CI and browser checks are running. No production deployment or data mutation.
+**Website baseline:** `main` at `f3cc30c509f937fc6958bca43bb61936f9853cdf` (PR #650 catalog convergence merged; PR #651 evidence-only update merged).  
+**Working branch:** `feat/aistudio-v4-website-convergence-20261102` (historical implementation branch; PR #650 merged).  
+**Status:** The first scoped V4 visual/convergence release is merged and deployed. Directory remains the default entry. Remaining visual parity and backend-dependent workflows are tracked below; this is not full-platform certification.
 
 ## Owner's governing decisions
 
@@ -24,7 +24,7 @@
 | Global shell / `Navbar.tsx` | Dark micro-header, brand/navigation row, activity context, login, cart, install actions | `Navbar.tsx` already has a dark announcement/session strip, role-aware Google session state, directory/store links, dashboard entries, install and cart | Re-style toward v4 while retaining role/membership guards and current navigation. |
 | Directory / `DirectoryView.tsx` | Business/activity discovery, search, categories, business hero and product preview | Unified Egypt directory, activity → specialty navigation, verified-first ranking, geo consent/manual filters, published unclaimed listings, server keyset pagination and 20-item progressive loading | Keep this as the default V4 homepage/search experience; Marketplace is an additional opt-in screen. |
 | Marketplace Home / `MarketplaceHome.tsx` | — | Main directory remains default root | Additional opt-in discovery page with verified business cards, active approved ads and actual recorded product/service discounts; opens the existing directory search and secure public catalog route. |
-| Medical directory / `MedicalDirectoryView.tsx` | Dedicated doctors, pharmacies, labs and clinics search | Healthcare is already represented in the unified activity directory and specialty navigation; no separate medical route is mounted in current `App.tsx` | Reconcile the medical page's useful filters and presentation into the unified healthcare activity route; avoid a parallel medical data source. |
+| Medical directory / `MedicalDirectoryView.tsx` | Dedicated doctors, pharmacies, labs and clinics search | Separate public route `?view=medical_directory` is mounted in `App.tsx`; it reads the existing `directoryBusinesses` feed and canonical medical taxonomy, with type/specialty/geography filters and 20-item progressive batches | Route is implemented on `main`; preserve the unified production data source, verified-first state and current public catalog opening rules. |
 | Business storefront / `BusinessProfileHeader.tsx` + `CatalogSection.tsx` | Wide cover, prominent logo, trust badges, contact/location, product/service catalog filters | Current dedicated direct-link storefront with verified/operational visibility guards, owner cover/logo, contact and social links, QR/share, product/service filters and cart | Match the reference's full-width hero/profile composition; keep current direct-link privacy and operational-state rules. |
 | Cart / `CartDrawer.tsx` | Quantity controls and merchant-directed checkout | Current website has a cart and guarded catalog/order flow | Match visual details only; preserve current order/checkout contract. |
 | Owner dashboard / `MerchantDashboard.tsx` | Product catalogue, cover/logo, activity profile/location, sector engine, finance, QR and custom links | Current tabs: products, CSV import, branding, profile/location, activity profile, permanent QR and employees | Bring v4 layout and add real-source finance/custom-link sections after contract check. Preserve website-only CSV import and employee manager. |
@@ -33,7 +33,7 @@
 | Super Admin / `SuperAdminControlCenter` concept | People, roles, permissions, subscriptions and global controls | Website has `SuperAdminControlCenter.tsx` with custom roles, role assignments, module/action permission matrix, employees, audit and server RPC calls | Preserve and place within the v4 admin visual hierarchy; do not replace with the older local state implementation. |
 | Login / profile | Google login modal and user profile modal | Current Google Auth/session bootstrap, login modal, active-membership resolver and role guards | Preserve real Google Auth and active membership checks. Profile/portal gaps are tracked separately. |
 | Subscription request / ad request | Business subscription and ad-request forms | Existing website subscription/registration flow; no current parity confirmation for all v4 ad-request UI | Inspect form contracts and add only through existing server-side request paths. |
-| Contact / messages / sitemap | `ContactUsView`, `MemberMessagesView`, `SiteMapView` | These dedicated routes/components are not mounted in current `App.tsx` | Candidate reference-only pages to restore using authenticated/persisted contracts; must not use local-only message storage. |
+| Contact / messages / sitemap | `ContactUsView`, `MemberMessagesView`, `SiteMapView` | Contact and Site Map routes are mounted in `App.tsx`; Member Messages is not mounted | Contact and Site Map are implemented safely. Keep Member Messages deferred until durable server persistence, recipient/tenant authorization, audit and notification delivery are verified. |
 | Marketing / sector development | Smart marketing modal, marketing-services modal, sector-development modal and activity promotion UI | Current ActivityModule view provides activity-specific marketing plans and capabilities, explicitly planned where backend execution is not verified | Preserve planning and safe marketing boundaries; no campaign publish, spend, wallet or promotion action without verified API/RPC. |
 | Wallet / finance | Wallet modal, ledger and transaction screens | Current website has finance/admin reporting foundations, but no parity proof for a member wallet UX matching v4 | Reconcile against verified finance contracts first; do not port the prototype wallet state or create parallel ledger. |
 | QR / install | QR modal and app-install actions | Permanent storefront QR and install controls exist | Match visual treatment while preserving stable public URL and current QR behavior. |
@@ -87,7 +87,7 @@ These are present on current website `main` but are not equivalent capabilities 
 ### Reference features not found as equivalent in current main
 - Dedicated public contact page, member-to-member messages page and sitemap route (contact and sitemap have now been ported safely; messages remains deferred pending durable backend contracts).
 - Explicit owner-dashboard tabs for **finance** and **custom links** (the website has adjacent reporting/profile features but not proven screen/contract parity).
-- Reference-specific medical directory screen (its domain is present in the unified directory; its separate page is not mounted).
+- Medical directory is now a mounted separate presentation route backed by the same production directory feed; remaining work is visual parity and any owner-approved filter refinements, not a second medical database.
 - Reference-specific ad request, wallet, marketing-service, sector-development and AI Studio modal UX (must be reconciled with current secure server contracts, not copied wholesale).
 - Reference dashboard's exact visual shell: wide full-bleed cover/profile treatment, dark owner-dashboard hero, tab geometry, typography and spacing.
 
@@ -115,17 +115,17 @@ These are present on current website `main` but are not equivalent capabilities 
 These workstreams are not represented in the AI Studio v4 source archive. They are owner-review candidates to fold into the v4 target while retaining current v4 behavior:
 
 - **PR #647 — Premium Marketplace Home + separate search**: its safe presentation/data flow is ported as optional route `?view=marketplace_home` and a navigation tab. The V4 `DirectoryView` remains the default root and full search screen. Marketplace reads the published public directory and its real catalog product rows, shows only active public verified businesses and recorded discounts, and retrieves only approved targeted ads through the current read RPC. The duplicate location-consent overlay was removed; GPS permission is still requested only by the existing DirectoryView search flow. No fake offers or balances are added. The original PR remains an open historical candidate and is not being merged as-is.
-- **PR #648 — Canonical taxonomy + mobile 8-column regression**: adds a test proving canonical activity codes override conflicting legacy category labels and that activity cards remain eight columns at the mobile viewport. This is a quality/safety guard, not a new user-facing module. Keep the regression coverage in the V4 branch/target.
+- **PR #648 — Canonical taxonomy + mobile 8-column regression**: closed as superseded after verifying that the canonical pharmacy-precedence and eight-column mobile regression is already present on current `main` in a newer adapted browser scenario, while the taxonomy validator is byte-identical to `main`. No test coverage was removed and no duplicate merge is needed.
 - **PR #646 — Subscriber account portal**: adds an authenticated account/subscribe overview. It is still Draft and must not be merged as-is: its current Navbar diff removes existing merchant dashboard, professional dashboard and Super Admin navigation actions. Only the account portal itself is a candidate; if brought into V4, it must retain every existing dashboard entry and keep cross-membership switching disabled until server/backend parity is verified.
 
-None of these open PRs is part of current `main` or the deployed website at this checkpoint. They are tracked as pending work, not reported as shipped. No PR is merged by this parity task.
+PR #650 and PR #651 are merged into current `main`; PR #648 is closed as superseded. PRs #647, #646, #645, #644 and #609 remain open and are not part of the deployed website at this checkpoint. They remain pending candidates, not shipped functionality.
 
 ## Visual implementation checkpoint
 
 - Storefront cover is full-width with desktop reference ratio `1440/390`. Its permanent dark gradient is currently deferred because current website's validated UX contract requires the image to remain bright by default and darken only on hover/keyboard focus. This conflict is surfaced for owner decision.
 - Merchant dashboard hero uses the reference navy gradient and carries the matching owner-dashboard title, plus working actions for previewing the current business storefront and opening the existing add-item modal.
 - The buttons call existing application functions; no new database or persistence logic was introduced.
-- Exact-head build/RBAC/Pages validation is still required for the latest branch head.
+- PR #650's scoped exact-head build, employee RBAC PostgreSQL, browser E2E and Pages validation passed; its Pages deployment and main validation runs succeeded. Those results apply to the merged release scope only, not to later unreleased PRs or full-platform readiness.
 
 
 ## Owner decision required — storefront cover overlay conflict
@@ -135,29 +135,30 @@ None of these open PRs is part of current `main` or the deployed website at this
 - To avoid silently removing an established website behavior, the permanent overlay was reverted on the parity branch. Full-width/wide cover sizing remains.
 - **Pending owner choice:** keep current bright default with hover/focus darkening, or supersede it with the always-darkened cover from AI Studio v4. No further change to this behavior until the decision is recorded.
 
-## Exact-head validation result — PR #650 head `4e4b25fdecd02bf18f8587d014c01ed1f601ec34`
+## Exact-head validation and scoped release result — PR #650
 
-- [x] 20/20 non-skipped check runs passed, zero failures: primary catalog build, owner dashboard Playwright E2E, employee RBAC PostgreSQL, Pages source validation, TypeScript/build/security contract, and supporting finance/privacy/atomicity checks.
-- [x] The initial overlay assertion failure was resolved by restoring the current bright-by-default/hover-focus darkening contract; it is now a documented owner decision conflict rather than a silent behavior change.
-- [x] Both Pages deployment-related jobs were skipped for the PR event by design. No website production deployment occurred.
-- [ ] Independent review, owner decision on the cover overlay and the website-only candidate features, then approved merge/deployment remain open.
-- [ ] The new documentation checkpoint after this result will trigger fresh CI; do not transfer the above PASS to any later head until rechecked.
+- [x] PR #650 was merged to `main` at `25d486c592d6ed9b057f8ef179fbbeae1fc79ba5`.
+- [x] The scoped Pages deployment run `41433049776` and main validation run `41433049782` succeeded for the catalog convergence scope.
+- [x] The validated scope included build, employee RBAC PostgreSQL, browser E2E, deployed-origin checks and the scoped catalog journeys recorded in the release evidence.
+- [x] PR #651 later merged the read-only Production evidence refresh as `f3cc30c509f937fc6958bca43bb61936f9853cdf`; it made no Production mutation.
+- [ ] The storefront dark-overlay choice remains an owner decision: preserve bright-by-default/hover-focus darkening or explicitly adopt the persistent overlay. Do not silently change it.
+- [ ] Remaining V4 parity requires its own exact-head tests and scoped release; PR #650's PASS is not inherited by new changes.
 
 ## Current execution checkpoint
 
 - Archive integrity and file inventory were inspected.
 - Current main and open pull requests were inspected.
 - This mapping is an initial source-level comparison; every individual action still requires line-level contract review.
-- Implemented on the isolated branch and opened Draft PR [#650](https://github.com/islamnagy2022-eng/MantiqatiX/pull/650): full-width storefront cover, persistent dark image overlay, dark owner-dashboard hero, and owner preview/add-item actions. The actions reuse existing storefront routing and add-item modal; no database logic changed.
-- Latest source head is `824aa33048667c2aa073a3f1e99e4ba9dc2f8b95`. Exact-head CI has restarted after the UI changes; build, RBAC PostgreSQL, browser E2E and supporting workflows are pending/in progress. Earlier source head `5e85ac34626401e0becf03fa0055cba86a2b056e` had Build PASS, employee RBAC PostgreSQL PASS and Pages validation PASS; browser E2E was still running when superseded.
-- No production DB/Auth/RLS/GRANT/Edge/payment/finance changes and no production deployment occurred.
+- Implemented on the convergence branch and merged through PR [#650](https://github.com/islamnagy2022-eng/MantiqatiX/pull/650): full-width storefront cover, current approved bright-by-default overlay behavior, dark owner-dashboard hero, and owner preview/add-item actions. Actions reuse existing application routes and the existing add-item modal; no database logic was changed.
+- The final PR #650 source head was validated before merge; subsequent scoped Pages deployment and main validation completed successfully. Earlier intermediate branch-head runs below are retained as historical evidence only.
+- No production DB/Auth/RLS/GRANT/Edge/payment/finance changes were made by the visual parity slice. PR #650's website deployment was scoped to the merged catalog frontend.
 - Next: finish exact-head checks; visually inspect desktop/mobile behavior; then continue Wave A across the directory and top navigation before owner-dashboard functional additions.
 
 
 ## Medical Directory parity checkpoint — implemented on convergence branch
 
 - The AI Studio archive includes a dedicated `MedicalDirectoryView.tsx`. It is now ported as public route `?view=medical_directory`, with Navbar and Site Map entries.
-- The screen reads only the existing `directoryBusinesses` public feed and current canonical `medical_health` taxonomy. It does not introduce a second medical data store.
+- The screen is mounted on current `main` and reads only the existing `directoryBusinesses` public feed and current canonical `medical_health` taxonomy. It does not introduce a second medical data store.
 - Filters: medical activity type, taxonomy specialty, governorate, markaz and village. Results are verified-first and show the actual verified/unverified state.
 - Pagination starts at 20 and appends 20 on explicit request. Optional distance sorting starts only after a visitor clicks for GPS; coordinates remain in component memory and are not persisted or sent to the server.
 - Opening a medical activity uses the existing public catalog API. WhatsApp appears only for a published valid phone.
