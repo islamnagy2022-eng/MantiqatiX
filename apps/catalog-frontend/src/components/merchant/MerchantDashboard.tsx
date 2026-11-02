@@ -575,13 +575,13 @@ export const MerchantDashboard: React.FC = () => {
       )}
 
       {/* Header with Title and Quick Quota indicator */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="rounded-3xl border border-slate-800 bg-gradient-to-l from-slate-950 via-slate-900 to-slate-800 p-6 text-white shadow-xl sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+            <span className="text-xs font-bold text-emerald-200 bg-emerald-500/15 px-3 py-1 rounded-full border border-emerald-400/30">
               لوحة تحكم صاحب النشاط
             </span>
-            <span className="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
+            <span className="text-xs font-bold text-slate-200 bg-white/10 px-3 py-1 rounded-full">
               النشاط: {currentBusiness.name}
             </span>
             {currentGroupInfo && (
@@ -590,24 +590,24 @@ export const MerchantDashboard: React.FC = () => {
               </span>
             )}
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            إدارة منتجات وكتالوج نشاطك
+          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            إدارة الكتالوج وتخصيص هوية النشاط
           </h2>
-          <p className="text-slate-500 text-xs sm:text-sm mt-1">
+          <p className="text-slate-300 text-xs sm:text-sm mt-1">
             جميع الأسعار بالجنيه المصري (ج.م) • سعة الكتالوج حتى 150 منتج/خدمة • متصل بواتسابك مباشرة
           </p>
         </div>
 
         {/* 150 Quota Widget */}
-        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:min-w-[280px]">
-          <div className="flex items-center justify-between text-xs font-black text-slate-700 mb-2">
+        <div className="bg-white/5 border border-white/15 rounded-2xl p-4 shadow-inner sm:min-w-[280px]">
+          <div className="flex items-center justify-between text-xs font-black text-slate-100 mb-2">
             <span>حد المنتجات المستهلك:</span>
-            <span className="text-emerald-700">
+            <span className="text-emerald-300">
               {productsCount} من {maxLimit}
             </span>
           </div>
 
-          <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+          <div className="w-full bg-white/15 h-2.5 rounded-full overflow-hidden">
             <div
               className={`h-full transition-all duration-500 rounded-full ${
                 quotaPercent >= 90
@@ -620,7 +620,7 @@ export const MerchantDashboard: React.FC = () => {
             />
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-slate-600 mt-2 font-medium">
+          <div className="flex items-center justify-between text-[11px] text-slate-300 mt-2 font-medium">
             <span>المتبقي للإضافة: {remainingQuota} صنف</span>
             <span>{quotaPercent}% مستخدم</span>
           </div>
