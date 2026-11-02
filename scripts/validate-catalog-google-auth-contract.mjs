@@ -85,3 +85,11 @@ assert.ok(
   context.includes("requestedView === 'super_admin' && authSession.role === 'admin'"),
   'Browser history must reapply active role and membership authorization before restoring private dashboard routes.'
 );
+
+
+// The subscriber account portal is a separate authenticated route; account access never grants business management rights.
+const accountPortalContext = context;
+assert.ok(accountPortalContext.includes("requestedView === 'account_portal' && Boolean(boot.authSession.isAuthenticated)"), 'the account portal direct route must require an authenticated session.');
+assert.ok(app.includes("currentView === 'account_portal' && !authSession.isAuthenticated"), 'account portal rendering must fail closed for signed-out users.');
+assert.ok(navbar.includes("setCurrentView('account_portal')"), 'authenticated users must have an account portal entry point.');
+assert.ok(navbar.includes("setCurrentView('merchant_admin')") && navbar.includes("setCurrentView('professional_dashboard')") && navbar.includes("setCurrentView('super_admin')"), 'existing dashboard navigation must remain intact.');
