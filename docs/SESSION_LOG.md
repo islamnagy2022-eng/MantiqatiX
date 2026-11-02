@@ -1823,3 +1823,10 @@ A separate source review found a second platform-root authorization model: the n
 - **Unsafe source behavior excluded:** AI Studio's one-click medical auto-register created a fabricated activity with fallback phone/location, paid subscription and verified status. It was not ported.
 - **Member Messages audit:** the AI Studio view relies on local AppContext state. Current website source search found no active shared messaging table/API contract. Member messaging remains NOT IMPLEMENTED until durable storage, tenant/recipient privacy, authorization, audit and notification behavior exist.
 - **Production:** no medical records created, no schema/RLS/Auth/Edge/payment changes, no merge or deployment.
+
+
+## 2026-11-02 — Browser E2E test selector fix
+- Inspected failed run `41428692611` on PR #650. Build, TypeScript, canonical taxonomy, Google OAuth contract, RBAC PostgreSQL and supporting checks passed; the Playwright browser job failed because `getByLabel('التخصص')` matched both the medical search input and specialty select.
+- Changed only the E2E locator to exact matching: `getByLabel('التخصص', { exact: true })`.
+- Fix commit: `92bf4c9cc5dfe0912ecdb49138b31467f9762efd`.
+- The new exact-head CI result has not yet been confirmed. No production deployment or production data/schema/security changes.
