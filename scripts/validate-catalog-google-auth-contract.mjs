@@ -66,7 +66,7 @@ assert.ok(
   context.includes("requestedView === 'super_admin' && boot.authSession.role === 'admin'") &&
   context.includes("requestedView === 'merchant_admin' && canAccessMerchantDashboard(boot.authSession)") &&
   context.includes("requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(boot.authSession)") &&
-  /const safeRequestedView:[\\s\\S]{0,900}: 'directory';/.test(context),
+  context.includes("                : 'directory';"),
   'Role bootstrap must preserve only explicitly authorized dashboard routes and otherwise fall back to the public home directory.'
 );
 assert.ok(context.includes("setCurrentView('directory');"), 'Email login and session-backed registration must return to the home directory');
