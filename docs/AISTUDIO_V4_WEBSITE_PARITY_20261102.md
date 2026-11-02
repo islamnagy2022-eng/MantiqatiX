@@ -5,7 +5,7 @@
 **Archive SHA-256:** `e49e202716c38c5564b8a82db9a74b4fe2c93ebbdecb4a347a7a110b799d6df2`  
 **Website baseline:** `main` at `e408f8137b6e6e62ab50f8629a17af59cf6c38e2`  
 **Working branch:** `feat/aistudio-v4-website-convergence-20261102`  
-**Status:** Inventory and comparison in progress. No production deployment or data mutation.
+**Status:** Initial source comparison complete; first visual parity slice is in Draft PR #650; exact-head CI and browser checks are running. No production deployment or data mutation.
 
 ## Owner's governing decisions
 
@@ -99,5 +99,7 @@ These are present on current website `main` but are not equivalent capabilities 
 - Archive integrity and file inventory were inspected.
 - Current main and open pull requests were inspected.
 - This mapping is an initial source-level comparison; every individual action still requires line-level contract review.
-- No application source code has been changed by this mapping step. No production DB/Auth/RLS/GRANT/Edge/payment/finance changes and no production deployment occurred.
-- Next implementation slice: adopt v4's wide storefront cover/profile composition and dark owner-dashboard hero without changing the current data paths or permission model.
+- Implemented on the isolated branch and opened Draft PR [#650](https://github.com/islamnagy2022-eng/MantiqatiX/pull/650): full-width storefront cover/profile composition and dark owner-dashboard hero. Only presentation classes changed in those two components.
+- Exact-head CI on commit `4d580d1926dd12af6e181c8be00628cb723a9f2e` is in progress: Primary Catalog Frontend Validation, Pages validation (PR deploy skipped by design), RBAC PostgreSQL, Module Professionalization, Backend-only Boundary, MantiGO privacy, RC425 and Flexible Commission checks.
+- No production DB/Auth/RLS/GRANT/Edge/payment/finance changes and no production deployment occurred.
+- Next: finish exact-head checks; visually inspect desktop/mobile behavior; then continue Wave A across the directory and top navigation before owner-dashboard functional additions.
