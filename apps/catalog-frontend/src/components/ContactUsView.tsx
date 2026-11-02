@@ -14,7 +14,7 @@ const CONTACT_KINDS: Array<{ id: ContactKind; label: string }> = [
 export const ContactUsView: React.FC = () => {
   const { adminSettings, authSession, setCurrentView } = useApp();
   const [senderName, setSenderName] = useState(authSession.subscriberName || '');
-  const [senderPhone, setSenderPhone] = useState(authSession.userPhone || '');
+  const [senderPhone, setSenderPhone] = useState('');
   const [senderEmail, setSenderEmail] = useState(authSession.email || '');
   const [kind, setKind] = useState<ContactKind>('inquiry');
   const [subject, setSubject] = useState('');
