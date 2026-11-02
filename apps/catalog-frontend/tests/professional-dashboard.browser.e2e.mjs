@@ -468,6 +468,21 @@ try {
     } finally { await context.close(); }
   }
 
+  // 0a. Public Contact and Site Map pages restore from direct links and never claim local message persistence.
+  {
+    const { context, page } = await newScenario(browser, null, [], { initialRoute: '?view=site_map' });
+    try {
+      await page.getByRole('heading', { name: 'كل أقسام MantiqatiX في مكان واحد', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(new URL(page.url()).searchParams.get('view'), 'site_map', 'site map must retain a refreshable public route');
+      await page.getByRole('button', { name: /تواصل معنا/ }).click();
+      await page.getByRole('heading', { name: 'تواصل مع إدارة MantiqatiX', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(new URL(page.url()).searchParams.get('view'), 'contact_us', 'contact page must retain a refreshable public route');
+      await page.getByText('لم يتم حفظ الرسالة داخل الموقع.', { exact: false }).waitFor({ state: 'visible', timeout: 5000 });
+      assert.equal(await page.getByRole('heading', { name: 'كل أقسام MantiqatiX في مكان واحد', exact: true }).count(), 0);
+      results.push('public-contact-and-site-map-routes-with-transparent-whatsapp-only-delivery');
+    } finally { await context.close(); }
+  }
+
   // 0b. Public directory uses a 20-row server page and continues with the returned keyset cursor.
   {
     const pageRows = Array.from({ length: 25 }, (_, index) => {
