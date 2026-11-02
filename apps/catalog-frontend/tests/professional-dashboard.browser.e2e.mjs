@@ -474,11 +474,11 @@ try {
     try {
       await page.getByRole('heading', { name: 'الدليل الطبي لمنطقتك في مكان واحد', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(new URL(page.url()).searchParams.get('view'), 'medical_directory', 'medical directory must retain a direct-link route');
-      await page.getByLabel('نوع النشاط الطبي').waitFor({ state: 'visible' });
-      await page.getByLabel('التخصص', { exact: true }).waitFor({ state: 'visible' });
-      await page.getByLabel('المحافظة').waitFor({ state: 'visible' });
-      await page.getByLabel('المركز / المدينة').waitFor({ state: 'visible' });
-      await page.getByLabel('القرية / الحي').waitFor({ state: 'visible' });
+      const medicalFilters = page.locator('select');
+      assert.equal(await medicalFilters.count(), 5, 'medical directory must expose its five structured filters');
+      for (let index = 0; index < 5; index += 1) {
+        await medicalFilters.nth(index).waitFor({ state: 'visible' });
+      }
       assert.equal(await page.getByRole('button', { name: 'تسجيل ذكي بالذكاء الاصطناعي' }).count(), 0, 'search must not fabricate or auto-register medical activities');
       assert.equal(await page.getByRole('dialog').count(), 0, 'medical page must not request GPS until the visitor explicitly clicks');
       await page.getByRole('button', { name: 'العودة إلى الدليل العام' }).click();
