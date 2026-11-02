@@ -1830,3 +1830,14 @@ A separate source review found a second platform-root authorization model: the n
 - Changed only the E2E locator to exact matching: `getByLabel('التخصص', { exact: true })`.
 - Fix commit: `92bf4c9cc5dfe0912ecdb49138b31467f9762efd`.
 - The new exact-head CI result has not yet been confirmed. No production deployment or production data/schema/security changes.
+
+## 2026-11-02 — Post-PR #650 Production read-only recheck
+
+- PR #650 merged at `25d486c592d6ed9b057f8ef179fbbeae1fc79ba5`; Pages deployment run 41433049776 and main validation run 41433049782 succeeded for scoped catalog checks.
+- Live Supabase inventory: 309 migration records through `20261101140105`; exact comparison with 42 canonical release IDs finds 0/42.
+- Security Advisor: 9 RLS-enabled/no-policy tables; 3 anon-executable and 67 authenticated-executable SECURITY DEFINER functions; Leaked Password Protection disabled; anonymous sign-in warning present.
+- Performance Advisor: 132 unindexed foreign keys, 375 auth RLS init-plan, 75 unused-index and 28 multiple-permissive-policy findings.
+- Six critical live Edge entrypoints differ from main: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3.
+- Latest full verifier snapshot: 32/60 selected physical-object checks non-PASS; RC449A/RC450 journal prerequisites absent; payment/finance E2E, backup/restore/RPO/RTO, Auth hardening and full tenant E2E remain NOT VERIFIED. `FULL_PLATFORM_GATE=BLOCKED`.
+- No Production DDL/DML, migrations, grants, Auth/RLS settings, Edge deployments, provider calls or financial mutations.
+- Detailed report: `docs/audits/PRODUCTION_GATE_EVIDENCE_20261102.md`.
