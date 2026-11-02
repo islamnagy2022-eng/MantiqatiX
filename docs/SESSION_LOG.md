@@ -1725,3 +1725,16 @@ A separate source review found a second platform-root authorization model: the n
 - GitHub Pages deployment run #41269309153 and post-merge frontend validation #41269309136 passed, including deployed-origin browser checks.
 - The exact doctor/pharmacy fallback cover changes and their static assertions have been carried into the national-directory pagination branch; no production Edge or directory data change is included.
 - This does not close the separate national pagination workstream; its browser cursor test and exact-head CI must pass before PR #634 can merge.
+
+
+## 2026-11-02 — Google AI Studio v4 website convergence intake
+
+- **Exact owner request:** Evolve the current website to match the version developed in Google AI Studio and supplied as `bizcatalog-manager (4).zip`; any website capability missing from that version must be surfaced to the owner with its rationale before removal/integration; keep the activities genuine and as they are, with profile data edits deferred.
+- **Archive SHA-256:** `e49e202716c38c5564b8a82db9a74b4fe2c93ebbdecb4a347a7a110b799d6df2`.
+- **Current repository baseline inspected:** `islamnagy2022-eng/MantiqatiX`, `main` at `e408f8137b6e6e62ab50f8629a17af59cf6c38e2` (2026-11-02).
+- **Archive inventory:** React/TypeScript/Vite app with directory, merchant/storefront/cart, medical, member messaging, admin, contact and sitemap screens. Its `INITIAL_BUSINESSES` contains 32 prototype business fixtures; AppContext uses localStorage and the server notification example is in-memory. None of those demo records/persistence paths are authoritative production data sources.
+- **Prior audit:** `docs/CATALOG_SOURCE_CONVERGENCE_AUDIT_20261030.md` documents archive v3. It explicitly excludes seed data and browser-side persistence. v4 needs a new comparison, not an assumption that v3 mapping is sufficient.
+- **Actions performed:** request recorded in Issue #599 comment 6572488271; isolated branch `feat/aistudio-v4-website-convergence-20261102` created from current main; this TODO/session record is being added.
+- **Not performed:** no application source code changed, no Supabase/production data/schema/Auth/RLS/Edge/payment mutation, no PR merge, and no production deployment.
+- **Next:** complete v4-to-current-main screen/feature/data-source parity matrix; identify current website-only capabilities and present them for owner decision; then implement approved slices with exact-head tests.
+- **Status:** IN PROGRESS; no parity implementation claimed.
