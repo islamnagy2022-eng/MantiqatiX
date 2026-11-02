@@ -3234,3 +3234,6 @@ A separate source review found a second platform-root authorization model: the n
 - **Regression checks:** production mapper verifies doctor/pharmacy default cover assignment and owner-cover precedence; directory page verifies separate cover resolution and hero rendering.
 - **Safety:** frontend and validation only; no schema, RLS, Auth, Edge Function, or production data mutation.
 - **Status:** COMPLETE on `main`; carried forward to the national-directory pagination branch. Main PR #635 merged as `4796ef4736748e22f465d4fbdc1fb779ff7d8097`; GitHub Pages deployment and deployed-origin verification passed in runs #41269309153 and #41269309136. The pagination branch still requires its own combined exact-head CI and merge.
+
+- [x] Ported the AI Studio Medical Directory as `?view=medical_directory`, using current public activities, canonical health taxonomy, type/specialty/geography filters and 20-item paging.
+- [ ] Member-to-member Messages remain blocked until durable backend/API/RLS/RBAC/audit/notification contracts are implemented and tested. No local-only inbox will be shipped.
