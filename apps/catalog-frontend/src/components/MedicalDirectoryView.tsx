@@ -278,14 +278,14 @@ export const MedicalDirectoryView: React.FC = () => {
         </label>
         <label className="block text-xs font-bold text-slate-700">
           المحافظة
-          <select value={governorate} onChange={(event) => { setGovernorate(event.target.value); setMarkaz('all'); setVisibleCount(20); }} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm">
+          <select value={governorate} onChange={(event) => { setGovernorate(event.target.value); setMarkaz('all'); setVillage('all'); setVisibleCount(20); }} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm">
             <option value="all">كل المحافظات</option>
             {governorates.map((value) => <option key={value} value={value}>{value}</option>)}
           </select>
         </label>
         <label className="block text-xs font-bold text-slate-700">
           المركز / المدينة
-          <select value={markaz} onChange={(event) => { setMarkaz(event.target.value); setVisibleCount(20); }} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm">
+          <select value={markaz} onChange={(event) => { setMarkaz(event.target.value); setVillage('all'); setVisibleCount(20); }} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm">
             <option value="all">كل المراكز</option>
             {markazOptions.map((value) => <option key={value} value={value}>{value}</option>)}
           </select>
