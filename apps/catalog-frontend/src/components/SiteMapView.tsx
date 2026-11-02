@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Compass, LayoutDashboard, Map, MessageCircle, Search, ShieldCheck, Store } from 'lucide-react';
+import { ArrowRight, LayoutDashboard, Map, MessageCircle, Search, ShieldCheck, Store } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../utils/dashboardAccess';
 
