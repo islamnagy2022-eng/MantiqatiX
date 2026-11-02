@@ -1063,6 +1063,55 @@ try {
     } finally { await context.close(); }
   }
 
+  // Canonical activity codes override conflicting legacy labels; the selected activity grid stays eight columns on mobile.
+  {
+    const conflictingLegacyBusiness = {
+      id: '10000000-0000-0000-0000-000000000777',
+      tenantId: 'tenant-taxonomy-e2e',
+      organizationId: 'org-taxonomy-e2e',
+      name: 'صيدلية اختبار التصنيف',
+      category: 'مطاعم — برجر',
+      activityGroupCode: 'medical_health',
+      activityCategoryCode: 'pharmacies',
+      activityClassificationType: 'activity',
+      activitySpecialty: 'صيدلية عامة',
+      status: 'ACTIVE',
+      operationalStatus: 'ACTIVE',
+      publicEnabled: true,
+      isOfficialShowcase: false,
+      provider: { kind: 'OFFICIAL', verified: true, featured: false },
+      profile: { governorate: 'المنوفية', markaz: 'بركة السبع', village: '' },
+      branches: [{ id: 'branch-taxonomy-e2e', tenantId: 'tenant-taxonomy-e2e', name: 'الفرع الرئيسي', status: 'ACTIVE' }],
+      selectedBranchId: 'branch-taxonomy-e2e',
+      catalogPublished: true,
+      bizcatalog: { operationalStatus: 'ACTIVE' },
+    };
+    const { context, page } = await newScenario(browser, null, [conflictingLegacyBusiness]);
+    try {
+      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      const locationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+      if (await locationDialog.isVisible().catch(() => false)) {
+        await locationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+        await locationDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      }
+
+      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
+      const activitySection = page.locator('section[aria-label="المجموعات والأنشطة"]');
+      await activitySection.getByRole('heading', { name: 'الطب والصحة', exact: true }).waitFor({ state: 'visible' });
+      const activityGrid = activitySection.locator('.grid.grid-cols-8').first();
+      const columnCount = await activityGrid.evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length);
+      assert.equal(columnCount, 8, 'activity directory must show eight activity cards per row at a 390px phone viewport');
+
+      const pharmacy = activitySection.getByRole('button', { name: /صيدليات/ }).first();
+      await pharmacy.waitFor({ state: 'visible' });
+      assert.match(await pharmacy.getAttribute('aria-label') || '', /إجمالي\s*[١1]/, 'the canonical pharmacy activity must receive the business even when its legacy category says restaurants');
+      await pharmacy.click();
+      await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'صيدليات', exact: true }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px canonical activity grid');
+      results.push('canonical-activity-code-precedence-and-eight-column-mobile-grid');
+    } finally { await context.close(); }
+  }
+
   // 13. Domain profiles must expose different marketing plans and operating capabilities.
   {
     const { context, page } = await newScenario(browser);
