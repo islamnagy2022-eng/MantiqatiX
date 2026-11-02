@@ -177,6 +177,17 @@ export const MerchantDashboard: React.FC = () => {
     window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
   };
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [storeUrlCopied, setStoreUrlCopied] = useState(false);
+  const handleCopyStoreUrl = async () => {
+    if (!permanentStoreUrl) return;
+    try {
+      await navigator.clipboard.writeText(permanentStoreUrl);
+      setStoreUrlCopied(true);
+      window.setTimeout(() => setStoreUrlCopied(false), 2500);
+    } catch {
+      window.alert('تعذر نسخ رابط النشاط تلقائيًا. افتح معاينة صفحة النشاط وانسخ الرابط من شريط العنوان.');
+    }
+  };
 
   // Business Profile & Branding state
   const [bizName, setBizName] = useState(currentBusiness?.name || '');
@@ -574,29 +585,32 @@ export const MerchantDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Header with Title and Quick Quota indicator */}
-      <div className="rounded-3xl border border-slate-800 bg-gradient-to-l from-slate-950 via-slate-900 to-slate-800 p-6 text-white shadow-xl sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-bold text-emerald-200 bg-emerald-500/15 px-3 py-1 rounded-full border border-emerald-400/30">
-              لوحة تحكم صاحب النشاط
-            </span>
-            <span className="text-xs font-bold text-slate-200 bg-white/10 px-3 py-1 rounded-full">
-              النشاط: {currentBusiness.name}
-            </span>
-            {currentGroupInfo && (
-              <span className={`text-xs font-bold px-3 py-1 rounded-full border ${currentGroupInfo.badgeColor}`}>
-                {currentGroupInfo.shortName}
+      {/* AI Studio v4 owner dashboard hero — production data and actions remain authoritative. */}
+      <div className="rounded-3xl border border-slate-800 bg-gradient-to-l from-slate-950 via-slate-900 to-slate-800 p-6 text-white shadow-xl sm:p-8">
+        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between" dir="rtl">
+          <div className="min-w-0 flex-1">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-emerald-400/30 bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-200">
+                لوحة تحكم صاحب النشاط
               </span>
-            )}
+              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-slate-200">
+                النشاط: {currentBusiness.name}
+              </span>
+              {currentGroupInfo && (
+                <span className={`rounded-full border px-3 py-1 text-xs font-bold ${currentGroupInfo.badgeColor}`}>
+                  {currentGroupInfo.shortName}
+                </span>
+              )}
+            </div>
+            <h2 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
+              إدارة الكتالوج وتخصيص هوية النشاط
+            </h2>
+            <p className="mt-1 max-w-2xl text-xs leading-6 text-slate-300 sm:text-sm">
+              أضف وعدّل حتى {maxLimit} منتج أو خدمة، وحدّث صور الغلاف والشعار وبيانات النشاط، وتابع طلبات التواصل من مكان واحد.
+            </p>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            إدارة الكتالوج وتخصيص هوية النشاط
-          </h2>
-          <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-2xl leading-6">
-            أضف وعدّل حتى {maxLimit} منتج أو خدمة، وحدّث صور الغلاف والشعار وبيانات النشاط، وتابع طلبات التواصل من مكان واحد.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
+
+          <div className="flex shrink-0 flex-col gap-2 md:w-[245px]">
             <button
               type="button"
               onClick={() => setCurrentView('public_storefront')}
@@ -608,7 +622,8 @@ export const MerchantDashboard: React.FC = () => {
             <button
               type="button"
               onClick={openAddModal}
-              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-xs font-black text-slate-950 shadow-md transition hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
+              disabled={productsCount >= maxLimit}
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-xs font-black text-slate-950 shadow-md transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
             >
               <Plus className="h-4 w-4" />
               إضافة منتج / خدمة جديدة
@@ -616,32 +631,45 @@ export const MerchantDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* 150 Quota Widget */}
-        <div className="bg-white/5 border border-white/15 rounded-2xl p-4 shadow-inner sm:min-w-[280px]">
-          <div className="flex items-center justify-between text-xs font-black text-slate-100 mb-2">
-            <span>حد المنتجات المستهلك:</span>
-            <span className="text-emerald-300">
-              {productsCount} من {maxLimit}
-            </span>
+        <div className="mt-6 border-t border-white/10 pt-5">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs font-black text-slate-100">
+            <span>استهلاك حد الكتالوج</span>
+            <span><strong className="text-emerald-300">{productsCount}</strong> من {maxLimit} منتج / خدمة</span>
           </div>
-
-          <div className="w-full bg-white/15 h-2.5 rounded-full overflow-hidden">
+          <div
+            className="h-2.5 w-full overflow-hidden rounded-full bg-white/15"
+            role="progressbar"
+            aria-label="استهلاك سعة الكتالوج"
+            aria-valuemin={0}
+            aria-valuemax={maxLimit}
+            aria-valuenow={Math.min(productsCount, maxLimit)}
+          >
             <div
-              className={`h-full transition-all duration-500 rounded-full ${
-                quotaPercent >= 90
-                  ? 'bg-rose-500'
-                  : quotaPercent >= 75
-                  ? 'bg-amber-500'
-                  : 'bg-emerald-600'
+              className={`h-full rounded-full transition-all duration-500 ${
+                quotaPercent >= 90 ? 'bg-rose-500' : quotaPercent >= 75 ? 'bg-amber-500' : 'bg-emerald-500'
               }`}
               style={{ width: `${quotaPercent}%` }}
             />
           </div>
-
-          <div className="flex items-center justify-between text-[11px] text-slate-300 mt-2 font-medium">
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] font-medium text-slate-300">
             <span>المتبقي للإضافة: {remainingQuota} صنف</span>
             <span>{quotaPercent}% مستخدم</span>
           </div>
+        </div>
+
+        <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+          <p className="text-xs leading-6 text-slate-300">
+            خصوصية بياناتك محفوظة؛ لا تظهر منتجات نشاطك أو روابطه الخاصة ضمن حساب نشاط آخر.
+          </p>
+          <button
+            type="button"
+            onClick={handleCopyStoreUrl}
+            disabled={!permanentStoreUrl}
+            className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs font-black text-emerald-200 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            {storeUrlCopied ? 'تم نسخ رابط النشاط' : 'نسخ رابط متجرك المباشر'}
+          </button>
         </div>
       </div>
 
