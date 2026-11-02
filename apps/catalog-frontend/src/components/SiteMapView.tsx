@@ -10,6 +10,7 @@ export const SiteMapView: React.FC = () => {
   const isAdmin = authSession.role === 'admin';
   const entries: SiteEntry[] = [
     { title: 'دليل الأنشطة والبحث', description: 'تصفح الأنشطة الحقيقية المنشورة وابحث حسب النشاط والتخصص والموقع.', icon: <Search className="h-5 w-5" />, onOpen: () => setCurrentView('directory') },
+    { title: 'سوق الأنشطة والعروض', description: 'اكتشف الأنشطة الموثقة والإعلانات والعروض المسجلة فعليًا في الكتالوج.', icon: <Store className="h-5 w-5" />, onOpen: () => setCurrentView('marketplace_home') },
     { title: 'تواصل معنا', description: 'جهّز استفسارك أو طلبك وأرسله مباشرة إلى واتساب إدارة المنصة.', icon: <MessageCircle className="h-5 w-5" />, onOpen: () => setCurrentView('contact_us') },
   ];
   if (authSession.role !== 'guest' && currentBusiness) {
