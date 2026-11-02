@@ -105,8 +105,23 @@ check("react_privileged_views_require_authorized_session", () => {
   includes(reactApp, "!canAccessProfessionalDashboard(authSession)");
   includes(reactApp, "currentView === 'public_storefront' &&");
   includes(reactApp, "authSession.role === 'guest' && !hasDirectPublicCatalogLink");
-  includes(reactApp, "{visibleView === 'merchant_admin' && <MerchantDashboard />}");
-  includes(reactApp, "{visibleView === 'super_admin' && <AdminDashboard />}");
+  includes(reactApp, "import { DirectoryView } from './components/DirectoryView';");
+  includes(reactApp, "import { MarketplaceHome } from './components/MarketplaceHome';");
+  includes(reactApp, "const BusinessProfileHeader = lazy(() => import('./components/storefront/BusinessProfileHeader')");
+  includes(reactApp, "const CatalogSection = lazy(() => import('./components/storefront/CatalogSection')");
+  includes(reactApp, "const MerchantDashboard = lazy(() => import('./components/merchant/MerchantDashboard')");
+  includes(reactApp, "const AdminDashboard = lazy(() => import('./components/admin/AdminDashboard')");
+  includes(reactApp, "const ProfessionalDashboard = lazy(() => import('./modules/dashboard/ProfessionalDashboard')");
+  includes(reactApp, "const MedicalDirectoryView = lazy(() => import('./components/MedicalDirectoryView')");
+  includes(reactApp, "const CartDrawer = lazy(() => import('./components/cart/CartDrawer')");
+  includes(reactApp, "const LoginModal = lazy(() => import('./components/auth/LoginModal')");
+  includes(reactApp, "<Suspense fallback={<ScreenFallback />}><MerchantDashboard /></Suspense>");
+  includes(reactApp, "<Suspense fallback={<ScreenFallback />}><AdminDashboard /></Suspense>");
+  includes(reactApp, "<Suspense fallback={<ScreenFallback />}><ProfessionalDashboard /></Suspense>");
+  includes(reactApp, "isCartOpen && (");
+  includes(reactApp, "isLoginModalOpen && (");
+  excludes(reactApp, /import \{ (?:MerchantDashboard|AdminDashboard|ProfessionalDashboard|CartDrawer|LoginModal) \} from/,
+    "large secondary screens must not be eagerly imported");
   includes(appContext, "return businesses.find((b) => b.id === authSession.businessId);");
 });
 check("guest_catalog_navigation_is_not_an_owner_entrypoint", () => {

@@ -95,9 +95,11 @@ assert.match(browserE2E, /catalogReadRequests\.every\(\(request\) => !request\.b
 assert.match(production, /membershipPermissions: chosenMembership\?\.permissions/);
 assert.match(production, /businesses\.find\(\(b\) => roleMemberships\.some\(\(m: any\) => String\(m\.business_id \|\| ''\) === b\.id\)\)/);
 
-assert.match(app, /import \{ ProfessionalDashboard \} from '\.\/modules\/dashboard\/ProfessionalDashboard'/);
+assert.match(app, /const ProfessionalDashboard = lazy\(\(\) => import\('\.\/modules\/dashboard\/ProfessionalDashboard'\)/,
+  'professional dashboard must be deferred from the initial public bundle');
 assert.match(app, /import \{ canAccessMerchantDashboard, canAccessProfessionalDashboard \} from '\.\/utils\/dashboardAccess'/);
-assert.match(app, /visibleView === 'professional_dashboard' && <ProfessionalDashboard \/>/);
+assert.match(app, /visibleView === 'professional_dashboard' && \([\s\S]*?<Suspense fallback=\{<ScreenFallback \/>\}>[\s\S]*?<ProfessionalDashboard \/>/,
+  'professional dashboard must render inside a lazy screen boundary');
 assert.match(app, /!canAccessProfessionalDashboard\(authSession\)/);
 assert.match(app, /!canAccessMerchantDashboard\(authSession\)/);
 
