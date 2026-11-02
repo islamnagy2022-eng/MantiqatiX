@@ -94,12 +94,30 @@ These are present on current website `main` but are not equivalent capabilities 
 4. **Wave D — marketing, AI and money:** port safe screens first; connect campaigns, image services and finance only when server APIs, RLS/RBAC, audit/idempotency and runtime evidence exist.
 5. **Wave E — regression and release:** exact-head build, typecheck, contracts, PostgreSQL/RBAC, security/privacy, Playwright desktop/mobile, live read-only smoke tests, independent review and approved deployment.
 
+
+## Additional in-flight website developments outside the AI Studio v4 archive
+
+These workstreams are not represented in the AI Studio v4 source archive. They are owner-review candidates to fold into the v4 target while retaining current v4 behavior:
+
+- **PR #647 — Premium Marketplace Home + separate search**: adds an extra homepage containing real verified business cards, real catalog products/offers, targeted ad slots via the current RPC, and a separate full directory search view. The component explicitly filters to live active public businesses and then to verified businesses for its current recommendations. Its exact-head build, browser E2E, employee RBAC PostgreSQL, and supporting contracts passed on head `576a47f8e261b722328c50d70155f66b41ddb11b`; it remains open/unmerged and has not been deployed. It needs owner review as an additional home experience, plus a UX check of its first-visit geo prompt against the existing DirectoryView consent/filter flow.
+- **PR #648 — Canonical taxonomy + mobile 8-column regression**: adds a test proving canonical activity codes override conflicting legacy category labels and that activity cards remain eight columns at the mobile viewport. This is a quality/safety guard, not a new user-facing module. Keep the regression coverage in the V4 branch/target.
+- **PR #646 — Subscriber account portal**: adds an authenticated account/subscribe overview. It is still Draft and must not be merged as-is: its current Navbar diff removes existing merchant dashboard, professional dashboard and Super Admin navigation actions. Only the account portal itself is a candidate; if brought into V4, it must retain every existing dashboard entry and keep cross-membership switching disabled until server/backend parity is verified.
+
+None of these open PRs is part of current `main` or the deployed website at this checkpoint. They are tracked as pending work, not reported as shipped. No PR is merged by this parity task.
+
+## Visual implementation checkpoint
+
+- Storefront cover is full-width with desktop reference ratio `1440/390` and a persistent dark gradient overlay to retain legible image contrast.
+- Merchant dashboard hero uses the reference navy gradient and carries the matching owner-dashboard title, plus working actions for previewing the current business storefront and opening the existing add-item modal.
+- The buttons call existing application functions; no new database or persistence logic was introduced.
+- Exact-head build/RBAC/Pages validation is still required for the latest branch head.
+
 ## Current execution checkpoint
 
 - Archive integrity and file inventory were inspected.
 - Current main and open pull requests were inspected.
 - This mapping is an initial source-level comparison; every individual action still requires line-level contract review.
-- Implemented on the isolated branch and opened Draft PR [#650](https://github.com/islamnagy2022-eng/MantiqatiX/pull/650): full-width storefront cover/profile composition and dark owner-dashboard hero. Only presentation classes changed in those two components.
-- Exact-head CI on commit `4d580d1926dd12af6e181c8be00628cb723a9f2e` is in progress: Primary Catalog Frontend Validation, Pages validation (PR deploy skipped by design), RBAC PostgreSQL, Module Professionalization, Backend-only Boundary, MantiGO privacy, RC425 and Flexible Commission checks.
+- Implemented on the isolated branch and opened Draft PR [#650](https://github.com/islamnagy2022-eng/MantiqatiX/pull/650): full-width storefront cover, persistent dark image overlay, dark owner-dashboard hero, and owner preview/add-item actions. The actions reuse existing storefront routing and add-item modal; no database logic changed.
+- Latest source head is `824aa33048667c2aa073a3f1e99e4ba9dc2f8b95`. Exact-head CI has restarted after the UI changes; build, RBAC PostgreSQL, browser E2E and supporting workflows are pending/in progress. Earlier source head `5e85ac34626401e0becf03fa0055cba86a2b056e` had Build PASS, employee RBAC PostgreSQL PASS and Pages validation PASS; browser E2E was still running when superseded.
 - No production DB/Auth/RLS/GRANT/Edge/payment/finance changes and no production deployment occurred.
 - Next: finish exact-head checks; visually inspect desktop/mobile behavior; then continue Wave A across the directory and top navigation before owner-dashboard functional additions.
