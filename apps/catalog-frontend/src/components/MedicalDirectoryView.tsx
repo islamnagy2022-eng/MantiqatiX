@@ -188,7 +188,7 @@ export const MedicalDirectoryView: React.FC = () => {
             ? haversineKm(userLocation.lat, userLocation.lon, business.latitude, business.longitude)
             : Number.POSITIVE_INFINITY;
         const delta = distance(a) - distance(b);
-        if (Number.isFinite(delta) && delta !== 0) return delta;
+        if (!Number.isNaN(delta) && delta !== 0) return delta;
       }
       if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
       return a.name.localeCompare(b.name, 'ar');
