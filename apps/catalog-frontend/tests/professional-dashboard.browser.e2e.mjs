@@ -468,6 +468,26 @@ try {
     } finally { await context.close(); }
   }
 
+  // 0a. Dedicated Medical Directory is a public, read-only view over real published activities.
+  {
+    const { context, page } = await newScenario(browser, null, [], { initialRoute: '?view=medical_directory' });
+    try {
+      await page.getByRole('heading', { name: 'الدليل الطبي لمنطقتك في مكان واحد', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(new URL(page.url()).searchParams.get('view'), 'medical_directory', 'medical directory must retain a direct-link route');
+      await page.getByLabel('نوع النشاط الطبي').waitFor({ state: 'visible' });
+      await page.getByLabel('التخصص').waitFor({ state: 'visible' });
+      await page.getByLabel('المحافظة').waitFor({ state: 'visible' });
+      await page.getByLabel('المركز / المدينة').waitFor({ state: 'visible' });
+      assert.equal(await page.getByRole('button', { name: 'تسجيل ذكي بالذكاء الاصطناعي' }).count(), 0, 'search must not fabricate or auto-register medical activities');
+      assert.equal(await page.getByRole('dialog').count(), 0, 'medical page must not request GPS until the visitor explicitly clicks');
+      await page.getByRole('button', { name: 'العودة إلى الدليل العام' }).click();
+      await page.waitForFunction(() => !new URL(window.location.href).searchParams.has('view'));
+      await page.goBack();
+      await page.getByRole('heading', { name: 'الدليل الطبي لمنطقتك في مكان واحد', exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+      results.push('medical-directory-public-filters-route-history-no-fabricated-medical-records');
+    } finally { await context.close(); }
+  }
+
   // 0a. Additional Marketplace Home is a separate route; the V4 directory remains the default public entry.
   {
     const { context, page } = await newScenario(browser, null, [], { initialRoute: '?view=marketplace_home' });
