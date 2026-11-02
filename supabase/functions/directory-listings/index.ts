@@ -383,7 +383,6 @@ Deno.serve(async (req: Request) => {
       const taxonomySpecialty = clean(row.taxonomySpecialty || row.taxonomy_specialty || specialty, 160) || null;
       const sourceName = clean(row.sourceName || row.source_name, 160);
       const sourceUrl = clean(row.sourceUrl || row.source_url, 1000) || null;
-      const sourcePermissionEvidenceId = clean(row.sourcePermissionEvidenceId || row.source_permission_evidence_id, 80);
       const sourceCheckedAtInput = row.sourceCheckedAt || row.source_checked_at;
       const sourceCheckedAt = dateOrNull(sourceCheckedAtInput);
       let validSourceUrl = false;
@@ -401,29 +400,11 @@ Deno.serve(async (req: Request) => {
         continue;
       }
       if (displayName.length < 2 || !specialty || !governorate || !district || !sourceName || !validSourceUrl ||
-          !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(sourcePermissionEvidenceId) ||
           !taxonomyCategoryId.startsWith("cat_medical_health_") && !taxonomyCategoryId.startsWith("cat_custom_")) {
         failed += 1;
-        results.push({ index, status: "failed", reason: "REQUIRED_FIELDS_OR_APPROVED_SOURCE_EVIDENCE_MISSING" });
+        results.push({ index, status: "failed", reason: "REQUIRED_FIELDS_OR_PUBLIC_SOURCE_REFERENCE_MISSING" });
         continue;
       }
-
-      const sourcePermissionEvidence = await service.from("directory_source_permission_evidence")
-        .select("id,source_name,source_host,permission_basis,allows_doctor_profile_republication,allows_commercial_republication,valid_from,expires_at,status,revoked_at")
-        .eq("id", sourcePermissionEvidenceId).maybeSingle();
-      if (sourcePermissionEvidence.error || !sourcePermissionEvidence.data) {
-        failed += 1;
-        results.push({ index, status: "failed", reason: "SOURCE_PERMISSION_EVIDENCE_NOT_FOUND" });
-        continue;
-      }
-      const approvedEvidence = sourcePermissionEvidence.data;
-      const evidenceIsCurrent = isCurrentDoctorRepublicationEvidence(approvedEvidence, sourceUrl, sourceName);
-      if (!evidenceIsCurrent) {
-        failed += 1;
-        results.push({ index, status: "failed", reason: "SOURCE_PERMISSION_EVIDENCE_SCOPE_MISMATCH_OR_EXPIRED" });
-        continue;
-      }
-      const sourcePermissionStatus = String(approvedEvidence.permission_basis);
 
       const slug = slugify(row.slug || [displayName, district, village].filter(Boolean).join("-"));
       const importStatus = resolveDoctorImportStatus(row, hasPhone);
@@ -434,7 +415,10 @@ Deno.serve(async (req: Request) => {
       }
       const hasRequestedStatus = importStatus.hasRequestedStatus;
       const requestedStatus = importStatus.requestedStatus;
-      const listingStatus = importStatus.listingStatus;
+      // Batch ingestion is staging only; it must never make a newly imported
+      // doctor public. Publication is a separately reviewed action.
+      const listingStatus = requestedStatus === "PUBLISHED" ? "DRAFT" : importStatus.listingStatus;
+      const canApplyRequestedStatus = hasRequestedStatus && requestedStatus !== "PUBLISHED";
       const completeness = {
         name: true,
         specialty: true,
@@ -468,8 +452,6 @@ Deno.serve(async (req: Request) => {
         metadata: {
           ...metadataInput,
           ingestion: "incremental_doctor_batch",
-          source_permission_status: sourcePermissionStatus,
-          source_permission_evidence_id: approvedEvidence.id,
           source_status: "UNVERIFIED_IMPORTED_DATA",
           source_phone_verified: false,
           owner_confirmation_required: true,
@@ -484,13 +466,13 @@ Deno.serve(async (req: Request) => {
           const phoneCandidates = Array.from(new Set([phone, secondaryPhone].filter(Boolean)));
           for (const candidatePhone of phoneCandidates) {
             const byPrimaryPhone = await service.from("public_directory_listings")
-              .select("id,slug,listing_status,metadata,source_checked_at,completeness")
+              .select("id,slug,listing_status,source_name,source_url,metadata,source_checked_at,completeness")
               .eq("listing_type", "doctor").eq("phone", candidatePhone).limit(1).maybeSingle();
             if (byPrimaryPhone.error) throw byPrimaryPhone.error;
             existing = byPrimaryPhone.data;
             if (existing) break;
             const bySecondaryPhone = await service.from("public_directory_listings")
-              .select("id,slug,listing_status,metadata,source_checked_at,completeness")
+              .select("id,slug,listing_status,source_name,source_url,metadata,source_checked_at,completeness")
               .eq("listing_type", "doctor").eq("secondary_phone", candidatePhone).limit(1).maybeSingle();
             if (bySecondaryPhone.error) throw bySecondaryPhone.error;
             existing = bySecondaryPhone.data;
@@ -499,7 +481,7 @@ Deno.serve(async (req: Request) => {
         }
         if (!existing) {
           const byIdentity = await service.from("public_directory_listings")
-            .select("id,slug,listing_status,metadata,source_checked_at,completeness").eq("listing_type", "doctor")
+            .select("id,slug,listing_status,source_name,source_url,metadata,source_checked_at,completeness").eq("listing_type", "doctor")
             .eq("display_name", displayName).eq("governorate", governorate).eq("district", district)
             .limit(1).maybeSingle();
           if (byIdentity.error) throw byIdentity.error;
@@ -507,6 +489,15 @@ Deno.serve(async (req: Request) => {
         }
 
         if (existing) {
+          // Never let draft ingestion replace the attribution of an already public doctor.
+          // A changed source must go through UPSERT_LISTING's reviewed publication gate.
+          if (existing.listing_status === "PUBLISHED" &&
+              (String(existing.source_name || "") !== sourceName ||
+               String(existing.source_url || "") !== String(sourceUrl || ""))) {
+            failed += 1;
+            results.push({ index, status: "failed", reason: "PUBLISHED_SOURCE_CHANGE_REQUIRES_REVIEWED_PUBLICATION" });
+            continue;
+          }
           // Partial snapshots must not erase existing contact, slug, claim, source or review history.
           if (!phone) delete patch.phone;
           if (!secondaryPhone) delete patch.secondary_phone;
@@ -514,18 +505,24 @@ Deno.serve(async (req: Request) => {
           if (!row.sourceName && !row.source_name) delete patch.source_name;
           if (!sourceUrl) delete patch.source_url;
           if (!row.sourceCheckedAt && !row.source_checked_at) delete patch.source_checked_at;
-          if (!hasRequestedStatus) delete patch.listing_status;
+          if (!canApplyRequestedStatus) delete patch.listing_status;
           delete patch.claim_status;
           patch.completeness = {
             ...(existing.completeness && typeof existing.completeness === "object" ? existing.completeness : {}),
             ...Object.fromEntries(Object.entries(completeness).filter(([, value]) => value === true)),
           };
+          const existingMetadata = existing.metadata && typeof existing.metadata === "object" ? existing.metadata : {};
+          const preservePublishedVerification = existing.listing_status === "PUBLISHED";
           patch.metadata = {
-            ...(existing.metadata && typeof existing.metadata === "object" ? existing.metadata : {}),
+            ...existingMetadata,
             ...(metadataInput as Record<string, unknown>),
             ingestion: "incremental_doctor_batch",
-            source_permission_status: sourcePermissionStatus,
-            source_permission_evidence_id: approvedEvidence.id,
+            ...(preservePublishedVerification ? {} : {
+              source_status: "UNVERIFIED_IMPORTED_DATA",
+              source_phone_verified: false,
+              owner_confirmation_required: true,
+              professional_registration_verified: false,
+            }),
           };
           const saved = await service.from("public_directory_listings")
             .update(patch).eq("id", existing.id).select("id,listing_status").single();
@@ -577,10 +574,58 @@ Deno.serve(async (req: Request) => {
     }
     const phone = clean(body.phone, 40);
     const secondaryPhone = clean(body.secondaryPhone, 40);
+    const sourceNameInput = clean(body.sourceName, 160);
+    const sourceUrlInput = clean(body.sourceUrl, 1000) || null;
+    let priorListing: any = null;
+    if (listingStatus === "PUBLISHED" && id) {
+      const { data: prior, error: priorError } = await service.from("public_directory_listings")
+        .select("listing_type,listing_status,source_name,source_url").eq("id", id).maybeSingle();
+      if (priorError) return out(origin, { error: "LISTING_READ_FAILED" }, 500);
+      priorListing = prior;
+    }
+    const sourceName = sourceNameInput || clean(priorListing?.source_name || "إدخال إدارة المنصة", 160);
+    const sourceUrl = sourceUrlInput || (priorListing?.source_url ? clean(priorListing.source_url, 1000) : null);
     const hasPhone = phone.replace(/\D/g, "").length >= 7 || secondaryPhone.replace(/\D/g, "").length >= 7;
     if (listingStatus === "PUBLISHED" && !hasPhone) {
       return out(origin, { error: "PHONE_REQUIRED_FOR_PUBLICATION", message: "لا يمكن نشر النشاط قبل إضافة رقم هاتف صحيح من 7 أرقام على الأقل." }, 400);
     }
+
+    // New doctor publications, draft-to-public transitions, and source changes
+    // require current two-person evidence. Existing published profiles may be
+    // edited without changing their established source attribution.
+    if ((listingType === "doctor" || priorListing?.listing_type === "doctor") && listingStatus === "PUBLISHED") {
+      const isAlreadyPublishedWithSameSource = listingType === "doctor" && priorListing?.listing_type === "doctor" && priorListing?.listing_status === "PUBLISHED" &&
+        String(priorListing.source_name || "") === sourceName &&
+        String(priorListing.source_url || "") === String(sourceUrl || "");
+      if (!isAlreadyPublishedWithSameSource) {
+        let sourceHost = "";
+        try {
+          sourceHost = normalizeDirectorySourceHost(new URL(String(sourceUrl || "")).hostname);
+        } catch {
+          sourceHost = "";
+        }
+        if (!sourceUrl || !sourceHost) {
+          return out(origin, {
+            error: "DOCTOR_REPUBLICATION_PERMISSION_REQUIRED",
+            message: "لا يمكن نشر ملف طبيب جديد أو تحويله من مسودة دون مصدر واضح وإذن ساري لإعادة نشر ملفات الأطباء والاستخدام التجاري.",
+          }, 403);
+        }
+        const { data: evidenceRows, error: evidenceError } = await service.from("directory_source_permission_evidence")
+          .select("source_name,source_host,allows_doctor_profile_republication,allows_commercial_republication,valid_from,expires_at,status,revoked_at")
+          .eq("source_host", sourceHost).eq("status", "APPROVED").limit(250);
+        if (evidenceError) return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_READ_FAILED" }, 500);
+        const hasCurrentPermission = (evidenceRows || []).some((evidence: any) =>
+          isCurrentDoctorRepublicationEvidence(evidence, sourceUrl, sourceName)
+        );
+        if (!hasCurrentPermission) {
+          return out(origin, {
+            error: "DOCTOR_REPUBLICATION_PERMISSION_REQUIRED",
+            message: "لا يوجد إذن معتمد وساري لهذا المصدر يسمح بإعادة نشر ملفات الأطباء والاستخدام التجاري.",
+          }, 403);
+        }
+      }
+    }
+
     const patch: Record<string, unknown> = {
       slug, display_name: displayName, listing_type: listingType,
       functional_group_id: functionalGroupId,
@@ -591,8 +636,8 @@ Deno.serve(async (req: Request) => {
       address: clean(body.address, 500) || null,
       governorate: clean(body.governorate || "المنوفية", 100),
       district: clean(body.district || "بركة السبع", 100), village: clean(body.village, 100) || null,
-      source_name: clean(body.sourceName || "إدخال إدارة المنصة", 160),
-      source_url: clean(body.sourceUrl, 1000) || null,
+      source_name: sourceName,
+      source_url: sourceUrl,
       source_checked_at: body.sourceCheckedAt ? String(body.sourceCheckedAt) : new Date().toISOString(),
       listing_status: listingStatus,
       outreach_status: outreachStatuses.has(clean(body.outreachStatus || "NEW", 40).toUpperCase()) ? clean(body.outreachStatus || "NEW", 40).toUpperCase() : "NEW",

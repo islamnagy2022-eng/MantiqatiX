@@ -26,7 +26,7 @@ assert.ok(adminGate < actionStart, "Batch import must be protected by the platfo
 
 assert.match(action, /rows\.length > 20/, "Batch size must be capped at 20");
 assert.match(action, /for \(let index = 0; index < rows\.length; index \+= 1\)/, "Rows must be processed sequentially");
-assert.match(action, /select\("id,slug,listing_status,metadata,source_checked_at,completeness"\)/, "Existing row state must be loaded before updates");
+assert.match(action, /select\("id,slug,listing_status,source_name,source_url,metadata,source_checked_at,completeness"\)/, "Existing row state and source attribution must be loaded before updates");
 assert.match(action, /\.eq\("phone", candidatePhone\)/, "Deduplication must check each incoming phone against the saved primary phone");
 assert.match(action, /\.eq\("secondary_phone", candidatePhone\)/, "Deduplication must check each incoming phone against the saved secondary phone");
 assert.match(action, /for \(const candidatePhone of phoneCandidates\)/, "Deduplication must compare both incoming numbers across both saved phone fields");
@@ -34,19 +34,28 @@ assert.match(action, /\.eq\("display_name", displayName\)/, "Deduplication must 
 assert.match(action, /\.eq\("governorate", governorate\)/, "Name deduplication must include governorate");
 assert.match(action, /\.eq\("district", district\)/, "Name deduplication must include district");
 
-assert.match(action, /sourcePermissionEvidenceId/, "Each import row must reference an approved permission evidence record");
-assert.match(action, /isCurrentDoctorRepublicationEvidence\(approvedEvidence, sourceUrl, sourceName\)/, "Import must call the tested source-evidence validator");
-assert.match(importContract, /evidence.status === "APPROVED"/, "Only approved evidence may be used");
-assert.match(importContract, /!evidence.revoked_at/, "Revoked evidence must be rejected");
-assert.match(importContract, /expiresAt > currentTime/, "Expired evidence must be rejected");
-assert.match(importContract, /sourceHost === evidence.source_host/, "Source host must match approved evidence");
-assert.match(importContract, /allows_doctor_profile_republication === true/, "Doctor republication scope must be true");
-assert.match(importContract, /allows_commercial_republication === true/, "Commercial republication scope must be true");
+assert.doesNotMatch(action, /sourcePermissionEvidenceId|isCurrentDoctorRepublicationEvidence|directory_source_permission_evidence/, "Draft ingestion must not require a per-row permission evidence record");
+assert.doesNotMatch(action, /SOURCE_PERMISSION_EVIDENCE_NOT_FOUND|SOURCE_PERMISSION_EVIDENCE_SCOPE_MISMATCH/, "Draft ingestion must not reject a row for missing permission evidence");
+assert.match(action, /source_name: sourceName/, "Imported records must retain source attribution");
+assert.match(action, /source_url: sourceUrl/, "Imported records must retain source URL");
+assert.match(action, /source_status: "UNVERIFIED_IMPORTED_DATA"/, "Imported doctors must remain explicitly unverified");
+assert.match(action, /requestedStatus === "PUBLISHED" \? "DRAFT" : importStatus\.listingStatus/, "Batch import must stage public requests as drafts");
+assert.match(action, /hasRequestedStatus && requestedStatus !== "PUBLISHED"/, "Batch import must not apply a public request to existing records");
 assert.match(action, /resolveDoctorImportStatus\(row, hasPhone\)/, "Import must call tested publication-state validation");
 assert.match(importContract, /PHONE_REQUIRED_FOR_PUBLICATION/, "Publication without a phone must be rejected when explicitly requested");
 assert.match(importContract, /requestedStatus === "PUBLISHED" && !hasPhone \? "DRAFT" : requestedStatus/, "Explicit HIDDEN status must not be downgraded to DRAFT when phone is absent");
 assert.match(action, /sanitizeDoctorImportMetadata\(row.metadata\)/, "Import must sanitize caller metadata");
-assert.match(action, /directory_source_permission_evidence/, "Import must validate against the private evidence registry");
+assert.doesNotMatch(action, /directory_source_permission_evidence/, "Batch import must remain independent from the private evidence registry");
+const publicationAction = edge.slice(upsertStart);
+assert.match(publicationAction, /if \(\(listingType === "doctor" \|\| priorListing\?\.listing_type === "doctor"\) && listingStatus === "PUBLISHED"\)/, "Public doctor publication and doctor-to-other-type publication must use the separate evidence gate");
+assert.match(publicationAction, /directory_source_permission_evidence/, "Public doctor publication must consult the private source-permission registry");
+assert.match(publicationAction, /\.eq\("status", "APPROVED"\)/, "Only approved source evidence may authorize publication");
+assert.match(publicationAction, /isCurrentDoctorRepublicationEvidence/, "Publication must validate source, scope, expiry and revocation");
+assert.match(publicationAction, /DOCTOR_REPUBLICATION_PERMISSION_REQUIRED/, "Public doctor publication without current evidence must fail closed");
+assert.match(publicationAction, /select\("listing_type,listing_status,source_name,source_url"\)/, "Existing listing type must be checked before the legacy published-doctor exception");
+assert.match(publicationAction, /if \(listingStatus === "PUBLISHED" && id\)/, "Prior listing type and source must be read for every published update");
+assert.match(publicationAction, /if \(\(listingType === "doctor" \|\| priorListing\?\.listing_type === "doctor"\) && listingStatus === "PUBLISHED"\)/, "Changing a published doctor to another public type must not bypass source permission");
+assert.match(publicationAction, /const isAlreadyPublishedWithSameSource = listingType === "doctor" && priorListing\?\.listing_type === "doctor" && priorListing\?\.listing_status === "PUBLISHED"/, "Only an unchanged, already published doctor may use the source-preserving edit exception");
 assert.match(edge, /allowsDoctorProfileRepublication === true/, "Evidence registration must require explicit doctor profile republication scope");
 assert.match(edge, /allowsCommercialRepublication === true/, "Evidence registration must require explicit commercial republication scope");
 assert.match(edge, /allows_doctor_profile_republication: allowsDoctorProfileRepublication/, "Doctor profile scope must be stored from explicit input");
@@ -64,7 +73,10 @@ assert.match(action, /rawSecondaryPhone\.replace\(\/\\D\/g, ""\)\.length >= 7/, 
 
 assert.match(action, /if \(!row\.slug\) delete patch\.slug/, "Existing slug must survive imports that omit a new slug");
 assert.match(action, /if \(!row\.sourceCheckedAt && !row\.source_checked_at\) delete patch\.source_checked_at/, "Source checked date must not be refreshed without a new observation date");
-assert.match(action, /if \(!hasRequestedStatus\) delete patch\.listing_status/, "Existing DRAFT/HIDDEN/PUBLISHED status must be preserved unless explicitly changed");
+assert.match(action, /if \(!canApplyRequestedStatus\) delete patch\.listing_status/, "Existing status must be preserved unless a non-public batch status is explicitly requested");
+assert.match(action, /existing\.listing_status === "PUBLISHED"[\s\S]{0,320}PUBLISHED_SOURCE_CHANGE_REQUIRES_REVIEWED_PUBLICATION/, "Batch ingestion must reject source attribution changes on already published doctor records");
+assert.match(action, /source_name,source_url,metadata/, "Deduplication lookup must load existing source attribution before updating a listing");
+assert.match(action, /preservePublishedVerification \? \{\} : \{[\s\S]{0,260}source_phone_verified: false/, "Updates to already published doctor profiles must not downgrade existing verification metadata");
 assert.match(action, /"updated_" \+ String\(saved\.data\.listing_status\)\.toLowerCase\(\)/, "Update result must preserve the actual saved status label");
 assert.match(action, /"inserted_" \+ String\(saved\.data\.listing_status\)\.toLowerCase\(\)/, "Insert result must preserve the actual saved status label");
 assert.match(action, /delete patch\.claim_status/, "Import must not reset claim/ownership state");
@@ -76,12 +88,15 @@ assert.match(action, /owner_confirmation_required: true/, "New imports must requ
 
 assert.match(frontend, /export async function importDoctorDirectoryBatch/, "Authenticated frontend importer must exist");
 assert.match(frontend, /rows\.length > 20/, "Frontend must enforce the same batch maximum");
-assert.match(frontend, /sourcePermissionEvidenceId: string/, "Typed import row must require a permission evidence ID");
+assert.doesNotMatch(frontend, /sourcePermissionEvidenceId/, "Typed import row must not require a per-record evidence ID");
+assert.match(frontend, /sourceUrl: string/, "Typed import row must retain source attribution");
 assert.doesNotMatch(frontend, /sourcePermissionStatus:/, "Free-text permission declarations must not authorize imports");
 assert.match(frontend, /ADMIN_REGISTER_SOURCE_PERMISSION_EVIDENCE/, "Admin UI must be able to register permission evidence");
 assert.match(frontend, /ADMIN_APPROVE_SOURCE_PERMISSION_EVIDENCE/, "Admin UI must support second-person approval");
 assert.match(admin, /importDoctorDirectoryBatch\(rows\)/, "Admin screen must call the incremental batch importer");
 assert.match(admin, /استيراد دفعة أطباء/, "Admin screen must expose the batch import panel");
+assert.match(admin, /لا يُطلب معرّف إذن منفصل لكل سجل/, "Admin UI must explain that batch import is draft staging");
+assert.match(admin, /نشر ملف الطبيب يتطلب مصدرًا واضحًا/, "Admin UI must explain the separate public publication gate");
 
 assert.match(evidenceMigration, /create table if not exists public\.directory_source_permission_evidence/, "Private source permission evidence table must exist");
 assert.match(evidenceMigration, /enable row level security/i, "Evidence registry must enable RLS");
@@ -92,4 +107,4 @@ assert.match(evidenceMigration, /approved_by <> created_by/, "Database must enfo
 assert.match(evidenceMigration, /status in \('PENDING',\s*'APPROVED',\s*'REVOKED'\)/, "Evidence status must be constrained");
 
 console.log("DOCTOR_INCREMENTAL_IMPORT_CONTRACT=PASS");
-console.log("checks=platform_admin,20_row_cap,sequential_persistence,deduplication,approved_source_evidence,two_person_approval,source_scope,expiry_revocation,valid_source_url,phone_gate,state_preservation,ownership_preservation,verification_protection,admin_ui,private_rls_registry");
+console.log("checks=platform_admin,20_row_cap,sequential_persistence,deduplication,draft_only_import,source_attribution,unverified_status,separate_publication_gate,two_person_approval,source_scope,expiry_revocation,valid_source_url,phone_gate,state_preservation,ownership_preservation,verification_protection,admin_ui,private_rls_registry");
