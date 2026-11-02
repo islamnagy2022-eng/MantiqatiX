@@ -441,17 +441,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const requestedManagedId = requestedView === 'super_admin' || requestedView === 'merchant_admin'
         ? params.get('manage') || ''
         : '';
-      routeBusinessIdRef.current = requestedManagedId;
-      setSelectedBusinessIdState(requestedManagedId);
-      setCurrentViewState(
-        requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'directory'
+      const requestedManagedBusiness = businesses.find((business) => business.id === requestedManagedId);
+      const managedBusinessAllowed = authSession.role === 'admin'
+        ? Boolean(requestedManagedBusiness)
+        : Boolean(authSession.businessId && authSession.businessId === requestedManagedId);
+      const restoredView: ViewMode =
+        requestedView === 'marketplace_home' || requestedView === 'contact_us' || requestedView === 'site_map' || requestedView === 'directory'
           ? requestedView
-          : 'directory'
-      );
+          : requestedView === 'super_admin' && authSession.role === 'admin'
+            ? 'super_admin'
+            : requestedView === 'merchant_admin' && canAccessMerchantDashboard(authSession) && managedBusinessAllowed
+              ? 'merchant_admin'
+              : requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(authSession)
+                ? 'professional_dashboard'
+                : 'directory';
+      const safeManagedId = restoredView === 'super_admin' || restoredView === 'merchant_admin'
+        ? requestedManagedId
+        : '';
+      routeBusinessIdRef.current = safeManagedId;
+      setSelectedBusinessIdState(safeManagedId);
+      setCurrentViewState(restoredView);
     };
     window.addEventListener('popstate', restoreRouteFromLocation);
     return () => window.removeEventListener('popstate', restoreRouteFromLocation);
-  }, [businesses]);
+  }, [businesses, authSession]);
 
   const loginWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
     try {
