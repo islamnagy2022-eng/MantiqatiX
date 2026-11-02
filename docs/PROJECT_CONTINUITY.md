@@ -1,23 +1,30 @@
-# CURRENT HANDOFF — 2026-11-02 11:25 UTC
+# CURRENT HANDOFF — 2026-11-02 15:25 UTC
 
 This checkpoint supersedes the older dated handoff below; historical entries are retained.
 
-- Current main: `25d486c592d6ed9b057f8ef179fbbeae1fc79ba5` (PR #650 merged). Scoped deployment [41433049776](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41433049776) and main validation [41433049782](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41433049782) passed.
-- Live Supabase inventory: 309 migration rows through `20261101140105`; exact comparison against 42 required release versions remains 0/42. Missing version identity is not proof all corresponding effects are absent.
-- Security Advisor: 9 RLS-enabled/no-policy tables; 3 anon-executable and 67 authenticated-executable SECURITY DEFINER functions; Leaked Password Protection disabled; anonymous-sign-in warning present.
-- Performance Advisor: 132 unindexed FKs, 375 RLS initialization-plan findings, 75 unused indexes, 28 multiple-permissive-policy findings.
-- Six critical Edge entrypoints differ from main: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4 and financial-journal v3. Do not deploy individually.
-- Latest full verifier snapshot: 32/60 selected physical-object checks non-PASS; RC449A/RC450 journal prerequisites absent; payment/finance E2E, backup/restore/RPO/RTO, Auth and adversarial tenant-isolation evidence remain NOT VERIFIED.
-- Overall `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. No production mutation was performed.
+- Current `main`: `10b8733b5b0616ee69d2e0cf963d2e904e53fb6d` (PR #659 merged).
+- Catalog PRs merged and deployed:
+  - #654 — Marketplace Home is the canonical root; directory/search remains a separate reload-safe `?view=directory` route.
+  - #655 — doctor batch-import source now stages unverified draft records without a per-row permission UUID; new public doctor publication and source changes require the separate current source-permission gate. **The `directory-listings` Edge Function source has not been deployed to Supabase Production.**
+  - #656 — secondary screens are lazy-loaded; Marketplace Home and directory remain in the initial path.
+  - #657 — accessible HTML loading shell, one shared in-flight public-directory request, and platform-admin settings load concurrent with catalog hydration.
+  - #659 — three activity cards per row on mobile; compact stacked cards at phone widths and responsive desktop layout.
+- Main exact-head validation: Primary Catalog Frontend Validation [41470234602](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41470234602) PASS (build, employee RBAC PostgreSQL, browser E2E). Browser result includes `canonical-activity-code-precedence-and-three-column-mobile-grid`.
+- GitHub Pages deployment and deployed-origin browser E2E: [41470234652](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41470234652) PASS. The deployed browser result also includes `canonical-activity-code-precedence-and-three-column-mobile-grid`, dashboard/membership scope, mobile layout, and permanent QR-link checks.
+- Production Health Monitor [41470234682](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41470234682) PASS. Supporting backend, MantiGO privacy, module professionalization and SMM contract validations passed.
+- Superseded PRs closed after confirming their useful changes are present or selectively ported: #609, #619, #627, #629, #644. PR #618 remains open for separate membership-context switching; cross-membership switching must remain disabled until the exact membership-scoped backend contract is independently tested and deployed.
+- Performance work is source/CI/deployed-origin verified, but no numeric LCP/INP/CLS improvement is claimed; no controlled performance measurement was run.
+- Doctor source/import rules: no new doctor rows were inserted. The #655 Edge Function source change is merged in GitHub only; until a separately reviewed deployment, the Production importer remains at its existing deployed version.
+- No production database migration, data insert/update, RLS/ACL/Auth change, Edge deployment, payment/finance mutation, or provider call was performed in this continuation.
+- The global `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged. The 2026-11-02 read-only Production evidence snapshot still records 309 migration rows through `20261101140105`, 0/42 exact release-version IDs, 32/60 selected object checks non-PASS, six critical Edge mismatches, and open RC449A/RC450, payment/finance, backup/restore, Auth and tenant-isolation evidence.
 - Evidence report: [PRODUCTION_GATE_EVIDENCE_20261102.md](./audits/PRODUCTION_GATE_EVIDENCE_20261102.md).
 
 ## Next safe sequence
-1. Refresh selected 60-object/function/ACL preflight against current live schema.
-2. Build a restorable, schema-faithful isolated Production snapshot; rehearse chronological migration replay and rollback.
-3. Review RC463 and exposed SECURITY DEFINER functions individually; preserve intentional public-ad discovery contract.
-4. Resolve RC449A → RC450 prerequisites before journal Edge deployment.
-5. Complete Paymob sandbox, finance, tenant-isolation, Auth, backup/restore, monitoring, RPO/RTO and device evidence.
-6. Keep full platform gate blocked until every independent gate passes and full rollout is explicitly authorized.
+1. Keep the three-column mobile layout and deferred-screen behavior under normal regression monitoring; measure LCP/INP/CLS on controlled devices before making performance claims.
+2. For doctor imports, rehearse the merged `directory-listings` Edge Function in an isolated environment, including draft-only batch, 20-row cap, duplicate handling, source attribution immutability for published records, and positive/negative publication-gate tests. Deploy only through a reviewed Edge release with the corresponding current backend evidence; do not insert real doctor rows until the source/owner-consent gate is satisfied.
+3. Review PR #618 membership switching as a separate security task. Preserve the disabled state until exact-membership authorization is verified on a current Edge version and adversarial branch/tenant tests pass.
+4. Continue the dependency-ordered production work: restorable current-schema snapshot, migration reconciliation/replay/rollback, RC463 ACL rehearsal, RC449A/RC450 journal prerequisites, Paymob/finance E2E, Auth, tenant isolation, backup/restore/RPO/RTO.
+5. Keep full platform gate blocked until every independent release gate passes and the complete rollout is explicitly authorized.
 
 ---
 # MantiqatiX — Project Continuity & Production Handoff

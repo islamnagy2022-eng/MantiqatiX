@@ -1,3 +1,31 @@
+## CAT-ROLLOUT-20261102 — Catalog root, performance loading, mobile activity grid and doctor draft-import boundary
+**Date:** 2026-11-02  
+**Status:** UI changes COMPLETE and deployed; doctor-import Edge Function source merged but NOT deployed to Production; global platform release remains BLOCKED.  
+**Request ledger:** Issue #599 (continuation comments 6572488271, 6580892035).  
+**Main:** `10b8733b5b0616ee69d2e0cf963d2e904e53fb6d`.
+
+### Implemented and verified
+- [x] Marketplace Home is the canonical root; directory/search is a separate `?view=directory` route with direct activity links and browser-history support (PR #654).
+- [x] Lazy-load secondary storefront/dashboard/medical/contact/map/cart/login/account screens while keeping Marketplace Home and DirectoryView in the first-load path (PR #656).
+- [x] Show an accessible HTML loading shell, coalesce concurrent public-directory reads, and overlap platform settings with authorized catalog hydration (PR #657).
+- [x] Show three activity cards per row at a 390px phone viewport with compact stacked cards; larger screens retain horizontal card layout and responsive columns (PR #659).
+- [x] Exact main validation: [Primary Catalog Frontend Validation 41470234602](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41470234602) PASS, including Playwright state `canonical-activity-code-precedence-and-three-column-mobile-grid`.
+- [x] Deployed-origin validation: [GitHub Pages deployment 41470234652](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41470234652) PASS, including the same three-column mobile test, directory/history, dashboard/membership scopes, responsive layout and permanent QR links.
+- [x] Production Health Monitor [41470234682](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41470234682) PASS; supporting backend, privacy, payment atomicity, module and SMM contracts passed.
+- [x] Closed stale duplicates after porting their useful code or confirming current-main parity: #609, #619, #627, #629, #644.
+
+### Doctor import safety boundary
+- [x] PR #655 merged the separate draft-ingestion/public-publication contract: batch import no longer asks for a permission UUID per row; imported records retain source attribution and remain unverified/draft; no batch operation can publish; source attribution on already published doctor records cannot be changed through the batch path; publication remains behind current permission evidence and second-person review.
+- [ ] Rehearse `supabase/functions/directory-listings/index.ts` in isolated Edge/PostgreSQL fixtures: 1–20 rows, duplicate detection, source URL/date, no per-row permission UUID for draft staging, source immutability on published rows, and rejection of public status requests.
+- [ ] Rehearse the separate publication gate: exact host/name scope, approved status, current validity, no revocation, doctor republication permission, commercial-republication permission and two-person approval.
+- [ ] Deploy the Edge Function only through a separately reviewed release after all rehearsal checks pass. **No Edge deployment was performed by PR #655.**
+- [ ] Do not add real doctor data until a written licence, applicable commercial open licence, or direct doctor/clinic-owner consent is recorded and approved.
+
+### Explicit non-claims / global gate
+- [x] No LCP/INP/CLS numbers are claimed; lazy loading and request coalescing were build/browser verified but not measured in a controlled performance study.
+- [x] No Production DB/migration/data/RLS/ACL/Auth/Edge/payment/finance mutation occurred in this continuation.
+- [ ] `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains open: 0/42 exact migration IDs in the inspected ledger, 32/60 selected object checks non-PASS, six critical Edge mismatches, RC449A/RC450 prerequisites, payment/finance, Auth, backup/restore and tenant-isolation evidence remain unresolved.
+
 ## 2026-11-02 — Current live Production read-only checkpoint
 
 - Main commit `25d486c592d6ed9b057f8ef179fbbeae1fc79ba5`; PR #650 merged. Scoped Pages deployment [41433049776](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41433049776) and main validation [41433049782](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41433049782) passed.

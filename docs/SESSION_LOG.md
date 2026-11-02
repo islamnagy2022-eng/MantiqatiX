@@ -1841,3 +1841,24 @@ A separate source review found a second platform-root authorization model: the n
 - Latest full verifier snapshot: 32/60 selected physical-object checks non-PASS; RC449A/RC450 journal prerequisites absent; payment/finance E2E, backup/restore/RPO/RTO, Auth hardening and full tenant E2E remain NOT VERIFIED. `FULL_PLATFORM_GATE=BLOCKED`.
 - No Production DDL/DML, migrations, grants, Auth/RLS settings, Edge deployments, provider calls or financial mutations.
 - Detailed report: `docs/audits/PRODUCTION_GATE_EVIDENCE_20261102.md`.
+
+
+## 2026-11-02 — Catalog rollout, doctor import boundary and responsive directory completion
+
+- Main began this continuation at the 2026-11-02 catalog checkpoint; final main after the UI work is `10b8733b5b0616ee69d2e0cf963d2e904e53fb6d`.
+- Merged PR #654: canonical Marketplace Home root with a separate reload-safe directory/search route. Pages/deployed-origin route, membership, mobile and QR checks passed after deployment.
+- Merged PR #655: batch doctor import is draft-only and no longer requires a per-record permission UUID. New public doctor publication/source changes remain gated by approved, current, scoped source evidence and second-person approval. The changed `directory-listings` Edge Function was **not deployed** to Supabase Production; no doctor rows were inserted.
+- Merged PR #656: secondary React screens are deferred to on-demand chunks; the home and directory are kept in the initial path.
+- Merged PR #657: accessible HTML loading shell, coalesced in-flight public-directory request and concurrent platform-admin settings read.
+- Merged PR #659: three activity cards per row at mobile 390px. Compact stacked cards at phone widths; larger screens retain responsive horizontal cards.
+- Exact main validation [41470234602](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41470234602) PASS; browser log includes `canonical-activity-code-precedence-and-three-column-mobile-grid`.
+- Pages deployment plus deployed-origin E2E [41470234652](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41470234652) PASS; deployed browser output includes the same three-column test and retains dashboard, membership, GPS, permanent QR and direct-route checks.
+- Production Health Monitor [41470234682](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41470234682) PASS. Supporting backend, MantiGO privacy, module professionalization, SMM, RC425 and flexible commission validations passed.
+- Closed superseded/duplicated PRs #609, #619, #627, #629 and #644 after confirming current-main parity or porting the needed piece to #659. PR #618 remains open for separate membership switching; do not enable switching until exact-membership backend authorization is tested and deployed.
+- Performance changes are verified for build and browser behavior, but no numerical LCP/INP/CLS improvement is claimed.
+- No Production migration/DDL/DML, data mutation, RLS/ACL/Auth change, Edge deployment, provider call, payment or finance mutation occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+### Next ordered actions
+1. Rehearse PR #655's directory-listings Edge source in an isolated environment and deploy only through a separately reviewed release.
+2. Review PR #618 membership-mode switching with adversarial exact membership/tenant/branch tests; keep disabled until production Edge parity exists.
+3. Continue current-schema restore/migration reconciliation, RC463 ACL, RC449A/RC450, Paymob/finance, Auth, tenant-isolation and backup/restore evidence.
