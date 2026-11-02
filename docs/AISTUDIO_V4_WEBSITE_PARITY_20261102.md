@@ -57,6 +57,13 @@ These are present on current website `main` but are not equivalent capabilities 
 13. **Category-aware image fallbacks:** current default image resolver for product/service/activity visuals.
 14. **Fail-closed route and role guards:** direct public storefront links remain isolated; guests cannot access owner/admin dashboards or generic private store views.
 
+## Ported contact and sitemap screens — safe website behavior
+
+- Added `ContactUsView.tsx` and public route `?view=contact_us`. It collects the user's message in page state, then prepares a WhatsApp deep link to the real configured platform admin number. It explicitly tells the visitor that this page does **not** persist the message inside MantiqatiX. It does not claim inbox delivery or create a hidden local message record.
+- Added `SiteMapView.tsx` and public route `?view=site_map`. It lists only actual current website screens and includes owner/admin screens only when the authenticated session has the matching current permission. It does not invent future modules or claim a configured percentage-complete status.
+- Added footer navigation links to Contact and Site Map.
+- Member-to-member messaging page is intentionally **not** ported yet. The AI Studio prototype stores messages in local AppContext/localStorage; current website needs a durable authorized server API with recipient privacy, inbox, audit, and read/write boundaries before this can be a real messaging feature.
+
 ## Prototype-only data, code and claims excluded from production
 
 - `src/data/seedData.ts` includes 32 `INITIAL_BUSINESSES` fixtures and other sample accounts/products. Do not import or publish these records.
@@ -77,7 +84,7 @@ These are present on current website `main` but are not equivalent capabilities 
 ## Exact differences requiring implementation or contract review
 
 ### Reference features not found as equivalent in current main
-- Dedicated public contact page, member-to-member messages page and sitemap route.
+- Dedicated public contact page, member-to-member messages page and sitemap route (contact and sitemap have now been ported safely; messages remains deferred pending durable backend contracts).
 - Explicit owner-dashboard tabs for **finance** and **custom links** (the website has adjacent reporting/profile features but not proven screen/contract parity).
 - Reference-specific medical directory screen (its domain is present in the unified directory; its separate page is not mounted).
 - Reference-specific ad request, wallet, marketing-service, sector-development and AI Studio modal UX (must be reconciled with current secure server contracts, not copied wholesale).
