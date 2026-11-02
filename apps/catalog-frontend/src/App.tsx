@@ -15,17 +15,16 @@ import { MessageCircle } from 'lucide-react';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from './utils/dashboardAccess';
 
 const MainContent: React.FC = () => {
-  const { currentView, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp, authSession, authLoading } = useApp();
+  const { currentView, setCurrentView, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp, authSession, authLoading } = useApp();
   const params = new URLSearchParams(window.location.search);
   const hasDirectPublicCatalogLink = params.has('store') || params.has('businessId');
   const catalogRequestUrl = requestCatalogViaAdminWhatsApp(currentBusiness);
-  const useFooterNavigate = (view: 'contact_us' | 'site_map') => setFooterView(view);
-  const { setCurrentView: setFooterView } = useApp();
+  const useFooterNavigate = (view: 'contact_us' | 'site_map') => setCurrentView(view);
 
   // Never expose a dashboard without a production role. Guests may view a
   // storefront only through its direct share link, never through a generic tab.
   const visibleView = authLoading
-    ? (currentView === 'public_storefront' && hasDirectPublicCatalogLink ? 'public_storefront' : 'directory')
+    ? (currentView === 'public_storefront' && hasDirectPublicCatalogLink ? 'public_storefront' : currentView === 'contact_us' || currentView === 'site_map' ? currentView : 'directory')
     : currentView === 'super_admin' && authSession.role !== 'admin'
       ? 'directory'
       : currentView === 'merchant_admin' &&
