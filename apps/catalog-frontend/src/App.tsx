@@ -7,6 +7,8 @@ import { MerchantDashboard } from './components/merchant/MerchantDashboard';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { ProfessionalDashboard } from './modules/dashboard/ProfessionalDashboard';
 import { DirectoryView } from './components/DirectoryView';
+import { ContactUsView } from './components/ContactUsView';
+import { SiteMapView } from './components/SiteMapView';
 import { CartDrawer } from './components/cart/CartDrawer';
 import { LoginModal } from './components/auth/LoginModal';
 import { MessageCircle } from 'lucide-react';
@@ -17,6 +19,8 @@ const MainContent: React.FC = () => {
   const params = new URLSearchParams(window.location.search);
   const hasDirectPublicCatalogLink = params.has('store') || params.has('businessId');
   const catalogRequestUrl = requestCatalogViaAdminWhatsApp(currentBusiness);
+  const useFooterNavigate = (view: 'contact_us' | 'site_map') => setFooterView(view);
+  const { setCurrentView: setFooterView } = useApp();
 
   // Never expose a dashboard without a production role. Guests may view a
   // storefront only through its direct share link, never through a generic tab.
@@ -61,6 +65,10 @@ const MainContent: React.FC = () => {
         {visibleView === 'super_admin' && <AdminDashboard />}
 
         {visibleView === 'professional_dashboard' && <ProfessionalDashboard />}
+
+        {visibleView === 'contact_us' && <ContactUsView />}
+
+        {visibleView === 'site_map' && <SiteMapView />}
       </main>
 
       <CartDrawer />
@@ -79,6 +87,10 @@ const MainContent: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-4 flex-wrap justify-center">
+              <button type="button" onClick={() => useFooterNavigate('site_map')} className="font-bold text-slate-600 hover:text-emerald-700">خريطة الموقع</button>
+              <span>•</span>
+              <button type="button" onClick={() => useFooterNavigate('contact_us')} className="font-bold text-slate-600 hover:text-emerald-700">تواصل معنا</button>
+              <span>•</span>
               <span>حد المنتجات: 150 منتج/خدمة لكل مشترك</span>
               <span>•</span>
               <span>العملة: الجنيه المصري ({adminSettings.currency || 'ج.م'})</span>
