@@ -53,7 +53,9 @@ assert.match(publicationAction, /\.eq\("status", "APPROVED"\)/, "Only approved s
 assert.match(publicationAction, /isCurrentDoctorRepublicationEvidence/, "Publication must validate source, scope, expiry and revocation");
 assert.match(publicationAction, /DOCTOR_REPUBLICATION_PERMISSION_REQUIRED/, "Public doctor publication without current evidence must fail closed");
 assert.match(publicationAction, /select\("listing_type,listing_status,source_name,source_url"\)/, "Existing listing type must be checked before the legacy published-doctor exception");
-assert.match(publicationAction, /priorListing\?\.listing_type === "doctor" && priorListing\?\.listing_status === "PUBLISHED"/, "Only an already published doctor may use the unchanged-source edit exception");
+assert.match(publicationAction, /if \(listingStatus === "PUBLISHED" && id\)/, "Prior listing type and source must be read for every published update");
+assert.match(publicationAction, /if \(\(listingType === "doctor" \|\| priorListing\?\.listing_type === "doctor"\) && listingStatus === "PUBLISHED"\)/, "Changing a published doctor to another public type must not bypass source permission");
+assert.match(publicationAction, /const isAlreadyPublishedWithSameSource = listingType === "doctor" && priorListing\?\.listing_type === "doctor" && priorListing\?\.listing_status === "PUBLISHED"/, "Only an unchanged, already published doctor may use the source-preserving edit exception");
 assert.match(edge, /allowsDoctorProfileRepublication === true/, "Evidence registration must require explicit doctor profile republication scope");
 assert.match(edge, /allowsCommercialRepublication === true/, "Evidence registration must require explicit commercial republication scope");
 assert.match(edge, /allows_doctor_profile_republication: allowsDoctorProfileRepublication/, "Doctor profile scope must be stored from explicit input");
