@@ -1,8 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import {
-  ArrowRight, BadgeCheck, Building2, ChevronLeft, Clock3, ExternalLink,
-  HeartPulse, MapPin, Navigation, Phone, Pill, Search, ShieldCheck,
-  Stethoscope, TestTube2,
+  ArrowRight, BadgeCheck, ChevronLeft, Clock3, ExternalLink,
+  HeartPulse, MapPin, Navigation, Phone, Search, Stethoscope,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Business } from '../types';
@@ -129,6 +128,7 @@ export const MedicalDirectoryView: React.FC = () => {
   const [selectedType, setSelectedType] = useState<MedicalType>('all');
   const [governorate, setGovernorate] = useState('all');
   const [markaz, setMarkaz] = useState('all');
+  const [village, setVillage] = useState('all');
   const [visibleCount, setVisibleCount] = useState(20);
   const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [locationBusy, setLocationBusy] = useState(false);
@@ -151,6 +151,11 @@ export const MedicalDirectoryView: React.FC = () => {
       .filter((business) => governorate === 'all' || business.governorate === governorate)
       .map((business) => business.markaz).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ar')),
   [medicalBusinesses, governorate]);
+  const villageOptions = useMemo(() =>
+    Array.from(new Set(medicalBusinesses
+      .filter((business) => (governorate === 'all' || business.governorate === governorate) && (markaz === 'all' || business.markaz === markaz))
+      .map((business) => business.village).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ar')),
+  [medicalBusinesses, governorate, markaz]);
 
   const results = useMemo(() => {
     const normalizedQuery = normalizeArabic(query);
@@ -158,6 +163,7 @@ export const MedicalDirectoryView: React.FC = () => {
       if (!matchesMedicalType(business, selectedType)) return false;
       if (governorate !== 'all' && business.governorate !== governorate) return false;
       if (markaz !== 'all' && business.markaz !== markaz) return false;
+      if (village !== 'all' && business.village !== village) return false;
       if (selectedSpecialty !== 'all' && normalizeArabic(business.activitySpecialty || '') !== normalizeArabic(selectedSpecialty)) return false;
       if (normalizedQuery) {
         const searchable = normalizeArabic([
@@ -187,7 +193,7 @@ export const MedicalDirectoryView: React.FC = () => {
       if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
       return a.name.localeCompare(b.name, 'ar');
     });
-  }, [medicalBusinesses, query, selectedType, governorate, markaz, selectedSpecialty, userLocation]);
+  }, [medicalBusinesses, query, selectedType, governorate, markaz, village, selectedSpecialty, userLocation]);
 
   const handleLocationRequest = () => {
     if (!navigator.geolocation || !window.isSecureContext) {
@@ -245,7 +251,7 @@ export const MedicalDirectoryView: React.FC = () => {
         </div>
       </section>
 
-      <section className="grid gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-2 lg:grid-cols-6">
         <label className="block text-xs font-bold text-slate-700 lg:col-span-2">
           ابحث باسم النشاط أو التخصص أو الخدمة
           <span className="relative mt-1.5 block">
@@ -284,8 +290,15 @@ export const MedicalDirectoryView: React.FC = () => {
             {markazOptions.map((value) => <option key={value} value={value}>{value}</option>)}
           </select>
         </label>
+        <label className="block text-xs font-bold text-slate-700">
+          القرية / الحي
+          <select value={village} onChange={(event) => { setVillage(event.target.value); setVisibleCount(20); }} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm">
+            <option value="all">كل القرى والأحياء</option>
+            {villageOptions.map((value) => <option key={value} value={value}>{value}</option>)}
+          </select>
+        </label>
         <div className="flex items-end lg:col-span-2">
-          <button type="button" onClick={() => { setQuery(''); setSelectedType('all'); setSelectedSpecialty('all'); setGovernorate('all'); setMarkaz('all'); setVisibleCount(20); }} className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-black text-slate-700 hover:bg-slate-50">
+          <button type="button" onClick={() => { setQuery(''); setSelectedType('all'); setSelectedSpecialty('all'); setGovernorate('all'); setMarkaz('all'); setVillage('all'); setVisibleCount(20); }} className="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-black text-slate-700 hover:bg-slate-50">
             إعادة ضبط البحث والفلاتر
           </button>
         </div>
