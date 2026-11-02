@@ -22,7 +22,7 @@
 | PR | Current disposition |
 |---|---|
 | #652 | This continuation checkpoint and live ACL/Edge evidence note; documentation only. |
-| #648 | Regression-only coverage for canonical activity precedence and eight-column mobile grid. Its exact-head workflow runs passed, but its branch is now 2 commits ahead and 2 behind main. Do not merge the diverged head directly; port/rebase the test-only changes onto current main and rerun exact-head CI. |
+| #648 | Closed as superseded. The canonical pharmacy-precedence + eight-column mobile browser regression is already present on main in its later adapted form; the static taxonomy validator is byte-identical to main. No test coverage was removed. |
 | #647 | Marketplace Home + separate search conflicts with keeping AI Studio V4 directory as default entry. Optional addition; requires owner choice and a reconciled navigation decision before merge. |
 | #646 | Subscriber portal candidate. Do not merge as-is if it removes current merchant/professional/Super Admin navigation. Port additively; keep cross-membership switching disabled until backend parity. |
 | #645 | Doctor batch staging change. Doctor expansion is paused by owner instruction; leave untouched until reprioritized. |
@@ -30,7 +30,7 @@
 | #609 | First-paint/perf branch is behind/diverged and non-mergeable. Rebase/port only after diff and exact-head validation; real user performance measures remain unverified. |
 
 ## Next execution sequence
-1. Port PR #648's test-only regression onto current main, preserving eight-column activity grid and canonical taxonomy precedence; rerun browser E2E at the exact new head before merge.
+1. PR #648 is now closed as superseded by the current-main regression already covered by PR #650's later exact-head checks; no duplicate cherry-pick is needed.
 2. Continue screen-by-screen V4 parity against deployed main. Preserve current production activities and do not import archive demo/localStorage/server-memory data.
 3. Review existing isolated candidate PRs for RC463 / RC449A / RC450 and their dependencies. A focused PostgreSQL fixture passing is not a Production rollout approval.
 4. Resolve current-main support/ERP/medical/sector access-path mismatches through server-side contracts and isolated authorization tests; do not blanket-grant table privileges.
