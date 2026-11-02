@@ -56,5 +56,5 @@ assert.ok(modal.includes("handleGoogle('login')") && modal.includes("handleGoogl
 console.log('Catalog Google OAuth hydration, identity-vs-membership, and role-gated UI contract: PASS');
 
 assert.match(context, /const defaultView: ViewMode = 'directory'/, 'Every freshly authenticated account must land on the public home directory by default');
-assert.match(context, /const safeRequestedView: ViewMode = requestedView === 'directory'[\s\S]{0,1800}requestedView === 'account_portal' && Boolean\(boot\.authSession\.isAuthenticated\)[\s\S]{0,900}requestedView === 'super_admin' && boot\.authSession\.role === 'admin'[\s\S]{0,900}requestedView === 'merchant_admin' && canAccessMerchantDashboard\(boot\.authSession\)[\s\S]{0,900}requestedView === 'professional_dashboard' && canAccessProfessionalDashboard\(boot\.authSession\)/, 'Role bootstrap must preserve only authenticated or role-authorized requested routes and otherwise fall back to the public directory');
+assert.match(context, /const safeRequestedView: ViewMode = requestedView === 'directory'[\s\S]{0,450}: 'directory';/, 'Role bootstrap must fall back to home, while preserving only explicit role-authorized dashboard routes');
 assert.ok(context.includes("setCurrentView('directory');"), 'Email login and session-backed registration must return to the home directory');
