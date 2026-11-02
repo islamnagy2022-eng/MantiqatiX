@@ -8,6 +8,7 @@ import { AdminDashboard } from './components/admin/AdminDashboard';
 import { ProfessionalDashboard } from './modules/dashboard/ProfessionalDashboard';
 import { DirectoryView } from './components/DirectoryView';
 import { MarketplaceHome } from './components/MarketplaceHome';
+import { MedicalDirectoryView } from './components/MedicalDirectoryView';
 import { ContactUsView } from './components/ContactUsView';
 import { SiteMapView } from './components/SiteMapView';
 import { CartDrawer } from './components/cart/CartDrawer';
@@ -25,7 +26,7 @@ const MainContent: React.FC = () => {
   // Never expose a dashboard without a production role. Guests may view a
   // storefront only through its direct share link, never through a generic tab.
   const visibleView = authLoading
-    ? (currentView === 'public_storefront' && hasDirectPublicCatalogLink ? 'public_storefront' : currentView === 'marketplace_home' || currentView === 'contact_us' || currentView === 'site_map' ? currentView : 'directory')
+    ? (currentView === 'public_storefront' && hasDirectPublicCatalogLink ? 'public_storefront' : currentView === 'medical_directory' || currentView === 'marketplace_home' || currentView === 'contact_us' || currentView === 'site_map' ? currentView : 'directory')
     : currentView === 'super_admin' && authSession.role !== 'admin'
       ? 'directory'
       : currentView === 'merchant_admin' &&
@@ -54,6 +55,8 @@ const MainContent: React.FC = () => {
         {visibleView === 'directory' && <DirectoryView />}
 
         {visibleView === 'marketplace_home' && <MarketplaceHome />}
+
+        {visibleView === 'medical_directory' && <MedicalDirectoryView />}
 
         {visibleView === 'public_storefront' && (
           <div>
