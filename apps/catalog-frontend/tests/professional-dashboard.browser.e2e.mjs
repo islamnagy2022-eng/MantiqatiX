@@ -1256,9 +1256,10 @@ try {
   {
     const { context, page } = await newScenario(browser, roles.businessOwner);
     try {
+      await waitForDashboard(page);
       await page.getByRole('button', { name: 'حسابي / اشتراكي', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
-      assert.ok(await page.getByRole('button', { name: /لوحة تحكم نشاطي|لوحة صاحب النشاط/ }).count() > 0, 'the merchant dashboard entry must remain available');
-      assert.ok(await page.getByRole('button', { name: 'الداشبورد الاحترافية', exact: true }).count() > 0, 'the professional dashboard entry must remain available');
+      await page.getByRole('button', { name: /لوحة تحكم نشاطي|لوحة صاحب النشاط/ }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByRole('button', { name: 'الداشبورد الاحترافية', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       await page.getByRole('button', { name: 'حسابي / اشتراكي', exact: true }).click();
       await page.getByRole('heading', { name: 'حسابي واشتراكاتي', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       await page.getByRole('button', { name: 'اشتراكاتي', exact: true }).click();
