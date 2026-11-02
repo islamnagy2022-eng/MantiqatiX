@@ -21,6 +21,9 @@ export const ContactUsView: React.FC = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [whatsappUrl, setWhatsappUrl] = useState('');
+  const adminDigits = String(adminSettings.adminWhatsApp || '').replace(/\\D/g, '');
+  const adminPhone = adminDigits.startsWith('0') ? '20' + adminDigits.slice(1) : adminDigits;
+  const directAdminWhatsAppUrl = adminPhone.length >= 10 ? 'https://wa.me/' + adminPhone : '';
 
   const buildWhatsAppUrl = () => {
     const digits = String(adminSettings.adminWhatsApp || '').replace(/\D/g, '');
@@ -134,8 +137,8 @@ export const ContactUsView: React.FC = () => {
         <aside className="space-y-4">
           <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2 text-slate-900"><ShieldCheck className="h-5 w-5 text-emerald-700" /><h2 className="font-black">التواصل المباشر</h2></div>
-            {adminSettings.adminWhatsApp ? (
-              <a href={buildWhatsAppUrl() || '#'} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-100">
+            {directAdminWhatsAppUrl ? (
+              <a href={directAdminWhatsAppUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-100">
                 <Phone className="h-4 w-4" /> واتساب الإدارة
               </a>
             ) : <p className="mt-3 text-xs text-slate-500">بيانات التواصل غير متاحة حاليًا.</p>}
