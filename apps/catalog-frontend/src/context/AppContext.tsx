@@ -129,7 +129,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const params = new URLSearchParams(window.location.search);
     if (params.has('store') || params.has('businessId')) return 'public_storefront';
     const requestedView = params.get('view');
-    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'medical_directory' || requestedView === 'medical_directory' || requestedView === 'marketplace_home' || requestedView === 'contact_us' || requestedView === 'site_map' || requestedView === 'directory'
+    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'medical_directory' || requestedView === 'marketplace_home' || requestedView === 'contact_us' || requestedView === 'site_map' || requestedView === 'directory'
       ? requestedView
       : 'directory';
   });
