@@ -1,5 +1,11 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import {
+  isCurrentDoctorRepublicationEvidence,
+  normalizeDirectorySourceHost,
+  resolveDoctorImportStatus,
+  sanitizeDoctorImportMetadata,
+} from "../../supabase/functions/directory-listings/doctor-import-contract.mjs";
 
 const edgePath = "supabase/functions/directory-listings/index.ts";
 const frontendPath = "apps/catalog-frontend/src/lib/directoryListings.ts";
@@ -106,5 +112,51 @@ assert.match(evidenceMigration, /grant all on table public\.directory_source_per
 assert.match(evidenceMigration, /approved_by <> created_by/, "Database must enforce two-person approval");
 assert.match(evidenceMigration, /status in \('PENDING',\s*'APPROVED',\s*'REVOKED'\)/, "Evidence status must be constrained");
 
+
+// Deterministic runtime tests for the pure import/publication contract.
+assert.equal(normalizeDirectorySourceHost("www.example.com"), "example.com");
+assert.equal(normalizeDirectorySourceHost("https://WWW.Example.com/"), "example.com");
+for (const unsafeHost of ["", "https://user@example.com", "https://example.com:8443", "https://example.com/path", "https://example.com/?q=1", "https://example.com/#fragment"]) {
+  assert.equal(normalizeDirectorySourceHost(unsafeHost), "", `Unsafe source host must be rejected: ${unsafeHost}`);
+}
+
+const fixedNow = new Date("2026-11-02T12:00:00.000Z");
+const validEvidence = {
+  status: "APPROVED",
+  revoked_at: null,
+  valid_from: "2026-11-01T00:00:00.000Z",
+  expires_at: "2026-12-01T00:00:00.000Z",
+  allows_doctor_profile_republication: true,
+  allows_commercial_republication: true,
+  source_host: "example.com",
+  source_name: "Example Medical Directory",
+};
+assert.equal(isCurrentDoctorRepublicationEvidence(validEvidence, "https://www.example.com/doctors", "example medical directory", fixedNow), true);
+assert.equal(isCurrentDoctorRepublicationEvidence({...validEvidence, status: "PENDING"}, "https://example.com/doctors", validEvidence.source_name, fixedNow), false);
+assert.equal(isCurrentDoctorRepublicationEvidence({...validEvidence, valid_from: "2026-11-03T00:00:00.000Z"}, "https://example.com/doctors", validEvidence.source_name, fixedNow), false);
+assert.equal(isCurrentDoctorRepublicationEvidence({...validEvidence, expires_at: "2026-11-02T11:59:59.999Z"}, "https://example.com/doctors", validEvidence.source_name, fixedNow), false);
+assert.equal(isCurrentDoctorRepublicationEvidence({...validEvidence, revoked_at: "2026-11-02T11:00:00.000Z"}, "https://example.com/doctors", validEvidence.source_name, fixedNow), false);
+assert.equal(isCurrentDoctorRepublicationEvidence({...validEvidence, allows_commercial_republication: false}, "https://example.com/doctors", validEvidence.source_name, fixedNow), false);
+assert.equal(isCurrentDoctorRepublicationEvidence({...validEvidence, source_host: "other.example"}, "https://example.com/doctors", validEvidence.source_name, fixedNow), false);
+assert.equal(isCurrentDoctorRepublicationEvidence(validEvidence, "javascript:alert(1)", validEvidence.source_name, fixedNow), false);
+
+assert.deepEqual(resolveDoctorImportStatus({}, true), {
+  valid: true, reason: null, hasRequestedStatus: false, requestedStatus: "PUBLISHED", listingStatus: "PUBLISHED",
+});
+assert.equal(resolveDoctorImportStatus({listingStatus: "PUBLISHED"}, false).reason, "PHONE_REQUIRED_FOR_PUBLICATION");
+assert.equal(resolveDoctorImportStatus({listingStatus: "HIDDEN"}, false).listingStatus, "HIDDEN");
+assert.equal(resolveDoctorImportStatus({listingStatus: "DRAFT"}, false).listingStatus, "DRAFT");
+assert.equal(resolveDoctorImportStatus({listingStatus: "PUBLIC"}, true).reason, "INVALID_LISTING_STATUS");
+
+const cleanedMetadata = sanitizeDoctorImportMetadata({
+  bio: "safe",
+  source_phone_verified: true,
+  owner_confirmed: true,
+  professional_registration_verified: true,
+  coordinates_status: "VERIFIED",
+});
+assert.deepEqual(cleanedMetadata, {bio: "safe"});
+
 console.log("DOCTOR_INCREMENTAL_IMPORT_CONTRACT=PASS");
+console.log("DOCTOR_IMPORT_RUNTIME_CASES=PASS");
 console.log("checks=platform_admin,20_row_cap,sequential_persistence,deduplication,draft_only_import,source_attribution,unverified_status,separate_publication_gate,two_person_approval,source_scope,expiry_revocation,valid_source_url,phone_gate,state_preservation,ownership_preservation,verification_protection,admin_ui,private_rls_registry");
