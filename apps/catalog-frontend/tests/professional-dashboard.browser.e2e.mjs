@@ -477,7 +477,10 @@ try {
       assert.equal(await page.getByRole('dialog').count(), 0, 'marketplace home must not request location separately from the directory');
       await page.getByTestId('home-search-button').click();
       await page.waitForFunction(() => !new URL(window.location.href).searchParams.has('view'));
-      results.push('additional-marketplace-home-route-and-directory-owned-location-consent');
+      await page.goBack();
+      await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(new URL(page.url()).searchParams.get('view'), 'marketplace_home', 'browser Back must restore the Marketplace screen');
+      results.push('additional-marketplace-home-route-history-and-directory-owned-location-consent');
     } finally { await context.close(); }
   }
 
@@ -492,7 +495,9 @@ try {
       assert.equal(new URL(page.url()).searchParams.get('view'), 'contact_us', 'contact page must retain a refreshable public route');
       await page.getByText(/لن يتم تخزين الرسالة داخل الموقع/).waitFor({ state: 'visible', timeout: 5000 });
       assert.equal(await page.getByRole('heading', { name: 'كل أقسام MantiqatiX في مكان واحد', exact: true }).count(), 0);
-      results.push('public-contact-and-site-map-routes-with-transparent-whatsapp-only-delivery');
+      await page.goBack();
+      await page.getByRole('heading', { name: 'كل أقسام MantiqatiX في مكان واحد', exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+      results.push('public-contact-and-site-map-route-history-with-transparent-whatsapp-only-delivery');
     } finally { await context.close(); }
   }
 
