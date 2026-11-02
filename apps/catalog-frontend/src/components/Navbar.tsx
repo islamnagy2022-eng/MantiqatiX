@@ -284,6 +284,19 @@ export const Navbar: React.FC = () => {
                 <span>الرئيسية والدليل الشامل</span>
               </button>
 
+              {/* Additional Marketplace Home from the current website roadmap; V4 directory remains the default home. */}
+              <button
+                onClick={() => setCurrentView('marketplace_home')}
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                  currentView === 'marketplace_home'
+                    ? 'bg-white text-emerald-700 font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
+                <span>سوق الأنشطة والعروض</span>
+              </button>
+
               {/* Public storefront preview is a subscriber/admin navigation item.
                   Guests still access a public catalog through its direct shared link. */}
               {authSession.role !== 'guest' && (
