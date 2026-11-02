@@ -476,7 +476,7 @@ try {
       assert.equal(new URL(page.url()).searchParams.get('view'), 'marketplace_home', 'marketplace home must be directly refreshable');
       assert.equal(await page.getByRole('dialog').count(), 0, 'marketplace home must not request location separately from the directory');
       await page.getByTestId('home-search-button').click();
-      await page.waitForFunction(() => new URL(window.location.href).searchParams.get('view') === 'directory');
+      await page.waitForFunction(() => !new URL(window.location.href).searchParams.has('view'));
       await page.goBack();
       await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 10000 });
       assert.equal(new URL(page.url()).searchParams.get('view'), 'marketplace_home', 'browser Back must restore the Marketplace screen');
