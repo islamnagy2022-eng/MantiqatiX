@@ -116,6 +116,7 @@ export const MarketplaceHome: React.FC = () => {
   } = useApp();
   const [advertisements, setAdvertisements] = useState<TargetedAdvertisement[]>([]);
   const [adsLoading, setAdsLoading] = useState(true);
+  const openSearch = () => setCurrentView('directory');
   const openBusiness = async (business: Business): Promise<void> => {
     const opened = await openPublicBusiness(business.id);
     if (!opened) window.alert('تعذر فتح الكتالوج العام لهذا النشاط حاليًا. حاول مرة أخرى.');
