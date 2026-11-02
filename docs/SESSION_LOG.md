@@ -1809,3 +1809,17 @@ A separate source review found a second platform-root authorization model: the n
 - **No production data/schema/Auth/RLS/GRANT/Edge/payment mutation, merge, or deployment.**
 - **Latest test head before this documentation checkpoint:** `b3d748138da14dc65639130279f19baf7f9a007e`; exact-head CI was queued and must be checked again.
 
+
+
+## 2026-11-02 — Medical Directory integrated; Member Messages safely deferred
+
+- **Component/route:** added `apps/catalog-frontend/src/components/MedicalDirectoryView.tsx` and public `?view=medical_directory`; added Navbar and Site Map entries.
+- **Data source:** current public directory feed and canonical `medical_health` activity definitions only; no seed businesses or synthetic medical records.
+- **Filters:** text, type, taxonomy specialty, governorate, markaz and village.
+- **Verification:** accurate verified/unverified status and verified-first ordering.
+- **Location:** explicit click only; coordinates stay in component memory and are not persisted or posted to any API.
+- **Pagination:** 20 initially, then 20 per user action.
+- **Actions:** opens the current public storefront through the existing API; WhatsApp is displayed only for a valid published contact number.
+- **Unsafe source behavior excluded:** AI Studio's one-click medical auto-register created a fabricated activity with fallback phone/location, paid subscription and verified status. It was not ported.
+- **Member Messages audit:** the AI Studio view relies on local AppContext state. Current website source search found no active shared messaging table/API contract. Member messaging remains NOT IMPLEMENTED until durable storage, tenant/recipient privacy, authorization, audit and notification behavior exist.
+- **Production:** no medical records created, no schema/RLS/Auth/Edge/payment changes, no merge or deployment.
