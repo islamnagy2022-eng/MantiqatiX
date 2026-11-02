@@ -70,3 +70,16 @@ assert.ok(
   'Role bootstrap must preserve only explicitly authorized dashboard routes and otherwise fall back to the public home directory.'
 );
 assert.ok(context.includes("setCurrentView('directory');"), 'Email login and session-backed registration must return to the home directory');
+assert.ok(
+  context.includes("requestedView === 'marketplace_home'") &&
+  context.includes("requestedView === 'contact_us'") &&
+  context.includes("requestedView === 'site_map'"),
+  'Browser history must restore all public V4 information and marketplace routes.'
+);
+assert.ok(
+  context.includes("requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(authSession)") &&
+  context.includes("requestedView === 'merchant_admin' && canAccessMerchantDashboard(authSession)") &&
+  context.includes("requestedView === 'super_admin' && authSession.role === 'admin'") &&
+  context.includes("window.addEventListener('popstate', restoreRouteFromLocation)"),
+  'Browser history must reapply active role and membership authorization before restoring private dashboard routes.'
+);
