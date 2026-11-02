@@ -67,9 +67,9 @@ assert.ok(
   context.includes("requestedView === 'super_admin' && boot.authSession.role === 'admin'") &&
   context.includes("requestedView === 'merchant_admin' && canAccessMerchantDashboard(boot.authSession)") &&
   context.includes("requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(boot.authSession)") &&
-  context.includes("                : 'marketplace_home';") &&
+  context.includes("                : 'directory';") &&
   context.includes("const isDirectoryDeepLink = params.has('activity') || params.has('listing') || params.has('group')"),
-  'Role bootstrap must preserve only explicitly authorized dashboard routes and directory deep links, otherwise falling back to the marketplace home.'
+  'Role bootstrap must preserve only explicitly authorized dashboard routes and directory deep links, otherwise falling back to the public directory.'
 );
 assert.ok(context.includes("setCurrentView('directory');"), 'Email login and registration may open the dedicated directory search.');
 assert.ok(context.includes("if (view !== 'marketplace_home' && view !== 'login') url.searchParams.set('view', view);"), 'The canonical marketplace home must keep the root URL while other public routes remain addressable.');

@@ -311,7 +311,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               ? 'merchant_admin'
               : requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(boot.authSession)
                 ? 'professional_dashboard'
-                : 'marketplace_home';
+                : 'directory';
 
     const requestedManagedId = params.get('manage') || '';
     const requestedManagedBusiness = boot.businesses.find((business) => business.id === requestedManagedId);
@@ -471,7 +471,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               ? 'merchant_admin'
               : requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(authSession)
                 ? 'professional_dashboard'
-                : 'marketplace_home';
+                : 'directory';
       const safeManagedId = restoredView === 'super_admin' || restoredView === 'merchant_admin'
         ? requestedManagedId
         : '';

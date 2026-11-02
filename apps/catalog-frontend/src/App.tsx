@@ -31,22 +31,22 @@ const MainContent: React.FC = () => {
   const visibleView = authLoading
     ? (currentView === 'public_storefront' && hasDirectPublicCatalogLink
       ? 'public_storefront'
-      : currentView === 'directory' || currentView === 'medical_directory' || currentView === 'marketplace_home' || currentView === 'contact_us' || currentView === 'site_map'
+      : currentView === 'directory' || currentView === 'medical_directory' || currentView === 'directory' || currentView === 'contact_us' || currentView === 'site_map'
         ? currentView
-        : 'marketplace_home')
+        : 'directory')
     : currentView === 'super_admin' && authSession.role !== 'admin'
-      ? 'marketplace_home'
+      ? 'directory'
       : currentView === 'merchant_admin' &&
           (!canAccessMerchantDashboard(authSession) || !currentBusiness)
-        ? 'marketplace_home'
+        ? 'directory'
         : currentView === 'professional_dashboard' &&
           !canAccessProfessionalDashboard(authSession)
-        ? 'marketplace_home'
+        ? 'directory'
         : currentView === 'account_portal' && !authSession.isAuthenticated
-          ? 'marketplace_home'
+          ? 'directory'
           : currentView === 'public_storefront' &&
             authSession.role === 'guest' && !hasDirectPublicCatalogLink
-          ? 'marketplace_home'
+          ? 'directory'
           : currentView;
 
   return (
