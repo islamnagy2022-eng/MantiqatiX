@@ -25,7 +25,7 @@ assert.match(navbar, /canAccessProfessionalDashboard\(authSession\)/);
 assert.match(portal, /hasBusinessModulePermission\(authSession/);
 assert.match(portal, /!authSession\.isAuthenticated/, 'portal component must independently fail closed');
 assert.match(portal, /عرض فقط: لا تنشئ هذه الشاشة مدفوعات ولا تغير حالة الاشتراك/, 'subscription display must remain read-only');
-assert.match(portal, /const business = isAdmin \? undefined : currentBusiness/, 'the portal must not display an admin-selected business as a subscription');
+assert.match(portal, /const business = authSession\.role === 'subscriber' \? currentBusiness : undefined/, 'only a subscriber membership may reveal its authorized business in the account portal');
 assert.match(portal, /Cross-membership switching is intentionally unavailable/i, 'the portal must not infer or enable membership switching');
 assert.doesNotMatch(portal, /localStorage|sessionStorage|addSaleRecord|walletBalance|callPlatformAdmin|callCatalogAdmin/, 'portal must not introduce local-only or financial mutation paths');
 assert.match(portal, /const permissions = isAdmin \? \[\] : PERMISSION_ITEMS/, 'platform permissions must not be represented as business permissions');
