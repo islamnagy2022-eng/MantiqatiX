@@ -1251,6 +1251,41 @@ try {
   }
 
   
+
+  // Additive subscriber portal: current dashboard navigation must remain visible.
+  {
+    const { context, page } = await newScenario(browser, roles.businessOwner);
+    try {
+      await page.getByRole('button', { name: 'حسابي / اشتراكي', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      assert.ok(await page.getByRole('button', { name: /لوحة تحكم نشاطي|لوحة صاحب النشاط/ }).count() > 0, 'the merchant dashboard entry must remain available');
+      assert.ok(await page.getByRole('button', { name: 'الداشبورد الاحترافية', exact: true }).count() > 0, 'the professional dashboard entry must remain available');
+      await page.getByRole('button', { name: 'حسابي / اشتراكي', exact: true }).click();
+      await page.getByRole('heading', { name: 'حسابي واشتراكاتي', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByRole('button', { name: 'اشتراكاتي', exact: true }).click();
+      await page.getByText('عرض فقط: لا تنشئ هذه الشاشة مدفوعات ولا تغير حالة الاشتراك.', { exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: 'صلاحياتي', exact: true }).click();
+      await page.getByRole('heading', { name: 'صلاحياتي', exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: 'إدارة النشاط', exact: true }).click();
+      await page.getByRole('heading', { name: 'أدوات إدارة النشاط', exact: true }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px additive account portal');
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.getByRole('heading', { name: 'حسابي واشتراكاتي', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      results.push('additive-account-portal-preserves-dashboard-links-readonly-subscription-and-refresh');
+    } finally { await context.close(); }
+  }
+
+  // A signed-out visitor cannot open the protected account portal by URL.
+  {
+    const { context, page } = await newScenario(browser);
+    try {
+      await page.goto(baseUrl + '?view=account_portal', { waitUntil: 'domcontentloaded' });
+      await waitForDeniedDashboard(page);
+      assert.equal(await page.getByRole('heading', { name: 'حسابي واشتراكاتي', exact: true }).count(), 0);
+      results.push('account-portal-direct-route-fails-closed-for-guest');
+    } finally { await context.close(); }
+  }
+
+
 } finally {
   await browser.close();
 }
