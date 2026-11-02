@@ -1794,3 +1794,18 @@ A separate source review found a second platform-root authorization model: the n
 - **Owner dashboard refinement:** hero now has responsive content/actions, full-width quota progress and a copy-public-store-link action; current dashboard employee/import/branding/profile/QR tabs remain untouched.
 - **Production:** no production DB changes, message data writes, merge or deployment.
 - **Latest head at this log entry:** `c80266c721ad62a49f14e9ab036925b6c730bc5d`; exact-head CI was queued when inspected and must be checked again before claiming validation.
+
+
+## 2026-11-02 — Existing Marketplace Home integrated as an optional V4 screen
+
+- **Source reference:** current-site Marketplace Home work from PR #647 was audited. Its verified-business cards, targeted-ad RPC, current catalogue offer filtering and separate directory-search action were retained.
+- **Integration decision:** created a separate `?view=marketplace_home` route and navigation tab. AI Studio's existing `DirectoryView` remains the default root/home and the single directory search/geolocation-consent flow.
+- **Data integration:** AppContext exposes `directoryProducts` from existing `fetchPublicDirectory()` results and `openPublicBusiness()` through the current public-catalog API contract. No new endpoint or database writes.
+- **Marketplace safeguards:** cards filter to active public verified businesses; product/service discounts appear only when real current/compare prices support a discount; advertisements load only from current `get_mnty_targeted_advertisements` RPC. Empty states remain honest.
+- **Location:** removed Marketplace's duplicate GPS prompt. The existing directory remains responsible for explicit location consent and all geographic filters.
+- **Recommendation wording:** the “smart picks” section describes initial choices based on available verified data, not a personalized AI result.
+- **Rewards:** program is marked in preparation and no fabricated points/balance/coupons are shown.
+- **Regression test:** added Playwright coverage for direct route restoration, navigation back to default Directory, and absence of a second location prompt.
+- **No production data/schema/Auth/RLS/GRANT/Edge/payment mutation, merge, or deployment.**
+- **Latest test head before this documentation checkpoint:** `b3d748138da14dc65639130279f19baf7f9a007e`; exact-head CI was queued and must be checked again.
+
