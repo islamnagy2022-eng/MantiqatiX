@@ -107,10 +107,18 @@ None of these open PRs is part of current `main` or the deployed website at this
 
 ## Visual implementation checkpoint
 
-- Storefront cover is full-width with desktop reference ratio `1440/390` and a persistent dark gradient overlay to retain legible image contrast.
+- Storefront cover is full-width with desktop reference ratio `1440/390`. Its permanent dark gradient is currently deferred because current website's validated UX contract requires the image to remain bright by default and darken only on hover/keyboard focus. This conflict is surfaced for owner decision.
 - Merchant dashboard hero uses the reference navy gradient and carries the matching owner-dashboard title, plus working actions for previewing the current business storefront and opening the existing add-item modal.
 - The buttons call existing application functions; no new database or persistence logic was introduced.
 - Exact-head build/RBAC/Pages validation is still required for the latest branch head.
+
+
+## Owner decision required — storefront cover overlay conflict
+
+- AI Studio v4 screenshot uses a persistent dark gradient overlay over the activity cover.
+- Current website validator `scripts/validate-business-social-links.mjs` explicitly requires a bright default cover that darkens only on hover or keyboard focus.
+- To avoid silently removing an established website behavior, the permanent overlay was reverted on the parity branch. Full-width/wide cover sizing remains.
+- **Pending owner choice:** keep current bright default with hover/focus darkening, or supersede it with the always-darkened cover from AI Studio v4. No further change to this behavior until the decision is recorded.
 
 ## Current execution checkpoint
 
