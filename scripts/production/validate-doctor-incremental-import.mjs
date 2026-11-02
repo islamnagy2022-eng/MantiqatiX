@@ -116,7 +116,7 @@ assert.match(evidenceMigration, /status in \('PENDING',\s*'APPROVED',\s*'REVOKED
 // Deterministic runtime tests for the pure import/publication contract.
 assert.equal(normalizeDirectorySourceHost("www.example.com"), "example.com");
 assert.equal(normalizeDirectorySourceHost("https://WWW.Example.com/"), "example.com");
-for (const unsafeHost of ["", "https://user@example.com", "https://example.com:8443", "https://example.com/path", "https://example.com/?q=1", "https://example.com/#fragment"]) {
+for (const unsafeHost of ["", "https://user@example.com", "https://example.com:443", "https://example.com:8443", "https://example.com/path", "https://example.com/?q=1", "https://example.com/#fragment"]) {
   assert.equal(normalizeDirectorySourceHost(unsafeHost), "", `Unsafe source host must be rejected: ${unsafeHost}`);
 }
 
@@ -132,6 +132,12 @@ const validEvidence = {
   source_name: "Example Medical Directory",
 };
 assert.equal(isCurrentDoctorRepublicationEvidence(validEvidence, "https://www.example.com/doctors", "example medical directory", fixedNow), true);
+assert.equal(isCurrentDoctorRepublicationEvidence(validEvidence, "https://user@example.com/doctors", validEvidence.source_name, fixedNow), false);
+assert.equal(isCurrentDoctorRepublicationEvidence(validEvidence, "https://example.com:443/doctors", validEvidence.source_name, fixedNow), false);
+assert.equal(isCurrentDoctorRepublicationEvidence(validEvidence, "https://example.com:8443/doctors", validEvidence.source_name, fixedNow), false);
+assert.equal(isCurrentDoctorRepublicationEvidence({...validEvidence, allows_doctor_profile_republication: false}, "https://example.com/doctors", validEvidence.source_name, fixedNow), false);
+assert.equal(isCurrentDoctorRepublicationEvidence({...validEvidence, source_name: "Another Directory"}, "https://example.com/doctors", validEvidence.source_name, fixedNow), false);
+assert.equal(isCurrentDoctorRepublicationEvidence({...validEvidence, valid_from: "not-a-date"}, "https://example.com/doctors", validEvidence.source_name, fixedNow), false);
 assert.equal(isCurrentDoctorRepublicationEvidence({...validEvidence, status: "PENDING"}, "https://example.com/doctors", validEvidence.source_name, fixedNow), false);
 assert.equal(isCurrentDoctorRepublicationEvidence({...validEvidence, valid_from: "2026-11-03T00:00:00.000Z"}, "https://example.com/doctors", validEvidence.source_name, fixedNow), false);
 assert.equal(isCurrentDoctorRepublicationEvidence({...validEvidence, expires_at: "2026-11-02T11:59:59.999Z"}, "https://example.com/doctors", validEvidence.source_name, fixedNow), false);
@@ -143,6 +149,9 @@ assert.equal(isCurrentDoctorRepublicationEvidence(validEvidence, "javascript:ale
 assert.deepEqual(resolveDoctorImportStatus({}, true), {
   valid: true, reason: null, hasRequestedStatus: false, requestedStatus: "PUBLISHED", listingStatus: "PUBLISHED",
 });
+assert.equal(resolveDoctorImportStatus({}, false).listingStatus, "DRAFT");
+assert.equal(resolveDoctorImportStatus({listingStatus: ""}, true).reason, "INVALID_LISTING_STATUS");
+assert.equal(resolveDoctorImportStatus({listing_status: null}, true).reason, "INVALID_LISTING_STATUS");
 assert.equal(resolveDoctorImportStatus({listingStatus: "PUBLISHED"}, false).reason, "PHONE_REQUIRED_FOR_PUBLICATION");
 assert.equal(resolveDoctorImportStatus({listingStatus: "HIDDEN"}, false).listingStatus, "HIDDEN");
 assert.equal(resolveDoctorImportStatus({listingStatus: "DRAFT"}, false).listingStatus, "DRAFT");
