@@ -41,8 +41,8 @@
 - [x] Website-only capabilities to preserve and prototype-only exclusions documented.
 - [x] First visual parity slice committed on the isolated branch: full-width storefront cover (bright by default; permanent overlay deferred for owner decision), dark owner-dashboard hero, and working preview/add-item actions.
 - [x] Draft PR #650 opened: https://github.com/islamnagy2022-eng/MantiqatiX/pull/650.
-- [ ] Exact-head build, browser E2E, RBAC and supporting CI checks complete successfully.
-- [ ] Visual browser review at desktop/mobile widths; no production deployment is authorized by this PR.
+- [x] Exact-head source head `4e4b25fdecd02bf18f8587d014c01ed1f601ec34`: build, browser E2E, employee RBAC PostgreSQL, Pages validation and supporting checks PASS (20 successful non-skipped checks; 0 failures). Pages deploy was skipped for the PR event.
+- [ ] Independent visual browser review at desktop/mobile widths and owner decisions on the cover overlay and website-only additions; no production deployment is authorized by this PR.
 
 ### Next action
 Close the exact-head validation and visual review for PR #650, then continue Wave A on directory and global navigation. Preserve all website-only features; review wallet/finance, custom links, messages/contact/sitemap and AI/marketing UI against authoritative backend contracts before implementing.
