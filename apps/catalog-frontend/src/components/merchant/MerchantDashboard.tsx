@@ -593,9 +593,27 @@ export const MerchantDashboard: React.FC = () => {
           <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
             إدارة الكتالوج وتخصيص هوية النشاط
           </h2>
-          <p className="text-slate-300 text-xs sm:text-sm mt-1">
-            جميع الأسعار بالجنيه المصري (ج.م) • سعة الكتالوج حتى 150 منتج/خدمة • متصل بواتسابك مباشرة
+          <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-2xl leading-6">
+            أضف وعدّل حتى {maxLimit} منتج أو خدمة، وحدّث صور الغلاف والشعار وبيانات النشاط، وتابع طلبات التواصل من مكان واحد.
           </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setCurrentView('public_storefront')}
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-black text-white transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
+            >
+              <ExternalLink className="h-4 w-4 text-emerald-300" />
+              معاينة صفحة النشاط المباشرة
+            </button>
+            <button
+              type="button"
+              onClick={openAddModal}
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-xs font-black text-slate-950 shadow-md transition hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
+            >
+              <Plus className="h-4 w-4" />
+              إضافة منتج / خدمة جديدة
+            </button>
+          </div>
         </div>
 
         {/* 150 Quota Widget */}
