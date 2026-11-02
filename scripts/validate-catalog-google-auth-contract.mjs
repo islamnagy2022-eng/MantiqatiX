@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 const context = fs.readFileSync('apps/catalog-frontend/src/context/AppContext.tsx', 'utf8');
 const production = fs.readFileSync('apps/catalog-frontend/src/lib/production.ts', 'utf8');
+const catalogIndex = fs.readFileSync('apps/catalog-frontend/index.html', 'utf8');
 const authTypes = fs.readFileSync('apps/catalog-frontend/src/types/index.ts', 'utf8');
 const app = fs.readFileSync('apps/catalog-frontend/src/App.tsx', 'utf8');
 const navbar = fs.readFileSync('apps/catalog-frontend/src/components/Navbar.tsx', 'utf8');
@@ -12,6 +13,9 @@ for (const event of ["'INITIAL_SESSION'", "'SIGNED_IN'", "'SIGNED_OUT'", "'USER_
   assert.ok(context.includes(`event === ${event}`), `Google auth hydration must handle ${event}`);
 }
 assert.ok(!context.includes("event === 'TOKEN_REFRESHED'"), 'A routine Google access-token refresh must not trigger a full membership/catalog bootstrap.');
+assert.ok(catalogIndex.includes('aria-busy="true"') && catalogIndex.includes('جارٍ تحميل الدليل'), 'The catalog entry must show an immediate accessible loading shell before React mounts.');
+assert.ok(production.includes('let publicDirectoryInFlight: Promise<PublicDirectoryResult> | null = null;') && production.includes('if (publicDirectoryInFlight) return publicDirectoryInFlight;'), 'The AppContext and signed-out bootstrap must share one in-flight public directory request.');
+assert.ok(production.includes('const platformSettingsPromise = platform') && production.includes('await platformSettingsPromise;'), 'Platform settings must load concurrently with catalog hydration rather than serially after it.');
 assert.ok(context.includes("const sessionKey = incomingUserId || 'signed-out'"), 'Auth bootstrap deduplication must use stable user identity, not rotating access tokens.');
 assert.ok(context.includes("setAuthBootstrapError("), 'Bootstrap failures must be visible, not silently presented as anonymous.');
 assert.ok(context.includes("isAuthenticated: Boolean(session?.user)"), 'A valid Supabase session must remain distinguishable from an anonymous visitor after bootstrap failure.');

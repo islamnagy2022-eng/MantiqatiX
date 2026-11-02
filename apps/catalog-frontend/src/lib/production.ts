@@ -109,21 +109,42 @@ export async function fetchPlatformSubscribers(): Promise<{ subscribers: Subscri
   }
 }
 
-export async function fetchPublicDirectory(): Promise<{ businesses: Business[]; products: Product[]; activityModuleOverrides: ActivityModuleOverrides; activityModuleOverridesAvailable: boolean }> {
-  const { data, error } = await supabase.functions.invoke('public-catalog-directory', { method: 'GET' } as any);
-  if (error) throw new Error(error.message || 'تعذر تحميل دليل الأنشطة المنشورة');
-  const rows = Array.isArray(data?.businesses) ? data.businesses : [];
-  const businesses: Business[] = [];
-  const products: Product[] = [];
-  for (const row of rows) {
-    const mapped = mapBusiness({ ...row, branches: row.branches || [], branchId: row.selectedBranchId || row.branchId }, row.provider);
-    businesses.push(mapped);
-    products.push(...mapProducts(mapped.id, mapped.tenantId || '', mapped.branchId, row.items || [], row.prices || []));
-  }
-  const activityModuleOverrides = data?.activityModuleOverrides && typeof data.activityModuleOverrides === 'object' && !Array.isArray(data.activityModuleOverrides)
-    ? data.activityModuleOverrides as ActivityModuleOverrides
-    : {};
-  return { businesses, products, activityModuleOverrides, activityModuleOverridesAvailable: data?.activityModuleOverridesAvailable === true };
+type PublicDirectoryResult = {
+  businesses: Business[];
+  products: Product[];
+  activityModuleOverrides: ActivityModuleOverrides;
+  activityModuleOverridesAvailable: boolean;
+};
+let publicDirectoryInFlight: Promise<PublicDirectoryResult> | null = null;
+
+export function fetchPublicDirectory(): Promise<PublicDirectoryResult> {
+  // AppContext and the signed-out auth bootstrap may start together. Share one
+  // in-flight read while preserving the complete public directory response.
+  if (publicDirectoryInFlight) return publicDirectoryInFlight;
+
+  const request = (async (): Promise<PublicDirectoryResult> => {
+    const { data, error } = await supabase.functions.invoke('public-catalog-directory', { method: 'GET' } as any);
+    if (error) throw new Error(error.message || 'تعذر تحميل دليل الأنشطة المنشورة');
+    const rows = Array.isArray(data?.businesses) ? data.businesses : [];
+    const businesses: Business[] = [];
+    const products: Product[] = [];
+    for (const row of rows) {
+      const mapped = mapBusiness({ ...row, branches: row.branches || [], branchId: row.selectedBranchId || row.branchId }, row.provider);
+      businesses.push(mapped);
+      products.push(...mapProducts(mapped.id, mapped.tenantId || '', mapped.branchId, row.items || [], row.prices || []));
+    }
+    const activityModuleOverrides = data?.activityModuleOverrides && typeof data.activityModuleOverrides === 'object' && !Array.isArray(data.activityModuleOverrides)
+      ? data.activityModuleOverrides as ActivityModuleOverrides
+      : {};
+    return { businesses, products, activityModuleOverrides, activityModuleOverridesAvailable: data?.activityModuleOverridesAvailable === true };
+  })();
+
+  publicDirectoryInFlight = request;
+  const clearInFlight = () => {
+    if (publicDirectoryInFlight === request) publicDirectoryInFlight = null;
+  };
+  void request.then(clearInFlight, clearInFlight);
+  return request;
 }
 
 export async function fetchPublicCatalog(businessId: string, branchId?: string): Promise<{ business: Business; products: Product[] } | null> {
@@ -449,6 +470,11 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
     'PROVIDER_OPERATIONS', 'PROVIDER_SUPPORT',
   ].includes(String(m.role || '').toUpperCase()));
   const platform = platformMemberships.length > 0;
+  // Platform settings are independent from catalog discovery. Start the read
+  // now so it overlaps tenant/business listing and bounded catalog hydration.
+  const platformSettingsPromise = platform
+    ? callPlatformAdmin({ action: 'GET_SETTINGS' }).catch(() => ({}))
+    : Promise.resolve({});
   const permittedRows: any[] = [];
 
   if (platform) {
@@ -521,9 +547,8 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
   }
 
   let subscribers: Subscriber[] = [];
-  let settingsResult: any = {};
+  const settingsResult: any = await platformSettingsPromise;
   if (platform) {
-    settingsResult = await callPlatformAdmin({ action: 'GET_SETTINGS' }).catch(() => ({}));
     if (settingsResult?.settings) Object.assign(
       adminSettings,
       settingsResult.settings,
