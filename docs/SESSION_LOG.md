@@ -1752,3 +1752,13 @@ A separate source review found a second platform-root authorization model: the n
 - **CI state at log time:** Primary Catalog Frontend Validation and Pages workflow running; Pages deploy/public-only jobs are skipped on PR events as designed. RBAC PostgreSQL and supporting security/module workflows were still in progress/queued. Do not merge until all required checks pass and independent visual review is complete.
 - **Production impact:** no production data/schema/Auth/RLS/GRANT/Edge/payment/finance mutation, merge, or production deployment.
 - **Next:** complete exact-head checks, inspect the two UI changes in browser at desktop and mobile widths, and continue Wave A for directory/global navigation. Preserve all website-only features and keep production gate status unchanged.
+
+
+## 2026-11-02 — V4 visual refinement and in-flight website additions review
+
+- **Reference screenshot comparison:** inspected the uploaded storefront and merchant dashboard screenshots directly.
+- **Additional UI changes on branch:** storefront cover gradient is now always present and full-bleed; owner dashboard hero adds working actions for storefront preview and the current add-product/service modal. Both buttons reuse existing application functions; no persisted data/API logic changed.
+- **Latest source head:** `824aa33048667c2aa073a3f1e99e4ba9dc2f8b95` on `feat/aistudio-v4-website-convergence-20261102`. Exact-head CI has restarted; do not infer PASS from the superseded earlier head.
+- **Open website-only enhancements assessed:** PR #647 marketplace home/separate search is a candidate additional home experience (checks passed on its earlier head, still unmerged/undeployed); PR #648 taxonomy precedence/mobile eight-column regression is a test guard to keep; PR #646 subscriber portal is a candidate but cannot be merged as-is because its current Navbar changes remove existing merchant/professional/Super Admin dashboard navigation. Preserve all current dashboard links if its account view is later ported.
+- **No changes to main or production:** PR #650 remains Draft; no merge/deploy; no production DB or business data writes.
+- **Next:** complete exact-head validation on 824aa..., continue matching directory and owner dashboard surfaces, and keep the open website-only candidates separated for owner review.
