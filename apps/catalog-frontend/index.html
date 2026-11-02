@@ -22,7 +22,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   </head>
   <body class="bg-slate-50 text-slate-800 antialiased font-['Cairo',sans-serif]">
-    <div id="root"></div>
+    <div id="root">
+      <main aria-busy="true" aria-live="polite" style="min-height:100vh;display:grid;place-items:center;padding:24px;color:#334155;font:600 15px system-ui,sans-serif">
+        <div style="text-align:center">
+          <div style="font-size:22px;font-weight:900;margin-bottom:10px">منطقتي X</div>
+          <div>جارٍ تحميل الدليل…</div>
+        </div>
+      </main>
+    </div>
     <script src="/MantiqatiX/config.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
