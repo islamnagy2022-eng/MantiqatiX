@@ -85,12 +85,12 @@ const facebookImportPath="supabase/functions/facebook-page-import/index.ts";
 const facebookImport=exists(facebookImportPath)?read(facebookImportPath):"";
 const profileMediaMigration=exists("supabase/migrations/20260927103103_add_provider_profile_media.sql")?read("supabase/migrations/20260927103103_add_provider_profile_media.sql"):"";
 const facebookImageMirrorChecks=[
-  ["FB-IMAGE-ALLOWLIST",/FACEBOOK_IMAGE_HOSTS = \["facebook\\.com", "fbcdn\\.net", "fbsbx\\.com"\]/.test(facebookImport),"Facebook image downloads must be restricted to approved Facebook CDN host families."],
-  ["FB-IMAGE-REDIRECTS",/redirect: "manual"[\\s\\S]*isAllowedFacebookImageUrl\\(currentUrl\\)/.test(facebookImport),"Every redirect target must be revalidated to prevent SSRF."],
-  ["FB-IMAGE-LIMIT",/MAX_FACEBOOK_IMAGE_BYTES = 5 \\* 1024 \\* 1024/.test(facebookImport),"Mirrored Facebook images must have a strict 5 MiB limit."],
-  ["FB-IMAGE-STORAGE",/PUBLIC_IMAGE_BUCKET = "mantiqatix-profile-media"[\\s\\S]*getPublicUrl\\(objectPath\\)/.test(facebookImport),"Imported Facebook images must be stored in the platform public presentation bucket."],
-  ["FB-IMAGE-PUBLIC-RESPONSE",/const stableProfile = \\{ \\.\\.\\.profile, logoUrl, coverUrl \\}/.test(facebookImport),"Facebook import must return stable platform-hosted image URLs, not the temporary Graph URLs."],
-  ["FB-IMAGE-PRIVATE-WRITES",/mnty_profile_media_public_read[\\s\\S]*mnty_profile_media_owner_insert[\\s\\S]*mnty_profile_media_owner_update[\\s\\S]*mnty_profile_media_owner_delete/.test(profileMediaMigration),"Public media read must not widen insert/update/delete permissions."]
+  ["FB-IMAGE-ALLOWLIST",facebookImport.includes('FACEBOOK_IMAGE_HOSTS = ["facebook.com", "fbcdn.net", "fbsbx.com"]'),"Facebook image downloads must be restricted to approved Facebook CDN host families."],
+  ["FB-IMAGE-REDIRECTS",facebookImport.includes('redirect: "manual"') && facebookImport.includes("if (!isAllowedFacebookImageUrl(currentUrl)) return \"\";"),"Every redirect target must be revalidated to prevent SSRF."],
+  ["FB-IMAGE-LIMIT",facebookImport.includes("MAX_FACEBOOK_IMAGE_BYTES = 5 * 1024 * 1024"),"Mirrored Facebook images must have a strict 5 MiB limit."],
+  ["FB-IMAGE-STORAGE",facebookImport.includes('PUBLIC_IMAGE_BUCKET = "mantiqatix-profile-media"') && facebookImport.includes("getPublicUrl(objectPath)"),"Imported Facebook images must be stored in the platform public presentation bucket."],
+  ["FB-IMAGE-PUBLIC-RESPONSE",facebookImport.includes("const stableProfile = { ...profile, logoUrl, coverUrl };"),"Facebook import must return stable platform-hosted image URLs, not the temporary Graph URLs."],
+  ["FB-IMAGE-PRIVATE-WRITES",profileMediaMigration.includes('mnty_profile_media_public_read') && profileMediaMigration.includes('mnty_profile_media_owner_insert') && profileMediaMigration.includes('mnty_profile_media_owner_update') && profileMediaMigration.includes('mnty_profile_media_owner_delete'),"Public media read must not widen insert/update/delete permissions."]
 ];
 for(const [id,passed,evidence] of facebookImageMirrorChecks)add(id,"MEDIA",passed?"PASS":"FAIL",evidence,"P1");
 const report={generated_at:new Date().toISOString(),mode:"source_contract",note:"Runtime/Production claims require live evidence and are never inferred from source presence.",results,summary:Object.fromEntries(["PASS","FAIL","PARTIAL","BLOCKED","NOT VERIFIED"].map(s=>[s,results.filter(r=>r.status===s).length])),production_gate:results.some(r=>(r.status==="FAIL"||r.status==="BLOCKED")&&r.severity==="P0")?"BLOCKED":"NOT VERIFIED"};
