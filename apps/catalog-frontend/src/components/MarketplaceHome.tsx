@@ -161,8 +161,11 @@ export const MarketplaceHome: React.FC = () => {
           p_limit: 4,
         })));
         const rows = responses.flatMap((response) => Array.isArray(response.data) ? response.data : []) as TargetedAdvertisement[];
-        const unique = Array.from(new Map(rows.filter((row) => row && row.advertisement_id && row.creative_url)
-          .map((row) => [row.advertisement_id, row])).values());
+        const safeRows = rows.flatMap((row) => {
+          const creativeUrl = isSafeHttpUrl(row?.creative_url);
+          return row?.advertisement_id && creativeUrl ? [{ ...row, creative_url: creativeUrl }] : [];
+        });
+        const unique = Array.from(new Map(safeRows.map((row) => [row.advertisement_id, row])).values());
         if (active) setAdvertisements(unique);
       } catch {
         if (active) setAdvertisements([]);
