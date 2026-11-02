@@ -42,7 +42,9 @@
 - [x] First visual parity slice committed on the isolated branch: full-width storefront cover (bright by default; permanent overlay deferred for owner decision), dark owner-dashboard hero, working preview/add-item/copy-link actions.
 - [x] Ported public Contact Us route using a WhatsApp-only send handoff; explicitly no in-app persistence claim.
 - [x] Ported role-aware Site Map route and footer navigation; it lists actual screens only and gates private dashboards by real permissions.
+- [x] Added the current website Marketplace Home as an optional route/tab while keeping the V4 directory as the default page; it uses current real public businesses/products and the approved ad RPC; duplicate GPS consent was removed.
 - [ ] Member Messages route remains deferred until a persistent server-side messaging contract is verified.
+- [ ] Exact-head build/E2E checks must pass for the new Marketplace route and the public directory-products/catalog-opening flow.
 - [x] Draft PR #650 opened: https://github.com/islamnagy2022-eng/MantiqatiX/pull/650.
 - [x] Exact-head source head `4e4b25fdecd02bf18f8587d014c01ed1f601ec34`: build, browser E2E, employee RBAC PostgreSQL, Pages validation and supporting checks PASS (20 successful non-skipped checks; 0 failures). Pages deploy was skipped for the PR event.
 - [ ] Independent visual browser review at desktop/mobile widths and owner decisions on the cover overlay and website-only additions; no production deployment is authorized by this PR.
