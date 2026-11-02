@@ -111,3 +111,27 @@ The production Edge Function and admin import/evidence UI have been deployed. Th
 Production's `supabase_migrations.schema_migrations` ledger records `20261101140105 / directory_source_permission_evidence`, while the repository migration file is named `20261101150000_directory_source_permission_evidence.sql`. Live schema introspection confirmed that the table, columns, constraints, indexes, trigger, RLS, and grants match the repository migration. This is a migration-history mismatch, not evidence that the table is missing.
 
 Do not change the historical migration file, manually edit `schema_migrations` with SQL, or run `supabase db push` until the mismatch is reconciled. Use the Supabase CLI's supported `supabase migration repair` workflow in a controlled environment, then compare `supabase migration list` local and remote output before any further push. Repairing migration history changes ledger records; it does not apply or reverse the table DDL. See the [Supabase CLI migration repair reference](https://supabase.com/docs/reference/cli/supabase-migration-repair).
+
+
+## Monufia governorate doctor expansion — read-only coverage snapshot (2026-11-02)
+
+### Canonical public-business inventory
+- The read-only snapshot for canonical public business records with `listing_type='doctor'` found **57 published records in Monufia**.
+- All 57 records were assigned to **Berket El Sabaa** at the time of the snapshot. The other named Monufia localities had zero published records in this specific canonical listing type.
+- A primary phone being present does not prove that the number is current, the doctor owns or controls the listing, the clinic is active, or that the professional registration has been verified.
+- The ten tracked localities are: شبين الكوم، منوف، أشمون، قويسنا، الباجور، تلا، الشهداء، سرس الليان، مدينة السادات، and بركة السبع (including village-level gap review).
+
+### Count-scope reconciliation
+- The earlier **568 published doctor listings across 27 governorates** note belongs to a separate doctor-listing inventory/table described in the preceding production verification section.
+- The 568-row inventory and the 57 canonical public-business records use different inventory scopes. Do not add them together, infer a shared unique-person count, or claim either count is a complete census until the schema relationship and duplicate semantics are explicitly reconciled.
+
+### Source and publication gate
+- Menoufia University Faculty of Medicine staff/department pages can support institutional affiliation and specialty discovery, but do not by themselves establish a current private-clinic location/contact or a commercial republication licence.
+- Individual doctor-registration lookup and facility-discovery tools are not equivalent to an open bulk export licence.
+- Third-party directory totals are discovery leads only. Do not scrape or bulk-copy private medical directories for MantiqatiX commercial republication without written permission covering the relevant profile/contact fields and commercial use.
+- Permitted paths are a written source-owner agreement, an applicable open licence explicitly covering the relevant fields and commercial republication, or direct doctor/clinic-owner submission and consent.
+- The private evidence registry requires a pending evidence record and approval by a second distinct Super Admin. A source URL alone is not permission.
+- Once approved, ingest 1–20 records per locality batch; check global normalized name and primary/secondary phone duplicates; preserve exact center/village; record source URL/date; keep owner and professional-registration status unverified unless separately checked; and verify the inserted records by read-after-write.
+
+### Status
+**IN PROGRESS — coverage baseline documented; additional locality ingestion is blocked until a suitable source/owner-consent basis is recorded and approved.** No doctor rows were inserted or modified by this inventory update.

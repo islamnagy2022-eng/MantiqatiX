@@ -1667,3 +1667,15 @@ PR: [#640](https://github.com/islamnagy2022-eng/MantiqatiX/pull/640). Feature br
 - [ ] Run exact-head Deno, contract, build, RBAC, and browser E2E checks after the evidence-registry changes. Resolve all failures.
 - [ ] Run isolated database migration replay, plus synthetic Edge Function tests for register → second-person approve → evidence scope match → insert/update; reject creator self-approval, mismatched host/name, expired/revoked evidence, no-phone publication, and non-admin access.
 - [ ] Keep production version unchanged until all release gates pass; then merge, apply migration, deploy function, verify a disposable synthetic listing, and audited-clean it.
+
+
+## Monufia doctor directory expansion — inventory and source gate (2026-11-02)
+- [x] Record the read-only canonical public-business inventory snapshot: 57 published `listing_type='doctor'` records in Monufia; all 57 are in Berket El Sabaa; the other named Monufia localities have zero records in this specific canonical listing type at the time of the snapshot.
+- [x] Record the ten locality workstreams: Shibin El Kom, Menouf, Ashmoun, Quesna, El Bagour, Tala, El Shohadaa, Sers El Lyan, Sadat City, and Berket El Sabaa village-level gap review.
+- [x] Review candidate acquisition sources. University staff pages and individual doctor/facility lookup tools are discovery leads, not bulk export licences for commercial republication.
+- [ ] Obtain an applicable written data-sharing/republication agreement, explicit open licence, or direct doctor/clinic-owner submission and consent covering doctor-profile republication and commercial use.
+- [ ] Register the private evidence and require approval by a second distinct Super Admin before using the source for public doctor profiles.
+- [ ] After the source gate is satisfied, ingest bounded 1–20 row batches per locality with global normalized-name and both-phone duplicate checks, exact locality, source URL/date, unverified owner/registration state, and read-after-write verification.
+- [ ] Publish only after the applicable source/owner basis and record quality checks are complete. Do not scrape or bulk-copy private medical directories without written permission.
+- [!] Scope reconciliation: the separate 568-row doctor-listing inventory recorded earlier refers to a different listing dataset/table and is not directly comparable to the 57 canonical public-business `listing_type='doctor'` rows without an explicit schema/join definition. Do not sum these counts or describe either as a complete national census.
+- [!] No new doctor rows were inserted or modified by the Monufia inventory pass. The source/consent gate remains open.
