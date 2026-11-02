@@ -8,7 +8,8 @@ const PROTECTED_METADATA_KEYS = Object.freeze([
 /** Normalize a hostname, rejecting URL fragments, credentials, paths and ports. */
 export function normalizeDirectorySourceHost(value) {
   const raw = String(value ?? "").trim().slice(0, 300).toLowerCase();
-  if (!raw || raw.includes("@") || raw.includes("?") || raw.includes("#")) return "";
+  const authority = raw.match(/^(?:https?:\/\/)?([^/?#]+)/i)?.[1] ?? "";
+  if (!raw || !authority || authority.includes(":") || raw.includes("@") || raw.includes("?") || raw.includes("#")) return "";
   try {
     const parsed = new URL(raw.includes("://") ? raw : "https://" + raw);
     if (!["https:", "http:"].includes(parsed.protocol) || parsed.username || parsed.password || parsed.port ||
@@ -32,7 +33,7 @@ export function isCurrentDoctorRepublicationEvidence(evidence, sourceUrl, source
     return false;
   }
   const sourceUrlText = String(sourceUrl ?? "").trim();
-  const sourceAuthority = sourceUrlText.match(/^https?:\\/\\/([^/?#]+)/i)?.[1] ?? "";
+  const sourceAuthority = sourceUrlText.match(/^https?:\/\/([^/?#]+)/i)?.[1] ?? "";
   if (!["https:", "http:"].includes(parsedSourceUrl.protocol) ||
       !sourceAuthority ||
       sourceAuthority.includes("@") ||
