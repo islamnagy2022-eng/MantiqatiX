@@ -478,6 +478,7 @@ try {
       await page.getByLabel('التخصص').waitFor({ state: 'visible' });
       await page.getByLabel('المحافظة').waitFor({ state: 'visible' });
       await page.getByLabel('المركز / المدينة').waitFor({ state: 'visible' });
+      await page.getByLabel('القرية / الحي').waitFor({ state: 'visible' });
       assert.equal(await page.getByRole('button', { name: 'تسجيل ذكي بالذكاء الاصطناعي' }).count(), 0, 'search must not fabricate or auto-register medical activities');
       assert.equal(await page.getByRole('dialog').count(), 0, 'medical page must not request GPS until the visitor explicitly clicks');
       await page.getByRole('button', { name: 'العودة إلى الدليل العام' }).click();
