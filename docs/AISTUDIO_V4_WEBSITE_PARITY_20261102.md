@@ -67,6 +67,13 @@ These are present on current website `main` but are not equivalent capabilities 
 - Direct Google Gemini API calls or browser-exposed credentials are excluded. Use the current server-authorized AI image proxy.
 - The architecture/capacity/load-test/security/DR markdown files are design artefacts, not proof of 100-million-user readiness, real load testing, security certification or measured RPO/RTO. Any capacity target requires independent reproducible benchmarks and verified infrastructure.
 
+## Owner-dashboard gaps found in v4 prototype logic (not safe to port as-is)
+
+- **Financial tab:** the prototype writes manual sale rows through `addSaleRecord` and local browser state. The UI initializes commission defaults locally (including a fallback 3% rate and sample customer phone). These are not verified finance transactions and do not use the current canonical financial journal/settlement contracts. Port the visual layout only after the live finance API/RPC, authorization, audit, idempotency and reconciliation gates are verified; never port the fallback values or fake sale creation.
+- **Custom links tab:** the prototype mutates `currentBusiness.customLinks` through the prototype AppContext/localStorage. The current website's canonical Business type/production mapping does not expose this field as a verified persisted contract. Do not save such links locally and present them as live. Revisit only after a scoped server-side storage/API contract and public-render sanitization are approved.
+- **Existing owner-only extras to retain:** website CSV import and employee/branch management are absent from the AI Studio owner tabs but are current useful site features. Keep them as additional tools; they must not replace the three primary v4 tabs (catalog, branding, business/contact details).
+- **Brand name:** current project README establishes MantiqatiX as the official public brand. Preserve that identity; the prototype's “كتالوج بلس” screenshot label is not authorization to rename the deployed brand.
+
 ## Exact differences requiring implementation or contract review
 
 ### Reference features not found as equivalent in current main
@@ -119,6 +126,14 @@ None of these open PRs is part of current `main` or the deployed website at this
 - Current website validator `scripts/validate-business-social-links.mjs` explicitly requires a bright default cover that darkens only on hover or keyboard focus.
 - To avoid silently removing an established website behavior, the permanent overlay was reverted on the parity branch. Full-width/wide cover sizing remains.
 - **Pending owner choice:** keep current bright default with hover/focus darkening, or supersede it with the always-darkened cover from AI Studio v4. No further change to this behavior until the decision is recorded.
+
+## Exact-head validation result — PR #650 head `4e4b25fdecd02bf18f8587d014c01ed1f601ec34`
+
+- [x] 20/20 non-skipped check runs passed, zero failures: primary catalog build, owner dashboard Playwright E2E, employee RBAC PostgreSQL, Pages source validation, TypeScript/build/security contract, and supporting finance/privacy/atomicity checks.
+- [x] The initial overlay assertion failure was resolved by restoring the current bright-by-default/hover-focus darkening contract; it is now a documented owner decision conflict rather than a silent behavior change.
+- [x] Both Pages deployment-related jobs were skipped for the PR event by design. No website production deployment occurred.
+- [ ] Independent review, owner decision on the cover overlay and the website-only candidate features, then approved merge/deployment remain open.
+- [ ] The new documentation checkpoint after this result will trigger fresh CI; do not transfer the above PASS to any later head until rechecked.
 
 ## Current execution checkpoint
 
