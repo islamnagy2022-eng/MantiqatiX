@@ -21,13 +21,12 @@ export const ContactUsView: React.FC = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [whatsappUrl, setWhatsappUrl] = useState('');
-  const adminDigits = String(adminSettings.adminWhatsApp || '').replace(/\\D/g, '');
+  const adminDigits = String(adminSettings.adminWhatsApp || '').replace(/\D/g, '');
   const adminPhone = adminDigits.startsWith('0') ? '20' + adminDigits.slice(1) : adminDigits;
   const directAdminWhatsAppUrl = adminPhone.length >= 10 ? 'https://wa.me/' + adminPhone : '';
 
   const buildWhatsAppUrl = () => {
-    const digits = String(adminSettings.adminWhatsApp || '').replace(/\D/g, '');
-    const phone = digits.startsWith('0') ? '20' + digits.slice(1) : digits;
+    const phone = adminPhone;
     if (phone.length < 10) return '';
     const kindLabel = CONTACT_KINDS.find((item) => item.id === kind)?.label || 'رسالة';
     const body = [
