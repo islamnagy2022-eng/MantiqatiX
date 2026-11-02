@@ -475,7 +475,7 @@ try {
       await page.getByRole('heading', { name: 'الدليل الطبي لمنطقتك في مكان واحد', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(new URL(page.url()).searchParams.get('view'), 'medical_directory', 'medical directory must retain a direct-link route');
       await page.getByLabel('نوع النشاط الطبي').waitFor({ state: 'visible' });
-      await page.getByLabel('التخصص').waitFor({ state: 'visible' });
+      await page.getByLabel('التخصص', { exact: true }).waitFor({ state: 'visible' });
       await page.getByLabel('المحافظة').waitFor({ state: 'visible' });
       await page.getByLabel('المركز / المدينة').waitFor({ state: 'visible' });
       await page.getByLabel('القرية / الحي').waitFor({ state: 'visible' });
