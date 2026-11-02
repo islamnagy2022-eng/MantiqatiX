@@ -511,7 +511,7 @@ try {
       assert.equal(await page.getByRole('button', { name: 'تسجيل ذكي بالذكاء الاصطناعي' }).count(), 0, 'search must not fabricate or auto-register medical activities');
       assert.equal(await page.getByRole('dialog').count(), 0, 'medical page must not request GPS until the visitor explicitly clicks');
       await page.getByRole('button', { name: 'العودة إلى الدليل العام' }).click();
-      await page.waitForFunction(() => !new URL(window.location.href).searchParams.has('view'));
+      await page.waitForFunction(() => new URL(window.location.href).searchParams.get('view') === 'directory');
       await page.goBack();
       await page.getByRole('heading', { name: 'الدليل الطبي لمنطقتك في مكان واحد', exact: true }).waitFor({ state: 'visible', timeout: 10000 });
       results.push('medical-directory-public-filters-route-history-no-fabricated-medical-records');
