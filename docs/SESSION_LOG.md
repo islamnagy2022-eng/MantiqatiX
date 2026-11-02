@@ -1782,3 +1782,15 @@ A separate source review found a second platform-root authorization model: the n
 - **Prototype gaps:** AI Studio's financial tab writes manually entered sample sale records and local defaults in localStorage; custom-links uses prototype AppContext/localStorage. Neither has a verified production contract. Do not port these actions or pretend their values are production data. Keep the visual screens blocked until backend/API contracts and independent financial controls are proven.
 - **Current website extras:** preserve CSV import, employee/branch management, server-side pagination, active membership checks, Super Admin roles/audit, current data sources and safe directory controls. Preserve official MantiqatiX branding.
 - **PR:** [#650](https://github.com/islamnagy2022-eng/MantiqatiX/pull/650) remains Draft/open for independent visual review and owner decisions; no merge or deploy.
+
+
+## 2026-11-02 — Safe Contact and Site Map parity screens added
+
+- **New components:** `apps/catalog-frontend/src/components/ContactUsView.tsx` and `SiteMapView.tsx`.
+- **Routes:** added public `?view=contact_us` and `?view=site_map` view modes with direct URL restoration; footer now links to both.
+- **Contact behavior:** form prepares a message and displays a user-clicked WhatsApp link to the configured platform-admin number. It explicitly tells the user the message is not stored in the site. No localStorage, fake inbox insertion or server persistence claim.
+- **Site Map behavior:** lists actual current website screens and exposes owner/admin routes only when current auth session has the right dashboard access. No fake development-progress percentage or unavailable modules are advertised as active.
+- **Member Messages excluded for now:** AI Studio's implementation is local AppContext/localStorage. Porting it without durable server APIs, tenant/recipient privacy, audit and authorization would create a false messaging feature, so it stays out until backend contract verification.
+- **Owner dashboard refinement:** hero now has responsive content/actions, full-width quota progress and a copy-public-store-link action; current dashboard employee/import/branding/profile/QR tabs remain untouched.
+- **Production:** no production DB changes, message data writes, merge or deployment.
+- **Latest head at this log entry:** `c80266c721ad62a49f14e9ab036925b6c730bc5d`; exact-head CI was queued when inspected and must be checked again before claiming validation.
