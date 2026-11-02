@@ -47,7 +47,7 @@ assert.match(importContract, /requestedStatus === "PUBLISHED" && !hasPhone \? "D
 assert.match(action, /sanitizeDoctorImportMetadata\(row.metadata\)/, "Import must sanitize caller metadata");
 assert.doesNotMatch(action, /directory_source_permission_evidence/, "Batch import must remain independent from the private evidence registry");
 const publicationAction = edge.slice(upsertStart);
-assert.match(publicationAction, /if \(listingType === "doctor" && listingStatus === "PUBLISHED"\)/, "Public doctor publication must use a separate evidence gate");
+assert.match(publicationAction, /if \(\(listingType === "doctor" \|\| priorListing\?\.listing_type === "doctor"\) && listingStatus === "PUBLISHED"\)/, "Public doctor publication and doctor-to-other-type publication must use the separate evidence gate");
 assert.match(publicationAction, /directory_source_permission_evidence/, "Public doctor publication must consult the private source-permission registry");
 assert.match(publicationAction, /\.eq\("status", "APPROVED"\)/, "Only approved source evidence may authorize publication");
 assert.match(publicationAction, /isCurrentDoctorRepublicationEvidence/, "Publication must validate source, scope, expiry and revocation");
