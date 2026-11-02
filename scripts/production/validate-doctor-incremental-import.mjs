@@ -52,7 +52,8 @@ assert.match(publicationAction, /directory_source_permission_evidence/, "Public 
 assert.match(publicationAction, /\.eq\("status", "APPROVED"\)/, "Only approved source evidence may authorize publication");
 assert.match(publicationAction, /isCurrentDoctorRepublicationEvidence/, "Publication must validate source, scope, expiry and revocation");
 assert.match(publicationAction, /DOCTOR_REPUBLICATION_PERMISSION_REQUIRED/, "Public doctor publication without current evidence must fail closed");
-assert.match(publicationAction, /isAlreadyPublishedWithSameSource/, "Existing published doctor records may be edited without changing source attribution");
+assert.match(publicationAction, /select\("listing_type,listing_status,source_name,source_url"\)/, "Existing listing type must be checked before the legacy published-doctor exception");
+assert.match(publicationAction, /priorListing\?\.listing_type === "doctor" && priorListing\?\.listing_status === "PUBLISHED"/, "Only an already published doctor may use the unchanged-source edit exception");
 assert.match(edge, /allowsDoctorProfileRepublication === true/, "Evidence registration must require explicit doctor profile republication scope");
 assert.match(edge, /allowsCommercialRepublication === true/, "Evidence registration must require explicit commercial republication scope");
 assert.match(edge, /allows_doctor_profile_republication: allowsDoctorProfileRepublication/, "Doctor profile scope must be stored from explicit input");

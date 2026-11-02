@@ -566,7 +566,7 @@ Deno.serve(async (req: Request) => {
     let priorListing: any = null;
     if (listingType === "doctor" && listingStatus === "PUBLISHED" && id) {
       const { data: prior, error: priorError } = await service.from("public_directory_listings")
-        .select("listing_status,source_name,source_url").eq("id", id).maybeSingle();
+        .select("listing_type,listing_status,source_name,source_url").eq("id", id).maybeSingle();
       if (priorError) return out(origin, { error: "LISTING_READ_FAILED" }, 500);
       priorListing = prior;
     }
@@ -581,7 +581,7 @@ Deno.serve(async (req: Request) => {
     // require current two-person evidence. Existing published profiles may be
     // edited without changing their established source attribution.
     if (listingType === "doctor" && listingStatus === "PUBLISHED") {
-      const isAlreadyPublishedWithSameSource = priorListing?.listing_status === "PUBLISHED" &&
+      const isAlreadyPublishedWithSameSource = priorListing?.listing_type === "doctor" && priorListing?.listing_status === "PUBLISHED" &&
         String(priorListing.source_name || "") === sourceName &&
         String(priorListing.source_url || "") === String(sourceUrl || "");
       if (!isAlreadyPublishedWithSameSource) {
