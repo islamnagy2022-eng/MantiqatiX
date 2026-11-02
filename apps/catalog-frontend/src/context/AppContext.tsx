@@ -29,7 +29,7 @@ import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPlat
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../utils/dashboardAccess';
 
-export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'marketplace_home' | 'medical_directory' | 'contact_us' | 'site_map' | 'login' | 'directory';
+export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'account_portal' | 'marketplace_home' | 'medical_directory' | 'contact_us' | 'site_map' | 'login' | 'directory';
 
 interface AppContextType {
   currentView: ViewMode;
@@ -129,7 +129,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const params = new URLSearchParams(window.location.search);
     if (params.has('store') || params.has('businessId')) return 'public_storefront';
     const requestedView = params.get('view');
-    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'medical_directory' || requestedView === 'marketplace_home' || requestedView === 'contact_us' || requestedView === 'site_map' || requestedView === 'directory'
+    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'account_portal' || requestedView === 'medical_directory' || requestedView === 'marketplace_home' || requestedView === 'contact_us' || requestedView === 'site_map' || requestedView === 'directory'
       ? requestedView
       : 'directory';
   });
@@ -208,7 +208,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const functionalGroups = adminSettings.functionalGroups || DEFAULT_FUNCTIONAL_GROUPS;
   const categories = adminSettings.categories || DEFAULT_CATEGORIES;
   const currentBusiness = (() => {
-    if (authSession.role === 'subscriber' && (currentView === 'merchant_admin' || currentView === 'professional_dashboard')) {
+    if (authSession.role === 'subscriber' && (currentView === 'merchant_admin' || currentView === 'professional_dashboard' || currentView === 'account_portal')) {
       // Never fall back to another public business if the subscriber's authorized
       // business is missing from the current production bootstrap.
       return businesses.find((b) => b.id === authSession.businessId);
@@ -287,7 +287,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const safeRequestedView: ViewMode = requestedView === 'directory'
       ? 'directory'
-      : requestedView === 'medical_directory'
+      : requestedView === 'account_portal' && Boolean(boot.authSession.isAuthenticated)
+        ? 'account_portal'
+        : requestedView === 'medical_directory'
         ? 'medical_directory'
         : requestedView === 'marketplace_home'
           ? 'marketplace_home'
