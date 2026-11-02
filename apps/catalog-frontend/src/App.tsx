@@ -14,10 +14,10 @@ import { SiteMapView } from './components/SiteMapView';
 import { CartDrawer } from './components/cart/CartDrawer';
 import { LoginModal } from './components/auth/LoginModal';
 import { MessageCircle } from 'lucide-react';
+import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from './utils/dashboardAccess';
 
 const SubscriberAccountPortal = lazy(() => import('./modules/account/SubscriberAccountPortal').then((module) => ({ default: module.SubscriberAccountPortal })));
 const AccountPortalFallback = () => <div role="status" className="mx-auto mt-4 w-[calc(100%-2rem)] max-w-7xl rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">جارٍ تجهيز شاشة الحساب…</div>;
-import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from './utils/dashboardAccess';
 
 const MainContent: React.FC = () => {
   const { currentView, setCurrentView, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp, authSession, authLoading } = useApp();
