@@ -3237,3 +3237,11 @@ A separate source review found a second platform-root authorization model: the n
 
 - [x] Ported the AI Studio Medical Directory as `?view=medical_directory`, using current public activities, canonical health taxonomy, type/specialty/geography filters and 20-item paging.
 - [ ] Member-to-member Messages remain blocked until durable backend/API/RLS/RBAC/audit/notification contracts are implemented and tested. No local-only inbox will be shipped.
+
+
+## 2026-11-02 — Current-head browser regression repair
+- Latest inspected PR #650 head before this repair: `51f4eac04d99c4bffa787d1a04c2c85c32f22236`; frontend build/type-check and taxonomy/auth/security contract checks passed, but the browser E2E job failed at the Medical Directory filter assertion.
+- Root cause: Playwright `getByLabel('التخصص')` matched both the search input whose label includes “التخصص” and the specialty select. This was an ambiguous test locator, not an application runtime failure.
+- Fixed the test to use the exact accessible label: `getByLabel('التخصص', { exact: true })`.
+- Fix commit: `92bf4c9cc5dfe0912ecdb49138b31467f9762efd` on the same isolated PR branch.
+- Pending: wait for and inspect exact-head CI on the fix commit; rerun the full browser suite if needed. PR #650 remains Draft/unmerged/undeployed. No production data/schema/Auth/RLS/GRANT/Edge/payment mutation.
