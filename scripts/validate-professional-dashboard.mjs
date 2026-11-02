@@ -101,8 +101,9 @@ assert.match(app, /visibleView === 'professional_dashboard' && <ProfessionalDash
 assert.match(app, /!canAccessProfessionalDashboard\(authSession\)/);
 assert.match(app, /!canAccessMerchantDashboard\(authSession\)/);
 
-// Privileged dashboard routes are intentionally not exposed as direct public navbar actions.
-assert.doesNotMatch(navbar, /setCurrentView\('(merchant_admin|professional_dashboard|super_admin)'\)/);
+assert.match(navbar, /canAccessMerchantDashboard\(authSession\)/);
+assert.match(navbar, /canAccessProfessionalDashboard\(authSession\)/);
+assert.match(navbar, /setCurrentView\('professional_dashboard'\)/);
 
 assert.match(employeeManager, /readOnly\?: boolean/);
 assert.match(employeeManager, /readOnly && <p className="rounded-xl border border-sky-200/);
