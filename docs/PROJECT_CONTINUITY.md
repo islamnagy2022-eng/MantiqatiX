@@ -1,3 +1,25 @@
+# CURRENT HANDOFF — 2026-11-02 11:25 UTC
+
+This checkpoint supersedes the older dated handoff below; historical entries are retained.
+
+- Current main: `25d486c592d6ed9b057f8ef179fbbeae1fc79ba5` (PR #650 merged). Scoped deployment [41433049776](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41433049776) and main validation [41433049782](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41433049782) passed.
+- Live Supabase inventory: 309 migration rows through `20261101140105`; exact comparison against 42 required release versions remains 0/42. Missing version identity is not proof all corresponding effects are absent.
+- Security Advisor: 9 RLS-enabled/no-policy tables; 3 anon-executable and 67 authenticated-executable SECURITY DEFINER functions; Leaked Password Protection disabled; anonymous-sign-in warning present.
+- Performance Advisor: 132 unindexed FKs, 375 RLS initialization-plan findings, 75 unused indexes, 28 multiple-permissive-policy findings.
+- Six critical Edge entrypoints differ from main: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4 and financial-journal v3. Do not deploy individually.
+- Latest full verifier snapshot: 32/60 selected physical-object checks non-PASS; RC449A/RC450 journal prerequisites absent; payment/finance E2E, backup/restore/RPO/RTO, Auth and adversarial tenant-isolation evidence remain NOT VERIFIED.
+- Overall `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. No production mutation was performed.
+- Evidence report: [PRODUCTION_GATE_EVIDENCE_20261102.md](./audits/PRODUCTION_GATE_EVIDENCE_20261102.md).
+
+## Next safe sequence
+1. Refresh selected 60-object/function/ACL preflight against current live schema.
+2. Build a restorable, schema-faithful isolated Production snapshot; rehearse chronological migration replay and rollback.
+3. Review RC463 and exposed SECURITY DEFINER functions individually; preserve intentional public-ad discovery contract.
+4. Resolve RC449A → RC450 prerequisites before journal Edge deployment.
+5. Complete Paymob sandbox, finance, tenant-isolation, Auth, backup/restore, monitoring, RPO/RTO and device evidence.
+6. Keep full platform gate blocked until every independent gate passes and full rollout is explicitly authorized.
+
+---
 # MantiqatiX — Project Continuity & Production Handoff
 
 > **CURRENT HANDOFF — 2026-10-31 19:28 UTC:** Start every session at master request ledger [#599](https://github.com/islamnagy2022-eng/MantiQaTiX/issues/599) and [CROSS_SESSION_TODO_PROTOCOL.md](./CROSS_SESSION_TODO_PROTOCOL.md). Every new request must be registered in #599 and `docs/MASTER_PRODUCTION_TODO.md`; unfinished work stays open. Current main baseline for this security continuation is `cd9929e337fce58d4c20dfbb94febfd7e4f36291`. PR #617 (RC463 trigger-only SECURITY DEFINER hardening) is Draft/unmerged on branch `security/rc463-current-main-rehearsal-20261031`; code/test commit `43483d855bb08a63a37f78be564f5eb670f8a465` passed exact-head PostgreSQL 17.11 trigger integration, 75-migration historical-checkpoint replay, build, employee RBAC and Playwright, plus supporting migration/backend/payment/privacy checks. Production is PostgreSQL 17.6.1.155; RC463 has not been applied. PR #618 account portal is also Draft/unmerged; exact-head build, employee RBAC and Playwright passed, but cross-membership switching stays disabled pending backend parity. Live Supabase inventory: 308 migration rows through `20261029083845`, with 0/42 exact required release version IDs present; this is an identity mismatch, not proof all physical effects are absent. Six critical payment/order/finance Edge Functions remain drifted; RC435/RC439 and RC449A/RC450 runtime contracts, backup/restore, Auth and payment/finance E2E evidence remain open. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. PR CI is not a production deploy; no DB/Auth/RLS/GRANT/Edge/financial mutation was performed.

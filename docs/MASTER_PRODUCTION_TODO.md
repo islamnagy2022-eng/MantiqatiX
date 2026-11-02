@@ -1,9 +1,21 @@
+## 2026-11-02 — Current live Production read-only checkpoint
+
+- Main commit `25d486c592d6ed9b057f8ef179fbbeae1fc79ba5`; PR #650 merged. Scoped Pages deployment [41433049776](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41433049776) and main validation [41433049782](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41433049782) passed.
+- Supabase live migration ledger: 309 rows through `20261101140105`; exact comparison against all 42 canonical release version IDs: 0/42 present. Missing IDs alone do not prove all physical SQL effects are absent.
+- Security Advisor (2026-11-02 11:20:50 UTC): 9 RLS-enabled/no-policy tables; 3 anon-executable SECURITY DEFINER functions; 67 authenticated-executable SECURITY DEFINER functions; Leaked Password Protection disabled; anonymous-sign-in warning present.
+- Performance Advisor: 132 unindexed foreign keys, 375 RLS init-plan, 75 unused-index and 28 multiple-permissive-policy findings.
+- Exact live Edge comparison confirms six critical mismatches: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3.
+- Latest full verifier snapshot: 32/60 selected object checks non-PASS; RC449A/RC450 journal schema/ACL absent; payment/finance E2E, backup/restore/RPO/RTO, Auth hardening and full multi-tenant E2E NOT VERIFIED. `FULL_PLATFORM_GATE=BLOCKED`.
+- No Production DDL/DML, migration apply/repair, GRANT/REVOKE, Auth/RLS change, Edge deployment, provider call or financial mutation.
+- Evidence: [PRODUCTION_GATE_EVIDENCE_20261102.md](docs/audits/PRODUCTION_GATE_EVIDENCE_20261102.md).
+
+---
 ## AISTUDIO-V4-WEBSITE-CONVERGENCE-20261102 — Google AI Studio v4 website parity
 
 **Date:** 2026-11-02  
-**Status:** IN PROGRESS — source comparison mapped; first visual parity slice in Draft PR #650; exact-head CI running.  
+**Status:** PARTIALLY COMPLETE — PR #650 merged and scoped catalog release deployed; remaining v4 parity and backend-dependent workflows stay open.  
 **Request ledger:** [Issue #599](https://github.com/islamnagy2022-eng/MantiqatiX/issues/599) (intake comment 6572488271).  
-**Branch:** `feat/aistudio-v4-website-convergence-20261102`.  
+**Branch:** `feat/aistudio-v4-website-convergence-20261102` (PR #650 merged to main; merge commit `25d486c592d6ed9b057f8ef179fbbeae1fc79ba5`; Pages run `41433049776`; main validation run `41433049782`).  
 **Reference:** uploaded `bizcatalog-manager (4).zip`, SHA-256 `e49e202716c38c5564b8a82db9a74b4fe2c93ebbdecb4a347a7a110b799d6df2`.
 
 ### Owner-approved product rules
@@ -44,13 +56,13 @@
 - [x] Ported role-aware Site Map route and footer navigation; it lists actual screens only and gates private dashboards by real permissions.
 - [x] Added the current website Marketplace Home as an optional route/tab while keeping the V4 directory as the default page; it uses current real public businesses/products and the approved ad RPC; duplicate GPS consent was removed.
 - [ ] Member Messages route remains deferred until a persistent server-side messaging contract is verified.
-- [ ] Exact-head build/E2E checks must pass for the new Marketplace route and the public directory-products/catalog-opening flow.
-- [x] Draft PR #650 opened: https://github.com/islamnagy2022-eng/MantiqatiX/pull/650.
+- [x] Exact-head build, employee RBAC PostgreSQL, browser E2E and deployed-origin checks passed for the scoped PR #650 release; remaining v4 parity and backend-dependent flows remain open.
+- [x] PR #650 merged: https://github.com/islamnagy2022-eng/MantiqatiX/pull/650 (merge commit `25d486c592d6ed9b057f8ef179fbbeae1fc79ba5`).
 - [x] Exact-head source head `4e4b25fdecd02bf18f8587d014c01ed1f601ec34`: build, browser E2E, employee RBAC PostgreSQL, Pages validation and supporting checks PASS (20 successful non-skipped checks; 0 failures). Pages deploy was skipped for the PR event.
 - [ ] Independent visual browser review at desktop/mobile widths and owner decisions on the cover overlay and website-only additions; no production deployment is authorized by this PR.
 
 ### Next action
-Close the exact-head validation and visual review for PR #650, then continue Wave A on directory and global navigation. Preserve all website-only features; review wallet/finance, custom links, messages/contact/sitemap and AI/marketing UI against authoritative backend contracts before implementing.
+Continue remaining v4 screen/behavior parity against deployed main. Preserve website-only capabilities until an explicit owner decision. Keep Member Messages deferred until durable server-side storage, authorization, audit and notification contracts exist. Integrate wallet/finance and AI/marketing only through verified backend APIs/RLS/RBAC.
 
 ---
 
