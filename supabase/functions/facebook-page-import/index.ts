@@ -127,6 +127,108 @@ function formatAddress(page: any): string {
   ].map((part) => String(part || "").trim()).filter(Boolean).join("، ");
 }
 
+const PUBLIC_IMAGE_BUCKET = "mantiqatix-profile-media";
+const MAX_FACEBOOK_IMAGE_BYTES = 5 * 1024 * 1024;
+const FACEBOOK_IMAGE_HOSTS = ["facebook.com", "fbcdn.net", "fbsbx.com"];
+
+function isAllowedFacebookImageUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    const hostname = url.hostname.toLowerCase();
+    return url.protocol === "https:"
+      && !url.username && !url.password
+      && (!url.port || url.port === "443")
+      && FACEBOOK_IMAGE_HOSTS.some((domain) => hostname === domain || hostname.endsWith("." + domain));
+  } catch {
+    return false;
+  }
+}
+
+async function mirrorFacebookImage(
+  service: ReturnType<typeof createClient>,
+  businessId: string,
+  pageId: string,
+  imageKind: "logo" | "cover",
+  sourceUrl: string,
+): Promise<string> {
+  if (!sourceUrl || !isAllowedFacebookImageUrl(sourceUrl)) return "";
+  try {
+    let currentUrl = sourceUrl;
+    let imageResponse: Response | null = null;
+    for (let redirectCount = 0; redirectCount <= 3; redirectCount += 1) {
+      if (!isAllowedFacebookImageUrl(currentUrl)) return "";
+      const response = await fetch(currentUrl, {
+        method: "GET",
+        redirect: "manual",
+        headers: { Accept: "image/jpeg,image/png,image/webp" },
+        signal: AbortSignal.timeout(12_000),
+      });
+      if ([301, 302, 303, 307, 308].includes(response.status)) {
+        const location = response.headers.get("location");
+        if (!location || redirectCount === 3) return "";
+        currentUrl = new URL(location, currentUrl).toString();
+        continue;
+      }
+      if (!response.ok) return "";
+      imageResponse = response;
+      break;
+    }
+    if (!imageResponse) return "";
+    const contentType = String(imageResponse.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
+    const extension = contentType === "image/jpeg" ? "jpg"
+      : contentType === "image/png" ? "png"
+      : contentType === "image/webp" ? "webp" : "";
+    const declaredLength = Number(imageResponse.headers.get("content-length") || 0);
+    if (!extension || (declaredLength > 0 && declaredLength > MAX_FACEBOOK_IMAGE_BYTES)) return "";
+    const reader = imageResponse.body?.getReader();
+    if (!reader) return "";
+    const chunks: Uint8Array[] = [];
+    let totalBytes = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) {
+        totalBytes += value.byteLength;
+        if (totalBytes > MAX_FACEBOOK_IMAGE_BYTES) {
+          await reader.cancel();
+          return "";
+        }
+        chunks.push(value);
+      }
+    }
+    if (!totalBytes) return "";
+    const bytes = new Uint8Array(totalBytes);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    const validSignature = extension === "jpg"
+      ? bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff
+      : extension === "png"
+        ? bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47
+        : bytes.length >= 12 && String.fromCharCode(...bytes.slice(0, 4)) === "RIFF"
+          && String.fromCharCode(...bytes.slice(8, 12)) === "WEBP";
+    if (!validSignature) return "";
+    const objectPath = "businesses/" + businessId + "/facebook-import/" + pageId + "/"
+      + imageKind + "-" + crypto.randomUUID() + "." + extension;
+    const { error } = await service.storage.from(PUBLIC_IMAGE_BUCKET).upload(objectPath, bytes, {
+      contentType,
+      cacheControl: "31536000",
+      upsert: false,
+    });
+    if (error) {
+      console.error("Facebook image mirror upload failed", error.name || "storage_error");
+      return "";
+    }
+    const { data } = service.storage.from(PUBLIC_IMAGE_BUCKET).getPublicUrl(objectPath);
+    return data?.publicUrl?.startsWith("https://") ? data.publicUrl : "";
+  } catch (error) {
+    console.warn("Facebook image mirror skipped", error instanceof Error ? error.message : "image_fetch_failed");
+    return "";
+  }
+}
+
 function publicPageDetails(page: any) {
   const pictureUrl = String(page?.picture?.data?.url || "").trim();
   const coverUrl = String(page?.cover?.source || "").trim();
@@ -246,7 +348,16 @@ Deno.serve(async (req: Request) => {
     const pageDetails = await graphJson(url);
     const profile = publicPageDetails(pageDetails);
     if (!profile.name) throw new Error("FACEBOOK_PAGE_NOT_FOUND");
-    return reply(origin, { success: true, profile });
+
+    // Facebook Graph image URLs may be temporary or session-dependent. Mirror
+    // them into the platform's public presentation bucket while the owner is
+    // authenticated, so public catalog visitors never need a Facebook session.
+    const [logoUrl, coverUrl] = await Promise.all([
+      mirrorFacebookImage(service, businessId, pageId, "logo", profile.logoUrl),
+      mirrorFacebookImage(service, businessId, pageId, "cover", profile.coverUrl),
+    ]);
+    const stableProfile = { ...profile, logoUrl, coverUrl };
+    return reply(origin, { success: true, profile: stableProfile });
   } catch (error) {
     const result = publicError(error);
     return reply(origin, { error: result.code, message: result.message }, result.status);
