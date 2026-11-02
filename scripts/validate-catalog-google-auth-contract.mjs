@@ -68,7 +68,8 @@ assert.ok(
   context.includes("requestedView === 'merchant_admin' && canAccessMerchantDashboard(boot.authSession)") &&
   context.includes("requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(boot.authSession)") &&
   context.includes("                : 'directory';") &&
-  context.includes("const isDirectoryDeepLink = params.has('activity') || params.has('listing') || params.has('group')"),
+  context.includes("const isDirectoryDeepLink = params.has('activity') || params.has('listing') || params.has('group')") &&
+  context.includes("!requestedView && !isDirectoryDeepLink"),
   'Role bootstrap must preserve only explicitly authorized dashboard routes and directory deep links, otherwise falling back to the public directory.'
 );
 assert.ok(context.includes("setCurrentView('directory');"), 'Email login and registration may open the dedicated directory search.');

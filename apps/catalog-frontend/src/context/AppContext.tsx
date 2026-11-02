@@ -293,8 +293,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const isDirectoryDeepLink = params.has('activity') || params.has('listing') || params.has('group');
-    const safeRequestedView: ViewMode = requestedView === 'directory' || isDirectoryDeepLink
-      ? 'directory'
+    const safeRequestedView: ViewMode = !requestedView && !isDirectoryDeepLink
+      ? 'marketplace_home'
+      : requestedView === 'directory' || isDirectoryDeepLink
+        ? 'directory'
       : requestedView === 'account_portal' && Boolean(boot.authSession.isAuthenticated)
         ? 'account_portal'
         : requestedView === 'medical_directory'
@@ -459,8 +461,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ? Boolean(requestedManagedBusiness)
         : Boolean(authSession.businessId && authSession.businessId === requestedManagedId);
       const restoredView: ViewMode =
-        isDirectoryDeepLink
-          ? 'directory'
+        !requestedView && !isDirectoryDeepLink
+          ? 'marketplace_home'
+          : isDirectoryDeepLink
+            ? 'directory'
           : requestedView === 'medical_directory' || requestedView === 'marketplace_home' || requestedView === 'contact_us' || requestedView === 'site_map' || requestedView === 'directory'
             ? requestedView
             : requestedView === 'account_portal' && authSession.isAuthenticated
