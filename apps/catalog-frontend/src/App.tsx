@@ -7,6 +7,7 @@ import { MerchantDashboard } from './components/merchant/MerchantDashboard';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { ProfessionalDashboard } from './modules/dashboard/ProfessionalDashboard';
 import { DirectoryView } from './components/DirectoryView';
+import { MarketplaceHome } from './components/MarketplaceHome';
 import { ContactUsView } from './components/ContactUsView';
 import { SiteMapView } from './components/SiteMapView';
 import { CartDrawer } from './components/cart/CartDrawer';
@@ -24,7 +25,7 @@ const MainContent: React.FC = () => {
   // Never expose a dashboard without a production role. Guests may view a
   // storefront only through its direct share link, never through a generic tab.
   const visibleView = authLoading
-    ? (currentView === 'public_storefront' && hasDirectPublicCatalogLink ? 'public_storefront' : currentView === 'contact_us' || currentView === 'site_map' ? currentView : 'directory')
+    ? (currentView === 'public_storefront' && hasDirectPublicCatalogLink ? 'public_storefront' : currentView === 'marketplace_home' || currentView === 'contact_us' || currentView === 'site_map' ? currentView : 'directory')
     : currentView === 'super_admin' && authSession.role !== 'admin'
       ? 'directory'
       : currentView === 'merchant_admin' &&
@@ -51,6 +52,8 @@ const MainContent: React.FC = () => {
       <main className="flex-1">
         {/* Isolated Business Storefront: Opens directly for the specific business without seeing other businesses or external taxonomy bars */}
         {visibleView === 'directory' && <DirectoryView />}
+
+        {visibleView === 'marketplace_home' && <MarketplaceHome />}
 
         {visibleView === 'public_storefront' && (
           <div>
