@@ -58,12 +58,10 @@ console.log('Catalog Google OAuth hydration, identity-vs-membership, and role-ga
 assert.match(context, /const defaultView: ViewMode = 'directory'/, 'Every freshly authenticated account must land on the public home directory by default');
 assert.ok(
   context.includes("requestedView === 'medical_directory'") &&
-  context.includes("requestedView === 'medical_directory'") &&
-  context.includes("requestedView === 'medical_directory'") &&
   context.includes("requestedView === 'marketplace_home'") &&
   context.includes("requestedView === 'contact_us'") &&
   context.includes("requestedView === 'site_map'"),
-  'Role bootstrap must preserve the public Marketplace, Contact and Site Map routes.'
+  'Role bootstrap must preserve the public Medical Directory, Marketplace, Contact and Site Map routes.'
 );
 assert.ok(
   context.includes("requestedView === 'super_admin' && boot.authSession.role === 'admin'") &&
@@ -77,13 +75,13 @@ assert.ok(
   context.includes("requestedView === 'medical_directory'") &&
   context.includes("requestedView === 'marketplace_home'") &&
   context.includes("requestedView === 'contact_us'") &&
-  context.includes("requestedView === 'site_map'"),
-  'Browser history must restore the medical directory and all public V4 information and marketplace routes.'
+  context.includes("requestedView === 'site_map'") &&
+  context.includes("window.addEventListener('popstate', restoreRouteFromLocation)"),
+  'Browser history must restore the Medical Directory and all public V4 information and marketplace routes.'
 );
 assert.ok(
   context.includes("requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(authSession)") &&
   context.includes("requestedView === 'merchant_admin' && canAccessMerchantDashboard(authSession)") &&
-  context.includes("requestedView === 'super_admin' && authSession.role === 'admin'") &&
-  context.includes("window.addEventListener('popstate', restoreRouteFromLocation)"),
+  context.includes("requestedView === 'super_admin' && authSession.role === 'admin'"),
   'Browser history must reapply active role and membership authorization before restoring private dashboard routes.'
 );
