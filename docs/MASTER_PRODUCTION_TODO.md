@@ -1,3 +1,46 @@
+## AISTUDIO-V4-WEBSITE-CONVERGENCE-20261102 — Google AI Studio v4 website parity
+
+**Date:** 2026-11-02  
+**Status:** IN PROGRESS — source archive inventoried; current-main comparison and implementation map pending.  
+**Request ledger:** [Issue #599](https://github.com/islamnagy2022-eng/MantiqatiX/issues/599) (intake comment 6572488271).  
+**Branch:** `feat/aistudio-v4-website-convergence-20261102`.  
+**Reference:** uploaded `bizcatalog-manager (4).zip`, SHA-256 `e49e202716c38c5564b8a82db9a74b4fe2c93ebbdecb4a347a7a110b799d6df2`.
+
+### Owner-approved product rules
+- Treat the uploaded Google AI Studio v4 application as the primary UX and feature reference for the website.
+- Any capability already present on the current website but absent from v4 must be documented and presented to the owner with its value/impact before removal or integration; no silent deletion or merge.
+- Preserve genuine current production activity/business records and the existing secure source of truth. Do not replace them with archive demo seed records. Business details may be edited in a later owner-directed phase.
+- Do not mark any activity verified merely because it appears in the archive or is displayed in the UI.
+- Keep production DB/Auth/RLS/GRANT/Edge/payment/finance state and production deployment untouched until their independent authorization and release gates pass.
+
+### Initial archive inventory (source inspection only)
+- React 19 + TypeScript + Vite 8 / Tailwind 4 prototype with app shell, navigation, directory, storefront, cart, merchant dashboard, admin dashboards, medical directory, member messages, contact, sitemap, and shared context/rules.
+- Archive includes `src/data/seedData.ts` with 32 `INITIAL_BUSINESSES` objects. These are prototype fixtures and are explicitly excluded from production business import; preserve real production activities instead.
+- Archive AppContext initializes data in browser `localStorage`; `server.ts` keeps notifications in process memory. These persistence paths are not production-authoritative and must not be copied over the website's secure Supabase/server contracts.
+- Archive documents include architecture/capacity/security/DR and a load-test report; those are design claims, not production evidence. Do not claim 100M capacity or tested load from those documents alone.
+- Prior archive convergence audit (2026-10-30) covers v3 only. v4 requires a fresh comparison; do not assume the older mapping is complete.
+
+### Required execution sequence
+1. Inventory every v4 screen, navigation route, activity taxonomy, workflow, component and data dependency.
+2. Compare against exact current `main`, deployed website behavior, open PRs and prior convergence audit.
+3. Classify each item as MATCH / MISSING-IN-WEBSITE / WEBSITE-ONLY-ADDITION / CONFLICT / DEMO-ONLY / BACKEND-DEPENDENT.
+4. Present WEBSITE-ONLY-ADDITION and material CONFLICT items to owner for explicit decision.
+5. Port approved UI/behavior additively, adapting to canonical website types, routes, API and backend authorization; retain real live activity data.
+6. Run exact-head TypeScript/build, unit/contracts, RBAC/security, responsive and browser regression checks; open PR for review. No production deploy without separate approval and gates.
+
+### Acceptance criteria
+- Website matches the approved v4 UI/behavior on the agreed screen inventory.
+- Real production activities remain intact and continue to load from authoritative current backend sources.
+- No archive demo businesses, fabricated contact details, fake metrics, or unverified status are imported.
+- Every current-website-only capability has an owner decision before it is removed or merged.
+- All conflicts, backend dependencies, and unverified behaviors are documented.
+- No production data/schema/Auth/RLS/GRANT/Edge/payment mutation or deployment is performed as part of the parity work without separate authorization.
+
+### Next action
+Complete screen/component and behavior comparison of archive v4 against current main and deployed website; deliver a parity matrix and the list of website-only features requiring owner approval before implementing the first approved slice.
+
+---
+
 # MNTY / MantiqatiX — Master Production TODO & Release Execution Register
 
 الهدف: الوصول إلى نسخة إنتاج فعلية مؤمنة وقابلة للإطلاق.
