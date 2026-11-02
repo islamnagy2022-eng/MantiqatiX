@@ -180,8 +180,36 @@ async function mirrorFacebookImage(
       : contentType === "image/webp" ? "webp" : "";
     const declaredLength = Number(imageResponse.headers.get("content-length") || 0);
     if (!extension || (declaredLength > 0 && declaredLength > MAX_FACEBOOK_IMAGE_BYTES)) return "";
-    const bytes = new Uint8Array(await imageResponse.arrayBuffer());
-    if (!bytes.length || bytes.length > MAX_FACEBOOK_IMAGE_BYTES) return "";
+    const reader = imageResponse.body?.getReader();
+    if (!reader) return "";
+    const chunks: Uint8Array[] = [];
+    let totalBytes = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) {
+        totalBytes += value.byteLength;
+        if (totalBytes > MAX_FACEBOOK_IMAGE_BYTES) {
+          await reader.cancel();
+          return "";
+        }
+        chunks.push(value);
+      }
+    }
+    if (!totalBytes) return "";
+    const bytes = new Uint8Array(totalBytes);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    const validSignature = extension === "jpg"
+      ? bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff
+      : extension === "png"
+        ? bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47
+        : bytes.length >= 12 && String.fromCharCode(...bytes.slice(0, 4)) === "RIFF"
+          && String.fromCharCode(...bytes.slice(8, 12)) === "WEBP";
+    if (!validSignature) return "";
     const objectPath = "businesses/" + businessId + "/facebook-import/" + pageId + "/"
       + imageKind + "-" + crypto.randomUUID() + "." + extension;
     const { error } = await service.storage.from(PUBLIC_IMAGE_BUCKET).upload(objectPath, bytes, {
