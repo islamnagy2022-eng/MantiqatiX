@@ -259,9 +259,9 @@ for (const [groupId, iconName] of Object.entries(expectedIcons)) {
   assert.ok(iconMap.includes(`${groupId}: <${iconName} `), `Group ${groupId} must use its designated icon (${iconName}).`);
 }
 assert.ok(!directory.includes('FUNCTIONAL_GROUP_COVERS'), 'Functional group cards must not regress to background cover images.');
-assert.ok(directory.includes('grid grid-cols-8 gap-1'), 'Homepage activity cards must show eight compact columns on mobile and larger screens.');
-assert.ok(browserE2E.includes('canonical-activity-code-precedence-and-eight-column-mobile-grid'), 'Browser E2E must verify canonical activity precedence and eight activity columns at the mobile viewport.');
-assert.ok(directory.includes('grid grid-cols-8 gap-1'), 'Public activity cards must retain the requested eight-column layout.');
+assert.ok(directory.includes('grid grid-cols-3 gap-2 lg:grid-cols-4 xl:grid-cols-5'), 'Public activity cards must show three columns on phones and expand on larger screens.');
+assert.ok(browserE2E.includes('canonical-activity-code-precedence-and-three-column-mobile-grid'), 'Browser E2E must verify canonical activity precedence and three activity columns at the mobile viewport.');
+assert.ok(directory.includes('sm:flex-row') && directory.includes('sm:text-right'), 'Activity cards must stack compactly on phones and return to horizontal layout on larger screens.');
 assert.ok(directory.includes('openActivityModule(category.id)'), 'Activity cards must navigate to the activity module route.');
 assert.ok(directory.includes('تصفية النتائج حسب:') && directory.includes('عرض كل أنشطة المجموعة'), 'Specialty filters must remain visible and reversible within the selected activity group.');
 assert.ok(directory.includes('availableGroups.map') && directory.includes('availableCategories.map'), 'Public directory must render group folders first and activities inside the selected group.');

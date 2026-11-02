@@ -1056,11 +1056,11 @@ try {
       await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
       const activitySection = page.locator('section[aria-label="المجموعات والأنشطة"]');
       await activitySection.getByRole('button', { name: /الطب والصحة/ }).first().click();
-      const activityGrid = activitySection.locator('.grid.grid-cols-8').first();
+      const activityGrid = activitySection.locator('.grid.grid-cols-3').first();
       const columnCount = await activityGrid.evaluate((element) =>
         getComputedStyle(element).gridTemplateColumns.split(' ').length
       );
-      assert.equal(columnCount, 8, 'activity directory must show eight activity cards per row at a 390px phone viewport');
+      assert.equal(columnCount, 3, 'activity directory must show three activity cards per row at a 390px phone viewport');
 
       const pharmacy = activitySection.getByRole('button', { name: /صيدليات/ }).first();
       await pharmacy.waitFor({ state: 'visible' });
@@ -1072,7 +1072,7 @@ try {
       await pharmacy.click();
       await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'صيدليات', exact: true }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px canonical activity grid');
-      results.push('canonical-activity-code-precedence-and-eight-column-mobile-grid');
+      results.push('canonical-activity-code-precedence-and-three-column-mobile-grid');
     } finally { await context.close(); }
   }
 
