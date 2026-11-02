@@ -368,7 +368,10 @@ async function waitForDashboard(page) {
   await page.locator('nav[aria-label="أقسام الداشبورد"]').waitFor({ state: 'visible', timeout: 15000 });
 }
 async function waitForDeniedDashboard(page) {
-  await page.waitForFunction(() => !new URLSearchParams(window.location.search).has('view'), null, { timeout: 15000 });
+  await page.waitForFunction(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('view') === 'directory' || !params.has('view');
+  }, null, { timeout: 15000 });
   assert.equal(await page.locator('nav[aria-label="أقسام الداشبورد"]').count(), 0);
 }
 
@@ -595,13 +598,13 @@ try {
       },
     });
     try {
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
       const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
       if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      // The root screen shows activity groups, not listing cards. Follow the public folder navigation.
+      // The dedicated directory route shows activity groups, not listing cards. Follow the public folder navigation.
       await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
       await page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first().click();
       const modulePage = page.locator('main[dir="rtl"]');
@@ -777,7 +780,7 @@ try {
     try {
       await context.grantPermissions(['geolocation'], { origin: new URL(baseUrl).origin });
       await context.setGeolocation({ latitude: 30.55, longitude: 31.01 });
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
       const consentDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
       await consentDialog.waitFor({ state: 'visible', timeout: 15000 });
       await consentDialog.getByRole('button', { name: 'السماح باستخدام موقعي' }).click();
@@ -810,7 +813,7 @@ try {
     const { context, page } = await newScenario(browser, null, [], { geoFirstVisit: true });
     try {
       await context.grantPermissions([], { origin: new URL(baseUrl).origin });
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
       const consentDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
       await consentDialog.waitFor({ state: 'visible', timeout: 15000 });
       await consentDialog.getByRole('button', { name: 'السماح باستخدام موقعي' }).click();
@@ -1050,7 +1053,7 @@ try {
     };
     const { context, page } = await newScenario(browser, null, [conflictingLegacyBusiness]);
     try {
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
       const activitySection = page.locator('section[aria-label="المجموعات والأنشطة"]');
       await activitySection.getByRole('button', { name: /الطب والصحة/ }).first().click();
       const activityGrid = activitySection.locator('.grid.grid-cols-8').first();
@@ -1077,7 +1080,7 @@ try {
   {
     const { context, page } = await newScenario(browser);
     try {
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
       const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
       if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
@@ -1152,7 +1155,7 @@ try {
       directoryListingsState: { listings: [withPhone, withoutPhone, outsideGeo] },
     });
     try {
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
       const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
       if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
@@ -1198,7 +1201,7 @@ try {
   {
     const { context, page } = await newScenario(browser);
     try {
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
       const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
       if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
@@ -1240,7 +1243,7 @@ try {
   {
     const { context, page } = await newScenario(browser, null, liveDirectory.businesses);
     try {
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
 
       const findVerifiedCard = async (target) => {
         const heading = page.getByRole('heading', { name: target.name, exact: true }).first();
@@ -1274,7 +1277,7 @@ try {
           results.push(target.label.toLowerCase().replaceAll(' ', '-') + '-verified-badge-and-empty-catalog-state-rendered');
         }
 
-        await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+        await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
       }
     } finally { await context.close(); }
   }
