@@ -26,7 +26,7 @@ assert.ok(adminGate < actionStart, "Batch import must be protected by the platfo
 
 assert.match(action, /rows\.length > 20/, "Batch size must be capped at 20");
 assert.match(action, /for \(let index = 0; index < rows\.length; index \+= 1\)/, "Rows must be processed sequentially");
-assert.match(action, /select\("id,slug,listing_status,metadata,source_checked_at,completeness"\)/, "Existing row state must be loaded before updates");
+assert.match(action, /select\("id,slug,listing_status,source_name,source_url,metadata,source_checked_at,completeness"\)/, "Existing row state and source attribution must be loaded before updates");
 assert.match(action, /\.eq\("phone", candidatePhone\)/, "Deduplication must check each incoming phone against the saved primary phone");
 assert.match(action, /\.eq\("secondary_phone", candidatePhone\)/, "Deduplication must check each incoming phone against the saved secondary phone");
 assert.match(action, /for \(const candidatePhone of phoneCandidates\)/, "Deduplication must compare both incoming numbers across both saved phone fields");
