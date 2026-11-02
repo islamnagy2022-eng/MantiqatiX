@@ -21,6 +21,17 @@
 - [ ] Deploy the Edge Function only through a separately reviewed release after all rehearsal checks pass. **No Edge deployment was performed by PR #655.**
 - [ ] Do not add real doctor data until a written licence, applicable commercial open licence, or direct doctor/clinic-owner consent is recorded and approved.
 
+### Doctor import follow-up — PR #661 (2026-11-02)
+- [x] Added deterministic runtime cases for the doctor source-permission/publication contract.
+- [x] Hardened URL authority validation: credentials and all explicit ports (including explicit :443) are rejected before source-host matching.
+- [x] Explicit empty/null `listingStatus` is rejected instead of falling through to the default publication status.
+- [x] Exact-head CI passed on `0c2f4a00bc76e4a1fbc8986ce574334379854ee8`: Doctor Import Contract #41484267421; Module Professionalization #41484267404; Backend-only Module Boundary #41484267631; MantiGO Privacy #41484267635; Paymob Atomicity #41484267696; Pages validation #41484267139.
+- [x] Pages deploy job was SKIPPED on the PR event; no public site deployment is claimed.
+- [ ] Independent review and merge of [PR #661](https://github.com/islamnagy2022-eng/MantiqatiX/pull/661).
+- [ ] Obtain an authorized isolated Edge invocation route and run synthetic insert/update, duplicate, no-phone DRAFT, DRAFT/HIDDEN/CLAIM preservation, and non-admin rejection tests. Current project exposes only the main Supabase branch; do not create a billable branch without cost review/approval.
+- [ ] Rehearse the newly hardened helper in an isolated Edge/PostgreSQL fixture before deployment. Live `directory-listings` remains ACTIVE v12 and still contains the pre-hardening helper.
+- [ ] Deploy only after isolated behavioral tests, approved source-owner/legal basis, and a separately reviewed release. No real doctor records were inserted or published by PR #661.
+
 ### Explicit non-claims / global gate
 - [x] No LCP/INP/CLS numbers are claimed; lazy loading and request coalescing were build/browser verified but not measured in a controlled performance study.
 - [x] No Production DB/migration/data/RLS/ACL/Auth/Edge/payment/finance mutation occurred in this continuation.
