@@ -3368,3 +3368,22 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Add live-directory E2E assertions for catalogue rendering, filters, card token use and 390/768/1440px layout.
 - [ ] Exact-head build, Playwright, RBAC/PostgreSQL and Pages PR validation.
 - **Production boundary:** no catalogue, inventory, price, order, business or financial data/API/schema/auth/security change or production deployment.
+
+## V4-WAVE-A-VALIDATION-20261103 — exact-head responsive validation
+**Branch:** `feat/aistudio-v4-wave-a-shell-directory-20261103`  
+**PR:** [#662](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/662) — OPEN / DRAFT / NOT MERGED.  
+**Exact head:** `95f304f11fffc1dafdba969b4bac124883593613`.  
+**Validation run:** [Primary Catalog Frontend Validation #41607452696](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41607452696).
+
+### Verified on exact head
+- [x] Build and TypeScript validation — PASS.
+- [x] Playwright browser E2E — PASS, including the responsive storefront/directory journeys after the 768px overflow repairs.
+- [x] Isolated PostgreSQL employee/RBAC behavior tests — PASS.
+- [x] All three jobs in run #41607452696 completed successfully; no failed steps.
+
+### Scope and release boundary
+- [x] Responsive fixes remain limited to presentation/layout; no business records, catalog values, role grants, schema, Auth/RLS, Edge Functions, payment/finance or production configuration changed.
+- [x] PR remains Draft; no merge or production deployment performed by this continuation.
+- [ ] Continue visual comparison of the remaining v4 screens and identify any owner decisions/conflicts before adding backend-dependent finance, wallet, custom links, messaging, marketing or AI actions.
+- [ ] Reconcile the remaining global production blockers independently; this UI validation does not certify the platform.
+- **FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED** remains unchanged.
