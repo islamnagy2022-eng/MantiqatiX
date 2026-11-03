@@ -901,7 +901,12 @@ try {
       const coverHero = page.getByTestId('storefront-cover-hero');
       await coverHero.waitFor({ state: 'visible' });
       assert.equal(await coverHero.getAttribute('aria-label'), 'غلاف نشاط نشاط رابطين خارجيين');
+      assert.match(await coverHero.getAttribute('class') || '', /mx-v4-storefront-cover/, 'storefront hero must use the shared V4 surface token');
       assert.equal(await page.getByTestId('business-verification-indicator').getAttribute('aria-label'), 'حالة النشاط: موثّق رسمياً');
+      assert.equal(await page.locator('.mx-v4-storefront-category').count(), 1, 'business category must use the V4 storefront token');
+      assert.equal(await page.locator('.mx-v4-storefront-secondary').count(), 2, 'map and QR controls must use the V4 secondary action token');
+      const shareButton = page.getByRole('button', { name: 'مشاركة رابط نشاط نشاط رابطين خارجيين' });
+      assert.match(await shareButton.getAttribute('class') || '', /mx-v4-storefront-share/, 'share control must use the accessible V4 style');
       for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
         await page.setViewportSize(viewport);
         await assertNoHorizontalOverflow(page, 'V4 public storefront at ' + viewport.width + 'px');
