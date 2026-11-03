@@ -1945,3 +1945,14 @@ A separate source review found a second platform-root authorization model: the n
 - Exact-head validation for this admin navigation wave is pending. PR #662 remains Draft; no merge or deployment.
 - No permission model, RPC, audit data, role assignment, business data, schema, Auth/RLS/GRANT, payment or finance behavior changed.
 - `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+## 2026-11-03 — V4 public storefront presentation
+
+- Continued the owner-approved Google AI Studio v4 parity on PR #662 and branch feat/aistudio-v4-wave-a-shell-directory-20261103.
+- Applied V4 blue/cyan tokens to storefront hero wrapper, category chip, share control, and map/QR actions. Added missing blue-300 token used by admin hover states.
+- Preserved semantic colors for verified (green) and frozen (red) statuses while explicitly displaying an unverified state; status remains sourced from the persisted currentBusiness.isVerified/currentBusiness.isFrozen fields.
+- Cover carousel now respects prefers-reduced-motion and rotates every five seconds. Share-link copy is awaited and failure is announced instead of silently presenting success.
+- Added exact browser assertions for V4 storefront class hooks, accessibility labels and explicit verification state, plus 390/768/1440px layout overflow.
+- No changes to business data, verification state, photos or source URLs, catalog records, data contracts, database, Auth/RLS/GRANT, Edge Functions, payments, finance, or production deployment.
+- Exact-head CI is required before review; PR #662 remains Draft. Doctor import remains paused and PR #661 remains Draft.
+- FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED remains unchanged.
