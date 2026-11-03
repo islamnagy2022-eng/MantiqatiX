@@ -10,9 +10,9 @@ POST action: `IMPORT_DOCTOR_BATCH`
 
 The action is available only after the existing platform Super Admin authorization check. It accepts 1–20 records per request and processes them sequentially, returning per-row outcomes. The platform admin directory screen now includes a JSON batch-import panel that calls this action through the authenticated client helper.
 
-Every row must include a source name, an exact HTTP(S) source URL, and `sourcePermissionEvidenceId`. The ID must refer to an entry in the private `directory_source_permission_evidence` registry.
+Every import row must include `sourceName` and an exact HTTP(S) `sourceUrl`. **Draft batch ingestion does not require `sourcePermissionEvidenceId` and does not publish doctors.** The batch action is a staging path: a new row requested as `PUBLISHED` is saved as `DRAFT`; explicit `DRAFT` and `HIDDEN` states are retained. A public doctor publication or a source-attribution change uses the separate `UPSERT_LISTING` publication gate and must have current source-permission evidence.
 
-The registry records the exact source host, source name, permission basis, private evidence reference, optional SHA-256, scope, validity dates, reviewer, and revocation state. New evidence starts as `PENDING`; a different platform Super Admin must review the actual contract/consent/licence and approve it. Self-approval is rejected both in the Edge Function and by a database constraint. The importer accepts only evidence that is `APPROVED`, not revoked, currently valid, and explicitly covers doctor-profile plus commercial republication. Source host and source name must match the evidence record exactly (with a leading `www.` normalized).
+The private `directory_source_permission_evidence` registry records the exact source host and name, permission basis, private evidence reference, optional SHA-256, approved scopes, validity dates, reviewer, and revocation state. New evidence starts as `PENDING`; a different platform Super Admin must review the actual contract/consent/licence and approve it. Self-approval is rejected both in the Edge Function and by a database constraint. The separate public publication gate accepts only `APPROVED`, unrevoked, currently valid evidence that explicitly covers both doctor-profile and commercial republication. The source host and source name must match the evidence record (with a leading `www.` normalized).
 
 A public webpage by itself is not proof of republication permission. Do not scrape or re-publish directories whose terms prohibit automated extraction or commercial republication without written permission. The evidence reference must point to a private-storage object key or internal contract/consent reference; it must not be a public link. The current registry requires a human reviewer to inspect the referenced evidence; it does not independently authenticate the content of the file.
 
@@ -27,18 +27,18 @@ A public webpage by itself is not proof of republication permission. Do not scra
 - `phone`, `secondaryPhone`
 - `address`, `village`
 - `taxonomySpecialty`
-- Required provenance: `sourceName`, `sourceUrl`, and an approved `sourcePermissionEvidenceId` whose host and source name match the row.
+- Required provenance: `sourceName` and `sourceUrl`. A per-row permission evidence ID is not required for draft staging.
 - `sourceCheckedAt`
-- `listingStatus` (`PUBLISHED`, `DRAFT`, or `HIDDEN`; new rows default to PUBLISHED with a valid phone, otherwise DRAFT; on existing rows, an omitted status preserves the existing state).
+- `listingStatus` (`PUBLISHED`, `DRAFT`, or `HIDDEN`). New rows are never published by batch import: an omitted status or a `PUBLISHED` request is staged as `DRAFT` (an explicit `PUBLISHED` request without a valid phone is rejected); explicit `DRAFT` and `HIDDEN` are retained. Empty or null explicit statuses are invalid. On existing rows, omitted or `PUBLISHED` status does not replace the saved status; only explicit `DRAFT` or `HIDDEN` can be applied.
 - `metadata`
 
 ## Persistence rules
 - Match an existing doctor by primary phone, secondary phone, or exact name + governorate + district before inserting.
 - Update matching records rather than creating another row.
-- Publish new rows only when at least one valid phone number is present, preserving the existing directory publication rule.
-- If the phone is missing, save the record as DRAFT for follow-up; never invent contact details.
-- Do not downgrade an already-published record because a later source snapshot omits its phone.
-- Do not change an existing slug, DRAFT/HIDDEN/PUBLISHED state, claim/ownership state, or source-check timestamp unless the incoming row explicitly supplies the corresponding change.
+- Batch import never publishes a new doctor. New rows are staged as `DRAFT` (or explicit `HIDDEN`); a separate reviewed publication action is required to make them public.
+- An explicit `PUBLISHED` batch request with no valid phone is rejected; a request with a phone is still staged as `DRAFT`.
+- If a later source snapshot omits a saved phone, the saved contact is not erased; an already-published record is not downgraded.
+- Preserve an existing slug, publication state, claim/ownership state, and source-check timestamp when the incoming snapshot omits those fields. Batch ingestion refuses source-attribution changes on already-published records; those must go through the reviewed publication path.
 - Do not allow imported metadata to set phone verification, owner confirmation, professional-registration verification, or geocoordinate verification flags. New imported rows remain explicitly unverified.
 - Return row-level success/failure and aggregate inserted, updated, drafted, and failed counts.
 
@@ -56,8 +56,7 @@ A public webpage by itself is not proof of republication permission. Do not scra
       "phone": "01000000000",
       "taxonomyCategoryId": "cat_medical_health_...",
       "sourceName": "مصدر الدليل",
-      "sourceUrl": "https://example.com/profile",
-      "sourcePermissionEvidenceId": "UUID-FROM-APPROVED-EVIDENCE-REGISTRY"
+      "sourceUrl": "https://example.com/profile"
     }
   ]
 }
@@ -84,7 +83,7 @@ The production Edge Function and admin import/evidence UI have been deployed. Th
 - Table: `public.directory_source_permission_evidence`; FORCE RLS, no direct grants to `anon` or `authenticated`, service-role-only access through the existing platform-Super-Admin-guarded Edge Function.
 - Supported actions: list evidence; register pending evidence; approve pending evidence; revoke pending/approved evidence.
 - Approval requires a second distinct platform Super Admin and an explicit confirmation that the referenced document was reviewed.
-- Import rows must carry `sourcePermissionEvidenceId`; source name and normalized hostname must match exactly; evidence must be approved, unrevoked, in date, and grant both doctor-profile and commercial republication scope.
+- Draft import rows do not carry or require `sourcePermissionEvidenceId`. The registry is consulted only by the separate public doctor publication/source-change gate; the submitted source name and normalized host must match approved evidence that is current, unrevoked, and grants both doctor-profile and commercial republication scope.
 - Important limitation: the Edge Function validates registry state and the operator's review action, but it cannot independently decide whether a contract is legally sufficient. A human reviewer must inspect the private evidence document, and the legal/data owner must approve the intended commercial use.
 - Production has the table and the deployed Edge Function actions. The evidence table currently contains zero rows. An isolated authenticated Edge Function runtime test remains outstanding.
 
@@ -135,3 +134,16 @@ Do not change the historical migration file, manually edit `schema_migrations` w
 
 ### Status
 **IN PROGRESS — coverage baseline documented; additional locality ingestion is blocked until a suitable source/owner-consent basis is recorded and approved.** No doctor rows were inserted or modified by this inventory update.
+
+
+## Current contract correction — 2026-11-03
+
+This dated correction supersedes any older wording above that says each batch-import row must carry a permission-evidence UUID or that the batch action can publish records.
+
+- `IMPORT_DOCTOR_BATCH` is a draft-staging action, restricted to platform Super Admin. It requires a source name and HTTP(S) source URL for provenance, but does not require a permission-evidence UUID for each row.
+- New records requested as `PUBLISHED` are saved as `DRAFT`; a `PUBLISHED` request without a valid phone is rejected. Explicit `DRAFT` and `HIDDEN` are preserved. Empty/null explicit statuses are rejected.
+- Existing published records keep their status and verified metadata on partial imports. A batch cannot change the source attribution of an already-published record or reset its claim/ownership state.
+- The separate `UPSERT_LISTING` public-publication path remains fail-closed for new doctor publication, draft-to-public transitions, and doctor source changes. It requires approved, in-date, unrevoked evidence matching the source hostname and name, with doctor-profile and commercial-republication scopes plus second-person approval.
+- Production `directory-listings` was read as ACTIVE v12 on 2026-11-02/03. PR #661 hardens the source URL authority contract in GitHub but is not merged or deployed. Do not claim those changes are live.
+- PR #661 exact code head `13aa1af03f59fd5c4a4e94762877b3ea055a0b7b` passed the Doctor Import Contract, Module Professionalization, Backend-only Module Boundary, MantiGO Privacy, Paymob Atomicity, and Pages validation workflows.
+- Authenticated Edge Function tests against a disposable environment are still outstanding. Never use real doctor records as fixtures and never substitute production writes for the missing isolated tests.
