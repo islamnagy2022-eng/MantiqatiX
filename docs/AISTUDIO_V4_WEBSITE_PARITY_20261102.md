@@ -218,4 +218,4 @@ PR #650 and PR #651 are merged into current `main`; PR #648 is closed as superse
 - The location action now uses the centralized blue gradient; focus states use the cyan/blue token palette.
 - No directory query, data source, filter state, GPS consent, keyset cursor, verified-first ordering or 20-row progressive loading behavior changed.
 - Browser E2E asserts all four selectors use the V4 style and the location action/top accent render the token-backed gradient. Existing 390/768/1440px overflow checks remain.
-- Exact-head CI is required before review. No production data, schema, Auth/RLS/GRANT, Edge Function or deployment change.
+- Exact-head CI passed on `0a31f6247ea26270651fec74730fd5c26245b885`: Primary Catalog Frontend Validation PASS (build, Playwright, isolated PostgreSQL/RBAC); Pages PR validation PASS with deploy job SKIPPED. No production data, schema, Auth/RLS/GRANT, Edge Function or deployment change.

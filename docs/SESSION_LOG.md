@@ -1923,3 +1923,14 @@ A separate source review found a second platform-root authorization model: the n
 - Exact-head validation for this new directory-token slice is pending. PR remains Draft; no merge or production deployment.
 - No production records, schema, Auth/RLS/GRANT, Edge Functions, finance or payment behavior changed. Doctor import remains paused; PR #661 remains Draft.
 - `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+
+## 2026-11-03 — V4 public discovery token validation passed
+
+- Exact-head commit `0a31f6247ea26270651fec74730fd5c26245b885` passed Primary Catalog Frontend Validation run `41579574795`: TypeScript/build/contracts, browser Playwright, and isolated PostgreSQL employee/RBAC jobs all PASS.
+- Pages PR validation run `41579574473` completed PASS; `validate_public_only` was skipped and the `deploy` job was skipped by the workflow's main-only deployment condition. No production deployment occurred.
+- Additional exact-head checks passed: flexible commission drafts, MantiGO privacy, RC425 Paymob atomicity, module professionalization, and backend-only module boundary.
+- V4 blue/cyan tokens are now applied to the public Directory search workspace, including the four geographic selectors and location action. E2E asserts the blue gradients and preserves the existing geo/search contracts.
+- PR #662 remains Draft. Next safe wave: inspect/reorganize the existing Admin/Super Admin dashboard presentation toward V4 while preserving server RPCs, permission matrix, audit and fail-closed access.
+- No production data/schema/Auth/RLS/GRANT/Edge/payment/finance mutation or deployment. Doctor import remains paused; PR #661 remains Draft.
+- `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.

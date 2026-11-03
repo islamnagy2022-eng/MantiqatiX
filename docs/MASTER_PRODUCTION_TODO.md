@@ -3337,5 +3337,5 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Apply opt-in V4 blue/cyan tokens to the Directory search panel, badge, search input, location action, location links and four geographic selectors.
 - [x] Keep the default directory route, live public query, explicit GPS consent, verified-first ordering, keyset pagination and 20-item progressive loading unchanged.
 - [x] Add browser assertions for all four token-styled geographic filters and the computed blue-gradient location action/search accent.
-- [ ] Run exact-head TypeScript/build, Playwright, PostgreSQL/RBAC and Pages PR validation before merge.
+- [x] Exact-head TypeScript/build, Playwright, PostgreSQL/RBAC and Pages PR validation passed on `0a31f6247ea26270651fec74730fd5c26245b885` (Primary Catalog Frontend Validation run `41579574795`; Pages PR validation run `41579574473`, deploy job skipped).
 - **Production boundary:** presentation only; no business data, query/API, schema, Auth/RLS/GRANT, Edge Function, payments or production deployment changed.
