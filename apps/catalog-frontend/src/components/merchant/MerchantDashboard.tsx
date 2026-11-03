@@ -684,7 +684,7 @@ export const MerchantDashboard: React.FC = () => {
             type="button"
             onClick={() => setActiveTab('products')}
             aria-pressed={activeTab === 'products'}
-            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${activeTab === 'products' ? 'bg-slate-950 text-white shadow-md shadow-slate-900/10' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'products' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
           >
             <Package className="h-4 w-4" />
             <span>الكتالوج ({productsCount})</span>
@@ -693,7 +693,7 @@ export const MerchantDashboard: React.FC = () => {
             type="button"
             onClick={() => setActiveTab('branding')}
             aria-pressed={activeTab === 'branding'}
-            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${activeTab === 'branding' ? 'bg-slate-950 text-white shadow-md shadow-slate-900/10' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'branding' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
           >
             <ImageIcon className="h-4 w-4" />
             <span>الهوية البصرية</span>
@@ -702,7 +702,7 @@ export const MerchantDashboard: React.FC = () => {
             type="button"
             onClick={() => setActiveTab('profile')}
             aria-pressed={activeTab === 'profile'}
-            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${activeTab === 'profile' ? 'bg-slate-950 text-white shadow-md shadow-slate-900/10' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'profile' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
           >
             <Phone className="h-4 w-4" />
             <span>بيانات النشاط</span>
@@ -717,7 +717,7 @@ export const MerchantDashboard: React.FC = () => {
             type="button"
             onClick={() => setActiveTab('import')}
             aria-pressed={activeTab === 'import'}
-            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${activeTab === 'import' ? 'bg-slate-950 text-white shadow-md shadow-slate-900/10' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'import' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
           >
             <Upload className="h-4 w-4" />
             <span>استيراد CSV</span>
@@ -726,7 +726,7 @@ export const MerchantDashboard: React.FC = () => {
             type="button"
             onClick={() => setActiveTab('employees')}
             aria-pressed={activeTab === 'employees'}
-            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${activeTab === 'employees' ? 'bg-slate-950 text-white shadow-md shadow-slate-900/10' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'employees' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
           >
             <Briefcase className="h-4 w-4" />
             <span>الموظفون والتوظيف</span>
@@ -735,7 +735,7 @@ export const MerchantDashboard: React.FC = () => {
             type="button"
             onClick={() => setActiveTab('qr')}
             aria-pressed={activeTab === 'qr'}
-            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${activeTab === 'qr' ? 'bg-slate-950 text-white shadow-md shadow-slate-900/10' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'qr' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
           >
             <QrCode className="h-4 w-4" />
             <span>QR كود النشاط الدائم</span>
@@ -744,7 +744,7 @@ export const MerchantDashboard: React.FC = () => {
             type="button"
             onClick={() => setActiveTab('functional_engine')}
             aria-pressed={activeTab === 'functional_engine'}
-            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${activeTab === 'functional_engine' ? 'bg-slate-950 text-white shadow-md shadow-slate-900/10' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'functional_engine' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
           >
             <Layers className="h-4 w-4" />
             <span>التصنيف الوظيفي ومسار التطوير</span>
