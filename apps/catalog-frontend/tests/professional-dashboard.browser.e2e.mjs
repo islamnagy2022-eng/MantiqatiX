@@ -891,7 +891,21 @@ try {
       await page.getByRole('heading', { name: 'نشاط رابطين خارجيين', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(await page.locator('a[href="https://cdn.example.test/both-logo.svg"]').count(), 1, 'direct storefront load must preserve the external logo URL');
       assert.equal(await page.locator('a[href="https://cdn.example.test/both-cover.svg"]').count(), 1, 'direct storefront load must preserve the external cover URL');
-      results.push('verified-external-logo-cover-links-only-with-explicit-urls-in-directory-and-storefront');
+      const coverHero = page.getByTestId('storefront-cover-hero');
+      await coverHero.waitFor({ state: 'visible' });
+      assert.equal(await coverHero.getAttribute('aria-label'), 'غلاف نشاط نشاط رابطين خارجيين');
+      assert.equal(await page.getByTestId('business-verification-indicator').getAttribute('aria-label'), 'حالة النشاط: موثّق رسمياً');
+      for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+        await page.setViewportSize(viewport);
+        await assertNoHorizontalOverflow(page, 'V4 public storefront at ' + viewport.width + 'px');
+      }
+
+      await page.goto(baseUrl + '?store=40000000-0000-0000-0000-000000000005', { waitUntil: 'domcontentloaded' });
+      await page.getByRole('heading', { name: 'نشاط غير موثق بروابط', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByText('نشاط غير موثّق', { exact: true }).waitFor({ state: 'visible' });
+      assert.equal(await page.getByTestId('business-verification-indicator').getAttribute('aria-label'), 'حالة النشاط: غير موثّق');
+      assert.equal(await page.getByText('موثّق رسمياً', { exact: true }).count(), 0, 'unverified storefront must never display a verified badge');
+      results.push('verified-storefront-explicit-verification-state-cover-accessibility-and-responsive-layout');
     } finally { await context.close(); }
   }
 
