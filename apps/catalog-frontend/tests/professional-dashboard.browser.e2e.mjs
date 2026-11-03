@@ -769,7 +769,11 @@ try {
       assert.equal(merchantTabLabels[4], 'الموظفون والتوظيف', 'employee hiring must remain as a retained website tool');
       assert.equal(merchantTabLabels[5], 'QR كود النشاط الدائم', 'the permanent QR tool must retain its full action label');
       assert.match(merchantTabLabels[6], /^التصنيف الوظيفي ومسار التطوير/, 'the existing functional taxonomy tool and its optional activity badge must remain available');
-      assert.equal(await merchantTabs.getByRole('button', { name: 'QR كود النشاط الدائم', exact: true }).getAttribute('aria-pressed'), 'true', 'the direct QR route must select the QR tab');
+      const activeQrTab = merchantTabs.getByRole('button', { name: 'QR كود النشاط الدائم', exact: true });
+      assert.equal(await activeQrTab.getAttribute('aria-pressed'), 'true', 'the direct QR route must select the QR tab');
+      assert.ok((await activeQrTab.getAttribute('class')).includes('mx-v4-tab-active'), 'the active owner tab must use the centralized V4 treatment');
+      const activeQrStyle = await activeQrTab.evaluate((element) => getComputedStyle(element).backgroundImage);
+      assert.match(activeQrStyle, /linear-gradient/, 'the active owner tab must render the V4 blue gradient');
       for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
         await page.setViewportSize(viewport);
         await assertNoHorizontalOverflow(page, 'V4 owner dashboard at ' + viewport.width + 'px');
