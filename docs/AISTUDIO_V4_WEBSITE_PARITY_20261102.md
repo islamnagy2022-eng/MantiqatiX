@@ -180,3 +180,13 @@ PR #650 and PR #651 are merged into current `main`; PR #648 is closed as superse
 - **Current code/test head:** `5452ef877eb3a3491741222af2565146e6cc65d3`. Exact-head validation is pending; no merge or deployment is claimed.
 - **Production:** no data/schema/Auth/RLS/GRANT/Edge/payment/finance change or production deployment.
 - **Next:** fix any exact-head build/browser/accessibility failure, inspect the deployed-reference appearance at phone/tablet/desktop sizes, then continue the V4 owner dashboard presentation wave without removing website-only CSV import, employee/branch management, Facebook import, QR, Super Admin permission controls or existing secure data contracts.
+
+
+## 2026-11-03 — Wave A validation and V4 token foundation
+
+- Exact-head validation passed for f658c66e007301839763c7c5784e9a93128356ff: primary catalog build/TypeScript/contracts, browser Playwright, and isolated PostgreSQL employee RBAC all completed successfully (workflow run 41570424483).
+- The branch remains isolated in Draft PR #662; successful CI is not a merge or production deployment.
+- Continued the presentation foundation by adding the V4 blue palette, typography, radius and shadow tokens to src/index.css. Tokens are opt-in and do not globally recolor legacy modules.
+- Applied the centralized blue-gradient active state to all seven owner-dashboard tabs, preserving the three primary V4 tabs and all website-only tools. Added browser assertions for the active QR tab's computed gradient.
+- Current token changes require a new exact-head validation before review/merge. No backend, data, role, authorization or production setting changed.
+- Next safe scope: apply the token system screen-by-screen to storefront and public discovery surfaces, comparing against the supplied V4 archive where available. Finance and custom links remain blocked pending verified persisted API contracts.
