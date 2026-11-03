@@ -228,3 +228,15 @@ PR #650 and PR #651 are merged into current `main`; PR #648 is closed as superse
 - Preserved all current destinations, URL-backed `tab` / `controlTab` state, billing/commission/taxonomy/business/subscriber/directory/module/settings behavior, Super Admin role/assignment/employee/management/audit areas, and all backend RPCs.
 - Added browser checks for the eight existing platform-admin entries, five Super Admin control-center areas, active blue gradient, direct-route state restoration and overflow at 390/768/1440px.
 - Exact-head validation is pending. Presentation only; no role/permission policy, RPC, audit record, business data, schema or production deployment changed.
+
+
+## 2026-11-03 — V4 public storefront hero and verification state
+
+- Reworked the public storefront cover wrapper and contact-action colors to use the shared V4 blue/cyan design tokens. The existing merchant-owned cover images, carousel data and permanent storefront URL remain authoritative.
+- Added an explicit, accessible verification indicator with three distinct states: verified, unverified and frozen. Unverified profiles no longer leave the logo badge visually indistinguishable from the verified state; verified state remains sourced only from `currentBusiness.isVerified`.
+- Respect `prefers-reduced-motion` for the cover carousel and lengthened the automatic rotation interval to five seconds.
+- Made share-link copy asynchronous and failure-aware, with a live status announcement rather than silently claiming success when Clipboard API access is unavailable.
+- Added browser coverage for cover and category V4 token use, map/QR/share action styling, direct storefront verification state, unverified state suppression of verified claims, and horizontal overflow at 390/768/1440px.
+- Added the missing `--mx-blue-300` token referenced by V4 admin hover styling.
+- No business record, verification state, media URL, catalog item, contact data, query, database/schema, Auth/RLS/GRANT, Edge Function, payment or finance action changed.
+- Exact-head CI for these latest storefront assertions is pending; no merge or deployment is claimed.
