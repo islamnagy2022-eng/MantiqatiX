@@ -246,3 +246,11 @@ PR #650 and PR #651 are merged into current `main`; PR #648 is closed as superse
 - [x] Hide inactive cover slides from the accessibility tree and remove slide fade transitions under reduced-motion preferences.
 - [x] Align the active cover indicator and location marker to V4 blue/cyan tokens while preserving green verification and red frozen semantics.
 - [ ] Exact-head Playwright and build validation on the final PR head.
+## 2026-11-03 — V4 public product/service catalogue
+
+- Applied the shared blue/cyan design tokens to the public catalogue heading, counter, search/filter surface, search input, type/category active states, product cards, price-on-request label and active cart/quote actions.
+- Added accessible search naming, labelled type/category filter groups, aria-pressed state for type/category selection, and stable test hooks for the catalogue, filters and product cards.
+- Preserved the existing production-backed product/service records, current pricing and discounts, quote-required behavior, availability checks, frozen-state restrictions, cart operations, WhatsApp quote route and currency display.
+- Added browser assertions using live published verified businesses to check catalogue semantics, selected filters, real product rendering and 390/768/1440px overflow.
+- No product, price, inventory, availability, discount, order, cart, business data, API, schema, Auth/RLS/GRANT, Edge Function, payment or finance state changed.
+- Exact-head validation is pending; no merge or deployment is claimed.
