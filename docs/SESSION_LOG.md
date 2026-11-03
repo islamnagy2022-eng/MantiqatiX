@@ -1956,3 +1956,8 @@ A separate source review found a second platform-root authorization model: the n
 - No changes to business data, verification state, photos or source URLs, catalog records, data contracts, database, Auth/RLS/GRANT, Edge Functions, payments, finance, or production deployment.
 - Exact-head CI is required before review; PR #662 remains Draft. Doctor import remains paused and PR #661 remains Draft.
 - FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED remains unchanged.
+### Storefront accessibility follow-up — 2026-11-03
+- Added a labelled cover-carousel control group with keyboard-operable slide buttons and aria-pressed state.
+- Inactive cover slides are hidden from the accessibility tree; fade transitions disable under reduced-motion preferences.
+- Active slide/location accent colors now follow the V4 blue palette; green verification and red frozen states remain semantic.
+- Added Playwright assertions for the cover carousel group and selected slide. Exact-head validation is pending.
