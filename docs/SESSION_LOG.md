@@ -1862,3 +1862,17 @@ A separate source review found a second platform-root authorization model: the n
 1. Rehearse PR #655's directory-listings Edge source in an isolated environment and deploy only through a separately reviewed release.
 2. Review PR #618 membership-mode switching with adversarial exact membership/tenant/branch tests; keep disabled until production Edge parity exists.
 3. Continue current-schema restore/migration reconciliation, RC463 ACL, RC449A/RC450, Paymob/finance, Auth, tenant-isolation and backup/restore evidence.
+
+
+## 2026-11-03 — Resume Google AI Studio v4 platform convergence (Wave A)
+
+- **Owner priority:** pause doctor-import work and continue building the platform against the supplied Google AI Studio v4 reference. PR #661 was converted back to Draft with an explicit pause comment; it remains unmerged and undeployed.
+- **Repository baseline:** `main` at `36a98b5153b2c911cf59ea7aaa8f7fd8c9469724`.
+- **Feature branch:** `feat/aistudio-v4-wave-a-shell-directory-20261103`.
+- **Implemented:** restyled Navbar toward the V4 shell, including dark micro-header, refined brand/context row and clearer navigation pills; retained all existing route buttons and role/membership guards.
+- **Implemented:** redesigned the DirectoryView search workspace with an accessible search field, clearer title/instructions, refined location action and four existing geographic selectors. The public data source, verified-first ordering, filter state, GPS consent, and 20-row progressive loading remain unchanged.
+- **Regression coverage:** added checks for the accessible nav label/test hook, directory search field, four selectors, reload behavior and horizontal overflow at 390, 768 and 1440 pixels.
+- **Code/test head before the documentation-only follow-up:** `5452ef877eb3a3491741222af2565146e6cc65d3`. The final branch head moves as documentation is added; exact-head CI must be read from the final PR commit before any merge decision.
+- **Not performed:** no doctor import/publication, production data or profile changes, schema/migration, Auth/RLS/GRANT, Edge Function deployment, payment/finance changes, or production deployment.
+- **Next:** inspect exact-head checks, fix responsive/browser failures, perform visual comparison against V4, then continue owner-dashboard visual parity while preserving CSV import, employees/branches, Facebook import, QR and Super Admin permissions.
+- `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
