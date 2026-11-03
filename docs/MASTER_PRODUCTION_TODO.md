@@ -3361,3 +3361,10 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Cover carousel exposes labelled keyboard controls and announces active slide through aria-pressed; inactive slides are hidden from assistive technology.
 - [x] Cover fade animation respects reduced-motion preference; active slide/location accents use V4 blue palette.
 - [ ] Exact-head Playwright/build revalidation is pending.
+### V4 continuation — public catalogue filters and cards (2026-11-03)
+- [x] Apply V4 token styles to public catalogue heading, result counter, filters/search surface, type/category active states, cards, quote label and primary cart/quote actions.
+- [x] Add accessible labels, filter groups, aria-pressed state and stable browser-test hooks.
+- [x] Preserve production data, prices/discounts, quote-required services, availability/frozen guards, cart behavior, WhatsApp route and currency.
+- [x] Add live-directory E2E assertions for catalogue rendering, filters, card token use and 390/768/1440px layout.
+- [ ] Exact-head build, Playwright, RBAC/PostgreSQL and Pages PR validation.
+- **Production boundary:** no catalogue, inventory, price, order, business or financial data/API/schema/auth/security change or production deployment.
