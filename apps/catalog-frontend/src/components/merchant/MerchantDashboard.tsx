@@ -178,14 +178,18 @@ export const MerchantDashboard: React.FC = () => {
   };
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [storeUrlCopied, setStoreUrlCopied] = useState(false);
+  const [storeUrlCopyFailed, setStoreUrlCopyFailed] = useState(false);
   const handleCopyStoreUrl = async () => {
     if (!permanentStoreUrl) return;
+    setStoreUrlCopyFailed(false);
     try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
       await navigator.clipboard.writeText(permanentStoreUrl);
       setStoreUrlCopied(true);
       window.setTimeout(() => setStoreUrlCopied(false), 2500);
     } catch {
-      window.alert('تعذر نسخ رابط النشاط تلقائيًا. افتح معاينة صفحة النشاط وانسخ الرابط من شريط العنوان.');
+      setStoreUrlCopyFailed(true);
+      window.setTimeout(() => setStoreUrlCopyFailed(false), 4500);
     }
   };
 
@@ -661,15 +665,22 @@ export const MerchantDashboard: React.FC = () => {
           <p className="text-xs leading-6 text-slate-300">
             خصوصية بياناتك محفوظة؛ لا تظهر منتجات نشاطك أو روابطه الخاصة ضمن حساب نشاط آخر.
           </p>
-          <button
-            type="button"
-            onClick={handleCopyStoreUrl}
-            disabled={!permanentStoreUrl}
-            className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs font-black text-emerald-200 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-            {storeUrlCopied ? 'تم نسخ رابط النشاط' : 'نسخ رابط متجرك المباشر'}
-          </button>
+          <div className="flex min-w-0 flex-col items-stretch gap-1 sm:items-end">
+            <button
+              type="button"
+              onClick={handleCopyStoreUrl}
+              disabled={!permanentStoreUrl}
+              className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs font-black text-emerald-200 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              {storeUrlCopied ? 'تم نسخ رابط النشاط' : 'نسخ رابط متجرك المباشر'}
+            </button>
+            {storeUrlCopyFailed && (
+              <p role="status" aria-live="polite" className="max-w-xs text-right text-[11px] font-semibold leading-5 text-amber-200">
+                تعذر نسخ الرابط تلقائيًا. يمكنك فتح معاينة صفحة النشاط ونسخ الرابط من شريط العنوان.
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
