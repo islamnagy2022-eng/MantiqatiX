@@ -24,6 +24,7 @@ const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeho
 export const BusinessProfileHeader: React.FC = () => {
   const { currentBusiness, getStorePublicLink } = useApp();
   const [copied, setCopied] = useState(false);
+  const [shareFailed, setShareFailed] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   // Only owner-provided cover images are displayed. Missing images use a neutral local placeholder.
   const slides = React.useMemo(() => {
@@ -38,9 +39,10 @@ export const BusinessProfileHeader: React.FC = () => {
   useEffect(() => {
     setCurrentSlideIndex(0);
     if (slides.length <= 1) return;
-    const timer = setInterval(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    const timer = window.setInterval(() => {
       setCurrentSlideIndex((prev) => (prev + 1) % slides.length);
-    }, 3000);
+    }, 5000);
     return () => clearInterval(timer);
   }, [slides.length, currentBusiness?.id]);
 
@@ -52,11 +54,16 @@ export const BusinessProfileHeader: React.FC = () => {
     );
   }
 
-  const handleShare = () => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(getStorePublicLink(currentBusiness));
+  const handleShare = async () => {
+    setShareFailed(false);
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
+      await navigator.clipboard.writeText(getStorePublicLink(currentBusiness));
       setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      window.setTimeout(() => setCopied(false), 2500);
+    } catch {
+      setShareFailed(true);
+      window.setTimeout(() => setShareFailed(false), 3500);
     }
   };
 
@@ -83,7 +90,7 @@ export const BusinessProfileHeader: React.FC = () => {
 
       {/* 1. Rotating Cover Photo Slider (Changes every 3 seconds) */}
       <div className="w-full px-0 py-0">
-        <div className="relative w-full aspect-[16/9] sm:aspect-[1440/390] bg-slate-900 overflow-hidden group">
+        <section aria-label={`غلاف نشاط ${currentBusiness.name}`} data-testid="storefront-cover-hero" className="relative w-full aspect-[16/9] sm:aspect-[1440/390] bg-slate-900 overflow-hidden group">
         {slides.map((imgUrl, idx) => (
           <div
             key={idx}
@@ -111,7 +118,9 @@ export const BusinessProfileHeader: React.FC = () => {
           {slides.map((_, idx) => (
             <button
               key={idx}
+              type="button"
               onClick={() => setCurrentSlideIndex(idx)}
+              aria-pressed={idx === currentSlideIndex}
               className={`h-2 rounded-full transition-all cursor-pointer ${
                 idx === currentSlideIndex ? 'w-6 bg-emerald-400' : 'w-2 bg-white/50 hover:bg-white'
               }`}
@@ -127,8 +136,7 @@ export const BusinessProfileHeader: React.FC = () => {
               <Ban className="w-3.5 h-3.5" />
               <span>نشاط مجمد مؤقتاً</span>
             </span>
-          ) : (
-            currentBusiness.isVerified && (
+          ) : currentBusiness.isVerified ? (
               <>
                 <span className="bg-emerald-500/90 backdrop-blur-md text-white text-xs font-semibold px-2.5 py-1.5 rounded-full border border-emerald-400/30 shadow-md flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" />
@@ -145,21 +153,31 @@ export const BusinessProfileHeader: React.FC = () => {
                   </a>
                 )}
               </>
-            )
+          ) : (
+            <span className="bg-slate-900/85 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full border border-white/20 shadow-md">
+              نشاط غير موثّق
+            </span>
           )}
         </div>
 
         {/* Share Button top left */}
         <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 max-w-[calc(100%-1.5rem)]">
           <button
+            type="button"
             onClick={handleShare}
-            className="bg-white/90 hover:bg-white text-slate-800 text-xs font-bold px-3 py-1.5 rounded-full shadow-md backdrop-blur-md flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+            aria-label={`مشاركة رابط نشاط ${currentBusiness.name}`}
+            className="bg-white/90 hover:bg-white text-slate-800 text-xs font-bold px-3 py-1.5 rounded-full shadow-md backdrop-blur-md flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
           >
+            <span className="sr-only" aria-live="polite">
+              {copied ? 'تم نسخ رابط النشاط' : shareFailed ? 'تعذر نسخ الرابط' : ''}
+            </span>
             {copied ? (
               <>
                 <Check className="w-3.5 h-3.5 text-emerald-600" />
                 <span className="text-emerald-700">تم نسخ الرابط!</span>
               </>
+            ) : shareFailed ? (
+              <span className="text-rose-700">تعذر نسخ الرابط</span>
             ) : (
               <>
                 <Share2 className="w-3.5 h-3.5 text-slate-600" />
@@ -167,12 +185,12 @@ export const BusinessProfileHeader: React.FC = () => {
               </>
             )}
           </button>
-        </div>
+        </section>
         </div>
       </div>
 
       {/* 2. Profile Details Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section aria-label={`بيانات نشاط ${currentBusiness.name}`} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative pb-6 border-b border-slate-100">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 pt-3">
             {/* Logo & Core Identity */}
@@ -191,11 +209,14 @@ export const BusinessProfileHeader: React.FC = () => {
                   }}
                 />
                 <div
+                  data-testid="business-verification-indicator"
+                  aria-label={isFrozen ? 'حالة النشاط: مجمد مؤقتاً' : currentBusiness.isVerified ? 'حالة النشاط: موثّق رسمياً' : 'حالة النشاط: غير موثّق'}
+                  title={isFrozen ? 'مجمد مؤقتاً' : currentBusiness.isVerified ? 'موثّق رسمياً' : 'غير موثّق'}
                   className={`absolute bottom-2.5 left-2.5 text-white rounded-full p-1 shadow-md border-2 border-white ${
-                    isFrozen ? 'bg-rose-600' : 'bg-emerald-500'
+                    isFrozen ? 'bg-rose-600' : currentBusiness.isVerified ? 'bg-emerald-500' : 'bg-slate-500'
                   }`}
                 >
-                  {isFrozen ? <Ban className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                  {isFrozen ? <Ban className="w-4 h-4" /> : currentBusiness.isVerified ? <CheckCircle2 className="w-4 h-4" /> : <Building2 className="w-4 h-4" />}
                 </div>
               </div>
 
@@ -296,7 +317,7 @@ export const BusinessProfileHeader: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       <QRCodeModal
         business={currentBusiness}
