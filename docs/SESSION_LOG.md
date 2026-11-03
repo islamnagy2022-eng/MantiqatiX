@@ -1979,3 +1979,14 @@ A separate source review found a second platform-root authorization model: the n
 - Fix commits: `1d2ee251a4074c2ac6c86ad512516489515354e9` (ticker containment) and `a615e3a96dcbf971d7f462a0d29a403de3b4a20f` (storefront responsive layout).
 - Exact-head CI on `a615e3a96dcbf971d7f462a0d29a403de3b4a20f` is pending. Require Playwright 390/768/1440px checks plus build and isolated RBAC before review. PR #662 remains Draft; no merge, production deployment, database/schema/Auth/RLS/GRANT/Edge Function/payment/finance mutation.
 - FULL_PLATFORM_GATE remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-03 — V4 Wave A exact-head validation completed
+
+- Resumed from PR #662 exact head `95f304f11fffc1dafdba969b4bac124883593613` on `feat/aistudio-v4-wave-a-shell-directory-20261103`.
+- Queried the exact-head workflow run [41607452696](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41607452696). All three jobs completed successfully: build/TypeScript/contracts, Playwright browser E2E, and isolated PostgreSQL employee/RBAC tests. No failed steps were reported.
+- This closes the previously pending responsive regression check for the directory/storefront journey, including the 768px horizontal overflow found in earlier runs.
+- PR #662 remains OPEN / DRAFT / unmerged. This run is PR validation; it is not evidence of a production deployment.
+- No production business/catalog data, database schema, Auth/RLS/GRANT, Edge Function, payment/finance, or production configuration was changed.
+- Next: continue V4 screen-by-screen visual/behavior comparison; preserve website-only capabilities; keep finance, wallet, custom links, messaging, marketing spend and AI actions deferred until durable authorized backend contracts are verified. Continue the separate migration/schema, Edge drift, Auth, tenant isolation, payment/finance and backup/restore gates.
+- `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
