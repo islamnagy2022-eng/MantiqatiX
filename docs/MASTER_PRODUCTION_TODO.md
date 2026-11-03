@@ -3339,3 +3339,12 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Add browser assertions for all four token-styled geographic filters and the computed blue-gradient location action/search accent.
 - [x] Exact-head TypeScript/build, Playwright, PostgreSQL/RBAC and Pages PR validation passed on `0a31f6247ea26270651fec74730fd5c26245b885` (Primary Catalog Frontend Validation run `41579574795`; Pages PR validation run `41579574473`, deploy job skipped).
 - **Production boundary:** presentation only; no business data, query/API, schema, Auth/RLS/GRANT, Edge Function, payments or production deployment changed.
+
+
+### V4 continuation — administration navigation presentation (2026-11-03)
+- [x] Apply shared V4 blue/cyan token styling to the platform-admin and nested Super Admin control-center navigation.
+- [x] Add accessible Arabic nav labels, stable test hooks and pressed-state semantics without changing tab destinations or URL state.
+- [x] Preserve the eight current platform-admin tabs and five Super Admin areas (roles, assignments, employees, management, audit).
+- [x] Add browser assertions for tab counts, active gradients, URL-backed audit selection and responsive overflow at 390/768/1440px.
+- [ ] Run exact-head TypeScript/build, Playwright, isolated PostgreSQL/RBAC and Pages PR validation before review.
+- **Production boundary:** no permission/RPC/audit/data/schema/Auth/RLS/GRANT/Edge/payment/finance mutation or deployment.

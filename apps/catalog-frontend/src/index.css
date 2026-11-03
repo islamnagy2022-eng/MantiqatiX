@@ -74,3 +74,28 @@
 .mx-v4-search-link { color: var(--mx-blue-800); }
 .mx-v4-search-select { border-color: var(--mx-border); }
 .mx-v4-search-select:focus { border-color: var(--mx-blue-600); box-shadow: 0 0 0 3px rgb(11 117 255 / 10%); }
+
+
+/* V4 admin navigation — shared, opt-in token treatment. */
+.mx-v4-admin-tabs { border-color: var(--mx-border); scrollbar-width: none; }
+.mx-v4-admin-tabs::-webkit-scrollbar { display: none; }
+.mx-v4-admin-tab {
+  color: var(--mx-blue-900);
+  background: var(--mx-surface);
+  border: 1px solid var(--mx-border);
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+.mx-v4-admin-tab:hover { color: var(--mx-blue-800); background: var(--mx-blue-50); border-color: var(--mx-blue-300); }
+.mx-v4-admin-tab:focus-visible { outline: 2px solid var(--mx-cyan-500); outline-offset: 2px; }
+.mx-v4-admin-tab-active {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--mx-blue-700), var(--mx-blue-500));
+  box-shadow: var(--mx-shadow-sm);
+}
+.mx-v4-admin-tab-active:hover { color: #fff; background: linear-gradient(135deg, var(--mx-blue-800), var(--mx-blue-600)); }
+.mx-v4-admin-primary {
+  background: linear-gradient(135deg, var(--mx-blue-700), var(--mx-blue-500));
+  box-shadow: var(--mx-shadow-sm);
+}
+.mx-v4-admin-primary:hover { background: linear-gradient(135deg, var(--mx-blue-800), var(--mx-blue-600)); }

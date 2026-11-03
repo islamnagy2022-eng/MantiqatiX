@@ -33,8 +33,8 @@ const actions = [
   { key:'delete',label:'حذف' },{ key:'suspend',label:'تعليق' },{ key:'restore',label:'استعادة' },
   { key:'manage',label:'إدارة' },{ key:'export',label:'تصدير' },
 ];
-const inputClass='w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-indigo-500';
-const primaryClass='inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-50';
+const inputClass='w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-600';
+const primaryClass='mx-v4-admin-primary inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50';
 
 export const SuperAdminControlCenter: React.FC = () => {
   const { businesses, currentBusiness, setSelectedBusinessId } = useApp();
@@ -165,15 +165,15 @@ export const SuperAdminControlCenter: React.FC = () => {
   const chosenPerson=people.find((p)=>p.id===selectedPersonId);
 
   return <div dir="rtl" className="space-y-6">
-    <header className="rounded-3xl bg-gradient-to-l from-slate-950 to-indigo-950 p-6 text-white shadow-lg">
+    <header className="rounded-3xl bg-gradient-to-l from-slate-950 to-blue-950 p-6 text-white shadow-lg">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div><div className="flex items-center gap-2 text-indigo-200"><ShieldCheck className="h-5 w-5"/><span className="text-xs font-black">MantiqatiX · Super Admin</span></div><h2 className="mt-2 text-2xl font-black sm:text-3xl">مركز التحكم في المنصة</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">إدارة الأدوار المخصصة ونطاقها وإسنادها، وإدارة التوظيف لكل نشاط ومراجعة أثر العمليات. صلاحية مالك المنصة المحمية لا يمكن تعريفها كدور مخصص.</p></div>
+        <div><div className="flex items-center gap-2 text-blue-200"><ShieldCheck className="h-5 w-5"/><span className="text-xs font-black">MantiqatiX · Super Admin</span></div><h2 className="mt-2 text-2xl font-black sm:text-3xl">مركز التحكم في المنصة</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">إدارة الأدوار المخصصة ونطاقها وإسنادها، وإدارة التوظيف لكل نشاط ومراجعة أثر العمليات. صلاحية مالك المنصة المحمية لا يمكن تعريفها كدور مخصص.</p></div>
         <button onClick={()=>void loadAll()} disabled={loading||saving} className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-3 text-sm font-bold hover:bg-white/20"><RefreshCw className={'h-4 w-4 '+(loading?'animate-spin':'')}/>تحديث المركز</button>
       </div>
     </header>
     {notice&&<div role="status" className={'rounded-xl border p-3 text-sm '+(notice.type==='error'?'border-rose-200 bg-rose-50 text-rose-800':'border-emerald-200 bg-emerald-50 text-emerald-800')}>{notice.text}</div>}
-    <nav className="flex gap-2 overflow-x-auto border-b border-slate-200 pb-2">
-      {[{id:'roles',label:'الأدوار والصلاحيات',icon:<KeyRound className="h-4 w-4"/>},{id:'assignments',label:'إسناد الصلاحيات',icon:<UserCog className="h-4 w-4"/>},{id:'employees',label:'توظيف وموظفو الأنشطة',icon:<Users className="h-4 w-4"/>},{id:'management',label:'إدارة الأنشطة والمشتركين',icon:<Users className="h-4 w-4"/>},{id:'audit',label:'سجل العمليات',icon:<ClipboardList className="h-4 w-4"/>}].map((item)=> <button key={item.id} onClick={()=>setTab(item.id as typeof tab)} className={'inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-3 text-sm font-black '+(tab===item.id?'bg-indigo-700 text-white':'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50')}>{item.icon}{item.label}</button>)}
+    <nav aria-label="أقسام مركز التحكم" data-testid="super-admin-control-tabs" className="mx-v4-admin-tabs flex gap-2 overflow-x-auto border-b pb-2">
+      {[{id:'roles',label:'الأدوار والصلاحيات',icon:<KeyRound className="h-4 w-4"/>},{id:'assignments',label:'إسناد الصلاحيات',icon:<UserCog className="h-4 w-4"/>},{id:'employees',label:'توظيف وموظفو الأنشطة',icon:<Users className="h-4 w-4"/>},{id:'management',label:'إدارة الأنشطة والمشتركين',icon:<Users className="h-4 w-4"/>},{id:'audit',label:'سجل العمليات',icon:<ClipboardList className="h-4 w-4"/>}].map((item)=> <button key={item.id} type="button" aria-pressed={tab===item.id} onClick={()=>setTab(item.id as typeof tab)} className={'mx-v4-admin-tab inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-3 text-sm font-black '+(tab===item.id?'mx-v4-admin-tab-active':'')}>{item.icon}{item.label}</button>)}
     </nav>
 
     {tab==='roles'&&<div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">

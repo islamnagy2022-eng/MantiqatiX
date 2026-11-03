@@ -1035,6 +1035,19 @@ try {
     );
     try {
       await page.getByRole('heading', { name: 'إعدادات وحدات الأنشطة', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      const platformAdminTabs = page.getByTestId('platform-admin-tabs');
+      await platformAdminTabs.waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(await platformAdminTabs.getAttribute('aria-label'), 'أقسام إدارة المنصة');
+      assert.equal(await platformAdminTabs.locator('button').count(), 8, 'all existing platform-admin navigation entries must remain available');
+      const activityModulesTab = platformAdminTabs.getByRole('button', { name: 'إعدادات وحدات الأنشطة', exact: true });
+      assert.equal(await activityModulesTab.getAttribute('aria-pressed'), 'true', 'the direct activity-module admin route must select its tab');
+      assert.ok((await activityModulesTab.getAttribute('class')).includes('mx-v4-admin-tab-active'));
+      const activityTabGradient = await activityModulesTab.evaluate((element) => getComputedStyle(element).backgroundImage);
+      assert.match(activityTabGradient, /linear-gradient/, 'platform admin active tab must use the V4 blue gradient');
+      for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+        await page.setViewportSize(viewport);
+        await assertNoHorizontalOverflow(page, 'V4 platform admin tabs at ' + viewport.width + 'px');
+      }
       await page.getByRole('status').getByText(
         'معاينة إعدادات الأنشطة متاحة، لكن الحفظ الإداري موقوف مؤقتًا حتى نشر واختبار خدمة الحفظ الذري مع سجل التدقيق على Supabase. لم يتم إرسال أي تعديل أو تغيير بيانات الإنتاج.',
         { exact: true },
@@ -1042,6 +1055,32 @@ try {
       assert.equal(await page.getByLabel('اختر النشاط').count(), 0, 'the unverified editor must not expose editable activity settings');
       assert.equal(platformAdminRequests.filter((request) => request.action === 'SAVE_SETTINGS').length, 0, 'no settings write may be sent before atomic audit support is deployed');
       results.push('activity-module-admin-writes-disabled-until-atomic-audit-backend');
+    } finally { await context.close(); }
+  }
+
+  // Super Admin control-center navigation retains its five permission/audit areas and URL-backed active state.
+  {
+    const { context, page } = await newScenario(
+      browser,
+      roles.platformAdmin,
+      [],
+      { initialRoute: '?view=super_admin&tab=control_center&controlTab=roles' },
+    );
+    try {
+      await page.getByRole('heading', { name: 'مركز التحكم في المنصة', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      const controlTabs = page.getByTestId('super-admin-control-tabs');
+      await controlTabs.waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(await controlTabs.getAttribute('aria-label'), 'أقسام مركز التحكم');
+      assert.equal(await controlTabs.locator('button').count(), 5, 'all five Super Admin control-center areas must remain available');
+      assert.equal(await controlTabs.getByRole('button', { name: 'الأدوار والصلاحيات', exact: true }).getAttribute('aria-pressed'), 'true');
+      await controlTabs.getByRole('button', { name: 'سجل العمليات', exact: true }).click();
+      await page.getByRole('heading', { name: 'سجل العمليات الإدارية', exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(new URL(page.url()).searchParams.get('controlTab'), 'audit', 'control-center tabs must preserve their URL-backed state');
+      for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+        await page.setViewportSize(viewport);
+        await assertNoHorizontalOverflow(page, 'V4 Super Admin control tabs at ' + viewport.width + 'px');
+      }
+      results.push('super-admin-control-center-v4-tabs-preserve-five-areas-and-url-state');
     } finally { await context.close(); }
   }
 

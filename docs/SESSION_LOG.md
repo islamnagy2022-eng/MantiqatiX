@@ -1934,3 +1934,14 @@ A separate source review found a second platform-root authorization model: the n
 - PR #662 remains Draft. Next safe wave: inspect/reorganize the existing Admin/Super Admin dashboard presentation toward V4 while preserving server RPCs, permission matrix, audit and fail-closed access.
 - No production data/schema/Auth/RLS/GRANT/Edge/payment/finance mutation or deployment. Doctor import remains paused; PR #661 remains Draft.
 - `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+
+## 2026-11-03 — V4 administration navigation presentation
+
+- Started the next V4 screen wave after exact-head 0a31f6247ea26270651fec74730fd5c26245b885 passed all Primary Catalog checks.
+- Restyled the platform-admin and nested Super Admin navigation using the shared blue/cyan design tokens; added accessible names, test hooks and pressed-state semantics.
+- Preserved the eight existing platform-admin tabs and five nested Super Admin areas, including URL-backed tab selection.
+- Added browser assertions for the navigation hierarchy, selected-state gradient, audit-tab URL state and mobile/tablet/desktop overflow.
+- Exact-head validation for this admin navigation wave is pending. PR #662 remains Draft; no merge or deployment.
+- No permission model, RPC, audit data, role assignment, business data, schema, Auth/RLS/GRANT, payment or finance behavior changed.
+- `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.

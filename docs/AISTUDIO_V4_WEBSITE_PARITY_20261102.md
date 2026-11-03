@@ -219,3 +219,12 @@ PR #650 and PR #651 are merged into current `main`; PR #648 is closed as superse
 - No directory query, data source, filter state, GPS consent, keyset cursor, verified-first ordering or 20-row progressive loading behavior changed.
 - Browser E2E asserts all four selectors use the V4 style and the location action/top accent render the token-backed gradient. Existing 390/768/1440px overflow checks remain.
 - Exact-head CI passed on `0a31f6247ea26270651fec74730fd5c26245b885`: Primary Catalog Frontend Validation PASS (build, Playwright, isolated PostgreSQL/RBAC); Pages PR validation PASS with deploy job SKIPPED. No production data, schema, Auth/RLS/GRANT, Edge Function or deployment change.
+
+
+## 2026-11-03 — V4 administration navigation presentation
+
+- Applied the shared V4 blue/cyan token treatment to the platform-admin tab bar and the nested Super Admin control-center tab bar.
+- Added Arabic accessible names, stable test hooks and pressed-state semantics for the existing tabs.
+- Preserved all current destinations, URL-backed `tab` / `controlTab` state, billing/commission/taxonomy/business/subscriber/directory/module/settings behavior, Super Admin role/assignment/employee/management/audit areas, and all backend RPCs.
+- Added browser checks for the eight existing platform-admin entries, five Super Admin control-center areas, active blue gradient, direct-route state restoration and overflow at 390/768/1440px.
+- Exact-head validation is pending. Presentation only; no role/permission policy, RPC, audit record, business data, schema or production deployment changed.
