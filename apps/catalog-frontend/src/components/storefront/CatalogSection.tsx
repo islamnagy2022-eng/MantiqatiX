@@ -164,7 +164,7 @@ export const CatalogSection: React.FC = () => {
               onClick={() => setSelectedType('all')}
               className={`px-3 py-2 rounded-lg transition-all ${
                 selectedType === 'all'
-                  ? 'bg-white text-slate-900 font-bold shadow-xs'
+                  ? 'mx-v4-catalog-type-active font-bold'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
