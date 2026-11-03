@@ -121,7 +121,7 @@ export const CatalogSection: React.FC = () => {
         {/* Counter Badge */}
         <div className="flex items-center gap-2 self-start md:self-auto">
           <div className="mx-v4-catalog-counter flex items-center gap-2 rounded-2xl border px-3.5 py-2 text-xs font-semibold">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span aria-hidden="true" className="w-2 h-2 rounded-full bg-sky-500"></span>
             <span>
               المعروض: <strong className="mx-v4-catalog-count font-extrabold">{filteredItems.length}</strong> من إجمالي {businessProducts.length}
             </span>
@@ -231,7 +231,7 @@ export const CatalogSection: React.FC = () => {
                 <span>{cat}</span>
                 <span
                   className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                    isSelected ? 'bg-emerald-700/80 text-white' : 'bg-slate-200 text-slate-600'
+                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
                   }`}
                 >
                   {count}
