@@ -124,3 +124,33 @@
 .mx-v4-storefront-secondary:hover { background: #d5edff; }
 .mx-v4-storefront-primary:focus-visible,
 .mx-v4-storefront-secondary:focus-visible { outline: 2px solid var(--mx-cyan-500); outline-offset: 2px; }
+
+
+/* V4 public storefront catalogue — presentation only; data and checkout contracts are unchanged. */
+.mx-v4-catalog-section { color: var(--mx-text); }
+.mx-v4-catalog-label { color: var(--mx-blue-900); background: var(--mx-blue-50); border-color: var(--mx-border); }
+.mx-v4-catalog-counter { color: var(--mx-blue-900); background: var(--mx-blue-50); border-color: var(--mx-border); }
+.mx-v4-catalog-count { color: var(--mx-blue-700); }
+.mx-v4-catalog-filter-surface { background: var(--mx-surface); border-color: var(--mx-border); box-shadow: var(--mx-shadow-sm); }
+.mx-v4-catalog-search-icon { color: var(--mx-blue-700); }
+.mx-v4-catalog-search-input { color: var(--mx-text); border-color: var(--mx-border); }
+.mx-v4-catalog-search-input:focus { background: var(--mx-surface); border-color: var(--mx-blue-600); box-shadow: 0 0 0 4px rgb(11 117 255 / 12%); }
+.mx-v4-catalog-type-active,
+.mx-v4-catalog-category-active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--mx-blue-700), var(--mx-blue-500));
+  box-shadow: var(--mx-shadow-sm);
+}
+.mx-v4-catalog-type-active:hover,
+.mx-v4-catalog-category-active:hover { color: #fff; background: linear-gradient(135deg, var(--mx-blue-800), var(--mx-blue-600)); }
+.mx-v4-catalog-card { border-color: var(--mx-border); box-shadow: var(--mx-shadow-sm); }
+.mx-v4-catalog-card:hover { box-shadow: var(--mx-shadow-md); }
+.mx-v4-catalog-card-title:hover { color: var(--mx-blue-700); }
+.mx-v4-catalog-price-label { color: var(--mx-blue-800); }
+.mx-v4-catalog-primary-action {
+  color: #fff;
+  background: linear-gradient(135deg, var(--mx-blue-700), var(--mx-blue-500));
+  box-shadow: var(--mx-shadow-sm);
+}
+.mx-v4-catalog-primary-action:hover { color: #fff; background: linear-gradient(135deg, var(--mx-blue-800), var(--mx-blue-600)); }
+.mx-v4-catalog-primary-action:focus-visible { outline: 2px solid var(--mx-cyan-500); outline-offset: 2px; }
