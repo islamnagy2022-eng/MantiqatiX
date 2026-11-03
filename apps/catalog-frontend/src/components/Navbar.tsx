@@ -42,10 +42,10 @@ export const Navbar: React.FC = () => {
   const catalogRequestUrl = requestCatalogViaAdminWhatsApp(currentBusiness);
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
+    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 shadow-lg shadow-slate-950/[0.04] backdrop-blur-xl">
       {/* Top Banner with Platform Context */}
-      <div className="bg-slate-900 text-slate-300 text-xs py-1.5 px-2 sm:px-4">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div className="bg-[#101b2d] px-3 py-2 text-[11px] text-slate-300 sm:px-6">
+        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
               <Sparkles className="w-3 h-3 ml-1 text-emerald-400" />
@@ -154,10 +154,10 @@ export const Navbar: React.FC = () => {
       )}
 
       {/* Main Navigation Bar */}
-      <div className="max-w-7xl mx-auto px-2 sm:px-6 py-2.5">
+      <div className="mx-auto max-w-[1440px] px-3 py-3 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-2.5">
           {/* Top Line: Logo, Context, Cart */}
-          <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white px-3 py-3 shadow-sm sm:flex-nowrap sm:rounded-3xl sm:px-4">
             <div
               onClick={() => {
                 if (authSession.role === 'subscriber') {
@@ -169,7 +169,7 @@ export const Navbar: React.FC = () => {
               className="flex items-center gap-2 cursor-pointer group flex-shrink-0 min-w-0"
               title={authSession.role === 'subscriber' ? 'الملف الشخصي التعريفي للمشترك' : 'الرئيسية والدليل الشامل'}
             >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform font-black text-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 text-sm font-black text-white shadow-md shadow-slate-900/15 ring-1 ring-emerald-500/15 transition-transform group-hover:scale-105">
                 MX
               </div>
               <div>
@@ -204,7 +204,7 @@ export const Navbar: React.FC = () => {
                 </select>
               </div>
             ) : (
-              <div className="text-[11px] sm:text-xs font-bold text-slate-800 truncate max-w-[100px] sm:max-w-xs bg-slate-100 px-2 sm:px-3 py-1 rounded-xl border border-slate-200">
+              <div className="max-w-[120px] truncate rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-bold text-slate-700 sm:max-w-xs sm:text-xs">
                 <span className="truncate">{currentBusiness?.name || (authSession.isAuthenticated ? 'حساب Google' : 'تصفح عام')}</span>
               </div>
             )}
@@ -270,16 +270,16 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Bottom Line: Accessible View Mode Tabs */}
-          <div className="flex items-center justify-start overflow-x-auto pb-0.5 no-scrollbar">
-            <nav className="flex min-w-max items-center p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium w-full sm:w-auto">
+          <div className="flex items-center justify-start overflow-x-auto rounded-2xl border border-slate-200/80 bg-slate-50/80 p-1.5 no-scrollbar sm:rounded-3xl">
+            <nav aria-label="التنقل الرئيسي في MantiqatiX" data-testid="mantiqatix-primary-navigation" className="flex min-w-max items-center gap-1 text-xs font-semibold sm:w-auto">
               {/* Canonical marketplace homepage. */}
               <button
                 onClick={() => setCurrentView('marketplace_home')}
                 aria-current={currentView === 'marketplace_home' ? 'page' : undefined}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                   currentView === 'marketplace_home'
-                    ? 'bg-white text-emerald-700 font-bold shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-slate-950 text-white font-black shadow-md shadow-slate-900/10'
+                    : 'text-slate-600 hover:bg-white hover:text-slate-950'
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
@@ -288,10 +288,10 @@ export const Navbar: React.FC = () => {
 
               <button
                 onClick={() => setCurrentView('medical_directory')}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                   currentView === 'medical_directory'
-                    ? 'bg-white text-emerald-700 font-bold shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-slate-950 text-white font-black shadow-md shadow-slate-900/10'
+                    : 'text-slate-600 hover:bg-white hover:text-slate-950'
                 }`}
                 aria-current={currentView === 'medical_directory' ? 'page' : undefined}
               >
@@ -303,10 +303,10 @@ export const Navbar: React.FC = () => {
               <button
                 onClick={() => setCurrentView('directory')}
                 aria-current={currentView === 'directory' ? 'page' : undefined}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                   currentView === 'directory'
-                    ? 'bg-white text-emerald-700 font-bold shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-slate-950 text-white font-black shadow-md shadow-slate-900/10'
+                    : 'text-slate-600 hover:bg-white hover:text-slate-950'
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
@@ -318,10 +318,10 @@ export const Navbar: React.FC = () => {
               {authSession.role !== 'guest' && (
                 <button
                   onClick={() => setCurrentView('public_storefront')}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                     currentView === 'public_storefront'
-                      ? 'bg-white text-emerald-700 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-slate-950 text-white font-black shadow-md shadow-slate-900/10'
+                      : 'text-slate-600 hover:bg-white hover:text-slate-950'
                   }`}
                 >
                   <Store className="w-3.5 h-3.5" />
@@ -338,10 +338,10 @@ export const Navbar: React.FC = () => {
                   type="button"
                   onClick={() => setCurrentView('account_portal')}
                   aria-current={currentView === 'account_portal' ? 'page' : undefined}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                     currentView === 'account_portal'
-                      ? 'bg-white text-emerald-700 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-slate-950 text-white font-black shadow-md shadow-slate-900/10'
+                      : 'text-slate-600 hover:bg-white hover:text-slate-950'
                   }`}
                 >
                   <UserCheck className="w-3.5 h-3.5" />
@@ -353,10 +353,10 @@ export const Navbar: React.FC = () => {
               {canAccessMerchantDashboard(authSession) && (
                 <button
                   onClick={() => setCurrentView('merchant_admin')}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                     currentView === 'merchant_admin'
-                      ? 'bg-white text-emerald-700 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-slate-950 text-white font-black shadow-md shadow-slate-900/10'
+                      : 'text-slate-600 hover:bg-white hover:text-slate-950'
                   }`}
                 >
                   <LayoutDashboard className="w-3.5 h-3.5" />
@@ -372,10 +372,10 @@ export const Navbar: React.FC = () => {
               {canAccessProfessionalDashboard(authSession) && (
                 <button
                   onClick={() => setCurrentView('professional_dashboard')}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                     currentView === 'professional_dashboard'
-                      ? 'bg-white text-emerald-700 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-slate-950 text-white font-black shadow-md shadow-slate-900/10'
+                      : 'text-slate-600 hover:bg-white hover:text-slate-950'
                   }`}
                   aria-current={currentView === 'professional_dashboard' ? 'page' : undefined}
                 >
@@ -388,10 +388,10 @@ export const Navbar: React.FC = () => {
               {authSession.role === 'admin' && (
                 <button
                   onClick={() => setCurrentView('super_admin')}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                     currentView === 'super_admin'
-                      ? 'bg-white text-emerald-700 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-slate-950 text-white font-black shadow-md shadow-slate-900/10'
+                      : 'text-slate-600 hover:bg-white hover:text-slate-950'
                   }`}
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
