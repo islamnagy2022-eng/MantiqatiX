@@ -1365,6 +1365,19 @@ try {
           .waitFor({ state: 'visible', timeout: 15000 });
         await page.getByText('موثّق رسمياً', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
 
+        const storefrontCatalog = page.getByTestId('storefront-catalog');
+        await storefrontCatalog.waitFor({ state: 'visible', timeout: 10000 });
+        assert.equal(await storefrontCatalog.getAttribute('aria-label'), 'كتالوج منتجات وخدمات ' + liveBusiness.name);
+        const catalogueFilters = page.getByTestId('storefront-catalog-filters');
+        await catalogueFilters.waitFor({ state: 'visible' });
+        await page.getByTestId('storefront-catalog-search').waitFor({ state: 'visible' });
+        const typeFilter = page.getByTestId('storefront-catalog-type-filter');
+        assert.equal(await typeFilter.getByRole('button').count(), 3, 'catalogue must retain All / Products / Services filters');
+        assert.equal(await typeFilter.getByRole('button').first().getAttribute('aria-pressed'), 'true', 'All type filter must expose its selected state');
+        const categoryFilter = page.getByTestId('storefront-catalog-categories');
+        await categoryFilter.waitFor({ state: 'visible' });
+        assert.ok(await categoryFilter.getByRole('button').count() >= 1, 'catalogue categories must remain selectable');
+
         if (target.expectProducts) {
           const firstPublicItem = liveBusiness.items[0];
           const firstItemName = String(firstPublicItem.name_ar || firstPublicItem.name_en || '').trim();
@@ -1372,7 +1385,16 @@ try {
           await page.getByRole('heading', { name: firstItemName, exact: true }).first()
             .waitFor({ state: 'visible', timeout: 15000 });
           assert.ok(await page.getByText(/المعروض:/).count() > 0, target.label + ' catalogue must display a product count');
-          results.push(target.label.toLowerCase().replaceAll(' ', '-') + '-verified-badge-and-live-product-rendered');
+          const firstCatalogCard = page.getByTestId('storefront-catalog-card').first();
+          await firstCatalogCard.waitFor({ state: 'visible' });
+          assert.match(await firstCatalogCard.getAttribute('class') || '', /mx-v4-catalog-card/, 'catalogue card must use the V4 token system');
+          assert.ok(await page.locator('.mx-v4-catalog-primary-action').count() > 0, 'add-to-cart/quote actions must use V4 primary styling when enabled');
+          for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+            await page.setViewportSize(viewport);
+            await assertNoHorizontalOverflow(page, target.label + ' V4 catalogue at ' + viewport.width + 'px');
+          }
+          await page.setViewportSize({ width: 390, height: 844 });
+          results.push(target.label.toLowerCase().replaceAll(' ', '-') + '-verified-badge-and-v4-live-product-catalogue-rendered');
         } else {
           await page.getByRole('heading', { name: 'لا توجد منتجات أو خدمات مطابقة', exact: true })
             .waitFor({ state: 'visible', timeout: 10000 });
