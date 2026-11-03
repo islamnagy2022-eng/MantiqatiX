@@ -1970,3 +1970,12 @@ A separate source review found a second platform-root authorization model: the n
 - No production data, schema, API, Auth/RLS/GRANT, Edge Function, payment or finance change. No production deployment.
 - Exact-head CI is pending; PR #662 remains Draft, and PR #661 doctor-import work remains paused in Draft.
 - FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED remains unchanged.
+
+## 2026-11-03 — V4 storefront responsive overflow follow-up
+
+- Exact-head browser validation on commit `34e8432197b2e4002d0088f132218bbf19b48ec5` exposed horizontal overflow at 768px in the public ticker/storefront journey; build, TypeScript, taxonomy/contracts and isolated PostgreSQL employee/RBAC passed.
+- First repair isolated the animated ticker with paint/layout containment and disabled its duplicated animation track at widths up to 768px. The rerun narrowed the remaining overflow to the storefront quick-action row, which was still forced into a desktop two-column layout at the 768px `md` breakpoint.
+- Second repair keeps the storefront profile and quick actions stacked until the `xl` breakpoint, allows the action group to use the available width and wrap, and constrains its width in the wide layout. No button, contact action, route, business data or permission behavior was removed.
+- Fix commits: `1d2ee251a4074c2ac6c86ad512516489515354e9` (ticker containment) and `a615e3a96dcbf971d7f462a0d29a403de3b4a20f` (storefront responsive layout).
+- Exact-head CI on `a615e3a96dcbf971d7f462a0d29a403de3b4a20f` is pending. Require Playwright 390/768/1440px checks plus build and isolated RBAC before review. PR #662 remains Draft; no merge, production deployment, database/schema/Auth/RLS/GRANT/Edge Function/payment/finance mutation.
+- FULL_PLATFORM_GATE remains BLOCKED / NOT CERTIFIED.
