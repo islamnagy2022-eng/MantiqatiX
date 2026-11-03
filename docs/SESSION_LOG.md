@@ -1862,3 +1862,16 @@ A separate source review found a second platform-root authorization model: the n
 1. Rehearse PR #655's directory-listings Edge source in an isolated environment and deploy only through a separately reviewed release.
 2. Review PR #618 membership-mode switching with adversarial exact membership/tenant/branch tests; keep disabled until production Edge parity exists.
 3. Continue current-schema restore/migration reconciliation, RC463 ACL, RC449A/RC450, Paymob/finance, Auth, tenant-isolation and backup/restore evidence.
+
+
+## 2026-11-02 — Doctor import evidence and publication contract hardening
+
+- Continued the doctor-directory safety work from PR #655 and opened PR [#661](https://github.com/islamnagy2022-eng/MantiqatiX/pull/661), now Ready for Review (not merged), branch `test/doctor-import-runtime-contract-20261102`, exact code head `0c2f4a00bc76e4a1fbc8986ce574334379854ee8`.
+- Audited the pure source-evidence helper and found that URL parsing could normalize an explicitly written default port away before host comparison. Hardened source-authority validation to reject credentials and any explicit port, including `:443`, before matching the source host.
+- Corrected publication-state parsing so an explicitly present empty/null `listingStatus` fails closed instead of silently falling back to the default state.
+- Added deterministic runtime cases for explicit ports, credentials, evidence validity window, revocation, required republication scopes, source host/name match, malformed dates, metadata sanitization, and listing states.
+- Exact-head CI passed: Doctor Import Contract [41484267421](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41484267421); Module Professionalization [41484267404](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41484267404); Backend-only Module Boundary [41484267631](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41484267631); MantiGO Privacy [41484267635](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41484267635); Paymob Atomicity [41484267696](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41484267696); Pages validation [41484267139](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41484267139). On the Pages PR event, the deploy job was SKIPPED; no deployment is claimed.
+- Read-only Supabase inspection confirms Production `directory-listings` remains ACTIVE v12 and its helper is still the pre-hardening version. The connected project currently exposes only its main branch; no isolated Edge invocation operation is available in the connected tool surface.
+- No Production migration/DDL/DML, RLS/GRANT/Auth change, Edge deployment, payment action, or doctor row insert/publication was performed.
+- Remaining: independent review/merge; authorized isolated Edge behavioral tests using synthetic records; legal/source-owner permission approval before public doctor republication; separately reviewed Edge deployment after those gates.
+- Global platform gate remains `BLOCKED / NOT CERTIFIED`.

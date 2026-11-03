@@ -1215,3 +1215,15 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Exact-head run `41254516117` failed only in `professional_dashboard_browser_e2e` at test line 865: a duplicated specialty-filter scenario attempted to click the medical-practices activity card without first opening its parent “الطب والصحة” group.
 - Corrected the test to follow the actual navigation sequence (open group → open activity → choose specialty). The source UI, routing, and authorization checks were not changed or weakened.
 - Fresh CI is required on the new branch HEAD. Keep PR #628 unmerged and do not claim deployment until all required checks pass and the production release workflow actually deploys. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-11-02 — Doctor import source-evidence contract hardening
+
+- PR [#661](https://github.com/islamnagy2022-eng/MantiqatiX/pull/661) is open and Ready for Review on branch `test/doctor-import-runtime-contract-20261102`; exact head `0c2f4a00bc76e4a1fbc8986ce574334379854ee8`.
+- Added deterministic runtime cases around source permission evidence and publication status.
+- Hardened source authority checks to reject credential-bearing URLs and every explicit port, including `:443`; explicit empty/null `listingStatus` is rejected rather than defaulting to a publication state.
+- Exact-head checks passed: Doctor Import Contract run [41484267421](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41484267421); Module Professionalization [41484267404](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41484267404); Backend-only Module Boundary [41484267631](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41484267631); MantiGO Privacy [41484267635](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41484267635); Paymob Atomicity [41484267696](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41484267696); Pages validation [41484267139](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41484267139). Pages deployment job was skipped because this was a PR event.
+- Live Supabase `directory-listings` remains ACTIVE v12 and contains the pre-hardening helper; no Edge deployment, migration, production data change, or doctor publication occurred.
+- Remaining gates: independent review/merge; isolated authenticated Edge invocation tests with synthetic records; source-owner/legal permission approval before public doctor republication; separately reviewed deployment.
+- A dedicated disposable Supabase branch/invocation environment is not currently available from the connected project/tool surface. Do not use production writes as a substitute or create a billable branch without cost review/approval.
+- `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.

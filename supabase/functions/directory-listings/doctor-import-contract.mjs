@@ -8,7 +8,8 @@ const PROTECTED_METADATA_KEYS = Object.freeze([
 /** Normalize a hostname, rejecting URL fragments, credentials, paths and ports. */
 export function normalizeDirectorySourceHost(value) {
   const raw = String(value ?? "").trim().slice(0, 300).toLowerCase();
-  if (!raw || raw.includes("@") || raw.includes("?") || raw.includes("#")) return "";
+  const authority = raw.match(/^(?:https?:\/\/)?([^/?#]+)/i)?.[1] ?? "";
+  if (!raw || !authority || authority.includes(":") || raw.includes("@") || raw.includes("?") || raw.includes("#")) return "";
   try {
     const parsed = new URL(raw.includes("://") ? raw : "https://" + raw);
     if (!["https:", "http:"].includes(parsed.protocol) || parsed.username || parsed.password || parsed.port ||
@@ -31,7 +32,15 @@ export function isCurrentDoctorRepublicationEvidence(evidence, sourceUrl, source
   } catch {
     return false;
   }
-  if (!["https:", "http:"].includes(parsedSourceUrl.protocol)) return false;
+  const sourceUrlText = String(sourceUrl ?? "").trim();
+  const sourceAuthority = sourceUrlText.match(/^https?:\/\/([^/?#]+)/i)?.[1] ?? "";
+  if (!["https:", "http:"].includes(parsedSourceUrl.protocol) ||
+      !sourceAuthority ||
+      sourceAuthority.includes("@") ||
+      sourceAuthority.includes(":") ||
+      parsedSourceUrl.username ||
+      parsedSourceUrl.password ||
+      parsedSourceUrl.port) return false;
   const sourceHost = normalizeDirectorySourceHost(parsedSourceUrl.hostname);
   const currentTime = now instanceof Date ? now.getTime() : Number(now);
   const validFrom = new Date(evidence.valid_from).getTime();
@@ -66,8 +75,12 @@ export function resolveDoctorImportStatus(row, hasPhone) {
   const source = row && typeof row === "object" && !Array.isArray(row) ? row : {};
   const hasRequestedStatus = Object.prototype.hasOwnProperty.call(source, "listingStatus") ||
     Object.prototype.hasOwnProperty.call(source, "listing_status");
-  const rawStatus = source.listingStatus || source.listing_status || "PUBLISHED";
-  const requestedStatus = String(rawStatus).trim().slice(0, 20).toUpperCase();
+  const rawStatus = Object.prototype.hasOwnProperty.call(source, "listingStatus")
+    ? source.listingStatus
+    : Object.prototype.hasOwnProperty.call(source, "listing_status")
+      ? source.listing_status
+      : "PUBLISHED";
+  const requestedStatus = String(rawStatus ?? "").trim().slice(0, 20).toUpperCase();
   const allowed = new Set(["PUBLISHED", "DRAFT", "HIDDEN"]);
   if (hasRequestedStatus && !allowed.has(requestedStatus)) {
     return { valid: false, reason: "INVALID_LISTING_STATUS", hasRequestedStatus, requestedStatus, listingStatus: null };
