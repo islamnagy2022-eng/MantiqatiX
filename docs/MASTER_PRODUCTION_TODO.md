@@ -3320,3 +3320,14 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Add browser assertions for verified/unverified status and responsive overflow at 390/768/1440px.
 - [ ] Run exact-head build, Playwright, isolated PostgreSQL/RBAC and accessibility checks. Do not merge/deploy before all exact-head checks pass.
 - **Production boundary:** no activity record, verification value, profile URL, catalog item, schema, Auth/RLS/GRANT, Edge Function, finance or production deployment changed.
+
+
+### V4 continuation — validation and token foundation (2026-11-03)
+- [x] Exact-head build, TypeScript, catalog contract and production-preview smoke checks passed on f658c66e007301839763c7c5784e9a93128356ff.
+- [x] Exact-head Playwright browser suite passed on f658c66e007301839763c7c5784e9a93128356ff.
+- [x] Isolated PostgreSQL employee/RBAC migration and behavior tests passed on f658c66e007301839763c7c5784e9a93128356ff.
+- [x] Added opt-in V4 design tokens (blue palette, Arabic/Latin font stacks, radii and shadows) without global legacy recoloring.
+- [x] Applied V4 blue active treatment to the seven owner-dashboard tabs and added computed-style browser assertions.
+- [ ] Run exact-head CI for the token and active-tab styling changes before merge/release.
+- [ ] Continue storefront and public discovery screen parity using scoped tokens; do not port finance/custom links until durable server contracts and authorization/audit checks are verified.
+- **Production remains unchanged.** No DB/Auth/RLS/GRANT/Edge/payment/finance mutation or deployment was performed. Full platform gate remains BLOCKED / NOT CERTIFIED.
