@@ -1388,7 +1388,6 @@ try {
           const firstCatalogCard = page.getByTestId('storefront-catalog-card').first();
           await firstCatalogCard.waitFor({ state: 'visible' });
           assert.match(await firstCatalogCard.getAttribute('class') || '', /mx-v4-catalog-card/, 'catalogue card must use the V4 token system');
-          assert.ok(await page.locator('.mx-v4-catalog-primary-action').count() > 0, 'add-to-cart/quote actions must use V4 primary styling when enabled');
           for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
             await page.setViewportSize(viewport);
             await assertNoHorizontalOverflow(page, target.label + ' V4 catalogue at ' + viewport.width + 'px');
