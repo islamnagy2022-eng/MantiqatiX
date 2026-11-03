@@ -94,7 +94,8 @@ export const BusinessProfileHeader: React.FC = () => {
         {slides.map((imgUrl, idx) => (
           <div
             key={idx}
-            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+            aria-hidden={idx !== currentSlideIndex}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out motion-reduce:transition-none ${
               idx === currentSlideIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
             }`}
           >
@@ -114,7 +115,7 @@ export const BusinessProfileHeader: React.FC = () => {
         ))}
 
         {/* Slider Indicators (Dots) */}
-        <div className="absolute bottom-4 right-1/2 translate-x-1/2 z-20 flex items-center gap-1.5 bg-black/40 backdrop-blur-xs px-3 py-1.5 rounded-full border border-white/15">
+        <div role="group" aria-label="التنقل بين صور الغلاف" className="absolute bottom-4 right-1/2 translate-x-1/2 z-20 flex items-center gap-1.5 bg-black/40 backdrop-blur-xs px-3 py-1.5 rounded-full border border-white/15">
           {slides.map((_, idx) => (
             <button
               key={idx}
@@ -122,7 +123,7 @@ export const BusinessProfileHeader: React.FC = () => {
               onClick={() => setCurrentSlideIndex(idx)}
               aria-pressed={idx === currentSlideIndex}
               className={`h-2 rounded-full transition-all cursor-pointer ${
-                idx === currentSlideIndex ? 'w-6 bg-emerald-400' : 'w-2 bg-white/50 hover:bg-white'
+                idx === currentSlideIndex ? 'w-6 bg-sky-400' : 'w-2 bg-white/50 hover:bg-white'
               }`}
               aria-label={`انتقل للشريحة ${idx + 1}`}
             />
@@ -238,7 +239,7 @@ export const BusinessProfileHeader: React.FC = () => {
                 {/* Location & Working Hours metadata */}
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs text-slate-500 pt-1">
                   <div className="flex items-center gap-1.5 font-medium">
-                    <MapPin className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <MapPin className="w-4 h-4 text-[var(--mx-blue-700)] flex-shrink-0" />
                     <span>{currentBusiness.address}</span>
                   </div>
                   {currentBusiness.workingHours && (
