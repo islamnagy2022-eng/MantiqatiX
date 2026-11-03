@@ -193,9 +193,9 @@ export const BusinessProfileHeader: React.FC = () => {
       {/* 2. Profile Details Bar */}
       <section aria-label={`بيانات نشاط ${currentBusiness.name}`} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative pb-6 border-b border-slate-100">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 pt-3">
+          <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6 pt-3">
             {/* Logo & Core Identity */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-right">
+            <div className="flex min-w-0 flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-right">
               {/* Business Logo */}
               <div className="relative -mt-16 sm:-mt-20 md:-mt-24 w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-3xl bg-white p-1.5 shadow-2xl ring-4 ring-white flex-shrink-0 overflow-hidden z-20">
                 <img
@@ -253,7 +253,7 @@ export const BusinessProfileHeader: React.FC = () => {
             </div>
 
             {/* Quick Actions: phone, messaging, social profiles, and QR code */}
-            <div className="flex items-center justify-center sm:justify-start gap-2.5 flex-wrap flex-shrink-0 pt-2 md:pt-4">
+            <div className="flex w-full min-w-0 max-w-full items-center justify-center sm:justify-start gap-2.5 flex-wrap pt-2 md:pt-4 xl:w-[56%]">
               {dialPhone && (
                 <a href={`tel:${dialPhone}`} className="mx-v4-storefront-primary flex cursor-pointer items-center gap-2 rounded-2xl px-4 py-3 text-xs font-black transition-all sm:text-sm" aria-label={`اتصال هاتفي بـ ${currentBusiness.name}`}>
                   <Phone className="w-4 h-4" />
