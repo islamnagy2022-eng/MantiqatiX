@@ -1961,3 +1961,12 @@ A separate source review found a second platform-root authorization model: the n
 - Inactive cover slides are hidden from the accessibility tree; fade transitions disable under reduced-motion preferences.
 - Active slide/location accent colors now follow the V4 blue palette; green verification and red frozen states remain semantic.
 - Added Playwright assertions for the cover carousel group and selected slide. Exact-head validation is pending.
+## 2026-11-03 — V4 public catalogue filters and product cards
+
+- Reworked CatalogSection presentation using shared V4 blue/cyan tokens: heading badge, result counter, search/filter surface and input, product/service type filters, category chips, product-card border/shadow, quote label and primary cart/quote actions.
+- Added accessible search label, labelled filter groups, aria-pressed selection state, and stable data-testid hooks.
+- Preserved all real production records and existing business rules: item data, prices/discounts, requires-quote services, availability, frozen-business restrictions, cart operations, WhatsApp quote link and currency.
+- Expanded the live-directory browser journey to verify the catalogue surface, search, three type filters, categories and first live product card, with overflow checks at 390/768/1440px.
+- No production data, schema, API, Auth/RLS/GRANT, Edge Function, payment or finance change. No production deployment.
+- Exact-head CI is pending; PR #662 remains Draft, and PR #661 doctor-import work remains paused in Draft.
+- FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED remains unchanged.
