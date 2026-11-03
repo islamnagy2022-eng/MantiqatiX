@@ -786,6 +786,18 @@ try {
         await assertNoHorizontalOverflow(page, 'V4 owner dashboard at ' + viewport.width + 'px');
       }
 
+      // Clipboard failure must be announced inline, never through a blocking browser alert.
+      await page.evaluate(() => {
+        Object.defineProperty(navigator, 'clipboard', {
+          configurable: true,
+          value: { writeText: async () => { throw new Error('clipboard denied by test'); } },
+        });
+      });
+      await page.getByRole('button', { name: 'نسخ رابط متجرك المباشر' }).click();
+      const copyFailureStatus = page.getByRole('status').filter({ hasText: 'تعذر نسخ الرابط تلقائيًا' });
+      await copyFailureStatus.waitFor({ state: 'visible', timeout: 5000 });
+      assert.equal(await copyFailureStatus.count(), 1, 'clipboard failure must be announced accessibly without a blocking alert');
+
       const publicLink = page.locator('a[href*="store="]').filter({ hasText: /store=/ }).first();
       const href = await publicLink.getAttribute('href');
       assert.ok(href, 'merchant QR section must render the permanent public storefront URL');
