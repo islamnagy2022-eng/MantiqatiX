@@ -1902,3 +1902,12 @@ A separate source review found a second platform-root authorization model: the n
 - No database, activity/business data, verification status, Auth/RLS/GRANT, Edge Function, payment, finance or production config changed. No deployment occurred.
 - Finance and custom links remain deferred pending durable server-backed contracts; doctor import remains paused per owner direction.
 - FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED remains unchanged.
+
+
+## 2026-11-03 — Storefront hero JSX validation fix
+
+- The first follow-up PR validation exposed a JSX closing-tag mismatch in `BusinessProfileHeader.tsx` introduced while wrapping the cover hero in an accessible section. The failure was caught by TypeScript before any deployment; the Pages PR deploy job was skipped because validation failed.
+- Fixed the nesting so the share-control container closes inside the cover section.
+- Related commission-draft workflow also failed at its TypeScript step due to the same shared frontend parse error; it is not a separate commission-contract defect based on the log evidence.
+- Fix commit: `fe0736fe7828aaa7fa116e61844bac092407586d`.
+- Rerun exact-head TypeScript/build, Playwright, and all dependent workflows. Keep PR #662 Draft; no production deployment or data mutation occurred.
