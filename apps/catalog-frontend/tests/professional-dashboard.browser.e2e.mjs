@@ -1373,10 +1373,15 @@ try {
         await page.getByTestId('storefront-catalog-search').waitFor({ state: 'visible' });
         const typeFilter = page.getByTestId('storefront-catalog-type-filter');
         assert.equal(await typeFilter.getByRole('button').count(), 3, 'catalogue must retain All / Products / Services filters');
-        assert.equal(await typeFilter.getByRole('button').first().getAttribute('aria-pressed'), 'true', 'All type filter must expose its selected state');
+        const allTypeFilter = typeFilter.getByRole('button').first();
+        assert.equal(await allTypeFilter.getAttribute('aria-pressed'), 'true', 'All type filter must expose its selected state');
+        assert.match(await allTypeFilter.getAttribute('class') || '', /mx-v4-catalog-type-active/, 'selected type filter must use V4 active styling');
         const categoryFilter = page.getByTestId('storefront-catalog-categories');
         await categoryFilter.waitFor({ state: 'visible' });
         assert.ok(await categoryFilter.getByRole('button').count() >= 1, 'catalogue categories must remain selectable');
+        const allCategoryFilter = categoryFilter.getByRole('button').first();
+        assert.equal(await allCategoryFilter.getAttribute('aria-pressed'), 'true', 'All category filter must expose its selected state');
+        assert.match(await allCategoryFilter.getAttribute('class') || '', /mx-v4-catalog-category-active/, 'selected category filter must use V4 active styling');
 
         if (target.expectProducts) {
           const firstPublicItem = liveBusiness.items[0];
