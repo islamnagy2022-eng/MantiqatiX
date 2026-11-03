@@ -766,7 +766,10 @@ try {
       assert.equal(merchantTabLabels[1], 'الهوية البصرية', 'branding must be the second primary owner tab');
       assert.equal(merchantTabLabels[2], 'بيانات النشاط', 'business profile must be the third primary owner tab');
       assert.equal(merchantTabLabels[3], 'استيراد CSV', 'CSV import must remain as a retained website tool');
-      assert.equal(await merchantTabs.getByRole('button', { name: 'QR', exact: true }).getAttribute('aria-pressed'), 'true', 'the direct QR route must select the QR tab');
+      assert.equal(merchantTabLabels[4], 'الموظفون والتوظيف', 'employee hiring must remain as a retained website tool');
+      assert.equal(merchantTabLabels[5], 'QR كود النشاط الدائم', 'the permanent QR tool must retain its full action label');
+      assert.equal(merchantTabLabels[6], 'التصنيف الوظيفي ومسار التطوير', 'the existing functional taxonomy tool must remain available');
+      assert.equal(await merchantTabs.getByRole('button', { name: 'QR كود النشاط الدائم', exact: true }).getAttribute('aria-pressed'), 'true', 'the direct QR route must select the QR tab');
       for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
         await page.setViewportSize(viewport);
         await assertNoHorizontalOverflow(page, 'V4 owner dashboard at ' + viewport.width + 'px');
