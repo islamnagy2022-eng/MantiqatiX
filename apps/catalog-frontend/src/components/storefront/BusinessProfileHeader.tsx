@@ -185,8 +185,8 @@ export const BusinessProfileHeader: React.FC = () => {
               </>
             )}
           </button>
-        </section>
         </div>
+        </section>
       </div>
 
       {/* 2. Profile Details Bar */}
