@@ -12,6 +12,7 @@
   --mx-blue-700: #0750c9;
   --mx-blue-600: #0a63e8;
   --mx-blue-500: #0b75ff;
+  --mx-blue-300: #9bcfff;
   --mx-sky-500: #168dff;
   --mx-cyan-500: #0cc9ff;
   --mx-cyan-200: #79eaff;
@@ -99,3 +100,27 @@
   box-shadow: var(--mx-shadow-sm);
 }
 .mx-v4-admin-primary:hover { background: linear-gradient(135deg, var(--mx-blue-800), var(--mx-blue-600)); }
+
+
+/* V4 storefront hero and contact actions — preserves trust/status semantics. */
+.mx-v4-storefront-shell { color: var(--mx-text); border-color: var(--mx-border); }
+.mx-v4-storefront-cover { background-color: var(--mx-blue-950); }
+.mx-v4-storefront-share {
+  color: var(--mx-blue-950);
+  border: 1px solid var(--mx-border);
+  box-shadow: var(--mx-shadow-md);
+}
+.mx-v4-storefront-share:hover { color: var(--mx-blue-900); background: var(--mx-blue-50); }
+.mx-v4-storefront-share:focus-visible { outline: 2px solid var(--mx-cyan-500); outline-offset: 2px; }
+.mx-v4-storefront-category { color: var(--mx-blue-900); background: var(--mx-blue-50); border-color: var(--mx-border); }
+.mx-v4-storefront-primary {
+  color: #fff;
+  border: 1px solid rgb(7 80 201 / 18%);
+  background: linear-gradient(135deg, var(--mx-blue-700), var(--mx-blue-500));
+  box-shadow: var(--mx-shadow-sm);
+}
+.mx-v4-storefront-primary:hover { color: #fff; background: linear-gradient(135deg, var(--mx-blue-800), var(--mx-blue-600)); }
+.mx-v4-storefront-secondary { color: var(--mx-blue-900); background: var(--mx-blue-50); border-color: var(--mx-border); }
+.mx-v4-storefront-secondary:hover { background: #d5edff; }
+.mx-v4-storefront-primary:focus-visible,
+.mx-v4-storefront-secondary:focus-visible { outline: 2px solid var(--mx-cyan-500); outline-offset: 2px; }
