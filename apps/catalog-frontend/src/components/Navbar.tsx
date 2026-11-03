@@ -42,7 +42,7 @@ export const Navbar: React.FC = () => {
   const catalogRequestUrl = requestCatalogViaAdminWhatsApp(currentBusiness);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 shadow-lg shadow-slate-950/[0.04] backdrop-blur-xl">
+    <header className="sticky top-0 z-40 w-full max-w-full overflow-x-clip border-b border-slate-200/80 bg-white/95 shadow-lg shadow-slate-950/[0.04] backdrop-blur-xl">
       {/* Top Banner with Platform Context */}
       <div className="bg-[#101b2d] px-3 py-2 text-[11px] text-slate-300 sm:px-6">
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-2">
@@ -157,7 +157,7 @@ export const Navbar: React.FC = () => {
       <div className="mx-auto max-w-[1440px] px-3 py-3 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-2.5">
           {/* Top Line: Logo, Context, Cart */}
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white px-3 py-3 shadow-sm sm:flex-nowrap sm:rounded-3xl sm:px-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white px-3 py-3 shadow-sm lg:flex-nowrap sm:rounded-3xl sm:px-4">
             <div
               onClick={() => {
                 if (authSession.role === 'subscriber') {
@@ -210,7 +210,7 @@ export const Navbar: React.FC = () => {
             )}
 
             {/* Top Left Actions: Request Catalog Button + Shopping Cart */}
-            <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+            <div className="flex min-w-0 flex-wrap items-center justify-end gap-1 sm:gap-2">
               {/* Mandatory Requirement:
                   "زر طلب كتالوج النشاط يكون بالاعلي على الشمال بجوار السلة" */}
               {catalogRequestUrl && (
