@@ -729,7 +729,7 @@ export const MerchantDashboard: React.FC = () => {
             className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${activeTab === 'employees' ? 'bg-slate-950 text-white shadow-md shadow-slate-900/10' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
           >
             <Briefcase className="h-4 w-4" />
-            <span>الموظفون</span>
+            <span>الموظفون والتوظيف</span>
           </button>
           <button
             type="button"
@@ -738,7 +738,7 @@ export const MerchantDashboard: React.FC = () => {
             className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${activeTab === 'qr' ? 'bg-slate-950 text-white shadow-md shadow-slate-900/10' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
           >
             <QrCode className="h-4 w-4" />
-            <span>QR</span>
+            <span>QR كود النشاط الدائم</span>
           </button>
           <button
             type="button"
@@ -747,7 +747,12 @@ export const MerchantDashboard: React.FC = () => {
             className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${activeTab === 'functional_engine' ? 'bg-slate-950 text-white shadow-md shadow-slate-900/10' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
           >
             <Layers className="h-4 w-4" />
-            <span>التصنيف الوظيفي</span>
+            <span>التصنيف الوظيفي ومسار التطوير</span>
+            {currentGroupInfo && (
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-900">
+                {currentGroupInfo.shortName}
+              </span>
+            )}
           </button>
         </div>
       </nav>
