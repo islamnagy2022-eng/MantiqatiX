@@ -25,7 +25,7 @@
 - [x] Added deterministic runtime cases for the doctor source-permission/publication contract.
 - [x] Hardened URL authority validation: credentials and all explicit ports (including explicit :443) are rejected before source-host matching.
 - [x] Explicit empty/null `listingStatus` is rejected instead of falling through to the default publication status.
-- [x] Exact-head CI passed on `0c2f4a00bc76e4a1fbc8986ce574334379854ee8`: Doctor Import Contract #41484267421; Module Professionalization #41484267404; Backend-only Module Boundary #41484267631; MantiGO Privacy #41484267635; Paymob Atomicity #41484267696; Pages validation #41484267139.
+- [x] Final exact-head CI passed on `13aa1af03f59fd5c4a4e94762877b3ea055a0b7b`: Doctor Import Contract #41484986390; Module Professionalization #41484986406; Backend-only Module Boundary #41484986540; MantiGO Privacy #41484986397; Paymob Atomicity #41484986456; Pages validation #41484986570.
 - [x] Pages deploy job was SKIPPED on the PR event; no public site deployment is claimed.
 - [ ] Independent review and merge of [PR #661](https://github.com/islamnagy2022-eng/MantiqatiX/pull/661).
 - [ ] Obtain an authorized isolated Edge invocation route and run synthetic insert/update, duplicate, no-phone DRAFT, DRAFT/HIDDEN/CLAIM preservation, and non-admin rejection tests. Current project exposes only the main Supabase branch; do not create a billable branch without cost review/approval.
