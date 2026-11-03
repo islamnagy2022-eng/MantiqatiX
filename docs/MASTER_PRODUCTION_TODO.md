@@ -92,6 +92,18 @@
 ### Next action
 Continue remaining v4 screen/behavior parity against deployed main. Preserve website-only capabilities until an explicit owner decision. Keep Member Messages deferred until durable server-side storage, authorization, audit and notification contracts exist. Integrate wallet/finance and AI/marketing only through verified backend APIs/RLS/RBAC.
 
+### Wave A continuation — navigation and directory search (2026-11-03)
+- [x] Create isolated branch `feat/aistudio-v4-wave-a-shell-directory-20261103` from current main `36a98b5153b2c911cf59ea7aaa8f7fd8c9469724`.
+- [x] Restyle the global navigation shell toward the V4 hierarchy while preserving current navigation destinations, guest/customer state, account portal, owner/professional dashboard, and Super Admin guards.
+- [x] Add an accessible Arabic name and stable test hook to the main navigation.
+- [x] Restyle the directory search workspace with a clear heading and accessible search field; preserve the four current geographic filters, explicit location consent, the existing query, and the production directory source.
+- [x] Extend browser E2E to validate navigation accessibility, the search field, four geographic filters, direct-route reload, and horizontal overflow at 390/768/1440px.
+- [ ] Exact-head TypeScript/build/browser/accessibility workflows must pass on the final branch HEAD. CI is pending; no merge or deployment is claimed.
+- [ ] Review screenshots/visual results against the V4 archive on desktop/mobile and adjust only confirmed mismatches.
+- [ ] Continue the owner-dashboard V4 presentation after Wave A; preserve website-only CSV import, employee/branch management, Facebook import, QR, Super Admin permissions, and server-backed data.
+- **Production boundary:** presentation and tests only. No real activity/business data, schema, Auth/RLS/GRANT, Edge Function, payments, finance, or production deployment changed.
+
+
 ---
 
 # MNTY / MantiqatiX — Master Production TODO & Release Execution Register
