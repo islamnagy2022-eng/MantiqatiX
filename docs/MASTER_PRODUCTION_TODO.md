@@ -3308,3 +3308,15 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] Run exact-head CI for the token and active-tab styling changes before merge/release.
 - [ ] Continue storefront and public discovery screen parity using scoped tokens; do not port finance/custom links until durable server contracts and authorization/audit checks are verified.
 - **Production remains unchanged.** No DB/Auth/RLS/GRANT/Edge/payment/finance mutation or deployment was performed. Full platform gate remains BLOCKED / NOT CERTIFIED.
+
+
+### Wave A continuation — public storefront hero and verification clarity (2026-11-03)
+- [x] Keep the existing full-width business cover and responsive desktop/mobile composition; add an accessible Arabic cover-region label and stable test hook.
+- [x] Correct the profile-logo trust indicator: verified activities use the verified mark, unverified activities use a neutral building mark, and frozen activities retain their frozen mark.
+- [x] Show an explicit neutral unverified badge instead of implying every non-frozen storefront is verified.
+- [x] Preserve external logo/cover links only for verified businesses with explicit configured external URLs.
+- [x] Respect `prefers-reduced-motion` for the cover slider, lengthen normal auto-rotation to five seconds, and expose slide button pressed states.
+- [x] Make storefront share feedback accessible and handle clipboard errors without an unhandled promise.
+- [x] Add browser assertions for verified/unverified status and responsive overflow at 390/768/1440px.
+- [ ] Run exact-head build, Playwright, isolated PostgreSQL/RBAC and accessibility checks. Do not merge/deploy before all exact-head checks pass.
+- **Production boundary:** no activity record, verification value, profile URL, catalog item, schema, Auth/RLS/GRANT, Edge Function, finance or production deployment changed.
