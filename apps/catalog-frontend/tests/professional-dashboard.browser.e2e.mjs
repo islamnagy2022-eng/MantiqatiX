@@ -768,7 +768,7 @@ try {
       assert.equal(merchantTabLabels[3], 'استيراد CSV', 'CSV import must remain as a retained website tool');
       assert.equal(merchantTabLabels[4], 'الموظفون والتوظيف', 'employee hiring must remain as a retained website tool');
       assert.equal(merchantTabLabels[5], 'QR كود النشاط الدائم', 'the permanent QR tool must retain its full action label');
-      assert.equal(merchantTabLabels[6], 'التصنيف الوظيفي ومسار التطوير', 'the existing functional taxonomy tool must remain available');
+      assert.match(merchantTabLabels[6], /^التصنيف الوظيفي ومسار التطوير/, 'the existing functional taxonomy tool and its optional activity badge must remain available');
       assert.equal(await merchantTabs.getByRole('button', { name: 'QR كود النشاط الدائم', exact: true }).getAttribute('aria-pressed'), 'true', 'the direct QR route must select the QR tab');
       for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
         await page.setViewportSize(viewport);
