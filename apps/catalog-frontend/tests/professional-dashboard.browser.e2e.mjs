@@ -416,13 +416,24 @@ const results = [];
     await page.getByText('جارٍ التحقق من تسجيل الدخول وتجهيز الصلاحيات… يمكنك تصفح الأنشطة المنشورة أثناء ذلك.').waitFor({ state: 'detached', timeout: 15000 });
     assert.equal(new URL(page.url()).searchParams.has('view'), false, 'the canonical root must not require a view query parameter');
     const nav = page.locator('header nav');
+    assert.equal(await nav.getAttribute('aria-label'), 'التنقل الرئيسي في MantiqatiX', 'the V4 navigation shell must expose its Arabic accessible name');
+    assert.equal(await nav.getAttribute('data-testid'), 'mantiqatix-primary-navigation', 'the V4 navigation shell must expose a stable browser-test hook');
     assert.equal(await nav.getByRole('button', { name: 'الرئيسية', exact: true }).count(), 1, 'the marketplace homepage must have a distinct navigation tab');
     assert.equal(await nav.getByRole('button', { name: 'بحث الأنشطة والخدمات', exact: true }).count(), 1, 'activity and service search must have a distinct navigation tab');
     await nav.getByRole('button', { name: 'بحث الأنشطة والخدمات', exact: true }).click();
     await page.getByRole('heading', { name: /اكتشف كافة المشاريع والخدمات في/ }).waitFor({ state: 'visible', timeout: 15000 });
+    const directorySearchPanel = page.getByTestId('directory-search-panel');
+    await directorySearchPanel.waitFor({ state: 'visible', timeout: 10000 });
+    assert.equal(await directorySearchPanel.getByLabel('بحث عن نشاط أو خدمة', { exact: true }).count(), 1, 'the V4 directory search field must have an accessible label');
+    assert.equal(await directorySearchPanel.locator('select').count(), 4, 'the search workspace must retain all four geographic filters');
     assert.equal(new URL(page.url()).searchParams.get('view'), 'directory', 'directory search must use an explicit route');
+    for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+      await page.setViewportSize(viewport);
+      await assertNoHorizontalOverflow(page, 'V4 directory search workspace at ' + viewport.width + 'px');
+    }
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.getByRole('heading', { name: /اكتشف كافة المشاريع والخدمات في/ }).waitFor({ state: 'visible', timeout: 15000 });
+    await page.getByTestId('directory-search-panel').waitFor({ state: 'visible', timeout: 10000 });
     assert.equal(new URL(page.url()).searchParams.get('view'), 'directory', 'directory search must survive direct reload');
     await page.locator('header nav').getByRole('button', { name: 'الرئيسية', exact: true }).click();
     await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
