@@ -767,9 +767,10 @@ try {
       assert.equal(merchantTabLabels[2], 'بيانات النشاط', 'business profile must be the third primary owner tab');
       assert.equal(merchantTabLabels[3], 'استيراد CSV', 'CSV import must remain as a retained website tool');
       assert.equal(await merchantTabs.getByRole('button', { name: 'QR', exact: true }).getAttribute('aria-pressed'), 'true', 'the direct QR route must select the QR tab');
-      await assertNoHorizontalOverflow(page, 'V4 owner dashboard tabs at 390px');
-      await page.setViewportSize({ width: 390, height: 844 });
-      await assertNoHorizontalOverflow(page, 'V4 owner dashboard at 390px');
+      for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+        await page.setViewportSize(viewport);
+        await assertNoHorizontalOverflow(page, 'V4 owner dashboard at ' + viewport.width + 'px');
+      }
 
       const publicLink = page.locator('a[href*="store="]').filter({ hasText: /store=/ }).first();
       const href = await publicLink.getAttribute('href');
