@@ -757,6 +757,20 @@ try {
       await page.goto(baseUrl + '?view=merchant_admin&merchantTab=qr', { waitUntil: 'domcontentloaded' });
       await page.getByRole('heading', { name: /QR كود نشاط: نشاط اختبار الداشبورد/ }).waitFor({ state: 'visible', timeout: 15000 });
 
+      const merchantTabs = page.getByTestId('merchant-dashboard-tabs');
+      await merchantTabs.waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(await merchantTabs.getAttribute('aria-label'), 'أقسام لوحة صاحب النشاط');
+      const merchantTabButtons = merchantTabs.locator('button');
+      const merchantTabLabels = (await merchantTabButtons.allTextContents()).map((value) => value.trim());
+      assert.match(merchantTabLabels[0], /^الكتالوج/ , 'catalog must be the first primary owner tab');
+      assert.equal(merchantTabLabels[1], 'الهوية البصرية', 'branding must be the second primary owner tab');
+      assert.equal(merchantTabLabels[2], 'بيانات النشاط', 'business profile must be the third primary owner tab');
+      assert.equal(merchantTabLabels[3], 'استيراد CSV', 'CSV import must remain as a retained website tool');
+      assert.equal(await merchantTabs.getByRole('button', { name: 'QR', exact: true }).getAttribute('aria-pressed'), 'true', 'the direct QR route must select the QR tab');
+      await assertNoHorizontalOverflow(page, 'V4 owner dashboard tabs at 390px');
+      await page.setViewportSize({ width: 390, height: 844 });
+      await assertNoHorizontalOverflow(page, 'V4 owner dashboard at 390px');
+
       const publicLink = page.locator('a[href*="store="]').filter({ hasText: /store=/ }).first();
       const href = await publicLink.getAttribute('href');
       assert.ok(href, 'merchant QR section must render the permanent public storefront URL');
