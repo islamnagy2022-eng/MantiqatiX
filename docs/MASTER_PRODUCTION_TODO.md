@@ -3358,3 +3358,6 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Define missing --mx-blue-300 token required by admin-tab hover styling.
 - [ ] Run exact-head build, Playwright, isolated PostgreSQL/RBAC and Pages PR validation.
 - **Production boundary:** presentation/accessibility only; no real activity/business records, media, verification status, data APIs, schema, Auth/RLS/GRANT, Edge Function, payments/finance, or production deployment changed.
+- [x] Cover carousel exposes labelled keyboard controls and announces active slide through aria-pressed; inactive slides are hidden from assistive technology.
+- [x] Cover fade animation respects reduced-motion preference; active slide/location accents use V4 blue palette.
+- [ ] Exact-head Playwright/build revalidation is pending.
