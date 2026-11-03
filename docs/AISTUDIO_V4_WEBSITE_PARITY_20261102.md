@@ -168,3 +168,15 @@ PR #650 and PR #651 are merged into current `main`; PR #648 is closed as superse
 
 - The AI Studio `MemberMessagesView` depends on local AppContext state. Current website source contains no verified `member_direct_messages`, `sendMemberDirectMessage`, `replyToMemberDirectMessage` or `openMemberMessagingForTarget` contract.
 - It must not be ported as a fake shared inbox. A real feature requires durable server APIs/tables, recipient and tenant privacy, membership-scoped authorization, audit trail, notification delivery and end-to-end verification.
+
+
+## 2026-11-03 — Wave A continuation: navigation and directory search presentation
+
+- **Branch:** `feat/aistudio-v4-wave-a-shell-directory-20261103`, based on `main` at `36a98b5153b2c911cf59ea7aaa8f7fd8c9469724`.
+- **Navigation:** restyled the global shell toward the V4 hierarchy (dark micro-header, clearer brand/context row, rounded high-contrast navigation pills). Added an accessible Arabic nav name and stable test hook. All current routes and role/membership guards remain in place, including the owner, professional, account portal and Super Admin entries.
+- **Directory search:** upgraded the search workspace with a clear section heading, accessible labelled search field, clearer geographic action hierarchy and more consistent filter styling. The existing four geographic selectors and the current query state are preserved.
+- **Data/behavior boundary:** no new API, database field, storage behavior, activity data, listing status, verification rule, pagination behavior or geographic-consent behavior was changed. Results still come from the existing public data sources and preserve the current verified-first/20-row flow.
+- **Regression coverage:** expanded the existing browser journey to assert the primary navigation label/test hook, the directory search field, all four geographic filters, reload restoration, and no horizontal overflow at 390px, 768px and 1440px.
+- **Current code/test head:** `5452ef877eb3a3491741222af2565146e6cc65d3). Exact-head validation is pending; no merge or deployment is claimed.
+- **Production:** no data/schema/Auth/RLS/GRANT/Edge/payment/finance change or production deployment.
+- **Next:** fix any exact-head build/browser/accessibility failure, inspect the deployed-reference appearance at phone/tablet/desktop sizes, then continue the V4 owner dashboard presentation wave without removing website-only CSV import, employee/branch management, Facebook import, QR, Super Admin permission controls or existing secure data contracts.
