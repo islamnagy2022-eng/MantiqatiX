@@ -59,3 +59,18 @@
   border-color: var(--mx-border);
   box-shadow: var(--mx-shadow-sm);
 }
+
+
+/* V4 public-directory search workspace — opt-in, token-backed styling. */
+.mx-v4-search-panel { color: var(--mx-text); background: var(--mx-surface); border-color: var(--mx-border); box-shadow: var(--mx-shadow-md); }
+.mx-v4-search-topline { background: linear-gradient(90deg, var(--mx-blue-700), var(--mx-blue-500), var(--mx-cyan-500)); }
+.mx-v4-search-badge { color: var(--mx-blue-900); background: var(--mx-blue-50); border-color: var(--mx-border); }
+.mx-v4-search-icon { color: var(--mx-blue-700); }
+.mx-v4-search-input { color: var(--mx-text); border-color: var(--mx-border); }
+.mx-v4-search-input:focus { background: var(--mx-surface); border-color: var(--mx-blue-600); box-shadow: 0 0 0 4px rgb(11 117 255 / 12%); }
+.mx-v4-search-location { color: #fff; border: 1px solid rgb(7 80 201 / 18%); background: linear-gradient(135deg, var(--mx-blue-700), var(--mx-blue-500)); box-shadow: var(--mx-shadow-sm); }
+.mx-v4-search-location:hover { background: linear-gradient(135deg, var(--mx-blue-800), var(--mx-blue-600)); }
+.mx-v4-search-location:focus-visible { outline: 2px solid var(--mx-cyan-500); outline-offset: 2px; }
+.mx-v4-search-link { color: var(--mx-blue-800); }
+.mx-v4-search-select { border-color: var(--mx-border); }
+.mx-v4-search-select:focus { border-color: var(--mx-blue-600); box-shadow: 0 0 0 3px rgb(11 117 255 / 10%); }

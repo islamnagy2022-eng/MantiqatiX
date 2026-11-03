@@ -210,3 +210,12 @@ PR #650 and PR #651 are merged into current `main`; PR #648 is closed as superse
 - Applied the centralized blue-gradient active state to all seven owner-dashboard tabs, preserving the three primary V4 tabs and all website-only tools. Added browser assertions for the active QR tab's computed gradient.
 - Current token changes require a new exact-head validation before review/merge. No backend, data, role, authorization or production setting changed.
 - Next safe scope: apply the token system screen-by-screen to storefront and public discovery surfaces, comparing against the supplied V4 archive where available. Finance and custom links remain blocked pending verified persisted API contracts.
+
+
+## 2026-11-03 — V4 public discovery token application
+
+- Applied the opt-in V4 blue/cyan token system to the public Directory search workspace: panel surface, top accent, search badge/icon/input, location action, location links and all four geographic selectors.
+- The location action now uses the centralized blue gradient; focus states use the cyan/blue token palette.
+- No directory query, data source, filter state, GPS consent, keyset cursor, verified-first ordering or 20-row progressive loading behavior changed.
+- Browser E2E asserts all four selectors use the V4 style and the location action/top accent render the token-backed gradient. Existing 390/768/1440px overflow checks remain.
+- Exact-head CI is required before review. No production data, schema, Auth/RLS/GRANT, Edge Function or deployment change.

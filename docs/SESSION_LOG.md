@@ -1911,3 +1911,15 @@ A separate source review found a second platform-root authorization model: the n
 - Related commission-draft workflow also failed at its TypeScript step due to the same shared frontend parse error; it is not a separate commission-contract defect based on the log evidence.
 - Fix commit: `fe0736fe7828aaa7fa116e61844bac092407586d`.
 - Rerun exact-head TypeScript/build, Playwright, and all dependent workflows. Keep PR #662 Draft; no production deployment or data mutation occurred.
+
+
+## 2026-11-03 — V4 public discovery blue-token application
+
+- Previous exact-head validation passed on `30385982e993325aa07bbf33d921ce3134398d2b` (Primary Catalog Frontend Validation run `41578987524`: build, Playwright, isolated PostgreSQL employee/RBAC all PASS; Pages PR validation run `41578987373`: validate PASS and deploy job SKIPPED; commission draft, MantiGO privacy, RC425 Paymob atomicity, module professionalization and backend-only boundary checks PASS).
+- Continued on the same Draft PR #662 with a scoped V4 visual pass for DirectoryView:
+  - Added token-backed blue/cyan styles for the search panel, badge, icon, input focus, location action, links and four geographic selectors.
+  - Added E2E assertions for the V4 gradient and all four styled selectors.
+  - Kept the existing public data source, query behavior, GPS consent, verified-first ordering and progressive pagination unchanged.
+- Exact-head validation for this new directory-token slice is pending. PR remains Draft; no merge or production deployment.
+- No production records, schema, Auth/RLS/GRANT, Edge Functions, finance or payment behavior changed. Doctor import remains paused; PR #661 remains Draft.
+- `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.

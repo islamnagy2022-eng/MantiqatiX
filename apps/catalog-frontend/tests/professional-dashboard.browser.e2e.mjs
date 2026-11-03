@@ -426,6 +426,13 @@ const results = [];
     await directorySearchPanel.waitFor({ state: 'visible', timeout: 10000 });
     assert.equal(await directorySearchPanel.getByLabel('بحث عن نشاط أو خدمة', { exact: true }).count(), 1, 'the V4 directory search field must have an accessible label');
     assert.equal(await directorySearchPanel.locator('select').count(), 4, 'the search workspace must retain all four geographic filters');
+    assert.equal(await directorySearchPanel.locator('select.mx-v4-search-select').count(), 4, 'all four geographic filters must use the token-backed V4 treatment');
+    const directoryLocationAction = directorySearchPanel.getByRole('button', { name: 'حدد موقعي', exact: true });
+    assert.ok((await directoryLocationAction.getAttribute('class')).includes('mx-v4-search-location'), 'location action must use the centralized V4 style');
+    const directoryLocationGradient = await directoryLocationAction.evaluate((element) => getComputedStyle(element).backgroundImage);
+    assert.match(directoryLocationGradient, /linear-gradient/, 'location action must render the V4 blue gradient');
+    const directorySearchAccent = await directorySearchPanel.locator('.mx-v4-search-topline').evaluate((element) => getComputedStyle(element).backgroundImage);
+    assert.match(directorySearchAccent, /linear-gradient/, 'search panel accent must use the V4 token gradient');
     assert.equal(new URL(page.url()).searchParams.get('view'), 'directory', 'directory search must use an explicit route');
     for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
       await page.setViewportSize(viewport);
