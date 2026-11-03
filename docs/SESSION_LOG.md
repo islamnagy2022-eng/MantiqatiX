@@ -1890,3 +1890,15 @@ A separate source review found a second platform-root authorization model: the n
 - Exact-head CI is pending after these commits. Do not merge PR #662 or deploy until the new exact-head checks pass.
 - Doctor import remains paused per owner direction; PR #661 stays Draft.
 - `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+
+## 2026-11-03 — V4 validation passed; token foundation continued
+
+- PR #662 exact-head f658c66e007301839763c7c5784e9a93128356ff completed successfully: primary catalog validation, Playwright browser E2E, and isolated PostgreSQL employee RBAC all PASS (workflow run 41570424483).
+- The PR remains Draft and unmerged. The successful workflow includes a Pages build artifact upload for review, not a production deployment.
+- Added centralized, opt-in V4 design tokens in apps/catalog-frontend/src/index.css using the specified deep/primary/bright blue palette, cyan, surfaces, typography stacks, radii and shadows.
+- Updated all seven owner-dashboard tab active states to use the V4 blue gradient and blue focus treatment; retained all tabs and their existing URL state/behavior.
+- Added browser checks to verify the active QR tab uses the centralized V4 treatment and computed blue gradient. This new code requires exact-head CI before any merge.
+- No database, activity/business data, verification status, Auth/RLS/GRANT, Edge Function, payment, finance or production config changed. No deployment occurred.
+- Finance and custom links remain deferred pending durable server-backed contracts; doctor import remains paused per owner direction.
+- FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED remains unchanged.
