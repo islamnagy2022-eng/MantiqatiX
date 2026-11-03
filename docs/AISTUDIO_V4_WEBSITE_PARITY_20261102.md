@@ -240,3 +240,9 @@ PR #650 and PR #651 are merged into current `main`; PR #648 is closed as superse
 - Added the missing `--mx-blue-300` token referenced by V4 admin hover styling.
 - No business record, verification state, media URL, catalog item, contact data, query, database/schema, Auth/RLS/GRANT, Edge Function, payment or finance action changed.
 - Exact-head CI for these latest storefront assertions is pending; no merge or deployment is claimed.
+
+### Storefront accessibility follow-up — 2026-11-03
+- [x] Expose cover-slide controls as a labelled group, with keyboard-operable buttons and an explicit pressed state.
+- [x] Hide inactive cover slides from the accessibility tree and remove slide fade transitions under reduced-motion preferences.
+- [x] Align the active cover indicator and location marker to V4 blue/cyan tokens while preserving green verification and red frozen semantics.
+- [ ] Exact-head Playwright and build validation on the final PR head.
