@@ -65,6 +65,16 @@ export const Navbar: React.FC = () => {
                   width: max-content;
                   animation: mantiqati-ticker-ltr 36s linear infinite;
                 }
+                /* Keep the animated intrinsic-width track from expanding the page's scrollable area. */
+                .mantiqati-ticker {
+                  position: relative;
+                  max-width: 100%;
+                  contain: layout paint;
+                }
+                @media (max-width: 768px) {
+                  .mantiqati-ticker-track { animation: none; }
+                  .mantiqati-ticker-track > div[aria-hidden="true"] { display: none; }
+                }
                 .mantiqati-ticker:hover .mantiqati-ticker-track {
                   animation-play-state: paused;
                 }
