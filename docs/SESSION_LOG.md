@@ -1876,3 +1876,17 @@ A separate source review found a second platform-root authorization model: the n
 - **Not performed:** no doctor import/publication, production data or profile changes, schema/migration, Auth/RLS/GRANT, Edge Function deployment, payment/finance changes, or production deployment.
 - **Next:** inspect exact-head checks, fix responsive/browser failures, perform visual comparison against V4, then continue owner-dashboard visual parity while preserving CSV import, employees/branches, Facebook import, QR and Super Admin permissions.
 - `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+
+## 2026-11-03 — Wave A storefront trust-state and accessibility
+
+- Prior Wave A exact-head validation completed successfully at `f658c66e007301839763c7c5784e9a93128356ff`: `Primary Catalog Frontend Validation` PASS, including build/TypeScript, Playwright browser E2E, and isolated PostgreSQL employee/RBAC behavior tests. PR #662 remains Draft and open.
+- Continued V4 presentation work in the same branch, without merging or deploying:
+  - `BusinessProfileHeader.tsx`: accessible labelled cover hero, reduced-motion-aware slider, slower five-second rotation, pressed states on slide controls, and robust clipboard success/failure feedback.
+  - Corrected a trust-state presentation defect: the profile logo previously showed a green check on every non-frozen activity. It now distinguishes verified, unverified and frozen states; unverified storefronts show a neutral label and neutral icon.
+  - Existing external brand-link rule remains unchanged: only verified businesses with explicitly configured external logo/cover URLs expose those links.
+  - `professional-dashboard.browser.e2e.mjs`: assertions for verified/unverified direct storefront state, hero accessibility, and responsive overflow at 390/768/1440px.
+- No real business data, verification values, product records, schema, Auth/RLS/GRANT, Edge Function, finance or production settings changed.
+- Exact-head CI is pending after these commits. Do not merge PR #662 or deploy until the new exact-head checks pass.
+- Doctor import remains paused per owner direction; PR #661 stays Draft.
+- `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
