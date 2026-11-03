@@ -88,7 +88,7 @@ export const BusinessProfileHeader: React.FC = () => {
         </div>
       )}
 
-      {/* 1. Rotating Cover Photo Slider (Changes every 3 seconds) */}
+      {/* 1. Cover photo slider; auto-rotation respects the visitor's reduced-motion preference. */}
       <div className="w-full px-0 py-0">
         <section aria-label={`غلاف نشاط ${currentBusiness.name}`} data-testid="storefront-cover-hero" className="relative w-full aspect-[16/9] sm:aspect-[1440/390] bg-slate-900 overflow-hidden group">
         {slides.map((imgUrl, idx) => (
