@@ -3348,3 +3348,13 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Add browser assertions for tab counts, active gradients, URL-backed audit selection and responsive overflow at 390/768/1440px.
 - [ ] Run exact-head TypeScript/build, Playwright, isolated PostgreSQL/RBAC and Pages PR validation before review.
 - **Production boundary:** no permission/RPC/audit/data/schema/Auth/RLS/GRANT/Edge/payment/finance mutation or deployment.
+
+### V4 continuation — public storefront presentation (2026-11-03)
+- [x] Add V4 blue/cyan token styling to storefront hero wrapper, category chip, share action, and map/QR actions.
+- [x] Distinguish verified, unverified and frozen storefront states without inferring verification from a photo or logo.
+- [x] Respect reduced-motion settings and make cover-carousel interval less aggressive.
+- [x] Make share-link clipboard status asynchronous and announce copy failure honestly.
+- [x] Add browser checks for the V4 storefront token classes, verification accessibility, unverified badge suppression, and 390/768/1440px overflow.
+- [x] Define missing --mx-blue-300 token required by admin-tab hover styling.
+- [ ] Run exact-head build, Playwright, isolated PostgreSQL/RBAC and Pages PR validation.
+- **Production boundary:** presentation/accessibility only; no real activity/business records, media, verification status, data APIs, schema, Auth/RLS/GRANT, Edge Function, payments/finance, or production deployment changed.
