@@ -3297,3 +3297,14 @@ A separate source review found a second platform-root authorization model: the n
 - Fixed the test to use the exact accessible label: `getByLabel('التخصص', { exact: true })`.
 - Fix commit: `92bf4c9cc5dfe0912ecdb49138b31467f9762efd` on the same isolated PR branch.
 - Pending: wait for and inspect exact-head CI on the fix commit; rerun the full browser suite if needed. PR #650 remains Draft/unmerged/undeployed. No production data/schema/Auth/RLS/GRANT/Edge/payment mutation.
+
+
+### V4 continuation — validation and token foundation (2026-11-03)
+- [x] Exact-head build, TypeScript, catalog contract and production-preview smoke checks passed on f658c66e007301839763c7c5784e9a93128356ff.
+- [x] Exact-head Playwright browser suite passed on f658c66e007301839763c7c5784e9a93128356ff.
+- [x] Isolated PostgreSQL employee/RBAC migration and behavior tests passed on f658c66e007301839763c7c5784e9a93128356ff.
+- [x] Added opt-in V4 design tokens (blue palette, Arabic/Latin font stacks, radii and shadows) without global legacy recoloring.
+- [x] Applied V4 blue active treatment to the seven owner-dashboard tabs and added computed-style browser assertions.
+- [ ] Run exact-head CI for the token and active-tab styling changes before merge/release.
+- [ ] Continue storefront and public discovery screen parity using scoped tokens; do not port finance/custom links until durable server contracts and authorization/audit checks are verified.
+- **Production remains unchanged.** No DB/Auth/RLS/GRANT/Edge/payment/finance mutation or deployment was performed. Full platform gate remains BLOCKED / NOT CERTIFIED.
