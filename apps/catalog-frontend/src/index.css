@@ -1,1 +1,156 @@
 @import "tailwindcss";
+
+/*
+ * MantiqatiX V4 visual tokens.
+ * Scoped utilities are opt-in so introducing the palette cannot silently
+ * recolor legacy modules or change any business behavior.
+ */
+:root {
+  --mx-blue-950: #06235f;
+  --mx-blue-900: #073a91;
+  --mx-blue-800: #0648ad;
+  --mx-blue-700: #0750c9;
+  --mx-blue-600: #0a63e8;
+  --mx-blue-500: #0b75ff;
+  --mx-blue-300: #9bcfff;
+  --mx-sky-500: #168dff;
+  --mx-cyan-500: #0cc9ff;
+  --mx-cyan-200: #79eaff;
+  --mx-blue-50: #e6f5ff;
+  --mx-background: #f2faff;
+  --mx-surface: #ffffff;
+  --mx-text: #09245c;
+  --mx-muted: #62728b;
+  --mx-border: #d6eaf8;
+  --mx-accent-yellow: #ffd65a;
+  --mx-success: #16a878;
+  --mx-danger: #dc2626;
+  --mx-font-arabic: "Tajawal", "Noto Sans Arabic", sans-serif;
+  --mx-font-latin: "Inter", system-ui, sans-serif;
+  --mx-radius-sm: 0.5rem;
+  --mx-radius-md: 0.75rem;
+  --mx-radius-lg: 1rem;
+  --mx-radius-xl: 1.5rem;
+  --mx-shadow-sm: 0 2px 8px rgb(6 35 95 / 6%);
+  --mx-shadow-md: 0 8px 24px rgb(6 35 95 / 10%);
+  --mx-shadow-lg: 0 16px 40px rgb(6 35 95 / 14%);
+}
+
+/* Explicitly applied only to V4-migrated components. */
+.mx-v4-tab-active {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--mx-blue-700), var(--mx-blue-500));
+  border: 1px solid rgb(255 255 255 / 24%);
+  box-shadow: 0 8px 18px rgb(7 80 201 / 18%);
+}
+
+.mx-v4-tab-active:hover {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--mx-blue-800), var(--mx-blue-600));
+}
+
+.mx-v4-tab-active:focus-visible {
+  outline: 2px solid var(--mx-cyan-500);
+  outline-offset: 2px;
+}
+
+.mx-v4-surface {
+  color: var(--mx-text);
+  background: var(--mx-surface);
+  border-color: var(--mx-border);
+  box-shadow: var(--mx-shadow-sm);
+}
+
+
+/* V4 public-directory search workspace — opt-in, token-backed styling. */
+.mx-v4-search-panel { color: var(--mx-text); background: var(--mx-surface); border-color: var(--mx-border); box-shadow: var(--mx-shadow-md); }
+.mx-v4-search-topline { background: linear-gradient(90deg, var(--mx-blue-700), var(--mx-blue-500), var(--mx-cyan-500)); }
+.mx-v4-search-badge { color: var(--mx-blue-900); background: var(--mx-blue-50); border-color: var(--mx-border); }
+.mx-v4-search-icon { color: var(--mx-blue-700); }
+.mx-v4-search-input { color: var(--mx-text); border-color: var(--mx-border); }
+.mx-v4-search-input:focus { background: var(--mx-surface); border-color: var(--mx-blue-600); box-shadow: 0 0 0 4px rgb(11 117 255 / 12%); }
+.mx-v4-search-location { color: #fff; border: 1px solid rgb(7 80 201 / 18%); background: linear-gradient(135deg, var(--mx-blue-700), var(--mx-blue-500)); box-shadow: var(--mx-shadow-sm); }
+.mx-v4-search-location:hover { background: linear-gradient(135deg, var(--mx-blue-800), var(--mx-blue-600)); }
+.mx-v4-search-location:focus-visible { outline: 2px solid var(--mx-cyan-500); outline-offset: 2px; }
+.mx-v4-search-link { color: var(--mx-blue-800); }
+.mx-v4-search-select { border-color: var(--mx-border); }
+.mx-v4-search-select:focus { border-color: var(--mx-blue-600); box-shadow: 0 0 0 3px rgb(11 117 255 / 10%); }
+
+
+/* V4 admin navigation — shared, opt-in token treatment. */
+.mx-v4-admin-tabs { border-color: var(--mx-border); scrollbar-width: none; }
+.mx-v4-admin-tabs::-webkit-scrollbar { display: none; }
+.mx-v4-admin-tab {
+  color: var(--mx-blue-900);
+  background: var(--mx-surface);
+  border: 1px solid var(--mx-border);
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+.mx-v4-admin-tab:hover { color: var(--mx-blue-800); background: var(--mx-blue-50); border-color: var(--mx-blue-300); }
+.mx-v4-admin-tab:focus-visible { outline: 2px solid var(--mx-cyan-500); outline-offset: 2px; }
+.mx-v4-admin-tab-active {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--mx-blue-700), var(--mx-blue-500));
+  box-shadow: var(--mx-shadow-sm);
+}
+.mx-v4-admin-tab-active:hover { color: #fff; background: linear-gradient(135deg, var(--mx-blue-800), var(--mx-blue-600)); }
+.mx-v4-admin-primary {
+  background: linear-gradient(135deg, var(--mx-blue-700), var(--mx-blue-500));
+  box-shadow: var(--mx-shadow-sm);
+}
+.mx-v4-admin-primary:hover { background: linear-gradient(135deg, var(--mx-blue-800), var(--mx-blue-600)); }
+
+
+/* V4 storefront hero and contact actions — preserves trust/status semantics. */
+.mx-v4-storefront-shell { color: var(--mx-text); border-color: var(--mx-border); }
+.mx-v4-storefront-cover { background-color: var(--mx-blue-950); }
+.mx-v4-storefront-share {
+  color: var(--mx-blue-950);
+  border: 1px solid var(--mx-border);
+  box-shadow: var(--mx-shadow-md);
+}
+.mx-v4-storefront-share:hover { color: var(--mx-blue-900); background: var(--mx-blue-50); }
+.mx-v4-storefront-share:focus-visible { outline: 2px solid var(--mx-cyan-500); outline-offset: 2px; }
+.mx-v4-storefront-category { color: var(--mx-blue-900); background: var(--mx-blue-50); border-color: var(--mx-border); }
+.mx-v4-storefront-primary {
+  color: #fff;
+  border: 1px solid rgb(7 80 201 / 18%);
+  background: linear-gradient(135deg, var(--mx-blue-700), var(--mx-blue-500));
+  box-shadow: var(--mx-shadow-sm);
+}
+.mx-v4-storefront-primary:hover { color: #fff; background: linear-gradient(135deg, var(--mx-blue-800), var(--mx-blue-600)); }
+.mx-v4-storefront-secondary { color: var(--mx-blue-900); background: var(--mx-blue-50); border-color: var(--mx-border); }
+.mx-v4-storefront-secondary:hover { background: #d5edff; }
+.mx-v4-storefront-primary:focus-visible,
+.mx-v4-storefront-secondary:focus-visible { outline: 2px solid var(--mx-cyan-500); outline-offset: 2px; }
+
+
+/* V4 public storefront catalogue — presentation only; data and checkout contracts are unchanged. */
+.mx-v4-catalog-section { color: var(--mx-text); }
+.mx-v4-catalog-label { color: var(--mx-blue-900); background: var(--mx-blue-50); border-color: var(--mx-border); }
+.mx-v4-catalog-counter { color: var(--mx-blue-900); background: var(--mx-blue-50); border-color: var(--mx-border); }
+.mx-v4-catalog-count { color: var(--mx-blue-700); }
+.mx-v4-catalog-filter-surface { background: var(--mx-surface); border-color: var(--mx-border); box-shadow: var(--mx-shadow-sm); }
+.mx-v4-catalog-search-icon { color: var(--mx-blue-700); }
+.mx-v4-catalog-search-input { color: var(--mx-text); border-color: var(--mx-border); }
+.mx-v4-catalog-search-input:focus { background: var(--mx-surface); border-color: var(--mx-blue-600); box-shadow: 0 0 0 4px rgb(11 117 255 / 12%); }
+.mx-v4-catalog-type-active,
+.mx-v4-catalog-category-active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--mx-blue-700), var(--mx-blue-500));
+  box-shadow: var(--mx-shadow-sm);
+}
+.mx-v4-catalog-type-active:hover,
+.mx-v4-catalog-category-active:hover { color: #fff; background: linear-gradient(135deg, var(--mx-blue-800), var(--mx-blue-600)); }
+.mx-v4-catalog-card { border-color: var(--mx-border); box-shadow: var(--mx-shadow-sm); }
+.mx-v4-catalog-card:hover { box-shadow: var(--mx-shadow-md); }
+.mx-v4-catalog-card-title:hover { color: var(--mx-blue-700); }
+.mx-v4-catalog-price-label { color: var(--mx-blue-800); }
+.mx-v4-catalog-primary-action {
+  color: #fff;
+  background: linear-gradient(135deg, var(--mx-blue-700), var(--mx-blue-500));
+  box-shadow: var(--mx-shadow-sm);
+}
+.mx-v4-catalog-primary-action:hover { color: #fff; background: linear-gradient(135deg, var(--mx-blue-800), var(--mx-blue-600)); }
+.mx-v4-catalog-primary-action:focus-visible { outline: 2px solid var(--mx-cyan-500); outline-offset: 2px; }

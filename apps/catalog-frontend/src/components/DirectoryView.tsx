@@ -945,27 +945,46 @@ export const DirectoryView: React.FC = () => {
           )}
         </section>
 
-        {/* Search & Location Filter Bar */}
-        <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="بحث عن اسم نشاط، مطعم، خدمة، أو منتج..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-2xl pr-10 pl-4 py-3 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:outline-hidden"
-            />
+        {/* V4-style search workspace, backed by the existing public directory query and geographic filters. */}
+        <section
+          data-testid="directory-search-panel"
+          aria-label="البحث وتحديد النطاق الجغرافي"
+          className="mx-v4-search-panel relative isolate overflow-hidden rounded-[1.75rem] border bg-white p-4 sm:rounded-[2rem] sm:p-6"
+        >
+          <div aria-hidden="true" className="mx-v4-search-topline pointer-events-none absolute inset-x-0 top-0 h-1" />
+          <div className="relative flex flex-col items-start justify-between gap-5 lg:flex-row lg:items-start">
+          <div className="w-full min-w-0 flex-1 lg:pt-1">
+            <div className="mb-3">
+              <span className="mx-v4-search-badge inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-black">
+                <Search className="mx-v4-search-icon h-3.5 w-3.5" />
+                بحث مباشر في الدليل
+              </span>
+              <h2 className="mt-2 text-lg font-black tracking-tight text-slate-950 sm:text-xl">ابحث عن نشاط أو خدمة</h2>
+              <p className="mt-1 text-xs leading-5 text-slate-500">اكتب اسم النشاط أو التخصص أو رقم التواصل أو المكان للوصول إلى النتائج المنشورة.</p>
+            </div>
+            <div className="relative">
+              <Search className="mx-v4-search-icon absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2" />
+              <label htmlFor="directory-search-input" className="sr-only">بحث عن نشاط أو خدمة</label>
+              <input
+                id="directory-search-input"
+                data-testid="directory-search-input"
+                type="text"
+                placeholder="بحث عن اسم نشاط، تخصص، أو خدمة..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="mx-v4-search-input min-h-14 w-full rounded-2xl border bg-slate-50 py-3 pl-4 pr-11 text-sm font-semibold shadow-inner shadow-slate-900/[0.02] outline-none transition placeholder:font-medium placeholder:text-slate-400 hover:border-slate-300"
+              />
+            </div>
           </div>
 
-          <div className="flex w-full flex-col gap-2 md:w-auto md:min-w-[560px]">
-            <button type="button" onClick={requestUserLocation} disabled={locationBusy} className="inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-black text-emerald-900 transition hover:bg-emerald-100 disabled:cursor-wait disabled:opacity-60">
+          <div className="flex w-full flex-col gap-3 lg:w-[55%] lg:max-w-[680px]">
+            <button type="button" onClick={requestUserLocation} disabled={locationBusy} className="mx-v4-search-location inline-flex min-h-11 items-center justify-center gap-2 self-start rounded-xl px-4 py-2.5 text-xs font-black transition disabled:cursor-wait disabled:opacity-60">
               <Navigation className="h-4 w-4" />
               {locationBusy ? 'جارٍ تحديد الموقع…' : userCoordinates ? 'تحديث موقعي' : 'حدد موقعي'}
             </button>
             <div className="flex flex-wrap items-center gap-2">
-              <button type="button" onClick={() => setShowLocationWelcome(true)} className="text-xs font-bold text-emerald-800 underline">إعدادات الموقع</button>
-              <button type="button" onClick={() => { completeGeoSetup('manual'); setSelectedGovFilter('all'); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); setUserCoordinates(null); setLocationMessage('يتم الآن عرض مصر بالكامل.'); }} className="text-xs font-bold text-slate-600 underline">مصر بالكامل</button>
+              <button type="button" onClick={() => setShowLocationWelcome(true)} className="mx-v4-search-link text-xs font-bold underline">إعدادات الموقع</button>
+              <button type="button" onClick={() => { completeGeoSetup('manual'); setSelectedGovFilter('all'); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); setUserCoordinates(null); setLocationMessage('يتم الآن عرض مصر بالكامل.'); }} className="mx-v4-search-link text-xs font-bold underline">مصر بالكامل</button>
             </div>
             {locationMessage && <p role="status" aria-live="polite" className="max-w-xl text-xs leading-5 text-slate-600">{locationMessage}</p>}
             <p className="text-[10px] leading-4 text-slate-400">مصدر بيانات التقسيم الإداري وإحداثياته: <a href="https://github.com/open-admin-data/egypt-administrative-divisions" target="_blank" rel="noreferrer" className="underline">Open Admin Data Egypt 2026.09</a>، تم تكييفها داخل MantiqatiX. الترخيص: <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer" className="underline">CC BY 4.0</a>. اختيار أقرب نقطة تقديري وليس إثباتًا بحدود قانونية.</p>
@@ -976,32 +995,33 @@ export const DirectoryView: React.FC = () => {
             )}
             <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
             <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المحافظة
-              <select value={selectedGovFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedGovFilter(e.target.value); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
+              <select value={selectedGovFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedGovFilter(e.target.value); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); }} className="mx-v4-search-select mt-1 min-h-11 w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-800 outline-none transition hover:border-slate-300">
                 <option value="all">مصر بالكامل — كل المحافظات</option>
                 {uniqueGovernorships.map((gov) => <option key={gov} value={gov}>{gov}</option>)}
               </select>
             </label>
             <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المركز / المدينة
-              <select value={selectedMarkazFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedMarkazFilter(e.target.value); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
+              <select value={selectedMarkazFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedMarkazFilter(e.target.value); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); }} className="mx-v4-search-select mt-1 min-h-11 w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-800 outline-none transition hover:border-slate-300">
                 <option value="all">كل المراكز</option>
                 {uniqueMarkaz.map((value) => <option key={value} value={value}>{value}</option>)}
               </select>
             </label>
             <label className="text-[10px] font-bold text-slate-600 sm:text-xs">القرية / الحي
-              <select value={selectedVillageFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedVillageFilter(e.target.value); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
+              <select value={selectedVillageFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedVillageFilter(e.target.value); setSelectedAreaFilter('all'); }} className="mx-v4-search-select mt-1 min-h-11 w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-800 outline-none transition hover:border-slate-300">
                 <option value="all">كل القرى والشياخات والأحياء</option>{shiyakhaLoadStatus === 'loading' && <option disabled value="__loading">جارٍ تحميل القرى والشياخات…</option>}
                 {uniqueVillages.map((value) => <option key={value} value={value}>{value}</option>)}
               </select>
             </label>
             <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المنطقة / العنوان
-              <select value={selectedAreaFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedAreaFilter(e.target.value); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
+              <select value={selectedAreaFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedAreaFilter(e.target.value); }} className="mx-v4-search-select mt-1 min-h-11 w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-800 outline-none transition hover:border-slate-300">
                 <option value="all">كل المناطق</option>
                 {uniqueAreas.map((value) => <option key={value} value={value}>{value}</option>)}
               </select>
             </label>
             </div>
           </div>
-        </div>
+          </div>
+        </section>
 
         {/* Businesses Grid (verified first; distance only when trusted coordinates exist) */}
         <div className="space-y-6">

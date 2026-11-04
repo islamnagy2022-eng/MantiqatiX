@@ -416,13 +416,31 @@ const results = [];
     await page.getByText('جارٍ التحقق من تسجيل الدخول وتجهيز الصلاحيات… يمكنك تصفح الأنشطة المنشورة أثناء ذلك.').waitFor({ state: 'detached', timeout: 15000 });
     assert.equal(new URL(page.url()).searchParams.has('view'), false, 'the canonical root must not require a view query parameter');
     const nav = page.locator('header nav');
+    assert.equal(await nav.getAttribute('aria-label'), 'التنقل الرئيسي في MantiqatiX', 'the V4 navigation shell must expose its Arabic accessible name');
+    assert.equal(await nav.getAttribute('data-testid'), 'mantiqatix-primary-navigation', 'the V4 navigation shell must expose a stable browser-test hook');
     assert.equal(await nav.getByRole('button', { name: 'الرئيسية', exact: true }).count(), 1, 'the marketplace homepage must have a distinct navigation tab');
     assert.equal(await nav.getByRole('button', { name: 'بحث الأنشطة والخدمات', exact: true }).count(), 1, 'activity and service search must have a distinct navigation tab');
     await nav.getByRole('button', { name: 'بحث الأنشطة والخدمات', exact: true }).click();
     await page.getByRole('heading', { name: /اكتشف كافة المشاريع والخدمات في/ }).waitFor({ state: 'visible', timeout: 15000 });
+    const directorySearchPanel = page.getByTestId('directory-search-panel');
+    await directorySearchPanel.waitFor({ state: 'visible', timeout: 10000 });
+    assert.equal(await directorySearchPanel.getByLabel('بحث عن نشاط أو خدمة', { exact: true }).count(), 1, 'the V4 directory search field must have an accessible label');
+    assert.equal(await directorySearchPanel.locator('select').count(), 4, 'the search workspace must retain all four geographic filters');
+    assert.equal(await directorySearchPanel.locator('select.mx-v4-search-select').count(), 4, 'all four geographic filters must use the token-backed V4 treatment');
+    const directoryLocationAction = directorySearchPanel.getByRole('button', { name: 'حدد موقعي', exact: true });
+    assert.ok((await directoryLocationAction.getAttribute('class')).includes('mx-v4-search-location'), 'location action must use the centralized V4 style');
+    const directoryLocationGradient = await directoryLocationAction.evaluate((element) => getComputedStyle(element).backgroundImage);
+    assert.match(directoryLocationGradient, /linear-gradient/, 'location action must render the V4 blue gradient');
+    const directorySearchAccent = await directorySearchPanel.locator('.mx-v4-search-topline').evaluate((element) => getComputedStyle(element).backgroundImage);
+    assert.match(directorySearchAccent, /linear-gradient/, 'search panel accent must use the V4 token gradient');
     assert.equal(new URL(page.url()).searchParams.get('view'), 'directory', 'directory search must use an explicit route');
+    for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+      await page.setViewportSize(viewport);
+      await assertNoHorizontalOverflow(page, 'V4 directory search workspace at ' + viewport.width + 'px');
+    }
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.getByRole('heading', { name: /اكتشف كافة المشاريع والخدمات في/ }).waitFor({ state: 'visible', timeout: 15000 });
+    await page.getByTestId('directory-search-panel').waitFor({ state: 'visible', timeout: 10000 });
     assert.equal(new URL(page.url()).searchParams.get('view'), 'directory', 'directory search must survive direct reload');
     await page.locator('header nav').getByRole('button', { name: 'الرئيسية', exact: true }).click();
     await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
@@ -746,6 +764,40 @@ try {
       await page.goto(baseUrl + '?view=merchant_admin&merchantTab=qr', { waitUntil: 'domcontentloaded' });
       await page.getByRole('heading', { name: /QR كود نشاط: نشاط اختبار الداشبورد/ }).waitFor({ state: 'visible', timeout: 15000 });
 
+      const merchantTabs = page.getByTestId('merchant-dashboard-tabs');
+      await merchantTabs.waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(await merchantTabs.getAttribute('aria-label'), 'أقسام لوحة صاحب النشاط');
+      const merchantTabButtons = merchantTabs.locator('button');
+      const merchantTabLabels = (await merchantTabButtons.allTextContents()).map((value) => value.trim());
+      assert.match(merchantTabLabels[0], /^الكتالوج/ , 'catalog must be the first primary owner tab');
+      assert.equal(merchantTabLabels[1], 'الهوية البصرية', 'branding must be the second primary owner tab');
+      assert.equal(merchantTabLabels[2], 'بيانات النشاط', 'business profile must be the third primary owner tab');
+      assert.equal(merchantTabLabels[3], 'استيراد CSV', 'CSV import must remain as a retained website tool');
+      assert.equal(merchantTabLabels[4], 'الموظفون والتوظيف', 'employee hiring must remain as a retained website tool');
+      assert.equal(merchantTabLabels[5], 'QR كود النشاط الدائم', 'the permanent QR tool must retain its full action label');
+      assert.match(merchantTabLabels[6], /^التصنيف الوظيفي ومسار التطوير/, 'the existing functional taxonomy tool and its optional activity badge must remain available');
+      const activeQrTab = merchantTabs.getByRole('button', { name: 'QR كود النشاط الدائم', exact: true });
+      assert.equal(await activeQrTab.getAttribute('aria-pressed'), 'true', 'the direct QR route must select the QR tab');
+      assert.ok((await activeQrTab.getAttribute('class')).includes('mx-v4-tab-active'), 'the active owner tab must use the centralized V4 treatment');
+      const activeQrStyle = await activeQrTab.evaluate((element) => getComputedStyle(element).backgroundImage);
+      assert.match(activeQrStyle, /linear-gradient/, 'the active owner tab must render the V4 blue gradient');
+      for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+        await page.setViewportSize(viewport);
+        await assertNoHorizontalOverflow(page, 'V4 owner dashboard at ' + viewport.width + 'px');
+      }
+
+      // Clipboard failure must be announced inline, never through a blocking browser alert.
+      await page.evaluate(() => {
+        Object.defineProperty(navigator, 'clipboard', {
+          configurable: true,
+          value: { writeText: async () => { throw new Error('clipboard denied by test'); } },
+        });
+      });
+      await page.getByRole('button', { name: 'نسخ رابط متجرك المباشر' }).click();
+      const copyFailureStatus = page.getByRole('status').filter({ hasText: 'تعذر نسخ الرابط تلقائيًا' });
+      await copyFailureStatus.waitFor({ state: 'visible', timeout: 5000 });
+      assert.equal(await copyFailureStatus.count(), 1, 'clipboard failure must be announced accessibly without a blocking alert');
+
       const publicLink = page.locator('a[href*="store="]').filter({ hasText: /store=/ }).first();
       const href = await publicLink.getAttribute('href');
       assert.ok(href, 'merchant QR section must render the permanent public storefront URL');
@@ -858,7 +910,30 @@ try {
       await page.getByRole('heading', { name: 'نشاط رابطين خارجيين', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(await page.locator('a[href="https://cdn.example.test/both-logo.svg"]').count(), 1, 'direct storefront load must preserve the external logo URL');
       assert.equal(await page.locator('a[href="https://cdn.example.test/both-cover.svg"]').count(), 1, 'direct storefront load must preserve the external cover URL');
-      results.push('verified-external-logo-cover-links-only-with-explicit-urls-in-directory-and-storefront');
+      const coverHero = page.getByTestId('storefront-cover-hero');
+      await coverHero.waitFor({ state: 'visible' });
+      assert.equal(await coverHero.getAttribute('aria-label'), 'غلاف نشاط نشاط رابطين خارجيين');
+      const coverNavigation = coverHero.getByRole('group', { name: 'التنقل بين صور الغلاف' });
+      await coverNavigation.waitFor({ state: 'visible' });
+      assert.ok(await coverNavigation.getByRole('button').count() >= 1, 'cover slides must expose keyboard-operable navigation controls');
+      assert.equal(await coverNavigation.getByRole('button').first().getAttribute('aria-pressed'), 'true', 'the active cover slide must be announced');
+      assert.match(await coverHero.getAttribute('class') || '', /mx-v4-storefront-cover/, 'storefront hero must use the shared V4 surface token');
+      assert.equal(await page.getByTestId('business-verification-indicator').getAttribute('aria-label'), 'حالة النشاط: موثّق رسمياً');
+      assert.equal(await page.locator('.mx-v4-storefront-category').count(), 1, 'business category must use the V4 storefront token');
+      assert.equal(await page.locator('.mx-v4-storefront-secondary').count(), 2, 'map and QR controls must use the V4 secondary action token');
+      const shareButton = page.getByRole('button', { name: 'مشاركة رابط نشاط نشاط رابطين خارجيين' });
+      assert.match(await shareButton.getAttribute('class') || '', /mx-v4-storefront-share/, 'share control must use the accessible V4 style');
+      for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+        await page.setViewportSize(viewport);
+        await assertNoHorizontalOverflow(page, 'V4 public storefront at ' + viewport.width + 'px');
+      }
+
+      await page.goto(baseUrl + '?store=40000000-0000-0000-0000-000000000005', { waitUntil: 'domcontentloaded' });
+      await page.getByRole('heading', { name: 'نشاط غير موثق بروابط', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByText('نشاط غير موثّق', { exact: true }).waitFor({ state: 'visible' });
+      assert.equal(await page.getByTestId('business-verification-indicator').getAttribute('aria-label'), 'حالة النشاط: غير موثّق');
+      assert.equal(await page.getByText('موثّق رسمياً', { exact: true }).count(), 0, 'unverified storefront must never display a verified badge');
+      results.push('verified-storefront-explicit-verification-state-cover-accessibility-and-responsive-layout');
     } finally { await context.close(); }
   }
 
@@ -981,6 +1056,19 @@ try {
     );
     try {
       await page.getByRole('heading', { name: 'إعدادات وحدات الأنشطة', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      const platformAdminTabs = page.getByTestId('platform-admin-tabs');
+      await platformAdminTabs.waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(await platformAdminTabs.getAttribute('aria-label'), 'أقسام إدارة المنصة');
+      assert.equal(await platformAdminTabs.locator('button').count(), 8, 'all existing platform-admin navigation entries must remain available');
+      const activityModulesTab = platformAdminTabs.getByRole('button', { name: 'إعدادات وحدات الأنشطة', exact: true });
+      assert.equal(await activityModulesTab.getAttribute('aria-pressed'), 'true', 'the direct activity-module admin route must select its tab');
+      assert.ok((await activityModulesTab.getAttribute('class')).includes('mx-v4-admin-tab-active'));
+      const activityTabGradient = await activityModulesTab.evaluate((element) => getComputedStyle(element).backgroundImage);
+      assert.match(activityTabGradient, /linear-gradient/, 'platform admin active tab must use the V4 blue gradient');
+      for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+        await page.setViewportSize(viewport);
+        await assertNoHorizontalOverflow(page, 'V4 platform admin tabs at ' + viewport.width + 'px');
+      }
       await page.getByRole('status').getByText(
         'معاينة إعدادات الأنشطة متاحة، لكن الحفظ الإداري موقوف مؤقتًا حتى نشر واختبار خدمة الحفظ الذري مع سجل التدقيق على Supabase. لم يتم إرسال أي تعديل أو تغيير بيانات الإنتاج.',
         { exact: true },
@@ -988,6 +1076,32 @@ try {
       assert.equal(await page.getByLabel('اختر النشاط').count(), 0, 'the unverified editor must not expose editable activity settings');
       assert.equal(platformAdminRequests.filter((request) => request.action === 'SAVE_SETTINGS').length, 0, 'no settings write may be sent before atomic audit support is deployed');
       results.push('activity-module-admin-writes-disabled-until-atomic-audit-backend');
+    } finally { await context.close(); }
+  }
+
+  // Super Admin control-center navigation retains its five permission/audit areas and URL-backed active state.
+  {
+    const { context, page } = await newScenario(
+      browser,
+      roles.platformAdmin,
+      [],
+      { initialRoute: '?view=super_admin&tab=control_center&controlTab=roles' },
+    );
+    try {
+      await page.getByRole('heading', { name: 'مركز التحكم في المنصة', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      const controlTabs = page.getByTestId('super-admin-control-tabs');
+      await controlTabs.waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(await controlTabs.getAttribute('aria-label'), 'أقسام مركز التحكم');
+      assert.equal(await controlTabs.locator('button').count(), 5, 'all five Super Admin control-center areas must remain available');
+      assert.equal(await controlTabs.getByRole('button', { name: 'الأدوار والصلاحيات', exact: true }).getAttribute('aria-pressed'), 'true');
+      await controlTabs.getByRole('button', { name: 'سجل العمليات', exact: true }).click();
+      await page.getByRole('heading', { name: 'سجل العمليات الإدارية', exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(new URL(page.url()).searchParams.get('controlTab'), 'audit', 'control-center tabs must preserve their URL-backed state');
+      for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+        await page.setViewportSize(viewport);
+        await assertNoHorizontalOverflow(page, 'V4 Super Admin control tabs at ' + viewport.width + 'px');
+      }
+      results.push('super-admin-control-center-v4-tabs-preserve-five-areas-and-url-state');
     } finally { await context.close(); }
   }
 
@@ -1263,6 +1377,24 @@ try {
           .waitFor({ state: 'visible', timeout: 15000 });
         await page.getByText('موثّق رسمياً', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
 
+        const storefrontCatalog = page.getByTestId('storefront-catalog');
+        await storefrontCatalog.waitFor({ state: 'visible', timeout: 10000 });
+        assert.equal(await storefrontCatalog.getAttribute('aria-label'), 'كتالوج منتجات وخدمات ' + liveBusiness.name);
+        const catalogueFilters = page.getByTestId('storefront-catalog-filters');
+        await catalogueFilters.waitFor({ state: 'visible' });
+        await page.getByTestId('storefront-catalog-search').waitFor({ state: 'visible' });
+        const typeFilter = page.getByTestId('storefront-catalog-type-filter');
+        assert.equal(await typeFilter.getByRole('button').count(), 3, 'catalogue must retain All / Products / Services filters');
+        const allTypeFilter = typeFilter.getByRole('button').first();
+        assert.equal(await allTypeFilter.getAttribute('aria-pressed'), 'true', 'All type filter must expose its selected state');
+        assert.match(await allTypeFilter.getAttribute('class') || '', /mx-v4-catalog-type-active/, 'selected type filter must use V4 active styling');
+        const categoryFilter = page.getByTestId('storefront-catalog-categories');
+        await categoryFilter.waitFor({ state: 'visible' });
+        assert.ok(await categoryFilter.getByRole('button').count() >= 1, 'catalogue categories must remain selectable');
+        const allCategoryFilter = categoryFilter.getByRole('button').first();
+        assert.equal(await allCategoryFilter.getAttribute('aria-pressed'), 'true', 'All category filter must expose its selected state');
+        assert.match(await allCategoryFilter.getAttribute('class') || '', /mx-v4-catalog-category-active/, 'selected category filter must use V4 active styling');
+
         if (target.expectProducts) {
           const firstPublicItem = liveBusiness.items[0];
           const firstItemName = String(firstPublicItem.name_ar || firstPublicItem.name_en || '').trim();
@@ -1270,7 +1402,15 @@ try {
           await page.getByRole('heading', { name: firstItemName, exact: true }).first()
             .waitFor({ state: 'visible', timeout: 15000 });
           assert.ok(await page.getByText(/المعروض:/).count() > 0, target.label + ' catalogue must display a product count');
-          results.push(target.label.toLowerCase().replaceAll(' ', '-') + '-verified-badge-and-live-product-rendered');
+          const firstCatalogCard = page.getByTestId('storefront-catalog-card').first();
+          await firstCatalogCard.waitFor({ state: 'visible' });
+          assert.match(await firstCatalogCard.getAttribute('class') || '', /mx-v4-catalog-card/, 'catalogue card must use the V4 token system');
+          for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+            await page.setViewportSize(viewport);
+            await assertNoHorizontalOverflow(page, target.label + ' V4 catalogue at ' + viewport.width + 'px');
+          }
+          await page.setViewportSize({ width: 390, height: 844 });
+          results.push(target.label.toLowerCase().replaceAll(' ', '-') + '-verified-badge-and-v4-live-product-catalogue-rendered');
         } else {
           await page.getByRole('heading', { name: 'لا توجد منتجات أو خدمات مطابقة', exact: true })
             .waitFor({ state: 'visible', timeout: 10000 });

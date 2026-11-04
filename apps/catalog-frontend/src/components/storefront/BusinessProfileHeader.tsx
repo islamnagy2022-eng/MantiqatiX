@@ -24,6 +24,7 @@ const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeho
 export const BusinessProfileHeader: React.FC = () => {
   const { currentBusiness, getStorePublicLink } = useApp();
   const [copied, setCopied] = useState(false);
+  const [shareFailed, setShareFailed] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   // Only owner-provided cover images are displayed. Missing images use a neutral local placeholder.
   const slides = React.useMemo(() => {
@@ -38,9 +39,10 @@ export const BusinessProfileHeader: React.FC = () => {
   useEffect(() => {
     setCurrentSlideIndex(0);
     if (slides.length <= 1) return;
-    const timer = setInterval(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    const timer = window.setInterval(() => {
       setCurrentSlideIndex((prev) => (prev + 1) % slides.length);
-    }, 3000);
+    }, 5000);
     return () => clearInterval(timer);
   }, [slides.length, currentBusiness?.id]);
 
@@ -52,11 +54,16 @@ export const BusinessProfileHeader: React.FC = () => {
     );
   }
 
-  const handleShare = () => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(getStorePublicLink(currentBusiness));
+  const handleShare = async () => {
+    setShareFailed(false);
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
+      await navigator.clipboard.writeText(getStorePublicLink(currentBusiness));
       setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      window.setTimeout(() => setCopied(false), 2500);
+    } catch {
+      setShareFailed(true);
+      window.setTimeout(() => setShareFailed(false), 3500);
     }
   };
 
@@ -72,7 +79,7 @@ export const BusinessProfileHeader: React.FC = () => {
   const isFrozen = Boolean(currentBusiness.isFrozen);
 
   return (
-    <div className="relative bg-white border-b border-slate-200/80 shadow-xs mb-8">
+    <div className="mx-v4-storefront-shell relative mb-8 border-b bg-white shadow-xs">
       {/* Urgent Frozen Notice Banner if activity is frozen past 5 days */}
       {isFrozen && (
         <div className="bg-rose-600 text-white p-3.5 sm:p-4 text-center text-xs sm:text-sm font-black flex items-center justify-center gap-2 shadow-md">
@@ -81,13 +88,14 @@ export const BusinessProfileHeader: React.FC = () => {
         </div>
       )}
 
-      {/* 1. Rotating Cover Photo Slider (Changes every 3 seconds) */}
+      {/* 1. Cover photo slider; auto-rotation respects the visitor's reduced-motion preference. */}
       <div className="w-full px-0 py-0">
-        <div className="relative w-full aspect-[16/9] sm:aspect-[1440/390] bg-slate-900 overflow-hidden group">
+        <section aria-label={`غلاف نشاط ${currentBusiness.name}`} data-testid="storefront-cover-hero" className="mx-v4-storefront-cover relative w-full aspect-[16/9] sm:aspect-[1440/390] overflow-hidden group">
         {slides.map((imgUrl, idx) => (
           <div
             key={idx}
-            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+            aria-hidden={idx !== currentSlideIndex}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out motion-reduce:transition-none ${
               idx === currentSlideIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
             }`}
           >
@@ -107,13 +115,15 @@ export const BusinessProfileHeader: React.FC = () => {
         ))}
 
         {/* Slider Indicators (Dots) */}
-        <div className="absolute bottom-4 right-1/2 translate-x-1/2 z-20 flex items-center gap-1.5 bg-black/40 backdrop-blur-xs px-3 py-1.5 rounded-full border border-white/15">
+        <div role="group" aria-label="التنقل بين صور الغلاف" className="absolute bottom-4 right-1/2 translate-x-1/2 z-20 flex items-center gap-1.5 bg-black/40 backdrop-blur-xs px-3 py-1.5 rounded-full border border-white/15">
           {slides.map((_, idx) => (
             <button
               key={idx}
+              type="button"
               onClick={() => setCurrentSlideIndex(idx)}
+              aria-pressed={idx === currentSlideIndex}
               className={`h-2 rounded-full transition-all cursor-pointer ${
-                idx === currentSlideIndex ? 'w-6 bg-emerald-400' : 'w-2 bg-white/50 hover:bg-white'
+                idx === currentSlideIndex ? 'w-6 bg-sky-400' : 'w-2 bg-white/50 hover:bg-white'
               }`}
               aria-label={`انتقل للشريحة ${idx + 1}`}
             />
@@ -127,8 +137,7 @@ export const BusinessProfileHeader: React.FC = () => {
               <Ban className="w-3.5 h-3.5" />
               <span>نشاط مجمد مؤقتاً</span>
             </span>
-          ) : (
-            currentBusiness.isVerified && (
+          ) : currentBusiness.isVerified ? (
               <>
                 <span className="bg-emerald-500/90 backdrop-blur-md text-white text-xs font-semibold px-2.5 py-1.5 rounded-full border border-emerald-400/30 shadow-md flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" />
@@ -145,21 +154,31 @@ export const BusinessProfileHeader: React.FC = () => {
                   </a>
                 )}
               </>
-            )
+          ) : (
+            <span className="bg-slate-900/85 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full border border-white/20 shadow-md">
+              نشاط غير موثّق
+            </span>
           )}
         </div>
 
         {/* Share Button top left */}
         <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 max-w-[calc(100%-1.5rem)]">
           <button
+            type="button"
             onClick={handleShare}
-            className="bg-white/90 hover:bg-white text-slate-800 text-xs font-bold px-3 py-1.5 rounded-full shadow-md backdrop-blur-md flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+            aria-label={`مشاركة رابط نشاط ${currentBusiness.name}`}
+            className="mx-v4-storefront-share flex cursor-pointer items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold backdrop-blur-md transition-all active:scale-95 focus-visible:outline"
           >
+            <span className="sr-only" aria-live="polite">
+              {copied ? 'تم نسخ رابط النشاط' : shareFailed ? 'تعذر نسخ الرابط' : ''}
+            </span>
             {copied ? (
               <>
                 <Check className="w-3.5 h-3.5 text-emerald-600" />
                 <span className="text-emerald-700">تم نسخ الرابط!</span>
               </>
+            ) : shareFailed ? (
+              <span className="text-rose-700">تعذر نسخ الرابط</span>
             ) : (
               <>
                 <Share2 className="w-3.5 h-3.5 text-slate-600" />
@@ -168,15 +187,15 @@ export const BusinessProfileHeader: React.FC = () => {
             )}
           </button>
         </div>
-        </div>
+        </section>
       </div>
 
       {/* 2. Profile Details Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section aria-label={`بيانات نشاط ${currentBusiness.name}`} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative pb-6 border-b border-slate-100">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 pt-3">
+          <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6 pt-3">
             {/* Logo & Core Identity */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-right">
+            <div className="flex min-w-0 flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-right">
               {/* Business Logo */}
               <div className="relative -mt-16 sm:-mt-20 md:-mt-24 w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-3xl bg-white p-1.5 shadow-2xl ring-4 ring-white flex-shrink-0 overflow-hidden z-20">
                 <img
@@ -191,11 +210,14 @@ export const BusinessProfileHeader: React.FC = () => {
                   }}
                 />
                 <div
+                  data-testid="business-verification-indicator"
+                  aria-label={isFrozen ? 'حالة النشاط: مجمد مؤقتاً' : currentBusiness.isVerified ? 'حالة النشاط: موثّق رسمياً' : 'حالة النشاط: غير موثّق'}
+                  title={isFrozen ? 'مجمد مؤقتاً' : currentBusiness.isVerified ? 'موثّق رسمياً' : 'غير موثّق'}
                   className={`absolute bottom-2.5 left-2.5 text-white rounded-full p-1 shadow-md border-2 border-white ${
-                    isFrozen ? 'bg-rose-600' : 'bg-emerald-500'
+                    isFrozen ? 'bg-rose-600' : currentBusiness.isVerified ? 'bg-emerald-500' : 'bg-slate-500'
                   }`}
                 >
-                  {isFrozen ? <Ban className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                  {isFrozen ? <Ban className="w-4 h-4" /> : currentBusiness.isVerified ? <CheckCircle2 className="w-4 h-4" /> : <Building2 className="w-4 h-4" />}
                 </div>
               </div>
 
@@ -205,7 +227,7 @@ export const BusinessProfileHeader: React.FC = () => {
                   <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                     {currentBusiness.name}
                   </h1>
-                  <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-black px-3 py-0.5 rounded-full">
+                  <span className="mx-v4-storefront-category rounded-full border px-3 py-0.5 text-xs font-black">
                     {currentBusiness.category}
                   </span>
                 </div>
@@ -217,7 +239,7 @@ export const BusinessProfileHeader: React.FC = () => {
                 {/* Location & Working Hours metadata */}
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs text-slate-500 pt-1">
                   <div className="flex items-center gap-1.5 font-medium">
-                    <MapPin className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <MapPin className="w-4 h-4 text-[var(--mx-blue-700)] flex-shrink-0" />
                     <span>{currentBusiness.address}</span>
                   </div>
                   {currentBusiness.workingHours && (
@@ -231,9 +253,9 @@ export const BusinessProfileHeader: React.FC = () => {
             </div>
 
             {/* Quick Actions: phone, messaging, social profiles, and QR code */}
-            <div className="flex items-center justify-center sm:justify-start gap-2.5 flex-wrap flex-shrink-0 pt-2 md:pt-4">
+            <div className="flex w-full min-w-0 max-w-full items-center justify-center sm:justify-start gap-2.5 flex-wrap pt-2 md:pt-4 xl:w-[56%]">
               {dialPhone && (
-                <a href={`tel:${dialPhone}`} className="bg-slate-900 hover:bg-slate-800 text-white font-black text-xs sm:text-sm py-3 px-4 rounded-2xl shadow-md flex items-center gap-2 transition-all cursor-pointer" aria-label={`اتصال هاتفي بـ ${currentBusiness.name}`}>
+                <a href={`tel:${dialPhone}`} className="mx-v4-storefront-primary flex cursor-pointer items-center gap-2 rounded-2xl px-4 py-3 text-xs font-black transition-all sm:text-sm" aria-label={`اتصال هاتفي بـ ${currentBusiness.name}`}>
                   <Phone className="w-4 h-4" />
                   <span>اتصال هاتفي</span>
                 </a>
@@ -278,25 +300,25 @@ export const BusinessProfileHeader: React.FC = () => {
                 href={currentBusiness.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentBusiness.name + ' ' + currentBusiness.governorate + ' ' + currentBusiness.markaz + ' ' + currentBusiness.address)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm py-3 px-4 rounded-2xl shadow-xs flex items-center gap-2 transition-all cursor-pointer border border-slate-200"
+                className="mx-v4-storefront-secondary flex cursor-pointer items-center gap-2 rounded-2xl border px-4 py-3 text-xs font-bold transition-all sm:text-sm"
                 title="عرض موقع النشاط على خرائط جوجل"
               >
-                <MapPin className="w-4 h-4 text-emerald-600" />
+                <MapPin className="w-4 h-4 text-[var(--mx-blue-700)]" />
                 <span>موقع النشاط (خرائط جوجل)</span>
               </a>
 
               <button
                 onClick={() => setIsQrModalOpen(true)}
-                className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm py-3 px-4 rounded-2xl shadow-xs flex items-center gap-2 transition-all cursor-pointer border border-slate-200"
+                className="mx-v4-storefront-secondary flex cursor-pointer items-center gap-2 rounded-2xl border px-4 py-3 text-xs font-bold transition-all sm:text-sm"
                 title="عرض QR كود النشاط الدائم"
               >
-                <QrCode className="w-4 h-4 text-emerald-600" />
+                <QrCode className="w-4 h-4 text-[var(--mx-blue-700)]" />
                 <span>عرض QR كود النشاط</span>
               </button>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       <QRCodeModal
         business={currentBusiness}

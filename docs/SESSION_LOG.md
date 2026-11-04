@@ -1862,3 +1862,131 @@ A separate source review found a second platform-root authorization model: the n
 1. Rehearse PR #655's directory-listings Edge source in an isolated environment and deploy only through a separately reviewed release.
 2. Review PR #618 membership-mode switching with adversarial exact membership/tenant/branch tests; keep disabled until production Edge parity exists.
 3. Continue current-schema restore/migration reconciliation, RC463 ACL, RC449A/RC450, Paymob/finance, Auth, tenant-isolation and backup/restore evidence.
+
+
+## 2026-11-03 — Resume Google AI Studio v4 platform convergence (Wave A)
+
+- **Owner priority:** pause doctor-import work and continue building the platform against the supplied Google AI Studio v4 reference. PR #661 was converted back to Draft with an explicit pause comment; it remains unmerged and undeployed.
+- **Repository baseline:** `main` at `36a98b5153b2c911cf59ea7aaa8f7fd8c9469724`.
+- **Feature branch:** `feat/aistudio-v4-wave-a-shell-directory-20261103`.
+- **Implemented:** restyled Navbar toward the V4 shell, including dark micro-header, refined brand/context row and clearer navigation pills; retained all existing route buttons and role/membership guards.
+- **Implemented:** redesigned the DirectoryView search workspace with an accessible search field, clearer title/instructions, refined location action and four existing geographic selectors. The public data source, verified-first ordering, filter state, GPS consent, and 20-row progressive loading remain unchanged.
+- **Regression coverage:** added checks for the accessible nav label/test hook, directory search field, four selectors, reload behavior and horizontal overflow at 390, 768 and 1440 pixels.
+- **Code/test head before the documentation-only follow-up:** `5452ef877eb3a3491741222af2565146e6cc65d3`. The final branch head moves as documentation is added; exact-head CI must be read from the final PR commit before any merge decision.
+- **Not performed:** no doctor import/publication, production data or profile changes, schema/migration, Auth/RLS/GRANT, Edge Function deployment, payment/finance changes, or production deployment.
+- **Next:** inspect exact-head checks, fix responsive/browser failures, perform visual comparison against V4, then continue owner-dashboard visual parity while preserving CSV import, employees/branches, Facebook import, QR and Super Admin permissions.
+- `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+
+## 2026-11-03 — Wave A storefront trust-state and accessibility
+
+- Prior Wave A exact-head validation completed successfully at `f658c66e007301839763c7c5784e9a93128356ff`: `Primary Catalog Frontend Validation` PASS, including build/TypeScript, Playwright browser E2E, and isolated PostgreSQL employee/RBAC behavior tests. PR #662 remains Draft and open.
+- Continued V4 presentation work in the same branch, without merging or deploying:
+  - `BusinessProfileHeader.tsx`: accessible labelled cover hero, reduced-motion-aware slider, slower five-second rotation, pressed states on slide controls, and robust clipboard success/failure feedback.
+  - Corrected a trust-state presentation defect: the profile logo previously showed a green check on every non-frozen activity. It now distinguishes verified, unverified and frozen states; unverified storefronts show a neutral label and neutral icon.
+  - Existing external brand-link rule remains unchanged: only verified businesses with explicitly configured external logo/cover URLs expose those links.
+  - `professional-dashboard.browser.e2e.mjs`: assertions for verified/unverified direct storefront state, hero accessibility, and responsive overflow at 390/768/1440px.
+- No real business data, verification values, product records, schema, Auth/RLS/GRANT, Edge Function, finance or production settings changed.
+- Exact-head CI is pending after these commits. Do not merge PR #662 or deploy until the new exact-head checks pass.
+- Doctor import remains paused per owner direction; PR #661 stays Draft.
+- `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+
+## 2026-11-03 — V4 validation passed; token foundation continued
+
+- PR #662 exact-head f658c66e007301839763c7c5784e9a93128356ff completed successfully: primary catalog validation, Playwright browser E2E, and isolated PostgreSQL employee RBAC all PASS (workflow run 41570424483).
+- The PR remains Draft and unmerged. The successful workflow includes a Pages build artifact upload for review, not a production deployment.
+- Added centralized, opt-in V4 design tokens in apps/catalog-frontend/src/index.css using the specified deep/primary/bright blue palette, cyan, surfaces, typography stacks, radii and shadows.
+- Updated all seven owner-dashboard tab active states to use the V4 blue gradient and blue focus treatment; retained all tabs and their existing URL state/behavior.
+- Added browser checks to verify the active QR tab uses the centralized V4 treatment and computed blue gradient. This new code requires exact-head CI before any merge.
+- No database, activity/business data, verification status, Auth/RLS/GRANT, Edge Function, payment, finance or production config changed. No deployment occurred.
+- Finance and custom links remain deferred pending durable server-backed contracts; doctor import remains paused per owner direction.
+- FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED remains unchanged.
+
+
+## 2026-11-03 — Storefront hero JSX validation fix
+
+- The first follow-up PR validation exposed a JSX closing-tag mismatch in `BusinessProfileHeader.tsx` introduced while wrapping the cover hero in an accessible section. The failure was caught by TypeScript before any deployment; the Pages PR deploy job was skipped because validation failed.
+- Fixed the nesting so the share-control container closes inside the cover section.
+- Related commission-draft workflow also failed at its TypeScript step due to the same shared frontend parse error; it is not a separate commission-contract defect based on the log evidence.
+- Fix commit: `fe0736fe7828aaa7fa116e61844bac092407586d`.
+- Rerun exact-head TypeScript/build, Playwright, and all dependent workflows. Keep PR #662 Draft; no production deployment or data mutation occurred.
+
+
+## 2026-11-03 — V4 public discovery blue-token application
+
+- Previous exact-head validation passed on `30385982e993325aa07bbf33d921ce3134398d2b` (Primary Catalog Frontend Validation run `41578987524`: build, Playwright, isolated PostgreSQL employee/RBAC all PASS; Pages PR validation run `41578987373`: validate PASS and deploy job SKIPPED; commission draft, MantiGO privacy, RC425 Paymob atomicity, module professionalization and backend-only boundary checks PASS).
+- Continued on the same Draft PR #662 with a scoped V4 visual pass for DirectoryView:
+  - Added token-backed blue/cyan styles for the search panel, badge, icon, input focus, location action, links and four geographic selectors.
+  - Added E2E assertions for the V4 gradient and all four styled selectors.
+  - Kept the existing public data source, query behavior, GPS consent, verified-first ordering and progressive pagination unchanged.
+- Exact-head validation for this new directory-token slice is pending. PR remains Draft; no merge or production deployment.
+- No production records, schema, Auth/RLS/GRANT, Edge Functions, finance or payment behavior changed. Doctor import remains paused; PR #661 remains Draft.
+- `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+
+## 2026-11-03 — V4 public discovery token validation passed
+
+- Exact-head commit `0a31f6247ea26270651fec74730fd5c26245b885` passed Primary Catalog Frontend Validation run `41579574795`: TypeScript/build/contracts, browser Playwright, and isolated PostgreSQL employee/RBAC jobs all PASS.
+- Pages PR validation run `41579574473` completed PASS; `validate_public_only` was skipped and the `deploy` job was skipped by the workflow's main-only deployment condition. No production deployment occurred.
+- Additional exact-head checks passed: flexible commission drafts, MantiGO privacy, RC425 Paymob atomicity, module professionalization, and backend-only module boundary.
+- V4 blue/cyan tokens are now applied to the public Directory search workspace, including the four geographic selectors and location action. E2E asserts the blue gradients and preserves the existing geo/search contracts.
+- PR #662 remains Draft. Next safe wave: inspect/reorganize the existing Admin/Super Admin dashboard presentation toward V4 while preserving server RPCs, permission matrix, audit and fail-closed access.
+- No production data/schema/Auth/RLS/GRANT/Edge/payment/finance mutation or deployment. Doctor import remains paused; PR #661 remains Draft.
+- `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+
+## 2026-11-03 — V4 administration navigation presentation
+
+- Started the next V4 screen wave after exact-head 0a31f6247ea26270651fec74730fd5c26245b885 passed all Primary Catalog checks.
+- Restyled the platform-admin and nested Super Admin navigation using the shared blue/cyan design tokens; added accessible names, test hooks and pressed-state semantics.
+- Preserved the eight existing platform-admin tabs and five nested Super Admin areas, including URL-backed tab selection.
+- Added browser assertions for the navigation hierarchy, selected-state gradient, audit-tab URL state and mobile/tablet/desktop overflow.
+- Exact-head validation for this admin navigation wave is pending. PR #662 remains Draft; no merge or deployment.
+- No permission model, RPC, audit data, role assignment, business data, schema, Auth/RLS/GRANT, payment or finance behavior changed.
+- `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+## 2026-11-03 — V4 public storefront presentation
+
+- Continued the owner-approved Google AI Studio v4 parity on PR #662 and branch feat/aistudio-v4-wave-a-shell-directory-20261103.
+- Applied V4 blue/cyan tokens to storefront hero wrapper, category chip, share control, and map/QR actions. Added missing blue-300 token used by admin hover states.
+- Preserved semantic colors for verified (green) and frozen (red) statuses while explicitly displaying an unverified state; status remains sourced from the persisted currentBusiness.isVerified/currentBusiness.isFrozen fields.
+- Cover carousel now respects prefers-reduced-motion and rotates every five seconds. Share-link copy is awaited and failure is announced instead of silently presenting success.
+- Added exact browser assertions for V4 storefront class hooks, accessibility labels and explicit verification state, plus 390/768/1440px layout overflow.
+- No changes to business data, verification state, photos or source URLs, catalog records, data contracts, database, Auth/RLS/GRANT, Edge Functions, payments, finance, or production deployment.
+- Exact-head CI is required before review; PR #662 remains Draft. Doctor import remains paused and PR #661 remains Draft.
+- FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED remains unchanged.
+### Storefront accessibility follow-up — 2026-11-03
+- Added a labelled cover-carousel control group with keyboard-operable slide buttons and aria-pressed state.
+- Inactive cover slides are hidden from the accessibility tree; fade transitions disable under reduced-motion preferences.
+- Active slide/location accent colors now follow the V4 blue palette; green verification and red frozen states remain semantic.
+- Added Playwright assertions for the cover carousel group and selected slide. Exact-head validation is pending.
+## 2026-11-03 — V4 public catalogue filters and product cards
+
+- Reworked CatalogSection presentation using shared V4 blue/cyan tokens: heading badge, result counter, search/filter surface and input, product/service type filters, category chips, product-card border/shadow, quote label and primary cart/quote actions.
+- Added accessible search label, labelled filter groups, aria-pressed selection state, and stable data-testid hooks.
+- Preserved all real production records and existing business rules: item data, prices/discounts, requires-quote services, availability, frozen-business restrictions, cart operations, WhatsApp quote link and currency.
+- Expanded the live-directory browser journey to verify the catalogue surface, search, three type filters, categories and first live product card, with overflow checks at 390/768/1440px.
+- No production data, schema, API, Auth/RLS/GRANT, Edge Function, payment or finance change. No production deployment.
+- Exact-head CI is pending; PR #662 remains Draft, and PR #661 doctor-import work remains paused in Draft.
+- FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED remains unchanged.
+
+## 2026-11-03 — V4 storefront responsive overflow follow-up
+
+- Exact-head browser validation on commit `34e8432197b2e4002d0088f132218bbf19b48ec5` exposed horizontal overflow at 768px in the public ticker/storefront journey; build, TypeScript, taxonomy/contracts and isolated PostgreSQL employee/RBAC passed.
+- First repair isolated the animated ticker with paint/layout containment and disabled its duplicated animation track at widths up to 768px. The rerun narrowed the remaining overflow to the storefront quick-action row, which was still forced into a desktop two-column layout at the 768px `md` breakpoint.
+- Second repair keeps the storefront profile and quick actions stacked until the `xl` breakpoint, allows the action group to use the available width and wrap, and constrains its width in the wide layout. No button, contact action, route, business data or permission behavior was removed.
+- Fix commits: `1d2ee251a4074c2ac6c86ad512516489515354e9` (ticker containment) and `a615e3a96dcbf971d7f462a0d29a403de3b4a20f` (storefront responsive layout).
+- Exact-head CI on `a615e3a96dcbf971d7f462a0d29a403de3b4a20f` is pending. Require Playwright 390/768/1440px checks plus build and isolated RBAC before review. PR #662 remains Draft; no merge, production deployment, database/schema/Auth/RLS/GRANT/Edge Function/payment/finance mutation.
+- FULL_PLATFORM_GATE remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-03 — V4 Wave A exact-head validation completed
+
+- Resumed from PR #662 exact head `95f304f11fffc1dafdba969b4bac124883593613` on `feat/aistudio-v4-wave-a-shell-directory-20261103`.
+- Queried the exact-head workflow run [41607452696](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41607452696). All three jobs completed successfully: build/TypeScript/contracts, Playwright browser E2E, and isolated PostgreSQL employee/RBAC tests. No failed steps were reported.
+- This closes the previously pending responsive regression check for the directory/storefront journey, including the 768px horizontal overflow found in earlier runs.
+- PR #662 remains OPEN / DRAFT / unmerged. This run is PR validation; it is not evidence of a production deployment.
+- No production business/catalog data, database schema, Auth/RLS/GRANT, Edge Function, payment/finance, or production configuration was changed.
+- Next: continue V4 screen-by-screen visual/behavior comparison; preserve website-only capabilities; keep finance, wallet, custom links, messaging, marketing spend and AI actions deferred until durable authorized backend contracts are verified. Continue the separate migration/schema, Edge drift, Auth, tenant isolation, payment/finance and backup/restore gates.
+- `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.

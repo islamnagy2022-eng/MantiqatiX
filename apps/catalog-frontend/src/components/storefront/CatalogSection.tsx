@@ -75,7 +75,7 @@ export const CatalogSection: React.FC = () => {
   };
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+    <section data-testid="storefront-catalog" aria-label={`كتالوج منتجات وخدمات ${currentBusiness?.name || ""}`} className="mx-v4-catalog-section max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
       {!isOperationallyHidden && null}
       {isOperationallyHidden && !isFrozen && (
         <div className="bg-slate-50 border border-slate-300 rounded-2xl p-5 mb-6 text-slate-800">
@@ -106,7 +106,7 @@ export const CatalogSection: React.FC = () => {
       {/* Section Header & Subtitle */}
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 mb-2">
+          <div className="mx-v4-catalog-label inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold mb-2">
             <Layers className="w-3.5 h-3.5" />
             <span>كتالوج المنتجات والخدمات</span>
           </div>
@@ -120,10 +120,10 @@ export const CatalogSection: React.FC = () => {
 
         {/* Counter Badge */}
         <div className="flex items-center gap-2 self-start md:self-auto">
-          <div className="bg-slate-100 border border-slate-200/90 rounded-2xl px-3.5 py-2 text-xs font-semibold text-slate-700 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <div className="mx-v4-catalog-counter flex items-center gap-2 rounded-2xl border px-3.5 py-2 text-xs font-semibold">
+            <span aria-hidden="true" className="w-2 h-2 rounded-full bg-sky-500"></span>
             <span>
-              المعروض: <strong className="text-emerald-700 font-extrabold">{filteredItems.length}</strong> من إجمالي {businessProducts.length}
+              المعروض: <strong className="mx-v4-catalog-count font-extrabold">{filteredItems.length}</strong> من إجمالي {businessProducts.length}
             </span>
             <span className="text-slate-400 text-[11px]">(الحد: 150)</span>
           </div>
@@ -131,17 +131,19 @@ export const CatalogSection: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs mb-8 space-y-4">
+      <div data-testid="storefront-catalog-filters" className="mx-v4-catalog-filter-surface mb-8 space-y-4 rounded-2xl border p-4">
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Search Input */}
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-emerald-600 absolute right-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="mx-v4-catalog-search-icon absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2" />
             <input
               type="text"
+              aria-label="ابحث عن منتج أو خدمة داخل النشاط"
+              data-testid="storefront-catalog-search"
               placeholder="ابحث عن منتج أو خدمة داخل النشاط..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pr-10 pl-10 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-semibold"
+              className="mx-v4-catalog-search-input w-full rounded-xl border bg-slate-50 py-2.5 pl-10 pr-10 text-sm font-semibold placeholder:text-slate-400 outline-none transition-all"
             />
             {searchTerm && (
               <button
@@ -155,22 +157,26 @@ export const CatalogSection: React.FC = () => {
           </div>
 
           {/* Type Filter: Products vs Services */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-medium self-start sm:self-auto">
+          <div role="group" aria-label="نوع عناصر الكتالوج" data-testid="storefront-catalog-type-filter" className="flex items-center self-start rounded-xl bg-slate-100 p-1 text-xs font-medium sm:self-auto">
             <button
+              type="button"
+              aria-pressed={selectedType === 'all'}
               onClick={() => setSelectedType('all')}
               className={`px-3 py-2 rounded-lg transition-all ${
                 selectedType === 'all'
-                  ? 'bg-white text-slate-900 font-bold shadow-xs'
+                  ? 'mx-v4-catalog-type-active font-bold'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               الكل ({businessProducts.length})
             </button>
             <button
+              type="button"
+              aria-pressed={selectedType === 'product'}
               onClick={() => setSelectedType('product')}
               className={`flex items-center gap-1 px-3 py-2 rounded-lg transition-all ${
                 selectedType === 'product'
-                  ? 'bg-white text-emerald-700 font-bold shadow-xs'
+                  ? 'mx-v4-catalog-type-active font-bold'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -178,10 +184,12 @@ export const CatalogSection: React.FC = () => {
               <span>منتجات</span>
             </button>
             <button
+              type="button"
+              aria-pressed={selectedType === 'service'}
               onClick={() => setSelectedType('service')}
               className={`flex items-center gap-1 px-3 py-2 rounded-lg transition-all ${
                 selectedType === 'service'
-                  ? 'bg-white text-emerald-700 font-bold shadow-xs'
+                  ? 'mx-v4-catalog-type-active font-bold'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -192,12 +200,14 @@ export const CatalogSection: React.FC = () => {
         </div>
 
         {/* Category Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 no-scrollbar">
+        <div role="group" aria-label="تصنيفات الكتالوج" data-testid="storefront-catalog-categories" className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 no-scrollbar">
           <button
+            type="button"
+            aria-pressed={selectedCategory === 'all'}
             onClick={() => setSelectedCategory('all')}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
               selectedCategory === 'all'
-                ? 'bg-emerald-600 text-white shadow-xs'
+                ? 'mx-v4-catalog-category-active'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
@@ -209,17 +219,19 @@ export const CatalogSection: React.FC = () => {
             return (
               <button
                 key={cat}
+                type="button"
+                aria-pressed={isSelected}
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
                   isSelected
-                    ? 'bg-emerald-600 text-white shadow-xs'
+                    ? 'mx-v4-catalog-category-active'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
                 <span>{cat}</span>
                 <span
                   className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                    isSelected ? 'bg-emerald-700/80 text-white' : 'bg-slate-200 text-slate-600'
+                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
                   }`}
                 >
                   {count}
@@ -254,7 +266,8 @@ export const CatalogSection: React.FC = () => {
             return (
               <div
                 key={product.id}
-                className="group bg-white rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-1"
+                data-testid="storefront-catalog-card"
+                className="mx-v4-catalog-card group flex flex-col overflow-hidden rounded-3xl border bg-white transition-all duration-300 hover:-translate-y-1"
               >
                 {/* Product Image & Badges */}
                 <div className="relative aspect-4/3 w-full bg-slate-100 overflow-hidden">
@@ -308,7 +321,7 @@ export const CatalogSection: React.FC = () => {
                 {/* Product Content Details */}
                 <div className="p-5 flex-1 flex flex-col justify-between">
                   <div>
-                    <h3 className="font-extrabold text-slate-900 text-base leading-snug group-hover:text-emerald-700 transition-colors line-clamp-1">
+                    <h3 className="mx-v4-catalog-card-title font-extrabold text-slate-900 text-base leading-snug transition-colors line-clamp-1">
                       {product.name}
                     </h3>
 
@@ -322,7 +335,7 @@ export const CatalogSection: React.FC = () => {
                     <div>
                       {product.requiresQuote ? (
                         <>
-                          <div className="text-sm font-black text-emerald-800">السعر حسب الاتفاق</div>
+                          <div className="mx-v4-catalog-price-label text-sm font-black">السعر حسب الاتفاق</div>
                           <div className="text-[11px] text-slate-500 mt-0.5">تواصل لطلب عرض سعر</div>
                         </>
                       ) : (
@@ -357,7 +370,7 @@ export const CatalogSection: React.FC = () => {
                           target="_blank"
                           rel="noopener noreferrer"
                           aria-label={`اطلب عرض سعر لخدمة ${product.name}`}
-                          className="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs whitespace-nowrap"
+                          className="mx-v4-catalog-primary-action whitespace-nowrap flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all"
                         >
                           <MessageCircle className="w-4 h-4" />
                           <span>اطلب عرض سعر</span>
@@ -384,7 +397,7 @@ export const CatalogSection: React.FC = () => {
                             ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                             : isRecentlyAdded
                             ? 'bg-emerald-700 text-white shadow-emerald-700/30'
-                            : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
+                            : 'mx-v4-catalog-primary-action'
                         }`}
                       >
                         {isRecentlyAdded ? (

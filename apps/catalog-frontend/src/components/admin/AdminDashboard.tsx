@@ -115,6 +115,8 @@ export const AdminDashboard: React.FC = () => {
     return requested && ADMIN_TABS.includes(requested) ? requested : 'billing';
   };
   const [activeAdminTab, setActiveAdminTabState] = useState<AdminTab>(readAdminTabFromUrl);
+  const adminTabClass = (tab: AdminTab) =>
+    `mx-v4-admin-tab inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${activeAdminTab === tab ? 'mx-v4-admin-tab-active' : ''}`;
   const setActiveAdminTab = (tab: AdminTab) => {
     setActiveAdminTabState(tab);
     const url = new URL(window.location.href);
@@ -614,16 +616,14 @@ export const AdminDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabs Navigation */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto no-scrollbar">
+      {/* V4 admin navigation — presentation only; tab routes and actions stay unchanged. */}
+      <nav aria-label="أقسام إدارة المنصة" data-testid="platform-admin-tabs" className="mx-v4-admin-tabs flex items-center gap-2 border-b pb-2 overflow-x-auto no-scrollbar">
         {/* Tab 1: Billing & Secret Commissions */}
         <button
+          type="button"
+          aria-pressed={activeAdminTab === 'billing'}
           onClick={() => setActiveAdminTab('billing')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${
-            activeAdminTab === 'billing'
-              ? 'bg-emerald-700 text-white shadow-md'
-              : 'text-slate-700 hover:text-emerald-800 bg-white border border-slate-200'
-          }`}
+          className={adminTabClass('billing')}
         >
           <Coins className="w-4 h-4 text-amber-400" />
           <span>نظام الاشتراك الشهري والسداد والتجميد</span>
@@ -634,8 +634,10 @@ export const AdminDashboard: React.FC = () => {
 
         {/* Flexible commission drafts — never activates a financial rule */}
         <button
+          type="button"
+          aria-pressed={activeAdminTab === 'commissions'}
           onClick={() => setActiveAdminTab('commissions')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${activeAdminTab === 'commissions' ? 'bg-indigo-700 text-white shadow-md' : 'text-slate-700 hover:text-indigo-800 bg-white border border-slate-200'}`}
+          className={adminTabClass('commissions')}
         >
           <Coins className="w-4 h-4 text-amber-500" />
           <span>قواعد العمولات المرنة</span>
@@ -643,12 +645,10 @@ export const AdminDashboard: React.FC = () => {
 
         {/* Tab 2: Taxonomy & Functional Groups */}
         <button
+          type="button"
+          aria-pressed={activeAdminTab === 'taxonomy'}
           onClick={() => setActiveAdminTab('taxonomy')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${
-            activeAdminTab === 'taxonomy'
-              ? 'bg-indigo-700 text-white shadow-md'
-              : 'text-slate-700 hover:text-indigo-800 bg-white border border-slate-200'
-          }`}
+          className={adminTabClass('taxonomy')}
         >
           <Layers className="w-4 h-4 text-indigo-400" />
           <span>التصنيف الوظيفي والأنشطة ({functionalGroups.length} قطاعات)</span>
@@ -656,12 +656,10 @@ export const AdminDashboard: React.FC = () => {
 
         {/* Tab 3: Businesses */}
         <button
+          type="button"
+          aria-pressed={activeAdminTab === 'businesses'}
           onClick={() => setActiveAdminTab('businesses')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${
-            activeAdminTab === 'businesses'
-              ? 'bg-emerald-600 text-white shadow-md'
-              : 'text-slate-600 hover:text-slate-900 bg-white border border-slate-200'
-          }`}
+          className={adminTabClass('businesses')}
         >
           <Building2 className="w-4 h-4" />
           <span>الأنشطة التجارية ({businesses.length})</span>
@@ -669,12 +667,10 @@ export const AdminDashboard: React.FC = () => {
 
         {/* Tab 4: Subscribers */}
         <button
+          type="button"
+          aria-pressed={activeAdminTab === 'subscribers'}
           onClick={() => setActiveAdminTab('subscribers')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${
-            activeAdminTab === 'subscribers'
-              ? 'bg-emerald-600 text-white shadow-md'
-              : 'text-slate-600 hover:text-slate-900 bg-white border border-slate-200'
-          }`}
+          className={adminTabClass('subscribers')}
         >
           <KeyRound className="w-4 h-4 text-amber-500" />
           <span>المشتركون وحسابات Google ({subscribers.length})</span>
@@ -682,12 +678,10 @@ export const AdminDashboard: React.FC = () => {
 
         {/* Public directory listings and ownership claims */}
         <button
+          type="button"
+          aria-pressed={activeAdminTab === 'directory_listings'}
           onClick={() => setActiveAdminTab('directory_listings')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${
-            activeAdminTab === 'directory_listings'
-              ? 'bg-emerald-700 text-white shadow-md'
-              : 'text-slate-700 hover:text-emerald-800 bg-white border border-slate-200'
-          }`}
+          className={adminTabClass('directory_listings')}
         >
           <Store className="w-4 h-4" />
           <span>دليل الأنشطة والمطالبات</span>
@@ -695,12 +689,10 @@ export const AdminDashboard: React.FC = () => {
 
         {/* Per-activity module configuration */}
         <button
+          type="button"
+          aria-pressed={activeAdminTab === 'activity_modules'}
           onClick={() => setActiveAdminTab('activity_modules')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${
-            activeAdminTab === 'activity_modules'
-              ? 'bg-indigo-700 text-white shadow-md'
-              : 'text-slate-700 hover:text-indigo-800 bg-white border border-slate-200'
-          }`}
+          className={adminTabClass('activity_modules')}
         >
           <Layers className="w-4 h-4" />
           <span>إعدادات وحدات الأنشطة</span>
@@ -708,12 +700,10 @@ export const AdminDashboard: React.FC = () => {
 
         {/* Tab 5: Settings */}
         <button
+          type="button"
+          aria-pressed={activeAdminTab === 'settings'}
           onClick={() => setActiveAdminTab('settings')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${
-            activeAdminTab === 'settings'
-              ? 'bg-slate-900 text-white shadow-md'
-              : 'text-slate-600 hover:text-slate-900 bg-white border border-slate-200'
-          }`}
+          className={adminTabClass('settings')}
         >
           <Settings className="w-4 h-4" />
           <span>إعدادات الإدارة وواتساب الكتالوج</span>
@@ -722,7 +712,7 @@ export const AdminDashboard: React.FC = () => {
         {/* Tab 6: Backup */}
         
         
-      </div>
+      </nav>
 
       {activeAdminTab === 'commissions' && <CommissionRulesManager />}
 

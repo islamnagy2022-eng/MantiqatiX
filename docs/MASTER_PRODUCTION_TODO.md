@@ -92,6 +92,18 @@
 ### Next action
 Continue remaining v4 screen/behavior parity against deployed main. Preserve website-only capabilities until an explicit owner decision. Keep Member Messages deferred until durable server-side storage, authorization, audit and notification contracts exist. Integrate wallet/finance and AI/marketing only through verified backend APIs/RLS/RBAC.
 
+### Wave A continuation — navigation and directory search (2026-11-03)
+- [x] Create isolated branch `feat/aistudio-v4-wave-a-shell-directory-20261103` from current main `36a98b5153b2c911cf59ea7aaa8f7fd8c9469724`.
+- [x] Restyle the global navigation shell toward the V4 hierarchy while preserving current navigation destinations, guest/customer state, account portal, owner/professional dashboard, and Super Admin guards.
+- [x] Add an accessible Arabic name and stable test hook to the main navigation.
+- [x] Restyle the directory search workspace with a clear heading and accessible search field; preserve the four current geographic filters, explicit location consent, the existing query, and the production directory source.
+- [x] Extend browser E2E to validate navigation accessibility, the search field, four geographic filters, direct-route reload, and horizontal overflow at 390/768/1440px.
+- [ ] Exact-head TypeScript/build/browser/accessibility workflows must pass on the final branch HEAD. CI is pending; no merge or deployment is claimed.
+- [ ] Review screenshots/visual results against the V4 archive on desktop/mobile and adjust only confirmed mismatches.
+- [ ] Continue the owner-dashboard V4 presentation after Wave A; preserve website-only CSV import, employee/branch management, Facebook import, QR, Super Admin permissions, and server-backed data.
+- **Production boundary:** presentation and tests only. No real activity/business data, schema, Auth/RLS/GRANT, Edge Function, payments, finance, or production deployment changed.
+
+
 ---
 
 # MNTY / MantiqatiX — Master Production TODO & Release Execution Register
@@ -3285,3 +3297,93 @@ A separate source review found a second platform-root authorization model: the n
 - Fixed the test to use the exact accessible label: `getByLabel('التخصص', { exact: true })`.
 - Fix commit: `92bf4c9cc5dfe0912ecdb49138b31467f9762efd` on the same isolated PR branch.
 - Pending: wait for and inspect exact-head CI on the fix commit; rerun the full browser suite if needed. PR #650 remains Draft/unmerged/undeployed. No production data/schema/Auth/RLS/GRANT/Edge/payment mutation.
+
+
+### V4 continuation — validation and token foundation (2026-11-03)
+- [x] Exact-head build, TypeScript, catalog contract and production-preview smoke checks passed on f658c66e007301839763c7c5784e9a93128356ff.
+- [x] Exact-head Playwright browser suite passed on f658c66e007301839763c7c5784e9a93128356ff.
+- [x] Isolated PostgreSQL employee/RBAC migration and behavior tests passed on f658c66e007301839763c7c5784e9a93128356ff.
+- [x] Added opt-in V4 design tokens (blue palette, Arabic/Latin font stacks, radii and shadows) without global legacy recoloring.
+- [x] Applied V4 blue active treatment to the seven owner-dashboard tabs and added computed-style browser assertions.
+- [ ] Run exact-head CI for the token and active-tab styling changes before merge/release.
+- [ ] Continue storefront and public discovery screen parity using scoped tokens; do not port finance/custom links until durable server contracts and authorization/audit checks are verified.
+- **Production remains unchanged.** No DB/Auth/RLS/GRANT/Edge/payment/finance mutation or deployment was performed. Full platform gate remains BLOCKED / NOT CERTIFIED.
+
+
+### Wave A continuation — public storefront hero and verification clarity (2026-11-03)
+- [x] Keep the existing full-width business cover and responsive desktop/mobile composition; add an accessible Arabic cover-region label and stable test hook.
+- [x] Correct the profile-logo trust indicator: verified activities use the verified mark, unverified activities use a neutral building mark, and frozen activities retain their frozen mark.
+- [x] Show an explicit neutral unverified badge instead of implying every non-frozen storefront is verified.
+- [x] Preserve external logo/cover links only for verified businesses with explicit configured external URLs.
+- [x] Respect `prefers-reduced-motion` for the cover slider, lengthen normal auto-rotation to five seconds, and expose slide button pressed states.
+- [x] Make storefront share feedback accessible and handle clipboard errors without an unhandled promise.
+- [x] Add browser assertions for verified/unverified status and responsive overflow at 390/768/1440px.
+- [ ] Run exact-head build, Playwright, isolated PostgreSQL/RBAC and accessibility checks. Do not merge/deploy before all exact-head checks pass.
+- **Production boundary:** no activity record, verification value, profile URL, catalog item, schema, Auth/RLS/GRANT, Edge Function, finance or production deployment changed.
+
+
+### V4 continuation — validation and token foundation (2026-11-03)
+- [x] Exact-head build, TypeScript, catalog contract and production-preview smoke checks passed on f658c66e007301839763c7c5784e9a93128356ff.
+- [x] Exact-head Playwright browser suite passed on f658c66e007301839763c7c5784e9a93128356ff.
+- [x] Isolated PostgreSQL employee/RBAC migration and behavior tests passed on f658c66e007301839763c7c5784e9a93128356ff.
+- [x] Added opt-in V4 design tokens (blue palette, Arabic/Latin font stacks, radii and shadows) without global legacy recoloring.
+- [x] Applied V4 blue active treatment to the seven owner-dashboard tabs and added computed-style browser assertions.
+- [ ] Run exact-head CI for the token and active-tab styling changes before merge/release.
+- [ ] Continue storefront and public discovery screen parity using scoped tokens; do not port finance/custom links until durable server contracts and authorization/audit checks are verified.
+- **Production remains unchanged.** No DB/Auth/RLS/GRANT/Edge/payment/finance mutation or deployment was performed. Full platform gate remains BLOCKED / NOT CERTIFIED.
+
+
+### V4 continuation — public discovery token application (2026-11-03)
+- [x] Apply opt-in V4 blue/cyan tokens to the Directory search panel, badge, search input, location action, location links and four geographic selectors.
+- [x] Keep the default directory route, live public query, explicit GPS consent, verified-first ordering, keyset pagination and 20-item progressive loading unchanged.
+- [x] Add browser assertions for all four token-styled geographic filters and the computed blue-gradient location action/search accent.
+- [x] Exact-head TypeScript/build, Playwright, PostgreSQL/RBAC and Pages PR validation passed on `0a31f6247ea26270651fec74730fd5c26245b885` (Primary Catalog Frontend Validation run `41579574795`; Pages PR validation run `41579574473`, deploy job skipped).
+- **Production boundary:** presentation only; no business data, query/API, schema, Auth/RLS/GRANT, Edge Function, payments or production deployment changed.
+
+
+### V4 continuation — administration navigation presentation (2026-11-03)
+- [x] Apply shared V4 blue/cyan token styling to the platform-admin and nested Super Admin control-center navigation.
+- [x] Add accessible Arabic nav labels, stable test hooks and pressed-state semantics without changing tab destinations or URL state.
+- [x] Preserve the eight current platform-admin tabs and five Super Admin areas (roles, assignments, employees, management, audit).
+- [x] Add browser assertions for tab counts, active gradients, URL-backed audit selection and responsive overflow at 390/768/1440px.
+- [ ] Run exact-head TypeScript/build, Playwright, isolated PostgreSQL/RBAC and Pages PR validation before review.
+- **Production boundary:** no permission/RPC/audit/data/schema/Auth/RLS/GRANT/Edge/payment/finance mutation or deployment.
+
+### V4 continuation — public storefront presentation (2026-11-03)
+- [x] Add V4 blue/cyan token styling to storefront hero wrapper, category chip, share action, and map/QR actions.
+- [x] Distinguish verified, unverified and frozen storefront states without inferring verification from a photo or logo.
+- [x] Respect reduced-motion settings and make cover-carousel interval less aggressive.
+- [x] Make share-link clipboard status asynchronous and announce copy failure honestly.
+- [x] Add browser checks for the V4 storefront token classes, verification accessibility, unverified badge suppression, and 390/768/1440px overflow.
+- [x] Define missing --mx-blue-300 token required by admin-tab hover styling.
+- [ ] Run exact-head build, Playwright, isolated PostgreSQL/RBAC and Pages PR validation.
+- **Production boundary:** presentation/accessibility only; no real activity/business records, media, verification status, data APIs, schema, Auth/RLS/GRANT, Edge Function, payments/finance, or production deployment changed.
+- [x] Cover carousel exposes labelled keyboard controls and announces active slide through aria-pressed; inactive slides are hidden from assistive technology.
+- [x] Cover fade animation respects reduced-motion preference; active slide/location accents use V4 blue palette.
+- [ ] Exact-head Playwright/build revalidation is pending.
+### V4 continuation — public catalogue filters and cards (2026-11-03)
+- [x] Apply V4 token styles to public catalogue heading, result counter, filters/search surface, type/category active states, cards, quote label and primary cart/quote actions.
+- [x] Add accessible labels, filter groups, aria-pressed state and stable browser-test hooks.
+- [x] Preserve production data, prices/discounts, quote-required services, availability/frozen guards, cart behavior, WhatsApp route and currency.
+- [x] Add live-directory E2E assertions for catalogue rendering, filters, card token use and 390/768/1440px layout.
+- [ ] Exact-head build, Playwright, RBAC/PostgreSQL and Pages PR validation.
+- **Production boundary:** no catalogue, inventory, price, order, business or financial data/API/schema/auth/security change or production deployment.
+
+## V4-WAVE-A-VALIDATION-20261103 — exact-head responsive validation
+**Branch:** `feat/aistudio-v4-wave-a-shell-directory-20261103`  
+**PR:** [#662](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/662) — OPEN / DRAFT / NOT MERGED.  
+**Exact head:** `95f304f11fffc1dafdba969b4bac124883593613`.  
+**Validation run:** [Primary Catalog Frontend Validation #41607452696](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41607452696).
+
+### Verified on exact head
+- [x] Build and TypeScript validation — PASS.
+- [x] Playwright browser E2E — PASS, including the responsive storefront/directory journeys after the 768px overflow repairs.
+- [x] Isolated PostgreSQL employee/RBAC behavior tests — PASS.
+- [x] All three jobs in run #41607452696 completed successfully; no failed steps.
+
+### Scope and release boundary
+- [x] Responsive fixes remain limited to presentation/layout; no business records, catalog values, role grants, schema, Auth/RLS, Edge Functions, payment/finance or production configuration changed.
+- [x] PR remains Draft; no merge or production deployment performed by this continuation.
+- [ ] Continue visual comparison of the remaining v4 screens and identify any owner decisions/conflicts before adding backend-dependent finance, wallet, custom links, messaging, marketing or AI actions.
+- [ ] Reconcile the remaining global production blockers independently; this UI validation does not certify the platform.
+- **FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED** remains unchanged.

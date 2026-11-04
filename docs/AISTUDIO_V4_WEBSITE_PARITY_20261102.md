@@ -168,3 +168,89 @@ PR #650 and PR #651 are merged into current `main`; PR #648 is closed as superse
 
 - The AI Studio `MemberMessagesView` depends on local AppContext state. Current website source contains no verified `member_direct_messages`, `sendMemberDirectMessage`, `replyToMemberDirectMessage` or `openMemberMessagingForTarget` contract.
 - It must not be ported as a fake shared inbox. A real feature requires durable server APIs/tables, recipient and tenant privacy, membership-scoped authorization, audit trail, notification delivery and end-to-end verification.
+
+
+## 2026-11-03 — Wave A continuation: navigation and directory search presentation
+
+- **Branch:** `feat/aistudio-v4-wave-a-shell-directory-20261103`, based on `main` at `36a98b5153b2c911cf59ea7aaa8f7fd8c9469724`.
+- **Navigation:** restyled the global shell toward the V4 hierarchy (dark micro-header, clearer brand/context row, rounded high-contrast navigation pills). Added an accessible Arabic nav name and stable test hook. All current routes and role/membership guards remain in place, including the owner, professional, account portal and Super Admin entries.
+- **Directory search:** upgraded the search workspace with a clear section heading, accessible labelled search field, clearer geographic action hierarchy and more consistent filter styling. The existing four geographic selectors and the current query state are preserved.
+- **Data/behavior boundary:** no new API, database field, storage behavior, activity data, listing status, verification rule, pagination behavior or geographic-consent behavior was changed. Results still come from the existing public data sources and preserve the current verified-first/20-row flow.
+- **Regression coverage:** expanded the existing browser journey to assert the primary navigation label/test hook, the directory search field, all four geographic filters, reload restoration, and no horizontal overflow at 390px, 768px and 1440px.
+- **Current code/test head:** `5452ef877eb3a3491741222af2565146e6cc65d3`. Exact-head validation is pending; no merge or deployment is claimed.
+- **Production:** no data/schema/Auth/RLS/GRANT/Edge/payment/finance change or production deployment.
+- **Next:** fix any exact-head build/browser/accessibility failure, inspect the deployed-reference appearance at phone/tablet/desktop sizes, then continue the V4 owner dashboard presentation wave without removing website-only CSV import, employee/branch management, Facebook import, QR, Super Admin permission controls or existing secure data contracts.
+
+
+## 2026-11-03 — Wave A validation and V4 token foundation
+
+- Exact-head validation passed for f658c66e007301839763c7c5784e9a93128356ff: primary catalog build/TypeScript/contracts, browser Playwright, and isolated PostgreSQL employee RBAC all completed successfully (workflow run 41570424483).
+- The branch remains isolated in Draft PR #662; successful CI is not a merge or production deployment.
+- Continued the presentation foundation by adding the V4 blue palette, typography, radius and shadow tokens to src/index.css. Tokens are opt-in and do not globally recolor legacy modules.
+- Applied the centralized blue-gradient active state to all seven owner-dashboard tabs, preserving the three primary V4 tabs and all website-only tools. Added browser assertions for the active QR tab's computed gradient.
+- Current token changes require a new exact-head validation before review/merge. No backend, data, role, authorization or production setting changed.
+- Next safe scope: apply the token system screen-by-screen to storefront and public discovery surfaces, comparing against the supplied V4 archive where available. Finance and custom links remain blocked pending verified persisted API contracts.
+
+
+## 2026-11-03 — Wave A storefront presentation and trust-state continuation
+
+- **Storefront hero:** added a stable browser hook and Arabic accessible label to the full-width cover region; kept the existing 16:9 mobile / wide desktop cover proportions, owner-supplied images, neutral fallback and permanent storefront behavior.
+- **Trust-state correction:** the logo indicator now distinguishes verified, unverified and frozen activities. The cover badge explicitly labels an unverified activity as `نشاط غير موثّق`; it no longer presents the generic green check for every non-frozen business. External logo/cover links remain visible only for verified businesses with explicit configured URLs.
+- **Motion/accessibility:** cover auto-rotation now respects `prefers-reduced-motion` and runs at a calmer 5-second interval otherwise. Slide controls expose button type and pressed state. The share action now handles clipboard failure and announces success/failure to assistive technology.
+- **Regression coverage:** browser E2E now checks the verified and unverified storefront trust states, the labelled cover hero, and no horizontal overflow at 390/768/1440px.
+- **Data boundary:** no business profile, verification flag, logo/cover URL, product, or public directory record was changed. This is presentation and accessibility only; no schema/API/Auth/RLS/finance changes.
+- **Validation:** exact-head CI for this follow-up is pending. The previous Wave A code head passed all three validation jobs (build/typecheck, Playwright browser E2E, and isolated PostgreSQL employee RBAC). Do not merge until the new exact head passes.
+
+
+## 2026-11-03 — Wave A validation and V4 token foundation
+
+- Exact-head validation passed for f658c66e007301839763c7c5784e9a93128356ff: primary catalog build/TypeScript/contracts, browser Playwright, and isolated PostgreSQL employee RBAC all completed successfully (workflow run 41570424483).
+- The branch remains isolated in Draft PR #662; successful CI is not a merge or production deployment.
+- Continued the presentation foundation by adding the V4 blue palette, typography, radius and shadow tokens to src/index.css. Tokens are opt-in and do not globally recolor legacy modules.
+- Applied the centralized blue-gradient active state to all seven owner-dashboard tabs, preserving the three primary V4 tabs and all website-only tools. Added browser assertions for the active QR tab's computed gradient.
+- Current token changes require a new exact-head validation before review/merge. No backend, data, role, authorization or production setting changed.
+- Next safe scope: apply the token system screen-by-screen to storefront and public discovery surfaces, comparing against the supplied V4 archive where available. Finance and custom links remain blocked pending verified persisted API contracts.
+
+
+## 2026-11-03 — V4 public discovery token application
+
+- Applied the opt-in V4 blue/cyan token system to the public Directory search workspace: panel surface, top accent, search badge/icon/input, location action, location links and all four geographic selectors.
+- The location action now uses the centralized blue gradient; focus states use the cyan/blue token palette.
+- No directory query, data source, filter state, GPS consent, keyset cursor, verified-first ordering or 20-row progressive loading behavior changed.
+- Browser E2E asserts all four selectors use the V4 style and the location action/top accent render the token-backed gradient. Existing 390/768/1440px overflow checks remain.
+- Exact-head CI passed on `0a31f6247ea26270651fec74730fd5c26245b885`: Primary Catalog Frontend Validation PASS (build, Playwright, isolated PostgreSQL/RBAC); Pages PR validation PASS with deploy job SKIPPED. No production data, schema, Auth/RLS/GRANT, Edge Function or deployment change.
+
+
+## 2026-11-03 — V4 administration navigation presentation
+
+- Applied the shared V4 blue/cyan token treatment to the platform-admin tab bar and the nested Super Admin control-center tab bar.
+- Added Arabic accessible names, stable test hooks and pressed-state semantics for the existing tabs.
+- Preserved all current destinations, URL-backed `tab` / `controlTab` state, billing/commission/taxonomy/business/subscriber/directory/module/settings behavior, Super Admin role/assignment/employee/management/audit areas, and all backend RPCs.
+- Added browser checks for the eight existing platform-admin entries, five Super Admin control-center areas, active blue gradient, direct-route state restoration and overflow at 390/768/1440px.
+- Exact-head validation is pending. Presentation only; no role/permission policy, RPC, audit record, business data, schema or production deployment changed.
+
+
+## 2026-11-03 — V4 public storefront hero and verification state
+
+- Reworked the public storefront cover wrapper and contact-action colors to use the shared V4 blue/cyan design tokens. The existing merchant-owned cover images, carousel data and permanent storefront URL remain authoritative.
+- Added an explicit, accessible verification indicator with three distinct states: verified, unverified and frozen. Unverified profiles no longer leave the logo badge visually indistinguishable from the verified state; verified state remains sourced only from `currentBusiness.isVerified`.
+- Respect `prefers-reduced-motion` for the cover carousel and lengthened the automatic rotation interval to five seconds.
+- Made share-link copy asynchronous and failure-aware, with a live status announcement rather than silently claiming success when Clipboard API access is unavailable.
+- Added browser coverage for cover and category V4 token use, map/QR/share action styling, direct storefront verification state, unverified state suppression of verified claims, and horizontal overflow at 390/768/1440px.
+- Added the missing `--mx-blue-300` token referenced by V4 admin hover styling.
+- No business record, verification state, media URL, catalog item, contact data, query, database/schema, Auth/RLS/GRANT, Edge Function, payment or finance action changed.
+- Exact-head CI for these latest storefront assertions is pending; no merge or deployment is claimed.
+
+### Storefront accessibility follow-up — 2026-11-03
+- [x] Expose cover-slide controls as a labelled group, with keyboard-operable buttons and an explicit pressed state.
+- [x] Hide inactive cover slides from the accessibility tree and remove slide fade transitions under reduced-motion preferences.
+- [x] Align the active cover indicator and location marker to V4 blue/cyan tokens while preserving green verification and red frozen semantics.
+- [ ] Exact-head Playwright and build validation on the final PR head.
+## 2026-11-03 — V4 public product/service catalogue
+
+- Applied the shared blue/cyan design tokens to the public catalogue heading, counter, search/filter surface, search input, type/category active states, product cards, price-on-request label and active cart/quote actions.
+- Added accessible search naming, labelled type/category filter groups, aria-pressed state for type/category selection, and stable test hooks for the catalogue, filters and product cards.
+- Preserved the existing production-backed product/service records, current pricing and discounts, quote-required behavior, availability checks, frozen-state restrictions, cart operations, WhatsApp quote route and currency display.
+- Added browser assertions using live published verified businesses to check catalogue semantics, selected filters, real product rendering and 390/768/1440px overflow.
+- No product, price, inventory, availability, discount, order, cart, business data, API, schema, Auth/RLS/GRANT, Edge Function, payment or finance state changed.
+- Exact-head validation is pending; no merge or deployment is claimed.

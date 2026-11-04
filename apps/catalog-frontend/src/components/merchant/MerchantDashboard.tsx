@@ -178,14 +178,18 @@ export const MerchantDashboard: React.FC = () => {
   };
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [storeUrlCopied, setStoreUrlCopied] = useState(false);
+  const [storeUrlCopyFailed, setStoreUrlCopyFailed] = useState(false);
   const handleCopyStoreUrl = async () => {
     if (!permanentStoreUrl) return;
+    setStoreUrlCopyFailed(false);
     try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
       await navigator.clipboard.writeText(permanentStoreUrl);
       setStoreUrlCopied(true);
       window.setTimeout(() => setStoreUrlCopied(false), 2500);
     } catch {
-      window.alert('تعذر نسخ رابط النشاط تلقائيًا. افتح معاينة صفحة النشاط وانسخ الرابط من شريط العنوان.');
+      setStoreUrlCopyFailed(true);
+      window.setTimeout(() => setStoreUrlCopyFailed(false), 4500);
     }
   };
 
@@ -661,108 +665,108 @@ export const MerchantDashboard: React.FC = () => {
           <p className="text-xs leading-6 text-slate-300">
             خصوصية بياناتك محفوظة؛ لا تظهر منتجات نشاطك أو روابطه الخاصة ضمن حساب نشاط آخر.
           </p>
-          <button
-            type="button"
-            onClick={handleCopyStoreUrl}
-            disabled={!permanentStoreUrl}
-            className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs font-black text-emerald-200 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-            {storeUrlCopied ? 'تم نسخ رابط النشاط' : 'نسخ رابط متجرك المباشر'}
-          </button>
+          <div className="flex min-w-0 flex-col items-stretch gap-1 sm:items-end">
+            <button
+              type="button"
+              onClick={handleCopyStoreUrl}
+              disabled={!permanentStoreUrl}
+              className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs font-black text-emerald-200 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              {storeUrlCopied ? 'تم نسخ رابط النشاط' : 'نسخ رابط متجرك المباشر'}
+            </button>
+            {storeUrlCopyFailed && (
+              <p role="status" aria-live="polite" className="max-w-xs text-right text-[11px] font-semibold leading-5 text-amber-200">
+                تعذر نسخ الرابط تلقائيًا. يمكنك فتح معاينة صفحة النشاط ونسخ الرابط من شريط العنوان.
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Tabs Bar */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto no-scrollbar">
-        <button
-          onClick={() => setActiveTab('products')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-            activeTab === 'products'
-              ? 'bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
-              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-          }`}
-        >
-          <Package className="w-4 h-4" />
-          <span>قائمة المنتجات والخدمات ({productsCount})</span>
-        </button>
+      {/* V4 primary owner tabs, followed by retained website-only tools. */}
+      <nav
+        aria-label="أقسام لوحة صاحب النشاط"
+        data-testid="merchant-dashboard-tabs"
+        className="flex w-full items-center gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-slate-50/90 p-2 shadow-inner no-scrollbar"
+      >
+        <div className="flex shrink-0 items-center gap-1 rounded-xl border border-slate-200 bg-white p-1">
+          <button
+            type="button"
+            onClick={() => setActiveTab('products')}
+            aria-pressed={activeTab === 'products'}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'products' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+          >
+            <Package className="h-4 w-4" />
+            <span>الكتالوج ({productsCount})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('branding')}
+            aria-pressed={activeTab === 'branding'}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'branding' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+          >
+            <ImageIcon className="h-4 w-4" />
+            <span>الهوية البصرية</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('profile')}
+            aria-pressed={activeTab === 'profile'}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'profile' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+          >
+            <Phone className="h-4 w-4" />
+            <span>بيانات النشاط</span>
+          </button>
+        </div>
 
-        <button
-          onClick={() => setActiveTab('import')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${activeTab === 'import'
-            ? 'bg-indigo-600 text-white shadow-md'
-            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-          }`}
-        >
-          <Upload className="w-4 h-4" />
-          <span>استيراد كتالوج من CSV</span>
-        </button>
+        <span className="h-8 w-px shrink-0 bg-slate-300" aria-hidden="true" />
 
-        <button
-          onClick={() => setActiveTab('branding')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-            activeTab === 'branding'
-              ? 'bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
-              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-          }`}
-        >
-          <ImageIcon className="w-4 h-4" />
-          <span>تخصيص الغلاف والشعار (Cover & Logo)</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('profile')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-            activeTab === 'profile'
-              ? 'bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
-              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-          }`}
-        >
-          <Phone className="w-4 h-4" />
-          <span>بيانات النشاط وعنوان القرية / المركز</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('functional_engine')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-            activeTab === 'functional_engine'
-              ? 'bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
-              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-          }`}
-        >
-          <Layers className="w-4 h-4" />
-          <span>التصنيف الوظيفي ومسار التطوير</span>
-          {currentGroupInfo && (
-            <span className="text-[10px] bg-emerald-700 text-white px-2 py-0.5 rounded-full font-bold">
-              {currentGroupInfo.shortName}
-            </span>
-          )}
-        </button>
-
-        <button
-          onClick={() => setActiveTab('qr')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-            activeTab === 'qr'
-              ? 'bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
-              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-          }`}
-        >
-          <QrCode className="w-4 h-4" />
-          <span>QR كود النشاط الدائم</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('employees')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-            activeTab === 'employees'
-              ? 'bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
-              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-          }`}
-        >
-          <Briefcase className="w-4 h-4" />
-          <span>الموظفون والتوظيف</span>
-        </button>
-      </div>
+        <div className="flex shrink-0 items-center gap-1 rounded-xl border border-dashed border-slate-200 bg-white/70 p-1">
+          <span className="px-2 text-[10px] font-black text-slate-400">أدوات إضافية</span>
+          <button
+            type="button"
+            onClick={() => setActiveTab('import')}
+            aria-pressed={activeTab === 'import'}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'import' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+          >
+            <Upload className="h-4 w-4" />
+            <span>استيراد CSV</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('employees')}
+            aria-pressed={activeTab === 'employees'}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'employees' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+          >
+            <Briefcase className="h-4 w-4" />
+            <span>الموظفون والتوظيف</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('qr')}
+            aria-pressed={activeTab === 'qr'}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'qr' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+          >
+            <QrCode className="h-4 w-4" />
+            <span>QR كود النشاط الدائم</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('functional_engine')}
+            aria-pressed={activeTab === 'functional_engine'}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'functional_engine' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+          >
+            <Layers className="h-4 w-4" />
+            <span>التصنيف الوظيفي ومسار التطوير</span>
+            {currentGroupInfo && (
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-900">
+                {currentGroupInfo.shortName}
+              </span>
+            )}
+          </button>
+        </div>
+      </nav>
 
       {activeTab === 'employees' && <BusinessEmployeeManager business={currentBusiness} />}
       {activeTab === 'import' && <CatalogImportPanel />}
