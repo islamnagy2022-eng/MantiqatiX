@@ -114,17 +114,30 @@ type PublicDirectoryResult = {
   products: Product[];
   activityModuleOverrides: ActivityModuleOverrides;
   activityModuleOverridesAvailable: boolean;
+  hasMore: boolean;
+  nextCursor: string | null;
+  pageSize: number;
 };
 let publicDirectoryInFlight: Promise<PublicDirectoryResult> | null = null;
 
-export function fetchPublicDirectory(): Promise<PublicDirectoryResult> {
-  // AppContext and the signed-out auth bootstrap may start together. Share one
-  // in-flight read while preserving the complete public directory response.
-  if (publicDirectoryInFlight) return publicDirectoryInFlight;
+export function fetchPublicDirectory(options: { limit?: number; cursor?: string } = {}): Promise<PublicDirectoryResult> {
+  const limit = options.limit ?? 20;
+  const cursor = options.cursor || null;
+  const isFirstPage = !cursor;
+  // AppContext and signed-out auth bootstrap may start together. Share the
+  // initial request; continuation pages are protected by the caller's loading lock.
+  if (isFirstPage && publicDirectoryInFlight) return publicDirectoryInFlight;
 
   const request = (async (): Promise<PublicDirectoryResult> => {
-    const { data, error } = await supabase.functions.invoke('public-catalog-directory', { method: 'GET' } as any);
-    if (error) throw new Error(error.message || 'تعذر تحميل دليل الأنشطة المنشورة');
+    const url = new URL(`${String(runtime.supabaseUrl).replace(/\\/$/, '')}/functions/v1/public-catalog-directory`);
+    url.searchParams.set('limit', String(limit));
+    if (cursor) url.searchParams.set('cursor', cursor);
+    const response = await fetch(url.toString(), {
+      headers: { apikey: runtime.supabaseKey, Accept: 'application/json' },
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data?.error) throw new Error(data?.error || 'تعذر تحميل دليل الأنشطة المنشورة');
+
     const rows = Array.isArray(data?.businesses) ? data.businesses : [];
     const businesses: Business[] = [];
     const products: Product[] = [];
@@ -136,14 +149,24 @@ export function fetchPublicDirectory(): Promise<PublicDirectoryResult> {
     const activityModuleOverrides = data?.activityModuleOverrides && typeof data.activityModuleOverrides === 'object' && !Array.isArray(data.activityModuleOverrides)
       ? data.activityModuleOverrides as ActivityModuleOverrides
       : {};
-    return { businesses, products, activityModuleOverrides, activityModuleOverridesAvailable: data?.activityModuleOverridesAvailable === true };
+    return {
+      businesses,
+      products,
+      activityModuleOverrides,
+      activityModuleOverridesAvailable: data?.activityModuleOverridesAvailable === true,
+      hasMore: data?.hasMore === true,
+      nextCursor: typeof data?.nextCursor === 'string' && data.nextCursor ? data.nextCursor : null,
+      pageSize: Number.isInteger(data?.pageSize) ? data.pageSize : limit,
+    };
   })();
 
-  publicDirectoryInFlight = request;
-  const clearInFlight = () => {
-    if (publicDirectoryInFlight === request) publicDirectoryInFlight = null;
-  };
-  void request.then(clearInFlight, clearInFlight);
+  if (isFirstPage) {
+    publicDirectoryInFlight = request;
+    const clearInFlight = () => {
+      if (publicDirectoryInFlight === request) publicDirectoryInFlight = null;
+    };
+    void request.then(clearInFlight, clearInFlight);
+  }
   return request;
 }
 
