@@ -93,7 +93,11 @@ assert.ok(directoryListingsView.includes('profileImageUrl: asText(meta.profileIm
 assert.ok(directoryListingsLib.includes('profileImageUrl: input.profileImageUrl.trim()'), 'the owner image URL must be persisted through the existing owned listing update request');
 assert.ok(directoryListingsFunction.includes('"profileImageUrl"'), 'the existing owned-listing server allowlist must continue accepting the owner image URL metadata field');
 assert.match(productionMapper, /isStockImageUrl\(savedLogo\) && !officialShowcase/, 'legacy stock image URLs must only be restored for platform-owned showcase activities');
-assert.match(productionMapper, /metadata\.image_url \|\| i\.imageUrl \|\| i\.image_url/, 'normalized public catalog responses must preserve actual owner-uploaded product images');
+assert.match(productionMapper, /metadata\.image_url \|\| item\.imageUrl \|\| item\.image_url/, 'legacy and normalized public catalog responses must preserve actual owner-uploaded product images');
+assert.match(productionMapper, /item\.name_ar \|\| item\.nameAr/, 'both public API item-name contracts must be normalized');
+assert.match(productionMapper, /item\.status \?\? item\.itemStatus/, 'explicit inactive catalog items must be rejected while server-filtered public API rows may omit status');
+assert.match(productionMapper, /validPrices\.find[\s\S]*?branchId[\s\S]*?validPrices\.find\(\(candidate: any\) => !candidate\.branch_id/, 'public catalog mapping must select the selected branch or global price only, never another branch price');
+assert.match(productionMapper, /metadata\.show_price === false \|\| item\.requiresQuote === true/, 'quote-only service items must remain available without disclosing a numeric price');
 assert.match(productionMapper, /catalogPublished: Boolean\(raw\.catalogPublished/, 'public directory presence must stay separate from the enabled public catalogue flag');
 assert.doesNotMatch(storefrontHeader, /platformAdCover|isCurrentSlideAd|images\.unsplash\.com/, 'storefront must not inject fabricated platform ad slides or stock cover photos');
 assert.doesNotMatch(storefrontCatalog, /images\.unsplash\.com/, 'public product cards must not use stock-photo fallbacks');
