@@ -11,6 +11,29 @@ const headersFor = (origin: string | null) => ({
 });
 const response = (origin: string | null, body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: headersFor(origin) });
 
+const PUBLIC_DIRECTORY_DEFAULT_PAGE_SIZE = 20;
+const PUBLIC_DIRECTORY_MAX_PAGE_SIZE = 100;
+type PublicBusinessCursor = { created_at: string; id: string };
+const decodePublicBusinessCursor = (value: string | null): PublicBusinessCursor | null | false => {
+  if (!value) return null;
+  try {
+    const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+    const parsed = JSON.parse(atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, "=")));
+    const createdAt = String(parsed?.created_at || "");
+    const id = String(parsed?.id || "");
+    if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(createdAt)
+      || !Number.isFinite(Date.parse(createdAt))
+      || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) return false;
+    return { created_at: createdAt, id };
+  } catch {
+    return false;
+  }
+};
+const encodePublicBusinessCursor = (row: any): string => {
+  const payload = btoa(JSON.stringify({ created_at: String(row.created_at), id: String(row.id) }));
+  return payload.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+};
+
 // Return only display-safe catalogue metadata. Inventory controls and tenant-specific fields stay server-side.
 const publicCatalogItemMetadata = (value: unknown): Record<string, unknown> => {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
@@ -93,6 +116,18 @@ Deno.serve(async (req: Request) => {
   if (origin && !allowedOrigins.has(origin)) return response(origin, { error: "ORIGIN_NOT_ALLOWED" }, 403);
   if (req.method === "OPTIONS") return new Response("ok", { status: 200, headers: headersFor(origin) });
   if (req.method !== "GET") return response(origin, { error: "METHOD_NOT_ALLOWED" }, 405);
+  const requestUrl = new URL(req.url);
+  const rawPageSize = requestUrl.searchParams.get("limit");
+  const pageSize = rawPageSize == null ? PUBLIC_DIRECTORY_DEFAULT_PAGE_SIZE : Number(rawPageSize);
+  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > PUBLIC_DIRECTORY_MAX_PAGE_SIZE) {
+    return response(origin, { error: "INVALID_PAGE_SIZE", maxPageSize: PUBLIC_DIRECTORY_MAX_PAGE_SIZE }, 400);
+  }
+  const requestedSlugs = new Set(
+    String(requestUrl.searchParams.get("slugs") || "").slice(0, 4000)
+      .split(",").map((value) => value.trim().slice(0, 140)).filter(Boolean).slice(0, 20)
+  );
+  const cursor = decodePublicBusinessCursor(requestUrl.searchParams.get("cursor"));
+  if (cursor === false) return response(origin, { error: "INVALID_CURSOR" }, 400);
   const supabaseUrl = Deno.env.get("SUPABASE_URL"), serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceKey) return response(origin, { error: "SERVER_MISCONFIGURED" }, 500);
   const db = createClient(supabaseUrl, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
@@ -110,7 +145,7 @@ Deno.serve(async (req: Request) => {
       return !testIdentity && !purpose.includes("test") && !purpose.includes("isolation")
         && !name.includes("isolation test") && !name.includes("اختبار العزل");
     }).map((t: any) => String(t.id)).filter(Boolean);
-    if (!productionTenantIds.length) return response(origin, { businesses: [], activityModuleOverrides: {}, activityModuleOverridesAvailable: false, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
+    if (!productionTenantIds.length) return response(origin, { businesses: [], activityModuleOverrides: {}, activityModuleOverridesAvailable: false, pageSize, hasMore: false, nextCursor: null, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
 
     // Publish only the explicitly public activity-module copy. Never return the
     // complete platform settings object or private contact/payment configuration.
