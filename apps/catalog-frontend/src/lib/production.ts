@@ -330,43 +330,71 @@ export function mapBusiness(raw: any, provider: any): Business {
 
 export function mapProducts(businessId: string, _tenantId: string, branchId: string | undefined, items: any[], prices: any[]): Product[] {
   const now = Date.now();
-  return (items || []).filter((i: any) => String(i.status || '').toUpperCase() === 'ACTIVE').map((i: any) => {
-    const metadata = i.metadata?.catalog_public || {};
-    const relevant = (prices || []).filter((p: any) => String(p.catalog_item_id || p.catalogItemId) === String(i.id) && String(p.status || '').toUpperCase() === 'ACTIVE');
-    const price = relevant.find((p: any) => String(p.branch_id || p.branchId || '') === String(branchId || '')) || relevant.find((p: any) => !p.branch_id && !p.branchId) || relevant[0];
-    const end = price?.effective_to ? Date.parse(price.effective_to) : Infinity;
-    const start = price?.effective_from ? Date.parse(price.effective_from) : 0;
-    const itemType = String(i.item_type || 'PRODUCT').toUpperCase();
-    const name = String(i.name_ar || i.name_en || 'عنصر كتالوج');
-    const description = String(i.description || '');
-    const category = String(metadata.category || i.category || 'عام');
-    const savedImageUrl = String(metadata.image_url || i.imageUrl || i.image_url || '').trim();
-    const savedImageSource = String(metadata.image_source || i.imageSource || i.image_source || '').toLowerCase();
-    const stockImage = isStockImageUrl(savedImageUrl);
-    const neutralPlaceholder = isNeutralPlaceholderUrl(savedImageUrl);
-    const imageSource: 'auto' | 'owner' | 'ai' = !savedImageUrl || stockImage || neutralPlaceholder || savedImageSource === 'auto'
-      ? 'auto'
-      : savedImageSource === 'ai'
-        ? 'ai'
-        : 'owner';
-    const imageUrl = imageSource === 'owner' || imageSource === 'ai'
-      ? savedImageUrl
-      : resolveDefaultImage({ name, description, category, kind: itemType === 'SERVICE' ? 'service' : 'product' });
-    // Service requests with hidden prices are quotable services, not unavailable products.
-    const requiresQuote = itemType === 'SERVICE' && metadata.show_price === false;
-    const available = metadata.is_available !== false && (
-      requiresQuote || (Boolean(price) && start <= now && end >= now)
-    );
-    return {
-      id: String(i.id), businessId, name,
-      category,
-      type: itemType === 'SERVICE' ? 'service' : 'product',
-      price: requiresQuote ? 0 : Number(price?.unit_price ?? 0),
-      comparePrice: requiresQuote || metadata.compare_price == null ? undefined : Number(metadata.compare_price),
-      description, imageUrl, imageSource,
-      isAvailable: available, unit: String(metadata.unit || ''), requiresQuote,
-    } as Product;
-  });
+  // Both public endpoints return only ACTIVE catalogue rows, but their field
+  // shapes differ: directory rows use snake_case while public-catalog uses
+  // normalized camelCase. Missing status is therefore trusted only for those
+  // already-filtered API payloads; an explicit non-ACTIVE status is rejected.
+  return (items || [])
+    .filter((item: any) => {
+      const status = item.status ?? item.itemStatus;
+      return status == null || String(status).trim().toUpperCase() === 'ACTIVE';
+    })
+    .map((item: any) => {
+      const metadata = item.metadata?.catalog_public || item.catalog_public || {};
+      const itemType = String(item.item_type || item.type || 'PRODUCT').toUpperCase();
+      const itemBranchId = String(branchId || item.branchId || item.branch_id || '');
+      const relevant = (prices || []).filter((price: any) =>
+        String(price.catalog_item_id || price.catalogItemId) === String(item.id)
+        && String(price.status || '').toUpperCase() === 'ACTIVE'
+      );
+      const validPrices = relevant.filter((price: any) => {
+        const end = price.effective_to ? Date.parse(price.effective_to) : Infinity;
+        const start = price.effective_from ? Date.parse(price.effective_from) : 0;
+        return start <= now && end >= now;
+      });
+      // A branch-specific price can only be selected for the selected branch.
+      // Never fall back to another branch's price.
+      const price = validPrices.find((candidate: any) =>
+        itemBranchId && String(candidate.branch_id || candidate.branchId || '') === itemBranchId
+      ) || validPrices.find((candidate: any) => !candidate.branch_id && !candidate.branchId);
+      const name = String(item.name_ar || item.nameAr || item.name_en || item.nameEn || item.name || 'عنصر كتالوج');
+      const description = String(item.description || '');
+      const category = String(metadata.category || item.category || 'عام');
+      const savedImageUrl = String(metadata.image_url || item.imageUrl || item.image_url || '').trim();
+      const savedImageSource = String(metadata.image_source || item.imageSource || item.image_source || '').toLowerCase();
+      const stockImage = isStockImageUrl(savedImageUrl);
+      const neutralPlaceholder = isNeutralPlaceholderUrl(savedImageUrl);
+      const imageSource: 'auto' | 'owner' | 'ai' = !savedImageUrl || stockImage || neutralPlaceholder || savedImageSource === 'auto'
+        ? 'auto'
+        : savedImageSource === 'ai'
+          ? 'ai'
+          : 'owner';
+      const imageUrl = imageSource === 'owner' || imageSource === 'ai'
+        ? savedImageUrl
+        : resolveDefaultImage({ name, description, category, kind: itemType === 'SERVICE' ? 'service' : 'product' });
+      const rawComparePrice = metadata.compare_price ?? item.comparePrice;
+      const comparePriceValue = rawComparePrice == null ? NaN : Number(rawComparePrice);
+      const comparePrice = Number.isFinite(comparePriceValue) && comparePriceValue >= 0
+        ? comparePriceValue
+        : undefined;
+      // Service requests with hidden prices remain quotable, not unavailable.
+      const requiresQuote = itemType === 'SERVICE'
+        && (metadata.show_price === false || item.requiresQuote === true);
+      const available = metadata.is_available !== false
+        && item.available !== false
+        && (requiresQuote || Boolean(price));
+      return {
+        id: String(item.id), businessId, name,
+        category,
+        type: itemType === 'SERVICE' ? 'service' : 'product',
+        price: requiresQuote ? 0 : Number(price?.unit_price ?? price?.unitPrice ?? 0),
+        comparePrice: requiresQuote ? undefined : comparePrice,
+        description, imageUrl, imageSource,
+        isAvailable: available,
+        unit: String(metadata.unit || item.unit || ''),
+        requiresQuote,
+      } as Product;
+    });
 }
 
 const isStockImageUrl = (value: unknown): boolean =>
