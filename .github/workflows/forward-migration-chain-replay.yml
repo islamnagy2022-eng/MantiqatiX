@@ -1,4 +1,5 @@
 name: Forward Migration Chain Replay from Production Schema Checkpoint
+# 2026-11-04 validation refresh: run the disposable replay against the current main source tree; never targets Production.
 
 on:
   push:
