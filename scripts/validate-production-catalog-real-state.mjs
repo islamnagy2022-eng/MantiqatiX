@@ -112,8 +112,8 @@ assert.match(publicDirectoryFunction, /allowLegacyShowcaseImage[\s\S]{0,180}retu
 assert.match(publicDirectoryFunction, /isOfficialShowcase\(b\)/, 'public directory may include platform-owned showcase activity records without enabling their catalog modules');
 assert.doesNotMatch(publicCatalogFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'public storefront API must not generate stock-photo URLs for products');
 assert.match(publicCatalogFunction, /images\\\.unsplash\\\.com[\s\S]{0,180}return ""/, 'public storefront API must explicitly reject legacy stock-photo URLs');
-assert.match(publicCatalogFunction, /quoteOnlyItemIds[\\s\\S]*filter\\(\(price: any\) => !quoteOnlyItemIds\.has\(String\(price\.catalog_item_id\)\)\)/, 'quote-only products and services must not expose stored numeric prices');
-assert.match(publicCatalogFunction, /options = \(optionResult\.data \|\| \[\]\)[\\s\\S]*filter\(\(option: any\) => !quoteOnlyItemIds\.has\(String\(option\.catalog_item_id\)\)\)/, 'quote-only products and services must not expose option price deltas');
+assert.ok(publicCatalogFunction.includes('const quoteOnlyItemIds = new Set(') && publicCatalogFunction.includes('.filter((price: any) => !quoteOnlyItemIds.has(String(price.catalog_item_id)))'), 'quote-only products and services must not expose stored numeric prices');
+assert.ok(publicCatalogFunction.includes('options = (optionResult.data || [])') && publicCatalogFunction.includes('.filter((option: any) => !quoteOnlyItemIds.has(String(option.catalog_item_id)))'), 'quote-only products and services must not expose option price deltas');
 assert.doesNotMatch(sharedDefaultImages, /images\.unsplash\.com|const rules:/, 'shared catalog image helper must not generate stock-photo URLs');
 assert.match(createUi, /phoneDigits\.length > 0 && \(phoneDigits\.length < 10 \|\| phoneDigits\.length > 15\)/, 'owner WhatsApp is optional but validated when provided');
 assert.doesNotMatch(createUi, /if \(!newBizGov\.trim\(\) \|\| !newBizMarkaz\.trim\(\)\)/, 'optional location data must not block admin activity creation');
