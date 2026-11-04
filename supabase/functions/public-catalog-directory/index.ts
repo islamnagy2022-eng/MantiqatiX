@@ -163,31 +163,38 @@ Deno.serve(async (req: Request) => {
         console.warn("public activity module settings failed validation");
       }
     }
-    const { data: businesses, error: businessError } = await db.from("businesses")
-      .select("id,tenant_id,organization_id,name,code,status,settings")
-      .in("tenant_id", productionTenantIds).eq("status", "ACTIVE").limit(250);
+    // Page only explicitly public activities in the database query itself. Filtering
+    // after a fixed 250-row read could silently strand later public businesses.
+    const visibilityFilter = "or(settings->>catalog_public_enabled.eq.true,settings->>source.eq.OFFICIAL_PLATFORM_SHOWCASE,settings->>managed_by.eq.SUPER_ADMIN)";
+    const cursorFilter = cursor && requestedSlugs.size === 0
+      ? "or(created_at.lt." + cursor.created_at + ",and(created_at.eq." + cursor.created_at + ",id.lt." + cursor.id + "))"
+      : "";
+    const businessFilter = cursorFilter ? "and(" + visibilityFilter + "," + cursorFilter + ")" : visibilityFilter;
+    const businessQuery = db.from("businesses")
+      .select("id,tenant_id,organization_id,name,code,status,settings,created_at")
+      .in("tenant_id", productionTenantIds).eq("status", "ACTIVE")
+      .order("created_at", { ascending: false }).order("id", { ascending: false })
+      .or(businessFilter)
+      .limit(requestedSlugs.size ? 250 : pageSize + 1);
+    const { data: businessRows, error: businessError } = await businessQuery;
     if (businessError) throw businessError;
-    // Customer-owned catalogues remain opt-in. Platform-owned showcase activities
-    // are public directory cards even before their module/catalog is separately enabled.
-    // Directory publication is independent of operational availability.
-    // Paused/frozen businesses may keep their approved profile page, but will not
-    // expose products/services and are filtered out of homepage promotional covers.
-    const directoryBusinesses = (businesses || []).filter((b: any) =>
-      b.settings?.catalog_public_enabled === true || isOfficialShowcase(b)
+    const hasMore = requestedSlugs.size === 0 && (businessRows || []).length > pageSize;
+    const pageRows = (businessRows || []).slice(0, requestedSlugs.size ? 250 : pageSize);
+    const nextCursor = hasMore && pageRows.length
+      ? encodePublicBusinessCursor(pageRows[pageRows.length - 1])
+      : null;
+    // Keep a defensive in-memory check even though visibility is also enforced in PostgREST.
+    const directoryBusinesses = pageRows.filter((business: any) =>
+      business.settings?.catalog_public_enabled === true || isOfficialShowcase(business)
     );
-    if (!directoryBusinesses.length) return response(origin, { businesses: [], activityModuleOverrides, activityModuleOverridesAvailable, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
-    const ids = directoryBusinesses.map((b: any) => b.id);
+    const ids = directoryBusinesses.map((business: any) => business.id);
     const { data: providers, error: providerError } = await db.from("marketing_provider_profiles")
       .select("business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured")
       .in("business_id", ids).eq("status", "ACTIVE").limit(250);
     if (providerError) throw providerError;
-    const providerMap = new Map((providers || []).map((p: any) => [String(p.business_id), p]));
-    const requestedSlugs = new Set(
-      String(new URL(req.url).searchParams.get("slugs") || "").slice(0, 4000)
-        .split(",").map((value) => value.trim().slice(0, 140)).filter(Boolean).slice(0, 20)
-    );
-    const publicBusinesses = directoryBusinesses.filter((b: any) => {
-      const provider: any = providerMap.get(String(b.id));
+    const providerMap = new Map((providers || []).map((provider: any) => [String(provider.business_id), provider]));
+    const publicBusinesses = directoryBusinesses.filter((business: any) => {
+      const provider: any = providerMap.get(String(business.id));
       return Boolean(provider) && (requestedSlugs.size === 0 || requestedSlugs.has(String(provider?.slug || "").trim()));
     });
     const buildPublicBusiness = async (business: any): Promise<any | null> => {
@@ -285,13 +292,17 @@ Deno.serve(async (req: Request) => {
     // PostgREST when the directory contains many businesses.
     const results: any[] = [];
     const batchSize = 8;
-    const publicBusinessList = publicBusinesses.slice(0, 100);
-    for (let offset = 0; offset < publicBusinessList.length; offset += batchSize) {
-      const batch = publicBusinessList.slice(offset, offset + batchSize);
+    for (let offset = 0; offset < publicBusinesses.length; offset += batchSize) {
+      const batch = publicBusinesses.slice(offset, offset + batchSize);
       const built = await Promise.all(batch.map((business: any) => buildPublicBusiness(business)));
       results.push(...built.filter((business: any) => business !== null));
     }
-    return response(origin, { businesses: results, activityModuleOverrides, activityModuleOverridesAvailable, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
+    return response(origin, {
+      businesses: results, activityModuleOverrides, activityModuleOverridesAvailable,
+      pageSize, hasMore: requestedSlugs.size === 0 ? hasMore : false,
+      nextCursor: requestedSlugs.size === 0 ? nextCursor : null,
+      accessMode: "PUBLIC_DIRECTORY_READ_ONLY",
+    });
   } catch (error) {
     console.error("public-catalog-directory failed", error instanceof Error ? error.message : "UNKNOWN");
     return response(origin, { error: "PUBLIC_DIRECTORY_UNAVAILABLE" }, 500);
