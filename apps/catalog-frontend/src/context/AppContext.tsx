@@ -60,6 +60,10 @@ interface AppContextType {
   directoryBusinesses: Business[];
   directoryProducts: Product[];
   directoryLoading: boolean;
+  directoryHasMore: boolean;
+  directoryLoadingMore: boolean;
+  directoryLoadMoreError: string;
+  loadMorePublicDirectory: () => Promise<void>;
   openPublicBusiness: (businessId: string) => Promise<boolean>;
   products: Product[];
   subscribers: Subscriber[];
@@ -109,6 +113,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [directoryBusinesses, setDirectoryBusinesses] = useState<Business[]>([]);
   const [directoryProducts, setDirectoryProducts] = useState<Product[]>([]);
   const [directoryLoading, setDirectoryLoading] = useState(true);
+  const [directoryHasMore, setDirectoryHasMore] = useState(false);
+  const [directoryCursor, setDirectoryCursor] = useState<string | null>(null);
+  const [directoryLoadingMore, setDirectoryLoadingMore] = useState(false);
+  const [directoryLoadMoreError, setDirectoryLoadMoreError] = useState('');
+  const directoryLoadingMoreRef = useRef(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [subscribersLoading, setSubscribersLoading] = useState(false);
@@ -324,15 +333,60 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCurrentView(safeRequestedView);
   };
 
-  // Load the public directory independently from authentication so visitors see published activities immediately.
+  // Load the first public-business page independently from authentication.
   useEffect(() => {
     let active = true;
-    fetchPublicDirectory()
-      .then((directory) => { if (active) { setDirectoryBusinesses(directory.businesses); setDirectoryProducts(directory.products || []); if (directory.activityModuleOverridesAvailable) setAdminSettings((current) => ({ ...current, activityModuleOverrides: directory.activityModuleOverrides })); } })
-      .catch((error) => { console.warn('[MantiqatiX public directory]', error); })
+    fetchPublicDirectory({ limit: 20 })
+      .then((directory) => {
+        if (!active) return;
+        setDirectoryBusinesses(directory.businesses);
+        setDirectoryProducts(directory.products || []);
+        setDirectoryCursor(directory.nextCursor);
+        setDirectoryHasMore(directory.hasMore);
+        setDirectoryLoadMoreError('');
+        if (directory.activityModuleOverridesAvailable) {
+          setAdminSettings((current) => ({ ...current, activityModuleOverrides: directory.activityModuleOverrides }));
+        }
+      })
+      .catch((error) => {
+        if (active) {
+          console.warn('[MantiqatiX public directory]', error);
+          setDirectoryLoadMoreError(error instanceof Error ? error.message : 'تعذر تحميل دليل الأنشطة.');
+        }
+      })
       .finally(() => { if (active) setDirectoryLoading(false); });
     return () => { active = false; };
   }, []);
+
+  const loadMorePublicDirectory = async (): Promise<void> => {
+    if (!directoryHasMore || !directoryCursor || directoryLoadingMoreRef.current) return;
+    directoryLoadingMoreRef.current = true;
+    setDirectoryLoadingMore(true);
+    setDirectoryLoadMoreError('');
+    try {
+      const page = await fetchPublicDirectory({ limit: 20, cursor: directoryCursor });
+      setDirectoryBusinesses((current) => {
+        const unique = new Map(current.map((business) => [business.id, business] as const));
+        page.businesses.forEach((business) => unique.set(business.id, business));
+        return Array.from(unique.values());
+      });
+      setDirectoryProducts((current) => {
+        const unique = new Map(current.map((product) => [String(product.businessId) + ':' + String(product.id), product] as const));
+        page.products.forEach((product) => unique.set(String(product.businessId) + ':' + String(product.id), product));
+        return Array.from(unique.values());
+      });
+      setDirectoryCursor(page.nextCursor);
+      setDirectoryHasMore(page.hasMore);
+      if (page.activityModuleOverridesAvailable) {
+        setAdminSettings((current) => ({ ...current, activityModuleOverrides: page.activityModuleOverrides }));
+      }
+    } catch (error) {
+      setDirectoryLoadMoreError(error instanceof Error ? error.message : 'تعذر تحميل الدفعة التالية من الأنشطة.');
+    } finally {
+      directoryLoadingMoreRef.current = false;
+      setDirectoryLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -1074,7 +1128,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     currentView, setCurrentView, selectedBusinessId, setSelectedBusinessId, currentBusiness,
     functionalGroups, categories, addCategory, updateCategory, deleteCategory, selectedFunctionalGroupFilter, setSelectedFunctionalGroupFilter, selectedCategoryFilter, setSelectedCategoryFilter,
     authSession, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
-    businesses, directoryBusinesses, directoryProducts, directoryLoading, openPublicBusiness, products, subscribers, subscribersLoading, refreshPlatformSubscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
+    businesses, directoryBusinesses, directoryProducts, directoryLoading, directoryHasMore, directoryLoadingMore, directoryLoadMoreError, loadMorePublicDirectory, openPublicBusiness, subscribers, subscribersLoading, refreshPlatformSubscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
     confirmAdminPayment, updateBillingSetting, toggleBusinessFreeze,
     businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, saveSubscriberMembership, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,
     cartItems, addToCart, removeFromCart, updateCartQuantity, clearCart, isCartOpen, setIsCartOpen, submitOrderViaWhatsApp, requestCatalogViaAdminWhatsApp,
