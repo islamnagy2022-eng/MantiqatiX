@@ -345,7 +345,7 @@ export function mapProducts(businessId: string, _tenantId: string, branchId: str
       const itemBranchId = String(branchId || item.branchId || item.branch_id || '');
       const relevant = (prices || []).filter((price: any) =>
         String(price.catalog_item_id || price.catalogItemId) === String(item.id)
-        && String(price.status || '').toUpperCase() === 'ACTIVE'
+        && (price.status == null || String(price.status).toUpperCase() === 'ACTIVE')
       );
       const validPrices = relevant.filter((price: any) => {
         const end = price.effective_to ? Date.parse(price.effective_to) : Infinity;
