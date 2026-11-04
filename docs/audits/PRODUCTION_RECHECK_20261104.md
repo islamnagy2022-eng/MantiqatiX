@@ -74,7 +74,7 @@ A read-only synthetic anonymous JWT probe returned zero visible rows for wallet 
 
 1. The 42 required release source-version identifiers and associated physical object contracts are not fully reconciled. The current selected physical-object report remains 32/60 non-PASS.
 2. Six critical payment/order/finance Edge Functions remain source-drifted: `order-create`, `payment-intent`, `paymob-webhook`, `digital-page-payment-intent`, `subscription-payment-intent`, and `financial-journal`. They must not be deployed one by one.
-3. RC449A/RC450 financial-journal schema columns, RPC contract and service-role EXECUTE boundary are not present in production.
+3. RC449A/RC450 financial-journal schema columns, RPC contract and service-role EXECUTE boundary are not present in production. A fresh November 4 read-only PostgreSQL query confirmed all five journal columns absent and no service_role EXECUTE on either journal RPC; it also confirmed that the old four-argument digital-page claim function and postgres-only purchase-order status function remain contract-incompatible.
 4. RC435/RC439 subscription checkout contracts remain unresolved.
 5. Payment/finance E2E with signed Paymob sandbox callbacks, reconciliation, refunds, settlements and journal posting is NOT VERIFIED.
 6. Backup retention, a real restore rehearsal, measured RPO/RTO, rollback drill, and storage/media recovery remain NOT VERIFIED.
