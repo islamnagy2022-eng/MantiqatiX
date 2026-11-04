@@ -3,32 +3,31 @@
   "project": "moyhiluyhjsujhwlyeuu",
   "status": "BLOCKED",
   "verified": false,
-  "live_ledger_last_version": "20261029083845",
-  "live_ledger_last_name": "require_phone_for_published_directory_listings",
+  "live_ledger_last_version": "20261101140105",
+  "live_ledger_last_name": "directory_source_permission_evidence",
   "rc424_source_filename_version": "20261009010000",
   "source_ledger_identity_reconciled": true,
   "required_release_migrations_applied": false,
-  "chronological_replay": "PASS — on 2026-10-30, exact main source tree commit 03d24fe4a333227a214f07fbe06125030179305f restored checkpoint 20261008222845 and applied 72 subsequent migrations in timestamp order in a disposable isolated Supabase instance. RC117 activity-name synchronization and untruncated platform-business-list contracts passed after two new forward-only repairs; owner-profile persistence, RC455/RC456 commission previews and synthetic Tenant A/B read/mutation isolation passed. GitHub Actions run 40992569654. Production effect NONE.",
+  "chronological_replay": "PASS — on 2026-11-04, run 41914489055 restored checkpoint 20261008222845 and applied 76 forward migrations in timestamp order in an isolated disposable Supabase instance. RC117, owner-profile persistence, RC455/RC456 commission previews, and synthetic Tenant A/B read/mutation isolation passed. Production effect NONE. Current Production ledger and physical-object reconciliation remain separate blockers.",
   "latest_candidate_replay": {
     "status": "PASS",
-    "run_id": 40992569654,
-    "checked_at": "2026-10-30",
+    "run_id": 41914489055,
+    "checked_at": "2026-11-04",
     "checkpoint_version": "20261008222845",
-    "forward_migrations_applied": 72,
-    "source_head": "03d24fe4a333227a214f07fbe06125030179305f",
-    "merged_main_commit": "16cd5474d2de6b2c929af7a18491d2ebb53e4fd2",
-    "result": "All 72 source migrations after the captured schema checkpoint completed in timestamp order in an isolated disposable Supabase instance. RC117_DEFAULT_IMAGES_AND_ACTIVITY_ADMIN_CONTRACT passed after the forward-only RC117 activity-name sync and untruncated business-list repairs; OWNER_PROFILE_PERSISTENCE_INTEGRATION passed; RC455 and RC456 commission preview integration passed; synthetic tenant A/B read and mutation isolation passed.",
-    "root_cause": "The consolidated RC113-RC116 repair reintroduced pre-RC117 definitions of mnty_platform_admin_manage_business and mnty_platform_admin_list_businesses. The first dropped provider-profile name synchronization; the second restored a LIMIT 300, truncating the platform activity list.",
-    "remediation": "Added two forward-only migrations 20261030100000_rc117_activity_name_sync_forward_repair.sql and 20261030110000_rc117_restore_untruncated_business_list.sql. Historical migration files were not rewritten.",
-    "production_effect": "NONE — no Production rows, schema, grants, Auth, Edge Functions, payments or wallets were changed by the replay.",
-    "deployment": "Pages/production deployment is a separate workflow; migration replay only validated a disposable isolated database."
+    "forward_migrations_applied": 76,
+    "source_head": "61187b23abd97133b3320fee8a924cb264a304cd",
+    "source_branch": "validation/forward-migration-replay-20261104",
+    "source_parent_main": "8e2b78c807beb1fe313a744a0fb6e995ac7f803b",
+    "result": "All 76 source migrations after the captured schema checkpoint completed in timestamp order in an isolated disposable Supabase instance. RC117 default-image/activity-admin contract, owner-profile persistence (metadata/publication preservation and branch-manager denial), RC455/RC456 commission preview integrations, and synthetic Tenant A/B read/mutation isolation passed.",
+    "production_effect": "NONE — no Production schema, data, grants, Auth, Edge Functions, payments, wallets or migration ledger rows were changed by this replay.",
+    "limitation": "Replay validates the source chain against the captured checkpoint in a disposable database. It does not prove the current live Production schema is restorable or authorize applying the 42 missing identifiers."
   },
-  "tenant_isolation_tests": "PASS — run 40494929976 synthetic two-tenant tests confirmed each tenant can read its own rows, cannot read private rows from the other tenant, and cannot update the other tenant's orders/payment intents. Scope is limited to businesses, orders, payment_intents, provider_onboarding_requests.",
+  "tenant_isolation_tests": "PASS — run 41914489055 repeated synthetic Tenant A/B read and mutation isolation for orders/payment_intents; each tenant read only its own rows and could not update the other tenant's orders/payment intents. Scope is limited to the synthetic fixture and these tested contracts; it is not a full adversarial production RLS certification.",
   "payment_finance_e2e": "NOT VERIFIED",
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976",
-  "checked_at": "2026-10-31",
-  "reason": "Catalog pilot is deployed and deployed-origin browser tests pass. Full platform production remains BLOCKED / NOT CERTIFIED: 42 required release source-version IDs are absent from the 308-row live migration ledger; six critical payment/order/finance Edge Functions have source drift; RC435/RC439 subscription contracts and RC449A/RC450 financial-journal schema/ACL requirements remain unresolved; Auth hardening, adversarial RLS/SECURITY DEFINER tests, payment/finance E2E, backup/restore and SMM negative runtime evidence remain outstanding.",
+  "checked_at": "2026-11-04",
+  "reason": "Catalog pilot is deployed and deployed-origin browser tests pass on main commit fe9e9f57b780b01c49940349dccf3bbac67efaae. Full platform production remains BLOCKED / NOT CERTIFIED: 42 required source-version identifiers remain absent from the 309-row live ledger; 32 of 60 selected physical object contracts remain non-PASS; six critical payment/order/finance Edge Functions have source drift; RC435/RC439 and RC449A/RC450 contracts remain unresolved; Auth hardening, adversarial RLS/SECURITY DEFINER tests, payment/finance E2E, backup/restore/RPO/RTO, rollback, and SMM negative runtime evidence remain outstanding.",
   "edge_function_contracts": "PARTIAL — six critical live Edge Function entrypoints differ from main. Financial-journal current main source calls post_financial_journal_backend, which is the RPC name/signature defined by canonical RC450; the production blocker is that RC449A/RC450 are absent and the live RPC body/ACL is old, while deployed Edge v3 still calls the legacy post_financial_journal with wildcard CORS. Do not deploy payment/finance functions individually until schema, grants, sandbox E2E and rollback are verified.",
   "smm_gateway_parity": "PARTIAL — live SMM gateway remains ACTIVE v13, verify_jwt=true, and source matches main with SMM_INITIAL_LAUNCH_DEFERRED=true. Anonymous/authenticated negative runtime tests still unverified; keep deferred.",
   "auth_security_settings": "NOT VERIFIED — leaked-password protection and Auth security settings require owner dashboard evidence; no setting change made.",
@@ -45,7 +44,7 @@
     "resolution": "Read-only comparison of supabase_migrations.schema_migrations.statements[1] against the RC424 source file matched exactly. Preserve the applied ledger version; document the filename timestamp difference as a legacy version alias instead of rewriting migration history."
   },
   "rc424_reconciliation_evidence_checked_at": "2026-10-11",
-  "live_ledger_inventory_count": 308,
+  "live_ledger_inventory_count": 309,
   "latest_live_ledger_reconciliation": {
     "status": "VERIFIED",
     "checked_at": "2026-10-28",
@@ -119,10 +118,10 @@
   },
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
-    "checked_at": "2026-10-31",
-    "method": "Fresh read-only Supabase list_migrations inventory (308 rows through 20261029083845) cross-checked by exact version against all 42 release-required identifiers.",
-    "live_ledger_count": 308,
-    "latest_live_version": "20261029083845",
+    "checked_at": "2026-11-04",
+    "method": "Read-only Supabase list_migrations on 2026-11-04: 309 records through 20261101140105; exact comparison against all 42 release-required identifiers returned 0 exact IDs. Physical effects are separately checked; exact identity absence is not assumed to equal effect absence.",
+    "live_ledger_count": 309,
+    "latest_live_version": "20261101140105",
     "expected_migration_versions": 42,
     "found_in_live_ledger": 0,
     "required_versions": [
@@ -218,7 +217,7 @@
   },
   "critical_edge_function_source_parity_check": {
     "status": "DRIFT_FOUND",
-    "checked_at": "2026-10-30",
+    "checked_at": "2026-11-04",
     "method": "Read-only retrieval of deployed Supabase Edge Function entrypoints and exact UTF-8 content comparison against main. No mismatched critical payment/finance function was deployed.",
     "functions": [
       {
@@ -314,7 +313,7 @@
   },
   "financial_journal_runtime_prerequisite_check": {
     "status": "BLOCKING_DRIFT",
-    "checked_at": "2026-10-30",
+    "checked_at": "2026-11-04",
     "method": "Fresh read-only pg_attribute, pg_proc, effective function privileges, Edge Function source and live migration-ledger checks.",
     "live_migrations": {
       "20261010175000_rc449a_financial_journal_schema_prerequisites": false,
@@ -370,7 +369,7 @@
   },
   "required_release_object_presence_check": {
     "status": "MIXED_DRIFT_READ_ONLY_REFRESHED",
-    "checked_at": "2026-10-30",
+    "checked_at": "2026-11-04",
     "method": "Fresh read-only checks against live pg_class, pg_attribute, pg_proc, pg_trigger, pg_policies and effective table/function privileges. The dashboard forward-bundle migration was also compared against its exact recorded statement. Existence is not treated as body/runtime certification.",
     "observed": [
       {
@@ -1005,7 +1004,8 @@
         "status": "BLOCKED",
         "detail": "RC437 purchase order line scope index absent."
       }
-    ]
+    ],
+    "non_pass_count": 32
   },
   "security_definer_search_path_check": {
     "status": "EFFECT_RECONCILED_FORWARD_REPAIR",
@@ -1208,7 +1208,7 @@
   },
   "qadam_catalog_followup_check": {
     "status": "DATA_READY_LEDGER_DRIFT",
-    "checked_at": "2026-10-28",
+    "checked_at": "2026-11-04",
     "migration_version": "20261027093000",
     "migration_version_recorded": false,
     "business_active": true,
@@ -1280,54 +1280,63 @@
     "no_unpaid_non_showcase_owner_memberships_found": true
   },
   "catalog_pilot_edge_function_parity_check": {
-    "status": "PASS",
-    "checked_at": "2026-10-28",
-    "checked_via": "Read-only live Edge Function retrieval and exact source comparison against the reviewed branch",
+    "status": "PARTIAL_WITH_PUBLIC_READ_PARITY",
+    "checked_at": "2026-11-04",
+    "checked_via": "Supabase get_edge_function source retrieval compared to current main source blobs after deployment.",
     "functions": [
       {
         "slug": "catalog-platform-admin",
-        "live_version": 3,
+        "live_version": 23,
         "verify_jwt": true,
-        "source_exact_match": true,
-        "source_blob_sha": "04a5657feaee6e888a3d2d77146ed9b0d29d77ab",
-        "scope": "platform admin gate and subscription membership management"
+        "source_exact_match": false,
+        "source_blob_sha": "adb7a0e8ac227fbe852bc70506756675593d26a1",
+        "scope": "platform admin settings and controls",
+        "status": "DRIFT_FOUND",
+        "observed_difference": "Live v23 does not contain the current main activityModuleOverrides sanitization/write handling and its audit result contract. Keep activity-module admin writes disabled until the write and audit are atomic in one backend transaction; do not overwrite live v23 blindly."
       },
       {
         "slug": "catalog-admin",
-        "live_version": 14,
+        "live_version": 20,
         "verify_jwt": false,
         "source_exact_match": true,
-        "source_blob_sha": "1166507c0383af2139d3ef4b4ea20371992312d7",
-        "scope": "catalog-only owner/admin routes with route-level bearer/session/role checks"
+        "source_blob_sha": "e07917748d4f710895ed43f99c35ddc64be470ac",
+        "scope": "catalog owner/admin operations",
+        "status": "PASS_SOURCE_PARITY"
       },
       {
         "slug": "public-catalog-directory",
-        "live_version": 2,
+        "live_version": 17,
         "verify_jwt": false,
         "source_exact_match": true,
-        "source_blob_sha": "3368a51b26ce7bc9c65d02a86f570e6eda90345d",
-        "scope": "public read-only directory"
+        "source_blob_sha": "71b98a86380df4e38dcf9b60f0294462428c2560",
+        "scope": "sanitized read-only public directory and catalog items",
+        "dependency_files": [
+          "supabase/functions/_shared/activity-module-overrides.mjs"
+        ],
+        "status": "PASS_SOURCE_PARITY"
       },
       {
         "slug": "public-catalog",
-        "live_version": 2,
+        "live_version": 7,
         "verify_jwt": false,
         "source_exact_match": true,
-        "source_blob_sha": "ae57c2126063931ee95f80b097a82c1742efb7c0",
-        "scope": "public read-only storefront"
+        "source_blob_sha": "a66e6bbb0a0f7bcd88bbb8c3e16b1575898ce1fd",
+        "scope": "read-only public storefront",
+        "status": "PASS_SOURCE_PARITY"
       }
     ],
     "unrelated_functions_deployed": false,
     "excluded_scopes": [
+      "order-create",
       "payment-intent",
       "paymob-webhook",
-      "order-create",
       "digital-page-payment-intent",
       "subscription-payment-intent",
       "financial-journal",
       "SMM",
       "MantiGO"
-    ]
+    ],
+    "note": "Only the two public read-only catalog functions were deployed in this release. catalog-platform-admin v23 is intentionally not replaced until its missing main-source activity-module audit behavior is redesigned atomically."
   },
   "rc451_targeted_ads_forward_repair": {
     "status": "PASS",
@@ -1419,8 +1428,8 @@
     ],
     "interpretation": "Dashboard-specific live dependencies are installed and verified by read-only queries. Historical migrations were not edited and the 41-version full-platform release chain, finance/payment/Edge Function parity, backup/restore rehearsal, Auth hardening, monitoring, and unrelated release evidence remain BLOCKED. Deployment may proceed only through the existing scoped catalog/dashboard gate; do not mark the full platform production-certified."
   },
-  "live_ledger_checked_at": "2026-10-29",
-  "live_ledger_verification_method": "Read-only SELECT after the forward-only dashboard dependency rollout: 304 recorded migration rows, latest version 20261029041815; expected dashboard objects, RLS, grants and fail-closed unauthenticated permission checks verified.",
+  "live_ledger_checked_at": "2026-11-04",
+  "live_ledger_verification_method": "Read-only Supabase list_migrations on 2026-11-04 returned 309 records; latest version 20261101140105 (directory_source_permission_evidence). Exact required-version reconciliation remains 0/42. This is an identifier inventory, not a substitute for physical effect checks.",
   "professional_dashboard_post_deploy_browser_e2e": {
     "status": "PASS",
     "checked_at": "2026-10-29",
@@ -1852,12 +1861,12 @@
   },
   "rc463_live_read_only_check": {
     "status": "BLOCKING_DRIFT",
-    "checked_at": "2026-10-31",
+    "checked_at": "2026-11-04",
     "method": "Read-only PostgreSQL catalog query of the two named SECURITY DEFINER trigger functions, their attached triggers, function search_path configuration and effective EXECUTE privileges. No function body, identity data or business rows were changed or exported.",
     "migration_version": "20261031100000",
     "migration_recorded_in_live_ledger": false,
-    "live_ledger_rows": 308,
-    "latest_live_version": "20261029083845",
+    "live_ledger_rows": 309,
+    "latest_live_version": "20261101140105",
     "functions": [
       {
         "name": "assign_default_owner_to_unowned_business",
@@ -1885,5 +1894,72 @@
       }
     ],
     "interpretation": "Both expected triggers are present and enabled. Both functions return PostgreSQL `trigger` and are not ordinary callable RPC endpoints; their default ACL (`proacl IS NULL`) nevertheless gives PUBLIC and effective anon/authenticated/service_role EXECUTE. The default-owner function is SECURITY DEFINER with non-empty `search_path=public, auth`; the commission audit function already has an empty search_path. This is a least-privilege/search_path hardening concern, not proof of an anonymous RPC exploit. Exact-head RC463 trigger integration and older-checkpoint forward replay passed in PR #617, but the exact migration version is not in the live ledger and no Production change was applied. Deployment remains unauthorized pending a current-schema rehearsal, backup/restore, rollback boundary and independent review."
-  }
+  },
+  "latest_live_ledger_snapshot_20261104": {
+    "status": "READ_ONLY_SNAPSHOT",
+    "checked_at": "2026-11-04",
+    "live_ledger_count": 309,
+    "latest_version": "20261101140105",
+    "latest_name": "directory_source_permission_evidence",
+    "required_release_source_versions": 42,
+    "required_release_source_versions_found": 0,
+    "method": "Supabase list_migrations plus exact-version comparison against the 42 required identifiers in scripts/production/verify-production.mjs.",
+    "caution": "The 0/42 identity result does not prove every physical effect is absent. Two exact source aliases and forward-bundle effects are documented separately. Do not fabricate ledger rows or run duplicate/uncertain migrations."
+  },
+  "catalog_deployment_evidence_20261104": {
+    "status": "DEPLOYED_AND_BROWSER_VERIFIED",
+    "main_commit": "fe9e9f57b780b01c49940349dccf3bbac67efaae",
+    "pages_workflow_run": 41916804007,
+    "pages_workflow_status": "success",
+    "primary_frontend_validation_run": 41916803905,
+    "primary_build": "PASS",
+    "primary_playwright": "PASS",
+    "deployed_origin_playwright": "PASS",
+    "health_monitor": "PASS",
+    "deployed_origin": "https://islamnagy2022-eng.github.io/MantiqaTiX/",
+    "tested": "home/directory search, 20-item progressive pagination, medical filters without fabricated records, guest route denial, owner/employee membership scopes, branch-owner denial, manager grant denial, responsive mobile/desktop dashboards, WCAG no critical/serious violations, permanent QR/base path, geolocation permission denial/manual fallback, verified storefronts and real product catalogs, platform admin routes, activity specialties, account portal guest denial.",
+    "production_scope": "Catalog frontend and its public read-only directory/storefront functions only. This does not certify the full MantiqatiX financial/ERP/SMM/MantiGO platform."
+  },
+  "rls_security_advisor_snapshot_20261104": {
+    "checked_at": "2026-11-04",
+    "advisor_findings_total": 94,
+    "findings": {
+      "auth_allow_anonymous_sign_ins": 90,
+      "rls_enabled_no_policy": 9,
+      "anon_security_definer_function_executable": 1,
+      "authenticated_security_definer_function_executable": 1,
+      "auth_leaked_password_protection": 1
+    },
+    "no_policy_tables": [
+      "public.business_employees",
+      "public.business_job_positions",
+      "public.commission_rule_audit",
+      "public.digital_page_payment_events",
+      "public.directory_listing_claim_requests",
+      "public.directory_source_permission_evidence",
+      "public.platform_custom_roles",
+      "public.platform_role_assignments",
+      "public.public_directory_listings"
+    ],
+    "anonymous_auth_users": 0,
+    "active_anonymous_memberships": 0,
+    "anonymous_jwt_finance_read_probe": {
+      "method": "Read-only transaction with authenticated role and is_anonymous=true JWT; every probe rolled back.",
+      "visible_rows": {
+        "wallet_accounts": 0,
+        "wallet_transactions": 0,
+        "general_ledger": 0,
+        "payment_intents": 0,
+        "payment_provider_events": 0,
+        "orders": 0,
+        "business_subscriptions": 0,
+        "user_memberships": 0
+      },
+      "payment_events": "SELECT denied by table privileges",
+      "limitation": "Targeted probes only; these do not replace full adversarial RLS tests or Auth dashboard setting verification."
+    },
+    "interpretation": "Advisor findings are not vulnerability counts. No-policy findings require effective grant/RPC path review. The two SECURITY DEFINER lint findings refer to trigger-only functions assign_default_owner_to_unowned_business and capture_commission_rule_audit; their attached triggers are enabled, but direct EXECUTE ACL remains broader than desired. RC463 remains unrecorded and unapplied. Auth leaked-password protection remains NOT VERIFIED."
+  },
+  "full_platform_gate": "BLOCKED / NOT CERTIFIED",
+  "full_platform_gate_last_checked_at": "2026-11-04"
 }
