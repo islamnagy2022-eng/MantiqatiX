@@ -1262,14 +1262,14 @@
   },
   "catalog_platform_admin_paid_subscription_gate": {
     "status": "PASS",
-    "checked_at": "2026-10-28",
+    "checked_at": "2026-11-04",
     "function_slug": "catalog-platform-admin",
-    "live_function_version": 3,
+    "live_function_version": 23,
     "verify_jwt": true,
-    "source_exact_match": true,
-    "source_blob_sha": "04a5657feaee6e888a3d2d77146ed9b0d29d77ab",
+    "source_exact_match": false,
+    "source_blob_sha": "adb7a0e8ac227fbe852bc70506756675593d26a1",
     "deployed_at_utc": "2026-10-27T21:24:16Z",
-    "verified_by": "Post-deploy read-only get_edge_function source comparison",
+    "verified_by": "Read-only Supabase get_edge_function retrieval; current v23 entrypoint inspected directly",
     "behavior_contract": "New business-owner memberships are INACTIVE/PENDING_PAYMENT by default. The server rejects activation unless the business payment status is paid and admin-confirmed, and payment confirmation activates only memberships explicitly marked PENDING_PAYMENT. Official platform showcase businesses are exempt from commercial billing gate.",
     "unrelated_modules_deployed": false,
     "notes": "Only catalog-platform-admin was deployed for the paid-subscription activation guard. No payment-intent, webhook, order, finance, SMM, or MantiGO functions were deployed. This scoped verification does not certify the full platform release.",
@@ -1277,7 +1277,17 @@
     "active_official_showcase_memberships_count_before_guard": 24,
     "active_non_showcase_owner_memberships_count_before_guard": 0,
     "paid_subscription_activation_guard_verified_by_read_only_query": true,
-    "no_unpaid_non_showcase_owner_memberships_found": true
+    "no_unpaid_non_showcase_owner_memberships_found": true,
+    "live_entrypoint_sha256": "4f0d4432c134b51848038a5c3344b1e15c95875619b8b1c17f21ab6f097508c5",
+    "paid_subscription_guard_source_evidence": {
+      "subscription_payment_required_marker": true,
+      "paid_subscription_activation_failed_marker": true,
+      "only_admin_confirmed_paid_state_activates_pending_owner_memberships": true,
+      "unauthenticated_jwt_required": true
+    },
+    "activity_module_admin_writes_enabled": false,
+    "activity_module_admin_write_deferred_reason": "Live catalog-platform-admin v23 lacks main's sanitized activityModuleOverrides settings write and its audit result contract. The UI's ACTIVITY_MODULE_ADMIN_WRITE_ENABLED=false and browser E2E proves no settings write is sent. Do not overwrite the live function until settings and audit are atomic in one backend transaction.",
+    "scope_exception": "Only the activity-module settings write/audit contract differs; paid subscription activation guard remains verified in live v23. Full platform gate remains BLOCKED."
   },
   "catalog_pilot_edge_function_parity_check": {
     "status": "PARTIAL_WITH_PUBLIC_READ_PARITY",
@@ -1292,7 +1302,10 @@
         "source_blob_sha": "adb7a0e8ac227fbe852bc70506756675593d26a1",
         "scope": "platform admin settings and controls",
         "status": "DRIFT_FOUND",
-        "observed_difference": "Live v23 does not contain the current main activityModuleOverrides sanitization/write handling and its audit result contract. Keep activity-module admin writes disabled until the write and audit are atomic in one backend transaction; do not overwrite live v23 blindly."
+        "observed_difference": "Live v23 retains the paid subscription activation guard but lacks the current main activityModuleOverrides sanitizer/write and audit result contract. The frontend keeps ACTIVITY_MODULE_ADMIN_WRITE_ENABLED=false and browser E2E asserts no SAVE_SETTINGS request. Do not overwrite live v23 until write plus audit are atomic.",
+        "live_entrypoint_sha256": "4f0d4432c134b51848038a5c3344b1e15c95875619b8b1c17f21ab6f097508c5",
+        "deferred_write_scope": "activity-module-overrides-and-audit",
+        "write_disabled_in_frontend": true
       },
       {
         "slug": "catalog-admin",
@@ -1336,7 +1349,9 @@
       "SMM",
       "MantiGO"
     ],
-    "note": "Only the two public read-only catalog functions were deployed in this release. catalog-platform-admin v23 is intentionally not replaced until its missing main-source activity-module audit behavior is redesigned atomically."
+    "note": "The public read-only functions and catalog-admin are exact source-parity aligned. catalog-platform-admin has one explicitly deferred settings/audit scope; paid-subscription enforcement is present in the live function. This limited exception does not alter FULL_PLATFORM_GATE=BLOCKED.",
+    "activity_module_admin_writes_enabled": false,
+    "activity_module_admin_deferred_until_atomic_audit": true
   },
   "rc451_targeted_ads_forward_repair": {
     "status": "PASS",
