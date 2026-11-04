@@ -190,6 +190,7 @@ Deno.serve(async (req: Request) => {
         imageUrl: safeImageUrl(meta.image_url),
         comparePrice: Number.isFinite(comparePrice) && comparePrice >= 0 ? comparePrice : null,
         trackStock: meta.track_stock === true,
+        requiresQuote: String(item.item_type || "").toUpperCase() === "SERVICE" && meta.show_price === false,
         available: meta.is_available !== false && (meta.track_stock !== true || stockAvailability.get(String(item.id)) === true),
       };
     });
