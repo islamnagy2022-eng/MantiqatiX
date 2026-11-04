@@ -2,7 +2,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sanitizeActivityModuleOverrides } from "../_shared/activity-module-overrides.mjs";
 
-const allowedOrigins = new Set(["https://islamnagy2022-eng.github.io", "http://localhost:3000", "http://localhost:8080", "http://127.0.0.1:3000", "http://127.0.0.1:8080"]);
+const allowedOrigins = new Set(["https://islamnagy2022-eng.github.io", "http://localhost:3000", "http://localhost:5173", "http://localhost:8080", "http://127.0.0.1:3000", "http://127.0.0.1:5173", "http://127.0.0.1:8080"]);
 const headersFor = (origin: string | null) => ({
   "Content-Type": "application/json",
   "Access-Control-Allow-Origin": origin && allowedOrigins.has(origin) ? origin : "https://islamnagy2022-eng.github.io",
@@ -10,6 +10,26 @@ const headersFor = (origin: string | null) => ({
   "Access-Control-Allow-Methods": "GET, OPTIONS", "Vary": "Origin", "Cache-Control": "no-store",
 });
 const response = (origin: string | null, body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: headersFor(origin) });
+
+// Return only display-safe catalogue metadata. Inventory controls and tenant-specific fields stay server-side.
+const publicCatalogItemMetadata = (value: unknown): Record<string, unknown> => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const metadata = value as Record<string, unknown>;
+  const rawPublic = metadata.catalog_public && typeof metadata.catalog_public === "object" && !Array.isArray(metadata.catalog_public)
+    ? metadata.catalog_public as Record<string, unknown> : {};
+  const catalogPublic: Record<string, unknown> = {};
+  if (typeof rawPublic.is_available === "boolean") catalogPublic.is_available = rawPublic.is_available;
+  if (typeof rawPublic.show_price === "boolean") catalogPublic.show_price = rawPublic.show_price;
+  if (typeof rawPublic.image_url === "string") catalogPublic.image_url = rawPublic.image_url.slice(0, 1500);
+  if (typeof rawPublic.image_source === "string") catalogPublic.image_source = rawPublic.image_source.slice(0, 24);
+  if (typeof rawPublic.category === "string") catalogPublic.category = rawPublic.category.slice(0, 100);
+  if (typeof rawPublic.unit === "string") catalogPublic.unit = rawPublic.unit.slice(0, 40);
+  const comparePrice = Number(rawPublic.compare_price);
+  if (rawPublic.compare_price != null && Number.isFinite(comparePrice) && comparePrice >= 0) catalogPublic.compare_price = comparePrice;
+  const result: Record<string, unknown> = { catalog_public: catalogPublic };
+  if (typeof metadata.image_url === "string") result.image_url = metadata.image_url.slice(0, 1500);
+  return result;
+};
 const safeImage = (value: unknown, allowLegacyShowcaseImage = false) => {
   const s = String(value || "").trim();
   if (s.length > 1500 || !/^https:\/\//i.test(s)) return "";
@@ -127,7 +147,14 @@ Deno.serve(async (req: Request) => {
       .in("business_id", ids).eq("status", "ACTIVE").limit(250);
     if (providerError) throw providerError;
     const providerMap = new Map((providers || []).map((p: any) => [String(p.business_id), p]));
-    const publicBusinesses = directoryBusinesses.filter((b: any) => providerMap.has(String(b.id)));
+    const requestedSlugs = new Set(
+      String(new URL(req.url).searchParams.get("slugs") || "").slice(0, 4000)
+        .split(",").map((value) => value.trim().slice(0, 140)).filter(Boolean).slice(0, 20)
+    );
+    const publicBusinesses = directoryBusinesses.filter((b: any) => {
+      const provider: any = providerMap.get(String(b.id));
+      return Boolean(provider) && (requestedSlugs.size === 0 || requestedSlugs.has(String(provider?.slug || "").trim()));
+    });
     const buildPublicBusiness = async (business: any): Promise<any | null> => {
       const tenantId = String(business.tenant_id || "");
       const { data: branches, error: branchError } = await db.from("branches")
@@ -162,6 +189,7 @@ Deno.serve(async (req: Request) => {
           const { data: p, error: priceError } = await db.from("catalog_item_prices")
             .select("id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to")
             .eq("tenant_id", tenantId).in("catalog_item_id", itemIds).eq("status", "ACTIVE")
+             .or(`branch_id.is.null,branch_id.eq.${branchId}`)
             .lte("effective_from", now).or(`effective_to.is.null,effective_to.gte.${now}`).order("version", { ascending: false }).limit(1000);
           if (priceError) throw priceError;
           const hiddenPriceIds = new Set(
@@ -188,9 +216,8 @@ Deno.serve(async (req: Request) => {
         : cleanPhone.startsWith("0") ? "20" + cleanPhone.slice(1)
         : cleanPhone.startsWith("1") && cleanPhone.length === 10 ? "20" + cleanPhone : cleanPhone;
       return {
-        id: business.id, tenantId, organizationId: business.organization_id,
-        status: business.status,
-        bizcatalog: business.settings?.bizcatalog || {},
+        id: business.id,
+        status: String(business.status || "").trim().toUpperCase(),
         name: activityName,
         slug: provider?.slug || String(business.code || business.id),
         code: business.code, category: activityCategory,
@@ -200,7 +227,18 @@ Deno.serve(async (req: Request) => {
         activitySpecialty: String(business.settings?.activity_specialty || ""),
         profile: { bio: String(profile.bio || provider?.description || business.settings?.headline || ""), governorate: String(profile.governorate || ""), markaz: String(profile.markaz || ""), village: String(profile.village || ""), workingHours: String(profile.working_hours || ""), logoUrl: externalLogoUrl || defaultImages.logoUrl, coverUrl: externalCoverUrl || defaultImages.coverUrl, externalLogoUrl, externalCoverUrl, google_maps_url: String(profile.google_maps_url || ""), category: activityCategory, whatsappPhone },
         provider: { kind: activityCategory, description: provider?.description || profile.bio || business.settings?.headline || "", slug: provider?.slug || "", verified: Boolean(provider?.is_verified), featured: Boolean(provider?.is_featured) },
-        branches: branches || [], selectedBranchId: branchId || null, items, prices, contactPhone: phone,
+        branches: (branches || []).map((entry: any) => ({ id: entry.id, name: entry.name, address: entry.address, phone: entry.phone })),
+        selectedBranchId: branchId || null,
+        items: items.map((item: any) => ({
+          id: item.id, status: String(item.status || "ACTIVE").trim().toUpperCase(),
+          item_type: item.item_type, name_ar: item.name_ar, name_en: item.name_en,
+          description: item.description, metadata: publicCatalogItemMetadata(item.metadata),
+        })),
+        prices: prices.map((price: any) => ({
+          catalog_item_id: price.catalog_item_id, branch_id: price.branch_id,
+          currency: price.currency, unit_price: price.unit_price,
+        })),
+        contactPhone: phone,
         catalogPublished, publicEnabled: catalogPublished, isOfficialShowcase: officialShowcase,
         operationalStatus,
         operationallyAvailable: operationallyActive,
