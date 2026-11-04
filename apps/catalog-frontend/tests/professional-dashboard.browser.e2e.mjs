@@ -257,12 +257,33 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
       const businessId = url.searchParams.get('businessId');
       const fixture = publicDirectoryBusinesses.find((business) => business.id === businessId);
       if (!fixture) return json({ error: 'BUSINESS_NOT_PUBLIC' }, 404);
+      const branches = Array.isArray(fixture.branches) ? fixture.branches : [];
+      const selectedBranchId = fixture.selectedBranchId || branches[0]?.id || null;
+      const items = (Array.isArray(fixture.items) ? fixture.items : []).map((item) => {
+        const metadata = item.metadata?.catalog_public || {};
+        const type = String(item.item_type || 'PRODUCT').toUpperCase() === 'SERVICE' ? 'SERVICE' : 'PRODUCT';
+        return {
+          id: item.id,
+          branchId: item.branch_id || null,
+          type,
+          nameAr: item.name_ar || '',
+          nameEn: item.name_en || '',
+          description: item.description || '',
+          category: String(metadata.category || 'عام'),
+          unit: String(metadata.unit || ''),
+          imageUrl: String(metadata.image_url || ''),
+          comparePrice: metadata.compare_price ?? null,
+          trackStock: metadata.track_stock === true,
+          available: metadata.is_available !== false,
+          requiresQuote: type === 'SERVICE' && metadata.show_price === false,
+        };
+      });
       return json({
         business: { id: fixture.id, name: fixture.name, code: fixture.id, operationalStatus: 'ACTIVE', isOperationallyAvailable: true },
-        provider: { name: fixture.name, kind: fixture.category, description: fixture.profile?.bio || '', slug: fixture.id, verified: Boolean(fixture.provider?.verified) },
+        provider: { name: fixture.name, kind: fixture.category, description: fixture.profile?.bio || '', slug: fixture.slug || fixture.id, verified: Boolean(fixture.provider?.verified) },
         profile: { ...fixture.profile, category: fixture.category },
-        branches: [], selectedBranchId: null, items: [], prices: [], options: [],
-        contactPhone: '', paymentsEnabled: false, accessMode: 'PUBLIC_READ_ONLY',
+        branches, selectedBranchId, items, prices: fixture.prices || [], options: [],
+        contactPhone: fixture.contactPhone || '', paymentsEnabled: false, accessMode: 'PUBLIC_READ_ONLY',
       });
     }
     if (url.pathname.endsWith('/functions/v1/catalog-admin')) {

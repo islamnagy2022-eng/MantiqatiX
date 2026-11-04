@@ -134,8 +134,15 @@ Deno.serve(async (req: Request) => {
       if (globalPriceResult.error || branchPriceResult.error || optionResult.error) {
         throw globalPriceResult.error || branchPriceResult.error || optionResult.error;
       }
-      prices = [...(globalPriceResult.data || []), ...(branchPriceResult.data || [])];
-      options = optionResult.data || [];
+      const quoteOnlyItemIds = new Set(
+        rawItems.filter((item: any) => item.metadata?.catalog_public?.show_price === false)
+          .map((item: any) => String(item.id))
+      );
+      // Never return the stored numeric price or option deltas for quote-only items.
+      prices = [...(globalPriceResult.data || []), ...(branchPriceResult.data || [])]
+        .filter((price: any) => !quoteOnlyItemIds.has(String(price.catalog_item_id)));
+      options = (optionResult.data || [])
+        .filter((option: any) => !quoteOnlyItemIds.has(String(option.catalog_item_id)));
     }
 
     const trackStockIds = rawItems
@@ -190,6 +197,7 @@ Deno.serve(async (req: Request) => {
         imageUrl: safeImageUrl(meta.image_url),
         comparePrice: Number.isFinite(comparePrice) && comparePrice >= 0 ? comparePrice : null,
         trackStock: meta.track_stock === true,
+        requiresQuote: String(item.item_type || "").toUpperCase() === "SERVICE" && meta.show_price === false,
         available: meta.is_available !== false && (meta.track_stock !== true || stockAvailability.get(String(item.id)) === true),
       };
     });
