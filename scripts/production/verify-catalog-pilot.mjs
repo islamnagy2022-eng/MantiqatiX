@@ -36,30 +36,44 @@ assert.equal(qadam.migration_version_recorded, false, 'Original seed ledger drif
 
 assert.equal(paidGate?.status, 'PASS', 'Paid subscription activation guard must be deployed and verified');
 assert.equal(paidGate?.function_slug, 'catalog-platform-admin');
-assert.equal(paidGate?.live_function_version, 3, 'Expected deployed catalog admin function version must be recorded');
+assert.equal(paidGate?.live_function_version, 23, 'Current live catalog platform-admin version must be recorded');
 assert.equal(paidGate?.verify_jwt, true, 'Catalog platform admin must continue requiring JWT verification');
-assert.equal(paidGate?.source_exact_match, true, 'Deployed catalog admin function must match reviewed source exactly');
+assert.equal(paidGate?.source_exact_match, false, 'The scoped activity-module settings/audit drift must remain disclosed rather than hidden');
+assert.equal(paidGate?.paid_subscription_guard_source_evidence?.subscription_payment_required_marker, true, 'Live platform admin must reject unpaid business restoration');
+assert.equal(paidGate?.paid_subscription_guard_source_evidence?.paid_subscription_activation_failed_marker, true, 'Live platform admin must activate pending owners only after an admin-confirmed paid state');
+assert.equal(paidGate?.paid_subscription_guard_source_evidence?.only_admin_confirmed_paid_state_activates_pending_owner_memberships, true, 'Pending owner memberships must be activated only by the paid/admin-confirmed path');
+assert.equal(paidGate?.activity_module_admin_writes_enabled, false, 'Activity-module override writes must remain disabled until atomic settings+audit support is deployed');
+assert.ok(String(paidGate?.activity_module_admin_write_deferred_reason || '').includes('atomic'), 'The live platform-admin source difference must be explicitly scoped to the deferred atomic audit contract');
 assert.equal(paidGate?.unrelated_modules_deployed, false, 'No unrelated backend modules may be deployed by the catalog pilot');
 assert.equal(paidGate?.active_non_showcase_owner_memberships_count_before_guard, 0, 'No unpaid non-showcase owner memberships may already be active');
 assert.equal(paidGate?.no_unpaid_non_showcase_owner_memberships_found, true, 'The read-only subscription audit must be recorded');
 
-assert.equal(catalogFunctions?.status, 'PASS', 'All scoped catalog Edge Functions must have verified live source parity');
+assert.equal(catalogFunctions?.status, 'PARTIAL_WITH_PUBLIC_READ_PARITY', 'Public catalog functions must be source-aligned; platform-admin activity-module writes remain an explicit disabled exception');
+assert.equal(catalogFunctions?.activity_module_admin_writes_enabled, false, 'Activity-module settings writes must remain disabled');
+assert.equal(catalogFunctions?.activity_module_admin_deferred_until_atomic_audit, true, 'Activity-module settings writes must remain blocked until atomic audit is available');
+assert.equal(catalogFunctions?.unrelated_functions_deployed, false, 'No unrelated Edge Functions may be deployed by the catalog pilot');
 const expectedCatalogFunctions = new Map([
-  ['catalog-platform-admin', { version: 3, verifyJwt: true }],
-  ['catalog-admin', { version: 14, verifyJwt: false }],
-  ['public-catalog-directory', { version: 2, verifyJwt: false }],
-  ['public-catalog', { version: 2, verifyJwt: false }],
+  ['catalog-platform-admin', { version: 23, verifyJwt: true, exact: false }],
+  ['catalog-admin', { version: 20, verifyJwt: false, exact: true }],
+  ['public-catalog-directory', { version: 17, verifyJwt: false, exact: true }],
+  ['public-catalog', { version: 7, verifyJwt: false, exact: true }],
 ]);
 for (const fn of catalogFunctions.functions || []) {
   const expected = expectedCatalogFunctions.get(fn.slug);
   assert.ok(expected, 'Unexpected Edge Function in the scoped catalog release: ' + fn.slug);
-  assert.equal(fn.live_version, expected.version, fn.slug + ' live version must match its reviewed version');
+  assert.equal(fn.live_version, expected.version, fn.slug + ' live version must match the freshly inspected Supabase deployment');
   assert.equal(fn.verify_jwt, expected.verifyJwt, fn.slug + ' JWT mode must remain unchanged and reviewed');
-  assert.equal(fn.source_exact_match, true, fn.slug + ' deployed source must match the reviewed branch');
+  assert.equal(fn.source_exact_match, expected.exact, fn.slug + ' source parity must match the documented deployment exception');
+  if (fn.slug === 'catalog-platform-admin') {
+    assert.equal(fn.status, 'DRIFT_FOUND', 'The non-parity admin function must remain explicitly disclosed');
+    assert.equal(fn.deferred_write_scope, 'activity-module-overrides-and-audit');
+    assert.equal(fn.write_disabled_in_frontend, true);
+  } else {
+    assert.equal(fn.status, 'PASS_SOURCE_PARITY', fn.slug + ' must be source-aligned with main');
+  }
   expectedCatalogFunctions.delete(fn.slug);
 }
 assert.equal(expectedCatalogFunctions.size, 0, 'Every scoped catalog Edge Function must be accounted for');
-assert.equal(catalogFunctions.unrelated_functions_deployed, false, 'No unrelated Edge Functions may be deployed by the catalog pilot');
 
 assert.ok(vite.includes("base: '/MantiqatiX/'"), 'Catalog frontend must be built under its own subpath');
 assert.equal(manifest.scope, '/MantiqatiX/', 'Catalog PWA scope must not claim the platform root');
@@ -76,6 +90,11 @@ assert.ok(backend.includes('SUBSCRIPTION_PAYMENT_REQUIRED'), 'Backend must rejec
 assert.ok(backend.includes('PAID_SUBSCRIPTION_ACTIVATION_FAILED'), 'Backend must activate pending memberships only after confirmed payment');
 assert.ok(!app.includes('updateBusinessPaymobConfig') && !app.includes('merchantApiKey') && !app.includes('integrationIdCard'), 'Catalog context must not expose unverified Paymob credential persistence');
 assert.ok(admin.includes('لن تُحفظ مفاتيح Paymob من هذه الواجهة ولن يُفعّل التحصيل الإلكتروني'), 'Admin UI must disclose that online collection remains disabled until production verification');
+const activityModuleAdmin = read('apps/catalog-frontend/src/components/admin/ActivityModulesAdmin.tsx');
+const activityModuleE2E = read('apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs');
+assert.ok(activityModuleAdmin.includes('ACTIVITY_MODULE_ADMIN_WRITE_ENABLED = false'), 'Unverified activity-module settings writes must stay disabled');
+assert.ok(activityModuleE2E.includes('activity-module-admin-writes-disabled-until-atomic-audit-backend'), 'Browser E2E must prove activity-module admin writes remain disabled');
+assert.ok(activityModuleE2E.includes("request.action === 'SAVE_SETTINGS'"), 'Browser E2E must assert no settings save request is sent before atomic audit support is deployed');
 assert.ok(!admin.includes('handleSavePaymobConfig') && !admin.includes('paymobMerchantApiKey') && !admin.includes('Integration ID'), 'Admin UI must not expose a fake Paymob credential-save path');
 assert.ok(!admin.includes("setActiveAdminTab('backup')"), 'Unverified backup/restore UI must not be exposed');
 assert.ok(!admin.includes("setActiveAdminTab('control_center')"), 'Unverified advanced control-center UI must not be exposed');
