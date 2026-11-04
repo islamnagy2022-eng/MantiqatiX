@@ -322,17 +322,23 @@
     "rpc_privileges": [
       {
         "signature": "post_financial_journal(jsonb,jsonb)",
-        "acl": "{postgres=X/postgres}",
-        "service_role_execute": false,
+        "search_path": [
+          "search_path=public"
+        ],
+        "anon_execute": false,
         "authenticated_execute": false,
-        "anon_execute": false
+        "service_role_execute": false,
+        "postgres_execute": true
       },
       {
         "signature": "post_financial_journal_backend(uuid,jsonb,jsonb)",
-        "acl": "{postgres=X/postgres}",
-        "service_role_execute": false,
+        "search_path": [
+          "search_path=public"
+        ],
+        "anon_execute": false,
         "authenticated_execute": false,
-        "anon_execute": false
+        "service_role_execute": false,
+        "postgres_execute": true
       }
     ],
     "schema_preflight": {
@@ -344,7 +350,10 @@
         "public.journal_entries.total_credit",
         "public.journal_entries.posted_at",
         "public.journal_entry_lines.line_number"
-      ]
+      ],
+      "required_columns_present": false,
+      "checked_at": "2026-11-04",
+      "method": "Read-only information_schema.columns query; no matching columns returned."
     },
     "live_row_counts": {
       "public.journal_entries": 0,
@@ -357,7 +366,7 @@
       "public.smm_orders": 0,
       "public.smm_wallet_transactions": 0
     },
-    "interpretation": "The disposable PostgreSQL 16 RC449A→RC450 integration job passes, but Production still lacks the schema prerequisites and service_role EXECUTE grant. Do not deploy the function or apply the migrations independently.",
+    "interpretation": "Fresh read-only check on 2026-11-04 confirms RC449A/RC450 migration versions are not recorded; all five journal columns are absent; neither the legacy nor backend journal RPC grants EXECUTE to service_role. Keep financial-journal Edge v3 and v4 source drift deployment blocked. Disposable RC449A→RC450 integration success is not Production evidence.",
     "live_edge_function": {
       "slug": "financial-journal",
       "version": 3,
@@ -2287,5 +2296,55 @@
     "interpretation": "Advisor findings are not vulnerability counts. No-policy findings require effective grant/RPC path review. The two SECURITY DEFINER lint findings refer to trigger-only functions assign_default_owner_to_unowned_business and capture_commission_rule_audit; their attached triggers are enabled, but direct EXECUTE ACL remains broader than desired. RC463 remains unrecorded and unapplied. Auth leaked-password protection remains NOT VERIFIED."
   },
   "full_platform_gate": "BLOCKED / NOT CERTIFIED",
-  "full_platform_gate_last_checked_at": "2026-11-04"
+  "full_platform_gate_last_checked_at": "2026-11-04",
+  "rc431_rc438_live_rpc_recheck_20261104": {
+    "checked_at": "2026-11-04",
+    "method": "Read-only pg_proc function identity, proconfig and has_function_privilege queries.",
+    "functions": [
+      {
+        "signature": "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)",
+        "exists": true,
+        "expected_release_signature": "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
+        "expected_release_signature_exists": false,
+        "search_path": [
+          "search_path=public, pg_temp"
+        ],
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "service_role_execute": false,
+        "postgres_execute": true,
+        "status": "BLOCKED",
+        "detail": "Only the older four-argument signature exists; the required claim-token five-argument contract is absent."
+      },
+      {
+        "signature": "public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)",
+        "exists": true,
+        "search_path": [
+          "search_path=public, pg_temp"
+        ],
+        "anon_execute": false,
+        "authenticated_execute": false,
+        "service_role_execute": true,
+        "postgres_execute": true,
+        "status": "BLOCKED",
+        "detail": "Service role can execute but the live search_path differs from the reviewed empty search_path contract; callback body/runtime parity still needs E2E."
+      },
+      {
+        "signature": "public.update_purchase_order_status_backend(varchar,varchar)",
+        "exists": true,
+        "search_path": [
+          "search_path=public"
+        ],
+        "anon_execute": false,
+        "authenticated_execute": false,
+        "service_role_execute": false,
+        "postgres_execute": true,
+        "status": "BLOCKED",
+        "detail": "The function exists physically but is postgres-only and has no authenticated/service_role execute boundary required by RC438."
+      }
+    ],
+    "financial_journal_service_role_execute": false,
+    "required_journal_columns_present": 0,
+    "required_journal_columns": 5
+  }
 }
