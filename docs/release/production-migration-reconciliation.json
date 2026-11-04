@@ -2346,5 +2346,82 @@
     "financial_journal_service_role_execute": false,
     "required_journal_columns_present": 0,
     "required_journal_columns": 5
+  },
+  "catalog_performance_recheck_20261104": {
+    "status": "READ_ONLY_EXPLAIN_ANALYZE_COMPLETED",
+    "checked_at": "2026-11-04",
+    "database_engine": "PostgreSQL 17.6",
+    "row_counts": {
+      "public_directory_listings": 965,
+      "businesses": 10,
+      "branches": 10,
+      "marketing_provider_profiles": 10,
+      "catalog_items": 49,
+      "catalog_item_prices": 30,
+      "user_memberships": 33
+    },
+    "plans": [
+      {
+        "query": "Published doctor directory page filtered by governorate/district; ordered created_at DESC,id DESC; LIMIT 21.",
+        "plan": "Index Scan using public_directory_listings_type_location_idx, then top-N sort.",
+        "execution_ms": 4.208,
+        "scanned_rows": 568,
+        "rows_after_location_filters": 57,
+        "returned_rows": 21,
+        "shared_hit_blocks": 328,
+        "note": "The leading-wildcard ILIKE location predicates are post-index filters; 511 rows were removed by filter."
+      },
+      {
+        "query": "Published directory page with taxonomy category/specialty OR, nine-column free-text ILIKE OR, and keyset cursor.",
+        "plan": "Sequential Scan followed by sort and LIMIT.",
+        "execution_ms": 34.394,
+        "scanned_rows": 965,
+        "rows_after_filters": 22,
+        "returned_rows": 21,
+        "rows_removed_by_filter": 943,
+        "shared_hit_blocks": 175,
+        "note": "Current behavior is acceptable for the current 965-row directory but not a scale proof."
+      },
+      {
+        "query": "Active catalog items for Sameh Market, current branch or business-wide items, sorted by name.",
+        "plan": "Index Scan using idx_catalog_items_branch, then small sort.",
+        "execution_ms": 2.309,
+        "rows_returned": 2,
+        "shared_hit_blocks": 5
+      },
+      {
+        "query": "Current active prices for the selected Sameh Market branch or global price, scoped to active item IDs and effective dates.",
+        "plan": "Nested Loop; item lookup used idx_catalog_items_branch; small catalog_item_prices table sequential scan.",
+        "execution_ms": 0.171,
+        "rows_returned": 2,
+        "shared_hit_blocks": 7,
+        "note": "The prices table currently has 30 rows; a sequential scan is expected and faster at this size. Do not add another index based solely on this plan."
+      }
+    ],
+    "directory_indexes_present": [
+      "public_directory_listings_type_location_idx",
+      "public_directory_listings_taxonomy_group_idx",
+      "public_directory_listings_taxonomy_category_idx",
+      "public_directory_listings_specialty_idx",
+      "public_directory_listings_slug_key",
+      "public_directory_listings_claim_status_idx",
+      "public_directory_listings_outreach_idx"
+    ],
+    "relevant_catalog_indexes_present": [
+      "idx_catalog_items_branch",
+      "idx_catalog_items_business_status",
+      "idx_catalog_item_prices_lookup",
+      "idx_catalog_item_prices_branch_id",
+      "idx_catalog_item_prices_tenant_id"
+    ],
+    "pg_trgm_installed": false,
+    "recommendations": [
+      "Benchmark a single normalized search_document column with GIN trigram indexing or an equivalent search design in an isolated database against a realistic Arabic/English 1M+ row fixture.",
+      "Benchmark a btree keyset pagination index beginning with equality predicates and ending in created_at DESC,id DESC; test with real filter combinations before proposing it.",
+      "Recheck query plans after refreshing statistics; catalog_items estimated_rows (16) differed from n_live_tup (49), and its last auto-analyze was 2026-10-27.",
+      "Do not drop indexes based only on current unused_index Advisor output; some are newly introduced or exercised only by future dashboard/admin workflows."
+    ],
+    "production_changes": "NONE — EXPLAIN ANALYZE SELECT-only queries. No extensions, indexes, RLS, policies, grants, data or migration ledger rows were changed.",
+    "scale_limitation": "These results describe 965 public directory rows and current small catalog tables; they are not evidence of readiness for tens/hundreds of millions of users or rows."
   }
 }
