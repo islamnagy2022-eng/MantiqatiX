@@ -7,6 +7,7 @@
 - [x] Added docs/release/V6_CANONICAL_INTEGRATION_MAP_20261105.md mapping candidate entities and actions to existing backend contracts and recording non-equivalences.
 - [ ] Complete deterministic dependency install, TypeScript, lint, build and browser/PWA tests. Local npm install attempts exceeded 120 seconds and 300 seconds; no node_modules/build output was produced. Bun is unavailable.
 - [ ] Fix/confirm test runner: five node:test files fail under Node 22 type stripping because extensionless TypeScript imports are unresolved; package.json has no test script. The declared tsx dependency is a candidate runner but has not been installed or verified.
+- [x] Transpiled all 53 candidate TS/TSX source files with global TypeScript 5.8.3: zero syntax diagnostics. This is syntax-only evidence, not semantic type-checking or a Vite build.
 - [ ] Integrate V6 source incrementally into apps/catalog-frontend after feature/schema/API mapping; no candidate application source has been copied or replaced yet.
 - [x] Initial entity/API mapping completed; field-level mapping and authorization tests remain open.
 - [ ] Produce a dry-run-only report for private snapshot provenance/schema/duplicate relationships; no snapshot content was opened, uploaded or imported.
