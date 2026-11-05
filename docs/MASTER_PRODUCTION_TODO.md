@@ -1,3 +1,21 @@
+## 2026-11-05 — V6 live Supabase contract inspection and test reconciliation
+
+- [x] Rechecked current main at the latest known merge point before continuing.
+- [x] Verified the original AI Studio archive SHA-256 `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`, ZIP integrity PASS, and 150 archive entries.
+- [x] Re-ran V6 source security audit: `V6_SOURCE_SECURITY_AUDIT=PASS`; remediation checks 2/2 PASS.
+- [x] Reconciled Team 02 patch against the hardened V6 working tree. Directory/App changes were already present; retained hardened AdminDashboard because the patch's alternate dashboard reintroduces simulated RPS/telemetry values and a misleading “approved” load-test result.
+- [x] Re-ran the V6 utility suite with a TypeScript-aware Node test loader: 49/49 PASS. Updated two stale assertions only: load-test placeholders must remain unavailable, and default images must match sector resolver behavior.
+- [x] Inspected the live Supabase project read-only: 138 table objects including 137 public, 309 migration records, 42 ACTIVE Edge Functions. Key catalog/auth/tenant tables have RLS enabled.
+- [x] Inspected live sources for `public-catalog-directory` v17, `directory-listings` v16, `catalog-admin` v20, and `catalog-platform-admin` v23; wrote the field/contract and scope map in [AI Studio V6 Supabase contract map](docs/integration/AI_STUDIO_V6_SUPABASE_CONTRACT_MAP_AR.md).
+- [ ] Repackage the hardened V6 working tree as a new clean candidate ZIP, exclude private `.data/`, environment files, dependencies, and generated build outputs; record the new candidate SHA-256 and manifest. The original candidate ZIP from Library did not expose an authorized raw-byte path, so its own digest must not be claimed verified.
+- [ ] Obtain dependencies and execute full `tsc --noEmit`, lint and Vite build against one immutable V6 tree. `npm install` timed out in this environment; these gates remain NOT VERIFIED.
+- [ ] Implement V6 Supabase Auth/session/active-membership bootstrap using only public client configuration; never put a service-role or secret key in the browser.
+- [ ] Implement read-only adapters for directory keyset pages (20 rows), public business profiles, and catalog items/prices/options. Keep directory listing IDs separate from business UUIDs.
+- [ ] Replace production use of local seed data/localStorage with backend reads; retain fixtures only for an isolated preview/test mode.
+- [ ] Continue business-profile/catalog writes only through the verified `catalog-admin` actions after Auth and tenant/business/branch scoping tests pass.
+- **Current blockers:** V6 adapter NOT IMPLEMENTED; full dependency/type/lint/build/E2E NOT VERIFIED; shared writes, payments/finance, and production cutover remain BLOCKED.
+- **No production changes:** no Supabase DDL/DML, migrations, Auth/RLS/GRANT, Edge deployment, payments, finance, or public-site cutover were performed.
+
 # OWNER DECISION — V6 is the canonical target application (2026-11-05)
 
 **Decision:** The Google AI Studio V6 application is now the canonical product/UI/source baseline to be implemented as the actual MantiqatiX application. This supersedes prior wording that treated V6 only as a secondary candidate while the older catalog UI remained the target. The existing deployed application remains online as the controlled production baseline during migration; it is not the design/product baseline for the final result.
