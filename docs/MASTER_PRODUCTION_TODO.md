@@ -1,3 +1,17 @@
+## 2026-11-05 — TEAM01-20261105-01 — Master architecture & integration register
+
+- [x] Registered this request in master ledger [Issue #599](https://github.com/islamnagy2022-eng/MantiqaTix/issues/599) (comment 6651234591).
+- [x] Verified current main baseline: `218d4c768021fbc94d21ffd442b3fcdacd16e4f8`; inspected the canonical continuity, TODO, cross-session protocol, ten-group module boundary and RC40 reuse matrix.
+- [x] Inspected exact-head CI and deployment jobs on the current main SHA; five workflows passed, including the Pages deploy and deployed-origin browser checks.
+- [x] Compared active PR heads against current main and identified shared-file/divergence groups: dashboard #610/#618, directory #661/#490, security/migration #598/#602/#615, taxonomy #540, and stale documentation #666.
+- [ ] Review/merge this documentation-only Team 01 register PR after exact-head validation.
+- [ ] Refresh all branch comparison figures before any integration/merge; counts in the register are a 2026-11-05 snapshot.
+- [ ] Start the first P0 dependency chain: restorable current Production schema/roles snapshot → migration identity/effect reconciliation → chronological disposable replay → reviewed migration/rollback plan.
+- [ ] Continue P0 finance/security/Auth/DR gates as dependency groups; no isolated Edge deployment, Production migration, grants/Auth mutation or real-money action.
+- **Register:** [Team 01 Architecture & Integration Register](engineering/TEAM_01_ARCHITECTURE_AND_INTEGRATION_REGISTER_20261105.md).
+- **Status:** documentation coordination `IN PROGRESS`; `CATALOG_PILOT_GATE=PASS`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+- **Safety:** this task performs documentation-only repository updates on a review branch. No application source or Production state is changed.
+
 ## 2026-11-05 — Standalone AI Studio V6 candidate review (source files incomplete)
 - [x] Reviewed the newly supplied baseline, implementation, deployment, security, DR, capacity, load-report and HTML files.
 - [x] Recorded the architecture boundary between the root-level V6 candidate and the deployed `apps/catalog-frontend` application.
