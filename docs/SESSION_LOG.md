@@ -2028,3 +2028,12 @@ A separate source review found a second platform-root authorization model: the n
 - Used global TypeScript 5.8.3 transpileModule over all 53 V6 TS/TSX source files: zero syntax diagnostics.
 - This is syntax-only transpilation and does not establish semantic type correctness, dependency resolution, Vite build success or runtime behavior.
 - Full dependency install remains blocked by local execution timeouts; candidate test runner remains unresolved.
+
+
+## 2026-11-05 — SESSION follow-up — Critical V6 candidate source findings
+- Direct source inspection found credential-shaped Paymob and Google AI values plus a hardcoded admin password in src/data/seedData.ts. Values were not copied into GitHub or the report; treat as exposed until proven placeholders and rotate if real.
+- DEFAULT_PAYMOB_CONFIG is enabled in seed data; payment must remain disabled until server-only secrets and sandbox E2E pass.
+- server.ts exposes unauthenticated file-backed /api/production-state GET/POST routes and listens on 0.0.0.0. These cannot be used as production persistence.
+- AppContext.commitCurrentDataAsOfficialLive marks a local snapshot official and returns success even if remote persistence fails; this is false-success behavior and must be replaced.
+- Hardcoded visitor fallback counts and randomized load-test simulation are presented as operational metrics/100M claims; these are not real measurements and must be removed or labelled as simulation.
+- Added these blockers to docs/release/V6_CANONICAL_INTEGRATION_MAP_20261105.md and Master TODO. No credential value was copied; no Production mutation or deployment occurred.
