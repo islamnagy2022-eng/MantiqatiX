@@ -6,6 +6,7 @@
 - [x] Exact-head GitHub Actions: V6 Candidate Safety Boundary [41982612018] PASS; Deploy MantiqaTix Web validation [41982612012] PASS, including the new V6 private-data boundary step. Deploy job was SKIPPED for this PR; no site publication occurred.
 - [x] Added docs/release/V6_CANONICAL_INTEGRATION_MAP_20261105.md mapping candidate entities and actions to existing backend contracts and recording non-equivalences.
 - [x] Added scripts/audit-v6-source-security.mjs and ran it against the extracted, hash-verified archive: BLOCKED with 8 sanitized findings; exit code 1 is intentional until remediated. No secret values or private snapshot contents were printed/read.
+- [x] Added scanner unit tests and ran under Node 22: 2 passed, 0 failed. These validate the scanner only, not V6 application behavior.
 - [ ] Complete deterministic dependency install, TypeScript, lint, build and browser/PWA tests. Local npm install attempts exceeded 120 seconds and 300 seconds; no node_modules/build output was produced. Bun is unavailable.
 - [ ] Fix/confirm test runner: five node:test files fail under Node 22 type stripping because extensionless TypeScript imports are unresolved; package.json has no test script. The declared tsx dependency is a candidate runner but has not been installed or verified.
 - [x] Transpiled all 53 candidate TS/TSX source files with global TypeScript 5.8.3: zero syntax diagnostics. This is syntax-only evidence, not semantic type-checking or a Vite build.
