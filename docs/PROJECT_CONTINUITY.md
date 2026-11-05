@@ -1,3 +1,25 @@
+# CURRENT HANDOFF — 2026-11-05 — V6 read-only directory integration pass
+
+- **Canonical target:** Google AI Studio V6. Original source archive SHA-256: `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`.
+- **Local reconstructed candidate artifact:** `MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05.zip`; SHA-256 `6f9ef2ad70997255b6b6bf26aa34bb1ec93b92d48264c571359b8b96803f1a9b`. It was created by applying the supplied security-remediation patch to the exact original archive, reconciling Team 02 UI improvements and adding a public directory adapter/auth hardening.
+- **Important provenance qualification:** the security patch's final hunk applied with fuzz 2; the separate stored security-remediation ZIP could not be materialized as raw bytes, so the reconstructed candidate is not claimed to be byte-identical to that ZIP. Its own archive SHA and ZIP integrity are verified. Official-candidate equivalence remains open.
+- **Implemented in this candidate:** public read-only adapter from active `public-catalog-directory` v17; mappings for approved public businesses and available/priced catalog items; directory connection states; no local Seed fallback for public directory; local roles are no longer restored from Local Storage and subscriber local password login is disabled until Supabase Auth/membership verification exists; Team 02 pagination/accessibility/metadata and safe admin-summary updates merged without undoing security changes.
+- **Live Supabase snapshot (read-only inspection):** 137 public tables, 42 active Edge Functions, 309 migrations. Existing `businesses`, `branches`, `user_memberships`, `catalog_items`, `catalog_item_prices`, and `public_directory_listings` contracts exist; no duplicate tables/APIs were introduced.
+- **Tests:** security audit PASS; remediation tests 2/2; public adapter + pagination tests 9/9; strict isolated adapter/types type-check PASS; syntax transpilation 55 files/0 syntax errors; original and generated ZIP integrity PASS.
+- **Not verified:** full npm install/typecheck/lint/build/E2E/PWA; real HTTP request to the Edge Function from this execution environment; Auth/membership integration; shared writes and modules; data reconciliation; preview or production cutover. Network DNS was unavailable and npm offline install failed due missing cache.
+- **Safety:** current public website and Supabase Production remain unchanged. Full platform remains BLOCKED / NOT CERTIFIED.
+
+## Permanent continuation rule
+When the user says **«كمل»**, resume the first actionable open task in `docs/MASTER_PRODUCTION_TODO.md` from this checkpoint. Do not restart or re-ask known requirements.
+
+## Next executable task
+1. Run the candidate on a network-enabled CI/build runner and capture dependency installation, full type-check, lint, production build, browser E2E, accessibility and PWA results against one immutable revision.
+2. Implement Supabase Auth sign-in/session verification and server-side `api /api/v1/me` active-membership resolution; never trust client role metadata or browser Local Storage.
+3. Map V6 profile/catalog/merchant screens to current authenticated Edge Function/RPC contracts, then implement writes one bounded module at a time with tenant/business/branch tests.
+4. Continue import dry-run, feature parity, rollback/backup evidence, preview and controlled cutover only after gates pass.
+
+---
+
 # CURRENT HANDOFF — 2026-11-05 — OWNER-APPROVED V6 CANONICAL TARGET
 
 - **Canonical target application:** Google AI Studio V6, source archive `bizcatalog-manager (5)(1).zip`, original SHA-256 `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965` (ZIP integrity previously PASS; 150 entries).
