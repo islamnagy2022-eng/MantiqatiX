@@ -615,6 +615,116 @@ try {
   } finally { await context.close(); }
 }
 
+// 0b. Directory search matches real available products/services, but never unpublished or unavailable items.
+{
+  const searchableBusiness = {
+    id: 'catalog-item-search-business',
+    tenantId: 'tenant-catalog-item-search',
+    organizationId: 'org-catalog-item-search',
+    name: 'متجر الأدوات المنزلية',
+    category: 'تجارة منزلية',
+    status: 'ACTIVE',
+    operationalStatus: 'ACTIVE',
+    publicEnabled: true,
+    catalogPublished: true,
+    isVerified: true,
+    governorate: 'المنوفية',
+    markaz: 'بركة السبع',
+    village: '',
+    profile: {
+      publicEnabled: true,
+      bio: 'متجر متخصص في الأدوات المنزلية والمستلزمات',
+    },
+    provider: { verified: true },
+    branches: [],
+    items: [
+      {
+        id: 'catalog-item-search-coffee',
+        item_type: 'PRODUCT',
+        status: 'ACTIVE',
+        name_ar: 'قهوة تركي ممتازة',
+        description: 'بن مطحون محمص',
+        metadata: { catalog_public: { is_available: true, category: 'مشروبات', unit: 'عبوة' } },
+      },
+      {
+        id: 'catalog-item-search-ac-service',
+        item_type: 'SERVICE',
+        status: 'ACTIVE',
+        name_ar: 'صيانة تكييف سبليت',
+        description: 'تنظيف وفحص وصيانة دورية',
+        metadata: { catalog_public: { is_available: true, show_price: false, category: 'صيانة' } },
+      },
+      {
+        id: 'catalog-item-search-unavailable',
+        item_type: 'PRODUCT',
+        status: 'ACTIVE',
+        name_ar: 'ثلاجة غير متاحة',
+        metadata: { catalog_public: { is_available: false, category: 'أجهزة' } },
+      },
+      {
+        id: 'catalog-item-search-no-price',
+        item_type: 'PRODUCT',
+        status: 'ACTIVE',
+        name_ar: 'منتج بلا سعر نشط',
+        metadata: { catalog_public: { is_available: true, category: 'أجهزة' } },
+      },
+      {
+        id: 'catalog-item-search-inactive',
+        item_type: 'PRODUCT',
+        status: 'INACTIVE',
+        name_ar: 'منتج مخفي',
+        metadata: { catalog_public: { is_available: true, category: 'أجهزة' } },
+      },
+    ],
+    prices: [
+      { catalog_item_id: 'catalog-item-search-coffee', unit_price: 145, status: 'ACTIVE' },
+      { catalog_item_id: 'catalog-item-search-unavailable', unit_price: 950, status: 'ACTIVE' },
+    ],
+  };
+  const unpublishedBusiness = {
+    ...searchableBusiness,
+    id: 'catalog-item-search-unpublished',
+    name: 'نشاط غير منشور',
+    publicEnabled: false,
+    catalogPublished: false,
+    items: [{
+      id: 'catalog-item-search-unpublished-product',
+      item_type: 'PRODUCT',
+      status: 'ACTIVE',
+      name_ar: 'أثاث مكتبي فاخر',
+      metadata: { catalog_public: { is_available: true, category: 'أثاث' } },
+    }],
+    prices: [{ catalog_item_id: 'catalog-item-search-unpublished-product', unit_price: 800, status: 'ACTIVE' }],
+  };
+
+  const { context, page } = await newScenario(browser, null, [searchableBusiness, unpublishedBusiness], {
+    initialRoute: '?view=directory',
+  });
+  try {
+    await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
+    const searchPanel = page.getByTestId('directory-search-panel');
+    await searchPanel.waitFor({ state: 'visible', timeout: 15000 });
+    const searchInput = searchPanel.getByTestId('directory-search-input');
+
+    await searchInput.fill('قهوة تركي');
+    await page.getByText('متجر الأدوات المنزلية', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+    assert.equal(await page.getByText('متجر الأدوات المنزلية', { exact: true }).count(), 1, 'a matching available product must return its owning public business');
+
+    await searchInput.fill('صيانة تكييف');
+    await page.getByText('متجر الأدوات المنزلية', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+    assert.equal(await page.getByText('متجر الأدوات المنزلية', { exact: true }).count(), 1, 'a matching available quote-only service must return its owning public business');
+
+    for (const blockedTerm of ['ثلاجة غير متاحة', 'منتج بلا سعر نشط', 'منتج مخفي', 'أثاث مكتبي فاخر']) {
+      await searchInput.fill(blockedTerm);
+      await page.getByRole('heading', { name: 'لا توجد أنشطة مطابقة للبحث', exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(await page.getByText('متجر الأدوات المنزلية', { exact: true }).count(), 0, blockedTerm + ' must not return a public business through a blocked catalogue item');
+      assert.equal(await page.getByText('نشاط غير منشور', { exact: true }).count(), 0, 'unpublished business must never enter product/service search results');
+    }
+
+    results.push('directory-search-matches-published-available-products-and-services-only');
+  } finally { await context.close(); }
+}
+
 // 0. Public activity lists render 20 cards, then append 20 more per explicit action.
   {
     const paginationSource = liveDirectory.businesses[0];
