@@ -185,8 +185,8 @@ No statement in this register authorizes Production DDL/DML, migration apply/rep
 | Current exact-head workflow and Pages deploy jobs reviewed | `VERIFIED` |
 | Open PR overlap/dependency snapshot prepared | `IMPLEMENTED` in this register |
 | Task registered in Issue #599 | `IMPLEMENTED` — comment 6651234591 |
-| Team 01 register added | `IN PROGRESS` — branch candidate; PR review pending |
-| Master TODO / continuity / session log updates | `IN PROGRESS` |
+| Team 01 register added | `IMPLEMENTED` — [Draft PR #672](https://github.com/islamnagy2022-eng/MantiqaTix/pull/672); exact-head CI pending |
+| Master TODO / continuity / session log updates | `IMPLEMENTED` on the review branch |
 | Production mutation / full-platform certification | `NOT AUTHORIZED / BLOCKED` |
 
 ### Files intended to change in this documentation-only batch
@@ -200,11 +200,10 @@ No application source, migration, Edge Function, production data, Auth/RLS/GRANT
 
 ## 10. Next actions
 
-1. Complete the canonical TODO, continuity and session-log updates on this branch.
-2. Open a Draft PR against `main`; require documentation/architecture review and exact-head CI.
-3. Refresh branch comparisons and dependency map immediately before considering any PR merge.
-4. Start the first P0 engineering sequence with current-schema restoration and migration identity/effect reconciliation; use disposable environments only.
-5. Keep `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` until every independent release gate is supported by current evidence.
+1. Review [Draft PR #672](https://github.com/islamnagy2022-eng/MantiqaTix/pull/672), including exact-head CI and documentation accuracy.
+2. Refresh branch comparisons and dependency map immediately before considering any PR merge.
+3. Start the first P0 engineering sequence with current-schema restoration and migration identity/effect reconciliation; use disposable environments only.
+4. Keep `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` until every independent release gate is supported by current evidence.
 
 ---
 
