@@ -2045,3 +2045,9 @@ A separate source review found a second platform-root authorization model: the n
 - The audit did not read .data/production-live-db.json and did not modify the source archive or Production.
 - Added exact audit output and run command to docs/release/V6_CANONICAL_INTEGRATION_MAP_20261105.md.
 - Next: remediate the eight source blockers in the isolated V6 candidate tree, then re-run this gate before importing any candidate application files into apps/catalog-frontend.
+
+
+## 2026-11-05 — SESSION follow-up — V6 audit tool tests
+- Added scripts/audit-v6-source-security.test.mjs and .github/workflows/v6-source-audit-tests.yml.
+- Ran the two Node 22 tests locally: 2 passed, 0 failed. They verify all configured blocker IDs are detected, credential values are suppressed, and a clean fixture passes.
+- These tests validate the static audit tool only; they do not validate the V6 application, dependencies, type-check, build or browser runtime.
