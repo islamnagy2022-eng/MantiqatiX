@@ -3,16 +3,16 @@
 حالات العمل: TODO / IN PROGRESS / WAIT / BLOCKED / DONE / VERIFIED / NOT VERIFIED.  
 قاعدة الإغلاق: DONE لا تعني VERIFIED.
 
-## Directory cover-image fallbacks — PR #641 (IN PROGRESS)
-- [ ] Use the approved default doctor image as the cover for unverified doctor activities when no owner-supplied cover exists.
-- [ ] Use the pharmacy-specific default image as the cover for unverified pharmacy activities when no owner-supplied cover exists.
-- [ ] Use category-aware cover defaults for other activities without a configured cover; preserve valid real cover URLs and verified-state behavior.
-- [ ] Verify image-load fallback behavior and confirm that doctor/pharmacy default image URLs load in production browsers.
-- [x] Source change committed on branch `fix/unverified-health-cover-images-20261101` (commit `f9c821abc8ca8e921bef34b65f70d82fdcdfddd9`); PR #641 opened.
-- [x] TypeScript/build/security-contract and employee RBAC/PostgreSQL checks passed on the PR head.
-- [ ] Browser E2E must pass. First attempt exposed a specialty-folder 20-row pagination assertion failure; a rerun is currently executing. Do not merge or deploy while required checks remain pending/failed.
-- [ ] Merge PR #641 after required checks pass, confirm GitHub Pages deployment succeeds, then inspect the live doctor/pharmacy directory cards and mark VERIFIED only after visual confirmation.
-
+## Directory cover-image fallbacks — PR #641 (MERGED; follow-up IN PROGRESS — TEAM 02)
+- [x] Approved category-specific default image source change is merged in PR [#641](https://github.com/islamnagy2022-eng/MantiqatiX/pull/641), merge commit `6e107164647453f7f8644b52db034f474f17f2cf`.
+- [x] PR-head build/type-check, dashboard/security contracts, employee RBAC and production smoke validation passed on PR head `8dd04e2626598d9b4eea9c4a444283232a2b87b7`; Pages PR workflow `41286373956` validation passed but deploy was skipped for the PR event.
+- [x] Current-main Pages workflow [41970849104](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41970849104) on `218d4c768021fbc94d21ffd442b3fcdacd16e4f8` successfully built, validated, deployed and ran deployed-origin browser checks. This does not prove the specific third-party doctor/pharmacy image URLs or their fallback behavior.
+- [x] Team 01 static review of `DirectoryView.tsx` found first `onError` retry returns the same external URL for unverified doctors/pharmacies; second failure falls back to generic `business-placeholder.svg`, not a bundled category-specific image.
+- [ ] **TEAM02-DIR-COVER-20261105-01:** replace/supplement third-party external defaults with bundled category-safe covers; on failure switch to a different local URL without retrying the same failed source.
+- [ ] Add browser E2E for image load, image failure, fallback transition, no repeated error loop, and preserving verified owner-supplied covers.
+- [ ] Confirm the actual deployed doctor/pharmacy cards and image network responses; only then mark VERIFIED.
+- **Status:** `IN PROGRESS / NOT VERIFIED`; image URL availability was not independently confirmed in this session. Do not close based only on PR merge or general Pages success.
+- **Implementation ownership:** Team 02; Team 01 tracks the cross-team dependency.
 ## UX policy — Activity list progressive loading
 - [x] Main activity directory and public unverified-listing views now render an initial batch of 20 items, with an explicit «رؤية المزيد» action that appends the next 20; changing search, group, specialty, or geographic filters resets the visible batch to 20.
 - [x] VERIFIED on branch commit `1c7946fae3edd4df741323d40ffc430f73c0416f`: TypeScript, production build, canonical taxonomy/GPS contracts, Postgres/RBAC checks, and browser regression all pass. The browser regression proves 20 initially, 40 after the first click, and the remaining 5 after the second click with no duplicates; source-contract checks preserve filter reset behavior and the existing verified-first sort.

@@ -2002,3 +2002,64 @@ A separate source review found a second platform-root authorization model: the n
 - Added detailed review in `docs/release/AI_STUDIO_V6_SOURCE_CANDIDATE_REVIEW_20261105.md` and updated the Master TODO and current handoff.
 - No V6 app code was integrated, no production migration/Auth/RLS/GRANT/Edge/payment/finance change was made, no private snapshot was published, and no public site cutover occurred.
 - Next: obtain/inspect the actual source ZIP; establish the entity-to-Supabase mapping and shared Auth/persistence boundary; only then implement the next additive integration slice.
+
+## 2026-11-05 — TEAM01-20261105-01 — Master Architecture & Project Management
+
+- Reviewed the current repository, canonical handoff, Master Production TODO, cross-session request protocol, ten-group module-boundary contract and RC40 reuse matrix.
+- Verified `main` at `218d4c768021fbc94d21ffd442b3fcdacd16e4f8`; confirmed five exact-head workflows passed. Pages run [41970849104](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41970849104) completed its validation, deployment and deployed-origin browser-check jobs successfully.
+- Confirmed current site baseline is `apps/catalog-frontend`; root AI Studio V6 candidate remains separate and unintegrated.
+- Registered task in master Issue #599, comment 6651234591; created isolated branch `docs/team-01-architecture-register-20261105` from the exact main SHA.
+- Added the Team 01 architecture, ten-team proposed ownership, PR overlap, integration contract, current evidence and ordered release priorities register.
+- Current PR comparisons identify key shared-file/dependency groups: #610/#618 (dashboard/account), #661/#490 (directory listing Edge), #598/#602/#615 (migration/security/bootstrap), #540 (taxonomy admin), and stale #666 documentation.
+- Production safety disposition unchanged: catalog pilot scoped PASS; full platform `BLOCKED / NOT CERTIFIED`. Latest read-only report records 309 migration rows through `20261101140105`, 0/42 exact required IDs, absent RC449A fields/service-role RPC grant, outstanding RC463 trigger ACL, Auth hardening, finance E2E and DR/restore evidence.
+- Changes in this batch are documentation-only. No application source, database, migration, Auth/RLS/GRANT, Edge deployment, payment, finance or production site mutation.
+- **Status:** register added; canonical TODO/continuity/session-log synchronization in progress; Draft PR and exact-head validation pending.
+- **Next:** finish documentation synchronization, open Draft PR, inspect its exact-head checks, then start current-schema restore and migration-effect reconciliation as P0 using disposable resources only.
+
+### TEAM01-20261105-01 — PR and CI status addendum
+
+- Documentation synchronization is complete on `docs/team-01-architecture-register-20261105`.
+- Opened [Draft PR #672](https://github.com/islamnagy2022-eng/MantiqaTix/pull/672) against the exact main baseline `218d4c768021fbc94d21ffd442b3fcdacd16e4f8`.
+- Four changed files are documentation only: Team 01 register, Master Production TODO, Project Continuity and this append-only Session Log.
+- The first exact-head workflow reads for PR head `1e1ed96e9704479277748cbd0af12faf402d0357` showed some jobs in progress/queued and one completed pass. Full CI remains `IN PROGRESS / NOT VERIFIED` until terminal outcomes are checked on the final PR head.
+- No merge, Production mutation, DB migration, Auth/RLS/GRANT change, Edge deployment, payment/finance action or public-site cutover was performed.
+
+
+## 2026-11-05 — TEAM01 continuation — P0 current-schema preflight
+
+- Revalidated `main` at `218d4c768021fbc94d21ffd442b3fcdacd16e4f8`, the current architecture register PR #672 and the canonical TODO hierarchy.
+- PR #672's earlier exact-head commit `001c75ea33382604221f5c63d0ca0f806731b01c` passed the Module Professionalization, Backend-only Module Boundary, RC425 MantiGo Paymob Atomicity, MantiGO Open Ride Privacy and Pages validation workflows. The Pages deployment job was skipped because the run was for a PR; no deployment is claimed.
+- Fresh read-only Supabase Production SQL verified 309 migration rows through `20261101140105`, 0/42 exact required migration IDs, seven missing RC449A journal columns, no `service_role EXECUTE` on either journal-posting RPC, and both trigger-only SECURITY DEFINER functions still directly executable by PUBLIC/anon/authenticated/service_role with one attached trigger each.
+- Read `supabase/tests/baselines/production_schema_snapshot.manifest.json`: capture `2026-10-17T02:10:22.329Z`, checkpoint `20261008222845`, 283 migrations, schema-only, no rows/custom roles, `PENDING_REVIEW`. Current Production is 26 migration records beyond this checkpoint. The current replay fixture is not a current restore.
+- `list_branches` returned only the default Supabase `main` branch; no disposable development branch exists. No paid project/branch was created. No Production or schema mutation was performed.
+- Confirmed `forward-migration-chain-replay.yml` pins Supabase CLI `2.122.0`; keep the pin until the CLI v3 local-by-default/explicit-remote semantics are separately tested.
+- P0-1 current schema + roles/ACL snapshot and restore remains **BLOCKED** pending an approved restore path or cost-approved disposable environment. P0-2 exact migration source/effect reconciliation remains **IN PROGRESS**. P0-3 full chronological replay and rollback remain **WAIT** until P0-1 is complete.
+- Detected a stale catalog sub-TODO: `TODO_PRODUCTION.md` still says PR #641 is IN PROGRESS although the PR is closed/merged. Assigned reconciliation to T02; merge alone is not VERIFIED deployed behavior.
+- Updated the Team 01 architecture/integration register and canonical handoff/TODO with this evidence on `docs/team-01-architecture-register-20261105`. This is documentation only.
+- **Production effect:** none. No migrations, data writes, grants, Auth/RLS changes, Edge deployments, payments, settlement, merge or production deployment.
+- **Release state:** `CATALOG_PILOT_GATE=PASS`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+- **Next:** review current-schema backup/restore path and obtain the required approval/environment; in parallel, reconcile exact aliases and forward-bundle object effects without editing historical migrations.
+
+
+
+
+## 2026-11-05 — TEAM01 P0 exact alias effect comparison
+
+- Read the actual stored migration statements for live ledger targets `20261008222845` and `20261027041411` through a read-only query.
+- Exact character-for-character match confirmed between RC424 source `20261009010000` and live target `20261008222845` (7,208 characters; source blob `49f46e3e159e6306534adbf61f626901c2d73488`).
+- Exact match confirmed between the marketing-contact source alias `20261027100000` and live target `20261027041411` (1,114 characters; source blob `1b85c341c0c9329e71f4fdbf36f2f852687994aa`). The source file for `20261027041411` has the same SHA and exact content as the alias.
+- Existing reconciliation manifest already marks both effects `source_effect_verified=true`, but leaves alias resolution `PENDING_CONTROLLED_REPAIR`; both `ledger_repair_applied=false`. Do not execute duplicate SQL or create fake ledger rows. Production migration-history repair is still a separate approved write that depends on current restorable schema/roles, replay/rollback evidence and release authorization.
+- Effect identity for these two aliases is VERIFIED; exact source-version inventory still remains 0/42. This does not clear missing physical objects or any global release gate.
+- No Production writes, migration repair, grants/Auth/RLS changes, Edge deployments, payment/finance actions or public deployment occurred.
+- Updated the Team01 integration register, canonical Master TODO, current continuity handoff and session history on `docs/team-01-architecture-register-20261105`.
+
+
+
+## 2026-11-05 — TEAM01 cross-team TODO correction — Team 02 cover assets
+
+- Read the full current `TODO_PRODUCTION.md` (1,682 lines) and confirmed its opening PR #641 section was stale: PR #641 had already merged as `6e107164647453f7f8644b52db034f474f17f2cf`.
+- Verified PR #641 workflow `41286373956`: validation PASS; deploy SKIPPED for the PR event. Verified current-main Pages run `41970849104` on `218d4c768021fbc94d21ffd442b3fcdacd16e4f8`: build/validation, scoped deploy and deployed-origin browser checks PASS.
+- Read the current `DirectoryView.tsx` implementation. For unverified doctor/pharmacy entries, the image error handler recomputes and retries the same external image URL before using a generic placeholder on the second error. The inspected browser tests do not explicitly prove the default doctor/pharmacy image load/fallback path.
+- Corrected the root catalog TODO to show PR #641 merged and track the residual issue as `TEAM02-DIR-COVER-20261105-01 — IN PROGRESS / NOT VERIFIED`.
+- Required Team 02 work: bundled category-specific fallback, distinct local fallback on error with no same-URL retry, E2E for success/failure/no-loop/owner cover preservation, and deployed-origin visual/network verification.
+- No frontend code, public image asset, Production data/schema, Auth/RLS/GRANT, Edge Function, payment/finance or deployment was changed by Team 01.

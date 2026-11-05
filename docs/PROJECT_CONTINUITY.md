@@ -1,3 +1,71 @@
+
+# CURRENT UPDATE — 2026-11-05 — Team 02 cover-image verification dependency
+
+- PR #641 is merged at `6e107164647453f7f8644b52db034f474f17f2cf`; the stale root catalog TODO has been corrected to distinguish merged source from still-open runtime verification.
+- PR Pages run `41286373956`: validation passed; deploy skipped on PR event. Current-main Pages run `41970849104` on `218d4c768021fbc94d21ffd442b3fcdacd16e4f8` completed validation, deployment and deployed-origin browser checks.
+- Static source review of `DirectoryView.tsx` (blob `9cbcfdb49236088b06dd2d2cc28c4134886be131`) found unverified doctor/pharmacy image errors retry the same external URL once, then fall back to the generic placeholder rather than a bundled category-specific image.
+- Assigned `TEAM02-DIR-COVER-20261105-01` to Team 02: bundle category-safe fallback assets, make error handling switch to a distinct local URL without retry, add E2E and confirm deployed-origin image loading. This is NOT VERIFIED; no frontend change was made by Team 01.
+- Full-platform release remains `BLOCKED / NOT CERTIFIED`.
+
+---
+
+
+# CURRENT UPDATE — 2026-11-05 — TEAM01 alias reconciliation evidence
+
+- Read-only exact statement comparison now verifies two known aliases:
+  - RC424 source `20261009010000` matches the SQL stored under live ledger version `20261008222845` exactly (7,208 characters; source SHA `49f46e3e159e6306534adbf61f626901c2d73488`).
+  - Marketing-contact source `20261027100000` has the same blob as source/ledger version `20261027041411` (1,114 characters; SHA `1b85c341c0c9329e71f4fdbf36f2f852687994aa`), and its stored statement matches exactly.
+- Both effects were already marked verified in the reconciliation manifest; the manifest still says the production migration-history alias repair is pending and not applied. No ledger rows or SQL were changed.
+- Full P0-1 current schema/roles/ACL restore remains BLOCKED. P0-2 has verified these two aliases only; the remaining required migration identities/effects and physical object contracts are still open.
+- No Production DDL/DML, migration, ledger repair, grant, Auth/RLS change, Edge deployment, payment/finance operation or site deployment occurred.
+- PR #672 remains Ready for Review, unmerged; its next exact-head checks must pass after documentation updates.
+- Release remains `CATALOG_PILOT_GATE=PASS`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
+# CURRENT UPDATE — 2026-11-05 — Team 01 P0 current-schema preflight
+
+- Main baseline remains `218d4c768021fbc94d21ffd442b3fcdacd16e4f8`; deployed website source remains `apps/catalog-frontend`.
+- Team 01 register and canonical TODO/continuity/session-log synchronization are on [Draft PR #672](https://github.com/islamnagy2022-eng/MantiqatiX/pull/672), branch `docs/team-01-architecture-register-20261105`.
+- Previous PR head `001c75ea33382604221f5c63d0ca0f806731b01c` passed Module Professionalization, Backend-only Module Boundary, RC425 MantiGo Paymob Atomicity, MantiGO Open Ride Privacy and Pages validation. The PR-event deploy job was skipped. A new final-head validation is required after this preflight update.
+- Fresh read-only Supabase check on 2026-11-05: PostgreSQL 17.6.1.155, ACTIVE_HEALTHY, 309 migration rows through `20261101140105`, 0/42 exact required release IDs; all seven RC449A journal fields absent; neither journal RPC grants `service_role EXECUTE`; both RC463 trigger-only SECURITY DEFINER functions still allow direct execution to public roles.
+- The repository's replay snapshot is dated 2026-10-17, checkpoint `20261008222845`, 283 migrations, schema-only and no custom roles. It remains `PENDING_REVIEW`; it is not a current restorable baseline. The prior 76-migration replay does not close the current-schema restore gap.
+- Supabase branch inventory returned only the default `main` branch; no disposable development branch was created. No paid branch or project was created.
+- P0 status: current-schema restore `BLOCKED` until a restorable snapshot/approved environment exists; source/effect reconciliation `IN PROGRESS`; full chronological replay and rollback `WAIT`.
+- Cross-team follow-up: root `TODO_PRODUCTION.md` still labels PR #641's cover fallback as IN PROGRESS although PR #641 is merged; T02 must verify deployed visual behavior before marking VERIFIED. PR #669 and #671 remain separate team-owned candidates.
+- No Production DDL/DML, migration, GRANT/REVOKE, Auth/RLS change, Edge deployment, payment/finance action, merge or site deployment was performed.
+- Release: `CATALOG_PILOT_GATE=PASS`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
+# CURRENT UPDATE — 2026-11-05 — Team 01 PR opened
+
+- Team 01 request `TEAM01-20261105-01` is logged in Issue #599 (comment 6651234591).
+- Register and canonical record synchronization are implemented on `docs/team-01-architecture-register-20261105`.
+- [Draft PR #672](https://github.com/islamnagy2022-eng/MantiqaTix/pull/672) is open against `main`, with four documentation files changed and no application/Production mutation.
+- Exact PR-head checks for `1e1ed96e9704479277748cbd0af12faf402d0357` were observed in progress/queued during this handoff; do not mark CI verified until all required results are terminal and successful.
+- Next: inspect exact-head CI, resolve any documentation or CI failure, then request review. Keep PR in Draft and unmerged meanwhile.
+
+---
+
+# CURRENT HANDOFF — 2026-11-05 — Team 01 architecture and integration coordination
+
+- Team 01 request `TEAM01-20261105-01` is registered in [master Issue #599](https://github.com/islamnagy2022-eng/MantiqaTix/issues/599), comment 6651234591.
+- Current verified baseline at session start: `main @ 218d4c768021fbc94d21ffd442b3fcdacd16e4f8`. The current production website source remains `apps/catalog-frontend`; the separate AI Studio V6 candidate and legacy `web/` tree are not the deployed baseline.
+- Five exact-head workflows succeeded on that SHA. Pages run [41970849104](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41970849104) executed both validation and deployment; deployed-origin Playwright checks passed. This is scoped catalog/site evidence only.
+- Added Team 01 architecture/ownership/dependency register: [TEAM_01_ARCHITECTURE_AND_INTEGRATION_REGISTER_20261105.md](engineering/TEAM_01_ARCHITECTURE_AND_INTEGRATION_REGISTER_20261105.md).
+- Open PR snapshot highlights shared integration risk: #610/#618 overlap on dashboard/account files; #661/#490 overlap on directory-listings; #598/#602/#615 require coordinated migration/security review; #540 is a high-divergence taxonomy candidate; #666 is stale relative to current main. Refresh all ahead/behind and file conflicts before merge.
+- Latest read-only Production evidence is [PRODUCTION_READ_ONLY_RECHECK_20261105.md](audits/PRODUCTION_READ_ONLY_RECHECK_20261105.md): 309 ledger rows through `20261101140105`, 0/42 exact release IDs, RC449A journal prerequisites and service-role RPC grant absent, RC463 trigger-only direct EXECUTE grants present, and Auth/security/DR/payment evidence remains open.
+- Release state: `CATALOG_PILOT_GATE=PASS`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. Do not mutate Production or deploy payment/finance functions independently.
+- Current documentation work is on `docs/team-01-architecture-register-20261105`, based on the exact main SHA. Review PR and exact-head CI are pending; no merge is requested.
+
+## Next actions
+1. Finish the Master TODO and append-only Session Log pointers for TEAM01-20261105-01.
+2. Open and validate a Draft documentation PR.
+3. Begin P0 restoration/migration identity reconciliation in isolated environments, with release decisions retained in the canonical ledger.
+
+---
+
 # CURRENT HANDOFF — 2026-11-05 — Standalone V6 candidate review
 
 - Current deployed baseline remains `apps/catalog-frontend` on repository main, not the standalone root-level AI Studio V6 candidate.
