@@ -1,3 +1,40 @@
+# 2026-11-05 — V6 first integration pass: public directory read path and local-auth closure
+
+**Candidate artifact:** `MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05.zip`  
+**Candidate ZIP SHA-256:** `6f9ef2ad70997255b6b6bf26aa34bb1ec93b92d48264c571359b8b96803f1a9b`  
+**Original AI Studio archive SHA-256:** `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`
+
+## Completed in the reconstructed V6 working candidate
+- [x] Re-verified the original AI Studio archive SHA-256 and ZIP integrity.
+- [x] Applied the recorded security remediation patch to the exact original archive and ran the candidate security audit and remediation tests. The patch utility reported that one final hunk applied with fuzz 2; therefore this is a tested reconstruction from the original archive plus the supplied patch, **not a cryptographic verification that it is byte-identical to the separately stored security-remediation ZIP**. The stored ZIP did not have an authorized raw-byte materialization path. Its equivalence check remains open.
+- [x] Reconciled Team 02 improvements into V6: 20-row directory pagination and “رؤية المزيد”, empty-results/accessibility improvements, metadata cleanup, and removal of the local “adopt browser snapshot as official production” action. Security-sensitive V6 AppContext/AdminDashboard edits were retained rather than overwritten.
+- [x] Added a read-only public directory adapter using the existing live `public-catalog-directory` Edge Function (active version 17). It maps public business/profile fields and only currently public, available, priced catalog items. It introduces no new table, API, or production write.
+- [x] Added explicit directory loading/empty/error/not-configured states. The public directory does not fall back to local Seed/Local Storage records when the remote source is unavailable.
+- [x] Closed local UI authentication restoration: no role is read from browser Local Storage, and local subscriber-password login is disabled pending Supabase Auth plus server-side membership resolution.
+- [x] Added public build configuration placeholders, test scripts, integration documentation and a V6 candidate status report.
+
+## Verification evidence
+- `V6_SOURCE_SECURITY_AUDIT=PASS`.
+- `V6_REMEDIATION_TESTS=PASS` — 2/2 remediation audit tests passed.
+- Public directory adapter and pagination tests: 9/9 passed using Node 22 type stripping.
+- Strict isolated TypeScript check for the public-directory adapter and V6 Business/Product types: PASS.
+- Syntax transpilation: 55 TypeScript/TSX files; 0 syntax diagnostics.
+- Original source archive ZIP integrity: PASS; generated candidate archive ZIP integrity: PASS.
+- Current live Supabase read-only inspection: 137 public tables (RLS enabled on the inspected tenant/business/catalog tables), 42 active Edge Functions, 309 migration records. `public-catalog-directory` v17 is the public read contract; no live function was changed.
+
+## Still blocked / explicitly not verified
+- Exact-byte equivalence/digest of the separately stored official security-remediation ZIP, because raw-byte materialization was denied. The local candidate is labelled a reconstruction.
+- Full `npm install`, semantic `tsc --noEmit`, `npm run lint`, Vite production build, browser E2E, accessibility and physical PWA tests. The execution environment has no network DNS and the npm cache did not contain the required dependencies; offline installation failed with ENOTCACHED.
+- The Edge Function source was inspected through Supabase tools, but HTTP invocation from this execution environment could not be verified because outbound DNS was unavailable.
+- Supabase Auth/session integration, active membership/tenant/branch role resolution, authenticated writes/shared persistence, import reconciliation, financial/payment flows, backup/restore/rollback, preview and cutover.
+- No production DB/schema/Auth/RLS/GRANT/migration/Edge/payment/finance change and no GitHub Pages deployment was performed.
+
+**Release state remains:** `V6_CANDIDATE_GATE=BLOCKED_PENDING_FULL_BUILD_AUTH_AND_SHARED_BACKEND_INTEGRATION`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+**Next executable task:** run the exact generated candidate on a network-enabled build runner/CI and capture a single immutable commit's dependency install, full TypeScript/lint/build and E2E evidence; then connect Supabase Auth and `api /api/v1/me` membership resolution without trusting local roles. Continue porting business writes through existing authorized Edge/RPC contracts only after their per-role scope is verified.
+
+---
+
 # OWNER DECISION — V6 is the canonical target application (2026-11-05)
 
 **Decision:** The Google AI Studio V6 application is now the canonical product/UI/source baseline to be implemented as the actual MantiqatiX application. This supersedes prior wording that treated V6 only as a secondary candidate while the older catalog UI remained the target. The existing deployed application remains online as the controlled production baseline during migration; it is not the design/product baseline for the final result.
