@@ -208,3 +208,53 @@ No application source, migration, Edge Function, production data, Auth/RLS/GRANT
 ---
 
 **Team 01 disposition:** architecture/coordination register is prepared for review. The deployed catalog baseline is preserved. Full enterprise production readiness is not certified.
+
+
+## 11. 2026-11-05 — P0 current-schema baseline preflight
+
+### Fresh read-only Production metadata
+
+The project was rechecked directly through Supabase read-only metadata queries on 2026-11-05:
+
+| Item | Current observation |
+|---|---|
+| Project state | `ACTIVE_HEALTHY` |
+| PostgreSQL | `17.6.1.155` |
+| Migration rows | `309` |
+| Latest migration version | `20261101140105` |
+| Exact release versions expected by the tracked contract | `42` |
+| Exact source-version IDs present | `0 / 42` |
+| Disposable Supabase development branches listed | None; only the default `main` branch was returned |
+
+A targeted read-only SQL query independently confirmed the seven RC449A journal columns remain absent; neither journal-posting RPC grants EXECUTE to `service_role`; and both trigger-only SECURITY DEFINER functions still expose direct EXECUTE to PUBLIC/anon/authenticated/service_role while retaining one attached trigger each. `assign_default_owner_to_unowned_business()` still has `search_path=public, auth`; `capture_commission_rule_audit()` has an empty search path. Do not apply ad-hoc grants or revokes.
+
+### Existing schema baseline is not a current restorable backup
+
+The tracked file `supabase/tests/baselines/production_schema_snapshot.manifest.json` records:
+
+- Capture: `2026-10-17T02:10:22.329Z`, source commit `0af55bf0054f0c464ed3a998bb4c85e13b2540ae`.
+- Checkpoint: `20261008222845`, 283 migration versions.
+- Capture scope: schema-only; no application rows and no custom roles.
+- `review_status=PENDING_REVIEW`, `deployment_approved=false`.
+
+The live ledger now has 309 records through `20261101140105`. Therefore the October 17 snapshot is 26 migration records behind the current ledger and does not include the current role/ACL state or data needed for a restorable current-schema rehearsal. The successful prior 76-migration replay recorded in `docs/audits/PRODUCTION_RECHECK_20261104.md` is a useful isolated source-chain test, but it starts from the older checkpoint and does not close this gap.
+
+The existing `.github/workflows/forward-migration-chain-replay.yml` pins Supabase CLI `2.122.0`; retain that pin until a separately tested CLI v3 migration updates the commands to its new local-by-default/explicit-`--remote` behavior. Do not casually upgrade the migration workflow.
+
+### P0 execution state
+
+| Task | Status | Next action / dependency |
+|---|---|---|
+| Obtain current Production schema + roles/ACL snapshot with a verified restore path | `BLOCKED` | Use an approved provider backup or cost-approved disposable branch; keep private data and credentials out of the public repository. |
+| Reconcile exact migration IDs to SQL/source effects and recorded forward bundles | `IN PROGRESS` | Keep both known aliases immutable; match exact SQL/blob content, not timestamps or RC labels alone. |
+| Replay the full chronological chain against a current-schema checkpoint | `WAIT` | Start only after snapshot restoration and role/ACL capture pass. |
+| Prove rollback/restore and release sequencing | `WAIT` | Requires the current restored checkpoint and independent review. |
+| Reconcile the catalog sub-TODO's PR #641 item | `WAIT — TEAM 02` | PR #641 is closed/merged, while the opening item in `TODO_PRODUCTION.md` still says IN PROGRESS; T02 must verify deployed behavior before changing it to VERIFIED. |
+
+### Coordination corrections
+
+- PR #672 is still Draft/open, based on main `218d4c768021fbc94d21ffd442b3fcdacd16e4f8`; its earlier exact-head validation on `001c75ea33382604221f5c63d0ca0f806731b01c` passed the Module Professionalization, Backend-only Module Boundary, RC425, MantiGO privacy and Pages validation jobs. Pages deployment was skipped for the PR event. Any added documentation below must be revalidated on the new final head.
+- PR #669 (Team 03 catalog/directory status documentation) and PR #671 (Team 02 navigation keyboard-accessibility fix) are also open against the same main baseline. They remain separate team-owned work; do not duplicate or overwrite their files.
+- The Team 01 register remains a coordination artifact. No production mutation, migration, grant/Auth change, Edge deployment, payment/finance operation, merge or site deployment is authorized by this preflight.
+
+**Disposition:** current-schema restoration remains `BLOCKED`; release state remains `CATALOG_PILOT_GATE=PASS`, `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
