@@ -35,6 +35,7 @@ import { formatEgyptianLocation } from '../utils/rules';
 import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from '../utils/defaultImages';
 import { DirectoryListingsView } from './DirectoryListingsView';
 import { V6QuickSearchSuggestions } from './directory/V6QuickSearchSuggestions';
+import { V6PublishedProductsStrip } from './directory/V6PublishedProductsStrip';
 import { ActivityModuleView } from '../modules/activities/ActivityModuleView';
 import { fetchPublicDirectoryListingPage, type PublicDirectoryListing, type PublicDirectoryListingFilters } from '../lib/directoryListings';
 import { DEFAULT_FUNCTIONAL_GROUPS, resolveCanonicalSpecialty } from '../data/productionDefaults';
@@ -145,6 +146,7 @@ const writeStoredGeoPreference = (preference: StoredGeoPreference) => {
 export const DirectoryView: React.FC = () => {
   const {
     directoryBusinesses,
+    directoryProducts,
     directoryLoading,
     categories,
     setSelectedBusinessId,
@@ -896,6 +898,15 @@ export const DirectoryView: React.FC = () => {
             </div>
           )}
         </section>
+
+        <V6PublishedProductsStrip
+          products={directoryProducts}
+          businesses={businesses}
+          onOpenStorefront={(businessId) => {
+            setSelectedBusinessId(businessId);
+            setCurrentView('public_storefront');
+          }}
+        />
 
         <section aria-label="المجموعات والأنشطة" className="space-y-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
