@@ -5,7 +5,7 @@ const QUICK_SEARCH_SUGGESTIONS = [
   { label: 'صيدليات', query: 'صيدلية' },
   { label: 'مطاعم', query: 'مطعم' },
   { label: 'صيانة تكييف', query: 'تكييف' },
-  { label: 'عقارات', query: 'شقة' },
+  { label: 'عقارات', query: 'عقارات' },
   { label: 'أطباء وعيادات', query: 'طبيب' },
 ] as const;
 
