@@ -1,3 +1,15 @@
+## 2026-11-05 — Standalone AI Studio V6 candidate review (source files incomplete)
+- [x] Reviewed the newly supplied baseline, implementation, deployment, security, DR, capacity, load-report and HTML files.
+- [x] Recorded the architecture boundary between the root-level V6 candidate and the deployed `apps/catalog-frontend` application.
+- [x] Recorded stale supplied deployment statements: the supplied report predates the merge/deployment of PR #662; current scoped catalog evidence is in [PR #662](https://github.com/islamnagy2022-eng/MantiqatiX/pull/662) and [PRODUCTION_RECHECK_20261104.md](docs/audits/PRODUCTION_RECHECK_20261104.md).
+- [ ] Obtain and inspect the actual `bizcatalog-manager (5).zip` source tree. The files supplied in this continuation include documentation and `index.html`, not the React source tree/package archive.
+- [ ] Verify the candidate's install, lint, full type-check, build, browser and PWA tests on one immutable source commit.
+- [ ] Map candidate entities to the exact current Supabase schema and authorized read/write contracts; keep shared writes and Auth blocked until verified.
+- [ ] Dry-run private snapshot reconciliation without writing to Production or exposing the snapshot.
+- [ ] Produce reproducible DR restore and load-test evidence; current RPO/RTO and 100M performance claims remain unverified.
+- **Safety:** no V6 app source was merged; no production schema/data/Auth/RLS/GRANT/Edge/payment/finance mutation or public site cutover occurred.
+- **Review record:** [AI Studio V6 candidate review](docs/release/AI_STUDIO_V6_SOURCE_CANDIDATE_REVIEW_20261105.md).
+
 ## CAT-ROLLOUT-20261102 — Catalog root, performance loading, mobile activity grid and doctor draft-import boundary
 **Date:** 2026-11-02  
 **Status:** UI changes COMPLETE and deployed; doctor-import Edge Function source merged but NOT deployed to Production; global platform release remains BLOCKED.  

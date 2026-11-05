@@ -1,3 +1,20 @@
+# CURRENT HANDOFF — 2026-11-05 — Standalone V6 candidate review
+
+- Current deployed baseline remains `apps/catalog-frontend` on repository main, not the standalone root-level AI Studio V6 candidate.
+- The supplied files identify `bizcatalog-manager (5).zip` as the candidate authority and include its baseline/deployment/security/DR/capacity/load documentation plus `index.html`. The ZIP and full React source tree were not attached in this continuation.
+- Candidate documentation records a read-only directory adapter and 20-row pagination, but no shared writes/Auth; client state still uses localStorage and the old Express snapshot route had been unauthenticated before it was restricted to local-only development.
+- Do not import `.data/production-live-db.json` into a public repo or build. Reconcile it only in dry-run against a verified target schema.
+- The supplied security/DR/load/capacity files are targets or report claims; they do not establish deployed Zero Trust, 99.95% availability, RPO<5m, RTO<30m, 500k VU or 100M-user capacity.
+- Current production/main evidence remains: V4 catalog pilot deployed; full platform BLOCKED / NOT CERTIFIED.
+- Detailed source review: [AI_STUDIO_V6_SOURCE_CANDIDATE_REVIEW_20261105.md](docs/release/AI_STUDIO_V6_SOURCE_CANDIDATE_REVIEW_20261105.md).
+
+## Next executable actions
+1. Inspect the actual V6 ZIP/source tree and verify its digest against the supplied baseline record.
+2. Run its pinned build/type/lint/browser/PWA tests, then define the Supabase entity mapping and permissions matrix.
+3. Keep production and public root unchanged until shared Auth/write contracts, security, data reconciliation, backup/restore, rollback and E2E have evidence.
+
+---
+
 # CURRENT HANDOFF — 2026-11-02 15:25 UTC
 
 This checkpoint supersedes the older dated handoff below; historical entries are retained.
