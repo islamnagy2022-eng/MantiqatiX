@@ -1,9 +1,22 @@
-## 2026-11-05 — TEAM01-20261105-01 status update
-
 - [x] Synchronized the Team 01 register, canonical Master TODO, Project Continuity and append-only Session Log on `docs/team-01-architecture-register-20261105`.
-- [x] Opened [Draft PR #672](https://github.com/islamnagy2022-eng/MantiqaTix/pull/672) against main `218d4c768021fbc94d21ffd442b3fcdacd16e4f8`.
-- [ ] Exact-head PR checks are still running; verify all required checks before requesting review or changing the PR state.
-- [ ] Do not merge until documentation review and required checks are complete.
+- [x] Opened [Draft PR #672](https://github.com/islamnagy2022-eng/MantiqatiX/pull/672) against main `218d4c768021fbc94d21ffd442b3fcdacd16e4f8`.
+- [x] Exact-head checks on PR commit `001c75ea33382604221f5c63d0ca0f806731b01c` passed: Module Professionalization, Backend-only Module Boundary, RC425 MantiGo Paymob Atomicity, MantiGO Open Ride Privacy Boundary, and Pages validation. Pages deployment was skipped for the PR event.
+- [ ] Review the updated final PR head after the P0 preflight addendum; keep Draft until its checks and documentation review are complete.
+- [ ] Do not merge or deploy from this documentation-only task.
+
+## 2026-11-05 — TEAM01 P0 current-schema preflight (read-only)
+
+- [x] Rechecked the exact `main` baseline: `218d4c768021fbc94d21ffd442b3fcdacd16e4f8`.
+- [x] Re-read the canonical TODO, continuity handoff, append-only session log, all tracked TODO/prompt inventories, README hierarchy and relevant release/security runbooks.
+- [x] Queried Supabase Production read-only: ACTIVE_HEALTHY, PostgreSQL 17.6.1.155, 309 migration rows through `20261101140105`, 0/42 exact required release version IDs, seven missing RC449A fields, no service_role EXECUTE on either journal RPC, and direct EXECUTE still present on both trigger-only SECURITY DEFINER functions.
+- [x] Inspected the committed replay baseline manifest: 2026-10-17 capture, 283 migrations through `20261008222845`, schema-only, no rows/custom roles, review pending. This is not a current restorable backup.
+- [x] Confirmed the replay workflow pins Supabase CLI `2.122.0`; do not upgrade it to CLI v3 without explicit flag/default-target review.
+- [ ] P0-1 — obtain a current Production schema + roles/ACL snapshot and demonstrate restore. **BLOCKED** pending an approved backup/restore path or a cost-approved disposable environment. No paid branch was created.
+- [ ] P0-2 — reconcile all 42 required IDs to exact SQL/blob effects and forward bundles; preserve the two documented aliases and historical ledger.
+- [ ] P0-3 — replay the complete chronological migration chain against the current-schema checkpoint, then prove rollback. Prior replay from the October checkpoint is not a current-schema restore.
+- [ ] T02 — reconcile the stale `TODO_PRODUCTION.md` PR #641 cover-image item: PR #641 is closed/merged, but merge alone does not establish final deployed visual verification.
+- **Status:** P0 current-schema baseline `BLOCKED`; migration identity/effect reconciliation `IN PROGRESS`; PR #672 documentation candidate `IMPLEMENTED`, earlier exact-head checks passed; final updated-head CI pending.
+- **Safety:** read-only production inspection only. No DDL/DML, backup mutation, migration, grant, Auth/RLS change, Edge deploy, finance operation or public-site change.
 
 ## 2026-11-05 — TEAM01-20261105-01 — Master architecture & integration register
 
