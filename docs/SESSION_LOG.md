@@ -2013,3 +2013,12 @@ A separate source review found a second platform-root authorization model: the n
 - Candidate install attempt timed out after 120 seconds; Bun is unavailable. No TypeScript/build/test pass is claimed.
 - No candidate source integration, Production mutation, deployment, financial operation or public cutover occurred.
 - Next: finish V6 inventory/schema-contract mapping, then implement and test the first safe application slice.
+
+
+## 2026-11-05 — SESSION follow-up — V6 mapping and exact-head CI
+- Added docs/release/V6_CANONICAL_INTEGRATION_MAP_20261105.md after inspecting V6 types/state/actions and existing Supabase Edge/API contracts.
+- Exact-head V6 Candidate Safety Boundary workflow 41982612018: PASS.
+- Exact-head primary Pages validation 41982612012: PASS, including Validate V6 private-data boundary; deployment job SKIPPED because the change is a PR.
+- Candidate dependency install attempts exceeded 120s and 300s; Bun unavailable. TypeScript could not resolve vite/client without installed dependencies. Five node:test files fail under direct Node 22 type stripping because extensionless TS imports are unresolved; candidate package has no test script.
+- No V6 app source has been integrated yet; no Production data/schema/Auth/security/Edge/payment/finance mutation or public cutover occurred.
+- Next: obtain reproducible dependency installation/test runner, complete field-level contract mapping, then port the first public-directory UI slice while retaining current production API and rollout gates.
