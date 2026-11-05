@@ -2,14 +2,17 @@
 - [x] Verified supplied archive bizcatalog-manager (5)(1).zip SHA-256: ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965; archive contains 131 files and React 19 / TypeScript / Vite 8 source.
 - [x] Reconciled repository baseline: main @ 218d4c768021fbc94d21ffd442b3fcdacd16e4f8; created isolated branch feat/v6-canonical-integration-phase1-20261105.
 - [x] Added scripts/validate-v6-private-data-boundary.mjs, added apps/catalog-frontend/.gitignore rule .data/, exposed validate:v6-boundary, and added a dedicated GitHub Actions boundary workflow.
-- [x] Ran boundary validator against extracted V6 archive: PASS. It explicitly reports the private snapshot as present and local-only; it verifies the snapshot is not inside public/build output.
-- [ ] Run deterministic dependency install, TypeScript, lint, build, and browser/PWA tests. Local npm install --ignore-scripts --no-audit --no-fund exceeded the 120-second execution window; no node_modules or build output was produced. Bun is not installed in this environment.
-- [ ] Integrate remaining V6 source incrementally into apps/catalog-frontend after feature/schema/API mapping; no candidate application source has been copied or replaced yet.
-- [ ] Reconcile V6 entity types and all write paths against current Supabase schema/RPC/Edge contracts; preserve Auth, RLS and tenant isolation.
+- [x] Ran boundary validator against extracted V6 archive: PASS. The private snapshot is reported as present/local-only and is absent from public/build outputs.
+- [x] Exact-head GitHub Actions: V6 Candidate Safety Boundary [41982612018] PASS; Deploy MantiqaTix Web validation [41982612012] PASS, including the new V6 private-data boundary step. Deploy job was SKIPPED for this PR; no site publication occurred.
+- [x] Added docs/release/V6_CANONICAL_INTEGRATION_MAP_20261105.md mapping candidate entities and actions to existing backend contracts and recording non-equivalences.
+- [ ] Complete deterministic dependency install, TypeScript, lint, build and browser/PWA tests. Local npm install attempts exceeded 120 seconds and 300 seconds; no node_modules/build output was produced. Bun is unavailable.
+- [ ] Fix/confirm test runner: five node:test files fail under Node 22 type stripping because extensionless TypeScript imports are unresolved; package.json has no test script. The declared tsx dependency is a candidate runner but has not been installed or verified.
+- [ ] Integrate V6 source incrementally into apps/catalog-frontend after feature/schema/API mapping; no candidate application source has been copied or replaced yet.
+- [x] Initial entity/API mapping completed; field-level mapping and authorization tests remain open.
 - [ ] Produce a dry-run-only report for private snapshot provenance/schema/duplicate relationships; no snapshot content was opened, uploaded or imported.
 - [ ] Update feature parity and remove obsolete files only after dependency/import/build/test evidence.
 - **Safety:** no Production DB/schema/data/Auth/RLS/GRANT/Edge/payment/finance mutation, no deployment, and no public-site cutover. CATALOG_PILOT_GATE=PASS; FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED.
-- **Implementation branch:** feat/v6-canonical-integration-phase1-20261105; initial commits include the private-data boundary guard and CI workflow. Exact-head CI is pending.
+- **Implementation branch:** feat/v6-canonical-integration-phase1-20261105; initial commits include the private-data boundary guard and CI workflow. The private-data workflow and primary Pages validation passed on exact head 074369301af127a2dd1de9c972749adc8a5eff66; broader V6 app tests remain NOT VERIFIED.
 - **Next:** complete archive source inventory and schema/API mapping, then integrate one independently testable V6 slice without replacing the live site.
 
 ## 2026-11-05 — Standalone AI Studio V6 candidate review (source files incomplete)
