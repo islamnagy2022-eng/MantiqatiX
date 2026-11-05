@@ -1,3 +1,12 @@
+
+## 2026-11-05 — TEAM01 P0 migration-alias exact comparison
+
+- [x] Read `supabase_migrations.schema_migrations.statements[1]` for live ledger targets `20261008222845` and `20261027041411`.
+- [x] Compared each recorded SQL body character-for-character to its current-main source alias: RC424 `20261009010000` exact match (7,208 chars; source blob `49f46e3e159e6306534adbf61f626901c2d73488`); marketing-contact `20261027100000` exact match (1,114 chars; same source blob as its target source file `1b85c341c0c9329e71f4fdbf36f2f852687994aa`).
+- [x] Confirmed both aliases are already marked `source_effect_verified=true` in the release manifest; neither is recorded as a distinct source-version ID in the live ledger.
+- [ ] Migration-history-only alias reconciliation remains **BLOCKED/WAIT** until the current schema, roles/ACL backup is restorable, full replay/rollback reviewed, and the separate production write is explicitly approved. Do not execute aliases or fabricate rows.
+- **Interpretation:** source/effect identity for these two aliases is VERIFIED; full 42-version identity gate remains 0/42 and global Production gate remains BLOCKED.
+
 - [x] Synchronized the Team 01 register, canonical Master TODO, Project Continuity and append-only Session Log on `docs/team-01-architecture-register-20261105`.
 - [x] Opened [Draft PR #672](https://github.com/islamnagy2022-eng/MantiqatiX/pull/672) against main `218d4c768021fbc94d21ffd442b3fcdacd16e4f8`.
 - [x] Exact-head checks on PR commit `001c75ea33382604221f5c63d0ca0f806731b01c` passed: Module Professionalization, Backend-only Module Boundary, RC425 MantiGo Paymob Atomicity, MantiGO Open Ride Privacy Boundary, and Pages validation. Pages deployment was skipped for the PR event.
