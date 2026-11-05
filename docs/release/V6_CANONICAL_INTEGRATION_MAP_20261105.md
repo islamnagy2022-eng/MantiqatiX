@@ -138,3 +138,18 @@ TOTAL_BLOCKERS=8
 
 Exit code is 1 by design while blockers remain. This is a static heuristic gate, not a substitute for source review, credential-provider confirmation, semantic type-checking, tests or runtime security testing. The script does not read the private production snapshot.
 
+
+
+### Scanner unit tests
+Added `scripts/audit-v6-source-security.test.mjs` and `.github/workflows/v6-source-audit-tests.yml`.
+Local execution under Node 22:
+
+```
+node --test scripts/audit-v6-source-security.test.mjs
+# tests 2
+# pass 2
+# fail 0
+```
+
+The tests cover detection of all eight configured blocker identifiers, credential-value suppression, and a clean candidate fixture. GitHub Actions exact-head run is pending. These are tests of the scanner only, not tests of the V6 application.
+
