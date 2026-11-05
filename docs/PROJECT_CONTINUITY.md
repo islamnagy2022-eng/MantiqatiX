@@ -1,3 +1,15 @@
+# CURRENT HANDOFF — 2026-11-05 — V6 r4 Auth API adapter
+
+- Latest candidate: `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r4.zip`, SHA-256 `0f283fb6f3a64858f843d14388340f1b198fdec40ed0e2a5c317a350cd9f8787`.
+- Added `src/services/authMembershipApi.ts` to call the existing `api /api/v1/me` Edge Function using a user's Bearer token and public Publishable key. It validates the server user ID and uses the strict membership resolver. No token persistence or browser-derived role.
+- Focused tests 21/21 PASS; security audit and remediation PASS; ZIP integrity PASS.
+- Full npm test/build/type/lint not verified because `tsx` is absent and npm registry DNS failed. SDK and lockfile unchanged.
+- Next: install Supabase JS SDK on a network-enabled runner; implement session lifecycle, then explicit membership/business selection. Keep app guest-only if verification fails.
+- When user says «كمل», continue this sequence; do not restart.
+- Full platform remains BLOCKED / NOT CERTIFIED.
+
+---
+
 # CURRENT HANDOFF — 2026-11-05 — V6 Auth gateway candidate r4
 
 - Canonical source remains the user-selected AI Studio V6. Original archive hash: `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`.
