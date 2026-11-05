@@ -707,18 +707,18 @@ try {
     const searchInput = searchPanel.getByTestId('directory-search-input');
 
     await searchInput.fill('قهوة تركي');
-    await page.getByText('متجر الأدوات المنزلية', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
-    assert.equal(await page.getByText('متجر الأدوات المنزلية', { exact: true }).count(), 1, 'a matching available product must return its owning public business');
+    const owningBusinessCard = page.getByTestId('directory-business-card').filter({ hasText: 'متجر الأدوات المنزلية' });
+    await owningBusinessCard.waitFor({ state: 'visible', timeout: 10000 });
+    assert.equal(await owningBusinessCard.count(), 1, 'a matching available product must return its owning public business');
 
     await searchInput.fill('صيانة تكييف');
-    await page.getByText('متجر الأدوات المنزلية', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
-    assert.equal(await page.getByText('متجر الأدوات المنزلية', { exact: true }).count(), 1, 'a matching available quote-only service must return its owning public business');
+    await owningBusinessCard.waitFor({ state: 'visible', timeout: 10000 });
+    assert.equal(await owningBusinessCard.count(), 1, 'a matching available quote-only service must return its owning public business');
 
     for (const blockedTerm of ['ثلاجة غير متاحة', 'منتج بلا سعر نشط', 'منتج مخفي', 'أثاث مكتبي فاخر']) {
       await searchInput.fill(blockedTerm);
       await page.getByRole('heading', { name: 'لا توجد أنشطة مطابقة للبحث', exact: true }).waitFor({ state: 'visible', timeout: 10000 });
-      assert.equal(await page.getByText('متجر الأدوات المنزلية', { exact: true }).count(), 0, blockedTerm + ' must not return a public business through a blocked catalogue item');
-      assert.equal(await page.getByText('نشاط غير منشور', { exact: true }).count(), 0, 'unpublished business must never enter product/service search results');
+      assert.equal(await page.getByTestId('directory-business-card').count(), 0, blockedTerm + ' must not return a business through a blocked catalogue item');
     }
 
     results.push('directory-search-matches-published-available-products-and-services-only');
