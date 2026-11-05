@@ -254,3 +254,17 @@ PR #650 and PR #651 are merged into current `main`; PR #648 is closed as superse
 - Added browser assertions using live published verified businesses to check catalogue semantics, selected filters, real product rendering and 390/768/1440px overflow.
 - No product, price, inventory, availability, discount, order, cart, business data, API, schema, Auth/RLS/GRANT, Edge Function, payment or finance state changed.
 - Exact-head validation is pending; no merge or deployment is claimed.
+
+## 2026-11-05 — Wave A and owner/admin V4 presentation: merged and deployed reconciliation
+
+This dated update supersedes the pending-validation/no-merge statements in the November 3 historical checkpoints above.
+
+- PR [#662](https://github.com/islamnagy2022-eng/MantiqatiX/pull/662) is closed after merge. The V4 presentation merge is recorded as `12cd89a96b42868cdf6ff20ecba83f6f7840cf48`; the subsequent public-catalog runtime correction is `fe9e9f57b780b01c49940349dccf3bbac67efaae`.
+- Exact main validation [41916803905](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41916803905) passed build/TypeScript, Playwright browser E2E and isolated PostgreSQL employee RBAC.
+- Pages validation/deployment [41916804007](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41916804007) passed; Production Health Monitor [41916803979](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41916803979) passed.
+- Merged presentation scope covers navigation shell, accessible directory search and geographic filters, V4 owner-dashboard primary areas with retained website-only CSV/employee/QR/taxonomy tools, admin/Super Admin tab presentation, storefront hero and verification states, reduced-motion/clipboard feedback, and public catalog styling.
+- Public product mapping was corrected after merge to preserve real persisted products, branch/global price precedence and quote-only redaction. The recheck records `public-catalog-directory` v17, `public-catalog` v7 and `catalog-admin` v20. Do not overwrite the drifted `catalog-platform-admin` v23; activity-module writes remain disabled until an atomic audit backend exists.
+- Automated responsive checks cover 390/768/1440px overflow; this is not a substitute for manual screenshot-by-screenshot sign-off. The store-cover overlay decision remains open; preserve the bright default/hover-focus contract until the owner explicitly chooses otherwise.
+- Member Messages, custom links and manual finance/sale entries remain unimplemented because the current prototype logic is local-only or lacks verified persisted server contracts.
+- Standalone V6 source archive remains a separate integration candidate; this merged V4 catalog pilot does not certify V6 parity or full-platform readiness.
+- Release flags: `CATALOG_PILOT_GATE=PASS`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. See [PRODUCTION_RECHECK_20261104.md](docs/audits/PRODUCTION_RECHECK_20261104.md).
