@@ -1,3 +1,37 @@
+# 2026-11-05 — V6 Supabase Auth gateway groundwork (candidate r4)
+
+**Candidate archive:** `MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r4.zip`  
+**SHA-256:** `2f364d597c71a60432cfe904a86998bb52a84de6d5280c03b9c16f4914a9dce6`
+
+## Implemented in r4
+- Added `src/services/supabaseAuthGateway.ts` using the existing Supabase Auth REST endpoints; no SDK dependency or lockfile changes.
+- Email OTP request with `create_user:false`, email validation, and HTTPS enforcement.
+- Callback processing requires bearer access token + refresh token, verifies the access token against `/auth/v1/user`, then calls existing `/functions/v1/api/api/v1/me`.
+- Compares Auth user ID with the membership API user ID before resolving roles through the existing strict membership adapter.
+- Includes server logout and callback URL token cleanup.
+- No tokens are written to Local Storage or Session Storage.
+
+## Verification
+- New Auth gateway tests: 5/5 PASS.
+- Existing service/directory/access-policy MJS tests plus security audit tests: 26/26 PASS.
+- V6 source security audit: PASS.
+- V6 remediation checks: PASS.
+- Strict isolated TypeScript check for Auth gateway, membership adapter, public directory service and V6 types: PASS.
+- ZIP integrity: PASS. SHA-256 above.
+
+## Explicitly not complete
+- Auth gateway is **not wired** to LoginModal or AppContext. UI continues to show login unavailable.
+- No membership selection UI; no automatic selection of any membership.
+- Refresh-token lifecycle/session restoration is not implemented. Tokens remain memory-only; a page reload ends the session.
+- No live Supabase HTTP integration test, email template/OTP/redirect configuration verification, SDK install, full Vite build, browser E2E, accessibility or PWA test.
+- No production DB/Auth/RLS/GRANT/migration/Edge/payment/finance mutation and no deployment occurred.
+
+**Release state:** `AUTH_GATEWAY_IMPLEMENTED_NOT_UI_WIRED`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+**Next task:** wire OTP request/callback into LoginModal and AppContext, implement explicit membership selection when needed, add memory-only refresh lifecycle and sign-out, then validate in Preview using real Auth users before any production cutover.
+
+---
+
 # 2026-11-05 — V6 Auth membership contract — safe role mapping groundwork
 
 **Latest candidate artifact in Library:** `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r3.zip`  
