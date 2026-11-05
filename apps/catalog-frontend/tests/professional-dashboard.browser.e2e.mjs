@@ -876,33 +876,50 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      // The directory presents activities directly; open the activity, then choose its specialty.
+      // The directory presents activities directly; each transition must finish its
+      // server request before the row-count assertion so stale cards from the prior
+      // unfiltered page cannot satisfy the specialty assertion.
+      const activityFirstPageResponse = page.waitForResponse((response) => {
+        const url = new URL(response.url());
+        return url.pathname.endsWith('/functions/v1/directory-listings') &&
+          url.searchParams.get('taxonomyCategoryId') === 'cat_medical_health_medical_practices' &&
+          !url.searchParams.has('taxonomySpecialty') &&
+          !url.searchParams.has('cursor');
+      });
       await page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first().click();
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
       const cursorCards = page.getByRole('heading').filter({ hasText: /^عيادة اختبار المؤشر \d{2}$/ });
-      try {
-        await cursorCards.first().waitFor({ state: 'visible', timeout: 15000 });
-      } catch {
-        throw new Error('Activity module did not show its unscoped first page before specialty selection. Page requests: ' +
-          JSON.stringify(directoryListingPageRequests) + '; visible page text: ' +
-          JSON.stringify((await page.locator('body').innerText().catch(() => '')).slice(0, 1800)));
-      }
+      await activityFirstPageResponse;
+      await page.waitForFunction(() => [...document.querySelectorAll('h3')]
+        .filter((node) => /^عيادة اختبار المؤشر \d{2}$/.test((node.textContent || '').trim())).length === 20);
       assert.equal(await cursorCards.count(), 20, 'opening an activity must immediately render its first 20 listings before opening a specialty folder');
       const activityPageRequest = directoryListingPageRequests.find((request) =>
         request.taxonomyCategoryId === 'cat_medical_health_medical_practices' && !request.taxonomySpecialty && !request.cursor);
       assert.ok(activityPageRequest, 'opening the activity must request its full category without a specialty filter');
       const specialtyFolderButton = modulePage.getByRole('button', { name: /^باطنة/ }).first();
+      const specialtyFirstPageResponse = page.waitForResponse((response) => {
+        const url = new URL(response.url());
+        return url.pathname.endsWith('/functions/v1/directory-listings') &&
+          url.searchParams.get('taxonomyCategoryId') === 'cat_medical_health_medical_practices' &&
+          url.searchParams.get('taxonomySpecialty') === 'باطنة' &&
+          !url.searchParams.has('cursor');
+      });
       await specialtyFolderButton.click();
-      try {
-        await cursorCards.first().waitFor({ state: 'visible', timeout: 15000 });
-      } catch {
-        throw new Error('Server-cursor E2E did not render the specialty first page. Page requests: ' +
-          JSON.stringify(directoryListingPageRequests) + '; visible page text: ' +
-          JSON.stringify((await page.locator('body').innerText().catch(() => '')).slice(0, 1800)));
-      }
+      const specialtyResponse = await specialtyFirstPageResponse;
+      assert.equal(specialtyResponse.status(), 200, 'the specialty first page request must succeed');
+      await modulePage.getByText('جارٍ تحميل نتائج الدليل لهذا النشاط…', { exact: true }).waitFor({ state: 'hidden', timeout: 15000 });
+      await page.waitForFunction(() => [...document.querySelectorAll('h3')]
+        .filter((node) => /^عيادة اختبار المؤشر \d{2}$/.test((node.textContent || '').trim())).length === 20);
       assert.equal(await cursorCards.count(), 20, 'specialty folder must render its first 20-row server page');
+      const continuationResponse = page.waitForResponse((response) => {
+        const url = new URL(response.url());
+        return url.pathname.endsWith('/functions/v1/directory-listings') &&
+          url.searchParams.get('cursor') === 'e2e-cursor-page-two';
+      });
       await page.getByRole('button', { name: 'رؤية المزيد من هذا التخصص', exact: true }).click();
+      const continuation = await continuationResponse;
+      assert.equal(continuation.status(), 200, 'the continuation page request must succeed');
       await page.waitForFunction(() => [...document.querySelectorAll('h3')]
         .filter((node) => /^عيادة اختبار المؤشر \d{2}$/.test((node.textContent || '').trim())).length === 25);
       assert.equal(await cursorCards.count(), 25, 'cursor continuation must append the remaining five public listings without duplicates');
