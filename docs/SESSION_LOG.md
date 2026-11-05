@@ -2075,3 +2075,14 @@ A separate source review found a second platform-root authorization model: the n
 - No production changes/deployment. Full build/E2E and platform release remain blocked.
 - Next: install SDK and update lockfile on network-enabled runner, wire LoginModal/AppContext with PKCE/sessionStorage and explicit membership picker, verify approved CORS origins, then browser-test Auth lifecycle.
 
+
+## 2026-11-05 — V6 r5 tab-scoped Supabase session storage
+
+- Added `src/services/supabaseSessionStorage.ts`, a Supabase-compatible async storage adapter using tab-scoped sessionStorage with a dedicated namespace. Intended for SDK session and PKCE verifier only; it must not contain V6 roles, membership scope, business IDs or passwords.
+- Added 3 storage tests; service/utility suite now 35/35 PASS.
+- Strict isolated TypeScript check for membership/API/controller/session storage and V6 types PASS.
+- Security source audit/remediation PASS; security audit tests 2/2 PASS; syntax transpilation 63 TS/TSX files, zero errors; ZIP integrity PASS.
+- r5 candidate stored in Library: `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r5.zip`; SHA-256 `635aab70497ff41f4ba8d1b2dd71f87bad6de6f9d8dfe41f537199e87d1870c6`.
+- SDK install/bun.lock update and UI wiring remain blocked by registry DNS EAI_AGAIN. No production change/deployment. Full platform remains BLOCKED / NOT CERTIFIED.
+- Next: install Supabase JS on network-enabled runner; instantiate PKCE client using this adapter; wire AppContext/LoginModal and explicit membership picker; verify exact CORS origin and browser lifecycle.
+

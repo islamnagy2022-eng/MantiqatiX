@@ -1,3 +1,24 @@
+# CURRENT HANDOFF — 2026-11-05 — V6 Auth controller + sessionStorage r5
+
+- Canonical target remains Google AI Studio V6. Original archive SHA-256 `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`.
+- Latest candidate: `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r5.zip`; SHA-256 `635aab70497ff41f4ba8d1b2dd71f87bad6de6f9d8dfe41f537199e87d1870c6`.
+- r4 Auth membership API and controller remain included. r5 adds `supabaseSessionStorage.ts`, a Supabase-compatible async storage adapter backed by namespaced tab `sessionStorage` for SDK session/PKCE keys only. Never store V6 roles or membership/business scope there.
+- 35/35 service/utility tests PASS; strict isolated TypeScript check PASS; security source audit and remediation PASS; security audit tests 2/2 PASS; syntax scan 63 TS/TSX files, 0 errors; ZIP integrity PASS.
+- Supabase SDK install/bun.lock update blocked by npm registry DNS EAI_AGAIN. Auth controller/storage not yet wired into LoginModal/AppContext; PKCE callback, membership picker and browser E2E remain open.
+- Existing API Edge CORS only allows GitHub Pages origin. No production changes/deployment, no shared writes or payment/finance activation. Full platform remains BLOCKED / NOT CERTIFIED.
+
+## Permanent continuation rule
+When the user says **«كمل»**, continue from the first actionable dependency-ordered task below and the TODO; do not restart or repeat completed work. Keep AI Studio V6 as the canonical app baseline.
+
+## Next task
+1. Install/pin Supabase JS v2 on a network-enabled runner and update bun.lock.
+2. Instantiate client with PKCE and the new sessionStorage adapter.
+3. Wire Auth controller into AppContext/LoginModal and implement explicit membership choice.
+4. Confirm API CORS origins for the exact approved app/preview URLs; test real browser sign-in, callback, refresh, membership mismatch, selection and logout.
+5. Only then expose protected read screens; implement writes through existing server-authorized contracts one module at a time.
+
+---
+
 # CURRENT HANDOFF — 2026-11-06 — V6 Auth API/controller r4 checkpoint
 
 - Canonical app is AI Studio V6; original archive SHA-256 `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`.
