@@ -66,6 +66,7 @@ V6 is the selected target UI/application source. It is not yet an executable pro
 | Bun install | BLOCKED | Bun is not installed in the execution environment. |
 | TypeScript | BLOCKED | Global tsc cannot resolve vite/client because dependencies are not installed. |
 | Node test invocation | FAIL / RUNNER MISMATCH | Five node:test files invoked with Node's type stripping fail resolving extensionless TS imports. Candidate package has no test script; its declared tsx dependency may provide the intended runner but was not installed. |
+| TypeScript/TSX syntax transpilation | PASS (syntax only) | Global TypeScript 5.8.3 transpiled 53 source files with zero syntax diagnostics; this is not semantic type-checking. |
 | Vite build | NOT RUN | Vite dependency unavailable. |
 | Browser/PWA E2E | NOT RUN | Dependencies and runnable candidate build unavailable. |
 
