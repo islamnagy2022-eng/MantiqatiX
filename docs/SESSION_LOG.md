@@ -2014,3 +2014,16 @@ A separate source review found a second platform-root authorization model: the n
 - **Next action:** verify the latest security-remediated candidate archive digest/contents, reconcile the UI patch, then run the full candidate build/test gate on one immutable baseline.
 - **Release state:** `V6_CANDIDATE_GATE=BLOCKED_PENDING_BUILD_AND_BACKEND_INTEGRATION`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 
+
+## 2026-11-05 — V6 integration pass — public directory read adapter and local-auth closure
+
+- Re-verified original V6 source ZIP hash and ZIP integrity. Applied the supplied V6 security remediation patch locally; its final patch hunk required fuzz 2. The separately stored security candidate ZIP was unavailable for raw-byte materialization, so the generated source package is accurately labelled a reconstruction, not byte-equivalent to the separately stored ZIP.
+- Reconciled Team 02 UI changes into the V6 source while preserving the security-edited V6 AppContext and AdminDashboard. Kept the 20-item directory page size and “رؤية المزيد” pattern.
+- Implemented a read-only V6 adapter to existing Supabase Edge Function `public-catalog-directory` v17; it maps only allowlisted public activities and currently available/priced catalog items. Added distinct loading/empty/error/configuration states and removed local Seed/Local Storage fallback for public directory display.
+- Disabled local subscriber password login and stopped hydrating an auth role from Local Storage. Both admin and merchant dashboard sessions remain unavailable until real Supabase Auth and server-side membership resolution are integrated.
+- Added tests and verification scripts. Evidence: security audit PASS; remediation tests 2/2; directory adapter + pagination 9/9; isolated strict TypeScript adapter/types PASS; syntax transpilation 55 files/0 diagnostics; original and generated ZIP integrity PASS. Generated candidate ZIP SHA-256: `6f9ef2ad70997255b6b6bf26aa34bb1ec93b92d48264c571359b8b96803f1a9b`.
+- Full npm install/type-check/lint/build/E2E/PWA were not verified: no network DNS in the execution environment and required packages were absent from npm cache. The live Edge Function source was inspected via Supabase tools, but HTTP invocation was not verified from this environment.
+- Read-only Supabase snapshot: 137 public tables, 42 active Edge Functions, 309 migration records. No production changes, migration, Edge Function deploy, auth/RLS/GRANT changes or public deployment occurred.
+- Next step: run full build and E2E on a network-enabled CI/runner; then connect Supabase Auth and `api /api/v1/me` membership resolution before implementing any shared writes.
+- Release state: `V6_CANDIDATE_GATE=BLOCKED_PENDING_FULL_BUILD_AUTH_AND_SHARED_BACKEND_INTEGRATION`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
