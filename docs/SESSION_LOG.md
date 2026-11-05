@@ -2086,3 +2086,16 @@ A separate source review found a second platform-root authorization model: the n
 - SDK install/bun.lock update and UI wiring remain blocked by registry DNS EAI_AGAIN. No production change/deployment. Full platform remains BLOCKED / NOT CERTIFIED.
 - Next: install Supabase JS on network-enabled runner; instantiate PKCE client using this adapter; wire AppContext/LoginModal and explicit membership picker; verify exact CORS origin and browser lifecycle.
 
+
+## 2026-11-05 — V6 Auth controller wired to LoginModal/AppContext (r5)
+
+- Continued from the newest r4 candidate recorded in main, not the older r4 archive. r4 baseline SHA-256: `94aa8e6912b310136b7d453e7a776d291ab4700d8619d00d8544f0d91bac3ec7`.
+- Wired existing `SupabaseAuthController` into AppContext and LoginModal. Added `SupabaseAuthRestClient` implementing its structural Supabase Auth v2 contract without adding a dependency or changing bun.lock.
+- UI sends numeric Email OTP with `create_user:false`, verifies via Auth REST, checks `/auth/v1/user`, then calls existing `/functions/v1/api/api/v1/me`. Membership selection is explicit; no automatic first/single candidate selection.
+- Controller now retains selected membership during periodic membership refresh and clears the role when the server revokes it. REST client refreshes near-expiry tokens in memory and clears session on refresh/user failure. No token in localStorage/sessionStorage; page reload is guest.
+- Added REST client/controller tests, including OTP, refresh, identity, sign-out, membership recheck and revocation. Results: 42/42 service/utility tests PASS; security audit tests 2/2 PASS; source audit PASS; remediation PASS; strict isolated TypeScript PASS for Auth/controller/API/REST/public directory/types; syntax scan 61 TS/TSX files, zero errors.
+- Candidate stored in Library: `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r5-auth-ui.zip`; SHA-256 `833e783119c68f31e9aa8d108caf7aa3a722fb0413627610e743df2d6dc64f3f`.
+- Full project build/type/lint/E2E/accessibility/PWA and real Preview OTP not verified. SDK/bun.lock unchanged due offline package registry. Existing API Edge CORS remains restricted to GitHub Pages; no CORS/Edge/production mutation or deployment.
+- Next: approve exact Preview origin, update/deploy controlled CORS allowlist, run real browser auth flow, then add tenant OWNER business-selection API. Full CI build gate remains required.
+- Release: `AUTH_OTP_CONTROLLER_AND_MEMBERSHIP_PICKER_WIRED_NOT_PREVIEW_VERIFIED`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
