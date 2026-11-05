@@ -111,3 +111,30 @@ These findings are from direct source inspection of the extracted archive. Crede
 `V6_CANDIDATE=SAFE_FOR_CONTROLLED_DEVELOPMENT_ONLY / NOT PRODUCTION READY`
 
 Production cutover is blocked until all Section 8 findings are removed or replaced with verified backend behavior, the app has a complete semantic type-check/build/E2E pass, and the full Auth/RLS/tenant/finance/recovery gates are satisfied.
+
+
+## 10. Sanitized repeatable source audit
+
+Added `scripts/audit-v6-source-security.mjs`. Run it against an extracted copy of the exact supplied archive:
+
+```sh
+node scripts/audit-v6-source-security.mjs /path/to/extracted-v6
+```
+
+The audit deliberately prints finding IDs and descriptions only; it never prints credential values or source lines. Run against the verified archive on 2026-11-05:
+
+```
+V6_SOURCE_SECURITY_AUDIT=BLOCKED
+V6-SEC-001  credential-shaped literals in seed/default configuration
+V6-SEC-002  hardcoded password-shaped default
+V6-PAY-001  default Paymob configuration enabled
+V6-SEC-003  file-backed production-state API routes
+V6-SEC-004  candidate server binds to 0.0.0.0
+V6-DATA-001 local snapshot can be marked official and return success without authoritative persistence
+V6-METRIC-001 hardcoded visitor fallback may be presented as live analytics
+V6-METRIC-002 randomized load simulation is not measured production telemetry
+TOTAL_BLOCKERS=8
+```
+
+Exit code is 1 by design while blockers remain. This is a static heuristic gate, not a substitute for source review, credential-provider confirmation, semantic type-checking, tests or runtime security testing. The script does not read the private production snapshot.
+
