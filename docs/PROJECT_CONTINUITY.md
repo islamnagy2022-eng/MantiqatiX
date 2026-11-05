@@ -1,3 +1,21 @@
+# CURRENT HANDOFF — 2026-11-05 — Team 01 architecture and integration coordination
+
+- Team 01 request `TEAM01-20261105-01` is registered in [master Issue #599](https://github.com/islamnagy2022-eng/MantiqaTix/issues/599), comment 6651234591.
+- Current verified baseline at session start: `main @ 218d4c768021fbc94d21ffd442b3fcdacd16e4f8`. The current production website source remains `apps/catalog-frontend`; the separate AI Studio V6 candidate and legacy `web/` tree are not the deployed baseline.
+- Five exact-head workflows succeeded on that SHA. Pages run [41970849104](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41970849104) executed both validation and deployment; deployed-origin Playwright checks passed. This is scoped catalog/site evidence only.
+- Added Team 01 architecture/ownership/dependency register: [TEAM_01_ARCHITECTURE_AND_INTEGRATION_REGISTER_20261105.md](engineering/TEAM_01_ARCHITECTURE_AND_INTEGRATION_REGISTER_20261105.md).
+- Open PR snapshot highlights shared integration risk: #610/#618 overlap on dashboard/account files; #661/#490 overlap on directory-listings; #598/#602/#615 require coordinated migration/security review; #540 is a high-divergence taxonomy candidate; #666 is stale relative to current main. Refresh all ahead/behind and file conflicts before merge.
+- Latest read-only Production evidence is [PRODUCTION_READ_ONLY_RECHECK_20261105.md](audits/PRODUCTION_READ_ONLY_RECHECK_20261105.md): 309 ledger rows through `20261101140105`, 0/42 exact release IDs, RC449A journal prerequisites and service-role RPC grant absent, RC463 trigger-only direct EXECUTE grants present, and Auth/security/DR/payment evidence remains open.
+- Release state: `CATALOG_PILOT_GATE=PASS`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. Do not mutate Production or deploy payment/finance functions independently.
+- Current documentation work is on `docs/team-01-architecture-register-20261105`, based on the exact main SHA. Review PR and exact-head CI are pending; no merge is requested.
+
+## Next actions
+1. Finish the Master TODO and append-only Session Log pointers for TEAM01-20261105-01.
+2. Open and validate a Draft documentation PR.
+3. Begin P0 restoration/migration identity reconciliation in isolated environments, with release decisions retained in the canonical ledger.
+
+---
+
 # CURRENT HANDOFF — 2026-11-05 — Standalone V6 candidate review
 
 - Current deployed baseline remains `apps/catalog-frontend` on repository main, not the standalone root-level AI Studio V6 candidate.
