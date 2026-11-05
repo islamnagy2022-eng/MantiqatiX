@@ -1,3 +1,25 @@
+# CURRENT HANDOFF — 2026-11-06 — V6 Auth API/controller r4 checkpoint
+
+- Canonical app is AI Studio V6; original archive SHA-256 `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`.
+- Latest candidate: `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-06-r4.zip`; SHA-256 `94aa8e6912b310136b7d453e7a776d291ab4700d8619d00d8544f0d91bac3ec7`.
+- Added `authMembershipApi.ts` for the existing authenticated `api /api/v1/me` Edge Function and `supabaseAuthController.ts` for injected Supabase JS v2 lifecycle methods. The controller restores a session, verifies the Auth user, fetches server memberships, holds guest role until explicit membership selection, supports Magic Link, refresh events and sign-out.
+- 32/32 service/utility tests PASS; strict isolated TSC for membership/API/controller/types PASS; security source audit and remediation PASS; security audit tests 2/2 PASS; syntax scan 62 TS/TSX files, 0 errors; r4 ZIP integrity PASS.
+- **Not integrated into UI yet.** Supabase SDK install and bun.lock update blocked by npm DNS EAI_AGAIN. LoginModal/AppContext still do not instantiate the controller; PKCE/session storage, membership picker and real browser auth remain open.
+- Existing `api` Edge Function CORS currently allows only the GitHub Pages origin; local preview origin must be approved before browser auth testing. No production Edge/CORS/database/auth change or deployment occurred.
+- No shared writes or payment/finance actions were enabled. Full platform remains BLOCKED / NOT CERTIFIED.
+
+## Permanent continuation rule
+When the user says **«كمل»**, resume the first open dependency-ordered item in this handoff and `docs/MASTER_PRODUCTION_TODO.md`; do not restart, repeat completed work, or change the canonical V6 baseline.
+
+## Next task
+1. On a network-enabled runner install and pin `@supabase/supabase-js`, update `bun.lock`.
+2. Create Supabase client with PKCE + sessionStorage policy and instantiate controller.
+3. Wire LoginModal/AppContext, auth callback and explicit membership selector.
+4. Verify the existing API Edge Function CORS for exact approved origins; then browser test OTP, session refresh, mismatch rejection, membership selection and logout.
+5. Continue protected read screens and authorized writes only after server scope checks.
+
+---
+
 # CURRENT HANDOFF — 2026-11-05 — V6 r4 Auth API adapter
 
 - Latest candidate: `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r4.zip`, SHA-256 `0f283fb6f3a64858f843d14388340f1b198fdec40ed0e2a5c317a350cd9f8787`.
