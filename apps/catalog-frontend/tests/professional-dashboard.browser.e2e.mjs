@@ -710,10 +710,20 @@ try {
     const owningBusinessCard = page.getByTestId('directory-business-card').filter({ hasText: 'متجر الأدوات المنزلية' });
     await owningBusinessCard.waitFor({ state: 'visible', timeout: 10000 });
     assert.equal(await owningBusinessCard.count(), 1, 'a matching available product must return its owning public business');
+    assert.equal(
+      await owningBusinessCard.getByTestId('directory-catalog-search-matches').innerText(),
+      'مطابقة في الكتالوج: قهوة تركي ممتازة',
+      'the owning business card must explain which published product matched',
+    );
 
     await searchInput.fill('صيانة تكييف');
     await owningBusinessCard.waitFor({ state: 'visible', timeout: 10000 });
     assert.equal(await owningBusinessCard.count(), 1, 'a matching available quote-only service must return its owning public business');
+    assert.equal(
+      await owningBusinessCard.getByTestId('directory-catalog-search-matches').innerText(),
+      'مطابقة في الكتالوج: صيانة تكييف سبليت',
+      'the owning business card must identify the matching quote-only service',
+    );
 
     for (const blockedTerm of ['ثلاجة غير متاحة', 'منتج بلا سعر نشط', 'منتج مخفي', 'أثاث مكتبي فاخر']) {
       await searchInput.fill(blockedTerm);

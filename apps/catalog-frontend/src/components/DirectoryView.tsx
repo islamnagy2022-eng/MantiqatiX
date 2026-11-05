@@ -596,7 +596,7 @@ export const DirectoryView: React.FC = () => {
         )
         .map((business) => business.id)
     );
-    const index = new Map<string, string[]>();
+    const index = new Map<string, Array<{ product: Product; searchableText: string }>>();
 
     for (const item of directoryProducts) {
       if (!item.isAvailable || !eligibleBusinessIds.has(item.businessId)) continue;
@@ -608,12 +608,24 @@ export const DirectoryView: React.FC = () => {
       ].join(' '));
       if (!searchableText) continue;
       const existing = index.get(item.businessId) || [];
-      existing.push(searchableText);
+      existing.push({ product: item, searchableText });
       index.set(item.businessId, existing);
     }
 
     return index;
   }, [businesses, directoryProducts]);
+
+  const matchingPublishedCatalogItemNames = new Map<string, string[]>();
+  if (queryTokens.length > 0) {
+    for (const [businessId, entries] of publishedCatalogSearchIndex) {
+      const matchingNames = entries
+        .filter(({ searchableText }) => queryTokens.every((token) => searchableText.includes(token)))
+        .map(({ product }) => product.name)
+        .filter(Boolean)
+        .slice(0, 2);
+      if (matchingNames.length > 0) matchingPublishedCatalogItemNames.set(businessId, matchingNames);
+    }
+  }
   // Rank only configured image URLs; placeholders do not count as real assets.
   const hasConfiguredImage = (value: unknown) => {
     const url = String(value || '').trim().toLowerCase();
@@ -637,11 +649,9 @@ export const DirectoryView: React.FC = () => {
       biz.phone, biz.ownerWhatsApp, biz.activitySpecialty,
     ].join(' '));
     const matchesBusinessSearch = queryTokens.every((token) => haystack.includes(token));
-    const productAndServiceTexts = publishedCatalogSearchIndex.get(biz.id) || [];
-    const matchesPublishedCatalogItemSearch = queryTokens.length > 0 &&
-      biz.publicEnabled === true &&
+    const matchesPublishedCatalogItemSearch = biz.publicEnabled === true &&
       biz.catalogPublished === true &&
-      productAndServiceTexts.some((itemText) => queryTokens.every((token) => itemText.includes(token)));
+      (matchingPublishedCatalogItemNames.get(biz.id)?.length || 0) > 0;
     const matchesSearch = matchesBusinessSearch || matchesPublishedCatalogItemSearch;
     const matchedCategory = categoryForBusiness(biz);
     const matchesCategory = selectedCategoryId === 'all' ||
@@ -1126,6 +1136,7 @@ export const DirectoryView: React.FC = () => {
           ) : (
             <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-6">
               {visibleBusinesses.map((biz) => {
+                const matchingCatalogItemNames = matchingPublishedCatalogItemNames.get(biz.id) || [];
                 return (
                   <div
                     key={biz.id}
@@ -1212,6 +1223,15 @@ export const DirectoryView: React.FC = () => {
                           <p className="hidden sm:block text-xs text-slate-500 line-clamp-2 leading-relaxed">
                             {biz.bio}
                           </p>
+                          {matchingCatalogItemNames.length > 0 && (
+                            <div
+                              data-testid="directory-catalog-search-matches"
+                              className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-[10px] leading-5 text-emerald-950 sm:text-xs"
+                            >
+                              <span className="font-black">مطابقة في الكتالوج: </span>
+                              <span>{matchingCatalogItemNames.join('، ')}</span>
+                            </div>
+                          )}
 
                           <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-600 font-medium pt-1">
                             <MapPin className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
