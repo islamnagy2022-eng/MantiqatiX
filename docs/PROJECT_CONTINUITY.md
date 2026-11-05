@@ -1,4 +1,15 @@
 
+# CURRENT UPDATE — 2026-11-05 — Team 02 cover-image verification dependency
+
+- PR #641 is merged at `6e107164647453f7f8644b52db034f474f17f2cf`; the stale root catalog TODO has been corrected to distinguish merged source from still-open runtime verification.
+- PR Pages run `41286373956`: validation passed; deploy skipped on PR event. Current-main Pages run `41970849104` on `218d4c768021fbc94d21ffd442b3fcdacd16e4f8` completed validation, deployment and deployed-origin browser checks.
+- Static source review of `DirectoryView.tsx` (blob `9cbcfdb49236088b06dd2d2cc28c4134886be131`) found unverified doctor/pharmacy image errors retry the same external URL once, then fall back to the generic placeholder rather than a bundled category-specific image.
+- Assigned `TEAM02-DIR-COVER-20261105-01` to Team 02: bundle category-safe fallback assets, make error handling switch to a distinct local URL without retry, add E2E and confirm deployed-origin image loading. This is NOT VERIFIED; no frontend change was made by Team 01.
+- Full-platform release remains `BLOCKED / NOT CERTIFIED`.
+
+---
+
+
 # CURRENT UPDATE — 2026-11-05 — TEAM01 alias reconciliation evidence
 
 - Read-only exact statement comparison now verifies two known aliases:
