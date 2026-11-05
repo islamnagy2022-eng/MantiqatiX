@@ -1129,6 +1129,7 @@ export const DirectoryView: React.FC = () => {
                 return (
                   <div
                     key={biz.id}
+                    data-testid="directory-business-card"
                     className={`min-w-0 bg-white rounded-xl sm:rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-md sm:hover:shadow-xl transition-all group ${biz.isVerified ? 'order-1' : 'order-3'}`}
                   >
                     <div>
