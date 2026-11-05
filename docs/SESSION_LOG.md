@@ -2040,3 +2040,15 @@ A separate source review found a second platform-root authorization model: the n
 - **Release state:** `CATALOG_PILOT_GATE=PASS`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 - **Next:** review current-schema backup/restore path and obtain the required approval/environment; in parallel, reconcile exact aliases and forward-bundle object effects without editing historical migrations.
 
+
+
+
+## 2026-11-05 — TEAM01 P0 exact alias effect comparison
+
+- Read the actual stored migration statements for live ledger targets `20261008222845` and `20261027041411` through a read-only query.
+- Exact character-for-character match confirmed between RC424 source `20261009010000` and live target `20261008222845` (7,208 characters; source blob `49f46e3e159e6306534adbf61f626901c2d73488`).
+- Exact match confirmed between the marketing-contact source alias `20261027100000` and live target `20261027041411` (1,114 characters; source blob `1b85c341c0c9329e71f4fdbf36f2f852687994aa`). The source file for `20261027041411` has the same SHA and exact content as the alias.
+- Existing reconciliation manifest already marks both effects `source_effect_verified=true`, but leaves alias resolution `PENDING_CONTROLLED_REPAIR`; both `ledger_repair_applied=false`. Do not execute duplicate SQL or create fake ledger rows. Production migration-history repair is still a separate approved write that depends on current restorable schema/roles, replay/rollback evidence and release authorization.
+- Effect identity for these two aliases is VERIFIED; exact source-version inventory still remains 0/42. This does not clear missing physical objects or any global release gate.
+- No Production writes, migration repair, grants/Auth/RLS changes, Edge deployments, payment/finance actions or public deployment occurred.
+- Updated the Team01 integration register, canonical Master TODO, current continuity handoff and session history on `docs/team-01-architecture-register-20261105`.
