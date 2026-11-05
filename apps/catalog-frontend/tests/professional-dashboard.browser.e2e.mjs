@@ -1292,7 +1292,7 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      await page.locator('section[aria-label="المجموعات والأنشطة"]').waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByTestId('directory-activities-section').waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(await page.getByText('دليل الأنشطة والمطالبات', { exact: true }).count(), 0, 'non-platform roles must not render the directory admin tab');
       assert.equal(directoryAdminRequests.some((request) => request.action === 'ADMIN_LIST'), false, 'non-platform roles must not request the admin directory bundle');
       results.push('non-platform-role-denied-directory-admin-route');
