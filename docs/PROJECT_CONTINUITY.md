@@ -1,3 +1,26 @@
+# CURRENT HANDOFF — 2026-11-05
+
+This handoff supersedes older status statements below where they conflict; historical entries remain retained.
+
+- Current main HEAD at inspection: `f2fa0dd8fc04a1c0eabd4f67f0f8d901c20eaf11` (documentation/evidence refresh).
+- Latest catalog code release: `fe9e9f57b780b01c49940349dccf3bbac67efaae`; V4 presentation merge: PR #662 / commit `12cd89a96b42868cdf6ff20ecba83f6f7840cf48`.
+- PR #662 is closed after merge. Exact main validation [41916803905](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41916803905), Pages deployment [41916804007](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41916804007), and Production Health Monitor [41916803979](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41916803979) all succeeded.
+- V4 public/owner/admin presentation work is deployed for the scoped catalog pilot. Owner dashboard retains the website-only CSV import, employee hiring, permanent QR and taxonomy tools alongside the three V4 primary areas.
+- Live `catalog-platform-admin` remains at v23 with source drift; activity-module writes stay disabled. Public read-only catalog endpoints are the scoped deployed changes; no payment/finance Edge Functions were deployed.
+- Standalone `MantiqatiX-v6-release-source.zip` is still a separate candidate and has not been ported into the live website. Do not conflate it with PR #662 or the catalog pilot.
+- Storefront permanent overlay choice remains pending; keep bright-by-default/hover-focus behavior for now.
+- Member Messages, custom links and manual finance entries remain deferred until durable authorized backend contracts exist.
+- Current production gate evidence is [PRODUCTION_RECHECK_20261104.md](docs/audits/PRODUCTION_RECHECK_20261104.md): `CATALOG_PILOT_GATE=PASS`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` (0/42 exact release migration IDs, 32/60 selected object checks non-PASS, six critical Edge source mismatches, RC449A/RC450 prerequisites, and open Auth/payment/finance/DR/security evidence).
+- No production migration, Auth/RLS/GRANT change, payment/finance write, backup/restore change, or global release authorization was made during this continuation.
+
+## Next safe sequence
+
+1. Compare the standalone V6 source archive against this deployed main baseline when raw archive source is available; do not import prototype localStorage, seed businesses, sample metrics, or unverified status.
+2. Continue P0 production reconciliation from the current November 4 audit using a restorable current-schema snapshot and disposable chronological replay. No production migration until exact effects, ACLs, rollback and restore evidence are reviewed.
+3. Keep finance/payment Edge functions blocked as a dependency group; keep SMM deferred; do not widen the catalog pilot gate.
+
+---
+
 # CURRENT HANDOFF — 2026-11-02 15:25 UTC
 
 This checkpoint supersedes the older dated handoff below; historical entries are retained.
