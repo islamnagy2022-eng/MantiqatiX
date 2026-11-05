@@ -6,7 +6,9 @@
 - Phase 1 source-only safety guard added: scripts/validate-v6-private-data-boundary.mjs; apps/catalog-frontend/.gitignore now excludes .data/; app package exposes validate:v6-boundary; dedicated workflow .github/workflows/v6-candidate-boundary.yml.
 - Local validator against extracted archive: PASS; it detects .data/production-live-db.json and confirms it is local-only/ignored and absent from public/build output. Do not read, copy, commit, publish or import its contents.
 - Candidate source inventory: React 19, TypeScript, Vite 8; src/App.tsx, src/context/AppContext.tsx, src/data/seedData.ts, src/utils/, server.ts, five Node test files. LocalStorage remains a primary state store; /api/production-state is present in the candidate Express server; seed records exist. These are migration risks, not production-ready persistence.
-- Dependency install did not complete within 120 seconds; Bun is unavailable. Type-check/build/tests remain NOT VERIFIED.
+- Exact-head CI for Phase 1: V6 Candidate Safety Boundary [41982612018] PASS; primary Pages validation [41982612012] PASS including the V6 private-data guard. PR deploy job was skipped; no publication occurred.
+- Added docs/release/V6_CANONICAL_INTEGRATION_MAP_20261105.md with candidate-to-existing-table/API mapping and hard non-equivalences.
+- Candidate test status: npm install timed out at 120s and 300s; Bun unavailable; global tsc cannot resolve vite/client without dependencies; five Node tests fail under Node 22 type stripping due extensionless TS imports. No candidate build or browser E2E pass is claimed.
 - No V6 application source has been merged into the production frontend yet. No Production mutation or deployment occurred. Current deployed app remains apps/catalog-frontend; catalog pilot PASS, full platform BLOCKED / NOT CERTIFIED.
 
 ## Next exact actions
