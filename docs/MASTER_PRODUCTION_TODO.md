@@ -1,3 +1,40 @@
+# CURRENT CHECKPOINT — 2026-11-05 — AI Studio V4 catalog wave merged and deployed
+
+**Repository:** `islamnagy2022-eng/MantiqatiX`  
+**Current main HEAD at reconciliation:** `f2fa0dd8fc04a1c0eabd4f67f0f8d901c20eaf11` (documentation/evidence refresh)  
+**Latest catalog source release:** `fe9e9f57b780b01c49940349dccf3bbac67efaae`  
+**V4 UI merge:** PR [#662](https://github.com/islamnagy2022-eng/MantiqatiX/pull/662), merge/source release commit `12cd89a96b42868cdf6ff20ecba83f6f7840cf48`.
+
+## Verified since the prior handoff
+
+- PR #662 is closed after the V4 catalog presentation work was merged. Its scope includes the global navigation shell, directory search, owner-dashboard layout, admin/Super Admin presentation, storefront header and public catalog styling.
+- Exact validation run [41916803905](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41916803905) completed successfully: TypeScript/build, browser E2E and isolated PostgreSQL employee-RBAC jobs all passed.
+- GitHub Pages run [41916804007](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41916804007) completed successfully, including validation and deployment.
+- Production Health Monitor [41916803979](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41916803979) completed successfully.
+- The post-merge catalog runtime correction is recorded in [PRODUCTION_RECHECK_20261104.md](docs/audits/PRODUCTION_RECHECK_20261104.md): public product normalization accepts legacy and normalized API field shapes; branch-specific pricing takes precedence over business-wide defaults; quote-only amounts and option deltas remain redacted.
+- Live public read-only Edge versions recorded by the recheck: `public-catalog-directory` v17, `public-catalog` v7 and `catalog-admin` v20. `catalog-platform-admin` v23 still has source drift; activity-module override writes remain disabled until settings and audit can be committed atomically.
+- Owner dashboard now has three V4 primary areas (catalog, branding, business profile) while retaining website-only CSV import, employee hiring, permanent QR and taxonomy tools. Existing data actions, route state and server-side authorization remain the source of truth.
+
+## Still intentionally not implemented or not certified
+
+- The standalone `MantiqatiX-v6-release-source.zip` is not the deployed website and was not integrated by PR #662. Do not claim V6 parity, 100-million-user capacity, or full application readiness from this catalog release.
+- The permanent dark storefront-cover overlay remains an owner decision. Preserve the current bright-by-default/hover-focus behavior until explicitly changed.
+- Member Messages remains blocked on durable server-side storage, recipient/tenant authorization, audit and notification delivery.
+- Custom links and manual finance/sale-entry UI remain blocked on verified persisted backend contracts. Do not use prototype localStorage or sample financial values.
+- Full platform release remains `BLOCKED / NOT CERTIFIED`: the November 4 audit records 0/42 exact release migration IDs in the live ledger, 32/60 selected physical-object checks non-PASS, six critical payment/order/finance Edge source mismatches, missing RC449A/RC450 financial-journal prerequisites, and outstanding payment/finance E2E, backup/restore/RPO/RTO, Auth-hardening and adversarial tenant/security evidence.
+- Keep SMM deferred. Do not deploy payment/finance functions individually or apply production migrations to bypass the dependency chain.
+
+## Next execution order
+
+1. Continue the standalone V6 source comparison only when its source archive bytes are available for direct inspection; reconcile every V6 screen and workflow against current main before porting anything. Preserve current website-only features and real production data.
+2. Keep the cover-overlay owner decision open; do not silently switch it.
+3. Continue dependency-ordered P0 release work from the current production audit, beginning with a restorable current-schema snapshot and isolated chronological migration/effect reconciliation. No production migration or security-setting change is authorized by this checkpoint.
+
+**Release flags:** `CATALOG_PILOT_GATE=PASS`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.  
+**Production effect of this documentation reconciliation:** none.
+
+---
+
 ## CAT-ROLLOUT-20261102 — Catalog root, performance loading, mobile activity grid and doctor draft-import boundary
 **Date:** 2026-11-02  
 **Status:** UI changes COMPLETE and deployed; doctor-import Edge Function source merged but NOT deployed to Production; global platform release remains BLOCKED.  

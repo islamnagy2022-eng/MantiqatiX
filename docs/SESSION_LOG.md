@@ -1990,3 +1990,16 @@ A separate source review found a second platform-root authorization model: the n
 - No production business/catalog data, database schema, Auth/RLS/GRANT, Edge Function, payment/finance, or production configuration was changed.
 - Next: continue V4 screen-by-screen visual/behavior comparison; preserve website-only capabilities; keep finance, wallet, custom links, messaging, marketing spend and AI actions deferred until durable authorized backend contracts are verified. Continue the separate migration/schema, Edge drift, Auth, tenant isolation, payment/finance and backup/restore gates.
 - `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+
+## 2026-11-05 — V4 catalog wave merged, deployed and reconciled
+
+- Re-read the current main handoff, Master Production TODO, V4 parity map, catalog rollout record and November 4 production recheck before continuing.
+- Verified PR #662 is closed after merge. The V4 catalog presentation merge is recorded as commit `12cd89a96b42868cdf6ff20ecba83f6f7840cf48`; the latest catalog runtime correction is `fe9e9f57b780b01c49940349dccf3bbac67efaae`.
+- Verified exact main validation [41916803905](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41916803905): build/TypeScript, browser E2E and isolated PostgreSQL employee-RBAC jobs PASS.
+- Verified Pages [41916804007](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41916804007): validation and deployment jobs PASS. Verified Production Health Monitor [41916803979](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41916803979): PASS.
+- Scope includes V4 navigation/directory search, owner-dashboard primary layout with retained website-only tools, admin/Super Admin presentation, storefront cover/trust-state/accessibility behavior and public catalog styling. This does not mean every prototype workflow is integrated.
+- The November 4 recheck records public read-only catalog Edge versions `public-catalog-directory` v17, `public-catalog` v7 and `catalog-admin` v20. `catalog-platform-admin` v23 retains a disclosed source mismatch; activity-module admin writes remain disabled pending atomic settings+audit support.
+- No finance/payment Edge deployment, Production migration, Auth/RLS/GRANT change, doctor import/publication, payment/settlement, or global platform release was performed in this continuation.
+- Retained blockers: cover-overlay owner decision; V6 archive integration; Member Messages durable backend; custom links/manual finance writes; full-platform 0/42 exact release migration IDs, 32/60 selected object checks non-PASS, six critical payment/order/finance Edge mismatches, RC449A/RC450, Auth, payment/finance E2E, backup/restore/RPO/RTO and adversarial security/tenant evidence.
+- Next: continue V6 source-level comparison when the raw archive source can be inspected; in parallel, preserve the production gate and resume dependency-ordered P0 reconciliation. Production release remains `BLOCKED / NOT CERTIFIED`.
