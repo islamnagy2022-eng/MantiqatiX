@@ -581,6 +581,39 @@ export const DirectoryView: React.FC = () => {
     return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
   };
   const queryTokens = normalizeSearch(searchQuery).split(' ').filter(Boolean);
+
+  // Index only products/services belonging to businesses whose public catalogue
+  // is explicitly published and operational. The directory API is already the
+  // source of truth; this adds no second request or client-side private data path.
+  const publishedCatalogSearchIndex = useMemo(() => {
+    const eligibleBusinessIds = new Set(
+      businesses
+        .filter((business) =>
+          business.publicEnabled === true &&
+          business.catalogPublished === true &&
+          business.operationalStatus === 'ACTIVE' &&
+          !business.isFrozen
+        )
+        .map((business) => business.id)
+    );
+    const index = new Map<string, string[]>();
+
+    for (const item of directoryProducts) {
+      if (!item.isAvailable || !eligibleBusinessIds.has(item.businessId)) continue;
+      const searchableText = normalizeSearch([
+        item.name,
+        item.category,
+        item.description,
+        item.unit,
+      ].join(' '));
+      if (!searchableText) continue;
+      const existing = index.get(item.businessId) || [];
+      existing.push(searchableText);
+      index.set(item.businessId, existing);
+    }
+
+    return index;
+  }, [businesses, directoryProducts]);
   // Rank only configured image URLs; placeholders do not count as real assets.
   const hasConfiguredImage = (value: unknown) => {
     const url = String(value || '').trim().toLowerCase();
@@ -603,7 +636,13 @@ export const DirectoryView: React.FC = () => {
       biz.name, biz.category, biz.bio, biz.address, biz.governorate, biz.markaz, biz.village,
       biz.phone, biz.ownerWhatsApp, biz.activitySpecialty,
     ].join(' '));
-    const matchesSearch = queryTokens.every((token) => haystack.includes(token));
+    const matchesBusinessSearch = queryTokens.every((token) => haystack.includes(token));
+    const productAndServiceTexts = publishedCatalogSearchIndex.get(biz.id) || [];
+    const matchesPublishedCatalogItemSearch = queryTokens.length > 0 &&
+      biz.publicEnabled === true &&
+      biz.catalogPublished === true &&
+      productAndServiceTexts.some((itemText) => queryTokens.every((token) => itemText.includes(token)));
+    const matchesSearch = matchesBusinessSearch || matchesPublishedCatalogItemSearch;
     const matchedCategory = categoryForBusiness(biz);
     const matchesCategory = selectedCategoryId === 'all' ||
       Boolean(matchedCategory && selectedActivityCategory && matchedCategory.id === selectedActivityCategory.id);
@@ -972,7 +1011,7 @@ export const DirectoryView: React.FC = () => {
                 بحث مباشر في الدليل
               </span>
               <h2 className="mt-2 text-lg font-black tracking-tight text-slate-950 sm:text-xl">ابحث عن نشاط أو خدمة</h2>
-              <p className="mt-1 text-xs leading-5 text-slate-500">اكتب اسم النشاط أو التخصص أو رقم التواصل أو المكان للوصول إلى النتائج المنشورة.</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">ابحث باسم النشاط أو التخصص أو المنتج أو الخدمة أو رقم التواصل أو المكان للوصول إلى النتائج المنشورة.</p>
             </div>
             <div className="relative">
               <Search className="mx-v4-search-icon absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2" />
