@@ -1,0 +1,29 @@
+name: V6 Candidate Safety Boundary
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/catalog-frontend/.gitignore"
+      - "apps/catalog-frontend/package.json"
+      - "scripts/validate-v6-private-data-boundary.mjs"
+      - ".github/workflows/v6-candidate-boundary.yml"
+  push:
+    branches: [feat/v6-canonical-integration-phase1-20261105]
+    paths:
+      - "apps/catalog-frontend/.gitignore"
+      - "apps/catalog-frontend/package.json"
+      - "scripts/validate-v6-private-data-boundary.mjs"
+      - ".github/workflows/v6-candidate-boundary.yml"
+permissions:
+  contents: read
+jobs:
+  private-data-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Validate V6 private snapshot and build boundary
+        run: npm --prefix apps/catalog-frontend run validate:v6-boundary
