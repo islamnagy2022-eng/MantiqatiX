@@ -1,3 +1,27 @@
+# CURRENT HANDOFF — 2026-11-05 — V6 Auth OTP UI wired (r5)
+
+- Canonical source remains the owner-selected AI Studio V6. Prior latest r4 baseline SHA-256: `94aa8e6912b310136b7d453e7a776d291ab4700d8619d00d8544f0d91bac3ec7`.
+- Current candidate: `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r5-auth-ui.zip`; SHA-256 `833e783119c68f31e9aa8d108caf7aa3a722fb0413627610e743df2d6dc64f3f`.
+- Existing `SupabaseAuthController` is now wired into AppContext and LoginModal. New `SupabaseAuthRestClient` implements its structural Supabase Auth v2 contract through REST, avoiding an SDK install while offline.
+- UI sends numeric Email OTP with `create_user:false`, verifies it, resolves Auth identity, calls existing authenticated `/api/v1/me`, and displays explicit membership choices. No role auto-selection.
+- Controller preserves selected membership on periodic server recheck and revokes local role if membership disappears. REST client refreshes tokens in memory only; no localStorage/sessionStorage. Reload starts as guest.
+- Tests 42/42 PASS; security audit/remediation PASS; security audit tests 2/2 PASS; isolated strict TypeScript PASS for Auth/API/controller/REST/public-directory/types; syntax scan 61 TS/TSX files, 0 errors; candidate ZIP integrity PASS.
+- Not verified: full install/project-wide typecheck/lint/Vite build/browser E2E/accessibility/PWA; actual OTP delivery and Preview browser flow. Supabase SDK not installed and bun.lock unchanged. Existing API Edge CORS is restricted to the deployed GitHub Pages origin; exact Preview origin requires explicit review/deploy. No production change or deployment occurred.
+- Tenant OWNER still requires server-authorized business selection. Shared writes, unsupported roles and finance/payment remain closed.
+- State: `AUTH_OTP_CONTROLLER_AND_MEMBERSHIP_PICKER_WIRED_NOT_PREVIEW_VERIFIED`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+## Permanent continuation rule
+When the user says **«كمل»**, resume the first dependency-ordered open task here and in `docs/MASTER_PRODUCTION_TODO.md`. Preserve the AI Studio V6 baseline and all completed work; do not restart.
+
+## Next executable task
+1. Review exact Preview origin and update existing `api` Edge Function CORS allowlist for only approved origins; deploy only after validation.
+2. Browser-test real OTP request/verify, membership mismatch, one/multiple memberships, session refresh, revocation and sign-out.
+3. Add server-authorized business list/selection for tenant-level OWNER.
+4. Run full dependency install, project-wide type/lint/build and E2E/accessibility/PWA on network-enabled CI.
+5. Then map V6 profile/catalog writes to existing authorized Edge/RPC contracts one module at a time.
+
+---
+
 # CURRENT HANDOFF — 2026-11-05 — V6 Auth controller + sessionStorage r5
 
 - Canonical target remains Google AI Studio V6. Original archive SHA-256 `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`.

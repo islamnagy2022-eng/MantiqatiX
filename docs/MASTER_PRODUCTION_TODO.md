@@ -1,3 +1,46 @@
+# 2026-11-05 — V6 Auth controller wired to AppContext/LoginModal (r5)
+
+**Canonical app:** AI Studio V6.  
+**Previous baseline:** 2026-11-06 r4 candidate SHA-256 `94aa8e6912b310136b7d453e7a776d291ab4700d8619d00d8544f0d91bac3ec7`.  
+**New candidate:** `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r5-auth-ui.zip`.  
+**New candidate SHA-256:** `833e783119c68f31e9aa8d108caf7aa3a722fb0413627610e743df2d6dc64f3f`.
+
+## Completed in r5
+- [x] Wired the existing `SupabaseAuthController` into V6 `AppContext` and `LoginModal`; retained the newer r4 architecture rather than replacing it with the earlier r4 source.
+- [x] Added `SupabaseAuthRestClient`, a small REST adapter implementing the controller's structural Supabase Auth v2 contract. It avoids adding a package dependency while the runner cannot reach the package registry.
+- [x] Implemented numeric Email OTP send (`create_user:false`) and verification via Supabase Auth REST endpoints.
+- [x] Existing controller verifies the Auth user, calls the existing authenticated `/functions/v1/api/api/v1/me`, and checks user identity before displaying membership choices.
+- [x] The user explicitly chooses a membership; no candidate is auto-selected, including the single-membership case.
+- [x] Controller now retains an explicitly selected membership after periodic server rechecks and drops the V6 role if that membership is revoked.
+- [x] REST adapter refreshes expiring tokens in memory, validates the Auth user identity, clears local session on refresh/user failure, and signs out remotely.
+- [x] Tokens are memory-only. No localStorage/sessionStorage token persistence; page reload starts as guest.
+- [x] Updated README and Arabic Auth integration/candidate status documents.
+
+## Verification
+- Auth membership/API/controller/REST adapter + directory + route-policy tests: **42/42 PASS**.
+- Security audit test suite: **2/2 PASS**.
+- `V6_SOURCE_SECURITY_AUDIT=PASS`.
+- `V6_REMEDIATION_TESTS=PASS`.
+- Strict isolated TypeScript check for Auth services, membership API/controller, REST adapter, public directory service and V6 types: PASS.
+- TypeScript/TSX syntax scan: **61 files, 0 syntax errors**.
+- Candidate ZIP integrity PASS; private snapshots, local env files, node_modules and dist excluded.
+- Candidate r5 SHA-256: `833e783119c68f31e9aa8d108caf7aa3a722fb0413627610e743df2d6dc64f3f`.
+
+## Still open / not claimed
+- The REST adapter is a dependency-free bridge, not the official Supabase JS SDK. SDK installation and bun.lock update remain open.
+- Full dependency installation, project-wide semantic typecheck, lint, Vite build, browser E2E, accessibility and PWA remain NOT VERIFIED. No node_modules are available; full `tsc --noEmit` stops because `vite/client` is unavailable.
+- Real OTP delivery and Preview browser flow are NOT VERIFIED. Configure `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, Email Provider and `{{ .Token }}` template.
+- Existing `api` Edge Function CORS allowlist is recorded as allowing the deployed GitHub Pages origin only. Exact approved Preview origins must be added and deployed deliberately before browser membership API calls can work from Preview. No CORS/Edge deployment was performed.
+- Tenant-level OWNER still needs a server-authorized list of businesses before selection.
+- Unsupported roles, shared writes, financial/payment actions remain closed.
+- No production DB/Auth/RLS/GRANT/migration/Edge/payment mutation and no public deployment occurred.
+
+**Release state:** `AUTH_OTP_CONTROLLER_AND_MEMBERSHIP_PICKER_WIRED_NOT_PREVIEW_VERIFIED`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+**Next task:** verify/approve the exact Preview origin, review and update the existing `api` Edge Function CORS allowlist, deploy only that controlled CORS change, and run real OTP/membership browser tests. Then implement the tenant OWNER business-selection endpoint. In parallel, run the full project build/test gate on a network-enabled CI runner and replace the REST bridge with the official Supabase JS SDK only when package installation/lockfile can be verified.
+
+---
+
 # 2026-11-05 — V6 Supabase sessionStorage adapter (r5)
 
 **Canonical app target:** AI Studio V6.  
