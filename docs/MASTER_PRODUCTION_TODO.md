@@ -1,4 +1,16 @@
 
+## 2026-11-05 — TEAM02-DIR-COVER-20261105-01 — Default cover verification follow-up
+
+- [x] Corrected stale status: PR #641 is merged as `6e107164647453f7f8644b52db034f474f17f2cf`.
+- [x] PR #641 Pages workflow `41286373956`: validation passed; deployment skipped on PR event.
+- [x] Current-main Pages workflow `41970849104` at `218d4c768021fbc94d21ffd442b3fcdacd16e4f8`: build, production smoke, deploy and deployed-origin browser suite passed; the suite does not prove the specific default doctor/pharmacy image URLs load.
+- [x] Static source review found the first `onError` attempt retries the same external URL for unverified doctors/pharmacies; a second failure changes to generic `business-placeholder.svg`.
+- [ ] TEAM 02: use bundled category-aware doctor/pharmacy fallback assets and make `onError` switch to a different local fallback without retrying the same failed URL.
+- [ ] TEAM 02: add E2E for healthy default image, failed URL, fallback transition, no loop and preservation of verified owner-supplied covers.
+- [ ] TEAM 02: perform deployed-origin visual/network verification; mark VERIFIED only after the exact assets and fallback behavior are confirmed live.
+- **Status:** `IN PROGRESS / NOT VERIFIED`. External image URL response status was not independently established in this session. No source, asset, Production or deployment change was made.
+
+
 ## 2026-11-05 — TEAM01 P0 migration-alias exact comparison
 
 - [x] Read `supabase_migrations.schema_migrations.statements[1]` for live ledger targets `20261008222845` and `20261027041411`.
