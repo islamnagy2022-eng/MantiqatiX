@@ -2,11 +2,11 @@ import React from 'react';
 import { Sparkles } from 'lucide-react';
 
 const QUICK_SEARCH_SUGGESTIONS = [
-  { label: 'صيدليات', query: 'صيدلية' },
-  { label: 'مطاعم', query: 'مطعم' },
+  { label: 'صيدليات', query: 'صيدليات' },
+  { label: 'مطاعم', query: 'مطاعم' },
   { label: 'صيانة تكييف', query: 'تكييف' },
   { label: 'عقارات', query: 'عقارات' },
-  { label: 'أطباء وعيادات', query: 'طبيب' },
+  { label: 'أطباء وعيادات', query: 'عيادات' },
 ] as const;
 
 interface V6QuickSearchSuggestionsProps {
