@@ -9,8 +9,11 @@ if (!fs.existsSync(ignorePath)) {
   failures.push("candidate .gitignore is missing");
 } else {
   const rules = fs.readFileSync(ignorePath, "utf8").split(/\r?\n/).map((line) => line.trim());
-  for (const required of [".data/", ".env", ".env.*", "node_modules/", "dist/"]) {
+  for (const required of [".data/", "node_modules/", "dist/"]) {
     if (!rules.includes(required)) failures.push(`.gitignore must contain the exact rule: ${required}`);
+  }
+  if (!rules.includes(".env*") && !(rules.includes(".env") && rules.includes(".env.*"))) {
+    failures.push(".gitignore must exclude environment files with .env* or both .env and .env.*");
   }
 }
 
