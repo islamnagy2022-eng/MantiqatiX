@@ -2023,3 +2023,20 @@ A separate source review found a second platform-root authorization model: the n
 - Four changed files are documentation only: Team 01 register, Master Production TODO, Project Continuity and this append-only Session Log.
 - The first exact-head workflow reads for PR head `1e1ed96e9704479277748cbd0af12faf402d0357` showed some jobs in progress/queued and one completed pass. Full CI remains `IN PROGRESS / NOT VERIFIED` until terminal outcomes are checked on the final PR head.
 - No merge, Production mutation, DB migration, Auth/RLS/GRANT change, Edge deployment, payment/finance action or public-site cutover was performed.
+
+
+## 2026-11-05 — TEAM01 continuation — P0 current-schema preflight
+
+- Revalidated `main` at `218d4c768021fbc94d21ffd442b3fcdacd16e4f8`, the current architecture register PR #672 and the canonical TODO hierarchy.
+- PR #672's earlier exact-head commit `001c75ea33382604221f5c63d0ca0f806731b01c` passed the Module Professionalization, Backend-only Module Boundary, RC425 MantiGo Paymob Atomicity, MantiGO Open Ride Privacy and Pages validation workflows. The Pages deployment job was skipped because the run was for a PR; no deployment is claimed.
+- Fresh read-only Supabase Production SQL verified 309 migration rows through `20261101140105`, 0/42 exact required migration IDs, seven missing RC449A journal columns, no `service_role EXECUTE` on either journal-posting RPC, and both trigger-only SECURITY DEFINER functions still directly executable by PUBLIC/anon/authenticated/service_role with one attached trigger each.
+- Read `supabase/tests/baselines/production_schema_snapshot.manifest.json`: capture `2026-10-17T02:10:22.329Z`, checkpoint `20261008222845`, 283 migrations, schema-only, no rows/custom roles, `PENDING_REVIEW`. Current Production is 26 migration records beyond this checkpoint. The current replay fixture is not a current restore.
+- `list_branches` returned only the default Supabase `main` branch; no disposable development branch exists. No paid project/branch was created. No Production or schema mutation was performed.
+- Confirmed `forward-migration-chain-replay.yml` pins Supabase CLI `2.122.0`; keep the pin until the CLI v3 local-by-default/explicit-remote semantics are separately tested.
+- P0-1 current schema + roles/ACL snapshot and restore remains **BLOCKED** pending an approved restore path or cost-approved disposable environment. P0-2 exact migration source/effect reconciliation remains **IN PROGRESS**. P0-3 full chronological replay and rollback remain **WAIT** until P0-1 is complete.
+- Detected a stale catalog sub-TODO: `TODO_PRODUCTION.md` still says PR #641 is IN PROGRESS although the PR is closed/merged. Assigned reconciliation to T02; merge alone is not VERIFIED deployed behavior.
+- Updated the Team 01 architecture/integration register and canonical handoff/TODO with this evidence on `docs/team-01-architecture-register-20261105`. This is documentation only.
+- **Production effect:** none. No migrations, data writes, grants, Auth/RLS changes, Edge deployments, payments, settlement, merge or production deployment.
+- **Release state:** `CATALOG_PILOT_GATE=PASS`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+- **Next:** review current-schema backup/restore path and obtain the required approval/environment; in parallel, reconcile exact aliases and forward-bundle object effects without editing historical migrations.
+
