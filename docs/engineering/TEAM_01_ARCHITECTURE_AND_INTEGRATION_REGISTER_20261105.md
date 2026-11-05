@@ -275,3 +275,24 @@ The marketing alias file and the already-recorded `20261027041411` source file h
 The release reconciliation manifest already marks both source effects as verified, but `migration_alias_resolution_check` remains `PENDING_CONTROLLED_REPAIR`, with `resolved_aliases=0` and `ledger_repair_applied=false` for both. Its documented procedure explicitly requires a reviewed current-schema replay, backup/restore and rollout approval before a **Production migration-history-only write**.
 
 **Decision:** record exact source/effect parity as VERIFIED for these two aliases; keep the migration-history repair BLOCKED/WAIT. Do not execute either SQL alias, add synthetic ledger rows, edit historical migrations, or update the production manifest to imply a repair has occurred. The 42 required source identifiers remain 0/42 in the exact-ID comparison; exact aliases only reconcile two effects and do not satisfy the wider release gate.
+
+
+
+## 13. 2026-11-05 — Team 02 cover-image TODO reconciliation
+
+The detailed catalog supplement `TODO_PRODUCTION.md` still describes PR #641 as not merged and its merge/deployment checks as pending. GitHub shows PR #641 was merged as `6e107164647453f7f8644b52db034f474f17f2cf`. Its PR-head Pages workflow `41286373956` passed validation, but its PR-event deploy job was skipped. The subsequent current-main Pages workflow `41970849104` on `218d4c768021fbc94d21ffd442b3fcdacd16e4f8` executed deployment and deployed-origin browser checks successfully. This confirms the current deployed source includes the PR, but not that its specific image URLs loaded or the fallback behavior was exercised.
+
+A read-only source review of current-main `apps/catalog-frontend/src/components/DirectoryView.tsx` (blob `9cbcfdb49236088b06dd2d2cc28c4134886be131`) found:
+- `directoryCoverImage()` returns external Google thumbnail / Google Play image URLs for unverified pharmacy/doctor activities.
+- On the first image error, `onError` recomputes `directoryCoverImage({...biz, coverUrl: ''})`, which returns the same external URL for those categories and retries it.
+- On the second error, the handler falls back to the generic `business-placeholder.svg`, not a bundled category-specific cover.
+- Current automated browser tests cover verified-storefront cover semantics and accessibility, but no explicit doctor/pharmacy default-cover load/failure assertion was found in the inspected E2E source.
+
+**TEAM02-DIR-COVER-20261105-01 — IN PROGRESS / NOT VERIFIED**
+- Confirm the intended default image assets and rights/source.
+- Replace or supplement unstable external defaults with bundled category-safe doctor/pharmacy covers.
+- On image error, move directly to a distinct local category-aware fallback (no retry of the same URL), then use generic placeholder only as final fallback.
+- Add browser tests for successful default load, failed external image, single fallback transition, no repeated network loop, and verified real-cover preservation.
+- Perform deployed-origin visual/network verification before marking the task VERIFIED.
+
+This is a Team 02 implementation dependency. Team 01 corrected the project records only; no frontend source or public assets were changed.
