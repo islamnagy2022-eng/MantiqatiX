@@ -1,3 +1,45 @@
+# OWNER DECISION — V6 is the canonical target application (2026-11-05)
+
+**Decision:** The Google AI Studio V6 application is now the canonical product/UI/source baseline to be implemented as the actual MantiqatiX application. This supersedes prior wording that treated V6 only as a secondary candidate while the older catalog UI remained the target. The existing deployed application remains online as the controlled production baseline during migration; it is not the design/product baseline for the final result.
+
+**Source authority and candidate status**
+- Original V6 source archive: `bizcatalog-manager (5)(1).zip`.
+- Original archive SHA-256 previously verified: `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`; ZIP integrity PASS; 150 entries.
+- Latest security-remediation candidate available in the Library: `MantiqaTix-V6-security-remediation-candidate.zip`, with accompanying `V6_SECURITY_REMEDIATION_REPORT_AR.md` and `V6_SECURITY_REMEDIATION.patch`. Treat it as the preferred working candidate over the unmodified archive, but verify its own archive digest and exact contents before calling it the immutable integration baseline.
+- The remediation report records static security audit PASS, independent remediation tests PASS, and TypeScript syntax transpilation 53/53; dependency installation, full type-check, Vite build and E2E remain NOT VERIFIED. The candidate gate remains `BLOCKED_PENDING_BUILD_AND_BACKEND_INTEGRATION`.
+- The 2026-11-05 Team 02 UI patch is a separate additive patch against the canonical source archive. Reconcile/apply its compatible UI improvements to the V6 baseline after checking conflicts; do not overwrite the security remediation or the canonical AppContext security changes.
+
+**Architecture rule**
+- V6 owns the final user experience, navigation, screens, workflows, and application structure.
+- The existing GitHub/Supabase application is the source to reuse for verified live records, schema, Edge Function/RPC contracts, Auth/RLS/RBAC, payment/finance protections, migration history, deployment operations, and proven features absent from V6.
+- Port and adapt those capabilities into the V6 application; do not copy the older application over V6 and do not create a competing permanent site/backend.
+- Keep the current deployed site stable until V6 is integrated into the approved build/deploy path, validated in an isolated preview, and a rollback-ready cutover is approved. The intended final state is one primary application and one canonical release path.
+- Preserve all existing site-only capabilities until parity review explicitly classifies them as PORT, KEEP TEMPORARILY, DEFER WITH DEPENDENCY, or RETIRE WITH OWNER APPROVAL. Never silently remove features or real records.
+- Private snapshots, `.data/`, environment files, API secrets, credentials, and raw personal/financial records must never enter Git, public builds, logs, or user-facing reports. Any data reconciliation is dry-run first against the verified live schema.
+
+**Continuation protocol — permanent**
+- A user message containing **«كمل» / “continue”** means resume the first actionable, dependency-ordered OPEN item in this file and the latest continuity checkpoint. It never means restart the project, recreate plans, re-audit completed work without a reason, or ask the user to repeat established requirements.
+- At every continuation: inspect current main/branch/PR state and exact-head checks; read the latest continuity and this TODO; preserve completed evidence; update statuses and append a session log entry; then proceed to the next safe task.
+- Keep going across independent workstreams when one item is blocked. Mark blockers precisely and do not claim a task done without implementation and evidence.
+
+**New execution register**
+- [x] Owner decision recorded: AI Studio V6 is the canonical application/product baseline.
+- [x] Existing deployed app designated as temporary stable baseline and source of verified backend/data/security capabilities, not final UX baseline.
+- [x] Latest V6 security-remediation candidate and report located in the project Library.
+- [ ] Verify candidate ZIP SHA-256, ZIP integrity, file inventory, and exact delta from the immutable original V6 archive. Confirm private snapshot/secret exclusions.
+- [ ] Reconcile the Team 02 UI patch with the security-remediated V6 candidate; apply only compatible changes and preserve AppContext/security changes.
+- [ ] Run one immutable candidate's `npm install`, release verifier, test suite, full TypeScript check, lint, Vite production build, browser E2E, accessibility, responsive and PWA/device tests. Record exact commit/archive digest and logs.
+- [ ] Create a complete V6 screen/component/workflow inventory and feature-parity matrix against current deployed main; classify every legacy-only feature and map keep/port/defer/retire decisions.
+- [ ] Map V6 entities/fields to the exact live Supabase schema and current Edge Function/RPC contracts; document allowed reads/writes and authorization per role/tenant/business/branch. Do not create duplicate schema/APIs.
+- [ ] Implement real Supabase Auth/session/active-membership resolution and server-authorized shared persistence before enabling admin/merchant writes.
+- [ ] Port verified live catalogue, account, dashboard, employee/hiring, subscription, CRM/marketing, orders, inventory, finance, support, notification, and sector workflows incrementally with isolated tests; keep disabled payment/finance/medical-publication flows behind their independent gates.
+- [ ] Reconcile genuine business/catalog records through an anonymized dry-run only; preserve IDs, ownership, verification, provenance and privacy. Never import archive demo seeds or private JSON as production truth.
+- [ ] Produce isolated preview, full regression/security/tenant-isolation/rollback/backup-restore evidence, then prepare one controlled production cutover. Until then: current site unchanged; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+**Next action:** Verify the security-remediated V6 candidate archive and reconcile the Team 02 UI patch against it, then run the full candidate install/build/test gate on one immutable baseline.
+
+---
+
 ## 2026-11-05 — Standalone AI Studio V6 candidate review (source files incomplete)
 - [x] Reviewed the newly supplied baseline, implementation, deployment, security, DR, capacity, load-report and HTML files.
 - [x] Recorded the architecture boundary between the root-level V6 candidate and the deployed `apps/catalog-frontend` application.
