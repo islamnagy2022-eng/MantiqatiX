@@ -87,3 +87,27 @@ V6 is the selected target UI/application source. It is not yet an executable pro
 - No candidate source code was copied into the live frontend in Phase 1.
 - No Pages deployment or public cutover occurred.
 - CATALOG_PILOT_GATE=PASS; FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED.
+
+
+## 8. Additional source-level security and truthfulness blockers (2026-11-05)
+
+These findings are from direct source inspection of the extracted archive. Credential-like values are intentionally not reproduced here.
+
+| Finding | Source | Required treatment |
+|---|---|---|
+| Paymob merchant credential-shaped literal in default config; default Paymob config is enabled | src/data/seedData.ts:396–407 | Treat as exposed until proven placeholder. Remove from all client/default source; rotate if it was ever a real credential. Payment stays disabled until server-only secret configuration and approved sandbox E2E. |
+| Admin password literal in initial settings | src/data/seedData.ts:409–425 | Remove immediately from production candidate. All users authenticate through Supabase Auth; admin role comes from server-verified membership and permission checks. |
+| Google AI API-key-shaped literal in initial settings | src/data/seedData.ts:409–430 | Treat as exposed until proven placeholder. Remove from frontend/seed/config and rotate if real. Gemini credentials must be server-only. |
+| Fake visitor fallback value presented as site traffic | src/App.tsx:96–100; src/components/admin/UnifiedEnterpriseDashboard.tsx:768–771 | Replace with an actual persisted/aggregated analytics source or display “غير متاح”; never show fallback counts as facts. |
+| “Enterprise 100M” / 500k VU claims and load result simulation | src/components/Navbar.tsx; src/components/admin/AdminDashboard.tsx; src/utils/loadTestingEngine.ts | Treat as unverified product claims. Simulator outputs are not real load test evidence. Remove claims or label the tool clearly as a local simulation; production telemetry must come from measured infrastructure. |
+| Unauthenticated file-backed production snapshot GET/POST routes bind on 0.0.0.0 | server.ts:46–71 and server startup | Must not be used in production. Remove or hard-disable these routes before any server deployment; replace with existing authenticated backend contracts. |
+| Snapshot save marks state “official production” in localStorage and returns success even if remote persistence fails | src/context/AppContext.tsx:1247–1275 | Delete this false-success path. Persistence must return success only after authoritative server commit and audit evidence. |
+| Entity, wallet, campaign and message data are automatically copied to a single local JSON snapshot | src/context/AppContext.tsx:1247–1275 | Do not use this as a production database. Split into existing domain tables/RPCs and audited server transactions. |
+
+**Important qualification:** source inspection identifies credential-shaped literals; it does not prove that the values are active provider credentials. They must nevertheless be handled as exposed until their provenance is established. No credential value was copied into this report.
+
+## 9. Updated candidate decision
+
+`V6_CANDIDATE=SAFE_FOR_CONTROLLED_DEVELOPMENT_ONLY / NOT PRODUCTION READY`
+
+Production cutover is blocked until all Section 8 findings are removed or replaced with verified backend behavior, the app has a complete semantic type-check/build/E2E pass, and the full Auth/RLS/tenant/finance/recovery gates are satisfied.
