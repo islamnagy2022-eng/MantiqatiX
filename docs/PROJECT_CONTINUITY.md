@@ -1,3 +1,20 @@
+# CURRENT HANDOFF — 2026-11-05 — OWNER-APPROVED V6 CANONICAL TARGET
+
+- **Canonical target application:** Google AI Studio V6, source archive `bizcatalog-manager (5)(1).zip`, original SHA-256 `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965` (ZIP integrity previously PASS; 150 entries).
+- **Preferred candidate for next source work:** Library artifact `MantiqaTix-V6-security-remediation-candidate.zip` with `V6_SECURITY_REMEDIATION_REPORT_AR.md` and `V6_SECURITY_REMEDIATION.patch`. This is not yet an independently verified immutable baseline: verify its own digest and contents first.
+- **Owner direction (2026-11-05):** Make AI Studio V6 the actual application/product and UX baseline. Treat the older deployed catalog application as a temporary stable production baseline and a source of verified backend contracts, live data, schema, security, release engineering and proven legacy capabilities to port into V6. Do not reverse this relationship.
+- Team 02's additive UI patch must be reconciled with the latest security-remediated candidate, not blindly applied over it. Preserve the AppContext/security fixes and all original AI Studio/PWA assets.
+- The current GitHub Pages deployment must remain unchanged until V6 is integrated into the single approved build/deploy path, feature parity and backend integration are verified, preview/E2E/security/accessibility/PWA and backup/restore/rollback gates pass, and cutover is authorized.
+- Never publish private `.data/` snapshots, secrets, keys, raw personal/financial records or demo seeds as real production data.
+
+## Permanent resume rule
+When the user says **«كمل»**, resume the first actionable open item in `docs/MASTER_PRODUCTION_TODO.md` from this checkpoint. Do not restart, re-plan from zero, repeat completed tasks, or ask for requirements already recorded. Check the live repository/PR/workflow state first, preserve all previous decisions and evidence, update TODO and append the session log, then continue to the next dependency-ordered safe task.
+
+## Current next executable task
+Verify the SHA-256/ZIP integrity and exact contents of `MantiqaTix-V6-security-remediation-candidate.zip`; compare it to the original V6 archive and reconcile the Team 02 UI patch. Then execute the full dependency/type/lint/build/test/E2E gate on one immutable V6 candidate. The supplied report's PASS results are limited to static audit, independent remediation tests, and TS syntax transpilation (53 files); install, full type check, build, browser E2E and backend integration remain NOT VERIFIED. `V6_CANDIDATE_GATE=BLOCKED_PENDING_BUILD_AND_BACKEND_INTEGRATION`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
 # CURRENT HANDOFF — 2026-11-05 — Standalone V6 candidate review
 
 - Current deployed baseline remains `apps/catalog-frontend` on repository main, not the standalone root-level AI Studio V6 candidate.
