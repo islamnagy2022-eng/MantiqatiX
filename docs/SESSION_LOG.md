@@ -2027,3 +2027,15 @@ A separate source review found a second platform-root authorization model: the n
 - Next step: run full build and E2E on a network-enabled CI/runner; then connect Supabase Auth and `api /api/v1/me` membership resolution before implementing any shared writes.
 - Release state: `V6_CANDIDATE_GATE=BLOCKED_PENDING_FULL_BUILD_AUTH_AND_SHARED_BACKEND_INTEGRATION`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 
+
+## 2026-11-05 — V6 continuation — access-policy and MemberMessagesView hardening
+
+- Extended `src/utils/accessPolicy.ts` to cover all declared AuthRole values. The public route allowlist is explicit; `super_admin`, `merchant_admin`, and `member_messages` enforce role and business-scope rules; all unknown/obsolete routes fail closed.
+- Updated AppContext navigation so a guest attempting a dashboard or messaging route is shown the login gate while navigation is redirected safely.
+- Hardened `MemberMessagesView` with a component-level allowed-role check and active-recipient guard. Repaired a malformed JSX ternary and moved the role-based return after all Hooks to preserve React Hook ordering.
+- Verification: security audit PASS; remediation checks PASS; focused tests 17/17; strict isolated typecheck for accessPolicy PASS; syntax transpilation 57 TS/TSX files with 0 diagnostics; generated r2 ZIP integrity PASS and excludes private snapshots/local env/build files.
+- Candidate file stored at `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r2.zip`; SHA-256 `80daaa3aaaf8e4912c98003f27b33628add6cd4b99613b3c821010a45adeca67`.
+- Full project install, semantic project-wide typecheck, lint, Vite build, browser E2E, accessibility and PWA remain NOT VERIFIED because required dependencies are unavailable in the runner. No production change or deployment occurred.
+- Next: implement Supabase Auth and session restoration; resolve tenant/business/branch/role/permissions via the existing `api /api/v1/me` server contract before hydrating an application session. No local role assignment.
+- Release: `V6_CANDIDATE_GATE=BLOCKED_PENDING_FULL_BUILD_AUTH_AND_SHARED_BACKEND_INTEGRATION`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+

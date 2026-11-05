@@ -1,3 +1,23 @@
+# CURRENT HANDOFF — 2026-11-05 — V6 route guard and member-messaging safety checkpoint
+
+- **Canonical app:** Google AI Studio V6. Original archive SHA-256 `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`.
+- **Latest candidate:** `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r2.zip` — SHA-256 `80daaa3aaaf8e4912c98003f27b33628add6cd4b99613b3c821010a45adeca67`.
+- Candidate r2 is the local reconstruction from the original V6 archive plus recorded security/Team 02/public-directory integration and route-hardening changes; it is not represented as byte-identical to the separately stored security-remediation ZIP. Private `.data/` and local env files are excluded.
+- Central route policy now explicitly covers every AuthRole and fails closed on unclassified routes. Only platform admin roles may open `super_admin`; only a subscriber with a business scope may open `merchant_admin`; member messaging is restricted to subscriber/admin/super_admin. Guest navigation prompts login then remains on the public route.
+- `MemberMessagesView` now requires an allowed role and active target, and its previously malformed JSX ternary/hook-order issue was corrected.
+- Results: security audit PASS, remediation tests PASS, focused tests 17/17 PASS, isolated access-policy strict TSC PASS, syntax transpilation 57 TS/TSX files with 0 errors, ZIP integrity PASS and private-snapshot/env exclusion PASS.
+- Full npm install/project-wide typecheck/lint/Vite build/browser E2E/accessibility/PWA not verified because the required dependencies are unavailable in this runner.
+- Supabase Auth and `api /api/v1/me` membership integration remain the next task. No shared writes or production operations were changed. Current site remains unchanged.
+- `V6_CANDIDATE_GATE=BLOCKED_PENDING_FULL_BUILD_AUTH_AND_SHARED_BACKEND_INTEGRATION`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+## Permanent continuation rule
+When the user says **«كمل»**, resume the next dependency-ordered open item here and in `docs/MASTER_PRODUCTION_TODO.md`; do not restart or repeat completed work.
+
+## Next executable task
+Implement Supabase Auth session handling and server-authorized membership resolution through `api /api/v1/me`, with no browser-trusted roles. Then connect the business profile and merchant dashboard screens to existing authorized read/write contracts one module at a time. First run the V6 project install/type/lint/build/E2E gates on a network-enabled runner.
+
+---
+
 # CURRENT HANDOFF — 2026-11-05 — V6 read-only directory integration pass
 
 - **Canonical target:** Google AI Studio V6. Original source archive SHA-256: `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`.

@@ -1,3 +1,40 @@
+# 2026-11-05 — V6 continuation — route guard, member messaging guard, and syntax repair
+
+**Latest candidate artifact in Library:** `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r2.zip`  
+**Candidate SHA-256:** `80daaa3aaaf8e4912c98003f27b33628add6cd4b99613b3c821010a45adeca67`  
+**Original AI Studio archive SHA-256:** `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`
+
+## Completed in the reconstructed V6 candidate
+- [x] Expanded the centralized navigation policy to cover all declared roles: guest, subscriber, platform admins, regional manager, medical staff, and customer.
+- [x] Made the public route allowlist explicit; dashboard routes require the proper role and business scope; unknown/obsolete routes fail closed to the public directory.
+- [x] Triggered the login gate when guests attempt to navigate to either dashboard or member messaging.
+- [x] Added a second component-level access check for the member messaging screen, requiring subscriber/admin/super_admin.
+- [x] Fixed a malformed JSX conditional in `MemberMessagesView.tsx` that the full syntax scan exposed; it now renders an explicit no-active-membership state instead of producing a syntax failure.
+- [x] Moved the member-messaging access return after component Hooks to preserve stable React Hook ordering.
+- [x] Updated candidate status and handoff documents and stored the r2 archive/status/handoff in the `/MANTIQATIX` Library folder.
+- [x] Verified no `.data` private snapshot, local env files, node_modules, or build output was included in the r2 archive.
+
+## Verification evidence
+- `V6_SOURCE_SECURITY_AUDIT=PASS`.
+- `V6_REMEDIATION_TESTS=PASS`.
+- Available focused tests: **17/17 PASS** (security audit, directory pagination, public-directory adapter, and access-policy tests) using Node 22 TypeScript type stripping.
+- Strict isolated TypeScript check for `src/utils/accessPolicy.ts`: PASS.
+- Full source syntax transpilation: **57 TypeScript/TSX files, 0 syntax errors**.
+- ZIP integrity: PASS; SHA-256 above.
+- Archive exclusions: `PRIVATE_SNAPSHOT_AND_BUILD_EXCLUSION=PASS`.
+
+## Not verified / release blockers
+- Full `npm install`, semantic project-wide `tsc --noEmit`, `npm run lint`, Vite build, browser E2E, accessibility and physical PWA tests. Required dependencies are unavailable in this execution environment; the local npm cache does not contain the project dependencies.
+- Supabase Auth login/session refresh and `api /api/v1/me` membership resolution remain unimplemented. No role may be assigned by browser state.
+- Authenticated shared writes, import reconciliation, financial/payment flows, backup/restore, preview and production cutover remain blocked.
+- No production DB/schema/Auth/RLS/GRANT/migration/Edge/payment/finance mutation and no public deployment occurred.
+
+**Release state:** `V6_CANDIDATE_GATE=BLOCKED_PENDING_FULL_BUILD_AUTH_AND_SHARED_BACKEND_INTEGRATION`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+**Next executable task:** implement the Supabase Auth SDK integration and session lifecycle, then resolve active membership and tenant/business/branch/role/permissions through the existing `api /api/v1/me` endpoint. Only after server verification should V6 hydrate an AuthSession. Keep all shared writes disabled until the individual Edge/RPC contracts and scopes are mapped and tested.
+
+---
+
 # 2026-11-05 — V6 first integration pass: public directory read path and local-auth closure
 
 **Candidate artifact:** `MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05.zip`  
