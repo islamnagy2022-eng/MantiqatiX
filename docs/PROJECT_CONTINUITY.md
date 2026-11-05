@@ -1,3 +1,23 @@
+# CURRENT HANDOFF — 2026-11-05 — V6 canonical application integration Phase 1
+
+- Supplied archive verified: bizcatalog-manager (5)(1).zip, SHA-256 ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965.
+- Current main: 218d4c768021fbc94d21ffd442b3fcdacd16e4f8.
+- Active isolated branch: feat/v6-canonical-integration-phase1-20261105.
+- Phase 1 source-only safety guard added: scripts/validate-v6-private-data-boundary.mjs; apps/catalog-frontend/.gitignore now excludes .data/; app package exposes validate:v6-boundary; dedicated workflow .github/workflows/v6-candidate-boundary.yml.
+- Local validator against extracted archive: PASS; it detects .data/production-live-db.json and confirms it is local-only/ignored and absent from public/build output. Do not read, copy, commit, publish or import its contents.
+- Candidate source inventory: React 19, TypeScript, Vite 8; src/App.tsx, src/context/AppContext.tsx, src/data/seedData.ts, src/utils/, server.ts, five Node test files. LocalStorage remains a primary state store; /api/production-state is present in the candidate Express server; seed records exist. These are migration risks, not production-ready persistence.
+- Dependency install did not complete within 120 seconds; Bun is unavailable. Type-check/build/tests remain NOT VERIFIED.
+- No V6 application source has been merged into the production frontend yet. No Production mutation or deployment occurred. Current deployed app remains apps/catalog-frontend; catalog pilot PASS, full platform BLOCKED / NOT CERTIFIED.
+
+## Next exact actions
+1. Verify exact-head CI for the private-data boundary PR.
+2. Complete the V6 source inventory and run deterministic install/build in CI (with archive and lockfile pinned).
+3. Map every V6 entity and action to existing Supabase tables, RPCs, Edge Functions and authorization scopes.
+4. Integrate the first vertical slice into apps/catalog-frontend; keep existing production root and rollback baseline unchanged.
+5. Continue TODO/session updates after every independently tested slice.
+
+---
+
 # CURRENT HANDOFF — 2026-11-05 — Standalone V6 candidate review
 
 - Current deployed baseline remains `apps/catalog-frontend` on repository main, not the standalone root-level AI Studio V6 candidate.
