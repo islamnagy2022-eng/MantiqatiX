@@ -1,3 +1,23 @@
+# CURRENT HANDOFF — 2026-11-05 — V6 Supabase contract map completed
+
+- Canonical product/UI/source target remains AI Studio V6. The existing GitHub Pages catalog is the temporary stable production baseline and the source of verified live data, schemas, backend contracts, security boundaries and legacy functionality to port.
+- The original V6 archive digest was independently rechecked: `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`; ZIP integrity PASS; 150 entries.
+- V6 static security audit PASS; remediation tests 2/2 PASS. Full V6 utility suite now passes 49/49 using a TypeScript-aware Node test loader. Two stale tests were corrected to reflect the deliberate no-fake-telemetry security behavior and sector-based default-image resolution.
+- Team 02 patch conflict disposition: retain compatible directory/pagination/keyboard improvements already in V6. Do not copy the patch's alternate load-testing dashboard into V6 because it restores simulated metrics and an inaccurate approved-test label.
+- Live Supabase inspection: 138 table objects (137 public), 309 migration records and 42 ACTIVE Edge Functions. Contract map: `docs/integration/AI_STUDIO_V6_SUPABASE_CONTRACT_MAP_AR.md`.
+- Read-only audited Edge contracts include `public-catalog-directory` v17, `directory-listings` v16, `catalog-admin` v20 and `catalog-platform-admin` v23. Main backend tables/field mapping and scopes are recorded in the contract map.
+- V6 itself still has no Supabase SDK/API adapter; `AppContext.tsx` seeds and persists a substantial amount of data in browser Local Storage. This must be displaced in production mode, not relabeled as persistence.
+- `npm install` timed out; full semantic TypeScript check, lint, Vite build and browser/E2E remain NOT VERIFIED. Existing full platform release gate stays BLOCKED / NOT CERTIFIED.
+
+## Next exact task
+1. Create a sanitized immutable V6 candidate archive from the security-hardened working tree, excluding `.data/`, secrets, environment files, node_modules and build outputs; calculate digest and manifest.
+2. Implement Supabase Auth/session/active-membership bootstrap and read-only adapters for the public directory (20-row keyset pagination), public business profiles, catalog items, prices and options.
+3. Replace seed/Local Storage production data sources only after adapter contract tests pass. Never use directory-listing UUIDs as business UUIDs.
+4. Obtain package dependencies and run the full type/lint/build/E2E gates on one immutable candidate. Keep shared writes, payments/finance and production cutover blocked until their separate authorization and test gates pass.
+
+## Permanent resume rule
+When the user says **«كمل»**, resume the first actionable open item in `docs/MASTER_PRODUCTION_TODO.md` from this latest checkpoint. Do not restart or ask for already recorded requirements. Inspect latest repository/PR/workflow state, preserve completed evidence, update TODO and append to SESSION_LOG, and continue sequentially.
+---
 # CURRENT HANDOFF — 2026-11-05 — OWNER-APPROVED V6 CANONICAL TARGET
 
 - **Canonical target application:** Google AI Studio V6, source archive `bizcatalog-manager (5)(1).zip`, original SHA-256 `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965` (ZIP integrity previously PASS; 150 entries).
