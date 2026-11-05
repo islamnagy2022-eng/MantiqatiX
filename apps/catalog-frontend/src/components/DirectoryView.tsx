@@ -34,6 +34,7 @@ import {
 import { formatEgyptianLocation } from '../utils/rules';
 import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from '../utils/defaultImages';
 import { DirectoryListingsView } from './DirectoryListingsView';
+import { V6QuickSearchSuggestions } from './directory/V6QuickSearchSuggestions';
 import { ActivityModuleView } from '../modules/activities/ActivityModuleView';
 import { fetchPublicDirectoryListingPage, type PublicDirectoryListing, type PublicDirectoryListingFilters } from '../lib/directoryListings';
 import { DEFAULT_FUNCTIONAL_GROUPS, resolveCanonicalSpecialty } from '../data/productionDefaults';
@@ -975,6 +976,7 @@ export const DirectoryView: React.FC = () => {
                 className="mx-v4-search-input min-h-14 w-full rounded-2xl border bg-slate-50 py-3 pl-4 pr-11 text-sm font-semibold shadow-inner shadow-slate-900/[0.02] outline-none transition placeholder:font-medium placeholder:text-slate-400 hover:border-slate-300"
               />
             </div>
+            <V6QuickSearchSuggestions onSelect={setSearchQuery} />
           </div>
 
           <div className="flex w-full flex-col gap-3 lg:w-[55%] lg:max-w-[680px]">
