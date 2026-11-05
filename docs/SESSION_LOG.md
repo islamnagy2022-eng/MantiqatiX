@@ -2063,3 +2063,15 @@ A separate source review found a second platform-root authorization model: the n
 - Next: wire UI + AppContext, explicit membership selection, memory-only refresh lifecycle, then Preview integration tests with actual Auth users.
 - Gate: `AUTH_GATEWAY_IMPLEMENTED_NOT_UI_WIRED`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 
+
+## 2026-11-06 — V6 Auth API/controller r4 implementation
+
+- Added `src/services/authMembershipApi.ts` to call existing authenticated Edge Function path `/functions/v1/api/api/v1/me` using publishable key and transient Bearer token. Enforces HTTPS Supabase host, no-store, expected Auth user ID, and closed errors for 401/403, bad JSON and mismatched identity.
+- Added `src/services/supabaseAuthController.ts` with injected Supabase JS v2-compatible contract: restore session, get verified user, resolve server memberships, Magic Link, auth event subscription, explicit membership selection, sign-out and stop.
+- Controller keeps guest role until explicit membership selection. A single candidate is still presented for explicit selection; it is not silently auto-selected.
+- Tests: service/utility 32/32 PASS; security audit PASS; remediation verification PASS; security test suite 2/2 PASS; strict isolated TSC PASS; syntax scan 62 TS/TSX files with 0 errors.
+- Candidate r4 stored in Library at `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-06-r4.zip`; SHA-256 `94aa8e6912b310136b7d453e7a776d291ab4700d8619d00d8544f0d91bac3ec7`.
+- SDK not installed and bun.lock not changed due npm registry DNS EAI_AGAIN. Controller is not wired to UI. Existing API CORS permits GitHub Pages origin only; local preview needs deliberate CORS approval before browser testing.
+- No production changes/deployment. Full build/E2E and platform release remain blocked.
+- Next: install SDK and update lockfile on network-enabled runner, wire LoginModal/AppContext with PKCE/sessionStorage and explicit membership picker, verify approved CORS origins, then browser-test Auth lifecycle.
+

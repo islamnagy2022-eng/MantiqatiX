@@ -1,3 +1,42 @@
+# 2026-11-06 — V6 Supabase Auth controller and membership API adapter (r4)
+
+**Canonical app target:** AI Studio V6.  
+**Latest candidate:** `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-06-r4.zip`  
+**Candidate SHA-256:** `94aa8e6912b310136b7d453e7a776d291ab4700d8619d00d8544f0d91bac3ec7`  
+**Original AI Studio archive SHA-256:** `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`
+
+## Completed in r4
+- [x] Added `src/services/authMembershipApi.ts`: authenticated GET to the existing `/functions/v1/api/api/v1/me` Edge Function, using publishable key + transient Bearer access token, no-store, strict HTTPS/Supabase-host validation, status/JSON/error handling, and authenticated-user ID matching.
+- [x] Added `src/services/supabaseAuthController.ts`: structural Supabase JS v2 client contract; session restore, verified user lookup, Magic Link request, auth-state subscription, membership resolution, explicit membership selection, sign-out and stop.
+- [x] Controller never sets an application role before explicit membership selection. All unresolved/error/signed-out states retain guest role. No role is loaded from browser metadata or local storage.
+- [x] Added API/controller tests for endpoint construction, untrusted URLs, transient credentials, identity mismatch, expired session, malformed responses, magic link, explicit selection, sign-out and unsubscribe.
+- [x] Updated Arabic candidate status and Auth membership mapping documents.
+- [x] Stored r4 archive and both status/spec documents in Library.
+
+## Verification evidence
+- Auth membership/API/controller + V6 types strict isolated TypeScript: PASS.
+- Available service and utility tests: **32/32 PASS**.
+- Security source audit: PASS.
+- Security remediation verification: PASS.
+- Security audit test suite: **2/2 PASS**.
+- TypeScript/TSX syntax transpilation: **62 files, 0 syntax errors**.
+- ZIP integrity: PASS.
+- Candidate SHA-256: `94aa8e6912b310136b7d453e7a776d291ab4700d8619d00d8544f0d91bac3ec7`.
+- Private snapshot, real .env, node_modules and dist exclusions retained.
+
+## Still open / not claimed
+- `@supabase/supabase-js` is not installed and `bun.lock` is unchanged. npm registry access failed with DNS `EAI_AGAIN`; do not claim dependency installation.
+- Controller is a tested integration boundary but is not yet instantiated by the app or wired to LoginModal/AppContext. Magic Link callback/PKCE, session storage configuration, actual auth events and membership picker UI remain unverified.
+- The existing API Edge Function CORS allowlist currently permits the deployed GitHub Pages origin only; local AI Studio/dev preview origins may fail browser preflight until the allowlist is deliberately updated and deployed. No CORS or Edge deployment change was made.
+- Full project install/typecheck/lint/build/browser E2E/accessibility/PWA remain unverified.
+- No production database/Auth/RLS/GRANT/migration/Edge/payment/finance mutation or deployment occurred. Shared writes remain closed.
+
+**Release state:** `V6_CANDIDATE_GATE=BLOCKED_PENDING_SDK_INSTALL_UI_AUTH_AND_FULL_BUILD`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+**Next executable task:** on a network-enabled runner, pin and install `@supabase/supabase-js`, update `bun.lock` using Bun, instantiate the controller with a session-storage PKCE storage adapter, wire LoginModal/AppContext, show an explicit membership selector, and test sign-in/refresh/sign-out in browser preview. First verify/update the Edge Function CORS allowlist for the exact approved V6 origins. Do not enable protected screens until that full flow passes.
+
+---
+
 # 2026-11-05 — V6 r4 Auth API adapter
 
 - Candidate: `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r4.zip`
