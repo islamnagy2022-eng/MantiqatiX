@@ -2039,3 +2039,16 @@ A separate source review found a second platform-root authorization model: the n
 - Next: implement Supabase Auth and session restoration; resolve tenant/business/branch/role/permissions via the existing `api /api/v1/me` server contract before hydrating an application session. No local role assignment.
 - Release: `V6_CANDIDATE_GATE=BLOCKED_PENDING_FULL_BUILD_AUTH_AND_SHARED_BACKEND_INTEGRATION`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 
+
+## 2026-11-05 — V6 Auth membership contract groundwork
+
+- Added `src/services/authMembership.ts` to validate `api /api/v1/me`, compare the authenticated user ID, normalize active memberships, keep multiple candidates separate, and convert one explicitly selected candidate into V6 AuthSession.
+- Role mapping aligns with live server-side contracts: SUPER_ADMIN needs PLATFORM + full_control and no business/branch; BUSINESS_OWNER and scoped OWNER/ADMIN/MANAGER are business-specific subscriber candidates; tenant-scoped OWNER requires business selection; CUSTOMER stays customer-only; employee/staff/provider/support roles remain unprivileged until a capability matrix is built.
+- Read-only production aggregate: 33 active memberships, exactly one strict platform super admin and one tenant OWNER requiring business selection. No user identifiers or personal data included.
+- AuthSession extended with server-resolved user/membership/scope fields; never sourced from browser metadata/storage.
+- Candidate r3 ZIP stored in Library: `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r3.zip`, SHA-256 `51dcc932ab4e32b67a00482b1877054294a45647f231e29e064891e0354f6553`.
+- Verification: focused tests 27/27 PASS; isolated strict TSC PASS; syntax transpilation 58 TS/TSX files, zero errors; security audit and remediation checks PASS; ZIP integrity/private-data exclusions PASS.
+- Not done: Supabase JS SDK install/lockfile, OTP/Google auth, session lifecycle, membership picker, full build/type/lint/E2E/PWA, shared writes. No production mutation or deployment. SDK install blocked by no package-network access in the runner.
+- Next: pin @supabase/supabase-js v2.119.0 on a network-enabled runner, update package lockfile, implement session lifecycle, compare Auth user ID against /api/v1/me, and require explicit membership choice before setting any V6 role.
+- Release: `V6_CANDIDATE_GATE=BLOCKED_PENDING_SDK_INSTALL_AUTH_AND_SHARED_BACKEND_INTEGRATION`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
