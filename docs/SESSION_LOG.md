@@ -2037,3 +2037,11 @@ A separate source review found a second platform-root authorization model: the n
 - AppContext.commitCurrentDataAsOfficialLive marks a local snapshot official and returns success even if remote persistence fails; this is false-success behavior and must be replaced.
 - Hardcoded visitor fallback counts and randomized load-test simulation are presented as operational metrics/100M claims; these are not real measurements and must be removed or labelled as simulation.
 - Added these blockers to docs/release/V6_CANONICAL_INTEGRATION_MAP_20261105.md and Master TODO. No credential value was copied; no Production mutation or deployment occurred.
+
+
+## 2026-11-05 — SESSION follow-up — Sanitized V6 source audit
+- Added scripts/audit-v6-source-security.mjs. It reports blocker identifiers/descriptions only and never prints credential values.
+- Ran against the extracted archive matching the approved SHA-256. Result: BLOCKED, 8 findings: V6-SEC-001/002, V6-PAY-001, V6-SEC-003/004, V6-DATA-001, V6-METRIC-001/002. Exit code 1 is intentional until the candidate source is remediated.
+- The audit did not read .data/production-live-db.json and did not modify the source archive or Production.
+- Added exact audit output and run command to docs/release/V6_CANONICAL_INTEGRATION_MAP_20261105.md.
+- Next: remediate the eight source blockers in the isolated V6 candidate tree, then re-run this gate before importing any candidate application files into apps/catalog-frontend.
