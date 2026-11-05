@@ -8,7 +8,7 @@
 - Candidate source inventory: React 19, TypeScript, Vite 8; src/App.tsx, src/context/AppContext.tsx, src/data/seedData.ts, src/utils/, server.ts, five Node test files. LocalStorage remains a primary state store; /api/production-state is present in the candidate Express server; seed records exist. These are migration risks, not production-ready persistence.
 - Exact-head CI for Phase 1: V6 Candidate Safety Boundary [41982612018] PASS; primary Pages validation [41982612012] PASS including the V6 private-data guard. PR deploy job was skipped; no publication occurred.
 - Added docs/release/V6_CANONICAL_INTEGRATION_MAP_20261105.md with candidate-to-existing-table/API mapping and hard non-equivalences.
-- Candidate test status: npm install timed out at 120s and 300s; Bun unavailable; global tsc cannot resolve vite/client without dependencies; five Node tests fail under Node 22 type stripping due extensionless TS imports. No candidate build or browser E2E pass is claimed.
+- Candidate test status: npm install timed out at 120s and 300s; Bun unavailable; global tsc cannot resolve vite/client without dependencies; five Node tests fail under Node 22 type stripping due extensionless TS imports. Syntax-only transpilation of 53 TS/TSX files using global TypeScript 5.8.3 passed with zero syntax diagnostics. No semantic type-check, candidate build or browser E2E pass is claimed.
 - No V6 application source has been merged into the production frontend yet. No Production mutation or deployment occurred. Current deployed app remains apps/catalog-frontend; catalog pilot PASS, full platform BLOCKED / NOT CERTIFIED.
 
 ## Next exact actions
