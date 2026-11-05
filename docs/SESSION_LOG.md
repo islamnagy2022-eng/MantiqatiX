@@ -1990,3 +1990,15 @@ A separate source review found a second platform-root authorization model: the n
 - No production business/catalog data, database schema, Auth/RLS/GRANT, Edge Function, payment/finance, or production configuration was changed.
 - Next: continue V4 screen-by-screen visual/behavior comparison; preserve website-only capabilities; keep finance, wallet, custom links, messaging, marketing spend and AI actions deferred until durable authorized backend contracts are verified. Continue the separate migration/schema, Edge drift, Auth, tenant isolation, payment/finance and backup/restore gates.
 - `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+
+## 2026-11-05 — Review of supplied V6 candidate, security, DR and capacity documents
+
+- Reviewed the newly attached `BASELINE_RECONCILIATION.md`, `MANTIQATIX_IMPLEMENTATION_STATUS.md`, `DEPLOYMENT_STATUS_AR.md`, README files, `index.html`, security plan, disaster-recovery plan, load-test report and capacity plan.
+- Confirmed the reports describe a root-level React 19/Vite 8 candidate separate from the currently deployed `apps/catalog-frontend` website. The actual ZIP and source tree were not attached in this continuation, so this is a documentation/source-fragment review only.
+- Candidate's later November 4 notes say the public directory adapter and 20-row keyset read path exist; there is no shared Auth/write integration. Candidate state remains localStorage-centric; Express snapshot route had no auth in the initial inspected code and is now described as local-only; the PWA cache is static-shell-only.
+- Recorded stale deployment text: candidate status still calls PR #662 Draft and main SHA `36a98b...`; current GitHub confirms PR #662 merged and the scoped V4 catalog pilot deployed. The standalone V6 package is not part of that deployment.
+- Flagged evidence gaps: load-test tables have no raw runs/scripts/environment/commit; capacity numbers are sizing assumptions; DR targets are not backed by restore drills or measured RPO/RTO. Security plan contains an Argon2id/bcrypt choice conflict. HTML meta description should be reconciled with actually enabled candidate workflows.
+- Added detailed review in `docs/release/AI_STUDIO_V6_SOURCE_CANDIDATE_REVIEW_20261105.md` and updated the Master TODO and current handoff.
+- No V6 app code was integrated, no production migration/Auth/RLS/GRANT/Edge/payment/finance change was made, no private snapshot was published, and no public site cutover occurred.
+- Next: obtain/inspect the actual source ZIP; establish the entity-to-Supabase mapping and shared Auth/persistence boundary; only then implement the next additive integration slice.
