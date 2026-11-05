@@ -1,3 +1,36 @@
+# 2026-11-05 — V6 r4 — server-authenticated membership API adapter
+
+**Candidate:** `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r4.zip`  
+**SHA-256:** `0f283fb6f3a64858f843d14388340f1b198fdec40ed0e2a5c317a350cd9f8787`
+
+## Completed
+- [x] Added `src/services/authMembershipApi.ts` to call the existing Supabase Edge Function route `/functions/v1/api/api/v1/me`.
+- [x] Sends only the user's Bearer access token and the public Publishable key; does not persist tokens, read service-role secrets, or trust browser role claims.
+- [x] Compares the server response user ID with the authenticated user ID supplied by the future Supabase Auth session, then delegates to the existing strict V6 membership-role mapper.
+- [x] Uses `cache: no-store` and explicit 401/403/HTTP error codes.
+- [x] Added tests for endpoint construction, headers, no-store, identity mismatch, rejected/expired token, forbidden membership, and empty credentials.
+- [x] Stored r4 archive and Arabic status note in Library.
+
+## Verification
+- `V6_SOURCE_SECURITY_AUDIT=PASS`.
+- `V6_REMEDIATION_TESTS=PASS`.
+- Focused direct Node tests: **21/21 PASS** (membership mapping, membership API adapter, route policy).
+- ZIP integrity PASS. Candidate SHA-256 above.
+- Full `npm test` could not run because `tsx` is not installed in this runner. Direct Node execution of the entire legacy suite also encounters extensionless-import resolution in existing tests; the full suite is therefore **not verified**, not claimed passed.
+- `npm view @supabase/supabase-js@2.119.0` failed with DNS `EAI_AGAIN`. No SDK dependency or lockfile was fabricated or hand-edited.
+
+## Still blocked
+- Supabase JS SDK dependency/lockfile installation.
+- Real login, OAuth/OTP, session refresh, onAuthStateChange, sign-out, membership/business selection UI and AuthSession hydration.
+- Full project semantic typecheck/lint/Vite build/E2E/accessibility/PWA and authenticated live browser request.
+- Shared writes, payments, production migration/deployment.
+
+**Release state:** `V6_CANDIDATE_GATE=BLOCKED_PENDING_AUTH_SDK_SESSION_AND_FULL_BUILD`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+**Next task:** On a network-enabled runner, install the Supabase JS SDK with the repository's package manager and update its lockfile; wire the Auth session lifecycle, then call `fetchAuthenticatedMemberships` and show an explicit membership/business selector. Do not enable any write until the selected membership is server-resolved and the specific write contract is verified.
+
+---
+
 # 2026-11-05 — V6 Supabase Auth gateway groundwork (candidate r4)
 
 **Candidate archive:** `MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r4.zip`  
