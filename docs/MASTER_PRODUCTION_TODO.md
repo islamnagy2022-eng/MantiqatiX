@@ -1,3 +1,38 @@
+# 2026-11-05 — V6 Supabase sessionStorage adapter (r5)
+
+**Canonical app target:** AI Studio V6.  
+**Latest candidate:** `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r5.zip`  
+**Candidate SHA-256:** `635aab70497ff41f4ba8d1b2dd71f87bad6de6f9d8dfe41f537199e87d1870c6`  
+**Original AI Studio archive SHA-256:** `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`
+
+## Completed in r5
+- [x] Added `src/services/supabaseSessionStorage.ts`, a Supabase JS v2-compatible async storage adapter backed by tab-scoped `sessionStorage`, namespaced separately from app state.
+- [x] The adapter is designed only for Supabase SDK session/PKCE keys; it does not store V6 roles, memberships, business/branch scope or passwords.
+- [x] Added storage tests for namespacing, deletion isolation and missing keys.
+- [x] Preserved the r4 authenticated membership API and injected Auth controller.
+
+## Verification
+- Service/utility tests: **35/35 PASS**.
+- Strict isolated TypeScript check for membership/API/controller/session-storage and V6 types: PASS.
+- Security source audit: PASS.
+- Security remediation verification: PASS.
+- Security audit tests: **2/2 PASS**.
+- TypeScript/TSX syntax transpilation: **63 files, 0 syntax errors**.
+- ZIP integrity: PASS.
+- Candidate SHA-256: `635aab70497ff41f4ba8d1b2dd71f87bad6de6f9d8dfe41f537199e87d1870c6`.
+
+## Still blocked
+- Supabase SDK package install and bun.lock update blocked by npm registry DNS `EAI_AGAIN`.
+- The controller and storage adapter are not wired to LoginModal/AppContext. PKCE callback, actual session restoration, membership selector and browser E2E remain unverified.
+- Existing API Edge Function CORS allows only the deployed GitHub Pages origin; preview origins require an explicit reviewed change before testing.
+- Full project install/typecheck/lint/build/E2E/accessibility/PWA not verified. No production changes or deployment occurred.
+
+**Release state:** `V6_CANDIDATE_GATE=BLOCKED_PENDING_SDK_INSTALL_UI_AUTH_AND_FULL_BUILD`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+**Next task:** On a network-enabled runner, install/pin `@supabase/supabase-js` and update `bun.lock`; instantiate the client with `flowType: 'pkce'`, `persistSession: true`, `autoRefreshToken: true`, and `getBrowserSupabaseSessionStorage()`; wire LoginModal/AppContext, then build a visible explicit membership selector. Verify exact CORS origins and browser-test OTP, callback, token refresh, mismatch rejection, selection and sign-out before protected views are enabled.
+
+---
+
 # 2026-11-06 — V6 Supabase Auth controller and membership API adapter (r4)
 
 **Canonical app target:** AI Studio V6.  
