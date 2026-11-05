@@ -2002,3 +2002,15 @@ A separate source review found a second platform-root authorization model: the n
 - Added detailed review in `docs/release/AI_STUDIO_V6_SOURCE_CANDIDATE_REVIEW_20261105.md` and updated the Master TODO and current handoff.
 - No V6 app code was integrated, no production migration/Auth/RLS/GRANT/Edge/payment/finance change was made, no private snapshot was published, and no public site cutover occurred.
 - Next: obtain/inspect the actual source ZIP; establish the entity-to-Supabase mapping and shared Auth/persistence boundary; only then implement the next additive integration slice.
+
+## 2026-11-05 — OWNER DECISION — Adopt AI Studio V6 as canonical application baseline
+
+- **User decision:** AI Studio V6 is to become the primary application to implement and carry forward. The older deployed site is not the final design/product baseline; use it as a controlled production baseline and source of verified backend, data, security, schema, API/RPC/Edge Function, release and legacy-feature capabilities to port into V6.
+- **Canonical original source:** `bizcatalog-manager (5)(1).zip`, SHA-256 `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`; ZIP integrity was previously verified (150 entries).
+- **Latest candidate found:** `MantiqaTix-V6-security-remediation-candidate.zip` and its report/patch in the project Library. Reported static audit, remediation tests and TS syntax transpilation pass; full install/typecheck/lint/build/browser E2E/backend integration are not verified. Do not call the candidate production-ready.
+- **UI patch interaction:** reconcile Team 02 UI improvements additively against the security-remediated candidate; do not undo AppContext/server/security protections or discard AI Studio/PWA assets.
+- **Production boundary:** current Pages site remains stable and unchanged until V6 is integrated into the single approved build/deploy path and all feature-parity, Auth/shared persistence, RLS/RBAC, E2E, data reconciliation, backup/restore and rollback gates pass. No production migration, Auth/RLS/GRANT, Edge, payment/finance or deployment mutation was made by this decision.
+- **Permanent continuation rule:** “كمل” means resume the first actionable open TODO from the latest handoff, preserve completed work/evidence, and continue sequentially; it does not mean restart from zero or ask the user to repeat known decisions.
+- **Next action:** verify the latest security-remediated candidate archive digest/contents, reconcile the UI patch, then run the full candidate build/test gate on one immutable baseline.
+- **Release state:** `V6_CANDIDATE_GATE=BLOCKED_PENDING_BUILD_AND_BACKEND_INTEGRATION`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
