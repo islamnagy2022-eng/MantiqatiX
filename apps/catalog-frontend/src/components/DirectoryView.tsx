@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Business } from '../types';
+import type { Business, Product } from '../types';
 import {
   Store,
   ExternalLink,
