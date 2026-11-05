@@ -2052,3 +2052,14 @@ A separate source review found a second platform-root authorization model: the n
 - Next: pin @supabase/supabase-js v2.119.0 on a network-enabled runner, update package lockfile, implement session lifecycle, compare Auth user ID against /api/v1/me, and require explicit membership choice before setting any V6 role.
 - Release: `V6_CANDIDATE_GATE=BLOCKED_PENDING_SDK_INSTALL_AUTH_AND_SHARED_BACKEND_INTEGRATION`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 
+
+## 2026-11-05 — V6 Auth gateway r4
+
+- Added `src/services/supabaseAuthGateway.ts` for passwordless OTP request (`create_user:false`), bearer callback parsing, Auth `/user` verification, existing API `/api/v1/me` membership resolution, identity equality check, logout and callback URL token cleanup.
+- Auth tokens are not persisted in browser storage. No SDK or package lock changes.
+- Tests: new Auth gateway 5/5; existing MJS service/directory/access/security tests 26/26; security audit PASS; remediation PASS; strict isolated TSC for gateway + membership + directory + types PASS; archive integrity PASS.
+- Candidate r4 SHA-256: `2f364d597c71a60432cfe904a86998bb52a84de6d5280c03b9c16f4914a9dce6`.
+- Not yet wired into LoginModal/AppContext; membership picker and refresh lifecycle absent; no live Supabase test; no full build/E2E/PWA; login remains disabled. No production mutation/deployment.
+- Next: wire UI + AppContext, explicit membership selection, memory-only refresh lifecycle, then Preview integration tests with actual Auth users.
+- Gate: `AUTH_GATEWAY_IMPLEMENTED_NOT_UI_WIRED`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
