@@ -2002,3 +2002,14 @@ A separate source review found a second platform-root authorization model: the n
 - Added detailed review in `docs/release/AI_STUDIO_V6_SOURCE_CANDIDATE_REVIEW_20261105.md` and updated the Master TODO and current handoff.
 - No V6 app code was integrated, no production migration/Auth/RLS/GRANT/Edge/payment/finance change was made, no private snapshot was published, and no public site cutover occurred.
 - Next: obtain/inspect the actual source ZIP; establish the entity-to-Supabase mapping and shared Auth/persistence boundary; only then implement the next additive integration slice.
+
+
+## 2026-11-05 — SESSION — V6 canonical application integration Phase 1
+- Verified supplied V6 archive SHA-256: ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965; extracted inventory contains 131 files.
+- Verified latest main via GitHub branch metadata: 218d4c768021fbc94d21ffd442b3fcdacd16e4f8.
+- Created isolated branch feat/v6-canonical-integration-phase1-20261105.
+- Added private snapshot boundary validator, .data/ ignore rule, package script and dedicated CI workflow.
+- Executed validator against extracted candidate: PASS; private .data/production-live-db.json is present but must remain local-only and was not opened or imported.
+- Candidate install attempt timed out after 120 seconds; Bun is unavailable. No TypeScript/build/test pass is claimed.
+- No candidate source integration, Production mutation, deployment, financial operation or public cutover occurred.
+- Next: finish V6 inventory/schema-contract mapping, then implement and test the first safe application slice.
