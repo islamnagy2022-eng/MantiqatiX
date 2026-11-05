@@ -1,3 +1,25 @@
+# CURRENT HANDOFF — 2026-11-05 — V6 Auth gateway candidate r4
+
+- Canonical source remains the user-selected AI Studio V6. Original archive hash: `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`.
+- Latest candidate archive r4 SHA-256: `2f364d597c71a60432cfe904a86998bb52a84de6d5280c03b9c16f4914a9dce6`.
+- Added standalone `supabaseAuthGateway.ts`: OTP request (create_user false), Auth user verification, call to existing `/functions/v1/api/api/v1/me`, user-ID consistency check, strict membership resolution, logout and URL token cleanup.
+- No SDK added and no package lock changed. No tokens persisted in browser storage.
+- Tests: Auth gateway 5/5; MJS service/directory/access/security tests 26/26; source audit PASS; remediation PASS; strict isolated TypeScript check PASS; archive integrity PASS.
+- Important: gateway is not yet connected to LoginModal/AppContext. No membership picker, refresh lifecycle, or real Supabase HTTP test. Login remains disabled. Full build/E2E/accessibility/PWA remain unverified. No production change/deployment.
+- State: `AUTH_GATEWAY_IMPLEMENTED_NOT_UI_WIRED`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+## Permanent continuation rule
+When user says «كمل», continue from the first dependency-ordered open task below; do not restart.
+
+## Next executable task
+1. Wire email OTP request and callback processing into LoginModal/AppContext.
+2. Add explicit membership selection UI (no first-membership auto-select); set AuthSession only after Auth identity and server membership are verified.
+3. Add in-memory token refresh/expiry handling and server logout; never store access/refresh tokens in localStorage.
+4. Add Preview integration tests against actual Supabase Auth + `/api/v1/me`, including mismatched user, inactive membership, multiple memberships, tenant OWNER business selection and strict platform-admin scope.
+5. Run full dependency install/typecheck/lint/build/E2E/accessibility/PWA on a network-enabled runner before any release decision.
+
+---
+
 # CURRENT HANDOFF — 2026-11-05 — V6 Auth membership contract checkpoint
 
 - **Canonical target:** AI Studio V6. Original archive SHA-256: `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`.
