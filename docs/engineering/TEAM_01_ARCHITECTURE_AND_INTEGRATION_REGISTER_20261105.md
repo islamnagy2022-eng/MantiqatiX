@@ -258,3 +258,20 @@ The existing `.github/workflows/forward-migration-chain-replay.yml` pins Supabas
 - The Team 01 register remains a coordination artifact. No production mutation, migration, grant/Auth change, Edge deployment, payment/finance operation, merge or site deployment is authorized by this preflight.
 
 **Disposition:** current-schema restoration remains `BLOCKED`; release state remains `CATALOG_PILOT_GATE=PASS`, `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+
+## 12. 2026-11-05 — Exact migration-alias source/ledger comparison
+
+A second read-only reconciliation batch retrieved the exact recorded SQL statement bodies from `supabase_migrations.schema_migrations.statements[1]` and compared them character-for-character with the current `main` source files:
+
+| Alias source | Recorded ledger target | Source file SHA | Comparison |
+|---|---|---|---|
+| `20261009010000_rc424_atomic_digital_page_payment_webhook.sql` | `20261008222845` | `49f46e3e159e6306534adbf61f626901c2d73488` | Exact match; 7,208 characters |
+| `20261027100000_mantiqatix_marketing_contact_details.sql` | `20261027041411` | `1b85c341c0c9329e71f4fdbf36f2f852687994aa` | Exact match; 1,114 characters |
+
+The marketing alias file and the already-recorded `20261027041411` source file have the same blob SHA and byte length. The live migration ledger stores the matching statement body under `20261027041411`.
+
+The release reconciliation manifest already marks both source effects as verified, but `migration_alias_resolution_check` remains `PENDING_CONTROLLED_REPAIR`, with `resolved_aliases=0` and `ledger_repair_applied=false` for both. Its documented procedure explicitly requires a reviewed current-schema replay, backup/restore and rollout approval before a **Production migration-history-only write**.
+
+**Decision:** record exact source/effect parity as VERIFIED for these two aliases; keep the migration-history repair BLOCKED/WAIT. Do not execute either SQL alias, add synthetic ledger rows, edit historical migrations, or update the production manifest to imply a repair has occurred. The 42 required source identifiers remain 0/42 in the exact-ID comparison; exact aliases only reconcile two effects and do not satisfy the wider release gate.
