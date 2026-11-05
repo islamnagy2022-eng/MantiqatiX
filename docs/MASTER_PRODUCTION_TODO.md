@@ -1,3 +1,17 @@
+## 2026-11-05 — V6 canonical application integration started (Phase 1 safety boundary)
+- [x] Verified supplied archive bizcatalog-manager (5)(1).zip SHA-256: ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965; archive contains 131 files and React 19 / TypeScript / Vite 8 source.
+- [x] Reconciled repository baseline: main @ 218d4c768021fbc94d21ffd442b3fcdacd16e4f8; created isolated branch feat/v6-canonical-integration-phase1-20261105.
+- [x] Added scripts/validate-v6-private-data-boundary.mjs, added apps/catalog-frontend/.gitignore rule .data/, exposed validate:v6-boundary, and added a dedicated GitHub Actions boundary workflow.
+- [x] Ran boundary validator against extracted V6 archive: PASS. It explicitly reports the private snapshot as present and local-only; it verifies the snapshot is not inside public/build output.
+- [ ] Run deterministic dependency install, TypeScript, lint, build, and browser/PWA tests. Local npm install --ignore-scripts --no-audit --no-fund exceeded the 120-second execution window; no node_modules or build output was produced. Bun is not installed in this environment.
+- [ ] Integrate remaining V6 source incrementally into apps/catalog-frontend after feature/schema/API mapping; no candidate application source has been copied or replaced yet.
+- [ ] Reconcile V6 entity types and all write paths against current Supabase schema/RPC/Edge contracts; preserve Auth, RLS and tenant isolation.
+- [ ] Produce a dry-run-only report for private snapshot provenance/schema/duplicate relationships; no snapshot content was opened, uploaded or imported.
+- [ ] Update feature parity and remove obsolete files only after dependency/import/build/test evidence.
+- **Safety:** no Production DB/schema/data/Auth/RLS/GRANT/Edge/payment/finance mutation, no deployment, and no public-site cutover. CATALOG_PILOT_GATE=PASS; FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED.
+- **Implementation branch:** feat/v6-canonical-integration-phase1-20261105; initial commits include the private-data boundary guard and CI workflow. Exact-head CI is pending.
+- **Next:** complete archive source inventory and schema/API mapping, then integrate one independently testable V6 slice without replacing the live site.
+
 ## 2026-11-05 — Standalone AI Studio V6 candidate review (source files incomplete)
 - [x] Reviewed the newly supplied baseline, implementation, deployment, security, DR, capacity, load-report and HTML files.
 - [x] Recorded the architecture boundary between the root-level V6 candidate and the deployed `apps/catalog-frontend` application.
