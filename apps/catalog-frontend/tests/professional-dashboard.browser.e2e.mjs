@@ -512,7 +512,110 @@ async function auditAccessibility(page, label) {
 }
 
 try {
-  // 0. Public activity lists render 20 cards, then append 20 more per explicit action.
+  // 0a. V6-inspired product shelf must use only available priced products from published active catalogues.
+{
+  const publishedBusiness = {
+    id: 'product-shelf-published-business',
+    tenantId: 'tenant-product-shelf-e2e',
+    organizationId: 'org-product-shelf-e2e',
+    name: 'متجر منشور للاختبار',
+    category: 'تجارة إلكترونية',
+    status: 'ACTIVE',
+    operationalStatus: 'ACTIVE',
+    publicEnabled: true,
+    catalogPublished: true,
+    isVerified: true,
+    governorate: 'المنوفية',
+    markaz: 'بركة السبع',
+    village: '',
+    profile: { publicEnabled: true, bio: 'كتالوج منشور لاختبار شريط المنتجات' },
+    provider: { verified: true },
+    branches: [],
+    items: [
+      {
+        id: 'product-shelf-available-001',
+        item_type: 'PRODUCT',
+        status: 'ACTIVE',
+        name_ar: 'منتج كتالوج منشور',
+        metadata: { catalog_public: { is_available: true, category: 'اختبار', unit: 'قطعة' } },
+      },
+      {
+        id: 'product-shelf-unavailable-002',
+        item_type: 'PRODUCT',
+        status: 'ACTIVE',
+        name_ar: 'منتج غير متاح',
+        metadata: { catalog_public: { is_available: false, category: 'اختبار' } },
+      },
+      {
+        id: 'product-shelf-quote-service-003',
+        item_type: 'SERVICE',
+        status: 'ACTIVE',
+        name_ar: 'خدمة بسعر عند الطلب',
+        metadata: { catalog_public: { show_price: false, is_available: true, category: 'اختبار' } },
+      },
+      {
+        id: 'product-shelf-available-001',
+        item_type: 'PRODUCT',
+        status: 'ACTIVE',
+        name_ar: 'منتج كتالوج منشور',
+        metadata: { catalog_public: { is_available: true, category: 'اختبار', unit: 'قطعة' } },
+      },
+    ],
+    prices: [
+      { catalog_item_id: 'product-shelf-available-001', unit_price: 125, status: 'ACTIVE' },
+      { catalog_item_id: 'product-shelf-unavailable-002', unit_price: 90, status: 'ACTIVE' },
+    ],
+  };
+  const inactiveBusiness = {
+    ...publishedBusiness,
+    id: 'product-shelf-inactive-business',
+    name: 'نشاط غير نشط للاختبار',
+    operationalStatus: 'INACTIVE',
+    items: [{
+      id: 'product-shelf-inactive-product',
+      item_type: 'PRODUCT',
+      status: 'ACTIVE',
+      name_ar: 'منتج نشاط غير نشط',
+      metadata: { catalog_public: { is_available: true, category: 'اختبار' } },
+    }],
+    prices: [{ catalog_item_id: 'product-shelf-inactive-product', unit_price: 300, status: 'ACTIVE' }],
+  };
+  const unpublishedBusiness = {
+    ...publishedBusiness,
+    id: 'product-shelf-unpublished-business',
+    name: 'نشاط كتالوجه غير منشور',
+    publicEnabled: false,
+    catalogPublished: false,
+    items: [{
+      id: 'product-shelf-unpublished-product',
+      item_type: 'PRODUCT',
+      status: 'ACTIVE',
+      name_ar: 'منتج كتالوج غير منشور',
+      metadata: { catalog_public: { is_available: true, category: 'اختبار' } },
+    }],
+    prices: [{ catalog_item_id: 'product-shelf-unpublished-product', unit_price: 450, status: 'ACTIVE' }],
+  };
+
+  const { context, page } = await newScenario(browser, null, [publishedBusiness, inactiveBusiness, unpublishedBusiness], {
+    initialRoute: '?view=directory',
+  });
+  try {
+    await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
+    const shelf = page.getByTestId('published-products-strip');
+    await shelf.waitFor({ state: 'visible', timeout: 15000 });
+    assert.equal(await shelf.getByTestId('published-products-strip-card').count(), 1, 'only one distinct active, available, priced product from a published catalogue may be shown');
+    assert.equal(await shelf.getByText('منتج كتالوج منشور', { exact: true }).count(), 1, 'the real published product must be visible');
+    assert.equal(await shelf.getByText('منتج غير متاح', { exact: true }).count(), 0, 'unavailable products must not be promoted');
+    assert.equal(await shelf.getByText('منتج نشاط غير نشط', { exact: true }).count(), 0, 'products from inactive businesses must not be promoted');
+    assert.equal(await shelf.getByText('منتج كتالوج غير منشور', { exact: true }).count(), 0, 'products from unpublished catalogues must not be promoted');
+    assert.equal(await shelf.getByText('خدمة بسعر عند الطلب', { exact: true }).count(), 0, 'quote-only services must not appear as priced products');
+    await shelf.getByRole('button', { name: 'افتح منتج منتج كتالوج منشور من نشاط متجر منشور للاختبار', exact: true }).click();
+    await page.waitForURL((url) => url.searchParams.get('store') === publishedBusiness.id, { timeout: 10000 });
+    results.push('v6-product-shelf-uses-only-live-priced-published-products-and-opens-owner-catalogue');
+  } finally { await context.close(); }
+}
+
+// 0. Public activity lists render 20 cards, then append 20 more per explicit action.
   {
     const paginationSource = liveDirectory.businesses[0];
     assert.ok(paginationSource, 'a real public directory activity must be available as the E2E fixture shape');
