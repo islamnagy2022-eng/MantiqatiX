@@ -1,0 +1,27 @@
+name: V6 Source Audit Tool Tests
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/audit-v6-source-security.mjs"
+      - "scripts/audit-v6-source-security.test.mjs"
+      - ".github/workflows/v6-source-audit-tests.yml"
+  push:
+    branches: [feat/v6-canonical-integration-phase1-20261105]
+    paths:
+      - "scripts/audit-v6-source-security.mjs"
+      - "scripts/audit-v6-source-security.test.mjs"
+      - ".github/workflows/v6-source-audit-tests.yml"
+permissions:
+  contents: read
+jobs:
+  node-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Test sanitized source audit
+        run: node --test scripts/audit-v6-source-security.test.mjs

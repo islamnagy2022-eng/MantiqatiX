@@ -445,7 +445,23 @@ const results = [];
     await page.getByRole('heading', { name: /اكتشف كافة المشاريع والخدمات في/ }).waitFor({ state: 'visible', timeout: 15000 });
     const directorySearchPanel = page.getByTestId('directory-search-panel');
     await directorySearchPanel.waitFor({ state: 'visible', timeout: 10000 });
-    assert.equal(await directorySearchPanel.getByLabel('بحث عن نشاط أو خدمة', { exact: true }).count(), 1, 'the V4 directory search field must have an accessible label');
+    const directorySearchInput = directorySearchPanel.getByLabel('بحث عن نشاط أو خدمة', { exact: true });
+    assert.equal(await directorySearchInput.count(), 1, 'the V4 directory search field must have an accessible label');
+    const quickSearchSuggestions = directorySearchPanel.getByTestId('directory-quick-search-suggestions');
+    await quickSearchSuggestions.waitFor({ state: 'visible', timeout: 10000 });
+    assert.equal(await quickSearchSuggestions.getByRole('button').count(), 5, 'the V6-inspired quick-search strip must expose its five supported suggestions');
+    await quickSearchSuggestions.getByRole('button', { name: 'صيدليات', exact: true }).click();
+    assert.equal(await directorySearchInput.inputValue(), 'صيدليات', 'pharmacy quick search must use the canonical activity name');
+    await directorySearchInput.fill('');
+    await quickSearchSuggestions.getByRole('button', { name: 'مطاعم', exact: true }).click();
+    assert.equal(await directorySearchInput.inputValue(), 'مطاعم', 'restaurant quick search must use the canonical activity name');
+    await directorySearchInput.fill('');
+    await quickSearchSuggestions.getByRole('button', { name: 'أطباء وعيادات', exact: true }).click();
+    assert.equal(await directorySearchInput.inputValue(), 'عيادات', 'medical quick search must match the canonical clinic activity name');
+    await directorySearchInput.fill('');
+    await quickSearchSuggestions.getByRole('button', { name: 'عقارات', exact: true }).click();
+    assert.equal(await directorySearchInput.inputValue(), 'عقارات', 'real-estate quick search must use a business-directory term rather than a product query');
+    await directorySearchInput.fill('');
     assert.equal(await directorySearchPanel.locator('select').count(), 4, 'the search workspace must retain all four geographic filters');
     assert.equal(await directorySearchPanel.locator('select.mx-v4-search-select').count(), 4, 'all four geographic filters must use the token-backed V4 treatment');
     const directoryLocationAction = directorySearchPanel.getByRole('button', { name: 'حدد موقعي', exact: true });
@@ -502,7 +518,230 @@ async function auditAccessibility(page, label) {
 }
 
 try {
-  // 0. Public activity lists render 20 cards, then append 20 more per explicit action.
+  // 0a. V6-inspired product shelf must use only available priced products from published active catalogues.
+{
+  const publishedBusiness = {
+    id: 'product-shelf-published-business',
+    tenantId: 'tenant-product-shelf-e2e',
+    organizationId: 'org-product-shelf-e2e',
+    name: 'متجر منشور للاختبار',
+    category: 'تجارة إلكترونية',
+    status: 'ACTIVE',
+    operationalStatus: 'ACTIVE',
+    publicEnabled: true,
+    catalogPublished: true,
+    isVerified: true,
+    governorate: 'المنوفية',
+    markaz: 'بركة السبع',
+    village: '',
+    profile: { publicEnabled: true, bio: 'كتالوج منشور لاختبار شريط المنتجات' },
+    provider: { verified: true },
+    branches: [],
+    items: [
+      {
+        id: 'product-shelf-available-001',
+        item_type: 'PRODUCT',
+        status: 'ACTIVE',
+        name_ar: 'منتج كتالوج منشور',
+        metadata: { catalog_public: { is_available: true, category: 'اختبار', unit: 'قطعة' } },
+      },
+      {
+        id: 'product-shelf-unavailable-002',
+        item_type: 'PRODUCT',
+        status: 'ACTIVE',
+        name_ar: 'منتج غير متاح',
+        metadata: { catalog_public: { is_available: false, category: 'اختبار' } },
+      },
+      {
+        id: 'product-shelf-quote-service-003',
+        item_type: 'SERVICE',
+        status: 'ACTIVE',
+        name_ar: 'خدمة بسعر عند الطلب',
+        metadata: { catalog_public: { show_price: false, is_available: true, category: 'اختبار' } },
+      },
+      {
+        id: 'product-shelf-available-001',
+        item_type: 'PRODUCT',
+        status: 'ACTIVE',
+        name_ar: 'منتج كتالوج منشور',
+        metadata: { catalog_public: { is_available: true, category: 'اختبار', unit: 'قطعة' } },
+      },
+    ],
+    prices: [
+      { catalog_item_id: 'product-shelf-available-001', unit_price: 125, status: 'ACTIVE' },
+      { catalog_item_id: 'product-shelf-unavailable-002', unit_price: 90, status: 'ACTIVE' },
+    ],
+  };
+  const inactiveBusiness = {
+    ...publishedBusiness,
+    id: 'product-shelf-inactive-business',
+    name: 'نشاط غير نشط للاختبار',
+    operationalStatus: 'INACTIVE',
+    items: [{
+      id: 'product-shelf-inactive-product',
+      item_type: 'PRODUCT',
+      status: 'ACTIVE',
+      name_ar: 'منتج نشاط غير نشط',
+      metadata: { catalog_public: { is_available: true, category: 'اختبار' } },
+    }],
+    prices: [{ catalog_item_id: 'product-shelf-inactive-product', unit_price: 300, status: 'ACTIVE' }],
+  };
+  const unpublishedBusiness = {
+    ...publishedBusiness,
+    id: 'product-shelf-unpublished-business',
+    name: 'نشاط كتالوجه غير منشور',
+    publicEnabled: false,
+    catalogPublished: false,
+    items: [{
+      id: 'product-shelf-unpublished-product',
+      item_type: 'PRODUCT',
+      status: 'ACTIVE',
+      name_ar: 'منتج كتالوج غير منشور',
+      metadata: { catalog_public: { is_available: true, category: 'اختبار' } },
+    }],
+    prices: [{ catalog_item_id: 'product-shelf-unpublished-product', unit_price: 450, status: 'ACTIVE' }],
+  };
+
+  const { context, page } = await newScenario(browser, null, [publishedBusiness, inactiveBusiness, unpublishedBusiness], {
+    initialRoute: '?view=directory',
+  });
+  try {
+    await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
+    const shelf = page.getByTestId('published-products-strip');
+    await shelf.waitFor({ state: 'visible', timeout: 15000 });
+    assert.equal(await shelf.getByTestId('published-products-strip-card').count(), 1, 'only one distinct active, available, priced product from a published catalogue may be shown');
+    assert.equal(await shelf.getByText('منتج كتالوج منشور', { exact: true }).count(), 1, 'the real published product must be visible');
+    assert.equal(await shelf.getByText('منتج غير متاح', { exact: true }).count(), 0, 'unavailable products must not be promoted');
+    assert.equal(await shelf.getByText('منتج نشاط غير نشط', { exact: true }).count(), 0, 'products from inactive businesses must not be promoted');
+    assert.equal(await shelf.getByText('منتج كتالوج غير منشور', { exact: true }).count(), 0, 'products from unpublished catalogues must not be promoted');
+    assert.equal(await shelf.getByText('خدمة بسعر عند الطلب', { exact: true }).count(), 0, 'quote-only services must not appear as priced products');
+    await shelf.getByRole('button', { name: 'افتح منتج منتج كتالوج منشور من نشاط متجر منشور للاختبار', exact: true }).click();
+    await page.waitForURL((url) => url.searchParams.get('store') === publishedBusiness.id, { timeout: 10000 });
+    results.push('v6-product-shelf-uses-only-live-priced-published-products-and-opens-owner-catalogue');
+  } finally { await context.close(); }
+}
+
+// 0b. Directory search matches real available products/services, but never unpublished or unavailable items.
+{
+  const searchableBusiness = {
+    id: 'catalog-item-search-business',
+    tenantId: 'tenant-catalog-item-search',
+    organizationId: 'org-catalog-item-search',
+    name: 'متجر الأدوات المنزلية',
+    category: 'تجارة منزلية',
+    status: 'ACTIVE',
+    operationalStatus: 'ACTIVE',
+    publicEnabled: true,
+    catalogPublished: true,
+    isVerified: true,
+    governorate: 'المنوفية',
+    markaz: 'بركة السبع',
+    village: '',
+    profile: {
+      publicEnabled: true,
+      bio: 'متجر متخصص في الأدوات المنزلية والمستلزمات',
+    },
+    provider: { verified: true },
+    branches: [],
+    items: [
+      {
+        id: 'catalog-item-search-coffee',
+        item_type: 'PRODUCT',
+        status: 'ACTIVE',
+        name_ar: 'قهوة تركي ممتازة',
+        description: 'بن مطحون محمص',
+        metadata: { catalog_public: { is_available: true, category: 'مشروبات', unit: 'عبوة' } },
+      },
+      {
+        id: 'catalog-item-search-ac-service',
+        item_type: 'SERVICE',
+        status: 'ACTIVE',
+        name_ar: 'صيانة تكييف سبليت',
+        description: 'تنظيف وفحص وصيانة دورية',
+        metadata: { catalog_public: { is_available: true, show_price: false, category: 'صيانة' } },
+      },
+      {
+        id: 'catalog-item-search-unavailable',
+        item_type: 'PRODUCT',
+        status: 'ACTIVE',
+        name_ar: 'ثلاجة غير متاحة',
+        metadata: { catalog_public: { is_available: false, category: 'أجهزة' } },
+      },
+      {
+        id: 'catalog-item-search-no-price',
+        item_type: 'PRODUCT',
+        status: 'ACTIVE',
+        name_ar: 'منتج بلا سعر نشط',
+        metadata: { catalog_public: { is_available: true, category: 'أجهزة' } },
+      },
+      {
+        id: 'catalog-item-search-inactive',
+        item_type: 'PRODUCT',
+        status: 'INACTIVE',
+        name_ar: 'منتج مخفي',
+        metadata: { catalog_public: { is_available: true, category: 'أجهزة' } },
+      },
+    ],
+    prices: [
+      { catalog_item_id: 'catalog-item-search-coffee', unit_price: 145, status: 'ACTIVE' },
+      { catalog_item_id: 'catalog-item-search-unavailable', unit_price: 950, status: 'ACTIVE' },
+    ],
+  };
+  const unpublishedBusiness = {
+    ...searchableBusiness,
+    id: 'catalog-item-search-unpublished',
+    name: 'نشاط غير منشور',
+    publicEnabled: false,
+    catalogPublished: false,
+    items: [{
+      id: 'catalog-item-search-unpublished-product',
+      item_type: 'PRODUCT',
+      status: 'ACTIVE',
+      name_ar: 'أثاث مكتبي فاخر',
+      metadata: { catalog_public: { is_available: true, category: 'أثاث' } },
+    }],
+    prices: [{ catalog_item_id: 'catalog-item-search-unpublished-product', unit_price: 800, status: 'ACTIVE' }],
+  };
+
+  const { context, page } = await newScenario(browser, null, [searchableBusiness, unpublishedBusiness], {
+    initialRoute: '?view=directory',
+  });
+  try {
+    await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
+    const searchPanel = page.getByTestId('directory-search-panel');
+    await searchPanel.waitFor({ state: 'visible', timeout: 15000 });
+    const searchInput = searchPanel.getByTestId('directory-search-input');
+
+    await searchInput.fill('قهوة تركي');
+    const owningBusinessCard = page.getByTestId('directory-business-card').filter({ hasText: 'متجر الأدوات المنزلية' });
+    await owningBusinessCard.waitFor({ state: 'visible', timeout: 10000 });
+    assert.equal(await owningBusinessCard.count(), 1, 'a matching available product must return its owning public business');
+    assert.equal(
+      await owningBusinessCard.getByTestId('directory-catalog-search-matches').innerText(),
+      'مطابقة في الكتالوج: قهوة تركي ممتازة',
+      'the owning business card must explain which published product matched',
+    );
+
+    await searchInput.fill('صيانة تكييف');
+    await owningBusinessCard.waitFor({ state: 'visible', timeout: 10000 });
+    assert.equal(await owningBusinessCard.count(), 1, 'a matching available quote-only service must return its owning public business');
+    assert.equal(
+      await owningBusinessCard.getByTestId('directory-catalog-search-matches').innerText(),
+      'مطابقة في الكتالوج: صيانة تكييف سبليت',
+      'the owning business card must identify the matching quote-only service',
+    );
+
+    for (const blockedTerm of ['ثلاجة غير متاحة', 'منتج بلا سعر نشط', 'منتج مخفي', 'أثاث مكتبي فاخر']) {
+      await searchInput.fill(blockedTerm);
+      await page.getByRole('heading', { name: 'لا توجد أنشطة مطابقة للبحث', exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(await page.getByTestId('directory-business-card').count(), 0, blockedTerm + ' must not return a business through a blocked catalogue item');
+    }
+
+    results.push('directory-search-matches-published-available-products-and-services-only');
+  } finally { await context.close(); }
+}
+
+// 0. Public activity lists render 20 cards, then append 20 more per explicit action.
   {
     const paginationSource = liveDirectory.businesses[0];
     assert.ok(paginationSource, 'a real public directory activity must be available as the E2E fixture shape');
@@ -643,34 +882,50 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      // The dedicated directory route shows activity groups, not listing cards. Follow the public folder navigation.
-      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
+      // The directory presents activities directly; each transition must finish its
+      // server request before the row-count assertion so stale cards from the prior
+      // unfiltered page cannot satisfy the specialty assertion.
+      const activityFirstPageResponse = page.waitForResponse((response) => {
+        const url = new URL(response.url());
+        return url.pathname.endsWith('/functions/v1/directory-listings') &&
+          url.searchParams.get('taxonomyCategoryId') === 'cat_medical_health_medical_practices' &&
+          !url.searchParams.has('taxonomySpecialty') &&
+          !url.searchParams.has('cursor');
+      });
       await page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first().click();
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
       const cursorCards = page.getByRole('heading').filter({ hasText: /^عيادة اختبار المؤشر \d{2}$/ });
-      try {
-        await cursorCards.first().waitFor({ state: 'visible', timeout: 15000 });
-      } catch {
-        throw new Error('Activity module did not show its unscoped first page before specialty selection. Page requests: ' +
-          JSON.stringify(directoryListingPageRequests) + '; visible page text: ' +
-          JSON.stringify((await page.locator('body').innerText().catch(() => '')).slice(0, 1800)));
-      }
+      await activityFirstPageResponse;
+      await page.waitForFunction(() => [...document.querySelectorAll('h3')]
+        .filter((node) => /^عيادة اختبار المؤشر \d{2}$/.test((node.textContent || '').trim())).length === 20);
       assert.equal(await cursorCards.count(), 20, 'opening an activity must immediately render its first 20 listings before opening a specialty folder');
       const activityPageRequest = directoryListingPageRequests.find((request) =>
         request.taxonomyCategoryId === 'cat_medical_health_medical_practices' && !request.taxonomySpecialty && !request.cursor);
       assert.ok(activityPageRequest, 'opening the activity must request its full category without a specialty filter');
       const specialtyFolderButton = modulePage.getByRole('button', { name: /^باطنة/ }).first();
+      const specialtyFirstPageResponse = page.waitForResponse((response) => {
+        const url = new URL(response.url());
+        return url.pathname.endsWith('/functions/v1/directory-listings') &&
+          url.searchParams.get('taxonomyCategoryId') === 'cat_medical_health_medical_practices' &&
+          url.searchParams.get('taxonomySpecialty') === 'باطنة' &&
+          !url.searchParams.has('cursor');
+      });
       await specialtyFolderButton.click();
-      try {
-        await cursorCards.first().waitFor({ state: 'visible', timeout: 15000 });
-      } catch {
-        throw new Error('Server-cursor E2E did not render the specialty first page. Page requests: ' +
-          JSON.stringify(directoryListingPageRequests) + '; visible page text: ' +
-          JSON.stringify((await page.locator('body').innerText().catch(() => '')).slice(0, 1800)));
-      }
+      const specialtyResponse = await specialtyFirstPageResponse;
+      assert.equal(specialtyResponse.status(), 200, 'the specialty first page request must succeed');
+      await modulePage.getByText('جارٍ تحميل نتائج الدليل لهذا النشاط…', { exact: true }).waitFor({ state: 'hidden', timeout: 15000 });
+      await page.waitForFunction(() => [...document.querySelectorAll('h3')]
+        .filter((node) => /^عيادة اختبار المؤشر \d{2}$/.test((node.textContent || '').trim())).length === 20);
       assert.equal(await cursorCards.count(), 20, 'specialty folder must render its first 20-row server page');
+      const continuationResponse = page.waitForResponse((response) => {
+        const url = new URL(response.url());
+        return url.pathname.endsWith('/functions/v1/directory-listings') &&
+          url.searchParams.get('cursor') === 'e2e-cursor-page-two';
+      });
       await page.getByRole('button', { name: 'رؤية المزيد من هذا التخصص', exact: true }).click();
+      const continuation = await continuationResponse;
+      assert.equal(continuation.status(), 200, 'the continuation page request must succeed');
       await page.waitForFunction(() => [...document.querySelectorAll('h3')]
         .filter((node) => /^عيادة اختبار المؤشر \d{2}$/.test((node.textContent || '').trim())).length === 25);
       assert.equal(await cursorCards.count(), 25, 'cursor continuation must append the remaining five public listings without duplicates');
@@ -1060,7 +1315,7 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      await page.locator('section[aria-label="المجموعات والأنشطة"]').waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByTestId('directory-activities-section').waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(await page.getByText('دليل الأنشطة والمطالبات', { exact: true }).count(), 0, 'non-platform roles must not render the directory admin tab');
       assert.equal(directoryAdminRequests.some((request) => request.action === 'ADMIN_LIST'), false, 'non-platform roles must not request the admin directory bundle');
       results.push('non-platform-role-denied-directory-admin-route');
@@ -1189,8 +1444,9 @@ try {
     const { context, page } = await newScenario(browser, null, [conflictingLegacyBusiness]);
     try {
       await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
-      const activitySection = page.locator('section[aria-label="المجموعات والأنشطة"]');
-      await activitySection.getByRole('button', { name: /الطب والصحة/ }).first().click();
+      const activitySection = page.getByTestId('directory-activities-section');
+      assert.equal(await activitySection.getByText('المجموعات الوظيفية', { exact: true }).count(), 0, 'the public directory must not insert a functional-groups navigation layer');
+      await activitySection.getByRole('button', { name: /صيدليات/ }).first().waitFor({ state: 'visible' });
       const activityGrid = activitySection.locator('.grid.grid-cols-3').first();
       const columnCount = await activityGrid.evaluate((element) =>
         getComputedStyle(element).gridTemplateColumns.split(' ').length
@@ -1221,23 +1477,20 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
       const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
       await activityCard.waitFor({ state: 'visible' });
       await activityCard.click();
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
       assert.equal(new URL(page.url()).searchParams.get('activity'), 'cat_medical_health_medical_practices', 'activity module route must be shareable and refreshable');
-      assert.equal(new URL(page.url()).searchParams.get('group'), 'medical_health', 'activity route must preserve its parent group folder across refreshes');
+      assert.equal(new URL(page.url()).searchParams.has('group'), false, 'activity route must not require an intermediate functional-group folder');
       await modulePage.getByRole('button', { name: 'التخصصات', exact: true }).click();
       await modulePage.getByRole('button', { name: /^باطنة/ }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px direct activity module');
       await page.reload({ waitUntil: 'domcontentloaded' });
       await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
-      await page.getByRole('button', { name: /العودة إلى الطب والصحة/ }).click();
-      await page.getByRole('heading', { name: 'الطب والصحة', exact: true }).waitFor({ state: 'visible' });
-      await page.getByRole('button', { name: 'كل المجموعات', exact: true }).click();
-      await page.getByRole('heading', { name: 'المجموعات الوظيفية', exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: 'العودة إلى الأنشطة', exact: true }).click();
+      await page.getByRole('heading', { name: 'الأنشطة والتخصصات', exact: true }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px direct activity return');
       results.push('direct-activity-module-route-refresh-specialty-and-back-navigation');
     } finally { await context.close(); }
@@ -1296,7 +1549,6 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
       await page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first().click();
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
@@ -1342,8 +1594,8 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      await page.getByRole('button', { name: /الأغذية والضيافة/ }).first().click();
-      await page.getByRole('button', { name: /مطاعم/ }).first().click();
+      const activitySection = page.getByTestId('directory-activities-section');
+      await activitySection.getByRole('button', { name: /مطاعم/ }).first().click();
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'مطاعم', exact: true }).waitFor({ state: 'visible' });
       await modulePage.getByRole('button', { name: 'التسويق والإعلان', exact: true }).click();

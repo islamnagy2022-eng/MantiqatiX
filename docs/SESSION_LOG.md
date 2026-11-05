@@ -2002,3 +2002,52 @@ A separate source review found a second platform-root authorization model: the n
 - Added detailed review in `docs/release/AI_STUDIO_V6_SOURCE_CANDIDATE_REVIEW_20261105.md` and updated the Master TODO and current handoff.
 - No V6 app code was integrated, no production migration/Auth/RLS/GRANT/Edge/payment/finance change was made, no private snapshot was published, and no public site cutover occurred.
 - Next: obtain/inspect the actual source ZIP; establish the entity-to-Supabase mapping and shared Auth/persistence boundary; only then implement the next additive integration slice.
+
+
+## 2026-11-05 — SESSION — V6 canonical application integration Phase 1
+- Verified supplied V6 archive SHA-256: ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965; extracted inventory contains 131 files.
+- Verified latest main via GitHub branch metadata: 218d4c768021fbc94d21ffd442b3fcdacd16e4f8.
+- Created isolated branch feat/v6-canonical-integration-phase1-20261105.
+- Added private snapshot boundary validator, .data/ ignore rule, package script and dedicated CI workflow.
+- Executed validator against extracted candidate: PASS; private .data/production-live-db.json is present but must remain local-only and was not opened or imported.
+- Candidate install attempt timed out after 120 seconds; Bun is unavailable. No TypeScript/build/test pass is claimed.
+- No candidate source integration, Production mutation, deployment, financial operation or public cutover occurred.
+- Next: finish V6 inventory/schema-contract mapping, then implement and test the first safe application slice.
+
+
+## 2026-11-05 — SESSION follow-up — V6 mapping and exact-head CI
+- Added docs/release/V6_CANONICAL_INTEGRATION_MAP_20261105.md after inspecting V6 types/state/actions and existing Supabase Edge/API contracts.
+- Exact-head V6 Candidate Safety Boundary workflow 41982612018: PASS.
+- Exact-head primary Pages validation 41982612012: PASS, including Validate V6 private-data boundary; deployment job SKIPPED because the change is a PR.
+- Candidate dependency install attempts exceeded 120s and 300s; Bun unavailable. TypeScript could not resolve vite/client without installed dependencies. Five node:test files fail under direct Node 22 type stripping because extensionless TS imports are unresolved; candidate package has no test script.
+- No V6 app source has been integrated yet; no Production data/schema/Auth/security/Edge/payment/finance mutation or public cutover occurred.
+- Next: obtain reproducible dependency installation/test runner, complete field-level contract mapping, then port the first public-directory UI slice while retaining current production API and rollout gates.
+
+
+## 2026-11-05 — SESSION follow-up — Candidate source syntax validation
+- Used global TypeScript 5.8.3 transpileModule over all 53 V6 TS/TSX source files: zero syntax diagnostics.
+- This is syntax-only transpilation and does not establish semantic type correctness, dependency resolution, Vite build success or runtime behavior.
+- Full dependency install remains blocked by local execution timeouts; candidate test runner remains unresolved.
+
+
+## 2026-11-05 — SESSION follow-up — Critical V6 candidate source findings
+- Direct source inspection found credential-shaped Paymob and Google AI values plus a hardcoded admin password in src/data/seedData.ts. Values were not copied into GitHub or the report; treat as exposed until proven placeholders and rotate if real.
+- DEFAULT_PAYMOB_CONFIG is enabled in seed data; payment must remain disabled until server-only secrets and sandbox E2E pass.
+- server.ts exposes unauthenticated file-backed /api/production-state GET/POST routes and listens on 0.0.0.0. These cannot be used as production persistence.
+- AppContext.commitCurrentDataAsOfficialLive marks a local snapshot official and returns success even if remote persistence fails; this is false-success behavior and must be replaced.
+- Hardcoded visitor fallback counts and randomized load-test simulation are presented as operational metrics/100M claims; these are not real measurements and must be removed or labelled as simulation.
+- Added these blockers to docs/release/V6_CANONICAL_INTEGRATION_MAP_20261105.md and Master TODO. No credential value was copied; no Production mutation or deployment occurred.
+
+
+## 2026-11-05 — SESSION follow-up — Sanitized V6 source audit
+- Added scripts/audit-v6-source-security.mjs. It reports blocker identifiers/descriptions only and never prints credential values.
+- Ran against the extracted archive matching the approved SHA-256. Result: BLOCKED, 8 findings: V6-SEC-001/002, V6-PAY-001, V6-SEC-003/004, V6-DATA-001, V6-METRIC-001/002. Exit code 1 is intentional until the candidate source is remediated.
+- The audit did not read .data/production-live-db.json and did not modify the source archive or Production.
+- Added exact audit output and run command to docs/release/V6_CANONICAL_INTEGRATION_MAP_20261105.md.
+- Next: remediate the eight source blockers in the isolated V6 candidate tree, then re-run this gate before importing any candidate application files into apps/catalog-frontend.
+
+
+## 2026-11-05 — SESSION follow-up — V6 audit tool tests
+- Added scripts/audit-v6-source-security.test.mjs and .github/workflows/v6-source-audit-tests.yml.
+- Ran the two Node 22 tests locally: 2 passed, 0 failed. They verify all configured blocker IDs are detected, credential values are suppressed, and a clean fixture passes.
+- These tests validate the static audit tool only; they do not validate the V6 application, dependencies, type-check, build or browser runtime.

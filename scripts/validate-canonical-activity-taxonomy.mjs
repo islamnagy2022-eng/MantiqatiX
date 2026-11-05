@@ -160,20 +160,20 @@ assert.ok(!admin.includes('option value="profession">مهنة'), 'Admin must not
 assert.ok(admin.includes('categoryClassificationType: matchedCat?.classificationType'), 'Admin-created businesses must retain category classification.');
 const activityModuleView = read('apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx');
 assert.ok(directory.includes("new URLSearchParams(window.location.search).get('activity')"), 'Each activity module must have a refreshable direct URL.');
-assert.ok(directory.includes('const availableCategories = categories.filter') && directory.includes("selectedGroupFilter === 'all' || category.functionalGroupId === selectedGroupFilter"), 'Visitor discovery must expose activity folders grouped by canonical functional group, without standalone profession categories.');
+assert.ok(directory.includes("const availableCategories = categories.filter((category) => (category.classificationType || 'activity') === 'activity')") && !directory.includes('selectedGroupFilter'), 'Visitor discovery must present all canonical activity categories directly, without an intermediate functional-group filter or standalone profession categories.');
 assert.ok(directory.includes('openActivityModule(category.id)'), 'Clicking an activity must open its dedicated module page.');
 assert.ok(directory.includes('businesses={activityBusinesses}') && directory.includes('listings={activityListings}') && directory.includes('filteredBusinesses.filter'), 'Activity modules must receive the geo-filtered public entities for only their selected activity.');
-assert.ok(directory.includes('selectedGroupFilter') && directory.includes('availableGroups.map') && !directory.includes('matchesCategoryKind'), 'Public directory must retain canonical functional-group folder navigation.');
+assert.ok(directory.includes('data-testid="directory-activities-section"') && directory.includes('aria-label="الأنشطة والتخصصات"') && !directory.includes('المجموعات الوظيفية'), 'Public directory must render activities directly and omit visitor-facing functional-group folders.');
 assert.ok(activityModuleView.includes("type Section = 'overview' | 'specialties' | 'marketing' | 'operations'"), 'Activity module must provide its own domain workspace sections.');
 assert.ok(activityModuleView.includes('resolveActivityModuleConfig(category, adminSettings.activityModuleOverrides)'), 'Every activity page must resolve its dedicated module configuration with persisted Super Admin overrides keyed by canonical activity identity.');
 assert.ok(activityModuleView.includes('marketing.contentPillars') && activityModuleView.includes('marketing.campaignIdeas') && activityModuleView.includes('marketing.requiredAssets'), 'Activity marketing page must render domain-specific content pillars, campaign ideas and required assets.');
-assert.ok(directory.includes('selectedGroupFilter') && directory.includes('availableGroups.map'), 'Public directory must preserve functional-group folder navigation before activities.');
-assert.ok(directory.includes('availableCategories.map') && directory.includes('setSelectedGroupFilter(group.id)'), 'Opening a group must reveal its activity categories.');
+assert.ok(!directory.includes('selectedGroupFilter') && !directory.includes('availableGroups.map') && directory.includes('aria-label="الأنشطة والتخصصات"'), 'Public directory must not expose an intermediate functional-group folder layer.');
+assert.ok(directory.includes('availableCategories.map') && directory.includes('openActivityModule(category.id)'), 'Each directly displayed activity must open its dedicated module page.');
 assert.ok(activityModuleView.includes('campaignGoal') && activityModuleView.includes('campaignBudget') && activityModuleView.includes('campaignDuration'), 'Each activity must provide an interactive campaign goal, budget and duration planner.');
 assert.ok(activityModuleView.includes('selectedChannels') && activityModuleView.includes('getChannelShare'), 'Campaign planner must support channel selection and normalized budget allocation.');
 assert.ok(activityModuleView.includes('campaignPeriodCount') && activityModuleView.includes('قمع التحويل ومؤشرات الأداء'), 'Campaign planner must generate a duration-aware content calendar and conversion measurement funnel.');
-assert.ok(activityModuleView.includes('parentGroupName'), 'Activity page must provide a return path to its parent functional group when opened from that folder.');
-assert.ok(directory.includes("get('group') || 'all'") && directory.includes("url.searchParams.set('group', selectedGroupFilter)"), 'Activity URLs must retain the selected parent group across refresh and browser navigation.');
+assert.ok(activityModuleView.includes('العودة إلى الأنشطة') && !activityModuleView.includes('parentGroupName'), 'Activity page must return directly to the activity directory without a parent-group layer.');
+assert.ok(directory.includes("url.searchParams.delete('group')") && !directory.includes('selectedGroupFilter'), 'Activity URLs must be direct and must not depend on a parent functional-group parameter.');
 
 assert.ok(activityModuleView.includes('moduleConfig.capabilities.map'), 'Activity operations page must render capabilities from its activity module configuration.');
 assert.ok(activityModuleRegistry.includes('activityId: category.id') && activityModuleRegistry.includes('activityName: name'), 'Module registry must key each resolved module by the stable canonical activity ID.');
@@ -219,7 +219,7 @@ assert.ok(production.includes('activityGroupCode: body.business?.activityGroupCo
 assert.ok(production.includes('activityCategoryCode: body.business?.activityCategoryCode'), 'Direct storefront hydration must pass the safe canonical category code into business mapping.');
 assert.ok(production.includes('meta.activity_group_code') && production.includes('meta.activity_category_code'), 'Business mapping must read taxonomy metadata from the safe bizcatalog profile where present.');
 assert.ok(directory.includes('business.categoryId === category.id'), 'Directory filtering must prefer the canonical category ID.');
-assert.ok(directory.includes('aria-label="المجموعات والأنشطة"') && activityModuleView.includes('وحدة النشاط'), 'Public navigation must expose group folders, activities inside each group, and dedicated activity modules.');
+assert.ok(directory.includes('aria-label="الأنشطة والتخصصات"') && activityModuleView.includes('وحدة النشاط') && activityModuleView.includes('العودة إلى الأنشطة'), 'Public navigation must expose direct activity cards, dedicated activity modules, and a direct return to all activities.');
 for (const code of ['medical_practices', 'food_retail', 'home_services', 'digital_marketing', 'animal_production']) {
   assert.ok(defaults.includes(`'${code}'`), `Canonical taxonomy must include the audited activity code ${code}.`);
 }
@@ -263,9 +263,9 @@ assert.ok(directory.includes('grid grid-cols-3 gap-2 lg:grid-cols-4 xl:grid-cols
 assert.ok(browserE2E.includes('canonical-activity-code-precedence-and-three-column-mobile-grid'), 'Browser E2E must verify canonical activity precedence and three activity columns at the mobile viewport.');
 assert.ok(directory.includes('sm:flex-row') && directory.includes('sm:text-right'), 'Activity cards must stack compactly on phones and return to horizontal layout on larger screens.');
 assert.ok(directory.includes('openActivityModule(category.id)'), 'Activity cards must navigate to the activity module route.');
-assert.ok(directory.includes('تصفية النتائج حسب:') && directory.includes('عرض كل أنشطة المجموعة'), 'Specialty filters must remain visible and reversible within the selected activity group.');
-assert.ok(directory.includes('availableGroups.map') && directory.includes('availableCategories.map'), 'Public directory must render group folders first and activities inside the selected group.');
-assert.ok(directory.includes('{group.name}') && directory.includes('{groupCategories.length} نشاط'), 'group-folder cards must retain their names and activity counts after activity-grid layout changes.');
+assert.ok(directory.includes('تصفية النتائج حسب:') && directory.includes('عرض كل الأنشطة'), 'Activity filters must remain visible and reversible in the direct activity directory.');
+assert.ok(directory.includes('availableCategories.map') && !directory.includes('availableGroups.map') && directory.includes('aria-label="الأنشطة والتخصصات"'), 'Public directory must render activity cards directly without group folders.');
+assert.ok(directory.includes('{category.name}') && directory.includes('فتح نشاط') && directory.includes('موثق') && directory.includes('غير موثق'), 'Direct activity cards must retain activity names and verified/unverified counts.');
 
 
 assert.ok(directory.includes('useState(20)') && directory.includes('filteredBusinesses.slice(0, visibleActivityCount)'), 'Main activity directory must initially render no more than 20 registered activities.');

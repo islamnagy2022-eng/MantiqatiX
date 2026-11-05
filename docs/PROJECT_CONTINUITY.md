@@ -1,3 +1,26 @@
+# CURRENT HANDOFF — 2026-11-05 — V6 canonical application integration Phase 1
+
+- Supplied archive verified: bizcatalog-manager (5)(1).zip, SHA-256 ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965.
+- Current main: 218d4c768021fbc94d21ffd442b3fcdacd16e4f8.
+- Active isolated branch: feat/v6-canonical-integration-phase1-20261105.
+- Phase 1 source-only safety guard added: scripts/validate-v6-private-data-boundary.mjs; apps/catalog-frontend/.gitignore now excludes .data/; app package exposes validate:v6-boundary; dedicated workflow .github/workflows/v6-candidate-boundary.yml.
+- Local validator against extracted archive: PASS; it detects .data/production-live-db.json and confirms it is local-only/ignored and absent from public/build output. Do not read, copy, commit, publish or import its contents.
+- Candidate source inventory: React 19, TypeScript, Vite 8; src/App.tsx, src/context/AppContext.tsx, src/data/seedData.ts, src/utils/, server.ts, five Node test files. LocalStorage remains a primary state store; /api/production-state is present in the candidate Express server; seed records exist.
+- Critical source findings: credential-shaped Paymob and Google AI values plus a hardcoded admin password are present in seedData.ts (values intentionally not copied); default Paymob config is enabled. server.ts exposes unauthenticated file-backed production-state GET/POST routes and binds 0.0.0.0. AppContext marks a local snapshot official and returns success even when remote persistence fails. Visitor counts and 100M/500k load metrics include fabricated/simulated values. Full details: docs/release/V6_CANONICAL_INTEGRATION_MAP_20261105.md.
+- Exact-head CI for Phase 1: V6 Candidate Safety Boundary [41982612018] PASS; primary Pages validation [41982612012] PASS including the V6 private-data guard. PR deploy job was skipped; no publication occurred.
+- Added docs/release/V6_CANONICAL_INTEGRATION_MAP_20261105.md with candidate-to-existing-table/API mapping and hard non-equivalences.
+- Candidate test status: npm install timed out at 120s and 300s; Bun unavailable; global tsc cannot resolve vite/client without dependencies; five Node tests fail under Node 22 type stripping due extensionless TS imports. Syntax-only transpilation of 53 TS/TSX files using global TypeScript 5.8.3 passed with zero syntax diagnostics. No semantic type-check, candidate build or browser E2E pass is claimed.
+- No V6 application source has been merged into the production frontend yet. No Production mutation or deployment occurred. Current deployed app remains apps/catalog-frontend; catalog pilot PASS, full platform BLOCKED / NOT CERTIFIED.
+
+## Next exact actions
+1. Verify exact-head CI for the private-data boundary PR.
+2. Complete the V6 source inventory and run deterministic install/build in CI (with archive and lockfile pinned).
+3. Map every V6 entity and action to existing Supabase tables, RPCs, Edge Functions and authorization scopes.
+4. Integrate the first vertical slice into apps/catalog-frontend; keep existing production root and rollback baseline unchanged.
+5. Continue TODO/session updates after every independently tested slice.
+
+---
+
 # CURRENT HANDOFF — 2026-11-05 — Standalone V6 candidate review
 
 - Current deployed baseline remains `apps/catalog-frontend` on repository main, not the standalone root-level AI Studio V6 candidate.
