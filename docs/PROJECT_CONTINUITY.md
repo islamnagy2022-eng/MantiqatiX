@@ -1,3 +1,18 @@
+# CURRENT UPDATE — 2026-11-05 — Team 01 P0 current-schema preflight
+
+- Main baseline remains `218d4c768021fbc94d21ffd442b3fcdacd16e4f8`; deployed website source remains `apps/catalog-frontend`.
+- Team 01 register and canonical TODO/continuity/session-log synchronization are on [Draft PR #672](https://github.com/islamnagy2022-eng/MantiqatiX/pull/672), branch `docs/team-01-architecture-register-20261105`.
+- Previous PR head `001c75ea33382604221f5c63d0ca0f806731b01c` passed Module Professionalization, Backend-only Module Boundary, RC425 MantiGo Paymob Atomicity, MantiGO Open Ride Privacy and Pages validation. The PR-event deploy job was skipped. A new final-head validation is required after this preflight update.
+- Fresh read-only Supabase check on 2026-11-05: PostgreSQL 17.6.1.155, ACTIVE_HEALTHY, 309 migration rows through `20261101140105`, 0/42 exact required release IDs; all seven RC449A journal fields absent; neither journal RPC grants `service_role EXECUTE`; both RC463 trigger-only SECURITY DEFINER functions still allow direct execution to public roles.
+- The repository's replay snapshot is dated 2026-10-17, checkpoint `20261008222845`, 283 migrations, schema-only and no custom roles. It remains `PENDING_REVIEW`; it is not a current restorable baseline. The prior 76-migration replay does not close the current-schema restore gap.
+- Supabase branch inventory returned only the default `main` branch; no disposable development branch was created. No paid branch or project was created.
+- P0 status: current-schema restore `BLOCKED` until a restorable snapshot/approved environment exists; source/effect reconciliation `IN PROGRESS`; full chronological replay and rollback `WAIT`.
+- Cross-team follow-up: root `TODO_PRODUCTION.md` still labels PR #641's cover fallback as IN PROGRESS although PR #641 is merged; T02 must verify deployed visual behavior before marking VERIFIED. PR #669 and #671 remain separate team-owned candidates.
+- No Production DDL/DML, migration, GRANT/REVOKE, Auth/RLS change, Edge deployment, payment/finance action, merge or site deployment was performed.
+- Release: `CATALOG_PILOT_GATE=PASS`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
 # CURRENT UPDATE — 2026-11-05 — Team 01 PR opened
 
 - Team 01 request `TEAM01-20261105-01` is logged in Issue #599 (comment 6651234591).
