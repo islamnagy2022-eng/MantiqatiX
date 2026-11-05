@@ -1,3 +1,17 @@
+
+# CURRENT UPDATE — 2026-11-05 — TEAM01 alias reconciliation evidence
+
+- Read-only exact statement comparison now verifies two known aliases:
+  - RC424 source `20261009010000` matches the SQL stored under live ledger version `20261008222845` exactly (7,208 characters; source SHA `49f46e3e159e6306534adbf61f626901c2d73488`).
+  - Marketing-contact source `20261027100000` has the same blob as source/ledger version `20261027041411` (1,114 characters; SHA `1b85c341c0c9329e71f4fdbf36f2f852687994aa`), and its stored statement matches exactly.
+- Both effects were already marked verified in the reconciliation manifest; the manifest still says the production migration-history alias repair is pending and not applied. No ledger rows or SQL were changed.
+- Full P0-1 current schema/roles/ACL restore remains BLOCKED. P0-2 has verified these two aliases only; the remaining required migration identities/effects and physical object contracts are still open.
+- No Production DDL/DML, migration, ledger repair, grant, Auth/RLS change, Edge deployment, payment/finance operation or site deployment occurred.
+- PR #672 remains Ready for Review, unmerged; its next exact-head checks must pass after documentation updates.
+- Release remains `CATALOG_PILOT_GATE=PASS`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
 # CURRENT UPDATE — 2026-11-05 — Team 01 P0 current-schema preflight
 
 - Main baseline remains `218d4c768021fbc94d21ffd442b3fcdacd16e4f8`; deployed website source remains `apps/catalog-frontend`.
