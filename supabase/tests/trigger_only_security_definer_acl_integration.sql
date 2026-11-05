@@ -167,6 +167,7 @@ execute function public.assign_default_owner_to_unowned_business();
 -- Recover the observed live function and trigger definitions, then apply RC463 ACL hardening.
 -- This disposable PostgreSQL fixture is the only execution target for RC463 CI.
 \ir ../migrations/20261031100000_rc463_trigger_only_security_definer_acl.sql
+\ir ../migrations/20261105100000_rc463_trigger_acl_live_forward_repair.sql
 
 
 -- Execute actual backend DML as service_role after all direct EXECUTE grants
