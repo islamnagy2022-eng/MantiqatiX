@@ -21,7 +21,6 @@ interface Props {
   hasMoreListings: boolean;
   loadingMoreListings: boolean;
   listingsLoading: boolean;
-  parentGroupName?: string;
 }
 
 const sections: { id: Section; label: string; icon: React.ReactNode }[] = [
@@ -35,7 +34,7 @@ const Metric: React.FC<{ label: string; value: number; color: string }> = ({ lab
   <article className={`rounded-2xl border p-4 ${color}`}><p className="text-xs font-bold">{label}</p><p className="mt-2 text-2xl font-black">{value.toLocaleString('ar-EG')}</p></article>
 );
 
-export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, unconfirmedCount, onBack, businesses, listings, onOpenListing, onOpenBusiness, onDirectoryListingFiltersChange, onLoadMoreListings, hasMoreListings, loadingMoreListings, listingsLoading, parentGroupName }) => {
+export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, unconfirmedCount, onBack, businesses, listings, onOpenListing, onOpenBusiness, onDirectoryListingFiltersChange, onLoadMoreListings, hasMoreListings, loadingMoreListings, listingsLoading }) => {
   const [activeSection, setActiveSection] = useState<Section>('specialties');
   const specialtyFromUrl = new URLSearchParams(window.location.search).get('specialty');
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(specialtyFromUrl);
@@ -132,7 +131,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
   return (
     <main dir="rtl" className="mx-auto min-h-[70vh] max-w-7xl space-y-5 px-3 py-5 sm:px-6 sm:py-8">
       <header className="rounded-3xl bg-gradient-to-l from-slate-950 via-emerald-950 to-slate-900 p-5 text-white shadow-lg sm:p-8">
-        <button type="button" onClick={onBack} className="mb-5 inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-bold hover:bg-white/15"><ArrowRight className="h-4 w-4" /> {parentGroupName ? 'العودة إلى ' + parentGroupName : 'العودة إلى الأنشطة'}</button>
+        <button type="button" onClick={onBack} className="mb-5 inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-bold hover:bg-white/15"><ArrowRight className="h-4 w-4" /> العودة إلى الأنشطة</button>
         <p className="text-xs font-bold text-emerald-300">MantiqatiX / وحدة النشاط</p>
         <h1 className="mt-2 text-2xl font-black sm:text-4xl">{category.name}</h1>
         <p className="mt-2 max-w-3xl text-sm leading-7 text-white/75">{category.description || `الوحدة المستقلة لنشاط ${category.name} وتخصصاته والجهات العاملة فيه.`}</p>
@@ -174,7 +173,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
         </div>
 
         {selectedSpecialty && <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-          <div className="text-xs font-bold text-emerald-950">{parentGroupName ? parentGroupName + ' / ' : ''}{category.name} / {selectedSpecialty}</div>
+          <div className="text-xs font-bold text-emerald-950">{category.name} / {selectedSpecialty}</div>
           <button type="button" onClick={closeSpecialtyFolder} className="rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-black text-emerald-900 hover:bg-emerald-100">العودة إلى التخصصات</button>
         </div>}
 

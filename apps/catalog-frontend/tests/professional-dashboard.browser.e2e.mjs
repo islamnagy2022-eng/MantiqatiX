@@ -876,8 +876,7 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      // The dedicated directory route shows activity groups, not listing cards. Follow the public folder navigation.
-      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
+      // The directory presents activities directly; open the activity, then choose its specialty.
       await page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first().click();
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
@@ -1422,8 +1421,9 @@ try {
     const { context, page } = await newScenario(browser, null, [conflictingLegacyBusiness]);
     try {
       await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
-      const activitySection = page.locator('section[aria-label="المجموعات والأنشطة"]');
-      await activitySection.getByRole('button', { name: /الطب والصحة/ }).first().click();
+      const activitySection = page.getByTestId('directory-activities-section');
+      assert.equal(await activitySection.getByText('المجموعات الوظيفية', { exact: true }).count(), 0, 'the public directory must not insert a functional-groups navigation layer');
+      await activitySection.getByRole('button', { name: /صيدليات/ }).first().waitFor({ state: 'visible' });
       const activityGrid = activitySection.locator('.grid.grid-cols-3').first();
       const columnCount = await activityGrid.evaluate((element) =>
         getComputedStyle(element).gridTemplateColumns.split(' ').length
@@ -1454,23 +1454,20 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
       const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
       await activityCard.waitFor({ state: 'visible' });
       await activityCard.click();
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
       assert.equal(new URL(page.url()).searchParams.get('activity'), 'cat_medical_health_medical_practices', 'activity module route must be shareable and refreshable');
-      assert.equal(new URL(page.url()).searchParams.get('group'), 'medical_health', 'activity route must preserve its parent group folder across refreshes');
+      assert.equal(new URL(page.url()).searchParams.has('group'), false, 'activity route must not require an intermediate functional-group folder');
       await modulePage.getByRole('button', { name: 'التخصصات', exact: true }).click();
       await modulePage.getByRole('button', { name: /^باطنة/ }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px direct activity module');
       await page.reload({ waitUntil: 'domcontentloaded' });
       await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
-      await page.getByRole('button', { name: /العودة إلى الطب والصحة/ }).click();
-      await page.getByRole('heading', { name: 'الطب والصحة', exact: true }).waitFor({ state: 'visible' });
-      await page.getByRole('button', { name: 'كل المجموعات', exact: true }).click();
-      await page.getByRole('heading', { name: 'المجموعات الوظيفية', exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: 'العودة إلى الأنشطة', exact: true }).click();
+      await page.getByRole('heading', { name: 'الأنشطة والتخصصات', exact: true }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px direct activity return');
       results.push('direct-activity-module-route-refresh-specialty-and-back-navigation');
     } finally { await context.close(); }
@@ -1529,7 +1526,6 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
       await page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first().click();
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
