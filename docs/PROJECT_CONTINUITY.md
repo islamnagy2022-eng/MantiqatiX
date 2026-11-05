@@ -1,3 +1,23 @@
+# CURRENT HANDOFF — 2026-11-05 — V6 Auth membership contract checkpoint
+
+- **Canonical target:** AI Studio V6. Original archive SHA-256: `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`.
+- **Latest candidate:** `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r3.zip`; SHA-256 `51dcc932ab4e32b67a00482b1877054294a45647f231e29e064891e0354f6553`.
+- Added `src/services/authMembership.ts` for strict, explicit mapping from existing `api /api/v1/me` memberships to V6 session candidates. It checks authenticated user ID, preserves multiple candidates, and requires explicit business selection for tenant-level OWNER.
+- Global platform access requires exactly the live backend predicate: SUPER_ADMIN, no business/branch, permissions.scope=PLATFORM and full_control=true. The current read-only aggregate observed 33 active memberships, exactly one strict global super admin, and one tenant owner requiring business selection.
+- BUSINESS_OWNER / business-scoped OWNER / ADMIN / MANAGER map to a business-scoped subscriber candidate; CUSTOMER maps to customer; staff/provider/support roles remain unprivileged until dedicated V6 capabilities are implemented. None of this enables writes.
+- `AuthSession` now has optional server-resolved user/membership/tenant/organization/business/branch/backend-role/permissions fields. No UI role is hydrated from browser storage.
+- Tests 27/27 PASS; strict isolated TSC PASS for types, auth mapping and route policy; syntax transpilation 58 TS/TSX files, 0 errors; security audit and remediation checks PASS; r3 archive integrity and private-data exclusions PASS.
+- Auth SDK/login, lockfile update, session refresh, membership selection UI, full project build/E2E and shared writes are still not implemented/verified. Package install cannot run in this offline execution environment. Current website and production Supabase remain unchanged.
+- Release state: `V6_CANDIDATE_GATE=BLOCKED_PENDING_SDK_INSTALL_AUTH_AND_SHARED_BACKEND_INTEGRATION`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+## Permanent continuation rule
+When the user says **«كمل»**, resume the first actionable dependency-ordered item here and in `docs/MASTER_PRODUCTION_TODO.md`; preserve completed work and do not restart.
+
+## Next task
+Pin `@supabase/supabase-js@2.119.0` on a network-enabled runner and update the selected package lockfile; implement auth session lifecycle and compare the Auth user ID against `api /api/v1/me`; add a membership/business selector that never auto-selects an arbitrary membership. Then proceed with secure V6 profile and merchant dashboard data access.
+
+---
+
 # CURRENT HANDOFF — 2026-11-05 — V6 route guard and member-messaging safety checkpoint
 
 - **Canonical app:** Google AI Studio V6. Original archive SHA-256 `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`.
