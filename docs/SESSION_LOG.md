@@ -2052,3 +2052,14 @@ A separate source review found a second platform-root authorization model: the n
 - Effect identity for these two aliases is VERIFIED; exact source-version inventory still remains 0/42. This does not clear missing physical objects or any global release gate.
 - No Production writes, migration repair, grants/Auth/RLS changes, Edge deployments, payment/finance actions or public deployment occurred.
 - Updated the Team01 integration register, canonical Master TODO, current continuity handoff and session history on `docs/team-01-architecture-register-20261105`.
+
+
+
+## 2026-11-05 — TEAM01 cross-team TODO correction — Team 02 cover assets
+
+- Read the full current `TODO_PRODUCTION.md` (1,682 lines) and confirmed its opening PR #641 section was stale: PR #641 had already merged as `6e107164647453f7f8644b52db034f474f17f2cf`.
+- Verified PR #641 workflow `41286373956`: validation PASS; deploy SKIPPED for the PR event. Verified current-main Pages run `41970849104` on `218d4c768021fbc94d21ffd442b3fcdacd16e4f8`: build/validation, scoped deploy and deployed-origin browser checks PASS.
+- Read the current `DirectoryView.tsx` implementation. For unverified doctor/pharmacy entries, the image error handler recomputes and retries the same external image URL before using a generic placeholder on the second error. The inspected browser tests do not explicitly prove the default doctor/pharmacy image load/fallback path.
+- Corrected the root catalog TODO to show PR #641 merged and track the residual issue as `TEAM02-DIR-COVER-20261105-01 — IN PROGRESS / NOT VERIFIED`.
+- Required Team 02 work: bundled category-specific fallback, distinct local fallback on error with no same-URL retry, E2E for success/failure/no-loop/owner cover preservation, and deployed-origin visual/network verification.
+- No frontend code, public image asset, Production data/schema, Auth/RLS/GRANT, Edge Function, payment/finance or deployment was changed by Team 01.
