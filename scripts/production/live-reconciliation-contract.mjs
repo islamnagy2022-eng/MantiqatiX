@@ -14,7 +14,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261023050000", "20261023060000",
   "20261027030000", "20261027040000", "20261027050000",
   "20261027060000", "20261027070000", "20261027090000", "20261027093000",
-  "20261031100000",
+  "20261105100000",
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
@@ -113,7 +113,7 @@ const RC449A_VERSION = "20261010175000_rc449a_financial_journal_schema_prerequis
 const RC450_VERSION = "20261010180000_rc450_financial_journal_service_role_boundary";
 const FINANCIAL_JOURNAL_BACKEND_SIGNATURE = "post_financial_journal_backend(uuid,jsonb,jsonb)";
 const RC451_VERSION = "20261010200000";
-const RC463_VERSION = "20261031100000";
+const RC463_VERSION = "20261105100000";
 
 export function isLiveReconciliationVerified(reconciliation) {
   if (!reconciliation || typeof reconciliation !== "object") return false;
