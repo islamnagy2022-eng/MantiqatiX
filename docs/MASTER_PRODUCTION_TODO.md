@@ -1,3 +1,41 @@
+# 2026-11-05 — V6 Auth membership contract — safe role mapping groundwork
+
+**Latest candidate artifact in Library:** `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r3.zip`  
+**Candidate SHA-256:** `51dcc932ab4e32b67a00482b1877054294a45647f231e29e064891e0354f6553`  
+**Original AI Studio source SHA-256:** `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`
+
+## Completed in candidate r3
+- [x] Added `src/services/authMembership.ts` to validate the existing `api /api/v1/me` response and compare its user ID with the expected authenticated user ID.
+- [x] Added explicit membership-to-V6 role mapping. No first-membership auto-selection; multiple candidates remain separate choices.
+- [x] Strict Super Admin mapping matches live backend predicates: `SUPER_ADMIN`, no business or branch scope, `permissions.scope=PLATFORM`, `permissions.full_control=true`.
+- [x] Business-scoped `BUSINESS_OWNER/OWNER/ADMIN/MANAGER` candidates become subscriber-scoped UI sessions only with a tenant and business ID; all writes remain server-authorized.
+- [x] Tenant-level OWNER without business/branch receives `requiresBusinessSelection`, not a guessed business scope.
+- [x] CUSTOMER is mapped to customer-only UI; EMPLOYEE/STAFF/SERVICE_PROVIDER/SUPPORT/SUPPORT_MANAGER and unknown/incomplete roles remain unprivileged until a dedicated capability matrix exists.
+- [x] Extended V6 `AuthSession` with user/membership/tenant/organization/business/branch/backend-role/permission context. These values must be populated only from verified Auth + server membership responses.
+- [x] Recorded a live read-only role aggregate from `user_memberships`: 33 active memberships. Exactly one meets the strict global Super Admin predicate; one tenant OWNER needs explicit business selection.
+- [x] Added tests for valid/invalid role scopes, multi-membership choice, inactive records, user-ID mismatch, and session mapping.
+- [x] Saved the role mapping specification in `/MANTIQATIX/V6_AUTH_MEMBERSHIP_MAPPING_AR.md`.
+
+## Verification evidence
+- Focused tests: **27/27 PASS** (auth membership mapping, route policy, directory pagination, public catalog adapter, and security audit).
+- `V6_SOURCE_SECURITY_AUDIT=PASS`.
+- `V6_REMEDIATION_TESTS=PASS`.
+- Strict isolated TypeScript check including `AuthSession`, access policy and auth membership adapter: PASS.
+- Source syntax transpilation: **58 TypeScript/TSX files, 0 errors**.
+- Candidate ZIP integrity: PASS; SHA-256 recorded above; private snapshot, env file, node_modules and dist exclusions PASS.
+
+## Not implemented / not verified
+- Supabase Auth SDK is not installed; no lockfile was updated. The execution runner has no package-network access and npm cache has no `@supabase/supabase-js` artifact. Do not hand-author dependency resolution or claim the SDK is installed.
+- No sign-in/OTP/Google OAuth/session refresh/sign-out flow or membership picker UI is wired yet. The current app session remains guest by default.
+- Full npm install, project-wide semantic TypeScript, lint, Vite production build, browser E2E, accessibility and real-device PWA tests remain NOT VERIFIED.
+- No shared writes, finance/payment activation, data import, production DB/Auth/RLS/GRANT/migration/Edge change or deployment occurred.
+
+**Release state:** `V6_CANDIDATE_GATE=BLOCKED_PENDING_SDK_INSTALL_AUTH_AND_SHARED_BACKEND_INTEGRATION`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+**Next executable task:** on a network-enabled runner, pin `@supabase/supabase-js@2.119.0` (latest tag verified 2026-11-05), update the existing Bun lockfile with Bun or add a valid npm lockfile without discarding the existing manager setup, then implement Auth session lifecycle. After sign-in, compare `auth.getUser()` with the `api /api/v1/me` result, let the user select one valid membership, and only then hydrate `AuthSession`. Never infer a role from user metadata or browser storage.
+
+---
+
 # 2026-11-05 — V6 continuation — route guard, member messaging guard, and syntax repair
 
 **Latest candidate artifact in Library:** `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r2.zip`  
