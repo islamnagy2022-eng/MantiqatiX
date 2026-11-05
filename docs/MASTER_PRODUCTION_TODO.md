@@ -1,3 +1,15 @@
+# 2026-11-05 — V6 r4 Auth API adapter
+
+- Candidate: `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r4.zip`
+- SHA-256: `0f283fb6f3a64858f843d14388340f1b198fdec40ed0e2a5c317a350cd9f8787`.
+- Added `src/services/authMembershipApi.ts` to call the existing `/functions/v1/api/api/v1/me` Edge Function with the user's Bearer token and public Publishable key. It checks the returned user ID and delegates to the strict V6 membership mapper; it does not persist tokens or trust browser roles.
+- Focused tests: 21/21 PASS. Security audit and remediation verification PASS. ZIP integrity PASS.
+- Full npm test/build/typecheck/lint are not verified: `tsx` is absent and npm registry DNS returned EAI_AGAIN. No SDK or lockfile changes were made.
+- Next: install Supabase JS SDK on a network-enabled runner; wire Auth session lifecycle and explicit membership/business selection. Production and public deployment remain unchanged.
+- Release state: BLOCKED / NOT CERTIFIED.
+
+---
+
 # 2026-11-05 — V6 Supabase Auth gateway groundwork (candidate r4)
 
 **Candidate archive:** `MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r4.zip`  
