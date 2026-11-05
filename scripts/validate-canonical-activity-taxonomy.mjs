@@ -263,9 +263,9 @@ assert.ok(directory.includes('grid grid-cols-3 gap-2 lg:grid-cols-4 xl:grid-cols
 assert.ok(browserE2E.includes('canonical-activity-code-precedence-and-three-column-mobile-grid'), 'Browser E2E must verify canonical activity precedence and three activity columns at the mobile viewport.');
 assert.ok(directory.includes('sm:flex-row') && directory.includes('sm:text-right'), 'Activity cards must stack compactly on phones and return to horizontal layout on larger screens.');
 assert.ok(directory.includes('openActivityModule(category.id)'), 'Activity cards must navigate to the activity module route.');
-assert.ok(directory.includes('تصفية النتائج حسب:') && directory.includes('عرض كل أنشطة المجموعة'), 'Specialty filters must remain visible and reversible within the selected activity group.');
-assert.ok(directory.includes('availableGroups.map') && directory.includes('availableCategories.map'), 'Public directory must render group folders first and activities inside the selected group.');
-assert.ok(directory.includes('{group.name}') && directory.includes('{groupCategories.length} نشاط'), 'group-folder cards must retain their names and activity counts after activity-grid layout changes.');
+assert.ok(directory.includes('تصفية النتائج حسب:') && directory.includes('عرض كل الأنشطة'), 'Activity filters must remain visible and reversible in the direct activity directory.');
+assert.ok(directory.includes('availableCategories.map') && !directory.includes('availableGroups.map') && directory.includes('aria-label="الأنشطة والتخصصات"'), 'Public directory must render activity cards directly without group folders.');
+assert.ok(directory.includes('{category.name}') && directory.includes('فتح نشاط') && directory.includes('موثق') && directory.includes('غير موثق'), 'Direct activity cards must retain activity names and verified/unverified counts.');
 
 
 assert.ok(directory.includes('useState(20)') && directory.includes('filteredBusinesses.slice(0, visibleActivityCount)'), 'Main activity directory must initially render no more than 20 registered activities.');
