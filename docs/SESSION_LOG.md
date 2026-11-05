@@ -2014,3 +2014,17 @@ A separate source review found a second platform-root authorization model: the n
 - **Next action:** verify the latest security-remediated candidate archive digest/contents, reconcile the UI patch, then run the full candidate build/test gate on one immutable baseline.
 - **Release state:** `V6_CANDIDATE_GATE=BLOCKED_PENDING_BUILD_AND_BACKEND_INTEGRATION`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 
+
+## 2026-11-05 — V6 live Supabase contract inspection and test reconciliation
+
+- Verified original AI Studio V6 archive SHA-256 `ff5dae607ea876888068c7b66131bf12a1f1be0fd8a749f7690d311ce9cfe965`; ZIP test PASS; 150 entries.
+- Re-ran V6 security source audit PASS and remediation tests 2/2 PASS.
+- Re-ran full V6 utility tests using a custom TypeScript-aware Node loader: 49/49 PASS. Updated stale test expectations to require unavailable results for simulated load tests and sector-resolved default images.
+- Reconciled Team 02 UI patch: compatible directory/App updates were already present; retained hardened AdminDashboard because patch version reintroduced simulated metrics and falsely labelled the simulation result as approved.
+- Read-only Supabase inspection: 138 table objects including 137 public, 309 migrations, 42 active Edge Functions. Inspected current live functions and contracts for public catalog directory v17, directory listings v16, catalog admin v20 and catalog platform admin v23.
+- Added `docs/integration/AI_STUDIO_V6_SUPABASE_CONTRACT_MAP_AR.md` with schema/DTO mapping, endpoint behavior, auth/tenant/branch boundaries, and safe integration order.
+- `npm install` timed out. Therefore full semantic type check, lint, Vite build and Browser/E2E remain NOT VERIFIED.
+- No Production schema/data/Auth/RLS/GRANT/migration/Edge/payment/finance change or public cutover occurred.
+- Next task: create a sanitized, immutable V6 archive from the hardened working tree and record its own digest; then implement Auth/session and read-only Supabase adapters before enabling any shared writes.
+- Release state remains `V6_CANDIDATE_GATE=BLOCKED_PENDING_BUILD_AND_BACKEND_INTEGRATION`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
