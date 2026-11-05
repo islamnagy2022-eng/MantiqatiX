@@ -36,6 +36,8 @@ jobs:
           test -s dist/config.js
           test -d dist/assets
           grep -q '/MantiqatiX/assets/' dist/index.html
+      - name: Validate V6 private-data boundary
+        run: npm --prefix apps/catalog-frontend run validate:v6-boundary
       - name: Validate additive professional dashboard contract
         run: node scripts/validate-professional-dashboard.mjs
       - name: Validate additive subscriber account portal contract
