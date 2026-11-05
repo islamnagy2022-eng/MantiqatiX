@@ -11,6 +11,11 @@
 - [ ] Integrate V6 source incrementally into apps/catalog-frontend after feature/schema/API mapping; no candidate application source has been copied or replaced yet.
 - [x] Initial entity/API mapping completed; field-level mapping and authorization tests remain open.
 - [ ] Produce a dry-run-only report for private snapshot provenance/schema/duplicate relationships; no snapshot content was opened, uploaded or imported.
+- [ ] Remove/rotate credential-shaped literals found in V6 seedData.ts (Paymob merchant key and Google AI key); remove hardcoded admin password; treat as exposed until proven placeholders.
+- [ ] Disable default-enabled Paymob client config; keep all payment secrets server-only and payment disabled until sandbox E2E.
+- [ ] Remove unauthenticated file-backed /api/production-state GET/POST routes from any production server path; current server.ts binds 0.0.0.0 and has no auth boundary on these routes.
+- [ ] Replace commitCurrentDataAsOfficialLive false-success/local JSON snapshot flow; it currently marks local snapshot official and returns success even if remote persistence fails.
+- [ ] Replace hardcoded visitor fallback counts and unverified 100M/500k load claims with actual measured data or explicit unavailable/simulation labels.
 - [ ] Update feature parity and remove obsolete files only after dependency/import/build/test evidence.
 - **Safety:** no Production DB/schema/data/Auth/RLS/GRANT/Edge/payment/finance mutation, no deployment, and no public-site cutover. CATALOG_PILOT_GATE=PASS; FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED.
 - **Implementation branch:** feat/v6-canonical-integration-phase1-20261105; initial commits include the private-data boundary guard and CI workflow. The private-data workflow and primary Pages validation passed on exact head 074369301af127a2dd1de9c972749adc8a5eff66; broader V6 app tests remain NOT VERIFIED.
