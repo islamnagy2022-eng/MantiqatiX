@@ -107,3 +107,18 @@ The detailed read-only evidence is in [PRODUCTION_READ_ONLY_RECHECK_20261106.md]
 - PR #685 remains Draft and unmerged.
 - No Pages deployment or root cutover was performed.
 - No production Supabase migration, schema/data/Auth/RLS/GRANT, Edge Function, payment or finance mutation was performed.
+
+
+## Fresh exact-head validation update — 2026-11-06 15:22 UTC
+
+The branch head for this update was documentation-only commit `7788586cd2ac0e99db77bee40cfb2067095c3d76`; the validated application/source head remains `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`.
+
+All eight PR-triggered runs for `7788586cd2ac0e99db77bee40cfb2067095c3d76` completed successfully: Primary Catalog Frontend Validation [42242408931](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42242408931), V6 Preview Source Validation [42242408975](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42242408975), Pages [42242408959](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42242408959), Backend-only Module Boundary [42242408917](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42242408917), Module Professionalization [42242408999](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42242408999), RC425 MantiGo Paymob Atomicity [42242408979](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42242408979), MantiGO Open Ride Privacy Boundary [42242408949](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42242408949), and SMM Deferred Storefront Contract [42242409030](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42242409030).
+
+Primary Catalog build, employee/RBAC PostgreSQL and browser E2E all passed. Pages `validate` passed; `validate_public_only` and `deploy` were skipped for the PR event. The Preview therefore remains not deployed.
+
+Latest composed artifact [13516086964](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42242408959/artifacts/13516086964) contains 65 files and has SHA-256 `11a86555154213d64ccabdb9724b53323a72852ac34f358d2d6954f075f85e53`. ZIP integrity, V6-only bundle marker scan, shared public config check and root-not-cut-over check passed. The V6 module audit [13516241550](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42242408959/artifacts/13516241550) reports 73 source files inspected, 25 reachable, the legacy marker-bearing modules unreachable, zero suspicious bundle assets, zero unresolved local imports, and `CLEAN`.
+
+The current production read-only checkpoint is recorded in [PRODUCTION_READ_ONLY_RECHECK_20261106_1534UTC.md](PRODUCTION_READ_ONLY_RECHECK_20261106_1534UTC.md). This does not change the production gate: `BLOCKED / NOT CERTIFIED`.
+
+PR #685 remains OPEN / DRAFT / NOT MERGED. No Pages deployment, production DB/Auth/RLS/GRANT/Edge/payment/finance change, or root cutover occurred.

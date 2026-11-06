@@ -3746,3 +3746,38 @@ A separate source review found a second platform-root authorization model: the n
 - [x] CI follow-up (2026-11-06): first isolated V6 validation run `42175075986` identified 2 stale assertions. Added `scripts/patch-v6-release-test-contract.py` with anchor-checked, idempotent corrections; runtime code remains unchanged. Exact-head V6 Preview Source Validation run [`42187362986`](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/42187362986) on `8660dc34159038164f3287fdf1cae5b30514f85b` passed provenance/security, frozen install, release/remediation tests, complete TypeScript check, and isolated Preview build.
 
 - [x] V6 Preview browser E2E follow-up (2026-11-06): the first composed browser run found critical axe `select-name` on the governorate filter. Added a brace-aware, idempotent JSX source overlay and validated exact head `8660dc34159038164f3287fdf1cae5b30514f85b` in Pages run [`42187362930`](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/42187362930): browser E2E PASS, axe critical=0, one non-critical violation group. Composed artifact [`13487699470`](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/42187362930/artifacts/13487699470), SHA-256 `64395ec837ac10aa1acf56a30c5f972935802e93506e6446e62629498eeac8d7`. Pages deploy job was skipped on the PR event, so Preview is not yet live. Full platform production gate remains BLOCKED by migration drift and unverified finance/restore/Auth/Edge Function parity.
+
+
+---
+
+## V6 r5 Preview + production checkpoint — 2026-11-06 15:34 UTC
+
+**Request continuity:** continue the approved AI Studio V6 r5 path; do not restart or replace the existing catalog root.  
+**Branch / PR:** `feat/v6-r5-preview-foundation-20261106` / [#685](https://github.com/islamnagy2022-eng/MantiqaTix/pull/685) — OPEN / DRAFT / NOT MERGED.  
+**Current docs head at checkpoint:** `7788586cd2ac0e99db77bee40cfb2067095c3d76`.  
+**Validated application/source head:** `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`.
+
+### Completed / verified on this checkpoint
+
+- [x] V6 r5 remains a separate Preview at `/MantiqaTix/v6-preview/`; existing public catalog remains the root.
+- [x] Eight current PR-head CI workflows completed successfully; Primary Catalog build, employee/RBAC PostgreSQL and browser E2E all passed; V6 source validation passed.
+- [x] Pages composition validation passed. Deploy and public-only deployment jobs were skipped for the PR event; no public deploy occurred.
+- [x] Downloaded latest composed artifact [13516086964](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42242408959/artifacts/13516086964); ZIP integrity passed, 65 files, SHA-256 `11a86555154213d64ccabdb9724b53323a72852ac34f358d2d6954f075f85e53`.
+- [x] V6 public-bundle module audit: 73 source files, 25 reachable; two legacy marker-bearing modules unreachable; zero suspicious built assets; zero unresolved imports; CLEAN.
+- [x] Local artifact inspection confirmed V6 uses its own asset paths and shared public config; root HTML remains on current catalog bundle, not V6.
+- [x] Refreshed production read-only snapshot at 15:30–15:34 UTC: 309 ledger records through 20261101140105; 0/42 required exact IDs; 10 required columns and 3 critical table/index objects absent; six critical deployed Edge Functions differ byte-for-byte from source; advisors still flag leaked-password protection disabled.
+- [x] Manual classification of the three anonymous-executable SECURITY DEFINER advisor findings completed at source/catalog level. No broad revoke or policy edit was made.
+- [x] Recorded new evidence in [PRODUCTION_READ_ONLY_RECHECK_20261106_1534UTC.md](release/PRODUCTION_READ_ONLY_RECHECK_20261106_1534UTC.md).
+
+### Still open / not verified
+
+- [ ] Manual visual comparison of the Preview against the approved AI Studio r5 reference.
+- [ ] Genuine backup/restore rehearsal with RPO/RTO and rollback evidence.
+- [ ] Controlled isolated reconciliation of the 42 migration IDs, aliases, RC117/RC425–RC438 and RC449A/RC450 physical effects.
+- [ ] Coupled finance/payment/Paymob/webhook/idempotency/wallet/settlement E2E and six-function semantic parity review.
+- [ ] Function-by-function SECURITY DEFINER caller, ACL and search_path review; table-by-table anonymous/authenticated negative behavior.
+- [ ] Owner-side Auth leaked-password protection evidence and fresh advisor sign-off.
+- [ ] SMM anonymous/authenticated negative runtime tests; gateway remains deferred.
+- [ ] Explicit owner approval before merge, Pages deployment or root promotion.
+
+**Production boundary:** no production writes, migrations, schema/data/Auth/RLS/GRANT changes, Edge Function deployments, payment/finance operations, Pages deployment, or root cutover were made. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains.

@@ -2109,3 +2109,19 @@ A separate source review found a second platform-root authorization model: the n
 - Public first-launch scope: homepage, directory, search, specialties, activity pages, public catalog, products/services, allowed active prices and contact methods. Financial/payments/orders/wallet/messages/unfinished admin/merchant/stock/SMM/dev-server features remain hidden pending server contracts and tests.
 - No Preview/Production deployment, DB/Auth/RLS/GRANT/migration/Edge changes occurred in this planning pass. Full platform remains BLOCKED / NOT CERTIFIED.
 
+
+
+---
+
+## 2026-11-06 15:34 UTC — V6 r5 exact-head continuation and refreshed production audit
+
+- Continued the existing V6 r5 branch and PR #685; no new project or branch was created.
+- Latest docs head reviewed: `7788586cd2ac0e99db77bee40cfb2067095c3d76`; validated application/source head remains `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`.
+- Current PR-head CI: 8/8 workflows successful. Primary Catalog build, employee/RBAC PostgreSQL and browser E2E all passed; V6 source validation passed. Pages validation passed, but deployment jobs were skipped because the workflow was PR-triggered.
+- Downloaded and inspected composed Pages artifact #13516086964: 65 files, ZIP integrity PASS, SHA-256 `11a86555154213d64ccabdb9724b53323a72852ac34f358d2d6954f075f85e53`. V6 bundle audit is CLEAN; root remains on the existing catalog bundle. Preview is not deployed.
+- Refreshed live Supabase read-only checks: project ACTIVE_HEALTHY on PostgreSQL 17.6.1.155; 309 migrations through `20261101140105`; 0/42 required exact migration IDs present; 10 targeted columns and 3 critical table/index objects absent; 5-arg digital-page finalize RPC absent while 4-arg form remains and grants authenticated EXECUTE; six critical Edge Functions still differ from both main and feature-branch source.
+- Advisors: 94 findings (9 RLS-enabled/no-policy INFO, 3 anon-executable SECURITY DEFINER WARN, 67 authenticated-executable SECURITY DEFINER WARN, 90 anonymous-policy WARN, 1 leaked-password protection WARN). Three SECDEF functions were manually classified at catalog level; no automated bulk revocation or changes performed.
+- Connected Supabase branch inventory has only the default main branch. Prior disposable migration rehearsal #41914489055 passed 76 forward migrations and synthetic Tenant A/B isolation; backup/restore and payment/finance E2E are still NOT VERIFIED.
+- Detailed snapshot: [PRODUCTION_READ_ONLY_RECHECK_20261106_1534UTC.md](release/PRODUCTION_READ_ONLY_RECHECK_20261106_1534UTC.md).
+- Remaining priority: manual visual acceptance against AI Studio r5; controlled isolated schema/migration reconciliation; genuine restore/rollback and payment/finance tests; six-function parity; Auth and security sign-off.
+- No production database/Auth/RLS/GRANT/Edge/payment/finance mutation, Pages deployment, PR merge or root cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
