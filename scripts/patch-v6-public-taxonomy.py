@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Apply the public V6 Arabic healthcare-category mapping overlay.
+"""Apply deterministic Arabic public-directory taxonomy overlays to extracted V6 r5.
 
-The canonical AI Studio r5 archive stays immutable. This deterministic,
-idempotent overlay is applied only to the extracted public Preview worktree.
+The canonical AI Studio archive remains immutable. Only the extracted Preview
+worktree is patched, and every transformation is idempotent.
 """
 from __future__ import annotations
 
@@ -20,39 +20,61 @@ NEW_HEALTHCARE_RULE = (
     "if (/صحة|صحى|صحي|صيدل|طبي|عياد|مستشفى|معمل|تحاليل|health|medical|pharmacy|clinic|hospital|laborator|lab/.test(value)) "
     "return 'healthcare';"
 )
+SERVICES_RULE = (
+    "if (/خدمات|خدمة|service|services|booking|consult|استشار/.test(value)) return 'services';"
+)
 PHARMACY_ASSERTION = "  assert.equal(resolvePublicFunctionalGroup('صيدلية'), 'healthcare');"
-HEALTHCARE_ASSERTIONS = (
-    "  assert.equal(resolvePublicFunctionalGroup('صحة'), 'healthcare');\n"
-    "  assert.equal(resolvePublicFunctionalGroup('الرعاية الصحية والطبية'), 'healthcare');"
+REQUIRED_TEST_ASSERTIONS = (
+    "  assert.equal(resolvePublicFunctionalGroup('صحة'), 'healthcare');",
+    "  assert.equal(resolvePublicFunctionalGroup('الرعاية الصحية والطبية'), 'healthcare');",
+    "  assert.equal(resolvePublicFunctionalGroup('خدمات'), 'services');",
+    "  assert.equal(resolvePublicFunctionalGroup('خدمات صحية'), 'healthcare');",
 )
 
 
 def patch_source(source: str) -> tuple[str, bool]:
     old_count = source.count(OLD_HEALTHCARE_RULE)
-    new_count = source.count(NEW_HEALTHCARE_RULE)
-    if new_count == 1 and old_count == 0:
+    healthcare_count = source.count(NEW_HEALTHCARE_RULE)
+    services_count = source.count(SERVICES_RULE)
+
+    if old_count == 0 and healthcare_count == 1 and services_count == 1:
+        if source.index(NEW_HEALTHCARE_RULE) >= source.index(SERVICES_RULE):
+            raise ValueError("Healthcare mapping must precede general services mapping")
         return source, False
-    if old_count != 1 or new_count:
+
+    if old_count != 1 or healthcare_count or services_count:
         raise ValueError(
-            "Expected exactly one canonical healthcare resolver rule; "
-            f"old={old_count}, already_patched={new_count}"
+            "Expected one unpatched canonical healthcare rule; "
+            f"old={old_count}, healthcare={healthcare_count}, services={services_count}"
         )
-    patched = source.replace(OLD_HEALTHCARE_RULE, NEW_HEALTHCARE_RULE, 1)
-    if patched.count(NEW_HEALTHCARE_RULE) != 1:
-        raise ValueError("Healthcare resolver patch verification failed")
+
+    replacement = NEW_HEALTHCARE_RULE + "\n  " + SERVICES_RULE
+    patched = source.replace(OLD_HEALTHCARE_RULE, replacement, 1)
+    if patched.count(NEW_HEALTHCARE_RULE) != 1 or patched.count(SERVICES_RULE) != 1:
+        raise ValueError("Arabic public taxonomy replacement verification failed")
+    if patched.index(NEW_HEALTHCARE_RULE) >= patched.index(SERVICES_RULE):
+        raise ValueError("Healthcare mapping must precede general services mapping")
     return patched, True
 
 
 def patch_test(test_source: str) -> tuple[str, bool]:
-    if HEALTHCARE_ASSERTIONS in test_source:
-        return test_source, False
     if test_source.count(PHARMACY_ASSERTION) != 1:
         raise ValueError("Expected one existing pharmacy taxonomy assertion")
-    insertion = PHARMACY_ASSERTION + "\n" + HEALTHCARE_ASSERTIONS
-    patched = test_source.replace(PHARMACY_ASSERTION, insertion, 1)
-    if HEALTHCARE_ASSERTIONS not in patched:
-        raise ValueError("Healthcare taxonomy test insertion verification failed")
-    return patched, True
+
+    patched = test_source
+    changed = False
+    anchor = PHARMACY_ASSERTION
+    for assertion in REQUIRED_TEST_ASSERTIONS:
+        if assertion not in patched:
+            patched = patched.replace(anchor, anchor + "\n" + assertion, 1)
+            anchor = assertion
+            changed = True
+        else:
+            anchor = assertion
+
+    if any(assertion not in patched for assertion in REQUIRED_TEST_ASSERTIONS):
+        raise ValueError("Arabic public taxonomy regression assertions are incomplete")
+    return patched, changed
 
 
 def self_test() -> None:
@@ -60,17 +82,17 @@ def self_test() -> None:
     patched_source, source_changed = patch_source(source_fixture)
     assert source_changed is True
     assert NEW_HEALTHCARE_RULE in patched_source
-    same_source, source_changed_again = patch_source(patched_source)
-    assert source_changed_again is False
-    assert same_source == patched_source
+    assert SERVICES_RULE in patched_source
+    assert patched_source.index(NEW_HEALTHCARE_RULE) < patched_source.index(SERVICES_RULE)
+    same_source, changed_again = patch_source(patched_source)
+    assert changed_again is False and same_source == patched_source
 
     test_fixture = PHARMACY_ASSERTION + "\n"
     patched_test, test_changed = patch_test(test_fixture)
     assert test_changed is True
-    assert HEALTHCARE_ASSERTIONS in patched_test
+    assert all(assertion in patched_test for assertion in REQUIRED_TEST_ASSERTIONS)
     same_test, test_changed_again = patch_test(patched_test)
-    assert test_changed_again is False
-    assert same_test == patched_test
+    assert test_changed_again is False and same_test == patched_test
 
 
 def main() -> None:
@@ -88,24 +110,27 @@ def main() -> None:
         raise SystemExit("V6_PUBLIC_TAXONOMY_TARGET_MISSING")
 
     source, source_changed = patch_source(source_path.read_text(encoding="utf-8"))
-    test_source, test_changed = patch_test(test_path.read_text(encoding="utf-8"))
+    tests, tests_changed = patch_test(test_path.read_text(encoding="utf-8"))
 
     if source_changed:
         source_path.write_text(source, encoding="utf-8")
-    if test_changed:
-        test_path.write_text(test_source, encoding="utf-8")
+    if tests_changed:
+        test_path.write_text(tests, encoding="utf-8")
 
-    # Read-after-write verification makes repeated source preparation deterministic.
     verified_source, source_changed_again = patch_source(source_path.read_text(encoding="utf-8"))
-    verified_test, test_changed_again = patch_test(test_path.read_text(encoding="utf-8"))
-    if source_changed_again or test_changed_again:
+    verified_tests, tests_changed_again = patch_test(test_path.read_text(encoding="utf-8"))
+    if source_changed_again or tests_changed_again:
         raise SystemExit("V6_PUBLIC_TAXONOMY_OVERLAY_NOT_IDEMPOTENT")
-    if NEW_HEALTHCARE_RULE not in verified_source or HEALTHCARE_ASSERTIONS not in verified_test:
+    if (
+        NEW_HEALTHCARE_RULE not in verified_source
+        or SERVICES_RULE not in verified_source
+        or not all(assertion in verified_tests for assertion in REQUIRED_TEST_ASSERTIONS)
+    ):
         raise SystemExit("V6_PUBLIC_TAXONOMY_OVERLAY_VERIFY_FAILED")
 
     print(
         "V6_PUBLIC_TAXONOMY_OVERLAY=PASS "
-        f"source_changed={int(source_changed)} test_changed={int(test_changed)}"
+        f"source_changed={int(source_changed)} test_changed={int(tests_changed)}"
     )
 
 
