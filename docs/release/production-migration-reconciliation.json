@@ -2575,5 +2575,87 @@
     "journal_rpc_execute_for_anon_authenticated_service_role": false,
     "no_production_writes": true,
     "interpretation": "The listed active Edge versions match the earlier source-drift audit; this inventory alone does not prove current byte-for-byte source parity. All checks here were read-only."
+  },
+  "latest_read_only_physical_recheck_20261106_current_session": {
+    "checked_at": "2026-11-06 — current continuation pass",
+    "method": "Read-only Supabase list_migrations, information_schema/pg_catalog SELECT and Security Advisor; no Production writes.",
+    "project_status": "ACTIVE_HEALTHY",
+    "migration_ledger_count": 309,
+    "latest_migration_version": "20261101140105",
+    "missing_required_columns": 10,
+    "missing_required_column_names": [
+      "businesses.mnty_business_default_images",
+      "catalog_items.mnty_catalog_item_default_image",
+      "journal_entries.entry_number",
+      "journal_entries.posted_at",
+      "journal_entries.total_credit",
+      "journal_entries.total_debit",
+      "journal_entry_lines.line_number",
+      "marketing_services.image_source",
+      "marketing_services.image_url",
+      "marketing_services.mnty_marketing_service_default_image"
+    ],
+    "missing_required_objects_and_indexes": [
+      "mantigo_payment_provider_events",
+      "smm_wallet_transactions_reference_type_uidx",
+      "uq_payment_intents_one_active_per_order"
+    ],
+    "journal_rpc_execute": {
+      "post_financial_journal(jsonb,jsonb)": {
+        "anon": false,
+        "authenticated": false,
+        "service_role": false
+      },
+      "post_financial_journal_backend(uuid,jsonb,jsonb)": {
+        "anon": false,
+        "authenticated": false,
+        "service_role": false
+      }
+    },
+    "digital_page_finalizer": {
+      "present": "finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)",
+      "required_five_argument_provider_order_bound_signature": "absent"
+    },
+    "edge_functions": [
+      {
+        "slug": "order-create",
+        "version": 8,
+        "verify_jwt": true
+      },
+      {
+        "slug": "payment-intent",
+        "version": 8,
+        "verify_jwt": true
+      },
+      {
+        "slug": "paymob-webhook",
+        "version": 10,
+        "verify_jwt": false
+      },
+      {
+        "slug": "digital-page-payment-intent",
+        "version": 5,
+        "verify_jwt": true
+      },
+      {
+        "slug": "subscription-payment-intent",
+        "version": 4,
+        "verify_jwt": true
+      },
+      {
+        "slug": "financial-journal",
+        "version": 3,
+        "verify_jwt": true
+      }
+    ],
+    "security_advisor_lints": 94,
+    "security_advisor_counts": {
+      "RLS Enabled No Policy|INFO": 9,
+      "Public Can Execute SECURITY DEFINER Function|WARN": 3,
+      "Signed-In Users Can Execute SECURITY DEFINER Function|WARN": 67,
+      "Anonymous Access Policies|WARN": 90,
+      "Leaked Password Protection Disabled|WARN": 1
+    },
+    "production_effect": "NONE"
   }
 }
