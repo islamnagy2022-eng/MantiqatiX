@@ -159,13 +159,15 @@ try {
   console.log('V6_PREVIEW_DIRECTORY_PAGINATION=PASS initial=20 total=25 loaded=25');
   const unverifiedDot = page.getByTestId('unverified-status-dot');
   assert.equal(await unverifiedDot.count(), 1, 'The unverified listing must display exactly one red status dot');
-  const unverifiedName = page.getByText('نشاط غير موثق للاختبار', { exact: true });
-  const verifiedName = page.getByText('نشاط تجريبي للاختبار', { exact: true }).first();
-  const verifiedPrecedesUnverified = await verifiedName.evaluate(
+  const verifiedDirectoryEntry = page.getByRole('button', { name: /^نشاط تجريبي للاختبار موثق/ });
+  const unverifiedDirectoryEntry = page.getByRole('button', { name: /^نشاط غير موثق للاختبار/ });
+  assert.equal(await verifiedDirectoryEntry.count(), 1, 'Verified activity must be represented by one directory entry');
+  assert.equal(await unverifiedDirectoryEntry.count(), 1, 'Unverified activity must be represented by one directory entry');
+  const verifiedPrecedesUnverified = await verifiedDirectoryEntry.evaluate(
     (verified, unverified) => Boolean(verified.compareDocumentPosition(unverified) & Node.DOCUMENT_POSITION_FOLLOWING),
-    await unverifiedName.elementHandle(),
+    await unverifiedDirectoryEntry.elementHandle(),
   );
-  assert.equal(verifiedPrecedesUnverified, true, 'Verified activity must appear before the unverified listing in DOM order');
+  assert.equal(verifiedPrecedesUnverified, true, 'Verified activity must appear before the unverified directory entry');
   assert.equal(
     await unverifiedDot.evaluate((node) => node.parentElement?.innerText.trim() === 'غير موثق'),
     true,
