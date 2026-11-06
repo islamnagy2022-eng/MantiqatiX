@@ -166,7 +166,7 @@ def patch_directory(source: str) -> tuple[str, bool]:
 
 
 def self_test() -> None:
-    fixture = "\n".join([OLD_IMPORT, OLD_CONTEXT, OLD_COVER, OLD_MAIN])
+    fixture = "\n".join([OLD_IMPORT, OLD_CONTEXT, OLD_COVER, OLD_MAIN, OLD_GRID])
     patched, changed = patch_directory(fixture)
     assert changed is True
     assert "isBusinessVerified(business)" in patched
