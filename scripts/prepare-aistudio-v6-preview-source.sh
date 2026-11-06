@@ -16,9 +16,11 @@ tar -xJf "$PACK" -C "$WORKTREE"
 python3 "$ROOT/scripts/patch-v6-release-test-contract.py" "$WORKTREE"
 python3 "$ROOT/scripts/patch-v6-preview-accessibility.py" --self-test
 python3 "$ROOT/scripts/patch-v6-preview-accessibility.py" "$WORKTREE"
-for required in package.json bun.lock src/main.tsx src/App.tsx src/components/DirectoryView.tsx scripts/audit-v6-source-security.mjs scripts/verify-v6-remediation.mjs; do
+python3 "$ROOT/scripts/patch-v6-public-context-boundary.py" "$WORKTREE"
+for required in package.json bun.lock src/main.tsx src/App.tsx src/components/DirectoryView.tsx scripts/audit-v6-source-security.mjs scripts/verify-v6-remediation.mjs src/context/PublicAppContext.tsx src/utils/publicContact.ts src/utils/publicCatalog.ts; do
   test -f "$WORKTREE/$required" || { echo "V6_REQUIRED_FILE_MISSING=$required" >&2; exit 1; }
 done
+node "$ROOT/scripts/test-v6-public-context-boundary.mjs" "$WORKTREE"
 node "$WORKTREE/scripts/audit-v6-source-security.mjs" "$WORKTREE"
 node "$WORKTREE/scripts/verify-v6-remediation.mjs" "$WORKTREE"
 node --test "$WORKTREE/scripts/audit-v6-source-security.test.mjs"
