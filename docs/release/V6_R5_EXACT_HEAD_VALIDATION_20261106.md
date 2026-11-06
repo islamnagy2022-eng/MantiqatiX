@@ -1,100 +1,105 @@
 # V6 r5 exact-head validation and release boundary — 2026-11-06
 
-## Scope
+## Scope and current head
 
 - Repository: `islamnagy2022-eng/MantiqaTix`
 - Branch: `feat/v6-r5-preview-foundation-20261106`
-- Validated head: `8ae8dbef8d639742f67266fdb7f819932ee530ab`
+- Latest branch head at this snapshot: `9ec265cc4c27a84e1cfe9d05b37f9d2f2df5773c`
 - Pull request: [#685](https://github.com/islamnagy2022-eng/MantiqaTix/pull/685) — OPEN / DRAFT / NOT MERGED.
-- V6 source: canonical AI Studio r5 pack, isolated under `apps/aistudio-v6/worktree` during CI.
+- Canonical V6 source: AI Studio V6 r5, retained as an immutable source pack with SHA-256 provenance verification.
 - Preview base: `/MantiqaTix/v6-preview/`.
+- Existing catalog remains the production root.
 
-This record is a validation snapshot. It does not authorize a merge, deployment, production-root replacement, or production database/Auth/Edge/payment/finance change.
+This record is a validation snapshot. It does not authorize merge, Pages deployment, root cutover, or production database/Auth/Edge/payment/finance changes.
 
-## Exact-head CI results
+## Exact-head CI — 9ec265c
 
-Every workflow run listed below reports the same head SHA `8ae8dbef8d639742f67266fdb7f819932ee530ab`; every executed job completed successfully.
+All eight workflow runs below report the exact same head SHA `9ec265cc4c27a84e1cfe9d05b37f9d2f2df5773c`. Every executed job completed successfully.
 
 | Workflow | Run | Result |
 |---|---:|---|
-| V6 Preview Source Validation | [42218706885](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42218706885) | PASS |
-| Deploy MantiqaTix Web — validation only | [42218706915](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42218706915) | validate PASS; deploy SKIPPED |
-| Primary Catalog Frontend Validation | [42218706895](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42218706895) | build, 32-journey browser E2E, employee/RBAC PostgreSQL PASS |
-| SMM Deferred Storefront Contract | [42218706881](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42218706881) | PASS |
-| Backend-only Module Boundary | [42218707047](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42218707047) | approval/audit PostgreSQL, RC450 integration and source boundary PASS |
-| MantiGO Open Ride Privacy Boundary | [42218706921](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42218706921) | PASS |
-| RC425 MantiGo Paymob Atomicity | [42218706957](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42218706957) | PASS |
-| Module Professionalization Validation | [42218706868](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42218706868) | matrimony privacy PostgreSQL, RC451 targeted-ads search-path and source validation PASS |
+| Primary Catalog Frontend Validation | [42231328016](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42231328016) | Build/typecheck, employee/RBAC PostgreSQL, professional-dashboard browser E2E — PASS |
+| V6 Preview Source Validation | [42231328658](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42231328658) | Source preparation, security audit and remediation tests — PASS |
+| Pages validation | [42231328166](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42231328166) | validate PASS; public-only and deploy jobs SKIPPED for PR event |
+| Backend-only Module Boundary | [42231328184](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42231328184) | Approval/audit PostgreSQL, RC450 integration and source validation — PASS |
+| Module Professionalization Validation | [42231328049](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42231328049) | Matrimony privacy PostgreSQL, RC451 targeted-ads search-path and source validation — PASS |
+| RC425 MantiGo Paymob Atomicity | [42231328002](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42231328002) | PASS |
+| MantiGO Open Ride Privacy Boundary | [42231328262](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42231328262) | PASS |
+| SMM Deferred Storefront Contract | [42231328036](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42231328036) | PASS |
 
-### V6 browser and accessibility evidence
+The separate catalog build and professional-dashboard browser checks both passed on this exact head. This closes the earlier pending Playwright job.
 
-- Desktop and 390px mobile browser E2E: `V6_PUBLIC_PREVIEW_BROWSER_E2E=PASS`.
+## V6 browser, accessibility and composed artifact
+
+Pages validation on exact head `9ec265c` recorded:
+
+- `V6_PREVIEW_BUILD=PASS`.
+- Desktop and mobile public-preview browser E2E: `V6_PUBLIC_PREVIEW_BROWSER_E2E=PASS`.
 - Axe: `critical=0`; zero non-critical violation groups.
-- Governorate select has an accessible Arabic name.
-- Guest login button contrast overlay is applied.
-- The composed artifact is [13502616838](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42218706915/artifacts/13502616838).
-- Artifact SHA-256: `22e59a0231f1e662810c7124de303378fcd70cbb93b4e31af026d8b56174eb34`.
-- The ZIP was downloaded and passed `unzip -t`; its local SHA-256 matched the recorded GitHub artifact digest.
-- The V6 JS bundle did not contain the deprecated visible labels `المجموعات الوظيفية`, `المجالات الوظيفية`, or `كل المجموعات`. Specialty-filter strings are present. The full activity-to-specialty interaction still requires a visual acceptance pass.
+- The governorate selector has an accessible Arabic name.
+- The guest login button contrast correction is included.
+- Composed Pages artifact: [13510725102](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42231328166/artifacts/13510725102).
+- Artifact SHA-256: `a900395d35738ee7ba2fc9f75bcaf33434ee61c755e9797f2297734b3e9efa9d`.
+- ZIP integrity check passed locally; the artifact contains `v6-preview/index.html` and the expected JS/CSS assets.
+- Pages deployment was SKIPPED for the pull-request event. This artifact is validated but is not a live public Preview.
 
-### Primary catalog browser evidence
+## Public bundle separation — OPEN RELEASE BLOCKER
 
-The primary catalog browser run ended with `PRIMARY_CATALOG_BROWSER_E2E=PASS` across 32 named journeys. Coverage included:
+A new source-to-bundle ownership audit was added and run on the exact head. The audit is intentionally informational at this stage and does not claim the public bundle is clean.
 
-- 20+20+remaining pagination, server cursor pagination and geographic scoping.
-- Medical directory filters and route/history behavior.
-- Verified-first storefront rendering and product catalogues for Sameh Market and Burger Fakher.
-- Explicit verified/unverified state and responsive layouts.
-- Guest denial, owner/employee/branch authorization scope, employee view-only and unsupported-role denial.
-- Admin route authorization, activity module controls, Super Admin tabs and account portal access.
-- GPS consent/denial behavior, permanent store links and QR code paths.
+Exact audit output:
 
-Isolated employee/RBAC PostgreSQL behavior tests also passed. These tests do not certify every production tenant or all production RLS behavior.
+- Source files inspected: 69.
+- Reachable source files from `src/main.tsx`: 28.
+- Suspicious reachable source modules: 2.
+  - `src/context/AppContext.tsx` — legacy demo fixture marker `prod_demo_` and admin-wallet label.
+  - `src/utils/rules.ts` — wallet/admin markers including `wallet_admin_main`, `wallet_biz_`, `wallet_sub_`, and `admin_root`.
+- Suspicious built JS assets: 1 — `v6-preview/assets/index-BtfVEenx.js`, 523,373 bytes.
+- Audit result: `V6_PUBLIC_BUNDLE_HYGIENE_STATUS=FOLLOW_UP_REQUIRED`.
+- No unresolved local imports were reported by the audit.
+- No Supabase service-role credential was found in the inspected V6 bundle.
 
-## Public bundle follow-up — open
+The source review artifact [13508511083](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42231328166/artifacts/13508511083) was downloaded and inspected. It confirms the public `App.tsx` entry statically imports `AppProvider` from the monolithic `context/AppContext.tsx`; that provider imports broad legacy seed, wallet, admin and enterprise rule modules. The current public UI does not render those administrative screens, but their implementation and synthetic demo markers remain reachable and included in the public JavaScript.
 
-Static inspection of the V6-only built JavaScript found legacy wallet/order/admin implementation strings and hard-coded demonstration wallet/product data (including a synthetic admin wallet fixture). This code was not rendered by the tested public shell. No Supabase service-role credential was found in the V6 JavaScript.
+Required source-level remediation before public Preview publication:
 
-This is recorded as a **bundle-separation and demo-data hygiene issue**, not as evidence of a live credential leak or real financial data exposure. Before public Preview publication:
+1. Introduce a dedicated public-shell context/provider containing only public directory reads, navigation, storefront selection, and the existing verified Supabase OTP/membership flow.
+2. Move the public UI components (`DirectoryView`, `Navbar`, `MedicalDirectoryView`, `ContactUsView`, `BusinessProfileHeader`, `CatalogSection`, and `LoginModal`) to the minimal public context contract.
+3. Remove public-shell imports of the monolithic legacy `AppContext.tsx` and `utils/rules.ts`. Extract only required pure formatting/filter/contact helpers into small public-safe modules; do not copy wallet/order/admin behavior.
+4. Preserve the canonical r5 source archive unchanged. Apply reviewed overlays only to the extracted worktree and preserve provenance checks.
+5. Add a blocking bundle regression test that fails if known wallet/admin/demo-fixture markers or private-shell modules appear in any `v6-preview/assets/*.js` file.
+6. Re-run exact-head source security audit, TypeScript, release tests, desktop/mobile browser E2E and axe. Require zero forbidden bundle markers before changing the public-preview release gate.
 
-1. Inspect the r5 source imports and identify the modules that pull unused administrative, wallet, order and demo-fixture code into the public entry chunk.
-2. Exclude those modules from the public build using source-level separation/tree-shaking or route-level dynamic imports, without deleting the canonical source pack or weakening authorization.
-3. Add a bundle-level test that inspects only `v6-preview/assets/*.js` and rejects the known demo fixtures and forbidden private-shell code.
-4. Re-run source security audit, release tests, TypeScript, desktop/mobile browser E2E and axe on the new exact head.
+Do not solve this by merely hiding UI routes, removing marker strings, or weakening authorization. Do not delete the canonical source archive.
 
-The current source pack remains immutable; do not rewrite it. Apply reviewed overlays to the extracted worktree and preserve SHA-256 provenance.
+## Production gate — separate from V6 UI validation
 
-## Production gate — separate from UI validation
-
-The production-verification artifact attached to Pages run `42218706915` was captured in `source_contract` mode. It reported:
+The exact-head Pages artifact includes a `source_contract` verification report generated at `2026-11-06T14:09:30Z`:
 
 - 32 PASS, 0 FAIL, 0 PARTIAL, 1 BLOCKED, 0 NOT VERIFIED.
 - `production_gate=BLOCKED`.
-- Required release-migration ledger check: 42 expected versions, 0 recorded in the report's ledger comparison. Refresh this evidence from the current production state before taking any action; source presence is not proof of application.
-- Required-object reconciliation reported multiple absent or blocked RC425–RC438 and RC113/RC117 objects.
-- Payment/finance E2E and backup/restore rehearsal: NOT VERIFIED.
-- Six critical live Edge Function entrypoints had source parity drift: `order-create`, `payment-intent`, `paymob-webhook`, `digital-page-payment-intent`, `subscription-payment-intent`, and `financial-journal`.
-- Financial journal prerequisites RC449A/RC450 and required columns/service-role execution were not verified as applied.
+- The blocked item is the live production migration/schema/Edge reconciliation; source presence is not proof of application.
+- The report identifies 42 required release migration versions with 0 recorded under its exact version-identity comparison. Known aliases and physical effects must be reconciled independently; do not rewrite migration history.
+- Payment/finance E2E and backup/restore rehearsal remain NOT VERIFIED.
+- Six critical live Edge Function entrypoints differ from `main`: `order-create`, `payment-intent`, `paymob-webhook`, `digital-page-payment-intent`, `subscription-payment-intent`, and `financial-journal`.
+- Financial-journal prerequisites RC449A/RC450, required columns, RPC signature and service-role execution remain unresolved in production.
 - Auth leaked-password/security settings require owner-dashboard evidence.
-- SMM gateway remains intentionally deferred; anonymous/authenticated negative runtime tests are unverified.
-- Two migration aliases remain pending controlled resolution. The RC424 alias was compared by exact statement bytes; preserve the applied ledger version and never rewrite migration history.
+- SMM gateway remains intentionally deferred until anonymous/authenticated negative runtime tests are recorded.
 
-The report also records a prior chronological replay and synthetic Tenant A/B isolation rehearsal as PASS. Those isolated results do not certify the live production database.
+The detailed read-only snapshot is in [PRODUCTION_READ_ONLY_RECHECK_20261106.md](PRODUCTION_READ_ONLY_RECHECK_20261106.md). No production writes were made. Do not apply migrations or deploy coupled payment/finance Edge Functions from this state.
 
-### Required safe next sequence
+## Required safe continuation
 
-1. Refresh read-only production migration-ledger, physical-object and Edge Function version evidence. Do not apply migrations.
-2. Build a disposable restore rehearsal from a verified backup and replay the exact forward migration sequence chronologically.
-3. Resolve migration aliases only through documented, evidence-backed forward reconciliation; never edit historical migration files or ledger rows casually.
-4. Run payment/finance E2E, webhook idempotency, wallet/settlement and rollback tests in the isolated environment.
-5. Compare all six live Edge Function versions and contracts against main; do not deploy individual payment functions while schema/grant parity is unresolved.
-6. Obtain owner-dashboard evidence for Auth security settings and complete restore/DR rehearsal.
+1. Complete the V6 public-context and bundle separation work described above, then require a clean bundle audit on the new exact head.
+2. Preserve the current catalog root and keep V6 isolated under `/MantiqaTix/v6-preview/`.
+3. Refresh read-only production migration-ledger, physical-object, RPC/ACL and Edge Function evidence before planning any production repair.
+4. Perform a disposable restore rehearsal and chronological forward-migration replay in an isolated environment.
+5. Run payment/finance, webhook idempotency, wallet/settlement and rollback tests only in that isolated environment.
+6. Obtain owner-dashboard evidence for Auth security settings and complete DR/restore validation.
 7. Keep full production release BLOCKED until every required live check has current evidence.
 
 ## Release boundary
 
-- Existing catalog root remains unchanged.
-- V6 stays in the separate `/MantiqaTix/v6-preview/` subpath.
-- Pull request #685 remains Draft and unmerged.
-- Pages deploy job was skipped for the pull-request run; artifact validation is not a live deployment.
-- No production Supabase migration, schema/data/Auth/RLS/GRANT, Edge Function, payment, finance, or root-cutover action was performed.
+- PR #685 remains Draft and unmerged.
+- No Pages deployment or root cutover was performed.
+- No production Supabase migration, schema/data/Auth/RLS/GRANT, Edge Function, payment or finance mutation was performed.
