@@ -95,11 +95,11 @@ try {
         return {
           id: businessId,
           slug: `v6-preview-business-${number}`,
-          name: number === 1 ? 'نشاط تجريبي للاختبار' : number === 2 ? 'نشاط اختباري فريد 2' : number === 4 ? 'صيدلية اختبار 4' : `نشاط تجريبي رقم ${number}`,
+          name: number === 1 ? 'نشاط تجريبي للاختبار' : number === 2 ? 'نشاط اختباري فريد 2' : number === 4 ? 'صيدلية اختبار 4' : number === 25 ? 'نشاط غير موثق للاختبار' : `نشاط تجريبي رقم ${number}`,
           category: ['متاجر', 'مطاعم', 'خدمات', 'صحة'][index % 4],
           operationallyAvailable: true,
           selectedBranchId: branchId,
-          provider: { kind: 'retail', verified: true, description: 'بيانات اختبار للعرض العام.' },
+          provider: { kind: 'retail', verified: number !== 25, description: 'بيانات اختبار للعرض العام.' },
           profile: {
             governorate: 'القاهرة',
             markaz: 'مدينة نصر',
@@ -136,6 +136,17 @@ try {
   await loadMore.click();
   assert.equal(await activityCards.count(), 25, 'Load more must reveal the remaining five activities');
   console.log('V6_PREVIEW_DIRECTORY_PAGINATION=PASS initial=20 total=25 loaded=25');
+  const unverifiedCard = activityCards.last();
+  assert.match(await unverifiedCard.innerText(), /نشاط غير موثق للاختبار/, 'Unverified activity must remain after verified activities');
+  assert.match(await unverifiedCard.innerText(), /غير موثق/, 'Unverified activity must expose its status label');
+  assert.equal(await unverifiedCard.getByTestId('unverified-status-dot').count(), 1, 'Unverified activity must display the red status dot');
+  assert.doesNotMatch(await activityCards.first().innerText(), /غير موثق/, 'Verified activities must appear before the unverified activity');
+  console.log('V6_PREVIEW_VERIFICATION_SORT=PASS verified_first=true unverified_last=true red_dot=true');
+  await page.getByRole('button', { name: 'غير موثق', exact: true }).click();
+  assert.equal(await activityCards.count(), 1, 'Unverified-only filter must return exactly the unverified test activity');
+  assert.match(await activityCards.first().innerText(), /نشاط غير موثق للاختبار/);
+  await page.getByRole('button', { name: 'الكل', exact: true }).click();
+  assert.equal(await activityCards.count(), 20, 'Clearing verification filter must reset to the first 20 of 25 activities');
   await resetScrollForScreenshot(page);
   const cardBounds = await activityCards.evaluateAll((cards) => cards.map((card) => {
     const rect = card.getBoundingClientRect();
