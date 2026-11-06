@@ -18,9 +18,9 @@ NEW_BLOCK = """  const businesses = payload.businesses
     // Stable sort: verified activities first; retain server ranking within each status group.
     .sort((left, right) => Number(right.isVerified) - Number(left.isVerified));
 """
-TEST_MARKER = "test('orders verified businesses before unverified listings while preserving each group\'s source order'"
+TEST_MARKER = "test('orders verified businesses before unverified listings while preserving group order'"
 TEST_BLOCK = """
-test('orders verified businesses before unverified listings while preserving each group\'s source order', async () => {
+test('orders verified businesses before unverified listings while preserving group order', async () => {
   const makeBusiness = (id, name, verified) => ({
     id,
     name,
