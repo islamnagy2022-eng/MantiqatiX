@@ -125,6 +125,8 @@ OLD_MAIN = """      <main className="mx-auto max-w-7xl space-y-8 px-4 py-8">"""
 NEW_MAIN = """      <LivePublishedCatalogStrip items={liveCatalogItems} currency="ج.م" onOpenBusiness={openBusiness} />
 
       <main className="mx-auto max-w-7xl space-y-8 px-4 py-8">"""
+OLD_GRID = '          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">'
+NEW_GRID = '          <div data-testid="directory-activity-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">'
 
 
 def replace_once(text: str, old: str, new: str, label: str) -> tuple[str, bool]:
@@ -147,6 +149,7 @@ def patch_directory(source: str) -> tuple[str, bool]:
         (OLD_CONTEXT, NEW_CONTEXT, "public product context"),
         (OLD_COVER, NEW_COVER, "live published product selection"),
         (OLD_MAIN, NEW_MAIN, "live product strip placement"),
+        (OLD_GRID, NEW_GRID, "directory activity grid test scope"),
     ]:
         source, did_change = replace_once(source, old, new, label)
         changed = changed or did_change
@@ -155,6 +158,7 @@ def patch_directory(source: str) -> tuple[str, bool]:
         "isBusinessVerified(business)",
         "Number.isFinite(product.price)",
         "<LivePublishedCatalogStrip",
+        'data-testid="directory-activity-grid"',
     ]
     if any(marker not in source for marker in required):
         raise ValueError("Live published catalog overlay acceptance markers are incomplete")
