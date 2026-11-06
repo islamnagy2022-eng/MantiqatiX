@@ -140,7 +140,7 @@ try {
   assert.equal(await activityCards.count(), 20, 'Clearing directory search must reset visible results to the first 20 of 25');
   assert.equal(await page.getByRole('button', { name: /رؤية المزيد/ }).count(), 1, 'Load more must return after clearing search');
   console.log('V6_PREVIEW_DIRECTORY_SEARCH=PASS');
-  await page.getByRole('button', { name: 'صحة', exact: true }).click();
+  await page.getByRole('button', { name: /صحة\s+\d+\s+نشاط/ }).click();
   await page.getByRole('heading', { name: 'تخصصات: صحة' }).waitFor();
   await page.getByRole('button', { name: 'صيدليات ومستلزمات وخدمة 24 ساعة' }).click();
   await page.getByText('صيدلية اختبار 4', { exact: true }).waitFor();
