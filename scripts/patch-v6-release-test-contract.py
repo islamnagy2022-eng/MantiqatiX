@@ -71,11 +71,18 @@ replace_test(
 
 directory_view = root / "src/components/DirectoryView.tsx"
 directory_source = directory_view.read_text(encoding="utf-8")
-select_anchor = "<select\\n              value={selectedGovFilter}"
-select_replacement = '<select\\n              aria-label="تصفية الأنشطة حسب المحافظة"\\n              value={selectedGovFilter}'
 if 'aria-label="تصفية الأنشطة حسب المحافظة"' not in directory_source:
-    if select_anchor not in directory_source:
-        raise SystemExit("V6_DIRECTORY_GOVERNORATE_SELECT_ANCHOR_NOT_FOUND")
-    directory_view.write_text(directory_source.replace(select_anchor, select_replacement, 1), encoding="utf-8")
+    select_pattern = re.compile(r"<select\\b[^>]*>", re.DOTALL)
+    candidates = [match for match in select_pattern.finditer(directory_source)
+                  if not re.search(r"\\b(?:aria-label|aria-labelledby|title)\\s*=", match.group(0))]
+    if not candidates:
+        if "<select" not in directory_source:
+            raise SystemExit("V6_DIRECTORY_SELECT_NOT_FOUND")
+    else:
+        target = candidates[0]
+        opening = target.group(0)
+        replacement = opening.replace("<select", '<select aria-label="تصفية الأنشطة حسب المحافظة"', 1)
+        directory_source = directory_source[:target.start()] + replacement + directory_source[target.end():]
+        directory_view.write_text(directory_source, encoding="utf-8")
 
 print("V6_RELEASE_PREVIEW_CONTRACT_PATCH=PASS")
