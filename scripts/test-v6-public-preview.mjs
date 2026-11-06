@@ -165,6 +165,18 @@ try {
     console.log('V6_VISUAL_CAPTURE=desktop-activity-profile');
   }
 
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobileProfileOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+  assert.equal(mobileProfileOverflow, false, 'Mobile activity profile must not overflow horizontally');
+  for (const productName of ['منتج تجريبي', 'منتج إضافي 2', 'منتج إضافي 3']) {
+    await page.getByText(productName, { exact: true }).waitFor();
+  }
+  console.log('V6_PREVIEW_MOBILE_ACTIVITY_PROFILE=PASS products=3');
+  if (screenshotDir) {
+    await page.screenshot({ path: path.join(screenshotDir, 'v6-mobile-activity-profile.png'), fullPage: true, animations: 'disabled' });
+    console.log('V6_VISUAL_CAPTURE=mobile-activity-profile');
+  }
+
   await page.getByRole('button', { name: 'الدليل الطبي' }).click();
   await page.getByRole('heading', { name: 'الأطباء والعيادات والصيدليات' }).waitFor();
   await page.getByRole('button', { name: 'تواصل معنا' }).click();
