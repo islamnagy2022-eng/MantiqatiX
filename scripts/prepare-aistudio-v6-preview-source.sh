@@ -14,6 +14,8 @@ rm -rf "$WORKTREE"
 mkdir -p "$WORKTREE"
 tar -xJf "$PACK" -C "$WORKTREE"
 python3 "$ROOT/scripts/patch-v6-release-test-contract.py" "$WORKTREE"
+python3 "$ROOT/scripts/patch-v6-public-taxonomy.py" --self-test
+python3 "$ROOT/scripts/patch-v6-public-taxonomy.py" "$WORKTREE"
 python3 "$ROOT/scripts/patch-v6-preview-accessibility.py" --self-test
 python3 "$ROOT/scripts/patch-v6-preview-accessibility.py" "$WORKTREE"
 python3 "$ROOT/scripts/patch-v6-public-context-boundary.py" "$WORKTREE"
