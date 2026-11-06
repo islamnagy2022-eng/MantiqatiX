@@ -17,12 +17,11 @@ NEW_MARKUP = """{!verified && (
                           </span>
                         )}"""
 
-OLD_CARD_MARKUP = "                  key={biz.id}\\n"
+OLD_CARD_MARKUP = "                  key={biz.id}\n"
 NEW_CARD_MARKUP = (
-    "                  key={biz.id}\\n"
-    '                  data-testid="directory-activity-card"\\n'
+    "                  key={biz.id}\n"
+    '                  data-testid="directory-activity-card"\n'
 )
-
 
 
 def replace_once(source: str, old: str, new: str, label: str) -> tuple[str, bool]:
