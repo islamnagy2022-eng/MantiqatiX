@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Apply the V6 public-directory unverified red-dot indicator overlay."""
+"""Apply V6 verification red-dot status and stable activity-card test hooks."""
 from __future__ import annotations
 
 import sys
@@ -17,31 +17,44 @@ NEW_MARKUP = """{!verified && (
                           </span>
                         )}"""
 
+OLD_CARD_MARKUP = """                  key={biz.id}
+                  className={`bg-white rounded-3xl border shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-xl transition-all group relative ${"""
+NEW_CARD_MARKUP = """                  key={biz.id}
+                  data-testid="directory-activity-card"
+                  className={`bg-white rounded-3xl border shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-xl transition-all group relative ${"""
 
-def patch(source: str) -> tuple[str, bool]:
-    old_count = source.count(OLD_MARKUP)
-    new_count = source.count(NEW_MARKUP)
-    marker_count = source.count('data-testid="unverified-status-dot"')
-    if old_count == 0 and new_count == 1 and marker_count == 1:
+
+def replace_once(source: str, old: str, new: str, label: str) -> tuple[str, bool]:
+    old_count = source.count(old)
+    new_count = source.count(new)
+    if old_count == 0 and new_count == 1:
         return source, False
-    if old_count != 1 or new_count or marker_count:
+    if old_count != 1 or new_count:
         raise ValueError(
-            "Expected exactly one canonical unverified badge; "
-            f"old={old_count}, new={new_count}, test_markers={marker_count}"
+            f"Expected exactly one canonical {label} markup; old={old_count}, new={new_count}"
         )
-    updated = source.replace(OLD_MARKUP, NEW_MARKUP, 1)
-    if updated.count(NEW_MARKUP) != 1 or updated.count('data-testid="unverified-status-dot"') != 1:
-        raise ValueError("Unverified red-dot indicator verification failed")
-    if 'aria-hidden="true"' not in NEW_MARKUP or "غير موثق" not in NEW_MARKUP:
-        raise ValueError("Unverified status must keep an accessible text label and decorative dot")
+    updated = source.replace(old, new, 1)
+    if updated.count(new) != 1:
+        raise ValueError(f"{label} markup replacement verification failed")
     return updated, True
 
 
+def patch(source: str) -> tuple[str, bool]:
+    updated, badge_changed = replace_once(source, OLD_MARKUP, NEW_MARKUP, "unverified badge")
+    updated, card_changed = replace_once(updated, OLD_CARD_MARKUP, NEW_CARD_MARKUP, "activity card test id")
+    if 'aria-hidden="true"' not in NEW_MARKUP or "غير موثق" not in NEW_MARKUP:
+        raise ValueError("Unverified status must keep an accessible text label and decorative dot")
+    if 'data-testid="directory-activity-card"' not in updated:
+        raise ValueError("Activity card test hook is missing")
+    return updated, badge_changed or card_changed
+
+
 def self_test() -> None:
-    fixture = "prefix\n" + OLD_MARKUP + "\nsuffix\n"
+    fixture = "prefix\n" + OLD_CARD_MARKUP + "\n" + OLD_MARKUP + "\nsuffix\n"
     updated, changed = patch(fixture)
     assert changed is True
     assert 'data-testid="unverified-status-dot"' in updated
+    assert 'data-testid="directory-activity-card"' in updated
     assert 'bg-red-600' in updated and 'غير موثق' in updated
     again, changed_again = patch(updated)
     assert changed_again is False and again == updated
@@ -65,8 +78,11 @@ def main() -> None:
         target.write_text(updated, encoding="utf-8")
 
     verified, changed_again = patch(target.read_text(encoding="utf-8"))
-    if changed_again or 'data-testid="unverified-status-dot"' not in verified:
+    if changed_again:
         raise SystemExit("V6_UNVERIFIED_RED_DOT_OVERLAY_NOT_IDEMPOTENT")
+    for marker in ('data-testid="unverified-status-dot"', 'data-testid="directory-activity-card"'):
+        if marker not in verified:
+            raise SystemExit(f"V6_VERIFICATION_INDICATOR_VERIFY_FAILED={marker}")
     print(f"V6_UNVERIFIED_RED_DOT_OVERLAY=PASS changed={int(changed)}")
 
 
