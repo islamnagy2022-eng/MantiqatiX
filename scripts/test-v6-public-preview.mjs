@@ -103,13 +103,25 @@ try {
     if (critical.length) {
       const details = critical.flatMap((item) => item.nodes.map((node) => ({
         rule: item.id,
+        impact: item.impact,
         target: node.target,
         html: node.html,
         summary: node.failureSummary,
       })));
       throw new Error(`V6_PREVIEW_A11Y_CRITICAL=${JSON.stringify(details)}`);
     }
-    console.log(`V6_PREVIEW_A11Y: ${axe.violations.length} non-critical violation group(s); critical=0`);
+    const nonCritical = axe.violations.filter((item) => item.impact !== 'critical');
+    if (nonCritical.length) {
+      const details = nonCritical.flatMap((item) => item.nodes.map((node) => ({
+        rule: item.id,
+        impact: item.impact,
+        target: node.target,
+        html: node.html,
+        summary: node.failureSummary,
+      })));
+      console.log(`V6_PREVIEW_A11Y_NONCRITICAL=${JSON.stringify(details)}`);
+    }
+    console.log(`V6_PREVIEW_A11Y: ${nonCritical.length} non-critical violation group(s); critical=0`);
   }
   assert.deepEqual(errors, [], `Browser runtime errors: ${errors.join('; ')}`);
   console.log('V6_PUBLIC_PREVIEW_BROWSER_E2E=PASS');
