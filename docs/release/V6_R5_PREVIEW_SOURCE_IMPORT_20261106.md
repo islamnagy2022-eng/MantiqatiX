@@ -2,7 +2,7 @@
 
 ## Source provenance
 - Canonical candidate ZIP SHA-256: `0e868efefbacd5cf3ec4c07a558230ce5cdfbbbdab64416182bc9a59f3acd429`.
-- Public MVP tar.xz source pack SHA-256: `76e1187918a6a907133399cfe06afec63c41c76d90e60e4ef9bc936f5993eeed`.
+- Public MVP tar.xz source pack SHA-256: `adf203b85cb039d27a18e76691377eb35f00c8f213adf44f07aa34779d41409e`.
 - The source pack is stored in five base64 parts and reconstructed/digest-checked by CI.
 - Source security audit and remediation verification: PASS; security audit tests: 2/2 PASS.
 
