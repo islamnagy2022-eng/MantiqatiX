@@ -1505,3 +1505,19 @@ Read-only semantic comparison of all six critical live Edge Functions against cu
 - V6 application/source head: `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`.
 - CI was automatically re-triggered for the documentation-only head. Do not attribute the completed 5915 test results to b66 until the new exact-head runs finish.
 - PR #685 remains OPEN / DRAFT / NOT MERGED; no merge, Pages deployment, root cutover or Production change occurred.
+
+
+---
+
+## Continuity checkpoint — 2026-11-06 18:31 UTC
+
+- Development branch: `feat/v6-r5-preview-foundation-20261106`; PR #685 OPEN / DRAFT / NOT MERGED.
+- Latest fully tested code commit: `a7df3493460c77a28ef117ec9716bb369cf684a0`; canonical V6 source head remains `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`.
+- Exact-head CI: **9/9 workflows PASS**. Primary Catalog build/TypeScript, isolated employee/RBAC PostgreSQL and browser E2E passed across 32 named journeys. V6 source validation, Pages composition validation, backend-only module boundary, module professionalization, RC425 Paymob atomicity, MantiGO privacy and SMM deferred contract all passed.
+- Isolated migration replay #42271053737 applied 76 ordered migrations through `20261101150000` from a schema-only checkpoint. RC117, owner-profile, RC455/RC456 and Tenant A/B reciprocal data-isolation checks passed. This is not a genuine backup/restore rehearsal.
+- Multi-activity Preview screenshot artifact #13529541408, SHA-256 `100e45ffb0ec0a77605f11cfdf535355367238457c9ea1a8bb5d66ad5081b7d5`. Four synthetic activities are visible in the desktop directory; 390px mobile captures four readable vertical cards with no horizontal overflow. Axe critical=0 and non-critical=0.
+- Composed Pages artifact #13529311825: 65 files, SHA-256 `8afbbd7ed4f429b9afaf06d9bb418705a7a07f8be606740fc4e7a7864aa3779f`. Root remains the existing catalog; V6 remains isolated under `v6-preview/`. Pages deploy job was SKIPPED for the PR event.
+- Exact-head workflow links: Pages #42271053674; Primary Catalog #42271054041; migration replay #42271053737; V6 Source #42271053707; Backend Boundary #42271053695; Professionalization #42271053761; Paymob Atomicity #42271053881; MantiGO Privacy #42271053709; SMM #42271053662.
+- The fresh Production blocker snapshot remains the 17:38 UTC read-only report: 309 migration rows, ten missing required columns, three missing objects/indexes, six critical Edge Function drifts, journal RPC ACL gap, four-argument rather than required five-argument digital-page finalizer, disabled leaked-password protection and 94 advisor lints.
+- Next: genuine backup/restore rehearsal; coupled finance/payment/Edge E2E; RLS/SECURITY DEFINER review and negative tests; owner-side Auth security evidence; SMM negative runtime tests; paired original r5 visual reference acceptance.
+- No Production mutation, merge, Pages deployment or root promotion occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
