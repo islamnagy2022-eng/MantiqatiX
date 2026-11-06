@@ -12,10 +12,10 @@ from pathlib import Path
 
 LABEL = "تصفية الأنشطة حسب المحافظة"
 SELECT_WITH_GOVERNORATE_OPTION = re.compile(
-    r"(<select\\b[^>]*>)(?:(?!</select>).)*?كل المحافظات(?:(?!</select>).)*?</select>",
+    r"(<select\b[^>]*>)(?:(?!</select>).)*?كل المحافظات(?:(?!</select>).)*?</select>",
     re.IGNORECASE | re.DOTALL,
 )
-ARIA_LABEL = re.compile(r"""\\baria-label\\s*=\\s*(["']).*?\\1""", re.IGNORECASE)
+ARIA_LABEL = re.compile(r"""\baria-label\s*=\s*(["']).*?\1""", re.IGNORECASE)
 
 
 def patch_text(source: str) -> tuple[str, int]:
