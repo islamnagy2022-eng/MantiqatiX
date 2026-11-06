@@ -13,7 +13,7 @@
 
 ## سجل التنفيذ — إطلاق V6
 
-- [ ] P0: إنشاء `apps/aistudio-v6` من r5 النظيف، مع بصمة ثابتة وتدقيق أسرار/بيانات.
+- [ ] P0: إنشاء `apps/aistudio-v6` من r5 النظيف. **تم إنجاز التحقق التمهيدي:** SHA-256 مطابق، ZIP سليم (103 ملفًا)، `V6_SOURCE_SECURITY_AUDIT=PASS`، `V6_REMEDIATION_TESTS=PASS`، واختبارات تدقيق الأمان 2/2 PASS. **المتبقي:** إدخال الملفات إلى المستودع على فرع مبني من main، ثم إعادة فحص الاستثناءات بعد الإدخال.
 - [ ] P1: تثبيت الاعتماديات من lockfile الصحيح، Vite base على `/MantiqatiX/v6-preview/`، ثم lint/tests/build في GitHub Actions.
 - [ ] P2: إبقاء الدليل العام read-only من Edge Function الحقيقية وإخفاء المسارات المحلية أو غير المرتبطة.
 - [ ] P3: إضافة `v6-preview/` إلى Artifact Pages الحالي مع بقاء الجذر الحالي.
