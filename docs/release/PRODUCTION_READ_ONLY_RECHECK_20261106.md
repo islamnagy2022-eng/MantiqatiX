@@ -138,3 +138,69 @@ This addendum supersedes the earlier in-file snapshot time for the specific chec
 This read-only check does not apply migrations or prove that source effects are present. Preserve the historical migration ledger and the two confirmed aliases; do not insert synthetic versions or replay alias duplicates. Production remains `BLOCKED / NOT CERTIFIED`.
 
 No production migration, schema/data write, Auth/RLS/GRANT change, Edge deployment, payment, wallet or finance operation occurred.
+
+
+---
+
+## Targeted read-only Production refresh — 2026-11-06 18:33 UTC
+
+All statements below are based on read-only Supabase inventories, advisor output and SQL `SELECT` queries. No Production write was executed.
+
+### Platform and migration inventory
+- Project status: `ACTIVE_HEALTHY`; PostgreSQL `17.6.1.155`.
+- Live migration ledger: **309** records through `20261101140105 directory_source_permission_evidence`.
+- Exact comparison against the 42 required release migration identifiers: **0/42 present**. This is version-identity evidence; it does not prove every physical effect is absent. Preserve the two already confirmed aliases and do not fabricate ledger rows or replay duplicates.
+
+### Targeted physical preflight
+The ten required columns are still absent:
+- `businesses.mnty_business_default_images`
+- `catalog_items.mnty_catalog_item_default_image`
+- `journal_entries.entry_number`
+- `journal_entries.posted_at`
+- `journal_entries.total_credit`
+- `journal_entries.total_debit`
+- `journal_entry_lines.line_number`
+- `marketing_services.image_source`
+- `marketing_services.image_url`
+- `marketing_services.mnty_marketing_service_default_image`
+
+The three required table/index objects remain absent:
+- `mantigo_payment_provider_events`
+- `smm_wallet_transactions_reference_type_uidx`
+- `uq_payment_intents_one_active_per_order`
+
+Both `post_financial_journal(jsonb,jsonb)` and `post_financial_journal_backend(uuid,jsonb,jsonb)` exist, but effective EXECUTE is false for `anon`, `authenticated`, and `service_role`. RC449A/RC450 remain unrecorded. The digital-page production finalizer remains the older four-argument signature; the five-argument provider-order-bound contract is still absent.
+
+### Active critical Edge versions
+The six critical Production functions remain ACTIVE at:
+- `order-create v8`
+- `payment-intent v8`
+- `paymob-webhook v10` (`verify_jwt=false`, webhook route)
+- `digital-page-payment-intent v5`
+- `subscription-payment-intent v4`
+- `financial-journal v3`
+
+This current inventory confirms active versions only; it does not replace the previously recorded byte-for-byte source-drift findings. Keep the six-function release coupled and blocked.
+
+### Security Advisor and policy triage
+The security Advisor returned 94 lint records: 9 RLS-enabled/no-policy INFO, 3 public-executable SECURITY DEFINER WARN, 67 signed-in SECURITY DEFINER WARN, 90 anonymous-access-policy WARN, and 1 leaked-password-protection WARN.
+
+Additional read-only catalog checks found:
+- Zero rows in `auth.users` with `is_anonymous=true`.
+- 19 explicit `anon/public` policies, 483 `authenticated` policies and 485 total public-schema policies (some policies apply to multiple roles).
+- The three anon-executable SECURITY DEFINER functions are:
+  - `assign_default_owner_to_unowned_business()`: trigger-only; attached to enabled `businesses.trg_assign_default_owner_to_unowned_business`.
+  - `capture_commission_rule_audit()`: trigger-only; attached to enabled `commission_rules.trg_commission_rules_audit`.
+  - `get_mnty_targeted_advertisements(...)`: intended public read, limited to active/approved targeted or global advertisements and a maximum result limit of 50; empty search_path.
+- The two trigger-only routines remain wider in their effective EXECUTE ACL than desired, but they return `trigger` and are not ordinary RPC entrypoints. Any ACL hardening must first be tested against actual trigger execution in the isolated database.
+- Zero anonymous users does not prove the Auth anonymous-sign-in setting is disabled. Owner-dashboard evidence is still required.
+- Do not treat Advisor warning counts as vulnerability counts, and do not mass-revoke SECURITY DEFINER grants or blanket-remove public policies.
+
+### Release status
+- Backup creation, genuine data restore, Storage/Auth recovery, measured RPO/RTO and rollback rehearsal remain NOT VERIFIED.
+- Payment/finance/Paymob/webhook/settlement E2E remains NOT VERIFIED.
+- SECURITY DEFINER and RLS adversarial negative tests remain incomplete.
+- Leaked-password protection remains disabled / owner-side confirmation pending.
+- No Production migration, data/schema/Auth/RLS/GRANT change, Edge deployment, payment/finance operation or Pages deployment occurred.
+
+`FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
