@@ -158,7 +158,7 @@ export function inspectV6PublicBundle(root) {
     suspiciousSourceModules: sourceHits,
     suspiciousBundleAssets: bundleHits,
     unresolvedLocalImports: unresolved,
-    status: bundleHits.length === 0 ? 'CLEAN' : 'FOLLOW_UP_REQUIRED',
+    status: bundleHits.length === 0 && !sourceHits.some((item) => item.reachable) ? 'CLEAN' : 'FOLLOW_UP_REQUIRED',
   };
 }
 
