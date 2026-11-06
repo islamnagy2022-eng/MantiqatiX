@@ -102,7 +102,7 @@ NEW_IMPORT = OLD_IMPORT + "\nimport { LivePublishedCatalogStrip } from './common
 OLD_CONTEXT = """    directoryBusinesses: businesses,
     directoryStatus,"""
 NEW_CONTEXT = """    directoryBusinesses: businesses,
-    directoryProducts: products,
+    directoryProducts,
     directoryStatus,"""
 OLD_COVER = """  const [coverIndex, setCoverIndex] = useState(0);
   const currentCover = PUBLIC_HOME_COVER_SLIDES[coverIndex];
@@ -151,7 +151,7 @@ def patch_directory(source: str) -> tuple[str, bool]:
         source, did_change = replace_once(source, old, new, label)
         changed = changed or did_change
     required = [
-        "directoryProducts: products",
+        "directoryProducts,",
         "isBusinessVerified(business)",
         "Number.isFinite(product.price)",
         "<LivePublishedCatalogStrip",
