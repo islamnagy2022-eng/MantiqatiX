@@ -1535,3 +1535,15 @@ Read-only semantic comparison of all six critical live Edge Functions against cu
 - Manifest `docs/release/production-migration-reconciliation.json` now records the current isolated replay #42271053737 and 18:33 UTC read-only findings. Replay remains a schema-checkpoint rehearsal, not a genuine backup/data restore.
 - Next: complete backup/data restore and RPO/RTO; test trigger ACL changes in isolation; close six-function payment/finance/Edge E2E; perform RLS/SECURITY DEFINER negative tests; obtain owner-side Auth settings proof.
 - No Production write, migration, grant, Auth/RLS setting change, Edge deployment, payment/finance operation, Pages deployment, merge or root cutover occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## Continuation handoff — 2026-11-06 20:50 UTC
+
+- Branch `feat/v6-r5-preview-foundation-20261106`, PR #685 OPEN / DRAFT / NOT MERGED.
+- Exact latest tested code/test head: `a420d355239e0d895e48a74de69a61d0f1223c7f`; exact-head CI 9/9 PASS. Full run IDs and test evidence are appended to `docs/MASTER_PRODUCTION_TODO.md` and `docs/SESSION_LOG.md`.
+- V6 Preview browser E2E and axe passed, including verified-first sorting, red unverified dot, verification filters, 20+5 pagination, medical specialty filter, multi-product catalog, mobile profile/pagination and CORS. Primary catalog 32-journey E2E and employee/RBAC PostgreSQL passed.
+- Isolated schema checkpoint replay passed 76 migrations through `20261101150000`, including RC117, owner-profile, RC455/RC456 and Tenant A/B isolation. Do not describe this as a genuine data backup/restore rehearsal.
+- Preview remains at `/MantiqaTix/v6-preview/`; root remains current catalog. PR Pages deployment was skipped; nothing was deployed or promoted.
+- Production blocker reference is the 18:33 UTC read-only snapshot: 309 migration rows, 0/42 exact required migration IDs, ten missing columns, three missing objects/indexes, two journal RPC ACL gaps and six critical Edge-function drifts. Re-read live state before any release decision; do not assume this snapshot is current beyond its timestamp.
+- Next work order: (1) paired original r5 visual parity evidence; (2) genuine backup/data + Storage/Auth restore rehearsal with measured RPO/RTO/rollback; (3) six-function coupled payment/finance/webhook E2E and Edge parity; (4) per-object SECURITY DEFINER/ACL and anonymous/authenticated negative RLS tests; (5) owner-side Auth settings evidence; (6) SMM negative runtime tests. Keep the release gate blocked until all required gates and explicit approval are complete.
+- No Production mutation, merge, Pages deploy, or root cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
