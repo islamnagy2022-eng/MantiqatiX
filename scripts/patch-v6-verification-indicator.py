@@ -27,7 +27,8 @@ NEW_CARD_MARKUP = (
 def replace_once(source: str, old: str, new: str, label: str) -> tuple[str, bool]:
     old_count = source.count(old)
     new_count = source.count(new)
-    if old_count == 0 and new_count == 1:
+    # The replacement may itself contain the old anchor as a prefix (card key line).
+    if new_count == 1:
         return source, False
     if old_count != 1 or new_count:
         raise ValueError(
