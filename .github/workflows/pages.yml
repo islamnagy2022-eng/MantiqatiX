@@ -69,7 +69,7 @@ jobs:
           path: /tmp/v6-public-bundle-module-audit.json
           if-no-files-found: warn
       - name: Upload V6 public-bundle source modules for targeted review
-        if: always()
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: v6-public-bundle-source-review-${{ github.run_id }}
