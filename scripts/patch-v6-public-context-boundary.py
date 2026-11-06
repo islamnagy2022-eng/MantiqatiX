@@ -469,6 +469,15 @@ replacements = {
     ],
 }
 
+
+seed_source_path = ROOT / "src/data/seedData.ts"
+seed_source = seed_source_path.read_text(encoding="utf-8")
+medical_match = re.search(r"export const DEFAULT_MEDICAL_SPECIALTIES: MedicalSpecialty\\[\\] = \\[.*?^\\];", seed_source, re.MULTILINE | re.DOTALL)
+if not medical_match:
+    raise SystemExit("V6_MEDICAL_SPECIALTY_SOURCE_NOT_FOUND")
+medical_source = "import type { MedicalSpecialty } from '../types';" + chr(10) * 2 + medical_match.group(0) + chr(10)
+write_exact(ROOT / "src/data/medicalSpecialties.ts", medical_source)
+
 for relative, pairs in replacements.items():
     path = ROOT / relative
     if not path.exists():
