@@ -10,10 +10,13 @@ if [[ "$ACTUAL" != "$EXPECTED" ]]; then
   echo "V6_SOURCE_PACK_SHA256_MISMATCH expected=$EXPECTED actual=$ACTUAL" >&2
   exit 1
 fi
+rm -rf "$WORKTREE"
 mkdir -p "$WORKTREE"
 tar -xJf "$PACK" -C "$WORKTREE"
 python3 "$ROOT/scripts/patch-v6-release-test-contract.py" "$WORKTREE"
-for required in package.json bun.lock src/main.tsx src/App.tsx scripts/audit-v6-source-security.mjs scripts/verify-v6-remediation.mjs; do
+python3 "$ROOT/scripts/patch-v6-preview-accessibility.py" --self-test
+python3 "$ROOT/scripts/patch-v6-preview-accessibility.py" "$WORKTREE"
+for required in package.json bun.lock src/main.tsx src/App.tsx src/components/DirectoryView.tsx scripts/audit-v6-source-security.mjs scripts/verify-v6-remediation.mjs; do
   test -f "$WORKTREE/$required" || { echo "V6_REQUIRED_FILE_MISSING=$required" >&2; exit 1; }
 done
 node "$WORKTREE/scripts/audit-v6-source-security.mjs" "$WORKTREE"
