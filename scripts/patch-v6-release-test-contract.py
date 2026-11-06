@@ -69,4 +69,13 @@ replace_test(
     "ensureBusinessStaticImages assigns sector-specific default logo",
 )
 
-print("V6_RELEASE_TEST_CONTRACT_PATCH=PASS")
+directory_view = root / "src/components/DirectoryView.tsx"
+directory_source = directory_view.read_text(encoding="utf-8")
+select_anchor = "<select\\n              value={selectedGovFilter}"
+select_replacement = '<select\\n              aria-label="تصفية الأنشطة حسب المحافظة"\\n              value={selectedGovFilter}'
+if 'aria-label="تصفية الأنشطة حسب المحافظة"' not in directory_source:
+    if select_anchor not in directory_source:
+        raise SystemExit("V6_DIRECTORY_GOVERNORATE_SELECT_ANCHOR_NOT_FOUND")
+    directory_view.write_text(directory_source.replace(select_anchor, select_replacement, 1), encoding="utf-8")
+
+print("V6_RELEASE_PREVIEW_CONTRACT_PATCH=PASS")
