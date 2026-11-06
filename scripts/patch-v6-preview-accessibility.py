@@ -11,8 +11,8 @@ import sys
 from pathlib import Path
 
 LABEL = "تصفية الأنشطة حسب المحافظة"
-SELECT_START = re.compile(r"<select\\b")
-ARIA_LABEL = re.compile(r"""\\baria-label\\s*=\\s*(["']).*?\\1""", re.IGNORECASE)
+SELECT_START = re.compile(r"<select\b")
+ARIA_LABEL = re.compile(r"""\baria-label\s*=\s*(["']).*?\1""", re.IGNORECASE)
 CLOSE_SELECT = "</select>"
 
 
@@ -28,7 +28,7 @@ def governorate_select_span(source: str) -> tuple[int, int]:
         while index < len(source):
             char = source[index]
             if quote is not None:
-                if char == "\\\\":
+                if char == chr(92):
                     index += 2
                     continue
                 if char == quote:
