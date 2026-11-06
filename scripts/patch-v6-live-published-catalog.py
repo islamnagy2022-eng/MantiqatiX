@@ -125,8 +125,11 @@ OLD_MAIN = """      <main className="mx-auto max-w-7xl space-y-8 px-4 py-8">"""
 NEW_MAIN = """      <LivePublishedCatalogStrip items={liveCatalogItems} currency="ج.م" onOpenBusiness={openBusiness} />
 
       <main className="mx-auto max-w-7xl space-y-8 px-4 py-8">"""
-OLD_GRID = '          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">'
-NEW_GRID = '          <div data-testid="directory-activity-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">'
+OLD_GRID = """                  key={biz.id}
+                  className={`bg-white rounded-3xl border shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-xl transition-all group relative ${"""
+NEW_GRID = """                  key={biz.id}
+                  data-testid="directory-activity-card"
+                  className={`bg-white rounded-3xl border shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-xl transition-all group relative ${"""
 
 
 def replace_once(text: str, old: str, new: str, label: str) -> tuple[str, bool]:
@@ -158,7 +161,7 @@ def patch_directory(source: str) -> tuple[str, bool]:
         "isBusinessVerified(business)",
         "Number.isFinite(product.price)",
         "<LivePublishedCatalogStrip",
-        'data-testid="directory-activity-grid"',
+        'data-testid="directory-activity-card"',
     ]
     if any(marker not in source for marker in required):
         raise ValueError("Live published catalog overlay acceptance markers are incomplete")
