@@ -76,7 +76,9 @@ try {
   }
 
   await page.getByRole('button', { name: /عرض النشاط/ }).click();
-  await page.getByRole('heading', { name: 'نشاط تجريبي للاختبار' }).waitFor();
+  const activityHeadings = page.getByRole('heading', { name: 'نشاط تجريبي للاختبار', exact: true });
+  assert.ok(await activityHeadings.count() >= 1, 'Activity profile heading must be rendered');
+  await activityHeadings.first().waitFor();
   await page.getByText('منتج تجريبي', { exact: true }).waitFor();
   const profileBody = await page.locator('body').innerText();
   assert.equal(profileBody.includes('إضافة للسلة'), false);
