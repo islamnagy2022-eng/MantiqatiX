@@ -3,7 +3,7 @@
 **القرار:** إظهار V6 أولًا على Preview تحت `/MantiqatiX/v6-preview/` مع بقاء جذر الموقع الحالي كما هو؛ ثم نقل V6 إلى الجذر بعد قبول Preview. لا ننتظر اكتمال المالية والمدفوعات وكل الوحدات قبل إطلاق الدليل العام.
 
 - مصدر r5 النظيف: `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r5.zip`; SHA-256 `0e868efefbacd5cf3ec4c07a558230ce5cdfbbbdab64416182bc9a59f3acd429`.
-- نسخة Public MVP في المستودع: `apps/aistudio-v6/source-r5-preview.tar.xz`; SHA-256 `6f674e95cdaddd28cb21795a05d8ad5b34c4b7b5d606d335af0556fb1fa2e7e5`.
+- نسخة Public MVP في المستودع: `apps/aistudio-v6/source-r5-preview.tar.xz`; SHA-256 `afab4504ba86960f7ac2a64e6ad969d901be80f6022f3393e14cf3ecc81f453f`.
 - Pages يستخدم Artifact واحدًا؛ أضف V6 كمسار فرعي إلى نفس Artifact ولا تنشئ Workflow نشر Pages موازيًا.
 - نطاق أول ظهور: دليل الأنشطة ثم التخصصات، البحث، الدليل الطبي، صفحات النشاط الموثق، الكتالوج العام والأسعار ووسائل الاتصال.
 - تخفى مؤقتًا المحافظ والمالية والدفع والطلب والرسائل ولوحات الإدارة/النشاط غير المرتبطة والمخزون وSMM.
