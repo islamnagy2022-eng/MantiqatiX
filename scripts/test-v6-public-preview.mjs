@@ -19,6 +19,25 @@ const mimeTypes = {
   '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.ico': 'image/x-icon', '.woff2': 'font/woff2',
 };
+async function waitForImageReadiness(page) {
+  await page.waitForFunction(
+    () => Array.from(document.images).every((image) => image.complete),
+    null,
+    { timeout: 15000 },
+  );
+  await page.evaluate(async () => {
+    await Promise.all(Array.from(document.images).map((image) =>
+      typeof image.decode === 'function' ? image.decode().catch(() => undefined) : undefined
+    ));
+  });
+  return page.locator('img').evaluateAll((images) => images.map((image) => ({
+    alt: image.alt,
+    loaded: image.naturalWidth > 0 && image.naturalHeight > 0,
+    naturalWidth: image.naturalWidth,
+    src: image.currentSrc || image.src,
+  })));
+}
+
 const server = http.createServer((req, res) => {
   const requestUrl = new URL(req.url || '/', 'http://127.0.0.1');
   const prefix = '/MantiqatiX/';
@@ -69,6 +88,8 @@ try {
   await page.goto(previewUrl, { waitUntil: 'domcontentloaded' });
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor({ timeout: 15000 });
   await page.getByText('نشاط تجريبي للاختبار', { exact: true }).waitFor({ timeout: 15000 });
+  const directoryImages = await waitForImageReadiness(page);
+  console.log(`V6_PREVIEW_DIRECTORY_IMAGE_AUDIT=${JSON.stringify(directoryImages)}`);
   const runtimeConfig = await page.evaluate(() => Boolean(window.MNTY_CONFIG?.supabaseUrl && window.MNTY_CONFIG?.supabaseKey));
   assert.equal(runtimeConfig, true, 'V6 must load the shared root public config.js');
   if (screenshotDir) {
@@ -86,6 +107,8 @@ try {
   assert.ok(await activityHeadings.count() >= 1, 'Activity profile heading must be rendered');
   await activityHeadings.first().waitFor();
   await page.getByText('منتج تجريبي', { exact: true }).waitFor();
+  const profileImages = await waitForImageReadiness(page);
+  console.log(`V6_PREVIEW_PROFILE_IMAGE_AUDIT=${JSON.stringify(profileImages)}`);
   const profileBody = await page.locator('body').innerText();
   assert.equal(profileBody.includes('إضافة للسلة'), false);
   assert.equal(profileBody.includes('إتمام الطلب'), false);
@@ -102,6 +125,8 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'دليل الأنشطة' }).click();
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor();
+  const mobileImages = await waitForImageReadiness(page);
+  console.log(`V6_PREVIEW_MOBILE_IMAGE_AUDIT=${JSON.stringify(mobileImages)}`);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   assert.equal(overflow, false, 'Mobile Preview must not overflow horizontally');
   if (screenshotDir) {
