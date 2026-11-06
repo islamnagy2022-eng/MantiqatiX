@@ -205,7 +205,7 @@ try {
   await page.getByRole('button', { name: /صحة\s+\d+\s+نشاط/ }).click();
   await page.getByRole('heading', { name: 'تخصصات: صحة' }).waitFor();
   await page.getByRole('button', { name: 'صيدليات ومستلزمات وخدمة 24 ساعة' }).click();
-  await page.getByText('صيدلية اختبار 4', { exact: true }).waitFor();
+  await page.getByRole('button', { name: /^صيدلية اختبار 4/ }).waitFor();
   assert.equal(await activityCards.count(), 1, 'Selecting a specialty must filter activities within the selected activity');
   console.log('V6_PREVIEW_ACTIVITY_SPECIALTY_FILTER=PASS activity=صحة specialty=صيدليات');
   await page.getByRole('button', { name: 'عرض كل الأنشطة' }).click();
@@ -230,9 +230,9 @@ try {
   const activityHeadings = page.getByRole('heading', { name: 'نشاط تجريبي للاختبار', exact: true });
   assert.ok(await activityHeadings.count() >= 1, 'Activity profile heading must be rendered');
   await activityHeadings.first().waitFor();
-  await page.getByText('منتج تجريبي', { exact: true }).waitFor();
-  await page.getByText('منتج إضافي 2', { exact: true }).waitFor();
-  await page.getByText('منتج إضافي 3', { exact: true }).waitFor();
+  await page.getByText('منتج تجريبي', { exact: true }).last().waitFor();
+  await page.getByText('منتج إضافي 2', { exact: true }).last().waitFor();
+  await page.getByText('منتج إضافي 3', { exact: true }).last().waitFor();
   console.log('V6_PREVIEW_MULTI_PRODUCT_CATALOG=PASS products=3');
   const profileImages = await waitForImageReadiness(page);
   console.log(`V6_PREVIEW_PROFILE_IMAGE_AUDIT=${JSON.stringify(profileImages)}`);
@@ -249,7 +249,7 @@ try {
   const mobileProfileOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   assert.equal(mobileProfileOverflow, false, 'Mobile activity profile must not overflow horizontally');
   for (const productName of ['منتج تجريبي', 'منتج إضافي 2', 'منتج إضافي 3']) {
-    await page.getByText(productName, { exact: true }).waitFor();
+    await page.getByText(productName, { exact: true }).last().waitFor();
   }
   console.log('V6_PREVIEW_MOBILE_ACTIVITY_PROFILE=PASS products=3');
   await resetScrollForScreenshot(page);
