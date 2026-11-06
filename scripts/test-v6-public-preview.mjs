@@ -155,10 +155,18 @@ try {
     'The red status dot must sit beside the accessible unverified text label',
   );
   console.log('V6_PREVIEW_VERIFICATION_SORT=PASS verified_first=true unverified_last=true red_dot=true');
-  await page.getByRole('button', { name: /^دليل مجاني غير موثق/ }).click();
+  const verificationFilterLabels = await page.locator('button').evaluateAll((buttons) =>
+    buttons.map((button) => button.innerText.trim()).filter((label) => /موثق|^الكل/.test(label))
+  );
+  console.log(`V6_PREVIEW_VERIFICATION_FILTER_LABELS=${JSON.stringify(verificationFilterLabels)}`);
+  const unverifiedFilter = page.locator('button').filter({ hasText: 'دليل مجاني غير موثق' });
+  assert.equal(await unverifiedFilter.count(), 1, 'Public directory must expose one unverified-only filter');
+  await unverifiedFilter.click();
   assert.equal(await activityCards.count(), 1, 'Unverified-only filter must return exactly the unverified test activity');
   assert.equal(await page.getByText('نشاط غير موثق للاختبار', { exact: true }).count(), 1, 'Unverified-only filter must show the unverified listing only');
-  await page.getByRole('button', { name: /^الكل\s*\(/ }).click();
+  const allFilter = page.locator('button').filter({ hasText: /^الكل\s*\(/ });
+  assert.equal(await allFilter.count(), 1, 'Public directory must expose one all-activities filter');
+  await allFilter.click();
   assert.equal(await activityCards.count(), 20, 'Clearing verification filter must reset to the first 20 of 25 activities');
   await resetScrollForScreenshot(page);
   const cardBounds = await activityCards.evaluateAll((cards) => cards.map((card) => {
