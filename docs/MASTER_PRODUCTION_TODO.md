@@ -4004,12 +4004,26 @@ No writes were executed.
 - Active critical Edge versions remain: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3. Version inventory does not close their known source drift.
 - Security Advisor still returns 94 lints: 9 RLS-enabled/no-policy INFO, 3 public-executable SECURITY DEFINER WARN, 67 signed-in SECURITY DEFINER WARN, 90 anonymous-policy WARN, 1 leaked-password-protection WARN. Leaked-password protection remains disabled / owner-side evidence pending.
 
-### Next exact implementation order
-1. Restore the r5 public home shell against the canonical screenshot references: hero/navigation/CTAs, sector/three-tier section and governorate map; preserve current directory and activity routes.
-2. Reintroduce marquee strips only from live published/available product and service rows, with real active prices.
-3. Reintroduce the sponsored column only from the active/approved targeted-ad contract and its targeting/time/cap rules.
-4. Perform desktop 1280×720 and mobile 390×844 paired visual review with the canonical r5 reference captures.
-5. Only then continue authenticated merchant/admin and financial surfaces under separate Auth/RBAC/finance gates.
-6. Independently close real Production backup/data + Storage/Auth restore with measured RPO/RTO/rollback; coupled payment/finance/Paymob/webhook/idempotency/wallet/settlement E2E; Edge source parity; per-object SECURITY DEFINER/ACL + anonymous/authenticated negative RLS tests; owner-side Auth evidence; SMM negative runtime tests.
+### Latest exact-head closeout — 2026-11-07 — `8a96b1cb00011892c6b03e0fdda8686ed27ea820`
 
-No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation, no Pages deployment, no PR merge and no root cutover occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+- Exact PR-head CI: **9/9 workflows PASS**.
+- V6 Preview r5 public cover: three slides and three public CTAs PASS.
+- Live published catalog strip: 26 live fixture products from verified businesses only, availability + finite recorded price enforced; no fake popularity/order/sales metrics; no checkout/payment UI.
+- Public-directory E2E: first 20 of 25, load-more to 25, verified-first order, red unverified dot, search, health→pharmacy specialty, activity profile with 3 products, desktop/mobile navigation and mobile pagination PASS.
+- Accessibility: axe critical=0 and non-critical=0. Pages composition keeps the current catalog at root and V6 under `/MantiqaTix/v6-preview/`; the Pages deploy job was skipped for this PR event.
+- Primary Catalog build, employee/RBAC PostgreSQL tests and 32-journey browser E2E PASS.
+- Forward migration replay PASS against an isolated schema-only checkpoint. This is not a genuine Production data/Storage/Auth backup restore.
+- Backend-only Module Boundary, Module Professionalization, RC425 Paymob Atomicity, MantiGO Open Ride Privacy, SMM Deferred Storefront Contract and V6 Preview Source Validation PASS.
+- PR #685 remains OPEN / DRAFT / NOT MERGED. Main-branch push runs the Pages deploy job after validation; no merge-to-main or live deployment is performed as part of this candidate closeout.
+- Production gate remains `BLOCKED / NOT CERTIFIED`; Preview CI does not close live schema, Edge Function, Auth/RLS, finance/payment, or backup/restore gaps.
+
+### Next exact implementation order
+1. Restore the canonical r5 **15-sector grid and quick-tabs mode**, using the canonical `functionalGroups` taxonomy and live activity counts only. Preserve the existing activity → specialty model and current directory routes; do not introduce a competing classification layer.
+2. Restore the **three-tier sector spotlight/studio navigation** as a public informational/filtering surface only. Do not expose unverified admin or pricing actions.
+3. Restore the **governorate map/filter** only with exact source-backed business coordinates or clearly labeled governorate/markaz aggregates; never use generated jitter/default Cairo point pins.
+4. Keep marquee content limited to live published/available products and services with real active prices; extend only if actual service rows are present in the approved public adapter.
+5. Add the sponsored column only from the active/approved targeted-ad contract with targeting, time-window, caps and consent enforcement.
+6. Perform paired 1280×720 desktop and 390×844 mobile visual acceptance against the canonical r5 screenshots.
+7. Separately close Production data/Storage/Auth restore with measured RPO/RTO/rollback; coupled payment/finance/Paymob/webhook/idempotency/wallet/settlement E2E; six critical Edge Function source parity; per-object SECURITY DEFINER/ACL and anonymous/authenticated negative RLS tests; owner-side Auth evidence; and SMM negative runtime tests.
+
+No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation, no Pages deployment, no root cutover, and no PR merge occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
