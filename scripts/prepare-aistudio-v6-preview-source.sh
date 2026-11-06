@@ -3,7 +3,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP="$ROOT/apps/aistudio-v6"
 PACK="$APP/source-r5-preview.tar.xz"
-EXPECTED="6f674e95cdaddd28cb21795a05d8ad5b34c4b7b5d606d335af0556fb1fa2e7e5"
+EXPECTED="afab4504ba86960f7ac2a64e6ad969d901be80f6022f3393e14cf3ecc81f453f"
 WORKTREE="$APP/worktree"
 ACTUAL="$(sha256sum "$PACK" | awk '{print $1}')"
 if [[ "$ACTUAL" != "$EXPECTED" ]]; then
