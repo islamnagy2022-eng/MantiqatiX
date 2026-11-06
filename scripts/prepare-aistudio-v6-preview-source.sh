@@ -22,6 +22,8 @@ python3 "$ROOT/scripts/patch-v6-verified-first.py" --self-test
 python3 "$ROOT/scripts/patch-v6-verified-first.py" "$WORKTREE"
 python3 "$ROOT/scripts/patch-v6-public-home-cover.py" --self-test
 python3 "$ROOT/scripts/patch-v6-public-home-cover.py" "$WORKTREE"
+python3 "$ROOT/scripts/patch-v6-live-published-catalog.py" --self-test
+python3 "$ROOT/scripts/patch-v6-live-published-catalog.py" "$WORKTREE"
 python3 "$ROOT/scripts/patch-v6-preview-accessibility.py" --self-test
 python3 "$ROOT/scripts/patch-v6-preview-accessibility.py" "$WORKTREE"
 python3 "$ROOT/scripts/patch-v6-public-context-boundary.py" "$WORKTREE"
