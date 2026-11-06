@@ -83,7 +83,7 @@ try {
         return {
           id: businessId,
           slug: `v6-preview-business-${number}`,
-          name: number === 1 ? 'نشاط تجريبي للاختبار' : number === 2 ? 'نشاط اختباري فريد 2' : `نشاط تجريبي رقم ${number}`,
+          name: number === 1 ? 'نشاط تجريبي للاختبار' : number === 2 ? 'نشاط اختباري فريد 2' : number === 4 ? 'صيدلية اختبار 4' : `نشاط تجريبي رقم ${number}`,
           category: ['متاجر', 'مطاعم', 'خدمات', 'صحة'][index % 4],
           operationallyAvailable: true,
           selectedBranchId: branchId,
@@ -93,7 +93,7 @@ try {
             markaz: 'مدينة نصر',
             village: ['الحي الأول', 'الحي الثاني', 'الحي الثالث', 'الحي الرابع'][index % 4],
             whatsappPhone: `20100123456${number}`,
-            bio: 'نشاط تجريبي للتحقق من صفحة النشاط.',
+            bio: number === 4 ? 'صيدلية اختبارية للتحقق من تصنيف الصيدليات.' : 'نشاط تجريبي للتحقق من صفحة النشاط.',
           },
           branches: [{ id: branchId, phone: `0100123456${number}`, address: `عنوان اختبار ${number}` }],
           items: itemNames.map((name, itemIndex) => ({
@@ -140,6 +140,15 @@ try {
   assert.equal(await activityCards.count(), 20, 'Clearing directory search must reset visible results to the first 20 of 25');
   assert.equal(await page.getByRole('button', { name: /رؤية المزيد/ }).count(), 1, 'Load more must return after clearing search');
   console.log('V6_PREVIEW_DIRECTORY_SEARCH=PASS');
+  await page.getByRole('button', { name: 'صحة', exact: true }).click();
+  await page.getByRole('heading', { name: 'تخصصات: صحة' }).waitFor();
+  await page.getByRole('button', { name: 'صيدليات ومستلزمات وخدمة 24 ساعة' }).click();
+  await page.getByText('صيدلية اختبار 4', { exact: true }).waitFor();
+  assert.equal(await activityCards.count(), 1, 'Selecting a specialty must filter activities within the selected activity');
+  console.log('V6_PREVIEW_ACTIVITY_SPECIALTY_FILTER=PASS activity=صحة specialty=صيدليات');
+  await page.getByRole('button', { name: 'عرض كل الأنشطة' }).click();
+  await page.getByRole('heading', { name: 'الأنشطة المتاحة' }).waitFor();
+  assert.equal(await activityCards.count(), 20, 'Resetting activity and specialty must restore the first 20 results');
   const directoryImages = await waitForImageReadiness(page);
   console.log(`V6_PREVIEW_DIRECTORY_IMAGE_AUDIT=${JSON.stringify(directoryImages)}`);
   const runtimeConfig = await page.evaluate(() => Boolean(window.MNTY_CONFIG?.supabaseUrl && window.MNTY_CONFIG?.supabaseKey));
