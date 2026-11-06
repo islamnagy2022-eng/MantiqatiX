@@ -1,3 +1,27 @@
+# CURRENT HANDOFF — 2026-11-06 — V6 public launch-first plan
+
+- الهدف: إظهار AI Studio V6 للمستخدمين بأقصر مسار آمن.
+- تسلسل الإطلاق: Preview على `/MantiqatiX/v6-preview/` مع بقاء الجذر الحالي كما هو؛ قبول Preview؛ ثم نقل V6 إلى الجذر مع إبقاء الكتالوج السابق مؤقتًا في `/legacy/` وrollback.
+- مصدر r5 النظيف: `/MANTIQATIX/MantiqaTix-AI-Studio-V6-CANONICAL-CANDIDATE-2026-11-05-r5.zip`; SHA-256 `0e868efefbacd5cf3ec4c07a558230ce5cdfbbbdab64416182bc9a59f3acd429`. يستبعد ملفات AI Studio المؤقتة و.data وملفات env المحلية والاعتماديات وdist. OTP والعضويات واختيار نشاط OWNER موجودة؛ SMTP/Preview/full build غير متحقق.
+- Pages الحالي يبني `apps/catalog-frontend` فقط وينشر Artifact واحدًا. أضف V6 كمسار فرعي داخل نفس Artifact؛ لا تنشئ Workflow نشر Pages موازيًا.
+- PR #673 شرائح جزئية وليس تطبيق V6 كاملًا. فرعه 59 ahead / 10 behind عن main وقت المراجعة؛ 23/25 check نجحت واثنتان skipped على رأس قديم. حدّث الأساس وأعد الفحوصات قبل الدمج.
+- أول إصدار عام: الرئيسية والدليل والبحث والتخصصات وصفحات النشاط والكتالوج والمنتجات/الخدمات المنشورة والأسعار ووسائل الاتصال.
+- أخفِ المحافظ والمالية وPaymob والدفع والطلبات غير المربوطة والرسائل ولوحات الإدارة غير المرتبطة والمخزون وSMM وأدوات التطوير.
+- بوابة الإطلاق: install/type/lint/build/tests، Browser E2E على Desktop/Android، صحة بيانات Supabase العامة، deep links/reload، Accessibility، Preview وrollback. OTP الحقيقي فقط بعد إعداد SMTP والقالب واختبار العضويات.
+- **لا نشر ولا تغيير إنتاج تم بهذه الخطة.** الحالة: Preview NOT DEPLOYED؛ full build وOTP الحي غير متحققين؛ Full platform BLOCKED / NOT CERTIFIED.
+
+## المهمة التالية
+1. إدخال r5 النظيف في `apps/aistudio-v6` على فرع مبني من main الحالي، مع استبعاد المؤقتات والبيانات المحلية.
+2. إعداد Vite base لـ`/MantiqatiX/v6-preview/` وفصل server.ts التطويري.
+3. تعديل `pages.yml` لضم V6 إلى Artifact الحالي كمسار فرعي.
+4. تشغيل تثبيت نظيف/full type/lint/build/security/unit/browser/a11y، ثم إصلاح عيوب P0/P1.
+5. نشر Preview، اختبار الدليل الحقيقي وOTP، ثم تجهيز Root Cutover وrollback.
+
+## قاعدة الاستمرار
+عند قول «كمل»، ابدأ بأول عنصر غير مكتمل في P0–P5 في TODO وخطة الإطلاق؛ لا تبدأ من الصفر ولا تطلب إعادة شرح المتطلبات.
+
+---
+
 # CURRENT HANDOFF — 2026-11-05 — V6 Auth OTP UI wired (r5)
 
 - Canonical source remains the owner-selected AI Studio V6. Prior latest r4 baseline SHA-256: `94aa8e6912b310136b7d453e7a776d291ab4700d8619d00d8544f0d91bac3ec7`.

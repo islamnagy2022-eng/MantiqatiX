@@ -2099,3 +2099,13 @@ A separate source review found a second platform-root authorization model: the n
 - Next: approve exact Preview origin, update/deploy controlled CORS allowlist, run real browser auth flow, then add tenant OWNER business-selection API. Full CI build gate remains required.
 - Release: `AUTH_OTP_CONTROLLER_AND_MEMBERSHIP_PICKER_WIRED_NOT_PREVIEW_VERIFIED`; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 
+
+## 2026-11-06 — Owner priority: maximize progress toward public V6 appearance
+
+- Created launch-first path: V6 Preview at `/MantiqatiX/v6-preview/` while current root stays unchanged; after acceptance, promote V6 to root and retain old catalog at `/legacy/` with rollback.
+- Selected clean r5 source archive SHA-256 `0e868efefbacd5cf3ec4c07a558230ce5cdfbbbdab64416182bc9a59f3acd429`; 103 files; excludes .aistudio temporary media, .data, local env, node_modules and dist. Auth OTP + memberships + tenant OWNER business list included; live SMTP and full build not yet verified.
+- Reviewed Pages workflow: current output publishes only `apps/catalog-frontend` at root as one artifact. V6 must be included as a subpath in the same artifact, not by a second Pages deployment workflow.
+- PR #673 contains selected vertical UI slices, not the full V6 app. Its branch is 59 ahead / 10 behind current main; on reviewed old head 23/25 checks passed and 2 were skipped. It remains Draft and must be updated from main and exact-head checks rerun before merge.
+- Public first-launch scope: homepage, directory, search, specialties, activity pages, public catalog, products/services, allowed active prices and contact methods. Financial/payments/orders/wallet/messages/unfinished admin/merchant/stock/SMM/dev-server features remain hidden pending server contracts and tests.
+- No Preview/Production deployment, DB/Auth/RLS/GRANT/migration/Edge changes occurred in this planning pass. Full platform remains BLOCKED / NOT CERTIFIED.
+
