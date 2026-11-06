@@ -131,7 +131,7 @@ try {
   const previewUrl = 'http://127.0.0.1:4173/MantiqatiX/v6-preview/';
   await page.goto(previewUrl, { waitUntil: 'domcontentloaded' });
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor({ timeout: 15000 });
-  await page.getByRole('button', { name: /عرض النشاط/ }).first().waitFor({ timeout: 15000 });
+  await page.getByRole('button', { name: 'عرض النشاط', exact: true }).first().waitFor({ timeout: 15000 });
   const homeCover = page.getByTestId('r5-public-home-cover');
   assert.equal(await homeCover.count(), 1, 'Canonical r5 public homepage cover must be rendered');
   await homeCover.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات المتاحة' }).waitFor();
@@ -146,12 +146,10 @@ try {
   const liveCatalogStrip = page.getByTestId('live-published-catalog-strip');
   assert.equal(await liveCatalogStrip.count(), 1, 'A live published catalog strip must render when verified published products exist');
   assert.equal(await liveCatalogStrip.getByTestId('live-published-catalog-card').count(), 26, 'The strip must include only real available products from verified activities');
-  assert.equal(await liveCatalogStrip.getByRole('button', { name: 'عرض النشاط' }).count(), 26, 'Each live product card must route to its owning activity');
+  assert.equal(await liveCatalogStrip.getByRole('button', { name: /^عرض النشاط:/ }).count(), 26, 'Each live product card must expose its owning activity in its accessible name');
   assert.doesNotMatch(await liveCatalogStrip.innerText(), /الأعلى طلباً|طلبات|ترتيب شعبية/, 'The public live catalog strip must not invent popularity or order metrics');
   console.log('V6_LIVE_PUBLISHED_CATALOG=PASS items=26 verified_only=true no_fake_metrics=true');
-  const activityCardNodes = page.getByTestId('directory-activity-card');
-  assert.equal(await activityCardNodes.count(), 20, 'Directory card test scope must exclude live published product cards');
-  const activityCards = activityCardNodes.getByRole('button', { name: /عرض النشاط/ });
+  const activityCards = page.getByRole('button', { name: 'عرض النشاط', exact: true });
   assert.equal(await activityCards.count(), 20, 'Directory must initially render only the first 20 of 25 activities');
   assert.match(await page.locator('body').innerText(), /25 نتيجة مطابقة/, 'Directory must report all 25 matching activities, not only the visible page');
   const loadMore = page.getByRole('button', { name: /رؤية المزيد/ });
