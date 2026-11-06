@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Apply the public-directory governorate select accessibility fix to extracted V6 r5.
+"""Apply an immutable-source overlay for the V6 governorate filter accessible name.
 
-The source archive is kept immutable. This deterministic overlay patches only the
-<select> containing the "كل المحافظات" option and verifies the final accessible name.
+The JSX opening-tag scanner accounts for quoted values and brace expressions so
+an arrow-function token (=>) inside a prop cannot be mistaken for the tag terminator.
 """
 from __future__ import annotations
 
@@ -11,54 +11,90 @@ import sys
 from pathlib import Path
 
 LABEL = "تصفية الأنشطة حسب المحافظة"
-SELECT_WITH_GOVERNORATE_OPTION = re.compile(
-    r"(<select\b[^>]*>)(?:(?!</select>).)*?كل المحافظات(?:(?!</select>).)*?</select>",
-    re.IGNORECASE | re.DOTALL,
-)
-ARIA_LABEL = re.compile(r"""\baria-label\s*=\s*(["']).*?\1""", re.IGNORECASE)
+SELECT_START = re.compile(r"<select\\b")
+ARIA_LABEL = re.compile(r"""\\baria-label\\s*=\\s*(["']).*?\\1""", re.IGNORECASE)
+CLOSE_SELECT = "</select>"
+
+
+def governorate_select_span(source: str) -> tuple[int, int]:
+    candidates: list[tuple[int, int]] = []
+    for match in SELECT_START.finditer(source):
+        start = match.start()
+        index = match.end()
+        quote: str | None = None
+        brace_depth = 0
+        tag_end: int | None = None
+
+        while index < len(source):
+            char = source[index]
+            if quote is not None:
+                if char == "\\\\":
+                    index += 2
+                    continue
+                if char == quote:
+                    quote = None
+            else:
+                if char in ("'", '"', "`"):
+                    quote = char
+                elif char == "{":
+                    brace_depth += 1
+                elif char == "}" and brace_depth:
+                    brace_depth -= 1
+                elif char == ">" and brace_depth == 0:
+                    tag_end = index + 1
+                    break
+            index += 1
+
+        if tag_end is None:
+            raise ValueError("Unterminated JSX <select> opening tag")
+
+        close_start = source.find(CLOSE_SELECT, tag_end)
+        if close_start < 0:
+            raise ValueError("Missing closing </select> for a JSX <select>")
+        if "كل المحافظات" in source[tag_end:close_start]:
+            candidates.append((start, tag_end))
+
+    if len(candidates) != 1:
+        raise ValueError(
+            "Expected exactly one select containing option text 'كل المحافظات'; "
+            f"found {len(candidates)}"
+        )
+    return candidates[0]
 
 
 def patch_text(source: str) -> tuple[str, int]:
-    matches = list(SELECT_WITH_GOVERNORATE_OPTION.finditer(source))
-    if len(matches) != 1:
-        raise ValueError(
-            "Expected exactly one select containing option text 'كل المحافظات'; "
-            f"found {len(matches)}"
-        )
-
-    match = matches[0]
-    opening = match.group(1)
-    existing = ARIA_LABEL.search(opening)
+    start, end = governorate_select_span(source)
+    opening = source[start:end]
     expected_attr = f'aria-label="{LABEL}"'
+    existing = ARIA_LABEL.search(opening)
     if existing:
         patched_opening = ARIA_LABEL.sub(expected_attr, opening, count=1)
     else:
         patched_opening = opening[:-1] + " " + expected_attr + ">"
 
-    patched = source[: match.start(1)] + patched_opening + source[match.end(1) :]
-    verify_matches = list(SELECT_WITH_GOVERNORATE_OPTION.finditer(patched))
-    if len(verify_matches) != 1:
-        raise ValueError("Accessibility overlay changed the governorate select boundary")
-    if ARIA_LABEL.search(verify_matches[0].group(1)) is None:
-        raise ValueError("Governorate select is still missing aria-label")
-    if expected_attr not in verify_matches[0].group(1):
+    patched = source[:start] + patched_opening + source[end:]
+    verify_start, verify_end = governorate_select_span(patched)
+    verified_opening = patched[verify_start:verify_end]
+    if expected_attr not in verified_opening:
         raise ValueError("Governorate select does not have the expected Arabic accessible name")
     return patched, int(patched != source)
 
 
-def expected_label() -> str:
-    return f'aria-label="{LABEL}"'
-
-
 def self_test() -> None:
     fixture = (
-        '<div><select class="geo-filter"><option value="all">كل المحافظات</option>'
+        '<div><select className="geo-filter" '
+        'onChange={(event) => updateGovernorate(event.target.value)}>'
+        '<option value="all">كل المحافظات</option>'
         '<option value="القاهرة">القاهرة</option></select>'
         '<select><option>كل التخصصات</option></select></div>'
     )
     patched, changed = patch_text(fixture)
     assert changed == 1
-    assert f'<select class="geo-filter" {expected_label()}>' in patched
+    assert (
+        f'<select className="geo-filter" '
+        f'onChange={{(event) => updateGovernorate(event.target.value)}} '
+        f'aria-label="{LABEL}">'
+    ) in patched
     again, changed_again = patch_text(patched)
     assert changed_again == 0
     assert again == patched
