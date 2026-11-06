@@ -8,6 +8,8 @@ const require = createRequire(import.meta.url);
 const playwrightPath = process.env.PLAYWRIGHT_PACKAGE || '/tmp/v6-preview-playwright/node_modules/playwright';
 const { chromium } = require(playwrightPath);
 const siteRoot = path.resolve(process.argv[2] || '');
+const screenshotDir = process.env.V6_PREVIEW_SCREENSHOT_DIR ? path.resolve(process.env.V6_PREVIEW_SCREENSHOT_DIR) : null;
+if (screenshotDir) fs.mkdirSync(screenshotDir, { recursive: true });
 if (!fs.existsSync(path.join(siteRoot, 'index.html')) || !fs.existsSync(path.join(siteRoot, 'v6-preview', 'index.html'))) {
   throw new Error('COMPOSED_PAGES_ARTIFACT_MISSING_ROOT_OR_V6_PREVIEW');
 }
@@ -69,6 +71,10 @@ try {
   await page.getByText('نشاط تجريبي للاختبار', { exact: true }).waitFor({ timeout: 15000 });
   const runtimeConfig = await page.evaluate(() => Boolean(window.MNTY_CONFIG?.supabaseUrl && window.MNTY_CONFIG?.supabaseKey));
   assert.equal(runtimeConfig, true, 'V6 must load the shared root public config.js');
+  if (screenshotDir) {
+    await page.screenshot({ path: path.join(screenshotDir, 'v6-desktop-directory.png'), fullPage: true, animations: 'disabled' });
+    console.log('V6_VISUAL_CAPTURE=desktop-directory');
+  }
 
   const publicBody = await page.locator('body').innerText();
   for (const forbidden of ['المحفظة', 'سلة المشتريات', 'إتمام الطلب', 'صندوق رسائل الإدارة']) {
@@ -83,6 +89,10 @@ try {
   const profileBody = await page.locator('body').innerText();
   assert.equal(profileBody.includes('إضافة للسلة'), false);
   assert.equal(profileBody.includes('إتمام الطلب'), false);
+  if (screenshotDir) {
+    await page.screenshot({ path: path.join(screenshotDir, 'v6-desktop-activity-profile.png'), fullPage: true, animations: 'disabled' });
+    console.log('V6_VISUAL_CAPTURE=desktop-activity-profile');
+  }
 
   await page.getByRole('button', { name: 'الدليل الطبي' }).click();
   await page.getByRole('heading', { name: 'الأطباء والعيادات والصيدليات' }).waitFor();
@@ -94,6 +104,10 @@ try {
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   assert.equal(overflow, false, 'Mobile Preview must not overflow horizontally');
+  if (screenshotDir) {
+    await page.screenshot({ path: path.join(screenshotDir, 'v6-mobile-directory.png'), fullPage: true, animations: 'disabled' });
+    console.log('V6_VISUAL_CAPTURE=mobile-directory');
+  }
 
   const axePath = '/tmp/v6-preview-playwright/node_modules/axe-core/axe.min.js';
   if (fs.existsSync(axePath)) {

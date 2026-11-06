@@ -345,7 +345,17 @@ jobs:
       - name: Test composed V6 Preview on desktop and mobile
         env:
           PLAYWRIGHT_PACKAGE: /tmp/v6-preview-playwright/node_modules/playwright
+          V6_PREVIEW_SCREENSHOT_DIR: ${{ runner.temp }}/v6-preview-visual-review
         run: node scripts/test-v6-public-preview.mjs "${RUNNER_TEMP}/mantiqatix-composed-site"
+
+      - name: Upload V6 Preview screenshots for visual acceptance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v6-preview-visual-review-${{ github.run_id }}
+          path: ${{ runner.temp }}/v6-preview-visual-review/
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload composed MantiqatiX site
         uses: actions/upload-artifact@v4
