@@ -3885,3 +3885,40 @@ On new documentation-only PR head `f02c8770da26ec6cf3f50d12e2d05b0b853ff661`:
 - V6 application/source head: `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`.
 - CI was automatically re-triggered for the documentation-only head. Do not attribute the completed 5915 test results to b66 until the new exact-head runs finish.
 - PR #685 remains OPEN / DRAFT / NOT MERGED; no merge, Pages deployment, root cutover or Production change occurred.
+
+
+---
+
+## V6 r5 multi-activity Preview validation — 2026-11-06 18:31 UTC
+
+**PR #685** remains OPEN / DRAFT / NOT MERGED. Tested commit: `a7df3493460c77a28ef117ec9716bb369cf684a0`. V6 runtime/source baseline remains `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`.
+
+### Exact-head results — 9/9 workflows PASS
+- [x] Pages validation #42271053674 — PASS; `PAGES_COMPOSITION=PASS`. The PR-event `validate_public_only` and `deploy` jobs were SKIPPED; no Pages deployment occurred.
+- [x] Primary Catalog Frontend Validation #42271054041 — build, TypeScript, isolated employee/RBAC PostgreSQL, and browser E2E PASS; `PRIMARY_CATALOG_BROWSER_E2E=PASS` across 32 named journeys.
+- [x] V6 Preview Source Validation #42271053707 — PASS.
+- [x] Forward Migration Chain Replay #42271053737 — PASS; 76 timestamp-ordered migrations applied to a disposable local Supabase checkpoint through `20261101150000`; RC117, owner-profile persistence, RC455/RC456 and reciprocal Tenant A/B isolation checks PASS. This is schema-checkpoint replay, not a genuine data backup restore.
+- [x] Backend-only Module Boundary #42271053695 — PASS.
+- [x] Module Professionalization Validation #42271053761 — PASS.
+- [x] RC425 MantiGo Paymob Atomicity #42271053881 — PASS.
+- [x] MantiGO Open Ride Privacy Boundary #42271053709 — PASS.
+- [x] SMM Deferred Storefront Contract #42271053662 — PASS.
+
+### Multi-activity visual fixture
+- [x] Updated only the Preview browser-test fixture in `scripts/test-v6-public-preview.mjs` to return four synthetic activities, with four separately verified visible directory cards. No application runtime or Production code changed.
+- [x] Desktop geometry check reports a three-card first row and a fourth card on the next row; desktop screenshot inspected.
+- [x] Mobile screenshot inspected at 390px: four cards remain readable in a vertical list; no horizontal overflow.
+- [x] V6 Preview E2E PASS; axe critical=0 and non-critical=0; image load/decode checks pass.
+- [x] Visual artifact [13529541408](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42271053674/artifacts/13529541408), SHA-256 `100e45ffb0ec0a77605f11cfdf535355367238457c9ea1a8bb5d66ad5081b7d5`.
+- [x] Composed Pages artifact [13529311825](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42271053674/artifacts/13529311825), 65 files, SHA-256 `8afbbd7ed4f429b9afaf06d9bb418705a7a07f8be606740fc4e7a7864aa3779f`; existing catalog remains at root and V6 remains isolated under `v6-preview/`.
+
+### Still open / release blockers
+- [ ] Pixel-parity acceptance against paired original AI Studio r5 reference captures; the public Preview is not the private admin/wallet/cart application.
+- [ ] Genuine data backup/restore rehearsal with measured RPO/RTO and rollback evidence.
+- [ ] Coupled finance/payment/Paymob/webhook/idempotency/wallet/settlement E2E and semantic parity for all six critical Edge Functions.
+- [ ] Function-by-function SECURITY DEFINER caller/ACL/search_path review; table-by-table anonymous/authenticated negative RLS tests.
+- [ ] Owner-side leaked-password-protection evidence and fresh advisor review.
+- [ ] SMM anonymous/authenticated negative runtime tests.
+- [ ] Explicit release approval before merge, Pages deployment or root promotion.
+
+**Production boundary:** no Production data/schema/migration/Auth/RLS/GRANT/Edge/payment/finance mutation, no Pages deployment, no merge and no root cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains.
