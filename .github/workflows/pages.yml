@@ -55,6 +55,19 @@ jobs:
           test -n "$(find dist/assets -maxdepth 1 -type f -name '*.js' -print -quit)"
           test -n "$(find dist/assets -maxdepth 1 -type f -name '*.css' -print -quit)"
           echo "V6_PREVIEW_BUILD=PASS"
+      - name: Audit V6 public bundle module ownership
+        run: |
+          set -euo pipefail
+          node scripts/audit-v6-public-bundle-modules.mjs --self-test
+          node scripts/audit-v6-public-bundle-modules.mjs apps/aistudio-v6/worktree --output /tmp/v6-public-bundle-module-audit.json
+          node -e "const r=require('/tmp/v6-public-bundle-module-audit.json');console.log('V6_PUBLIC_BUNDLE_HYGIENE_STATUS='+r.status);console.log('V6_PUBLIC_SUSPICIOUS_SOURCE_MODULES='+r.suspiciousSourceModules.length);console.log('V6_PUBLIC_SUSPICIOUS_ASSETS='+r.suspiciousBundleAssets.length);for(const m of r.suspiciousSourceModules)console.log('[V6_PUBLIC_MODULE] '+m.file+' reachable='+m.reachable+' markers='+m.markers.join(','))"
+      - name: Upload V6 public bundle module audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v6-public-bundle-module-audit-${{ github.run_id }}
+          path: /tmp/v6-public-bundle-module-audit.json
+          if-no-files-found: warn
       - name: Validate additive professional dashboard contract
         run: node scripts/validate-professional-dashboard.mjs
       - name: Validate additive subscriber account portal contract
