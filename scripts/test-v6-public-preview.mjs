@@ -143,6 +143,12 @@ try {
   await homeCover.getByRole('button', { name: 'الشريحة السابقة' }).click();
   await homeCover.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات المتاحة' }).waitFor();
   console.log('V6_R5_PUBLIC_HOME_COVER=PASS slides=3 public_ctas=3');
+  const liveCatalogStrip = page.getByTestId('live-published-catalog-strip');
+  assert.equal(await liveCatalogStrip.count(), 1, 'A live published catalog strip must render when verified published products exist');
+  assert.equal(await liveCatalogStrip.getByTestId('live-published-catalog-card').count(), 26, 'The strip must include only real available products from verified activities');
+  assert.equal(await liveCatalogStrip.getByRole('button', { name: 'عرض النشاط' }).count(), 26, 'Each live product card must route to its owning activity');
+  assert.doesNotMatch(await liveCatalogStrip.innerText(), /الأعلى طلباً|طلبات|ترتيب شعبية/, 'The public live catalog strip must not invent popularity or order metrics');
+  console.log('V6_LIVE_PUBLISHED_CATALOG=PASS items=26 verified_only=true no_fake_metrics=true');
   const activityCards = page.getByRole('button', { name: /عرض النشاط/ });
   assert.equal(await activityCards.count(), 20, 'Directory must initially render only the first 20 of 25 activities');
   assert.match(await page.locator('body').innerText(), /25 نتيجة مطابقة/, 'Directory must report all 25 matching activities, not only the visible page');
