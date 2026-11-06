@@ -100,7 +100,15 @@ try {
     await page.addScriptTag({ path: axePath });
     const axe = await page.evaluate(async () => window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } }));
     const critical = axe.violations.filter((item) => item.impact === 'critical');
-    if (critical.length) throw new Error(`V6_PREVIEW_A11Y_CRITICAL=${critical.map((item) => item.id).join(',')}`);
+    if (critical.length) {
+      const details = critical.flatMap((item) => item.nodes.map((node) => ({
+        rule: item.id,
+        target: node.target,
+        html: node.html,
+        summary: node.failureSummary,
+      })));
+      throw new Error(`V6_PREVIEW_A11Y_CRITICAL=${JSON.stringify(details)}`);
+    }
     console.log(`V6_PREVIEW_A11Y: ${axe.violations.length} non-critical violation group(s); critical=0`);
   }
   assert.deepEqual(errors, [], `Browser runtime errors: ${errors.join('; ')}`);
