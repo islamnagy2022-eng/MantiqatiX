@@ -3,7 +3,7 @@
 The immutable r5 source archive is stored as five base64 text parts under `source-pack-parts/`. The preparation script reconstructs the tar.xz, verifies its SHA-256, and extracts the app into an ignored `worktree/`.
 
 - Original candidate ZIP SHA-256: `0e868efefbacd5cf3ec4c07a558230ce5cdfbbbdab64416182bc9a59f3acd429`
-- Public MVP source pack SHA-256: `76e1187918a6a907133399cfe06afec63c41c76d90e60e4ef9bc936f5993eeed`
+- Public MVP source pack SHA-256: `adf203b85cb039d27a18e76691377eb35f00c8f213adf44f07aa34779d41409e`
 - Preview base: `/MantiqatiX/v6-preview/`
 - Public release scope: directory, activity and specialty filters, medical directory, verified business profiles, read-only product/service catalog, published prices, phone/WhatsApp contact.
 - Hidden from the public shell: admin/merchant dashboards, wallets, orders, checkout, internal messaging, simulated AI registration, local writes, promotional carousels and sponsored-ad columns.
