@@ -2,7 +2,7 @@
 
 ## Source provenance
 - Canonical candidate ZIP SHA-256: `0e868efefbacd5cf3ec4c07a558230ce5cdfbbbdab64416182bc9a59f3acd429`.
-- Public MVP tar.xz source pack SHA-256: `166db4a0ce4bd52d1e871d44eb8400aa9292b08fb0a2d076b77495284f8497a0`.
+- Public MVP tar.xz source pack SHA-256: `6f674e95cdaddd28cb21795a05d8ad5b34c4b7b5d606d335af0556fb1fa2e7e5`.
 - The source pack is stored as a single binary archive at `apps/aistudio-v6/source-r5-preview.tar.xz` and digest-checked directly by CI.
 - Source security audit and remediation verification: PASS; security audit tests: 2/2 PASS.
 
@@ -40,3 +40,8 @@ No Supabase production schema/data/Auth/RLS/GRANT/migration/Edge Function/paymen
 - The existing `.github/workflows/pages.yml` now builds V6 from the verified archive and composes its `dist/` under `v6-preview/` alongside the existing catalog root.
 - Post-deployment smoke checks verify the Preview HTML and JS/CSS asset URLs. No second Pages deployment workflow is created and the root catalog is not replaced.
 - The combined Pages workflow is not yet validated on this PR; no Preview deployment has occurred.
+
+## Shared runtime configuration
+- V6 loads the existing root `config.js` before its module entry and reads `window.MNTY_CONFIG` at runtime.
+- The shared adapter validates HTTPS Supabase project URLs and accepts only `sb_publishable_*` keys or JWTs whose role is `anon`; service-role JWTs are rejected.
+- This avoids baking the key into the V6 build step and keeps both public directory and OTP membership configuration consistent with the existing catalog's public client config.
