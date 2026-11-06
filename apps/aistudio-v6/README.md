@@ -7,3 +7,5 @@ Source archive is stored as base64 text parts under `source-pack-parts/`. The pr
 - Preview base: `/MantiqatiX/v6-preview/`
 
 This import does not deploy Pages or mutate production.
+
+The preparation script applies two narrow test-expectation corrections before running the suite: it asserts zero/unavailable load telemetry until a real load runner exists, and verifies sector-specific fallback images rather than legacy generic URLs.
