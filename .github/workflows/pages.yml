@@ -111,6 +111,25 @@ jobs:
           fi
           grep -Eiq '^location: https://accounts\.google\.com/' /tmp/catalog-oauth-smoke.headers
           echo "PRODUCTION_GOOGLE_OAUTH_HANDSHAKE=PASS"
+      - name: Verify live V6 Preview CORS on the existing GitHub Pages origin
+        working-directory: apps/catalog-frontend
+        run: |
+          set -euo pipefail
+          SUPABASE_URL="$(node -e "const s=require('fs').readFileSync('public/config.js','utf8');const m=s.match(/supabaseUrl:\\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
+          ORIGIN="https://islamnagy2022-eng.github.io"
+          for endpoint in "api/api/v1/me" "public-catalog-directory" "directory-listings"; do
+            header_file="/tmp/v6-cors-$(printf '%s' "${endpoint}" | tr '/' '-').headers"
+            HTTP_CODE="$(curl --silent --show-error --max-time 20 --output /dev/null --dump-header "${header_file}" --write-out '%{http_code}' -X OPTIONS "${SUPABASE_URL}/functions/v1/${endpoint}" -H "Origin: ${ORIGIN}" -H 'Access-Control-Request-Method: GET' -H 'Access-Control-Request-Headers: authorization, apikey, content-type')"
+            if [ "${HTTP_CODE}" != "200" ] && [ "${HTTP_CODE}" != "204" ]; then
+              echo "V6 CORS preflight failed for ${endpoint}: HTTP ${HTTP_CODE}"
+              cat "${header_file}"
+              exit 1
+            fi
+            grep -Fqi "Access-Control-Allow-Origin: ${ORIGIN}" "${header_file}"
+            grep -Eiq '^access-control-allow-headers:.*authorization.*apikey.*content-type' "${header_file}"
+            grep -Eiq '^access-control-allow-methods:.*GET' "${header_file}"
+            echo "V6_CORS_PREFLIGHT=PASS endpoint=${endpoint} origin=${ORIGIN}"
+          done
       - name: Smoke test the live public catalog and Qadam storefront
         run: |
           set -euo pipefail
