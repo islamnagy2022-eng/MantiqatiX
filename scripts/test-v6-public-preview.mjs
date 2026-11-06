@@ -158,13 +158,12 @@ try {
   const verificationFilterLabels = await page.locator('button').evaluateAll((buttons) =>
     buttons.map((button) => button.innerText.trim()).filter((label) => /موثق|^الكل/.test(label))
   );
-  console.log(`V6_PREVIEW_VERIFICATION_FILTER_LABELS=${JSON.stringify(verificationFilterLabels)}`);
-  const unverifiedFilter = page.locator('button').filter({ hasText: 'دليل مجاني غير موثق' });
+  const unverifiedFilter = page.getByRole('button', { name: 'غير موثق', exact: true });
   assert.equal(await unverifiedFilter.count(), 1, 'Public directory must expose one unverified-only filter');
   await unverifiedFilter.click();
   assert.equal(await activityCards.count(), 1, 'Unverified-only filter must return exactly the unverified test activity');
   assert.equal(await page.getByText('نشاط غير موثق للاختبار', { exact: true }).count(), 1, 'Unverified-only filter must show the unverified listing only');
-  const allFilter = page.locator('button').filter({ hasText: /^الكل\s*\(/ });
+  const allFilter = page.getByRole('button', { name: 'الكل', exact: true });
   assert.equal(await allFilter.count(), 1, 'Public directory must expose one all-activities filter');
   await allFilter.click();
   assert.equal(await activityCards.count(), 20, 'Clearing verification filter must reset to the first 20 of 25 activities');
