@@ -1463,3 +1463,18 @@ Read-only semantic comparison of all six critical live Edge Functions against cu
 - Financial journal live v3 calls the legacy RPC and wildcard CORS; source uses the backend RPC and restricted origin. Neither journal RPC currently grants EXECUTE to `service_role`, and required journal columns are missing.
 - The source adds smaller hardening checks to order-create and payment-intent. All six remain mismatched and must be released only as one tested unit.
 - No Production changes. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+---
+
+## Latest handoff — 2026-11-06 17:15 UTC
+
+- Active branch: `feat/v6-r5-preview-foundation-20261106`; PR #685 OPEN / DRAFT / NOT MERGED.
+- Current PR head: `f02c8770da26ec6cf3f50d12e2d05b0b853ff661`. Validated V6 application/source head remains `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`.
+- Canonical visual/replay/Production snapshot report: [`V6_R5_VISUAL_AND_MIGRATION_REPLAY_20261106_1710UTC.md`](`release/V6_R5_VISUAL_AND_MIGRATION_REPLAY_20261106_1710UTC.md`). Prior reference to the absent 1534UTC-only report path has been corrected in the continuity register.
+- Screenshot capture artifact #13521016183 was inspected: 1440px desktop directory, 1440px activity profile and 390px mobile directory. No visible clipping/overlap or broken content in captures. A single activity fixture leaves substantial desktop whitespace; this remains a non-blocking review note. Pixel parity against a paired AI Studio r5 reference is NOT VERIFIED.
+- Prior head `b6b7de6` CI: 9/9 workflows passed, including disposable local schema-checkpoint replay of 76 migrations and synthetic Tenant A/B isolation. This does not replace backup/restore or live Production proof.
+- Current head `f02c877`: V6 source, SMM, Open Ride, Module Professionalization, RC425 and Backend Boundary completed PASS; Pages validation PASS and deploy jobs SKIPPED. Primary Catalog browser E2E and forward migration replay were IN PROGRESS at last check; recheck before claiming exact-head closure.
+- Production remains BLOCKED: 309 migration records through `20261101140105`, 0/42 exact required source IDs; missing physical columns/objects; six critical Edge Function source drifts; missing five-argument digital finalizer; journal RPC service-role EXECUTE absent; Auth leaked-password protection disabled.
+- Next: recheck the two current-head workflows; then continue genuine backup/restore and RPO/RTO, coupled finance/payment/Edge verification, security/Auth closure, and paired reference-image visual comparison.
+- No Production write, deployment, PR merge or root cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.

@@ -2122,7 +2122,7 @@ A separate source review found a second platform-root authorization model: the n
 - Refreshed live Supabase read-only checks: project ACTIVE_HEALTHY on PostgreSQL 17.6.1.155; 309 migrations through `20261101140105`; 0/42 required exact migration IDs present; 10 targeted columns and 3 critical table/index objects absent; 5-arg digital-page finalize RPC absent while 4-arg form remains and grants authenticated EXECUTE; six critical Edge Functions still differ from both main and feature-branch source.
 - Advisors: 94 findings (9 RLS-enabled/no-policy INFO, 3 anon-executable SECURITY DEFINER WARN, 67 authenticated-executable SECURITY DEFINER WARN, 90 anonymous-policy WARN, 1 leaked-password protection WARN). Three SECDEF functions were manually classified at catalog level; no automated bulk revocation or changes performed.
 - Connected Supabase branch inventory has only the default main branch. Prior disposable migration rehearsal #41914489055 passed 76 forward migrations and synthetic Tenant A/B isolation; backup/restore and payment/finance E2E are still NOT VERIFIED.
-- Detailed snapshot: [PRODUCTION_READ_ONLY_RECHECK_20261106_1534UTC.md](release/PRODUCTION_READ_ONLY_RECHECK_20261106_1534UTC.md).
+- Detailed snapshot: [V6_R5_VISUAL_AND_MIGRATION_REPLAY_20261106_1710UTC.md](release/V6_R5_VISUAL_AND_MIGRATION_REPLAY_20261106_1710UTC.md).
 - Remaining priority: manual visual acceptance against AI Studio r5; controlled isolated schema/migration reconciliation; genuine restore/rollback and payment/finance tests; six-function parity; Auth and security sign-off.
 - No production database/Auth/RLS/GRANT/Edge/payment/finance mutation, Pages deployment, PR merge or root cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 
@@ -2148,3 +2148,16 @@ A separate source review found a second platform-root authorization model: the n
 - Read-only RPC catalog inspection confirmed the current source-required RPC gaps and showed `service_role` EXECUTE false for both journal functions.
 - Full details: [PRODUCTION_EDGE_FUNCTION_CONTRACT_REVIEW_20261106.md](release/PRODUCTION_EDGE_FUNCTION_CONTRACT_REVIEW_20261106.md).
 - No production write, deployment, payment or financial transaction. All six Edge Functions remain a coupled BLOCKED release unit; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+---
+
+## 2026-11-06 17:15 UTC — handoff review of visual captures and replay evidence
+
+- Continued on the existing MantiqaTix V6 r5 PR #685 branch; latest head observed `f02c8770da26ec6cf3f50d12e2d05b0b853ff661`.
+- Reviewed the already-added report `docs/release/V6_R5_VISUAL_AND_MIGRATION_REPLAY_20261106_1710UTC.md`, including three Preview screenshots and the isolated 76-migration replay on prior head `b6b7de6`.
+- Verified the prior head had 9/9 PR workflow runs successful. The isolated Supabase replay used a schema-only checkpoint and synthetic test fixtures; this is not a data backup/restore rehearsal and does not certify Production.
+- Rechecked CI on new head `f02c877`: six non-UI backend/security workflows and V6 source validation passed, Pages validation/composition passed with deployment skipped. Primary Catalog browser E2E and isolated forward replay remained IN PROGRESS at the last check. Build and employee/RBAC PostgreSQL job already passed on Primary Catalog.
+- Corrected stale links in the Master TODO, continuity and Session Log so they point to the report that actually exists.
+- Production remains BLOCKED / NOT CERTIFIED. No Production write, migration, Auth/RLS/GRANT, Edge deployment, payment/finance operation, Pages deployment, merge or root cutover occurred.
+- Next: finish exact-head browser E2E and forward replay; then continue backup/restore, payment/finance/Edge, security/Auth and reference-image visual acceptance gates.

@@ -3767,7 +3767,7 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Local artifact inspection confirmed V6 uses its own asset paths and shared public config; root HTML remains on current catalog bundle, not V6.
 - [x] Refreshed production read-only snapshot at 15:30–15:34 UTC: 309 ledger records through 20261101140105; 0/42 required exact IDs; 10 required columns and 3 critical table/index objects absent; six critical deployed Edge Functions differ byte-for-byte from source; advisors still flag leaked-password protection disabled.
 - [x] Manual classification of the three anonymous-executable SECURITY DEFINER advisor findings completed at source/catalog level. No broad revoke or policy edit was made.
-- [x] Recorded new evidence in [PRODUCTION_READ_ONLY_RECHECK_20261106_1534UTC.md](release/PRODUCTION_READ_ONLY_RECHECK_20261106_1534UTC.md).
+- [x] Recorded new evidence in [V6_R5_VISUAL_AND_MIGRATION_REPLAY_20261106_1710UTC.md](release/V6_R5_VISUAL_AND_MIGRATION_REPLAY_20261106_1710UTC.md).
 
 ### Still open / not verified
 
@@ -3800,3 +3800,43 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Confirmed financial journal backend RPC has no `service_role` EXECUTE grant; required columns remain missing.
 - [ ] Build and run coupled isolated migration/RPC/Edge test suite for the six-function group; never deploy one function independently.
 - [ ] Keep payment/finance release blocked until restore/replay, sandbox payment/webhook/idempotency, negative authorization and rollback evidence pass.
+
+
+---
+
+## V6 r5 visual review + isolated replay continuation — 2026-11-06 17:15 UTC
+
+**Branch / PR:** `feat/v6-r5-preview-foundation-20261106` / [#685](https://github.com/islamnagy2022-eng/MantiqatiX/pull/685) — OPEN / DRAFT / NOT MERGED.  
+**Current PR head:** `f02c8770da26ec6cf3f50d12e2d05b0b853ff661`.  
+**Validated V6 application/source head:** `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`.
+
+### Completed
+- [x] Reviewed the dedicated visual evidence and isolated replay report: [`V6_R5_VISUAL_AND_MIGRATION_REPLAY_20261106_1710UTC.md`](`release/V6_R5_VISUAL_AND_MIGRATION_REPLAY_20261106_1710UTC.md`).
+- [x] Downloaded and inspected screenshot artifact [13521016183](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/42249793006/artifacts/13521016183): desktop directory, desktop activity profile and 390px mobile directory. No visible mobile clipping/overlap or broken profile/catalog image in the captured views.
+- [x] Kept the one-result desktop whitespace note non-blocking pending a multi-activity fixture and paired AI Studio r5 reference screenshots. Pixel parity remains NOT VERIFIED.
+- [x] Confirmed the previous exact PR head `b6b7de6` passed all nine workflow runs, including 76 timestamp-ordered migrations in a disposable local Supabase replay and synthetic Tenant A/B isolation.
+- [x] Reconfirmed that the latest report’s fresh Production snapshot records 309 ledger rows through `20261101140105`, 0/42 exact required IDs, ten missing columns, three absent objects, six critical Edge source drifts and disabled leaked-password protection.
+- [x] Replaced stale links to the absent `PRODUCTION_READ_ONLY_RECHECK_20261106_1534UTC.md` with the report that actually contains the latest visual/replay/Production evidence.
+
+### Latest exact-head CI still running
+On new documentation-only PR head `f02c8770da26ec6cf3f50d12e2d05b0b853ff661`:
+- [x] V6 Preview Source Validation #42259776553 — PASS.
+- [x] SMM Deferred Storefront Contract #42259776381 — PASS.
+- [x] MantiGO Open Ride Privacy Boundary #42259776448 — PASS.
+- [x] Module Professionalization Validation #42259776309 — PASS.
+- [x] RC425 MantiGo Paymob Atomicity #42259776408 — PASS.
+- [x] Backend-only Module Boundary #42259776444 — PASS.
+- [x] Pages validation #42259776587 — validation PASS; public-only validation and deploy SKIPPED for PR event.
+- [ ] Primary Catalog Frontend Validation #42259776291 — build and employee/RBAC PostgreSQL PASS; browser E2E was still IN PROGRESS at the last check.
+- [ ] Forward Migration Chain Replay #42259776644 — IN PROGRESS at the last check. Do not carry the prior-head 76-migration result forward as a pass for this new commit until this run finishes.
+
+### Still open / next dependency-ordered tasks
+- [ ] Complete current-head Primary Catalog browser E2E and forward migration replay; record their exact conclusions/log markers.
+- [ ] Complete genuine current-backup restore rehearsal with measured RPO/RTO and rollback evidence. A schema-only checkpoint replay is not a backup restore.
+- [ ] Continue coupled isolated finance/payment/Paymob/webhook/idempotency/wallet/settlement E2E for the six critical Edge Functions.
+- [ ] Complete table-by-table RLS and function-by-function SECURITY DEFINER caller/ACL/search_path review, including anonymous/authenticated negative runtime tests.
+- [ ] Obtain owner-dashboard evidence for leaked-password protection and rerun advisors.
+- [ ] Obtain paired AI Studio r5 reference captures and repeat desktop directory capture with multiple synthetic activities.
+- [ ] Obtain explicit owner approval before merge, Pages deployment or root promotion.
+
+**Release boundary:** no Production mutation, migration, Edge deployment, payment/finance operation, Pages deployment, PR merge or root cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
