@@ -1521,3 +1521,17 @@ Read-only semantic comparison of all six critical live Edge Functions against cu
 - The fresh Production blocker snapshot remains the 17:38 UTC read-only report: 309 migration rows, ten missing required columns, three missing objects/indexes, six critical Edge Function drifts, journal RPC ACL gap, four-argument rather than required five-argument digital-page finalizer, disabled leaked-password protection and 94 advisor lints.
 - Next: genuine backup/restore rehearsal; coupled finance/payment/Edge E2E; RLS/SECURITY DEFINER review and negative tests; owner-side Auth security evidence; SMM negative runtime tests; paired original r5 visual reference acceptance.
 - No Production mutation, merge, Pages deployment or root promotion occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+---
+
+## Continuity checkpoint — 2026-11-06 18:33 UTC
+
+- Latest validated application/test commit: `a7df3493460c77a28ef117ec9716bb369cf684a0`; nine exact-head workflows passed. Latest documentation-only CI checkpoint before this addendum: `37259eb60a7aa4285e9270940fe9e1e2751c7af4`, also 9/9 workflows passed.
+- PR #685 remains OPEN / DRAFT / NOT MERGED. V6 is still an isolated Preview under `v6-preview/`; current catalog remains Pages root.
+- Latest 4-activity Preview screenshot and CI evidence are captured in the 18:31 UTC checkpoint above.
+- Current Production read-only query refresh confirms: ACTIVE_HEALTHY / PostgreSQL 17.6.1.155; 309 migrations through 20261101140105; 0/42 exact required IDs; ten columns and three objects/indexes absent; both journal RPCs deny EXECUTE to anon/authenticated/service_role; six critical Edge functions remain drifted.
+- Current security Advisor produced 94 lint records. The catalog shows 19 explicit anon/public policies and zero anonymous Auth users. Two of three anon-executable SECURITY DEFINER functions are trigger-only; the third reads only active/approved ads. Do not bulk-revoke permissions or remove policies; owner-side Auth setting evidence and per-object review remain required.
+- Manifest `docs/release/production-migration-reconciliation.json` now records the current isolated replay #42271053737 and 18:33 UTC read-only findings. Replay remains a schema-checkpoint rehearsal, not a genuine backup/data restore.
+- Next: complete backup/data restore and RPO/RTO; test trigger ACL changes in isolation; close six-function payment/finance/Edge E2E; perform RLS/SECURITY DEFINER negative tests; obtain owner-side Auth settings proof.
+- No Production write, migration, grant, Auth/RLS setting change, Edge deployment, payment/finance operation, Pages deployment, merge or root cutover occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
