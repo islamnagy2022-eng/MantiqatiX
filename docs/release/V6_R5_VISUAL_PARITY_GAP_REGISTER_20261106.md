@@ -53,3 +53,20 @@ These omissions are deliberate in the current public MVP slice; they are not pro
 ## Release boundary
 
 This register is a development acceptance gap, not deployment approval. No Production schema/data/Auth/RLS/GRANT/Edge/payment/finance mutation is authorized. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains.
+
+
+## Implemented and independently validated — 2026-11-07
+
+- Public homepage cover restored as a three-slide public carousel with three CTAs; browser assertions cover slide navigation and the CTA presence.
+- Added a live published catalog strip using only the public directory adapter's product rows, verified business ownership, availability and finite recorded prices. The strip exposes the owning activity route, with no fabricated ranking/popularity/order metrics and no cart/checkout/payment action.
+- Exact PR head `8a96b1cb00011892c6b03e0fdda8686ed27ea820`: 9/9 workflows PASS. V6 desktop/mobile browser E2E, directory pagination/search/specialty/profile and axe (critical=0/non-critical=0) PASS. Primary Catalog browser E2E (32 journeys), isolated migration-chain replay and all specialist workflow checks PASS.
+- Pages composition PASS; deploy skipped on PR event. No deployment occurred.
+
+## Remaining r5 parity work
+
+1. Canonical 15-sector card grid + quick-tabs mode and the three-tier sector spotlight/studio navigation; use the canonical taxonomy and real live activity counts only.
+2. Governorate map/filter; only use exact source-backed business coordinates or explicitly labeled administrative aggregates. Do not restore approximate/jittered/default map pins.
+3. Approved targeted-ad column; only active/approved ad records inside the targeting/time/cap/consent contract.
+4. Paired desktop/mobile screenshot comparison against the r5 references.
+
+The exact-head CI closeout is not visual parity certification. FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED remains; no merge-to-main, deployment, root cutover, or Production mutation is claimed.
