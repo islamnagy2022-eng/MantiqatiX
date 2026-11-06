@@ -77,6 +77,9 @@ try {
         const businessId = `v6-preview-business-${number}`;
         const branchId = `v6-preview-branch-${number}`;
         const itemId = `v6-preview-item-${number}`;
+        const itemNames = number === 1
+          ? ['منتج تجريبي', 'منتج إضافي 2', 'منتج إضافي 3']
+          : [number === 1 ? 'منتج تجريبي' : `منتج تجريبي رقم ${number}`];
         return {
           id: businessId,
           slug: `v6-preview-business-${number}`,
@@ -93,13 +96,17 @@ try {
             bio: 'نشاط تجريبي للتحقق من صفحة النشاط.',
           },
           branches: [{ id: branchId, phone: `0100123456${number}`, address: `عنوان اختبار ${number}` }],
-          items: [{
-            id: itemId,
-            name_ar: number === 1 ? 'منتج تجريبي' : `منتج تجريبي رقم ${number}`,
+          items: itemNames.map((name, itemIndex) => ({
+            id: `${itemId}-${itemIndex + 1}`,
+            name_ar: name,
             item_type: 'PRODUCT',
             metadata: { catalog_public: { is_available: true, show_price: true } },
-          }],
-          prices: [{ catalog_item_id: itemId, branch_id: branchId, unit_price: 150 + number }],
+          })),
+          prices: itemNames.map((_, itemIndex) => ({
+            catalog_item_id: `${itemId}-${itemIndex + 1}`,
+            branch_id: branchId,
+            unit_price: 150 + number + itemIndex,
+          })),
         };
       }),
     }) });
@@ -117,6 +124,15 @@ try {
   }));
   assert.ok(cardBounds.every((rect) => rect.width > 0 && rect.height > 0), 'Every desktop activity card must have visible dimensions');
   console.log(`V6_PREVIEW_MULTI_ACTIVITY_LAYOUT=${JSON.stringify(cardBounds)}`);
+  const directorySearch = page.getByPlaceholder(/ابحث عن نشاط أو خدمة أو تخصص/);
+  await directorySearch.fill('نشاط تجريبي رقم 2');
+  await page.waitForFunction(() => document.body.innerText.includes('نشاط تجريبي رقم 2'));
+  assert.equal(await activityCards.count(), 1, 'Directory search must reduce four activities to the matching result');
+  assert.equal(await page.getByText('نشاط تجريبي للاختبار', { exact: true }).count(), 0, 'Directory search must hide non-matching activities');
+  await directorySearch.fill('');
+  await page.waitForFunction(() => document.body.innerText.includes('نشاط تجريبي للاختبار'));
+  assert.equal(await activityCards.count(), 4, 'Clearing directory search must restore all four activities');
+  console.log('V6_PREVIEW_DIRECTORY_SEARCH=PASS');
   const directoryImages = await waitForImageReadiness(page);
   console.log(`V6_PREVIEW_DIRECTORY_IMAGE_AUDIT=${JSON.stringify(directoryImages)}`);
   const runtimeConfig = await page.evaluate(() => Boolean(window.MNTY_CONFIG?.supabaseUrl && window.MNTY_CONFIG?.supabaseKey));
@@ -136,6 +152,9 @@ try {
   assert.ok(await activityHeadings.count() >= 1, 'Activity profile heading must be rendered');
   await activityHeadings.first().waitFor();
   await page.getByText('منتج تجريبي', { exact: true }).waitFor();
+  await page.getByText('منتج إضافي 2', { exact: true }).waitFor();
+  await page.getByText('منتج إضافي 3', { exact: true }).waitFor();
+  console.log('V6_PREVIEW_MULTI_PRODUCT_CATALOG=PASS products=3');
   const profileImages = await waitForImageReadiness(page);
   console.log(`V6_PREVIEW_PROFILE_IMAGE_AUDIT=${JSON.stringify(profileImages)}`);
   const profileBody = await page.locator('body').innerText();
