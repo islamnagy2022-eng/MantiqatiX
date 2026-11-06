@@ -46,6 +46,10 @@ def patch_text(source: str) -> tuple[str, int]:
     return patched, int(patched != source)
 
 
+def expected_label() -> str:
+    return f'aria-label="{LABEL}"'
+
+
 def self_test() -> None:
     fixture = (
         '<div><select class="geo-filter"><option value="all">كل المحافظات</option>'
@@ -59,10 +63,6 @@ def self_test() -> None:
     assert changed_again == 0
     assert again == patched
     assert 'كل التخصصات</option></select>' in patched
-
-
-def expected_label() -> str:
-    return f'aria-label="{LABEL}"'
 
 
 def main() -> None:
