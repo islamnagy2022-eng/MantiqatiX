@@ -402,6 +402,23 @@ export function filterProducts(products: Product[], searchTerm: string, selected
 }
 '''
 
+PUBLIC_MEDICAL = r'''import type { MedicalSpecialty } from '../types';
+
+export const DEFAULT_MEDICAL_SPECIALTIES: MedicalSpecialty[] = [
+  { id: 'spec_internal', name: 'أمراض الباطنة والسكر والغدد', icon: 'Stethoscope', description: 'تشخيص وعلاج أمراض الباطنة، السكري، الجهاز الهضمي وارتفاع ضغط الدم', doctorCount: 34 },
+  { id: 'spec_pedia', name: 'طب الأطفال وحديثي الولادة', icon: 'Baby', description: 'متابعة نمو الرضع، تطعيمات الأطفال، علاج النزلات المعوية وحساسية الصدر', doctorCount: 28 },
+  { id: 'spec_ortho', name: 'جراحة العظام والمفاصل والعمود الفقري', icon: 'Activity', description: 'علاج خشونة المفاصل، جراحات الرباط الصليبي، كسور العظام والانزلاق الغضروفي', doctorCount: 22 },
+  { id: 'spec_cardio', name: 'أمراض القلب والأوعية الدموية والقسطرة', icon: 'HeartPulse', description: 'رسم قلب بالمجهود، قسطرة تشخيصية وعلاجية، ومتابعة قصور الشريان التاجي', doctorCount: 19 },
+  { id: 'spec_derma', name: 'الجلدية والتناسلية والليزر', icon: 'Sparkles', description: 'علاج حب الشباب، الصدفية، الإكزيما، تساقط الشعر، وإجراءات الليزر العلاجي', doctorCount: 25 },
+  { id: 'spec_surgery', name: 'الجراحة العامة وجراحة المناظير', icon: 'Scissors', description: 'جراحات الفتق، استئصال المرارة بالمنظار، وجراحات الشرج والغدة الدرقية', doctorCount: 16 },
+  { id: 'spec_obgyn', name: 'النساء والتوليد وتأخر الإنجاب', icon: 'Heart', description: 'متابعة الحمل الحرج، سونار 4D، الولادة الطبيعية والقيصرية، وعلاج العقم', doctorCount: 31 },
+  { id: 'spec_dental', name: 'طب وجراحة وتجميل الأسنان', icon: 'Smile', description: 'زراعة الأسنان، التقويم الشفاف، فينير وهوليوود سمايل، وحشو العصب الدقيق', doctorCount: 42 },
+  { id: 'spec_ophtha', name: 'طب وجراحة العيون والليزر', icon: 'Eye', description: 'جراحات الفاكو، المياه البيضاء، تصحيح الإبصار بالليزر والليزك، وفحص قاع العين', doctorCount: 18 },
+  { id: 'spec_ent', name: 'الأنف والأذن والحنجرة', icon: 'Ear', description: 'جراحات اللحمية واللوزتين، ترقيع طبلة الأذن، وعلاج الجيوب الأنفية ومشاكل السمع', doctorCount: 15 },
+  { id: 'spec_labs', name: 'معامل التحاليل الطبية والجينات', icon: 'FlaskConical', description: 'تحاليل الدم الشاملة، وظائف الكبد والكلى، دلالات الأورام والتحاليل الوراثية', doctorCount: 38 },
+  { id: 'spec_radiology', name: 'مراكز الأشعة التشخيصية والتصوير', icon: 'Radio', description: 'أشعة رنين مغناطيسي MRI، مقطعية CT، موجات صوتية وسونار، وتصوير الثدي', doctorCount: 12 },
+];
+'''
 def write_exact(path: Path, value: str):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(value, encoding="utf-8")
@@ -409,6 +426,7 @@ def write_exact(path: Path, value: str):
 write_exact(ROOT / "src/context/PublicAppContext.tsx", PUBLIC_CONTEXT)
 write_exact(ROOT / "src/utils/publicContact.ts", PUBLIC_CONTACT)
 write_exact(ROOT / "src/utils/publicCatalog.ts", PUBLIC_CATALOG)
+write_exact(ROOT / "src/data/medicalSpecialties.ts", PUBLIC_MEDICAL)
 
 replacements = {
     "src/App.tsx": [
@@ -429,6 +447,7 @@ replacements = {
     "src/components/medical/MedicalDirectoryView.tsx": [
         ("../../context/AppContext", "../../context/PublicAppContext"),
         ("useApp", "usePublicApp"),
+        ("../../data/seedData", "../../data/medicalSpecialties"),
     ],
     "src/components/ContactUsView.tsx": [
         ("../context/AppContext", "../context/PublicAppContext"),
