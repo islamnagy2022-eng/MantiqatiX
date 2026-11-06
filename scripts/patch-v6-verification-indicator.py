@@ -17,11 +17,12 @@ NEW_MARKUP = """{!verified && (
                           </span>
                         )}"""
 
-OLD_CARD_MARKUP = """                  key={biz.id}
-                  className={`bg-white rounded-3xl border shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-xl transition-all group relative ${"""
-NEW_CARD_MARKUP = """                  key={biz.id}
-                  data-testid="directory-activity-card"
-                  className={`bg-white rounded-3xl border shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-xl transition-all group relative ${"""
+OLD_CARD_MARKUP = "                  key={biz.id}\\n"
+NEW_CARD_MARKUP = (
+    "                  key={biz.id}\\n"
+    '                  data-testid="directory-activity-card"\\n'
+)
+
 
 
 def replace_once(source: str, old: str, new: str, label: str) -> tuple[str, bool]:
