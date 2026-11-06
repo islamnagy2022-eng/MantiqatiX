@@ -20,3 +20,9 @@
 4. Cut over root only after explicit Preview acceptance, with `/legacy/` and rollback.
 
 No Supabase production schema/data/Auth/RLS/GRANT/migration/Edge Function/payment/finance change or public deployment was performed.
+
+
+## First CI feedback and correction
+- First run installed the lockfile and passed source security/remediation, then ran 86 tests: 84 passed and 2 failed due stale assertions.
+- The two assertions expected fabricated 1k/500k load-test measurements despite the implementation deliberately returning zero/unavailable values, and expected legacy generic cover imagery despite the sector-specific image library.
+- The source preparation script now applies exact, anchor-checked corrections to those test assertions before running the test suite. No production logic was weakened or changed by this correction. A fresh CI run is required to verify.
