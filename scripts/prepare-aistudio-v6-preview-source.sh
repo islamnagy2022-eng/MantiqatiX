@@ -12,7 +12,7 @@ if [[ "$ACTUAL" != "$EXPECTED" ]]; then
 fi
 mkdir -p "$WORKTREE"
 tar -xJf "$PACK" -C "$WORKTREE"
-patch --batch --forward -p1 -d "$WORKTREE" < "$ROOT/apps/aistudio-v6/release-test-contract.patch"
+python3 "$ROOT/scripts/patch-v6-release-test-contract.py" "$WORKTREE"
 for required in package.json bun.lock src/main.tsx src/App.tsx scripts/audit-v6-source-security.mjs scripts/verify-v6-remediation.mjs; do
   test -f "$WORKTREE/$required" || { echo "V6_REQUIRED_FILE_MISSING=$required" >&2; exit 1; }
 done
