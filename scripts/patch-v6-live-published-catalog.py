@@ -82,6 +82,7 @@ export const LivePublishedCatalogStrip: React.FC<LivePublishedCatalogStripProps>
                 </div>
                 <button
                   type="button"
+                  aria-label={`عرض النشاط: ${business.name}`}
                   onClick={() => onOpenBusiness(business)}
                   className="mt-1 min-h-9 rounded-lg bg-slate-900 px-3 py-2 text-[11px] font-black text-white transition hover:bg-emerald-700"
                 >
@@ -125,12 +126,6 @@ OLD_MAIN = """      <main className="mx-auto max-w-7xl space-y-8 px-4 py-8">"""
 NEW_MAIN = """      <LivePublishedCatalogStrip items={liveCatalogItems} currency="ج.م" onOpenBusiness={openBusiness} />
 
       <main className="mx-auto max-w-7xl space-y-8 px-4 py-8">"""
-OLD_GRID = """                  key={biz.id}
-                  className={`bg-white rounded-3xl border shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-xl transition-all group relative ${"""
-NEW_GRID = """                  key={biz.id}
-                  data-testid="directory-activity-card"
-                  className={`bg-white rounded-3xl border shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-xl transition-all group relative ${"""
-
 
 def replace_once(text: str, old: str, new: str, label: str) -> tuple[str, bool]:
     old_count = text.count(old)
@@ -152,7 +147,6 @@ def patch_directory(source: str) -> tuple[str, bool]:
         (OLD_CONTEXT, NEW_CONTEXT, "public product context"),
         (OLD_COVER, NEW_COVER, "live published product selection"),
         (OLD_MAIN, NEW_MAIN, "live product strip placement"),
-        (OLD_GRID, NEW_GRID, "directory activity grid test scope"),
     ]:
         source, did_change = replace_once(source, old, new, label)
         changed = changed or did_change
@@ -161,7 +155,6 @@ def patch_directory(source: str) -> tuple[str, bool]:
         "isBusinessVerified(business)",
         "Number.isFinite(product.price)",
         "<LivePublishedCatalogStrip",
-        'data-testid="directory-activity-card"',
     ]
     if any(marker not in source for marker in required):
         raise ValueError("Live published catalog overlay acceptance markers are incomplete")
@@ -169,7 +162,7 @@ def patch_directory(source: str) -> tuple[str, bool]:
 
 
 def self_test() -> None:
-    fixture = "\n".join([OLD_IMPORT, OLD_CONTEXT, OLD_COVER, OLD_MAIN, OLD_GRID])
+    fixture = "\n".join([OLD_IMPORT, OLD_CONTEXT, OLD_COVER, OLD_MAIN])
     patched, changed = patch_directory(fixture)
     assert changed is True
     assert "isBusinessVerified(business)" in patched
