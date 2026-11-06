@@ -55,6 +55,8 @@ jobs:
           test -n "$(find dist/assets -maxdepth 1 -type f -name '*.js' -print -quit)"
           test -n "$(find dist/assets -maxdepth 1 -type f -name '*.css' -print -quit)"
           echo "V6_PREVIEW_BUILD=PASS"
+      - name: Block private admin, wallet, and demo code in public V6 assets
+        run: node scripts/test-v6-public-bundle-clean.mjs apps/aistudio-v6/worktree/dist
       - name: Audit V6 public bundle module ownership
         run: |
           set -euo pipefail
