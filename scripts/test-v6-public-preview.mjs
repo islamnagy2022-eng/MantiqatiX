@@ -84,7 +84,8 @@ try {
     }
     await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({
       accessMode: 'PUBLIC_DIRECTORY_READ_ONLY',
-      businesses: Array.from({ length: 25 }, (_, index) => {
+      businesses: (() => {
+        const fixtureBusinesses = Array.from({ length: 25 }, (_, index) => {
         const number = index + 1;
         const businessId = `v6-preview-business-${number}`;
         const branchId = `v6-preview-branch-${number}`;
@@ -120,7 +121,10 @@ try {
             unit_price: 150 + number + itemIndex,
           })),
         };
-      }),
+        });
+        // The source deliberately sends the unverified listing first. The adapter must move it after all verified activities.
+        return [fixtureBusinesses[24], ...fixtureBusinesses.slice(0, 24)];
+      })(),
     }) });
   });
 
