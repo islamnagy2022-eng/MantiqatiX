@@ -2161,3 +2161,20 @@ A separate source review found a second platform-root authorization model: the n
 - Corrected stale links in the Master TODO, continuity and Session Log so they point to the report that actually exists.
 - Production remains BLOCKED / NOT CERTIFIED. No Production write, migration, Auth/RLS/GRANT, Edge deployment, payment/finance operation, Pages deployment, merge or root cutover occurred.
 - Next: finish exact-head browser E2E and forward replay; then continue backup/restore, payment/finance/Edge, security/Auth and reference-image visual acceptance gates.
+
+
+---
+
+## V6 r5 + isolated replay exact-head closeout — 2026-11-06 17:42 UTC
+
+**PR #685** remains OPEN / DRAFT / NOT MERGED. Current head: `5915ae0a397a088f54f48bc140e9a25b85fa6a62`. V6 application/source head remains `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`.
+
+- All 9 PR workflows completed successfully on current head: Pages validation, Primary Catalog Frontend, V6 source validation, Forward Migration Chain Replay, Backend-only Module Boundary, Module Professionalization, RC425 Paymob Atomicity, MantiGO Open Ride Privacy, and SMM Deferred Storefront Contract.
+- Primary Catalog build, employee/RBAC PostgreSQL and browser E2E passed. Browser marker `PRIMARY_CATALOG_BROWSER_E2E=PASS` covered 32 named journeys.
+- V6 browser E2E passed; axe critical=0 and non-critical=0; image audit recorded all fixture images loaded at directory/profile/mobile; 390px mobile layout had no horizontal overflow.
+- Visual artifact #13525069690 SHA-256 `4d59d1ae7d602b673fb45ed216e24037274a0803f1eb867238096cee21c24375`.
+- Composed Pages artifact #13525039740 SHA-256 `c417b3858ef6d9314b4bac67eb47be7d38c3930de73ef71490e862c5f4aaf0b7`; 65 files, ZIP integrity pass, root catalog untouched, V6 isolated under `v6-preview/`, shared public config, no wallet/admin/demo/service-role markers in V6 JS.
+- Isolated schema-only checkpoint replay #42261319024 passed: checkpoint 20261008222845, 76 migrations in timestamp order through 20261101150000, RC117 + owner profile + RC455/RC456 + reciprocal Tenant A/B access restrictions passed.
+- Fresh read-only Production recheck at 17:38 UTC: 309 migration rows through 20261101140105; ten missing required columns, three missing objects/indexes; journal RPC service_role EXECUTE false, only four-argument digital-page finalizer present; six critical Edge functions remain source-drifted; leaked-password protection disabled; 94 security advisor lints.
+- No Production changes and no Pages deploy. Full platform gate remains BLOCKED / NOT CERTIFIED.
+- Next: restore rehearsal with RPO/RTO, coupled payment/finance/webhook/idempotency/settlement tests, per-function/per-table ACL/RLS review, Auth owner evidence, SMM negative runtime tests, and final paired AI Studio r5 visual acceptance.

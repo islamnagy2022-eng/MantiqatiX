@@ -115,3 +115,26 @@ Production remains **BLOCKED / NOT CERTIFIED** for the full platform.
 7. Keep SMM gateway launch deferred until anonymous/authenticated negative runtime tests are recorded.
 
 No production repair or deployment is authorized by this report. The current catalog root remains in place; V6 remains a separately validated Preview artifact and is not deployed to the public Pages path.
+
+
+---
+
+## Fresh read-only recheck — 2026-11-06 17:38 UTC
+
+This addendum supersedes the earlier in-file snapshot time for the specific checks below. All queries were read-only.
+
+- Supabase project status: `ACTIVE_HEALTHY`; PostgreSQL `17.6.1.155`.
+- Migration ledger: 309 records; latest `20261101140105 directory_source_permission_evidence`.
+- Active critical Edge Function versions remain: `order-create v8`, `payment-intent v8`, `paymob-webhook v10`, `digital-page-payment-intent v5`, `subscription-payment-intent v4`, `financial-journal v3`.
+- Security advisors: 94 lints — 9 RLS-enabled/no-policy INFO, 3 anon-executable SECURITY DEFINER WARN, 67 authenticated-executable SECURITY DEFINER WARN, 90 anonymous-policy WARN, 1 leaked-password-protection WARN. Leaked-password protection remains disabled.
+- Targeted catalog preflight confirms these ten columns remain absent: `businesses.mnty_business_default_images`, `catalog_items.mnty_catalog_item_default_image`, `journal_entries.entry_number`, `journal_entries.posted_at`, `journal_entries.total_credit`, `journal_entries.total_debit`, `journal_entry_lines.line_number`, `marketing_services.image_source`, `marketing_services.image_url`, `marketing_services.mnty_marketing_service_default_image`.
+- Three objects/indexes remain absent: `mantigo_payment_provider_events`, `smm_wallet_transactions_reference_type_uidx`, `uq_payment_intents_one_active_per_order`.
+- `post_financial_journal` and `post_financial_journal_backend` still have no EXECUTE for `anon`, `authenticated`, or `service_role`; both report `search_path=public`.
+- Only the four-argument `finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)` exists. The current source-required five-argument provider-order-bound signature remains absent.
+- The six critical Edge Functions remain byte-different from current source and are one coupled release group. Do not deploy any of them independently.
+
+### Release meaning
+
+This read-only check does not apply migrations or prove that source effects are present. Preserve the historical migration ledger and the two confirmed aliases; do not insert synthetic versions or replay alias duplicates. Production remains `BLOCKED / NOT CERTIFIED`.
+
+No production migration, schema/data write, Auth/RLS/GRANT change, Edge deployment, payment, wallet or finance operation occurred.

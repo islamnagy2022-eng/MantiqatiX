@@ -1478,3 +1478,19 @@ Read-only semantic comparison of all six critical live Edge Functions against cu
 - Production remains BLOCKED: 309 migration records through `20261101140105`, 0/42 exact required source IDs; missing physical columns/objects; six critical Edge Function source drifts; missing five-argument digital finalizer; journal RPC service-role EXECUTE absent; Auth leaked-password protection disabled.
 - Next: recheck the two current-head workflows; then continue genuine backup/restore and RPO/RTO, coupled finance/payment/Edge verification, security/Auth closure, and paired reference-image visual comparison.
 - No Production write, deployment, PR merge or root cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+---
+
+## Continuity checkpoint — 2026-11-06 17:42 UTC
+
+- Branch `feat/v6-r5-preview-foundation-20261106`, PR #685 remains OPEN / DRAFT / NOT MERGED.
+- Current PR head `5915ae0a397a088f54f48bc140e9a25b85fa6a62`; canonical V6 application source head `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`.
+- Exact PR-head CI: 9/9 workflows completed success. Pages validate success but public-only/deploy skipped for PR event. Primary Catalog browser E2E passed 32 journeys. V6 Preview E2E passed, axe critical/non-critical zero, mobile width 390px no horizontal overflow; all audited fixture images loaded.
+- Composed Pages artifact #13525039740: 65 files; ZIP integrity PASS; SHA-256 `c417b3858ef6d9314b4bac67eb47be7d38c3930de73ef71490e862c5f4aaf0b7`. Existing catalog stays at root; V6 remains a separately bundled `/MantiqaTix/v6-preview/` Preview using shared public config. Artifact is not deployed.
+- Visual review artifact #13525069690 SHA-256 `4d59d1ae7d602b673fb45ed216e24037274a0803f1eb867238096cee21c24375`; three current-head captures: desktop directory, desktop activity profile, 390px mobile directory. No clipping/overlap observed in these fixture captures.
+- Isolated local schema-only replay #42261319024: from checkpoint 20261008222845, 76 ordered forward migrations applied through 20261101150000; RC117/owner profile/RC455/RC456/tenant-isolation tests passed. This is not a genuine backup/restore rehearsal and is not Production.
+- Fresh Production read-only recheck 2026-11-06 17:38 UTC: 309 migration records through 20261101140105; 10 required columns and 3 required objects/indexes remain absent; journal service_role EXECUTE false; required 5-argument digital-page finalizer absent; six critical Edge Functions remain drifted; leaked-password protection disabled; advisors 94 lints.
+- Pixel parity with the original AI Studio r5 enterprise screen remains NOT VERIFIED. The current V6 public Preview intentionally excludes private administration/wallet/cart; retain activity→specialty taxonomy with no functional-group layer. Review public promo/ad surface separately before calling design acceptance complete.
+- Next dependencies: a genuine backup restore rehearsal with RPO/RTO/rollback, coupled payment/finance/webhook/Edge E2E, full per-function/per-table security closure, Auth owner-side evidence, SMM negative runtime tests, and approved visual reference acceptance.
+- No Production writes, migration, schema/data/Auth/RLS/GRANT changes, Edge deployment, payment/finance operation, Pages deployment, PR merge or root cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.

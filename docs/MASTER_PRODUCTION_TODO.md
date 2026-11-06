@@ -3840,3 +3840,37 @@ On new documentation-only PR head `f02c8770da26ec6cf3f50d12e2d05b0b853ff661`:
 - [ ] Obtain explicit owner approval before merge, Pages deployment or root promotion.
 
 **Release boundary:** no Production mutation, migration, Edge deployment, payment/finance operation, Pages deployment, PR merge or root cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+---
+
+## متابعة التحقق — 2026-11-06 17:42 UTC
+
+**الرأس الحالي:** `5915ae0a397a088f54f48bc140e9a25b85fa6a62`  
+**رأس مصدر التطبيق V6:** `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`  
+**PR:** [#685](https://github.com/islamnagy2022-eng/MantiqaTix/pull/685) — OPEN / DRAFT / NOT MERGED.
+
+### ما اكتمل على الرأس الحالي
+- [x] جميع 9 مسارات PR Actions اكتملت بنجاح: Pages validation، Primary Catalog Frontend، V6 source validation، forward migration replay، Backend-only boundary، Module Professionalization، RC425 Paymob atomicity، MantiGO Open Ride privacy، SMM deferred contract.
+- [x] Primary Catalog: build + employee/RBAC PostgreSQL + browser E2E — PASS؛ سجل المتصفح `PRIMARY_CATALOG_BROWSER_E2E=PASS` عبر 32 رحلة.
+- [x] V6 Preview: `V6_PUBLIC_PREVIEW_BROWSER_E2E=PASS` على سطح المكتب والهاتف؛ axe critical=0 وnon-critical=0.
+- [x] تدقيق الصور في اختبار المعاينة: جميع صور الدليل والملف الشخصي والمنتج التجريبي سجلت `loaded=true`؛ صور الغلاف/الشعار/المنتج بعروض طبيعية 1600/300/600px.
+- [x] لقطة الهاتف 390px اجتازت منع overflow أفقي؛ صور المعاينة التُقطت بعد انتظار التحميل وفك الترميز.
+- [x] حزمة Pages المركبة فُحصت بعد التنزيل: 65 ملفًا، ZIP integrity PASS، SHA-256 `c417b3858ef6d9314b4bac67eb47be7d38c3930de73ef71490e862c5f4aaf0b7`. جذر `index.html` ما زال يحمّل الكتالوج الحالي؛ V6 في `v6-preview/` وبأصل JavaScript عام مستقل. مسح bundle لم يجد wallet/admin/demo أو service-role markers.
+- [x] Replay محلي معزول: checkpoint مخطط فقط `20261008222845`، ثم 76 migration مرتبة زمنيًا حتى `20261101150000`; RC117/RC455/RC456 وowner profile integration وTenant A/B isolation نجحت.
+- [x] سجل الأدلة التفصيلي: [V6_R5_EXACT_HEAD_5915AE0_VALIDATION_20261106.md](release/V6_R5_EXACT_HEAD_5915AE0_VALIDATION_20261106.md).
+
+### نتائج الإنتاج — قراءة فقط 17:38 UTC
+- [x] مشروع Supabase ACTIVE_HEALTHY، PostgreSQL 17.6.1.155؛ سجل الترحيلات 309، آخر إصدار `20261101140105`.
+- [x] أعيد فحص 10 أعمدة مطلوبة و3 كائنات/فهارس غير موجودة، وRPC دفتر اليومية، وتوقيع digital-page finalizer؛ التفاصيل في [PRODUCTION_READ_ONLY_RECHECK_20261106.md](release/PRODUCTION_READ_ONLY_RECHECK_20261106.md).
+- [x] تأكيد أن RC449A/RC450 لم تُطبّق على Production، journal RPC لا تمنح service_role EXECUTE، والتوقيع ذي 5 معاملات غير موجود؛ ستة Edge Functions الحرجة ما زالت drifted عن المصدر.
+- [x] الأمن: 94 advisor lints، منها 90 anonymous-policy و67 authenticated SECURITY DEFINER و3 anon SECURITY DEFINER و9 INFO RLS-no-policy وواحد leaked-password protection disabled.
+
+### ما زال مفتوحًا — لا تعتبره منجزًا
+- [ ] المقارنة البصرية pixel-for-pixel مع مرجع AI Studio r5 لم تعتمد بعد؛ صفحة Preview الحالية هي public-safe directory وليست إعادة إنتاج لوحة الإدارة/المحافظ/العربة. لا تُعد طبقات المجموعات الوظيفية؛ يظل المسار النشاط ثم التخصص.
+- [ ] استعادة backup حقيقية وتجربة restore مقاسة بـRPO/RTO وrollback — غير منفذة. الـschema checkpoint replay ليس backup restore.
+- [ ] اختبار payment/Paymob/webhook/idempotency/wallet/settlement الكامل للستة Edge Functions كوحدة مترابطة، لا نشر منفرد.
+- [ ] إغلاق فروق الإنتاج مع migrations/schema/RPC/ACL وEdge Functions؛ Auth leaked-password protection وnegative RLS tests؛ SMM runtime negative tests.
+- [ ] لا merge ولا Pages deploy ولا root cutover قبل موافقة صريحة.
+
+**الحد الفاصل:** لا تغييرات على Production، ولا نشر Pages؛ بوابة المنصة الكاملة `BLOCKED / NOT CERTIFIED`.
