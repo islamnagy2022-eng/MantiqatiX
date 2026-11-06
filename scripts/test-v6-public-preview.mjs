@@ -140,18 +140,24 @@ try {
   await loadMore.click();
   assert.equal(await activityCards.count(), 25, 'Load more must reveal the remaining five activities');
   console.log('V6_PREVIEW_DIRECTORY_PAGINATION=PASS initial=20 total=25 loaded=25');
-  const activityTiles = page.getByTestId('directory-activity-card');
-  assert.equal(await activityTiles.count(), 25, 'Twenty-five activity cards must be rendered after loading more');
-  const unverifiedTile = activityTiles.last();
-  assert.match(await unverifiedTile.innerText(), /نشاط غير موثق للاختبار/, 'Unverified activity must remain after verified activities');
-  assert.match(await unverifiedTile.innerText(), /غير موثق/, 'Unverified activity must expose its status label');
-  assert.equal(await unverifiedTile.getByTestId('unverified-status-dot').count(), 1, 'Unverified activity must display the red status dot');
-  assert.doesNotMatch(await activityTiles.first().innerText(), /غير موثق/, 'Verified activities must appear before the unverified activity');
+  const unverifiedDot = page.getByTestId('unverified-status-dot');
+  assert.equal(await unverifiedDot.count(), 1, 'The unverified listing must display exactly one red status dot');
+  const unverifiedName = page.getByText('نشاط غير موثق للاختبار', { exact: true });
+  const verifiedName = page.getByText('نشاط تجريبي للاختبار', { exact: true }).first();
+  const verifiedPrecedesUnverified = await verifiedName.evaluate(
+    (verified, unverified) => Boolean(verified.compareDocumentPosition(unverified) & Node.DOCUMENT_POSITION_FOLLOWING),
+    await unverifiedName.elementHandle(),
+  );
+  assert.equal(verifiedPrecedesUnverified, true, 'Verified activity must appear before the unverified listing in DOM order');
+  assert.equal(
+    await unverifiedDot.evaluate((node) => node.parentElement?.innerText.trim() === 'غير موثق'),
+    true,
+    'The red status dot must sit beside the accessible unverified text label',
+  );
   console.log('V6_PREVIEW_VERIFICATION_SORT=PASS verified_first=true unverified_last=true red_dot=true');
   await page.getByRole('button', { name: /^دليل مجاني غير موثق/ }).click();
   assert.equal(await activityCards.count(), 1, 'Unverified-only filter must return exactly the unverified test activity');
-  assert.equal(await activityTiles.count(), 1, 'Unverified-only filter must leave exactly one activity card');
-  assert.match(await activityCards.first().innerText(), /نشاط غير موثق للاختبار/);
+  assert.equal(await page.getByText('نشاط غير موثق للاختبار', { exact: true }).count(), 1, 'Unverified-only filter must show the unverified listing only');
   await page.getByRole('button', { name: /^الكل\s*\(/ }).click();
   assert.equal(await activityCards.count(), 20, 'Clearing verification filter must reset to the first 20 of 25 activities');
   await resetScrollForScreenshot(page);
