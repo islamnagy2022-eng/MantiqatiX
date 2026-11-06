@@ -132,6 +132,17 @@ try {
   await page.goto(previewUrl, { waitUntil: 'domcontentloaded' });
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor({ timeout: 15000 });
   await page.getByText('نشاط تجريبي للاختبار', { exact: true }).waitFor({ timeout: 15000 });
+  const homeCover = page.getByTestId('r5-public-home-cover');
+  assert.equal(await homeCover.count(), 1, 'Canonical r5 public homepage cover must be rendered');
+  await homeCover.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات المتاحة' }).waitFor();
+  assert.equal(await homeCover.getByRole('button', { name: 'استكشف الأنشطة' }).count(), 1);
+  assert.equal(await homeCover.getByRole('button', { name: 'الدليل الطبي' }).count(), 1);
+  assert.equal(await homeCover.getByRole('button', { name: 'تواصل معنا' }).count(), 1);
+  await homeCover.getByRole('button', { name: 'الشريحة التالية' }).click();
+  await homeCover.getByRole('heading', { name: 'تصفح صفحات الأنشطة والكتالوجات' }).waitFor();
+  await homeCover.getByRole('button', { name: 'الشريحة السابقة' }).click();
+  await homeCover.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات المتاحة' }).waitFor();
+  console.log('V6_R5_PUBLIC_HOME_COVER=PASS slides=3 public_ctas=3');
   const activityCards = page.getByRole('button', { name: /عرض النشاط/ });
   assert.equal(await activityCards.count(), 20, 'Directory must initially render only the first 20 of 25 activities');
   assert.match(await page.locator('body').innerText(), /25 نتيجة مطابقة/, 'Directory must report all 25 matching activities, not only the visible page');
