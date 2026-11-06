@@ -195,9 +195,10 @@ try {
   await directorySearch.fill('نشاط اختباري فريد 2');
   await page.waitForFunction(() => document.body.innerText.includes('نشاط اختباري فريد 2'));
   assert.equal(await activityCards.count(), 1, 'Directory search must reduce 25 activities to the unique matching result');
-  assert.equal(await page.getByText('نشاط تجريبي للاختبار', { exact: true }).count(), 0, 'Directory search must hide non-matching activities');
+  await page.waitForFunction(() => Array.from(document.querySelectorAll('button')).filter((button) => button.textContent.trim() === 'عرض النشاط').length === 1);
+  assert.equal(await liveCatalogStrip.getByTestId('live-published-catalog-card').count(), 26, 'Directory search must not mutate the separate live published catalog strip');
   await directorySearch.fill('');
-  await page.waitForFunction(() => document.body.innerText.includes('نشاط تجريبي للاختبار'));
+  await page.getByRole('button', { name: 'عرض النشاط', exact: true }).nth(19).waitFor({ timeout: 15000 });
   assert.equal(await activityCards.count(), 20, 'Clearing directory search must reset visible results to the first 20 of 25');
   assert.equal(await page.getByRole('button', { name: /رؤية المزيد/ }).count(), 1, 'Load more must return after clearing search');
   console.log('V6_PREVIEW_DIRECTORY_SEARCH=PASS');
