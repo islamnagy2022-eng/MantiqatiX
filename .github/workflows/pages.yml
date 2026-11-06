@@ -68,14 +68,16 @@ jobs:
           name: v6-public-bundle-module-audit-${{ github.run_id }}
           path: /tmp/v6-public-bundle-module-audit.json
           if-no-files-found: warn
-      - name: Upload V6 public-bundle source modules for targeted review
+      - name: Upload V6 source tree for public-bundle separation review
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: v6-public-bundle-source-review-${{ github.run_id }}
+          name: v6-source-tree-review-${{ github.run_id }}
           path: |
-            apps/aistudio-v6/worktree/src/context/AppContext.tsx
-            apps/aistudio-v6/worktree/src/utils/rules.ts
+            apps/aistudio-v6/worktree/src/
+            apps/aistudio-v6/worktree/vite.config.ts
+            apps/aistudio-v6/worktree/tsconfig.json
+            apps/aistudio-v6/worktree/package.json
           if-no-files-found: error
       - name: Validate additive professional dashboard contract
         run: node scripts/validate-professional-dashboard.mjs
