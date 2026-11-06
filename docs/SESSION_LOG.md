@@ -2189,3 +2189,21 @@ A separate source review found a second platform-root authorization model: the n
 - V6 application/source head: `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`.
 - CI was automatically re-triggered for the documentation-only head. Do not attribute the completed 5915 test results to b66 until the new exact-head runs finish.
 - PR #685 remains OPEN / DRAFT / NOT MERGED; no merge, Pages deployment, root cutover or Production change occurred.
+
+
+---
+
+## V6 r5 multi-activity Preview CI closeout — 2026-11-06 18:31 UTC
+
+**PR #685** remains OPEN / DRAFT / NOT MERGED. Exact tested commit: `a7df3493460c77a28ef117ec9716bb369cf684a0`.
+
+- All nine exact-head workflow runs completed successfully (9/9).
+- Primary Catalog build + TypeScript + employee/RBAC PostgreSQL + 32-journey browser E2E passed.
+- Preview test fixture now returns four synthetic activities; desktop card geometry and the three-column first row/fourth-next-row arrangement were checked. The mobile capture at 390px rendered all four cards without horizontal overflow.
+- V6 Preview browser E2E and axe passed (critical=0, non-critical=0); image load/decode checks passed.
+- Screenshot artifact #13529541408 SHA-256: `100e45ffb0ec0a77605f11cfdf535355367238457c9ea1a8bb5d66ad5081b7d5`.
+- Composed Pages artifact #13529311825 SHA-256: `8afbbd7ed4f429b9afaf06d9bb418705a7a07f8be606740fc4e7a7864aa3779f` (65 files); existing catalog root preserved and V6 isolated under `v6-preview/`.
+- Isolated schema checkpoint replay #42271053737 passed 76 ordered forward migrations and RC117, owner-profile, RC455/RC456 and reciprocal Tenant A/B privacy assertions. Not a data backup/restore rehearsal.
+- PR Pages validation passed but both deployment-related jobs were skipped for the PR event; no live Preview deployment or public root replacement.
+- Production gate remains BLOCKED / NOT CERTIFIED pending data restore, coupled payment/finance/Edge tests, security/Auth closure, SMM negative runtime checks and original r5 visual acceptance.
+- No Production database/Auth/RLS/GRANT/Edge/payment/finance mutation or deployment occurred.
