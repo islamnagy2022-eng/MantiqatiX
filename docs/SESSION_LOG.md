@@ -2137,3 +2137,14 @@ A separate source review found a second platform-root authorization model: the n
 - Both source aliases are now evidence-confirmed. No ledger repair was performed; formal ledger change remains a separately gated Production write. Record: [PRODUCTION_ALIAS_RECONCILIATION_20261106_1555UTC.md](release/PRODUCTION_ALIAS_RECONCILIATION_20261106_1555UTC.md).
 - PR #685 latest head remains `6d1b08c` at this handoff. Exact-head CI on that commit is 8/8 successful. V6 Preview Playwright and axe checks pass; no Pages deployment occurred.
 - Next: manual visual V6-vs-AI-Studio-r5 acceptance; continue only within isolated, approved backup/restore and migration rehearsal path. Full production remains BLOCKED / NOT CERTIFIED.
+
+
+---
+
+## 2026-11-06 — critical Edge Function semantic parity review
+
+- Retrieved live source for the six production-critical Edge Functions and compared each with current `main` and the current feature-branch source. Current main and branch sources match; all six deployed live functions differ.
+- Identified specific contracts: old 4-arg digital-page finalizer versus current 5-arg provider-order-bound form; legacy subscription create RPC versus current claimable/claim RPC sequence; missing webhook provider/subscription failure processors and MantiGO processor; legacy financial-journal RPC and wildcard CORS versus backend RPC and origin restriction; additional amount precision/provider outcome checks in payment-intent.
+- Read-only RPC catalog inspection confirmed the current source-required RPC gaps and showed `service_role` EXECUTE false for both journal functions.
+- Full details: [PRODUCTION_EDGE_FUNCTION_CONTRACT_REVIEW_20261106.md](release/PRODUCTION_EDGE_FUNCTION_CONTRACT_REVIEW_20261106.md).
+- No production write, deployment, payment or financial transaction. All six Edge Functions remain a coupled BLOCKED release unit; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.

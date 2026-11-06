@@ -1450,3 +1450,16 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Global production gate remains BLOCKED / NOT CERTIFIED: 0/42 exact required migration version IDs, missing schema/RPC prerequisites, six critical Edge Function drifts, payment/finance E2E and restore rehearsal NOT VERIFIED, Auth leaked-password protection disabled, and additional per-policy/per-function security review outstanding.
 - Next: manual visual acceptance of V6 against AI Studio r5; then a genuinely isolated, cost-approved restore/replay path and controlled P0 production dependency closure. Do not create a billable Supabase branch until cost is known and approved.
 - No merge, deployment, root cutover, or Production mutation.
+
+
+---
+
+## Current Production Edge Function drift — 2026-11-06
+
+Read-only semantic comparison of all six critical live Edge Functions against current source is recorded in [PRODUCTION_EDGE_FUNCTION_CONTRACT_REVIEW_20261106.md](release/PRODUCTION_EDGE_FUNCTION_CONTRACT_REVIEW_20261106.md). Key points:
+- Paymob webhook live v10 lacks current source failure processors and MantiGO payment processor; source also adds provider-order binding.
+- Digital-page payment intent live v5 uses a 4-argument finalizer; source requires the 5-argument form with provider-order ID. Production only has the 4-argument RPC.
+- Subscription payment intent live v4 uses the old create RPC; source requires two claimable/claim RPCs not found in Production.
+- Financial journal live v3 calls the legacy RPC and wildcard CORS; source uses the backend RPC and restricted origin. Neither journal RPC currently grants EXECUTE to `service_role`, and required journal columns are missing.
+- The source adds smaller hardening checks to order-create and payment-intent. All six remain mismatched and must be released only as one tested unit.
+- No Production changes. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.

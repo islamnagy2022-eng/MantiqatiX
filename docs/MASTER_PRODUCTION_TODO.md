@@ -3789,3 +3789,14 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Record the new read-only evidence in [PRODUCTION_ALIAS_RECONCILIATION_20261106_1555UTC.md](release/PRODUCTION_ALIAS_RECONCILIATION_20261106_1555UTC.md) and the canonical reconciliation JSON.
 - [ ] Formal ledger-history repair remains NOT APPLIED. Do not alter history or replay duplicates until verified backup/restore, chronological rehearsal, reviewed repair plan, rollback evidence and explicit owner approval.
 - **Meaning of status:** source alias evidence confirmed 2/2; formal ledger repair applied 0/2. Production gate remains BLOCKED / NOT CERTIFIED.
+
+
+### Critical Edge Function semantic parity — 2026-11-06
+- [x] Read-only compare all six live critical Edge Functions with current source; current main and feature branch copies match, all six deployed files differ.
+- [x] Record function-specific contract drift in [PRODUCTION_EDGE_FUNCTION_CONTRACT_REVIEW_20261106.md](release/PRODUCTION_EDGE_FUNCTION_CONTRACT_REVIEW_20261106.md).
+- [x] Confirmed production only has 4-argument digital-page finalize; source requires 5 arguments including provider order ID.
+- [x] Confirmed old subscription create RPC exists but the source-required claimable create/claim RPCs are absent.
+- [x] Confirmed source-required provider/subscription failure handlers and MantiGO payment processor RPCs are absent.
+- [x] Confirmed financial journal backend RPC has no `service_role` EXECUTE grant; required columns remain missing.
+- [ ] Build and run coupled isolated migration/RPC/Edge test suite for the six-function group; never deploy one function independently.
+- [ ] Keep payment/finance release blocked until restore/replay, sandbox payment/webhook/idempotency, negative authorization and rollback evidence pass.
