@@ -1436,3 +1436,17 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Exact-head run `41254516117` failed only in `professional_dashboard_browser_e2e` at test line 865: a duplicated specialty-filter scenario attempted to click the medical-practices activity card without first opening its parent “الطب والصحة” group.
 - Corrected the test to follow the actual navigation sequence (open group → open activity → choose specialty). The source UI, routing, and authorization checks were not changed or weakened.
 - Fresh CI is required on the new branch HEAD. Keep PR #628 unmerged and do not claim deployment until all required checks pass and the production release workflow actually deploys. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+---
+
+## Latest continuation handoff — 2026-11-06 15:55 UTC
+
+- Active branch: `feat/v6-r5-preview-foundation-20261106`; PR #685 remains OPEN / DRAFT / NOT MERGED.
+- Latest commit at handoff: `6d1b08cd8c652042563b8c0d9fc8db433936482e`. V6 application/source head remains `0de8917431d2e2ecf5e4cd833cd08d4286e682e`.
+- Exact-head CI on commit 6d1b08c: **8/8 workflows completed successfully**. Primary catalog build, employee/RBAC PostgreSQL and 32-journey browser E2E passed. Pages validation and V6 public Preview E2E passed; 90 Preview/navigation assertions passed; axe critical=0 and zero non-critical violation groups. Pages deploy was skipped because this is a PR.
+- The latest composed artifact is [13518406042](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42246039796/artifacts/13518406042), 65 files, ZIP SHA-256 `8c12e1980ed7e43f83212e19fbe34b33b63e1f2caf44f5712fe7369f73421305`. Existing catalog stays at root; V6 is a separate `/MantiqatiX/v6-preview/` path. Bundle scan found no wallet/admin/demo or service-role markers.
+- Read-only alias reconciliation now confirms both expected duplicate source aliases by exact blob/statement evidence. Source evidence is 2/2 confirmed; formal ledger repair remains 0/2 and unapplied. See [PRODUCTION_ALIAS_RECONCILIATION_20261106_1555UTC.md](release/PRODUCTION_ALIAS_RECONCILIATION_20261106_1555UTC.md).
+- Global production gate remains BLOCKED / NOT CERTIFIED: 0/42 exact required migration version IDs, missing schema/RPC prerequisites, six critical Edge Function drifts, payment/finance E2E and restore rehearsal NOT VERIFIED, Auth leaked-password protection disabled, and additional per-policy/per-function security review outstanding.
+- Next: manual visual acceptance of V6 against AI Studio r5; then a genuinely isolated, cost-approved restore/replay path and controlled P0 production dependency closure. Do not create a billable Supabase branch until cost is known and approved.
+- No merge, deployment, root cutover, or Production mutation.

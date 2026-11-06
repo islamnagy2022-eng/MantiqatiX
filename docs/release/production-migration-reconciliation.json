@@ -1552,33 +1552,48 @@
     "provider_profile_status": "ACTIVE"
   },
   "migration_alias_resolution_check": {
-    "status": "PENDING_CONTROLLED_REPAIR",
-    "checked_at": "2026-10-27",
+    "status": "SOURCE_ALIASES_CONFIRMED_LEDGER_REPAIR_PENDING",
+    "checked_at": "2026-11-06T15:55:00Z",
     "expected_aliases": 2,
     "resolved_aliases": 0,
-    "procedure": "After a reviewed current-schema replay, backup/restore and rollout approval, use the documented Supabase migration-history repair path to reconcile these duplicate source versions as already-applied aliases, without executing duplicate SQL. This changes only the migration ledger and is a Production write; it has not been performed.",
+    "procedure": "Both duplicate source aliases are now confirmed by exact stored-statement and/or source-blob evidence. No migration-ledger repair has been applied. Preserve the existing production ledger rows; any formal history reconciliation remains a separate production write requiring verified backup/restore, completed chronological rehearsal, review, rollback plan and explicit release approval. Never execute duplicate SQL.",
     "aliases": [
       {
         "source_version": "20261009010000",
         "source_file": "supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql",
         "target_ledger_version": "20261008222845",
         "evidence_type": "EXACT_STATEMENT_ALIAS",
-        "status": "PENDING",
+        "status": "SOURCE_ALIAS_CONFIRMED_LEDGER_REPAIR_PENDING",
         "source_effect_verified": true,
         "ledger_repair_applied": false,
-        "note": "The live statement is character-for-character identical to the already-applied legacy RC424 ledger version; preserve the live version and do not execute the alias as new SQL."
+        "note": "Read-only comparison confirmed the single stored statement in live ledger version 20261008222845 exactly matches the 7208-byte source file 20261009010000_rc424_atomic_digital_page_payment_webhook.sql. Preserve the legacy target ledger version; do not run the source alias as new SQL.",
+        "evidence_checked_at": "2026-11-06T15:55:00Z",
+        "source_blob_sha": "49f46e3e159e6306534adbf61f626901c2d73488",
+        "live_ledger_statement_count": 1,
+        "live_ledger_statement_bytes": 7208,
+        "live_statement_exact_source_match": true
       },
       {
         "source_version": "20261027100000",
         "source_file": "supabase/migrations/20261027100000_mantiqatix_marketing_contact_details.sql",
         "target_ledger_version": "20261027041411",
         "evidence_type": "EXACT_SOURCE_BLOB_ALIAS",
-        "status": "PENDING",
+        "status": "SOURCE_ALIAS_CONFIRMED_LEDGER_REPAIR_PENDING",
         "source_effect_verified": true,
         "ledger_repair_applied": false,
-        "note": "The source blob is identical to the exact-version 20261027041411 migration already recorded in Production; do not execute the duplicate as an independent migration."
+        "note": "The source files 20261027041411_mantiqatix_marketing_contact_details.sql and 20261027100000_mantiqatix_marketing_contact_details.sql have identical Git blob SHA 1b85c341c0c9329e71f4fdbf36f2f852687994aa (1114 bytes). The live schema_migrations row at version 20261027041411 contains one 1114-byte statement and exact equality against source version 20261027100000 returned true. This is a confirmed duplicate source alias; no SQL replay or ledger write is needed.",
+        "evidence_checked_at": "2026-11-06T15:55:00Z",
+        "source_blob_sha": "1b85c341c0c9329e71f4fdbf36f2f852687994aa",
+        "target_source_blob_sha": "1b85c341c0c9329e71f4fdbf36f2f852687994aa",
+        "target_ledger_statement_count": 1,
+        "target_ledger_statement_bytes": 1114,
+        "target_ledger_statement_md5": "d09b822bea5dfc5e3e4103dcfa02601c",
+        "live_statement_exact_source_match": true
       }
-    ]
+    ],
+    "evidence_checked_at": "2026-11-06T15:55:00Z",
+    "source_confirmed_aliases": 2,
+    "ledger_repairs_applied": 0
   },
   "catalog_platform_admin_paid_subscription_gate": {
     "status": "PASS",

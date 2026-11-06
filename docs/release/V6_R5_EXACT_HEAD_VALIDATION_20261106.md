@@ -122,3 +122,19 @@ Latest composed artifact [13516086964](https://github.com/islamnagy2022-eng/Mant
 The current production read-only checkpoint is recorded in [PRODUCTION_READ_ONLY_RECHECK_20261106_1534UTC.md](PRODUCTION_READ_ONLY_RECHECK_20261106_1534UTC.md). This does not change the production gate: `BLOCKED / NOT CERTIFIED`.
 
 PR #685 remains OPEN / DRAFT / NOT MERGED. No Pages deployment, production DB/Auth/RLS/GRANT/Edge/payment/finance change, or root cutover occurred.
+
+
+## Exact-head recheck — 2026-11-06 15:50 UTC
+
+The documentation head `6d1b08cd8c652042563b8c0d9fc8db433936482e` was validated with all eight PR workflow runs completed successfully:
+- Pages [42246039796](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42246039796): build and V6 source/bundle checks passed; `PAGES_COMPOSITION=PASS`; `V6_PUBLIC_PREVIEW_BROWSER_E2E=PASS`; 90 preview/navigation checks passed; axe critical=0 and zero non-critical violation groups. `validate_public_only` and `deploy` were skipped because the event was a PR.
+- Primary Catalog [42246039778](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42246039778): build, isolated employee/RBAC PostgreSQL and browser E2E all PASS; `PRIMARY_CATALOG_BROWSER_E2E=PASS` across 32 journeys.
+- Backend-only Module Boundary [42246039856], Module Professionalization [42246039765], RC425 Paymob Atomicity [42246039917], MantiGO Open Ride Privacy [42246040055], SMM Deferred Storefront Contract [42246039994], and V6 Preview Source Validation [42246039886] all PASS.
+- Composed artifact [13518406042](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/42246039796/artifacts/13518406042), 65 files, ZIP integrity PASS, SHA-256 `8c12e1980ed7e43f83212e19fbe34b33b63e1f2caf44f5712fe7369f73421305`. Root assets still load the current catalog; V6 loads from its own subpath and shared public config. No private wallet/admin/demo markers and no `service_role` marker occur in the V6 public JS.
+- Manual visual comparison against the approved AI Studio r5 reference remains OPEN. Automated desktop/mobile E2E is not a substitute for that manual baseline review.
+
+## Migration alias identity evidence — 2026-11-06 15:55 UTC
+
+Both migration source aliases are now confirmed by read-only evidence: RC424's 7,208-byte statement exactly matches the already-applied ledger record; the `20261027100000` source file shares its exact Git blob with the `20261027041411` source, and the Production ledger statement matches that source byte-for-byte at 1,114 bytes. No migration-history write or duplicate SQL replay occurred. Formal ledger repair remains unapplied and independently gated. Details: [PRODUCTION_ALIAS_RECONCILIATION_20261106_1555UTC.md](PRODUCTION_ALIAS_RECONCILIATION_20261106_1555UTC.md).
+
+Production remains BLOCKED / NOT CERTIFIED.

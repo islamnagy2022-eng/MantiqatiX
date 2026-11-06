@@ -2125,3 +2125,15 @@ A separate source review found a second platform-root authorization model: the n
 - Detailed snapshot: [PRODUCTION_READ_ONLY_RECHECK_20261106_1534UTC.md](release/PRODUCTION_READ_ONLY_RECHECK_20261106_1534UTC.md).
 - Remaining priority: manual visual acceptance against AI Studio r5; controlled isolated schema/migration reconciliation; genuine restore/rollback and payment/finance tests; six-function parity; Auth and security sign-off.
 - No production database/Auth/RLS/GRANT/Edge/payment/finance mutation, Pages deployment, PR merge or root cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+---
+
+## 2026-11-06 15:55 UTC — migration alias identity reconciliation
+
+- Resumed the P0 migration-ledger audit without changing Production.
+- Verified RC424 source file SHA `49f46e3e159e6306534adbf61f626901c2d73488` against the existing live ledger version `20261008222845`: one stored statement, 7,208 bytes, exact text equality.
+- Verified `20261027100000_mantiqatix_marketing_contact_details.sql` and `20261027041411_mantiqatix_marketing_contact_details.sql` have the same Git blob SHA `1b85c341c0c9329e71f4fdbf36f2f852687994aa`. The live `20261027041411` ledger row contains one 1,114-byte statement; exact equality against the 20261027100000 source returned TRUE.
+- Both source aliases are now evidence-confirmed. No ledger repair was performed; formal ledger change remains a separately gated Production write. Record: [PRODUCTION_ALIAS_RECONCILIATION_20261106_1555UTC.md](release/PRODUCTION_ALIAS_RECONCILIATION_20261106_1555UTC.md).
+- PR #685 latest head remains `6d1b08c` at this handoff. Exact-head CI on that commit is 8/8 successful. V6 Preview Playwright and axe checks pass; no Pages deployment occurred.
+- Next: manual visual V6-vs-AI-Studio-r5 acceptance; continue only within isolated, approved backup/restore and migration rehearsal path. Full production remains BLOCKED / NOT CERTIFIED.

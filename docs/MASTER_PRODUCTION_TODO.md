@@ -3781,3 +3781,11 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] Explicit owner approval before merge, Pages deployment or root promotion.
 
 **Production boundary:** no production writes, migrations, schema/data/Auth/RLS/GRANT changes, Edge Function deployments, payment/finance operations, Pages deployment, or root cutover were made. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains.
+
+
+### Alias evidence follow-up — 2026-11-06 15:55 UTC
+- [x] Confirm RC424 source alias `20261009010000` against the live `20261008222845` ledger statement: one statement, 7,208 bytes, exact equality.
+- [x] Confirm `20261027100000` marketing-contact source alias: source-file Git blob is identical to `20261027041411` (SHA `1b85c341c0c9329e71f4fdbf36f2f852687994aa`); live stored ledger statement is 1,114 bytes and exact equality against the alias source returns true.
+- [x] Record the new read-only evidence in [PRODUCTION_ALIAS_RECONCILIATION_20261106_1555UTC.md](release/PRODUCTION_ALIAS_RECONCILIATION_20261106_1555UTC.md) and the canonical reconciliation JSON.
+- [ ] Formal ledger-history repair remains NOT APPLIED. Do not alter history or replay duplicates until verified backup/restore, chronological rehearsal, reviewed repair plan, rollback evidence and explicit owner approval.
+- **Meaning of status:** source alias evidence confirmed 2/2; formal ledger repair applied 0/2. Production gate remains BLOCKED / NOT CERTIFIED.
