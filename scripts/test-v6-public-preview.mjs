@@ -72,15 +72,36 @@ try {
     }
     await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({
       accessMode: 'PUBLIC_DIRECTORY_READ_ONLY',
-      businesses: [{
-        id: 'v6-preview-business-1', slug: 'v6-preview-business', name: 'نشاط تجريبي للاختبار', category: 'متاجر',
-        operationallyAvailable: true, selectedBranchId: 'v6-preview-branch-1',
-        provider: { kind: 'retail', verified: true, description: 'بيانات اختبار للعرض العام.' },
-        profile: { governorate: 'القاهرة', markaz: 'مدينة نصر', village: 'الحي الأول', whatsappPhone: '201001234567', bio: 'نشاط تجريبي للتحقق من صفحة النشاط.' },
-        branches: [{ id: 'v6-preview-branch-1', phone: '01001234567', address: 'عنوان اختبار' }],
-        items: [{ id: 'v6-preview-item-1', name_ar: 'منتج تجريبي', item_type: 'PRODUCT', metadata: { catalog_public: { is_available: true, show_price: true } } }],
-        prices: [{ catalog_item_id: 'v6-preview-item-1', branch_id: 'v6-preview-branch-1', unit_price: 150 }],
-      }],
+      businesses: Array.from({ length: 4 }, (_, index) => {
+        const number = index + 1;
+        const businessId = `v6-preview-business-${number}`;
+        const branchId = `v6-preview-branch-${number}`;
+        const itemId = `v6-preview-item-${number}`;
+        return {
+          id: businessId,
+          slug: `v6-preview-business-${number}`,
+          name: number === 1 ? 'نشاط تجريبي للاختبار' : `نشاط تجريبي رقم ${number}`,
+          category: ['متاجر', 'مطاعم', 'خدمات', 'صحة'][index],
+          operationallyAvailable: true,
+          selectedBranchId: branchId,
+          provider: { kind: 'retail', verified: true, description: 'بيانات اختبار للعرض العام.' },
+          profile: {
+            governorate: 'القاهرة',
+            markaz: 'مدينة نصر',
+            village: ['الحي الأول', 'الحي الثاني', 'الحي الثالث', 'الحي الرابع'][index],
+            whatsappPhone: `20100123456${number}`,
+            bio: 'نشاط تجريبي للتحقق من صفحة النشاط.',
+          },
+          branches: [{ id: branchId, phone: `0100123456${number}`, address: `عنوان اختبار ${number}` }],
+          items: [{
+            id: itemId,
+            name_ar: number === 1 ? 'منتج تجريبي' : `منتج تجريبي رقم ${number}`,
+            item_type: 'PRODUCT',
+            metadata: { catalog_public: { is_available: true, show_price: true } },
+          }],
+          prices: [{ catalog_item_id: itemId, branch_id: branchId, unit_price: 150 + number }],
+        };
+      }),
     }) });
   });
 
@@ -88,6 +109,14 @@ try {
   await page.goto(previewUrl, { waitUntil: 'domcontentloaded' });
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor({ timeout: 15000 });
   await page.getByText('نشاط تجريبي للاختبار', { exact: true }).waitFor({ timeout: 15000 });
+  const activityCards = page.getByRole('button', { name: /عرض النشاط/ });
+  assert.equal(await activityCards.count(), 4, 'Desktop directory fixture must render four distinct activity cards');
+  const cardBounds = await activityCards.evaluateAll((cards) => cards.map((card) => {
+    const rect = card.getBoundingClientRect();
+    return { x: Math.round(rect.x), y: Math.round(rect.y), width: Math.round(rect.width), height: Math.round(rect.height) };
+  }));
+  assert.ok(cardBounds.every((rect) => rect.width > 0 && rect.height > 0), 'Every desktop activity card must have visible dimensions');
+  console.log(`V6_PREVIEW_MULTI_ACTIVITY_LAYOUT=${JSON.stringify(cardBounds)}`);
   const directoryImages = await waitForImageReadiness(page);
   console.log(`V6_PREVIEW_DIRECTORY_IMAGE_AUDIT=${JSON.stringify(directoryImages)}`);
   const runtimeConfig = await page.evaluate(() => Boolean(window.MNTY_CONFIG?.supabaseUrl && window.MNTY_CONFIG?.supabaseKey));
@@ -102,7 +131,7 @@ try {
     assert.equal(publicBody.includes(forbidden), false, `Public shell must not expose ${forbidden}`);
   }
 
-  await page.getByRole('button', { name: /عرض النشاط/ }).click();
+  await activityCards.first().click();
   const activityHeadings = page.getByRole('heading', { name: 'نشاط تجريبي للاختبار', exact: true });
   assert.ok(await activityHeadings.count() >= 1, 'Activity profile heading must be rendered');
   await activityHeadings.first().waitFor();
