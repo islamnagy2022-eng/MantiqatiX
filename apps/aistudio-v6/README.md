@@ -1,6 +1,6 @@
 # AI Studio V6 — canonical r5 source
 
-The immutable r5 source archive is stored as five base64 text parts under `source-pack-parts/`. The preparation script reconstructs the tar.xz, verifies its SHA-256, and extracts the app into an ignored `worktree/`.
+The immutable public MVP r5 source archive is stored as `source-r5-preview.tar.xz`. The preparation script verifies its SHA-256 and extracts the app into an ignored `worktree/`.
 
 - Original candidate ZIP SHA-256: `0e868efefbacd5cf3ec4c07a558230ce5cdfbbbdab64416182bc9a59f3acd429`
 - Public MVP source pack SHA-256: `166db4a0ce4bd52d1e871d44eb8400aa9292b08fb0a2d076b77495284f8497a0`
