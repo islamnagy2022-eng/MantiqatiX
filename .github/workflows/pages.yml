@@ -311,6 +311,16 @@ jobs:
           test ! -e "${SITE_DIR}/preview"
           test ! -e "${SITE_DIR}/smm.html"
           echo "PAGES_COMPOSITION=PASS: catalog remains the production root; V6 is isolated under /v6-preview/; legacy UI/demo/SMM files are not published."
+      - name: Install pinned Playwright for V6 Preview browser validation
+        run: |
+          set -euo pipefail
+          npm install --prefix /tmp/v6-preview-playwright --no-audit --no-fund playwright@1.64.1 axe-core@4.10.3
+          /tmp/v6-preview-playwright/node_modules/.bin/playwright install --with-deps chromium
+      - name: Test composed V6 Preview on desktop and mobile
+        env:
+          PLAYWRIGHT_PACKAGE: /tmp/v6-preview-playwright/node_modules/playwright
+        run: node scripts/test-v6-public-preview.mjs "${RUNNER_TEMP}/mantiqatix-composed-site"
+
       - name: Upload composed MantiqatiX site
         uses: actions/upload-artifact@v4
         with:
