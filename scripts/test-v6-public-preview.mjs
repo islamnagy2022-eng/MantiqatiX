@@ -140,7 +140,7 @@ try {
   await loadMore.click();
   assert.equal(await activityCards.count(), 25, 'Load more must reveal the remaining five activities');
   console.log('V6_PREVIEW_DIRECTORY_PAGINATION=PASS initial=20 total=25 loaded=25');
-  const activityTiles = page.locator('article');
+  const activityTiles = page.getByTestId('directory-activity-card');
   assert.equal(await activityTiles.count(), 25, 'Twenty-five activity cards must be rendered after loading more');
   const unverifiedTile = activityTiles.last();
   assert.match(await unverifiedTile.innerText(), /نشاط غير موثق للاختبار/, 'Unverified activity must remain after verified activities');
