@@ -3922,3 +3922,20 @@ On new documentation-only PR head `f02c8770da26ec6cf3f50d12e2d05b0b853ff661`:
 - [ ] Explicit release approval before merge, Pages deployment or root promotion.
 
 **Production boundary:** no Production data/schema/migration/Auth/RLS/GRANT/Edge/payment/finance mutation, no Pages deployment, no merge and no root cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains.
+
+
+---
+
+## Live Production read-only refresh — 2026-11-06 18:33 UTC
+
+- [x] Rechecked the Supabase Production project read-only: ACTIVE_HEALTHY, PostgreSQL 17.6.1.155, 309 live migration rows through 20261101140105.
+- [x] Recompared the 42 required release identifiers against the current live migration inventory: 0/42 exact IDs. Do not rewrite migration history or replay aliases.
+- [x] Rechecked ten required columns and three required objects/indexes: all remain absent; both financial-journal RPCs still lack EXECUTE for anon/authenticated/service_role.
+- [x] Confirmed active versions for the six critical Edge functions remain order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3. Their source-drift finding remains open.
+- [x] Refreshed security-advisor interpretation: 94 lint records; 19 explicit anon/public policies, 483 authenticated policies, zero anonymous Auth users currently present. Two anon-executable SECURITY DEFINER routines are trigger-only; one is an intentionally public active/approved advertisement read. No bulk ACL or policy changes.
+- [ ] Owner-side verification of Auth anonymous-sign-in and leaked-password settings.
+- [ ] Isolated trigger ACL hardening test before any future proposed migration.
+- [ ] Genuine backup/data restore + Storage/Auth recovery and measured RPO/RTO/rollback still open.
+- [ ] Coupled six-function finance/payment/webhook E2E and security/RLS negative tests still open.
+
+Evidence: [PRODUCTION_READ_ONLY_RECHECK_20261106.md](release/PRODUCTION_READ_ONLY_RECHECK_20261106.md) and the updated [production-migration-reconciliation.json](release/production-migration-reconciliation.json). No Production mutation or deployment occurred; full platform gate remains BLOCKED / NOT CERTIFIED.
