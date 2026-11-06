@@ -149,9 +149,9 @@ try {
   assert.equal(await liveCatalogStrip.getByRole('button', { name: 'عرض النشاط' }).count(), 26, 'Each live product card must route to its owning activity');
   assert.doesNotMatch(await liveCatalogStrip.innerText(), /الأعلى طلباً|طلبات|ترتيب شعبية/, 'The public live catalog strip must not invent popularity or order metrics');
   console.log('V6_LIVE_PUBLISHED_CATALOG=PASS items=26 verified_only=true no_fake_metrics=true');
-  const activityGrid = page.getByTestId('directory-activity-grid');
-  assert.equal(await activityGrid.count(), 1, 'Directory activity grid must be independently scoped from the live product strip');
-  const activityCards = activityGrid.getByRole('button', { name: /عرض النشاط/ });
+  const activityCardNodes = page.getByTestId('directory-activity-card');
+  assert.equal(await activityCardNodes.count(), 20, 'Directory card test scope must exclude live published product cards');
+  const activityCards = activityCardNodes.getByRole('button', { name: /عرض النشاط/ });
   assert.equal(await activityCards.count(), 20, 'Directory must initially render only the first 20 of 25 activities');
   assert.match(await page.locator('body').innerText(), /25 نتيجة مطابقة/, 'Directory must report all 25 matching activities, not only the visible page');
   const loadMore = page.getByRole('button', { name: /رؤية المزيد/ });
