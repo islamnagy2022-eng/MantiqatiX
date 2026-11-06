@@ -131,7 +131,7 @@ try {
   const previewUrl = 'http://127.0.0.1:4173/MantiqatiX/v6-preview/';
   await page.goto(previewUrl, { waitUntil: 'domcontentloaded' });
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor({ timeout: 15000 });
-  await page.getByText('نشاط تجريبي للاختبار', { exact: true }).waitFor({ timeout: 15000 });
+  await page.getByRole('button', { name: /عرض النشاط/ }).first().waitFor({ timeout: 15000 });
   const homeCover = page.getByTestId('r5-public-home-cover');
   assert.equal(await homeCover.count(), 1, 'Canonical r5 public homepage cover must be rendered');
   await homeCover.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات المتاحة' }).waitFor();
