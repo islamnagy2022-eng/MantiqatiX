@@ -2,7 +2,7 @@
 
 ## Source provenance
 - Canonical candidate ZIP SHA-256: `0e868efefbacd5cf3ec4c07a558230ce5cdfbbbdab64416182bc9a59f3acd429`.
-- Public MVP tar.xz source pack SHA-256: `6f674e95cdaddd28cb21795a05d8ad5b34c4b7b5d606d335af0556fb1fa2e7e5`.
+- Public MVP tar.xz source pack SHA-256: `afab4504ba86960f7ac2a64e6ad969d901be80f6022f3393e14cf3ecc81f453f`.
 - The source pack is stored as a single binary archive at `apps/aistudio-v6/source-r5-preview.tar.xz` and digest-checked directly by CI.
 - Source security audit and remediation verification: PASS; security audit tests: 2/2 PASS.
 
