@@ -3,9 +3,10 @@
 The immutable r5 source archive is stored as five base64 text parts under `source-pack-parts/`. The preparation script reconstructs the tar.xz, verifies its SHA-256, and extracts the app into an ignored `worktree/`.
 
 - Original candidate ZIP SHA-256: `0e868efefbacd5cf3ec4c07a558230ce5cdfbbbdab64416182bc9a59f3acd429`
-- Corrected source pack SHA-256: `15ee3718b476aa867813f941327a83da9eace9e35d7be25a795ff4e686ad8388`
+- Public MVP source pack SHA-256: `76e1187918a6a907133399cfe06afec63c41c76d90e60e4ef9bc936f5993eeed`
 - Preview base: `/MantiqatiX/v6-preview/`
-- Corrected two stale test expectations: load-test placeholders must not invent capacity/telemetry; fallback images must use sector-specific assets.
-- Corrected strict TypeScript issues: missing Lucide `Lock` import, unreachable local-only messaging/privacy mutation blocks, and optional diagnostic text assertion.
+- Public release scope: directory, activity and specialty filters, medical directory, verified business profiles, read-only product/service catalog, published prices, phone/WhatsApp contact.
+- Hidden from the public shell: admin/merchant dashboards, wallets, orders, checkout, internal messaging, simulated AI registration, local writes, promotional carousels and sponsored-ad columns.
+- Unverified activities expose only name, location and contact. Their catalog and extended profile remain hidden until verified.
 
 This import does not deploy Pages or mutate production.
