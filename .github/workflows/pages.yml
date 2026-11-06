@@ -36,6 +36,25 @@ jobs:
           test -s dist/config.js
           test -d dist/assets
           grep -q '/MantiqatiX/assets/' dist/index.html
+      - name: Setup Bun for the isolated V6 Preview
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Build canonical V6 public Preview
+        run: |
+          set -euo pipefail
+          bash scripts/prepare-aistudio-v6-preview-source.sh
+          cd apps/aistudio-v6/worktree
+          bun install --frozen-lockfile
+          bun run verify:release
+          bun run lint
+          VITE_BASE_PATH=/MantiqatiX/v6-preview/ bun run build
+          test -s dist/index.html
+          grep -Fq '/MantiqatiX/v6-preview/' dist/index.html
+          test -d dist/assets
+          test -n "$(find dist/assets -maxdepth 1 -type f -name '*.js' -print -quit)"
+          test -n "$(find dist/assets -maxdepth 1 -type f -name '*.css' -print -quit)"
+          echo "V6_PREVIEW_BUILD=PASS"
       - name: Validate additive professional dashboard contract
         run: node scripts/validate-professional-dashboard.mjs
       - name: Validate additive subscriber account portal contract
@@ -279,7 +298,11 @@ jobs:
           rm -rf "${SITE_DIR}"
           mkdir -p "${SITE_DIR}"
           cp -a apps/catalog-frontend/dist/. "${SITE_DIR}/"
+          mkdir -p "${SITE_DIR}/v6-preview"
+          cp -a apps/aistudio-v6/worktree/dist/. "${SITE_DIR}/v6-preview/"
           test -s "${SITE_DIR}/index.html"
+          test -s "${SITE_DIR}/v6-preview/index.html"
+          grep -Fq '/MantiqatiX/v6-preview/' "${SITE_DIR}/v6-preview/index.html"
           test -s "${SITE_DIR}/config.js"
           test -d "${SITE_DIR}/assets"
           grep -Fq '/MantiqatiX/assets/' "${SITE_DIR}/index.html"
@@ -287,7 +310,7 @@ jobs:
           test ! -e "${SITE_DIR}/web"
           test ! -e "${SITE_DIR}/preview"
           test ! -e "${SITE_DIR}/smm.html"
-          echo "PAGES_COMPOSITION=PASS: electronic catalog is the only production root; legacy UI/demo/SMM files are not published."
+          echo "PAGES_COMPOSITION=PASS: catalog remains the production root; V6 is isolated under /v6-preview/; legacy UI/demo/SMM files are not published."
       - name: Upload composed MantiqatiX site
         uses: actions/upload-artifact@v4
         with:
@@ -413,7 +436,18 @@ jobs:
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}/${JS_ASSET#/MantiqatiX/}" >/dev/null
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}/${CSS_ASSET#/MantiqatiX/}" >/dev/null
           echo "MANTIQATIX_CATALOG_PRIMARY_ROOT_DEPLOY=PASS: ${ROOT_URL}"
-          # The artifact is catalog-only; retired legacy routes must stay unavailable.
+          PREVIEW_URL="https://islamnagy2022-eng.github.io/MantiqatiX/v6-preview/"
+          TMP_PREVIEW="$(mktemp)"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PREVIEW_URL}" -o "${TMP_PREVIEW}"
+          grep -Fq '/MantiqatiX/v6-preview/' "${TMP_PREVIEW}"
+          PREVIEW_JS="$(grep -oE '/MantiqatiX/v6-preview/assets/[^" ]+\.js' "${TMP_PREVIEW}" | head -n 1)"
+          PREVIEW_CSS="$(grep -oE '/MantiqatiX/v6-preview/assets/[^" ]+\.css' "${TMP_PREVIEW}" | head -n 1)"
+          test -n "${PREVIEW_JS}"
+          test -n "${PREVIEW_CSS}"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "https://islamnagy2022-eng.github.io${PREVIEW_JS}" >/dev/null
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "https://islamnagy2022-eng.github.io${PREVIEW_CSS}" >/dev/null
+          echo "MANTIQATIX_V6_PREVIEW_DEPLOY=PASS: ${PREVIEW_URL}"
+          # Retired legacy routes must stay unavailable.
           for route in "preview/" "smm.html"; do
             status=""
             for attempt in 1 2 3 4 5 6; do
