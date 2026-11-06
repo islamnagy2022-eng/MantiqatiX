@@ -2178,3 +2178,14 @@ A separate source review found a second platform-root authorization model: the n
 - Fresh read-only Production recheck at 17:38 UTC: 309 migration rows through 20261101140105; ten missing required columns, three missing objects/indexes; journal RPC service_role EXECUTE false, only four-argument digital-page finalizer present; six critical Edge functions remain source-drifted; leaked-password protection disabled; 94 security advisor lints.
 - No Production changes and no Pages deploy. Full platform gate remains BLOCKED / NOT CERTIFIED.
 - Next: restore rehearsal with RPO/RTO, coupled payment/finance/webhook/idempotency/settlement tests, per-function/per-table ACL/RLS review, Auth owner evidence, SMM negative runtime tests, and final paired AI Studio r5 visual acceptance.
+
+
+---
+
+## PR head after evidence-only documentation commit — 2026-11-06
+
+- Current PR/branch head: `b66d8c328d1a70171168746fd14ef4b0a6562889` (documentation-only).
+- Last application/test head whose nine-workflow results are recorded above: `5915ae0a397a088f54f48bc140e9a25b85fa6a62`.
+- V6 application/source head: `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`.
+- CI was automatically re-triggered for the documentation-only head. Do not attribute the completed 5915 test results to b66 until the new exact-head runs finish.
+- PR #685 remains OPEN / DRAFT / NOT MERGED; no merge, Pages deployment, root cutover or Production change occurred.

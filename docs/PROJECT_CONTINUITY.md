@@ -1494,3 +1494,14 @@ Read-only semantic comparison of all six critical live Edge Functions against cu
 - Pixel parity with the original AI Studio r5 enterprise screen remains NOT VERIFIED. The current V6 public Preview intentionally excludes private administration/wallet/cart; retain activity→specialty taxonomy with no functional-group layer. Review public promo/ad surface separately before calling design acceptance complete.
 - Next dependencies: a genuine backup restore rehearsal with RPO/RTO/rollback, coupled payment/finance/webhook/Edge E2E, full per-function/per-table security closure, Auth owner-side evidence, SMM negative runtime tests, and approved visual reference acceptance.
 - No Production writes, migration, schema/data/Auth/RLS/GRANT changes, Edge deployment, payment/finance operation, Pages deployment, PR merge or root cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+---
+
+## PR head after evidence-only documentation commit — 2026-11-06
+
+- Current PR/branch head: `b66d8c328d1a70171168746fd14ef4b0a6562889` (documentation-only).
+- Last application/test head whose nine-workflow results are recorded above: `5915ae0a397a088f54f48bc140e9a25b85fa6a62`.
+- V6 application/source head: `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`.
+- CI was automatically re-triggered for the documentation-only head. Do not attribute the completed 5915 test results to b66 until the new exact-head runs finish.
+- PR #685 remains OPEN / DRAFT / NOT MERGED; no merge, Pages deployment, root cutover or Production change occurred.
