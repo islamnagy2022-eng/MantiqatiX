@@ -2207,3 +2207,15 @@ A separate source review found a second platform-root authorization model: the n
 - PR Pages validation passed but both deployment-related jobs were skipped for the PR event; no live Preview deployment or public root replacement.
 - Production gate remains BLOCKED / NOT CERTIFIED pending data restore, coupled payment/finance/Edge tests, security/Auth closure, SMM negative runtime checks and original r5 visual acceptance.
 - No Production database/Auth/RLS/GRANT/Edge/payment/finance mutation or deployment occurred.
+
+
+---
+
+## Production read-only recheck follow-up — 2026-11-06 18:33 UTC
+
+- Re-read Supabase Production: ACTIVE_HEALTHY / PostgreSQL 17.6.1.155; 309 migration records through 20261101140105. The current 42-version comparison remains 0/42 exact source-version IDs.
+- Targeted SQL confirmed ten required columns and three expected objects/indexes absent; both financial-journal RPCs still lack EXECUTE for anon/authenticated/service_role.
+- Active critical Edge versions remain order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3. No function was deployed.
+- Advisor returned 94 lint records. Read-only catalog review found 19 explicit anon/public policies, zero anonymous Auth users, two anon-executable trigger-only SECURITY DEFINER functions (enabled triggers), and one intended public active/approved advertisement-read function. The anonymous Auth configuration still needs owner-dashboard confirmation; no broad revoke or policy mutation was performed.
+- Updated `docs/release/production-migration-reconciliation.json` with current isolated replay #42271053737 and 18:33 UTC read-only evidence; full Production gate remains BLOCKED / NOT CERTIFIED.
+- No Production mutation, merge, Pages deployment, or root cutover occurred.
