@@ -38,6 +38,18 @@ async function waitForImageReadiness(page) {
   })));
 }
 
+async function resetScrollForScreenshot(page) {
+  await page.evaluate(() => {
+    document.documentElement.style.scrollBehavior = 'auto';
+    document.body.style.scrollBehavior = 'auto';
+    window.scrollTo(0, 0);
+  });
+  await page.waitForFunction(() => window.scrollY === 0);
+  await page.evaluate(() => new Promise((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(resolve));
+  }));
+}
+
 const server = http.createServer((req, res) => {
   const requestUrl = new URL(req.url || '/', 'http://127.0.0.1');
   const prefix = '/MantiqatiX/';
@@ -124,6 +136,7 @@ try {
   await loadMore.click();
   assert.equal(await activityCards.count(), 25, 'Load more must reveal the remaining five activities');
   console.log('V6_PREVIEW_DIRECTORY_PAGINATION=PASS initial=20 total=25 loaded=25');
+  await resetScrollForScreenshot(page);
   const cardBounds = await activityCards.evaluateAll((cards) => cards.map((card) => {
     const rect = card.getBoundingClientRect();
     return { x: Math.round(rect.x), y: Math.round(rect.y), width: Math.round(rect.width), height: Math.round(rect.height) };
@@ -153,6 +166,7 @@ try {
   console.log(`V6_PREVIEW_DIRECTORY_IMAGE_AUDIT=${JSON.stringify(directoryImages)}`);
   const runtimeConfig = await page.evaluate(() => Boolean(window.MNTY_CONFIG?.supabaseUrl && window.MNTY_CONFIG?.supabaseKey));
   assert.equal(runtimeConfig, true, 'V6 must load the shared root public config.js');
+  await resetScrollForScreenshot(page);
   if (screenshotDir) {
     await page.screenshot({ path: path.join(screenshotDir, 'v6-desktop-directory.png'), fullPage: true, animations: 'disabled' });
     console.log('V6_VISUAL_CAPTURE=desktop-directory');
@@ -176,6 +190,7 @@ try {
   const profileBody = await page.locator('body').innerText();
   assert.equal(profileBody.includes('إضافة للسلة'), false);
   assert.equal(profileBody.includes('إتمام الطلب'), false);
+  await resetScrollForScreenshot(page);
   if (screenshotDir) {
     await page.screenshot({ path: path.join(screenshotDir, 'v6-desktop-activity-profile.png'), fullPage: true, animations: 'disabled' });
     console.log('V6_VISUAL_CAPTURE=desktop-activity-profile');
@@ -188,6 +203,7 @@ try {
     await page.getByText(productName, { exact: true }).waitFor();
   }
   console.log('V6_PREVIEW_MOBILE_ACTIVITY_PROFILE=PASS products=3');
+  await resetScrollForScreenshot(page);
   if (screenshotDir) {
     await page.screenshot({ path: path.join(screenshotDir, 'v6-mobile-activity-profile.png'), fullPage: true, animations: 'disabled' });
     console.log('V6_VISUAL_CAPTURE=mobile-activity-profile');
@@ -212,6 +228,7 @@ try {
   const mobileOverflowAfterLoadMore = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   assert.equal(mobileOverflowAfterLoadMore, false, 'Mobile directory must not overflow after loading more activities');
   console.log('V6_PREVIEW_MOBILE_PAGINATION=PASS initial=20 total=25');
+  await resetScrollForScreenshot(page);
   if (screenshotDir) {
     await page.screenshot({ path: path.join(screenshotDir, 'v6-mobile-directory.png'), fullPage: true, animations: 'disabled' });
     console.log('V6_VISUAL_CAPTURE=mobile-directory');
