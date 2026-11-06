@@ -14,6 +14,8 @@ LABEL = "تصفية الأنشطة حسب المحافظة"
 SELECT_START = re.compile(r"<select\b")
 ARIA_LABEL = re.compile(r"""\baria-label\s*=\s*(["']).*?\1""", re.IGNORECASE)
 CLOSE_SELECT = "</select>"
+LOGIN_BUTTON_OLD = "inline-flex min-h-9 items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 font-bold text-white transition-colors hover:bg-emerald-500"
+LOGIN_BUTTON_NEW = "inline-flex min-h-9 items-center gap-1.5 rounded-xl bg-emerald-700 px-3 py-2 font-bold text-white transition-colors hover:bg-emerald-600"
 
 
 def governorate_select_span(source: str) -> tuple[int, int]:
@@ -80,6 +82,36 @@ def patch_text(source: str) -> tuple[str, int]:
     return patched, int(patched != source)
 
 
+def patch_login_button_text(source: str) -> tuple[str, int]:
+    old_count = source.count(LOGIN_BUTTON_OLD)
+    new_count = source.count(LOGIN_BUTTON_NEW)
+    if old_count + new_count != 1:
+        raise ValueError(
+            "Expected exactly one guest login button class (old or already patched); "
+            f"found {old_count + new_count}"
+        )
+    if old_count:
+        return source.replace(LOGIN_BUTTON_OLD, LOGIN_BUTTON_NEW, 1), 1
+    return source, 0
+
+
+def patch_login_button(root: Path) -> int:
+    source_root = root / "src"
+    files = sorted(source_root.rglob("*.tsx"))
+    matches = [path for path in files if LOGIN_BUTTON_OLD in path.read_text(encoding="utf-8") or LOGIN_BUTTON_NEW in path.read_text(encoding="utf-8")]
+    if len(matches) != 1:
+        raise ValueError(
+            "Expected exactly one V6 guest login button source file; "
+            f"found {len(matches)}"
+        )
+    target = matches[0]
+    source = target.read_text(encoding="utf-8")
+    patched, changed = patch_login_button_text(source)
+    if changed:
+        target.write_text(patched, encoding="utf-8")
+    return changed
+
+
 def self_test() -> None:
     fixture = (
         '<div><select className="geo-filter" '
@@ -99,6 +131,17 @@ def self_test() -> None:
     assert changed_again == 0
     assert again == patched
     assert 'كل التخصصات</option></select>' in patched
+
+    login_fixture = (
+        '<button className="' + LOGIN_BUTTON_OLD + '">'
+        '<span>دخول الحساب</span></button>'
+    )
+    login_patched, login_changed = patch_login_button_text(login_fixture)
+    assert login_changed == 1
+    assert LOGIN_BUTTON_NEW in login_patched
+    login_again, login_changed_again = patch_login_button_text(login_patched)
+    assert login_changed_again == 0
+    assert login_again == login_patched
 
 
 def main() -> None:
@@ -122,7 +165,14 @@ def main() -> None:
 
     if changed:
         target.write_text(patched, encoding="utf-8")
-    print(f"V6_ACCESSIBILITY_OVERLAY=PASS changed={changed} target=src/components/DirectoryView.tsx")
+    try:
+        login_changed = patch_login_button(root)
+    except ValueError as error:
+        raise SystemExit(f"V6_LOGIN_BUTTON_CONTRAST_OVERLAY_FAILED: {error}") from error
+    print(
+        "V6_ACCESSIBILITY_OVERLAY=PASS "
+        f"governorate_changed={changed} login_button_contrast_changed={login_changed}"
+    )
 
 
 if __name__ == "__main__":
