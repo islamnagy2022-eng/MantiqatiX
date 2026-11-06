@@ -148,11 +148,11 @@ try {
   assert.equal(await unverifiedTile.getByTestId('unverified-status-dot').count(), 1, 'Unverified activity must display the red status dot');
   assert.doesNotMatch(await activityTiles.first().innerText(), /غير موثق/, 'Verified activities must appear before the unverified activity');
   console.log('V6_PREVIEW_VERIFICATION_SORT=PASS verified_first=true unverified_last=true red_dot=true');
-  await page.getByRole('button', { name: 'غير موثق', exact: true }).click();
+  await page.getByRole('button', { name: /^دليل مجاني غير موثق/ }).click();
   assert.equal(await activityCards.count(), 1, 'Unverified-only filter must return exactly the unverified test activity');
   assert.equal(await activityTiles.count(), 1, 'Unverified-only filter must leave exactly one activity card');
   assert.match(await activityCards.first().innerText(), /نشاط غير موثق للاختبار/);
-  await page.getByRole('button', { name: 'الكل', exact: true }).click();
+  await page.getByRole('button', { name: /^الكل\s*\(/ }).click();
   assert.equal(await activityCards.count(), 20, 'Clearing verification filter must reset to the first 20 of 25 activities');
   await resetScrollForScreenshot(page);
   const cardBounds = await activityCards.evaluateAll((cards) => cards.map((card) => {
