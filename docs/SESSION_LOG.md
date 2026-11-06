@@ -2219,3 +2219,28 @@ A separate source review found a second platform-root authorization model: the n
 - Advisor returned 94 lint records. Read-only catalog review found 19 explicit anon/public policies, zero anonymous Auth users, two anon-executable trigger-only SECURITY DEFINER functions (enabled triggers), and one intended public active/approved advertisement-read function. The anonymous Auth configuration still needs owner-dashboard confirmation; no broad revoke or policy mutation was performed.
 - Updated `docs/release/production-migration-reconciliation.json` with current isolated replay #42271053737 and 18:33 UTC read-only evidence; full Production gate remains BLOCKED / NOT CERTIFIED.
 - No Production mutation, merge, Pages deployment, or root cutover occurred.
+
+
+---
+
+## Exact-head V6 Preview and catalog validation — 2026-11-06 20:50 UTC
+
+- Exact tested branch head: `a420d355239e0d895e48a74de69a61d0f1223c7f`.
+- PR #685 remains OPEN / DRAFT / NOT MERGED. This checkpoint records CI evidence only; it does not authorize merge, deployment, or root promotion.
+- Exact-head CI completed successfully: **9/9 workflows PASS**.
+  - Primary Catalog Frontend Validation #42284089587 — PASS.
+  - Deploy MantiqatiX Web / Pages validation #42284089845 — workflow PASS; PR-event deployment-related jobs were skipped. No deployment occurred.
+  - Forward Migration Chain Replay #42284089457 — PASS in disposable local PostgreSQL/Supabase checkpoint; this remains a schema-checkpoint replay, not a genuine production data backup/restore rehearsal.
+  - V6 Preview Source Validation #42284089539 — PASS.
+  - Backend-only Module Boundary #42284089590 — PASS.
+  - Module Professionalization Validation #42284089648 — PASS.
+  - RC425 MantiGo Paymob Atomicity #42284089632 — PASS.
+  - MantiGO Open Ride Privacy Boundary #42284089471 — PASS.
+  - SMM Deferred Storefront Contract #42284089732 — PASS.
+- V6 Preview desktop/mobile browser E2E passed. Assertions cover verified-first DOM ordering, one red status dot alongside the accessible “غير موثق” label, unverified-only filtering, the “الكل” filter, directory pagination (20 initial + 5 more), medical specialty filtering, multi-product catalog content, mobile activity profile/pagination, and accessibility (axe critical=0, non-critical=0). Three CORS preflight assertions and Pages composition validation also passed.
+- Primary catalog browser E2E passed across 32 named journeys; isolated employee/RBAC PostgreSQL checks passed.
+- The isolated forward replay passed 76 ordered migrations through checkpoint `20261101150000`, including RC117, owner-profile persistence, RC455/RC456 and reciprocal synthetic Tenant A/B isolation checks. This is not a real data restore and does not establish RPO/RTO.
+- The V6 Preview remains isolated at `/MantiqaTix/v6-preview/`; the current catalog remains at the public root. The composed artifact was validated in CI, but the Pages deploy job was skipped for the PR event.
+- Latest recorded Production read-only blocker snapshot remains 2026-11-06 18:33 UTC: 309 migration rows through `20261101140105`; 0/42 required exact migration IDs; ten required columns and three objects/indexes absent; both financial-journal RPCs lack EXECUTE for anon/authenticated/service_role; six critical Edge Functions remain source-drifted. This snapshot is not a fresh 20:50 UTC live recheck.
+- Remaining release blockers: genuine data + Storage/Auth backup/restore rehearsal and measured RPO/RTO/rollback; coupled payment/finance/Paymob/webhook/idempotency/wallet/settlement E2E; six-function Edge parity; object-by-object SECURITY DEFINER/ACL and anonymous/authenticated negative RLS tests; owner-side Auth leaked-password/anonymous settings evidence; SMM negative runtime tests; paired original AI Studio r5 pixel-parity acceptance; explicit release approval.
+- No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation, no Pages deployment, no merge and no public-root cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains.
