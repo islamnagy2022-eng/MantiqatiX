@@ -2,7 +2,7 @@
 
 ## Source provenance
 - Canonical candidate ZIP SHA-256: `0e868efefbacd5cf3ec4c07a558230ce5cdfbbbdab64416182bc9a59f3acd429`.
-- Public MVP tar.xz source pack SHA-256: `92042a7a4726cf74b5e15de39238e510c742be400b201b1c43bf64363efddd1a`.
+- Public MVP tar.xz source pack SHA-256: `166db4a0ce4bd52d1e871d44eb8400aa9292b08fb0a2d076b77495284f8497a0`.
 - The source pack is stored in five base64 parts and reconstructed/digest-checked by CI.
 - Source security audit and remediation verification: PASS; security audit tests: 2/2 PASS.
 
@@ -32,3 +32,6 @@
 4. Cut over root only after explicit Preview acceptance, with `/legacy/` and rollback.
 
 No Supabase production schema/data/Auth/RLS/GRANT/migration/Edge Function/payment/finance change or public deployment was performed.
+
+## Latest CI feedback
+- Public MVP tests passed, but strict TypeScript found stale cart-indicator JSX references after checkout removal. Those remaining references were removed; the next exact-head run is pending.
