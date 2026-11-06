@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Apply V6 verification red-dot status and stable activity-card test hooks."""
+"""Apply V6 verification red-dot status and activity-card test hooks."""
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -16,49 +17,73 @@ NEW_MARKUP = """{!verified && (
                             غير موثق
                           </span>
                         )}"""
-
-OLD_CARD_MARKUP = "                  key={biz.id}\n"
-NEW_CARD_MARKUP = (
-    "                  key={biz.id}\n"
-    '                  data-testid="directory-activity-card"\n'
-)
+CARD_KEY_PATTERN = re.compile(r"(?m)^(?P<indent>[ \t]*)key=\{biz\.id\}[ \t]*\r?\n")
+CARD_TEST_ID = 'data-testid="directory-activity-card"'
 
 
-def replace_once(source: str, old: str, new: str, label: str) -> tuple[str, bool]:
-    old_count = source.count(old)
-    new_count = source.count(new)
-    # The replacement may itself contain the old anchor as a prefix (card key line).
+def replace_badge(source: str) -> tuple[str, bool]:
+    old_count = source.count(OLD_MARKUP)
+    new_count = source.count(NEW_MARKUP)
     if new_count == 1:
         return source, False
     if old_count != 1 or new_count:
-        raise ValueError(
-            f"Expected exactly one canonical {label} markup; old={old_count}, new={new_count}"
-        )
-    updated = source.replace(old, new, 1)
-    if updated.count(new) != 1:
-        raise ValueError(f"{label} markup replacement verification failed")
+        raise ValueError(f"Expected one canonical unverified badge; old={old_count}, new={new_count}")
+    updated = source.replace(OLD_MARKUP, NEW_MARKUP, 1)
+    if updated.count(NEW_MARKUP) != 1:
+        raise ValueError("Unverified badge replacement verification failed")
+    return updated, True
+
+
+def add_activity_card_test_id(source: str) -> tuple[str, bool]:
+    matches = list(CARD_KEY_PATTERN.finditer(source))
+    if len(matches) != 1:
+        raise ValueError(f"Expected one business card key anchor; found={len(matches)}")
+    match = matches[0]
+    line_end = source.find("\n", match.end())
+    next_line = source[match.end():] if line_end < 0 else source[match.end():line_end]
+    if CARD_TEST_ID in next_line:
+        return source, False
+
+    newline = "\r\n" if match.group(0).endswith("\r\n") else "\n"
+    insertion = match.group("indent") + CARD_TEST_ID + newline
+    updated = source[:match.end()] + insertion + source[match.end():]
+    if updated.count(CARD_TEST_ID) != 1:
+        raise ValueError("Activity card test id insertion verification failed")
     return updated, True
 
 
 def patch(source: str) -> tuple[str, bool]:
-    updated, badge_changed = replace_once(source, OLD_MARKUP, NEW_MARKUP, "unverified badge")
-    updated, card_changed = replace_once(updated, OLD_CARD_MARKUP, NEW_CARD_MARKUP, "activity card test id")
+    updated, badge_changed = replace_badge(source)
+    updated, card_changed = add_activity_card_test_id(updated)
     if 'aria-hidden="true"' not in NEW_MARKUP or "غير موثق" not in NEW_MARKUP:
         raise ValueError("Unverified status must keep an accessible text label and decorative dot")
-    if 'data-testid="directory-activity-card"' not in updated:
-        raise ValueError("Activity card test hook is missing")
     return updated, badge_changed or card_changed
 
 
 def self_test() -> None:
-    fixture = "prefix\n" + OLD_CARD_MARKUP + "\n" + OLD_MARKUP + "\nsuffix\n"
+    fixture = (
+        "prefix\n"
+        "    <div\n"
+        "      key={biz.id}\n"
+        "      className={cardClass}\n"
+        "    >\n"
+        + OLD_MARKUP
+        + "\n"
+        "    </div>\n"
+    )
     updated, changed = patch(fixture)
     assert changed is True
     assert 'data-testid="unverified-status-dot"' in updated
-    assert 'data-testid="directory-activity-card"' in updated
-    assert 'bg-red-600' in updated and 'غير موثق' in updated
+    assert CARD_TEST_ID in updated
+    assert 'bg-red-600' in updated and "غير موثق" in updated
     again, changed_again = patch(updated)
     assert changed_again is False and again == updated
+
+    alternate_spacing = fixture.replace("      key={biz.id}\n", "\tkey={biz.id}\r\n")
+    alternate, alternate_changed = patch(alternate_spacing)
+    assert alternate_changed is True and CARD_TEST_ID in alternate
+    alternate_again, alternate_changed_again = patch(alternate)
+    assert alternate_changed_again is False and alternate_again == alternate
 
 
 def main() -> None:
@@ -81,7 +106,7 @@ def main() -> None:
     verified, changed_again = patch(target.read_text(encoding="utf-8"))
     if changed_again:
         raise SystemExit("V6_UNVERIFIED_RED_DOT_OVERLAY_NOT_IDEMPOTENT")
-    for marker in ('data-testid="unverified-status-dot"', 'data-testid="directory-activity-card"'):
+    for marker in ('data-testid="unverified-status-dot"', CARD_TEST_ID):
         if marker not in verified:
             raise SystemExit(f"V6_VERIFICATION_INDICATOR_VERIFY_FAILED={marker}")
     print(f"V6_UNVERIFIED_RED_DOT_OVERLAY=PASS changed={int(changed)}")
