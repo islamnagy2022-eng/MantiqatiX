@@ -8,25 +8,24 @@
   "rc424_source_filename_version": "20261009010000",
   "source_ledger_identity_reconciled": true,
   "required_release_migrations_applied": false,
-  "chronological_replay": "PASS — on 2026-11-04, run 41914489055 restored checkpoint 20261008222845 and applied 76 forward migrations in timestamp order in an isolated disposable Supabase instance. RC117, owner-profile persistence, RC455/RC456 commission previews, and synthetic Tenant A/B read/mutation isolation passed. Production effect NONE. Current Production ledger and physical-object reconciliation remain separate blockers.",
+  "chronological_replay": "PASS — on 2026-11-06, run 42271053737 restored the captured schema-only checkpoint 20261008222845 and applied 76 forward migrations in timestamp order in a fresh disposable local Supabase instance through 20261101150000. RC117, owner-profile persistence, RC455/RC456 commission previews and synthetic Tenant A/B isolation passed. Production effect NONE. This is not a genuine data backup/restore rehearsal.",
   "latest_candidate_replay": {
     "status": "PASS",
-    "run_id": 41914489055,
-    "checked_at": "2026-11-04",
+    "run_id": 42271053737,
+    "checked_at": "2026-11-06",
     "checkpoint_version": "20261008222845",
     "forward_migrations_applied": 76,
-    "source_head": "61187b23abd97133b3320fee8a924cb264a304cd",
-    "source_branch": "validation/forward-migration-replay-20261104",
-    "source_parent_main": "8e2b78c807beb1fe313a744a0fb6e995ac7f803b",
-    "result": "All 76 source migrations after the captured schema checkpoint completed in timestamp order in an isolated disposable Supabase instance. RC117 default-image/activity-admin contract, owner-profile persistence (metadata/publication preservation and branch-manager denial), RC455/RC456 commission preview integrations, and synthetic Tenant A/B read/mutation isolation passed.",
-    "production_effect": "NONE — no Production schema, data, grants, Auth, Edge Functions, payments, wallets or migration ledger rows were changed by this replay.",
-    "limitation": "Replay validates the source chain against the captured checkpoint in a disposable database. It does not prove the current live Production schema is restorable or authorize applying the 42 missing identifiers."
+    "source_head": "a7df3493460c77a28ef117ec9716bb369cf684a0",
+    "source_branch": "feat/v6-r5-preview-foundation-20261106",
+    "result": "All 76 forward migrations after the captured schema-only checkpoint completed in timestamp order in the isolated disposable Supabase instance. RC117 default-image/activity-admin, owner-profile persistence, RC455/RC456 commission integration and reciprocal synthetic Tenant A/B isolation assertions passed.",
+    "production_effect": "NONE — no Production schema, data, grants, Auth, Edge Functions, payments, wallets or migration ledger rows were changed.",
+    "limitation": "This is an isolated schema-checkpoint replay, not a genuine backup restore. It does not establish recovery of Production customer data, Auth, Storage objects/media, Edge Functions, secrets, or measured RPO/RTO, and it does not authorize Production migrations."
   },
-  "tenant_isolation_tests": "PASS — run 41914489055 repeated synthetic Tenant A/B read and mutation isolation for orders/payment_intents; each tenant read only its own rows and could not update the other tenant's orders/payment intents. Scope is limited to the synthetic fixture and these tested contracts; it is not a full adversarial production RLS certification.",
+  "tenant_isolation_tests": "PASS — run 42271053737 repeated synthetic Tenant A/B read and mutation checks for orders/payment intents. Tenant A could read its own rows but not Tenant B private rows and could not update Tenant B rows; reciprocal Tenant B restrictions also passed. This is a limited synthetic contract test, not complete adversarial Production RLS certification.",
   "payment_finance_e2e": "NOT VERIFIED",
   "backup_restore_rehearsal": "NOT VERIFIED",
-  "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976",
-  "checked_at": "2026-11-04",
+  "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/42271053737",
+  "checked_at": "2026-11-06",
   "reason": "Catalog pilot is deployed and deployed-origin browser tests pass on main commit fe9e9f57b780b01c49940349dccf3bbac67efaae. Full platform production remains BLOCKED / NOT CERTIFIED: 42 required source-version identifiers remain absent from the 309-row live ledger; 32 of 60 selected physical object contracts remain non-PASS; six critical payment/order/finance Edge Functions have source drift; RC435/RC439 and RC449A/RC450 contracts remain unresolved; Auth hardening, adversarial RLS/SECURITY DEFINER tests, payment/finance E2E, backup/restore/RPO/RTO, rollback, and SMM negative runtime evidence remain outstanding.",
   "edge_function_contracts": "PARTIAL — six critical live Edge Function entrypoints differ from main. Financial-journal current main source calls post_financial_journal_backend, which is the RPC name/signature defined by canonical RC450; the production blocker is that RC449A/RC450 are absent and the live RPC body/ACL is old, while deployed Edge v3 still calls the legacy post_financial_journal with wildcard CORS. Do not deploy payment/finance functions individually until schema, grants, sandbox E2E and rollback are verified.",
   "smm_gateway_parity": "PARTIAL — live SMM gateway remains ACTIVE v13, verify_jwt=true, and source matches main with SMM_INITIAL_LAUNCH_DEFERRED=true. Anonymous/authenticated negative runtime tests still unverified; keep deferred.",
@@ -118,8 +117,8 @@
   },
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
-    "checked_at": "2026-11-04",
-    "method": "Read-only Supabase list_migrations on 2026-11-04: 309 records through 20261101140105; exact comparison against all 42 release-required identifiers returned 0 exact IDs. Physical effects are separately checked; exact identity absence is not assumed to equal effect absence.",
+    "checked_at": "2026-11-06T18:33:45Z",
+    "method": "Read-only Supabase list_migrations at 2026-11-06 18:33 UTC returned 309 records through 20261101140105; the current inventory was compared to all 42 required release source-version identifiers and returned 0 exact matches. Physical effect checks remain separate; aliases and forward repairs must not be replayed as duplicate SQL.",
     "live_ledger_count": 309,
     "latest_live_version": "20261101140105",
     "expected_migration_versions": 42,
@@ -313,8 +312,8 @@
   },
   "financial_journal_runtime_prerequisite_check": {
     "status": "BLOCKING_DRIFT",
-    "checked_at": "2026-11-04",
-    "method": "Fresh read-only pg_attribute, pg_proc, effective function privileges, Edge Function source and live migration-ledger checks.",
+    "checked_at": "2026-11-06T18:33:45Z",
+    "method": "Fresh read-only SQL at 2026-11-06 18:33 UTC: information_schema columns, pg_proc signatures and has_function_privilege checks; no writes.",
     "live_migrations": {
       "20261010175000_rc449a_financial_journal_schema_prerequisites": false,
       "20261010180000_rc450_financial_journal_service_role_boundary": false
@@ -352,7 +351,7 @@
         "public.journal_entry_lines.line_number"
       ],
       "required_columns_present": false,
-      "checked_at": "2026-11-04",
+      "checked_at": "2026-11-06T18:33:45Z",
       "method": "Read-only information_schema.columns query; no matching columns returned."
     },
     "live_row_counts": {
@@ -366,7 +365,7 @@
       "public.smm_orders": 0,
       "public.smm_wallet_transactions": 0
     },
-    "interpretation": "Fresh read-only check on 2026-11-04 confirms RC449A/RC450 migration versions are not recorded; all five journal columns are absent; neither the legacy nor backend journal RPC grants EXECUTE to service_role. Keep financial-journal Edge v3 and v4 source drift deployment blocked. Disposable RC449A→RC450 integration success is not Production evidence.",
+    "interpretation": "Read-only 2026-11-06 18:33 UTC confirmation: five required journal columns remain absent; both journal RPCs still have no EXECUTE for anon, authenticated or service_role; RC449A/RC450 remain unrecorded. The other five image columns and three missing objects are recorded in latest_read_only_physical_recheck_20261106_1833. Keep finance Edge deployment blocked.",
     "live_edge_function": {
       "slug": "financial-journal",
       "version": 3,
@@ -1325,6 +1324,41 @@
         }
       ],
       "interpretation": "A physically present relation/function/index/column/trigger is not a PASS until its exact signature, body, search_path, effective grants, scope and runtime behavior are verified. RC431 and RC438 update status exist physically but remain BLOCKED by contract drift."
+    },
+    "latest_targeted_read_only_recheck": {
+      "checked_at": "2026-11-06T18:33:45Z",
+      "status": "PARTIAL_TARGETED_READ_ONLY_REFRESH",
+      "method": "Read-only information_schema and pg_catalog SELECT checks covering the ten required columns, three named objects/indexes and two financial journal RPCs. This does not refresh all 60 object contracts.",
+      "missing_required_columns": [
+        "public.businesses.mnty_business_default_images",
+        "public.catalog_items.mnty_catalog_item_default_image",
+        "public.journal_entries.entry_number",
+        "public.journal_entries.posted_at",
+        "public.journal_entries.total_credit",
+        "public.journal_entries.total_debit",
+        "public.journal_entry_lines.line_number",
+        "public.marketing_services.image_source",
+        "public.marketing_services.image_url",
+        "public.marketing_services.mnty_marketing_service_default_image"
+      ],
+      "missing_objects_and_indexes": [
+        "public.mantigo_payment_provider_events",
+        "public.smm_wallet_transactions_reference_type_uidx",
+        "public.uq_payment_intents_one_active_per_order"
+      ],
+      "journal_rpc_privileges": {
+        "post_financial_journal(jsonb,jsonb)": {
+          "anon_execute": false,
+          "authenticated_execute": false,
+          "service_role_execute": false
+        },
+        "post_financial_journal_backend(uuid,jsonb,jsonb)": {
+          "anon_execute": false,
+          "authenticated_execute": false,
+          "service_role_execute": false
+        }
+      },
+      "interpretation": "All ten named required columns and all three named objects/indexes were absent in the targeted read-only checks. Do not infer the remaining 60-object catalog contract has been refreshed."
     }
   },
   "security_definer_search_path_check": {
@@ -1778,7 +1812,7 @@
     ],
     "interpretation": "Dashboard-specific live dependencies are installed and verified by read-only queries. Historical migrations were not edited and the 41-version full-platform release chain, finance/payment/Edge Function parity, backup/restore rehearsal, Auth hardening, monitoring, and unrelated release evidence remain BLOCKED. Deployment may proceed only through the existing scoped catalog/dashboard gate; do not mark the full platform production-certified."
   },
-  "live_ledger_checked_at": "2026-11-04",
+  "live_ledger_checked_at": "2026-11-06T18:33:45Z",
   "live_ledger_verification_method": "Read-only Supabase list_migrations on 2026-11-04 returned 309 records; latest version 20261101140105 (directory_source_permission_evidence). Exact required-version reconciliation remains 0/42. This is an identifier inventory, not a substitute for physical effect checks.",
   "professional_dashboard_post_deploy_browser_e2e": {
     "status": "PASS",
@@ -2311,7 +2345,7 @@
     "interpretation": "Advisor findings are not vulnerability counts. No-policy findings require effective grant/RPC path review. The two SECURITY DEFINER lint findings refer to trigger-only functions assign_default_owner_to_unowned_business and capture_commission_rule_audit; their attached triggers are enabled, but direct EXECUTE ACL remains broader than desired. RC463 remains unrecorded and unapplied. Auth leaked-password protection remains NOT VERIFIED."
   },
   "full_platform_gate": "BLOCKED / NOT CERTIFIED",
-  "full_platform_gate_last_checked_at": "2026-11-04",
+  "full_platform_gate_last_checked_at": "2026-11-06T18:33:45Z",
   "rc431_rc438_live_rpc_recheck_20261104": {
     "checked_at": "2026-11-04",
     "method": "Read-only pg_proc function identity, proconfig and has_function_privilege queries.",
@@ -2438,5 +2472,108 @@
     ],
     "production_changes": "NONE — EXPLAIN ANALYZE SELECT-only queries. No extensions, indexes, RLS, policies, grants, data or migration ledger rows were changed.",
     "scale_limitation": "These results describe 965 public directory rows and current small catalog tables; they are not evidence of readiness for tens/hundreds of millions of users or rows."
+  },
+  "rls_security_advisor_snapshot_20261106_1833": {
+    "checked_at": "2026-11-06T18:33:45Z",
+    "advisor_lint_records": 94,
+    "findings": {
+      "rls_enabled_no_policy": {
+        "count": 9,
+        "level": "INFO"
+      },
+      "public_can_execute_security_definer": {
+        "count": 3,
+        "level": "WARN"
+      },
+      "signed_in_users_can_execute_security_definer": {
+        "count": 67,
+        "level": "WARN"
+      },
+      "anonymous_access_policy_lints": {
+        "count": 90,
+        "level": "WARN"
+      },
+      "leaked_password_protection_disabled": {
+        "count": 1,
+        "level": "WARN"
+      }
+    },
+    "role_policy_inventory": {
+      "anonymous_auth_users": 0,
+      "explicit_anon_or_public_policies": 19,
+      "authenticated_policies": 483,
+      "public_schema_policy_total": 485
+    },
+    "anonymous_executable_security_definer_functions": [
+      {
+        "signature": "public.assign_default_owner_to_unowned_business()",
+        "role": "trigger_only",
+        "attached_trigger": "public.businesses.trg_assign_default_owner_to_unowned_business",
+        "trigger_enabled": true,
+        "search_path": [
+          "public",
+          "auth"
+        ]
+      },
+      {
+        "signature": "public.capture_commission_rule_audit()",
+        "role": "trigger_only",
+        "attached_trigger": "public.commission_rules.trg_commission_rules_audit",
+        "trigger_enabled": true,
+        "search_path": []
+      },
+      {
+        "signature": "public.get_mnty_targeted_advertisements(character varying,character varying,character varying,double precision,double precision,character varying,integer)",
+        "role": "intended_public_read",
+        "attached_trigger": null,
+        "search_path": [],
+        "behavior": "Returns only active and approved targeted/global ads within configured time windows and caps results at 50."
+      }
+    ],
+    "interpretation": "Advisor output is not a vulnerability count. Two anon-executable SECURITY DEFINER functions are trigger-returning routines attached to enabled triggers; the third is an intended public active/approved advertisement read. Nineteen explicit anon/public policies were inspected and are chiefly public-read allowlists or restrictive deny policies. Zero anonymous auth users were present in auth.users, but the Auth anonymous-sign-in setting still requires owner-side verification. Do not mass-revoke grants or blanket-disable anonymous policies; review function bodies, call paths and intended exposure individually."
+  },
+  "latest_read_only_physical_recheck_20261106_1833": {
+    "checked_at": "2026-11-06T18:33:45Z",
+    "project_status": "ACTIVE_HEALTHY",
+    "postgres_version": "17.6.1.155",
+    "migration_ledger_count": 309,
+    "latest_migration_version": "20261101140105",
+    "active_critical_edge_functions": [
+      {
+        "slug": "order-create",
+        "version": 8,
+        "verify_jwt": true
+      },
+      {
+        "slug": "payment-intent",
+        "version": 8,
+        "verify_jwt": true
+      },
+      {
+        "slug": "paymob-webhook",
+        "version": 10,
+        "verify_jwt": false
+      },
+      {
+        "slug": "digital-page-payment-intent",
+        "version": 5,
+        "verify_jwt": true
+      },
+      {
+        "slug": "subscription-payment-intent",
+        "version": 4,
+        "verify_jwt": true
+      },
+      {
+        "slug": "financial-journal",
+        "version": 3,
+        "verify_jwt": true
+      }
+    ],
+    "missing_required_columns": 10,
+    "missing_required_objects_and_indexes": 3,
+    "journal_rpc_execute_for_anon_authenticated_service_role": false,
+    "no_production_writes": true,
+    "interpretation": "The listed active Edge versions match the earlier source-drift audit; this inventory alone does not prove current byte-for-byte source parity. All checks here were read-only."
   }
 }
