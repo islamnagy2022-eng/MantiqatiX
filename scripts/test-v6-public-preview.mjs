@@ -72,7 +72,7 @@ try {
     }
     await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({
       accessMode: 'PUBLIC_DIRECTORY_READ_ONLY',
-      businesses: Array.from({ length: 4 }, (_, index) => {
+      businesses: Array.from({ length: 25 }, (_, index) => {
         const number = index + 1;
         const businessId = `v6-preview-business-${number}`;
         const branchId = `v6-preview-branch-${number}`;
@@ -83,15 +83,15 @@ try {
         return {
           id: businessId,
           slug: `v6-preview-business-${number}`,
-          name: number === 1 ? 'نشاط تجريبي للاختبار' : `نشاط تجريبي رقم ${number}`,
-          category: ['متاجر', 'مطاعم', 'خدمات', 'صحة'][index],
+          name: number === 1 ? 'نشاط تجريبي للاختبار' : number === 2 ? 'نشاط اختباري فريد 2' : `نشاط تجريبي رقم ${number}`,
+          category: ['متاجر', 'مطاعم', 'خدمات', 'صحة'][index % 4],
           operationallyAvailable: true,
           selectedBranchId: branchId,
           provider: { kind: 'retail', verified: true, description: 'بيانات اختبار للعرض العام.' },
           profile: {
             governorate: 'القاهرة',
             markaz: 'مدينة نصر',
-            village: ['الحي الأول', 'الحي الثاني', 'الحي الثالث', 'الحي الرابع'][index],
+            village: ['الحي الأول', 'الحي الثاني', 'الحي الثالث', 'الحي الرابع'][index % 4],
             whatsappPhone: `20100123456${number}`,
             bio: 'نشاط تجريبي للتحقق من صفحة النشاط.',
           },
@@ -117,7 +117,13 @@ try {
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor({ timeout: 15000 });
   await page.getByText('نشاط تجريبي للاختبار', { exact: true }).waitFor({ timeout: 15000 });
   const activityCards = page.getByRole('button', { name: /عرض النشاط/ });
-  assert.equal(await activityCards.count(), 4, 'Desktop directory fixture must render four distinct activity cards');
+  assert.equal(await activityCards.count(), 20, 'Directory must initially render only the first 20 of 25 activities');
+  assert.match(await page.locator('body').innerText(), /25 نتيجة مطابقة/, 'Directory must report all 25 matching activities, not only the visible page');
+  const loadMore = page.getByRole('button', { name: /رؤية المزيد/ });
+  assert.equal(await loadMore.count(), 1, 'A load-more control must appear when results exceed 20');
+  await loadMore.click();
+  assert.equal(await activityCards.count(), 25, 'Load more must reveal the remaining five activities');
+  console.log('V6_PREVIEW_DIRECTORY_PAGINATION=PASS initial=20 total=25 loaded=25');
   const cardBounds = await activityCards.evaluateAll((cards) => cards.map((card) => {
     const rect = card.getBoundingClientRect();
     return { x: Math.round(rect.x), y: Math.round(rect.y), width: Math.round(rect.width), height: Math.round(rect.height) };
@@ -125,13 +131,14 @@ try {
   assert.ok(cardBounds.every((rect) => rect.width > 0 && rect.height > 0), 'Every desktop activity card must have visible dimensions');
   console.log(`V6_PREVIEW_MULTI_ACTIVITY_LAYOUT=${JSON.stringify(cardBounds)}`);
   const directorySearch = page.getByPlaceholder(/ابحث عن نشاط أو خدمة أو تخصص/);
-  await directorySearch.fill('نشاط تجريبي رقم 2');
-  await page.waitForFunction(() => document.body.innerText.includes('نشاط تجريبي رقم 2'));
-  assert.equal(await activityCards.count(), 1, 'Directory search must reduce four activities to the matching result');
+  await directorySearch.fill('نشاط اختباري فريد 2');
+  await page.waitForFunction(() => document.body.innerText.includes('نشاط اختباري فريد 2'));
+  assert.equal(await activityCards.count(), 1, 'Directory search must reduce 25 activities to the unique matching result');
   assert.equal(await page.getByText('نشاط تجريبي للاختبار', { exact: true }).count(), 0, 'Directory search must hide non-matching activities');
   await directorySearch.fill('');
   await page.waitForFunction(() => document.body.innerText.includes('نشاط تجريبي للاختبار'));
-  assert.equal(await activityCards.count(), 4, 'Clearing directory search must restore all four activities');
+  assert.equal(await activityCards.count(), 20, 'Clearing directory search must reset visible results to the first 20 of 25');
+  assert.equal(await page.getByRole('button', { name: /رؤية المزيد/ }).count(), 1, 'Load more must return after clearing search');
   console.log('V6_PREVIEW_DIRECTORY_SEARCH=PASS');
   const directoryImages = await waitForImageReadiness(page);
   console.log(`V6_PREVIEW_DIRECTORY_IMAGE_AUDIT=${JSON.stringify(directoryImages)}`);
@@ -185,10 +192,17 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'دليل الأنشطة' }).click();
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor();
+  assert.equal(await activityCards.count(), 20, 'Mobile directory must initially render 20 activities');
+  assert.equal(await page.getByRole('button', { name: /رؤية المزيد/ }).count(), 1, 'Mobile directory must expose load more for remaining activities');
   const mobileImages = await waitForImageReadiness(page);
   console.log(`V6_PREVIEW_MOBILE_IMAGE_AUDIT=${JSON.stringify(mobileImages)}`);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   assert.equal(overflow, false, 'Mobile Preview must not overflow horizontally');
+  await page.getByRole('button', { name: /رؤية المزيد/ }).click();
+  assert.equal(await activityCards.count(), 25, 'Mobile load more must reveal all 25 activities without overflow');
+  const mobileOverflowAfterLoadMore = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+  assert.equal(mobileOverflowAfterLoadMore, false, 'Mobile directory must not overflow after loading more activities');
+  console.log('V6_PREVIEW_MOBILE_PAGINATION=PASS initial=20 total=25');
   if (screenshotDir) {
     await page.screenshot({ path: path.join(screenshotDir, 'v6-mobile-directory.png'), fullPage: true, animations: 'disabled' });
     console.log('V6_VISUAL_CAPTURE=mobile-directory');
