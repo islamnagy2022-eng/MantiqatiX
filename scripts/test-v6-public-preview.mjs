@@ -131,6 +131,16 @@ try {
   const previewUrl = 'http://127.0.0.1:4173/MantiqatiX/v6-preview/';
   await page.goto(previewUrl, { waitUntil: 'domcontentloaded' });
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor({ timeout: 15000 });
+  const sectorCardsMode = page.getByTestId('sector-view-cards');
+  const sectorTabsMode = page.getByTestId('sector-view-tabs');
+  const sectorFilterList = page.getByTestId('sector-filter-list');
+  assert.equal(await sectorCardsMode.count(), 1, 'Public sector card mode must be available');
+  assert.equal(await sectorTabsMode.count(), 1, 'Public sector quick-tabs mode must be available');
+  assert.ok(await page.getByTestId('sector-quick-filter').count() > 0, 'Sector filters must be derived from the available public taxonomy');
+  await sectorTabsMode.click();
+  assert.match(await sectorFilterList.getAttribute('class'), /flex snap-x/, 'Quick-tabs mode must render a horizontal scrollable filter rail');
+  await sectorCardsMode.click();
+  assert.match(await sectorFilterList.getAttribute('class'), /grid grid-cols-2/, 'Card mode must restore the responsive sector grid');
   await page.getByRole('button', { name: 'عرض النشاط', exact: true }).first().waitFor({ timeout: 15000 });
   const homeCover = page.getByTestId('r5-public-home-cover');
   assert.equal(await homeCover.count(), 1, 'Canonical r5 public homepage cover must be rendered');
