@@ -320,9 +320,15 @@ export const DirectoryView: React.FC = () => {
   };
   const closeActivityModule = () => {
     const url = new URL(window.location.href);
+    const parentGroupId = url.searchParams.get('group') || 'all';
     url.searchParams.delete('activity');
     url.searchParams.delete('specialty');
-    window.history.pushState({ mantiqatixActivityModule: null }, '', url.pathname + url.search + url.hash);
+    if (parentGroupId === 'all') url.searchParams.delete('group');
+    else url.searchParams.set('group', parentGroupId);
+    window.history.pushState({ mantiqatixActivityModule: null, mantiqatixGroupFolder: parentGroupId }, '', url.pathname + url.search + url.hash);
+    setSelectedGroupFilter(parentGroupId);
+    setSelectedCategoryId('all');
+    setSelectedSpecialty('all');
     setActivityListingSearchQuery('');
     setActivityListingSpecialty('all');
     setActivityModuleId('');
