@@ -99,7 +99,7 @@ def main() -> None:
         (OLD_ASSERTION, NEW_ASSERTION, "explicit-consent assertion"),
     ])
     print(f"V6_EXPLICIT_PUBLIC_PRODUCT_FLAGS=PASS source_changed={int(source_changed)} test_changed={int(test_changed)}")
-    verify_server_contract(root.parents[1])
+    verify_server_contract(root.parents[2])
 
 if __name__ == "__main__":
     main()
