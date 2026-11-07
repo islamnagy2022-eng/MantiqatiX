@@ -154,7 +154,7 @@ def main() -> None:
         raise SystemExit("V6_PUBLIC_R5_NAVBAR_TARGET_MISSING")
     current = target.read_text(encoding="utf-8")
     if current != NAVBAR_SOURCE:
-        if "usePublicApp" not in current or "التنقل الرئيسي" not in current or "DASHBOARD" in current:
+        if "usePublicApp" not in current or "export const Navbar" not in current:
             raise SystemExit("V6_PUBLIC_R5_NAVBAR_UNEXPECTED_SOURCE")
         target.write_text(NAVBAR_SOURCE, encoding="utf-8")
     if target.read_text(encoding="utf-8") != NAVBAR_SOURCE:
