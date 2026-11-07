@@ -26,7 +26,7 @@ NEW_ASSERTION = OLD_ASSERTION + "\n  assert.deepEqual(result.products.map((produ
 
 def replace_once(source: str, old: str, new: str, label: str) -> tuple[str, bool]:
     old_count, new_count = source.count(old), source.count(new)
-    if new_count == 1 and old_count == 0:
+    if new_count == 1:
         return source, False
     if old_count != 1 or new_count:
         raise ValueError(f"{label}: expected one source anchor; old={old_count}; new={new_count}")
@@ -61,6 +61,13 @@ def self_test() -> None:
         fixture, did_change = replace_once(fixture, old, new, label)
         assert did_change
     assert "item-4" in fixture and "item-5" in fixture and "Only items with explicit" in fixture
+    for old, new, label in [
+        (OLD_ITEM, NEW_ITEM, "missing-price-consent fixture"),
+        (OLD_PRICE, NEW_PRICE, "missing-availability-consent fixture"),
+        (OLD_ASSERTION, NEW_ASSERTION, "explicit-consent assertion"),
+    ]:
+        fixture, did_change = replace_once(fixture, old, new, label)
+        assert not did_change
     print("V6_EXPLICIT_PUBLIC_PRODUCT_FLAGS_SELF_TEST=PASS")
 
 def main() -> None:
