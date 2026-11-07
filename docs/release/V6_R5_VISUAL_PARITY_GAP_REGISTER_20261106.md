@@ -89,3 +89,21 @@ The exact-head CI closeout is not visual parity certification. FULL_PLATFORM_GAT
 4. Compare paired desktop/mobile screenshots at the reference sizes, including a live tile-loaded map and the complete homepage.
 
 The exact-head CI closeout is not visual parity certification. FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED remains; no merge-to-main, deployment, root cutover, or Production mutation is claimed.
+
+
+## Implemented and validated — 2026-11-07 — public r5 brand/navigation shell
+
+- Rebuilt the V6 public navbar as a responsive, r5-aligned shell: slim dark platform context strip, clear MantiqatiX wordmark and MX mark, concise public-directory descriptor, and distinct public navigation row.
+- Public navigation exposes only the routes actually present in the isolated public app: directory, medical directory and contact. The brand control returns to the public directory; active navigation state also remains correct while viewing a public business storefront.
+- Guest login and authenticated logout are retained. The public header does not expose merchant/admin dashboard routes, wallet, cart, checkout, internal inbox or unverified privileged controls from the monolithic r5 source.
+- Playwright assertions added for exactly three public destinations, active aria-current state across the directory/medical/contact views, and brand-home return. Browser result: `V6_PUBLIC_R5_NAVIGATION=PASS destinations=3 brand_home=true`.
+- Exact code head: `19b8b9ebabd118ca005071dd3df56802011d54a3`. Exact-head PR workflows: **10/10 PASS**, including Pages desktop/mobile Preview browser E2E, Pages composition, Primary Catalog build + 32 browser journeys + employee/RBAC PostgreSQL, isolated 76-migration forward replay and specialist contract/security workflows.
+- Desktop/mobile visual review artifacts generated from browser fixtures. Mobile header was inspected at 390px width; wordmark and all three public navigation destinations remain legible and reachable. Test content is synthetic, not production business data.
+- Pages workflow validation/composition succeeded; deploy was skipped on the PR event. No production root change, merge, Supabase write or live function deployment.
+
+## Remaining intentional parity/release gaps
+
+- Do not reintroduce the original r5 mega-navigation wholesale: several original links point to merchant/admin, wallet, cart, messages, paid advertising and subscription flows that remain outside the public-only certified boundary.
+- Do not add an intermediate "functional groups/fields" taxonomy layer or fabricate a 15-sector catalogue. Public discovery remains activity → specialty; the dynamic activity card grid and horizontal quick-tabs provide the supported route into the catalogue. Any subscription/three-tier plan display must be backed by real published plan records and a verified plan contract.
+- The public sponsored-ad column remains deferred until a read-only public ads contract proves active/approved status, placement scope, campaign dates, audience targeting, frequency caps, privacy/consent, and tenant isolation. The original r5 rotating/default promo component is not safe to expose as-is.
+- Full visual parity is not certified. Pairwise desktop/mobile comparison against all original r5 reference captures remains open, alongside production schema/RPC/Edge/Auth/RLS/finance and true backup/restore blockers.
