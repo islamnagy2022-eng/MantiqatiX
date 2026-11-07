@@ -1436,3 +1436,177 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Exact-head run `41254516117` failed only in `professional_dashboard_browser_e2e` at test line 865: a duplicated specialty-filter scenario attempted to click the medical-practices activity card without first opening its parent “الطب والصحة” group.
 - Corrected the test to follow the actual navigation sequence (open group → open activity → choose specialty). The source UI, routing, and authorization checks were not changed or weakened.
 - Fresh CI is required on the new branch HEAD. Keep PR #628 unmerged and do not claim deployment until all required checks pass and the production release workflow actually deploys. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+---
+
+## Latest continuation handoff — 2026-11-06 15:55 UTC
+
+- Active branch: `feat/v6-r5-preview-foundation-20261106`; PR #685 remains OPEN / DRAFT / NOT MERGED.
+- Latest commit at handoff: `6d1b08cd8c652042563b8c0d9fc8db433936482e`. V6 application/source head remains `0de8917431d2e2ecf5e4cd833cd08d4286e682e`.
+- Exact-head CI on commit 6d1b08c: **8/8 workflows completed successfully**. Primary catalog build, employee/RBAC PostgreSQL and 32-journey browser E2E passed. Pages validation and V6 public Preview E2E passed; 90 Preview/navigation assertions passed; axe critical=0 and zero non-critical violation groups. Pages deploy was skipped because this is a PR.
+- The latest composed artifact is [13518406042](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42246039796/artifacts/13518406042), 65 files, ZIP SHA-256 `8c12e1980ed7e43f83212e19fbe34b33b63e1f2caf44f5712fe7369f73421305`. Existing catalog stays at root; V6 is a separate `/MantiqatiX/v6-preview/` path. Bundle scan found no wallet/admin/demo or service-role markers.
+- Read-only alias reconciliation now confirms both expected duplicate source aliases by exact blob/statement evidence. Source evidence is 2/2 confirmed; formal ledger repair remains 0/2 and unapplied. See [PRODUCTION_ALIAS_RECONCILIATION_20261106_1555UTC.md](release/PRODUCTION_ALIAS_RECONCILIATION_20261106_1555UTC.md).
+- Global production gate remains BLOCKED / NOT CERTIFIED: 0/42 exact required migration version IDs, missing schema/RPC prerequisites, six critical Edge Function drifts, payment/finance E2E and restore rehearsal NOT VERIFIED, Auth leaked-password protection disabled, and additional per-policy/per-function security review outstanding.
+- Next: manual visual acceptance of V6 against AI Studio r5; then a genuinely isolated, cost-approved restore/replay path and controlled P0 production dependency closure. Do not create a billable Supabase branch until cost is known and approved.
+- No merge, deployment, root cutover, or Production mutation.
+
+
+---
+
+## Current Production Edge Function drift — 2026-11-06
+
+Read-only semantic comparison of all six critical live Edge Functions against current source is recorded in [PRODUCTION_EDGE_FUNCTION_CONTRACT_REVIEW_20261106.md](release/PRODUCTION_EDGE_FUNCTION_CONTRACT_REVIEW_20261106.md). Key points:
+- Paymob webhook live v10 lacks current source failure processors and MantiGO payment processor; source also adds provider-order binding.
+- Digital-page payment intent live v5 uses a 4-argument finalizer; source requires the 5-argument form with provider-order ID. Production only has the 4-argument RPC.
+- Subscription payment intent live v4 uses the old create RPC; source requires two claimable/claim RPCs not found in Production.
+- Financial journal live v3 calls the legacy RPC and wildcard CORS; source uses the backend RPC and restricted origin. Neither journal RPC currently grants EXECUTE to `service_role`, and required journal columns are missing.
+- The source adds smaller hardening checks to order-create and payment-intent. All six remain mismatched and must be released only as one tested unit.
+- No Production changes. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+---
+
+## Latest handoff — 2026-11-06 17:15 UTC
+
+- Active branch: `feat/v6-r5-preview-foundation-20261106`; PR #685 OPEN / DRAFT / NOT MERGED.
+- Current PR head: `f02c8770da26ec6cf3f50d12e2d05b0b853ff661`. Validated V6 application/source head remains `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`.
+- Canonical visual/replay/Production snapshot report: [`V6_R5_VISUAL_AND_MIGRATION_REPLAY_20261106_1710UTC.md`](`release/V6_R5_VISUAL_AND_MIGRATION_REPLAY_20261106_1710UTC.md`). Prior reference to the absent 1534UTC-only report path has been corrected in the continuity register.
+- Screenshot capture artifact #13521016183 was inspected: 1440px desktop directory, 1440px activity profile and 390px mobile directory. No visible clipping/overlap or broken content in captures. A single activity fixture leaves substantial desktop whitespace; this remains a non-blocking review note. Pixel parity against a paired AI Studio r5 reference is NOT VERIFIED.
+- Prior head `b6b7de6` CI: 9/9 workflows passed, including disposable local schema-checkpoint replay of 76 migrations and synthetic Tenant A/B isolation. This does not replace backup/restore or live Production proof.
+- Current head `f02c877`: V6 source, SMM, Open Ride, Module Professionalization, RC425 and Backend Boundary completed PASS; Pages validation PASS and deploy jobs SKIPPED. Primary Catalog browser E2E and forward migration replay were IN PROGRESS at last check; recheck before claiming exact-head closure.
+- Production remains BLOCKED: 309 migration records through `20261101140105`, 0/42 exact required source IDs; missing physical columns/objects; six critical Edge Function source drifts; missing five-argument digital finalizer; journal RPC service-role EXECUTE absent; Auth leaked-password protection disabled.
+- Next: recheck the two current-head workflows; then continue genuine backup/restore and RPO/RTO, coupled finance/payment/Edge verification, security/Auth closure, and paired reference-image visual comparison.
+- No Production write, deployment, PR merge or root cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+---
+
+## Continuity checkpoint — 2026-11-06 17:42 UTC
+
+- Branch `feat/v6-r5-preview-foundation-20261106`, PR #685 remains OPEN / DRAFT / NOT MERGED.
+- Current PR head `5915ae0a397a088f54f48bc140e9a25b85fa6a62`; canonical V6 application source head `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`.
+- Exact PR-head CI: 9/9 workflows completed success. Pages validate success but public-only/deploy skipped for PR event. Primary Catalog browser E2E passed 32 journeys. V6 Preview E2E passed, axe critical/non-critical zero, mobile width 390px no horizontal overflow; all audited fixture images loaded.
+- Composed Pages artifact #13525039740: 65 files; ZIP integrity PASS; SHA-256 `c417b3858ef6d9314b4bac67eb47be7d38c3930de73ef71490e862c5f4aaf0b7`. Existing catalog stays at root; V6 remains a separately bundled `/MantiqaTix/v6-preview/` Preview using shared public config. Artifact is not deployed.
+- Visual review artifact #13525069690 SHA-256 `4d59d1ae7d602b673fb45ed216e24037274a0803f1eb867238096cee21c24375`; three current-head captures: desktop directory, desktop activity profile, 390px mobile directory. No clipping/overlap observed in these fixture captures.
+- Isolated local schema-only replay #42261319024: from checkpoint 20261008222845, 76 ordered forward migrations applied through 20261101150000; RC117/owner profile/RC455/RC456/tenant-isolation tests passed. This is not a genuine backup/restore rehearsal and is not Production.
+- Fresh Production read-only recheck 2026-11-06 17:38 UTC: 309 migration records through 20261101140105; 10 required columns and 3 required objects/indexes remain absent; journal service_role EXECUTE false; required 5-argument digital-page finalizer absent; six critical Edge Functions remain drifted; leaked-password protection disabled; advisors 94 lints.
+- Pixel parity with the original AI Studio r5 enterprise screen remains NOT VERIFIED. The current V6 public Preview intentionally excludes private administration/wallet/cart; retain activity→specialty taxonomy with no functional-group layer. Review public promo/ad surface separately before calling design acceptance complete.
+- Next dependencies: a genuine backup restore rehearsal with RPO/RTO/rollback, coupled payment/finance/webhook/Edge E2E, full per-function/per-table security closure, Auth owner-side evidence, SMM negative runtime tests, and approved visual reference acceptance.
+- No Production writes, migration, schema/data/Auth/RLS/GRANT changes, Edge deployment, payment/finance operation, Pages deployment, PR merge or root cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+---
+
+## PR head after evidence-only documentation commit — 2026-11-06
+
+- Current PR/branch head: `b66d8c328d1a70171168746fd14ef4b0a6562889` (documentation-only).
+- Last application/test head whose nine-workflow results are recorded above: `5915ae0a397a088f54f48bc140e9a25b85fa6a62`.
+- V6 application/source head: `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`.
+- CI was automatically re-triggered for the documentation-only head. Do not attribute the completed 5915 test results to b66 until the new exact-head runs finish.
+- PR #685 remains OPEN / DRAFT / NOT MERGED; no merge, Pages deployment, root cutover or Production change occurred.
+
+
+---
+
+## Continuity checkpoint — 2026-11-06 18:31 UTC
+
+- Development branch: `feat/v6-r5-preview-foundation-20261106`; PR #685 OPEN / DRAFT / NOT MERGED.
+- Latest fully tested code commit: `a7df3493460c77a28ef117ec9716bb369cf684a0`; canonical V6 source head remains `0de8917431d2e2ecf5e4cd833cd08d4286e682e8`.
+- Exact-head CI: **9/9 workflows PASS**. Primary Catalog build/TypeScript, isolated employee/RBAC PostgreSQL and browser E2E passed across 32 named journeys. V6 source validation, Pages composition validation, backend-only module boundary, module professionalization, RC425 Paymob atomicity, MantiGO privacy and SMM deferred contract all passed.
+- Isolated migration replay #42271053737 applied 76 ordered migrations through `20261101150000` from a schema-only checkpoint. RC117, owner-profile, RC455/RC456 and Tenant A/B reciprocal data-isolation checks passed. This is not a genuine backup/restore rehearsal.
+- Multi-activity Preview screenshot artifact #13529541408, SHA-256 `100e45ffb0ec0a77605f11cfdf535355367238457c9ea1a8bb5d66ad5081b7d5`. Four synthetic activities are visible in the desktop directory; 390px mobile captures four readable vertical cards with no horizontal overflow. Axe critical=0 and non-critical=0.
+- Composed Pages artifact #13529311825: 65 files, SHA-256 `8afbbd7ed4f429b9afaf06d9bb418705a7a07f8be606740fc4e7a7864aa3779f`. Root remains the existing catalog; V6 remains isolated under `v6-preview/`. Pages deploy job was SKIPPED for the PR event.
+- Exact-head workflow links: Pages #42271053674; Primary Catalog #42271054041; migration replay #42271053737; V6 Source #42271053707; Backend Boundary #42271053695; Professionalization #42271053761; Paymob Atomicity #42271053881; MantiGO Privacy #42271053709; SMM #42271053662.
+- The fresh Production blocker snapshot remains the 17:38 UTC read-only report: 309 migration rows, ten missing required columns, three missing objects/indexes, six critical Edge Function drifts, journal RPC ACL gap, four-argument rather than required five-argument digital-page finalizer, disabled leaked-password protection and 94 advisor lints.
+- Next: genuine backup/restore rehearsal; coupled finance/payment/Edge E2E; RLS/SECURITY DEFINER review and negative tests; owner-side Auth security evidence; SMM negative runtime tests; paired original r5 visual reference acceptance.
+- No Production mutation, merge, Pages deployment or root promotion occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+---
+
+## Continuity checkpoint — 2026-11-06 18:33 UTC
+
+- Latest validated application/test commit: `a7df3493460c77a28ef117ec9716bb369cf684a0`; nine exact-head workflows passed. Latest documentation-only CI checkpoint before this addendum: `37259eb60a7aa4285e9270940fe9e1e2751c7af4`, also 9/9 workflows passed.
+- PR #685 remains OPEN / DRAFT / NOT MERGED. V6 is still an isolated Preview under `v6-preview/`; current catalog remains Pages root.
+- Latest 4-activity Preview screenshot and CI evidence are captured in the 18:31 UTC checkpoint above.
+- Current Production read-only query refresh confirms: ACTIVE_HEALTHY / PostgreSQL 17.6.1.155; 309 migrations through 20261101140105; 0/42 exact required IDs; ten columns and three objects/indexes absent; both journal RPCs deny EXECUTE to anon/authenticated/service_role; six critical Edge functions remain drifted.
+- Current security Advisor produced 94 lint records. The catalog shows 19 explicit anon/public policies and zero anonymous Auth users. Two of three anon-executable SECURITY DEFINER functions are trigger-only; the third reads only active/approved ads. Do not bulk-revoke permissions or remove policies; owner-side Auth setting evidence and per-object review remain required.
+- Manifest `docs/release/production-migration-reconciliation.json` now records the current isolated replay #42271053737 and 18:33 UTC read-only findings. Replay remains a schema-checkpoint rehearsal, not a genuine backup/data restore.
+- Next: complete backup/data restore and RPO/RTO; test trigger ACL changes in isolation; close six-function payment/finance/Edge E2E; perform RLS/SECURITY DEFINER negative tests; obtain owner-side Auth settings proof.
+- No Production write, migration, grant, Auth/RLS setting change, Edge deployment, payment/finance operation, Pages deployment, merge or root cutover occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## Continuation handoff — 2026-11-06 20:50 UTC
+
+- Branch `feat/v6-r5-preview-foundation-20261106`, PR #685 OPEN / DRAFT / NOT MERGED.
+- Exact latest tested code/test head: `a420d355239e0d895e48a74de69a61d0f1223c7f`; exact-head CI 9/9 PASS. Full run IDs and test evidence are appended to `docs/MASTER_PRODUCTION_TODO.md` and `docs/SESSION_LOG.md`.
+- V6 Preview browser E2E and axe passed, including verified-first sorting, red unverified dot, verification filters, 20+5 pagination, medical specialty filter, multi-product catalog, mobile profile/pagination and CORS. Primary catalog 32-journey E2E and employee/RBAC PostgreSQL passed.
+- Isolated schema checkpoint replay passed 76 migrations through `20261101150000`, including RC117, owner-profile, RC455/RC456 and Tenant A/B isolation. Do not describe this as a genuine data backup/restore rehearsal.
+- Preview remains at `/MantiqaTix/v6-preview/`; root remains current catalog. PR Pages deployment was skipped; nothing was deployed or promoted.
+- Production blocker reference is the 18:33 UTC read-only snapshot: 309 migration rows, 0/42 exact required migration IDs, ten missing columns, three missing objects/indexes, two journal RPC ACL gaps and six critical Edge-function drifts. Re-read live state before any release decision; do not assume this snapshot is current beyond its timestamp.
+- Next work order: (1) paired original r5 visual parity evidence; (2) genuine backup/data + Storage/Auth restore rehearsal with measured RPO/RTO/rollback; (3) six-function coupled payment/finance/webhook E2E and Edge parity; (4) per-object SECURITY DEFINER/ACL and anonymous/authenticated negative RLS tests; (5) owner-side Auth settings evidence; (6) SMM negative runtime tests. Keep the release gate blocked until all required gates and explicit approval are complete.
+- No Production mutation, merge, Pages deploy, or root cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+---
+
+## Exact-head CI + r5 parity review + fresh Production preflight — 2026-11-06
+
+### Exact tested head: `fffe78591792147b143f804a2850d7e600643e71`
+PR #685 remains OPEN / DRAFT / NOT MERGED. All nine workflows completed successfully (**9/9 PASS**):
+- Primary Catalog Frontend #42291849353 — build, employee/RBAC PostgreSQL and browser E2E PASS; marker `PRIMARY_CATALOG_BROWSER_E2E=PASS` covers 32 named journeys.
+- Pages / Deploy MantiqatiX Web #42291849414 — validation PASS; CORS preflights PASS for `api/api/v1/me`, `public-catalog-directory`, `directory-listings`; `PAGES_COMPOSITION=PASS`. PR-event `validate_public_only` and `deploy` jobs were SKIPPED; no deployment occurred.
+- Forward Migration Chain Replay #42291849375 — PASS in disposable local Supabase/PostgreSQL; schema-only checkpoint `20261008222845`, 76 forward migrations through `20261101150000`, RC117, owner-profile persistence, RC455/RC456 and reciprocal synthetic Tenant A/B isolation passed. This is not a real customer-data backup/restore rehearsal.
+- V6 Preview Source #42291849433 — PASS.
+- Backend-only Module Boundary #42291849422 — PASS.
+- Module Professionalization #42291849423 — PASS.
+- RC425 MantiGo Paymob Atomicity #42291849347 — PASS.
+- MantiGO Open Ride Privacy #42291849373 — PASS.
+- SMM Deferred Storefront Contract #42291849374 — PASS.
+
+### V6 public Preview E2E
+- `V6_PUBLIC_PREVIEW_BROWSER_E2E=PASS`; axe critical=0 and non-critical=0.
+- Verified-first ordering, red unverified dot, verified/unverified filters, 20 initial + 5 progressive items on desktop/mobile, search, `صحة ← صيدليات` specialty filtering, three read-only products/prices, mobile activity profile and no horizontal overflow all PASS.
+- Three live CORS preflight checks PASS. Pages keeps the current catalog as root and V6 isolated under `/v6-preview/`.
+- Visual evidence artifact #13541005167 contains desktop directory/profile and mobile directory/profile captures. Composed Pages artifact #13540640804 was independently downloaded and inspected: 65 files, root `index.html`, `v6-preview/index.html`, 3 V6 files including one JS bundle; no scanned private admin/wallet/checkout/service-role markers in V6 JS. Local downloaded ZIP SHA-256: `84bec10f61b21dbf38c36d4152008a7cfc08f59ba2ccb0b86e015e04d6229ecd`.
+
+### r5 visual parity: NOT COMPLETE
+- Re-verified the canonical r5 ZIP SHA-256: `0e868efefbacd5cf3ec4c07a558230ce5cdfbbbdab64416182bc9a59f3acd429`.
+- Compared its `screenshot_homepage.png`, `screenshot_marquee_and_ads.png`, `screenshot_marquee_strips_close.png` with the tested Preview captures. The current public Preview is a directory/activity/profile slice; it does not yet reproduce the original homepage hero/header composition, 15-sector/three-tier plan section, interactive governorate map, product/service marquee strips or vertical sponsored-ad column.
+- The current Preview README intentionally excludes these home/promotion surfaces and excludes private admin/merchant, wallet, cart/checkout and messaging surfaces. This is a documented scope gap, not a passing pixel-parity claim.
+- Added `docs/release/V6_R5_VISUAL_PARITY_GAP_REGISTER_20261106.md` with safe implementation order and acceptance criteria. Public modules must use real published catalog data and active/approved ad records; no seed/fake product popularity, counts or advertiser claims. Admin/merchant and wallet/checkout remain gated behind verified Auth/membership/RBAC and finance release contracts.
+
+### Fresh read-only Production Supabase check — this continuation pass
+No writes were executed.
+- Live project migration ledger remains 309 records through `20261101140105 directory_source_permission_evidence`.
+- Ten required columns remain absent: `businesses.mnty_business_default_images`, `catalog_items.mnty_catalog_item_default_image`, `journal_entries.entry_number`, `journal_entries.posted_at`, `journal_entries.total_credit`, `journal_entries.total_debit`, `journal_entry_lines.line_number`, `marketing_services.image_source`, `marketing_services.image_url`, `marketing_services.mnty_marketing_service_default_image`.
+- Three objects/indexes remain absent: `mantigo_payment_provider_events`, `smm_wallet_transactions_reference_type_uidx`, `uq_payment_intents_one_active_per_order`.
+- Both `post_financial_journal(jsonb,jsonb)` and `post_financial_journal_backend(uuid,jsonb,jsonb)` exist but effective EXECUTE is false for anon, authenticated and service_role.
+- Only the older four-argument `finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)` exists; the required provider-order-bound five-argument form remains absent.
+- Active critical Edge versions remain: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3. Version inventory does not close their known source drift.
+- Security Advisor still returns 94 lints: 9 RLS-enabled/no-policy INFO, 3 public-executable SECURITY DEFINER WARN, 67 signed-in SECURITY DEFINER WARN, 90 anonymous-policy WARN, 1 leaked-password-protection WARN. Leaked-password protection remains disabled / owner-side evidence pending.
+
+### Latest exact-head closeout — 2026-11-07 — `8a96b1cb00011892c6b03e0fdda8686ed27ea820`
+
+- Exact PR-head CI: **9/9 workflows PASS**.
+- V6 Preview r5 public cover: three slides and three public CTAs PASS.
+- Live published catalog strip: 26 live fixture products from verified businesses only, availability + finite recorded price enforced; no fake popularity/order/sales metrics; no checkout/payment UI.
+- Public-directory E2E: first 20 of 25, load-more to 25, verified-first order, red unverified dot, search, health→pharmacy specialty, activity profile with 3 products, desktop/mobile navigation and mobile pagination PASS.
+- Accessibility: axe critical=0 and non-critical=0. Pages composition keeps the current catalog at root and V6 under `/MantiqaTix/v6-preview/`; the Pages deploy job was skipped for this PR event.
+- Primary Catalog build, employee/RBAC PostgreSQL tests and 32-journey browser E2E PASS.
+- Forward migration replay PASS against an isolated schema-only checkpoint. This is not a genuine Production data/Storage/Auth backup restore.
+- Backend-only Module Boundary, Module Professionalization, RC425 Paymob Atomicity, MantiGO Open Ride Privacy, SMM Deferred Storefront Contract and V6 Preview Source Validation PASS.
+- PR #685 remains OPEN / DRAFT / NOT MERGED. Main-branch push runs the Pages deploy job after validation; no merge-to-main or live deployment is performed as part of this candidate closeout.
+- Production gate remains `BLOCKED / NOT CERTIFIED`; Preview CI does not close live schema, Edge Function, Auth/RLS, finance/payment, or backup/restore gaps.
+
+### Next exact implementation order
+1. Restore the canonical r5 **15-sector grid and quick-tabs mode**, using the canonical `functionalGroups` taxonomy and live activity counts only. Preserve the existing activity → specialty model and current directory routes; do not introduce a competing classification layer.
+2. Restore the **three-tier sector spotlight/studio navigation** as a public informational/filtering surface only. Do not expose unverified admin or pricing actions.
+3. Restore the **governorate map/filter** only with exact source-backed business coordinates or clearly labeled governorate/markaz aggregates; never use generated jitter/default Cairo point pins.
+4. Keep marquee content limited to live published/available products and services with real active prices; extend only if actual service rows are present in the approved public adapter.
+5. Add the sponsored column only from the active/approved targeted-ad contract with targeting, time-window, caps and consent enforcement.
+6. Perform paired 1280×720 desktop and 390×844 mobile visual acceptance against the canonical r5 screenshots.
+7. Separately close Production data/Storage/Auth restore with measured RPO/RTO/rollback; coupled payment/finance/Paymob/webhook/idempotency/wallet/settlement E2E; six critical Edge Function source parity; per-object SECURITY DEFINER/ACL and anonymous/authenticated negative RLS tests; owner-side Auth evidence; and SMM negative runtime tests.
+
+No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation, no Pages deployment, no root cutover, and no PR merge occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.

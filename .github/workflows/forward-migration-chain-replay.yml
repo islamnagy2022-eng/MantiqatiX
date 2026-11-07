@@ -33,6 +33,7 @@ on:
       - "supabase/tests/rc455_commission_preview_integration.sql"
       - "supabase/tests/rc456_commission_resolution_preview_integration.sql"
       - ".github/workflows/forward-migration-chain-replay.yml"
+  workflow_dispatch: {}
 
 permissions:
   contents: read

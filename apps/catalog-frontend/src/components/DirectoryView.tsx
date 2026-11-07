@@ -30,6 +30,8 @@ import {
   Palette,
   GraduationCap,
   Utensils,
+  LayoutGrid,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { formatEgyptianLocation } from '../utils/rules';
 import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from '../utils/defaultImages';
@@ -301,6 +303,7 @@ export const DirectoryView: React.FC = () => {
   const [activityModuleId, setActivityModuleId] = useState<string>(() => new URLSearchParams(window.location.search).get('activity') || '');
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>(() => new URLSearchParams(window.location.search).get('group') || 'all');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
+  const [sectorViewStyle, setSectorViewStyle] = useState<'cards' | 'tabs'>('cards');
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all');
   const openActivityModule = (activityId: string) => {
     const url = new URL(window.location.href);
@@ -317,9 +320,15 @@ export const DirectoryView: React.FC = () => {
   };
   const closeActivityModule = () => {
     const url = new URL(window.location.href);
+    const parentGroupId = url.searchParams.get('group') || 'all';
     url.searchParams.delete('activity');
     url.searchParams.delete('specialty');
-    window.history.pushState({ mantiqatixActivityModule: null }, '', url.pathname + url.search + url.hash);
+    if (parentGroupId === 'all') url.searchParams.delete('group');
+    else url.searchParams.set('group', parentGroupId);
+    window.history.pushState({ mantiqatixActivityModule: null, mantiqatixGroupFolder: parentGroupId }, '', url.pathname + url.search + url.hash);
+    setSelectedGroupFilter(parentGroupId);
+    setSelectedCategoryId('all');
+    setSelectedSpecialty('all');
     setActivityListingSearchQuery('');
     setActivityListingSpecialty('all');
     setActivityModuleId('');
@@ -899,23 +908,27 @@ export const DirectoryView: React.FC = () => {
         <section aria-label="المجموعات والأنشطة" className="space-y-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h2 className="flex items-center gap-2 text-lg font-black text-slate-900"><Store className="h-5 w-5 text-emerald-600" />{selectedGroupFilter === 'all' ? 'المجموعات الوظيفية' : (availableGroups.find((group) => group.id === selectedGroupFilter)?.name || 'أنشطة المجموعة')}</h2>
-              <p className="mt-1 text-xs text-slate-500">{selectedGroupFilter === 'all' ? 'اختر مجموعة لعرض الأنشطة التابعة لها، ثم افتح النشاط لعرض تخصصاته.' : 'اختر النشاط لعرض التخصصات والخدمات التابعة له.'}</p>
+              <h2 className="flex items-center gap-2 text-lg font-black text-slate-900"><Store className="h-5 w-5 text-emerald-600" />{selectedGroupFilter === 'all' ? 'المجموعات الوظيفية' : (availableGroups.find((group) => group.id === selectedGroupFilter)?.name || 'أنشطة المجال')}</h2>
+              <p className="mt-1 text-xs text-slate-500">{selectedGroupFilter === 'all' ? 'اختصارات تصفية للمجالات المتاحة؛ افتح النشاط مباشرة ثم تصفح تخصصاته.' : 'اختر النشاط لعرض تخصصاته وخدماته.'}</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              {selectedGroupFilter === 'all' && <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1" aria-label="طريقة عرض المجالات">
+                <button data-testid="sector-view-cards" type="button" aria-pressed={sectorViewStyle === 'cards'} onClick={() => setSectorViewStyle('cards')} className={sectorViewStyle === 'cards' ? 'inline-flex min-h-8 items-center gap-1 rounded-lg bg-white px-2.5 text-[11px] font-black text-slate-900 shadow-sm' : 'inline-flex min-h-8 items-center gap-1 rounded-lg px-2.5 text-[11px] font-black text-slate-500 hover:text-slate-900'}><LayoutGrid className="h-3.5 w-3.5" />شبكة</button>
+                <button data-testid="sector-view-tabs" type="button" aria-pressed={sectorViewStyle === 'tabs'} onClick={() => setSectorViewStyle('tabs')} className={sectorViewStyle === 'tabs' ? 'inline-flex min-h-8 items-center gap-1 rounded-lg bg-white px-2.5 text-[11px] font-black text-slate-900 shadow-sm' : 'inline-flex min-h-8 items-center gap-1 rounded-lg px-2.5 text-[11px] font-black text-slate-500 hover:text-slate-900'}><SlidersHorizontal className="h-3.5 w-3.5" />شريط سريع</button>
+              </div>}
               {selectedGroupFilter !== 'all' && <button type="button" onClick={() => { const url = new URL(window.location.href); url.searchParams.delete('group'); window.history.pushState({ mantiqatixGroupFolder: null }, '', url.pathname + url.search + url.hash); setSelectedGroupFilter('all'); setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50">كل المجموعات</button>}
-              <span className="text-xs font-bold text-slate-500">{selectedGroupFilter === 'all' ? availableGroups.length.toLocaleString('ar-EG') + ' مجموعة' : availableCategories.length.toLocaleString('ar-EG') + ' نشاط'}</span>
+              <span className="text-xs font-bold text-slate-500">{selectedGroupFilter === 'all' ? availableGroups.length.toLocaleString('ar-EG') + ' مجال متاح' : availableCategories.length.toLocaleString('ar-EG') + ' نشاط'}</span>
             </div>
           </div>
           {selectedGroupFilter === 'all' ? (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            <div data-testid="sector-filter-list" className={sectorViewStyle === 'cards' ? 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4' : 'flex snap-x snap-mandatory gap-2 overflow-x-auto pb-2'}>
               {availableGroups.map((group) => {
                 const groupCategories = categories.filter((category) => category.functionalGroupId === group.id && (category.classificationType || 'activity') === 'activity');
                 const eligibleGroupBusinesses = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && groupCategories.some((category) => categoryForBusiness(business)?.id === category.id));
                 const confirmedCount = eligibleGroupBusinesses.filter((business) => business.isVerified).length;
                 const unconfirmedCount = eligibleGroupBusinesses.filter((business) => !business.isVerified).length + unconfirmedListings.filter((listing) => listing.functional_group_id === group.id && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
                 const totalCount = confirmedCount + unconfirmedCount;
-                return <button key={group.id} type="button" onClick={() => { const url = new URL(window.location.href); url.searchParams.delete('activity'); url.searchParams.set('group', group.id); window.history.pushState({ mantiqatixGroupFolder: group.id }, '', url.pathname + url.search + url.hash); setActivityModuleId(''); setSelectedGroupFilter(group.id); setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className="group relative flex min-h-28 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-right shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md sm:min-h-36 sm:p-4">
+                return <button key={group.id} type="button" onClick={() => { const url = new URL(window.location.href); url.searchParams.delete('activity'); url.searchParams.set('group', group.id); window.history.pushState({ mantiqatixGroupFolder: group.id }, '', url.pathname + url.search + url.hash); setActivityModuleId(''); setSelectedGroupFilter(group.id); setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} data-testid="sector-quick-filter" className={sectorViewStyle === 'cards' ? 'group relative flex min-h-28 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-right shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md sm:min-h-36 sm:p-4' : 'group relative flex min-h-12 min-w-52 shrink-0 snap-start items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-right shadow-sm transition hover:border-emerald-400 hover:bg-emerald-50/50'}>
                   <span className="absolute left-2 top-2 inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-1 text-[10px] font-black text-emerald-800">{totalCount.toLocaleString('ar-EG')}</span>
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 sm:h-14 sm:w-14 sm:rounded-2xl">{ICONS_MAP[group.id] || <Store className="h-7 w-7" />}</span>
                   <span className="min-w-0 flex-1"><span className="block font-black text-slate-900">{group.name}</span><span className="mt-1 block text-[11px] text-slate-500">{groupCategories.length} نشاط</span><span className="mt-2 flex flex-wrap gap-1 text-[10px] font-bold"><span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-800">موثق {confirmedCount}</span><span className="rounded-full bg-red-50 px-2 py-1 text-red-700">غير موثق {unconfirmedCount}</span></span></span>
