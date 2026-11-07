@@ -6,8 +6,8 @@ from pathlib import Path
 
 TARGET = Path("src/components/DirectoryView.tsx")
 REPLACEMENTS = [
-    ("onClick={() => setSectorViewStyle('cards')}", 'data-testid="sector-view-cards"\\n                      onClick={() => setSectorViewStyle(\'cards\')}', "cards toggle"),
-    ("onClick={() => setSectorViewStyle('tabs')}", 'data-testid="sector-view-tabs"\\n                      onClick={() => setSectorViewStyle(\'tabs\')}', "tabs toggle"),
+    ("onClick={() => setSectorViewStyle('cards')}", 'data-testid="sector-view-cards"\n                      onClick={() => setSectorViewStyle(\'cards\')}', "cards toggle"),
+    ("onClick={() => setSectorViewStyle('tabs')}", 'data-testid="sector-view-tabs"\n                      onClick={() => setSectorViewStyle(\'tabs\')}', "tabs toggle"),
     ('<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">', '<div data-testid="sector-filter-list" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">', "cards grid"),
     ('<div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-none">', '<div data-testid="sector-filter-list" className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-none">', "quick tabs rail"),
 ]
@@ -25,7 +25,7 @@ def patch(source: str) -> tuple[str, bool]:
         raise ValueError("V6 sector mode acceptance markers are incomplete")
     return source, changed
 def self_test() -> None:
-    fixture = "\\n".join(old for old, _, _ in REPLACEMENTS)
+    fixture = "\n".join(old for old, _, _ in REPLACEMENTS)
     updated, changed = patch(fixture)
     assert changed
     again, changed_again = patch(updated)
