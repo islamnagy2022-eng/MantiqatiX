@@ -24,6 +24,8 @@ python3 "$ROOT/scripts/patch-v6-public-home-cover.py" --self-test
 python3 "$ROOT/scripts/patch-v6-public-home-cover.py" "$WORKTREE"
 python3 "$ROOT/scripts/patch-v6-live-published-catalog.py" --self-test
 python3 "$ROOT/scripts/patch-v6-live-published-catalog.py" "$WORKTREE"
+python3 "$ROOT/scripts/patch-v6-explicit-public-product-flags.py" --self-test
+python3 "$ROOT/scripts/patch-v6-explicit-public-product-flags.py" "$WORKTREE"
 python3 "$ROOT/scripts/patch-v6-sector-view-markers.py" --self-test
 python3 "$ROOT/scripts/patch-v6-sector-view-markers.py" "$WORKTREE"
 python3 "$ROOT/scripts/patch-v6-public-governorate-map.py" --self-test
