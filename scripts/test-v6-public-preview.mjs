@@ -128,7 +128,6 @@ try {
     }) });
   });
 
-  await page.route('https://tile.openstreetmap.org/**', (route) => route.abort());
   const previewUrl = 'http://127.0.0.1:4173/MantiqatiX/v6-preview/';
   await page.goto(previewUrl, { waitUntil: 'domcontentloaded' });
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor({ timeout: 15000 });
@@ -137,6 +136,11 @@ try {
   await page.locator('[data-testid="public-governorate-marker"]').first().waitFor({ timeout: 15000 });
   assert.equal(await page.locator('[data-testid="public-governorate-marker"]').count(), 4, 'Only the four governorates represented in the public directory fixture should be marked');
   assert.match(await governorateExplorer.innerText(), /لا تمثل مواقع الأنشطة أو عناوينها الدقيقة/, 'The map must disclose that governorate reference points are not business locations');
+  await page.waitForFunction(() => {
+    const tiles = Array.from(document.querySelectorAll('[data-testid="public-governorate-map"] img.leaflet-tile'));
+    return tiles.length > 0 && tiles.some((tile) => tile.complete && tile.naturalWidth > 0 && tile.naturalHeight > 0);
+  }, null, { timeout: 20000 });
+  console.log('V6_PUBLIC_GOVERNORATE_MAP_TILES=PASS');
   await governorateExplorer.getByTestId('public-governorate-option').filter({ hasText: 'المنوفية' }).click();
   assert.equal(await page.getByLabel('تصفية الأنشطة حسب المحافظة').inputValue(), 'المنوفية', 'Selecting a governorate must update the directory filter');
   await governorateExplorer.getByRole('button', { name: 'كل المحافظات' }).click();
