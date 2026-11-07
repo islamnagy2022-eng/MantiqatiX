@@ -26,6 +26,8 @@ python3 "$ROOT/scripts/patch-v6-live-published-catalog.py" --self-test
 python3 "$ROOT/scripts/patch-v6-live-published-catalog.py" "$WORKTREE"
 python3 "$ROOT/scripts/patch-v6-sector-view-markers.py" --self-test
 python3 "$ROOT/scripts/patch-v6-sector-view-markers.py" "$WORKTREE"
+python3 "$ROOT/scripts/patch-v6-public-governorate-map.py" --self-test
+python3 "$ROOT/scripts/patch-v6-public-governorate-map.py" "$WORKTREE"
 python3 "$ROOT/scripts/patch-v6-preview-accessibility.py" --self-test
 python3 "$ROOT/scripts/patch-v6-preview-accessibility.py" "$WORKTREE"
 python3 "$ROOT/scripts/patch-v6-public-context-boundary.py" "$WORKTREE"

@@ -102,7 +102,7 @@ try {
           selectedBranchId: branchId,
           provider: { kind: 'retail', verified: number !== 25, description: 'بيانات اختبار للعرض العام.' },
           profile: {
-            governorate: 'القاهرة',
+            governorate: ['القاهرة', 'الجيزة', 'المنوفية', 'الإسكندرية'][index % 4],
             markaz: 'مدينة نصر',
             village: ['الحي الأول', 'الحي الثاني', 'الحي الثالث', 'الحي الرابع'][index % 4],
             whatsappPhone: `20100123456${number}`,
@@ -128,9 +128,20 @@ try {
     }) });
   });
 
+  await page.route('https://tile.openstreetmap.org/**', (route) => route.abort());
   const previewUrl = 'http://127.0.0.1:4173/MantiqatiX/v6-preview/';
   await page.goto(previewUrl, { waitUntil: 'domcontentloaded' });
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor({ timeout: 15000 });
+  const governorateExplorer = page.getByTestId('public-governorate-explorer');
+  await governorateExplorer.waitFor({ timeout: 15000 });
+  await page.locator('[data-testid="public-governorate-marker"]').first().waitFor({ timeout: 15000 });
+  assert.equal(await page.locator('[data-testid="public-governorate-marker"]').count(), 4, 'Only the four governorates represented in the public directory fixture should be marked');
+  assert.match(await governorateExplorer.innerText(), /لا تمثل مواقع الأنشطة أو عناوينها الدقيقة/, 'The map must disclose that governorate reference points are not business locations');
+  await governorateExplorer.getByTestId('public-governorate-option').filter({ hasText: 'المنوفية' }).click();
+  assert.equal(await page.getByLabel('تصفية الأنشطة حسب المحافظة').inputValue(), 'المنوفية', 'Selecting a governorate must update the directory filter');
+  await governorateExplorer.getByRole('button', { name: 'كل المحافظات' }).click();
+  assert.equal(await page.getByLabel('تصفية الأنشطة حسب المحافظة').inputValue(), 'all', 'Resetting the map must restore all governorates');
+  console.log('V6_PUBLIC_GOVERNORATE_MAP=PASS mapped_governorates=4 business_pins=false');
   const sectorCardsMode = page.getByTestId('activity-view-cards');
   const sectorTabsMode = page.getByTestId('activity-view-tabs');
   const sectorFilterList = page.getByTestId('activity-filter-list');
