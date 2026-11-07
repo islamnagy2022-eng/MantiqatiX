@@ -18,12 +18,6 @@ def patch(source: str) -> tuple[str, bool]:
     original = source
     source = replace_once(
         source,
-        "import { CheckCircle2, MapPin, MessageCircle, Phone, Search, Store, ChevronLeft, RefreshCw } from 'lucide-react';",
-        "import { CheckCircle2, MapPin, MessageCircle, Phone, Search, Store, ChevronLeft, RefreshCw, LayoutGrid, SlidersHorizontal } from 'lucide-react';",
-        "activity view icons",
-    )
-    source = replace_once(
-        source,
         "  const [coverIndex, setCoverIndex] = useState(0);",
         "  const [coverIndex, setCoverIndex] = useState(0);\n  const [activityViewStyle, setActivityViewStyle] = useState<'cards' | 'tabs'>('cards');",
         "activity view state",
@@ -33,8 +27,8 @@ def patch(source: str) -> tuple[str, bool]:
         """            <button type="button" onClick={() => setSelectedActivityId('all')} className="text-xs font-bold text-emerald-800 hover:underline">عرض كل الأنشطة</button>""",
         """            <div className="flex flex-wrap items-center gap-2">
               <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1" aria-label="طريقة عرض الأنشطة">
-                <button data-testid="activity-view-cards" type="button" aria-pressed={activityViewStyle === 'cards'} onClick={() => setActivityViewStyle('cards')} className={activityViewStyle === 'cards' ? 'inline-flex min-h-8 items-center gap-1 rounded-lg bg-white px-2.5 text-[11px] font-black text-slate-900 shadow-sm' : 'inline-flex min-h-8 items-center gap-1 rounded-lg px-2.5 text-[11px] font-black text-slate-500 hover:text-slate-900'}><LayoutGrid className="h-3.5 w-3.5" />شبكة</button>
-                <button data-testid="activity-view-tabs" type="button" aria-pressed={activityViewStyle === 'tabs'} onClick={() => setActivityViewStyle('tabs')} className={activityViewStyle === 'tabs' ? 'inline-flex min-h-8 items-center gap-1 rounded-lg bg-white px-2.5 text-[11px] font-black text-slate-900 shadow-sm' : 'inline-flex min-h-8 items-center gap-1 rounded-lg px-2.5 text-[11px] font-black text-slate-500 hover:text-slate-900'}><SlidersHorizontal className="h-3.5 w-3.5" />شريط سريع</button>
+                <button data-testid="activity-view-cards" type="button" aria-pressed={activityViewStyle === 'cards'} onClick={() => setActivityViewStyle('cards')} className={activityViewStyle === 'cards' ? 'inline-flex min-h-8 items-center gap-1 rounded-lg bg-white px-2.5 text-[11px] font-black text-slate-900 shadow-sm' : 'inline-flex min-h-8 items-center gap-1 rounded-lg px-2.5 text-[11px] font-black text-slate-500 hover:text-slate-900'}><span aria-hidden="true">▦</span>شبكة</button>
+                <button data-testid="activity-view-tabs" type="button" aria-pressed={activityViewStyle === 'tabs'} onClick={() => setActivityViewStyle('tabs')} className={activityViewStyle === 'tabs' ? 'inline-flex min-h-8 items-center gap-1 rounded-lg bg-white px-2.5 text-[11px] font-black text-slate-900 shadow-sm' : 'inline-flex min-h-8 items-center gap-1 rounded-lg px-2.5 text-[11px] font-black text-slate-500 hover:text-slate-900'}><span aria-hidden="true">☰</span>شريط سريع</button>
               </div>
               <button type="button" onClick={() => setSelectedActivityId('all')} className="text-xs font-bold text-emerald-800 hover:underline">عرض كل الأنشطة</button>
             </div>""",
@@ -64,8 +58,7 @@ def patch(source: str) -> tuple[str, bool]:
     return source, source != original
 
 def self_test() -> None:
-    fixture = """import { Check2 } from 'lucide-react';
-  const [coverIndex, setCoverIndex] = useState(0);
+    fixture = """  const [coverIndex, setCoverIndex] = useState(0);
             <button type="button" onClick={() => setSelectedActivityId('all')} className="text-xs font-bold text-emerald-800 hover:underline">عرض كل الأنشطة</button>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             <button type="button" onClick={() => setSelectedActivityId('all')} className={`rounded-2xl border p-4 text-right transition ${selectedActivityId === 'all' ? 'border-emerald-600 bg-emerald-50 ring-2 ring-emerald-100' : 'border-slate-200 bg-white hover:border-emerald-300'}`}>
