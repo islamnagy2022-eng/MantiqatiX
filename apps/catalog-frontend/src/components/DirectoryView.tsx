@@ -902,7 +902,7 @@ export const DirectoryView: React.FC = () => {
         <section aria-label="المجموعات والأنشطة" className="space-y-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h2 className="flex items-center gap-2 text-lg font-black text-slate-900"><Store className="h-5 w-5 text-emerald-600" />{selectedGroupFilter === 'all' ? 'تصفح الأنشطة حسب المجال' : (availableGroups.find((group) => group.id === selectedGroupFilter)?.name || 'أنشطة المجال')}</h2>
+              <h2 className="flex items-center gap-2 text-lg font-black text-slate-900"><Store className="h-5 w-5 text-emerald-600" />{selectedGroupFilter === 'all' ? 'المجموعات الوظيفية' : (availableGroups.find((group) => group.id === selectedGroupFilter)?.name || 'أنشطة المجال')}</h2>
               <p className="mt-1 text-xs text-slate-500">{selectedGroupFilter === 'all' ? 'اختصارات تصفية للمجالات المتاحة؛ افتح النشاط مباشرة ثم تصفح تخصصاته.' : 'اختر النشاط لعرض تخصصاته وخدماته.'}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
