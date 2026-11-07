@@ -70,6 +70,21 @@ def self_test() -> None:
         assert not did_change
     print("V6_EXPLICIT_PUBLIC_PRODUCT_FLAGS_SELF_TEST=PASS")
 
+def verify_server_contract(repo_root: Path) -> None:
+    edge_path = repo_root / "supabase/functions/public-catalog-directory/index.ts"
+    if not edge_path.is_file():
+        raise SystemExit("V6_EXPLICIT_PUBLIC_PRODUCT_FLAGS_EDGE_FUNCTION_MISSING")
+    edge = edge_path.read_text(encoding="utf-8")
+    required = [
+        "i.metadata?.catalog_public?.is_available === true",
+        "item.metadata?.catalog_public?.show_price !== true",
+    ]
+    missing = [marker for marker in required if marker not in edge]
+    if missing:
+        raise SystemExit("V6_EXPLICIT_PUBLIC_PRODUCT_FLAGS_EDGE_CONTRACT_MISSING=" + ",".join(missing))
+    print("V6_EXPLICIT_PUBLIC_PRODUCT_FLAGS_EDGE_CONTRACT=PASS")
+
+
 def main() -> None:
     if len(sys.argv) == 2 and sys.argv[1] == "--self-test":
         self_test()
@@ -84,6 +99,7 @@ def main() -> None:
         (OLD_ASSERTION, NEW_ASSERTION, "explicit-consent assertion"),
     ])
     print(f"V6_EXPLICIT_PUBLIC_PRODUCT_FLAGS=PASS source_changed={int(source_changed)} test_changed={int(test_changed)}")
+    verify_server_contract(root.parents[1])
 
 if __name__ == "__main__":
     main()
