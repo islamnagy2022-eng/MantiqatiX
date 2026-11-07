@@ -131,6 +131,23 @@ try {
   const previewUrl = 'http://127.0.0.1:4173/MantiqatiX/v6-preview/';
   await page.goto(previewUrl, { waitUntil: 'domcontentloaded' });
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor({ timeout: 15000 });
+  const publicHeader = page.locator('header').first();
+  const primaryNavigation = page.getByRole('navigation', { name: 'التنقل الرئيسي' });
+  assert.equal(await primaryNavigation.count(), 1, 'The public r5 navigation must be present exactly once');
+  assert.equal(await primaryNavigation.getByRole('button').count(), 3, 'The public navigation must expose only the three supported public destinations');
+  assert.equal(await primaryNavigation.getByRole('button', { name: 'دليل الأنشطة' }).getAttribute('aria-current'), 'page');
+  assert.equal(await publicHeader.getByRole('button', { name: 'العودة إلى دليل منطقتي X' }).count(), 1, 'The brand control must return to the public directory');
+  await primaryNavigation.getByRole('button', { name: 'الدليل الطبي' }).click();
+  await page.getByRole('heading', { name: 'الأطباء والعيادات والصيدليات' }).waitFor({ timeout: 10000 });
+  assert.equal(await primaryNavigation.getByRole('button', { name: 'الدليل الطبي' }).getAttribute('aria-current'), 'page');
+  await primaryNavigation.getByRole('button', { name: 'تواصل معنا' }).click();
+  await page.getByRole('heading', { name: /مرحباً بك/ }).waitFor({ timeout: 10000 });
+  assert.equal(await primaryNavigation.getByRole('button', { name: 'تواصل معنا' }).getAttribute('aria-current'), 'page');
+  await publicHeader.getByRole('button', { name: 'العودة إلى دليل منطقتي X' }).click();
+  await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor({ timeout: 10000 });
+  assert.equal(await primaryNavigation.getByRole('button', { name: 'دليل الأنشطة' }).getAttribute('aria-current'), 'page');
+  console.log('V6_PUBLIC_R5_NAVIGATION=PASS destinations=3 brand_home=true');
+
   const governorateExplorer = page.getByTestId('public-governorate-explorer');
   await governorateExplorer.waitFor({ timeout: 15000 });
   await page.locator('[data-testid="public-governorate-marker"]').first().waitFor({ timeout: 15000 });
