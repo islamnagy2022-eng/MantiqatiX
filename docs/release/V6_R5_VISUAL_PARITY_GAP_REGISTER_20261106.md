@@ -70,3 +70,22 @@ This register is a development acceptance gap, not deployment approval. No Produ
 4. Paired desktop/mobile screenshot comparison against the r5 references.
 
 The exact-head CI closeout is not visual parity certification. FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED remains; no merge-to-main, deployment, root cutover, or Production mutation is claimed.
+
+## Implemented and validated — 2026-11-07 — public governorate explorer
+
+- Added a public governorate explorer using the actual public directory business list for activity counts.
+- Map markers use only the maintained governorate reference centers in `EGYPT_GOVERNORATES_MAP`. They are aggregate administrative reference points, not individual business locations. The interface states this explicitly.
+- Selecting a governorate from the list or map updates the existing directory governorate filter; reset returns to all governorates. Unrecognized governorate labels remain filterable in the list but receive no invented map point.
+- The map implementation does not call `resolveBusinessCoordinates`, does not use jitter/default fallbacks for business pins, and does not read private dashboard state.
+- Browser acceptance on exact code head `d457d23450701b43aae98a096a9bacc0328be078`: four fixture governorates rendered; selecting Monufia updated the filter; reset restored all governorates; `V6_PUBLIC_GOVERNORATE_MAP=PASS mapped_governorates=4 business_pins=false`.
+- Exact-head PR validation: 10/10 workflows PASS. Pages composition and desktop/mobile V6 browser E2E PASS; accessibility audit critical=0/non-critical=0. Primary Catalog build, employee/RBAC PostgreSQL and 32 browser journeys PASS. Forward migration chain replay PASS on the isolated schema-only checkpoint; this is not a true Production data/Storage/Auth restore.
+- No deployment occurred: Pages deploy remains skipped for the PR event. The site has not yet been updated with this commit.
+
+## Remaining r5 parity work
+
+1. Complete r5 brand/navigation header parity and the remaining homepage composition.
+2. Reconcile the 15-sector/three-tier showcase with the approved public taxonomy: keep directory discovery as activity → specialty; display only real activity counts and do not introduce an additional functional-group taxonomy layer.
+3. Render the approved targeted-ad column only from active, approved ad records honoring target, time-window, cap and consent rules.
+4. Compare paired desktop/mobile screenshots at the reference sizes, including a live tile-loaded map and the complete homepage.
+
+The exact-head CI closeout is not visual parity certification. FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED remains; no merge-to-main, deployment, root cutover, or Production mutation is claimed.
