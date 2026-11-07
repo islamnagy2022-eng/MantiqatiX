@@ -82,7 +82,7 @@ export const PublicGovernorateMap: React.FC<PublicGovernorateMapProps> = ({
     if (!map || !layer) return;
 
     layer.clearLayers();
-    const bounds: L.LatLngExpression[] = [];
+    const bounds: L.LatLngTuple[] = [];
 
     mappedStats.forEach((stat) => {
       const color = selectedGovernorate === stat.name ? '#047857' : '#0f766e';
