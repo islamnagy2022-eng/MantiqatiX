@@ -130,6 +130,52 @@ jobs:
             grep -Eiq '^access-control-allow-methods:.*GET' "${header_file}"
             echo "V6_CORS_PREFLIGHT=PASS endpoint=${endpoint} origin=${ORIGIN}"
           done
+      - name: Verify public sponsored-ad RPC CORS and active-ad output contract
+        working-directory: apps/catalog-frontend
+        run: |
+          set -euo pipefail
+          SUPABASE_URL="$(node -e "const s=require('fs').readFileSync('public/config.js','utf8');const m=s.match(/supabaseUrl:\\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
+          SUPABASE_PUBLISHABLE_KEY="$(node -e "const s=require('fs').readFileSync('public/config.js','utf8');const m=s.match(/supabaseKey:\\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
+          ORIGIN="https://islamnagy2022-eng.github.io"
+          RPC_URL="${SUPABASE_URL}/rest/v1/rpc/get_mnty_targeted_advertisements"
+          PREFLIGHT_HEADERS="/tmp/v6-sponsored-rpc-preflight.headers"
+          PREFLIGHT_CODE="$(curl --silent --show-error --max-time 20 --output /dev/null --dump-header "${PREFLIGHT_HEADERS}" --write-out '%{http_code}' -X OPTIONS "${RPC_URL}" -H "Origin: ${ORIGIN}" -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: apikey,authorization,content-type')"
+          if [ "${PREFLIGHT_CODE}" != "200" ] && [ "${PREFLIGHT_CODE}" != "204" ]; then
+            echo "Public sponsored-ad RPC CORS preflight failed: HTTP ${PREFLIGHT_CODE}"
+            cat "${PREFLIGHT_HEADERS}"
+            exit 1
+          fi
+          grep -Fqi "Access-Control-Allow-Origin: ${ORIGIN}" "${PREFLIGHT_HEADERS}"
+          grep -Eiq '^access-control-allow-methods:.*POST' "${PREFLIGHT_HEADERS}"
+          grep -Eiq '^access-control-allow-headers:.*apikey.*authorization.*content-type|^access-control-allow-headers:.*authorization.*apikey.*content-type' "${PREFLIGHT_HEADERS}"
+          RPC_HEADERS=(-H "apikey: ${SUPABASE_PUBLISHABLE_KEY}" -H 'Content-Type: application/json' -H 'Accept: application/json')
+          if [[ "${SUPABASE_PUBLISHABLE_KEY}" == eyJ* ]]; then RPC_HEADERS+=(-H "Authorization: Bearer ${SUPABASE_PUBLISHABLE_KEY}"); fi
+          HTTP_CODE="$(curl --silent --show-error --max-time 20 --output /tmp/v6-sponsored-ads.json --write-out '%{http_code}' -X POST "${RPC_URL}" "${RPC_HEADERS[@]}" --data '{"p_country_code":"EG","p_governorate_code":null,"p_center_code":null,"p_lat":null,"p_lon":null,"p_ad_space_id":"HOME_SPONSORED","p_limit":8}')"
+          if [ "${HTTP_CODE}" != "200" ]; then
+            echo "Public sponsored-ad RPC returned HTTP ${HTTP_CODE}"
+            cat /tmp/v6-sponsored-ads.json
+            exit 1
+          fi
+          node <<'NODE'
+          const fs = require('node:fs');
+          const rows = JSON.parse(fs.readFileSync('/tmp/v6-sponsored-ads.json', 'utf8'));
+          if (!Array.isArray(rows)) throw new Error('Targeted ads RPC must return an array');
+          const ids = new Set();
+          const levels = new Set(['CENTER', 'GOVERNORATE', 'COUNTRY', 'NEAREST', 'GLOBAL']);
+          for (const row of rows) {
+            if (!row || row.ad_space_id !== 'HOME_SPONSORED') throw new Error('Unexpected public ad placement');
+            if (typeof row.advertisement_id !== 'string' || !row.advertisement_id) throw new Error('Missing public ad identity');
+            if (ids.has(row.advertisement_id)) throw new Error('Duplicate ad identity in RPC response');
+            ids.add(row.advertisement_id);
+            if (typeof row.title !== 'string' || !row.title.trim()) throw new Error('Missing public ad title');
+            for (const key of ['creative_url', 'target_url']) {
+              const url = new URL(row[key]);
+              if (url.protocol !== 'https:') throw new Error('Non-HTTPS public ad URL: ' + key);
+            }
+            if (!levels.has(row.match_level)) throw new Error('Unexpected ad match level');
+          }
+          console.log('PUBLIC_TARGETED_ADS_RPC_SMOKE=PASS count=' + rows.length + ' sanitized_https=true unique=true');
+          NODE
       - name: Smoke test the live public catalog and Qadam storefront
         run: |
           set -euo pipefail
