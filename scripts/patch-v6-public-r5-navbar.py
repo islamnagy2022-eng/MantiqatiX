@@ -30,7 +30,7 @@ export const Navbar: React.FC = () => {
   // Both the production root and the V6 preview alias must lead to the same retained workspace.
   // V6 auth is intentionally memory-only; the legacy app must re-authenticate and re-check membership.
   const configuredBasePath = import.meta.env.BASE_URL || '/';
-  const publicRootPath = configuredBasePath.replace(/v6-preview\\/?$/, '');
+  const publicRootPath = configuredBasePath.replace(/v6-preview\/?$/, '');
   const normalizedRootPath = publicRootPath.endsWith('/') ? publicRootPath : `${publicRootPath}/`;
   const legacyManagementHref = `${normalizedRootPath}legacy/?view=merchant_admin`;
 
@@ -152,7 +152,7 @@ def self_test() -> None:
         "setCurrentView('directory')",
         "MantiqatiX Business &amp; Catalogs",
         "const legacyManagementHref = `${normalizedRootPath}legacy/?view=merchant_admin`;",
-        "aria-label=\\"إدارة النشاط في النسخة المحفوظة — يتطلب تسجيل دخول منفصل\\"",
+        'aria-label="إدارة النشاط في النسخة المحفوظة — يتطلب تسجيل دخول منفصل"',
         "جلسة V6 لا تنتقل تلقائيًا",
     ]
     for marker in required:
