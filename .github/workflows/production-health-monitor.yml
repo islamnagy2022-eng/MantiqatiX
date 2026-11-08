@@ -50,20 +50,28 @@ jobs:
             exit 1
           fi
           echo "SUPABASE_DATABASE_READ_ONLY_PROBE=PASS"
-      - name: Check primary electronic catalog root and assets
+      - name: Check V6 production root and retained legacy catalog
         run: |
           set -euo pipefail
           SITE_ROOT="https://islamnagy2022-eng.github.io/MantiqatiX"
           ROOT="${SITE_ROOT}/"
           HTML="$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 "$ROOT")"
-          grep -Fq "MantiqatiX | منصة إدارة الأنشطة والكتالوجات" <<<"$HTML"
+          grep -Fq "MantiqatiX" <<<"$HTML"
           grep -Fq "/MantiqatiX/assets/" <<<"$HTML"
           grep -Fq "/MantiqatiX/config.js" <<<"$HTML"
           ! grep -Fq "home.js" <<<"$HTML"
-          ASSETS="$(grep -oE '(src|href)="/MantiqatiX/assets/[^" ]+\.(js|css)"' <<<"$HTML" | sed -E 's/^(src|href)="([^"]+)"/\2/' | sort -u)"
-          test -n "$ASSETS"
-          while IFS= read -r asset; do curl --fail --silent --show-error --location --retry 4 --retry-delay 2 --head "https://islamnagy2022-eng.github.io$asset" >/dev/null; done <<<"$ASSETS"
-          echo "PRIMARY_CATALOG_ROOT_AND_ASSETS=PASS"
+          ROOT_ASSETS="$(grep -oE '(src|href)="/MantiqatiX/assets/[^" ]+\.(js|css)"' <<<"$HTML" | sed -E 's/^(src|href)="([^"]+)"/\2/' | sort -u)"
+          test -n "$ROOT_ASSETS"
+          while IFS= read -r asset; do curl --fail --silent --show-error --location --retry 4 --retry-delay 2 --head "https://islamnagy2022-eng.github.io$asset" >/dev/null; done <<<"$ROOT_ASSETS"
+
+          LEGACY_URL="${SITE_ROOT}/legacy/"
+          LEGACY_HTML="$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 "$LEGACY_URL")"
+          grep -Fq "MantiqatiX | منصة إدارة الأنشطة والكتالوجات" <<<"$LEGACY_HTML"
+          grep -Fq "/MantiqatiX/legacy/assets/" <<<"$LEGACY_HTML"
+          LEGACY_ASSETS="$(grep -oE '(src|href)="/MantiqatiX/legacy/assets/[^" ]+\.(js|css)"' <<<"$LEGACY_HTML" | sed -E 's/^(src|href)="([^"]+)"/\2/' | sort -u)"
+          test -n "$LEGACY_ASSETS"
+          while IFS= read -r asset; do curl --fail --silent --show-error --location --retry 4 --retry-delay 2 --head "https://islamnagy2022-eng.github.io$asset" >/dev/null; done <<<"$LEGACY_ASSETS"
+          echo "V6_PRODUCTION_ROOT_AND_LEGACY_ASSETS=PASS"
       - name: Health summary
         run: |
           echo "Production health checks passed."

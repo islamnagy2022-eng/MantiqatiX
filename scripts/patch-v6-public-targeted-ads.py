@@ -74,7 +74,7 @@ export function resolvePublicAdCreativeUrl(value: unknown): string {
       LOCAL_OFFICIAL_AD_ASSETS.has(filename)
     ) {
       const base = (import.meta as ImportMeta & { env?: { BASE_URL?: string } }).env?.BASE_URL || '/';
-      return (base.endsWith('/') ? base : base + '/') + 'legacy/' + filename;
+      return (base.endsWith('/') ? base : base + '/') + 'v6-assets/' + filename;
     }
   } catch {
     return '';
@@ -293,7 +293,7 @@ test('maps only unique, HTTPS, HOME_SPONSORED ad results', () => {
   assert.equal(result[0].adSpaceId, 'HOME_SPONSORED');
   assert.equal(
     mapPublicTargetedAds([{ ...ads[0], creative_url: 'https://islamnagy2022-eng.github.io/MantiqatiX/assets/mnty-cover-ad-1.svg' }])[0].creativeUrl,
-    '/legacy/mnty-cover-ad-1.svg',
+    '/v6-assets/mnty-cover-ad-1.svg',
     'Known official creatives must be served from the Preview app asset base',
   );
 });
@@ -377,7 +377,7 @@ E2E_ANCHOR = "  const previewUrl = 'http://127.0.0.1:4173/MantiqatiX/v6-preview/
 E2E_ASSERT_ANCHOR = "  const liveCatalogStrip = page.getByTestId('live-published-catalog-strip');"
 
 E2E_ROUTE = r'''  const requestedSponsoredAdScopes = [];
-  await page.route('**/rest/v1/rpc/get_mnty_targeted_advertisements', async (route) => {
+  await page.route('**/rest/v1/rpc/get_mnty_targeted_advertisements**', async (route) => {
     if (route.request().method() === 'OPTIONS') {
       await route.fulfill({ status: 204, headers: {
         'Access-Control-Allow-Origin': '*',
@@ -392,11 +392,11 @@ E2E_ROUTE = r'''  const requestedSponsoredAdScopes = [];
     assert.equal(body.p_ad_space_id, 'HOME_SPONSORED');
     assert.equal(body.p_limit, 8);
     await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify([
-      { advertisement_id: 'GLOBAL-fixture-1', title: 'إعلان اختبار 1', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/assets/mnty-cover-ad-1.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
-      { advertisement_id: 'GLOBAL-fixture-2', title: 'إعلان اختبار 2', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/assets/mnty-cover-ad-2.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
-      { advertisement_id: 'GLOBAL-fixture-3', title: 'إعلان اختبار 3', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/assets/mnty-cover-ad-3.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
-      { advertisement_id: 'GLOBAL-fixture-4', title: 'إعلان اختبار 4', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/assets/mnty-ad-space-booking-banner.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
-      { advertisement_id: 'NOT-SPONSORED', title: 'مساحة مختلفة', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/assets/mnty-cover-ad-1.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_HERO', match_level: 'GLOBAL' },
+      { advertisement_id: 'GLOBAL-fixture-1', title: 'إعلان اختبار 1', creative_url: 'https://islamnagy2022-eng.github.io/MantiqatiX/assets/mnty-cover-ad-1.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqatiX/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
+      { advertisement_id: 'GLOBAL-fixture-2', title: 'إعلان اختبار 2', creative_url: 'https://islamnagy2022-eng.github.io/MantiqatiX/assets/mnty-cover-ad-2.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqatiX/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
+      { advertisement_id: 'GLOBAL-fixture-3', title: 'إعلان اختبار 3', creative_url: 'https://islamnagy2022-eng.github.io/MantiqatiX/assets/mnty-cover-ad-3.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqatiX/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
+      { advertisement_id: 'GLOBAL-fixture-4', title: 'إعلان اختبار 4', creative_url: 'https://islamnagy2022-eng.github.io/MantiqatiX/assets/mnty-ad-space-booking-banner.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqatiX/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
+      { advertisement_id: 'NOT-SPONSORED', title: 'مساحة مختلفة', creative_url: 'https://islamnagy2022-eng.github.io/MantiqatiX/assets/mnty-cover-ad-1.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqatiX/', ad_space_id: 'HOME_HERO', match_level: 'GLOBAL' },
     ]) });
   });
 
@@ -404,6 +404,7 @@ E2E_ROUTE = r'''  const requestedSponsoredAdScopes = [];
 
 E2E_ASSERT = r'''  const sponsoredAdsRail = page.getByTestId('public-targeted-ads-rail');
   await sponsoredAdsRail.waitFor({ timeout: 15000 });
+  await page.waitForFunction(() => document.querySelectorAll('[data-testid="public-targeted-ad-card"]').length === 4, null, { timeout: 15000 });
   assert.equal(await sponsoredAdsRail.getByTestId('public-targeted-ad-card').count(), 4, 'Only HOME_SPONSORED records should appear');
   assert.match(await sponsoredAdsRail.innerText(), /إعلان اختبار 1/);
   const firstSponsoredAd = sponsoredAdsRail.getByRole('link', { name: 'إعلان: إعلان اختبار 1' });
@@ -458,7 +459,12 @@ def patch_directory(source: str) -> tuple[str, bool]:
 
 def patch_e2e(source: str) -> tuple[str, bool]:
     original = source
-    source, _ = replace_once(source, E2E_ANCHOR, E2E_ROUTE + E2E_ANCHOR, "targeted ads API fixture route")
+    if E2E_ANCHOR in source:
+        source, _ = replace_once(source, E2E_ANCHOR, E2E_ROUTE + E2E_ANCHOR, "targeted ads API fixture route")
+    elif "const appUrl = process.env.V6_E2E_URL" in source:
+        source, _ = replace_once(source, "  const appUrl = process.env.V6_E2E_URL", E2E_ROUTE + "  const appUrl = process.env.V6_E2E_URL", "targeted ads API fixture route for root/preview harness")
+    elif "get_mnty_targeted_advertisements" not in source or "requestedSponsoredAdScopes" not in source:
+        raise ValueError("targeted ads E2E route missing: expected a supported root/preview harness anchor or an existing sponsored-ad fixture")
     source, _ = replace_once(source, E2E_ASSERT_ANCHOR, E2E_ASSERT + E2E_ASSERT_ANCHOR, "targeted ads browser assertions")
     marker = "  assert.equal(await page.getByLabel('تصفية الأنشطة حسب المحافظة').inputValue(), 'المنوفية', 'Selecting a governorate must update the directory filter');"
     source, _ = replace_once(source, marker, E2E_REGION_ASSERT + marker, "targeted ads governorate scope assertion")
@@ -488,7 +494,7 @@ def main() -> None:
     root = Path(sys.argv[1]).resolve()
     changed = []
     source_asset_root = Path(__file__).resolve().parent.parent / "apps/catalog-frontend/public/legacy"
-    destination_asset_root = root / "public/legacy"
+    destination_asset_root = root / "public/v6-assets"
     destination_asset_root.mkdir(parents=True, exist_ok=True)
     for filename in AD_ASSET_FILES:
         source_asset = source_asset_root / filename
@@ -500,7 +506,7 @@ def main() -> None:
                 raise SystemExit("V6_PUBLIC_TARGETED_AD_ASSET_CONFLICT=" + filename)
         else:
             shutil.copyfile(source_asset, destination_asset)
-            changed.append("public/legacy/" + filename)
+            changed.append("public/v6-assets/" + filename)
     for relative, content in [(SERVICE, SERVICE_SOURCE), (SERVICE_TEST, TEST_SOURCE), (COMPONENT, COMPONENT_SOURCE)]:
         if write_exact(root / relative, content):
             changed.append(str(relative))

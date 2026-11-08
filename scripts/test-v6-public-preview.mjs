@@ -128,8 +128,23 @@ try {
     }) });
   });
 
-  const previewUrl = 'http://127.0.0.1:4173/MantiqatiX/v6-preview/';
-  await page.goto(previewUrl, { waitUntil: 'domcontentloaded' });
+  const appUrl = process.env.V6_E2E_URL || 'http://127.0.0.1:4173/MantiqatiX/v6-preview/';
+  await page.goto(appUrl, { waitUntil: 'domcontentloaded' });
+  await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor({ timeout: 15000 });
+  const legacyQrBusinessIdUrl = new URL(appUrl);
+  legacyQrBusinessIdUrl.searchParams.set('businessId', 'v6-preview-business-1');
+  await page.goto(legacyQrBusinessIdUrl.toString(), { waitUntil: 'domcontentloaded' });
+  await page.getByRole('heading', { name: 'نشاط تجريبي للاختبار', exact: true }).waitFor({ timeout: 15000 });
+  await page.getByRole('heading', { name: /قائمة عروض وكتالوج/ }).waitFor({ timeout: 15000 });
+  console.log('V6_LEGACY_BUSINESS_ID_QR=PASS');
+
+  const canonicalStoreUrl = new URL(appUrl);
+  canonicalStoreUrl.searchParams.set('store', 'v6-preview-business-1');
+  await page.goto(canonicalStoreUrl.toString(), { waitUntil: 'domcontentloaded' });
+  await page.getByRole('heading', { name: 'نشاط تجريبي للاختبار', exact: true }).waitFor({ timeout: 15000 });
+  console.log('V6_CANONICAL_STORE_LINK=PASS');
+
+  await page.goto(appUrl, { waitUntil: 'domcontentloaded' });
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor({ timeout: 15000 });
   const publicHeader = page.locator('header').first();
   const primaryNavigation = page.getByRole('navigation', { name: 'التنقل الرئيسي' });

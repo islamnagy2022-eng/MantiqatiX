@@ -8,7 +8,7 @@ const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(() => {
   return {
-    base: '/MantiqatiX/',
+    base: process.env.VITE_BASE_PATH || '/MantiqatiX/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
