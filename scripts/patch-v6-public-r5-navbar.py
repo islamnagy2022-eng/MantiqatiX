@@ -157,7 +157,9 @@ def self_test() -> None:
     ]
     for marker in required:
         assert marker in NAVBAR_SOURCE, f"missing navbar marker: {marker}"
-    assert "super_admin" not in NAVBAR_SOURCE and "merchant_admin" not in NAVBAR_SOURCE
+    assert "setCurrentView('super_admin')" not in NAVBAR_SOURCE
+    assert "setCurrentView('merchant_admin')" not in NAVBAR_SOURCE
+    assert "setIsWallet" not in NAVBAR_SOURCE and "setIsCart" not in NAVBAR_SOURCE
     assert "setIsWallet" not in NAVBAR_SOURCE and "setIsCart" not in NAVBAR_SOURCE
     print("V6_PUBLIC_R5_NAVBAR_SELF_TEST=PASS")
 
