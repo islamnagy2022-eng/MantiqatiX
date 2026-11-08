@@ -147,7 +147,9 @@ jobs:
           fi
           grep -Fqi "Access-Control-Allow-Origin: ${ORIGIN}" "${PREFLIGHT_HEADERS}"
           grep -Eiq '^access-control-allow-methods:.*POST' "${PREFLIGHT_HEADERS}"
-          grep -Eiq '^access-control-allow-headers:.*apikey.*authorization.*content-type|^access-control-allow-headers:.*authorization.*apikey.*content-type' "${PREFLIGHT_HEADERS}"
+          grep -Eiq '^access-control-allow-headers:.*apikey' "${PREFLIGHT_HEADERS}"
+          grep -Eiq '^access-control-allow-headers:.*authorization' "${PREFLIGHT_HEADERS}"
+          grep -Eiq '^access-control-allow-headers:.*content-type' "${PREFLIGHT_HEADERS}"
           RPC_HEADERS=(-H "apikey: ${SUPABASE_PUBLISHABLE_KEY}" -H 'Content-Type: application/json' -H 'Accept: application/json')
           if [[ "${SUPABASE_PUBLISHABLE_KEY}" == eyJ* ]]; then RPC_HEADERS+=(-H "Authorization: Bearer ${SUPABASE_PUBLISHABLE_KEY}"); fi
           HTTP_CODE="$(curl --silent --show-error --max-time 20 --output /tmp/v6-sponsored-ads.json --write-out '%{http_code}' -X POST "${RPC_URL}" "${RPC_HEADERS[@]}" --data '{"p_country_code":"EG","p_governorate_code":null,"p_center_code":null,"p_lat":null,"p_lon":null,"p_ad_space_id":"HOME_SPONSORED","p_limit":8}')"
