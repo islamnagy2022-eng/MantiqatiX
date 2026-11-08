@@ -110,3 +110,13 @@ The 78 unit tests do not contain evidence of the following layers:
 - Supabase/RLS/API integration tests: **NOT VERIFIED**.
 - Browser E2E/accessibility/PWA/device tests: **NOT VERIFIED**.
 - Production release: **BLOCKED / NOT CERTIFIED**.
+
+
+## Additional P0: default administrator credential
+
+Static source review found:
+- `src/data/seedData.ts` initializes `AdminSettings.adminPassword` to the literal `admin`.
+- `src/context/AppContext.tsx` grants the local `admin` role and switches to `super_admin` view when `loginAsAdmin()` receives the in-memory password.
+- `src/components/Navbar.tsx`, `src/components/auth/LoginModal.tsx` and `src/App.tsx` include shortcut calls to `loginAsAdmin('admin')`.
+
+This confirms administrator mode in the R6 UI is a client-side demo switch, not real protected authentication. It is a P0 import blocker. Remove all default credentials/shortcut paths and derive platform authority only from Supabase Auth and exact server-verified active platform membership, with server enforcement on every operation. Updated cleanroom package SHA-256: `287fb76b69ede0721f808ce8813551e7a2d5d79b9eb0e70f0df95eed849d3bef`.
