@@ -34,7 +34,7 @@ import {
   SlidersHorizontal,
 } from 'lucide-react';
 import { formatEgyptianLocation } from '../utils/rules';
-import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from '../utils/defaultImages';
+import { resolveDefaultImage } from '../utils/defaultImages';
 import { DirectoryListingsView } from './DirectoryListingsView';
 import { ActivityModuleView } from '../modules/activities/ActivityModuleView';
 import { fetchPublicDirectoryListingPage, type PublicDirectoryListing, type PublicDirectoryListingFilters } from '../lib/directoryListings';
@@ -80,12 +80,9 @@ interface CoverSlide {
 }
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
 
-// Resolve a category-specific cover for unverified directory activities.
-// The generic store icon is only a last-resort fallback, never the normal cover.
+// Resolve category-aware covers locally when an activity has no uploaded cover.
+// Do not depend on third-party thumbnail URLs: they can expire, hotlink-block, or change.
 const directoryCoverImage = (biz: Business): string => {
-  const categoryText = [biz.name, biz.category, biz.bio].filter(Boolean).join(' ').toLocaleLowerCase();
-  if (!biz.isVerified && /صيدل|pharmacy|chemist/.test(categoryText)) return UNVERIFIED_PHARMACY_IMAGE_URL;
-  if (!biz.isVerified && /طبيب|دكتور|عياد|مركز طبي|medical|doctor|clinic|hospital/.test(categoryText)) return UNVERIFIED_DOCTOR_IMAGE_URL;
   return String(biz.coverUrl || '').trim() || resolveDefaultImage({
     name: biz.name,
     description: biz.bio,
