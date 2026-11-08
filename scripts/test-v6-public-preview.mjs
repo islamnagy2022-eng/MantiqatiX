@@ -151,6 +151,13 @@ try {
   assert.equal(await primaryNavigation.count(), 1, 'The public r5 navigation must be present exactly once');
   assert.equal(await primaryNavigation.getByRole('button').count(), 3, 'The public navigation must expose only the three supported public destinations');
   assert.equal(await primaryNavigation.getByRole('button', { name: 'دليل الأنشطة' }).getAttribute('aria-current'), 'page');
+  const legacyManagementLink = page.getByRole('link', { name: 'إدارة النشاط في النسخة المحفوظة — يتطلب تسجيل دخول منفصل' });
+  assert.equal(await legacyManagementLink.count(), 1, 'The public shell must expose one explicit legacy workspace handoff');
+  const legacyManagementUrl = new URL(await legacyManagementLink.getAttribute('href'), appUrl);
+  assert.equal(legacyManagementUrl.pathname, '/MantiqatiX/legacy/', 'Root and Preview must both resolve to the same retained legacy app');
+  assert.equal(legacyManagementUrl.searchParams.get('view'), 'merchant_admin', 'The handoff must request the owner workspace route');
+  assert.match(await legacyManagementLink.getAttribute('title'), /جلسة V6 لا تنتقل تلقائيًا/);
+  console.log('V6_LEGACY_ADMIN_HANDOFF=PASS separate_auth=true membership_recheck_required=true');
   assert.equal(await publicHeader.getByRole('button', { name: 'العودة إلى دليل منطقتي X' }).count(), 1, 'The brand control must return to the public directory');
   await primaryNavigation.getByRole('button', { name: 'الدليل الطبي' }).click();
   await page.getByRole('heading', { name: 'الأطباء والعيادات والصيدليات' }).waitFor({ timeout: 10000 });
