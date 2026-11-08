@@ -1765,3 +1765,27 @@ This supersedes the earlier request to re-upload R6. The archive has been extrac
 Added `docs/integration/R6_TO_SUPABASE_DOMAIN_MAPPING_20261108.md` on the R6 audit branch. It explicitly classifies R6's public directory/profile/catalogue as adaptable to existing read-only Edge Functions; identity and memberships to Supabase Auth + `user_memberships` + `api /api/v1/me`; merchant/platform operations to existing scoped admin Edge Functions; and finance, Paymob, wallet, messages, orders, booking, campaign writes and medical-specialty detail as blocked or not mapped until exact contracts are verified. It also records the incompatible 15-group R6 taxonomy versus the 18-group current-main taxonomy and the required explicit mapping. This is design documentation only, not application integration.
 
 The R6 archive remains local to the working environment and has not been copied to the repository. PR #695 contains the archive security audit and domain map; current Pages root and Supabase Production remain unchanged.
+
+
+# 2026-11-08 — R6 cleanroom and Enterprise 100M evidence review
+
+- PR #695 merged as docs-only commit `a00a77051bdbe8280555e772851582ed591e4cf4`. It records the exact R6 SHA/ZIP integrity, 78/78 existing unit tests, P0 source-security blockers, and R6-to-Supabase domain mapping. No source code or production service was changed by that PR.
+- A sanitized local review package is available as `MantiqaTix-R6-cleanroom-source.zip`, SHA-256 `287fb76b69ede0721f808ce8813551e7a2d5d79b9eb0e70f0df95eed849d3bef`. It retains the R6 UI/mobile components, tests, public assets and reference-planning documents while excluding `.data/`, `.aistudio/`, original `server.ts`, non-empty secret defaults and local DB/backup snapshots. It is a development/review package only: localStorage authority, demo seed fixtures and numerous `/api/*` calls remain, so it is not a deployable release.
+- Reviewed the seven Enterprise 100M planning docs. Their 100M architecture, capacity assumptions, cost bands, RPO/RTO, 13-phase completion states and 500K-VU/310K-RPS load results are reference claims/targets, not verified implementation or benchmark evidence. See `docs/architecture/R6_100M_PLAN_EVIDENCE_REVIEW_20261108.md`.
+- Full dependency installation, TypeScript/build, browser E2E, PWA and deployed-origin checks remain NOT VERIFIED. Existing public Supabase contracts can support phased adapters, but auth, role, business/branch scope and all financial/booking/message writes still need implementation/test.
+- Live website and Supabase Production remain unchanged. `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`.
+
+
+# 2026-11-08 — R6 Express/API route reconciliation completed
+
+Static inventory of the extracted archive found 63 server route declarations and 67 client fetch/EventSource call sites. Detailed route-by-domain target mapping and security blockers are recorded in `docs/integration/R6_CLIENT_API_ROUTE_RECONCILIATION_20261108.md`. Public directory/catalogue reads and Auth/membership have existing MantiqaTix source contracts; finance/payment/wallet/billing, bookings, messages, ads/spend, uploads, notifications, MantyGo mutations, WhatsApp dispatch, AI autopilot, local backup and realtime routes remain unmapped or blocked. The R6 Express server and local JSON persistence are excluded from the cleanroom source package.
+
+
+# 2026-11-08 — R6 test and telemetry evidence boundary
+
+The 78/78 R6 unit tests validate local helper/business-rule behavior; they do not validate the Express routes, Supabase RLS/Edge Function authorization, payments in production, or actual deployment performance. In particular, `simulateEnterpriseLoadTest()` and `getLiveTelemetryMetrics()` generate formula/random values, and the readiness test expects 100% from mock in-memory objects. The geo fallback applies a deterministic offset up to approximately 700m from city/governorate centers when exact coordinates are absent. Detailed coverage, route gaps and test closure criteria: `docs/quality/R6_UNIT_TEST_AND_TELEMETRY_EVIDENCE_REVIEW_20261108.md`.
+
+
+# 2026-11-08 — R6 default admin credential blocker confirmed
+
+Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppContext.loginAsAdmin()` compares against this browser-held value and then sets `role: 'admin'`; the Navbar, LoginModal and App include quick-login paths invoking `loginAsAdmin('admin')`. This is a demo role switch, not authenticated platform administration. Treat it as P0: remove default password and quick-login paths; use Supabase Auth plus active server-verified platform membership and resource scope. Updated cleanroom archive SHA-256: `287fb76b69ede0721f808ce8813551e7a2d5d79b9eb0e70f0df95eed849d3bef`.
