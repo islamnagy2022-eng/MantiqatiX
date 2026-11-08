@@ -107,3 +107,24 @@ The exact-head CI closeout is not visual parity certification. FULL_PLATFORM_GAT
 - Do not add an intermediate "functional groups/fields" taxonomy layer or fabricate a 15-sector catalogue. Public discovery remains activity → specialty; the dynamic activity card grid and horizontal quick-tabs provide the supported route into the catalogue. Any subscription/three-tier plan display must be backed by real published plan records and a verified plan contract.
 - The public sponsored-ad column remains deferred until a read-only public ads contract proves active/approved status, placement scope, campaign dates, audience targeting, frequency caps, privacy/consent, and tenant isolation. The original r5 rotating/default promo component is not safe to expose as-is.
 - Full visual parity is not certified. Pairwise desktop/mobile comparison against all original r5 reference captures remains open, alongside production schema/RPC/Edge/Auth/RLS/finance and true backup/restore blockers.
+
+
+## 2026-11-08 — Post-cutover implementation reconciliation
+
+The V6 public-root cutover is complete on `main`; this supersedes the earlier statements in this register that no deployment/root cutover had occurred.
+
+- Public r5 cover: three-slide cover and public CTAs are included in the deployed source and the V6 browser test.
+- Activity discovery: the 15-sector discovery grid and cards/quick-tabs view modes are present; the public route remains activity → specialty. Do not add a competing functional-group/plan taxonomy.
+- Geographic discovery: the public governorate explorer/filter is present. Map markers are administrative reference points only; no business pins or inferred coordinates are used.
+- Public published catalog: the live strip uses published, available product records, verified activity ownership and recorded visible prices; it does not fabricate popularity or sales.
+- Sponsored placements: the public rail now calls the existing read-only `get_mnty_targeted_advertisements` RPC for `HOME_SPONSORED`. Pages CI verifies CORS and sanitized active-ad output; browser E2E uses synthetic fixture rows to verify placement filtering, safe HTTPS links and creative rendering. The synthetic fixture count is not a claim about live inventory or campaign performance.
+- Root, `/legacy/`, and `/v6-preview/` were deployed and verified by Pages run [42502614593](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/42502614593). Deployed-origin browser checks cover legacy QR parameters, root mobile width and legacy dashboard/mobile routes.
+
+### Remaining intentional gaps and release boundaries
+
+1. **Three-tier plans/sector subscription narrative:** not public. The uploaded R6 blueprint's static tier prices/caps are not authoritative; production pricing is not anonymously readable. No public plan endpoint or subscription activation flow is certified.
+2. **Authenticated workspaces:** the public V6 shell does not expose merchant/admin/wallet/checkout routes. Keep the retained legacy workspace available while its contracts are ported into V6 with server-verified identity, membership, tenant/business/branch scope and permissions.
+3. **R6 archive integration:** UI reference only. Do not publish its Express/local-JSON state model, localStorage authority, seeded roles/credentials, or hard-coded secret fallbacks.
+4. **Visual parity:** complete paired screenshot review against the original r5 captures; browser fixture success alone is not visual approval.
+5. **Full platform release:** schema/ledger reconciliation, live Edge source parity, Auth hardening, least-privilege/RLS/ACL negative tests, coupled finance/payment tests, genuine data/Storage/Auth backup restoration, measured RPO/RTO and rollback remain separate blockers.
+
