@@ -67,3 +67,16 @@ The uploaded file `bizcatalog-manager (6).zip` is adopted as the **new UI/featur
 ## Non-negotiable preservation rule
 
 The mobile UI inside the uploaded archive and the native Android/Kotlin project from prior versions are protected assets. Do not delete them, rename them away, or replace them with a responsive web page. Preserve both and validate them independently.
+
+
+## 2026-11-08 — Publication status reconciliation after root cutover
+
+The earlier publication-status section above is a historical snapshot and is superseded by the later V6 launch event:
+
+- V6 public application is now the deployed GitHub Pages root after PR [#686](https://github.com/islamnagy2022-eng/MantiqatiX/pull/686); Pages run [42502614593](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/42502614593) completed successfully.
+- The previous catalog/workspace is preserved at `/legacy/`, the V6 Preview alias remains at `/v6-preview/`, and deployed-origin tests verified the root, mobile viewport and legacy dashboard/mobile/QR routes.
+- **The R6 archive itself was not deployed or substituted for the V6 root.** It remains an immutable UI/feature reference pending module-by-module adoption.
+- Keep every P0 finding in this audit active until its relevant server-side replacement is implemented and tested. In particular: no local JSON as production state, no unauthenticated snapshot/CRUD/backup endpoints, no request-supplied role minting, no browser-authoritative permissions, and no fallback secrets.
+- Preserve both the R6 mobile UI assets and the separate native Android/Kotlin project. The current web deployment did not replace either.
+- Full platform certification remains `BLOCKED / NOT CERTIFIED`; the web-root cutover does not clear Auth/RLS/ACL, production schema/Edge parity, payment/finance, or restore evidence.
+
