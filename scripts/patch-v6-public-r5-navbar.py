@@ -9,7 +9,7 @@ TARGET = Path("src/components/Navbar.tsx")
 
 NAVBAR_SOURCE = """import React from 'react';
 import { usePublicApp } from '../context/PublicAppContext';
-import { LogIn, LogOut, MessageCircle, Store, HeartPulse, Sparkles } from 'lucide-react';
+import { LogIn, LogOut, MessageCircle, Store, HeartPulse, Sparkles, ExternalLink } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const {
@@ -27,6 +27,12 @@ export const Navbar: React.FC = () => {
   ];
 
   const directoryIsActive = currentView === 'directory' || currentView === 'public_storefront';
+  // Both the production root and the V6 preview alias must lead to the same retained workspace.
+  // V6 auth is intentionally memory-only; the legacy app must re-authenticate and re-check membership.
+  const configuredBasePath = import.meta.env.BASE_URL || '/';
+  const publicRootPath = configuredBasePath.replace(/v6-preview\/?$/, '');
+  const normalizedRootPath = publicRootPath.endsWith('/') ? publicRootPath : `${publicRootPath}/`;
+  const legacyManagementHref = `${normalizedRootPath}legacy/?view=merchant_admin`;
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/90 bg-white/95 shadow-sm backdrop-blur-xl" dir="rtl">
@@ -43,6 +49,16 @@ export const Navbar: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 text-xs">
+            <a
+              href={legacyManagementHref}
+              aria-label="إدارة النشاط في النسخة المحفوظة — يتطلب تسجيل دخول منفصل"
+              title="يفتح مساحة الإدارة المحفوظة. جلسة V6 لا تنتقل تلقائيًا؛ سجّل الدخول هناك وأعد التحقق من العضوية."
+              className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-slate-700 px-2.5 py-1.5 font-bold text-slate-200 transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+            >
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>لوحة الإدارة</span>
+              <span className="hidden sm:inline text-[10px] text-slate-400">(دخول منفصل)</span>
+            </a>
             {authSession.role === 'guest' ? (
               <button
                 type="button"
@@ -135,10 +151,15 @@ def self_test() -> None:
         "aria-current={isActive ? 'page' : undefined}",
         "setCurrentView('directory')",
         "MantiqatiX Business &amp; Catalogs",
+        "const legacyManagementHref = `${normalizedRootPath}legacy/?view=merchant_admin`;",
+        'aria-label="إدارة النشاط في النسخة المحفوظة — يتطلب تسجيل دخول منفصل"',
+        "جلسة V6 لا تنتقل تلقائيًا",
     ]
     for marker in required:
         assert marker in NAVBAR_SOURCE, f"missing navbar marker: {marker}"
-    assert "super_admin" not in NAVBAR_SOURCE and "merchant_admin" not in NAVBAR_SOURCE
+    assert "setCurrentView('super_admin')" not in NAVBAR_SOURCE
+    assert "setCurrentView('merchant_admin')" not in NAVBAR_SOURCE
+    assert "setIsWallet" not in NAVBAR_SOURCE and "setIsCart" not in NAVBAR_SOURCE
     assert "setIsWallet" not in NAVBAR_SOURCE and "setIsCart" not in NAVBAR_SOURCE
     print("V6_PUBLIC_R5_NAVBAR_SELF_TEST=PASS")
 
