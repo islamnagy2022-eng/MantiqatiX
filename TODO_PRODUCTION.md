@@ -9,7 +9,7 @@
 - **Inventory recorded by the R6 audit:** 83 files under `src/`, 48 React components, 12 existing test files; mobile UI exists under `src/components/mobile/`.
 - Treat the complete R6 source tree as the application being continued and integrated into the **MantiqatiX** repository. Do not restart from an older archive, recreate it from screenshots, or silently substitute another branch's UI.
 - **Previous archives, previous source trees, old prompts, and legacy implementations are reference-only.** Reuse a component, feature, test, asset, or contract only when it fills a verified gap in R6 and can be adapted without replacing R6's structure, data model, or user experience. Do not bulk-overlay older projects onto R6.
-- Preserve R6's mobile UI and separately preserve the native Android/Kotlin project already present in repository history. Neither can be deleted, renamed away, or replaced by responsive web pages.
+- Preserve R6's mobile UI (`src/components/mobile/`) as part of the canonical web application. **Do not claim that a native Android/Kotlin project is currently present in `main`:** the existing RC272 audit found no root `android/`, `app/`, Gradle wrapper or Gradle build files in current `main`. A historical `source_RC40.zip` was audited as containing a separate Android Gradle project, but it is not integrated into current `main` and must not be copied blindly. Keep this native-Android scope open and preserve any separately retained source without representing it as current production code.
 
 ## 2. Separate application-source authority from live-production authority
 
