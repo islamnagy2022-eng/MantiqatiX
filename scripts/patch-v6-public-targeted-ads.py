@@ -11,7 +11,7 @@ COMPONENT = Path("src/components/common/PublicTargetedAdsRail.tsx")
 DIRECTORY = Path("src/components/DirectoryView.tsx")
 AD_ASSET_FILES = ("mnty-cover-ad-1.svg", "mnty-cover-ad-2.svg", "mnty-cover-ad-3.svg", "mnty-ad-space-booking-banner.svg")
 
-SERVICE_SOURCE = r'''import { getPublicSupabaseConfig } from './publicSupabaseConfig';
+SERVICE_SOURCE = r'''// Public runtime config is injected by the shared root config.js file.
 
 export interface PublicTargetedAd {
   advertisementId: string;
@@ -124,7 +124,14 @@ export async function fetchPublicTargetedAds(
     config?: { supabaseUrl: string; publishableKey: string } | null;
   } = {},
 ): Promise<PublicTargetedAd[]> {
-  const config = options.config === undefined ? getPublicSupabaseConfig() : options.config;
+  const runtimeConfig = typeof window !== 'undefined'
+    ? (window as typeof window & { MNTY_CONFIG?: Record<string, unknown> }).MNTY_CONFIG
+    : undefined;
+  const config = options.config === undefined
+    ? (typeof runtimeConfig?.supabaseUrl === 'string' && typeof runtimeConfig.supabaseKey === 'string'
+        ? { supabaseUrl: runtimeConfig.supabaseUrl, publishableKey: runtimeConfig.supabaseKey }
+        : null)
+    : options.config;
   if (!config) return [];
 
   const base = new URL(config.supabaseUrl);
@@ -480,6 +487,9 @@ def self_test() -> None:
     e2e, e2e_changed = patch_e2e(e2e_fixture)
     e2e_again, e2e_changed_again = patch_e2e(e2e)
     assert e2e_changed and not e2e_changed_again and e2e == e2e_again
+    assert "service_role" not in SERVICE_SOURCE
+    assert "window as typeof window & { MNTY_CONFIG?: Record<string, unknown> }" in SERVICE_SOURCE
+    assert "runtimeConfig.supabaseKey" in SERVICE_SOURCE
     assert SERVICE_SOURCE.count("'HOME_SPONSORED'") >= 2
     assert "service_role" not in SERVICE_SOURCE
     assert 'rel="sponsored noopener noreferrer"' in COMPONENT_SOURCE
