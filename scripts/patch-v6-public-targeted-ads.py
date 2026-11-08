@@ -395,7 +395,7 @@ E2E_ROUTE = r'''  const requestedSponsoredAdScopes = [];
       { advertisement_id: 'GLOBAL-fixture-1', title: 'إعلان اختبار 1', creative_url: 'http://127.0.0.1:4173/MantiqatiX/v6-assets/mnty-cover-ad-1.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
       { advertisement_id: 'GLOBAL-fixture-2', title: 'إعلان اختبار 2', creative_url: 'http://127.0.0.1:4173/MantiqatiX/v6-assets/mnty-cover-ad-2.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
       { advertisement_id: 'GLOBAL-fixture-3', title: 'إعلان اختبار 3', creative_url: 'http://127.0.0.1:4173/MantiqatiX/v6-assets/mnty-cover-ad-3.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
-      { advertisement_id: 'GLOBAL-fixture-4', title: 'إعلان اختبار 4', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/assets/mnty-ad-space-booking-banner.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
+      { advertisement_id: 'GLOBAL-fixture-4', title: 'إعلان اختبار 4', creative_url: 'http://127.0.0.1:4173/MantiqatiX/v6-assets/mnty-ad-space-booking-banner.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
       { advertisement_id: 'NOT-SPONSORED', title: 'مساحة مختلفة', creative_url: 'http://127.0.0.1:4173/MantiqatiX/v6-assets/mnty-cover-ad-1.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_HERO', match_level: 'GLOBAL' },
     ]) });
   });
@@ -404,6 +404,7 @@ E2E_ROUTE = r'''  const requestedSponsoredAdScopes = [];
 
 E2E_ASSERT = r'''  const sponsoredAdsRail = page.getByTestId('public-targeted-ads-rail');
   await sponsoredAdsRail.waitFor({ timeout: 15000 });
+  await page.waitForFunction(() => document.querySelectorAll('[data-testid="public-targeted-ad-card"]').length === 4, null, { timeout: 15000 });
   assert.equal(await sponsoredAdsRail.getByTestId('public-targeted-ad-card').count(), 4, 'Only HOME_SPONSORED records should appear');
   assert.match(await sponsoredAdsRail.innerText(), /إعلان اختبار 1/);
   const firstSponsoredAd = sponsoredAdsRail.getByRole('link', { name: 'إعلان: إعلان اختبار 1' });
