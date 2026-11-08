@@ -1,3 +1,15 @@
+# CONTINUATION SOURCE OF TRUTH — 2026-11-08
+
+**Read this before continuing any MantiqatiX work.** The newest user-approved application source is `bizcatalog-manager (6).zip`, SHA-256 `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`. This R6 source tree is the canonical application baseline for ongoing development and must be integrated into the MantiqatiX repository. Older archives, prompts, branches, and implementations are references only: reuse from them only to fill a confirmed R6 gap, after adapting and testing it. Never replace R6 wholesale with an older project.
+
+**Important distinction:** R6 is the source of truth for application UI, components, workflows and mobile web UI. It does not supersede the live Supabase backend as the authority for identity, memberships, tenant/branch scope, permissions, schema, RLS, grants, RPCs, Edge Functions, payments or finance. Map R6 to existing backend contracts; do not import local JSON, demo data, browser-held roles, default credentials, or insecure endpoints into production.
+
+The current V6 GitHub Pages root remains the live site until an R6-based integration passes isolated Preview, security, backend, desktop/mobile, PWA and rollback checks and is explicitly promoted. Keep `/legacy/`, R6 mobile UI, and the native Android/Kotlin project. Do not claim an R6 production cutover before deployed-origin verification.
+
+For every new chat where the user says "كمل": read this policy, `TODO_PRODUCTION.md`, and the latest checkpoint; inspect current GitHub main/PRs/CI; resume the first incomplete task; do not restart or repeat completed work. Work on a branch/PR, verify tests, update the TODO and continuity notes after each meaningful result, and state whether production changed. First pending task: reproducibly import the exact R6 source tree into MantiqatiX and record its repository path/commit, preserving mobile and Android, then map its data/API contracts to existing Supabase. Full platform gate remains `BLOCKED / NOT CERTIFIED`.
+
+---
+
 # CURRENT HANDOFF — 2026-11-06 — V6 public launch-first plan
 
 - الهدف: إظهار AI Studio V6 للمستخدمين بأقصر مسار آمن.
