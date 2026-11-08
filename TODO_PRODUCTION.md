@@ -1,3 +1,64 @@
+# AUTHORITATIVE PROJECT BASELINE — 2026-11-08 (READ FIRST)
+
+> This section is the controlling source-of-truth policy for every future MantiqatiX continuation. If an older TODO item, handoff, session note, prompt, or archive conflicts with this section, follow this section and reconcile the stale item before doing work.
+
+## 1. Canonical application source — NEWEST USER-APPROVED VERSION
+
+- **Canonical application baseline:** the user's newest uploaded source archive, `bizcatalog-manager (6).zip`.
+- **Verified archive SHA-256:** `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`.
+- **Inventory recorded by the R6 audit:** 83 files under `src/`, 48 React components, 12 existing test files; mobile UI exists under `src/components/mobile/`.
+- Treat the complete R6 source tree as the application being continued and integrated into the **MantiqatiX** repository. Do not restart from an older archive, recreate it from screenshots, or silently substitute another branch's UI.
+- **Previous archives, previous source trees, old prompts, and legacy implementations are reference-only.** Reuse a component, feature, test, asset, or contract only when it fills a verified gap in R6 and can be adapted without replacing R6's structure, data model, or user experience. Do not bulk-overlay older projects onto R6.
+- Preserve R6's mobile UI and separately preserve the native Android/Kotlin project already present in repository history. Neither can be deleted, renamed away, or replaced by responsive web pages.
+
+## 2. Separate application-source authority from live-production authority
+
+The R6 source is authoritative for the application UI, product behavior, and intended user workflows. It is **not** proof of secure backend behavior or production data. For backend integration, the current MantiqatiX production contracts remain authoritative until each is reconciled and verified:
+- Supabase Auth identity and server-verified session;
+- active membership, tenant/business/branch scope and RBAC;
+- existing Supabase schema, RLS, grants, RPCs and Edge Functions;
+- published/approved public data and payment/finance contracts.
+
+Never copy R6 local JSON, demo seed records, browser-held roles, default credentials, local backup/restore endpoints, or fallback secrets into production. Never mint a role from request-body input. Do not create duplicate production tables or migrations just to match a frontend shape. Map R6 fields to the existing schema first; any required schema change must go through the isolated migration/reconciliation gate.
+
+## 3. Deployment boundary — do not confuse source baseline with live site
+
+- The current deployed GitHub Pages root is the existing V6 public application, introduced by PR #686. It remains the live production site until the integrated R6-based application has passed its release gates and an explicitly reviewed cutover/rollback.
+- `/legacy/` remains the retained previous catalog/workspace. Keep it available during migration.
+- The R6 archive is the canonical **development source**, but it is not automatically deployed, backend-connected, or production-ready merely because it is the newest archive.
+- Do not claim that the live site has switched to R6 until a main-branch merge, successful Pages deployment, and deployed-origin smoke/browser checks prove it.
+
+## 4. Required integration order
+
+1. Preserve and inventory the exact R6 archive; verify its SHA-256 before each source import. Keep a clean, reproducible copy of the source tree in the MantiqatiX repository (without secrets, private snapshots, backups, `.env`, or `node_modules`).
+2. Establish R6 as the working application root/source tree in MantiqatiX, retaining its component structure, styles, routes, assets, and mobile surfaces. Record the exact source path and commit in this TODO when imported.
+3. Build a field/API contract map between R6 types and the existing Supabase schema/Edge Functions before replacing any local data operation.
+4. Replace local JSON and localStorage authority with server-verified Auth, membership, scoped read/write adapters and audited backend operations. Public pages use approved read-only adapters.
+5. Port only missing, verified capabilities from earlier versions, one module at a time, with tests. Keep the source of each reused component documented.
+6. Run dependency install from the exact lockfile, all existing R6 tests, lint, semantic TypeScript checks, production build, browser E2E, accessibility, bundle-secret scan, mobile viewport and PWA tests.
+7. Deploy an isolated Preview first. Compare against R6 acceptance captures at desktop and mobile sizes. Keep the existing root unchanged until preview approval, backend/security gates and rollback are proven.
+8. Only then propose a root cutover. Keep the global platform release gate blocked until schema/migration, Auth/RLS/ACL, Edge parity, payments/finance, and genuine backup/restore requirements are independently verified.
+
+## 5. Mandatory continuation protocol for every new chat
+
+When the user says **"كمل" / "استكمل" / "تابع المشروع"**, interpret it as continuing this same MantiqatiX project from the latest repository state, not starting over. Before coding:
+- Read this authoritative section, then the latest TODO state and the latest continuity checkpoint.
+- Inspect current `main`, open PRs, active branches, latest commits and relevant CI. Do not rely on stale session summaries or guessed commit hashes.
+- Find the latest R6 source import checkpoint and continue the first incomplete item. Do not redo completed work unless a regression is demonstrated.
+- Preserve all uncompleted tasks and evidence. Update this TODO/continuity record after each meaningful integration, test, merge, or deployment.
+- Work in a dedicated branch and PR; do not write directly to `main`. Do not merge or deploy failed/unverified work.
+- Report exactly what changed, commit/PR, tests and their actual results, what remains, and whether the live website changed. Never equate a green frontend build with full production certification.
+
+## 6. Current starting checkpoint
+
+- R6 is selected as the canonical development source, but its complete source tree has **not yet been imported and established as the repository's working application root**.
+- The deployed V6 public root remains live; R6 has not replaced it.
+- R6 archive security findings remain active: local JSON production-state endpoints, unauthenticated CRUD/snapshot/backup routes, request-supplied role/session minting, browser-authoritative role/state, seeded credentials/claims, predictable secret fallbacks, and GitHub Pages/Express hosting mismatch.
+- Next implementation task: import the verified R6 source tree reproducibly into MantiqatiX, document its exact path and source hash, preserve mobile and Android, then begin backend contract mapping. Do not expose its private/admin/merchant/wallet/checkout surfaces publicly until server-side authorization is implemented and tested.
+- Overall platform status remains `BLOCKED / NOT CERTIFIED` until the independent production release gates pass.
+
+---
+
 # 2026-11-08 — V6 public root cutover and continuation checkpoint
 
 - [x] **V6 public root is deployed:** PR [#686](https://github.com/islamnagy2022-eng/MantiqatiX/pull/686) merged to `main`; merge commit `bdc2c4567560dfa0882eab4611280d4a7a867004`. The subsequent main head is `f86fa1b5c9a5b04eea40007c78b6ed47c00a735d`.
