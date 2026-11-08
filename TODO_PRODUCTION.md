@@ -1779,3 +1779,8 @@ The R6 archive remains local to the working environment and has not been copied 
 # 2026-11-08 — R6 Express/API route reconciliation completed
 
 Static inventory of the extracted archive found 63 server route declarations and 67 client fetch/EventSource call sites. Detailed route-by-domain target mapping and security blockers are recorded in `docs/integration/R6_CLIENT_API_ROUTE_RECONCILIATION_20261108.md`. Public directory/catalogue reads and Auth/membership have existing MantiqaTix source contracts; finance/payment/wallet/billing, bookings, messages, ads/spend, uploads, notifications, MantyGo mutations, WhatsApp dispatch, AI autopilot, local backup and realtime routes remain unmapped or blocked. The R6 Express server and local JSON persistence are excluded from the cleanroom source package.
+
+
+# 2026-11-08 — R6 test and telemetry evidence boundary
+
+The 78/78 R6 unit tests validate local helper/business-rule behavior; they do not validate the Express routes, Supabase RLS/Edge Function authorization, payments in production, or actual deployment performance. In particular, `simulateEnterpriseLoadTest()` and `getLiveTelemetryMetrics()` generate formula/random values, and the readiness test expects 100% from mock in-memory objects. The geo fallback applies a deterministic offset up to approximately 700m from city/governorate centers when exact coordinates are absent. Detailed coverage, route gaps and test closure criteria: `docs/quality/R6_UNIT_TEST_AND_TELEMETRY_EVIDENCE_REVIEW_20261108.md`.
