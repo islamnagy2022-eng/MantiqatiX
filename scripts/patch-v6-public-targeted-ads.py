@@ -392,11 +392,11 @@ E2E_ROUTE = r'''  const requestedSponsoredAdScopes = [];
     assert.equal(body.p_ad_space_id, 'HOME_SPONSORED');
     assert.equal(body.p_limit, 8);
     await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify([
-      { advertisement_id: 'GLOBAL-fixture-1', title: 'إعلان اختبار 1', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/v6-assets/mnty-cover-ad-1.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
-      { advertisement_id: 'GLOBAL-fixture-2', title: 'إعلان اختبار 2', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/v6-assets/mnty-cover-ad-2.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
-      { advertisement_id: 'GLOBAL-fixture-3', title: 'إعلان اختبار 3', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/v6-assets/mnty-cover-ad-3.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
+      { advertisement_id: 'GLOBAL-fixture-1', title: 'إعلان اختبار 1', creative_url: 'http://127.0.0.1:4173/MantiqatiX/v6-assets/mnty-cover-ad-1.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
+      { advertisement_id: 'GLOBAL-fixture-2', title: 'إعلان اختبار 2', creative_url: 'http://127.0.0.1:4173/MantiqatiX/v6-assets/mnty-cover-ad-2.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
+      { advertisement_id: 'GLOBAL-fixture-3', title: 'إعلان اختبار 3', creative_url: 'http://127.0.0.1:4173/MantiqatiX/v6-assets/mnty-cover-ad-3.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
       { advertisement_id: 'GLOBAL-fixture-4', title: 'إعلان اختبار 4', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/assets/mnty-ad-space-booking-banner.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
-      { advertisement_id: 'NOT-SPONSORED', title: 'مساحة مختلفة', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/v6-assets/mnty-cover-ad-1.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_HERO', match_level: 'GLOBAL' },
+      { advertisement_id: 'NOT-SPONSORED', title: 'مساحة مختلفة', creative_url: 'http://127.0.0.1:4173/MantiqatiX/v6-assets/mnty-cover-ad-1.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_HERO', match_level: 'GLOBAL' },
     ]) });
   });
 
