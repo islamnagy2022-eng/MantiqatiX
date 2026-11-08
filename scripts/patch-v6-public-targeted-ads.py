@@ -74,7 +74,7 @@ export function resolvePublicAdCreativeUrl(value: unknown): string {
       LOCAL_OFFICIAL_AD_ASSETS.has(filename)
     ) {
       const base = (import.meta as ImportMeta & { env?: { BASE_URL?: string } }).env?.BASE_URL || '/';
-      return (base.endsWith('/') ? base : base + '/') + 'legacy/' + filename;
+      return (base.endsWith('/') ? base : base + '/') + 'v6-assets/' + filename;
     }
   } catch {
     return '';
@@ -293,7 +293,7 @@ test('maps only unique, HTTPS, HOME_SPONSORED ad results', () => {
   assert.equal(result[0].adSpaceId, 'HOME_SPONSORED');
   assert.equal(
     mapPublicTargetedAds([{ ...ads[0], creative_url: 'https://islamnagy2022-eng.github.io/MantiqatiX/assets/mnty-cover-ad-1.svg' }])[0].creativeUrl,
-    '/legacy/mnty-cover-ad-1.svg',
+    '/v6-assets/mnty-cover-ad-1.svg',
     'Known official creatives must be served from the Preview app asset base',
   );
 });
@@ -488,7 +488,7 @@ def main() -> None:
     root = Path(sys.argv[1]).resolve()
     changed = []
     source_asset_root = Path(__file__).resolve().parent.parent / "apps/catalog-frontend/public/legacy"
-    destination_asset_root = root / "public/legacy"
+    destination_asset_root = root / "public/v6-assets"
     destination_asset_root.mkdir(parents=True, exist_ok=True)
     for filename in AD_ASSET_FILES:
         source_asset = source_asset_root / filename
@@ -500,7 +500,7 @@ def main() -> None:
                 raise SystemExit("V6_PUBLIC_TARGETED_AD_ASSET_CONFLICT=" + filename)
         else:
             shutil.copyfile(source_asset, destination_asset)
-            changed.append("public/legacy/" + filename)
+            changed.append("public/v6-assets/" + filename)
     for relative, content in [(SERVICE, SERVICE_SOURCE), (SERVICE_TEST, TEST_SOURCE), (COMPONENT, COMPONENT_SOURCE)]:
         if write_exact(root / relative, content):
             changed.append(str(relative))
