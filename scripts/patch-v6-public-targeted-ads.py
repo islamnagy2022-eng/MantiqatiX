@@ -392,11 +392,11 @@ E2E_ROUTE = r'''  const requestedSponsoredAdScopes = [];
     assert.equal(body.p_ad_space_id, 'HOME_SPONSORED');
     assert.equal(body.p_limit, 8);
     await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify([
-      { advertisement_id: 'GLOBAL-fixture-1', title: 'إعلان اختبار 1', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/assets/mnty-cover-ad-1.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
-      { advertisement_id: 'GLOBAL-fixture-2', title: 'إعلان اختبار 2', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/assets/mnty-cover-ad-2.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
-      { advertisement_id: 'GLOBAL-fixture-3', title: 'إعلان اختبار 3', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/assets/mnty-cover-ad-3.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
+      { advertisement_id: 'GLOBAL-fixture-1', title: 'إعلان اختبار 1', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/v6-assets/mnty-cover-ad-1.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
+      { advertisement_id: 'GLOBAL-fixture-2', title: 'إعلان اختبار 2', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/v6-assets/mnty-cover-ad-2.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
+      { advertisement_id: 'GLOBAL-fixture-3', title: 'إعلان اختبار 3', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/v6-assets/mnty-cover-ad-3.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
       { advertisement_id: 'GLOBAL-fixture-4', title: 'إعلان اختبار 4', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/assets/mnty-ad-space-booking-banner.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_SPONSORED', match_level: 'GLOBAL' },
-      { advertisement_id: 'NOT-SPONSORED', title: 'مساحة مختلفة', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/assets/mnty-cover-ad-1.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_HERO', match_level: 'GLOBAL' },
+      { advertisement_id: 'NOT-SPONSORED', title: 'مساحة مختلفة', creative_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/v6-assets/mnty-cover-ad-1.svg', target_url: 'https://islamnagy2022-eng.github.io/MantiqaTix/', ad_space_id: 'HOME_HERO', match_level: 'GLOBAL' },
     ]) });
   });
 
@@ -458,7 +458,10 @@ def patch_directory(source: str) -> tuple[str, bool]:
 
 def patch_e2e(source: str) -> tuple[str, bool]:
     original = source
-    source, _ = replace_once(source, E2E_ANCHOR, E2E_ROUTE + E2E_ANCHOR, "targeted ads API fixture route")
+    if E2E_ANCHOR in source:
+        source, _ = replace_once(source, E2E_ANCHOR, E2E_ROUTE + E2E_ANCHOR, "targeted ads API fixture route")
+    elif "get_mnty_targeted_advertisements" not in source or "requestedSponsoredAdScopes" not in source:
+        raise ValueError("targeted ads E2E route missing: expected the preview URL anchor or an existing sponsored-ad fixture")
     source, _ = replace_once(source, E2E_ASSERT_ANCHOR, E2E_ASSERT + E2E_ASSERT_ANCHOR, "targeted ads browser assertions")
     marker = "  assert.equal(await page.getByLabel('تصفية الأنشطة حسب المحافظة').inputValue(), 'المنوفية', 'Selecting a governorate must update the directory filter');"
     source, _ = replace_once(source, marker, E2E_REGION_ASSERT + marker, "targeted ads governorate scope assertion")
