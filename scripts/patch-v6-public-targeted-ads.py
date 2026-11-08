@@ -339,7 +339,7 @@ test('rejects non-HTTPS Supabase URLs and surfaces HTTP failures', async () => {
 
 IMPORT_ANCHOR = "import { PublicSectorGrid } from './common/PublicSectorGrid';"
 GRID_MOUNT = "        <PublicSectorGrid businesses={businesses} selectedSectorId={selectedSectorId} onSelectSector={(sectorId) => { setSelectedSectorId(sectorId); setSelectedActivityId('all'); setSelectedSpecialtyId('all'); }} />"
-E2E_ANCHOR = "  const previewUrl = 'http://127.0.0.1:4173/MantiqaTix/v6-preview/';"
+E2E_ANCHOR = "  const previewUrl = 'http://127.0.0.1:4173/MantiqatiX/v6-preview/';"
 E2E_ASSERT_ANCHOR = "  const liveCatalogStrip = page.getByTestId('live-published-catalog-strip');"
 
 E2E_ROUTE = r'''  const requestedSponsoredAdScopes = [];
