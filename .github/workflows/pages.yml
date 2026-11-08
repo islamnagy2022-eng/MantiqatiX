@@ -573,8 +573,8 @@ jobs:
           ROOT_CSS="$(grep -oE '/MantiqatiX/assets/[^" ]+\.css' <<<"${ROOT_HTML}" | head -n 1)"
           test -n "${ROOT_JS}"
           test -n "${ROOT_CSS}"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${SITE_ROOT}${ROOT_JS}" >/dev/null
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${SITE_ROOT}${ROOT_CSS}" >/dev/null
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "https://islamnagy2022-eng.github.io${ROOT_JS}" >/dev/null
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "https://islamnagy2022-eng.github.io${ROOT_CSS}" >/dev/null
           echo "MANTIQATIX_V6_PRIMARY_ROOT_DEPLOY=PASS: ${ROOT_URL}"
 
           LEGACY_URL="${SITE_ROOT}/legacy/"
@@ -586,8 +586,8 @@ jobs:
           LEGACY_CSS="$(grep -oE '/MantiqatiX/legacy/assets/[^" ]+\.css' <<<"${LEGACY_HTML}" | head -n 1)"
           test -n "${LEGACY_JS}"
           test -n "${LEGACY_CSS}"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${SITE_ROOT}${LEGACY_JS}" >/dev/null
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${SITE_ROOT}${LEGACY_CSS}" >/dev/null
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "https://islamnagy2022-eng.github.io${LEGACY_JS}" >/dev/null
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "https://islamnagy2022-eng.github.io${LEGACY_CSS}" >/dev/null
           echo "MANTIQATIX_LEGACY_CATALOG_DEPLOY=PASS: ${LEGACY_URL}"
 
           PREVIEW_URL="${SITE_ROOT}/v6-preview/"
@@ -597,8 +597,8 @@ jobs:
           PREVIEW_CSS="$(grep -oE '/MantiqatiX/v6-preview/assets/[^" ]+\.css' <<<"${PREVIEW_HTML}" | head -n 1)"
           test -n "${PREVIEW_JS}"
           test -n "${PREVIEW_CSS}"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${SITE_ROOT}${PREVIEW_JS}" >/dev/null
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${SITE_ROOT}${PREVIEW_CSS}" >/dev/null
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "https://islamnagy2022-eng.github.io${PREVIEW_JS}" >/dev/null
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "https://islamnagy2022-eng.github.io${PREVIEW_CSS}" >/dev/null
           echo "MANTIQATIX_V6_PREVIEW_ALIAS_DEPLOY=PASS: ${PREVIEW_URL}"
 
           for route in "preview/" "smm.html"; do
