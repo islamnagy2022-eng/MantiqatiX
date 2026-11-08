@@ -1,3 +1,12 @@
+## Follow-on checkpoint — R6 backend integration groundwork
+
+- Inspected current `main` source for the public directory and public catalogue Edge Functions, the public frontend mapper/types, the authenticated `api /api/v1/me` membership contract, and the `catalog-admin` / `catalog-platform-admin` authorization boundaries.
+- Added `docs/release/R6_SUPABASE_CONTRACT_BASELINE_20261108.md` on branch `docs/r6-supabase-contract-baseline-20261108`. It records the existing read-only public contracts, Auth/membership, scoped admin operations, prohibited local-state shortcuts and the exact post-upload mapping sequence. It is a pre-import baseline only, not a claim that R6 source fields have already been reconciled.
+- Current source-level references and Git blob SHAs are recorded in the document. Live deployed Edge version/hash and live schema/ACL were not freshly verified by this documentation pass.
+- No app code, Supabase object, production data, Pages deployment, mobile UI or native Android source was changed.
+
+---
+
 # Latest continuity checkpoint — 2026-11-08 — R6 source import access blocker
 
 - PR #691 was merged into `main` as documentation-only commit `41017431cfc38c0616f145f8d4a8b41110500ab1`. All six associated workflow runs and all returned jobs succeeded. The Pages run's `deploy` job was skipped; no merge-commit CI runs/statuses were returned. Production was not changed.
