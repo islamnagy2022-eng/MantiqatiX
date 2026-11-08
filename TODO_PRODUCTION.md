@@ -1758,3 +1758,10 @@ PR: [#640](https://github.com/islamnagy2022-eng/MantiqatiX/pull/640). Feature br
 The exact archive is now accessible as a mounted conversation upload at `/mnt/data/bizcatalog-manager (6).zip`; its observed SHA-256 is `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`, matching the recorded digest. ZIP integrity passed. Detailed inventory, 78/78 existing unit-test result, confirmed private-file exclusions, Express/API/Auth/Paymob blockers, build limitations, and the next safe import sequence are recorded in `docs/release/R6_SOURCE_ARCHIVE_VERIFICATION_AND_SECURITY_AUDIT_20261108.md`.
 
 This supersedes the earlier request to re-upload R6. The archive has been extracted for local inspection, but its source tree is **not yet committed to GitHub**. Do not import `.data/`, `.aistudio/`, backups, local snapshots, populated secrets or the unprotected `server.ts`. Preserve `src/components/mobile/`. The full platform remains `BLOCKED / NOT CERTIFIED`; the live GitHub Pages root, Supabase Production, Auth/RLS/GRANT, Edge Functions, payment and finance systems remain unchanged.
+
+
+# 2026-11-08 — R6 backend domain map added
+
+Added `docs/integration/R6_TO_SUPABASE_DOMAIN_MAPPING_20261108.md` on the R6 audit branch. It explicitly classifies R6's public directory/profile/catalogue as adaptable to existing read-only Edge Functions; identity and memberships to Supabase Auth + `user_memberships` + `api /api/v1/me`; merchant/platform operations to existing scoped admin Edge Functions; and finance, Paymob, wallet, messages, orders, booking, campaign writes and medical-specialty detail as blocked or not mapped until exact contracts are verified. It also records the incompatible 15-group R6 taxonomy versus the 18-group current-main taxonomy and the required explicit mapping. This is design documentation only, not application integration.
+
+The R6 archive remains local to the working environment and has not been copied to the repository. PR #695 contains the archive security audit and domain map; current Pages root and Supabase Production remain unchanged.
