@@ -1,0 +1,58 @@
+name: V6 Preview Source Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/aistudio-v6/**"
+      - "scripts/prepare-aistudio-v6-preview-source.sh"
+      - ".github/workflows/v6-preview-validation.yml"
+  push:
+    branches: [feat/v6-r5-preview-foundation-20261106]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v6-preview-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-v6-preview-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Verify source provenance and security
+        run: bash scripts/prepare-aistudio-v6-preview-source.sh
+      - name: Install exact locked dependencies
+        working-directory: apps/aistudio-v6/worktree
+        run: bun install --frozen-lockfile
+      - name: Run release and remediation tests
+        working-directory: apps/aistudio-v6/worktree
+        run: bun run verify:release
+      - name: Type-check complete V6 app
+        working-directory: apps/aistudio-v6/worktree
+        run: bun run lint
+      - name: Build isolated Pages Preview
+        working-directory: apps/aistudio-v6/worktree
+        env:
+          VITE_BASE_PATH: /MantiqatiX/v6-preview/
+        run: bun run build
+      - name: Assert Preview output and subpath assets
+        working-directory: apps/aistudio-v6/worktree
+        run: |
+          set -euo pipefail
+          test -s dist/index.html
+          grep -Fq "/MantiqatiX/v6-preview/" dist/index.html
+          test -d dist/assets
+          test -n "$(find dist/assets -maxdepth 1 -type f -name '*.js' -print -quit)"
+          test -n "$(find dist/assets -maxdepth 1 -type f -name '*.css' -print -quit)"
+          echo "V6_PREVIEW_BUILD=PASS"

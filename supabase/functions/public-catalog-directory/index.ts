@@ -182,7 +182,7 @@ Deno.serve(async (req: Request) => {
           .eq("tenant_id", tenantId).eq("business_id", business.id).eq("status", "ACTIVE")
           .or(`branch_id.is.null,branch_id.eq.${branchId}`).order("name_ar").limit(150);
         if (itemError) throw itemError;
-        items = (itemRows || []).filter((i: any) => i.metadata?.catalog_public?.is_available !== false);
+        items = (itemRows || []).filter((i: any) => i.metadata?.catalog_public?.is_available === true);
         const itemIds = items.map((i: any) => i.id);
         if (itemIds.length) {
           const now = new Date().toISOString();
@@ -193,10 +193,10 @@ Deno.serve(async (req: Request) => {
             .lte("effective_from", now).or(`effective_to.is.null,effective_to.gte.${now}`).order("version", { ascending: false }).limit(1000);
           if (priceError) throw priceError;
           const hiddenPriceIds = new Set(
-            items.filter((item: any) => item.metadata?.catalog_public?.show_price === false)
+            items.filter((item: any) => item.metadata?.catalog_public?.show_price !== true)
               .map((item: any) => String(item.id))
           );
-          // Never serialize price rows for catalog entries explicitly marked as quote-only.
+          // Never serialize price rows unless public price display is explicitly enabled.
           prices = (p || []).filter((price: any) => !hiddenPriceIds.has(String(price.catalog_item_id)));
         }
       }

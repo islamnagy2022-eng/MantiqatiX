@@ -1,0 +1,58 @@
+--- a/src/utils/enterprise.test.ts
++++ b/src/utils/enterprise.test.ts
+@@ -99,19 +99,23 @@
+   assert.equal(results[1].id, 'biz_unverified');
+ });
+ 
+-test('Simulated Load Test outputs valid capacity results up to 500,000 VUs', () => {
++test('Load-test placeholder never fabricates capacity or live telemetry measurements', () => {
+   const res1k = simulateEnterpriseLoadTest(1000);
+   assert.equal(res1k.vus, 1000);
+-  assert.ok(res1k.rps > 1000);
+-  assert.equal(res1k.degradationLevel, 'none');
++  assert.equal(res1k.rps, 0);
++  assert.equal(res1k.requestsPerSecond, 0);
++  assert.equal(res1k.degradationLevel, 'heavy');
++  assert.equal(res1k.status, 'warning');
++  assert.match(res1k.bottleneckReason, /لم يتم تشغيل اختبار حمل فعلي/);
+ 
+   const res500k = simulateEnterpriseLoadTest(500000);
+   assert.equal(res500k.vus, 500000);
+-  assert.ok(res500k.rps > 250000);
+-  assert.ok(res500k.p95LatencyMs > 0);
++  assert.equal(res500k.rps, 0);
++  assert.equal(res500k.p95LatencyMs, 0);
+   assert.ok(res500k.scalingRecommendation.length > 0);
+ 
+   const metrics = getLiveTelemetryMetrics(1);
+-  assert.equal(metrics.dbConnectionPoolMax, 20000);
+-  assert.ok(metrics.cacheHitRatio > 95);
++  assert.equal(metrics.dbConnectionPoolMax, 0);
++  assert.equal(metrics.cacheHitRatio, 0);
++  assert.equal(metrics.reqPerSec, 0);
+ });
+--- a/src/utils/rules.test.ts
++++ b/src/utils/rules.test.ts
+@@ -26,6 +26,8 @@
+   DEFAULT_CURRENCY,
+   DEFAULT_BUSINESS_LOGO_URL,
+   DEFAULT_BUSINESS_COVER_URL,
++  getSectorDefaultLogo,
++  getSectorDefaultCover,
+   ensureBusinessStaticImages,
+   mergeFunctionalGroups,
+   getDefaultTierConfiguration,
+@@ -324,10 +326,12 @@
+   );
+ });
+ 
+-test('ensureBusinessStaticImages assigns default static logo and cover when empty', () => {
++test('ensureBusinessStaticImages assigns sector-specific default logo and cover when empty', () => {
+   const fixed = ensureBusinessStaticImages('', '   ');
+-  assert.equal(fixed.logoUrl, DEFAULT_BUSINESS_LOGO_URL);
+-  assert.equal(fixed.coverUrl, DEFAULT_BUSINESS_COVER_URL);
++  assert.equal(fixed.logoUrl, getSectorDefaultLogo('services'));
++  assert.equal(fixed.coverUrl, getSectorDefaultCover('services'));
++  assert.notEqual(fixed.logoUrl, DEFAULT_BUSINESS_LOGO_URL);
++  assert.notEqual(fixed.coverUrl, DEFAULT_BUSINESS_COVER_URL);
+ });
