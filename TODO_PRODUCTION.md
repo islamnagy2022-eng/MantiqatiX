@@ -1751,3 +1751,10 @@ PR: [#640](https://github.com/islamnagy2022-eng/MantiqatiX/pull/640). Feature br
 - [ ] Publish only after the applicable source/owner basis and record quality checks are complete. Do not scrape or bulk-copy private medical directories without written permission.
 - [!] Scope reconciliation: the separate 568-row doctor-listing inventory recorded earlier refers to a different listing dataset/table and is not directly comparable to the 57 canonical public-business `listing_type='doctor'` rows without an explicit schema/join definition. Do not sum these counts or describe either as a complete national census.
 - [!] No new doctor rows were inserted or modified by the Monufia inventory pass. The source/consent gate remains open.
+
+
+# 2026-11-08 — R6 raw archive recovered and source security gate
+
+The exact archive is now accessible as a mounted conversation upload at `/mnt/data/bizcatalog-manager (6).zip`; its observed SHA-256 is `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`, matching the recorded digest. ZIP integrity passed. Detailed inventory, 78/78 existing unit-test result, confirmed private-file exclusions, Express/API/Auth/Paymob blockers, build limitations, and the next safe import sequence are recorded in `docs/release/R6_SOURCE_ARCHIVE_VERIFICATION_AND_SECURITY_AUDIT_20261108.md`.
+
+This supersedes the earlier request to re-upload R6. The archive has been extracted for local inspection, but its source tree is **not yet committed to GitHub**. Do not import `.data/`, `.aistudio/`, backups, local snapshots, populated secrets or the unprotected `server.ts`. Preserve `src/components/mobile/`. The full platform remains `BLOCKED / NOT CERTIFIED`; the live GitHub Pages root, Supabase Production, Auth/RLS/GRANT, Edge Functions, payment and finance systems remain unchanged.
