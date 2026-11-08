@@ -1774,3 +1774,8 @@ The R6 archive remains local to the working environment and has not been copied 
 - Reviewed the seven Enterprise 100M planning docs. Their 100M architecture, capacity assumptions, cost bands, RPO/RTO, 13-phase completion states and 500K-VU/310K-RPS load results are reference claims/targets, not verified implementation or benchmark evidence. See `docs/architecture/R6_100M_PLAN_EVIDENCE_REVIEW_20261108.md`.
 - Full dependency installation, TypeScript/build, browser E2E, PWA and deployed-origin checks remain NOT VERIFIED. Existing public Supabase contracts can support phased adapters, but auth, role, business/branch scope and all financial/booking/message writes still need implementation/test.
 - Live website and Supabase Production remain unchanged. `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`.
+
+
+# 2026-11-08 — R6 Express/API route reconciliation completed
+
+Static inventory of the extracted archive found 63 server route declarations and 67 client fetch/EventSource call sites. Detailed route-by-domain target mapping and security blockers are recorded in `docs/integration/R6_CLIENT_API_ROUTE_RECONCILIATION_20261108.md`. Public directory/catalogue reads and Auth/membership have existing MantiqaTix source contracts; finance/payment/wallet/billing, bookings, messages, ads/spend, uploads, notifications, MantyGo mutations, WhatsApp dispatch, AI autopilot, local backup and realtime routes remain unmapped or blocked. The R6 Express server and local JSON persistence are excluded from the cleanroom source package.
