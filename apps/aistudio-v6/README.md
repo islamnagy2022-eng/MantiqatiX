@@ -4,7 +4,9 @@ The immutable public MVP r5 source archive is stored as `source-r5-preview.tar.x
 
 - Original candidate ZIP SHA-256: `0e868efefbacd5cf3ec4c07a558230ce5cdfbbbdab64416182bc9a59f3acd429`
 - Public MVP source pack SHA-256: `afab4504ba86960f7ac2a64e6ad969d901be80f6022f3393e14cf3ecc81f453f`
-- Preview base: `/MantiqatiX/v6-preview/`
+- Production root base: `/MantiqatiX/`
+- Retained preview alias: `/MantiqatiX/v6-preview/`
+- Previous catalog rollback location: `/MantiqatiX/legacy/`
 - Public release scope: directory, activity and specialty filters, medical directory, verified business profiles, read-only product/service catalog, published prices, phone/WhatsApp contact.
 - Hidden from the public shell: admin/merchant dashboards, wallets, orders, checkout, internal messaging, simulated AI registration, local writes, promotional carousels and sponsored-ad columns.
 - Unverified activities expose only name, location and contact. Their catalog and extended profile remain hidden until verified.
