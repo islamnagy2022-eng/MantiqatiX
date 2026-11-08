@@ -123,3 +123,26 @@
 - \`FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED\`
 
 **المهمة التالية ذات الأولوية القصوى:** استيراد r5 النظيف إلى \`apps/aistudio-v6\` على فرع مبني على main الحالي، وإعداد Vite Preview subpath ثم تشغيل التثبيت والفحص والبناء في GitHub Actions. لا نشر للإنتاج في هذه الخطوة.
+
+
+## 2026-11-08 — Publication status after V6 root cutover
+
+**Status: V6 is now the deployed public root.** The earlier P5 item above was completed by PR [#686](https://github.com/islamnagy2022-eng/MantiqatiX/pull/686), merged on 2026-11-08.
+
+- Public root: https://islamnagy2022-eng.github.io/MantiqatiX/
+- Previous catalog and authenticated workspace fallback: https://islamnagy2022-eng.github.io/MantiqatiX/legacy/
+- V6 Preview alias: https://islamnagy2022-eng.github.io/MantiqatiX/v6-preview/
+- Merge commit: `bdc2c4567560dfa0882eab4611280d4a7a867004`; tested main head: `f86fa1b5c9a5b04eea40007c78b6ed47c00a735d`.
+- Pages deployment and post-deploy validation: [run 42502614593](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/42502614593), all jobs succeeded.
+- Acceptance markers: V6 primary root, previous catalog at `/legacy/`, Preview alias, legacy `businessId` QR and canonical `store` links, mobile 390px no-horizontal-overflow, and legacy dashboard/mobile/QR browser suite all passed.
+
+This completes the **public web root transition only**. It does not certify full platform finance/payment, authenticated cross-tenant journeys, backend schema/Edge parity, backup/restore, signed Android release, or pixel-perfect r5 parity. The full platform gate remains `BLOCKED / NOT CERTIFIED`.
+
+### Next continuation order
+
+1. Paired desktop/mobile visual review against canonical r5 screenshots.
+2. Port reviewed R6 public and management UI one module at a time; keep its local JSON, localStorage role authority, seeded credentials, and default secrets out of production.
+3. Keep owner/admin workspace routes in `/legacy/` until V6 has server-verified Auth + membership + business/branch authorization end-to-end.
+4. Publish subscription plan information only after an owner-approved, narrow public pricing contract exists; do not expose protected pricing tables directly to anonymous users.
+5. Separately close the production migration/Edge/Auth/RLS/finance and genuine backup/restore gates before claiming full platform certification.
+
