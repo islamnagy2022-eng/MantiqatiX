@@ -377,7 +377,7 @@ E2E_ANCHOR = "  const previewUrl = 'http://127.0.0.1:4173/MantiqatiX/v6-preview/
 E2E_ASSERT_ANCHOR = "  const liveCatalogStrip = page.getByTestId('live-published-catalog-strip');"
 
 E2E_ROUTE = r'''  const requestedSponsoredAdScopes = [];
-  await page.route('**/rest/v1/rpc/get_mnty_targeted_advertisements', async (route) => {
+  await page.route('**/rest/v1/rpc/get_mnty_targeted_advertisements**', async (route) => {
     if (route.request().method() === 'OPTIONS') {
       await route.fulfill({ status: 204, headers: {
         'Access-Control-Allow-Origin': '*',
