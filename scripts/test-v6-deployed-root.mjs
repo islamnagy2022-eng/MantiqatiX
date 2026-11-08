@@ -122,7 +122,8 @@ try {
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor({ timeout: 15000 });
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   assert.equal(overflow, false, 'V6 production root must not overflow at 390px');
-  assert.equal(await page.getByRole('button', { name: 'الدليل الطبي' }).count(), 1);
+  const mobilePrimaryNavigation = page.getByRole('navigation', { name: 'التنقل الرئيسي' });
+  assert.equal(await mobilePrimaryNavigation.getByRole('button', { name: 'الدليل الطبي' }).count(), 1, 'Mobile primary navigation must expose one medical-directory destination');
   console.log('V6_PRODUCTION_ROOT_MOBILE=PASS width=390 no_horizontal_overflow=true');
 
   assert.deepEqual(errors, [], 'V6 production root browser errors: ' + errors.join('; '));
