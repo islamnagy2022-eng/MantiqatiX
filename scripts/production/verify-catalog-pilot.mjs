@@ -75,7 +75,7 @@ for (const fn of catalogFunctions.functions || []) {
 }
 assert.equal(expectedCatalogFunctions.size, 0, 'Every scoped catalog Edge Function must be accounted for');
 
-assert.ok(vite.includes("base: '/MantiqatiX/'"), 'Catalog frontend must be built under its own subpath');
+assert.ok(vite.includes("base: process.env.VITE_BASE_PATH || '/MantiqatiX/'"), 'Catalog frontend must support the retained legacy subpath without claiming the platform root');
 assert.equal(manifest.scope, '/MantiqatiX/', 'Catalog PWA scope must not claim the platform root');
 assert.equal(manifest.start_url, '/MantiqatiX/', 'Catalog PWA start URL must use its subpath');
 assert.ok(serviceWorker.includes('mantiqatix-primary-catalog-shell-v3'), 'Catalog service worker must use its own cache namespace');
