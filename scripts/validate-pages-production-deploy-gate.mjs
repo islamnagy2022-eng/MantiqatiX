@@ -116,7 +116,7 @@ assert.ok(healthMonitor.includes('V6_PRODUCTION_ROOT_AND_LEGACY_ASSETS=PASS'),
   'Production health checks must verify the V6 root and legacy rollback path');
 assert.match(deployBlock, /Retired production route still reachable:[\s\S]*?MANTIQATIX_DEMO_AND_SMM_ROUTES=NOT_PUBLISHED/,
   'Post-deploy verification must assert the demo preview and SMM routes are absent');
-assert.ok(healthMonitor.includes('PRIMARY_CATALOG_ROOT_AND_ASSETS=PASS'),
-  'Production health checks must verify the catalog-only root deployment');
+assert.ok(healthMonitor.includes('V6_PRODUCTION_ROOT_AND_LEGACY_ASSETS=PASS'),
+  'Production health checks must verify V6 at the root and the retained legacy catalog');
 
 console.log('PAGES_PRODUCTION_DEPLOY_GATE_V6_ROOT_LEGACY_ROLLBACK=PASS');
