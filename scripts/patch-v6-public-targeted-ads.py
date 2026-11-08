@@ -2,12 +2,14 @@
 """Add a production-backed, read-only sponsored-ad rail to the isolated V6 Preview."""
 from __future__ import annotations
 import sys
+import shutil
 from pathlib import Path
 
 SERVICE = Path("src/services/publicTargetedAds.ts")
 SERVICE_TEST = Path("src/services/publicTargetedAds.test.mjs")
 COMPONENT = Path("src/components/common/PublicTargetedAdsRail.tsx")
 DIRECTORY = Path("src/components/DirectoryView.tsx")
+AD_ASSET_FILES = ("mnty-cover-ad-1.svg", "mnty-cover-ad-2.svg", "mnty-cover-ad-3.svg", "mnty-ad-space-booking-banner.svg")
 
 SERVICE_SOURCE = r'''import { getPublicSupabaseConfig } from './publicSupabaseConfig';
 
@@ -53,6 +55,33 @@ function safeHttpsUrl(value: unknown): string {
   }
 }
 
+const LOCAL_OFFICIAL_AD_ASSETS = new Set([
+  'mnty-cover-ad-1.svg',
+  'mnty-cover-ad-2.svg',
+  'mnty-cover-ad-3.svg',
+  'mnty-ad-space-booking-banner.svg',
+]);
+
+export function resolvePublicAdCreativeUrl(value: unknown): string {
+  const safeUrl = safeHttpsUrl(value);
+  if (!safeUrl) return '';
+  try {
+    const url = new URL(safeUrl);
+    const filename = url.pathname.split('/').pop() || '';
+    if (
+      url.hostname === 'islamnagy2022-eng.github.io' &&
+      url.pathname.includes('/assets/') &&
+      LOCAL_OFFICIAL_AD_ASSETS.has(filename)
+    ) {
+      const base = (import.meta as ImportMeta & { env?: { BASE_URL?: string } }).env?.BASE_URL || '/';
+      return (base.endsWith('/') ? base : base + '/') + 'legacy/' + filename;
+    }
+  } catch {
+    return '';
+  }
+  return safeUrl;
+}
+
 export function mapPublicTargetedAds(value: unknown): PublicTargetedAd[] {
   if (!Array.isArray(value)) return [];
   const seen = new Set<string>();
@@ -63,7 +92,7 @@ export function mapPublicTargetedAds(value: unknown): PublicTargetedAd[] {
     const row = rowValue as PublicTargetedAdResponse;
     const advertisementId = cleanText(row.advertisement_id, 120);
     const title = cleanText(row.title, 160);
-    const creativeUrl = safeHttpsUrl(row.creative_url);
+    const creativeUrl = resolvePublicAdCreativeUrl(row.creative_url);
     const targetUrl = safeHttpsUrl(row.target_url);
     const adSpaceId = cleanText(row.ad_space_id, 60);
     const matchLevel = cleanText(row.match_level, 30);
@@ -262,6 +291,11 @@ test('maps only unique, HTTPS, HOME_SPONSORED ad results', () => {
   assert.equal(result.length, 1);
   assert.equal(result[0].advertisementId, 'GLOBAL-1');
   assert.equal(result[0].adSpaceId, 'HOME_SPONSORED');
+  assert.equal(
+    mapPublicTargetedAds([{ ...ads[0], creative_url: 'https://islamnagy2022-eng.github.io/MantiqatiX/assets/mnty-cover-ad-1.svg' }])[0].creativeUrl,
+    '/legacy/mnty-cover-ad-1.svg',
+    'Known official creatives must be served from the Preview app asset base',
+  );
 });
 
 test('calls the read-only public RPC with correct Egypt and placement scope', async () => {
@@ -375,8 +409,13 @@ E2E_ASSERT = r'''  const sponsoredAdsRail = page.getByTestId('public-targeted-ad
   const firstSponsoredAd = sponsoredAdsRail.getByRole('link', { name: 'إعلان: إعلان اختبار 1' });
   assert.equal(await firstSponsoredAd.getAttribute('rel'), 'sponsored noopener noreferrer');
   assert.equal(await firstSponsoredAd.getAttribute('target'), '_blank');
+  await page.waitForFunction(() => {
+    const images = Array.from(document.querySelectorAll('[data-testid="public-targeted-ad-card"] img'));
+    return images.length === 4 && images.every((image) => image.complete && image.naturalWidth > 0);
+  }, { timeout: 10000 });
+  assert.equal(await sponsoredAdsRail.locator('img').count(), 4, 'Every sponsored ad must have a visible creative');
   assert.ok(requestedSponsoredAdScopes.length >= 1, 'The public targeted-ad RPC must be called');
-  console.log('V6_PUBLIC_TARGETED_ADS=PASS placement=HOME_SPONSORED items=4 safe_links=true');
+  console.log('V6_PUBLIC_TARGETED_ADS=PASS placement=HOME_SPONSORED items=4 safe_links=true images=4');
 
 '''
 
@@ -448,6 +487,20 @@ def main() -> None:
         raise SystemExit("Usage: patch-v6-public-targeted-ads.py <extracted-v6-root>")
     root = Path(sys.argv[1]).resolve()
     changed = []
+    source_asset_root = Path(__file__).resolve().parent.parent / "apps/catalog-frontend/public/legacy"
+    destination_asset_root = root / "public/legacy"
+    destination_asset_root.mkdir(parents=True, exist_ok=True)
+    for filename in AD_ASSET_FILES:
+        source_asset = source_asset_root / filename
+        destination_asset = destination_asset_root / filename
+        if not source_asset.is_file():
+            raise SystemExit("V6_PUBLIC_TARGETED_AD_SOURCE_ASSET_MISSING=" + filename)
+        if destination_asset.exists():
+            if destination_asset.read_bytes() != source_asset.read_bytes():
+                raise SystemExit("V6_PUBLIC_TARGETED_AD_ASSET_CONFLICT=" + filename)
+        else:
+            shutil.copyfile(source_asset, destination_asset)
+            changed.append("public/legacy/" + filename)
     for relative, content in [(SERVICE, SERVICE_SOURCE), (SERVICE_TEST, TEST_SOURCE), (COMPONENT, COMPONENT_SOURCE)]:
         if write_exact(root / relative, content):
             changed.append(str(relative))
