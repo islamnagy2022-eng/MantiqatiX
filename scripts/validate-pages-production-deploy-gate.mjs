@@ -44,14 +44,24 @@ assert.match(validateBlock, /FULL_PLATFORM_GATE=BLOCKED; CATALOG_PILOT_GATE=PASS
   'A blocked full platform gate may only be non-fatal for the independently verified catalog pilot');
 assert.match(validateBlock, /if \[ "\$\{GATE\}" = "BLOCKED" \]/,
   'Only an explicit BLOCKED report may be non-fatal; unexpected verifier failures must stop release');
-assert.match(validateBlock, /Publish the electronic catalog as the only production site/,
-  'Pages artifact must publish the catalog directly at the public root');
+assert.match(validateBlock, /Publish V6 as the production root and preserve the previous catalog/,
+  'Pages artifact must publish the reviewed public V6 app at root and retain the prior catalog');
+assert.match(validateBlock, /VITE_BASE_PATH=\/MantiqatiX\/legacy\/ npm run build/,
+  'The previous catalog must be rebuilt for its retained legacy subpath');
+assert.match(validateBlock, /VITE_BASE_PATH=\/MantiqatiX\/ bun run build/,
+  'The public V6 app must have a root-based production build');
+assert.match(validateBlock, /cp -a "\$\{V6_ROOT_DIST\}\/\." "\$\{SITE_DIR\}\/"/,
+  'The V6 root build must be the production index');
+assert.match(validateBlock, /cp -a apps\/catalog-frontend\/dist\/\. "\$\{SITE_DIR\}\/legacy\//,
+  'The previous catalog must remain available under the legacy subpath');
 assert.match(validateBlock, /test ! -e "\$\{SITE_DIR\}\/preview"/,
   'The composed production site must not contain preview routes');
 assert.match(validateBlock, /test ! -e "\$\{SITE_DIR\}\/smm\.html"/,
   'The composed production site must not contain the SMM placeholder');
-assert.match(validateBlock, /cp -a apps\/catalog-frontend\/dist\/\. "\$\{SITE_DIR\}\/"/,
-  'Production artifact must be copied from the catalog build only');
+assert.match(validateBlock, /test -s "\$\{SITE_DIR\}\/legacy\/index\.html"/,
+  'The retained legacy site must contain its original entry point');
+assert.match(validateBlock, /test -s "\$\{SITE_DIR\}\/v6-preview\/index\.html"/,
+  'The V6 preview alias must be retained alongside the production root');
 assert.doesNotMatch(validateBlock, /cp -a web\//,
   'Legacy web application must not be included in the production artifact');
 assert.match(validateBlock, /path: \$\{\{ runner\.temp \}\}\/mantiqatix-composed-site/,
@@ -62,9 +72,17 @@ assert.match(deployBlock, /if: always\(\).*needs\.validate\.result == 'success'/
   'Deploy must evaluate after dependencies finish and require full validation to succeed');
 assert.match(deployBlock, /name: mantiqatix-composed-pages-site[\s\S]*?path: \.\/site/,
   'Deploy must download and publish the composed site artifact');
-assert.ok(deployBlock.includes('/MantiqatiX/assets/'), 'Post-deploy verification must check root catalog assets');
-assert.ok(deployBlock.includes('MantiqatiX | منصة إدارة الأنشطة والكتالوجات'),
-  'Post-deploy verification must ensure the electronic catalog is the public root');
+assert.ok(deployBlock.includes('/MantiqatiX/assets/'), 'Post-deploy verification must check V6 root assets');
+assert.ok(deployBlock.includes('MANTIQATIX_V6_PRIMARY_ROOT_DEPLOY=PASS'),
+  'Post-deploy verification must confirm V6 is the public root');
+assert.ok(deployBlock.includes('MANTIQATIX_LEGACY_CATALOG_DEPLOY=PASS'),
+  'Post-deploy verification must confirm the former catalog remains available under /legacy/');
+assert.ok(deployBlock.includes('MANTIQATIX_V6_PREVIEW_ALIAS_DEPLOY=PASS'),
+  'Post-deploy verification must keep the V6 preview alias reachable');
+assert.ok(deployBlock.includes('scripts/test-v6-deployed-root.mjs'),
+  'Deployed V6 root must receive browser coverage including legacy businessId QR links');
+assert.ok(deployBlock.includes('MANTIQUATIX_E2E_BASE_URL="${LEGACY_URL}"'),
+  'Existing dashboard, mobile and QR E2E must run against the retained legacy catalog');
 assert.doesNotMatch(deployBlock, /catalog-app\//,
   'Production deployment must not depend on a catalog subpath');
 assert.doesNotMatch(deployBlock, /needs\.validate\.result == 'success'\s*\|\|\s*needs\.validate_public_only\.result == 'success'/,
@@ -91,12 +109,14 @@ assert.doesNotMatch(home, /معاينة تفاعلية|معاينة توضيحي
 assert.ok(home.includes('افتح الكتالوج الإلكتروني'),
   'The homepage module section must route users to the real catalog module');
 assert.ok(healthMonitor.includes('/MantiqatiX/assets/'),
-  'Production health checks must monitor root catalog assets');
-assert.ok(healthMonitor.includes('MantiqatiX | منصة إدارة الأنشطة والكتالوجات'),
-  'Production health checks must verify the existing platform root remains intact');
+  'Production health checks must monitor V6 root assets');
+assert.ok(healthMonitor.includes('/MantiqatiX/legacy/assets/'),
+  'Production health checks must monitor the retained legacy catalog assets');
+assert.ok(healthMonitor.includes('V6_PRODUCTION_ROOT_AND_LEGACY_ASSETS=PASS'),
+  'Production health checks must verify the V6 root and legacy rollback path');
 assert.match(deployBlock, /Retired production route still reachable:[\s\S]*?MANTIQATIX_DEMO_AND_SMM_ROUTES=NOT_PUBLISHED/,
   'Post-deploy verification must assert the demo preview and SMM routes are absent');
 assert.ok(healthMonitor.includes('PRIMARY_CATALOG_ROOT_AND_ASSETS=PASS'),
   'Production health checks must verify the catalog-only root deployment');
 
-console.log('PAGES_PRODUCTION_DEPLOY_GATE_AND_CATALOG_SUBPATH=PASS');
+console.log('PAGES_PRODUCTION_DEPLOY_GATE_V6_ROOT_LEGACY_ROLLBACK=PASS');
