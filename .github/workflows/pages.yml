@@ -31,11 +31,12 @@ jobs:
           set -euo pipefail
           npm install --no-audit --no-fund
           npm run lint
-          npm run build
+          VITE_BASE_PATH=/MantiqatiX/legacy/ npm run build
           test -s dist/index.html
           test -s dist/config.js
           test -d dist/assets
-          grep -q '/MantiqatiX/assets/' dist/index.html
+          grep -q '/MantiqatiX/legacy/assets/' dist/index.html
+          grep -Fq '/MantiqatiX/config.js' dist/index.html
       - name: Setup Bun for the isolated V6 Preview
         uses: oven-sh/setup-bun@v2
         with:
@@ -48,6 +49,14 @@ jobs:
           bun install --frozen-lockfile
           bun run verify:release
           bun run lint
+          V6_ROOT_DIST="${RUNNER_TEMP}/mantiqatix-v6-root-build"
+          rm -rf "${V6_ROOT_DIST}"
+          VITE_BASE_PATH=/MantiqatiX/ bun run build
+          mkdir -p "${V6_ROOT_DIST}"
+          cp -a dist/. "${V6_ROOT_DIST}/"
+          test -s "${V6_ROOT_DIST}/index.html"
+          grep -Fq '/MantiqatiX/assets/' "${V6_ROOT_DIST}/index.html"
+          echo "V6_ROOT_BUILD=PASS"
           VITE_BASE_PATH=/MantiqatiX/v6-preview/ bun run build
           test -s dist/index.html
           grep -Fq '/MantiqatiX/v6-preview/' dist/index.html
@@ -56,7 +65,10 @@ jobs:
           test -n "$(find dist/assets -maxdepth 1 -type f -name '*.css' -print -quit)"
           echo "V6_PREVIEW_BUILD=PASS"
       - name: Block private admin, wallet, and demo code in public V6 assets
-        run: node scripts/test-v6-public-bundle-clean.mjs apps/aistudio-v6/worktree/dist
+        run: |
+          set -euo pipefail
+          node scripts/test-v6-public-bundle-clean.mjs "${RUNNER_TEMP}/mantiqatix-v6-root-build"
+          node scripts/test-v6-public-bundle-clean.mjs apps/aistudio-v6/worktree/dist
       - name: Audit V6 public bundle module ownership
         run: |
           set -euo pipefail
@@ -388,43 +400,55 @@ jobs:
           grep -q "if(!branchId)" web/app.js
           grep -Fq 'branches: branches ?? []' supabase/functions/api/index.ts
 
-      - name: Publish the electronic catalog as the only production site
+      - name: Publish V6 as the production root and preserve the previous catalog
         run: |
           set -euo pipefail
           SITE_DIR="${RUNNER_TEMP}/mantiqatix-composed-site"
+          V6_ROOT_DIST="${RUNNER_TEMP}/mantiqatix-v6-root-build"
           rm -rf "${SITE_DIR}"
-          mkdir -p "${SITE_DIR}"
-          cp -a apps/catalog-frontend/dist/. "${SITE_DIR}/"
-          mkdir -p "${SITE_DIR}/v6-preview"
+          mkdir -p "${SITE_DIR}" "${SITE_DIR}/legacy" "${SITE_DIR}/v6-preview"
+          cp -a "${V6_ROOT_DIST}/." "${SITE_DIR}/"
+          cp -a apps/catalog-frontend/dist/. "${SITE_DIR}/legacy/"
           cp -a apps/aistudio-v6/worktree/dist/. "${SITE_DIR}/v6-preview/"
+          # V6 and its compatibility routes use one public, non-secret runtime config.
+          cp "${SITE_DIR}/legacy/config.js" "${SITE_DIR}/config.js"
           test -s "${SITE_DIR}/index.html"
-          test -s "${SITE_DIR}/v6-preview/index.html"
-          grep -Fq '/MantiqatiX/v6-preview/' "${SITE_DIR}/v6-preview/index.html"
           test -s "${SITE_DIR}/config.js"
-          test -d "${SITE_DIR}/assets"
           grep -Fq '/MantiqatiX/assets/' "${SITE_DIR}/index.html"
           grep -Fq '/MantiqatiX/config.js' "${SITE_DIR}/index.html"
+          test -s "${SITE_DIR}/legacy/index.html"
+          grep -Fq '/MantiqatiX/legacy/assets/' "${SITE_DIR}/legacy/index.html"
+          grep -Fq '/MantiqatiX/config.js' "${SITE_DIR}/legacy/index.html"
+          test -s "${SITE_DIR}/v6-preview/index.html"
+          grep -Fq '/MantiqatiX/v6-preview/' "${SITE_DIR}/v6-preview/index.html"
+          test -d "${SITE_DIR}/assets"
+          test -d "${SITE_DIR}/legacy/assets"
+          test -d "${SITE_DIR}/v6-preview/assets"
           test ! -e "${SITE_DIR}/web"
           test ! -e "${SITE_DIR}/preview"
           test ! -e "${SITE_DIR}/smm.html"
-          echo "PAGES_COMPOSITION=PASS: catalog remains the production root; V6 is isolated under /v6-preview/; legacy UI/demo/SMM files are not published."
+          echo "PAGES_COMPOSITION=PASS: V6 is the production root; previous catalog preserved at /legacy/; V6 preview alias retained."
       - name: Install pinned Playwright for V6 Preview browser validation
         run: |
           set -euo pipefail
           npm install --prefix /tmp/v6-preview-playwright --no-audit --no-fund playwright@1.64.1 axe-core@4.10.3
           /tmp/v6-preview-playwright/node_modules/.bin/playwright install --with-deps chromium
-      - name: Test composed V6 Preview on desktop and mobile
+      - name: Test composed V6 root and Preview alias on desktop and mobile
         env:
           PLAYWRIGHT_PACKAGE: /tmp/v6-preview-playwright/node_modules/playwright
-          V6_PREVIEW_SCREENSHOT_DIR: ${{ runner.temp }}/v6-preview-visual-review
-        run: node scripts/test-v6-public-preview.mjs "${RUNNER_TEMP}/mantiqatix-composed-site"
+        run: |
+          set -euo pipefail
+          V6_E2E_URL=http://127.0.0.1:4173/MantiqatiX/ V6_PREVIEW_SCREENSHOT_DIR="${RUNNER_TEMP}/v6-root-visual-review" node scripts/test-v6-public-preview.mjs "${RUNNER_TEMP}/mantiqatix-composed-site"
+          V6_E2E_URL=http://127.0.0.1:4173/MantiqatiX/v6-preview/ V6_PREVIEW_SCREENSHOT_DIR="${RUNNER_TEMP}/v6-preview-visual-review" node scripts/test-v6-public-preview.mjs "${RUNNER_TEMP}/mantiqatix-composed-site"
 
-      - name: Upload V6 Preview screenshots for visual acceptance
+      - name: Upload V6 root and Preview screenshots for visual acceptance
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v6-preview-visual-review-${{ github.run_id }}
-          path: ${{ runner.temp }}/v6-preview-visual-review/
+          name: v6-root-cutover-visual-review-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/v6-root-visual-review/
+            ${{ runner.temp }}/v6-preview-visual-review/
           if-no-files-found: ignore
           retention-days: 14
 
@@ -532,43 +556,55 @@ jobs:
         uses: actions/deploy-pages@v4
         with:
           artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Verify primary catalog root after deployment
+      - name: Verify V6 production root, legacy catalog rollback, and Preview alias
         env:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
           set -euo pipefail
-          ROOT_URL="${PAGE_URL%/}/"
-          TMP_PAGE="$(mktemp)"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}" -o "${TMP_PAGE}"
-          grep -Fq "MantiqatiX | منصة إدارة الأنشطة والكتالوجات" "${TMP_PAGE}"
-          grep -Fq "/MantiqatiX/assets/" "${TMP_PAGE}"
-          grep -Fq "/MantiqatiX/config.js" "${TMP_PAGE}"
-          ! grep -Fq "home.js" "${TMP_PAGE}"
-          CONFIG_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}config.js")"
-          grep -Fq "moyhiluyhjsujhwlyeuu.supabase.co" <<<"${CONFIG_JS}"
-          JS_ASSET="$(grep -oE '/MantiqatiX/assets/[^" ]+\.js' "${TMP_PAGE}" | head -n 1)"
-          CSS_ASSET="$(grep -oE '/MantiqatiX/assets/[^" ]+\.css' "${TMP_PAGE}" | head -n 1)"
-          test -n "${JS_ASSET}"
-          test -n "${CSS_ASSET}"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}/${JS_ASSET#/MantiqatiX/}" >/dev/null
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}/${CSS_ASSET#/MantiqatiX/}" >/dev/null
-          echo "MANTIQATIX_CATALOG_PRIMARY_ROOT_DEPLOY=PASS: ${ROOT_URL}"
-          PREVIEW_URL="https://islamnagy2022-eng.github.io/MantiqatiX/v6-preview/"
-          TMP_PREVIEW="$(mktemp)"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PREVIEW_URL}" -o "${TMP_PREVIEW}"
-          grep -Fq '/MantiqatiX/v6-preview/' "${TMP_PREVIEW}"
-          PREVIEW_JS="$(grep -oE '/MantiqatiX/v6-preview/assets/[^" ]+\.js' "${TMP_PREVIEW}" | head -n 1)"
-          PREVIEW_CSS="$(grep -oE '/MantiqatiX/v6-preview/assets/[^" ]+\.css' "${TMP_PREVIEW}" | head -n 1)"
+          SITE_ROOT="${PAGE_URL%/}"
+          ROOT_URL="${SITE_ROOT}/"
+          ROOT_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}")"
+          grep -Fq '/MantiqatiX/assets/' <<<"${ROOT_HTML}"
+          grep -Fq '/MantiqatiX/config.js' <<<"${ROOT_HTML}"
+          ! grep -Fq 'MantiqatiX | منصة إدارة الأنشطة والكتالوجات' <<<"${ROOT_HTML}"
+          ROOT_CONFIG="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${SITE_ROOT}/config.js")"
+          grep -Fq 'moyhiluyhjsujhwlyeuu.supabase.co' <<<"${ROOT_CONFIG}"
+          ROOT_JS="$(grep -oE '/MantiqatiX/assets/[^" ]+\.js' <<<"${ROOT_HTML}" | head -n 1)"
+          ROOT_CSS="$(grep -oE '/MantiqatiX/assets/[^" ]+\.css' <<<"${ROOT_HTML}" | head -n 1)"
+          test -n "${ROOT_JS}"
+          test -n "${ROOT_CSS}"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${SITE_ROOT}${ROOT_JS}" >/dev/null
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${SITE_ROOT}${ROOT_CSS}" >/dev/null
+          echo "MANTIQATIX_V6_PRIMARY_ROOT_DEPLOY=PASS: ${ROOT_URL}"
+
+          LEGACY_URL="${SITE_ROOT}/legacy/"
+          LEGACY_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${LEGACY_URL}")"
+          grep -Fq 'MantiqatiX | منصة إدارة الأنشطة والكتالوجات' <<<"${LEGACY_HTML}"
+          grep -Fq '/MantiqatiX/legacy/assets/' <<<"${LEGACY_HTML}"
+          grep -Fq '/MantiqatiX/config.js' <<<"${LEGACY_HTML}"
+          LEGACY_JS="$(grep -oE '/MantiqatiX/legacy/assets/[^" ]+\.js' <<<"${LEGACY_HTML}" | head -n 1)"
+          LEGACY_CSS="$(grep -oE '/MantiqatiX/legacy/assets/[^" ]+\.css' <<<"${LEGACY_HTML}" | head -n 1)"
+          test -n "${LEGACY_JS}"
+          test -n "${LEGACY_CSS}"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${SITE_ROOT}${LEGACY_JS}" >/dev/null
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${SITE_ROOT}${LEGACY_CSS}" >/dev/null
+          echo "MANTIQATIX_LEGACY_CATALOG_DEPLOY=PASS: ${LEGACY_URL}"
+
+          PREVIEW_URL="${SITE_ROOT}/v6-preview/"
+          PREVIEW_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PREVIEW_URL}")"
+          grep -Fq '/MantiqatiX/v6-preview/' <<<"${PREVIEW_HTML}"
+          PREVIEW_JS="$(grep -oE '/MantiqatiX/v6-preview/assets/[^" ]+\.js' <<<"${PREVIEW_HTML}" | head -n 1)"
+          PREVIEW_CSS="$(grep -oE '/MantiqatiX/v6-preview/assets/[^" ]+\.css' <<<"${PREVIEW_HTML}" | head -n 1)"
           test -n "${PREVIEW_JS}"
           test -n "${PREVIEW_CSS}"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "https://islamnagy2022-eng.github.io${PREVIEW_JS}" >/dev/null
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "https://islamnagy2022-eng.github.io${PREVIEW_CSS}" >/dev/null
-          echo "MANTIQATIX_V6_PREVIEW_DEPLOY=PASS: ${PREVIEW_URL}"
-          # Retired legacy routes must stay unavailable.
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${SITE_ROOT}${PREVIEW_JS}" >/dev/null
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${SITE_ROOT}${PREVIEW_CSS}" >/dev/null
+          echo "MANTIQATIX_V6_PREVIEW_ALIAS_DEPLOY=PASS: ${PREVIEW_URL}"
+
           for route in "preview/" "smm.html"; do
             status=""
             for attempt in 1 2 3 4 5 6; do
-              status="$(curl --silent --show-error --location --output /tmp/retired-route.html --write-out '%{http_code}' "https://islamnagy2022-eng.github.io/MantiqatiX/${route}" || true)"
+              status="$(curl --silent --show-error --location --output /tmp/retired-route.html --write-out '%{http_code}' "${SITE_ROOT}/${route}" || true)"
               [ "${status}" = "404" ] && break
               sleep 3
             done
@@ -591,14 +627,19 @@ jobs:
           mkdir -p /tmp/playwright-runner
           npm install --prefix /tmp/playwright-runner --no-audit --no-fund playwright@1.64.1 axe-core@4.10.3
           /tmp/playwright-runner/node_modules/.bin/playwright install --with-deps chromium
-      - name: Test deployed dashboard routes, mobile layout, membership scopes, and permanent QR links
+      - name: Test deployed V6 root and legacy dashboard/mobile/QR routes
         env:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
           set -euo pipefail
           ROOT_URL="${PAGE_URL%/}/"
+          LEGACY_URL="${PAGE_URL%/}/legacy/"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}" >/dev/null
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${LEGACY_URL}" >/dev/null
+          PLAYWRIGHT_MODULE=/tmp/playwright-runner/node_modules/playwright/index.mjs \
+          PAGE_URL="${ROOT_URL}" \
+          node scripts/test-v6-deployed-root.mjs
           PLAYWRIGHT_MODULE=/tmp/playwright-runner/node_modules/playwright/index.mjs \
           AXE_CORE_SCRIPT=/tmp/playwright-runner/node_modules/axe-core/axe.min.js \
-          MANTIQUATIX_E2E_BASE_URL="${ROOT_URL}" \
+          MANTIQUATIX_E2E_BASE_URL="${LEGACY_URL}" \
           node apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs
