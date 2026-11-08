@@ -145,7 +145,11 @@ jobs:
             cat "${PREFLIGHT_HEADERS}"
             exit 1
           fi
-          grep -Fqi "Access-Control-Allow-Origin: ${ORIGIN}" "${PREFLIGHT_HEADERS}"
+          if ! grep -Fqi "Access-Control-Allow-Origin: ${ORIGIN}" "${PREFLIGHT_HEADERS}" && ! grep -Fqi "Access-Control-Allow-Origin: *" "${PREFLIGHT_HEADERS}"; then
+            echo "Supabase REST CORS does not allow the public site origin"
+            cat "${PREFLIGHT_HEADERS}"
+            exit 1
+          fi
           grep -Eiq '^access-control-allow-methods:.*POST' "${PREFLIGHT_HEADERS}"
           grep -Eiq '^access-control-allow-headers:.*apikey' "${PREFLIGHT_HEADERS}"
           grep -Eiq '^access-control-allow-headers:.*authorization' "${PREFLIGHT_HEADERS}"
