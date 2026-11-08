@@ -460,8 +460,10 @@ def patch_e2e(source: str) -> tuple[str, bool]:
     original = source
     if E2E_ANCHOR in source:
         source, _ = replace_once(source, E2E_ANCHOR, E2E_ROUTE + E2E_ANCHOR, "targeted ads API fixture route")
+    elif "const appUrl = process.env.V6_E2E_URL" in source:
+        source, _ = replace_once(source, "  const appUrl = process.env.V6_E2E_URL", E2E_ROUTE + "  const appUrl = process.env.V6_E2E_URL", "targeted ads API fixture route for root/preview harness")
     elif "get_mnty_targeted_advertisements" not in source or "requestedSponsoredAdScopes" not in source:
-        raise ValueError("targeted ads E2E route missing: expected the preview URL anchor or an existing sponsored-ad fixture")
+        raise ValueError("targeted ads E2E route missing: expected a supported root/preview harness anchor or an existing sponsored-ad fixture")
     source, _ = replace_once(source, E2E_ASSERT_ANCHOR, E2E_ASSERT + E2E_ASSERT_ANCHOR, "targeted ads browser assertions")
     marker = "  assert.equal(await page.getByLabel('تصفية الأنشطة حسب المحافظة').inputValue(), 'المنوفية', 'Selecting a governorate must update the directory filter');"
     source, _ = replace_once(source, marker, E2E_REGION_ASSERT + marker, "targeted ads governorate scope assertion")
