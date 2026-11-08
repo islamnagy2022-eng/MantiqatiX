@@ -80,3 +80,15 @@ The earlier publication-status section above is a historical snapshot and is sup
 - Preserve both the R6 mobile UI assets and the separate native Android/Kotlin project. The current web deployment did not replace either.
 - Full platform certification remains `BLOCKED / NOT CERTIFIED`; the web-root cutover does not clear Auth/RLS/ACL, production schema/Edge parity, payment/finance, or restore evidence.
 
+
+
+## 2026-11-08 — Superseding source-of-truth reconciliation
+
+This addendum supersedes the older “Immediate implementation sequence” item that names PR #685 / the r5 public Preview branch as the integration base. The user subsequently selected `bizcatalog-manager (6).zip` (R6) as the canonical application source, and that decision is recorded in the authoritative baseline at the top of `TODO_PRODUCTION.md` and `docs/PROJECT_CONTINUITY.md`.
+
+- R6 is the source of truth for the application UI, component structure, product behavior and user workflows. The earlier r5 archive, PR #685 and other prior implementations are reference-only; reuse a specific component or capability only after a verified gap is demonstrated against R6 and the reused work is adapted and tested.
+- This does **not** approve direct publication of the R6 archive. All P0 security findings in this audit remain active and must be removed/replaced before any public release. Existing Supabase Auth, membership, business/branch scope, RBAC, schema, RLS, grants, RPCs and Edge Functions remain authoritative backend contracts.
+- The uploaded Library record for R6 is visible, but raw-byte materialization was rejected by the file service as unauthorized for this Project file; a text read also failed. The exact archive has therefore **not** been extracted, rehashed in the working container, or imported into GitHub in this session.
+- Do not silently substitute r5 or reconstruct R6 from screenshots/reports. Obtain a direct conversation upload of `bizcatalog-manager (6).zip`, verify SHA-256 `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`, then extract only safe application sources. Exclude `.data/`, backups, `.env*`, secrets, default credentials, and dependency/build directories. Preserve `src/components/mobile/` and the separate native Android/Kotlin project.
+- PR #691, which records the R6 source-of-truth policy, merged documentation-only as `41017431cfc38c0616f145f8d4a8b41110500ab1`. No production deployment, Supabase mutation or root cutover occurred.
+
