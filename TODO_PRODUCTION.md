@@ -15,15 +15,12 @@
 حالات العمل: TODO / IN PROGRESS / WAIT / BLOCKED / DONE / VERIFIED / NOT VERIFIED.  
 قاعدة الإغلاق: DONE لا تعني VERIFIED.
 
-## Directory cover-image fallbacks — PR #641 (IN PROGRESS)
-- [ ] Use the approved default doctor image as the cover for unverified doctor activities when no owner-supplied cover exists.
-- [ ] Use the pharmacy-specific default image as the cover for unverified pharmacy activities when no owner-supplied cover exists.
-- [ ] Use category-aware cover defaults for other activities without a configured cover; preserve valid real cover URLs and verified-state behavior.
-- [ ] Verify image-load fallback behavior and confirm that doctor/pharmacy default image URLs load in production browsers.
-- [x] Source change committed on branch `fix/unverified-health-cover-images-20261101` (commit `f9c821abc8ca8e921bef34b65f70d82fdcdfddd9`); PR #641 opened.
-- [x] TypeScript/build/security-contract and employee RBAC/PostgreSQL checks passed on the PR head.
-- [ ] Browser E2E must pass. First attempt exposed a specialty-folder 20-row pagination assertion failure; a rerun is currently executing. Do not merge or deploy while required checks remain pending/failed.
-- [ ] Merge PR #641 after required checks pass, confirm GitHub Pages deployment succeeds, then inspect the live doctor/pharmacy directory cards and mark VERIFIED only after visual confirmation.
+## Directory cover-image fallbacks — PR #641 (MERGED; image verification partial)
+
+- [x] Approved doctor and pharmacy-specific image fallbacks plus category-aware cover selection were merged in PR [#641](https://github.com/islamnagy2022-eng/MantiqatiX/pull/641), commit `6e107164647453f7f8644b52db034f474f17f2cf`.
+- [x] Current `main` source still imports the doctor/pharmacy defaults, calls `directoryCoverImage(biz)` for directory cards, and uses the same helper as the image-error fallback.
+- [x] Primary Catalog build/TypeScript, isolated employee/RBAC PostgreSQL and 32-journey browser suite passed on main run [42502266849](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/42502266849). The deployed legacy dashboard/mobile/QR browser suite also passed during V6 root deployment run [42502614593](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/42502614593).
+- [ ] **Do not mark image visuals VERIFIED yet:** add an explicit HTTP/image-decode assertion for both doctor and pharmacy default asset URLs, then inspect a real unverified doctor and pharmacy card at desktop and mobile widths. Existing browser-suite success is not, by itself, proof that both exact fallback assets loaded in production.
 
 ## UX policy — Activity list progressive loading
 - [x] Main activity directory and public unverified-listing views now render an initial batch of 20 items, with an explicit «رؤية المزيد» action that appends the next 20; changing search, group, specialty, or geographic filters resets the visible batch to 20.
