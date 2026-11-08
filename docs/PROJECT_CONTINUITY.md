@@ -1,3 +1,14 @@
+# Latest continuity checkpoint — 2026-11-08 — R6 source import access blocker
+
+- PR #691 was merged into `main` as documentation-only commit `41017431cfc38c0616f145f8d4a8b41110500ab1`. All six associated workflow runs and all returned jobs succeeded. The Pages run's `deploy` job was skipped; no merge-commit CI runs/statuses were returned. Production was not changed.
+- R6 archive `bizcatalog-manager (6).zip` remains the canonical application source. Its Library file record is visible and reports 37,305,478 bytes with the previously recorded SHA-256 `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`, but the file service rejected raw-byte materialization as unauthorized for this Project file; a text read also failed. It has not been extracted, rehashed, or imported in this session.
+- Do not use the earlier r5 archive / PR #685 as a replacement baseline. The earlier audit instruction treating PR #685 as the integration base is superseded by the newer R6 source-of-truth decision. r5 remains reference-only for individually verified gaps.
+- Next step is to obtain a direct conversation upload of `bizcatalog-manager (6).zip`; then verify the exact SHA-256, inspect/extract safe source entries, preserve `src/components/mobile/` and the separate Android/Kotlin project, and map API/data contracts to the existing Supabase backend.
+- Active R6 security blockers remain: local JSON production snapshot, unauthenticated snapshot/CRUD/backup routes, body-supplied role/session minting, localStorage-authoritative roles/state, seeded credentials/claims, predictable secret fallbacks, and Express/GitHub Pages hosting mismatch. Do not expose or deploy those surfaces.
+- Live site remains the deployed V6 root; `/legacy/` remains retained. No R6 cutover, Supabase write, migration, Auth/RLS/GRANT change, Edge deployment or payment/finance operation occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
 # CONTINUATION SOURCE OF TRUTH — 2026-11-08
 
 **Read this before continuing any MantiqatiX work.** The newest user-approved application source is `bizcatalog-manager (6).zip`, SHA-256 `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`. This R6 source tree is the canonical application baseline for ongoing development and must be integrated into the MantiqatiX repository. Older archives, prompts, branches, and implementations are references only: reuse from them only to fill a confirmed R6 gap, after adapting and testing it. Never replace R6 wholesale with an older project.
