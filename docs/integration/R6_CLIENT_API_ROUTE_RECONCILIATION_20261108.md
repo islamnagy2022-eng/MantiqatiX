@@ -84,3 +84,8 @@ These are source-review findings, not runtime penetration-test results. Exact ex
 - R6 source import to GitHub: **NOT DONE**.
 - Production deployment: **NOT AUTHORIZED**.
 - Overall platform: `BLOCKED / NOT CERTIFIED`.
+
+
+## Additional P0 authorization finding
+
+The R6 frontend includes a default `adminPassword: 'admin'` seed and direct quick-login calls using that same literal. `loginAsAdmin()` creates the local administrator role solely from this browser-held comparison. This must be removed rather than adapted. Platform administration must require verified Supabase Auth plus an active `SUPER_ADMIN` membership with platform scope and server-side enforcement.
