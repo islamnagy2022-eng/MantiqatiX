@@ -92,3 +92,15 @@ This addendum supersedes the older “Immediate implementation sequence” item 
 - Do not silently substitute r5 or reconstruct R6 from screenshots/reports. Obtain a direct conversation upload of `bizcatalog-manager (6).zip`, verify SHA-256 `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`, then extract only safe application sources. Exclude `.data/`, backups, `.env*`, secrets, default credentials, and dependency/build directories. Preserve `src/components/mobile/` and the separate native Android/Kotlin project.
 - PR #691, which records the R6 source-of-truth policy, merged documentation-only as `41017431cfc38c0616f145f8d4a8b41110500ab1`. No production deployment, Supabase mutation or root cutover occurred.
 
+
+
+## 2026-11-08 — Mobile web UI vs native Android source clarification
+
+The mobile web UI and a native Android application are separate deliverables and must not be conflated.
+
+- The uploaded R6 audit inventories mobile web components under `src/components/mobile/`; those are part of the selected R6 application source and must be preserved during import.
+- R6 itself does **not** include a native Android/Kotlin Gradle project.
+- The historical repository audit `docs/RC272_ANDROID_CI_AUDIT.md` confirms current `main` has no root `android/`, `app/`, `settings.gradle.kts`, `build.gradle.kts` or `gradlew` path. It identifies an older `source_RC40.zip` as containing a separate Android Gradle project, but explicitly warns against copying it without reconciliation.
+- Accordingly, do not claim that a native Android project is currently present or integrated in `main`. Keep Android as an open preservation/reconciliation workstream. Do not delete any separately retained Android source, but do not import the historical RC40 project blindly or certify a native release without current-source build/signing/device evidence.
+- Preserve the R6 mobile web routes/components independently and validate them at mobile viewport sizes after R6 is available.
+
