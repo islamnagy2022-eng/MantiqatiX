@@ -329,6 +329,8 @@ try {
   await page.getByText('تأكيد إرسال الرسالة').waitFor();
 
   await page.setViewportSize({ width: 390, height: 844 });
+  const mobileLegacyManagementLink = page.getByRole('link', { name: 'إدارة النشاط في النسخة المحفوظة — يتطلب تسجيل دخول منفصل' });
+  assert.equal(await mobileLegacyManagementLink.isVisible(), true, 'The retained workspace handoff must remain visible on mobile');
   await page.getByRole('button', { name: 'دليل الأنشطة' }).click();
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor();
   assert.equal(await activityCards.count(), 20, 'Mobile directory must initially render 20 activities');
