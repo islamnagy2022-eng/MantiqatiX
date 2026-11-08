@@ -100,7 +100,7 @@ assert.ok(!admin.includes("setActiveAdminTab('backup')"), 'Unverified backup/res
 assert.ok(!admin.includes("setActiveAdminTab('control_center')"), 'Unverified advanced control-center UI must not be exposed');
 
 assert.ok(report.status === 'BLOCKED' || report.status === 'PASS', 'Full platform gate status must remain explicit');
-assert.ok(pagesWorkflow.includes('Publish the electronic catalog as the only production site'), 'Pages artifact must preserve the existing root');
+assert.ok(pagesWorkflow.includes('Publish V6 as the production root and preserve the previous catalog'), 'Pages artifact must publish V6 at the root and retain the previous catalog under /legacy/');
 assert.ok(pagesWorkflow.includes('mantiqatix-composed-pages-site'), 'Pages must publish the composed root plus catalog subpath');
 assert.ok(!pagesWorkflow.includes('cp -a web/'), 'Legacy UI must not be copied into the production artifact');
 
