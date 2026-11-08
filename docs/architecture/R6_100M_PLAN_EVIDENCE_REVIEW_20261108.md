@@ -124,7 +124,7 @@ The security plan is a useful control catalogue but needs reconciliation to the 
 A sanitized local development/review package was prepared from the exact R6 archive:
 
 - Package: `MantiqaTix-R6-cleanroom-source.zip`
-- SHA-256: `e27147ebed03b2e33b94c7309bc1720f0482edab7a832fe6487eed678483354f`
+- SHA-256: `287fb76b69ede0721f808ce8813551e7a2d5d79b9eb0e70f0df95eed849d3bef`
 - ZIP integrity: PASS
 - 82 `.ts/.tsx` files retained under `src/`, including both R6 mobile-web source components and 12 existing unit-test files.
 - `.data/`, `.aistudio/`, original `server.ts`, non-empty secret defaults and personal snapshots/backups excluded.
