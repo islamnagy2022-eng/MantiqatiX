@@ -1,3 +1,13 @@
+# Latest checkpoint — 2026-11-08 — Native Android preservation status clarification
+
+- PR #693 merged as `076ff3251eb41b1d33f02373e07efa671ef47424`; it added the pre-import R6/Supabase contract baseline. Its six exact-head workflows succeeded; its Pages deploy job was skipped. No production change occurred.
+- Correct distinction: R6's `src/components/mobile/` is the mobile web UI and must be preserved as part of R6. It is not a native Android/Kotlin Gradle project.
+- Current-main audit `docs/RC272_ANDROID_CI_AUDIT.md` states that `android/`, `app/`, `settings.gradle.kts`, `build.gradle.kts` and `gradlew` are absent at the repository root. The historical `source_RC40.zip` was reported to contain a separate Android Gradle project, but that archive is legacy material and was not integrated into current main.
+- Keep native Android as an open preservation/reconciliation stream. Do not claim it exists in current main, do not overwrite/delete separately retained Android source, and do not copy RC40 blindly. A native release requires an actual source tree, current backend contract mapping, Gradle build/test, protected signing and device evidence.
+- R6 archive remains unavailable as raw bytes in this session; no R6 code import or app source modification occurred.
+
+---
+
 ## Follow-on checkpoint — R6 backend integration groundwork
 
 - Inspected current `main` source for the public directory and public catalogue Edge Functions, the public frontend mapper/types, the authenticated `api /api/v1/me` membership contract, and the `catalog-admin` / `catalog-platform-admin` authorization boundaries.
