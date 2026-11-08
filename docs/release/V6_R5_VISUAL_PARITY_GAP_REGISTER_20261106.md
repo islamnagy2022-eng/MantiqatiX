@@ -105,7 +105,7 @@ The exact-head CI closeout is not visual parity certification. FULL_PLATFORM_GAT
 
 - Do not reintroduce the original r5 mega-navigation wholesale: several original links point to merchant/admin, wallet, cart, messages, paid advertising and subscription flows that remain outside the public-only certified boundary.
 - Do not add an intermediate "functional groups/fields" taxonomy layer or fabricate a 15-sector catalogue. Public discovery remains activity → specialty; the dynamic activity card grid and horizontal quick-tabs provide the supported route into the catalogue. Any subscription/three-tier plan display must be backed by real published plan records and a verified plan contract.
-- The public sponsored-ad column remains deferred until a read-only public ads contract proves active/approved status, placement scope, campaign dates, audience targeting, frequency caps, privacy/consent, and tenant isolation. The original r5 rotating/default promo component is not safe to expose as-is.
+- At this historical checkpoint the sponsored-ad column was deferred. It is now integrated in the deployed V6 root through the existing read-only `get_mnty_targeted_advertisements` RPC for `HOME_SPONSORED`; Pages CI checks CORS and sanitized active-ad output, and browser E2E checks placement filtering, HTTPS links and creative rendering with synthetic rows. Do not revert to the original r5 rotating/default promo component. Any additional ad placements or campaign controls still require an approved server contract.
 - Full visual parity is not certified. Pairwise desktop/mobile comparison against all original r5 reference captures remains open, alongside production schema/RPC/Edge/Auth/RLS/finance and true backup/restore blockers.
 
 
