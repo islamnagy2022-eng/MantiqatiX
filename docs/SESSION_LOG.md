@@ -2346,3 +2346,12 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Nearest representative-point matching remains approximate until a licensed official ADM2/ADM3 polygon layer is reviewed and integrated.
 - Browser tests now cover consent, location privacy, manual hierarchy and fallback; exact-head CI/build/E2E pending.
 - No Production database or backend mutations. Standalone medical directory remains excluded; separate mobile/native Android source preserved.
+
+
+### Post-merge verification — 2026-11-09
+
+- PR #706 merged to `main`: `8e76971da0c60234eddbacc4c9f0059ecd85c171`.
+- V6 Preview Source Validation run `42618977751` passed: source preparation, security audit, TypeScript, release checks, root/Preview Vite builds and tests.
+- Pages workflow PR validation run `42618977644` passed: catalog and V6 builds, external smoke checks, composed root and Preview browser E2E on desktop/mobile, location consent and privacy, manual geography, catalog and accessibility. The deploy job was skipped for the PR event as designed.
+- The post-merge GitHub Pages run and deployed-origin HTTP check are not independently confirmed from this session. Do not mark the location discovery as live until the main-branch deploy and its root/Preview smoke checks are confirmed.
+- No Production schema/data/Auth/RLS/Edge/payment/finance changes. The standalone medical directory remains excluded; legacy catalog and separate mobile/native Android sources remain preserved.
