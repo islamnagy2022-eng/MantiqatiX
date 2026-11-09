@@ -548,7 +548,7 @@ try {
       assert.equal(await primaryNavigation.getByRole('button', { name: 'الدليل الطبي', exact: true }).count(), 0, 'The legacy public navigation must not expose the medical directory');
       assert.equal(await page.getByRole('heading', { name: 'الدليل الطبي لمنطقتك في مكان واحد', exact: true }).count(), 0, 'The retired medical route must not render its page');
       await primaryNavigation.getByRole('button', { name: 'بحث الأنشطة والخدمات', exact: true }).click();
-      await page.getByPlaceholder(/ابحث عن نشاط|ابحث عن نشاط أو خدمة/).waitFor({ state: 'visible', timeout: 10000 });
+      await page.getByPlaceholder(/بحث عن اسم نشاط، تخصص، أو خدمة/).waitFor({ state: 'visible', timeout: 10000 });
       results.push('medical-directory-route-disabled-general-directory-fallback');
     } finally { await context.close(); }
   }
