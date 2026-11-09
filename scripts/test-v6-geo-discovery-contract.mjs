@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const root = path.resolve(process.argv[2] || '.');
+const directory = fs.readFileSync(path.join(root, 'src/components/DirectoryView.tsx'), 'utf8');
+const component = fs.readFileSync(path.join(root, 'src/components/common/PublicGeoDiscovery.tsx'), 'utf8');
+const geo = fs.readFileSync(path.join(root, 'src/data/egyptGeoDiscovery.ts'), 'utf8');
+
+assert.match(directory, /resolveEgyptAdministrativeLocation/);
+assert.match(directory, /navigator\.geolocation\.getCurrentPosition/);
+assert.match(directory, /GEO_PREFERENCE_KEY/);
+assert.match(directory, /localStorage\.setItem/);
+assert.match(directory, /geoScopedBusinesses/);
+assert.match(directory, /selectedDistrictId/);
+assert.match(directory, /selectedShiyakhaId/);
+assert.match(directory, /sortBy: 'verified_first'/);
+assert.match(directory, /latitude < 21\.5/);
+assert.match(directory, /latitude.*longitude/);
+assert.doesNotMatch(directory.slice(directory.indexOf('const persistGeoScope'), directory.indexOf('const browseEgypt')), /latitude|longitude|coordinates/);
+assert.doesNotMatch(directory, /watchPosition/);
+assert.match(component, /geo-first-visit/);
+assert.match(component, /لن نطلب إذن الموقع قبل ضغطك على استخدام موقعي/);
+assert.match(component, /تصفح مصر بالكامل/);
+assert.match(component, /اختيار المركز أو القسم/);
+assert.match(component, /اختيار القرية أو الشياخة/);
+assert.match(component, /CC BY 4\.0/);
+assert.match(geo, /sourceCommit: '76b47b22872288c0d8b0c757975980e6986945e8'/);
+assert.match(geo, /license: 'CC-BY-4\.0'/);
+assert.match(geo, /not point-in-polygon proof/);
+assert.doesNotMatch(geo, /medical|doctor|clinic|pharmacy/i);
+console.log('V6_GEO_DISCOVERY_CONTRACT=PASS');
+console.log('V6_GEO_PRIVACY=PASS exact_coordinates_persisted=no');
