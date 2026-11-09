@@ -5,7 +5,7 @@
 ## Source and artifact identity
 - User-approved source remains `bizcatalog-manager (6).zip`, original SHA-256: `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`.
 - Latest local hardened package: `MantiqaTix-R6-production-isolation.zip`.
-- Package SHA-256: `aafef2a95a5089a35dbb9fecdf2cf786747c0d554e37cfa14e899d1af1080182`.
+- Package SHA-256: `4a6a85fc012085f3528635be42e54070be1b36aee46143865e5fa72da19e5d68`.
 - ZIP integrity: PASS.
 - Private local snapshots, backup directories, `.aistudio`, populated `.env` and `node_modules` remain excluded.
 - R6 mobile web UI is retained. Native Android/Kotlin remains a separate preserved source and is not claimed to be part of this archive.
@@ -16,7 +16,7 @@
 - Production business/product state comes from the public read adapter, not browser localStorage/demo seeds.
 - Production subscriber, sales, requests, wallets/ledger, campaigns, inbox/messages, bookings, free-admin grants, signage, pixel events and business-stage state starts empty and is not hydrated/persisted as browser demo data.
 - Browser-restored roles/default admin credentials and fallback signing secrets remain removed; production login stays disabled until Supabase Auth plus server-verified ACTIVE membership/RBAC are integrated.
-- Production synthetic sales, wallet transactions, campaign creation, bookings, business-stage activation, fake load-test telemetry, local inbox/message persistence, and unbacked activity-registration submission fail closed.
+- Production synthetic sales, wallet transactions, campaign creation, bookings, business-stage activation, fake load-test telemetry, local inbox/message persistence, sponsored-ad requests, promotional-signage creation and unbacked activity-registration submission fail closed.
 - No public write, finance, payment, wallet, booking or messaging flow is represented as complete without a trusted server adapter.
 
 ## Verification evidence
