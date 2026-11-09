@@ -2333,3 +2333,16 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - General directory, store profile, catalog/products and contact routes are preserved. Existing business records and Production database data are not deleted or modified.
 - R6 medical-directory package remains excluded. Preserve separate mobile and Android/Kotlin source; no Production database, Auth/RLS/GRANT/Edge or payment/finance mutation.
 - Full platform release remains BLOCKED / NOT CERTIFIED.
+
+
+---
+
+## 2026-11-09 — V6 general directory geographic discovery
+
+- Started `feat/v6-location-first-general-directory-20261109` from the current main after the medical-directory removal merge.
+- Added the existing licensed Egypt administrative dataset to the V6 build overlay, not the standalone medical feature.
+- Added a consent-first GPS action, Egypt-wide fallback, manual governorate/district/shiyakha selectors, lazy locality data, and scope filtering for general activities. Verified-first ordering is preserved.
+- Persist only administrative scope IDs/names; never persist raw GPS coordinates or send them to the external locality data source. No background tracking or repeated permission prompts.
+- Nearest representative-point matching remains approximate until a licensed official ADM2/ADM3 polygon layer is reviewed and integrated.
+- Browser tests now cover consent, location privacy, manual hierarchy and fallback; exact-head CI/build/E2E pending.
+- No Production database or backend mutations. Standalone medical directory remains excluded; separate mobile/native Android source preserved.

@@ -4066,3 +4066,18 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Added an idempotent patch self-test and a source assertion script. Full exact-head Pages build, deployed-origin browser E2E and accessibility checks are pending PR CI.
 - Do not add the dedicated medical route back in future V6/R6 work. Preserve the separate mobile and native Android source; no database/Auth/RLS/GRANT/Edge/payment/finance changes are in scope.
 - FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED until all independent release gates pass.
+
+
+---
+
+## 2026-11-09 — V6 general directory: consent-first location discovery
+
+- Scope: the general public activity/service directory only. The dedicated medical directory remains excluded from the website per the owner's separate decision; do not add a medical page or medical route.
+- Branch: `feat/v6-location-first-general-directory-20261109`.
+- Added the licensed Open Admin Data Egypt 2026.09 hierarchy (CC BY 4.0; immutable source commit `76b47b22872288c0d8b0c757975980e6986945e8`) to the V6 build overlay: 27 governorates, 365 district/center records, lazy-loaded shiyakhas only for the selected district.
+- Added explicit first-visit location consent; the browser GPS API is called only after the user clicks `استخدم موقعي`. If denied, unsupported, timed out or outside Egypt, the directory falls back to Egypt-wide/manual selection without blocking browsing. No automatic repeat prompt and no continuous tracking.
+- The feature persists only the chosen administrative names/IDs and mode. Precise GPS coordinates remain in memory for approximate matching and are not persisted or sent to the administrative data host. External locality requests use the pinned source district slug only.
+- The inferred locality is a clearly labelled nearest-representative-point suggestion, not point-in-polygon or legal boundary proof. Official licensed ADM2/ADM3 polygons remain an open accuracy requirement; never describe this as an exact address.
+- The selected scope filters registered activity results, sector counts, activity counts, search and specialty results while retaining verified-first ordering. The general sector taxonomy remains; no standalone medical directory is introduced.
+- Added a browser test for first-visit consent, no pre-consent GPS call, bounded low-accuracy GPS, no coordinate persistence, Egypt-wide reset, manual governorate/district/locality selectors and lazy locality loading. Exact-head CI and E2E are pending.
+- No Production database/schema/Auth/RLS/GRANT/Edge/payment/finance change. The separate mobile/native Android source remains preserved. `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED` until all platform gates pass.

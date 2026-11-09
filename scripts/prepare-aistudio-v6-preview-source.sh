@@ -44,8 +44,11 @@ python3 "$ROOT/scripts/patch-v6-legacy-qr-compat.py" --self-test
 python3 "$ROOT/scripts/patch-v6-legacy-qr-compat.py" "$WORKTREE"
 python3 "$ROOT/scripts/disable-v6-medical-directory.py" --self-test
 python3 "$ROOT/scripts/disable-v6-medical-directory.py" "$WORKTREE"
+python3 "$ROOT/scripts/patch-v6-geo-discovery.py" --self-test
+python3 "$ROOT/scripts/patch-v6-geo-discovery.py" "$WORKTREE" "$ROOT/apps/aistudio-v6/geo/egyptGeoDiscovery.ts"
+node "$ROOT/scripts/test-v6-geo-discovery-contract.mjs" "$WORKTREE"
 node "$ROOT/scripts/test-v6-medical-directory-disabled.mjs" "$WORKTREE"
-for required in package.json bun.lock src/main.tsx src/App.tsx src/components/DirectoryView.tsx src/components/common/PublicSectorGrid.tsx src/components/common/PublicTargetedAdsRail.tsx src/services/publicTargetedAds.ts src/services/publicTargetedAds.test.mjs scripts/audit-v6-source-security.mjs scripts/verify-v6-remediation.mjs src/context/PublicAppContext.tsx src/utils/publicContact.ts src/utils/publicCatalog.ts; do
+for required in package.json bun.lock src/main.tsx src/App.tsx src/components/DirectoryView.tsx src/components/common/PublicSectorGrid.tsx src/components/common/PublicTargetedAdsRail.tsx src/services/publicTargetedAds.ts src/services/publicTargetedAds.test.mjs scripts/audit-v6-source-security.mjs scripts/verify-v6-remediation.mjs src/context/PublicAppContext.tsx src/utils/publicContact.ts src/utils/publicCatalog.ts src/components/common/PublicGeoDiscovery.tsx src/data/egyptGeoDiscovery.ts; do
   test -f "$WORKTREE/$required" || { echo "V6_REQUIRED_FILE_MISSING=$required" >&2; exit 1; }
 done
 node "$ROOT/scripts/test-v6-public-context-boundary.mjs" "$WORKTREE"

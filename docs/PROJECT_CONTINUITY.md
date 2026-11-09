@@ -1705,3 +1705,10 @@ The owner explicitly removed the medical directory from the website scope. Do no
 ## 2026-11-09 — V6 public UI excludes the dedicated medical directory
 
 The owner clarified that the dedicated medical directory is to be removed from the current V6 website, not merely excluded from a future R6 import. Branch feat/remove-medical-directory-from-v6-public-site-20261109 updates the V6 build-preparation step so the generated public worktree has no MedicalDirectoryView import/route, no medical_directory public view mode, no Navbar link or homepage CTA, and no medical-only screen/specialty source files. General activity directory, business profiles, catalog/products and contact remain. This does not delete existing Production business records or customer data. Patch self-test and static source assertions are included; full CI/deployed browser validation remains pending. Keep the medical directory excluded from future work. Preserve separate mobile/native Android source. No Production backend changes are part of this patch.
+
+
+---
+
+## 2026-11-09 — V6 general-directory geographic discovery
+
+The current V6 work adds consent-first geographic discovery to the general activity/service directory only. The standalone medical directory remains excluded by owner decision. The overlay imports the pinned Open Admin Data Egypt 2026.09 dataset (CC BY 4.0; commit `76b47b22872288c0d8b0c757975980e6986945e8`), provides 27 governorates and 365 district/center choices, and lazily fetches shiyakhas for the selected district. GPS is requested only after an explicit user click; exact coordinates are not persisted or sent to the external data host. A nearest representative-point result is only an approximate editable suggestion, not official boundary proof. Egypt-wide/manual fallback remains available. PR/CI/E2E validation is pending; no Production backend changes. Preserve mobile/native Android source.
