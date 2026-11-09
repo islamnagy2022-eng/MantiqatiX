@@ -1875,3 +1875,14 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 - اختبار المتصفح يؤكد غياب المسار والزر والصفحة مع بقاء البحث العام متاحًا.
 - لا حذف لسجلات الأنشطة أو بيانات العملاء في قاعدة الإنتاج، ولا تعديل في Supabase أو Auth/RLS أو Edge Functions. لم يتم حذف تصنيف الأنشطة العام أو ملفات Android والموبايل المنفصلة.
 - لا يعاد إدخال الدليل الطبي المستقل في V6 أو الكتالوج المحفوظ أو روابط خريطة الموقع.
+
+
+---
+
+## 2026-11-09 — Closeout reconciliation and next safe implementation boundary
+
+- The authoritative removal is PR #709, merged as `758f6276638f11448e990514bd671d4ba20914e5`. The latest main tree confirms that neither public shell contains `MedicalDirectoryView`, `medical_directory` routing, medical-only navigation or a sitemap entry. The deployed root, retained legacy shell and Preview were already verified by the PR #709 closeout; do not repeat or re-open this completed work.
+- Follow-up PR #711 was closed as superseded after comparing its changed source against current main. Its proposed application changes were already present or the dedicated component was already absent; merging its divergent 14-commit branch would add no required application change. Existing general activity taxonomy/data and separate mobile/native Android sources remain preserved.
+- Owner scope remains binding: no standalone medical directory, medical-only route/navigation, booking journey or medical-specific website integration. Continue only general activity/service discovery and other platform modules.
+- Next location-discovery work is evidence-first: obtain and inspect the exact licensed ADM2/ADM3 geometry resources and stable P-code crosswalk described in `docs/GEO_BOUNDARY_VERIFIED_SOURCE_REVIEW_20261109.md`. Until geometry bytes, properties, CRS, validity, coverage and joins pass the acceptance gates, keep the existing nearest-point suggestion explicitly approximate; do not implement point-in-polygon or alter production geography data.
+- No production database/schema/Auth/RLS/GRANT/Edge/payment/finance mutation or deployment is authorized by this documentation reconciliation. `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED` remains unchanged.

@@ -4110,3 +4110,14 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - OCHA's P-code standard requires an ISO-3166-1 prefix (usually two-letter) plus numeric hierarchical components, so the Open Admin Data codes fit the expected syntax, but records have no explicit `adm2_pcode` field and district `source` metadata is empty. Exact P-code identity with the current OCHA COD-AB source is not yet verified; a source-column crosswalk is still required.
 - OCHA COD status dashboard reports Egypt ADM3 as partial coverage in 96.2% of ADM2 units (5,716 units). Treat missing ADM3 geometry as a coverage gap, not a point-outside result.
 - No geometry files materialized or production code changed. Keep nearest-point UI explicitly approximate.
+
+
+---
+
+## 2026-11-09 — Closeout reconciliation and next safe implementation boundary
+
+- The authoritative removal is PR #709, merged as `758f6276638f11448e990514bd671d4ba20914e5`. The latest main tree confirms that neither public shell contains `MedicalDirectoryView`, `medical_directory` routing, medical-only navigation or a sitemap entry. The deployed root, retained legacy shell and Preview were already verified by the PR #709 closeout; do not repeat or re-open this completed work.
+- Follow-up PR #711 was closed as superseded after comparing its changed source against current main. Its proposed application changes were already present or the dedicated component was already absent; merging its divergent 14-commit branch would add no required application change. Existing general activity taxonomy/data and separate mobile/native Android sources remain preserved.
+- Owner scope remains binding: no standalone medical directory, medical-only route/navigation, booking journey or medical-specific website integration. Continue only general activity/service discovery and other platform modules.
+- Next location-discovery work is evidence-first: obtain and inspect the exact licensed ADM2/ADM3 geometry resources and stable P-code crosswalk described in `docs/GEO_BOUNDARY_VERIFIED_SOURCE_REVIEW_20261109.md`. Until geometry bytes, properties, CRS, validity, coverage and joins pass the acceptance gates, keep the existing nearest-point suggestion explicitly approximate; do not implement point-in-polygon or alter production geography data.
+- No production database/schema/Auth/RLS/GRANT/Edge/payment/finance mutation or deployment is authorized by this documentation reconciliation. `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED` remains unchanged.
