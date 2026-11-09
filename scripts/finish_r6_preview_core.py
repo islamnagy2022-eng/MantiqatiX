@@ -183,6 +183,45 @@ if "VITE_PREVIEW_MODE !== 'true'" not in nav:
     nav = once(nav, '          </div>\n\n          <div className="flex items-center gap-2.5 flex-wrap">', '          </div>\n          )}\n\n          <div className="flex items-center gap-2.5 flex-wrap">', "role-testing bar end")
 write("src/components/Navbar.tsx", nav)
 
+# Locked Bun install; minimal non-root runtime image.
+dockerfile = """FROM oven/bun:1.4.4-debian AS build
+WORKDIR /app
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
+COPY . .
+ENV VITE_PREVIEW_MODE=true
+RUN bun run build
+
+FROM node:22-bookworm-slim AS runtime
+WORKDIR /app
+ENV NODE_ENV=production PREVIEW_MODE=true VITE_PREVIEW_MODE=true DISABLE_HMR=true PORT=8080
+COPY --chown=node:node --from=build /app/package.json ./package.json
+COPY --chown=node:node --from=build /app/node_modules ./node_modules
+COPY --chown=node:node --from=build /app/server.ts ./server.ts
+COPY --chown=node:node --from=build /app/src ./src
+COPY --chown=node:node --from=build /app/dist ./dist
+RUN mkdir -p /app/.data-preview && chown -R node:node /app
+USER node
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 CMD ["node", "-e", "fetch('http://127.0.0.1:8080/api/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
+CMD ["./node_modules/.bin/tsx", "server.ts"]
+"""
+write("Dockerfile", dockerfile)
+write(".dockerignore", """.git
+node_modules
+dist
+.data
+.data/
+.data-preview
+.data-preview/
+.aistudio
+.aistudio/
+.env
+.env.*
+*.log
+coverage
+""")
+
 # Verify core release invariants before the secondary cleanup pass continues.
 seed = read("src/data/seedData.ts")
 rules = read("src/utils/rules.ts")
