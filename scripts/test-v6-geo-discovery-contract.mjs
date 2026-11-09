@@ -16,7 +16,7 @@ assert.match(directory, /selectedDistrictId/);
 assert.match(directory, /selectedShiyakhaId/);
 assert.match(directory, /sortBy: 'verified_first'/);
 assert.match(directory, /latitude < 21\.5/);
-assert.match(directory, /latitude.*longitude/);
+assert.match(directory, /latitude[\\s\\S]*longitude/);
 assert.doesNotMatch(directory.slice(directory.indexOf('const persistGeoScope'), directory.indexOf('const browseEgypt')), /latitude|longitude|coordinates/);
 assert.doesNotMatch(directory, /watchPosition/);
 assert.match(component, /geo-first-visit/);
