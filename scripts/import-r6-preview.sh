@@ -4,6 +4,7 @@ set -euo pipefail
 ARCHIVE="${1:-bizcatalog-manager-6-preview-clean.zip}"
 DEST="apps/bizcatalog-manager-6-preview"
 EXPECTED_BRANCH="preview/bizcatalog-manager-6-isolated"
+EXPECTED_SHA256="a87bfc9e80a155277e1f35d8fb29ccff159eba9c31a6f00ffc35eee555e36241"
 
 if [[ ! -f "$ARCHIVE" ]]; then
   echo "Archive not found: $ARCHIVE" >&2
@@ -18,6 +19,12 @@ fi
 
 if [[ -e "$DEST" ]]; then
   echo "Destination already exists; refusing to overwrite: $DEST" >&2
+  exit 1
+fi
+
+ACTUAL_SHA256="$(sha256sum "$ARCHIVE" | awk '{print $1}')"
+if [[ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]]; then
+  echo "Unexpected archive checksum; refusing import." >&2
   exit 1
 fi
 
