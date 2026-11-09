@@ -9,7 +9,7 @@ This checkpoint records work on the locally sanitized, user-approved R6 source o
 - Original archive: `bizcatalog-manager (6).zip`
 - Original SHA-256: `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`
 - Latest sanitized package: `MantiqaTix-R6-preview-basepath-hardened.zip`
-- Sanitized package SHA-256: `aff13adfb0410288c8bbdd2e8450f649a15449eaeff58dc092638a3a8f158f31`
+- Sanitized package SHA-256: `aa9066eff3f630040ff3e534a3a68b82a801fb16179cfda2b286dc968ba9de1e`
 - ZIP integrity: PASS.
 - Inventory: 120 files; 85 under `src/`; 48 React components; 13 test files; 2 mobile web UI components; 6 reference captures.
 - No private `.data/`, `.aistudio/`, local `server.ts`, populated `.env`, `node_modules/` or backup snapshots.
@@ -22,7 +22,7 @@ This checkpoint records work on the locally sanitized, user-approved R6 source o
 4. The service worker resolves static assets and notification destinations from `self.registration.scope`, not the domain root.
 5. Service-worker cache cleanup is isolated to the `mantiqatix-r6-pwa-` namespace. It no longer deletes unrelated caches belonging to other applications on the same origin.
 6. R6 logo references now use the shared base-aware `PLATFORM_OFFICIAL_LOGO_URL`.
-7. Added `scripts/verify-r6-pages-base.mjs` and package scripts for `test`, `basepath:check` and `verify:local`. The `tsx` dependency was already declared; no dependency or lockfile change was needed.
+7. Added `scripts/verify-r6-pages-base.mjs`, `scripts/test-r6-service-worker.mjs`, and package scripts for `test`, `basepath:check`, `pwa:check` and `verify:local`. The `tsx` dependency was already declared; no dependency or lockfile change was needed.
 
 ## Verification evidence
 
@@ -31,10 +31,11 @@ This checkpoint records work on the locally sanitized, user-approved R6 source o
 | R6 unit tests | **83/83 PASS**, 13 test files |
 | Security-boundary assertions | **PASS** |
 | Pages base/PWA contract | **PASS**, 71 non-test TS/TSX files scanned |
+| Service-worker scope/cache isolation | **PASS**, Node VM runtime harness |
 | TypeScript/TSX syntax transpilation | **PASS**, 84 files, 0 syntax errors |
 | ZIP integrity | **PASS** |
 
-Test-runner caveat: unit tests were run with Node's built-in test runner and a local ts-node transpile-only loader plus extensionless-import resolver. The new package `tsx --test` script could not be invoked because dependencies are not installed in this offline runtime.
+Test-runner caveat: unit tests were run with Node's built-in test runner and a local ts-node transpile-only loader plus extensionless-import resolver. The new package `tsx --test` script could not be invoked because dependencies are not installed in this offline runtime. Base-path and service-worker runtime harnesses run directly on Node.
 
 ## Not verified
 
