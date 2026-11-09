@@ -33,6 +33,16 @@ Sanitized package SHA-256:
 - Verified the previously embedded example Paymob/Gemini/JWT secret strings are absent.
 - Full dependency installation, typecheck and Vite build remain **NOT VERIFIED**: npm install in the current runtime could not reach the npm registry and the dependency cache was empty. The branch CI workflow is prepared to perform those checks after source import.
 
+
+### Additional verification from the clean archive
+
+- Confirmed archive SHA-256: `a87bfc9e80a155277e1f35d8fb29ccff159eba9c31a6f00ffc35eee555e36241`.
+- Extracted clean archive contains 117 files; no `.data/`, `.data-preview/`, `.aistudio/`, `.env.local`, or `.env.production` entries.
+- Transpiled all 85 TypeScript/TSX files using the available TypeScript transpiler: **0 syntax diagnostics**.
+- Confirmed there are no direct `localStorage.getItem/setItem/removeItem` calls outside the Preview-aware storage wrapper.
+- Confirmed known sample secret strings are absent from non-documentation source.
+- Full `npm install`, `tsc --noEmit`, Vite build and Docker image build are still pending: the package registry was unreachable from the execution environment, and the application source has not yet been imported to this GitHub branch.
+
 ## Remaining blockers
 
 1. The sanitized binary archive is prepared and checksum-pinned by the import helper, but its source files have not yet been committed under `apps/bizcatalog-manager-6-preview/`.
