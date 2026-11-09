@@ -1,0 +1,31 @@
+name: Egypt Geo Boundary Candidate Review
+
+on:
+  push:
+    paths:
+      - "scripts/geo/inspect-egypt-adm2-candidate.mjs"
+      - ".github/workflows/geo-boundary-candidate-review.yml"
+  pull_request:
+    paths:
+      - "scripts/geo/inspect-egypt-adm2-candidate.mjs"
+      - ".github/workflows/geo-boundary-candidate-review.yml"
+      - "docs/GEO_BOUNDARY_VERIFIED_SOURCE_REVIEW_20261109.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-egypt-adm2:
+    name: Inspect pinned ADM2 geometry and identifiers
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Download and validate pinned public source candidate
+        run: node scripts/geo/inspect-egypt-adm2-candidate.mjs
