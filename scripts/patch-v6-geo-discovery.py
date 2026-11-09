@@ -132,7 +132,7 @@ export const PublicGeoDiscovery: React.FC<PublicGeoDiscoveryProps> = ({
               aria-label="اختيار القرية أو الشياخة"
               value={shiyakhaId}
               onChange={(event) => onSelectShiyakha(event.target.value)}
-              disabled={shiyakhaStatus === 'loading' || shiyakhaStatus === 'error'}
+              disabled={shiyakhaStatus === 'loading'}
               className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-bold text-slate-800 outline-none focus:border-emerald-500 disabled:opacity-60"
             >
               <option value="all">
