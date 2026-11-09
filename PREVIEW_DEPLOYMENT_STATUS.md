@@ -15,16 +15,18 @@ Canonical input:
 - Removed seeded customer/subscriber identities and historical sales, contact messages, subscription requests and ad request records; replaced the customer/provider demo accounts with synthetic Preview identities.
 - Removed the embedded Paymob/Gemini sample keys and hard-coded JWT/HMAC fallback secrets.
 - Added isolated `.data-preview/` storage selected only by `PREVIEW_MODE=true`.
+- Namespaced browser Local Storage under `mantiqatix_preview::` when `VITE_PREVIEW_MODE=true`, preventing shared-origin data crossover with the main site.
+- Added synthetic Preview-only customer/provider/admin credentials and disabled Paymob in the UI.
 - Disabled payment, billing, WhatsApp, backup and session-token endpoints in Preview mode.
 - Added a production static-file serving path for the built Vite frontend and a Dockerfile for a Node/Express runtime.
 - Set the seed business metrics and visitor counters to zero rather than presenting fixture values as real results.
 
 Sanitized package SHA-256:
-`c763df4b25d36c7def0978dd6d79514b606f46e0f4bd47563c7fc759e51fd1ff`
+`a87bfc9e80a155277e1f35d8fb29ccff159eba9c31a6f00ffc35eee555e36241`
 
 ## Remaining blockers
 
-1. The binary application archive is prepared, but its source files have not yet been committed under `apps/bizcatalog-manager-6-preview/`.
+1. The sanitized binary archive is prepared and checksum-pinned by the import helper, but its source files have not yet been committed under `apps/bizcatalog-manager-6-preview/`.
 2. The local runtime has no authenticated binary-upload operation for transferring this 12.6 MiB archive directly into GitHub from this session. The import helper is committed in this branch so the exact sanitized package can be imported without copying old data.
 3. After import, the R6 Preview Build workflow must complete successfully.
 4. The app requires a Node.js/Express container runtime. GitHub Pages alone cannot run its API server and must not be used as a claim of a complete functional deployment.
