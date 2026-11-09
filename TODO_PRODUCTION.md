@@ -1820,3 +1820,16 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 - Removed the medical search-to-auto-register behavior that fabricated contact/location/consultation data and marked the generated provider verified. National listing cards remain explicitly unverified; the screen no longer advertises a fabricated booking fee or opens a business storefront for a directory-only record.
 - Added `scripts/verify-r6-medical-directory.mjs`; medical-directory safety assertions PASS. Re-run totals remain 88/88 unit tests, security boundary PASS, Pages/PWA PASS (72 files), service-worker isolation PASS and syntax transpilation PASS (86 files, zero errors).
 - Updated local package: `MantiqaTix-R6-medical-directory-integrated.zip`, SHA-256 `babba30693c0a1b7bd44b568bd283b6d04a16f643662cb06c6721e3b24c63b71`; 124 files total, 87 source files, 14 test files, 2 mobile UI files. This remains local-only; semantic typecheck/build/browser tests and deployed Preview are not verified.
+
+
+
+---
+
+## 2026-11-09 — استبعاد الدليل الطبي من نطاق الموقع
+
+- **قرار المالك:** استبعاد الدليل الطبي من تطوير الموقع الحالي. لا تدمج أو تستورد أو تبني أو تربط أو توسع الدليل الطبي من R6 داخل الموقع، ولا تنفذ عليه أي تطوير للموقع.
+- يلغي هذا القرار أي توجيه سابق باعتبار `MantiqaTix-R6-medical-directory-integrated.zip` حزمة الدمج التالية. تعديلات `MedicalDirectoryView` والإضافات الخاصة بالدليل الطبي مستبعدة من أي دمج للموقع.
+- يمنع إضافة صفحة دليل طبي مستقلة أو قائمة طبية أو مسار حجز طبي أو واجهات وواجهات API خاصة بالدليل الطبي. الأولوية للدليل العام للأنشطة والخدمات، وصفحات الأنشطة، والكتالوج والمنتجات والصفحة الرئيسية وباقي وحدات المنصة.
+- لا يعني هذا القرار حذف سجلات الإنتاج أو جداول قاعدة البيانات أو بيانات العملاء الطبية الحالية. لم يتم حذف أو تعديل أي بيانات إنتاجية.
+- تُحفظ الملفات المشتركة ونسخة الموبايل ومصدر Android المنفصل. عند استكمال استيراد R6 لاحقًا، استبعد `MedicalDirectoryView.tsx` وكل واجهات ومسارات واختبارات وسكربتات وإضافات الحجز الطبية من استيراد الموقع.
+- تظل `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`. هذا تحديث نطاق وتوثيق فقط؛ لا تعديل في التطبيق أو قاعدة البيانات أو Auth/RLS/GRANT/Edge أو النشر.
