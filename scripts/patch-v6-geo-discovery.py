@@ -403,13 +403,13 @@ const normalizeGeoName = (value: unknown) => String(value || '')
         "activity options use geo scope",
     )
     dependency_pattern = re.compile(
-        r"(const activityOptions = useMemo\\(\\(\\) => \\{.*?)(\\n\\s*\\}, \\[[^\\]]+\\]\\);)(\\n\\s*const selectedActivity = activityOptions\\.find)",
+        r"(const activityOptions = useMemo\(\(\) => \{.*?)(\n\s*\}, \[[^\]]+\]\);)(\n\s*const selectedActivity = activityOptions\.find)",
         re.DOTALL,
     )
     dependency_match = dependency_pattern.search(source)
     if not dependency_match:
         raise SystemExit("V6_GEO_PATCH_FAILED activity_options_dependency_not_found")
-    patched_dependency_block = "\\n  }, [geoScopedBusinesses]);"
+    patched_dependency_block = "\n  }, [geoScopedBusinesses]);"
     if dependency_match.group(2) != patched_dependency_block:
         source = source[:dependency_match.start(2)] + patched_dependency_block + source[dependency_match.end(2):]
     source = replace_once(
