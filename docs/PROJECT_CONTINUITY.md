@@ -1712,3 +1712,10 @@ The owner clarified that the dedicated medical directory is to be removed from t
 ## 2026-11-09 — V6 general-directory geographic discovery
 
 The current V6 work adds consent-first geographic discovery to the general activity/service directory only. The standalone medical directory remains excluded by owner decision. The overlay imports the pinned Open Admin Data Egypt 2026.09 dataset (CC BY 4.0; commit `76b47b22872288c0d8b0c757975980e6986945e8`), provides 27 governorates and 365 district/center choices, and lazily fetches shiyakhas for the selected district. GPS is requested only after an explicit user click; exact coordinates are not persisted or sent to the external data host. A nearest representative-point result is only an approximate editable suggestion, not official boundary proof. Egypt-wide/manual fallback remains available. PR #706 is merged to main as `8e76971da0c60234eddbacc4c9f0059ecd85c171`. Exact-head source validation and Pages PR validation passed, including TypeScript/Vite and desktop/mobile Playwright against root and Preview. The PR-event deploy job was skipped by design; post-merge Pages HTTP/deployment confirmation remains outstanding. No Production backend changes. Preserve mobile/native Android source.
+
+
+---
+
+## 2026-11-09 — No standalone medical directory in either public website shell
+
+The V6 root has already removed the standalone medical page. This follow-up also removes the old ?view=medical_directory route from the retained catalog served under /legacy/: the view-mode resolver, page import/render, Navbar and sitemap entries are removed, and the dedicated component is deleted. Old direct links fall back to the general activity directory. This is a UI-route removal only; no public business/customer rows, Supabase schema, Auth/RLS or Edge Function data are deleted. Keep general activity/service discovery and the 15-sector registry; preserve separate mobile/native Android source. Exact-head CI and deployed legacy browser checks are required before marking complete.
