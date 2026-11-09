@@ -128,9 +128,44 @@ try {
     }) });
   });
 
+  await page.route('https://raw.githubusercontent.com/open-admin-data/egypt-administrative-divisions/**', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+  });
+  await page.addInitScript(() => {
+    window.__mntyGeoCalls = 0;
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: {
+        getCurrentPosition(success, _error, options) {
+          window.__mntyGeoCalls += 1;
+          window.__mntyGeoOptions = options;
+          success({ coords: { latitude: 30.046, longitude: 31.245, accuracy: 35 } });
+        },
+      },
+    });
+  });
+
   const appUrl = process.env.V6_E2E_URL || 'http://127.0.0.1:4173/MantiqatiX/v6-preview/';
   await page.goto(appUrl, { waitUntil: 'domcontentloaded' });
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor({ timeout: 15000 });
+  const geoDiscovery = page.getByTestId('public-geo-discovery');
+  await geoDiscovery.waitFor({ timeout: 10000 });
+  await geoDiscovery.getByTestId('geo-first-visit').waitFor();
+  assert.equal(await page.evaluate(() => window.__mntyGeoCalls), 0, 'First visit must not request geolocation before explicit consent');
+  await geoDiscovery.getByRole('button', { name: 'استخدم موقعي' }).click();
+  await page.waitForFunction(() => window.__mntyGeoCalls === 1 && document.body.innerText.includes('ترشيح تقريبي حسب أقرب نقطة بيانات'), null, { timeout: 15000 });
+  const geoPrivacy = await page.evaluate(() => ({
+    options: window.__mntyGeoOptions,
+    preference: JSON.parse(localStorage.getItem('mantiqatix.v6.geo-scope.v1') || 'null'),
+  }));
+  assert.equal(geoPrivacy.options.enableHighAccuracy, false, 'General discovery must not demand high-accuracy GPS');
+  assert.equal(geoPrivacy.options.timeout, 15000, 'GPS request must have a bounded timeout');
+  assert.deepEqual(Object.keys(geoPrivacy.preference).sort(), ['completed', 'districtId', 'governorate', 'mode', 'shiyakhaId'].sort(), 'Only administrative scope may be persisted');
+  assert.doesNotMatch(JSON.stringify(geoPrivacy.preference), /latitude|longitude|coordinates/i, 'GPS coordinates must never be persisted');
+  await geoDiscovery.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+  assert.equal(await geoDiscovery.getByLabel('اختيار المحافظة').inputValue(), 'all', 'Visitors must be able to restore Egypt-wide discovery');
+  console.log('V6_GEO_FIRST_VISIT_CONSENT=PASS explicit=true no_precise_coordinates_persisted=true');
+
   const legacyQrBusinessIdUrl = new URL(appUrl);
   legacyQrBusinessIdUrl.searchParams.set('businessId', 'v6-preview-business-1');
   await page.goto(legacyQrBusinessIdUrl.toString(), { waitUntil: 'domcontentloaded' });
@@ -183,6 +218,15 @@ try {
   await governorateExplorer.getByRole('button', { name: 'كل المحافظات' }).click();
   assert.equal(await page.getByLabel('تصفية الأنشطة حسب المحافظة').inputValue(), 'all', 'Resetting the map must restore all governorates');
   console.log('V6_PUBLIC_GOVERNORATE_MAP=PASS mapped_governorates=4 business_pins=false');
+  const geoPanel = page.getByTestId('public-geo-discovery');
+  await geoPanel.getByLabel('اختيار المحافظة').selectOption({ label: 'المنوفية' });
+  await geoPanel.getByLabel('اختيار المركز أو القسم').selectOption('EG1706');
+  await geoPanel.getByLabel('اختيار القرية أو الشياخة').waitFor({ timeout: 10000 });
+  await page.waitForFunction(() => !document.querySelector('[aria-label="اختيار القرية أو الشياخة"]')?.disabled, null, { timeout: 10000 });
+  await geoPanel.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+  assert.equal(await geoPanel.getByLabel('اختيار المحافظة').inputValue(), 'all', 'Manual geographic hierarchy must reset without breaking Egypt-wide discovery');
+  console.log('V6_GEO_MANUAL_HIERARCHY=PASS governorates=27 districts=365 locality_load=lazy');
+
   const sectorCardsMode = page.getByTestId('activity-view-cards');
   const sectorTabsMode = page.getByTestId('activity-view-tabs');
   const sectorFilterList = page.getByTestId('activity-filter-list');
