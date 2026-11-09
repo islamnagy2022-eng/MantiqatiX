@@ -24,6 +24,15 @@ Canonical input:
 Sanitized package SHA-256:
 `a87bfc9e80a155277e1f35d8fb29ccff159eba9c31a6f00ffc35eee555e36241`
 
+
+## Validation performed on the sanitized package
+
+- Parsed 85 TypeScript/TSX files with the TypeScript transpiler: no syntax diagnostics.
+- Verified that the archive contains no `.data/` or `.aistudio/` path.
+- Verified there are no unscoped Local Storage reads/writes outside the Preview storage wrapper.
+- Verified the previously embedded example Paymob/Gemini/JWT secret strings are absent.
+- Full dependency installation, typecheck and Vite build remain **NOT VERIFIED**: npm install in the current runtime could not reach the npm registry and the dependency cache was empty. The branch CI workflow is prepared to perform those checks after source import.
+
 ## Remaining blockers
 
 1. The sanitized binary archive is prepared and checksum-pinned by the import helper, but its source files have not yet been committed under `apps/bizcatalog-manager-6-preview/`.
