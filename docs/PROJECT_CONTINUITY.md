@@ -2,7 +2,7 @@
 
 - PR #699 merged to `main` as documentation-only commit `1beb586a3d6eb8f8d205b6a3a502ed04018ce50f`. It corrected the R6 integration map so the business/catalog feed is not confused with the national `directory-listings` keyset pagination endpoint. No runtime or production change occurred.
 - The uploaded canonical R6 archive is available as a direct conversation file in the current runtime. Reverified original SHA-256: `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`.
-- Latest local sanitized package: `MantiqaTix-R6-preview-basepath-hardened.zip`, SHA-256 `aa9066eff3f630040ff3e534a3a68b82a801fb16179cfda2b286dc968ba9de1e`. Inventory: 120 files, 85 under `src/`, 48 React components, 13 test files, 2 R6 mobile web components and 6 reference captures. No private `.data/`, `.aistudio/`, local `server.ts`, real `.env`, node_modules or backup data.
+- Latest local sanitized package: `MantiqaTix-R6-preview-basepath-hardened.zip`, SHA-256 `aa9066eff3f630040ff3e534a3a68b82a801fb16179cfda2b286dc968ba9de1e`. Inventory: 121 files, 85 under `src/`, 48 React components, 13 test files, 2 R6 mobile web components and 6 reference captures. No private `.data/`, `.aistudio/`, local `server.ts`, real `.env`, node_modules or backup data.
 - Additional local R6 implementation for isolated Pages Preview:
   - Vite `base` reads `VITE_BASE_PATH` and validates an absolute path with leading/trailing slash.
   - App registers service worker under `import.meta.env.BASE_URL` with the same scope.
@@ -11,11 +11,11 @@
   - Service worker cache uses `mantiqatix-r6-pwa-` namespace and removes only old R6-prefixed caches; it no longer deletes arbitrary same-origin caches.
   - UI brand logo references use a base-aware shared URL.
   - Added `scripts/verify-r6-pages-base.mjs`, `test`, `basepath:check` and `verify:local` package scripts. No dependency change was made; `tsx` was already a devDependency.
-- Local verification: 83/83 tests PASS across 13 test files; security-boundary assertions PASS; Pages base/PWA contract PASS after scanning 71 non-test TS/TSX files; syntax transpilation PASS across 84 TS/TSX files with 0 syntax errors.
+- Local verification rerun: 83/83 tests PASS across 13 test files; security-boundary assertions PASS; Pages base/PWA contract PASS after scanning 71 non-test TS/TSX files; service-worker runtime scope/cache isolation PASS; syntax transpilation PASS across 84 TS/TSX files with 0 syntax errors. ZIP integrity PASS.
 - Test caveat: tests were executed with Node's test runner plus a local ts-node transpile-only loader and extensionless-import resolver. The newly declared `tsx --test` npm script was not invoked because dependencies were not installed in this offline runtime.
 - Semantic TypeScript, dependency installation, Vite build, browser/visual E2E, accessibility, actual PWA install/update, and deployed-origin R6 Preview remain NOT VERIFIED. Do not represent this as production certification.
 - Separate native Android archive `source_RC40.zip` remains preserved, SHA-256 `e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e`; ZIP integrity and presence of Gradle wrapper/build manifests plus AndroidManifest are verified. It remains outside current `main`; do not delete or mix it with R6 mobile web UI.
-- **R6 source tree remains NOT IMPORTED into GitHub.** The local sanitized package is not an app repository commit or deployed code. Next step is to place the exact tree at `apps/aistudio-v6` on a dedicated branch, preserve mobile components, then run full dependency/type/build/browser/PWA/security validation. Existing V6 root and `/legacy/` remain unchanged until an explicitly reviewed cutover.
+- **R6 source tree remains NOT IMPORTED into GitHub.** The local sanitized package is not an app repository commit or deployed code. In this runtime the GitHub connector has no bulk local-byte upload action and direct git transport is blocked by DNS resolution for `github.com`; no partial import was attempted. Next step is to place the exact tree at `apps/aistudio-v6` on a dedicated branch, preserve mobile components, then run full dependency/type/build/browser/PWA/security validation. Existing V6 root and `/legacy/` remain unchanged until an explicitly reviewed cutover.
 - No Production Supabase writes, schema/Auth/RLS/GRANT change, payment/finance operation, Pages deployment or mobile/Android deletion occurred in this checkpoint. `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`.
 
 ---

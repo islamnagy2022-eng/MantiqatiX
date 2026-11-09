@@ -11,7 +11,7 @@ This checkpoint records work on the locally sanitized, user-approved R6 source o
 - Latest sanitized package: `MantiqaTix-R6-preview-basepath-hardened.zip`
 - Sanitized package SHA-256: `aa9066eff3f630040ff3e534a3a68b82a801fb16179cfda2b286dc968ba9de1e`
 - ZIP integrity: PASS.
-- Inventory: 120 files; 85 under `src/`; 48 React components; 13 test files; 2 mobile web UI components; 6 reference captures.
+- Inventory: 121 files; 85 under `src/`; 48 React components; 13 test files; 2 mobile web UI components; 6 reference captures.
 - No private `.data/`, `.aistudio/`, local `server.ts`, populated `.env`, `node_modules/` or backup snapshots.
 
 ## Implemented locally
@@ -35,7 +35,7 @@ This checkpoint records work on the locally sanitized, user-approved R6 source o
 | TypeScript/TSX syntax transpilation | **PASS**, 84 files, 0 syntax errors |
 | ZIP integrity | **PASS** |
 
-Test-runner caveat: unit tests were run with Node's built-in test runner and a local ts-node transpile-only loader plus extensionless-import resolver. The new package `tsx --test` script could not be invoked because dependencies are not installed in this offline runtime. Base-path and service-worker runtime harnesses run directly on Node.
+Test-runner detail: unit tests were rerun with Node's built-in test runner, `TS_NODE_TRANSPILE_ONLY=true`, explicit ESNext/Bundler compiler options and the local ts-node ESM extensionless-import resolver. The package `tsx --test` script remains unverified because dependencies are not installed in this offline runtime. Base-path and service-worker runtime harnesses run directly on Node.
 
 ## Not verified
 
