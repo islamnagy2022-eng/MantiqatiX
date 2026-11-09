@@ -4,7 +4,7 @@ set -euo pipefail
 ARCHIVE="${1:-bizcatalog-manager-6-preview-clean.zip}"
 DEST="apps/bizcatalog-manager-6-preview"
 EXPECTED_BRANCH="preview/bizcatalog-manager-6-isolated"
-EXPECTED_SHA256="a5d765120363747b46432d482f159e9f3dce9e2e809d818b58dd495bcdf0e4d5"
+EXPECTED_SHA256="8e407165706aa6b70257420ce77e389f1caaab3a0c2181bf3fc8f9680fc4409a"
 
 if [[ ! -f "$ARCHIVE" ]]; then
   echo "Archive not found: $ARCHIVE" >&2
@@ -34,6 +34,7 @@ fi
 mkdir -p "$DEST"
 unzip -q "$ARCHIVE" -d "$DEST"
 python3 scripts/harden_r6_preview.py "$DEST"
+python3 scripts/finish_r6_preview_isolation.py "$DEST"
 
 test -f "$DEST/package.json"
 test -f "$DEST/server.ts"
@@ -42,6 +43,8 @@ test ! -e "$DEST/.data"
 test ! -e "$DEST/.data-preview"
 grep -q 'PREVIEW_ALLOWED_API_PATHS' "$DEST/server.ts"
 grep -q 'MANTIQATIX_PREVIEW_NOTICE' "$DEST/src/App.tsx"
+grep -q 'if (IS_PREVIEW_MODE) return [];' "$DEST/src/context/AppContext.tsx"
+grep -q "VITE_PREVIEW_MODE !== 'true'" "$DEST/src/main.tsx"
 git add "$DEST"
 git commit -m "Import sanitized and hardened BizCatalog Manager R6 preview source"
 echo "Import committed. Push this preview branch to GitHub to start the R6 Preview CI workflow."
