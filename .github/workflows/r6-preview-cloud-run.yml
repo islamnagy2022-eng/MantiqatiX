@@ -1,0 +1,80 @@
+name: Deploy R6 Preview to Cloud Run
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - preview/bizcatalog-manager-6-isolated
+    paths:
+      - "apps/bizcatalog-manager-6-preview/**"
+      - ".github/workflows/r6-preview-cloud-run.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: r6-preview-cloud-run
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: ${{ hashFiles('apps/bizcatalog-manager-6-preview/Dockerfile') != '' }}
+    runs-on: ubuntu-latest
+    environment: r6-preview
+    steps:
+      - name: Checkout isolated preview branch
+        uses: actions/checkout@v4
+
+      - name: Validate required isolated deployment secrets
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_WIF_PROVIDER: ${{ secrets.GCP_WIF_PROVIDER }}
+          GCP_DEPLOYER_SERVICE_ACCOUNT: ${{ secrets.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+        run: |
+          test -n "$GCP_PROJECT_ID" || (echo "Missing GCP_PROJECT_ID" && exit 1)
+          test -n "$GCP_WIF_PROVIDER" || (echo "Missing GCP_WIF_PROVIDER" && exit 1)
+          test -n "$GCP_DEPLOYER_SERVICE_ACCOUNT" || (echo "Missing GCP_DEPLOYER_SERVICE_ACCOUNT" && exit 1)
+
+      - name: Authenticate to Google Cloud using Workload Identity Federation
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy isolated preview service
+        working-directory: apps/bizcatalog-manager-6-preview
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          REGION: ${{ vars.GCP_REGION }}
+          SERVICE: ${{ vars.CLOUD_RUN_PREVIEW_SERVICE }}
+        run: |
+          REGION="${REGION:-europe-west1}"
+          SERVICE="${SERVICE:-mantiqatix-r6-preview}"
+          gcloud run deploy "$SERVICE" \
+            --source . \
+            --project "$PROJECT_ID" \
+            --region "$REGION" \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-env-vars "NODE_ENV=production,PREVIEW_MODE=true,VITE_PREVIEW_MODE=true,DISABLE_HMR=true" \
+            --port 8080 \
+            --memory 1Gi \
+            --cpu 1 \
+            --min 0 \
+            --max 3 \
+            --timeout 60s
+
+      - name: Print deployed URL
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          REGION: ${{ vars.GCP_REGION }}
+          SERVICE: ${{ vars.CLOUD_RUN_PREVIEW_SERVICE }}
+        run: |
+          REGION="${REGION:-europe-west1}"
+          SERVICE="${SERVICE:-mantiqatix-r6-preview}"
+          gcloud run services describe "$SERVICE" --project "$PROJECT_ID" --region "$REGION" --format='value(status.url)'
