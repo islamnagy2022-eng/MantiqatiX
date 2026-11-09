@@ -46,7 +46,30 @@ Official licence: https://creativecommons.org/licenses/by/3.0/igo/deed.en
 
 **Retrieval limitation:** the Git LFS pointer and immutable SHA/size were read, but the GeoJSON geometry bytes could not be materialized in this review environment. Therefore feature properties, coordinate reference system, polygon validity, holes/multipolygons, actual feature count and P-code crosswalk have **not** been inspected. The dataset is a viable candidate, not a production-approved asset.
 
-## 3. ADM3 / shiyakha boundary evidence
+## 3. Open Admin Data identifier audit
+
+The pinned Open Admin Data repository was inspected directly at its 2026.09 release commit (`76b47b22872288c0d8b0c757975980e6986945e8`). The repository's `data/all-governorate.json` and `data/all-district.json` yielded:
+
+- 27 governorate records and 365 district records.
+- All 365 district IDs are unique; each `code.id` equals its `id`.
+- All 365 districts reference one of the 27 governorates; each district ID begins with the parent governorate ID.
+- All 365 district rows have numeric latitude/longitude values.
+- District IDs follow `EG` + numeric characters (examples `EG2107`, `EG1309`); a sampled ADM3 child list for `EG2107` uses `EG210701`, `EG210702`, etc.
+- District and sampled shiyakha records have empty `source` objects and the schema defines a generic `code.id`, not an explicit `adm2_pcode` field.
+
+OCHA's P-code standard says P-codes start with the ISO-3166-1 country code (normally alpha-2) followed by numeric administrative components; the code pattern and parent-prefix hierarchy in Open Admin Data are therefore **syntactically consistent** with that rule. That does **not** prove these specific IDs are byte-for-byte the current OCHA COD-AB P-codes. A source-level crosswalk still needs to compare the exact ADM2/ADM3 P-code columns from the pinned OCHA/HDX resource with the Open Admin Data IDs; do not infer identity from the pattern or names.
+
+References:
+- Open Admin Data files: https://github.com/open-admin-data/egypt-administrative-divisions/tree/master/data
+- OCHA P-code definition: https://humanitarian.atlassian.net/wiki/spaces/imtoolbox/pages/222265609
+- OCHA COD-AB P-code schema: https://ocha-dap.github.io/hdx-cod-ab-spec/
+
+## 4. ADM3 / shiyakha boundary evidence
+
+OCHA's COD status dashboard reports Egypt as `ADM3: partial, in 96.2% of ADM2 units` (5,716 ADM3 units). This means the ADM3 layer is not complete for every ADM2 unit; missing geometry must remain distinguishable from a legitimate “outside this area” result. The OCHA status dashboard is a better coverage signal than merely comparing the 5,716 count to the Open Admin Data hierarchy.
+
+Source: https://cod.fieldmaps.io/report/egy
+
 
 The OCHA COD-AB Egypt dataset is described as covering ADM0–ADM3 and containing:
 
@@ -69,7 +92,7 @@ https://orionterrametrics.com/data/egypt/boundaries/egypt-subnational-administra
 
 geoBoundaries' current EGY gbOpen listing exposes ADM0, ADM1 and ADM2 directories; an EGY ADM3 geoBoundaries file was not established in this review. The geoBoundaries ADM2 file must not be treated as a complete ADM3 source.
 
-## 4. Acceptance gates before code or production use
+## 5. Acceptance gates before code or production use
 
 1. Obtain the actual OCHA COD-AB/HDX resource manifest and geometry files for ADM1/ADM2/ADM3; record exact resource IDs, hashes, file versions, metadata and licences. Do not rely on a third-party catalogue alone.
 2. Materialize and inspect the pinned geoBoundaries ADM2 GeoJSON. Verify 365 valid polygons, CRS/WGS84 coordinates, holes, multipolygons, invalid/self-intersecting rings, island geometry, overlaps, gaps and file size.
@@ -80,7 +103,7 @@ geoBoundaries' current EGY gbOpen listing exposes ADM0, ADM1 and ADM2 directorie
 7. Keep precise GPS in memory only; never send visitor coordinates to HDX, ArcGIS or another third-party geocoding service. Bundle a simplified, attribution-bearing static dataset rather than making runtime location API calls.
 8. Run TypeScript/build, deterministic geospatial unit tests, desktop/mobile browser tests and deployed-origin checks. Only then consider a separately reviewed production promotion.
 
-## 5. Current state and non-actions
+## 6. Current state and non-actions
 
 - Current nearest representative-point matching: **still approximate**.
 - geoBoundaries ADM2 metadata/licence/hash/size: **verified**.
