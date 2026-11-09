@@ -1,12 +1,12 @@
 # BizCatalog Manager (6) — Isolated Preview
 
-Status: **R6 SOURCE PREPARED AND IMPORT AUTOMATION HARDENED — APPLICATION ZIP NOT YET IMPORTED INTO THIS BRANCH — NOT BUILT — NOT DEPLOYED**
+Status: **R6 CLEAN-BASELINE IMPORT PIPELINE READY — APPLICATION ZIP NOT YET IMPORTED INTO THIS BRANCH — NOT BUILT — NOT DEPLOYED**
 
 Preview branch: `preview/bizcatalog-manager-6-isolated`
 
 ## Sole application baseline
 
-The owner-supplied `bizcatalog-manager (6).zip` is the only application source of truth for the new build. Do not merge the RC40 or old catalog UI, routes, components, state stores, or dashboards into it. Older files are reference-only for a separately reviewed capability that is proven to be missing from R6.
+The owner-supplied `bizcatalog-manager (6).zip` is the only application source of truth for the new build. Do not merge the RC40 or old catalog UI, routes, components, state stores, or dashboards into it. Older files are reference-only for a separately reviewed capability proven to be missing from R6.
 
 Sanitized package: `bizcatalog-manager-6-preview-clean.zip`
 SHA-256: `a87bfc9e80a155277e1f35d8fb29ccff159eba9c31a6f00ffc35eee555e36241`
@@ -14,53 +14,52 @@ Compressed size: 13,211,088 bytes.
 Archive inventory: 117 files; uncompressed file payload: 15,591,628 bytes.
 The archive inventory excludes `.data/`, `.data-preview/`, `.aistudio/`, `.env`, `.env.local`, and `.env.production`.
 
-## Data reset and Preview isolation
+## Clean baseline policy and import pipeline
 
-The import pipeline now runs both:
-- `scripts/finish_r6_preview_isolation.py`
-- `scripts/finish_r6_preview_cleanups.py`
+The branch importer executes four ordered hardening stages on the extracted R6 source:
 
-The final cleanup keeps only the R6 public directory/catalogue seed records (26 activities/businesses plus catalogue products) as unverified display content pending owner review. It removes or starts empty:
-- subscribers, demo customer accounts, password fixtures, local admin credentials and authenticated Preview sessions;
-- sales, bookings, wallet transactions, grant history, payment intents, subscriptions, messages and support/contact histories;
-- wallet balances, pending balances, credit facilities, ad grants and fabricated financial metrics;
-- generated campaigns, sample advertising signboards/coupons, fake conversion events and synthetic load-test telemetry;
-- prior Preview browser snapshots for the catalogue and directory are ignored at initialization;
-- Meta Pixel starts disabled, without a hard-coded third-party Pixel ID or test event code.
+1. `scripts/harden_r6_preview.py`: read-only Preview API, security response headers, rate limit, unverified directory labels, Preview notice and server isolation.
+2. `scripts/finish_r6_preview_isolation.py`: browser-side financial isolation, Preview wallet handling and service-worker separation.
+3. `scripts/finish_r6_preview_core.py`: clear built-in subscriber/demo accounts, disable local password login, force guest-only Preview session, hide test-role controls, and replace both fresh database builders with clean catalogue-only builders.
+4. `scripts/finish_r6_preview_cleanups.py`: zero all wallet/grant values, clear sample campaigns/signage/pixel events, disable tracking defaults, clear test telemetry and prevent stale catalogue/directory browser snapshots from being restored.
 
-Preview API remains read-only. Only GET `/api/health`, `/api/businesses`, and `/api/products` are allowed; all other API routes and mutations return 503. Payment, billing, WhatsApp, backup and token endpoints remain unavailable. The visible notice identifies the environment as Preview.
+The fresh database builders now retain only the R6 directory/business records and product catalogue. Records are labeled unverified; phone/contact channels, payment configuration, financial balances, credit, commissions and operational KPIs are blank or zero. New operational collections start empty: subscribers, sales, ad requests, contact messages, subscription requests, wallets, transactions, campaigns, direct messages, requests, payment intents, media assets, WhatsApp dispatches, security logs and backups.
 
-Authentication is intentionally disabled in this public read-only Preview until a real Supabase/Google OAuth implementation is integrated and verified. Review of the currently available R6 and RC40 frontend sources did not establish a reusable, working Google OAuth flow or production OAuth credentials. Do not invent client IDs or secrets.
+The pipeline removes the old demo subscriber/customer identities and the embedded local admin password. Preview is public, guest-only and read-only. Only GET `/api/health`, `/api/businesses`, and `/api/products` are allowed; all other API routes and mutations return 503. Payment, billing, WhatsApp, backup and token endpoints remain disabled. Meta Pixel is off, with no embedded third-party ID or test conversion code. Preview local storage uses the separate `mantiqatix_preview::` namespace.
 
-Keep Android/mobile source separate and untouched. Do not copy old operational data or production secrets. Do not reset, truncate, or point the Preview at the existing production Supabase project. A separately provisioned isolated Preview backend and reviewed compatible migrations are still required.
+## Authentication and backend boundary
 
-## Checks completed locally
+Google OAuth/Supabase Auth are not enabled in the public Preview. A working reusable Google OAuth flow and valid client credentials have not been established from the reviewed sources. Do not invent client IDs or secrets. Integrate Auth only after a secure provider configuration is available and then verify callback handling, session refresh, logout, RBAC and RLS.
+
+Do not point Preview at the existing active production Supabase project or modify its data/schema. A separate Preview backend and reviewed R6-compatible migrations remain required. Keep Android/mobile source separate and untouched. Never copy production secrets, passwords, database dumps or operational data.
+
+## Local source checks
 
 - ZIP SHA-256 and archive inventory verified.
-- 85 TypeScript/TSX files passed syntax transpilation with zero syntax diagnostics after the final cleanup pass.
-- The final cleanup script's invariant checks passed, including empty subscribers/demo accounts, zero wallet seed values, disabled login, unverified directory records, empty sample campaigns/pixel events and no embedded demo credentials.
-- Import helper shell syntax and Python syntax checks passed.
-- **Not verified:** dependency installation, full TypeScript typecheck, test suite, Vite production build, Docker build, end-to-end auth, RLS/RBAC, Supabase schema parity or deployed-origin smoke tests. The local environment previously failed to reach the npm registry and has no Bun or Docker installed.
+- The four sanitation scripts passed Python syntax validation and completed successfully against a fresh extraction of the sanitized source.
+- The final clean pass found no bundled subscriber/demo account markers, password fixtures, fake transaction/message IDs, default Pixel identifiers, test event codes, seeded ad-grant IDs or similar active-source markers.
+- 85 TypeScript/TSX files passed syntax transpilation with zero syntax diagnostics.
+- **Not verified:** package install, full TypeScript typecheck, unit tests, Vite production build, Docker build, end-to-end auth, Supabase schema/RLS/RBAC, or deployed-origin smoke tests. The local environment previously could not resolve the npm registry and has no Docker installed.
 
 ## GitHub import and deployment state
 
-- The isolated branch exists and is separate from production `main`.
-- The importer now verifies the exact source archive checksum, rejects secret/data paths, refuses overwrites, hardens the Preview API, applies the clean-data pass and commits the extracted source under `apps/bizcatalog-manager-6-preview/`.
-- The importer expects the ZIP on a local authenticated Git checkout. It is not a binary upload endpoint.
-- The GitHub connector available to this session has no authenticated binary archive upload or Git push operation. Therefore the 13.2 MB ZIP remains attached to the conversation and is **not yet committed** to this branch.
-- CI intentionally stops until that application directory exists.
-- Cloud Run deployment still requires an isolated GCP project and GitHub Environment secrets: `GCP_PROJECT_ID`, `GCP_WIF_PROVIDER`, and `GCP_DEPLOYER_SERVICE_ACCOUNT`.
+- The isolated branch and guarded importer exist; production `main` remains untouched.
+- The importer checks the exact archive checksum, rejects data/secret paths, refuses an overwrite, applies the four hardening stages and commits the extracted app to `apps/bizcatalog-manager-6-preview/`.
+- The importer requires the ZIP on a local authenticated Git checkout. It is not a binary upload endpoint.
+- The GitHub connection available in this session has no authenticated binary archive upload or Git push operation. The 13.2 MB ZIP therefore remains attached to this conversation and is **not yet committed to this branch**.
+- CI intentionally stops until the application directory exists.
+- Cloud Run deployment requires an isolated GCP project and GitHub Environment secrets: `GCP_PROJECT_ID`, `GCP_WIF_PROVIDER`, and `GCP_DEPLOYER_SERVICE_ACCOUNT`.
 - GitHub Pages cannot run the Express backend.
 
 ## Release gates
 
 1. Import the exact ZIP and verify its checksum.
-2. Install from the committed lockfile; run full typecheck and tests.
+2. Install dependencies from a committed lockfile; run full typecheck and tests.
 3. Build the frontend and Docker image.
 4. Provision an isolated Preview backend and apply only reviewed R6-compatible migrations.
 5. Implement and verify Google OAuth, callback handling, session refresh, logout, RLS, RBAC and tenant isolation.
-6. Validate the empty operational-data baseline and review all directory seed records.
+6. Review the public directory records before describing them as verified.
 7. Deploy the Preview service and pass health/smoke checks.
-8. Keep production `main` and production Supabase unchanged until a separate explicit production-cutover approval.
+8. Keep production `main` and production Supabase unchanged until a separate explicit production cutover approval.
 
 **No live Preview URL exists. No successful application build or deployment is claimed.**
