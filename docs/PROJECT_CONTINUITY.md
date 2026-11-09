@@ -1689,4 +1689,6 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Follow-on UI integration (local only): `MedicalDirectoryView.tsx` now consumes the national listing adapter with 20-row cursor paging, healthcare/type/geography/specialty/search filters, debounced search, stale-request protection and ID dedupe. Directory-only rows are kept distinct from business catalog records.
 - Removed search-triggered fake provider creation/verification and fabricated booking prices from the medical directory. Public listing rows remain unverified and do not open business storefronts.
 - Safety assertion script `scripts/verify-r6-medical-directory.mjs`: PASS. All 88 unit tests still pass; security, Pages/PWA, service-worker isolation and 86-file TS/TSX syntax checks pass.
-- New local package: `MantiqaTix-R6-medical-directory-integrated.zip`, SHA-256 `babba30693c0a1b7bd44b568bd283b6d04a16f643662cb06c6721e3b24c63b71`; 124 files total, 87 source, 14 test files, 2 mobile web components. Not imported or deployed.
+- New local package: `MantiqaTix-R6-medical-directory-integrated.zip`, SHA-256 `9ffbc3d9fe7a10406a79caffd1caf1b5ea62f8f864499b0f5376c2ada106a329`; 124 files total, 87 source, 14 test files, 2 mobile web components. Not imported or deployed.
+
+- Final local package was regenerated after synchronizing README and reference mapping; SHA-256 `9ffbc3d9fe7a10406a79caffd1caf1b5ea62f8f864499b0f5376c2ada106a329`. A repeated dependency install attempt timed out; build/typecheck remain unverified.
