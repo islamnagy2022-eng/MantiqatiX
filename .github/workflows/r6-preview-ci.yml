@@ -1,0 +1,52 @@
+name: R6 Preview Build
+
+on:
+  push:
+    branches:
+      - preview/bizcatalog-manager-6-isolated
+    paths:
+      - "apps/bizcatalog-manager-6-preview/**"
+      - ".github/workflows/r6-preview-ci.yml"
+  pull_request:
+    branches:
+      - preview/bizcatalog-manager-6-isolated
+    paths:
+      - "apps/bizcatalog-manager-6-preview/**"
+      - ".github/workflows/r6-preview-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: r6-preview-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: ${{ hashFiles('apps/bizcatalog-manager-6-preview/package.json') != '' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/bizcatalog-manager-6-preview
+    steps:
+      - name: Checkout isolated preview branch
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/bizcatalog-manager-6-preview/package.json
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Type check
+        run: npm run lint
+      - name: Build frontend
+        run: npm run build
+      - name: Verify isolated data configuration
+        run: |
+          grep -q 'PREVIEW_MODE=true' .env.example
+          grep -q '.data-preview' server.ts
+          test ! -e .data
+          test ! -e .data-preview
