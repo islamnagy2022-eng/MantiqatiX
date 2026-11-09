@@ -23,7 +23,7 @@ The branch importer executes four ordered hardening stages on the extracted R6 s
 3. `scripts/finish_r6_preview_core.py`: clear built-in subscriber/demo accounts, disable local password login, force guest-only Preview session, hide test-role controls, and replace both fresh database builders with clean catalogue-only builders.
 4. `scripts/finish_r6_preview_cleanups.py`: zero all wallet/grant values, clear sample campaigns/signage/pixel events, disable tracking defaults, clear test telemetry and prevent stale catalogue/directory browser snapshots from being restored.
 
-The fresh database builders now retain only the R6 directory/business records and product catalogue. Records are labeled unverified; phone/contact channels, payment configuration, financial balances, credit, commissions and operational KPIs are blank or zero. New operational collections start empty: subscribers, sales, ad requests, contact messages, subscription requests, wallets, transactions, campaigns, direct messages, requests, payment intents, media assets, WhatsApp dispatches, security logs and backups.
+The fresh database builders now retain only the R6 directory/business records and product catalogue. Records are labeled unverified; owner email/phone/WhatsApp, staff names, owner-subscriber links, subscription/billing metadata, payment configuration, financial balances, credit, commissions and operational KPIs are blank, defaulted or zero. New operational collections start empty: subscribers, sales, ad requests, contact messages, subscription requests, wallets, transactions, campaigns, direct messages, requests, payment intents, media assets, WhatsApp dispatches, security logs and backups.
 
 The pipeline removes the old demo subscriber/customer identities and the embedded local admin password. Preview is public, guest-only and read-only. Only GET `/api/health`, `/api/businesses`, and `/api/products` are allowed; all other API routes and mutations return 503. Payment, billing, WhatsApp, backup and token endpoints remain disabled. Meta Pixel is off, with no embedded third-party ID or test conversion code. Preview local storage uses the separate `mantiqatix_preview::` namespace.
 
@@ -36,7 +36,7 @@ Do not point Preview at the existing active production Supabase project or modif
 ## Local source checks
 
 - ZIP SHA-256 and archive inventory verified.
-- The four sanitation scripts passed Python syntax validation and completed successfully against a fresh extraction of the sanitized source.
+- The four sanitation scripts passed Python syntax validation and completed successfully against a fresh extraction of the sanitized source. Public listing records also have owner/staff identity and subscriber-link metadata removed.
 - The final clean pass found no bundled subscriber/demo account markers, password fixtures, fake transaction/message IDs, default Pixel identifiers, test event codes, seeded ad-grant IDs or similar active-source markers.
 - 85 TypeScript/TSX files passed syntax transpilation with zero syntax diagnostics.
 - **Not verified:** package install, full TypeScript typecheck, unit tests, Vite production build, Docker build, end-to-end auth, Supabase schema/RLS/RBAC, or deployed-origin smoke tests. The local environment previously could not resolve the npm registry and has no Docker installed.
