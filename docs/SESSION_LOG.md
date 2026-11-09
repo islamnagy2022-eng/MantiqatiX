@@ -2307,3 +2307,16 @@ No writes were executed.
 7. Separately close Production data/Storage/Auth restore with measured RPO/RTO/rollback; coupled payment/finance/Paymob/webhook/idempotency/wallet/settlement E2E; six critical Edge Function source parity; per-object SECURITY DEFINER/ACL and anonymous/authenticated negative RLS tests; owner-side Auth evidence; and SMM negative runtime tests.
 
 No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation, no Pages deployment, no root cutover, and no PR merge occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+
+---
+
+## 2026-11-09 — Owner instruction: remove medical directory from integration scope
+
+- Owner explicitly instructed: exclude the medical directory from the website; do not merge it, import it, or continue work on it for the website.
+- Supersedes the prior next-step references to `MantiqaTix-R6-medical-directory-integrated.zip`. The medical screen wiring, medical-only navigation/routes, healthcare directory additions, medical-specific tests/scripts and booking work are not approved for website integration.
+- The next integration work must focus on general activities/services, business profiles, public catalog/products, homepage and other non-medical platform modules.
+- No Production data/table/function or existing customer record was deleted or changed. The instruction is applied as a development-scope exclusion, not a destructive database cleanup.
+- Separate mobile/Android source remains preserved. No app code was imported, no production backend change or deployment was made in this documentation update.
+- Release status remains `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`.
