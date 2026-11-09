@@ -1698,3 +1698,10 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 ## 2026-11-09 — Owner scope decision: no medical-directory integration
 
 The owner explicitly removed the medical directory from the website scope. Do not merge, import, build, wire, expand, or work on the R6 medical-directory feature for the website. The earlier reference to `MantiqaTix-R6-medical-directory-integrated.zip` is historical only and is not an approved integration package. Exclude `MedicalDirectoryView.tsx`, medical-only routes/navigation, healthcare directory UI, medical-specific scripts/tests and booking additions from any future website import. Continue with the general activity/service directory, business profiles, public catalog/products, homepage and remaining platform work. This does not authorize deletion of existing Production records or customer data; no database records were removed. Preserve the separate mobile and native Android source. Full platform gate remains BLOCKED / NOT CERTIFIED.
+
+
+---
+
+## 2026-11-09 — V6 public UI excludes the dedicated medical directory
+
+The owner clarified that the dedicated medical directory is to be removed from the current V6 website, not merely excluded from a future R6 import. Branch feat/remove-medical-directory-from-v6-public-site-20261109 updates the V6 build-preparation step so the generated public worktree has no MedicalDirectoryView import/route, no medical_directory public view mode, no Navbar link or homepage CTA, and no medical-only screen/specialty source files. General activity directory, business profiles, catalog/products and contact remain. This does not delete existing Production business records or customer data. Patch self-test and static source assertions are included; full CI/deployed browser validation remains pending. Keep the medical directory excluded from future work. Preserve separate mobile/native Android source. No Production backend changes are part of this patch.
