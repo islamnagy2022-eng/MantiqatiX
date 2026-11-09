@@ -42,5 +42,10 @@ Wire the adapter to the national directory view with server cursor continuation,
 
 ## Latest package
 - `MantiqaTix-R6-medical-directory-integrated.zip`
-- SHA-256: `babba30693c0a1b7bd44b568bd283b6d04a16f643662cb06c6721e3b24c63b71`
+- SHA-256: `9ffbc3d9fe7a10406a79caffd1caf1b5ea62f8f864499b0f5376c2ada106a329`
 - 124 files total; 87 under `src/`; 14 tests; 2 mobile web UI files.
+
+## Final package refresh
+- Updated README and reference mapping to reflect that the medical screen is now wired locally.
+- Latest ZIP SHA-256: `9ffbc3d9fe7a10406a79caffd1caf1b5ea62f8f864499b0f5376c2ada106a329`.
+- Repeated dependency installation timed out; no semantic typecheck or Vite build is claimed.
