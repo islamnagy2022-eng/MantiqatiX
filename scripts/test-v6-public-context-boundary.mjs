@@ -9,7 +9,6 @@ const publicFiles = [
   'src/App.tsx',
   'src/components/DirectoryView.tsx',
   'src/components/Navbar.tsx',
-  'src/components/medical/MedicalDirectoryView.tsx',
   'src/components/ContactUsView.tsx',
   'src/components/storefront/BusinessProfileHeader.tsx',
   'src/components/storefront/CatalogSection.tsx',
@@ -43,7 +42,7 @@ assert.match(context, /fetchPublicCatalogDirectory/);
 assert.match(context, /requestEmailOtp/);
 assert.match(context, /fetchAuthenticatedMembershipChoices/);
 
-for (const relative of ['src/components/ContactUsView.tsx', 'src/components/storefront/CatalogSection.tsx', 'src/components/medical/MedicalDirectoryView.tsx']) {
+for (const relative of ['src/components/ContactUsView.tsx', 'src/components/storefront/CatalogSection.tsx']) {
   const source = fs.readFileSync(path.join(root, relative), 'utf8');
   assert.doesNotMatch(source, /utils\/rules/, relative + ' must not pull the enterprise rules module');
   assert.doesNotMatch(source, /data\/seedData/, relative + ' must not pull legacy seed data');

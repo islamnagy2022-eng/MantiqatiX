@@ -123,7 +123,8 @@ try {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   assert.equal(overflow, false, 'V6 production root must not overflow at 390px');
   const mobilePrimaryNavigation = page.getByRole('navigation', { name: 'التنقل الرئيسي' });
-  assert.equal(await mobilePrimaryNavigation.getByRole('button', { name: 'الدليل الطبي' }).count(), 1, 'Mobile primary navigation must expose one medical-directory destination');
+  assert.equal(await mobilePrimaryNavigation.getByRole('button', { name: 'الدليل الطبي' }).count(), 0, 'The dedicated medical directory must not appear in the mobile public navigation');
+  assert.equal(await mobilePrimaryNavigation.getByRole('button', { name: 'دليل الأنشطة' }).count(), 1, 'The general activity directory must remain available on mobile');
   console.log('V6_PRODUCTION_ROOT_MOBILE=PASS width=390 no_horizontal_overflow=true');
 
   assert.deepEqual(errors, [], 'V6 production root browser errors: ' + errors.join('; '));

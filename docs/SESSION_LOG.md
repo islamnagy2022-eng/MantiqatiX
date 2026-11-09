@@ -2320,3 +2320,16 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - No Production data/table/function or existing customer record was deleted or changed. The instruction is applied as a development-scope exclusion, not a destructive database cleanup.
 - Separate mobile/Android source remains preserved. No app code was imported, no production backend change or deployment was made in this documentation update.
 - Release status remains `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`.
+
+
+---
+
+## 2026-11-09 — V6 dedicated medical directory removed from public UI
+
+- Owner instruction clarified: remove the dedicated medical directory from the current website; do not merge or continue it as a site feature.
+- Started branch feat/remove-medical-directory-from-v6-public-site-20261109.
+- Updated V6 build preparation to remove the public MedicalDirectoryView import/render branch, the medical_directory public view type, its Navbar item, and the homepage CTA. The medical-only component and specialty file are excluded from the generated website worktree after the pinned source archive is extracted.
+- Added idempotent patch self-test and a source assertion script. Exact-head CI, full Vite builds, deployed-origin E2E and accessibility results are pending.
+- General directory, store profile, catalog/products and contact routes are preserved. Existing business records and Production database data are not deleted or modified.
+- R6 medical-directory package remains excluded. Preserve separate mobile and Android/Kotlin source; no Production database, Auth/RLS/GRANT/Edge or payment/finance mutation.
+- Full platform release remains BLOCKED / NOT CERTIFIED.
