@@ -1,45 +1,46 @@
 # BizCatalog Manager (6) — Isolated Preview
 
-Status: **SANITIZED PACKAGE PREPARED — SOURCE NOT YET IMPORTED INTO THIS BRANCH — NOT DEPLOYED**
+Status: **SANITIZED SOURCE PACKAGE PREPARED — NOT YET IMPORTED INTO THIS BRANCH — NOT DEPLOYED**
 
 Preview branch: `preview/bizcatalog-manager-6-isolated`
 
 ## Exact source package
 
-The preview source is the owner-supplied `bizcatalog-manager (6).zip`, not RC40 and not the existing production branch.
+Source of truth: the owner-supplied `bizcatalog-manager (6).zip`. This is not RC40 and is not the existing production branch.
 
-Sanitized archive: `bizcatalog-manager-6-preview-clean.zip`
-SHA-256: `a5d765120363747b46432d482f159e9f3dce9e2e809d818b58dd495bcdf0e4d5`
-117 source files in the initial sanitized package; excludes `.data/`, `.data-preview/`, `.aistudio/`, and local environment secrets.
+Sanitized package: `bizcatalog-manager-6-preview-clean.zip`
+SHA-256: `8e407165706aa6b70257420ce77e389f1caaab3a0c2181bf3fc8f9680fc4409a`
+117 files; 13,221,402 bytes. Archive inventory verified to exclude `.data/`, `.data-preview/`, `.aistudio/`, `.env.local`, and `.env.production`.
 
-## Work prepared
+## Changes prepared in the sanitized source
 
-- Isolated storage root `.data-preview/` selected only by `PREVIEW_MODE=true`.
-- No production database snapshot or backup import.
-- Historical finance, sales, wallets, payment intentions, subscriber identities, messages and contact data are reset in the preview database.
+- Server storage uses `.data-preview/` only when `PREVIEW_MODE=true`; it does not read or migrate production `.data/`.
+- Preview starts with the source package's activities and product catalogue only; subscriber identity is synthetic; sales, transactions, contact messages, subscriptions, ads requests, wallets, payment intents, backup records, and messages start empty.
 - Browser Local Storage keys are namespaced under `mantiqatix_preview::`.
-- Payment, billing, WhatsApp and backup endpoints are disabled.
-- Additional hardening script adds a global Preview API allowlist: only GET `/api/health`, `/api/businesses`, and `/api/products` are available. All other API endpoints and all API writes are denied. It also adds no-index/security headers, response no-store, and per-IP rate limiting.
-- Preview activity entries are shown as unverified until independently reviewed.
-- Unsupported "100% production ready" claims are removed from preview status copy.
-- A visible warning banner explains that browser changes are local only.
-- Dockerfile serves the built React application through Express and includes a health check.
-- GitHub Actions workflow is configured for install, typecheck, unit tests, Vite build, API-isolation checks and Docker build.
+- Browser wallet balances, credit limits, deposit totals and ad grant values are forced to zero, including any earlier values saved under the Preview namespace.
+- Browser sales and wallet transaction fixtures are suppressed in Preview mode.
+- Activity records are labeled unverified pending separate review; preview does not claim 100% production certification.
+- Public Preview API is read-only: only GET `/api/health`, `/api/businesses`, and `/api/products` are allowed. Other API routes and all API mutations return 503.
+- Payment, billing, WhatsApp, backup and token endpoints remain disabled.
+- A visible Arabic Preview notice states changes stay local to the browser and are not saved to the server.
+- Service Worker registration is disabled in Preview mode to avoid cache overlap.
+- Docker image serves Vite `dist` through Express and includes a health check.
+- Two guarded import hardening scripts are committed on this branch and are run by the importer.
 
-## Verification
+## Checks completed
 
-- Sanitized archive SHA-256 computed and checked.
-- No `.data/`, `.data-preview/`, `.aistudio/`, `.env.local`, or `.env.production` entries inside the archive.
-- 85 TypeScript/TSX files previously passed syntax transpilation with no syntax diagnostics.
-- Full dependency installation, typecheck, unit tests, frontend build and Docker image build are **NOT VERIFIED** in this runtime because the npm registry was unreachable and Docker is not installed here.
-- CI checks are ready to execute after the archive source is imported into this branch.
+- Archive SHA-256 calculated and recorded.
+- Archive inventory: 117 files, no production database, backup folder, AI Studio artifact folder, or local secret environment file.
+- 84 TypeScript/TSX source files passed TypeScript syntax transpilation with zero syntax diagnostics (83 under `src/` plus `server.ts`).
+- `bash -n` passed for the import helper.
+- Python hardening script syntax validation passed.
+- Full npm install, TypeScript typecheck, unit tests, Vite build and Docker build remain **NOT VERIFIED**: the current execution container cannot resolve the npm registry and does not have Docker installed.
 
-## Remaining blockers
+## Remaining blockers to a public URL
 
-1. The exact 13 MB sanitized application archive cannot be transferred as a binary payload by the connected GitHub file-write actions available in this session. The GitHub connector exposes text/blob content operations but no binary archive upload or repository push operation.
-2. The committed importer verifies the archive checksum, rejects unsafe data files, applies the hardening script, and commits the app under `apps/bizcatalog-manager-6-preview/`.
-3. A successful GitHub Actions run is required after import.
-4. A separate Node.js/Docker hosting target is required to serve the Express API. GitHub Pages alone cannot run the backend and is not a complete deployment.
-5. No Cloud Run or other hosting credentials/target have been configured in the available project connections, so a deployment URL cannot yet be issued.
+1. The GitHub connector available in this session can write UTF-8 file/blob content but does not expose a binary archive upload or Git push action. The sanitized 13.2 MB ZIP therefore cannot be committed to the branch by this session's available write actions. The exact archive is attached in this conversation and the branch importer is ready to accept it.
+2. After the source files are imported, GitHub Actions must pass install, typecheck, tests, build, Preview isolation checks and Docker build.
+3. A separate Node.js/Docker hosting target is required to serve the Express backend. GitHub Pages alone cannot run Express and cannot be represented as a complete application deployment.
+4. No Cloud Run, Render, Railway, or other host connection/deployment credentials are configured in the available tools, so a live URL cannot be created from this session yet.
 
-The production `main` branch and live website are unchanged.
+Production `main` and the current live website have not been changed.
