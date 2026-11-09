@@ -1789,3 +1789,13 @@ The 78/78 R6 unit tests validate local helper/business-rule behavior; they do no
 # 2026-11-08 — R6 default admin credential blocker confirmed
 
 Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppContext.loginAsAdmin()` compares against this browser-held value and then sets `role: 'admin'`; the Navbar, LoginModal and App include quick-login paths invoking `loginAsAdmin('admin')`. This is a demo role switch, not authenticated platform administration. Treat it as P0: remove default password and quick-login paths; use Supabase Auth plus active server-verified platform membership and resource scope. Updated cleanroom archive SHA-256: `287fb76b69ede0721f808ce8813551e7a2d5d79b9eb0e70f0df95eed849d3bef`.
+
+
+# 2026-11-09 — R6 taxonomy and Supabase field-map checkpoint
+
+- PR #697 merged as documentation-only commit `b37269fe9c18eca912d81a23ac98de4c175593ce`. Its post-merge V6 Pages deployment and deployed-origin browser verification completed successfully; the production root remains V6 and `/legacy/` remains available.
+- Latest local R6 package: `MantiqaTix-R6-taxonomy-verified.zip`, SHA-256 `1f6af9c715de661447dea79457e3c0d543075a05ff6cd2637cb1b01a90443054`. ZIP integrity and sanitization checks pass; mobile web components remain included.
+- Added two local regression tests covering every one of the 18 current platform taxonomy codes mapping into R6's 15 visual groups, plus explicit unverified-provider handling. R6 unit suite: **83/83 PASS** across 13 files; production security boundary: PASS; TS/TSX syntax transpilation: 84 files, 0 errors.
+- Full semantic TypeScript and Vite build remain NOT VERIFIED: dependency installation did not complete and `vite/client` types are absent. Browser E2E, a11y, PWA and R6 Preview also remain open.
+- The exact field/API map is recorded in `docs/integration/R6_SUPABASE_FIELD_MAPPING_20261109.md`. It records the public read contracts, 18→15 taxonomy reconciliation, Auth/membership requirements, 100-business directory response cap, absent precise public coordinates, and blocked write domains.
+- R6 source remains local and not yet imported into GitHub; no R6 source code was published by this checkpoint. No Supabase Production writes or root cutover were made. `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`.
