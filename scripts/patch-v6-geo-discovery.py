@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Add consent-first location discovery and manual Egypt geography to the V6 general directory."""
 from __future__ import annotations
+import re
 import sys
 import tempfile
 from pathlib import Path
@@ -401,12 +402,16 @@ const normalizeGeoName = (value: unknown) => String(value || '')
         "    geoScopedBusinesses.forEach((business) => {",
         "activity options use geo scope",
     )
-    source = replace_once(
-        source,
-        "  }, [businesses]);\n\n  const selectedActivity = activityOptions.find",
-        "  }, [geoScopedBusinesses]);\n\n  const selectedActivity = activityOptions.find",
-        "activity options dependency",
+    dependency_pattern = re.compile(
+        r"(const activityOptions = useMemo\\(\\(\\) => \\{.*?)(\\n\\s*\\}, \\[[^\\]]+\\]\\);)(\\n\\s*const selectedActivity = activityOptions\\.find)",
+        re.DOTALL,
     )
+    dependency_match = dependency_pattern.search(source)
+    if not dependency_match:
+        raise SystemExit("V6_GEO_PATCH_FAILED activity_options_dependency_not_found")
+    patched_dependency_block = "\\n  }, [geoScopedBusinesses]);"
+    if dependency_match.group(2) != patched_dependency_block:
+        source = source[:dependency_match.start(2)] + patched_dependency_block + source[dependency_match.end(2):]
     source = replace_once(
         source,
         "    let result = executeEnterpriseSearch(businesses, {",
