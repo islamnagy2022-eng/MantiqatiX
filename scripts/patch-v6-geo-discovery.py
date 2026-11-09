@@ -268,7 +268,7 @@ const normalizeGeoName = (value: unknown) => String(value || '')
     setGeoPreferenceMode(mode);
     setGeoSetupCompleted(true);
     try {
-      // Persist administrative choices only. Exact GPS coordinates remain in memory and are never stored or transmitted.
+      // Persist administrative names and stable dataset ids only.
       window.localStorage.setItem(GEO_PREFERENCE_KEY, JSON.stringify({
         completed: true,
         mode,
@@ -365,7 +365,6 @@ const normalizeGeoName = (value: unknown) => String(value || '')
     }
     let active = true;
     setAdministrativeShiyakhas([]);
-    setSelectedShiyakhaId('all');
     setShiyakhaStatus('loading');
     loadEgyptDistrictShiyakhas(selectedDistrict)
       .then((items) => {
