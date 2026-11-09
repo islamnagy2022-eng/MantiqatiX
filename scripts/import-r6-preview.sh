@@ -4,7 +4,7 @@ set -euo pipefail
 ARCHIVE="${1:-bizcatalog-manager-6-preview-clean.zip}"
 DEST="apps/bizcatalog-manager-6-preview"
 EXPECTED_BRANCH="preview/bizcatalog-manager-6-isolated"
-EXPECTED_SHA256="8e407165706aa6b70257420ce77e389f1caaab3a0c2181bf3fc8f9680fc4409a"
+EXPECTED_SHA256="a87bfc9e80a155277e1f35d8fb29ccff159eba9c31a6f00ffc35eee555e36241"
 
 if [[ ! -f "$ARCHIVE" ]]; then
   echo "Archive not found: $ARCHIVE" >&2
