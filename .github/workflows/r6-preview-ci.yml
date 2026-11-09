@@ -37,24 +37,28 @@ jobs:
           }
           test -f apps/bizcatalog-manager-6-preview/server.ts
           test -f apps/bizcatalog-manager-6-preview/Dockerfile
+          test -f apps/bizcatalog-manager-6-preview/bun.lock
           test ! -e apps/bizcatalog-manager-6-preview/.data
           test ! -e apps/bizcatalog-manager-6-preview/.data-preview
-      - name: Set up Node.js
+      - name: Set up Node.js for type checking
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install dependencies
+      - name: Set up pinned Bun runtime
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - name: Install dependencies from frozen lockfile
         working-directory: apps/bizcatalog-manager-6-preview
-        run: npm install --no-audit --no-fund
+        run: bun install --frozen-lockfile
       - name: Type check
         working-directory: apps/bizcatalog-manager-6-preview
-        run: npm run lint
+        run: bun run lint
       - name: Unit tests
         working-directory: apps/bizcatalog-manager-6-preview
-        run: npx tsx --test $(find src -type f -name '*.test.ts' -print)
+        run: bunx tsx --test $(find src -type f -name '*.test.ts' -print)
       - name: Build frontend
         working-directory: apps/bizcatalog-manager-6-preview
-        run: npm run build
+        run: bun run build
       - name: Build container
-        working-directory: apps/bizcatalog-manager-6-preview
-        run: docker build -t mantiqatix-r6-preview:ci .
+        run: docker build -t mantiqatix-r6-preview:ci apps/bizcatalog-manager-6-preview
