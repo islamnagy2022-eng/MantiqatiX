@@ -1719,3 +1719,21 @@ The current V6 work adds consent-first geographic discovery to the general activ
 ## 2026-11-09 — No standalone medical directory in either public website shell
 
 The V6 root has already removed the standalone medical page. This follow-up also removes the old ?view=medical_directory route from the retained catalog served under /legacy/: the view-mode resolver, page import/render, Navbar and sitemap entries are removed, and the dedicated component is deleted. Old direct links fall back to the general activity directory. This is a UI-route removal only; no public business/customer rows, Supabase schema, Auth/RLS or Edge Function data are deleted. Keep general activity/service discovery and the 15-sector registry; preserve separate mobile/native Android source. Exact-head CI and deployed legacy browser checks are required before marking complete.
+
+
+---
+
+## Latest checkpoint — 2026-11-09 — Medical directory removal deployed; geo-boundary evidence updated
+
+- PR #709 merged as `758f6276638f11448e990514bd671d4ba20914e5`. Dedicated medical directory route/page/nav/site-map/component removed from both V6 and retained `/legacy/`; stale `?view=medical_directory` routes fall back to general activity search. V6 root, legacy catalog and Preview URLs deployed; post-merge Pages root/legacy/preview checks and deployed-origin browser tests passed. `PRIMARY_CATALOG_BROWSER_E2E=PASS` includes `medical-directory-route-disabled-general-directory-fallback`. No production database rows or backend contracts were changed.
+- Exact geoBoundaries EGY ADM2 metadata is now recorded: 365 units, represented year 2020, source OCHA ROMENA/HDX + CAPMAS, source data update 2023-01-19, CC BY 3.0 IGO; commercial reuse is permitted with attribution/change disclosure under the official deed. Simplified GeoJSON LFS object SHA-256 `abd2e419ce95e1cdd46bb18025a4eccfa6f877956494a56da3ebed4bc6a153d9`, size 1,379,010 bytes; pinned source commit `9469f09592ced973a3448cf66b6100b741b64c0d`.
+- Geometry bytes were not available to this review session; polygon validity, CRS, properties and P-code crosswalk are NOT VERIFIED. OCHA ADM3 has 5,716 reported units with partial coverage; actual HDX polygon resource and its immutable manifest are still needed. Keep the current nearest-point UI explicitly approximate. Do not implement or deploy point-in-polygon until the geometry and joins are tested.
+- Detailed record: `docs/GEO_BOUNDARY_VERIFIED_SOURCE_REVIEW_20261109.md`. No GPS coordinates persistence, Supabase/database/Auth/RLS/Edge, payment/finance, or mobile/Android source changes.
+
+
+### Addendum — Open Admin Data IDs and OCHA ADM3 coverage (2026-11-09)
+
+- Directly parsed 2026.09 Open Admin Data `all-governorate.json` and `all-district.json`: 27 governorates, 365 unique districts, all district `code.id` values equal `id`, all parent references resolve, all 365 district coordinates are populated. The IDs are `EG` + digits and follow the parent prefix; a sampled Giza ADM3 file uses child codes such as `EG210701`.
+- OCHA's P-code standard requires an ISO-3166-1 prefix (usually two-letter) plus numeric hierarchical components, so the Open Admin Data codes fit the expected syntax, but records have no explicit `adm2_pcode` field and district `source` metadata is empty. Exact P-code identity with the current OCHA COD-AB source is not yet verified; a source-column crosswalk is still required.
+- OCHA COD status dashboard reports Egypt ADM3 as partial coverage in 96.2% of ADM2 units (5,716 units). Treat missing ADM3 geometry as a coverage gap, not a point-outside result.
+- No geometry files materialized or production code changed. Keep nearest-point UI explicitly approximate.

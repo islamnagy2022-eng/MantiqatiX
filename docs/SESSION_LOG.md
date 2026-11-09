@@ -2365,3 +2365,21 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Owner's instruction applies to the website, so opened feat/remove-legacy-medical-directory-route-20261109 to remove that remaining public route as well.
 - The change removes the ViewMode allowance, initial and restored route handling, lazy component import/render, nav and sitemap links, and the standalone page component. The E2E now treats an old medical URL as a retired route and verifies fallback to general directory search.
 - General healthcare activity taxonomy and unrelated business listings are not bulk-deleted. No Production records/backend policies/functions are changed. Mobile/Android source remains preserved.
+
+
+---
+
+## 2026-11-09 — Boundary metadata recheck and deployment checkpoint
+
+- Deployed public website update: commit `758f6276638f11448e990514bd671d4ba20914e5`, PR #709. The dedicated medical directory is excluded from V6 and `/legacy/`; V6 remains root, `/legacy/` remains the retained catalog, `/v6-preview/` remains Preview. GitHub Pages workflow `42622041241` succeeded including deploy-origin checks; main catalog browser E2E run `42622041301` passed.
+- Researched geoBoundaries EGY ADM2 official API: boundary ID `EGY-ADM2-37247803`, 365 units, represented year 2020, OCHA ROMENA/HDX + CAPMAS, source update 2023-01-19, CC BY 3.0 IGO; exact simplified GeoJSON LFS SHA-256 `abd2e419ce95e1cdd46bb18025a4eccfa6f877956494a56da3ebed4bc6a153d9`, 1,379,010 bytes, pinned commit `9469f09592ced973a3448cf66b6100b741b64c0d`.
+- The actual geometry bytes could not be retrieved/materialized. No CRS, polygon topology, feature property, or P-code crosswalk verification is claimed. OCHA ADM3 records 5,716 sub-district units but partial coverage; exact polygon resources and source manifest still need direct inspection.
+- The production UI remains approximate; no polygon geometry added, no production data/backend mutation. See `docs/GEO_BOUNDARY_VERIFIED_SOURCE_REVIEW_20261109.md`.
+
+
+### Addendum — Open Admin Data IDs and OCHA ADM3 coverage (2026-11-09)
+
+- Directly parsed 2026.09 Open Admin Data `all-governorate.json` and `all-district.json`: 27 governorates, 365 unique districts, all district `code.id` values equal `id`, all parent references resolve, all 365 district coordinates are populated. The IDs are `EG` + digits and follow the parent prefix; a sampled Giza ADM3 file uses child codes such as `EG210701`.
+- OCHA's P-code standard requires an ISO-3166-1 prefix (usually two-letter) plus numeric hierarchical components, so the Open Admin Data codes fit the expected syntax, but records have no explicit `adm2_pcode` field and district `source` metadata is empty. Exact P-code identity with the current OCHA COD-AB source is not yet verified; a source-column crosswalk is still required.
+- OCHA COD status dashboard reports Egypt ADM3 as partial coverage in 96.2% of ADM2 units (5,716 units). Treat missing ADM3 geometry as a coverage gap, not a point-outside result.
+- No geometry files materialized or production code changed. Keep nearest-point UI explicitly approximate.
