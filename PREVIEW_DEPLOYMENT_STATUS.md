@@ -1,64 +1,77 @@
 # BizCatalog Manager (6) — Isolated Preview
 
-Status: **SANITIZED SOURCE PACKAGE PREPARED — NOT YET IMPORTED INTO THIS BRANCH — NOT DEPLOYED**
+Status: **SANITIZED SOURCE PACKAGE VERIFIED — SOURCE NOT IMPORTED INTO THIS BRANCH — NOT BUILT — NOT DEPLOYED**
 
 Preview branch: `preview/bizcatalog-manager-6-isolated`
 
 ## Exact source package
 
-Source of truth: the owner-supplied `bizcatalog-manager (6).zip`. This is not RC40 and is not the existing production branch.
+Source of truth: the owner-supplied `bizcatalog-manager (6).zip`. It is the sole R6 application baseline; it is not RC40 and is not the current production branch.
 
 Sanitized package: `bizcatalog-manager-6-preview-clean.zip`
-SHA-256: `8e407165706aa6b70257420ce77e389f1caaab3a0c2181bf3fc8f9680fc4409a`
-117 files; 13,221,402 bytes. Archive inventory verified to exclude `.data/`, `.data-preview/`, `.aistudio/`, `.env.local`, and `.env.production`.
+SHA-256: `a87bfc9e80a155277e1f35d8fb29ccff159eba9c31a6f00ffc35eee555e36241`
+Compressed size: 13,211,088 bytes.
+Archive inventory: 117 files; uncompressed file payload: 15,591,628 bytes.
 
-## Changes prepared in the sanitized source
+The archive SHA-256 and inventory were independently rechecked in the working environment on 2026-11-09. The archive inventory excludes `.data/`, `.data-preview/`, `.aistudio/`, `.env`, `.env.local`, and `.env.production`.
 
-- Server storage uses `.data-preview/` only when `PREVIEW_MODE=true`; it does not read or migrate production `.data/`.
-- Preview starts with the source package's activities and product catalogue only; subscriber identity is synthetic; sales, transactions, contact messages, subscriptions, ads requests, wallets, payment intents, backup records, and messages start empty.
+## Clean R6 baseline policy
+
+- R6 owns the UI, routes, components, workflows, and product behavior.
+- Older sources are references only. Reuse only a specifically audited missing capability after compatibility, security, data impact, and test review.
+- Do not merge old application shells, duplicate dashboards, legacy state stores, or unrelated modules.
+- Do not import historical operational/demo records: users, subscribers, customers, leads, orders, sales, invoices, payments, wallets, balances, messages, support history, analytics counters, or backups.
+- Only explicitly reviewed public directory/catalog seed records may remain, labeled unverified until checked. New operational data starts empty.
+- Keep Android/mobile source separate and untouched.
+- Do not reset, truncate, or otherwise modify the existing production Supabase project. Preview must use a separately provisioned isolated backend and reviewed compatible migrations.
+- Never commit service-role keys, OAuth client secrets, production tokens, database dumps, or password hashes.
+
+## Preview isolation prepared in the sanitized package
+
+- Server storage is isolated under `.data-preview/` only when `PREVIEW_MODE=true`; it must not read or migrate production `.data/`.
 - Browser Local Storage keys are namespaced under `mantiqatix_preview::`.
-- Browser wallet balances, credit limits, deposit totals and ad grant values are forced to zero, including any earlier values saved under the Preview namespace.
-- Browser sales and wallet transaction fixtures are suppressed in Preview mode.
-- Activity records are labeled unverified pending separate review; preview does not claim 100% production certification.
-- Public Preview API is read-only: only GET `/api/health`, `/api/businesses`, and `/api/products` are allowed. Other API routes and all API mutations return 503.
-- Payment, billing, WhatsApp, backup and token endpoints remain disabled.
-- A visible Arabic Preview notice states changes stay local to the browser and are not saved to the server.
-- Service Worker registration is disabled in Preview mode to avoid cache overlap.
-- Docker image serves Vite `dist` through Express and includes a health check.
-- Two guarded import hardening scripts are committed on this branch and are run by the importer.
+- Subscriber identity is synthetic; sales, transactions, contact messages, subscriptions, ad requests, wallets, payment intents, backup records, and messages start empty.
+- Wallet balances, credit limits, deposit totals, and ad grant values are zeroed in Preview.
+- Activity records are labeled unverified pending review.
+- Public Preview API is read-only: only GET `/api/health`, `/api/businesses`, and `/api/products` are allowed. Other API routes and mutations return 503.
+- Payment, billing, WhatsApp, backup, and token endpoints remain disabled.
+- Preview notice states that changes remain local to the browser and are not saved to the server.
+- Service Worker registration is disabled in Preview to avoid cache overlap.
+- Dockerfile serves the Vite build through Express and includes a health check.
 
 ## Checks completed
 
-- Archive SHA-256 calculated and recorded.
-- Archive inventory: 117 files, no production database, backup folder, AI Studio artifact folder, or local secret environment file.
-- 84 TypeScript/TSX source files passed TypeScript syntax transpilation with zero syntax diagnostics (83 under `src/` plus `server.ts`).
-- `bash -n` passed for the import helper.
-- Python hardening script syntax validation passed.
-- Full npm install, TypeScript typecheck, unit tests, Vite build and Docker build remain **NOT VERIFIED**: the current execution container cannot resolve the npm registry and does not have Docker installed.
+- SHA-256 and ZIP inventory verified.
+- 84 TypeScript/TSX files passed syntax transpilation with zero syntax diagnostics.
+- Import helper shell syntax and Python hardening scripts passed syntax validation.
+- Full dependency installation, TypeScript typecheck, unit tests, Vite production build, and Docker build are **NOT VERIFIED**. The working container could not resolve the npm registry and does not have Docker installed.
+- No end-to-end Google OAuth or isolated Supabase Preview verification has been completed.
 
-## Cloud Run deployment workflow
+## Repository and CI state
 
-- Added `.github/workflows/r6-preview-cloud-run.yml` for isolated deployment after source import.
-- Added `docs/R6_PREVIEW_CLOUD_RUN_SETUP.md` with the required GitHub Environment secrets and least-privilege setup.
-- The workflow uses Workload Identity Federation; it does not store a service-account JSON key.
-- The workflow is intentionally gated on the presence of the imported app Dockerfile and required GCP secrets.
+- The isolated branch exists and contains the guarded importer at `scripts/import-r6-preview.sh`.
+- The importer checks the exact SHA-256 above, rejects unsafe data/secret paths, refuses to overwrite an existing R6 destination, applies Preview hardening, and commits the imported app under `apps/bizcatalog-manager-6-preview/`.
+- The importer expects the archive file to be available in a local checkout on the isolated branch. It is not an upload endpoint.
+- The R6 app directory is not yet present in this branch. CI intentionally stops until the app is imported.
+- The GitHub connector available in this session exposes text/blob operations but no binary archive upload or authenticated Git push from the working container. The source ZIP therefore remains attached to the conversation and has not been committed to this branch.
 
-## Remaining blockers to a public URL
+## Cloud Run deployment
 
-1. The GitHub connector available in this session can write UTF-8 file/blob content but does not expose a binary archive upload or Git push action. The sanitized 13.2 MB ZIP therefore cannot be committed to the branch by this session's available write actions. The exact archive is attached in this conversation and the branch importer is ready to accept it.
-2. After the source files are imported, GitHub Actions must pass install, typecheck, tests, build, Preview isolation checks and Docker build.
-3. A separate Node.js/Docker hosting target is required to serve the Express backend. GitHub Pages alone cannot run Express and cannot be represented as a complete application deployment.
-4. No Cloud Run, Render, Railway, or other host connection/deployment credentials are configured in the available tools, so a live URL cannot be created from this session yet.
+- `.github/workflows/r6-preview-cloud-run.yml` is prepared for a separately isolated Cloud Run service using Workload Identity Federation.
+- Required GitHub Environment secrets: `GCP_PROJECT_ID`, `GCP_WIF_PROVIDER`, and `GCP_DEPLOYER_SERVICE_ACCOUNT`.
+- Optional Environment variables: `GCP_REGION` and `CLOUD_RUN_PREVIEW_SERVICE`.
+- No deployment is possible until the app is imported, CI gates pass, and the separate GCP environment is configured.
+- GitHub Pages alone cannot run the Express backend.
 
-Production `main` and the current live website have not been changed.
+## Current release gates
 
+1. Import the exact ZIP and verify the checksum.
+2. Install dependencies from a committed lockfile; run typecheck and tests.
+3. Build the frontend and Docker image.
+4. Provision an isolated Preview backend; reconcile and apply only reviewed R6-compatible schema migrations.
+5. Verify Google OAuth, callback handling, session refresh, logout, RLS, RBAC, and tenant isolation.
+6. Verify operational datasets are empty and directory seed records are explicitly reviewed.
+7. Deploy the Preview service and pass deployed-origin health/smoke checks.
+8. Keep production `main` and production Supabase unchanged until separate explicit cutover approval.
 
-## Owner decision — clean R6 baseline (2026-11-09)
-
-The owner has clarified that R6 is to become the sole application baseline, not a patched copy of legacy applications. Older sources may be mined only for individually reviewed missing capabilities (Google OAuth/Supabase Auth, compatible backend contracts, RLS/RBAC, schema migrations, and mobile source kept separately). Do not merge old UI shells or duplicate modules.
-
-All old operational/demo records must be absent from R6: customer/user fixtures, leads, subscriptions, orders, sales, invoices, payments, wallets, balances, messages, support history, analytics counters, and backups. Only explicitly reviewed public directory/catalog seed records may remain, labeled unverified until checked. See [R6 Clean Baseline Decision](docs/R6_CLEAN_BASELINE_DECISION.md).
-
-The existing active Supabase project was discovered, but it contains an established production schema and records. It must not be reset or used as public Preview storage. A clean isolated Preview database must be provisioned from reviewed compatible migrations. Production data deletion or destructive schema changes require a separate explicit approval. Never commit service-role keys, OAuth client secrets, production tokens, database dumps, or password hashes.
-
-Current gates remain unchanged: ZIP not imported to this branch; application build not verified; Cloud Run deployment not completed; no live Preview URL yet.
+**No live Preview URL exists yet. No claim of successful application build or deployment is made.**
