@@ -195,7 +195,7 @@ def patch_directory(source: str) -> str:
     source = replace_once(
         source,
         "import { PublicGovernorateMap } from './common/PublicGovernorateMap';",
-        "import { PublicGovernorateMap } from './common/PublicGovernorateMap';\nimport { PublicGeoDiscovery } from './common/PublicGeoDiscovery';\nimport { EGYPT_GEO_DISTRICTS, loadEgyptDistrictShiyakhas, resolveEgyptAdministrativeLocation, type EgyptGeoShiyakha } from '../../geo/egyptGeoDiscovery';",
+        "import { PublicGovernorateMap } from './common/PublicGovernorateMap';\nimport { PublicGeoDiscovery } from './common/PublicGeoDiscovery';\nimport { EGYPT_GEO_DISTRICTS, loadEgyptDistrictShiyakhas, resolveEgyptAdministrativeLocation, type EgyptGeoShiyakha } from '../data/egyptGeoDiscovery';",
         "geo imports",
     )
     helper_anchor = "const isBusinessVerified = (business: Business) => business.isVerified && (!business.verificationStatus || business.verificationStatus === 'verified');"
