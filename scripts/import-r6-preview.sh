@@ -35,6 +35,7 @@ mkdir -p "$DEST"
 unzip -q "$ARCHIVE" -d "$DEST"
 python3 scripts/harden_r6_preview.py "$DEST"
 python3 scripts/finish_r6_preview_isolation.py "$DEST"
+python3 scripts/finish_r6_preview_core.py "$DEST"
 python3 scripts/finish_r6_preview_cleanups.py "$DEST"
 
 test -f "$DEST/package.json"
