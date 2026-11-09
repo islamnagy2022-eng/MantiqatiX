@@ -6,7 +6,7 @@ on:
       - preview/bizcatalog-manager-6-isolated
     paths:
       - "apps/bizcatalog-manager-6-preview/**"
-      - "scripts/**r6-preview**"
+      - "scripts/**"
       - ".github/workflows/r6-preview-ci.yml"
       - "PREVIEW_DEPLOYMENT_STATUS.md"
   pull_request:
