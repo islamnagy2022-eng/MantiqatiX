@@ -149,7 +149,8 @@ try {
   const publicHeader = page.locator('header').first();
   const primaryNavigation = page.getByRole('navigation', { name: 'التنقل الرئيسي' });
   assert.equal(await primaryNavigation.count(), 1, 'The public r5 navigation must be present exactly once');
-  assert.equal(await primaryNavigation.getByRole('button').count(), 3, 'The public navigation must expose only the three supported public destinations');
+  assert.equal(await primaryNavigation.getByRole('button').count(), 2, 'The public navigation must expose only the general directory and contact destinations');
+  assert.equal(await primaryNavigation.getByRole('button', { name: 'الدليل الطبي' }).count(), 0, 'The dedicated medical directory must not appear in public navigation');
   assert.equal(await primaryNavigation.getByRole('button', { name: 'دليل الأنشطة' }).getAttribute('aria-current'), 'page');
   const legacyManagementLink = page.getByRole('link', { name: 'إدارة النشاط في النسخة المحفوظة — يتطلب تسجيل دخول منفصل' });
   assert.equal(await legacyManagementLink.count(), 1, 'The public shell must expose one explicit legacy workspace handoff');
@@ -159,16 +160,13 @@ try {
   assert.match(await legacyManagementLink.getAttribute('title'), /جلسة V6 لا تنتقل تلقائيًا/);
   console.log('V6_LEGACY_ADMIN_HANDOFF=PASS separate_auth=true membership_recheck_required=true');
   assert.equal(await publicHeader.getByRole('button', { name: 'العودة إلى دليل منطقتي X' }).count(), 1, 'The brand control must return to the public directory');
-  await primaryNavigation.getByRole('button', { name: 'الدليل الطبي' }).click();
-  await page.getByRole('heading', { name: 'الأطباء والعيادات والصيدليات' }).waitFor({ timeout: 10000 });
-  assert.equal(await primaryNavigation.getByRole('button', { name: 'الدليل الطبي' }).getAttribute('aria-current'), 'page');
   await primaryNavigation.getByRole('button', { name: 'تواصل معنا' }).click();
   await page.getByRole('heading', { name: /مرحباً بك/ }).waitFor({ timeout: 10000 });
   assert.equal(await primaryNavigation.getByRole('button', { name: 'تواصل معنا' }).getAttribute('aria-current'), 'page');
   await publicHeader.getByRole('button', { name: 'العودة إلى دليل منطقتي X' }).click();
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor({ timeout: 10000 });
   assert.equal(await primaryNavigation.getByRole('button', { name: 'دليل الأنشطة' }).getAttribute('aria-current'), 'page');
-  console.log('V6_PUBLIC_R5_NAVIGATION=PASS destinations=3 brand_home=true');
+  console.log('V6_PUBLIC_R5_NAVIGATION=PASS destinations=2 brand_home=true medical_directory=false');
 
   const governorateExplorer = page.getByTestId('public-governorate-explorer');
   await governorateExplorer.waitFor({ timeout: 15000 });
@@ -199,13 +197,13 @@ try {
   assert.equal(await homeCover.count(), 1, 'Canonical r5 public homepage cover must be rendered');
   await homeCover.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات المتاحة' }).waitFor();
   assert.equal(await homeCover.getByRole('button', { name: 'استكشف الأنشطة' }).count(), 1);
-  assert.equal(await homeCover.getByRole('button', { name: 'الدليل الطبي' }).count(), 1);
+  assert.equal(await homeCover.getByRole('button', { name: 'الدليل الطبي' }).count(), 0, 'The homepage must not link to a dedicated medical directory');
   assert.equal(await homeCover.getByRole('button', { name: 'تواصل معنا' }).count(), 1);
   await homeCover.getByRole('button', { name: 'الشريحة التالية' }).click();
   await homeCover.getByRole('heading', { name: 'تصفح صفحات الأنشطة والكتالوجات' }).waitFor();
   await homeCover.getByRole('button', { name: 'الشريحة السابقة' }).click();
   await homeCover.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات المتاحة' }).waitFor();
-  console.log('V6_R5_PUBLIC_HOME_COVER=PASS slides=3 public_ctas=3');
+  console.log('V6_R5_PUBLIC_HOME_COVER=PASS slides=3 public_ctas=2 medical_directory=false');
   const liveCatalogStrip = page.getByTestId('live-published-catalog-strip');
   assert.equal(await liveCatalogStrip.count(), 1, 'A live published catalog strip must render when verified published products exist');
   assert.equal(await liveCatalogStrip.getByTestId('live-published-catalog-card').count(), 26, 'The strip must include only real available products from verified activities');
@@ -323,8 +321,6 @@ try {
     console.log('V6_VISUAL_CAPTURE=mobile-activity-profile');
   }
 
-  await page.getByRole('button', { name: 'الدليل الطبي' }).click();
-  await page.getByRole('heading', { name: 'الأطباء والعيادات والصيدليات' }).waitFor();
   await page.getByRole('button', { name: 'تواصل معنا' }).click();
   await page.getByText('تأكيد إرسال الرسالة').waitFor();
 
