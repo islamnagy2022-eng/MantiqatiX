@@ -12,15 +12,17 @@
 - Semantic TypeScript / Vite production build: NOT VERIFIED; dependency install did not complete and `vite/client` type declarations are absent.
 - This package remains local; it is not imported into this repository and not deployed.
 
-## Public directory contract
+## Public directory and national listings — two separate contracts
 R6 source adapter: `src/services/publicDirectory.ts`, exercised by `src/services/publicDirectory.test.ts`.
 
-Existing current-main API:
-- Edge Function `public-catalog-directory`, GET only plus CORS OPTIONS.
-- Browser path: `{SUPABASE_URL}/functions/v1/public-catalog-directory`.
-- Requires public anon/authenticated key; never service-role key in browser.
-- Required payload marker: `accessMode = PUBLIC_DIRECTORY_READ_ONLY`.
-- The server returns only active/published/approved public businesses, active provider profiles, active branches, active public items and visible current prices. It excludes inactive/test/unpublished data and suppresses hidden numeric prices.
+**Do not confuse the business catalog directory with the national public listings directory.** They are separate Edge Functions with different data models:
+
+1. **Business/activity catalog cards:** `public-catalog-directory` (GET + CORS OPTIONS), path `{SUPABASE_URL}/functions/v1/public-catalog-directory`. It returns published business/provider/branch/catalog projections and currently caps the response at 100 businesses. It is not the national listings keyset endpoint. Browser calls use only the public anon/publishable key; never expose the service-role key. Required marker: `accessMode = PUBLIC_DIRECTORY_READ_ONLY` / `PUBLIC_DIRECTORY_READ_ONLY`.
+2. **National public listings and geographic/specialty discovery:** `directory-listings` (GET public reads; authenticated/admin writes separately guarded), path `{SUPABASE_URL}/functions/v1/directory-listings`. This is the existing production keyset endpoint used by `fetchPublicDirectoryListingPage` in `apps/catalog-frontend/src/lib/directoryListings.ts`. It supports `limit` (1–100), opaque `cursor`, `type`, `governorate`, `district`, `village`, `address`, `specialty`, `functionalGroupId`, `taxonomyCategoryId`, `taxonomySpecialty`, and `q`. It applies filters before limit and orders by `created_at DESC, id DESC`; malformed limit/cursor is rejected. Response contract: `listings`, `pageSize`, `hasMore`, `nextCursor`.
+
+The live-origin smoke test `scripts/production/smoke-directory-listings-pagination.mjs` verifies page continuation, no duplicate IDs, public-only rows, CORS, invalid cursor/limit rejection and national doctor coverage. This capability is already present on current main and production; R6 must reuse it rather than reimplementing offset pagination or incorrectly assuming `public-catalog-directory` provides cursor support.
+
+The `public-catalog-directory` server returns only active/published/approved public businesses, active provider profiles, active branches, active public items and visible current prices. It excludes inactive/test/unpublished data and suppresses hidden numeric prices.
 
 ### R6 business projection
 | R6 field | Existing response | Mapping rule |
@@ -93,8 +95,8 @@ Current main already has Supabase Auth and:
 R6 deliberately blocks production login today. Keep that fail-closed boundary until a real Supabase Auth session lifecycle, token refresh/logout, server-verified `/api/v1/me`, active membership selection and scoped action adapters are implemented. The current R6 package manifest does not yet contain `@supabase/supabase-js`; lockfile/install/build must be updated and verified before enabling login. Do not enable the demo login handlers or trust client role strings.
 
 ## Known read limitations
-- The current public directory Edge Function caps its result at 100 businesses and has no cursor/keyset input in the current R6 adapter. A full all-Egypt directory needs stable backend pagination; a UI “show more” control cannot fetch beyond the server cap.
-- The current public projection does not return precise branch latitude/longitude. Do not claim exact nearby sorting from map URLs or fallback city coordinates.
+- The business/activity card feed `public-catalog-directory` is currently capped at 100 and has no cursor/keyset input. Do not use it as the national listings source or claim that its own response supports “show more”. The separate `directory-listings` endpoint already provides production keyset pagination for national listings; R6 still needs an explicit adapter and UI integration against that endpoint.
+- The current business/catalog public projection does not return precise branch latitude/longitude. Do not claim exact nearby sorting from map URLs or fallback city coordinates.
 - The separate `public-catalog` single-business read adapter still needs an R6 detail-page integration test.
 
 ## Write domains blocked pending contracts
