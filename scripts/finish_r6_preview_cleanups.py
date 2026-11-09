@@ -229,6 +229,129 @@ for rel in [
 ]:
     write(rel, read(rel).replace("1482950394857210", "غير مهيأ"))
 
+# Rewrite legacy tests that treated fake customer/subscriber identities as product data.
+rules_test = read("src/utils/rules.test.ts")
+
+def replace_test_block(source: str, start_marker: str, end_marker: str, replacement: str, label: str) -> str:
+    start = source.find(start_marker)
+    end = source.find(end_marker, start + len(start_marker)) if start >= 0 else -1
+    if start < 0 or end < 0:
+        raise SystemExit(f"Could not locate {label} boundaries")
+    return source[:start] + replacement + "\n\n" + source[end:]
+
+rules_test = replace_test_block(
+    rules_test,
+    "test('All 26 INITIAL_BUSINESSES",
+    "test('Role Isolation & Demo Accounts",
+    """test('R6 clean directory baseline retains 26 unverified listings and no initial operational records', () => {
+  assert.equal(INITIAL_BUSINESSES.length, 26);
+  assert.equal(INITIAL_SUBSCRIBERS.length, 0);
+  assert.equal(INITIAL_SALES_RECORDS.length, 0);
+
+  for (const biz of INITIAL_BUSINESSES) {
+    assert.equal(biz.isVerified, false);
+    assert.equal(biz.verificationStatus, 'unverified');
+    assert.equal(biz.isFrozen, false);
+    assert.equal(biz.paymentStatus, 'pending');
+    assert.equal(biz.commissionPerOrder, 0);
+    assert.equal(biz.commissionPercentage, 0);
+    assert.equal(biz.commissionFixed, 0);
+    assert.equal(biz.commissionType, 'subscription_only');
+    assert.equal(biz.ownerEmail || '', '');
+    assert.equal(biz.ownerWhatsApp || '', '');
+    assert.equal(biz.phone || '', '');
+    assert.equal(biz.totalSalesAmount || 0, 0);
+    assert.equal(biz.totalServicesSalesAmount || 0, 0);
+    assert.equal(biz.totalOrdersCount || 0, 0);
+    assert.equal(biz.viewsCount || 0, 0);
+    assert.equal(biz.creditLimit || 0, 0);
+    assert.equal(biz.usedCreditBalance || 0, 0);
+    const lat = biz.lat ?? biz.coordinates?.lat;
+    const lng = biz.lng ?? biz.coordinates?.lng;
+    assert.ok(typeof lat === 'number' && typeof lng === 'number', \`Business \${biz.id} must keep its directory coordinates\`);
+  }
+});""",
+    "legacy business baseline test",
+)
+rules_test = replace_test_block(
+    rules_test,
+    "test('Role Isolation & Demo Accounts",
+    "test('Adopted businesses have empty phone/WhatsApp",
+    """test('R6 clean baseline contains no demo identities while role permission rules remain defined', () => {
+  assert.equal(DEMO_CUSTOMER_ACCOUNTS.length, 0);
+  assert.equal(INITIAL_SUBSCRIBERS.length, 0);
+  assert.equal(authenticateCustomerAccount('preview_customer', 'preview-only'), null);
+  assert.equal(authenticateSubscriber(INITIAL_SUBSCRIBERS, 'preview_provider', 'preview-only'), null);
+
+  const customerAccessible = getAccessibleBusinessesForRole(
+    { role: 'customer', subscriberId: 'removed_demo_customer', subscriberName: 'Removed Demo' },
+    INITIAL_BUSINESSES
+  );
+  assert.equal(customerAccessible.length, 0);
+
+  const merchantAccessible = getAccessibleBusinessesForRole(
+    { role: 'subscriber', subscriberId: 'nonexistent_subscriber', businessId: INITIAL_BUSINESSES[0].id, subscriberName: 'Unlinked Preview' },
+    INITIAL_BUSINESSES
+  );
+  assert.equal(merchantAccessible.length, 1);
+  assert.equal(merchantAccessible[0].id, INITIAL_BUSINESSES[0].id);
+
+  const adminAccessible = getAccessibleBusinessesForRole(
+    { role: 'admin', subscriberName: 'Preview Admin' },
+    INITIAL_BUSINESSES
+  );
+  assert.equal(adminAccessible.length, INITIAL_BUSINESSES.length);
+
+  const custPerms = getRolePermissionsSummary('customer');
+  assert.equal(custPerms.isCustomer, true);
+  assert.equal(custPerms.canViewMerchantTools, false);
+  assert.equal(custPerms.canAccessMerchantDashboard, false);
+  assert.equal(custPerms.canAccessAdminDashboard, false);
+
+  const merchantPerms = getRolePermissionsSummary('subscriber');
+  assert.equal(merchantPerms.isMerchant, true);
+  assert.equal(merchantPerms.canViewMerchantTools, true);
+  assert.equal(merchantPerms.canAccessMerchantDashboard, true);
+  assert.equal(merchantPerms.canSwitchBusinessesInDashboard, false);
+  assert.equal(merchantPerms.canAccessAdminDashboard, false);
+
+  const adminPerms = getRolePermissionsSummary('admin');
+  assert.equal(adminPerms.isAdmin, true);
+  assert.equal(adminPerms.canViewMerchantTools, true);
+  assert.equal(adminPerms.canAccessAdminDashboard, true);
+  assert.equal(adminPerms.canSwitchBusinessesInDashboard, true);
+
+  const wallets = createInitialPlatformWallets(INITIAL_BUSINESSES, []);
+  assert.equal(wallets.some((w) => String(w.id).startsWith('wallet_cust_')), false);
+  for (const wallet of wallets) {
+    assert.equal(wallet.availableBalance || 0, 0);
+    assert.equal(wallet.pendingBalance || 0, 0);
+    assert.equal(wallet.creditLimit || 0, 0);
+    assert.equal(wallet.usedCredit || 0, 0);
+    assert.equal(wallet.adGrantBalance || 0, 0);
+    assert.equal(wallet.totalDeposited || 0, 0);
+    assert.equal(wallet.totalSpentOnAds || 0, 0);
+  }
+
+  assert.equal(
+    PLATFORM_OFFICIAL_LOGO_URL,
+    '/assets/aistudio/9db84106-5e82-4728-8045-566110fcff3a_506a1bed.png'
+  );
+});""",
+    "legacy demo identity and role test",
+)
+rules_test = rules_test.replace(
+    "test('Adopted businesses have empty phone/WhatsApp until Admin edits, and each of the 15 sectors has 3x default images (12 per sector = 180 total)'",
+    "test('Unverified directory businesses have no exposed phone/WhatsApp, and each sector has its default image set'",
+)
+rules_test = rules_test.replace(
+    "// 1. All 26 adopted businesses are active & verified WITHOUT phone or WhatsApp numbers initially",
+    "// 1. The 26 directory listings remain unverified and expose no owner phone or WhatsApp initially",
+)
+rules_test = rules_test.replace("    assert.equal(biz.isVerified, true);", "    assert.equal(biz.isVerified, false);")
+rules_test = rules_test.replace("    assert.equal(biz.verificationStatus, 'verified');", "    assert.equal(biz.verificationStatus, 'unverified');")
+write("src/utils/rules.test.ts", rules_test)
+
 # Tests document the intentionally empty initial operational dataset.
 test = read("src/utils/aiPixelCommissionEngine.test.ts")
 if "assert.deepEqual(reports, []);" not in test:
