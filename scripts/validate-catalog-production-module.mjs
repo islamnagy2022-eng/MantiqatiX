@@ -112,7 +112,7 @@ check("react_privileged_views_require_authorized_session", () => {
   includes(reactApp, "const MerchantDashboard = lazy(() => import('./components/merchant/MerchantDashboard')");
   includes(reactApp, "const AdminDashboard = lazy(() => import('./components/admin/AdminDashboard')");
   includes(reactApp, "const ProfessionalDashboard = lazy(() => import('./modules/dashboard/ProfessionalDashboard')");
-  includes(reactApp, "const MedicalDirectoryView = lazy(() => import('./components/MedicalDirectoryView')");
+  excludes(reactApp, /MedicalDirectoryView|medical_directory/, "The standalone medical directory must be absent from the retained legacy catalog.");
   includes(reactApp, "const CartDrawer = lazy(() => import('./components/cart/CartDrawer')");
   includes(reactApp, "const LoginModal = lazy(() => import('./components/auth/LoginModal')");
   includes(reactApp, "<Suspense fallback={<ScreenFallback />}><MerchantDashboard /></Suspense>");
