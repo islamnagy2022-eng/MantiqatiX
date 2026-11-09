@@ -4040,3 +4040,16 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - R6 work to date adds national-directory keyset pagination and medical-directory wiring with 20-record pages, server-side filters, debounced search, cursor reset, stale-request protection and ID deduplication. It keeps directory-only records distinct from business/catalog records and does not fabricate verification, coordinates, contact data or booking prices. R6 mobile web components remain preserved. Native Android/Kotlin source is a separate retained archive and must not be deleted or mistaken for the R6 mobile web UI.
 - **Next executable action:** obtain a direct conversation upload of the exact owner-approved `bizcatalog-manager (6).zip` so its raw bytes can be rehashed and safely inspected. Its current Library Project file reference does not permit raw-byte materialization in this session. Then reconcile the sanitized R6 tree against the existing Supabase field/API map, import on a dedicated branch, and run full install/typecheck/lint/build/security/browser/PWA validation before a Preview. Do not deploy, change Production Supabase/Auth/RLS/GRANT/Edge/payment/finance, merge, or cut over the root from this checkpoint.
 - `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`; no new application-source import or production mutation is claimed by this documentation correction.
+
+
+
+---
+
+## 2026-11-09 — Owner decision: exclude the medical directory from website scope
+
+- **Explicit owner instruction:** remove the medical directory from the current website-development scope. Do not merge, import, build, wire, expand, or otherwise work on the R6 medical directory for the website.
+- This supersedes any earlier continuation note that described `MantiqaTix-R6-medical-directory-integrated.zip` as the next integration candidate. Its `MedicalDirectoryView` wiring and medical-specific additions are excluded and must not be promoted into the website.
+- Do not add a dedicated medical directory, medical-only navigation, healthcare listings page, medical booking journey, or new medical-specific UI/API work. Keep the next development focus on the general activity/service directory, business profiles, public catalog, products, homepage and the remaining platform modules.
+- Do not interpret this scope decision as authorization to delete existing Production records, database objects, or live customer data. No Production data or medical records were deleted or changed by this instruction.
+- Preserve unrelated shared capabilities and the separate mobile/Android source. If an R6 source import is resumed later, explicitly exclude `MedicalDirectoryView.tsx`, medical-only UI/routes, medical-specific tests/scripts and any medical booking additions from the website import.
+- `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`; this scope correction makes no application-code, database, Auth/RLS/GRANT/Edge Function or deployment change.
