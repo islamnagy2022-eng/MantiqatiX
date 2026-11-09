@@ -1,65 +1,45 @@
 # BizCatalog Manager (6) — Isolated Preview
 
-Status: **SANITIZED PACKAGE PREPARED — SOURCE NOT YET IMPORTED TO THIS BRANCH — NOT DEPLOYED**
+Status: **SANITIZED PACKAGE PREPARED — SOURCE NOT YET IMPORTED INTO THIS BRANCH — NOT DEPLOYED**
 
-Preview branch:
-`preview/bizcatalog-manager-6-isolated`
+Preview branch: `preview/bizcatalog-manager-6-isolated`
 
-Canonical input:
-`bizcatalog-manager (6).zip` provided by the project owner.
+## Exact source package
 
-## Work completed against the exact archive
+The preview source is the owner-supplied `bizcatalog-manager (6).zip`, not RC40 and not the existing production branch.
 
-- Audited the 114-file application source and identified the React/Vite frontend plus Express API server.
-- Prepared a clean archive excluding `.data/` (including `production-live-db.json` and backups), `.aistudio/`, and local environment files.
-- Removed seeded customer/subscriber identities and historical sales, contact messages, subscription requests and ad request records; replaced the customer/provider demo accounts with synthetic Preview identities.
-- Removed the embedded Paymob/Gemini sample keys and hard-coded JWT/HMAC fallback secrets.
-- Added isolated `.data-preview/` storage selected only by `PREVIEW_MODE=true`.
-- Namespaced browser Local Storage under `mantiqatix_preview::` when `VITE_PREVIEW_MODE=true`, preventing shared-origin data crossover with the main site.
-- Added synthetic Preview-only customer/provider/admin credentials and disabled Paymob in the UI.
-- Disabled payment, billing, WhatsApp, backup and session-token endpoints in Preview mode.
-- Added a production static-file serving path for the built Vite frontend and a Dockerfile for a Node/Express runtime.
-- Set the seed business metrics and visitor counters to zero rather than presenting fixture values as real results.
+Sanitized archive: `bizcatalog-manager-6-preview-clean.zip`
+SHA-256: `a5d765120363747b46432d482f159e9f3dce9e2e809d818b58dd495bcdf0e4d5`
+117 source files in the initial sanitized package; excludes `.data/`, `.data-preview/`, `.aistudio/`, and local environment secrets.
 
-Sanitized package SHA-256:
-`a87bfc9e80a155277e1f35d8fb29ccff159eba9c31a6f00ffc35eee555e36241`
+## Work prepared
 
+- Isolated storage root `.data-preview/` selected only by `PREVIEW_MODE=true`.
+- No production database snapshot or backup import.
+- Historical finance, sales, wallets, payment intentions, subscriber identities, messages and contact data are reset in the preview database.
+- Browser Local Storage keys are namespaced under `mantiqatix_preview::`.
+- Payment, billing, WhatsApp and backup endpoints are disabled.
+- Additional hardening script adds a global Preview API allowlist: only GET `/api/health`, `/api/businesses`, and `/api/products` are available. All other API endpoints and all API writes are denied. It also adds no-index/security headers, response no-store, and per-IP rate limiting.
+- Preview activity entries are shown as unverified until independently reviewed.
+- Unsupported "100% production ready" claims are removed from preview status copy.
+- A visible warning banner explains that browser changes are local only.
+- Dockerfile serves the built React application through Express and includes a health check.
+- GitHub Actions workflow is configured for install, typecheck, unit tests, Vite build, API-isolation checks and Docker build.
 
-## Validation performed on the sanitized package
+## Verification
 
-- Parsed 85 TypeScript/TSX files with the TypeScript transpiler: no syntax diagnostics.
-- Verified that the archive contains no `.data/` or `.aistudio/` path.
-- Verified there are no unscoped Local Storage reads/writes outside the Preview storage wrapper.
-- Verified the previously embedded example Paymob/Gemini/JWT secret strings are absent.
-- Full dependency installation, typecheck and Vite build remain **NOT VERIFIED**: npm install in the current runtime could not reach the npm registry and the dependency cache was empty. The branch CI workflow is prepared to perform those checks after source import.
-
-
-### Additional verification from the clean archive
-
-- Confirmed archive SHA-256: `a87bfc9e80a155277e1f35d8fb29ccff159eba9c31a6f00ffc35eee555e36241`.
-- Extracted clean archive contains 117 files; no `.data/`, `.data-preview/`, `.aistudio/`, `.env.local`, or `.env.production` entries.
-- Transpiled all 85 TypeScript/TSX files using the available TypeScript transpiler: **0 syntax diagnostics**.
-- Confirmed there are no direct `localStorage.getItem/setItem/removeItem` calls outside the Preview-aware storage wrapper.
-- Confirmed known sample secret strings are absent from non-documentation source.
-- Full `npm install`, `tsc --noEmit`, Vite build and Docker image build are still pending: the package registry was unreachable from the execution environment, and the application source has not yet been imported to this GitHub branch.
+- Sanitized archive SHA-256 computed and checked.
+- No `.data/`, `.data-preview/`, `.aistudio/`, `.env.local`, or `.env.production` entries inside the archive.
+- 85 TypeScript/TSX files previously passed syntax transpilation with no syntax diagnostics.
+- Full dependency installation, typecheck, unit tests, frontend build and Docker image build are **NOT VERIFIED** in this runtime because the npm registry was unreachable and Docker is not installed here.
+- CI checks are ready to execute after the archive source is imported into this branch.
 
 ## Remaining blockers
 
-1. The sanitized binary archive is prepared and checksum-pinned by the import helper, but its source files have not yet been committed under `apps/bizcatalog-manager-6-preview/`.
-2. The local runtime has no authenticated binary-upload operation for transferring this 12.6 MiB archive directly into GitHub from this session. The import helper is committed in this branch so the exact sanitized package can be imported without copying old data.
-3. After import, the R6 Preview Build workflow must complete successfully.
-4. The app requires a Node.js/Express container runtime. GitHub Pages alone cannot run its API server and must not be used as a claim of a complete functional deployment.
-5. Public deployment remains blocked until endpoint authorization, preview isolation and runtime behavior are verified.
+1. The exact 13 MB sanitized application archive cannot be transferred as a binary payload by the connected GitHub file-write actions available in this session. The GitHub connector exposes text/blob content operations but no binary archive upload or repository push operation.
+2. The committed importer verifies the archive checksum, rejects unsafe data files, applies the hardening script, and commits the app under `apps/bizcatalog-manager-6-preview/`.
+3. A successful GitHub Actions run is required after import.
+4. A separate Node.js/Docker hosting target is required to serve the Express API. GitHub Pages alone cannot run the backend and is not a complete deployment.
+5. No Cloud Run or other hosting credentials/target have been configured in the available project connections, so a deployment URL cannot yet be issued.
 
-## Import command
-
-From a clone of this repository, while checked out on the preview branch:
-
-```bash
-bash scripts/import-r6-preview.sh /path/to/bizcatalog-manager-6-preview-clean.zip
-git push origin preview/bizcatalog-manager-6-isolated
-```
-
-The helper rejects archives containing `.data/`, `.aistudio/`, or local production environment files and refuses to overwrite an existing app directory.
-
-The production `main` branch and current live website remain unchanged.
+The production `main` branch and live website are unchanged.
