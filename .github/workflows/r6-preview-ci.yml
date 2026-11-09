@@ -2,14 +2,12 @@ name: R6 Preview Build
 
 on:
   push:
-    branches:
-      - preview/bizcatalog-manager-6-isolated
+    branches: [preview/bizcatalog-manager-6-isolated]
     paths:
       - "apps/bizcatalog-manager-6-preview/**"
       - ".github/workflows/r6-preview-ci.yml"
   pull_request:
-    branches:
-      - preview/bizcatalog-manager-6-isolated
+    branches: [preview/bizcatalog-manager-6-isolated]
     paths:
       - "apps/bizcatalog-manager-6-preview/**"
       - ".github/workflows/r6-preview-ci.yml"
@@ -30,23 +28,26 @@ jobs:
       run:
         working-directory: apps/bizcatalog-manager-6-preview
     steps:
-      - name: Checkout isolated preview branch
-        uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/bizcatalog-manager-6-isolated
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Type check
         run: npm run lint
+      - name: Unit tests
+        run: npx tsx --test $(find src -type f -name '*.test.ts' -print)
       - name: Build frontend
         run: npm run build
-      - name: Build preview container image
-        run: docker build -t mantiqatix-r6-preview:ci .
-      - name: Verify isolated data configuration
+      - name: Verify preview-only API access
         run: |
-          grep -q 'PREVIEW_MODE=true' .env.example
-          grep -q '.data-preview' server.ts
+          grep -q 'PREVIEW_ALLOWED_API_PATHS' server.ts
+          grep -q "new Set(\['/health', '/businesses', '/products'\])" server.ts
+          grep -q 'MANTIQATIX_PREVIEW_NOTICE' src/App.tsx
           test ! -e .data
           test ! -e .data-preview
+      - name: Build container
+        run: docker build -t mantiqatix-r6-preview:ci .
