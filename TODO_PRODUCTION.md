@@ -1804,3 +1804,19 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 - Full semantic TypeScript and Vite build remain NOT VERIFIED: dependency installation did not complete and `vite/client` types are absent. Browser E2E, a11y, PWA and R6 Preview also remain open.
 - The exact field/API map is recorded in `docs/integration/R6_SUPABASE_FIELD_MAPPING_20261109.md`. It records the public read contracts, 18→15 taxonomy reconciliation, Auth/membership requirements, 100-business directory response cap, absent precise public coordinates, and blocked write domains.
 - R6 source remains local and not yet imported into GitHub; no R6 source code was published by this checkpoint. No Supabase Production writes or root cutover were made. `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-11-09 — R6 national listings adapter (local implementation checkpoint)
+
+- Added local cleanroom files `src/services/nationalListings.ts` and `src/services/nationalListings.test.ts`. This is a separate adapter for the existing `directory-listings` Edge Function; it does not replace `publicDirectory.ts` / `public-catalog-directory` business/catalog cards.
+- Supports server keyset pagination (`limit` 1–100, opaque `cursor`, `nextCursor`, `hasMore`, `pageSize`) and documented type/geographic/taxonomy/free-text filters.
+- Sends only the public anon key; rejects malformed pagination responses and non-PUBLISHED rows. Public publication is not interpreted as verification; mapped `isVerified` is always false. No GPS coordinates are inferred.
+- Local tests after addition: **88/88 PASS** across 14 test files. Security-boundary check PASS; Pages base/PWA contract PASS across 72 TS/TSX files; service-worker runtime scope/cache isolation PASS; TypeScript/TSX syntax transpilation PASS across 86 files with zero syntax errors.
+- Updated local ZIP: `MantiqaTix-R6-national-listings-adapter.zip`, SHA-256 `e788794893db5c395a836e3d66e5805c620eb895c857f9b104a35d1386983cfa`; 123 files total, 87 under `src/`, 14 test files, 2 R6 mobile UI files. ZIP integrity PASS.
+- **Not yet wired to an R6 screen, imported into GitHub, built, or deployed.** Semantic TypeScript, dependency installation, Vite build, browser E2E/a11y and deployed Preview remain NOT VERIFIED. No Production Supabase changes or V6 cutover.
+- Next implementation: wire this paginated service into the national listings screen with cursor-aware loading and filters, preserving the separate business catalog. Then run complete build/browser tests after source import.
+
+- **Medical screen wiring added locally after the adapter checkpoint:** `MedicalDirectoryView.tsx` now fetches the national healthcare feed in 20-row keyset pages, sends server-side filters, debounces free-text search, resets cursor on filters, guards stale requests and deduplicates appended IDs. It keeps `directory:` records separate from business/catalog records.
+- Removed the medical search-to-auto-register behavior that fabricated contact/location/consultation data and marked the generated provider verified. National listing cards remain explicitly unverified; the screen no longer advertises a fabricated booking fee or opens a business storefront for a directory-only record.
+- Added `scripts/verify-r6-medical-directory.mjs`; medical-directory safety assertions PASS. Re-run totals remain 88/88 unit tests, security boundary PASS, Pages/PWA PASS (72 files), service-worker isolation PASS and syntax transpilation PASS (86 files, zero errors).
+- Updated local package: `MantiqaTix-R6-medical-directory-integrated.zip`, SHA-256 `babba30693c0a1b7bd44b568bd283b6d04a16f643662cb06c6721e3b24c63b71`; 124 files total, 87 source files, 14 test files, 2 mobile UI files. This remains local-only; semantic typecheck/build/browser tests and deployed Preview are not verified.
