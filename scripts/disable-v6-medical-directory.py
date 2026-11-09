@@ -72,8 +72,7 @@ def apply(root: Path) -> None:
         r"^\s*\{ id: 'medical_directory' as const, label: 'الدليل الطبي', icon: HeartPulse \},\s*\n",
         "medical_nav_item")
     remove_required_line(directory,
-        r"^\s*<button type=\"button\" onClick=\{\(\) => setCurrentView\('medical_directory'\)\}[^
-]*>الدليل الطبي</button>\s*\n",
+        r"^\s*<button type=\"button\" onClick=\{\(\) => setCurrentView\('medical_directory'\)\}.*>الدليل الطبي</button>\s*\n",
         "medical_directory_cta")
     # Keep the canonical archive intact; strip medical-only files from the generated website worktree.
     for rel in ["src/components/medical/MedicalDirectoryView.tsx", "src/data/medicalSpecialties.ts"]:
