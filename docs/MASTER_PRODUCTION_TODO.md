@@ -4053,3 +4053,16 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Do not interpret this scope decision as authorization to delete existing Production records, database objects, or live customer data. No Production data or medical records were deleted or changed by this instruction.
 - Preserve unrelated shared capabilities and the separate mobile/Android source. If an R6 source import is resumed later, explicitly exclude `MedicalDirectoryView.tsx`, medical-only UI/routes, medical-specific tests/scripts and any medical booking additions from the website import.
 - `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`; this scope correction makes no application-code, database, Auth/RLS/GRANT/Edge Function or deployment change.
+
+
+---
+
+## 2026-11-09 — V6 public website: remove the dedicated medical directory
+
+- The owner clarified that the dedicated medical directory must be removed from the website, not merely excluded from a future R6 import.
+- Implementation branch: feat/remove-medical-directory-from-v6-public-site-20261109.
+- The V6 public build-preparation step now removes the medical page import/render route, removes the medical view from PublicViewMode, removes the Navbar item and homepage CTA, and excludes the medical screen/specialty-only source files from the generated public worktree. The original source archive remains untouched; the generated public build is the release artifact.
+- General activity directory, business profiles, contact route, public catalog, 15-sector navigation and other non-medical modules remain intact. This change removes the dedicated medical directory only; it does not delete existing business records or Production data.
+- Added an idempotent patch self-test and a source assertion script. Full exact-head Pages build, deployed-origin browser E2E and accessibility checks are pending PR CI.
+- Do not add the dedicated medical route back in future V6/R6 work. Preserve the separate mobile and native Android source; no database/Auth/RLS/GRANT/Edge/payment/finance changes are in scope.
+- FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED until all independent release gates pass.
