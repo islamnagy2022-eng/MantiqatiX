@@ -1685,3 +1685,8 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Latest local ZIP: `MantiqaTix-R6-national-listings-adapter.zip`, SHA-256 `e788794893db5c395a836e3d66e5805c620eb895c857f9b104a35d1386983cfa`; 123 total files, 87 source files, 14 tests, 2 mobile web components. Native Android remains separate and preserved.
 - The new service is tested but **not yet wired to the R6 UI**. R6 remains local-only and not imported into GitHub; full typecheck/build/browser/PWA/deployed Preview are unverified. V6 root and `/legacy/` remain untouched; no Supabase Production writes.
 - Next: connect the national listings view to this service, implement cursor-aware progressive loading and filter reset/stale-request handling, then validate in isolated Preview. Keep catalog cards separate.
+
+- Follow-on UI integration (local only): `MedicalDirectoryView.tsx` now consumes the national listing adapter with 20-row cursor paging, healthcare/type/geography/specialty/search filters, debounced search, stale-request protection and ID dedupe. Directory-only rows are kept distinct from business catalog records.
+- Removed search-triggered fake provider creation/verification and fabricated booking prices from the medical directory. Public listing rows remain unverified and do not open business storefronts.
+- Safety assertion script `scripts/verify-r6-medical-directory.mjs`: PASS. All 88 unit tests still pass; security, Pages/PWA, service-worker isolation and 86-file TS/TSX syntax checks pass.
+- New local package: `MantiqaTix-R6-medical-directory-integrated.zip`, SHA-256 `babba30693c0a1b7bd44b568bd283b6d04a16f643662cb06c6721e3b24c63b71`; 124 files total, 87 source, 14 test files, 2 mobile web components. Not imported or deployed.
