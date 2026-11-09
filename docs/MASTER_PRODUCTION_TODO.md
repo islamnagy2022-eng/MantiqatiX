@@ -4027,3 +4027,16 @@ No writes were executed.
 7. Separately close Production data/Storage/Auth restore with measured RPO/RTO/rollback; coupled payment/finance/Paymob/webhook/idempotency/wallet/settlement E2E; six critical Edge Function source parity; per-object SECURITY DEFINER/ACL and anonymous/authenticated negative RLS tests; owner-side Auth evidence; and SMM negative runtime tests.
 
 No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation, no Pages deployment, no root cutover, and no PR merge occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+---
+
+## 2026-11-09 — Reconcile current V6 deployment with the local R6 source candidate
+
+- The current Pages release composition is governed by `.github/workflows/pages.yml`: the existing catalog app is built under `/legacy/`, the tracked V6 public app is built at `/MantiqaTix/`, and the V6 preview alias is built at `/v6-preview/`. All three paths are composed into the same Pages artifact and deployed through the single Pages workflow.
+- This supersedes the earlier 2026-11-06 P3 wording that treated the V6 Preview as not yet deployed. The post-merge evidence recorded in `TODO_PRODUCTION.md` for PR #697 reports V6 at the production root and the legacy catalog retained. The deployment does **not** certify the full platform.
+- Do not confuse the deployed repository V6 source with the owner-approved R6 archive `bizcatalog-manager (6).zip` (original SHA-256: `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`). R6 remains outside the repository and must not overwrite the current V6 or legacy catalog.
+- Latest local R6 integration package recorded in `TODO_PRODUCTION.md`: `MantiqaTix-R6-medical-directory-integrated.zip`, SHA-256 `babba30693c0a1b7bd44b568bd283b6d04a16f643662cb06c6721e3b24c63b71`; 88/88 local unit tests and static safety checks passed. Full semantic TypeScript, Vite build, browser E2E, accessibility, PWA lifecycle and deployed Preview are **not verified**.
+- R6 work to date adds national-directory keyset pagination and medical-directory wiring with 20-record pages, server-side filters, debounced search, cursor reset, stale-request protection and ID deduplication. It keeps directory-only records distinct from business/catalog records and does not fabricate verification, coordinates, contact data or booking prices. R6 mobile web components remain preserved. Native Android/Kotlin source is a separate retained archive and must not be deleted or mistaken for the R6 mobile web UI.
+- **Next executable action:** obtain a direct conversation upload of the exact owner-approved `bizcatalog-manager (6).zip` so its raw bytes can be rehashed and safely inspected. Its current Library Project file reference does not permit raw-byte materialization in this session. Then reconcile the sanitized R6 tree against the existing Supabase field/API map, import on a dedicated branch, and run full install/typecheck/lint/build/security/browser/PWA validation before a Preview. Do not deploy, change Production Supabase/Auth/RLS/GRANT/Edge/payment/finance, merge, or cut over the root from this checkpoint.
+- `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`; no new application-source import or production mutation is claimed by this documentation correction.
