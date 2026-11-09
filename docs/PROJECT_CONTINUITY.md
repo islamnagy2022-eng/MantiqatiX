@@ -2,7 +2,7 @@
 
 - PR #699 merged to `main` as documentation-only commit `1beb586a3d6eb8f8d205b6a3a502ed04018ce50f`. It corrected the R6 integration map so the business/catalog feed is not confused with the national `directory-listings` keyset pagination endpoint. No runtime or production change occurred.
 - The uploaded canonical R6 archive is available as a direct conversation file in the current runtime. Reverified original SHA-256: `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`.
-- Latest local sanitized package: `MantiqaTix-R6-preview-basepath-hardened.zip`, SHA-256 `aff13adfb0410288c8bbdd2e8450f649a15449eaeff58dc092638a3a8f158f31`. Inventory: 120 files, 85 under `src/`, 48 React components, 13 test files, 2 R6 mobile web components and 6 reference captures. No private `.data/`, `.aistudio/`, local `server.ts`, real `.env`, node_modules or backup data.
+- Latest local sanitized package: `MantiqaTix-R6-preview-basepath-hardened.zip`, SHA-256 `aa9066eff3f630040ff3e534a3a68b82a801fb16179cfda2b286dc968ba9de1e`. Inventory: 120 files, 85 under `src/`, 48 React components, 13 test files, 2 R6 mobile web components and 6 reference captures. No private `.data/`, `.aistudio/`, local `server.ts`, real `.env`, node_modules or backup data.
 - Additional local R6 implementation for isolated Pages Preview:
   - Vite `base` reads `VITE_BASE_PATH` and validates an absolute path with leading/trailing slash.
   - App registers service worker under `import.meta.env.BASE_URL` with the same scope.
