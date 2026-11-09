@@ -4092,3 +4092,13 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Removes medical_directory from the legacy ViewMode and safe route resolution; removes the lazy page import/render route, Navbar destination and sitemap entry; deletes MedicalDirectoryView.tsx.
 - Old direct links now fail closed to the general activity directory. The browser E2E assertion is updated to verify no medical button/page renders and general directory search remains available.
 - Scope is the standalone medical directory only. General activities/services, public storefronts, catalog, 15-sector taxonomy, business profiles and contact remain. No database rows, migrations, Auth/RLS/Edge Functions or Production customer data are deleted or changed. Separate mobile/native Android assets remain preserved.
+
+
+---
+
+## 2026-11-09 — Verified Egypt boundary metadata; geometry gate remains open
+
+- geoBoundaries current API for EGY ADM2 returns 365 polygons, represented year 2020, source OCHA ROMENA/HDX + CAPMAS, source update 2023-01-19 and licence CC BY 3.0 IGO. The official CC BY 3.0 IGO deed allows commercial sharing/adaptation with attribution and change disclosure.
+- Exact simplified GeoJSON LFS pointer: SHA-256 `abd2e419ce95e1cdd46bb18025a4eccfa6f877956494a56da3ebed4bc6a153d9`, size 1,379,010 bytes, pinned geoBoundaries commit `9469f09592ced973a3448cf66b6100b741b64c0d`. The pointer is retrieved, but geometry bytes were not materialized; actual polygons/CRS/topology/P-code crosswalk have not been inspected.
+- OCHA COD-AB references ADM3 5,716 sub-district units with partial coverage; source resource manifest and geometry still need direct HDX verification. Do not infer ADM3 polygons from representative-point records or from an unlicensed ArcGIS mirror.
+- Existing UI continues approximate nearest-representative-point disclosure; no code or production dataset was changed. Continue from acceptance gates in `docs/GEO_BOUNDARY_VERIFIED_SOURCE_REVIEW_20261109.md`.
