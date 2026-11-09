@@ -36,6 +36,13 @@ SHA-256: `8e407165706aa6b70257420ce77e389f1caaab3a0c2181bf3fc8f9680fc4409a`
 - Python hardening script syntax validation passed.
 - Full npm install, TypeScript typecheck, unit tests, Vite build and Docker build remain **NOT VERIFIED**: the current execution container cannot resolve the npm registry and does not have Docker installed.
 
+## Cloud Run deployment workflow
+
+- Added `.github/workflows/r6-preview-cloud-run.yml` for isolated deployment after source import.
+- Added `docs/R6_PREVIEW_CLOUD_RUN_SETUP.md` with the required GitHub Environment secrets and least-privilege setup.
+- The workflow uses Workload Identity Federation; it does not store a service-account JSON key.
+- The workflow is intentionally gated on the presence of the imported app Dockerfile and required GCP secrets.
+
 ## Remaining blockers to a public URL
 
 1. The GitHub connector available in this session can write UTF-8 file/blob content but does not expose a binary archive upload or Git push action. The sanitized 13.2 MB ZIP therefore cannot be committed to the branch by this session's available write actions. The exact archive is attached in this conversation and the branch importer is ready to accept it.
