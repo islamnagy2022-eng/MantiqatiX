@@ -47,6 +47,9 @@ jobs:
           grep -q 'PREVIEW_ALLOWED_API_PATHS' server.ts
           grep -q "new Set(\['/health', '/businesses', '/products'\])" server.ts
           grep -q 'MANTIQATIX_PREVIEW_NOTICE' src/App.tsx
+          grep -q 'const seededWallets' src/context/AppContext.tsx
+          grep -q 'if (IS_PREVIEW_MODE) return [];' src/context/AppContext.tsx
+          grep -q "VITE_PREVIEW_MODE !== 'true'" src/main.tsx
           test ! -e .data
           test ! -e .data-preview
       - name: Build container
