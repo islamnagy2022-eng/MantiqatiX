@@ -1690,3 +1690,11 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Removed search-triggered fake provider creation/verification and fabricated booking prices from the medical directory. Public listing rows remain unverified and do not open business storefronts.
 - Safety assertion script `scripts/verify-r6-medical-directory.mjs`: PASS. All 88 unit tests still pass; security, Pages/PWA, service-worker isolation and 86-file TS/TSX syntax checks pass.
 - New local package: `MantiqaTix-R6-medical-directory-integrated.zip`, SHA-256 `babba30693c0a1b7bd44b568bd283b6d04a16f643662cb06c6721e3b24c63b71`; 124 files total, 87 source, 14 test files, 2 mobile web components. Not imported or deployed.
+
+
+
+---
+
+## 2026-11-09 — Owner scope decision: no medical-directory integration
+
+The owner explicitly removed the medical directory from the website scope. Do not merge, import, build, wire, expand, or work on the R6 medical-directory feature for the website. The earlier reference to `MantiqaTix-R6-medical-directory-integrated.zip` is historical only and is not an approved integration package. Exclude `MedicalDirectoryView.tsx`, medical-only routes/navigation, healthcare directory UI, medical-specific scripts/tests and booking additions from any future website import. Continue with the general activity/service directory, business profiles, public catalog/products, homepage and remaining platform work. This does not authorize deletion of existing Production records or customer data; no database records were removed. Preserve the separate mobile and native Android source. Full platform gate remains BLOCKED / NOT CERTIFIED.
