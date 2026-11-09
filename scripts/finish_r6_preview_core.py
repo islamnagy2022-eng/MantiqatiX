@@ -52,7 +52,10 @@ clean_initial_builder = r'''function buildCleanInitialDb(schemaVersion: string):
   const businesses: Business[] = INITIAL_BUSINESSES.map((b): Business => {
     const imgs = ensureBusinessStaticImages(b.logoUrl, b.coverUrl, b.functionalGroupId);
     return {
-      ...b, ownerWhatsApp: '', phone: '', adminApprovedPhone: false,
+      ...b, ownerWhatsApp: '', phone: '', email: '', ownerEmail: '', ownerSubscriberId: '',
+      employees: [], adminApprovedPhone: false, subscriptionTier: 'free', sectorPackageLevel: 1,
+      maxAllowedBusinesses: 1, monthlySubscriptionFee: 0, paymentDueDay: 0, paymentDueDate: '',
+      lastPaymentDate: undefined, consultationFee: 0,
       customLinks: (b.customLinks || []).filter((l) => l.type === 'link'),
       logoUrl: imgs.logoUrl, coverUrl: imgs.coverUrl,
       isVerified: false, verificationStatus: 'unverified', isFrozen: false,
