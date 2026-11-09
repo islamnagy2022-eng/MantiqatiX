@@ -4081,3 +4081,14 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - The selected scope filters registered activity results, sector counts, activity counts, search and specialty results while retaining verified-first ordering. The general sector taxonomy remains; no standalone medical directory is introduced.
 - PR #706 merged to `main` as `8e76971da0c60234eddbacc4c9f0059ecd85c171` on 2026-11-09. Exact-head V6 Preview Source Validation passed (run `42618977751`): source preparation, security audit, TypeScript, `verify:release`, Vite root/Preview builds and regression tests passed. Pages workflow validation passed (run `42618977644`), including desktop/mobile Playwright against both composed root and `/v6-preview/`, location consent/privacy/manual geography, general directory, catalog and accessibility checks. Its deploy job was skipped because this run was for a pull request; post-merge Pages deployment/HTTP verification is not yet confirmed.
 - No Production database/schema/Auth/RLS/GRANT/Edge/payment/finance change. The separate mobile/native Android source remains preserved. `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED` until all platform gates pass.
+
+
+---
+
+## 2026-11-09 — Remove the medical directory from the retained legacy catalog UI
+
+- The previous V6-only removal left the dedicated medical page reachable in the retained /legacy/ catalog. The owner requested removal from the website, so this follow-up removes it from both public application shells.
+- Branch: feat/remove-legacy-medical-directory-route-20261109.
+- Removes medical_directory from the legacy ViewMode and safe route resolution; removes the lazy page import/render route, Navbar destination and sitemap entry; deletes MedicalDirectoryView.tsx.
+- Old direct links now fail closed to the general activity directory. The browser E2E assertion is updated to verify no medical button/page renders and general directory search remains available.
+- Scope is the standalone medical directory only. General activities/services, public storefronts, catalog, 15-sector taxonomy, business profiles and contact remain. No database rows, migrations, Auth/RLS/Edge Functions or Production customer data are deleted or changed. Separate mobile/native Android assets remain preserved.
