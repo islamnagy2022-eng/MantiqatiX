@@ -29,7 +29,7 @@ import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPlat
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../utils/dashboardAccess';
 
-export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'account_portal' | 'marketplace_home' | 'medical_directory' | 'contact_us' | 'site_map' | 'login' | 'directory';
+export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'account_portal' | 'marketplace_home' | 'contact_us' | 'site_map' | 'login' | 'directory';
 
 interface AppContextType {
   currentView: ViewMode;
@@ -130,7 +130,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (params.has('store') || params.has('businessId')) return 'public_storefront';
     const requestedView = params.get('view');
     if (params.has('activity') || params.has('listing') || params.has('group')) return 'directory';
-    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'account_portal' || requestedView === 'medical_directory' || requestedView === 'marketplace_home' || requestedView === 'contact_us' || requestedView === 'site_map' || requestedView === 'directory'
+    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'account_portal' || requestedView === 'marketplace_home' || requestedView === 'contact_us' || requestedView === 'site_map' || requestedView === 'directory'
       ? requestedView
       : 'marketplace_home';
   });
@@ -299,8 +299,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ? 'directory'
       : requestedView === 'account_portal' && Boolean(boot.authSession.isAuthenticated)
         ? 'account_portal'
-        : requestedView === 'medical_directory'
-        ? 'medical_directory'
         : requestedView === 'marketplace_home'
           ? 'marketplace_home'
         : requestedView === 'contact_us'
@@ -465,7 +463,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           ? 'marketplace_home'
           : isDirectoryDeepLink
             ? 'directory'
-          : requestedView === 'medical_directory' || requestedView === 'marketplace_home' || requestedView === 'contact_us' || requestedView === 'site_map' || requestedView === 'directory'
+          : requestedView === 'marketplace_home' || requestedView === 'contact_us' || requestedView === 'site_map' || requestedView === 'directory'
             ? requestedView
             : requestedView === 'account_portal' && authSession.isAuthenticated
               ? 'account_portal'

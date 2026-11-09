@@ -11,7 +11,6 @@ const CatalogSection = lazy(() => import('./components/storefront/CatalogSection
 const MerchantDashboard = lazy(() => import('./components/merchant/MerchantDashboard').then((module) => ({ default: module.MerchantDashboard })));
 const AdminDashboard = lazy(() => import('./components/admin/AdminDashboard').then((module) => ({ default: module.AdminDashboard })));
 const ProfessionalDashboard = lazy(() => import('./modules/dashboard/ProfessionalDashboard').then((module) => ({ default: module.ProfessionalDashboard })));
-const MedicalDirectoryView = lazy(() => import('./components/MedicalDirectoryView').then((module) => ({ default: module.MedicalDirectoryView })));
 const ContactUsView = lazy(() => import('./components/ContactUsView').then((module) => ({ default: module.ContactUsView })));
 const SiteMapView = lazy(() => import('./components/SiteMapView').then((module) => ({ default: module.SiteMapView })));
 const CartDrawer = lazy(() => import('./components/cart/CartDrawer').then((module) => ({ default: module.CartDrawer })));
@@ -36,7 +35,7 @@ const MainContent: React.FC = () => {
   const visibleView = authLoading
     ? (currentView === 'public_storefront' && hasDirectPublicCatalogLink
       ? 'public_storefront'
-      : currentView === 'directory' || currentView === 'medical_directory' || currentView === 'marketplace_home' || currentView === 'contact_us' || currentView === 'site_map'
+      : currentView === 'directory' || currentView === 'marketplace_home' || currentView === 'contact_us' || currentView === 'site_map'
         ? currentView
         : 'directory')
     : currentView === 'super_admin' && authSession.role !== 'admin'
@@ -69,10 +68,6 @@ const MainContent: React.FC = () => {
         {visibleView === 'directory' && <DirectoryView />}
 
         {visibleView === 'marketplace_home' && <MarketplaceHome />}
-
-        {visibleView === 'medical_directory' && (
-          <Suspense fallback={<ScreenFallback />}><MedicalDirectoryView /></Suspense>
-        )}
 
         {visibleView === 'public_storefront' && (
           <Suspense fallback={<ScreenFallback />}>

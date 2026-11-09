@@ -16,7 +16,6 @@ import {
   ExternalLink,
   Layers,
   Megaphone,
-  HeartPulse,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -294,19 +293,6 @@ export const Navbar: React.FC = () => {
               >
                 <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
                 <span>الرئيسية</span>
-              </button>
-
-              <button
-                onClick={() => setCurrentView('medical_directory')}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
-                  currentView === 'medical_directory'
-                    ? 'bg-slate-950 text-white font-black shadow-md shadow-slate-900/10'
-                    : 'text-slate-600 hover:bg-white hover:text-slate-950'
-                }`}
-                aria-current={currentView === 'medical_directory' ? 'page' : undefined}
-              >
-                <HeartPulse className="w-3.5 h-3.5 text-rose-600" />
-                <span>الدليل الطبي</span>
               </button>
 
               {/* Dedicated activity and service search remains separate from the homepage. */}

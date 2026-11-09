@@ -539,24 +539,17 @@ try {
     } finally { await context.close(); }
   }
 
-  // 0a. Dedicated Medical Directory is a public, read-only view over real published activities.
+  // 0a. The retired dedicated medical-directory route must fail closed to general activities.
   {
     const { context, page } = await newScenario(browser, null, [], { initialRoute: '?view=medical_directory' });
     try {
-      await page.getByRole('heading', { name: 'الدليل الطبي لمنطقتك في مكان واحد', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
-      assert.equal(new URL(page.url()).searchParams.get('view'), 'medical_directory', 'medical directory must retain a direct-link route');
-      const medicalFilters = page.locator('select');
-      assert.equal(await medicalFilters.count(), 5, 'medical directory must expose its five structured filters');
-      for (let index = 0; index < 5; index += 1) {
-        await medicalFilters.nth(index).waitFor({ state: 'visible' });
-      }
-      assert.equal(await page.getByRole('button', { name: 'تسجيل ذكي بالذكاء الاصطناعي' }).count(), 0, 'search must not fabricate or auto-register medical activities');
-      assert.equal(await page.getByRole('dialog').count(), 0, 'medical page must not request GPS until the visitor explicitly clicks');
-      await page.getByRole('button', { name: 'العودة إلى الدليل العام' }).click();
-      await page.waitForFunction(() => new URL(window.location.href).searchParams.get('view') === 'directory');
-      await page.goBack();
-      await page.getByRole('heading', { name: 'الدليل الطبي لمنطقتك في مكان واحد', exact: true }).waitFor({ state: 'visible', timeout: 10000 });
-      results.push('medical-directory-public-filters-route-history-no-fabricated-medical-records');
+      const primaryNavigation = page.getByRole('navigation', { name: 'التنقل الرئيسي في MantiqatiX' });
+      await primaryNavigation.getByRole('button', { name: 'بحث الأنشطة والخدمات', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(await primaryNavigation.getByRole('button', { name: 'الدليل الطبي', exact: true }).count(), 0, 'The legacy public navigation must not expose the medical directory');
+      assert.equal(await page.getByRole('heading', { name: 'الدليل الطبي لمنطقتك في مكان واحد', exact: true }).count(), 0, 'The retired medical route must not render its page');
+      await primaryNavigation.getByRole('button', { name: 'بحث الأنشطة والخدمات', exact: true }).click();
+      await page.getByPlaceholder(/بحث عن اسم نشاط، تخصص، أو خدمة/).waitFor({ state: 'visible', timeout: 10000 });
+      results.push('medical-directory-route-disabled-general-directory-fallback');
     } finally { await context.close(); }
   }
 

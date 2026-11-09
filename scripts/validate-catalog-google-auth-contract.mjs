@@ -61,11 +61,10 @@ console.log('Catalog Google OAuth hydration, identity-vs-membership, and role-ga
 
 assert.match(context, /const defaultView: ViewMode = 'marketplace_home'/, 'Every freshly authenticated account must land on the canonical marketplace home by default');
 assert.ok(
-  context.includes("requestedView === 'medical_directory'") &&
   context.includes("requestedView === 'marketplace_home'") &&
   context.includes("requestedView === 'contact_us'") &&
   context.includes("requestedView === 'site_map'"),
-  'Role bootstrap must preserve the public Medical Directory, Marketplace, Contact and Site Map routes.'
+  'Role bootstrap must preserve the Marketplace, Contact and Site Map routes; the retired medical-directory route is intentionally unsupported.'
 );
 assert.ok(
   context.includes("requestedView === 'super_admin' && boot.authSession.role === 'admin'") &&
@@ -82,12 +81,11 @@ assert.ok(context.includes("url.searchParams.delete('activity')") && context.inc
 assert.ok(app.includes("visibleView === 'marketplace_home' && <MarketplaceHome />"), 'The marketplace component must remain mounted as a public route.');
 assert.ok(navbar.includes("setCurrentView('marketplace_home')") && navbar.includes("setCurrentView('directory')"), 'Homepage and directory search must be separate navigation destinations.');
 assert.ok(
-  context.includes("requestedView === 'medical_directory'") &&
   context.includes("requestedView === 'marketplace_home'") &&
   context.includes("requestedView === 'contact_us'") &&
   context.includes("requestedView === 'site_map'") &&
   context.includes("window.addEventListener('popstate', restoreRouteFromLocation)"),
-  'Browser history must restore the Medical Directory and all public V4 information and marketplace routes.'
+  'Browser history must restore public information, marketplace and general directory routes; the retired medical-directory route remains unsupported.'
 );
 assert.ok(
   context.includes("requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(authSession)") &&

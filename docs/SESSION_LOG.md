@@ -2355,3 +2355,13 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Pages workflow PR validation run `42618977644` passed: catalog and V6 builds, external smoke checks, composed root and Preview browser E2E on desktop/mobile, location consent and privacy, manual geography, catalog and accessibility. The deploy job was skipped for the PR event as designed.
 - The post-merge GitHub Pages run and deployed-origin HTTP check are not independently confirmed from this session. Do not mark the location discovery as live until the main-branch deploy and its root/Preview smoke checks are confirmed.
 - No Production schema/data/Auth/RLS/Edge/payment/finance changes. The standalone medical directory remains excluded; legacy catalog and separate mobile/native Android sources remain preserved.
+
+
+---
+
+## 2026-11-09 — Extend medical-directory removal to retained legacy catalog
+
+- While checking the successful V6 root deployment, discovered that the rollback catalog at /legacy/ still exposed the older ?view=medical_directory page, Navbar button and sitemap entry.
+- Owner's instruction applies to the website, so opened feat/remove-legacy-medical-directory-route-20261109 to remove that remaining public route as well.
+- The change removes the ViewMode allowance, initial and restored route handling, lazy component import/render, nav and sitemap links, and the standalone page component. The E2E now treats an old medical URL as a retired route and verifies fallback to general directory search.
+- General healthcare activity taxonomy and unrelated business listings are not bulk-deleted. No Production records/backend policies/functions are changed. Mobile/Android source remains preserved.
