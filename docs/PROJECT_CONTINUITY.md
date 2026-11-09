@@ -1737,3 +1737,15 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - OCHA's P-code standard requires an ISO-3166-1 prefix (usually two-letter) plus numeric hierarchical components, so the Open Admin Data codes fit the expected syntax, but records have no explicit `adm2_pcode` field and district `source` metadata is empty. Exact P-code identity with the current OCHA COD-AB source is not yet verified; a source-column crosswalk is still required.
 - OCHA COD status dashboard reports Egypt ADM3 as partial coverage in 96.2% of ADM2 units (5,716 units). Treat missing ADM3 geometry as a coverage gap, not a point-outside result.
 - No geometry files materialized or production code changed. Keep nearest-point UI explicitly approximate.
+
+
+---
+
+## 2026-11-09 16:14 Africa/Cairo — reconcile R6 raw-source access and medical-directory scope
+
+- PR #709 is the authoritative merged implementation for removing the dedicated medical directory from both public website shells: merge commit `758f6276638f11448e990514bd671d4ba20914e5`. The root, retained `/legacy/` and `/v6-preview/` deployment plus deployed-origin browser checks are recorded as passing in Pages run `42502614593`.
+- Duplicate Draft PR #711 had the same source head as PR #709 and no additional current-main application changes; it was closed as superseded, not merged. Do not reopen or replay it. Keep general activity categories and business rows; do not restore a dedicated medical directory or medical-specific page/route/navigation/booking flow.
+- Current Library record for the canonical `bizcatalog-manager (6).zip` is `/MANTIQATIX/bizcatalog-manager (6).zip`, 37,305,478 bytes, with previously verified SHA-256 `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`. In this runtime, raw-byte materialization is explicitly denied by the Project file provider and text read fails internally. Do not claim the file is mounted here.
+- The only current conversation attachment, `v6-source-tree-review.zip`, SHA-256 `bdb854f5668bc5387a7265a403d24ee3590aaa50b61aacf94bde4d270f945400`, is a limited review snapshot; it lacks `src/components/mobile/` and contains dedicated medical-directory UI. It is not canonical R6 and must not be imported or treated as a source replacement.
+- The previously prepared sanitized R6 package and 83/83 test evidence are historical handoff artifacts; their files are not present in the current runtime and those tests were not rerun in this session. Exact R6 import remains the first source task once the canonical ZIP bytes are accessible. Preserve the R6 mobile UI and separate native Android source; exclude the dedicated medical directory and private/unsafe files.
+- No R6 source files were imported, no production database/Auth/RLS/GRANT/Edge/payment/finance changes were made, and no new deployment or root cutover occurred in this checkpoint. The deployed V6 root and `/legacy/` rollback remain unchanged. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.

@@ -2383,3 +2383,12 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - OCHA's P-code standard requires an ISO-3166-1 prefix (usually two-letter) plus numeric hierarchical components, so the Open Admin Data codes fit the expected syntax, but records have no explicit `adm2_pcode` field and district `source` metadata is empty. Exact P-code identity with the current OCHA COD-AB source is not yet verified; a source-column crosswalk is still required.
 - OCHA COD status dashboard reports Egypt ADM3 as partial coverage in 96.2% of ADM2 units (5,716 units). Treat missing ADM3 geometry as a coverage gap, not a point-outside result.
 - No geometry files materialized or production code changed. Keep nearest-point UI explicitly approximate.
+
+
+## 2026-11-09 16:14 Africa/Cairo — SESSION continuation: source access reconciliation
+
+- Confirmed PR #709 already merged the requested removal of the dedicated medical directory from V6 and the retained legacy website (merge `758f6276638f11448e990514bd671d4ba20914e5`); deployed root/legacy/preview and browser checks are recorded as passing in Pages run `42502614593`.
+- Closed duplicate draft PR #711 as superseded because it had no additional current-main app changes beyond PR #709. No replay or merge was required.
+- Checked canonical R6 Library archive `/MANTIQATIX/bizcatalog-manager (6).zip` (37,305,478 bytes; known digest `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`). Raw-byte materialization is denied in this runtime; text read also failed. Do not assert that the archive is mounted.
+- Current conversation contains only `v6-source-tree-review.zip` (digest `bdb854f5668bc5387a7265a403d24ee3590aaa50b61aacf94bde4d270f945400`), a limited review snapshot that lacks the canonical R6 mobile directory and contains a dedicated medical-directory component. It was not imported. The historically prepared R6 cleanroom ZIP and 83/83 test evidence are not available to this runtime and were not re-run.
+- No application source import, Production mutation, Edge deployment, payment/finance operation or Pages deployment occurred during this checkpoint. Keep R6 as the canonical source; preserve `src/components/mobile/` and separate Android assets; do not reintroduce the dedicated medical directory. The immediate implementation dependency is making the exact R6 archive bytes available for hashing, sanitization, tests and a dedicated-branch import.
