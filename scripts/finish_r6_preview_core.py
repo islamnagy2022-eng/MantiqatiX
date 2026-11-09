@@ -39,6 +39,63 @@ if "INITIAL_SUBSCRIBERS: Subscriber[] = []" not in seed:
         raise SystemExit("Could not remove initial subscriber accounts")
 write("src/data/seedData.ts", seed)
 
+# Remove non-public owner/staff identities and obsolete billing/verification claims
+# from the bundled public directory seed itself (not only from runtime copies).
+seed = read("src/data/seedData.ts")
+biz_start = seed.find("export const INITIAL_BUSINESSES: Business[] = [")
+biz_end = seed.find("export const INITIAL_SUBSCRIBERS", biz_start)
+if biz_start < 0 or biz_end < 0:
+    raise SystemExit("Could not locate initial directory seed boundaries")
+biz_block = seed[biz_start:biz_end]
+# Remove staff identity arrays, preserving public listing metadata.
+biz_block, employees_removed = re.subn(
+    r"(?m)^\s*employees:\s*\[\s*\n.*?^\s*\],\s*\n",
+    "",
+    biz_block,
+    flags=re.S,
+)
+# Replace sensitive or operational properties, leaving business name, description,
+# public location, hours, media, category and catalog links intact.
+safe_defaults = {
+    "ownerWhatsApp": "''",
+    "phone": "''",
+    "email": "''",
+    "ownerEmail": "''",
+    "ownerSubscriberId": "''",
+    "isVerified": "false",
+    "verificationStatus": "'unverified'",
+    "verificationBadgeLevel": "'none'",
+    "subscriptionTier": "'free'",
+    "sectorPackageLevel": "1",
+    "maxAllowedBusinesses": "1",
+    "monthlySubscriptionFee": "0",
+    "paymentDueDay": "0",
+    "paymentDueDate": "''",
+    "paymentStatus": "'pending'",
+    "overdueDaysCount": "0",
+    "paymentConfirmedByAdmin": "false",
+    "lastPaymentDate": "undefined",
+    "creditLimit": "0",
+    "usedCreditBalance": "0",
+    "totalSalesAmount": "0",
+    "totalServicesSalesAmount": "0",
+    "totalOrdersCount": "0",
+    "viewsCount": "0",
+}
+for prop, value in safe_defaults.items():
+    biz_block = re.sub(
+        rf"(?m)^(\s*){re.escape(prop)}:\s*.*?,\s*$",
+        rf"\1{prop}: {value},",
+        biz_block,
+    )
+biz_block = re.sub(
+    r"(?m)^(\s*)paymobConfig:\s*.*?,\s*$",
+    r"\1paymobConfig: { ...DEFAULT_PAYMOB_CONFIG, enabled: false, merchantApiKey: '' },",
+    biz_block,
+)
+seed = seed[:biz_start] + biz_block + seed[biz_end:]
+write("src/data/seedData.ts", seed)
+
 rules = read("src/utils/rules.ts")
 if "DEMO_CUSTOMER_ACCOUNTS: DemoCustomerAccount[] = []" not in rules:
     rules, n = re.subn(r"export const DEMO_CUSTOMER_ACCOUNTS: DemoCustomerAccount\[\] = \[.*?\n\];", "export const DEMO_CUSTOMER_ACCOUNTS: DemoCustomerAccount[] = [];", rules, count=1, flags=re.S)
