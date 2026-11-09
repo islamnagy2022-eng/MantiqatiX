@@ -51,3 +51,14 @@ SHA-256: `8e407165706aa6b70257420ce77e389f1caaab3a0c2181bf3fc8f9680fc4409a`
 4. No Cloud Run, Render, Railway, or other host connection/deployment credentials are configured in the available tools, so a live URL cannot be created from this session yet.
 
 Production `main` and the current live website have not been changed.
+
+
+## Owner decision — clean R6 baseline (2026-11-09)
+
+The owner has clarified that R6 is to become the sole application baseline, not a patched copy of legacy applications. Older sources may be mined only for individually reviewed missing capabilities (Google OAuth/Supabase Auth, compatible backend contracts, RLS/RBAC, schema migrations, and mobile source kept separately). Do not merge old UI shells or duplicate modules.
+
+All old operational/demo records must be absent from R6: customer/user fixtures, leads, subscriptions, orders, sales, invoices, payments, wallets, balances, messages, support history, analytics counters, and backups. Only explicitly reviewed public directory/catalog seed records may remain, labeled unverified until checked. See [R6 Clean Baseline Decision](docs/R6_CLEAN_BASELINE_DECISION.md).
+
+The existing active Supabase project was discovered, but it contains an established production schema and records. It must not be reset or used as public Preview storage. A clean isolated Preview database must be provisioned from reviewed compatible migrations. Production data deletion or destructive schema changes require a separate explicit approval. Never commit service-role keys, OAuth client secrets, production tokens, database dumps, or password hashes.
+
+Current gates remain unchanged: ZIP not imported to this branch; application build not verified; Cloud Run deployment not completed; no live Preview URL yet.
