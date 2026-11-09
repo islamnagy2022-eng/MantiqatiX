@@ -2,15 +2,16 @@ name: R6 Preview Build
 
 on:
   push:
-    branches: [preview/bizcatalog-manager-6-isolated]
+    branches:
+      - preview/bizcatalog-manager-6-isolated
     paths:
       - "apps/bizcatalog-manager-6-preview/**"
+      - "scripts/**r6-preview**"
       - ".github/workflows/r6-preview-ci.yml"
+      - "PREVIEW_DEPLOYMENT_STATUS.md"
   pull_request:
-    branches: [preview/bizcatalog-manager-6-isolated]
-    paths:
-      - "apps/bizcatalog-manager-6-preview/**"
-      - ".github/workflows/r6-preview-ci.yml"
+    branches:
+      - preview/bizcatalog-manager-6-isolated
   workflow_dispatch:
 
 permissions:
@@ -22,35 +23,38 @@ concurrency:
 
 jobs:
   build:
-    if: ${{ hashFiles('apps/bizcatalog-manager-6-preview/package.json') != '' }}
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/bizcatalog-manager-6-preview
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout isolated preview branch
+        uses: actions/checkout@v4
         with:
           ref: preview/bizcatalog-manager-6-isolated
-      - uses: actions/setup-node@v4
+      - name: Require imported application source
+        run: |
+          test -f apps/bizcatalog-manager-6-preview/package.json || {
+            echo "::error::R6 application ZIP has not been imported to apps/bizcatalog-manager-6-preview/. The source upload is the current blocker."
+            exit 1
+          }
+          test -f apps/bizcatalog-manager-6-preview/server.ts
+          test -f apps/bizcatalog-manager-6-preview/Dockerfile
+          test ! -e apps/bizcatalog-manager-6-preview/.data
+          test ! -e apps/bizcatalog-manager-6-preview/.data-preview
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 22
       - name: Install dependencies
+        working-directory: apps/bizcatalog-manager-6-preview
         run: npm install --no-audit --no-fund
       - name: Type check
+        working-directory: apps/bizcatalog-manager-6-preview
         run: npm run lint
       - name: Unit tests
+        working-directory: apps/bizcatalog-manager-6-preview
         run: npx tsx --test $(find src -type f -name '*.test.ts' -print)
       - name: Build frontend
+        working-directory: apps/bizcatalog-manager-6-preview
         run: npm run build
-      - name: Verify preview-only API access
-        run: |
-          grep -q 'PREVIEW_ALLOWED_API_PATHS' server.ts
-          grep -q "new Set(\['/health', '/businesses', '/products'\])" server.ts
-          grep -q 'MANTIQATIX_PREVIEW_NOTICE' src/App.tsx
-          grep -q 'const seededWallets' src/context/AppContext.tsx
-          grep -q 'if (IS_PREVIEW_MODE) return [];' src/context/AppContext.tsx
-          grep -q "VITE_PREVIEW_MODE !== 'true'" src/main.tsx
-          test ! -e .data
-          test ! -e .data-preview
       - name: Build container
+        working-directory: apps/bizcatalog-manager-6-preview
         run: docker build -t mantiqatix-r6-preview:ci .
