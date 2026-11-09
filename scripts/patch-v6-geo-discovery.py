@@ -403,7 +403,7 @@ const normalizeGeoName = (value: unknown) => String(value || '')
         "activity options use geo scope",
     )
     dependency_pattern = re.compile(
-        r"(const activityOptions = useMemo\(\(\) => \{.*?)(\n\s*\}, \[[^\]]+\]\);)(\n\s*const selectedActivity = activityOptions\.find)",
+        r"(const activityOptions = useMemo\(\(\) => \{.*?)(\n\s*\}, \[[^\]]*\]\);)",
         re.DOTALL,
     )
     dependency_match = dependency_pattern.search(source)
