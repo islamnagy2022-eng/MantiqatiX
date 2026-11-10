@@ -1,13 +1,13 @@
 name: Deploy R6 Preview to Cloud Run
 
 on:
-  workflow_dispatch:
-  push:
+  workflow_run:
+    workflows:
+      - "R6 Preview Build"
+    types:
+      - completed
     branches:
       - preview/bizcatalog-manager-6-isolated
-    paths:
-      - "apps/bizcatalog-manager-6-preview/**"
-      - ".github/workflows/r6-preview-cloud-run.yml"
 
 permissions:
   contents: read
@@ -19,6 +19,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'preview/bizcatalog-manager-6-isolated' }}
     runs-on: ubuntu-latest
     environment: r6-preview
     steps:
