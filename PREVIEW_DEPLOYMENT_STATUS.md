@@ -149,3 +149,14 @@ A new pre-install CI step runs `scripts/verify_r6_preview_source.sh` against the
 The gate passed a positive isolated mock-fixture run and its Bash syntax check; it has not yet run against the imported R6 application because the application directory is still absent.
 
 The importer also now refuses to proceed when unrelated changes are staged, extracts and sanitizes in a unique temporary directory, atomically moves the finished app into place, and cleans only the destination it created if an uncommitted import fails.
+
+## Contact and payment action isolation — 2026-11-10
+
+A fifth import stage, `scripts/finish_r6_preview_contact_guard.py`, now runs after data cleanup:
+- neutralizes default/fake telephone destinations in Preview-mode business, booking, MantyGo and messaging helpers;
+- clears sample B2B supplier contact numbers;
+- blocks click navigation to `tel:`, `sms:`, WhatsApp and payment-provider URLs in the public Preview browser, while leaving ordinary website links usable;
+- prevents the marketing-services inquiry handler from launching a fallback administrative WhatsApp contact.
+
+Local preflight: the new stage completed against a fresh extraction of the sanitized ZIP; 16 changed TS/TSX files passed syntax transpilation with zero syntax diagnostics. This is not a full TypeScript typecheck or runtime/browser test. The stage is integrated into the importer but awaits full CI execution after app import.
+
