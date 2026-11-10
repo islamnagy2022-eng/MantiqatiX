@@ -77,7 +77,7 @@ https://github.com/islamnagy2022-eng/MantiqaTix/actions
 
 ## 5) النشر التجريبي
 
-النشر إلى Cloud Run ليس تلقائيًا. لا تشغّل **Deploy R6 Preview to Cloud Run** إلا بعد نجاح CI لنفس SHA وبعد إعداد أسرار GCP داخل GitHub Environment باسم `r6-preview`.
+النشر إلى Cloud Run ليس تلقائيًا. Workflow النشر يدوي ويتحقق بنفسه من وجود تشغيل **R6 Preview Build** ناجح على SHA المطابق تمامًا للـ commit الحالي. لا تشغّل **Deploy R6 Preview to Cloud Run** إلا بعد نجاح CI لنفس SHA وبعد إعداد أسرار GCP داخل GitHub Environment باسم `r6-preview`.
 
 لا تستخدم Supabase الإنتاجية. لا يتم تغيير `main` ضمن هذا المسار.
 
