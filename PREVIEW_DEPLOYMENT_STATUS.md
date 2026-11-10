@@ -100,3 +100,10 @@ This prevents a direct push or manual dispatch from bypassing the build/test gat
 - CI now checks out `github.sha`, rather than a moving branch name.
 - Cloud Run deployment is manual-only; its verification job requires a successful `R6 Preview Build` run for the exact dispatch SHA, and the deploy job checks out that same SHA.
 - The application ZIP remains unimported. No CI success, live URL, or deployment is claimed.
+
+## Container smoke gate added — 2026-11-10
+
+- Added `scripts/smoke_test_r6_preview.sh`.
+- The R6 CI workflow now starts the built Preview container after Docker build and tests health, public directory/catalog GETs, zero operational counts, unverified directory metadata, rejection of non-public endpoints and mutations, and required security response headers.
+- The smoke script passed local Bash syntax validation only. It has **not** run against the application because the application source is not yet imported and the CI build is blocked before container creation.
+
