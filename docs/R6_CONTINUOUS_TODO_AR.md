@@ -181,3 +181,13 @@
 - **PASS (mock fixture):** فحص Bash يعمل على بنية Preview نظيفة تجريبية، ويتحقق من الملفات الأساسية، عدم وجود data/env، وضع guest، حظر handlers المحلية، فراغ الحسابات التجريبية، غياب Meta Pixel من HTML والـ engine، وخلو README من بيانات الدخول القديمة.
 - **IMPLEMENTED:** عدّاد حظر الدخول يشترط وجود حواجز لكل 3 handlers محلية، لا مجرد تطابق واحد.
 - **BLOCKED:** لا يمكن تشغيل الفحص على نسخة التطبيق الفعلية قبل رفع ZIP وتشغيل مراحل sanitizer الأربع.
+
+
+## Preview contact-safety pass — 10 نوفمبر 2026
+
+- **IMPLEMENTED:** إضافة `scripts/finish_r6_preview_contact_guard.py` كمرحلة خامسة بعد تنظيف البيانات.
+- **PASS (local isolated preflight):** شُغلت المرحلة على استخراج جديد للحزمة النظيفة؛ اجتازت invariants، ولم تظهر أخطاء صياغة TypeScript في 16 ملفًا معدلًا عند transpilation.
+- **IMPLEMENTED / NOT VERIFIED at runtime:** منع روابط `tel:` و`sms:` وWhatsApp والدفع في Preview، مع إبقاء روابط المواقع العامة متاحة.
+- **IMPLEMENTED:** إزالة أرقام الاتصال الافتراضية من تدفقات إنشاء روابط واتساب/الحجز وبيانات عروض B2B التجريبية في Preview.
+- **BLOCKED:** لا تزال اختبارات التفاعل داخل المتصفح والبناء الكامل وsmoke test runtime تنتظر استيراد التطبيق وتشغيل CI.
+
