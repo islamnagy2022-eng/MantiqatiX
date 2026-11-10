@@ -110,8 +110,8 @@ test ! -e "$TEMP_DEST/.data"
 test ! -e "$TEMP_DEST/.data-preview"
 test ! -e "$TEMP_DEST/.env"
 test ! -e "$TEMP_DEST/src/components/medical/MedicalDirectoryView.tsx"
-if grep -R -n --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' 'MedicalDirectoryView' "$TEMP_DEST/src"; then
-  echo "Dedicated medical directory references remain in the website source." >&2
+if grep -R -n -E --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' 'MedicalDirectoryView|medical_directory' "$TEMP_DEST/src"; then
+  echo "Dedicated medical directory page/route references remain in the website source." >&2
   exit 1
 fi
 test -d "$TEMP_DEST/src/components/mobile"
