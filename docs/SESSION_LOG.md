@@ -2419,3 +2419,12 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - The current runbook checksum and previously recorded clean transfer ZIP SHA remain historical expected values only; archive bytes were not present here and the hash was not revalidated.
 - No import, app build, deployment, Production DB/Auth/RLS/GRANT/Edge/payment/finance mutation, or public root cutover occurred. Existing deployed site and data remain unchanged.
 - `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-11-10 — R6 import guard corrections
+
+- Updated `finish_r6_preview_contact_guard.py`: it no longer requires or edits the excluded medical component. It now fails closed on the standalone `MedicalDirectoryView.tsx` path or `MedicalDirectoryView` / `medical_directory` source references.
+- Updated the importer post-transform assertions and `verify_r6_preview_source.sh` to reject the standalone medical page/route markers and require a non-empty `src/components/mobile/` directory.
+- Updated the Codespaces runbook to describe the five-stage pipeline and the new scope/mobile gates.
+- These are static repository edits only. GitHub reports no status checks attached to the latest script commit at the time of review; exact-head CI and runtime smoke tests have not been observed as passing. The archive remains unavailable, so these checks have not been exercised against real R6 source.
+- Follow-up remains required: inspect actual route/navigation and directory UI after import, ensure general activities/services remain intact, manually reconcile six docs-only commits from `main`, then run Preview CI. No Production data or deployment changed.
