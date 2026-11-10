@@ -24,6 +24,11 @@ grep -Fq "INITIAL_SUBSCRIBERS: Subscriber[] = [];" "$APP_DIR/src/data/seedData.t
 grep -Fq "DEMO_CUSTOMER_ACCOUNTS: DemoCustomerAccount[] = [];" "$APP_DIR/src/utils/rules.ts" || fail "Demo customer accounts remain."
 grep -Fq "PREVIEW_ALLOWED_API_PATHS" "$APP_DIR/server.ts" || fail "Server-side Preview API gate is missing."
 grep -Fq "MANTIQATIX_PREVIEW_NOTICE" "$APP_DIR/src/App.tsx" || fail "Visible Preview notice is missing."
+grep -Fq "FROM oven/bun:1.4.4 AS build" "$APP_DIR/Dockerfile" || fail "Pinned Bun build image missing."
+grep -Fq "bun install --frozen-lockfile" "$APP_DIR/Dockerfile" || fail "Docker dependency install is not lockfile-frozen."
+grep -Fq "USER bun" "$APP_DIR/Dockerfile" || fail "Preview container must run as non-root."
+grep -Fq "MantiqaTix Isolated Preview Backend" "$APP_DIR/server.ts" || fail "Preview health identity is missing."
+grep -Fq "isBlockedPreviewAction" "$APP_DIR/src/main.tsx" || fail "Outbound phone/payment safety guard is missing."
 
 if grep -Fq '1482950394857210' "$APP_DIR/index.html" || grep -Fq 'window.fbq' "$APP_DIR/index.html" || grep -Fq "fbq('init'" "$APP_DIR/index.html"; then
   fail "Embedded Meta Pixel bootstrap remains in index.html."
