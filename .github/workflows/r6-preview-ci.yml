@@ -47,8 +47,6 @@ jobs:
           bash -n scripts/import-r6-preview.sh scripts/smoke_test_r6_preview.sh scripts/verify_r6_preview_source.sh
           python3 -m json.tool .devcontainer/devcontainer.json >/dev/null
           echo "Import tools and Codespaces configuration syntax checks passed."
-      - name: Verify sanitized Preview source invariants
-        run: bash scripts/verify_r6_preview_source.sh apps/bizcatalog-manager-6-preview
       - name: Require imported application source
         run: |
           test -f apps/bizcatalog-manager-6-preview/package.json || {
@@ -60,6 +58,8 @@ jobs:
           test -f apps/bizcatalog-manager-6-preview/bun.lock
           test ! -e apps/bizcatalog-manager-6-preview/.data
           test ! -e apps/bizcatalog-manager-6-preview/.data-preview
+      - name: Verify sanitized Preview source invariants
+        run: bash scripts/verify_r6_preview_source.sh apps/bizcatalog-manager-6-preview
       - name: Set up Node.js for type checking
         uses: actions/setup-node@v4
         with:
