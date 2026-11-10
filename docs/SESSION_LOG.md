@@ -2392,3 +2392,18 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Checked canonical R6 Library archive `/MANTIQATIX/bizcatalog-manager (6).zip` (37,305,478 bytes; known digest `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`). Raw-byte materialization is denied in this runtime; text read also failed. Do not assert that the archive is mounted.
 - Current conversation contains only `v6-source-tree-review.zip` (digest `bdb854f5668bc5387a7265a403d24ee3590aaa50b61aacf94bde4d270f945400`), a limited review snapshot that lacks the canonical R6 mobile directory and contains a dedicated medical-directory component. It was not imported. The historically prepared R6 cleanroom ZIP and 83/83 test evidence are not available to this runtime and were not re-run.
 - No application source import, Production mutation, Edge deployment, payment/finance operation or Pages deployment occurred during this checkpoint. Keep R6 as the canonical source; preserve `src/components/mobile/` and separate Android assets; do not reintroduce the dedicated medical directory. The immediate implementation dependency is making the exact R6 archive bytes available for hashing, sanitization, tests and a dedicated-branch import.
+
+
+---
+
+## 2026-11-10 — R6 import continuation: reconcile pipeline and keep source gate closed
+
+- Rechecked the canonical Library record for `bizcatalog-manager (6).zip`: metadata is available (37,305,478 bytes), but this runtime still cannot materialize its raw bytes. The previously recorded digest remains a historical handoff value only; this session did not recompute it.
+- Confirmed that the repository already has an established R6 transfer package and importer: `bizcatalog-manager-6-preview-clean.zip`, SHA-256 `a87bfc9e80a155277e1f35d8fb29ccff159eba9c31a6f00ffc35eee555e36241`, 13,211,088 bytes, 117 files. Its five-stage sanitizer/importer and Codespaces instructions are the approved path on this branch.
+- Reviewed `scripts/import-r6-preview.sh`, the five hardening stages, `scripts/verify_r6_preview_source.sh`, `.github/workflows/r6-preview-ci.yml`, and the Codespaces handoff. The import target is `apps/bizcatalog-manager-6-preview`; only the isolated Preview branch is permitted.
+- Removed a duplicate importer/runbook/CI step introduced during this continuation after discovering the established five-stage pipeline. README now links to the existing Codespaces guide and the corrected checkpoint. No duplicate import mechanism remains.
+- No canonical R6 application source was imported. No V6 source, root deployment, Production database, Supabase Auth/RLS/GRANT, Edge Function, payment, wallet, finance, or customer data was changed.
+- Branch comparison against `main`: `preview/bizcatalog-manager-6-isolated` is ahead by 118 commits and behind by 6; it is diverged. No PR was opened and no merge/cutover was attempted. Reconcile the six upstream commits deliberately before considering a PR.
+- Current blocker is owner-side availability of the exact sanitized transfer ZIP in Codespaces. Follow `docs/R6_CODESPACES_IMPORT_AR.md`; do not substitute `bizcatalog-manager (7).zip`, `source_RC40.zip`, or the limited V6 review snapshot.
+- After the owner uploads the exact ZIP, run the established importer, push only the Preview branch, inspect the exact-head R6 Preview Build and smoke-test logs, then review general-directory/catalog scope. Preserve R6 mobile UI and separate native Android source; exclude the dedicated medical directory per the owner decision.
+- `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`. No real R6 build or deployment is claimed by this checkpoint.
