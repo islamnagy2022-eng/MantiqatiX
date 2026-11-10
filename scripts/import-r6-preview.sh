@@ -19,6 +19,10 @@ if [[ -e "$DEST" ]]; then
   echo "Destination already exists; refusing to overwrite: $DEST" >&2
   exit 1
 fi
+if ! git diff --cached --quiet; then
+  echo "Refusing import because other changes are already staged. Commit or unstage them first." >&2
+  exit 1
+fi
 
 mkdir -p "$(dirname "$DEST")"
 TEMP_ROOT="$(mktemp -d "$(dirname "$DEST")/.r6-import.XXXXXX")"
