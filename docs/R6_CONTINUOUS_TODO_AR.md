@@ -133,6 +133,6 @@
 - **IMPLEMENTED:** إعداد Codespaces في `.devcontainer/devcontainer.json` لتوفير Node 22 وPython 3.12 وGitHub CLI وunzip.
 - **IMPLEMENTED:** دليل عربي يشرح الرفع من متصفح الهاتف أو الكمبيوتر وتشغيل أداة الاستيراد: `docs/R6_CODESPACES_IMPORT_AR.md`.
 - **BLOCKED:** ما زال ZIP غير موجود داخل فرع المستودع؛ يلزم رفع `bizcatalog-manager-6-preview-clean.zip` داخل جذر Codespace ثم تشغيل importer ودفع فرع Preview.
-- **IMPLEMENTED:** CI أصبح يفحص نفس Commit الذي أطلق Workflow.
+- **IMPLEMENTED:** أضيف `scripts/smoke_test_r6_preview.sh` إلى CI لفحص الدليل والكتالوج ونقاء سجلات Preview ورفض الكتابة وواجهات الإدارة وترويسات الحماية؛ **NOT VERIFIED:** الاختبار لم يعمل بعد على حاوية فعلية لأن التطبيق لم يُستورد.\n- **IMPLEMENTED:** CI أصبح يفحص نفس Commit الذي أطلق Workflow.
 - **IMPLEMENTED:** Cloud Run deployment أصبح يدويًا، ويتحقق من نجاح CI على نفس SHA قبل نشر نفس SHA المختبَر.
 - لا يوجد نشر حي ولم يتم تشغيل Production cutover.
