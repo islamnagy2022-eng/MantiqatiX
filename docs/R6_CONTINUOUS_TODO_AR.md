@@ -149,3 +149,12 @@
 - **PASS (importer safety):** Bash syntax passed; validator accepted the exact 117-file ZIP; a simulated sanitation failure in an isolated mock repository exited safely and left no partial app directory or temporary extraction folder.
 - **IMPLEMENTED:** extraction now occurs in a unique temporary directory, followed by atomic same-filesystem move; cleanup removes the final app folder only when the current execution created it and had not committed.
 - **NOT VERIFIED:** successful run of all four live sanitation scripts on the final Codespaces checkout and successful GitHub push.
+
+
+## Supabase legacy review — 10 نوفمبر 2026
+
+- **PASS (read-only inventory):** تم التأكد من أن مشروع Supabase القائم ما زال ACTIVE_HEALTHY، ولم تُنفذ أي تغييرات عليه.
+- **IMPLEMENTED:** أضيف تقرير `docs/LEGACY_SUPABASE_READONLY_AUDIT_AR.md` ويشمل Security/Performance Advisor و9 جداول RLS بلا سياسات و3 تنبيهات anon SECURITY DEFINER و67 دالة SECURITY DEFINER متاحة لـ authenticated.
+- **BLOCKED:** لا تربط R6 بالمشروع النشط ولا تنقل دواله قبل مراجعة authorization وtenant ownership لكل function وتجهيز Preview backend منفصل.
+- **TODO:** فحص التعاريف الـ67 واختبارات الصلاحيات السلبية؛ مراجعة الجداول التسعة؛ تقييم Leaked Password Protection؛ ترتيب تحسينات الأداء في بيئة Staging.
+
