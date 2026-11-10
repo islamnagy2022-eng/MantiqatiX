@@ -191,3 +191,15 @@
 - **IMPLEMENTED:** إزالة أرقام الاتصال الافتراضية من تدفقات إنشاء روابط واتساب/الحجز وبيانات عروض B2B التجريبية في Preview.
 - **BLOCKED:** لا تزال اختبارات التفاعل داخل المتصفح والبناء الكامل وsmoke test runtime تنتظر استيراد التطبيق وتشغيل CI.
 
+
+## Work completed in this continuation — 10 نوفمبر 2026
+
+- **PASS (archive):** إعادة التحقق من ZIP: SHA-256 مطابق، ZIP integrity PASS، 117 ملفًا، 15,591,628 bytes expanded.
+- **PASS (contact guard):** تشغيل `finish_r6_preview_contact_guard.py` على استخراج جديد من ZIP؛ اكتمل دون أخطاء.
+- **IMPLEMENTED:** مرحلة الاستيراد تشمل الآن حماية روابط الهاتف وWhatsApp والدفع، وتعطيل fallback لأرقام الاتصال غير الموثقة في وضع Preview.
+- **IMPLEMENTED:** Dockerfile الناتج يستخدم Bun 1.4.4 المثبت مثل CI، `bun install --frozen-lockfile`، multi-stage build، ومستخدم runtime غير root.
+- **IMPLEMENTED:** CI يتحقق من صياغة contact guard ومن invariants الخاصة بصورة Docker وحماية outbound actions قبل build.
+- **BLOCKED:** التطبيق لم يُرفع بعد إلى `apps/bizcatalog-manager-6-preview/`; لا يوجد حتى الآن install/typecheck/unit test/build/container smoke/deploy ناجح.
+- **BLOCKED — required handoff:** رفع ZIP المنظف إلى Codespaces على فرع Preview وتشغيل importer ثم `git push`. لا توجد عملية binary upload من أداة GitHub المتاحة في جلسة ChatGPT.
+- **PROTECTED:** `main` وSupabase الإنتاجي لم يتم تعديلهما.
+
