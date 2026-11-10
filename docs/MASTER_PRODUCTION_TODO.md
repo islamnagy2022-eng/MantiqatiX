@@ -4110,3 +4110,18 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - OCHA's P-code standard requires an ISO-3166-1 prefix (usually two-letter) plus numeric hierarchical components, so the Open Admin Data codes fit the expected syntax, but records have no explicit `adm2_pcode` field and district `source` metadata is empty. Exact P-code identity with the current OCHA COD-AB source is not yet verified; a source-column crosswalk is still required.
 - OCHA COD status dashboard reports Egypt ADM3 as partial coverage in 96.2% of ADM2 units (5,716 units). Treat missing ADM3 geometry as a coverage gap, not a point-outside result.
 - No geometry files materialized or production code changed. Keep nearest-point UI explicitly approximate.
+
+
+---
+
+## 2026-11-10 — R6 source import gate (current blocking item)
+
+- [ ] Owner uploads the exact approved sanitized transfer archive `bizcatalog-manager-6-preview-clean.zip` to Codespaces on `preview/bizcatalog-manager-6-isolated`.
+- [ ] Run the existing five-stage importer: `bash scripts/import-r6-preview.sh bizcatalog-manager-6-preview-clean.zip`. Do not use a different ZIP or change the expected SHA-256.
+- [ ] Review the import commit and push only the isolated Preview branch.
+- [ ] Require exact-commit R6 Preview CI to pass: frozen Bun install, lint/typecheck, unit tests, Vite build, Docker build and runtime smoke tests.
+- [ ] Review the actual imported UI and source inventory. Preserve the R6 mobile UI and separate Android source; exclude the dedicated medical directory from the website per owner decision.
+- [ ] Map the accepted general directory/catalog UI to existing backend contracts before any Supabase integration. No production writes, schema/Auth/RLS/GRANT/Edge changes or payment/finance actions before explicit isolated validation.
+- [ ] Reconcile the Preview branch's six commits behind `main` and 118 commits ahead before creating a PR. Do not merge the diverged branch wholesale.
+- **Evidence boundary:** canonical R6 Library bytes remain unavailable to this runtime; no real R6 import/build/deploy is claimed. The deployed site and production data remain unchanged.
+- **Release gate:** `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`.
