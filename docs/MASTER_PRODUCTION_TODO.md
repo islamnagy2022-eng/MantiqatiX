@@ -4138,3 +4138,13 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - [ ] Reconcile the six documentation-only main commits manually, preserving unique security and CI findings without duplicating stale log sections.
 - **Evidence boundary:** no R6 ZIP was available for checksum revalidation or import. No app build, Preview deployment, Production change, or root cutover was performed in this review.
 - **Release gate:** `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-11-10 — Exact-head Preview CI result after import-guard updates
+
+- Latest exact-head Preview workflow: run `42890507354`, commit `d0f2f4de47d28af2aab77a4fc2c465a470e0897c`.
+- **Passed:** Python syntax validation for all five import/hardening scripts; Bash syntax for importer, verifier and smoke test; Codespaces JSON parsing. No Python SyntaxWarning remained after the cleanup-fixture correction.
+- **Expected blocker:** the next CI step stopped with the explicit message that `apps/bizcatalog-manager-6-preview/package.json` is missing because the approved R6 archive has not been imported. Source invariant verification, dependency install, typecheck, unit tests, Vite build, Docker build and runtime smoke tests were skipped.
+- The CI order is corrected so the missing-source gate runs before the source verifier, producing an actionable message. This is not a passing Preview build and does not certify the application.
+- No real R6 package was imported, no deployment was made, and no Production data or backend was changed. Continue only after the exact checksum-approved archive is attached and its content is reviewed.
+- `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`.
