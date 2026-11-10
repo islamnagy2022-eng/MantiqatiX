@@ -18,7 +18,8 @@ fi
 
 grep -Fq "const IS_PREVIEW_MODE = import.meta.env.VITE_PREVIEW_MODE === 'true';" "$APP_DIR/src/context/AppContext.tsx" || fail "Preview mode guard missing from AppContext."
 grep -Fq "if (IS_PREVIEW_MODE) return { role: 'guest' };" "$APP_DIR/src/context/AppContext.tsx" || fail "Preview is not forced to guest session."
-grep -Fq "if (IS_PREVIEW_MODE) return { success: false" "$APP_DIR/src/context/AppContext.tsx" || fail "Local password-login handlers are not all guarded."
+LOGIN_GUARDS="$(grep -F -c "if (IS_PREVIEW_MODE) return { success: false" "$APP_DIR/src/context/AppContext.tsx" || true)"
+[[ "$LOGIN_GUARDS" -ge 3 ]] || fail "Expected all three local password-login handlers to be guarded; found $LOGIN_GUARDS."
 grep -Fq "INITIAL_SUBSCRIBERS: Subscriber[] = [];" "$APP_DIR/src/data/seedData.ts" || fail "Initial subscriber fixtures are not empty."
 grep -Fq "DEMO_CUSTOMER_ACCOUNTS: DemoCustomerAccount[] = [];" "$APP_DIR/src/utils/rules.ts" || fail "Demo customer accounts remain."
 grep -Fq "PREVIEW_ALLOWED_API_PATHS" "$APP_DIR/server.ts" || fail "Server-side Preview API gate is missing."
