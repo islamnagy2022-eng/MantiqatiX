@@ -24,11 +24,12 @@ mkdir -p "$(dirname "$DEST")"
 TEMP_ROOT="$(mktemp -d "$(dirname "$DEST")/.r6-import.XXXXXX")"
 TEMP_DEST="$TEMP_ROOT/app"
 IMPORT_COMMITTED=0
+DEST_CREATED=0
 
 cleanup_import() {
   local status=$?
   trap - EXIT
-  if [[ "$status" -ne 0 && "$IMPORT_COMMITTED" -eq 0 && -d "$DEST" ]]; then
+  if [[ "$status" -ne 0 && "$IMPORT_COMMITTED" -eq 0 && "$DEST_CREATED" -eq 1 && -d "$DEST" ]]; then
     git reset --quiet -- "$DEST" 2>/dev/null || true
     rm -rf -- "$DEST"
     echo "Removed only the incomplete import directory created by this run." >&2
@@ -109,7 +110,8 @@ grep -q 'if (IS_PREVIEW_MODE) return [];' "$TEMP_DEST/src/context/AppContext.tsx
 grep -q "VITE_PREVIEW_MODE !== 'true'" "$TEMP_DEST/src/main.tsx"
 
 [[ ! -e "$DEST" ]] || { echo "Destination appeared during import; refusing overwrite." >&2; exit 1; }
-mv "$TEMP_DEST" "$DEST"
+mv -T "$TEMP_DEST" "$DEST"
+DEST_CREATED=1
 if ! git config user.name >/dev/null 2>&1; then
   git config user.name "MantiqaTix R6 Import"
 fi
