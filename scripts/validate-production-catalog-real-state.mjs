@@ -9,6 +9,7 @@ import {
   parseDirectoryPaginationLimit,
   sanitizeDirectoryPaginationSearch,
 } from '../supabase/functions/directory-listings/pagination-filter.mjs';
+import { filterRowsToPubliclyPricedItems } from '../supabase/functions/_shared/public-price-visibility.mjs';
 
 const admin = fs.readFileSync('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx', 'utf8');
 const context = fs.readFileSync('apps/catalog-frontend/src/context/AppContext.tsx', 'utf8');
@@ -112,8 +113,29 @@ assert.match(publicDirectoryFunction, /allowLegacyShowcaseImage[\s\S]{0,180}retu
 assert.match(publicDirectoryFunction, /isOfficialShowcase\(b\)/, 'public directory may include platform-owned showcase activity records without enabling their catalog modules');
 assert.doesNotMatch(publicCatalogFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'public storefront API must not generate stock-photo URLs for products');
 assert.match(publicCatalogFunction, /images\\\.unsplash\\\.com[\s\S]{0,180}return ""/, 'public storefront API must explicitly reject legacy stock-photo URLs');
-assert.ok(publicCatalogFunction.includes('const quoteOnlyItemIds = new Set(') && publicCatalogFunction.includes('.filter((price: any) => !quoteOnlyItemIds.has(String(price.catalog_item_id)))'), 'quote-only products and services must not expose stored numeric prices');
-assert.ok(publicCatalogFunction.includes('options = (optionResult.data || [])') && publicCatalogFunction.includes('.filter((option: any) => !quoteOnlyItemIds.has(String(option.catalog_item_id)))'), 'quote-only products and services must not expose option price deltas');
+const pricePermissionFixture = [
+  { id: 'explicit-yes', metadata: { catalog_public: { show_price: true } } },
+  { id: 'explicit-no', metadata: { catalog_public: { show_price: false } } },
+  { id: 'missing-flag', metadata: { catalog_public: { is_available: true } } },
+  { id: 'null-flag', metadata: { catalog_public: { show_price: null } } },
+  { id: 'string-flag', metadata: { catalog_public: { show_price: 'true' } } },
+];
+const priceRowsFixture = pricePermissionFixture.map((item) => ({ catalog_item_id: item.id, unit_price: 100 }));
+assert.deepEqual(
+  filterRowsToPubliclyPricedItems(pricePermissionFixture, priceRowsFixture).map((row) => row.catalog_item_id),
+  ['explicit-yes'],
+  'numeric public prices must be emitted only for items with show_price=true; false, null, missing and non-boolean flags must fail closed.'
+);
+assert.ok(
+  publicCatalogFunction.includes('prices = filterRowsToPubliclyPricedItems(rawItems, allPriceRows)') &&
+  publicCatalogFunction.includes('options = filterRowsToPubliclyPricedItems(rawItems, optionResult.data || [])'),
+  'public storefront must filter both numeric prices and option deltas using explicit item price permission.'
+);
+assert.match(
+  publicDirectoryFunction,
+  /prices = filterRowsToPubliclyPricedItems\(items, p \|\| \[\]\)/,
+  'public directory price rows must require explicit show_price=true permission.'
+);
 assert.doesNotMatch(sharedDefaultImages, /images\.unsplash\.com|const rules:/, 'shared catalog image helper must not generate stock-photo URLs');
 assert.match(createUi, /phoneDigits\.length > 0 && \(phoneDigits\.length < 10 \|\| phoneDigits\.length > 15\)/, 'owner WhatsApp is optional but validated when provided');
 assert.doesNotMatch(createUi, /if \(!newBizGov\.trim\(\) \|\| !newBizMarkaz\.trim\(\)\)/, 'optional location data must not block admin activity creation');
