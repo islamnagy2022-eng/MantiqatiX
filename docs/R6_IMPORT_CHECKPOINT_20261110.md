@@ -4,35 +4,28 @@
 
 The only approved application source remains `/MANTIQATIX/bizcatalog-manager (6).zip`, with the previously recorded SHA-256:
 
-`c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`
+The original Library item is present in metadata (37,305,478 bytes; editor access), but raw-byte materialization is denied in this runtime. Do not treat a checksum that cannot be recomputed from the original bytes as verified. The repository's established import handoff instead uses the sanitized transfer archive `bizcatalog-manager-6-preview-clean.zip`, SHA-256 `a87bfc9e80a155277e1f35d8fb29ccff159eba9c31a6f00ffc35eee555e36241` (13,211,088 bytes, 117 files), uploaded by the owner to Codespaces.
 
 The exact Library item is present in metadata (37,305,478 bytes; editor access), but its raw-byte materialization was denied in this runtime and a text read failed internally. Therefore the archive was not extracted, rehashed, or imported. `bizcatalog-manager (7).zip` is a separate conversation attachment and was not substituted for R6.
 
 ## Work completed in this checkpoint
 
-- Added `scripts/import-r6-cleanroom.py` to the isolated branch.
-- Added `docs/R6_CLEANROOM_IMPORT_RUNBOOK.md`.
-- The importer pins the approved R6 SHA-256, checks ZIP CRC, rejects path traversal, duplicate paths, symlinks, suspicious compression ratios and oversized archives, and refuses a pre-existing target.
-- It excludes local/private/generated state such as `.data/`, `.aistudio/`, `.env*`, local DB/backup files, dependency/build caches, and the local root `server.ts`.
-- It requires the R6 `src/components/mobile/` files to be present and records medical-scope candidate paths for explicit public-scope review.
-- It stages source only at `apps/aistudio-v6`; no account, business, catalogue, subscription, wallet, payment, transaction or other operational data is migrated. It does not deploy or change production.
+- Reviewed the established five-stage Preview hardening/import pipeline already present on this branch (`scripts/import-r6-preview.sh` plus the five hardening scripts).
+- Confirmed that it expects the sanitized transfer archive and commits only to `apps/bizcatalog-manager-6-preview` on the isolated Preview branch.
+- Removed a newly-added duplicate importer and its CI hook after discovering the established pipeline; no duplicate import route is retained.
+- Updated README to point to the existing Codespaces import guide.
+- No account, business, catalogue, subscription, wallet, payment, transaction or other operational data is migrated by the documented import workflow. It does not deploy or change production.
 
 ## Verification performed
 
-- Python syntax compilation: PASS.
-- Positive synthetic ZIP staging test: PASS.
-- Mobile source retention in fixture: PASS.
-- Exclusion of local data and environment files in fixture: PASS.
-- Hard-coded secret detection/refusal test: PASS.
-- Zip-slip/path-traversal refusal test: PASS.
-- SHA-256 mismatch refusal test: PASS.
-- Existing-target refusal is implemented; must be confirmed against the real R6 archive during staging.
-
-These are importer fixture tests only. They are not R6 application tests, not a real R6 import, and not Production certification.
+- Existing import script and five sanitation stages were reviewed from the repository source.
+- The established runbook documents checksum validation, archive safety checks, branch guard, isolated target, and preview CI.
+- The raw original Library archive could not be materialized in this runtime, so no new hash or real archive inspection is claimed.
+- No R6 application build, real import, Preview deployment, backend integration, or Production certification was performed in this checkpoint.
 
 ## Next required action
 
-Upload the exact `bizcatalog-manager (6).zip` bytes into the Codespaces workspace on `preview/bizcatalog-manager-6-isolated`. Run the audit-only command in the runbook, review the JSON report and exclusions, then run the staging command. Do not rename or substitute another archive. After staging, review the generated manifest, preserve the mobile UI, keep the dedicated medical directory out of the public website build, and begin the R6-to-Supabase contract mapping before backend integration.
+Upload the exact owner-approved `bizcatalog-manager-6-preview-clean.zip` transfer archive into Codespaces on `preview/bizcatalog-manager-6-isolated`. Follow `docs/R6_CODESPACES_IMPORT_AR.md` and run `bash scripts/import-r6-preview.sh bizcatalog-manager-6-preview-clean.zip`. Do not rename another ZIP to impersonate this archive. After the import commit, push only the Preview branch, review the R6 Preview Build workflow, and proceed to isolated preview acceptance before any backend integration.
 
 ## Production state
 
