@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 WORKTREE = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else None
 BUNDLE = ROOT / "scripts" / "v6-google-oauth-overlay.zip.b64"
-EXPECTED_SHA256 = "36a01ce1265fada358ba14a34c56519ada78403df708993ac224b9cd43f8b32b"
+EXPECTED_SHA256 = "4fe6566bcae43e6b7596ff5c841077e47db2c28ab91be74fc32b11663b9c29d2"
 ALLOWED = {
     "src/services/googleOAuth.ts",
     "src/services/googleOAuth.test.mjs",
