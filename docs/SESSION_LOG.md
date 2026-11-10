@@ -2407,3 +2407,15 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Current blocker is owner-side availability of the exact sanitized transfer ZIP in Codespaces. Follow `docs/R6_CODESPACES_IMPORT_AR.md`; do not substitute `bizcatalog-manager (7).zip`, `source_RC40.zip`, or the limited V6 review snapshot.
 - After the owner uploads the exact ZIP, run the established importer, push only the Preview branch, inspect the exact-head R6 Preview Build and smoke-test logs, then review general-directory/catalog scope. Preserve R6 mobile UI and separate native Android source; exclude the dedicated medical directory per the owner decision.
 - `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`. No real R6 build or deployment is claimed by this checkpoint.
+
+
+## 2026-11-10 — Import pipeline and branch reconciliation review
+
+- Rechecked GitHub comparison for `preview/bizcatalog-manager-6-isolated` against `main`: 120 commits ahead / 6 behind; merge base `c07236cb17a90cd60f50894450d55bd74ed24a76`; main head observed `7af9d1b7cf8ebdc073cb9d115731820d2babe98d`. The previously recorded 118-ahead count is stale.
+- Fetched and inspected all six commits behind Preview. Each changes only `docs/SESSION_LOG.md` and records the Nov 10 OAuth source-integrity failure and Supabase security findings. No application source changes are in those six commits. Manually reconcile these unique records before PR creation; do not merge the divergent branch wholesale.
+- Reviewed the existing five-stage R6 importer, source verifier, Preview CI and runtime smoke tests. ZIP validation includes SHA-256 pinning, expected branch, no-overwrite guard, duplicate path and traversal rejection, symlink rejection, private/local data and env rejection, and a 100 MiB expanded-size ceiling.
+- Found a blocking scope contradiction: `finish_r6_preview_contact_guard.py` unconditionally reads and edits `src/components/medical/MedicalDirectoryView.tsx`; no reviewed sanitizer stage removes the dedicated medical page/route/navigation. If the approved archive omits that component, the import will fail; if it contains it, the current pipeline leaves it in the website. The sanitizer must be adjusted against the actual R6 source tree before import, while preserving general activity listings and data.
+- The current importer and `verify_r6_preview_source.sh` also do not assert the presence of the approved R6 mobile UI. Verify the real archive inventory and add a correct preservation check. The separate native Android source remains outside this app import and must not be deleted.
+- The current runbook checksum and previously recorded clean transfer ZIP SHA remain historical expected values only; archive bytes were not present here and the hash was not revalidated.
+- No import, app build, deployment, Production DB/Auth/RLS/GRANT/Edge/payment/finance mutation, or public root cutover occurred. Existing deployed site and data remain unchanged.
+- `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`.
