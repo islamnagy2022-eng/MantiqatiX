@@ -20,9 +20,23 @@ if [[ -e "$DEST" ]]; then
   exit 1
 fi
 
-TEMP_ROOT="$(mktemp -d)"
+mkdir -p "$(dirname "$DEST")"
+TEMP_ROOT="$(mktemp -d "$(dirname "$DEST")/.r6-import.XXXXXX")"
 TEMP_DEST="$TEMP_ROOT/app"
-trap 'rm -rf "$TEMP_ROOT"' EXIT
+IMPORT_COMMITTED=0
+
+cleanup_import() {
+  local status=$?
+  trap - EXIT
+  if [[ "$status" -ne 0 && "$IMPORT_COMMITTED" -eq 0 && -d "$DEST" ]]; then
+    git reset --quiet -- "$DEST" 2>/dev/null || true
+    rm -rf -- "$DEST"
+    echo "Removed only the incomplete import directory created by this run." >&2
+  fi
+  rm -rf -- "$TEMP_ROOT"
+  exit "$status"
+}
+trap cleanup_import EXIT
 
 ACTUAL_SHA256="$(sha256sum "$ARCHIVE" | awk '{print $1}')"
 if [[ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]]; then
@@ -76,17 +90,6 @@ with zipfile.ZipFile(archive) as z:
 print(f"Archive validation passed: {len(files)} files, {total_size} bytes expanded.")
 PY
 
-IMPORT_COMMITTED=0
-cleanup_partial_import() {
-  local status=$?
-  if [[ "$status" -ne 0 && "$IMPORT_COMMITTED" -eq 0 && -d "$DEST" ]]; then
-    git reset --quiet -- "$DEST" 2>/dev/null || true
-    rm -rf -- "$DEST"
-    echo "Removed only the incomplete import directory created by this run." >&2
-  fi
-}
-trap cleanup_partial_import EXIT
-
 unzip -q "$ARCHIVE" -d "$TEMP_DEST"
 python3 scripts/harden_r6_preview.py "$TEMP_DEST"
 python3 scripts/finish_r6_preview_isolation.py "$TEMP_DEST"
@@ -105,7 +108,7 @@ grep -q 'MANTIQATIX_PREVIEW_NOTICE' "$TEMP_DEST/src/App.tsx"
 grep -q 'if (IS_PREVIEW_MODE) return [];' "$TEMP_DEST/src/context/AppContext.tsx"
 grep -q "VITE_PREVIEW_MODE !== 'true'" "$TEMP_DEST/src/main.tsx"
 
-mkdir -p "$(dirname "$DEST")"
+[[ ! -e "$DEST" ]] || { echo "Destination appeared during import; refusing overwrite." >&2; exit 1; }
 mv "$TEMP_DEST" "$DEST"
 git add "$DEST"
 git commit -m "Import sanitized and hardened BizCatalog Manager R6 preview source"
