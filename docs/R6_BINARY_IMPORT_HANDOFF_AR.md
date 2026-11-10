@@ -21,7 +21,7 @@ SHA-256:
 
 ## حالة CI
 
-آخر تشغيل لبوابة `R6 Preview Build`:
+آخر تشغيل فشل تم التحقق من تفاصيله (قد توجد تشغيلات لاحقة لم تُراجع):
 - Run ID: `42710989197`
 - النتيجة: `failure`
 - السبب الوحيد في الخطوة التي وصل إليها: غياب `apps/bizcatalog-manager-6-preview/package.json` لأن ZIP لم يدخل المستودع بعد.
@@ -50,3 +50,26 @@ https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/42710989197
 5. لا تستخدم Supabase الإنتاجية كقاعدة Preview.
 
 لا يوجد رابط معاينة حي حتى اجتياز البناء والنشر وفحص `/api/health`.
+
+## مسار الاستيراد من المتصفح
+
+تم إعداد Codespaces بملف `.devcontainer/devcontainer.json` ودليل عربي:
+`docs/R6_CODESPACES_IMPORT_AR.md`
+
+المسار:
+1. افتح فرع Preview من Chrome.
+2. أنشئ Codespace على الفرع نفسه.
+3. ارفع `bizcatalog-manager-6-preview-clean.zip` إلى جذر Codespace.
+4. شغّل:
+   `bash scripts/import-r6-preview.sh bizcatalog-manager-6-preview-clean.zip`
+5. بعد نجاح commit، احذف ملف ZIP من الجذر ثم نفّذ:
+   `git push origin preview/bizcatalog-manager-6-isolated`
+
+أداة Codespaces الحالية تتحقق من SHA-256 ومسارات ZIP والتكرار والروابط الرمزية وحد التوسع، وتنفذ المعالجة في مجلد مؤقت على نفس filesystem، ولا تنقل المجلد إلى التطبيق إلا بعد نجاح مراحل التحقق. تم فحص Bash syntax وZIP preflight محليًا؛ لم يتم تشغيل importer على GitHub فعليًا.
+
+## بوابة الجودة المحدثة
+
+بعد Docker build، يطلق CI حاوية Preview ويشغل `scripts/smoke_test_r6_preview.sh` لفحص Health والدليل والكتالوج ورفض الكتابة وواجهات الإدارة وترويسات الحماية. هذا الاختبار مضاف ولم يعمل بعد على التطبيق.
+
+Workflow النشر يدوي فقط ويتطلب CI ناجحًا على SHA المطابق، ثم يتحقق من نشر نفس SHA.
+
