@@ -29,6 +29,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+      - name: Validate import and sanitation tooling syntax
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          files = [
+              "scripts/harden_r6_preview.py",
+              "scripts/finish_r6_preview_isolation.py",
+              "scripts/finish_r6_preview_core.py",
+              "scripts/finish_r6_preview_cleanups.py",
+          ]
+          for file in files:
+              compile(Path(file).read_text(encoding="utf-8"), file, "exec")
+              print(f"Python syntax OK: {file}")
+          PY
+          bash -n scripts/import-r6-preview.sh scripts/smoke_test_r6_preview.sh scripts/verify_r6_preview_source.sh
+          python3 -m json.tool .devcontainer/devcontainer.json >/dev/null
+          echo "Import tools and Codespaces configuration syntax checks passed."
       - name: Verify sanitized Preview source invariants
         run: bash scripts/verify_r6_preview_source.sh apps/bizcatalog-manager-6-preview
       - name: Require imported application source
