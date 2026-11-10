@@ -125,3 +125,13 @@ Not completed:
 - the full importer has not been run against a live Git checkout in this execution environment;
 - direct git ls-remote could not resolve github.com here, so no binary source push was possible from this session;
 - the application folder is still absent, so CI has not built or tested the application.
+## Import transaction safety verification — 2026-11-10
+
+The importer now extracts into a unique temporary directory under the target parent, runs the sanitation stages there, and then performs a same-filesystem atomic move into the final application path. It records whether that final directory was created by this execution and only removes that directory on an uncommitted failure; the temporary workspace is always removed.
+
+Verified locally:
+- Bash syntax check of the current importer: PASS.
+- Clean archive inventory and security checks: PASS.
+- Simulated sanitation-stage failure in an isolated mock Git repo: the importer exited nonzero and removed its temporary directory without leaving an application folder: PASS.
+
+Not verified locally: successful run of the four current repository sanitation scripts against the application and a successful GitHub push. These remain the next runtime steps in Codespaces.
