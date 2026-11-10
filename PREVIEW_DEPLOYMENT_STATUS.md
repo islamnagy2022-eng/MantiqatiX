@@ -135,3 +135,9 @@ Verified locally:
 - Simulated sanitation-stage failure in an isolated mock Git repo: the importer exited nonzero and removed its temporary directory without leaving an application folder: PASS.
 
 Not verified locally: successful run of the four current repository sanitation scripts against the application and a successful GitHub push. These remain the next runtime steps in Codespaces.
+
+## Final source-cleanup scope — HTML tracking and documentation
+
+The cleanup pass also removes the embedded Meta Pixel bootstrap from R6 index.html (the raw source HTML contains the Pixel ID and a PageView call) and rewrites PREVIEW_README_AR.md so it no longer advertises removed demo login credentials. The exact R6 HTML pattern was checked against the clean ZIP locally; the cleanup regex matches once and removes the ID, window.fbq, and fbq('init') references from that block.
+
+The exact clean ZIP was rechecked locally: SHA-256 matches, unzip integrity check passes, 117 files / 15,591,628 expanded bytes, required root application files present, no blocked data/secret paths, and the HTML cleanup pattern removes the embedded Pixel block. This does not replace executing the full sanitation scripts in Codespaces.
