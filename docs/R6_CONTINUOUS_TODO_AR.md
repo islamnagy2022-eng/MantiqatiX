@@ -24,7 +24,7 @@
 | تجهيز ZIP منظف | PASS | SHA-256 ثابت، واستبعاد بيانات التشغيل وملفات البيئة |
 | مسار عزل Preview | IMPLEMENTED | أربع مراحل hardening تُشغل عند الاستيراد |
 | استيراد التطبيق إلى GitHub | BLOCKED | مجلد `apps/bizcatalog-manager-6-preview/` غير موجود بعد |
-| CI الكامل | BLOCKED | توقف قبل install/typecheck/tests/build لغياب مجلد التطبيق |
+| CI الكامل | BLOCKED | توقف قبل install/typecheck/tests/build لغياب مجلد التطبيق؛ أضيف smoke test للحاوية لكن لم يُنفذ بعد |
 | Preview live URL | TODO | لا يوجد نشر حي مثبت |
 | Auth وGoogle OAuth | TODO | لا يوجد تدفق Supabase Auth/Google OAuth موثق أو credentials معتمدة في R6 |
 | Backend إنتاجي دائم | TODO | R6 يستخدم JSON محليًا ولا يوجد Supabase client في المصدر المفحوص |
@@ -35,7 +35,7 @@
 ## P0 — أولويات مانعة للإطلاق
 
 - [ ] **استيراد حزمة Preview النظيفة** إلى فرع المعاينة فقط، والتحقق من SHA-256 والملفات الأساسية.
-- [ ] تشغيل CI وإصلاح أخطاء الاعتماديات وTypeScript والاختبارات وVite وDocker.
+- [ ] تشغيل CI وإصلاح أخطاء الاعتماديات وTypeScript والاختبارات وVite وDocker. (أضيف smoke test للحاوية ضمن CI؛ التنفيذ ينتظر استيراد التطبيق.)
 - [ ] إثبات أن Preview لا يعرض حسابات أو بيانات تشغيل أو أرصدة أو معاملات أو سجلات قديمة.
 - [ ] تنفيذ Backend مستقل دائم؛ لا تستخدم ملف JSON المحلي أو قرص Cloud Run المؤقت لبيانات التشغيل.
 - [ ] إعادة بناء Auth: Google OAuth عبر Supabase Auth، callback، refresh، logout، استعادة الحساب.
