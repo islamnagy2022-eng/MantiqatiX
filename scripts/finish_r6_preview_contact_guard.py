@@ -67,11 +67,25 @@ s = once(read(path),
          "marketing service inquiry handler")
 write(path, s)
 
-path = "src/components/medical/MedicalDirectoryView.tsx"
-s = once(read(path), "    const phone = phoneMatch ? phoneMatch[0] : '01010171770';",
-         "    const phone = phoneMatch ? phoneMatch[0] : (import.meta.env.VITE_PREVIEW_MODE === 'true' ? '' : '01010171770');",
-         "medical auto-registration phone fallback")
-write(path, s)
+# The dedicated MedicalDirectoryView is explicitly out of website scope.
+# Do not import or patch it; fail closed if the source archive still contains it.
+medical_page = root / "src/components/medical/MedicalDirectoryView.tsx"
+if medical_page.exists():
+    raise SystemExit(
+        "Dedicated medical directory is excluded from the website. "
+        "Remove its page and route from the staged source before import."
+    )
+src_root = root / "src"
+for source_path in src_root.rglob("*"):
+    if source_path.is_file() and source_path.suffix in {".ts", ".tsx", ".js", ".jsx"}:
+        try:
+            source_text = source_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        if "MedicalDirectoryView" in source_text:
+            raise SystemExit(
+                f"Dedicated medical directory reference remains in {source_path.relative_to(root)}"
+            )
 
 path = "src/components/common/ProductionPhasesControlPanel.tsx"
 s = once(read(path), "  const [waPhone, setWaPhone] = useState<string>(activeBiz?.ownerWhatsApp || '01010171770');",
