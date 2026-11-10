@@ -38,6 +38,7 @@ jobs:
               "scripts/finish_r6_preview_isolation.py",
               "scripts/finish_r6_preview_core.py",
               "scripts/finish_r6_preview_cleanups.py",
+              "scripts/finish_r6_preview_contact_guard.py",
           ]
           for file in files:
               compile(Path(file).read_text(encoding="utf-8"), file, "exec")
