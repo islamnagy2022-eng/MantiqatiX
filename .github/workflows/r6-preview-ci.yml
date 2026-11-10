@@ -62,3 +62,31 @@ jobs:
         run: bun run build
       - name: Build container
         run: docker build -t mantiqatix-r6-preview:ci apps/bizcatalog-manager-6-preview
+
+      - name: Run isolated Preview container smoke tests
+        run: |
+          set -euo pipefail
+          docker run --detach --name mantiqatix-r6-preview-smoke \
+            --publish 8080:8080 \
+            --env NODE_ENV=production \
+            --env PREVIEW_MODE=true \
+            --env VITE_PREVIEW_MODE=true \
+            mantiqatix-r6-preview:ci
+          cleanup() {
+            docker logs mantiqatix-r6-preview-smoke || true
+            docker rm --force mantiqatix-r6-preview-smoke >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8080/api/health >/dev/null; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+          test "$ready" = "1" || {
+            echo "::error::R6 Preview container did not become healthy."
+            exit 1
+          }
+          bash scripts/smoke_test_r6_preview.sh
