@@ -110,6 +110,12 @@ grep -q "VITE_PREVIEW_MODE !== 'true'" "$TEMP_DEST/src/main.tsx"
 
 [[ ! -e "$DEST" ]] || { echo "Destination appeared during import; refusing overwrite." >&2; exit 1; }
 mv "$TEMP_DEST" "$DEST"
+if ! git config user.name >/dev/null 2>&1; then
+  git config user.name "MantiqaTix R6 Import"
+fi
+if ! git config user.email >/dev/null 2>&1; then
+  git config user.email "mantiqatix-r6-import@users.noreply.github.com"
+fi
 git add "$DEST"
 git commit -m "Import sanitized and hardened BizCatalog Manager R6 preview source"
 IMPORT_COMMITTED=1
