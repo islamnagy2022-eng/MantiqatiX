@@ -2,6 +2,7 @@ import { createClient, type User } from '@supabase/supabase-js';
 import type { ActivityModuleOverrides, AdminSettings, AuthSession, Business, FunctionalGroupId, Product, Subscriber } from '../types';
 import { DEFAULT_CATEGORIES, DEFAULT_FUNCTIONAL_GROUPS, DEFAULT_PAYMOB_CONFIG, INITIAL_ADMIN_SETTINGS, normalizeCanonicalTaxonomySettings, resolveCanonicalGroupId, resolveCanonicalActivityCategoryId } from '../data/productionDefaults';
 import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from '../utils/defaultImages';
+import { resolvePublicCatalogAvailability } from './catalogPricing';
 
 const runtime = (window as any).MANTIQATIX_CONFIG || (window as any).MNTY_CONFIG;
 if (!runtime?.supabaseUrl || !runtime?.supabaseKey) {
@@ -377,12 +378,7 @@ export function mapProducts(businessId: string, _tenantId: string, branchId: str
       const comparePrice = Number.isFinite(comparePriceValue) && comparePriceValue >= 0
         ? comparePriceValue
         : undefined;
-      // Service requests with hidden prices remain quotable, not unavailable.
-      const requiresQuote = itemType === 'SERVICE'
-        && (metadata.show_price === false || item.requiresQuote === true);
-      const available = metadata.is_available !== false
-        && item.available !== false
-        && (requiresQuote || Boolean(price));
+      const { requiresQuote, available } = resolvePublicCatalogAvailability(metadata, item, price);
       return {
         id: String(item.id), businessId, name,
         category,
