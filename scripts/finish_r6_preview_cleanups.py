@@ -207,6 +207,45 @@ if "export const INITIAL_META_PIXEL_EVENTS: MetaPixelEventRecord[] = [];" not in
         raise SystemExit("Could not clear initial Meta Pixel event fixtures.")
 write("src/utils/aiPixelCommissionEngine.ts", pixel)
 
+# The HTML shell must not initialize a third-party Meta Pixel in the isolated Preview.
+html = read("index.html")
+if "1482950394857210" in html or "window.fbq" in html:
+    html, changed = re.subn(
+        r"(?s)\s*<!--\s*Meta Pixel Code.*?</script>\s*",
+        "\n",
+        html,
+        count=1,
+    )
+    if changed != 1:
+        raise SystemExit("Could not safely remove the embedded Meta Pixel HTML block.")
+if "1482950394857210" in html or "window.fbq" in html or "fbq('init'" in html:
+    raise SystemExit("Third-party Pixel bootstrap remains in the Preview HTML.")
+write("index.html", html)
+
+# Keep setup documentation aligned with the guest-only, read-only Preview behavior.
+preview_readme = """# MantiqaTix — R6 Preview معزولة
+
+هذه نسخة معاينة عامة للقراءة فقط، مبنية على R6 بعد إزالة بيانات التشغيل المحلية والأسرار.
+
+## حدود المعاينة
+- دليل الأنشطة والمنتجات مأخوذ من حزمة R6 ويظل غير موثق حتى المراجعة.
+- لا توجد حسابات عملاء أو مقدمي خدمة أو إدارة تجريبية.
+- تسجيل الدخول ولوحات الإدارة والكتابة والطلبات والرسائل والمحافظ والمدفوعات والفوترة وواتساب والنسخ الاحتياطي معطلة.
+- لا تتصل هذه البيئة بقاعدة Supabase الإنتاجية.
+- كل طلب API غير مسموح به صراحةً يرجع 503 في وضع Preview.
+- لا يتم تشغيل Meta Pixel أو إرسال PageView أو أحداث تحويل في هذه البيئة.
+- التخزين المحلي منفصل ويستخدم بادئة mantiqatix_preview:: فقط.
+
+## التشغيل داخل بيئة Preview
+- يجب ضبط PREVIEW_MODE=true وVITE_PREVIEW_MODE=true.
+- استخدم Bun بالإصدار المثبت في bun.lock لتثبيت الاعتماديات.
+- لا تضع مفاتيح إنتاج أو حسابات أو بيانات حقيقية في هذه البيئة.
+- أي بيانات دليل يجب اعتمادها يدويًا قبل وصفها بأنها موثقة.
+
+هذه ليست نسخة Production ولا تسمح بإجراء معاملات فعلية.
+"""
+write("PREVIEW_README_AR.md", preview_readme)
+
 # Unreviewed advertising artwork/coupons must not appear as live offers.
 banners = read("src/utils/bookingPaymentEngine.ts")
 if "export const DEFAULT_PROMOTIONAL_SIGNAGE_BANNERS: PromotionalSignageItem[] = [];" not in banners:
@@ -395,6 +434,8 @@ assertions = {
     "zero starting wallet values": "availableBalance: 48500" not in rules and "adGrantBalance: 999999" not in rules,
     "default Pixel disabled": "pixelId: '',\n  isEnabled: false" in pixel,
     "Pixel event history empty": "INITIAL_META_PIXEL_EVENTS: MetaPixelEventRecord[] = [];" in pixel,
+    "HTML shell has no third-party Pixel": "1482950394857210" not in read("index.html") and "window.fbq" not in read("index.html"),
+    "Preview README has no old demo credentials": "preview_customer" not in read("PREVIEW_README_AR.md") and "preview_provider" not in read("PREVIEW_README_AR.md"),
     "sample signage list empty": "DEFAULT_PROMOTIONAL_SIGNAGE_BANNERS: PromotionalSignageItem[] = [];" in banners,
 }
 failed = [name for name, passed in assertions.items() if not passed]
