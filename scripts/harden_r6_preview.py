@@ -91,6 +91,34 @@ source = source.replace(
 )
 seed.write_text(source, encoding="utf-8")
 
+# Build and run with the exact Bun version used by CI; never use an unpinned npm install.
+dockerfile = """FROM oven/bun:1.4.4 AS build
+WORKDIR /app
+
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
+
+COPY . .
+ENV VITE_PREVIEW_MODE=true
+RUN bun run build
+
+FROM oven/bun:1.4.4-slim AS runtime
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PREVIEW_MODE=true
+ENV VITE_PREVIEW_MODE=true
+ENV DISABLE_HMR=true
+ENV PORT=8080
+
+COPY --from=build --chown=bun:bun /app /app
+USER bun
+
+EXPOSE 8080
+CMD ["bun", "run", "start"]
+"""
+(root / "Dockerfile").write_text(dockerfile, encoding="utf-8")
+
 source = context.read_text(encoding="utf-8")
 if "const IS_PREVIEW_MODE = import.meta.env.VITE_PREVIEW_MODE === 'true';" not in source:
     source = source.replace(
