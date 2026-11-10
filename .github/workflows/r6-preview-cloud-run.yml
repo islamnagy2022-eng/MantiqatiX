@@ -51,7 +51,9 @@ jobs:
       - name: Checkout isolated preview branch
         uses: actions/checkout@v4
         with:
-          ref: preview/bizcatalog-manager-6-isolated
+          ref: ${{ github.sha }}
+      - name: Verify deployed source matches the tested commit
+        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
       - name: Require imported application source
         run: |
           test -f apps/bizcatalog-manager-6-preview/Dockerfile || {
