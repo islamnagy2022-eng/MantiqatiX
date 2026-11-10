@@ -25,11 +25,63 @@ if [[ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]]; then
   echo "Unexpected archive checksum; refusing import." >&2
   exit 1
 fi
-ARCHIVE_LIST="$(unzip -Z1 "$ARCHIVE")"
-if printf '%s\n' "$ARCHIVE_LIST" | grep -Eq '(^|/)\.data/|(^|/)\.data-preview/|(^|/)\.aistudio/|(^|/)\.env($|/)|(^|/)\.env\.(local|production)'; then
-  echo "Unsafe archive contents detected; import cancelled." >&2
-  exit 1
-fi
+python3 - "$ARCHIVE" <<'PY'
+import stat
+import sys
+import zipfile
+from pathlib import PurePosixPath
+
+archive = sys.argv[1]
+required = {
+    "package.json", "bun.lock", "server.ts", "Dockerfile",
+    "src/App.tsx", "src/context/AppContext.tsx",
+}
+blocked_dirs = {".data", ".data-preview", ".aistudio"}
+blocked_env = {".env", ".env.local", ".env.production"}
+
+with zipfile.ZipFile(archive) as z:
+    infos = z.infolist()
+    names = [i.filename for i in infos]
+    if len(names) != len(set(names)):
+        raise SystemExit("Duplicate ZIP paths detected; import cancelled.")
+
+    total_size = 0
+    files = set()
+    for info in infos:
+        name = info.filename
+        path = PurePosixPath(name)
+        if not name or path.is_absolute() or ".." in path.parts or "\\" in name:
+            raise SystemExit(f"Unsafe ZIP path detected: {name!r}")
+        parts = set(path.parts)
+        if parts & blocked_dirs or parts & blocked_env:
+            raise SystemExit(f"Data/secret path detected: {name!r}")
+        if any(p.startswith(".env.") and p != ".env.example" for p in parts):
+            raise SystemExit(f"Unexpected environment file detected: {name!r}")
+        mode = (info.external_attr >> 16) & 0o170000
+        if mode == stat.S_IFLNK:
+            raise SystemExit(f"Symbolic links are not allowed in ZIP: {name!r}")
+        if not info.is_dir():
+            files.add(name)
+            total_size += info.file_size
+    if total_size > 100 * 1024 * 1024:
+        raise SystemExit("Expanded archive exceeds the 100 MiB safety limit.")
+    missing = required - files
+    if missing:
+        raise SystemExit("Required files missing: " + ", ".join(sorted(missing)))
+
+print(f"Archive validation passed: {len(files)} files, {total_size} bytes expanded.")
+PY
+
+IMPORT_COMMITTED=0
+cleanup_partial_import() {
+  local status=$?
+  if [[ "$status" -ne 0 && "$IMPORT_COMMITTED" -eq 0 && -d "$DEST" ]]; then
+    git reset --quiet -- "$DEST" 2>/dev/null || true
+    rm -rf -- "$DEST"
+    echo "Removed only the incomplete import directory created by this run." >&2
+  fi
+}
+trap cleanup_partial_import EXIT
 
 mkdir -p "$DEST"
 unzip -q "$ARCHIVE" -d "$DEST"
@@ -49,4 +101,5 @@ grep -q 'if (IS_PREVIEW_MODE) return [];' "$DEST/src/context/AppContext.tsx"
 grep -q "VITE_PREVIEW_MODE !== 'true'" "$DEST/src/main.tsx"
 git add "$DEST"
 git commit -m "Import sanitized and hardened BizCatalog Manager R6 preview source"
+IMPORT_COMMITTED=1
 echo "Import committed. Push this preview branch to GitHub to start the R6 Preview CI workflow."
