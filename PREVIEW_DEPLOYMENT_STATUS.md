@@ -78,3 +78,13 @@ The audit confirms:
 
 Do not mark this release gate complete until the clean archive is imported and CI has passed. Keep production `main` and production Supabase untouched.
 
+## Deployment workflow hardening — 2026-11-10
+
+The Cloud Run Preview workflow is now triggered only by completion of the **R6 Preview Build** workflow and has an explicit success + source-branch condition:
+- Build workflow name must be `R6 Preview Build`.
+- Workflow conclusion must be `success`.
+- Head branch must be `preview/bizcatalog-manager-6-isolated`.
+- Cloud Run deployment still requires the isolated `r6-preview` environment secrets and does not target production.
+
+This prevents a direct push or manual dispatch from bypassing the build/test gate. No deployment was triggered by this workflow-file change.
+
