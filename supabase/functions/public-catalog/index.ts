@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { filterRowsToPubliclyPricedItems } from "../_shared/public-price-visibility.mjs";
 
 const allowedOrigins = new Set([
   "https://islamnagy2022-eng.github.io",
@@ -134,15 +135,10 @@ Deno.serve(async (req: Request) => {
       if (globalPriceResult.error || branchPriceResult.error || optionResult.error) {
         throw globalPriceResult.error || branchPriceResult.error || optionResult.error;
       }
-      const quoteOnlyItemIds = new Set(
-        rawItems.filter((item: any) => item.metadata?.catalog_public?.show_price === false)
-          .map((item: any) => String(item.id))
-      );
-      // Never return the stored numeric price or option deltas for quote-only items.
-      prices = [...(globalPriceResult.data || []), ...(branchPriceResult.data || [])]
-        .filter((price: any) => !quoteOnlyItemIds.has(String(price.catalog_item_id)));
-      options = (optionResult.data || [])
-        .filter((option: any) => !quoteOnlyItemIds.has(String(option.catalog_item_id)));
+      // A missing/false flag is not consent to disclose stored prices or option deltas.
+      const allPriceRows = [...(globalPriceResult.data || []), ...(branchPriceResult.data || [])];
+      prices = filterRowsToPubliclyPricedItems(rawItems, allPriceRows);
+      options = filterRowsToPubliclyPricedItems(rawItems, optionResult.data || []);
     }
 
     const trackStockIds = rawItems
