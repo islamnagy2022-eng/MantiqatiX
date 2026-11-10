@@ -307,7 +307,7 @@ rules_test = replace_test_block(
     assert.equal(biz.usedCreditBalance || 0, 0);
     const lat = biz.lat ?? biz.coordinates?.lat;
     const lng = biz.lng ?? biz.coordinates?.lng;
-    assert.ok(typeof lat === 'number' && typeof lng === 'number', `Business \${biz.id} must keep its directory coordinates`);
+    assert.ok(typeof lat === 'number' && typeof lng === 'number', `Business ${biz.id} must keep its directory coordinates`);
   }
 });""",
     "legacy business baseline test",
