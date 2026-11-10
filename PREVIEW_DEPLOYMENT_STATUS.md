@@ -141,3 +141,11 @@ Not verified locally: successful run of the four current repository sanitation s
 The cleanup pass also removes the embedded Meta Pixel bootstrap from R6 index.html (the raw source HTML contains the Pixel ID and a PageView call) and rewrites PREVIEW_README_AR.md so it no longer advertises removed demo login credentials. The exact R6 HTML pattern was checked against the clean ZIP locally; the cleanup regex matches once and removes the ID, window.fbq, and fbq('init') references from that block.
 
 The exact clean ZIP was rechecked locally: SHA-256 matches, unzip integrity check passes, 117 files / 15,591,628 expanded bytes, required root application files present, no blocked data/secret paths, and the HTML cleanup pattern removes the embedded Pixel block. This does not replace executing the full sanitation scripts in Codespaces.
+
+## CI source guard and final import safety checks
+
+A new pre-install CI step runs `scripts/verify_r6_preview_source.sh` against the imported app. It checks required app files, forbidden data/environment files, guest-only Preview, all three local password-login guards, empty demo account fixtures, server API isolation, visible Preview notice, removal of the HTML and engine Pixel ID/test event, and absence of old demo-login instructions in the generated Preview README.
+
+The gate passed a positive isolated mock-fixture run and its Bash syntax check; it has not yet run against the imported R6 application because the application directory is still absent.
+
+The importer also now refuses to proceed when unrelated changes are staged, extracts and sanitizes in a unique temporary directory, atomically moves the finished app into place, and cleans only the destination it created if an uncommitted import fails.
