@@ -16,12 +16,13 @@ The archive inventory excludes `.data/`, `.data-preview/`, `.aistudio/`, `.env`,
 
 ## Clean baseline policy and import pipeline
 
-The branch importer executes four ordered hardening stages on the extracted R6 source:
+The branch importer executes five ordered hardening stages on the extracted R6 source:
 
 1. `scripts/harden_r6_preview.py`: read-only Preview API, security response headers, rate limit, unverified directory labels, Preview notice and server isolation.
 2. `scripts/finish_r6_preview_isolation.py`: browser-side financial isolation, Preview wallet handling and service-worker separation.
 3. `scripts/finish_r6_preview_core.py`: clear built-in subscriber/demo accounts, disable local password login, force guest-only Preview session, hide test-role controls, and replace both fresh database builders with clean catalogue-only builders.
 4. `scripts/finish_r6_preview_cleanups.py`: zero all wallet/grant values, clear sample campaigns/signage/pixel events, disable tracking defaults, clear test telemetry and prevent stale catalogue/directory browser snapshots from being restored.
+5. `scripts/finish_r6_preview_contact_guard.py`: neutralize default phone/WhatsApp fallbacks in Preview and block unverified phone, messaging and payment outbound navigation.
 
 The fresh database builders now retain only the R6 directory/business records and product catalogue. Records are labeled unverified; owner email/phone/WhatsApp, staff names, owner-subscriber links, subscription/billing metadata, payment configuration, financial balances, credit, commissions and operational KPIs are blank, defaulted or zero. New operational collections start empty: subscribers, sales, ad requests, contact messages, subscription requests, wallets, transactions, campaigns, direct messages, requests, payment intents, media assets, WhatsApp dispatches, security logs and backups.
 
@@ -35,8 +36,8 @@ Do not point Preview at the existing active production Supabase project or modif
 
 ## Local source checks
 
-- ZIP SHA-256 and archive inventory verified.
-- The four sanitation scripts passed Python syntax validation and completed successfully against a fresh extraction of the sanitized source. Public listing records also have owner/staff identity and subscriber-link metadata removed.
+- ZIP SHA-256 and archive inventory verified; contact-safety hardening script was executed successfully against a fresh extraction in this session.
+- The four baseline sanitation scripts were previously recorded as passing; the additional contact-safety stage passed Python execution against a fresh extraction in this session. Full five-stage end-to-end rerun still awaits the Codespaces importer. Public listing records also have owner/staff identity and subscriber-link metadata removed.
 - The final clean pass found no bundled subscriber/demo account markers, password fixtures, fake transaction/message IDs, default Pixel identifiers, test event codes, seeded ad-grant IDs or similar active-source markers.
 - 85 TypeScript/TSX files passed syntax transpilation with zero syntax diagnostics.
 - **Not verified:** package install, full TypeScript typecheck, unit tests, Vite production build, Docker build, end-to-end auth, Supabase schema/RLS/RBAC, or deployed-origin smoke tests. The local environment previously could not resolve the npm registry and has no Docker installed.
@@ -44,7 +45,7 @@ Do not point Preview at the existing active production Supabase project or modif
 ## GitHub import and deployment state
 
 - The isolated branch and guarded importer exist; production `main` remains untouched.
-- The importer checks the exact archive checksum, rejects data/secret paths, refuses an overwrite, applies the four hardening stages and commits the extracted app to `apps/bizcatalog-manager-6-preview/`.
+- The importer checks the exact archive checksum, rejects data/secret paths, refuses an overwrite, applies the five hardening stages and commits the extracted app to `apps/bizcatalog-manager-6-preview/`.
 - The importer requires the ZIP on a local authenticated Git checkout. It is not a binary upload endpoint.
 - The GitHub connection available in this session has no authenticated binary archive upload or Git push operation. The 13.2 MB ZIP therefore remains attached to this conversation and is **not yet committed to this branch**.
 - CI intentionally stops until the application directory exists.
@@ -168,4 +169,8 @@ A fifth import stage, `scripts/finish_r6_preview_contact_guard.py`, now runs aft
 - prevents the marketing-services inquiry handler from launching a fallback administrative WhatsApp contact.
 
 Local preflight: the new stage completed against a fresh extraction of the sanitized ZIP; 16 changed TS/TSX files passed syntax transpilation with zero syntax diagnostics. This is not a full TypeScript typecheck or runtime/browser test. The stage is integrated into the importer but awaits full CI execution after app import.
+
+## Reproducible container and non-root runtime
+
+The Preview hardening stage rewrites the imported Dockerfile to use the same pinned Bun 1.4.4 version as CI, installs dependencies from `bun.lock` with `--frozen-lockfile`, builds in a separate stage, and runs the application as the non-root `bun` user on port 8080. CI checks these Dockerfile invariants before building and starting the smoke-test container.
 
