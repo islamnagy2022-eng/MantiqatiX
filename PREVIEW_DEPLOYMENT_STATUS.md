@@ -67,6 +67,15 @@ Do not point Preview at the existing active production Supabase project or modif
 
 Persistent execution board: `docs/R6_CONTINUOUS_TODO_AR.md` — current states, P0 blockers, and subsystem TODOs. Update this file whenever a task changes status; never mark a task PASS without evidence.
 
+
+
+## Final contact-safety and live-smoke gates — 2026-11-10
+
+- The import pipeline now runs five hardening stages, including `finish_r6_preview_contact_guard.py` after data cleanup.
+- Preview blocks phone, SMS, WhatsApp and payment-provider navigation and clears hard-coded contact fallbacks from selected customer/merchant workflows. Ordinary business website links remain available.
+- CI runs smoke tests inside the built container; the manual Cloud Run deploy workflow also runs the same smoke suite against the deployed URL after health verification.
+- Both runtime smoke gates remain **NOT VERIFIED** until application import, successful build and deployment. No deployment has been executed.
+
 ## Latest verified release audit — 2026-11-10
 
 Arabic release audit committed:
