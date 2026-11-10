@@ -100,6 +100,7 @@ python3 scripts/harden_r6_preview.py "$TEMP_DEST"
 python3 scripts/finish_r6_preview_isolation.py "$TEMP_DEST"
 python3 scripts/finish_r6_preview_core.py "$TEMP_DEST"
 python3 scripts/finish_r6_preview_cleanups.py "$TEMP_DEST"
+python3 scripts/finish_r6_preview_contact_guard.py "$TEMP_DEST"
 
 test -f "$TEMP_DEST/package.json"
 test -f "$TEMP_DEST/server.ts"
