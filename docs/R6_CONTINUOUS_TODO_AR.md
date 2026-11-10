@@ -168,3 +168,9 @@
 - **IMPLEMENTED / NOT VERIFIED:** Preview health response now identifies itself as `MantiqaTix Isolated Preview Backend`; the container smoke test checks this. Runtime test awaits app import and CI.
 - **BLOCKED:** No app source has yet been committed to `apps/bizcatalog-manager-6-preview/`; therefore none of the application build, unit test, Docker runtime, or Preview smoke results can be claimed.
 
+## آخر مراجعة لمصدر R6 — HTML والبيانات السرية
+
+- **PASS (source check):** تم تأكيد أن fallback التوقيع في R6 ليس سرًا ثابتًا: يستخدم randomBytes(32) خارج Production، بينما يتطلب Production أسرارًا حقيقية ويوقف التشغيل عند غيابها. `.env.example` يحتوي قيمًا فارغة فقط. لا تضع أسرارًا فعلية في Git.
+- **IMPLEMENTED:** مرحلة التنظيف تزيل كتلة Meta Pixel المضمنة في index.html وتزيل تعليمات الدخول التجريبي القديمة من PREVIEW_README_AR.md.
+- **PASS (pattern verification):** تعبير التنظيف يطابق كتلة Meta Pixel الموجودة في ZIP مرة واحدة ويزيل المعرف وwindow.fbq وPageView منها. يلزم تنفيذ مرحلة التنظيف الكاملة بعد الاستيراد للتحقق النهائي.
+- **BLOCKED:** استيراد التطبيق ودفعه إلى GitHub ما زالا مطلوبين؛ لا توجد حاليًا نتائج CI ناجحة على التطبيق نفسه.
