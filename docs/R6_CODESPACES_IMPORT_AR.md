@@ -4,10 +4,12 @@
 
 ## 1) افتح بيئة المعاينة
 
-افتح هذا الرابط من متصفح Chrome:
-https://github.com/islamnagy2022-eng/MantiqaTix/tree/preview/bizcatalog-manager-6-isolated
+الرابط المباشر لإنشاء Codespace على فرع المعاينة:
+https://codespaces.new/islamnagy2022-eng/MantiqaTix/tree/preview/bizcatalog-manager-6-isolated
 
-من زر **Code**:
+يمكنك أيضًا فتح [فرع المعاينة على GitHub](https://github.com/islamnagy2022-eng/MantiqaTix/tree/preview/bizcatalog-manager-6-isolated)، ثم اختيار **Code** ثم **Codespaces**.
+
+من شاشة الإنشاء راجع بوضوح من سيتحمل تكلفة استخدام البيئة وحدود الاستخدام المتاحة لحسابك قبل تأكيد الإنشاء. Codespaces يعمل في المتصفح ويمنحك Terminal؛ أما محرر GitHub/VS Code للويب بدون Codespaces فلا يوفر بيئة تشغيل أو Terminal.
 1. افتح تبويب **Codespaces**.
 2. اختر **Create codespace on preview/bizcatalog-manager-6-isolated**.
 3. انتظر حتى يفتح محرر VS Code في المتصفح.
@@ -84,3 +86,10 @@ https://github.com/islamnagy2022-eng/MantiqaTix/actions
 ## إذا توقف الاستيراد
 
 انسخ أول رسالة خطأ ظاهرة في Terminal أو رابط تشغيل GitHub Actions وأرسلها هنا. لا ترسل كلمات مرور أو Tokens أو أسرار OAuth أو مفاتيح قواعد البيانات.
+
+
+مرجع خطوات إنشاء Codespace على فرع معين:
+https://docs.github.com/en/codespaces/developing-in-a-codespace/creating-a-codespace-for-a-repository
+
+مرجع المحرر في المتصفح:
+https://docs.github.com/en/codespaces/developing-in-a-codespace/using-github-codespaces-in-visual-studio-code
