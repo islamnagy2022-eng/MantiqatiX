@@ -4125,3 +4125,15 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - [ ] Reconcile the Preview branch's six commits behind `main` and 118 commits ahead before creating a PR. Do not merge the diverged branch wholesale.
 - **Evidence boundary:** canonical R6 Library bytes remain unavailable to this runtime; no real R6 import/build/deploy is claimed. The deployed site and production data remain unchanged.
 - **Release gate:** `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-11-10 — Import pipeline review addendum
+
+- [x] Rechecked the current branch comparison against `main`: branch `preview/bizcatalog-manager-6-isolated` is 120 commits ahead and 6 behind; merge base `c07236cb17a90cd60f50894450d55bd74ed24a76`; current main head at review time `7af9d1b7cf8ebdc073cb9d115731820d2babe98d`. Earlier 118-ahead count is stale.
+- [x] Inspected all six commits currently missing from Preview. Each is documentation-only and changes `docs/SESSION_LOG.md`; they record the Nov 10 OAuth source-integrity failure and Supabase security review. They still need content reconciliation before PR creation; do not merge the whole diverged branch blindly.
+- [x] Audited the five existing importer stages and CI source checks. Importer checksum, branch guard, duplicate-path, traversal, symlink, local-data/environment-file and expanded-size checks are present.
+- [ ] **New blocker — scope mismatch:** `scripts/finish_r6_preview_contact_guard.py` requires and edits `src/components/medical/MedicalDirectoryView.tsx`. The other four transformation stages do not remove the dedicated medical page/route/navigation. This conflicts with the owner's website-scope decision. Before import, revise the sanitizer only against the real R6 source structure so the medical directory is excluded without deleting general activity listings or business data.
+- [ ] **New blocker — mobile-preservation assertion:** the importer and `scripts/verify_r6_preview_source.sh` do not currently assert that the approved R6 mobile UI is present. Inspect the exact archive inventory and add a source-appropriate preservation check before accepting the import. Keep separate native Android assets untouched.
+- [ ] Reconcile the six documentation-only main commits manually, preserving unique security and CI findings without duplicating stale log sections.
+- **Evidence boundary:** no R6 ZIP was available for checksum revalidation or import. No app build, Preview deployment, Production change, or root cutover was performed in this review.
+- **Release gate:** `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`.
