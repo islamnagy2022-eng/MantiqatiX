@@ -48,7 +48,9 @@ python3 "$ROOT/scripts/patch-v6-geo-discovery.py" --self-test
 python3 "$ROOT/scripts/patch-v6-geo-discovery.py" "$WORKTREE" "$ROOT/apps/aistudio-v6/geo/egyptGeoDiscovery.ts"
 node "$ROOT/scripts/test-v6-geo-discovery-contract.mjs" "$WORKTREE"
 node "$ROOT/scripts/test-v6-medical-directory-disabled.mjs" "$WORKTREE"
-for required in package.json bun.lock src/main.tsx src/App.tsx src/components/DirectoryView.tsx src/components/common/PublicSectorGrid.tsx src/components/common/PublicTargetedAdsRail.tsx src/services/publicTargetedAds.ts src/services/publicTargetedAds.test.mjs scripts/audit-v6-source-security.mjs scripts/verify-v6-remediation.mjs src/context/PublicAppContext.tsx src/utils/publicContact.ts src/utils/publicCatalog.ts src/components/common/PublicGeoDiscovery.tsx src/data/egyptGeoDiscovery.ts; do
+python3 "$ROOT/scripts/apply-v6-google-oauth-overlay.py" "$WORKTREE"
+node "$WORKTREE/scripts/test-v6-google-oauth-ui.mjs" "$WORKTREE"
+for required in package.json bun.lock src/main.tsx src/App.tsx src/components/DirectoryView.tsx src/components/common/PublicSectorGrid.tsx src/components/common/PublicTargetedAdsRail.tsx src/services/publicTargetedAds.ts src/services/publicTargetedAds.test.mjs scripts/audit-v6-source-security.mjs scripts/verify-v6-remediation.mjs src/context/PublicAppContext.tsx src/utils/publicContact.ts src/utils/publicCatalog.ts src/components/common/PublicGeoDiscovery.tsx src/data/egyptGeoDiscovery.ts src/services/googleOAuth.ts src/services/googleOAuth.test.mjs; do
   test -f "$WORKTREE/$required" || { echo "V6_REQUIRED_FILE_MISSING=$required" >&2; exit 1; }
 done
 node "$ROOT/scripts/test-v6-public-context-boundary.mjs" "$WORKTREE"

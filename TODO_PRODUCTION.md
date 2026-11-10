@@ -1875,3 +1875,15 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 - اختبار المتصفح يؤكد غياب المسار والزر والصفحة مع بقاء البحث العام متاحًا.
 - لا حذف لسجلات الأنشطة أو بيانات العملاء في قاعدة الإنتاج، ولا تعديل في Supabase أو Auth/RLS أو Edge Functions. لم يتم حذف تصنيف الأنشطة العام أو ملفات Android والموبايل المنفصلة.
 - لا يعاد إدخال الدليل الطبي المستقل في V6 أو الكتالوج المحفوظ أو روابط خريطة الموقع.
+
+
+## 2026-11-09 — V6 public Google OAuth restoration (implementation checkpoint)
+
+- Added a deterministic, SHA-256-pinned overlay to the tracked V6 public build so the primary sign-in action uses the existing production Google provider instead of email OTP. The current public root and `/legacy/` rollback remain unchanged until the exact-head CI/release checks pass.
+- Login flow uses Supabase Auth PKCE against the existing production project and the already approved `https://islamnagy2022-eng.github.io/MantiqaTix/` callback. It stores only a one-time PKCE verifier and current-tab Supabase session credentials; roles and memberships are never stored in browser storage.
+- Callback exchanges the code, independently verifies the Supabase Auth user identity, then loads active memberships/business choices through existing server contracts. Users must explicitly choose a membership. A Google session alone never grants an application role; no local/demo/password login or separate account system is introduced.
+- Local verification on the exact tracked V6 source snapshot: 47/47 service tests PASS (including nine Google OAuth cases), Google OAuth UI contract PASS, TypeScript/TSX syntax transpilation PASS for five changed files. Full Bun install/lint/typecheck/build and CI have not yet been reported for this feature branch; actual human Google consent/callback browser E2E remains unverified. The prior deployed production handshake to accounts.google.com was independently observed PASS in Pages run 42622041241.
+- Canonical R6 archive `bizcatalog-manager (6).zip` remains the approved future application-source target, but its raw bytes are still unavailable to the current runtime. This overlay restores the Google login UX in the currently tracked V6 public app; it does not claim to import the full R6 archive or certify every module/backend workflow.
+- No Supabase Auth configuration, database schema/data, RLS, grants, Edge Functions, payments, or live deployment changed in this checkpoint. Full platform status remains `BLOCKED / NOT CERTIFIED`.
+
+- Continuity rule reaffirmed: continue safe, dependency-ordered implementation and verification without asking for confirmation at every intermediate step; commit each reliable checkpoint so another session resumes from the same state. Session end is not a completed task.
