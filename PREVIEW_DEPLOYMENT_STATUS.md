@@ -63,3 +63,18 @@ Do not point Preview at the existing active production Supabase project or modif
 8. Keep production `main` and production Supabase unchanged until a separate explicit production cutover approval.
 
 **No live Preview URL exists. No successful application build or deployment is claimed.**
+
+## Latest verified release audit — 2026-11-10
+
+Arabic release audit committed:
+`docs/R6_RELEASE_AUDIT_AR.md`
+
+The audit confirms:
+- Raw R6 contains local operational JSON and backup artifacts under `.data/`; do not import these into Git or Preview.
+- Raw `server.ts` uses fixed fallback HMAC/JWT secrets and has no central authorization middleware around its API routes. The session-token issuer accepts a caller-supplied role (defaulting to `super_admin`) without server-side credential verification.
+- R6 uses local JSON file persistence; no Supabase client or Google OAuth integration was found in the reviewed source.
+- The clean package is Preview-only and read-only. This does not certify production authentication, authorization, persistence, or payments.
+- Workflow run `42710989197` stopped at the missing application-directory check; dependency install, tests, frontend build, and container build were not run.
+
+Do not mark this release gate complete until the clean archive is imported and CI has passed. Keep production `main` and production Supabase untouched.
+
