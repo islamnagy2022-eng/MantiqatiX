@@ -158,3 +158,13 @@
 - **BLOCKED:** لا تربط R6 بالمشروع النشط ولا تنقل دواله قبل مراجعة authorization وtenant ownership لكل function وتجهيز Preview backend منفصل.
 - **TODO:** فحص التعاريف الـ67 واختبارات الصلاحيات السلبية؛ مراجعة الجداول التسعة؛ تقييم Leaked Password Protection؛ ترتيب تحسينات الأداء في بيئة Staging.
 
+
+
+## Final preflight checks — 10 نوفمبر 2026
+
+- **PASS:** ZIP integrity verified; 117 files and 15,591,628 bytes expanded; required app files exist; no duplicate paths, path traversal, symlinks, blocked data folders, or secret environment paths found.
+- **PASS:** current Codespaces importer Bash syntax validated locally; importer now stages on the same filesystem, cleans temporary state on every exit, removes only an incomplete destination from its own run, and supplies a fallback Git commit identity.
+- **PASS:** smoke-test Bash syntax validated locally.
+- **IMPLEMENTED / NOT VERIFIED:** Preview health response now identifies itself as `MantiqaTix Isolated Preview Backend`; the container smoke test checks this. Runtime test awaits app import and CI.
+- **BLOCKED:** No app source has yet been committed to `apps/bizcatalog-manager-6-preview/`; therefore none of the application build, unit test, Docker runtime, or Preview smoke results can be claimed.
+
