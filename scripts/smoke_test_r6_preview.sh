@@ -26,8 +26,8 @@ request() {
 
 # Public preview endpoints must be reachable and explicitly non-production.
 request GET /api/health 200
-jq -e '.status == "ok" and .isOfficialProduction == false and
-  .counts.subscribers == 0 and .counts.salesRecords == 0 and
+jq -e '.status == "ok" and .backend == "MantiqaTix Isolated Preview Backend" and
+  .isOfficialProduction == false and .counts.subscribers == 0 and .counts.salesRecords == 0 and
   .counts.adRequests == 0 and .counts.mantygoRequests == 0 and
   .counts.wallets == 0' "$TMP_DIR/last-response.json" >/dev/null
 
