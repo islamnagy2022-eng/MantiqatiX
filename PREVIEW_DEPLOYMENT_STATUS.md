@@ -91,3 +91,12 @@ The Cloud Run Preview workflow is manual-only and now has a mandatory pre-deploy
 
 This prevents a direct push or manual dispatch from bypassing the build/test gate. No deployment was triggered by this workflow-file change.
 
+
+## Mobile-friendly source import path
+
+- Codespaces project configuration: `.devcontainer/devcontainer.json`.
+- Arabic browser upload/import instructions: `docs/R6_CODESPACES_IMPORT_AR.md`.
+- The owner can upload the clean ZIP in the Codespaces Explorer without installing Git/Python locally, then run the repository importer and push only the Preview branch.
+- CI now checks out `github.sha`, rather than a moving branch name.
+- Cloud Run deployment is manual-only; its verification job requires a successful `R6 Preview Build` run for the exact dispatch SHA, and the deploy job checks out that same SHA.
+- The application ZIP remains unimported. No CI success, live URL, or deployment is claimed.
