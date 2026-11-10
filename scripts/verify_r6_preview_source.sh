@@ -12,8 +12,8 @@ done
 [[ -d "$APP_DIR/src/components/mobile" ]] || fail "Approved R6 mobile UI directory is missing."
 find "$APP_DIR/src/components/mobile" -type f -print -quit | grep -q . || fail "Approved R6 mobile UI directory is empty."
 [[ ! -e "$APP_DIR/src/components/medical/MedicalDirectoryView.tsx" ]] || fail "Dedicated medical directory page is outside website scope."
-if grep -R -n --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' 'MedicalDirectoryView' "$APP_DIR/src"; then
-  fail "Dedicated medical directory references remain in website source."
+if grep -R -n -E --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' 'MedicalDirectoryView|medical_directory' "$APP_DIR/src"; then
+  fail "Dedicated medical directory page/route references remain in website source."
 fi
 
 for forbidden in .data .data-preview .aistudio; do
