@@ -20,6 +20,10 @@ if [[ -e "$DEST" ]]; then
   exit 1
 fi
 
+TEMP_ROOT="$(mktemp -d)"
+TEMP_DEST="$TEMP_ROOT/app"
+trap 'rm -rf "$TEMP_ROOT"' EXIT
+
 ACTUAL_SHA256="$(sha256sum "$ARCHIVE" | awk '{print $1}')"
 if [[ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]]; then
   echo "Unexpected archive checksum; refusing import." >&2
@@ -83,22 +87,26 @@ cleanup_partial_import() {
 }
 trap cleanup_partial_import EXIT
 
-mkdir -p "$DEST"
-unzip -q "$ARCHIVE" -d "$DEST"
-python3 scripts/harden_r6_preview.py "$DEST"
-python3 scripts/finish_r6_preview_isolation.py "$DEST"
-python3 scripts/finish_r6_preview_core.py "$DEST"
-python3 scripts/finish_r6_preview_cleanups.py "$DEST"
+unzip -q "$ARCHIVE" -d "$TEMP_DEST"
+python3 scripts/harden_r6_preview.py "$TEMP_DEST"
+python3 scripts/finish_r6_preview_isolation.py "$TEMP_DEST"
+python3 scripts/finish_r6_preview_core.py "$TEMP_DEST"
+python3 scripts/finish_r6_preview_cleanups.py "$TEMP_DEST"
 
-test -f "$DEST/package.json"
-test -f "$DEST/server.ts"
-test -f "$DEST/Dockerfile"
-test ! -e "$DEST/.data"
-test ! -e "$DEST/.data-preview"
-grep -q 'PREVIEW_ALLOWED_API_PATHS' "$DEST/server.ts"
-grep -q 'MANTIQATIX_PREVIEW_NOTICE' "$DEST/src/App.tsx"
-grep -q 'if (IS_PREVIEW_MODE) return [];' "$DEST/src/context/AppContext.tsx"
-grep -q "VITE_PREVIEW_MODE !== 'true'" "$DEST/src/main.tsx"
+test -f "$TEMP_DEST/package.json"
+test -f "$TEMP_DEST/server.ts"
+test -f "$TEMP_DEST/Dockerfile"
+test -f "$TEMP_DEST/bun.lock"
+test ! -e "$TEMP_DEST/.data"
+test ! -e "$TEMP_DEST/.data-preview"
+test ! -e "$TEMP_DEST/.env"
+grep -q 'PREVIEW_ALLOWED_API_PATHS' "$TEMP_DEST/server.ts"
+grep -q 'MANTIQATIX_PREVIEW_NOTICE' "$TEMP_DEST/src/App.tsx"
+grep -q 'if (IS_PREVIEW_MODE) return [];' "$TEMP_DEST/src/context/AppContext.tsx"
+grep -q "VITE_PREVIEW_MODE !== 'true'" "$TEMP_DEST/src/main.tsx"
+
+mkdir -p "$(dirname "$DEST")"
+mv "$TEMP_DEST" "$DEST"
 git add "$DEST"
 git commit -m "Import sanitized and hardened BizCatalog Manager R6 preview source"
 IMPORT_COMMITTED=1
