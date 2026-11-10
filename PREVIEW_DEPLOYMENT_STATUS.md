@@ -106,4 +106,22 @@ This prevents a direct push or manual dispatch from bypassing the build/test gat
 - Added `scripts/smoke_test_r6_preview.sh`.
 - The R6 CI workflow now starts the built Preview container after Docker build and tests health, public directory/catalog GETs, zero operational counts, unverified directory metadata, rejection of non-public endpoints and mutations, and required security response headers.
 - The smoke script passed local Bash syntax validation only. It has **not** run against the application because the application source is not yet imported and the CI build is blocked before container creation.
+## Importer hardening and local archive verification — 2026-11-10
 
+The Preview importer now validates ZIP inventory before extraction:
+- rejects duplicate ZIP entry names, absolute paths, parent-directory traversal and backslash paths;
+- rejects symlinks, .data, .data-preview, .aistudio, real/local/production environment files, and unexpected .env.* files (while allowing .env.example);
+- enforces a 100 MiB expanded-size ceiling and checks required R6 root files;
+- removes only the destination directory created by the current importer attempt if sanitation fails before commit, allowing a safe retry without touching pre-existing content.
+
+Local checks completed:
+- original ZIP SHA-256: c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447;
+- clean ZIP SHA-256 matches the pinned value;
+- unzip -t reports no archive errors;
+- ZIP validator accepts the exact clean package: 117 files, 15,591,628 expanded bytes;
+- devcontainer JSON parses successfully.
+
+Not completed:
+- the full importer has not been run against a live Git checkout in this execution environment;
+- direct git ls-remote could not resolve github.com here, so no binary source push was possible from this session;
+- the application folder is still absent, so CI has not built or tested the application.
