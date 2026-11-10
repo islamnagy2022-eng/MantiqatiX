@@ -109,6 +109,13 @@ test -f "$TEMP_DEST/bun.lock"
 test ! -e "$TEMP_DEST/.data"
 test ! -e "$TEMP_DEST/.data-preview"
 test ! -e "$TEMP_DEST/.env"
+test ! -e "$TEMP_DEST/src/components/medical/MedicalDirectoryView.tsx"
+if grep -R -n --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' 'MedicalDirectoryView' "$TEMP_DEST/src"; then
+  echo "Dedicated medical directory references remain in the website source." >&2
+  exit 1
+fi
+test -d "$TEMP_DEST/src/components/mobile"
+find "$TEMP_DEST/src/components/mobile" -type f -print -quit | grep -q .
 grep -q 'PREVIEW_ALLOWED_API_PATHS' "$TEMP_DEST/server.ts"
 grep -q 'MANTIQATIX_PREVIEW_NOTICE' "$TEMP_DEST/src/App.tsx"
 grep -q 'if (IS_PREVIEW_MODE) return [];' "$TEMP_DEST/src/context/AppContext.tsx"
