@@ -145,3 +145,7 @@
 - **PASS (local checks):** SHA-256 للحزمة النظيفة مطابق، وفحص unzip سليم، وفاحص الأرشيف قبل 117 ملفًا و15,591,628 بايت بعد الفك، وملف devcontainer JSON صالح.
 - **BLOCKED:** لم ينفذ Git push من بيئة الجلسة؛ DNS لم يتمكن من الوصول إلى github.com. يلزم رفع الحزمة عبر Codespaces أو تشغيل أداة الاستيراد على جهاز متصل.
 - **NOT VERIFIED:** بناء التطبيق واختباراته الفعلية لم تبدأ بعد لأن مجلد التطبيق لم يدخل الفرع.
+
+- **PASS (importer safety):** Bash syntax passed; validator accepted the exact 117-file ZIP; a simulated sanitation failure in an isolated mock repository exited safely and left no partial app directory or temporary extraction folder.
+- **IMPLEMENTED:** extraction now occurs in a unique temporary directory, followed by atomic same-filesystem move; cleanup removes the final app folder only when the current execution created it and had not committed.
+- **NOT VERIFIED:** successful run of all four live sanitation scripts on the final Codespaces checkout and successful GitHub push.
