@@ -126,3 +126,13 @@
 ## الخطوة التالية الوحيدة
 
 **رفع الحزمة المنظفة إلى فرع Preview وتشغيل CI.** لا يبدأ ربط Supabase أو تفعيل الكتابة قبل نجاح هذه الخطوة وفحص التطبيق المستورد.
+
+
+## تحديث مسار الاستيراد من المتصفح — 10 نوفمبر 2026
+
+- **IMPLEMENTED:** إعداد Codespaces في `.devcontainer/devcontainer.json` لتوفير Node 22 وPython 3.12 وGitHub CLI وunzip.
+- **IMPLEMENTED:** دليل عربي يشرح الرفع من متصفح الهاتف أو الكمبيوتر وتشغيل أداة الاستيراد: `docs/R6_CODESPACES_IMPORT_AR.md`.
+- **BLOCKED:** ما زال ZIP غير موجود داخل فرع المستودع؛ يلزم رفع `bizcatalog-manager-6-preview-clean.zip` داخل جذر Codespace ثم تشغيل importer ودفع فرع Preview.
+- **IMPLEMENTED:** CI أصبح يفحص نفس Commit الذي أطلق Workflow.
+- **IMPLEMENTED:** Cloud Run deployment أصبح يدويًا، ويتحقق من نجاح CI على نفس SHA قبل نشر نفس SHA المختبَر.
+- لا يوجد نشر حي ولم يتم تشغيل Production cutover.
