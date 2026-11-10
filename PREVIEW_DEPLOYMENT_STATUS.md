@@ -64,6 +64,9 @@ Do not point Preview at the existing active production Supabase project or modif
 
 **No live Preview URL exists. No successful application build or deployment is claimed.**
 
+
+Persistent execution board: `docs/R6_CONTINUOUS_TODO_AR.md` — current states, P0 blockers, and subsystem TODOs. Update this file whenever a task changes status; never mark a task PASS without evidence.
+
 ## Latest verified release audit — 2026-11-10
 
 Arabic release audit committed:
