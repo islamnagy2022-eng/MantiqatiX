@@ -82,9 +82,9 @@ for source_path in src_root.rglob("*"):
             source_text = source_path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             continue
-        if "MedicalDirectoryView" in source_text:
+        if "MedicalDirectoryView" in source_text or "medical_directory" in source_text:
             raise SystemExit(
-                f"Dedicated medical directory reference remains in {source_path.relative_to(root)}"
+                f"Dedicated medical directory page/route reference remains in {source_path.relative_to(root)}"
             )
 
 path = "src/components/common/ProductionPhasesControlPanel.tsx"
