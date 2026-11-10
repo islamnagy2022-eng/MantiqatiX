@@ -65,6 +65,14 @@ source = source.replace(
     "      isVerified: PREVIEW_MODE ? false : true,\n      verificationStatus: PREVIEW_MODE ? 'unverified' : 'verified',",
     1,
 )
+health_label = "      backend: 'MantiqaTix Production Backend Engine',"
+preview_health_label = "      backend: PREVIEW_MODE ? 'MantiqaTix Isolated Preview Backend' : 'MantiqaTix Production Backend Engine',"
+if health_label in source:
+    if source.count(health_label) != 1:
+        raise SystemExit("Unexpected health backend label count; refusing ambiguous patch.")
+    source = source.replace(health_label, preview_health_label, 1)
+elif preview_health_label not in source:
+    raise SystemExit("Health backend label anchor changed; refusing an unverified Preview label.")
 server.write_text(source, encoding="utf-8")
 
 source = seed.read_text(encoding="utf-8")
