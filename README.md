@@ -13,7 +13,7 @@ Primary customer entry: the current GitHub Pages production root (`/MantiqaTix/`
 
 ## Project continuity (required for contributors and AI sessions)
 - Start every work session with [Project Continuity & Production Handoff](docs/PROJECT_CONTINUITY.md).
-- Current R6 source-import status and the safe Codespaces procedure: [R6 Import Checkpoint](docs/R6_IMPORT_CHECKPOINT_20261110.md) and [R6 Cleanroom Import Runbook](docs/R6_CLEANROOM_IMPORT_RUNBOOK.md).
+- Current R6 source-import status and the established Codespaces procedure: [R6 Import Checkpoint](docs/R6_IMPORT_CHECKPOINT_20261110.md) and [R6 Codespaces Import Guide](docs/R6_CODESPACES_IMPORT_AR.md).
 - Read the [Owner Operating Specifications 00–19](docs/specifications/OPERATING_SPECIFICATIONS_00_19.md) and the [RC40 → Web Reuse Matrix](docs/RC40_MODULE_REUSE_EXECUTION_MATRIX.md) before making architecture or module decisions.
 - Read the chronological [Session Log](docs/SESSION_LOG.md) and [Master Production TODO](docs/MASTER_PRODUCTION_TODO.md) before continuing.
 - Use the root [Website/Catalog Production TODO](TODO_PRODUCTION.md) as the detailed catalog execution supplement; reconcile overlapping tasks with the Master TODO rather than creating duplicate trackers.
