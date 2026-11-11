@@ -50,10 +50,17 @@ def patch_text_file(path: Path, replacements: list[tuple[str, str, str]]) -> boo
 def has_explicit_public_price_guard(edge: str, helper: str) -> bool:
     availability_is_explicit = "is_available === true" in edge
     inline_price_guard = "item.metadata?.catalog_public?.show_price !== true" in edge
+    shared_import = any(
+        "filterRowsToPubliclyPricedItems" in line
+        and "../_shared/public-price-visibility.mjs" in line
+        for line in edge.splitlines()
+    )
     shared_helper_guard = (
-        'import { filterRowsToPubliclyPricedItems } from "../_shared/public-price-visibility.mjs";' in edge
+        shared_import
         and "filterRowsToPubliclyPricedItems(items, p || [])" in edge
         and "metadata?.catalog_public?.show_price === true" in helper
+        and "getExplicitlyPublicComparePrice({ metadata: { catalog_public: rawPublic } })" in edge
+        and "if (!hasExplicitPublicPricePermission(item)) return null;" in helper
     )
     return availability_is_explicit and (inline_price_guard or shared_helper_guard)
 
@@ -72,10 +79,11 @@ def self_test() -> None:
         fixture, did_change = replace_once(fixture, old, new, label)
         assert did_change
     assert "item-4" in fixture and "item-5" in fixture and "Only items with explicit" in fixture
-    shared_edge = 'import { filterRowsToPubliclyPricedItems } from "../_shared/public-price-visibility.mjs";\\nitems = rows.filter((i) => i.metadata?.catalog_public?.is_available === true);\\nprices = filterRowsToPubliclyPricedItems(items, p || []);'
-    shared_helper = "item?.metadata?.catalog_public?.show_price === true"
+    shared_edge = 'import { filterRowsToPubliclyPricedItems, getExplicitlyPublicComparePrice } from "../_shared/public-price-visibility.mjs";\\nitems = rows.filter((i) => i.metadata?.catalog_public?.is_available === true);\\nprices = filterRowsToPubliclyPricedItems(items, p || []);\\ncompare_price = getExplicitlyPublicComparePrice({ metadata: { catalog_public: rawPublic } });'
+    shared_helper = "item?.metadata?.catalog_public?.show_price === true\\nif (!hasExplicitPublicPricePermission(item)) return null;"
     assert has_explicit_public_price_guard(shared_edge, shared_helper)
     assert not has_explicit_public_price_guard("items = rows.filter((i) => i.metadata?.catalog_public?.is_available === true); prices = rows.filter((item) => item.metadata?.catalog_public?.show_price === false);", "")
+    assert not has_explicit_public_price_guard('import { filterRowsToPubliclyPricedItems } from "../_shared/public-price-visibility.mjs";\\nitems = rows.filter((i) => i.metadata?.catalog_public?.is_available === true); prices = filterRowsToPubliclyPricedItems(items, p || []);', "metadata?.catalog_public?.show_price === true")
     for old, new, label in [
         (OLD_ITEM, NEW_ITEM, "missing-price-consent fixture"),
         (OLD_PRICE, NEW_PRICE, "missing-availability-consent fixture"),
