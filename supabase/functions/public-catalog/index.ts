@@ -112,6 +112,7 @@ Deno.serve(async (req: Request) => {
       ]);
       if (globalItemResult.error || branchItemResult.error) throw globalItemResult.error || branchItemResult.error;
       rawItems = [...(globalItemResult.data || []), ...(branchItemResult.data || [])]
+        .filter((item: any) => item.metadata?.catalog_public?.is_available === true)
         .slice(0, 150)
         .sort((a: any, b: any) => String(a.name_ar || "").localeCompare(String(b.name_ar || ""), "ar"));
     }
@@ -194,7 +195,7 @@ Deno.serve(async (req: Request) => {
         comparePrice,
         trackStock: meta.track_stock === true,
         requiresQuote: requiresPublicQuote(item),
-        available: meta.is_available !== false && (meta.track_stock !== true || stockAvailability.get(String(item.id)) === true),
+        available: meta.is_available === true && (meta.track_stock !== true || stockAvailability.get(String(item.id)) === true),
       };
     });
 
