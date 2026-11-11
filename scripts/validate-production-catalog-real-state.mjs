@@ -139,12 +139,14 @@ for (const item of pricePermissionFixture.slice(1)) {
     `a service without strict show_price=true permission must require a quote (${item.id}).`);
 }
 assert.ok(
+  publicCatalogFunction.includes('rawItems = [...(globalItemResult.data || []), ...(branchItemResult.data || [])]') &&
+  publicCatalogFunction.includes('.filter((item: any) => item.metadata?.catalog_public?.is_available === true)') &&
   publicCatalogFunction.includes('prices = filterRowsToPubliclyPricedItems(rawItems, allPriceRows)') &&
   publicCatalogFunction.includes('options = filterRowsToPubliclyPricedItems(rawItems, optionResult.data || [])') &&
   publicCatalogFunction.includes('const comparePrice = getExplicitlyPublicComparePrice(item)') &&
   publicCatalogFunction.includes('        comparePrice,') &&
   publicCatalogFunction.includes('requiresQuote: requiresPublicQuote(item)'),
-  'public storefront must filter numeric prices, option deltas and compare_price, and mark unpriced services as quote-only.'
+  'public storefront must require explicit availability, filter prices/compare_price, and mark unpriced services as quote-only.'
 );
 assert.match(
   publicDirectoryFunction,
