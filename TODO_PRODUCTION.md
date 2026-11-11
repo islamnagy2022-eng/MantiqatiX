@@ -1,3 +1,16 @@
+# R7 SOURCE BASELINE OVERRIDE — 2026-11-11
+
+> This update supersedes the older R6 source-baseline references below. The user subsequently supplied the newer R7 source archive bizcatalog-manager (7).zip. For application UI and intended R7 behavior, R7 is now the development source of truth. R6 and earlier trees remain reference-only and may be used only for verified gaps. This does not mean R7 has been imported into main, deployed, or approved for Production.
+
+- Original R7 archive SHA-256: 491b25f85218c6ca2196debf860b5225871df710b3997199f1b5a401ef7851ed.
+- Scope exclusion: source_RC40.zip is explicitly out of scope and must not be inspected, imported, integrated, built, modified, or used as a dependency. Work only from bizcatalog-manager (7).zip. Preserve and use only mobile-related source files that are physically part of the R7 archive itself; do not fetch or merge anything from RC40.
+- Derived hardened Preview 08 SHA-256: fe1c9aeac660e879f1e31cfb0084ca63c5578a5e19802a6e6b8db7323dff6896; ZIP integrity PASS; 145 files; .data/, .aistudio/, node_modules/, dist/, and old public/releases/ excluded; mobile and Android wrapper files preserved.
+- R7 security tests: 10/10 PASS. Static release gate remains BLOCKED with six findings: missing dependencies/Vite, no Supabase JS client in R7, local JSON persistence, trusted identity not wired, no real Paymob Intention/Webhook/Inquiry, and a local migration with only 7 tables requiring schema reconciliation.
+- GitHub Pages Production root remains V6 and /legacy/ remains. R7 has not been imported as the deployed app or cut over.
+- Existing public catalog functions public-catalog v8 and public-catalog-directory v18 are live and source-matched to main. Live disclosure smoke passed on 2026-11-11, but this validates the current catalog API only, not R7 integration.
+- Full details and next execution order: docs/release/R7_SOURCE_BASELINE_20261111.md.
+
+---
 # AUTHORITATIVE PROJECT BASELINE — 2026-11-08 (READ FIRST)
 
 > This section is the controlling source-of-truth policy for every future MantiqatiX continuation. If an older TODO item, handoff, session note, prompt, or archive conflicts with this section, follow this section and reconcile the stale item before doing work.

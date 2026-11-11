@@ -2458,3 +2458,16 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Leaked Password Protection remains disabled. This requires authorized managed Auth configuration; no Auth setting was changed.
 - Primary Catalog Frontend Validation #42931478532: build and live disclosure smoke succeeded; employee/RBAC PostgreSQL tests succeeded; browser E2E was still IN PROGRESS at this log update. Recheck final run conclusion before claiming full workflow pass.
 - No production schema/data/Auth/RLS/ACL/payment change occurred in this security review.
+
+---
+
+## 2026-11-11 — R7 source-of-truth reconciliation and live catalog verification
+
+- The owner explicitly excluded source_RC40.zip from all future implementation work; it must not be inspected, imported, integrated, built, modified, or used as a dependency. Only the R7 archive is in scope. Preserve only mobile files that are already inside R7.
+- The latest owner-provided application source is bizcatalog-manager (7).zip (SHA-256 491b25f85218c6ca2196debf860b5225871df710b3997199f1b5a401ef7851ed). This supersedes the earlier R6 archive reference in the authoritative TODO for application UI/behavior; R6 remains reference-only. The deployed root remains V6; R7 is not imported/deployed.
+- Revalidated MantiqaTix-R7-Security-Hardened-Preview-07.zip (SHA-256 b2046459d56537bf1157adb3d4b0bc35e7113a5c7635c134ab17c16143f0ba78), then updated R7 status documentation and generated Preview 08 (145 files; SHA-256 fe1c9aeac660e879f1e31cfb0084ca63c5578a5e19802a6e6b8db7323dff6896). No local .data/ or .aistudio/ content was packaged; mobile and Android wrapper source retained.
+- R7 security regression suite rerun: 10/10 PASS. R7 static release gate remains BLOCKED with six findings; no dependencies, Supabase client, trusted auth, transactional Postgres persistence or real Paymob flow are present in the candidate.
+- In the existing repository, the live public catalog endpoints pass a read-only disclosure smoke test: 10 businesses; 47 directory items; 35 without public price permission; 12 public price rows; 10 direct catalog endpoints; 47 direct items; 16 quote-only services. This evidence does not prove R7 is connected to the functions.
+- Production public Edge Function versions remain public-catalog v8 and public-catalog-directory v18; downloaded live source exactly matches repository main. No metadata was changed.
+- Current Auth/security warnings and business-owner trigger call-chain remain open; see R7 release-status file. No blanket RLS/grant changes or trigger/ownership changes were made.
+- Overall state remains BLOCKED / NOT CERTIFIED.
