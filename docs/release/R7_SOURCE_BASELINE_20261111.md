@@ -5,6 +5,13 @@ Date: 2026-11-11
 
 R7 is the latest owner-provided application source for continued development. It is not the deployed Production website and is not Production certified. The current GitHub Pages root remains V6, with /legacy/ retained. No R7 cutover has occurred.
 
+## Scope exclusion — RC40
+
+- Explicit owner instruction: do not work on `source_RC40.zip`.
+- Do not inspect, extract, import, merge, build, modify, or reference RC40 as a dependency for this project continuation.
+- The only approved source archive for application work in this checkpoint is `bizcatalog-manager (7).zip` (R7).
+- Mobile UI/components that exist inside the R7 archive remain part of R7 and may be preserved. This is not permission to bring in RC40 content.
+
 ## Source provenance
 
 - Original uploaded source: bizcatalog-manager (7).zip
