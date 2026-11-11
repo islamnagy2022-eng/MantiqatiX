@@ -2463,6 +2463,7 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 
 ## 2026-11-11 — R7 source-of-truth reconciliation and live catalog verification
 
+- The owner explicitly excluded source_RC40.zip from all future implementation work; it must not be inspected, imported, integrated, built, modified, or used as a dependency. Only the R7 archive is in scope. Preserve only mobile files that are already inside R7.
 - The latest owner-provided application source is bizcatalog-manager (7).zip (SHA-256 491b25f85218c6ca2196debf860b5225871df710b3997199f1b5a401ef7851ed). This supersedes the earlier R6 archive reference in the authoritative TODO for application UI/behavior; R6 remains reference-only. The deployed root remains V6; R7 is not imported/deployed.
 - Revalidated MantiqaTix-R7-Security-Hardened-Preview-07.zip (SHA-256 b2046459d56537bf1157adb3d4b0bc35e7113a5c7635c134ab17c16143f0ba78), then updated R7 status documentation and generated Preview 08 (145 files; SHA-256 fe1c9aeac660e879f1e31cfb0084ca63c5578a5e19802a6e6b8db7323dff6896). No local .data/ or .aistudio/ content was packaged; mobile and Android wrapper source retained.
 - R7 security regression suite rerun: 10/10 PASS. R7 static release gate remains BLOCKED with six findings; no dependencies, Supabase client, trusted auth, transactional Postgres persistence or real Paymob flow are present in the candidate.
