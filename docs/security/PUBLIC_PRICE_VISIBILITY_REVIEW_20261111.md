@@ -52,3 +52,14 @@ Branch: `fix/public-price-visibility-explicit-opt-in-20261111`
 ## Boundary
 
 At the time this review was written, the correction existed only on the GitHub review branch. It had not been merged, and no Supabase Edge Function had been deployed from it. Therefore the live runtime must still be treated as potentially exposing prices without explicit consent until the fix is deployed and verified.
+
+
+## Deployment and live runtime verification — 2026-11-11
+
+- Pull request #717 was merged to `main` as commit `07be7028b7b79ff368c7d3dd5cd8093d04841ad9`.
+- GitHub Pages production deployment run `42930144466` completed successfully. Its deployed-origin browser checks passed for the V6 production root and retained legacy catalog/dashboard/mobile/QR routes.
+- The production Supabase project now reports `public-catalog` version **8** and `public-catalog-directory` version **18**, both with `verify_jwt=false` preserved. Retrieved deployed source for both functions matched the exact `main` source byte-for-byte, including the strict price/compare-price/availability guards.
+- A fresh read-only production audit still reports 12 items with explicit price consent, 19 with explicit price denial, 16 with missing/invalid consent, and 2 with compare-price metadata while consent is absent. These records were not edited.
+- Added `scripts/smoke-test-public-catalog-disclosure.mjs` and wired it into `.github/workflows/primary-catalog-frontend.yml`. On commit `b5b783c8a8e27d9049ed5fe9f7dffbf2a94de0bd`, the live directory and direct-catalog disclosure smoke test completed successfully in workflow run `42931478532`; it checks public availability, price rows, option deltas, compare prices, and quote-only services against live responses.
+- The deployment and live smoke checks validate this narrow public-catalog correction only. They do not certify the entire platform as production-ready. The wider security review still tracks nine RLS-enabled/no-policy tables, one intentionally public-callable SECURITY DEFINER ad function requiring product-owner confirmation, 65 authenticated-callable SECURITY DEFINER functions requiring authorization-aware call-chain review, and disabled leaked-password protection. No broad RLS, function ACL, Auth, or data changes were made.
+- No database migration or production catalog row update was applied. Payment, wallet, settlement, and customer identity paths were outside this release.
