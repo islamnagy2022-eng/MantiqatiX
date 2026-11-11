@@ -2446,3 +2446,15 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Read-only production data audit unchanged: 12 explicit price opt-ins, 19 explicit opt-outs, 16 missing/invalid opt-ins, and 2 compare-price values without explicit opt-in. No data/schema/Auth/RLS/payment writes were made.
 - Added a live runtime smoke test script and CI step. Workflow `42931478532` completed the directory smoke and the new direct-catalog price-disclosure smoke successfully. Checks cover strict public availability, numeric prices, option deltas, compare_price, and quote-only service state.
 - Full platform certification remains BLOCKED / NOT CERTIFIED. Remaining security review items: 9 RLS-enabled tables without policies (verify no direct anon/auth grants and confirm service-only use), 1 anon-callable SECURITY DEFINER ad-targeting function (currently empty search_path and bounded approved-ad query; confirm public exposure is intended), 65 authenticated-callable SECURITY DEFINER functions (review authorization call chains), and disabled leaked-password protection. No blanket ACL/RLS changes were applied.
+
+
+---
+
+## 2026-11-11 — Live SECURITY DEFINER/RLS authorization chain refresh
+
+- Read-only live catalog inspection: 137/137 public base tables have RLS enabled; 149 public SECURITY DEFINER functions all have explicit search_path settings; 1 is anon-executable (the already documented public targeted-ad read RPC) and 65 are authenticated-executable.
+- Traced the six authenticated-executable SECURITY DEFINER functions without a direct auth.uid() reference through their delegated authorization helpers. The employee-list path rejects null/anonymous actors and validates tenant/business/branch + HR/platform permission; RBAC helpers delegate to auth.uid()-scoped active membership; commission preview delegates to auth.uid()-bound finance membership; catalog item/price upsert wrappers delegate to auth.uid()-bound tenant/business/branch-validated writers.
+- Rechecked all nine RLS-enabled/no-policy tables. None has direct anon/authenticated SELECT or DML grants; three have service_role SELECT. No RLS policies or table grants were changed.
+- Leaked Password Protection remains disabled. This requires authorized managed Auth configuration; no Auth setting was changed.
+- Primary Catalog Frontend Validation #42931478532: build and live disclosure smoke succeeded; employee/RBAC PostgreSQL tests succeeded; browser E2E was still IN PROGRESS at this log update. Recheck final run conclusion before claiming full workflow pass.
+- No production schema/data/Auth/RLS/ACL/payment change occurred in this security review.
