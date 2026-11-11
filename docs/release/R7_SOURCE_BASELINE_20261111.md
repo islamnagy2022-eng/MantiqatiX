@@ -16,15 +16,15 @@ R7 is the latest owner-provided application source for continued development. It
 
 - Original uploaded source: bizcatalog-manager (7).zip
 - SHA-256: 491b25f85218c6ca2196debf860b5225871df710b3997199f1b5a401ef7851ed
-- Derived hardened Preview 08: MantiqaTix-R7-Security-Hardened-Preview-08.zip
-- Preview 08 SHA-256: fe1c9aeac660e879f1e31cfb0084ca63c5578a5e19802a6e6b8db7323dff6896
-- Preview integrity verified; 145 files. .data/, .aistudio/, node_modules/, dist/, and public/releases/ content are excluded.
-- Preserved in Preview 08: two src/components/mobile/ files and three android-webview-wrapper/ files.
-- The original uploaded archive was not modified. Its local JSON/backups and AI Studio temporary artifacts are not part of the hardened Preview.
+- Derived hardened Preview 09: MantiqaTix-R7-Security-Hardened-Preview-09.zip
+- Preview 09 SHA-256: c0ce1e6bc74d8c21dda9f574a2f906cce8ac8eb2e9985b6ac709e81a650cb4d8
+- Preview integrity verified; 150 files. .data/, .aistudio/, node_modules/, dist/, and public/releases/ content are excluded.
+- Preserved from R7 itself: two src/components/mobile/ files and three android-webview-wrapper/ files. No RC40 archive/content is included or used.
+- The original uploaded R7 archive was not modified. Its local JSON/backups and AI Studio temporary artifacts are not part of the hardened Preview.
 
 ## Current R7 verification
 
-- node --test scripts/r7-security-regression.test.mjs: 10/10 PASS.
+- node --test scripts/r7-security-regression.test.mjs: 13/13 PASS.
 - Earlier syntax-only transpilation: 93 TS/TSX files, zero syntax diagnostics. This is not a semantic TypeScript check.
 - node scripts/check-r7-release.mjs: BLOCKED — 6 findings:
   1. Dependencies/Vite unavailable; production build cannot run.
@@ -60,3 +60,14 @@ R7 is the latest owner-provided application source for continued development. It
 - Do not claim Production Ready or switch the live root until all P0/P1 gates pass and an approved rollback/cutover exists.
 
 Current status: BLOCKED / NOT CERTIFIED.
+
+## Google Search / GA4 / SEO status — 2026-11-11
+
+- R7 source audit: basic Title/Description/Open Graph/Twitter metadata only; no GA4/GTM Measurement ID, Search Console verification, sitemap/robots, or Schema.org JSON-LD.
+- Added Preview-only `noindex,nofollow,noarchive` so this development candidate cannot be indexed accidentally.
+- Added `GOOGLE_SEARCH_SEO_ANALYTICS_PLAN.md` and `scripts/validate-r7-seo-baseline.mjs`; `npm run test:seo` passes and is now included in `npm run release:check`.
+- Exact validation: security suite **13/13 PASS**, SEO preview guard **PASS**, package JSON validation **PASS**.
+- `npm run release:check` remains **BLOCKED with the same six platform blockers**: missing Vite/dependencies, no Supabase JS dependency, local JSON persistence, trusted Auth/membership not wired, no real Paymob, and local migration schema needs reconciliation.
+- Google accounts were not connected; no GA4 tag or fake Search Console verification code was added. Production sitemap/robots/schema remain not implemented until the canonical domain and public data contract are confirmed.
+- Existing 1360px R7 desktop layout lock was not changed pending mobile/desktop visual regression evidence.
+- No Production site, Supabase data/schema/Auth/RLS/grants, payment configuration, or Google account was modified.

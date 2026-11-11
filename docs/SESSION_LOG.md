@@ -2471,3 +2471,16 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Production public Edge Function versions remain public-catalog v8 and public-catalog-directory v18; downloaded live source exactly matches repository main. No metadata was changed.
 - Current Auth/security warnings and business-owner trigger call-chain remain open; see R7 release-status file. No blanket RLS/grant changes or trigger/ownership changes were made.
 - Overall state remains BLOCKED / NOT CERTIFIED.
+
+---
+
+## 2026-11-11 — R7 Google Search, GA4 and SEO foundation
+
+- Audited the exact R7 Preview worktree only. It has base title/description/Open Graph/Twitter metadata but no GA4, GTM, Search Console verification, sitemap, robots, or Schema.org structured data.
+- Added `noindex,nofollow,noarchive` to the R7 Preview so a development candidate and seed/demo content cannot be indexed.
+- Added `GOOGLE_SEARCH_SEO_ANALYTICS_PLAN.md` covering Search Console, verified ownership, production sitemap/robots, route-specific metadata/canonical, SSR/prerender, privacy-safe structured data, GA4, consent, event taxonomy, local SEO, dashboard/reporting, Core Web Vitals, and automated tests.
+- Added `scripts/validate-r7-seo-baseline.mjs`; `npm run test:seo` passes and is included in `npm run release:check`.
+- Validation evidence: security 13/13 PASS; SEO preview guard PASS; package JSON PASS. Release gate remains BLOCKED by six known architecture/runtime blockers.
+- Built `MantiqaTix-R7-Security-Hardened-Preview-09.zip`: SHA-256 `c0ce1e6bc74d8c21dda9f574a2f906cce8ac8eb2e9985b6ac709e81a650cb4d8`; 150 files; .data/.aistudio/node_modules/dist/releases excluded; two R7 mobile UI files and three Android WebView wrapper files contained in R7 preserved unchanged; no RC40 source archive/content included.
+- No GA4 Measurement ID or Search Console token was invented. No Google account, Production website, Supabase, Auth/RLS/GRANT, database, or payment settings were changed.
+- R7 remains `BLOCKED / NOT CERTIFIED`; production indexing and analytics activation remain unauthorized until owner-controlled domain/IDs/consent inputs and all platform release gates pass.
