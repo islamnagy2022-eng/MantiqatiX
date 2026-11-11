@@ -42,3 +42,12 @@ This remains static evidence only and does not replace browser E2E.
 
 ## Decision
 **Final Production Gate: OPEN — NOT PRODUCTION READY YET.**
+
+
+## 2026-11-11 — Live security advisor and ACL refresh
+
+- Current public schema has 137 base tables; all 137 have RLS enabled.
+- 149 public SECURITY DEFINER functions all have explicit search_path settings. One anonymous-executable function is the documented intentional public targeted-ad read RPC; 65 are authenticated-executable workflow/RBAC boundaries. Six functions without direct auth.uid() were traced through their delegated auth/membership/finance checks; details are in `docs/RC257_SECURITY_DEFINER_ACCESS_REVIEW.md`.
+- Security Advisor reports nine RLS-enabled/no-policy tables. Direct table privilege inspection confirms no anon/authenticated SELECT or DML grants on those tables; three expose only service_role SELECT. No policies/grants were changed.
+- Leaked Password Protection remains disabled and needs an authorized managed Auth settings change. Do not change it through a speculative database migration.
+- Global Production Gate remains BLOCKED / NOT CERTIFIED.
