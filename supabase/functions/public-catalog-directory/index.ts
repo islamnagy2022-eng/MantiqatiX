@@ -1,6 +1,7 @@
 // Supabase Edge Runtime provides Deno.serve at runtime; no runtime import is needed for its ambient type declarations.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sanitizeActivityModuleOverrides } from "../_shared/activity-module-overrides.mjs";
+import { filterRowsToPubliclyPricedItems, getExplicitlyPublicComparePrice } from "../_shared/public-price-visibility.mjs";
 
 const allowedOrigins = new Set(["https://islamnagy2022-eng.github.io", "http://localhost:3000", "http://localhost:5173", "http://localhost:8080", "http://127.0.0.1:3000", "http://127.0.0.1:5173", "http://127.0.0.1:8080"]);
 const headersFor = (origin: string | null) => ({
@@ -24,8 +25,8 @@ const publicCatalogItemMetadata = (value: unknown): Record<string, unknown> => {
   if (typeof rawPublic.image_source === "string") catalogPublic.image_source = rawPublic.image_source.slice(0, 24);
   if (typeof rawPublic.category === "string") catalogPublic.category = rawPublic.category.slice(0, 100);
   if (typeof rawPublic.unit === "string") catalogPublic.unit = rawPublic.unit.slice(0, 40);
-  const comparePrice = Number(rawPublic.compare_price);
-  if (rawPublic.compare_price != null && Number.isFinite(comparePrice) && comparePrice >= 0) catalogPublic.compare_price = comparePrice;
+  const comparePrice = getExplicitlyPublicComparePrice({ metadata: { catalog_public: rawPublic } });
+  if (comparePrice !== null) catalogPublic.compare_price = comparePrice;
   const result: Record<string, unknown> = { catalog_public: catalogPublic };
   if (typeof metadata.image_url === "string") result.image_url = metadata.image_url.slice(0, 1500);
   return result;
@@ -192,12 +193,8 @@ Deno.serve(async (req: Request) => {
              .or(`branch_id.is.null,branch_id.eq.${branchId}`)
             .lte("effective_from", now).or(`effective_to.is.null,effective_to.gte.${now}`).order("version", { ascending: false }).limit(1000);
           if (priceError) throw priceError;
-          const hiddenPriceIds = new Set(
-            items.filter((item: any) => item.metadata?.catalog_public?.show_price !== true)
-              .map((item: any) => String(item.id))
-          );
-          // Never serialize price rows unless public price display is explicitly enabled.
-          prices = (p || []).filter((price: any) => !hiddenPriceIds.has(String(price.catalog_item_id)));
+          // Stored prices are returned only when the owner explicitly opted in with show_price=true.
+          prices = filterRowsToPubliclyPricedItems(items, p || []);
         }
       }
       const profile = business.settings?.catalog_profile || {};

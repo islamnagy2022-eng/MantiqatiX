@@ -2410,3 +2410,28 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Public get_mnty_targeted_advertisements has empty search_path, schema-qualified relations, selects only active/approved/in-window ads, and clamps output to 1–50. Treat anon EXECUTE as an intentional public-read grant only after confirming the ad-serving requirement.
 - Found a material ownership contract requiring owner review: assign_default_owner_to_unowned_business() creates an ACTIVE BUSINESS_OWNER membership for the fixed confirmed platform-owner email whenever a new business has no active owner. Could be intended for imported catalog rows but may capture newly registered businesses. Trigger remains enabled; direct API EXECUTE is revoked. No behavior change made pending review of onboarding/import paths.
 - Nine RLS-enabled/no-policy tables were checked: no direct anon/authenticated SELECT or DML grants; only three directory tables show service_role SELECT. Keep default-deny and validate server-side consumers.
+
+
+---
+
+## 2026-11-11 — Public catalog explicit price-permission guard
+
+- Read-only audit of the active Supabase project found 47 eligible ACTIVE public items: 12 explicitly allow price display, 19 explicitly hide it, and 16 have no `show_price` permission. Those 16 items have 16 effective ACTIVE price rows; no ACTIVE option rows were linked to them.
+- Compared the live Supabase Edge Function source to GitHub `main`. `public-catalog` used a false-only quote filter, and deployed `public-catalog-directory` v17 also used a false-only filter while the `main` source for that directory path was stricter. An omitted/null/non-boolean flag must fail closed under the documented public catalog contract.
+- Created branch `fix/public-price-visibility-explicit-opt-in-20261111`. Added a shared helper that filters prices and option deltas to items with strict boolean `show_price === true`, applied it to both public Edge Function sources, and expanded the existing production catalog contract validator with negative fixtures.
+- Added `docs/security/PUBLIC_PRICE_VISIBILITY_REVIEW_20261111.md` with evidence, release checks and boundaries.
+- No production data, schema, Auth, RLS, grants, payment settings, Edge Function deployment, or Pages deployment was modified. The change is not live until the exact-head CI passes and the approved Edge Function versions are deployed and smoke-tested.
+- Overall full-platform release remains BLOCKED / NOT CERTIFIED.
+
+
+---
+
+## 2026-11-11 — Price disclosure follow-up before deployment
+
+- Exact-head GitHub Actions for commit `85952cc860937d6dbaf3a7abc489859d3fb00d01` completed successfully: Primary Catalog Frontend Validation (build + Postgres RBAC + browser E2E), Legacy Catalog Module Validation, Backend-only Module Boundary, Module Professionalization Validation, RC425 MantiGo Paymob Atomicity, MantiGO Open Ride Privacy Boundary, and Deploy MantiqatiX Web validation (PR validation only; no production deployment).
+- Follow-up read-only query of eligible active public catalog rows confirmed 12 explicit show-price items, 19 explicit hide-price items, 16 missing/invalid permissions, and 2 eligible items with non-empty compare_price despite lacking show_price=true. No production data or schema was changed.
+- Static review identified two additional disclosure/state paths: compare_price was serialized by both public endpoints without strict opt-in, and public-catalog marked a service as requiresQuote only when show_price was exactly false. Extended the same PR branch to gate compare_price in both endpoints and mark every service lacking strict show_price=true as quote-only.
+- Expanded validator fixtures to cover strict compare_price opt-in and requiresQuote behavior. This follow-up is not deployed; rerun exact-head CI and re-review endpoint response projection before any live deployment.
+
+
+- Follow-up contract review found direct `public-catalog` was returning ACTIVE rows with missing/false `is_available` metadata and defaulting missing values to available. Updated it to include only rows with strict `is_available === true`, matching the public directory contract. Added an exact-source validator assertion. This is still branch-only pending exact-head CI and deployment verification.

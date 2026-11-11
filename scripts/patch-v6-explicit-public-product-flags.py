@@ -47,6 +47,24 @@ def patch_text_file(path: Path, replacements: list[tuple[str, str, str]]) -> boo
         path.write_text(source, encoding="utf-8")
     return changed
 
+def has_explicit_public_price_guard(edge: str, helper: str) -> bool:
+    availability_is_explicit = "is_available === true" in edge
+    inline_price_guard = "item.metadata?.catalog_public?.show_price !== true" in edge
+    shared_import = any(
+        "filterRowsToPubliclyPricedItems" in line
+        and "../_shared/public-price-visibility.mjs" in line
+        for line in edge.splitlines()
+    )
+    shared_helper_guard = (
+        shared_import
+        and "filterRowsToPubliclyPricedItems(items, p || [])" in edge
+        and "metadata?.catalog_public?.show_price === true" in helper
+        and "getExplicitlyPublicComparePrice({ metadata: { catalog_public: rawPublic } })" in edge
+        and "if (!hasExplicitPublicPricePermission(item)) return null;" in helper
+    )
+    return availability_is_explicit and (inline_price_guard or shared_helper_guard)
+
+
 def self_test() -> None:
     patched, changed = replace_once("prefix " + OLD_GUARD + " suffix", OLD_GUARD, NEW_GUARD, "guard")
     assert changed and NEW_GUARD in patched
@@ -61,6 +79,11 @@ def self_test() -> None:
         fixture, did_change = replace_once(fixture, old, new, label)
         assert did_change
     assert "item-4" in fixture and "item-5" in fixture and "Only items with explicit" in fixture
+    shared_edge = 'import { filterRowsToPubliclyPricedItems, getExplicitlyPublicComparePrice } from "../_shared/public-price-visibility.mjs";\\nitems = rows.filter((i) => i.metadata?.catalog_public?.is_available === true);\\nprices = filterRowsToPubliclyPricedItems(items, p || []);\\ncompare_price = getExplicitlyPublicComparePrice({ metadata: { catalog_public: rawPublic } });'
+    shared_helper = "item?.metadata?.catalog_public?.show_price === true\\nif (!hasExplicitPublicPricePermission(item)) return null;"
+    assert has_explicit_public_price_guard(shared_edge, shared_helper)
+    assert not has_explicit_public_price_guard("items = rows.filter((i) => i.metadata?.catalog_public?.is_available === true); prices = rows.filter((item) => item.metadata?.catalog_public?.show_price === false);", "")
+    assert not has_explicit_public_price_guard('import { filterRowsToPubliclyPricedItems } from "../_shared/public-price-visibility.mjs";\\nitems = rows.filter((i) => i.metadata?.catalog_public?.is_available === true); prices = filterRowsToPubliclyPricedItems(items, p || []);', "metadata?.catalog_public?.show_price === true")
     for old, new, label in [
         (OLD_ITEM, NEW_ITEM, "missing-price-consent fixture"),
         (OLD_PRICE, NEW_PRICE, "missing-availability-consent fixture"),
@@ -75,13 +98,10 @@ def verify_server_contract(repo_root: Path) -> None:
     if not edge_path.is_file():
         raise SystemExit("V6_EXPLICIT_PUBLIC_PRODUCT_FLAGS_EDGE_FUNCTION_MISSING")
     edge = edge_path.read_text(encoding="utf-8")
-    required = [
-        "i.metadata?.catalog_public?.is_available === true",
-        "item.metadata?.catalog_public?.show_price !== true",
-    ]
-    missing = [marker for marker in required if marker not in edge]
-    if missing:
-        raise SystemExit("V6_EXPLICIT_PUBLIC_PRODUCT_FLAGS_EDGE_CONTRACT_MISSING=" + ",".join(missing))
+    helper_path = repo_root / "supabase/functions/_shared/public-price-visibility.mjs"
+    helper = helper_path.read_text(encoding="utf-8") if helper_path.is_file() else ""
+    if not has_explicit_public_price_guard(edge, helper):
+        raise SystemExit("V6_EXPLICIT_PUBLIC_PRODUCT_FLAGS_EDGE_CONTRACT_MISSING=explicit availability and strict show_price=true guard")
     print("V6_EXPLICIT_PUBLIC_PRODUCT_FLAGS_EDGE_CONTRACT=PASS")
 
 

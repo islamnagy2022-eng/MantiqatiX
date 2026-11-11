@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { filterRowsToPubliclyPricedItems, getExplicitlyPublicComparePrice, requiresPublicQuote } from "../_shared/public-price-visibility.mjs";
 
 const allowedOrigins = new Set([
   "https://islamnagy2022-eng.github.io",
@@ -111,6 +112,7 @@ Deno.serve(async (req: Request) => {
       ]);
       if (globalItemResult.error || branchItemResult.error) throw globalItemResult.error || branchItemResult.error;
       rawItems = [...(globalItemResult.data || []), ...(branchItemResult.data || [])]
+        .filter((item: any) => item.metadata?.catalog_public?.is_available === true)
         .slice(0, 150)
         .sort((a: any, b: any) => String(a.name_ar || "").localeCompare(String(b.name_ar || ""), "ar"));
     }
@@ -134,15 +136,10 @@ Deno.serve(async (req: Request) => {
       if (globalPriceResult.error || branchPriceResult.error || optionResult.error) {
         throw globalPriceResult.error || branchPriceResult.error || optionResult.error;
       }
-      const quoteOnlyItemIds = new Set(
-        rawItems.filter((item: any) => item.metadata?.catalog_public?.show_price === false)
-          .map((item: any) => String(item.id))
-      );
-      // Never return the stored numeric price or option deltas for quote-only items.
-      prices = [...(globalPriceResult.data || []), ...(branchPriceResult.data || [])]
-        .filter((price: any) => !quoteOnlyItemIds.has(String(price.catalog_item_id)));
-      options = (optionResult.data || [])
-        .filter((option: any) => !quoteOnlyItemIds.has(String(option.catalog_item_id)));
+      // A missing/false flag is not consent to disclose stored prices or option deltas.
+      const allPriceRows = [...(globalPriceResult.data || []), ...(branchPriceResult.data || [])];
+      prices = filterRowsToPubliclyPricedItems(rawItems, allPriceRows);
+      options = filterRowsToPubliclyPricedItems(rawItems, optionResult.data || []);
     }
 
     const trackStockIds = rawItems
@@ -184,7 +181,7 @@ Deno.serve(async (req: Request) => {
     }
     const items = (rawItems || []).map((item: any) => {
       const meta = item.metadata?.catalog_public || {};
-      const comparePrice = Number(meta.compare_price);
+      const comparePrice = getExplicitlyPublicComparePrice(item);
       return {
         id: item.id,
         branchId: item.branch_id,
@@ -195,10 +192,10 @@ Deno.serve(async (req: Request) => {
         category: String(meta.category || "عام").slice(0, 100),
         unit: String(meta.unit || "").slice(0, 40),
         imageUrl: safeImageUrl(meta.image_url),
-        comparePrice: Number.isFinite(comparePrice) && comparePrice >= 0 ? comparePrice : null,
+        comparePrice,
         trackStock: meta.track_stock === true,
-        requiresQuote: String(item.item_type || "").toUpperCase() === "SERVICE" && meta.show_price === false,
-        available: meta.is_available !== false && (meta.track_stock !== true || stockAvailability.get(String(item.id)) === true),
+        requiresQuote: requiresPublicQuote(item),
+        available: meta.is_available === true && (meta.track_stock !== true || stockAvailability.get(String(item.id)) === true),
       };
     });
 
