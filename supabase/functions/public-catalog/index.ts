@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { filterRowsToPubliclyPricedItems } from "../_shared/public-price-visibility.mjs";
+import { filterRowsToPubliclyPricedItems, getExplicitlyPublicComparePrice, requiresPublicQuote } from "../_shared/public-price-visibility.mjs";
 
 const allowedOrigins = new Set([
   "https://islamnagy2022-eng.github.io",
@@ -180,7 +180,7 @@ Deno.serve(async (req: Request) => {
     }
     const items = (rawItems || []).map((item: any) => {
       const meta = item.metadata?.catalog_public || {};
-      const comparePrice = Number(meta.compare_price);
+      const comparePrice = getExplicitlyPublicComparePrice(item);
       return {
         id: item.id,
         branchId: item.branch_id,
@@ -191,9 +191,9 @@ Deno.serve(async (req: Request) => {
         category: String(meta.category || "عام").slice(0, 100),
         unit: String(meta.unit || "").slice(0, 40),
         imageUrl: safeImageUrl(meta.image_url),
-        comparePrice: Number.isFinite(comparePrice) && comparePrice >= 0 ? comparePrice : null,
+        comparePrice,
         trackStock: meta.track_stock === true,
-        requiresQuote: String(item.item_type || "").toUpperCase() === "SERVICE" && meta.show_price === false,
+        requiresQuote: requiresPublicQuote(item),
         available: meta.is_available !== false && (meta.track_stock !== true || stockAvailability.get(String(item.id)) === true),
       };
     });
