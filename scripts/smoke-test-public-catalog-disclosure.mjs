@@ -4,15 +4,37 @@ if (new URL(baseUrl).protocol !== "https:" || !anonKey) {
   throw new Error("SUPABASE_URL and SUPABASE_ANON_KEY are required.");
 }
 
-const headers = { apikey: anonKey, accept: "application/json" };
+const allowedOrigin = "https://islamnagy2022-eng.github.io";
+const headers = { apikey: anonKey, accept: "application/json", origin: allowedOrigin };
+const disallowedHeaders = { apikey: anonKey, accept: "application/json", origin: "https://unauthorized.example" };
 const requestJson = async (url) => {
   const response = await fetch(url, { method: "GET", headers, signal: AbortSignal.timeout(20000) });
   const body = await response.text();
   if (!response.ok) throw new Error(`HTTP ${response.status} for ${new URL(url).pathname}: ${body.slice(0, 240)}`);
+  if (response.headers.get("access-control-allow-origin") !== allowedOrigin) {
+    throw new Error(`Public endpoint CORS allowlist mismatch: ${new URL(url).pathname}`);
+  }
   try { return JSON.parse(body); } catch { throw new Error("Public catalog endpoint returned invalid JSON."); }
 };
 
-const directory = await requestJson(`${baseUrl}/functions/v1/public-catalog-directory`);
+const assertOriginDenied = async (url) => {
+  const response = await fetch(url, {
+    method: "GET",
+    headers: disallowedHeaders,
+    signal: AbortSignal.timeout(20000),
+  });
+  if (response.status !== 403) {
+    throw new Error(`Disallowed Origin was not rejected for ${new URL(url).pathname}: HTTP ${response.status}`);
+  }
+  const body = await response.json().catch(() => ({}));
+  if (body?.error !== "ORIGIN_NOT_ALLOWED") {
+    throw new Error(`Unexpected disallowed Origin response for ${new URL(url).pathname}`);
+  }
+};
+
+const directoryUrl = `${baseUrl}/functions/v1/public-catalog-directory`;
+await assertOriginDenied(directoryUrl);
+const directory = await requestJson(directoryUrl);
 if (!Array.isArray(directory.businesses) || directory.accessMode !== "PUBLIC_DIRECTORY_READ_ONLY") {
   throw new Error("Public directory contract is invalid.");
 }
@@ -55,9 +77,17 @@ for (const business of directory.businesses) {
   const url = new URL(`${baseUrl}/functions/v1/public-catalog`);
   url.searchParams.set("businessId", String(business.id));
   url.searchParams.set("branchId", String(business.selectedBranchId));
+  await assertOriginDenied(url.toString());
   const catalog = await requestJson(url.toString());
-  if (!Array.isArray(catalog.items) || !Array.isArray(catalog.prices) || !Array.isArray(catalog.options)) {
-    throw new Error("Direct catalog contract is invalid.");
+  if (
+    catalog.business?.id !== business.id
+    || catalog.accessMode !== "PUBLIC_READ_ONLY"
+    || catalog.paymentsEnabled !== false
+    || !Array.isArray(catalog.items)
+    || !Array.isArray(catalog.prices)
+    || !Array.isArray(catalog.options)
+  ) {
+    throw new Error("Direct catalog read-only/publication contract is invalid.");
   }
   directCatalogs++;
   const allowedIds = new Set(
