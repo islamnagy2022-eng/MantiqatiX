@@ -141,7 +141,8 @@ for (const item of pricePermissionFixture.slice(1)) {
 assert.ok(
   publicCatalogFunction.includes('prices = filterRowsToPubliclyPricedItems(rawItems, allPriceRows)') &&
   publicCatalogFunction.includes('options = filterRowsToPubliclyPricedItems(rawItems, optionResult.data || [])') &&
-  publicCatalogFunction.includes('comparePrice: getExplicitlyPublicComparePrice(item)') &&
+  publicCatalogFunction.includes('const comparePrice = getExplicitlyPublicComparePrice(item)') &&
+  publicCatalogFunction.includes('        comparePrice,') &&
   publicCatalogFunction.includes('requiresQuote: requiresPublicQuote(item)'),
   'public storefront must filter numeric prices, option deltas and compare_price, and mark unpriced services as quote-only.'
 );
