@@ -2432,3 +2432,6 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Follow-up read-only query of eligible active public catalog rows confirmed 12 explicit show-price items, 19 explicit hide-price items, 16 missing/invalid permissions, and 2 eligible items with non-empty compare_price despite lacking show_price=true. No production data or schema was changed.
 - Static review identified two additional disclosure/state paths: compare_price was serialized by both public endpoints without strict opt-in, and public-catalog marked a service as requiresQuote only when show_price was exactly false. Extended the same PR branch to gate compare_price in both endpoints and mark every service lacking strict show_price=true as quote-only.
 - Expanded validator fixtures to cover strict compare_price opt-in and requiresQuote behavior. This follow-up is not deployed; rerun exact-head CI and re-review endpoint response projection before any live deployment.
+
+
+- Follow-up contract review found direct `public-catalog` was returning ACTIVE rows with missing/false `is_available` metadata and defaulting missing values to available. Updated it to include only rows with strict `is_available === true`, matching the public directory contract. Added an exact-source validator assertion. This is still branch-only pending exact-head CI and deployment verification.
