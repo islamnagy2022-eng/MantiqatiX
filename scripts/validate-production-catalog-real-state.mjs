@@ -9,7 +9,7 @@ import {
   parseDirectoryPaginationLimit,
   sanitizeDirectoryPaginationSearch,
 } from '../supabase/functions/directory-listings/pagination-filter.mjs';
-import { filterRowsToPubliclyPricedItems } from '../supabase/functions/_shared/public-price-visibility.mjs';
+import { filterRowsToPubliclyPricedItems, getExplicitlyPublicComparePrice, requiresPublicQuote } from '../supabase/functions/_shared/public-price-visibility.mjs';
 
 const admin = fs.readFileSync('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx', 'utf8');
 const context = fs.readFileSync('apps/catalog-frontend/src/context/AppContext.tsx', 'utf8');
@@ -114,11 +114,11 @@ assert.match(publicDirectoryFunction, /isOfficialShowcase\(b\)/, 'public directo
 assert.doesNotMatch(publicCatalogFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'public storefront API must not generate stock-photo URLs for products');
 assert.match(publicCatalogFunction, /images\\\.unsplash\\\.com[\s\S]{0,180}return ""/, 'public storefront API must explicitly reject legacy stock-photo URLs');
 const pricePermissionFixture = [
-  { id: 'explicit-yes', metadata: { catalog_public: { show_price: true } } },
-  { id: 'explicit-no', metadata: { catalog_public: { show_price: false } } },
-  { id: 'missing-flag', metadata: { catalog_public: { is_available: true } } },
-  { id: 'null-flag', metadata: { catalog_public: { show_price: null } } },
-  { id: 'string-flag', metadata: { catalog_public: { show_price: 'true' } } },
+  { id: 'explicit-yes', item_type: 'SERVICE', metadata: { catalog_public: { show_price: true, compare_price: 145 } } },
+  { id: 'explicit-no', item_type: 'SERVICE', metadata: { catalog_public: { show_price: false, compare_price: 145 } } },
+  { id: 'missing-flag', item_type: 'SERVICE', metadata: { catalog_public: { is_available: true, compare_price: 145 } } },
+  { id: 'null-flag', item_type: 'SERVICE', metadata: { catalog_public: { show_price: null, compare_price: 145 } } },
+  { id: 'string-flag', item_type: 'SERVICE', metadata: { catalog_public: { show_price: 'true', compare_price: 145 } } },
 ];
 const priceRowsFixture = pricePermissionFixture.map((item) => ({ catalog_item_id: item.id, unit_price: 100 }));
 assert.deepEqual(
@@ -126,15 +126,33 @@ assert.deepEqual(
   ['explicit-yes'],
   'numeric public prices must be emitted only for items with show_price=true; false, null, missing and non-boolean flags must fail closed.'
 );
+assert.equal(getExplicitlyPublicComparePrice(pricePermissionFixture[0]), 145,
+  'compare_price may be returned for explicit show_price=true items.');
+for (const item of pricePermissionFixture.slice(1)) {
+  assert.equal(getExplicitlyPublicComparePrice(item), null,
+    `compare_price must be hidden without strict show_price=true permission (${item.id}).`);
+}
+assert.equal(requiresPublicQuote(pricePermissionFixture[0]), false,
+  'a service with explicit price permission must not be forced into quote-only state.');
+for (const item of pricePermissionFixture.slice(1)) {
+  assert.equal(requiresPublicQuote(item), true,
+    `a service without strict show_price=true permission must require a quote (${item.id}).`);
+}
 assert.ok(
   publicCatalogFunction.includes('prices = filterRowsToPubliclyPricedItems(rawItems, allPriceRows)') &&
-  publicCatalogFunction.includes('options = filterRowsToPubliclyPricedItems(rawItems, optionResult.data || [])'),
-  'public storefront must filter both numeric prices and option deltas using explicit item price permission.'
+  publicCatalogFunction.includes('options = filterRowsToPubliclyPricedItems(rawItems, optionResult.data || [])') &&
+  publicCatalogFunction.includes('comparePrice: getExplicitlyPublicComparePrice(item)') &&
+  publicCatalogFunction.includes('requiresQuote: requiresPublicQuote(item)'),
+  'public storefront must filter numeric prices, option deltas and compare_price, and mark unpriced services as quote-only.'
 );
 assert.match(
   publicDirectoryFunction,
   /prices = filterRowsToPubliclyPricedItems\(items, p \|\| \[\]\)/,
   'public directory price rows must require explicit show_price=true permission.'
+);
+assert.ok(
+  publicDirectoryFunction.includes('getExplicitlyPublicComparePrice({ metadata: { catalog_public: rawPublic } })'),
+  'public directory metadata must suppress compare_price unless show_price=true.'
 );
 assert.doesNotMatch(sharedDefaultImages, /images\.unsplash\.com|const rules:/, 'shared catalog image helper must not generate stock-photo URLs');
 assert.match(createUi, /phoneDigits\.length > 0 && \(phoneDigits\.length < 10 \|\| phoneDigits\.length > 15\)/, 'owner WhatsApp is optional but validated when provided');
