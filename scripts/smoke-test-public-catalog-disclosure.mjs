@@ -1,6 +1,6 @@
-const baseUrl = String(process.env.SUPABASE_URL || "").replace(/\\/$/, "");
+const baseUrl = String(process.env.SUPABASE_URL || "");
 const anonKey = String(process.env.SUPABASE_ANON_KEY || "");
-if (!/^https:\\/\\//i.test(baseUrl) || !anonKey) {
+if (new URL(baseUrl).protocol !== "https:" || !anonKey) {
   throw new Error("SUPABASE_URL and SUPABASE_ANON_KEY are required.");
 }
 
@@ -79,7 +79,7 @@ for (const business of directory.businesses) {
     if (!allowed && item.comparePrice !== null) {
       throw new Error("Direct catalog exposed comparePrice without explicit item consent.");
     }
-    if (String(item.itemType || item.item_type || "").toUpperCase() === "SERVICE") {
+    if (String(item.type || item.itemType || item.item_type || "").toUpperCase() === "SERVICE") {
       if (!allowed && item.requiresQuote !== true) {
         throw new Error("Unpriced public service was not marked requiresQuote.");
       }
