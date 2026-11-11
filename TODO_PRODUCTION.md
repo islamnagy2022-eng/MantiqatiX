@@ -1907,3 +1907,39 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 - All 65 authenticated-callable SECURITY DEFINER functions have explicit function-level search_path settings. A static body scan found auth.uid() in 59; six do not mention it directly. The six include helper/delegating functions (mnty_can, mnty_can_platform_admin, mnty_business_employee_list, upsert_catalog_item_and_price_backend, etc.) whose call chains need review rather than blanket revocation. mnty_active_membership filters by auth.uid(); mnty_business_employee_list_scoped rejects null/anonymous actors and checks active tenant/business membership; assert_financial_membership checks auth.uid() and allowed finance roles. This is partial source inspection, not certification of all 65 RPCs.
 - HIGH-PRIORITY BUSINESS-OWNERSHIP REVIEW: trigger function assign_default_owner_to_unowned_business() automatically creates an ACTIVE BUSINESS_OWNER membership for the fixed confirmed email islam.nagy3033@gmail.com whenever a new business row has no active OWNER/BUSINESS_OWNER membership. This may be an intentional catalog-import fallback, but it can assign ownership of newly created businesses to the platform owner instead of the initiating customer/provider. Confirm the intended lifecycle and ensure this trigger cannot silently capture user-created businesses before launch. Do not alter it until the ownership contract and dependent onboarding/import flows are verified. Its trigger remains enabled; direct anon/authenticated EXECUTE is revoked.
 - Nine RLS-enabled/no-policy tables were inspected for direct grants. None grants anon or authenticated SELECT/INSERT/UPDATE/DELETE. Three directory tables grant service_role SELECT; the other six have no direct SELECT grant to those roles. This appears fail-closed, but verify intended access through trusted server/definer workflows and do not add client policies just to silence the advisor.
+
+
+---
+
+## R7 — Google Search, Google Analytics & SEO system (2026-11-11)
+
+**الحالة:** `PLANNED / PREVIEW GUARDED`. هذه مهام فعلية في سجل R7 وليست ادعاءً بربط Google أو اكتمال SEO.
+
+### ما تم اكتشافه في R7
+- Title/description وOpen Graph وTwitter Card موجودة بصورة أساسية.
+- لا يوجد GA4 Measurement ID أو Google Tag Manager configuration.
+- لا يوجد Search Console verification token/file.
+- لا يوجد sitemap.xml أو robots.txt أو Schema.org JSON-LD.
+- العرض الافتراضي ثابت عند 1360px مرتبط بـ layout-lock؛ لا تغيّره قبل فحص بصري حقيقي للهاتف والكمبيوتر.
+- لا تعتبر Meta Pixel الموجود في المصدر بديلاً عن GA4.
+- لا يجوز فهرسة Preview أو بيانات seed/demo.
+
+### التنفيذ
+- [x] إضافة noindex/nofollow/noarchive لحزمة R7 Preview لمنع ظهور بيئة التطوير في Google.
+- [x] إضافة اختبار `scripts/validate-r7-seo-baseline.mjs` وتشغيله عبر `npm run test:seo`.
+- [x] ربط الاختبار بأمر `npm run release:check` لمنع تسريب Preview indexable أو معرفات Google غير معتمدة.
+- [ ] تحديد الدومين النهائي HTTPS وملكية DNS.
+- [ ] إعداد Google Search Console والتحقق بواسطة DNS TXT أو قيمة رسمية يصدرها حساب المالك فقط.
+- [ ] إنشاء robots.txt وsitemap.xml للإنتاج فقط، مع الصفحات العامة المعتمدة دون لوحات الحسابات أو الصفحات الخاصة أو الفلاتر المكررة.
+- [ ] تنفيذ canonical وmetadata فريدة للصفحات العامة، وSSR/prerender موثوق للأنشطة والتخصصات والكتالوجات.
+- [ ] إضافة Schema.org للمنصة والأنشطة الموثقة؛ Product/Offer فقط عندما `show_price === true` وتكون الإتاحة والسعر صحيحين.
+- [ ] إنشاء GA4 في حساب المالك وإضافة Measurement ID حقيقي بعد اعتماده، مع Consent Manager قبل أي Analytics غير أساسي.
+- [ ] منع إرسال PII أو البريد أو الهاتف أو الرسائل أو الجلسات أو GPS الدقيق أو بيانات الدفع إلى Google.
+- [ ] إعداد event taxonomy والتحويلات، على أن `payment_success` لا يصدر إلا بعد تأكيد الدفع من الخادم/الـ webhook.
+- [ ] تطوير لوحة Search Console/GA4 وتقارير أسبوعية وتنبيهات الفهرسة والأخطاء وCore Web Vitals.
+- [ ] اختبار Lighthouse/mobile usability، structured data، sitemap، consent، وعدم تكرار page_view.
+- [ ] Google Business Profile للمنصة أو النشاط فقط عند استيفاء الأهلية الحقيقية وببيانات موثقة؛ لا عناوين أو فروع وهمية.
+
+المرجع التفصيلي: `docs/release/R7_GOOGLE_SEO_ANALYTICS_PLAN_20261111.md`.
+
+**إعدادات المالك المطلوبة عند مرحلة الربط:** الدومين النهائي، ملكية Search Console/DNS، GA4 Measurement ID، ونص سياسة الخصوصية والموافقة. لا تستخدم placeholders أو IDs مختلقة.
