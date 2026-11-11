@@ -2435,3 +2435,14 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 
 
 - Follow-up contract review found direct `public-catalog` was returning ACTIVE rows with missing/false `is_available` metadata and defaulting missing values to available. Updated it to include only rows with strict `is_available === true`, matching the public directory contract. Added an exact-source validator assertion. This is still branch-only pending exact-head CI and deployment verification.
+
+
+---
+
+## 2026-11-11 — Public catalog price-disclosure correction deployed and runtime verified
+
+- PR #717 merged to `main` as `07be7028b7b79ff368c7d3dd5cd8093d04841ad9`. The web production deployment completed successfully in run `42930144466`; deployed-origin desktop/mobile and retained legacy route checks passed.
+- Supabase active project Edge Function versions advanced to `public-catalog v8` and `public-catalog-directory v18`. The downloaded deployed entrypoint source for each function matched the approved `main` file byte-for-byte. Existing public `verify_jwt=false` settings were preserved.
+- Read-only production data audit unchanged: 12 explicit price opt-ins, 19 explicit opt-outs, 16 missing/invalid opt-ins, and 2 compare-price values without explicit opt-in. No data/schema/Auth/RLS/payment writes were made.
+- Added a live runtime smoke test script and CI step. Workflow `42931478532` completed the directory smoke and the new direct-catalog price-disclosure smoke successfully. Checks cover strict public availability, numeric prices, option deltas, compare_price, and quote-only service state.
+- Full platform certification remains BLOCKED / NOT CERTIFIED. Remaining security review items: 9 RLS-enabled tables without policies (verify no direct anon/auth grants and confirm service-only use), 1 anon-callable SECURITY DEFINER ad-targeting function (currently empty search_path and bounded approved-ad query; confirm public exposure is intended), 65 authenticated-callable SECURITY DEFINER functions (review authorization call chains), and disabled leaked-password protection. No blanket ACL/RLS changes were applied.
