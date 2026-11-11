@@ -1,3 +1,19 @@
+# Latest verified checkpoint — 2026-11-11 — Public catalog disclosure safety
+
+**Request ID:** `R-20261111-PUBLIC-CATALOG-PRICE-DISCLOSURE`  
+**Status:** VERIFIED for the narrow public-catalog disclosure correction; global platform release remains **BLOCKED / NOT CERTIFIED**.
+
+- PR #717 merged to `main` as `07be7028b7b79ff368c7d3dd5cd8093d04841ad9`.
+- Production Pages deployment run `42930144466` succeeded. Deployed-origin root, retained legacy catalog, dashboard, mobile and QR-route checks passed.
+- Active Supabase Edge Functions now report `public-catalog v8` and `public-catalog-directory v18`. Retrieved deployed entrypoint sources match the approved `main` files byte-for-byte; the existing public `verify_jwt=false` settings remain unchanged.
+- Read-only live catalog audit: 12 items explicitly allow public price display, 19 explicitly deny it, 16 have missing/invalid permission, and 2 contain compare-price metadata without explicit consent. No production rows were modified.
+- Added `scripts/smoke-test-public-catalog-disclosure.mjs` to check live public-directory and direct-catalog responses for strict availability, numeric prices, option deltas, compare prices, and quote-only service behavior. On commit `b5b783c8a8e27d9049ed5fe9f7dffbf2a94de0bd`, workflow `42931478532` passed the build, PostgreSQL employee/RBAC integration job, and live disclosure smoke step. Browser E2E was still running at this checkpoint; verify its final result before closing that CI run.
+- No production database migration, catalog data update, Auth/RLS/GRANT change, or payment/finance mutation was performed.
+- Remaining P0 security work is not closed: 9 RLS-enabled/no-policy tables (default-deny; verify intended service-only access), 1 anonymous-callable SECURITY DEFINER ad-targeting function (confirm public exposure with owner), 65 authenticated-callable SECURITY DEFINER functions (continue call-chain/ACL review), and disabled leaked-password protection (requires authorized Auth settings action). Do not mass-revoke grants or alter RLS without call-site and tenant-isolation evidence.
+- The live smoke test verifies the narrow disclosure contract only. Do not mark the whole platform Production Ready; continue with the first open P0 in the master ledger: migration/object reconciliation, critical Edge Function parity, real Paymob/finance E2E, backup/restore DR, Auth and adversarial RLS/SECURITY DEFINER review.
+
+---
+
 # Latest checkpoint — 2026-11-09 — R6 cleanroom base-path and PWA hardening
 
 - PR #699 merged to `main` as documentation-only commit `1beb586a3d6eb8f8d205b6a3a502ed04018ce50f`. It corrected the R6 integration map so the business/catalog feed is not confused with the national `directory-listings` keyset pagination endpoint. No runtime or production change occurred.
