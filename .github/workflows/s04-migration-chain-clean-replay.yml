@@ -1,7 +1,9 @@
 name: S04 Migration Chain Clean Replay
 on:
+  push:
+    branches: [fix/s04-replay-normalization-20261013]
   pull_request:
-    branches: [main]
+    branches: [main, test/s06-payment-integrity-20261013]
     paths:
       - 'supabase/migrations/**'
       - 'supabase/recovered-migrations/**'
@@ -35,8 +37,16 @@ jobs:
           echo "timestamp_utc=$(date -u +%FT%TZ)" >> s04-replay-evidence/report.txt
           echo "production_touched=false" >> s04-replay-evidence/report.txt
 
-          node scripts/audit-migration-chain-s04.mjs > s04-replay-evidence/source-audit.json 2> s04-replay-evidence/source-audit.stderr
-          audit_rc=$?
+          node scripts/prepare-s04-replay-normalization-v2.mjs s04-replay-evidence/migration-normalization-manifest.json > s04-replay-evidence/normalization.log 2>&1
+          normalization_rc=$?
+          echo "normalization_exit=$normalization_rc" | tee -a s04-replay-evidence/report.txt
+
+          if [ "$normalization_rc" -eq 0 ]; then
+            node scripts/audit-migration-chain-s04.mjs > s04-replay-evidence/source-audit.json 2> s04-replay-evidence/source-audit.stderr
+            audit_rc=$?
+          else
+            audit_rc=1
+          fi
           echo "source_audit_exit=$audit_rc" | tee -a s04-replay-evidence/report.txt
 
           supabase init --force > s04-replay-evidence/supabase-init.log 2>&1
@@ -70,7 +80,7 @@ jobs:
             echo "first_failure=Supabase local stack did not start; inspect init/start logs." | tee -a s04-replay-evidence/report.txt
           fi
 
-          if [ "$audit_rc" -ne 0 ] || [ "$init_rc" -ne 0 ] || [ "$start_rc" -ne 0 ] || [ "$replay_rc" -ne 0 ]; then
+          if [ "$normalization_rc" -ne 0 ] || [ "$audit_rc" -ne 0 ] || [ "$init_rc" -ne 0 ] || [ "$start_rc" -ne 0 ] || [ "$replay_rc" -ne 0 ]; then
             echo "status=FAIL_BLOCKED" | tee -a s04-replay-evidence/report.txt
             echo "S04_RESULT=FAIL_BLOCKED" >> "$GITHUB_STEP_SUMMARY"
             cat s04-replay-evidence/report.txt >> "$GITHUB_STEP_SUMMARY"
