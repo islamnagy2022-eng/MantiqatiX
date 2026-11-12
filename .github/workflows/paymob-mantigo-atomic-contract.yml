@@ -1,0 +1,26 @@
+name: MantiGO Paymob Atomic RPC Contract
+
+on:
+  pull_request:
+    paths:
+      - "supabase/functions/paymob-webhook/index.ts"
+      - "supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql"
+      - "scripts/tests/paymob_mantigo_atomic_contract.py"
+      - ".github/workflows/paymob-mantigo-atomic-contract.yml"
+  push:
+    branches:
+      - "fix/paymob-mantigo-webhook-atomic-rc425-20261016"
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify webhook-to-RPC contract
+        run: python scripts/tests/paymob_mantigo_atomic_contract.py
