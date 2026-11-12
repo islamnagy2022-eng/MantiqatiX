@@ -167,7 +167,8 @@ export const Navbar: React.FC = () => {
         <div className="flex flex-col gap-2.5">
           {/* Top Line: Logo, Context, Cart */}
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white px-3 py-3 shadow-sm lg:flex-nowrap sm:rounded-3xl sm:px-4">
-            <div
+            <button
+              type="button"
               onClick={() => {
                 if (authSession.role === 'subscriber') {
                   setCurrentView('merchant_admin');
@@ -175,23 +176,24 @@ export const Navbar: React.FC = () => {
                   setCurrentView('directory');
                 }
               }}
-              className="flex items-center gap-2 cursor-pointer group flex-shrink-0 min-w-0"
+              className="inline-flex items-center gap-2 rounded-xl border-0 bg-transparent p-0 text-right cursor-pointer group flex-shrink-0 min-w-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-600"
+              aria-label={authSession.role === 'subscriber' ? 'العودة إلى لوحة النشاط' : 'العودة إلى دليل الأنشطة والخدمات'}
               title={authSession.role === 'subscriber' ? 'الملف الشخصي التعريفي للمشترك' : 'الرئيسية والدليل الشامل'}
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 text-sm font-black text-white shadow-md shadow-slate-900/15 ring-1 ring-emerald-500/15 transition-transform group-hover:scale-105">
+              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 text-sm font-black text-white shadow-md shadow-slate-900/15 ring-1 ring-emerald-500/15 transition-transform group-hover:scale-105">
                 MX
-              </div>
-              <div>
-                <div className="flex items-baseline gap-1">
-                  <h1 className="font-black text-base sm:text-lg text-slate-900 tracking-tight leading-tight">
+              </span>
+              <span>
+                <span className="flex items-baseline gap-1">
+                  <span className="font-black text-base sm:text-lg text-slate-900 tracking-tight leading-tight">
                     منطقتي <span className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200 text-xs sm:text-sm font-black">X</span>
-                  </h1>
-                </div>
-                <p className="text-[10px] text-slate-400 font-bold -mt-0.5 hidden sm:block">
+                  </span>
+                </span>
+                <span className="text-[10px] text-slate-400 font-bold -mt-0.5 hidden sm:block">
                   MantiqatiX Business & Catalogs
-                </p>
-              </div>
-            </div>
+                </span>
+              </span>
+            </button>
 
             {/* ONLY ADMIN sees the global switcher dropdown! */}
             {authSession.role === 'admin' ? (
