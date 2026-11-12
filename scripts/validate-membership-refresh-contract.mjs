@@ -59,4 +59,13 @@ if (!workflow.includes('node scripts/validate-membership-refresh-contract.mjs'))
   throw new Error('Membership refresh validator is not wired into CI');
 }
 
+const dashboardGate = "const canAccessDashboard=memberships.some(m=>m.status==='ACTIVE'&&['SUPER_ADMIN','OWNER','ADMIN','MANAGER'].includes(String(m.role||'').toUpperCase()));";
+if (!account.includes(dashboardGate)) {
+  throw new Error('Account dashboard must be hidden unless an active privileged membership exists');
+}
+const dashboardClick = app.slice(app.indexOf("document.getElementById('account-dashboard-open')?.addEventListener('click'"), app.indexOf("document.getElementById('account-buy-portfolio')?.addEventListener('click'"));
+if (!dashboardClick.includes("m.status==='ACTIVE'") || !dashboardClick.includes('await openPrivilegedWorkspace()')) {
+  throw new Error('Dashboard entry must re-check active privileged membership at click time before opening workspace');
+}
+
 console.log('Membership refresh/failure-state/UI contract: PASS');
