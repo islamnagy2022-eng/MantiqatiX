@@ -1,0 +1,85 @@
+name: Paymob Webhook Atomic RPC Integration
+
+on:
+  pull_request:
+    branches: [main, "docs/rc521-admin-operations-discovery-20261013"]
+    paths:
+      - "supabase/functions/paymob-webhook/index.ts"
+      - "supabase/tests/fixtures/paymob_atomic_webhook_schema.sql"
+      - "supabase/tests/rc428_429_430_paymob_webhook_integration.sql"
+      - "scripts/validate-paymob-webhook-atomic-rpc-integration.mjs"
+      - ".github/workflows/paymob-webhook-atomic-rpc-integration.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/functions/paymob-webhook/index.ts"
+      - "supabase/tests/fixtures/paymob_atomic_webhook_schema.sql"
+      - "supabase/tests/rc428_429_430_paymob_webhook_integration.sql"
+      - "scripts/validate-paymob-webhook-atomic-rpc-integration.mjs"
+      - ".github/workflows/paymob-webhook-atomic-rpc-integration.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: paymob-webhook-atomic-rpc-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  rpc-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate Edge Function RPC contract
+        run: node scripts/validate-paymob-webhook-atomic-rpc-integration.mjs
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Type-check deployed Paymob webhook source
+        run: deno check --no-lock supabase/functions/paymob-webhook/index.ts
+
+      - name: Start isolated PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --detach --name mantiqatix-paymob-rc-rpc             --env POSTGRES_PASSWORD=postgres             --env POSTGRES_DB=postgres             --publish 127.0.0.1:54330:5432             postgres:15
+          for attempt in $(seq 1 30); do
+            if docker exec mantiqatix-paymob-rc-rpc pg_isready -U postgres -d postgres; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs mantiqatix-paymob-rc-rpc
+          exit 1
+
+      - name: Apply disposable schema and candidate RPC migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker exec -i mantiqatix-paymob-rc-rpc psql -v ON_ERROR_STOP=1 -U postgres -d postgres < supabase/tests/fixtures/paymob_atomic_webhook_schema.sql
+          docker exec -i mantiqatix-paymob-rc-rpc psql -v ON_ERROR_STOP=1 -U postgres -d postgres < supabase/tests/rc425_mantigo_paymob_fixture.sql
+          docker exec -i mantiqatix-paymob-rc-rpc psql -v ON_ERROR_STOP=1 -U postgres -d postgres < supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql
+          docker exec -i mantiqatix-paymob-rc-rpc psql -v ON_ERROR_STOP=1 -U postgres -d postgres < supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql
+          docker exec -i mantiqatix-paymob-rc-rpc psql -v ON_ERROR_STOP=1 -U postgres -d postgres < supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql
+          docker exec -i mantiqatix-paymob-rc-rpc psql -v ON_ERROR_STOP=1 -U postgres -d postgres < supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql
+
+      - name: Run MantiGO and order/subscription webhook integration tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker exec -i mantiqatix-paymob-rc-rpc psql -v ON_ERROR_STOP=1 -U postgres -d postgres < supabase/tests/rc425_mantigo_paymob_integration.sql
+          docker exec -i mantiqatix-paymob-rc-rpc psql -v ON_ERROR_STOP=1 -U postgres -d postgres < supabase/tests/rc428_429_430_paymob_webhook_integration.sql
+
+      - name: Collect PostgreSQL diagnostics on failure
+        if: failure()
+        run: docker logs mantiqatix-paymob-rc-rpc || true
+
+      - name: Stop isolated PostgreSQL
+        if: always()
+        run: docker rm --force mantiqatix-paymob-rc-rpc || true
