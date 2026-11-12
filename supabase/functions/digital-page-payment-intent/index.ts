@@ -15,6 +15,7 @@ const headers={"Access-Control-Allow-Origin":origin,"Access-Control-Allow-Header
 const json=(b:unknown,s=200)=>new Response(JSON.stringify(b),{status:s,headers:{...headers,"Content-Type":"application/json","Cache-Control":"no-store"}});
 
 Deno.serve(async req=>{
+ const requestId=crypto.randomUUID();
  if(req.method==="OPTIONS")return json({});
  if(req.method!=="POST")return json({error:"METHOD_NOT_ALLOWED"},405);
  if(req.headers.get("Origin")&&req.headers.get("Origin")!==origin)return json({error:"ORIGIN_NOT_ALLOWED"},403);
@@ -57,8 +58,24 @@ Deno.serve(async req=>{
    p=await res.json().catch(()=>({}));
    if(!res.ok||!p?.id||!p?.client_secret){await release();return json({error:"PAYMENT_PROVIDER_REJECTED"},502);}
  }catch{await release();return json({error:"PAYMENT_PROVIDER_UNAVAILABLE"},502);}
- const {data:finalized,error:fe}=await userClient.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:String(p.id)});
- if(fe||finalized!==true)return json({error:"PAYMENT_PERSISTENCE_FAILED"},500);
+ const providerOrderId=String(p.intention_order_id??p.order_id??((p.order&&typeof p.order==="object"&&!Array.isArray(p.order))?(p.order as Record<string,unknown>).id:"")??"").trim();
+ if(!providerOrderId){
+   // A provider intent exists, so keep the claim closed to prevent duplicate checkout creation.
+   // Record only safe correlation IDs; never log the client secret.
+   console.error(JSON.stringify({requestId,stage:"paymob_provider_order_missing",providerIntentId:String(p.id)}));
+   return json({error:"PAYMENT_PROVIDER_CORRELATION_MISSING",requestId,reconciliationRequired:true},502);
+ }
+ const {data:finalized,error:fe}=await userClient.rpc("finalize_digital_page_payment_intent_backend",{
+   p_order_id:orderId,
+   p_user_id:user.id,
+   p_claim_token:claimToken,
+   p_provider_intent_id:String(p.id),
+   p_provider_order_id:providerOrderId
+ });
+ if(fe||finalized!==true){
+   console.error(JSON.stringify({requestId,stage:"finalize_digital_page_payment_intent_backend",providerIntentId:String(p.id),providerOrderId,code:fe?.code}));
+   return json({error:"PAYMENT_PERSISTENCE_FAILED",requestId,reconciliationRequired:true},500);
+ }
  const clientSecret=String(p.client_secret);
  const checkoutUrl=PAYMOB_PUBLIC_KEY?(PAYMOB_BASE_URL.replace(/\/$/,"")+"/unifiedcheckout/?publicKey="+encodeURIComponent(PAYMOB_PUBLIC_KEY)+"&clientSecret="+encodeURIComponent(clientSecret)):null;
  return json({orderId:row.id,status:"PENDING",provider:"PAYMOB",clientSecret,checkoutUrl,amount,currency:row.currency});
