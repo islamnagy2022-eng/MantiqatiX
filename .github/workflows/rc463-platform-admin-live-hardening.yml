@@ -18,6 +18,7 @@ on:
       - "supabase/tests/rc463_platform_admin_live_baseline.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
+      - "supabase/tests/rc463_platform_admin_shared_helper_callers.sql"
       - "scripts/validate-rc463-platform-admin-live-hardening.mjs"
       - ".github/workflows/rc463-platform-admin-live-hardening.yml"
 
