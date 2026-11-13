@@ -1,0 +1,31 @@
+name: Settlement Financial Scope
+
+on:
+  pull_request:
+    paths:
+      - "supabase/functions/settlement-financial-atomic/**"
+      - ".github/workflows/settlement-financial-scope.yml"
+  push:
+    branches:
+      - "security/settlement-financial-tenant-business-scope-20261113"
+    paths:
+      - "supabase/functions/settlement-financial-atomic/**"
+      - ".github/workflows/settlement-financial-scope.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  settlement-authorization-unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify settlement authorization rules
+        run: node --test supabase/functions/settlement-financial-atomic/authorization.test.mjs
+      - name: Verify authorization module syntax
+        run: node --check supabase/functions/settlement-financial-atomic/authorization.mjs
