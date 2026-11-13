@@ -195,5 +195,13 @@ GRANT EXECUTE ON FUNCTION public.expire_stale_mantigo_rides_backend(uuid,integer
 REVOKE ALL ON FUNCTION public.settle_mantigo_captain_backend(uuid,text,text) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.settle_mantigo_captain_backend(uuid,text,text) TO authenticated;
 
+-- Pin the four existing helper-dependent SECURITY DEFINER callers to an empty
+-- search_path. Their application objects are schema-qualified and remaining
+-- unqualified calls are pg_catalog built-ins.
+ALTER FUNCTION public.admin_create_global_ad(character varying, text, text, timestamp with time zone, timestamp with time zone) SET search_path TO '';
+ALTER FUNCTION public.fulfill_digital_page_publish(uuid, uuid, uuid) SET search_path TO '';
+ALTER FUNCTION public.review_mantigo_captain_application(uuid, uuid, text, text, text, text, jsonb) SET search_path TO '';
+ALTER FUNCTION public.set_mantigo_financial_config_backend(uuid, numeric, text) SET search_path TO '';
+
 COMMENT ON FUNCTION public.mnty_can_platform_admin() IS
   'Platform-root authorization is backed only by private.platform_admins, aligned with RC113/RC115/RC462; tenant memberships alone do not grant platform administration.';
