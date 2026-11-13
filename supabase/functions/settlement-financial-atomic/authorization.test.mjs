@@ -8,6 +8,7 @@ const businessOwner = (businessId, overrides = {}) => ({
   branch_id: null,
   role: "BUSINESS_OWNER",
   status: "ACTIVE",
+  created_at: "2026-01-01T00:00:00Z",
   permissions: {},
   ...overrides,
 });
@@ -18,6 +19,7 @@ const platformAdmin = (overrides = {}) => ({
   branch_id: null,
   role: "SUPER_ADMIN",
   status: "ACTIVE",
+  created_at: "2026-01-01T00:00:00Z",
   permissions: { scope: "PLATFORM", full_control: true },
   ...overrides,
 });
@@ -43,7 +45,7 @@ test("inactive and cross-tenant memberships are rejected", () => {
 });
 
 test("tenant-wide finance role is limited to unscoped tenant membership", () => {
-  const membership = { tenant_id: "TENANT-A", business_id: null, branch_id: null, role: "FINANCE_MANAGER", status: "ACTIVE", permissions: {} };
+  const membership = { tenant_id: "TENANT-A", business_id: null, branch_id: null, role: "FINANCE_MANAGER", status: "ACTIVE", created_at: "2026-01-01T00:00:00Z", permissions: {} };
   assert.equal(hasSettlementAuthority({ tenantId: "TENANT-A", memberships: [membership] }), true);
   assert.equal(hasSettlementAuthority({ tenantId: "TENANT-A", memberships: [{ ...membership, business_id: "business-A" }] }), false);
 });
@@ -59,6 +61,16 @@ test("a platform Super Admin may perform a scoped settlement within the platform
   assert.equal(hasSettlementAuthority({ tenantId: "MNTY-PLATFORM", businessId: "business-A", memberships: [platformAdmin()] }), true);
 });
 
+test("database-selected earliest membership must also satisfy the RPC role contract", () => {
+  const memberships = [
+    businessOwner("business-A", { role: "CUSTOMER", created_at: "2026-01-01T00:00:00Z" }),
+    businessOwner("business-A", { role: "BUSINESS_OWNER", created_at: "2026-02-01T00:00:00Z" }),
+  ];
+  assert.equal(hasSettlementAuthority({ tenantId: "TENANT-A", businessId: "business-A", memberships }), false);
+  const reversed = [...memberships].reverse();
+  assert.equal(hasSettlementAuthority({ tenantId: "TENANT-A", businessId: "business-A", memberships: reversed }), false);
+});
+
 test("missing tenant and malformed membership collections fail closed", () => {
   assert.equal(hasSettlementAuthority({ tenantId: " ", businessId: "business-A", memberships: [businessOwner("business-A")] }), false);
   assert.equal(hasSettlementAuthority({ tenantId: "TENANT-A", businessId: "business-A", memberships: null }), false);
@@ -72,6 +84,7 @@ test("Edge Function performs verified-user scope authorization before the privil
   assert.match(source, /\.from\("user_memberships"\)/);
   assert.match(source, /\.eq\("user_id", user\.id\)/);
   assert.match(source, /hasSettlementAuthority\(\{ tenantId, businessId, memberships:/);
+  assert.match(source, /\.order\("created_at", \{ ascending: true \}\)/);
   assert.match(source, /error: "SETTLEMENT_FORBIDDEN"/);
   assert.match(source, /beneficiaryType === "MERCHANT" && !businessId/);
   assert.match(source, /p_actor_user_id: user\.id/);
