@@ -130,7 +130,7 @@ export function fetchPublicDirectory(): Promise<PublicDirectoryResult> {
     const businesses: Business[] = [];
     const products: Product[] = [];
     for (const row of rows) {
-      const mapped = mapBusiness({ ...row, branches: row.branches || [], branchId: row.selectedBranchId || row.branchId }, row.provider);
+      const mapped = mapBusiness({ ...row, accessMode: data?.accessMode || "PUBLIC_DIRECTORY_READ_ONLY", branches: row.branches || [], branchId: row.selectedBranchId || row.branchId }, row.provider);
       businesses.push(mapped);
       products.push(...mapProducts(mapped.id, mapped.tenantId || '', mapped.branchId, row.items || [], row.prices || []));
     }
@@ -170,6 +170,7 @@ export async function fetchPublicCatalog(businessId: string, branchId?: string):
     bio: body.profile?.bio || body.provider?.description,
     branches: body.branches,
     profile: body.profile,
+    accessMode: body.accessMode || "PUBLIC_READ_ONLY",
     branchId: body.selectedBranchId,
     publicEnabled: true,
     operationalStatus: body.business?.operationalStatus || 'ACTIVE',
@@ -197,6 +198,9 @@ function groupFromCategory(category: string, groupCode?: string): FunctionalGrou
 
 export function mapBusiness(raw: any, provider: any): Business {
   const profile = raw.profile || raw.settings?.catalog_profile || {};
+  const isPublicProjection = ["PUBLIC_READ_ONLY", "PUBLIC_DIRECTORY_READ_ONLY"].includes(String(raw.accessMode || "").toUpperCase());
+  const publicPhone = String(profile.phoneDisplay || profile.phone_display || profile.whatsappNumber || profile.whatsappPhone || raw.contactPhone || "");
+  const publicWhatsApp = String(profile.whatsappPhone || profile.whatsappNumber || raw.contactPhone || "");
   const branch = raw.branches?.find((x: any) => String(x.id) === String(raw.branchId || raw.selectedBranchId)) || raw.branches?.[0] || raw.branch || {};
   const branchMetadata = branch.metadata && typeof branch.metadata === 'object' ? branch.metadata : {};
   const branchLocation = branch.location && typeof branch.location === 'object' ? branch.location : {};
@@ -268,13 +272,13 @@ export function mapBusiness(raw: any, provider: any): Business {
     externalLogoUrl: /^https:\/\//i.test(externalLogoUrl) ? externalLogoUrl : '',
     externalCoverUrl: /^https:\/\//i.test(externalCoverUrl) ? externalCoverUrl : '',
     bio: String(profile.bio || raw.bio || provider?.description || ''),
-    ownerWhatsApp: String(branch.phone || profile.phone || raw.ownerWhatsApp || ''),
+    ownerWhatsApp: isPublicProjection ? publicWhatsApp : String(branch.phone || profile.phone || raw.ownerWhatsApp || ''),
     additionalContactPhones: Array.isArray(profile.additionalContactPhones || profile.additional_contact_phones) ? (profile.additionalContactPhones || profile.additional_contact_phones).map((value: unknown) => String(value || '')).filter(Boolean) : [],
-    phone: String(profile.contact_phone || branch.phone || profile.phone || raw.phone || ''), email: String(raw.email || ''),
+    phone: isPublicProjection ? publicPhone : String(profile.contact_phone || branch.phone || profile.phone || raw.phone || ''), email: String(raw.email || ''),
     facebookUrl: String(profile.facebook_url || profile.facebookUrl || raw.facebookUrl || ''),
     instagramUrl: String(profile.instagram_url || profile.instagramUrl || raw.instagramUrl || ''),
     tiktokUrl: String(profile.tiktok_url || profile.tiktokUrl || raw.tiktokUrl || ''),
-    address: String(branch.address || profile.address || raw.address || ''),
+    address: isPublicProjection ? String(profile.address || '') : String(branch.address || profile.address || raw.address || ''),
     governorate: String(profile.governorate || raw.governorate || ''),
     markaz: String(profile.markaz || raw.markaz || ''), village: String(profile.village || raw.village || ''),
     googleMapsUrl: String(profile.google_maps_url || ''),
