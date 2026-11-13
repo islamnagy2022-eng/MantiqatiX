@@ -15,6 +15,17 @@ const TENANT_FINANCE_ROLES = new Set([
   "FINANCE",
 ]);
 
+// Must stay aligned with the current create_settlement_and_post_journal RPC.
+const DATABASE_FINANCE_ROLES = new Set([
+  "ADMIN",
+  "SUPER_ADMIN",
+  "OWNER",
+  "BUSINESS_OWNER",
+  "ACCOUNTANT",
+  "FINANCE_MANAGER",
+  "FINANCE",
+]);
+
 function normalizedId(value) {
   if (value === null || value === undefined) return null;
   const result = String(value).trim();
@@ -38,9 +49,9 @@ function isPlatformSuperAdmin(membership) {
 
 /**
  * Decide whether a verified actor may create a settlement for this tenant/business.
- * The Edge Function must load memberships for the authenticated user only.
- * Branch-scoped memberships are rejected because the settlement RPC has no branch
- * argument and therefore cannot safely enforce a branch-level accounting scope.
+ * The Edge Function must load memberships for the authenticated user only and order
+ * them by created_at ascending, matching the current database RPC's actor-role lookup.
+ * Branch-scoped memberships are rejected because the RPC has no branch argument.
  */
 export function hasSettlementAuthority({ tenantId, businessId = null, memberships = [] }) {
   const tenant = normalizedId(tenantId);
@@ -48,6 +59,18 @@ export function hasSettlementAuthority({ tenantId, businessId = null, membership
   if (!tenant || !Array.isArray(memberships)) return false;
 
   const active = memberships.filter((membership) => isActive(membership, tenant));
+  if (!active.length) return false;
+
+  // The database RPC selects the earliest ACTIVE tenant membership by created_at.
+  // Fail closed if that role is not accepted by the current database function.
+  const earliest = [...active].sort((a, b) => {
+    const aTime = Date.parse(a?.created_at ?? "");
+    const bTime = Date.parse(b?.created_at ?? "");
+    if (!Number.isFinite(aTime) || !Number.isFinite(bTime)) return 0;
+    return aTime - bTime;
+  })[0];
+  if (!DATABASE_FINANCE_ROLES.has(String(earliest?.role ?? "").toUpperCase())) return false;
+
   if (tenant === "MNTY-PLATFORM" && active.some(isPlatformSuperAdmin)) return true;
 
   if (business) {
