@@ -137,4 +137,43 @@ END;
 $test$;
 
 RESET ROLE;
+
+-- Exercise actual PostgreSQL anon grants separately from an authenticated
+-- session carrying is_anonymous=true. The current live ACL intentionally
+-- gives anon no direct SELECT or write grants on either relation.
+SET ROLE anon;
+DO $anon_boundary$
+BEGIN
+  IF pg_catalog.has_table_privilege(current_user, 'public.businesses', 'SELECT')
+     OR pg_catalog.has_table_privilege(current_user, 'public.branches', 'SELECT')
+     OR pg_catalog.has_table_privilege(current_user, 'public.businesses', 'INSERT,UPDATE,DELETE')
+     OR pg_catalog.has_table_privilege(current_user, 'public.branches', 'INSERT,UPDATE,DELETE') THEN
+    RAISE EXCEPTION 'TEST_FAILED: anon has direct business/branch table privileges';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM pg_catalog.pg_policies
+    WHERE schemaname='public'
+      AND tablename='branches'
+      AND cmd IN ('SELECT','ALL')
+      AND roles && ARRAY['anon','public']::name[]
+  ) THEN
+    RAISE EXCEPTION 'TEST_FAILED: a public/anon branch SELECT policy remains';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_catalog.pg_policies
+    WHERE schemaname='public'
+      AND tablename='businesses'
+      AND policyname='Public can view official showcase businesses'
+      AND roles && ARRAY['anon']::name[]
+  ) THEN
+    RAISE EXCEPTION 'TEST_FAILED: official showcase policy was not preserved';
+  END IF;
+END;
+$anon_boundary$;
+RESET ROLE;
+
 SELECT 'RC466 business/branch read scope: PASS' AS result;
