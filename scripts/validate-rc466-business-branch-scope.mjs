@@ -5,6 +5,8 @@ const migration = fs.readFileSync("supabase/migrations/20261114020000_rc466_busi
 const fixture = fs.readFileSync("supabase/tests/rc466_business_branch_scope_fixture.sql", "utf8");
 const baseline = fs.readFileSync("supabase/tests/rc466_business_branch_scope_baseline.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc466_business_branch_scope_integration.sql", "utf8");
+const aclOverlay = fs.readFileSync("supabase/tests/baselines/production_live_business_branch_anon_acl_overlay_fixture.sql", "utf8");
+const replayWorkflow = fs.readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
 
 assert.match(migration, /^BEGIN;/m, "migration must be transactional");
 assert.match(migration, /^COMMIT;/m, "migration must commit");
@@ -38,6 +40,11 @@ assert.doesNotMatch(migration, /^\s*(?:GRANT|REVOKE|ALTER TABLE|INSERT INTO|UPDA
 assert.match(fixture, /CREATE POLICY authenticated_sessions_only[\s\S]*?FOR ALL/, "fixture must reproduce broad permissive branch policy");
 assert.match(fixture, /CREATE POLICY branches_member_read[\s\S]*?tenant_id/, "fixture must reproduce original tenant-only branch policy");
 assert.match(baseline, /v_branch_count <> 5/, "baseline must reproduce cross-tenant branch enumeration");
+assert.match(aclOverlay, /REVOKE SELECT[\\s\\S]*?FROM anon/, "test overlay must align checkpoint anon grants to live ACL");
+assert.match(aclOverlay, /LIVE_ACL_OVERLAY_FAILED/, "test overlay must fail closed if anon SELECT remains");
+assert.match(replayWorkflow, /RESTORE_TEST_ONLY_KNOWN_LIVE_BUSINESS_BRANCH_ANON_ACL_OVERLAY[\\s\\S]*?REPLAY_MIGRATION=\\$filename/, "forward replay must apply ACL overlay before RC466");
+assert.match(integration, /has_table_privilege\\(current_user, 'public\\.branches', 'SELECT'\\)/, "integration test must assert anon grants");
+assert.match(integration, /Public can view official showcase businesses/, "integration test must preserve public showcase policy");
 for (const scenario of [
   "unscoped OWNER",
   "Branch-scoped OWNER",
@@ -52,4 +59,4 @@ for (const scenario of [
   "Anonymous sessions"
 ]) assert.ok(integration.toLowerCase().includes(scenario.toLowerCase()), "integration test must cover " + scenario);
 
-console.log("RC466_BUSINESS_BRANCH_SCOPE_STATIC=PASS (38 assertions)");
+console.log("RC466_BUSINESS_BRANCH_SCOPE_STATIC=PASS (migration, live ACL overlay, and anonymous boundary)");
