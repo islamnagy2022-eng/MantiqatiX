@@ -17,7 +17,7 @@ const helper = migration.slice(helperStart, helperEnd);
 assert.match(migration, /BEGIN;[\s\S]*DO \$preflight\$/);
 assert.match(migration, /to_regclass\('private\.platform_admins'\)/);
 assert.match(migration, /relrowsecurity/);
-assert.match(migration, /ALTER TABLE private\\.platform_admins FORCE ROW LEVEL SECURITY;/i);
+assert.match(migration, /ALTER TABLE private[.]platform_admins FORCE ROW LEVEL SECURITY;/i);
 assert.match(migration, /has_table_privilege\('anon',[\s\S]*private\.platform_admins/);
 assert.match(migration, /has_table_privilege\('authenticated',[\s\S]*private\.platform_admins/);
 assert.match(helper, /FROM private\.platform_admins pa/);
