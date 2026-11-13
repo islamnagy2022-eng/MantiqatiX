@@ -28,4 +28,4 @@ assert.match(mapper, /address: isPublicProjection \? String\(profile\.address \|
 assert.match(mapper, /accessMode: data\?\.accessMode \|\| "PUBLIC_DIRECTORY_READ_ONLY"/);
 assert.match(mapper, /accessMode: body\.accessMode \|\| "PUBLIC_READ_ONLY"/);
 
-console.log("PUBLIC_CATALOG_CONTACT_PRIVACY_STATIC=PASS (19 assertions)");
+console.log("PUBLIC_CATALOG_CONTACT_PRIVACY_STATIC=PASS (21 assertions)");
