@@ -8,6 +8,17 @@ DECLARE
   v_id uuid;
   v_result jsonb;
 BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_class c
+    JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'private'
+      AND c.relname = 'platform_admins'
+      AND c.relrowsecurity
+      AND c.relforcerowsecurity
+  ) THEN
+    RAISE EXCEPTION 'RC463 private platform registry must have RLS and FORCE RLS enabled';
+  END IF;
+
   PERFORM pg_catalog.set_config('request.jwt.claim.sub',v_owner::text,false);
 
   v_rejected := false;
