@@ -1,58 +1,6 @@
 -- RC463 disposable regression baseline: reproduce the currently live weak authorization
 -- contract before applying the forward-only hardening migration.
 -- This file runs only inside the dedicated throwaway PostgreSQL workflow.
-BEGIN;
-
-CREATE OR REPLACE FUNCTION public.mnty_can(
-  p_permission text,
-  p_tenant_id character varying DEFAULT NULL,
-  p_business_id uuid DEFAULT NULL,
-  p_branch_id character varying DEFAULT NULL
-)
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = ''
-AS $function$
-  SELECT EXISTS (
-    SELECT 1
-    FROM public.user_memberships m
-    WHERE m.user_id = auth.uid()
-      AND m.status = 'ACTIVE'
-      AND (
-        coalesce((m.permissions ->> p_permission)::boolean, false)
-        OR (
-          upper(m.role) = 'OWNER'
-          AND p_permission IN ('admin','owner','platform','manage_users','manage_business')
-        )
-        OR (
-          upper(m.role) = 'ADMIN'
-          AND p_permission IN ('admin','manage_users','manage_business')
-        )
-        OR (
-          upper(m.role) IN ('SUPER_ADMIN','BUSINESS_OWNER','MANAGER','OPERATIONS','OPERATIONS_MANAGER')
-          AND p_permission = 'admin'
-        )
-      )
-  )
-$function$;
-
--- Exact weak helper shape observed in live Production before RC463.
-CREATE OR REPLACE FUNCTION public.mnty_can_platform_admin()
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = 'public', 'pg_temp'
-AS $function$
-  SELECT public.mnty_can('admin', NULL, NULL, NULL)
-$function$;
-REVOKE ALL ON FUNCTION public.mnty_can_platform_admin() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.mnty_can_platform_admin() TO authenticated;
-
--- The live MantiGO global endpoints accepted active operational/tenant roles
--- after checking only that the supplied actor UUID matched auth.uid().
 CREATE OR REPLACE FUNCTION public.get_mantigo_admin_dashboard_backend(p_admin_user_id uuid)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public'
 AS $function$
@@ -122,6 +70,59 @@ BEGIN
 END;
 $function$;
 
+
+BEGIN;
+
+CREATE OR REPLACE FUNCTION public.mnty_can(
+  p_permission text,
+  p_tenant_id character varying DEFAULT NULL,
+  p_business_id uuid DEFAULT NULL,
+  p_branch_id character varying DEFAULT NULL
+)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $function$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.user_memberships m
+    WHERE m.user_id = auth.uid()
+      AND m.status = 'ACTIVE'
+      AND (
+        coalesce((m.permissions ->> p_permission)::boolean, false)
+        OR (
+          upper(m.role) = 'OWNER'
+          AND p_permission IN ('admin','owner','platform','manage_users','manage_business')
+        )
+        OR (
+          upper(m.role) = 'ADMIN'
+          AND p_permission IN ('admin','manage_users','manage_business')
+        )
+        OR (
+          upper(m.role) IN ('SUPER_ADMIN','BUSINESS_OWNER','MANAGER','OPERATIONS','OPERATIONS_MANAGER')
+          AND p_permission = 'admin'
+        )
+      )
+  )
+$function$;
+
+-- Exact weak helper shape observed in live Production before RC463.
+CREATE OR REPLACE FUNCTION public.mnty_can_platform_admin()
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = 'public', 'pg_temp'
+AS $function$
+  SELECT public.mnty_can('admin', NULL, NULL, NULL)
+$function$;
+REVOKE ALL ON FUNCTION public.mnty_can_platform_admin() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.mnty_can_platform_admin() TO authenticated;
+
+-- The live MantiGO global endpoints accepted active operational/tenant roles
+-- after checking only that the supplied actor UUID matched auth.uid().
 DO $baseline$
 DECLARE
   v_owner uuid := '10000000-0000-4000-8000-000000000050';
