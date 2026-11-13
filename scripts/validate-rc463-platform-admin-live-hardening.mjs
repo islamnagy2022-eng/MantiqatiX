@@ -17,7 +17,7 @@ const helper = migration.slice(helperStart, helperEnd);
 assert.match(migration, /BEGIN;[\s\S]*DO \$preflight\$/);
 assert.match(migration, /to_regclass\('private\.platform_admins'\)/);
 assert.match(migration, /relrowsecurity/);
-assert.match(migration, /relforcerowsecurity/);
+assert.match(migration, /ALTER TABLE private\\.platform_admins FORCE ROW LEVEL SECURITY;/i);
 assert.match(migration, /has_table_privilege\('anon',[\s\S]*private\.platform_admins/);
 assert.match(migration, /has_table_privilege\('authenticated',[\s\S]*private\.platform_admins/);
 assert.match(helper, /FROM private\.platform_admins pa/);
@@ -55,7 +55,7 @@ assert.match(baseline, /RC463_BASELINE_EXPIRATION_NOT_REACHABLE/);
 assert.match(baseline, /ROLLBACK;/);
 
 assert.match(fixture, /private\.platform_admins/);
-assert.match(fixture, /FORCE ROW LEVEL SECURITY/i);
+assert.match(fixture, /ENABLE ROW LEVEL SECURITY/i);
 assert.match(integration, /MNTY-PLATFORM membership without (private )?registry entry must be denied/);
 assert.match(integration, /private registry platform admin without tenant membership should pass/);
 assert.match(integration, /assert_mantigo_global_rpcs_denied/);
