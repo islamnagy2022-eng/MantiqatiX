@@ -222,4 +222,7 @@ INSERT INTO public.user_memberships(id,user_id,tenant_id,business_id,branch_id,r
  ('branch-manager-a1','10000000-0000-4000-8000-000000000004','tenant-a','20000000-0000-4000-8000-000000000001','branch-a1','MANAGER','ACTIVE','{}'),
  ('business-owner-a1','10000000-0000-4000-8000-000000000005','tenant-a','20000000-0000-4000-8000-000000000001','branch-a1','BUSINESS_OWNER','ACTIVE','{}'),
  ('inactive-manager-a1','10000000-0000-4000-8000-000000000006','tenant-a','20000000-0000-4000-8000-000000000001','branch-a1','MANAGER','INACTIVE','{}'),
- ('unscoped-manager-b','10000000-0000-4000-8000-000000000007','tenant-b',NULL,NULL,'MANAGER','ACTIVE','{}');
+ ('unscoped-manager-b','10000000-0000-4000-8000-000000000007','tenant-b',NULL,NULL,'MANAGER','ACTIVE','{}'),
+ ('unscoped-customer-a','10000000-0000-4000-8000-000000000008','tenant-a',NULL,NULL,'CUSTOMER','ACTIVE','{}'),
+ ('unscoped-employee-a','10000000-0000-4000-8000-000000000009','tenant-a',NULL,NULL,'EMPLOYEE','ACTIVE','{}'),
+ ('platform-super-admin-a','10000000-0000-4000-8000-000000000010','tenant-a',NULL,NULL,'SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}');
