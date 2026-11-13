@@ -16,7 +16,7 @@ At the inspection point:
   - `settle_mantigo_captain_backend`
   - `expire_stale_mantigo_rides_backend`
 - These four RPCs exposed global MantiGO ride and financial aggregates, settlement mutation, and ride expiration to broad tenant-level OWNER/ADMIN/OPERATIONS/FINANCE roles.
-- The private platform-root registry exists, has RLS and FORCE RLS enabled, and client roles do not have direct SELECT privilege. It currently has one registered account; that account also has the explicit `MNTY-PLATFORM` SUPER_ADMIN membership with `scope=PLATFORM` and `full_control=true`. No identity values were included in this report.
+- The private platform-root registry exists with RLS enabled, but the live table did **not** have FORCE RLS enabled at inspection time. The table owner is `postgres`; `anon` has no schema usage or table privileges, while `authenticated` has schema usage but no SELECT/INSERT/UPDATE/DELETE privileges. `service_role` and `postgres` have the expected privileged access. The candidate RC463 migration validates the RLS/client-ACL boundary, then enables FORCE RLS inside its transaction. The registry currently has one registered account; that account also has the explicit `MNTY-PLATFORM` SUPER_ADMIN membership with `scope=PLATFORM` and `full_control=true`. No identity values were included in this report.
 
 This confirms an authorization-boundary defect in the live function/policy definitions. It does **not** establish that an unauthorized request was successfully executed or that any data was accessed or changed. No probe invocation, settlement, financial write, or policy mutation was performed.
 
@@ -24,7 +24,7 @@ This confirms an authorization-boundary defect in the live function/policy defin
 
 The new migration `supabase/migrations/20261113214500_rc463_platform_admin_live_registry_hardening.sql` is deliberately self-contained and does not edit historical RC441/RC449/RC462 migrations:
 
-1. Requires the canonical `private.platform_admins` registry to exist, with RLS and FORCE RLS enabled and no direct client SELECT grants.
+1. Requires the canonical `private.platform_admins` registry to exist, RLS enabled, and no direct client SELECT/INSERT/UPDATE/DELETE grants; then enables FORCE RLS transactionally.
 2. Requires all four live MantiGO RPC signatures and all four additional helper-dependent global functions to match the audited live contract.
 3. Requires the existing global RLS policies on digital pages, MantiGO financial config and MantiGO rate-limit config to reference the shared helper.
 4. Replaces `mnty_can_platform_admin()` with the canonical registry-only check, SECURITY DEFINER, empty search_path, no PUBLIC/anon EXECUTE, and authenticated EXECUTE for RLS/function use.
