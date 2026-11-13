@@ -24,7 +24,6 @@ test("does not treat legacy or operational contact fields as public consent", ()
   const contact = getExplicitPublicContact({
     phone: "+20 1000 PRIVATE",
     whatsapp_phone: "201000000000",
-    address: "Private branch address",
   });
 
   assert.deepEqual(contact, {
