@@ -17,6 +17,14 @@ const checks = [
   ["integration denies tenant OWNER and ADMIN on all four helper callers", integration.includes("assert_r7_helper_callers_denied(tenant_owner") && integration.includes("assert_r7_helper_callers_denied(tenant_admin") && integration.includes("PLATFORM_ADMIN_REQUIRED")],
   ["integration permits registered platform admin through all four helper callers", integration.includes("registered platform admin could not create test global ad") && integration.includes("registered platform admin could not pass digital publish guard") && integration.includes("registered platform admin could not pass captain review guard") && integration.includes("registered platform admin could not pass commission config guard")],
   ["integration verifies anonymous EXECUTE denial for the four helper callers", integration.includes("anon must not execute the four global helper callers")],
+  ["migration pins all four helper-dependent SECURITY DEFINER callers to an empty search_path", [
+    "ALTER FUNCTION public.admin_create_global_ad",
+    "ALTER FUNCTION public.fulfill_digital_page_publish",
+    "ALTER FUNCTION public.review_mantigo_captain_application",
+    "ALTER FUNCTION public.set_mantigo_financial_config_backend"
+  ].every((marker) => migration.includes(marker))],
+  ["PostgreSQL integration verifies all four helper callers have empty search_path", integration.includes("R7_HELPER_CALLER_SEARCH_PATH_NOT_HARDENED") && integration.includes("p.proconfig @> ARRAY['search_path=\"\"']")],
+
   ["workflow applies RC449 then RC462 then caller fixture then R7 migration and both integration suites", workflow.indexOf("/tmp/rc449.sql") < workflow.indexOf("/tmp/rc462.sql") && workflow.indexOf("/tmp/r7-callers.sql") < workflow.indexOf("/tmp/r7-platform-admin.sql") && workflow.indexOf("/tmp/r7-platform-admin.sql") < workflow.indexOf("/tmp/rc449-test.sql") && workflow.indexOf("/tmp/rc449-test.sql") < workflow.indexOf("/tmp/r7-helper-callers-test.sql")],
 ];
 
