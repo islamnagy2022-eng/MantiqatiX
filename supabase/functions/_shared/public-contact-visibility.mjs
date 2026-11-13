@@ -1,6 +1,6 @@
 // Public contact data is opt-in by field: only explicitly published catalog_profile
-// keys are exposed. Operational branches.phone/address and legacy profile.phone/
-// profile.whatsapp_phone are intentionally not accepted here.
+// keys are exposed. Operational branch contact fields and legacy profile fields
+// are intentionally excluded from this public projection.
 const safeText = (value, maxLength) =>
   typeof value === "string" ? value.trim().slice(0, maxLength) : "";
 
