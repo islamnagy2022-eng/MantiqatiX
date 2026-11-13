@@ -1,9 +1,18 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { corsHeaders as supabaseCorsHeaders } from "https://esm.sh/@supabase/supabase-js@2/cors";
 import { hasSettlementAuthority } from "./authorization.mjs";
 
+const allowedOrigin = "https://islamnagy2022-eng.github.io";
+const corsHeaders = {
+  ...supabaseCorsHeaders,
+  "Access-Control-Allow-Origin": allowedOrigin,
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Vary": "Origin",
+  "Cache-Control": "no-store",
+};
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
   status,
-  headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+  headers: { ...corsHeaders, "Content-Type": "application/json" },
 });
 
 const text = (value: unknown): string => value === null || value === undefined ? "" : String(value).trim();
@@ -34,6 +43,12 @@ const SAFE_SETTLEMENT_ERRORS = new Set([
 ]);
 
 Deno.serve(async (req) => {
+  const origin = req.headers.get("Origin");
+  if (req.method === "OPTIONS") {
+    if (origin && origin !== allowedOrigin) return json({ error: "ORIGIN_NOT_ALLOWED" }, 403);
+    return new Response("ok", { status: 200, headers: corsHeaders });
+  }
+  if (origin && origin !== allowedOrigin) return json({ error: "ORIGIN_NOT_ALLOWED" }, 403);
   if (req.method !== "POST") return json({ error: "METHOD_NOT_ALLOWED" }, 405);
 
   const authorization = req.headers.get("Authorization");
