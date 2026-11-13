@@ -71,8 +71,8 @@ BEGIN
 END;
 $preflight$;
 
--- Business rows: an unscoped tenant membership retains tenant-wide visibility;
--- a business/branch-scoped membership sees only its own business row.
+-- Business rows: only unscoped tenant OWNER/ADMIN/MANAGER or a strict platform
+-- SUPER_ADMIN retain tenant-wide visibility; scoped memberships see their business.
 DROP POLICY businesses_member_select ON public.businesses;
 CREATE POLICY businesses_member_select
 ON public.businesses
@@ -87,8 +87,18 @@ USING (
       AND um.tenant_id::text = businesses.tenant_id::text
       AND um.status = 'ACTIVE'
       AND (
-        (um.business_id IS NULL AND um.branch_id IS NULL)
-        OR um.business_id = businesses.id
+        (um.business_id IS NOT NULL AND um.business_id = businesses.id)
+        OR (
+          um.business_id IS NULL AND um.branch_id IS NULL
+          AND (
+            upper(um.role) = ANY (ARRAY['OWNER','ADMIN','MANAGER'])
+            OR (
+              upper(um.role) = 'SUPER_ADMIN'
+              AND coalesce(um.permissions ->> 'scope','') = 'PLATFORM'
+              AND coalesce((um.permissions ->> 'full_control')::boolean,false) = true
+            )
+          )
+        )
       )
   )
 );
@@ -170,8 +180,8 @@ USING (
   )
 );
 
--- Branch reads are hierarchical: tenant scope sees all, business scope sees all
--- branches of that business, and branch scope sees only the assigned branch.
+-- Branch reads are hierarchical: approved unscoped tenant managers/platform admins
+-- see tenant branches; business scope sees its business; branch scope sees one branch.
 DROP POLICY branches_member_read ON public.branches;
 CREATE POLICY branches_member_read
 ON public.branches
@@ -186,10 +196,21 @@ USING (
       AND um.tenant_id::text = branches.tenant_id::text
       AND um.status = 'ACTIVE'
       AND (
-        (um.business_id IS NULL AND um.branch_id IS NULL)
-        OR (
-          um.business_id = branches.business_id
+        (
+          um.business_id IS NOT NULL
+          AND um.business_id = branches.business_id
           AND (um.branch_id IS NULL OR um.branch_id = branches.id)
+        )
+        OR (
+          um.business_id IS NULL AND um.branch_id IS NULL
+          AND (
+            upper(um.role) = ANY (ARRAY['OWNER','ADMIN','MANAGER'])
+            OR (
+              upper(um.role) = 'SUPER_ADMIN'
+              AND coalesce(um.permissions ->> 'scope','') = 'PLATFORM'
+              AND coalesce((um.permissions ->> 'full_control')::boolean,false) = true
+            )
+          )
         )
       )
   )
@@ -248,7 +269,7 @@ WITH CHECK (
 );
 
 COMMENT ON POLICY businesses_member_select ON public.businesses IS
-  'RC466: unscoped tenant members may read tenant businesses; business-scoped members are limited to their business.';
+  'RC466: unscoped tenant managers or strict platform admins may read tenant businesses; scoped memberships are limited to their business.';
 COMMENT ON POLICY branches_member_read ON public.branches IS
   'RC466: tenant, business and branch membership scopes are enforced; branch-scoped users cannot enumerate sibling branches.';
 COMMENT ON POLICY branches_manager_write ON public.branches IS
