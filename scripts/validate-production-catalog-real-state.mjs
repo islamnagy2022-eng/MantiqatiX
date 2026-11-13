@@ -97,7 +97,7 @@ assert.match(productionMapper, /metadata\.image_url \|\| item\.imageUrl \|\| ite
 assert.match(productionMapper, /item\.name_ar \|\| item\.nameAr/, 'both public API item-name contracts must be normalized');
 assert.match(productionMapper, /item\.status \?\? item\.itemStatus/, 'explicit inactive catalog items must be rejected while server-filtered public API rows may omit status');
 assert.match(productionMapper, /validPrices\.find[\s\S]*?branchId[\s\S]*?validPrices\.find\(\(candidate: any\) => !candidate\.branch_id/, 'public catalog mapping must select the selected branch or global price only, never another branch price');
-assert.match(productionMapper, /metadata\.show_price === false \|\| item\.requiresQuote === true/, 'quote-only service items must remain available without disclosing a numeric price');
+assert.match(productionMapper, /resolvePublicCatalogAvailability\(metadata, item, price\)/, 'public catalog mapping must use the tested quote-only availability resolver');
 assert.match(productionMapper, /catalogPublished: Boolean\(raw\.catalogPublished/, 'public directory presence must stay separate from the enabled public catalogue flag');
 assert.doesNotMatch(storefrontHeader, /platformAdCover|isCurrentSlideAd|images\.unsplash\.com/, 'storefront must not inject fabricated platform ad slides or stock cover photos');
 assert.doesNotMatch(storefrontCatalog, /images\.unsplash\.com/, 'public product cards must not use stock-photo fallbacks');
