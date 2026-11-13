@@ -28,8 +28,8 @@ assert.match(migration, /businesses_manager_update[\s\S]*?um\.business_id = busi
   "business updates must remain scoped to the owned business");
 assert.match(migration, /businesses_manager_delete[\s\S]*?um\.business_id = businesses\.id/,
   "business deletion must remain scoped to the owned business");
-assert.match(migration, /businesses_manager_update[\\s\\S]*?um\\.business_id = businesses\\.id AND um\\.branch_id IS NULL/, "branch-scoped managers must not update business-wide profile rows");
-assert.match(migration, /businesses_manager_delete[\\s\\S]*?um\\.business_id = businesses\\.id AND um\\.branch_id IS NULL/, "branch-scoped managers must not delete business-wide profile rows");
+assert.match(migration, /CREATE POLICY businesses_manager_update[\s\S]*?um\.business_id = businesses\.id AND um\.branch_id IS NULL/, "branch-scoped managers must not update business-wide profile rows");
+assert.match(migration, /CREATE POLICY businesses_manager_delete[\s\S]*?um\.business_id = businesses\.id AND um\.branch_id IS NULL/, "branch-scoped managers must not delete business-wide profile rows");
 assert.match(migration, /branches_super_admin_write/, "strict platform super-admin branch policy must be preserved");
 assert.match(migration, /Public can view official showcase businesses|businesses_member_select/, "business public showcase and member policies must remain distinct");
 assert.doesNotMatch(migration, /^\s*(?:GRANT|REVOKE|ALTER TABLE|INSERT INTO|UPDATE\s+public\.|DELETE FROM)\b/im,
