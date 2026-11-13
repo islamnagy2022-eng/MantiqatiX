@@ -55,7 +55,7 @@ assert.match(baseline, /RC463_BASELINE_EXPIRATION_NOT_REACHABLE/);
 assert.match(baseline, /ROLLBACK;/);
 
 assert.match(fixture, /private\.platform_admins/);
-assert.match(fixture, /FORCE ROW LEVEL SECURITY/);
+assert.match(fixture, /FORCE ROW LEVEL SECURITY/i);
 assert.match(integration, /MNTY-PLATFORM membership without registry entry must be denied/);
 assert.match(integration, /private registry platform admin without tenant membership should pass/);
 assert.match(integration, /assert_mantigo_global_rpcs_denied/);
