@@ -30,11 +30,11 @@ for (const scenario of [
   'scoped OWNER',
   'BUSINESS_OWNER',
   'branch-scoped MANAGER',
-  'unbranched business membership',
+  'Business-scoped (branch NULL)',
   'Service provider',
   'Inactive membership',
   'Customer-owned reads',
   'Anonymous sessions'
 ]) assert.ok(integration.toLowerCase().includes(scenario.toLowerCase()), `integration test must cover ${scenario}`);
 
-console.log('RC465_ORDER_READ_SCOPE_STATIC=PASS (20 assertions)');
+console.log('RC465_ORDER_READ_SCOPE_STATIC=PASS (27 assertions)');
