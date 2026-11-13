@@ -79,6 +79,10 @@ test("missing tenant and malformed membership collections fail closed", () => {
 test("Edge Function performs verified-user scope authorization before the privileged RPC", async () => {
   const { readFile } = await import("node:fs/promises");
   const source = await readFile(new URL("./index.ts", import.meta.url), "utf8");
+  assert.match(source, /supabaseCorsHeaders/);
+  assert.match(source, /req\.method === "OPTIONS"/);
+  assert.match(source, /Access-Control-Allow-Origin/);
+  assert.match(source, /ORIGIN_NOT_ALLOWED/);
   assert.match(source, /userClient\.auth\.getUser\(\)/);
   assert.match(source, /user\.is_anonymous/);
   assert.match(source, /\.from\("user_memberships"\)/);
