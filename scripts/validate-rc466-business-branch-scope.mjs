@@ -50,4 +50,4 @@ for (const scenario of [
   "Anonymous sessions"
 ]) assert.ok(integration.toLowerCase().includes(scenario.toLowerCase()), "integration test must cover " + scenario);
 
-console.log("RC466_BUSINESS_BRANCH_SCOPE_STATIC=PASS (27 assertions)");
+console.log("RC466_BUSINESS_BRANCH_SCOPE_STATIC=PASS (36 assertions)");
