@@ -63,7 +63,7 @@ for (const caller of ["admin_create_global_ad", "fulfill_digital_page_publish", 
   assert.match(sharedCallers, new RegExp(caller));
 }
 assert.match(sharedCallers, /tenant OWNER created a platform global advertisement/);
-assert.match(sharedCallers, /platform registry admin could update global MantiGO configuration/);
+assert.match(sharedCallers, /platform registry admin could not update global MantiGO configuration/);
 assert.match(workflow, /rc463_platform_admin_live_baseline\.sql/);
 assert.match(workflow, /20261113214500_rc463_platform_admin_live_registry_hardening\.sql/);
 assert.match(workflow, /rc449_mantigo_platform_admin_integration\.sql/);
