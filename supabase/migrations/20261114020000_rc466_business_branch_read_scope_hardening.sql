@@ -139,7 +139,7 @@ USING (
       AND upper(um.role) = ANY (ARRAY['OWNER','ADMIN','MANAGER'])
       AND (
         (um.business_id IS NULL AND um.branch_id IS NULL)
-        OR um.business_id = businesses.id
+        OR (um.business_id = businesses.id AND um.branch_id IS NULL)
       )
   )
 )
@@ -154,7 +154,7 @@ WITH CHECK (
       AND upper(um.role) = ANY (ARRAY['OWNER','ADMIN','MANAGER'])
       AND (
         (um.business_id IS NULL AND um.branch_id IS NULL)
-        OR um.business_id = businesses.id
+        OR (um.business_id = businesses.id AND um.branch_id IS NULL)
       )
   )
 );
@@ -175,7 +175,7 @@ USING (
       AND upper(um.role) = ANY (ARRAY['OWNER','ADMIN','MANAGER'])
       AND (
         (um.business_id IS NULL AND um.branch_id IS NULL)
-        OR um.business_id = businesses.id
+        OR (um.business_id = businesses.id AND um.branch_id IS NULL)
       )
   )
 );
