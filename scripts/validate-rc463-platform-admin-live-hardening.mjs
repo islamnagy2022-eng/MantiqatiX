@@ -42,8 +42,8 @@ for (const fn of [
   assert.match(body, /search_path = ''/, fn + " must pin empty search_path");
   assert.doesNotMatch(body, /upper\(.*role.*\) IN \('ADMIN','SUPER_ADMIN','OWNER'/i, fn + " must not use generic tenant roles for platform access");
 }
-assert.match(migration, /REVOKE ALL ON FUNCTION public\.get_mantigo_admin_dashboard_backend\(uuid\) FROM PUBLIC, anon/);
-assert.match(migration, /REVOKE ALL ON FUNCTION public\.settle_mantigo_captain_backend\(uuid,text,text\) FROM PUBLIC, anon/);
+assert.match(migration, /REVOKE ALL ON FUNCTION public\.get_mantigo_admin_dashboard_backend\(uuid\) FROM PUBLIC, anoni);
+assert.match(migration, /REVOKE ALL ON FUNCTION public\.settle_mantigo_captain_backend\(uuid,text,text\) FROM PUBLIC, anoni);
 assert.match(migration, /COMMIT;/);
 
 assert.match(baseline, /public\.mnty_can\('admin', NULL, NULL, NULL\)/);
