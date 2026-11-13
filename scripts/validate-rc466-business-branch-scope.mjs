@@ -20,7 +20,7 @@ assert.match(migration, /upper\(um\.role\) = 'SUPER_ADMIN'[\s\S]*?scope'[\s\S]*?
 assert.match(migration, /um\.business_id = branches\.business_id/, "branch reads must match business scope");
 assert.match(migration, /um\.branch_id IS NULL OR um\.branch_id = branches\.id/, "branch-scoped reads must match exact branch");
 for (const name of ["authenticated_sessions_only","deny_anonymous_users","mnt_non_anonymous_boundary","non_anonymous_authenticated_guard"]) {
-  assert.match(migration, new RegExp("DROP POLICY IF EXISTS " + name + " ON public\.branches"), "broad permissive branch policy must be removed: " + name);
+  assert.match(migration, new RegExp("DROP POLICY IF EXISTS " + name + " ON public\\.branches"), "broad permissive branch policy must be removed: " + name);
 }
 assert.match(migration, /DROP POLICY branches_manager_write[\s\S]*?CREATE POLICY branches_manager_write[\s\S]*?um\.business_id = branches\.business_id[\s\S]*?um\.branch_id IS NULL OR um\.branch_id = branches\.id/,
   "legacy ALL manager policy must not bypass branch scope");
