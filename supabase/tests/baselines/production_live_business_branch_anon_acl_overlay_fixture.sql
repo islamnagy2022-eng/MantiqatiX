@@ -1,4 +1,4 @@
-\\set ON_ERROR_STOP on
+\set ON_ERROR_STOP on
 
 -- Test-only ACL overlay for the captured 2026-10-17 schema checkpoint.
 -- A read-only check of the current live project (2026-11-14) confirmed:
