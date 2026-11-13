@@ -9,6 +9,16 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 const text = (value: unknown): string => value === null || value === undefined ? "" : String(value).trim();
 const optionalText = (value: unknown): string | null => text(value) || null;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+type SettlementMembership = {
+  tenant_id: string;
+  business_id: string | null;
+  branch_id: string | null;
+  role: string;
+  status: string;
+  created_at: string;
+  permissions: Record<string, unknown> | null;
+};
+
 const SAFE_SETTLEMENT_ERRORS = new Set([
   "INVALID_BENEFICIARY_TYPE",
   "BENEFICIARY_REQUIRED",
@@ -80,7 +90,8 @@ Deno.serve(async (req) => {
       return json({ error: "AUTHORIZATION_CHECK_FAILED" }, 503);
     }
 
-    if (!hasSettlementAuthority({ tenantId, businessId, memberships: memberships ?? [] })) {
+    const authorizedMemberships = (memberships ?? []) as unknown as SettlementMembership[];
+    if (!hasSettlementAuthority({ tenantId, businessId, memberships: authorizedMemberships })) {
       return json({ error: "SETTLEMENT_FORBIDDEN" }, 403);
     }
 
