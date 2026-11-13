@@ -49,7 +49,8 @@ The earlier Deno run exposed two type errors (nullable business scope and untype
 
 - The live `create_settlement_and_post_journal` RPC accepts only `PARTNER` and `MERCHANT` beneficiary types.
 - The live `process_verified_provider_payment` function creates provider payout obligations with `beneficiary_type='PROVIDER'`, `beneficiary_id=coalesce(orders.assigned_partner_id::text, orders.business_id::text)`, and `business_id=orders.business_id`.
-- The live `settlement_transactions` table has no `business_id` column, so a settlement row cannot independently prove which business the beneficiary belongs to.
+- The live `orders.assigned_partner_id` column is a UUID with a foreign key to `auth.users(id)`. When present, the payment processor stores that user UUID as the `PROVIDER` beneficiary; when absent, it stores the order's `business_id` instead. Thus the same `PROVIDER` beneficiary field is polymorphic (user ID or business ID) and does not by itself identify the payout recipient class.
+- The live `settlement_transactions` table has no `business_id` column and no beneficiary FK, so a settlement row cannot independently prove which business the beneficiary belongs to.
 - At inspection time, `financial_obligations`, `commission_transactions`, and `settlement_transactions` each contained zero rows. This is not evidence that the payout lifecycle works; it means there is no production record to validate the mapping against.
 
 Therefore the `PROVIDER` obligation → `PARTNER`/`MERCHANT` settlement conversion remains **unverified**. Do not enable or certify provider payouts until the beneficiary type/ID mapping is explicitly specified and tested against a disposable business fixture, including cross-business beneficiary mismatch rejection.
