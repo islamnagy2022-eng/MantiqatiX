@@ -59,6 +59,11 @@ assert.match(fixture, /FORCE ROW LEVEL SECURITY/);
 assert.match(integration, /MNTY-PLATFORM membership without registry entry must be denied/);
 assert.match(integration, /private registry platform admin without tenant membership should pass/);
 assert.match(integration, /assert_mantigo_global_rpcs_denied/);
+for (const caller of ["admin_create_global_ad", "fulfill_digital_page_publish", "review_mantigo_captain_application", "set_mantigo_financial_config_backend"]) {
+  assert.match(sharedCallers, new RegExp(caller));
+}
+assert.match(sharedCallers, /tenant OWNER created a platform global advertisement/);
+assert.match(sharedCallers, /platform registry admin could update global MantiGO configuration/);
 assert.match(workflow, /rc463_platform_admin_live_baseline\.sql/);
 assert.match(workflow, /20261113214500_rc463_platform_admin_live_registry_hardening\.sql/);
 assert.match(workflow, /rc449_mantigo_platform_admin_integration\.sql/);
