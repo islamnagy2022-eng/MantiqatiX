@@ -14,6 +14,7 @@ import { filterRowsToPubliclyPricedItems, getExplicitlyPublicComparePrice, requi
 const admin = fs.readFileSync('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx', 'utf8');
 const context = fs.readFileSync('apps/catalog-frontend/src/context/AppContext.tsx', 'utf8');
 const productionMapper = fs.readFileSync('apps/catalog-frontend/src/lib/production.ts', 'utf8');
+const catalogPricing = fs.readFileSync('apps/catalog-frontend/src/lib/catalogPricing.ts', 'utf8');
 const backend = fs.readFileSync('supabase/functions/catalog-platform-admin/index.ts', 'utf8');
 const defaults = fs.readFileSync('apps/catalog-frontend/src/data/productionDefaults.ts', 'utf8');
 const publicConfig = fs.readFileSync('apps/catalog-frontend/public/config.js', 'utf8');
@@ -98,7 +99,9 @@ assert.match(productionMapper, /metadata\.image_url \|\| item\.imageUrl \|\| ite
 assert.match(productionMapper, /item\.name_ar \|\| item\.nameAr/, 'both public API item-name contracts must be normalized');
 assert.match(productionMapper, /item\.status \?\? item\.itemStatus/, 'explicit inactive catalog items must be rejected while server-filtered public API rows may omit status');
 assert.match(productionMapper, /validPrices\.find[\s\S]*?branchId[\s\S]*?validPrices\.find\(\(candidate: any\) => !candidate\.branch_id/, 'public catalog mapping must select the selected branch or global price only, never another branch price');
-assert.match(productionMapper, /metadata\.show_price === false \|\| item\.requiresQuote === true/, 'quote-only service items must remain available without disclosing a numeric price');
+assert.match(productionMapper, /resolvePublicCatalogAvailability\(metadata, item, price\)/, 'public catalog mapping must use the tested quote-only availability resolver');
+assert.match(catalogPricing, /metadata\.show_price === false \|\| item\.requiresQuote === true/, 'shared public catalog resolver must retain quote-only items without disclosing a numeric price');
+assert.match(storefrontCatalog, /اطلب عرض سعر لـ \$\{product\.name\}/, 'quote-only products and services must use a neutral product/service quote CTA');
 assert.match(productionMapper, /catalogPublished: Boolean\(raw\.catalogPublished/, 'public directory presence must stay separate from the enabled public catalogue flag');
 assert.doesNotMatch(storefrontHeader, /platformAdCover|isCurrentSlideAd|images\.unsplash\.com/, 'storefront must not inject fabricated platform ad slides or stock cover photos');
 assert.doesNotMatch(storefrontCatalog, /images\.unsplash\.com/, 'public product cards must not use stock-photo fallbacks');
