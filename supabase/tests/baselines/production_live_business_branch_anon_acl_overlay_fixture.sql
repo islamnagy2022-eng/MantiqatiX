@@ -4,7 +4,7 @@
 -- A read-only check of the current live project (2026-11-14) confirmed:
 --   public.businesses: anon has no SELECT privilege
 --   public.branches:   anon has no SELECT privilege
--- The older schema-only checkpoint carries broader historical/default grants.
+-- The older schema-only checkpoint and local Supabase bootstrap can carry broader historical/default grants (including inherited PUBLIC privileges).
 -- Align only the disposable replay database with the observed live ACL boundary.
 -- This file is never a production migration and is never deployed.
 
@@ -12,7 +12,7 @@ BEGIN;
 
 REVOKE SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
   ON TABLE public.businesses, public.branches
-  FROM anon;
+  FROM anon, PUBLIC;
 
 DO $verify$
 BEGIN
