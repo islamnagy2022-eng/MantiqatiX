@@ -1,10 +1,10 @@
 // Public contact data is opt-in by field: only explicitly published catalog_profile
 // keys are exposed. Operational branches.phone/address and legacy profile.phone/
 // profile.whatsapp_phone are intentionally not accepted here.
-const safeText = (value: unknown, maxLength: number): string =>
+const safeText = (value, maxLength) =>
   typeof value === "string" ? value.trim().slice(0, maxLength) : "";
 
-const normalizeWhatsAppNumber = (value: unknown): string => {
+const normalizeWhatsAppNumber = (value) => {
   let digits = safeText(value, 40).replace(/\D/g, "");
   if (digits.startsWith("00")) digits = digits.slice(2);
   else if (digits.startsWith("0")) digits = "20" + digits.slice(1);
@@ -12,7 +12,7 @@ const normalizeWhatsAppNumber = (value: unknown): string => {
   return digits.length >= 8 && digits.length <= 15 ? digits : "";
 };
 
-const safeWhatsAppUrl = (value: unknown): string => {
+const safeWhatsAppUrl = (value) => {
   const raw = safeText(value, 500);
   if (!raw) return "";
   try {
@@ -26,13 +26,13 @@ const safeWhatsAppUrl = (value: unknown): string => {
   }
 };
 
-export const getExplicitPublicContact = (value: unknown) => {
+export const getExplicitPublicContact = (value) => {
   const profile = value && typeof value === "object" && !Array.isArray(value)
-    ? value as Record<string, unknown>
+    ? value
     : {};
   const additionalContactPhones = Array.isArray(profile.additional_contact_phones)
     ? profile.additional_contact_phones
-      .filter((entry): entry is string => typeof entry === "string")
+      .filter((entry) => typeof entry === "string")
       .map((entry) => entry.trim().slice(0, 40))
       .filter(Boolean)
       .slice(0, 10)
