@@ -1,0 +1,38 @@
+name: Public Catalog Contact Privacy
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "supabase/functions/_shared/public-contact-visibility.mjs"
+      - "supabase/functions/_shared/public-contact-visibility.test.mjs"
+      - "supabase/functions/public-catalog/index.ts"
+      - "supabase/functions/public-catalog-directory/index.ts"
+      - "apps/catalog-frontend/src/lib/production.ts"
+      - "scripts/validate-public-contact-visibility.mjs"
+      - ".github/workflows/public-catalog-contact-privacy.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/functions/_shared/public-contact-visibility.mjs"
+      - "supabase/functions/_shared/public-contact-visibility.test.mjs"
+      - "supabase/functions/public-catalog/index.ts"
+      - "supabase/functions/public-catalog-directory/index.ts"
+      - "apps/catalog-frontend/src/lib/production.ts"
+      - "scripts/validate-public-contact-visibility.mjs"
+      - ".github/workflows/public-catalog-contact-privacy.yml"
+permissions:
+  contents: read
+jobs:
+  public-contact-privacy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Validate public contact boundary
+        run: node scripts/validate-public-contact-visibility.mjs
+      - name: Test explicit contact projection
+        run: node --test supabase/functions/_shared/public-contact-visibility.test.mjs
