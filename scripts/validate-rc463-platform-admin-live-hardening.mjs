@@ -7,8 +7,9 @@ const workflow = readFileSync(".github/workflows/rc463-platform-admin-live-harde
 const fixture = readFileSync("supabase/tests/rc449_mantigo_platform_admin_fixture.sql", "utf8");
 const integration = readFileSync("supabase/tests/rc449_mantigo_platform_admin_integration.sql", "utf8");
 
-const helperStart = migration.indexOf("CREATE OR REPLACE FUNCTION public.mnty_can_platform_admin()");
-const helperEnd = migration.indexOf("CREATE OR REPLACE FUNCTION public.get_mantigo_admin_dashboard_backend", helperStart);
+const migrationLower = migration.toLowerCase();
+const helperStart = migrationLower.indexOf("create or replace function public.mnty_can_platform_admin()");
+const helperEnd = migrationLower.indexOf("create or replace function public.get_mantigo_admin_dashboard_backend", helperStart);
 assert.ok(helperStart >= 0 && helperEnd > helperStart, "canonical helper must appear before MantiGO RPC replacements");
 const helper = migration.slice(helperStart, helperEnd);
 
