@@ -70,7 +70,7 @@ export const CatalogSection: React.FC = () => {
       : digits.startsWith('0') ? '20' + digits.slice(1)
       : digits.startsWith('1') && digits.length === 10 ? '20' + digits : digits;
     if (digits.length < 10 || digits.length > 15) return null;
-    const message = `مرحبًا، أريد طلب عرض سعر لخدمة ${product.name} من ${currentBusiness?.name || 'MantiqatiX'}.`;
+    const message = `مرحبًا، أريد طلب عرض سعر لـ ${product.name} من ${currentBusiness?.name || 'MantiqatiX'}.`;
     return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
   };
 
@@ -353,7 +353,7 @@ export const CatalogSection: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Request a quote for unpriced services; only priced items go to cart. */}
+                    {/* Request a quote for unpriced products or services; only priced items go to cart. */}
                     {isFrozen ? (
                       <button
                         disabled
@@ -369,7 +369,7 @@ export const CatalogSection: React.FC = () => {
                           href={buildQuoteUrl(product) || undefined}
                           target="_blank"
                           rel="noopener noreferrer"
-                          aria-label={`اطلب عرض سعر لخدمة ${product.name}`}
+                          aria-label={`اطلب عرض سعر لـ ${product.name}`}
                           className="mx-v4-catalog-primary-action whitespace-nowrap flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all"
                         >
                           <MessageCircle className="w-4 h-4" />
