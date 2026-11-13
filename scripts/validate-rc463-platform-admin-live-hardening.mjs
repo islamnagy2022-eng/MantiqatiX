@@ -43,7 +43,7 @@ for (const fn of [
   assert.doesNotMatch(body, /upper\(.*role.*\) IN \('ADMIN','SUPER_ADMIN','OWNER'/i, fn + " must not use generic tenant roles for platform access");
 }
 assert.match(migration, /REVOKE ALL ON FUNCTION public\.get_mantigo_admin_dashboard_backend\(uuid\) FROM PUBLIC, anon/i);
-assert.match(migration, /REVOKE ALL ON FUNCTION public\.settle_mantigo_captain_backend\(uuid,text,text\) FROM PUBLIC, anoni);
+assert.match(migration, /REVOKE ALL ON FUNCTION public\.settle_mantigo_captain_backend\(uuid,text,text\) FROM PUBLIC, anon/i);
 assert.match(migration, /COMMIT;/);
 
 assert.match(baseline, /public\.mnty_can\('admin', NULL, NULL, NULL\)/);
