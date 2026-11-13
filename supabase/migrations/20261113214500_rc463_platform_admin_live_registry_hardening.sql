@@ -8,7 +8,6 @@ BEGIN;
 DO $preflight$
 DECLARE
   v_rls boolean;
-  v_force_rls boolean;
   v_rpc_count integer;
   v_helper_caller_count integer;
 BEGIN
@@ -16,19 +15,25 @@ BEGIN
     RAISE EXCEPTION 'RC463_PLATFORM_ADMIN_REGISTRY_MISSING';
   END IF;
 
-  SELECT c.relrowsecurity, c.relforcerowsecurity
-    INTO v_rls, v_force_rls
+  SELECT c.relrowsecurity
+    INTO v_rls
   FROM pg_catalog.pg_class c
   JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
   WHERE n.nspname = 'private' AND c.relname = 'platform_admins';
 
-  IF NOT coalesce(v_rls, false) OR NOT coalesce(v_force_rls, false) THEN
-    RAISE EXCEPTION 'RC463_PLATFORM_ADMIN_REGISTRY_MUST_FORCE_RLS';
+  IF NOT coalesce(v_rls, false) THEN
+    RAISE EXCEPTION 'RC463_PLATFORM_ADMIN_REGISTRY_RLS_REQUIRED';
   END IF;
 
   IF pg_catalog.has_table_privilege('anon', 'private.platform_admins', 'SELECT')
-     OR pg_catalog.has_table_privilege('authenticated', 'private.platform_admins', 'SELECT') THEN
-    RAISE EXCEPTION 'RC463_PLATFORM_ADMIN_REGISTRY_CLIENT_READ_GRANT_FOUND';
+     OR pg_catalog.has_table_privilege('anon', 'private.platform_admins', 'INSERT')
+     OR pg_catalog.has_table_privilege('anon', 'private.platform_admins', 'UPDATE')
+     OR pg_catalog.has_table_privilege('anon', 'private.platform_admins', 'DELETE')
+     OR pg_catalog.has_table_privilege('authenticated', 'private.platform_admins', 'SELECT')
+     OR pg_catalog.has_table_privilege('authenticated', 'private.platform_admins', 'INSERT')
+     OR pg_catalog.has_table_privilege('authenticated', 'private.platform_admins', 'UPDATE')
+     OR pg_catalog.has_table_privilege('authenticated', 'private.platform_admins', 'DELETE') THEN
+    RAISE EXCEPTION 'RC463_PLATFORM_ADMIN_REGISTRY_CLIENT_TABLE_GRANT_FOUND';
   END IF;
 
   IF pg_catalog.to_regprocedure('public.mnty_can_platform_admin()') IS NULL THEN
@@ -110,6 +115,11 @@ BEGIN
   END IF;
 END;
 $preflight$;
+
+-- Match the hardened registry posture in every environment. The owner is postgres,
+-- while API client roles have no direct table privileges; FORCE RLS protects any
+-- non-owner path that may be added later without changing the canonical read contract.
+ALTER TABLE private.platform_admins FORCE ROW LEVEL SECURITY;
 
 -- Canonical platform-root authority: private.platform_admins only.
 -- SECURITY DEFINER permits the function owner to consult the FORCE-RLS registry;
