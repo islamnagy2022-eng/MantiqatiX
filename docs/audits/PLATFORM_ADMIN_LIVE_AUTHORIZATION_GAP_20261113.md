@@ -1,6 +1,6 @@
 # Platform Admin Live Authorization Gap — 2026-11-13
 
-**Status:** Forward-only source candidate / draft PR review required / not deployed.
+**Status:** Forward-only source candidate / draft PR #724 / isolated PostgreSQL and current checkpoint replay passed / not deployed.
 
 ## Evidence captured from the connected Production database (read-only)
 
@@ -31,9 +31,16 @@ The new migration `supabase/migrations/20261113214500_rc463_platform_admin_live_
 5. Replaces the four MantiGO global RPCs with the hardened RC449 implementations: exact actor binding, the shared platform-root check, pinned empty search_path, and preserved audited operational behavior.
 6. Because `admin_create_global_ad`, `fulfill_digital_page_publish`, `review_mantigo_captain_application`, and `set_mantigo_financial_config_backend` already call the shared helper, the new canonical guard also governs those paths and the RLS policies above.
 
-## Isolated PostgreSQL validation
+## Validation evidence — tested source head `33a2f55b1152e44fe8242766f4b1a608eb6421b0`
 
-The CI sequence is designed to demonstrate both sides of the change:
+At this tested source head, all **12/12 PR checks** completed successfully. Key evidence:
+
+- RC463 dedicated PostgreSQL 16 run: [43516232029](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/43516232029) — source contract, weak-behavior reproduction, migration commit, RC462 integration suite, and RC463 shared-helper caller suite all passed.
+- Complete forward migration replay from the captured production schema checkpoint: [43516232028](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/43516232028) — checkpoint/static inventory validation passed, isolated Supabase instance started without repository migrations, all later migrations replayed in timestamp order, and isolated instance stopped successfully.
+- Migration-history immutability, version uniqueness, PR collision guard, RC425 Paymob atomicity, MantiGO privacy, MantiGO platform-admin scope, backend-only boundaries, module validation, and approval-action atomicity: all passed.
+- The `Deploy MantiqaTix Web` workflow on the PR event ran validation only. Its actual Pages deployment job is guarded to require a push to `main` or an explicit `workflow_dispatch`; no live site deployment occurred.
+
+The isolated PostgreSQL sequence demonstrates both sides of the change:
 
 - First, a disposable baseline reproduces the weak live helper and proves that a synthetic tenant OWNER can reach each of the four broad global RPC paths.
 - Then RC463 is applied in the disposable database.
@@ -44,11 +51,10 @@ The test-only settlement writer is a stub and performs no real journal or financ
 
 ## Remaining release gates
 
-- Exact-head static and PostgreSQL CI must pass.
 - Review the generated diff and confirm RC463's preflight matches the live schema at rollout time.
 - Obtain a complete current-schema restore/replay rehearsal and verified recoverable backup/rollback path before production deployment.
 - Confirm the existing service-role bootstrap/revocation path for `private.platform_admins` remains authoritative and audited.
 - Refresh Security Advisor, verify the four global RPC ACL/search_path/function bodies and shared helper after any later authorized rollout.
 - Enable leaked-password protection only after controlled auth compatibility review; this is separate from RC463.
 
-`PRODUCTION_DDL_DML=false` · `SUPABASE_WRITES=false` · `EDGE_DEPLOYED=false` · `MAIN_CHANGED=false`.
+`TESTED_HEAD=33a2f55b1152e44fe8242766f4b1a608eb6421b0` · `PR_CHECKS=12/12_PASS` · `PRODUCTION_DDL_DML=false` · `SUPABASE_WRITES=false` · `EDGE_DEPLOYED=false` · `MAIN_CHANGED=false`.
