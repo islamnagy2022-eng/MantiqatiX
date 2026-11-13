@@ -9,7 +9,7 @@ CREATE OR REPLACE FUNCTION public.admin_create_global_ad(
   p_start_at timestamp with time zone DEFAULT NULL,
   p_end_at timestamp with time zone DEFAULT NULL
 )
-RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path TO ''
+RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public, pg_temp'
 AS $function$
 BEGIN
   IF NOT public.mnty_can_platform_admin() THEN RAISE EXCEPTION 'PLATFORM_ADMIN_REQUIRED'; END IF;
@@ -20,7 +20,7 @@ $function$;
 CREATE OR REPLACE FUNCTION public.fulfill_digital_page_publish(
   p_actor_user_id uuid,p_order_id uuid,p_page_id uuid
 )
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO ''
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public, pg_temp'
 AS $function$
 BEGIN
   IF p_actor_user_id IS NULL OR p_actor_user_id IS DISTINCT FROM auth.uid() THEN
@@ -36,7 +36,7 @@ CREATE OR REPLACE FUNCTION public.review_mantigo_captain_application(
   p_vehicle_category text DEFAULT NULL,p_vehicle_model text DEFAULT NULL,
   p_vehicle_plate text DEFAULT NULL,p_service_areas jsonb DEFAULT NULL
 )
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO ''
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
 AS $function$
 BEGIN
   IF p_admin_user_id IS NULL OR p_admin_user_id IS DISTINCT FROM auth.uid() THEN
@@ -50,7 +50,7 @@ $function$;
 CREATE OR REPLACE FUNCTION public.set_mantigo_financial_config_backend(
   p_admin_user_id uuid,p_commission_rate numeric,p_currency text DEFAULT 'EGP'
 )
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO ''
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
 AS $function$
 BEGIN
   IF p_admin_user_id IS NULL OR p_admin_user_id IS DISTINCT FROM auth.uid() THEN
