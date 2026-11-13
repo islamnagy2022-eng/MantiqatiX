@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { filterRowsToPubliclyPricedItems, getExplicitlyPublicComparePrice, requiresPublicQuote } from "../_shared/public-price-visibility.mjs";
+import { getExplicitPublicContact } from "../_shared/public-contact-visibility.mjs";
 
 const allowedOrigins = new Set([
   "https://islamnagy2022-eng.github.io",
@@ -83,7 +84,7 @@ Deno.serve(async (req: Request) => {
     const tenantId = String(business.tenant_id || "");
     if (!tenantId) return response(origin, { error: "BUSINESS_TENANT_MISSING" }, 500);
     const { data: branches, error: branchError } = await db.from("branches")
-      .select("id,name,code,status,address,phone")
+      .select("id,name,code,status")
       .eq("tenant_id", tenantId)
       .eq("business_id", businessId)
       .eq("status", "ACTIVE")
@@ -200,7 +201,7 @@ Deno.serve(async (req: Request) => {
     });
 
     const profile = business.settings?.catalog_profile || {};
-    const selectedBranchPhone = String(selectedBranch.phone || "");
+    const publicContact = getExplicitPublicContact(profile);
     return response(origin, {
       business: {
         id: business.id, name: business.name, code: business.code, operationalStatus, isOperationallyAvailable: operationallyActive,
@@ -233,15 +234,17 @@ Deno.serve(async (req: Request) => {
         facebookUrl: String(profile.facebook_url || ""),
         instagramUrl: String(profile.instagram_url || ""),
         tiktokUrl: String(profile.tiktok_url || ""),
-        additionalContactPhones: Array.isArray(profile.additional_contact_phones) ? profile.additional_contact_phones : [],
+        phoneDisplay: publicContact.phoneDisplay,
+        whatsappNumber: publicContact.whatsappNumber,
+        whatsappUrl: publicContact.whatsappUrl,
+        address: publicContact.address,
+        additionalContactPhones: publicContact.additionalContactPhones,
         category: String(profile.category || provider.provider_kind || "").slice(0, 100),
       },
       branches: branches.map((branch: any) => ({
         id: branch.id,
         name: branch.name,
         code: branch.code,
-        address: branch.address,
-        phone: branch.phone,
       })),
       selectedBranchId: branchId,
       items,
@@ -251,7 +254,7 @@ Deno.serve(async (req: Request) => {
         nameAr: option.name_ar, nameEn: option.name_en,
         priceDelta: option.price_delta,
       })),
-      contactPhone: selectedBranchPhone,
+      contactPhone: publicContact.phoneDisplay || publicContact.whatsappNumber,
       paymentsEnabled: false,
       accessMode: "PUBLIC_READ_ONLY",
     });
