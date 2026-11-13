@@ -16,13 +16,13 @@ At the inspection point:
   - `settle_mantigo_captain_backend`
   - `expire_stale_mantigo_rides_backend`
 - These four RPCs exposed global MantiGO ride and financial aggregates, settlement mutation, and ride expiration to broad tenant-level OWNER/ADMIN/OPERATIONS/FINANCE roles.
-- The private platform-root registry exists with RLS enabled, but the live table did **not** have FORCE RLS enabled at inspection time. The table owner is `postgres`, and the existing shared guard function is also owned by `postgres`. Both `postgres` and `service_role` have `BYPASSRLS`; `anon` does not have schema usage or table privileges, while `authenticated` has schema usage but no SELECT/INSERT/UPDATE/DELETE privileges. The RC463 preflight now requires the guard owner to match the registry table owner and to have `BYPASSRLS` before enabling FORCE RLS, preserving the owner-executed registry lookup while failing closed on owner drift. The candidate RC463 migration validates the RLS/client-ACL boundary, then enables FORCE RLS inside its transaction. The registry currently has one registered account; that account also has the explicit `MNTY-PLATFORM` SUPER_ADMIN membership with `scope=PLATFORM` and `full_control=true`. No identity values were included in this report.
+- The private platform-root registry exists with RLS enabled, but the live table did **not** have FORCE RLS enabled at inspection time. The table owner is `postgres`, and the existing shared guard function is also owned by `postgres`. Both `postgres` and `service_role` have `BYPASSRLS`; `anon` does not have schema usage or table privileges, while `authenticated` has schema usage but no SELECT/INSERT/UPDATE/DELETE privileges. The RC464 preflight now requires the guard owner to match the registry table owner and to have `BYPASSRLS` before enabling FORCE RLS, preserving the owner-executed registry lookup while failing closed on owner drift. The candidate RC464 migration validates the RLS/client-ACL boundary, then enables FORCE RLS inside its transaction. The registry currently has one registered account; that account also has the explicit `MNTY-PLATFORM` SUPER_ADMIN membership with `scope=PLATFORM` and `full_control=true`. No identity values were included in this report.
 
 This confirms an authorization-boundary defect in the live function/policy definitions. It does **not** establish that an unauthorized request was successfully executed or that any data was accessed or changed. No probe invocation, settlement, financial write, or policy mutation was performed.
 
 ## Candidate forward fix
 
-The new migration `supabase/migrations/20261113214500_rc463_platform_admin_live_registry_hardening.sql` is deliberately self-contained and does not edit historical RC441/RC449/RC462 migrations:
+The new migration `supabase/migrations/20261113214500_rc464_platform_admin_live_registry_hardening.sql` is deliberately self-contained and does not edit historical RC441/RC449/RC462 migrations:
 
 1. Requires the canonical `private.platform_admins` registry to exist, RLS enabled, and no direct client SELECT/INSERT/UPDATE/DELETE grants; then enables FORCE RLS transactionally.
 2. Requires all four live MantiGO RPC signatures and all four additional helper-dependent global functions to match the audited live contract.
@@ -35,7 +35,7 @@ The new migration `supabase/migrations/20261113214500_rc463_platform_admin_live_
 
 At this tested source head, all **12/12 PR checks** completed successfully. Key evidence:
 
-- RC463 dedicated PostgreSQL 16 run: [43516232029](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/43516232029) — source contract, weak-behavior reproduction, migration commit, RC462 integration suite, and RC463 shared-helper caller suite all passed.
+- RC464 dedicated PostgreSQL 16 run: [43516232029](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/43516232029) — source contract, weak-behavior reproduction, migration commit, RC462 integration suite, and RC464 shared-helper caller suite all passed.
 - Complete forward migration replay from the captured production schema checkpoint: [43516232028](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/43516232028) — checkpoint/static inventory validation passed, isolated Supabase instance started without repository migrations, all later migrations replayed in timestamp order, and isolated instance stopped successfully.
 - Migration-history immutability, version uniqueness, PR collision guard, RC425 Paymob atomicity, MantiGO privacy, MantiGO platform-admin scope, backend-only boundaries, module validation, and approval-action atomicity: all passed.
 - The `Deploy MantiqaTix Web` workflow on the PR event ran validation only. Its actual Pages deployment job is guarded to require a push to `main` or an explicit `workflow_dispatch`; no live site deployment occurred.
@@ -43,7 +43,7 @@ At this tested source head, all **12/12 PR checks** completed successfully. Key 
 The isolated PostgreSQL sequence demonstrates both sides of the change:
 
 - First, a disposable baseline reproduces the weak live helper and proves that a synthetic tenant OWNER can reach each of the four broad global RPC paths.
-- Then RC463 is applied in the disposable database.
+- Then RC464 is applied in the disposable database.
 - The existing RC449 integration suite verifies tenant OWNER/ADMIN/OPERATIONS_MANAGER/tenant-scoped SUPER_ADMIN and membership-only platform SUPER_ADMIN are denied; only the canonical registry entry is accepted.
 - The same suite tests global dashboard/report access, settlement and replay behavior, stale-ride expiration, RLS protection of global digital pages, registry privacy, and immediate revocation when a registry entry is removed.
 
@@ -51,10 +51,10 @@ The test-only settlement writer is a stub and performs no real journal or financ
 
 ## Remaining release gates
 
-- Review the generated diff and confirm RC463's preflight matches the live schema at rollout time.
+- Review the generated diff and confirm RC464's preflight matches the live schema at rollout time.
 - Obtain a complete current-schema restore/replay rehearsal and verified recoverable backup/rollback path before production deployment.
 - Confirm the existing service-role bootstrap/revocation path for `private.platform_admins` remains authoritative and audited.
 - Refresh Security Advisor, verify the four global RPC ACL/search_path/function bodies and shared helper after any later authorized rollout.
-- Enable leaked-password protection only after controlled auth compatibility review; this is separate from RC463.
+- Enable leaked-password protection only after controlled auth compatibility review; this is separate from RC464.
 
 `TESTED_HEAD=33a2f55b1152e44fe8242766f4b1a608eb6421b0` · `PR_CHECKS=12/12_PASS` · `PRODUCTION_DDL_DML=false` · `SUPABASE_WRITES=false` · `EDGE_DEPLOYED=false` · `MAIN_CHANGED=false`.
