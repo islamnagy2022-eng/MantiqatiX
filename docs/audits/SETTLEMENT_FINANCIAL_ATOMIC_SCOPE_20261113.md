@@ -18,14 +18,15 @@ This is a verified authorization-scope gap in the current source/database contra
 The candidate changes only the Edge Function and adds a pure authorization module:
 
 1. Continue verifying the bearer token with Supabase Auth and reject anonymous users.
-2. Read ACTIVE membership rows for the verified user and the exact requested tenant only.
-3. For a business-scoped settlement, require an ACTIVE, unbranched finance-capable membership whose `business_id` exactly equals the requested business. Also require that business to be ACTIVE and belong to the requested tenant.
-4. Reject branch-scoped memberships because the current settlement RPC has no `branch_id` argument and therefore cannot safely enforce branch accounting scope.
-5. For a tenant-wide `MNTY-PLATFORM` settlement, require the exact ACTIVE `SUPER_ADMIN` membership with `business_id IS NULL`, `branch_id IS NULL`, `permissions.scope=PLATFORM`, and `permissions.full_control=true`. Generic `ADMIN` or `OWNER` memberships are not treated as platform administrators.
-6. For other tenant-wide settlement requests, require an unscoped ACTIVE finance/tenant-owner membership. A business-level membership cannot authorize tenant-wide activity.
-7. Require `businessId` for MERCHANT settlements, validate numeric input, and return sanitized error codes rather than raw database messages.
-8. The actor ID passed to the service-role RPC remains derived solely from the verified Auth user.
-9. Merchant settlements require an explicit business scope. The source contract still needs a separate review to verify that each beneficiary ID belongs to the requested business; the current `settlement_transactions` table has no `business_id` column or foreign key tying `beneficiary_id` to `business_id`, so this remains a pre-release contract check.
+2. Handle browser `OPTIONS` preflight using the current Supabase JS SDK CORS headers, restrict browser requests to the deployed GitHub Pages origin, and keep origin validation separate from JWT/authorization checks. Update the allowlist when the production domain is introduced.
+3. Read ACTIVE membership rows for the verified user and the exact requested tenant only.
+4. For a business-scoped settlement, require an ACTIVE, unbranched finance-capable membership whose `business_id` exactly equals the requested business. Also require that business to be ACTIVE and belong to the requested tenant.
+5. Reject branch-scoped memberships because the current settlement RPC has no `branch_id` argument and therefore cannot safely enforce branch accounting scope.
+6. For a tenant-wide `MNTY-PLATFORM` settlement, require the exact ACTIVE `SUPER_ADMIN` membership with `business_id IS NULL`, `branch_id IS NULL`, `permissions.scope=PLATFORM`, and `permissions.full_control=true`. Generic `ADMIN` or `OWNER` memberships are not treated as platform administrators.
+7. For other tenant-wide settlement requests, require an unscoped ACTIVE finance/tenant-owner membership. A business-level membership cannot authorize tenant-wide activity.
+8. Require `businessId` for MERCHANT settlements, validate numeric input, and return sanitized error codes rather than raw database messages.
+9. The actor ID passed to the service-role RPC remains derived solely from the verified Auth user.
+10. Merchant settlements require an explicit business scope. The source contract still needs a separate review to verify that each beneficiary ID belongs to the requested business; the current `settlement_transactions` table has no `business_id` column or foreign key tying `beneficiary_id` to `business_id`, so this remains a pre-release contract check.
 
 ## Local tests
 
@@ -41,8 +42,9 @@ The candidate changes only the Edge Function and adds a pure authorization modul
 - malformed or absent membership data fails closed;
 - source contract uses verified user identity and performs scope authorization before the privileged RPC.
 
-Node authorization suite: **10/10 PASS** on GitHub Actions run [43510497213](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/43510497213).  
+Node authorization suite: **10/10 PASS** on the latest successful PR CI run [43511550191](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/43511550191).  
 Deno 2.9.8 type-check for the Edge Function: **PASS** in the same run.  
+CORS preflight/origin regression check: **PASS** in the same run.  
 The earlier Deno run exposed two type errors (nullable business scope and untyped Supabase membership rows); explicit JSDoc and membership-row types were added before the successful rerun.
 
 ## Beneficiary mapping evidence (read-only)
