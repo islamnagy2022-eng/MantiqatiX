@@ -69,10 +69,11 @@ Deno.serve(async (req) => {
     // Business-level or branch-level membership must never imply tenant-wide authority.
     const { data: memberships, error: membershipError } = await serviceClient
       .from("user_memberships")
-      .select("tenant_id,business_id,branch_id,role,status,permissions")
+      .select("tenant_id,business_id,branch_id,role,status,permissions,created_at")
       .eq("user_id", user.id)
       .eq("tenant_id", tenantId)
-      .eq("status", "ACTIVE");
+      .eq("status", "ACTIVE")
+      .order("created_at", { ascending: true });
 
     if (membershipError) {
       console.error("settlement membership lookup failed", membershipError);
