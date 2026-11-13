@@ -101,6 +101,7 @@ assert.match(productionMapper, /item\.status \?\? item\.itemStatus/, 'explicit i
 assert.match(productionMapper, /validPrices\.find[\s\S]*?branchId[\s\S]*?validPrices\.find\(\(candidate: any\) => !candidate\.branch_id/, 'public catalog mapping must select the selected branch or global price only, never another branch price');
 assert.match(productionMapper, /resolvePublicCatalogAvailability\(metadata, item, price\)/, 'public catalog mapping must use the tested quote-only availability resolver');
 assert.match(catalogPricing, /metadata\.show_price === false \|\| item\.requiresQuote === true/, 'shared public catalog resolver must retain quote-only items without disclosing a numeric price');
+assert.match(storefrontCatalog, /اطلب عرض سعر لـ \$\{product\.name\}/, 'quote-only products and services must use a neutral product/service quote CTA');
 assert.match(productionMapper, /catalogPublished: Boolean\(raw\.catalogPublished/, 'public directory presence must stay separate from the enabled public catalogue flag');
 assert.doesNotMatch(storefrontHeader, /platformAdCover|isCurrentSlideAd|images\.unsplash\.com/, 'storefront must not inject fabricated platform ad slides or stock cover photos');
 assert.doesNotMatch(storefrontCatalog, /images\.unsplash\.com/, 'public product cards must not use stock-photo fallbacks');
