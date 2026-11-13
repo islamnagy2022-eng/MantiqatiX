@@ -1,6 +1,6 @@
 # Platform Admin Live Authorization Gap — 2026-11-13
 
-**Status:** Forward-only source candidate / draft PR #724 / isolated PostgreSQL and current checkpoint replay passed / not deployed.
+**Status:** Forward-only RC464 source candidate / draft PR #724 / dedicated PostgreSQL and full checkpoint replay passed on the current tested head / not deployed.
 
 ## Evidence captured from the connected Production database (read-only)
 
@@ -22,7 +22,7 @@ This confirms an authorization-boundary defect in the live function/policy defin
 
 ## Candidate forward fix
 
-The new migration `supabase/migrations/20261113214500_rc464_platform_admin_live_registry_hardening.sql` is deliberately self-contained and does not edit historical RC441/RC449/RC462 migrations:
+The repository already contains `20261031100000_rc463_trigger_only_security_definer_acl.sql`; that historical RC463 migration is unchanged. To avoid reusing its identifier, this forward-only candidate is numbered RC464. The new migration `supabase/migrations/20261113214500_rc464_platform_admin_live_registry_hardening.sql` is deliberately self-contained and does not edit historical RC441/RC449/RC462 migrations:
 
 1. Requires the canonical `private.platform_admins` registry to exist, RLS enabled, and no direct client SELECT/INSERT/UPDATE/DELETE grants; then enables FORCE RLS transactionally.
 2. Requires all four live MantiGO RPC signatures and all four additional helper-dependent global functions to match the audited live contract.
@@ -31,12 +31,12 @@ The new migration `supabase/migrations/20261113214500_rc464_platform_admin_live_
 5. Replaces the four MantiGO global RPCs with the hardened RC449 implementations: exact actor binding, the shared platform-root check, pinned empty search_path, and preserved audited operational behavior.
 6. Because `admin_create_global_ad`, `fulfill_digital_page_publish`, `review_mantigo_captain_application`, and `set_mantigo_financial_config_backend` already call the shared helper, the new canonical guard also governs those paths and the RLS policies above.
 
-## Validation evidence — tested source head `33a2f55b1152e44fe8242766f4b1a608eb6421b0`
+## Validation evidence — tested RC464 source head `5de4c48d44e8690f5a8edb686965de4f157e8ccb`
 
 At this tested source head, all **12/12 PR checks** completed successfully. Key evidence:
 
-- RC464 dedicated PostgreSQL 16 run: [43516232029](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/43516232029) — source contract, weak-behavior reproduction, migration commit, RC462 integration suite, and RC464 shared-helper caller suite all passed.
-- Complete forward migration replay from the captured production schema checkpoint: [43516232028](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/43516232028) — checkpoint/static inventory validation passed, isolated Supabase instance started without repository migrations, all later migrations replayed in timestamp order, and isolated instance stopped successfully.
+- RC464 dedicated PostgreSQL 16 run: [43517025450](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/43517025450) — source contract, weak-behavior reproduction, RC464 migration commit, RC462 integration suite, and RC464 shared-helper caller suite all passed.
+- Complete forward migration replay from the captured production schema checkpoint: [43517025336](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/43517025336) — checkpoint/static inventory validation passed, isolated Supabase instance started without repository migrations, all later migrations (including RC464) replayed in timestamp order, and isolated instance stopped successfully.
 - Migration-history immutability, version uniqueness, PR collision guard, RC425 Paymob atomicity, MantiGO privacy, MantiGO platform-admin scope, backend-only boundaries, module validation, and approval-action atomicity: all passed.
 - The `Deploy MantiqaTix Web` workflow on the PR event ran validation only. Its actual Pages deployment job is guarded to require a push to `main` or an explicit `workflow_dispatch`; no live site deployment occurred.
 
@@ -57,4 +57,4 @@ The test-only settlement writer is a stub and performs no real journal or financ
 - Refresh Security Advisor, verify the four global RPC ACL/search_path/function bodies and shared helper after any later authorized rollout.
 - Enable leaked-password protection only after controlled auth compatibility review; this is separate from RC464.
 
-`TESTED_HEAD=33a2f55b1152e44fe8242766f4b1a608eb6421b0` · `PR_CHECKS=12/12_PASS` · `PRODUCTION_DDL_DML=false` · `SUPABASE_WRITES=false` · `EDGE_DEPLOYED=false` · `MAIN_CHANGED=false`.
+`TESTED_HEAD=5de4c48d44e8690f5a8edb686965de4f157e8ccb` · `PR_CHECKS=12/12_PASS` · `PRODUCTION_DDL_DML=false` · `SUPABASE_WRITES=false` · `EDGE_DEPLOYED=false` · `MAIN_CHANGED=false`.
