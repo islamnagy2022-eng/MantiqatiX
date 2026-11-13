@@ -82,3 +82,29 @@ END
 $test$;
 
 SELECT 'R7 helper-dependent global RPC integration: PASS' AS result;
+
+
+DO $r7_search_path$
+DECLARE
+  v_count integer;
+BEGIN
+  SELECT count(*) INTO v_count
+  FROM pg_catalog.pg_proc p
+  JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace
+  WHERE n.nspname='public'
+    AND p.proname IN (
+      'admin_create_global_ad',
+      'fulfill_digital_page_publish',
+      'review_mantigo_captain_application',
+      'set_mantigo_financial_config_backend'
+    )
+    AND p.prosecdef
+    AND p.proconfig @> ARRAY['search_path=""'];
+
+  IF v_count<>4 THEN
+    RAISE EXCEPTION 'R7_HELPER_CALLER_SEARCH_PATH_NOT_HARDENED: expected four empty search_path configs, found %',v_count;
+  END IF;
+END
+$r7_search_path$;
+
+SELECT 'R7 helper caller empty search_path contract: PASS' AS result;
