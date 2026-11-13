@@ -10,6 +10,7 @@ on:
       - "supabase/functions/public-catalog-directory/index.ts"
       - "apps/catalog-frontend/src/lib/production.ts"
       - "scripts/validate-public-contact-visibility.mjs"
+      - "scripts/validate-business-social-links.mjs"
       - ".github/workflows/public-catalog-contact-privacy.yml"
   pull_request:
     branches: [main]
@@ -20,6 +21,7 @@ on:
       - "supabase/functions/public-catalog-directory/index.ts"
       - "apps/catalog-frontend/src/lib/production.ts"
       - "scripts/validate-public-contact-visibility.mjs"
+      - "scripts/validate-business-social-links.mjs"
       - ".github/workflows/public-catalog-contact-privacy.yml"
 permissions:
   contents: read
