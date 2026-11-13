@@ -75,7 +75,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          db_url="$(cd "$MNTY_REPLAY_TEST_DIR" && supabase status -o env | sed -n 's/^DB_URL="\\(.*\\)"$/\\1/p')"
+          db_url="$(cd "$MNTY_REPLAY_TEST_DIR" && supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')"
           test -n "$db_url"
           case "$db_url" in
             *127.0.0.1*|*localhost*) ;;
