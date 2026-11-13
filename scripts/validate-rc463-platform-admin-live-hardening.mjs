@@ -6,6 +6,7 @@ const baseline = readFileSync("supabase/tests/rc463_platform_admin_live_baseline
 const workflow = readFileSync(".github/workflows/rc463-platform-admin-live-hardening.yml", "utf8");
 const fixture = readFileSync("supabase/tests/rc449_mantigo_platform_admin_fixture.sql", "utf8");
 const integration = readFileSync("supabase/tests/rc449_mantigo_platform_admin_integration.sql", "utf8");
+const sharedCallers = readFileSync("supabase/tests/rc463_platform_admin_shared_helper_callers.sql", "utf8");
 
 const migrationLower = migration.toLowerCase();
 const helperStart = migrationLower.indexOf("create or replace function public.mnty_can_platform_admin()");
