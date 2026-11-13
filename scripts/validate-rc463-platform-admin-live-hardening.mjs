@@ -56,7 +56,7 @@ assert.match(baseline, /ROLLBACK;/);
 
 assert.match(fixture, /private\.platform_admins/);
 assert.match(fixture, /FORCE ROW LEVEL SECURITY/i);
-assert.match(integration, /MNTY-PLATFORM membership without registry entry must be denied/);
+assert.match(integration, /MNTY-PLATFORM membership without (private )?registry entry must be denied/);
 assert.match(integration, /private registry platform admin without tenant membership should pass/);
 assert.match(integration, /assert_mantigo_global_rpcs_denied/);
 for (const caller of ["admin_create_global_ad", "fulfill_digital_page_publish", "review_mantigo_captain_application", "set_mantigo_financial_config_backend"]) {
