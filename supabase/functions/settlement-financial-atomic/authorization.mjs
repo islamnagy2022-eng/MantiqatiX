@@ -53,6 +53,25 @@ function isPlatformSuperAdmin(membership) {
  * them by created_at ascending, matching the current database RPC's actor-role lookup.
  * Branch-scoped memberships are rejected because the RPC has no branch argument.
  */
+/**
+ * @typedef {Object} SettlementMembership
+ * @property {string} tenant_id
+ * @property {string | null} business_id
+ * @property {string | null} branch_id
+ * @property {string} role
+ * @property {string} status
+ * @property {string} created_at
+ * @property {Record<string, unknown> | null} [permissions]
+ */
+
+/**
+ * @param {{
+ *   tenantId: string,
+ *   businessId?: string | null,
+ *   memberships?: SettlementMembership[]
+ * }} input
+ * @returns {boolean}
+ */
 export function hasSettlementAuthority({ tenantId, businessId = null, memberships = [] }) {
   const tenant = normalizedId(tenantId);
   const business = normalizedId(businessId);
