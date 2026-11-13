@@ -120,6 +120,9 @@ jobs:
       - name: TypeScript check
         working-directory: apps/catalog-frontend
         run: npm run lint
+      - name: Test public catalog quote-only visibility contract
+        working-directory: apps/catalog-frontend
+        run: npx tsx tests/public-catalog-pricing.test.ts
       - name: Validate canonical activity/profession taxonomy
         run: node scripts/validate-canonical-activity-taxonomy.mjs
       - name: Validate per-activity admin settings and audit contract
