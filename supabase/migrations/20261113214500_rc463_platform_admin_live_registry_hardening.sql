@@ -8,6 +8,8 @@ BEGIN;
 DO $preflight$
 DECLARE
   v_rls boolean;
+  v_registry_owner oid;
+  v_guard_owner oid;
   v_rpc_count integer;
   v_helper_caller_count integer;
 BEGIN
@@ -15,8 +17,8 @@ BEGIN
     RAISE EXCEPTION 'RC463_PLATFORM_ADMIN_REGISTRY_MISSING';
   END IF;
 
-  SELECT c.relrowsecurity
-    INTO v_rls
+  SELECT c.relrowsecurity, c.relowner
+    INTO v_rls, v_registry_owner
   FROM pg_catalog.pg_class c
   JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
   WHERE n.nspname = 'private' AND c.relname = 'platform_admins';
@@ -38,6 +40,18 @@ BEGIN
 
   IF pg_catalog.to_regprocedure('public.mnty_can_platform_admin()') IS NULL THEN
     RAISE EXCEPTION 'RC463_PLATFORM_ADMIN_GUARD_MISSING';
+  END IF;
+
+  SELECT p.proowner INTO v_guard_owner
+  FROM pg_catalog.pg_proc p
+  WHERE p.oid = pg_catalog.to_regprocedure('public.mnty_can_platform_admin()');
+
+  IF v_guard_owner IS DISTINCT FROM v_registry_owner
+     OR NOT EXISTS (
+       SELECT 1 FROM pg_catalog.pg_roles r
+       WHERE r.oid = v_guard_owner AND r.rolbypassrls
+     ) THEN
+    RAISE EXCEPTION 'RC463_REGISTRY_GUARD_OWNER_MUST_MATCH_BYPASS_RLS_TABLE_OWNER';
   END IF;
 
   SELECT count(*) INTO v_rpc_count
