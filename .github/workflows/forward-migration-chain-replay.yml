@@ -10,6 +10,7 @@ on:
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
       - "supabase/tests/baselines/production_data_prerequisites_fixture.sql"
       - "supabase/tests/baselines/production_live_trigger_overlay_fixture.sql"
+      - "supabase/tests/baselines/production_live_business_branch_anon_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
       - "scripts/verify-tenant-isolation.sql"
       - "supabase/tests/rc117_default_images_and_activity_admin_contract.sql"
@@ -26,6 +27,7 @@ on:
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
       - "supabase/tests/baselines/production_data_prerequisites_fixture.sql"
       - "supabase/tests/baselines/production_live_trigger_overlay_fixture.sql"
+      - "supabase/tests/baselines/production_live_business_branch_anon_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
       - "scripts/verify-tenant-isolation.sql"
       - "supabase/tests/rc117_default_images_and_activity_admin_contract.sql"
@@ -73,7 +75,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          db_url="$(cd "$MNTY_REPLAY_TEST_DIR" && supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')"
+          db_url="$(cd "$MNTY_REPLAY_TEST_DIR" && supabase status -o env | sed -n 's/^DB_URL="\\(.*\\)"$/\\1/p')"
           test -n "$db_url"
           case "$db_url" in
             *127.0.0.1*|*localhost*) ;;
@@ -96,6 +98,10 @@ jobs:
               if [[ "$filename" == "20261031100000_rc463_trigger_only_security_definer_acl.sql" ]]; then
                 echo "RESTORE_TEST_ONLY_KNOWN_LIVE_TRIGGER_OVERLAY"
                 psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/production_live_trigger_overlay_fixture.sql
+              fi
+              if [[ "$filename" == "20261114020000_rc466_business_branch_read_scope_hardening.sql" ]]; then
+                echo "RESTORE_TEST_ONLY_KNOWN_LIVE_BUSINESS_BRANCH_ANON_ACL_OVERLAY"
+                psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/production_live_business_branch_anon_acl_overlay_fixture.sql
               fi
               echo "REPLAY_MIGRATION=$filename"
               psql "$db_url" -v ON_ERROR_STOP=1 -f "$migration"
