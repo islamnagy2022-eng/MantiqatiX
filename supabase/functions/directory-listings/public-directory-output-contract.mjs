@@ -13,6 +13,34 @@ const PUBLIC_METADATA_KEYS = new Set([
   "services",
 ]);
 
+// Keep this row-level contract in sync with the explicit publicFields SELECT in index.ts.
+// A newly selected database column must not become public automatically.
+const PUBLIC_LISTING_KEYS = new Set([
+  "id",
+  "slug",
+  "display_name",
+  "listing_type",
+  "functional_group_id",
+  "taxonomy_category_id",
+  "taxonomy_specialty",
+  "specialty",
+  "phone",
+  "secondary_phone",
+  "address",
+  "governorate",
+  "district",
+  "village",
+  "source_name",
+  "source_url",
+  "source_checked_at",
+  "listing_status",
+  "claim_status",
+  "completeness",
+  "metadata",
+  "created_at",
+  "updated_at",
+]);
+
 const clean = (value, max = 500) => String(value ?? "").trim().slice(0, max);
 
 export function sanitizePublicDirectoryMetadata(value) {
@@ -35,15 +63,11 @@ export function sanitizePublicDirectoryMetadata(value) {
 
 export function sanitizePublicDirectoryListing(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  const {
-    verified_by: _verifiedBy,
-    is_verified: _isVerified,
-    claimed_user_id: _claimedUserId,
-    claimed_business_id: _claimedBusinessId,
-    ...publicRow
-  } = value;
-  return {
-    ...publicRow,
-    metadata: sanitizePublicDirectoryMetadata(publicRow.metadata),
-  };
+  const publicRow = {};
+  for (const key of PUBLIC_LISTING_KEYS) {
+    if (key === "metadata") continue;
+    if (Object.prototype.hasOwnProperty.call(value, key)) publicRow[key] = value[key];
+  }
+  publicRow.metadata = sanitizePublicDirectoryMetadata(value.metadata);
+  return publicRow;
 }
