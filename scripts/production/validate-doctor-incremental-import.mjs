@@ -112,7 +112,8 @@ assert.match(evidenceMigration, /status in \('PENDING',\s*'APPROVED',\s*'REVOKED
 const publicReadBlock = edge.slice(edge.indexOf('if (req.method === "GET")'), edge.indexOf('if (req.method !== "POST")'));
 assert.doesNotMatch(publicReadBlock, /\.select\([^)]*verified_by/, "Public reads must never select the internal verifier identity");
 assert.doesNotMatch(publicReadBlock, /verified_by/, "Public GET paths must not read owner-claim verifier identities");
-assert.doesNotMatch(publicOutputContract, /is_verified/, "Owner-claim verification must not be represented as professional verification");
+assert.match(publicOutputContract, /is_verified: _isVerified/, "Any legacy is_verified property must be stripped");
+assert.doesNotMatch(publicOutputContract, /is_verified: Boolean/, "Owner-claim verification must not be represented as professional verification");
 assert.match(edge, /sanitizePublicDirectoryListing\(data\)/, "Public detail response must pass through the safe listing serializer");
 assert.match(edge, /listings: \(data \|\| \[\]\)\.map\(sanitizePublicDirectoryListing\)/, "Legacy public list must sanitize every row");
 assert.match(edge, /listings\.map\(sanitizePublicDirectoryListing\)/, "Paginated public list must sanitize every row");
