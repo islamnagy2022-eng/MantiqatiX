@@ -1,6 +1,6 @@
 # Platform Admin Live Authorization Gap — 2026-11-13
 
-**Status:** Forward-only RC464 source candidate / draft PR #724 / dedicated PostgreSQL and full checkpoint replay passed on the current tested head / not deployed.
+**Status:** Forward-only RC464 source candidate / draft PR #724 / earlier 12-of-12 validation is historical; latest source includes a live-ledger schema correction and a new disposable regression test, with full CI rerunning / not deployed.
 
 ## Evidence captured from the connected Production database (read-only)
 
@@ -19,6 +19,25 @@ At the inspection point:
 - The private platform-root registry exists with RLS enabled, but the live table did **not** have FORCE RLS enabled at inspection time. The table owner is `postgres`, and the existing shared guard function is also owned by `postgres`. Both `postgres` and `service_role` have `BYPASSRLS`; `anon` does not have schema usage or table privileges, while `authenticated` has schema usage but no SELECT/INSERT/UPDATE/DELETE privileges. The RC464 preflight now requires the guard owner to match the registry table owner and to have `BYPASSRLS` before enabling FORCE RLS, preserving the owner-executed registry lookup while failing closed on owner drift. The candidate RC464 migration validates the RLS/client-ACL boundary, then enables FORCE RLS inside its transaction. The registry currently has one registered account; that account also has the explicit `MNTY-PLATFORM` SUPER_ADMIN membership with `scope=PLATFORM` and `full_control=true`. No identity values were included in this report.
 
 This confirms an authorization-boundary defect in the live function/policy definitions. It does **not** establish that an unauthorized request was successfully executed or that any data was accessed or changed. No probe invocation, settlement, financial write, or policy mutation was performed.
+
+
+## Additional live schema verification — 2026-11-14
+
+A second read-only inspection of the active Supabase project confirmed the following:
+
+- The live `public.mantigo_financial_ledger` table has `gross_amount`, `commission_amount`, and `captain_net_amount`. It does **not** have `amount` or `captain_amount`.
+- The currently deployed `get_mantigo_admin_financial_report_backend()` body references `l.amount` and `l.captain_amount`. Those references do not match the live table schema and would fail when an authorized call reaches the aggregate query. No function invocation was made.
+- The RC464 forward migration now calculates gross and paid amounts from `gross_amount`, and captain/settlement amounts from `captain_net_amount`. The R7 forward migration carries the same correction.
+- Both candidate branches now share a disposable-only regression test, `supabase/tests/mantigo_financial_report_live_columns.sql`. The RC449 integration fixture deliberately leaves its legacy `amount` and `captain_amount` columns NULL; the new test runs only after the candidate migration and checks the settled report totals against the live columns.
+- Live `private.platform_admins` has RLS enabled but FORCE RLS disabled; its table owner and the shared helper owner are both `postgres`. The live `postgres` and `service_role` roles have BYPASSRLS, while `anon` and `authenticated` do not. These facts satisfy the RC464 preflight's owner/BYPASSRLS assumptions; the migration still rechecks them at apply time.
+- Live `businesses`, `branches`, and `orders` have RLS enabled and FORCE RLS enabled. Their current policies still include broad tenant-level reads; PR #727 narrows business/branch reads and PR #725 narrows order reads.
+- The live migration ledger still ends at `20261110150618`. None of the candidate PR migrations have been applied to Production. No production DDL, DML, Edge Function deployment, or Pages deployment was performed during this follow-up.
+
+### Merge and rollout ordering
+
+- PR #722 (`20261113020000`) precedes RC464 by migration timestamp and also pins four existing helper-dependent SECURITY DEFINER callers to an empty search_path. Merge/review #722 before #724 where practical; the database migration runner will apply timestamp order.
+- PR #724 remains a draft and must not be treated as deployed or certified. The latest candidate head at this checkpoint is `abe65ba546396f5cd464eaacbc38fddb0ed0e595`; its CI is rerunning after the schema correction and regression wiring.
+- PR #725 and PR #727 have completed their current CI suites successfully (25/25 and 24/24 checks respectively). They remain drafts and still require human review and controlled rollout.
 
 ## Candidate forward fix
 
