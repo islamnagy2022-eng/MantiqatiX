@@ -78,7 +78,13 @@ for (const scenario of [
   "branch manager updated sibling department",
   "branch manager inserted sibling department",
   "unscoped CUSTOMER received private inventory visibility",
-  "platform admin department scope incorrect"
+  "platform admin department scope incorrect",
+  "BUSINESS_OWNER stock scope incorrect",
+  "BUSINESS_OWNER inventory transaction scope incorrect",
+  "tenant-B stock scope incorrect",
+  "tenant-B inventory transaction scope incorrect",
+  "platform admin stock scope incorrect",
+  "platform admin inventory transaction scope incorrect"
 ]) assert.ok(integration.includes(scenario), "integration test must cover " + scenario);
 for (const scenario of [
   "unscoped OWNER",
