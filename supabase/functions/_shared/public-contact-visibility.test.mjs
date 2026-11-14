@@ -37,6 +37,8 @@ test("rejects invalid fallback numbers and unsafe WhatsApp URLs", () => {
   const contact = getExplicitPublicContact({ public_contact_enabled: true, whatsapp_number: "12", whatsapp_url: "https://example.com/contact" });
   assert.equal(contact.whatsappNumber, "");
   assert.equal(contact.whatsappUrl, "");
+  const credentialUrl = getExplicitPublicContact({ public_contact_enabled: true, whatsapp_url: "https://user:pass@wa.me/201011112222" });
+  assert.equal(credentialUrl.whatsappUrl, "");
 });
 
 test("bounds public contact values and ignores malformed profile objects", () => {
