@@ -24,7 +24,6 @@ BEGIN
     RAISE EXCEPTION 'MantiGO financial report must use the live gross_amount/commission_amount/captain_net_amount columns: %',v_report;
   END IF;
 
-  DELETE FROM private.platform_admins WHERE user_id=v_admin;
 END
 $test$;
 
