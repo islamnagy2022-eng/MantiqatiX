@@ -5,10 +5,12 @@ const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 const migration = read("../supabase/migrations/20261113020000_harden_mantigo_platform_financial_report.sql");
 const callers = read("../supabase/tests/r7_platform_admin_helper_callers_fixture.sql");
 const integration = read("../supabase/tests/r7_platform_admin_helper_callers_integration.sql");
+const financialReportTest = read("../supabase/tests/mantigo_financial_report_live_columns.sql");
 const workflow = read("../.github/workflows/mantigo-platform-admin-scope.yml");
 
 const checks = [
-  ["financial report uses live ledger columns", /sum\\(l\\.gross_amount\\)/.test(migration) && /sum\\(l\\.captain_net_amount\\)/.test(migration) && !/sum\\(l\\.amount\\)|sum\\(l\\.captain_amount\\)/.test(migration)],
+  ["financial report uses live ledger columns", /sum\(l\.gross_amount\)/.test(migration) && /sum\(l\.captain_net_amount\)/.test(migration) && !/sum\(l\.amount\)|sum\(l\.captain_amount\)/.test(migration)],
+  ["live ledger regression verifies the actual production columns", /gross_amount/.test(financialReportTest) && /captain_net_amount/.test(financialReportTest) && /amount IS NOT NULL OR captain_amount IS NOT NULL/.test(financialReportTest)],
   ["migration is wrapped in one transaction", /^\s*BEGIN;\s*/i.test(migration) && /COMMIT;\s*$/i.test(migration)],
   ["migration uses canonical private platform registry", /FROM\s+private\.platform_admins\s+pa[\s\S]*?pa\.user_id\s*=\s*auth\.uid\(\)/i.test(migration)],
   ["migration does not fall back to membership roles or generic RBAC", !/FROM\s+public\.user_memberships/i.test(migration) && !/public\.mnty_can\s*\(/i.test(migration)],
@@ -27,7 +29,7 @@ const checks = [
   ].every((marker) => migration.includes(marker))],
   ["PostgreSQL integration verifies all four helper callers have empty search_path", integration.includes("R7_HELPER_CALLER_SEARCH_PATH_NOT_HARDENED") && integration.includes("p.proconfig @> ARRAY['search_path=\"\"']")],
 
-  ["workflow applies RC449 then RC462 then caller fixture then R7 migration and both integration suites", workflow.indexOf("/tmp/rc449.sql") < workflow.indexOf("/tmp/rc462.sql") && workflow.indexOf("/tmp/r7-callers.sql") < workflow.indexOf("/tmp/r7-platform-admin.sql") && workflow.indexOf("/tmp/r7-platform-admin.sql") < workflow.indexOf("/tmp/rc449-test.sql") && workflow.indexOf("/tmp/rc449-test.sql") < workflow.indexOf("/tmp/r7-helper-callers-test.sql")],
+  ["workflow applies RC449 then RC462 then caller fixture then R7 migration and both integration suites", workflow.indexOf("/tmp/rc449.sql") < workflow.indexOf("/tmp/rc462.sql") && workflow.indexOf("/tmp/r7-callers.sql") < workflow.indexOf("/tmp/r7-platform-admin.sql") && workflow.indexOf("/tmp/r7-platform-admin.sql") < workflow.indexOf("/tmp/rc449-test.sql") && workflow.indexOf("/tmp/rc449-test.sql") < workflow.indexOf("/tmp/financial-report-test.sql") && workflow.indexOf("/tmp/financial-report-test.sql") < workflow.indexOf("/tmp/r7-helper-callers-test.sql")],
 ];
 
 for (const [name, ok] of checks) console.log((ok ? "PASS " : "FAIL ") + name);
