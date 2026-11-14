@@ -1,3 +1,23 @@
+# Latest checkpoint — 2026-11-14 — Public directory cursor pagination integration
+
+**Request ID:** `R-20261114-PUBLIC-DIRECTORY-CURSOR-PAGINATION`  
+**Status:** IMPLEMENTED IN DRAFT PR; CI and production deployment are NOT YET VERIFIED. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+- Updated existing draft PR #726 (base `main`) rather than creating a competing PR. Current head: `ca5a771b90401e9720acda1d96d380570fd6921d`. PR: https://github.com/islamnagy2022-eng/MantiqatiX/pull/726
+- Added the missing shared `public-directory-pagination.mjs` module required by the Edge Function import. It provides a fixed page size of 20, bounded/normalized Activity, Specialty, Governorate, Markaz and Village filters, filter-scope hashing, HMAC-signed opaque cursors, tamper rejection and six-hour cursor expiry.
+- Edge Function keyset scan uses stable UUID ordering, a first-page `created_at` snapshot boundary, bounded batches and a maximum scan budget. It returns `pagination.pageSize`, `hasMore` and `nextCursor`. Public contact fields remain projected only through explicit owner-consent metadata from the existing PR work.
+- Extended Activity matching to include canonical activity-category identifiers in addition to existing category/group/provider values.
+- Connected `fetchPublicDirectoryPage` in the frontend, retained the cursor in AppContext, appended pages by unique business/product IDs, and wired the existing “رؤية المزيد من الأنشطة” control to fetch the next actual business page. Existing UI layout was preserved.
+- Added helper tests and expanded `scripts/validate-public-directory-pagination.mjs` to cover both the Edge Function contract and frontend cursor wiring. The workflow now runs contact-consent tests, pagination tests, static contract validation and Deno type-checking.
+- GitHub Actions checks for the latest head were queued/in progress at this checkpoint. No test is reported as passing until the exact-head results are complete.
+- No Supabase production migration, Edge Function deployment, Pages deployment, production data mutation or Auth/RLS/GRANT change was performed.
+- Important release sequencing: merge/release this PR only after exact-head CI passes and review is complete; deploy the Edge Function before deploying the frontend that relies on 20-record pages; then run live tests for first/next page continuity, no duplicates, filter-bound cursor rejection, expiry, contact consent, CORS and existing public catalog behavior.
+- This work is in the existing GitHub production-contract repository branch. It does not import or replace the separately uploaded R7 AI Studio application archive; that source remains governed by the R7 continuation baseline.
+
+**Next action:** obtain exact-head CI results, resolve any failures, then prepare a controlled Edge Function + frontend release with rollback and deployed-origin smoke checks.
+
+---
+
 # Latest verified checkpoint — 2026-11-11 — Public catalog disclosure safety
 
 **Request ID:** `R-20261111-PUBLIC-CATALOG-PRICE-DISCLOSURE`  
