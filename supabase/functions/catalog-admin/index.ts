@@ -570,14 +570,13 @@ Deno.serve(async (req: Request) => {
           ? businessRow.settings : {};
         const currentProfile = currentSettings.catalog_profile && typeof currentSettings.catalog_profile === "object" && !Array.isArray(currentSettings.catalog_profile)
           ? currentSettings.catalog_profile : {};
-        const consentChanged = Object.prototype.hasOwnProperty.call(body, "publicContactEnabled")
-          && currentProfile.public_contact_enabled !== body.publicContactEnabled;
+        const consentSubmitted = Object.prototype.hasOwnProperty.call(body, "publicContactEnabled");
         const nextSettings = { ...currentSettings, catalog_profile: { ...currentProfile, ...submittedSocialFields } };
         const { error: socialWriteError } = await service.from("businesses").update({
           settings: nextSettings, updated_at: new Date().toISOString(),
         }).eq("id", businessId).eq("tenant_id", tenantId);
         if (socialWriteError) throw socialWriteError;
-        if (consentChanged) {
+        if (consentSubmitted) {
           const { error: consentAuditError } = await service.from("audit_logs").insert({
             id: crypto.randomUUID(), tenant_id: tenantId,
             organization_id: businessRow.organization_id || null, business_id: businessId,
