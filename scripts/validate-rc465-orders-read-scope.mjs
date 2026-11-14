@@ -25,8 +25,9 @@ assert.match(migration, /to_regclass\('public\.order_status_history'\)/, 'order 
 assert.match(migration, /order_status_history', 'SELECT'/, 'existing history read grant must be preserved without widening writes');
 assert.match(migration, /RC465_UNEXPECTED_CLIENT_WRITE_GRANT/, 'migration must fail closed if client write grants appear on orders or order history');
 assert.match(migration, /has_table_privilege\('authenticated', 'public\.order_status_history', 'INSERT'\)/, 'migration must explicitly preserve read-only history grants');
-for (const broadPolicy of ['authenticated_sessions_only', 'deny_anonymous_users', 'mnt_non_anonymous_boundary', 'non_anonymous_authenticated_guard']) {
-  assert.match(migration, new RegExp('DROP POLICY IF EXISTS ' + broadPolicy + ' ON public\\.order_status_history'), 'broad permissive history policy must be removed: ' + broadPolicy);
+for (const restrictiveGuard of ['authenticated_sessions_only', 'deny_anonymous_users', 'mnt_non_anonymous_boundary', 'non_anonymous_authenticated_guard']) {
+  assert.doesNotMatch(migration, new RegExp('DROP POLICY IF EXISTS ' + restrictiveGuard + ' ON public\\.order_status_history'), 'restrictive anonymous-session guard must be preserved: ' + restrictiveGuard);
+  assert.match(fixture, new RegExp('CREATE POLICY ' + restrictiveGuard + '[\\s\\S]*?AS RESTRICTIVE FOR ALL TO authenticated'), 'fixture must model the restrictive guard: ' + restrictiveGuard);
 }
 const historyReadPolicy = migration.slice(migration.indexOf('CREATE POLICY order_status_history_member_read'), migration.indexOf('DROP POLICY order_status_history_customer_select_own'));
 assert.ok(historyReadPolicy.includes('FROM public.orders o'), 'history reads must be tied to the parent order');
