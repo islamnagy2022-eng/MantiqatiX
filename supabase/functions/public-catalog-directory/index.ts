@@ -178,7 +178,7 @@ Deno.serve(async (req: Request) => {
     const buildPublicBusiness = async (business: any): Promise<any | null> => {
       const tenantId = String(business.tenant_id || "");
       const { data: branches, error: branchError } = await db.from("branches")
-        .select("id,name,code,status").eq("tenant_id", tenantId).eq("business_id", business.id).eq("status", "ACTIVE").order("name").limit(100);
+        .select("id,name,code,status,address,phone").eq("tenant_id", tenantId).eq("business_id", business.id).eq("status", "ACTIVE").order("name").limit(100);
       if (branchError) throw branchError;
       const catalogPublished = business.settings?.catalog_public_enabled === true;
       const bizcatalog = business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
@@ -243,7 +243,7 @@ Deno.serve(async (req: Request) => {
       });
       const externalLogoUrl = safeImage(profile.logo_url, officialShowcase);
       const externalCoverUrl = safeImage(profile.cover_url, officialShowcase);
-      const publicContact = getExplicitPublicContact(profile);
+      const publicContact = getExplicitPublicContact(profile, branch);
       const whatsappPhone = publicContact.whatsappNumber;
       return {
         id: business.id,
