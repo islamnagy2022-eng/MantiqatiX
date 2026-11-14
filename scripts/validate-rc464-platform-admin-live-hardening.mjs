@@ -69,8 +69,8 @@ assert.match(financialReportTest, /gross_amount/);
 assert.match(financialReportTest, /captain_net_amount/);
 assert.match(financialReportTest, /amount IS NOT NULL OR captain_amount IS NOT NULL/);
 assert.ok(financialReportTest.includes("INSERT INTO private.platform_admins"));
-assert.match(workflow, /mantigo_financial_report_live_columns\\.sql/);
-assert.match(workflow, /financial-report-test\\.sql/, "workflow must stage the live ledger regression under the path consumed by its psql step");
+assert.ok(workflow.includes("supabase/tests/mantigo_financial_report_live_columns.sql"), "workflow must track the canonical financial report regression source");
+assert.ok(workflow.includes("financial-report-test.sql"), "workflow must stage the live ledger regression under the path consumed by its psql step");
 for (const caller of ["admin_create_global_ad", "fulfill_digital_page_publish", "review_mantigo_captain_application", "set_mantigo_financial_config_backend"]) {
   assert.match(sharedCallers, new RegExp(caller));
 }
