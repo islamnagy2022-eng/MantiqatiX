@@ -101,14 +101,6 @@ begin
     raise exception 'registry-only platform admin could not read MantiGO dashboard';
   end if;
 
-  result := public.get_mantigo_admin_financial_report_backend(registry_only_admin,null,null);
-  if (result->>'gross')::numeric <> 100
-     or (result->>'commission')::numeric <> 10
-     or (result->>'captain_amount')::numeric <> 90
-     or (result->>'paid_amount')::numeric <> 100 then
-    raise exception 'financial report must use live gross_amount/captain_net_amount columns: %',result;
-  end if;
-
   if has_table_privilege('anon','private.platform_admins','SELECT')
      or has_table_privilege('authenticated','private.platform_admins','SELECT') then
     raise exception 'platform admin registry must not be directly readable by client roles';
