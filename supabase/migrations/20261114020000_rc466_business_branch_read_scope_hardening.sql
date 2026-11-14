@@ -395,7 +395,14 @@ USING (
         )
         OR (
           um.business_id IS NULL AND um.branch_id IS NULL
-          AND upper(um.role) = ANY (ARRAY['OWNER','ADMIN','MANAGER'])
+          AND (
+            upper(um.role) = ANY (ARRAY['OWNER','ADMIN','MANAGER'])
+            OR (
+              upper(um.role) = 'SUPER_ADMIN'
+              AND coalesce(um.permissions ->> 'scope','') = 'PLATFORM'
+              AND coalesce((um.permissions ->> 'full_control')::boolean,false) = true
+            )
+          )
         )
       )
   )
@@ -456,7 +463,14 @@ USING (
         )
         OR (
           um.business_id IS NULL AND um.branch_id IS NULL
-          AND upper(um.role) = ANY (ARRAY['OWNER','ADMIN','MANAGER'])
+          AND (
+            upper(um.role) = ANY (ARRAY['OWNER','ADMIN','MANAGER'])
+            OR (
+              upper(um.role) = 'SUPER_ADMIN'
+              AND coalesce(um.permissions ->> 'scope','') = 'PLATFORM'
+              AND coalesce((um.permissions ->> 'full_control')::boolean,false) = true
+            )
+          )
         )
       )
   )
@@ -561,7 +575,14 @@ USING (
         )
         OR (
           um.business_id IS NULL AND um.branch_id IS NULL
-          AND upper(um.role) = ANY (ARRAY['OWNER','ADMIN','MANAGER'])
+          AND (
+            upper(um.role) = ANY (ARRAY['OWNER','ADMIN','MANAGER'])
+            OR (
+              upper(um.role) = 'SUPER_ADMIN'
+              AND coalesce(um.permissions ->> 'scope','') = 'PLATFORM'
+              AND coalesce((um.permissions ->> 'full_control')::boolean,false) = true
+            )
+          )
         )
       )
   )
