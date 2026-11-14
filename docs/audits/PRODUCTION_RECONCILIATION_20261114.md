@@ -88,3 +88,13 @@ A read-only comparison retrieved the deployed `index.ts` entrypoint for 11 criti
 - **New drift:** live `directory-listings` is v16, not the previously recorded v8. It contains doctor source-permission/republication gates and public metadata sanitization that are absent from current main, as well as extra localhost:5173 CORS origins. The inspected live code strips `verified_by` before returning public payloads. This is not safe to resolve by deploying main over Production; first reconcile the deployed v16 source into version control or review a deliberate replacement.
 - No Edge Function was deployed or modified. The seven source mismatches remain release blockers; deploy the six payment/order/finance functions only as a coordinated, schema-compatible release after migration reconciliation and real Paymob sandbox E2E.
 
+
+
+## Payment, disaster recovery and Auth gates — 2026-11-14
+
+- Read-only inspection of `public.tenant_payment_methods` found **zero rows**. Only provider, method, enabled state and the public environment label were queried; `provider_secrets` was not selected. The available connector does not expose Edge Function secret names/values, so Paymob sandbox readiness is unverified. No payment, webhook replay, refund, settlement or financial E2E was initiated.
+- The six payment/order/finance Edge Functions and the additional `directory-listings` v16 source drift must be reconciled before a meaningful sandbox E2E. Do not run payment tests against Production.
+- The available Supabase connector does not expose backup inventory or restore-rehearsal operations. No restore was attempted; backup retention, recovery-point objective (RPO), and recovery-time objective (RTO) remain unverified.
+- The connector does not expose project Auth security configuration. The prior 2026-11-06 advisor snapshot reported leaked-password protection disabled; owner-dashboard confirmation and remediation evidence remain required. No Auth setting was changed.
+- Current security advisor/catalog snapshot: **9** RLS-enabled tables without policies; none has direct `anon` or `authenticated` table grants. **1** anon-executable SECURITY DEFINER function (`get_mnty_targeted_advertisements()`) is an intentionally public approved-active-ad retrieval function with an empty search_path. **65** SECURITY DEFINER functions are executable by `authenticated`; these are generic review findings and must be assessed individually, not blanket-revoked. **28** multiple-permissive-policy lints remain; PRs #725/#727 address the relevant business/branch/order scope. Health advisor returned **0** lints.
+
