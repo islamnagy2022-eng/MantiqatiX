@@ -36,17 +36,50 @@ assert.match(migration, /CREATE POLICY businesses_manager_update[\s\S]*?um\.busi
 assert.match(migration, /CREATE POLICY businesses_manager_delete[\s\S]*?um\.business_id = businesses\.id AND um\.branch_id IS NULL/, "branch-scoped managers must not delete business-wide profile rows");
 assert.match(migration, /branches_super_admin_write/, "strict platform super-admin branch policy must be preserved");
 assert.match(migration, /Public can view official showcase businesses|businesses_member_select/, "business public showcase and member policies must remain distinct");
+
+for (const table of ["departments","warehouses","stock_balances","inventory_transactions"]) {
+  assert.ok(migration.includes("to_regclass('public." + table + "')"), "preflight must require " + table);
+  assert.ok(migration.includes("v_" + table + "_rls"), "preflight must verify RLS on " + table);
+  assert.ok(migration.includes("has_table_privilege('authenticated', 'public." + table + "', 'SELECT')"), "preflight must preserve authenticated SELECT on " + table);
+  assert.ok(fixture.includes("CREATE TABLE public." + table), "fixture must include " + table);
+}
+assert.ok(migration.includes("CREATE POLICY departments_member_read") && migration.includes("um.business_id = departments.business_id"), "department reads must be business-scoped");
+assert.ok(migration.includes("CREATE POLICY departments_manager_write") && migration.includes("um.branch_id = departments.branch_id"), "department writes must be branch-scoped");
+assert.ok(migration.includes("CREATE POLICY warehouses_member_read") && migration.includes("um.business_id = warehouses.business_id"), "warehouse reads must be business-scoped");
+assert.ok(migration.includes("CREATE POLICY warehouses_manager_insert") && migration.includes("um.branch_id = warehouses.branch_id"), "warehouse inserts must be branch-scoped");
+assert.ok(migration.includes("CREATE POLICY warehouses_manager_update") && migration.includes("CREATE POLICY warehouses_manager_delete"), "warehouse updates/deletes must be scoped");
+assert.ok(migration.includes("CREATE POLICY stock_balances_member_read") && migration.includes("FROM public.warehouses w"), "stock balances must inherit parent warehouse visibility");
+assert.ok(migration.includes("CREATE POLICY inventory_transactions_member_read") && migration.includes("CREATE POLICY inventory_transactions_manager_insert"), "inventory transactions must have scoped read/write policies");
+assert.ok(migration.includes("RC466_RESTRICTIVE_ANONYMOUS_GUARDS_MUST_BE_PRESERVED"), "preflight must preserve restrictive session guards");
+
 assert.doesNotMatch(migration, /^\s*(?:GRANT|REVOKE|ALTER TABLE|INSERT INTO|UPDATE\s+public\.|DELETE FROM)\b/im,
   "migration must not change grants, table structure, or business data");
 
 assert.match(fixture, /CREATE POLICY authenticated_sessions_only[\s\S]*?FOR ALL/, "fixture must reproduce broad permissive branch policy");
 assert.match(fixture, /CREATE POLICY branches_member_read[\s\S]*?tenant_id/, "fixture must reproduce original tenant-only branch policy");
 assert.match(baseline, /v_branch_count <> 4/, "baseline must reproduce tenant-wide branch enumeration without inventing cross-tenant access");
+assert.ok(baseline.includes("v_department_count <> 4"), "baseline must reproduce tenant-wide department visibility");
+assert.ok(baseline.includes("v_warehouse_count <> 4"), "baseline must reproduce tenant-wide warehouse visibility");
+assert.ok(baseline.includes("v_stock_count <> 4"), "baseline must reproduce tenant-wide stock visibility");
+assert.ok(baseline.includes("v_inventory_count <> 4"), "baseline must reproduce tenant-wide inventory transaction visibility");
 assert.match(aclOverlay, /REVOKE SELECT[\s\S]*?FROM anon/, "test overlay must align checkpoint anon grants to live ACL");
 assert.match(aclOverlay, /LIVE_ACL_OVERLAY_FAILED/, "test overlay must fail closed if anon SELECT remains");
 assert.match(replayWorkflow, /RESTORE_TEST_ONLY_KNOWN_LIVE_BUSINESS_BRANCH_ANON_ACL_OVERLAY[\s\S]*?REPLAY_MIGRATION=\$filename/, "forward replay must apply ACL overlay before RC466");
 assert.match(integration, /has_table_privilege\(current_user, 'public\.branches', 'SELECT'\)/, "integration test must assert anon grants");
 assert.match(integration, /Public can view official showcase businesses/, "integration test must preserve public showcase policy");
+assert.ok(integration.includes("DO $inventory_test$"), "integration tests must exercise inventory scope");
+for (const scenario of [
+  "branch OWNER department scope incorrect",
+  "branch OWNER warehouse scope incorrect",
+  "branch OWNER stock scope incorrect",
+  "branch OWNER inventory transaction scope incorrect",
+  "business manager department scope incorrect",
+  "business manager warehouse scope incorrect",
+  "branch manager updated sibling department",
+  "branch manager inserted sibling department",
+  "unscoped CUSTOMER received private inventory visibility",
+  "platform admin department scope incorrect"
+]) assert.ok(integration.includes(scenario), "integration test must cover " + scenario);
 for (const scenario of [
   "unscoped OWNER",
   "Branch-scoped OWNER",
