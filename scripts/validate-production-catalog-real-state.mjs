@@ -113,7 +113,7 @@ assert.match(catalogAdminFunction, /url\.includes\("\/catalog-ai\/"\)/, 'catalog
 assert.match(catalogAdminFunction, /logo_image_source: imageSourceForUrl\(savedProfile\.logo_url\)[\s\S]*cover_image_source: imageSourceForUrl\(savedProfile\.cover_url\)/, 'profile metadata must separately identify AI, owner, and default images.');
 assert.doesNotMatch(publicDirectoryFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'public directory API must not generate stock-photo URLs for businesses');
 assert.match(publicDirectoryFunction, /allowLegacyShowcaseImage[\s\S]{0,180}return ""/, 'public directory API must suppress stock-photo URLs except for verified platform-owned showcase activities');
-assert.match(publicDirectoryFunction, /isOfficialShowcase\(b\)/, 'public directory may include platform-owned showcase activity records without enabling their catalog modules');
+assert.match(publicDirectoryFunction, /isOfficialShowcase\(business\)/, 'public directory may include platform-owned showcase activity records without enabling their catalog modules');
 assert.doesNotMatch(publicCatalogFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'public storefront API must not generate stock-photo URLs for products');
 assert.match(publicCatalogFunction, /images\\\.unsplash\\\.com[\s\S]{0,180}return ""/, 'public storefront API must explicitly reject legacy stock-photo URLs');
 const pricePermissionFixture = [
@@ -288,10 +288,22 @@ assert.match(rejection, /if \(rejectionAuditError\)[\s\S]*PUBLICATION_AUDIT_FAIL
 
 assert.match(publicDirectoryFunction, /catalog_public_enabled === true/,
   'Public directory must derive customer-activity visibility from the persisted publication flag.');
-assert.match(publicDirectoryFunction, /b\.settings\?\.catalog_public_enabled === true \|\| isOfficialShowcase\(b\)/,
+assert.match(publicDirectoryFunction, /business\.settings\?\.catalog_public_enabled === true \|\| isOfficialShowcase\(business\)/,
   'Directory visibility must follow approved publication, not operational status.');
 assert.match(publicDirectoryFunction, /if \(catalogPublished && operationallyActive\)/,
   'Directory may return an approved profile while omitting sellable items when operations are paused.');
+assert.match(publicDirectoryFunction, String.raw`/\.order\("id", \\{ ascending: true \\}\\)/`,
+  'Public directory pagination must use a stable unique keyset order.');
+assert.match(publicDirectoryFunction, String.raw`/\.gt\("id", scanAfterId\)/`,
+  'Public directory pagination must continue after the signed last-seen business id.');
+assert.match(publicDirectoryFunction, String.raw`/\.lte\("created_at", snapshotAt\)/`,
+  'Directory pagination must preserve the original first-page insert snapshot.');
+assert.match(publicDirectoryFunction, /pagination: \\{ pageSize: PUBLIC_DIRECTORY_PAGE_SIZE, hasMore, nextCursor \\}/,
+  'Public directory must return a strict 20-row page contract and an opaque next cursor.');
+assert.match(publicDirectoryFunction, /verifyDirectoryCursor\\(rawCursor/,
+  'Public directory must reject tampered or cross-filter cursors.');
+assert.match(publicDirectoryFunction, /matchesDirectoryBusinessFilters\\(business, provider, filters\\)/,
+  'Public directory must apply activity, specialty and geographic filters before returning rows.');
 assert.match(publicCatalogFunction, /if \(operationallyActive\)/,
   'Public storefront must omit products/services when operations are paused.');
 assert.doesNotMatch(publicCatalogFunction, /if \(operationalStatus !== "ACTIVE"\) return response/,
