@@ -11,13 +11,14 @@ const merchant = fs.readFileSync("apps/catalog-frontend/src/components/merchant/
 const types = fs.readFileSync("apps/catalog-frontend/src/types/index.ts", "utf8");
 const admin = fs.readFileSync("supabase/functions/catalog-admin/index.ts", "utf8");
 
-assert.ok(helper.includes("profile.public_contact_enabled !== true"), "Public contact must fail closed without affirmative owner consent");
+assert.ok(helper.includes("profile.public_contact_enabled !== true || profile.public_contact_consent_audit_verified !== true"), "Public contact must fail closed until consent has a durable audit record");
 assert.ok(helper.includes("branch.phone"));
 assert.ok(helper.includes("branch.address"));
 assert.ok(helper.includes("normalizeWhatsAppNumber"));
 assert.ok(helper.includes("wa.me"));
 assert.ok(contactTests.includes("hides all profile and operational branch contacts unless the owner opted in"));
 assert.ok(contactTests.includes("revoking owner consent immediately hides"));
+assert.ok(contactTests.includes("hidden until its audit write is verified"));
 assert.ok(storefront.includes("getExplicitPublicContact(profile, selectedBranch)"));
 assert.ok(directory.includes("getExplicitPublicContact(profile, branch)"));
 assert.ok(storefront.includes('.select("id,name,code,status,address,phone")'));
@@ -30,6 +31,10 @@ assert.ok(!storefront.includes("phone: branch.phone") && !storefront.includes("a
 assert.ok(!directory.includes("phone: entry.phone") && !directory.includes("address: entry.address"), "Directory must not return operational branch fields");
 assert.ok(admin.includes('typeof body.publicContactEnabled !== "boolean"'));
 assert.ok(admin.includes('submittedSocialFields["public_contact_enabled"] = body.publicContactEnabled'));
+assert.ok(admin.includes('submittedSocialFields["public_contact_consent_audit_verified"] = false'));
+assert.ok(admin.includes('.eq("settings->catalog_profile->>public_contact_consent_audit_verified", "false")'));
+assert.ok(admin.includes("PUBLIC_CONTACT_CONSENT_ACTIVATION_CONFLICT"));
+assert.ok(admin.indexOf("PUBLIC_CONTACT_CONSENT_GRANTED") < admin.indexOf("public_contact_consent_audit_verified: true"), "Public consent activation must follow successful audit persistence");
 assert.ok(admin.includes("PUBLIC_CONTACT_CONSENT_GRANTED"));
 assert.ok(admin.includes("PUBLIC_CONTACT_CONSENT_REVOKED"));
 assert.ok(admin.includes('service.from("audit_logs").insert'));
@@ -37,7 +42,7 @@ assert.ok(admin.includes('["OWNER", "BUSINESS_OWNER", "ADMIN"]'));
 assert.ok(merchant.includes("bizPublicContactEnabled"));
 assert.ok(merchant.includes("أوافق صراحة على إظهار رقم واتساب النشاط والعنوان وأرقام التواصل الإضافية للعامة"));
 assert.ok(context.includes("publicContactEnabled: Boolean(updated.publicContactEnabled)"));
-assert.ok(mapper.includes("publicContactEnabled: profile.public_contact_enabled === true"));
+assert.ok(mapper.includes("publicContactEnabled: profile.public_contact_enabled === true && profile.public_contact_consent_audit_verified === true"));
 assert.ok(types.includes("publicContactEnabled?: boolean"));
 assert.ok(mapper.includes('const isPublicProjection = ["PUBLIC_READ_ONLY", "PUBLIC_DIRECTORY_READ_ONLY"]'));
 assert.ok(mapper.includes("ownerWhatsApp: isPublicProjection ? publicWhatsApp"));
@@ -46,4 +51,4 @@ assert.ok(mapper.includes("address: isPublicProjection ? String(profile.address 
 assert.ok(mapper.includes('accessMode: data?.accessMode || "PUBLIC_DIRECTORY_READ_ONLY"'));
 assert.ok(mapper.includes('accessMode: body.accessMode || "PUBLIC_READ_ONLY"'));
 
-console.log("PUBLIC_CATALOG_CONTACT_PRIVACY_STATIC=PASS (28 assertions)");
+console.log("PUBLIC_CATALOG_CONTACT_PRIVACY_STATIC=PASS (34 assertions)");
