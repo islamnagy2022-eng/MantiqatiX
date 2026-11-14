@@ -16,7 +16,7 @@ const safeWhatsAppUrl = (value) => {
   if (!raw) return "";
   try {
     const url = new URL(raw);
-    if (url.protocol !== "https:" || !["wa.me", "api.whatsapp.com", "web.whatsapp.com"].includes(url.hostname.toLowerCase())) return "";
+    if (url.protocol !== "https:" || url.username || url.password || url.port || !["wa.me", "api.whatsapp.com", "web.whatsapp.com"].includes(url.hostname.toLowerCase())) return "";
     return url.toString();
   } catch {
     return "";
