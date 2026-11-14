@@ -133,7 +133,7 @@ export async function fetchPublicDirectoryPage(cursor?: string | null): Promise<
   const businesses: Business[] = [];
   const products: Product[] = [];
   for (const row of rows) {
-    const mapped = mapBusiness({ ...row, accessMode: data?.accessMode || 'PUBLIC_DIRECTORY_READ_ONLY', branches: row.branches || [], branchId: row.selectedBranchId || row.branchId }, row.provider);
+    const mapped = mapBusiness({ ...row, accessMode: data?.accessMode || "PUBLIC_DIRECTORY_READ_ONLY", branches: row.branches || [], branchId: row.selectedBranchId || row.branchId }, row.provider);
     businesses.push(mapped);
     products.push(...mapProducts(mapped.id, mapped.tenantId || '', mapped.branchId, row.items || [], row.prices || []));
   }
