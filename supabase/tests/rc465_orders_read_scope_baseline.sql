@@ -10,10 +10,15 @@ BEGIN
 
   SELECT count(*) INTO v_visible_count FROM public.orders;
   IF v_visible_count <> 6 THEN
-    RAISE EXCEPTION 'RC465_BASELINE_NOT_REPRODUCED: expected scoped OWNER to see all 6 tenant-a rows before fix, saw %',v_visible_count;
+    RAISE EXCEPTION 'RC465_BASELINE_NOT_REPRODUCED: expected scoped OWNER to see all 6 tenant-a orders before fix, saw %',v_visible_count;
+  END IF;
+
+  SELECT count(*) INTO v_visible_count FROM public.order_status_history;
+  IF v_visible_count <> 6 THEN
+    RAISE EXCEPTION 'RC465_HISTORY_BASELINE_NOT_REPRODUCED: expected scoped OWNER to see all 6 tenant-a history rows before fix, saw %',v_visible_count;
   END IF;
 END;
 $baseline$;
 
 RESET ROLE;
-SELECT 'RC465 vulnerable tenant-wide baseline reproduced: PASS' AS result;
+SELECT 'RC465 vulnerable tenant-wide order and order-history baselines reproduced: PASS' AS result;
