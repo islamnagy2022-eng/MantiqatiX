@@ -28,11 +28,12 @@ test("rejects oversized slug filters and de-duplicates valid slugs", () => {
   assert.equal(parseDirectorySlugs("x".repeat(4001)).ok, false);
 });
 
-test("Activity/Specialty/geographic filters match the actual public projection fields", () => {
+test("Activity/Specialty/geographic filters match public business projection fields", () => {
   const business = {
     name: "مخبز الروضة",
     settings: {
       category_code: "food",
+      activity_category_code: "cat_food_bakery",
       activity_specialty: "مخبوزات",
       catalog_profile: { governorate: "المنوفية", markaz: "بركة السبع", village: "الروضة" },
     },
@@ -41,6 +42,7 @@ test("Activity/Specialty/geographic filters match the actual public projection f
   assert.equal(matchesDirectoryBusinessFilters(business, provider, {
     activity: "FOOD", specialty: "مخبوزات", governorate: "المنوفية", markaz: "بركة السبع", village: "الروضة",
   }), true);
+  assert.equal(matchesDirectoryBusinessFilters(business, provider, { activity: "cat_food_bakery" }), true);
   assert.equal(matchesDirectoryBusinessFilters(business, provider, { village: "طنطا" }), false);
   assert.equal(matchesDirectoryBusinessFilters(business, provider, { specialty: "حلويات" }), false);
 });
