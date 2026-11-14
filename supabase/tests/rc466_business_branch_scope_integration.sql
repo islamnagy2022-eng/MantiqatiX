@@ -231,6 +231,14 @@ BEGIN
   IF v_ids IS DISTINCT FROM ARRAY['warehouse-a1','warehouse-a-shared']::text[] THEN
     RAISE EXCEPTION 'TEST_FAILED: BUSINESS_OWNER warehouse scope incorrect; got %',v_ids;
   END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.stock_balances;
+  IF v_ids IS DISTINCT FROM ARRAY['stock-a1','stock-a-shared']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: BUSINESS_OWNER stock scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.inventory_transactions;
+  IF v_ids IS DISTINCT FROM ARRAY['txn-a1','txn-a-shared']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: BUSINESS_OWNER inventory transaction scope incorrect; got %',v_ids;
+  END IF;
 
   -- A different tenant manager sees only its own tenant resources.
   PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000007',false);
@@ -242,6 +250,14 @@ BEGIN
   SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.warehouses;
   IF v_ids IS DISTINCT FROM ARRAY['warehouse-d1']::text[] THEN
     RAISE EXCEPTION 'TEST_FAILED: tenant-B warehouse scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.stock_balances;
+  IF v_ids IS DISTINCT FROM ARRAY['stock-d1']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: tenant-B stock scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.inventory_transactions;
+  IF v_ids IS DISTINCT FROM ARRAY['txn-d1']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: tenant-B inventory transaction scope incorrect; got %',v_ids;
   END IF;
 
   -- Customers and unscoped employees must not enumerate private inventory.
@@ -269,6 +285,14 @@ BEGIN
   SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.warehouses;
   IF v_ids IS DISTINCT FROM ARRAY['warehouse-a1','warehouse-a2','warehouse-a-shared','warehouse-b1']::text[] THEN
     RAISE EXCEPTION 'TEST_FAILED: platform admin warehouse scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.stock_balances;
+  IF v_ids IS DISTINCT FROM ARRAY['stock-a1','stock-a2','stock-a-shared','stock-b1']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: platform admin stock scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.inventory_transactions;
+  IF v_ids IS DISTINCT FROM ARRAY['txn-a1','txn-a2','txn-a-shared','txn-b1']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: platform admin inventory transaction scope incorrect; got %',v_ids;
   END IF;
 
   -- Anonymous sessions cannot read inventory.
