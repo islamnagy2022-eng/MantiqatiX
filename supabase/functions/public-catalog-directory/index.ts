@@ -2,6 +2,16 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sanitizeActivityModuleOverrides } from "../_shared/activity-module-overrides.mjs";
 import { filterRowsToPubliclyPricedItems, getExplicitlyPublicComparePrice } from "../_shared/public-price-visibility.mjs";
+import { getExplicitPublicContact } from "../_shared/public-contact-visibility.mjs";
+import {
+  PUBLIC_DIRECTORY_PAGE_SIZE,
+  hashDirectoryScope,
+  issueDirectoryCursor,
+  matchesDirectoryBusinessFilters,
+  normalizeDirectoryFilters,
+  parseDirectorySlugs,
+  verifyDirectoryCursor,
+} from "../_shared/public-directory-pagination.mjs";
 
 const allowedOrigins = new Set(["https://islamnagy2022-eng.github.io", "http://localhost:3000", "http://localhost:5173", "http://localhost:8080", "http://127.0.0.1:3000", "http://127.0.0.1:5173", "http://127.0.0.1:8080"]);
 const headersFor = (origin: string | null) => ({
@@ -98,10 +108,35 @@ Deno.serve(async (req: Request) => {
   if (!supabaseUrl || !serviceKey) return response(origin, { error: "SERVER_MISCONFIGURED" }, 500);
   const db = createClient(supabaseUrl, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
   try {
+    const requestUrl = new URL(req.url);
+    const filters = normalizeDirectoryFilters(requestUrl.searchParams);
+    const parsedSlugs = parseDirectorySlugs(requestUrl.searchParams.get("slugs"));
+    if (!parsedSlugs.ok) return response(origin, { error: "INVALID_SLUG_FILTER" }, 400);
+    const requestedSlugs = new Set(parsedSlugs.slugs);
+    const requestedLimit = requestUrl.searchParams.get("limit");
+    if (requestedLimit !== null && requestedLimit !== String(PUBLIC_DIRECTORY_PAGE_SIZE)) {
+      return response(origin, { error: "PAGE_SIZE_NOT_SUPPORTED", pageSize: PUBLIC_DIRECTORY_PAGE_SIZE }, 400);
+    }
+    const scopeHash = await hashDirectoryScope(filters, parsedSlugs.slugs);
+    let cursorState: { ok: true; lastId: string; snapshotAt: string } | null = null;
+    const rawCursor = requestUrl.searchParams.get("cursor");
+    if (rawCursor) {
+      const verified = await verifyDirectoryCursor(rawCursor, { scopeHash, secret: serviceKey });
+      if (!verified.ok || typeof verified.lastId !== "string" || typeof verified.snapshotAt !== "string") {
+        return response(origin, { error: "INVALID_CURSOR" }, 400);
+      }
+      cursorState = { ok: true, lastId: verified.lastId, snapshotAt: verified.snapshotAt };
+    }
+    const snapshotAt = cursorState?.snapshotAt || new Date().toISOString();
+
     // Never publish isolated security-test tenants in the public directory.
-    const { data: tenants, error: tenantError } = await db.from("tenants")
-      .select("id,name,code,status,settings").eq("status", "ACTIVE").limit(100);
+    const { data: tenants, error: tenantError, count: tenantCount } = await db.from("tenants")
+      .select("id,name,code,status,settings", { count: "exact" })
+      .eq("status", "ACTIVE").order("id", { ascending: true }).limit(1000);
     if (tenantError) throw tenantError;
+    if (tenantCount !== null && tenantCount > (tenants || []).length) {
+      throw new Error("TENANT_DIRECTORY_SCAN_LIMIT_EXCEEDED");
+    }
     const productionTenantIds = (tenants || []).filter((t: any) => {
       const id = String(t.id || "").toUpperCase();
       const code = String(t.code || "").toUpperCase();
@@ -111,7 +146,11 @@ Deno.serve(async (req: Request) => {
       return !testIdentity && !purpose.includes("test") && !purpose.includes("isolation")
         && !name.includes("isolation test") && !name.includes("اختبار العزل");
     }).map((t: any) => String(t.id)).filter(Boolean);
-    if (!productionTenantIds.length) return response(origin, { businesses: [], activityModuleOverrides: {}, activityModuleOverridesAvailable: false, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
+    if (!productionTenantIds.length) return response(origin, {
+      businesses: [], activityModuleOverrides: {}, activityModuleOverridesAvailable: false,
+      accessMode: "PUBLIC_DIRECTORY_READ_ONLY",
+      pagination: { pageSize: PUBLIC_DIRECTORY_PAGE_SIZE, hasMore: false, nextCursor: null },
+    });
 
     // Publish only the explicitly public activity-module copy. Never return the
     // complete platform settings object or private contact/payment configuration.
@@ -123,39 +162,19 @@ Deno.serve(async (req: Request) => {
       console.warn("public activity module settings unavailable", platformSettingsError.message);
     } else {
       try {
-        activityModuleOverrides = sanitizeActivityModuleOverrides(platformSettings?.settings?.activityModuleOverrides || {});
+        activityModuleOverrides = sanitizeActivityModuleOverrides(platformSettings?.settings?.activityModuleOverrides || {}) as Record<string, unknown>;
         activityModuleOverridesAvailable = true;
       } catch {
         console.warn("public activity module settings failed validation");
       }
     }
-    const { data: businesses, error: businessError } = await db.from("businesses")
-      .select("id,tenant_id,organization_id,name,code,status,settings")
-      .in("tenant_id", productionTenantIds).eq("status", "ACTIVE").limit(250);
-    if (businessError) throw businessError;
-    // Customer-owned catalogues remain opt-in. Platform-owned showcase activities
-    // are public directory cards even before their module/catalog is separately enabled.
-    // Directory publication is independent of operational availability.
-    // Paused/frozen businesses may keep their approved profile page, but will not
-    // expose products/services and are filtered out of homepage promotional covers.
-    const directoryBusinesses = (businesses || []).filter((b: any) =>
-      b.settings?.catalog_public_enabled === true || isOfficialShowcase(b)
-    );
-    if (!directoryBusinesses.length) return response(origin, { businesses: [], activityModuleOverrides, activityModuleOverridesAvailable, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
-    const ids = directoryBusinesses.map((b: any) => b.id);
-    const { data: providers, error: providerError } = await db.from("marketing_provider_profiles")
-      .select("business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured")
-      .in("business_id", ids).eq("status", "ACTIVE").limit(250);
-    if (providerError) throw providerError;
-    const providerMap = new Map((providers || []).map((p: any) => [String(p.business_id), p]));
-    const requestedSlugs = new Set(
-      String(new URL(req.url).searchParams.get("slugs") || "").slice(0, 4000)
-        .split(",").map((value) => value.trim().slice(0, 140)).filter(Boolean).slice(0, 20)
-    );
-    const publicBusinesses = directoryBusinesses.filter((b: any) => {
-      const provider: any = providerMap.get(String(b.id));
-      return Boolean(provider) && (requestedSlugs.size === 0 || requestedSlugs.has(String(provider?.slug || "").trim()));
-    });
+    const providerMap = new Map<string, any>();
+    const results: any[] = [];
+    const scanBatchSize = 100;
+    const maxScanRounds = 50;
+    let scanAfterId = cursorState?.lastId || null;
+    let scanRounds = 0;
+    let exhausted = false;
     const buildPublicBusiness = async (business: any): Promise<any | null> => {
       const tenantId = String(business.tenant_id || "");
       const { data: branches, error: branchError } = await db.from("branches")
@@ -178,23 +197,40 @@ Deno.serve(async (req: Request) => {
       let items: any[] = [];
       let prices: any[] = [];
       if (catalogPublished && operationallyActive) {
-        const { data: itemRows, error: itemError } = await db.from("catalog_items")
+        const itemQuery = () => db.from("catalog_items")
           .select("id,tenant_id,business_id,branch_id,item_type,name_ar,name_en,description,status,metadata")
           .eq("tenant_id", tenantId).eq("business_id", business.id).eq("status", "ACTIVE")
-          .or(`branch_id.is.null,branch_id.eq.${branchId}`).order("name_ar").limit(150);
-        if (itemError) throw itemError;
-        items = (itemRows || []).filter((i: any) => i.metadata?.catalog_public?.is_available === true);
+          .order("name_ar").limit(150);
+        const [globalItemResult, branchItemResult] = await Promise.all([
+          itemQuery().is("branch_id", null),
+          itemQuery().eq("branch_id", branchId),
+        ]);
+        if (globalItemResult.error || branchItemResult.error) {
+          throw globalItemResult.error || branchItemResult.error;
+        }
+        items = [...(globalItemResult.data || []), ...(branchItemResult.data || [])]
+          .filter((i: any) => i.metadata?.catalog_public?.is_available === true)
+          .slice(0, 150);
         const itemIds = items.map((i: any) => i.id);
         if (itemIds.length) {
           const now = new Date().toISOString();
-          const { data: p, error: priceError } = await db.from("catalog_item_prices")
+          const priceQuery = () => db.from("catalog_item_prices")
             .select("id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to")
             .eq("tenant_id", tenantId).in("catalog_item_id", itemIds).eq("status", "ACTIVE")
-             .or(`branch_id.is.null,branch_id.eq.${branchId}`)
-            .lte("effective_from", now).or(`effective_to.is.null,effective_to.gte.${now}`).order("version", { ascending: false }).limit(1000);
-          if (priceError) throw priceError;
+            .lte("effective_from", now).or(`effective_to.is.null,effective_to.gte.${now}`)
+            .order("version", { ascending: false }).limit(1000);
+          const [globalPriceResult, branchPriceResult] = await Promise.all([
+            priceQuery().is("branch_id", null),
+            priceQuery().eq("branch_id", branchId),
+          ]);
+          if (globalPriceResult.error || branchPriceResult.error) {
+            throw globalPriceResult.error || branchPriceResult.error;
+          }
           // Stored prices are returned only when the owner explicitly opted in with show_price=true.
-          prices = filterRowsToPubliclyPricedItems(items, p || []);
+          prices = filterRowsToPubliclyPricedItems(items, [
+            ...(globalPriceResult.data || []),
+            ...(branchPriceResult.data || []),
+          ]);
         }
       }
       const profile = business.settings?.catalog_profile || {};
@@ -207,11 +243,8 @@ Deno.serve(async (req: Request) => {
       });
       const externalLogoUrl = safeImage(profile.logo_url, officialShowcase);
       const externalCoverUrl = safeImage(profile.cover_url, officialShowcase);
-      const phone = String(branch?.phone || profile.whatsapp_phone || profile.phone || "");
-      const cleanPhone = phone.replace(/\D/g, "");
-      const whatsappPhone = cleanPhone.startsWith("00") ? cleanPhone.slice(2)
-        : cleanPhone.startsWith("0") ? "20" + cleanPhone.slice(1)
-        : cleanPhone.startsWith("1") && cleanPhone.length === 10 ? "20" + cleanPhone : cleanPhone;
+      const publicContact = getExplicitPublicContact(profile, branch);
+      const whatsappPhone = publicContact.whatsappNumber;
       return {
         id: business.id,
         status: String(business.status || "").trim().toUpperCase(),
@@ -222,9 +255,9 @@ Deno.serve(async (req: Request) => {
         activityCategoryCode: String(business.settings?.activity_category_code || ""),
         activityClassificationType: String(business.settings?.activity_classification_type || "activity").toLowerCase() === "profession" ? "profession" : "activity",
         activitySpecialty: String(business.settings?.activity_specialty || ""),
-        profile: { bio: String(profile.bio || provider?.description || business.settings?.headline || ""), governorate: String(profile.governorate || ""), markaz: String(profile.markaz || ""), village: String(profile.village || ""), workingHours: String(profile.working_hours || ""), logoUrl: externalLogoUrl || defaultImages.logoUrl, coverUrl: externalCoverUrl || defaultImages.coverUrl, externalLogoUrl, externalCoverUrl, google_maps_url: String(profile.google_maps_url || ""), category: activityCategory, whatsappPhone },
+        profile: { bio: String(profile.bio || provider?.description || business.settings?.headline || ""), governorate: String(profile.governorate || ""), markaz: String(profile.markaz || ""), village: String(profile.village || ""), workingHours: String(profile.working_hours || ""), logoUrl: externalLogoUrl || defaultImages.logoUrl, coverUrl: externalCoverUrl || defaultImages.coverUrl, externalLogoUrl, externalCoverUrl, google_maps_url: String(profile.google_maps_url || ""), category: activityCategory, phoneDisplay: publicContact.phoneDisplay, whatsappNumber: publicContact.whatsappNumber, whatsappUrl: publicContact.whatsappUrl, address: publicContact.address, additionalContactPhones: publicContact.additionalContactPhones, whatsappPhone },
         provider: { kind: activityCategory, description: provider?.description || profile.bio || business.settings?.headline || "", slug: provider?.slug || "", verified: Boolean(provider?.is_verified), featured: Boolean(provider?.is_featured) },
-        branches: (branches || []).map((entry: any) => ({ id: entry.id, name: entry.name, address: entry.address, phone: entry.phone })),
+        branches: (branches || []).map((entry: any) => ({ id: entry.id, name: entry.name, code: entry.code })),
         selectedBranchId: branchId || null,
         items: items.map((item: any) => ({
           id: item.id, status: String(item.status || "ACTIVE").trim().toUpperCase(),
@@ -235,7 +268,7 @@ Deno.serve(async (req: Request) => {
           catalog_item_id: price.catalog_item_id, branch_id: price.branch_id,
           currency: price.currency, unit_price: price.unit_price,
         })),
-        contactPhone: phone,
+        contactPhone: publicContact.phoneDisplay || publicContact.whatsappNumber,
         catalogPublished, publicEnabled: catalogPublished, isOfficialShowcase: officialShowcase,
         operationalStatus,
         operationallyAvailable: operationallyActive,
@@ -243,17 +276,83 @@ Deno.serve(async (req: Request) => {
       };
     };
 
-    // Limit concurrency to avoid a long serial N+1 request chain without flooding
-    // PostgREST when the directory contains many businesses.
-    const results: any[] = [];
-    const batchSize = 8;
-    const publicBusinessList = publicBusinesses.slice(0, 100);
-    for (let offset = 0; offset < publicBusinessList.length; offset += batchSize) {
-      const batch = publicBusinessList.slice(offset, offset + batchSize);
-      const built = await Promise.all(batch.map((business: any) => buildPublicBusiness(business)));
-      results.push(...built.filter((business: any) => business !== null));
+    // Read the public directory in stable keyset batches. The first-page snapshot
+    // freezes inserts by created_at; id is the immutable, unique ordering key.
+    while (results.length < PUBLIC_DIRECTORY_PAGE_SIZE + 1 && !exhausted && scanRounds < maxScanRounds) {
+      let businessQuery = db.from("businesses")
+        .select("id,tenant_id,organization_id,name,code,status,settings,created_at")
+        .in("tenant_id", productionTenantIds)
+        .eq("status", "ACTIVE")
+        .lte("created_at", snapshotAt)
+        .order("id", { ascending: true })
+        .limit(scanBatchSize);
+      if (scanAfterId) businessQuery = businessQuery.gt("id", scanAfterId);
+      const { data: businessRows, error: businessError } = await businessQuery;
+      if (businessError) throw businessError;
+      const rows = businessRows || [];
+      if (!rows.length) {
+        exhausted = true;
+        break;
+      }
+      scanAfterId = String(rows[rows.length - 1].id || "");
+      scanRounds += 1;
+      if (rows.length < scanBatchSize) exhausted = true;
+
+      const directoryBusinesses = rows.filter((business: any) =>
+        business.settings?.catalog_public_enabled === true || isOfficialShowcase(business)
+      );
+      if (!directoryBusinesses.length) continue;
+
+      const businessIds = directoryBusinesses.map((business: any) => business.id);
+      const { data: providers, error: providerError } = await db.from("marketing_provider_profiles")
+        .select("business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured,specialties")
+        .in("business_id", businessIds).eq("status", "ACTIVE").limit(250);
+      if (providerError) throw providerError;
+      providerMap.clear();
+      for (const provider of providers || []) providerMap.set(String(provider.business_id), provider);
+
+      const matchingBusinesses = directoryBusinesses.filter((business: any) => {
+        const provider: any = providerMap.get(String(business.id));
+        if (!provider) return false;
+        if (requestedSlugs.size && !requestedSlugs.has(String(provider.slug || "").trim())) return false;
+        return matchesDirectoryBusinessFilters(business, provider, filters);
+      });
+
+      // Bounded fan-out: branch and catalog reads are performed for at most 8
+      // businesses concurrently. Keep database ordering when collecting results.
+      for (let offset = 0; offset < matchingBusinesses.length && results.length < PUBLIC_DIRECTORY_PAGE_SIZE + 1; offset += 8) {
+        const batch = matchingBusinesses.slice(offset, offset + 8);
+        const built = await Promise.all(batch.map((business: any) => buildPublicBusiness(business)));
+        for (const business of built) {
+          if (!business) continue;
+          results.push(business);
+          if (results.length >= PUBLIC_DIRECTORY_PAGE_SIZE + 1) break;
+        }
+      }
     }
-    return response(origin, { businesses: results, activityModuleOverrides, activityModuleOverridesAvailable, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
+
+    if (!exhausted && results.length <= PUBLIC_DIRECTORY_PAGE_SIZE && scanRounds >= maxScanRounds) {
+      return response(origin, { error: "DIRECTORY_SCAN_LIMIT_EXCEEDED", retryable: true }, 503);
+    }
+
+    const hasMore = results.length > PUBLIC_DIRECTORY_PAGE_SIZE;
+    const pageBusinesses = results.slice(0, PUBLIC_DIRECTORY_PAGE_SIZE);
+    const nextCursor = hasMore && pageBusinesses.length
+      ? await issueDirectoryCursor({
+          lastId: String(pageBusinesses[pageBusinesses.length - 1].id),
+          snapshotAt,
+          scopeHash,
+          secret: serviceKey,
+        })
+      : null;
+
+    return response(origin, {
+      businesses: pageBusinesses,
+      activityModuleOverrides,
+      activityModuleOverridesAvailable,
+      accessMode: "PUBLIC_DIRECTORY_READ_ONLY",
+      pagination: { pageSize: PUBLIC_DIRECTORY_PAGE_SIZE, hasMore, nextCursor },
+    });
   } catch (error) {
     console.error("public-catalog-directory failed", error instanceof Error ? error.message : "UNKNOWN");
     return response(origin, { error: "PUBLIC_DIRECTORY_UNAVAILABLE" }, 500);
