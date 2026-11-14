@@ -292,17 +292,17 @@ assert.match(publicDirectoryFunction, /business\.settings\?\.catalog_public_enab
   'Directory visibility must follow approved publication, not operational status.');
 assert.match(publicDirectoryFunction, /if \(catalogPublished && operationallyActive\)/,
   'Directory may return an approved profile while omitting sellable items when operations are paused.');
-assert.match(publicDirectoryFunction, String.raw`/\.order\("id", \\{ ascending: true \\}\\)/`,
+assert.ok(publicDirectoryFunction.includes('.order("id", { ascending: true })'),
   'Public directory pagination must use a stable unique keyset order.');
-assert.match(publicDirectoryFunction, String.raw`/\.gt\("id", scanAfterId\)/`,
+assert.ok(publicDirectoryFunction.includes('.gt("id", scanAfterId)'),
   'Public directory pagination must continue after the signed last-seen business id.');
-assert.match(publicDirectoryFunction, String.raw`/\.lte\("created_at", snapshotAt\)/`,
+assert.ok(publicDirectoryFunction.includes('.lte("created_at", snapshotAt)'),
   'Directory pagination must preserve the original first-page insert snapshot.');
-assert.match(publicDirectoryFunction, /pagination: \\{ pageSize: PUBLIC_DIRECTORY_PAGE_SIZE, hasMore, nextCursor \\}/,
+assert.ok(publicDirectoryFunction.includes('pagination: { pageSize: PUBLIC_DIRECTORY_PAGE_SIZE, hasMore, nextCursor }'),
   'Public directory must return a strict 20-row page contract and an opaque next cursor.');
-assert.match(publicDirectoryFunction, /verifyDirectoryCursor\\(rawCursor/,
+assert.ok(publicDirectoryFunction.includes('verifyDirectoryCursor(rawCursor'),
   'Public directory must reject tampered or cross-filter cursors.');
-assert.match(publicDirectoryFunction, /matchesDirectoryBusinessFilters\\(business, provider, filters\\)/,
+assert.ok(publicDirectoryFunction.includes('matchesDirectoryBusinessFilters(business, provider, filters)'),
   'Public directory must apply activity, specialty and geographic filters before returning rows.');
 assert.match(publicCatalogFunction, /if \(operationallyActive\)/,
   'Public storefront must omit products/services when operations are paused.');
