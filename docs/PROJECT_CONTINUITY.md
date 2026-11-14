@@ -28,14 +28,15 @@
 | #725 | Orders read scope by business/branch | 25/25 checks passed; draft, not merged |
 | #726 | Public contact opt-in, signed cursor pagination, frontend “See more” integration | Latest head `a8b6d80`; CI queued/running, no failures on that head |
 | #727 | Businesses and branches RLS scope | 24/24 checks passed; draft, not merged |
+| #728 | Directory listings v16 reconciliation: public metadata sanitizer, private identity stripping, strict doctor publication gate and CORS guard | Draft; CI queued/running |
 
 - Migration order: review/merge #722 before #724 where practical. #722's migration version `20261113020000` precedes RC464 `20261113214500` and hardens four existing helper-dependent SECURITY DEFINER callers.
-- PR #724 is based on the current main tree as of `1b3a7c4`; its merge base is current main. After #722 merges, refresh #724 against the new main head and rerun the full chain.
+- PR #724 is based on the current main tree as of `1b3a7c4`; its merge base is current main. After #722 merges, refresh #724 and #728 against the new main head and rerun the full chain.
 - No PR has been merged, no production migration was applied, and no production Edge Function or Pages deployment occurred.
 
 ## Remaining release gates
 
-1. Finish exact-head CI for #722, #724 and #726, including the new financial-report regression and public-contact/privacy/browser checks.
+1. Finish exact-head CI for #722, #724, #726 and #728, including the new financial-report regression and public-contact/privacy/browser checks.
 2. Review the complete diffs and preserve the draft/human-review gate; do not merge or deploy solely because CI passes.
 3. Run the complete migration replay and restore rehearsal against a fresh schema checkpoint; verify backup recovery and rollback before any production change.
 4. For #726, deploy the public Edge Function before the frontend that relies on 20-record cursor pages, then smoke-test page continuity, duplicate prevention, filter-bound cursors, expiry, explicit contact consent, CORS and existing catalog behavior.
