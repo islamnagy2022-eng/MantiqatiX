@@ -24,7 +24,7 @@ assert.match(edge, /priceQuery\(\)\.eq\("branch_id", branchId\)/, "Branch prices
 assert.doesNotMatch(edge, /\.or\(\x60branch_id\.is\.null,branch_id\.eq\.\$\{branchId\}\x60\)/, "Do not interpolate branch IDs into PostgREST OR expressions");
 assert.match(edge, /pagination: \{ pageSize: PUBLIC_DIRECTORY_PAGE_SIZE, hasMore, nextCursor \}/);
 assert.match(edge, /DIRECTORY_SCAN_LIMIT_EXCEEDED/);
-assert.match(edge, /getExplicitPublicContact\(profile\)/);
+assert.match(edge, /getExplicitPublicContact\(profile,\s*branch\)/);
 assert.doesNotMatch(edge, /\.select\(["']id,name,code,status,address,phone["']\)/);
 assert.doesNotMatch(edge, /\.range\(/, "Keyset pagination must not use offset ranges");
 
