@@ -65,6 +65,8 @@ BEGIN
     RAISE EXCEPTION 'RC466_EXPECTED_DEPARTMENT_MANAGER_GRANTS_MISSING';
   END IF;
 
+  -- public.businesses intentionally retains anon SELECT for the official showcase.
+  -- Only branches and private inventory tables are required to remain non-public.
   IF pg_catalog.has_table_privilege('anon', 'public.branches', 'SELECT')
      OR pg_catalog.has_table_privilege('anon', 'public.departments', 'SELECT')
      OR pg_catalog.has_table_privilege('anon', 'public.warehouses', 'SELECT')
