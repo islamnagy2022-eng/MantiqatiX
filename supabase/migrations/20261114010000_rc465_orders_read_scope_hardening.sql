@@ -10,9 +10,11 @@ DO $preflight$
 DECLARE
   v_orders_rls boolean;
   v_memberships_rls boolean;
+  v_history_rls boolean;
 BEGIN
   IF pg_catalog.to_regclass('public.orders') IS NULL
-     OR pg_catalog.to_regclass('public.user_memberships') IS NULL THEN
+     OR pg_catalog.to_regclass('public.user_memberships') IS NULL
+     OR pg_catalog.to_regclass('public.order_status_history') IS NULL THEN
     RAISE EXCEPTION 'RC465_REQUIRED_TABLE_MISSING';
   END IF;
 
@@ -24,13 +26,19 @@ BEGIN
   FROM pg_catalog.pg_class c
   WHERE c.oid = pg_catalog.to_regclass('public.user_memberships');
 
+  SELECT c.relrowsecurity INTO v_history_rls
+  FROM pg_catalog.pg_class c
+  WHERE c.oid = pg_catalog.to_regclass('public.order_status_history');
+
   IF NOT coalesce(v_orders_rls, false)
-     OR NOT coalesce(v_memberships_rls, false) THEN
+     OR NOT coalesce(v_memberships_rls, false)
+     OR NOT coalesce(v_history_rls, false) THEN
     RAISE EXCEPTION 'RC465_RLS_MUST_REMAIN_ENABLED';
   END IF;
 
   IF NOT pg_catalog.has_table_privilege('authenticated', 'public.orders', 'SELECT')
-     OR NOT pg_catalog.has_table_privilege('authenticated', 'public.user_memberships', 'SELECT') THEN
+     OR NOT pg_catalog.has_table_privilege('authenticated', 'public.user_memberships', 'SELECT')
+     OR NOT pg_catalog.has_table_privilege('authenticated', 'public.order_status_history', 'SELECT') THEN
     RAISE EXCEPTION 'RC465_EXPECTED_READ_ONLY_AUTHENTICATED_GRANTS_MISSING';
   END IF;
 
@@ -46,8 +54,16 @@ BEGIN
     SELECT 1 FROM pg_catalog.pg_policies
     WHERE schemaname = 'public' AND tablename = 'orders'
       AND policyname = 'orders_customer_select_own' AND cmd = 'SELECT'
+  ) OR NOT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_policies
+    WHERE schemaname = 'public' AND tablename = 'order_status_history'
+      AND policyname = 'order_status_history_member_read' AND cmd = 'SELECT'
+  ) OR NOT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_policies
+    WHERE schemaname = 'public' AND tablename = 'order_status_history'
+      AND policyname = 'order_status_history_customer_select_own' AND cmd = 'SELECT'
   ) THEN
-    RAISE EXCEPTION 'RC465_EXPECTED_ORDER_SELECT_POLICIES_MISSING';
+    RAISE EXCEPTION 'RC465_EXPECTED_ORDER_AND_HISTORY_SELECT_POLICIES_MISSING';
   END IF;
 END;
 $preflight$;
@@ -124,6 +140,90 @@ USING (
 
 COMMENT ON POLICY orders_member_select ON public.orders IS
   'RC465: tenant-wide reads require a fully unscoped OWNER/ADMIN; all scoped operational memberships match the exact order business and branch. Customer-owned cross-tenant reads remain in orders_customer_select_own.';
+
+-- Order history is a child resource of orders. Its former tenant-only and
+-- generic authenticated-session ALL policies bypassed the order's business/branch
+-- boundary because permissive RLS policies are ORed together.
+DROP POLICY IF EXISTS authenticated_sessions_only ON public.order_status_history;
+DROP POLICY IF EXISTS deny_anonymous_users ON public.order_status_history;
+DROP POLICY IF EXISTS mnt_non_anonymous_boundary ON public.order_status_history;
+DROP POLICY IF EXISTS non_anonymous_authenticated_guard ON public.order_status_history;
+
+DROP POLICY order_status_history_member_read ON public.order_status_history;
+CREATE POLICY order_status_history_member_read
+ON public.order_status_history
+FOR SELECT
+TO authenticated
+USING (
+  coalesce((auth.jwt() ->> 'is_anonymous'), 'false') <> 'true'
+  AND EXISTS (
+    SELECT 1
+    FROM public.orders o
+    WHERE o.id = order_status_history.order_id
+      AND o.tenant_id::text = order_status_history.tenant_id::text
+      AND o.business_id = order_status_history.business_id
+      AND o.branch_id IS NOT DISTINCT FROM order_status_history.branch_id
+  )
+);
+
+DROP POLICY order_status_history_customer_select_own ON public.order_status_history;
+CREATE POLICY order_status_history_customer_select_own
+ON public.order_status_history
+FOR SELECT
+TO authenticated
+USING (
+  coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) = false
+  AND EXISTS (
+    SELECT 1
+    FROM public.orders o
+    WHERE o.id = order_status_history.order_id
+      AND o.customer_id = auth.uid()
+      AND o.tenant_id::text = order_status_history.tenant_id::text
+      AND o.business_id = order_status_history.business_id
+      AND o.branch_id IS NOT DISTINCT FROM order_status_history.branch_id
+  )
+);
+
+-- Keep the legacy insert policy fail-closed even if a future release adds a
+-- client INSERT grant: actor, membership, exact order, business and branch must agree.
+DROP POLICY order_status_history_manager_insert ON public.order_status_history;
+CREATE POLICY order_status_history_manager_insert
+ON public.order_status_history
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  changed_by = auth.uid()
+  AND EXISTS (
+    SELECT 1
+    FROM public.user_memberships um
+    WHERE um.user_id = auth.uid()
+      AND um.tenant_id::text = order_status_history.tenant_id::text
+      AND um.status = 'ACTIVE'
+      AND upper(um.role) = ANY (ARRAY['OWNER','ADMIN','MANAGER'])
+      AND (
+        (um.business_id IS NULL AND um.branch_id IS NULL)
+        OR (
+          um.business_id = order_status_history.business_id
+          AND um.branch_id IS NOT DISTINCT FROM order_status_history.branch_id
+        )
+      )
+  )
+  AND EXISTS (
+    SELECT 1
+    FROM public.orders o
+    WHERE o.id = order_status_history.order_id
+      AND o.tenant_id::text = order_status_history.tenant_id::text
+      AND o.business_id = order_status_history.business_id
+      AND o.branch_id IS NOT DISTINCT FROM order_status_history.branch_id
+  )
+);
+
+COMMENT ON POLICY order_status_history_member_read ON public.order_status_history IS
+  'RC465: order history inherits the parent order visibility boundary; business and branch identifiers must match the parent order.';
+COMMENT ON POLICY order_status_history_customer_select_own ON public.order_status_history IS
+  'RC465: customers can read history only for their own orders and only when the history scope matches the parent order.';
+COMMENT ON POLICY order_status_history_manager_insert ON public.order_status_history IS
+  'RC465: future authenticated writes require an active manager membership in the exact business/branch scope and a matching parent order.';
 
 COMMENT ON POLICY orders_provider_select_own_business ON public.orders IS
   'RC465: service providers read only their own business; branch-scoped providers are restricted to their assigned branch.';
