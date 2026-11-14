@@ -11,7 +11,7 @@ const workflow = read("../.github/workflows/mantigo-platform-admin-scope.yml");
 const checks = [
   ["financial report uses live ledger columns", /sum\(l\.gross_amount\)/.test(migration) && /sum\(l\.captain_net_amount\)/.test(migration) && !/sum\(l\.amount\)|sum\(l\.captain_amount\)/.test(migration)],
   ["live ledger regression verifies the actual production columns", /gross_amount/.test(financialReportTest) && /captain_net_amount/.test(financialReportTest) && /amount IS NOT NULL OR captain_amount IS NOT NULL/.test(financialReportTest)],
-  ["migration is wrapped in one transaction", /^\s*BEGIN;\s*/i.test(migration) && /COMMIT;\s*$/i.test(migration)],
+  ["migration is wrapped in one transaction", /BEGIN;[\s\S]*?DO \$preflight\$/.test(migration) && /COMMIT;\s*$/.test(migration)],
   ["migration uses canonical private platform registry", /FROM\s+private\.platform_admins\s+pa[\s\S]*?pa\.user_id\s*=\s*auth\.uid\(\)/i.test(migration)],
   ["migration does not fall back to membership roles or generic RBAC", !/FROM\s+public\.user_memberships/i.test(migration) && !/public\.mnty_can\s*\(/i.test(migration)],
   ["migration preflight checks exact argument types for all four helper callers", ["character varying, text, text, timestamp with time zone, timestamp with time zone","uuid, uuid, uuid","uuid, uuid, text, text, text, text, jsonb","uuid, numeric, text"].every((sig) => migration.includes(sig)) && migration.includes("pg_catalog.oidvectortypes(p.proargtypes)")],
