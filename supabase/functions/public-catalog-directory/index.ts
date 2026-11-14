@@ -197,23 +197,40 @@ Deno.serve(async (req: Request) => {
       let items: any[] = [];
       let prices: any[] = [];
       if (catalogPublished && operationallyActive) {
-        const { data: itemRows, error: itemError } = await db.from("catalog_items")
+        const itemQuery = () => db.from("catalog_items")
           .select("id,tenant_id,business_id,branch_id,item_type,name_ar,name_en,description,status,metadata")
           .eq("tenant_id", tenantId).eq("business_id", business.id).eq("status", "ACTIVE")
-          .or(`branch_id.is.null,branch_id.eq.${branchId}`).order("name_ar").limit(150);
-        if (itemError) throw itemError;
-        items = (itemRows || []).filter((i: any) => i.metadata?.catalog_public?.is_available === true);
+          .order("name_ar").limit(150);
+        const [globalItemResult, branchItemResult] = await Promise.all([
+          itemQuery().is("branch_id", null),
+          itemQuery().eq("branch_id", branchId),
+        ]);
+        if (globalItemResult.error || branchItemResult.error) {
+          throw globalItemResult.error || branchItemResult.error;
+        }
+        items = [...(globalItemResult.data || []), ...(branchItemResult.data || [])]
+          .filter((i: any) => i.metadata?.catalog_public?.is_available === true)
+          .slice(0, 150);
         const itemIds = items.map((i: any) => i.id);
         if (itemIds.length) {
           const now = new Date().toISOString();
-          const { data: p, error: priceError } = await db.from("catalog_item_prices")
+          const priceQuery = () => db.from("catalog_item_prices")
             .select("id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to")
             .eq("tenant_id", tenantId).in("catalog_item_id", itemIds).eq("status", "ACTIVE")
-             .or(`branch_id.is.null,branch_id.eq.${branchId}`)
-            .lte("effective_from", now).or(`effective_to.is.null,effective_to.gte.${now}`).order("version", { ascending: false }).limit(1000);
-          if (priceError) throw priceError;
+            .lte("effective_from", now).or(`effective_to.is.null,effective_to.gte.${now}`)
+            .order("version", { ascending: false }).limit(1000);
+          const [globalPriceResult, branchPriceResult] = await Promise.all([
+            priceQuery().is("branch_id", null),
+            priceQuery().eq("branch_id", branchId),
+          ]);
+          if (globalPriceResult.error || branchPriceResult.error) {
+            throw globalPriceResult.error || branchPriceResult.error;
+          }
           // Stored prices are returned only when the owner explicitly opted in with show_price=true.
-          prices = filterRowsToPubliclyPricedItems(items, p || []);
+          prices = filterRowsToPubliclyPricedItems(items, [
+            ...(globalPriceResult.data || []),
+            ...(branchPriceResult.data || []),
+          ]);
         }
       }
       const profile = business.settings?.catalog_profile || {};
