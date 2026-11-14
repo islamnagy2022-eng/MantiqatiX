@@ -31,6 +31,7 @@ const emptyPublicContact = () => ({
   additionalContactPhones: [],
 });
 
+/** @param {unknown} value @param {Record<string, unknown> | null} [branchValue] */
 export const getExplicitPublicContact = (value, branchValue = null) => {
   const profile = value && typeof value === "object" && !Array.isArray(value) ? value : {};
   // Legacy profile keys and operational branch fields are never consent by themselves.
