@@ -37,6 +37,7 @@ assert.ok(admin.includes("PUBLIC_CONTACT_CONSENT_ACTIVATION_CONFLICT"));
 assert.ok(admin.indexOf("PUBLIC_CONTACT_CONSENT_GRANTED") < admin.indexOf("public_contact_consent_audit_verified: true"), "Public consent activation must follow successful audit persistence");
 assert.ok(admin.includes("PUBLIC_CONTACT_CONSENT_GRANTED"));
 assert.ok(admin.includes("PUBLIC_CONTACT_CONSENT_REVOKED"));
+assert.equal(admin.split("public_contact_consent_audit_verified: profile.public_contact_consent_audit_verified === true").length - 1, 2, "Both owner CATALOG_READ response paths must restore the audited consent state");
 assert.ok(admin.includes('service.from("audit_logs").insert'));
 assert.ok(admin.includes('["OWNER", "BUSINESS_OWNER", "ADMIN"]'));
 assert.ok(merchant.includes("bizPublicContactEnabled"));
@@ -51,4 +52,4 @@ assert.ok(mapper.includes("address: isPublicProjection ? String(profile.address 
 assert.ok(mapper.includes('accessMode: data?.accessMode || "PUBLIC_DIRECTORY_READ_ONLY"'));
 assert.ok(mapper.includes('accessMode: body.accessMode || "PUBLIC_READ_ONLY"'));
 
-console.log("PUBLIC_CATALOG_CONTACT_PRIVACY_STATIC=PASS (34 assertions)");
+console.log("PUBLIC_CATALOG_CONTACT_PRIVACY_STATIC=PASS (35 assertions)");
