@@ -53,4 +53,4 @@ jobs:
       - name: Test signed public directory cursor
         run: node --test supabase/functions/_shared/public-directory-pagination.test.mjs
       - name: Type-check public Supabase Edge Functions with Deno
-        run: deno check supabase/functions/public-catalog-directory/index.ts supabase/functions/public-catalog/index.ts
+        run: deno check --node-modules-dir=auto supabase/functions/public-catalog-directory/index.ts supabase/functions/public-catalog/index.ts
