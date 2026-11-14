@@ -36,6 +36,8 @@
 
 ## Remaining release gates
 
+- Use `docs/release/PRODUCTION_VALIDATION_RUNBOOK_20261114.md` for the controlled sequence covering migration reconciliation, Edge Function parity, Paymob sandbox E2E, backup/restore, Auth, adversarial RLS and stop conditions. The runbook authorizes no Production mutation.
+
 1. Finish exact-head CI for #722, #724, #726 and #728, including the new financial-report regression and public-contact/privacy/browser checks.
 2. Review the complete diffs and preserve the draft/human-review gate; do not merge or deploy solely because CI passes.
 3. Run the complete migration replay and restore rehearsal against a fresh schema checkpoint; verify backup recovery and rollback before any production change.
