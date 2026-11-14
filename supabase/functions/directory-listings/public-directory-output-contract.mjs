@@ -36,14 +36,13 @@ export function sanitizePublicDirectoryMetadata(value) {
 export function sanitizePublicDirectoryListing(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const {
-    verified_by: verifiedBy,
+    verified_by: _verifiedBy,
     claimed_user_id: _claimedUserId,
     claimed_business_id: _claimedBusinessId,
     ...publicRow
   } = value;
   return {
     ...publicRow,
-    is_verified: Boolean(verifiedBy),
     metadata: sanitizePublicDirectoryMetadata(publicRow.metadata),
   };
 }
