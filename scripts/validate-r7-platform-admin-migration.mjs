@@ -8,6 +8,7 @@ const integration = read("../supabase/tests/r7_platform_admin_helper_callers_int
 const workflow = read("../.github/workflows/mantigo-platform-admin-scope.yml");
 
 const checks = [
+  ["financial report uses live ledger columns", /sum\\(l\\.gross_amount\\)/.test(migration) && /sum\\(l\\.captain_net_amount\\)/.test(migration) && !/sum\\(l\\.amount\\)|sum\\(l\\.captain_amount\\)/.test(migration)],
   ["migration is wrapped in one transaction", /^\s*BEGIN;\s*/i.test(migration) && /COMMIT;\s*$/i.test(migration)],
   ["migration uses canonical private platform registry", /FROM\s+private\.platform_admins\s+pa[\s\S]*?pa\.user_id\s*=\s*auth\.uid\(\)/i.test(migration)],
   ["migration does not fall back to membership roles or generic RBAC", !/FROM\s+public\.user_memberships/i.test(migration) && !/public\.mnty_can\s*\(/i.test(migration)],
