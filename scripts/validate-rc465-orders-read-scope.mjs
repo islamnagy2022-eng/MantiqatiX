@@ -26,12 +26,18 @@ assert.match(migration, /order_status_history', 'SELECT'/, 'existing history rea
 for (const broadPolicy of ['authenticated_sessions_only', 'deny_anonymous_users', 'mnt_non_anonymous_boundary', 'non_anonymous_authenticated_guard']) {
   assert.match(migration, new RegExp('DROP POLICY IF EXISTS ' + broadPolicy + ' ON public\\.order_status_history'), 'broad permissive history policy must be removed: ' + broadPolicy);
 }
-assert.match(migration, /CREATE POLICY order_status_history_member_read[\\s\\S]*?FROM public\.orders o[\\s\\S]*?o\.business_id = order_status_history\.business_id[\\s\\S]*?o\.branch_id IS NOT DISTINCT FROM order_status_history\.branch_id/, 'history reads must inherit exact parent order business/branch visibility');
-assert.match(migration, /CREATE POLICY order_status_history_customer_select_own[\\s\\S]*?o\.customer_id = auth\.uid\(\)/, 'customer history reads must remain limited to their own orders');
-assert.match(migration, /CREATE POLICY order_status_history_manager_insert[\\s\\S]*?um\.business_id = order_status_history\.business_id[\\s\\S]*?um\.branch_id IS NOT DISTINCT FROM order_status_history\.branch_id/, 'future manager history writes must match exact business/branch scope');
+const historyReadPolicy = migration.slice(migration.indexOf('CREATE POLICY order_status_history_member_read'), migration.indexOf('DROP POLICY order_status_history_customer_select_own'));
+assert.ok(historyReadPolicy.includes('FROM public.orders o'), 'history reads must be tied to the parent order');
+assert.ok(historyReadPolicy.includes('o.business_id = order_status_history.business_id'), 'history reads must match the parent business');
+assert.ok(historyReadPolicy.includes('o.branch_id IS NOT DISTINCT FROM order_status_history.branch_id'), 'history reads must match the exact parent branch');
+const historyCustomerPolicy = migration.slice(migration.indexOf('CREATE POLICY order_status_history_customer_select_own'), migration.indexOf('DROP POLICY order_status_history_manager_insert'));
+assert.ok(historyCustomerPolicy.includes('o.customer_id = auth.uid()'), 'customer history reads must remain limited to their own orders');
+const historyInsertPolicy = migration.slice(migration.indexOf('CREATE POLICY order_status_history_manager_insert'), migration.indexOf('COMMENT ON POLICY order_status_history_member_read'));
+assert.ok(historyInsertPolicy.includes('um.business_id = order_status_history.business_id'), 'future manager history writes must match the exact business');
+assert.ok(historyInsertPolicy.includes('um.branch_id IS NOT DISTINCT FROM order_status_history.branch_id'), 'future manager history writes must match the exact branch');
 
-assert.match(fixture, /CREATE TABLE public\.order_status_history/i, 'fixture must include order history rows'); 
-assert.match(fixture, /CREATE POLICY authenticated_sessions_only[\\s\\S]*?ON public\.order_status_history FOR ALL/i, 'fixture must reproduce the broad legacy history policy');
+assert.ok(fixture.includes('CREATE TABLE public.order_status_history'), 'fixture must include order history rows');
+assert.ok(fixture.includes('CREATE POLICY authenticated_sessions_only') && fixture.includes('ON public.order_status_history FOR ALL'), 'fixture must reproduce the broad legacy history policy');
 assert.match(fixture, /CREATE POLICY order_status_history_member_read/i, 'fixture must reproduce the legacy tenant-only history policy');
 assert.match(baseline, /public\.order_status_history/, 'baseline must demonstrate tenant-wide history exposure');
 assert.match(integration, /order_status_history/, 'integration tests must exercise order history');
