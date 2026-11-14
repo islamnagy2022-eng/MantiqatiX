@@ -25,6 +25,10 @@ on:
       - "apps/catalog-frontend/src/lib/production.ts"
       - "scripts/validate-public-contact-visibility.mjs"
       - "scripts/validate-business-social-links.mjs"
+      - "supabase/functions/_shared/public-directory-pagination.mjs"
+      - "supabase/functions/_shared/public-directory-pagination.test.mjs"
+      - "scripts/validate-public-directory-pagination.mjs"
+      - "scripts/validate-production-catalog-real-state.mjs"
       - ".github/workflows/public-catalog-contact-privacy.yml"
 permissions:
   contents: read
@@ -37,6 +41,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
       - name: Validate public contact boundary
         run: node scripts/validate-public-contact-visibility.mjs
       - name: Test explicit contact projection
@@ -45,3 +52,5 @@ jobs:
         run: node scripts/validate-public-directory-pagination.mjs
       - name: Test signed public directory cursor
         run: node --test supabase/functions/_shared/public-directory-pagination.test.mjs
+      - name: Type-check public Supabase Edge Functions with Deno
+        run: deno check supabase/functions/public-catalog-directory/index.ts supabase/functions/public-catalog/index.ts
