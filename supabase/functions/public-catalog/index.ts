@@ -84,7 +84,7 @@ Deno.serve(async (req: Request) => {
     const tenantId = String(business.tenant_id || "");
     if (!tenantId) return response(origin, { error: "BUSINESS_TENANT_MISSING" }, 500);
     const { data: branches, error: branchError } = await db.from("branches")
-      .select("id,name,code,status")
+      .select("id,name,code,status,address,phone")
       .eq("tenant_id", tenantId)
       .eq("business_id", businessId)
       .eq("status", "ACTIVE")
@@ -201,7 +201,7 @@ Deno.serve(async (req: Request) => {
     });
 
     const profile = business.settings?.catalog_profile || {};
-    const publicContact = getExplicitPublicContact(profile);
+    const publicContact = getExplicitPublicContact(profile, selectedBranch);
     return response(origin, {
       business: {
         id: business.id, name: business.name, code: business.code, operationalStatus, isOperationallyAvailable: operationallyActive,
