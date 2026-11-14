@@ -51,10 +51,55 @@ CREATE TABLE public.branches (
   name text NOT NULL,
   status text NOT NULL DEFAULT 'ACTIVE'
 );
+CREATE TABLE public.departments (
+  id text PRIMARY KEY,
+  tenant_id text NOT NULL,
+  business_id uuid NOT NULL,
+  branch_id text,
+  name text NOT NULL,
+  code text NOT NULL,
+  status text NOT NULL DEFAULT 'ACTIVE'
+);
+CREATE TABLE public.warehouses (
+  id text PRIMARY KEY,
+  tenant_id text NOT NULL,
+  business_id uuid NOT NULL,
+  branch_id text,
+  name text NOT NULL,
+  code text NOT NULL,
+  status text NOT NULL DEFAULT 'ACTIVE'
+);
+CREATE TABLE public.stock_balances (
+  id text PRIMARY KEY,
+  tenant_id text NOT NULL,
+  business_id uuid NOT NULL,
+  branch_id text,
+  warehouse_id text NOT NULL REFERENCES public.warehouses(id),
+  product_id uuid NOT NULL,
+  quantity_on_hand numeric NOT NULL DEFAULT 0,
+  quantity_reserved numeric NOT NULL DEFAULT 0
+);
+CREATE TABLE public.inventory_transactions (
+  id text PRIMARY KEY,
+  tenant_id text NOT NULL,
+  business_id uuid NOT NULL,
+  branch_id text,
+  warehouse_id text REFERENCES public.warehouses(id),
+  product_id uuid NOT NULL,
+  transaction_type text NOT NULL,
+  quantity numeric NOT NULL,
+  unit_cost numeric NOT NULL DEFAULT 0,
+  created_by uuid,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
 
 ALTER TABLE public.user_memberships ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.businesses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.branches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.departments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.warehouses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.stock_balances ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.inventory_transactions ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY memberships_select_self
 ON public.user_memberships FOR SELECT TO authenticated
@@ -199,8 +244,140 @@ ON public.branches AS RESTRICTIVE FOR ALL TO authenticated
 USING (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true')
 WITH CHECK (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true');
 
+-- Department, warehouse and inventory policies reproduce the live tenant-only baseline.
+CREATE POLICY departments_member_read
+ON public.departments FOR SELECT TO authenticated
+USING (EXISTS (
+  SELECT 1 FROM public.user_memberships um
+  WHERE um.user_id=auth.uid() AND um.tenant_id::text=departments.tenant_id::text AND um.status='ACTIVE'
+));
+CREATE POLICY departments_manager_write
+ON public.departments FOR ALL TO authenticated
+USING (EXISTS (
+  SELECT 1 FROM public.user_memberships um
+  WHERE um.user_id=auth.uid() AND um.tenant_id::text=departments.tenant_id::text
+    AND um.status='ACTIVE' AND um.role=ANY(ARRAY['OWNER','ADMIN','MANAGER'])
+))
+WITH CHECK (EXISTS (
+  SELECT 1 FROM public.user_memberships um
+  WHERE um.user_id=auth.uid() AND um.tenant_id::text=departments.tenant_id::text
+    AND um.status='ACTIVE' AND um.role=ANY(ARRAY['OWNER','ADMIN','MANAGER'])
+));
+
+CREATE POLICY warehouses_member_read
+ON public.warehouses FOR SELECT TO authenticated
+USING (EXISTS (
+  SELECT 1 FROM public.user_memberships um
+  WHERE um.user_id=auth.uid() AND um.tenant_id::text=warehouses.tenant_id::text AND um.status='ACTIVE'
+));
+CREATE POLICY warehouses_manager_insert
+ON public.warehouses FOR INSERT TO authenticated
+WITH CHECK (EXISTS (
+  SELECT 1 FROM public.user_memberships um
+  WHERE um.user_id=auth.uid() AND um.tenant_id::text=warehouses.tenant_id::text
+    AND um.status='ACTIVE' AND um.role=ANY(ARRAY['OWNER','ADMIN','MANAGER'])
+));
+CREATE POLICY warehouses_manager_update
+ON public.warehouses FOR UPDATE TO authenticated
+USING (EXISTS (
+  SELECT 1 FROM public.user_memberships um
+  WHERE um.user_id=auth.uid() AND um.tenant_id::text=warehouses.tenant_id::text
+    AND um.status='ACTIVE' AND um.role=ANY(ARRAY['OWNER','ADMIN','MANAGER'])
+))
+WITH CHECK (EXISTS (
+  SELECT 1 FROM public.user_memberships um
+  WHERE um.user_id=auth.uid() AND um.tenant_id::text=warehouses.tenant_id::text
+    AND um.status='ACTIVE' AND um.role=ANY(ARRAY['OWNER','ADMIN','MANAGER'])
+));
+CREATE POLICY warehouses_manager_delete
+ON public.warehouses FOR DELETE TO authenticated
+USING (EXISTS (
+  SELECT 1 FROM public.user_memberships um
+  WHERE um.user_id=auth.uid() AND um.tenant_id::text=warehouses.tenant_id::text
+    AND um.status='ACTIVE' AND um.role=ANY(ARRAY['OWNER','ADMIN','MANAGER'])
+));
+
+CREATE POLICY stock_balances_member_read
+ON public.stock_balances FOR SELECT TO authenticated
+USING (EXISTS (
+  SELECT 1 FROM public.user_memberships um
+  WHERE um.user_id=auth.uid() AND um.tenant_id::text=stock_balances.tenant_id::text AND um.status='ACTIVE'
+));
+
+CREATE POLICY inventory_transactions_member_read
+ON public.inventory_transactions FOR SELECT TO authenticated
+USING (EXISTS (
+  SELECT 1 FROM public.user_memberships um
+  WHERE um.user_id=auth.uid() AND um.tenant_id::text=inventory_transactions.tenant_id::text AND um.status='ACTIVE'
+));
+CREATE POLICY inventory_transactions_manager_insert
+ON public.inventory_transactions FOR INSERT TO authenticated
+WITH CHECK (
+  created_by=auth.uid()
+  AND EXISTS (
+    SELECT 1 FROM public.user_memberships um
+    WHERE um.user_id=auth.uid() AND um.tenant_id::text=inventory_transactions.tenant_id::text
+      AND um.status='ACTIVE' AND um.role=ANY(ARRAY['OWNER','ADMIN','MANAGER'])
+  )
+);
+
+-- Preserve the live restrictive anonymous-session guards on each new table.
+CREATE POLICY authenticated_sessions_only ON public.departments AS RESTRICTIVE FOR ALL TO authenticated
+USING (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true')
+WITH CHECK (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true');
+CREATE POLICY deny_anonymous_users ON public.departments AS RESTRICTIVE FOR ALL TO authenticated
+USING (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true')
+WITH CHECK (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true');
+CREATE POLICY mnt_non_anonymous_boundary ON public.departments AS RESTRICTIVE FOR ALL TO authenticated
+USING (coalesce(((auth.jwt() ->> 'is_anonymous'))::boolean,false)=false)
+WITH CHECK (coalesce(((auth.jwt() ->> 'is_anonymous'))::boolean,false)=false);
+CREATE POLICY non_anonymous_authenticated_guard ON public.departments AS RESTRICTIVE FOR ALL TO authenticated
+USING (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true')
+WITH CHECK (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true');
+
+CREATE POLICY authenticated_sessions_only ON public.warehouses AS RESTRICTIVE FOR ALL TO authenticated
+USING (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true')
+WITH CHECK (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true');
+CREATE POLICY deny_anonymous_users ON public.warehouses AS RESTRICTIVE FOR ALL TO authenticated
+USING (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true')
+WITH CHECK (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true');
+CREATE POLICY mnt_non_anonymous_boundary ON public.warehouses AS RESTRICTIVE FOR ALL TO authenticated
+USING (coalesce(((auth.jwt() ->> 'is_anonymous'))::boolean,false)=false)
+WITH CHECK (coalesce(((auth.jwt() ->> 'is_anonymous'))::boolean,false)=false);
+CREATE POLICY non_anonymous_authenticated_guard ON public.warehouses AS RESTRICTIVE FOR ALL TO authenticated
+USING (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true')
+WITH CHECK (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true');
+
+CREATE POLICY authenticated_sessions_only ON public.stock_balances AS RESTRICTIVE FOR ALL TO authenticated
+USING (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true')
+WITH CHECK (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true');
+CREATE POLICY deny_anonymous_users ON public.stock_balances AS RESTRICTIVE FOR ALL TO authenticated
+USING (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true')
+WITH CHECK (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true');
+CREATE POLICY mnt_non_anonymous_boundary ON public.stock_balances AS RESTRICTIVE FOR ALL TO authenticated
+USING (coalesce(((auth.jwt() ->> 'is_anonymous'))::boolean,false)=false)
+WITH CHECK (coalesce(((auth.jwt() ->> 'is_anonymous'))::boolean,false)=false);
+CREATE POLICY non_anonymous_authenticated_guard ON public.stock_balances AS RESTRICTIVE FOR ALL TO authenticated
+USING (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true')
+WITH CHECK (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true');
+
+CREATE POLICY authenticated_sessions_only ON public.inventory_transactions AS RESTRICTIVE FOR ALL TO authenticated
+USING (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true')
+WITH CHECK (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true');
+CREATE POLICY deny_anonymous_users ON public.inventory_transactions AS RESTRICTIVE FOR ALL TO authenticated
+USING (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true')
+WITH CHECK (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true');
+CREATE POLICY mnt_non_anonymous_boundary ON public.inventory_transactions AS RESTRICTIVE FOR ALL TO authenticated
+USING (coalesce(((auth.jwt() ->> 'is_anonymous'))::boolean,false)=false)
+WITH CHECK (coalesce(((auth.jwt() ->> 'is_anonymous'))::boolean,false)=false);
+CREATE POLICY non_anonymous_authenticated_guard ON public.inventory_transactions AS RESTRICTIVE FOR ALL TO authenticated
+USING (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true')
+WITH CHECK (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true');
+
 GRANT USAGE ON SCHEMA public TO authenticated;
-GRANT SELECT ON public.businesses,public.branches,public.user_memberships TO authenticated;
+GRANT SELECT ON public.businesses,public.branches,public.user_memberships,
+  public.departments,public.warehouses,public.stock_balances,public.inventory_transactions TO authenticated;
+GRANT INSERT,UPDATE,DELETE ON public.departments TO authenticated;
 
 INSERT INTO public.businesses(id,tenant_id,name,status,settings) VALUES
  ('20000000-0000-4000-8000-000000000001','tenant-a','Business A','ACTIVE','{}'),
@@ -214,6 +391,34 @@ INSERT INTO public.branches(id,tenant_id,business_id,name,status) VALUES
  ('branch-b1','tenant-a','20000000-0000-4000-8000-000000000002','B1','ACTIVE'),
  ('branch-c1','tenant-a','20000000-0000-4000-8000-000000000003','C1','ACTIVE'),
  ('branch-d1','tenant-b','20000000-0000-4000-8000-000000000004','D1','ACTIVE');
+
+INSERT INTO public.departments(id,tenant_id,business_id,branch_id,name,code,status) VALUES
+ ('dept-a1','tenant-a','20000000-0000-4000-8000-000000000001','branch-a1','A1 Department','A1','ACTIVE'),
+ ('dept-a2','tenant-a','20000000-0000-4000-8000-000000000001','branch-a2','A2 Department','A2','ACTIVE'),
+ ('dept-a-shared','tenant-a','20000000-0000-4000-8000-000000000001',NULL,'A Shared Department','AS','ACTIVE'),
+ ('dept-b1','tenant-a','20000000-0000-4000-8000-000000000002','branch-b1','B1 Department','B1','ACTIVE'),
+ ('dept-d1','tenant-b','20000000-0000-4000-8000-000000000004','branch-d1','D1 Department','D1','ACTIVE');
+
+INSERT INTO public.warehouses(id,tenant_id,business_id,branch_id,name,code,status) VALUES
+ ('warehouse-a1','tenant-a','20000000-0000-4000-8000-000000000001','branch-a1','A1 Warehouse','WA1','ACTIVE'),
+ ('warehouse-a2','tenant-a','20000000-0000-4000-8000-000000000001','branch-a2','A2 Warehouse','WA2','ACTIVE'),
+ ('warehouse-a-shared','tenant-a','20000000-0000-4000-8000-000000000001',NULL,'A Shared Warehouse','WAS','ACTIVE'),
+ ('warehouse-b1','tenant-a','20000000-0000-4000-8000-000000000002','branch-b1','B1 Warehouse','WB1','ACTIVE'),
+ ('warehouse-d1','tenant-b','20000000-0000-4000-8000-000000000004','branch-d1','D1 Warehouse','WD1','ACTIVE');
+
+INSERT INTO public.stock_balances(id,tenant_id,business_id,branch_id,warehouse_id,product_id,quantity_on_hand,quantity_reserved) VALUES
+ ('stock-a1','tenant-a','20000000-0000-4000-8000-000000000001','branch-a1','warehouse-a1','50000000-0000-4000-8000-000000000001',10,1),
+ ('stock-a2','tenant-a','20000000-0000-4000-8000-000000000001','branch-a2','warehouse-a2','50000000-0000-4000-8000-000000000001',20,2),
+ ('stock-a-shared','tenant-a','20000000-0000-4000-8000-000000000001',NULL,'warehouse-a-shared','50000000-0000-4000-8000-000000000001',30,3),
+ ('stock-b1','tenant-a','20000000-0000-4000-8000-000000000002','branch-b1','warehouse-b1','50000000-0000-4000-8000-000000000001',40,4),
+ ('stock-d1','tenant-b','20000000-0000-4000-8000-000000000004','branch-d1','warehouse-d1','50000000-0000-4000-8000-000000000001',50,5);
+
+INSERT INTO public.inventory_transactions(id,tenant_id,business_id,branch_id,warehouse_id,product_id,transaction_type,quantity,unit_cost,created_by) VALUES
+ ('txn-a1','tenant-a','20000000-0000-4000-8000-000000000001','branch-a1','warehouse-a1','50000000-0000-4000-8000-000000000001','IN',10,5,'10000000-0000-4000-8000-000000000004'),
+ ('txn-a2','tenant-a','20000000-0000-4000-8000-000000000001','branch-a2','warehouse-a2','50000000-0000-4000-8000-000000000001','IN',20,5,'10000000-0000-4000-8000-000000000003'),
+ ('txn-a-shared','tenant-a','20000000-0000-4000-8000-000000000001',NULL,'warehouse-a-shared','50000000-0000-4000-8000-000000000001','IN',30,5,'10000000-0000-4000-8000-000000000003'),
+ ('txn-b1','tenant-a','20000000-0000-4000-8000-000000000002','branch-b1','warehouse-b1','50000000-0000-4000-8000-000000000001','IN',40,5,'10000000-0000-4000-8000-000000000003'),
+ ('txn-d1','tenant-b','20000000-0000-4000-8000-000000000004','branch-d1','warehouse-d1','50000000-0000-4000-8000-000000000001','IN',50,5,'10000000-0000-4000-8000-000000000007');
 
 INSERT INTO public.user_memberships(id,user_id,tenant_id,business_id,branch_id,role,status,permissions) VALUES
  ('unscoped-owner','10000000-0000-4000-8000-000000000001','tenant-a',NULL,NULL,'OWNER','ACTIVE','{}'),
