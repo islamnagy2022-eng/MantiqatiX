@@ -345,6 +345,7 @@ Deno.serve(async (req: Request) => {
               instagramUrl: String(profile.instagram_url || ""),
               tiktokUrl: String(profile.tiktok_url || ""),
               publicEnabled: business.settings?.catalog_public_enabled === true,
+              public_contact_enabled: profile.public_contact_enabled === true,
             },
             bizcatalog: business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
               ? business.settings.bizcatalog
@@ -450,6 +451,7 @@ Deno.serve(async (req: Request) => {
             instagramUrl: String(profile.instagram_url || ""),
             tiktokUrl: String(profile.tiktok_url || ""),
             publicEnabled: business.settings?.catalog_public_enabled === true,
+              public_contact_enabled: profile.public_contact_enabled === true,
           },
           bizcatalog: business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
             ? business.settings.bizcatalog
