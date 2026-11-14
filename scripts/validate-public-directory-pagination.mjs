@@ -16,6 +16,7 @@ assert.match(edge, /\.gt\("id", scanAfterId\)/);
 assert.match(edge, /\.lte\("created_at", snapshotAt\)/);
 assert.match(edge, /\.limit\(scanBatchSize\)/);
 assert.match(edge, /matchesDirectoryBusinessFilters\(business, provider, filters\)/);
+assert.match(edge, /\.select\(["\']business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured,specialties["\']\)/, "Canonical provider specialties must be selected before Specialty matching");
 assert.match(edge, /pagination: \{ pageSize: PUBLIC_DIRECTORY_PAGE_SIZE, hasMore, nextCursor \}/);
 assert.match(edge, /DIRECTORY_SCAN_LIMIT_EXCEEDED/);
 assert.match(edge, /getExplicitPublicContact\(profile\)/);
