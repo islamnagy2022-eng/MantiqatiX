@@ -7,6 +7,7 @@ const workflow = readFileSync(".github/workflows/rc464-platform-admin-live-harde
 const fixture = readFileSync("supabase/tests/rc449_mantigo_platform_admin_fixture.sql", "utf8");
 const integration = readFileSync("supabase/tests/rc449_mantigo_platform_admin_integration.sql", "utf8");
 const sharedCallers = readFileSync("supabase/tests/rc464_platform_admin_shared_helper_callers.sql", "utf8");
+const financialReportTest = readFileSync("supabase/tests/mantigo_financial_report_live_columns.sql", "utf8");
 
 const migrationLower = migration.toLowerCase();
 const helperStart = migrationLower.indexOf("create or replace function public.mnty_can_platform_admin()");
@@ -64,6 +65,10 @@ assert.match(fixture, /ENABLE ROW LEVEL SECURITY/i);
 assert.match(integration, /MNTY-PLATFORM membership without (private )?registry entry must be denied/);
 assert.match(integration, /private registry platform admin without tenant membership should pass/);
 assert.match(integration, /assert_mantigo_global_rpcs_denied/);
+assert.match(financialReportTest, /gross_amount/);
+assert.match(financialReportTest, /captain_net_amount/);
+assert.match(financialReportTest, /amount IS NOT NULL OR captain_amount IS NOT NULL/);
+assert.match(workflow, /mantigo_financial_report_live_columns\\.sql/);
 for (const caller of ["admin_create_global_ad", "fulfill_digital_page_publish", "review_mantigo_captain_application", "set_mantigo_financial_config_backend"]) {
   assert.match(sharedCallers, new RegExp(caller));
 }
