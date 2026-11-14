@@ -301,7 +301,33 @@
         "live_bundle_sha256": "13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0",
         "repo_blob_sha": "a501fa4c8f9e1a97aa3b1a80745951e2f04e9877",
         "live_entrypoint_chars": 46907,
-        "repo_entrypoint_chars": 47755
+        "repo_entrypoint_chars": 47755,
+        "source_snapshot_path": "docs/audits/snapshots/directory-listings-v16-live-index.ts.txt",
+        "file_parity": [
+          {
+            "name": "index.ts",
+            "exact_match": false,
+            "live_chars": 46907,
+            "repo_blob_sha": "a501fa4c8f9e1a97aa3b1a80745951e2f04e9877",
+            "snapshot_path": "docs/audits/snapshots/directory-listings-v16-live-index.ts.txt"
+          },
+          {
+            "name": "pagination-filter.mjs",
+            "exact_match": true,
+            "repo_blob_sha": "07e73486a8552e98f90b690a89035a426caa0ef8"
+          },
+          {
+            "name": "doctor-import-contract.mjs",
+            "exact_match": true,
+            "repo_blob_sha": "097e39b2f39912e151b24368f0c049e9afadd060"
+          }
+        ],
+        "snapshot_secret_scan": {
+          "jwt_literals": 0,
+          "provider_secret_literals": 0,
+          "bearer_literals": 0,
+          "private_key_blocks": 0
+        }
       },
       {
         "slug": "smm-gateway",
