@@ -16,6 +16,7 @@ on:
       - "scripts/validate-public-contact-visibility.mjs"
       - "scripts/validate-business-social-links.mjs"
       - "scripts/validate-public-directory-pagination.mjs"
+      - "docs/PROJECT_CONTINUITY.md"
       - ".github/workflows/public-catalog-contact-privacy.yml"
   pull_request:
     branches: [main]
