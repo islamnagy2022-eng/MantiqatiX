@@ -8,6 +8,7 @@ on:
       - "supabase/migrations/20261113020000_harden_mantigo_platform_financial_report.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
+      - "supabase/tests/mantigo_financial_report_live_columns.sql"
       - "supabase/tests/r7_platform_admin_helper_callers_fixture.sql"
       - "supabase/tests/r7_platform_admin_helper_callers_integration.sql"
       - "scripts/validate-mantigo-platform-admin-scope.mjs"
@@ -21,6 +22,7 @@ on:
       - "supabase/migrations/20261113020000_harden_mantigo_platform_financial_report.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
+      - "supabase/tests/mantigo_financial_report_live_columns.sql"
       - "supabase/tests/r7_platform_admin_helper_callers_fixture.sql"
       - "supabase/tests/r7_platform_admin_helper_callers_integration.sql"
       - "scripts/validate-mantigo-platform-admin-scope.mjs"
@@ -65,6 +67,7 @@ jobs:
           docker cp supabase/tests/r7_platform_admin_helper_callers_fixture.sql "$pg_container:/tmp/r7-callers.sql"
           docker cp supabase/migrations/20261113020000_harden_mantigo_platform_financial_report.sql "$pg_container:/tmp/r7-platform-admin.sql"
           docker cp supabase/tests/rc449_mantigo_platform_admin_integration.sql "$pg_container:/tmp/rc449-test.sql"
+          docker cp supabase/tests/mantigo_financial_report_live_columns.sql "$pg_container:/tmp/financial-report-test.sql"
           docker cp supabase/tests/r7_platform_admin_helper_callers_integration.sql "$pg_container:/tmp/r7-helper-callers-test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449.sql
