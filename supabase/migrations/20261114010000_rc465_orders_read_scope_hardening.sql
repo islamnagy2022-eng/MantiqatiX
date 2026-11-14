@@ -156,14 +156,9 @@ USING (
 COMMENT ON POLICY orders_member_select ON public.orders IS
   'RC465: tenant-wide reads require a fully unscoped OWNER/ADMIN; all scoped operational memberships match the exact order business and branch. Customer-owned cross-tenant reads remain in orders_customer_select_own.';
 
--- Order history is a child resource of orders. Its former tenant-only and
--- generic authenticated-session ALL policies bypassed the order's business/branch
--- boundary because permissive RLS policies are ORed together.
-DROP POLICY IF EXISTS authenticated_sessions_only ON public.order_status_history;
-DROP POLICY IF EXISTS deny_anonymous_users ON public.order_status_history;
-DROP POLICY IF EXISTS mnt_non_anonymous_boundary ON public.order_status_history;
-DROP POLICY IF EXISTS non_anonymous_authenticated_guard ON public.order_status_history;
-
+-- Order history is a child resource of orders. Preserve the existing
+-- RESTRICTIVE anonymous-session guards; replace only the permissive tenant-wide
+-- member-read policy so it inherits the parent order's business/branch boundary.
 DROP POLICY order_status_history_member_read ON public.order_status_history;
 CREATE POLICY order_status_history_member_read
 ON public.order_status_history
