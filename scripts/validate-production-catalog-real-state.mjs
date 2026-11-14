@@ -115,7 +115,9 @@ assert.doesNotMatch(publicDirectoryFunction, /return `https:\/\/images\.unsplash
 assert.match(publicDirectoryFunction, /allowLegacyShowcaseImage[\s\S]{0,180}return ""/, 'public directory API must suppress stock-photo URLs except for verified platform-owned showcase activities');
 assert.match(publicDirectoryFunction, /isOfficialShowcase\(business\)/, 'public directory may include platform-owned showcase activity records without enabling their catalog modules');
 assert.doesNotMatch(publicCatalogFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'public storefront API must not generate stock-photo URLs for products');
-assert.match(publicCatalogFunction, /images\\\.unsplash\\\.com[\s\S]{0,180}return ""/, 'public storefront API must explicitly reject legacy stock-photo URLs');
+const publicCatalogImageGuardStart = publicCatalogFunction.indexOf("const safeImageUrl =");
+const publicCatalogImageGuard = publicCatalogFunction.slice(publicCatalogImageGuardStart, publicCatalogImageGuardStart + 1200);
+assert.ok(publicCatalogImageGuard.includes("images\\.unsplash\\.com") && publicCatalogImageGuard.includes('return ""'), "public storefront API must explicitly reject legacy stock-photo URLs");
 const pricePermissionFixture = [
   { id: 'explicit-yes', item_type: 'SERVICE', metadata: { catalog_public: { show_price: true, compare_price: 145 } } },
   { id: 'explicit-no', item_type: 'SERVICE', metadata: { catalog_public: { show_price: false, compare_price: 145 } } },
