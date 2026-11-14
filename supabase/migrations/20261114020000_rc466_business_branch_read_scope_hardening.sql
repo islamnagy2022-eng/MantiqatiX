@@ -37,6 +37,21 @@ BEGIN
     RAISE EXCEPTION 'RC466_UNEXPECTED_ANON_SELECT_GRANT';
   END IF;
 
+  IF (
+    SELECT count(*)
+    FROM pg_catalog.pg_policies
+    WHERE schemaname='public' AND tablename='branches'
+      AND policyname = ANY (ARRAY[
+        'authenticated_sessions_only',
+        'deny_anonymous_users',
+        'mnt_non_anonymous_boundary',
+        'non_anonymous_authenticated_guard'
+      ])
+      AND permissive = 'RESTRICTIVE'
+  ) <> 4 THEN
+    RAISE EXCEPTION 'RC466_RESTRICTIVE_ANONYMOUS_GUARDS_MUST_BE_PRESERVED';
+  END IF;
+
   IF NOT EXISTS (
     SELECT 1 FROM pg_catalog.pg_policies
     WHERE schemaname='public' AND tablename='businesses'
@@ -216,13 +231,9 @@ USING (
   )
 );
 
--- The old generic session guards were permissive ALL policies. Since permissive
--- policies are ORed, they bypassed the scoped branch-read policy for any authenticated
--- non-anonymous user. They are redundant once the command-specific policies are scoped.
-DROP POLICY IF EXISTS authenticated_sessions_only ON public.branches;
-DROP POLICY IF EXISTS deny_anonymous_users ON public.branches;
-DROP POLICY IF EXISTS mnt_non_anonymous_boundary ON public.branches;
-DROP POLICY IF EXISTS non_anonymous_authenticated_guard ON public.branches;
+-- The four generic session guards are RESTRICTIVE in the live database.
+-- Preserve them: they only add an anonymous-session boundary and do not grant access.
+-- The permissive tenant-wide read and manager ALL policies are the policies narrowed here.
 
 -- The manager policy is ALL in the legacy schema; scope it so its SELECT arm cannot
 -- bypass branches_member_read. Existing client write grants remain unchanged (none).
