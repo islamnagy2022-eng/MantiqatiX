@@ -25,7 +25,10 @@ assert.doesNotMatch(edge, /\.or\(\x60branch_id\.is\.null,branch_id\.eq\.\$\{bran
 assert.match(edge, /pagination: \{ pageSize: PUBLIC_DIRECTORY_PAGE_SIZE, hasMore, nextCursor \}/);
 assert.match(edge, /DIRECTORY_SCAN_LIMIT_EXCEEDED/);
 assert.match(edge, /getExplicitPublicContact\(profile,\s*branch\)/);
-assert.doesNotMatch(edge, /\.select\(["']id,name,code,status,address,phone["']\)/);
+assert.match(edge, /\.select\(["']id,name,code,status,address,phone["']\)/, "Branch contact columns may be read only as inputs to the explicit-consent projection");
+const branchProjection = edge.match(/branches:\s*\(branches\s*\|\|\s*\[\]\)\.map\(\(entry:\s*any\)\s*=>\s*\(\{([\s\S]*?)\}\)\)/);
+assert.ok(branchProjection, "Directory branches must keep an explicit response projection");
+assert.doesNotMatch(branchProjection[1], /\b(phone|address)\s*:/, "Operational branch contacts must never be returned as raw branch fields");
 assert.doesNotMatch(edge, /\.range\(/, "Keyset pagination must not use offset ranges");
 
 for (const field of ["activity", "specialty", "governorate", "markaz", "village"]) {
