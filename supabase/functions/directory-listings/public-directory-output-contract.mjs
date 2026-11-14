@@ -37,6 +37,7 @@ export function sanitizePublicDirectoryListing(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const {
     verified_by: _verifiedBy,
+    is_verified: _isVerified,
     claimed_user_id: _claimedUserId,
     claimed_business_id: _claimedBusinessId,
     ...publicRow
