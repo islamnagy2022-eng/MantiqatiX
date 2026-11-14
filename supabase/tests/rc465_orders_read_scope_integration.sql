@@ -142,13 +142,6 @@ BEGIN
   END IF;
 
   -- Scoped OWNER, BUSINESS_OWNER, branch MANAGER and provider share only branch-a history.
-  FOR v_expected IN SELECT ARRAY[
-    '40000000-0000-4000-8000-000000000001',
-    '40000000-0000-4000-8000-000000000004'
-  ] LOOP
-    NULL;
-  END LOOP;
-
   PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000002',false);
   PERFORM set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000002","role":"authenticated","is_anonymous":false}',false);
   SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.order_status_history;
