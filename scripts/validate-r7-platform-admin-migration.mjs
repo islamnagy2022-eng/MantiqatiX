@@ -10,7 +10,7 @@ const workflow = read("../.github/workflows/mantigo-platform-admin-scope.yml");
 
 const checks = [
   ["financial report uses live ledger columns", /sum\(l\.gross_amount\)/.test(migration) && /sum\(l\.captain_net_amount\)/.test(migration) && !/sum\(l\.amount\)|sum\(l\.captain_amount\)/.test(migration)],
-  ["live ledger regression verifies actual columns and restores the registry-only actor", /gross_amount/.test(financialReportTest) && /captain_net_amount/.test(financialReportTest) && /amount IS NOT NULL OR captain_amount IS NOT NULL/.test(financialReportTest) && /INSERT INTO private\\.platform_admins/.test(financialReportTest)],
+  ["live ledger regression verifies actual columns and restores the registry-only actor", /gross_amount/.test(financialReportTest) && /captain_net_amount/.test(financialReportTest) && /amount IS NOT NULL OR captain_amount IS NOT NULL/.test(financialReportTest) && financialReportTest.includes("INSERT INTO private.platform_admins")],
   ["migration is wrapped in one transaction", /BEGIN;[\s\S]*?DO \$preflight\$/.test(migration) && /COMMIT;\s*$/.test(migration)],
   ["migration uses canonical private platform registry", /FROM\s+private\.platform_admins\s+pa[\s\S]*?pa\.user_id\s*=\s*auth\.uid\(\)/i.test(migration)],
   ["migration does not fall back to membership roles or generic RBAC", !/FROM\s+public\.user_memberships/i.test(migration) && !/public\.mnty_can\s*\(/i.test(migration)],
