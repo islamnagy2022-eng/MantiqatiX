@@ -65,8 +65,7 @@ BEGIN
     RAISE EXCEPTION 'RC466_EXPECTED_DEPARTMENT_MANAGER_GRANTS_MISSING';
   END IF;
 
-  IF pg_catalog.has_table_privilege('anon', 'public.businesses', 'SELECT')
-     OR pg_catalog.has_table_privilege('anon', 'public.branches', 'SELECT')
+  IF pg_catalog.has_table_privilege('anon', 'public.branches', 'SELECT')
      OR pg_catalog.has_table_privilege('anon', 'public.departments', 'SELECT')
      OR pg_catalog.has_table_privilege('anon', 'public.warehouses', 'SELECT')
      OR pg_catalog.has_table_privilege('anon', 'public.stock_balances', 'SELECT')
