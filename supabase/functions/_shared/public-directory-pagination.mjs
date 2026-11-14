@@ -9,11 +9,11 @@ const encoder = new TextEncoder();
 
 const isRecord = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 const safeText = (value, max = MAX_FILTER_LENGTH) =>
-  typeof value === "string" ? value.normalize("NFKC").trim().replace(/\\s+/g, " ").slice(0, max) : "";
+  typeof value === "string" ? value.normalize("NFKC").trim().replace(/\s+/g, " ").slice(0, max) : "";
 const base64UrlEncode = (bytes) => {
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/g, "");
+  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
 };
 const base64UrlDecode = (value) => {
   if (typeof value !== "string" || !/^[A-Za-z0-9_-]+$/.test(value)) throw new Error("INVALID_BASE64URL");
