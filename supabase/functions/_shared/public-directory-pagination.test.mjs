@@ -69,7 +69,7 @@ test("tampered, expired and malformed cursors are rejected", async () => {
   const scopeHash = await hashDirectoryScope({}, []);
   const now = Date.parse("2026-11-14T12:00:00.000Z");
   const token = await issueDirectoryCursor({
-    lastId: id, snapshotAt: "2026-11-14T00:00:00.000Z", scopeHash, secret, now,
+    lastId: id, snapshotAt: "2026-11-14T12:00:00.000Z", scopeHash, secret, now,
   });
   assert.deepEqual(await verifyDirectoryCursor(token.slice(0, -2) + "aa", { scopeHash, secret, now }), { ok: false, code: "INVALID_CURSOR" });
   assert.deepEqual(await verifyDirectoryCursor(token, { scopeHash, secret, now: now + 7 * 60 * 60 * 1000 }), { ok: false, code: "INVALID_CURSOR" });
