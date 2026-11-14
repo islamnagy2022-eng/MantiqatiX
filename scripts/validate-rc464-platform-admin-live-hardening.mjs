@@ -68,6 +68,7 @@ assert.match(integration, /assert_mantigo_global_rpcs_denied/);
 assert.match(financialReportTest, /gross_amount/);
 assert.match(financialReportTest, /captain_net_amount/);
 assert.match(financialReportTest, /amount IS NOT NULL OR captain_amount IS NOT NULL/);
+assert.match(financialReportTest, /INSERT INTO private\\.platform_admins/);
 assert.match(workflow, /mantigo_financial_report_live_columns\\.sql/);
 for (const caller of ["admin_create_global_ad", "fulfill_digital_page_publish", "review_mantigo_captain_application", "set_mantigo_financial_config_backend"]) {
   assert.match(sharedCallers, new RegExp(caller));
