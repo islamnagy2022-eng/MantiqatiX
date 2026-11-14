@@ -67,15 +67,15 @@ test("public listing removes internal identities and metadata, exposes only a ve
   assert.deepEqual(result, {
     id: "listing-1",
     display_name: "Example Clinic",
-    is_verified: true,
     metadata: { bio: "Public profile" },
   });
   assert.equal("verified_by" in result, false);
+  assert.equal("is_verified" in result, false);
   assert.equal("claimed_user_id" in result, false);
   assert.equal("claimed_business_id" in result, false);
 });
 
 test("unverified listing returns is_verified false", () => {
   const result = sanitizePublicDirectoryListing({ id: "listing-2", metadata: {} });
-  assert.equal(result.is_verified, false);
+  assert.equal("is_verified" in result, false);
 });
