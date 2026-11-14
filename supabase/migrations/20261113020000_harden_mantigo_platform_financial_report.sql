@@ -78,15 +78,15 @@ BEGIN
   IF p_from IS NOT NULL AND p_to IS NOT NULL AND p_to<=p_from THEN RAISE EXCEPTION 'INVALID_FINANCIAL_REPORT_RANGE'; END IF;
   SELECT jsonb_build_object(
     'ledger_count',count(*),
-    'gross',coalesce(sum(l.amount),0),
+    'gross',coalesce(sum(l.gross_amount),0),
     'commission',coalesce(sum(l.commission_amount),0),
-    'captain_amount',coalesce(sum(l.captain_amount),0),
+    'captain_amount',coalesce(sum(l.captain_net_amount),0),
     'paid_count',count(*) FILTER (WHERE l.payment_status IN ('PAID','CASH_CONFIRMED')),
-    'paid_amount',coalesce(sum(l.amount) FILTER (WHERE l.payment_status IN ('PAID','CASH_CONFIRMED')),0),
+    'paid_amount',coalesce(sum(l.gross_amount) FILTER (WHERE l.payment_status IN ('PAID','CASH_CONFIRMED')),0),
     'settled_count',count(*) FILTER (WHERE l.settlement_status='SETTLED'),
-    'settled_amount',coalesce(sum(l.captain_amount) FILTER (WHERE l.settlement_status='SETTLED'),0),
+    'settled_amount',coalesce(sum(l.captain_net_amount) FILTER (WHERE l.settlement_status='SETTLED'),0),
     'unsettled_count',count(*) FILTER (WHERE l.settlement_status IS DISTINCT FROM 'SETTLED'),
-    'unsettled_amount',coalesce(sum(l.captain_amount) FILTER (WHERE l.settlement_status IS DISTINCT FROM 'SETTLED'),0),
+    'unsettled_amount',coalesce(sum(l.captain_net_amount) FILTER (WHERE l.settlement_status IS DISTINCT FROM 'SETTLED'),0),
     'from',v_from,'to',v_to
   ) INTO v_ledger FROM public.mantigo_financial_ledger l
    WHERE l.created_at>=v_from AND l.created_at<v_to;
