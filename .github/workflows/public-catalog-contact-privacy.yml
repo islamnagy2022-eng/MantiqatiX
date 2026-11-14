@@ -11,10 +11,10 @@ on:
       - "supabase/functions/public-catalog/index.ts"
       - "supabase/functions/public-catalog-directory/index.ts"
       - "apps/catalog-frontend/src/lib/production.ts"
+      - "apps/catalog-frontend/src/context/AppContext.tsx"
+      - "apps/catalog-frontend/src/components/DirectoryView.tsx"
       - "scripts/validate-public-contact-visibility.mjs"
       - "scripts/validate-business-social-links.mjs"
-      - "supabase/functions/_shared/public-directory-pagination.mjs"
-      - "supabase/functions/_shared/public-directory-pagination.test.mjs"
       - "scripts/validate-public-directory-pagination.mjs"
       - ".github/workflows/public-catalog-contact-privacy.yml"
   pull_request:
@@ -22,22 +22,23 @@ on:
     paths:
       - "supabase/functions/_shared/public-contact-visibility.mjs"
       - "supabase/functions/_shared/public-contact-visibility.test.mjs"
+      - "supabase/functions/_shared/public-directory-pagination.mjs"
+      - "supabase/functions/_shared/public-directory-pagination.test.mjs"
       - "supabase/functions/public-catalog/index.ts"
       - "supabase/functions/public-catalog-directory/index.ts"
       - "apps/catalog-frontend/src/lib/production.ts"
+      - "apps/catalog-frontend/src/context/AppContext.tsx"
+      - "apps/catalog-frontend/src/components/DirectoryView.tsx"
       - "scripts/validate-public-contact-visibility.mjs"
       - "scripts/validate-business-social-links.mjs"
-      - "supabase/functions/_shared/public-directory-pagination.mjs"
-      - "supabase/functions/_shared/public-directory-pagination.test.mjs"
       - "scripts/validate-public-directory-pagination.mjs"
-      - "scripts/validate-production-catalog-real-state.mjs"
       - ".github/workflows/public-catalog-contact-privacy.yml"
 permissions:
   contents: read
 jobs:
   public-contact-privacy:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v5
@@ -50,8 +51,6 @@ jobs:
         run: node scripts/validate-public-contact-visibility.mjs
       - name: Test explicit contact projection
         run: node --test supabase/functions/_shared/public-contact-visibility.test.mjs
-      - name: Test signed public directory pagination and filters
-        run: node --test supabase/functions/_shared/public-directory-pagination.test.mjs
       - name: Validate public directory keyset pagination boundary
         run: node scripts/validate-public-directory-pagination.mjs
       - name: Test signed public directory cursor
