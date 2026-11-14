@@ -76,3 +76,15 @@ The current contract contains 60 required objects. The fresh catalog query found
 4. Keep Production blocked until all required evidence, rollback rehearsal, human review and explicit release approval are complete.
 
 **No Production mutation was performed.**
+
+
+## Critical Edge Function source parity — 2026-11-14
+
+A read-only comparison retrieved the deployed `index.ts` entrypoint for 11 critical Edge Functions and compared it byte-for-byte with the current `main` source. Live bundle SHA-256 values and repository blob SHAs are recorded in the machine-readable reconciliation manifest.
+
+- **7/11 entrypoints differ from current main:** `order-create` v8, `payment-intent` v8, `paymob-webhook` v10, `digital-page-payment-intent` v5, `subscription-payment-intent` v4, `financial-journal` v3, and `directory-listings` v16.
+- **4/11 entrypoints match exactly:** `smm-gateway` v13, `api` v17, `order-status-update` v4, and `payment-webhook` v3. Exact source parity does not close their separate runtime authorization, webhook replay, order-state, or SMM deferred-launch tests.
+- The six payment/order/finance differences retain the previously identified gaps: bounded request parsing and branch/option validation in `order-create`; Paymob amount/intent correlation in payment-intent and digital/subscription intent creation; finite amount and callback-to-order binding in `paymob-webhook`; and allow-listed CORS plus the canonical journal backend RPC in `financial-journal`.
+- **New drift:** live `directory-listings` is v16, not the previously recorded v8. It contains doctor source-permission/republication gates and public metadata sanitization that are absent from current main, as well as extra localhost:5173 CORS origins. The inspected live code strips `verified_by` before returning public payloads. This is not safe to resolve by deploying main over Production; first reconcile the deployed v16 source into version control or review a deliberate replacement.
+- No Edge Function was deployed or modified. The seven source mismatches remain release blockers; deploy the six payment/order/finance functions only as a coordinated, schema-compatible release after migration reconciliation and real Paymob sandbox E2E.
+
