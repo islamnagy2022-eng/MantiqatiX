@@ -5,6 +5,8 @@ const migration = fs.readFileSync('supabase/migrations/20261114010000_rc465_orde
 const fixture = fs.readFileSync('supabase/tests/rc465_orders_read_scope_fixture.sql', 'utf8');
 const baseline = fs.readFileSync('supabase/tests/rc465_orders_read_scope_baseline.sql', 'utf8');
 const integration = fs.readFileSync('supabase/tests/rc465_orders_read_scope_integration.sql', 'utf8');
+const aclOverlay = fs.readFileSync('supabase/tests/baselines/production_live_order_status_history_acl_overlay_fixture.sql', 'utf8');
+const replayWorkflow = fs.readFileSync('.github/workflows/forward-migration-chain-replay.yml', 'utf8');
 
 assert.match(migration, /^BEGIN;/m, 'migration must be transactional');
 assert.match(migration, /^COMMIT;/m, 'migration must commit');
@@ -23,7 +25,12 @@ assert.doesNotMatch(migration, /DROP POLICY orders_customer_select_own/i, 'custo
 
 assert.match(migration, /to_regclass\('public\.order_status_history'\)/, 'order history must be a preflight dependency');
 assert.match(migration, /order_status_history', 'SELECT'/, 'existing history read grant must be preserved without widening writes');
-assert.match(migration, /RC465_UNEXPECTED_HISTORY_CLIENT_WRITE_GRANT/, 'migration must fail closed if client write grants appear on orders or order history');
+assert.match(migration, /RC465_UNEXPECTED_HISTORY_CLIENT_WRITE_GRANT/, 'migration must fail closed if client write grants appear on order history');
+assert.match(aclOverlay, /TEST-ONLY overlay/, 'forward replay ACL overlay must be explicitly test-only');
+assert.match(aclOverlay, /REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER/, 'replay must restore the live read-only order-history ACL');
+assert.match(aclOverlay, /GRANT SELECT ON TABLE public\\.order_status_history TO authenticated/, 'replay must preserve authenticated history reads');
+assert.ok(replayWorkflow.includes('production_live_order_status_history_acl_overlay_fixture.sql'), 'forward replay workflow must include the live ACL overlay');
+assert.ok(replayWorkflow.indexOf('RESTORE_TEST_ONLY_KNOWN_LIVE_ORDER_HISTORY_ACL_OVERLAY') < replayWorkflow.indexOf('REPLAY_MIGRATION=$filename'), 'live order-history ACL overlay must run before RC465');
 assert.match(migration, /has_table_privilege\('authenticated', 'public\.order_status_history', 'INSERT'\)/, 'migration must explicitly preserve read-only history grants');
 for (const restrictiveGuard of ['authenticated_sessions_only', 'deny_anonymous_users', 'mnt_non_anonymous_boundary', 'non_anonymous_authenticated_guard']) {
   assert.doesNotMatch(migration, new RegExp('DROP POLICY IF EXISTS ' + restrictiveGuard + ' ON public\\.order_status_history'), 'restrictive anonymous-session guard must be preserved: ' + restrictiveGuard);
