@@ -1,3 +1,21 @@
+## 2026-11-14 — Fresh read-only Production migration/object reconciliation
+
+- Active project verified as **MANTIQATIX FINAL**; the separate demo project was not used.
+- Live migration ledger: **310 rows** through `20261110150618`; exact required release identifiers: **0/42** present. This is a version-identity mismatch, not proof that all corresponding physical effects are absent.
+- Required physical object manifest: **60 objects**. Fresh catalog inspection found **31 physically present / 29 absent**. The semantic manifest remains **28 PASS / 32 non-PASS** because three present objects still fail companion-object, search_path or ACL requirements.
+- The live `public.marketing_services.image_url` column now exists; `image_source` and the default-image function/trigger chain remain absent.
+- Critical Edge Function source parity refreshed: **7/11 exact entrypoint mismatches** (six payment/order/finance functions plus live `directory-listings` v16). Four entrypoints match main, but runtime authorization/webhook/order/SMM tests remain open. Do not deploy mismatched entrypoints individually.
+- Live `directory-listings` v16 has public metadata sanitization, but its `BULK_IMPORT` honors requested PUBLISHED status and direct `UPSERT_LISTING` can publish a doctor with phone alone and no source evidence. Draft PR #728 ports the metadata sanitizer into the safer main publication flow, strips internal claim/verifier IDs, and adds regression tests; it is not deployed. It also exposes `is_verified` derived from `verified_by`, which is set by owner claim rather than professional-registration verification; do not port that ambiguous badge. Current main has staging-only imports and a stricter evidence gate. Preserve live sanitization, port main's publication gate, and test before deployment. Its two helper files match main; only `index.ts` differs. Exact deployed source is preserved at `docs/audits/snapshots/directory-listings-v16-live-index.ts.txt`.
+- Paymob/finance E2E remains **NOT VERIFIED**: `tenant_payment_methods` has 0 rows; provider secrets were not inspected; no payment or financial mutation was initiated. Do not test against Production.
+- Backup/restore rehearsal, RPO/RTO and current Auth security settings remain **NOT VERIFIED**; the available connector cannot inspect backup inventory/restore state or project Auth settings. Prior 2026-11-06 evidence reported leaked-password protection disabled.
+- Current security advisor/catalog snapshot: 9 RLS-enabled no-policy tables with no direct anon/authenticated table grants; 1 intentional public ads SECURITY DEFINER function; 65 authenticated-executable SECURITY DEFINER functions requiring individual review; 28 multiple-policy lints; 0 health lints.
+- Fresh evidence: [PRODUCTION_RECONCILIATION_20261114.md](docs/audits/PRODUCTION_RECONCILIATION_20261114.md); machine-readable ledger/object snapshot: [production-migration-reconciliation.json](docs/release/production-migration-reconciliation.json).
+- Release execution checklist: [PRODUCTION_VALIDATION_RUNBOOK_20261114.md](docs/release/PRODUCTION_VALIDATION_RUNBOOK_20261114.md). It covers schema reconciliation, Edge Function parity, Paymob sandbox E2E, backup/restore, Auth, adversarial RLS and stop conditions; it authorizes no Production mutation.
+- No migration was applied, no ledger row was fabricated, and no Production schema/data/Auth/RLS/GRANT/Edge/payment/finance mutation occurred.
+- **P0 remains BLOCKED:** reconcile all 42 version identities and aliases to physical effects, repair the 29 absent and three present-but-blocked objects through reviewed forward migrations, then complete Edge parity, Paymob/finance E2E, backup/restore RPO/RTO, Auth and adversarial tenant-isolation evidence.
+
+---
+
 # Latest verified checkpoint — 2026-11-11 — Public catalog disclosure safety
 
 **Request ID:** `R-20261111-PUBLIC-CATALOG-PRICE-DISCLOSURE`  
