@@ -30,6 +30,7 @@ export type PublicDirectoryListing = {
   next_follow_up_at?: string | null;
   completeness?: Record<string, boolean>;
   metadata?: Record<string, unknown>;
+  is_verified?: boolean;
   created_at?: string;
 };
 
