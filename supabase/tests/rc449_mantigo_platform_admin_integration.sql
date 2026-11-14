@@ -29,8 +29,8 @@ begin
     ('ride-stale-matching',tenant_ops,'MATCHING',pg_catalog.now()-interval '90 minutes'),
     ('ride-rc449',tenant_owner,'COMPLETED',pg_catalog.now()-interval '1 hour');
 
-  insert into public.mantigo_financial_ledger(id,ride_id,captain_id,gross_amount,commission_amount,captain_net_amount,commission_rate,payment_status,settlement_status,settlement_reference,amount,captain_amount)
-  values ('ledger-rc449','ride-rc449',tenant_owner,100,10,90,0.10,'PAID','READY',null,100,90);
+  insert into public.mantigo_financial_ledger(id,ride_id,captain_id,gross_amount,commission_amount,captain_net_amount,commission_rate,payment_status,settlement_status,settlement_reference)
+  values ('ledger-rc449','ride-rc449',tenant_owner,100,10,90,0.10,'PAID','READY',null);
 
   perform pg_catalog.set_config('request.jwt.claim.sub',tenant_owner::text,false);
   if public.mnty_can_platform_admin() then
