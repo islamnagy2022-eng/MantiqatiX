@@ -1,3 +1,15 @@
+## 2026-11-14 — Fresh read-only Production migration/object reconciliation
+
+- Active project verified as **MANTIQATIX FINAL**; the separate demo project was not used.
+- Live migration ledger: **310 rows** through `20261110150618`; exact required release identifiers: **0/42** present. This is a version-identity mismatch, not proof that all corresponding physical effects are absent.
+- Required physical object manifest: **60 objects**. Fresh catalog inspection found **31 physically present / 29 absent**. The semantic manifest remains **28 PASS / 32 non-PASS** because three present objects still fail companion-object, search_path or ACL requirements.
+- The live `public.marketing_services.image_url` column now exists; `image_source` and the default-image function/trigger chain remain absent.
+- Fresh evidence: [PRODUCTION_RECONCILIATION_20261114.md](docs/audits/PRODUCTION_RECONCILIATION_20261114.md); machine-readable ledger/object snapshot: [production-migration-reconciliation.json](docs/release/production-migration-reconciliation.json).
+- No migration was applied, no ledger row was fabricated, and no Production schema/data/Auth/RLS/GRANT/Edge/payment/finance mutation occurred.
+- **P0 remains BLOCKED:** reconcile all 42 version identities and aliases to physical effects, repair the 29 absent and three present-but-blocked objects through reviewed forward migrations, then complete Edge parity, Paymob/finance E2E, backup/restore RPO/RTO, Auth and adversarial tenant-isolation evidence.
+
+---
+
 # Latest verified checkpoint — 2026-11-11 — Public catalog disclosure safety
 
 **Request ID:** `R-20261111-PUBLIC-CATALOG-PRICE-DISCLOSURE`  
