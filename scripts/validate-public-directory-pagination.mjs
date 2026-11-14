@@ -17,6 +17,11 @@ assert.match(edge, /\.lte\("created_at", snapshotAt\)/);
 assert.match(edge, /\.limit\(scanBatchSize\)/);
 assert.match(edge, /matchesDirectoryBusinessFilters\(business, provider, filters\)/);
 assert.match(edge, /\.select\(["\']business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured,specialties["\']\)/, "Canonical provider specialties must be selected before Specialty matching");
+assert.match(edge, /itemQuery\(\)\.is\("branch_id", null\)/, "Global catalog items must use a parameterized null-branch filter");
+assert.match(edge, /itemQuery\(\)\.eq\("branch_id", branchId\)/, "Branch catalog items must use a parameterized equality filter");
+assert.match(edge, /priceQuery\(\)\.is\("branch_id", null\)/, "Global prices must use a parameterized null-branch filter");
+assert.match(edge, /priceQuery\(\)\.eq\("branch_id", branchId\)/, "Branch prices must use a parameterized equality filter");
+assert.doesNotMatch(edge, /\.or\(\x60branch_id\.is\.null,branch_id\.eq\.\$\{branchId\}\x60\)/, "Do not interpolate branch IDs into PostgREST OR expressions");
 assert.match(edge, /pagination: \{ pageSize: PUBLIC_DIRECTORY_PAGE_SIZE, hasMore, nextCursor \}/);
 assert.match(edge, /DIRECTORY_SCAN_LIMIT_EXCEEDED/);
 assert.match(edge, /getExplicitPublicContact\(profile\)/);
@@ -41,4 +46,4 @@ assert.match(context, /directoryNextCursorRef\.current = page\.nextCursor/);
 assert.match(view, /if \(directoryHasMore\) void loadMoreDirectoryBusinesses\(\)/);
 assert.match(view, /directoryHasMore \|\| directoryListingsHasMore/);
 
-console.log("PUBLIC_DIRECTORY_KEYSET_STATIC=PASS (33 assertions)");
+console.log("PUBLIC_DIRECTORY_KEYSET_STATIC=PASS (39 assertions)");
