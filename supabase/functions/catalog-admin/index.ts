@@ -485,7 +485,7 @@ Deno.serve(async (req: Request) => {
       if (!roleForBusiness && !scopedPlatformMembership) {
         return out(origin, { error: "CATALOG_PROFILE_WRITE_FORBIDDEN" }, 403);
       }
-      const submittedSocialFields: Record<string, string | string[]> = {};
+      const submittedSocialFields: Record<string, unknown> = {};
       for (const [requestKey, columnKey, platform] of [
         ["facebookUrl", "facebook_url", "facebook"],
         ["instagramUrl", "instagram_url", "instagram"],
@@ -495,6 +495,12 @@ Deno.serve(async (req: Request) => {
         const normalizedUrl = normalizeSocialUrl(body[requestKey], platform);
         if (normalizedUrl === null) return out(origin, { error: "INVALID_SOCIAL_PROFILE_URL", field: requestKey }, 400);
         submittedSocialFields[columnKey] = normalizedUrl;
+      }
+      if (Object.prototype.hasOwnProperty.call(body, "publicContactEnabled")) {
+        if (typeof body.publicContactEnabled !== "boolean") {
+          return out(origin, { error: "INVALID_PUBLIC_CONTACT_CONSENT" }, 400);
+        }
+        submittedSocialFields["public_contact_enabled"] = body.publicContactEnabled;
       }
       if (Object.prototype.hasOwnProperty.call(body, "additionalContactPhones")) {
         const phones = Array.isArray(body.additionalContactPhones) ? body.additionalContactPhones : [];
