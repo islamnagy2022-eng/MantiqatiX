@@ -24,7 +24,7 @@
   "tenant_isolation_tests": "PASS — run 42271053737 repeated synthetic Tenant A/B read and mutation checks for orders/payment intents. Tenant A could read its own rows but not Tenant B private rows and could not update Tenant B rows; reciprocal Tenant B restrictions also passed. This is a limited synthetic contract test, not complete adversarial Production RLS certification.",
   "payment_finance_e2e": "NOT VERIFIED",
   "backup_restore_rehearsal": "NOT VERIFIED",
-  "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/42271053737",
+  "evidence_ref": "docs/audits/PRODUCTION_RECONCILIATION_20261114.md",
   "checked_at": "2026-11-06",
   "reason": "Catalog pilot is deployed and deployed-origin browser tests pass on main commit fe9e9f57b780b01c49940349dccf3bbac67efaae. Full platform production remains BLOCKED / NOT CERTIFIED: 42 required source-version identifiers remain absent from the 309-row live ledger; 32 of 60 selected physical object contracts remain non-PASS; six critical payment/order/finance Edge Functions have source drift; RC435/RC439 and RC449A/RC450 contracts remain unresolved; Auth hardening, adversarial RLS/SECURITY DEFINER tests, payment/finance E2E, backup/restore/RPO/RTO, rollback, and SMM negative runtime evidence remain outstanding.",
   "edge_function_contracts": "PARTIAL — six critical live Edge Function entrypoints differ from main. Financial-journal current main source calls post_financial_journal_backend, which is the RPC name/signature defined by canonical RC450; the production blocker is that RC449A/RC450 are absent and the live RPC body/ACL is old, while deployed Edge v3 still calls the legacy post_financial_journal with wildcard CORS. Do not deploy payment/finance functions individually until schema, grants, sandbox E2E and rollback are verified.",
@@ -117,10 +117,10 @@
   },
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
-    "checked_at": "2026-11-06T18:33:45Z",
-    "method": "Read-only Supabase list_migrations at 2026-11-06 18:33 UTC returned 309 records through 20261101140105; the current inventory was compared to all 42 required release source-version identifiers and returned 0 exact matches. Physical effect checks remain separate; aliases and forward repairs must not be replayed as duplicate SQL.",
-    "live_ledger_count": 309,
-    "latest_live_version": "20261101140105",
+    "checked_at": "2026-11-14T05:01:51.181Z",
+    "method": "Read-only Supabase list_migrations at 2026-11-14T05:01:51.181Z; returned 310 records through 20261110150618; compared against all 42 canonical required release source-version identifiers.",
+    "live_ledger_count": 310,
+    "latest_live_version": "20261110150618",
     "expected_migration_versions": 42,
     "found_in_live_ledger": 0,
     "required_versions": [
@@ -212,7 +212,7 @@
       "20261031100000"
     ],
     "recorded_required_versions": [],
-    "interpretation": "The fresh live migration inventory contains none of the 42 required exact source-version identifiers, including RC463 (20261031100000). This exact version-identity result does not prove every corresponding physical effect is absent. Do not fabricate ledger rows, apply missing migrations blindly, or treat the isolated RC463 rehearsal as Production approval."
+    "interpretation": "The live migration inventory contains none of the 42 required exact source-version identifiers. This identity result does not prove every physical SQL effect is absent; object presence is recorded separately. Do not fabricate ledger rows, replay aliases blindly, or treat isolated CI rehearsal as Production approval."
   },
   "critical_edge_function_source_parity_check": {
     "status": "DRIFT_FOUND",
@@ -377,8 +377,8 @@
   },
   "required_release_object_presence_check": {
     "status": "MIXED_DRIFT_READ_ONLY_REFRESHED",
-    "checked_at": "2026-11-04",
-    "method": "Fresh read-only PostgreSQL catalog presence query (pg_class/pg_proc/pg_attribute/pg_trigger) against all 60 selected release-object contracts; presence is not treated as body/ACL/runtime verification.",
+    "checked_at": "2026-11-14T05:01:51.181Z",
+    "method": "Read-only PostgreSQL catalog inspection using to_regprocedure, to_regclass, pg_proc, pg_trigger, pg_attribute and pg_constraint.",
     "observed": [
       {
         "migration": "RC425",
@@ -386,7 +386,8 @@
         "exists": false,
         "detail": "Required provider-event idempotency table absent.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC425",
@@ -394,7 +395,8 @@
         "exists": false,
         "detail": "Atomic MantiGo payment backend RPC absent.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC426",
@@ -402,7 +404,8 @@
         "exists": false,
         "detail": "Expected five-argument claim-token signature absent; only old four-argument signature exists with search_path=public, pg_temp and authenticated EXECUTE.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC427",
@@ -410,7 +413,8 @@
         "exists": false,
         "detail": "Partial unique index for one active payment intent per order absent.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC428",
@@ -418,7 +422,8 @@
         "exists": false,
         "detail": "Atomic provider-failure webhook RPC absent.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC429",
@@ -426,7 +431,8 @@
         "exists": false,
         "detail": "Atomic subscription-failure webhook RPC absent.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC430",
@@ -434,7 +440,8 @@
         "exists": false,
         "detail": "Atomic subscription-success backend RPC absent.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC431",
@@ -443,7 +450,7 @@
         "detail": "Live function exists and service_role EXECUTE is present, but live search_path is public, pg_temp (source expects empty search_path); full body/ACL contract reconciliation and runtime payment/webhook E2E remain open.",
         "status": "BLOCKED",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC432",
@@ -451,7 +458,8 @@
         "exists": false,
         "detail": "Wallet idempotency unique index absent although the three wallet RPC names exist.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC434",
@@ -459,7 +467,8 @@
         "exists": false,
         "detail": "Atomic ERP receipt RPC absent.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC438",
@@ -467,7 +476,8 @@
         "exists": false,
         "detail": "Atomic purchase-order creation-with-lines RPC absent.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC438",
@@ -476,7 +486,7 @@
         "detail": "Live two-argument function exists, but search_path=public and ACL is postgres-only; authenticated and service_role lack EXECUTE. RC438 source contract is not met.",
         "status": "BLOCKED",
         "physical_found_as": "FUNCTION",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC113",
@@ -484,8 +494,8 @@
         "exists": true,
         "detail": "Live relation confirmed. RLS and FORCE RLS are enabled; anon/authenticated/service_role have no direct table privileges. Present through the applied dashboard forward bundle.",
         "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC113",
@@ -493,8 +503,8 @@
         "exists": true,
         "detail": "Live relation confirmed. RLS and FORCE RLS are enabled; anon/authenticated/service_role have no direct table privileges. Present through the applied dashboard forward bundle.",
         "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC113",
@@ -503,7 +513,7 @@
         "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check observed.",
         "status": "PASS",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC113",
@@ -512,7 +522,7 @@
         "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check and audit write observed.",
         "status": "PASS",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC113",
@@ -521,7 +531,7 @@
         "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check, scoped assignment and audit write observed.",
         "status": "PASS",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC114",
@@ -529,8 +539,8 @@
         "exists": true,
         "detail": "Live relation confirmed. RLS and FORCE RLS are enabled; anon/authenticated/service_role have no direct table privileges. Present through the applied dashboard forward bundle.",
         "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC114",
@@ -538,8 +548,8 @@
         "exists": true,
         "detail": "Live relation confirmed. RLS and FORCE RLS are enabled; anon/authenticated/service_role have no direct table privileges. Present through the applied dashboard forward bundle.",
         "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC113",
@@ -547,8 +557,8 @@
         "exists": true,
         "detail": "Live index confirmed; exact index definition is present in pg_catalog.",
         "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC113",
@@ -556,8 +566,8 @@
         "exists": true,
         "detail": "Live index confirmed; exact index definition is present in pg_catalog.",
         "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC114",
@@ -565,8 +575,8 @@
         "exists": true,
         "detail": "Live unique index confirmed.",
         "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC114",
@@ -574,8 +584,8 @@
         "exists": true,
         "detail": "Live index confirmed.",
         "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC114",
@@ -583,8 +593,8 @@
         "exists": true,
         "detail": "Live index confirmed.",
         "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC114",
@@ -592,8 +602,8 @@
         "exists": true,
         "detail": "Live index confirmed.",
         "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC114/RC115",
@@ -602,7 +612,7 @@
         "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/tenant/business/branch checks and audit write observed.",
         "status": "PASS",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC114/RC115",
@@ -611,7 +621,7 @@
         "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/tenant/business/branch checks, permission-ceiling check and audit write observed.",
         "status": "PASS",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC115",
@@ -620,7 +630,7 @@
         "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, auth.uid/anonymous guard and active scoped membership/role-assignment checks observed.",
         "status": "PASS",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC115",
@@ -629,7 +639,7 @@
         "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check observed.",
         "status": "PASS",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC115",
@@ -638,7 +648,7 @@
         "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check observed.",
         "status": "PASS",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC115",
@@ -647,7 +657,7 @@
         "detail": "Live wrapper signature confirmed; delegates to mnty_business_employee_list_scoped, whose body checks auth.uid, anonymous state, active membership, tenant/business/branch scope.",
         "status": "PASS",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC115",
@@ -656,7 +666,7 @@
         "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check observed.",
         "status": "PASS",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC116/RC117",
@@ -665,7 +675,7 @@
         "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, private.platform_admins actor check observed.",
         "status": "PASS",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC116/RC117",
@@ -674,7 +684,7 @@
         "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, private.platform_admins actor check and audit write observed.",
         "status": "PASS",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC116",
@@ -683,7 +693,7 @@
         "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, private.platform_admins actor check and audit write observed.",
         "status": "PASS",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC117",
@@ -692,7 +702,7 @@
         "detail": "Name-aware default image resolver is absent.",
         "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC117",
@@ -701,7 +711,7 @@
         "detail": "Business default-image trigger function is absent.",
         "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC117",
@@ -710,7 +720,7 @@
         "detail": "Catalog item default-image trigger function is absent.",
         "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC117",
@@ -719,7 +729,7 @@
         "detail": "Marketing service default-image trigger function is absent.",
         "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC117",
@@ -728,7 +738,7 @@
         "detail": "Business default-image trigger is absent.",
         "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC117",
@@ -737,7 +747,7 @@
         "detail": "Catalog item default-image trigger is absent.",
         "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC117",
@@ -746,16 +756,16 @@
         "detail": "Marketing service default-image trigger is absent.",
         "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC117",
         "object": "public.marketing_services.image_url",
-        "exists": false,
-        "detail": "Marketing services image_url column is absent.",
+        "exists": true,
+        "detail": "Column now exists in the live schema, but image_source and the required default-image function/trigger chain remain absent; the full RC117 contract is still blocked.",
         "status": "BLOCKED",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_found_as": "COLUMN",
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC117",
@@ -764,7 +774,7 @@
         "detail": "Marketing services image_source column is absent.",
         "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "migration": "RC113",
@@ -773,7 +783,7 @@
         "detail": "Membership business/branch NULL-safe idempotency index is absent.",
         "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "name": "public.create_subscription_payment_intent_claimable_backend",
@@ -781,7 +791,7 @@
         "status": "BLOCKED",
         "detail": "RC435 claimable subscription intent RPC absent.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "name": "public.claim_subscription_provider_intent_creation_backend",
@@ -789,7 +799,7 @@
         "status": "BLOCKED",
         "detail": "RC435 atomic provider-claim RPC absent.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "name": "public.post_financial_journal_atomic_backend",
@@ -797,7 +807,7 @@
         "status": "BLOCKED",
         "detail": "RC436 atomic journal RPC absent.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "name": "public.journal_entry_lines_entry_line_uidx",
@@ -805,7 +815,7 @@
         "status": "BLOCKED",
         "detail": "RC436 journal line uniqueness index absent.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "name": "public.journal_entries_tenant_entry_number_uidx",
@@ -813,7 +823,7 @@
         "status": "BLOCKED",
         "detail": "RC436 tenant entry-number uniqueness index absent.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "name": "public.erp_purchase_order_lines",
@@ -821,7 +831,7 @@
         "status": "BLOCKED",
         "detail": "RC437 purchase order line table absent.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "name": "public.receive_purchase_stock_with_order_line_backend",
@@ -829,7 +839,7 @@
         "status": "BLOCKED",
         "detail": "RC437 line-aware stock receiving RPC absent.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "name": "public.set_purchase_order_lines_backend",
@@ -837,7 +847,7 @@
         "status": "BLOCKED",
         "detail": "RC437 purchase order line-management RPC absent.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "name": "public.erp_purchase_orders_business_order_number_uidx",
@@ -845,7 +855,7 @@
         "status": "BLOCKED",
         "detail": "RC437 business/order-number uniqueness index absent.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "name": "public.erp_purchase_order_lines_scope_idx",
@@ -853,7 +863,7 @@
         "status": "BLOCKED",
         "detail": "RC437 purchase order line scope index absent.",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "name": "public.mnty_can_platform_admin",
@@ -861,7 +871,7 @@
         "status": "PASS",
         "detail": "Live catalog signature mnty_can_platform_admin() exists; body, search_path and grants remain separate release checks.",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "name": "public.get_mantigo_admin_dashboard_backend",
@@ -869,7 +879,7 @@
         "status": "PASS",
         "detail": "Live catalog signature get_mantigo_admin_dashboard_backend(uuid) exists; privilege and body review remain separate release checks.",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "name": "public.get_mantigo_admin_financial_report_backend",
@@ -877,7 +887,7 @@
         "status": "PASS",
         "detail": "Live catalog signature get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz) exists; privilege and body review remain separate release checks.",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "name": "public.settle_mantigo_captain_backend",
@@ -885,7 +895,7 @@
         "status": "PASS",
         "detail": "Live catalog signature settle_mantigo_captain_backend(uuid,text,text) exists; privilege and body review remain separate release checks.",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       },
       {
         "name": "public.expire_stale_mantigo_rides_backend",
@@ -893,7 +903,7 @@
         "status": "PASS",
         "detail": "Live catalog signature expire_stale_mantigo_rides_backend(uuid,integer) exists; privilege and body review remain separate release checks.",
         "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-14"
       }
     ],
     "interpretation": "This is not merely a missing-ledger-row concern: selected effects are physically missing, while some same-named older functions exist with different signatures, ACLs, or search_path. Do not apply the missing files blindly on top of later-dated migrations; the successful isolated replay must be followed by current-schema reconciliation and a rehearsed rollout.",
@@ -1359,6 +1369,16 @@
         }
       },
       "interpretation": "All ten named required columns and all three named objects/indexes were absent in the targeted read-only checks. Do not infer the remaining 60-object catalog contract has been refreshed."
+    },
+    "physical_presence_refresh": {
+      "checked_at": "2026-11-14T05:01:51.181Z",
+      "physical_present_count": 31,
+      "physical_missing_count": 29,
+      "blocked_present_objects": [
+        "public.process_verified_digital_page_payment_backend",
+        "public.update_purchase_order_status_backend(varchar,varchar)",
+        "public.marketing_services.image_url"
+      ]
     }
   },
   "security_definer_search_path_check": {
