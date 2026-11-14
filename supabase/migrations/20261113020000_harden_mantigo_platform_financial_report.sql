@@ -2,6 +2,8 @@
 -- Canonical platform-root authority: private.platform_admins (RC113/RC115/RC462).
 -- Replaces five function definitions and protects four additional helper-dependent RPCs.
 
+BEGIN;
+
 DO $preflight$
 DECLARE v_guarded_rpc_count integer;
 BEGIN
@@ -205,3 +207,5 @@ ALTER FUNCTION public.set_mantigo_financial_config_backend(uuid, numeric, text) 
 
 COMMENT ON FUNCTION public.mnty_can_platform_admin() IS
   'Platform-root authorization is backed only by private.platform_admins, aligned with RC113/RC115/RC462; tenant memberships alone do not grant platform administration.';
+
+COMMIT;
