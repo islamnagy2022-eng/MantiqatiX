@@ -29,8 +29,8 @@ begin
     ('ride-stale-matching',tenant_ops,'MATCHING',pg_catalog.now()-interval '90 minutes'),
     ('ride-rc449',tenant_owner,'COMPLETED',pg_catalog.now()-interval '1 hour');
 
-  insert into public.mantigo_financial_ledger(id,ride_id,captain_id,gross_amount,commission_amount,captain_net_amount,commission_rate,payment_status,settlement_status,settlement_reference,amount,captain_amount)
-  values ('ledger-rc449','ride-rc449',tenant_owner,100,10,90,0.10,'PAID','READY',null,100,90);
+  insert into public.mantigo_financial_ledger(id,ride_id,captain_id,gross_amount,commission_amount,captain_net_amount,commission_rate,payment_status,settlement_status,settlement_reference)
+  values ('ledger-rc449','ride-rc449',tenant_owner,100,10,90,0.10,'PAID','READY',null);
 
   perform pg_catalog.set_config('request.jwt.claim.sub',tenant_owner::text,false);
   if public.mnty_can_platform_admin() then
@@ -99,6 +99,14 @@ begin
   result := public.get_mantigo_admin_dashboard_backend(registry_only_admin);
   if result is null then
     raise exception 'registry-only platform admin could not read MantiGO dashboard';
+  end if;
+
+  result := public.get_mantigo_admin_financial_report_backend(registry_only_admin,null,null);
+  if (result->>'gross')::numeric <> 100
+     or (result->>'commission')::numeric <> 10
+     or (result->>'captain_amount')::numeric <> 90
+     or (result->>'paid_amount')::numeric <> 100 then
+    raise exception 'financial report must use live gross_amount/captain_net_amount columns: %',result;
   end if;
 
   if has_table_privilege('anon','private.platform_admins','SELECT')
