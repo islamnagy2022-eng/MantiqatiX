@@ -11,6 +11,9 @@ on:
       - "apps/catalog-frontend/src/lib/production.ts"
       - "scripts/validate-public-contact-visibility.mjs"
       - "scripts/validate-business-social-links.mjs"
+      - "supabase/functions/_shared/public-directory-pagination.mjs"
+      - "supabase/functions/_shared/public-directory-pagination.test.mjs"
+      - "scripts/validate-public-directory-pagination.mjs"
       - ".github/workflows/public-catalog-contact-privacy.yml"
   pull_request:
     branches: [main]
@@ -38,3 +41,7 @@ jobs:
         run: node scripts/validate-public-contact-visibility.mjs
       - name: Test explicit contact projection
         run: node --test supabase/functions/_shared/public-contact-visibility.test.mjs
+      - name: Validate public directory keyset pagination boundary
+        run: node scripts/validate-public-directory-pagination.mjs
+      - name: Test signed public directory cursor
+        run: node --test supabase/functions/_shared/public-directory-pagination.test.mjs
