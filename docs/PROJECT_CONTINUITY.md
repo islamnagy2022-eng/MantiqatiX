@@ -24,11 +24,11 @@
 | PR | Scope | Latest status at checkpoint |
 |---|---|---|
 | #722 | R7 platform-admin registry helper, SECURITY DEFINER search_path hardening, atomic migration, live-ledger report correction | Head `f4f4124`; 22/22 checks passed; draft, not merged |
-| #724 | RC464 canonical platform registry, FORCE RLS, four global MantiGO RPCs, live-ledger report correction and refreshed production audit evidence | Head `261e12c`; 23 checks queued; no failures; draft, not merged |
+| #724 | RC464 canonical platform registry, FORCE RLS, four global MantiGO RPCs, live-ledger report correction and refreshed production audit evidence | Head `0e10360`; 26 checks queued; no failures; draft, not merged |
 | #725 | Orders read scope by business/branch | 25/25 checks passed; draft, not merged |
-| #726 | Public contact opt-in, signed cursor pagination, frontend “See more” integration | Head `afb1333`; 6 success, 7 in progress, 9 queued; no failures; draft, not merged |
+| #726 | Public contact opt-in, signed cursor pagination, frontend “See more” integration | Head `d6761b6`; 8 checks queued; no failures; draft, not merged |
 | #727 | Businesses and branches RLS scope | 24/24 checks passed; draft, not merged |
-| #728 | Directory listings v16 reconciliation: public metadata sanitizer, private identity stripping, strict doctor publication gate and CORS guard | Head `5e6ff82`; 11 success, 3 in progress, 6 queued; no failures; draft, not merged |
+| #728 | Directory listings v16 reconciliation: public metadata sanitizer, private identity stripping, strict doctor publication gate and CORS guard | Head `5e6ff82`; 13 success, 1 in progress, 6 queued; no failures; draft, not merged |
 
 - Migration order: review/merge #722 before #724 where practical. #722's migration version `20261113020000` precedes RC464 `20261113214500` and hardens four existing helper-dependent SECURITY DEFINER callers.
 - PR #724 is based on the current main tree as of `1b3a7c4`; its merge base is current main. After #722 merges, refresh #724 and #728 against the new main head and rerun the full chain.
