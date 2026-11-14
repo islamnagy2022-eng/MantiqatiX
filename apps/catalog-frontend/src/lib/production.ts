@@ -294,6 +294,7 @@ export function mapBusiness(raw: any, provider: any): Business {
     bio: String(profile.bio || raw.bio || provider?.description || ''),
     ownerWhatsApp: isPublicProjection ? publicWhatsApp : String(branch.phone || profile.phone || raw.ownerWhatsApp || ''),
     additionalContactPhones: Array.isArray(profile.additionalContactPhones || profile.additional_contact_phones) ? (profile.additionalContactPhones || profile.additional_contact_phones).map((value: unknown) => String(value || '')).filter(Boolean) : [],
+    publicContactEnabled: profile.public_contact_enabled === true,
     phone: isPublicProjection ? publicPhone : String(profile.contact_phone || branch.phone || profile.phone || raw.phone || ''), email: String(raw.email || ''),
     facebookUrl: String(profile.facebook_url || profile.facebookUrl || raw.facebookUrl || ''),
     instagramUrl: String(profile.instagram_url || profile.instagramUrl || raw.instagramUrl || ''),
