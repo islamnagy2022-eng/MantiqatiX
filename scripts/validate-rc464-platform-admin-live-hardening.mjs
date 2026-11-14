@@ -77,4 +77,5 @@ assert.match(sharedCallers, /platform registry admin could not update global Man
 assert.match(workflow, /rc464_platform_admin_live_baseline\.sql/);
 assert.match(workflow, /20261113214500_rc464_platform_admin_live_registry_hardening\.sql/);
 assert.match(workflow, /rc449_mantigo_platform_admin_integration\.sql/);
+assert.match(workflow, /financial-report-test\.sql/);
 console.log("RC464 static platform-admin hardening contract: PASS");
