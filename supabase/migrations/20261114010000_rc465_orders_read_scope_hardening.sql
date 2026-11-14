@@ -42,19 +42,13 @@ BEGIN
     RAISE EXCEPTION 'RC465_EXPECTED_READ_ONLY_AUTHENTICATED_GRANTS_MISSING';
   END IF;
 
-  IF pg_catalog.has_table_privilege('anon', 'public.orders', 'INSERT')
-     OR pg_catalog.has_table_privilege('anon', 'public.orders', 'UPDATE')
-     OR pg_catalog.has_table_privilege('anon', 'public.orders', 'DELETE')
-     OR pg_catalog.has_table_privilege('authenticated', 'public.orders', 'INSERT')
-     OR pg_catalog.has_table_privilege('authenticated', 'public.orders', 'UPDATE')
-     OR pg_catalog.has_table_privilege('authenticated', 'public.orders', 'DELETE')
-     OR pg_catalog.has_table_privilege('anon', 'public.order_status_history', 'INSERT')
+  IF pg_catalog.has_table_privilege('anon', 'public.order_status_history', 'INSERT')
      OR pg_catalog.has_table_privilege('anon', 'public.order_status_history', 'UPDATE')
      OR pg_catalog.has_table_privilege('anon', 'public.order_status_history', 'DELETE')
      OR pg_catalog.has_table_privilege('authenticated', 'public.order_status_history', 'INSERT')
      OR pg_catalog.has_table_privilege('authenticated', 'public.order_status_history', 'UPDATE')
      OR pg_catalog.has_table_privilege('authenticated', 'public.order_status_history', 'DELETE') THEN
-    RAISE EXCEPTION 'RC465_UNEXPECTED_CLIENT_WRITE_GRANT';
+    RAISE EXCEPTION 'RC465_UNEXPECTED_HISTORY_CLIENT_WRITE_GRANT';
   END IF;
 
   IF NOT EXISTS (
