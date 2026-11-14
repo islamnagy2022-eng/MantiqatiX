@@ -571,6 +571,10 @@ Deno.serve(async (req: Request) => {
         const currentProfile = currentSettings.catalog_profile && typeof currentSettings.catalog_profile === "object" && !Array.isArray(currentSettings.catalog_profile)
           ? currentSettings.catalog_profile : {};
         const consentSubmitted = Object.prototype.hasOwnProperty.call(body, "publicContactEnabled");
+        if (consentSubmitted) {
+          // Fail closed until the matching audit event is durably written.
+          submittedSocialFields["public_contact_consent_audit_verified"] = false;
+        }
         const nextSettings = { ...currentSettings, catalog_profile: { ...currentProfile, ...submittedSocialFields } };
         const { error: socialWriteError } = await service.from("businesses").update({
           settings: nextSettings, updated_at: new Date().toISOString(),
@@ -588,7 +592,43 @@ Deno.serve(async (req: Request) => {
           });
           if (consentAuditError) {
             console.error("public contact consent saved but audit logging failed", { businessId, code: consentAuditError.code });
-            return out(origin, { error: "PUBLIC_CONTACT_CONSENT_AUDIT_FAILED", message: "تم حفظ اختيار إظهار بيانات التواصل لكن تعذر تسجيله في سجل التدقيق. أعد الحفظ لتأكيد التسجيل." }, 500);
+            return out(origin, { error: "PUBLIC_CONTACT_CONSENT_AUDIT_FAILED", message: "تم حفظ اختيار إظهار بيانات التواصل لكن تعذر تسجيله في سجل التدقيق. لن تظهر بيانات التواصل للعامة حتى ينجح تسجيل الموافقة." }, 500);
+          }
+
+          if (body.publicContactEnabled === true) {
+            // Activate public projection only after audit persistence. The updated_at
+            // and consent predicates avoid overwriting a concurrent edit or revocation.
+            const { data: pendingBusiness, error: pendingReadError } = await service.from("businesses")
+              .select("settings,updated_at").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle();
+            if (pendingReadError) throw pendingReadError;
+            if (!pendingBusiness) return out(origin, { error: "BUSINESS_NOT_FOUND" }, 404);
+            const pendingSettings = pendingBusiness.settings && typeof pendingBusiness.settings === "object" && !Array.isArray(pendingBusiness.settings)
+              ? pendingBusiness.settings : {};
+            const pendingProfile = pendingSettings.catalog_profile && typeof pendingSettings.catalog_profile === "object" && !Array.isArray(pendingSettings.catalog_profile)
+              ? pendingSettings.catalog_profile : {};
+            if (pendingProfile.public_contact_enabled === true && pendingProfile.public_contact_consent_audit_verified !== true) {
+              const activatedSettings = {
+                ...pendingSettings,
+                catalog_profile: { ...pendingProfile, public_contact_consent_audit_verified: true },
+              };
+              const { data: activatedBusiness, error: activationError } = await service.from("businesses")
+                .update({ settings: activatedSettings, updated_at: new Date().toISOString() })
+                .eq("id", businessId).eq("tenant_id", tenantId)
+                .eq("updated_at", pendingBusiness.updated_at)
+                .eq("settings->catalog_profile->>public_contact_enabled", "true")
+                .eq("settings->catalog_profile->>public_contact_consent_audit_verified", "false")
+                .select("id").maybeSingle();
+              if (activationError) throw activationError;
+              if (!activatedBusiness) {
+                const { data: latestBusiness, error: latestReadError } = await service.from("businesses")
+                  .select("settings").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle();
+                if (latestReadError) throw latestReadError;
+                const latestProfile = latestBusiness?.settings?.catalog_profile;
+                if (latestProfile?.public_contact_enabled !== true || latestProfile?.public_contact_consent_audit_verified !== true) {
+                  return out(origin, { error: "PUBLIC_CONTACT_CONSENT_ACTIVATION_CONFLICT", message: "تم تسجيل الموافقة لكن تغيرت بيانات النشاط بالتزامن؛ أعد حفظ بيانات التواصل لتفعيل النشر." }, 409);
+                }
+              }
+            }
           }
         }
       }
