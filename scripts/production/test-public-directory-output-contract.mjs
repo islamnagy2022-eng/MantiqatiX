@@ -56,6 +56,7 @@ test("public listing removes internal identities and sanitizes metadata without 
     display_name: "Example Clinic",
     claim_status: "CLAIMED",
     verified_by: "internal-user-uuid",
+    is_verified: true,
     claimed_user_id: "claim-user-uuid",
     claimed_business_id: "claim-business-uuid",
     metadata: {
