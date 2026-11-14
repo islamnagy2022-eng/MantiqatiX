@@ -20,8 +20,10 @@ assert.match(migration, /upper\(um\.role\) = 'SUPER_ADMIN'[\s\S]*?scope'[\s\S]*?
 assert.match(migration, /um\.business_id = branches\.business_id/, "branch reads must match business scope");
 assert.match(migration, /um\.branch_id IS NULL OR um\.branch_id = branches\.id/, "branch-scoped reads must match exact branch");
 for (const name of ["authenticated_sessions_only","deny_anonymous_users","mnt_non_anonymous_boundary","non_anonymous_authenticated_guard"]) {
-  assert.match(migration, new RegExp("DROP POLICY IF EXISTS " + name + " ON public\\.branches"), "broad permissive branch policy must be removed: " + name);
+  assert.doesNotMatch(migration, new RegExp("DROP POLICY IF EXISTS " + name + " ON public\\.branches"), "restrictive anonymous guard must be preserved: " + name);
+  assert.match(fixture, new RegExp("CREATE POLICY " + name + "[\\s\\S]*?AS RESTRICTIVE FOR ALL TO authenticated"), "fixture must model the live restrictive guard: " + name);
 }
+assert.match(migration, /RC466_RESTRICTIVE_ANONYMOUS_GUARDS_MUST_BE_PRESERVED/, "preflight must fail if restrictive guards are missing");
 assert.match(migration, /DROP POLICY branches_manager_write[\s\S]*?CREATE POLICY branches_manager_write[\s\S]*?um\.business_id = branches\.business_id[\s\S]*?um\.branch_id IS NULL OR um\.branch_id = branches\.id/,
   "legacy ALL manager policy must not bypass branch scope");
 assert.match(migration, /businesses_manager_insert[\s\S]*?um\.business_id IS NULL[\s\S]*?um\.branch_id IS NULL/,
@@ -39,7 +41,7 @@ assert.doesNotMatch(migration, /^\s*(?:GRANT|REVOKE|ALTER TABLE|INSERT INTO|UPDA
 
 assert.match(fixture, /CREATE POLICY authenticated_sessions_only[\s\S]*?FOR ALL/, "fixture must reproduce broad permissive branch policy");
 assert.match(fixture, /CREATE POLICY branches_member_read[\s\S]*?tenant_id/, "fixture must reproduce original tenant-only branch policy");
-assert.match(baseline, /v_branch_count <> 5/, "baseline must reproduce cross-tenant branch enumeration");
+assert.match(baseline, /v_branch_count <> 4/, "baseline must reproduce tenant-wide branch enumeration without inventing cross-tenant access");
 assert.match(aclOverlay, /REVOKE SELECT[\s\S]*?FROM anon/, "test overlay must align checkpoint anon grants to live ACL");
 assert.match(aclOverlay, /LIVE_ACL_OVERLAY_FAILED/, "test overlay must fail closed if anon SELECT remains");
 assert.match(replayWorkflow, /RESTORE_TEST_ONLY_KNOWN_LIVE_BUSINESS_BRANCH_ANON_ACL_OVERLAY[\s\S]*?REPLAY_MIGRATION=\$filename/, "forward replay must apply ACL overlay before RC466");
