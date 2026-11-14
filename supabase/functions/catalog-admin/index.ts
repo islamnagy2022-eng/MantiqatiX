@@ -563,18 +563,35 @@ Deno.serve(async (req: Request) => {
 
       if (Object.keys(submittedSocialFields).length > 0) {
         const { data: businessRow, error: businessReadError } = await service.from("businesses")
-          .select("settings").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle();
+          .select("settings,organization_id").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle();
         if (businessReadError) throw businessReadError;
         if (!businessRow) return out(origin, { error: "BUSINESS_NOT_FOUND" }, 404);
         const currentSettings = businessRow.settings && typeof businessRow.settings === "object" && !Array.isArray(businessRow.settings)
           ? businessRow.settings : {};
         const currentProfile = currentSettings.catalog_profile && typeof currentSettings.catalog_profile === "object" && !Array.isArray(currentSettings.catalog_profile)
           ? currentSettings.catalog_profile : {};
+        const consentChanged = Object.prototype.hasOwnProperty.call(body, "publicContactEnabled")
+          && currentProfile.public_contact_enabled !== body.publicContactEnabled;
         const nextSettings = { ...currentSettings, catalog_profile: { ...currentProfile, ...submittedSocialFields } };
         const { error: socialWriteError } = await service.from("businesses").update({
           settings: nextSettings, updated_at: new Date().toISOString(),
         }).eq("id", businessId).eq("tenant_id", tenantId);
         if (socialWriteError) throw socialWriteError;
+        if (consentChanged) {
+          const { error: consentAuditError } = await service.from("audit_logs").insert({
+            id: crypto.randomUUID(), tenant_id: tenantId,
+            organization_id: businessRow.organization_id || null, business_id: businessId,
+            actor_user_id: user.id,
+            action: body.publicContactEnabled ? "PUBLIC_CONTACT_CONSENT_GRANTED" : "PUBLIC_CONTACT_CONSENT_REVOKED",
+            entity_type: "business", entity_id: businessId,
+            old_values: { publicContactEnabled: currentProfile.public_contact_enabled === true },
+            new_values: { publicContactEnabled: body.publicContactEnabled }, result: "SUCCESS",
+          });
+          if (consentAuditError) {
+            console.error("public contact consent saved but audit logging failed", { businessId, code: consentAuditError.code });
+            return out(origin, { error: "PUBLIC_CONTACT_CONSENT_AUDIT_FAILED", message: "تم حفظ اختيار إظهار بيانات التواصل لكن تعذر تسجيله في سجل التدقيق. أعد الحفظ لتأكيد التسجيل." }, 500);
+          }
+        }
       }
       return out(origin, data);
     }
