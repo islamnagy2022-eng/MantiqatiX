@@ -50,10 +50,11 @@ test("invalid metadata values become an empty object", () => {
   assert.deepEqual(sanitizePublicDirectoryMetadata("private"), {});
 });
 
-test("public listing removes internal identities and metadata, exposes only a verification boolean", () => {
+test("public listing removes internal identities and sanitizes metadata without implying professional verification", () => {
   const result = sanitizePublicDirectoryListing({
     id: "listing-1",
     display_name: "Example Clinic",
+    claim_status: "CLAIMED",
     verified_by: "internal-user-uuid",
     claimed_user_id: "claim-user-uuid",
     claimed_business_id: "claim-business-uuid",
@@ -67,6 +68,7 @@ test("public listing removes internal identities and metadata, exposes only a ve
   assert.deepEqual(result, {
     id: "listing-1",
     display_name: "Example Clinic",
+    claim_status: "CLAIMED",
     metadata: { bio: "Public profile" },
   });
   assert.equal("verified_by" in result, false);
@@ -75,7 +77,7 @@ test("public listing removes internal identities and metadata, exposes only a ve
   assert.equal("claimed_business_id" in result, false);
 });
 
-test("unverified listing returns is_verified false", () => {
+test("public listing does not infer professional verification from owner-claim identity", () => {
   const result = sanitizePublicDirectoryListing({ id: "listing-2", metadata: {} });
   assert.equal("is_verified" in result, false);
 });
