@@ -110,15 +110,15 @@ assert.match(evidenceMigration, /status in \('PENDING',\s*'APPROVED',\s*'REVOKED
 
 
 const publicReadBlock = edge.slice(edge.indexOf('if (req.method === "GET")'), edge.indexOf('if (req.method !== "POST")'));
-assert.match(edge, /const publicReadFields = publicFields \+ ",verified_by"/, "Public reads may select verified_by only for server-side boolean derivation");
+assert.doesNotMatch(publicReadBlock, /\.select\([^)]*verified_by/, "Public reads must never select the internal verifier identity");
 assert.match(edge, /sanitizePublicDirectoryListing\(data\)/, "Public detail response must pass through the safe listing serializer");
 assert.match(edge, /listings: \(data \|\| \[\]\)\.map\(sanitizePublicDirectoryListing\)/, "Legacy public list must sanitize every row");
 assert.match(edge, /listings\.map\(sanitizePublicDirectoryListing\)/, "Paginated public list must sanitize every row");
-assert.equal((publicReadBlock.match(/\.select\(publicReadFields/g) || []).length, 3, "All three public GET query paths must select the server-only verification field and sanitize it before response");
+assert.equal((publicReadBlock.match(/\.select\(publicFields/g) || []).length, 3, "All three public GET query paths must use the public field list and sanitize output");
 assert.match(publicOutputContract, /PUBLIC_METADATA_KEYS/, "Public metadata must use an explicit allowlist");
-assert.match(frontend, /is_verified\?: boolean/, "Frontend type must expose only the public verification boolean");
+
 assert.match(publicOutputContract, /claimed_user_id: _claimedUserId/, "Claim identity must never be returned in public listing payloads");
-assert.match(publicOutputContract, /verified_by: verifiedBy/, "Raw verifier identity must be removed before public response");
+assert.match(publicOutputContract, /verified_by: _verifiedBy/, "Raw verifier identity must be removed before public response");
 
 console.log("DOCTOR_INCREMENTAL_IMPORT_CONTRACT=PASS");
 console.log("checks=platform_admin,20_row_cap,sequential_persistence,deduplication,draft_only_import,source_attribution,unverified_status,separate_publication_gate,two_person_approval,source_scope,expiry_revocation,valid_source_url,phone_gate,state_preservation,ownership_preservation,verification_protection,admin_ui,private_rls_registry");
