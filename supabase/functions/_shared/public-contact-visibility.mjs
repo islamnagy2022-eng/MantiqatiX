@@ -35,7 +35,7 @@ const emptyPublicContact = () => ({
 export const getExplicitPublicContact = (value, branchValue = null) => {
   const profile = value && typeof value === "object" && !Array.isArray(value) ? value : {};
   // Legacy profile keys and operational branch fields are never consent by themselves.
-  if (profile.public_contact_enabled !== true) return emptyPublicContact();
+  if (profile.public_contact_enabled !== true || profile.public_contact_consent_audit_verified !== true) return emptyPublicContact();
   const branch = branchValue && typeof branchValue === "object" && !Array.isArray(branchValue) ? branchValue : {};
   const phoneSource = branch.phone || profile.phone_display || profile.phone || profile.whatsapp_phone || profile.whatsapp_number;
   const whatsappNumber = normalizeWhatsAppNumber(branch.phone || profile.whatsapp_number || profile.whatsapp_phone || profile.phone_display || profile.phone);
