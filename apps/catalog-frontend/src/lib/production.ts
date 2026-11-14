@@ -124,7 +124,8 @@ export async function fetchPublicDirectoryPage(cursor?: string | null): Promise<
   const query = new URLSearchParams();
   query.set('limit', '20');
   if (cursor) query.set('cursor', cursor);
-  const functionName = 'public-catalog-directory' + (query.size ? `?${query.toString()}` : '');
+  const queryString = query.toString();
+  const functionName = 'public-catalog-directory' + (queryString ? `?${queryString}` : '');
   const { data, error } = await supabase.functions.invoke(functionName, { method: 'GET' } as any);
   if (error) throw new Error(error.message || 'تعذر تحميل دليل الأنشطة المنشورة');
   if (data?.error) throw new Error(String(data.message || data.error));
