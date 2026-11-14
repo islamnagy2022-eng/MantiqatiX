@@ -82,3 +82,37 @@ test("public listing does not infer professional verification from owner-claim i
   const result = sanitizePublicDirectoryListing({ id: "listing-2", metadata: {} });
   assert.equal("is_verified" in result, false);
 });
+
+test("public listing drops unknown top-level database fields even if a query selects them", () => {
+  const result = sanitizePublicDirectoryListing({
+    id: "listing-3",
+    display_name: "Example Clinic",
+    source_name: "Official directory",
+    source_url: "https://example.org/clinic",
+    source_checked_at: "2026-11-14T12:00:00Z",
+    source_permission_evidence_id: "private-evidence-id",
+    owner_confirmation_required: true,
+    professional_registration_verified: true,
+    source_phone_verified: true,
+    created_by: "internal-creator-id",
+    updated_by: "internal-updater-id",
+    internal_notes: "not public",
+    deleted_at: "2026-11-14T12:00:00Z",
+    verified_by: "internal-verifier-id",
+    claimed_user_id: "claim-user-id",
+    claimed_business_id: "claim-business-id",
+    metadata: {
+      bio: "Public profile",
+      internal_notes: "not public",
+    },
+  });
+
+  assert.deepEqual(result, {
+    id: "listing-3",
+    display_name: "Example Clinic",
+    source_name: "Official directory",
+    source_url: "https://example.org/clinic",
+    source_checked_at: "2026-11-14T12:00:00Z",
+    metadata: { bio: "Public profile" },
+  });
+});
