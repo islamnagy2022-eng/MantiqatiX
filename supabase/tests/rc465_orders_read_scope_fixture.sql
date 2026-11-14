@@ -130,22 +130,22 @@ USING (
 
 -- Reproduce the live pre-RC465 broad permissive policies on order history.
 CREATE POLICY authenticated_sessions_only
-ON public.order_status_history FOR ALL TO authenticated
+ON public.order_status_history AS RESTRICTIVE FOR ALL TO authenticated
 USING (coalesce((auth.jwt() ->> 'is_anonymous'), 'false') <> 'true')
 WITH CHECK (coalesce((auth.jwt() ->> 'is_anonymous'), 'false') <> 'true');
 
 CREATE POLICY deny_anonymous_users
-ON public.order_status_history FOR ALL TO authenticated
+ON public.order_status_history AS RESTRICTIVE FOR ALL TO authenticated
 USING (coalesce((SELECT auth.jwt() ->> 'is_anonymous'), 'false') <> 'true')
 WITH CHECK (coalesce((SELECT auth.jwt() ->> 'is_anonymous'), 'false') <> 'true');
 
 CREATE POLICY mnt_non_anonymous_boundary
-ON public.order_status_history FOR ALL TO authenticated
+ON public.order_status_history AS RESTRICTIVE FOR ALL TO authenticated
 USING (coalesce(((auth.jwt() ->> 'is_anonymous')::boolean), false) = false)
 WITH CHECK (coalesce(((auth.jwt() ->> 'is_anonymous')::boolean), false) = false);
 
 CREATE POLICY non_anonymous_authenticated_guard
-ON public.order_status_history FOR ALL TO authenticated
+ON public.order_status_history AS RESTRICTIVE FOR ALL TO authenticated
 USING (coalesce((auth.jwt() ->> 'is_anonymous'), 'false') <> 'true')
 WITH CHECK (coalesce((auth.jwt() ->> 'is_anonymous'), 'false') <> 'true');
 
