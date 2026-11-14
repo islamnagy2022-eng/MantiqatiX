@@ -48,6 +48,9 @@ for (const fn of [
 assert.match(migration, /REVOKE ALL ON FUNCTION public\.get_mantigo_admin_dashboard_backend\(uuid\) FROM PUBLIC, anon/i);
 assert.match(migration, /REVOKE ALL ON FUNCTION public\.settle_mantigo_captain_backend\(uuid,text,text\) FROM PUBLIC, anon/i);
 assert.match(migration, /COMMIT;/);
+assert.match(migration, /sum\(l\.gross_amount\)/);
+assert.match(migration, /sum\(l\.captain_net_amount\)/);
+assert.doesNotMatch(migration, /sum\(l\.amount\)|sum\(l\.captain_amount\)/, "financial report must not reference absent legacy ledger columns");
 
 assert.match(baseline, /public\.mnty_can\('admin', NULL, NULL, NULL\)/);
 assert.match(baseline, /RC464_BASELINE_DID_NOT_REPRODUCE_WEAK_NULL_SCOPE_HELPER/);
