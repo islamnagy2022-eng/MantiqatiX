@@ -7,6 +7,9 @@
 
 - The active project is **MANTIQATIX FINAL**. The separate demo project is inactive and was not used for this audit.
 - The live migration ledger contains 310 entries and ends at `20261110150618`. The candidate PR migrations remain unapplied.
+- The 42 exact required release migration identifiers are **0/42** present. The 60-object contract has **31 physically present / 29 absent**; semantic status remains **28 PASS / 32 non-PASS** because three physically present objects are still blocked by companion-object, search_path or ACL requirements.
+- Critical Edge Function source parity was refreshed against current `main`: **7/11** entrypoints differ (six payment/order/finance functions plus `directory-listings` v16); four entrypoints match exactly but still have runtime verification gates.
+- Live `directory-listings` v16 contains doctor source-permission/republication checks and public metadata sanitization absent from `main`. Its drift direction is unresolved; do not overwrite it with `main` before review.
 - `public.mantigo_financial_ledger` contains `gross_amount`, `commission_amount`, and `captain_net_amount`; it does not contain `amount` or `captain_amount`. The deployed financial-report RPC still references the absent legacy columns. No invocation or data write was made.
 - Both candidate platform-admin migrations (#722 and #724) now use the live ledger columns. They share a disposable regression test that leaves legacy fixture columns NULL and verifies the report after the candidate migration.
 - `private.platform_admins` has RLS enabled but FORCE RLS disabled; the table and helper owners are `postgres`. The live `postgres` and `service_role` roles have BYPASSRLS; `anon` and `authenticated` do not. RC464 rechecks the owner/BYPASSRLS assumptions before enabling FORCE RLS.
