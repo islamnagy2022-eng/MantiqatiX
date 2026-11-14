@@ -10,6 +10,7 @@
 - Backup/restore rehearsal, RPO/RTO and current Auth security settings remain **NOT VERIFIED**; the available connector cannot inspect backup inventory/restore state or project Auth settings. Prior 2026-11-06 evidence reported leaked-password protection disabled.
 - Current security advisor/catalog snapshot: 9 RLS-enabled no-policy tables with no direct anon/authenticated table grants; 1 intentional public ads SECURITY DEFINER function; 65 authenticated-executable SECURITY DEFINER functions requiring individual review; 28 multiple-policy lints; 0 health lints.
 - Fresh evidence: [PRODUCTION_RECONCILIATION_20261114.md](docs/audits/PRODUCTION_RECONCILIATION_20261114.md); machine-readable ledger/object snapshot: [production-migration-reconciliation.json](docs/release/production-migration-reconciliation.json).
+- Release execution checklist: [PRODUCTION_VALIDATION_RUNBOOK_20261114.md](docs/release/PRODUCTION_VALIDATION_RUNBOOK_20261114.md). It covers schema reconciliation, Edge Function parity, Paymob sandbox E2E, backup/restore, Auth, adversarial RLS and stop conditions; it authorizes no Production mutation.
 - No migration was applied, no ledger row was fabricated, and no Production schema/data/Auth/RLS/GRANT/Edge/payment/finance mutation occurred.
 - **P0 remains BLOCKED:** reconcile all 42 version identities and aliases to physical effects, repair the 29 absent and three present-but-blocked objects through reviewed forward migrations, then complete Edge parity, Paymob/finance E2E, backup/restore RPO/RTO, Auth and adversarial tenant-isolation evidence.
 
