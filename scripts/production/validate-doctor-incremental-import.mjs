@@ -116,6 +116,7 @@ assert.match(edge, /listings: \(data \|\| \[\]\)\.map\(sanitizePublicDirectoryLi
 assert.match(edge, /listings\.map\(sanitizePublicDirectoryListing\)/, "Paginated public list must sanitize every row");
 assert.equal((publicReadBlock.match(/\.select\(publicReadFields/g) || []).length, 3, "All three public GET query paths must select the server-only verification field and sanitize it before response");
 assert.match(publicOutputContract, /PUBLIC_METADATA_KEYS/, "Public metadata must use an explicit allowlist");
+assert.match(frontend, /is_verified\?: boolean/, "Frontend type must expose only the public verification boolean");
 assert.match(publicOutputContract, /claimed_user_id: _claimedUserId/, "Claim identity must never be returned in public listing payloads");
 assert.match(publicOutputContract, /verified_by: verifiedBy/, "Raw verifier identity must be removed before public response");
 
