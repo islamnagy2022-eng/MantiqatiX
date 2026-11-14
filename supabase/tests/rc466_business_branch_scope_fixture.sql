@@ -122,7 +122,7 @@ USING (
   )
 );
 
--- Reproduce the live tenant-only branch read and broad permissive ALL guards.
+-- Reproduce the live tenant-only branch read and RESTRICTIVE anonymous-session guards.
 CREATE POLICY branches_member_read
 ON public.branches FOR SELECT TO authenticated
 USING (
@@ -183,19 +183,19 @@ WITH CHECK (
   )
 );
 CREATE POLICY authenticated_sessions_only
-ON public.branches FOR ALL TO authenticated
+ON public.branches AS RESTRICTIVE FOR ALL TO authenticated
 USING (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true')
 WITH CHECK (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true');
 CREATE POLICY deny_anonymous_users
-ON public.branches FOR ALL TO authenticated
+ON public.branches AS RESTRICTIVE FOR ALL TO authenticated
 USING (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true')
 WITH CHECK (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true');
 CREATE POLICY mnt_non_anonymous_boundary
-ON public.branches FOR ALL TO authenticated
+ON public.branches AS RESTRICTIVE FOR ALL TO authenticated
 USING (coalesce(((auth.jwt() ->> 'is_anonymous'))::boolean,false)=false)
 WITH CHECK (coalesce(((auth.jwt() ->> 'is_anonymous'))::boolean,false)=false);
 CREATE POLICY non_anonymous_authenticated_guard
-ON public.branches FOR ALL TO authenticated
+ON public.branches AS RESTRICTIVE FOR ALL TO authenticated
 USING (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true')
 WITH CHECK (coalesce((auth.jwt() ->> 'is_anonymous'),'false') <> 'true');
 
