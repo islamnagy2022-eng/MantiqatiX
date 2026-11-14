@@ -23,7 +23,7 @@ assert.doesNotMatch(migration, /DROP POLICY orders_customer_select_own/i, 'custo
 
 assert.match(migration, /to_regclass\('public\.order_status_history'\)/, 'order history must be a preflight dependency');
 assert.match(migration, /order_status_history', 'SELECT'/, 'existing history read grant must be preserved without widening writes');
-assert.match(migration, /RC465_UNEXPECTED_CLIENT_WRITE_GRANT/, 'migration must fail closed if client write grants appear on orders or order history');
+assert.match(migration, /RC465_UNEXPECTED_HISTORY_CLIENT_WRITE_GRANT/, 'migration must fail closed if client write grants appear on orders or order history');
 assert.match(migration, /has_table_privilege\('authenticated', 'public\.order_status_history', 'INSERT'\)/, 'migration must explicitly preserve read-only history grants');
 for (const restrictiveGuard of ['authenticated_sessions_only', 'deny_anonymous_users', 'mnt_non_anonymous_boundary', 'non_anonymous_authenticated_guard']) {
   assert.doesNotMatch(migration, new RegExp('DROP POLICY IF EXISTS ' + restrictiveGuard + ' ON public\\.order_status_history'), 'restrictive anonymous-session guard must be preserved: ' + restrictiveGuard);
@@ -40,7 +40,7 @@ assert.ok(historyInsertPolicy.includes('um.business_id = order_status_history.bu
 assert.ok(historyInsertPolicy.includes('um.branch_id IS NOT DISTINCT FROM order_status_history.branch_id'), 'future manager history writes must match the exact branch');
 
 assert.ok(fixture.includes('CREATE TABLE public.order_status_history'), 'fixture must include order history rows');
-assert.ok(fixture.includes('CREATE POLICY authenticated_sessions_only') && fixture.includes('ON public.order_status_history FOR ALL'), 'fixture must reproduce the broad legacy history policy');
+assert.ok(fixture.includes('CREATE POLICY authenticated_sessions_only') && fixture.includes('ON public.order_status_history AS RESTRICTIVE FOR ALL'), 'fixture must preserve the live restrictive anonymous-session guard');
 assert.match(fixture, /CREATE POLICY order_status_history_member_read/i, 'fixture must reproduce the legacy tenant-only history policy');
 assert.match(baseline, /public\.order_status_history/, 'baseline must demonstrate tenant-wide history exposure');
 assert.match(integration, /order_status_history/, 'integration tests must exercise order history');
