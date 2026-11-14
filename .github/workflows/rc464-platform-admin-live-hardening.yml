@@ -7,6 +7,7 @@ on:
       - "supabase/tests/rc464_platform_admin_live_baseline.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
+      - "supabase/tests/mantigo_financial_report_live_columns.sql"
       - "supabase/tests/rc464_platform_admin_shared_helper_callers.sql"
       - "scripts/validate-rc464-platform-admin-live-hardening.mjs"
       - ".github/workflows/rc464-platform-admin-live-hardening.yml"
@@ -18,6 +19,7 @@ on:
       - "supabase/tests/rc464_platform_admin_live_baseline.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
+      - "supabase/tests/mantigo_financial_report_live_columns.sql"
       - "supabase/tests/rc464_platform_admin_shared_helper_callers.sql"
       - "scripts/validate-rc464-platform-admin-live-hardening.mjs"
       - ".github/workflows/rc464-platform-admin-live-hardening.yml"
@@ -59,9 +61,11 @@ jobs:
           docker cp supabase/tests/rc464_platform_admin_live_baseline.sql "$pg_container:/tmp/live-baseline.sql"
           docker cp supabase/migrations/20261113214500_rc464_platform_admin_live_registry_hardening.sql "$pg_container:/tmp/rc464.sql"
           docker cp supabase/tests/rc449_mantigo_platform_admin_integration.sql "$pg_container:/tmp/integration.sql"
+          docker cp supabase/tests/mantigo_financial_report_live_columns.sql "$pg_container:/tmp/financial-report-test.sql"
           docker cp supabase/tests/rc464_platform_admin_shared_helper_callers.sql "$pg_container:/tmp/shared-callers.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc464_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc464_test -v ON_ERROR_STOP=1 -f /tmp/live-baseline.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc464_test -v ON_ERROR_STOP=1 -f /tmp/rc464.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc464_test -v ON_ERROR_STOP=1 -f /tmp/integration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc464_test -v ON_ERROR_STOP=1 -f /tmp/financial-report-test.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc464_test -v ON_ERROR_STOP=1 -f /tmp/shared-callers.sql
