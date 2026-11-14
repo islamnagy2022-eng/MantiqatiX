@@ -1,3 +1,44 @@
+# Latest checkpoint — 2026-11-14 — Production schema verification and security PR continuation
+
+**Request ID:** `R-20261114-MANTIQATIX-SECURITY-CONTINUATION`  
+**Status:** Active development across existing draft PRs. Production remains **BLOCKED / NOT CERTIFIED**. No candidate migration or deployment was applied to Production.
+
+## Verified live Supabase state (read-only)
+
+- The active project is **MANTIQATIX FINAL**. The separate demo project is inactive and was not used for this audit.
+- The live migration ledger contains 310 entries and ends at `20261110150618`. The candidate PR migrations remain unapplied.
+- `public.mantigo_financial_ledger` contains `gross_amount`, `commission_amount`, and `captain_net_amount`; it does not contain `amount` or `captain_amount`. The deployed financial-report RPC still references the absent legacy columns. No invocation or data write was made.
+- Both candidate platform-admin migrations (#722 and #724) now use the live ledger columns. They share a disposable regression test that leaves legacy fixture columns NULL and verifies the report after the candidate migration.
+- `private.platform_admins` has RLS enabled but FORCE RLS disabled; the table and helper owners are `postgres`. The live `postgres` and `service_role` roles have BYPASSRLS; `anon` and `authenticated` do not. RC464 rechecks the owner/BYPASSRLS assumptions before enabling FORCE RLS.
+- `businesses`, `branches`, and `orders` currently retain broad tenant-level policies. PR #727 narrows business/branch scope; PR #725 narrows order reads.
+- Security Advisor reported nine RLS-enabled tables with no policies, but those tables have no direct anon/authenticated SELECT or INSERT grants. It also reports the intentionally public targeted-ad RPC and generic authenticated SECURITY DEFINER/multiple-policy warnings; these require per-function/per-policy review, not blanket revocation. Health advisor returned no lints.
+
+## Current PR work
+
+| PR | Scope | Latest status at checkpoint |
+|---|---|---|
+| #722 | R7 platform-admin registry helper, SECURITY DEFINER search_path hardening, atomic migration, live-ledger report correction | Latest head `bb8ed67`; CI rerunning, no failures on that head |
+| #724 | RC464 canonical platform registry, FORCE RLS, four global MantiGO RPCs, live-ledger report correction | Latest code head `abe65ba` before audit-doc update; branch was updated with current `main`; CI rerunning |
+| #725 | Orders read scope by business/branch | 25/25 checks passed; draft, not merged |
+| #726 | Public contact opt-in, signed cursor pagination, frontend “See more” integration | Latest head `a8b6d80`; CI queued/running, no failures on that head |
+| #727 | Businesses and branches RLS scope | 24/24 checks passed; draft, not merged |
+
+- Migration order: review/merge #722 before #724 where practical. #722's migration version `20261113020000` precedes RC464 `20261113214500` and hardens four existing helper-dependent SECURITY DEFINER callers.
+- PR #724 is based on the current main tree as of `1b3a7c4`; its merge base is current main. After #722 merges, refresh #724 against the new main head and rerun the full chain.
+- No PR has been merged, no production migration was applied, and no production Edge Function or Pages deployment occurred.
+
+## Remaining release gates
+
+1. Finish exact-head CI for #722, #724 and #726, including the new financial-report regression and public-contact/privacy/browser checks.
+2. Review the complete diffs and preserve the draft/human-review gate; do not merge or deploy solely because CI passes.
+3. Run the complete migration replay and restore rehearsal against a fresh schema checkpoint; verify backup recovery and rollback before any production change.
+4. For #726, deploy the public Edge Function before the frontend that relies on 20-record cursor pages, then smoke-test page continuity, duplicate prevention, filter-bound cursors, expiry, explicit contact consent, CORS and existing catalog behavior.
+5. Re-run Security Advisor and verify live RPC ACLs, helper ownership, RLS policies, function bodies and migration history after any approved rollout.
+
+The separately uploaded R7 Google AI Studio application archive remains a distinct source baseline. Do not replace it with the GitHub production-contract repository or overwrite its retained R12 hardening artifacts.
+
+---
+
 # Latest checkpoint — 2026-11-14 — Public directory cursor pagination integration
 
 **Request ID:** `R-20261114-PUBLIC-DIRECTORY-CURSOR-PAGINATION`  
