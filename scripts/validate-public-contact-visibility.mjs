@@ -30,6 +30,9 @@ assert.ok(!storefront.includes("phone: branch.phone") && !storefront.includes("a
 assert.ok(!directory.includes("phone: entry.phone") && !directory.includes("address: entry.address"), "Directory must not return operational branch fields");
 assert.ok(admin.includes('typeof body.publicContactEnabled !== "boolean"'));
 assert.ok(admin.includes('submittedSocialFields["public_contact_enabled"] = body.publicContactEnabled'));
+assert.ok(admin.includes("PUBLIC_CONTACT_CONSENT_GRANTED"));
+assert.ok(admin.includes("PUBLIC_CONTACT_CONSENT_REVOKED"));
+assert.ok(admin.includes('service.from("audit_logs").insert'));
 assert.ok(admin.includes('["OWNER","BUSINESS_OWNER","ADMIN"]'));
 assert.ok(merchant.includes("bizPublicContactEnabled"));
 assert.ok(merchant.includes("أوافق صراحة على إظهار رقم واتساب النشاط والعنوان وأرقام التواصل الإضافية للعامة"));
