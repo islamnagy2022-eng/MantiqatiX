@@ -120,8 +120,13 @@ assert.match(edge, /listings\.map\(sanitizePublicDirectoryListing\)/, "Paginated
 assert.equal((publicReadBlock.match(/\.select\(publicFields/g) || []).length, 3, "All three public GET query paths must use the public field list and sanitize output");
 assert.match(publicOutputContract, /PUBLIC_METADATA_KEYS/, "Public metadata must use an explicit allowlist");
 
-assert.match(publicOutputContract, /claimed_user_id: _claimedUserId/, "Claim identity must never be returned in public listing payloads");
-assert.match(publicOutputContract, /verified_by: _verifiedBy/, "Raw verifier identity must be removed before public response");
+const publicListingKeys = publicOutputContract.match(/const PUBLIC_LISTING_KEYS = new Set\\(\\[([\\s\\S]*?)\\]\\);/);
+assert.ok(publicListingKeys, "Public listing fields must have a dedicated explicit allowlist");
+for (const forbiddenKey of ["verified_by", "is_verified", "claimed_user_id", "claimed_business_id", "source_permission_evidence_id", "created_by", "updated_by", "internal_notes"]) {
+  assert.doesNotMatch(publicListingKeys[1], new RegExp('"' + forbiddenKey + '"'), "Private listing field must not enter the public allowlist: " + forbiddenKey);
+}
+assert.match(publicOutputContract, /for \\(const key of PUBLIC_LISTING_KEYS\\)/, "Public listing serializer must copy only allowlisted top-level fields");
+assert.doesNotMatch(publicOutputContract, /\\.\\.\\.publicRow/, "Public listing serializer must not spread unknown database fields");
 
 console.log("DOCTOR_INCREMENTAL_IMPORT_CONTRACT=PASS");
 console.log("checks=platform_admin,20_row_cap,sequential_persistence,deduplication,draft_only_import,source_attribution,unverified_status,separate_publication_gate,two_person_approval,source_scope,expiry_revocation,valid_source_url,phone_gate,state_preservation,ownership_preservation,verification_protection,admin_ui,private_rls_registry");
