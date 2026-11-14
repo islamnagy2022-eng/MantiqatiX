@@ -8,6 +8,7 @@ const integration = read("../supabase/tests/r7_platform_admin_helper_callers_int
 const workflow = read("../.github/workflows/mantigo-platform-admin-scope.yml");
 
 const checks = [
+  ["migration is wrapped in one transaction", /^\\s*BEGIN;\\s*/i.test(migration) && /COMMIT;\\s*$/i.test(migration)],
   ["migration uses canonical private platform registry", /FROM\s+private\.platform_admins\s+pa[\s\S]*?pa\.user_id\s*=\s*auth\.uid\(\)/i.test(migration)],
   ["migration does not fall back to membership roles or generic RBAC", !/FROM\s+public\.user_memberships/i.test(migration) && !/public\.mnty_can\s*\(/i.test(migration)],
   ["migration preflight checks exact argument types for all four helper callers", ["character varying, text, text, timestamp with time zone, timestamp with time zone","uuid, uuid, uuid","uuid, uuid, text, text, text, text, jsonb","uuid, numeric, text"].every((sig) => migration.includes(sig)) && migration.includes("pg_catalog.oidvectortypes(p.proargtypes)")],
