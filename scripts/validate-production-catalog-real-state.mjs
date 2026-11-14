@@ -155,7 +155,7 @@ assert.ok(
 );
 assert.match(
   publicDirectoryFunction,
-  /prices = filterRowsToPubliclyPricedItems\(items, p \|\| \[\]\)/,
+  /prices = filterRowsToPubliclyPricedItems\(items,\s*(?:p\s*\|\|\s*\[\]|\[)/,
   'public directory price rows must require explicit show_price=true permission.'
 );
 assert.ok(
