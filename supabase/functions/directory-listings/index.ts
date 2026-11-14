@@ -14,6 +14,7 @@ import {
   resolveDoctorImportStatus,
   sanitizeDoctorImportMetadata,
 } from "./doctor-import-contract.mjs";
+import { sanitizePublicDirectoryListing } from "./public-directory-output-contract.mjs";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const allowedOrigins = new Set([
@@ -32,6 +33,7 @@ const cors = (origin: string | null) => ({
 const out = (origin: string | null, body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: cors(origin) });
 const publicFields = "id,slug,display_name,listing_type,functional_group_id,taxonomy_category_id,taxonomy_specialty,specialty,phone,secondary_phone,address,governorate,district,village,source_name,source_url,source_checked_at,listing_status,claim_status,completeness,metadata,created_at,updated_at";
+const publicReadFields = publicFields + ",verified_by";
 const listingTypes = new Set(["doctor","clinic","pharmacy","medical_center","hospital","laboratory","health_provider","business"]);
 const listingStatuses = new Set(["DRAFT","PUBLISHED","HIDDEN"]);
 type DirectoryListingWithClaim = Record<string, unknown> & {
@@ -69,7 +71,7 @@ Deno.serve(async (req: Request) => {
     const slug = clean(url.searchParams.get("slug"), 140);
     if (slug) {
       const { data: rawData, error } = await service.from("public_directory_listings")
-        .select(publicFields + ",claimed_user_id,claimed_business_id")
+        .select(publicReadFields + ",claimed_user_id,claimed_business_id")
         .eq("slug", slug).eq("listing_status", "PUBLISHED").maybeSingle();
       if (error) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
       const data = rawData as unknown as DirectoryListingWithClaim | null;
@@ -90,18 +92,17 @@ Deno.serve(async (req: Request) => {
           }
         }
       }
-      const { claimed_user_id: _claimedUserId, claimed_business_id: _claimedBusinessId, ...publicListing } = data;
-      return out(origin, { listing: { ...publicListing, can_edit: canEdit, owned_business_id: canEdit ? String(data.claimed_business_id || "") : null } });
+      return out(origin, { listing: { ...sanitizePublicDirectoryListing(data), can_edit: canEdit, owned_business_id: canEdit ? String(data.claimed_business_id || "") : null } });
     }
     const type = clean(url.searchParams.get("type"), 40);
     const pageMode = ["limit","cursor","governorate","district","village","address","specialty","functionalGroupId","taxonomyCategoryId","taxonomySpecialty","q"].some((key) => url.searchParams.has(key));
     if (!pageMode) {
-      let legacyQuery = service.from("public_directory_listings").select(publicFields)
+      let legacyQuery = service.from("public_directory_listings").select(publicReadFields)
         .eq("listing_status", "PUBLISHED").order("specialty", { ascending: true }).order("display_name", { ascending: true }).limit(500);
       if (type && listingTypes.has(type)) legacyQuery = legacyQuery.eq("listing_type", type);
       const { data, error } = await legacyQuery;
       if (error) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
-      return out(origin, { listings: data || [] });
+      return out(origin, { listings: (data || []).map(sanitizePublicDirectoryListing) });
     }
 
     // Stable keyset pagination: never use offset for the growing national directory.
@@ -116,7 +117,7 @@ Deno.serve(async (req: Request) => {
       return out(origin, { error: "INVALID_PAGE_CURSOR", message: "مؤشر تحميل النتائج غير صالح. أعد تحميل الدليل." }, 400);
     }
 
-    let pageQuery = service.from("public_directory_listings").select(publicFields)
+    let pageQuery = service.from("public_directory_listings").select(publicReadFields)
       .eq("listing_status", "PUBLISHED")
       .order("created_at", { ascending: false }).order("id", { ascending: false })
       .limit(limit + 1);
@@ -158,7 +159,7 @@ Deno.serve(async (req: Request) => {
     const listings = hasMore ? rows.slice(0, limit) : rows;
     const last = listings[listings.length - 1];
     const nextCursor = hasMore && last ? encodeDirectoryPaginationCursor({ created_at: last.created_at, id: last.id }) : null;
-    return out(origin, { listings, nextCursor, hasMore, pageSize: limit });
+    return out(origin, { listings: listings.map(sanitizePublicDirectoryListing), nextCursor, hasMore, pageSize: limit });
   }
   if (req.method !== "POST") return out(origin, { error: "METHOD_NOT_ALLOWED" }, 405);
   let body: any;
