@@ -136,6 +136,173 @@ BEGIN
 END;
 $test$;
 
+DO $inventory_test$
+DECLARE
+  v_ids text[];
+  v_rows integer;
+BEGIN
+  -- Unscoped tenant OWNER retains all tenant-a department and inventory visibility.
+  PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000001',false);
+  PERFORM set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated","is_anonymous":false}',false);
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.departments;
+  IF v_ids IS DISTINCT FROM ARRAY['dept-a1','dept-a2','dept-a-shared','dept-b1']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: tenant OWNER department scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.warehouses;
+  IF v_ids IS DISTINCT FROM ARRAY['warehouse-a1','warehouse-a2','warehouse-a-shared','warehouse-b1']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: tenant OWNER warehouse scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.stock_balances;
+  IF v_ids IS DISTINCT FROM ARRAY['stock-a1','stock-a2','stock-a-shared','stock-b1']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: tenant OWNER stock scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.inventory_transactions;
+  IF v_ids IS DISTINCT FROM ARRAY['txn-a1','txn-a2','txn-a-shared','txn-b1']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: tenant OWNER inventory transaction scope incorrect; got %',v_ids;
+  END IF;
+
+  -- Branch-scoped OWNER sees its branch plus business-wide shared resources only.
+  PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000002',false);
+  PERFORM set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000002","role":"authenticated","is_anonymous":false}',false);
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.departments;
+  IF v_ids IS DISTINCT FROM ARRAY['dept-a1','dept-a-shared']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: branch OWNER department scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.warehouses;
+  IF v_ids IS DISTINCT FROM ARRAY['warehouse-a1','warehouse-a-shared']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: branch OWNER warehouse scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.stock_balances;
+  IF v_ids IS DISTINCT FROM ARRAY['stock-a1','stock-a-shared']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: branch OWNER stock scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.inventory_transactions;
+  IF v_ids IS DISTINCT FROM ARRAY['txn-a1','txn-a-shared']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: branch OWNER inventory transaction scope incorrect; got %',v_ids;
+  END IF;
+
+  -- Business-level MANAGER sees all resources in business A, not business B.
+  PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000003',false);
+  PERFORM set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000003","role":"authenticated","is_anonymous":false}',false);
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.departments;
+  IF v_ids IS DISTINCT FROM ARRAY['dept-a1','dept-a2','dept-a-shared']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: business manager department scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.warehouses;
+  IF v_ids IS DISTINCT FROM ARRAY['warehouse-a1','warehouse-a2','warehouse-a-shared']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: business manager warehouse scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.stock_balances;
+  IF v_ids IS DISTINCT FROM ARRAY['stock-a1','stock-a2','stock-a-shared']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: business manager stock scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.inventory_transactions;
+  IF v_ids IS DISTINCT FROM ARRAY['txn-a1','txn-a2','txn-a-shared']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: business manager inventory scope incorrect; got %',v_ids;
+  END IF;
+
+  -- Branch manager and BUSINESS_OWNER memberships remain limited to branch-a1 plus shared rows.
+  PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000004',false);
+  PERFORM set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000004","role":"authenticated","is_anonymous":false}',false);
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.departments;
+  IF v_ids IS DISTINCT FROM ARRAY['dept-a1','dept-a-shared']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: branch manager department scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.warehouses;
+  IF v_ids IS DISTINCT FROM ARRAY['warehouse-a1','warehouse-a-shared']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: branch manager warehouse scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.stock_balances;
+  IF v_ids IS DISTINCT FROM ARRAY['stock-a1','stock-a-shared']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: branch manager stock scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.inventory_transactions;
+  IF v_ids IS DISTINCT FROM ARRAY['txn-a1','txn-a-shared']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: branch manager inventory scope incorrect; got %',v_ids;
+  END IF;
+
+  PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000005',false);
+  PERFORM set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000005","role":"authenticated","is_anonymous":false}',false);
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.departments;
+  IF v_ids IS DISTINCT FROM ARRAY['dept-a1','dept-a-shared']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: BUSINESS_OWNER department scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.warehouses;
+  IF v_ids IS DISTINCT FROM ARRAY['warehouse-a1','warehouse-a-shared']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: BUSINESS_OWNER warehouse scope incorrect; got %',v_ids;
+  END IF;
+
+  -- A different tenant manager sees only its own tenant resources.
+  PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000007',false);
+  PERFORM set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000007","role":"authenticated","is_anonymous":false}',false);
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.departments;
+  IF v_ids IS DISTINCT FROM ARRAY['dept-d1']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: tenant-B department scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.warehouses;
+  IF v_ids IS DISTINCT FROM ARRAY['warehouse-d1']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: tenant-B warehouse scope incorrect; got %',v_ids;
+  END IF;
+
+  -- Customers and unscoped employees must not enumerate private inventory.
+  PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000008',false);
+  PERFORM set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000008","role":"authenticated","is_anonymous":false}',false);
+  IF EXISTS (SELECT 1 FROM public.departments) OR EXISTS (SELECT 1 FROM public.warehouses)
+     OR EXISTS (SELECT 1 FROM public.stock_balances) OR EXISTS (SELECT 1 FROM public.inventory_transactions) THEN
+    RAISE EXCEPTION 'TEST_FAILED: unscoped CUSTOMER received private inventory visibility';
+  END IF;
+
+  PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000009',false);
+  PERFORM set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000009","role":"authenticated","is_anonymous":false}',false);
+  IF EXISTS (SELECT 1 FROM public.departments) OR EXISTS (SELECT 1 FROM public.warehouses)
+     OR EXISTS (SELECT 1 FROM public.stock_balances) OR EXISTS (SELECT 1 FROM public.inventory_transactions) THEN
+    RAISE EXCEPTION 'TEST_FAILED: unscoped EMPLOYEE received private inventory visibility';
+  END IF;
+
+  -- Strict platform super-admin retains tenant-wide read access.
+  PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000010',false);
+  PERFORM set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000010","role":"authenticated","is_anonymous":false}',false);
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.departments;
+  IF v_ids IS DISTINCT FROM ARRAY['dept-a1','dept-a2','dept-a-shared','dept-b1']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: platform admin department scope incorrect; got %',v_ids;
+  END IF;
+  SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.warehouses;
+  IF v_ids IS DISTINCT FROM ARRAY['warehouse-a1','warehouse-a2','warehouse-a-shared','warehouse-b1']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: platform admin warehouse scope incorrect; got %',v_ids;
+  END IF;
+
+  -- Anonymous sessions cannot read inventory.
+  PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000002',false);
+  PERFORM set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000002","role":"authenticated","is_anonymous":true}',false);
+  IF EXISTS (SELECT 1 FROM public.departments) OR EXISTS (SELECT 1 FROM public.warehouses)
+     OR EXISTS (SELECT 1 FROM public.stock_balances) OR EXISTS (SELECT 1 FROM public.inventory_transactions) THEN
+    RAISE EXCEPTION 'TEST_FAILED: anonymous session received private inventory visibility';
+  END IF;
+
+  -- A branch manager may update only its own department and cannot insert into a sibling branch.
+  PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000004',false);
+  PERFORM set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000004","role":"authenticated","is_anonymous":false}',false);
+  UPDATE public.departments SET name='A2 Forbidden Update' WHERE id='dept-a2';
+  GET DIAGNOSTICS v_rows = ROW_COUNT;
+  IF v_rows <> 0 THEN
+    RAISE EXCEPTION 'TEST_FAILED: branch manager updated sibling department';
+  END IF;
+  UPDATE public.departments SET name='A1 Updated' WHERE id='dept-a1';
+  GET DIAGNOSTICS v_rows = ROW_COUNT;
+  IF v_rows <> 1 THEN
+    RAISE EXCEPTION 'TEST_FAILED: branch manager could not update its own department';
+  END IF;
+
+  BEGIN
+    INSERT INTO public.departments(id,tenant_id,business_id,branch_id,name,code,status)
+    VALUES ('dept-a2-forbidden','tenant-a','20000000-0000-4000-8000-000000000001','branch-a2','Forbidden','AF','ACTIVE');
+    RAISE EXCEPTION 'TEST_FAILED: branch manager inserted sibling department';
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL;
+  END;
+END;
+$inventory_test$;
+
 RESET ROLE;
 
 -- Exercise actual PostgreSQL anon grants separately from an authenticated
