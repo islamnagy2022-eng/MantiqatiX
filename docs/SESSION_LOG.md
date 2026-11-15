@@ -2589,3 +2589,15 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Reviewed current MantiGO test coverage: the production security contract checks RLS/grants/triggers; RC446 behavior covers open-ride captain eligibility and actor spoofing but not anonymous JWTs or all seven authenticated MantiGO RPCs.
 - Eight of ten selected high-risk RPCs lack explicit `is_anonymous` checks. They still bind supplied actor IDs to `auth.uid()` and have function-specific ownership/status/profile checks. Classified this as an unverified compatibility/security test gap, not a confirmed exploit. Current app source has no `signInAnonymously` call, but external/legacy clients remain unruled-out.
 - No function, grant, Auth setting, Edge Function or production data was changed.
+
+
+---
+
+## Pass 43 — RC467 commission scope hardening candidate (2026-11-15)
+
+- Rechecked Production read-only: `commission_rules=0`, `commission_rule_audit=0`; 11 active business/branch-scoped OWNER/BUSINESS_OWNER memberships across five users satisfy the existing tenant-only predicate for commission management. No user membership values or registry rows were exported.
+- Identified `mnty_commission_rule_drafts`, `preview_commission_rule_draft`, `preview_commission_rule_resolution` using tenant role membership without checking scope; `preview_commission_backend` delegated to tenant-only `assert_financial_membership` despite its business_id input and absent branch_id argument.
+- RC467 added as a candidate migration after RC464–466. It gates draft manager and draft previews on canonical `mnty_can_platform_admin()`; active finance preview is limited to platform root, tenant-wide or exact-business (branch_id NULL), and denies anonymous sessions. Search path is empty; object references qualified.
+- Disposable test/validator and workflow wiring added. The first combined replay failed in legacy RC455 test fixture because it seeded only a SUPER_ADMIN membership; strict canonical registry denied it. RC455/RC456 fixtures have now been updated to seed `private.platform_admins` within transaction and assert `PLATFORM_ADMIN_REQUIRED` for non-root.
+- Current exact head `911881ee2de51c5f68ee0a1a3b571b76f37b0a5f`, forward replay run `43664038104` was still at isolated Supabase startup when this log was written. Static RC467 validator passed. Full migration replay remains unverified until run completes.
+- No Production DDL/DML, grant/RLS/Auth change, Edge deployment, payment, settlement, Staging or paid resource created. Production ledger remains 310 through `20261110150618`; release gate BLOCKED / NOT CERTIFIED.
