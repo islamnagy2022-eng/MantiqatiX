@@ -1,3 +1,20 @@
+# Latest verified checkpoint — Pass 41 — 2026-11-15
+
+**Status:** PR CI checkpoints verified. Production release remains **BLOCKED / NOT CERTIFIED**. No production database, Auth, RLS, GRANT, Edge Function, payment, settlement, or user-data mutation was performed.
+
+- PR #729 documentation checkpoint: **8/8 workflow runs successful**. Pages validation passed; `validate_public_only` and `deploy` were skipped because this is a pull-request event. No new public deployment is claimed.
+- PR #730 combined RC464 → RC465 → RC466 migration-chain validation remains **17/17 successful** on exact head `52075482ddcf30749b4eb75768ce891755df85ea`; draft and unmerged.
+- Live Supabase project `MANTIQATIX FINAL` (`moyhiluyhjsujhwlyeuu`) is ACTIVE_HEALTHY. Branch inventory contains only `main`; there is no persistent Staging branch. Do not create one without first checking and obtaining confirmation for any branch/compute cost.
+- Production migration ledger remains at 310 migrations; latest version `20261110150618`. RC464/465/466 are not applied.
+- Read-only inventory: 137 public tables, 0 with RLS disabled. Security advisor still reports 9 RLS-enabled/no-policy tables (default-deny), 1 anon-callable SECURITY DEFINER function, 65 authenticated-callable SECURITY DEFINER functions, and leaked-password protection warning. These are review items, not proof of exploitable access; do not mass-revoke or change policies without call-chain and tenant evidence.
+- Performance advisor snapshot: 132 unindexed foreign keys, 375 auth RLS initplan findings, 71 unused indexes, and 28 multiple-permissive-policy findings. Prioritize high-traffic paths and validate query plans before index/policy changes.
+- **PR #729 CI stage: 100% (8/8). PR #730 combined-chain CI stage: 100% (17/17).** These are independent candidate-validation percentages, not production readiness.
+- **Overall production completion remains 60.8333% (last weighted verified baseline; unchanged).** Unmerged candidate work and CI-only results do not increase production completion.
+
+**Next:** obtain a controlled Staging environment (first confirm branch cost/availability), replay the exact #730 chain there, and run positive/negative tenant, business, branch, order-history and inventory authorization tests. Keep production unchanged until Staging evidence, code review, approvals, and an explicit production change window exist.
+
+---
+
 # Current checkpoint — Pass 40 — 2026-11-15
 
 **Status:** Pass 40 engineering/security checkpoint recorded. **Overall production release remains BLOCKED / NOT CERTIFIED.**
