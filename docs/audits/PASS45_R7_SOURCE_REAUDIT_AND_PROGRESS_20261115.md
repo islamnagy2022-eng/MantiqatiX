@@ -99,3 +99,10 @@ No category-level increase can honestly be calculated without the previous categ
 7. Complete RC468 and the coupled Paymob flow in disposable/Sandbox tests.
 
 **Safety:** R7 archive was read-only during this audit. No Production data/schema/Auth/RLS/GRANT change, Edge deployment, website deployment, payment, Staging, or paid resource occurred.
+
+
+### RC468 expanded regression addendum — 2026-11-15
+
+- Extended the disposable regression suite to cover NULL idempotency key and NULL claim token on release/finalize in addition to NULL/blank/malformed claim token and cross-user/replay cases.
+- Current PR #731 head: `5e5b832e0114476604bf195d336105c6ee437246`. Dedicated RC468 PostgreSQL workflow PASS. Forward migration-chain replay and V6 Pages validation are still in progress on this expanded-test head. The preceding head `3f75de7b7d4b474b2dfea5497d503c409796f313` had 11/11 workflows PASS, including 77-migration replay; the expanded tests are being rerun before claiming the same for the current head.
+- No Production change/deployment. PR #731 remains Draft/unmerged.
