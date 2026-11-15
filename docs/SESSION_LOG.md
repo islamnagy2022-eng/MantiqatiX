@@ -2614,3 +2614,16 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Historical schema checkpoint manifest remains PENDING_REVIEW (20261008222845, 283 historical ledger entries); CI success does not certify current Production backup restore/RPO/RTO.
 - Rechecked Production afterward: ledger unchanged at 310 through 20261110150618; RC464–RC467 unapplied; commission_rules=0; commission_rule_audit=0; 11 active scoped owner/business-owner memberships remain. No production data or grants changed.
 - No Edge deployment, Pages deployment, payment, settlement, Auth/RLS/GRANT change, staging environment or paid resource was created. Release remains BLOCKED / NOT CERTIFIED until human SQL review, current backup/restore and authorized rollout.
+
+
+---
+
+## Pass 44 — recovery visibility and public ad endpoint review (2026-11-15)
+
+- Reopened the Pass 43 audit, current continuity record, master TODO and production TODO. Detected and corrected the stale Pass 41 top checkpoint in the master TODO.
+- Supabase Production is ACTIVE_HEALTHY; 310 migrations through `20261110150618`; RC464–RC467 unapplied. Only non-persistent `main` is listed, with `with_data=false`.
+- Connected Supabase tools do not expose backup inventory, PITR status/retention, restore points or RPO/RTO evidence. Current data restore and rollback remain NOT VERIFIED; the schema-only CI baseline cannot substitute for them.
+- Reviewed the sole anon-callable SECURITY DEFINER function `get_mnty_targeted_advertisements`: postgres owner, empty search_path, active/approved/in-date filters, limited ad-placement return fields. Direct source table access remains restricted by RLS/grants. Classification is likely intentional public ad-serving API pending owner approval and focused behavior tests; no ACL changes made.
+- Security advisor currently reports 9 RLS-enabled/no-policy tables and 65 authenticated-callable SECURITY DEFINER functions. No broad grants or policies were added.
+- Documentation updated on the existing PR #729 docs branch: Pass 44 audit, project continuity, master TODO and production TODO. No runtime code changed.
+- No Production writes, backup restore, Auth/RLS/GRANT change, Edge/Pages deployment, payment, settlement, Staging or paid resource occurred. PR #730 remains Draft/unmerged; release remains BLOCKED / NOT CERTIFIED.
