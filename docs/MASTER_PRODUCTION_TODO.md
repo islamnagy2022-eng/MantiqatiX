@@ -10,6 +10,11 @@
 - PR #730 remains Draft/unmerged. No Production writes, Auth/RLS/GRANT changes, Edge deployment, payment, settlement, Staging, paid resource or website deployment occurred.
 - **Overall weighted production progress remains 60.8333% (last verified baseline); Pass 44 does not increase it.**
 - Full report: [Pass 44 audit](audits/PASS44_RECOVERY_VISIBILITY_AND_PUBLIC_AD_REVIEW_20261115.md).
+- **New P0 payment-path rollout gap:** live ledger does not contain RC458 (`20261030120000`); live claim RPC still has `search_path=public, pg_temp` and unqualified `where id = p_order_id` despite a RETURNS TABLE `id` output. RC458 source fixes this but is not applied in Production. No RPC was invoked.
+- Deployed `digital-page-payment-intent` is ACTIVE v5; its deployed source lacks the newer Paymob intention correlation and provider-order persistence logic present in current main. This is a deployed Edge parity gap, not a deployment authorization.
+- Live claim RPC also lacks NULL/blank token validation and uses `<> p_claim_token`; SQL NULL semantics can bypass the competing-claim branch for a direct authenticated same-owner call. This is a plausible concurrency/duplicate-intention risk, not a cross-user bypass or confirmed exploit.
+- Required candidate remediation: new forward-only payment-claim hardening migration, NULL/blank/competing-token disposable tests, then controlled migration + Edge parity deployment and Paymob Sandbox E2E. Do not invoke or alter Production to test.
+
 
 **Next:** continue adversarial review of authenticated SECURITY DEFINER finance/payment/inventory functions and obtain owner-side backup/PITR/restore evidence without creating paid resources or Staging.
 
