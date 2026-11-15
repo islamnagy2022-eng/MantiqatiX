@@ -4257,3 +4257,14 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - [ ] Complete exact-head `911881ee2de51c5f68ee0a1a3b571b76f37b0a5f` forward-replay run `43664038104` and resolve any failures.
 - [ ] Human review RC467 SQL, then await independent security review and current Production backup/restore + rollback evidence.
 - Production remains BLOCKED / NOT CERTIFIED; RC464–RC467 remain unapplied.
+
+
+## Pass 43 — RC467 commission scope hardening — verification outcome
+
+- [x] RC467 static authorization validator PASS at exact head `911881ee2de51c5f68ee0a1a3b571b76f37b0a5f`.
+- [x] Forward migration replay run `43664038104` PASS; 80 later migrations replayed in disposable local Supabase.
+- [x] RC455 and RC456 existing commission tests PASS with canonical `private.platform_admins` fixtures.
+- [x] RC467 commission scope behavioral integration PASS; tenant/business/branch and finance negative/positive cases verified.
+- [x] 18/18 returned workflow runs on this exact head succeeded; Pages deployment jobs were skipped for PR event.
+- [ ] Review the historical schema snapshot manifest (PENDING_REVIEW, checkpoint 20261008222845) and obtain a current Production backup/restore + rollback rehearsal; forward replay is not a substitute.
+- [ ] Human SQL/security review and authorized release approval remain outstanding. PR #730 remains Draft; no RC464–RC467 Production rollout.
