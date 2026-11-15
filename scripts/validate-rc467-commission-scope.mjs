@@ -7,7 +7,8 @@ const migration = fs.readFileSync(migrationPath, 'utf8');
 const test = fs.readFileSync(testPath, 'utf8');
 
 function functionBody(name) {
-  const start = migration.indexOf('CREATE OR REPLACE FUNCTION public.' + name + '(');
+  const lowerMigration = migration.toLowerCase();
+  const start = lowerMigration.indexOf(('create or replace function public.' + name + '(').toLowerCase());
   assert.notEqual(start, -1, 'Missing replacement for ' + name);
   const end = migration.indexOf('$function$;', start);
   assert.notEqual(end, -1, 'Missing function terminator for ' + name);
