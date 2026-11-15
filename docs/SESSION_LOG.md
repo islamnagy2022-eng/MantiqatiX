@@ -2530,3 +2530,18 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - PR #730 remains draft/unmerged. Staging replay, distinct tenant/business/branch/customer API tests, formal review/approval and production change authorization remain open.
 - **Stage result:** combined CI validation 100% (17/17). Overall production completion remains 60.8333%; no increase is claimed for unmerged candidate work.
 - **Next action:** prepare a controlled Staging replay of the exact validated chain and execute negative/positive cross-business and cross-branch authorization tests. Keep production unchanged.
+
+
+## 2026-11-15 — Pass 41 CI status and live Supabase read-only inventory
+
+- PR #729 head `713dec4e19dedcf38f0338ec7c6d9508e7ed51e8`: 8/8 workflow runs succeeded. Pages validation succeeded; public-only validation and deployment were skipped for the pull-request event. No production/public deployment occurred.
+- PR #730 exact head `52075482ddcf30749b4eb75768ce891755df85ea`: combined RC464 → RC465 → RC466 CI chain remains 17/17 successful. PR remains draft/unmerged.
+- Queried live Supabase project `MANTIQATIX FINAL` read-only. It is ACTIVE_HEALTHY. Only `main` branch exists; no persistent Staging branch. Branch creation may incur compute charges, so check cost and obtain approval before creating.
+- Migration ledger contains 310 entries; latest version `20261110150618`. RC464/465/466 are not in production.
+- Public schema inventory: 137 tables; none has RLS disabled. Security advisors: 9 RLS-enabled/no-policy tables, 1 anon-callable SECURITY DEFINER function, 65 authenticated-callable SECURITY DEFINER functions, leaked-password-protection warning. Performance advisors: 132 unindexed FKs, 375 auth RLS initplan findings, 71 unused indexes, 28 multiple-permissive-policy findings.
+- These advisor findings are triage evidence, not permission to mass-revoke or loosen/tighten policies without reviewing callers and tenant/branch semantics.
+- No production database/Auth/RLS/GRANT/Edge Function/payment/settlement/user-data mutation.
+- **CI results:** PR #729 8/8 (100%); PR #730 17/17 (100%). Overall production completion remains 60.8333%, unchanged.
+- **Next:** create/obtain cost-approved Staging, replay the exact validated migration chain, and run positive/negative cross-tenant, cross-business and cross-branch API tests. Keep production unchanged.
+
+
