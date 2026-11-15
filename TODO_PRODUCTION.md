@@ -2027,3 +2027,16 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 - [ ] Complete Android Gradle wrapper/project and reproducible build.
 - [ ] Install dependencies reproducibly and run unit, integration, typecheck, build, browser and security suites.
 - Evidence: `docs/audits/PASS45_R7_SOURCE_REAUDIT_AND_PROGRESS_20261115.md`.
+
+
+## Pass 45 — RC468 CI closure
+
+- [x] Dedicated RC468 PostgreSQL 16 behavioral/ACL integration PASS on `3f75de7b7d4b474b2dfea5497d503c409796f313`.
+- [x] Forward migration chain replay PASS: 77 migrations on disposable local Supabase from historical schema-only checkpoint.
+- [x] RC468 claim-token/provider-order integration PASS; owner-profile, RC455/RC456 commission and tenant-isolation integration checks PASS.
+- [x] 11/11 GitHub workflow runs SUCCESS on the candidate head.
+- [x] V6 Pages desktop/mobile validation PASS; deployment jobs skipped for PR event; no site deployed.
+- [ ] Human SQL/security review and PR #731 approval/merge.
+- [ ] Backup/PITR/restore evidence and measured RPO/RTO.
+- [ ] Matching Edge Function source parity and Paymob Sandbox E2E.
+- [ ] Controlled Production rollout after all release gates.
