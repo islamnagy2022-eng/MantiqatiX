@@ -2635,3 +2635,14 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Deployed `digital-page-payment-intent` is ACTIVE v5; deployed source lacks the newer main-branch Paymob intention correlation and provider-order persistence logic.
 - Live claim RPC does not reject NULL/blank claim tokens and compares with `<>`; a direct authenticated same-owner NULL-token call may bypass the active-claim check due SQL NULL semantics. This is a plausible same-owner concurrency risk, not a cross-user authorization bypass or confirmed exploit.
 - No Production invocation, migration, Edge deployment, payment or data mutation occurred. A candidate RC468-style migration and disposable tests are required; controlled deployment remains gated on backup/restore, review and Paymob Sandbox E2E.
+
+
+## Pass 45 — R7 source re-audit and progress recalibration (2026-11-15)
+
+- Verified the user-designated `bizcatalog-manager (11).zip` SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, ZIP integrity, 233-file inventory, and continuity directive.
+- Source review found critical R7 blockers: unauthenticated caller-selected JWT minting with super_admin default; unverified refresh token fallback; default/static admin password paths; hardcoded JWT/Paymob/backup secret fallbacks; local JSON authoritative persistence; missing-file seed bootstrap and forced verified/paid business state; localStorage as frontend state authority.
+- R7 schema migration contains 7 CREATE TABLE statements and 7 RLS-enabled tables, not 11. Android wrapper contains 3 files and no root Gradle wrapper/settings. There are 15 test files but no test script. npm install timed out; global tsc blocked on missing vite/client; Node native tests failed on extensionless TS import resolution.
+- Recalibrated R7 12-category estimates: 85/30/8/65/45/35/75/55/25/15/5/5; unweighted mean 37.33%. Previous 60.8333% was weighted with no available per-category baseline/formula; the difference is a new R7 source/methodology baseline, not a proven feature regression. No category-level increase is claimed without the old category values.
+- Created audit `docs/audits/PASS45_R7_SOURCE_REAUDIT_AND_PROGRESS_20261115.md` and updated continuity, master TODO and production TODO.
+- RC468 payment candidate PR #731 dedicated PostgreSQL workflow passed on final migration/test head `179ec76de4dbff06bd3aa2b0d8419eb481fdfee3`; forward migration replay and latest-head deploy-validation workflow were still in progress at this checkpoint. PR #731 remains Draft/unmerged; no Production mutation or deployment.
+- No R7 source import, Production database/Auth/RLS/GRANT change, Edge deployment, payment, Staging or paid resource occurred.
