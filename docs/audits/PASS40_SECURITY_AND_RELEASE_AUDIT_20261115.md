@@ -81,3 +81,26 @@ The isolated #724/#725/#727 forward-replay workflows now pass. Next assemble and
 - Web workflow validation succeeded; deploy job was skipped as expected for a pull-request event. This is not a production deployment.
 - This closes the combined isolated-CI acceptance item only. PR #730 remains draft/unmerged; production ledger remains unchanged at 310 migrations. Staging replay, tenant/business/branch/customer API tests, approvals and production authorization remain open.
 - **Stage result:** combined CI validation 100% (17/17 workflows); overall production completion remains 60.8333%, unchanged until approved integration and Staging evidence.
+
+
+## Pass 41 — Documentation CI and live Supabase read-only inventory — 2026-11-15
+
+### Verified
+- PR #729 exact head `713dec4e19dedcf38f0338ec7c6d9508e7ed51e8`: 8/8 Actions runs successful. Pages validation passed; `validate_public_only` and `deploy` were skipped because the run was triggered by a pull request.
+- PR #730 exact head `52075482ddcf30749b4eb75768ce891755df85ea`: combined RC464 → RC465 → RC466 forward migration replay and related CI remained 17/17 successful. Draft/unmerged.
+- Live Supabase project `MANTIQATIX FINAL` is ACTIVE_HEALTHY. Only `main` branch is present; no persistent Staging branch exists.
+- Production migration ledger has 310 entries, latest `20261110150618`. No RC464/465/466 migration is applied.
+- Public schema inventory: 137 tables, 0 with RLS disabled.
+- Security advisor findings: 9 RLS-enabled/no-policy tables (default-deny), 1 anon-callable SECURITY DEFINER function, 65 authenticated-callable SECURITY DEFINER functions, and leaked-password-protection warning.
+- Performance advisor findings: 132 unindexed foreign keys, 375 auth RLS initplan findings, 71 unused indexes, 28 multiple permissive policies.
+
+### Interpretation and safety
+- Advisor findings require call-chain and intended-access review; they do not by themselves establish a vulnerability or authorize mass privilege/policy changes.
+- Supabase Staging branch creation can incur compute cost. Check and disclose the cost and obtain approval before creating a persistent branch.
+- No production DDL/DML, Auth/RLS/GRANT, Edge Function deployment, payment, settlement, or user-data mutation was performed.
+- PR #729 CI stage: 8/8 = 100%. PR #730 combined-chain CI stage: 17/17 = 100%. These are candidate validation metrics only.
+- Overall production completion remains **60.8333%**, unchanged. Production release remains **BLOCKED / NOT CERTIFIED**.
+
+### Next exact action
+Obtain a cost-approved Staging environment, replay the exact #730 migration chain, then run positive and negative tenant/business/branch/order-history/inventory API tests. Keep production unchanged until Staging, review, approval, and production change-window gates pass.
+
