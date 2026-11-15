@@ -1,3 +1,15 @@
+## Pass 43 — RC467 commission scope hardening — exact-head verification complete (2026-11-15)
+
+- RC467 is included in combined Draft PR #730 at exact head `911881ee2de51c5f68ee0a1a3b571b76f37b0a5f`.
+- Forward replay run `43664038104` completed **PASS**: 80 migrations applied to disposable local Supabase from the historical schema-only checkpoint; RC455, RC456 and RC467 behavioral SQL tests all passed; RC467 static validator passed; owner profile and tenant-isolation SQL checks passed.
+- **18/18** returned workflows on the exact head succeeded. Pages validation passed, but `validate_public_only` and `deploy` were skipped on the PR event. No Pages deployment occurred.
+- Qualification: the replay baseline manifest remains PENDING_REVIEW at checkpoint `20261008222845` (283 entries); this is not a current Production backup/restore rehearsal.
+- Live Supabase recheck remains healthy at **310** migrations through `20261110150618`; RC464–RC467 not applied. Live commission_rules and commission_rule_audit each remain at zero rows. No Production writes or paid resources.
+- PR #730 remains Draft/unmerged; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` pending human SQL review, current Production backup/restore and rollout authorization.
+- Full report: `docs/audits/PASS43_RC467_COMMISSION_SCOPE_20261115.md`.
+
+---
+
 ## Pass 43 — RC467 commission scope hardening candidate (2026-11-15)
 
 - Live commission configuration contained 0 rows in `commission_rules` and 0 rows in `commission_rule_audit`; no rule or audit data was read or modified.
