@@ -2581,3 +2581,11 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - No Production DDL/DML, Auth/RLS/GRANT change, Edge deployment, payment, settlement, Pages deployment or Staging creation occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 - Next: risk-ranked per-function security tests, starting with platform-global and finance/payment RPCs; maintain free CI-only validation.
 
+
+
+### Pass 42 anonymous-session follow-up
+
+- Read-only deployed-source parity check: `mnty-registration-review` v5 and `mnty-provider-onboarding-review` v3 are ACTIVE, `verify_jwt=true`, and byte-identical to current `main`; both use `auth.getUser(token)` and reject anonymous sessions before invoking private service-role RPCs.
+- Reviewed current MantiGO test coverage: the production security contract checks RLS/grants/triggers; RC446 behavior covers open-ride captain eligibility and actor spoofing but not anonymous JWTs or all seven authenticated MantiGO RPCs.
+- Eight of ten selected high-risk RPCs lack explicit `is_anonymous` checks. They still bind supplied actor IDs to `auth.uid()` and have function-specific ownership/status/profile checks. Classified this as an unverified compatibility/security test gap, not a confirmed exploit. Current app source has no `signInAnonymously` call, but external/legacy clients remain unruled-out.
+- No function, grant, Auth setting, Edge Function or production data was changed.
