@@ -4223,3 +4223,17 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - This closes the initial classification of the six functions lacking a direct `auth.uid()` reference (6/6 classified), not the complete authorization review of all 65. Continue tenant/business/branch negative testing and review all direct-auth functions for object-level authorization.
 - No production changes.
 
+
+
+## Pass 42 — 2026-11-15 — Free-CI security continuation
+
+- [x] Confirm zero-cost development policy: no paid resources, Staging, paid Supabase branch, subscription or upgrade before the final cost review.
+- [x] Re-query Production migration ledger: 310 entries through `20261110150618`; RC464–466 remain unapplied.
+- [x] Re-query exact PR #730 head `52075482ddcf30749b4eb75768ce891755df85ea`: 14 returned workflow runs completed successfully; RC464, RC465, RC466, combined forward replay and MantiGO scope jobs PASS; PR deployment jobs skipped.
+- [x] Record live platform-admin boundary drift and RC464 candidate status; no Production change performed.
+- [ ] Human review PR #724 / RC464, #725 / RC465 and #727 / RC466 together; keep all drafts until source, dependencies and exact-head CI are reviewed.
+- [ ] Verify service_role bootstrap/revocation as the only approved registry mutation path, including audit evidence and removal behavior.
+- [ ] Continue per-function adversarial tests for the 59 authenticated SECURITY DEFINER functions; prioritize platform-global, payment, finance, settlement and tenant-crossing operations.
+- [ ] Rehearse current Production backup/restore and rollback using an already available free/approved path; do not create paid infrastructure.
+- [ ] Owner-side Auth leaked-password protection enablement and recheck remains pending.
+- Release remains BLOCKED / NOT CERTIFIED. Full evidence: `docs/audits/PASS42_SECURITY_CONTINUATION_20261115.md`.
