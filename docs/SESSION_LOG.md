@@ -2545,3 +2545,15 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - **Next:** create/obtain cost-approved Staging, replay the exact validated migration chain, and run positive/negative cross-tenant, cross-business and cross-branch API tests. Keep production unchanged.
 
 
+
+
+## 2026-11-15 — Pass 41 security advisor triage (read-only)
+
+- Enumerated the nine RLS-enabled/no-policy tables and verified anon/authenticated SELECT and INSERT are false for all nine. service_role SELECT exists only on directory_listing_claim_requests, directory_source_permission_evidence and public_directory_listings; other six are inaccessible to service_role SELECT. These are default-deny; backend call paths must be checked before changing.
+- Identified the one anon-callable SECURITY DEFINER function: get_mnty_targeted_advertisements. It has search_path empty and explicit anon/authenticated EXECUTE. Function body returns approved/active ad-placement fields only. Bounded live query returned three approved global ad placements and no customer or personal fields. Treat as likely intentional public read; preserve pending owner confirmation and regression tests.
+- 65 authenticated-callable SECURITY DEFINER functions remain for deeper caller/tenant/branch review. Advisor warning alone is not proof of a vulnerability.
+- Auth leaked-password protection remains a warning; no Auth configuration was changed.
+- Performance findings: 132 unindexed FKs, 375 auth RLS initplan findings, 71 unused indexes, 28 multiple permissive policies.
+- No production writes, grants, policies, Auth settings, Edge Functions, payments or deployments were changed.
+
+
