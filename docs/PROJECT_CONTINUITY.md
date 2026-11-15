@@ -1,3 +1,11 @@
+## Pass 42 anonymous-session follow-up — 2026-11-15
+
+- Verified deployed-source parity for `mnty-registration-review` v5 and `mnty-provider-onboarding-review` v3; both are ACTIVE, `verify_jwt=true`, byte-identical to current `main`, and explicitly reject anonymous users before calling service-role-only private RPCs.
+- Added an evidence-based anonymous-JWT gap: RC446 tests one open-ride RPC but not anonymous JWTs; the broader MantiGO static contract is not behavioral coverage. Eight of ten reviewed high-risk RPCs lack an explicit `is_anonymous` guard, but bind actor IDs to `auth.uid()` and apply additional ownership/state checks. Treat as NOT VERIFIED, not a confirmed exploit; do not alter guest behavior until the product contract is established.
+- Full details: `docs/audits/PASS42_SECURITY_CONTINUATION_20261115.md`.
+
+---
+
 ## Pass 42 — 2026-11-15 — Free-CI security continuation
 
 - User cost decision: **zero spending during development**. No paid Supabase branch, Staging, subscription, upgrade or other paid resource may be created. Revisit costs only at final release review.
