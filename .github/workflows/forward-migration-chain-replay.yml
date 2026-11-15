@@ -16,6 +16,7 @@ on:
       - "supabase/tests/owner_profile_persistence_integration.sql"
       - "supabase/tests/rc455_commission_preview_integration.sql"
       - "supabase/tests/rc456_commission_resolution_preview_integration.sql"
+      - "supabase/tests/rc468_digital_page_payment_claim_integration.sql"
       - ".github/workflows/forward-migration-chain-replay.yml"
   pull_request:
     branches: ["main"]
@@ -117,6 +118,9 @@ jobs:
 
           echo "RC456_COMMISSION_RESOLUTION_PREVIEW_INTEGRATION"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc456_commission_resolution_preview_integration.sql
+
+          echo "RC468_DIGITAL_PAGE_PAYMENT_CLAIM_INTEGRATION"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc468_digital_page_payment_claim_integration.sql
 
           psql "$db_url" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql
           psql "$db_url" -v ON_ERROR_STOP=1 -f scripts/verify-tenant-isolation.sql
