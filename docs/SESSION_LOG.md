@@ -2512,3 +2512,11 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - PR #727 RC466 latest head `9f607a4ed8cb7b86c851458e623988e0d35db04b`: all 11 workflow checks succeeded, including static validation, PostgreSQL branch/inventory behavior tests, forward migration chain replay, backend boundary checks and Pages validation.
 - PR #725 RC465 latest head `22bf2fca1e32b150a40548b1c40276597e5e453d`: all 11 workflow checks succeeded, including PostgreSQL behavior and forward migration replay with the test-only ACL overlay.
 - The isolated candidate validations for #724 RC464, #725 RC465 and #727 RC466 are green. The combined RC464 → RC465 → RC466 sequence has not yet been validated as one Staging release candidate and remains a release gate.
+
+
+### Pass 40 combined migration integration — 2026-11-15
+
+- Created draft PR #730, branch `integration/rc464-rc465-rc466-chain-20261115`, based on main. It assembles the exact RC464, RC465 and RC466 migrations, fixtures, validators and the combined replay workflow.
+- The combined replay restores the captured live order-history ACL before RC465 and the private business/branch/inventory anonymous ACL before RC466, in migration timestamp order. The public business showcase grant is preserved.
+- CI has started on PR #730. At the initial check, the combined forward replay and the RC464/RC465/RC466-specific tests were queued/in progress; no combined pass is claimed yet.
+- This is an isolated CI integration candidate only. No production migrations, deployments or financial writes were performed.
