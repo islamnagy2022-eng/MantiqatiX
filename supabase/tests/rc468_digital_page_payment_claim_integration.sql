@@ -105,15 +105,11 @@ begin
   end;
   if not rejected then raise exception 'RC468_CROSS_USER_CLAIM_NOT_REJECTED'; end if;
 
-  rejected := false;
-  begin
-    perform public.release_digital_page_payment_intent_claim_backend(order_id,user_b,token_a);
-    raise exception 'RC468_CROSS_USER_RELEASE_WAS_ACCEPTED';
-  exception when others then
-    if sqlerrm <> 'FORBIDDEN' then raise; end if;
-    rejected := true;
-  end;
-  if not rejected then raise exception 'RC468_CROSS_USER_RELEASE_NOT_REJECTED'; end if;
+  select public.release_digital_page_payment_intent_claim_backend(order_id,user_b,token_a) into result;
+  if result is not false then raise exception 'RC468_CROSS_USER_RELEASE_CHANGED_OWNER_CLAIM'; end if;
+  if not exists(select 1 from public.digital_page_orders where id=order_id and metadata->'payment_intent_claim'->>'token'=token_a) then
+    raise exception 'RC468_CROSS_USER_RELEASE_REMOVED_OWNER_CLAIM';
+  end if;
 
   -- Owner releases and reclaims; finalizer requires a valid provider correlation.
   perform pg_catalog.set_config('request.jwt.claim.sub',user_a::text,true);
