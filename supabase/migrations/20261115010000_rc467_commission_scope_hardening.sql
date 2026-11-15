@@ -72,7 +72,7 @@ begin
   v_is_platform_admin := public.mnty_can_platform_admin();
 
   if not v_is_platform_admin then
-    raise exception 'COMMISSION_RULE_FORBIDDEN';
+    raise exception 'PLATFORM_ADMIN_REQUIRED';
   end if;
 
   if not exists (select 1 from public.tenants t where t.id = p_tenant_id) then
@@ -279,7 +279,7 @@ begin
   v_platform_admin := public.mnty_can_platform_admin();
 
   if not v_platform_admin then
-    raise exception 'COMMISSION_RULE_FORBIDDEN';
+    raise exception 'PLATFORM_ADMIN_REQUIRED';
   end if;
 
   select * into v_rule
@@ -434,7 +434,7 @@ begin
   v_platform_admin := public.mnty_can_platform_admin();
 
   if not v_platform_admin then
-    raise exception 'COMMISSION_RULE_FORBIDDEN';
+    raise exception 'PLATFORM_ADMIN_REQUIRED';
   end if;
 
   if p_business_id is not null and not exists (
