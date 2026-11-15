@@ -606,8 +606,7 @@ begin
  if coalesce(r.percentage,0)<0 or coalesce(r.percentage,0)>100 then raise exception 'COMMISSION_RULE_INVALID'; end if;
  v_commission=round(p_gross_amount*coalesce(r.percentage,0)/100,2); v_net=round(p_gross_amount-v_commission,2);
  return jsonb_build_object('rule_id',r.id,'module_id',r.module_id,'rate_percent',r.percentage,'gross_amount',p_gross_amount,'commission_amount',v_commission,'provider_net_amount',v_net);
-end $function$
-;
+end $function$;
 
 REVOKE ALL ON FUNCTION public.preview_commission_backend(character varying, uuid, character varying, numeric) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.preview_commission_backend(character varying, uuid, character varying, numeric) TO authenticated;
