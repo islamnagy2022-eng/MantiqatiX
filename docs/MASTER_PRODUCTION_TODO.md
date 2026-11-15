@@ -1,3 +1,20 @@
+# Latest verified checkpoint — Pass 44 — 2026-11-15
+
+**Status:** Recovery evidence visibility and public ad endpoint reviewed. Production release remains **BLOCKED / NOT CERTIFIED**.
+
+- Production Supabase remains ACTIVE_HEALTHY with 310 migrations through `20261110150618`; RC464–RC467 are not applied.
+- Only a non-persistent `main` branch is listed, with `with_data=false`; no persistent Staging branch or production-data branch exists.
+- Backup inventory, PITR configuration/retention, restore-point metadata and RPO/RTO evidence are not available through the connected Supabase tools. Current backup restore and rollback remain NOT VERIFIED. Do not treat schema-only CI replay as a data restore test.
+- Reviewed `get_mnty_targeted_advertisements`: empty search_path, approved/active/in-date filtering, and only public ad-placement fields returned. Keep its anon execution classified as likely intentional pending owner confirmation and dedicated tests; do not revoke blindly.
+- Security advisor still reports 9 RLS-enabled/no-policy tables and 65 authenticated-callable SECURITY DEFINER functions. Keep default-deny and continue risk-ranked caller and tenant/business/branch testing.
+- PR #730 remains Draft/unmerged. No Production writes, Auth/RLS/GRANT changes, Edge deployment, payment, settlement, Staging, paid resource or website deployment occurred.
+- **Overall weighted production progress remains 60.8333% (last verified baseline); Pass 44 does not increase it.**
+- Full report: [Pass 44 audit](audits/PASS44_RECOVERY_VISIBILITY_AND_PUBLIC_AD_REVIEW_20261115.md).
+
+**Next:** continue adversarial review of authenticated SECURITY DEFINER finance/payment/inventory functions and obtain owner-side backup/PITR/restore evidence without creating paid resources or Staging.
+
+---
+
 # Latest verified checkpoint — Pass 41 — 2026-11-15
 
 **Status:** PR CI checkpoints verified. Production release remains **BLOCKED / NOT CERTIFIED**. No production database, Auth, RLS, GRANT, Edge Function, payment, settlement, or user-data mutation was performed.
