@@ -2557,3 +2557,12 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - No production writes, grants, policies, Auth settings, Edge Functions, payments or deployments were changed.
 
 
+
+
+## 2026-11-15 — Pass 41 authenticated SECURITY DEFINER call-chain spot check
+
+- Read-only catalog query found 65 authenticated-callable SECURITY DEFINER functions. 59 directly reference auth.uid(); six do not.
+- Reviewed all six without direct auth.uid references. Five delegate to helpers enforcing authenticated identity and tenant/business/branch or finance membership scope. The sixth, get_mnty_targeted_advertisements, is a public approved-ad read endpoint with bounded output. All six were classified; the other 59 still need object-level authorization and negative cross-scope testing.
+- No production changes.
+
+
