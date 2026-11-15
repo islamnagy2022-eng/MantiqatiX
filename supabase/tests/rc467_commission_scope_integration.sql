@@ -157,8 +157,8 @@ BEGIN
 
   v_result := public.mnty_commission_rule_drafts('LIST',v_tenant,NULL,'{}'::jsonb);
   IF NOT EXISTS (
-    SELECT 1 FROM pg_catalog.jsonb_array_elements(v_result->'rules') item
-    WHERE item->>'id'=v_rule_id
+    SELECT 1 FROM pg_catalog.jsonb_array_elements(v_result->'rules') AS item(value)
+    WHERE value->>'id'=v_rule_id
   ) THEN RAISE EXCEPTION 'RC467_PLATFORM_LIST_FAILED'; END IF;
 
   v_result := public.mnty_commission_rule_drafts('AUDIT',v_tenant,NULL,'{}'::jsonb);
