@@ -104,3 +104,21 @@ The isolated #724/#725/#727 forward-replay workflows now pass. Next assemble and
 ### Next exact action
 Obtain a cost-approved Staging environment, replay the exact #730 migration chain, then run positive and negative tenant/business/branch/order-history/inventory API tests. Keep production unchanged until Staging, review, approval, and production change-window gates pass.
 
+
+
+## Pass 41 — detailed RLS / SECURITY DEFINER triage — 2026-11-15
+
+### RLS-enabled tables without policies
+The live catalog contains nine: `business_employees`, `business_job_positions`, `commission_rule_audit`, `digital_page_payment_events`, `directory_listing_claim_requests`, `directory_source_permission_evidence`, `platform_custom_roles`, `platform_role_assignments`, and `public_directory_listings`. A read-only privilege query confirmed anon/authenticated SELECT and INSERT are false for all nine. service_role SELECT is present only on the three directory tables listed above; it is absent on the other six. This is default-deny behavior, not an authorization bypass. Confirm intended trusted backend access before modifying policies or grants.
+
+### Anonymous SECURITY DEFINER function
+The single advisor finding is `public.get_mnty_targeted_advertisements(...)`. The function uses `search_path = ''`, explicitly grants EXECUTE to anon/authenticated, filters to active and approved advertisements and returns only ad placement fields. A bounded live query returned three approved global ad placements without customer or personal fields. This is likely an intentional public ad-serving endpoint. Preserve pending product-owner confirmation and regression tests; do not blindly revoke public execution.
+
+### Authenticated SECURITY DEFINER functions
+65 functions remain flagged for authenticated execution. Review their function bodies, caller paths, user identity validation, tenant/business/branch checks and intended grants. The advisor count alone does not prove an exploitable defect. No mass revoke performed.
+
+### Other advisor findings
+- Auth: leaked-password protection warning remains open; no Auth settings changed.
+- Performance: 132 unindexed FKs, 375 auth RLS initplan findings, 71 unused indexes, 28 multiple permissive policies. Treat as prioritization signals; measure hot paths and inspect query plans before making changes.
+- No production DDL/DML, Auth/RLS/GRANT changes, Edge deployments, payment/settlement writes or user-data changes.
+
