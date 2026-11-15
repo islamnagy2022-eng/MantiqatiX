@@ -1956,3 +1956,11 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 - [ ] Complete current Production backup/restore/rollback evidence using existing free/approved resources only.
 - [ ] Enable and recheck leaked-password protection through owner-authorized Auth settings before release certification.
 - Release remains BLOCKED / NOT CERTIFIED. See `docs/audits/PASS42_SECURITY_CONTINUATION_20261115.md`.
+
+
+## Pass 42 anonymous-session follow-up
+
+- [x] Verified `mnty-registration-review` v5 and `mnty-provider-onboarding-review` v3 deployed source matches current `main` byte-for-byte; both require JWT and reject anonymous users before service-role RPC calls.
+- [ ] Extend MantiGO SECURITY DEFINER tests to cover anonymous JWTs and cross-user actor mismatch for each high-risk RPC.
+- [ ] Confirm guest MantiGO ride/payment product contract before changing anonymous-session acceptance.
+- [ ] Audit service-role registry bootstrap/revocation and mutation logs.
