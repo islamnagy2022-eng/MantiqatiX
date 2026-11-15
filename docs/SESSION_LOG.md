@@ -2627,3 +2627,11 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Security advisor currently reports 9 RLS-enabled/no-policy tables and 65 authenticated-callable SECURITY DEFINER functions. No broad grants or policies were added.
 - Documentation updated on the existing PR #729 docs branch: Pass 44 audit, project continuity, master TODO and production TODO. No runtime code changed.
 - No Production writes, backup restore, Auth/RLS/GRANT change, Edge/Pages deployment, payment, settlement, Staging or paid resource occurred. PR #730 remains Draft/unmerged; release remains BLOCKED / NOT CERTIFIED.
+
+
+## Pass 44 — digital-page payment production gap follow-up
+
+- Read-only live migration-ledger query confirms RC458 version `20261030120000` is absent. The current live claim RPC remains SECURITY DEFINER with `search_path=public, pg_temp` and unqualified `where id = p_order_id` despite a RETURNS TABLE output named `id`; the RC458 source migration fixes this with a qualified alias and empty search_path but was not rolled out.
+- Deployed `digital-page-payment-intent` is ACTIVE v5; deployed source lacks the newer main-branch Paymob intention correlation and provider-order persistence logic.
+- Live claim RPC does not reject NULL/blank claim tokens and compares with `<>`; a direct authenticated same-owner NULL-token call may bypass the active-claim check due SQL NULL semantics. This is a plausible same-owner concurrency risk, not a cross-user authorization bypass or confirmed exploit.
+- No Production invocation, migration, Edge deployment, payment or data mutation occurred. A candidate RC468-style migration and disposable tests are required; controlled deployment remains gated on backup/restore, review and Paymob Sandbox E2E.
