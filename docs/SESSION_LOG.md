@@ -2661,3 +2661,9 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Dedicated RC468 PostgreSQL 16 workflow PASS. Forward migration chain replay PASS with 77 migrations from the historical schema-only checkpoint; RC468 payment claim integration PASS; owner-profile, RC455/RC456 commission, and tenant-isolation integration tests PASS.
 - V6 Pages workflow browser validation passed desktop/mobile checks; deployment jobs were skipped for the PR event. No site deployment occurred.
 - PR #731 remains Draft/open/unmerged. Candidate CI does not prove current Production backup restore or Edge source parity; no Production mutation, migration, payment or Edge deployment occurred.
+
+
+### RC468 expanded regression rerun
+
+- Added negative cases for NULL idempotency key and NULL release/finalize claim tokens.
+- Current candidate head `5e5b832e0114476604bf195d336105c6ee437246`: dedicated RC468 PostgreSQL workflow PASS; full forward-chain replay and Pages validation remain in progress. The prior head `3f75de7b7d4b474b2dfea5497d503c409796f313` had 11/11 checks PASS; rerunning the expanded test head before finalizing the current PR status.
