@@ -1,5 +1,6 @@
 -- Disposable RC468 fixture overlay. Never run against Production.
 alter table public.digital_page_orders
+  add column if not exists provider text,
   add column if not exists provider_order_id text;
 
 create function public.finalize_digital_page_payment_intent_backend(
