@@ -1935,3 +1935,12 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - RC468 dedicated PostgreSQL 16 integration workflow now PASS on current candidate head `3f75de7b7d4b474b2dfea5497d503c409796f313` after correcting disposable fixtures to satisfy real `digital_page_products` / `digital_page_orders` schema constraints.
 - Full forward migration-chain replay remains IN PROGRESS on that head. Other relevant checks passed; Pages workflow is validation-only for the PR event and Production deploy is skipped.
 - PR #731 remains Draft/unmerged; no Production change.
+
+
+### Pass 45 RC468 final CI closure — 2026-11-15
+
+- Current RC468 candidate head `3f75de7b7d4b474b2dfea5497d503c409796f313`: **11/11 GitHub workflow runs SUCCESS**.
+- Dedicated RC468 PostgreSQL 16 integration PASS.
+- Forward migration chain replay PASS: **77 migrations** applied to disposable local Supabase from the historical schema-only checkpoint; RC468 payment claim integration PASS; owner-profile, RC455/RC456 commission preview and tenant-isolation tests PASS.
+- V6 Pages workflow browser validation PASS on desktop/mobile; `validate_public_only` and `deploy` jobs SKIPPED for the PR event. No website deployment occurred.
+- PR #731 remains Draft/open/unmerged. This is candidate CI evidence, not Production rollout or data-restore proof. No Production migration, Edge deployment, payment or data mutation occurred.
