@@ -1944,3 +1944,12 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - Forward migration chain replay PASS: **77 migrations** applied to disposable local Supabase from the historical schema-only checkpoint; RC468 payment claim integration PASS; owner-profile, RC455/RC456 commission preview and tenant-isolation tests PASS.
 - V6 Pages workflow browser validation PASS on desktop/mobile; `validate_public_only` and `deploy` jobs SKIPPED for the PR event. No website deployment occurred.
 - PR #731 remains Draft/open/unmerged. This is candidate CI evidence, not Production rollout or data-restore proof. No Production migration, Edge deployment, payment or data mutation occurred.
+
+
+### Pass 45 RC468 expanded-test final CI closure — 2026-11-15
+
+- Final expanded candidate head `5e5b832e0114476604bf195d336105c6ee437246`: **11/11 workflow runs SUCCESS**.
+- Dedicated RC468 PostgreSQL 16 integration PASS, including NULL/blank/malformed claim tokens, NULL idempotency key, NULL release/finalize tokens, replay/competing claims, cross-user boundaries, and provider-order correlation persistence.
+- Forward migration chain replay PASS: 77 migrations applied on disposable local Supabase from the historical schema-only checkpoint; owner-profile, RC455/RC456 commission and tenant-isolation tests PASS.
+- V6 Pages desktop/mobile validation PASS; `validate_public_only` and `deploy` jobs skipped for PR event. No website deployment occurred.
+- PR #731 remains Draft/open/unmerged. This does not prove current Production data restore, deployed Edge parity, or Paymob live E2E. No Production mutation or deployment.
