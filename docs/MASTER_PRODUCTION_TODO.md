@@ -1,3 +1,115 @@
+# Latest verified checkpoint — Pass 45 — 2026-11-15
+
+**Status:** User-designated R7 archive re-audited. R7 is the intended development baseline; GitHub main remains the older V6 path. Overall release remains **BLOCKED / NOT CERTIFIED**.
+
+- Archive SHA-256: `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`; ZIP integrity PASS; 233 files.
+- Critical R7 blockers: arbitrary unauthenticated JWT minting (default super_admin), unsafe refresh fallback, default/static admin credentials, hardcoded secret fallbacks, local JSON authoritative persistence, auto-seeding/auto-verification/auto-paid defaults, and frontend localStorage state authority.
+- R7 migration creates 7 tables (not the 11 claimed in the report); Android wrapper has 3 files without a reproducible Gradle wrapper/root build; 15 test files but no package test script.
+- R7 install timed out; TypeScript check blocked by missing vite/client; Node native tests failed due extensionless TypeScript imports. The archive's 99/99 and Production Certified claims are NOT independently reproduced.
+- Conservative estimates: UI 85%, Backend/DB 30%, Auth 8%, Catalog/Geo 65%, Orders/Cart 45%, Finance 35%, Admin 75%, Marketing/CRM/Ads 55%, Integrations 25%, Android 15%, Security/Backup 5%, Testing/Release 5%. **Unweighted mean: 37.33%.**
+- Previous 60.8333% was weighted with no available category baseline/formula; 37.33% is a fresh R7-source unweighted audit, so the difference is recalibration, not proven feature regression. No per-category increase is claimed without prior values.
+- RC468 payment hardening candidate PR #731 dedicated PostgreSQL workflow PASS on `8dd31fbb264e2c69655dc8af65ac9fe3ea7262bf`; full migration replay/remaining checks still pending. Candidate not merged or deployed.
+- Full report: [Pass 45 R7 source re-audit](audits/PASS45_R7_SOURCE_REAUDIT_AND_PROGRESS_20261115.md).
+
+
+- **Expanded RC468 regression head:** `5e5b832e0114476604bf195d336105c6ee437246`; dedicated PostgreSQL workflow PASS and 10 other workflows PASS; full forward migration replay remains IN_PROGRESS. V6 Pages validation passed with deployment skipped. Previous head `3f75de7b7d4b474b2dfea5497d503c409796f313` had 11/11 PASS and 77 migrations replayed; current expanded test head is being revalidated.
+
+**Next:** close R7 authentication and production-bootstrap P0 defects in the R7 source without changing UI, then complete RC468 full-chain validation. Do not deploy until real-data restore, identity, security and E2E gates pass.
+
+---
+
+# Latest verified checkpoint — Pass 44 — 2026-11-15
+
+**Status:** Recovery evidence visibility and public ad endpoint reviewed. Production release remains **BLOCKED / NOT CERTIFIED**.
+
+- Production Supabase remains ACTIVE_HEALTHY with 310 migrations through `20261110150618`; RC464–RC467 are not applied.
+- Only a non-persistent `main` branch is listed, with `with_data=false`; no persistent Staging branch or production-data branch exists.
+- Backup inventory, PITR configuration/retention, restore-point metadata and RPO/RTO evidence are not available through the connected Supabase tools. Current backup restore and rollback remain NOT VERIFIED. Do not treat schema-only CI replay as a data restore test.
+- Reviewed `get_mnty_targeted_advertisements`: empty search_path, approved/active/in-date filtering, and only public ad-placement fields returned. Keep its anon execution classified as likely intentional pending owner confirmation and dedicated tests; do not revoke blindly.
+- Security advisor still reports 9 RLS-enabled/no-policy tables and 65 authenticated-callable SECURITY DEFINER functions. Keep default-deny and continue risk-ranked caller and tenant/business/branch testing.
+- PR #730 remains Draft/unmerged. No Production writes, Auth/RLS/GRANT changes, Edge deployment, payment, settlement, Staging, paid resource or website deployment occurred.
+- **Overall weighted production progress remains 60.8333% (last verified baseline); Pass 44 does not increase it.**
+- Full report: [Pass 44 audit](audits/PASS44_RECOVERY_VISIBILITY_AND_PUBLIC_AD_REVIEW_20261115.md).
+- **New P0 payment-path rollout gap:** live ledger does not contain RC458 (`20261030120000`); live claim RPC still has `search_path=public, pg_temp` and unqualified `where id = p_order_id` despite a RETURNS TABLE `id` output. RC458 source fixes this but is not applied in Production. No RPC was invoked.
+- Deployed `digital-page-payment-intent` is ACTIVE v5; its deployed source lacks the newer Paymob intention correlation and provider-order persistence logic present in current main. This is a deployed Edge parity gap, not a deployment authorization.
+- Live claim RPC also lacks NULL/blank token validation and uses `<> p_claim_token`; SQL NULL semantics can bypass the competing-claim branch for a direct authenticated same-owner call. This is a plausible concurrency/duplicate-intention risk, not a cross-user bypass or confirmed exploit.
+- Required candidate remediation: new forward-only payment-claim hardening migration, NULL/blank/competing-token disposable tests, then controlled migration + Edge parity deployment and Paymob Sandbox E2E. Do not invoke or alter Production to test.
+
+
+**Next:** continue adversarial review of authenticated SECURITY DEFINER finance/payment/inventory functions and obtain owner-side backup/PITR/restore evidence without creating paid resources or Staging.
+
+---
+
+# Latest verified checkpoint — Pass 41 — 2026-11-15
+
+**Status:** PR CI checkpoints verified. Production release remains **BLOCKED / NOT CERTIFIED**. No production database, Auth, RLS, GRANT, Edge Function, payment, settlement, or user-data mutation was performed.
+
+- PR #729 documentation checkpoint: **8/8 workflow runs successful**. Pages validation passed; `validate_public_only` and `deploy` were skipped because this is a pull-request event. No new public deployment is claimed.
+- PR #730 combined RC464 → RC465 → RC466 migration-chain validation remains **17/17 successful** on exact head `52075482ddcf30749b4eb75768ce891755df85ea`; draft and unmerged.
+- Live Supabase project `MANTIQATIX FINAL` (`moyhiluyhjsujhwlyeuu`) is ACTIVE_HEALTHY. Branch inventory contains only `main`; there is no persistent Staging branch. Do not create one without first checking and obtaining confirmation for any branch/compute cost.
+- Production migration ledger remains at 310 migrations; latest version `20261110150618`. RC464/465/466 are not applied.
+- Read-only inventory: 137 public tables, 0 with RLS disabled. Security advisor still reports 9 RLS-enabled/no-policy tables (default-deny), 1 anon-callable SECURITY DEFINER function, 65 authenticated-callable SECURITY DEFINER functions, and leaked-password protection warning. These are review items, not proof of exploitable access; do not mass-revoke or change policies without call-chain and tenant evidence.
+- Performance advisor snapshot: 132 unindexed foreign keys, 375 auth RLS initplan findings, 71 unused indexes, and 28 multiple-permissive-policy findings. Prioritize high-traffic paths and validate query plans before index/policy changes.
+- **PR #729 CI stage: 100% (8/8). PR #730 combined-chain CI stage: 100% (17/17).** These are independent candidate-validation percentages, not production readiness.
+- **Overall production completion remains 60.8333% (last weighted verified baseline; unchanged).** Unmerged candidate work and CI-only results do not increase production completion.
+
+**Next:** obtain a controlled Staging environment (first confirm branch cost/availability), replay the exact #730 chain there, and run positive/negative tenant, business, branch, order-history and inventory authorization tests. Keep production unchanged until Staging evidence, code review, approvals, and an explicit production change window exist.
+
+---
+
+# Current checkpoint — Pass 40 — 2026-11-15
+
+**Status:** Pass 40 engineering/security checkpoint recorded. **Overall production release remains BLOCKED / NOT CERTIFIED.**
+
+- Current published-platform code path remains V6 on `main`; the user-provided `bizcatalog-manager (11).zip` is the current R7 reference archive, not the deployed root. It is preserved unchanged (SHA-256: `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`).
+- R7 source audit: local JSON remains authoritative in `server.ts`; the claimed 99 tests and release artifact are not independently verifiable; no reproducible build was completed. See [R7 source baseline](release/R7_SOURCE_BASELINE_20261115.md).
+- Pass 40 security/release evidence: [PASS40 audit](audits/PASS40_SECURITY_AND_RELEASE_AUDIT_20261115.md).
+- PR #724 (RC464) has all 13 recorded workflows passing. PR #725 (RC465) and PR #727 (RC466) have candidate policy fixes; their latest replay/contract corrections are awaiting CI reruns. PR #726 and PR #728 have all recorded workflows passing. All remain drafts.
+- PR #722 overlaps the more complete RC464 candidate in #724; do not merge both.
+- Required migration order: #724 RC464 → #725 RC465 → #727 RC466. Test the combined chain in Staging before any production application.
+- Production Supabase ledger remains at 310 migrations through `20261110150618`; RC464/465/466 are not applied. No Edge Function was deployed and no production data/payment/settlement write was performed.
+- The public business showcase's anonymous SELECT grant is intentional and must remain; restrictive anonymous-session guards on branch/order/inventory tables must be preserved.
+- Production settlement remains blocked: live `settlement-financial-atomic v4` is older than the candidate; beneficiary-to-business/provider mapping and Paymob Sandbox tests remain open.
+- The last verified Pass 35 weighted progress remains **60.8333%**. Candidate work in unmerged PRs is not counted as production completion.
+
+**Next action:** finish the latest #725/#727 CI reruns, fix any replay mismatch without weakening live preflight checks, then validate RC464 → RC465 → RC466 together in Staging. Keep production unchanged until approval.
+
+---
+
+## Pass 40 — Active release blockers and next actions
+
+### P0 — Candidate security changes
+
+- [x] #725 RC465 latest-head CI: all 11 workflows passed, including forward migration replay with the test-only live order-history ACL overlay.
+- [x] #727 RC466 latest-head isolated CI: all 11 workflows passed, including PostgreSQL behavior and forward migration replay.
+- [ ] Confirm all latest-head workflows, not only earlier commits, are green.
+- [ ] Keep the restrictive anonymous-session policies; do not model them as permissive or remove them.
+- [ ] Keep the public `businesses` showcase anonymous SELECT grant; only private branches/inventory must remain non-public.
+- [ ] Review and approve PRs before merge. Required migration order: #724 RC464, #725 RC465, #727 RC466.
+- [ ] Do not merge PR #722 alongside #724; it is an overlapping earlier migration candidate.
+
+### P0 — Production release gates
+
+- [ ] Run the combined RC464 → RC465 → RC466 migration chain in Staging using a production-schema checkpoint; isolated replay for each PR is green but the combined sequence is not yet verified.
+- [ ] Test tenant/business/branch/customer boundaries with distinct authenticated identities.
+- [ ] Deploy matching Edge Function sources only through the approved separate Supabase deployment process.
+- [ ] Verify settlement beneficiary-to-business/provider mapping and complete Paymob Sandbox tests.
+- [ ] Complete backup restore and disaster-recovery drills.
+
+### P1 — R7 archive v19
+
+- [ ] Replace local JSON authoritative persistence with Supabase/PostgreSQL transactions; retain local JSON only for development fixtures.
+- [ ] Add reproducible dependency installation/toolchain contract and CI build.
+- [ ] Add executable unit/integration/RLS/API/concurrency/browser tests; reconcile the unverified 99-test claim.
+- [ ] Produce and checksum the release artifact referenced by the manifest.
+- [ ] Build and test Android APK/AAB while preserving the Android WebView wrapper source.
+
+### Verified production progress
+
+The last verified weighted progress remains **60.8333%**. Do not increase it for unmerged candidate changes or unverified R7 release claims.
+
+---
+
 # Latest verified checkpoint — 2026-11-11 — Public catalog disclosure safety
 
 **Request ID:** `R-20261111-PUBLIC-CATALOG-PRICE-DISCLOSURE`  
@@ -4126,3 +4238,93 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - OCHA's P-code standard requires an ISO-3166-1 prefix (usually two-letter) plus numeric hierarchical components, so the Open Admin Data codes fit the expected syntax, but records have no explicit `adm2_pcode` field and district `source` metadata is empty. Exact P-code identity with the current OCHA COD-AB source is not yet verified; a source-column crosswalk is still required.
 - OCHA COD status dashboard reports Egypt ADM3 as partial coverage in 96.2% of ADM2 units (5,716 units). Treat missing ADM3 geometry as a coverage gap, not a point-outside result.
 - No geometry files materialized or production code changed. Keep nearest-point UI explicitly approximate.
+
+
+## Pass 41 security advisor triage — 2026-11-15
+
+- Read-only Supabase audit confirmed 137 public tables; 0 have RLS disabled. The 9 RLS-enabled/no-policy tables are: `business_employees`, `business_job_positions`, `commission_rule_audit`, `digital_page_payment_events`, `directory_listing_claim_requests`, `directory_source_permission_evidence`, `platform_custom_roles`, `platform_role_assignments`, `public_directory_listings`.
+- Privilege check confirmed anon/authenticated SELECT and INSERT are false for all nine. `service_role` SELECT is granted only on `directory_listing_claim_requests`, `directory_source_permission_evidence`, and `public_directory_listings`; the other six have no service_role SELECT. These are default-deny, not missing-public-access defects. Validate intended trusted Edge/definer access before changing.
+- Supabase advisor's one anon-callable SECURITY DEFINER is `public.get_mnty_targeted_advertisements(...)`. Catalog inspection shows `search_path = ''`, explicit EXECUTE for anon/authenticated, and the function returns only approved/active ad fields (id/title/creative/target/ad-space/match/distance); a bounded live read returned three approved global ad placements and no personal/customer fields. Classify as likely intentional public read endpoint; retain pending product-owner confirmation and regression tests. Do not revoke blindly.
+- 65 authenticated-callable SECURITY DEFINER functions remain a broad review set. Advisor findings are not proof of exploitability. Review function bodies, caller paths, identity checks, tenant/business/branch constraints and grants before changing ACLs.
+- Leaked-password protection remains a single Auth configuration warning; no Auth setting was changed.
+- Performance advisor snapshot: 132 unindexed foreign keys, 375 auth RLS initplan findings, 71 unused indexes, 28 multiple permissive policies. Prioritize measured hot paths and inspect plans; do not mass-create indexes or rewrite policies.
+- No production writes or deployments.
+
+
+
+### Pass 41 — authenticated SECURITY DEFINER call-chain spot check
+
+- Read-only catalog scan identified 65 public SECURITY DEFINER functions executable by `authenticated`.
+- 59 functions directly reference `auth.uid()` in their source. Six do not reference it directly; reviewed all six call chains:
+  - `mnty_business_employee_list` delegates to `mnty_business_employee_list_scoped`, which rejects null/anonymous actors and checks active tenant/business/branch membership or explicit employee permission.
+  - `mnty_can` delegates to `mnty_active_membership`, which scopes membership rows to `auth.uid()`.
+  - `mnty_can_platform_admin` delegates to `mnty_can` and the same authenticated membership resolver.
+  - `preview_commission_backend` calls `assert_financial_membership`, which requires `auth.uid()`, an active tenant membership and an allowed finance/admin role.
+  - `upsert_catalog_item_and_price_backend` delegates to item and price backends; both validate `auth.uid()`, active tenant membership, business scope and branch scope.
+  - `get_mnty_targeted_advertisements` is the separately reviewed public read endpoint; it returns active/approved advertisement placement fields only.
+- This closes the initial classification of the six functions lacking a direct `auth.uid()` reference (6/6 classified), not the complete authorization review of all 65. Continue tenant/business/branch negative testing and review all direct-auth functions for object-level authorization.
+- No production changes.
+
+
+
+## Pass 42 — 2026-11-15 — Free-CI security continuation
+
+- [x] Confirm zero-cost development policy: no paid resources, Staging, paid Supabase branch, subscription or upgrade before the final cost review.
+- [x] Re-query Production migration ledger: 310 entries through `20261110150618`; RC464–466 remain unapplied.
+- [x] Re-query exact PR #730 head `52075482ddcf30749b4eb75768ce891755df85ea`: 14 returned workflow runs completed successfully; RC464, RC465, RC466, combined forward replay and MantiGO scope jobs PASS; PR deployment jobs skipped.
+- [x] Record live platform-admin boundary drift and RC464 candidate status; no Production change performed.
+- [ ] Human review PR #724 / RC464, #725 / RC465 and #727 / RC466 together; keep all drafts until source, dependencies and exact-head CI are reviewed.
+- [ ] Verify service_role bootstrap/revocation as the only approved registry mutation path, including audit evidence and removal behavior.
+- [ ] Continue per-function adversarial tests for the 59 authenticated SECURITY DEFINER functions; prioritize platform-global, payment, finance, settlement and tenant-crossing operations.
+- [ ] Rehearse current Production backup/restore and rollback using an already available free/approved path; do not create paid infrastructure.
+- [ ] Owner-side Auth leaked-password protection enablement and recheck remains pending.
+- Release remains BLOCKED / NOT CERTIFIED. Full evidence: `docs/audits/PASS42_SECURITY_CONTINUATION_20261115.md`.
+
+
+## Pass 42 anonymous-session follow-up
+
+- [x] Verify live parity for service-role registration gateways: `mnty-registration-review` v5 and `mnty-provider-onboarding-review` v3 are active, JWT-verified and byte-identical to current `main`; both reject anonymous users before private service-role RPC calls.
+- [ ] Add anonymous-JWT positive/negative behavioral tests to the risk-ranked SECURITY DEFINER suite. Existing RC446 and MantiGO catalog contracts do not cover all authenticated RPCs under anonymous Auth sessions.
+- [ ] Confirm whether guest MantiGO ride creation/payment confirmation is an intended product flow before enforcing blanket anonymous rejection. Do not change behavior without a compatibility contract.
+- [ ] Review service-role registry bootstrap/revocation and direct CRUD audit trail.
+
+
+## Pass 43 — RC467 commission scope hardening candidate (2026-11-15)
+
+- [x] Read-only check confirmed zero live commission rules and zero commission audit rows; no current commission data changed.
+- [x] Record the missing business/branch scope checks in commission draft and preview RPCs; 11 scoped ownership memberships across five users satisfy the overly broad live predicate.
+- [x] Add RC467 forward migration: platform-root-only commission draft management and previews; exact business / tenant-wide finance scope for active commission preview; reject branch-scoped/anonymous actors; preserve existing authenticated-only grants.
+- [x] Add disposable RC467 positive/negative PostgreSQL integration tests, static validator, and forward replay workflow step.
+- [x] Update RC455/RC456 isolated fixtures to seed canonical `private.platform_admins` rows and assert RC467's platform denial code.
+- [ ] Complete exact-head `911881ee2de51c5f68ee0a1a3b571b76f37b0a5f` forward-replay run `43664038104` and resolve any failures.
+- [ ] Human review RC467 SQL, then await independent security review and current Production backup/restore + rollback evidence.
+- Production remains BLOCKED / NOT CERTIFIED; RC464–RC467 remain unapplied.
+
+
+## Pass 43 — RC467 commission scope hardening — verification outcome
+
+- [x] RC467 static authorization validator PASS at exact head `911881ee2de51c5f68ee0a1a3b571b76f37b0a5f`.
+- [x] Forward migration replay run `43664038104` PASS; 80 later migrations replayed in disposable local Supabase.
+- [x] RC455 and RC456 existing commission tests PASS with canonical `private.platform_admins` fixtures.
+- [x] RC467 commission scope behavioral integration PASS; tenant/business/branch and finance negative/positive cases verified.
+- [x] 18/18 returned workflow runs on this exact head succeeded; Pages deployment jobs were skipped for PR event.
+- [ ] Review the historical schema snapshot manifest (PENDING_REVIEW, checkpoint 20261008222845) and obtain a current Production backup/restore + rollback rehearsal; forward replay is not a substitute.
+- [ ] Human SQL/security review and authorized release approval remain outstanding. PR #730 remains Draft; no RC464–RC467 Production rollout.
+
+
+### Pass 45 RC468 final CI closure — 2026-11-15
+
+- Current RC468 candidate head `3f75de7b7d4b474b2dfea5497d503c409796f313`: **11/11 GitHub workflow runs SUCCESS**.
+- Dedicated RC468 PostgreSQL 16 integration PASS.
+- Forward migration chain replay PASS: **77 migrations** applied to disposable local Supabase from the historical schema-only checkpoint; RC468 payment claim integration PASS; owner-profile, RC455/RC456 commission preview and tenant-isolation tests PASS.
+- V6 Pages workflow browser validation PASS on desktop/mobile; `validate_public_only` and `deploy` jobs SKIPPED for the PR event. No website deployment occurred.
+- PR #731 remains Draft/open/unmerged. This is candidate CI evidence, not Production rollout or data-restore proof. No Production migration, Edge deployment, payment or data mutation occurred.
+
+
+### Pass 45 RC468 expanded-test final CI closure — 2026-11-15
+
+- Final expanded candidate head `5e5b832e0114476604bf195d336105c6ee437246`: **11/11 workflow runs SUCCESS**.
+- Dedicated RC468 PostgreSQL 16 integration PASS, including NULL/blank/malformed claim tokens, NULL idempotency key, NULL release/finalize tokens, replay/competing claims, cross-user boundaries, and provider-order correlation persistence.
+- Forward migration chain replay PASS: 77 migrations applied on disposable local Supabase from the historical schema-only checkpoint; owner-profile, RC455/RC456 commission and tenant-isolation tests PASS.
+- V6 Pages desktop/mobile validation PASS; `validate_public_only` and `deploy` jobs skipped for PR event. No website deployment occurred.
+- PR #731 remains Draft/open/unmerged. This does not prove current Production data restore, deployed Edge parity, or Paymob live E2E. No Production mutation or deployment.

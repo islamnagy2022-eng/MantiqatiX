@@ -1943,3 +1943,112 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 المرجع التفصيلي: `docs/release/R7_GOOGLE_SEO_ANALYTICS_PLAN_20261111.md`.
 
 **إعدادات المالك المطلوبة عند مرحلة الربط:** الدومين النهائي، ملكية Search Console/DNS، GA4 Measurement ID، ونص سياسة الخصوصية والموافقة. لا تستخدم placeholders أو IDs مختلقة.
+
+
+## Pass 42 — 2026-11-15 — Free-CI security continuation
+
+- [x] Enforce zero-cost development policy: no paid resources or Staging before the final cost review.
+- [x] Verify live migration ledger at 310 through `20261110150618`; RC464/465/466 remain unapplied.
+- [x] Verify PR #730 combined RC464→RC465→RC466 exact-head CI: 14 returned workflow runs all successful; focused migrations and forward replay PASS; deploy/public-only jobs skipped.
+- [x] Record live platform-admin helper drift and RC464 remediation candidate; no Production write performed.
+- [ ] Review service_role bootstrap/revocation/audit path for `private.platform_admins`.
+- [ ] Continue adversarial tests for the 59 authenticated SECURITY DEFINER functions; prioritize global, finance, payment and settlement operations.
+- [ ] Complete current Production backup/restore/rollback evidence using existing free/approved resources only.
+- [ ] Enable and recheck leaked-password protection through owner-authorized Auth settings before release certification.
+- Release remains BLOCKED / NOT CERTIFIED. See `docs/audits/PASS42_SECURITY_CONTINUATION_20261115.md`.
+
+
+## Pass 42 anonymous-session follow-up
+
+- [x] Verified `mnty-registration-review` v5 and `mnty-provider-onboarding-review` v3 deployed source matches current `main` byte-for-byte; both require JWT and reject anonymous users before service-role RPC calls.
+- [ ] Extend MantiGO SECURITY DEFINER tests to cover anonymous JWTs and cross-user actor mismatch for each high-risk RPC.
+- [ ] Confirm guest MantiGO ride/payment product contract before changing anonymous-session acceptance.
+- [ ] Audit service-role registry bootstrap/revocation and mutation logs.
+
+
+## Pass 43 — RC467 commission scope hardening candidate (2026-11-15)
+
+- [x] Audit commission SECURITY DEFINER scope; current Production commission rule and audit tables are empty, so no live records were changed or disclosed.
+- [x] Add RC467 platform-root guards to commission draft administration and draft previews.
+- [x] Add exact business/tenant-wide finance scope and anonymous-session checks to active commission preview; branch actors remain denied while API has no branch_id.
+- [x] Add RC467 disposable PostgreSQL tests and static contract; update RC455/RC456 test fixtures for canonical platform registry.
+- [ ] Complete current exact-head forward migration replay, then resolve any failing steps and rerun.
+- [ ] Human review and release evidence remain required. RC464–RC467 are source-only, not applied to Production.
+
+
+## Pass 43 — RC467 commission scope hardening — exact-head validation
+
+- [x] RC467 static validator passed at `911881ee2de51c5f68ee0a1a3b571b76f37b0a5f`.
+- [x] Forward replay run `43664038104`: PASS; 80 later migrations applied in disposable Supabase, including RC464–RC467.
+- [x] RC455, RC456, RC467 commission scope integration and tenant-isolation checks passed.
+- [x] All 18 returned workflow runs on exact head passed; website deploy/public-only jobs were skipped for PR event.
+- [ ] Review the historical schema baseline (PENDING_REVIEW, 20261008222845) and complete a current Production backup/restore + rollback rehearsal.
+- [ ] Human SQL/security review and authorized release approval. Do not apply RC464–RC467 to Production before these gates.
+
+
+## Pass 44 — recovery visibility and public ad endpoint review (2026-11-15)
+
+- [x] Rechecked Production project health, migration ledger, and development branch inventory read-only.
+- [x] Confirmed current ledger remains 310 through `20261110150618`; RC464–RC467 remain unapplied.
+- [x] Confirmed only a non-persistent `main` branch is listed and it has no production data copy (`with_data=false`).
+- [ ] Obtain owner-side current backup/PITR/restore-point evidence and measured RPO/RTO; connected tools do not expose these details. No paid resource or Staging was created.
+- [x] Inspect the anon-callable ad-serving SECURITY DEFINER function and source-table RLS/grants; classify as likely intentional public API pending product-owner confirmation and focused tests. Do not revoke blindly.
+- [ ] Continue adversarial tests for the 65 authenticated-callable SECURITY DEFINER functions, prioritizing payment, wallet, order, inventory, commission and settlement.
+- [ ] Review nine RLS-enabled/no-policy tables with trusted service-role call paths; preserve fail-closed behavior until access contracts are proven.
+- [ ] Human SQL/security review of PR #730 and explicit release approval remain open.
+- Evidence: `docs/audits/PASS44_RECOVERY_VISIBILITY_AND_PUBLIC_AD_REVIEW_20261115.md`.
+- Production remains BLOCKED / NOT CERTIFIED; no Production writes or deployments occurred.
+
+
+## Pass 44 — additional payment-path production gap
+
+- [x] Confirm RC458 migration `20261030120000` is absent from the live migration ledger; Production claim RPC still has the old `search_path=public, pg_temp` and unqualified `where id = p_order_id` body.
+- [x] Confirm deployed `digital-page-payment-intent` is ACTIVE v5 and its deployed source lacks current-main Paymob intention correlation/provider-order persistence behavior.
+- [x] Identify NULL/blank claim-token validation gap in the live claim RPC; direct authenticated same-owner call may bypass the active-claim branch under SQL NULL semantics. No live invocation performed.
+- [ ] Create a forward-only payment claim hardening migration with empty search_path, qualified table alias, strict claim-token validation and `IS DISTINCT FROM` comparison.
+- [ ] Add disposable tests for null/blank/valid/same/competing token, cross-user claim, release/finalize and provider correlation.
+- [ ] After approved release gates, apply migration and deploy the exact reviewed Edge Function source; verify deployed-source parity and Paymob Sandbox E2E.
+- Evidence: `docs/audits/PASS44_RECOVERY_VISIBILITY_AND_PUBLIC_AD_REVIEW_20261115.md`.
+
+
+## Pass 45 — R7 source re-audit and realistic progress
+
+- [x] Reopen user-designated R7 archive and directive; verify ZIP integrity and SHA-256; inspect actual source rather than trusting release report claims.
+- [x] Record P0 auth defects: unauthenticated arbitrary JWT issuance, refresh fallback, default/static admin credentials, and localStorage role/session state.
+- [x] Record hardcoded secret fallbacks and credential-like Paymob literal requiring owner verification/rotation if genuine.
+- [x] Record local JSON authoritative persistence, missing-file demo bootstrap, and auto-verified/auto-paid seed/upgrade paths.
+- [x] Verify bundled migration has 7 tables and 7 RLS-enabled tables, not 11 as reported; verify Android wrapper has only 3 files and no reproducible Gradle root/wrapper.
+- [x] Attempt dependency install, TypeScript check and Node native tests; record actual blockers (npm install timeout, missing vite/client, extensionless TypeScript import resolution).
+- [x] Record realistic 12-workstream estimate with 37.33% unweighted mean; do not compare directly to old weighted 60.8333% without its missing weights/category baseline.
+- [ ] Fix R7 authentication/token minting and session lifecycle using one trusted identity authority; add behavioral tests.
+- [ ] Remove default/static credentials and secret fallbacks; establish owner-side credential rotation.
+- [ ] Make production startup fail closed without approved real data source; remove auto-verification/auto-paid migration behavior.
+- [ ] Reconcile R7 schema to live Supabase contract without replacing the live schema wholesale.
+- [ ] Complete Android Gradle wrapper/project and reproducible build.
+- [ ] Install dependencies reproducibly and run unit, integration, typecheck, build, browser and security suites.
+- Evidence: `docs/audits/PASS45_R7_SOURCE_REAUDIT_AND_PROGRESS_20261115.md`.
+
+
+## Pass 45 — RC468 CI closure
+
+- [x] Dedicated RC468 PostgreSQL 16 behavioral/ACL integration PASS on `3f75de7b7d4b474b2dfea5497d503c409796f313`.
+- [x] Forward migration chain replay PASS: 77 migrations on disposable local Supabase from historical schema-only checkpoint.
+- [x] RC468 claim-token/provider-order integration PASS; owner-profile, RC455/RC456 commission and tenant-isolation integration checks PASS.
+- [x] 11/11 GitHub workflow runs SUCCESS on the candidate head.
+- [x] V6 Pages desktop/mobile validation PASS; deployment jobs skipped for PR event; no site deployed.
+- [ ] Human SQL/security review and PR #731 approval/merge.
+- [ ] Backup/PITR/restore evidence and measured RPO/RTO.
+- [ ] Matching Edge Function source parity and Paymob Sandbox E2E.
+- [ ] Controlled Production rollout after all release gates.
+
+
+- [x] RC468 expanded regression current head `5e5b832e0114476604bf195d336105c6ee437246`: dedicated PostgreSQL workflow PASS; V6 Pages validation PASS with deploy skipped; full migration-chain replay still pending.
+
+
+### Pass 45 RC468 expanded-test final CI closure — 2026-11-15
+
+- Final expanded candidate head `5e5b832e0114476604bf195d336105c6ee437246`: **11/11 workflow runs SUCCESS**.
+- Dedicated RC468 PostgreSQL 16 integration PASS, including NULL/blank/malformed claim tokens, NULL idempotency key, NULL release/finalize tokens, replay/competing claims, cross-user boundaries, and provider-order correlation persistence.
+- Forward migration chain replay PASS: 77 migrations applied on disposable local Supabase from the historical schema-only checkpoint; owner-profile, RC455/RC456 commission and tenant-isolation tests PASS.
+- V6 Pages desktop/mobile validation PASS; `validate_public_only` and `deploy` jobs skipped for PR event. No website deployment occurred.
+- PR #731 remains Draft/open/unmerged. This does not prove current Production data restore, deployed Edge parity, or Paymob live E2E. No Production mutation or deployment.
