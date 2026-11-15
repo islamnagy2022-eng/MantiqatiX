@@ -4237,3 +4237,11 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - [ ] Rehearse current Production backup/restore and rollback using an already available free/approved path; do not create paid infrastructure.
 - [ ] Owner-side Auth leaked-password protection enablement and recheck remains pending.
 - Release remains BLOCKED / NOT CERTIFIED. Full evidence: `docs/audits/PASS42_SECURITY_CONTINUATION_20261115.md`.
+
+
+## Pass 42 anonymous-session follow-up
+
+- [x] Verify live parity for service-role registration gateways: `mnty-registration-review` v5 and `mnty-provider-onboarding-review` v3 are active, JWT-verified and byte-identical to current `main`; both reject anonymous users before private service-role RPC calls.
+- [ ] Add anonymous-JWT positive/negative behavioral tests to the risk-ranked SECURITY DEFINER suite. Existing RC446 and MantiGO catalog contracts do not cover all authenticated RPCs under anonymous Auth sessions.
+- [ ] Confirm whether guest MantiGO ride creation/payment confirmation is an intended product flow before enforcing blanket anonymous rejection. Do not change behavior without a compatibility contract.
+- [ ] Review service-role registry bootstrap/revocation and direct CRUD audit trail.
