@@ -26,7 +26,7 @@ All PRs below remain drafts and must not be merged merely because their isolated
 | #724 | RC464 platform-admin live authorization hardening | 13 workflow checks succeeded, including migration replay | Draft; preferred RC464 candidate |
 | #725 | RC465 orders and order-history business/branch read scope | all 11 latest-head workflow checks succeeded, including PostgreSQL behavior and forward migration replay with the test-only live ACL overlay | Draft; latest head `22bf2fca1e32b150a40548b1c40276597e5e453d` |
 | #726 | Catalog contact privacy and cursor pagination | 10 workflow checks succeeded | Draft |
-| #727 | RC466 business/branch plus departments/warehouse/inventory scope | RC466 static validator and PostgreSQL behavior suite succeeded; 8 of 11 latest-head workflows are complete and passing, while forward replay, backend boundary and Pages validation remain in progress | Draft; latest head `96a8aa0cc117754c6c14146e7409bd753387047d` |
+| #727 | RC466 business/branch plus departments/warehouse/inventory scope | all 11 latest-head workflow checks succeeded, including the RC466 static validator, PostgreSQL behavior suite, forward migration replay and backend boundary validation | Draft; latest head `96a8aa0cc117754c6c14146e7409bd753387047d` |
 | #728 | directory-listings v16 public output allowlist and publication gate | 7 workflow checks succeeded, including import contract and frontend validation | Draft |
 | #722 | Earlier MantiGO platform-admin RPC registry migration | Overlaps the later, more complete RC464 candidate in #724 | Keep superseded; do not merge both |
 
@@ -56,7 +56,7 @@ PRs #726 and #728 are code/test changes with their own deployment requirements. 
 
 ## Release blockers
 
-1. Obtain green forward-migration replay for the latest #725 and #727 heads, then run the combined RC464 → RC465 → RC466 chain in Staging.
+1. The isolated forward-migration replay for #724, #725 and #727 is green. The combined RC464 → RC465 → RC466 chain must still be run in Staging.
 2. Review and approve the draft PRs; merge in the required migration order only after combined validation.
 3. Apply migrations to Staging, validate RLS and API behavior with distinct tenant/business/branch/customer identities, and only then request production migration approval.
 4. Deploy matching Supabase Edge Function sources separately and verify deployed versions against the approved commits.
@@ -71,4 +71,4 @@ The last verified Pass 35 weighted score remains **60.8333%**. Candidate work in
 
 ## Next exact action
 
-Wait for the remaining #727 workflows. Fix any replay or contract failures without relaxing production preflight checks. Then assemble and test the combined RC464 → RC465 → RC466 migration chain in Staging. Keep production unchanged until explicit approval.
+The isolated #724/#725/#727 forward-replay workflows now pass. Next assemble and test the combined RC464 → RC465 → RC466 migration chain in Staging; do not relax production preflight checks. Keep production unchanged until explicit approval.
