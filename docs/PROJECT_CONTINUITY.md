@@ -1,3 +1,16 @@
+## Pass 44 — Recovery visibility and public ad endpoint review (2026-11-15)
+
+- Live Supabase `MANTIQATIX FINAL` remains ACTIVE_HEALTHY; ledger remains 310 through `20261110150618`; RC464–RC467 remain unapplied.
+- Branch inventory contains only non-persistent `main` with `with_data=false`; no persistent Staging or production-data branch exists.
+- Backup inventory, PITR status/retention, restore points, and measured RPO/RTO are not exposed by the connected Supabase tools. Current Production backup/restore and rollback therefore remain NOT VERIFIED; the historical schema-only CI checkpoint is not a data backup.
+- Reviewed the single anon-callable SECURITY DEFINER ad-serving RPC. It uses empty search_path and returns only approved ad-placement fields from active/approved/in-date ads; direct source-table access remains restricted. Classify as likely intentional public API pending product-owner confirmation and focused behavioral tests; do not blindly revoke anon.
+- Current security advisor still reports 9 RLS-enabled/no-policy tables and 65 authenticated-callable SECURITY DEFINER functions. Preserve default-deny; continue caller/tenant/business/branch tests, prioritizing payment/finance/inventory/commission paths.
+- No Production write, restore, Auth/RLS/GRANT change, Edge deployment, payment, settlement, website deployment, Staging, or paid resource occurred.
+- PR #730 remains Draft/unmerged. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+- Full evidence: [Pass 44 audit](audits/PASS44_RECOVERY_VISIBILITY_AND_PUBLIC_AD_REVIEW_20261115.md).
+
+---
+
 ## Pass 43 — RC467 commission scope hardening — exact-head verification complete (2026-11-15)
 
 - RC467 is included in combined Draft PR #730 at exact head `911881ee2de51c5f68ee0a1a3b571b76f37b0a5f`.
