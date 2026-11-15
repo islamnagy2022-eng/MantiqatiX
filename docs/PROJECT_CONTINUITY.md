@@ -1801,3 +1801,12 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - All 65 authenticated-callable SECURITY DEFINER functions have explicit function-level search_path settings. A static scan found auth.uid() directly in 59; the remaining six include helper/delegating functions and require call-chain review. Inspected helpers mnty_active_membership, mnty_business_employee_list_scoped and assert_financial_membership enforce auth.uid()/anonymous-session/membership or finance-role checks. This is not a complete audit of all 65 functions.
 - Important unresolved ownership behavior: assign_default_owner_to_unowned_business() trigger assigns an ACTIVE BUSINESS_OWNER membership to the fixed confirmed platform-owner email when a new business has no active owner. This may be intentional for imported catalog rows but could capture customer/provider-created businesses. Verify onboarding, imports and creator ownership semantics before launch; do not change without checking dependent flows. Trigger remains enabled and direct client EXECUTE is revoked.
 - The nine RLS-enabled/no-policy tables grant no direct anon/authenticated DML or SELECT. Three directory tables grant service_role SELECT; other six do not. Keep default-deny until trusted server/definer access paths are validated.
+
+
+## Pass 40 update — combined RC464/465/466 CI completed
+
+- PR #730 exact head `52075482ddcf30749b4eb75768ce891755df85ea`: 17/17 workflow runs completed successfully.
+- Combined forward replay from the production-schema checkpoint passed (run `43656845956`, job `132637148994`); all three RC migration-specific PostgreSQL suites passed.
+- The Pages validation job passed; the actual deploy job was skipped because this was a pull-request event. No production deployment occurred.
+- PR #730 remains draft/unmerged. RC464/465/466 remain unapplied in production. Next: controlled Staging replay and scoped tenant/business/branch/customer API tests, then review/approval.
+- **Pass 40 combined-CI stage: 100%. Overall production completion: 60.8333% (unchanged; unmerged candidate work is not counted).**
