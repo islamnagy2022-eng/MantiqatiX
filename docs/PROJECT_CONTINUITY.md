@@ -1,3 +1,19 @@
+## Pass 42 — 2026-11-15 — Free-CI security continuation
+
+- User cost decision: **zero spending during development**. No paid Supabase branch, Staging, subscription, upgrade or other paid resource may be created. Revisit costs only at final release review.
+- Current `main`: `1b3a7c445ae236ec17748725254cd43125f8c6ce`. Uploaded R7 archive `bizcatalog-manager (11).zip` SHA-256 verified as `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`; it remains a reference archive, not the live migration source.
+- Live Supabase remains healthy with 310 migrations through `20261110150618`; RC464/465/466 are not applied. No Production mutation or deployment occurred.
+- Live platform-admin drift remains: `mnty_can_platform_admin()` still uses the broad null-scope `mnty_can('admin',NULL,NULL,NULL)`; the registry has RLS but not FORCE RLS; anon/authenticated have no direct CRUD, while service_role has SELECT/INSERT/UPDATE/DELETE. RC464 is the forward candidate; do not treat it as live.
+- PR #730 exact head `52075482ddcf30749b4eb75768ce891755df85ea`: 14 workflow runs re-queried, all successful; focused RC464/465/466 and combined replay jobs PASS. Pages deploy and public-only jobs were skipped on the PR event. User-reported total remains 17/17 checks.
+- PR #724 (RC464), #725 (RC465), #727 (RC466), #730 (combined test candidate), and #729 (documentation) remain drafts/unmerged. No Production rollout is authorized.
+- 65 authenticated SECURITY DEFINER functions remain in the review inventory; six delegated call chains were inspected; 59 direct-auth functions still require per-function adversarial tests. Nine RLS-enabled/no-policy tables remain fail-closed. Leaked Password Protection remains disabled.
+- **Staging is deferred**. Use free disposable CI/PostgreSQL fixtures; they do not replace current Production backup/restore and RPO/RTO evidence.
+- Detailed evidence: `docs/audits/PASS42_SECURITY_CONTINUATION_20261115.md`.
+
+**Next action:** continue risk-ranked authorization tests for the 59 functions, starting with platform-wide and finance/payment RPCs; maintain `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
 # Current checkpoint — Pass 40 — 2026-11-15
 
 **Status:** Pass 40 engineering/security checkpoint recorded. **Overall production release remains BLOCKED / NOT CERTIFIED.**
