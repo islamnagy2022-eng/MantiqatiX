@@ -4208,3 +4208,18 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Performance advisor snapshot: 132 unindexed foreign keys, 375 auth RLS initplan findings, 71 unused indexes, 28 multiple permissive policies. Prioritize measured hot paths and inspect plans; do not mass-create indexes or rewrite policies.
 - No production writes or deployments.
 
+
+
+### Pass 41 — authenticated SECURITY DEFINER call-chain spot check
+
+- Read-only catalog scan identified 65 public SECURITY DEFINER functions executable by `authenticated`.
+- 59 functions directly reference `auth.uid()` in their source. Six do not reference it directly; reviewed all six call chains:
+  - `mnty_business_employee_list` delegates to `mnty_business_employee_list_scoped`, which rejects null/anonymous actors and checks active tenant/business/branch membership or explicit employee permission.
+  - `mnty_can` delegates to `mnty_active_membership`, which scopes membership rows to `auth.uid()`.
+  - `mnty_can_platform_admin` delegates to `mnty_can` and the same authenticated membership resolver.
+  - `preview_commission_backend` calls `assert_financial_membership`, which requires `auth.uid()`, an active tenant membership and an allowed finance/admin role.
+  - `upsert_catalog_item_and_price_backend` delegates to item and price backends; both validate `auth.uid()`, active tenant membership, business scope and branch scope.
+  - `get_mnty_targeted_advertisements` is the separately reviewed public read endpoint; it returns active/approved advertisement placement fields only.
+- This closes the initial classification of the six functions lacking a direct `auth.uid()` reference (6/6 classified), not the complete authorization review of all 65. Continue tenant/business/branch negative testing and review all direct-auth functions for object-level authorization.
+- No production changes.
+
