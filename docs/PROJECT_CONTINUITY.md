@@ -1825,3 +1825,15 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - Next: establish a cost-approved Staging environment, replay #730's exact migration chain, and execute cross-tenant/business/branch positive and negative API tests before any merge or production rollout.
 
 
+
+
+## Pass 41 — security advisor findings triaged with live read-only SQL
+
+- Confirmed 137 public tables and no table with RLS disabled.
+- Enumerated all nine RLS-enabled/no-policy tables and checked privileges: anon/authenticated SELECT and INSERT are false for every one. Only three have service_role SELECT; the remaining six are fully inaccessible through those roles. These are default-deny tables; no policy/grant change is justified without validating trusted backend callers.
+- Identified the single anon-callable SECURITY DEFINER function as `get_mnty_targeted_advertisements`. It uses an empty search_path and returns only approved/active ad-placement fields. A bounded live call returned three approved global ads with no personal/customer fields. This appears to be an intended public ad-serving read endpoint; keep it pending owner confirmation and tests, rather than blindly revoking it.
+- 65 authenticated-callable SECURITY DEFINER functions remain for call-chain and tenant/business/branch authorization review.
+- Auth advisor still flags leaked-password protection; no Auth setting changed.
+- Performance snapshot: 132 unindexed FKs, 375 auth RLS initplan, 71 unused indexes, 28 multiple permissive policies.
+- No production writes or deployments. Production release remains BLOCKED / NOT CERTIFIED.
+
