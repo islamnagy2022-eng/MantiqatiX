@@ -1,3 +1,14 @@
+## Pass 43 — RC467 commission scope hardening candidate (2026-11-15)
+
+- Live commission configuration contained 0 rows in `commission_rules` and 0 rows in `commission_rule_audit`; no rule or audit data was read or modified.
+- Read-only authorization review found the global commission draft LIST/SAVE/DELETE/AUDIT and preview RPCs accepted scoped tenant OWNER/BUSINESS_OWNER/ADMIN/MANAGER memberships. Eleven active scoped ownership memberships across five users match this overly broad role predicate; this is an authorization mismatch, not proof of a successful unauthorized read.
+- `preview_commission_backend` delegated to a tenant-only finance membership helper while receiving `business_id` but no `branch_id`. RC467 hardens it to exact business / tenant-wide finance or canonical platform root, and rejects branch-scoped and anonymous actors.
+- Draft PR #730 now includes RC467 migration, behavioral integration tests, static contract validator, and forward-replay workflow wiring. Latest test head `911881ee2de51c5f68ee0a1a3b571b76f37b0a5f`; run `43664038104` was still preparing isolated Supabase at this checkpoint. RC455/RC456 fixtures were adjusted to seed `private.platform_admins` in their disposable transactions.
+- RC464–RC467 are not applied to Production; Production ledger remains 310 through `20261110150618`. No production write, paid resource, Staging, payment or deployment occurred.
+- Details: `docs/audits/PASS43_RC467_COMMISSION_SCOPE_20261115.md`.
+
+---
+
 ## Pass 42 anonymous-session follow-up — 2026-11-15
 
 - Verified deployed-source parity for `mnty-registration-review` v5 and `mnty-provider-onboarding-review` v3; both are ACTIVE, `verify_jwt=true`, byte-identical to current `main`, and explicitly reject anonymous users before calling service-role-only private RPCs.
