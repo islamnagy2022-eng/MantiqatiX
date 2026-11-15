@@ -1837,3 +1837,13 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - Performance snapshot: 132 unindexed FKs, 375 auth RLS initplan, 71 unused indexes, 28 multiple permissive policies.
 - No production writes or deployments. Production release remains BLOCKED / NOT CERTIFIED.
 
+
+
+## Pass 41 — authenticated SECURITY DEFINER call-chain spot check
+
+- Catalog scan: 65 public SECURITY DEFINER functions are executable by authenticated. 59 directly reference `auth.uid()`; six do not.
+- Reviewed all six non-direct references: five are wrappers that delegate to scoped/authenticated helpers (employee list → scoped list; permission check → active membership; platform admin check → permission check; commission preview → finance membership assertion; combined catalog upsert → two independently scoped catalog backends). The sixth is the intentional public ad-serving read endpoint, separately checked to return approved ad fields only.
+- Classification coverage for the six no-direct-auth functions: 6/6. This is not proof that all 65 functions have correct object-level authorization; the 59 direct-auth functions still need tenant/business/branch negative tests and caller-path review.
+- No production writes or permission changes.
+
+
