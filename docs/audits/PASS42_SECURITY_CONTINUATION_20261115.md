@@ -55,3 +55,21 @@ CI used a disposable local Supabase/PostgreSQL test environment. This is useful 
 No paid resources were created or enabled. Staging is deferred until the end-of-project cost review. Continue with free disposable CI tests and read-only Production inspection where safe. Do not apply RC464–466 to Production until the exact migration order, recoverable current backup, rollback/restore evidence, service-role bootstrap/revocation path, human SQL review, and explicit rollout approval are satisfied.
 
 **Next action:** continue the 59-function review in risk-ranked batches, starting with platform-wide and finance/payment RPCs; retain per-function positive/negative tenant, business, branch, anonymous-session and actor-mismatch tests. Keep the overall Production gate blocked.
+
+
+## Pass 42 addendum — service-role gateway parity and anonymous-session coverage
+
+### Service-role registry gateways — deployed-source parity verified
+
+- `mnty-registration-review`: active deployed version 5, `verify_jwt=true`, SHA-256 `35f1a8d3e9ec37de2a4bb795aba1902c4481a76fb4ac15bb1312f2e8eeae8fbc`; deployed `index.ts` is byte-identical to current `main` source.
+- `mnty-provider-onboarding-review`: active deployed version 3, `verify_jwt=true`, SHA-256 `6bc453b3fad63d82590db1e26fe466256917b15178bad2936e78c69e5591615c`; deployed `index.ts` is byte-identical to current `main` source.
+- Both gateways verify the bearer token with `auth.getUser(token)`, reject missing/invalid/anonymous users, and pass the verified actor ID to the service-role-only private RPC. No Edge Function deployment was made.
+- `private.bootstrap_platform_admin` remains a service-role-only one-time SQL function with an empty-registry guard and audit entry; no public/browser bootstrap Edge gateway was found in the repository search. Service-role direct CRUD on the registry remains a privileged backend capability requiring explicit bootstrap/revocation audit.
+
+### Anonymous Auth session test gap — NOT VERIFIED, not a confirmed exploit
+
+- Current repository search found no `signInAnonymously` call in application source. This does not rule out legacy/external clients; the Supabase Auth setting still permits anonymous sessions and Security Advisor policy warnings must be interpreted using the JWT `is_anonymous` claim.
+- The existing `mantigo_production_security_contract.sql` is a catalog/ACL contract: six RLS-enabled tables, seven authenticated-only RPC grants, and rate-limit triggers. It is not a behavioral test of all seven RPCs.
+- RC446's disposable integration test covers actor spoofing, ordinary-user denial, pending/unverified/offline/busy captain denial, own-ride exclusion, non-open ride exclusion and offered-bid counts for `list_open_mantigo_rides_backend`. It does not simulate an anonymous JWT.
+- A read-only review of ten selected high-risk RPCs found that eight do not explicitly inspect `auth.jwt()->>'is_anonymous'`: `create_mantigo_ride_backend_v2`, `create_mantigo_bid_backend`, `confirm_mantigo_cash_payment_backend`, `lock_mantigo_fare_backend`, `match_mantigo_ride_backend`, `update_mantigo_trip_status_backend`, `submit_mantigo_captain_application`, and `create_medical_appointment_backend`. The two selected InDrive request/bid RPCs do reject anonymous JWTs. The MantiGO functions still bind `p_user_id` to `auth.uid()` and apply function-specific ownership/status/profile checks; absence of an explicit anonymous check alone is not proof of a vulnerability.
+- Do not add anonymous-session rejection blindly until the intended guest MantiGO flow and any external/legacy clients are confirmed. Add positive and negative JWT tests per function, then harden only operations that are not meant for anonymous sessions.
