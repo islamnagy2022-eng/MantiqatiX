@@ -56,3 +56,22 @@ The previous `docs/MASTER_PRODUCTION_TODO.md` top checkpoint still labeled Pass 
 5. Human SQL/security review of PR #730 and current backup/restore/rollback evidence remain prerequisites to any production rollout.
 
 **No release gate is closed by this pass. Production remains BLOCKED / NOT CERTIFIED.**
+
+
+## Additional P0/P1 finding — digital-page payment claim and deployed Edge parity
+
+A risk-ranked read-only review of the payment claim path found a concrete Production rollout gap:
+
+- The live migration ledger query for `20261030100000` through `20261116000000` returned only `20261101140105` and `20261110150618`. RC458 migration `20261030120000_rc458_digital_page_payment_rpc_empty_search_path.sql` is absent from the live ledger.
+- Live `claim_digital_page_payment_intent_backend(uuid,uuid,text,text)` remains SECURITY DEFINER with `search_path=public, pg_temp`; its body still has an unqualified `where id = p_order_id` despite a `RETURNS TABLE(id, ...)` output parameter. RC458's already-merged source migration explicitly fixes this ambiguity by aliasing the table as `o` and using `o.id`, and sets an empty search_path. Its own audit correctly records Production rollout as NOT APPLIED.
+- The deployed `digital-page-payment-intent` Edge Function is ACTIVE at version 5 with `verify_jwt=true`. Its deployed source creates a UUID claim token and binds the order to the verified user, but it lacks the later main-branch Paymob intention correlation checks (`matchesPaymobIntention`) and provider-order ID persistence path present in the current source file. This is a deployed-source parity gap requiring controlled review; no Edge invocation or deployment was performed.
+- The current claim RPC checks order ownership and idempotency key. However, its active-claim comparison uses `<> p_claim_token`; SQL NULL comparison can evaluate to NULL (not TRUE), and the RPC does not reject NULL/blank claim tokens. An authenticated order owner calling the RPC directly with a NULL token could bypass the in-progress branch and overwrite the claim marker. This is a plausible same-owner concurrency/duplicate-intention risk, not a cross-user authorization bypass and not confirmed by a live invocation.
+- The main branch contains the RC458 correction and the current Edge source contains stronger provider correlation logic, but the live ledger/Edge deployment are behind those sources. Do not treat source merge or CI as Production parity.
+
+**Required remediation (candidate only):**
+1. In a new forward-only migration, retain the RC458 table alias and empty search_path, reject NULL/blank/oversized claim tokens, and use `IS DISTINCT FROM` for active claim token comparison.
+2. Add disposable positive/negative tests for NULL, blank, valid, same-token replay, competing token, cross-user, and finalize/release ownership behavior.
+3. Verify the live migration ledger and function definition after the approved rollout; separately deploy the reviewed Edge Function and compare its deployed source to the approved commit.
+4. Exercise Paymob Sandbox correlation and idempotency end-to-end before enabling production payment traffic.
+
+No production function, migration, Edge Function, payment or user data was changed or invoked in this review. The RC458 search-path migration remains unapplied in Production; PR #730 does not yet contain this new payment-claim remediation. Release remains BLOCKED / NOT CERTIFIED.
