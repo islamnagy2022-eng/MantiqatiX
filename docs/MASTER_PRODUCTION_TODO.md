@@ -1,3 +1,20 @@
+# Latest verified checkpoint — Pass 45 — 2026-11-15
+
+**Status:** User-designated R7 archive re-audited. R7 is the intended development baseline; GitHub main remains the older V6 path. Overall release remains **BLOCKED / NOT CERTIFIED**.
+
+- Archive SHA-256: `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`; ZIP integrity PASS; 233 files.
+- Critical R7 blockers: arbitrary unauthenticated JWT minting (default super_admin), unsafe refresh fallback, default/static admin credentials, hardcoded secret fallbacks, local JSON authoritative persistence, auto-seeding/auto-verification/auto-paid defaults, and frontend localStorage state authority.
+- R7 migration creates 7 tables (not the 11 claimed in the report); Android wrapper has 3 files without a reproducible Gradle wrapper/root build; 15 test files but no package test script.
+- R7 install timed out; TypeScript check blocked by missing vite/client; Node native tests failed due extensionless TypeScript imports. The archive's 99/99 and Production Certified claims are NOT independently reproduced.
+- Conservative estimates: UI 85%, Backend/DB 30%, Auth 8%, Catalog/Geo 65%, Orders/Cart 45%, Finance 35%, Admin 75%, Marketing/CRM/Ads 55%, Integrations 25%, Android 15%, Security/Backup 5%, Testing/Release 5%. **Unweighted mean: 37.33%.**
+- Previous 60.8333% was weighted with no available category baseline/formula; 37.33% is a fresh R7-source unweighted audit, so the difference is recalibration, not proven feature regression. No per-category increase is claimed without prior values.
+- RC468 payment hardening candidate PR #731 dedicated PostgreSQL workflow PASS on `8dd31fbb264e2c69655dc8af65ac9fe3ea7262bf`; full migration replay/remaining checks still pending. Candidate not merged or deployed.
+- Full report: [Pass 45 R7 source re-audit](audits/PASS45_R7_SOURCE_REAUDIT_AND_PROGRESS_20261115.md).
+
+**Next:** close R7 authentication and production-bootstrap P0 defects in the R7 source without changing UI, then complete RC468 full-chain validation. Do not deploy until real-data restore, identity, security and E2E gates pass.
+
+---
+
 # Latest verified checkpoint — Pass 44 — 2026-11-15
 
 **Status:** Recovery evidence visibility and public ad endpoint reviewed. Production release remains **BLOCKED / NOT CERTIFIED**.
