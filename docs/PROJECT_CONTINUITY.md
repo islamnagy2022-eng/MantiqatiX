@@ -1810,3 +1810,18 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - The Pages validation job passed; the actual deploy job was skipped because this was a pull-request event. No production deployment occurred.
 - PR #730 remains draft/unmerged. RC464/465/466 remain unapplied in production. Next: controlled Staging replay and scoped tenant/business/branch/customer API tests, then review/approval.
 - **Pass 40 combined-CI stage: 100%. Overall production completion: 60.8333% (unchanged; unmerged candidate work is not counted).**
+
+
+## Pass 41 update — CI and live Supabase read-only audit (2026-11-15)
+
+- PR #729 exact head `713dec4e19dedcf38f0338ec7c6d9508e7ed51e8`: all 8 workflow runs completed successfully. The Pages validate job passed; public-only validation and deployment jobs were skipped for the pull-request event. No deployment is claimed.
+- PR #730 combined RC464 → RC465 → RC466 migration chain remains 17/17 CI workflows successful on exact head `52075482ddcf30749b4eb75768ce891755df85ea`; it remains draft/unmerged.
+- Live Supabase project `MANTIQATIX FINAL` is healthy. Branch inventory shows only `main`, so a persistent Staging branch does not currently exist. Supabase branching may add compute cost; do not create it until cost is checked and approved.
+- Production migration ledger: 310 entries; latest `20261110150618`. No RC464/465/466 production migration was applied.
+- Read-only inventory: 137 public tables; 0 with RLS disabled. Security advisor: 9 RLS-enabled/no-policy tables (default-deny), 1 anon-callable SECURITY DEFINER, 65 authenticated-callable SECURITY DEFINER, and leaked-password-protection warning. No blanket grant/policy changes are authorized by these findings.
+- Performance advisor snapshot: 132 unindexed FKs, 375 auth RLS initplan findings, 71 unused indexes, 28 multiple permissive policies.
+- No production DDL/DML, Auth/RLS/GRANT, Edge Function, payment, settlement, or user-data mutation.
+- **Pass 41 CI percentages:** PR #729 8/8 = 100%; PR #730 17/17 = 100%. **Overall production completion remains 60.8333%**, unchanged because the candidates are unmerged and Staging has not been run.
+- Next: establish a cost-approved Staging environment, replay #730's exact migration chain, and execute cross-tenant/business/branch positive and negative API tests before any merge or production rollout.
+
+
