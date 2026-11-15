@@ -1,3 +1,22 @@
+# Current checkpoint — Pass 40 — 2026-11-15
+
+**Status:** Pass 40 engineering/security checkpoint recorded. **Overall production release remains BLOCKED / NOT CERTIFIED.**
+
+- Current published-platform code path remains V6 on `main`; the user-provided `bizcatalog-manager (11).zip` is the current R7 reference archive, not the deployed root. It is preserved unchanged (SHA-256: `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`).
+- R7 source audit: local JSON remains authoritative in `server.ts`; the claimed 99 tests and release artifact are not independently verifiable; no reproducible build was completed. See [R7 source baseline](release/R7_SOURCE_BASELINE_20261115.md).
+- Pass 40 security/release evidence: [PASS40 audit](audits/PASS40_SECURITY_AND_RELEASE_AUDIT_20261115.md).
+- PR #724 (RC464) has all 13 recorded workflows passing. PR #725 (RC465) and PR #727 (RC466) have candidate policy fixes; their latest replay/contract corrections are awaiting CI reruns. PR #726 and PR #728 have all recorded workflows passing. All remain drafts.
+- PR #722 overlaps the more complete RC464 candidate in #724; do not merge both.
+- Required migration order: #724 RC464 → #725 RC465 → #727 RC466. Test the combined chain in Staging before any production application.
+- Production Supabase ledger remains at 310 migrations through `20261110150618`; RC464/465/466 are not applied. No Edge Function was deployed and no production data/payment/settlement write was performed.
+- The public business showcase's anonymous SELECT grant is intentional and must remain; restrictive anonymous-session guards on branch/order/inventory tables must be preserved.
+- Production settlement remains blocked: live `settlement-financial-atomic v4` is older than the candidate; beneficiary-to-business/provider mapping and Paymob Sandbox tests remain open.
+- The last verified Pass 35 weighted progress remains **60.8333%**. Candidate work in unmerged PRs is not counted as production completion.
+
+**Next action:** finish the latest #725/#727 CI reruns, fix any replay mismatch without weakening live preflight checks, then validate RC464 → RC465 → RC466 together in Staging. Keep production unchanged until approval.
+
+---
+
 # Latest verified checkpoint — 2026-11-11 — Public catalog disclosure safety
 
 **Request ID:** `R-20261111-PUBLIC-CATALOG-PRICE-DISCLOSURE`  
