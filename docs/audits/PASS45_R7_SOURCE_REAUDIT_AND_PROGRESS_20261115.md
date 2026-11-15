@@ -83,7 +83,8 @@ No category-level increase can honestly be calculated without the previous categ
 - Draft PR #731: `security/rc468-digital-page-payment-claim-20261115`.
 - Candidate migration, disposable precondition, integration test, and isolated PostgreSQL workflow created.
 - Dedicated RC468 PostgreSQL 16 workflow passed on current candidate head `3f75de7b7d4b474b2dfea5497d503c409796f313`.
-- Forward migration chain replay remains in progress on that head. Other relevant checks passed; the V6 Pages workflow is validation-only on the PR event and its production deploy job is skipped.
+- Forward migration chain replay passed on the same head: **77 migrations** replayed from the historical schema-only checkpoint; RC468 integration passed, as did owner-profile, RC455/RC456 commission, and tenant-isolation tests.
+- All **11/11** workflow runs returned success on this head. The V6 Pages workflow's validation job passed (desktop/mobile browser validation); `validate_public_only` and `deploy` jobs were skipped for the PR event. No website deployment occurred.
 - PR #731 remains Draft/unmerged. No Production migration, RPC invocation, Edge deployment, or payment was performed.
 - RC468 must be deployed only together with the matching five-argument Edge Function after the complete dependency chain, Paymob Sandbox E2E, backup/restore evidence, and human review.
 
