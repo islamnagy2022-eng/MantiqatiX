@@ -4196,3 +4196,15 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - OCHA's P-code standard requires an ISO-3166-1 prefix (usually two-letter) plus numeric hierarchical components, so the Open Admin Data codes fit the expected syntax, but records have no explicit `adm2_pcode` field and district `source` metadata is empty. Exact P-code identity with the current OCHA COD-AB source is not yet verified; a source-column crosswalk is still required.
 - OCHA COD status dashboard reports Egypt ADM3 as partial coverage in 96.2% of ADM2 units (5,716 units). Treat missing ADM3 geometry as a coverage gap, not a point-outside result.
 - No geometry files materialized or production code changed. Keep nearest-point UI explicitly approximate.
+
+
+## Pass 41 security advisor triage — 2026-11-15
+
+- Read-only Supabase audit confirmed 137 public tables; 0 have RLS disabled. The 9 RLS-enabled/no-policy tables are: `business_employees`, `business_job_positions`, `commission_rule_audit`, `digital_page_payment_events`, `directory_listing_claim_requests`, `directory_source_permission_evidence`, `platform_custom_roles`, `platform_role_assignments`, `public_directory_listings`.
+- Privilege check confirmed anon/authenticated SELECT and INSERT are false for all nine. `service_role` SELECT is granted only on `directory_listing_claim_requests`, `directory_source_permission_evidence`, and `public_directory_listings`; the other six have no service_role SELECT. These are default-deny, not missing-public-access defects. Validate intended trusted Edge/definer access before changing.
+- Supabase advisor's one anon-callable SECURITY DEFINER is `public.get_mnty_targeted_advertisements(...)`. Catalog inspection shows `search_path = ''`, explicit EXECUTE for anon/authenticated, and the function returns only approved/active ad fields (id/title/creative/target/ad-space/match/distance); a bounded live read returned three approved global ad placements and no personal/customer fields. Classify as likely intentional public read endpoint; retain pending product-owner confirmation and regression tests. Do not revoke blindly.
+- 65 authenticated-callable SECURITY DEFINER functions remain a broad review set. Advisor findings are not proof of exploitability. Review function bodies, caller paths, identity checks, tenant/business/branch constraints and grants before changing ACLs.
+- Leaked-password protection remains a single Auth configuration warning; no Auth setting was changed.
+- Performance advisor snapshot: 132 unindexed foreign keys, 375 auth RLS initplan findings, 71 unused indexes, 28 multiple permissive policies. Prioritize measured hot paths and inspect plans; do not mass-create indexes or rewrite policies.
+- No production writes or deployments.
+
