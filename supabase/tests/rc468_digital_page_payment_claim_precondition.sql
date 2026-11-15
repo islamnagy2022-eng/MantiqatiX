@@ -1,5 +1,21 @@
 -- Disposable RC468 fixture overlay. Never run against Production.
+create table if not exists public.digital_page_products (
+  id uuid primary key,
+  page_type text not null,
+  code text not null unique,
+  name_ar text not null,
+  description_ar text,
+  price numeric(12,2) not null,
+  currency text not null default 'EGP',
+  duration_days integer,
+  features jsonb not null default '[]'::jsonb,
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 alter table public.digital_page_orders
+  add column if not exists product_id uuid,
   add column if not exists provider text,
   add column if not exists provider_order_id text;
 
