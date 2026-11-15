@@ -1974,3 +1974,13 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 - [x] Add RC467 disposable PostgreSQL tests and static contract; update RC455/RC456 test fixtures for canonical platform registry.
 - [ ] Complete current exact-head forward migration replay, then resolve any failing steps and rerun.
 - [ ] Human review and release evidence remain required. RC464–RC467 are source-only, not applied to Production.
+
+
+## Pass 43 — RC467 commission scope hardening — exact-head validation
+
+- [x] RC467 static validator passed at `911881ee2de51c5f68ee0a1a3b571b76f37b0a5f`.
+- [x] Forward replay run `43664038104`: PASS; 80 later migrations applied in disposable Supabase, including RC464–RC467.
+- [x] RC455, RC456, RC467 commission scope integration and tenant-isolation checks passed.
+- [x] All 18 returned workflow runs on exact head passed; website deploy/public-only jobs were skipped for PR event.
+- [ ] Review the historical schema baseline (PENDING_REVIEW, 20261008222845) and complete a current Production backup/restore + rollback rehearsal.
+- [ ] Human SQL/security review and authorized release approval. Do not apply RC464–RC467 to Production before these gates.
