@@ -1,3 +1,56 @@
+# Current checkpoint — Pass 40 — 2026-11-15
+
+**Status:** Pass 40 engineering/security checkpoint recorded. **Overall production release remains BLOCKED / NOT CERTIFIED.**
+
+- Current published-platform code path remains V6 on `main`; the user-provided `bizcatalog-manager (11).zip` is the current R7 reference archive, not the deployed root. It is preserved unchanged (SHA-256: `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`).
+- R7 source audit: local JSON remains authoritative in `server.ts`; the claimed 99 tests and release artifact are not independently verifiable; no reproducible build was completed. See [R7 source baseline](release/R7_SOURCE_BASELINE_20261115.md).
+- Pass 40 security/release evidence: [PASS40 audit](audits/PASS40_SECURITY_AND_RELEASE_AUDIT_20261115.md).
+- PR #724 (RC464) has all 13 recorded workflows passing. PR #725 (RC465) and PR #727 (RC466) have candidate policy fixes; their latest replay/contract corrections are awaiting CI reruns. PR #726 and PR #728 have all recorded workflows passing. All remain drafts.
+- PR #722 overlaps the more complete RC464 candidate in #724; do not merge both.
+- Required migration order: #724 RC464 → #725 RC465 → #727 RC466. Test the combined chain in Staging before any production application.
+- Production Supabase ledger remains at 310 migrations through `20261110150618`; RC464/465/466 are not applied. No Edge Function was deployed and no production data/payment/settlement write was performed.
+- The public business showcase's anonymous SELECT grant is intentional and must remain; restrictive anonymous-session guards on branch/order/inventory tables must be preserved.
+- Production settlement remains blocked: live `settlement-financial-atomic v4` is older than the candidate; beneficiary-to-business/provider mapping and Paymob Sandbox tests remain open.
+- The last verified Pass 35 weighted progress remains **60.8333%**. Candidate work in unmerged PRs is not counted as production completion.
+
+**Next action:** finish the latest #725/#727 CI reruns, fix any replay mismatch without weakening live preflight checks, then validate RC464 → RC465 → RC466 together in Staging. Keep production unchanged until approval.
+
+---
+
+## Pass 40 — Active release blockers and next actions
+
+### P0 — Candidate security changes
+
+- [ ] Wait for the latest #725 RC465 forward migration replay after the test-only live order-history ACL overlay was corrected to revoke anonymous SELECT and client write grants.
+- [ ] Wait for the latest #727 RC466 PostgreSQL and forward migration replay after preserving the intentional public-business showcase grant.
+- [ ] Confirm all latest-head workflows, not only earlier commits, are green.
+- [ ] Keep the restrictive anonymous-session policies; do not model them as permissive or remove them.
+- [ ] Keep the public `businesses` showcase anonymous SELECT grant; only private branches/inventory must remain non-public.
+- [ ] Review and approve PRs before merge. Required migration order: #724 RC464, #725 RC465, #727 RC466.
+- [ ] Do not merge PR #722 alongside #724; it is an overlapping earlier migration candidate.
+
+### P0 — Production release gates
+
+- [ ] Run the combined RC464 → RC465 → RC466 migration chain in Staging using a production-schema checkpoint.
+- [ ] Test tenant/business/branch/customer boundaries with distinct authenticated identities.
+- [ ] Deploy matching Edge Function sources only through the approved separate Supabase deployment process.
+- [ ] Verify settlement beneficiary-to-business/provider mapping and complete Paymob Sandbox tests.
+- [ ] Complete backup restore and disaster-recovery drills.
+
+### P1 — R7 archive v19
+
+- [ ] Replace local JSON authoritative persistence with Supabase/PostgreSQL transactions; retain local JSON only for development fixtures.
+- [ ] Add reproducible dependency installation/toolchain contract and CI build.
+- [ ] Add executable unit/integration/RLS/API/concurrency/browser tests; reconcile the unverified 99-test claim.
+- [ ] Produce and checksum the release artifact referenced by the manifest.
+- [ ] Build and test Android APK/AAB while preserving the Android WebView wrapper source.
+
+### Verified production progress
+
+The last verified weighted progress remains **60.8333%**. Do not increase it for unmerged candidate changes or unverified R7 release claims.
+
+---
+
 # Latest verified checkpoint — 2026-11-11 — Public catalog disclosure safety
 
 **Request ID:** `R-20261111-PUBLIC-CATALOG-PRICE-DISCLOSURE`  
