@@ -2601,3 +2601,16 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Disposable test/validator and workflow wiring added. The first combined replay failed in legacy RC455 test fixture because it seeded only a SUPER_ADMIN membership; strict canonical registry denied it. RC455/RC456 fixtures have now been updated to seed `private.platform_admins` within transaction and assert `PLATFORM_ADMIN_REQUIRED` for non-root.
 - Current exact head `911881ee2de51c5f68ee0a1a3b571b76f37b0a5f`, forward replay run `43664038104` was still at isolated Supabase startup when this log was written. Static RC467 validator passed. Full migration replay remains unverified until run completes.
 - No Production DDL/DML, grant/RLS/Auth change, Edge deployment, payment, settlement, Staging or paid resource created. Production ledger remains 310 through `20261110150618`; release gate BLOCKED / NOT CERTIFIED.
+
+
+---
+
+## Pass 43 — RC467 commission scope hardening — final exact-head result (2026-11-15)
+
+- Exact candidate head `911881ee2de51c5f68ee0a1a3b571b76f37b0a5f`; PR #730 remains open, Draft and unmerged.
+- Forward migration replay run `43664038104`: success. Disposable local Supabase restored the schema-only checkpoint and applied 80 forward migrations through RC467. Teardown completed successfully.
+- RC467 static contract PASS; RC455, RC456 and RC467 commission behavioral SQL tests PASS; tenant-isolation and owner-profile persistence tests PASS.
+- 18/18 returned workflows for this exact head succeeded. Pages validation passed, while public-only validation and actual deploy jobs were skipped on PR event.
+- Historical schema checkpoint manifest remains PENDING_REVIEW (20261008222845, 283 historical ledger entries); CI success does not certify current Production backup restore/RPO/RTO.
+- Rechecked Production afterward: ledger unchanged at 310 through 20261110150618; RC464–RC467 unapplied; commission_rules=0; commission_rule_audit=0; 11 active scoped owner/business-owner memberships remain. No production data or grants changed.
+- No Edge deployment, Pages deployment, payment, settlement, Auth/RLS/GRANT change, staging environment or paid resource was created. Release remains BLOCKED / NOT CERTIFIED until human SQL review, current backup/restore and authorized rollout.
