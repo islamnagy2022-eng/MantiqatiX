@@ -1998,3 +1998,14 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 - [ ] Human SQL/security review of PR #730 and explicit release approval remain open.
 - Evidence: `docs/audits/PASS44_RECOVERY_VISIBILITY_AND_PUBLIC_AD_REVIEW_20261115.md`.
 - Production remains BLOCKED / NOT CERTIFIED; no Production writes or deployments occurred.
+
+
+## Pass 44 — additional payment-path production gap
+
+- [x] Confirm RC458 migration `20261030120000` is absent from the live migration ledger; Production claim RPC still has the old `search_path=public, pg_temp` and unqualified `where id = p_order_id` body.
+- [x] Confirm deployed `digital-page-payment-intent` is ACTIVE v5 and its deployed source lacks current-main Paymob intention correlation/provider-order persistence behavior.
+- [x] Identify NULL/blank claim-token validation gap in the live claim RPC; direct authenticated same-owner call may bypass the active-claim branch under SQL NULL semantics. No live invocation performed.
+- [ ] Create a forward-only payment claim hardening migration with empty search_path, qualified table alias, strict claim-token validation and `IS DISTINCT FROM` comparison.
+- [ ] Add disposable tests for null/blank/valid/same/competing token, cross-user claim, release/finalize and provider correlation.
+- [ ] After approved release gates, apply migration and deploy the exact reviewed Edge Function source; verify deployed-source parity and Paymob Sandbox E2E.
+- Evidence: `docs/audits/PASS44_RECOVERY_VISIBILITY_AND_PUBLIC_AD_REVIEW_20261115.md`.
