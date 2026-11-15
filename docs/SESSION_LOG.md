@@ -2566,3 +2566,18 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - No production changes.
 
 
+
+
+---
+
+## Pass 42 — 2026-11-15 — Free-CI security continuation
+
+- User explicitly rejected any cost during development. No Staging or paid resources were created; all future cost review is deferred to final release review.
+- Rechecked live Supabase read-only: 310 migration rows through `20261110150618`; RC464–466 absent. `private.platform_admins` has RLS enabled/FORCE RLS disabled, postgres owner with BYPASSRLS; anon/authenticated have no direct CRUD; service_role has SELECT/INSERT/UPDATE/DELETE. Current `mnty_can_platform_admin()` remains the old broad null-scope helper. No registry rows were read and no production mutation occurred.
+- Rechecked PR #730 exact head `52075482ddcf30749b4eb75768ce891755df85ea`. 14 workflow runs were returned and all completed successfully; RC464, RC465, RC466, combined forward replay and platform-admin scope jobs passed. The PR Pages deployment and public-only jobs were skipped. PR #730 remains Draft/unmerged.
+- PR #724/RC464 is the proposed platform-admin fix; PR #725/RC465 addresses order/history business-branch reads; PR #727/RC466 addresses business/branch/inventory scope. All remain drafts/unmerged/unapplied.
+- 65 authenticated SECURITY DEFINER functions remain in the live review inventory; six call chains inspected, 59 direct-auth functions still require adversarial isolation tests. Nine no-policy RLS tables remain fail-closed. Leaked Password Protection remains disabled.
+- Uploaded `bizcatalog-manager (11).zip` SHA-256 verified as `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`; archive untouched.
+- No Production DDL/DML, Auth/RLS/GRANT change, Edge deployment, payment, settlement, Pages deployment or Staging creation occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+- Next: risk-ranked per-function security tests, starting with platform-global and finance/payment RPCs; maintain free CI-only validation.
+
