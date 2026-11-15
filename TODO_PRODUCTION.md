@@ -2009,3 +2009,21 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 - [ ] Add disposable tests for null/blank/valid/same/competing token, cross-user claim, release/finalize and provider correlation.
 - [ ] After approved release gates, apply migration and deploy the exact reviewed Edge Function source; verify deployed-source parity and Paymob Sandbox E2E.
 - Evidence: `docs/audits/PASS44_RECOVERY_VISIBILITY_AND_PUBLIC_AD_REVIEW_20261115.md`.
+
+
+## Pass 45 — R7 source re-audit and realistic progress
+
+- [x] Reopen user-designated R7 archive and directive; verify ZIP integrity and SHA-256; inspect actual source rather than trusting release report claims.
+- [x] Record P0 auth defects: unauthenticated arbitrary JWT issuance, refresh fallback, default/static admin credentials, and localStorage role/session state.
+- [x] Record hardcoded secret fallbacks and credential-like Paymob literal requiring owner verification/rotation if genuine.
+- [x] Record local JSON authoritative persistence, missing-file demo bootstrap, and auto-verified/auto-paid seed/upgrade paths.
+- [x] Verify bundled migration has 7 tables and 7 RLS-enabled tables, not 11 as reported; verify Android wrapper has only 3 files and no reproducible Gradle root/wrapper.
+- [x] Attempt dependency install, TypeScript check and Node native tests; record actual blockers (npm install timeout, missing vite/client, extensionless TypeScript import resolution).
+- [x] Record realistic 12-workstream estimate with 37.33% unweighted mean; do not compare directly to old weighted 60.8333% without its missing weights/category baseline.
+- [ ] Fix R7 authentication/token minting and session lifecycle using one trusted identity authority; add behavioral tests.
+- [ ] Remove default/static credentials and secret fallbacks; establish owner-side credential rotation.
+- [ ] Make production startup fail closed without approved real data source; remove auto-verification/auto-paid migration behavior.
+- [ ] Reconcile R7 schema to live Supabase contract without replacing the live schema wholesale.
+- [ ] Complete Android Gradle wrapper/project and reproducible build.
+- [ ] Install dependencies reproducibly and run unit, integration, typecheck, build, browser and security suites.
+- Evidence: `docs/audits/PASS45_R7_SOURCE_REAUDIT_AND_PROGRESS_20261115.md`.
