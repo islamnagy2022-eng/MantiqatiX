@@ -6,6 +6,7 @@ declare
   user_a constant uuid := '46800000-0000-4000-8000-000000000001';
   user_b constant uuid := '46800000-0000-4000-8000-000000000002';
   order_id constant uuid := '46800000-0000-4000-8000-000000000011';
+  product_id constant uuid := '46800000-0000-4000-8000-000000000021';
   token_a constant text := '46800000-0000-4000-8000-0000000000aa';
   token_b constant text := '46800000-0000-4000-8000-0000000000bb';
   claim_status text;
@@ -39,12 +40,15 @@ begin
     raise exception 'RC468_LEGACY_FINALIZER_STILL_EXECUTABLE';
   end if;
 
+  insert into public.digital_page_products(id,page_type,code,name_ar,price)
+  values(product_id,'PORTFOLIO','RC468-PORTFOLIO','RC468 test page',25);
+
   insert into public.digital_page_orders(
-    id,user_id,amount,currency,payment_status,fulfillment_status,pricing_hash,
+    id,user_id,product_id,amount,currency,payment_status,fulfillment_status,pricing_hash,
     provider_intent_id,provider_order_id,title,page_type,idempotency_key,metadata
   ) values (
-    order_id,user_a,25,'EGP','PENDING','REQUESTED','rc468-hash',
-    null,null,'RC468 test page','LANDING','rc468-idem','{}'::jsonb
+    order_id,user_a,product_id,25,'EGP','PENDING','REQUESTED','rc468-hash',
+    null,null,'RC468 test page','PORTFOLIO','rc468-idem','{}'::jsonb
   );
 
   perform pg_catalog.set_config('request.jwt.claim.sub',user_a::text,true);
