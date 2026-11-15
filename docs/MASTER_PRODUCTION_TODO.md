@@ -11,6 +11,9 @@
 - RC468 payment hardening candidate PR #731 dedicated PostgreSQL workflow PASS on `8dd31fbb264e2c69655dc8af65ac9fe3ea7262bf`; full migration replay/remaining checks still pending. Candidate not merged or deployed.
 - Full report: [Pass 45 R7 source re-audit](audits/PASS45_R7_SOURCE_REAUDIT_AND_PROGRESS_20261115.md).
 
+
+- **Expanded RC468 regression head:** `5e5b832e0114476604bf195d336105c6ee437246`; dedicated PostgreSQL workflow PASS and 10 other workflows PASS; full forward migration replay remains IN_PROGRESS. V6 Pages validation passed with deployment skipped. Previous head `3f75de7b7d4b474b2dfea5497d503c409796f313` had 11/11 PASS and 77 migrations replayed; current expanded test head is being revalidated.
+
 **Next:** close R7 authentication and production-bootstrap P0 defects in the R7 source without changing UI, then complete RC468 full-chain validation. Do not deploy until real-data restore, identity, security and E2E gates pass.
 
 ---
