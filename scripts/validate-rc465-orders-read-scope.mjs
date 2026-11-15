@@ -27,7 +27,7 @@ assert.match(migration, /to_regclass\('public\.order_status_history'\)/, 'order 
 assert.match(migration, /order_status_history', 'SELECT'/, 'existing history read grant must be preserved without widening writes');
 assert.match(migration, /RC465_UNEXPECTED_HISTORY_CLIENT_WRITE_GRANT/, 'migration must fail closed if client write grants appear on order history');
 assert.match(aclOverlay, /TEST-ONLY overlay/, 'forward replay ACL overlay must be explicitly test-only');
-assert.match(aclOverlay, /REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER/, 'replay must restore the live read-only order-history ACL');
+assert.match(aclOverlay, /REVOKE SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER/, 'replay must restore the live read-only order-history ACL');
 assert.ok(aclOverlay.includes('GRANT SELECT ON TABLE public.order_status_history TO authenticated'), 'replay must preserve authenticated history reads');
 assert.ok(replayWorkflow.includes('production_live_order_status_history_acl_overlay_fixture.sql'), 'forward replay workflow must include the live ACL overlay');
 assert.ok(replayWorkflow.indexOf('RESTORE_TEST_ONLY_KNOWN_LIVE_ORDER_HISTORY_ACL_OVERLAY') < replayWorkflow.indexOf('REPLAY_MIGRATION=$filename'), 'live order-history ACL overlay must run before RC465');
