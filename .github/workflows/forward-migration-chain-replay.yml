@@ -18,6 +18,8 @@ on:
       - "supabase/tests/owner_profile_persistence_integration.sql"
       - "supabase/tests/rc455_commission_preview_integration.sql"
       - "supabase/tests/rc456_commission_resolution_preview_integration.sql"
+      - "supabase/tests/rc467_commission_scope_integration.sql"
+      - "scripts/validate-rc467-commission-scope.mjs"
       - ".github/workflows/forward-migration-chain-replay.yml"
   pull_request:
     branches: ["main"]
@@ -62,6 +64,9 @@ jobs:
 
       - name: Validate captured checkpoint and static schema inventory
         run: node scripts/tests/production-schema-baseline-static-audit.mjs
+
+      - name: Validate RC467 commission authorization contract
+        run: node scripts/validate-rc467-commission-scope.mjs
 
       - name: Start isolated Supabase instance with no repository migrations
         shell: bash
@@ -129,6 +134,9 @@ jobs:
 
           echo "RC456_COMMISSION_RESOLUTION_PREVIEW_INTEGRATION"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc456_commission_resolution_preview_integration.sql
+
+          echo "RC467_COMMISSION_SCOPE_INTEGRATION"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc467_commission_scope_integration.sql
 
           psql "$db_url" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql
           psql "$db_url" -v ON_ERROR_STOP=1 -f scripts/verify-tenant-isolation.sql
