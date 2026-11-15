@@ -1943,3 +1943,16 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 المرجع التفصيلي: `docs/release/R7_GOOGLE_SEO_ANALYTICS_PLAN_20261111.md`.
 
 **إعدادات المالك المطلوبة عند مرحلة الربط:** الدومين النهائي، ملكية Search Console/DNS، GA4 Measurement ID، ونص سياسة الخصوصية والموافقة. لا تستخدم placeholders أو IDs مختلقة.
+
+
+## Pass 42 — 2026-11-15 — Free-CI security continuation
+
+- [x] Enforce zero-cost development policy: no paid resources or Staging before the final cost review.
+- [x] Verify live migration ledger at 310 through `20261110150618`; RC464/465/466 remain unapplied.
+- [x] Verify PR #730 combined RC464→RC465→RC466 exact-head CI: 14 returned workflow runs all successful; focused migrations and forward replay PASS; deploy/public-only jobs skipped.
+- [x] Record live platform-admin helper drift and RC464 remediation candidate; no Production write performed.
+- [ ] Review service_role bootstrap/revocation/audit path for `private.platform_admins`.
+- [ ] Continue adversarial tests for the 59 authenticated SECURITY DEFINER functions; prioritize global, finance, payment and settlement operations.
+- [ ] Complete current Production backup/restore/rollback evidence using existing free/approved resources only.
+- [ ] Enable and recheck leaked-password protection through owner-authorized Auth settings before release certification.
+- Release remains BLOCKED / NOT CERTIFIED. See `docs/audits/PASS42_SECURITY_CONTINUATION_20261115.md`.
