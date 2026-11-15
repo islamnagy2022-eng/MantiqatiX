@@ -5,7 +5,7 @@
 - Current published-platform code path remains V6 on `main`; the user-provided `bizcatalog-manager (11).zip` is the current R7 reference archive, not the deployed root. It is preserved unchanged (SHA-256: `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`).
 - R7 source audit: local JSON remains authoritative in `server.ts`; the claimed 99 tests and release artifact are not independently verifiable; no reproducible build was completed. See [R7 source baseline](release/R7_SOURCE_BASELINE_20261115.md).
 - Pass 40 security/release evidence: [PASS40 audit](audits/PASS40_SECURITY_AND_RELEASE_AUDIT_20261115.md).
-- PR #724 (RC464) has all 13 recorded workflows passing. PR #725 (RC465) and PR #727 (RC466) have candidate policy fixes; their latest replay/contract corrections are awaiting CI reruns. PR #726 and PR #728 have all recorded workflows passing. All remain drafts.
+- PR #724 (RC464) has all 13 recorded workflows passing. PR #725 (RC465) now has all 11 latest-head workflow checks passing, including its isolated forward replay. PR #727 (RC466) has its static validator and PostgreSQL behavior suite passing; three latest-head workflows remain in progress. PR #726 and PR #728 have all recorded workflows passing. All remain drafts.
 - PR #722 overlaps the more complete RC464 candidate in #724; do not merge both.
 - Required migration order: #724 RC464 → #725 RC465 → #727 RC466. Test the combined chain in Staging before any production application.
 - Production Supabase ledger remains at 310 migrations through `20261110150618`; RC464/465/466 are not applied. No Edge Function was deployed and no production data/payment/settlement write was performed.
