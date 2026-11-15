@@ -4245,3 +4245,15 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - [ ] Add anonymous-JWT positive/negative behavioral tests to the risk-ranked SECURITY DEFINER suite. Existing RC446 and MantiGO catalog contracts do not cover all authenticated RPCs under anonymous Auth sessions.
 - [ ] Confirm whether guest MantiGO ride creation/payment confirmation is an intended product flow before enforcing blanket anonymous rejection. Do not change behavior without a compatibility contract.
 - [ ] Review service-role registry bootstrap/revocation and direct CRUD audit trail.
+
+
+## Pass 43 — RC467 commission scope hardening candidate (2026-11-15)
+
+- [x] Read-only check confirmed zero live commission rules and zero commission audit rows; no current commission data changed.
+- [x] Record the missing business/branch scope checks in commission draft and preview RPCs; 11 scoped ownership memberships across five users satisfy the overly broad live predicate.
+- [x] Add RC467 forward migration: platform-root-only commission draft management and previews; exact business / tenant-wide finance scope for active commission preview; reject branch-scoped/anonymous actors; preserve existing authenticated-only grants.
+- [x] Add disposable RC467 positive/negative PostgreSQL integration tests, static validator, and forward replay workflow step.
+- [x] Update RC455/RC456 isolated fixtures to seed canonical `private.platform_admins` rows and assert RC467's platform denial code.
+- [ ] Complete exact-head `911881ee2de51c5f68ee0a1a3b571b76f37b0a5f` forward-replay run `43664038104` and resolve any failures.
+- [ ] Human review RC467 SQL, then await independent security review and current Production backup/restore + rollback evidence.
+- Production remains BLOCKED / NOT CERTIFIED; RC464–RC467 remain unapplied.
