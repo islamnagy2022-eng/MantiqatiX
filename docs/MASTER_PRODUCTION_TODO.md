@@ -22,7 +22,7 @@
 ### P0 — Candidate security changes
 
 - [x] #725 RC465 latest-head CI: all 11 workflows passed, including forward migration replay with the test-only live order-history ACL overlay.
-- [ ] Finish #727 RC466 latest-head forward replay and remaining backend/Pages validation; static validator and PostgreSQL behavior suite have passed.
+- [x] #727 RC466 latest-head isolated CI: all 11 workflows passed, including PostgreSQL behavior and forward migration replay.
 - [ ] Confirm all latest-head workflows, not only earlier commits, are green.
 - [ ] Keep the restrictive anonymous-session policies; do not model them as permissive or remove them.
 - [ ] Keep the public `businesses` showcase anonymous SELECT grant; only private branches/inventory must remain non-public.
@@ -31,7 +31,7 @@
 
 ### P0 — Production release gates
 
-- [ ] Run the combined RC464 → RC465 → RC466 migration chain in Staging using a production-schema checkpoint.
+- [ ] Run the combined RC464 → RC465 → RC466 migration chain in Staging using a production-schema checkpoint; isolated replay for each PR is green but the combined sequence is not yet verified.
 - [ ] Test tenant/business/branch/customer boundaries with distinct authenticated identities.
 - [ ] Deploy matching Edge Function sources only through the approved separate Supabase deployment process.
 - [ ] Verify settlement beneficiary-to-business/provider mapping and complete Paymob Sandbox tests.
