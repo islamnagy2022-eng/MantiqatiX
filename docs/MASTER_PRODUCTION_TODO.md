@@ -21,8 +21,8 @@
 
 ### P0 — Candidate security changes
 
-- [ ] Wait for the latest #725 RC465 forward migration replay after the test-only live order-history ACL overlay was corrected to revoke anonymous SELECT and client write grants.
-- [ ] Wait for the latest #727 RC466 PostgreSQL and forward migration replay after preserving the intentional public-business showcase grant.
+- [x] #725 RC465 latest-head CI: all 11 workflows passed, including forward migration replay with the test-only live order-history ACL overlay.
+- [ ] Finish #727 RC466 latest-head forward replay and remaining backend/Pages validation; static validator and PostgreSQL behavior suite have passed.
 - [ ] Confirm all latest-head workflows, not only earlier commits, are green.
 - [ ] Keep the restrictive anonymous-session policies; do not model them as permissive or remove them.
 - [ ] Keep the public `businesses` showcase anonymous SELECT grant; only private branches/inventory must remain non-public.
