@@ -64,6 +64,9 @@ assert.ok(baseline.includes("v_stock_count <> 4"), "baseline must reproduce tena
 assert.ok(baseline.includes("v_inventory_count <> 4"), "baseline must reproduce tenant-wide inventory transaction visibility");
 assert.match(aclOverlay, /REVOKE SELECT[\s\S]*?FROM anon/, "test overlay must align checkpoint anon grants to live ACL");
 assert.match(aclOverlay, /LIVE_ACL_OVERLAY_FAILED/, "test overlay must fail closed if anon SELECT remains");
+for (const table of ["branches","departments","warehouses","stock_balances","inventory_transactions"]) {
+  assert.ok(aclOverlay.includes("public." + table), "test-only live ACL overlay must cover " + table);
+}
 assert.match(replayWorkflow, /RESTORE_TEST_ONLY_KNOWN_LIVE_BUSINESS_BRANCH_ANON_ACL_OVERLAY[\s\S]*?REPLAY_MIGRATION=\$filename/, "forward replay must apply ACL overlay before RC466");
 assert.match(integration, /has_table_privilege\(current_user, 'public\.branches', 'SELECT'\)/, "integration test must assert anon grants");
 assert.match(integration, /Public can view official showcase businesses/, "integration test must preserve public showcase policy");
