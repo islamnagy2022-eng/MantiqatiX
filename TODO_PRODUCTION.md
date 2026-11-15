@@ -1964,3 +1964,13 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 - [ ] Extend MantiGO SECURITY DEFINER tests to cover anonymous JWTs and cross-user actor mismatch for each high-risk RPC.
 - [ ] Confirm guest MantiGO ride/payment product contract before changing anonymous-session acceptance.
 - [ ] Audit service-role registry bootstrap/revocation and mutation logs.
+
+
+## Pass 43 — RC467 commission scope hardening candidate (2026-11-15)
+
+- [x] Audit commission SECURITY DEFINER scope; current Production commission rule and audit tables are empty, so no live records were changed or disclosed.
+- [x] Add RC467 platform-root guards to commission draft administration and draft previews.
+- [x] Add exact business/tenant-wide finance scope and anonymous-session checks to active commission preview; branch actors remain denied while API has no branch_id.
+- [x] Add RC467 disposable PostgreSQL tests and static contract; update RC455/RC456 test fixtures for canonical platform registry.
+- [ ] Complete current exact-head forward migration replay, then resolve any failing steps and rerun.
+- [ ] Human review and release evidence remain required. RC464–RC467 are source-only, not applied to Production.
