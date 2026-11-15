@@ -2040,3 +2040,6 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 - [ ] Backup/PITR/restore evidence and measured RPO/RTO.
 - [ ] Matching Edge Function source parity and Paymob Sandbox E2E.
 - [ ] Controlled Production rollout after all release gates.
+
+
+- [x] RC468 expanded regression current head `5e5b832e0114476604bf195d336105c6ee437246`: dedicated PostgreSQL workflow PASS; V6 Pages validation PASS with deploy skipped; full migration-chain replay still pending.
