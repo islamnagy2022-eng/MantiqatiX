@@ -72,3 +72,12 @@ The last verified Pass 35 weighted score remains **60.8333%**. Candidate work in
 ## Next exact action
 
 The isolated #724/#725/#727 forward-replay workflows now pass. Next assemble and test the combined RC464 → RC465 → RC466 migration chain in Staging; do not relax production preflight checks. Keep production unchanged until explicit approval.
+
+
+## Combined migration-chain verification — 2026-11-15
+
+- Draft integration PR [#730](https://github.com/islamnagy2022-eng/MantiqatiX/pull/730), exact head `52075482ddcf30749b4eb75768ce891755df85ea`, completed all 17 workflow runs successfully.
+- The combined `Forward Migration Chain Replay from Production Schema Checkpoint` run `43656845956` and job `132637148994` succeeded. RC464, RC465 and RC466 migration-specific PostgreSQL suites also succeeded on the same head.
+- Web workflow validation succeeded; deploy job was skipped as expected for a pull-request event. This is not a production deployment.
+- This closes the combined isolated-CI acceptance item only. PR #730 remains draft/unmerged; production ledger remains unchanged at 310 migrations. Staging replay, tenant/business/branch/customer API tests, approvals and production authorization remain open.
+- **Stage result:** combined CI validation 100% (17/17 workflows); overall production completion remains 60.8333%, unchanged until approved integration and Staging evidence.
