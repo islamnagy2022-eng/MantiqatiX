@@ -1984,3 +1984,17 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 - [x] All 18 returned workflow runs on exact head passed; website deploy/public-only jobs were skipped for PR event.
 - [ ] Review the historical schema baseline (PENDING_REVIEW, 20261008222845) and complete a current Production backup/restore + rollback rehearsal.
 - [ ] Human SQL/security review and authorized release approval. Do not apply RC464–RC467 to Production before these gates.
+
+
+## Pass 44 — recovery visibility and public ad endpoint review (2026-11-15)
+
+- [x] Rechecked Production project health, migration ledger, and development branch inventory read-only.
+- [x] Confirmed current ledger remains 310 through `20261110150618`; RC464–RC467 remain unapplied.
+- [x] Confirmed only a non-persistent `main` branch is listed and it has no production data copy (`with_data=false`).
+- [ ] Obtain owner-side current backup/PITR/restore-point evidence and measured RPO/RTO; connected tools do not expose these details. No paid resource or Staging was created.
+- [x] Inspect the anon-callable ad-serving SECURITY DEFINER function and source-table RLS/grants; classify as likely intentional public API pending product-owner confirmation and focused tests. Do not revoke blindly.
+- [ ] Continue adversarial tests for the 65 authenticated-callable SECURITY DEFINER functions, prioritizing payment, wallet, order, inventory, commission and settlement.
+- [ ] Review nine RLS-enabled/no-policy tables with trusted service-role call paths; preserve fail-closed behavior until access contracts are proven.
+- [ ] Human SQL/security review of PR #730 and explicit release approval remain open.
+- Evidence: `docs/audits/PASS44_RECOVERY_VISIBILITY_AND_PUBLIC_AD_REVIEW_20261115.md`.
+- Production remains BLOCKED / NOT CERTIFIED; no Production writes or deployments occurred.
