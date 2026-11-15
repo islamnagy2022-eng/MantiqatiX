@@ -1928,3 +1928,10 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - Separate RC468 candidate PR #731 dedicated PostgreSQL integration workflow passed on `8dd31fbb264e2c69655dc8af65ac9fe3ea7262bf`; full forward-chain replay and remaining latest-head checks were still pending at audit time. PR remains Draft/unmerged; no Production change.
 - Full report: `docs/audits/PASS45_R7_SOURCE_REAUDIT_AND_PROGRESS_20261115.md`.
 - Production release remains BLOCKED / NOT CERTIFIED.
+
+
+### Pass 45 RC468 current-head CI update
+
+- RC468 dedicated PostgreSQL 16 integration workflow now PASS on current candidate head `3f75de7b7d4b474b2dfea5497d503c409796f313` after correcting disposable fixtures to satisfy real `digital_page_products` / `digital_page_orders` schema constraints.
+- Full forward migration-chain replay remains IN PROGRESS on that head. Other relevant checks passed; Pages workflow is validation-only for the PR event and Production deploy is skipped.
+- PR #731 remains Draft/unmerged; no Production change.
