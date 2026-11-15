@@ -2498,3 +2498,10 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Reviewed user archive `bizcatalog-manager (11).zip` (SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`). It identifies as R7 v19, but uses local JSON as authoritative state, has no npm lockfile/test script or discoverable test suite matching its 99-test claim, and references a release artifact absent from the archive. The local lint/build could not be reproduced because dependencies/Bun are unavailable. Android WebView wrapper source remains intact. See `docs/release/R7_SOURCE_BASELINE_20261115.md`.
 - Added `docs/audits/PASS40_SECURITY_AND_RELEASE_AUDIT_20261115.md` and the R7 source baseline record. Production release remains BLOCKED / NOT CERTIFIED. The Pass 35 verified weighted score remains 60.8333%; unmerged candidate work is not counted.
 - Next: finish #725/#727 latest CI reruns, then validate the combined RC464 → RC465 → RC466 chain in Staging. Keep production unchanged until explicit approval.
+
+
+### Pass 40 CI update — 2026-11-15
+
+- PR #725 RC465 latest head `22bf2fca1e32b150a40548b1c40276597e5e453d`: all 11 workflows passed, including the PostgreSQL behavior suite and forward migration chain replay after adding a test-only ACL overlay matching the live read-only `order_status_history` grants.
+- PR #727 RC466 latest head `9f607a4ed8cb7b86c851458e623988e0d35db04b`: static validator and PostgreSQL behavior suite passed; at the last check, forward migration replay, backend-only boundary and Pages validation remained in progress. The overlay now restores live anon ACLs for branches, departments, warehouses, stock balances and inventory transactions while preserving the public businesses showcase grant.
+- RC465 is validated in isolation against the captured production schema checkpoint. RC464 → RC465 → RC466 combined replay remains unverified because the PRs are separate drafts and not merged into a single Staging candidate.
