@@ -3,7 +3,7 @@
 ## Source identity
 
 - User-provided archive: `bizcatalog-manager (11).zip`
-- SHA-256: `210da4f48a9e81d32e0ce74664a29d78b2cfa617c3a8d18c8f68e342aadd`
+- SHA-256: `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`
 - The archive identifies itself as an R7 production-release candidate (v19).
 - User-provided continuation directive: `كمل-الموقع.txt`
 - The archive was extracted for inspection only. The original ZIP and its contents were not modified.
