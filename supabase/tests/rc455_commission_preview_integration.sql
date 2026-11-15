@@ -28,6 +28,11 @@ BEGIN
     (v_membership_id,v_actor,'MNTY-PLATFORM',null,null,null,'SUPER_ADMIN',
       '{"scope":"PLATFORM","full_control":true}'::jsonb,'ACTIVE');
 
+  -- RC464 makes the private registry the canonical platform-root source.
+  INSERT INTO private.platform_admins(user_id)
+  VALUES(v_actor)
+  ON CONFLICT (user_id) DO NOTHING;
+
   v_pct := 'RC455-PREVIEW-PCT-' || v_suffix;
   v_fixed := 'RC455-PREVIEW-FIXED-' || v_suffix;
   v_combined := 'RC455-PREVIEW-COMBINED-' || v_suffix;
@@ -138,7 +143,7 @@ BEGIN
   EXCEPTION WHEN OTHERS THEN
     GET STACKED DIAGNOSTICS v_error = MESSAGE_TEXT;
     IF v_error = 'RC455_UNAUTHORIZED_PREVIEW_WAS_ALLOWED' THEN RAISE; END IF;
-    IF v_error <> 'COMMISSION_RULE_FORBIDDEN' THEN
+    IF v_error <> 'PLATFORM_ADMIN_REQUIRED' THEN
       RAISE EXCEPTION 'RC455_EXPECTED_SCOPE_DENIAL_BUT_GOT: %',v_error;
     END IF;
   END;
