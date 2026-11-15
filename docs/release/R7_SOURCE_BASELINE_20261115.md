@@ -14,6 +14,7 @@
 - `server.ts` reads and writes the local production JSON file using filesystem operations, including direct `writeFileSync`; Supabase synchronization is a separate path.
 - The archive excludes the `.data/` runtime directory (it is gitignored); no local production JSON database or uploaded user-data file was present in the ZIP.
 - This is not an acceptable final production source of truth for a horizontally scaled, restart-safe, transactionally consistent platform. Replace the local authoritative store with PostgreSQL/Supabase transactions, or confine local JSON to development-only fixtures.
+- The write path has no verified file lock/mutex or atomic temp-file/rename sequence; many mutation handlers call this shared JSON writer. Concurrent process writes and interrupted writes therefore remain a data-integrity risk.
 - `src/lib/supabaseClient.ts` uses the public/anon key; the inspected client file does not expose the service-role key. The server-side code reads the service-role key on the server.
 - The Android WebView wrapper source is present and must be preserved. No signed APK/AAB was found or built in this inspection.
 
