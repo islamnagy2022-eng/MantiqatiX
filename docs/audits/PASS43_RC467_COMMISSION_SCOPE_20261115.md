@@ -26,12 +26,20 @@ Added `supabase/migrations/20261115010000_rc467_commission_scope_hardening.sql` 
 6. Added `scripts/validate-rc467-commission-scope.mjs` and connected static validation plus behavioral SQL execution to the disposable forward-migration replay workflow.
 7. Updated existing RC455/RC456 integration fixtures to seed the canonical private registry during the test transaction and to expect the strict platform denial code. This is required after RC464 changes the authority source; it does not seed Production.
 
-## CI status
+## CI status — exact-head result
 
-- RC467 static authorization contract passed on the prior integration attempt.
-- The first combined replay reached RC467 migration application but the legacy RC455 preview test failed because its fixture created only a legacy SUPER_ADMIN membership and did not insert the canonical registry row. The RC467 function correctly denied that caller. No RC467 behavioral test had failed; the old fixture was incompatible with RC464's canonical authority model.
-- RC455 and RC456 fixtures were updated accordingly. The newest combined run is `43664038104` on head `911881ee2de51c5f68ee0a1a3b571b76f37b0a5f`; at the time of this checkpoint the local Supabase instance was still starting and the behavioral replay was pending. Do not report full CI success until this exact run completes.
-- Supporting migration-version, RC425, RC464/465/466, backend-only, approval-audit, and other selected workflows are being rerun on the updated exact head. Their latest results must be checked before release.
+- Updated exact candidate head: `911881ee2de51c5f68ee0a1a3b571b76f37b0a5f`.
+- Forward migration replay run **43664038104: SUCCESS**. The disposable local Supabase instance restored the schema-only checkpoint at `20261008222845` and replayed **80** later migrations in timestamp order, including RC464, RC465, RC466 and RC467. The instance was stopped after validation.
+- RC467 static authorization validator: **PASS**.
+- RC455 commission draft preview integration: **PASS** after the fixture was updated to insert the synthetic test actor into `private.platform_admins`.
+- RC456 commission resolution preview integration: **PASS** after the same canonical-root fixture adjustment.
+- RC467 commission scope integration: **PASS** — platform-root positive access; business/branch/tenant-owner denial; exact-business and tenant-wide finance positive cases; cross-business, branch-finance and anonymous denials; and EXECUTE ACL checks.
+- The same forward replay also passed owner-profile persistence and two-tenant isolation checks.
+- **18/18 returned workflow runs** for the exact head completed successfully (14 pull-request runs and 4 push runs), including RC464, RC465, RC466, RC425, migration history immutability, collision guard, backend-only, MantiGO privacy, module professionalization and approval-audit workflows.
+- Pages workflow validation passed. `validate_public_only` and `deploy` were **SKIPPED** for the pull-request event; no website deployment occurred.
+- Important qualification: the CI replay baseline manifest is still `PENDING_REVIEW` and represents a schema-only checkpoint through `20261008222845` (283 historical entries), not a current Production backup. The 80-migration forward replay is strong candidate compatibility evidence, but it is not a current Production backup/restore or RPO/RTO rehearsal.
+- Live Production was rechecked after the run: Supabase remains healthy with **310** ledger entries through `20261110150618`; RC464–RC467 remain unapplied; commission rules and commission audit tables remain empty. No Production mutation occurred.
+- PR #730 remains Draft and unmerged. The release gate remains BLOCKED / NOT CERTIFIED pending human SQL review, current-schema backup/restore and rollback evidence, and authorized release approval.
 
 ## Safety and remaining work
 
