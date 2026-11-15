@@ -2505,3 +2505,10 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - PR #725 RC465 latest head `22bf2fca1e32b150a40548b1c40276597e5e453d`: all 11 workflows passed, including the PostgreSQL behavior suite and forward migration chain replay after adding a test-only ACL overlay matching the live read-only `order_status_history` grants.
 - PR #727 RC466 latest head `9f607a4ed8cb7b86c851458e623988e0d35db04b`: static validator and PostgreSQL behavior suite passed; at the last check, forward migration replay, backend-only boundary and Pages validation remained in progress. The overlay now restores live anon ACLs for branches, departments, warehouses, stock balances and inventory transactions while preserving the public businesses showcase grant.
 - RC465 is validated in isolation against the captured production schema checkpoint. RC464 → RC465 → RC466 combined replay remains unverified because the PRs are separate drafts and not merged into a single Staging candidate.
+
+
+### Pass 40 CI completion update — 2026-11-15
+
+- PR #727 RC466 latest head `9f607a4ed8cb7b86c851458e623988e0d35db04b`: all 11 workflow checks succeeded, including static validation, PostgreSQL branch/inventory behavior tests, forward migration chain replay, backend boundary checks and Pages validation.
+- PR #725 RC465 latest head `22bf2fca1e32b150a40548b1c40276597e5e453d`: all 11 workflow checks succeeded, including PostgreSQL behavior and forward migration replay with the test-only ACL overlay.
+- The isolated candidate validations for #724 RC464, #725 RC465 and #727 RC466 are green. The combined RC464 → RC465 → RC466 sequence has not yet been validated as one Staging release candidate and remains a release gate.
