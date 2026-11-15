@@ -2646,3 +2646,10 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Created audit `docs/audits/PASS45_R7_SOURCE_REAUDIT_AND_PROGRESS_20261115.md` and updated continuity, master TODO and production TODO.
 - RC468 payment candidate PR #731 dedicated PostgreSQL workflow passed on final migration/test head `179ec76de4dbff06bd3aa2b0d8419eb481fdfee3`; forward migration replay and latest-head deploy-validation workflow were still in progress at this checkpoint. PR #731 remains Draft/unmerged; no Production mutation or deployment.
 - No R7 source import, Production database/Auth/RLS/GRANT change, Edge deployment, payment, Staging or paid resource occurred.
+
+
+### Pass 45 RC468 current-head CI update
+
+- RC468 dedicated PostgreSQL 16 integration workflow now PASS on current candidate head `3f75de7b7d4b474b2dfea5497d503c409796f313` after correcting disposable fixtures to satisfy real `digital_page_products` / `digital_page_orders` schema constraints.
+- Full forward migration-chain replay remains IN PROGRESS on that head. Other relevant checks passed; Pages workflow is validation-only for the PR event and Production deploy is skipped.
+- PR #731 remains Draft/unmerged; no Production change.
