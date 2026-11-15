@@ -84,6 +84,26 @@ begin
   end;
   if not rejected then raise exception 'RC468_MALFORMED_TOKEN_NOT_REJECTED'; end if;
 
+  rejected := false;
+  begin
+    perform * from public.claim_digital_page_payment_intent_backend(order_id,user_a,null,token_a);
+    raise exception 'RC468_NULL_IDEMPOTENCY_KEY_WAS_ACCEPTED';
+  exception when others then
+    if sqlerrm <> 'IDEMPOTENCY_KEY_MISMATCH' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'RC468_NULL_IDEMPOTENCY_KEY_NOT_REJECTED'; end if;
+
+  rejected := false;
+  begin
+    perform public.release_digital_page_payment_intent_claim_backend(order_id,user_a,null);
+    raise exception 'RC468_NULL_RELEASE_TOKEN_WAS_ACCEPTED';
+  exception when others then
+    if sqlerrm <> 'PAYMENT_CLAIM_TOKEN_REQUIRED' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'RC468_NULL_RELEASE_TOKEN_NOT_REJECTED'; end if;
+
   select r.claim_status into claim_status
   from public.claim_digital_page_payment_intent_backend(order_id,user_a,'rc468-idem',token_a) r;
   if claim_status <> 'CLAIMED' then raise exception 'RC468_VALID_CLAIM_FAILED: %',claim_status; end if;
@@ -123,6 +143,16 @@ begin
   select r.claim_status into claim_status
   from public.claim_digital_page_payment_intent_backend(order_id,user_a,'rc468-idem',token_b) r;
   if claim_status <> 'CLAIMED' then raise exception 'RC468_RECLAIM_FAILED: %',claim_status; end if;
+
+  rejected := false;
+  begin
+    perform public.finalize_digital_page_payment_intent_backend(order_id,user_a,null,'paymob-intent-468','paymob-order-468');
+    raise exception 'RC468_NULL_FINALIZE_TOKEN_WAS_ACCEPTED';
+  exception when others then
+    if sqlerrm <> 'PAYMENT_CLAIM_TOKEN_REQUIRED' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'RC468_NULL_FINALIZE_TOKEN_NOT_REJECTED'; end if;
 
   rejected := false;
   begin
