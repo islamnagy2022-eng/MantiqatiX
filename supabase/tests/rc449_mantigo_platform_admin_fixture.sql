@@ -19,7 +19,6 @@ create table private.platform_admins (
   user_id uuid primary key references auth.users(id)
 );
 alter table private.platform_admins enable row level security;
-alter table private.platform_admins force row level security;
 revoke all on schema private from public,anon,authenticated;
 revoke all on table private.platform_admins from public,anon,authenticated;
 
@@ -148,3 +147,110 @@ on public.digital_pages
 for all to authenticated
 using (public.mnty_can_platform_admin())
 with check (public.mnty_can_platform_admin());
+
+
+-- Model the other two live global-admin RLS policy surfaces checked by RC463.
+CREATE TABLE public.mantigo_financial_config (
+  id boolean PRIMARY KEY,
+  commission_rate numeric,
+  currency text,
+  updated_by uuid,
+  updated_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.mantigo_financial_config ENABLE ROW LEVEL SECURITY;
+CREATE POLICY mantigo_financial_config_admin_select
+ON public.mantigo_financial_config FOR SELECT TO authenticated
+USING (public.mnty_can_platform_admin());
+CREATE POLICY mantigo_financial_config_admin_update
+ON public.mantigo_financial_config FOR UPDATE TO authenticated
+USING (public.mnty_can_platform_admin())
+WITH CHECK (public.mnty_can_platform_admin());
+
+CREATE TABLE public.mantigo_rate_limit_config (
+  id text PRIMARY KEY,
+  limit_value integer
+);
+ALTER TABLE public.mantigo_rate_limit_config ENABLE ROW LEVEL SECURITY;
+CREATE POLICY mantigo_rate_limit_config_admin_select
+ON public.mantigo_rate_limit_config FOR SELECT TO authenticated
+USING (public.mnty_can_platform_admin());
+CREATE POLICY mantigo_rate_limit_config_admin_update
+ON public.mantigo_rate_limit_config FOR UPDATE TO authenticated
+USING (public.mnty_can_platform_admin())
+WITH CHECK (public.mnty_can_platform_admin());
+
+-- Test-only stand-ins for the four additional live SECURITY DEFINER callers of
+-- mnty_can_platform_admin(). RC463 preflights these dependencies and the
+-- dedicated behavioral test confirms the shared guard controls all four.
+CREATE OR REPLACE FUNCTION public.admin_create_global_ad(
+  p_title character varying,
+  p_creative_url text,
+  p_target_url text DEFAULT NULL,
+  p_start_at timestamptz DEFAULT NULL,
+  p_end_at timestamptz DEFAULT NULL
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $function$
+BEGIN
+  IF NOT public.mnty_can_platform_admin() THEN RAISE EXCEPTION 'PLATFORM_ADMIN_REQUIRED'; END IF;
+  RETURN gen_random_uuid();
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.fulfill_digital_page_publish(
+  p_actor_user_id uuid,
+  p_order_id uuid,
+  p_page_id uuid
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $function$
+BEGIN
+  IF p_actor_user_id IS NULL OR p_actor_user_id <> auth.uid() THEN RAISE EXCEPTION 'USER_CONTEXT_MISMATCH'; END IF;
+  IF NOT public.mnty_can_platform_admin() THEN RAISE EXCEPTION 'PLATFORM_ADMIN_REQUIRED'; END IF;
+  RETURN jsonb_build_object('published', true, 'fixture', true);
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.review_mantigo_captain_application(
+  p_admin_user_id uuid,
+  p_captain_id uuid,
+  p_decision text,
+  p_vehicle_category text DEFAULT NULL,
+  p_vehicle_model text DEFAULT NULL,
+  p_vehicle_plate text DEFAULT NULL,
+  p_service_areas jsonb DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $function$
+BEGIN
+  IF p_admin_user_id IS NULL OR p_admin_user_id <> auth.uid() THEN RAISE EXCEPTION 'USER_CONTEXT_MISMATCH'; END IF;
+  IF NOT public.mnty_can_platform_admin() THEN RAISE EXCEPTION 'PLATFORM_ADMIN_REQUIRED'; END IF;
+  RETURN jsonb_build_object('reviewed', true, 'fixture', true);
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.set_mantigo_financial_config_backend(
+  p_admin_user_id uuid,
+  p_commission_rate numeric,
+  p_currency text DEFAULT 'EGP'
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $function$
+BEGIN
+  IF p_admin_user_id IS NULL OR p_admin_user_id <> auth.uid() THEN RAISE EXCEPTION 'USER_CONTEXT_MISMATCH'; END IF;
+  IF NOT public.mnty_can_platform_admin() THEN RAISE EXCEPTION 'PLATFORM_ADMIN_REQUIRED'; END IF;
+  RETURN jsonb_build_object('updated', true, 'fixture', true);
+END;
+$function$;
