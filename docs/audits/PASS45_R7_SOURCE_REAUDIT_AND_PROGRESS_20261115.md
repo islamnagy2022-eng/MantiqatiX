@@ -104,5 +104,5 @@ No category-level increase can honestly be calculated without the previous categ
 ### RC468 expanded regression addendum — 2026-11-15
 
 - Extended the disposable regression suite to cover NULL idempotency key and NULL claim token on release/finalize in addition to NULL/blank/malformed claim token and cross-user/replay cases.
-- Current PR #731 head: `5e5b832e0114476604bf195d336105c6ee437246`. Dedicated RC468 PostgreSQL workflow PASS. Forward migration-chain replay and V6 Pages validation are still in progress on this expanded-test head. The preceding head `3f75de7b7d4b474b2dfea5497d503c409796f313` had 11/11 workflows PASS, including 77-migration replay; the expanded tests are being rerun before claiming the same for the current head.
+- Current PR #731 head: `5e5b832e0114476604bf195d336105c6ee437246`. **11/11 workflow runs SUCCESS** on this expanded-test head. Dedicated RC468 PostgreSQL workflow PASS; forward migration-chain replay PASS with 77 migrations; RC468, owner-profile, RC455/RC456 commission and tenant-isolation integration tests PASS. V6 Pages desktop/mobile validation PASS; deployment jobs skipped for the PR event.
 - No Production change/deployment. PR #731 remains Draft/unmerged.
