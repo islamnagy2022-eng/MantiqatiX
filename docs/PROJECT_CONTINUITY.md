@@ -1907,3 +1907,12 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - No production writes or permission changes.
 
 
+
+
+## Pass 44 — digital-page payment production gap follow-up
+
+- Live migration ledger does not contain RC458 (`20261030120000`); current Production claim RPC remains `search_path=public, pg_temp` with unqualified `where id = p_order_id` despite a RETURNS TABLE `id` output. The already-merged RC458 source migration fixes this by using a qualified table alias and empty search_path, but it is not applied in Production.
+- Deployed `digital-page-payment-intent` is ACTIVE v5; its deployed source does not include the newer main-branch Paymob intention correlation and provider-order persistence checks.
+- Live claim RPC does not reject NULL/blank claim tokens and uses `<> p_claim_token`; SQL NULL semantics can bypass the competing-claim condition for a direct authenticated same-owner call. This is a plausible same-owner concurrency risk, not a cross-user bypass or confirmed exploit.
+- No Production invocation, migration, Edge deployment or payment was performed. Candidate remediation requires a forward migration, disposable regression tests, controlled rollout and Paymob Sandbox E2E.
+- Details: `docs/audits/PASS44_RECOVERY_VISIBILITY_AND_PUBLIC_AD_REVIEW_20261115.md`.
