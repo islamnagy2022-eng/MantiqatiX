@@ -1916,3 +1916,15 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - Live claim RPC does not reject NULL/blank claim tokens and uses `<> p_claim_token`; SQL NULL semantics can bypass the competing-claim condition for a direct authenticated same-owner call. This is a plausible same-owner concurrency risk, not a cross-user bypass or confirmed exploit.
 - No Production invocation, migration, Edge deployment or payment was performed. Candidate remediation requires a forward migration, disposable regression tests, controlled rollout and Paymob Sandbox E2E.
 - Details: `docs/audits/PASS44_RECOVERY_VISIBILITY_AND_PUBLIC_AD_REVIEW_20261115.md`.
+
+
+## Pass 45 — R7 source re-audit and progress recalibration (2026-11-15)
+
+- Re-opened the exact user-designated `bizcatalog-manager (11).zip` archive and `كمل-الموقع.txt` directive. Archive SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`; ZIP integrity PASS; 233 files. R7 remains the intended development baseline; GitHub `main` is still the older V6 code path and R7 has not been imported/deployed.
+- R7 source audit confirmed critical blockers: unauthenticated `/api/auth/session-token` can mint caller-selected roles and defaults to `super_admin`; `/api/auth/refresh` has an unverified identity/role fallback; admin login retains default/static credentials; server secrets have hardcoded fallbacks; local JSON is authoritative and missing-file bootstrap seeds businesses as verified/paid; core frontend data persists in localStorage.
+- R7's bundled migration creates 7 tables and enables RLS on 7, not 11 as claimed in its release report. Android wrapper has 3 files but no Gradle wrapper/root settings; no reproducible APK build. 15 test files exist but package.json has no test script. npm install timed out, global tsc was blocked by missing vite/client, and Node native tests failed on extensionless TS imports. R7's 99/99 and Production Certified claims are not reproduced.
+- Conservative 12-workstream estimates: UI 85%, Backend/DB 30%, Auth/permissions 8%, Catalog/geo 65%, Orders/cart 45%, Finance/commissions/wallets 35%, Admin/merchant 75%, Marketing/CRM/ads 55%, Integrations 25%, Android 15%, Security/backup 5%, Testing/release 5%. Unweighted arithmetic mean **37.33%**.
+- Previous overall 60.8333% was a weighted value without a retrievable category breakdown or weighting formula. The new 37.33% is an R7-source-based unweighted re-audit; the -23.50 pp difference is methodology/source-baseline recalibration, not proven feature regression. No per-category increase is claimed without the old category baseline. No R7 production percentage increased because R7 was not deployed.
+- Separate RC468 candidate PR #731 dedicated PostgreSQL integration workflow passed on `8dd31fbb264e2c69655dc8af65ac9fe3ea7262bf`; full forward-chain replay and remaining latest-head checks were still pending at audit time. PR remains Draft/unmerged; no Production change.
+- Full report: `docs/audits/PASS45_R7_SOURCE_REAUDIT_AND_PROGRESS_20261115.md`.
+- Production release remains BLOCKED / NOT CERTIFIED.
