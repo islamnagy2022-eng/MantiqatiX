@@ -16,7 +16,15 @@ assert.match(migration, /has_table_privilege\('authenticated', 'public\.branches
 assert.match(migration, /has_table_privilege\('anon', 'public\.branches', 'SELECT'\)/, "anonymous branch grant must be checked");
 assert.match(migration, /um\.business_id = businesses\.id/, "business-scoped members must match their business");
 assert.match(migration, /upper\(um\.role\) = ANY \(ARRAY\['OWNER','ADMIN','MANAGER'\]\)/, "tenant-wide access must be restricted to tenant managers");
-assert.match(migration, /upper\(um\.role\) = 'SUPER_ADMIN'[\s\S]*?scope'[\s\S]*?PLATFORM[\s\S]*?full_control/, "platform-wide access must require strict SUPER_ADMIN scope");
+assert.match(migration, /RC466_CANONICAL_PLATFORM_ADMIN_GUARD_MISSING/, "migration must preflight the canonical platform-root helper");
+for (const policy of ["businesses_member_select", "branches_member_read", "branches_super_admin_write", "departments_member_read", "warehouses_member_read", "inventory_transactions_member_read"]) {
+  const start = migration.indexOf("CREATE POLICY " + policy + "\\n");
+  assert.notEqual(start, -1, "missing platform/scoped policy " + policy);
+  const end = migration.indexOf(";", start);
+  const block = migration.slice(start, end + 1);
+  assert.match(block, /public\\.mnty_can_platform_admin\\(\\)/, "platform access must use the canonical registry guard in " + policy);
+}
+assert.doesNotMatch(migration, /upper\\(um\\.role\\)\\s*=\\s*'SUPER_ADMIN'/, "legacy membership role/permission flags must not bypass the canonical registry");
 assert.match(migration, /um\.business_id = branches\.business_id/, "branch reads must match business scope");
 assert.match(migration, /um\.branch_id IS NULL OR um\.branch_id = branches\.id/, "branch-scoped reads must match exact branch");
 for (const name of ["authenticated_sessions_only","deny_anonymous_users","mnt_non_anonymous_boundary","non_anonymous_authenticated_guard"]) {
@@ -34,7 +42,10 @@ assert.match(migration, /businesses_manager_delete[\s\S]*?um\.business_id = busi
   "business deletion must remain scoped to the owned business");
 assert.match(migration, /CREATE POLICY businesses_manager_update[\s\S]*?um\.business_id = businesses\.id AND um\.branch_id IS NULL/, "branch-scoped managers must not update business-wide profile rows");
 assert.match(migration, /CREATE POLICY businesses_manager_delete[\s\S]*?um\.business_id = businesses\.id AND um\.branch_id IS NULL/, "branch-scoped managers must not delete business-wide profile rows");
-assert.match(migration, /branches_super_admin_write/, "strict platform super-admin branch policy must be preserved");
+assert.match(migration, /DROP POLICY branches_super_admin_write[\\s\\S]*?CREATE POLICY branches_super_admin_write[\\s\\S]*?public\\.mnty_can_platform_admin\\(\\)/, "legacy branch admin policy must use the canonical registry guard");
+assert.match(fixture, /CREATE TABLE IF NOT EXISTS private\\.platform_admins[\\s\\S]*?FORCE ROW LEVEL SECURITY/, "fixture must model the canonical platform admin registry");
+assert.match(fixture, /CREATE OR REPLACE FUNCTION public\\.mnty_can_platform_admin[\\s\\S]*?FROM private\\.platform_admins/, "fixture helper must read the private registry");
+assert.match(integration, /noncanonical SUPER_ADMIN role bypassed the platform registry/, "integration must reject role-only platform access");
 assert.match(migration, /Public can view official showcase businesses|businesses_member_select/, "business public showcase and member policies must remain distinct");
 
 for (const table of ["departments","warehouses","stock_balances","inventory_transactions"]) {
