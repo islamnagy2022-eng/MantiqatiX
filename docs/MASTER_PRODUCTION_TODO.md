@@ -1,3 +1,23 @@
+# Latest operating rule — 2026-11-16 — Continuous merge-first-by-first policy
+
+**Request ID:** `R-20261116-CONTINUOUS-MERGE-FIRST`  
+**Status:** IN PROGRESS — documentation policy is being persisted through a dedicated PR.
+
+The owner requires each independently completed task to be integrated as soon as its proof is complete, not held until the end of a long Pass sequence.
+
+- Break implementation into small, focused, independently verifiable work units.
+- Create/update a dedicated branch and PR at the first coherent testable increment; commit follow-up increments continuously.
+- Merge promptly when the exact PR head passes all applicable CI, tests, security/acceptance checks, current-base and conflict checks, and required review is complete. Do not keep green completed work Draft/open merely to batch unrelated work.
+- Keep tightly coupled migration + Edge Function + RPC/client contract changes in one coordinated PR or an explicitly ordered compatibility-safe stack. Preserve migration uniqueness, chronological replay and cross-PR collision checks.
+- A merge is source integration, not automatic permission for production mutation or release. If main merge itself triggers deployment, all relevant deployment gates must pass first; otherwise preserve the separate deploy/release gate.
+- Any failed, stale, cancelled, missing or incomplete check blocks merge. Record the exact blocker and continue independent work.
+- After merge, verify the exact source on main and record PR/head/merge SHAs, exact-head and main CI, deployment and deployed-origin evidence, and remaining blockers.
+- Each Pass must close as **MERGED** (PR + merge SHA) or **NOT MERGED** (exact blocker + next action).
+- On continuation, triage open PRs individually: READY TO MERGE / NEEDS FIX OR REBASE / BLOCKED BY DEPENDENCY / SUPERSEDED. Never bulk-merge.
+
+**Safety boundary:** this rule does not weaken the Production release gate. No unapproved production migration, Auth/RLS/GRANT change, Edge deployment, payment/financial action or website cutover is authorized by a source merge.
+
+---
 # Latest verified checkpoint — 2026-11-11 — Public catalog disclosure safety
 
 **Request ID:** `R-20261111-PUBLIC-CATALOG-PRICE-DISCLOSURE`  
