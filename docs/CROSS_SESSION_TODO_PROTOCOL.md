@@ -21,6 +21,7 @@ Canonical records:
 7. Every session begins by reading issue #599, this protocol, PROJECT_CONTINUITY.md, and MASTER_PRODUCTION_TODO.md; then check current main, open PRs/issues, exact-head CI, deployment, live evidence and the first dependency-ordered actionable task.
 8. Do not repeat completed work. Do not merge/deploy or mutate production outside the authorized release gates. Do not remove existing UI/functions/data unless explicitly requested.
 9. Keep the global production gate BLOCKED / NOT CERTIFIED until every independent release gate has current evidence.
+10. **Continuous merge-first-by-first:** split work into small independent PRs, commit and update them continuously, and merge each completed PR promptly after exact-head CI, required tests/security checks, review and current-base/conflict checks pass. Do not batch unrelated completed work across Passes. Keep coupled migration/Edge/API changes together or in a compatibility-safe ordered stack. Failed/stale/missing checks block merge. After merge, verify main and record merge SHA, CI and deployment evidence. Merge never bypasses the separate Production release gate; if a main merge triggers deployment, its release gates must pass before merging. Every Pass closes as MERGED or NOT MERGED with the exact blocker and next action.
 
 ## Mandatory session closeout
 
