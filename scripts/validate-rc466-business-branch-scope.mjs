@@ -18,13 +18,13 @@ assert.match(migration, /um\.business_id = businesses\.id/, "business-scoped mem
 assert.match(migration, /upper\(um\.role\) = ANY \(ARRAY\['OWNER','ADMIN','MANAGER'\]\)/, "tenant-wide access must be restricted to tenant managers");
 assert.match(migration, /RC466_CANONICAL_PLATFORM_ADMIN_GUARD_MISSING/, "migration must preflight the canonical platform-root helper");
 for (const policy of ["businesses_member_select", "branches_member_read", "branches_super_admin_write", "departments_member_read", "warehouses_member_read", "inventory_transactions_member_read"]) {
-  const start = migration.indexOf("CREATE POLICY " + policy + "\\n");
+  const start = migration.indexOf("CREATE POLICY " + policy + "\n");
   assert.notEqual(start, -1, "missing platform/scoped policy " + policy);
   const end = migration.indexOf(";", start);
   const block = migration.slice(start, end + 1);
-  assert.match(block, /public\\.mnty_can_platform_admin\\(\\)/, "platform access must use the canonical registry guard in " + policy);
+  assert.match(block, /public\.mnty_can_platform_admin\(\)/, "platform access must use the canonical registry guard in " + policy);
 }
-assert.doesNotMatch(migration, /upper\\(um\\.role\\)\\s*=\\s*'SUPER_ADMIN'/, "legacy membership role/permission flags must not bypass the canonical registry");
+assert.doesNotMatch(migration, /upper\(um\.role\)\s*=\s*'SUPER_ADMIN'/, "legacy membership role/permission flags must not bypass the canonical registry");
 assert.match(migration, /um\.business_id = branches\.business_id/, "branch reads must match business scope");
 assert.match(migration, /um\.branch_id IS NULL OR um\.branch_id = branches\.id/, "branch-scoped reads must match exact branch");
 for (const name of ["authenticated_sessions_only","deny_anonymous_users","mnt_non_anonymous_boundary","non_anonymous_authenticated_guard"]) {
