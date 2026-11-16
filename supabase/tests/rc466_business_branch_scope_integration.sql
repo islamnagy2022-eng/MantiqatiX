@@ -102,7 +102,16 @@ BEGIN
     RAISE EXCEPTION 'TEST_FAILED: tenant-B manager crossed tenant boundary; got % / %',v_businesses,v_branches;
   END IF;
 
-  -- Only strict platform SUPER_ADMIN retains tenant-wide branch access.
+  -- A SUPER_ADMIN role/permission payload alone is not platform authority.
+  PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000011',false);
+  PERFORM set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000011","role":"authenticated","is_anonymous":false}',false);
+  IF EXISTS (SELECT 1 FROM public.businesses) OR EXISTS (SELECT 1 FROM public.branches)
+     OR EXISTS (SELECT 1 FROM public.departments) OR EXISTS (SELECT 1 FROM public.warehouses)
+     OR EXISTS (SELECT 1 FROM public.stock_balances) OR EXISTS (SELECT 1 FROM public.inventory_transactions) THEN
+    RAISE EXCEPTION 'TEST_FAILED: noncanonical SUPER_ADMIN role bypassed the platform registry';
+  END IF;
+
+  -- Only the canonical private.platform_admins registry grants global platform visibility.
   PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000010',false);
   PERFORM set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000010","role":"authenticated","is_anonymous":false}',false);
   SELECT array_agg(id ORDER BY id) INTO v_businesses FROM public.businesses;
@@ -110,10 +119,11 @@ BEGIN
   IF v_businesses IS DISTINCT FROM ARRAY[
       '20000000-0000-4000-8000-000000000001',
       '20000000-0000-4000-8000-000000000002',
-      '20000000-0000-4000-8000-000000000003'
+      '20000000-0000-4000-8000-000000000003',
+      '20000000-0000-4000-8000-000000000004'
     ]::uuid[]
-    OR v_branches IS DISTINCT FROM ARRAY['branch-a1','branch-a2','branch-b1','branch-c1']::text[] THEN
-    RAISE EXCEPTION 'TEST_FAILED: strict platform SUPER_ADMIN tenant scope incorrect; got % / %',v_businesses,v_branches;
+    OR v_branches IS DISTINCT FROM ARRAY['branch-a1','branch-a2','branch-b1','branch-c1','branch-d1']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: canonical platform registry business/branch scope incorrect; got % / %',v_businesses,v_branches;
   END IF;
 
   -- Anonymous sessions cannot use authenticated read policies.
@@ -275,24 +285,24 @@ BEGIN
     RAISE EXCEPTION 'TEST_FAILED: unscoped EMPLOYEE received private inventory visibility';
   END IF;
 
-  -- Strict platform super-admin retains tenant-wide read access.
+  -- Canonical platform-root registry retains tenant-wide read access.
   PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000010',false);
   PERFORM set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000010","role":"authenticated","is_anonymous":false}',false);
   SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.departments;
-  IF v_ids IS DISTINCT FROM ARRAY['dept-a1','dept-a2','dept-a-shared','dept-b1']::text[] THEN
-    RAISE EXCEPTION 'TEST_FAILED: platform admin department scope incorrect; got %',v_ids;
+  IF v_ids IS DISTINCT FROM ARRAY['dept-a1','dept-a2','dept-a-shared','dept-b1','dept-d1']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: canonical platform admin department scope incorrect; got %',v_ids;
   END IF;
   SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.warehouses;
-  IF v_ids IS DISTINCT FROM ARRAY['warehouse-a1','warehouse-a2','warehouse-a-shared','warehouse-b1']::text[] THEN
-    RAISE EXCEPTION 'TEST_FAILED: platform admin warehouse scope incorrect; got %',v_ids;
+  IF v_ids IS DISTINCT FROM ARRAY['warehouse-a1','warehouse-a2','warehouse-a-shared','warehouse-b1','warehouse-d1']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: canonical platform admin warehouse scope incorrect; got %',v_ids;
   END IF;
   SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.stock_balances;
-  IF v_ids IS DISTINCT FROM ARRAY['stock-a1','stock-a2','stock-a-shared','stock-b1']::text[] THEN
-    RAISE EXCEPTION 'TEST_FAILED: platform admin stock scope incorrect; got %',v_ids;
+  IF v_ids IS DISTINCT FROM ARRAY['stock-a1','stock-a2','stock-a-shared','stock-b1','stock-d1']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: canonical platform admin stock scope incorrect; got %',v_ids;
   END IF;
   SELECT array_agg(id ORDER BY id) INTO v_ids FROM public.inventory_transactions;
-  IF v_ids IS DISTINCT FROM ARRAY['txn-a1','txn-a2','txn-a-shared','txn-b1']::text[] THEN
-    RAISE EXCEPTION 'TEST_FAILED: platform admin inventory transaction scope incorrect; got %',v_ids;
+  IF v_ids IS DISTINCT FROM ARRAY['txn-a1','txn-a2','txn-a-shared','txn-b1','txn-d1']::text[] THEN
+    RAISE EXCEPTION 'TEST_FAILED: canonical platform admin inventory transaction scope incorrect; got %',v_ids;
   END IF;
 
   -- Anonymous sessions cannot read inventory.
