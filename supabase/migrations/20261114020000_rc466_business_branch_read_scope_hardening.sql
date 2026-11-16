@@ -14,6 +14,10 @@ DECLARE
   v_stock_balances_rls boolean;
   v_inventory_transactions_rls boolean;
 BEGIN
+  IF pg_catalog.to_regprocedure('public.mnty_can_platform_admin()') IS NULL THEN
+    RAISE EXCEPTION 'RC466_CANONICAL_PLATFORM_ADMIN_GUARD_MISSING';
+  END IF;
+
   IF pg_catalog.to_regclass('public.businesses') IS NULL
      OR pg_catalog.to_regclass('public.branches') IS NULL
      OR pg_catalog.to_regclass('public.user_memberships') IS NULL
@@ -176,8 +180,8 @@ BEGIN
 END;
 $preflight$;
 
--- Business rows: only unscoped tenant OWNER/ADMIN/MANAGER or a strict platform
--- SUPER_ADMIN retain tenant-wide visibility; scoped memberships see their business.
+-- Business rows: canonical platform-root registry members see all tenants;
+-- ordinary tenant roles remain limited to their tenant/business membership.
 DROP POLICY businesses_member_select ON public.businesses;
 CREATE POLICY businesses_member_select
 ON public.businesses
@@ -185,7 +189,9 @@ FOR SELECT
 TO authenticated
 USING (
   coalesce((auth.jwt() ->> 'is_anonymous'), 'false') <> 'true'
-  AND EXISTS (
+  AND (
+    public.mnty_can_platform_admin()
+    OR EXISTS (
     SELECT 1
     FROM public.user_memberships um
     WHERE um.user_id = auth.uid()
@@ -197,14 +203,10 @@ USING (
           um.business_id IS NULL AND um.branch_id IS NULL
           AND (
             upper(um.role) = ANY (ARRAY['OWNER','ADMIN','MANAGER'])
-            OR (
-              upper(um.role) = 'SUPER_ADMIN'
-              AND coalesce(um.permissions ->> 'scope','') = 'PLATFORM'
-              AND coalesce((um.permissions ->> 'full_control')::boolean,false) = true
-            )
           )
         )
       )
+  )
   )
 );
 
@@ -285,8 +287,8 @@ USING (
   )
 );
 
--- Branch reads are hierarchical: approved unscoped tenant managers/platform admins
--- see tenant branches; business scope sees its business; branch scope sees one branch.
+-- Branch reads are hierarchical: canonical platform-root registry members see all tenants;
+-- tenant managers, business members and branch members remain within their assigned scope.
 DROP POLICY branches_member_read ON public.branches;
 CREATE POLICY branches_member_read
 ON public.branches
@@ -294,7 +296,9 @@ FOR SELECT
 TO authenticated
 USING (
   coalesce((auth.jwt() ->> 'is_anonymous'), 'false') <> 'true'
-  AND EXISTS (
+  AND (
+    public.mnty_can_platform_admin()
+    OR EXISTS (
     SELECT 1
     FROM public.user_memberships um
     WHERE um.user_id = auth.uid()
@@ -310,14 +314,10 @@ USING (
           um.business_id IS NULL AND um.branch_id IS NULL
           AND (
             upper(um.role) = ANY (ARRAY['OWNER','ADMIN','MANAGER'])
-            OR (
-              upper(um.role) = 'SUPER_ADMIN'
-              AND coalesce(um.permissions ->> 'scope','') = 'PLATFORM'
-              AND coalesce((um.permissions ->> 'full_control')::boolean,false) = true
-            )
           )
         )
       )
+  )
   )
 );
 
@@ -369,12 +369,26 @@ WITH CHECK (
   )
 );
 
+DROP POLICY branches_super_admin_write ON public.branches;
+CREATE POLICY branches_super_admin_write
+ON public.branches
+FOR ALL
+TO authenticated
+USING (
+  coalesce((auth.jwt() ->> 'is_anonymous'), 'false') <> 'true'
+  AND public.mnty_can_platform_admin()
+)
+WITH CHECK (
+  coalesce((auth.jwt() ->> 'is_anonymous'), 'false') <> 'true'
+  AND public.mnty_can_platform_admin()
+);
+
 COMMENT ON POLICY businesses_member_select ON public.businesses IS
-  'RC466: unscoped tenant managers or strict platform admins may read tenant businesses; scoped memberships are limited to their business.';
+  'RC466: canonical registry platform admins may read all tenant businesses; tenant managers and scoped members remain tenant/business-bound.';
 COMMENT ON POLICY branches_member_read ON public.branches IS
-  'RC466: tenant, business and branch membership scopes are enforced; branch-scoped users cannot enumerate sibling branches.';
+  'RC466: canonical registry platform admins may read all branches; tenant, business and branch memberships remain scoped.';
 COMMENT ON POLICY branches_manager_write ON public.branches IS
-  'RC466: legacy ALL policy is retained for compatibility but scoped by tenant/business/branch on both USING and WITH CHECK.';
+  'RC466: legacy ALL branch policy grants platform-wide access only through the canonical private.platform_admins registry.';
 
 -- Departments, warehouses, stock balances and inventory transactions also carry
 -- business/branch identity. Tenant-only membership checks are insufficient for
@@ -384,7 +398,9 @@ CREATE POLICY departments_member_read
 ON public.departments FOR SELECT TO authenticated
 USING (
   coalesce((auth.jwt() ->> 'is_anonymous'), 'false') <> 'true'
-  AND EXISTS (
+  AND (
+    public.mnty_can_platform_admin()
+    OR EXISTS (
     SELECT 1 FROM public.user_memberships um
     WHERE um.user_id = auth.uid()
       AND um.tenant_id::text = departments.tenant_id::text
@@ -398,14 +414,10 @@ USING (
           um.business_id IS NULL AND um.branch_id IS NULL
           AND (
             upper(um.role) = ANY (ARRAY['OWNER','ADMIN','MANAGER'])
-            OR (
-              upper(um.role) = 'SUPER_ADMIN'
-              AND coalesce(um.permissions ->> 'scope','') = 'PLATFORM'
-              AND coalesce((um.permissions ->> 'full_control')::boolean,false) = true
-            )
           )
         )
       )
+  )
   )
 );
 
@@ -452,7 +464,9 @@ CREATE POLICY warehouses_member_read
 ON public.warehouses FOR SELECT TO authenticated
 USING (
   coalesce((auth.jwt() ->> 'is_anonymous'), 'false') <> 'true'
-  AND EXISTS (
+  AND (
+    public.mnty_can_platform_admin()
+    OR EXISTS (
     SELECT 1 FROM public.user_memberships um
     WHERE um.user_id = auth.uid()
       AND um.tenant_id::text = warehouses.tenant_id::text
@@ -466,14 +480,10 @@ USING (
           um.business_id IS NULL AND um.branch_id IS NULL
           AND (
             upper(um.role) = ANY (ARRAY['OWNER','ADMIN','MANAGER'])
-            OR (
-              upper(um.role) = 'SUPER_ADMIN'
-              AND coalesce(um.permissions ->> 'scope','') = 'PLATFORM'
-              AND coalesce((um.permissions ->> 'full_control')::boolean,false) = true
-            )
           )
         )
       )
+  )
   )
 );
 
@@ -564,7 +574,9 @@ CREATE POLICY inventory_transactions_member_read
 ON public.inventory_transactions FOR SELECT TO authenticated
 USING (
   coalesce((auth.jwt() ->> 'is_anonymous'), 'false') <> 'true'
-  AND EXISTS (
+  AND (
+    public.mnty_can_platform_admin()
+    OR EXISTS (
     SELECT 1 FROM public.user_memberships um
     WHERE um.user_id = auth.uid()
       AND um.tenant_id::text = inventory_transactions.tenant_id::text
@@ -578,11 +590,6 @@ USING (
           um.business_id IS NULL AND um.branch_id IS NULL
           AND (
             upper(um.role) = ANY (ARRAY['OWNER','ADMIN','MANAGER'])
-            OR (
-              upper(um.role) = 'SUPER_ADMIN'
-              AND coalesce(um.permissions ->> 'scope','') = 'PLATFORM'
-              AND coalesce((um.permissions ->> 'full_control')::boolean,false) = true
-            )
           )
         )
       )
@@ -596,6 +603,7 @@ USING (
         AND w.business_id = inventory_transactions.business_id
         AND w.branch_id IS NOT DISTINCT FROM inventory_transactions.branch_id
     )
+  )
   )
 );
 
