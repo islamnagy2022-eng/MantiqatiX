@@ -1,3 +1,77 @@
+# Latest checkpoint — 2026-11-14 — Production schema verification and security PR continuation
+
+**Request ID:** `R-20261114-MANTIQATIX-SECURITY-CONTINUATION`  
+**Status:** Active development across existing draft PRs. Production remains **BLOCKED / NOT CERTIFIED**. No candidate migration or deployment was applied to Production.
+
+## Verified live Supabase state (read-only)
+
+- The active project is **MANTIQATIX FINAL**. The separate demo project is inactive and was not used for this audit.
+- The live migration ledger contains 310 entries and ends at `20261110150618`. The candidate PR migrations remain unapplied.
+- The 42 exact required release migration identifiers are **0/42** present. The 60-object contract has **31 physically present / 29 absent**; semantic status remains **28 PASS / 32 non-PASS** because three physically present objects are still blocked by companion-object, search_path or ACL requirements.
+- Critical Edge Function source parity was refreshed against current `main`: **7/11** entrypoints differ (six payment/order/finance functions plus `directory-listings` v16); four entrypoints match exactly but still have runtime verification gates.
+- Live `directory-listings` v16 has public metadata sanitization, but its `BULK_IMPORT` honors requested PUBLISHED status and direct `UPSERT_LISTING` can publish a doctor with phone alone and no source evidence. It also exposes `is_verified` derived from `verified_by`, which is set by owner claim rather than professional-registration verification; do not port that ambiguous badge. Current `main` has staging-only imports and a stricter evidence gate. Preserve live sanitization, port the main publication gate, and test before deployment. Its two helper files match `main`; only `index.ts` differs. The exact deployed entrypoint is preserved at `docs/audits/snapshots/directory-listings-v16-live-index.ts.txt`.
+- Paymob/finance E2E remains unverified: `tenant_payment_methods` has 0 rows, provider secrets were not inspected, and no payment or financial mutation was initiated. Do not test against Production.
+- Backup/restore rehearsal, RPO/RTO and current Auth security settings remain unverified; the connector cannot inspect backup inventory/restore state or project Auth settings. The prior 2026-11-06 snapshot reported leaked-password protection disabled.
+- Current advisor/catalog snapshot: 9 RLS-enabled no-policy tables with no direct anon/authenticated table grants; 1 intentional public ads SECURITY DEFINER function; 65 authenticated-executable SECURITY DEFINER functions requiring individual review; 28 multiple-policy lints; 0 health lints.
+- `public.mantigo_financial_ledger` contains `gross_amount`, `commission_amount`, and `captain_net_amount`; it does not contain `amount` or `captain_amount`. The deployed financial-report RPC still references the absent legacy columns. No invocation or data write was made.
+- Both candidate platform-admin migrations (#722 and #724) now use the live ledger columns. They share a disposable regression test that leaves legacy fixture columns NULL and verifies the report after the candidate migration.
+- `private.platform_admins` has RLS enabled but FORCE RLS disabled; the table and helper owners are `postgres`. The live `postgres` and `service_role` roles have BYPASSRLS; `anon` and `authenticated` do not. RC464 rechecks the owner/BYPASSRLS assumptions before enabling FORCE RLS.
+- `businesses`, `branches`, and `orders` currently retain broad tenant-level policies. PR #727 narrows business/branch scope; PR #725 narrows order reads.
+- Security Advisor reported nine RLS-enabled tables with no policies, but those tables have no direct anon/authenticated SELECT or INSERT grants. It also reports the intentionally public targeted-ad RPC and generic authenticated SECURITY DEFINER/multiple-policy warnings; these require per-function/per-policy review, not blanket revocation. Health advisor returned no lints.
+
+## Current PR work
+
+| PR | Scope | Latest status at checkpoint |
+|---|---|---|
+| #722 | R7 platform-admin registry helper, SECURITY DEFINER search_path hardening, atomic migration, live-ledger report correction | Head `f4f4124`; 22/22 checks passed; draft, not merged |
+| #724 | RC464 canonical platform registry, FORCE RLS, four global MantiGO RPCs, live-ledger report correction and refreshed production audit evidence | Head `0e10360`; 26 checks queued; no failures; draft, not merged |
+| #725 | Orders read scope by business/branch | 25/25 checks passed; draft, not merged |
+| #726 | Public contact opt-in, signed cursor pagination, frontend “See more” integration | Head `d6761b6`; 8 checks queued; no failures; draft, not merged |
+| #727 | Businesses and branches RLS scope | 24/24 checks passed; draft, not merged |
+| #728 | Directory listings v16 reconciliation: public metadata sanitizer, private identity stripping, strict doctor publication gate and CORS guard | Head `5e6ff82`; 13 success, 1 in progress, 6 queued; no failures; draft, not merged |
+
+- Migration order: review/merge #722 before #724 where practical. #722's migration version `20261113020000` precedes RC464 `20261113214500` and hardens four existing helper-dependent SECURITY DEFINER callers.
+- PR #724 is based on the current main tree as of `1b3a7c4`; its merge base is current main. After #722 merges, refresh #724 and #728 against the new main head and rerun the full chain.
+- No PR has been merged, no production migration was applied, and no production Edge Function or Pages deployment occurred.
+
+## Remaining release gates
+
+- Use `docs/release/PRODUCTION_VALIDATION_RUNBOOK_20261114.md` for the controlled sequence covering migration reconciliation, Edge Function parity, Paymob sandbox E2E, backup/restore, Auth, adversarial RLS and stop conditions. The runbook authorizes no Production mutation.
+
+1. Finish exact-head CI for #722, #724, #726 and #728, including the new financial-report regression and public-contact/privacy/browser checks.
+2. Review the complete diffs and preserve the draft/human-review gate; do not merge or deploy solely because CI passes.
+3. Run the complete migration replay and restore rehearsal against a fresh schema checkpoint; verify backup recovery and rollback before any production change.
+4. For #726, deploy the public Edge Function before the frontend that relies on 20-record cursor pages, then smoke-test page continuity, duplicate prevention, filter-bound cursors, expiry, explicit contact consent, CORS and existing catalog behavior.
+5. Re-run Security Advisor and verify live RPC ACLs, helper ownership, RLS policies, function bodies and migration history after any approved rollout.
+
+The separately uploaded R7 Google AI Studio application archive remains a distinct source baseline. Do not replace it with the GitHub production-contract repository or overwrite its retained R12 hardening artifacts.
+
+---
+
+# Latest checkpoint — 2026-11-14 — Public directory cursor pagination integration
+
+**Request ID:** `R-20261114-PUBLIC-DIRECTORY-CURSOR-PAGINATION`  
+**Status:** IMPLEMENTED IN DRAFT PR; targeted security and build checks PASS; browser E2E still running. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+- Updated existing draft PR #726 (base `main`) rather than creating a competing PR. Code-validation head: `70b045e06f835946a0635f65fd2d80a85f0352d8`. PR: https://github.com/islamnagy2022-eng/MantiqatiX/pull/726
+- Added the missing shared `public-directory-pagination.mjs` module required by the Edge Function import. It provides a fixed page size of 20, bounded/normalized Activity, Specialty, Governorate, Markaz and Village filters, filter-scope hashing, HMAC-signed opaque cursors, tamper rejection and six-hour cursor expiry.
+- Edge Function keyset scan uses stable UUID ordering, a first-page `created_at` snapshot boundary, bounded batches and a maximum scan budget. It returns `pagination.pageSize`, `hasMore` and `nextCursor`. Public contact fields remain projected only through explicit owner-consent metadata from the existing PR work.
+- Extended Activity matching to include canonical activity-category identifiers in addition to existing category/group/provider values.
+- Connected `fetchPublicDirectoryPage` in the frontend, retained the cursor in AppContext, appended pages by unique business/product IDs, and wired the existing “رؤية المزيد من الأنشطة” control to fetch the next actual business page. Existing UI layout was preserved.
+- Added helper tests and expanded `scripts/validate-public-directory-pagination.mjs` to cover both the Edge Function contract and frontend cursor wiring. The workflow runs contact-consent tests, pagination tests, static contract validation and Deno type-checking.
+- **PASS:** `Public Catalog Contact Privacy` run `43553459624` — public contact boundary, explicit contact projection tests, keyset pagination static validation, signed-cursor tests and Deno type-check of both public Edge Functions.
+- **PASS:** `TypeScript, build and security contract` run `43553459555`.
+- **PASS:** `Primary Catalog Frontend Validation` build job and isolated employee/RBAC PostgreSQL integration job in run `43553459548`; TypeScript, production build, taxonomy, OAuth, geographic search, public price disclosure and release-gate checks completed successfully.
+- **PASS:** `Deploy MantiqaTix Web` validation job in run `43553459560`; the `deploy` job was **SKIPPED**, as required for this non-main branch.
+- **PENDING:** professional-dashboard browser E2E in run `43553459548` was still running at this checkpoint. It is not a pagination-specific E2E test.
+- No Supabase production migration, Edge Function deployment, Pages deployment, production data mutation or Auth/RLS/GRANT change was performed. The deployed public directory endpoint has not yet been verified with the new cursor contract.
+- Release sequencing: finish exact-head CI and review; deploy the Edge Function before deploying the frontend that relies on 20-record pages; then run live tests for first/next page continuity, no duplicates, filter-bound cursor rejection, expiry, contact consent, CORS and existing public catalog behavior.
+- This work is in the existing GitHub production-contract repository branch. It does not import or replace the separately uploaded R7 AI Studio application archive; that source remains governed by the R7 continuation baseline.
+
+**Next action:** finish pending browser/CI jobs, then prepare a controlled Edge Function + frontend release with rollback and deployed-origin smoke checks.
+
+---
+
 # Latest verified checkpoint — 2026-11-11 — Public catalog disclosure safety
 
 **Request ID:** `R-20261111-PUBLIC-CATALOG-PRICE-DISCLOSURE`  

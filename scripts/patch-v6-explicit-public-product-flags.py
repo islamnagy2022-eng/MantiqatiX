@@ -57,7 +57,10 @@ def has_explicit_public_price_guard(edge: str, helper: str) -> bool:
     )
     shared_helper_guard = (
         shared_import
-        and "filterRowsToPubliclyPricedItems(items, p || [])" in edge
+        and (
+            "filterRowsToPubliclyPricedItems(items, p || [])" in edge
+            or "prices = filterRowsToPubliclyPricedItems(items, [" in edge
+        )
         and "metadata?.catalog_public?.show_price === true" in helper
         and "getExplicitlyPublicComparePrice({ metadata: { catalog_public: rawPublic } })" in edge
         and "if (!hasExplicitPublicPricePermission(item)) return null;" in helper
@@ -82,6 +85,8 @@ def self_test() -> None:
     shared_edge = 'import { filterRowsToPubliclyPricedItems, getExplicitlyPublicComparePrice } from "../_shared/public-price-visibility.mjs";\\nitems = rows.filter((i) => i.metadata?.catalog_public?.is_available === true);\\nprices = filterRowsToPubliclyPricedItems(items, p || []);\\ncompare_price = getExplicitlyPublicComparePrice({ metadata: { catalog_public: rawPublic } });'
     shared_helper = "item?.metadata?.catalog_public?.show_price === true\\nif (!hasExplicitPublicPricePermission(item)) return null;"
     assert has_explicit_public_price_guard(shared_edge, shared_helper)
+    shared_edge_batched = shared_edge.replace("p || []", "[*global_prices, *branch_prices]")
+    assert has_explicit_public_price_guard(shared_edge_batched, shared_helper)
     assert not has_explicit_public_price_guard("items = rows.filter((i) => i.metadata?.catalog_public?.is_available === true); prices = rows.filter((item) => item.metadata?.catalog_public?.show_price === false);", "")
     assert not has_explicit_public_price_guard('import { filterRowsToPubliclyPricedItems } from "../_shared/public-price-visibility.mjs";\\nitems = rows.filter((i) => i.metadata?.catalog_public?.is_available === true); prices = filterRowsToPubliclyPricedItems(items, p || []);', "metadata?.catalog_public?.show_price === true")
     for old, new, label in [

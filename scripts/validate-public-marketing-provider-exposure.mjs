@@ -37,8 +37,14 @@ for (const [source, label] of [
   [catalogFunction, "public-catalog"],
 ]) {
   const query = providerQueryBlock(source, label);
-  assert.ok(query.includes('.select("' + PUBLIC_PROVIDER_COLUMNS + '")'),
-    label + " must request only the approved public provider columns");
+  const expectedColumns = label === "public-catalog-directory"
+    ? PUBLIC_PROVIDER_COLUMNS + ",specialties"
+    : PUBLIC_PROVIDER_COLUMNS;
+  assert.ok(query.includes('.select("' + expectedColumns + '")'),
+    label + " must request only approved public provider columns plus the filter-only specialties field where required");
+  if (label === "public-catalog-directory") {
+    assert.match(query, /specialties/, "Directory may read canonical provider specialties for server-side filtering only");
+  }
   assert.match(query, /\.eq\(["']status["']\s*,\s*["']ACTIVE["']\)/,
     label + " must expose active provider profiles only");
   assert.doesNotMatch(query, /owner_user_id|settings|select\(["']\*["']\)/i,
@@ -66,6 +72,8 @@ const directoryProviderResponse = providerResponseBlock(
   "public-catalog-directory",
   "branches:"
 );
+assert.doesNotMatch(directoryProviderResponse, /specialties/,
+  "Canonical specialties may be read for filtering but must not be serialized as a raw provider response field");
 const catalogProviderResponse = providerResponseBlock(
   catalogFunction,
   "public-catalog",

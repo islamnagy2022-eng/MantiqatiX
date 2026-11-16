@@ -25,7 +25,7 @@ import {
   getCurrentAppBasePath,
   generateWhatsAppOrderUrl,
 } from '../utils/rules';
-import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPlatformSubscribers, fetchPublicCatalog, fetchPublicDirectory, generateCatalogAiImage, mapBusiness, mapProducts, supabase } from '../lib/production';
+import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPlatformSubscribers, fetchPublicCatalog, fetchPublicDirectory, fetchPublicDirectoryPage, generateCatalogAiImage, mapBusiness, mapProducts, supabase } from '../lib/production';
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../utils/dashboardAccess';
 
@@ -60,6 +60,10 @@ interface AppContextType {
   directoryBusinesses: Business[];
   directoryProducts: Product[];
   directoryLoading: boolean;
+  directoryHasMore: boolean;
+  directoryLoadingMore: boolean;
+  directoryLoadMoreError: string;
+  loadMoreDirectoryBusinesses: () => Promise<void>;
   openPublicBusiness: (businessId: string) => Promise<boolean>;
   products: Product[];
   subscribers: Subscriber[];
@@ -109,6 +113,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [directoryBusinesses, setDirectoryBusinesses] = useState<Business[]>([]);
   const [directoryProducts, setDirectoryProducts] = useState<Product[]>([]);
   const [directoryLoading, setDirectoryLoading] = useState(true);
+  const [directoryHasMore, setDirectoryHasMore] = useState(false);
+  const [directoryLoadingMore, setDirectoryLoadingMore] = useState(false);
+  const [directoryLoadMoreError, setDirectoryLoadMoreError] = useState('');
+  const directoryNextCursorRef = useRef<string | null>(null);
+  const directoryPageInFlightRef = useRef(false);
+
+  const loadMoreDirectoryBusinesses = async () => {
+    const cursor = directoryNextCursorRef.current;
+    if (!cursor || directoryPageInFlightRef.current) return;
+    directoryPageInFlightRef.current = true;
+    setDirectoryLoadingMore(true);
+    setDirectoryLoadMoreError('');
+    try {
+      const page = await fetchPublicDirectoryPage(cursor);
+      setDirectoryBusinesses((current) => {
+        const unique = new Map<string, Business>(current.map((business) => [business.id, business] as const));
+        page.businesses.forEach((business) => unique.set(business.id, business));
+        return Array.from(unique.values());
+      });
+      setDirectoryProducts((current) => {
+        const unique = new Map<string, Product>(current.map((product) => [product.id, product] as const));
+        page.products.forEach((product) => unique.set(product.id, product));
+        return Array.from(unique.values());
+      });
+      directoryNextCursorRef.current = page.nextCursor;
+      setDirectoryHasMore(page.hasMore);
+    } catch (error) {
+      setDirectoryLoadMoreError(error instanceof Error ? error.message : 'تعذر تحميل المزيد من الأنشطة.');
+    } finally {
+      directoryPageInFlightRef.current = false;
+      setDirectoryLoadingMore(false);
+    }
+  };
   const [products, setProducts] = useState<Product[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [subscribersLoading, setSubscribersLoading] = useState(false);
@@ -325,8 +362,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Load the public directory independently from authentication so visitors see published activities immediately.
   useEffect(() => {
     let active = true;
+    directoryNextCursorRef.current = null;
+    setDirectoryHasMore(false);
     fetchPublicDirectory()
-      .then((directory) => { if (active) { setDirectoryBusinesses(directory.businesses); setDirectoryProducts(directory.products || []); if (directory.activityModuleOverridesAvailable) setAdminSettings((current) => ({ ...current, activityModuleOverrides: directory.activityModuleOverrides })); } })
+      .then((directory) => {
+        if (!active) return;
+        setDirectoryBusinesses(directory.businesses);
+        setDirectoryProducts(directory.products || []);
+        directoryNextCursorRef.current = directory.nextCursor;
+        setDirectoryHasMore(directory.hasMore);
+        if (directory.activityModuleOverridesAvailable) {
+          setAdminSettings((current) => ({ ...current, activityModuleOverrides: directory.activityModuleOverrides }));
+        }
+      })
       .catch((error) => { console.warn('[MantiqatiX public directory]', error); })
       .finally(() => { if (active) setDirectoryLoading(false); });
     return () => { active = false; };
@@ -666,6 +714,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       bio: updated.bio || '',
       phone: updated.ownerWhatsApp || updated.phone || '',
       additionalContactPhones: updated.additionalContactPhones || [],
+      publicContactEnabled: Boolean(updated.publicContactEnabled),
       facebookUrl: updated.facebookUrl || '',
       instagramUrl: updated.instagramUrl || '',
       tiktokUrl: updated.tiktokUrl || '',
@@ -1072,7 +1121,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     currentView, setCurrentView, selectedBusinessId, setSelectedBusinessId, currentBusiness,
     functionalGroups, categories, addCategory, updateCategory, deleteCategory, selectedFunctionalGroupFilter, setSelectedFunctionalGroupFilter, selectedCategoryFilter, setSelectedCategoryFilter,
     authSession, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
-    businesses, directoryBusinesses, directoryProducts, directoryLoading, openPublicBusiness, products, subscribers, subscribersLoading, refreshPlatformSubscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
+    businesses, directoryBusinesses, directoryProducts, directoryLoading, directoryHasMore, directoryLoadingMore, directoryLoadMoreError, loadMoreDirectoryBusinesses, openPublicBusiness, products, subscribers, subscribersLoading, refreshPlatformSubscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
     confirmAdminPayment, updateBillingSetting, toggleBusinessFreeze,
     businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, saveSubscriberMembership, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,
     cartItems, addToCart, removeFromCart, updateCartQuantity, clearCart, isCartOpen, setIsCartOpen, submitOrderViaWhatsApp, requestCatalogViaAdminWhatsApp,
