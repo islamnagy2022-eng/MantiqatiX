@@ -62,6 +62,22 @@ When the user says **"كمل" / "استكمل" / "تابع المشروع"**, in
 - Work in a dedicated branch and PR; do not write directly to `main`. Do not merge or deploy failed/unverified work.
 - Report exactly what changed, commit/PR, tests and their actual results, what remains, and whether the live website changed. Never equate a green frontend build with full production certification.
 
+### 5A. Continuous integration and merge-first-by-first policy — MANDATORY
+
+The owner requires completed work to be integrated continuously, not accumulated across multiple Passes and merged at the end.
+
+1. **Small, independent work units:** split work into independently reviewable tasks. Create or update the dedicated branch and PR as soon as a task has a coherent, testable change. Do not wait for unrelated work or the end of a Pass.
+2. **Commit continuously:** commit each coherent implementation/test/documentation increment to its task branch. Keep one PR focused on one concern or a tightly coupled release unit; do not create a large catch-all PR.
+3. **Merge promptly after proof:** once the exact PR head passes every applicable required workflow, tests, security checks and acceptance criteria; the base is current; conflicts are resolved; and required review is complete, mark the PR ready and merge it promptly. Do not leave completed, green, independent work in Draft/open status merely to batch it with later tasks.
+4. **No unsafe partial contracts:** tightly coupled changes (for example, a database migration plus its matching Edge Function/RPC/client contract) must be merged as one coordinated release unit or as an explicitly ordered, compatibility-safe PR stack. Never merge an intermediate state that breaks the live contract. Migration versions must remain unique, ordered and collision-checked.
+5. **Merge is not deployment approval:** a source merge does not authorize a Production migration, Auth/RLS/GRANT change, Edge Function deployment, payment/financial operation, or website cutover. Check whether merging to main triggers an automatic deployment. If it does, all deployment-specific release gates must pass before merge; otherwise keep deployment separately gated and report the actual deployment result.
+6. **Fail closed:** failed, cancelled, missing, stale-head or incomplete checks mean NOT READY. Keep the PR Draft/blocked, record the exact blocker and next action, and continue independent tasks without bypassing checks or forcing a merge.
+7. **After every merge:** read back the merged files from main; record PR number, exact head SHA, merge SHA, exact-head and main-branch CI results, deployment status, deployed-origin smoke evidence where applicable, and remaining blockers in the TODO and continuity log.
+8. **Pass closeout requirement:** every Pass must explicitly end with one of: MERGED (with PR and merge SHA), or NOT MERGED (with the exact blocking reason and next action). “Implemented” or “tests passed” alone is not an integration closeout.
+9. **Existing backlog:** on continuation, inspect open PRs and classify each as READY TO MERGE, NEEDS FIX/REBASE, BLOCKED BY DEPENDENCY, or SUPERSEDED. Merge only independently complete, safe PRs; do not bulk-merge the backlog.
+
+This policy applies to code, tests, migrations, Edge Functions, configuration, security fixes and documentation. It does not weaken any existing Production safety or release gate.
+
 ## 6. Current starting checkpoint
 
 - R6 remains the canonical user-approved application source. The exact archive `bizcatalog-manager (6).zip` is present in the Library at `/MANTIQATIX/bizcatalog-manager (6).zip` (37,305,478 bytes; previously verified SHA-256 `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`), but this current runtime cannot obtain its raw bytes: `files__materialize` returns `This Project file does not have an authorized raw-byte materialization path`, and `files__read` fails internally. The only current conversation attachment is `v6-source-tree-review.zip` (SHA-256 `bdb854f5668bc5387a7265a403d24ee3590aaa50b61aacf94bde4d270f945400`); it is a limited review snapshot (83 ZIP entries, 80 files under `src/`), lacks `src/components/mobile/`, and contains the dedicated medical-directory component. It is not the canonical R6 package and must not be substituted or imported.
