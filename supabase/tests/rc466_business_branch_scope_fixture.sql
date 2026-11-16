@@ -27,6 +27,31 @@ GRANT USAGE ON SCHEMA auth TO authenticated;
 GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated;
 GRANT EXECUTE ON FUNCTION auth.jwt() TO authenticated;
 
+CREATE SCHEMA IF NOT EXISTS private;
+CREATE TABLE IF NOT EXISTS private.platform_admins (
+  user_id uuid PRIMARY KEY
+);
+ALTER TABLE private.platform_admins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE private.platform_admins FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON SCHEMA private FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE private.platform_admins FROM PUBLIC, anon, authenticated;
+
+CREATE OR REPLACE FUNCTION public.mnty_can_platform_admin()
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $function$
+  SELECT EXISTS (
+    SELECT 1
+    FROM private.platform_admins pa
+    WHERE pa.user_id = auth.uid()
+  )
+$function$;
+REVOKE ALL ON FUNCTION public.mnty_can_platform_admin() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.mnty_can_platform_admin() TO authenticated;
+
 CREATE TABLE public.user_memberships (
   id text PRIMARY KEY,
   user_id uuid NOT NULL,
@@ -430,4 +455,8 @@ INSERT INTO public.user_memberships(id,user_id,tenant_id,business_id,branch_id,r
  ('unscoped-manager-b','10000000-0000-4000-8000-000000000007','tenant-b',NULL,NULL,'MANAGER','ACTIVE','{}'),
  ('unscoped-customer-a','10000000-0000-4000-8000-000000000008','tenant-a',NULL,NULL,'CUSTOMER','ACTIVE','{}'),
  ('unscoped-employee-a','10000000-0000-4000-8000-000000000009','tenant-a',NULL,NULL,'EMPLOYEE','ACTIVE','{}'),
- ('platform-super-admin-a','10000000-0000-4000-8000-000000000010','tenant-a',NULL,NULL,'SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}');
+ ('noncanonical-super-admin-a','10000000-0000-4000-8000-000000000011','tenant-a',NULL,NULL,'SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}');
+
+INSERT INTO private.platform_admins(user_id)
+VALUES ('10000000-0000-4000-8000-000000000010')
+ON CONFLICT (user_id) DO NOTHING;
