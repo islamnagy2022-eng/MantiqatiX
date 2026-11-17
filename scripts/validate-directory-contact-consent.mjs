@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { sanitizePublicDirectoryListing } from "../supabase/functions/directory-listings/public-directory-output-contract.mjs";
+import { buildDirectoryPaginationOrFilter } from "../supabase/functions/directory-listings/pagination-filter.mjs";
 
 const source = readFileSync("supabase/functions/directory-listings/index.ts", "utf8");
 const migration = readFileSync("supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql", "utf8");
 const ui = readFileSync("apps/catalog-frontend/src/components/DirectoryListingsView.tsx", "utf8");
 const client = readFileSync("apps/catalog-frontend/src/lib/directoryListings.ts", "utf8");
+const pagination = readFileSync("supabase/functions/directory-listings/pagination-filter.mjs", "utf8");
 
 const row = {
   id: "listing-1",
@@ -53,7 +55,12 @@ assert.equal(all.secondary_phone, row.secondary_phone);
 assert.equal(all.address, row.address);
 assert.equal(all.metadata.google_maps_url, row.metadata.google_maps_url);
 
+const publicSearch = buildDirectoryPaginationOrFilter("01000000000", null) || "";
+assert.equal(/phone|secondary_phone|address/i.test(publicSearch), false, "free-text public search must not probe hidden contact fields");
+
 const checks = [
+  ["free-text search excludes private phone and address fields", !/const SEARCH_COLUMNS = Object.freeze\\(\\[[^]]*(?:phone|secondary_phone|address)/.test(pagination) && !/phone|secondary_phone|address/i.test(publicSearch)],
+  ["address-specific search requires an active ADDRESS consent record", source.includes('eq("scope", "ADDRESS").is("revoked_at", null)') && source.includes("addressVisibleIds")],
   ["GET consent lookup fails closed and is used for slug, legacy and paginated reads",
     source.includes("loadContactConsentScopes") && source.includes("directory_listing_contact_consents") &&
     source.includes("sanitizePublicDirectoryListing(data, ownerScopes)") &&
