@@ -2521,3 +2521,12 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - R7 already contains 15 sector image packs, each with 3 logo, 3 cover and 6 product/service variants (180 defaults). New businesses/products receive resolved defaults at creation when image URLs are absent/placeholder; the five referenced local AI-generated images are present.
 - Existing image-engine tests passed 4/4 after TypeScript compilation using temporary Node test type shims and Node 22.16.0. Additional compiled-runtime checks passed across all 15 sector packs, maintenance defaults, five local assets and generated-SVG text sanitization.
 - No image implementation change was needed in R7. The old V6 PR #739 remains a separate legacy-catalog change; it is not a substitute for R7 integration. Standard package test scripts remain a separate P1 improvement.
+
+## 2026-11-17 — PR #740 merged; R7 image defaults verified
+
+- Merged PR #740 to main. Merge commit: `ea79bf016ec3f0afc2f6f793f4528bf24d6144b`.
+- Exact PR head `9984ef0451f821e02fd2abd9da31821cfc193c18): 10/10 PR-triggered workflow runs succeeded. Migration version uniqueness, migration history immutability, cross-PR collision guard, forward migration chain replay, and the V6 validation/build/browser preview all passed. Pages `validate_public_only` and `deploy` jobs were skipped for the PR event; no site cutover is claimed.
+- Restored exact source file for live migration `20261110150618`; database-side and local SHA-256 match. No Production migration was re-applied.
+- R7 default image behavior verified across all 15 sectors, existing image-engine tests 4/4, local AI assets and maintenance defaults. No image rewrite is needed in R7.
+- R7 remains blocked from import/deployment due P0 token minting/refresh, hard-coded admin bypass, unauthenticated state APIs, local JSON authority, predictable secrets, default-paid business state and unsafe registration/wallet defaults.
+- Next: refresh/rebase PR #730 RC464–RC467 integration candidate onto current main. Its previously tested head passed 14/14 PR-triggered workflows but is six commits behind the prior main; require current-base exact-head CI and human SQL review. Do not apply any candidate migration or deploy mismatched payment Edge Functions to Production.
