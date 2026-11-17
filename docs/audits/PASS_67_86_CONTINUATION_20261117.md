@@ -59,3 +59,16 @@ Release state: **BLOCKED / NOT CERTIFIED** pending database, Edge, R7 auth and D
 - Documentation PR #753 is open with 16 successful checks, 2 expected skips, no pending checks and no failures at latest inspection.
 - Reopened the R7 archive source to verify the P0 auth boundary: `src/lib/supabaseClient.ts` prefers `SUPABASE_SERVICE_ROLE_KEY` over anon keys in a module imported by the frontend; `AppContext.tsx` authorizes admin UI locally by comparing the entered password to client-held settings (seed default `admin`); initial production-state hydration and autosave use unauthenticated requests; the refresh UI sends only user-supplied identifiers/role and no token. These are independent release blockers, not cosmetic findings.
 - No Production DB, migration ledger, Auth, RLS/GRANT, Edge Function, payment, wallet, settlement or data changes were made.
+
+
+## Pass 90 — targeted Security Advisor triage (read-only)
+
+| Check | Live result | Disposition |
+|---|---|---|
+| RLS enabled / no policy tables | 9 public tables; anon/authenticated SELECT denied on all 9. Eight FORCE RLS; `digital_page_payment_events` RLS enabled without FORCE. | Deny-by-default/private posture. Do not add blanket policies. |
+| Service-only access | `directory_listing_claim_requests`, `directory_source_permission_evidence`, `public_directory_listings` permit service_role SELECT; other six do not. | Matches service-side access pattern; review writes and function boundaries separately. |
+| SECURITY DEFINER functions | 65 callable by anon/authenticated: 18 empty search_path, 47 pinned non-empty, 0 unpinned. 1 anon-executable, 65 authenticated-executable, 4 also service_role-executable. | Per-function review; advisor count alone is not proof of exploitability. |
+| Public schema creation | anon/authenticated/service_role have USAGE but no CREATE. | Reduces public-object shadowing risk; do not use as substitute for reviewing pinned paths. |
+| Public ad RPC | `get_mnty_targeted_advertisements(...)` is the sole anon-executable SECURITY DEFINER. Empty search_path; ACTIVE+APPROVED and time-window filters; bounded public ad projection; limit clamped 1–50. | Intentional public discovery candidate. Keep, with output privacy regression coverage; no blind revoke. |
+
+No production ACL, RLS, function or data mutation was performed.
