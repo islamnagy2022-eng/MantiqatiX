@@ -22,6 +22,7 @@ const moduleJs = read("web/catalog-module.js");
 const app = read("web/app.js");
 const rbac = read("web/rbac.js");
 const reactApp = read("apps/catalog-frontend/src/App.tsx");
+const directoryView = read("apps/catalog-frontend/src/components/DirectoryView.tsx");
 const appContext = read("apps/catalog-frontend/src/context/AppContext.tsx");
 const adminFn = read("supabase/functions/catalog-admin/index.ts");
 const publicFn = read("supabase/functions/public-catalog/index.ts");
@@ -123,6 +124,14 @@ check("react_privileged_views_require_authorized_session", () => {
   excludes(reactApp, /import \{ (?:MerchantDashboard|AdminDashboard|ProfessionalDashboard|CartDrawer|LoginModal) \} from/,
     "large secondary screens must not be eagerly imported");
   includes(appContext, "return businesses.find((b) => b.id === authSession.businessId);");
+});
+check("directory_subviews_are_loaded_on_demand", () => {
+  includes(directoryView, "const DirectoryListingsView = lazy(() => import('./DirectoryListingsView')");
+  includes(directoryView, "const ActivityModuleView = lazy(() => import('../modules/activities/ActivityModuleView')");
+  includes(directoryView, "<Suspense fallback={<DirectorySubViewFallback />}>");
+  includes(directoryView, "جارٍ تحميل القسم…");
+  excludes(directoryView, /import \\{ (?:DirectoryListingsView|ActivityModuleView) \\} from/,
+    "directory detail and activity modules must not be eagerly imported");
 });
 check("guest_catalog_navigation_is_not_an_owner_entrypoint", () => {
   const navbar = read("apps/catalog-frontend/src/components/Navbar.tsx");
