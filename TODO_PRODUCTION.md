@@ -1959,3 +1959,25 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 المرجع التفصيلي: `docs/release/R7_GOOGLE_SEO_ANALYTICS_PLAN_20261111.md`.
 
 **إعدادات المالك المطلوبة عند مرحلة الربط:** الدومين النهائي، ملكية Search Console/DNS، GA4 Measurement ID، ونص سياسة الخصوصية والموافقة. لا تستخدم placeholders أو IDs مختلقة.
+
+
+---
+
+## Pass 45 — AI default imagery + Egypt map continuation (2026-11-17)
+
+### AI-generated activity defaults
+- [ ] Import the 16 separately generated WebP category images from the prepared v1 asset bundle into the catalog frontend's public assets; verify each image file, dimensions, category mapping, and production build output.
+- [ ] Update `apps/catalog-frontend/src/utils/defaultImages.ts` to prefer the new photographic category assets for unverified activities while preserving merchant-uploaded media and verified real activity imagery.
+- [ ] Keep existing AI image provenance separate from automatic defaults; never label a category fallback as an owner photo or AI-generated per-business logo.
+- [ ] Add visual regression/browser checks for directory cards, storefront profile headers, marketplace cards, broken-image fallback, and mobile crops.
+
+### Egypt map and boundaries
+- [x] Merge the structural GeoJSON validation gate (PR #737); CI and deployment checks passed.
+- [ ] Obtain exact OCHA COD-AB/HDX resource IDs and immutable downloads for ADM1/ADM2/ADM3; verify file-level license and metadata before import.
+- [ ] Validate 27 ADM1 and 365 ADM2 polygons, CRS, topology, geometry validity, P-codes and crosswalk against the pinned Open Admin Data 2026.09 IDs.
+- [ ] Verify partial ADM3 coverage explicitly; do not infer a shiyakha boundary where the source has no geometry.
+- [ ] Implement local point-in-polygon for approved levels only; retain approximate fallback and manual geographic selection.
+- [ ] Preserve all-Egypt default search, opt-in GPS, memory-only precise coordinates, no third-party geocoding, and no invented business coordinates.
+- [ ] Complete mobile/desktop map interaction, keyboard access, loading/error states and deployed-origin tests.
+
+**Evidence boundary:** prepared image bundle is not yet integrated into the repository. Current geographic assignment still uses representative points, not verified polygon containment. Do not mark either task complete until the relevant assets/data are committed and tests pass.

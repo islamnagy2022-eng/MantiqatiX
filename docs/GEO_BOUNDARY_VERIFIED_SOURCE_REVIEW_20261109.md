@@ -112,3 +112,18 @@ geoBoundaries' current EGY gbOpen listing exposes ADM0, ADM1 and ADM2 directorie
 - Point-in-polygon implementation: **NOT STARTED**.
 - No geometry is bundled in the site; no production database, Supabase schema, Auth/RLS, Edge Function, GPS persistence, payment or finance changes are made by this assessment.
 - No medical directory work is authorized. Keep the standalone medical directory excluded from V6 and legacy catalog.
+
+
+## 7. Additional source discovery — 2026-11-17 (not yet approved)
+
+A current third-party catalogue snapshot surfaced OCHA COD-AB-derived ADM1 and ADM2 polygon layers with 27 and 365 features, respectively, and a catalogue-stated CC BY 4.0 licence. Another catalogue describes the Egypt COD-AB as v01, with validity beginning 2017-04-21, source edit 2017-08-14, review dated 2024-12-19, and partial ADM3 coverage. It also reports duplicate English ADM2 names and Arabic/English non-one-to-one naming. These findings reinforce that P-code crosswalks, not display-name matching, are mandatory.
+
+These are discovery leads only. The third-party catalogue's licence and metadata are not a substitute for the exact current HDX resource metadata, raw file bytes, and source attribution. Do not bundle or deploy those mirrored layers until the original HDX resources are obtained and inspected.
+
+Discovery references:
+- OCHA COD-AB Egypt dataset: https://data.humdata.org/dataset/cod-ab-egy
+- Third-party ADM1 catalogue: https://orionterrametrics.com/data/egypt/boundaries/egypt-first-level-administrative-boundaries-r26u
+- Third-party ADM2 catalogue: https://orionterrametrics.com/data/egypt/boundaries/egypt-second-level-administrative-boundaries-tsnx
+- Third-party COD-AB/ADM3 metadata: https://orionterrametrics.com/data/egypt/boundaries/egypt-subnational-administrative-boundaries-e0rk
+
+**Decision:** no source promotion, no polygon matching, and no production location behavior change from this discovery alone.
