@@ -110,7 +110,7 @@ for (const scenario of [
   "unscoped CUSTOMER",
   "unscoped EMPLOYEE",
   "Tenant-B manager",
-  "strict platform SUPER_ADMIN",
+  "canonical private.platform_admins registry grants global platform visibility",
   "Anonymous sessions"
 ]) assert.ok(integration.toLowerCase().includes(scenario.toLowerCase()), "integration test must cover " + scenario);
 
