@@ -10,6 +10,13 @@ BEGIN
   IF pg_catalog.to_regclass('private.platform_admins') IS NULL THEN
     RAISE EXCEPTION 'PLATFORM_ADMIN_REGISTRY_MISSING';
   END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_attribute
+    WHERE attrelid=pg_catalog.to_regclass('private.platform_admins')
+      AND attname='user_id' AND attnum>0 AND NOT attisdropped
+  ) THEN
+    RAISE EXCEPTION 'PLATFORM_ADMIN_REGISTRY_USER_ID_MISSING';
+  END IF;
   IF pg_catalog.to_regprocedure(
     'public.create_settlement_and_post_journal(character varying,character varying,character varying,character varying,numeric,numeric,numeric,numeric,character varying,character varying,uuid,text,uuid)'
   ) IS NULL THEN
