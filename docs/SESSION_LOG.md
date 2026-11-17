@@ -2686,15 +2686,28 @@ Read-only Supabase production schema cross-check completed: retrieved definition
 - No Production migration, Edge Function deployment, RLS/GRANT/Auth change or live data write.
 
 
+## 2026-11-18 — Pass 301–320 — post-merge parity and privacy
+
+- Verified PR #757 merged to main as `ae090081015b0c3af410fb6ee114165f300b1bba`; all applicable main workflows passed, including RC472 disposable migration replay and the claim integration/concurrency test.
+- Verified GitHub Pages deploy passed and deployed-origin V6 root, legacy rollback path, preview alias and browser checks completed successfully.
+- Read-only Supabase parity confirms RC472 is not applied and live `directory-listings` remains version 16 without the new RPC. No Production database or Edge mutation was performed.
+- Read-only membership audit found 10 business-wide memberships; one legacy OWNER uses permissions array `["*"]`. Added a regression test to assert approval normalizes it to explicit owner capabilities rather than retaining wildcard rights.
+- Public directory aggregate: 965 total listings, 869 published, 964 unclaimed; 868 published/unclaimed records expose phone and address. The source-permission evidence registry currently has 0 rows. No contact values were read.
+- Supabase organization is on Free plan; no connected evidence of a verified off-site backup or restore artifact exists. Production schema/Edge rollout remains blocked until backup/restore is verified.
+- Security advisor snapshot: 9 RLS-enabled tables without direct policies (service-role-only design on directory tables), 65 authenticated-executable SECURITY DEFINER functions, and one anon-executable targeted-ad projection requiring a focused review. Health advisor had no lints.
+- Next: pass legacy wildcard normalization regression; decide and test unclaimed public directory contact disclosure; obtain off-site backup + restore evidence; coordinate RC472 migration and Edge release.
+
+
+
 ## 2026-11-18 — Pass 301–330 — public directory contact disclosure controls
 
-- Completed read-only aggregate audit of Production public directory: 869 published rows, 869 primary phones, 178 secondary phones, 869 exact addresses, zero directory contact-consent flags, 868 unclaimed and zero claimed. No row-level personal data was selected.
-- Added RC473 private forced-RLS contact-consent registry with separate PHONE, SECONDARY_PHONE, ADDRESS and PRECISE_LOCATION scopes; active-grant uniqueness; retained revocation audit; no browser-role table access.
-- Public directory output now fails closed for phone, secondary phone, exact address and Google Maps link unless matching consent is active. Public free-text search no longer probes contact fields; address filter is scoped to listings with active ADDRESS consent.
-- Added owner-only authenticated consent grant/revoke Edge action, including revocation while listing is hidden; added four separate controls to the existing owner page and client helper.
-- Added PostgreSQL fixture/integration checks and source contract/search-side-channel validator.
-- Focused workflow passed on intermediate head `3bb3820045ff8bde9fd72d97e044cf7256765051`. Final head `a9946412e0d004dd990a9fa54e35a2fcfa1493f3` is being rechecked.
-- RC472 PR #757 merged as `ae090081015b0c3af410fb6ee114165f300b1bba`. Post-merge RC472 tests, migration-chain replay, primary catalog build/browser E2E, cross-module checks and Pages deployment run `44200224475` all passed. Deployed V6 root, legacy rollback, Preview alias, dashboard/mobile/QR routes verified.
-- Production ledger remains at `20261110150618`; RC472/RC473 migrations and Edge Function source have not been applied/deployed to Production. No Production DDL/DML, Auth/RLS/GRANT, Edge, payment or finance action occurred.
-- Independent source-rights gate remains open across all 869 published rows: the Production evidence registry is empty and no row references approved permission. `dalil140.com` accounts for 746 rows across labels (one label accounts for 497); Google Maps URLs account for 49. Do not bulk republish restricted sources without written dataset-specific permission.
-- Next: finish final-head RC473 CI and review, open/merge PR only when green; then prepare separately authorized Production rollout with backup/rollback evidence.
+- Read-only Production aggregate: 965 total directory listings, 869 published, 964 unclaimed; 868 published/unclaimed rows expose phone and address through live `directory-listings` v16. No contact values or row-level personal data were selected.
+- Published source audit: 26 distinct source hosts; `dalil140.com` accounts for 746 rows across source labels (one label accounts for 497); Google Maps URLs account for 49. Production `directory_source_permission_evidence` has zero rows and none of the published listings references a source evidence ID.
+- Added RC473 private forced-RLS contact-consent registry with separate PHONE, SECONDARY_PHONE, ADDRESS and PRECISE_LOCATION scopes, active-grant uniqueness and retained revocation audit.
+- Public directory output fails closed for phone, secondary phone, exact address and precise Maps URL; public free-text search excludes contact fields; explicit address filtering requires active ADDRESS consent.
+- Added authenticated claimed-owner grant/revoke action, four explicit consent controls in the existing owner page, PostgreSQL integration tests, source projection/search tests, Deno check and frontend build workflow.
+- Updated the doctor incremental-import validator and existing output-contract tests to recognize the consent-aware serializer after the first PR run exposed stale assertions.
+- Focused RC473 tests passed on intermediate head `a9946412e0d004dd990a9fa54e35a2fcfa1493f3`; exact-head rerun is pending after latest-main sync.
+- PR #757 RC472 merged; main deployment and main post-merge CI passed. Production RC472/RC473 migrations and Edge deployment remain unapplied; live directory-listings Edge remains v16.
+- Supabase Free plan and no verified off-site backup/restore artifact remain Production release blockers. Source rights remain unresolved across all 869 published rows; do not bulk republish without written dataset-specific permission.
+- Next: pass final PR CI, review and merge; then obtain backup/restore evidence and separately authorize ordered RC472/RC473 Production migration + Edge rollout.
