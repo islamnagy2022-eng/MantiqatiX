@@ -5,6 +5,7 @@ on:
     paths:
       - "supabase/migrations/20261118010000_rc472_directory_claim_review_atomicity.sql"
       - "supabase/tests/rc472_directory_claim_*"
+      - "scripts/production/test-directory-claim-concurrency.sh"
       - ".github/workflows/directory-claim-atomicity.yml"
   pull_request:
     branches: [main]
