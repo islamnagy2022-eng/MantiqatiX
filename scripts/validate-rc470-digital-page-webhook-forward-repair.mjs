@@ -12,7 +12,7 @@ for (const marker of [
   "a5e65a21d159846e2814c82bb89925ce",
   "RC470_UNEXPECTED_LEGACY_PROCESSOR_BODY",
   "RC470_UNEXPECTED_HARDENED_PROCESSOR_BODY",
-  "set search_path = ''",
+  "SET search_path = ''",
   "pg_advisory_xact_lock",
   "DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH",
   "DIGITAL_PAGE_EVENT_TRANSACTION_MISMATCH",
