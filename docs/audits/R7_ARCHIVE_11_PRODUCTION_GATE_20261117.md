@@ -67,7 +67,7 @@ This is a partial physical preflight, not a complete 60-object reconciliation. D
 
 ## 3. Migration source/ledger reconciliation
 
-The existing release reconciliation manifest on `main` is stale: it records a 309-row ledger ending at `20261101140105`, whereas the live read-only inventory now has 310 rows ending at `20261110150618`. The source file `supabase/migrations/20261110150618_revoke_public_execute_from_trigger_functions.sql` is not present at that path on current `main`.
+The existing release reconciliation manifest on `main` is stale: it records a 309-row ledger ending at `20261101140105`, whereas the live read-only inventory now has 310 rows ending at `20261110150618`. The source file `supabase/migrations/20261110150618_revoke_public_execute_from_trigger_functions.sql` was absent from current `main`, but its exact SQL was recovered read-only from `supabase_migrations.schema_migrations.statements` and restored on this audit branch.
 
 Do not fabricate a migration row or replay this migration blindly. Recover the exact deployed migration source from its authoritative PR/artifact, compare its SQL and checksum with the live physical state, and restore the immutable source file under the correct version before marking source/ledger parity complete.
 
@@ -103,3 +103,7 @@ Current `main` does contain the immutable RC463 source `supabase/migrations/2026
 The live 310-row ledger does not contain RC463 version `20261031100000`, although its source file exists on `main`. It does contain the later version `20261110150618_revoke_public_execute_from_trigger_functions`, whose source file is missing from `main`. Do not assume the later version is an alias of RC463: the observed live function configuration is not fully equivalent to RC463. Recover the exact deployed SQL/PR artifact and inspect any intervening ALTER FUNCTION statement before deciding whether a forward-only repair is required. Do not replay RC463 out of chronological order.
 
 A cross-session history check adds an important exclusion: PR #722's RC candidate was explicitly **not** applied to Production. The prior conversation history contains no exact SQL, deployment source, branch/commit, or execution evidence for live migration `20261110150618`. Therefore, do not infer that the migration came from PR #722 or reconstruct its contents from the migration name. The exact source remains an external recovery blocker.
+
+### Exact source recovery verification
+
+The stored migration row contains one SQL statement (374 characters), no rollback entry, and its database-side SHA-256 is `b462abcd9205345901c389102992d9ee31aa6d293a5e7bb5e9f6114f0f43afed`. The restored file was independently hashed locally and produced the same SHA-256. Its contents are therefore byte-identical to the stored migration statement. The file restoration is source-only; the Production migration was not executed again.
