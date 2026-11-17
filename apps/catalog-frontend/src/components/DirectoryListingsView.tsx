@@ -198,7 +198,7 @@ export const DirectoryListingsView: React.FC<{
     setOwnerBusy(true); setClaimError(""); setClaimMessage("");
     try {
       const saved = await updateOwnedDirectoryListing({ listingId: detail.id, ...ownerForm });
-      setDetail({ ...saved, public_contact_consent_scopes: contactConsentScopes });
+      setDetail({ ...saved, public_contact_consent_scopes: contactConsentScopes, contact_consent_ready: detail.contact_consent_ready });
       setOwnerEditOpen(false);
       setClaimMessage("تم حفظ بيانات الصفحة. يمكنك العودة واستكمالها لاحقًا من حسابك.");
     } catch (error) {
@@ -264,7 +264,7 @@ export const DirectoryListingsView: React.FC<{
                 <button disabled={ownerBusy} className="rounded-xl bg-emerald-700 px-5 py-3 text-sm font-black text-white disabled:opacity-50">{ownerBusy ? "جارٍ الحفظ…" : "حفظ التعديلات"}</button>
               </form>}
             </div>}
-            {detail.can_edit && <div className="mt-3 space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+            {detail.can_edit && detail.contact_consent_ready && <div className="mt-3 space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
               <div>
                 <h2 className="font-black text-slate-900">موافقة عرض بيانات التواصل للجمهور</h2>
                 <p className="mt-1 text-xs leading-6 text-slate-600">البيانات مخفية افتراضيًا. اختر كل نوع تريد إظهاره بشكل مستقل، ويمكنك إلغاء الموافقة في أي وقت.</p>
