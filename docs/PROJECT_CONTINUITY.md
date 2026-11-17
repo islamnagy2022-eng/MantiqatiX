@@ -1884,3 +1884,9 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - Added regression assertions to `scripts/production/validate-doctor-incremental-import.mjs`. The existing doctor incremental-import workflow already watches the changed Edge Function, admin component and validator.
 - Pass 151–190 audit report: `docs/audits/PASS_151_190_DIRECTORY_LOCATION_INTEGRITY_20261117.md`.
 - Changes are source-only in PR #756; no migration, production row, Supabase deployment, RLS/GRANT, Auth, payment or Pages change. Exact-head CI is pending; merge remains blocked until all required checks pass.
+
+
+### Pass 151–190 supplemental owner-edit coverage
+
+- Extended the location-integrity fix to the owner-managed public directory profile editor: removed its Monufia / Berket El-Sabaa fallback, made governorate/district required, and added a backend `LOCATION_REQUIRED` check while preserving existing claimed-owner authorization and metadata allowlisting.
+- Added owner-edit assertions to the doctor incremental-import source validator. No production row or schema change.
