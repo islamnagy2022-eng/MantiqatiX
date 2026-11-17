@@ -82,3 +82,19 @@ The available repository connector did not provide a directory-tree/schema-disco
 - No production DB, RLS, grants, Auth, Edge Function, payment, or Pages deployment changed.
 - PR #756 remains open and unmerged.
 - CI for the reviewed head `47aba334...`: all 12 PR-triggered workflow runs completed successfully. This does not resolve the atomicity blocker or certify production.
+
+
+## Production schema cross-check (read-only, 2026-11-17)
+
+The earlier note that schema definitions were not available through the repository connector is superseded by a read-only inspection of the connected active project `MANTIQATIX FINAL` (`moyhiluyhjsujhwlyeuu`). No SQL writes were issued.
+
+- `directory_listing_claim_requests`: UUID primary key; listing/user UUID foreign keys; status CHECK permits PENDING, REVIEWING, APPROVED, REJECTED, CANCELLED; one-open-request partial unique index on (listing_id,user_id) for PENDING/REVIEWING.
+- `public_directory_listings`: UUID primary key; claim status CHECK permits UNCLAIMED, CLAIM_PENDING, CLAIMED; claimed user/business foreign keys; updated_at trigger only.
+- `user_memberships`: text primary key; user UUID, tenant/business UUID, organization/branch text, role, JSONB permissions, status; unique index currently is `uk_user_biz_branch (user_id,business_id,branch_id)`, whose nullable branch key does not prevent duplicate business-wide rows under PostgreSQL default NULL semantics.
+- `businesses`: UUID primary key; tenant and optional organization text keys; status CHECK; JSONB settings; updated_at trigger and a deferred AFTER INSERT default-owner trigger.
+- Triggers observed: claim/listing updated_at triggers, business updated_at/legal activation triggers, deferred default-owner assignment trigger, and membership legal employee-activation trigger.
+- Production migration history does **not** contain version `20261027090000`; the repository migration `20261027090000_rc113_user_membership_business_scope_idempotency.sql` is therefore not reflected in the connected production migration history.
+- Read-only preflight: 10 business-wide memberships; 0 duplicate (user_id,business_id) groups among rows with branch_id IS NULL. The absence of duplicates today does not replace the missing uniqueness invariant.
+- Aggregate workflow state at inspection: one REVIEWING claim and one CLAIM_PENDING listing; no claim/user identifiers or contact data were retrieved.
+
+**Updated design constraint:** the claim transaction must explicitly account for the deferred default-owner trigger, the existing business-wide unique-index gap, the legal activation triggers, and current schema types. Do not blindly apply the repo migration to Production. First reconcile migration history and inspect the exact deployed migration source; then create and test a separate reviewed migration on a disposable/development database branch. No development branch was created because its cost/compute implications were not confirmed.
