@@ -5,6 +5,11 @@ on:
     paths:
       - "supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql"
       - "supabase/migrations/20261031064300_rc462_platform_admin_registry_authority_convergence.sql"
+      - "supabase/migrations/20261117190000_rc471_mantigo_platform_admin_forward_hardening.sql"
+      - "supabase/tests/mantigo_financial_report_live_columns.sql"
+      - "supabase/tests/r7_platform_admin_helper_callers_fixture.sql"
+      - "supabase/tests/r7_platform_admin_helper_callers_integration.sql"
+      - "scripts/validate-r7-platform-admin-migration.mjs"
       - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
       - "scripts/validate-mantigo-platform-admin-scope.mjs"
@@ -14,6 +19,11 @@ on:
     paths:
       - "supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql"
       - "supabase/migrations/20261031064300_rc462_platform_admin_registry_authority_convergence.sql"
+      - "supabase/migrations/20261117190000_rc471_mantigo_platform_admin_forward_hardening.sql"
+      - "supabase/tests/mantigo_financial_report_live_columns.sql"
+      - "supabase/tests/r7_platform_admin_helper_callers_fixture.sql"
+      - "supabase/tests/r7_platform_admin_helper_callers_integration.sql"
+      - "scripts/validate-r7-platform-admin-migration.mjs"
       - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
       - "scripts/validate-mantigo-platform-admin-scope.mjs"
@@ -43,6 +53,8 @@ jobs:
           node-version: "22"
       - name: Static platform-admin contract
         run: node scripts/validate-mantigo-platform-admin-scope.mjs
+      - name: Static RC471 forward migration contract
+        run: node scripts/validate-r7-platform-admin-migration.mjs
       - name: Apply disposable fixture, migration, and behavioral tests
         shell: bash
         run: |
@@ -52,8 +64,16 @@ jobs:
           docker cp supabase/tests/rc449_mantigo_platform_admin_fixture.sql "$pg_container:/tmp/fixture.sql"
           docker cp supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql "$pg_container:/tmp/rc449.sql"
           docker cp supabase/migrations/20261031064300_rc462_platform_admin_registry_authority_convergence.sql "$pg_container:/tmp/rc462.sql"
+          docker cp supabase/tests/r7_platform_admin_helper_callers_fixture.sql "$pg_container:/tmp/r7-callers.sql"
+          docker cp supabase/migrations/20261117190000_rc471_mantigo_platform_admin_forward_hardening.sql "$pg_container:/tmp/rc471.sql"
+          docker cp supabase/tests/mantigo_financial_report_live_columns.sql "$pg_container:/tmp/financial-report-test.sql"
+          docker cp supabase/tests/r7_platform_admin_helper_callers_integration.sql "$pg_container:/tmp/r7-helper-callers-test.sql"
           docker cp supabase/tests/rc449_mantigo_platform_admin_integration.sql "$pg_container:/tmp/rc449-test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc462.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/r7-callers.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc471.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449-test.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/financial-report-test.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/r7-helper-callers-test.sql
