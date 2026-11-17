@@ -1,3 +1,18 @@
+# Latest execution checkpoint — 2026-11-18 — Directory claim atomicity (Pass 271–300)
+
+**Status:** implementation committed to branch; exact-head CI/review pending. Full Production release remains **BLOCKED / NOT CERTIFIED**.
+
+- Current base `main`: `300eb8a0e9808c45dee2eefc77c3e9e19f425559` (PR #756 merged).
+- PR #756 consent-gated public contact/precise-location hardening is merged. Its PR-triggered workflows, including public-contact privacy and the Pages deployment workflow associated with the merge, reported success. The merged change does not deploy Supabase Edge Functions or modify Production DB grants/RLS.
+- New branch: `fix/directory-claim-atomicity-20261118`.
+- Read-only Production inspection: 310 migration rows through `20261110150618`; `20261027090000` is absent from the live ledger; existing `uk_user_biz_branch` permits duplicate NULL branch keys; preflight found 0 duplicate business-wide membership groups.
+- Implemented forward-only RC472 migration and transactional RPC; changed Edge REVIEW_CLAIM to call the RPC; added PostgreSQL fixture/integration tests and CI workflow. Details: `docs/audits/PASS_271_300_DIRECTORY_CLAIM_ATOMICITY_20261118.md`.
+- PostgreSQL integration, two-session concurrency race, and Deno type-check passed on branch head `94fe788fb1f92a902bc613f65c0a7334d9146798`. Remaining repository-wide PR checks and final review are pending.
+- No Supabase development branch was created (no cost-bearing compute started). No Production migration, data mutation, Auth/RLS/GRANT change, Edge deployment, payment action, or Pages deployment occurred from this branch.
+- **Next:** finish remaining repository-wide PR checks; review final diff; merge only when all required checks are green. Then continue remaining public directory contact-consent policy and broader P0 release blockers.
+
+---
+
 # Latest verified checkpoint — 2026-11-17 — R7 archive 11 + live Production parity refresh
 
 **Request ID:** `R-20261117-CONTINUE-R7-PRODUCTION-GATE`  

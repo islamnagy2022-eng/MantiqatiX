@@ -1,0 +1,63 @@
+name: Directory Claim Atomicity
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/migrations/20261118010000_rc472_directory_claim_review_atomicity.sql"
+      - "supabase/tests/rc472_directory_claim_*"
+      - "scripts/production/test-directory-claim-concurrency.sh"
+      - ".github/workflows/directory-claim-atomicity.yml"
+      - "TODO_PRODUCTION.md"
+      - "docs/PROJECT_CONTINUITY.md"
+      - "docs/SESSION_LOG.md"
+      - "docs/audits/PASS_271_300_DIRECTORY_CLAIM_ATOMICITY_20261118.md"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261118010000_rc472_directory_claim_review_atomicity.sql"
+      - "supabase/tests/rc472_directory_claim_*"
+      - "scripts/production/test-directory-claim-concurrency.sh"
+      - ".github/workflows/directory-claim-atomicity.yml"
+      - "TODO_PRODUCTION.md"
+      - "docs/PROJECT_CONTINUITY.md"
+      - "docs/SESSION_LOG.md"
+      - "docs/audits/PASS_271_300_DIRECTORY_CLAIM_ATOMICITY_20261118.md"
+permissions:
+  contents: read
+jobs:
+  directory-claim-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_directory_claim_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_directory_claim_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Apply isolated fixture, migration and integration assertions
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc472_directory_claim_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261118010000_rc472_directory_claim_review_atomicity.sql "$pg_container:/tmp/migration.sql"
+          docker cp supabase/tests/rc472_directory_claim_integration.sql "$pg_container:/tmp/test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_directory_claim_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_directory_claim_test -v ON_ERROR_STOP=1 -f /tmp/migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_directory_claim_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
+      - name: Race two claim approvals against the same business
+        run: bash scripts/production/test-directory-claim-concurrency.sh
+      - name: Type-check directory Edge Function
+        run: deno check --node-modules-dir=auto supabase/functions/directory-listings/index.ts
