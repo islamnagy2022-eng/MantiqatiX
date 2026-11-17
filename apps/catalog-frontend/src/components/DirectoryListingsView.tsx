@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ArrowRight, BadgeCheck, Building2, CalendarClock, CheckCircle2, ClipboardList, ExternalLink, MapPin, Phone, Search, ShieldAlert, UserRoundCheck } from "lucide-react";
 import { useApp } from "../context/AppContext";
-import { fetchPublicDirectoryListings, submitDirectoryListingClaim, updateOwnedDirectoryListing, type PublicDirectoryListing } from "../lib/directoryListings";
+import { fetchPublicDirectoryListings, setPublicDirectoryListingContactConsent, submitDirectoryListingClaim, updateOwnedDirectoryListing, type DirectoryContactConsentScope, type PublicDirectoryListing } from "../lib/directoryListings";
 import { resolveCanonicalSpecialty } from "../data/productionDefaults";
 import { UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from "../utils/defaultImages";
 
@@ -56,6 +56,9 @@ export const DirectoryListingsView: React.FC<{
   const [claimError, setClaimError] = useState("");
   const [ownerEditOpen, setOwnerEditOpen] = useState(false);
   const [ownerBusy, setOwnerBusy] = useState(false);
+  const [contactConsentScopes, setContactConsentScopes] = useState<DirectoryContactConsentScope[]>([]);
+  const [contactConsentBusy, setContactConsentBusy] = useState(false);
+  const [contactConsentMessage, setContactConsentMessage] = useState("");
   const [ownerForm, setOwnerForm] = useState({
     displayName: "", specialty: "", phone: "", secondaryPhone: "", address: "", profileImageUrl: "",
     governorate: "", district: "", village: "",
@@ -68,7 +71,11 @@ export const DirectoryListingsView: React.FC<{
     setLoadError("");
     const load = detailSlug
       ? fetchPublicDirectoryListings(detailSlug).then((record) => {
-          if (alive) setDetail(record && !Array.isArray(record) ? record : null);
+          if (alive) {
+            const selected = record && !Array.isArray(record) ? record : null;
+            setDetail(selected);
+            setContactConsentScopes((selected?.public_contact_consent_scopes || []) as DirectoryContactConsentScope[]);
+          }
         })
       : fetchPublicDirectoryListings().then((records) => {
           if (alive) setListings(Array.isArray(records) ? records : []);
@@ -166,13 +173,32 @@ export const DirectoryListingsView: React.FC<{
     }
   };
 
+  const handleContactConsentChange = async (scope: DirectoryContactConsentScope, enabled: boolean) => {
+    if (!detail || !detail.can_edit || contactConsentBusy) return;
+    setContactConsentBusy(true);
+    setContactConsentMessage("");
+    setClaimError("");
+    try {
+      await setPublicDirectoryListingContactConsent({ listingId: detail.id, scope, enabled });
+      const refreshed = await fetchPublicDirectoryListings(detail.slug);
+      if (refreshed && !Array.isArray(refreshed)) {
+        setDetail(refreshed);
+        setContactConsentScopes((refreshed.public_contact_consent_scopes || []) as DirectoryContactConsentScope[]);
+      }
+      setContactConsentMessage(enabled ? "تم تسجيل موافقتك. ستظهر البيانات المحددة للجمهور." : "تم إلغاء الموافقة وإخفاء البيانات المحددة من العرض العام.");
+    } catch (error) {
+      setClaimError(error instanceof Error ? error.message : "تعذر تحديث موافقة عرض البيانات.");
+    } finally {
+      setContactConsentBusy(false);
+    }
+  };
   const handleOwnerUpdate = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!detail || !detail.can_edit) return;
     setOwnerBusy(true); setClaimError(""); setClaimMessage("");
     try {
       const saved = await updateOwnedDirectoryListing({ listingId: detail.id, ...ownerForm });
-      setDetail(saved);
+      setDetail({ ...saved, public_contact_consent_scopes: contactConsentScopes });
       setOwnerEditOpen(false);
       setClaimMessage("تم حفظ بيانات الصفحة. يمكنك العودة واستكمالها لاحقًا من حسابك.");
     } catch (error) {
@@ -237,6 +263,29 @@ export const DirectoryListingsView: React.FC<{
                 <label className="block text-xs font-bold text-slate-700">روابط التواصل (كل رابط في سطر)<textarea rows={3} value={ownerForm.socialLinks} onChange={(e) => setOwnerForm({ ...ownerForm, socialLinks: e.target.value })} placeholder="https://..." dir="ltr" className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-left" /></label>
                 <button disabled={ownerBusy} className="rounded-xl bg-emerald-700 px-5 py-3 text-sm font-black text-white disabled:opacity-50">{ownerBusy ? "جارٍ الحفظ…" : "حفظ التعديلات"}</button>
               </form>}
+            </div>}
+            {detail.can_edit && <div className="mt-3 space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+              <div>
+                <h2 className="font-black text-slate-900">موافقة عرض بيانات التواصل للجمهور</h2>
+                <p className="mt-1 text-xs leading-6 text-slate-600">البيانات مخفية افتراضيًا. اختر كل نوع تريد إظهاره بشكل مستقل، ويمكنك إلغاء الموافقة في أي وقت.</p>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {([
+                  ["PHONE", "أوافق على إظهار رقم التواصل الأساسي"],
+                  ["SECONDARY_PHONE", "أوافق على إظهار رقم التواصل الإضافي"],
+                  ["ADDRESS", "أوافق على إظهار العنوان التفصيلي"],
+                  ["PRECISE_LOCATION", "أوافق على إظهار الموقع الدقيق على الخريطة"],
+                ] as Array<[DirectoryContactConsentScope, string]>).map(([scope, label]) => (
+                  <label key={scope} className="flex items-start gap-3 rounded-xl border border-slate-200 p-3 text-sm font-bold text-slate-800">
+                    <input type="checkbox" checked={contactConsentScopes.includes(scope)} disabled={contactConsentBusy}
+                      onChange={(event) => void handleContactConsentChange(scope, event.target.checked)}
+                      className="mt-0.5 h-4 w-4 accent-emerald-700" />
+                    <span>{label}</span>
+                  </label>
+                ))}
+              </div>
+              {contactConsentBusy && <p role="status" className="text-xs font-bold text-slate-600">جارٍ تحديث الموافقة…</p>}
+              {contactConsentMessage && <p role="status" className="text-xs font-bold text-emerald-800">{contactConsentMessage}</p>}
             </div>}
                         <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500"><CalendarClock className="h-3.5 w-3.5" /> آخر مراجعة للمصدر: {new Date(detail.source_checked_at).toLocaleDateString("ar-EG")} <span>•</span><span>المصدر: {detail.source_name}</span>{detail.source_url && <a href={detail.source_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold text-emerald-800 underline">فتح المصدر <ExternalLink className="h-3 w-3" /></a>}</div>
             {claimMessage && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold leading-6 text-emerald-900">{claimMessage}</div>}
