@@ -123,6 +123,10 @@ jobs:
                 echo "RESTORE_TEST_ONLY_KNOWN_LIVE_BUSINESS_BRANCH_ANON_ACL_OVERLAY"
                 psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/production_live_business_branch_anon_acl_overlay_fixture.sql
               fi
+              if [[ "$filename" == "20261117010000_rc469_shared_platform_admin_caller_search_path.sql" ]]; then
+                echo "RESTORE_TEST_ONLY_KNOWN_LIVE_SHARED_CALLER_SEARCH_PATH_AND_ACL_OVERLAY"
+                psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/rc469_live_shared_helper_search_path_overlay.sql
+              fi
               echo "REPLAY_MIGRATION=$filename"
               psql "$db_url" -v ON_ERROR_STOP=1 -f "$migration"
               migration_count=$((migration_count + 1))
