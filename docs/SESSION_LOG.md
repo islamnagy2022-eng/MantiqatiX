@@ -2539,3 +2539,17 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Supabase Advisor: 9 RLS/no-policy, 1 anon-executable SECURITY DEFINER, 65 authenticated-executable SECURITY DEFINER, leaked-password protection warning; performance counts 132 unindexed FKs, 375 auth_rls_initplan, 28 multiple permissive policies.
 - Reviewed historical RC117 source on closed PR #410. It is not in main or the live ledger; its marketing_services backfill can overwrite a non-empty owner image when image_source is null/invalid. Do not replay it or port unchanged. The next image task is a forward-only repair with explicit custom-image preservation and insert/update integration tests.
 - Updated manifest and added `docs/audits/PRODUCTION_RECONCILIATION_20261117.md` on this documentation branch. No Production writes occurred.
+
+
+## 2026-11-17 — Pass 47–66 execution
+
+- Pass 47: reviewed live definitions/ACLs for four shared platform-admin SECURITY DEFINER callers; merged RC469 PR #746 as `c1b9ee70a671223c65ece8924b4de42d538e8612`.
+- Pass 48: refreshed read-only migration inventory: 310 live entries, latest `20261110150618`; 208 repository migration files; 41 exact version filename matches; 42 required release IDs still absent. This is not complete statement/physical parity.
+- Pass 49: triaged stale open PRs and merged the current Production audit docs PR #745 as `877122001f2b33542c1dacbeaeb29cdab9337f34`.
+- Pass 50: refreshed RC468 payment claim migration/tests/workflow onto current main; merged PR #747 as `370381d570d9fbf92892a768f8f80fde2c8cf119`. Exact-head CI 23 success, 2 Pages jobs skipped. No Production deployment.
+- Pass 51: post-merge main CI was 12 success / 2 in progress; live Supabase migration count remained 310.
+- Passes 52–55: audited nine RLS/no-policy tables and ACLs, enumerated definer-function access paths, reviewed the public targeted-ad RPC, and confirmed live RC431 payment-processor drift from main.
+- Passes 56–64: reverified R7 archive and directive hashes; checked 15-sector/180 default images; confirmed package test scripts are incomplete; inspected Android WebView bridge; reproduced token minting/admin bypass/refresh fallback, unauthenticated state routes, local JSON persistence and hard-coded secret fallbacks.
+- Pass 65: reconfirmed 42 ACTIVE Edge Functions and six critical live/main source mismatches. No Edge deploy.
+- Pass 66: wrote the detailed pass report and updated the cross-session TODO/continuity record on a dedicated documentation branch.
+- No Production migration, data mutation, Auth/RLS/GRANT change, Edge deployment, payment/settlement or website cutover occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
