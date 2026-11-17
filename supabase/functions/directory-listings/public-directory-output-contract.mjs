@@ -73,7 +73,7 @@ function sanitizePublicGoogleMapsUrl(value) {
   }
 }
 
-export function sanitizePublicDirectoryMetadata(value) {
+export function sanitizePublicDirectoryMetadata(value, contactScopes = new Set()) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const source = value;
   const result = {};
@@ -82,7 +82,7 @@ export function sanitizePublicDirectoryMetadata(value) {
     if (PUBLIC_HTTPS_URL_KEYS.has(key)) {
       const safeUrl = sanitizePublicHttpsUrl(item);
       if (safeUrl) result[key] = safeUrl;
-    } else if (key === "google_maps_url") {
+    } else if (key === "google_maps_url") {\n      if (!contactScopes.has("PRECISE_LOCATION")) continue;
       const safeUrl = sanitizePublicGoogleMapsUrl(item);
       if (safeUrl) result[key] = safeUrl;
     } else if (typeof item === "string") result[key] = clean(item, key === "bio" ? 2000 : 1500);
@@ -97,13 +97,13 @@ export function sanitizePublicDirectoryMetadata(value) {
   return result;
 }
 
-export function sanitizePublicDirectoryListing(value) {
+export function sanitizePublicDirectoryListing(value, contactScopes = new Set()) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const publicRow = {};
   for (const key of PUBLIC_LISTING_KEYS) {
     if (key === "metadata") continue;
     if (Object.prototype.hasOwnProperty.call(value, key)) publicRow[key] = value[key];
   }
-  publicRow.metadata = sanitizePublicDirectoryMetadata(value.metadata);
+  publicRow.metadata = sanitizePublicDirectoryMetadata(value.metadata, contactScopes);
   return publicRow;
 }
