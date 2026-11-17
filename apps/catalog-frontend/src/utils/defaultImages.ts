@@ -33,6 +33,7 @@ function inferArt(input: DefaultImageInput): ArtKey {
   if (/عياد|طبي|طبيب|أسنان|مستشفى|صحة|health|medical|clinic|hospital|dent/.test(text)) return 'health';
   if (/مطعم|مأكولات|أطعمة|غذاء|أغذية|وجبات|مخبز|حلويات|قهوة|كافيه|food|restaurant|bakery|cafe|coffee/.test(text)) return 'food';
   if (/سيار|قطع غيار|ميكانيك|كهرباء سيارات|auto|car|vehicle/.test(text)) return 'auto';
+  if (/صيانة|تصليح|إصلاح|سباك|نجار|حداد|تكييف|maintenance|repair|plumb|carpenter|handyman|air conditioning/.test(text)) return 'maintenance';
   if (/ملابس|أزياء|موضة|خياطة|بوتيك|fashion|clothing|apparel/.test(text)) return 'fashion';
   if (/بقال|سوبر ماركت|خضروات|فاكهة|مواد غذائية|تسوق|grocery|market|supermarket/.test(text)) return 'grocery';
   if (/تعليم|تدريب|مدرس|دروس|جامعة|كتب|education|training|school|tutor/.test(text)) return 'education';
