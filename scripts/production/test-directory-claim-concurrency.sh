@@ -18,7 +18,7 @@ if docker exec "$pg_container" psql -U postgres -d mantiqatix_directory_claim_te
 fi
 
 wait "$first_pid"
-grep -q '"status": "APPROVED"' /tmp/claim-first.log || grep -q '"status": "APPROVED"' /tmp/claim-first.log || {
+grep -q '"status": "APPROVED"' /tmp/claim-first.log || {
   cat /tmp/claim-first.log
   echo "FAIL: first concurrent approval did not commit"
   exit 1
