@@ -2073,9 +2073,9 @@ Evidence: `docs/audits/PASS_231_270_DIRECTORY_CLAIM_ATOMICITY_20261117.md`.
 - [x] Implement a service-role-only transactional claim review RPC with row locks, state guards, owner conflict checks and atomic membership/listing/claim writes.
 - [x] Route Edge Function REVIEW_CLAIM through the transactional RPC while retaining platform-admin and tenant-scope checks.
 - [x] Add PostgreSQL fixture and rollback/authorization integration assertions.
-- [ ] Add and run a true multi-session concurrent-review test.
-- [ ] Pass exact-head PostgreSQL integration and Deno type-check; fix failures and rerun on final head.
-- [ ] Complete review, merge, and verify main.
+- [x] Add and run a true multi-session concurrent-review test; two sessions raced for the same business and exactly one approval committed.
+- [x] Pass PostgreSQL integration, concurrency and Deno type-check on branch head `94fe788fb1f92a902bc613f65c0a7334d9146798`.
+- [ ] Complete remaining repository-wide PR checks and review, merge, and verify main.
 - [ ] Separately approve and execute Production migration + Edge deployment with backup/rollback evidence.
 
 Evidence: `docs/audits/PASS_271_300_DIRECTORY_CLAIM_ATOMICITY_20261118.md`. Source-only branch; no Production mutation or deployment.
