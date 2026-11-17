@@ -192,7 +192,7 @@ CREATE OR REPLACE FUNCTION public.admin_create_global_ad(
 RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = ''
+SET search_path TO 'public', 'pg_temp'
 AS $function$
 BEGIN
   IF NOT public.mnty_can_platform_admin() THEN RAISE EXCEPTION 'PLATFORM_ADMIN_REQUIRED'; END IF;
@@ -208,7 +208,7 @@ CREATE OR REPLACE FUNCTION public.fulfill_digital_page_publish(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = ''
+SET search_path TO 'public', 'pg_temp'
 AS $function$
 BEGIN
   IF p_actor_user_id IS NULL OR p_actor_user_id <> auth.uid() THEN RAISE EXCEPTION 'USER_CONTEXT_MISMATCH'; END IF;
@@ -229,7 +229,7 @@ CREATE OR REPLACE FUNCTION public.review_mantigo_captain_application(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = ''
+SET search_path TO 'public'
 AS $function$
 BEGIN
   IF p_admin_user_id IS NULL OR p_admin_user_id <> auth.uid() THEN RAISE EXCEPTION 'USER_CONTEXT_MISMATCH'; END IF;
@@ -246,7 +246,7 @@ CREATE OR REPLACE FUNCTION public.set_mantigo_financial_config_backend(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = ''
+SET search_path TO 'public'
 AS $function$
 BEGIN
   IF p_admin_user_id IS NULL OR p_admin_user_id <> auth.uid() THEN RAISE EXCEPTION 'USER_CONTEXT_MISMATCH'; END IF;
