@@ -1866,3 +1866,12 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - Kept PR #756 bounded; no directory-listings code, schema, migration, RLS, grants or production data were changed. Follow-up: determine source republication and owner/claim consent requirements for imported/unclaimed versus claimed listings, then add tests before changing the public contract.
 - PR #756 validator was corrected to expect audited public Maps projection in public catalog endpoints and preserve private maps data only for authenticated catalog-admin reads. New exact-head CI is 24 success, 2 skipped, 0 failed, with one browser E2E check still running at checkpoint.
 - No Production Edge deployment, DB/Auth/RLS/GRANT mutation, payment, settlement or Pages cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-11-17 — Pass 151–190 directory claim and public-output review
+
+- Completed Pass 151–190 covering claim request lifecycle, owner-only editing, source-permission administration, incremental import safeguards and public output serialization.
+- Fixed a partial owner-edit fallback that could silently reset omitted location fields to المنوفية / بركة السبع: the Edge Function now reads and preserves the stored governorate, district and village. Added static regression assertions.
+- Hardened public directory `google_maps_url` metadata: only HTTPS Google Maps destinations on the explicit approved host list are returned. Added positive/negative behavior tests and validator checks.
+- Remaining: claim approval is a multi-write non-transactional flow; claim rejection ignores failure from releasing the listing lock. Require a single atomic database operation before treating claim workflow as fully production-hardened.
+- Exact-head CI for the new source changes is pending. No Production Edge deployment, database/schema/data/RLS/GRANT/Auth mutation, payment/settlement action or Pages cutover. Full production gate remains BLOCKED / NOT CERTIFIED.
