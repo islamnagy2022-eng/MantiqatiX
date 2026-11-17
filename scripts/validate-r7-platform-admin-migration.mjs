@@ -7,6 +7,9 @@ const callers = read("../supabase/tests/r7_platform_admin_helper_callers_fixture
 const integration = read("../supabase/tests/r7_platform_admin_helper_callers_integration.sql");
 const financialReportTest = read("../supabase/tests/mantigo_financial_report_live_columns.sql");
 const workflow = read("../.github/workflows/mantigo-platform-admin-scope.yml");
+const workflowExecutionOrder = workflow.split("\\n")
+  .filter((line) => line.includes('docker exec "$pg_container"') && line.includes("psql"))
+  .join("\\n");
 
 const checks = [
   ["financial report uses live ledger columns", /sum\(l\.gross_amount\)/.test(migration) && /sum\(l\.captain_net_amount\)/.test(migration) && !/sum\(l\.amount\)|sum\(l\.captain_amount\)/.test(migration)],
@@ -30,7 +33,13 @@ const checks = [
   ].every((marker) => migration.includes(marker))],
   ["PostgreSQL integration verifies all four helper callers have empty search_path", integration.includes("R7_HELPER_CALLER_SEARCH_PATH_NOT_HARDENED") && integration.includes("p.proconfig @> ARRAY['search_path=\"\"']")],
 
-  ["workflow applies RC449 then RC462 then caller fixture then RC471 migration and both integration suites", workflow.indexOf("/tmp/rc449.sql") < workflow.indexOf("/tmp/rc462.sql") && workflow.indexOf("/tmp/r7-callers.sql") < workflow.indexOf("/tmp/rc471.sql") && workflow.indexOf("/tmp/rc471.sql") < workflow.indexOf("/tmp/rc449-test.sql") && workflow.indexOf("/tmp/rc449-test.sql") < workflow.indexOf("/tmp/financial-report-test.sql") && workflow.indexOf("/tmp/financial-report-test.sql") < workflow.indexOf("/tmp/r7-helper-callers-test.sql")],
+  ["workflow executes RC449 then RC462 then caller fixture then RC471 then RC449/report/helper integration tests", [
+    "/tmp/fixture.sql","/tmp/rc449.sql","/tmp/rc462.sql","/tmp/r7-callers.sql","/tmp/rc471.sql",
+    "/tmp/rc449-test.sql","/tmp/financial-report-test.sql","/tmp/r7-helper-callers-test.sql"
+  ].every((marker, index, ordered) => {
+    const position = workflowExecutionOrder.indexOf(marker);
+    return position >= 0 && (index === 0 || position > workflowExecutionOrder.indexOf(ordered[index - 1]));
+  })],
 ];
 
 for (const [name, ok] of checks) console.log((ok ? "PASS " : "FAIL ") + name);
