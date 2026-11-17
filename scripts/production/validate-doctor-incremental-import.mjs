@@ -142,6 +142,8 @@ assert.match(publicOutputContract, /function sanitizePublicGoogleMapsUrl/, "Publ
 assert.match(publicOutputContract, /url\.protocol !== "https:"/, "Public Maps metadata must reject non-HTTPS URLs");
 assert.match(publicOutputContract, /maps\.app\.goo\.gl/, "Public Maps metadata must retain supported short Google Maps links");
 assert.match(publicOutputContract, /key === "google_maps_url"/, "Google Maps metadata must use the dedicated validator rather than generic string handling");
+assert.match(publicOutputContract, /PUBLIC_HTTPS_URL_KEYS/, "Public profile link and image metadata must be restricted to HTTPS URLs");
+assert.match(publicOutputContract, /function sanitizePublicHttpsUrl/, "Public profile URLs must pass through a dedicated HTTPS sanitizer");
 
 const directoryAdmin = readFileSync("apps/catalog-frontend/src/components/admin/DirectoryListingsAdmin.tsx", "utf8");
 const directoryUpsert = edge.slice(edge.indexOf('if (action === "UPSERT_LISTING")'));
