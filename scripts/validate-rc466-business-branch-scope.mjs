@@ -42,7 +42,7 @@ assert.match(migration, /businesses_manager_delete[\s\S]*?um\.business_id = busi
   "business deletion must remain scoped to the owned business");
 assert.match(migration, /CREATE POLICY businesses_manager_update[\s\S]*?um\.business_id = businesses\.id AND um\.branch_id IS NULL/, "branch-scoped managers must not update business-wide profile rows");
 assert.match(migration, /CREATE POLICY businesses_manager_delete[\s\S]*?um\.business_id = businesses\.id AND um\.branch_id IS NULL/, "branch-scoped managers must not delete business-wide profile rows");
-assert.match(migration, /DROP POLICY branches_super_admin_write[\\s\\S]*?CREATE POLICY branches_super_admin_write[\\s\\S]*?public\\.mnty_can_platform_admin\\(\\)/, "legacy branch admin policy must use the canonical registry guard");
+assert.match(migration, /DROP POLICY branches_super_admin_write[\s\S]*?CREATE POLICY branches_super_admin_write[\s\S]*?public\.mnty_can_platform_admin\(\)/, "legacy branch admin policy must use the canonical registry guard");
 assert.match(fixture, /CREATE TABLE IF NOT EXISTS private\\.platform_admins[\\s\\S]*?FORCE ROW LEVEL SECURITY/, "fixture must model the canonical platform admin registry");
 assert.match(fixture, /CREATE OR REPLACE FUNCTION public\\.mnty_can_platform_admin[\\s\\S]*?FROM private\\.platform_admins/, "fixture helper must read the private registry");
 assert.match(integration, /noncanonical SUPER_ADMIN role bypassed the platform registry/, "integration must reject role-only platform access");
