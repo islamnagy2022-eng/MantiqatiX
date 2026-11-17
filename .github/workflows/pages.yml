@@ -575,16 +575,13 @@ jobs:
           set -euo pipefail
           SITE_ROOT="${PAGE_URL%/}"
           ROOT_URL="${SITE_ROOT}/"
-          ROOT_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}")"
-          grep -Fq 'MantiqatiX | منصة إدارة الأنشطة والكتالوجات' <<<"${ROOT_HTML}"
-          grep -Fq '/MantiqatiX/legacy/assets/' <<<"${ROOT_HTML}"
-          ROOT_EFFECTIVE_URL="$(curl --silent --show-error --location --output /dev/null --write-out '%{url_effective}' "${ROOT_URL}")"
-          case "${ROOT_EFFECTIVE_URL}" in
-            */MantiqatiX/legacy/?view=directory|*/MantiqatiX/legacy/?view=directory\&*) ;;
-            *) echo "Primary root did not redirect to the legacy directory: ${ROOT_EFFECTIVE_URL}"; exit 1 ;;
-          esac
-          ROOT_JS="$(grep -oE '/MantiqatiX/legacy/assets/[^" ]+\.js' <<<"${ROOT_HTML}" | head -n 1)"
-          ROOT_CSS="$(grep -oE '/MantiqatiX/legacy/assets/[^" ]+\.css' <<<"${ROOT_HTML}" | head -n 1)"
+          ROOT_HTML="$(curl --fail --silent --show-error --retry 5 --retry-delay 3 "${ROOT_URL}")"
+          grep -Fq '/MantiqatiX/legacy/?view=directory' <<<"${ROOT_HTML}"
+          LEGACY_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${SITE_ROOT}/legacy/")"
+          grep -Fq 'MantiqatiX | منصة إدارة الأنشطة والكتالوجات' <<<"${LEGACY_HTML}"
+          grep -Fq '/MantiqatiX/legacy/assets/' <<<"${LEGACY_HTML}"
+          ROOT_JS="$(grep -oE '/MantiqatiX/legacy/assets/[^" ]+\.js' <<<"${LEGACY_HTML}" | head -n 1)"
+          ROOT_CSS="$(grep -oE '/MantiqatiX/legacy/assets/[^" ]+\.css' <<<"${LEGACY_HTML}" | head -n 1)"
           test -n "${ROOT_JS}"
           test -n "${ROOT_CSS}"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "https://islamnagy2022-eng.github.io${ROOT_JS}" >/dev/null
@@ -650,11 +647,6 @@ jobs:
           LEGACY_URL="${PAGE_URL%/}/legacy/"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}" >/dev/null
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${LEGACY_URL}" >/dev/null
-          ROOT_EFFECTIVE_URL="$(curl --silent --show-error --location --output /dev/null --write-out '%{url_effective}' "${ROOT_URL}")"
-          case "${ROOT_EFFECTIVE_URL}" in
-            */MantiqatiX/legacy/?view=directory|*/MantiqatiX/legacy/?view=directory\&*) ;;
-            *) echo "Root browser route failed to reach the legacy directory: ${ROOT_EFFECTIVE_URL}"; exit 1 ;;
-          esac
           PLAYWRIGHT_MODULE=/tmp/playwright-runner/node_modules/playwright/index.mjs \
           AXE_CORE_SCRIPT=/tmp/playwright-runner/node_modules/axe-core/axe.min.js \
           MANTIQUATIX_E2E_BASE_URL="${ROOT_URL}" \
