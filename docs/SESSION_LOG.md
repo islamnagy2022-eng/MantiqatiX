@@ -2590,3 +2590,14 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Queried 65 public SECURITY DEFINER functions with anon/authenticated execute: 18 empty search_path, 47 pinned non-empty, 0 unpinned. One anon-executable function; all 65 authenticated-executable; 4 also service_role-executable.
 - Inspected the one anon-executable function `get_mnty_targeted_advertisements`: empty search_path, ACTIVE+APPROVED/time-valid filtering, bounded ad projection and limit 1–50. Retain as a public-discovery candidate with regression tests; no blanket revoke.
 - Confirmed anon/authenticated/service_role lack CREATE on public schema. No production mutation.
+
+## 2026-11-17 — Pass 91–110: public contact consent privacy
+
+- Pass 91: compared old PR #726 against current main; avoided merging the stale broad candidate. Rebuilt only the contact privacy scope on a current-main branch.
+- Pass 92–94: added a shared JavaScript contact projection and unit coverage for no consent, audited consent, pending audit, revocation, invalid phone/WhatsApp URL, field bounds and Google Maps privacy.
+- Pass 95–98: integrated the projection into public-catalog and public-catalog-directory, stripped branch phone/address from their public branch objects, and gated top-level contactPhone.
+- Pass 99–103: added boolean input validation, fail-closed audit-pending state, durable GRANTED/REVOKED audit entries, audit failure handling and compare-and-set activation after successful audit.
+- Pass 104–107: added merchant opt-in checkbox, AppContext payload pass-through, public-only mapper guards and Business type metadata.
+- Pass 108–109: gated exact Maps links behind the same audited consent with HTTPS allow-lists; added 23 source-contract checks and a dedicated workflow.
+- Pass 110: Node tests passed 7/7 and source contract passed 23/23. Deno type-check exposed typing and duplicate-key defects; corrected them and aligned the legacy social-link assertion with consent-gated behavior. Exact-head CI on PR #756 is pending at 178588019ac831e1cd7e06c8535fec241b88ac3c.
+- PR #756 is source-only. No production Edge Function deployment, database migration, RLS/GRANT mutation or production data edit.
