@@ -43,6 +43,20 @@ const PUBLIC_LISTING_KEYS = new Set([
 
 const clean = (value, max = 500) => String(value ?? "").trim().slice(0, max);
 
+const PUBLIC_HTTPS_URL_KEYS = new Set(["logoUrl", "logo_url", "coverUrl", "cover_url", "websiteUrl", "bookingUrl", "profileImageUrl"]);
+
+function sanitizePublicHttpsUrl(value) {
+  const raw = clean(value, 1500);
+  if (!raw) return "";
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:" || !url.hostname || url.username || url.password || url.port) return "";
+    return url.toString();
+  } catch {
+    return "";
+  }
+}
+
 function sanitizePublicGoogleMapsUrl(value) {
   const raw = clean(value, 1000);
   if (!raw) return "";
@@ -65,7 +79,10 @@ export function sanitizePublicDirectoryMetadata(value) {
   const result = {};
   for (const key of PUBLIC_METADATA_KEYS) {
     const item = source[key];
-    if (key === "google_maps_url") {
+    if (PUBLIC_HTTPS_URL_KEYS.has(key)) {
+      const safeUrl = sanitizePublicHttpsUrl(item);
+      if (safeUrl) result[key] = safeUrl;
+    } else if (key === "google_maps_url") {
       const safeUrl = sanitizePublicGoogleMapsUrl(item);
       if (safeUrl) result[key] = safeUrl;
     } else if (typeof item === "string") result[key] = clean(item, key === "bio" ? 2000 : 1500);
