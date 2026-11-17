@@ -59,9 +59,7 @@ Scope: read-only source audit of `supabase/functions/directory-listings/index.ts
 
 **Release blocker remains confirmed.** Claim approval/rejection is not atomic. The rejection path ignores listing-lock release failure. Approval performs membership activation/creation, automatic-owner deactivation, listing update, and claim finalization as separate requests. There is no compare-and-set on the claim status at finalization and no expected-state guard on the listing update. A partial failure or concurrent reviewer can leave inconsistent ownership state.
 
-The known membership unique index
-`ux_user_memberships_user_business_branch_nullsafe`
-protects duplicate business-wide membership keys, but it does not make the multi-table workflow transactional and does not serialize claim approval.
+The repository contains a migration proposing `ux_user_memberships_user_business_branch_nullsafe`, but the read-only Production cross-check below confirms that migration is not recorded/applied there. Even when present, that index alone would not make the multi-table workflow transactional or serialize claim approval.
 
 ## Required next engineering step
 
