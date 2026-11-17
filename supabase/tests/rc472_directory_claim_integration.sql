@@ -35,7 +35,7 @@ VALUES ('AUTO-OWNER-1','10000000-0000-4000-8000-000000000005','TENANT-1','ORG-1'
 
 -- A real foreign owner blocks a claim.
 INSERT INTO public.user_memberships(id,user_id,tenant_id,organization_id,business_id,role,status,permissions)
-VALUES ('FOREIGN-OWNER-1','10000000-0000-4000-8000-000000000004','TENANT-1','ORG-1',
+VALUES ('FOREIGN-OWNER-1','10000000-0000-4000-8000-000000000003','TENANT-1','ORG-1',
         '20000000-0000-4000-8000-000000000002','BUSINESS_OWNER','ACTIVE','{"owner":true}');
 
 DO $test$
