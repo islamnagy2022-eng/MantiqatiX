@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { QRCodeModal } from '../common/QRCodeModal';
 import { normalizeDialPhone, normalizeSocialUrl, normalizeWhatsAppPhone } from '../../utils/socialLinks';
+import { resolveDefaultImage } from '../../utils/defaultImages';
 import {
   MessageCircle,
   MapPin,
@@ -26,13 +27,19 @@ export const BusinessProfileHeader: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [shareFailed, setShareFailed] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
-  // Only owner-provided cover images are displayed. Missing images use a neutral local placeholder.
+  const defaultLogo = currentBusiness ? resolveDefaultImage({
+    name: currentBusiness.name, description: currentBusiness.bio, category: currentBusiness.category, kind: 'activity',
+  }) : BUSINESS_PLACEHOLDER;
+  const defaultCover = currentBusiness ? resolveDefaultImage({
+    name: currentBusiness.name, description: currentBusiness.bio, category: currentBusiness.category, kind: 'cover',
+  }) : BUSINESS_PLACEHOLDER;
+  // Keep owner-selected covers first; every new or legacy catalog gets category-aware local artwork otherwise.
   const slides = React.useMemo(() => {
     if (!currentBusiness) return [BUSINESS_PLACEHOLDER];
     const merchantCovers = (currentBusiness.coverImages || []).filter((url) => Boolean(url && url.trim()));
     if (merchantCovers.length > 0) return merchantCovers.slice(0, 2);
-    return [currentBusiness.coverUrl || BUSINESS_PLACEHOLDER];
-  }, [currentBusiness]);
+    return [currentBusiness.coverUrl || defaultCover];
+  }, [currentBusiness, defaultCover]);
 
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
@@ -107,7 +114,10 @@ export const BusinessProfileHeader: React.FC = () => {
               }`}
               onError={(e) => {
                 const image = e.currentTarget;
-                if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
+                if (image.dataset.defaultFallbackApplied !== 'true') {
+                  image.dataset.defaultFallbackApplied = 'true';
+                  image.src = defaultCover;
+                }
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-black/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none" aria-hidden="true" />
@@ -199,14 +209,17 @@ export const BusinessProfileHeader: React.FC = () => {
               {/* Business Logo */}
               <div className="relative -mt-16 sm:-mt-20 md:-mt-24 w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-3xl bg-white p-1.5 shadow-2xl ring-4 ring-white flex-shrink-0 overflow-hidden z-20">
                 <img
-                  src={currentBusiness.logoUrl || BUSINESS_PLACEHOLDER}
+                  src={currentBusiness.logoUrl || defaultLogo}
                   alt={`شعار ${currentBusiness.name}`}
                   className={`w-full h-full object-cover rounded-2xl bg-slate-100 ${
                     isFrozen ? 'grayscale opacity-80' : ''
                   }`}
                   onError={(e) => {
                     const image = e.currentTarget;
-                    if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
+                    if (image.dataset.defaultFallbackApplied !== 'true') {
+                      image.dataset.defaultFallbackApplied = 'true';
+                      image.src = defaultLogo;
+                    }
                   }}
                 />
                 <div

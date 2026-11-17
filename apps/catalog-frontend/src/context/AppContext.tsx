@@ -728,16 +728,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             description: data.bio || '',
           }) : Promise.resolve(null),
         ]);
-        if (generatedLogo || generatedCover) {
-          const profileImageSettings: Record<string, string> = {};
-          if (needsLogo) {
-            if (generatedLogo) profileImageSettings.logo_url = generatedLogo;
-            profileImageSettings.logo_image_source = generatedLogo ? 'ai' : 'auto';
-          }
-          if (needsCover) {
-            if (generatedCover) profileImageSettings.cover_url = generatedCover;
-            profileImageSettings.cover_image_source = generatedCover ? 'ai' : 'auto';
-          }
+        // Always persist a usable category-aware image when the owner did not provide one.
+        // AI artwork wins when available; local SVG artwork is the guaranteed fallback.
+        // Owner-supplied logo/cover values are never overwritten.
+        const profileImageSettings: Record<string, string> = {};
+        if (needsLogo) {
+          profileImageSettings.logo_url = generatedLogo || resolveDefaultImage({
+            name: data.name, description: data.bio, category: data.category, kind: 'activity',
+          });
+          profileImageSettings.logo_image_source = generatedLogo ? 'ai' : 'auto';
+        }
+        if (needsCover) {
+          profileImageSettings.cover_url = generatedCover || resolveDefaultImage({
+            name: data.name, description: data.bio, category: data.category, kind: 'cover',
+          });
+          profileImageSettings.cover_image_source = generatedCover ? 'ai' : 'auto';
+        }
+        if (Object.keys(profileImageSettings).length > 0) {
           try {
             await callPlatformAdmin({
               action: 'BUSINESS_MANAGE',
@@ -748,8 +755,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               settings: { catalog_profile: profileImageSettings },
             });
           } catch (imageSaveError) {
-            // Creation remains successful; missing imagery falls back to the category artwork.
-            console.warn('The new activity was created, but its AI images could not be linked to the profile.', imageSaveError);
+            // The business is still created; list and storefront UIs also resolve local defaults.
+            console.warn('The new activity was created, but its default images could not be persisted.', imageSaveError);
           }
         }
       }

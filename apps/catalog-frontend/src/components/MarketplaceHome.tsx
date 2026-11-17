@@ -31,21 +31,39 @@ const currency = (value: number): string =>
   Number(value || 0).toLocaleString('ar-EG', { maximumFractionDigits: 2 }) + ' ج.م';
 
 const BusinessCard: React.FC<{ business: Business; onOpen: (business: Business) => void }> = ({ business, onOpen }) => {
-  const logo = business.logoUrl || resolveDefaultImage({
+  const defaultLogo = resolveDefaultImage({
     name: business.name, description: business.bio, category: business.category, kind: 'activity',
   });
-  const cover = business.coverUrl || logo;
+  const defaultCover = resolveDefaultImage({
+    name: business.name, description: business.bio, category: business.category, kind: 'cover',
+  });
+  const logo = business.logoUrl || defaultLogo;
+  const cover = business.coverUrl || defaultCover;
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
       <button type="button" onClick={() => onOpen(business)} className="block w-full text-right" aria-label={'فتح كتالوج ' + business.name}>
         <div className="relative h-28 overflow-hidden bg-slate-100 sm:h-32">
-          <img src={cover} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
+          <img src={cover} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy"
+            onError={(event) => {
+              const image = event.currentTarget;
+              if (image.dataset.defaultFallbackApplied !== 'true') {
+                image.dataset.defaultFallbackApplied = 'true';
+                image.src = defaultCover;
+              }
+            }} />
           <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-700 px-2.5 py-1 text-[10px] font-black text-white shadow">
             <ShieldCheck className="h-3 w-3" /> موثّق
           </span>
         </div>
         <div className="relative px-3 pb-3 pt-9">
-          <img src={logo} alt="" className="absolute -top-7 right-3 h-14 w-14 rounded-2xl border-2 border-white bg-white object-cover shadow" loading="lazy" />
+          <img src={logo} alt="" className="absolute -top-7 right-3 h-14 w-14 rounded-2xl border-2 border-white bg-white object-cover shadow" loading="lazy"
+            onError={(event) => {
+              const image = event.currentTarget;
+              if (image.dataset.defaultFallbackApplied !== 'true') {
+                image.dataset.defaultFallbackApplied = 'true';
+                image.src = defaultLogo;
+              }
+            }} />
           <div className="min-h-12">
             <h3 className="line-clamp-1 text-sm font-black text-slate-900">{business.name}</h3>
             <p className="mt-1 line-clamp-1 text-xs text-slate-500">{business.category}</p>
@@ -65,17 +83,25 @@ const ProductCard: React.FC<{
   businessName: string;
   onOpen: () => void;
 }> = ({ product, businessName, onOpen }) => {
-  const image = product.imageUrl || resolveDefaultImage({
+  const defaultImage = resolveDefaultImage({
     name: product.name, description: product.description, category: product.category,
     kind: product.type === 'service' ? 'service' : 'product',
   });
+  const image = product.imageUrl || defaultImage;
   const hasDiscount = Number(product.comparePrice || 0) > Number(product.price || 0);
   const discount = hasDiscount ? Math.round((1 - product.price / Number(product.comparePrice)) * 100) : 0;
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <button type="button" onClick={onOpen} className="block w-full text-right">
         <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-          <img src={image} alt={product.name} className="h-full w-full object-cover" loading="lazy" />
+          <img src={image} alt={product.name} className="h-full w-full object-cover" loading="lazy"
+            onError={(event) => {
+              const target = event.currentTarget;
+              if (target.dataset.defaultFallbackApplied !== 'true') {
+                target.dataset.defaultFallbackApplied = 'true';
+                target.src = defaultImage;
+              }
+            }} />
           {hasDiscount && <span className="absolute right-2 top-2 rounded-full bg-rose-600 px-2.5 py-1 text-[10px] font-black text-white">خصم {discount}%</span>}
         </div>
         <div className="p-3">
