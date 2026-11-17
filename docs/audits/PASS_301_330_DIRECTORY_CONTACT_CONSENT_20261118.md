@@ -15,6 +15,9 @@ Project: `MANTIQATIX FINAL` (`moyhiluyhjsujhwlyeuu`).
 - Claim state: 868 UNCLAIMED; 0 CLAIMED; one row has a non-UNCLAIMED/non-CLAIMED state.
 - The current source projection previously returned phone, secondary phone and address for all PUBLISHED rows. It also returned `metadata.google_maps_url` when present without a directory-listing-specific consent record.
 - This is aggregate-only evidence; no phone, address, owner identity or row-level personal data was selected.
+- A separate source-rights aggregate found 26 distinct source hosts. The largest group is `dalil140.com` (746 listings), followed by Google Maps URLs (49), FindHealthClinics (11), DalilMadina (7), the Medical Professions Union project-treatment guide (6), Yellow Pages (6), South Sinai government (5), and other mixed hosts.
+- The Production `directory_source_permission_evidence` registry contains zero rows. None of the 869 published listings carries a `sourcePermissionEvidenceId` or `source_permission_evidence_id` metadata reference. No exact source-name/host pair had active, non-revoked, current doctor-profile + commercial republication permission.
+- The earlier `497` figure refers only to the single source label `Dalil140 — دليل عام غير رسمي`; it is not the total for the `dalil140.com` host. The aggregate host count is 746 across multiple source labels.
 
 ## Changes on this branch
 
