@@ -2573,3 +2573,12 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Pass 85: read-only Production check remains 310 migration rows through `20261110150618`; live legacy payment finalizer still lacks provider-order binding; advisor reports 9 RLS/no-policy tables and 65 authenticated-callable SECURITY DEFINER functions.
 - Pass 86: persisted the full pass report and updated the canonical TODO/continuity/session log through this documentation PR.
 - No Production DB/Auth/RLS/GRANT/Edge/payment/settlement mutation or website cutover occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-11-17 — Pass 87–89: deployment and R7 auth boundary recheck
+
+- Pass 87: verified PR #752 merged to main at `a536d778b29c45a01d1f13dc1ab8dcaaded67af6`; exact-main CI 21 success, 0 failure; Pages deployment success.
+- Pass 88: verified deployed-origin checks passed for V6 root, legacy catalog rollback, Preview alias, dashboard/mobile/QR routes, and browser route smoke tests.
+- Pass 89: reopened exact R7 source and confirmed client-side Supabase client prioritizes service-role env variable, admin role is locally granted by password comparison with default seed `admin`, production-state hydration/commit calls lack Authorization headers, and refresh UI sends no verified token. R7 remains blocked and was not imported into production.
+- PR #753 doc checkpoint is 16 success / 2 expected skips; no pending or failed checks.
+- No production DB/Auth/RLS/GRANT/Edge/payment/settlement mutation.
