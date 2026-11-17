@@ -230,6 +230,12 @@ Deno.serve(async (req: Request) => {
     const district = clean(body.district || listing.district, 100);
     const village = clean(body.village || listing.village, 100);
     if (displayName.length < 2) return out(origin, { error: "INVALID_DISPLAY_NAME" }, 400);
+    if (!governorate || !district) {
+      return out(origin, {
+        error: "LOCATION_REQUIRED",
+        message: "حدد المحافظة والمركز أو المدينة الفعليين قبل حفظ بيانات الصفحة.",
+      }, 400);
+    }
     const metadataInput = body.metadata && typeof body.metadata === "object" && !Array.isArray(body.metadata) ? body.metadata : {};
     const currentMetadata = listing.metadata && typeof listing.metadata === "object" && !Array.isArray(listing.metadata) ? listing.metadata : {};
     const metadataPatch: Record<string, unknown> = {};
