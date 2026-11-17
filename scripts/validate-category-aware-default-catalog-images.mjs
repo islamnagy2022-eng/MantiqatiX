@@ -21,6 +21,17 @@ for (const asset of new Set(referencedAssets)) {
   assert.ok(fs.existsSync(path.join('apps/catalog-frontend/public', asset)), 'default catalog artwork is missing: ' + asset);
 }
 
+// Keep specialist categories ahead of the broad home/repair matcher so that
+// maintenance catalogs use their dedicated artwork rather than generic home art.
+const maintenanceRule = defaults.indexOf("if (/صيانة|تصليح|إصلاح|سباك|نجار|حداد|تكييف|maintenance|repair|plumb|carpenter|handyman|air conditioning/.test(text)) return 'maintenance';");
+const broadHomeRule = defaults.indexOf("if (/عقار|عقارات|تشطيب|ديكور|أثاث|منزل|مفروشات|سباكة|نجار|حداد|صيانة|تنظيف|home|furniture|real estate|property|maintenance|repair|plumb|carpenter/.test(text))");
+assert.ok(maintenanceRule >= 0 && broadHomeRule > maintenanceRule,
+  'maintenance activity inference must run before the broad home category matcher');
+assert.ok(defaults.includes("maintenance: 'legacy/activities/maintenance.svg'"),
+  'maintenance activity defaults must resolve to the dedicated local artwork');
+assert.ok(defaults.includes("maintenance: 'legacy/activities/maintenance.svg'"),
+  'maintenance product/service defaults must resolve to the dedicated local artwork');
+
 const addStart = context.indexOf('const addBusiness = async');
 const addEnd = context.indexOf('const updateBusinessLocation', addStart);
 assert.ok(addStart >= 0 && addEnd > addStart, 'the production activity-creation flow must exist');
@@ -65,3 +76,4 @@ assert.ok(catalogSection.includes('image.src = resolveDefaultImage({'), 'broken 
 
 console.log('CATEGORY_AWARE_DEFAULT_CATALOG_IMAGES=PASS');
 console.log('DEFAULT_ACTIVITY_ASSETS=' + new Set(referencedAssets).size);
+console.log('MAINTENANCE_DEFAULT_ART=PASS');
