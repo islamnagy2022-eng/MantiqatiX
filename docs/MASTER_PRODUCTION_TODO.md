@@ -4259,3 +4259,12 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - [ ] Refactor claim approval into one atomic database transaction covering membership, listing and request state.
 - [ ] Refactor claim rejection into one atomic transaction and handle listing-lock release failure.
 - [ ] Decide explicit public contact/precise-map disclosure policy for imported/unclaimed directory listings.
+
+
+### Pass 151–190 — Directory location integrity
+
+- [x] Remove fabricated Monufia / Berket El-Sabaa defaults from the directory admin form and API write path.
+- [x] Require actual governorate and district/city values in both browser form and Edge Function.
+- [x] Add static regression assertions for UI defaults, required fields and server-side rejection.
+- [ ] Wait for exact-head doctor-import contract, Deno type-check, frontend build/type-check and full PR #756 CI to pass.
+- [ ] After merge and review, schedule a separate controlled Edge Function release; do not deploy as part of this source-only pass.
