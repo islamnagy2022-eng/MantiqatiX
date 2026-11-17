@@ -2601,3 +2601,14 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Pass 108–109: gated exact Maps links behind the same audited consent with HTTPS allow-lists; added 23 source-contract checks and a dedicated workflow.
 - Pass 110: Node tests passed 7/7 and source contract passed 23/23. Deno type-check exposed typing and duplicate-key defects; corrected them and aligned the legacy social-link assertion with consent-gated behavior. Exact-head CI on PR #756 is pending at 178588019ac831e1cd7e06c8535fec241b88ac3c.
 - PR #756 is source-only. No production Edge Function deployment, database migration, RLS/GRANT mutation or production data edit.
+
+
+## 2026-11-17 — Pass 111–150 execution
+
+- Passes 111–120: audited public GET paths, PUBLISHED filters, explicit field selection, metadata allowlist, CORS and no-store behavior in `directory-listings`.
+- Passes 121–130: traced phone, secondary phone, address, locality and Maps metadata fields; confirmed the national directory listing output is a separate projection from public-catalog and public-catalog-directory.
+- Passes 131–140: reviewed anonymous read, claimed-user/business edit authorization, active owner membership checks, owner-ID projection and publication semantics.
+- Passes 141–145: identified a separate consent/source-permission review requirement for imported/unclaimed versus claimed national-directory listings; no changes made pending lifecycle review.
+- Passes 146–150: preserved PR #756 scope, avoided broad schema/RLS/GRANT changes, and confirmed no Production or deployment mutation.
+- Corrected `scripts/validate-owner-profile-persistence.mjs` so the public endpoints are required to use `publicContact.googleMapsUrl`; authenticated catalog-admin reads retain the two private map fields. New commit: `87cf638aba0f23b0a683e51f718284667ce45bac`.
+- Exact-head check snapshot: 24 success, 2 skipped, 0 failed; professional dashboard browser E2E remained in progress. PR #756 remains open and unmerged.
