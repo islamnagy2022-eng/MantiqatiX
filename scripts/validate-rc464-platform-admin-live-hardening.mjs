@@ -76,6 +76,21 @@ for (const caller of ["admin_create_global_ad", "fulfill_digital_page_publish", 
 }
 assert.match(sharedCallers, /tenant OWNER created a platform global advertisement/);
 assert.match(sharedCallers, /platform registry admin could not update global MantiGO configuration/);
+
+for (const signature of [
+  "admin_create_global_ad",
+  "fulfill_digital_page_publish",
+  "review_mantigo_captain_application",
+  "set_mantigo_financial_config_backend",
+]) {
+  assert.match(migration, new RegExp("ALTER FUNCTION public\\\\." + signature + "\\([\\s\\S]*?SET search_path = ''", "i"),
+    signature + " must be pinned to an empty search_path");
+}
+assert.match(sharedCallers, /tenant ADMIN created a platform global advertisement/);
+assert.match(sharedCallers, /tenant ADMIN changed global MantiGO financial configuration/);
+assert.match(sharedCallers, /RC464_SHARED_HELPER_CALLERS_EMPTY_SEARCH_PATH_REQUIRED/);
+assert.match(fixture, /SET search_path TO 'public', 'pg_temp'/);
+assert.match(fixture, /SET search_path TO 'public'/);
 assert.match(workflow, /rc464_platform_admin_live_baseline\.sql/);
 assert.match(workflow, /20261113214500_rc464_platform_admin_live_registry_hardening\.sql/);
 assert.match(workflow, /rc449_mantigo_platform_admin_integration\.sql/);
