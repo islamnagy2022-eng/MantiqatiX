@@ -119,7 +119,7 @@ export const PublicGovernorateMap: React.FC<PublicGovernorateMapProps> = ({
   }, [mappedStats, selectedGovernorate, onSelectGovernorate]);
 
   return (
-    <section data-testid="public-governorate-explorer" className="space-y-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" aria-label="استكشاف الدليل حسب المحافظة">
+    <section data-testid="public-governorate-explorer" className="relative isolate z-0 space-y-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" aria-label="استكشاف الدليل حسب المحافظة">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-lg font-black text-slate-900">استكشف الأنشطة حسب المحافظة</h2>
@@ -129,7 +129,7 @@ export const PublicGovernorateMap: React.FC<PublicGovernorateMapProps> = ({
       </div>
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(260px,.9fr)]">
         <div className="min-w-0 space-y-2">
-          <div ref={mapContainerRef} data-testid="public-governorate-map" role="group" aria-label="خريطة مرجعية للمحافظات المصرية؛ العلامات تعرض أعداد الأنشطة في الدليل ولا تحدد مواقع الأنشطة" className="h-[280px] w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 sm:h-[340px]" />
+          <div ref={mapContainerRef} data-testid="public-governorate-map" role="group" aria-label="خريطة مرجعية للمحافظات المصرية؛ العلامات تعرض أعداد الأنشطة في الدليل ولا تحدد مواقع الأنشطة" className="relative z-0 isolate h-[280px] w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 sm:h-[340px]" />
           <p className="text-[11px] leading-5 text-slate-500">تنبيه: العلامات نقاط مرجعية عامة للمحافظات لأغراض التصفية فقط، ولا تمثل مواقع الأنشطة أو عناوينها الدقيقة.</p>
         </div>
         <div className="space-y-2">
@@ -192,6 +192,8 @@ def self_test() -> None:
     assert "EGYPT_GOVERNORATES_MAP[name]?.center" in COMPONENT_SOURCE
     assert "لا تمثل مواقع الأنشطة أو عناوينها الدقيقة" in COMPONENT_SOURCE
     assert "public-governorate-marker" in COMPONENT_SOURCE
+    assert "relative isolate z-0 space-y-4" in COMPONENT_SOURCE
+    assert "relative z-0 isolate h-[280px]" in COMPONENT_SOURCE
 
 
 def main() -> None:

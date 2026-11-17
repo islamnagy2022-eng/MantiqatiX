@@ -31,6 +31,11 @@ jobs:
           set -euo pipefail
           npm install --no-audit --no-fund
           npm run lint
+          VITE_BASE_PATH=/MantiqatiX/ npm run build
+          mkdir -p "${RUNNER_TEMP}/mantiqatix-legacy-root-build"
+          cp -a dist/. "${RUNNER_TEMP}/mantiqatix-legacy-root-build/"
+          test -s "${RUNNER_TEMP}/mantiqatix-legacy-root-build/index.html"
+          grep -q '/MantiqatiX/assets/' "${RUNNER_TEMP}/mantiqatix-legacy-root-build/index.html"
           VITE_BASE_PATH=/MantiqatiX/legacy/ npm run build
           test -s dist/index.html
           test -s dist/config.js
@@ -400,18 +405,17 @@ jobs:
           grep -q "if(!branchId)" web/app.js
           grep -Fq 'branches: branches ?? []' supabase/functions/api/index.ts
 
-      - name: Publish V6 as the production root and preserve the previous catalog
+      - name: Publish the legacy catalog as the production root and preserve V6 preview
         run: |
           set -euo pipefail
           SITE_DIR="${RUNNER_TEMP}/mantiqatix-composed-site"
-          V6_ROOT_DIST="${RUNNER_TEMP}/mantiqatix-v6-root-build"
+          LEGACY_ROOT_DIST="${RUNNER_TEMP}/mantiqatix-legacy-root-build"
           rm -rf "${SITE_DIR}"
           mkdir -p "${SITE_DIR}" "${SITE_DIR}/legacy" "${SITE_DIR}/v6-preview"
-          cp -a "${V6_ROOT_DIST}/." "${SITE_DIR}/"
+          cp -a "${LEGACY_ROOT_DIST}/." "${SITE_DIR}/"
           cp -a apps/catalog-frontend/dist/. "${SITE_DIR}/legacy/"
           cp -a apps/aistudio-v6/worktree/dist/. "${SITE_DIR}/v6-preview/"
-          # V6 and its compatibility routes use one public, non-secret runtime config.
-          cp "${SITE_DIR}/legacy/config.js" "${SITE_DIR}/config.js"
+          # The production catalog is built directly for the repository root; legacy remains a rollback copy.
           test -s "${SITE_DIR}/index.html"
           test -s "${SITE_DIR}/config.js"
           grep -Fq '/MantiqatiX/assets/' "${SITE_DIR}/index.html"
@@ -427,28 +431,25 @@ jobs:
           test ! -e "${SITE_DIR}/web"
           test ! -e "${SITE_DIR}/preview"
           test ! -e "${SITE_DIR}/smm.html"
-          echo "PAGES_COMPOSITION=PASS: V6 is the production root; previous catalog preserved at /legacy/; V6 preview alias retained."
+          echo "PAGES_COMPOSITION=PASS: legacy catalog is the production root; rollback copy preserved at /legacy/; V6 preview alias retained."
       - name: Install pinned Playwright for V6 Preview browser validation
         run: |
           set -euo pipefail
           npm install --prefix /tmp/v6-preview-playwright --no-audit --no-fund playwright@1.64.1 axe-core@4.10.3
           /tmp/v6-preview-playwright/node_modules/.bin/playwright install --with-deps chromium
-      - name: Test composed V6 root and Preview alias on desktop and mobile
+      - name: Test V6 Preview alias on desktop and mobile
         env:
           PLAYWRIGHT_PACKAGE: /tmp/v6-preview-playwright/node_modules/playwright
         run: |
           set -euo pipefail
-          V6_E2E_URL=http://127.0.0.1:4173/MantiqatiX/ V6_PREVIEW_SCREENSHOT_DIR="${RUNNER_TEMP}/v6-root-visual-review" node scripts/test-v6-public-preview.mjs "${RUNNER_TEMP}/mantiqatix-composed-site"
           V6_E2E_URL=http://127.0.0.1:4173/MantiqatiX/v6-preview/ V6_PREVIEW_SCREENSHOT_DIR="${RUNNER_TEMP}/v6-preview-visual-review" node scripts/test-v6-public-preview.mjs "${RUNNER_TEMP}/mantiqatix-composed-site"
 
-      - name: Upload V6 root and Preview screenshots for visual acceptance
+      - name: Upload V6 Preview screenshots for visual acceptance
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: v6-root-cutover-visual-review-${{ github.run_id }}
-          path: |
-            ${{ runner.temp }}/v6-root-visual-review/
-            ${{ runner.temp }}/v6-preview-visual-review/
+          name: v6-preview-visual-review-${{ github.run_id }}
+          path: ${{ runner.temp }}/v6-preview-visual-review/
           if-no-files-found: ignore
           retention-days: 14
 
@@ -564,18 +565,18 @@ jobs:
           SITE_ROOT="${PAGE_URL%/}"
           ROOT_URL="${SITE_ROOT}/"
           ROOT_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}")"
+          grep -Fq 'MantiqatiX | منصة إدارة الأنشطة والكتالوجات' <<<"${ROOT_HTML}"
           grep -Fq '/MantiqatiX/assets/' <<<"${ROOT_HTML}"
-          grep -Fq '/MantiqatiX/config.js' <<<"${ROOT_HTML}"
-          ! grep -Fq 'MantiqatiX | منصة إدارة الأنشطة والكتالوجات' <<<"${ROOT_HTML}"
-          ROOT_CONFIG="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${SITE_ROOT}/config.js")"
-          grep -Fq 'moyhiluyhjsujhwlyeuu.supabase.co' <<<"${ROOT_CONFIG}"
-          ROOT_JS="$(grep -oE '/MantiqatiX/assets/[^" ]+\.js' <<<"${ROOT_HTML}" | head -n 1)"
-          ROOT_CSS="$(grep -oE '/MantiqatiX/assets/[^" ]+\.css' <<<"${ROOT_HTML}" | head -n 1)"
+          LEGACY_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${SITE_ROOT}/legacy/")"
+          grep -Fq 'MantiqatiX | منصة إدارة الأنشطة والكتالوجات' <<<"${LEGACY_HTML}"
+          grep -Fq '/MantiqatiX/legacy/assets/' <<<"${LEGACY_HTML}"
+          ROOT_JS="$(grep -oE '/MantiqatiX/legacy/assets/[^" ]+\.js' <<<"${LEGACY_HTML}" | head -n 1)"
+          ROOT_CSS="$(grep -oE '/MantiqatiX/legacy/assets/[^" ]+\.css' <<<"${LEGACY_HTML}" | head -n 1)"
           test -n "${ROOT_JS}"
           test -n "${ROOT_CSS}"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "https://islamnagy2022-eng.github.io${ROOT_JS}" >/dev/null
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "https://islamnagy2022-eng.github.io${ROOT_CSS}" >/dev/null
-          echo "MANTIQATIX_V6_PRIMARY_ROOT_DEPLOY=PASS: ${ROOT_URL}"
+          echo "MANTIQATIX_LEGACY_PRIMARY_ROOT_DEPLOY=PASS: ${ROOT_URL}"
 
           LEGACY_URL="${SITE_ROOT}/legacy/"
           LEGACY_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${LEGACY_URL}")"
@@ -627,7 +628,7 @@ jobs:
           mkdir -p /tmp/playwright-runner
           npm install --prefix /tmp/playwright-runner --no-audit --no-fund playwright@1.64.1 axe-core@4.10.3
           /tmp/playwright-runner/node_modules/.bin/playwright install --with-deps chromium
-      - name: Test deployed V6 root and legacy dashboard/mobile/QR routes
+      - name: Test deployed legacy catalog root and dashboard/mobile/QR routes
         env:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
@@ -637,9 +638,6 @@ jobs:
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}" >/dev/null
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${LEGACY_URL}" >/dev/null
           PLAYWRIGHT_MODULE=/tmp/playwright-runner/node_modules/playwright/index.mjs \
-          PAGE_URL="${ROOT_URL}" \
-          node scripts/test-v6-deployed-root.mjs
-          PLAYWRIGHT_MODULE=/tmp/playwright-runner/node_modules/playwright/index.mjs \
           AXE_CORE_SCRIPT=/tmp/playwright-runner/node_modules/axe-core/axe.min.js \
-          MANTIQUATIX_E2E_BASE_URL="${LEGACY_URL}" \
+          MANTIQUATIX_E2E_BASE_URL="${ROOT_URL}" \
           node apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs
