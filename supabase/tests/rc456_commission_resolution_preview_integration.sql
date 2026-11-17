@@ -44,6 +44,11 @@ BEGIN
         '{"scope":"PLATFORM","full_control":true}'::jsonb,'ACTIVE');
   END IF;
 
+  -- RC464 makes the private registry the canonical platform-root source.
+  INSERT INTO private.platform_admins(user_id)
+  VALUES(v_actor)
+  ON CONFLICT (user_id) DO NOTHING;
+
   v_tenant_rule := 'RC456-TENANT-' || v_suffix;
   v_business_rule := 'RC456-BUSINESS-' || v_suffix;
   v_category_rule := 'RC456-CATEGORY-' || v_suffix;
@@ -149,7 +154,7 @@ BEGIN
   EXCEPTION WHEN OTHERS THEN
     GET STACKED DIAGNOSTICS v_error = MESSAGE_TEXT;
     IF v_error = 'RC456_UNAUTHORIZED_RESOLUTION_WAS_ALLOWED' THEN RAISE; END IF;
-    IF v_error <> 'COMMISSION_RULE_FORBIDDEN' THEN
+    IF v_error <> 'PLATFORM_ADMIN_REQUIRED' THEN
       RAISE EXCEPTION 'RC456_EXPECTED_SCOPE_DENIAL_BUT_GOT: %',v_error;
     END IF;
   END;
