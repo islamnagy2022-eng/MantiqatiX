@@ -54,13 +54,13 @@ jobs:
           bun install --frozen-lockfile
           bun run verify:release
           bun run lint
-          LEGACY_ROOT_DIST="${RUNNER_TEMP}/mantiqatix-legacy-root-build"
-          rm -rf "${LEGACY_ROOT_DIST}"
+          V6_ROOT_DIST="${RUNNER_TEMP}/mantiqatix-v6-root-build"
+          rm -rf "${V6_ROOT_DIST}"
           VITE_BASE_PATH=/MantiqatiX/ bun run build
-          mkdir -p "${LEGACY_ROOT_DIST}"
-          cp -a dist/. "${LEGACY_ROOT_DIST}/"
-          test -s "${LEGACY_ROOT_DIST}/index.html"
-          grep -Fq '/MantiqatiX/assets/' "${LEGACY_ROOT_DIST}/index.html"
+          mkdir -p "${V6_ROOT_DIST}"
+          cp -a dist/. "${V6_ROOT_DIST}/"
+          test -s "${V6_ROOT_DIST}/index.html"
+          grep -Fq '/MantiqatiX/assets/' "${V6_ROOT_DIST}/index.html"
           echo "V6_ROOT_BUILD=PASS"
           VITE_BASE_PATH=/MantiqatiX/v6-preview/ bun run build
           test -s dist/index.html
@@ -72,7 +72,7 @@ jobs:
       - name: Block private admin, wallet, and demo code in public V6 assets
         run: |
           set -euo pipefail
-          node scripts/test-v6-public-bundle-clean.mjs "${RUNNER_TEMP}/mantiqatix-legacy-root-build"
+          node scripts/test-v6-public-bundle-clean.mjs "${RUNNER_TEMP}/mantiqatix-v6-root-build"
           node scripts/test-v6-public-bundle-clean.mjs apps/aistudio-v6/worktree/dist
       - name: Audit V6 public bundle module ownership
         run: |
