@@ -1816,3 +1816,18 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - Reverified R7 archive SHA-256 and confirmed the 180 default-image pack. R7 remains unsafe to import as-is due caller-controlled token minting, hard-coded admin bypass, refresh fallback, unauthenticated state APIs, local JSON persistence, fallback secrets and unsafe Android WebView bridge.
 - Detailed record: `docs/audits/PASS_47_66_CONTINUATION_20261117.md`.
 - No Production migration, data/Auth/RLS/GRANT change, Edge deployment, payment, or website cutover occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-11-17 — Pass 67–86 continuation checkpoint
+
+- PR #749 / RC470 merged and deployed; Pages deployed-origin smoke checks passed for V6 root, legacy catalog, preview alias and dashboard/mobile/QR routes.
+- PR #751 corrected the RC456 validator to check the actual unauthorized-call sentinel; no runtime permission behavior changed.
+- PR #750 merged dedicated maintenance category artwork and its regression validator.
+- PR #752 merged lazy-loaded directory listing/activity detail subviews. Build main JS chunk reduced from 845.70 KB to 703.41 KB (~16.7%); detail chunks are separate.
+- Exact PR checks: #750 20 success / 2 skipped; #751 17 success / 2 skipped; #752 21 success / 2 skipped. Post-merge main CI for `a536d77` was still in progress at checkpoint; no failures observed.
+- R7 archive and directive hashes reverified. Archive project ref is misspelled in manifest and .env.example; live project ref is `moyhiluyhjsujhwlyeuu`.
+- R7 source audit confirms hard-coded secret fallbacks, caller-controlled privileged session minting, admin password bypass, invalid-token refresh fallback, unauthenticated production-state/commit-all routes, local JSON authority and incomplete Android wrapper. Do not deploy R7 server as-is.
+- R7 has 180 curated remote image defaults across 15 sectors and 5 local AI-generated images; package has no declared test script.
+- Production Supabase remains read-only at 310 migrations through `20261110150618`; six critical Edge sources differ from live; RC468/469/470 not applied. Live digital-page finalizer still lacks provider-order binding. Security advisor reports 9 RLS/no-policy tables and 65 authenticated-callable SECURITY DEFINER functions.
+- Full evidence: `docs/audits/PASS_67_86_CONTINUATION_20261117.md`.
+- No Production DB/Auth/RLS/GRANT/Edge/payment/settlement mutation or website cutover was performed in Pass 67–86. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
