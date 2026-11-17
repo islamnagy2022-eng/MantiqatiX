@@ -402,8 +402,8 @@ const combinedDirectoryFilter = buildDirectoryPaginationOrFilter('طبيب', tes
 assert.ok(combinedDirectoryFilter, 'Search + cursor must produce a PostgREST filter expression.');
 assert.match(combinedDirectoryFilter, /and\(or\(display_name\.ilike\.%طبيب%/,
   'Search + cursor must compose the searchable columns as a single OR clause.');
-assert.match(combinedDirectoryFilter, /secondary_phone\.ilike\.%طبيب%/,
-  'Search + cursor must include secondary contact fields.');
+assert.doesNotMatch(combinedDirectoryFilter, /phone|secondary_phone|address/i,
+  "Search + cursor must never probe contact fields without explicit consent.");
 assert.match(combinedDirectoryFilter, /village\.ilike\.%طبيب%/,
   'Search + cursor must include administrative location fields.');
 assert.match(combinedDirectoryFilter, /or\(created_at\.lt\.[\s\S]*id\.lt\./,
@@ -425,7 +425,8 @@ assert.equal(cursorOnlyFilter, 'created_at.lt.2026-11-01T00:00:00.000Z,and(creat
   'Cursor-only pagination must preserve the deterministic timestamp/id continuation.');
 const searchOnlyFilter = buildDirectoryPaginationOrFilter('عيادة', null);
 assert.match(searchOnlyFilter, /display_name\.ilike\.%عيادة%/);
-assert.match(searchOnlyFilter, /phone\.ilike\.%عيادة%/);
+assert.doesNotMatch(searchOnlyFilter, /phone|secondary_phone|address/i,
+  "Free-text search must not probe private contact fields.");
 assert.equal(buildDirectoryPaginationOrFilter('', null), null,
   'No search and no cursor must not add a logical OR filter.');
 assert.equal(sanitizeDirectoryPaginationSearch('دكتور,(x)%";drop'), 'دكتور x drop',
@@ -520,8 +521,10 @@ assert.deepEqual(geoSpecialtyPages.map((row) => row.id), expectedGeoSpecialty.ma
 assert.equal(new Set(geoSpecialtyPages.map((row) => row.id)).size, geoSpecialtyPages.length,
   'Filtered keyset pages must not duplicate records across continuation requests.');
 
-assert.match(directoryPaginationHelper, /"address", "governorate", "district", "village"/,
-  'Directory search helper must include address and administrative hierarchy fields.');
+assert.match(directoryPaginationHelper, /"governorate", "district", "village"/,
+  "Directory search helper must include the coarse administrative hierarchy fields.");
+assert.doesNotMatch(directoryPaginationHelper, /phone|secondary_phone|address/i,
+  "Directory free-text search must exclude private contact fields.");
 assert.match(directory, /fetchPublicDirectoryListingPage\(directoryListingRequestFilters\)/,
   'The main directory must load a server-filtered first page rather than the legacy 500-row list.');
 assert.match(directory, /limit: 20/,
