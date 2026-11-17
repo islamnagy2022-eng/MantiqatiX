@@ -83,7 +83,7 @@ for (const signature of [
   "review_mantigo_captain_application",
   "set_mantigo_financial_config_backend",
 ]) {
-  assert.match(migration, new RegExp("ALTER FUNCTION public\\\\." + signature + "\\([\\s\\S]*?SET search_path = ''", "i"),
+  assert.ok(new RegExp("ALTER FUNCTION public\\." + signature + "\\([\\s\\S]*?SET search_path = ''", "i").test(migration), signature + " must be pinned to an empty search_path");
     signature + " must be pinned to an empty search_path");
 }
 assert.match(sharedCallers, /tenant ADMIN created a platform global advertisement/);
