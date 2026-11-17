@@ -10,9 +10,9 @@ export type PublicDirectoryListing = {
   taxonomy_category_id: string;
   taxonomy_specialty: string | null;
   specialty: string | null;
-  phone: string | null;
-  secondary_phone: string | null;
-  address: string | null;
+  phone?: string | null;
+  secondary_phone?: string | null;
+  address?: string | null;
   governorate: string;
   district: string;
   village: string | null;
