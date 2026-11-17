@@ -159,7 +159,7 @@ async function callDirectoryAdmin(body: Record<string, unknown>): Promise<any> {
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
   if (sessionError) throw new Error(sessionError.message || "تعذر قراءة جلسة الدخول");
   const session = sessionData.session;
-  if (!session?.access_token) throw new Error("سجّل الدخول أولًا بحساب إدارة المنصة.");
+  if (!session?.access_token) throw new Error("سجّل الدخول أولًا بحسابك.");
   const response = await fetch(String(productionRuntime.supabaseUrl) + "/functions/v1/directory-listings", {
     method: "POST",
     headers: {
