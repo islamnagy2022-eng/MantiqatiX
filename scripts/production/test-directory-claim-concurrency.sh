@@ -4,7 +4,7 @@ set -euo pipefail
 pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
 test -n "$pg_container"
 
-first_sql="SET test.pause_directory_claim='on'; BEGIN; SELECT public.review_directory_listing_claim_atomic('40000000-0000-4000-8000-000000000006','APPROVED','10000000-0000-4000-8000-000000000003','concurrent winner','20000000-0000-4000-8000-000000000005',true,true); COMMIT;"
+first_sql="BEGIN; SET test.pause_directory_claim='on'; SELECT public.review_directory_listing_claim_atomic('40000000-0000-4000-8000-000000000006','APPROVED','10000000-0000-4000-8000-000000000003','concurrent winner','20000000-0000-4000-8000-000000000005',true,true); COMMIT;"
 second_sql="BEGIN; SELECT public.review_directory_listing_claim_atomic('40000000-0000-4000-8000-000000000007','APPROVED','10000000-0000-4000-8000-000000000003','concurrent loser','20000000-0000-4000-8000-000000000005',true,true); COMMIT;"
 
 docker exec "$pg_container" psql -U postgres -d mantiqatix_directory_claim_test -v ON_ERROR_STOP=1 -c "$first_sql" > /tmp/claim-first.log 2>&1 &
