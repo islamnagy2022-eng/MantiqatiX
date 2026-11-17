@@ -155,6 +155,12 @@ $function$;
 REVOKE ALL ON FUNCTION public.mnty_can_platform_admin() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.mnty_can_platform_admin() TO authenticated;
 
+-- Harden the four existing global helper callers without changing their bodies or ACLs.
+ALTER FUNCTION public.admin_create_global_ad(character varying,text,text,timestamp with time zone,timestamp with time zone) SET search_path = '';
+ALTER FUNCTION public.fulfill_digital_page_publish(uuid,uuid,uuid) SET search_path = '';
+ALTER FUNCTION public.review_mantigo_captain_application(uuid,uuid,text,text,text,text,jsonb) SET search_path = '';
+ALTER FUNCTION public.set_mantigo_financial_config_backend(uuid,numeric,text) SET search_path = '';
+
 COMMENT ON FUNCTION public.mnty_can_platform_admin() IS
   'RC464: canonical platform-root guard backed only by private.platform_admins (RC113/RC115); tenant membership or tenant OWNER/ADMIN roles do not imply platform authority.';
 
