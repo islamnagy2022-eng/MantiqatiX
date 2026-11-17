@@ -1994,3 +1994,17 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 - [ ] Keep the national listing consent decision separate from catalog business profile consent in PR #756; do not alter public behavior or schema without a verified migration and regression plan.
 
 Evidence: `docs/audits/PASS_111_150_PUBLIC_DIRECTORY_BOUNDARY_20261117.md`. No Production mutation or deployment occurred.
+
+
+---
+
+## Pass 151–190 — directory claim and public-output review (2026-11-17)
+
+- [x] Audit claim lifecycle, owner authorization, source evidence approval/revocation, incremental import and public output sanitizer.
+- [x] Fix owner partial-update location fallback so omitted governorate/district/village values preserve stored values rather than silently defaulting to Monufia/Berket El Sabaa.
+- [x] Validate public directory Google Maps metadata with an HTTPS and approved Google Maps host/path allowlist; add behavior and source-contract regression tests.
+- [ ] Make claim approval an atomic database transaction across membership, listing and request state.
+- [ ] Make claim rejection atomic and handle failure to release the listing lock.
+- [ ] Decide and test contact/map disclosure rules for imported/unclaimed national directory listings.
+
+Evidence: `docs/audits/PASS_151_190_DIRECTORY_CLAIM_AND_OUTPUT_20261117.md`. No Production mutation or deployment occurred.
