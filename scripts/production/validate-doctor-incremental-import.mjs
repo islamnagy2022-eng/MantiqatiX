@@ -143,5 +143,18 @@ assert.match(publicOutputContract, /url\.protocol !== "https:"/, "Public Maps me
 assert.match(publicOutputContract, /maps\.app\.goo\.gl/, "Public Maps metadata must retain supported short Google Maps links");
 assert.match(publicOutputContract, /key === "google_maps_url"/, "Google Maps metadata must use the dedicated validator rather than generic string handling");
 
+const directoryAdmin = readFileSync("apps/catalog-frontend/src/components/admin/DirectoryListingsAdmin.tsx", "utf8");
+const directoryUpsert = edge.slice(edge.indexOf('if (action === "UPSERT_LISTING")'));
+assert.match(directoryUpsert, /const governorate = clean\\(body\\.governorate, 100\\)/, "Directory upsert must read the actual governorate without a fabricated fallback");
+assert.match(directoryUpsert, /const district = clean\\(body\\.district, 100\\)/, "Directory upsert must read the actual district without a fabricated fallback");
+assert.match(directoryUpsert, /if \\(!governorate \\|\\| !district\\)[\\s\\S]{0,180}LOCATION_REQUIRED/, "Directory upsert must reject missing geographic location");
+assert.match(directoryUpsert, /governorate,\\s*district, village:/, "Directory persistence must use the validated location values");
+assert.doesNotMatch(directoryUpsert, /governorate: clean\\(body\\.governorate \\|\\| "المنوفية"/, "Directory API must not silently assign Monufia");
+assert.doesNotMatch(directoryUpsert, /district: clean\\(body\\.district \\|\\| "بركة السبع"/, "Directory API must not silently assign Berket El-Sabaa");
+assert.match(directoryAdmin, /governorate: "", district: ""/, "New directory entries must start without an invented location");
+assert.match(directoryAdmin, /governorate: listing\\.governorate \\|\\| "", district: listing\\.district \\|\\| ""/, "Editing a record with missing location must not invent one");
+assert.match(directoryAdmin, /المحافظة \\*<input required value=\\{form\\.governorate\\}/, "Admin form must require the actual governorate");
+assert.match(directoryAdmin, /المركز \\/ المدينة \\*<input required value=\\{form\\.district\\}/, "Admin form must require the actual district");
+
 console.log("DOCTOR_INCREMENTAL_IMPORT_CONTRACT=PASS");
 console.log("checks=platform_admin,20_row_cap,sequential_persistence,deduplication,draft_only_import,source_attribution,unverified_status,separate_publication_gate,two_person_approval,source_scope,expiry_revocation,valid_source_url,phone_gate,state_preservation,ownership_preservation,verification_protection,admin_ui,private_rls_registry");
