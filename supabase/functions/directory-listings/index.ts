@@ -176,7 +176,16 @@ Deno.serve(async (req: Request) => {
     if (villageSearch) pageQuery = pageQuery.ilike("village", "%" + villageSearch + "%");
     if (address) {
       const addressSearch = sanitizeDirectoryPaginationSearch(address);
-      if (addressSearch) pageQuery = pageQuery.ilike("address", "%" + addressSearch + "%");
+      if (addressSearch) {
+        const { data: addressConsents, error: addressConsentError } = await service.from("directory_listing_contact_consents")
+          .select("listing_id").eq("scope", "ADDRESS").is("revoked_at", null).limit(1000);
+        if (addressConsentError) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
+        const addressVisibleIds = [...new Set((addressConsents || []).map((row: any) => String(row.listing_id || "")).filter(Boolean))];
+        if (!addressVisibleIds.length) {
+          return out(origin, { listings: [], nextCursor: null, hasMore: false, pageSize: limit });
+        }
+        pageQuery = pageQuery.in("id", addressVisibleIds).ilike("address", "%" + addressSearch + "%");
+      }
     }
     if (functionalGroupId) pageQuery = pageQuery.in("functional_group_id", expandDirectoryFunctionalGroupIds(functionalGroupId));
     if (taxonomyCategoryId) pageQuery = pageQuery.in("taxonomy_category_id", expandDirectoryTaxonomyCategoryIds(taxonomyCategoryId));
