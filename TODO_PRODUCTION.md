@@ -2060,3 +2060,22 @@ Evidence: `docs/audits/PASS_231_270_DIRECTORY_CLAIM_ATOMICITY_20261117.md`.
 
 - [ ] Reconcile missing production migration `20261027090000` and the live nullable-branch membership uniqueness index before designing claim approval RPC.
 - [ ] Test claim transaction and trigger interactions on a disposable/development Supabase branch; no Production DDL until reviewed and explicitly released.
+
+
+---
+
+## Pass 271–300 — transactional directory claim review (2026-11-18)
+
+- [x] Inspect live Production schemas, constraints, indexes and triggers for claims, listings, memberships and businesses.
+- [x] Reconcile the absent live migration version `20261027090000`; do not replay the historical migration blindly.
+- [x] Verify live null-branch membership duplicate preflight: 0 duplicate groups.
+- [x] Add a forward-only null-safe business-wide membership unique index.
+- [x] Implement a service-role-only transactional claim review RPC with row locks, state guards, owner conflict checks and atomic membership/listing/claim writes.
+- [x] Route Edge Function REVIEW_CLAIM through the transactional RPC while retaining platform-admin and tenant-scope checks.
+- [x] Add PostgreSQL fixture and rollback/authorization integration assertions.
+- [ ] Add and run a true multi-session concurrent-review test.
+- [ ] Pass exact-head PostgreSQL integration and Deno type-check; fix failures and rerun on final head.
+- [ ] Complete review, merge, and verify main.
+- [ ] Separately approve and execute Production migration + Edge deployment with backup/rollback evidence.
+
+Evidence: `docs/audits/PASS_271_300_DIRECTORY_CLAIM_ATOMICITY_20261118.md`. Source-only branch; no Production mutation or deployment.
