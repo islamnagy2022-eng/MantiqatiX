@@ -59,7 +59,7 @@ const publicSearch = buildDirectoryPaginationOrFilter("01000000000", null) || ""
 assert.equal(/phone|secondary_phone|address/i.test(publicSearch), false, "free-text public search must not probe hidden contact fields");
 
 const checks = [
-  ["free-text search excludes private phone and address fields", !/const SEARCH_COLUMNS = Object.freeze\\(\\[[^]]*(?:phone|secondary_phone|address)/.test(pagination) && !/phone|secondary_phone|address/i.test(publicSearch)],
+  ["free-text search excludes private phone and address fields", !["phone", "secondary_phone", "address"].some((field) => pagination.includes('"' + field + '"')) && !/phone|secondary_phone|address/i.test(publicSearch)],
   ["address-specific search requires an active ADDRESS consent record", source.includes('eq("scope", "ADDRESS").is("revoked_at", null)') && source.includes("addressVisibleIds")],
   ["GET consent lookup fails closed and is used for slug, legacy and paginated reads",
     source.includes("loadContactConsentScopes") && source.includes("directory_listing_contact_consents") &&
