@@ -1,3 +1,23 @@
+## Latest execution checkpoint — 2026-11-17 — Pass 67–86
+
+**Request ID:** `R-20261117-PASS-67-86`  
+**Current main:** `a536d778b29c45a01d1f13dc1ab8dcaaded67af6`.
+
+- PR #749 / RC470 payment webhook repair: `7c19f52e3cec5581d28eccfb136878a81bf8d3f8`; deployed Pages smoke checks passed.
+- PR #751 validator correction: `108a6f6434da764a5272781a4598dd7e83f27314`.
+- PR #750 maintenance default artwork: `2b63a4cf17632faf3ec2ab023daa2ba9486074f0`.
+- PR #752 on-demand directory detail chunks: `a536d778b29c45a01d1f13dc1ab8dcaaded67af6`; main JS chunk 845.70 KB → 703.41 KB (~16.7% smaller). Detail chunks: ActivityModuleView ~29.97 KB, DirectoryListingsView ~30.15 KB, activity registry ~81.99 KB.
+- Exact PR checks: #750 20 success / 2 expected skips; #751 17 success / 2 expected skips; #752 21 success / 2 expected skips. Post-merge main CI for #752 was still running at checkpoint, with no failure observed.
+- R7 archive verified: SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`. Directive: `b51078e5aa164067c46347fd327c7230c5968f3cd36df5a354691504a3364ee2`.
+- R7 has a wrong Supabase project ref (`moyhiluyhjsujhwlyweuu` vs live `moyhiluyhjsujhwlyeuu`), hard-coded secret fallbacks, caller-controlled privileged token minting, admin password bypass, invalid-token refresh fallback, unauthenticated whole-state write routes, local JSON authority, and an incomplete/unhardened Android wrapper. Do not certify or deploy R7 server code as-is.
+- R7 includes 180 curated remote Unsplash defaults across 15 sectors and 5 local AI-generated image files. Root package has no declared test script; lint is TypeScript-only.
+- Production remains read-only at 310 migrations through `20261110150618`; RC468/469/470 are not applied. Six critical Edge Functions differ from main. Live legacy digital-page finalizer still lacks provider-order binding. Security advisor: 9 RLS/no-policy tables, 65 authenticated-callable SECURITY DEFINER functions, one public targeted-ad RPC.
+- Detailed evidence: `docs/audits/PASS_67_86_CONTINUATION_20261117.md`.
+
+**Next:** finish main CI/deploy, reconcile the 310-row migration ledger and 42 required missing version IDs, then stage coordinated payment migrations + Edge sources with Sandbox E2E and backup/restore evidence. Keep R7 server logic blocked until auth, secret and Supabase-authority gaps are fixed. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
 ## Latest execution checkpoint — 2026-11-17 — Pass 47–66
 
 **Request ID:** `R-20261117-PASS-47-66`  
