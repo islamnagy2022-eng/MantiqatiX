@@ -55,7 +55,7 @@ jobs:
         run: node scripts/validate-mantigo-platform-admin-scope.mjs
       - name: Static RC471 forward migration contract
         run: node scripts/validate-r7-platform-admin-migration.mjs
-      - name: Apply disposable fixture, migration, and behavioral tests
+      - name: Apply disposable RC449/RC462/RC471 fixtures, migrations, and behavioral tests
         shell: bash
         run: |
           set -euo pipefail
