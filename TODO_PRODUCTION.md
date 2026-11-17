@@ -2038,3 +2038,21 @@ Evidence: `docs/audits/PASS_151_190_DIRECTORY_LOCATION_INTEGRITY_20261117.md`. N
 - [ ] Decide public contact and precise-map disclosure policy for imported/unclaimed directory records.
 
 Evidence: `docs/audits/PASS_191_230_PUBLIC_DIRECTORY_METADATA_20261117.md`. Source-only changes; no production deployment or database mutation.
+
+
+---
+
+## Pass 231–270 — Directory claim atomicity audit (2026-11-17)
+
+- [x] Audit platform-admin authorization gate for REVIEW_CLAIM.
+- [x] Audit claim state handling and rejection lock-release sequence.
+- [x] Audit approval prerequisites: ownership verification, business status, paid/admin-confirmed subscription, tenant scope and owner conflict checks.
+- [x] Audit membership/listing/claim write ordering and concurrency exposure.
+- [ ] Inspect authoritative schemas, constraints and triggers for claims, listings, memberships and businesses.
+- [ ] Replace multi-request approval/rejection with a single transactional database operation.
+- [ ] Add integration tests for rollback, concurrency, duplicate membership and rejected-claim lock release.
+- [ ] Re-run required CI on final head; do not merge while atomicity remains unresolved.
+
+Confirmed blocker: claim rejection can report success despite a failed listing-lock release. Approval can partially apply membership/listing changes while the claim remains pending if a later write fails. No schema or Production mutation was made.
+
+Evidence: `docs/audits/PASS_231_270_DIRECTORY_CLAIM_ATOMICITY_20261117.md`.
