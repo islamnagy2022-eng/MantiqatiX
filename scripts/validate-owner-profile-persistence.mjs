@@ -93,16 +93,25 @@ for (const marker of [
 ]) {
   if (!migration.includes(marker)) throw new Error('FAIL: migrated profile write is missing safety contract: ' + marker);
 }
-for (const [source, expected, label] of [
-  [catalogAdmin, 2, 'catalog admin read paths'],
-  [publicDirectory, 1, 'public directory read path'],
-  [publicCatalog, 1, 'public catalog read path'],
+
+// Authenticated catalog-admin reads retain private operational data. Public read paths
+// must use the consent-gated projection instead of copying raw profile maps.
+const adminMapsCount = catalogAdmin.split('google_maps_url: String(profile.google_maps_url || "")').length - 1;
+if (adminMapsCount !== 2) {
+  throw new Error('FAIL: authenticated catalog-admin read paths must retain both private profile map fields. Expected 2, got ' + adminMapsCount);
+}
+for (const [source, label] of [
+  [publicDirectory, 'public directory'],
+  [publicCatalog, 'public catalog'],
 ]) {
-  const count = source.split('google_maps_url: String(profile.google_maps_url || "")').length - 1;
-  if (count !== expected) throw new Error('FAIL: saved Google Maps URL absent from ' + label + '. Expected ' + expected + ', got ' + count);
+  if (!source.includes('google_maps_url: publicContact.googleMapsUrl') ||
+      source.includes('google_maps_url: String(profile.google_maps_url || "")') ||
+      !source.includes('getExplicitPublicContact(')) {
+    throw new Error('FAIL: ' + label + ' must return Google Maps URLs only through the audited public-contact projection.');
+  }
 }
 if (!/googleMapsUrl:\s*String\(profile\.google_maps_url \|\| ''\)/.test(mapper)) {
-  throw new Error('FAIL: frontend mapper must restore the persisted Google Maps URL.');
+  throw new Error('FAIL: frontend mapper must restore the Google Maps URL supplied by the consent-gated server projection.');
 }
 
 console.log('Owner profile persistence contract: PASS');

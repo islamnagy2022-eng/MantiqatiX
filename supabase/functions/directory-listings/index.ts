@@ -208,7 +208,7 @@ Deno.serve(async (req: Request) => {
   if (action === "UPDATE_OWNED_LISTING") {
     const listingId = clean(body.listingId, 80);
     const { data: listing, error: listingError } = await service.from("public_directory_listings")
-      .select("id,claim_status,claimed_user_id,claimed_business_id,metadata")
+      .select("id,claim_status,claimed_user_id,claimed_business_id,metadata,governorate,district,village")
       .eq("id", listingId).eq("listing_status", "PUBLISHED").maybeSingle();
     if (listingError) return out(origin, { error: "LISTING_READ_FAILED" }, 500);
     if (!listing || listing.claim_status !== "CLAIMED") return out(origin, { error: "LISTING_NOT_CLAIMED" }, 409);
@@ -226,9 +226,9 @@ Deno.serve(async (req: Request) => {
     const secondaryPhone = clean(body.secondaryPhone, 40);
     const specialty = clean(body.specialty, 160);
     const address = clean(body.address, 500);
-    const governorate = clean(body.governorate || "المنوفية", 100);
-    const district = clean(body.district || "بركة السبع", 100);
-    const village = clean(body.village, 100);
+    const governorate = clean(body.governorate || listing.governorate, 100);
+    const district = clean(body.district || listing.district, 100);
+    const village = clean(body.village || listing.village, 100);
     if (displayName.length < 2) return out(origin, { error: "INVALID_DISPLAY_NAME" }, 400);
     const metadataInput = body.metadata && typeof body.metadata === "object" && !Array.isArray(body.metadata) ? body.metadata : {};
     const currentMetadata = listing.metadata && typeof listing.metadata === "object" && !Array.isArray(listing.metadata) ? listing.metadata : {};
@@ -569,6 +569,14 @@ Deno.serve(async (req: Request) => {
     if (displayName.length < 2 || !listingTypes.has(listingType) || !listingStatuses.has(listingStatus) || !validGroups.has(functionalGroupId) || taxonomyCategoryId.length < 4) {
       return out(origin, { error: "INVALID_LISTING", message: "راجع اسم الصفحة والمجموعة الوظيفية والتصنيف وحالة النشر." }, 400);
     }
+    const governorate = clean(body.governorate, 100);
+    const district = clean(body.district, 100);
+    if (!governorate || !district) {
+      return out(origin, {
+        error: "LOCATION_REQUIRED",
+        message: "حدد المحافظة والمركز أو المدينة الفعليين قبل حفظ الصفحة.",
+      }, 400);
+    }
     if (!taxonomyCategoryId.startsWith("cat_" + functionalGroupId + "_") && !taxonomyCategoryId.startsWith("cat_custom_")) {
       return out(origin, { error: "TAXONOMY_GROUP_MISMATCH", message: "التصنيف المختار لا يتبع المجموعة الوظيفية المحددة." }, 400);
     }
@@ -634,8 +642,8 @@ Deno.serve(async (req: Request) => {
       specialty: clean(body.specialty || taxonomySpecialty, 160) || null,
       phone: phone || null, secondary_phone: secondaryPhone || null,
       address: clean(body.address, 500) || null,
-      governorate: clean(body.governorate || "المنوفية", 100),
-      district: clean(body.district || "بركة السبع", 100), village: clean(body.village, 100) || null,
+      governorate,
+      district, village: clean(body.village, 100) || null,
       source_name: sourceName,
       source_url: sourceUrl,
       source_checked_at: body.sourceCheckedAt ? String(body.sourceCheckedAt) : new Date().toISOString(),

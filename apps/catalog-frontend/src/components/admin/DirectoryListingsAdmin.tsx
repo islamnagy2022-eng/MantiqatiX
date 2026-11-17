@@ -39,7 +39,7 @@ const canonicalSpecialtyLabel = (value: string | null | undefined, categoryId: s
 const emptyForm: FormState = {
   id: "", displayName: "", slug: "", listingType: "doctor", specialty: "",
   functionalGroupId: "medical_health", taxonomyCategoryId: "cat_medical_health_medical_practices", taxonomySpecialty: "", phone: "",
-  secondaryPhone: "", address: "", governorate: "المنوفية", district: "بركة السبع",
+  secondaryPhone: "", address: "", governorate: "", district: "",
   village: "", sourceName: "إدخال إدارة المنصة", sourceUrl: "", listingStatus: "DRAFT",
   outreachStatus: "NEW", outreachNotes: "", lastContactedAt: "", subscriptionOfferAt: "", nextFollowUpAt: "",
 };
@@ -123,7 +123,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
       id: listing.id, displayName: listing.display_name, slug: listing.slug, listingType: listing.listing_type,
       functionalGroupId: listing.functional_group_id || "medical_health", taxonomyCategoryId: listing.taxonomy_category_id || "cat_medical_health_medical_practices", taxonomySpecialty: canonicalSpecialtyLabel(listing.taxonomy_specialty || listing.specialty, listing.taxonomy_category_id || "cat_medical_health_medical_practices", categories),
       specialty: listing.specialty || "", phone: listing.phone || "", secondaryPhone: listing.secondary_phone || "",
-      address: listing.address || "", governorate: listing.governorate || "المنوفية", district: listing.district || "بركة السبع",
+      address: listing.address || "", governorate: listing.governorate || "", district: listing.district || "",
       village: listing.village || "", sourceName: listing.source_name || "", sourceUrl: listing.source_url || "",
       listingStatus: listing.listing_status || "DRAFT",
       outreachStatus: listing.outreach_status || "NEW", outreachNotes: listing.outreach_notes || "",
@@ -342,7 +342,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
             <label className="block text-xs font-bold text-slate-700">التخصص<input value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>
             <div className="grid grid-cols-2 gap-3"><label className="block text-xs font-bold text-slate-700">رقم الهاتف<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} dir="ltr" className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-left" /></label><label className="block text-xs font-bold text-slate-700">رقم إضافي<input value={form.secondaryPhone} onChange={(e) => setForm({ ...form, secondaryPhone: e.target.value })} dir="ltr" className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-left" /></label></div>
             <label className="block text-xs font-bold text-slate-700">العنوان<textarea value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} rows={2} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>
-            <div className="grid grid-cols-2 gap-3"><label className="block text-xs font-bold text-slate-700">المحافظة<input value={form.governorate} onChange={(e) => setForm({ ...form, governorate: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label><label className="block text-xs font-bold text-slate-700">المركز / المدينة<input value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label></div>
+            <div className="grid grid-cols-2 gap-3"><label className="block text-xs font-bold text-slate-700">المحافظة *<input required value={form.governorate} onChange={(e) => setForm({ ...form, governorate: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label><label className="block text-xs font-bold text-slate-700">المركز / المدينة *<input required value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label></div>
             <label className="block text-xs font-bold text-slate-700">القرية / الحي<input value={form.village} onChange={(e) => setForm({ ...form, village: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>
             <label className="block text-xs font-bold text-slate-700">اسم مصدر البيانات<input value={form.sourceName} onChange={(e) => setForm({ ...form, sourceName: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>
             <label className="block text-xs font-bold text-slate-700">رابط المصدر<input type="url" value={form.sourceUrl} onChange={(e) => setForm({ ...form, sourceUrl: e.target.value })} dir="ltr" className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-left" /></label>

@@ -1,0 +1,50 @@
+name: Public Catalog Contact Privacy
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/functions/_shared/public-contact-visibility.mjs"
+      - "supabase/functions/_shared/public-contact-visibility.test.mjs"
+      - "supabase/functions/public-catalog/index.ts"
+      - "supabase/functions/public-catalog-directory/index.ts"
+      - "supabase/functions/catalog-admin/index.ts"
+      - "apps/catalog-frontend/src/lib/production.ts"
+      - "apps/catalog-frontend/src/context/AppContext.tsx"
+      - "apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx"
+      - "apps/catalog-frontend/src/types/index.ts"
+      - "scripts/validate-public-contact-visibility.mjs"
+      - ".github/workflows/public-catalog-contact-privacy.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/functions/_shared/public-contact-visibility.mjs"
+      - "supabase/functions/_shared/public-contact-visibility.test.mjs"
+      - "supabase/functions/public-catalog/index.ts"
+      - "supabase/functions/public-catalog-directory/index.ts"
+      - "supabase/functions/catalog-admin/index.ts"
+      - "apps/catalog-frontend/src/lib/production.ts"
+      - "apps/catalog-frontend/src/context/AppContext.tsx"
+      - "apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx"
+      - "apps/catalog-frontend/src/types/index.ts"
+      - "scripts/validate-public-contact-visibility.mjs"
+      - ".github/workflows/public-catalog-contact-privacy.yml"
+permissions:
+  contents: read
+jobs:
+  public-contact-privacy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Test explicit contact projection
+        run: node --test supabase/functions/_shared/public-contact-visibility.test.mjs
+      - name: Validate public contact source contract
+        run: node scripts/validate-public-contact-visibility.mjs
+      - name: Type-check affected public Supabase Edge Functions
+        run: deno check --node-modules-dir=auto supabase/functions/public-catalog-directory/index.ts supabase/functions/public-catalog/index.ts supabase/functions/catalog-admin/index.ts

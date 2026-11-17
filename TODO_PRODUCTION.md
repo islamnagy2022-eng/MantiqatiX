@@ -1981,3 +1981,43 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 - [ ] Complete mobile/desktop map interaction, keyboard access, loading/error states and deployed-origin tests.
 
 **Evidence boundary:** prepared image bundle is not yet integrated into the repository. Current geographic assignment still uses representative points, not verified polygon containment. Do not mark either task complete until the relevant assets/data are committed and tests pass.
+
+
+---
+
+## Pass 111–150 — National directory public-contact boundary (2026-11-17)
+
+- [x] Audit the separate `directory-listings` GET routes, published-only filtering, explicit public field list, metadata allowlist, claim edit authorization and pagination contract.
+- [x] Identify that PUBLISHED national-directory records currently expose `phone`, `secondary_phone`, `address`, and metadata `google_maps_url`.
+- [ ] Determine the legal/source-permission and owner/claim consent rules for public contact and precise map disclosure on this separate listing stream.
+- [ ] Add tests for imported/unclaimed and claimed/owner-managed listing cases before changing any output projection.
+- [ ] Keep the national listing consent decision separate from catalog business profile consent in PR #756; do not alter public behavior or schema without a verified migration and regression plan.
+
+Evidence: `docs/audits/PASS_111_150_PUBLIC_DIRECTORY_BOUNDARY_20261117.md`. No Production mutation or deployment occurred.
+
+
+---
+
+## Pass 151–190 — directory claim and public-output review (2026-11-17)
+
+- [x] Audit claim lifecycle, owner authorization, source evidence approval/revocation, incremental import and public output sanitizer.
+- [x] Fix owner partial-update location fallback so omitted governorate/district/village values preserve stored values rather than silently defaulting to Monufia/Berket El Sabaa.
+- [x] Validate public directory Google Maps metadata with an HTTPS and approved Google Maps host/path allowlist; add behavior and source-contract regression tests.
+- [ ] Make claim approval an atomic database transaction across membership, listing and request state.
+- [ ] Make claim rejection atomic and handle failure to release the listing lock.
+- [ ] Decide and test contact/map disclosure rules for imported/unclaimed national directory listings.
+
+Evidence: `docs/audits/PASS_151_190_DIRECTORY_CLAIM_AND_OUTPUT_20261117.md`. No Production mutation or deployment occurred.
+
+
+---
+
+## Pass 151–190 — Directory location integrity (2026-11-17)
+
+- [x] Remove silent Monufia / Berket El-Sabaa location defaults from new and edit forms.
+- [x] Require real governorate and district/city values in the UI and backend.
+- [x] Add regression checks preventing fabricated geographic assignment.
+- [ ] Verify exact-head CI and the complete PR review before merge.
+- [ ] Reconcile and deploy the directory Edge Function only through a separate reviewed production release.
+
+Evidence: `docs/audits/PASS_151_190_DIRECTORY_LOCATION_INTEGRITY_20261117.md`. No production data or deployment changes made.

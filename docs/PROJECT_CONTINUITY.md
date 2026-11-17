@@ -1847,3 +1847,40 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - Reviewed catalog ACL/search_path metadata for all 65 public SECURITY DEFINER functions callable by anon/authenticated: 18 empty search_path, 47 pinned non-empty, zero unpinned. One is anon-executable and 65 authenticated-executable; 4 are also service_role-executable.
 - The sole anon-executable function is `get_mnty_targeted_advertisements`; it uses empty search_path, filters ACTIVE+APPROVED/time-valid ads, returns a bounded public ad projection, and clamps limit to 1–50. Treat as intentional public ad discovery pending output/privacy regression review, not an automatic revoke.
 - anon/authenticated/service_role have no CREATE privilege on public schema. No production grants, policies or function definitions were changed.
+
+### 2026-11-17 — Pass 91–110: audited public contact disclosure
+
+- PR #756 (current-main branch) contains the isolated public contact privacy hardening; the older PR #726 was not merged because its stale branch combined the requested privacy work with unrelated pagination and UI changes.
+- Shared public projection requires owner consent and a verified audit flag. Public fields covered: phone display, WhatsApp number/URL, branch address, additional contact numbers and precise Google Maps URL. Defaults are all blank.
+- public-catalog and public-catalog-directory use the helper. Public branch payloads now omit phone/address; public top-level contactPhone uses only the consent projection. Authenticated catalog-admin reads keep the private branch data.
+- catalog-admin writes public_contact_consent_audit_verified=false before recording the consent event, inserts GRANTED/REVOKED audit rows, and only turns the audit flag true after a compare-and-set check. This leaves the public response private on audit error or concurrent conflict.
+- Merchant dashboard includes explicit opt-in. AppContext carries the value to the authenticated backend; frontend projection mapping does not fall back to raw branch phone/address.
+- Seven unit tests pass and the 23-check static privacy contract passes. A Deno check found and drove fixes for TypeScript/JSDoc issues; the older social-links source contract was updated to match the new privacy boundary.
+- Current PR status remains pending final CI at commit 178588019ac831e1cd7e06c8535fec241b88ac3c. Do not merge/deploy until required checks pass. No production Edge deployment or DB mutation.
+
+
+## 2026-11-17 — Pass 111–150 public directory boundary review
+
+- Completed 40 read-only checks across the separate national `directory-listings` API: published-only GET behavior, explicit row/metadata allowlists, public phone/secondary-phone/address/Google Maps fields, claim authorization and pagination/filter behavior.
+- Finding: unlike the catalog business endpoints in PR #756, national directory listings still publish phone, secondary phone and address for PUBLISHED rows; `google_maps_url` is also an allow-listed metadata key. Its consent/source-permission/claim lifecycle is separate and does not currently use `public_contact_consent_audit_verified`.
+- Kept PR #756 bounded; no directory-listings code, schema, migration, RLS, grants or production data were changed. Follow-up: determine source republication and owner/claim consent requirements for imported/unclaimed versus claimed listings, then add tests before changing the public contract.
+- PR #756 validator was corrected to expect audited public Maps projection in public catalog endpoints and preserve private maps data only for authenticated catalog-admin reads. New exact-head CI is 24 success, 2 skipped, 0 failed, with one browser E2E check still running at checkpoint.
+- No Production Edge deployment, DB/Auth/RLS/GRANT mutation, payment, settlement or Pages cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-11-17 — Pass 151–190 directory claim and public-output review
+
+- Completed Pass 151–190 covering claim request lifecycle, owner-only editing, source-permission administration, incremental import safeguards and public output serialization.
+- Fixed a partial owner-edit fallback that could silently reset omitted location fields to المنوفية / بركة السبع: the Edge Function now reads and preserves the stored governorate, district and village. Added static regression assertions.
+- Hardened public directory `google_maps_url` metadata: only HTTPS Google Maps destinations on the explicit approved host list are returned. Added positive/negative behavior tests and validator checks.
+- Remaining: claim approval is a multi-write non-transactional flow; claim rejection ignores failure from releasing the listing lock. Require a single atomic database operation before treating claim workflow as fully production-hardened.
+- Exact-head CI for the new source changes is pending. No Production Edge deployment, database/schema/data/RLS/GRANT/Auth mutation, payment/settlement action or Pages cutover. Full production gate remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-17 — Pass 151–190 directory location integrity
+
+- Fixed a false-location default in the directory admin workflow: new and edited records no longer silently fall back to Monufia / Berket El-Sabaa when location is absent.
+- Admin UI now starts with blank governorate/district, preserves blank stored values, and requires both actual values. The Edge Function validates both values and returns `LOCATION_REQUIRED` instead of persisting fabricated defaults.
+- Added regression assertions to `scripts/production/validate-doctor-incremental-import.mjs`. The existing doctor incremental-import workflow already watches the changed Edge Function, admin component and validator.
+- Pass 151–190 audit report: `docs/audits/PASS_151_190_DIRECTORY_LOCATION_INTEGRITY_20261117.md`.
+- Changes are source-only in PR #756; no migration, production row, Supabase deployment, RLS/GRANT, Auth, payment or Pages change. Exact-head CI is pending; merge remains blocked until all required checks pass.
