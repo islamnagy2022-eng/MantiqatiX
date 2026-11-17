@@ -110,7 +110,7 @@ for (const [source, label] of [
     throw new Error('FAIL: ' + label + ' must return Google Maps URLs only through the audited public-contact projection.');
   }
 }
-if (!/googleMapsUrl:\s*String\(profile\.google_maps_url \|\| ''\)/.test(mapper)) {
+if (!/googleMapsUrl:\s*isPublicProjection && !hasAuditedPublicContact \? '' : String\(profile\.google_maps_url \|\| ''\)/.test(mapper)) {
   throw new Error('FAIL: frontend mapper must restore the Google Maps URL supplied by the consent-gated server projection.');
 }
 
