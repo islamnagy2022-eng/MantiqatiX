@@ -1020,6 +1020,8 @@ try {
       await page.getByLabel('نوع الجهة').selectOption('clinic');
       await page.getByLabel('التخصص', { exact: true }).fill('أطفال');
       await specialtySelect.selectOption('أطفال');
+      await page.getByLabel('المحافظة *').fill('القاهرة');
+      await page.getByLabel('المركز / المدينة *').fill('مدينة نصر');
       await page.getByRole('button', { name: 'حفظ البيانات' }).click();
       await page.getByText('تم إنشاء الصفحة.', { exact: true }).waitFor({ state: 'visible' });
       await page.getByText('مركز اختبار جديد', { exact: true }).waitFor({ state: 'visible' });
