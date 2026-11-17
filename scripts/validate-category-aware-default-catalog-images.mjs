@@ -27,10 +27,9 @@ const maintenanceRule = defaults.indexOf("if (/صيانة|تصليح|إصلاح|
 const broadHomeRule = defaults.indexOf("if (/عقار|عقارات|تشطيب|ديكور|أثاث|منزل|مفروشات|سباكة|نجار|حداد|صيانة|تنظيف|home|furniture|real estate|property|maintenance|repair|plumb|carpenter/.test(text))");
 assert.ok(maintenanceRule >= 0 && broadHomeRule > maintenanceRule,
   'maintenance activity inference must run before the broad home category matcher');
-assert.ok(defaults.includes("maintenance: 'legacy/activities/maintenance.svg'"),
-  'maintenance activity defaults must resolve to the dedicated local artwork');
-assert.ok(defaults.includes("maintenance: 'legacy/activities/maintenance.svg'"),
-  'maintenance product/service defaults must resolve to the dedicated local artwork');
+const maintenanceAssetMapping = "maintenance: 'legacy/activities/maintenance.svg'";
+assert.equal(defaults.split(maintenanceAssetMapping).length - 1, 2,
+  'activity and product/service defaults must both use the dedicated maintenance artwork');
 
 const addStart = context.indexOf('const addBusiness = async');
 const addEnd = context.indexOf('const updateBusinessLocation', addStart);
