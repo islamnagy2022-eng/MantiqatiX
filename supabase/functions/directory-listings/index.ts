@@ -233,7 +233,7 @@ Deno.serve(async (req: Request) => {
       .select("id,listing_status,claim_status,claimed_user_id,claimed_business_id")
       .eq("id", listingId).maybeSingle();
     if (listingError) return out(origin, { error: "LISTING_READ_FAILED" }, 500);
-    if (!listing || listing.listing_status !== "PUBLISHED" || listing.claim_status !== "CLAIMED") {
+    if (!listing || listing.claim_status !== "CLAIMED" || (enabled && listing.listing_status !== "PUBLISHED")) {
       return out(origin, { error: "LISTING_OWNER_REQUIRED" }, 403);
     }
     let authorized = String(listing.claimed_user_id || "") === String(user.id);
