@@ -43,13 +43,32 @@ const PUBLIC_LISTING_KEYS = new Set([
 
 const clean = (value, max = 500) => String(value ?? "").trim().slice(0, max);
 
+function sanitizePublicGoogleMapsUrl(value) {
+  const raw = clean(value, 1000);
+  if (!raw) return "";
+  try {
+    const url = new URL(raw);
+    const host = url.hostname.toLowerCase();
+    const allowedHosts = new Set(["google.com", "www.google.com", "maps.google.com", "maps.app.goo.gl", "goo.gl"]);
+    if (url.protocol !== "https:" || url.username || url.password || url.port || !allowedHosts.has(host)) return "";
+    if ((host === "google.com" || host === "www.google.com") && !url.pathname.startsWith("/maps")) return "";
+    if (host === "goo.gl" && !url.pathname.startsWith("/maps")) return "";
+    return url.toString();
+  } catch {
+    return "";
+  }
+}
+
 export function sanitizePublicDirectoryMetadata(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const source = value;
   const result = {};
   for (const key of PUBLIC_METADATA_KEYS) {
     const item = source[key];
-    if (typeof item === "string") result[key] = clean(item, key === "bio" ? 2000 : 1500);
+    if (key === "google_maps_url") {
+      const safeUrl = sanitizePublicGoogleMapsUrl(item);
+      if (safeUrl) result[key] = safeUrl;
+    } else if (typeof item === "string") result[key] = clean(item, key === "bio" ? 2000 : 1500);
     else if (typeof item === "boolean" || (typeof item === "number" && Number.isFinite(item))) result[key] = item;
     else if (key === "services" && Array.isArray(item)) {
       result[key] = item
