@@ -19,7 +19,9 @@ on:
       - "supabase/tests/rc455_commission_preview_integration.sql"
       - "supabase/tests/rc456_commission_resolution_preview_integration.sql"
       - "supabase/tests/rc467_commission_scope_integration.sql"
+      - "supabase/tests/rc468_digital_page_payment_claim_integration.sql"
       - "scripts/validate-rc467-commission-scope.mjs"
+      - "supabase/tests/rc468_digital_page_payment_claim_integration.sql"
       - "supabase/tests/rc469_shared_platform_admin_caller_search_path.sql"
       - "supabase/tests/baselines/rc469_live_shared_helper_search_path_overlay.sql"
       - "scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs"
@@ -153,6 +155,9 @@ jobs:
 
           echo "RC469_SHARED_PLATFORM_ADMIN_CALLER_SEARCH_PATH"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc469_shared_platform_admin_caller_search_path.sql
+
+          echo "RC468_DIGITAL_PAGE_PAYMENT_CLAIM_INTEGRATION"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc468_digital_page_payment_claim_integration.sql
 
           psql "$db_url" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql
           psql "$db_url" -v ON_ERROR_STOP=1 -f scripts/verify-tenant-isolation.sql
