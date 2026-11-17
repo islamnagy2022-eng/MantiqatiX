@@ -10,6 +10,7 @@ on:
       - "apps/catalog-frontend/src/components/admin/DirectoryListingsAdmin.tsx"
       - "scripts/production/validate-doctor-incremental-import.mjs"
       - "scripts/production/test-doctor-import-contract.mjs"
+      - "scripts/production/test-public-directory-output-contract.mjs"
       - ".github/workflows/doctor-incremental-import-contract.yml"
   push:
     branches:
@@ -20,6 +21,7 @@ on:
       - "apps/catalog-frontend/src/components/admin/DirectoryListingsAdmin.tsx"
       - "scripts/production/validate-doctor-incremental-import.mjs"
       - "scripts/production/test-doctor-import-contract.mjs"
+      - "scripts/production/test-public-directory-output-contract.mjs"
       - ".github/workflows/doctor-incremental-import-contract.yml"
 
 permissions:
@@ -41,4 +43,4 @@ jobs:
       - name: Validate incremental doctor import contract
         run: node scripts/production/validate-doctor-incremental-import.mjs
       - name: Run doctor import behavior tests
-        run: node --test scripts/production/test-doctor-import-contract.mjs
+        run: node --test scripts/production/test-doctor-import-contract.mjs scripts/production/test-public-directory-output-contract.mjs
