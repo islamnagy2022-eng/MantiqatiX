@@ -130,7 +130,7 @@ export function fetchPublicDirectory(): Promise<PublicDirectoryResult> {
     const businesses: Business[] = [];
     const products: Product[] = [];
     for (const row of rows) {
-      const mapped = mapBusiness({ ...row, branches: row.branches || [], branchId: row.selectedBranchId || row.branchId }, row.provider);
+      const mapped = mapBusiness({ ...row, accessMode: data?.accessMode || "PUBLIC_DIRECTORY_READ_ONLY", branches: row.branches || [], branchId: row.selectedBranchId || row.branchId }, row.provider);
       businesses.push(mapped);
       products.push(...mapProducts(mapped.id, mapped.tenantId || '', mapped.branchId, row.items || [], row.prices || []));
     }
@@ -170,6 +170,7 @@ export async function fetchPublicCatalog(businessId: string, branchId?: string):
     bio: body.profile?.bio || body.provider?.description,
     branches: body.branches,
     profile: body.profile,
+    accessMode: body.accessMode || "PUBLIC_READ_ONLY",
     branchId: body.selectedBranchId,
     publicEnabled: true,
     operationalStatus: body.business?.operationalStatus || 'ACTIVE',
@@ -197,6 +198,15 @@ function groupFromCategory(category: string, groupCode?: string): FunctionalGrou
 
 export function mapBusiness(raw: any, provider: any): Business {
   const profile = raw.profile || raw.settings?.catalog_profile || {};
+  const isPublicProjection = ["PUBLIC_READ_ONLY", "PUBLIC_DIRECTORY_READ_ONLY"].includes(String(raw.accessMode || "").toUpperCase());
+  const hasAuditedPublicContact = profile.public_contact_enabled === true && profile.public_contact_consent_audit_verified === true;
+  const publicLocationAllowed = !isPublicProjection || hasAuditedPublicContact;
+  const publicPhone = hasAuditedPublicContact
+    ? String(profile.phoneDisplay || profile.phone_display || profile.whatsappNumber || profile.whatsappPhone || raw.contactPhone || "")
+    : "";
+  const publicWhatsApp = hasAuditedPublicContact
+    ? String(profile.whatsappNumber || profile.whatsappPhone || raw.contactPhone || "")
+    : "";
   const branch = raw.branches?.find((x: any) => String(x.id) === String(raw.branchId || raw.selectedBranchId)) || raw.branches?.[0] || raw.branch || {};
   const branchMetadata = branch.metadata && typeof branch.metadata === 'object' ? branch.metadata : {};
   const branchLocation = branch.location && typeof branch.location === 'object' ? branch.location : {};
@@ -282,19 +292,28 @@ export function mapBusiness(raw: any, provider: any): Business {
     externalLogoUrl: /^https:\/\//i.test(externalLogoUrl) ? externalLogoUrl : '',
     externalCoverUrl: /^https:\/\//i.test(externalCoverUrl) ? externalCoverUrl : '',
     bio: String(profile.bio || raw.bio || provider?.description || ''),
-    ownerWhatsApp: String(branch.phone || profile.phone || raw.ownerWhatsApp || ''),
-    additionalContactPhones: Array.isArray(profile.additionalContactPhones || profile.additional_contact_phones) ? (profile.additionalContactPhones || profile.additional_contact_phones).map((value: unknown) => String(value || '')).filter(Boolean) : [],
-    phone: String(profile.contact_phone || branch.phone || profile.phone || raw.phone || ''), email: String(raw.email || ''),
+    ownerWhatsApp: isPublicProjection ? publicWhatsApp : String(branch.phone || profile.phone || raw.ownerWhatsApp || ''),
+    additionalContactPhones: isPublicProjection
+      ? (hasAuditedPublicContact && Array.isArray(profile.additionalContactPhones || profile.additional_contact_phones)
+        ? (profile.additionalContactPhones || profile.additional_contact_phones).map((value: unknown) => String(value || '')).filter(Boolean)
+        : [])
+      : (Array.isArray(profile.additionalContactPhones || profile.additional_contact_phones)
+        ? (profile.additionalContactPhones || profile.additional_contact_phones).map((value: unknown) => String(value || '')).filter(Boolean)
+        : []),
+    publicContactEnabled: hasAuditedPublicContact,
+    phone: isPublicProjection ? publicPhone : String(profile.contact_phone || branch.phone || profile.phone || raw.phone || ''), email: isPublicProjection ? '' : String(raw.email || ''),
     facebookUrl: String(profile.facebook_url || profile.facebookUrl || raw.facebookUrl || ''),
     instagramUrl: String(profile.instagram_url || profile.instagramUrl || raw.instagramUrl || ''),
     tiktokUrl: String(profile.tiktok_url || profile.tiktokUrl || raw.tiktokUrl || ''),
-    address: String(branch.address || profile.address || raw.address || ''),
+    address: isPublicProjection
+      ? (hasAuditedPublicContact ? String(profile.address || '') : '')
+      : String(branch.address || profile.address || raw.address || ''),
     governorate: String(profile.governorate || raw.governorate || ''),
     markaz: String(profile.markaz || raw.markaz || ''), village: String(profile.village || raw.village || ''),
-    googleMapsUrl: String(profile.google_maps_url || ''),
+    googleMapsUrl: isPublicProjection && !hasAuditedPublicContact ? '' : String(profile.google_maps_url || ''),
     // Coordinates may be stored on the selected branch, profile, raw activity, or their metadata/location objects.
     // Parse candidates independently so an empty/invalid field cannot hide a later valid coordinate.
-    latitude: parseFirstOptionalCoordinate([
+    latitude: publicLocationAllowed ? parseFirstOptionalCoordinate([
       branch.latitude, branch.lat, branch.latitude_deg, branchMetadata.latitude, branchMetadata.lat, branchMetadata.latitude_deg,
       branchLocation.latitude, branchLocation.lat, branchLocation.latitude_deg,
       branchMetadata.location?.latitude, branchMetadata.location?.lat,
@@ -304,8 +323,8 @@ export function mapBusiness(raw: any, provider: any): Business {
       raw.latitude, raw.lat, raw.latitude_deg, rawMetadata.latitude, rawMetadata.lat, rawMetadata.latitude_deg,
       rawLocation.latitude, rawLocation.lat, rawLocation.latitude_deg,
       rawMetadata.location?.latitude, rawMetadata.location?.lat,
-    ], -90, 90),
-    longitude: parseFirstOptionalCoordinate([
+    ], -90, 90) : undefined,
+    longitude: publicLocationAllowed ? parseFirstOptionalCoordinate([
       branch.longitude, branch.lng, branch.lon, branch.longitude_deg, branchMetadata.longitude, branchMetadata.lng, branchMetadata.lon, branchMetadata.longitude_deg,
       branchLocation.longitude, branchLocation.lng, branchLocation.lon, branchLocation.longitude_deg,
       branchMetadata.location?.longitude, branchMetadata.location?.lng, branchMetadata.location?.lon,
@@ -315,7 +334,7 @@ export function mapBusiness(raw: any, provider: any): Business {
       raw.longitude, raw.lng, raw.lon, raw.longitude_deg, rawMetadata.longitude, rawMetadata.lng, rawMetadata.lon, rawMetadata.longitude_deg,
       rawLocation.longitude, rawLocation.lng, rawLocation.lon, rawLocation.longitude_deg,
       rawMetadata.location?.longitude, rawMetadata.location?.lng, rawMetadata.location?.lon,
-    ], -180, 180),
+    ], -180, 180) : undefined,
     workingHours: String(profile.workingHours || profile.working_hours || raw.workingHours || ''),
     isVerified,
     maxProductsLimit: 150, createdAt: String(created).slice(0, 10),

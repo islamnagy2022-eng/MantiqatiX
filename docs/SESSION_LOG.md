@@ -2590,3 +2590,75 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Queried 65 public SECURITY DEFINER functions with anon/authenticated execute: 18 empty search_path, 47 pinned non-empty, 0 unpinned. One anon-executable function; all 65 authenticated-executable; 4 also service_role-executable.
 - Inspected the one anon-executable function `get_mnty_targeted_advertisements`: empty search_path, ACTIVE+APPROVED/time-valid filtering, bounded ad projection and limit 1–50. Retain as a public-discovery candidate with regression tests; no blanket revoke.
 - Confirmed anon/authenticated/service_role lack CREATE on public schema. No production mutation.
+
+## 2026-11-17 — Pass 91–110: public contact consent privacy
+
+- Pass 91: compared old PR #726 against current main; avoided merging the stale broad candidate. Rebuilt only the contact privacy scope on a current-main branch.
+- Pass 92–94: added a shared JavaScript contact projection and unit coverage for no consent, audited consent, pending audit, revocation, invalid phone/WhatsApp URL, field bounds and Google Maps privacy.
+- Pass 95–98: integrated the projection into public-catalog and public-catalog-directory, stripped branch phone/address from their public branch objects, and gated top-level contactPhone.
+- Pass 99–103: added boolean input validation, fail-closed audit-pending state, durable GRANTED/REVOKED audit entries, audit failure handling and compare-and-set activation after successful audit.
+- Pass 104–107: added merchant opt-in checkbox, AppContext payload pass-through, public-only mapper guards and Business type metadata.
+- Pass 108–109: gated exact Maps links behind the same audited consent with HTTPS allow-lists; added 23 source-contract checks and a dedicated workflow.
+- Pass 110: Node tests passed 7/7 and source contract passed 23/23. Deno type-check exposed typing and duplicate-key defects; corrected them and aligned the legacy social-link assertion with consent-gated behavior. Exact-head CI on PR #756 is pending at 178588019ac831e1cd7e06c8535fec241b88ac3c.
+- PR #756 is source-only. No production Edge Function deployment, database migration, RLS/GRANT mutation or production data edit.
+
+
+## 2026-11-17 — Pass 111–150 execution
+
+- Passes 111–120: audited public GET paths, PUBLISHED filters, explicit field selection, metadata allowlist, CORS and no-store behavior in `directory-listings`.
+- Passes 121–130: traced phone, secondary phone, address, locality and Maps metadata fields; confirmed the national directory listing output is a separate projection from public-catalog and public-catalog-directory.
+- Passes 131–140: reviewed anonymous read, claimed-user/business edit authorization, active owner membership checks, owner-ID projection and publication semantics.
+- Passes 141–145: identified a separate consent/source-permission review requirement for imported/unclaimed versus claimed national-directory listings; no changes made pending lifecycle review.
+- Passes 146–150: preserved PR #756 scope, avoided broad schema/RLS/GRANT changes, and confirmed no Production or deployment mutation.
+- Corrected `scripts/validate-owner-profile-persistence.mjs` so the public endpoints are required to use `publicContact.googleMapsUrl`; authenticated catalog-admin reads retain the two private map fields. New commit: `87cf638aba0f23b0a683e51f718284667ce45bac`.
+- Exact-head check snapshot: 24 success, 2 skipped, 0 failed; professional dashboard browser E2E remained in progress. PR #756 remains open and unmerged.
+
+
+## 2026-11-17 — Pass 151–190 execution
+
+- Pass 151–160: reviewed authenticated claim submission, contact validation, PUBLISHED/UNCLAIMED state rules, same-user idempotency, compare-and-set lock and losing-request cleanup.
+- Pass 161–170: reviewed owner edit authorization and metadata/contact fields. Fixed omitted owner location fields to preserve the saved governorate/district/village rather than defaulting to Monufia/Berket El Sabaa. Added regression assertions.
+- Pass 171–180: reviewed platform-admin gate, internal source-permission evidence registration, two-person approval, validity/expiry, revocation and claim admin reads. Recorded claim finalization/rejection atomicity as unresolved.
+- Pass 181–190: reviewed 20-row sequential imports, deduplication, partial-snapshot preservation, unverified status, source publication gate and public output allowlists. Added HTTPS/host/path validation for public Google Maps metadata and behavior tests.
+- Commits: `356a870c724a75999ff664650316e1203f50483a`, `6d9cffd5843c5533f0e629ff61e8d81270f2f501`, `53bc991ba693478411f8bccc451d6caadc394cbc`, `93bffa528be3e0ab09c59e85de4cdb39d8623982` plus audit/continuity records.
+- No Production deployment or database/Auth/RLS/GRANT mutation.
+
+
+## 2026-11-17 — Pass 151–190
+
+- Pass 151–160: traced the directory form and Edge Function; found that both new and edit forms, plus the API, silently assigned Monufia / Berket El-Sabaa when location was omitted. Confirmed the database columns are NOT NULL with legacy defaults.
+- Pass 161–170: changed the UI to blank location defaults, removed edit-time fallback injection, and made governorate and district/city required.
+- Pass 171–180: added server-side location validation and removed the two API fallbacks. Added static regression assertions for the frontend and backend contract.
+- Pass 181–190: verified the doctor import staging rule, source permission gate, phone publication gate and claim fields remain unchanged. No schema or Production mutation and no Edge deployment.
+- Commits: `e0872b9e6b00434a0b32942c5ea88445131b64e4` (Edge), `60ad34c84a80b3755c2a50da34f5c817c016fd72` (admin UI), `b352fd309b9d1432b7ac790adfd03d8c078f3235` (validator). Audit: `docs/audits/PASS_151_190_DIRECTORY_LOCATION_INTEGRITY_20261117.md`.
+- Exact-head CI was triggered by the changed paths and is pending; do not merge until all required checks pass.
+
+
+### Pass 151–190 supplemental scan
+
+- A wider repository search found the same fabricated location fallback in the claimed-owner directory profile editor. Fixed owner form defaults/hydration, required both fields in the owner form, and added server-side `LOCATION_REQUIRED` validation to `UPDATE_OWNED_LISTING`.
+- Regression validator now covers platform-admin and claimed-owner edit surfaces. Existing owner authorization, claim state, metadata allowlist and publication checks remain unchanged.
+
+
+## 2026-11-17 — Pass 191–230
+
+- Reviewed public directory metadata allowlist and URL-bearing metadata handling.
+- Added HTTPS-only sanitizer for logo/cover/website/booking/profile image URLs; added behavior tests for accepted HTTPS and rejected HTTP/javascript/data URLs.
+- Extended the incremental-import validator to enforce the public URL contract.
+- Rechecked owner partial-update location preservation, draft-only import staging and the distinct source-evidence publication gate.
+- Identified the previous contract failure as a stale-head JavaScript regex parse failure; current branch source has corrected regex syntax. Fresh CI for the final head is still required.
+- Claim approval/rejection transactionality remains unresolved. No production deployment or database/auth/security-policy mutation.
+
+
+## 2026-11-17 — Pass 231–270 directory claim atomicity
+
+- Passes 231–240: verified request boundary, authenticated identity, active membership lookup and all platform-admin scope/full-control predicates before REVIEW_CLAIM.
+- Passes 241–250: verified claim lookup/status handling and rejection sequence. Found claim status is updated before listing-lock release, and the lock-release error is ignored.
+- Passes 251–260: reviewed ownership verification, active business, paid/admin-confirmed subscription, tenant scope, existing owners and claimant membership lookup. Membership lookup is not serialized with approval.
+- Passes 261–270: traced membership activation/creation, automatic-owner deactivation, listing update and claim finalization. Confirmed each is a separate write; partial failures and concurrent reviews can leave inconsistent state.
+- Audit report: `docs/audits/PASS_231_270_DIRECTORY_CLAIM_ATOMICITY_20261117.md`.
+- No source fix or migration was made because authoritative table/trigger definitions could not be inspected with the available repository operations; no schema assumptions were introduced. Next step is schema discovery followed by one transactional RPC and database integration tests.
+- The 12 PR-triggered workflows on source head `47aba334...` all completed successfully; documentation commits now need fresh exact-head CI. PR #756 remains open/unmerged. No production mutation or deployment.
+
+
+Read-only Supabase production schema cross-check completed: retrieved definitions, constraints, indexes and triggers for claims, listings, memberships and businesses. Confirmed production migration history lacks `20261027090000`; live membership uniqueness remains nullable-branch `uk_user_biz_branch`, not the repo null-safe index. Aggregate preflight: 10 business-wide memberships, zero duplicate user/business groups, one REVIEWING claim and one CLAIM_PENDING listing. Default-owner trigger is deferred AFTER INSERT; legal activation triggers also exist. No DB writes or development branch creation.

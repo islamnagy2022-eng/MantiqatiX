@@ -60,3 +60,12 @@ PR: #756
 
 ## Release boundary
 This is source-only work in PR #756. Do not merge or deploy until exact-head required CI passes and the PR is reviewed. No production database, listing rows, Edge Function, Auth, payment, wallet, settlement or Pages deployment was changed.
+
+
+## Supplemental surface check within Pass 151–190
+A broader code search found the same fallback in the owner-managed public listing edit screen. That surface is now covered too:
+- Owner edit state and detail hydration use blank values rather than Monufia / Berket El-Sabaa fallbacks.
+- Owner edit form requires governorate and district/city.
+- `UPDATE_OWNED_LISTING` returns `LOCATION_REQUIRED` if the submitted values and saved values do not provide both fields.
+- The existing claimed-owner authorization check and private metadata allowlist remain unchanged.
+- The static validator now checks both admin and owner edit paths.

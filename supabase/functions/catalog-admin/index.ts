@@ -345,6 +345,8 @@ Deno.serve(async (req: Request) => {
               instagramUrl: String(profile.instagram_url || ""),
               tiktokUrl: String(profile.tiktok_url || ""),
               publicEnabled: business.settings?.catalog_public_enabled === true,
+              public_contact_enabled: profile.public_contact_enabled === true,
+              public_contact_consent_audit_verified: profile.public_contact_consent_audit_verified === true,
             },
             bizcatalog: business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
               ? business.settings.bizcatalog
@@ -450,6 +452,8 @@ Deno.serve(async (req: Request) => {
             instagramUrl: String(profile.instagram_url || ""),
             tiktokUrl: String(profile.tiktok_url || ""),
             publicEnabled: business.settings?.catalog_public_enabled === true,
+            public_contact_enabled: profile.public_contact_enabled === true,
+            public_contact_consent_audit_verified: profile.public_contact_consent_audit_verified === true,
           },
           bizcatalog: business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
             ? business.settings.bizcatalog
@@ -485,7 +489,7 @@ Deno.serve(async (req: Request) => {
       if (!roleForBusiness && !scopedPlatformMembership) {
         return out(origin, { error: "CATALOG_PROFILE_WRITE_FORBIDDEN" }, 403);
       }
-      const submittedSocialFields: Record<string, string | string[]> = {};
+      const submittedSocialFields: Record<string, unknown> = {};
       for (const [requestKey, columnKey, platform] of [
         ["facebookUrl", "facebook_url", "facebook"],
         ["instagramUrl", "instagram_url", "instagram"],
@@ -503,6 +507,15 @@ Deno.serve(async (req: Request) => {
           return out(origin, { error: "INVALID_ADDITIONAL_CONTACT_PHONES" }, 400);
         }
         submittedSocialFields["additional_contact_phones"] = normalizedPhones;
+      }
+      const consentSubmitted = Object.prototype.hasOwnProperty.call(body, "publicContactEnabled");
+      if (consentSubmitted) {
+        if (typeof body.publicContactEnabled !== "boolean") {
+          return out(origin, { error: "INVALID_PUBLIC_CONTACT_CONSENT" }, 400);
+        }
+        submittedSocialFields["public_contact_enabled"] = body.publicContactEnabled;
+        // Public projection remains disabled until the matching audit record is durable.
+        submittedSocialFields["public_contact_consent_audit_verified"] = false;
       }
       const { data, error } = await userClient.rpc("upsert_catalog_business_profile_backend", {
         p_tenant_id: tenantId,
@@ -555,7 +568,7 @@ Deno.serve(async (req: Request) => {
 
       if (Object.keys(submittedSocialFields).length > 0) {
         const { data: businessRow, error: businessReadError } = await service.from("businesses")
-          .select("settings").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle();
+          .select("settings,organization_id").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle();
         if (businessReadError) throw businessReadError;
         if (!businessRow) return out(origin, { error: "BUSINESS_NOT_FOUND" }, 404);
         const currentSettings = businessRow.settings && typeof businessRow.settings === "object" && !Array.isArray(businessRow.settings)
@@ -567,6 +580,71 @@ Deno.serve(async (req: Request) => {
           settings: nextSettings, updated_at: new Date().toISOString(),
         }).eq("id", businessId).eq("tenant_id", tenantId);
         if (socialWriteError) throw socialWriteError;
+
+        if (consentSubmitted) {
+          const { error: consentAuditError } = await service.from("audit_logs").insert({
+            id: crypto.randomUUID(),
+            tenant_id: tenantId,
+            organization_id: businessRow.organization_id || null,
+            business_id: businessId,
+            actor_user_id: user.id,
+            action: body.publicContactEnabled ? "PUBLIC_CONTACT_CONSENT_GRANTED" : "PUBLIC_CONTACT_CONSENT_REVOKED",
+            entity_type: "business",
+            entity_id: businessId,
+            old_values: { publicContactEnabled: currentProfile.public_contact_enabled === true },
+            new_values: { publicContactEnabled: body.publicContactEnabled },
+            result: "SUCCESS",
+          });
+          if (consentAuditError) {
+            console.error("public contact consent audit failed", { businessId, code: consentAuditError.code });
+            return out(origin, {
+              error: "PUBLIC_CONTACT_CONSENT_AUDIT_FAILED",
+              message: "تعذر تسجيل الموافقة في سجل التدقيق؛ ستظل بيانات التواصل مخفية للعامة حتى ينجح التسجيل.",
+            }, 500);
+          }
+
+          if (body.publicContactEnabled === true) {
+            // Re-enable only if no concurrent edit/revocation changed the profile
+            // after the audit event was recorded.
+            const { data: pendingBusiness, error: pendingReadError } = await service.from("businesses")
+              .select("settings,updated_at").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle();
+            if (pendingReadError) throw pendingReadError;
+            if (!pendingBusiness) return out(origin, { error: "BUSINESS_NOT_FOUND" }, 404);
+            const pendingSettings = pendingBusiness.settings && typeof pendingBusiness.settings === "object" && !Array.isArray(pendingBusiness.settings)
+              ? pendingBusiness.settings : {};
+            const pendingProfile = pendingSettings.catalog_profile && typeof pendingSettings.catalog_profile === "object" && !Array.isArray(pendingSettings.catalog_profile)
+              ? pendingSettings.catalog_profile : {};
+            if (pendingProfile.public_contact_enabled === true && pendingProfile.public_contact_consent_audit_verified !== true) {
+              const activatedSettings = {
+                ...pendingSettings,
+                catalog_profile: { ...pendingProfile, public_contact_consent_audit_verified: true },
+              };
+              const { data: activatedBusiness, error: activationError } = await service.from("businesses")
+                .update({ settings: activatedSettings, updated_at: new Date().toISOString() })
+                .eq("id", businessId).eq("tenant_id", tenantId)
+                .eq("updated_at", pendingBusiness.updated_at)
+                .eq("settings->catalog_profile->>public_contact_enabled", "true")
+                .eq("settings->catalog_profile->>public_contact_consent_audit_verified", "false")
+                .select("id").maybeSingle();
+              if (activationError) throw activationError;
+              if (!activatedBusiness) {
+                const { data: latestBusiness, error: latestReadError } = await service.from("businesses")
+                  .select("settings").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle();
+                if (latestReadError) throw latestReadError;
+                const latestSettings = latestBusiness?.settings && typeof latestBusiness.settings === "object"
+                  ? latestBusiness.settings : {};
+                const latestProfile = latestSettings.catalog_profile && typeof latestSettings.catalog_profile === "object"
+                  ? latestSettings.catalog_profile : {};
+                if (latestProfile.public_contact_enabled !== true || latestProfile.public_contact_consent_audit_verified !== true) {
+                  return out(origin, {
+                    error: "PUBLIC_CONTACT_CONSENT_ACTIVATION_CONFLICT",
+                    message: "تم تسجيل الموافقة لكن تغيرت بيانات النشاط بالتزامن؛ أعد حفظ بيانات التواصل لتفعيل النشر.",
+                  }, 409);
+                }
+              }
+            }
+          }
+        }
       }
       return out(origin, data);
     }

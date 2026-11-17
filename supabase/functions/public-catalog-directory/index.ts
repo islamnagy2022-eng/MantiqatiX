@@ -2,6 +2,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sanitizeActivityModuleOverrides } from "../_shared/activity-module-overrides.mjs";
 import { filterRowsToPubliclyPricedItems, getExplicitlyPublicComparePrice } from "../_shared/public-price-visibility.mjs";
+import { getExplicitPublicContact } from "../_shared/public-contact-visibility.mjs";
 
 const allowedOrigins = new Set(["https://islamnagy2022-eng.github.io", "http://localhost:3000", "http://localhost:5173", "http://localhost:8080", "http://127.0.0.1:3000", "http://127.0.0.1:5173", "http://127.0.0.1:8080"]);
 const headersFor = (origin: string | null) => ({
@@ -123,7 +124,7 @@ Deno.serve(async (req: Request) => {
       console.warn("public activity module settings unavailable", platformSettingsError.message);
     } else {
       try {
-        activityModuleOverrides = sanitizeActivityModuleOverrides(platformSettings?.settings?.activityModuleOverrides || {});
+        activityModuleOverrides = Object.fromEntries(Object.entries(sanitizeActivityModuleOverrides(platformSettings?.settings?.activityModuleOverrides || {})));
         activityModuleOverridesAvailable = true;
       } catch {
         console.warn("public activity module settings failed validation");
@@ -207,11 +208,8 @@ Deno.serve(async (req: Request) => {
       });
       const externalLogoUrl = safeImage(profile.logo_url, officialShowcase);
       const externalCoverUrl = safeImage(profile.cover_url, officialShowcase);
-      const phone = String(branch?.phone || profile.whatsapp_phone || profile.phone || "");
-      const cleanPhone = phone.replace(/\D/g, "");
-      const whatsappPhone = cleanPhone.startsWith("00") ? cleanPhone.slice(2)
-        : cleanPhone.startsWith("0") ? "20" + cleanPhone.slice(1)
-        : cleanPhone.startsWith("1") && cleanPhone.length === 10 ? "20" + cleanPhone : cleanPhone;
+      const publicContact = getExplicitPublicContact(profile, branch);
+      const whatsappPhone = publicContact.whatsappNumber;
       return {
         id: business.id,
         status: String(business.status || "").trim().toUpperCase(),
@@ -222,9 +220,9 @@ Deno.serve(async (req: Request) => {
         activityCategoryCode: String(business.settings?.activity_category_code || ""),
         activityClassificationType: String(business.settings?.activity_classification_type || "activity").toLowerCase() === "profession" ? "profession" : "activity",
         activitySpecialty: String(business.settings?.activity_specialty || ""),
-        profile: { bio: String(profile.bio || provider?.description || business.settings?.headline || ""), governorate: String(profile.governorate || ""), markaz: String(profile.markaz || ""), village: String(profile.village || ""), workingHours: String(profile.working_hours || ""), logoUrl: externalLogoUrl || defaultImages.logoUrl, coverUrl: externalCoverUrl || defaultImages.coverUrl, externalLogoUrl, externalCoverUrl, google_maps_url: String(profile.google_maps_url || ""), category: activityCategory, whatsappPhone },
+        profile: { bio: String(profile.bio || provider?.description || business.settings?.headline || ""), governorate: String(profile.governorate || ""), markaz: String(profile.markaz || ""), village: String(profile.village || ""), workingHours: String(profile.working_hours || ""), logoUrl: externalLogoUrl || defaultImages.logoUrl, coverUrl: externalCoverUrl || defaultImages.coverUrl, externalLogoUrl, externalCoverUrl, google_maps_url: publicContact.googleMapsUrl, public_contact_enabled: profile.public_contact_enabled === true, public_contact_consent_audit_verified: profile.public_contact_consent_audit_verified === true, category: activityCategory, phoneDisplay: publicContact.phoneDisplay, whatsappNumber: publicContact.whatsappNumber, whatsappUrl: publicContact.whatsappUrl, address: publicContact.address, additionalContactPhones: publicContact.additionalContactPhones, whatsappPhone },
         provider: { kind: activityCategory, description: provider?.description || profile.bio || business.settings?.headline || "", slug: provider?.slug || "", verified: Boolean(provider?.is_verified), featured: Boolean(provider?.is_featured) },
-        branches: (branches || []).map((entry: any) => ({ id: entry.id, name: entry.name, address: entry.address, phone: entry.phone })),
+        branches: (branches || []).map((entry: any) => ({ id: entry.id, name: entry.name, code: entry.code })),
         selectedBranchId: branchId || null,
         items: items.map((item: any) => ({
           id: item.id, status: String(item.status || "ACTIVE").trim().toUpperCase(),
@@ -235,7 +233,7 @@ Deno.serve(async (req: Request) => {
           catalog_item_id: price.catalog_item_id, branch_id: price.branch_id,
           currency: price.currency, unit_price: price.unit_price,
         })),
-        contactPhone: phone,
+        contactPhone: publicContact.phoneDisplay || publicContact.whatsappNumber,
         catalogPublished, publicEnabled: catalogPublished, isOfficialShowcase: officialShowcase,
         operationalStatus,
         operationallyAvailable: operationallyActive,

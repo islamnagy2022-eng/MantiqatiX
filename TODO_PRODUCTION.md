@@ -1981,3 +1981,82 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 - [ ] Complete mobile/desktop map interaction, keyboard access, loading/error states and deployed-origin tests.
 
 **Evidence boundary:** prepared image bundle is not yet integrated into the repository. Current geographic assignment still uses representative points, not verified polygon containment. Do not mark either task complete until the relevant assets/data are committed and tests pass.
+
+
+---
+
+## Pass 111–150 — National directory public-contact boundary (2026-11-17)
+
+- [x] Audit the separate `directory-listings` GET routes, published-only filtering, explicit public field list, metadata allowlist, claim edit authorization and pagination contract.
+- [x] Identify that PUBLISHED national-directory records currently expose `phone`, `secondary_phone`, `address`, and metadata `google_maps_url`.
+- [ ] Determine the legal/source-permission and owner/claim consent rules for public contact and precise map disclosure on this separate listing stream.
+- [ ] Add tests for imported/unclaimed and claimed/owner-managed listing cases before changing any output projection.
+- [ ] Keep the national listing consent decision separate from catalog business profile consent in PR #756; do not alter public behavior or schema without a verified migration and regression plan.
+
+Evidence: `docs/audits/PASS_111_150_PUBLIC_DIRECTORY_BOUNDARY_20261117.md`. No Production mutation or deployment occurred.
+
+
+---
+
+## Pass 151–190 — directory claim and public-output review (2026-11-17)
+
+- [x] Audit claim lifecycle, owner authorization, source evidence approval/revocation, incremental import and public output sanitizer.
+- [x] Fix owner partial-update location fallback so omitted governorate/district/village values preserve stored values rather than silently defaulting to Monufia/Berket El Sabaa.
+- [x] Validate public directory Google Maps metadata with an HTTPS and approved Google Maps host/path allowlist; add behavior and source-contract regression tests.
+- [ ] Make claim approval an atomic database transaction across membership, listing and request state.
+- [ ] Make claim rejection atomic and handle failure to release the listing lock.
+- [ ] Decide and test contact/map disclosure rules for imported/unclaimed national directory listings.
+
+Evidence: `docs/audits/PASS_151_190_DIRECTORY_CLAIM_AND_OUTPUT_20261117.md`. No Production mutation or deployment occurred.
+
+
+---
+
+## Pass 151–190 — Directory location integrity (2026-11-17)
+
+- [x] Remove silent Monufia / Berket El-Sabaa location defaults from new and edit forms.
+- [x] Require real governorate and district/city values in the UI and backend.
+- [x] Add regression checks preventing fabricated geographic assignment.
+- [ ] Verify exact-head CI and the complete PR review before merge.
+- [ ] Reconcile and deploy the directory Edge Function only through a separate reviewed production release.
+
+Evidence: `docs/audits/PASS_151_190_DIRECTORY_LOCATION_INTEGRITY_20261117.md`. No production data or deployment changes made.
+
+
+- [x] Remove the same fabricated location fallback from the claimed-owner public directory editor and validate the owner update server-side.
+
+
+---
+
+## Pass 191–230 — public directory metadata hardening (2026-11-17)
+
+- [x] Sanitize public logo, cover, website, booking and profile-image URL metadata as HTTPS-only.
+- [x] Add regression tests for javascript:, data:, and HTTP rejection; preserve dedicated Google Maps URL validation.
+- [x] Extend the doctor incremental-import validator to guard the public URL contract.
+- [ ] Confirm all affected checks pass on the final exact head.
+- [ ] Complete transactional claim approval/rejection before release.
+- [ ] Decide public contact and precise-map disclosure policy for imported/unclaimed directory records.
+
+Evidence: `docs/audits/PASS_191_230_PUBLIC_DIRECTORY_METADATA_20261117.md`. Source-only changes; no production deployment or database mutation.
+
+
+---
+
+## Pass 231–270 — Directory claim atomicity audit (2026-11-17)
+
+- [x] Audit platform-admin authorization gate for REVIEW_CLAIM.
+- [x] Audit claim state handling and rejection lock-release sequence.
+- [x] Audit approval prerequisites: ownership verification, business status, paid/admin-confirmed subscription, tenant scope and owner conflict checks.
+- [x] Audit membership/listing/claim write ordering and concurrency exposure.
+- [ ] Inspect authoritative schemas, constraints and triggers for claims, listings, memberships and businesses.
+- [ ] Replace multi-request approval/rejection with a single transactional database operation.
+- [ ] Add integration tests for rollback, concurrency, duplicate membership and rejected-claim lock release.
+- [ ] Re-run required CI on final head; do not merge while atomicity remains unresolved.
+
+Confirmed blocker: claim rejection can report success despite a failed listing-lock release. Approval can partially apply membership/listing changes while the claim remains pending if a later write fails. No schema or Production mutation was made.
+
+Evidence: `docs/audits/PASS_231_270_DIRECTORY_CLAIM_ATOMICITY_20261117.md`.
+
+
+- [ ] Reconcile missing production migration `20261027090000` and the live nullable-branch membership uniqueness index before designing claim approval RPC.
+- [ ] Test claim transaction and trigger interactions on a disposable/development Supabase branch; no Production DDL until reviewed and explicitly released.

@@ -23,7 +23,7 @@ test("public metadata keeps only display-safe allowlisted keys", () => {
 
   assert.deepEqual(result, {
     bio: "Clinic bio",
-    websiteUrl: "https://example.org",
+    websiteUrl: "https://example.org/",
     logoUrl: "https://example.org/logo.png",
     workingHours: "Mon-Fri 9-5",
     services: ["Dental", "Cardiology"],
@@ -33,7 +33,7 @@ test("public metadata keeps only display-safe allowlisted keys", () => {
 test("public metadata truncates strings and caps services", () => {
   const result = sanitizePublicDirectoryMetadata({
     bio: "x".repeat(2100),
-    websiteUrl: "y".repeat(1600),
+    websiteUrl: "https://example.org/" + "y".repeat(1600),
     services: Array.from({ length: 25 }, (_, index) => " service " + index + " "),
   });
 
@@ -48,6 +48,32 @@ test("invalid metadata values become an empty object", () => {
   assert.deepEqual(sanitizePublicDirectoryMetadata(null), {});
   assert.deepEqual(sanitizePublicDirectoryMetadata([]), {});
   assert.deepEqual(sanitizePublicDirectoryMetadata("private"), {});
+});
+
+test("public Google Maps metadata accepts only HTTPS Google Maps destinations", () => {
+  assert.equal(
+    sanitizePublicDirectoryMetadata({ google_maps_url: "https://www.google.com/maps/place/Cairo" }).google_maps_url,
+    "https://www.google.com/maps/place/Cairo",
+  );
+  assert.equal(
+    sanitizePublicDirectoryMetadata({ google_maps_url: "https://maps.app.goo.gl/abc123" }).google_maps_url,
+    "https://maps.app.goo.gl/abc123",
+  );
+  for (const value of [
+    "javascript:alert(1)",
+    "http://www.google.com/maps/place/Cairo",
+    "https://evil.example/maps",
+    "https://google.com.evil.example/maps",
+    "https://user:pass@google.com/maps",
+    "https://google.com:8443/maps",
+    "https://google.com/search?q=clinic",
+  ]) {
+    assert.equal(
+      sanitizePublicDirectoryMetadata({ google_maps_url: value }).google_maps_url,
+      undefined,
+      "Unsafe or non-Maps URL must not be exposed: " + value,
+    );
+  }
 });
 
 test("public listing removes internal identities and sanitizes metadata without implying professional verification", () => {
@@ -114,5 +140,20 @@ test("public listing drops unknown top-level database fields even if a query sel
     source_url: "https://example.org/clinic",
     source_checked_at: "2026-11-14T12:00:00Z",
     metadata: { bio: "Public profile" },
+  });
+});
+
+
+test("public profile URL metadata accepts HTTPS and rejects executable or insecure schemes", () => {
+  const result = sanitizePublicDirectoryMetadata({
+    websiteUrl: "https://example.org/clinic",
+    bookingUrl: "javascript:alert(1)",
+    profileImageUrl: "data:image/svg+xml,<svg onload=alert(1)>",
+    logoUrl: "http://example.org/logo.png",
+    coverUrl: "https://example.org/cover.png",
+  });
+  assert.deepEqual(result, {
+    websiteUrl: "https://example.org/clinic",
+    coverUrl: "https://example.org/cover.png",
   });
 });

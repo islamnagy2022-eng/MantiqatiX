@@ -4227,3 +4227,78 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - The only anon-executable SECURITY DEFINER function is `get_mnty_targeted_advertisements(...)`. It pins an empty search_path, returns a bounded projection (ad id/title/creative/target/space/match/distance), filters to ACTIVE+APPROVED and date-valid ads, and clamps result count to 1–50. Public ad discovery is an intentional public capability; retain it for targeted review rather than revoking it blindly.
 - Roles anon/authenticated/service_role have USAGE but no CREATE on public schema. Temp privilege exists; pinned functions place pg_temp after public or use an empty path. No ACL/search_path mutation was made.
 - Disposition: advisor findings are inventory signals. Continue signature/body-by-body review; no blanket revoke and no broad RLS policy creation.
+
+### Pass 91–110 — public contact privacy and audited disclosure (2026-11-17)
+
+- Reviewed the older public-contact/pagination candidate against current main. Do not merge the stale PR #726 wholesale: it contains unrelated frontend changes and its backend pagination/contact implementation was not safely rebased. The focused consent hardening was rebuilt on current main in PR #756.
+- Added a shared public-contact projection. Phone display, WhatsApp number/URL, branch address, additional contact phones, and precise Google Maps link are blank by default; they are returned only when both public_contact_enabled=true and public_contact_consent_audit_verified=true.
+- Both public read Edge Functions now use the shared projection. Public branch records return only ID/name/code and no longer expose operational phone/address; top-level contactPhone is also consent-gated.
+- WhatsApp and Google Maps URLs require HTTPS and allow-listed destinations. A map pin is treated as precise contact/location data and is hidden without audited consent.
+- Catalog-admin validates the consent boolean, writes the setting as unverified first, inserts a durable GRANTED/REVOKED audit event, then activates disclosure using an updated_at compare-and-set. Audit failure and concurrent update conflict fail closed. Owner-authenticated catalog reads retain private operational branch fields.
+- Added owner dashboard checkbox, AppContext payload handling, public-projection-safe frontend mapping, Business type state, 7 Node tests and a 23-check static contract validator. Node tests passed 7/7 and static source contract passed 23/23 on the first complete run.
+- Deno type-check found duplicate profile response keys and three typing issues; corrected the duplicate response keys, consent-field map typing, .mjs JSDoc contracts and sanitizer result typing. Updated the existing business/social-link regression assertion to test the audited projection rather than expecting raw contact disclosure.
+- PR #756 is current-main, source-only and open pending exact-head CI. Do not merge until the focused Deno, frontend build/type-check, and all required CI checks pass. No Production Edge Function deployment, database mutation, RLS/GRANT change or production data change made.
+
+
+### Pass 111–150 — national directory public-contact boundary follow-up
+
+- [x] Read-only audit of `directory-listings` public GET, explicit selected columns, output sanitizers, metadata allowlist, claim authorization and PUBLISHED filters.
+- [x] Confirmed the separate national listing contract currently publishes phone, secondary phone, address and allow-listed metadata `google_maps_url` for PUBLISHED rows.
+- [ ] Review source-owner republication permission and explicit consent semantics for imported/unclaimed versus claimed listings.
+- [ ] Decide and document whether phone/address/precise Maps disclosure requires audited consent in this distinct listing lifecycle.
+- [ ] Add unit/source-contract tests for the selected publication rule before changing the public listing projection.
+- Do not broaden PR #756 or add a global schema flag without tracing directory ingestion, source permission, claim, owner edits and publication flows. No Production changes were made during this audit.
+
+
+### Pass 151–190 — directory claims and public output
+
+- [x] Audit claim request authentication, state checks, same-user idempotency and compare-and-set claim lock.
+- [x] Audit owner-only edit scope and metadata allowlist.
+- [x] Preserve existing governorate/district/village when owner edit payload omits those fields; add regression checks.
+- [x] Validate public directory Google Maps metadata as HTTPS and allow-listed Google Maps host/path; reject unsafe URL forms and add behavior tests.
+- [ ] Refactor claim approval into one atomic database transaction covering membership, listing and request state.
+- [ ] Refactor claim rejection into one atomic transaction and handle listing-lock release failure.
+- [ ] Decide explicit public contact/precise-map disclosure policy for imported/unclaimed directory listings.
+
+
+### Pass 151–190 — Directory location integrity
+
+- [x] Remove fabricated Monufia / Berket El-Sabaa defaults from the directory admin form and API write path.
+- [x] Require actual governorate and district/city values in both browser form and Edge Function.
+- [x] Add static regression assertions for UI defaults, required fields and server-side rejection.
+- [ ] Wait for exact-head doctor-import contract, Deno type-check, frontend build/type-check and full PR #756 CI to pass.
+- [ ] After merge and review, schedule a separate controlled Edge Function release; do not deploy as part of this source-only pass.
+
+
+- [x] Extend the location-integrity guard to the claimed-owner edit form and `UPDATE_OWNED_LISTING` backend action.
+
+
+### Pass 191–230 — public directory metadata hardening
+
+- [x] Restrict public logo, cover, website, booking and profile-image metadata to HTTPS URLs; omit unsafe values.
+- [x] Preserve dedicated strict Google Maps host/path validation.
+- [x] Add behavior tests and static source-contract assertions for URL sanitization.
+- [x] Recheck owner partial-update location preservation and draft-only import staging.
+- [ ] Obtain fresh exact-head CI for the final branch revision.
+- [ ] Implement and test atomic claim approval/rejection and reliable lock release.
+- [ ] Decide separate contact/precise-map disclosure policy for imported/unclaimed national directory records.
+
+
+### Pass 231–270 — Directory claim atomicity audit
+
+- [x] Verify platform-admin authorization predicates and ensure REVIEW_CLAIM is behind the platform-admin gate.
+- [x] Trace claim-state validation and rejection lock-release ordering.
+- [x] Trace approval prerequisites: ownership verification, active business, paid/admin-confirmed subscription, tenant scope and existing-owner conflicts.
+- [x] Trace claimant membership activation/creation, automatic-owner deactivation, listing update and claim finalization.
+- [x] Confirmed release blocker: multi-write non-transactional flow; rejection lock-release errors are ignored; approval has no final claim compare-and-set or listing expected-state guard.
+- [ ] Obtain authoritative claim/listing/membership/business table definitions, constraints, indexes and triggers.
+- [ ] Implement one transactional database RPC for approval/rejection with row locks and expected-state checks.
+- [ ] Add database integration tests for rollback, concurrent approval, duplicate membership, rejection lock release and each business/owner prerequisite.
+- [ ] Re-run exact-head CI after any implementation; merge only after required checks pass and blocker is closed.
+- [ ] Keep production DB, Edge deployment and Pages release separate and explicitly controlled.
+
+Evidence: `docs/audits/PASS_231_270_DIRECTORY_CLAIM_ATOMICITY_20261117.md`. No schema or production mutation occurred.
+
+
+- [ ] Reconcile production migration drift: production history lacks `20261027090000` and the live membership index remains NULL-distinct; inspect migration source and preflight before any deployment.
+- [ ] Test claim transaction on a disposable/development database branch, accounting for deferred default-owner and legal activation triggers; do not apply to Production without a separately reviewed release.
