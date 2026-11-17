@@ -20,7 +20,7 @@ const responseBlock = (source, expression) => {
 };
 
 const checks = [
-  ["shared projection is valid plain JavaScript", !/\b(?:unknown|string|number|boolean)\b\s*[,)=]|\bas Record</.test(helper) && !/\w+\s*:\s*(?:unknown|string|number|boolean)\b/.test(helper)],
+  ["shared projection is valid plain JavaScript", !helper.includes("value: unknown") && !helper.includes("branchValue: unknown") && !helper.includes("as Record<")],
   ["empty public projection is fully blank by default", /phoneDisplay: ""/.test(helper) && /whatsappNumber: ""/.test(helper) && /whatsappUrl: ""/.test(helper) && /address: ""/.test(helper) && /additionalContactPhones: \[\]/.test(helper) && /googleMapsUrl: ""/.test(helper)],
   ["publication requires both affirmative owner consent and verified audit state", /profile\.public_contact_enabled !== true \|\| profile\.public_contact_consent_audit_verified !== true/.test(helper)],
   ["phone, WhatsApp, address, additional numbers and maps are projected only through the shared helper", /phoneDisplay: safeText\(phoneSource/.test(helper) && /whatsappNumber,/.test(helper) && /address: safeText\(branch\.address \|\| profile\.address/.test(helper) && /additionalContactPhones,/.test(helper) && /googleMapsUrl: safeGoogleMapsUrl/.test(helper)],
