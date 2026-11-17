@@ -641,28 +641,51 @@ try {
       await page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first().click();
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
-      const cursorCards = page.getByRole('heading').filter({ hasText: /^عيادة اختبار المؤشر \d{2}$/ });
-      try {
-        await cursorCards.first().waitFor({ state: 'visible', timeout: 15000 });
-      } catch {
-        throw new Error('Activity module did not show its unscoped first page before specialty selection. Page requests: ' +
-          JSON.stringify(directoryListingPageRequests) + '; visible page text: ' +
-          JSON.stringify((await page.locator('body').innerText().catch(() => '')).slice(0, 1800)));
-      }
-      assert.equal(await cursorCards.count(), 20, 'opening an activity must immediately render its first 20 listings before opening a specialty folder');
-      const activityPageRequest = directoryListingPageRequests.find((request) =>
-        request.taxonomyCategoryId === 'cat_medical_health_medical_practices' && !request.taxonomySpecialty && !request.cursor);
-      assert.ok(activityPageRequest, 'opening the activity must request its full category without a specialty filter');
+      const cursorCards = page.getByRole('heading').filter({ hasText: /^عيادة اختبار المؤشر \\d{2}$/ });
+      const matchesDirectoryPageRequest = (request, specialtyPage) =>
+        request.taxonomyCategoryId === 'cat_medical_health_medical_practices' &&
+        (specialtyPage ? request.taxonomySpecialty === 'باطنة' : !request.taxonomySpecialty) &&
+        !request.cursor;
+      const waitForRequest = async (specialtyPage) => {
+        const deadline = Date.now() + 15000;
+        while (!directoryListingPageRequests.some((request) => matchesDirectoryPageRequest(request, specialtyPage)) && Date.now() < deadline) {
+          await page.waitForTimeout(50);
+        }
+        const request = directoryListingPageRequests.find((item) => matchesDirectoryPageRequest(item, specialtyPage));
+        assert.ok(request, (specialtyPage
+          ? 'opening the specialty must trigger a fresh server-filtered request'
+          : 'opening the activity must trigger a category request') +
+          '. Page requests: ' + JSON.stringify(directoryListingPageRequests));
+        return request;
+      };
+      const waitForTwentyCards = async (label) => {
+        try {
+          await page.waitForFunction(() => [...document.querySelectorAll('h3')]
+            .filter((node) => /^عيادة اختبار المؤشر \\d{2}$/.test((node.textContent || '').trim())).length === 20,
+          null, { timeout: 15000 });
+        } catch {
+          throw new Error(label + '. Page requests: ' + JSON.stringify(directoryListingPageRequests) +
+            '; visible page text: ' + JSON.stringify((await page.locator('body').innerText().catch(() => '')).slice(0, 1800)));
+        }
+        assert.equal(await cursorCards.count(), 20, label);
+      };
+
+      // Wait for the actual category request before accepting its 20-row result.
+      const activityPageRequest = await waitForRequest(false);
+      await waitForTwentyCards('opening an activity must render its first 20 server rows before specialty selection');
+
       const specialtyFolderButton = modulePage.getByRole('button', { name: /^باطنة/ }).first();
       await specialtyFolderButton.click();
-      try {
-        await cursorCards.first().waitFor({ state: 'visible', timeout: 15000 });
-      } catch {
-        throw new Error('Server-cursor E2E did not render the specialty first page. Page requests: ' +
-          JSON.stringify(directoryListingPageRequests) + '; visible page text: ' +
-          JSON.stringify((await page.locator('body').innerText().catch(() => '')).slice(0, 1800)));
-      }
-      assert.equal(await cursorCards.count(), 20, 'specialty folder must render its first 20-row server page');
+
+      // A previously rendered 20-row category page can still be in the DOM for
+      // one render while the specialty request is pending. Wait for the new
+      // specialty request and its loading cycle to complete before counting.
+      const specialtyPageRequest = await waitForRequest(true);
+      const specialtyLoading = modulePage.getByText('جارٍ تحميل نتائج الدليل لهذا النشاط…', { exact: true });
+      await specialtyLoading.waitFor({ state: 'visible', timeout: 5000 });
+      await specialtyLoading.waitFor({ state: 'hidden', timeout: 15000 });
+      await waitForTwentyCards('specialty folder must render its first 20-row server page after its filtered request completes');
+
       await page.getByRole('button', { name: 'رؤية المزيد من هذا التخصص', exact: true }).click();
       await page.waitForFunction(() => [...document.querySelectorAll('h3')]
         .filter((node) => /^عيادة اختبار المؤشر \d{2}$/.test((node.textContent || '').trim())).length === 25);
