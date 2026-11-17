@@ -180,12 +180,23 @@ export const DirectoryListingsView: React.FC<{
     setClaimError("");
     try {
       await setPublicDirectoryListingContactConsent({ listingId: detail.id, scope, enabled });
-      const refreshed = await fetchPublicDirectoryListings(detail.slug);
-      if (refreshed && !Array.isArray(refreshed)) {
-        setDetail(refreshed);
-        setContactConsentScopes((refreshed.public_contact_consent_scopes || []) as DirectoryContactConsentScope[]);
+      const nextScopes = enabled
+        ? [...new Set([...contactConsentScopes, scope])]
+        : contactConsentScopes.filter((item) => item !== scope);
+      setContactConsentScopes(nextScopes);
+      setDetail((current) => current ? { ...current, public_contact_consent_scopes: nextScopes } : current);
+      setContactConsentMessage(enabled
+        ? "تم تسجيل موافقتك. ستظهر البيانات المحددة للجمهور."
+        : "تم إلغاء الموافقة وإخفاء البيانات المحددة من العرض العام.");
+      try {
+        const refreshed = await fetchPublicDirectoryListings(detail.slug);
+        if (refreshed && !Array.isArray(refreshed)) {
+          setDetail(refreshed);
+          setContactConsentScopes((refreshed.public_contact_consent_scopes || []) as DirectoryContactConsentScope[]);
+        }
+      } catch {
+        setContactConsentMessage("تم حفظ الموافقة. أعد تحميل الصفحة إذا لم يظهر التحديث فورًا.");
       }
-      setContactConsentMessage(enabled ? "تم تسجيل موافقتك. ستظهر البيانات المحددة للجمهور." : "تم إلغاء الموافقة وإخفاء البيانات المحددة من العرض العام.");
     } catch (error) {
       setClaimError(error instanceof Error ? error.message : "تعذر تحديث موافقة عرض البيانات.");
     } finally {
