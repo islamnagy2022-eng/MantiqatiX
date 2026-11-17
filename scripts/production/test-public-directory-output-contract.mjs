@@ -142,3 +142,18 @@ test("public listing drops unknown top-level database fields even if a query sel
     metadata: { bio: "Public profile" },
   });
 });
+
+
+test("public profile URL metadata accepts HTTPS and rejects executable or insecure schemes", () => {
+  const result = sanitizePublicDirectoryMetadata({
+    websiteUrl: "https://example.org/clinic",
+    bookingUrl: "javascript:alert(1)",
+    profileImageUrl: "data:image/svg+xml,<svg onload=alert(1)>",
+    logoUrl: "http://example.org/logo.png",
+    coverUrl: "https://example.org/cover.png",
+  });
+  assert.deepEqual(result, {
+    websiteUrl: "https://example.org/clinic",
+    coverUrl: "https://example.org/cover.png",
+  });
+});
