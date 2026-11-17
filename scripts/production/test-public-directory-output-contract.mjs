@@ -50,6 +50,32 @@ test("invalid metadata values become an empty object", () => {
   assert.deepEqual(sanitizePublicDirectoryMetadata("private"), {});
 });
 
+test("public Google Maps metadata accepts only HTTPS Google Maps destinations", () => {
+  assert.equal(
+    sanitizePublicDirectoryMetadata({ google_maps_url: "https://www.google.com/maps/place/Cairo" }).google_maps_url,
+    "https://www.google.com/maps/place/Cairo",
+  );
+  assert.equal(
+    sanitizePublicDirectoryMetadata({ google_maps_url: "https://maps.app.goo.gl/abc123" }).google_maps_url,
+    "https://maps.app.goo.gl/abc123",
+  );
+  for (const value of [
+    "javascript:alert(1)",
+    "http://www.google.com/maps/place/Cairo",
+    "https://evil.example/maps",
+    "https://google.com.evil.example/maps",
+    "https://user:pass@google.com/maps",
+    "https://google.com:8443/maps",
+    "https://google.com/search?q=clinic",
+  ]) {
+    assert.equal(
+      sanitizePublicDirectoryMetadata({ google_maps_url: value }).google_maps_url,
+      undefined,
+      "Unsafe or non-Maps URL must not be exposed: " + value,
+    );
+  }
+});
+
 test("public listing removes internal identities and sanitizes metadata without implying professional verification", () => {
   const result = sanitizePublicDirectoryListing({
     id: "listing-1",
