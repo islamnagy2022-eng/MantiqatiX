@@ -2553,3 +2553,23 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Pass 65: reconfirmed 42 ACTIVE Edge Functions and six critical live/main source mismatches. No Edge deploy.
 - Pass 66: wrote the detailed pass report and updated the cross-session TODO/continuity record on a dedicated documentation branch.
 - No Production migration, data mutation, Auth/RLS/GRANT change, Edge deployment, payment/settlement or website cutover occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-11-17 — Pass 67–86 execution
+
+- Pass 67: confirmed RC470 main deployment and deployed-origin smoke checks passed.
+- Pass 68: merged PR #751 validator correction; exact checks 17 success / 2 skipped.
+- Pass 69: merged PR #750 maintenance artwork fallback; exact checks 20 success / 2 skipped.
+- Pass 70: merged PR #752 lazy directory detail modules; exact checks 21 success / 2 skipped.
+- Pass 71: measured main JS chunk 845.70 KB → 703.41 KB (~16.7% reduction); listing/activity detail chunks split out.
+- Pass 72: verified browser E2E jobs for PR #750 and #752 succeeded.
+- Pass 73: post-merge main CI at `a536d77` was still running at checkpoint (8 in progress, 3 success, no failure observed).
+- Pass 74: recomputed R7 archive and technical directive SHA-256 hashes.
+- Passes 75–80: inspected R7 Supabase project-ref mismatch, fallback secrets, caller-controlled privileged token issuance, admin password bypass, invalid refresh fallback, unauthenticated production-state/commit-all routes and local JSON authority.
+- Pass 81: inspected Android WebView bridge trust boundary, allowBackup and incomplete build resources.
+- Pass 82: confirmed 15 test files but no declared test script; lint is TypeScript-only.
+- Pass 83: verified 15 sector image packs × (3 logos + 3 covers + 6 product defaults) = 180 curated remote image defaults; five local AI-generated images.
+- Pass 84: confirmed six critical Edge live/main source mismatches among 42 active Edge Functions.
+- Pass 85: read-only Production check remains 310 migration rows through `20261110150618`; live legacy payment finalizer still lacks provider-order binding; advisor reports 9 RLS/no-policy tables and 65 authenticated-callable SECURITY DEFINER functions.
+- Pass 86: persisted the full pass report and updated the canonical TODO/continuity/session log through this documentation PR.
+- No Production DB/Auth/RLS/GRANT/Edge/payment/settlement mutation or website cutover occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
