@@ -11,7 +11,9 @@ INSERT INTO public.businesses(id,tenant_id,organization_id,status,settings) VALU
   ('20000000-0000-4000-8000-000000000002','TENANT-1','ORG-1','ACTIVE',
    '{"bizcatalog":{"paymentStatus":"paid","paymentConfirmedByAdmin":true}}'),
   ('20000000-0000-4000-8000-000000000003','TENANT-1','ORG-1','ACTIVE',
-   '{"bizcatalog":{"paymentStatus":"unpaid","paymentConfirmedByAdmin":false}}');
+   '{"bizcatalog":{"paymentStatus":"unpaid","paymentConfirmedByAdmin":false}}'),
+  ('20000000-0000-4000-8000-000000000004','TENANT-1','ORG-1','ACTIVE',
+   '{"bizcatalog":{"paymentStatus":"paid","paymentConfirmedByAdmin":true}}');
 
 INSERT INTO public.public_directory_listings(id,claim_status,claimed_user_id) VALUES
   ('30000000-0000-4000-8000-000000000001','CLAIM_PENDING','10000000-0000-4000-8000-000000000001'),
@@ -100,14 +102,14 @@ BEGIN
     PERFORM public.review_directory_listing_claim_atomic(
       '40000000-0000-4000-8000-000000000003','APPROVED',
       '10000000-0000-4000-8000-000000000003','forced failure',
-      '20000000-0000-4000-8000-000000000001',true,true
+      '20000000-0000-4000-8000-000000000004',true,true
     );
   EXCEPTION WHEN OTHERS THEN
     IF SQLERRM = 'forced_claim_approval_write_failure' THEN v_failed := true; ELSE RAISE; END IF;
   END;
   PERFORM set_config('test.fail_claim_approval_write','off',true);
   IF NOT v_failed THEN RAISE EXCEPTION 'expected injected approval failure'; END IF;
-  IF EXISTS (SELECT 1 FROM public.user_memberships WHERE user_id='10000000-0000-4000-8000-000000000003' AND business_id='20000000-0000-4000-8000-000000000001') THEN
+  IF EXISTS (SELECT 1 FROM public.user_memberships WHERE user_id='10000000-0000-4000-8000-000000000003' AND business_id='20000000-0000-4000-8000-000000000004') THEN
     RAISE EXCEPTION 'approval failure left a claimant membership behind';
   END IF;
   IF NOT EXISTS (SELECT 1 FROM public.public_directory_listings WHERE id='30000000-0000-4000-8000-000000000003' AND claim_status='CLAIM_PENDING') THEN
