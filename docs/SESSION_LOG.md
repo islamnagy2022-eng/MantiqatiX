@@ -2496,3 +2496,10 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Added `docs/audits/R7_ARCHIVE_11_PRODUCTION_GATE_20261117.md` and updated continuity/TODO on branch `audit/r7-production-source-gate-20261117`. Audit report commit: `5327eb298526f64f97508ae22b65437c3ff00330`. No production mutation, migration, Edge deployment, payment action or Pages deployment occurred.
 - The deployed V6 root and `/legacy/` remain unchanged. R7 is preserved as the user-supplied UI/behavior candidate but is not safe to import/deploy as-is.
 - Next: recover the exact deployed `20261110150618` migration source, reconcile all 310 ledger rows and immutable source files, then complete the 42 required migration/object/RPC/ACL and six-function dependency map. Keep `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+### 2026-11-17 — RC463 live trigger function follow-up
+
+- Read-only SQL confirmed both trigger-only SECURITY DEFINER functions remain enabled and have no direct EXECUTE for anon/authenticated/service_role; ACLs show only postgres owner EXECUTE.
+- `capture_commission_rule_audit()` has empty search_path. `assign_default_owner_to_unowned_business()` still has `search_path=public, auth`, so the physical state does not fully match RC463's main-source contract.
+- Confirmed current main contains `20261031100000_rc463_trigger_only_security_definer_acl.sql` (blob `83e9650c5be5bedbfe6ee113cb799abb96867031`). The later live ledger version `20261110150618_revoke_public_execute_from_trigger_functions` still has no source file on main. Do not assume alias equivalence or replay RC463 out of order.
+- Added this discrepancy and safe recovery action to `docs/audits/R7_ARCHIVE_11_PRODUCTION_GATE_20261117.md`. No Production change occurred.
