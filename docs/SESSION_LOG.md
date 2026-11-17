@@ -2648,3 +2648,14 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Rechecked owner partial-update location preservation, draft-only import staging and the distinct source-evidence publication gate.
 - Identified the previous contract failure as a stale-head JavaScript regex parse failure; current branch source has corrected regex syntax. Fresh CI for the final head is still required.
 - Claim approval/rejection transactionality remains unresolved. No production deployment or database/auth/security-policy mutation.
+
+
+## 2026-11-17 — Pass 231–270 directory claim atomicity
+
+- Passes 231–240: verified request boundary, authenticated identity, active membership lookup and all platform-admin scope/full-control predicates before REVIEW_CLAIM.
+- Passes 241–250: verified claim lookup/status handling and rejection sequence. Found claim status is updated before listing-lock release, and the lock-release error is ignored.
+- Passes 251–260: reviewed ownership verification, active business, paid/admin-confirmed subscription, tenant scope, existing owners and claimant membership lookup. Membership lookup is not serialized with approval.
+- Passes 261–270: traced membership activation/creation, automatic-owner deactivation, listing update and claim finalization. Confirmed each is a separate write; partial failures and concurrent reviews can leave inconsistent state.
+- Audit report: `docs/audits/PASS_231_270_DIRECTORY_CLAIM_ATOMICITY_20261117.md`.
+- No source fix or migration was made because authoritative table/trigger definitions could not be inspected with the available repository operations; no schema assumptions were introduced. Next step is schema discovery followed by one transactional RPC and database integration tests.
+- The 12 PR-triggered workflows on source head `47aba334...` all completed successfully; documentation commits now need fresh exact-head CI. PR #756 remains open/unmerged. No production mutation or deployment.
