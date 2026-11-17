@@ -94,3 +94,17 @@ $$;
 CREATE TRIGGER test_fail_claim_approval_write
 BEFORE UPDATE ON public.directory_listing_claim_requests
 FOR EACH ROW EXECUTE FUNCTION public.test_fail_claim_approval_write();
+
+CREATE OR REPLACE FUNCTION public.test_pause_directory_claim()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.claim_status = 'CLAIMED'
+     AND current_setting('test.pause_directory_claim', true) = 'on' THEN
+    PERFORM pg_sleep(2);
+  END IF;
+  RETURN NEW;
+END;
+$$;
+CREATE TRIGGER test_pause_directory_claim
+BEFORE UPDATE ON public.public_directory_listings
+FOR EACH ROW EXECUTE FUNCTION public.test_pause_directory_claim();
