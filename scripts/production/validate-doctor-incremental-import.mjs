@@ -6,12 +6,14 @@ const frontendPath = "apps/catalog-frontend/src/lib/directoryListings.ts";
 const adminPath = "apps/catalog-frontend/src/components/admin/DirectoryListingsAdmin.tsx";
 const evidenceMigrationPath = "supabase/migrations/20261101150000_directory_source_permission_evidence.sql";
 const importContractPath = "supabase/functions/directory-listings/doctor-import-contract.mjs";
+const publicOutputContractPath = "supabase/functions/directory-listings/public-directory-output-contract.mjs";
 
 const edge = readFileSync(edgePath, "utf8");
 const frontend = readFileSync(frontendPath, "utf8");
 const admin = readFileSync(adminPath, "utf8");
 const evidenceMigration = readFileSync(evidenceMigrationPath, "utf8");
 const importContract = readFileSync(importContractPath, "utf8");
+const publicOutputContract = readFileSync(publicOutputContractPath, "utf8");
 
 const actionStart = edge.indexOf('if (action === "IMPORT_DOCTOR_BATCH")');
 assert.notEqual(actionStart, -1, "IMPORT_DOCTOR_BATCH action must exist");
@@ -105,6 +107,26 @@ assert.match(evidenceMigration, /revoke all on table public\.directory_source_pe
 assert.match(evidenceMigration, /grant all on table public\.directory_source_permission_evidence to service_role/i, "Evidence registry must be service-role only");
 assert.match(evidenceMigration, /approved_by <> created_by/, "Database must enforce two-person approval");
 assert.match(evidenceMigration, /status in \('PENDING',\s*'APPROVED',\s*'REVOKED'\)/, "Evidence status must be constrained");
+
+
+const publicReadBlock = edge.slice(edge.indexOf('if (req.method === "GET")'), edge.indexOf('if (req.method !== "POST")'));
+assert.doesNotMatch(publicReadBlock, /\.select\([^)]*verified_by/, "Public reads must never select the internal verifier identity");
+assert.doesNotMatch(publicReadBlock, /verified_by/, "Public GET paths must not read owner-claim verifier identities");
+assert.doesNotMatch(publicOutputContract, /"is_verified"/, "Professional verification must not be exposed by the public listing serializer");
+assert.doesNotMatch(publicOutputContract, /is_verified: Boolean/, "Owner-claim verification must not be represented as professional verification");
+assert.match(edge, /sanitizePublicDirectoryListing\(data\)/, "Public detail response must pass through the safe listing serializer");
+assert.match(edge, /listings: \(data \|\| \[\]\)\.map\(sanitizePublicDirectoryListing\)/, "Legacy public list must sanitize every row");
+assert.match(edge, /listings\.map\(sanitizePublicDirectoryListing\)/, "Paginated public list must sanitize every row");
+assert.equal((publicReadBlock.match(/\.select\(publicFields/g) || []).length, 3, "All three public GET query paths must use the public field list and sanitize output");
+assert.match(publicOutputContract, /PUBLIC_METADATA_KEYS/, "Public metadata must use an explicit allowlist");
+
+const publicListingKeys = publicOutputContract.match(/const PUBLIC_LISTING_KEYS = new Set\(\[([\s\S]*?)\]\);/);
+assert.ok(publicListingKeys, "Public listing fields must have a dedicated explicit allowlist");
+for (const forbiddenKey of ["verified_by", "is_verified", "claimed_user_id", "claimed_business_id", "source_permission_evidence_id", "created_by", "updated_by", "internal_notes"]) {
+  assert.doesNotMatch(publicListingKeys[1], new RegExp('"' + forbiddenKey + '"'), "Private listing field must not enter the public allowlist: " + forbiddenKey);
+}
+assert.match(publicOutputContract, /for \(const key of PUBLIC_LISTING_KEYS\)/, "Public listing serializer must copy only allowlisted top-level fields");
+assert.doesNotMatch(publicOutputContract, /\.\.\.publicRow/, "Public listing serializer must not spread unknown database fields");
 
 console.log("DOCTOR_INCREMENTAL_IMPORT_CONTRACT=PASS");
 console.log("checks=platform_admin,20_row_cap,sequential_persistence,deduplication,draft_only_import,source_attribution,unverified_status,separate_publication_gate,two_person_approval,source_scope,expiry_revocation,valid_source_url,phone_gate,state_preservation,ownership_preservation,verification_protection,admin_ui,private_rls_registry");
