@@ -116,3 +116,49 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc451_test -v ON_ERROR_STOP=1 -c "ALTER FUNCTION public.get_mnty_targeted_advertisements(character varying, character varying, character varying, double precision, double precision, character varying, integer) SET search_path = public, pg_temp;"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc451_test -v ON_ERROR_STOP=1 -f /tmp/rc451_forward_repair.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc451_test -v ON_ERROR_STOP=1 -f /tmp/rc451_test.sql
+
+  rc471-platform-admin-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc471_platform_admin_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc471_platform_admin_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Validate RC471 static migration contract
+        run: node scripts/validate-r7-platform-admin-migration.mjs
+      - name: Apply RC449/RC462/RC471 disposable fixtures and tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc449_mantigo_platform_admin_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql "$pg_container:/tmp/rc449.sql"
+          docker cp supabase/migrations/20261031064300_rc462_platform_admin_registry_authority_convergence.sql "$pg_container:/tmp/rc462.sql"
+          docker cp supabase/tests/r7_platform_admin_helper_callers_fixture.sql "$pg_container:/tmp/r7-callers.sql"
+          docker cp supabase/migrations/20261117190000_rc471_mantigo_platform_admin_forward_hardening.sql "$pg_container:/tmp/rc471.sql"
+          docker cp supabase/tests/rc449_mantigo_platform_admin_integration.sql "$pg_container:/tmp/rc449-test.sql"
+          docker cp supabase/tests/mantigo_financial_report_live_columns.sql "$pg_container:/tmp/financial-report-test.sql"
+          docker cp supabase/tests/r7_platform_admin_helper_callers_integration.sql "$pg_container:/tmp/r7-helper-callers-test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc471_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc471_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc471_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc462.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc471_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/r7-callers.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc471_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc471.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc471_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449-test.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc471_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/financial-report-test.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc471_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/r7-helper-callers-test.sql
