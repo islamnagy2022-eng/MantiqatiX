@@ -1839,3 +1839,11 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - PR #753 documentation checkpoint: 16 success, 2 expected skips, no failures or pending checks at latest check.
 - Additional R7 source review: client-imported `src/lib/supabaseClient.ts` selects `SUPABASE_SERVICE_ROLE_KEY` before anon keys; admin UI performs client-side password comparison with default seed `admin`; AppContext hydrates and writes `/api/production-state` without authorization headers; refresh UI sends no token and expects success. These reinforce the P0 release block. Do not copy R7 server/client auth into main before a coordinated Supabase Auth design and tests.
 - No production database, Auth, RLS/GRANT, Edge Function, payment or wallet mutation was performed.
+
+
+### 2026-11-17 — Pass 90 targeted Security Advisor triage
+
+- 9 RLS-enabled/no-policy public tables were queried read-only. Direct SELECT is denied to anon and authenticated on all 9; 8 use FORCE RLS; digital_page_payment_events is RLS-enabled without FORCE. Three service-only tables allow service_role SELECT. Keep private/no-policy posture; do not add broad policies.
+- Reviewed catalog ACL/search_path metadata for all 65 public SECURITY DEFINER functions callable by anon/authenticated: 18 empty search_path, 47 pinned non-empty, zero unpinned. One is anon-executable and 65 authenticated-executable; 4 are also service_role-executable.
+- The sole anon-executable function is `get_mnty_targeted_advertisements`; it uses empty search_path, filters ACTIVE+APPROVED/time-valid ads, returns a bounded public ad projection, and clamps limit to 1–50. Treat as intentional public ad discovery pending output/privacy regression review, not an automatic revoke.
+- anon/authenticated/service_role have no CREATE privilege on public schema. No production grants, policies or function definitions were changed.
