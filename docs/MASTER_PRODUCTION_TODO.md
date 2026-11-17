@@ -4208,3 +4208,13 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - OCHA's P-code standard requires an ISO-3166-1 prefix (usually two-letter) plus numeric hierarchical components, so the Open Admin Data codes fit the expected syntax, but records have no explicit `adm2_pcode` field and district `source` metadata is empty. Exact P-code identity with the current OCHA COD-AB source is not yet verified; a source-column crosswalk is still required.
 - OCHA COD status dashboard reports Egypt ADM3 as partial coverage in 96.2% of ADM2 units (5,716 units). Treat missing ADM3 geometry as a coverage gap, not a point-outside result.
 - No geometry files materialized or production code changed. Keep nearest-point UI explicitly approximate.
+
+
+### Deployment verification addendum — 2026-11-17
+
+- PR #752 is merged to main at `a536d778b29c45a01d1f13dc1ab8dcaaded67af6`.
+- Exact-main CI completed with 21 successful checks, zero failures; GitHub Pages deploy job completed successfully.
+- Deployed-origin verification passed for V6 root, legacy catalog rollback, Preview alias, dashboard/mobile/QR routes, and browser checks.
+- Documentation checkpoint PR #753 is open with 16 successful checks and 2 expected skipped jobs; no failed or pending checks at latest read.
+- R7 archive security review was expanded: `src/lib/supabaseClient.ts` prefers `SUPABASE_SERVICE_ROLE_KEY` before anon keys in a client-imported module; R7 admin UI checks a locally stored password (default seed is `admin`); AppContext starts unauthenticated GET/POST requests to `/api/production-state`; refresh UI sends no verified token; localStorage is used to restore UI auth state. Treat the archive as an untrusted design candidate, not a deployable release.
+- Production database and Edge Functions remain untouched. Keep release gate blocked pending the coupled migration/Edge/Auth and recovery evidence.
