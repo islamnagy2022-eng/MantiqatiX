@@ -50,8 +50,8 @@ assert.match(validateBlock, /VITE_BASE_PATH=\/MantiqatiX\/ npm run build[\s\S]*?
   'The legacy catalog must be built for both the public root and retained legacy subpath');
 assert.match(validateBlock, /VITE_BASE_PATH=\/MantiqatiX\/ bun run build/,
   'The V6 preview source must have a root-based build before its preview alias build');
-assert.match(validateBlock, /cat > "\$\{SITE_DIR\}\/index\.html"/,
-  'The V6 root build must be the production index');
+assert.match(validateBlock, /cp -a "\$\{LEGACY_ROOT_DIST\}\/\." "\$\{SITE_DIR\}\/"/,
+  'The legacy catalog build must be the production index');
 assert.match(validateBlock, /cp -a apps\/catalog-frontend\/dist\/\. "\$\{SITE_DIR\}\/legacy\//,
   'The previous catalog must remain available under the legacy subpath');
 assert.match(validateBlock, /test ! -e "\$\{SITE_DIR\}\/preview"/,
