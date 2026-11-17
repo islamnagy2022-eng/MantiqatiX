@@ -129,7 +129,7 @@ assert.match(publicOutputContract, /for \(const key of PUBLIC_LISTING_KEYS\)/, "
 assert.doesNotMatch(publicOutputContract, /\.\.\.publicRow/, "Public listing serializer must not spread unknown database fields");
 
 const ownerUpdateStart = edge.indexOf('if (action === "UPDATE_OWNED_LISTING")');
-const ownerUpdateEnd = edge.indexOf('const memberships, error: membershipsError', ownerUpdateStart);
+const ownerUpdateEnd = edge.indexOf('const { data: memberships, error: membershipError }', ownerUpdateStart);
 assert.ok(ownerUpdateStart >= 0 && ownerUpdateEnd > ownerUpdateStart, "Owner update action must remain a separate pre-admin-gate action");
 const ownerUpdate = edge.slice(ownerUpdateStart, ownerUpdateEnd);
 assert.match(ownerUpdate, /claimed_user_id,claimed_business_id,metadata,governorate,district,village/, "Owner edit must load the saved geographic values before applying a partial update");
@@ -159,7 +159,7 @@ assert.match(directoryAdmin, /المحافظة \*<input required value=\{form\.g
 assert.match(directoryAdmin, /المركز \/ المدينة \*<input required value=\{form\.district\}/, "Admin form must require the actual district");
 
 const directoryOwnerView = readFileSync("apps/catalog-frontend/src/components/DirectoryListingsView.tsx", "utf8");
-const ownerUpdateLocationGuard = edge.slice(edge.indexOf('if (action === "UPDATE_OWNED_LISTING")'), edge.indexOf('const { data: memberships, error: membershipsError }'));
+const ownerUpdateLocationGuard = edge.slice(edge.indexOf('if (action === "UPDATE_OWNED_LISTING")'), edge.indexOf('const { data: memberships, error: membershipError }'));
 assert.match(ownerUpdateLocationGuard, /if \(!governorate \|\| !district\)[\s\S]{0,180}LOCATION_REQUIRED/, "Owner listing update must reject missing actual location");
 assert.match(directoryOwnerView, /governorate: "", district: "", village: ""/, "Owner edit form must not initialize a fabricated location");
 assert.match(directoryOwnerView, /governorate: detail\.governorate \|\| "", district: detail\.district \|\| ""/, "Owner edit hydration must not invent a location");
