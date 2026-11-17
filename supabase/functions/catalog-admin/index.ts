@@ -345,8 +345,6 @@ Deno.serve(async (req: Request) => {
               instagramUrl: String(profile.instagram_url || ""),
               tiktokUrl: String(profile.tiktok_url || ""),
               publicEnabled: business.settings?.catalog_public_enabled === true,
-            public_contact_enabled: profile.public_contact_enabled === true,
-            public_contact_consent_audit_verified: profile.public_contact_consent_audit_verified === true,
               public_contact_enabled: profile.public_contact_enabled === true,
               public_contact_consent_audit_verified: profile.public_contact_consent_audit_verified === true,
             },
@@ -454,6 +452,8 @@ Deno.serve(async (req: Request) => {
             instagramUrl: String(profile.instagram_url || ""),
             tiktokUrl: String(profile.tiktok_url || ""),
             publicEnabled: business.settings?.catalog_public_enabled === true,
+            public_contact_enabled: profile.public_contact_enabled === true,
+            public_contact_consent_audit_verified: profile.public_contact_consent_audit_verified === true,
           },
           bizcatalog: business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
             ? business.settings.bizcatalog
@@ -489,7 +489,7 @@ Deno.serve(async (req: Request) => {
       if (!roleForBusiness && !scopedPlatformMembership) {
         return out(origin, { error: "CATALOG_PROFILE_WRITE_FORBIDDEN" }, 403);
       }
-      const submittedSocialFields: Record<string, string | string[]> = {};
+      const submittedSocialFields: Record<string, unknown> = {};
       for (const [requestKey, columnKey, platform] of [
         ["facebookUrl", "facebook_url", "facebook"],
         ["instagramUrl", "instagram_url", "instagram"],
