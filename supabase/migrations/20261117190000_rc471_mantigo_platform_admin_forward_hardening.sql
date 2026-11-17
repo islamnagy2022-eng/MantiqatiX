@@ -10,6 +10,39 @@ BEGIN
   IF pg_catalog.to_regclass('private.platform_admins') IS NULL THEN
     RAISE EXCEPTION 'PLATFORM_ADMIN_REGISTRY_MISSING';
   END IF;
+  IF pg_catalog.to_regprocedure(
+    'public.create_settlement_and_post_journal(character varying,character varying,character varying,character varying,numeric,numeric,numeric,numeric,character varying,character varying,uuid,text,uuid)'
+  ) IS NULL THEN
+    RAISE EXCEPTION 'MANTIGO_SETTLEMENT_JOURNAL_DEPENDENCY_MISSING';
+  END IF;
+
+  -- Fail closed if the live financial/audit/notification shape differs from the
+  -- columns used by the replacement RPCs. This is a preflight only; it writes nothing.
+  IF EXISTS (
+    WITH expected(table_name,column_name) AS (
+      VALUES
+        ('mantigo_rides','id'),('mantigo_rides','customer_id'),('mantigo_rides','status'),('mantigo_rides','updated_at'),
+        ('mantigo_financial_ledger','id'),('mantigo_financial_ledger','ride_id'),('mantigo_financial_ledger','captain_id'),
+        ('mantigo_financial_ledger','gross_amount'),('mantigo_financial_ledger','commission_amount'),
+        ('mantigo_financial_ledger','captain_net_amount'),('mantigo_financial_ledger','payment_status'),
+        ('mantigo_financial_ledger','settlement_status'),('mantigo_financial_ledger','commission_rate'),
+        ('mantigo_financial_ledger','settlement_reference'),('mantigo_financial_ledger','created_at'),('mantigo_financial_ledger','updated_at'),
+        ('audit_logs','id'),('audit_logs','tenant_id'),('audit_logs','actor_user_id'),('audit_logs','action'),
+        ('audit_logs','entity_type'),('audit_logs','entity_id'),('audit_logs','old_values'),('audit_logs','new_values'),('audit_logs','result'),
+        ('notifications','id'),('notifications','tenant_id'),('notifications','user_id'),('notifications','type'),
+        ('notifications','title'),('notifications','body'),('notifications','entity_type'),('notifications','entity_id')
+    )
+    SELECT 1
+    FROM expected e
+    LEFT JOIN pg_catalog.pg_attribute a
+      ON a.attrelid=pg_catalog.to_regclass('public.'||e.table_name)
+     AND a.attname=e.column_name
+     AND a.attnum>0
+     AND NOT a.attisdropped
+    WHERE a.attname IS NULL
+  ) THEN
+    RAISE EXCEPTION 'RC471_LIVE_SCHEMA_DEPENDENCY_MISSING';
+  END IF;
   WITH expected(proname, argument_types) AS (
     VALUES
       ('admin_create_global_ad', 'character varying, text, text, timestamp with time zone, timestamp with time zone'),
