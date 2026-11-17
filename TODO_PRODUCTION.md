@@ -2021,3 +2021,6 @@ Evidence: `docs/audits/PASS_151_190_DIRECTORY_CLAIM_AND_OUTPUT_20261117.md`. No 
 - [ ] Reconcile and deploy the directory Edge Function only through a separate reviewed production release.
 
 Evidence: `docs/audits/PASS_151_190_DIRECTORY_LOCATION_INTEGRITY_20261117.md`. No production data or deployment changes made.
+
+
+- [x] Remove the same fabricated location fallback from the claimed-owner public directory editor and validate the owner update server-side.
