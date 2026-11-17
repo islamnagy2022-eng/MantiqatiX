@@ -30,7 +30,7 @@ const checks = [
   ["PostgreSQL integration verifies all four helper callers have empty search_path", integration.includes("R7_HELPER_CALLER_SEARCH_PATH_NOT_HARDENED") && integration.includes("p.proconfig @> ARRAY['search_path=\"\"']")],
 
   ["workflow executes RC449 then RC462 then caller fixture then RC471 then all three integration tests in order", (() => {
-    const executedSqlFiles = [...workflow.matchAll(/docker exec[^\\n]*-f (\\/tmp\\/[^\\s"]+)/g)]
+    const executedSqlFiles = [...workflow.matchAll(/docker exec[^\n]*-f (\/tmp\/[^\s"]+)/g)]
       .map((match) => match[1]);
     const expectedOrder = [
       "/tmp/fixture.sql",
