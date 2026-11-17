@@ -24,6 +24,7 @@ export type PublicDirectoryListing = {
   can_edit?: boolean;
   owned_business_id?: string | null;
   public_contact_consent_scopes?: DirectoryContactConsentScope[];
+  contact_consent_ready?: boolean;
   outreach_status?: string;
   outreach_notes?: string | null;
   last_contacted_at?: string | null;
