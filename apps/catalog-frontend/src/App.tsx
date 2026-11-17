@@ -2,10 +2,10 @@ import React, { lazy, Suspense } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
 import { DirectoryView } from './components/DirectoryView';
-import { MarketplaceHome } from './components/MarketplaceHome';
 import { MessageCircle } from 'lucide-react';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from './utils/dashboardAccess';
 
+const MarketplaceHome = lazy(() => import('./components/MarketplaceHome').then((module) => ({ default: module.MarketplaceHome })));
 const BusinessProfileHeader = lazy(() => import('./components/storefront/BusinessProfileHeader').then((module) => ({ default: module.BusinessProfileHeader })));
 const CatalogSection = lazy(() => import('./components/storefront/CatalogSection').then((module) => ({ default: module.CatalogSection })));
 const MerchantDashboard = lazy(() => import('./components/merchant/MerchantDashboard').then((module) => ({ default: module.MerchantDashboard })));
@@ -67,7 +67,9 @@ const MainContent: React.FC = () => {
         {/* Isolated Business Storefront: Opens directly for the specific business without seeing other businesses or external taxonomy bars */}
         {visibleView === 'directory' && <DirectoryView />}
 
-        {visibleView === 'marketplace_home' && <MarketplaceHome />}
+        {visibleView === 'marketplace_home' && (
+          <Suspense fallback={<ScreenFallback />}><MarketplaceHome /></Suspense>
+        )}
 
         {visibleView === 'public_storefront' && (
           <Suspense fallback={<ScreenFallback />}>
