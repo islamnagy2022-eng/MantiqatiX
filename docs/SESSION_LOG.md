@@ -2507,3 +2507,10 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Additional migration-ledger check: the 310 live rows do not include RC463 version `20261031100000`, although the RC463 source file exists on `main`; they do include `20261110150618_revoke_public_execute_from_trigger_functions`, whose source is absent from `main`. The observed trigger ACLs show revocation, but one function's search_path remains `public, auth`; do not treat the later migration as an RC463 alias.
 
 - Cross-session history check confirms PR #722's RC candidate was not applied to Production. No exact SQL, branch/commit, deployment source or execution evidence for live migration `20261110150618` was recoverable from prior conversations. Do not attribute the live migration to PR #722 or reconstruct SQL from its name; exact source recovery remains blocked.
+
+### 2026-11-17 — Exact source recovery for migration 20261110150618
+
+- Queried the live `supabase_migrations.schema_migrations` row read-only and recovered its stored `statements[1]`. The exact one-statement SQL is two `REVOKE EXECUTE ... FROM PUBLIC, anon, authenticated` commands for the two trigger-only functions; it does not change search_path and does not revoke service_role explicitly.
+- Database-side SHA-256: `b462abcd9205345901c389102992d9ee31aa6d293a5e7bb5e9f6114f0f43afed`; 374 characters; no rollback entry. Independently computed local SHA-256 matched.
+- Restored the exact historical source file `supabase/migrations/20261110150618_revoke_public_execute_from_trigger_functions.sql` on the current-base audit branch. This is source recovery only; the migration was not re-applied to Production.
+- The live ledger still lacks RC463 `20261031100000`; its main source sets empty search_path for both trigger functions. The later 20261110150618 migration is not an RC463 alias. Current live `assign_default_owner_to_unowned_business()` retains `search_path=public, auth`, while `capture_commission_rule_audit()` has empty search_path. A forward-only repair must be reviewed after migration-chain reconciliation; do not replay RC463 out of order.
