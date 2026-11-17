@@ -2632,3 +2632,9 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Pass 181–190: verified the doctor import staging rule, source permission gate, phone publication gate and claim fields remain unchanged. No schema or Production mutation and no Edge deployment.
 - Commits: `e0872b9e6b00434a0b32942c5ea88445131b64e4` (Edge), `60ad34c84a80b3755c2a50da34f5c817c016fd72` (admin UI), `b352fd309b9d1432b7ac790adfd03d8c078f3235` (validator). Audit: `docs/audits/PASS_151_190_DIRECTORY_LOCATION_INTEGRITY_20261117.md`.
 - Exact-head CI was triggered by the changed paths and is pending; do not merge until all required checks pass.
+
+
+### Pass 151–190 supplemental scan
+
+- A wider repository search found the same fabricated location fallback in the claimed-owner directory profile editor. Fixed owner form defaults/hydration, required both fields in the owner form, and added server-side `LOCATION_REQUIRED` validation to `UPDATE_OWNED_LISTING`.
+- Regression validator now covers platform-admin and claimed-owner edit surfaces. Existing owner authorization, claim state, metadata allowlist and publication checks remain unchanged.
