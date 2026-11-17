@@ -49,3 +49,13 @@ Release state: **BLOCKED / NOT CERTIFIED** pending database, Edge, R7 auth and D
 8. Run R7 package tests/build from a clean reproducible environment and add declared test/release scripts.
 
 **No Production database migration, data write, Auth setting change, RLS/GRANT mutation, Edge deployment, payment/settlement, or website cutover occurred in Pass 67–86.** Current global gate remains `BLOCKED / NOT CERTIFIED`.
+
+
+## Post-checkpoint verification — Pass 87–89
+
+- PR #752 merged successfully at `a536d778b29c45a01d1f13dc1ab8dcaaded67af6`.
+- Exact-main CI: 21 successful checks, zero failures. GitHub Pages deploy job completed successfully.
+- Deployed-origin smoke tests passed for V6 root, legacy catalog rollback, Preview alias, dashboard/mobile/QR routes, and browser checks.
+- Documentation PR #753 is open with 16 successful checks, 2 expected skips, no pending checks and no failures at latest inspection.
+- Reopened the R7 archive source to verify the P0 auth boundary: `src/lib/supabaseClient.ts` prefers `SUPABASE_SERVICE_ROLE_KEY` over anon keys in a module imported by the frontend; `AppContext.tsx` authorizes admin UI locally by comparing the entered password to client-held settings (seed default `admin`); initial production-state hydration and autosave use unauthenticated requests; the refresh UI sends only user-supplied identifiers/role and no token. These are independent release blockers, not cosmetic findings.
+- No Production DB, migration ledger, Auth, RLS/GRANT, Edge Function, payment, wallet, settlement or data changes were made.
