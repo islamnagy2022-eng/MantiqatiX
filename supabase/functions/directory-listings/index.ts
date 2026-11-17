@@ -569,6 +569,14 @@ Deno.serve(async (req: Request) => {
     if (displayName.length < 2 || !listingTypes.has(listingType) || !listingStatuses.has(listingStatus) || !validGroups.has(functionalGroupId) || taxonomyCategoryId.length < 4) {
       return out(origin, { error: "INVALID_LISTING", message: "راجع اسم الصفحة والمجموعة الوظيفية والتصنيف وحالة النشر." }, 400);
     }
+    const governorate = clean(body.governorate, 100);
+    const district = clean(body.district, 100);
+    if (!governorate || !district) {
+      return out(origin, {
+        error: "LOCATION_REQUIRED",
+        message: "حدد المحافظة والمركز أو المدينة الفعليين قبل حفظ الصفحة.",
+      }, 400);
+    }
     if (!taxonomyCategoryId.startsWith("cat_" + functionalGroupId + "_") && !taxonomyCategoryId.startsWith("cat_custom_")) {
       return out(origin, { error: "TAXONOMY_GROUP_MISMATCH", message: "التصنيف المختار لا يتبع المجموعة الوظيفية المحددة." }, 400);
     }
@@ -634,8 +642,8 @@ Deno.serve(async (req: Request) => {
       specialty: clean(body.specialty || taxonomySpecialty, 160) || null,
       phone: phone || null, secondary_phone: secondaryPhone || null,
       address: clean(body.address, 500) || null,
-      governorate: clean(body.governorate || "المنوفية", 100),
-      district: clean(body.district || "بركة السبع", 100), village: clean(body.village, 100) || null,
+      governorate,
+      district, village: clean(body.village, 100) || null,
       source_name: sourceName,
       source_url: sourceUrl,
       source_checked_at: body.sourceCheckedAt ? String(body.sourceCheckedAt) : new Date().toISOString(),
