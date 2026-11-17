@@ -1804,3 +1804,15 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - All 65 authenticated-callable SECURITY DEFINER functions have explicit function-level search_path settings. A static scan found auth.uid() directly in 59; the remaining six include helper/delegating functions and require call-chain review. Inspected helpers mnty_active_membership, mnty_business_employee_list_scoped and assert_financial_membership enforce auth.uid()/anonymous-session/membership or finance-role checks. This is not a complete audit of all 65 functions.
 - Important unresolved ownership behavior: assign_default_owner_to_unowned_business() trigger assigns an ACTIVE BUSINESS_OWNER membership to the fixed confirmed platform-owner email when a new business has no active owner. This may be intentional for imported catalog rows but could capture customer/provider-created businesses. Verify onboarding, imports and creator ownership semantics before launch; do not change without checking dependent flows. Trigger remains enabled and direct client EXECUTE is revoked.
 - The nine RLS-enabled/no-policy tables grant no direct anon/authenticated DML or SELECT. Three directory tables grant service_role SELECT; other six do not. Keep default-deny until trusted server/definer access paths are validated.
+
+
+## 2026-11-17 — Pass 47–66 continuation checkpoint
+
+- RC469 PR #746 merged as `c1b9ee70a671223c65ece8924b4de42d538e8612`; four SECURITY DEFINER platform-admin callers now have source-level empty search_path hardening. No Production migration applied.
+- Production audit PR #745 merged as `877122001f2b33542c1dacbeaeb29cdab9337f34`.
+- RC468 refreshed on current main and merged as PR #747, `370381d570d9fbf92892a768f8f80fde2c8cf119`. Exact-head CI 23 success; Pages deploy jobs skipped. Post-merge main CI had 12 success / 2 running at checkpoint.
+- Read-only Supabase still reports 310 migrations through `20261110150618`; required release-version IDs remain absent. No Production mutation.
+- Nine RLS-enabled/no-policy tables were checked for direct ACLs; browser roles have no direct access. Targeted-ad public RPC has empty search_path and bounded approved-ad selection. RC431 live payment processor still differs from hardened main source.
+- Reverified R7 archive SHA-256 and confirmed the 180 default-image pack. R7 remains unsafe to import as-is due caller-controlled token minting, hard-coded admin bypass, refresh fallback, unauthenticated state APIs, local JSON persistence, fallback secrets and unsafe Android WebView bridge.
+- Detailed record: `docs/audits/PASS_47_66_CONTINUATION_20261117.md`.
+- No Production migration, data/Auth/RLS/GRANT change, Edge deployment, payment, or website cutover occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
