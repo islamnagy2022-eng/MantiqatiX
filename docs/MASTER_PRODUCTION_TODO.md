@@ -4282,3 +4282,19 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - [ ] Obtain fresh exact-head CI for the final branch revision.
 - [ ] Implement and test atomic claim approval/rejection and reliable lock release.
 - [ ] Decide separate contact/precise-map disclosure policy for imported/unclaimed national directory records.
+
+
+### Pass 231–270 — Directory claim atomicity audit
+
+- [x] Verify platform-admin authorization predicates and ensure REVIEW_CLAIM is behind the platform-admin gate.
+- [x] Trace claim-state validation and rejection lock-release ordering.
+- [x] Trace approval prerequisites: ownership verification, active business, paid/admin-confirmed subscription, tenant scope and existing-owner conflicts.
+- [x] Trace claimant membership activation/creation, automatic-owner deactivation, listing update and claim finalization.
+- [x] Confirmed release blocker: multi-write non-transactional flow; rejection lock-release errors are ignored; approval has no final claim compare-and-set or listing expected-state guard.
+- [ ] Obtain authoritative claim/listing/membership/business table definitions, constraints, indexes and triggers.
+- [ ] Implement one transactional database RPC for approval/rejection with row locks and expected-state checks.
+- [ ] Add database integration tests for rollback, concurrent approval, duplicate membership, rejection lock release and each business/owner prerequisite.
+- [ ] Re-run exact-head CI after any implementation; merge only after required checks pass and blocker is closed.
+- [ ] Keep production DB, Edge deployment and Pages release separate and explicitly controlled.
+
+Evidence: `docs/audits/PASS_231_270_DIRECTORY_CLAIM_ATOMICITY_20261117.md`. No schema or production mutation occurred.
