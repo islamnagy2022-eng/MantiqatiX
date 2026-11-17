@@ -128,5 +128,20 @@ for (const forbiddenKey of ["verified_by", "is_verified", "claimed_user_id", "cl
 assert.match(publicOutputContract, /for \(const key of PUBLIC_LISTING_KEYS\)/, "Public listing serializer must copy only allowlisted top-level fields");
 assert.doesNotMatch(publicOutputContract, /\.\.\.publicRow/, "Public listing serializer must not spread unknown database fields");
 
+const ownerUpdateStart = edge.indexOf('if (action === "UPDATE_OWNED_LISTING")');
+const ownerUpdateEnd = edge.indexOf('const memberships, error: membershipsError', ownerUpdateStart);
+assert.ok(ownerUpdateStart >= 0 && ownerUpdateEnd > ownerUpdateStart, "Owner update action must remain a separate pre-admin-gate action");
+const ownerUpdate = edge.slice(ownerUpdateStart, ownerUpdateEnd);
+assert.match(ownerUpdate, /claimed_user_id,claimed_business_id,metadata,governorate,district,village/, "Owner edit must load the saved geographic values before applying a partial update");
+assert.match(ownerUpdate, /body\.governorate \|\| listing\.governorate/, "Omitted governorate must preserve the listing's existing governorate");
+assert.match(ownerUpdate, /body\.district \|\| listing\.district/, "Omitted district must preserve the listing's existing district");
+assert.match(ownerUpdate, /body\.village \|\| listing\.village/, "Omitted village must preserve the listing's existing village");
+assert.doesNotMatch(ownerUpdate, /body\.governorate \|\| ["']المنوفية["']|body\.district \|\| ["']بركة السبع["']/, "Partial owner edits must not silently relocate listings to the default governorate/markaz");
+
+assert.match(publicOutputContract, /function sanitizePublicGoogleMapsUrl/, "Public Maps metadata must pass through a dedicated URL validator");
+assert.match(publicOutputContract, /url\.protocol !== "https:"/, "Public Maps metadata must reject non-HTTPS URLs");
+assert.match(publicOutputContract, /maps\.app\.goo\.gl/, "Public Maps metadata must retain supported short Google Maps links");
+assert.match(publicOutputContract, /key === "google_maps_url"/, "Google Maps metadata must use the dedicated validator rather than generic string handling");
+
 console.log("DOCTOR_INCREMENTAL_IMPORT_CONTRACT=PASS");
 console.log("checks=platform_admin,20_row_cap,sequential_persistence,deduplication,draft_only_import,source_attribution,unverified_status,separate_publication_gate,two_person_approval,source_scope,expiry_revocation,valid_source_url,phone_gate,state_preservation,ownership_preservation,verification_protection,admin_ui,private_rls_registry");
