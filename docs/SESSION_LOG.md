@@ -2530,3 +2530,19 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - R7 default image behavior verified across all 15 sectors, existing image-engine tests 4/4, local AI assets and maintenance defaults. No image rewrite is needed in R7.
 - R7 remains blocked from import/deployment due P0 token minting/refresh, hard-coded admin bypass, unauthenticated state APIs, local JSON authority, predictable secrets, default-paid business state and unsafe registration/wallet defaults.
 - Next: refresh/rebase PR #730 RC464–RC467 integration candidate onto current main. Its previously tested head passed 14/14 PR-triggered workflows but is six commits behind the prior main; require current-base exact-head CI and human SQL review. Do not apply any candidate migration or deploy mismatched payment Edge Functions to Production.
+
+## 2026-11-17 — Production object refresh and RC117 default-image blocker
+
+- Refreshed the 60-object physical catalog directly from pg_catalog/information_schema: 30 present, 30 absent. The marketing_services image_url column previously counted present on 14-Nov is absent in the current direct query; image_source and all three default-image trigger chains are absent too.
+- Refreshed the exact migration ledger: 310 rows through 20261110150618; 0/42 canonical required migration versions present.
+- Refreshed seven Edge Function source mismatches: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3, directory-listings v16. No Edge Function deployed.
+- Supabase Advisor: 9 RLS/no-policy, 1 anon-executable SECURITY DEFINER, 65 authenticated-executable SECURITY DEFINER, leaked-password protection warning; performance counts 132 unindexed FKs, 375 auth_rls_initplan, 28 multiple permissive policies.
+- Reviewed historical RC117 source on closed PR #410. It is not in main or the live ledger; its marketing_services backfill can overwrite a non-empty owner image when image_source is null/invalid. Do not replay it or port unchanged. The next image task is a forward-only repair with explicit custom-image preservation and insert/update integration tests.
+- Updated manifest and added `docs/audits/PRODUCTION_RECONCILIATION_20261117.md` on this documentation branch. No Production writes occurred.
+
+
+## 2026-11-17 — PR #744 merged; source-only directory security fix
+
+- Merged PR #744 as `ef586d6802a6d83f4805279c36152c95f0caeab0`. Exact-head 7/7 workflows passed: doctor-import contract, privacy, backend boundary, module professionalization, and primary catalog build/isolated PostgreSQL RBAC/browser E2E.
+- Pages PR validation passed, but `validate_public_only` and `deploy` were skipped. No Supabase Edge Function was deployed; live `directory-listings` remains v16 and still differs from the now-hardened main source.
+- Updated the Nov 17 reconciliation report/manifest to record the new main blob SHA and the still-pending live Edge deployment. No Production data or configuration changed.
