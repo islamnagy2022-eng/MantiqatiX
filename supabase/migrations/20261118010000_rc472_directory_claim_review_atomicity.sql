@@ -122,7 +122,7 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'BUSINESS_NOT_ACTIVE';
   END IF;
   IF lower(coalesce(v_business.settings -> 'bizcatalog' ->> 'paymentStatus', '')) <> 'paid'
-     OR coalesce((v_business.settings -> 'bizcatalog' ->> 'paymentConfirmedByAdmin')::boolean, false) IS DISTINCT FROM true THEN
+     OR (v_business.settings -> 'bizcatalog' -> 'paymentConfirmedByAdmin') IS DISTINCT FROM 'true'::jsonb THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'PAID_SUBSCRIPTION_REQUIRED';
   END IF;
 
