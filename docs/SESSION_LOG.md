@@ -2505,3 +2505,5 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Added this discrepancy and safe recovery action to `docs/audits/R7_ARCHIVE_11_PRODUCTION_GATE_20261117.md`. No Production change occurred.
 
 - Additional migration-ledger check: the 310 live rows do not include RC463 version `20261031100000`, although the RC463 source file exists on `main`; they do include `20261110150618_revoke_public_execute_from_trigger_functions`, whose source is absent from `main`. The observed trigger ACLs show revocation, but one function's search_path remains `public, auth`; do not treat the later migration as an RC463 alias.
+
+- Cross-session history check confirms PR #722's RC candidate was not applied to Production. No exact SQL, branch/commit, deployment source or execution evidence for live migration `20261110150618` was recoverable from prior conversations. Do not attribute the live migration to PR #722 or reconstruct SQL from its name; exact source recovery remains blocked.
