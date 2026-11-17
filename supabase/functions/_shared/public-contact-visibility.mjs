@@ -49,12 +49,17 @@ export const emptyPublicContact = () => ({
   googleMapsUrl: "",
 });
 
+/**
+ * @param {unknown} value
+ * @param {unknown} [branchValue]
+ * @returns {{ phoneDisplay: string, whatsappNumber: string, whatsappUrl: string, address: string, additionalContactPhones: string[], googleMapsUrl: string }}
+ */
 export const getExplicitPublicContact = (value, branchValue = null) => {
-  const profile = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const profile = value && typeof value === "object" && !Array.isArray(value) ? /** @type {Record<string, unknown>} */ (value) : {};
   if (profile.public_contact_enabled !== true || profile.public_contact_consent_audit_verified !== true) {
     return emptyPublicContact();
   }
-  const branch = branchValue && typeof branchValue === "object" && !Array.isArray(branchValue) ? branchValue : {};
+  const branch = branchValue && typeof branchValue === "object" && !Array.isArray(branchValue) ? /** @type {Record<string, unknown>} */ (branchValue) : {};
   const phoneSource = branch.phone || profile.phone_display || profile.phone || profile.whatsapp_phone || profile.whatsapp_number;
   const whatsappNumber = normalizeWhatsAppNumber(
     branch.phone || profile.whatsapp_number || profile.whatsapp_phone || profile.phone_display || profile.phone,
