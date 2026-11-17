@@ -4218,3 +4218,12 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Documentation checkpoint PR #753 is open with 16 successful checks and 2 expected skipped jobs; no failed or pending checks at latest read.
 - R7 archive security review was expanded: `src/lib/supabaseClient.ts` prefers `SUPABASE_SERVICE_ROLE_KEY` before anon keys in a client-imported module; R7 admin UI checks a locally stored password (default seed is `admin`); AppContext starts unauthenticated GET/POST requests to `/api/production-state`; refresh UI sends no verified token; localStorage is used to restore UI auth state. Treat the archive as an untrusted design candidate, not a deployable release.
 - Production database and Edge Functions remain untouched. Keep release gate blocked pending the coupled migration/Edge/Auth and recovery evidence.
+
+
+### Pass 90 — targeted Supabase advisor triage (2026-11-17)
+
+- Read-only catalog inspection of the 9 public RLS-enabled/no-policy tables found direct SELECT denied to both `anon` and `authenticated` on all 9. Eight have FORCE RLS; `digital_page_payment_events` has RLS enabled without FORCE. Three service-only tables (`directory_listing_claim_requests`, `directory_source_permission_evidence`, `public_directory_listings`) grant service_role SELECT; the other six do not. These are deny-by-default/private surfaces, not grounds for adding broad policies.
+- Read-only review of all 65 public SECURITY DEFINER functions callable by anon/authenticated: 18 use empty search_path; 47 use pinned non-empty search_path; none are unpinned. 1 function is anon-executable; all 65 are authenticated-executable; 4 are also service_role-executable.
+- The only anon-executable SECURITY DEFINER function is `get_mnty_targeted_advertisements(...)`. It pins an empty search_path, returns a bounded projection (ad id/title/creative/target/space/match/distance), filters to ACTIVE+APPROVED and date-valid ads, and clamps result count to 1–50. Public ad discovery is an intentional public capability; retain it for targeted review rather than revoking it blindly.
+- Roles anon/authenticated/service_role have USAGE but no CREATE on public schema. Temp privilege exists; pinned functions place pg_temp after public or use an empty path. No ACL/search_path mutation was made.
+- Disposition: advisor findings are inventory signals. Continue signature/body-by-body review; no blanket revoke and no broad RLS policy creation.
