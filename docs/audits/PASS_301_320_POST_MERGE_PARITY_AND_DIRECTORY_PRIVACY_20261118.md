@@ -26,7 +26,7 @@ Project: `MANTIQATIX FINAL` (`moyhiluyhjsujhwlyeuu`), status `ACTIVE_HEALTHY`, P
 
 Read-only aggregates from `public.public_directory_listings`:
 
-- 964 total rows: 869 published, 1 published claim-pending, 0 claimed, 964 unclaimed.
+- 965 total rows: 869 published, 87 draft, 9 hidden, 0 claimed, 1 claim-pending and 964 unclaimed.
 - 868 published/unclaimed rows contain a phone and 868 contain an address.
 - Breakdown of published/unclaimed rows: 567 doctors, 228 businesses, 48 pharmacies, 10 laboratories, 7 clinics, 7 medical centers and 1 hospital.
 - 497 of the 567 unclaimed doctor entries carry the source label `Dalil140 — دليل عام غير رسمي`; additional records have source labels explicitly indicating public-directory or confirmation-needed provenance.
