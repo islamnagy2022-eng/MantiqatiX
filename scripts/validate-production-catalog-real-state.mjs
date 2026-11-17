@@ -331,8 +331,10 @@ assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("district
   'Markaz/district must be applied with prefix-tolerant matching before the page limit.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("village",/,
   'Village must be applied with prefix-tolerant matching before the page limit.');
-assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("address",/,
-  'Area/address must be applied to the database query before the page limit.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.in\("id", addressVisibleIds\)\.ilike\("address",/,
+  "Area/address must be applied only to listings with active ADDRESS consent before the page limit.");
+assert.match(directoryListingsFunction, /eq\("scope", "ADDRESS"\)\.is\("revoked_at", null\)/,
+  "Exact address search must be restricted to active owner consent records.");
 assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(search, cursor, taxonomySpecialty \|\| specialty\)/,
   'Selected specialty must be applied before the page limit through the combined server-side filter expression.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.in\("functional_group_id", expandDirectoryFunctionalGroupIds\(functionalGroupId\)\)/,
