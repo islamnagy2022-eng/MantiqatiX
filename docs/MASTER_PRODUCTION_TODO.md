@@ -4268,3 +4268,6 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - [x] Add static regression assertions for UI defaults, required fields and server-side rejection.
 - [ ] Wait for exact-head doctor-import contract, Deno type-check, frontend build/type-check and full PR #756 CI to pass.
 - [ ] After merge and review, schedule a separate controlled Edge Function release; do not deploy as part of this source-only pass.
+
+
+- [x] Extend the location-integrity guard to the claimed-owner edit form and `UPDATE_OWNED_LISTING` backend action.
