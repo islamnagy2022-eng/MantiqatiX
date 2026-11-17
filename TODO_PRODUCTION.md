@@ -2056,3 +2056,7 @@ Evidence: `docs/audits/PASS_191_230_PUBLIC_DIRECTORY_METADATA_20261117.md`. Sour
 Confirmed blocker: claim rejection can report success despite a failed listing-lock release. Approval can partially apply membership/listing changes while the claim remains pending if a later write fails. No schema or Production mutation was made.
 
 Evidence: `docs/audits/PASS_231_270_DIRECTORY_CLAIM_ATOMICITY_20261117.md`.
+
+
+- [ ] Reconcile missing production migration `20261027090000` and the live nullable-branch membership uniqueness index before designing claim approval RPC.
+- [ ] Test claim transaction and trigger interactions on a disposable/development Supabase branch; no Production DDL until reviewed and explicitly released.
