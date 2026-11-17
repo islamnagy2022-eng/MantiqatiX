@@ -1890,3 +1890,12 @@ The V6 root has already removed the standalone medical page. This follow-up also
 
 - Extended the location-integrity fix to the owner-managed public directory profile editor: removed its Monufia / Berket El-Sabaa fallback, made governorate/district required, and added a backend `LOCATION_REQUIRED` check while preserving existing claimed-owner authorization and metadata allowlisting.
 - Added owner-edit assertions to the doctor incremental-import source validator. No production row or schema change.
+
+
+## 2026-11-17 — Pass 191–230 public metadata hardening
+
+- Added HTTPS-only sanitization for public logo, cover, website, booking and profile-image URL metadata; invalid or executable URL schemes are omitted. Google Maps continues to use its narrower dedicated Google-host/path allowlist.
+- Added behavior tests and source-contract assertions. Current exact-head CI is pending; the old validator parse failure belonged to a superseded commit.
+- Reconfirmed partial owner updates preserve stored location and imports remain staged separately from public source-evidence approval.
+- Claim approval/rejection atomicity and national directory contact/map disclosure policy remain blockers. No production or database/Auth/RLS/GRANT/payment/Pages mutation.
+- Audit: `docs/audits/PASS_191_230_PUBLIC_DIRECTORY_METADATA_20261117.md`.
