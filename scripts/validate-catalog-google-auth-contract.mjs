@@ -55,7 +55,9 @@ assert.ok(navbar.includes("authSession.isAuthenticated && authSession.role === '
 assert.ok(navbar.includes("authSession.role === 'guest' && !authBootstrapError && !authLoading"), 'The guest membership warning must stay hidden until session bootstrap has completed successfully.');
 assert.ok(navbar.includes("!authSession.isAuthenticated && !authLoading"), 'Only anonymous visitors may see the login action; loading must not flash a guest CTA.');
 assert.ok(navbar.includes('authBootstrapError'), 'Bootstrap errors must be visible globally in the navigation shell.');
-assert.ok(modal.includes("handleGoogle('login')") && modal.includes("handleGoogle('signup')"), 'Login and registration buttons must both use the shared Google OAuth flow.');
+assert.ok(modal.includes("handleGoogle('customer')") && modal.includes("handleGoogle('admin')"), 'Customer and separate admin entry points must both use the shared Google OAuth flow.');
+assert.ok(modal.includes('data-testid="google-signin-button"') && modal.includes('data-testid="admin-google-signin-button"'), 'The unified Google action and separate admin entry must remain discoverable for browser tests.');
+assert.ok(!modal.includes('prompt(') && !modal.includes('loginAsAdmin(') && !modal.includes('signInWithPassword'), 'The login modal must never collect an email as proof of Google identity or grant admin access locally.');
 
 console.log('Catalog Google OAuth hydration, identity-vs-membership, and role-gated UI contract: PASS');
 
