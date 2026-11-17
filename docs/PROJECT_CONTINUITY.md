@@ -1847,3 +1847,13 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - Reviewed catalog ACL/search_path metadata for all 65 public SECURITY DEFINER functions callable by anon/authenticated: 18 empty search_path, 47 pinned non-empty, zero unpinned. One is anon-executable and 65 authenticated-executable; 4 are also service_role-executable.
 - The sole anon-executable function is `get_mnty_targeted_advertisements`; it uses empty search_path, filters ACTIVE+APPROVED/time-valid ads, returns a bounded public ad projection, and clamps limit to 1–50. Treat as intentional public ad discovery pending output/privacy regression review, not an automatic revoke.
 - anon/authenticated/service_role have no CREATE privilege on public schema. No production grants, policies or function definitions were changed.
+
+### 2026-11-17 — Pass 91–110: audited public contact disclosure
+
+- PR #756 (current-main branch) contains the isolated public contact privacy hardening; the older PR #726 was not merged because its stale branch combined the requested privacy work with unrelated pagination and UI changes.
+- Shared public projection requires owner consent and a verified audit flag. Public fields covered: phone display, WhatsApp number/URL, branch address, additional contact numbers and precise Google Maps URL. Defaults are all blank.
+- public-catalog and public-catalog-directory use the helper. Public branch payloads now omit phone/address; public top-level contactPhone uses only the consent projection. Authenticated catalog-admin reads keep the private branch data.
+- catalog-admin writes public_contact_consent_audit_verified=false before recording the consent event, inserts GRANTED/REVOKED audit rows, and only turns the audit flag true after a compare-and-set check. This leaves the public response private on audit error or concurrent conflict.
+- Merchant dashboard includes explicit opt-in. AppContext carries the value to the authenticated backend; frontend projection mapping does not fall back to raw branch phone/address.
+- Seven unit tests pass and the 23-check static privacy contract passes. A Deno check found and drove fixes for TypeScript/JSDoc issues; the older social-links source contract was updated to match the new privacy boundary.
+- Current PR status remains pending final CI at commit 178588019ac831e1cd7e06c8535fec241b88ac3c. Do not merge/deploy until required checks pass. No production Edge deployment or DB mutation.
