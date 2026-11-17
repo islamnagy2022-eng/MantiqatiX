@@ -2659,3 +2659,6 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Audit report: `docs/audits/PASS_231_270_DIRECTORY_CLAIM_ATOMICITY_20261117.md`.
 - No source fix or migration was made because authoritative table/trigger definitions could not be inspected with the available repository operations; no schema assumptions were introduced. Next step is schema discovery followed by one transactional RPC and database integration tests.
 - The 12 PR-triggered workflows on source head `47aba334...` all completed successfully; documentation commits now need fresh exact-head CI. PR #756 remains open/unmerged. No production mutation or deployment.
+
+
+Read-only Supabase production schema cross-check completed: retrieved definitions, constraints, indexes and triggers for claims, listings, memberships and businesses. Confirmed production migration history lacks `20261027090000`; live membership uniqueness remains nullable-branch `uk_user_biz_branch`, not the repo null-safe index. Aggregate preflight: 10 business-wide memberships, zero duplicate user/business groups, one REVIEWING claim and one CLAIM_PENDING listing. Default-owner trigger is deferred AFTER INSERT; legal activation triggers also exist. No DB writes or development branch creation.
