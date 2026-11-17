@@ -680,7 +680,7 @@ try {
       // A previously rendered 20-row category page can still be in the DOM for
       // one render while the specialty request is pending. Wait for the new
       // specialty request and its loading cycle to complete before counting.
-      const specialtyPageRequest = await waitForRequest(true);
+      await waitForRequest(true);
       const specialtyLoading = modulePage.getByText('جارٍ تحميل نتائج الدليل لهذا النشاط…', { exact: true });
       await specialtyLoading.waitFor({ state: 'visible', timeout: 5000 });
       await specialtyLoading.waitFor({ state: 'hidden', timeout: 15000 });
