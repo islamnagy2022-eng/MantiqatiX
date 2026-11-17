@@ -22,6 +22,7 @@ test("returns only bounded contact values for an explicit audited owner consent"
     whatsapp_url: "https://example.com/unsafe",
     address: "Legacy address",
     additional_contact_phones: ["01011112222", "", 5, " 01033334444 "],
+    google_maps_url: "https://www.google.com/maps/place/Private+Location",
   }, { phone: "+20 10 5555 6666", address: "Tala, Menoufia, Egypt" });
   assert.equal(contact.phoneDisplay, "+20 10 5555 6666");
   assert.equal(contact.whatsappNumber, "201055556666");
