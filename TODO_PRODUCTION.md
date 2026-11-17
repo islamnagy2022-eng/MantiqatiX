@@ -2094,6 +2094,6 @@ Evidence: `docs/audits/PASS_271_300_DIRECTORY_CLAIM_ATOMICITY_20261118.md`. Sour
 - [ ] Pass final-head PostgreSQL, source-contract, Deno and frontend build CI plus all required cross-module PR checks.
 - [ ] Merge only after final-head checks pass.
 - [ ] Separately approve RC473 migration + `directory-listings` Edge deployment after RC472 migration/Edge release, backup and rollback review.
-- [!] Source-rights blocker remains: 497 existing rows are labelled Dalil140 and other records cite mixed third-party/official sources. A public URL is not a republication licence. Do not bulk import or re-publish restricted-source records without written, dataset-specific permission.
+- [!] Source-rights blocker remains across all 869 published rows: the Production permission-evidence registry is empty and no row references approved evidence. The `dalil140.com` host accounts for 746 rows across several source labels; the single label `Dalil140 — دليل عام غير رسمي` accounts for 497. A public URL is not a republication licence. Do not bulk import or re-publish restricted-source records without written, dataset-specific permission.
 
 Evidence: `docs/audits/PASS_301_330_DIRECTORY_CONTACT_CONSENT_20261118.md`. Source-only candidate; no Production migration or Edge deployment.
