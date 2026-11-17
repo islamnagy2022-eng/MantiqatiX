@@ -29,7 +29,24 @@ const checks = [
   ].every((marker) => migration.includes(marker))],
   ["PostgreSQL integration verifies all four helper callers have empty search_path", integration.includes("R7_HELPER_CALLER_SEARCH_PATH_NOT_HARDENED") && integration.includes("p.proconfig @> ARRAY['search_path=\"\"']")],
 
-  ["workflow applies RC449 then RC462 then caller fixture then RC471 migration and both integration suites", workflow.indexOf("/tmp/rc449.sql") < workflow.indexOf("/tmp/rc462.sql") && workflow.indexOf("/tmp/r7-callers.sql") < workflow.indexOf("/tmp/rc471.sql") && workflow.indexOf("/tmp/rc471.sql") < workflow.indexOf("/tmp/rc449-test.sql") && workflow.indexOf("/tmp/rc449-test.sql") < workflow.indexOf("/tmp/financial-report-test.sql") && workflow.indexOf("/tmp/financial-report-test.sql") < workflow.indexOf("/tmp/r7-helper-callers-test.sql")],
+  ["workflow executes RC449 then RC462 then caller fixture then RC471 then all three integration tests in order", (() => {
+    const executedSqlFiles = [...workflow.matchAll(/docker exec[^\\n]*-f (\\/tmp\\/[^\\s"]+)/g)]
+      .map((match) => match[1]);
+    const expectedOrder = [
+      "/tmp/fixture.sql",
+      "/tmp/rc449.sql",
+      "/tmp/rc462.sql",
+      "/tmp/r7-callers.sql",
+      "/tmp/rc471.sql",
+      "/tmp/rc449-test.sql",
+      "/tmp/financial-report-test.sql",
+      "/tmp/r7-helper-callers-test.sql",
+    ];
+    const positions = expectedOrder.map((path) => executedSqlFiles.indexOf(path));
+    return positions.every((position, index) =>
+      position >= 0 && (index === 0 || position > positions[index - 1])
+    );
+  })()],
 ];
 
 for (const [name, ok] of checks) console.log((ok ? "PASS " : "FAIL ") + name);
