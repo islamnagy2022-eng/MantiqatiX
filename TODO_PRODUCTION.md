@@ -1981,3 +1981,16 @@ Additional static review found the R6 seed sets `adminPassword: 'admin'`; `AppCo
 - [ ] Complete mobile/desktop map interaction, keyboard access, loading/error states and deployed-origin tests.
 
 **Evidence boundary:** prepared image bundle is not yet integrated into the repository. Current geographic assignment still uses representative points, not verified polygon containment. Do not mark either task complete until the relevant assets/data are committed and tests pass.
+
+
+---
+
+## Pass 111–150 — National directory public-contact boundary (2026-11-17)
+
+- [x] Audit the separate `directory-listings` GET routes, published-only filtering, explicit public field list, metadata allowlist, claim edit authorization and pagination contract.
+- [x] Identify that PUBLISHED national-directory records currently expose `phone`, `secondary_phone`, `address`, and metadata `google_maps_url`.
+- [ ] Determine the legal/source-permission and owner/claim consent rules for public contact and precise map disclosure on this separate listing stream.
+- [ ] Add tests for imported/unclaimed and claimed/owner-managed listing cases before changing any output projection.
+- [ ] Keep the national listing consent decision separate from catalog business profile consent in PR #756; do not alter public behavior or schema without a verified migration and regression plan.
+
+Evidence: `docs/audits/PASS_111_150_PUBLIC_DIRECTORY_BOUNDARY_20261117.md`. No Production mutation or deployment occurred.
