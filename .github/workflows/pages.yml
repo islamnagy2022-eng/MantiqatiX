@@ -31,6 +31,11 @@ jobs:
           set -euo pipefail
           npm install --no-audit --no-fund
           npm run lint
+          VITE_BASE_PATH=/MantiqatiX/ npm run build
+          mkdir -p "${RUNNER_TEMP}/mantiqatix-legacy-root-build"
+          cp -a dist/. "${RUNNER_TEMP}/mantiqatix-legacy-root-build/"
+          test -s "${RUNNER_TEMP}/mantiqatix-legacy-root-build/index.html"
+          grep -q '/MantiqatiX/assets/' "${RUNNER_TEMP}/mantiqatix-legacy-root-build/index.html"
           VITE_BASE_PATH=/MantiqatiX/legacy/ npm run build
           test -s dist/index.html
           test -s dist/config.js
@@ -49,7 +54,7 @@ jobs:
           bun install --frozen-lockfile
           bun run verify:release
           bun run lint
-          V6_ROOT_DIST="${RUNNER_TEMP}/mantiqatix-v6-root-build"
+          LEGACY_ROOT_DIST="${RUNNER_TEMP}/mantiqatix-legacy-root-build"
           rm -rf "${V6_ROOT_DIST}"
           VITE_BASE_PATH=/MantiqatiX/ bun run build
           mkdir -p "${V6_ROOT_DIST}"
@@ -400,30 +405,17 @@ jobs:
           grep -q "if(!branchId)" web/app.js
           grep -Fq 'branches: branches ?? []' supabase/functions/api/index.ts
 
-      - name: Publish V6 as the production root and preserve the previous catalog
+      - name: Publish the legacy catalog as the production root and preserve V6 preview
         run: |
           set -euo pipefail
           SITE_DIR="${RUNNER_TEMP}/mantiqatix-composed-site"
           V6_ROOT_DIST="${RUNNER_TEMP}/mantiqatix-v6-root-build"
           rm -rf "${SITE_DIR}"
           mkdir -p "${SITE_DIR}" "${SITE_DIR}/legacy" "${SITE_DIR}/v6-preview"
-          cp -a "${V6_ROOT_DIST}/." "${SITE_DIR}/"
+          cp -a "${LEGACY_ROOT_DIST}/." "${SITE_DIR}/"
           cp -a apps/catalog-frontend/dist/. "${SITE_DIR}/legacy/"
           cp -a apps/aistudio-v6/worktree/dist/. "${SITE_DIR}/v6-preview/"
-          # Keep the former catalog build intact at /legacy and make it the public landing route.
-          cat > "${SITE_DIR}/index.html" <<'HTML'
-          <!doctype html>
-          <html lang="ar" dir="rtl">
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width,initial-scale=1">
-            <meta http-equiv="refresh" content="0;url=/MantiqatiX/legacy/?view=directory">
-            <title>MantiqatiX</title>
-            <script>window.location.replace('/MantiqatiX/legacy/?view=directory');</script>
-          </head>
-          <body><a href="/MantiqatiX/legacy/?view=directory">فتح منصة MantiqatiX</a></body>
-          </html>
-          HTML
+          # The production catalog is built directly for the repository root; legacy remains a rollback copy.
           test -s "${SITE_DIR}/index.html"
           test -s "${SITE_DIR}/config.js"
           grep -Fq '/MantiqatiX/assets/' "${SITE_DIR}/index.html"
@@ -439,7 +431,7 @@ jobs:
           test ! -e "${SITE_DIR}/web"
           test ! -e "${SITE_DIR}/preview"
           test ! -e "${SITE_DIR}/smm.html"
-          echo "PAGES_COMPOSITION=PASS: V6 is the production root; previous catalog preserved at /legacy/; V6 preview alias retained."
+          echo "PAGES_COMPOSITION=PASS: legacy catalog is the production root; rollback copy preserved at /legacy/; V6 preview alias retained."
       - name: Install pinned Playwright for V6 Preview browser validation
         run: |
           set -euo pipefail
@@ -575,8 +567,9 @@ jobs:
           set -euo pipefail
           SITE_ROOT="${PAGE_URL%/}"
           ROOT_URL="${SITE_ROOT}/"
-          ROOT_HTML="$(curl --fail --silent --show-error --retry 5 --retry-delay 3 "${ROOT_URL}")"
-          grep -Fq '/MantiqatiX/legacy/?view=directory' <<<"${ROOT_HTML}"
+          ROOT_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}")"
+          grep -Fq 'MantiqatiX | منصة إدارة الأنشطة والكتالوجات' <<<"${ROOT_HTML}"
+          grep -Fq '/MantiqatiX/assets/' <<<"${ROOT_HTML}"
           LEGACY_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${SITE_ROOT}/legacy/")"
           grep -Fq 'MantiqatiX | منصة إدارة الأنشطة والكتالوجات' <<<"${LEGACY_HTML}"
           grep -Fq '/MantiqatiX/legacy/assets/' <<<"${LEGACY_HTML}"
@@ -638,7 +631,7 @@ jobs:
           mkdir -p /tmp/playwright-runner
           npm install --prefix /tmp/playwright-runner --no-audit --no-fund playwright@1.64.1 axe-core@4.10.3
           /tmp/playwright-runner/node_modules/.bin/playwright install --with-deps chromium
-      - name: Test deployed V6 root and legacy dashboard/mobile/QR routes
+      - name: Test deployed legacy catalog root and dashboard/mobile/QR routes
         env:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
