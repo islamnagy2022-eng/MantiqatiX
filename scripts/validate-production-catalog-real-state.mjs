@@ -358,9 +358,12 @@ assert.match(directoryListingsLib, /address: filters\.address/,
   'The public directory client must pass the selected street/area filter to the paginated API.');
 assert.match(directoryListingsFunction, /address = clean\(url\.searchParams\.get\("address"\)/,
   'The paginated API must support server-side street/area filtering.');
-assert.match(directoryPaginationHelper, /"phone", "secondary_phone"/,
-  'Directory search helper must include both primary and secondary phone fields.');
-
+assert.doesNotMatch(directoryPaginationHelper, /phone|secondary_phone|address/i,
+  "Public free-text search must not probe contact fields that are hidden without consent.");
+assert.match(directoryListingsFunction, /addressVisibleIds/,
+  "Explicit address search must be limited to listings with active ADDRESS consent.");
+assert.match(directoryListingsFunction, /eq\("scope", "ADDRESS"\)\.is\("revoked_at", null\)/,
+  "Address search must consult active, non-revoked owner consent.");
 assert.match(directoryListingsFunction, /parseDirectoryPaginationLimit\(url\.searchParams\.get\("limit"\)\)/,
   'The Edge Function must validate bounded page sizes through the tested helper.');
 assert.match(directoryListingsFunction, /decodeDirectoryPaginationCursor\(clean\(url\.searchParams\.get\("cursor"\)/,
