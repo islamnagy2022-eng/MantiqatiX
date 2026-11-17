@@ -106,7 +106,7 @@ check("react_privileged_views_require_authorized_session", () => {
   includes(reactApp, "currentView === 'public_storefront' &&");
   includes(reactApp, "authSession.role === 'guest' && !hasDirectPublicCatalogLink");
   includes(reactApp, "import { DirectoryView } from './components/DirectoryView';");
-  includes(reactApp, "import { MarketplaceHome } from './components/MarketplaceHome';");
+  includes(reactApp, "const MarketplaceHome = lazy(() => import('./components/MarketplaceHome').then((module) => ({ default: module.MarketplaceHome })))");
   includes(reactApp, "const BusinessProfileHeader = lazy(() => import('./components/storefront/BusinessProfileHeader')");
   includes(reactApp, "const CatalogSection = lazy(() => import('./components/storefront/CatalogSection')");
   includes(reactApp, "const MerchantDashboard = lazy(() => import('./components/merchant/MerchantDashboard')");
