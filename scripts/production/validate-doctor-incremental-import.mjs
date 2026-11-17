@@ -156,5 +156,13 @@ assert.match(directoryAdmin, /governorate: listing\.governorate \|\| "", distric
 assert.match(directoryAdmin, /المحافظة \*<input required value=\{form\.governorate\}/, "Admin form must require the actual governorate");
 assert.match(directoryAdmin, /المركز \/ المدينة \*<input required value=\{form\.district\}/, "Admin form must require the actual district");
 
+const directoryOwnerView = readFileSync("apps/catalog-frontend/src/components/DirectoryListingsView.tsx", "utf8");
+const ownerUpdate = edge.slice(edge.indexOf('if (action === "UPDATE_OWNED_LISTING")'), edge.indexOf('const { data: memberships, error: membershipsError }'));
+assert.match(ownerUpdate, /if \(!governorate \|\| !district\)[\s\S]{0,180}LOCATION_REQUIRED/, "Owner listing update must reject missing actual location");
+assert.match(directoryOwnerView, /governorate: "", district: "", village: ""/, "Owner edit form must not initialize a fabricated location");
+assert.match(directoryOwnerView, /governorate: detail\.governorate \|\| "", district: detail\.district \|\| ""/, "Owner edit hydration must not invent a location");
+assert.match(directoryOwnerView, /المحافظة \*<input required value=\{ownerForm\.governorate\}/, "Owner form must require the actual governorate");
+assert.match(directoryOwnerView, /المركز \*<input required value=\{ownerForm\.district\}/, "Owner form must require the actual district");
+
 console.log("DOCTOR_INCREMENTAL_IMPORT_CONTRACT=PASS");
 console.log("checks=platform_admin,20_row_cap,sequential_persistence,deduplication,draft_only_import,source_attribution,unverified_status,separate_publication_gate,two_person_approval,source_scope,expiry_revocation,valid_source_url,phone_gate,state_preservation,ownership_preservation,verification_protection,admin_ui,private_rls_registry");
