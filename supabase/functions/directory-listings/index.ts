@@ -66,24 +66,24 @@ Deno.serve(async (req: Request) => {
   const service = createClient(supabaseUrl, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
   const loadContactConsentScopes = async (listingIds: string[]) => {
-    const result = new Map<string, Set<string>>();
+    const scopes = new Map<string, Set<string>>();
     const ids = [...new Set(listingIds.map((id) => String(id || "")).filter(Boolean))];
-    if (!ids.length) return result;
+    if (!ids.length) return { scopes, ready: true };
     const { data: rows, error } = await service.from("directory_listing_contact_consents")
       .select("listing_id,scope").in("listing_id", ids).is("revoked_at", null);
     if (error) {
-      // Fail closed: a consent registry outage must never expose contact details.
+      // Fail closed: a consent registry outage must never expose contact details or enable owner controls.
       console.warn("directory contact consent lookup failed", error.message);
-      return result;
+      return { scopes, ready: false };
     }
     for (const row of rows || []) {
       const id = String(row.listing_id || "");
       const scope = String(row.scope || "").toUpperCase();
       if (!id || !["PHONE", "SECONDARY_PHONE", "ADDRESS", "PRECISE_LOCATION"].includes(scope)) continue;
-      if (!result.has(id)) result.set(id, new Set<string>());
-      result.get(id)!.add(scope);
+      if (!scopes.has(id)) scopes.set(id, new Set<string>());
+      scopes.get(id)!.add(scope);
     }
-    return result;
+    return { scopes, ready: true };
   };
 
   if (req.method === "GET") {
@@ -112,8 +112,8 @@ Deno.serve(async (req: Request) => {
           }
         }
       }
-      const consentMap = await loadContactConsentScopes([String(data.id)]);
-      const activeScopes = consentMap.get(String(data.id)) || new Set<string>();
+      const consentState = await loadContactConsentScopes([String(data.id)]);
+      const activeScopes = consentState.scopes.get(String(data.id)) || new Set<string>();
       const ownerScopes = canEdit
         ? new Set(["PHONE", "SECONDARY_PHONE", "ADDRESS", "PRECISE_LOCATION"])
         : activeScopes;
@@ -121,7 +121,7 @@ Deno.serve(async (req: Request) => {
         ...sanitizePublicDirectoryListing(data, ownerScopes),
         can_edit: canEdit,
         owned_business_id: canEdit ? String(data.claimed_business_id || "") : null,
-        ...(canEdit ? { public_contact_consent_scopes: [...activeScopes] } : {}),
+        ...(canEdit ? { public_contact_consent_scopes: [...activeScopes], contact_consent_ready: consentState.ready } : {}),
       } });
     }
     const type = clean(url.searchParams.get("type"), 40);
@@ -132,9 +132,9 @@ Deno.serve(async (req: Request) => {
       if (type && listingTypes.has(type)) legacyQuery = legacyQuery.eq("listing_type", type);
       const { data, error } = await legacyQuery;
       if (error) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
-      const consentMap = await loadContactConsentScopes((data || []).map((row: any) => String(row.id)));
+      const consentState = await loadContactConsentScopes((data || []).map((row: any) => String(row.id)));
       return out(origin, { listings: (data || []).map((row: any) =>
-        sanitizePublicDirectoryListing(row, consentMap.get(String(row.id)) || new Set<string>())
+        sanitizePublicDirectoryListing(row, consentState.scopes.get(String(row.id)) || new Set<string>())
       ) });
     }
 
@@ -201,10 +201,10 @@ Deno.serve(async (req: Request) => {
     const listings = hasMore ? rows.slice(0, limit) : rows;
     const last = listings[listings.length - 1];
     const nextCursor = hasMore && last ? encodeDirectoryPaginationCursor({ created_at: last.created_at, id: last.id }) : null;
-    const consentMap = await loadContactConsentScopes(listings.map((row: any) => String(row.id)));
+    const consentState = await loadContactConsentScopes(listings.map((row: any) => String(row.id)));
     return out(origin, {
       listings: listings.map((row: any) =>
-        sanitizePublicDirectoryListing(row, consentMap.get(String(row.id)) || new Set<string>())
+        sanitizePublicDirectoryListing(row, consentState.scopes.get(String(row.id)) || new Set<string>())
       ),
       nextCursor, hasMore, pageSize: limit,
     });
