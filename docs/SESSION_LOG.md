@@ -2514,3 +2514,10 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Database-side SHA-256: `b462abcd9205345901c389102992d9ee31aa6d293a5e7bb5e9f6114f0f43afed`; 374 characters; no rollback entry. Independently computed local SHA-256 matched.
 - Restored the exact historical source file `supabase/migrations/20261110150618_revoke_public_execute_from_trigger_functions.sql` on the current-base audit branch. This is source recovery only; the migration was not re-applied to Production.
 - The live ledger still lacks RC463 `20261031100000`; its main source sets empty search_path for both trigger functions. The later 20261110150618 migration is not an RC463 alias. Current live `assign_default_owner_to_unowned_business()` retains `search_path=public, auth`, while `capture_commission_rule_audit()` has empty search_path. A forward-only repair must be reviewed after migration-chain reconciliation; do not replay RC463 out of order.
+
+### 2026-11-17 — R7 default catalog image verification
+
+- Inspected `src/data/imageAssets.ts`, `src/utils/aiImageCompletionEngine.ts`, and the `addBusiness`/`addProduct` paths in `src/context/AppContext.tsx`.
+- R7 already contains 15 sector image packs, each with 3 logo, 3 cover and 6 product/service variants (180 defaults). New businesses/products receive resolved defaults at creation when image URLs are absent/placeholder; the five referenced local AI-generated images are present.
+- Existing image-engine tests passed 4/4 after TypeScript compilation using temporary Node test type shims and Node 22.16.0. Additional compiled-runtime checks passed across all 15 sector packs, maintenance defaults, five local assets and generated-SVG text sanitization.
+- No image implementation change was needed in R7. The old V6 PR #739 remains a separate legacy-catalog change; it is not a substitute for R7 integration. Standard package test scripts remain a separate P1 improvement.
