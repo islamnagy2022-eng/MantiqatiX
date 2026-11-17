@@ -266,7 +266,7 @@ export function mapBusiness(raw: any, provider: any): Business {
     category, kind: 'cover',
   });
   const hasNeutralProfileImage = (value: string) =>
-    /(?:business-placeholder|catalog-item-placeholder)\\.svg/i.test(value);
+    /(?:business-placeholder|catalog-item-placeholder)\.svg/i.test(value);
   const logoNeedsDefault = !savedLogo || savedLogoSource === 'auto' ||
     hasNeutralProfileImage(savedLogo) || (isStockImageUrl(savedLogo) && !officialShowcase);
   const coverNeedsDefault = !savedCover || savedCoverSource === 'auto' ||
