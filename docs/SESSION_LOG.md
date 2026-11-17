@@ -2684,3 +2684,17 @@ Read-only Supabase production schema cross-check completed: retrieved definition
 - PR #757 exact-head repository checks: migration collision guard, migration history immutability, migration version uniqueness, directory claim atomicity, public privacy boundary, doctor import contract, SMM deferred contract and Pages validation have passed. Forward migration replay, primary frontend E2E and remaining cross-module checks were still running at this checkpoint.
 - Pages deploy job was explicitly SKIPPED for this pull_request event; no website deployment occurred.
 - No Production migration, Edge Function deployment, RLS/GRANT/Auth change or live data write.
+
+
+## 2026-11-18 — Pass 301–330 — public directory contact disclosure controls
+
+- Completed read-only aggregate audit of Production public directory: 869 published rows, 869 primary phones, 178 secondary phones, 869 exact addresses, zero directory contact-consent flags, 868 unclaimed and zero claimed. No row-level personal data was selected.
+- Added RC473 private forced-RLS contact-consent registry with separate PHONE, SECONDARY_PHONE, ADDRESS and PRECISE_LOCATION scopes; active-grant uniqueness; retained revocation audit; no browser-role table access.
+- Public directory output now fails closed for phone, secondary phone, exact address and Google Maps link unless matching consent is active. Public free-text search no longer probes contact fields; address filter is scoped to listings with active ADDRESS consent.
+- Added owner-only authenticated consent grant/revoke Edge action, including revocation while listing is hidden; added four separate controls to the existing owner page and client helper.
+- Added PostgreSQL fixture/integration checks and source contract/search-side-channel validator.
+- Focused workflow passed on intermediate head `3bb3820045ff8bde9fd72d97e044cf7256765051`. Final head `a9946412e0d004dd990a9fa54e35a2fcfa1493f3` is being rechecked.
+- RC472 PR #757 merged as `ae090081015b0c3af410fb6ee114165f300b1bba`. Post-merge RC472 tests, migration-chain replay, primary catalog build/browser E2E, cross-module checks and Pages deployment run `44200224475` all passed. Deployed V6 root, legacy rollback, Preview alias, dashboard/mobile/QR routes verified.
+- Production ledger remains at `20261110150618`; RC472/RC473 migrations and Edge Function source have not been applied/deployed to Production. No Production DDL/DML, Auth/RLS/GRANT, Edge, payment or finance action occurred.
+- Independent source-rights gate remains open for 497 Dalil140-labelled rows and mixed-source records. Do not bulk republish restricted sources without written dataset-specific permission.
+- Next: finish final-head RC473 CI and review, open/merge PR only when green; then prepare separately authorized Production rollout with backup/rollback evidence.
