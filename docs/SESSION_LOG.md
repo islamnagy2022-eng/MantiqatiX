@@ -2622,3 +2622,13 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Pass 181–190: reviewed 20-row sequential imports, deduplication, partial-snapshot preservation, unverified status, source publication gate and public output allowlists. Added HTTPS/host/path validation for public Google Maps metadata and behavior tests.
 - Commits: `356a870c724a75999ff664650316e1203f50483a`, `6d9cffd5843c5533f0e629ff61e8d81270f2f501`, `53bc991ba693478411f8bccc451d6caadc394cbc`, `93bffa528be3e0ab09c59e85de4cdb39d8623982` plus audit/continuity records.
 - No Production deployment or database/Auth/RLS/GRANT mutation.
+
+
+## 2026-11-17 — Pass 151–190
+
+- Pass 151–160: traced the directory form and Edge Function; found that both new and edit forms, plus the API, silently assigned Monufia / Berket El-Sabaa when location was omitted. Confirmed the database columns are NOT NULL with legacy defaults.
+- Pass 161–170: changed the UI to blank location defaults, removed edit-time fallback injection, and made governorate and district/city required.
+- Pass 171–180: added server-side location validation and removed the two API fallbacks. Added static regression assertions for the frontend and backend contract.
+- Pass 181–190: verified the doctor import staging rule, source permission gate, phone publication gate and claim fields remain unchanged. No schema or Production mutation and no Edge deployment.
+- Commits: `e0872b9e6b00434a0b32942c5ea88445131b64e4` (Edge), `60ad34c84a80b3755c2a50da34f5c817c016fd72` (admin UI), `b352fd309b9d1432b7ac790adfd03d8c078f3235` (validator). Audit: `docs/audits/PASS_151_190_DIRECTORY_LOCATION_INTEGRITY_20261117.md`.
+- Exact-head CI was triggered by the changed paths and is pending; do not merge until all required checks pass.
