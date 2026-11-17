@@ -1857,3 +1857,12 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - Merchant dashboard includes explicit opt-in. AppContext carries the value to the authenticated backend; frontend projection mapping does not fall back to raw branch phone/address.
 - Seven unit tests pass and the 23-check static privacy contract passes. A Deno check found and drove fixes for TypeScript/JSDoc issues; the older social-links source contract was updated to match the new privacy boundary.
 - Current PR status remains pending final CI at commit 178588019ac831e1cd7e06c8535fec241b88ac3c. Do not merge/deploy until required checks pass. No production Edge deployment or DB mutation.
+
+
+## 2026-11-17 — Pass 111–150 public directory boundary review
+
+- Completed 40 read-only checks across the separate national `directory-listings` API: published-only GET behavior, explicit row/metadata allowlists, public phone/secondary-phone/address/Google Maps fields, claim authorization and pagination/filter behavior.
+- Finding: unlike the catalog business endpoints in PR #756, national directory listings still publish phone, secondary phone and address for PUBLISHED rows; `google_maps_url` is also an allow-listed metadata key. Its consent/source-permission/claim lifecycle is separate and does not currently use `public_contact_consent_audit_verified`.
+- Kept PR #756 bounded; no directory-listings code, schema, migration, RLS, grants or production data were changed. Follow-up: determine source republication and owner/claim consent requirements for imported/unclaimed versus claimed listings, then add tests before changing the public contract.
+- PR #756 validator was corrected to expect audited public Maps projection in public catalog endpoints and preserve private maps data only for authenticated catalog-admin reads. New exact-head CI is 24 success, 2 skipped, 0 failed, with one browser E2E check still running at checkpoint.
+- No Production Edge deployment, DB/Auth/RLS/GRANT mutation, payment, settlement or Pages cutover. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
