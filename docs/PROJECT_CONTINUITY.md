@@ -1816,3 +1816,34 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - Reverified R7 archive SHA-256 and confirmed the 180 default-image pack. R7 remains unsafe to import as-is due caller-controlled token minting, hard-coded admin bypass, refresh fallback, unauthenticated state APIs, local JSON persistence, fallback secrets and unsafe Android WebView bridge.
 - Detailed record: `docs/audits/PASS_47_66_CONTINUATION_20261117.md`.
 - No Production migration, data/Auth/RLS/GRANT change, Edge deployment, payment, or website cutover occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-11-17 — Pass 67–86 continuation checkpoint
+
+- PR #749 / RC470 merged and deployed; Pages deployed-origin smoke checks passed for V6 root, legacy catalog, preview alias and dashboard/mobile/QR routes.
+- PR #751 corrected the RC456 validator to check the actual unauthorized-call sentinel; no runtime permission behavior changed.
+- PR #750 merged dedicated maintenance category artwork and its regression validator.
+- PR #752 merged lazy-loaded directory listing/activity detail subviews. Build main JS chunk reduced from 845.70 KB to 703.41 KB (~16.7%); detail chunks are separate.
+- Exact PR checks: #750 20 success / 2 skipped; #751 17 success / 2 skipped; #752 21 success / 2 skipped. Post-merge main CI for `a536d77` was still in progress at checkpoint; no failures observed.
+- R7 archive and directive hashes reverified. Archive project ref is misspelled in manifest and .env.example; live project ref is `moyhiluyhjsujhwlyeuu`.
+- R7 source audit confirms hard-coded secret fallbacks, caller-controlled privileged session minting, admin password bypass, invalid-token refresh fallback, unauthenticated production-state/commit-all routes, local JSON authority and incomplete Android wrapper. Do not deploy R7 server as-is.
+- R7 has 180 curated remote image defaults across 15 sectors and 5 local AI-generated images; package has no declared test script.
+- Production Supabase remains read-only at 310 migrations through `20261110150618`; six critical Edge sources differ from live; RC468/469/470 not applied. Live digital-page finalizer still lacks provider-order binding. Security advisor reports 9 RLS/no-policy tables and 65 authenticated-callable SECURITY DEFINER functions.
+- Full evidence: `docs/audits/PASS_67_86_CONTINUATION_20261117.md`.
+- No Production DB/Auth/RLS/GRANT/Edge/payment/settlement mutation or website cutover was performed in Pass 67–86. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+### 2026-11-17 — deployment confirmation and R7 auth follow-up
+
+- Main `a536d778b29c45a01d1f13dc1ab8dcaaded67af6` exact-head checks completed: 21 success, 0 failures. Pages deployment succeeded. Deployed-origin smoke checks passed for V6 root, legacy catalog rollback, Preview alias, dashboard/mobile/QR routes, and browser tests.
+- PR #753 documentation checkpoint: 16 success, 2 expected skips, no failures or pending checks at latest check.
+- Additional R7 source review: client-imported `src/lib/supabaseClient.ts` selects `SUPABASE_SERVICE_ROLE_KEY` before anon keys; admin UI performs client-side password comparison with default seed `admin`; AppContext hydrates and writes `/api/production-state` without authorization headers; refresh UI sends no token and expects success. These reinforce the P0 release block. Do not copy R7 server/client auth into main before a coordinated Supabase Auth design and tests.
+- No production database, Auth, RLS/GRANT, Edge Function, payment or wallet mutation was performed.
+
+
+### 2026-11-17 — Pass 90 targeted Security Advisor triage
+
+- 9 RLS-enabled/no-policy public tables were queried read-only. Direct SELECT is denied to anon and authenticated on all 9; 8 use FORCE RLS; digital_page_payment_events is RLS-enabled without FORCE. Three service-only tables allow service_role SELECT. Keep private/no-policy posture; do not add broad policies.
+- Reviewed catalog ACL/search_path metadata for all 65 public SECURITY DEFINER functions callable by anon/authenticated: 18 empty search_path, 47 pinned non-empty, zero unpinned. One is anon-executable and 65 authenticated-executable; 4 are also service_role-executable.
+- The sole anon-executable function is `get_mnty_targeted_advertisements`; it uses empty search_path, filters ACTIVE+APPROVED/time-valid ads, returns a bounded public ad projection, and clamps limit to 1–50. Treat as intentional public ad discovery pending output/privacy regression review, not an automatic revoke.
+- anon/authenticated/service_role have no CREATE privilege on public schema. No production grants, policies or function definitions were changed.

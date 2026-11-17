@@ -1,3 +1,23 @@
+## Latest execution checkpoint — 2026-11-17 — Pass 67–86
+
+**Request ID:** `R-20261117-PASS-67-86`  
+**Current main:** `a536d778b29c45a01d1f13dc1ab8dcaaded67af6`.
+
+- PR #749 / RC470 payment webhook repair: `7c19f52e3cec5581d28eccfb136878a81bf8d3f8`; deployed Pages smoke checks passed.
+- PR #751 validator correction: `108a6f6434da764a5272781a4598dd7e83f27314`.
+- PR #750 maintenance default artwork: `2b63a4cf17632faf3ec2ab023daa2ba9486074f0`.
+- PR #752 on-demand directory detail chunks: `a536d778b29c45a01d1f13dc1ab8dcaaded67af6`; main JS chunk 845.70 KB → 703.41 KB (~16.7% smaller). Detail chunks: ActivityModuleView ~29.97 KB, DirectoryListingsView ~30.15 KB, activity registry ~81.99 KB.
+- Exact PR checks: #750 20 success / 2 expected skips; #751 17 success / 2 expected skips; #752 21 success / 2 expected skips. Post-merge main CI for #752 was still running at checkpoint, with no failure observed.
+- R7 archive verified: SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`. Directive: `b51078e5aa164067c46347fd327c7230c5968f3cd36df5a354691504a3364ee2`.
+- R7 has a wrong Supabase project ref (`moyhiluyhjsujhwlyweuu` vs live `moyhiluyhjsujhwlyeuu`), hard-coded secret fallbacks, caller-controlled privileged token minting, admin password bypass, invalid-token refresh fallback, unauthenticated whole-state write routes, local JSON authority, and an incomplete/unhardened Android wrapper. Do not certify or deploy R7 server code as-is.
+- R7 includes 180 curated remote Unsplash defaults across 15 sectors and 5 local AI-generated image files. Root package has no declared test script; lint is TypeScript-only.
+- Production remains read-only at 310 migrations through `20261110150618`; RC468/469/470 are not applied. Six critical Edge Functions differ from main. Live legacy digital-page finalizer still lacks provider-order binding. Security advisor: 9 RLS/no-policy tables, 65 authenticated-callable SECURITY DEFINER functions, one public targeted-ad RPC.
+- Detailed evidence: `docs/audits/PASS_67_86_CONTINUATION_20261117.md`.
+
+**Next:** finish main CI/deploy, reconcile the 310-row migration ledger and 42 required missing version IDs, then stage coordinated payment migrations + Edge sources with Sandbox E2E and backup/restore evidence. Keep R7 server logic blocked until auth, secret and Supabase-authority gaps are fixed. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
 ## Latest execution checkpoint — 2026-11-17 — Pass 47–66
 
 **Request ID:** `R-20261117-PASS-47-66`  
@@ -4188,3 +4208,22 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - OCHA's P-code standard requires an ISO-3166-1 prefix (usually two-letter) plus numeric hierarchical components, so the Open Admin Data codes fit the expected syntax, but records have no explicit `adm2_pcode` field and district `source` metadata is empty. Exact P-code identity with the current OCHA COD-AB source is not yet verified; a source-column crosswalk is still required.
 - OCHA COD status dashboard reports Egypt ADM3 as partial coverage in 96.2% of ADM2 units (5,716 units). Treat missing ADM3 geometry as a coverage gap, not a point-outside result.
 - No geometry files materialized or production code changed. Keep nearest-point UI explicitly approximate.
+
+
+### Deployment verification addendum — 2026-11-17
+
+- PR #752 is merged to main at `a536d778b29c45a01d1f13dc1ab8dcaaded67af6`.
+- Exact-main CI completed with 21 successful checks, zero failures; GitHub Pages deploy job completed successfully.
+- Deployed-origin verification passed for V6 root, legacy catalog rollback, Preview alias, dashboard/mobile/QR routes, and browser checks.
+- Documentation checkpoint PR #753 is open with 16 successful checks and 2 expected skipped jobs; no failed or pending checks at latest read.
+- R7 archive security review was expanded: `src/lib/supabaseClient.ts` prefers `SUPABASE_SERVICE_ROLE_KEY` before anon keys in a client-imported module; R7 admin UI checks a locally stored password (default seed is `admin`); AppContext starts unauthenticated GET/POST requests to `/api/production-state`; refresh UI sends no verified token; localStorage is used to restore UI auth state. Treat the archive as an untrusted design candidate, not a deployable release.
+- Production database and Edge Functions remain untouched. Keep release gate blocked pending the coupled migration/Edge/Auth and recovery evidence.
+
+
+### Pass 90 — targeted Supabase advisor triage (2026-11-17)
+
+- Read-only catalog inspection of the 9 public RLS-enabled/no-policy tables found direct SELECT denied to both `anon` and `authenticated` on all 9. Eight have FORCE RLS; `digital_page_payment_events` has RLS enabled without FORCE. Three service-only tables (`directory_listing_claim_requests`, `directory_source_permission_evidence`, `public_directory_listings`) grant service_role SELECT; the other six do not. These are deny-by-default/private surfaces, not grounds for adding broad policies.
+- Read-only review of all 65 public SECURITY DEFINER functions callable by anon/authenticated: 18 use empty search_path; 47 use pinned non-empty search_path; none are unpinned. 1 function is anon-executable; all 65 are authenticated-executable; 4 are also service_role-executable.
+- The only anon-executable SECURITY DEFINER function is `get_mnty_targeted_advertisements(...)`. It pins an empty search_path, returns a bounded projection (ad id/title/creative/target/space/match/distance), filters to ACTIVE+APPROVED and date-valid ads, and clamps result count to 1–50. Public ad discovery is an intentional public capability; retain it for targeted review rather than revoking it blindly.
+- Roles anon/authenticated/service_role have USAGE but no CREATE on public schema. Temp privilege exists; pinned functions place pg_temp after public or use an empty path. No ACL/search_path mutation was made.
+- Disposition: advisor findings are inventory signals. Continue signature/body-by-body review; no blanket revoke and no broad RLS policy creation.
