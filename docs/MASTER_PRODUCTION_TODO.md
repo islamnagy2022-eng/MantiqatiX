@@ -4248,3 +4248,14 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - [ ] Decide and document whether phone/address/precise Maps disclosure requires audited consent in this distinct listing lifecycle.
 - [ ] Add unit/source-contract tests for the selected publication rule before changing the public listing projection.
 - Do not broaden PR #756 or add a global schema flag without tracing directory ingestion, source permission, claim, owner edits and publication flows. No Production changes were made during this audit.
+
+
+### Pass 151–190 — directory claims and public output
+
+- [x] Audit claim request authentication, state checks, same-user idempotency and compare-and-set claim lock.
+- [x] Audit owner-only edit scope and metadata allowlist.
+- [x] Preserve existing governorate/district/village when owner edit payload omits those fields; add regression checks.
+- [x] Validate public directory Google Maps metadata as HTTPS and allow-listed Google Maps host/path; reject unsafe URL forms and add behavior tests.
+- [ ] Refactor claim approval into one atomic database transaction covering membership, listing and request state.
+- [ ] Refactor claim rejection into one atomic transaction and handle listing-lock release failure.
+- [ ] Decide explicit public contact/precise-map disclosure policy for imported/unclaimed directory listings.
