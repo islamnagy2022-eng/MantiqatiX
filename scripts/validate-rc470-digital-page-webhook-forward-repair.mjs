@@ -22,7 +22,7 @@ for (const marker of [
 ]) assert.ok(migration.includes(marker), "RC470 migration missing marker: " + marker);
 
 assert.ok(workflow.includes("supabase/tests/rc431_digital_page_payment_fixture.sql"));
-assert.ok(workflow.includes("20261009010000_rc424_atomic_digital_page_payment_webhook.sql"));
+assert.ok(workflow.includes("supabase/tests/rc470_live_rc424_processor_fixture.sql"));
 assert.ok(workflow.includes(migrationPath));
 assert.ok(workflow.includes("supabase/tests/rc431_digital_page_payment_integration.sql"));
 assert.ok(forward.includes("supabase/migrations/**"));
