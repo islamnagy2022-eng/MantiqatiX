@@ -257,14 +257,28 @@ export function mapBusiness(raw: any, provider: any): Business {
   const doctorFallbackCover = isDoctor && !isVerified && !hasOwnerSelectedCover
     ? UNVERIFIED_DOCTOR_IMAGE_URL
     : '';
+  const categoryDefaultLogo = resolveDefaultImage({
+    name, description: String(profile.bio || raw.bio || provider?.description || ''),
+    category, kind: 'activity',
+  });
+  const categoryDefaultCover = resolveDefaultImage({
+    name, description: String(profile.bio || raw.bio || provider?.description || ''),
+    category, kind: 'cover',
+  });
+  const hasNeutralProfileImage = (value: string) =>
+    /(?:business-placeholder|catalog-item-placeholder)\\.svg/i.test(value);
+  const logoNeedsDefault = !savedLogo || savedLogoSource === 'auto' ||
+    hasNeutralProfileImage(savedLogo) || (isStockImageUrl(savedLogo) && !officialShowcase);
+  const coverNeedsDefault = !savedCover || savedCoverSource === 'auto' ||
+    hasNeutralProfileImage(savedCover) || (isStockImageUrl(savedCover) && !officialShowcase);
   return {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
     categoryId: DEFAULT_CATEGORIES.find((x) => x.id === canonicalCategoryId)?.id || DEFAULT_CATEGORIES.find((x) => x.name === category || category.startsWith(x.name + ' — '))?.id,
     functionalGroupId,
     categoryClassificationType: classificationType,
     activitySpecialty: String(raw.activitySpecialty || raw.activity_specialty || raw.settings?.activity_specialty || meta.activity_specialty || profile.activity_specialty || '') || undefined,
-    logoUrl: doctorFallbackLogo || pharmacyFallbackLogo || (isStockImageUrl(savedLogo) && !officialShowcase ? '' : savedLogo),
-    coverUrl: doctorFallbackCover || pharmacyFallbackCover || (isStockImageUrl(savedCover) && !officialShowcase ? '' : savedCover),
+    logoUrl: doctorFallbackLogo || pharmacyFallbackLogo || (logoNeedsDefault ? categoryDefaultLogo : savedLogo),
+    coverUrl: doctorFallbackCover || pharmacyFallbackCover || (coverNeedsDefault ? categoryDefaultCover : savedCover),
     externalLogoUrl: /^https:\/\//i.test(externalLogoUrl) ? externalLogoUrl : '',
     externalCoverUrl: /^https:\/\//i.test(externalCoverUrl) ? externalCoverUrl : '',
     bio: String(profile.bio || raw.bio || provider?.description || ''),
