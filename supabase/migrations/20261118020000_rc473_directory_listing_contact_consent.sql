@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS public.directory_listing_contact_consents (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  listing_id uuid NOT NULL REFERENCES public.public_directory_listings(id) ON DELETE CASCADE,
+  listing_id uuid NOT NULL REFERENCES public.public_directory_listings(id),
   scope text NOT NULL CHECK (scope IN ('PHONE','SECONDARY_PHONE','ADDRESS','PRECISE_LOCATION')),
   consented_by uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
   consent_version text NOT NULL,
