@@ -1,3 +1,23 @@
+## Latest execution checkpoint — 2026-11-17 — Pass 47–66
+
+**Request ID:** `R-20261117-PASS-47-66`  
+**Status:** 19 Passes closed as merged/verified/blocked with evidence; Pass 66 documentation update in progress.  
+**Current main:** `370381d570d9fbf92892a768f8f80fde2c8cf119`.
+
+- PR #746 merged RC469 shared platform-admin caller search_path hardening: `c1b9ee70a671223c65ece8924b4de42d538e8612`.
+- PR #745 merged refreshed Nov 17 Production audit: `877122001f2b33542c1dacbeaeb29cdab9337f34`.
+- PR #747 merged refreshed RC468 payment claim hardening on current main: `370381d570d9fbf92892a768f8f80fde2c8cf119`.
+- Exact PR CI for #747: 23 success; Pages deploy/public-only jobs skipped as expected for PR event. Post-merge main CI at checkpoint: 12 success, 2 in progress.
+- Fresh live Supabase inventory: 310 migrations through `20261110150618`; 42 required release versions remain absent from the live ledger. No migration was applied.
+- Read-only security review: 9 RLS-enabled/no-policy tables have no direct browser-role privileges; targeted ads public SECURITY DEFINER RPC is bounded and uses empty search_path. Live RC431 digital payment processor remains on old RC424 behavior and requires coordinated release.
+- R7 archive identity reverified: SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`. It contains 180 sector defaults, but has blocking caller-controlled JWT minting, hard-coded admin bypass, unsafe refresh fallback, unauthenticated whole-state routes, local JSON persistence, fallback secrets, and an unsafe Android WebView bridge. Keep it out of Production until remediated.
+- Detailed pass-by-pass evidence: `docs/audits/PASS_47_66_CONTINUATION_20261117.md`.
+- No Production migration/data/Auth/RLS/GRANT/Edge/payment/Pages change occurred. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+**Next task:** complete current-main CI, then reconcile the 310-row live migration ledger and RC431/RC468/payment Edge dependency chain. Do not apply migrations or deploy payment functions until Paymob Sandbox E2E, real backup/restore and rollback evidence pass.
+
+---
+
 # Latest operating rule — 2026-11-16 — Continuous merge-first-by-first policy
 
 **Request ID:** `R-20261116-CONTINUOUS-MERGE-FIRST`  
