@@ -115,8 +115,8 @@ assert.doesNotMatch(publicReadBlock, /verified_by/, "Public GET paths must not r
 assert.doesNotMatch(publicOutputContract, /"is_verified"/, "Professional verification must not be exposed by the public listing serializer");
 assert.doesNotMatch(publicOutputContract, /is_verified: Boolean/, "Owner-claim verification must not be represented as professional verification");
 assert.match(edge, /sanitizePublicDirectoryListing\(data, ownerScopes\)/, "Public detail response must pass through the consent-aware safe listing serializer");
-assert.match(edge, /listings: \(data \|\| \[\]\)\.map\(sanitizePublicDirectoryListing\)/, "Legacy public list must sanitize every row");
-assert.match(edge, /listings\.map\(sanitizePublicDirectoryListing\)/, "Paginated public list must sanitize every row");
+assert.match(edge, /listings: \(data \|\| \[\]\)\.map\(\(row: any\) =>\s*sanitizePublicDirectoryListing\(row, consentMap\.get\(String\(row\.id\)\) \|\| new Set<string>\(\)\)\s*\)/, "Legacy public list must sanitize every row with its active consent scopes");
+assert.match(edge, /listings\.map\(\(row: any\) =>\s*sanitizePublicDirectoryListing\(row, consentMap\.get\(String\(row\.id\)\) \|\| new Set<string>\(\)\)\s*\)/, "Paginated public list must sanitize every row with its active consent scopes");
 assert.equal((publicReadBlock.match(/\.select\(publicFields/g) || []).length, 3, "All three public GET query paths must use the public field list and sanitize output");
 assert.match(publicOutputContract, /PUBLIC_METADATA_KEYS/, "Public metadata must use an explicit allowlist");
 
