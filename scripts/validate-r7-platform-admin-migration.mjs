@@ -13,6 +13,7 @@ const checks = [
   ["live ledger regression verifies actual columns and restores the registry-only actor", /gross_amount/.test(financialReportTest) && /captain_net_amount/.test(financialReportTest) && /amount IS NOT NULL OR captain_amount IS NOT NULL/.test(financialReportTest) && financialReportTest.includes("INSERT INTO private.platform_admins")],
   ["migration is wrapped in one transaction", /BEGIN;[\s\S]*?DO \$preflight\$/.test(migration) && /COMMIT;\s*$/.test(migration)],
   ["migration uses canonical private platform registry", /FROM\s+private\.platform_admins\s+pa[\s\S]*?pa\.user_id\s*=\s*auth\.uid\(\)/i.test(migration)],
+  ["migration preflights the exact settlement journal dependency and live financial/audit/notification columns", migration.includes("MANTIGO_SETTLEMENT_JOURNAL_DEPENDENCY_MISSING") && migration.includes("RC471_LIVE_SCHEMA_DEPENDENCY_MISSING") && migration.includes("gross_amount") && migration.includes("captain_net_amount") && migration.includes("notifications")],
   ["migration does not fall back to membership roles or generic RBAC", !/FROM\s+public\.user_memberships/i.test(migration) && !/public\.mnty_can\s*\(/i.test(migration)],
   ["migration preflight checks exact argument types for all four helper callers", ["character varying, text, text, timestamp with time zone, timestamp with time zone","uuid, uuid, uuid","uuid, uuid, text, text, text, text, jsonb","uuid, numeric, text"].every((sig) => migration.includes(sig)) && migration.includes("pg_catalog.oidvectortypes(p.proargtypes)")],
   ["migration contains the five expected function replacements", ["get_mantigo_admin_dashboard_backend","get_mantigo_admin_financial_report_backend","mnty_can_platform_admin","expire_stale_mantigo_rides_backend","settle_mantigo_captain_backend"].every((name) => migration.includes("FUNCTION public."+name))],
@@ -29,9 +30,9 @@ const checks = [
   ].every((marker) => migration.includes(marker))],
   ["PostgreSQL integration verifies all four helper callers have empty search_path", integration.includes("R7_HELPER_CALLER_SEARCH_PATH_NOT_HARDENED") && integration.includes("p.proconfig @> ARRAY['search_path=\"\"']")],
 
-  ["workflow applies RC449 then RC462 then caller fixture then R7 migration and both integration suites", workflow.indexOf("/tmp/rc449.sql") < workflow.indexOf("/tmp/rc462.sql") && workflow.indexOf("/tmp/r7-callers.sql") < workflow.indexOf("/tmp/r7-platform-admin.sql") && workflow.indexOf("/tmp/r7-platform-admin.sql") < workflow.indexOf("/tmp/rc449-test.sql") && workflow.indexOf("/tmp/rc449-test.sql") < workflow.indexOf("/tmp/financial-report-test.sql") && workflow.indexOf("/tmp/financial-report-test.sql") < workflow.indexOf("/tmp/r7-helper-callers-test.sql")],
+  ["workflow applies RC449 then RC462 then caller fixture then RC471 migration and both integration suites", workflow.indexOf("/tmp/rc449.sql") < workflow.indexOf("/tmp/rc462.sql") && workflow.indexOf("/tmp/r7-callers.sql") < workflow.indexOf("/tmp/rc471.sql") && workflow.indexOf("/tmp/rc471.sql") < workflow.indexOf("/tmp/rc449-test.sql") && workflow.indexOf("/tmp/rc449-test.sql") < workflow.indexOf("/tmp/financial-report-test.sql") && workflow.indexOf("/tmp/financial-report-test.sql") < workflow.indexOf("/tmp/r7-helper-callers-test.sql")],
 ];
 
 for (const [name, ok] of checks) console.log((ok ? "PASS " : "FAIL ") + name);
-assert.equal(checks.every(([, ok]) => ok), true, "R7 platform-admin migration CI contract failed");
+assert.equal(checks.every(([, ok]) => ok), true, "RC471 platform-admin migration CI contract failed");
 console.log("\n" + checks.length + "/" + checks.length + " R7 platform-admin migration CI source checks passed.");
