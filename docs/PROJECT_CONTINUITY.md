@@ -1875,3 +1875,12 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - Hardened public directory `google_maps_url` metadata: only HTTPS Google Maps destinations on the explicit approved host list are returned. Added positive/negative behavior tests and validator checks.
 - Remaining: claim approval is a multi-write non-transactional flow; claim rejection ignores failure from releasing the listing lock. Require a single atomic database operation before treating claim workflow as fully production-hardened.
 - Exact-head CI for the new source changes is pending. No Production Edge deployment, database/schema/data/RLS/GRANT/Auth mutation, payment/settlement action or Pages cutover. Full production gate remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-17 — Pass 151–190 directory location integrity
+
+- Fixed a false-location default in the directory admin workflow: new and edited records no longer silently fall back to Monufia / Berket El-Sabaa when location is absent.
+- Admin UI now starts with blank governorate/district, preserves blank stored values, and requires both actual values. The Edge Function validates both values and returns `LOCATION_REQUIRED` instead of persisting fabricated defaults.
+- Added regression assertions to `scripts/production/validate-doctor-incremental-import.mjs`. The existing doctor incremental-import workflow already watches the changed Edge Function, admin component and validator.
+- Pass 151–190 audit report: `docs/audits/PASS_151_190_DIRECTORY_LOCATION_INTEGRITY_20261117.md`.
+- Changes are source-only in PR #756; no migration, production row, Supabase deployment, RLS/GRANT, Auth, payment or Pages change. Exact-head CI is pending; merge remains blocked until all required checks pass.
