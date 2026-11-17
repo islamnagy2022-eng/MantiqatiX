@@ -1,0 +1,65 @@
+name: RC469 Shared Platform Admin Caller Search Path
+
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/20261117010000_rc469_shared_platform_admin_caller_search_path.sql"
+      - "supabase/tests/baselines/rc469_live_shared_helper_search_path_overlay.sql"
+      - "supabase/tests/rc469_shared_platform_admin_caller_search_path.sql"
+      - "scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs"
+      - ".github/workflows/rc469-shared-platform-admin-caller-search-path.yml"
+  push:
+    branches:
+      - "security/rc469-shared-caller-search-path-20261117"
+    paths:
+      - "supabase/migrations/20261117010000_rc469_shared_platform_admin_caller_search_path.sql"
+      - "supabase/tests/baselines/rc469_live_shared_helper_search_path_overlay.sql"
+      - "supabase/tests/rc469_shared_platform_admin_caller_search_path.sql"
+      - "scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs"
+      - ".github/workflows/rc469-shared-platform-admin-caller-search-path.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  rc469-shared-caller-search-path-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc469_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc469_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Validate RC469 source contract
+        run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
+      - name: Apply RC464, restore disposable live search_path baseline, then execute RC469
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc449_mantigo_platform_admin_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/tests/rc464_platform_admin_live_baseline.sql "$pg_container:/tmp/live-baseline.sql"
+          docker cp supabase/migrations/20261113214500_rc464_platform_admin_live_registry_hardening.sql "$pg_container:/tmp/rc464.sql"
+          docker cp supabase/tests/baselines/rc469_live_shared_helper_search_path_overlay.sql "$pg_container:/tmp/overlay.sql"
+          docker cp supabase/migrations/20261117010000_rc469_shared_platform_admin_caller_search_path.sql "$pg_container:/tmp/rc469.sql"
+          docker cp supabase/tests/rc469_shared_platform_admin_caller_search_path.sql "$pg_container:/tmp/integration.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc469_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc469_test -v ON_ERROR_STOP=1 -f /tmp/live-baseline.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc469_test -v ON_ERROR_STOP=1 -f /tmp/rc464.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc469_test -v ON_ERROR_STOP=1 -f /tmp/overlay.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc469_test -v ON_ERROR_STOP=1 -f /tmp/rc469.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc469_test -v ON_ERROR_STOP=1 -f /tmp/integration.sql
