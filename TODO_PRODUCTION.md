@@ -2008,3 +2008,16 @@ Evidence: `docs/audits/PASS_111_150_PUBLIC_DIRECTORY_BOUNDARY_20261117.md`. No P
 - [ ] Decide and test contact/map disclosure rules for imported/unclaimed national directory listings.
 
 Evidence: `docs/audits/PASS_151_190_DIRECTORY_CLAIM_AND_OUTPUT_20261117.md`. No Production mutation or deployment occurred.
+
+
+---
+
+## Pass 151–190 — Directory location integrity (2026-11-17)
+
+- [x] Remove silent Monufia / Berket El-Sabaa location defaults from new and edit forms.
+- [x] Require real governorate and district/city values in the UI and backend.
+- [x] Add regression checks preventing fabricated geographic assignment.
+- [ ] Verify exact-head CI and the complete PR review before merge.
+- [ ] Reconcile and deploy the directory Edge Function only through a separate reviewed production release.
+
+Evidence: `docs/audits/PASS_151_190_DIRECTORY_LOCATION_INTEGRITY_20261117.md`. No production data or deployment changes made.
