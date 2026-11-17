@@ -4238,3 +4238,13 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Added owner dashboard checkbox, AppContext payload handling, public-projection-safe frontend mapping, Business type state, 7 Node tests and a 23-check static contract validator. Node tests passed 7/7 and static source contract passed 23/23 on the first complete run.
 - Deno type-check found duplicate profile response keys and three typing issues; corrected the duplicate response keys, consent-field map typing, .mjs JSDoc contracts and sanitizer result typing. Updated the existing business/social-link regression assertion to test the audited projection rather than expecting raw contact disclosure.
 - PR #756 is current-main, source-only and open pending exact-head CI. Do not merge until the focused Deno, frontend build/type-check, and all required CI checks pass. No Production Edge Function deployment, database mutation, RLS/GRANT change or production data change made.
+
+
+### Pass 111–150 — national directory public-contact boundary follow-up
+
+- [x] Read-only audit of `directory-listings` public GET, explicit selected columns, output sanitizers, metadata allowlist, claim authorization and PUBLISHED filters.
+- [x] Confirmed the separate national listing contract currently publishes phone, secondary phone, address and allow-listed metadata `google_maps_url` for PUBLISHED rows.
+- [ ] Review source-owner republication permission and explicit consent semantics for imported/unclaimed versus claimed listings.
+- [ ] Decide and document whether phone/address/precise Maps disclosure requires audited consent in this distinct listing lifecycle.
+- [ ] Add unit/source-contract tests for the selected publication rule before changing the public listing projection.
+- Do not broaden PR #756 or add a global schema flag without tracing directory ingestion, source permission, claim, owner edits and publication flows. No Production changes were made during this audit.
