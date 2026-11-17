@@ -2075,7 +2075,25 @@ Evidence: `docs/audits/PASS_231_270_DIRECTORY_CLAIM_ATOMICITY_20261117.md`.
 - [x] Add PostgreSQL fixture and rollback/authorization integration assertions.
 - [x] Add and run a true multi-session concurrent-review test; two sessions raced for the same business and exactly one approval committed.
 - [x] Pass PostgreSQL integration, concurrency and Deno type-check on branch head `94fe788fb1f92a902bc613f65c0a7334d9146798`.
-- [ ] Complete remaining repository-wide PR checks and review, merge, and verify main.
-- [ ] Separately approve and execute Production migration + Edge deployment with backup/rollback evidence.
+- [x] Complete repository-wide PR checks, review, merge PR #757, and verify main at `ae090081015b0c3af410fb6ee114165f300b1bba`.
+- [ ] Separately approve and execute RC472 Production migration + `directory-listings` Edge deployment with backup/rollback evidence.
 
 Evidence: `docs/audits/PASS_271_300_DIRECTORY_CLAIM_ATOMICITY_20261118.md`. Source-only branch; no Production mutation or deployment.
+
+---
+
+## Pass 301–330 — public directory contact disclosure controls (2026-11-18)
+
+- [x] Read-only aggregate audit of published directory contact fields and consent metadata; no row-level personal data selected.
+- [x] Confirm 869 published listings, 869 with phone, 178 with secondary phone, 869 with address, and zero existing directory contact-consent flags.
+- [x] Add private, forced-RLS consent registry with separate PHONE / SECONDARY_PHONE / ADDRESS / PRECISE_LOCATION scopes and retained grant/revocation audit history.
+- [x] Fail-closed public output projection for phone, secondary phone, address and precise Google Maps links.
+- [x] Remove phone/address from public free-text search and gate explicit address filtering on active ADDRESS consent.
+- [x] Add authenticated owner-only grant/revoke action and four independent owner UI controls.
+- [x] Add isolated PostgreSQL consent registry tests and source projection/search contract tests.
+- [ ] Pass final-head PostgreSQL, source-contract, Deno and frontend build CI plus all required cross-module PR checks.
+- [ ] Merge only after final-head checks pass.
+- [ ] Separately approve RC473 migration + `directory-listings` Edge deployment after RC472 migration/Edge release, backup and rollback review.
+- [!] Source-rights blocker remains: 497 existing rows are labelled Dalil140 and other records cite mixed third-party/official sources. A public URL is not a republication licence. Do not bulk import or re-publish restricted-source records without written, dataset-specific permission.
+
+Evidence: `docs/audits/PASS_301_330_DIRECTORY_CONTACT_CONSENT_20261118.md`. Source-only candidate; no Production migration or Edge deployment.
