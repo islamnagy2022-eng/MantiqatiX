@@ -226,10 +226,10 @@ BEGIN
 END;
 $function$;
 
-REVOKE ALL ON FUNCTION public.process_verified_digital_page_payment_backend(uuid,text,text,boolean,numeric,text,text,text,jsonb) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.process_verified_digital_page_payment_backend(uuid,text,text,boolean,numeric,text,text,text,jsonb) FROM anon;
-REVOKE ALL ON FUNCTION public.process_verified_digital_page_payment_backend(uuid,text,text,boolean,numeric,text,text,text,jsonb) FROM authenticated;
-GRANT EXECUTE ON FUNCTION public.process_verified_digital_page_payment_backend(uuid,text,text,boolean,numeric,text,text,text,jsonb) TO service_role;
+REVOKE ALL ON FUNCTION public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb) FROM anon;
+REVOKE ALL ON FUNCTION public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb) FROM authenticated;
+GRANT EXECUTE ON FUNCTION public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb) TO service_role;
 
 DO $postcondition$
 DECLARE
@@ -238,7 +238,7 @@ BEGIN
   SELECT p.* INTO v_proc
   FROM pg_catalog.pg_proc p
   WHERE p.oid = pg_catalog.to_regprocedure(
-    'public.process_verified_digital_page_payment_backend(uuid,text,text,boolean,numeric,text,text,text,jsonb)'
+    'public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)'
   );
 
   IF NOT FOUND
@@ -253,17 +253,17 @@ BEGIN
 
   IF NOT has_function_privilege(
        'service_role',
-       'public.process_verified_digital_page_payment_backend(uuid,text,text,boolean,numeric,text,text,text,jsonb)',
+       'public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)',
        'EXECUTE'
      )
      OR has_function_privilege(
        'anon',
-       'public.process_verified_digital_page_payment_backend(uuid,text,text,boolean,numeric,text,text,text,jsonb)',
+       'public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)',
        'EXECUTE'
      )
      OR has_function_privilege(
        'authenticated',
-       'public.process_verified_digital_page_payment_backend(uuid,text,text,boolean,numeric,text,text,text,jsonb)',
+       'public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)',
        'EXECUTE'
      ) THEN
     RAISE EXCEPTION 'RC470_PROCESSOR_ACL_POSTCONDITION_FAILED';
