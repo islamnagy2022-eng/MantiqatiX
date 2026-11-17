@@ -24,8 +24,8 @@ assert.match(context, /facebookUrl: updated\.facebookUrl \|\| ''/, "Profile save
 assert.match(catalogAdmin, /INVALID_SOCIAL_PROFILE_URL/, "Server must reject malformed or unsafe social URLs");
 assert.match(catalogAdmin, /catalog_profile: \{ \.\.\.currentProfile, \.\.\.submittedSocialFields \}/, "Server must persist social links without clobbering other profile fields");
 assert.match(publicCatalog, /facebookUrl: String\(profile\.facebook_url \|\| ""\)/, "Public catalog must return saved Facebook URLs");
-assert.match(publicCatalog, /getExplicitPublicContact\\(profile, selectedBranch\\)/, "Public catalog must apply audited owner-consent contact projection");
-assert.match(publicCatalog, /additionalContactPhones: publicContact\\.additionalContactPhones/, "Public catalog must return contact numbers only from the consent-gated projection");
+assert.match(publicCatalog, /getExplicitPublicContact\(profile, selectedBranch\)/, "Public catalog must apply audited owner-consent contact projection");
+assert.match(publicCatalog, /additionalContactPhones: publicContact\.additionalContactPhones/, "Public catalog must return contact numbers only from the consent-gated projection");
 assert.doesNotMatch(publicCatalog, /additionalContactPhones: Array\\.isArray\\(profile\\.additional_contact_phones\\)/, "Public catalog must not expose legacy contact fields without audited consent");
 assert.match(mapper, /instagramUrl: String\(profile\.instagram_url \|\| profile\.instagramUrl/, "Runtime mapper must retain social links");
 for (const label of ["اتصال هاتفي", "فيسبوك", "تيك توك", "إنستجرام"]) {
