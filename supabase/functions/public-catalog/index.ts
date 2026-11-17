@@ -231,6 +231,8 @@ Deno.serve(async (req: Request) => {
         externalLogoUrl: safeImageUrl(profile.logo_url),
         externalCoverUrl: safeImageUrl(profile.cover_url),
         google_maps_url: publicContact.googleMapsUrl,
+        public_contact_enabled: profile.public_contact_enabled === true,
+        public_contact_consent_audit_verified: profile.public_contact_consent_audit_verified === true,
         facebookUrl: String(profile.facebook_url || ""),
         instagramUrl: String(profile.instagram_url || ""),
         tiktokUrl: String(profile.tiktok_url || ""),
