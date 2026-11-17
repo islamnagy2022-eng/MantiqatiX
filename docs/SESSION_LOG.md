@@ -2484,3 +2484,40 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Built `MantiqaTix-R7-Security-Hardened-Preview-09.zip`: SHA-256 `c0ce1e6bc74d8c21dda9f574a2f906cce8ac8eb2e9985b6ac709e81a650cb4d8`; 150 files; .data/.aistudio/node_modules/dist/releases excluded; two R7 mobile UI files and three Android WebView wrapper files contained in R7 preserved unchanged; no RC40 source archive/content included.
 - No GA4 Measurement ID or Search Console token was invented. No Google account, Production website, Supabase, Auth/RLS/GRANT, database, or payment settings were changed.
 - R7 remains `BLOCKED / NOT CERTIFIED`; production indexing and analytics activation remain unauthorized until owner-controlled domain/IDs/consent inputs and all platform release gates pass.
+
+## 2026-11-17 — R7 archive 11 and live Production reconciliation refresh
+
+- Inspected the exact newly uploaded `bizcatalog-manager (11).zip` (SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`; ZIP integrity PASS; 270 entries) and companion `الامر-التقني.txt` (SHA-256 `b51078e5aa164067c46347fd327c7230c5968f3cd36df5a354691504a3364ee2`).
+- Source audit found P0 blockers: caller-controlled token minting, invalid-token role fallback refresh, hard-coded admin password bypass, unauthenticated whole-state and CRUD endpoints, local JSON as runtime authority, localStorage-authoritative roles, predictable fallback secrets, and unverified registration/recovery flows. `package.json` has no test/release gate scripts. These findings conflict with the archive's certified release report.
+- Fresh live Supabase read-only inventory: 310 migrations through `20261110150618`; 42 active Edge Functions. The current reconciliation manifest is stale at 309 migrations / `20261101140105`.
+- Retrieved live source for six critical functions and compared with current main; all six differ: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3. Main's newer checks are not deployed. These six must be staged with their database/RPC/ACL prerequisites and sandbox E2E; no function was deployed.
+- Read-only SQL confirmed RC449A/RC450 journal prerequisites remain absent: five required journal columns missing; backend journal RPC EXECUTE is false for anon, authenticated and service_role. A partial query also confirmed multiple RC425–RC438 objects absent; complete object reconciliation remains open.
+- Refreshed Security/Performance Advisor findings: 9 RLS-enabled/no-policy tables, 1 anon-executable SECURITY DEFINER, 65 authenticated-executable SECURITY DEFINER, leaked-password protection warning, 132 unindexed FKs, 375 auth RLS init-plan, 28 multiple permissive policies. No grants, RLS, Auth, schema or data were changed.
+- Added `docs/audits/R7_ARCHIVE_11_PRODUCTION_GATE_20261117.md` and updated continuity/TODO on branch `audit/r7-production-source-gate-20261117`. Audit report commit: `5327eb298526f64f97508ae22b65437c3ff00330`. No production mutation, migration, Edge deployment, payment action or Pages deployment occurred.
+- The deployed V6 root and `/legacy/` remain unchanged. R7 is preserved as the user-supplied UI/behavior candidate but is not safe to import/deploy as-is.
+- Next: recover the exact deployed `20261110150618` migration source, reconcile all 310 ledger rows and immutable source files, then complete the 42 required migration/object/RPC/ACL and six-function dependency map. Keep `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+### 2026-11-17 — RC463 live trigger function follow-up
+
+- Read-only SQL confirmed both trigger-only SECURITY DEFINER functions remain enabled and have no direct EXECUTE for anon/authenticated/service_role; ACLs show only postgres owner EXECUTE.
+- `capture_commission_rule_audit()` has empty search_path. `assign_default_owner_to_unowned_business()` still has `search_path=public, auth`, so the physical state does not fully match RC463's main-source contract.
+- Confirmed current main contains `20261031100000_rc463_trigger_only_security_definer_acl.sql` (blob `83e9650c5be5bedbfe6ee113cb799abb96867031`). The later live ledger version `20261110150618_revoke_public_execute_from_trigger_functions` still has no source file on main. Do not assume alias equivalence or replay RC463 out of order.
+- Added this discrepancy and safe recovery action to `docs/audits/R7_ARCHIVE_11_PRODUCTION_GATE_20261117.md`. No Production change occurred.
+
+- Additional migration-ledger check: the 310 live rows do not include RC463 version `20261031100000`, although the RC463 source file exists on `main`; they do include `20261110150618_revoke_public_execute_from_trigger_functions`, whose source is absent from `main`. The observed trigger ACLs show revocation, but one function's search_path remains `public, auth`; do not treat the later migration as an RC463 alias.
+
+- Cross-session history check confirms PR #722's RC candidate was not applied to Production. No exact SQL, branch/commit, deployment source or execution evidence for live migration `20261110150618` was recoverable from prior conversations. Do not attribute the live migration to PR #722 or reconstruct SQL from its name; exact source recovery remains blocked.
+
+### 2026-11-17 — Exact source recovery for migration 20261110150618
+
+- Queried the live `supabase_migrations.schema_migrations` row read-only and recovered its stored `statements[1]`. The exact one-statement SQL is two `REVOKE EXECUTE ... FROM PUBLIC, anon, authenticated` commands for the two trigger-only functions; it does not change search_path and does not revoke service_role explicitly.
+- Database-side SHA-256: `b462abcd9205345901c389102992d9ee31aa6d293a5e7bb5e9f6114f0f43afed`; 374 characters; no rollback entry. Independently computed local SHA-256 matched.
+- Restored the exact historical source file `supabase/migrations/20261110150618_revoke_public_execute_from_trigger_functions.sql` on the current-base audit branch. This is source recovery only; the migration was not re-applied to Production.
+- The live ledger still lacks RC463 `20261031100000`; its main source sets empty search_path for both trigger functions. The later 20261110150618 migration is not an RC463 alias. Current live `assign_default_owner_to_unowned_business()` retains `search_path=public, auth`, while `capture_commission_rule_audit()` has empty search_path. A forward-only repair must be reviewed after migration-chain reconciliation; do not replay RC463 out of order.
+
+### 2026-11-17 — R7 default catalog image verification
+
+- Inspected `src/data/imageAssets.ts`, `src/utils/aiImageCompletionEngine.ts`, and the `addBusiness`/`addProduct` paths in `src/context/AppContext.tsx`.
+- R7 already contains 15 sector image packs, each with 3 logo, 3 cover and 6 product/service variants (180 defaults). New businesses/products receive resolved defaults at creation when image URLs are absent/placeholder; the five referenced local AI-generated images are present.
+- Existing image-engine tests passed 4/4 after TypeScript compilation using temporary Node test type shims and Node 22.16.0. Additional compiled-runtime checks passed across all 15 sector packs, maintenance defaults, five local assets and generated-SVG text sanitization.
+- No image implementation change was needed in R7. The old V6 PR #739 remains a separate legacy-catalog change; it is not a substitute for R7 integration. Standard package test scripts remain a separate P1 improvement.

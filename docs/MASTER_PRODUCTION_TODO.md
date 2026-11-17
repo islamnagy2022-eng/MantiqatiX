@@ -18,6 +18,25 @@ The owner requires each independently completed task to be integrated as soon as
 **Safety boundary:** this rule does not weaken the Production release gate. No unapproved production migration, Auth/RLS/GRANT change, Edge deployment, payment/financial action or website cutover is authorized by a source merge.
 
 ---
+# Latest verified checkpoint — 2026-11-17 — R7 archive 11 + live Production parity refresh
+
+**Request ID:** `R-20261117-CONTINUE-R7-PRODUCTION-GATE`  
+**Status:** SOURCE AUDIT RECORDED; production gate remains **BLOCKED / NOT CERTIFIED**.
+
+- Inspected exact uploaded `bizcatalog-manager (11).zip`; SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`; ZIP integrity PASS; 270 entries. Companion technical directive SHA-256 `b51078e5aa164067c46347fd327c7230c5968f3cd36df5a354691504a3364ee2`.
+- R7 default imagery is already implemented: 15 sector packs × (3 logos + 3 covers + 6 product/service images) = 180 curated defaults; addBusiness/addProduct persist resolved defaults in the candidate state. Existing image-engine tests passed 4/4 using global TypeScript + Node; additional executable checks passed across all 15 sectors, five local AI image assets, maintenance fallbacks and SVG text sanitization. Standard package test script is still absent; do not repeat this image implementation unless new requirements emerge.
+- The archive identifies as R7 but is not safe to import/deploy as-is: unauthenticated caller-controlled token minting (`server.ts:2576`), role/business fallback token refresh (`3298`), hard-coded admin password bypass (`2995`), unauthenticated whole-state read/write and CRUD paths (`1189–1516`), local JSON persistence, browser-authoritative roles in localStorage, and predictable fallback secrets (`95–97`). Full evidence: `docs/audits/R7_ARCHIVE_11_PRODUCTION_GATE_20261117.md`.
+- Package `package.json` has no `test` or `release:check` script; `lint` is only `tsc --noEmit`. The archive's 99/99 test and certified-release claims are not independently reproduced by its declared scripts.
+- Fresh read-only Supabase inventory: 310 migrations through `20261110150618`; 42 active Edge Functions. The previous reconciliation manifest still reports 309 migrations through `20261101140105` and is stale.
+- Live source compared byte-for-byte with current `main`: six critical deployed Edge Functions still differ (`order-create v8`, `payment-intent v8`, `paymob-webhook v10`, `digital-page-payment-intent v5`, `subscription-payment-intent v4`, `financial-journal v3`). Do not deploy these separately; they are coupled to schema/RPC/ACL/payment state.
+- Read-only physical SQL preflight confirms the five RC449A/RC450 journal columns are absent and `post_financial_journal_backend(uuid,jsonb,jsonb)` has no EXECUTE for browser roles or service_role. Several RC425–RC438 objects also remain absent in the checked subset. This is partial evidence, not a complete 60-object reconciliation.
+- Security Advisor snapshot: 9 RLS-enabled/no-policy tables; 1 anon-executable SECURITY DEFINER function; 65 authenticated-executable SECURITY DEFINER functions; leaked-password protection warning. Performance warnings: 132 unindexed foreign keys, 375 auth RLS init-plan, 28 multiple permissive policies. No broad ACL/RLS changes made.
+- Audit branch: `audit/r7-production-source-gate-20261117`; report commit `5327eb298526f64f97508ae22b65437c3ff00330`. No production mutation, migration, Edge deployment, payment, Auth setting change, or Pages deployment occurred.
+- Current V6 public root and retained `/legacy/` remain unchanged. Preserve R7 UI and Android/mobile assets, but map them to Supabase contracts only after the P0 source/auth/data boundaries are corrected in an isolated Preview.
+- **First next action:** review and merge the exact source restoration for `20261110150618_revoke_public_execute_from_trigger_functions` in PR #740 after exact-head checks; its stored SQL SHA-256 is `b462abcd9205345901c389102992d9ee31aa6d293a5e7bb5e9f6114f0f43afed`, and it was not re-applied. Then reconcile the 310 live ledger entries against immutable repository migration sources. RC463 `20261031100000` exists on main but is absent from the live ledger; the later live migration is not an alias. Live trigger ACLs are revoked, but `assign_default_owner_to_unowned_business()` still has `search_path=public, auth` while `capture_commission_rule_audit()` is empty. Then complete the 42-version/object/Edge parity map. Do not fabricate migration history or deploy the six mismatched payment functions.
+
+---
+
 # Latest verified checkpoint — 2026-11-11 — Public catalog disclosure safety
 
 **Request ID:** `R-20261111-PUBLIC-CATALOG-PRICE-DISCLOSURE`  
