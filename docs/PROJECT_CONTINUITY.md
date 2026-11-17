@@ -7,9 +7,9 @@
 - New branch: `fix/directory-claim-atomicity-20261118`.
 - Read-only Production inspection: 310 migration rows through `20261110150618`; `20261027090000` is absent from the live ledger; existing `uk_user_biz_branch` permits duplicate NULL branch keys; preflight found 0 duplicate business-wide membership groups.
 - Implemented forward-only RC472 migration and transactional RPC; changed Edge REVIEW_CLAIM to call the RPC; added PostgreSQL fixture/integration tests and CI workflow. Details: `docs/audits/PASS_271_300_DIRECTORY_CLAIM_ATOMICITY_20261118.md`.
-- Exact-head PostgreSQL/Deno CI is pending. A true multi-session concurrency test remains open.
+- PostgreSQL integration, two-session concurrency race, and Deno type-check passed on branch head `94fe788fb1f92a902bc613f65c0a7334d9146798`. Remaining repository-wide PR checks and final review are pending.
 - No Supabase development branch was created (no cost-bearing compute started). No Production migration, data mutation, Auth/RLS/GRANT change, Edge deployment, payment action, or Pages deployment occurred from this branch.
-- **Next:** inspect final diff; run exact-head PostgreSQL integration + Deno check; add concurrency test; fix/re-run; merge only when green. Then continue remaining public directory contact-consent policy and broader P0 release blockers.
+- **Next:** finish remaining repository-wide PR checks; review final diff; merge only when all required checks are green. Then continue remaining public directory contact-consent policy and broader P0 release blockers.
 
 ---
 
