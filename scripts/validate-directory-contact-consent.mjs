@@ -64,8 +64,8 @@ const checks = [
   ["GET consent lookup fails closed and is used for slug, legacy and paginated reads",
     source.includes("loadContactConsentScopes") && source.includes("directory_listing_contact_consents") &&
     source.includes("sanitizePublicDirectoryListing(data, ownerScopes)") &&
-    source.includes("consentMap.get(String(row.id)) || new Set<string>()")],
-  ["only a claimed listing owner or active business owner can change consent",
+    source.includes("consentState.scopes.get(String(row.id)) || new Set<string>()")],
+  ["owner consent controls remain hidden until the registry is available",\n    source.includes("contact_consent_ready: consentState.ready") && source.includes("return { scopes, ready: false }") && ui.includes("detail.contact_consent_ready")],\n  ["only a claimed listing owner or active business owner can change consent",
     source.includes('action === "SET_PUBLIC_CONTACT_CONSENT"') &&
     source.includes('listing.claim_status !== "CLAIMED"') &&
     source.includes('listing.claimed_user_id') &&
