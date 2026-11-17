@@ -9,12 +9,12 @@ Status: SOURCE CANDIDATE; focused CI passed on intermediate head `3bb3820045ff8b
 
 Project: `MANTIQATIX FINAL` (`moyhiluyhjsujhwlyeuu`).
 
-- Published directory rows: 869.
+- Published directory rows: 869 (965 total directory records; 964 total records are unclaimed).
 - Rows with primary phone: 869; secondary phone: 178; exact address: 869.
 - Rows carrying any existing `public_contact_enabled`, `contact_consent`, or `public_contact_consent_audit_verified` metadata flag: 0.
-- Claim state: 868 UNCLAIMED; 0 CLAIMED; one row has a non-UNCLAIMED/non-CLAIMED state.
+- Claim state: 868 of the 869 published rows are UNCLAIMED; 0 published rows are CLAIMED. The separate total-table aggregate reports 964 UNCLAIMED across 965 rows.
 - The current source projection previously returned phone, secondary phone and address for all PUBLISHED rows. It also returned `metadata.google_maps_url` when present without a directory-listing-specific consent record.
-- This is aggregate-only evidence; no phone, address, owner identity or row-level personal data was selected.
+- This is aggregate-only evidence; no phone, address, owner identity or row-level personal data was selected. The live `directory-listings` Edge Function is version 16.
 - A separate source-rights aggregate found 26 distinct source hosts. The largest group is `dalil140.com` (746 listings), followed by Google Maps URLs (49), FindHealthClinics (11), DalilMadina (7), the Medical Professions Union project-treatment guide (6), Yellow Pages (6), South Sinai government (5), and other mixed hosts.
 - The Production `directory_source_permission_evidence` registry contains zero rows. None of the 869 published listings carries a `sourcePermissionEvidenceId` or `source_permission_evidence_id` metadata reference. No exact source-name/host pair had active, non-revoked, current doctor-profile + commercial republication permission.
 - The earlier `497` figure refers only to the single source label `Dalil140 — دليل عام غير رسمي`; it is not the total for the `dalil140.com` host. The aggregate host count is 746 across multiple source labels.
@@ -37,7 +37,7 @@ Project: `MANTIQATIX FINAL` (`moyhiluyhjsujhwlyeuu`).
 - Production read-only aggregate inspection: PASS.
 - Focused PostgreSQL + source-contract + Deno + frontend build workflow: PASS on intermediate head `3bb3820045ff8bde9fd72d97e044cf7256765051`.
 - Final branch head `a9946412e0d004dd990a9fa54e35a2fcfa1493f3`: focused workflow and cross-module workflows are currently rerunning; do not close until final-head success.
-- No Production migration, data mutation, Auth/RLS/GRANT change outside the new source migration, Edge deployment, Pages deployment or payment action occurred on this branch.
+- No Production migration, data mutation, Auth/RLS/GRANT change outside the new source migration, Edge deployment, Pages deployment or payment action occurred on this branch. Supabase is on the Free plan and no verified off-site logical backup/restore artifact is available; this is a separate blocker to any Production DDL.
 
 ## Independent remaining blockers
 
