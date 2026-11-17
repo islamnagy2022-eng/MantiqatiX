@@ -78,7 +78,7 @@ assert.ok(
 assert.ok(context.includes("setCurrentView('directory');"), 'Email login and registration may open the dedicated directory search.');
 assert.ok(context.includes("if (view !== 'marketplace_home' && view !== 'login') url.searchParams.set('view', view);"), 'The canonical marketplace home must keep the root URL while other public routes remain addressable.');
 assert.ok(context.includes("url.searchParams.delete('activity')") && context.includes("url.searchParams.delete('listing')") && context.includes("url.searchParams.delete('group')"), 'Returning home must clear stale directory deep-link parameters.');
-assert.ok(app.includes("visibleView === 'marketplace_home' && <MarketplaceHome />"), 'The marketplace component must remain mounted as a public route.');
+assert.ok(app.includes("visibleView === 'marketplace_home'") && app.includes("<Suspense fallback={<ScreenFallback />}><MarketplaceHome /></Suspense>") && app.includes("const MarketplaceHome = lazy(() => import('./components/MarketplaceHome')"), 'The marketplace component must remain mounted as a lazy-loaded public route.');
 assert.ok(navbar.includes("setCurrentView('marketplace_home')") && navbar.includes("setCurrentView('directory')"), 'Homepage and directory search must be separate navigation destinations.');
 assert.ok(
   context.includes("requestedView === 'marketplace_home'") &&
