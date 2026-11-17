@@ -23,7 +23,7 @@ test("public metadata keeps only display-safe allowlisted keys", () => {
 
   assert.deepEqual(result, {
     bio: "Clinic bio",
-    websiteUrl: "https://example.org",
+    websiteUrl: "https://example.org/",
     logoUrl: "https://example.org/logo.png",
     workingHours: "Mon-Fri 9-5",
     services: ["Dental", "Cardiology"],
@@ -33,7 +33,7 @@ test("public metadata keeps only display-safe allowlisted keys", () => {
 test("public metadata truncates strings and caps services", () => {
   const result = sanitizePublicDirectoryMetadata({
     bio: "x".repeat(2100),
-    websiteUrl: "y".repeat(1600),
+    websiteUrl: "https://example.org/" + "y".repeat(1600),
     services: Array.from({ length: 25 }, (_, index) => " service " + index + " "),
   });
 
