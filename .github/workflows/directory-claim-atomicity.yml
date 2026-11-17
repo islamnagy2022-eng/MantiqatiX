@@ -7,6 +7,10 @@ on:
       - "supabase/tests/rc472_directory_claim_*"
       - "scripts/production/test-directory-claim-concurrency.sh"
       - ".github/workflows/directory-claim-atomicity.yml"
+      - "TODO_PRODUCTION.md"
+      - "docs/PROJECT_CONTINUITY.md"
+      - "docs/SESSION_LOG.md"
+      - "docs/audits/PASS_271_300_DIRECTORY_CLAIM_ATOMICITY_20261118.md"
   pull_request:
     branches: [main]
     paths:
@@ -14,6 +18,10 @@ on:
       - "supabase/tests/rc472_directory_claim_*"
       - "scripts/production/test-directory-claim-concurrency.sh"
       - ".github/workflows/directory-claim-atomicity.yml"
+      - "TODO_PRODUCTION.md"
+      - "docs/PROJECT_CONTINUITY.md"
+      - "docs/SESSION_LOG.md"
+      - "docs/audits/PASS_271_300_DIRECTORY_CLAIM_ATOMICITY_20261118.md"
 permissions:
   contents: read
 jobs:
