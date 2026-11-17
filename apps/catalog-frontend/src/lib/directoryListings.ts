@@ -23,6 +23,7 @@ export type PublicDirectoryListing = {
   claim_status: string;
   can_edit?: boolean;
   owned_business_id?: string | null;
+  public_contact_consent_scopes?: DirectoryContactConsentScope[];
   outreach_status?: string;
   outreach_notes?: string | null;
   last_contacted_at?: string | null;
@@ -50,6 +51,8 @@ function normalizeDirectoryListingTaxonomy(listing: PublicDirectoryListing): Pub
     taxonomy_category_id: canonicalCategoryId || listing.taxonomy_category_id,
   };
 }
+
+export type DirectoryContactConsentScope = "PHONE" | "SECONDARY_PHONE" | "ADDRESS" | "PRECISE_LOCATION";
 
 export type DirectoryClaimRequest = {
   id: string;
@@ -301,6 +304,20 @@ export async function reviewDirectoryClaim(input: {
   return callDirectoryAdmin({ action: "REVIEW_CLAIM", ...input });
 }
 
+
+
+export async function setPublicDirectoryListingContactConsent(input: {
+  listingId: string;
+  scope: DirectoryContactConsentScope;
+  enabled: boolean;
+}): Promise<{ success: boolean; scope: DirectoryContactConsentScope; enabled: boolean }> {
+  return callDirectoryAdmin({
+    action: "SET_PUBLIC_CONTACT_CONSENT",
+    listingId: input.listingId,
+    scope: input.scope,
+    enabled: input.enabled,
+  });
+}
 
 export async function updateOwnedDirectoryListing(input: {
   listingId: string; displayName: string; specialty: string; phone: string; secondaryPhone: string;
