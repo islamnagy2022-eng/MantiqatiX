@@ -2612,3 +2612,13 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Passes 146–150: preserved PR #756 scope, avoided broad schema/RLS/GRANT changes, and confirmed no Production or deployment mutation.
 - Corrected `scripts/validate-owner-profile-persistence.mjs` so the public endpoints are required to use `publicContact.googleMapsUrl`; authenticated catalog-admin reads retain the two private map fields. New commit: `87cf638aba0f23b0a683e51f718284667ce45bac`.
 - Exact-head check snapshot: 24 success, 2 skipped, 0 failed; professional dashboard browser E2E remained in progress. PR #756 remains open and unmerged.
+
+
+## 2026-11-17 — Pass 151–190 execution
+
+- Pass 151–160: reviewed authenticated claim submission, contact validation, PUBLISHED/UNCLAIMED state rules, same-user idempotency, compare-and-set lock and losing-request cleanup.
+- Pass 161–170: reviewed owner edit authorization and metadata/contact fields. Fixed omitted owner location fields to preserve the saved governorate/district/village rather than defaulting to Monufia/Berket El Sabaa. Added regression assertions.
+- Pass 171–180: reviewed platform-admin gate, internal source-permission evidence registration, two-person approval, validity/expiry, revocation and claim admin reads. Recorded claim finalization/rejection atomicity as unresolved.
+- Pass 181–190: reviewed 20-row sequential imports, deduplication, partial-snapshot preservation, unverified status, source publication gate and public output allowlists. Added HTTPS/host/path validation for public Google Maps metadata and behavior tests.
+- Commits: `356a870c724a75999ff664650316e1203f50483a`, `6d9cffd5843c5533f0e629ff61e8d81270f2f501`, `53bc991ba693478411f8bccc451d6caadc394cbc`, `93bffa528be3e0ab09c59e85de4cdb39d8623982` plus audit/continuity records.
+- No Production deployment or database/Auth/RLS/GRANT mutation.
