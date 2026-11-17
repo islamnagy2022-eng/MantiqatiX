@@ -1899,3 +1899,13 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - Reconfirmed partial owner updates preserve stored location and imports remain staged separately from public source-evidence approval.
 - Claim approval/rejection atomicity and national directory contact/map disclosure policy remain blockers. No production or database/Auth/RLS/GRANT/payment/Pages mutation.
 - Audit: `docs/audits/PASS_191_230_PUBLIC_DIRECTORY_METADATA_20261117.md`.
+
+
+## 2026-11-17 — Pass 231–270 directory claim atomicity audit
+
+- Completed 40 source-level checks of the privileged REVIEW_CLAIM path: platform-admin gate, claim state checks, rejection lock release, ownership/payment prerequisites, tenant/owner conflicts, membership writes, listing update and claim finalization.
+- Confirmed the release blocker: rejection ignores listing-lock release errors; approval performs membership, automatic-owner deactivation, listing and claim updates as separate writes. There is no transaction across these writes, no claim-status compare-and-set at finalization, and no expected-state guard on the listing update.
+- The existing null-safe unique membership index prevents duplicate business-wide membership keys but does not serialize or atomically coordinate the multi-table claim workflow.
+- No schema-dependent RPC/migration was authored because authoritative definitions for claim/listing/membership/business tables, constraints and triggers were not available through the repository operations in this session. Do not implement against guessed schema.
+- Audit: `docs/audits/PASS_231_270_DIRECTORY_CLAIM_ATOMICITY_20261117.md`.
+- Exact reviewed head `47aba334...`: all 12 PR-triggered workflow runs completed successfully. The audit report commit itself requires fresh CI. PR #756 remains open/unmerged; no Production deployment or DB/Auth/RLS/GRANT/payment mutation. Full production gate remains BLOCKED / NOT CERTIFIED.
