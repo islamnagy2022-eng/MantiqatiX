@@ -271,10 +271,10 @@ export const DirectoryListingsView: React.FC<{
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {([
-                  ["PHONE", "رقم التواصل الأساسي"],
-                  ["SECONDARY_PHONE", "رقم التواصل الإضافي"],
-                  ["ADDRESS", "العنوان التفصيلي"],
-                  ["PRECISE_LOCATION", "رابط الموقع الدقيق على الخريطة"],
+                  ["PHONE", "أوافق على إظهار رقم التواصل الأساسي"],
+                  ["SECONDARY_PHONE", "أوافق على إظهار رقم التواصل الإضافي"],
+                  ["ADDRESS", "أوافق على إظهار العنوان التفصيلي"],
+                  ["PRECISE_LOCATION", "أوافق على إظهار الموقع الدقيق على الخريطة"],
                 ] as Array<[DirectoryContactConsentScope, string]>).map(([scope, label]) => (
                   <label key={scope} className="flex items-start gap-3 rounded-xl border border-slate-200 p-3 text-sm font-bold text-slate-800">
                     <input type="checkbox" checked={contactConsentScopes.includes(scope)} disabled={contactConsentBusy}
