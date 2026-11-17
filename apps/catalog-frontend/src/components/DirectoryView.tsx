@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Business } from '../types';
 import {
@@ -35,8 +35,14 @@ import {
 } from 'lucide-react';
 import { formatEgyptianLocation } from '../utils/rules';
 import { resolveDefaultImage } from '../utils/defaultImages';
-import { DirectoryListingsView } from './DirectoryListingsView';
-import { ActivityModuleView } from '../modules/activities/ActivityModuleView';
+const DirectoryListingsView = lazy(() => import('./DirectoryListingsView').then((module) => ({ default: module.DirectoryListingsView })));
+const ActivityModuleView = lazy(() => import('../modules/activities/ActivityModuleView').then((module) => ({ default: module.ActivityModuleView })));
+
+const DirectorySubViewFallback = () => (
+  <div role="status" aria-live="polite" className="mx-auto my-4 w-[calc(100%-2rem)] max-w-7xl rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+    جارٍ تحميل القسم…
+  </div>
+);
 import { fetchPublicDirectoryListingPage, type PublicDirectoryListing, type PublicDirectoryListingFilters } from '../lib/directoryListings';
 import { DEFAULT_FUNCTIONAL_GROUPS, resolveCanonicalSpecialty } from '../data/productionDefaults';
 import { EGYPT_GEO_DISTRICTS, EGYPT_GEO_GOVERNORATES, loadEgyptDistrictShiyakhas, resolveEgyptAdministrativeLocation, type EgyptGeoShiyakha } from '../data/egyptGeoDiscovery';
@@ -767,7 +773,9 @@ export const DirectoryView: React.FC = () => {
   ) : null;
 
   if (listingSlug) return <>
-    <DirectoryListingsView detailSlug={listingSlug} onOpen={openDirectoryListing} onBack={closeDirectoryListing} />
+    <Suspense fallback={<DirectorySubViewFallback />}>
+      <DirectoryListingsView detailSlug={listingSlug} onOpen={openDirectoryListing} onBack={closeDirectoryListing} />
+    </Suspense>
     {locationWelcomeDialog}
   </>;
 
@@ -781,7 +789,7 @@ export const DirectoryView: React.FC = () => {
         listing.taxonomy_category_id === activityCategory.id && Boolean(listing.phone || listing.secondary_phone));
       const confirmedCount = activityBusinesses.filter((business) => business.isVerified).length;
       const unconfirmedCount = activityBusinesses.filter((business) => !business.isVerified).length + activityListings.length;
-      return <ActivityModuleView
+      return <Suspense fallback={<DirectorySubViewFallback />}><ActivityModuleView
         category={activityCategory}
         confirmedCount={confirmedCount}
         unconfirmedCount={unconfirmedCount}
@@ -796,7 +804,7 @@ export const DirectoryView: React.FC = () => {
         hasMoreListings={directoryListingsHasMore}
         loadingMoreListings={directoryListingsLoadingMore}
         listingsLoading={!directoryListingsLoaded}
-      />;
+      /></Suspense>;
     }
   }
 
