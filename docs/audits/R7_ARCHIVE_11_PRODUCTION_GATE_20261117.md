@@ -89,3 +89,15 @@ The old manifest's 42 required release-version check and object inventory remain
 - R7 archive (11) is preserved as the current user-supplied UI/behavior candidate, but is **not** approved for import/deployment as-is.
 - Current deployed V6 root and retained `/legacy/` remain unchanged.
 - `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`.
+
+
+## 6. Addendum — trigger-only SECURITY DEFINER migration parity (2026-11-17)
+
+A follow-up read-only query checked the two trigger-only SECURITY DEFINER functions covered by RC463:
+
+- `public.assign_default_owner_to_unowned_business()`: SECURITY DEFINER; expected trigger enabled; no direct EXECUTE for anon, authenticated or service_role; ACL contains only `postgres=X/postgres`; **search_path remains `public, auth`**.
+- `public.capture_commission_rule_audit()`: SECURITY DEFINER; expected trigger enabled; no direct EXECUTE for anon, authenticated or service_role; ACL contains only `postgres=X/postgres`; search_path is empty.
+
+Current `main` does contain the immutable RC463 source `supabase/migrations/20261031100000_rc463_trigger_only_security_definer_acl.sql` (blob `83e9650c5be5bedbfe6ee113cb799abb96867031`). Its contract sets an empty search_path for both functions and revokes direct EXECUTE. The current physical state therefore shows the direct-EXECUTE revocation but does **not** fully match RC463's empty-search-path contract for `assign_default_owner_to_unowned_business()`.
+
+The later live ledger row `20261110150618_revoke_public_execute_from_trigger_functions` has no corresponding source file on `main`. Do not assume it is an alias of RC463: the observed live function configuration is not fully equivalent to RC463. Recover the exact deployed SQL/PR artifact and inspect any intervening ALTER FUNCTION statement before deciding whether a forward-only repair is required. Do not replay RC463 out of chronological order.
