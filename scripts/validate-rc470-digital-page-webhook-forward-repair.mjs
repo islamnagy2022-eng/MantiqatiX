@@ -25,7 +25,7 @@ assert.ok(workflow.includes("supabase/tests/rc431_digital_page_payment_fixture.s
 assert.ok(workflow.includes("20261009010000_rc424_atomic_digital_page_payment_webhook.sql"));
 assert.ok(workflow.includes(migrationPath));
 assert.ok(workflow.includes("supabase/tests/rc431_digital_page_payment_integration.sql"));
-assert.ok(forward.includes(migrationPath));
+assert.ok(forward.includes("supabase/migrations/**"));
 assert.ok(forward.includes("supabase/tests/rc470_digital_page_webhook_forward_repair.sql"));
 assert.ok(test.includes("RC470_SEARCH_PATH_NOT_EMPTY"));
 assert.ok(test.includes("RC470_ACL_CONTRACT_FAILED"));
