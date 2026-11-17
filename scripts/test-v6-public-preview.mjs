@@ -20,10 +20,16 @@ const mimeTypes = {
   '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.ico': 'image/x-icon', '.woff2': 'font/woff2',
 };
 async function waitForImageReadiness(page) {
+  // Force lazy images to begin loading before the full-page visual audit.
+  await page.evaluate(() => {
+    for (const image of Array.from(document.images)) {
+      if (image.loading === "lazy") image.loading = "eager";
+    }
+  });
   await page.waitForFunction(
     () => Array.from(document.images).every((image) => image.complete),
     null,
-    { timeout: 15000 },
+    { timeout: 30000 },
   );
   await page.evaluate(async () => {
     await Promise.all(Array.from(document.images).map((image) =>
