@@ -2638,3 +2638,13 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 
 - A wider repository search found the same fabricated location fallback in the claimed-owner directory profile editor. Fixed owner form defaults/hydration, required both fields in the owner form, and added server-side `LOCATION_REQUIRED` validation to `UPDATE_OWNED_LISTING`.
 - Regression validator now covers platform-admin and claimed-owner edit surfaces. Existing owner authorization, claim state, metadata allowlist and publication checks remain unchanged.
+
+
+## 2026-11-17 — Pass 191–230
+
+- Reviewed public directory metadata allowlist and URL-bearing metadata handling.
+- Added HTTPS-only sanitizer for logo/cover/website/booking/profile image URLs; added behavior tests for accepted HTTPS and rejected HTTP/javascript/data URLs.
+- Extended the incremental-import validator to enforce the public URL contract.
+- Rechecked owner partial-update location preservation, draft-only import staging and the distinct source-evidence publication gate.
+- Identified the previous contract failure as a stale-head JavaScript regex parse failure; current branch source has corrected regex syntax. Fresh CI for the final head is still required.
+- Claim approval/rejection transactionality remains unresolved. No production deployment or database/auth/security-policy mutation.
