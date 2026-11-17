@@ -1,19 +1,34 @@
 # Latest execution checkpoint — 2026-11-18 — Pass 301–330 directory contact consent
 
-**Current main:** `ae090081015b0c3af410fb6ee114165f300b1bba` (PR #757 merged).  
-**Latest candidate:** `fix/directory-contact-consent-20261118`, final checked head `a9946412e0d004dd990a9fa54e35a2fcfa1493f3`.  
+**Current main:** `5d9fd1dbe0b30f8a0274979778b3ed19f07939f4`.  
+**PR #757:** merged; RC472 source is on main.  
+**Current candidate:** `fix/directory-contact-consent-20261118` / PR #758; exact-head review and CI are pending.  
 **Full Production release:** **BLOCKED / NOT CERTIFIED**.
 
-- PR #757 (RC472 transactional directory claim review) merged to main as `ae090081015b0c3af410fb6ee114165f300b1bba`.
-- Main post-merge checks passed: RC472 PostgreSQL integration + two-session concurrency + Deno; migration uniqueness; forward migration replay from the captured Production schema checkpoint; Primary Catalog Frontend build, employee/RBAC PostgreSQL and dashboard browser E2E; backend-only module, RC471, privacy, RC425, SMM and production health checks.
-- GitHub Pages deployment run [44200224475](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/44200224475) succeeded. It verified the deployed V6 root, retained `/legacy/`, V6 Preview alias, dashboard/mobile/QR routes and desktop/mobile browser checks.
-- Production Supabase migration ledger remains at `20261110150618`; RC472 is merged source only and has not been applied to Production. The `directory-listings` Edge Function has not been deployed from RC472.
-- Read-only public-directory audit: 869 published rows; 869 have primary phone, 178 secondary phone, 869 exact address; zero existing directory contact-consent metadata flags; 868 UNCLAIMED, zero CLAIMED. No row-level personal data was selected.
-- RC473 candidate adds a private, forced-RLS consent registry and fail-closed projection for phone, secondary phone, exact address and precise map URL; public free-text search no longer probes hidden contact fields; address filtering requires active consent. Claimed owners receive separate consent controls in the existing page.
-- Focused RC473 PostgreSQL + source-contract + Deno + frontend workflow passed on intermediate head `3bb3820045ff8bde9fd72d97e044cf7256765051`. Latest head `a9946412e0d004dd990a9fa54e35a2fcfa1493f3` is undergoing a fresh focused and cross-module CI run; do not merge until final-head checks pass.
-- Source rights remain unresolved across all 869 published rows: Production permission-evidence registry is empty and no listing references approved evidence. The `dalil140.com` host accounts for 746 rows (the single label `Dalil140 — دليل عام غير رسمي` accounts for 497); Google Maps URLs account for 49. A public URL is not commercial republication permission. Do not resume restricted-source bulk ingestion without dataset-specific written permission/licence.
+- PR #757 (RC472 transactional directory claim review) merged as `ae090081015b0c3af410fb6ee114165f300b1bba`. Follow-up main commit `5d9fd1d` adds regression coverage for legacy OWNER wildcard permissions, ensuring the approval transaction normalizes `["*"]` into explicit least-privilege capabilities.
+- Post-merge main checks passed for RC472 integration/concurrency, forward migration replay from the captured Production checkpoint, migration uniqueness, Primary Catalog Frontend build, employee/RBAC PostgreSQL, dashboard browser E2E, cross-module security and Pages deployment. GitHub Pages deployment run [44200224475](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/44200224475) verified V6 root, `/legacy/`, V6 Preview, dashboard/mobile/QR routes and deployed-origin browser checks.
+- Supabase Production ledger remains at `20261110150618`; RC472 migration is not applied. Live `directory-listings` Edge Function is version 16 and lacks the atomic claim RPC. No Production migration or Edge deployment has occurred.
+- Read-only membership audit: 10 business-wide rows; 9 explicit permission objects and 1 legacy OWNER with `["*"]`; zero normalized duplicate groups. A follow-up regression test now covers least-privilege normalization.
+- Read-only public-directory audit: 965 total rows, 869 published, 964 unclaimed; 868 published/unclaimed rows expose phone/address in the current live Edge projection. No contact values were selected.
+- Source permission registry has zero rows and none of the 869 published listings references approved source evidence. The `dalil140.com` host accounts for 746 rows (one source label accounts for 497); Google Maps URLs account for 49; other mixed hosts are present. Public visibility or a URL is not commercial republication permission.
+- Supabase organization is on the Free plan. No verified off-site logical backup or restore point is available in the connected evidence. Do not apply RC472/RC473 or deploy Edge Functions until a backup is exported and restore-verified.
+- RC473 candidate adds private forced-RLS owner consent for PHONE, SECONDARY_PHONE, ADDRESS and PRECISE_LOCATION; fail-closed public projection; search-side-channel controls; owner UI controls and PostgreSQL/source-contract tests. Focused RC473 workflow passed on intermediate head `a9946412e0d004dd990a9fa54e35a2fcfa1493f3`; the legacy doctor-import validator exposed an outdated serializer expectation, which has been updated. Exact-head PR checks are pending after syncing latest main.
 - No Production migration, data mutation, Auth/RLS/GRANT change, Edge deployment or payment action occurred in RC473.
-- **Next:** complete exact-head CI and review RC473; merge only if all required checks pass. Then schedule the separately reviewed RC472 + RC473 Production migration and Edge release with backup/rollback approval; verify deployed-origin privacy and owner-consent behavior. Continue broader P0 gaps from the production gate.
+- **Next:** pass exact-head RC473 + repository-wide checks; merge only after review and all checks pass. Then obtain and restore-verify an off-site backup; coordinate RC472 and RC473 migration/Edge releases; run deployed-origin claim, consent, privacy and revocation smoke tests. Keep source-rights and wider P0 security gates open.
+
+---
+# Latest execution checkpoint — 2026-11-18 — Directory claim atomicity (Pass 271–300)
+
+**Status:** implementation committed to branch; exact-head CI/review pending. Full Production release remains **BLOCKED / NOT CERTIFIED**.
+
+- Current base `main`: `300eb8a0e9808c45dee2eefc77c3e9e19f425559` (PR #756 merged).
+- PR #756 consent-gated public contact/precise-location hardening is merged. Its PR-triggered workflows, including public-contact privacy and the Pages deployment workflow associated with the merge, reported success. The merged change does not deploy Supabase Edge Functions or modify Production DB grants/RLS.
+- New branch: `fix/directory-claim-atomicity-20261118`.
+- Read-only Production inspection: 310 migration rows through `20261110150618`; `20261027090000` is absent from the live ledger; existing `uk_user_biz_branch` permits duplicate NULL branch keys; preflight found 0 duplicate business-wide membership groups.
+- Implemented forward-only RC472 migration and transactional RPC; changed Edge REVIEW_CLAIM to call the RPC; added PostgreSQL fixture/integration tests and CI workflow. Details: `docs/audits/PASS_271_300_DIRECTORY_CLAIM_ATOMICITY_20261118.md`.
+- PostgreSQL integration, two-session concurrency race, and Deno type-check passed on branch head `94fe788fb1f92a902bc613f65c0a7334d9146798`. Remaining repository-wide PR checks and final review are pending.
+- No Supabase development branch was created (no cost-bearing compute started). No Production migration, data mutation, Auth/RLS/GRANT change, Edge deployment, payment action, or Pages deployment occurred from this branch.
+- **Next:** finish remaining repository-wide PR checks; review final diff; merge only when all required checks are green. Then continue remaining public directory contact-consent policy and broader P0 release blockers.
 
 ---
 
