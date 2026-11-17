@@ -1,3 +1,19 @@
+# Latest execution checkpoint — 2026-11-18 — PR #757 merged; Production parity gates
+
+**Status:** GitHub source and website are deployed. Supabase RC472 database/Edge release remains **BLOCKED / NOT CERTIFIED**.
+
+- Main commit: `ae090081015b0c3af410fb6ee114165f300b1bba`; PR #757 merged.
+- Main-commit CI: all applicable checks passed, including Directory Claim Atomicity, forward migration chain replay from the captured Production checkpoint, Migration Version Uniqueness, Primary Catalog Frontend Validation, Production Health Monitor, and cross-module security/contract checks.
+- GitHub Pages deploy completed successfully. V6 root, legacy catalog rollback path, V6 preview alias and deployed-origin browser checks all passed.
+- Supabase Production remains migration `20261110150618`; RC472 is absent. Live `directory-listings` Edge Function is version 16 and does not contain the atomic claim RPC. No Production schema/data/Auth/RLS/GRANT/Edge mutation occurred.
+- Read-only membership parity: 10 business-wide `branch_id IS NULL` rows; 9 permission objects, 1 legacy `OWNER` row with `["*"]`; zero normalized duplicate groups. A follow-up regression test now ensures RC472 converts the legacy wildcard into explicit least-privilege owner permissions.
+- Public-directory privacy assessment: 965 records total; 869 published; 964 unclaimed; 868 published/unclaimed rows expose a phone and address; source-permission evidence registry contains zero rows. No contact values were extracted. See `docs/audits/PASS_301_320_POST_MERGE_PARITY_AND_DIRECTORY_PRIVACY_20261118.md`.
+- Organization plan is Supabase Free. There is no connected evidence of a verified off-site backup or restore point. Do not apply RC472 or deploy the Edge Function until a logical backup is exported and restore-verified.
+- Current follow-up branch: `test/rc472-legacy-permission-normalization-20261118`; focused exact-head CI and PR pending.
+- **Next:** pass the legacy permission normalization test; make a deliberate tested decision for imported/unclaimed contact disclosure; produce/restore-verify an off-site database backup; then coordinate the RC472 migration with `directory-listings` Edge deployment and post-release smoke tests.
+
+---
+
 # Latest execution checkpoint — 2026-11-18 — Directory claim atomicity (Pass 271–300)
 
 **Status:** implementation committed to branch; exact-head CI/review pending. Full Production release remains **BLOCKED / NOT CERTIFIED**.

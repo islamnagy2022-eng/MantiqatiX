@@ -2684,3 +2684,16 @@ Read-only Supabase production schema cross-check completed: retrieved definition
 - PR #757 exact-head repository checks: migration collision guard, migration history immutability, migration version uniqueness, directory claim atomicity, public privacy boundary, doctor import contract, SMM deferred contract and Pages validation have passed. Forward migration replay, primary frontend E2E and remaining cross-module checks were still running at this checkpoint.
 - Pages deploy job was explicitly SKIPPED for this pull_request event; no website deployment occurred.
 - No Production migration, Edge Function deployment, RLS/GRANT/Auth change or live data write.
+
+
+## 2026-11-18 — Pass 301–320 — post-merge parity and privacy
+
+- Verified PR #757 merged to main as `ae090081015b0c3af410fb6ee114165f300b1bba`; all applicable main workflows passed, including RC472 disposable migration replay and the claim integration/concurrency test.
+- Verified GitHub Pages deploy passed and deployed-origin V6 root, legacy rollback path, preview alias and browser checks completed successfully.
+- Read-only Supabase parity confirms RC472 is not applied and live `directory-listings` remains version 16 without the new RPC. No Production database or Edge mutation was performed.
+- Read-only membership audit found 10 business-wide memberships; one legacy OWNER uses permissions array `["*"]`. Added a regression test to assert approval normalizes it to explicit owner capabilities rather than retaining wildcard rights.
+- Public directory aggregate: 965 total listings, 869 published, 964 unclaimed; 868 published/unclaimed records expose phone and address. The source-permission evidence registry currently has 0 rows. No contact values were read.
+- Supabase organization is on Free plan; no connected evidence of a verified off-site backup or restore artifact exists. Production schema/Edge rollout remains blocked until backup/restore is verified.
+- Security advisor snapshot: 9 RLS-enabled tables without direct policies (service-role-only design on directory tables), 65 authenticated-executable SECURITY DEFINER functions, and one anon-executable targeted-ad projection requiring a focused review. Health advisor had no lints.
+- Next: pass legacy wildcard normalization regression; decide and test unclaimed public directory contact disclosure; obtain off-site backup + restore evidence; coordinate RC472 migration and Edge release.
+
