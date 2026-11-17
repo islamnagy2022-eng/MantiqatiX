@@ -1,8 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Product } from '../../types';
-
-const CATALOG_ITEM_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}catalog-item-placeholder.svg`;
+import { resolveDefaultImage } from '../../utils/defaultImages';
 import { filterProducts, formatPrice } from '../../utils/rules';
 import {
   Search,
@@ -277,7 +276,15 @@ export const CatalogSection: React.FC = () => {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     onError={(e) => {
                       const image = e.currentTarget;
-                      if (!image.src.endsWith('/catalog-item-placeholder.svg')) image.src = CATALOG_ITEM_PLACEHOLDER;
+                      if (image.dataset.defaultFallbackApplied !== 'true') {
+                        image.dataset.defaultFallbackApplied = 'true';
+                        image.src = resolveDefaultImage({
+                          name: product.name,
+                          description: product.description,
+                          category: product.category,
+                          kind: product.type === 'service' ? 'service' : 'product',
+                        });
+                      }
                     }}
                   />
 
