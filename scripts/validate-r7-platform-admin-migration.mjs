@@ -7,9 +7,9 @@ const callers = read("../supabase/tests/r7_platform_admin_helper_callers_fixture
 const integration = read("../supabase/tests/r7_platform_admin_helper_callers_integration.sql");
 const financialReportTest = read("../supabase/tests/mantigo_financial_report_live_columns.sql");
 const workflow = read("../.github/workflows/mantigo-platform-admin-scope.yml");
-const workflowExecutionOrder = workflow.split("\\n")
+const workflowExecutionOrder = workflow.split("\n")
   .filter((line) => line.includes('docker exec "$pg_container"') && line.includes("psql"))
-  .join("\\n");
+  .join("\n");
 
 const checks = [
   ["financial report uses live ledger columns", /sum\(l\.gross_amount\)/.test(migration) && /sum\(l\.captain_net_amount\)/.test(migration) && !/sum\(l\.amount\)|sum\(l\.captain_amount\)/.test(migration)],
