@@ -124,7 +124,7 @@ Deno.serve(async (req: Request) => {
       console.warn("public activity module settings unavailable", platformSettingsError.message);
     } else {
       try {
-        activityModuleOverrides = sanitizeActivityModuleOverrides(platformSettings?.settings?.activityModuleOverrides || {});
+        activityModuleOverrides = Object.fromEntries(Object.entries(sanitizeActivityModuleOverrides(platformSettings?.settings?.activityModuleOverrides || {})));
         activityModuleOverridesAvailable = true;
       } catch {
         console.warn("public activity module settings failed validation");
