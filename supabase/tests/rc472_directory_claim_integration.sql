@@ -165,3 +165,16 @@ BEGIN
   END IF;
 END;
 $test$;
+
+
+-- Two independent pending claims target the same business. The concurrency
+-- runner races them in separate PostgreSQL sessions after this setup.
+INSERT INTO public.businesses(id,tenant_id,organization_id,status,settings)
+VALUES ('20000000-0000-4000-8000-000000000005','TENANT-1','ORG-1','ACTIVE',
+        '{"bizcatalog":{"paymentStatus":"paid","paymentConfirmedByAdmin":true}}');
+INSERT INTO public.public_directory_listings(id,claim_status,claimed_user_id) VALUES
+  ('30000000-0000-4000-8000-000000000006','CLAIM_PENDING','10000000-0000-4000-8000-000000000004'),
+  ('30000000-0000-4000-8000-000000000007','CLAIM_PENDING','10000000-0000-4000-8000-000000000005');
+INSERT INTO public.directory_listing_claim_requests(id,listing_id,user_id,status) VALUES
+  ('40000000-0000-4000-8000-000000000006','30000000-0000-4000-8000-000000000006','10000000-0000-4000-8000-000000000004','PENDING'),
+  ('40000000-0000-4000-8000-000000000007','30000000-0000-4000-8000-000000000007','10000000-0000-4000-8000-000000000005','PENDING');
