@@ -3,33 +3,32 @@
   "project": "moyhiluyhjsujhwlyeuu",
   "status": "BLOCKED",
   "verified": false,
-  "live_ledger_last_version": "20261101140105",
-  "live_ledger_last_name": "directory_source_permission_evidence",
+  "live_ledger_last_version": "20261110150618",
+  "live_ledger_last_name": "revoke_public_execute_from_trigger_functions",
   "rc424_source_filename_version": "20261009010000",
   "source_ledger_identity_reconciled": true,
   "required_release_migrations_applied": false,
   "chronological_replay": "PASS — on 2026-11-06, run 42271053737 restored the captured schema-only checkpoint 20261008222845 and applied 76 forward migrations in timestamp order in a fresh disposable local Supabase instance through 20261101150000. RC117, owner-profile persistence, RC455/RC456 commission previews and synthetic Tenant A/B isolation passed. Production effect NONE. This is not a genuine data backup/restore rehearsal.",
   "latest_candidate_replay": {
     "status": "PASS",
-    "run_id": 42271053737,
-    "checked_at": "2026-11-06",
+    "checked_at": "2026-11-17",
+    "pr": 742,
     "checkpoint_version": "20261008222845",
-    "forward_migrations_applied": 76,
-    "source_head": "a7df3493460c77a28ef117ec9716bb369cf684a0",
-    "source_branch": "feat/v6-r5-preview-foundation-20261106",
-    "result": "All 76 forward migrations after the captured schema-only checkpoint completed in timestamp order in the isolated disposable Supabase instance. RC117 default-image/activity-admin, owner-profile persistence, RC455/RC456 commission integration and reciprocal synthetic Tenant A/B isolation assertions passed.",
-    "production_effect": "NONE — no Production schema, data, grants, Auth, Edge Functions, payments, wallets or migration ledger rows were changed.",
-    "limitation": "This is an isolated schema-checkpoint replay, not a genuine backup restore. It does not establish recovery of Production customer data, Auth, Storage objects/media, Edge Functions, secrets, or measured RPO/RTO, and it does not authorize Production migrations."
+    "forward_migrations_applied": 80,
+    "source_branch": "integration/rc464-rc467-current-main-20261117",
+    "result": "Exact-head 14/14 PR workflows succeeded, including ordered forward migration chain replay and RC464–RC467 isolated PostgreSQL authorization tests.",
+    "production_effect": "NONE — no Production schema/data/grants/Auth/Edge Functions/payments/wallets or migration ledger rows were changed.",
+    "limitation": "This is an isolated schema-checkpoint replay, not a genuine backup restore; RPO/RTO and production customer/Auth/Storage recovery remain unverified."
   },
   "tenant_isolation_tests": "PASS — run 42271053737 repeated synthetic Tenant A/B read and mutation checks for orders/payment intents. Tenant A could read its own rows but not Tenant B private rows and could not update Tenant B rows; reciprocal Tenant B restrictions also passed. This is a limited synthetic contract test, not complete adversarial Production RLS certification.",
-  "payment_finance_e2e": "NOT VERIFIED",
-  "backup_restore_rehearsal": "NOT VERIFIED",
-  "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/42271053737",
-  "checked_at": "2026-11-06",
-  "reason": "Catalog pilot is deployed and deployed-origin browser tests pass on main commit fe9e9f57b780b01c49940349dccf3bbac67efaae. Full platform production remains BLOCKED / NOT CERTIFIED: 42 required source-version identifiers remain absent from the 309-row live ledger; 32 of 60 selected physical object contracts remain non-PASS; six critical payment/order/finance Edge Functions have source drift; RC435/RC439 and RC449A/RC450 contracts remain unresolved; Auth hardening, adversarial RLS/SECURITY DEFINER tests, payment/finance E2E, backup/restore/RPO/RTO, rollback, and SMM negative runtime evidence remain outstanding.",
+  "payment_finance_e2e": "NOT VERIFIED — read-only inspection found zero rows in public.tenant_payment_methods; provider_secrets were not selected or inspected; sandbox secret presence is not exposed by the available connector; no payment, webhook replay, refund, settlement or finance E2E was initiated. The seven live Edge Function source mismatches must be reconciled before a meaningful sandbox run.",
+  "backup_restore_rehearsal": "NOT VERIFIED — the available Supabase connector exposes no backup inventory or restore-rehearsal operation. No backup was restored, no recovery project was created, and RPO/RTO remain unmeasured.",
+  "evidence_ref": "docs/audits/PRODUCTION_RECONCILIATION_20261114.md",
+  "checked_at": "2026-11-17",
+  "reason": "BLOCKED / NOT CERTIFIED: live migration ledger has 310 rows through 20261110150618 and 0/42 required exact migration identifiers; current 60-object physical refresh is 30/60 present and 30/60 absent; seven critical Edge Function entrypoints differ from main; payment/finance E2E and backup/restore rehearsal are unverified; RC117 server-side default-image triggers/columns are absent and its historical marketing_services backfill can overwrite custom images; R7 archive (11) still has P0 authentication, persistence, secret and payment-state defects. RC464–RC467 are merged as source and passed isolated replay only; no Production migration or Edge deployment was performed.",
   "edge_function_contracts": "PARTIAL — six critical live Edge Function entrypoints differ from main. Financial-journal current main source calls post_financial_journal_backend, which is the RPC name/signature defined by canonical RC450; the production blocker is that RC449A/RC450 are absent and the live RPC body/ACL is old, while deployed Edge v3 still calls the legacy post_financial_journal with wildcard CORS. Do not deploy payment/finance functions individually until schema, grants, sandbox E2E and rollback are verified.",
   "smm_gateway_parity": "PARTIAL — live SMM gateway remains ACTIVE v13, verify_jwt=true, and source matches main with SMM_INITIAL_LAUNCH_DEFERRED=true. Anonymous/authenticated negative runtime tests still unverified; keep deferred.",
-  "auth_security_settings": "NOT VERIFIED — leaked-password protection and Auth security settings require owner dashboard evidence; no setting change made.",
+  "auth_security_settings": "NOT VERIFIED — current connector does not expose project Auth security configuration. The prior 2026-11-06 advisor snapshot reported leaked-password protection disabled; owner-dashboard confirmation and remediation evidence are still required. No Auth settings were changed.",
   "rc424_reconciliation": {
     "ledger_version": "20261008222845",
     "ledger_name": "rc424_atomic_digital_page_payment_webhook",
@@ -43,7 +42,7 @@
     "resolution": "Read-only comparison of supabase_migrations.schema_migrations.statements[1] against the RC424 source file matched exactly. Preserve the applied ledger version; document the filename timestamp difference as a legacy version alias instead of rewriting migration history."
   },
   "rc424_reconciliation_evidence_checked_at": "2026-10-11",
-  "live_ledger_inventory_count": 309,
+  "live_ledger_inventory_count": 310,
   "latest_live_ledger_reconciliation": {
     "status": "VERIFIED",
     "checked_at": "2026-10-28",
@@ -117,10 +116,10 @@
   },
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
-    "checked_at": "2026-11-06T18:33:45Z",
-    "method": "Read-only Supabase list_migrations at 2026-11-06 18:33 UTC returned 309 records through 20261101140105; the current inventory was compared to all 42 required release source-version identifiers and returned 0 exact matches. Physical effect checks remain separate; aliases and forward repairs must not be replayed as duplicate SQL.",
-    "live_ledger_count": 309,
-    "latest_live_version": "20261101140105",
+    "checked_at": "2026-11-17",
+    "method": "Read-only Supabase list_migrations returned 310 records through 20261110150618; compared to all 42 canonical required release source-version identifiers.",
+    "live_ledger_count": 310,
+    "latest_live_version": "20261110150618",
     "expected_migration_versions": 42,
     "found_in_live_ledger": 0,
     "required_versions": [
@@ -212,12 +211,12 @@
       "20261031100000"
     ],
     "recorded_required_versions": [],
-    "interpretation": "The fresh live migration inventory contains none of the 42 required exact source-version identifiers, including RC463 (20261031100000). This exact version-identity result does not prove every corresponding physical effect is absent. Do not fabricate ledger rows, apply missing migrations blindly, or treat the isolated RC463 rehearsal as Production approval."
+    "interpretation": "0/42 exact required migration versions are present. This is an identity check, not proof that every physical effect is absent; object presence is separately refreshed at 30/60. Do not fabricate ledger rows or replay historical migrations out of order."
   },
   "critical_edge_function_source_parity_check": {
-    "status": "DRIFT_FOUND",
-    "checked_at": "2026-11-04",
-    "method": "Read-only retrieval of deployed Supabase Edge Function entrypoints and exact UTF-8 content comparison against main. No mismatched critical payment/finance function was deployed.",
+    "status": "HISTORICAL_SNAPSHOT_SUPERSEDED",
+    "checked_at": "2026-11-14T05:04:22.840Z",
+    "method": "Read-only get_edge_function retrieval and exact UTF-8 index.ts comparison against current main; deployed bundle SHA-256 and repository blob SHA recorded. No Edge Function was deployed.",
     "functions": [
       {
         "slug": "order-create",
@@ -225,7 +224,11 @@
         "verify_jwt": true,
         "exact_match": false,
         "observed_difference": "Live entrypoint lacks main's bounded streaming request-body limit, strict body/JSON validation, branch-scoped membership lookup, duplicate-option checks, and option-to-item relationship guard.",
-        "status": "BLOCKED"
+        "status": "BLOCKED",
+        "live_bundle_sha256": "16f9b8bb687c33afeca14d85cb4c43af9948bd8b3ef3178990cc76ca1abea782",
+        "repo_blob_sha": "3a6777683e537dcff1ad30cbd1c89e431f77d926",
+        "live_entrypoint_chars": 10083,
+        "repo_entrypoint_chars": 13988
       },
       {
         "slug": "payment-intent",
@@ -233,7 +236,11 @@
         "verify_jwt": true,
         "exact_match": false,
         "observed_difference": "Live entrypoint lacks main's Paymob intent correlation helper and exact cents amount/provider-intent correlation checks.",
-        "status": "BLOCKED"
+        "status": "BLOCKED",
+        "live_bundle_sha256": "d6b8faee1582c73ead440614cbe983114d1e7f31aa50f69795522fb20e737f54",
+        "repo_blob_sha": "c88f62db0d3781f949ca5da77590a04590e8ae7d",
+        "live_entrypoint_chars": 8114,
+        "repo_entrypoint_chars": 10366
       },
       {
         "slug": "paymob-webhook",
@@ -241,7 +248,11 @@
         "verify_jwt": false,
         "exact_match": false,
         "observed_difference": "Live entrypoint lacks main's explicit finite amount guard; callback signature, amount, currency, intent/order binding and replay/idempotency must be revalidated together.",
-        "status": "BLOCKED"
+        "status": "BLOCKED",
+        "live_bundle_sha256": "f26fe1580e66c7f8cb9b885d5bccf4a44e49aa74874b3fe28dd7f9c5ed181cca",
+        "repo_blob_sha": "b7a386d4b4fd7aa74187df7186e9235046ad660f",
+        "live_entrypoint_chars": 11538,
+        "repo_entrypoint_chars": 12665
       },
       {
         "slug": "digital-page-payment-intent",
@@ -249,7 +260,11 @@
         "verify_jwt": true,
         "exact_match": false,
         "observed_difference": "Live entrypoint lacks the Paymob correlation helper present in main.",
-        "status": "BLOCKED"
+        "status": "BLOCKED",
+        "live_bundle_sha256": "8aa3d2e9c025e7b74d4d1847e8a6744bc84a9ded7cfc0c721f9604efd177af4b",
+        "repo_blob_sha": "0d0476b0120996d83fff1299e06ea2c037e62e8e",
+        "live_entrypoint_chars": 5345,
+        "repo_entrypoint_chars": 6532
       },
       {
         "slug": "subscription-payment-intent",
@@ -257,7 +272,11 @@
         "verify_jwt": true,
         "exact_match": false,
         "observed_difference": "Live entrypoint materially differs from main and lacks Paymob intent correlation plus encrypted checkout-secret guards.",
-        "status": "BLOCKED"
+        "status": "BLOCKED",
+        "live_bundle_sha256": "4466345787ea6b10a29b1dd63e9f0ab3cae640e9bb4d8ecb6d09445809e077e5",
+        "repo_blob_sha": "c702d7a70ea85727ec5e14695ebf8fb26158514e",
+        "live_entrypoint_chars": 5196,
+        "repo_entrypoint_chars": 11100
       },
       {
         "slug": "financial-journal",
@@ -265,15 +284,49 @@
         "verify_jwt": true,
         "exact_match": false,
         "observed_difference": "Live v3 uses wildcard CORS and calls legacy post_financial_journal; current main uses allow-listed CORS and calls post_financial_journal_backend. The main RPC contract matches canonical RC450, not the earlier RC436-only alternative. Live production lacks RC449A/RC450; the old live post_financial_journal_backend RPC has no service_role EXECUTE and requires p_user_id=auth.uid(), so it is incompatible with the trusted Edge service-role flow.",
-        "status": "BLOCKED"
+        "status": "BLOCKED",
+        "live_bundle_sha256": "79ee18d0544e7cab8fe33fe84c27a5017d1163f411eb5b9e07b99fd79e16e366",
+        "repo_blob_sha": "49706589cc6d77af713ae44bcc0818066de72243",
+        "live_entrypoint_chars": 1591,
+        "repo_entrypoint_chars": 3387
       },
       {
         "slug": "directory-listings",
-        "live_version": 8,
+        "live_version": 16,
         "verify_jwt": false,
-        "exact_match": true,
-        "observed_difference": "None. Version 8 now exactly matches main after removal of the retired catalog.tagerflow.com origin from the CORS allowlist. Protected POST actions continue to verify bearer tokens manually.",
-        "status": "PASS_SOURCE_PARITY"
+        "exact_match": false,
+        "observed_difference": "Live v16 differs from current main. It adds public metadata allowlisting/sanitization and derives an is_verified boolean from verified_by while stripping the UUID from public responses. However, verified_by is set by the owner-claim flow, not by professional-registration verification; do not port that ambiguous badge without an explicit product definition. Its two helper files match main, but index.ts differs. Security gap: BULK_IMPORT requires an approved sourcePermissionEvidenceId and records source permission metadata, but honors a requested PUBLISHED status instead of staging-only. More importantly, direct UPSERT_LISTING can publish a doctor with a valid phone and no source permission evidence. Current main has a staging-only bulk-import rule and requires current approved evidence for new doctor publication, draft-to-public transitions, and source changes. The live evidence table itself enforces approved_by/approved_at and approved_by != created_by. Reconcile by preserving live public sanitization/verified badge and evidence workflow while porting main's stricter publication gate; do not deploy main wholesale or keep the direct bypass.",
+        "status": "BLOCKED",
+        "live_bundle_sha256": "13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0",
+        "repo_blob_sha": "a501fa4c8f9e1a97aa3b1a80745951e2f04e9877",
+        "live_entrypoint_chars": 46907,
+        "repo_entrypoint_chars": 47755,
+        "source_snapshot_path": "docs/audits/snapshots/directory-listings-v16-live-index.ts.txt",
+        "file_parity": [
+          {
+            "name": "index.ts",
+            "exact_match": false,
+            "live_chars": 46907,
+            "repo_blob_sha": "a501fa4c8f9e1a97aa3b1a80745951e2f04e9877",
+            "snapshot_path": "docs/audits/snapshots/directory-listings-v16-live-index.ts.txt"
+          },
+          {
+            "name": "pagination-filter.mjs",
+            "exact_match": true,
+            "repo_blob_sha": "07e73486a8552e98f90b690a89035a426caa0ef8"
+          },
+          {
+            "name": "doctor-import-contract.mjs",
+            "exact_match": true,
+            "repo_blob_sha": "097e39b2f39912e151b24368f0c049e9afadd060"
+          }
+        ],
+        "snapshot_secret_scan": {
+          "jwt_literals": 0,
+          "provider_secret_literals": 0,
+          "bearer_literals": 0,
+          "private_key_blocks": 0
+        }
       },
       {
         "slug": "smm-gateway",
@@ -281,7 +334,11 @@
         "verify_jwt": true,
         "exact_match": true,
         "observed_difference": "Source has SMM_INITIAL_LAUNCH_DEFERRED=true and returns SMM_DEFERRED before processing; runtime anonymous/authenticated negative requests still not verified.",
-        "status": "DEFERRED_NOT_RUNTIME_VERIFIED"
+        "status": "DEFERRED_NOT_RUNTIME_VERIFIED",
+        "live_bundle_sha256": "a45cee9f5c90beba2c2409ba4fe2927f5be3df4965fb3929f5b7d467b3121b72",
+        "repo_blob_sha": "6f3fe066e2b99d7d4f4725b846beae988f509077",
+        "live_entrypoint_chars": 20040,
+        "repo_entrypoint_chars": 20040
       },
       {
         "slug": "api",
@@ -289,7 +346,11 @@
         "verify_jwt": false,
         "exact_match": true,
         "observed_difference": "Entry point matches main; route-level bearer-token authorization still requires runtime tests.",
-        "status": "PASS_SOURCE_PARITY"
+        "status": "PASS_SOURCE_PARITY",
+        "live_bundle_sha256": "7fadbd2f2556a5af308b9a2bde9ade307cacec36950398aa655adf4ac48c677f",
+        "repo_blob_sha": "48f49b775b6f590402a3505d8a6696882532d53c",
+        "live_entrypoint_chars": 16432,
+        "repo_entrypoint_chars": 16432
       },
       {
         "slug": "order-status-update",
@@ -297,7 +358,11 @@
         "verify_jwt": true,
         "exact_match": true,
         "observed_difference": "Entry point matches main; real order-state and branch authorization E2E remains open.",
-        "status": "PASS_SOURCE_PARITY"
+        "status": "PASS_SOURCE_PARITY",
+        "live_bundle_sha256": "c8c41f70399909b9ea27ea74ccd1661fb5aeac7f15e63fd15449ba6de33ae1e6",
+        "repo_blob_sha": "47de61413d6867f39a40c9029c2cf7cbd1f07775",
+        "live_entrypoint_chars": 1986,
+        "repo_entrypoint_chars": 1986
       },
       {
         "slug": "payment-webhook",
@@ -305,10 +370,14 @@
         "verify_jwt": false,
         "exact_match": true,
         "observed_difference": "Entry point matches main; callback signature verification and idempotent runtime processing remain open.",
-        "status": "PASS_SOURCE_PARITY"
+        "status": "PASS_SOURCE_PARITY",
+        "live_bundle_sha256": "1a415557f2fccaec6704fcc01a4b71dbaedc95b5f9c611fef23781c4b18d8642",
+        "repo_blob_sha": "1fd9f87d9b8628ed0b4468ee6d49201548548738",
+        "live_entrypoint_chars": 3356,
+        "repo_entrypoint_chars": 3356
       }
     ],
-    "interpretation": "Six critical payment/order/finance entrypoints still differ from main and must not be deployed individually. They are coupled to absent or drifted migration/ACL contracts; stage them together with the matching schema and real Paymob sandbox E2E. directory-listings is now source-parity aligned at v8."
+    "interpretation": "Historical 2026-11-14 snapshot. Superseded by critical_edge_function_source_parity_check_20261117, which confirms seven live entrypoints differ from current main, including directory-listings v16."
   },
   "financial_journal_runtime_prerequisite_check": {
     "status": "BLOCKING_DRIFT",
@@ -377,526 +446,551 @@
   },
   "required_release_object_presence_check": {
     "status": "MIXED_DRIFT_READ_ONLY_REFRESHED",
-    "checked_at": "2026-11-04",
-    "method": "Fresh read-only PostgreSQL catalog presence query (pg_class/pg_proc/pg_attribute/pg_trigger) against all 60 selected release-object contracts; presence is not treated as body/ACL/runtime verification.",
+    "checked_at": "2026-11-17",
+    "method": "Read-only PostgreSQL catalog inspection using to_regprocedure, to_regclass, pg_proc, pg_trigger, pg_attribute and pg_constraint.",
     "observed": [
-      {
-        "migration": "RC425",
-        "object": "public.mantigo_payment_provider_events",
-        "exists": false,
-        "detail": "Required provider-event idempotency table absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC425",
-        "object": "public.process_verified_mantigo_payment_backend",
-        "exists": false,
-        "detail": "Atomic MantiGo payment backend RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC426",
-        "object": "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
-        "exists": false,
-        "detail": "Expected five-argument claim-token signature absent; only old four-argument signature exists with search_path=public, pg_temp and authenticated EXECUTE.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC427",
-        "object": "public.uq_payment_intents_one_active_per_order",
-        "exists": false,
-        "detail": "Partial unique index for one active payment intent per order absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC428",
-        "object": "public.process_verified_provider_payment_failure",
-        "exists": false,
-        "detail": "Atomic provider-failure webhook RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC429",
-        "object": "public.process_verified_subscription_payment_failure",
-        "exists": false,
-        "detail": "Atomic subscription-failure webhook RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC430",
-        "object": "public.process_verified_subscription_payment_backend",
-        "exists": false,
-        "detail": "Atomic subscription-success backend RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC431",
-        "object": "public.process_verified_digital_page_payment_backend",
-        "exists": true,
-        "detail": "Live function exists and service_role EXECUTE is present, but live search_path is public, pg_temp (source expects empty search_path); full body/ACL contract reconciliation and runtime payment/webhook E2E remain open.",
-        "status": "BLOCKED",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC432",
-        "object": "public.smm_wallet_transactions_reference_type_uidx",
-        "exists": false,
-        "detail": "Wallet idempotency unique index absent although the three wallet RPC names exist.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC434",
-        "object": "public.receive_purchase_stock_atomic_backend",
-        "exists": false,
-        "detail": "Atomic ERP receipt RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC438",
-        "object": "public.create_purchase_order_with_lines_backend",
-        "exists": false,
-        "detail": "Atomic purchase-order creation-with-lines RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC438",
-        "object": "public.update_purchase_order_status_backend(varchar,varchar)",
-        "exists": true,
-        "detail": "Live two-argument function exists, but search_path=public and ACL is postgres-only; authenticated and service_role lack EXECUTE. RC438 source contract is not met.",
-        "status": "BLOCKED",
-        "physical_found_as": "FUNCTION",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC113",
-        "object": "public.platform_custom_roles",
-        "exists": true,
-        "detail": "Live relation confirmed. RLS and FORCE RLS are enabled; anon/authenticated/service_role have no direct table privileges. Present through the applied dashboard forward bundle.",
-        "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC113",
-        "object": "public.platform_role_assignments",
-        "exists": true,
-        "detail": "Live relation confirmed. RLS and FORCE RLS are enabled; anon/authenticated/service_role have no direct table privileges. Present through the applied dashboard forward bundle.",
-        "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC113",
-        "object": "public.mnty_platform_admin_list_custom_roles",
-        "exists": true,
-        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check observed.",
-        "status": "PASS",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC113",
-        "object": "public.mnty_platform_admin_upsert_custom_role",
-        "exists": true,
-        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check and audit write observed.",
-        "status": "PASS",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC113",
-        "object": "public.mnty_platform_admin_assign_custom_role",
-        "exists": true,
-        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check, scoped assignment and audit write observed.",
-        "status": "PASS",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC114",
-        "object": "public.business_job_positions",
-        "exists": true,
-        "detail": "Live relation confirmed. RLS and FORCE RLS are enabled; anon/authenticated/service_role have no direct table privileges. Present through the applied dashboard forward bundle.",
-        "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
-      },
       {
         "migration": "RC114",
         "object": "public.business_employees",
         "exists": true,
-        "detail": "Live relation confirmed. RLS and FORCE RLS are enabled; anon/authenticated/service_role have no direct table privileges. Present through the applied dashboard forward bundle.",
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-17",
         "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC113",
-        "object": "public.platform_role_assignments_active_unique",
-        "exists": true,
-        "detail": "Live index confirmed; exact index definition is present in pg_catalog.",
-        "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC113",
-        "object": "public.platform_role_assignments_user_scope_idx",
-        "exists": true,
-        "detail": "Live index confirmed; exact index definition is present in pg_catalog.",
-        "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC114",
-        "object": "public.business_employees_email_per_business_unique",
-        "exists": true,
-        "detail": "Live unique index confirmed.",
-        "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC114",
-        "object": "public.business_job_positions_business_active_idx",
-        "exists": true,
-        "detail": "Live index confirmed.",
-        "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
+        "prior_status": "PASS"
       },
       {
         "migration": "RC114",
         "object": "public.business_employees_business_status_idx",
         "exists": true,
-        "detail": "Live index confirmed.",
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-17",
         "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_employees_email_per_business_unique",
+        "exists": true,
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
       },
       {
         "migration": "RC114",
         "object": "public.business_employees_user_active_idx",
         "exists": true,
-        "detail": "Live index confirmed.",
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-17",
         "status": "PASS",
-        "physical_found_as": "RELATION_OR_INDEX",
-        "physical_checked_at": "2026-11-04"
+        "prior_status": "PASS"
       },
       {
-        "migration": "RC114/RC115",
-        "object": "public.mnty_business_employee_position_upsert",
+        "migration": "RC114",
+        "object": "public.business_job_positions",
         "exists": true,
-        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/tenant/business/branch checks and audit write observed.",
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-17",
         "status": "PASS",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "prior_status": "PASS"
       },
       {
-        "migration": "RC114/RC115",
-        "object": "public.mnty_business_employee_upsert",
+        "migration": "RC114",
+        "object": "public.business_job_positions_business_active_idx",
         "exists": true,
-        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/tenant/business/branch checks, permission-ceiling check and audit write observed.",
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-17",
         "status": "PASS",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC115",
-        "object": "public.mnty_platform_has_permission",
-        "exists": true,
-        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, auth.uid/anonymous guard and active scoped membership/role-assignment checks observed.",
-        "status": "PASS",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC115",
-        "object": "public.mnty_platform_admin_list_people",
-        "exists": true,
-        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check observed.",
-        "status": "PASS",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC115",
-        "object": "public.mnty_platform_admin_list_role_assignments",
-        "exists": true,
-        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check observed.",
-        "status": "PASS",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC115",
-        "object": "public.mnty_business_employee_list",
-        "exists": true,
-        "detail": "Live wrapper signature confirmed; delegates to mnty_business_employee_list_scoped, whose body checks auth.uid, anonymous state, active membership, tenant/business/branch scope.",
-        "status": "PASS",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC115",
-        "object": "public.mnty_platform_admin_list_audit",
-        "exists": true,
-        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check observed.",
-        "status": "PASS",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC116/RC117",
-        "object": "public.mnty_platform_admin_list_businesses",
-        "exists": true,
-        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, private.platform_admins actor check observed.",
-        "status": "PASS",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC116/RC117",
-        "object": "public.mnty_platform_admin_manage_business",
-        "exists": true,
-        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, private.platform_admins actor check and audit write observed.",
-        "status": "PASS",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC116",
-        "object": "public.mnty_platform_admin_manage_membership",
-        "exists": true,
-        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, private.platform_admins actor check and audit write observed.",
-        "status": "PASS",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC117",
-        "object": "public.mnty_default_image_url",
-        "exists": false,
-        "detail": "Name-aware default image resolver is absent.",
-        "status": "BLOCKED",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC117",
-        "object": "public.mnty_default_business_images_trigger",
-        "exists": false,
-        "detail": "Business default-image trigger function is absent.",
-        "status": "BLOCKED",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC117",
-        "object": "public.mnty_default_catalog_item_image_trigger",
-        "exists": false,
-        "detail": "Catalog item default-image trigger function is absent.",
-        "status": "BLOCKED",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC117",
-        "object": "public.mnty_default_marketing_service_image_trigger",
-        "exists": false,
-        "detail": "Marketing service default-image trigger function is absent.",
-        "status": "BLOCKED",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "prior_status": "PASS"
       },
       {
         "migration": "RC117",
         "object": "public.businesses.mnty_business_default_images",
         "exists": false,
-        "detail": "Business default-image trigger is absent.",
-        "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
       },
       {
         "migration": "RC117",
         "object": "public.catalog_items.mnty_catalog_item_default_image",
         "exists": false,
-        "detail": "Catalog item default-image trigger is absent.",
-        "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
       },
       {
-        "migration": "RC117",
-        "object": "public.marketing_services.mnty_marketing_service_default_image",
+        "migration": "CURRENT_RECHECK",
+        "object": "public.claim_subscription_provider_intent_creation_backend",
         "exists": false,
-        "detail": "Marketing service default-image trigger is absent.",
-        "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
       },
       {
-        "migration": "RC117",
-        "object": "public.marketing_services.image_url",
+        "migration": "RC438",
+        "object": "public.create_purchase_order_with_lines_backend",
         "exists": false,
-        "detail": "Marketing services image_url column is absent.",
-        "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.create_subscription_payment_intent_claimable_backend",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.erp_purchase_order_lines",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.erp_purchase_order_lines_scope_idx",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.erp_purchase_orders_business_order_number_uidx",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.expire_stale_mantigo_rides_backend",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC426",
+        "object": "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.get_mantigo_admin_dashboard_backend",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.get_mantigo_admin_financial_report_backend",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.journal_entries_tenant_entry_number_uidx",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.journal_entry_lines_entry_line_uidx",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC425",
+        "object": "public.mantigo_payment_provider_events",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
       },
       {
         "migration": "RC117",
         "object": "public.marketing_services.image_source",
         "exists": false,
-        "detail": "Marketing services image_source column is absent.",
-        "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.image_url",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.mnty_marketing_service_default_image",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_business_employee_list",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC114/RC115",
+        "object": "public.mnty_business_employee_position_upsert",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC114/RC115",
+        "object": "public.mnty_business_employee_upsert",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.mnty_can_platform_admin",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_business_images_trigger",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_catalog_item_image_trigger",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_image_url",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_marketing_service_image_trigger",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.mnty_platform_admin_assign_custom_role",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_admin_list_audit",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC116/RC117",
+        "object": "public.mnty_platform_admin_list_businesses",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.mnty_platform_admin_list_custom_roles",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_admin_list_people",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_admin_list_role_assignments",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC116/RC117",
+        "object": "public.mnty_platform_admin_manage_business",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC116",
+        "object": "public.mnty_platform_admin_manage_membership",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.mnty_platform_admin_upsert_custom_role",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_has_permission",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_custom_roles",
+        "exists": true,
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_role_assignments",
+        "exists": true,
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_role_assignments_active_unique",
+        "exists": true,
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_role_assignments_user_scope_idx",
+        "exists": true,
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.post_financial_journal_atomic_backend",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC431",
+        "object": "public.process_verified_digital_page_payment_backend",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC425",
+        "object": "public.process_verified_mantigo_payment_backend",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC428",
+        "object": "public.process_verified_provider_payment_failure",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC430",
+        "object": "public.process_verified_subscription_payment_backend",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC429",
+        "object": "public.process_verified_subscription_payment_failure",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC434",
+        "object": "public.receive_purchase_stock_atomic_backend",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.receive_purchase_stock_with_order_line_backend",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.set_purchase_order_lines_backend",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.settle_mantigo_captain_backend",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC432",
+        "object": "public.smm_wallet_transactions_reference_type_uidx",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC438",
+        "object": "public.update_purchase_order_status_backend(varchar,varchar)",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC427",
+        "object": "public.uq_payment_intents_one_active_per_order",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
       },
       {
         "migration": "RC113",
         "object": "public.ux_user_memberships_user_business_branch_nullsafe",
         "exists": false,
-        "detail": "Membership business/branch NULL-safe idempotency index is absent.",
-        "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.create_subscription_payment_intent_claimable_backend",
-        "exists": false,
+        "physical_checked_at": "2026-11-17",
         "status": "BLOCKED",
-        "detail": "RC435 claimable subscription intent RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.claim_subscription_provider_intent_creation_backend",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC435 atomic provider-claim RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.post_financial_journal_atomic_backend",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC436 atomic journal RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.journal_entry_lines_entry_line_uidx",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC436 journal line uniqueness index absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.journal_entries_tenant_entry_number_uidx",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC436 tenant entry-number uniqueness index absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.erp_purchase_order_lines",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC437 purchase order line table absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.receive_purchase_stock_with_order_line_backend",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC437 line-aware stock receiving RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.set_purchase_order_lines_backend",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC437 purchase order line-management RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.erp_purchase_orders_business_order_number_uidx",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC437 business/order-number uniqueness index absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.erp_purchase_order_lines_scope_idx",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC437 purchase order line scope index absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.mnty_can_platform_admin",
-        "exists": true,
-        "status": "PASS",
-        "detail": "Live catalog signature mnty_can_platform_admin() exists; body, search_path and grants remain separate release checks.",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.get_mantigo_admin_dashboard_backend",
-        "exists": true,
-        "status": "PASS",
-        "detail": "Live catalog signature get_mantigo_admin_dashboard_backend(uuid) exists; privilege and body review remain separate release checks.",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.get_mantigo_admin_financial_report_backend",
-        "exists": true,
-        "status": "PASS",
-        "detail": "Live catalog signature get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz) exists; privilege and body review remain separate release checks.",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.settle_mantigo_captain_backend",
-        "exists": true,
-        "status": "PASS",
-        "detail": "Live catalog signature settle_mantigo_captain_backend(uuid,text,text) exists; privilege and body review remain separate release checks.",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.expire_stale_mantigo_rides_backend",
-        "exists": true,
-        "status": "PASS",
-        "detail": "Live catalog signature expire_stale_mantigo_rides_backend(uuid,integer) exists; privilege and body review remain separate release checks.",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
+        "prior_status": "BLOCKED"
       }
     ],
-    "interpretation": "This is not merely a missing-ledger-row concern: selected effects are physically missing, while some same-named older functions exist with different signatures, ACLs, or search_path. Do not apply the missing files blindly on top of later-dated migrations; the successful isolated replay must be followed by current-schema reconciliation and a rehearsed rollout.",
+    "interpretation": "Current 2026-11-17 refresh confirms 30/60 physical objects present and 30/60 absent. The RC117 default-image helper, three trigger functions, three triggers, and marketing_services image_url/image_source columns are absent. Two physically present payment/order functions remain blocked by contract drift. Do not replay missing historical migrations out of order; use reviewed forward-only repairs.",
     "required_core_object_contracts": 27,
     "present_core_object_contracts": 7,
     "missing_core_object_contracts": 20,
@@ -905,276 +999,296 @@
     "missing_control_center_object_contracts": 33,
     "total_granular_object_contracts": 60,
     "total_missing_granular_object_contracts": 53,
-    "note": "Fresh 2026-11-04 catalog presence query found 30/60 objects physically present and 30/60 absent. Two of the physically present objects (RC431 and RC438 update status) remain non-PASS because their contract/ACL/search_path does not match the reviewed release source. Total non-PASS remains 32.",
+    "note": "2026-11-17 read-only refresh: 30/60 required objects physically present and 30/60 absent; semantic non-PASS remains 32. The marketing_services.image_url column is now confirmed absent, alongside image_source and the three default-image trigger chains.",
     "observed_count": 60,
     "non_pass": [
-      {
-        "migration": "RC425",
-        "object": "public.mantigo_payment_provider_events",
-        "exists": false,
-        "detail": "Required provider-event idempotency table absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC425",
-        "object": "public.process_verified_mantigo_payment_backend",
-        "exists": false,
-        "detail": "Atomic MantiGo payment backend RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC426",
-        "object": "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
-        "exists": false,
-        "detail": "Expected five-argument claim-token signature absent; only old four-argument signature exists with search_path=public, pg_temp and authenticated EXECUTE.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC427",
-        "object": "public.uq_payment_intents_one_active_per_order",
-        "exists": false,
-        "detail": "Partial unique index for one active payment intent per order absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC428",
-        "object": "public.process_verified_provider_payment_failure",
-        "exists": false,
-        "detail": "Atomic provider-failure webhook RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC429",
-        "object": "public.process_verified_subscription_payment_failure",
-        "exists": false,
-        "detail": "Atomic subscription-failure webhook RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC430",
-        "object": "public.process_verified_subscription_payment_backend",
-        "exists": false,
-        "detail": "Atomic subscription-success backend RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC431",
-        "object": "public.process_verified_digital_page_payment_backend",
-        "exists": true,
-        "detail": "Live function exists and service_role EXECUTE is present, but live search_path is public, pg_temp (source expects empty search_path); full body/ACL contract reconciliation and runtime payment/webhook E2E remain open.",
-        "status": "BLOCKED",
-        "physical_found_as": "FUNCTION_NAME",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC432",
-        "object": "public.smm_wallet_transactions_reference_type_uidx",
-        "exists": false,
-        "detail": "Wallet idempotency unique index absent although the three wallet RPC names exist.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC434",
-        "object": "public.receive_purchase_stock_atomic_backend",
-        "exists": false,
-        "detail": "Atomic ERP receipt RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC438",
-        "object": "public.create_purchase_order_with_lines_backend",
-        "exists": false,
-        "detail": "Atomic purchase-order creation-with-lines RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC438",
-        "object": "public.update_purchase_order_status_backend(varchar,varchar)",
-        "exists": true,
-        "detail": "Live two-argument function exists, but search_path=public and ACL is postgres-only; authenticated and service_role lack EXECUTE. RC438 source contract is not met.",
-        "status": "BLOCKED",
-        "physical_found_as": "FUNCTION",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC117",
-        "object": "public.mnty_default_image_url",
-        "exists": false,
-        "detail": "Name-aware default image resolver is absent.",
-        "status": "BLOCKED",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC117",
-        "object": "public.mnty_default_business_images_trigger",
-        "exists": false,
-        "detail": "Business default-image trigger function is absent.",
-        "status": "BLOCKED",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC117",
-        "object": "public.mnty_default_catalog_item_image_trigger",
-        "exists": false,
-        "detail": "Catalog item default-image trigger function is absent.",
-        "status": "BLOCKED",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "migration": "RC117",
-        "object": "public.mnty_default_marketing_service_image_trigger",
-        "exists": false,
-        "detail": "Marketing service default-image trigger function is absent.",
-        "status": "BLOCKED",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
       {
         "migration": "RC117",
         "object": "public.businesses.mnty_business_default_images",
         "exists": false,
-        "detail": "Business default-image trigger is absent.",
         "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
       },
       {
         "migration": "RC117",
         "object": "public.catalog_items.mnty_catalog_item_default_image",
         "exists": false,
-        "detail": "Catalog item default-image trigger is absent.",
         "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
       },
       {
-        "migration": "RC117",
-        "object": "public.marketing_services.mnty_marketing_service_default_image",
+        "migration": "CURRENT_RECHECK",
+        "object": "public.claim_subscription_provider_intent_creation_backend",
         "exists": false,
-        "detail": "Marketing service default-image trigger is absent.",
         "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
       },
       {
-        "migration": "RC117",
-        "object": "public.marketing_services.image_url",
+        "migration": "RC438",
+        "object": "public.create_purchase_order_with_lines_backend",
         "exists": false,
-        "detail": "Marketing services image_url column is absent.",
         "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.create_subscription_payment_intent_claimable_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.erp_purchase_order_lines",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.erp_purchase_order_lines_scope_idx",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.erp_purchase_orders_business_order_number_uidx",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC426",
+        "object": "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.journal_entries_tenant_entry_number_uidx",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.journal_entry_lines_entry_line_uidx",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC425",
+        "object": "public.mantigo_payment_provider_events",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
       },
       {
         "migration": "RC117",
         "object": "public.marketing_services.image_source",
         "exists": false,
-        "detail": "Marketing services image_source column is absent.",
         "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.image_url",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.mnty_marketing_service_default_image",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_business_images_trigger",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_catalog_item_image_trigger",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_image_url",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_marketing_service_image_trigger",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.post_financial_journal_atomic_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC431",
+        "object": "public.process_verified_digital_page_payment_backend",
+        "exists": true,
+        "status": "BLOCKED",
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC425",
+        "object": "public.process_verified_mantigo_payment_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC428",
+        "object": "public.process_verified_provider_payment_failure",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC430",
+        "object": "public.process_verified_subscription_payment_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC429",
+        "object": "public.process_verified_subscription_payment_failure",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC434",
+        "object": "public.receive_purchase_stock_atomic_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.receive_purchase_stock_with_order_line_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.set_purchase_order_lines_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC432",
+        "object": "public.smm_wallet_transactions_reference_type_uidx",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC438",
+        "object": "public.update_purchase_order_status_backend(varchar,varchar)",
+        "exists": true,
+        "status": "BLOCKED",
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC427",
+        "object": "public.uq_payment_intents_one_active_per_order",
+        "exists": false,
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
       },
       {
         "migration": "RC113",
         "object": "public.ux_user_memberships_user_business_branch_nullsafe",
         "exists": false,
-        "detail": "Membership business/branch NULL-safe idempotency index is absent.",
         "status": "BLOCKED",
         "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.create_subscription_payment_intent_claimable_backend",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC435 claimable subscription intent RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.claim_subscription_provider_intent_creation_backend",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC435 atomic provider-claim RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.post_financial_journal_atomic_backend",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC436 atomic journal RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.journal_entry_lines_entry_line_uidx",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC436 journal line uniqueness index absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.journal_entries_tenant_entry_number_uidx",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC436 tenant entry-number uniqueness index absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.erp_purchase_order_lines",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC437 purchase order line table absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.receive_purchase_stock_with_order_line_backend",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC437 line-aware stock receiving RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.set_purchase_order_lines_backend",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC437 purchase order line-management RPC absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.erp_purchase_orders_business_order_number_uidx",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC437 business/order-number uniqueness index absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
-      },
-      {
-        "name": "public.erp_purchase_order_lines_scope_idx",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "RC437 purchase order line scope index absent.",
-        "physical_found_as": "ABSENT",
-        "physical_checked_at": "2026-11-04"
+        "physical_checked_at": "2026-11-17",
+        "detail": "Physical object is absent or contract remains blocked."
       }
     ],
     "non_pass_count": 32,
@@ -1359,7 +1473,1256 @@
         }
       },
       "interpretation": "All ten named required columns and all three named objects/indexes were absent in the targeted read-only checks. Do not infer the remaining 60-object catalog contract has been refreshed."
-    }
+    },
+    "physical_presence_refresh": {
+      "status": "READ_ONLY_REFRESHED",
+      "checked_at": "2026-11-17",
+      "total_contracts": 60,
+      "physical_presence": {
+        "present": 30,
+        "absent": 30
+      },
+      "present_objects": [
+        "public.business_employees",
+        "public.business_employees_business_status_idx",
+        "public.business_employees_email_per_business_unique",
+        "public.business_employees_user_active_idx",
+        "public.business_job_positions",
+        "public.business_job_positions_business_active_idx",
+        "public.expire_stale_mantigo_rides_backend",
+        "public.get_mantigo_admin_dashboard_backend",
+        "public.get_mantigo_admin_financial_report_backend",
+        "public.mnty_business_employee_list",
+        "public.mnty_business_employee_position_upsert",
+        "public.mnty_business_employee_upsert",
+        "public.mnty_can_platform_admin",
+        "public.mnty_platform_admin_assign_custom_role",
+        "public.mnty_platform_admin_list_audit",
+        "public.mnty_platform_admin_list_businesses",
+        "public.mnty_platform_admin_list_custom_roles",
+        "public.mnty_platform_admin_list_people",
+        "public.mnty_platform_admin_list_role_assignments",
+        "public.mnty_platform_admin_manage_business",
+        "public.mnty_platform_admin_manage_membership",
+        "public.mnty_platform_admin_upsert_custom_role",
+        "public.mnty_platform_has_permission",
+        "public.platform_custom_roles",
+        "public.platform_role_assignments",
+        "public.platform_role_assignments_active_unique",
+        "public.platform_role_assignments_user_scope_idx",
+        "public.process_verified_digital_page_payment_backend",
+        "public.settle_mantigo_captain_backend",
+        "public.update_purchase_order_status_backend(varchar,varchar)"
+      ],
+      "absent_objects": [
+        "public.businesses.mnty_business_default_images",
+        "public.catalog_items.mnty_catalog_item_default_image",
+        "public.claim_subscription_provider_intent_creation_backend",
+        "public.create_purchase_order_with_lines_backend",
+        "public.create_subscription_payment_intent_claimable_backend",
+        "public.erp_purchase_order_lines",
+        "public.erp_purchase_order_lines_scope_idx",
+        "public.erp_purchase_orders_business_order_number_uidx",
+        "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
+        "public.journal_entries_tenant_entry_number_uidx",
+        "public.journal_entry_lines_entry_line_uidx",
+        "public.mantigo_payment_provider_events",
+        "public.marketing_services.image_source",
+        "public.marketing_services.image_url",
+        "public.marketing_services.mnty_marketing_service_default_image",
+        "public.mnty_default_business_images_trigger",
+        "public.mnty_default_catalog_item_image_trigger",
+        "public.mnty_default_image_url",
+        "public.mnty_default_marketing_service_image_trigger",
+        "public.post_financial_journal_atomic_backend",
+        "public.process_verified_mantigo_payment_backend",
+        "public.process_verified_provider_payment_failure",
+        "public.process_verified_subscription_payment_backend",
+        "public.process_verified_subscription_payment_failure",
+        "public.receive_purchase_stock_atomic_backend",
+        "public.receive_purchase_stock_with_order_line_backend",
+        "public.set_purchase_order_lines_backend",
+        "public.smm_wallet_transactions_reference_type_uidx",
+        "public.uq_payment_intents_one_active_per_order",
+        "public.ux_user_memberships_user_business_branch_nullsafe"
+      ],
+      "present_but_contract_blocked_objects": [
+        {
+          "object": "public.process_verified_digital_page_payment_backend",
+          "reason": "Function exists but live search_path remains public, pg_temp and full body/ACL/runtime contract is not verified."
+        },
+        {
+          "object": "public.update_purchase_order_status_backend(varchar,varchar)",
+          "reason": "Function exists but live search_path is public and browser/service roles lack expected EXECUTE."
+        }
+      ],
+      "interpretation": "Current physical catalog presence is 30/60. Presence alone is not PASS; exact signature, body, search_path, grants, scope and runtime behavior remain separate. The prior 2026-11-14 snapshot counted marketing_services.image_url as present; the current direct information_schema check confirms it is absent."
+    },
+    "observed_20261114": [
+      {
+        "migration": "RC425",
+        "object": "public.mantigo_payment_provider_events",
+        "exists": false,
+        "detail": "Required provider-event idempotency table absent.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC425",
+        "object": "public.process_verified_mantigo_payment_backend",
+        "exists": false,
+        "detail": "Atomic MantiGo payment backend RPC absent.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC426",
+        "object": "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
+        "exists": false,
+        "detail": "Expected five-argument claim-token signature absent; only old four-argument signature exists with search_path=public, pg_temp and authenticated EXECUTE.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC427",
+        "object": "public.uq_payment_intents_one_active_per_order",
+        "exists": false,
+        "detail": "Partial unique index for one active payment intent per order absent.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC428",
+        "object": "public.process_verified_provider_payment_failure",
+        "exists": false,
+        "detail": "Atomic provider-failure webhook RPC absent.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC429",
+        "object": "public.process_verified_subscription_payment_failure",
+        "exists": false,
+        "detail": "Atomic subscription-failure webhook RPC absent.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC430",
+        "object": "public.process_verified_subscription_payment_backend",
+        "exists": false,
+        "detail": "Atomic subscription-success backend RPC absent.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC431",
+        "object": "public.process_verified_digital_page_payment_backend",
+        "exists": true,
+        "detail": "Live function exists and service_role EXECUTE is present, but live search_path is public, pg_temp (source expects empty search_path); full body/ACL contract reconciliation and runtime payment/webhook E2E remain open.",
+        "status": "BLOCKED",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC432",
+        "object": "public.smm_wallet_transactions_reference_type_uidx",
+        "exists": false,
+        "detail": "Wallet idempotency unique index absent although the three wallet RPC names exist.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC434",
+        "object": "public.receive_purchase_stock_atomic_backend",
+        "exists": false,
+        "detail": "Atomic ERP receipt RPC absent.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC438",
+        "object": "public.create_purchase_order_with_lines_backend",
+        "exists": false,
+        "detail": "Atomic purchase-order creation-with-lines RPC absent.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC438",
+        "object": "public.update_purchase_order_status_backend(varchar,varchar)",
+        "exists": true,
+        "detail": "Live two-argument function exists, but search_path=public and ACL is postgres-only; authenticated and service_role lack EXECUTE. RC438 source contract is not met.",
+        "status": "BLOCKED",
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_custom_roles",
+        "exists": true,
+        "detail": "Live relation confirmed. RLS and FORCE RLS are enabled; anon/authenticated/service_role have no direct table privileges. Present through the applied dashboard forward bundle.",
+        "status": "PASS",
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_role_assignments",
+        "exists": true,
+        "detail": "Live relation confirmed. RLS and FORCE RLS are enabled; anon/authenticated/service_role have no direct table privileges. Present through the applied dashboard forward bundle.",
+        "status": "PASS",
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.mnty_platform_admin_list_custom_roles",
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check observed.",
+        "status": "PASS",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.mnty_platform_admin_upsert_custom_role",
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check and audit write observed.",
+        "status": "PASS",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.mnty_platform_admin_assign_custom_role",
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check, scoped assignment and audit write observed.",
+        "status": "PASS",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_job_positions",
+        "exists": true,
+        "detail": "Live relation confirmed. RLS and FORCE RLS are enabled; anon/authenticated/service_role have no direct table privileges. Present through the applied dashboard forward bundle.",
+        "status": "PASS",
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_employees",
+        "exists": true,
+        "detail": "Live relation confirmed. RLS and FORCE RLS are enabled; anon/authenticated/service_role have no direct table privileges. Present through the applied dashboard forward bundle.",
+        "status": "PASS",
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_role_assignments_active_unique",
+        "exists": true,
+        "detail": "Live index confirmed; exact index definition is present in pg_catalog.",
+        "status": "PASS",
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_role_assignments_user_scope_idx",
+        "exists": true,
+        "detail": "Live index confirmed; exact index definition is present in pg_catalog.",
+        "status": "PASS",
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_employees_email_per_business_unique",
+        "exists": true,
+        "detail": "Live unique index confirmed.",
+        "status": "PASS",
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_job_positions_business_active_idx",
+        "exists": true,
+        "detail": "Live index confirmed.",
+        "status": "PASS",
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_employees_business_status_idx",
+        "exists": true,
+        "detail": "Live index confirmed.",
+        "status": "PASS",
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_employees_user_active_idx",
+        "exists": true,
+        "detail": "Live index confirmed.",
+        "status": "PASS",
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC114/RC115",
+        "object": "public.mnty_business_employee_position_upsert",
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/tenant/business/branch checks and audit write observed.",
+        "status": "PASS",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC114/RC115",
+        "object": "public.mnty_business_employee_upsert",
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/tenant/business/branch checks, permission-ceiling check and audit write observed.",
+        "status": "PASS",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_has_permission",
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, auth.uid/anonymous guard and active scoped membership/role-assignment checks observed.",
+        "status": "PASS",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_admin_list_people",
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check observed.",
+        "status": "PASS",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_admin_list_role_assignments",
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check observed.",
+        "status": "PASS",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_business_employee_list",
+        "exists": true,
+        "detail": "Live wrapper signature confirmed; delegates to mnty_business_employee_list_scoped, whose body checks auth.uid, anonymous state, active membership, tenant/business/branch scope.",
+        "status": "PASS",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_admin_list_audit",
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check observed.",
+        "status": "PASS",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC116/RC117",
+        "object": "public.mnty_platform_admin_list_businesses",
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, private.platform_admins actor check observed.",
+        "status": "PASS",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC116/RC117",
+        "object": "public.mnty_platform_admin_manage_business",
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, private.platform_admins actor check and audit write observed.",
+        "status": "PASS",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC116",
+        "object": "public.mnty_platform_admin_manage_membership",
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, private.platform_admins actor check and audit write observed.",
+        "status": "PASS",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_image_url",
+        "exists": false,
+        "detail": "Name-aware default image resolver is absent.",
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_business_images_trigger",
+        "exists": false,
+        "detail": "Business default-image trigger function is absent.",
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_catalog_item_image_trigger",
+        "exists": false,
+        "detail": "Catalog item default-image trigger function is absent.",
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_marketing_service_image_trigger",
+        "exists": false,
+        "detail": "Marketing service default-image trigger function is absent.",
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.businesses.mnty_business_default_images",
+        "exists": false,
+        "detail": "Business default-image trigger is absent.",
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.catalog_items.mnty_catalog_item_default_image",
+        "exists": false,
+        "detail": "Catalog item default-image trigger is absent.",
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.mnty_marketing_service_default_image",
+        "exists": false,
+        "detail": "Marketing service default-image trigger is absent.",
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.image_url",
+        "exists": true,
+        "detail": "Column now exists in the live schema, but image_source and the required default-image function/trigger chain remain absent; the full RC117 contract is still blocked.",
+        "status": "BLOCKED",
+        "physical_found_as": "COLUMN",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.image_source",
+        "exists": false,
+        "detail": "Marketing services image_source column is absent.",
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.ux_user_memberships_user_business_branch_nullsafe",
+        "exists": false,
+        "detail": "Membership business/branch NULL-safe idempotency index is absent.",
+        "status": "BLOCKED",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "name": "public.create_subscription_payment_intent_claimable_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC435 claimable subscription intent RPC absent.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "name": "public.claim_subscription_provider_intent_creation_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC435 atomic provider-claim RPC absent.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "name": "public.post_financial_journal_atomic_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC436 atomic journal RPC absent.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "name": "public.journal_entry_lines_entry_line_uidx",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC436 journal line uniqueness index absent.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "name": "public.journal_entries_tenant_entry_number_uidx",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC436 tenant entry-number uniqueness index absent.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "name": "public.erp_purchase_order_lines",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC437 purchase order line table absent.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "name": "public.receive_purchase_stock_with_order_line_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC437 line-aware stock receiving RPC absent.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "name": "public.set_purchase_order_lines_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC437 purchase order line-management RPC absent.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "name": "public.erp_purchase_orders_business_order_number_uidx",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC437 business/order-number uniqueness index absent.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "name": "public.erp_purchase_order_lines_scope_idx",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC437 purchase order line scope index absent.",
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "name": "public.mnty_can_platform_admin",
+        "exists": true,
+        "status": "PASS",
+        "detail": "Live catalog signature mnty_can_platform_admin() exists; body, search_path and grants remain separate release checks.",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "name": "public.get_mantigo_admin_dashboard_backend",
+        "exists": true,
+        "status": "PASS",
+        "detail": "Live catalog signature get_mantigo_admin_dashboard_backend(uuid) exists; privilege and body review remain separate release checks.",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "name": "public.get_mantigo_admin_financial_report_backend",
+        "exists": true,
+        "status": "PASS",
+        "detail": "Live catalog signature get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz) exists; privilege and body review remain separate release checks.",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "name": "public.settle_mantigo_captain_backend",
+        "exists": true,
+        "status": "PASS",
+        "detail": "Live catalog signature settle_mantigo_captain_backend(uuid,text,text) exists; privilege and body review remain separate release checks.",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      },
+      {
+        "name": "public.expire_stale_mantigo_rides_backend",
+        "exists": true,
+        "status": "PASS",
+        "detail": "Live catalog signature expire_stale_mantigo_rides_backend(uuid,integer) exists; privilege and body review remain separate release checks.",
+        "physical_found_as": "FUNCTION_NAME",
+        "physical_checked_at": "2026-11-14"
+      }
+    ],
+    "observed_20261117": [
+      {
+        "migration": "RC114",
+        "object": "public.business_employees",
+        "exists": true,
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_employees_business_status_idx",
+        "exists": true,
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_employees_email_per_business_unique",
+        "exists": true,
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_employees_user_active_idx",
+        "exists": true,
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_job_positions",
+        "exists": true,
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_job_positions_business_active_idx",
+        "exists": true,
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.businesses.mnty_business_default_images",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.catalog_items.mnty_catalog_item_default_image",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.claim_subscription_provider_intent_creation_backend",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC438",
+        "object": "public.create_purchase_order_with_lines_backend",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.create_subscription_payment_intent_claimable_backend",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.erp_purchase_order_lines",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.erp_purchase_order_lines_scope_idx",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.erp_purchase_orders_business_order_number_uidx",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.expire_stale_mantigo_rides_backend",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC426",
+        "object": "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.get_mantigo_admin_dashboard_backend",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.get_mantigo_admin_financial_report_backend",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.journal_entries_tenant_entry_number_uidx",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.journal_entry_lines_entry_line_uidx",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC425",
+        "object": "public.mantigo_payment_provider_events",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.image_source",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.image_url",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.mnty_marketing_service_default_image",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_business_employee_list",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC114/RC115",
+        "object": "public.mnty_business_employee_position_upsert",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC114/RC115",
+        "object": "public.mnty_business_employee_upsert",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.mnty_can_platform_admin",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_business_images_trigger",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_catalog_item_image_trigger",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_image_url",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_marketing_service_image_trigger",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.mnty_platform_admin_assign_custom_role",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_admin_list_audit",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC116/RC117",
+        "object": "public.mnty_platform_admin_list_businesses",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.mnty_platform_admin_list_custom_roles",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_admin_list_people",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_admin_list_role_assignments",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC116/RC117",
+        "object": "public.mnty_platform_admin_manage_business",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC116",
+        "object": "public.mnty_platform_admin_manage_membership",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.mnty_platform_admin_upsert_custom_role",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_has_permission",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_custom_roles",
+        "exists": true,
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_role_assignments",
+        "exists": true,
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_role_assignments_active_unique",
+        "exists": true,
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_role_assignments_user_scope_idx",
+        "exists": true,
+        "physical_found_as": "INDEX",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.post_financial_journal_atomic_backend",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC431",
+        "object": "public.process_verified_digital_page_payment_backend",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC425",
+        "object": "public.process_verified_mantigo_payment_backend",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC428",
+        "object": "public.process_verified_provider_payment_failure",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC430",
+        "object": "public.process_verified_subscription_payment_backend",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC429",
+        "object": "public.process_verified_subscription_payment_failure",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC434",
+        "object": "public.receive_purchase_stock_atomic_backend",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.receive_purchase_stock_with_order_line_backend",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.set_purchase_order_lines_backend",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.settle_mantigo_captain_backend",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "PASS",
+        "prior_status": "PASS"
+      },
+      {
+        "migration": "RC432",
+        "object": "public.smm_wallet_transactions_reference_type_uidx",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC438",
+        "object": "public.update_purchase_order_status_backend(varchar,varchar)",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC427",
+        "object": "public.uq_payment_intents_one_active_per_order",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.ux_user_memberships_user_business_branch_nullsafe",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-17",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED"
+      }
+    ],
+    "physical_presence_refresh_20261114": {
+      "checked_at": "2026-11-14T05:01:51.181Z",
+      "physical_present_count": 31,
+      "physical_missing_count": 29,
+      "blocked_present_objects": [
+        "public.process_verified_digital_page_payment_backend",
+        "public.update_purchase_order_status_backend(varchar,varchar)",
+        "public.marketing_services.image_url"
+      ]
+    },
+    "physical_presence_refresh_20261117": {
+      "status": "READ_ONLY_REFRESHED",
+      "checked_at": "2026-11-17",
+      "total_contracts": 60,
+      "physical_presence": {
+        "present": 30,
+        "absent": 30
+      },
+      "present_objects": [
+        "public.business_employees",
+        "public.business_employees_business_status_idx",
+        "public.business_employees_email_per_business_unique",
+        "public.business_employees_user_active_idx",
+        "public.business_job_positions",
+        "public.business_job_positions_business_active_idx",
+        "public.expire_stale_mantigo_rides_backend",
+        "public.get_mantigo_admin_dashboard_backend",
+        "public.get_mantigo_admin_financial_report_backend",
+        "public.mnty_business_employee_list",
+        "public.mnty_business_employee_position_upsert",
+        "public.mnty_business_employee_upsert",
+        "public.mnty_can_platform_admin",
+        "public.mnty_platform_admin_assign_custom_role",
+        "public.mnty_platform_admin_list_audit",
+        "public.mnty_platform_admin_list_businesses",
+        "public.mnty_platform_admin_list_custom_roles",
+        "public.mnty_platform_admin_list_people",
+        "public.mnty_platform_admin_list_role_assignments",
+        "public.mnty_platform_admin_manage_business",
+        "public.mnty_platform_admin_manage_membership",
+        "public.mnty_platform_admin_upsert_custom_role",
+        "public.mnty_platform_has_permission",
+        "public.platform_custom_roles",
+        "public.platform_role_assignments",
+        "public.platform_role_assignments_active_unique",
+        "public.platform_role_assignments_user_scope_idx",
+        "public.process_verified_digital_page_payment_backend",
+        "public.settle_mantigo_captain_backend",
+        "public.update_purchase_order_status_backend(varchar,varchar)"
+      ],
+      "absent_objects": [
+        "public.businesses.mnty_business_default_images",
+        "public.catalog_items.mnty_catalog_item_default_image",
+        "public.claim_subscription_provider_intent_creation_backend",
+        "public.create_purchase_order_with_lines_backend",
+        "public.create_subscription_payment_intent_claimable_backend",
+        "public.erp_purchase_order_lines",
+        "public.erp_purchase_order_lines_scope_idx",
+        "public.erp_purchase_orders_business_order_number_uidx",
+        "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
+        "public.journal_entries_tenant_entry_number_uidx",
+        "public.journal_entry_lines_entry_line_uidx",
+        "public.mantigo_payment_provider_events",
+        "public.marketing_services.image_source",
+        "public.marketing_services.image_url",
+        "public.marketing_services.mnty_marketing_service_default_image",
+        "public.mnty_default_business_images_trigger",
+        "public.mnty_default_catalog_item_image_trigger",
+        "public.mnty_default_image_url",
+        "public.mnty_default_marketing_service_image_trigger",
+        "public.post_financial_journal_atomic_backend",
+        "public.process_verified_mantigo_payment_backend",
+        "public.process_verified_provider_payment_failure",
+        "public.process_verified_subscription_payment_backend",
+        "public.process_verified_subscription_payment_failure",
+        "public.receive_purchase_stock_atomic_backend",
+        "public.receive_purchase_stock_with_order_line_backend",
+        "public.set_purchase_order_lines_backend",
+        "public.smm_wallet_transactions_reference_type_uidx",
+        "public.uq_payment_intents_one_active_per_order",
+        "public.ux_user_memberships_user_business_branch_nullsafe"
+      ],
+      "present_but_contract_blocked_objects": [
+        {
+          "object": "public.process_verified_digital_page_payment_backend",
+          "reason": "Function exists but live search_path remains public, pg_temp and full body/ACL/runtime contract is not verified."
+        },
+        {
+          "object": "public.update_purchase_order_status_backend(varchar,varchar)",
+          "reason": "Function exists but live search_path is public and browser/service roles lack expected EXECUTE."
+        }
+      ],
+      "interpretation": "Current physical catalog presence is 30/60. Presence alone is not PASS; exact signature, body, search_path, grants, scope and runtime behavior remain separate. The prior 2026-11-14 snapshot counted marketing_services.image_url as present; the current direct information_schema check confirms it is absent."
+    },
+    "physically_present_count": 30,
+    "physically_absent_count": 30
   },
   "security_definer_search_path_check": {
     "status": "EFFECT_RECONCILED_FORWARD_REPAIR",
@@ -1812,8 +3175,8 @@
     ],
     "interpretation": "Dashboard-specific live dependencies are installed and verified by read-only queries. Historical migrations were not edited and the 41-version full-platform release chain, finance/payment/Edge Function parity, backup/restore rehearsal, Auth hardening, monitoring, and unrelated release evidence remain BLOCKED. Deployment may proceed only through the existing scoped catalog/dashboard gate; do not mark the full platform production-certified."
   },
-  "live_ledger_checked_at": "2026-11-06T18:33:45Z",
-  "live_ledger_verification_method": "Read-only Supabase list_migrations on 2026-11-04 returned 309 records; latest version 20261101140105 (directory_source_permission_evidence). Exact required-version reconciliation remains 0/42. This is an identifier inventory, not a substitute for physical effect checks.",
+  "live_ledger_checked_at": "2026-11-17",
+  "live_ledger_verification_method": "Read-only Supabase list_migrations on 2026-11-17 returned 310 records through 20261110150618. The 42 canonical required source-version identifiers were compared against the live ledger: 0 exact matches. Exact migration statement recovery was performed separately for 20261110150618; no migration was re-applied.",
   "professional_dashboard_post_deploy_browser_e2e": {
     "status": "PASS",
     "checked_at": "2026-10-29",
@@ -2345,7 +3708,7 @@
     "interpretation": "Advisor findings are not vulnerability counts. No-policy findings require effective grant/RPC path review. The two SECURITY DEFINER lint findings refer to trigger-only functions assign_default_owner_to_unowned_business and capture_commission_rule_audit; their attached triggers are enabled, but direct EXECUTE ACL remains broader than desired. RC463 remains unrecorded and unapplied. Auth leaked-password protection remains NOT VERIFIED."
   },
   "full_platform_gate": "BLOCKED / NOT CERTIFIED",
-  "full_platform_gate_last_checked_at": "2026-11-06T18:33:45Z",
+  "full_platform_gate_last_checked_at": "2026-11-17",
   "rc431_rc438_live_rpc_recheck_20261104": {
     "checked_at": "2026-11-04",
     "method": "Read-only pg_proc function identity, proconfig and has_function_privilege queries.",
@@ -2657,5 +4020,265 @@
       "Leaked Password Protection Disabled|WARN": 1
     },
     "production_effect": "NONE"
+  },
+  "security_advisor_snapshot_20261114": {
+    "checked_at": "2026-11-14T05:06:38.748Z",
+    "source": "Supabase security advisor plus read-only pg_catalog/information_schema verification",
+    "rls_enabled_tables_without_policies": 9,
+    "no_policy_tables": [
+      "public.business_employees",
+      "public.business_job_positions",
+      "public.commission_rule_audit",
+      "public.digital_page_payment_events",
+      "public.directory_listing_claim_requests",
+      "public.directory_source_permission_evidence",
+      "public.platform_custom_roles",
+      "public.platform_role_assignments",
+      "public.public_directory_listings"
+    ],
+    "anon_authenticated_direct_table_grants_on_these_tables": 0,
+    "anon_executable_security_definer_functions": 1,
+    "anon_executable_security_definer": [
+      "public.get_mnty_targeted_advertisements()"
+    ],
+    "authenticated_executable_security_definer_functions": 65,
+    "multiple_permissive_policy_lints": 28,
+    "health_advisor_lints": 0,
+    "interpretation": "The no-policy tables have no direct anon/authenticated table grants. The single anon-executable SECURITY DEFINER function is an intentionally public approved-active-ad retrieval RPC with an empty search_path. The 65 authenticated-executable SECURITY DEFINER functions are generic review findings; do not bulk revoke. Review each function's actor/tenant checks and search_path. PR #722/#724 address the identified platform-admin/MantiGO callers; PR #725/#727 address relevant business/branch/order policy scope."
+  },
+  "payment_provider_configuration_snapshot_20261114": {
+    "checked_at": "2026-11-14T05:06:38.748Z",
+    "table": "public.tenant_payment_methods",
+    "row_count": 0,
+    "inspected_fields": [
+      "provider",
+      "payment_method",
+      "is_enabled",
+      "public_config->>'environment'"
+    ],
+    "secret_fields_selected": false,
+    "sandbox_environment_verified": false,
+    "payment_e2e_run": false,
+    "no_payment_or_financial_mutation_performed": true
+  },
+  "latest_live_ledger_snapshot_20261117": {
+    "status": "READ_ONLY_SNAPSHOT",
+    "checked_at": "2026-11-17",
+    "live_ledger_count": 310,
+    "latest_version": "20261110150618",
+    "latest_name": "revoke_public_execute_from_trigger_functions",
+    "required_release_source_versions": 42,
+    "required_release_source_versions_found": 0,
+    "restored_historical_source": "supabase/migrations/20261110150618_revoke_public_execute_from_trigger_functions.sql",
+    "restored_source_sha256": "b462abcd9205345901c389102992d9ee31aa6d293a5e7bb5e9f6114f0f43afed",
+    "production_migration_reapplied": false
+  },
+  "historical_migration_source_recovery_20261117": {
+    "status": "SOURCE_RESTORED_AND_MERGED",
+    "pr": 740,
+    "merge_commit": "ea79bf016ec3f0afc2f6f793f4528bf24d6144b4",
+    "version": "20261110150618",
+    "source_file": "supabase/migrations/20261110150618_revoke_public_execute_from_trigger_functions.sql",
+    "database_statement_sha256": "b462abcd9205345901c389102992d9ee31aa6d293a5e7bb5e9f6114f0f43afed",
+    "statement_count": 1,
+    "statement_chars": 374,
+    "rollback_entry": null,
+    "exact_match": true,
+    "production_migration_reapplied": false,
+    "note": "Recovered from supabase_migrations.schema_migrations.statements. The SQL revokes direct EXECUTE from PUBLIC, anon and authenticated for two trigger-only functions; it does not change search_path or explicitly revoke service_role."
+  },
+  "rc463_live_read_only_check_20261117": {
+    "checked_at": "2026-11-17",
+    "ledger_version": "20261031100000",
+    "ledger_recorded": false,
+    "source_file_on_main": true,
+    "source_file": "supabase/migrations/20261031100000_rc463_trigger_only_security_definer_acl.sql",
+    "trigger_functions": [
+      {
+        "name": "public.assign_default_owner_to_unowned_business()",
+        "trigger_enabled": true,
+        "anon_execute": false,
+        "authenticated_execute": false,
+        "service_role_execute": false,
+        "acl": "postgres owner only",
+        "search_path": "public, auth",
+        "contract": "BLOCKED — empty search_path contract not met"
+      },
+      {
+        "name": "public.capture_commission_rule_audit()",
+        "trigger_enabled": true,
+        "anon_execute": false,
+        "authenticated_execute": false,
+        "service_role_execute": false,
+        "acl": "postgres owner only",
+        "search_path": "",
+        "contract": "PASS"
+      }
+    ],
+    "interpretation": "The later 20261110150618 migration is not an RC463 alias. Direct API-role EXECUTE is revoked on both functions, but assign_default_owner_to_unowned_business still has search_path=public, auth. Do not replay RC463 out of order; reconcile with a forward-only repair after exact source review."
+  },
+  "critical_edge_function_source_parity_check_20261117": {
+    "status": "DRIFT_FOUND",
+    "checked_at": "2026-11-17",
+    "method": "Read-only Supabase get_edge_function and exact UTF-8 index.ts comparison against current main. No Edge Function deployed.",
+    "mismatched_count": 7,
+    "functions": [
+      {
+        "slug": "order-create",
+        "live_version": 8,
+        "live_sha256": "16f9b8bb687c33afeca14d85cb4c43af9948bd8b3ef3178990cc76ca1abea782",
+        "repo_blob_sha": "3a6777683e537dcff1ad30cbd1c89e431f77d926",
+        "live_bytes": 10083,
+        "main_bytes": 13988,
+        "exact_match": false,
+        "status": "BLOCKED",
+        "risk": "Missing bounded body parsing, strict validation, branch-scoped membership and option/item relationship checks."
+      },
+      {
+        "slug": "payment-intent",
+        "live_version": 8,
+        "live_sha256": "d6b8faee1582c73ead440614cbe983114d1e7f31aa50f69795522fb20e737f54",
+        "repo_blob_sha": "c88f62db0d3781f949ca5da77590a04590e8ae7d",
+        "live_bytes": 8114,
+        "main_bytes": 10366,
+        "exact_match": false,
+        "status": "BLOCKED",
+        "risk": "Missing exact cents amount/provider-intent correlation."
+      },
+      {
+        "slug": "paymob-webhook",
+        "live_version": 10,
+        "live_sha256": "f26fe1580e66c7f8cb9b885d5bccf4a44e49aa74874b3fe28dd7f9c5ed181cca",
+        "repo_blob_sha": "b7a386d4b4fd7aa74187df7186e9235046ad660f",
+        "live_bytes": 11538,
+        "main_bytes": 12665,
+        "exact_match": false,
+        "status": "BLOCKED",
+        "risk": "Finite amount guard and callback correlation/idempotency require revalidation together."
+      },
+      {
+        "slug": "digital-page-payment-intent",
+        "live_version": 5,
+        "live_sha256": "8aa3d2e9c025e7b74d4d1847e8a6744bc84a9ded7cfc0c721f9604efd177af4b",
+        "repo_blob_sha": "0d0476b0120996d83fff1299e06ea2c037e62e8e",
+        "live_bytes": 5345,
+        "main_bytes": 6532,
+        "exact_match": false,
+        "status": "BLOCKED",
+        "risk": "Missing Paymob intent correlation helper."
+      },
+      {
+        "slug": "subscription-payment-intent",
+        "live_version": 4,
+        "live_sha256": "4466345787ea6b10a29b1dd63e9f0ab3cae640e9bb4d8ecb6d09445809e077e5",
+        "repo_blob_sha": "c702d7a70ea85727ec5e14695ebf8fb26158514e",
+        "live_bytes": 5196,
+        "main_bytes": 11100,
+        "exact_match": false,
+        "status": "BLOCKED",
+        "risk": "Missing Paymob intent correlation and encrypted checkout-secret guards."
+      },
+      {
+        "slug": "financial-journal",
+        "live_version": 3,
+        "live_sha256": "79ee18d0544e7cab8fe33fe84c27a5017d1163f411eb5b9e07b99fd79e16e366",
+        "repo_blob_sha": "49706589cc6d77af713ae44bcc0818066de72243",
+        "live_bytes": 1591,
+        "main_bytes": 3387,
+        "exact_match": false,
+        "status": "BLOCKED",
+        "risk": "Live v3 uses wildcard CORS and legacy RPC; main expects canonical backend RPC whose required schema/ACL contract is absent."
+      },
+      {
+        "slug": "directory-listings",
+        "live_version": 16,
+        "live_sha256": "13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0",
+        "repo_blob_sha": "a501fa4c8f9e1a97aa3b1a80745951e2f04e9877",
+        "live_bytes": 46907,
+        "main_bytes": 47755,
+        "exact_match": false,
+        "status": "BLOCKED",
+        "risk": "Live v16 permits Vite dev CORS origins and has doctor direct-UPSERT/BULK_IMPORT publication bypasses; current-main remediation candidate PR #744 is not deployed."
+      }
+    ],
+    "interpretation": "Do not deploy these functions individually. Payment/order/finance functions are coupled to absent or drifted schema, RPC and ACL contracts; stage together with the matching migration chain and real Paymob sandbox E2E. directory-listings requires preserving its public sanitizer while applying the stricter source-evidence publication gate."
+  },
+  "security_advisor_snapshot_20261117": {
+    "checked_at": "2026-11-17",
+    "source": "Supabase Security and Performance Advisors",
+    "security": {
+      "rls_enabled_no_policy": {
+        "count": 9,
+        "level": "INFO"
+      },
+      "anon_security_definer_function_executable": {
+        "count": 1,
+        "level": "WARN",
+        "known_function": "public.get_mnty_targeted_advertisements",
+        "note": "Public targeted-ad read RPC; confirm its output allowlist and search_path."
+      },
+      "authenticated_security_definer_function_executable": {
+        "count": 65,
+        "level": "WARN",
+        "note": "Requires per-function review; this count alone is not proof of exploitability."
+      },
+      "leaked_password_protection": {
+        "count": 1,
+        "level": "WARN"
+      },
+      "anon_role_policy_warnings": "Multiple policies are exposed to anon/public roles; review sensitive finance, wallet, payment and tenant tables individually rather than treating each warning as a confirmed vulnerability."
+    },
+    "performance": {
+      "unindexed_foreign_keys": {
+        "count": 132,
+        "level": "INFO"
+      },
+      "auth_rls_initplan": {
+        "count": 375,
+        "level": "WARN"
+      },
+      "multiple_permissive_policies": {
+        "count": 28,
+        "level": "WARN"
+      }
+    },
+    "interpretation": "Advisor output is a risk inventory. RLS-enabled tables with no policies may be intentionally private; SECURITY DEFINER functions and anon-role policies require per-object review. Leaked-password protection remains a confirmed configuration warning."
+  },
+  "r7_default_image_engine_check_20261117": {
+    "checked_at": "2026-11-17",
+    "status": "PASS_IN_R7_SOURCE_ONLY",
+    "functional_sector_packs": 15,
+    "logo_variants_per_sector": 3,
+    "cover_variants_per_sector": 3,
+    "product_service_variants_per_sector": 6,
+    "curated_defaults_total": 180,
+    "existing_image_engine_tests": "4/4 PASS",
+    "additional_compiled_runtime_checks": "15/15 sector packs PASS; 5/5 local AI assets exist; maintenance business/product fallbacks PASS; SVG text sanitization PASS",
+    "source_paths": [
+      "src/data/imageAssets.ts",
+      "src/utils/aiImageCompletionEngine.ts",
+      "src/context/AppContext.tsx"
+    ],
+    "deployment_status": "NOT_DEPLOYED — R7 remains blocked by independent P0 Auth, local JSON persistence, token minting, admin bypass, unauthenticated write APIs, predictable secrets and default-paid/wallet registration paths."
+  },
+  "rc117_default_image_forward_repair_check_20261117": {
+    "checked_at": "2026-11-17",
+    "original_version": "20261027070000",
+    "original_source_location": "closed PR #410 branch feature/super-admin-control-center-rc451",
+    "original_source_on_main": false,
+    "original_version_in_live_ledger": false,
+    "missing_live_objects": [
+      "public.mnty_default_image_url",
+      "public.mnty_default_business_images_trigger",
+      "public.mnty_default_catalog_item_image_trigger",
+      "public.mnty_default_marketing_service_image_trigger",
+      "public.businesses.mnty_business_default_images",
+      "public.catalog_items.mnty_catalog_item_default_image",
+      "public.marketing_services.mnty_marketing_service_default_image",
+      "public.marketing_services.image_url",
+      "public.marketing_services.image_source"
+    ],
+    "source_review_finding": "Original RC117 backfill updates marketing_services rows when image_url is blank OR image_source is null/invalid. This can overwrite a non-empty owner-supplied image_url when source metadata is missing.",
+    "disposition": "Do not replay the historical 20261027070000 migration out of order or port it unchanged. Build a new forward-only migration after 20261110150618, preserve custom URLs with missing source metadata as image_source='owner', default only genuinely empty/known-placeholder URLs, and test insert/update behavior for businesses, catalog_items and marketing_services."
   }
 }
