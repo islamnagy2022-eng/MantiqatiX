@@ -2582,3 +2582,11 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - Pass 89: reopened exact R7 source and confirmed client-side Supabase client prioritizes service-role env variable, admin role is locally granted by password comparison with default seed `admin`, production-state hydration/commit calls lack Authorization headers, and refresh UI sends no verified token. R7 remains blocked and was not imported into production.
 - PR #753 doc checkpoint is 16 success / 2 expected skips; no pending or failed checks.
 - No production DB/Auth/RLS/GRANT/Edge/payment/settlement mutation.
+
+
+## 2026-11-17 — Pass 90: Supabase advisor finding triage
+
+- Queried all 9 public RLS-enabled/no-policy tables: anon/authenticated SELECT denied on all; 8 FORCE RLS; one events table RLS only; 3 service-only tables allow service_role SELECT. No policies added.
+- Queried 65 public SECURITY DEFINER functions with anon/authenticated execute: 18 empty search_path, 47 pinned non-empty, 0 unpinned. One anon-executable function; all 65 authenticated-executable; 4 also service_role-executable.
+- Inspected the one anon-executable function `get_mnty_targeted_advertisements`: empty search_path, ACTIVE+APPROVED/time-valid filtering, bounded ad projection and limit 1–50. Retain as a public-discovery candidate with regression tests; no blanket revoke.
+- Confirmed anon/authenticated/service_role lack CREATE on public schema. No production mutation.
