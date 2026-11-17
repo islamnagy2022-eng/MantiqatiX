@@ -160,7 +160,7 @@ assert.match(directoryAdmin, /المركز \/ المدينة \*<input required v
 
 const directoryOwnerView = readFileSync("apps/catalog-frontend/src/components/DirectoryListingsView.tsx", "utf8");
 const ownerUpdateLocationGuard = edge.slice(edge.indexOf('if (action === "UPDATE_OWNED_LISTING")'), edge.indexOf('const { data: memberships, error: membershipsError }'));
-assert.match(ownerUpdate, /if \(!governorate \|\| !district\)[\s\S]{0,180}LOCATION_REQUIRED/, "Owner listing update must reject missing actual location");
+assert.match(ownerUpdateLocationGuard, /if \(!governorate \|\| !district\)[\s\S]{0,180}LOCATION_REQUIRED/, "Owner listing update must reject missing actual location");
 assert.match(directoryOwnerView, /governorate: "", district: "", village: ""/, "Owner edit form must not initialize a fabricated location");
 assert.match(directoryOwnerView, /governorate: detail\.governorate \|\| "", district: detail\.district \|\| ""/, "Owner edit hydration must not invent a location");
 assert.match(directoryOwnerView, /المحافظة \*<input required value=\{ownerForm\.governorate\}/, "Owner form must require the actual governorate");
