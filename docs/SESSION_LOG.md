@@ -2662,3 +2662,16 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 
 
 Read-only Supabase production schema cross-check completed: retrieved definitions, constraints, indexes and triggers for claims, listings, memberships and businesses. Confirmed production migration history lacks `20261027090000`; live membership uniqueness remains nullable-branch `uk_user_biz_branch`, not the repo null-safe index. Aggregate preflight: 10 business-wide memberships, zero duplicate user/business groups, one REVIEWING claim and one CLAIM_PENDING listing. Default-owner trigger is deferred AFTER INSERT; legal activation triggers also exist. No DB writes or development branch creation.
+
+
+## 2026-11-18 — Pass 271–300 — transactional directory claim review
+
+- Resumed from the live repository checkpoint. PR #756 had already merged to main as `300eb8a0e9808c45dee2eefc77c3e9e19f425559`; its associated workflows included successful public-contact privacy validation and Pages deployment.
+- Read-only Production schema inspection confirmed 310 migration records through `20261110150618`, absent live version `20261027090000`, current nullable-branch membership index `uk_user_biz_branch`, and zero duplicate business-wide membership groups.
+- Inspected claims/listings/membership/business constraints and triggers, including the deferred automatic-owner trigger and legal activation triggers.
+- Created branch `fix/directory-claim-atomicity-20261118`.
+- Added forward migration `20261118010000_rc472_directory_claim_review_atomicity.sql` with null-safe membership uniqueness and a service-role-only SECURITY DEFINER transaction for REVIEWING/REJECTED/APPROVED.
+- Replaced the Edge Function's multi-request review writes with the transactional RPC; retained existing platform-admin and tenant-scope checks.
+- Added PostgreSQL fixture/integration assertions for success, rejection, automatic-owner detach, rollback injection, foreign owner conflict, unpaid subscription, uniqueness and RPC ACL; added GitHub Actions PostgreSQL + Deno workflow.
+- Exact-head CI and final review are pending; a true multi-session concurrency test remains open. No Production migration, data write, grant/RLS/Auth change, Edge deployment, payment action or Pages deployment occurred.
+- Next: verify final branch diff and CI; fix all failures; add concurrency test; open/update PR; merge only after exact-head gates pass. Full release remains **BLOCKED / NOT CERTIFIED**.
