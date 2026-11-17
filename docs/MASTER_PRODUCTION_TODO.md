@@ -4298,3 +4298,7 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 - [ ] Keep production DB, Edge deployment and Pages release separate and explicitly controlled.
 
 Evidence: `docs/audits/PASS_231_270_DIRECTORY_CLAIM_ATOMICITY_20261117.md`. No schema or production mutation occurred.
+
+
+- [ ] Reconcile production migration drift: production history lacks `20261027090000` and the live membership index remains NULL-distinct; inspect migration source and preflight before any deployment.
+- [ ] Test claim transaction on a disposable/development database branch, accounting for deferred default-owner and legal activation triggers; do not apply to Production without a separately reviewed release.
