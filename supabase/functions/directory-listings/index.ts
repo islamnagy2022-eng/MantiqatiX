@@ -678,88 +678,62 @@ Deno.serve(async (req: Request) => {
     const claimId = clean(body.claimId, 80);
     const decision = clean(body.decision, 20).toUpperCase();
     const reviewNote = clean(body.reviewNote, 1200);
-    const { data: claim, error: claimError } = await service.from("directory_listing_claim_requests")
-      .select("*").eq("id", claimId).maybeSingle();
-    if (claimError) return out(origin, { error: "CLAIM_READ_FAILED" }, 500);
-    if (!claim) return out(origin, { error: "CLAIM_NOT_FOUND" }, 404);
-    if (!["PENDING","REVIEWING"].includes(String(claim.status || "").toUpperCase())) return out(origin, { error: "CLAIM_NOT_PENDING", message: "طلب الاستلام لم يعد مفتوحًا للمراجعة." }, 409);
-    if (["REVIEWING","REJECTED"].includes(decision)) {
-      const { error } = await service.from("directory_listing_claim_requests").update({
-        status: decision, review_note: reviewNote || null, reviewed_by: user.id, reviewed_at: new Date().toISOString(),
-      }).eq("id", claimId);
-      if (error) return out(origin, { error: "CLAIM_REVIEW_FAILED" }, 500);
-      if (decision === "REJECTED") {
-        await service.from("public_directory_listings").update({ claim_status: "UNCLAIMED", claimed_user_id: null })
-          .eq("id", claim.listing_id).eq("claimed_user_id", claim.user_id).eq("claim_status", "CLAIM_PENDING");
+    if (!claimId) return out(origin, { error: "CLAIM_NOT_FOUND" }, 404);
+    if (!["REVIEWING", "REJECTED", "APPROVED"].includes(decision)) {
+      return out(origin, { error: "INVALID_CLAIM_DECISION" }, 400);
+    }
+
+    let businessId: string | null = null;
+    if (decision === "APPROVED") {
+      if (body.ownershipVerified !== true) {
+        return out(origin, { error: "OWNERSHIP_NOT_VERIFIED", message: "لا تعتمد الاستلام قبل التحقق المباشر من هوية مقدم الطلب وملكيته." }, 400);
       }
-      return out(origin, { success: true, status: decision });
+      businessId = clean(body.businessId, 80);
+      if (!businessId) return out(origin, { error: "BUSINESS_NOT_ACTIVE" }, 409);
+      const { data: business, error: businessError } = await service.from("businesses")
+        .select("id,tenant_id,organization_id,name,status,settings").eq("id", businessId).maybeSingle();
+      if (businessError) return out(origin, { error: "BUSINESS_READ_FAILED" }, 500);
+      if (!business || String(business.status).toUpperCase() !== "ACTIVE") {
+        return out(origin, { error: "BUSINESS_NOT_ACTIVE", message: "يجب ربط الصفحة بنشاط موجود ونشط أولاً." }, 409);
+      }
+      const settings = business.settings && typeof business.settings === "object" ? business.settings : {};
+      const billing = settings.bizcatalog && typeof settings.bizcatalog === "object" ? settings.bizcatalog : {};
+      if (String(billing.paymentStatus || "").toLowerCase() !== "paid" ||
+          billing.paymentConfirmedByAdmin !== true || body.subscriptionPaid !== true) {
+        return out(origin, { error: "PAID_SUBSCRIPTION_REQUIRED", message: "لا يمكن تسليم الملكية قبل تأكيد الاشتراك المدفوع من إدارة المنصة." }, 409);
+      }
+      if (String(business.tenant_id || "") !== "MNTY-PLATFORM" &&
+          !memberships.some((m: any) => String(m.tenant_id) === String(business.tenant_id))) {
+        return out(origin, { error: "BUSINESS_SCOPE_FORBIDDEN" }, 403);
+      }
     }
-    if (decision !== "APPROVED") return out(origin, { error: "INVALID_CLAIM_DECISION" }, 400);
-    if (body.ownershipVerified !== true) return out(origin, { error: "OWNERSHIP_NOT_VERIFIED", message: "لا تعتمد الاستلام قبل التحقق المباشر من هوية مقدم الطلب وملكيته." }, 400);
-    const businessId = clean(body.businessId, 80);
-    const { data: business, error: businessError } = await service.from("businesses")
-      .select("id,tenant_id,organization_id,name,status,settings").eq("id", businessId).maybeSingle();
-    if (businessError) return out(origin, { error: "BUSINESS_READ_FAILED" }, 500);
-    if (!business || String(business.status).toUpperCase() !== "ACTIVE") {
-      return out(origin, { error: "BUSINESS_NOT_ACTIVE", message: "يجب ربط الصفحة بنشاط موجود ونشط أولاً." }, 409);
+
+    // The database function locks claim, listing and business rows and commits
+    // membership/listing/claim changes as one transaction. The browser cannot
+    // call this service-role-only RPC directly.
+    const { data: result, error: reviewError } = await service.rpc("review_directory_listing_claim_atomic", {
+      p_claim_id: claimId,
+      p_decision: decision,
+      p_actor_id: user.id,
+      p_review_note: reviewNote || null,
+      p_business_id: businessId,
+      p_ownership_verified: body.ownershipVerified === true,
+      p_subscription_paid: body.subscriptionPaid === true,
+    });
+    if (reviewError) {
+      const message = String(reviewError.message || "");
+      const conflictCodes = [
+        "CLAIM_NOT_PENDING", "CLAIM_STATE_CONFLICT", "LISTING_CLAIM_LOCK_CONFLICT",
+        "BUSINESS_NOT_ACTIVE", "PAID_SUBSCRIPTION_REQUIRED", "BUSINESS_ALREADY_HAS_OWNER",
+      ];
+      const badRequestCodes = ["INVALID_CLAIM_DECISION", "OWNERSHIP_NOT_VERIFIED"];
+      const code = [...conflictCodes, ...badRequestCodes].find((value) => message.includes(value));
+      const status = conflictCodes.includes(code || "") ? 409 : badRequestCodes.includes(code || "") ? 400 :
+        message.includes("CLAIM_NOT_FOUND") ? 404 : 500;
+      return out(origin, { error: code || (message.includes("CLAIM_NOT_FOUND") ? "CLAIM_NOT_FOUND" : "CLAIM_REVIEW_FAILED") }, status);
     }
-    const settings = business.settings && typeof business.settings === "object" ? business.settings : {};
-    const billing = settings.bizcatalog && typeof settings.bizcatalog === "object" ? settings.bizcatalog : {};
-    if (String(billing.paymentStatus || "").toLowerCase() !== "paid" || billing.paymentConfirmedByAdmin !== true || body.subscriptionPaid !== true) {
-      return out(origin, { error: "PAID_SUBSCRIPTION_REQUIRED", message: "لا يمكن تسليم الملكية قبل تأكيد الاشتراك المدفوع من إدارة المنصة." }, 409);
-    }
-    if (String(business.tenant_id || "") !== "MNTY-PLATFORM" && !memberships.some((m: any) => String(m.tenant_id) === String(business.tenant_id))) {
-      return out(origin, { error: "BUSINESS_SCOPE_FORBIDDEN" }, 403);
-    }
-    const { data: ownerRows, error: ownerError } = await service.from("user_memberships")
-      .select("id,user_id,role,status,permissions").eq("business_id", businessId)
-      .eq("status", "ACTIVE").in("role", ["BUSINESS_OWNER","OWNER"]).limit(100);
-    if (ownerError) return out(origin, { error: "OWNER_CHECK_FAILED" }, 500);
-    const foreignOwners = (ownerRows || []).filter((m: any) => String(m.user_id) !== String(claim.user_id));
-    const nonAutomaticOwners = foreignOwners.filter((m: any) => m.permissions?.auto_assigned_default_owner !== true);
-    if (nonAutomaticOwners.length) return out(origin, { error: "BUSINESS_ALREADY_HAS_OWNER", message: "النشاط مرتبط بمالك فعلي آخر. يلزم حل التعارض إداريًا قبل التسليم." }, 409);
-    let membershipId = "";
-    const { data: existingMembership, error: existingMembershipError } = await service.from("user_memberships")
-      .select("id,user_id,tenant_id,business_id,branch_id,role,status,permissions")
-      .eq("user_id", claim.user_id).eq("business_id", businessId).is("branch_id", null)
-      .limit(1).maybeSingle();
-    if (existingMembershipError) return out(origin, { error: "CLAIM_MEMBERSHIP_LOOKUP_FAILED" }, 500);
-    const permissions = {
-      ...(existingMembership?.permissions && typeof existingMembership.permissions === "object" ? existingMembership.permissions : {}),
-      owner: true, catalog: true, catalog_write: true, profile_manage: true,
-      subscription_status: "PAID", claimed_directory_listing_id: claim.listing_id,
-    };
-    if (existingMembership) {
-      membershipId = String(existingMembership.id);
-      const { error } = await service.from("user_memberships").update({ role: "BUSINESS_OWNER", status: "ACTIVE", permissions })
-        .eq("id", membershipId);
-      if (error) return out(origin, { error: "CLAIM_MEMBERSHIP_ACTIVATE_FAILED" }, 500);
-    } else {
-      membershipId = crypto.randomUUID();
-      const { error } = await service.from("user_memberships").insert({
-        id: membershipId, user_id: claim.user_id, tenant_id: business.tenant_id,
-        organization_id: business.organization_id || null, business_id: businessId, branch_id: null,
-        role: "BUSINESS_OWNER", status: "ACTIVE", permissions,
-      });
-      if (error) return out(origin, { error: "CLAIM_MEMBERSHIP_CREATE_FAILED" }, 500);
-    }
-    const automaticIds = foreignOwners.filter((m: any) => m.permissions?.auto_assigned_default_owner === true).map((m: any) => String(m.id));
-    if (automaticIds.length) {
-      const { error } = await service.from("user_memberships").update({ status: "INACTIVE" }).in("id", automaticIds);
-      if (error) return out(origin, { error: "DEFAULT_OWNER_DETACH_FAILED", membershipId }, 500);
-    }
-    const now = new Date().toISOString();
-    const { error: listingUpdateError } = await service.from("public_directory_listings").update({
-      claim_status: "CLAIMED", claimed_user_id: claim.user_id, claimed_business_id: businessId,
-      claimed_at: now, last_verified_at: now, verified_by: user.id, outreach_status: "SUBSCRIBED",
-    }).eq("id", claim.listing_id);
-    if (listingUpdateError) return out(origin, { error: "LISTING_CLAIM_SAVE_FAILED", membershipId }, 500);
-    const { error: claimUpdateError } = await service.from("directory_listing_claim_requests").update({
-      status: "APPROVED", reviewed_by: user.id, reviewed_at: now, review_note: reviewNote || null,
-      linked_business_id: businessId, linked_membership_id: membershipId,
-    }).eq("id", claimId);
-    if (claimUpdateError) return out(origin, { error: "CLAIM_FINALIZE_FAILED", membershipId }, 500);
-    return out(origin, { success: true, status: "APPROVED", membershipId, businessId });
+    if (!result || result.success !== true) return out(origin, { error: "CLAIM_REVIEW_FAILED" }, 500);
+    return out(origin, result);
   }
   return out(origin, { error: "UNSUPPORTED_ACTION" }, 400);
 });
