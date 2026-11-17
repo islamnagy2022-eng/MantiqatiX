@@ -20,6 +20,7 @@ on:
       - "supabase/tests/rc456_commission_resolution_preview_integration.sql"
       - "supabase/tests/rc467_commission_scope_integration.sql"
       - "supabase/tests/rc468_digital_page_payment_claim_integration.sql"
+      - "supabase/tests/rc470_digital_page_webhook_forward_repair.sql"
       - "scripts/validate-rc467-commission-scope.mjs"
       - "supabase/tests/rc468_digital_page_payment_claim_integration.sql"
       - "supabase/tests/rc469_shared_platform_admin_caller_search_path.sql"
@@ -158,6 +159,9 @@ jobs:
 
           echo "RC468_DIGITAL_PAGE_PAYMENT_CLAIM_INTEGRATION"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc468_digital_page_payment_claim_integration.sql
+
+          echo "RC470_DIGITAL_PAGE_WEBHOOK_FORWARD_REPAIR"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc470_digital_page_webhook_forward_repair.sql
 
           psql "$db_url" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql
           psql "$db_url" -v ON_ERROR_STOP=1 -f scripts/verify-tenant-isolation.sql
