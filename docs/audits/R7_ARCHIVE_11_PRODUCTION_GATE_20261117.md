@@ -107,3 +107,16 @@ A cross-session history check adds an important exclusion: PR #722's RC candidat
 ### Exact source recovery verification
 
 The stored migration row contains one SQL statement (374 characters), no rollback entry, and its database-side SHA-256 is `b462abcd9205345901c389102992d9ee31aa6d293a5e7bb5e9f6114f0f43afed`. The restored file was independently hashed locally and produced the same SHA-256. Its contents are therefore byte-identical to the stored migration statement. The file restoration is source-only; the Production migration was not executed again.
+
+## 7. R7 default catalog imagery — source verified and focused tests passed
+
+The requested default imagery behavior is already present in the exact R7 archive; no additional image resolver rewrite is required for this baseline:
+
+- `src/data/imageAssets.ts` defines **15 functional-sector packs**, each with 3 logo variants, 3 cover variants and 6 product/service variants (180 curated sector defaults).
+- `src/utils/aiImageCompletionEngine.ts` assigns sector-aware logo/cover defaults for a newly created business and sector-aware product/service images when the supplied URL is empty or a known placeholder/broken URL.
+- `src/context/AppContext.tsx` calls the business resolver during `addBusiness` and the product resolver during `addProduct`; this is assignment at creation time, not only a visual onError fallback.
+- Five local AI-generated image files referenced by the resolver exist under `public/assets/ai-generated/`, including the maintenance/appliance repair asset.
+- Existing `aiImageCompletionEngine.test.ts`: **4/4 PASS**. The test was compiled with the available global TypeScript 5.8.3 using temporary Node test type shims, then executed with Node 22.16.0. The package's declared test script is still missing, so this is focused source-level evidence, not the project's standard CI.
+- Additional executable checks against the compiled actual R7 resolver: **15/15 sector packs** passed logo/cover/product fallback checks; all five local AI assets existed; maintenance business and appliance-repair product defaults passed; generated SVG text sanitization passed.
+
+**Disposition:** default imagery is implemented in the R7 candidate. It is not deployed because R7 remains blocked by the independent P0 Auth, persistence, server API and secret-management findings above. The old V6 maintenance-image PR #739 is a separate retained-`/legacy/` improvement and does not substitute for R7 integration.
