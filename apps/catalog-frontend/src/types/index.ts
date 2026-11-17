@@ -80,6 +80,7 @@ export interface Business {
   ownerWhatsApp: string; // The merchant's WhatsApp for incoming orders
   phone?: string;
   additionalContactPhones?: string[];
+  publicContactEnabled?: boolean;
   facebookUrl?: string;
   instagramUrl?: string;
   tiktokUrl?: string;
