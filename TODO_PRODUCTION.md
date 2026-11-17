@@ -2024,3 +2024,17 @@ Evidence: `docs/audits/PASS_151_190_DIRECTORY_LOCATION_INTEGRITY_20261117.md`. N
 
 
 - [x] Remove the same fabricated location fallback from the claimed-owner public directory editor and validate the owner update server-side.
+
+
+---
+
+## Pass 191–230 — public directory metadata hardening (2026-11-17)
+
+- [x] Sanitize public logo, cover, website, booking and profile-image URL metadata as HTTPS-only.
+- [x] Add regression tests for javascript:, data:, and HTTP rejection; preserve dedicated Google Maps URL validation.
+- [x] Extend the doctor incremental-import validator to guard the public URL contract.
+- [ ] Confirm all affected checks pass on the final exact head.
+- [ ] Complete transactional claim approval/rejection before release.
+- [ ] Decide public contact and precise-map disclosure policy for imported/unclaimed directory records.
+
+Evidence: `docs/audits/PASS_191_230_PUBLIC_DIRECTORY_METADATA_20261117.md`. Source-only changes; no production deployment or database mutation.
