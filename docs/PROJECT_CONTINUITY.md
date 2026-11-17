@@ -1831,3 +1831,11 @@ The V6 root has already removed the standalone medical page. This follow-up also
 - Production Supabase remains read-only at 310 migrations through `20261110150618`; six critical Edge sources differ from live; RC468/469/470 not applied. Live digital-page finalizer still lacks provider-order binding. Security advisor reports 9 RLS/no-policy tables and 65 authenticated-callable SECURITY DEFINER functions.
 - Full evidence: `docs/audits/PASS_67_86_CONTINUATION_20261117.md`.
 - No Production DB/Auth/RLS/GRANT/Edge/payment/settlement mutation or website cutover was performed in Pass 67–86. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+### 2026-11-17 — deployment confirmation and R7 auth follow-up
+
+- Main `a536d778b29c45a01d1f13dc1ab8dcaaded67af6` exact-head checks completed: 21 success, 0 failures. Pages deployment succeeded. Deployed-origin smoke checks passed for V6 root, legacy catalog rollback, Preview alias, dashboard/mobile/QR routes, and browser tests.
+- PR #753 documentation checkpoint: 16 success, 2 expected skips, no failures or pending checks at latest check.
+- Additional R7 source review: client-imported `src/lib/supabaseClient.ts` selects `SUPABASE_SERVICE_ROLE_KEY` before anon keys; admin UI performs client-side password comparison with default seed `admin`; AppContext hydrates and writes `/api/production-state` without authorization headers; refresh UI sends no token and expects success. These reinforce the P0 release block. Do not copy R7 server/client auth into main before a coordinated Supabase Auth design and tests.
+- No production database, Auth, RLS/GRANT, Edge Function, payment or wallet mutation was performed.
