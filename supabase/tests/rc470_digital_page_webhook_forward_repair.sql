@@ -7,7 +7,7 @@ BEGIN
   SELECT p.* INTO v_proc
   FROM pg_catalog.pg_proc p
   WHERE p.oid = pg_catalog.to_regprocedure(
-    'public.process_verified_digital_page_payment_backend(uuid,text,text,boolean,numeric,text,text,text,jsonb)'
+    'public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)'
   );
   IF NOT FOUND THEN RAISE EXCEPTION 'RC470_FUNCTION_MISSING'; END IF;
   IF NOT (coalesce(v_proc.proconfig, ARRAY[]::text[]) @> ARRAY['search_path=""']) THEN
