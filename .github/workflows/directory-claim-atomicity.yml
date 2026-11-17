@@ -33,6 +33,9 @@ jobs:
           --health-retries 12
     steps:
       - uses: actions/checkout@v6
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
       - name: Apply isolated fixture, migration and integration assertions
         run: |
           set -euo pipefail
@@ -44,3 +47,5 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_directory_claim_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_directory_claim_test -v ON_ERROR_STOP=1 -f /tmp/migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_directory_claim_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
+      - name: Type-check directory Edge Function
+        run: deno check --node-modules-dir=auto supabase/functions/directory-listings/index.ts
