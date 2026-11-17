@@ -410,8 +410,20 @@ jobs:
           cp -a "${V6_ROOT_DIST}/." "${SITE_DIR}/"
           cp -a apps/catalog-frontend/dist/. "${SITE_DIR}/legacy/"
           cp -a apps/aistudio-v6/worktree/dist/. "${SITE_DIR}/v6-preview/"
-          # V6 and its compatibility routes use one public, non-secret runtime config.
-          cp "${SITE_DIR}/legacy/config.js" "${SITE_DIR}/config.js"
+          # Keep the former catalog build intact at /legacy and make it the public landing route.
+          cat > "${SITE_DIR}/index.html" <<'HTML'
+          <!doctype html>
+          <html lang="ar" dir="rtl">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <meta http-equiv="refresh" content="0;url=/MantiqatiX/legacy/?view=directory">
+            <title>MantiqatiX</title>
+            <script>window.location.replace('/MantiqatiX/legacy/?view=directory');</script>
+          </head>
+          <body><a href="/MantiqatiX/legacy/?view=directory">فتح منصة MantiqatiX</a></body>
+          </html>
+          HTML
           test -s "${SITE_DIR}/index.html"
           test -s "${SITE_DIR}/config.js"
           grep -Fq '/MantiqatiX/assets/' "${SITE_DIR}/index.html"
@@ -564,18 +576,20 @@ jobs:
           SITE_ROOT="${PAGE_URL%/}"
           ROOT_URL="${SITE_ROOT}/"
           ROOT_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}")"
-          grep -Fq '/MantiqatiX/assets/' <<<"${ROOT_HTML}"
-          grep -Fq '/MantiqatiX/config.js' <<<"${ROOT_HTML}"
-          ! grep -Fq 'MantiqatiX | منصة إدارة الأنشطة والكتالوجات' <<<"${ROOT_HTML}"
-          ROOT_CONFIG="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${SITE_ROOT}/config.js")"
-          grep -Fq 'moyhiluyhjsujhwlyeuu.supabase.co' <<<"${ROOT_CONFIG}"
-          ROOT_JS="$(grep -oE '/MantiqatiX/assets/[^" ]+\.js' <<<"${ROOT_HTML}" | head -n 1)"
-          ROOT_CSS="$(grep -oE '/MantiqatiX/assets/[^" ]+\.css' <<<"${ROOT_HTML}" | head -n 1)"
+          grep -Fq 'MantiqatiX | منصة إدارة الأنشطة والكتالوجات' <<<"${ROOT_HTML}"
+          grep -Fq '/MantiqatiX/legacy/assets/' <<<"${ROOT_HTML}"
+          ROOT_EFFECTIVE_URL="$(curl --silent --show-error --location --output /dev/null --write-out '%{url_effective}' "${ROOT_URL}")"
+          case "${ROOT_EFFECTIVE_URL}" in
+            */MantiqatiX/legacy/?view=directory|*/MantiqatiX/legacy/?view=directory\&*) ;;
+            *) echo "Primary root did not redirect to the legacy directory: ${ROOT_EFFECTIVE_URL}"; exit 1 ;;
+          esac
+          ROOT_JS="$(grep -oE '/MantiqatiX/legacy/assets/[^" ]+\.js' <<<"${ROOT_HTML}" | head -n 1)"
+          ROOT_CSS="$(grep -oE '/MantiqatiX/legacy/assets/[^" ]+\.css' <<<"${ROOT_HTML}" | head -n 1)"
           test -n "${ROOT_JS}"
           test -n "${ROOT_CSS}"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "https://islamnagy2022-eng.github.io${ROOT_JS}" >/dev/null
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "https://islamnagy2022-eng.github.io${ROOT_CSS}" >/dev/null
-          echo "MANTIQATIX_V6_PRIMARY_ROOT_DEPLOY=PASS: ${ROOT_URL}"
+          echo "MANTIQATIX_LEGACY_PRIMARY_ROOT_DEPLOY=PASS: ${ROOT_URL}"
 
           LEGACY_URL="${SITE_ROOT}/legacy/"
           LEGACY_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${LEGACY_URL}")"
@@ -636,10 +650,12 @@ jobs:
           LEGACY_URL="${PAGE_URL%/}/legacy/"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}" >/dev/null
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${LEGACY_URL}" >/dev/null
-          PLAYWRIGHT_MODULE=/tmp/playwright-runner/node_modules/playwright/index.mjs \
-          PAGE_URL="${ROOT_URL}" \
-          node scripts/test-v6-deployed-root.mjs
+          ROOT_EFFECTIVE_URL="$(curl --silent --show-error --location --output /dev/null --write-out '%{url_effective}' "${ROOT_URL}")"
+          case "${ROOT_EFFECTIVE_URL}" in
+            */MantiqatiX/legacy/?view=directory|*/MantiqatiX/legacy/?view=directory\&*) ;;
+            *) echo "Root browser route failed to reach the legacy directory: ${ROOT_EFFECTIVE_URL}"; exit 1 ;;
+          esac
           PLAYWRIGHT_MODULE=/tmp/playwright-runner/node_modules/playwright/index.mjs \
           AXE_CORE_SCRIPT=/tmp/playwright-runner/node_modules/axe-core/axe.min.js \
-          MANTIQUATIX_E2E_BASE_URL="${LEGACY_URL}" \
+          MANTIQUATIX_E2E_BASE_URL="${ROOT_URL}" \
           node apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs
