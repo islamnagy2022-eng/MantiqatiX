@@ -29,6 +29,11 @@ INSERT INTO public.directory_listing_claim_requests(id,listing_id,user_id,status
   ('40000000-0000-4000-8000-000000000004','30000000-0000-4000-8000-000000000004','10000000-0000-4000-8000-000000000004','PENDING'),
   ('40000000-0000-4000-8000-000000000005','30000000-0000-4000-8000-000000000005','10000000-0000-4000-8000-000000000005','PENDING');
 
+-- Legacy wildcard OWNER permission must be reduced to the explicit claim-owner role.
+INSERT INTO public.user_memberships(id,user_id,tenant_id,organization_id,business_id,role,status,permissions)
+VALUES ('CLAIMANT-EXISTING','10000000-0000-4000-8000-000000000001','TENANT-1','ORG-1',
+        '20000000-0000-4000-8000-000000000001','OWNER','ACTIVE','["*"]'::jsonb);
+
 -- Existing automatic platform owner is allowed to be detached after verified claim approval.
 INSERT INTO public.user_memberships(id,user_id,tenant_id,organization_id,business_id,role,status,permissions)
 VALUES ('AUTO-OWNER-1','10000000-0000-4000-8000-000000000005','TENANT-1','ORG-1',
@@ -58,6 +63,21 @@ BEGIN
   v_membership := v_result->>'membershipId';
   IF NOT EXISTS (SELECT 1 FROM public.user_memberships WHERE id=v_membership AND status='ACTIVE' AND role='BUSINESS_OWNER') THEN
     RAISE EXCEPTION 'claimant owner membership was not activated';
+  END IF;
+  IF v_membership <> 'CLAIMANT-EXISTING' THEN
+    RAISE EXCEPTION 'approval must reuse the existing business-wide membership, got %',v_membership;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.user_memberships
+    WHERE id='CLAIMANT-EXISTING'
+      AND status='ACTIVE' AND role='BUSINESS_OWNER'
+      AND jsonb_typeof(permissions)='object'
+      AND permissions->>'owner'='true'
+      AND permissions->>'catalog_write'='true'
+      AND permissions->>'profile_manage'='true'
+      AND NOT (permissions ? '*')
+  ) THEN
+    RAISE EXCEPTION 'legacy wildcard permission was not normalized to explicit least-privilege owner permissions';
   END IF;
   IF NOT EXISTS (SELECT 1 FROM public.user_memberships WHERE id='AUTO-OWNER-1' AND status='INACTIVE') THEN
     RAISE EXCEPTION 'automatic owner was not detached';
