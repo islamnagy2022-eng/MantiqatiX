@@ -4271,3 +4271,14 @@ No Production schema/data/migration/Auth/RLS/GRANT/Edge/payment/finance mutation
 
 
 - [x] Extend the location-integrity guard to the claimed-owner edit form and `UPDATE_OWNED_LISTING` backend action.
+
+
+### Pass 191–230 — public directory metadata hardening
+
+- [x] Restrict public logo, cover, website, booking and profile-image metadata to HTTPS URLs; omit unsafe values.
+- [x] Preserve dedicated strict Google Maps host/path validation.
+- [x] Add behavior tests and static source-contract assertions for URL sanitization.
+- [x] Recheck owner partial-update location preservation and draft-only import staging.
+- [ ] Obtain fresh exact-head CI for the final branch revision.
+- [ ] Implement and test atomic claim approval/rejection and reliable lock release.
+- [ ] Decide separate contact/precise-map disclosure policy for imported/unclaimed national directory records.
