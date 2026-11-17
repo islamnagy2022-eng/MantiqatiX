@@ -2080,6 +2080,29 @@ Evidence: `docs/audits/PASS_231_270_DIRECTORY_CLAIM_ATOMICITY_20261117.md`.
 
 Evidence: `docs/audits/PASS_271_300_DIRECTORY_CLAIM_ATOMICITY_20261118.md`. Source-only branch; no Production mutation or deployment.
 
+
+---
+
+## Pass 301–320 — post-merge parity and directory privacy review (2026-11-18)
+
+- [x] Verify PR #757 merged to main as `ae090081015b0c3af410fb6ee114165f300b1bba`.
+- [x] Verify main-commit checks passed, including migration replay, directory atomicity, catalog frontend and production health monitor.
+- [x] Verify GitHub Pages V6 root, legacy catalog path and V6 preview deployment plus deployed-origin browser checks.
+- [x] Reconcile Supabase Production parity: RC472 is not applied; live `directory-listings` remains version 16 and lacks the transactional RPC.
+- [x] Re-run business-wide membership normalized duplicate preflight: zero collisions.
+- [x] Identify the one legacy `OWNER` membership with permissions array `["*"]`; require an explicit least-privilege normalization regression test.
+- [x] Quantify public/unclaimed national-directory phone/address projection without reading contact values.
+- [x] Confirm source-permission evidence registry is empty and public tables remain inaccessible through direct client RLS policies.
+- [x] Record Supabase Free plan backup constraint and missing verified off-site restore artifact.
+- [ ] Pass the explicit legacy wildcard-permission normalization test on exact PR head.
+- [ ] Decide and test the public contact/location disclosure policy for imported/unclaimed vs source-licensed vs owner-consented listings.
+- [ ] Obtain and verify off-site logical backup + restore before Production DDL.
+- [ ] Apply RC472 and deploy Edge Function in a coordinated release; run post-deploy smoke tests.
+- [ ] Close the wider SECURITY DEFINER grant/RLS advisor backlog with per-function authorization evidence.
+
+Evidence: `docs/audits/PASS_301_320_POST_MERGE_PARITY_AND_DIRECTORY_PRIVACY_20261118.md`. No Production schema/data/Auth/RLS/GRANT/Edge mutation occurred.
+
+
 ---
 
 ## Pass 301–330 — public directory contact disclosure controls (2026-11-18)
