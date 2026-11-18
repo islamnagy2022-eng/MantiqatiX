@@ -6,9 +6,9 @@ export async function collectActiveAddressConsentIds(fetchPage, pageSize = 1000)
 
   while (true) {
     const { data, error } = await fetchPage(offset, pageSize);
-    if (error) return { ids: [], ready: false };
+    if (error || !Array.isArray(data)) return { ids: [], ready: false };
 
-    const rows = Array.isArray(data) ? data : [];
+    const rows = data;
     if (rows.length === 0) break;
 
     for (const row of rows) {
