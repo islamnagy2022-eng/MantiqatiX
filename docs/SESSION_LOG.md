@@ -2809,3 +2809,12 @@ Evidence branch: `fix/e2e-directory-card-heading-query-20261118`; source change 
 - Saved the uploaded `الامر-التقني.txt` verbatim as `docs/MASTER_SOURCE_OF_TRUTH.md`.
 - PR #774 already merged RC474 to main; Production migration and Edge deployment remain blocked by the missing verified off-site backup/restore.
 
+
+
+## 2026-11-18 — Post-merge RC474 generated-total fixture alignment
+
+- Main advanced to `c85115d4dcc247d1dd4f02cde72ee3224930b7ad` with a follow-up source/test commit that aligns the RC474 disposable `orders.total` column with Production's generated `GENERATED ALWAYS AS (total_amount) STORED` definition.
+- Updated the RC474 validator to assert that generated-total contract. The post-merge main RC474 workflow passed 10/10 steps (run `44227923341`).
+- The migration retains a fail-closed NULL-total guard as defense in depth; the disposable fixture does not attempt to insert NULL into a generated column.
+- Production migration and Edge deployment remain blocked pending verified off-site backup/restore.
+
