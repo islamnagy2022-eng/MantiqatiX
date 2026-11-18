@@ -13,6 +13,12 @@ const catalogSection = read('apps/catalog-frontend/src/components/storefront/Cat
 
 assert.ok(defaults.includes('export function resolveDefaultImage'), 'category-aware image resolver must remain the common source');
 assert.ok(defaults.includes('export function resolveDefaultActivityImages'), 'activity defaults must provide both logo and cover artwork');
+assert.ok(defaults.includes("type ArtKey = 'general' |"), 'unknown activity types must resolve to a neutral general category');
+assert.ok(defaults.includes("general: 'business-placeholder.svg'"), 'unknown activities must use the neutral business placeholder');
+assert.ok(defaults.includes("general: 'catalog-item-placeholder.svg'"), 'unknown products and services must use the neutral item placeholder');
+assert.ok(defaults.includes("return 'general';"), 'unmatched catalog categories must never be misclassified as grocery');
+assert.ok(fs.existsSync('apps/catalog-frontend/public/business-placeholder.svg'), 'neutral business placeholder asset must exist');
+assert.ok(fs.existsSync('apps/catalog-frontend/public/catalog-item-placeholder.svg'), 'neutral catalog item placeholder asset must exist');
 
 const assetPattern = new RegExp('legacy/(?:activity|activities)/[a-z0-9_-]+[.]svg', 'g');
 const referencedAssets = [...defaults.matchAll(assetPattern)].map((match) => match[0]);
