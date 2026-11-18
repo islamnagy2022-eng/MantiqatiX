@@ -5,10 +5,16 @@ const health = fs.readFileSync("supabase/functions/health/index.ts", "utf8");
 const monitor = fs.readFileSync(".github/workflows/production-health-monitor.yml", "utf8");
 
 const methodGuard = health.indexOf('if (req.method !== "GET")');
+const tokenGuard = health.indexOf('if (!suppliedToken || !(await tokenMatches(suppliedToken, monitorToken)))');
 const databaseClient = health.indexOf("createClient(supabaseUrl, serviceRoleKey");
 assert.ok(methodGuard >= 0 && health.includes("status: 405") &&
-  health.includes('"Allow": "GET"') && databaseClient > methodGuard,
-  "public health database probe must reject non-GET methods before constructing the database client");
+  health.includes('"Allow": "GET"') && tokenGuard > methodGuard &&
+  databaseClient > tokenGuard && health.includes('Deno.env.get("HEALTH_MONITOR_TOKEN")') &&
+  health.includes("status: 401") && health.includes('status: "unauthorized"'),
+  "health probe must enforce GET and a configured bearer secret before constructing the service-role DB client");
+assert.ok(health.includes('crypto.subtle.digest("SHA-256"') &&
+  health.includes("difference |= left[i] ^ right[i]"),
+  "health monitor token comparison must use fixed-length digest comparison");
 assert.ok(health.includes('createClient(supabaseUrl, serviceRoleKey'),
   "health function must use its server-side service-role client");
 assert.ok(health.includes('Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")'),
@@ -28,6 +34,12 @@ assert.ok(!health.includes("error.message") && !health.includes("error.details")
 assert.ok(health.includes('Cache-Control: "no-store"'),
   "health responses must not be cached");
 
+assert.ok(monitor.includes("HEALTH_MONITOR_TOKEN: ${{ secrets.HEALTH_MONITOR_TOKEN }}") &&
+  monitor.includes('if [[ -z "${HEALTH_MONITOR_TOKEN:-}" ]]') &&
+  monitor.includes('echo "database_probe_mode=legacy_anon"'),
+  "monitor must retain a safe legacy fallback until the shared monitor secret is configured");
+assert.ok(monitor.includes('Authorization: Bearer ${HEALTH_MONITOR_TOKEN}'),
+  "monitor must authenticate its DB-aware health request with the repository secret");
 assert.ok(monitor.includes("id: supabase_health"),
   "monitor must expose the health probe mode to the following step");
 assert.ok(monitor.includes("database_probe_mode=service_role"),
