@@ -2774,3 +2774,13 @@ Evidence branch: `fix/e2e-directory-card-heading-query-20261118`; source change 
 - Added a synthetic BUSINESS_OWNER principal to disposable RC449/RC471 tests; verifies denial across all four global MantiGO RPCs and four helper-dependent platform RPCs. Static validator now requires the case.
 - Exact-head CI pending. Production RC464/RC471/RC472/RC473 remain unapplied; backup/restore evidence remains required.
 
+
+
+## 2026-11-18 — Pass 321–340 — deployed pagination browser verification closeout
+
+- Main commit `89e2755f005953171530cf5955771050fa547d89` corrected the E2E locator for card titles inside interactive button cards; application UI and pagination behavior were not changed.
+- Primary Catalog Frontend Validation `44224482188` passed: build 31/31, employee RBAC PostgreSQL 7/7, professional dashboard browser E2E 9/9.
+- GitHub Pages deployment `44224482241` passed: validation 42/42 and deploy job 13/13 including deployed-origin root/dashboard/mobile/QR browser checks.
+- V6 root, legacy rollback route, V6 Preview alias and dashboard/mobile/QR routes verified on the deployed origin.
+- The earlier run failed only at the incorrect Playwright heading role locator after successful upload/deployment; corrected main run is green.
+
