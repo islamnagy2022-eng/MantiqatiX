@@ -106,6 +106,20 @@ Evidence: `docs/audits/PASS_541_560_P0_AUTH_SECURITY_DEFINER_20261118.md`. Read-
 
 Evidence: `docs/audits/PASS_561_580_SECURITY_DEFINER_DELEGATION_REVIEW_20261118.md`. Read-only Production review; no runtime mutation.
 
+## Pass 581–600 — MantiGO captain earnings live-ledger repair (2026-11-18)
+
+- [x] Inspect live `get_mantigo_captain_earnings_backend(uuid)` definition against live `mantigo_financial_ledger` columns.
+- [x] Confirmed production function references nonexistent legacy columns `amount` and `captain_amount`; canonical live columns are `gross_amount` and `captain_net_amount`. This is a confirmed runtime failure in the captain earnings aggregate, not an inferred risk.
+- [x] Add forward-only RC476 migration preserving JSON keys, `auth.uid()` actor binding, captain-profile requirement, and authenticated-only execution; pin empty search_path.
+- [x] Add disposable integration test with deliberately conflicting legacy values to prove the function aggregates canonical columns, plus actor mismatch, missing profile, grants, and search-path checks.
+- [x] Extend the existing RC449/RC462/RC471 disposable PostgreSQL fixture and workflow to apply RC476 and run its integration test after RC471.
+- [x] Add static RC476 validator to the same CI workflow.
+- [ ] Await exact-head GitHub Actions PostgreSQL workflow; do not merge if any job fails.
+- [ ] After merge, reconcile exact migration identity and apply RC476 only in the approved forward release sequence, after backup/restore and migration gates.
+- [ ] Review remaining direct-auth MantiGO and payment RPCs for data leakage, actor ownership, and idempotency.
+
+Evidence: `supabase/migrations/20261118050000_rc476_mantigo_captain_earnings_live_ledger_columns.sql`, `supabase/tests/rc476_mantigo_captain_earnings_integration.sql`, and `scripts/validate-rc476-captain-earnings-live-columns.mjs`. Candidate only; not applied to Production.
+
 ## Historical R7 archive (7) baseline — 2026-11-11
 
 > Historical record only: this 2026-11-11 override described the earlier `bizcatalog-manager (7).zip` artifact and its hash below. It is superseded as the current candidate by the latest `bizcatalog-manager (11).zip` upload, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`. The (7), (9)(1) and (11) archives are separate artifacts; do not conflate their hashes or treat the earlier archive as the current source.

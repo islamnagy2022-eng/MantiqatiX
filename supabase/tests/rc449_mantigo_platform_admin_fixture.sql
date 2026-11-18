@@ -49,6 +49,17 @@ create table public.mantigo_rides (
   updated_at timestamptz not null default now()
 );
 
+create table public.mantigo_captain_profiles (
+  captain_id uuid primary key
+);
+
+create table public.mantigo_bids (
+  id text primary key default ('BID-'||substr(md5(random()::text),1,12)),
+  ride_id text not null,
+  captain_id uuid not null,
+  status text not null
+);
+
 create table public.mantigo_financial_ledger (
   id text primary key,
   ride_id text,

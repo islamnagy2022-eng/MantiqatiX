@@ -1,3 +1,19 @@
+# Latest execution checkpoint — 2026-11-18 — Pass 581–600 RC476 captain earnings repair
+
+**Main baseline:** `abb282666dc5f3f5dd08a9aba119030adbccde4e`.  
+**Candidate branch:** `fix/mantigo-captain-earnings-live-ledger-columns-rc476`.  
+**Production:** **BLOCKED / NOT CERTIFIED**.
+
+- A live definition-to-schema comparison found a concrete MantiGO captain earnings runtime defect: `get_mantigo_captain_earnings_backend` sums legacy `amount` and `captain_amount` columns that do not exist in the live ledger. Canonical fields are `gross_amount` and `captain_net_amount`.
+- Candidate RC476 corrects the aggregation while preserving the response shape and actor/profile guards, and pins an empty search_path.
+- Added a disposable PostgreSQL regression using deliberately conflicting legacy values, actor mismatch and missing-profile checks, plus grant/search-path assertions.
+- Extended the RC449/RC462/RC471 CI fixture and workflow to run RC476 after RC471. Exact-head CI has not yet been observed; this candidate is not merged or deployed.
+- No Production data, SQL, grants, Auth, RLS, Edge, payments or settlements were changed.
+
+**Next:** validate exact-head workflow; correct any failures; then continue review of direct-auth MantiGO and payment RPCs. Production rollout remains blocked by the separate migration reconciliation and encrypted backup/restore gate.
+
+---
+
 # Latest execution checkpoint — 2026-11-18 — Pass 561–580 SECURITY DEFINER delegation review
 
 **Current main:** `70ce098087acda306ffbfca4fbbfde581fdc9a86`.  
