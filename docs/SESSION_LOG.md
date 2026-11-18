@@ -2878,3 +2878,14 @@ Evidence branch: `fix/e2e-directory-card-heading-query-20261118`; source change 
 - No Production Edge deployment, Auth/RLS/GRANT change, payment or financial mutation.
 - Backup/restore remains the external release blocker. No Production DB credentials were exposed or requested.
 - Latest main checkpoint: `4fc65f68a304c10e9ec63e073e5e1e392b75f161`.
+
+
+## 2026-11-18 — PR #782 post-merge verification
+
+- Main merge `4fc65f68a304c10e9ec63e073e5e1e392b75f161` passed all post-merge workflows.
+- Primary Catalog build, employee/branch RBAC PostgreSQL and browser E2E passed (run `44234486191`).
+- GitHub Pages validation/deploy/deployed-origin browser checks passed (run `44234486405`), including legacy root, `/legacy/`, V6 preview alias and dashboard/mobile/QR routes.
+- Production Health Monitor passed (run `44234486359`); module, privacy, finance, CORS and legacy catalog validations also passed.
+- Latest main checkpoint: `ef96fec44715ee255780e63bd5a2a2925d89876d` (documentation-only follow-up).
+- Live Supabase ledger remains 310 rows through `20261110150618`, 0/54 required release migrations applied. No Production migration, Edge deployment or financial mutation.
+- Production release remains blocked by missing encrypted off-site backup and disposable restore evidence.
