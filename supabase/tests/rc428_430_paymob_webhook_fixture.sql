@@ -86,8 +86,8 @@ create table public.subscription_payment_intents (
 create table public.user_memberships (
   user_id uuid not null,
   business_id uuid not null references public.businesses(id),
-  status text not null,
-  role text not null,
+  status varchar not null,
+  role varchar not null,
   created_at timestamptz not null default now()
 );
 
