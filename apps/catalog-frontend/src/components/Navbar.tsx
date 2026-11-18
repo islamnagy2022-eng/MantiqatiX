@@ -98,9 +98,6 @@ export const Navbar: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="shrink-0">
-              <FloatingAppInstallButton currentBusiness={currentBusiness} />
-            </div>
           </div>
 
           <div className="flex items-center gap-3">
