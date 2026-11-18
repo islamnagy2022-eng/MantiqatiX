@@ -2114,9 +2114,49 @@ Evidence: `docs/audits/PASS_301_320_POST_MERGE_PARITY_AND_DIRECTORY_PRIVACY_2026
 - [x] Remove phone/address from public free-text search and gate explicit address filtering on active ADDRESS consent.
 - [x] Add authenticated owner-only grant/revoke action and four independent owner UI controls.
 - [x] Add isolated PostgreSQL consent registry tests and source projection/search contract tests.
-- [ ] Pass final-head PostgreSQL, source-contract, Deno and frontend build CI plus all required cross-module PR checks.
-- [ ] Merge only after final-head checks pass.
-- [ ] Separately approve RC473 migration + `directory-listings` Edge deployment after RC472 migration/Edge release, backup and rollback review.
+- [x] Pass exact-head PostgreSQL, source-contract, Deno/type-check, frontend build, browser E2E, migration replay, directory-claim atomicity and required cross-module PR checks on 334e4258d14f229e2e6da110ec9a9bc8c54195ca.
+- [x] Merge PR #758 to main as de0ebab80e624b86f3726a84d5757aefb66120eb and verify the merge commit is the current main head.
+- [ ] Separately approve RC473 migration + directory-listings Edge deployment after RC472 migration/Edge release, backup and rollback review.
 - [!] Source-rights blocker remains across all 869 published rows: the Production permission-evidence registry is empty and no row references approved evidence. The `dalil140.com` host accounts for 746 rows across several source labels; the single label `Dalil140 — دليل عام غير رسمي` accounts for 497. A public URL is not a republication licence. Do not bulk import or re-publish restricted-source records without written, dataset-specific permission.
 
 Evidence: `docs/audits/PASS_301_330_DIRECTORY_CONTACT_CONSENT_20261118.md`. Source-only candidate; no Production migration or Edge deployment.
+
+
+---
+
+## Pass 331–340 — RC473 merge verification and release gating (2026-11-18)
+
+- [x] Verify PR #758 is merged and current main is de0ebab80e624b86f3726a84d5757aefb66120eb.
+- [x] Verify exact-head PR workflows passed: Directory Contact Consent PostgreSQL/source-contract; Primary Catalog frontend build, employee RBAC PostgreSQL and browser E2E; directory claim atomicity; forward migration replay; doctor incremental import; and cross-module security/contract checks.
+- [x] Verify PR #758 remains source-only: no Production migration, live Edge Function deployment, contact data mutation, payment action or Supabase grants/RLS change was executed.
+- [x] Verify post-merge main workflows were triggered on the merge SHA; production health monitor passed. Remaining post-merge workflows were still running at checkpoint creation.
+- [x] Record the live release order: RC472 migration + directory-listings Edge release first; then RC473 migration + Edge release; then owner claim/consent/revoke and public privacy smoke tests.
+- [ ] Obtain a verified off-site logical backup and perform a restore test before any Production DDL. Supabase Free plan / no verified backup artifact remains a hard release gate.
+- [ ] Obtain dataset-specific republication permission evidence or quarantine/review source-restricted rows before republishing contact details or commercial data. Public accessibility is not a republication licence.
+- [ ] Reconcile and deploy RC472 + RC473 only after backup, rollback, migration ordering and Edge compatibility are approved.
+- [ ] Run deployed-origin tests proving unauthorised users see no phone, secondary phone, exact address or precise map URL; owner grant/revoke changes must take effect and leave audit history.
+- [ ] Continue wider P0 SECURITY DEFINER / RLS / grants audit and Android/mobile regression checks.
+
+Release status: BLOCKED / NOT CERTIFIED. PR merge does not mean Production migration or Edge deployment. No Production schema, data, Auth, RLS, GRANT, Edge, payment or settlement mutation occurred in this pass.
+
+Evidence: docs/audits/PASS_331_340_RC473_MERGE_VERIFICATION_20261118.md.
+
+
+---
+
+## Pass 341–350 — Production parity and Supabase security-advisor triage (2026-11-18)
+
+- [x] Re-check live Supabase migration ledger: 310 migrations; latest applied version remains 20261110150618.
+- [x] Confirm RC472 and RC473 are not present in the live migration ledger; do not apply either migration in this pass.
+- [x] Confirm live Edge Function versions: directory-listings v16, public-catalog v8, public-catalog-directory v18. The merged RC473 source has not been deployed to Production.
+- [x] Re-run Supabase security, performance and health advisors; health advisor returned zero lints.
+- [x] Triage the single anon-executable SECURITY DEFINER function: get_mnty_targeted_advertisements returns active, approved public ad creative/targeting only, has empty search_path, and caps result count at 50. Keep as an intentional public-ad API exception pending a dedicated ACL regression test.
+- [x] Review six authenticated-executable SECURITY DEFINER wrappers without a direct auth.uid() occurrence. The inspected wrappers delegate to auth.uid()-scoped membership or financial/catalog helpers; no immediate grant change made.
+- [!] Record security advisor baseline: 65 authenticated-executable SECURITY DEFINER functions; leaked-password protection disabled; 9 RLS-enabled/no-policy INFO findings; 28 multiple-permissive-policy warnings.
+- [!] Record performance baseline: 132 unindexed foreign keys, 375 RLS init-plan findings, and 71 unused-index notices. Do not mass-change indexes/policies without query-plan and access-model review.
+- [ ] Enable and verify leaked-password protection through the supported Auth project settings control.
+- [ ] Review all 65 SECURITY DEFINER functions individually for authorization, search_path, grants, tenant/branch scope and data exposure; prioritize financial, admin and user-data functions.
+- [ ] Add a specific regression test for the intended anonymous public-ad RPC and its output/limit/ACL contract.
+- [ ] Continue P0 security review and production release gates; backup/restore and source-rights blockers remain unresolved.
+
+Evidence: docs/audits/PASS_341_350_PRODUCTION_PARITY_SECURITY_ADVISORS_20261118.md. Read-only audit only; no Production schema, data, Auth, RLS, GRANT, Edge, payment or settlement mutation.

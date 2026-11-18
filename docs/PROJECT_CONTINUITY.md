@@ -1,3 +1,32 @@
+# Latest execution checkpoint — 2026-11-18 — Pass 341–350 Supabase security triage
+
+Current main at last verified merge: de0ebab80e624b86f3726a84d5757aefb66120eb. Documentation PR #762 is open and includes Pass 331–340 merge reconciliation.
+
+- Live Supabase ledger: 310 migrations; latest applied 20261110150618. RC472 and RC473 are not applied.
+- Live Edge versions: directory-listings v16, public-catalog v8, public-catalog-directory v18. RC473 source merge is not an Edge deployment.
+- Supabase security advisors: 65 authenticated-executable SECURITY DEFINER functions; one anon-executable SECURITY DEFINER function; leaked-password protection disabled; 9 RLS-enabled/no-policy INFO findings; 28 multiple-permissive-policy warnings.
+- Reviewed the anon-executable targeted-ad function definition: it selects active approved ad content/geo targets only, has empty search_path and bounds result count to 50. Treat as intentional public API, but add dedicated ACL/output regression coverage.
+- Six authenticated-executable wrappers had no direct auth.uid() occurrence; inspected wrappers delegate to membership/financial/catalog helpers that enforce the actor context. No grants were changed.
+- Performance advisor baseline: 132 unindexed foreign keys, 375 RLS init-plan findings, 71 unused-index notices. Health advisor returned zero lints.
+- Production release remains BLOCKED / NOT CERTIFIED: no verified off-site backup/restore artifact, unresolved source-republication rights, RC472/RC473 migration and Edge release still pending.
+- Next: individual review of 65 SECURITY DEFINER functions, configure leaked-password protection, add public-ad RPC regression tests, and resolve backup/restore before any Production DDL.
+
+---
+# Latest execution checkpoint — 2026-11-18 — Pass 331–340 RC473 merge verification
+
+Current main: de0ebab80e624b86f3726a84d5757aefb66120eb.
+PR #758: merged; RC473 directory contact consent source is on main.
+Production release: BLOCKED / NOT CERTIFIED.
+
+- PR #758 merged as de0ebab80e624b86f3726a84d5757aefb66120eb. It adds owner-scoped PHONE, SECONDARY_PHONE, ADDRESS and PRECISE_LOCATION consent; a private forced-RLS registry with retained revocation audit; fail-closed public projection; contact-search side-channel protection; owner controls; and regression tests.
+- Exact-head checks passed on 334e4258d14f229e2e6da110ec9a9bc8c54195ca: Directory Contact Consent PostgreSQL/source contract; Primary Catalog frontend build, employee RBAC PostgreSQL and browser E2E; directory claim atomicity; migration replay; doctor import; and cross-module checks.
+- Post-merge workflows were triggered on the merge SHA. Production Health Monitor passed; other repository-wide workflows were still running at checkpoint creation.
+- No Production migration, data mutation, Supabase Auth/RLS/GRANT change, Edge Function deployment, payment action or Pages deployment is claimed from the RC473 merge.
+- RC472 remains a separate release dependency. Required order: verified backup/restore; RC472 migration and Edge release; RC473 migration and Edge release; then deployed-origin claim/consent/revoke/privacy smoke tests.
+- Supabase Free plan and no verified off-site backup/restore artifact remain a hard Production DDL gate. Source-rights evidence is also unresolved for 869 published directory rows; no mass republishing without dataset-specific permission.
+- Next: monitor merge-SHA workflows, complete remaining P0 security review, and prepare a separately reviewed production release only after backup/restore and source-rights blockers are resolved.
+
+---
 # Latest execution checkpoint — 2026-11-18 — Pass 301–330 directory contact consent
 
 **Current main:** `5d9fd1dbe0b30f8a0274979778b3ed19f07939f4`.  
