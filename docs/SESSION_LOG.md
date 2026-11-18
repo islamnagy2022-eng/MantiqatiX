@@ -2750,3 +2750,17 @@ Read-only Supabase production schema cross-check completed: retrieved definition
 - Retained search_path/ACL assertions: empty path, anon+authenticated execution by design, no PUBLIC execution.
 - Exact-head CI pending; no Production mutation.
 
+
+
+## P0 — Production directory contact-consent drift (2026-11-18)
+
+- [x] Compare current `main` sanitizer with deployed `directory-listings` Edge version 16 source.
+- [x] Confirm Production has no `public.directory_listing_contact_consents` table.
+- [x] Confirm live Edge v16 selects and returns contact columns without the consent registry/sanitizer.
+- [x] Separate source-republication evidence registry from listing contact-consent registry; do not conflate them.
+- [x] Record stored contact counts without retrieving contact values.
+- [ ] Back up and restore-verify Production off-site.
+- [ ] Apply consent-table migration and deploy matching Edge source in a coordinated, tested release.
+- [ ] Verify no-consent, scope-specific consent, revocation and fail-closed public output on deployed Production.
+
+Evidence: `docs/audits/PRODUCTION_DIRECTORY_CONTACT_CONSENT_DRIFT_20261118.md`. Production remains unchanged; privacy fix is not live.
