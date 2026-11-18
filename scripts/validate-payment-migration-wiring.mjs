@@ -43,7 +43,7 @@ assert.doesNotMatch(mantigoBlock, /from\("mantigo_financial_ledger"\)\.update/, 
 assert.doesNotMatch(mantigoBlock, /from\("notifications"\)\.insert/, "MantiGo notification must not be inserted outside the atomic RPC");
 
 
-assert.match(rc475, /END;\\s*\\$function\\$;\\s*REVOKE ALL ON FUNCTION public\\.process_verified_provider_payment/);
+assert.match(rc475, /END;\s*\$function\$;\s*REVOKE ALL ON FUNCTION public\.process_verified_provider_payment/);
 assert.ok(rc475Concurrency.includes("rc475-concurrent-session-a.log") && rc475Concurrency.includes("rc475-concurrent-session-b.log"),
   "RC475 must exercise two independent PostgreSQL sessions");
 assert.ok(rc475Concurrency.includes('"idempotent"[[:space:]]*:[[:space:]]*false') &&
