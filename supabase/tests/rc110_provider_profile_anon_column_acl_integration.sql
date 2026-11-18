@@ -20,7 +20,7 @@ declare
   v_count integer;
   v_denied boolean := false;
 begin
-  select count(*) into v_count
+  select count(name_ar) into v_count
   from public.marketing_provider_profiles
   where status='ACTIVE';
   if v_count <> 1 then raise exception 'anon public projection did not return exactly one active row'; end if;
