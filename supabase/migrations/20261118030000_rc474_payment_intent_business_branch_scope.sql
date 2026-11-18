@@ -121,7 +121,7 @@ BEGIN
       WHERE m.user_id=v_uid
         AND m.tenant_id=p_tenant_id
         AND m.status='ACTIVE'
-        AND upper(m.role::text) IN ('OWNER','ADMIN','MANAGER','FINANCE','ACCOUNTANT','FINANCE_MANAGER')
+        AND upper(m.role::text) IN ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','FINANCE','ACCOUNTANT','FINANCE_MANAGER')
         AND (
           (
             m.business_id=v_order.business_id
