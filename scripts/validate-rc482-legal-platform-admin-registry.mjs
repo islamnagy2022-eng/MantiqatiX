@@ -6,10 +6,12 @@ const cms = fs.readFileSync("supabase/functions/legal-cms/index.ts", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc482_legal_platform_admin_registry_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc482_legal_platform_admin_registry_integration.sql", "utf8");
 
-assert.equal((migration.match(/CREATE OR REPLACE FUNCTION private\.legal_is_admin/g) || []).length, 2,
-  "RC482 must harden both private legal admin helper signatures");
-assert.equal((migration.match(/FROM private\.platform_admins/g) || []).length, 2,
-  "both private helper signatures must consult the canonical platform-admin registry");
+assert.equal((migration.match(/CREATE OR REPLACE FUNCTION private\.legal_is_admin/g) || []).length, 1,
+  "RC482 must retain one UUID helper signature with a default for no-argument callers");
+assert.equal((migration.match(/FROM private\.platform_admins/g) || []).length, 1,
+  "the legal admin helper must consult the canonical platform-admin registry");
+assert.match(migration, /DROP FUNCTION IF EXISTS private\.legal_is_admin\(\)/,
+  "RC482 must remove the ambiguous zero-argument overload without dropping the UUID helper used by policies");
 assert.doesNotMatch(migration, /FROM public\.user_memberships/i,
   "global legal authorization must not rely on tenant membership role labels");
 assert.match(migration, /CREATE OR REPLACE FUNCTION public\.legal_assert_admin_backend\(p_actor_user_id uuid\)[\s\S]*?SECURITY DEFINER[\s\S]*?SET search_path TO ''/);
