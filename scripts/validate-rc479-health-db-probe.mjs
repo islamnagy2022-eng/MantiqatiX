@@ -5,11 +5,13 @@ const health = fs.readFileSync("supabase/functions/health/index.ts", "utf8");
 const monitor = fs.readFileSync(".github/workflows/production-health-monitor.yml", "utf8");
 
 const methodGuard = health.indexOf('if (req.method !== "GET")');
+const missingTokenGuard = health.indexOf("if (!monitorToken)");
 const tokenGuard = health.indexOf('if (!suppliedToken || !(await tokenMatches(suppliedToken, monitorToken)))');
 const databaseClient = health.indexOf("createClient(supabaseUrl, serviceRoleKey");
 assert.ok(methodGuard >= 0 && health.includes("status: 405") &&
-  health.includes('"Allow": "GET"') && tokenGuard > methodGuard &&
-  databaseClient > tokenGuard && health.includes('Deno.env.get("HEALTH_MONITOR_TOKEN")') &&
+  health.includes('"Allow": "GET"') && missingTokenGuard > methodGuard &&
+  tokenGuard > missingTokenGuard && databaseClient > tokenGuard &&
+  health.includes('Deno.env.get("HEALTH_MONITOR_TOKEN")') &&
   health.includes("status: 401") && health.includes('status: "unauthorized"'),
   "health probe must enforce GET and a configured bearer secret before constructing the service-role DB client");
 assert.ok(health.includes('crypto.subtle.digest("SHA-256"') &&
