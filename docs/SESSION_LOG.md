@@ -2697,3 +2697,14 @@ Read-only Supabase production schema cross-check completed: retrieved definition
 - Security advisor snapshot: 9 RLS-enabled tables without direct policies (service-role-only design on directory tables), 65 authenticated-executable SECURITY DEFINER functions, and one anon-executable targeted-ad projection requiring a focused review. Health advisor had no lints.
 - Next: pass legacy wildcard normalization regression; decide and test unclaimed public directory contact disclosure; obtain off-site backup + restore evidence; coordinate RC472 migration and Edge release.
 
+
+
+## 2026-11-18 — Pass 321–340 — deployed specialty pagination verified
+
+- Diagnosed PR #760 post-deploy browser failure: the test counted stale category results before the specialty-filtered API request completed; digit matcher was also overescaped.
+- Updated E2E to register `page.waitForResponse` before selecting the specialty, assert exact server filters and HTTP 200, then verify 20 rows; all numeric matchers use `[0-9]{2}`.
+- PR #760 merged as `18711d016a591613791e9596740b367eecb96865`; it changes only browser-test code, not runtime UI.
+- Main Primary Catalog Frontend Validation run `44205131829` completed successfully, including build/TypeScript, employee RBAC PostgreSQL integration and local Playwright directory/specialty pagination test.
+- GitHub Pages deployment run `44205131869` completed successfully. V6 root, legacy rollback `/legacy/`, Preview alias `/v6-preview/`, and deployed-origin browser checks for legacy root/dashboard/mobile/QR all passed.
+- No Supabase Production migration, data/Auth/RLS/GRANT change, Edge deployment, or payment/settlement mutation occurred.
+- Remaining: secure off-site logical backup + tested restore; apply RC464 platform-admin helper hardening; coordinated RC472 migration + directory Edge deployment; public unclaimed contact disclosure policy; per-function SECURITY DEFINER audit.
