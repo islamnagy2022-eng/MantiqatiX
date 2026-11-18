@@ -11,6 +11,7 @@ PR: #774 — RC474 payment-intent scope hardening
 - The current function's first non-customer authorization check accepts any active membership in the target tenant/business, or any tenant-wide membership.
 - Its second financial-role check is tenant-only: it does not bind the role to the same `business_id` or `branch_id` that passed the first check. A user can therefore combine a non-finance role in one business/branch with a finance role in another business/branch.
 - The financial-role check only runs when `orders.customer_id IS NOT NULL` and differs from the actor. A NULL customer_id bypasses that role check.
+- The business authorization model explicitly recognizes `BUSINESS_OWNER` as a business-scoped owner role; RC474 includes it only when the membership matches the exact order business and branch.
 - The function uses `search_path=public, pg_temp` and unqualified table references.
 - Current live aggregates: 0 orders and 0 cross-business finance membership pairs. This is a latent authorization defect, not evidence of an existing payment or prior exploitation.
 - No Production payment RPC was invoked; no payment intent, order, ledger, journal, provider event, membership, grant or function was changed.
@@ -24,12 +25,12 @@ PR: #774 — RC474 payment-intent scope hardening
 - Pin the SECURITY DEFINER RPC to an empty search_path and schema-qualify table/Auth references.
 - Normalize ACLs: authenticated + service_role execute; anon + PUBLIC do not.
 - Remove the Edge Function's redundant tenant-only membership precheck. The user-scoped RPC becomes the single business/branch authorization authority.
-- Add a disposable PostgreSQL 16 fixture covering cross-business role mixing, cross-branch role mixing, NULL customer, customer-owned payment, exact branch/business/tenant-wide finance roles and idempotent replay.
+- Add a disposable PostgreSQL 16 fixture covering cross-business role mixing, cross-branch role mixing, NULL customer, customer-owned payment, exact branch/business/tenant-wide finance roles, same-business BUSINESS_OWNER access, and idempotent replay.
 
 ## Validation / release status
 
 - Static source assertions were locally checked in the orchestration layer: 12/12 targeted checks passed.
-- PR #774 exact-head GitHub checks, disposable PostgreSQL integration and forward migration replay are running/pending.
+- RC474's scoped role set includes `BUSINESS_OWNER` for the exact same business/branch, with a positive integration test. The first static CI attempt correctly caught that the validator's expected-role regex had not been updated; the validator was corrected and exact-head CI is rerunning.
 - PR #773 was closed as superseded because its base became stale after PR #772 merged; no code was merged from #773.
 - Main currently includes PR #772 as `30531e00a43d059159b409f3f57ace5d640ad641`.
 - Supabase Production remains at migration `20261110150618`; RC464/RC471/RC472/RC473/RC474 are not applied.
