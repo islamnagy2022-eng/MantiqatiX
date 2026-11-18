@@ -49,6 +49,15 @@ begin
     'public.process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb)','EXECUTE') then
     raise exception 'RC430 service-role-only ACL contract failed';
   end if;
+  if has_function_privilege('anon',
+    'public.process_verified_provider_payment(character varying,character varying,character varying,character varying,character varying,character varying,boolean,numeric,character varying,numeric)','EXECUTE')
+    or has_function_privilege('authenticated',
+    'public.process_verified_provider_payment(character varying,character varying,character varying,character varying,character varying,character varying,boolean,numeric,character varying,numeric)','EXECUTE')
+    or not has_function_privilege('service_role',
+    'public.process_verified_provider_payment(character varying,character varying,character varying,character varying,character varying,character varying,boolean,numeric,character varying,numeric)','EXECUTE') then
+    raise exception 'RC475 successful order-payment processor ACL contract failed';
+  end if;
+
 
   insert into public.businesses(id,tenant_id) values
     (business_one,'tenant-sub-one'),
@@ -484,8 +493,8 @@ begin
     raise exception 'RC430 failure left partial state: events %, intent %, subscriptions %',n,v_status,v_subscription_count;
   end if;
 
-  raise notice 'RC428–RC430 Paymob webhook atomicity integration: PASS';
+  raise notice 'RC475 Paymob webhook forward-repair integration: PASS';
 end;
 $test$;
 
-select 'RC428–RC430 Paymob webhook atomicity integration: PASS' as result;
+select 'RC475 Paymob webhook forward-repair integration: PASS' as result;
