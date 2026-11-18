@@ -95,7 +95,7 @@ assert.doesNotMatch(frontendSource, /marketing_provider_profiles/,
   "primary catalog frontend must not query the provider profile base table directly");
 
 console.log("Public marketing provider exposure contract passed: server-side service-role access, active-only explicit field projection, no owner_user_id/settings in public responses, and primary frontend uses curated Edge Functions.");
-console.log("Database anon table grants remain a separate migration/release item; this source contract does not claim to remove direct PostgREST access.");
+console.log("Direct anonymous PostgREST base-table access is separately closed by RC479 and its disposable PostgreSQL integration contract.");
 
 
 // The old /web entrypoint is redirect-only. Its compatibility shell must not
