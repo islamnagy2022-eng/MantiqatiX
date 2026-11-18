@@ -1,3 +1,11 @@
+# Supplemental checkpoint — deployed directory specialty pagination verified
+
+- PR #760 is merged as `18711d016a591613791e9596740b367eecb96865`; it corrected the browser test to wait for the actual specialty-filtered HTTP 200 response before asserting the 20-row page.
+- Pages run `44205131869` passed deployed-origin root/dashboard/mobile/QR checks. Later run `44213092913` repeated and passed deployed-origin route checks after the imagery update.
+- The current main browser E2E passed in run `44213092799`; no runtime UI code changed in PR #760.
+- This supplemental record replaces the stale/conflicting PR #761 documentation branch. No Supabase Production migration or Edge deployment occurred.
+
+---
 # Latest execution checkpoint — 2026-11-18 — Pass 341–350 Supabase security triage
 
 Current main at last verified merge: de0ebab80e624b86f3726a84d5757aefb66120eb. Documentation PR #762 is open and includes Pass 331–340 merge reconciliation.
