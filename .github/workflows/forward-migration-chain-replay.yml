@@ -210,4 +210,8 @@ jobs:
         if: always()
         shell: bash
         run: |
+          set -euo pipefail
           if [ -n "${MNTY_REPLAY_TEST_DIR:-}" ] && [ -d "$MNTY_REPLAY_TEST_DIR" ]; then
+            cd "$MNTY_REPLAY_TEST_DIR"
+            supabase stop --no-backup || true
+          fi
