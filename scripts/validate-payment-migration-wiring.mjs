@@ -13,6 +13,8 @@ const rc428 = read("supabase/migrations/20261009150000_rc428_atomic_provider_fai
 const rc429 = read("supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql");
 const rc430 = read("supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql");
 const rc475 = read("supabase/migrations/20261118040000_rc475_paymob_atomic_webhook_forward_repair.sql");
+const rc475Concurrency = read("scripts/test-rc475-concurrent-replay.sh");
+const rc475Workflow = read(".github/workflows/rc428-430-paymob-webhook-atomicity.yml");
 const rc431 = read("supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql");
 const rc435 = read("supabase/migrations/20261009210000_rc435_subscription_provider_intent_claim.sql");
 const rc439 = read("supabase/migrations/20261010010000_rc439_encrypted_checkout_recovery.sql");
@@ -40,6 +42,15 @@ assert.doesNotMatch(mantigoBlock, /from\("payment_provider_events"\)\.insert/, "
 assert.doesNotMatch(mantigoBlock, /from\("mantigo_financial_ledger"\)\.update/, "MantiGo ledger must not be updated outside the atomic RPC");
 assert.doesNotMatch(mantigoBlock, /from\("notifications"\)\.insert/, "MantiGo notification must not be inserted outside the atomic RPC");
 
+
+assert.match(rc475, /END;\\s*\\$function\\$;\\s*REVOKE ALL ON FUNCTION public\\.process_verified_provider_payment/);
+assert.ok(rc475Concurrency.includes("rc475-concurrent-session-a.log") && rc475Concurrency.includes("rc475-concurrent-session-b.log"),
+  "RC475 must exercise two independent PostgreSQL sessions");
+assert.ok(rc475Concurrency.includes('"idempotent"[[:space:]]*:[[:space:]]*false') &&
+  rc475Concurrency.includes('"idempotent"[[:space:]]*:[[:space:]]*true'),
+  "concurrent replay must prove one first execution and one idempotent replay");
+assert.ok(rc475Workflow.includes("bash scripts/test-rc475-concurrent-replay.sh"),
+  "RC475 workflow must execute the separate-session replay regression");
 assert.ok(paymentIntent.includes("provider_order_id: providerOrderId"), "normal payment intent must persist Paymob order correlation");
 assert.ok(paymentIntent.includes("PAYMENT_PROVIDER_OUTCOME_UNKNOWN"), "ambiguous Paymob creation outcomes must fail closed for reconciliation");
 assert.ok(paymentIntent.includes("[400, 401, 403, 404, 422].includes(response.status)") && paymentIntent.includes("!providerIntentId && !providerClientSecret && !providerOrderId"), "normal payment may mark FAILED only for explicit identifier-free provider rejections");
