@@ -148,22 +148,22 @@ DECLARE
   v_denied boolean;
   v_row record;
 BEGIN
-  SELECT count(*) INTO v_count
+  SELECT count(id) INTO v_count
   FROM public.legal_documents
   WHERE status='PUBLISHED';
   IF v_count < 1 THEN RAISE EXCEPTION 'RC481_LEGAL_CENTER_DOCUMENT_READ_FAILED'; END IF;
 
-  SELECT count(*) INTO v_count
+  SELECT count(id) INTO v_count
   FROM public.legal_document_versions
   WHERE status='PUBLISHED' AND effective_at <= now();
   IF v_count < 1 THEN RAISE EXCEPTION 'RC481_LEGAL_CENTER_VERSION_READ_FAILED'; END IF;
 
-  SELECT count(*) INTO v_count
+  SELECT count(id) INTO v_count
   FROM public.legal_requirements
   WHERE enabled=true AND required=true;
   IF v_count < 1 THEN RAISE EXCEPTION 'RC481_LEGAL_CENTER_REQUIREMENTS_READ_FAILED'; END IF;
 
-  SELECT count(*) INTO v_count
+  SELECT count(id) INTO v_count
   FROM public.user_consents
   WHERE user_id=v_user_id;
   IF v_count <> 1 THEN RAISE EXCEPTION 'RC481_LEGAL_CENTER_OWN_CONSENTS_READ_FAILED'; END IF;
