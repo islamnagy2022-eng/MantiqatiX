@@ -6,7 +6,7 @@
 ## Current source map — 2026-11-18
 
 - Governing operating directive: `docs/MASTER_SOURCE_OF_TRUTH.md` — sole current project execution authority; older prompts and continuity notes are subordinate.
-- Current GitHub main: `b7d148dab0f3c8b9a1c8f5d0885f1191d3508fc9` (documentation-only source-map reconciliation after code baseline `c85115d4dcc247d1dd4f02cde72ee3224930b7ad`).
+- Current GitHub main: `2e47364c19af0771a09ea70abae80162e2fa5825` (PR #780 neutral default catalog imagery; deployed Pages verification passed).
 - Latest user upload: `bizcatalog-manager (11).zip`, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, 270 entries / 118 source files, Android wrapper retained. This is a distinct R7-era candidate; see `docs/audits/R7_ARCHIVE_11_INTAKE_20261118.md`. It is not approved for wholesale import/deployment.
 - Previous R7 archives (including `bizcatalog-manager (9)(1).zip` and older numbered copies) are separate historical artifacts. Do not conflate their hashes or audits with the latest upload.
 - Supabase remains the sole source of truth for identity, permissions and production data. Do not accept the R7 archive's local-JSON authority or browser-stored roles.
@@ -29,6 +29,21 @@
 - [ ] Complete P0 platform-admin/RLS/SECURITY DEFINER production parity before certifying launch.
 
 Evidence: `docs/audits/PASS_461_480_PAYMOB_WEBHOOK_FORWARD_RELEASE_20261118.md`. Production remained read-only; no payment, migration, Auth/RLS/GRANT or Edge mutation.
+
+## Pass 481–500 — neutral defaults for unknown catalog categories (2026-11-18)
+
+- [x] Correct the shared category resolver so unrecognized activity/product/service categories no longer inherit grocery artwork.
+- [x] Use the existing neutral `business-placeholder.svg` and `catalog-item-placeholder.svg` assets for unknown categories.
+- [x] Preserve all recognized category artwork and owner-supplied image precedence.
+- [x] Add regression assertions for the neutral fallback mapping and both required local assets.
+- [x] Merge PR #780 as `2e47364c19af0771a09ea70abae80162e2fa5825`.
+- [x] Exact-head PR validation: all 7 workflow runs completed successfully; Primary Catalog Frontend Validation, module/security checks, migration checks and payment regression workflows passed.
+- [x] Post-merge main Primary Catalog Frontend Validation passed (run `44232355362`).
+- [x] Post-merge GitHub Pages deploy passed (run `44232355366`): validation, deploy and deployed-origin browser checks all succeeded; root, legacy rollback, Preview alias and dashboard/mobile/QR routes were verified.
+- [x] Read back both changed files from main; the fallback implementation is present.
+- [x] No database, Auth, RLS, GRANT, Edge Function, payment, or layout redesign was included.
+
+Evidence: PR [#780](https://github.com/islamnagy2022-eng/MantiqatiX/pull/780), merge commit `2e47364c19af0771a09ea70abae80162e2fa5825`, main validation `44232355362`, Pages deployment `44232355366`.
 
 ## Historical R7 archive (7) baseline — 2026-11-11
 
