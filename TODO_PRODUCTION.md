@@ -6,7 +6,7 @@
 ## Current source map — 2026-11-18
 
 - Governing operating directive: `docs/MASTER_SOURCE_OF_TRUTH.md` — sole current project execution authority; older prompts and continuity notes are subordinate.
-- Current GitHub main: `2e47364c19af0771a09ea70abae80162e2fa5825` (PR #780 neutral default catalog imagery; deployed Pages verification passed).
+- Current GitHub main: `4fc65f68a304c10e9ec63e073e5e1e392b75f161` (PR #780, #776 and #782 merged; post-merge verification for #782 is running).
 - Latest user upload: `bizcatalog-manager (11).zip`, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, 270 entries / 118 source files, Android wrapper retained. This is a distinct R7-era candidate; see `docs/audits/R7_ARCHIVE_11_INTAKE_20261118.md`. It is not approved for wholesale import/deployment.
 - Previous R7 archives (including `bizcatalog-manager (9)(1).zip` and older numbered copies) are separate historical artifacts. Do not conflate their hashes or audits with the latest upload.
 - Supabase remains the sole source of truth for identity, permissions and production data. Do not accept the R7 archive's local-JSON authority or browser-stored roles.
@@ -21,14 +21,14 @@
 - [x] Merge PR #778 to correct production root/preview path truth and preserve the latest R7 archive intake.
 - [x] Re-hash the latest user archive and verify ZIP integrity; preserve Android wrapper and reject wholesale import while P0 security gaps remain.
 - [x] Review RC475 migration and Paymob Edge source: service-role-only atomic RPC boundaries, empty search_path, no Edge-level idempotent acknowledgement bypass.
-- [x] Recheck live Production migration ledger and Paymob event/intent counts read-only.
-- [ ] Pass all exact-head PR #776 checks, including RC475 migration replay and PostgreSQL integration.
-- [ ] Add or explicitly close the separate concurrent multi-session replay test gap.
+- [x] Recheck live Production migration ledger read-only.
+- [x] Pass exact-head PR #776 checks, including RC475 PostgreSQL integration, two-session concurrency and 89-migration forward replay.
+- [x] Close the concurrent multi-session replay test gap: first execution `idempotent=false`, concurrent replay `idempotent=true`, with exactly one provider event, reconciliation and commission row.
 - [ ] Obtain off-site logical backup and successful restore evidence.
 - [ ] Apply RC464–RC475 in controlled order, then deploy matching Edge versions and run post-deploy smoke tests.
 - [ ] Complete P0 platform-admin/RLS/SECURITY DEFINER production parity before certifying launch.
 
-Evidence: `docs/audits/PASS_461_480_PAYMOB_WEBHOOK_FORWARD_RELEASE_20261118.md`. Production remained read-only; no payment, migration, Auth/RLS/GRANT or Edge mutation.
+Evidence: PR [#776](https://github.com/islamnagy2022-eng/MantiqatiX/pull/776), merge `2b4cbc9e124e484f7c1acdb05f504b61d508949a`; RC475 run `44233420783`; forward replay `44233420829`; main post-merge Pages `44233919969`. Production remained read-only; no migration, payment, Auth/RLS/GRANT or Edge deployment.
 
 ## Pass 481–500 — neutral defaults for unknown catalog categories (2026-11-18)
 
@@ -44,6 +44,34 @@ Evidence: `docs/audits/PASS_461_480_PAYMOB_WEBHOOK_FORWARD_RELEASE_20261118.md`.
 - [x] No database, Auth, RLS, GRANT, Edge Function, payment, or layout redesign was included.
 
 Evidence: PR [#780](https://github.com/islamnagy2022-eng/MantiqatiX/pull/780), merge commit `2e47364c19af0771a09ea70abae80162e2fa5825`, main validation `44232355362`, Pages deployment `44232355366`.
+
+## Pass 501–520 — RC475 Paymob replay hardening (2026-11-18)
+
+- [x] Add forward-only RC475 processor repair for Paymob transaction, failure and subscription event replay.
+- [x] Keep all privileged payment processors on empty search_path and service_role-only execution.
+- [x] Fix the RC475 function terminator and remove the invalid `orders.payment_method` preflight requirement; the processor uses `payment_intents.payment_method`.
+- [x] Expand the canonical release contract and production verifier from 42 to 54 exact required migration versions (RC464–RC475), and core-object contract from 27 to 29.
+- [x] Record the live release state honestly as 0/54 required migration versions present; do not fabricate ledger rows.
+- [x] Add sequential integration plus true two-session concurrent replay regression.
+- [x] Full forward replay from the captured Production schema checkpoint applied 89 migrations; RC117, owner profile, RC455/456, RC467/468/469/470, and two-tenant isolation checks passed.
+- [x] Exact-head PR #776 checks passed, including the 32-journey Primary Catalog browser E2E.
+- [x] Merge PR #776 as `2b4cbc9e124e484f7c1acdb05f504b61d508949a`.
+- [x] Main post-merge checks passed: RC475 `44233919937`, forward replay `44233919955`, Primary Catalog `44233920251`, Pages deploy `44233919969`, Production Health Monitor `44233920160`.
+- [x] Re-read the live Supabase migration ledger after merge: 310 rows, latest `20261110150618`; no production migration was applied.
+- [x] No Production Edge Function deployment or financial mutation.
+
+## Pass 521–540 — dedicated wide neutral business cover (2026-11-18)
+
+- [x] Add a local 16:9 `business-cover-placeholder.svg` for unknown activity categories.
+- [x] Keep the neutral business logo placeholder and catalog-item placeholder separate; unknown covers no longer reuse the logo image.
+- [x] Preserve recognized sector artwork and owner-supplied covers.
+- [x] Update frontend creation, merchant auto-cover, production mapping and catalog-admin image provenance so the new placeholder is always treated as automatic, never owner-uploaded.
+- [x] Add regression assertions for the 16:9 asset, resolver selection and automatic-image provenance.
+- [x] Exact-head PR #782 checks passed, including legacy catalog validation, Primary Catalog build/RBAC/browser E2E and Pages validation.
+- [x] Merge PR #782 as `4fc65f68a304c10e9ec63e073e5e1e392b75f161`.
+- [ ] Complete post-merge main CI and deployed-origin verification for PR #782.
+
+Evidence: PR [#782](https://github.com/islamnagy2022-eng/MantiqatiX/pull/782). No schema, Auth/RLS/GRANT, payment, production data or Edge deployment changes.
 
 ## Historical R7 archive (7) baseline — 2026-11-11
 
