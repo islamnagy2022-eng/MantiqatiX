@@ -71,7 +71,7 @@ DECLARE
   v_vehicle_category text;
 BEGIN
   IF auth.uid() IS NULL
-     OR pg_catalog.coalesce((auth.jwt()->>'is_anonymous')::boolean,false) THEN
+     OR coalesce((auth.jwt()->>'is_anonymous')::boolean,false) THEN
     RAISE EXCEPTION 'MANTIGO_AUTH_REQUIRED';
   END IF;
 
@@ -87,7 +87,7 @@ BEGIN
     AND cp.verification_status='VERIFIED'
     AND cp.availability_status='AVAILABLE';
 
-  IF NOT FOUND OR pg_catalog.nullif(pg_catalog.btrim(v_vehicle_category),'') IS NULL THEN
+  IF NOT FOUND OR nullif(pg_catalog.btrim(v_vehicle_category),'') IS NULL THEN
     RAISE EXCEPTION 'MANTIGO_CAPTAIN_PROFILE_REQUIRED';
   END IF;
 
