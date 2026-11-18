@@ -2417,3 +2417,22 @@ Evidence: `docs/audits/PASS_421_440_PAYMENT_INTENT_SCOPE_20261118.md`. Productio
 - [ ] Complete V6 production-root cutover only after full platform gate, backup/restore and explicit release approval.
 
 Evidence: `docs/audits/PASS_441_460_SOURCE_AND_PAGES_TRUTH_20261118.md` and `docs/audits/R7_ARCHIVE_11_INTAKE_20261118.md`.
+
+
+## Pass 681–700 — reverse-bidding live contract and provider eligibility audit (2026-11-18)
+
+- [x] Re-read the exact live Supabase project status, migration ledger, Edge inventory and Security Advisor; Production is ACTIVE_HEALTHY, PostgreSQL 17.6, 310 migration rows through 20261110150618.
+- [x] Confirmed the current source release manifest tracks 57 required release migrations through RC478; none of those exact required versions is present in the live migration ledger. Do not fabricate migration history or apply the chain without the verified encrypted backup/restore gate.
+- [x] Read-only inspected the live `indrive_requests`, `indrive_bids`, provider profile/service schema, RLS policies, constraints and current RPC definitions.
+- [x] Confirmed `create_indrive_bid_backend` inserts `status='PENDING'` while the live status CHECK permits only OFFERED/ACCEPTED/REJECTED, and inserts NULL into NOT NULL `provider_rating`. The existing submission path therefore conflicts with the live schema contract.
+- [x] Confirmed the same RPC trusts caller-supplied provider name/type and does not require an ACTIVE + verified provider profile, exact active service link, or service-area match. Existing requests have no stable `service_id`; free-text category/domain fields cannot safely establish exact service eligibility.
+- [x] Confirmed `counter_offer_indrive_bid` overwrites the current bid price/note instead of preserving append-only negotiation revisions.
+- [x] Aggregate-only supply check: 0 current reverse-bidding requests, 0 bids, 10 ACTIVE + verified provider profiles, 16 ACTIVE service links; all 16 eligible links currently map to MARKETING services. No active verified service links were found for other categories.
+- [x] Added the verified schema/runtime findings and implementation acceptance direction to GitHub issue #804.
+- [ ] Implement a forward-only service-ID request contract on existing `indrive_requests`/`indrive_bids`; do not create parallel request/catalog/provider tables.
+- [ ] Replace caller-supplied provider identity with `auth.uid()`-derived provider profile identity; require ACTIVE + verified profile, exact ACTIVE service link, ACTIVE master service and exact normalized area.
+- [ ] Add append-only offer/negotiation events, immutable accepted-offer snapshot, single-winner concurrency and idempotency tests.
+- [ ] Add completion/dispute/review lifecycle and shadow commission calculation only. Payment, escrow, wallet, settlement and ledger movement remain out of scope.
+- [ ] Preserve honest no-eligible-provider states for categories without real approved service coverage.
+
+Evidence: read-only Production SQL inspection on 2026-11-18; issue #804. No Production SQL, migration, data, Auth, RLS, GRANT, Edge, payment, wallet, settlement or deployment mutation occurred. This audit does not claim the brokerage feature is implemented or production-ready.
