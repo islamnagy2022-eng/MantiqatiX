@@ -14,19 +14,24 @@ assert.ok(health.includes('database: { status: "ok", mode: "service_role_read_on
   "health response must positively identify a successful DB-backed probe");
 assert.ok(health.includes("status: 503") && health.includes('database: { status: "error", mode: "service_role_read_only" }'),
   "health function must return 503 when the DB probe fails");
-assert.ok(!health.includes("error.message") && !health.includes("JSON.stringify({ error"),
-  "public response must not disclose raw database errors");
+assert.ok(health.includes('status: "degraded"') && health.includes('service: "mantiqatix-health"'),
+  "database failure response must be generic and identify only the health service");
+assert.ok(!health.includes("error.message") && !health.includes("error.details") &&
+  !health.includes("serviceRoleKey,") && !health.includes("supabaseUrl,"),
+  "public response must not disclose raw database errors or credentials");
+assert.ok(health.includes('Cache-Control: "no-store"'),
+  "health responses must not be cached");
 
 assert.ok(monitor.includes("id: supabase_health"),
   "monitor must expose the health probe mode to the following step");
 assert.ok(monitor.includes("database_probe_mode=service_role"),
-  "monitor must recognize the DB-backed Edge health response");
+  "monitor must recognize the DB-aware Edge response");
 assert.ok(monitor.includes("database_probe_mode=legacy_anon"),
   "monitor must retain a fallback until the new Edge Function is deployed");
 assert.ok(monitor.includes("DATABASE_PROBE_MODE: ${{ steps.supabase_health.outputs.database_probe_mode }}"),
   "monitor must pass the health probe mode to the DB check");
 assert.ok(monitor.includes('if [[ "$DATABASE_PROBE_MODE" == "service_role" ]]'),
-  "monitor must stop using anonymous REST when the DB-backed Edge check is active");
+  "monitor must stop using anonymous REST when the DB-aware Edge check is active");
 assert.ok(monitor.includes("/rest/v1/marketing_provider_profiles"),
   "legacy fallback must remain available before Edge deployment");
 assert.ok(monitor.includes('grep -Fq "MantiqatiX"'),
