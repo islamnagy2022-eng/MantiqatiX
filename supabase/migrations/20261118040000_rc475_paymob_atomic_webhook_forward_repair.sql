@@ -725,7 +725,7 @@ BEGIN
   ON CONFLICT(tenant_id,payment_intent_id) DO UPDATE SET provider_event_id=excluded.provider_event_id,gross_amount=excluded.gross_amount,commission_amount=excluded.commission_amount,provider_received_amount=excluded.provider_received_amount,provider_payout_amount=excluded.provider_payout_amount,commission_obligation_id=excluded.commission_obligation_id,provider_obligation_id=excluded.provider_obligation_id,commission_transaction_id=excluded.commission_transaction_id,reconciliation_status='RECONCILED',exception_code=null,updated_at=now();
   RETURN jsonb_build_object('status','success','idempotent',false,'payment_intent_id',v_intent.id,'gross_amount',v_intent.amount,'commission_amount',v_commission,'platform_received_amount',v_platform_received,'platform_commission_status',CASE WHEN v_platform_received>=v_commission THEN 'SETTLED' ELSE 'DUE' END,'provider_payout_status','DUE','reconciliation_status','RECONCILED','ledger_status','NOT_POSTED');
 END;
-$function$
+$function$;
 
 REVOKE ALL ON FUNCTION public.process_verified_provider_payment(character varying,character varying,character varying,character varying,character varying,character varying,boolean,numeric,character varying,numeric) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.process_verified_provider_payment(character varying,character varying,character varying,character varying,character varying,character varying,boolean,numeric,character varying,numeric) FROM anon;
