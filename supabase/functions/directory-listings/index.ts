@@ -15,6 +15,7 @@ import {
   sanitizeDoctorImportMetadata,
 } from "./doctor-import-contract.mjs";
 import { sanitizePublicDirectoryListing } from "./public-directory-output-contract.mjs";
+import { collectActiveAddressConsentIds } from "./consent-pagination.mjs";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const allowedOrigins = new Set([
@@ -85,6 +86,16 @@ Deno.serve(async (req: Request) => {
     }
     return { scopes, ready: true };
   };
+
+  const loadAddressConsentListingIds = async () => collectActiveAddressConsentIds(
+    async (offset: number, pageSize: number) => await service.from("directory_listing_contact_consents")
+      .select("listing_id")
+      .eq("scope", "ADDRESS")
+      .is("revoked_at", null)
+      .order("listing_id", { ascending: true })
+      .order("scope", { ascending: true })
+      .range(offset, offset + pageSize - 1),
+  );
 
   if (req.method === "GET") {
     const url = new URL(req.url);
@@ -177,10 +188,9 @@ Deno.serve(async (req: Request) => {
     if (address) {
       const addressSearch = sanitizeDirectoryPaginationSearch(address);
       if (addressSearch) {
-        const { data: addressConsents, error: addressConsentError } = await service.from("directory_listing_contact_consents")
-          .select("listing_id").eq("scope", "ADDRESS").is("revoked_at", null).limit(1000);
-        if (addressConsentError) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
-        const addressVisibleIds = [...new Set((addressConsents || []).map((row: any) => String(row.listing_id || "")).filter(Boolean))];
+        const addressConsentState = await loadAddressConsentListingIds();
+        if (!addressConsentState.ready) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
+        const addressVisibleIds = addressConsentState.ids;
         if (!addressVisibleIds.length) {
           return out(origin, { listings: [], nextCursor: null, hasMore: false, pageSize: limit });
         }

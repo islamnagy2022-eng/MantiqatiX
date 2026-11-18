@@ -2,12 +2,38 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { sanitizePublicDirectoryListing } from "../supabase/functions/directory-listings/public-directory-output-contract.mjs";
 import { buildDirectoryPaginationOrFilter } from "../supabase/functions/directory-listings/pagination-filter.mjs";
+import { collectActiveAddressConsentIds } from "../supabase/functions/directory-listings/consent-pagination.mjs";
 
 const source = readFileSync("supabase/functions/directory-listings/index.ts", "utf8");
 const migration = readFileSync("supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql", "utf8");
 const ui = readFileSync("apps/catalog-frontend/src/components/DirectoryListingsView.tsx", "utf8");
 const client = readFileSync("apps/catalog-frontend/src/lib/directoryListings.ts", "utf8");
 const pagination = readFileSync("supabase/functions/directory-listings/pagination-filter.mjs", "utf8");
+const consentPagination = readFileSync("supabase/functions/directory-listings/consent-pagination.mjs", "utf8");
+
+const syntheticConsentRows = Array.from({ length: 2205 }, (_, index) => ({
+  listing_id: `listing-${String(index).padStart(4, "0")}`,
+}));
+let pageCalls = 0;
+const completeConsentLookup = await collectActiveAddressConsentIds(async (offset, pageSize) => {
+  pageCalls += 1;
+  // Simulate a PostgREST max_rows cap of 400, lower than the requested page size.
+  return { data: syntheticConsentRows.slice(offset, offset + Math.min(pageSize, 400)), error: null };
+});
+assert.equal(completeConsentLookup.ready, true);
+assert.equal(completeConsentLookup.ids.length, 2205, "all consented listings must be collected beyond 1,000 rows");
+assert.equal(pageCalls, 7, "short capped pages must continue until an empty page is observed");
+
+const failedConsentLookup = await collectActiveAddressConsentIds(async (offset) => ({
+  data: offset === 0 ? syntheticConsentRows.slice(0, 1000) : null,
+  error: offset === 0 ? null : new Error("synthetic registry outage"),
+}));
+assert.equal(failedConsentLookup.ready, false, "registry failure must fail closed");
+assert.deepEqual(failedConsentLookup.ids, [], "partial consent results must never be used after a page failure");
+
+const malformedConsentLookup = await collectActiveAddressConsentIds(async () => ({ data: null, error: null }));
+assert.equal(malformedConsentLookup.ready, false, "malformed registry responses must fail closed");
+assert.deepEqual(malformedConsentLookup.ids, [], "malformed registry responses must not yield partial consent IDs");
 
 const row = {
   id: "listing-1",
@@ -60,7 +86,15 @@ assert.equal(/phone|secondary_phone|address/i.test(publicSearch), false, "free-t
 
 const checks = [
   ["free-text search excludes private phone and address fields", !["phone", "secondary_phone", "address"].some((field) => pagination.includes('"' + field + '"')) && !/phone|secondary_phone|address/i.test(publicSearch)],
-  ["address-specific search requires an active ADDRESS consent record", source.includes('eq("scope", "ADDRESS").is("revoked_at", null)') && source.includes("addressVisibleIds")],
+  ["address-specific search requires an active ADDRESS consent record", source.includes('eq("scope", "ADDRESS")') && source.includes('is("revoked_at", null)') && source.includes("addressVisibleIds")],
+  ["address search paginates the entire consent registry instead of truncating at the first 1000 records",
+    source.includes("loadAddressConsentListingIds") &&
+    source.includes('.order("listing_id", { ascending: true })') &&
+    source.includes(".range(offset, offset + pageSize - 1)") &&
+    !source.includes('.is("revoked_at", null).limit(1000)')],
+  ["address consent pagination continues across server-capped short pages and fails closed on registry errors",
+    source.includes("collectActiveAddressConsentIds") &&
+    consentPagination.includes("offset += rows.length")],
   ["GET consent lookup fails closed and is used for slug, legacy and paginated reads",
     source.includes("loadContactConsentScopes") && source.includes("directory_listing_contact_consents") &&
     source.includes("sanitizePublicDirectoryListing(data, ownerScopes)") &&
