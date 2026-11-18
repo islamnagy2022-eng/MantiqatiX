@@ -112,11 +112,17 @@ assert.ok(healthMonitor.includes('/MantiqatiX/assets/'),
   'Production health checks must monitor the legacy catalog root assets');
 assert.ok(healthMonitor.includes('/MantiqatiX/legacy/assets/'),
   'Production health checks must monitor the retained legacy catalog assets');
-assert.ok(healthMonitor.includes('V6_PRODUCTION_ROOT_AND_LEGACY_ASSETS=PASS'),
-  'Production health checks must verify the V6 root and legacy rollback path');
+assert.ok(healthMonitor.includes('MantiqatiX | منصة إدارة الأنشطة والكتالوجات'),
+  'Production health checks must verify the canonical MantiqatiX brand title');
+assert.doesNotMatch(healthMonitor, /MantiqaTix/,
+  'Production health checks must not contain the misspelled brand title');
+assert.ok(healthMonitor.includes('MANTIQATIX_PRODUCTION_ROOT_AND_LEGACY_ASSETS=PASS'),
+  'Production health checks must verify the production root and retained legacy catalog assets');
+assert.doesNotMatch(healthMonitor, /V6_PRODUCTION_ROOT_AND_LEGACY_ASSETS=PASS/,
+  'Production health checks must not label the catalog root as the V6 preview');
 assert.match(deployBlock, /Retired production route still reachable:[\s\S]*?MANTIQATIX_DEMO_AND_SMM_ROUTES=NOT_PUBLISHED/,
   'Post-deploy verification must assert the demo preview and SMM routes are absent');
-assert.ok(healthMonitor.includes('V6_PRODUCTION_ROOT_AND_LEGACY_ASSETS=PASS'),
-  'Production health checks must verify V6 at the root and the retained legacy catalog');
+assert.ok(healthMonitor.includes('MANTIQATIX_PRODUCTION_ROOT_AND_LEGACY_ASSETS=PASS'),
+  'Production health checks must monitor the production catalog root and retained legacy catalog');
 
 console.log('PAGES_PRODUCTION_DEPLOY_GATE_LEGACY_ROOT_V6_PREVIEW=PASS');
