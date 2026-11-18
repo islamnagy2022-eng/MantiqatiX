@@ -96,6 +96,84 @@ BEGIN
     RAISE EXCEPTION 'RC475_SCHEMA_PREFLIGHT_FAILED: subscription provider-order uniqueness is missing';
   END IF;
 END;
+
+  SELECT string_agg(format('%s.%s expected %s', r.table_name, r.column_name, r.data_type), ', ')
+    INTO v_missing
+  FROM (VALUES
+    ('orders','business_id','uuid'),
+    ('orders','assigned_partner_id','uuid'),
+    ('orders','payment_method','character varying'),
+    ('payment_intents','payment_method','character varying'),
+    ('commission_rules','id','character varying'),
+    ('commission_rules','tenant_id','character varying'),
+    ('commission_rules','business_id','uuid'),
+    ('commission_rules','rule_type','character varying'),
+    ('commission_rules','percentage','numeric'),
+    ('commission_rules','fixed_amount','numeric'),
+    ('commission_rules','active','boolean'),
+    ('commission_rules','updated_at','timestamp with time zone'),
+    ('commission_rules','calculation_mode','text'),
+    ('commission_rules','scope_type','text'),
+    ('commission_rules','eligibility_event','text'),
+    ('commission_rules','rule_priority','integer'),
+    ('commission_rules','is_exempt','boolean'),
+    ('commission_rules','approval_status','text'),
+    ('commission_rules','version_no','integer'),
+    ('financial_obligations','id','character varying'),
+    ('financial_obligations','tenant_id','character varying'),
+    ('financial_obligations','business_id','uuid'),
+    ('financial_obligations','order_id','uuid'),
+    ('financial_obligations','payment_intent_id','character varying'),
+    ('financial_obligations','beneficiary_type','character varying'),
+    ('financial_obligations','beneficiary_id','character varying'),
+    ('financial_obligations','obligation_type','character varying'),
+    ('financial_obligations','gross_amount','numeric'),
+    ('financial_obligations','amount','numeric'),
+    ('financial_obligations','currency','character varying'),
+    ('financial_obligations','status','character varying'),
+    ('financial_obligations','payment_method','character varying'),
+    ('financial_obligations','settled_at','timestamp with time zone'),
+    ('financial_obligations','metadata','jsonb'),
+    ('commission_transactions','id','character varying'),
+    ('commission_transactions','tenant_id','character varying'),
+    ('commission_transactions','business_id','uuid'),
+    ('commission_transactions','order_id','uuid'),
+    ('commission_transactions','rule_id','character varying'),
+    ('commission_transactions','gross_amount','numeric'),
+    ('commission_transactions','commission_amount','numeric'),
+    ('commission_transactions','status','character varying'),
+    ('payment_financial_reconciliations','id','character varying'),
+    ('payment_financial_reconciliations','tenant_id','character varying'),
+    ('payment_financial_reconciliations','payment_intent_id','character varying'),
+    ('payment_financial_reconciliations','provider_event_id','character varying'),
+    ('payment_financial_reconciliations','order_id','uuid'),
+    ('payment_financial_reconciliations','currency','character varying'),
+    ('payment_financial_reconciliations','gross_amount','numeric'),
+    ('payment_financial_reconciliations','commission_amount','numeric'),
+    ('payment_financial_reconciliations','provider_received_amount','numeric'),
+    ('payment_financial_reconciliations','provider_payout_amount','numeric'),
+    ('payment_financial_reconciliations','commission_obligation_id','character varying'),
+    ('payment_financial_reconciliations','provider_obligation_id','character varying'),
+    ('payment_financial_reconciliations','commission_transaction_id','character varying'),
+    ('payment_financial_reconciliations','reconciliation_status','character varying'),
+    ('payment_financial_reconciliations','ledger_status','character varying'),
+    ('payment_financial_reconciliations','metadata','jsonb'),
+    ('payment_financial_reconciliations','updated_at','timestamp with time zone')
+  ) AS r(table_name, column_name, data_type)
+  WHERE NOT EXISTS (
+    SELECT 1 FROM information_schema.columns c
+    WHERE c.table_schema='public' AND c.table_name=r.table_name
+      AND c.column_name=r.column_name AND c.data_type=r.data_type
+  );
+  IF v_missing IS NOT NULL THEN
+    RAISE EXCEPTION 'RC475_SCHEMA_PREFLIGHT_FAILED: %', v_missing;
+  END IF;
+  IF to_regclass('public.commission_transactions_pkey') IS NULL
+     OR to_regclass('public.uq_commission_transactions_order_id') IS NULL
+     OR to_regclass('public.uk_payment_financial_reconciliation') IS NULL THEN
+    RAISE EXCEPTION 'RC475_SCHEMA_PREFLIGHT_FAILED: financial idempotency indexes are missing';
+  END IF;
+
 $preflight$;
 
 
@@ -531,4 +609,86 @@ revoke all on function public.process_verified_subscription_payment_backend(text
 revoke all on function public.process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb) from anon;
 revoke all on function public.process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb) from authenticated;
 grant execute on function public.process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb) to service_role;
+
+
+-- Harden the existing successful order-payment processor against cross-intent and cross-status event replay.
+CREATE OR REPLACE FUNCTION public.process_verified_provider_payment(p_event_id character varying, p_tenant_id character varying, p_provider character varying, p_external_event_id character varying, p_payment_intent_id character varying, p_event_type character varying, p_signature_verified boolean, p_provider_confirmed_amount numeric, p_provider_confirmed_currency character varying, p_platform_received_amount numeric DEFAULT NULL::numeric)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+DECLARE
+  v_intent record; v_order record; v_commission numeric := 0; v_rule record;
+  v_platform_received numeric := greatest(0, coalesce(p_platform_received_amount,0));
+  v_existing_event public.payment_provider_events%rowtype;
+  v_commission_tx_id varchar := 'electronic_commission:' || p_payment_intent_id;
+  v_reconciliation_id varchar := 'payment_reconciliation:' || p_payment_intent_id;
+BEGIN
+  IF coalesce(p_signature_verified, false) IS NOT TRUE THEN RAISE EXCEPTION 'WEBHOOK_SIGNATURE_NOT_VERIFIED'; END IF;
+  IF p_provider_confirmed_amount IS NULL OR p_provider_confirmed_amount <= 0 THEN RAISE EXCEPTION 'INVALID_PROVIDER_AMOUNT'; END IF;
+  SELECT * INTO v_intent FROM public.payment_intents WHERE id=p_payment_intent_id::uuid FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'PAYMENT_INTENT_NOT_FOUND'; END IF;
+  SELECT * INTO v_order FROM public.orders WHERE id=v_intent.order_id FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'ORDER_NOT_FOUND'; END IF;
+  IF v_intent.tenant_id::text <> p_tenant_id::text OR v_order.tenant_id::text <> p_tenant_id::text OR v_intent.provider <> p_provider THEN RAISE EXCEPTION 'TENANT_OR_PROVIDER_MISMATCH'; END IF;
+  IF v_order.status = 'CANCELLED' THEN RAISE EXCEPTION 'ORDER_CANCELLED'; END IF;
+  IF v_intent.pricing_hash IS NULL OR v_order.pricing_hash IS NULL OR v_intent.pricing_hash <> v_order.pricing_hash OR v_intent.pricing_version IS DISTINCT FROM v_order.pricing_version OR v_order.pricing_authority IS NULL THEN RAISE EXCEPTION 'PRICING_BINDING_MISMATCH'; END IF;
+  IF v_intent.amount <> v_order.total OR v_intent.currency <> v_order.currency OR p_provider_confirmed_amount <> v_order.total OR p_provider_confirmed_currency <> v_order.currency THEN RAISE EXCEPTION 'PROVIDER_FINANCIAL_MISMATCH'; END IF;
+  SELECT * INTO v_existing_event FROM public.payment_provider_events WHERE provider=p_provider AND external_event_id=p_external_event_id LIMIT 1;
+  IF FOUND THEN
+    IF v_existing_event.payment_intent_id::text IS DISTINCT FROM p_payment_intent_id::text
+       OR v_existing_event.tenant_id::text IS DISTINCT FROM p_tenant_id::text
+       OR upper(v_existing_event.provider::text) IS DISTINCT FROM upper(p_provider::text)
+       OR v_existing_event.event_type::text IS DISTINCT FROM coalesce(nullif(p_event_type::text, ''), 'TRANSACTION')
+       OR upper(v_existing_event.status::text) IS DISTINCT FROM 'PROCESSED'
+       OR v_existing_event.signature_verified IS NOT TRUE THEN
+      RAISE EXCEPTION 'EXTERNAL_EVENT_REPLAY_MISMATCH';
+    END IF;
+    IF upper(v_intent.status::text) IS DISTINCT FROM 'SUCCEEDED' THEN
+      RAISE EXCEPTION 'PAYMENT_INTENT_EVENT_STATE_MISMATCH';
+    END IF;
+    RETURN jsonb_build_object('status','success','idempotent',true,'payment_intent_id',p_payment_intent_id,'reconciliation_id',v_reconciliation_id);
+  END IF;
+  IF v_intent.status = 'SUCCEEDED' THEN
+    INSERT INTO public.payment_provider_events(id,tenant_id,provider,event_type,payment_intent_id,external_event_id,status,signature_verified,raw_payload,processed_at)
+    VALUES (p_event_id,p_tenant_id,p_provider,coalesce(nullif(p_event_type, ''), 'TRANSACTION'),p_payment_intent_id,p_external_event_id,'PROCESSED',true,'{}'::jsonb,now()) ON CONFLICT DO NOTHING;
+    RETURN jsonb_build_object('status','success','idempotent',true,'payment_intent_id',p_payment_intent_id,'reconciliation_id',v_reconciliation_id);
+  END IF;
+  IF v_intent.status NOT IN ('CREATED','PENDING') THEN RAISE EXCEPTION 'INVALID_PAYMENT_STATE: %', v_intent.status; END IF;
+  INSERT INTO public.payment_provider_events(id,tenant_id,provider,event_type,payment_intent_id,external_event_id,status,signature_verified,raw_payload,processed_at)
+  VALUES (p_event_id,p_tenant_id,p_provider,p_event_type,p_payment_intent_id,p_external_event_id,'PROCESSED',true,'{}'::jsonb,now());
+  SELECT cr.id,cr.rule_type,cr.percentage,cr.fixed_amount INTO v_rule
+  FROM public.commission_rules cr
+  WHERE cr.tenant_id=p_tenant_id AND cr.active=true AND (cr.business_id=v_order.business_id OR cr.business_id IS NULL)
+  ORDER BY CASE WHEN cr.business_id=v_order.business_id THEN 0 ELSE 1 END, cr.updated_at DESC LIMIT 1;
+  IF NOT FOUND THEN RAISE EXCEPTION 'COMMISSION_RULE_NOT_CONFIGURED'; END IF;
+  IF upper(coalesce(v_rule.rule_type,'PERCENTAGE'))='PERCENTAGE' THEN
+    v_commission := round(v_intent.amount*coalesce(v_rule.percentage,0)/100,2);
+  ELSIF upper(v_rule.rule_type) IN ('FIXED','FIXED_PER_ORDER') THEN
+    v_commission := greatest(0,coalesce(v_rule.fixed_amount,0));
+  ELSE RAISE EXCEPTION 'COMMISSION_RULE_TYPE_UNSUPPORTED'; END IF;
+  IF v_commission > v_intent.amount THEN RAISE EXCEPTION 'COMMISSION_EXCEEDS_ORDER'; END IF;
+  UPDATE public.payment_intents SET status='SUCCEEDED',updated_at=now() WHERE id=v_intent.id;
+  v_platform_received := greatest(0,least(v_platform_received,v_commission));
+  INSERT INTO public.financial_obligations(id,tenant_id,business_id,order_id,payment_intent_id,beneficiary_type,beneficiary_id,obligation_type,gross_amount,amount,currency,status,payment_method,settled_at,metadata)
+  VALUES ('electronic_commission:'||v_intent.id::text,p_tenant_id,v_order.business_id,v_order.id,v_intent.id::text,'PLATFORM','PLATFORM','PLATFORM_COMMISSION',v_intent.amount,v_commission,v_intent.currency,CASE WHEN v_platform_received>=v_commission THEN 'SETTLED' ELSE 'DUE' END,v_intent.payment_method,CASE WHEN v_platform_received>=v_commission THEN now() ELSE NULL END,jsonb_build_object('settlement_mode','PROVIDER_CONFIRMED','provider',p_provider,'provider_event_id',p_external_event_id,'platform_received_amount',v_platform_received,'commission_rule_id',v_rule.id))
+  ON CONFLICT(id) DO UPDATE SET status=excluded.status,settled_at=excluded.settled_at,metadata=excluded.metadata;
+  INSERT INTO public.financial_obligations(id,tenant_id,business_id,order_id,payment_intent_id,beneficiary_type,beneficiary_id,obligation_type,gross_amount,amount,currency,status,payment_method,metadata)
+  VALUES ('electronic_provider:'||v_intent.id::text,p_tenant_id,v_order.business_id,v_order.id,v_intent.id::text,'PROVIDER',coalesce(v_order.assigned_partner_id::text,v_order.business_id::text),'PROVIDER_PAYOUT',v_intent.amount,v_intent.amount-v_commission,v_intent.currency,'DUE',v_intent.payment_method,jsonb_build_object('settlement_mode','PROVIDER_CONFIRMED','provider',p_provider,'provider_event_id',p_external_event_id))
+  ON CONFLICT(id) DO NOTHING;
+  INSERT INTO public.commission_transactions(id,tenant_id,business_id,order_id,rule_id,gross_amount,commission_amount,status)
+  VALUES (v_commission_tx_id,p_tenant_id,v_order.business_id,v_order.id,v_rule.id,v_intent.amount,v_commission,'POSTED')
+  ON CONFLICT(id) DO UPDATE SET gross_amount=excluded.gross_amount,commission_amount=excluded.commission_amount,rule_id=excluded.rule_id,status='POSTED';
+  INSERT INTO public.payment_financial_reconciliations(id,tenant_id,payment_intent_id,provider_event_id,order_id,currency,gross_amount,commission_amount,provider_received_amount,provider_payout_amount,commission_obligation_id,provider_obligation_id,commission_transaction_id,reconciliation_status,ledger_status,metadata,updated_at)
+  VALUES (v_reconciliation_id,p_tenant_id,p_payment_intent_id,p_external_event_id,v_order.id,v_intent.currency,v_intent.amount,v_commission,v_platform_received,v_intent.amount-v_commission,'electronic_commission:'||v_intent.id::text,'electronic_provider:'||v_intent.id::text,v_commission_tx_id,'RECONCILED','NOT_POSTED',jsonb_build_object('provider',p_provider,'provider_event_id',p_external_event_id,'ledger_note','Operational reconciliation complete; GL posting remains explicitly unposted until account mapping is configured'),now())
+  ON CONFLICT(tenant_id,payment_intent_id) DO UPDATE SET provider_event_id=excluded.provider_event_id,gross_amount=excluded.gross_amount,commission_amount=excluded.commission_amount,provider_received_amount=excluded.provider_received_amount,provider_payout_amount=excluded.provider_payout_amount,commission_obligation_id=excluded.commission_obligation_id,provider_obligation_id=excluded.provider_obligation_id,commission_transaction_id=excluded.commission_transaction_id,reconciliation_status='RECONCILED',exception_code=null,updated_at=now();
+  RETURN jsonb_build_object('status','success','idempotent',false,'payment_intent_id',v_intent.id,'gross_amount',v_intent.amount,'commission_amount',v_commission,'platform_received_amount',v_platform_received,'platform_commission_status',CASE WHEN v_platform_received>=v_commission THEN 'SETTLED' ELSE 'DUE' END,'provider_payout_status','DUE','reconciliation_status','RECONCILED','ledger_status','NOT_POSTED');
+END;
+$function$
+
+REVOKE ALL ON FUNCTION public.process_verified_provider_payment(character varying,character varying,character varying,character varying,character varying,character varying,boolean,numeric,character varying,numeric) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.process_verified_provider_payment(character varying,character varying,character varying,character varying,character varying,character varying,boolean,numeric,character varying,numeric) FROM anon;
+REVOKE ALL ON FUNCTION public.process_verified_provider_payment(character varying,character varying,character varying,character varying,character varying,character varying,boolean,numeric,character varying,numeric) FROM authenticated;
+GRANT EXECUTE ON FUNCTION public.process_verified_provider_payment(character varying,character varying,character varying,character varying,character varying,character varying,boolean,numeric,character varying,numeric) TO service_role;
 
