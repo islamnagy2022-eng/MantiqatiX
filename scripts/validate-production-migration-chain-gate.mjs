@@ -69,7 +69,7 @@ const required = [
   "20261118220000_rc481_legal_edge_service_role_column_grants.sql",
   "20261119020000_rc482_legal_platform_admin_registry_guard.sql"
 ];
-assert.equal(required.length, 61, "release gate must track all distinct required post-RC424 migration effects, including RC476–RC482");
+assert.equal(required.length, 62, "release gate must track all distinct required post-RC424 migration effects, including RC476–RC483");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");
