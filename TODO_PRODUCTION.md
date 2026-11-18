@@ -2497,3 +2497,5 @@ No Production Edge deployment, SQL, migration, GRANT, RLS, Auth, payment, wallet
 - [ ] Exact-head CI remains unverified; no green check is claimed.
 
 No Production Edge deployment, database write, migration, privilege change, Auth change, or Pages deployment occurred. Release remains BLOCKED / NOT CERTIFIED.
+
+- [x] Local verification after the authenticated-token hardening: static contract validator PASS, TypeScript syntax transpilation PASS, and monitor shell syntax check PASS. These local checks do not replace the still-unverified GitHub exact-head CI run.
