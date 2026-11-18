@@ -6,6 +6,9 @@ on:
       - "supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql"
       - "supabase/migrations/20261031064300_rc462_platform_admin_registry_authority_convergence.sql"
       - "supabase/migrations/20261117190000_rc471_mantigo_platform_admin_forward_hardening.sql"
+      - "supabase/migrations/20261118050000_rc476_mantigo_captain_earnings_live_ledger_columns.sql"
+      - "supabase/tests/rc476_mantigo_captain_earnings_integration.sql"
+      - "scripts/validate-rc476-captain-earnings-live-columns.mjs"
       - "supabase/tests/mantigo_financial_report_live_columns.sql"
       - "supabase/tests/r7_platform_admin_helper_callers_fixture.sql"
       - "supabase/tests/r7_platform_admin_helper_callers_integration.sql"
@@ -20,6 +23,9 @@ on:
       - "supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql"
       - "supabase/migrations/20261031064300_rc462_platform_admin_registry_authority_convergence.sql"
       - "supabase/migrations/20261117190000_rc471_mantigo_platform_admin_forward_hardening.sql"
+      - "supabase/migrations/20261118050000_rc476_mantigo_captain_earnings_live_ledger_columns.sql"
+      - "supabase/tests/rc476_mantigo_captain_earnings_integration.sql"
+      - "scripts/validate-rc476-captain-earnings-live-columns.mjs"
       - "supabase/tests/mantigo_financial_report_live_columns.sql"
       - "supabase/tests/r7_platform_admin_helper_callers_fixture.sql"
       - "supabase/tests/r7_platform_admin_helper_callers_integration.sql"
@@ -55,7 +61,9 @@ jobs:
         run: node scripts/validate-mantigo-platform-admin-scope.mjs
       - name: Static RC471 forward migration contract
         run: node scripts/validate-r7-platform-admin-migration.mjs
-      - name: Apply disposable RC449/RC462/RC471 fixtures, migrations, and behavioral tests
+      - name: Static RC476 captain earnings contract
+        run: node scripts/validate-rc476-captain-earnings-live-columns.mjs
+      - name: Apply disposable RC449/RC462/RC471/RC476 fixtures, migrations, and behavioral tests
         shell: bash
         run: |
           set -euo pipefail
@@ -66,6 +74,8 @@ jobs:
           docker cp supabase/migrations/20261031064300_rc462_platform_admin_registry_authority_convergence.sql "$pg_container:/tmp/rc462.sql"
           docker cp supabase/tests/r7_platform_admin_helper_callers_fixture.sql "$pg_container:/tmp/r7-callers.sql"
           docker cp supabase/migrations/20261117190000_rc471_mantigo_platform_admin_forward_hardening.sql "$pg_container:/tmp/rc471.sql"
+          docker cp supabase/migrations/20261118050000_rc476_mantigo_captain_earnings_live_ledger_columns.sql "$pg_container:/tmp/rc476.sql"
+          docker cp supabase/tests/rc476_mantigo_captain_earnings_integration.sql "$pg_container:/tmp/rc476-test.sql"
           docker cp supabase/tests/mantigo_financial_report_live_columns.sql "$pg_container:/tmp/financial-report-test.sql"
           docker cp supabase/tests/r7_platform_admin_helper_callers_integration.sql "$pg_container:/tmp/r7-helper-callers-test.sql"
           docker cp supabase/tests/rc449_mantigo_platform_admin_integration.sql "$pg_container:/tmp/rc449-test.sql"
@@ -74,6 +84,8 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc462.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/r7-callers.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc471.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc476.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc476-test.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449-test.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/financial-report-test.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/r7-helper-callers-test.sql
