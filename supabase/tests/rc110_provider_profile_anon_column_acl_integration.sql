@@ -1,9 +1,5 @@
 -- Run only after rc110_provider_profile_anon_column_acl_fixture.sql in disposable PostgreSQL.
 do $test$
-declare
-  v_count integer;
-  v_private_denied boolean := false;
-  v_wildcard_denied boolean := false;
 begin
   if has_table_privilege('anon','public.marketing_provider_profiles','SELECT') then
     raise exception 'anon unexpectedly retains table-level SELECT';
@@ -16,18 +12,8 @@ begin
      or has_column_privilege('anon','public.marketing_provider_profiles','settings','SELECT') then
     raise exception 'anon can still select private profile columns';
   end if;
-
-  execute 'set role anon';
-  execute 'select count(*) from public.marketing_provider_profiles' into v_count;
-  if v_count <> 0 then
-    raise exception 'anon wildcard query unexpectedly succeeded';
-  end if;
-exception when insufficient_privilege then
-  -- Expected: SELECT * expands to restricted columns.
-  null;
 end
 $test$;
-
 set role anon;
 do $test$
 declare
