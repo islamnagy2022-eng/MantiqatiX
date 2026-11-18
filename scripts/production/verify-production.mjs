@@ -76,7 +76,8 @@ const requiredReleaseMigrations=[
   "20261118040000_rc475_paymob_atomic_webhook_forward_repair.sql",
   "20261118050000_rc476_mantigo_captain_earnings_live_ledger_columns.sql",
   "20261118060000_rc477_mantigo_customer_bid_contact_privacy.sql",
-  "20261118070000_rc478_mantigo_open_ride_privacy_forward_repair.sql"
+  "20261118070000_rc478_mantigo_open_ride_privacy_forward_repair.sql",
+  "20261118190000_rc479_revoke_anon_provider_profile_base_read.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));

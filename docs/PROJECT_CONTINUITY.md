@@ -2214,3 +2214,15 @@ Production schema cross-check (read-only) found the claim/listing/membership/bus
 - Latest main at this checkpoint: `4fc65f68a304c10e9ec63e073e5e1e392b75f161`.
 - Supabase Production remains read-only: 310 migration rows, latest `20261110150618`, 0/54 required release migrations recorded. No Production migration, Edge deployment, Auth/RLS/GRANT, payment or financial mutation.
 - Remaining external release blocker: authorized operator must create an encrypted off-site logical backup and complete a disposable restore rehearsal. The assistant does not have the Production DB password/connection string. See `docs/operations/FREE_TIER_DATABASE_CONTINUITY.md`.
+
+
+## 2026-11-18 — Pass 701–720 — provider-profile anonymous base-table read boundary
+
+- Read-only Production ACL inspection confirmed an explicit `anon SELECT` grant on `public.marketing_provider_profiles`. The public-active RLS policy filters rows, not columns; the table includes `owner_user_id` and `settings` (values not queried).
+- Verified that the canonical catalog frontend consumes curated `public-catalog` and `public-catalog-directory` Edge Functions. Both use service-role server clients, explicit public field projections and deliberate response objects. The legacy `/web` entrypoint is guarded before loading its old runtime. The owner/provider-services UI uses a separate authenticated direct-read path.
+- Added candidate RC479 forward migration `20261118190000_rc479_revoke_anon_provider_profile_base_read.sql`, containing only `REVOKE SELECT ON TABLE public.marketing_provider_profiles FROM anon;`. Authenticated and service_role SELECT grants are preserved.
+- Added a synthetic PostgreSQL fixture/integration test proving anon direct SELECT denial while authenticated active-row reads and trusted service_role reads continue. Added a static validator and dedicated Module Professionalization PostgreSQL workflow job.
+- Added RC479 to the required migration version lists and source release verifier. The release manifest now tracks 58 required versions and remains 0/58 applied; live Production ledger remains 310 rows through `20261110150618`.
+- Residual risk remains explicit: authenticated SELECT plus the public-active policy may expose `owner_user_id` and `settings` to signed-in non-owners. Do not revoke authenticated SELECT until the owner UI's direct lookup is replaced with a compatible owner-scoped contract.
+- Audit: `docs/audits/PASS_701_720_PROVIDER_PROFILE_ANON_READ_BOUNDARY_20261118.md`.
+- Source-only candidate; no Production SQL/migration/data/Auth/RLS/GRANT/Edge/payment/wallet/settlement mutation, no main code change and no Pages deployment. Backup/restore and broader Production certification remain blocked.
