@@ -1,7 +1,7 @@
 -- Run after the RC482 fixture and migration in disposable PostgreSQL.
 DO $acl$
 BEGIN
-  IF has_function_privilege('anon','private.legal_is_admin()','EXECUTE') THEN
+  IF has_function_privilege('anon','private.legal_is_admin(uuid)','EXECUTE') THEN
     RAISE EXCEPTION 'RC482_ANON_MUST_NOT_EXECUTE_PRIVATE_LEGAL_ADMIN';
   END IF;
   IF NOT has_function_privilege('authenticated','private.legal_is_admin(uuid)','EXECUTE') THEN
