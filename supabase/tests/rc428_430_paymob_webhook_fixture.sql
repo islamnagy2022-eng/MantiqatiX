@@ -128,7 +128,7 @@ CREATE TABLE public.financial_obligations (
   payment_intent_id varchar, beneficiary_type varchar NOT NULL, beneficiary_id varchar NOT NULL,
   obligation_type varchar NOT NULL, gross_amount numeric NOT NULL, amount numeric NOT NULL,
   currency varchar NOT NULL, status varchar NOT NULL, payment_method varchar, settled_at timestamptz,
-  metadata jsonb NOT NULL DEFAULT '{}'::jsonb
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb, created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE UNIQUE INDEX uq_financial_obligation_idempotent
   ON public.financial_obligations(tenant_id,obligation_type,order_id,beneficiary_id)
