@@ -26,7 +26,9 @@ jobs:
           --health-retries 12
     steps:
       - uses: actions/checkout@v6
-      - name: Run RC446 privacy integration tests
+      - name: Validate RC477 customer bid contact privacy contract
+        run: node scripts/validate-rc477-mantigo-customer-bid-contact-privacy.mjs
+      - name: Run RC446 and RC477 privacy integration tests
         shell: bash
         run: |
           set -euo pipefail
@@ -37,6 +39,10 @@ jobs:
           docker cp supabase/tests/rc446_mantigo_open_ride_fixture.sql "$pg_container:/tmp/rc446_fixture.sql"
           docker cp supabase/migrations/20261010060000_rc446_mantigo_open_ride_privacy_boundary.sql "$pg_container:/tmp/rc446_migration.sql"
           docker cp supabase/tests/rc446_mantigo_open_ride_integration.sql "$pg_container:/tmp/rc446_test.sql"
+          docker cp supabase/migrations/20261118060000_rc477_mantigo_customer_bid_contact_privacy.sql "$pg_container:/tmp/rc477_migration.sql"
+          docker cp supabase/tests/rc477_mantigo_customer_bid_contact_privacy_integration.sql "$pg_container:/tmp/rc477_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc446_test -v ON_ERROR_STOP=1 -f /tmp/rc446_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc446_test -v ON_ERROR_STOP=1 -f /tmp/rc446_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc446_test -v ON_ERROR_STOP=1 -f /tmp/rc446_test.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc446_test -v ON_ERROR_STOP=1 -f /tmp/rc477_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc446_test -v ON_ERROR_STOP=1 -f /tmp/rc477_test.sql

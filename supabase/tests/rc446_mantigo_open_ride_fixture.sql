@@ -30,5 +30,27 @@ create table public.mantigo_rides (
 create table public.mantigo_bids (
   id text primary key,
   ride_id text not null references public.mantigo_rides(id),
+  captain_id uuid,
+  captain_name text,
+  captain_phone text,
+  captain_rating numeric,
+  vehicle_category text,
+  vehicle_model text,
+  vehicle_plate text,
+  offered_price numeric,
+  eta_minutes integer,
+  captain_message text,
+  created_at timestamptz not null default now(),
   status text not null
+);
+
+create table public.mantigo_financial_ledger (
+  id text primary key,
+  ride_id text
+);
+
+create table public.mantigo_ride_ratings (
+  id uuid primary key default gen_random_uuid(),
+  ride_id text not null,
+  customer_id uuid not null
 );
