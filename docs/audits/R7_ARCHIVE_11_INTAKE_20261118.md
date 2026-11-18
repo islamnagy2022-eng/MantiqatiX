@@ -21,7 +21,7 @@
 | WebP assets | 0 |
 | Build / semantic typecheck / runtime tests | NOT RUN for this exact upload |
 
-This upload has a different SHA-256 and a different source-file count from earlier R7 archives reviewed in the Library. The prior audit of `bizcatalog-manager (9)(1).zip` (SHA `577752b129763003aa81a9be481460f37a90fc2a46688f3476dce78bd59f6a1b`, 99 source files) is historical evidence only; it must not be treated as a byte-identical audit of this upload.
+This exact SHA-256 matches the artifact reviewed in `docs/audits/R7_ARCHIVE_11_PRODUCTION_GATE_20261117.md`; this file is a supplementary inventory addendum, not a different upload. It differs from earlier R7 archives reviewed in the Library, including `bizcatalog-manager (9)(1).zip` (SHA `577752b129763003aa81a9be481460f37a90fc2a46688f3476dce78bd59f6a1b`, 99 source files). Those earlier archives remain historical evidence only.
 
 ## Manifest and release-claim mismatches
 
