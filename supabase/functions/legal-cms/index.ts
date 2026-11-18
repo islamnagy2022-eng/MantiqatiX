@@ -15,17 +15,18 @@ Deno.serve(async req=>{
     if(adminError)return json({error:"LEGAL_ADMIN_REQUIRED"},403);
     const b=await req.json();
     const action=String(b.action??"").toLowerCase();
-    const audit=async(eventType:string,documentId:string|null,versionId:string|null,metadata:Record<string,unknown>={})=>{
-      const {error}=await db.from("consent_audit_log").insert({actor_user_id:user.id,event_type:eventType,document_id:documentId,document_version_id:versionId,event_at:new Date().toISOString(),metadata});
-      if(error) throw error;
-    };
     if(action==="create_document"){
-      const documentType=String(b.documentType??"").trim().toUpperCase();
-      const title=String(b.title??"").trim();
-      if(!documentType||!title)return json({error:"LEGAL_DOCUMENT_FIELDS_REQUIRED"},400);
-      const {data,error}=await db.from("legal_documents").insert({document_type:documentType,title,target_audience:Array.isArray(b.targetAudience)?b.targetAudience.map((x:string)=>x.toUpperCase()):["ALL"],required_consent:Boolean(b.requiredConsent),requires_reconsent:Boolean(b.requiresReconsent),sector_codes:Array.isArray(b.sectorCodes)?b.sectorCodes:[],locale:b.locale??"ar-EG",status:"DRAFT",created_by:user.id,updated_by:user.id}).select("id,status").single();
+      const {data,error}=await db.rpc("legal_create_document_backend",{
+        p_actor_user_id:user.id,
+        p_document_type:String(b.documentType??""),
+        p_title:String(b.title??""),
+        p_target_audience:Array.isArray(b.targetAudience)?b.targetAudience:["ALL"],
+        p_required_consent:Boolean(b.requiredConsent),
+        p_requires_reconsent:Boolean(b.requiresReconsent),
+        p_sector_codes:Array.isArray(b.sectorCodes)?b.sectorCodes:[],
+        p_locale:String(b.locale??"ar-EG")
+      });
       if(error)throw error;
-      await audit("LEGAL_DOCUMENT_CREATED",data.id,null,{document_type:documentType,title});
       return json({success:true,data});
     }
     if(action==="update_document"){
@@ -34,15 +35,13 @@ Deno.serve(async req=>{
       return json({success:true,data});
     }
     if(action==="create_version"){
-      const content=String(b.content??"");
-      const versionNumber=Number(b.versionNumber);
-      if(!content.trim())return json({error:"LEGAL_CONTENT_REQUIRED"},400);
-      if(!Number.isInteger(versionNumber)||versionNumber<1)return json({error:"LEGAL_VERSION_INVALID"},400);
-      const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(content));
-      const hash=Array.from(new Uint8Array(digest)).map(x=>x.toString(16).padStart(2,"0")).join("");
-      const {data,error}=await db.from("legal_document_versions").insert({document_id:String(b.documentId),version_number:versionNumber,content,content_hash:hash,status:"DRAFT",created_by:user.id}).select("id,document_id,version_number,status,content_hash").single();
+      const {data,error}=await db.rpc("legal_create_draft_version_backend",{
+        p_actor_user_id:user.id,
+        p_document_id:String(b.documentId??""),
+        p_version_number:Number(b.versionNumber),
+        p_content:String(b.content??"")
+      });
       if(error)throw error;
-      await audit("LEGAL_DRAFT_VERSION_CREATED",data.document_id,data.id,{version_number:versionNumber,content_hash:hash});
       return json({success:true,data});
     }
     if(action==="update_draft_version"){
