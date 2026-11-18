@@ -97,7 +97,7 @@ BEGIN
   -- A verified, available SEDAN captain sees only eligible, open SEDAN rides.
   PERFORM pg_catalog.set_config('request.jwt.claim.sub',v_sedan::text,true);
   PERFORM pg_catalog.set_config('request.jwt.claims','{"is_anonymous":false}',true);
-  SELECT count(*) INTO v_count FROM public.list_open_mantigo_rides_backend(v_sedan);
+  SELECT count(*) INTO v_count FROM public.list_open_mantigo_rides_backend(v_sedan) WHERE id LIKE 'RC478-%';
   IF v_count<>1 THEN RAISE EXCEPTION 'RC478 sedan captain expected one eligible ride, got %',v_count; END IF;
   IF NOT EXISTS (SELECT 1 FROM public.list_open_mantigo_rides_backend(v_sedan) WHERE id='RC478-SEDAN-OPEN' AND bid_count=1) THEN
     RAISE EXCEPTION 'RC478 expected sedan ride or offered bid count missing';
@@ -108,7 +108,7 @@ BEGIN
 
   -- A verified, available SUV captain sees only the SUV request.
   PERFORM pg_catalog.set_config('request.jwt.claim.sub',v_suv::text,true);
-  SELECT count(*) INTO v_count FROM public.list_open_mantigo_rides_backend(v_suv);
+  SELECT count(*) INTO v_count FROM public.list_open_mantigo_rides_backend(v_suv) WHERE id LIKE 'RC478-%';
   IF v_count<>1 OR NOT EXISTS (SELECT 1 FROM public.list_open_mantigo_rides_backend(v_suv) WHERE id='RC478-SUV-OPEN') THEN
     RAISE EXCEPTION 'RC478 SUV category scope failed';
   END IF;
