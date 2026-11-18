@@ -5,11 +5,11 @@
 
 ## Latest verified checkpoint — Pass 701–720 — 2026-11-18
 
-- Current `main`: `8f3150c8a039e3bc3c26375e408b18ddbc8b7017`.
+- Current `main`: `ba81fb0c44ee7682eed419d3b0482246582308f1`.
 - PR #795 merged: `106ff9d65cf1c9c024e7a1cc7a07fa2358828de0` — complete, fail-closed pagination of active directory address consents beyond 1,000 rows. Exact-head catalog build/typecheck, Browser E2E, RBAC/PostgreSQL, directory consent, MantiGO privacy, Paymob atomicity, module/security and deploy-validation jobs passed.
 - PR #796 merged: `8f667002b44726b8972d2cf6a73c4aea0b9f6d04` — canonical operating directive and R7 source reconciliation.
 - PR #797 merged: `5a95ecf42b374e5d3a097e511e616c8ad773c78c` — Pass 701–720 evidence record. Its exact PR-head validation passed, including catalog/V6 Browser E2E, module/security, RC471 PostgreSQL, MantiGO privacy and Paymob atomicity. The PR deploy job was skipped; no post-merge deploy is claimed.
-- PR #798 merged: `8f3150c8a039e3bc3c26375e408b18ddbc8b7017` — correction: RC467 commission scope repair already exists in main with migration, disposable integration and static validator. The known gap is Production/source parity, not missing source implementation.
+- PR #798 merged: `ba81fb0c44ee7682eed419d3b0482246582308f1` — correction: RC467 commission scope repair already exists in main with migration, disposable integration and static validator. The known gap is Production/source parity, not missing source implementation.
 - Latest read-only Production snapshot: 310 migration rows through `20261110150618`; 42 active Edge Functions; `directory-listings` remains v16. RC472–RC478 are not recorded in the live migration ledger. No encrypted off-site backup plus isolated restore rehearsal or measured RPO/RTO has been evidenced.
 - Live `preview_commission_backend` still calls the tenant-only `assert_financial_membership`; RC467 in main replaces this with exact-business/tenant-wide finance scope and denies branch-scoped callers to this branch-less RPC. Do not alter the shared helper or create a duplicate RC467 migration.
 - Live `mnty_can_platform_admin()` still delegates to null-scope `mnty_can('admin',NULL,NULL,NULL)`; RC464/RC471 source repairs exist, and the RC471 disposable PostgreSQL workflow passed, but Production remains on the old function. Four SECURITY DEFINER callers and five RLS policies depend on the helper.
@@ -23,7 +23,7 @@
 ## Current source map — 2026-11-18
 
 - Governing operating directive: `docs/MASTER_SOURCE_OF_TRUTH.md` — sole current project execution authority; older prompts and continuity notes are subordinate.
-- Current GitHub main: `8f3150c8a039e3bc3c26375e408b18ddbc8b7017` (PRs #795–#798 merged; see latest Pass 701–720 checkpoint below).
+- Current GitHub main: `ba81fb0c44ee7682eed419d3b0482246582308f1` (PRs #795–#798 merged; see latest Pass 701–720 checkpoint below).
 - Latest user upload: `bizcatalog-manager (11).zip`, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, 270 entries / 118 source files, Android wrapper retained. This is a distinct R7-era candidate; see `docs/audits/R7_ARCHIVE_11_INTAKE_20261118.md`. It is not approved for wholesale import/deployment.
 - Previous R7 archives (including `bizcatalog-manager (9)(1).zip` and older numbered copies) are separate historical artifacts. Do not conflate their hashes or audits with the latest upload.
 - Supabase remains the sole source of truth for identity, permissions and production data. Do not accept the R7 archive's local-JSON authority or browser-stored roles.
