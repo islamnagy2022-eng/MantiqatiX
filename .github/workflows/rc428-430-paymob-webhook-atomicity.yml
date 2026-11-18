@@ -8,6 +8,8 @@ on:
       - "supabase/tests/rc428_430_paymob_webhook_fixture.sql"
       - "supabase/tests/rc428_430_paymob_webhook_integration.sql"
       - "scripts/validate-finance-boundaries.mjs"
+      - "scripts/validate-payment-migration-wiring.mjs"
+      - "scripts/production/live-reconciliation-contract.mjs"
       - ".github/workflows/rc428-430-paymob-webhook-atomicity.yml"
   pull_request:
     branches: [main]
@@ -16,6 +18,8 @@ on:
       - "supabase/tests/rc428_430_paymob_webhook_fixture.sql"
       - "supabase/tests/rc428_430_paymob_webhook_integration.sql"
       - "scripts/validate-finance-boundaries.mjs"
+      - "scripts/validate-payment-migration-wiring.mjs"
+      - "scripts/production/live-reconciliation-contract.mjs"
       - ".github/workflows/rc428-430-paymob-webhook-atomicity.yml"
 permissions:
   contents: read
@@ -40,6 +44,8 @@ jobs:
       - uses: actions/checkout@v6
       - name: Validate Paymob forward-repair source contract
         run: node scripts/validate-finance-boundaries.mjs
+      - name: Validate payment migration and Edge wiring
+        run: node scripts/validate-payment-migration-wiring.mjs
       - name: Apply disposable fixtures, then the RC475 forward repair
         shell: bash
         run: |
