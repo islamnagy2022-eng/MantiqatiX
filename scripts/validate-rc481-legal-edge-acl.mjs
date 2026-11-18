@@ -53,14 +53,18 @@ for (const [table,projection] of readChecks) {
 assert.ok(center.includes('.eq("user_id",user.id)'), "own-consent query must remain user-scoped");
 
 for (const marker of [
-  'from("legal_documents").insert(',
-  'from("legal_document_versions").insert(',
-  'from("consent_audit_log").insert(',
+  'db.rpc("legal_create_document_backend"',
+  'db.rpc("legal_create_draft_version_backend"',
   'legal_assert_admin_backend', // caller must be present in the canonical platform-admin registry
-
 ]) {
-  assert.ok(cms.includes(marker), "Legal CMS direct write contract missing: " + marker);
+  assert.ok(cms.includes(marker), "Legal CMS atomic write contract missing: " + marker);
 }
+assert.doesNotMatch(cms, /from\(["']legal_documents["']\)\.insert/,
+  "Legal CMS must not perform a direct document insert outside the atomic audit RPC");
+assert.doesNotMatch(cms, /from\(["']legal_document_versions["']\)\.insert/,
+  "Legal CMS must not perform a direct version insert outside the atomic audit RPC");
+assert.doesNotMatch(cms, /from\(["']consent_audit_log["']\)\.insert/,
+  "Legal CMS audit writes must be atomic with their document/version insert");
 assert.ok(cms.includes("LEGAL_ADMIN_REQUIRED"), "Legal CMS must retain its admin authorization gate");
 
 for (const marker of [
