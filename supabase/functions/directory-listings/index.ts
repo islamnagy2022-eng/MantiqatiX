@@ -88,7 +88,7 @@ Deno.serve(async (req: Request) => {
   };
 
   const loadAddressConsentListingIds = async () => collectActiveAddressConsentIds(
-    async (offset, pageSize) => await service.from("directory_listing_contact_consents")
+    async (offset: number, pageSize: number) => await service.from("directory_listing_contact_consents")
       .select("listing_id")
       .eq("scope", "ADDRESS")
       .is("revoked_at", null)
