@@ -6,9 +6,9 @@ Production Supabase project: `moyhiluyhjsujhwlyeuu`
 
 ## 1. Current main and deployment evidence
 
-- PR #801 was merged as `d0a525d728037fe60d73bb9ca6861b5424af6a8d`; it removes one duplicate PWA install button from the canonical Navbar.
+- PR #801 was merged as `d0a525d728037fe60d73bb9ca6861b5424af6a8d`; it removes one duplicate PWA install button from `apps/catalog-frontend/src/components/Navbar.tsx`, the V6 Preview source. It does **not** change the live production root, which remains the legacy catalog at `/MantiqatiX/`.
 - Exact-head pre-merge checks on PR #801 passed: Primary Catalog Frontend Validation, MantiGO Open Ride Privacy Boundary, RC425 MantiGO Paymob Atomicity, Backend-only Module Boundary, Deploy MantiqatiX Web, Flexible commission drafts, and Module Professionalization Validation.
-- Post-merge runs for the exact main SHA were still running at the time of this audit: Primary Catalog Frontend Validation and Deploy MantiqatiX Web. Production Health Monitor, Backend-only Module Boundary, Module Professionalization Validation, and MantiGO Open Ride Privacy Boundary had completed successfully.
+- On current main `54fcf4be74a5892a84ffdb20c85abc67a9e36643`, Module Professionalization Validation, Backend-only Module Boundary, MantiGO Open Ride Privacy Boundary, MantiGO Platform Admin Scope Hardening, and Production Health Monitor completed successfully (runs 44354272313, 44354272750, 44354272696, 44354273172 and 44354272821). Deploy MantiqatiX Web run 44354272865 was still in progress; do not infer successful deployment until its deploy job completes.
 - The successful Production Health Monitor is limited to GitHub Pages reachability, Edge `/health` runtime, a read-only PostgREST probe, and public asset availability. It does not inspect backups, restore readiness, migration parity, or full application transactions.
 
 ## 2. R7 Android wrapper inspection
