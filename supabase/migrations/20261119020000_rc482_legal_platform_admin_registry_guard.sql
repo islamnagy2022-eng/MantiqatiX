@@ -3,21 +3,10 @@
 -- delegated LEGAL_ADMIN labels must not imply platform-wide legal authority.
 BEGIN;
 
-CREATE OR REPLACE FUNCTION private.legal_is_admin()
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path TO ''
-AS $function$
-  SELECT EXISTS (
-    SELECT 1
-    FROM private.platform_admins pa
-    WHERE pa.user_id = (SELECT auth.uid())
-  );
-$function$;
-
-CREATE OR REPLACE FUNCTION private.legal_is_admin(p_user_id uuid)
+-- Keep the existing UUID signature (and its authenticated grant/policy
+-- dependencies). Its NULL default preserves no-argument callers. Remove the
+-- redundant zero-argument overload, which makes legal_is_admin() ambiguous.
+CREATE OR REPLACE FUNCTION private.legal_is_admin(p_user_id uuid DEFAULT NULL::uuid)
 RETURNS boolean
 LANGUAGE sql
 STABLE
@@ -35,6 +24,8 @@ AS $function$
       )
   );
 $function$;
+
+DROP FUNCTION IF EXISTS private.legal_is_admin();
 
 CREATE OR REPLACE FUNCTION public.legal_assert_admin_backend(p_actor_user_id uuid)
 RETURNS boolean
