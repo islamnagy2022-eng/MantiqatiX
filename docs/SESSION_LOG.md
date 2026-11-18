@@ -2763,3 +2763,14 @@ Read-only Supabase production schema cross-check completed: retrieved definition
 - [ ] Confirm the next Pages deployment is green; do not report the earlier run as a deployment upload failure.
 
 Evidence branch: `fix/e2e-directory-card-heading-query-20261118`; source change commit `d8d47c1a73335d63201d556df8f1616737078a12`. No application UI, data, Supabase, or Production behavior was changed in this pass.
+
+
+## 2026-11-18 — Pass 401–420 — MantiGO settlement authorization regression
+
+- Read-only Production check confirmed `settle_mantigo_captain_backend` is SECURITY DEFINER, uses `search_path=public`, and is executable by authenticated but not anon/PUBLIC.
+- Its live role check accepts any active BUSINESS_OWNER membership, without requiring the canonical private platform-admin registry or MNTY-PLATFORM scope.
+- Aggregate role check found 3 distinct non-registry business-wide BUSINESS_OWNER accounts (6 membership rows). This confirms a live authorization path, not proof of prior use. No financial function was invoked and no Production data changed.
+- RC464/RC471 source already replaces this guard with the canonical registry-only check and empty search_path.
+- Added a synthetic BUSINESS_OWNER principal to disposable RC449/RC471 tests; verifies denial across all four global MantiGO RPCs and four helper-dependent platform RPCs. Static validator now requires the case.
+- Exact-head CI pending. Production RC464/RC471/RC472/RC473 remain unapplied; backup/restore evidence remains required.
+
