@@ -205,6 +205,22 @@ begin
   end;
   if not rejected then raise exception 'RC428 cross-intent event replay was not rejected'; end if;
 
+  rejected := false;
+  begin
+    perform public.process_verified_provider_payment(
+      'evt-r475-null-signature','tenant-a','PAYMOB','paymob:txn-null-signature','pi-success',
+      'TRANSACTION',null,100,'EGP',100
+    );
+    raise exception 'TEST_FAILED: RC475 accepted a NULL signature-verification flag';
+  exception when others then
+    if sqlerrm <> 'WEBHOOK_SIGNATURE_NOT_VERIFIED' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'RC475 accepted a NULL signature-verification flag'; end if;
+  select count(*) into n from public.payment_provider_events
+  where external_event_id='paymob:txn-null-signature';
+  if n <> 0 then raise exception 'RC475 persisted an event for a NULL signature flag'; end if;
+
   -- RC475 exact successful order-payment replay is idempotent only for the same intent and final state.
   result := public.process_verified_provider_payment(
     'paymob:txn-success','tenant-a','PAYMOB','paymob:txn-success','pi-success',
