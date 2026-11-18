@@ -28,7 +28,10 @@ const expected = {
 };
 for (const [key, columns] of Object.entries(expected)) {
   const [table, privilege] = key.split(/_(?=[^_]+$)/);
-  const re = new RegExp(`^GRANT ${privilege.toUpperCase()} \\\\(([\\\\s\\\\S]*?)\\\\) ON TABLE public\\\\.${table} TO service_role;$`, "m");
+  const re = new RegExp(
+    "^GRANT " + privilege.toUpperCase() + " \\(([^)]*)\\) ON TABLE public\\." + table + " TO service_role;$",
+    "m",
+  );
   const match = migration.match(re);
   assert.ok(match, "missing exact RC481 grant: " + key);
   assert.deepEqual(match[1].split(",").map(x => x.trim()).filter(Boolean), columns,
