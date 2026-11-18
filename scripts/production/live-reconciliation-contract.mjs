@@ -15,6 +15,18 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261027030000", "20261027040000", "20261027050000",
   "20261027060000", "20261027070000", "20261027090000", "20261027093000",
   "20261031100000",
+  "20261113214500", // RC464
+  "20261114010000", // RC465
+  "20261114020000", // RC466
+  "20261115010000", // RC467
+  "20261115030000", // RC468
+  "20261117010000", // RC469
+  "20261117020000", // RC470
+  "20261117190000", // RC471
+  "20261118010000", // RC472
+  "20261118020000", // RC473
+  "20261118030000", // RC474
+  "20261118040000", // RC475
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
@@ -36,9 +48,11 @@ export const REQUIRED_CORE_OBJECTS = [
   "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
   "public.uq_payment_intents_one_active_per_order",
   "public.process_verified_provider_payment_failure",
+  "public.process_verified_provider_payment",
   "public.process_verified_subscription_payment_failure",
   "public.process_verified_subscription_payment_backend",
   "public.process_verified_digital_page_payment_backend",
+  "public.review_directory_listing_claim_atomic(uuid,text,uuid,text,uuid,boolean,boolean)",
   "public.smm_wallet_transactions_reference_type_uidx",
   "public.receive_purchase_stock_atomic_backend",
   "public.create_subscription_payment_intent_claimable_backend",
