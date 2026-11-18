@@ -2192,3 +2192,22 @@ Evidence: `supabase/tests/rc451_targeted_ads_search_path_fixture.sql` and `supab
 
 Evidence branch: `fix/e2e-directory-card-heading-query-20261118`; source change commit `d8d47c1a73335d63201d556df8f1616737078a12`. No application UI, data, Supabase, or Production behavior was changed in this pass.
 
+
+
+---
+
+## Pass 401–420 — MantiGO settlement authorization regression (2026-11-18)
+
+- [x] Re-read the live SECURITY DEFINER settlement function and its exact role predicate.
+- [x] Verify authenticated EXECUTE is granted; anon/PUBLIC EXECUTE are denied.
+- [x] Quantify active non-registry business-wide roles without selecting user IDs or contact data.
+- [x] Confirm 3 non-registry BUSINESS_OWNER accounts satisfy the current live settlement role predicate; no RPC was invoked.
+- [x] Confirm RC464/RC471 source uses canonical platform-admin registry authority and empty search_path.
+- [x] Add a BUSINESS_OWNER negative case to the disposable RC449/RC471 integration sequence for settlement and the other global MantiGO RPCs.
+- [x] Add the same role to the four shared platform-admin helper-caller negative tests.
+- [x] Extend static validation to require this regression case.
+- [ ] Pass exact-head MantiGO Platform Admin Scope PostgreSQL workflow and all required PR checks.
+- [ ] Obtain off-site logical backup and successful restore evidence.
+- [ ] Apply RC464 → RC471 → RC472 → RC473 only after backup/restore and release review.
+
+Evidence: `docs/audits/PASS_401_420_MANTIGO_SETTLEMENT_AUTHORIZATION_20261118.md`. Production remained read-only; no settlement, payment, ledger, Auth, RLS, GRANT or Edge mutation.
