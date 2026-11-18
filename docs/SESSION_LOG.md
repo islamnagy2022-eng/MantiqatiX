@@ -2720,3 +2720,13 @@ Read-only Supabase production schema cross-check completed: retrieved definition
 - Post-merge main workflows triggered on the merge SHA. Production Health Monitor passed; remaining workflows were in progress at the checkpoint.
 - RC473 source merge does not apply Production migration or deploy Edge Function. RC472 production release is still a dependency; required order is verified backup/restore, RC472 migration + Edge release, RC473 migration + Edge release, then deployed-origin privacy/consent/revocation tests.
 - No Production schema/data/Auth/RLS/GRANT/Edge/payment mutation occurred. Supabase Free backup/restore evidence and source-specific republication permissions remain release blockers.
+
+## 2026-11-18 — Pass 341–350 — Production parity and Supabase security triage
+
+- Read-only live Supabase parity: 310 migrations; latest applied version 20261110150618; RC472/RC473 remain unapplied.
+- Live Edge versions: directory-listings v16, public-catalog v8, public-catalog-directory v18. No RC473 Edge deployment occurred.
+- Security advisors: 65 authenticated-executable SECURITY DEFINER functions, one anon-executable SECURITY DEFINER function, leaked-password protection disabled, 9 RLS-enabled/no-policy INFO findings and 28 multiple-permissive-policy warnings.
+- Reviewed the anonymous targeted-ad RPC definition and ACL: it exposes only active approved ad creative/targeting output, uses an empty search_path and bounds p_limit to 1–50. Treat as intended public API but add dedicated regression coverage.
+- Reviewed six authenticated-executable wrappers without direct auth.uid(); inspected wrappers delegate to actor-scoped membership/financial/catalog helpers. No ACL/grant changes were made.
+- Performance advisors: 132 unindexed foreign keys, 375 RLS init-plan notices and 71 unused indexes; health advisor returned zero lints.
+- No Production schema/data/Auth/RLS/GRANT/Edge/payment mutation. Next: individually audit SECURITY DEFINER functions and address leaked-password protection using supported Auth settings.
