@@ -80,6 +80,6 @@ The next review tranche must prioritize payment, financial, order, inventory and
 - execute grants and PUBLIC/anon exposure;
 - idempotency and audit behavior for financial mutations.
 
-The anonymous targeted-ad function remains a deliberate public API candidate; add an explicit regression for its output projection, active/approved filtering, limit bound and ACL.
+The anonymous targeted-ad function is a deliberate public API. Its live definition has empty search_path, schema-qualified tables, ACTIVE/APPROVED/date filters, a 1–50 limit and a seven-column output projection. RC451 integration test passes empty-path, anon/authenticated grant and no-PUBLIC-execute assertions. Its fixture currently defines a stub returning no rows, so behavioral output/geographic/limit coverage remains pending.
 
 **Disposition:** latent platform-root authorization defect fixed in source but not in Production. No Production DB, Auth, RLS, GRANT, Edge, payment or settlement mutation occurred. Full Production remains **BLOCKED / NOT CERTIFIED**.
