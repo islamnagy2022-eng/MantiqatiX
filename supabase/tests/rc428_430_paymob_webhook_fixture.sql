@@ -146,8 +146,8 @@ CREATE TABLE public.payment_financial_reconciliations (
   gross_amount numeric NOT NULL, commission_amount numeric NOT NULL,
   provider_received_amount numeric NOT NULL, provider_payout_amount numeric NOT NULL,
   commission_obligation_id varchar, provider_obligation_id varchar, commission_transaction_id varchar,
-  reconciliation_status varchar NOT NULL, ledger_status varchar NOT NULL,
-  metadata jsonb NOT NULL DEFAULT '{}'::jsonb, updated_at timestamptz NOT NULL DEFAULT now()
+  reconciliation_status varchar NOT NULL, ledger_status varchar NOT NULL, exception_code varchar,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE UNIQUE INDEX uk_payment_financial_reconciliation
   ON public.payment_financial_reconciliations(tenant_id,payment_intent_id);
