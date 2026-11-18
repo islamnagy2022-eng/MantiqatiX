@@ -42,12 +42,16 @@ BEGIN
     RAISE EXCEPTION 'LEGAL_LOCALE_INVALID';
   END IF;
 
-  SELECT coalesce(
-    array_agg(DISTINCT upper(btrim(a.value))) FILTER (WHERE btrim(a.value) <> ''),
-    ARRAY['ALL']::text[]
-  )
-  INTO v_target_audience
-  FROM unnest(coalesce(p_target_audience, ARRAY['ALL']::text[])) AS a(value);
+  IF p_target_audience IS NULL THEN
+    v_target_audience := ARRAY['ALL']::text[];
+  ELSE
+    SELECT coalesce(
+      array_agg(DISTINCT upper(btrim(a.value))) FILTER (WHERE btrim(a.value) <> ''),
+      ARRAY[]::text[]
+    )
+    INTO v_target_audience
+    FROM unnest(p_target_audience) AS a(value);
+  END IF;
 
   SELECT coalesce(
     array_agg(DISTINCT upper(btrim(a.value))) FILTER (WHERE btrim(a.value) <> ''),
