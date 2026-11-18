@@ -1,6 +1,6 @@
 ## Latest verified checkpoint — Pass 821–840 — 2026-11-19
 
-- Current `main`: `02a2c5688e53ff023f086c5d3c66c4a72deb59fe`; PR #821 merged.
+- Current `main` before this documentation PR: `c1f6428c494ddec70d498c52a320279b4626a137`; PR #821 merged.
 - PR #821 updates MantiGO platform-admin regression CI to PostgreSQL 17, matching Production. Dedicated MantiGO Platform Admin Scope Hardening run 44423269037 passed; post-merge main MantiGO run 44423691940 passed.
 - Post-merge main Module Professionalization run 44423691911, MantiGO Open Ride Privacy run 44423692137, Backend-only Module Boundary run 44423691971 and Production Health Monitor run 44423691996 passed. Main Pages deployment run 44423691917 was pending at checkpoint; do not claim deployed-origin success.
 - Fresh read-only Production recheck: all four global MantiGO SECURITY DEFINER RPCs remain authenticated-executable, use `search_path=public`, and do not call `mnty_can_platform_admin()`. The helper still delegates to null-scope `mnty_can('admin',NULL,NULL,NULL)`. The live predicates still accept broad tenant roles including BUSINESS_OWNER.
@@ -54,7 +54,7 @@
 ## Current source map — 2026-11-18
 
 - Governing operating directive: `docs/MASTER_SOURCE_OF_TRUTH.md` — sole current project execution authority; older prompts and continuity notes are subordinate.
-- Current GitHub main: `02a2c5688e53ff023f086c5d3c66c4a72deb59fe` (PR #819, #820 and #821 merged; see latest Pass 821–840 checkpoint above).
+- Current GitHub main before this documentation PR: `c1f6428c494ddec70d498c52a320279b4626a137` (PR #819, #820 and #821 merged; see latest Pass 821–840 checkpoint above).
 - Latest user upload: `bizcatalog-manager (11).zip`, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, 270 entries / 118 source files, Android wrapper retained. This is a distinct R7-era candidate; see `docs/audits/R7_ARCHIVE_11_INTAKE_20261118.md`. It is not approved for wholesale import/deployment.
 - Previous R7 archives (including `bizcatalog-manager (9)(1).zip` and older numbered copies) are separate historical artifacts. Do not conflate their hashes or audits with the latest upload.
 - Supabase remains the sole source of truth for identity, permissions and production data. Do not accept the R7 archive's local-JSON authority or browser-stored roles.
