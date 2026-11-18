@@ -23,11 +23,10 @@ BEGIN
     RAISE EXCEPTION 'RC474_PRECONDITION_FAILED: payment intent RPC must remain SECURITY DEFINER';
   END IF;
 
-  IF NOT pg_catalog.has_function_privilege('authenticated', v_proc, 'EXECUTE')
-     OR NOT pg_catalog.has_function_privilege('service_role', v_proc, 'EXECUTE')
-     OR pg_catalog.has_function_privilege('anon', v_proc, 'EXECUTE')
-     OR pg_catalog.has_function_privilege('public', v_proc, 'EXECUTE') THEN
-    RAISE EXCEPTION 'RC474_PRECONDITION_FAILED: unexpected payment intent RPC ACL';
+  IF pg_catalog.to_regrole('authenticated') IS NULL
+     OR pg_catalog.to_regrole('service_role') IS NULL
+     OR pg_catalog.to_regrole('anon') IS NULL THEN
+    RAISE EXCEPTION 'RC474_PRECONDITION_FAILED: expected Supabase client roles are missing';
   END IF;
 
   IF pg_catalog.to_regprocedure('auth.uid()') IS NULL
@@ -194,7 +193,7 @@ $function$;
 
 REVOKE ALL ON FUNCTION public.create_payment_intent_backend(
   character varying,uuid,numeric,character varying,character varying,character varying,character varying
-) FROM PUBLIC, anon;
+) FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.create_payment_intent_backend(
   character varying,uuid,numeric,character varying,character varying,character varying,character varying
 ) TO authenticated, service_role;
