@@ -11,8 +11,15 @@ const publicExposure = fs.readFileSync("scripts/validate-public-marketing-provid
 
 assert.match(migration, /^REVOKE SELECT ON TABLE public\.marketing_provider_profiles FROM anon;$/m,
   "RC479 must revoke only the explicit anon SELECT grant");
-assert.doesNotMatch(migration, /FROM\\s+(?:authenticated|service_role|PUBLIC)\\s*;/i,
+const forbiddenGrantTargets = /FROM\s+(?:authenticated|service_role|PUBLIC)\s*;/i;
+assert.doesNotMatch(migration, forbiddenGrantTargets,
   "RC479 must not revoke authenticated, service_role, or PUBLIC grants");
+assert.match("REVOKE SELECT ON TABLE public.marketing_provider_profiles FROM authenticated;", forbiddenGrantTargets,
+  "negative grant-target matcher must detect an authenticated revoke");
+assert.match("REVOKE SELECT ON TABLE public.marketing_provider_profiles FROM service_role;", forbiddenGrantTargets,
+  "negative grant-target matcher must detect a service_role revoke");
+assert.match("REVOKE SELECT ON TABLE public.marketing_provider_profiles FROM PUBLIC;", forbiddenGrantTargets,
+  "negative grant-target matcher must detect a PUBLIC revoke");
 assert.equal((migration.match(/;/g) || []).length, 1,
   "RC479 must remain a single-purpose privilege-only migration");
 assert.match(fixture, /GRANT SELECT ON TABLE public\.marketing_provider_profiles TO anon, authenticated, service_role;/,
