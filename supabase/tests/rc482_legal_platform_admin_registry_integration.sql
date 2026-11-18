@@ -9,7 +9,8 @@ BEGIN
   END IF;
   IF EXISTS (
     SELECT 1 FROM pg_proc
-    WHERE oid='private.legal_is_admin(uuid)'::regprocedure
+    WHERE pronamespace='private'::regnamespace
+      AND proname='legal_is_admin'
       AND pronargs=0
   ) THEN
     RAISE EXCEPTION 'RC482_AMBIGUOUS_ZERO_ARGUMENT_OVERLOAD_REMAINS';
