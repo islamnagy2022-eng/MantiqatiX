@@ -2261,3 +2261,13 @@ Evidence: read-only Production SQL inspection on 2026-11-18; issue #804. No Prod
 - [ ] Create any eventual migration using `supabase migration new` in a CLI-enabled source workspace, run advisors and isolated tests, and reconcile exact migration chronology before any production release. No migration filename or historical migration ledger entry is fabricated.
 
 Evidence: read-only Production ACL and `has_column_privilege` checks on 2026-11-18; source review of current main. No Production SQL, migration, GRANT, RLS, Auth, Edge, data, or deployment mutation occurred. This remains a release blocker; no private profile values were selected.
+
+## Pass 761–780 — PostgreSQL 17 public-schema default ACL audit (2026-11-18)
+
+- [x] Read-only inspected effective ACLs for public relations: anon has MAINTAIN on 91, REFERENCES/TRIGGER/TRUNCATE on five, SELECT on eight; authenticated has MAINTAIN on 108 and DML privileges across multiple relations. These are privilege counts, not proven exploitable endpoint counts.
+- [x] Identified five relations with anon TRUNCATE/TRIGGER/REFERENCES but no anon SELECT/INSERT/UPDATE/DELETE: digital_page_products, mantigo_captain_profiles, mantigo_financial_ledger, medical_appointments, platform_brand_assets. RLS is enabled on all; FORCE RLS only on medical_appointments.
+- [x] Confirmed postgres-owned public-table default ACL grants anon/authenticated/service_role MAINTAIN, REFERENCES, TRIGGER, TRUNCATE on future tables; supabase_admin defaults are broader and require provenance review.
+- [x] Recorded the audit in `docs/audits/PASS_761_780_DEFAULT_ACL_AUDIT_20261118.md` and opened issue #811.
+- [ ] Trace migration/DDL execution owner and Supabase-managed expectations; build PostgreSQL 17 fixture and least-privilege regression tests before any forward default-ACL repair.
+
+No Production ACL/default-privilege change occurred. RC479 remains a narrow SELECT revocation and does not close this separate default-ACL review. Production remains BLOCKED / NOT CERTIFIED.
