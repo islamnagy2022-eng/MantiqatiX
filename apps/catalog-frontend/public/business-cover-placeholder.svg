@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">صورة غلاف النشاط غير متاحة</title>
+  <desc id="desc">غلاف محايد مؤقت إلى أن يضيف صاحب النشاط صورة الغلاف الخاصة به</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="78%" cy="18%" r="75%">
+      <stop offset="0" stop-color="#cbd5e1" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#cbd5e1" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
+      <path d="M72 0H0V72" fill="none" stroke="#94a3b8" stroke-opacity=".12" stroke-width="2"/>
+    </pattern>
+  </defs>
+  <rect width="1600" height="900" fill="url(#background)"/>
+  <rect width="1600" height="900" fill="url(#glow)"/>
+  <rect width="1600" height="900" fill="url(#grid)"/>
+  <circle cx="800" cy="340" r="150" fill="#fff" fill-opacity=".78" stroke="#cbd5e1" stroke-width="5"/>
+  <g fill="none" stroke="#64748b" stroke-width="13" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="720" y="260" width="160" height="132" rx="14"/>
+    <circle cx="765" cy="302" r="15"/>
+    <path d="M738 370l48-45 35 30 28-22 30 37"/>
+  </g>
+  <text x="800" y="575" text-anchor="middle" direction="rtl" font-family="Arial,sans-serif" font-size="52" font-weight="700" fill="#334155">صورة غلاف النشاط غير متاحة</text>
+  <text x="800" y="640" text-anchor="middle" direction="rtl" font-family="Arial,sans-serif" font-size="30" fill="#64748b">يمكن لصاحب النشاط إضافة صورة الغلاف الخاصة به</text>
+  <text x="800" y="760" text-anchor="middle" direction="ltr" font-family="Arial,sans-serif" font-size="28" font-weight="700" letter-spacing="3" fill="#64748b">MANTIQATIX</text>
+</svg>
