@@ -11,9 +11,9 @@ Deno.serve(async req=>{
     const db=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const {data:{user},error:ue}=await db.auth.getUser(a.slice(7));
     if(ue||!user||user.is_anonymous)return json({error:"AUTH_REQUIRED"},401);
-    const {data:m,error:me}=await db.from("user_memberships").select("role,status").eq("user_id",user.id).eq("status","ACTIVE").in("role",["SUPER_ADMIN","ADMIN","LEGAL_ADMIN"]).limit(1).maybeSingle();
-    if(me)throw me;
-    if(!m)return json({error:"LEGAL_ADMIN_REQUIRED"},403);
+    const {data:isPlatformAdmin,error:adminError}=await db.rpc("legal_cms_is_platform_admin",{p_user_id:user.id});
+    if(adminError)throw adminError;
+    if(isPlatformAdmin!==true)return json({error:"LEGAL_ADMIN_REQUIRED"},403);
     const b=await req.json();
     const action=String(b.action??"").toLowerCase();
     const audit=async(eventType:string,documentId:string|null,versionId:string|null,metadata:Record<string,unknown>={})=>{
