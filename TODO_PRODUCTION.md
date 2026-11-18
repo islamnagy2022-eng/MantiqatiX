@@ -6,7 +6,7 @@
 ## Current source map — 2026-11-18
 
 - Governing operating directive: `docs/MASTER_SOURCE_OF_TRUTH.md` — sole current project execution authority; older prompts and continuity notes are subordinate.
-- Current GitHub main: `4fc65f68a304c10e9ec63e073e5e1e392b75f161` (PR #780, #776 and #782 merged; post-merge verification for #782 is running).
+- Current GitHub main: `ef96fec44715ee255780e63bd5a2a2925d89876d` (documentation-only checkpoint after application merge #782 `4fc65f68a304c10e9ec63e073e5e1e392b75f161`; post-merge CI and Pages verification passed).
 - Latest user upload: `bizcatalog-manager (11).zip`, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, 270 entries / 118 source files, Android wrapper retained. This is a distinct R7-era candidate; see `docs/audits/R7_ARCHIVE_11_INTAKE_20261118.md`. It is not approved for wholesale import/deployment.
 - Previous R7 archives (including `bizcatalog-manager (9)(1).zip` and older numbered copies) are separate historical artifacts. Do not conflate their hashes or audits with the latest upload.
 - Supabase remains the sole source of truth for identity, permissions and production data. Do not accept the R7 archive's local-JSON authority or browser-stored roles.
@@ -69,7 +69,8 @@ Evidence: PR [#780](https://github.com/islamnagy2022-eng/MantiqatiX/pull/780), m
 - [x] Add regression assertions for the 16:9 asset, resolver selection and automatic-image provenance.
 - [x] Exact-head PR #782 checks passed, including legacy catalog validation, Primary Catalog build/RBAC/browser E2E and Pages validation.
 - [x] Merge PR #782 as `4fc65f68a304c10e9ec63e073e5e1e392b75f161`.
-- [ ] Complete post-merge main CI and deployed-origin verification for PR #782.
+- [x] Complete post-merge main CI and deployed-origin verification for PR #782: Primary Catalog `44234486191`, Pages deployment `44234486405`, Production Health Monitor `44234486359`, and all module/privacy/finance/legacy validation workflows passed.
+- [x] Deployed-origin checks confirmed the legacy production root, `/legacy/` rollback path, `/v6-preview/` alias and dashboard/mobile/QR routes; 32 browser journeys plus accessibility checks passed.
 
 Evidence: PR [#782](https://github.com/islamnagy2022-eng/MantiqatiX/pull/782). No schema, Auth/RLS/GRANT, payment, production data or Edge deployment changes.
 
