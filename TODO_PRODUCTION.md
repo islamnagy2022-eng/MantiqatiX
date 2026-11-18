@@ -90,6 +90,22 @@ Evidence: PR [#782](https://github.com/islamnagy2022-eng/MantiqatiX/pull/782). N
 
 Evidence: `docs/audits/PASS_541_560_P0_AUTH_SECURITY_DEFINER_20261118.md`. Read-only Production audit; no SQL/Auth/RLS/GRANT/Edge/payment/settlement mutation.
 
+## Pass 561–580 — authenticated SECURITY DEFINER delegation review (2026-11-18)
+
+- [x] Enumerate authenticated-executable public SECURITY DEFINER functions with no direct `auth.uid()` reference (six entries, excluding public targeted-ad RPC).
+- [x] Trace employee-list wrapper to scoped helper; confirm auth.uid, anonymous-session rejection, business/tenant/branch checks, and employee permissions.
+- [x] Trace `mnty_can` to actor-filtered active membership helper and review tenant/business/branch scoping.
+- [x] Trace commission preview to `assert_financial_membership`; confirm actor, active tenant membership and finance-role requirements.
+- [x] Trace catalog combined upsert to both item and price functions; confirm actor and tenant/business/branch checks on each delegated write.
+- [x] Preserve the known live P0: `mnty_can_platform_admin()` still delegates to null-scope `mnty_can('admin',...)`; RC464/RC471 registry-backed source repair is not yet applied to Production.
+- [x] Confirm RC471 static validator and disposable PostgreSQL workflow are present in source; no fresh workflow run was claimed.
+- [ ] Review the remaining direct-auth SECURITY DEFINER routines, emphasizing global/financial mutation boundaries and anonymous-session handling.
+- [ ] Run the exact-head RC471 disposable PostgreSQL workflow and retain its logs/artifacts before any migration release.
+- [ ] Convert non-empty `public` search paths on reviewed helper/delegation functions to empty paths only through a separately tested forward migration.
+- [ ] Complete encrypted off-site backup and successful restore rehearsal before any Production rollout.
+
+Evidence: `docs/audits/PASS_561_580_SECURITY_DEFINER_DELEGATION_REVIEW_20261118.md`. Read-only Production review; no runtime mutation.
+
 ## Historical R7 archive (7) baseline — 2026-11-11
 
 > Historical record only: this 2026-11-11 override described the earlier `bizcatalog-manager (7).zip` artifact and its hash below. It is superseded as the current candidate by the latest `bizcatalog-manager (11).zip` upload, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`. The (7), (9)(1) and (11) archives are separate artifacts; do not conflate their hashes or treat the earlier archive as the current source.
