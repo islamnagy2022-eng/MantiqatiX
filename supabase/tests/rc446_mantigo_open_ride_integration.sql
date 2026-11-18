@@ -51,7 +51,8 @@ begin
 
   -- Each invalid captain state must be denied.
   perform pg_catalog.set_config('request.jwt.claim.sub',captain::text,true);
-  insert into public.mantigo_captain_profiles values(captain,'PENDING','VERIFIED','AVAILABLE');
+  insert into public.mantigo_captain_profiles(captain_id,status,verification_status,availability_status,vehicle_category)
+  values(captain,'PENDING','VERIFIED','AVAILABLE','SEDAN');
   begin
     perform * from public.list_open_mantigo_rides_backend(captain);
     raise exception 'pending captain unexpectedly read open-ride locations';
