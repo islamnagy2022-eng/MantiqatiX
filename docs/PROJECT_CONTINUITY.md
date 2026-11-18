@@ -2226,3 +2226,38 @@ Production schema cross-check (read-only) found the claim/listing/membership/bus
 - Residual risk remains explicit: authenticated SELECT plus the public-active policy may expose `owner_user_id` and `settings` to signed-in non-owners. Do not revoke authenticated SELECT until the owner UI's direct lookup is replaced with a compatible owner-scoped contract.
 - Audit: `docs/audits/PASS_701_720_PROVIDER_PROFILE_ANON_READ_BOUNDARY_20261118.md`.
 - Source-only candidate; no Production SQL/migration/data/Auth/RLS/GRANT/Edge/payment/wallet/settlement mutation, no main code change and no Pages deployment. Backup/restore and broader Production certification remain blocked.
+
+
+## Pass 681–700 — reverse-bidding live contract and provider eligibility audit (2026-11-18)
+
+- [x] Re-read the exact live Supabase project status, migration ledger, Edge inventory and Security Advisor; Production is ACTIVE_HEALTHY, PostgreSQL 17.6, 310 migration rows through 20261110150618.
+- [x] Confirmed the current source release manifest tracks 57 required release migrations through RC478; none of those exact required versions is present in the live migration ledger. Do not fabricate migration history or apply the chain without the verified encrypted backup/restore gate.
+- [x] Read-only inspected the live `indrive_requests`, `indrive_bids`, provider profile/service schema, RLS policies, constraints and current RPC definitions.
+- [x] Confirmed `create_indrive_bid_backend` inserts `status='PENDING'` while the live status CHECK permits only OFFERED/ACCEPTED/REJECTED, and inserts NULL into NOT NULL `provider_rating`. The existing submission path therefore conflicts with the live schema contract.
+- [x] Confirmed the same RPC trusts caller-supplied provider name/type and does not require an ACTIVE + verified provider profile, exact active service link, or service-area match. Existing requests have no stable `service_id`; free-text category/domain fields cannot safely establish exact service eligibility.
+- [x] Confirmed `counter_offer_indrive_bid` overwrites the current bid price/note instead of preserving append-only negotiation revisions.
+- [x] Aggregate-only supply check: 0 current reverse-bidding requests, 0 bids, 10 ACTIVE + verified provider profiles, 16 ACTIVE service links; all 16 eligible links currently map to MARKETING services. No active verified service links were found for other categories.
+- [x] Added the verified schema/runtime findings and implementation acceptance direction to GitHub issue #804.
+- [ ] Implement a forward-only service-ID request contract on existing `indrive_requests`/`indrive_bids`; do not create parallel request/catalog/provider tables.
+- [ ] Replace caller-supplied provider identity with `auth.uid()`-derived provider profile identity; require ACTIVE + verified profile, exact ACTIVE service link, ACTIVE master service and exact normalized area.
+- [ ] Add append-only offer/negotiation events, immutable accepted-offer snapshot, single-winner concurrency and idempotency tests.
+- [ ] Add completion/dispute/review lifecycle and shadow commission calculation only. Payment, escrow, wallet, settlement and ledger movement remain out of scope.
+- [ ] Preserve honest no-eligible-provider states for categories without real approved service coverage.
+
+Evidence: read-only Production SQL inspection on 2026-11-18; issue #804. No Production SQL, migration, data, Auth, RLS, GRANT, Edge, payment, wallet, settlement or deployment mutation occurred. This audit does not claim the brokerage feature is implemented or production-ready.
+
+
+## Pass 701–720 — provider profile Data API privilege boundary recheck (2026-11-18)
+
+- [x] Rechecked effective table ACLs in canonical Production: `anon` and `authenticated` both have table-level SELECT on `public.marketing_provider_profiles`; `service_role` also has SELECT.
+- [x] Rechecked effective column privileges: `anon` can SELECT `owner_user_id` and `settings` as well as public display fields; `authenticated` can SELECT `owner_user_id` and `settings`. This is a privilege-surface finding, not proof that a specific private value was exfiltrated.
+- [x] Confirmed row policy remains limited to ACTIVE profiles for the public SELECT policy; row filtering does not narrow table-level SELECT to selected columns.
+- [x] Re-read the existing repository TODO and public-provider exposure validator. The canonical React catalog reads providers through the curated `public-catalog-directory` / `public-catalog` Edge Functions, whose explicit public projection omits `owner_user_id` and `settings`. The legacy `web/` source is not the canonical deployed React artifact; the old provider-service owner UI still explicitly selects `owner_user_id` for ownership scoping.
+- [x] Re-read provider-service isolation test: it already exercises two owners, rejects cross-owner insert/reassignment, and rejects anonymous Auth sessions in disposable PostgreSQL. It does not yet test column-level anon profile restrictions.
+- [ ] Build a compatibility matrix for the old Android/native client and any external integrations before changing anon/authenticated column grants. Repository source metadata alone does not establish a deployed mobile client’s actual REST query shape.
+- [ ] Prefer removing direct anon access to the provider base table and keeping public discovery on curated Edge Functions, but only after the health-monitor GET probe is replaced or explicitly retained through a minimal public-safe endpoint.
+- [ ] For authenticated direct access, replace owner/CRM/storage subqueries that currently depend on reading profile rows with a private, narrowly scoped ownership helper or server-side path, then prove owner profile management, provider-service editing, CRM, and storage media policies in disposable PostgreSQL.
+- [ ] Add column-privilege regression tests proving anon cannot select `owner_user_id` or `settings`, authenticated access is restricted to the minimum required columns, and service-role/Edge projections remain intact.
+- [ ] Create any eventual migration using `supabase migration new` in a CLI-enabled source workspace, run advisors and isolated tests, and reconcile exact migration chronology before any production release. No migration filename or historical migration ledger entry is fabricated.
+
+Evidence: read-only Production ACL and `has_column_privilege` checks on 2026-11-18; source review of current main. No Production SQL, migration, GRANT, RLS, Auth, Edge, data, or deployment mutation occurred. This remains a release blocker; no private profile values were selected.
