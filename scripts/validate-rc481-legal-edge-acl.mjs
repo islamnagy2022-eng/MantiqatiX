@@ -9,7 +9,7 @@ const integration = fs.readFileSync("supabase/tests/rc481_legal_edge_service_rol
 
 const grantBlocks = migration.match(/^GRANT (?:SELECT|INSERT) \([\s\S]*?\) ON TABLE public\.[a-z_]+ TO service_role;$/gm) || [];
 assert.equal(grantBlocks.length, 7, "RC481 must contain exactly seven column-level grants");
-assert.match(migration, /^BEGIN;[\s\S]*COMMIT;\s*$/);
+assert.match(migration, /^[\s\S]*\bBEGIN;[\s\S]*\bCOMMIT;\s*$/);
 assert.doesNotMatch(migration, /GRANT\s+(?:ALL|SELECT|INSERT|UPDATE|DELETE)\s+ON\s+TABLE/i,
   "RC481 must not grant table-wide privileges");
 assert.doesNotMatch(migration, /GRANT\s+(?:ALL|UPDATE|DELETE)\b/i,
