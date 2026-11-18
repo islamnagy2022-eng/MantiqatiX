@@ -2818,3 +2818,13 @@ Evidence branch: `fix/e2e-directory-card-heading-query-20261118`; source change 
 - The migration retains a fail-closed NULL-total guard as defense in depth; the disposable fixture does not attempt to insert NULL into a generated column.
 - Production migration and Edge deployment remain blocked pending verified off-site backup/restore.
 
+
+
+## 2026-11-18 — Pages post-PR #774 deployed-origin verification
+
+- GitHub Pages run `44227174978` completed the `deploy` job successfully (13/13 steps).
+- Deployed paths verified: legacy catalog at root, rollback copy at `/legacy/`, V6 preview alias at `/v6-preview/`.
+- Deployed-origin `PRIMARY_CATALOG_BROWSER_E2E=PASS` across directory pagination, search, mobile, owner/employee scope, QR/storefront and admin route checks.
+- The overall workflow run was marked cancelled because the separate `validate_public_only` job was cancelled; do not label the entire workflow green. The actual deploy job and deployed-origin browser suite passed.
+- No production Supabase migration or Edge deployment occurred.
+
