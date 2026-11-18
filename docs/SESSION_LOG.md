@@ -2795,3 +2795,6 @@ Evidence branch: `fix/e2e-directory-card-heading-query-20261118`; source change 
 - Static assertions checked 12/12 locally; exact-head GitHub/PostgreSQL/migration replay checks pending.
 - PR #773 was closed as superseded after PR #772 advanced main; no code from #773 was merged.
 
+
+
+- Follow-up review confirmed `BUSINESS_OWNER` is a valid business-scoped owner role in the application. RC474 was extended to allow it only when the membership matches the exact order business/branch, with a positive disposable test. The first CI attempt caught a stale validator role-list regex; the validator was corrected and exact-head checks are rerunning.
