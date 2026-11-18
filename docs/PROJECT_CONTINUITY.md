@@ -1,3 +1,22 @@
+# Latest execution checkpoint — 2026-11-18 — RC477 customer bid privacy fix merged
+
+**Current main:** `613bcb654202a2a5bfb6028d43e7b80b9a772388`.  
+**Merged changes:** PR #788 RC476 captain earnings correction; PR #790 RC477 customer bid contact privacy.  
+**Production:** **BLOCKED / NOT CERTIFIED**; RC464/RC471/RC476/RC477 source migrations remain unapplied.
+
+- Confirmed live customer ride RPC serialized all bid fields, exposing captain phone and vehicle plate before bid acceptance.
+- RC477 now returns those two fields as JSON null until bid status is ACCEPTED, preserving all other bid fields and keeping contact details available for the accepted bid.
+- Exact-head RC477 static + disposable PostgreSQL integration passed; forward migration chain replay from captured Production schema checkpoint passed.
+- All associated MantiGO privacy, Paymob atomicity, migration history/version, backend boundary, module and Pages/V6 validation workflows passed.
+- RC476 remains merged and fixes captain earnings references to canonical ledger columns. RC471 also repairs the global admin financial report and platform-admin helper source.
+- No Production SQL/Auth/RLS/GRANT/Edge/payment/wallet/settlement mutation was performed. Source merge does not apply any migration.
+
+**Next:** continue direct-auth high-risk RPC and data exposure review; maintain the backup/restore and exact migration-ledger release gates.
+
+Evidence: `docs/audits/PASS_621_640_MANTIGO_CUSTOMER_BID_CONTACT_PRIVACY_20261118.md`.
+
+---
+
 # Latest execution checkpoint — 2026-11-18 — RC476 merged, Production migration still gated
 
 **Current main:** `d735cb31e65b7fbc13ce9b4854bbbe3599edbe39`.  
