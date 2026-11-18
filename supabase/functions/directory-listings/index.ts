@@ -15,6 +15,7 @@ import {
   sanitizeDoctorImportMetadata,
 } from "./doctor-import-contract.mjs";
 import { sanitizePublicDirectoryListing } from "./public-directory-output-contract.mjs";
+import { collectActiveAddressConsentIds } from "./consent-pagination.mjs";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const allowedOrigins = new Set([
@@ -86,31 +87,15 @@ Deno.serve(async (req: Request) => {
     return { scopes, ready: true };
   };
 
-  const loadAddressConsentListingIds = async () => {
-    const ids = new Set<string>();
-    const pageSize = 1000;
-    let offset = 0;
-    while (true) {
-      const { data, error } = await service.from("directory_listing_contact_consents")
-        .select("listing_id")
-        .eq("scope", "ADDRESS")
-        .is("revoked_at", null)
-        .order("listing_id", { ascending: true })
-        .order("scope", { ascending: true })
-        .range(offset, offset + pageSize - 1);
-      if (error) {
-        console.warn("directory address-consent lookup failed", error.message);
-        return { ids: [] as string[], ready: false };
-      }
-      for (const row of data || []) {
-        const id = String(row.listing_id || "");
-        if (id) ids.add(id);
-      }
-      if ((data || []).length < pageSize) break;
-      offset += pageSize;
-    }
-    return { ids: [...ids], ready: true };
-  };
+  const loadAddressConsentListingIds = async () => collectActiveAddressConsentIds(
+    async (offset, pageSize) => await service.from("directory_listing_contact_consents")
+      .select("listing_id")
+      .eq("scope", "ADDRESS")
+      .is("revoked_at", null)
+      .order("listing_id", { ascending: true })
+      .order("scope", { ascending: true })
+      .range(offset, offset + pageSize - 1),
+  );
 
   if (req.method === "GET") {
     const url = new URL(req.url);
