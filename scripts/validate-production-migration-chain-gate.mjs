@@ -110,10 +110,13 @@ assert.match(liveContract, /REQUIRED_EDGE_FUNCTIONS/, "the live parity contract 
 
 
 const forwardReplay = fs.readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
-assert.match(
-  forwardReplay,
-  /push:\\s*\\n\\s*branches:\\s*\\[main\\]/,
+assert.ok(
+  forwardReplay.includes("  push:\\n    branches: [main]"),
   "forward migration replay must run on main pushes and PRs, not every branch push, to avoid duplicate concurrent database containers"
+);
+assert.ok(
+  forwardReplay.includes('  pull_request:\\n    branches: ["main"]'),
+  "forward migration replay must validate pull requests targeting main"
 );
 for (const validator of [
   "scripts/validate-r7-platform-admin-migration.mjs",
