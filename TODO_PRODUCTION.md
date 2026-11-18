@@ -2562,3 +2562,15 @@ Evidence boundary: no Production SQL, migration, GRANT, RLS, Auth, Edge deployme
 - [ ] The production deployment workflow's validation completed, but its deploy job was skipped by the existing production dependency gate. Do not describe this source merge as a Production deployment.
 
 Evidence boundary: all Production checks in this continuation were read-only. No Production migration, SQL/GRANT/RLS/Auth change, Edge Function deployment, legal-document/consent mutation, financial operation, or payment action was performed. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-11-19 — live MantiGO platform-admin authorization recheck (P0)
+
+- [x] Read-only Production recheck confirmed all four global MantiGO RPCs remain SECURITY DEFINER and executable by `authenticated`: `get_mantigo_admin_dashboard_backend`, `get_mantigo_admin_financial_report_backend`, `settle_mantigo_captain_backend`, and `expire_stale_mantigo_rides_backend`.
+- [x] Their live authorization predicates still accept broad active membership roles, including `BUSINESS_OWNER`, without requiring the protected platform-admin registry. The live `mnty_can_platform_admin()` helper also still delegates to `mnty_can('admin', NULL, NULL, NULL)` with `search_path=public, pg_temp`.
+- [x] Fresh aggregate-only membership query found 5 distinct active BUSINESS_OWNER users across 9 active membership rows; 4 of those users are not present in `private.platform_admins`. This confirms active non-root principals exist in roles accepted by the global MantiGO RPCs. No user identifiers were selected or exposed, and no RPC was invoked.
+- [x] The live financial report RPC still references legacy `amount` and `captain_amount` ledger columns, while the live ledger uses `gross_amount`, `commission_amount`, and `captain_net_amount`; the report path is therefore also inconsistent with the live schema.
+- [x] The repository's RC464/RC471 forward-only source remediation is already merged on `main` (PR #742) and uses the protected platform-admin registry plus canonical live ledger columns. These migrations remain source-only and unapplied in Production.
+- [ ] Treat the four global MantiGO RPC authorization gaps and the stale financial-report column references as P0 release blockers. Do not invoke settlement/expiration or apply RC464/RC471 directly. Require complete chronological migration reconciliation, encrypted backup, verified restore rehearsal, rollback plan, and explicit release approval.
+
+Evidence boundary: read-only catalog and aggregate checks only. No Production SQL writes, migration, grant/RLS/Auth changes, Edge deployment, ride expiration, settlement, journal, payment, or wallet operation occurred. Full release remains **BLOCKED / NOT CERTIFIED**.
