@@ -133,6 +133,7 @@ BEGIN
     ('financial_obligations','payment_method','character varying'),
     ('financial_obligations','settled_at','timestamp with time zone'),
     ('financial_obligations','metadata','jsonb'),
+    ('financial_obligations','created_at','timestamp with time zone'),
     ('commission_transactions','id','character varying'),
     ('commission_transactions','tenant_id','character varying'),
     ('commission_transactions','business_id','uuid'),
@@ -156,7 +157,9 @@ BEGIN
     ('payment_financial_reconciliations','commission_transaction_id','character varying'),
     ('payment_financial_reconciliations','reconciliation_status','character varying'),
     ('payment_financial_reconciliations','ledger_status','character varying'),
+    ('payment_financial_reconciliations','exception_code','character varying'),
     ('payment_financial_reconciliations','metadata','jsonb'),
+    ('payment_financial_reconciliations','created_at','timestamp with time zone'),
     ('payment_financial_reconciliations','updated_at','timestamp with time zone')
   ) AS r(table_name, column_name, data_type)
   WHERE NOT EXISTS (
