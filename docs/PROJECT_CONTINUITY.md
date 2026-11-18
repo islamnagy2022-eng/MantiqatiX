@@ -1,3 +1,20 @@
+# Latest execution checkpoint — 2026-11-18 — Pass 401–420 MantiGO settlement authorization
+
+**Current main baseline:** `89e2755f005953171530cf5955771050fa547d89`.  
+**Candidate branch:** `test/rc471-business-owner-settlement-guard-20261118`.  
+**Production status:** **BLOCKED / NOT CERTIFIED**.
+
+- Live `settle_mantigo_captain_backend(uuid,text,text)` is SECURITY DEFINER, `search_path=public`, and executable by authenticated but not anon/PUBLIC.
+- Its live role predicate accepts active `BUSINESS_OWNER` memberships without platform-registry membership or MNTY-PLATFORM scope. A read-only aggregate found 3 distinct non-registry users with active business-wide BUSINESS_OWNER memberships (6 membership rows). No settlement invocation or write was made.
+- RC464/RC471 source already fixes this by using the canonical `private.platform_admins` registry and empty search_path. Production has not applied either migration.
+- Added a disposable negative test for a tenant BUSINESS_OWNER against all four global MantiGO RPCs and the four shared platform-admin helper callers. Static validation now requires the regression case.
+- Exact-head PostgreSQL and PR checks are pending. No Production DB/financial/Auth/RLS/GRANT/Edge mutation.
+- Release order remains verified off-site backup + restore → RC464 → RC471 → RC472 → RC473. Supabase Free plan and lack of verified backup/restore remain a hard gate.
+
+Next: run exact-head CI; then continue payment/order/inventory SECURITY DEFINER review. Do not apply Production DDL or deploy Edge functions before backup/restore proof.
+
+---
+
 # Latest execution checkpoint — 2026-11-18 — Pages browser test locator correction
 
 - Main remains at the post-PR #759 commit. Source-level platform-admin hardening is present in main but is not applied to Supabase Production.
