@@ -46,7 +46,7 @@ BEGIN
     v_target_audience := ARRAY['ALL']::text[];
   ELSE
     SELECT coalesce(
-      array_agg(DISTINCT upper(btrim(a.value))) FILTER (WHERE btrim(a.value) <> ''),
+      array_agg(DISTINCT upper(btrim(a.value)) ORDER BY upper(btrim(a.value))) FILTER (WHERE btrim(a.value) <> ''),
       ARRAY[]::text[]
     )
     INTO v_target_audience
