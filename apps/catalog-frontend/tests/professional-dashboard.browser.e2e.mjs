@@ -675,16 +675,24 @@ try {
       await waitForTwentyCards('opening an activity must render its first 20 server rows before specialty selection');
 
       const specialtyFolderButton = modulePage.getByRole('button', { name: /^باطنة/ }).first();
+      const specialtyResponsePromise = page.waitForResponse((response) => {
+        try {
+          const responseUrl = new URL(response.url());
+          return responseUrl.pathname.endsWith('/functions/v1/directory-listings') &&
+            responseUrl.searchParams.get('taxonomyCategoryId') === 'cat_medical_health_medical_practices' &&
+            responseUrl.searchParams.get('taxonomySpecialty') === 'باطنة' &&
+            !responseUrl.searchParams.has('cursor');
+        } catch {
+          return false;
+        }
+      }, { timeout: 15000 });
       await specialtyFolderButton.click();
-
-      // A previously rendered 20-row category page can still be in the DOM for
-      // one render while the specialty request is pending. Wait for the new
-      // specialty request and its loading cycle to complete before counting.
+      // Wait for the actual server response, not a transient loading indicator:
+      // the mocked/API request may complete before Playwright observes the spinner.
+      const specialtyResponse = await specialtyResponsePromise;
+      assert.equal(specialtyResponse.status(), 200, 'the specialty-filtered directory page request must succeed');
       await waitForRequest(true);
-      const specialtyLoading = modulePage.getByText('جارٍ تحميل نتائج الدليل لهذا النشاط…', { exact: true });
-      await specialtyLoading.waitFor({ state: 'visible', timeout: 5000 });
-      await specialtyLoading.waitFor({ state: 'hidden', timeout: 15000 });
-      await waitForTwentyCards('specialty folder must render its first 20-row server page after its filtered request completes');
+      await waitForTwentyCards('specialty folder must render its first 20-row server page after its filtered response completes');
 
       await page.getByRole('button', { name: 'رؤية المزيد من هذا التخصص', exact: true }).click();
       await page.waitForFunction(() => [...document.querySelectorAll('h3')]
