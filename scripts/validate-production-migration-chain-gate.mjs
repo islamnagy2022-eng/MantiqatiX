@@ -48,9 +48,21 @@ const required = [
   "20261027070000_rc117_default_images_and_activity_admin.sql",
   "20261027090000_rc113_user_membership_business_scope_idempotency.sql",
   "20261027093000_add_qadam_alsaad_homewares_store.sql",
-  "20261031100000_rc463_trigger_only_security_definer_acl.sql"
+  "20261031100000_rc463_trigger_only_security_definer_acl.sql",
+  "20261113214500_rc464_platform_admin_live_registry_hardening.sql",
+  "20261114010000_rc465_orders_read_scope_hardening.sql",
+  "20261114020000_rc466_business_branch_read_scope_hardening.sql",
+  "20261115010000_rc467_commission_scope_hardening.sql",
+  "20261115030000_rc468_digital_page_payment_claim_hardening.sql",
+  "20261117010000_rc469_shared_platform_admin_caller_search_path.sql",
+  "20261117020000_rc470_digital_page_webhook_forward_repair.sql",
+  "20261117190000_rc471_mantigo_platform_admin_forward_hardening.sql",
+  "20261118010000_rc472_directory_claim_review_atomicity.sql",
+  "20261118020000_rc473_directory_listing_contact_consent.sql",
+  "20261118030000_rc474_payment_intent_business_branch_scope.sql",
+  "20261118040000_rc475_paymob_atomic_webhook_forward_repair.sql"
 ];
-assert.equal(required.length, 42, "release gate must track all distinct required post-RC424 migration effects");
+assert.equal(required.length, 54, "release gate must track all distinct required post-RC424 migration effects");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");
