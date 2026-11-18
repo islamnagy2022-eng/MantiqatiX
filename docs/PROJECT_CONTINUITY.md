@@ -1,3 +1,21 @@
+# Latest execution checkpoint — 2026-11-18 — RC476 merged, Production migration still gated
+
+**Current main:** `d735cb31e65b7fbc13ce9b4854bbbe3599edbe39`.  
+**Merged change:** PR #788 — RC476 captain earnings live-ledger correction.  
+**Production:** **BLOCKED / NOT CERTIFIED**; RC476 is source-merged but not applied.
+
+- Confirmed live defect: `get_mantigo_captain_earnings_backend` referenced missing `amount` and `captain_amount` columns; canonical live columns are `gross_amount` and `captain_net_amount`.
+- RC476 preserves the RPC JSON contract, `auth.uid()` ownership check, captain-profile check and authenticated-only EXECUTE, and sets an empty search path.
+- Exact-head checks passed: RC476 static contract; disposable PostgreSQL fixture/migration/integration; RC449/RC462/RC471 plus RC476 sequence; forward migration chain replay from captured Production schema checkpoint; migration immutability/version checks; RC464/RC471 security suites; payment atomicity and MantiGO privacy suites; Pages build/catalog/V6 validation.
+- RC476 integration verified canonical aggregation with deliberately conflicting legacy-column values, user-context mismatch rejection, missing captain-profile rejection, grants and empty search_path.
+- No Production SQL, Auth, RLS, grants, Edge, payment, wallet or settlement mutation. Do not infer that source merge applied the migration.
+
+**Next:** continue the remaining direct-auth MantiGO/payment RPC audit; obtain encrypted off-site backup and successful restore rehearsal; reconcile exact migration ledger (0/54 required release identities at last live check); then execute the reviewed forward migration release in order. RC464/RC471 platform-admin fixes also remain unapplied.
+
+Evidence: `docs/audits/PASS_581_600_MANTIGO_CAPTAIN_EARNINGS_LIVE_LEDGER_COLUMNS_20261118.md` (source PR) and GitHub Actions exact-head run set for PR #788.
+
+---
+
 # Latest execution checkpoint — 2026-11-18 — Pass 581–600 RC476 captain earnings repair
 
 **Main baseline:** `abb282666dc5f3f5dd08a9aba119030adbccde4e`.  

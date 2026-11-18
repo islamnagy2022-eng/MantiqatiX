@@ -114,8 +114,8 @@ Evidence: `docs/audits/PASS_561_580_SECURITY_DEFINER_DELEGATION_REVIEW_20261118.
 - [x] Add disposable integration test with deliberately conflicting legacy values to prove the function aggregates canonical columns, plus actor mismatch, missing profile, grants, and search-path checks.
 - [x] Extend the existing RC449/RC462/RC471 disposable PostgreSQL fixture and workflow to apply RC476 and run its integration test after RC471.
 - [x] Add static RC476 validator to the same CI workflow.
-- [ ] Await exact-head GitHub Actions PostgreSQL workflow; do not merge if any job fails.
-- [ ] After merge, reconcile exact migration identity and apply RC476 only in the approved forward release sequence, after backup/restore and migration gates.
+- [x] Exact-head GitHub Actions: RC476 static contract and disposable PostgreSQL integration passed; migration forward-chain replay, RC471/RC464 security workflows, payment atomicity, migration immutability/version, privacy, and catalog/V6 build validation all passed.
+- [ ] RC476 is merged to main as `d735cb31e65b7fbc13ce9b4854bbbe3599edbe39`; reconcile exact migration identity and apply only in the approved forward release sequence after encrypted off-site backup/restore and migration gates. It is not applied to Production.
 - [ ] Review remaining direct-auth MantiGO and payment RPCs for data leakage, actor ownership, and idempotency.
 
 Evidence: `supabase/migrations/20261118050000_rc476_mantigo_captain_earnings_live_ledger_columns.sql`, `supabase/tests/rc476_mantigo_captain_earnings_integration.sql`, and `scripts/validate-rc476-captain-earnings-live-columns.mjs`. Candidate only; not applied to Production.
