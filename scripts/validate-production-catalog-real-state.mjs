@@ -27,6 +27,7 @@ const directoryListingsFunction = fs.readFileSync('supabase/functions/directory-
 const directoryPaginationHelper = fs.readFileSync('supabase/functions/directory-listings/pagination-filter.mjs', 'utf8');
 const placeholder = fs.readFileSync('apps/catalog-frontend/public/business-placeholder.svg', 'utf8');
 const itemPlaceholder = fs.readFileSync('apps/catalog-frontend/public/catalog-item-placeholder.svg', 'utf8');
+const coverPlaceholder = fs.readFileSync('apps/catalog-frontend/public/business-cover-placeholder.svg', 'utf8');
 const defaultImages = fs.readFileSync('apps/catalog-frontend/src/utils/defaultImages.ts', 'utf8');
 const storefrontHeader = fs.readFileSync('apps/catalog-frontend/src/components/storefront/BusinessProfileHeader.tsx', 'utf8');
 const storefrontCatalog = fs.readFileSync('apps/catalog-frontend/src/components/storefront/CatalogSection.tsx', 'utf8');
@@ -61,6 +62,10 @@ assert.match(directory, /businesses[\s\S]{0,180}publicEnabled/, 'directory hero 
 assert.match(directory, /business-placeholder\.svg/, 'missing business images must use the neutral local placeholder');
 assert.match(placeholder, /صورة النشاط غير متاحة/, 'placeholder must disclose that no real business image was provided');
 assert.match(itemPlaceholder, /صورة المنتج أو الخدمة غير متاحة/, 'catalog items without owner images must use a neutral placeholder');
+assert.match(coverPlaceholder, /صورة غلاف النشاط غير متاحة/, 'unknown activity covers must use a neutral wide cover placeholder');
+assert.match(coverPlaceholder, /viewBox="0 0 1600 900"/, 'business cover placeholder must be wide');
+assert.match(defaultImages, /business-cover-placeholder\\.svg/, 'unknown categories must resolve to the dedicated wide cover');
+assert.match(productionMapper, /business-cover-placeholder/, 'the production mapper must not treat the neutral cover as an owner upload');
 assert.doesNotMatch(defaultImages, /images\.unsplash\.com|PHOTO_RULES/, 'missing owner images must not be replaced by stock photos that could be mistaken for real catalog imagery');
 assert.match(defaultImages, /catalog-item-placeholder\.svg/, 'products and services must use the local neutral placeholder');
 assert.match(productionMapper, /const isStockImageUrl/, 'production mapper must identify legacy stock-image URLs');
