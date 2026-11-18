@@ -148,25 +148,36 @@ DECLARE
   v_denied boolean;
   v_row record;
 BEGIN
-  SELECT count(id) INTO v_count
+  SELECT id,document_type,title,status,published_at,effective_at,target_audience,
+         required_consent,requires_reconsent,sector_codes,locale
+  INTO v_row
   FROM public.legal_documents
-  WHERE status='PUBLISHED';
-  IF v_count < 1 THEN RAISE EXCEPTION 'RC481_LEGAL_CENTER_DOCUMENT_READ_FAILED'; END IF;
+  WHERE status='PUBLISHED'
+  LIMIT 1;
+  IF NOT FOUND THEN RAISE EXCEPTION 'RC481_LEGAL_CENTER_DOCUMENT_READ_FAILED'; END IF;
 
-  SELECT count(id) INTO v_count
+  SELECT id,document_id,version_number,published_at,effective_at,content_hash,content
+  INTO v_row
   FROM public.legal_document_versions
-  WHERE status='PUBLISHED' AND effective_at <= now();
-  IF v_count < 1 THEN RAISE EXCEPTION 'RC481_LEGAL_CENTER_VERSION_READ_FAILED'; END IF;
+  WHERE status='PUBLISHED' AND effective_at <= now()
+  ORDER BY version_number DESC
+  LIMIT 1;
+  IF NOT FOUND THEN RAISE EXCEPTION 'RC481_LEGAL_CENTER_VERSION_READ_FAILED'; END IF;
 
-  SELECT count(id) INTO v_count
+  SELECT action_key,document_type,target_audience,required,enabled,business_scoped
+  INTO v_row
   FROM public.legal_requirements
-  WHERE enabled=true AND required=true;
-  IF v_count < 1 THEN RAISE EXCEPTION 'RC481_LEGAL_CENTER_REQUIREMENTS_READ_FAILED'; END IF;
+  WHERE enabled=true AND required=true
+  LIMIT 1;
+  IF NOT FOUND THEN RAISE EXCEPTION 'RC481_LEGAL_CENTER_REQUIREMENTS_READ_FAILED'; END IF;
 
-  SELECT count(id) INTO v_count
+  SELECT id,document_id,document_version_id,agreement_id,account_type,
+         consent_status,consented_at,content_hash,source
+  INTO v_row
   FROM public.user_consents
-  WHERE user_id=v_user_id;
-  IF v_count <> 1 THEN RAISE EXCEPTION 'RC481_LEGAL_CENTER_OWN_CONSENTS_READ_FAILED'; END IF;
+  WHERE user_id=v_user_id
+  LIMIT 1;
+  IF NOT FOUND THEN RAISE EXCEPTION 'RC481_LEGAL_CENTER_OWN_CONSENTS_READ_FAILED'; END IF;
 
   INSERT INTO public.legal_documents (
     document_type,title,target_audience,required_consent,requires_reconsent,
