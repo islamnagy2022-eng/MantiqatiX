@@ -378,7 +378,7 @@ export const MerchantDashboard: React.FC = () => {
     const business = currentBusiness;
     if (!business?.id || !business.tenantId || !business.branchId) return;
     const needsDefaultCover = !business.coverUrl?.trim() ||
-      /(?:business-placeholder\.svg|catalog-item-placeholder\.svg|\/legacy\/activity\/|\/legacy\/mnty-cover-ad-)/i.test(business.coverUrl);
+      /(?:business-cover-placeholder\.svg|business-placeholder\.svg|catalog-item-placeholder\.svg|\/legacy\/activity\/|\/legacy\/mnty-cover-ad-)/i.test(business.coverUrl);
     if (!needsDefaultCover || autoCoverAttempted.current.has(business.id)) return;
     autoCoverAttempted.current.add(business.id);
     void updateBusiness({
