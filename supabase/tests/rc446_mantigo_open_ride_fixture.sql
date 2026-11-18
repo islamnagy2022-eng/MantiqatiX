@@ -6,11 +6,18 @@ as $function$
   select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
 $function$;
 
+create or replace function auth.jwt()
+returns jsonb language sql stable
+as $function$
+  select coalesce(nullif(current_setting('request.jwt.claims', true), '')::jsonb, '{}'::jsonb)
+$function$;
+
 create table public.mantigo_captain_profiles (
   captain_id uuid primary key,
   status text not null,
   verification_status text not null,
-  availability_status text not null
+  availability_status text not null,
+  vehicle_category text
 );
 
 create table public.mantigo_rides (
