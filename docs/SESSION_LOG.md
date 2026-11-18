@@ -2741,3 +2741,15 @@ Read-only Supabase production schema cross-check completed: retrieved definition
 - PR #762 merged as `0851a5e6762ab8e6e2fc7083731bfce4877789db`, reconciling RC473 and security-advisor findings.
 - No Production DB/Auth/RLS/GRANT/Edge/payment/settlement mutation occurred. RC472/RC473, RC464 authorization hardening, backup/restore, source-rights evidence and the wider SECURITY DEFINER review remain release blockers.
 
+
+
+## 2026-11-18 — Pass 361–380 — P0 Platform Admin and SECURITY DEFINER audit
+
+- Read-only live inventory: 149 SECURITY DEFINER functions; 65 authenticated-executable; 1 anon-executable; 47 of the authenticated-executable set have public/mixed search_path and 18 have empty search_path. Five authenticated-executable wrappers lack direct auth.uid() but delegate to scoped helpers; the anon+authenticated targeted-ad read is a separate public contract.
+- Mapped the live weak `mnty_can_platform_admin()` helper, its four SECURITY DEFINER callers and five RLS policies on global digital-page and MantiGO configuration tables.
+- Corrected the earlier owner-simulation interpretation: the only active OWNER account is also in `private.platform_admins`; the live population has no non-registry OWNER/ADMIN/SUPER_ADMIN account and no non-registry business user's explicit admin/platform permission flags. The weak helper remains a latent defect, not proof of a currently exploitable non-registry owner account.
+- RC464/RC471 migrations and disposable integration tests already contain the canonical registry fix and synthetic negative tests. RC451 also has a passing ACL/search_path regression; its fixture is a stub, so result-projection behavior still needs an isolated behavioral test. RC464 run `43596176271` and current-main RC471 PostgreSQL run `44213092970` passed.
+- Production ledger is still at `20261110150618`; RC464/RC471/RC472/RC473 are not applied. `directory-listings` Edge remains v16.
+- Supabase Free plan; no verified off-site backup/restore artifact or existing development branch. No Production mutation.
+- Correct backend release order: backup/restore proof → RC464 → RC471 → RC472 → RC473, with Edge deployments coordinated after the corresponding migrations.
+

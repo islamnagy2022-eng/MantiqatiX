@@ -2160,3 +2160,32 @@ Evidence: docs/audits/PASS_331_340_RC473_MERGE_VERIFICATION_20261118.md.
 - [ ] Continue P0 security review and production release gates; backup/restore and source-rights blockers remain unresolved.
 
 Evidence: docs/audits/PASS_341_350_PRODUCTION_PARITY_SECURITY_ADVISORS_20261118.md. Read-only audit only; no Production schema, data, Auth, RLS, GRANT, Edge, payment or settlement mutation.
+
+
+---
+
+## Pass 361–380 — P0 Platform Admin and SECURITY DEFINER production audit (2026-11-18)
+
+- [x] Reconcile live Production SECURITY DEFINER inventory: 149 total; 65 executable by authenticated; 1 executable by anon; 47 authenticated-executable functions use a `public`/mixed search_path and 18 use an empty search_path.
+- [x] Inspect five authenticated-executable wrappers without direct `auth.uid()`; verify all five delegate to actor-scoped helpers or scoped backend functions. The separate anonymous+authenticated targeted-ad read RPC has its own public contract.
+- [x] Identify the exception: `mnty_can_platform_admin()` delegates to `mnty_can('admin',NULL,NULL,NULL)` instead of consulting the canonical private platform-admin registry.
+- [x] Map its four SECURITY DEFINER helper callers and five RLS policies on `digital_pages`, `mantigo_financial_config`, and `mantigo_rate_limit_config`.
+- [x] Reconcile current live membership population: 5 non-registry business users have no admin/platform permission flags and no OWNER/ADMIN/SUPER_ADMIN role; the sole active OWNER user is also present in the canonical platform-admin registry.
+- [x] Correct the earlier interpretation: the live OWNER JWT simulation returned true, but that user was also a canonical registry admin; it did not prove an unauthorized non-registry owner was currently present.
+- [x] Verify disposable RC464 baseline reproduces the weak null-scope helper for synthetic tenant OWNER/ADMIN/operations users and the post-migration integration test denies those users while allowing registry-only platform admins.
+- [x] Verify RC464 source replaces the helper with a direct `private.platform_admins` lookup, empty search_path, forced RLS and no direct client table grants; RC471 hardens MantiGO global RPCs and four additional helper callers.
+- [x] Verify RC464 PostgreSQL workflow run `43596176271` passed and current-main RC471 PostgreSQL workflow run `44213092970` passed.
+- [x] Reconcile production migration order: live ledger is still through `20261110150618`; RC464, RC471, RC472 and RC473 are not applied.
+- [x] Confirm live `directory-listings` Edge Function remains v16; it does not contain the RC472 atomic claim RPC or RC473 consent projection.
+- [x] Confirm organization is on Supabase Free plan and no verified off-site backup/restore artifact or existing development branch is available.
+- [ ] Export an off-site logical backup with Supabase CLI and restore it to a disposable environment; never commit backup artifacts or credentials.
+- [ ] After backup/restore proof, apply RC464 → RC471 → RC472 → RC473 in order with reviewed preflight/rollback evidence and coordinated Edge deployment.
+- [ ] Run platform admin vs non-registry OWNER/ADMIN/operations negative authorization tests against the deployed database.
+- [ ] Review remaining 47 public/mixed-search_path SECURITY DEFINER functions individually, prioritizing payment, financial, order, inventory and user-data paths.
+- [x] Verify RC451 regression covers empty search_path, intended anon/authenticated EXECUTE, no PUBLIC EXECUTE and forward-repair behavior.
+- [ ] Add behavioral fixture for targeted-ad output filtering, geographic matching and 1–50 limit; the current RC451 fixture is a stub and does not exercise the live query projection.
+- [ ] Enable leaked-password protection using the supported Supabase Auth settings path and verify the resulting configuration.
+
+**Disposition:** the weak helper is a latent authorization defect in Production policy/function logic; the current account population does not contain a non-registry OWNER/ADMIN principal that demonstrates an active bypass. RC464/RC471 source fixes and disposable tests are already merged, but Production remains unchanged and not certified.
+
+Evidence: `docs/audits/PASS_361_380_PLATFORM_ADMIN_AND_DEFINER_AUDIT_20261118.md`. Read-only Production inspection; no database, Auth, RLS, GRANT, Edge, payment or settlement mutation.

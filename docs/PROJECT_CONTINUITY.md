@@ -1,3 +1,20 @@
+# Latest execution checkpoint — 2026-11-18 — Pass 361–380 P0 authorization audit
+
+**Current main before this audit merge:** `f1e284dc8d56897c450348b61a08607b988f174b`.  
+**Production status:** **BLOCKED / NOT CERTIFIED**.
+
+- Read-only Supabase inventory: 149 SECURITY DEFINER functions; 65 executable by authenticated; 1 executable by anon; among the 65 authenticated-executable functions, 47 use a public/mixed search_path and 18 use an empty search_path.
+- The live `mnty_can_platform_admin()` still delegates to `mnty_can('admin',NULL,NULL,NULL)`, not the canonical private registry. Four SECURITY DEFINER functions and five RLS policies depend on this helper.
+- Correction to an earlier note: a prior live OWNER simulation returned true, but the only active OWNER user is also in `private.platform_admins`. Current live population has five non-registry business users with no admin/platform permission flags and no OWNER/ADMIN/SUPER_ADMIN role. Therefore the simulation did not prove a currently active non-registry owner bypass; the helper implementation remains a latent authorization defect.
+- RC464 and RC471 source migrations already replace the weak helper with the canonical registry, harden global MantiGO RPCs, and include disposable negative tests for synthetic tenant OWNER/ADMIN/operations users. RC464 workflow `43596176271` and current-main RC471 PostgreSQL workflow `44213092970` passed.
+- Live migration ledger remains through `20261110150618`; RC464, RC471, RC472 and RC473 are not applied. Live `directory-listings` remains v16.
+- Supabase organization is Free; no verified off-site logical backup/restore artifact or existing development branch is available.
+- **Required order:** off-site backup + restore proof → RC464 → RC471 → RC472 + directory Edge Function → RC473 + consent-aware Edge Function → deployed-origin authorization/claim/consent/revocation smoke tests.
+- No Production DB, Auth, RLS, GRANT, Edge, payment or settlement mutation occurred.
+
+Next: continue function-by-function review of payment/finance/order/inventory SECURITY DEFINER entrypoints. Do not apply Production DDL or deploy Edge Functions until backup/restore is verified.
+
+---
 # Latest execution checkpoint — 2026-11-18 — Pass 351–360 category imagery deployed
 
 **Current main before documentation merge:** `258da165cced6a72e36b5ea950299e3e6ebb93bd`.  
