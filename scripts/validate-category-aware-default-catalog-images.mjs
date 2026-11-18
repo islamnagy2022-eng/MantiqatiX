@@ -93,6 +93,8 @@ assert.ok(directoryListings.includes('image.dataset.defaultApplied === "true"') 
   directoryListings.includes('image.src = listingDefaultCoverImage(detail)') &&
   directoryListings.includes('image.src = listingDefaultProfileImage(detail)'),
   'broken uploaded profile and cover URLs must fall back once to the local category artwork');
+assert.ok(directoryListings.includes('image.src = listingDefaultProfileImage(listing)'),
+  'directory result cards must recover from broken owner images using the same category-aware fallback');
 assert.ok(directoryListings.includes('listing.functional_group_id') && directoryListings.includes('listing.taxonomy_category_id'),
   'directory image selection must use canonical category context rather than only doctor/pharmacy type');
 
