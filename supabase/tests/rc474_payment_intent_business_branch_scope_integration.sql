@@ -54,6 +54,7 @@ BEGIN
     (order_business_owner,'TENANT-A',business_a,branch_a,customer,'PENDING',100,100,'EGP',1,'hash-business-owner','SERVER'),
     (order_missing_total,'TENANT-X',business_a,branch_a,customer,'PENDING',100,NULL,'EGP',1,'hash-missing-total','SERVER');
 
+  PERFORM pg_catalog.set_config('request.jwt.claim.sub',customer::text,true);
   -- A NULL legacy total cannot be bypassed by supplying total_amount directly.
   rejected:=false;
   BEGIN
