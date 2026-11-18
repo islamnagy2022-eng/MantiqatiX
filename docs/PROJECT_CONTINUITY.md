@@ -1,16 +1,20 @@
-# Latest execution checkpoint — 2026-11-18 — Pass 421–440 payment authorization
+# Latest execution checkpoint — 2026-11-18 — Pass 441–460 closed; RC474 merged and post-merge tested
 
-**Main:** `30531e00a43d059159b409f3f57ace5d640ad641` (PR #772 merged).  
-**Next candidate:** PR #774 — RC474 payment-intent business/branch scope.  
-**Production:** **BLOCKED / NOT CERTIFIED**.
+**Main:** `c85115d4dcc247d1dd4f02cde72ee3224930b7ad` — PR #772 and PR #774 merged; follow-up fixture alignment committed directly to main.  
+**Production:** **BLOCKED / NOT CERTIFIED**.  
+**Next source work:** P0 payment/webhook and financial SECURITY DEFINER audit; backup/restore remains the deployment gate.
 
-- PR #772 merged the explicit tenant BUSINESS_OWNER negative regression into the RC449/RC471 disposable test sequence. Exact-head MantiGO Platform Admin Scope workflow passed; static checks 15/15 and PostgreSQL integration passed.
-- Production read-only review found the live `create_payment_intent_backend` financial-role check is tenant-only and can be combined with a non-finance membership in another business/branch. It also skips the finance-role check when `orders.customer_id` is NULL. Current Production has 0 orders and 0 cross-business finance membership pairs; no payment RPC was invoked.
-- PR #774 adds RC474, exact business/branch role scope, NULL-customer protection, empty search_path, normalized ACL and removal of the Edge Function's redundant tenant-only membership precheck. The allowed role set includes BUSINESS_OWNER only for the same business/branch, with a positive regression test.
-- Exact-head PR #774 checks and forward migration replay are pending. The first RC474 static check found a stale expected-role regex after adding BUSINESS_OWNER; the validator has been corrected and CI is rerunning. No Production payment, schema, function, grant, Edge or data mutation occurred.
-- Production migration ledger remains `20261110150618`; RC464/RC471/RC472/RC473/RC474 remain unapplied. Verified off-site backup + restore is still required before DDL or Edge deployment.
+- PR #772 added tenant BUSINESS_OWNER negative tests for global MantiGO settlement/admin RPCs. Exact-head PostgreSQL workflow and 15/15 source checks passed.
+- PR #774 merged RC474 payment-intent business/branch scope. Exact-head static validator 15/15, disposable PostgreSQL integration passed, forward migration-chain replay from captured Production schema passed with 88 migrations, and all 13 PR checks passed.
+- Main follow-up commit `c85115d4dcc247d1dd4f02cde72ee3224930b7ad` aligned the RC474 fixture with Production's generated `orders.total GENERATED ALWAYS AS (total_amount) STORED` contract. Post-merge RC474 workflow passed 10/10 steps (run `44227923341`).
+- RC474 is present in GitHub main but **not applied to Supabase Production**. Live migration ledger remains `20261110150618`; RC464/RC471/RC472/RC473/RC474 remain unapplied. Live `payment-intent` Edge Function remains at its prior deployed version and still needs coordinated deployment after backup/restore.
+- No Production database mutation, payment, settlement, grant, Auth/RLS change or Edge deployment occurred.
+- Production Pages root is the legacy catalog application. `/legacy/` is the rollback copy; `/v6-preview/` is preview only. Completed run `44224482241` verified this composition and deployed-origin browser checks. Post-merge Pages run `44227174978` was still running when recorded; earlier run `44226150407` was cancelled during Playwright installation after deploy/root verification.
+- Latest user upload `bizcatalog-manager (11).zip` has SHA `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, 270 entries and 118 source files. It is a distinct R7-era candidate, not byte-identical to older R7 archives. It contains hard-coded server fallback secrets, demo role-switcher credentials, browser-stored role/session state and local-JSON authority; the manifest also points to a mismatched Supabase project reference and claims release artifacts absent from the ZIP. Do not import wholesale.
+- Uploaded operating directive is preserved as `docs/MASTER_SOURCE_OF_TRUTH.md`. It is the sole execution authority.
+- Android wrapper and all archives remain preserved.
 
-Next: complete PR #774 exact-head CI, merge only if green, then continue P0 financial-journal and payment webhook authorization review. Do not deploy RC474 to Production without backup/restore evidence.
+Next: complete the remaining P0 authorization/webhook review; obtain an encrypted off-site logical backup and verify restore; only then prepare the coordinated RC464→RC471→RC472→RC473→RC474 database/Edge release.
 
 ---
 

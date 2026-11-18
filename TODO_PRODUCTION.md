@@ -1,21 +1,37 @@
-# R7 SOURCE BASELINE OVERRIDE — 2026-11-11
+# MANTIQATIX — CURRENT SOURCE MAP AND PRODUCTION TODO (2026-11-18)
 
-> This update supersedes the older R6 source-baseline references below. The user subsequently supplied the newer R7 source archive bizcatalog-manager (7).zip. For application UI and intended R7 behavior, R7 is now the development source of truth. R6 and earlier trees remain reference-only and may be used only for verified gaps. This does not mean R7 has been imported into main, deployed, or approved for Production.
+
+---
+
+## Current source map — 2026-11-18
+
+- Governing operating directive: `docs/MASTER_SOURCE_OF_TRUTH.md` — sole current project execution authority; older prompts and continuity notes are subordinate.
+- Current production implementation: GitHub `main`, commit `c85115d4dcc247d1dd4f02cde72ee3224930b7ad`.
+- Latest user upload: `bizcatalog-manager (11).zip`, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, 270 entries / 118 source files, Android wrapper retained. This is a distinct R7-era candidate; see `docs/audits/R7_ARCHIVE_11_INTAKE_20261118.md`. It is not approved for wholesale import/deployment.
+- Previous R7 archives (including `bizcatalog-manager (9)(1).zip` and older numbered copies) are separate historical artifacts. Do not conflate their hashes or audits with the latest upload.
+- Supabase remains the sole source of truth for identity, permissions and production data. Do not accept the R7 archive's local-JSON authority or browser-stored roles.
+- Current GitHub Pages production root is the legacy catalog application; `/legacy/` is its rollback copy; `/v6-preview/` is the V6 preview alias. No root cutover has occurred.
+- Preserve Android wrapper files and all source archives; do not delete or replace them before a verified, documented migration.
+
+
+## Historical R7 archive (7) baseline — 2026-11-11
+
+> Historical record only: this 2026-11-11 override described the earlier `bizcatalog-manager (7).zip` artifact and its hash below. It is superseded as the current candidate by the latest `bizcatalog-manager (11).zip` upload, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`. The (7), (9)(1) and (11) archives are separate artifacts; do not conflate their hashes or treat the earlier archive as the current source.
 
 - Original R7 archive SHA-256: 491b25f85218c6ca2196debf860b5225871df710b3997199f1b5a401ef7851ed.
 - Scope exclusion: source_RC40.zip is explicitly out of scope and must not be inspected, imported, integrated, built, modified, or used as a dependency. Work only from bizcatalog-manager (7).zip. Preserve and use only mobile-related source files that are physically part of the R7 archive itself; do not fetch or merge anything from RC40.
 - Derived hardened Preview 08 SHA-256: fe1c9aeac660e879f1e31cfb0084ca63c5578a5e19802a6e6b8db7323dff6896; ZIP integrity PASS; 145 files; .data/, .aistudio/, node_modules/, dist/, and old public/releases/ excluded; mobile and Android wrapper files preserved.
 - R7 security tests: 10/10 PASS. Static release gate remains BLOCKED with six findings: missing dependencies/Vite, no Supabase JS client in R7, local JSON persistence, trusted identity not wired, no real Paymob Intention/Webhook/Inquiry, and a local migration with only 7 tables requiring schema reconciliation.
-- GitHub Pages Production root remains V6 and /legacy/ remains. R7 has not been imported as the deployed app or cut over.
+- Historical as of 2026-11-11: V6 was the Pages root and `/legacy/` was retained. This was superseded by the verified 2026-11-18 deployment composition: legacy catalog root, `/legacy/` rollback copy, `/v6-preview/` preview alias.
 - Existing public catalog functions public-catalog v8 and public-catalog-directory v18 are live and source-matched to main. Live disclosure smoke passed on 2026-11-11, but this validates the current catalog API only, not R7 integration.
 - Full details and next execution order: docs/release/R7_SOURCE_BASELINE_20261111.md.
 
 ---
-# AUTHORITATIVE PROJECT BASELINE — 2026-11-08 (READ FIRST)
+# HISTORICAL PROJECT BASELINE — 2026-11-08 (superseded by 2026-11-18 master source)
 
-> This section is the controlling source-of-truth policy for every future MantiqatiX continuation. If an older TODO item, handoff, session note, prompt, or archive conflicts with this section, follow this section and reconcile the stale item before doing work.
+> Historical baseline from 2026-11-08. It is retained for traceability only; the uploaded `docs/MASTER_SOURCE_OF_TRUTH.md` and the Current source map above supersede this section. If any historical statement conflicts with those sources, follow the current master directive.
 
-## 1. Canonical application source — NEWEST USER-APPROVED VERSION
+## 1. Historical R6 application source — reference only
 
 - **Canonical application baseline:** the user's newest uploaded source archive, `bizcatalog-manager (6).zip`.
 - **Verified archive SHA-256:** `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`.
@@ -2225,8 +2241,27 @@ Evidence: `docs/audits/PASS_401_420_MANTIGO_SETTLEMENT_AUTHORIZATION_20261118.md
 - [x] Remove the Edge Function's duplicate tenant-only membership precheck so the user-scoped RPC is authoritative.
 - [x] Add disposable PostgreSQL regression cases for cross-business, cross-branch, NULL-customer, customer-owned and valid finance scopes.
 - [x] Add RC474 static validator and dedicated PostgreSQL workflow.
-- [ ] Pass exact-head RC474 disposable PostgreSQL integration (including scoped BUSINESS_OWNER), migration replay and all PR #774 checks.
-- [ ] Merge PR #774 only after all exact-head checks pass.
+- [x] Pass exact-head RC474 validator (15/15), disposable PostgreSQL business/branch integration and scoped BUSINESS_OWNER test.
+- [x] Pass forward migration replay from captured Production schema checkpoint (88 migrations, including RC474).
+- [x] Pass all 13 exact-head PR #774 checks and merge PR #774 to main (`777884`).
+- [x] Pass post-merge RC474 main workflow after generated-total fixture alignment (run `44227923341`, 10/10 steps).
 - [ ] Obtain verified off-site logical backup and restore before any Production DDL/Edge deployment.
 
 Evidence: `docs/audits/PASS_421_440_PAYMENT_INTENT_SCOPE_20261118.md`. Production remained read-only.
+
+
+## Pass 441–460 — source and Pages truth reconciliation (2026-11-18)
+
+- [x] Verify actual Pages root composition from workflow and completed deployment logs.
+- [x] Verify post-PR #774 deploy job success (13/13 steps) and deployed-origin PRIMARY_CATALOG_BROWSER_E2E PASS on run `44227174978`; aggregate workflow was cancelled after the optional public-only validation job was cancelled.
+- [x] Correct README: legacy catalog is production root; /legacy/ is rollback copy; /v6-preview/ is preview only.
+- [x] Audit latest uploaded R7 archive by exact SHA-256, not filename alone.
+- [x] Record 270 ZIP entries, 118 source files, Android wrapper files and missing build/release artifacts.
+- [x] Record hard-coded fallback secret, demo-login, localStorage role and local-JSON authority risks without exposing secret values.
+- [x] Preserve earlier R7 archives as distinct historical sources; do not assume byte identity.
+- [x] Preserve Android wrapper and latest archive unchanged.
+- [x] Save the uploaded operating directive as `docs/MASTER_SOURCE_OF_TRUTH.md`.
+- [ ] Port any desired R7 UI/behavior selectively into current main architecture after its security defects are removed and tests pass.
+- [ ] Complete V6 production-root cutover only after full platform gate, backup/restore and explicit release approval.
+
+Evidence: `docs/audits/PASS_441_460_SOURCE_AND_PAGES_TRUTH_20261118.md` and `docs/audits/R7_ARCHIVE_11_INTAKE_20261118.md`.
