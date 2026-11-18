@@ -179,6 +179,41 @@ BEGIN
 END;
 $version_create_assert$;
 
+-- Duplicate document/version pairs remain blocked by the existing unique invariant.
+SET ROLE service_role;
+DO $duplicate_version$
+DECLARE v_document_id uuid;
+BEGIN
+  SELECT id INTO v_document_id FROM public.legal_documents WHERE title='RC483 successful document';
+  BEGIN
+    PERFORM public.legal_create_draft_version_backend(
+      '10000000-0000-4000-8000-000000000001',v_document_id,1,'Duplicate draft content'
+    );
+    RAISE EXCEPTION 'RC483_DUPLICATE_VERSION_WAS_ACCEPTED';
+  EXCEPTION WHEN unique_violation THEN
+    NULL;
+  END;
+END;
+$duplicate_version$;
+RESET ROLE;
+
+DO $duplicate_version_assert$
+DECLARE v_document_id uuid; v_version_id uuid;
+BEGIN
+  SELECT id INTO v_document_id FROM public.legal_documents WHERE title='RC483 successful document';
+  IF (SELECT count(*) FROM public.legal_document_versions
+      WHERE document_id=v_document_id AND version_number=1) <> 1 THEN
+    RAISE EXCEPTION 'RC483_DUPLICATE_VERSION_PERSISTED';
+  END IF;
+  SELECT id INTO v_version_id FROM public.legal_document_versions
+  WHERE document_id=v_document_id AND version_number=1;
+  IF (SELECT count(*) FROM public.consent_audit_log
+      WHERE document_version_id=v_version_id AND event_type='LEGAL_DRAFT_VERSION_CREATED') <> 1 THEN
+    RAISE EXCEPTION 'RC483_DUPLICATE_VERSION_AUDIT_PERSISTED';
+  END IF;
+END;
+$duplicate_version_assert$;
+
 -- Tenant/business identities cannot create legal records even with service-role RPC access.
 SET ROLE service_role;
 DO $tenant_denied$
