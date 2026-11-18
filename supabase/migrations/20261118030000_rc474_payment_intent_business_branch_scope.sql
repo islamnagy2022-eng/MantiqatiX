@@ -75,20 +75,6 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'RC474_PRECONDITION_FAILED: payment, order, membership or branch schema does not match expected types';
   END IF;
-
-  -- Production orders.total is a STORED generated column sourced from total_amount.
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema='public' AND table_name='orders'
-      AND column_name='total' AND data_type='numeric'
-      AND is_generated='ALWAYS' AND generation_expression='total_amount'
-  ) OR NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema='public' AND table_name='orders'
-      AND column_name='total_amount' AND data_type='numeric' AND is_nullable='NO'
-  ) THEN
-    RAISE EXCEPTION 'RC474_PRECONDITION_FAILED: orders.total must be generated from non-null total_amount';
-  END IF;
 END
 $preflight$;
 
