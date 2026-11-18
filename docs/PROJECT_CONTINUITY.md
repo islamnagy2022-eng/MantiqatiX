@@ -1,3 +1,21 @@
+# Latest execution checkpoint — 2026-11-18 — deployed specialty pagination E2E passed
+
+**Status:** GitHub source and website deployed and browser-verified. Supabase Production backend release remains **BLOCKED / NOT CERTIFIED**.
+
+- Main: `18711d016a591613791e9596740b367eecb96865`.
+- PR #757: transactional directory claim approval/rejection merged as `ae090081015b0c3af410fb6ee114165f300b1bba`.
+- PR #759: legacy wildcard OWNER permission normalization regression merged as `5d9fd1dbe0b30f8a0274979778b3ed19f07939f4`.
+- PR #760: specialty pagination E2E synchronization and digit matcher correction merged as `18711d016a591613791e9596740b367eecb96865`; test-only change, no runtime UI source changed.
+- Main Primary Catalog Frontend Validation run `44205131829`: PASS, including TypeScript/build, employee RBAC PostgreSQL suite and local Playwright browser E2E.
+- GitHub Pages run `44205131869`: PASS. Composed site deployed; V6 root, legacy rollback `/legacy/`, V6 Preview `/v6-preview/`, and deployed-origin browser tests for legacy root/dashboard/mobile/QR all passed.
+- Supabase Production remains at migration `20261110150618`; RC464/RC472 are not applied. Live `directory-listings` remains version 16 and lacks the RC472 RPC. No Production DB/Auth/RLS/GRANT/Edge write occurred.
+- Confirmed Production security gaps remain: live `mnty_can_platform_admin()` returns true for a business-scoped OWNER in the read-only JWT simulation; RC464 remediation exists in main but is not deployed. RC472 source is merged but DB/Edge absent.
+- Production backup/restore proof remains absent. Org plan is Free; logical CLI dump and off-site restore verification is required before backend DDL.
+- Public directory: 868 published/unclaimed listings expose phone/address, while source-permission evidence table has zero rows. No contact values were read; policy decision/test remains open.
+- **Next:** secure off-site logical backup and restore-test it; deploy RC464 and test admin vs non-admin authorization; then coordinate RC472 migration with Edge deployment. Separately decide/test public contact disclosure and finish per-function SECURITY DEFINER review.
+
+---
+
 # Latest execution checkpoint — 2026-11-18 — PR #757 merged; Production parity gates
 
 **Status:** GitHub source and website are deployed. Supabase RC472 database/Edge release remains **BLOCKED / NOT CERTIFIED**.
