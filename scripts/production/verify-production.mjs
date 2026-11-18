@@ -79,7 +79,8 @@ const requiredReleaseMigrations=[
   "20261118070000_rc478_mantigo_open_ride_privacy_forward_repair.sql",
   "20261118190000_rc479_revoke_anon_provider_profile_base_read.sql",
   "20261118210000_rc480_digital_pages_anon_column_boundary.sql",
-  "20261118220000_rc481_legal_edge_service_role_column_grants.sql"
+  "20261118220000_rc481_legal_edge_service_role_column_grants.sql",
+  "20261119020000_rc482_legal_cms_platform_admin_registry.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
