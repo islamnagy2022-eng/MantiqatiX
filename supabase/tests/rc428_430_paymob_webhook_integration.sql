@@ -171,6 +171,20 @@ begin
     raise exception 'RC428 late failure downgraded a successful intent';
   end if;
 
+  -- RC428 rejects a provider event reused for a different order payment intent.
+  rejected := false;
+  begin
+    perform public.process_verified_provider_payment_failure(
+      'evt-r428-cross-intent','tenant-a','PAYMOB','paymob:txn-failure',
+      'pi-final','TRANSACTION',true,100,'EGP','txn-failure','paymob-order-final','{}'::jsonb
+    );
+    raise exception 'TEST_FAILED: RC428 accepted cross-intent event replay';
+  exception when others then
+    if sqlerrm <> 'EXTERNAL_EVENT_REPLAY_MISMATCH' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'RC428 cross-intent event replay was not rejected'; end if;
+
   -- RC429 rejects invalid signatures, provider-order mismatch, and amount mismatch.
   rejected := false;
   begin
