@@ -100,7 +100,7 @@ $preflight$;
 
 
 -- RC428: atomically persist a verified normal-order Paymob failure event and intent transition.
--- Source-only until reviewed and applied through the approved migration pipeline.
+-- This function definition is forward-repaired in RC475; the historical migration remains unapplied.
 create or replace function public.process_verified_provider_payment_failure(
   p_event_id text,
   p_tenant_id text,
@@ -245,7 +245,7 @@ revoke all on function public.process_verified_provider_payment_failure(text,tex
 grant execute on function public.process_verified_provider_payment_failure(text,text,text,text,text,text,boolean,numeric,text,text,text,jsonb) to service_role;
 
 -- RC429: atomically bind and persist failed subscription-payment callbacks.
--- Source-only until reviewed and applied through the approved migration pipeline.
+-- This function definition is forward-repaired in RC475; the historical migration remains unapplied.
 create or replace function public.process_verified_subscription_payment_failure(
   p_event_id text,
   p_external_event_id text,
@@ -374,7 +374,7 @@ revoke all on function public.process_verified_subscription_payment_failure(text
 grant execute on function public.process_verified_subscription_payment_failure(text,text,uuid,text,numeric,text,text,boolean,jsonb) to service_role;
 
 -- RC430: harden successful subscription payment processing and replay binding.
--- Source-only until reviewed and applied through the approved migration pipeline.
+-- This function definition is forward-repaired in RC475; the historical migration remains unapplied.
 create or replace function public.process_verified_subscription_payment_backend(
   p_event_id text,
   p_external_event_id text,
