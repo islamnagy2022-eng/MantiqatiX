@@ -2359,3 +2359,35 @@ Evidence boundary: all Production checks in this continuation were read-only. No
 - [ ] Treat the four global MantiGO RPC authorization gaps and the stale financial-report column references as P0 release blockers. Do not invoke settlement/expiration or apply RC464/RC471 directly. Require complete chronological migration reconciliation, encrypted backup, verified restore rehearsal, rollback plan, and explicit release approval.
 
 Evidence boundary: read-only catalog and aggregate checks only. No Production SQL writes, migration, grant/RLS/Auth changes, Edge deployment, ride expiration, settlement, journal, payment, or wallet operation occurred. Full release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Pass 841–860 — RC482/RC483 Legal CMS security closure and MantiGO live-risk recheck (2026-11-19)
+
+- [x] 841 — Re-read the live Production migration ledger: 310 rows, latest `20261110150618`.
+- [x] 842 — Re-read deployed Edge inventory: `legal-cms` ACTIVE v6 and `health` ACTIVE v3; no new Edge deployment occurred.
+- [x] 843 — Inspected both live `private.legal_is_admin` overloads, SECURITY DEFINER settings and ACLs.
+- [x] 844 — Aggregated active `ADMIN`, `SUPER_ADMIN`, and `LEGAL_ADMIN` roles against the platform root registry without selecting user identifiers.
+- [x] 845 — Revalidated the four global MantiGO SECURITY DEFINER RPCs and the weak live `mnty_can_platform_admin()` helper.
+- [x] 846 — Confirmed 5 active BUSINESS_OWNER users across 9 active memberships, with 4 distinct users outside `private.platform_admins`; no global MantiGO RPC was invoked.
+- [x] 847 — Confirmed RC464/RC471 source repairs are already merged but not applied to Production; live financial report still references absent legacy ledger columns.
+- [x] 848 — Identified that Legal CMS document/version creation and audit writes were separate database requests, allowing an unaudited record if the audit insert failed.
+- [x] 849 — Implemented RC482 registry-only Legal CMS root authorization and service-role-only backend assertion.
+- [x] 850 — Added disposable negative/positive authorization tests for tenant ADMIN, LEGAL_ADMIN, tenant SUPER_ADMIN, actor mismatch, and canonical platform registry membership.
+- [x] 851 — Merged RC482 PR #816 to main: `555bf7d174f9bce14ebbb9752a598c68e65dcfe4`.
+- [x] 852 — Audited RC481's narrow Legal Edge column grants and retained the Legal Center's read allowlists.
+- [x] 853 — Implemented RC483 atomic document creation plus audit RPC.
+- [x] 854 — Implemented RC483 atomic draft-version creation plus audit RPC.
+- [x] 855 — Moved SHA-256 content hashing into PostgreSQL and preserved explicit empty audience semantics with deterministic array ordering.
+- [x] 856 — Revoked RC481 direct service_role INSERT column grants for legal documents, versions, and audit rows; kept the required Legal Center SELECT columns.
+- [x] 857 — Added rollback-on-audit-failure, duplicate-version, hash parity, actor authorization, ACL, and audience normalization regressions.
+- [x] 858 — Passed exact-head RC483 PostgreSQL integration and ordered RC481 → RC482 → RC483 disposable migration application.
+- [x] 859 — Passed production-checkpoint forward migration replay, release validators, migration uniqueness/history/collision gates, backend integrations, build, and professional-dashboard browser E2E.
+- [x] 860 — Merged RC483 PR #818 to main: `22fd25bfcb4561946ded967ad17be1b52f5f643a`. The PR deploy job was skipped under the production gate.
+
+### Production boundary after Pass 860
+
+- RC481/RC482/RC483 remain source-only and unapplied. Production remains at 310 migrations through `20261110150618`; `legal-cms` remains v6 and `health` remains v3.
+- RC464/RC471 remain source-only. The confirmed MantiGO global authorization gap and financial-report ledger-column mismatch are P0 release blockers.
+- No Production migration, SQL/GRANT/RLS/Auth change, Edge Function deployment, ride expiration, settlement, journal, payment, or wallet mutation was performed.
+- The main-push Production Health Monitor exposed a false-negative title check (`MantiqaTix` typo versus canonical `MantiqatiX`). The workflow and its deploy-gate validator were corrected in commits `237f5fdecdc09c8586ab697329e0a2c4fdcbc7e6` and `814b99f46a96272da762a53b71f05c40bd7443c2`; its rerun and the main Pages deployment gate must still be checked.
+- Release remains **BLOCKED / NOT CERTIFIED** pending chronological migration reconciliation, encrypted backup, verified restore rehearsal, rollback plan, explicit release approval, and the unresolved P0 MantiGO authorization repair.
