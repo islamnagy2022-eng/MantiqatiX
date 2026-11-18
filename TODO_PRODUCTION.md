@@ -2094,10 +2094,28 @@ Evidence: `docs/audits/PASS_271_300_DIRECTORY_CLAIM_ATOMICITY_20261118.md`. Sour
 - [x] Quantify public/unclaimed national-directory phone/address projection without reading contact values.
 - [x] Confirm source-permission evidence registry is empty and public tables remain inaccessible through direct client RLS policies.
 - [x] Record Supabase Free plan backup constraint and missing verified off-site restore artifact.
-- [ ] Pass the explicit legacy wildcard-permission normalization test on exact PR head.
+- [x] Pass the explicit legacy wildcard-permission normalization test on exact PR head; PR #759 merged as `5d9fd1dbe0b30f8a0274979778b3ed19f07939f4`.
 - [ ] Decide and test the public contact/location disclosure policy for imported/unclaimed vs source-licensed vs owner-consented listings.
 - [ ] Obtain and verify off-site logical backup + restore before Production DDL.
 - [ ] Apply RC472 and deploy Edge Function in a coordinated release; run post-deploy smoke tests.
 - [ ] Close the wider SECURITY DEFINER grant/RLS advisor backlog with per-function authorization evidence.
 
 Evidence: `docs/audits/PASS_301_320_POST_MERGE_PARITY_AND_DIRECTORY_PRIVACY_20261118.md`. No Production schema/data/Auth/RLS/GRANT/Edge mutation occurred.
+
+
+---
+
+## Pass 321–340 — deployed directory specialty pagination and release checkpoint (2026-11-18)
+
+- [x] Diagnose the post-deploy Playwright race: previous category results could remain rendered while specialty-filtered results were loading.
+- [x] Await the actual specialty API response, verify HTTP 200, then assert 20 specialty rows; correct numeric fixture matchers.
+- [x] Merge PR #760 as `18711d016a591613791e9596740b367eecb96865`.
+- [x] Pass main Primary Catalog Frontend Validation, including local browser E2E and employee RBAC PostgreSQL tests.
+- [x] Pass GitHub Pages deploy, V6 root, legacy `/legacy/`, preview `/v6-preview/`, and deployed-origin dashboard/mobile/QR browser smoke.
+- [ ] Obtain off-site Production logical backup and prove restore before RC464/RC472 Production rollout.
+- [ ] Apply RC464 platform-admin authorization hardening after restore proof; verify admin succeeds and business OWNER/ordinary user fails closed.
+- [ ] Apply RC472 and deploy the directory Edge Function in one coordinated release, then smoke test approval/rejection/concurrency/public reads.
+- [ ] Decide and test public contact/address/map disclosure for imported/unclaimed vs source-licensed vs owner-consented entries.
+- [ ] Finish SECURITY DEFINER function-by-function ACL/search_path/RLS audit and rerun Supabase advisors.
+
+Evidence: `docs/audits/PASS_321_340_DEPLOYED_DIRECTORY_PAGINATION_20261118.md`. Website release verified; Supabase Production backend remains blocked.
