@@ -27,6 +27,8 @@ on:
       - "supabase/tests/r7_platform_admin_helper_callers_integration.sql"
       - "scripts/validate-r7-platform-admin-migration.mjs"
       - "scripts/verify-mantigo-high-risk-definers.sql"
+      - "scripts/validate-mantigo-high-risk-definers.mjs"
+      - "scripts/verify-mantigo-high-risk-definers.sql"
 
       - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
