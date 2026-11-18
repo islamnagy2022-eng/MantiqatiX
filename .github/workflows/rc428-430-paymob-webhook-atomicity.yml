@@ -15,6 +15,7 @@ on:
       - "supabase/migrations/20261118040000_rc475_paymob_atomic_webhook_forward_repair.sql"
       - "supabase/tests/rc428_430_paymob_webhook_fixture.sql"
       - "supabase/tests/rc428_430_paymob_webhook_integration.sql"
+      - "scripts/validate-finance-boundaries.mjs"
       - ".github/workflows/rc428-430-paymob-webhook-atomicity.yml"
 permissions:
   contents: read
