@@ -1,6 +1,20 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 
-Deno.serve(async (_req: Request) => {
+Deno.serve(async (req: Request) => {
+  if (req.method !== "GET") {
+    return new Response(JSON.stringify({
+      status: "method_not_allowed",
+      service: "mantiqatix-health",
+    }), {
+      status: 405,
+      headers: {
+        "Allow": "GET",
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+      },
+    });
+  }
+
   const timestamp = new Date().toISOString();
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
