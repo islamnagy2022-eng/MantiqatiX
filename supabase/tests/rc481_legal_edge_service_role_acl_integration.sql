@@ -45,6 +45,7 @@ BEGIN
     AND has_column_privilege('service_role','public.legal_document_versions','effective_at','SELECT')
     AND has_column_privilege('service_role','public.legal_document_versions','content_hash','SELECT')
     AND has_column_privilege('service_role','public.legal_document_versions','content','SELECT')
+    AND has_column_privilege('service_role','public.legal_document_versions','status','SELECT')
     AND has_column_privilege('service_role','public.legal_requirements','action_key','SELECT')
     AND has_column_privilege('service_role','public.legal_requirements','document_type','SELECT')
     AND has_column_privilege('service_role','public.legal_requirements','target_audience','SELECT')
