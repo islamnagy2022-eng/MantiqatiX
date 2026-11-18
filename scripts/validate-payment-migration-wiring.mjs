@@ -12,6 +12,7 @@ const rc426 = read("supabase/migrations/20261009130000_rc426_digital_page_provid
 const rc428 = read("supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql");
 const rc429 = read("supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql");
 const rc430 = read("supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql");
+const rc475 = read("supabase/migrations/20261118040000_rc475_paymob_atomic_webhook_forward_repair.sql");
 const rc431 = read("supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql");
 const rc435 = read("supabase/migrations/20261009210000_rc435_subscription_provider_intent_claim.sql");
 const rc439 = read("supabase/migrations/20261010010000_rc439_encrypted_checkout_recovery.sql");
@@ -68,6 +69,10 @@ for (const [label, source, rpc] of [
   ["RC428", rc428, "process_verified_provider_payment_failure"],
   ["RC429", rc429, "process_verified_subscription_payment_failure"],
   ["RC430", rc430, "process_verified_subscription_payment_backend"],
+  ["RC475", rc475, "process_verified_provider_payment"],
+  ["RC475", rc475, "process_verified_provider_payment_failure"],
+  ["RC475", rc475, "process_verified_subscription_payment_failure"],
+  ["RC475", rc475, "process_verified_subscription_payment_backend"],
   ["RC431", rc431, "process_verified_digital_page_payment_backend"],
   ["RC435", rc435, "claim_subscription_provider_intent_creation_backend"]
 ]) assert.ok(source.includes(rpc), label + " migration must define " + rpc);
