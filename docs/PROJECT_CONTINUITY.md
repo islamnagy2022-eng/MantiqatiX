@@ -1,3 +1,17 @@
+# Latest execution checkpoint — 2026-11-18 — Pass 341–350 Supabase security triage
+
+Current main at last verified merge: de0ebab80e624b86f3726a84d5757aefb66120eb. Documentation PR #762 is open and includes Pass 331–340 merge reconciliation.
+
+- Live Supabase ledger: 310 migrations; latest applied 20261110150618. RC472 and RC473 are not applied.
+- Live Edge versions: directory-listings v16, public-catalog v8, public-catalog-directory v18. RC473 source merge is not an Edge deployment.
+- Supabase security advisors: 65 authenticated-executable SECURITY DEFINER functions; one anon-executable SECURITY DEFINER function; leaked-password protection disabled; 9 RLS-enabled/no-policy INFO findings; 28 multiple-permissive-policy warnings.
+- Reviewed the anon-executable targeted-ad function definition: it selects active approved ad content/geo targets only, has empty search_path and bounds result count to 50. Treat as intentional public API, but add dedicated ACL/output regression coverage.
+- Six authenticated-executable wrappers had no direct auth.uid() occurrence; inspected wrappers delegate to membership/financial/catalog helpers that enforce the actor context. No grants were changed.
+- Performance advisor baseline: 132 unindexed foreign keys, 375 RLS init-plan findings, 71 unused-index notices. Health advisor returned zero lints.
+- Production release remains BLOCKED / NOT CERTIFIED: no verified off-site backup/restore artifact, unresolved source-republication rights, RC472/RC473 migration and Edge release still pending.
+- Next: individual review of 65 SECURITY DEFINER functions, configure leaked-password protection, add public-ad RPC regression tests, and resolve backup/restore before any Production DDL.
+
+---
 # Latest execution checkpoint — 2026-11-18 — Pass 331–340 RC473 merge verification
 
 Current main: de0ebab80e624b86f3726a84d5757aefb66120eb.
