@@ -44,6 +44,7 @@ jobs:
           node scripts/validate-rbac-contract.mjs
           node scripts/validate-security-definer-contract.mjs
           node scripts/validate-rc479-provider-profile-anon-read.mjs
+          node scripts/validate-rc480-digital-pages-anon-columns.mjs
           node scripts/validate-rc479-health-db-probe.mjs
           node scripts/validate-rc451-forward-repair.mjs
           node scripts/validate-module-runtime-coverage.mjs
@@ -195,3 +196,36 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc479_test -v ON_ERROR_STOP=1 -f /tmp/rc479_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc479_test -v ON_ERROR_STOP=1 -f /tmp/rc479_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc479_test -v ON_ERROR_STOP=1 -f /tmp/rc479_test.sql
+
+  rc480-digital-pages-anon-columns-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc480_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc480_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate RC480 static source contract
+        run: node scripts/validate-rc480-digital-pages-anon-columns.mjs
+      - name: Apply RC480 fixture, migration, and privilege regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc480_digital_pages_anon_columns_fixture.sql "$pg_container:/tmp/rc480_fixture.sql"
+          docker cp supabase/migrations/20261118210000_rc480_digital_pages_anon_column_boundary.sql "$pg_container:/tmp/rc480_migration.sql"
+          docker cp supabase/tests/rc480_digital_pages_anon_columns_integration.sql "$pg_container:/tmp/rc480_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc480_test -v ON_ERROR_STOP=1 -f /tmp/rc480_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc480_test -v ON_ERROR_STOP=1 -f /tmp/rc480_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc480_test -v ON_ERROR_STOP=1 -f /tmp/rc480_test.sql

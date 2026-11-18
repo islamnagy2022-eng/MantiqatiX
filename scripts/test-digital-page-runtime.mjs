@@ -9,10 +9,16 @@ async function render({ search = '', page = null, sections = [] } = {}) {
   const meta = { content: '' };
   let pageLookups = 0;
   let sectionLookups = 0;
+  let pageProjection = '';
+  let sectionProjection = '';
   const client = {
     from(table) {
       const query = {
-        select() { return this; },
+        select(columns) {
+          if (table === 'digital_pages') pageProjection = columns;
+          if (table === 'digital_page_sections') sectionProjection = columns;
+          return this;
+        },
         eq() { return this; },
         maybeSingle: async () => {
           pageLookups += 1;
@@ -44,7 +50,7 @@ async function render({ search = '', page = null, sections = [] } = {}) {
   };
   vm.runInNewContext(source, context, { filename: 'digital-page.js' });
   await new Promise(resolve => setImmediate(resolve));
-  return { html: root.innerHTML, title: document.title, meta: meta.content, pageLookups, sectionLookups };
+  return { html: root.innerHTML, title: document.title, meta: meta.content, pageLookups, sectionLookups, pageProjection, sectionProjection };
 }
 
 const incomplete = await render();
@@ -86,5 +92,7 @@ assert.match(published.html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
 assert.match(published.html, /Tea &lt;img src=x&gt;/);
 assert.ok(!published.html.includes('<script>alert(1)</script>'), 'page content must be HTML-escaped');
 assert.equal(published.sectionLookups, 1);
+assert.equal(published.pageProjection, 'id,page_type,slug,title,subtitle,description,seo_title,seo_description,status,version');
+assert.equal(published.sectionProjection, 'id,section_type,sort_order,title,content,data,active');
 
 console.log('Digital page runtime tests: PASS (missing slug, unpublished page, published MENU render, HTML escaping).');
