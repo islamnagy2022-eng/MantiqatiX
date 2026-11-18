@@ -86,6 +86,32 @@ Deno.serve(async (req: Request) => {
     return { scopes, ready: true };
   };
 
+  const loadAddressConsentListingIds = async () => {
+    const ids = new Set<string>();
+    const pageSize = 1000;
+    let offset = 0;
+    while (true) {
+      const { data, error } = await service.from("directory_listing_contact_consents")
+        .select("listing_id")
+        .eq("scope", "ADDRESS")
+        .is("revoked_at", null)
+        .order("listing_id", { ascending: true })
+        .order("scope", { ascending: true })
+        .range(offset, offset + pageSize - 1);
+      if (error) {
+        console.warn("directory address-consent lookup failed", error.message);
+        return { ids: [] as string[], ready: false };
+      }
+      for (const row of data || []) {
+        const id = String(row.listing_id || "");
+        if (id) ids.add(id);
+      }
+      if ((data || []).length < pageSize) break;
+      offset += pageSize;
+    }
+    return { ids: [...ids], ready: true };
+  };
+
   if (req.method === "GET") {
     const url = new URL(req.url);
     const slug = clean(url.searchParams.get("slug"), 140);
@@ -177,10 +203,9 @@ Deno.serve(async (req: Request) => {
     if (address) {
       const addressSearch = sanitizeDirectoryPaginationSearch(address);
       if (addressSearch) {
-        const { data: addressConsents, error: addressConsentError } = await service.from("directory_listing_contact_consents")
-          .select("listing_id").eq("scope", "ADDRESS").is("revoked_at", null).limit(1000);
-        if (addressConsentError) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
-        const addressVisibleIds = [...new Set((addressConsents || []).map((row: any) => String(row.listing_id || "")).filter(Boolean))];
+        const addressConsentState = await loadAddressConsentListingIds();
+        if (!addressConsentState.ready) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
+        const addressVisibleIds = addressConsentState.ids;
         if (!addressVisibleIds.length) {
           return out(origin, { listings: [], nextCursor: null, hasMore: false, pageSize: limit });
         }
