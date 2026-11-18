@@ -1,3 +1,18 @@
+## Latest verified checkpoint — Pass 801–820 — 2026-11-19
+
+- Current `main`: `44fc352b7082625fee1165f9779fa05f50a678c1`.
+- PR #819 merged: `44fc352b7082625fee1165f9779fa05f50a678c1` — isolated PostgreSQL 17 default-ACL owner-scope regression fixture and CI.
+- Exact-head PostgreSQL 17 run [44422319909](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44422319909) passed. Same-head RC479–RC483, RC471/RC482, targeted-ad search-path, matrimony privacy, MantiGO privacy, Paymob atomicity, financial-journal RC450, approval-audit and static validation jobs passed. Pages PR validation passed; deploy was skipped as expected for a PR.
+- Fresh read-only Production snapshot: PostgreSQL 17.6; 310 migration rows through `20261110150618`; 137 public relations, all owned by `postgres`.
+- Default ACL provenance: `postgres` grants MAINTAIN/REFERENCES/TRIGGER/TRUNCATE to anon/authenticated/service_role; `supabase_admin` separately has ALL table privileges for anon/authenticated/postgres/service_role. The catalog grantor matches each owner, but historical provenance and intended managed-role contract are unresolved.
+- Refreshed effective privileges: anon MAINTAIN 90, REFERENCES/TRIGGER/TRUNCATE 5 each, SELECT 8; authenticated MAINTAIN 107, REFERENCES/TRIGGER/TRUNCATE 6 each, SELECT 77, INSERT 23, UPDATE 22, DELETE 17; service_role MAINTAIN/REFERENCES/TRIGGER/TRUNCATE 137 each, SELECT 63, INSERT 45, UPDATE 44, DELETE 48.
+- PR #819 changes tests/docs only; no production SQL, ACL, Auth, RLS, Edge, payment or data mutation. No production release or site cutover is claimed.
+- Detailed evidence: `docs/audits/PASS_801_820_PG17_DEFAULT_ACL_RECONCILIATION_20261119.md`.
+
+**Next:** confirm Supabase-managed default ACL provenance; complete disposable PostgREST/RPC + RLS/FORCE RLS call-path coverage; reconcile the exact ordered migration chain and live Edge parity; obtain encrypted off-site backup plus isolated restore/RPO/RTO evidence. Production remains **BLOCKED / NOT CERTIFIED**.
+
+---
+
 # MANTIQATIX — CURRENT SOURCE MAP AND PRODUCTION TODO (2026-11-18)
 
 
@@ -23,7 +38,7 @@
 ## Current source map — 2026-11-18
 
 - Governing operating directive: `docs/MASTER_SOURCE_OF_TRUTH.md` — sole current project execution authority; older prompts and continuity notes are subordinate.
-- Current GitHub main: `ba81fb0c44ee7682eed419d3b0482246582308f1` (PRs #795–#798 merged; see latest Pass 701–720 checkpoint below).
+- Current GitHub main: `44fc352b7082625fee1165f9779fa05f50a678c1` (PR #819 merged; see latest Pass 801–820 checkpoint above).
 - Latest user upload: `bizcatalog-manager (11).zip`, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, 270 entries / 118 source files, Android wrapper retained. This is a distinct R7-era candidate; see `docs/audits/R7_ARCHIVE_11_INTAKE_20261118.md`. It is not approved for wholesale import/deployment.
 - Previous R7 archives (including `bizcatalog-manager (9)(1).zip` and older numbered copies) are separate historical artifacts. Do not conflate their hashes or audits with the latest upload.
 - Supabase remains the sole source of truth for identity, permissions and production data. Do not accept the R7 archive's local-JSON authority or browser-stored roles.
