@@ -28,10 +28,17 @@ jobs:
 
       - name: Check Supabase health function
         id: supabase_health
+        env:
+          HEALTH_MONITOR_TOKEN: ${{ secrets.HEALTH_MONITOR_TOKEN }}
         run: |
           set -euo pipefail
+          if [[ -z "${HEALTH_MONITOR_TOKEN:-}" ]]; then
+            echo "HEALTH_MONITOR_TOKEN is not configured; retaining the temporary legacy database probe."
+            echo "database_probe_mode=legacy_anon" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           URL="https://moyhiluyhjsujhwlyeuu.supabase.co/functions/v1/health"
-          BODY="$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 "$URL")"
+          BODY="$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 -H "Authorization: Bearer ${HEALTH_MONITOR_TOKEN}" "$URL")"
           grep -Fq '"status":"ok"' <<<"$BODY"
           grep -Fq '"service":"mantiqatix-health"' <<<"$BODY"
           if grep -Fq '"database":{"status":"ok","mode":"service_role_read_only"}' <<<"$BODY"; then
