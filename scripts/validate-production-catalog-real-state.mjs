@@ -103,11 +103,14 @@ assert.ok(directoryListingsView.includes('listing.metadata?.profileImageUrl') &&
 assert.ok(directoryListingsView.includes('listing.metadata?.coverUrl') &&
   directoryListingsView.includes('listing.metadata?.cover_url'),
   'owner-selected cover imagery must take precedence over automatic defaults');
-assert.ok(directoryListingsView.includes('image.src = listingDefaultCoverImage(detail)') &&
-  directoryListingsView.includes('image.src = listingDefaultProfileImage(detail)'),
+assert.ok(directoryListingsView.includes('image.src = listingCategoryCoverImage(detail)') &&
+  directoryListingsView.includes('image.src = listingCategoryProfileImage(detail)'),
   'broken uploaded images must fall back once to local category artwork');
-assert.ok(directoryListingsView.includes('image.src = listingDefaultProfileImage(listing)'),
+assert.ok(directoryListingsView.includes('image.src = listingCategoryProfileImage(listing)'),
   'directory result cards must fall back locally when an uploaded profile image fails');
+assert.ok(directoryListingsView.includes('function listingCategoryProfileImage') &&
+  directoryListingsView.includes('function listingCategoryCoverImage'),
+  'failed external doctor/pharmacy image URLs must fall back to local category artwork');
 assert.ok(directoryListingsView.includes('listingProfileImage(detail)') &&
   directoryListingsView.includes('listingCoverImage(detail)'),
   'directory detail pages must render both resolved profile and cover imagery');
