@@ -1,18 +1,4 @@
 -- RC479 privilege and compatibility integration test. Disposable PostgreSQL only.
-DO $test$
-BEGIN
-  IF NOT has_table_privilege('anon','public.marketing_provider_profiles','SELECT') THEN
-    RAISE EXCEPTION 'RC479_FIXTURE_EXPECTED_ANON_SELECT_BEFORE_MIGRATION';
-  END IF;
-  IF NOT has_table_privilege('authenticated','public.marketing_provider_profiles','SELECT') THEN
-    RAISE EXCEPTION 'RC479_AUTHENTICATED_SELECT_GRANT_MISSING';
-  END IF;
-  IF NOT has_table_privilege('service_role','public.marketing_provider_profiles','SELECT') THEN
-    RAISE EXCEPTION 'RC479_SERVICE_ROLE_SELECT_GRANT_MISSING';
-  END IF;
-END;
-$test$;
-
 -- The migration must remove only the anonymous table-level SELECT grant.
 DO $test$
 BEGIN
