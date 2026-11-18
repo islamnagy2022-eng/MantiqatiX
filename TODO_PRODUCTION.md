@@ -6,7 +6,7 @@
 ## Current source map — 2026-11-18
 
 - Governing operating directive: `docs/MASTER_SOURCE_OF_TRUTH.md` — sole current project execution authority; older prompts and continuity notes are subordinate.
-- Current GitHub main: `ef96fec44715ee255780e63bd5a2a2925d89876d` (PR #780, #776 and #782 merged; post-merge verification for #782 is running).
+- Current GitHub main: `613bcb654202a2a5bfb6028d43e7b80b9a772388` (PR #788 RC476 and PR #790 RC477 merged; PR #789 continuity checkpoint merged).
 - Latest user upload: `bizcatalog-manager (11).zip`, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, 270 entries / 118 source files, Android wrapper retained. This is a distinct R7-era candidate; see `docs/audits/R7_ARCHIVE_11_INTAKE_20261118.md`. It is not approved for wholesale import/deployment.
 - Previous R7 archives (including `bizcatalog-manager (9)(1).zip` and older numbered copies) are separate historical artifacts. Do not conflate their hashes or audits with the latest upload.
 - Supabase remains the sole source of truth for identity, permissions and production data. Do not accept the R7 archive's local-JSON authority or browser-stored roles.
@@ -119,6 +119,19 @@ Evidence: `docs/audits/PASS_561_580_SECURITY_DEFINER_DELEGATION_REVIEW_20261118.
 - [ ] Review remaining direct-auth MantiGO and payment RPCs for data leakage, actor ownership, and idempotency.
 
 Evidence: `supabase/migrations/20261118050000_rc476_mantigo_captain_earnings_live_ledger_columns.sql`, `supabase/tests/rc476_mantigo_captain_earnings_integration.sql`, and `scripts/validate-rc476-captain-earnings-live-columns.mjs`. Candidate only; not applied to Production.
+
+## Pass 621–640 — MantiGO customer bid contact privacy repair (2026-11-18)
+
+- [x] Inspect live `list_mantigo_customer_rides_backend(uuid,text)` response construction and `mantigo_bids` schema.
+- [x] Confirm full-row `to_jsonb(b)` exposed captain phone and vehicle plate for non-accepted bids returned to the customer.
+- [x] Add RC477 forward migration: preserve bid response fields but return phone/plate as JSON null until `status='ACCEPTED'`; keep accepted-bid contact details available.
+- [x] Preserve actor ownership, authenticated-only grants, and pin an empty search_path.
+- [x] Add RC477 static validator and disposable PostgreSQL integration; extend RC446 fixture/workflow.
+- [x] Exact-head RC477 privacy integration passed; migration chain replay from captured Production schema checkpoint passed; all associated migration, payment, privacy, module, and Pages/V6 checks passed.
+- [x] Merge PR #790 to main: `613bcb654202a2a5bfb6028d43e7b80b9a772388`.
+- [ ] Apply RC477 only after encrypted off-site backup/restore and exact migration-ledger reconciliation; source merge is not Production deployment.
+
+Evidence: `docs/audits/PASS_621_640_MANTIGO_CUSTOMER_BID_CONTACT_PRIVACY_20261118.md`. RC477 is source-merged but unapplied.
 
 ## Historical R7 archive (7) baseline — 2026-11-11
 
