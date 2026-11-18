@@ -133,6 +133,22 @@ Evidence: `supabase/migrations/20261118050000_rc476_mantigo_captain_earnings_liv
 
 Evidence: `docs/audits/PASS_621_640_MANTIGO_CUSTOMER_BID_CONTACT_PRIVACY_20261118.md`. RC477 is source-merged but unapplied.
 
+## Pass 641–660 — MantiGO open-ride privacy forward repair (2026-11-18)
+
+- [x] Read the live Production `list_open_mantigo_rides_backend(uuid)` body and confirm its old actor-only predicate exposed open ride pickup/destination details without a captain authorization gate.
+- [x] Confirm the intended RC446 source version `20261010060000` is absent from the live migration ledger; preserve historical source and migration identity.
+- [x] Add RC478 forward-only repair: reject anonymous Auth sessions; require caller-bound ACTIVE / VERIFIED / AVAILABLE captain; return only rides compatible with the captain's registered vehicle category.
+- [x] Preserve the existing table-return contract, ordering, 100-row maximum, authenticated-only grant and safe `search_path=pg_catalog`.
+- [x] Add a schema-faithful disposable fixture with `auth.jwt()` and captain vehicle category.
+- [x] Add RC478 PostgreSQL integration covering ordinary, pending, unverified, offline, anonymous and valid vehicle-scoped captains, own ride and non-open status exclusion.
+- [x] Extend the MantiGO privacy workflow to apply RC478 after RC446/RC477 and run its regression suite.
+- [x] Extend the exact release migration contract/manifest from 54 to 57 identifiers, appending RC476–RC478; live exact migration identity remains 0/57.
+- [ ] Pass exact-head RC446/RC477/RC478 privacy workflow and all affected checks.
+- [ ] Pass latest chronological forward replay from the latest Production schema checkpoint.
+- [ ] Keep RC478 unapplied to Production until encrypted off-site backup and a successful restore rehearsal are evidenced.
+
+Evidence: `docs/audits/PASS_641_660_MANTIGO_OPEN_RIDE_PRIVACY_20261118.md`. Source-only; no Production mutation.
+
 ## Historical R7 archive (7) baseline — 2026-11-11
 
 > Historical record only: this 2026-11-11 override described the earlier `bizcatalog-manager (7).zip` artifact and its hash below. It is superseded as the current candidate by the latest `bizcatalog-manager (11).zip` upload, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`. The (7), (9)(1) and (11) archives are separate artifacts; do not conflate their hashes or treat the earlier archive as the current source.
