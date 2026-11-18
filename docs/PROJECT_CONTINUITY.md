@@ -1,3 +1,21 @@
+# Latest execution checkpoint — 2026-11-18 — Pass 561–580 SECURITY DEFINER delegation review
+
+**Current main:** `70ce098087acda306ffbfca4fbbfde581fdc9a86`.  
+**Audit branch:** `audit/definer-delegation-review-561-580-20261118`.  
+**Production:** **BLOCKED / NOT CERTIFIED**.
+
+- Traced all six authenticated-executable SECURITY DEFINER routines identified by the live query that do not directly call `auth.uid()`.
+- Five delegate to helpers that bind to `auth.uid()` and apply actor/tenant/business/branch/finance checks on the reviewed path.
+- The sixth, `mnty_can_platform_admin()`, remains the known live P0: it delegates to null-scope membership authorization. RC464/RC471 source repairs exist but are not applied in Production.
+- Confirmed the RC471 static validator and disposable PostgreSQL workflow exist in source. This documentation-only review did not trigger or claim a fresh CI run.
+- No Production SQL, grant, Auth, RLS, Edge, payment, wallet, or settlement mutation.
+
+**Next:** continue direct-auth high-risk function review; run exact-head RC471 disposable PostgreSQL integration; preserve backup/restore gate; only then consider ordered migration release.
+
+Evidence: `docs/audits/PASS_561_580_SECURITY_DEFINER_DELEGATION_REVIEW_20261118.md`.
+
+---
+
 # Latest execution checkpoint — 2026-11-18 — Pass 541–560 P0 Auth and SECURITY DEFINER baseline
 
 **Current main:** `ef96fec44715ee255780e63bd5a2a2925d89876d`.  
