@@ -9,6 +9,7 @@ DECLARE
   business_finance uuid := '10000000-0000-4000-8000-000000004746';
   tenant_finance uuid := '10000000-0000-4000-8000-000000004747';
   no_scope_actor uuid := '10000000-0000-4000-8000-000000004748';
+  business_owner_actor uuid := '10000000-0000-4000-8000-000000004749';
   order_customer uuid := '20000000-0000-4000-8000-000000004741';
   order_mixed uuid := '20000000-0000-4000-8000-000000004742';
   order_branch uuid := '20000000-0000-4000-8000-000000004743';
@@ -17,6 +18,7 @@ DECLARE
   order_business_finance uuid := '20000000-0000-4000-8000-000000004746';
   order_tenant_finance uuid := '20000000-0000-4000-8000-000000004747';
   order_no_scope uuid := '20000000-0000-4000-8000-000000004748';
+  order_business_owner uuid := '20000000-0000-4000-8000-000000004749';
   business_a uuid := '30000000-0000-4000-8000-000000004741';
   business_b uuid := '30000000-0000-4000-8000-000000004742';
   branch_a varchar := 'BRANCH-A';
@@ -33,7 +35,8 @@ BEGIN
     ('non-finance-ops',non_finance_actor,'TENANT-A',business_a,branch_a,'OPERATIONS_MANAGER','ACTIVE','{}'::jsonb),
     ('branch-finance',branch_finance,'TENANT-A',business_a,branch_a,'FINANCE','ACTIVE','{}'::jsonb),
     ('business-finance',business_finance,'TENANT-A',business_a,NULL,'ACCOUNTANT','ACTIVE','{}'::jsonb),
-    ('tenant-finance',tenant_finance,'TENANT-A',NULL,NULL,'FINANCE_MANAGER','ACTIVE','{}'::jsonb);
+    ('tenant-finance',tenant_finance,'TENANT-A',NULL,NULL,'FINANCE_MANAGER','ACTIVE','{}'::jsonb),
+    ('business-owner',business_owner_actor,'TENANT-A',business_a,branch_a,'BUSINESS_OWNER','ACTIVE','{}'::jsonb);
 
   INSERT INTO public.orders(
     id,tenant_id,business_id,branch_id,customer_id,status,total_amount,total,currency,
@@ -46,7 +49,8 @@ BEGIN
     (order_branch_finance,'TENANT-A',business_a,branch_a,customer,'PENDING',100,100,'EGP',1,'hash-branch-finance','SERVER'),
     (order_business_finance,'TENANT-A',business_a,branch_b,customer,'PENDING',100,100,'EGP',1,'hash-business-finance','SERVER'),
     (order_tenant_finance,'TENANT-A',business_b,branch_b,customer,'PENDING',100,100,'EGP',1,'hash-tenant-finance','SERVER'),
-    (order_no_scope,'TENANT-A',business_a,branch_a,customer,'PENDING',100,100,'EGP',1,'hash-no-scope','SERVER');
+    (order_no_scope,'TENANT-A',business_a,branch_a,customer,'PENDING',100,100,'EGP',1,'hash-no-scope','SERVER'),
+    (order_business_owner,'TENANT-A',business_a,branch_a,customer,'PENDING',100,100,'EGP',1,'hash-business-owner','SERVER');
 
   -- A customer can still pay their own order without provider-tenant membership.
   PERFORM pg_catalog.set_config('request.jwt.claim.sub',customer::text,true);
@@ -96,6 +100,11 @@ BEGIN
   PERFORM pg_catalog.set_config('request.jwt.claim.sub',branch_finance::text,true);
   result:=public.create_payment_intent_backend('TENANT-A',order_branch_finance,100,'EGP','PAYMOB','CARD','rc474-branch-finance-0001');
   IF result->>'status'<>'CREATED' THEN RAISE EXCEPTION 'same-branch finance actor was denied'; END IF;
+
+  -- The dedicated BUSINESS_OWNER role is allowed only inside its own business/branch scope.
+  PERFORM pg_catalog.set_config('request.jwt.claim.sub',business_owner_actor::text,true);
+  result:=public.create_payment_intent_backend('TENANT-A',order_business_owner,100,'EGP','PAYMOB','CARD','rc474-business-owner-0001');
+  IF result->>'status'<>'CREATED' THEN RAISE EXCEPTION 'same-business BUSINESS_OWNER was denied'; END IF;
 
   -- Business-wide finance is allowed for any branch of its own business.
   PERFORM pg_catalog.set_config('request.jwt.claim.sub',business_finance::text,true);
