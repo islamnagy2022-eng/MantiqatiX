@@ -1,4 +1,4 @@
--- Disposable PostgreSQL 16 fixture for RC428–RC430 only. Never run against Production.
+-- Disposable PostgreSQL 16 fixture for RC475 forward-repair validation. Never run against Production.
 do $roles$
 begin
   create role anon nologin;
