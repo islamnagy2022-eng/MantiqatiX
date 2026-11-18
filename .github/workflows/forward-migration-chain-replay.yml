@@ -2,7 +2,7 @@ name: Forward Migration Chain Replay from Production Schema Checkpoint
 
 on:
   push:
-    branches: ["**"]
+    branches: [main]
     paths:
       - "supabase/migrations/**"
       - "supabase/tests/baselines/production_schema_snapshot.sql"
