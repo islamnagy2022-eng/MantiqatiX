@@ -23,6 +23,14 @@ The DB-aware health function uses the server-side `SUPABASE_SERVICE_ROLE_KEY` to
 
 Until step 2 is verified, the workflow intentionally falls back to the existing anonymous PostgREST probe so merging source does not break the currently deployed monitor. This fallback must be retired after the DB-aware Edge deployment and before RC479 is applied.
 
+## 1.1 Monitoring limits and security boundary
+
+- A successful probe confirms only that one minimal database read succeeded at that moment. It does not certify Auth, RLS isolation, RPC behavior, payments, financial workflows, or the full application.
+- The hourly GitHub Actions schedule can be delayed and cannot guarantee that a Supabase Free project will never pause. If the project has already paused, this monitor cannot itself resume it.
+- The health endpoint is public by design and returns only fixed status metadata. It must never return database rows, provider/customer identifiers, SQL text, credentials, or raw exception messages.
+- Workflow failure notifications depend on repository notification settings. Check the Actions page after the first scheduled run and ensure failure notifications are enabled.
+- RC479 is not an isolated one-off migration. The live migration ledger and required release manifest must first be reconciled semantically in chronological order. The current release gate remains BLOCKED until all predecessor migrations, encrypted backup, disposable restore rehearsal, rollback plan, and approval are verified.
+
 ## 2. Create a local logical backup (owner/operator action required)
 
 The connected session does not have the Production database password or connection string, so no backup can safely be created by the assistant. Run these commands on an authorized computer with the Supabase CLI and Docker available.
