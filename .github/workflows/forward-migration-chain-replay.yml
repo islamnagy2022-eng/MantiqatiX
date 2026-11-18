@@ -60,6 +60,19 @@ on:
       - "supabase/tests/rc469_shared_platform_admin_caller_search_path.sql"
       - "supabase/tests/baselines/rc469_live_shared_helper_search_path_overlay.sql"
       - "scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs"
+      - "scripts/production/live-reconciliation-contract.mjs"
+      - "scripts/production/verify-production.mjs"
+      - "scripts/validate-production-migration-chain-gate.mjs"
+      - "scripts/validate-r7-platform-admin-migration.mjs"
+      - "scripts/validate-rc476-captain-earnings-live-columns.mjs"
+      - "scripts/validate-mantigo-high-risk-definers.mjs"
+      - "scripts/validate-rc482-legal-platform-admin-registry.mjs"
+      - "scripts/validate-rc483-atomic-legal-cms-create-audit.mjs"
+      - "supabase/tests/rc482_legal_platform_admin_registry_fixture.sql"
+      - "supabase/tests/rc482_legal_platform_admin_registry_integration.sql"
+      - "supabase/tests/rc483_atomic_legal_cms_create_audit_fixture.sql"
+      - "supabase/tests/rc483_atomic_legal_cms_create_audit_integration.sql"
+      - "docs/release/production-migration-reconciliation.json"
       - ".github/workflows/forward-migration-chain-replay.yml"
   workflow_dispatch: {}
 
@@ -198,6 +211,3 @@ jobs:
         shell: bash
         run: |
           if [ -n "${MNTY_REPLAY_TEST_DIR:-}" ] && [ -d "$MNTY_REPLAY_TEST_DIR" ]; then
-            cd "$MNTY_REPLAY_TEST_DIR"
-            supabase stop --no-backup || true
-          fi
