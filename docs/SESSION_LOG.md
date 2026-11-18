@@ -2730,3 +2730,11 @@ Read-only Supabase production schema cross-check completed: retrieved definition
 - Reviewed six authenticated-executable wrappers without direct auth.uid(); inspected wrappers delegate to actor-scoped membership/financial/catalog helpers. No ACL/grant changes were made.
 - Performance advisors: 132 unindexed foreign keys, 375 RLS init-plan notices and 71 unused indexes; health advisor returned zero lints.
 - No Production schema/data/Auth/RLS/GRANT/Edge/payment mutation. Next: individually audit SECURITY DEFINER functions and address leaked-password protection using supported Auth settings.
+
+## Supplemental release evidence — directory specialty pagination (2026-11-18)
+
+- PR #760 merged the Playwright synchronization correction as `18711d016a591613791e9596740b367eecb96865`; test now waits for the exact specialty API response and HTTP 200 before asserting 20 results.
+- Deployed-origin route verification passed on Pages runs `44205131869` and `44213092913` for root, dashboard, mobile and QR routes.
+- Main browser E2E passed on `258da165cced6a72e36b5ea950299e3e6ebb93bd` in run `44213092799`.
+- Supplemental evidence only; no numbered Pass range assigned and no Production backend mutation.
+
