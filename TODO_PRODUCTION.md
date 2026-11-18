@@ -2225,7 +2225,7 @@ Evidence: `docs/audits/PASS_401_420_MANTIGO_SETTLEMENT_AUTHORIZATION_20261118.md
 - [x] Remove the Edge Function's duplicate tenant-only membership precheck so the user-scoped RPC is authoritative.
 - [x] Add disposable PostgreSQL regression cases for cross-business, cross-branch, NULL-customer, customer-owned and valid finance scopes.
 - [x] Add RC474 static validator and dedicated PostgreSQL workflow.
-- [ ] Pass exact-head RC474 disposable PostgreSQL integration, migration replay and all PR #774 checks.
+- [ ] Pass exact-head RC474 disposable PostgreSQL integration (including scoped BUSINESS_OWNER), migration replay and all PR #774 checks.
 - [ ] Merge PR #774 only after all exact-head checks pass.
 - [ ] Obtain verified off-site logical backup and restore before any Production DDL/Edge deployment.
 
