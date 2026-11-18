@@ -2897,3 +2897,19 @@ Evidence branch: `fix/e2e-directory-card-heading-query-20261118`; source change 
 - [ ] Preserve honest no-eligible-provider states for categories without real approved service coverage.
 
 Evidence: read-only Production SQL inspection on 2026-11-18; issue #804. No Production SQL, migration, data, Auth, RLS, GRANT, Edge, payment, wallet, settlement or deployment mutation occurred. This audit does not claim the brokerage feature is implemented or production-ready.
+
+
+## Pass 701–720 — provider profile Data API privilege boundary recheck (2026-11-18)
+
+- [x] Rechecked effective table ACLs in canonical Production: `anon` and `authenticated` both have table-level SELECT on `public.marketing_provider_profiles`; `service_role` also has SELECT.
+- [x] Rechecked effective column privileges: `anon` can SELECT `owner_user_id` and `settings` as well as public display fields; `authenticated` can SELECT `owner_user_id` and `settings`. This is a privilege-surface finding, not proof that a specific private value was exfiltrated.
+- [x] Confirmed row policy remains limited to ACTIVE profiles for the public SELECT policy; row filtering does not narrow table-level SELECT to selected columns.
+- [x] Re-read the existing repository TODO and public-provider exposure validator. The canonical React catalog reads providers through the curated `public-catalog-directory` / `public-catalog` Edge Functions, whose explicit public projection omits `owner_user_id` and `settings`. The legacy `web/` source is not the canonical deployed React artifact; the old provider-service owner UI still explicitly selects `owner_user_id` for ownership scoping.
+- [x] Re-read provider-service isolation test: it already exercises two owners, rejects cross-owner insert/reassignment, and rejects anonymous Auth sessions in disposable PostgreSQL. It does not yet test column-level anon profile restrictions.
+- [ ] Build a compatibility matrix for the old Android/native client and any external integrations before changing anon/authenticated column grants. Repository source metadata alone does not establish a deployed mobile client’s actual REST query shape.
+- [ ] Prefer removing direct anon access to the provider base table and keeping public discovery on curated Edge Functions, but only after the health-monitor GET probe is replaced or explicitly retained through a minimal public-safe endpoint.
+- [ ] For authenticated direct access, replace owner/CRM/storage subqueries that currently depend on reading profile rows with a private, narrowly scoped ownership helper or server-side path, then prove owner profile management, provider-service editing, CRM, and storage media policies in disposable PostgreSQL.
+- [ ] Add column-privilege regression tests proving anon cannot select `owner_user_id` or `settings`, authenticated access is restricted to the minimum required columns, and service-role/Edge projections remain intact.
+- [ ] Create any eventual migration using `supabase migration new` in a CLI-enabled source workspace, run advisors and isolated tests, and reconcile exact migration chronology before any production release. No migration filename or historical migration ledger entry is fabricated.
+
+Evidence: read-only Production ACL and `has_column_privilege` checks on 2026-11-18; source review of current main. No Production SQL, migration, GRANT, RLS, Auth, Edge, data, or deployment mutation occurred. This remains a release blocker; no private profile values were selected.
