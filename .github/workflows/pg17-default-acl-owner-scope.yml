@@ -1,0 +1,44 @@
+name: PostgreSQL 17 default ACL owner-scope regression
+
+on:
+  push:
+    branches: ["security/pg17-default-acl-regression-20261119"]
+    paths:
+      - "supabase/tests/pg17_default_acl_owner_scope_regression.sql"
+      - ".github/workflows/pg17-default-acl-owner-scope.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "supabase/tests/pg17_default_acl_owner_scope_regression.sql"
+      - ".github/workflows/pg17-default-acl-owner-scope.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  pg17-default-acl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_acl_regression
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_acl_regression"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run isolated owner-specific default ACL regression
+        env:
+          PGPASSWORD: postgres
+        shell: bash
+        run: |
+          set -euo pipefail
+          db="postgresql://postgres:postgres@127.0.0.1:5432/mantiqatix_acl_regression"
+          psql "$db" -v ON_ERROR_STOP=1 -f supabase/tests/pg17_default_acl_owner_scope_regression.sql
