@@ -2741,3 +2741,12 @@ Read-only Supabase production schema cross-check completed: retrieved definition
 - PR #762 merged as `0851a5e6762ab8e6e2fc7083731bfce4877789db`, reconciling RC473 and security-advisor findings.
 - No Production DB/Auth/RLS/GRANT/Edge/payment/settlement mutation occurred. RC472/RC473, RC464 authorization hardening, backup/restore, source-rights evidence and the wider SECURITY DEFINER review remain release blockers.
 
+
+
+## Supplemental release evidence — directory specialty pagination (2026-11-18)
+
+- PR #760 merged the Playwright synchronization correction as `18711d016a591613791e9596740b367eecb96865`; the test waits for the exact specialty API response and HTTP 200 before asserting 20 results.
+- Deployed-origin route verification passed on Pages runs `44205131869` and `44213092913` for root, dashboard, mobile and QR.
+- Main browser E2E passed on `258da165cced6a72e36b5ea950299e3e6ebb93bd` in run `44213092799`.
+- Supplemental evidence only; no new numbered Pass range and no Production backend mutation.
+
