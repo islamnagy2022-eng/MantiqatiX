@@ -102,3 +102,12 @@ Do not restore over Production. Use a disposable local PostgreSQL/Supabase envir
 The latest current-main Production Health Monitor run [41160201368](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41160201368) completed successfully. Job `124415873930` logged `SUPABASE_DATABASE_READ_ONLY_PROBE=PASS`; the PostgREST GET returned HTTP 200. The same run verified the primary catalog root/assets and Edge health endpoint. This is point-in-time evidence, not an uptime guarantee and not proof that failure notifications are delivered.
 
 The latest Pages deployment [41160201369](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41160201369) also completed successfully, including deployed-origin browser E2E. Its full-platform verifier still returned `FULL_PLATFORM_GATE=BLOCKED` while the scoped catalog pilot returned PASS. These results do not replace the required local Production backup and disposable restore rehearsal. No Production mutation was performed; no paid resources were created.
+
+
+## Current Production release checkpoint — 2026-11-18
+
+A fresh read-only Supabase migration-ledger query after PR #776 merged returned **310 rows**, latest version `20261110150618`. The canonical release manifest now lists 54 required source migrations through RC475; **0/54** are recorded in the current live ledger. This is an explicit release blocker, not a reason to insert migration-history rows or replay migrations against Production.
+
+The RC475 migration and its Edge source have passed disposable PostgreSQL integration, two-session concurrent replay, and an 89-migration forward replay from the captured Production schema checkpoint. These CI results do not apply the migration or deploy the Edge Function to the live project.
+
+**Current gate:** Production remains **BLOCKED / NOT CERTIFIED** until an authorized operator creates an encrypted off-site logical backup, completes a disposable restore rehearsal, and records RTO/RPO. The assistant still has no Production database password or connection string. Do not paste credentials into chat or commit them to GitHub. No Production migration, Edge deployment, Auth/RLS/GRANT change, payment or financial mutation was performed in this checkpoint.
