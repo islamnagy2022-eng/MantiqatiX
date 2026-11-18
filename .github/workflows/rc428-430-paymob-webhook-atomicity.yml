@@ -1,12 +1,10 @@
-name: RC428–RC430 Paymob Webhook Atomicity
+name: RC475 Paymob Forward Repair and Atomicity
 on:
   push:
     branches:
       - "**"
     paths:
-      - "supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql"
-      - "supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql"
-      - "supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql"
+      - "supabase/migrations/20261118040000_rc475_paymob_atomic_webhook_forward_repair.sql"
       - "supabase/tests/rc428_430_paymob_webhook_fixture.sql"
       - "supabase/tests/rc428_430_paymob_webhook_integration.sql"
       - ".github/workflows/rc428-430-paymob-webhook-atomicity.yml"
@@ -40,19 +38,15 @@ jobs:
           --health-retries 12
     steps:
       - uses: actions/checkout@v6
-      - name: Apply disposable fixtures, then RC428 → RC429 → RC430
+      - name: Apply disposable fixtures, then the RC475 forward repair
         shell: bash
         run: |
           set -euo pipefail
           pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
           test -n "$pg_container"
           docker cp supabase/tests/rc428_430_paymob_webhook_fixture.sql "$pg_container:/tmp/fixture.sql"
-          docker cp supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql "$pg_container:/tmp/rc428.sql"
-          docker cp supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql "$pg_container:/tmp/rc429.sql"
-          docker cp supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql "$pg_container:/tmp/rc430.sql"
+          docker cp supabase/migrations/20261118040000_rc475_paymob_atomic_webhook_forward_repair.sql "$pg_container:/tmp/rc475.sql"
           docker cp supabase/tests/rc428_430_paymob_webhook_integration.sql "$pg_container:/tmp/integration.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc428_430_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
-          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc428_430_test -v ON_ERROR_STOP=1 -f /tmp/rc428.sql
-          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc428_430_test -v ON_ERROR_STOP=1 -f /tmp/rc429.sql
-          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc428_430_test -v ON_ERROR_STOP=1 -f /tmp/rc430.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc428_430_test -v ON_ERROR_STOP=1 -f /tmp/rc475.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc428_430_test -v ON_ERROR_STOP=1 -f /tmp/integration.sql
