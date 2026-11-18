@@ -2474,3 +2474,15 @@ Evidence: read-only Production SQL inspection on 2026-11-18; issue #804. No Prod
 - [ ] Create any eventual migration using `supabase migration new` in a CLI-enabled source workspace, run advisors and isolated tests, and reconcile exact migration chronology before any production release. No migration filename or historical migration ledger entry is fabricated.
 
 Evidence: read-only Production ACL and `has_column_privilege` checks on 2026-11-18; source review of current main. No Production SQL, migration, GRANT, RLS, Auth, Edge, data, or deployment mutation occurred. This remains a release blocker; no private profile values were selected.
+
+## Pass 721–740 — DB-backed health monitor hardening (2026-11-18)
+
+- [x] Updated the reviewed `health` Edge Function source to perform a minimal `businesses.id` read through the Edge-only service-role client and return only fixed status metadata.
+- [x] Added a GET-only guard returning HTTP 405 before constructing the database client for other HTTP methods.
+- [x] Updated the hourly monitor to prefer the DB-backed Edge probe and retain the anonymous REST fallback only until the Edge deployment is independently verified.
+- [x] Strengthened static assertions for method-guard ordering, service-role-only configuration, generic 503 handling, no-store headers, no raw error/credential response, and monitor fallback behavior.
+- [x] Preserved explicit monitoring limitations and RC479 chronological-release/backup/restore gates in the runbook.
+- [ ] CI evidence is still pending for the current PR head; no green status is claimed.
+- [ ] Merge and deploy the Edge function only after exact-head checks/review; verify live response and monitor mode before retiring anonymous fallback.
+
+No Production Edge deployment, SQL, migration, GRANT, RLS, Auth, payment, wallet, settlement, or Pages deployment was performed. The full platform remains BLOCKED / NOT CERTIFIED.
