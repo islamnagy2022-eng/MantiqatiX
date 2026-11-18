@@ -44,9 +44,9 @@ assert.doesNotMatch(mantigoBlock, /from\("notifications"\)\.insert/, "MantiGo no
 
 
 assert.match(rc475, /END;\s*\$function\$;\s*REVOKE ALL ON FUNCTION public\.process_verified_provider_payment/);
-assert.doesNotMatch(rc475, /\\('orders','payment_method','character varying'\\)/,
+assert.doesNotMatch(rc475, /\('orders','payment_method','character varying'\)/,
   "RC475 must not require a payment_method column on orders; the processor uses the intent's payment_method");
-assert.match(rc475, /\\('payment_intents','payment_method','character varying'\\)/,
+assert.match(rc475, /\('payment_intents','payment_method','character varying'\)/,
   "RC475 must preflight the payment_intents.payment_method column used by the financial processor");
 assert.ok(rc475Concurrency.includes("rc475-concurrent-session-a.log") && rc475Concurrency.includes("rc475-concurrent-session-b.log"),
   "RC475 must exercise two independent PostgreSQL sessions");
