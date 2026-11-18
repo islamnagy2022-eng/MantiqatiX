@@ -167,8 +167,11 @@ BEGIN
   IF v_missing IS NOT NULL THEN
     RAISE EXCEPTION 'RC475_SCHEMA_PREFLIGHT_FAILED: %', v_missing;
   END IF;
-  IF to_regclass('public.commission_transactions_pkey') IS NULL
+  IF to_regclass('public.financial_obligations_pkey') IS NULL
+     OR to_regclass('public.uq_financial_obligation_idempotent') IS NULL
+     OR to_regclass('public.commission_transactions_pkey') IS NULL
      OR to_regclass('public.uq_commission_transactions_order_id') IS NULL
+     OR to_regclass('public.payment_financial_reconciliations_pkey') IS NULL
      OR to_regclass('public.uk_payment_financial_reconciliation') IS NULL THEN
     RAISE EXCEPTION 'RC475_SCHEMA_PREFLIGHT_FAILED: financial idempotency indexes are missing';
   END IF;
