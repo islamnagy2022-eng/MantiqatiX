@@ -6,7 +6,7 @@
 ## Current source map — 2026-11-18
 
 - Governing operating directive: `docs/MASTER_SOURCE_OF_TRUTH.md` — sole current project execution authority; older prompts and continuity notes are subordinate.
-- Current GitHub main: `4fc65f68a304c10e9ec63e073e5e1e392b75f161` (PR #780, #776 and #782 merged; post-merge verification for #782 is running).
+- Current GitHub main: `ef96fec44715ee255780e63bd5a2a2925d89876d` (PR #780, #776 and #782 merged; post-merge verification for #782 is running).
 - Latest user upload: `bizcatalog-manager (11).zip`, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, 270 entries / 118 source files, Android wrapper retained. This is a distinct R7-era candidate; see `docs/audits/R7_ARCHIVE_11_INTAKE_20261118.md`. It is not approved for wholesale import/deployment.
 - Previous R7 archives (including `bizcatalog-manager (9)(1).zip` and older numbered copies) are separate historical artifacts. Do not conflate their hashes or audits with the latest upload.
 - Supabase remains the sole source of truth for identity, permissions and production data. Do not accept the R7 archive's local-JSON authority or browser-stored roles.
@@ -72,6 +72,23 @@ Evidence: PR [#780](https://github.com/islamnagy2022-eng/MantiqatiX/pull/780), m
 - [ ] Complete post-merge main CI and deployed-origin verification for PR #782.
 
 Evidence: PR [#782](https://github.com/islamnagy2022-eng/MantiqatiX/pull/782). No schema, Auth/RLS/GRANT, payment, production data or Edge deployment changes.
+
+## Pass 541–560 — live P0 Auth and SECURITY DEFINER baseline (2026-11-18)
+
+- [x] Re-read Production project status and exact migration ledger: ACTIVE_HEALTHY, PostgreSQL 17.6, 310 migration rows through 20261110150618.
+- [x] Re-read Security Advisor: 9 RLS-enabled/no-policy tables, 65 authenticated-executable SECURITY DEFINER functions, one intentional anonymous public-ad RPC, and leaked-password protection disabled.
+- [x] Verify privacy-preserving Auth aggregate: 8 registered users, 0 anonymous users at inspection time; this does not prove anonymous sign-in is disabled in Auth configuration.
+- [x] Inventory live Edge versions and separate ACTIVE metadata from source-parity/runtime proof.
+- [x] Inspect selected high-risk function bodies and confirm user-context checks/delegated scopes on selected RPCs.
+- [x] Confirm live MantiGO settlement and stale-ride expiration still have broad membership-role checks; RC464/RC471 source repairs remain unapplied.
+- [x] Preserve no-policy tables as private-by-default; no broad RLS policies, grants, or function revocations added.
+- [ ] Confirm Auth anonymous-sign-in setting and either disable it if unused or add targeted non-anonymous policy guards after contract review.
+- [ ] Enable leaked-password protection through the supported Supabase Auth settings UI.
+- [ ] Complete function-by-function adversarial review of all 65 SECURITY DEFINER entrypoints.
+- [ ] Obtain encrypted off-site backup and successful restore rehearsal before any Production migration or Edge rollout.
+- [ ] Reconcile and apply RC464–RC475 in reviewed order only after all release gates pass.
+
+Evidence: `docs/audits/PASS_541_560_P0_AUTH_SECURITY_DEFINER_20261118.md`. Read-only Production audit; no SQL/Auth/RLS/GRANT/Edge/payment/settlement mutation.
 
 ## Historical R7 archive (7) baseline — 2026-11-11
 
