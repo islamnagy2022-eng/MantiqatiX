@@ -2,6 +2,7 @@
 do $test$
 declare
   tenant_owner uuid := '10000000-0000-4000-8000-000000000041';
+  tenant_business_owner uuid := '10000000-0000-4000-8000-000000000048';
   tenant_admin uuid := '10000000-0000-4000-8000-000000000042';
   tenant_ops uuid := '10000000-0000-4000-8000-000000000043';
   platform_admin uuid := '10000000-0000-4000-8000-000000000044';
@@ -13,6 +14,7 @@ declare
 begin
   insert into public.user_memberships(id,user_id,tenant_id,role,status,permissions) values
     ('owner',tenant_owner,'TENANT-A','OWNER','ACTIVE','{"admin":true}'::jsonb),
+    ('business-owner',tenant_business_owner,'TENANT-E','BUSINESS_OWNER','ACTIVE','{}'::jsonb),
     ('admin',tenant_admin,'TENANT-B','ADMIN','ACTIVE','{"admin":true}'::jsonb),
     ('ops',tenant_ops,'TENANT-C','OPERATIONS_MANAGER','ACTIVE','{"admin":true}'::jsonb),
     ('tenant-super',tenant_scoped_super_admin,'TENANT-D','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
@@ -71,6 +73,9 @@ begin
 
   perform pg_catalog.set_config('request.jwt.claim.sub',tenant_admin::text,false);
   if public.mnty_can_platform_admin() then raise exception 'tenant ADMIN with admin permission must not gain platform scope'; end if;
+
+  perform pg_catalog.set_config('request.jwt.claim.sub',tenant_business_owner::text,false);
+  if public.mnty_can_platform_admin() then raise exception 'tenant BUSINESS_OWNER must not gain platform scope'; end if;
 
   perform pg_catalog.set_config('request.jwt.claim.sub',tenant_ops::text,false);
   if public.mnty_can_platform_admin() then raise exception 'tenant OPERATIONS_MANAGER must not gain platform scope'; end if;
@@ -232,6 +237,7 @@ end;
 $function$;
 
 select pg_temp.assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000042','tenant ADMIN');
+select pg_temp.assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000048','tenant BUSINESS_OWNER');
 select pg_temp.assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000043','tenant OPERATIONS_MANAGER');
 select pg_temp.assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000045','tenant-scoped SUPER_ADMIN');
 select pg_temp.assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000046','MNTY-PLATFORM membership without registry');
