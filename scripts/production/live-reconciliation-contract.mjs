@@ -52,6 +52,7 @@ export const REQUIRED_CORE_OBJECTS = [
   "public.process_verified_subscription_payment_failure",
   "public.process_verified_subscription_payment_backend",
   "public.process_verified_digital_page_payment_backend",
+  "public.review_directory_listing_claim_atomic(uuid,text,uuid,text,uuid,boolean,boolean)",
   "public.smm_wallet_transactions_reference_type_uidx",
   "public.receive_purchase_stock_atomic_backend",
   "public.create_subscription_payment_intent_claimable_backend",
