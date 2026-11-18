@@ -39,6 +39,7 @@ for (const marker of [
   "RC483_TENANT_ACTOR_WAS_ACCEPTED",
   "RC483_DUPLICATE_VERSION_WAS_ACCEPTED",
   "RC483_DUPLICATE_VERSION_PERSISTED",
+  "RC483_DOCUMENT_AUDIENCE_NORMALIZATION_MISMATCH",
 ]) {
   assert.ok(integration.includes(marker), "missing RC483 regression: " + marker);
 }
