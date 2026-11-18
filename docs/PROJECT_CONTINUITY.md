@@ -1,3 +1,16 @@
+# Latest execution checkpoint — 2026-11-18 — P0 directory privacy parity
+
+- Production `directory-listings` Edge Function is version 16, deployed source SHA-256 `13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0`.
+- GitHub `main` now includes a contact-consent sanitizer, but Production does not: live version 16 selects phone/secondary phone/address and returns the fields without a contact-consent lookup.
+- Production has no `public.directory_listing_contact_consents` table (`to_regclass` returned NULL). The separate `directory_source_permission_evidence` table is present and empty; it governs source republication evidence, not per-listing contact consent.
+- Aggregate stored values: 868 published/unclaimed rows have a phone and 868 have an address. These are database counts, not a claim that all values were individually inspected.
+- This is a P0 live privacy/source-parity gap. No Production changes were made.
+- Supabase Free plan; no connected proof of off-site backup/restore. Coordinated DB + Edge release remains blocked pending backup/restore, migration review and scoped smoke tests.
+- Evidence: `docs/audits/PRODUCTION_DIRECTORY_CONTACT_CONSENT_DRIFT_20261118.md`.
+
+Next: resolve this privacy release gate, continue exact-head CI for PR #770, then re-run deployed-origin browser checks.
+---
+
 # Latest test checkpoint — Pass 381–400 — public targeted-ad output contract
 
 - Added a schema-faithful disposable fixture for the intentional public targeted-ad SECURITY DEFINER RPC.
