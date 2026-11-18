@@ -4,9 +4,15 @@ BEGIN
   IF has_function_privilege('anon','private.legal_is_admin()','EXECUTE') THEN
     RAISE EXCEPTION 'RC482_ANON_MUST_NOT_EXECUTE_PRIVATE_LEGAL_ADMIN';
   END IF;
-  IF NOT has_function_privilege('authenticated','private.legal_is_admin()','EXECUTE')
-     OR NOT has_function_privilege('authenticated','private.legal_is_admin(uuid)','EXECUTE') THEN
+  IF NOT has_function_privilege('authenticated','private.legal_is_admin(uuid)','EXECUTE') THEN
     RAISE EXCEPTION 'RC482_EXISTING_AUTHENTICATED_HELPER_EXECUTE_CHANGED';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM pg_proc
+    WHERE oid='private.legal_is_admin(uuid)'::regprocedure
+      AND pronargs=0
+  ) THEN
+    RAISE EXCEPTION 'RC482_AMBIGUOUS_ZERO_ARGUMENT_OVERLOAD_REMAINS';
   END IF;
   IF has_function_privilege('anon','public.legal_assert_admin_backend(uuid)','EXECUTE')
      OR has_function_privilege('authenticated','public.legal_assert_admin_backend(uuid)','EXECUTE')
