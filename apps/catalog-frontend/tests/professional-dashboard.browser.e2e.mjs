@@ -524,16 +524,16 @@ try {
     const { context, page } = await newScenario(browser, null, paginationFixtures);
     try {
       await page.getByText('نتائج البحث الموحدة (45)', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
-      const testCards = page.getByRole('heading').filter({ hasText: /^نشاط اختبار التصفح \d{2}$/ });
+      const testCards = page.getByRole('heading').filter({ hasText: /^نشاط اختبار التصفح [0-9]{2}$/ });
       await testCards.first().waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(await testCards.count(), 20, 'directory must render exactly the first 20 activity cards');
       await page.getByRole('button', { name: 'رؤية المزيد من الأنشطة', exact: true }).click();
       await page.waitForFunction(() => [...document.querySelectorAll('h3')]
-        .filter((node) => /^نشاط اختبار التصفح \d{2}$/.test((node.textContent || '').trim())).length === 40);
+        .filter((node) => /^نشاط اختبار التصفح [0-9]{2}$/.test((node.textContent || '').trim())).length === 40);
       assert.equal(await testCards.count(), 40, 'first load-more action must append exactly 20 activity cards');
       await page.getByRole('button', { name: 'رؤية المزيد من الأنشطة', exact: true }).click();
       await page.waitForFunction(() => [...document.querySelectorAll('h3')]
-        .filter((node) => /^نشاط اختبار التصفح \d{2}$/.test((node.textContent || '').trim())).length === 45);
+        .filter((node) => /^نشاط اختبار التصفح [0-9]{2}$/.test((node.textContent || '').trim())).length === 45);
       assert.equal(await testCards.count(), 45, 'last load-more action must append the remaining activities without duplicates');
       results.push('directory-progressive-pagination-20-20-remaining-five');
     } finally { await context.close(); }
@@ -641,7 +641,7 @@ try {
       await page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first().click();
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
-      const cursorCards = page.getByRole('heading').filter({ hasText: /^عيادة اختبار المؤشر \\d{2}$/ });
+      const cursorCards = page.getByRole('heading').filter({ hasText: /^عيادة اختبار المؤشر [0-9]{2}$/ });
       const matchesDirectoryPageRequest = (request, specialtyPage) =>
         request.taxonomyCategoryId === 'cat_medical_health_medical_practices' &&
         (specialtyPage ? request.taxonomySpecialty === 'باطنة' : !request.taxonomySpecialty) &&
@@ -661,7 +661,7 @@ try {
       const waitForTwentyCards = async (label) => {
         try {
           await page.waitForFunction(() => [...document.querySelectorAll('h3')]
-            .filter((node) => /^عيادة اختبار المؤشر \\d{2}$/.test((node.textContent || '').trim())).length === 20,
+            .filter((node) => /^عيادة اختبار المؤشر [0-9]{2}$/.test((node.textContent || '').trim())).length === 20,
           null, { timeout: 15000 });
         } catch {
           throw new Error(label + '. Page requests: ' + JSON.stringify(directoryListingPageRequests) +
@@ -688,7 +688,7 @@ try {
 
       await page.getByRole('button', { name: 'رؤية المزيد من هذا التخصص', exact: true }).click();
       await page.waitForFunction(() => [...document.querySelectorAll('h3')]
-        .filter((node) => /^عيادة اختبار المؤشر \d{2}$/.test((node.textContent || '').trim())).length === 25);
+        .filter((node) => /^عيادة اختبار المؤشر [0-9]{2}$/.test((node.textContent || '').trim())).length === 25);
       assert.equal(await cursorCards.count(), 25, 'cursor continuation must append the remaining five public listings without duplicates');
       const specialtyPageRequest = directoryListingPageRequests.find((request) =>
         request.taxonomyCategoryId === 'cat_medical_health_medical_practices' && request.taxonomySpecialty === 'باطنة' && !request.cursor);
