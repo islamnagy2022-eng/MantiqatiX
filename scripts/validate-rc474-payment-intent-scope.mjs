@@ -13,6 +13,8 @@ const checks = [
   ["non-customer membership is bound to exact business and branch", migration.includes("m.business_id=v_order.business_id") && migration.includes("m.branch_id=v_order.branch_id") && migration.includes("'BUSINESS_OWNER'")],
   ["tenant-wide membership requires both scope columns NULL", migration.includes("m.business_id IS NULL AND m.branch_id IS NULL")],
   ["customer ownership uses IS DISTINCT FROM so NULL customer orders require staff authorization", migration.includes("v_order.customer_id IS DISTINCT FROM v_uid")],
+  ["NULL order totals fail closed even if a caller supplies total_amount", migration.includes("v_order.total IS NULL") && integration.includes("payment intent accepted an order with NULL total")],
+  ["preflight verifies the complete orders, memberships and payment_intents schema", migration.includes("payment_intents','payment_method','character varying") && migration.includes("orders','pricing_authority','character varying")],
   ["financial role authorization is evaluated within the same business/branch predicate", /upper\(m\.role::text\) IN \('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','FINANCE','ACCOUNTANT','FINANCE_MANAGER'\)[\s\S]*?m\.business_id=v_order\.business_id[\s\S]*?m\.branch_id=v_order\.branch_id/.test(migration)],
   ["all table and auth references are schema-qualified", migration.includes("public.orders") && migration.includes("public.user_memberships") && migration.includes("public.payment_intents") && migration.includes("auth.uid()") && migration.includes("auth.jwt()")],
   ["authenticated and service_role grants remain; anon and PUBLIC are revoked", migration.includes("TO authenticated, service_role") && /FROM PUBLIC, anon/i.test(migration)],
