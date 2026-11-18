@@ -2067,3 +2067,14 @@ The V6 root has already removed the standalone medical page. This follow-up also
 
 
 Production schema cross-check (read-only) found the claim/listing/membership/business definitions and triggers. Production currently has the nullable-branch unique index `uk_user_biz_branch`, not the repository's null-safe index; migration version `20261027090000` is absent from production migration history. Preflight found 10 business-wide memberships and no duplicate user/business groups, but the missing uniqueness invariant remains. A deferred default-owner trigger and legal activation triggers must be accounted for in any RPC. Aggregate state: one REVIEWING claim and one CLAIM_PENDING listing. No identifiers or contact data read; no DB writes. See the updated audit report.
+
+
+## 2026-11-18 — Pass 481–500 neutral catalog image fallback
+
+- PR #780 merged as `2e47364c19af0771a09ea70abae80162e2fa5825`.
+- Unknown activity/product/service categories now use the existing neutral business/item placeholders instead of being mislabeled visually as grocery.
+- Recognized category-specific artwork and owner-supplied images retain precedence; no layout, database, Auth, RLS, grants, Edge or production-data changes.
+- Exact-head PR checks passed. Main Primary Catalog Frontend Validation run `44232355362` passed.
+- GitHub Pages run `44232355366` passed validation, deployment and deployed-origin browser verification for the legacy root, rollback path, V6 preview alias and dashboard/mobile/QR routes.
+- Latest verified main at this checkpoint: `2e47364c19af0771a09ea70abae80162e2fa5825`.
+- Active next release unit: PR #776 / RC475 Paymob replay binding. Keep it unmerged until the exact-head PostgreSQL integration, two-session concurrent replay, forward-chain replay, migration checks and Pages validation all pass. Production remains read-only; verified off-site backup/restore is still required before any Production migration or Edge deployment.

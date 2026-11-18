@@ -2842,3 +2842,15 @@ Evidence branch: `fix/e2e-directory-card-heading-query-20261118`; source change 
 - Supabase Free plan; no verified off-site backup/restore artifact. Production remained read-only; no schema, Edge, Auth/RLS/GRANT, payment or settlement mutation.
 - Next: finish PR #776 exact-head checks, verify concurrent replay behavior, obtain restore-tested backup, then plan coordinated migration + Edge rollout.
 
+
+
+## 2026-11-18 — Pass 481–500 — neutral catalog fallback integration
+
+- Fixed category inference fallback so unknown catalog categories no longer display grocery-specific imagery.
+- Unknown activities use the existing neutral business placeholder; unknown products/services use the neutral catalog-item placeholder.
+- Existing category artwork and owner-selected images are unchanged. Added static regression assertions for category fallback and local assets.
+- PR #780 merged as `2e47364c19af0771a09ea70abae80162e2fa5825`.
+- Exact-head PR workflows passed; post-merge Primary Catalog Frontend Validation run `44232355362` passed.
+- Pages run `44232355366` passed all 3 jobs, including deployed-origin browser checks for root, legacy rollback, preview alias and dashboard/mobile/QR routes.
+- No Production Supabase or payment/financial mutation. Current main at checkpoint: `2e47364c19af0771a09ea70abae80162e2fa5825`.
+- Next active work: PR #776 RC475; fixed the missing SQL function terminator, expanded the required migration verifier/manifest from 42 to 54 exact versions (RC464–RC475), and added a true two-session concurrent replay regression. RC475 isolated PostgreSQL workflow is passing; full forward-chain replay and remaining PR checks are still running. No merge or Production rollout yet.
