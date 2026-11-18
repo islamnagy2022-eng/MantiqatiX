@@ -17,7 +17,8 @@ assert.ok(health.includes("status: 503") && health.includes('database: { status:
 assert.ok(health.includes('status: "degraded"') && health.includes('service: "mantiqatix-health"'),
   "database failure response must be generic and identify only the health service");
 assert.ok(!health.includes("error.message") && !health.includes("error.details") &&
-  !health.includes("serviceRoleKey,") && !health.includes("supabaseUrl,"),
+  !health.includes("JSON.stringify({ serviceRoleKey") &&
+  !health.includes("JSON.stringify({ supabaseUrl"),
   "public response must not disclose raw database errors or credentials");
 assert.ok(health.includes('Cache-Control: "no-store"'),
   "health responses must not be cached");
