@@ -2140,3 +2140,23 @@ Evidence: `docs/audits/PASS_301_330_DIRECTORY_CONTACT_CONSENT_20261118.md`. Sour
 Release status: BLOCKED / NOT CERTIFIED. PR merge does not mean Production migration or Edge deployment. No Production schema, data, Auth, RLS, GRANT, Edge, payment or settlement mutation occurred in this pass.
 
 Evidence: docs/audits/PASS_331_340_RC473_MERGE_VERIFICATION_20261118.md.
+
+
+---
+
+## Pass 341–350 — Production parity and Supabase security-advisor triage (2026-11-18)
+
+- [x] Re-check live Supabase migration ledger: 310 migrations; latest applied version remains 20261110150618.
+- [x] Confirm RC472 and RC473 are not present in the live migration ledger; do not apply either migration in this pass.
+- [x] Confirm live Edge Function versions: directory-listings v16, public-catalog v8, public-catalog-directory v18. The merged RC473 source has not been deployed to Production.
+- [x] Re-run Supabase security, performance and health advisors; health advisor returned zero lints.
+- [x] Triage the single anon-executable SECURITY DEFINER function: get_mnty_targeted_advertisements returns active, approved public ad creative/targeting only, has empty search_path, and caps result count at 50. Keep as an intentional public-ad API exception pending a dedicated ACL regression test.
+- [x] Review six authenticated-executable SECURITY DEFINER wrappers without a direct auth.uid() occurrence. The inspected wrappers delegate to auth.uid()-scoped membership or financial/catalog helpers; no immediate grant change made.
+- [!] Record security advisor baseline: 65 authenticated-executable SECURITY DEFINER functions; leaked-password protection disabled; 9 RLS-enabled/no-policy INFO findings; 28 multiple-permissive-policy warnings.
+- [!] Record performance baseline: 132 unindexed foreign keys, 375 RLS init-plan findings, and 71 unused-index notices. Do not mass-change indexes/policies without query-plan and access-model review.
+- [ ] Enable and verify leaked-password protection through the supported Auth project settings control.
+- [ ] Review all 65 SECURITY DEFINER functions individually for authorization, search_path, grants, tenant/branch scope and data exposure; prioritize financial, admin and user-data functions.
+- [ ] Add a specific regression test for the intended anonymous public-ad RPC and its output/limit/ACL contract.
+- [ ] Continue P0 security review and production release gates; backup/restore and source-rights blockers remain unresolved.
+
+Evidence: docs/audits/PASS_341_350_PRODUCTION_PARITY_SECURITY_ADVISORS_20261118.md. Read-only audit only; no Production schema, data, Auth, RLS, GRANT, Edge, payment or settlement mutation.
