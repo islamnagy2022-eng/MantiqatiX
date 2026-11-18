@@ -17,7 +17,7 @@ AS $function$
   );
 $function$;
 
-CREATE OR REPLACE FUNCTION private.legal_is_admin(p_user_id uuid DEFAULT NULL::uuid)
+CREATE OR REPLACE FUNCTION private.legal_is_admin(p_user_id uuid)
 RETURNS boolean
 LANGUAGE sql
 STABLE
