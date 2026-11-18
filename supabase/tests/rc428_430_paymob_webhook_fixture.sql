@@ -26,6 +26,9 @@ create table public.businesses (
 create table public.orders (
   id uuid primary key,
   tenant_id varchar not null,
+  business_id uuid not null,
+  assigned_partner_id uuid,
+  payment_method varchar not null,
   status varchar not null,
   total numeric,
   currency varchar not null,
@@ -43,6 +46,7 @@ create table public.payment_intents (
   status varchar not null,
   provider varchar not null,
   provider_order_id text,
+  payment_method varchar not null,
   pricing_version bigint,
   pricing_hash varchar,
   updated_at timestamptz not null default now()
@@ -110,6 +114,39 @@ CREATE UNIQUE INDEX uq_business_subscriptions_idempotency
 CREATE UNIQUE INDEX uq_subscription_payment_intents_provider_order
   ON public.subscription_payment_intents(provider, provider_order_id)
   WHERE provider_order_id IS NOT NULL;
+
+CREATE TABLE public.commission_rules (
+  id varchar PRIMARY KEY, tenant_id varchar NOT NULL, business_id uuid,
+  rule_type varchar NOT NULL, percentage numeric, fixed_amount numeric,
+  active boolean NOT NULL, updated_at timestamptz NOT NULL,
+  calculation_mode text NOT NULL, scope_type text NOT NULL, eligibility_event text NOT NULL,
+  rule_priority integer NOT NULL, is_exempt boolean NOT NULL, approval_status text NOT NULL,
+  version_no integer NOT NULL
+);
+CREATE TABLE public.financial_obligations (
+  id varchar PRIMARY KEY, tenant_id varchar NOT NULL, business_id uuid, order_id uuid,
+  payment_intent_id varchar, beneficiary_type varchar NOT NULL, beneficiary_id varchar NOT NULL,
+  obligation_type varchar NOT NULL, gross_amount numeric NOT NULL, amount numeric NOT NULL,
+  currency varchar NOT NULL, status varchar NOT NULL, payment_method varchar, settled_at timestamptz,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb
+);
+CREATE TABLE public.commission_transactions (
+  id varchar PRIMARY KEY, tenant_id varchar NOT NULL, business_id uuid NOT NULL, order_id uuid NOT NULL,
+  rule_id varchar, gross_amount numeric NOT NULL, commission_amount numeric NOT NULL,
+  status varchar NOT NULL, created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX uq_commission_transactions_order_id ON public.commission_transactions(order_id);
+CREATE TABLE public.payment_financial_reconciliations (
+  id varchar PRIMARY KEY, tenant_id varchar NOT NULL, payment_intent_id varchar NOT NULL,
+  provider_event_id varchar, order_id uuid NOT NULL, currency varchar NOT NULL,
+  gross_amount numeric NOT NULL, commission_amount numeric NOT NULL,
+  provider_received_amount numeric NOT NULL, provider_payout_amount numeric NOT NULL,
+  commission_obligation_id varchar, provider_obligation_id varchar, commission_transaction_id varchar,
+  reconciliation_status varchar NOT NULL, ledger_status varchar NOT NULL,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb, updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX uk_payment_financial_reconciliation
+  ON public.payment_financial_reconciliations(tenant_id,payment_intent_id);
 
 create or replace function public.legal_assert_action(
   p_actor_user_id uuid,
