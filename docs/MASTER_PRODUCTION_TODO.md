@@ -1,6 +1,6 @@
 # CURRENT CONTINUATION SNAPSHOT — 2026-11-18
 
-**Main baseline:** `d0a525d728037fe60d73bb9ca6861b5424af6a8d` (PR #801 merged; duplicate PWA install control removed).  
+**Main baseline:** `54fcf4be74a5892a84ffdb20c85abc67a9e36643` (PR #801 merged its V6 Preview Navbar change; PR #802 merged the MantiGO CI path-filter fix). The live published root remains the legacy catalog; V6 is served at `/v6-preview/`.  
 **Production release:** `BLOCKED / NOT CERTIFIED`.
 
 ## Verified current state
@@ -10,7 +10,7 @@
 - Main exact-SHA Backend-only Module Boundary: PASS (run 44353398914).
 - Main exact-SHA MantiGO Open Ride Privacy Boundary: PASS (run 44353398757).
 - Main Production Health Monitor: PASS (run 44353398844). This checks site/runtime/database read probe/assets only; it is not a backup or restore check.
-- Main Pages deployment run 44353398832 was still in progress at this snapshot; do not infer deployment success until its deploy job completes.
+- The deployment run for the prior main SHA was cancelled when a newer main run started. The latest main Pages deployment run 44354272865 and its deployed-origin verification must complete before claiming the V6 Preview change has reached its alias.
 - Live Supabase organization plan: Free. Supabase's official backup documentation says automatic daily database backups are for Pro/Team/Enterprise; Free projects should use Supabase CLI logical exports and keep off-site backups.
 - Live migration ledger: 310 rows, latest `20261110150618`. `public.directory_listing_contact_consents` is absent.
 - Live `directory-listings` Edge Function: ACTIVE v16. Current main source has consent-aware output and the address-consent pagination fix; Production schema/function parity is not closed.
@@ -19,7 +19,7 @@
 ## Newly completed source work
 
 - PR #801 merged: remove duplicate PWA install action without replacing mobile web/PWA.
-- PR #802 opened: fix the MantiGO SECURITY DEFINER workflow path filters. Its exact-head MantiGO Platform Admin Scope Hardening, Module Professionalization, Backend-only Module Boundary, MantiGO privacy and Paymob atomicity workflows passed; its Deploy MantiqatiX Web PR validation was still running at this snapshot.
+- PR #802 merged as `54fcf4be74a5892a84ffdb20c85abc67a9e36643`: corrected duplicate pull-request path filters and added the two high-risk SECURITY DEFINER validator files to the push-to-main trigger. Exact-head CI passed, including the MantiGO Platform Admin Scope Hardening workflow.
 - PR #803 opened: document the R7 Android wrapper buildability/security gaps and the Free-plan recovery gate. It is documentation-only.
 
 ## Next executable sequence
