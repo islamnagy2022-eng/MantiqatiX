@@ -1,3 +1,21 @@
+# Latest execution checkpoint — 2026-11-18 — Pass 641–660 MantiGO open-ride privacy forward repair
+
+**Code baseline:** `4b6fb5e40d57091c9d4a90034639e9b92d779fc5`.  
+**Candidate branch:** `fix/rc478-mantigo-open-ride-privacy-forward-repair-20261118`.  
+**Production:** **BLOCKED / NOT CERTIFIED**.
+
+- Read-only Production inspection confirmed `list_open_mantigo_rides_backend(uuid)` exposes open-ride route locations to any authenticated actor without the RC446 active/verified/available captain gate or vehicle-category scope.
+- The original RC446 source identity `20261010060000` is absent from the live ledger; current ledger remains 310 records through `20261110150618`.
+- RC478 is a new forward-only repair: rejects anonymous Auth JWTs, binds the caller, requires active/verified/available captain profile, filters by captain vehicle category, preserves RPC response fields and authenticated-only grants, and pins `search_path=pg_catalog`.
+- Added disposable behavior tests and extended the RC446/RC477 workflow. No Production SQL/Auth/RLS/GRANT/Edge/payment/settlement mutation.
+- Canonical release ledger contract is expanded to 57 exact version identifiers, including RC476–RC478; live exact ledger remains 0/57.
+
+**Next:** exact-head RC478 workflow, migration chain replay, and function-by-function remaining direct-auth RPC review. Keep Production rollout blocked until backup/restore evidence and full migration/Edge parity pass.
+
+Evidence: `docs/audits/PASS_641_660_MANTIGO_OPEN_RIDE_PRIVACY_20261118.md`.
+
+---
+
 # Latest execution checkpoint — 2026-11-18 — RC477 customer bid privacy fix merged
 
 **Current main:** `613bcb654202a2a5bfb6028d43e7b80b9a772388`.  
