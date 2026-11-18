@@ -623,6 +623,7 @@ DECLARE
   v_intent record; v_order record; v_commission numeric := 0; v_rule record;
   v_platform_received numeric := greatest(0, coalesce(p_platform_received_amount,0));
   v_existing_event public.payment_provider_events%rowtype;
+  v_existing_reconciliation public.payment_financial_reconciliations%rowtype;
   v_commission_tx_id varchar := 'electronic_commission:' || p_payment_intent_id;
   v_reconciliation_id varchar := 'payment_reconciliation:' || p_payment_intent_id;
 BEGIN
@@ -652,13 +653,24 @@ BEGIN
     RETURN jsonb_build_object('status','success','idempotent',true,'payment_intent_id',p_payment_intent_id,'reconciliation_id',v_reconciliation_id);
   END IF;
   IF v_intent.status = 'SUCCEEDED' THEN
+    SELECT * INTO v_existing_reconciliation
+    FROM public.payment_financial_reconciliations
+    WHERE tenant_id=p_tenant_id AND payment_intent_id=p_payment_intent_id
+    FOR UPDATE;
+    IF NOT FOUND
+       OR v_existing_reconciliation.provider_event_id IS DISTINCT FROM p_external_event_id
+       OR v_existing_reconciliation.gross_amount IS DISTINCT FROM v_order.total
+       OR upper(v_existing_reconciliation.currency::text) IS DISTINCT FROM upper(v_order.currency::text)
+       OR upper(v_existing_reconciliation.reconciliation_status::text) IS DISTINCT FROM 'RECONCILED' THEN
+      RAISE EXCEPTION 'PAYMENT_INTENT_ALREADY_FINAL_WITHOUT_MATCHING_RECONCILIATION';
+    END IF;
     INSERT INTO public.payment_provider_events(id,tenant_id,provider,event_type,payment_intent_id,external_event_id,status,signature_verified,raw_payload,processed_at)
     VALUES (p_event_id,p_tenant_id,p_provider,coalesce(nullif(p_event_type, ''), 'TRANSACTION'),p_payment_intent_id,p_external_event_id,'PROCESSED',true,'{}'::jsonb,now()) ON CONFLICT DO NOTHING;
     RETURN jsonb_build_object('status','success','idempotent',true,'payment_intent_id',p_payment_intent_id,'reconciliation_id',v_reconciliation_id);
   END IF;
   IF v_intent.status NOT IN ('CREATED','PENDING') THEN RAISE EXCEPTION 'INVALID_PAYMENT_STATE: %', v_intent.status; END IF;
   INSERT INTO public.payment_provider_events(id,tenant_id,provider,event_type,payment_intent_id,external_event_id,status,signature_verified,raw_payload,processed_at)
-  VALUES (p_event_id,p_tenant_id,p_provider,p_event_type,p_payment_intent_id,p_external_event_id,'PROCESSED',true,'{}'::jsonb,now());
+  VALUES (p_event_id,p_tenant_id,p_provider,coalesce(nullif(p_event_type, ''), 'TRANSACTION'),p_payment_intent_id,p_external_event_id,'PROCESSED',true,'{}'::jsonb,now());
   SELECT cr.id,cr.rule_type,cr.percentage,cr.fixed_amount INTO v_rule
   FROM public.commission_rules cr
   WHERE cr.tenant_id=p_tenant_id AND cr.active=true AND (cr.business_id=v_order.business_id OR cr.business_id IS NULL)
