@@ -29,7 +29,8 @@ GRANT SELECT (
   published_at,
   effective_at,
   content_hash,
-  content
+  content,
+  status
 ) ON TABLE public.legal_document_versions TO service_role;
 
 GRANT SELECT (
