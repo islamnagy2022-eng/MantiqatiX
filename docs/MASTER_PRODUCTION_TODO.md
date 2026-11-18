@@ -5,12 +5,12 @@
 
 ## Verified current state
 
-- Main exact-SHA frontend validation: PASS (run 44353399004).
-- Main exact-SHA Module Professionalization Validation: PASS (run 44353398818).
-- Main exact-SHA Backend-only Module Boundary: PASS (run 44353398914).
-- Main exact-SHA MantiGO Open Ride Privacy Boundary: PASS (run 44353398757).
-- Main Production Health Monitor: PASS (run 44353398844). This checks site/runtime/database read probe/assets only; it is not a backup or restore check.
-- The deployment run for the prior main SHA was cancelled when a newer main run started. The latest main Pages deployment run 44354272865 and its deployed-origin verification must complete before claiming the V6 Preview change has reached its alias.
+- Primary Catalog Frontend Validation passed on the immediately preceding app-source main SHA (run 44353399004); PR #802 changed only CI path filters, not frontend code.
+- Current main SHA `54fcf4be74a5892a84ffdb20c85abc67a9e36643` Module Professionalization Validation: PASS (run 44354272313).
+- Current main SHA Backend-only Module Boundary: PASS (run 44354272750).
+- Current main SHA MantiGO Open Ride Privacy Boundary: PASS (run 44354272696).
+- Current main SHA Production Health Monitor: PASS (run 44354272821). This checks site/runtime/database read probe/assets only; it is not a backup or restore check.
+- The deployment run for the prior main SHA was cancelled when a newer main run started. Latest main Pages deployment run 44354272865 is still in progress; its deployed-origin verification must complete before claiming the V6 Preview change has reached its alias.
 - Live Supabase organization plan: Free. Supabase's official backup documentation says automatic daily database backups are for Pro/Team/Enterprise; Free projects should use Supabase CLI logical exports and keep off-site backups.
 - Live migration ledger: 310 rows, latest `20261110150618`. `public.directory_listing_contact_consents` is absent.
 - Live `directory-listings` Edge Function: ACTIVE v16. Current main source has consent-aware output and the address-consent pagination fix; Production schema/function parity is not closed.
@@ -24,7 +24,7 @@
 
 ## Next executable sequence
 
-1. Verify PR #802 deployment validation and merge the CI trigger fix when all exact-head checks pass.
+1. Verify main Pages deployment run 44354272865 and deployed-origin checks.
 2. Verify PR #803 documentation checks and merge without changing Production.
 3. Obtain owner-operated encrypted off-site database exports and separate Storage/configuration recovery copies; never commit or upload production data as public GitHub artifacts.
 4. Restore to an isolated disposable target, record measured RPO/RTO, and run tenant isolation, privacy, migration replay, financial reconciliation and application smoke tests.
