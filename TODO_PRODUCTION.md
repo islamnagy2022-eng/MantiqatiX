@@ -2253,6 +2253,7 @@ Evidence: `docs/audits/PASS_421_440_PAYMENT_INTENT_SCOPE_20261118.md`. Productio
 ## Pass 441–460 — source and Pages truth reconciliation (2026-11-18)
 
 - [x] Verify actual Pages root composition from workflow and completed deployment logs.
+- [x] Verify post-PR #774 deploy job success (13/13 steps) and deployed-origin PRIMARY_CATALOG_BROWSER_E2E PASS on run `44227174978`; aggregate workflow was cancelled after the optional public-only validation job was cancelled.
 - [x] Correct README: legacy catalog is production root; /legacy/ is rollback copy; /v6-preview/ is preview only.
 - [x] Audit latest uploaded R7 archive by exact SHA-256, not filename alone.
 - [x] Record 270 ZIP entries, 118 source files, Android wrapper files and missing build/release artifacts.
