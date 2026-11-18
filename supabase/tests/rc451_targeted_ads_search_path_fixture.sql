@@ -1,31 +1,174 @@
--- Disposable PostgreSQL fixture for RC451 only.
+-- Disposable PostgreSQL fixture for RC451 targeted-ad public read contract.
+-- Synthetic rows only; no Production data or credentials.
 create role anon nologin;
 create role authenticated nologin;
 
+create table public.advertisements (
+  id varchar primary key,
+  title varchar not null,
+  creative_url text not null,
+  target_url text not null,
+  ad_space_id varchar not null,
+  status varchar not null,
+  approval_status varchar not null,
+  start_at timestamptz,
+  end_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create table public.advertisement_target_locations (
+  advertisement_id varchar not null,
+  geo_area_id uuid not null
+);
+
+create table public.platform_geo_areas (
+  id uuid primary key,
+  level varchar not null,
+  code varchar,
+  latitude double precision,
+  longitude double precision,
+  status varchar not null,
+  country_code varchar not null
+);
+
+create table public.platform_global_advertisements (
+  id uuid primary key default gen_random_uuid(),
+  title varchar not null,
+  creative_url text not null,
+  target_url text not null,
+  ad_space_id varchar not null,
+  status varchar not null,
+  approval_status varchar not null,
+  start_at timestamptz,
+  end_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+insert into public.platform_geo_areas(id,level,code,latitude,longitude,status,country_code) values
+ ('00000000-0000-4000-8000-000000000001','COUNTRY','EG',26.8206,30.8025,'ACTIVE','EG'),
+ ('00000000-0000-4000-8000-000000000017','GOVERNORATE','17',30.5972,30.9876,'ACTIVE','EG'),
+ ('00000000-0000-4000-8000-000000000117','CENTER','1701',30.6440,30.6940,'ACTIVE','EG');
+
+insert into public.advertisements
+ (id,title,creative_url,target_url,ad_space_id,status,approval_status,start_at,end_at,created_at)
+values
+ ('ad-center','Center active','https://cdn.example.test/center.webp','https://example.test/center','HOME_SPONSORED','ACTIVE','APPROVED',null,null,now()),
+ ('ad-governorate','Governorate active','https://cdn.example.test/gov.webp','https://example.test/gov','HOME_SPONSORED','ACTIVE','APPROVED',null,null,now()-interval '1 minute'),
+ ('ad-inactive','Inactive','https://cdn.example.test/inactive.webp','https://example.test/inactive','HOME_SPONSORED','PAUSED','APPROVED',null,null,now()),
+ ('ad-pending','Pending','https://cdn.example.test/pending.webp','https://example.test/pending','HOME_SPONSORED','ACTIVE','PENDING',null,null,now()),
+ ('ad-expired','Expired','https://cdn.example.test/expired.webp','https://example.test/expired','HOME_SPONSORED','ACTIVE','APPROVED',null,now()-interval '1 hour',now()),
+ ('ad-future','Future','https://cdn.example.test/future.webp','https://example.test/future','HOME_SPONSORED','ACTIVE','APPROVED',now()+interval '1 hour',null,now()),
+ ('ad-other-space','Other placement','https://cdn.example.test/other.webp','https://example.test/other','HOME_HERO','ACTIVE','APPROVED',null,null,now());
+
+insert into public.advertisement_target_locations(advertisement_id,geo_area_id) values
+ ('ad-center','00000000-0000-4000-8000-000000000117'),
+ ('ad-center','00000000-0000-4000-8000-000000000017'),
+ ('ad-governorate','00000000-0000-4000-8000-000000000017'),
+ ('ad-inactive','00000000-0000-4000-8000-000000000017'),
+ ('ad-pending','00000000-0000-4000-8000-000000000017'),
+ ('ad-expired','00000000-0000-4000-8000-000000000017'),
+ ('ad-future','00000000-0000-4000-8000-000000000017'),
+ ('ad-other-space','00000000-0000-4000-8000-000000000017');
+
+insert into public.platform_global_advertisements
+ (id,title,creative_url,target_url,ad_space_id,status,approval_status,start_at,end_at,created_at)
+values
+ ('00000000-0000-4000-8000-000000000101','Global active','https://cdn.example.test/global.webp','https://example.test/global','HOME_SPONSORED','ACTIVE','APPROVED',null,null,now()),
+ ('00000000-0000-4000-8000-000000000102','Global inactive','https://cdn.example.test/global-inactive.webp','https://example.test/global-inactive','HOME_SPONSORED','PAUSED','APPROVED',null,null,now()),
+ ('00000000-0000-4000-8000-000000000103','Global pending','https://cdn.example.test/global-pending.webp','https://example.test/global-pending','HOME_SPONSORED','ACTIVE','PENDING',null,null,now()),
+ ('00000000-0000-4000-8000-000000000104','Global expired','https://cdn.example.test/global-expired.webp','https://example.test/global-expired','HOME_SPONSORED','ACTIVE','APPROVED',null,now()-interval '1 hour',now()),
+ ('00000000-0000-4000-8000-000000000105','Global future','https://cdn.example.test/global-future.webp','https://example.test/global-future','HOME_SPONSORED','ACTIVE','APPROVED',now()+interval '1 hour',null,now()),
+ ('00000000-0000-4000-8000-000000000106','Global other placement','https://cdn.example.test/global-other.webp','https://example.test/global-other','HOME_HERO','ACTIVE','APPROVED',null,null,now());
+
+-- 51 approved global ads exercise the hard maximum and minimum limit clamps.
+insert into public.platform_global_advertisements
+ (title,creative_url,target_url,ad_space_id,status,approval_status,created_at)
+select
+ 'Limit fixture '||g,
+ 'https://cdn.example.test/limit-'||g||'.webp',
+ 'https://example.test/limit-'||g,
+ 'LIMIT_TEST','ACTIVE','APPROVED',now()-(g||' seconds')::interval
+from generate_series(1,51) g;
+
 create or replace function public.get_mnty_targeted_advertisements(
-  character varying,
-  character varying,
-  character varying,
-  double precision,
-  double precision,
-  character varying,
-  integer
+ p_country_code varchar default 'EG',
+ p_governorate_code varchar default null,
+ p_center_code varchar default null,
+ p_lat double precision default null,
+ p_lon double precision default null,
+ p_ad_space_id varchar default null,
+ p_limit integer default 3
 )
 returns table(
-  advertisement_id character varying,
-  title character varying,
-  creative_url text,
-  target_url text,
-  ad_space_id character varying,
-  match_level character varying,
-  distance_km double precision
+ advertisement_id varchar,
+ title varchar,
+ creative_url text,
+ target_url text,
+ ad_space_id varchar,
+ match_level varchar,
+ distance_km double precision
 )
 language sql
 security definer
 set search_path = public, pg_temp
 as $function$
-  select null::varchar,null::varchar,null::text,null::text,null::varchar,null::varchar,null::double precision
-  where false
+with active_ads as (
+ select a.id,a.title,a.creative_url,a.target_url,a.ad_space_id,a.created_at
+ from public.advertisements a
+ where a.status='ACTIVE' and a.approval_status='APPROVED'
+   and (a.start_at is null or a.start_at<=now())
+   and (a.end_at is null or a.end_at>=now())
+   and (p_ad_space_id is null or a.ad_space_id=p_ad_space_id)
+),
+raw as (
+ select a.id,a.title,a.creative_url,a.target_url,a.ad_space_id,
+        g.level,g.code,g.latitude,g.longitude,a.created_at,
+        case
+          when g.level='CENTER' and p_center_code is not null and g.code=p_center_code then 1
+          when g.level='GOVERNORATE' and p_governorate_code is not null and g.code=p_governorate_code then 2
+          when g.level='COUNTRY' and g.code=coalesce(p_country_code,'EG') then 3
+          when p_lat is not null and p_lon is not null and g.latitude is not null and g.longitude is not null then 4
+          else 5
+        end match_rank,
+        case when p_lat is null or p_lon is null or g.latitude is null or g.longitude is null then null
+          else 6371.0088*2*asin(sqrt(
+            power(sin(radians(g.latitude-p_lat)/2),2)
+            + cos(radians(p_lat))*cos(radians(g.latitude))
+            * power(sin(radians(g.longitude-p_lon)/2),2)
+          )) end km
+ from active_ads a
+ join public.advertisement_target_locations t on t.advertisement_id=a.id
+ join public.platform_geo_areas g on g.id=t.geo_area_id
+ where g.status='ACTIVE' and g.country_code=coalesce(p_country_code,'EG')
+),
+global_ads as (
+ select ('GLOBAL-'||g.id::text)::varchar id,g.title,g.creative_url,g.target_url,g.ad_space_id,
+        'COUNTRY'::varchar level,null::varchar code,null::double precision latitude,
+        null::double precision longitude,g.created_at,6::integer match_rank,
+        null::double precision km
+ from public.platform_global_advertisements g
+ where g.status='ACTIVE' and g.approval_status='APPROVED'
+   and (g.start_at is null or g.start_at<=now())
+   and (g.end_at is null or g.end_at>=now())
+   and (p_ad_space_id is null or g.ad_space_id=p_ad_space_id)
+),
+combined as (
+ select id,title,creative_url,target_url,ad_space_id,level,code,latitude,longitude,created_at,match_rank,km from raw
+ union all
+ select id,title,creative_url,target_url,ad_space_id,level,code,latitude,longitude,created_at,match_rank,km from global_ads
+),
+best_per_ad as (
+ select *,row_number() over(partition by id order by match_rank,km nulls last,created_at desc nulls last) rn
+ from combined
+)
+select b.id,b.title,b.creative_url,b.target_url,b.ad_space_id,
+ case b.match_rank when 1 then 'CENTER' when 2 then 'GOVERNORATE'
+      when 3 then 'COUNTRY' when 4 then 'NEAREST' else 'GLOBAL' end,
+ b.km
+from best_per_ad b
+where b.rn=1
+order by b.match_rank,b.km nulls last,b.created_at desc nulls last,b.id
+limit greatest(1,least(coalesce(p_limit,3),50));
 $function$;
 
 revoke all on function public.get_mnty_targeted_advertisements(varchar,varchar,varchar,double precision,double precision,varchar,integer) from public;
