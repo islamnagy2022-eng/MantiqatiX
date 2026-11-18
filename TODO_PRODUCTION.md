@@ -2499,3 +2499,17 @@ No Production Edge deployment, SQL, migration, GRANT, RLS, Auth, payment, wallet
 No Production Edge deployment, database write, migration, privilege change, Auth change, or Pages deployment occurred. Release remains BLOCKED / NOT CERTIFIED.
 
 - [x] Local verification after the authenticated-token hardening: static contract validator PASS, TypeScript syntax transpilation PASS, and monitor shell syntax check PASS. These local checks do not replace the still-unverified GitHub exact-head CI run.
+
+
+## Pass 781–800 — health probe source integration and RC479 validator closure (2026-11-18)
+
+- [x] Merged PR #813 (352325b344f31345c979c73a8d8013d3df7ad525): corrected the RC479 negative grant-target regex and added self-tests proving authenticated, service_role, and PUBLIC revokes are rejected while the intended anon-only revoke remains allowed.
+- [x] Merged PR #809 (e11acc7c1199b837529f063f67442ef14548c7f8): integrated the GET-only, bearer-token-authenticated, service-role read-only health probe; monitor fallback; static validator; and release/backup runbook updates.
+- [x] Exact PR-head workflow evidence reviewed: PR #813 Module Professionalization validation, RC479 disposable PostgreSQL integration, backend boundary, and web validation completed successfully. PR #809 corresponding validation and RC479 PostgreSQL integration jobs also completed successfully. Empty combined-status responses are not treated as CI failures or passes; workflow-run/job conclusions are the evidence.
+- [x] Verified both merged changes are present on main through the merged PR/file read-back.
+- [ ] Configure the same high-entropy HEALTH_MONITOR_TOKEN as a Supabase Edge secret and GitHub Actions repository secret. Do not paste it into chat or commit it.
+- [ ] Deploy only the reviewed health Edge Function after secret configuration; verify authenticated response reports database.status=ok and monitor logs report PASS (Edge service-role).
+- [ ] Keep the legacy anonymous REST fallback until the new deployed function and monitor mode are independently verified.
+- [ ] Continue the separate chronological migration reconciliation, encrypted backup, disposable restore rehearsal, and rollback gate. Live Production ledger remains 310 migrations through 20261110150618; RC479 20261118190000 is not applied. Do not apply RC479 as a one-off.
+
+Production boundary: deployed Supabase health remains version 3 runtime-only at the time of this checkpoint. No Edge deployment, Production SQL/migration/GRANT/RLS/Auth mutation, payment, wallet, settlement, or destructive data operation was performed. Full platform release remains BLOCKED / NOT CERTIFIED.
