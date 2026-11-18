@@ -234,6 +234,26 @@ begin
   end;
   if not rejected then raise exception 'RC475 accepted an empty provider event id'; end if;
 
+  -- Legacy success events without a matching reconciliation must not be acknowledged as idempotent.
+  insert into public.payment_provider_events(
+    id,tenant_id,provider,event_type,payment_intent_id,external_event_id,status,signature_verified,raw_payload,processed_at
+  ) values (
+    'evt-r475-legacy-without-ledger','tenant-a','PAYMOB','TRANSACTION','pi-final',
+    'paymob:legacy-success-no-ledger','PROCESSED',true,'{}'::jsonb,now()
+  );
+  rejected := false;
+  begin
+    perform public.process_verified_provider_payment(
+      'evt-r475-legacy-without-ledger','tenant-a','PAYMOB','paymob:legacy-success-no-ledger','pi-final',
+      'TRANSACTION',true,100,'EGP',100
+    );
+    raise exception 'TEST_FAILED: RC475 accepted a legacy event without matching reconciliation';
+  exception when others then
+    if sqlerrm <> 'PAYMENT_INTENT_EVENT_WITHOUT_MATCHING_RECONCILIATION' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'RC475 accepted a legacy event without matching reconciliation'; end if;
+
   -- RC475 exact successful order-payment replay is idempotent only for the same intent and final state.
   result := public.process_verified_provider_payment(
     'paymob:txn-success','tenant-a','PAYMOB','paymob:txn-success','pi-success',
