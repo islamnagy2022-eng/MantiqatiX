@@ -21,18 +21,19 @@
 
 Project: `moyhiluyhjsujhwlyeuu`. No SQL, Auth, RLS, GRANT, Edge, payment, wallet or settlement mutation was performed.
 
-### Confirmed scope gap — `preview_commission_backend(...)`
+### Known Production/source parity gap — `preview_commission_backend(...)`
 
-Live function behavior:
+The read-only Production inspection confirms the currently deployed function is the older implementation:
 
 - SECURITY DEFINER, executable by authenticated, not anon.
-- Calls `assert_financial_membership(p_tenant_id)`.
-- The helper validates `auth.uid()`, an ACTIVE membership in the supplied tenant, and a broad financial role. It does **not** validate `p_business_id`, business membership scope, or branch scope.
-- The preview function then selects commission rules by tenant and caller-supplied business/module IDs.
-- Live membership aggregates include 7 active business-scoped BUSINESS_OWNER rows and 2 active branch-scoped BUSINESS_OWNER rows.
-- The live `commission_rules` table currently has no rows. Therefore this is a verified authorization-boundary defect with latent exposure, not evidence that commission data was disclosed.
+- Calls `assert_financial_membership(p_tenant_id)`, which validates `auth.uid()`, an ACTIVE membership in the supplied tenant, and a finance-capable role, but does not bind that actor to `p_business_id` or branch scope.
+- The live `commission_rules` table currently has no rows. This means no commission-rule disclosure was observed; the concern is a latent authorization gap in the currently deployed version.
 
-Do not fix this by broadening or replacing `assert_financial_membership` without review: the helper is called by nine financial routines, including commission creation, payment obligations, settlement, wallet transactions, journal posting, commission preview, cash commission, refunds and commission-rule resolution.
+**Correction after source reconciliation:** this is not a newly discovered/unimplemented source defect. Main already contains the forward-only migration `supabase/migrations/20261115010000_rc467_commission_scope_hardening.sql`, its disposable behavioral test `supabase/tests/rc467_commission_scope_integration.sql`, and static validator `scripts/validate-rc467-commission-scope.mjs`. RC467 replaces the financial preview authorization path: platform-root access uses `mnty_can_platform_admin()`; tenant-wide or exact-business finance memberships may use the branch-less operational preview; branch-scoped finance memberships are explicitly denied because this RPC has no `branch_id` argument. Commission rule draft management, draft preview and resolution are restricted to canonical platform admins.
+
+The RC467 test covers business-owner/branch-owner/tenant-owner denial for commission administration, cross-business finance preview denial, branch-finance preview denial, anonymous preview denial, and valid platform resolution preview. The existing repository continuity record states PR #742 merged the RC464–RC467 source hardening and that 14/14 exact-head workflows passed, including isolated migration replay. This is source/CI evidence, not proof of Production application.
+
+Production still reports 310 migration ledger rows through `20261110150618`; RC467 version `20261115010000` is absent. The live `preview_commission_backend` therefore remains on the older helper path until the coordinated, approved release is performed.
 
 ### Delegation checks
 
@@ -43,11 +44,11 @@ Do not fix this by broadening or replacing `assert_financial_membership` without
 
 ## 3. Next exact engineering work
 
-1. Trace all nine `assert_financial_membership` callers and record each function's business/branch parameters, intended role set, and write/read impact.
-2. Define a compatibility-safe scope contract for business-specific and tenant-wide financial operations. Branch-scoped actors must not gain tenant-wide access where the RPC has no branch context.
-3. Add a disposable PostgreSQL regression reproducing a business-A finance member attempting to preview business-B rules, plus valid tenant-wide and same-business cases.
-4. Prefer a narrow forward migration for the affected RPC or an explicit new scoped helper; do not silently change the shared helper until all nine callers are covered.
-5. Run exact-head PostgreSQL, migration-chain replay, static authorization contracts and CI. Keep Production untouched pending the independent backup/restore gate.
+1. Keep RC467 as the intended source repair; do not create a duplicate migration or replace the shared `assert_financial_membership` helper.
+2. Reconcile RC464–RC478 and the full ordered migration chain against the live ledger, checking each migration's preconditions and exact source identity.
+3. Confirm the RC467 disposable test is still included in the current main forward-replay workflow and retain a fresh successful run after any migration-chain change.
+4. Before release, verify encrypted off-site backup and an isolated restore rehearsal, then apply the reviewed migration stack in the approved order and verify the deployed function definition, grants, search_path and adversarial business/branch cases.
+5. Keep Production read-only until all independent backup, migration, Edge parity and rollback gates pass.
 
 ## 4. Release gates unchanged
 
@@ -56,4 +57,4 @@ Do not fix this by broadening or replacing `assert_financial_membership` without
 - No encrypted off-site backup plus isolated restore rehearsal has been evidenced. No RPO/RTO proof is recorded.
 - Do not deploy Edge Functions or apply migrations to Production until backup/restore, exact migration ledger, coordinated DB/Edge order and rollback checks pass.
 
-**Disposition:** PR #795 and #796 are MERGED. Financial scope audit is OPEN with one confirmed latent business-scope defect. Full Production release remains **BLOCKED / NOT CERTIFIED**.
+**Disposition:** PR #795, #796 and this audit checkpoint PR #797 are MERGED. RC467 is already present and tested in main; its Production application is still pending. The live/source parity gap remains open, but no new source-level commission fix is required based on this review. Full Production release remains **BLOCKED / NOT CERTIFIED**.
