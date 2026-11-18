@@ -26,6 +26,8 @@ on:
       - "supabase/tests/r7_platform_admin_helper_callers_fixture.sql"
       - "supabase/tests/r7_platform_admin_helper_callers_integration.sql"
       - "scripts/validate-r7-platform-admin-migration.mjs"
+      - "scripts/verify-mantigo-high-risk-definers.sql"
+      - "scripts/validate-mantigo-high-risk-definers.mjs"
       - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
       - "scripts/validate-mantigo-platform-admin-scope.mjs"
@@ -57,6 +59,8 @@ jobs:
         run: node scripts/validate-mantigo-platform-admin-scope.mjs
       - name: Static RC471 forward migration contract
         run: node scripts/validate-r7-platform-admin-migration.mjs
+      - name: Static high-risk SECURITY DEFINER exact ACL/search_path contract
+        run: node scripts/validate-mantigo-high-risk-definers.mjs
       - name: Static high-risk SECURITY DEFINER exact ACL/search_path contract
         run: node scripts/validate-mantigo-high-risk-definers.mjs
       - name: Apply disposable RC449/RC462/RC471 fixtures, migrations, and behavioral tests
