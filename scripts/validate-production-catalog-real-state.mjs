@@ -64,7 +64,7 @@ assert.match(placeholder, /صورة النشاط غير متاحة/, 'placeholde
 assert.match(itemPlaceholder, /صورة المنتج أو الخدمة غير متاحة/, 'catalog items without owner images must use a neutral placeholder');
 assert.match(coverPlaceholder, /صورة غلاف النشاط غير متاحة/, 'unknown activity covers must use a neutral wide cover placeholder');
 assert.match(coverPlaceholder, /viewBox="0 0 1600 900"/, 'business cover placeholder must be wide');
-assert.match(defaultImages, /business-cover-placeholder\\.svg/, 'unknown categories must resolve to the dedicated wide cover');
+assert.match(defaultImages, /business-cover-placeholder\.svg/, 'unknown categories must resolve to the dedicated wide cover');
 assert.match(productionMapper, /business-cover-placeholder/, 'the production mapper must not treat the neutral cover as an owner upload');
 assert.doesNotMatch(defaultImages, /images\.unsplash\.com|PHOTO_RULES/, 'missing owner images must not be replaced by stock photos that could be mistaken for real catalog imagery');
 assert.match(defaultImages, /catalog-item-placeholder\.svg/, 'products and services must use the local neutral placeholder');
