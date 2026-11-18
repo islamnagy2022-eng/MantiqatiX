@@ -2187,8 +2187,8 @@ Evidence: `supabase/tests/rc451_targeted_ads_search_path_fixture.sql` and `supab
 - [x] Trace the failing specialty pagination scenario to its card locator.
 - [x] Identify the mismatch: each directory card intentionally uses a `<button>` as the interactive container and nests its visual title in an `<h3>`. Under accessibility-tree semantics, descendants of a button are presentational, so Playwright `getByRole('heading')` cannot find those titles even though the DOM contains 20 rendered cards. The test already observed 20 matching DOM `h3` elements before the incorrect role query returned 0.
 - [x] Change the regression test to query the visual card-title DOM nodes directly; preserve the existing exact 20/25 card and cursor-pagination assertions.
-- [ ] Run exact-head browser/CI workflows and confirm the deployed-origin scenario passes.
-- [ ] Confirm the next Pages deployment is green; do not report the earlier run as a deployment upload failure.
+- [x] Run the corrected exact-main primary catalog browser E2E and build on `89e2755f005953171530cf5955771050fa547d89` — run `44224482188` passed (3/3 jobs; browser E2E 9/9 steps, build 31/31).
+- [x] Confirm the next Pages deployment is green — run `44224482241` passed (3/3 jobs; deployed-origin browser check 13/13 steps). V6 root, legacy rollback route, Preview alias and dashboard/mobile/QR browser checks passed.
 
 Evidence branch: `fix/e2e-directory-card-heading-query-20261118`; source change commit `d8d47c1a73335d63201d556df8f1616737078a12`. No application UI, data, Supabase, or Production behavior was changed in this pass.
 
