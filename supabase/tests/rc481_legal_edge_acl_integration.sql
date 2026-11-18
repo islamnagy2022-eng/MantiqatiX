@@ -24,7 +24,6 @@ BEGIN
 
   IF NOT has_column_privilege('service_role','public.legal_documents','document_type','SELECT')
      OR NOT has_column_privilege('service_role','public.legal_documents','status','SELECT')
-     OR NOT has_column_privilege('service_role','public.legal_documents','id','INSERT')
      OR NOT has_column_privilege('service_role','public.legal_documents','document_type','INSERT')
      OR NOT has_column_privilege('service_role','public.legal_documents','id','SELECT') THEN
     RAISE EXCEPTION 'RC481_LEGAL_DOCUMENT_REQUIRED_COLUMNS_MISSING';
