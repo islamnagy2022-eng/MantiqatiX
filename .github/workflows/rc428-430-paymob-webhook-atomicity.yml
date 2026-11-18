@@ -7,6 +7,7 @@ on:
       - "supabase/migrations/20261118040000_rc475_paymob_atomic_webhook_forward_repair.sql"
       - "supabase/tests/rc428_430_paymob_webhook_fixture.sql"
       - "supabase/tests/rc428_430_paymob_webhook_integration.sql"
+      - "scripts/test-rc475-concurrent-replay.sh"
       - "scripts/validate-finance-boundaries.mjs"
       - "scripts/validate-payment-migration-wiring.mjs"
       - "scripts/production/live-reconciliation-contract.mjs"
@@ -58,3 +59,4 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc428_430_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc428_430_test -v ON_ERROR_STOP=1 -f /tmp/rc475.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc428_430_test -v ON_ERROR_STOP=1 -f /tmp/integration.sql
+          bash scripts/test-rc475-concurrent-replay.sh "$pg_container" mantiqatix_rc428_430_test
