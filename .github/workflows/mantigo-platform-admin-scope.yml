@@ -21,7 +21,7 @@ on:
       - ".github/workflows/mantigo-platform-admin-scope.yml"
   workflow_dispatch: {}
   push:
-    branches: [main]
+    branches: [main, ci/mantigo-platform-admin-postgres17-20261119]
     paths:
       - "supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql"
       - "supabase/migrations/20261031064300_rc462_platform_admin_registry_authority_convergence.sql"
