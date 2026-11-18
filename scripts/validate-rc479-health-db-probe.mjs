@@ -31,7 +31,7 @@ assert.ok(!health.includes("error.message") && !health.includes("error.details")
   !health.includes("JSON.stringify({ serviceRoleKey") &&
   !health.includes("JSON.stringify({ supabaseUrl"),
   "public response must not disclose raw database errors or credentials");
-assert.ok(health.includes('Cache-Control: "no-store"'),
+assert.ok(health.includes('"Cache-Control": "no-store"'),
   "health responses must not be cached");
 
 assert.ok(monitor.includes("HEALTH_MONITOR_TOKEN: ${{ secrets.HEALTH_MONITOR_TOKEN }}") &&
