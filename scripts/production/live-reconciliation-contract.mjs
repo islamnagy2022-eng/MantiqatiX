@@ -32,6 +32,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261118070000", // RC478
   "20261118190000", // RC479 — revoke direct anonymous provider-profile base-table read
   "20261118210000", // RC480 — restrict anonymous digital-page reads to public renderer columns
+  "20261118220000", // RC481 — least-privilege Legal Edge service-role column grants
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [

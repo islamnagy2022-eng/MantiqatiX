@@ -45,6 +45,7 @@ jobs:
           node scripts/validate-security-definer-contract.mjs
           node scripts/validate-rc479-provider-profile-anon-read.mjs
           node scripts/validate-rc480-digital-pages-anon-columns.mjs
+          node scripts/validate-rc481-legal-edge-acl.mjs
           node scripts/validate-rc479-health-db-probe.mjs
           node scripts/validate-rc451-forward-repair.mjs
           node scripts/validate-module-runtime-coverage.mjs
@@ -229,3 +230,39 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc480_test -v ON_ERROR_STOP=1 -f /tmp/rc480_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc480_test -v ON_ERROR_STOP=1 -f /tmp/rc480_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc480_test -v ON_ERROR_STOP=1 -f /tmp/rc480_test.sql
+
+  rc481-legal-edge-service-role-acl-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc481_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc481_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Validate RC481 exact Legal Edge ACL source contract
+        run: node scripts/validate-rc481-legal-edge-acl.mjs
+      - name: Apply RC481 fixture, grants, and negative/positive role tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc481_legal_edge_service_role_acl_fixture.sql "$pg_container:/tmp/rc481_fixture.sql"
+          docker cp supabase/migrations/20261118220000_rc481_legal_edge_service_role_column_grants.sql "$pg_container:/tmp/rc481_migration.sql"
+          docker cp supabase/tests/rc481_legal_edge_service_role_acl_integration.sql "$pg_container:/tmp/rc481_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc481_test -v ON_ERROR_STOP=1 -f /tmp/rc481_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc481_test -v ON_ERROR_STOP=1 -f /tmp/rc481_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc481_test -v ON_ERROR_STOP=1 -f /tmp/rc481_test.sql
