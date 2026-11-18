@@ -23,7 +23,7 @@ const asset = (name: string): string => {
 const contextText = (input: DefaultImageInput): string =>
   [input.name, input.description, input.category].filter(Boolean).join(' ').toLocaleLowerCase();
 
-type ArtKey = 'food' | 'health' | 'pharmacy' | 'auto' | 'education' | 'fitness' | 'home' | 'real-estate' | 'travel' | 'digital' | 'fashion' | 'grocery' | 'marketing' | 'maintenance' | 'labs';
+type ArtKey = 'general' | 'food' | 'health' | 'pharmacy' | 'auto' | 'education' | 'fitness' | 'home' | 'real-estate' | 'travel' | 'digital' | 'fashion' | 'grocery' | 'marketing' | 'maintenance' | 'labs';
 
 function inferArt(input: DefaultImageInput): ArtKey {
   const text = contextText(input);
@@ -44,10 +44,11 @@ function inferArt(input: DefaultImageInput): ArtKey {
   }
   if (/تسويق|إعلان|إعلانات|تصميم|برمجة|رقمي|تكنولوجيا|software|digital|marketing|design|developer|technology/.test(text)) return 'digital';
   if (/خدمات|استشارات|محام|قانون|مكتب|ترجمة|محاسبة|خدمة|service|legal|consult|account/.test(text)) return 'marketing';
-  return 'grocery';
+  return 'general';
 }
 
 const ACTIVITY_ART: Record<ArtKey, string> = {
+  general: 'business-placeholder.svg',
   food: 'legacy/activity/food.svg',
   health: 'legacy/activity/medical.svg',
   pharmacy: 'legacy/activity/pharmacy.svg',
@@ -66,6 +67,7 @@ const ACTIVITY_ART: Record<ArtKey, string> = {
 };
 
 const ITEM_ART: Record<ArtKey, string> = {
+  general: 'catalog-item-placeholder.svg',
   food: 'legacy/activities/food.svg',
   health: 'legacy/activities/health.svg',
   pharmacy: 'legacy/activities/health.svg',
