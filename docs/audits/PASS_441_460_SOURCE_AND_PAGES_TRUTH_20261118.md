@@ -22,7 +22,7 @@ Therefore the actual published paths are:
 
 The README and older audit wording that described V6 as the production root was incorrect and has been corrected. No Pages root cutover was performed. The current deployment policy intentionally retains the catalog root while the full platform production gate is blocked.
 
-The post-PR #772 main deployment run `44226150407` completed the Pages deploy and root verification steps; its deployed-origin Playwright setup was still running at the time of this audit. The previous fully completed deployment run `44224482241` passed deployed-origin browser verification. PR #774 changes backend source/migrations and documentation, not the public frontend composition.
+The post-PR #772 main deployment run `44226150407` was cancelled during Playwright installation after the Pages deploy and root verification steps had succeeded. The later post-PR #774 Pages run `44227174978` was still running at the time of this audit. The last fully completed deployment run `44224482241` passed deployed-origin browser verification. PR #774 changes backend source/migrations and documentation, not the public frontend composition.
 
 ## Latest R7 archive intake
 
