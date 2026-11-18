@@ -18,7 +18,7 @@ on:
 permissions:
   contents: read
 jobs:
-  rc428-430-webhook-postgres:
+  rc475-paymob-forward-repair-postgres:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     services:
@@ -36,6 +36,8 @@ jobs:
           --health-retries 12
     steps:
       - uses: actions/checkout@v6
+      - name: Validate Paymob forward-repair source contract
+        run: node scripts/validate-finance-boundaries.mjs
       - name: Apply disposable fixtures, then the RC475 forward repair
         shell: bash
         run: |
