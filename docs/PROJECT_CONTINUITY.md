@@ -1,3 +1,21 @@
+# Latest execution checkpoint — 2026-11-18 — Pass 541–560 P0 Auth and SECURITY DEFINER baseline
+
+**Current main:** `ef96fec44715ee255780e63bd5a2a2925d89876d`.  
+**Audit branch:** `audit/p0-auth-security-definer-541-560-20261118` (documentation-only checkpoint).  
+**Production:** **BLOCKED / NOT CERTIFIED**.
+
+- Rechecked live Supabase: ACTIVE_HEALTHY, PostgreSQL 17.6, 310 migrations through `20261110150618`; release manifest remains 0/54 exact required source versions.
+- Security Advisor: 9 RLS-enabled/no-policy tables, 65 authenticated-executable SECURITY DEFINER functions, one intentional anonymous public-ad RPC, and leaked-password protection disabled.
+- Auth aggregate: 8 registered accounts, 0 anonymous accounts at inspection time. Anonymous-sign-in configuration itself remains unverified; do not infer it from the row count.
+- Selected RPC body review confirmed auth.uid()/delegated-scope checks on several user-scoped endpoints. Live MantiGO settlement and stale-ride expiration still contain broad membership-role authorization; RC464/RC471 source repairs are not live.
+- No Production migration, SQL, Auth, RLS, GRANT, Edge, payment, wallet or settlement mutation occurred.
+
+**Next:** continue the remaining high-risk function-by-function authorization review, resolve Auth settings through the supported dashboard, and keep Production rollout blocked until off-site backup/restore and migration/Edge parity gates are proven.
+
+Evidence: `docs/audits/PASS_541_560_P0_AUTH_SECURITY_DEFINER_20261118.md`.
+
+---
+
 # Latest execution checkpoint — 2026-11-18 — Pass 461–480 Paymob forward-release gate
 
 **Current main:** `b7d148dab0f3c8b9a1c8f5d0885f1191d3508fc9`.  
