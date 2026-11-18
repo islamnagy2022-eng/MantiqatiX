@@ -401,8 +401,14 @@ assert.doesNotMatch(directoryPaginationHelper, /phone|secondary_phone|address/i,
   "Public free-text search must not probe contact fields that are hidden without consent.");
 assert.match(directoryListingsFunction, /addressVisibleIds/,
   "Explicit address search must be limited to listings with active ADDRESS consent.");
-assert.match(directoryListingsFunction, /eq\("scope", "ADDRESS"\)\.is\("revoked_at", null\)/,
-  "Address search must consult active, non-revoked owner consent.");
+assert.match(directoryListingsFunction, /loadAddressConsentListingIds/,
+  "Address search must use the complete paginated owner-consent lookup.");
+assert.match(directoryListingsFunction, /\.eq\("scope", "ADDRESS"\)/,
+  "Address search must consult ADDRESS-specific owner consent.");
+assert.match(directoryListingsFunction, /\.is\("revoked_at", null\)/,
+  "Address search must exclude revoked owner consent.");
+assert.match(directoryListingsFunction, /\.range\(offset, offset \+ pageSize - 1\)/,
+  "Address search must paginate all active consent rows, not stop at 1,000.");
 assert.match(directoryListingsFunction, /parseDirectoryPaginationLimit\(url\.searchParams\.get\("limit"\)\)/,
   'The Edge Function must validate bounded page sizes through the tested helper.');
 assert.match(directoryListingsFunction, /decodeDirectoryPaginationCursor\(clean\(url\.searchParams\.get\("cursor"\)/,
