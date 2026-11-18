@@ -641,7 +641,7 @@ try {
       await page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first().click();
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
-      const cursorCards = page.getByRole('heading').filter({ hasText: /^عيادة اختبار المؤشر [0-9]{2}$/ });
+      const cursorCards = page.locator('h3').filter({ hasText: /^عيادة اختبار المؤشر [0-9]{2}$/ });
       const matchesDirectoryPageRequest = (request, specialtyPage) =>
         request.taxonomyCategoryId === 'cat_medical_health_medical_practices' &&
         (specialtyPage ? request.taxonomySpecialty === 'باطنة' : !request.taxonomySpecialty) &&
