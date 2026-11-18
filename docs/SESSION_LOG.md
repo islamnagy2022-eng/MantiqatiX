@@ -2937,3 +2937,13 @@ Implemented in the open source PR #809:
 - Runbook restores monitoring limitations and states that RC479 cannot be applied as an isolated migration.
 
 Current verification boundary: PR #809 is open and branch is 11+ commits ahead of main (latest head must be rechecked). Connector combined status and PR-filtered workflow-run query returned no status entries; this is NOT evidence of a passing CI run. No Production Edge deploy, database write, migration, privilege change, or site deployment was made.
+
+## Pass 741–760 — authenticate service-role health probe (2026-11-18)
+
+Security review found that a public endpoint backed by the service-role key could be abused to generate unbounded database reads. The source was hardened before deployment:
+- Require a dedicated `HEALTH_MONITOR_TOKEN` bearer secret before constructing the service-role database client.
+- Compare fixed-length SHA-256 digests and reject missing/invalid tokens with generic responses.
+- Configure the GitHub monitor to send the repository secret; if not configured, keep the existing legacy anon probe temporarily.
+- Update validator and runbook. Operator must configure the identical high-entropy secret in Supabase Edge secrets and GitHub Actions repository secrets; the secret is not stored in source or chat.
+
+No Production deployment or data/schema/privilege mutation occurred. CI status for the latest PR head remains unverified; no check pass is claimed.
