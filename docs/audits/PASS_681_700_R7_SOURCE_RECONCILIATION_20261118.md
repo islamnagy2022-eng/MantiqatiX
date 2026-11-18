@@ -19,6 +19,8 @@ Current Supabase project verified through the connected project record: `moyhilu
 3. **Incompatible migration types.** The archived `supabase/migrations/20261110_mantiqatix_master_production_schema.sql` declares `businesses.id TEXT` and `products.business_id TEXT`. Live Production has `public.businesses.id UUID` and `public.user_memberships.business_id UUID`. The archived migration is not a compatible forward migration for the current database; applying it or using it as a schema baseline risks FK/type conflicts.
 4. **Inconsistent release assertions.** R7 TODO/manifest/release documents report 24 tables, 11 tables, and 100%/23-of-23 release gates in different places. These are archive-authored claims, not current live verification evidence.
 5. **Retained mobile value.** The archive contains Android WebView source and mobile UI assets. Preserve them as reference and compare file-by-file; do not delete or replace the current mobile project.
+6. **Unsafe default business state.** The archived schema sets `businesses.is_verified DEFAULT TRUE` and `businesses.payment_status DEFAULT 'paid'`. Those defaults would mark newly inserted records verified and paid if adopted as a fresh schema, bypassing the current verification and paid-subscription activation gates.
+7. **Different authorization model.** The archived RLS policies rely on JWT `role` and `sub` claims for admin/owner decisions. The current platform uses membership- and business/branch-scoped authorization. Do not copy those policies into the live project.
 
 ## Work completed in this audit
 
