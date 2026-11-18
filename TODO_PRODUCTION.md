@@ -2513,3 +2513,16 @@ No Production Edge deployment, database write, migration, privilege change, Auth
 - [ ] Continue the separate chronological migration reconciliation, encrypted backup, disposable restore rehearsal, and rollback gate. Live Production ledger remains 310 migrations through 20261110150618; RC479 20261118190000 is not applied. Do not apply RC479 as a one-off.
 
 Production boundary: deployed Supabase health remains version 3 runtime-only at the time of this checkpoint. No Edge deployment, Production SQL/migration/GRANT/RLS/Auth mutation, payment, wallet, settlement, or destructive data operation was performed. Full platform release remains BLOCKED / NOT CERTIFIED.
+
+
+## Pass 801–820 — Production security-advisor triage (2026-11-18)
+
+- [x] Ran the live Supabase Security Advisor against canonical Production; recorded 94 lint entries / 166 findings: 9 INFO RLS-enabled tables without policies, 1 anon-callable SECURITY DEFINER function, 65 authenticated-callable SECURITY DEFINER functions, 90 anonymous-session policy warnings, and 1 disabled leaked-password protection setting.
+- [x] Read the anon-callable get_mnty_targeted_advertisements definition and ACL. It returns only active, approved advertisement display fields, uses an empty search_path with schema-qualified relations, and clamps p_limit to 1–50. This appears to be an intentional public ad-serving RPC; do not revoke it blindly. Preserve explicit output/ACL regression coverage.
+- [x] Sampled high-impact authenticated SECURITY DEFINER functions: accept_mantigo_bid_backend and confirm_mantigo_cash_payment_backend bind supplied user IDs to auth.uid() and verify customer ownership; adjust_catalog_stock_backend checks authenticated identity, active tenant membership, role, branch, warehouse and item scope; admin_create_global_ad calls mnty_can_platform_admin(). This sample is not a complete audit of all 65 functions.
+- [ ] Review all 65 authenticated SECURITY DEFINER functions for auth.uid binding, tenant/business/branch authorization, search_path safety, input validation, idempotency and side effects. Do not blanket-revoke authenticated EXECUTE grants.
+- [ ] Reconcile the 90 anonymous-session policy warnings against actual policy roles/conditions and public product requirements. Classify each as intentional public read, authenticated-only policy that includes anon accidentally, or service-only table. Do not mass-delete policies.
+- [ ] Review the 9 RLS-enabled/no-policy tables and prove they are intentionally service-role-only or add narrowly scoped policies after disposable tests.
+- [ ] Enable leaked-password protection after owner approval and verify the expected Auth UX/registration behavior. The live advisor currently reports it disabled.
+
+No Production security setting, policy, grant, function, schema, or data was changed during this read-only audit. Security Advisor warnings are triage evidence, not proof that every flagged function/policy is exploitable. Full release remains BLOCKED / NOT CERTIFIED.
