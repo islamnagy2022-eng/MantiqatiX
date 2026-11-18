@@ -44,6 +44,7 @@ jobs:
           node scripts/validate-rbac-contract.mjs
           node scripts/validate-security-definer-contract.mjs
           node scripts/validate-rc479-provider-profile-anon-read.mjs
+          node scripts/validate-rc479-health-db-probe.mjs
           node scripts/validate-rc451-forward-repair.mjs
           node scripts/validate-module-runtime-coverage.mjs
           node scripts/validate-restaurant-module-contract.mjs
