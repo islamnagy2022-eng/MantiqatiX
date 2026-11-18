@@ -2167,7 +2167,7 @@ Evidence: docs/audits/PASS_341_350_PRODUCTION_PARITY_SECURITY_ADVISORS_20261118.
 ## Pass 361–380 — P0 Platform Admin and SECURITY DEFINER production audit (2026-11-18)
 
 - [x] Reconcile live Production SECURITY DEFINER inventory: 149 total; 65 executable by authenticated; 1 executable by anon; 47 authenticated-executable functions use a `public`/mixed search_path and 18 use an empty search_path.
-- [x] Inspect all six authenticated-executable wrappers without direct `auth.uid()`; verify five delegate to actor-scoped helpers or scoped backend functions.
+- [x] Inspect five authenticated-executable wrappers without direct `auth.uid()`; verify all five delegate to actor-scoped helpers or scoped backend functions. The separate anonymous+authenticated targeted-ad read RPC has its own public contract.
 - [x] Identify the exception: `mnty_can_platform_admin()` delegates to `mnty_can('admin',NULL,NULL,NULL)` instead of consulting the canonical private platform-admin registry.
 - [x] Map its four SECURITY DEFINER helper callers and five RLS policies on `digital_pages`, `mantigo_financial_config`, and `mantigo_rate_limit_config`.
 - [x] Reconcile current live membership population: 5 non-registry business users have no admin/platform permission flags and no OWNER/ADMIN/SUPER_ADMIN role; the sole active OWNER user is also present in the canonical platform-admin registry.
@@ -2182,7 +2182,8 @@ Evidence: docs/audits/PASS_341_350_PRODUCTION_PARITY_SECURITY_ADVISORS_20261118.
 - [ ] After backup/restore proof, apply RC464 → RC471 → RC472 → RC473 in order with reviewed preflight/rollback evidence and coordinated Edge deployment.
 - [ ] Run platform admin vs non-registry OWNER/ADMIN/operations negative authorization tests against the deployed database.
 - [ ] Review remaining 47 public/mixed-search_path SECURITY DEFINER functions individually, prioritizing payment, financial, order, inventory and user-data paths.
-- [ ] Add/verify dedicated ACL/output regression for the intentional anonymous targeted-ad RPC.
+- [x] Verify RC451 regression covers empty search_path, intended anon/authenticated EXECUTE, no PUBLIC EXECUTE and forward-repair behavior.
+- [ ] Add behavioral fixture for targeted-ad output filtering, geographic matching and 1–50 limit; the current RC451 fixture is a stub and does not exercise the live query projection.
 - [ ] Enable leaked-password protection using the supported Supabase Auth settings path and verify the resulting configuration.
 
 **Disposition:** the weak helper is a latent authorization defect in Production policy/function logic; the current account population does not contain a non-registry OWNER/ADMIN principal that demonstrates an active bypass. RC464/RC471 source fixes and disposable tests are already merged, but Production remains unchanged and not certified.
