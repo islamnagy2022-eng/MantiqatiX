@@ -56,7 +56,8 @@ for (const marker of [
   'from("legal_documents").insert(',
   'from("legal_document_versions").insert(',
   'from("consent_audit_log").insert(',
-  'private', // admin verification must remain separate from the granted INSERT path
+  'user_memberships', // caller identity is checked against an active legal-admin membership
+  'LEGAL_ADMIN',
 ]) {
   assert.ok(cms.includes(marker), "Legal CMS direct write contract missing: " + marker);
 }
