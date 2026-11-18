@@ -2,35 +2,26 @@
 
 **Cost target:** 0 EGP additional recurring spend. This runbook uses the existing public GitHub repository, the existing Supabase project, and local tools only. It does not authorize a paid Supabase branch/project or any Production schema change.
 
-## 1. What the hourly monitor now checks
+## 1. What the hourly monitor checks
 
 The existing workflow `.github/workflows/production-health-monitor.yml` is scheduled hourly at minute 17.
 
-- GitHub Pages root.
-- Supabase Edge Function runtime endpoint `/functions/v1/health`.
-- A separate read-only PostgREST query against `marketing_provider_profiles`, selecting only `business_id` with `limit=1`; the response body is discarded.
-- Primary catalog HTML and referenced assets.
+- GitHub Pages root and referenced assets.
+- Supabase Edge Function `/functions/v1/health`.
+- Database read-only connectivity through the health Edge Function after its DB-aware version is deployed.
+- A temporary anonymous PostgREST read fallback against `marketing_provider_profiles` remains active only while the deployed health function returns its legacy runtime-only response.
 
-The database probe uses the public anon key already published in the frontend configuration. It does not use a service-role key, does not write data, and does not change RLS or schema. A non-200 response fails the workflow.
+The DB-aware health function uses the server-side `SUPABASE_SERVICE_ROLE_KEY` to execute a single-column, one-row read from `public.businesses`. A read-only Production privilege check confirmed `service_role` has SELECT on this table. The public endpoint returns only a fixed status and probe mode; it never returns business rows, user data, SQL errors, or credentials. It responds with HTTP 503 and a generic degraded status when the database read fails.
 
-### Production read-path preflight (2026-10-31)
+### RC479 rollout order — do not reorder
 
-A read-only catalog query against the existing Production database confirmed:
+1. Merge the DB-aware health-function source and monitor compatibility update.
+2. Deploy only the reviewed `health` Edge Function and verify its response includes `"database":{"status":"ok","mode":"service_role_read_only"}`.
+3. Confirm the hourly Production Health Monitor reports `SUPABASE_DATABASE_READ_ONLY_PROBE=PASS (Edge service-role)` and no longer takes the anonymous fallback.
+4. Only after those checks, and after the separate backup/restore release gate, apply RC479 to revoke anonymous SELECT on `marketing_provider_profiles`.
+5. Re-run the monitor and confirm the database probe remains green with no anonymous base-table access.
 
-- `public.marketing_provider_profiles` exists.
-- RLS and FORCE RLS are both enabled.
-- `anon` has SELECT privilege.
-- An explicit `SELECT` policy applies to `anon, authenticated` for public active provider profiles.
-
-No table rows were read during this preflight. This verifies the database-side permission contract for the probe. The deployed Production Health Monitor has since completed successful read-only PostgREST requests: run [41159666007](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41159666007) on main commit `adf0680a3c151330656b9712a03849c796aa4c09` and run [41160088237](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41160088237) on current main commit `b41c3c312e713f1975bafef6a617ad7159e1b4f8`. Both job logs emitted `SUPABASE_DATABASE_READ_ONLY_PROBE=PASS`, confirming HTTP 200 for the GET at those run timestamps.
-
-Supabase's current inactivity guidance says a few API/database requests each day typically suffice to avoid pausing, and explicitly lists API calls as a way to generate activity. The hourly request is designed to provide that activity; it is not a guarantee against pausing or service interruptions. See [Supabase Free project pausing](https://supabase.com/docs/guides/platform/free-project-pausing).
-
-**Important limits**
-- A successful probe confirms that a small database-backed REST read worked at that moment. It does not certify all database functions, authentication, payments, RLS isolation, or application workflows.
-- The probe may reduce the risk of an inactivity pause, but it cannot guarantee that Supabase Free will never pause. GitHub scheduled workflows can be delayed; if Supabase has already paused the project, the probe may fail and will not itself resume the project.
-- The existing Edge `/health` function is a runtime ping only; it is not a database health signal.
-- GitHub workflow failure notifications depend on the repository owner's GitHub notification settings. Verify that Actions failure emails/notifications are enabled and check the Actions page after the first scheduled run.
+Until step 2 is verified, the workflow intentionally falls back to the existing anonymous PostgREST probe so merging source does not break the currently deployed monitor. This fallback must be retired after the DB-aware Edge deployment and before RC479 is applied.
 
 ## 2. Create a local logical backup (owner/operator action required)
 
