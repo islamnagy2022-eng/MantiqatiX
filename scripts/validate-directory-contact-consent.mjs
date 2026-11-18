@@ -31,6 +31,10 @@ const failedConsentLookup = await collectActiveAddressConsentIds(async (offset) 
 assert.equal(failedConsentLookup.ready, false, "registry failure must fail closed");
 assert.deepEqual(failedConsentLookup.ids, [], "partial consent results must never be used after a page failure");
 
+const malformedConsentLookup = await collectActiveAddressConsentIds(async () => ({ data: null, error: null }));
+assert.equal(malformedConsentLookup.ready, false, "malformed registry responses must fail closed");
+assert.deepEqual(malformedConsentLookup.ids, [], "malformed registry responses must not yield partial consent IDs");
+
 const row = {
   id: "listing-1",
   display_name: "Synthetic provider",
