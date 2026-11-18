@@ -55,6 +55,11 @@ AS $function$
   );
 $function$;
 
+REVOKE ALL ON FUNCTION private.legal_is_admin() FROM PUBLIC;
+REVOKE ALL ON FUNCTION private.legal_is_admin() FROM anon;
+REVOKE ALL ON FUNCTION private.legal_is_admin() FROM service_role;
+GRANT EXECUTE ON FUNCTION private.legal_is_admin() TO authenticated;
+
 CREATE FUNCTION private.legal_is_admin(p_user_id uuid DEFAULT NULL::uuid)
 RETURNS boolean
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path TO ''
@@ -70,4 +75,7 @@ $function$;
 GRANT USAGE ON SCHEMA auth,private,public TO anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION auth.uid() TO anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION private.legal_is_admin() TO authenticated;
+REVOKE ALL ON FUNCTION private.legal_is_admin(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION private.legal_is_admin(uuid) FROM anon;
+REVOKE ALL ON FUNCTION private.legal_is_admin(uuid) FROM service_role;
 GRANT EXECUTE ON FUNCTION private.legal_is_admin(uuid) TO authenticated;
