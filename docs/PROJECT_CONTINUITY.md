@@ -1,3 +1,18 @@
+# Latest execution checkpoint — 2026-11-18 — Pass 331–340 RC473 merge verification
+
+Current main: de0ebab80e624b86f3726a84d5757aefb66120eb.
+PR #758: merged; RC473 directory contact consent source is on main.
+Production release: BLOCKED / NOT CERTIFIED.
+
+- PR #758 merged as de0ebab80e624b86f3726a84d5757aefb66120eb. It adds owner-scoped PHONE, SECONDARY_PHONE, ADDRESS and PRECISE_LOCATION consent; a private forced-RLS registry with retained revocation audit; fail-closed public projection; contact-search side-channel protection; owner controls; and regression tests.
+- Exact-head checks passed on 334e4258d14f229e2e6da110ec9a9bc8c54195ca: Directory Contact Consent PostgreSQL/source contract; Primary Catalog frontend build, employee RBAC PostgreSQL and browser E2E; directory claim atomicity; migration replay; doctor import; and cross-module checks.
+- Post-merge workflows were triggered on the merge SHA. Production Health Monitor passed; other repository-wide workflows were still running at checkpoint creation.
+- No Production migration, data mutation, Supabase Auth/RLS/GRANT change, Edge Function deployment, payment action or Pages deployment is claimed from the RC473 merge.
+- RC472 remains a separate release dependency. Required order: verified backup/restore; RC472 migration and Edge release; RC473 migration and Edge release; then deployed-origin claim/consent/revoke/privacy smoke tests.
+- Supabase Free plan and no verified off-site backup/restore artifact remain a hard Production DDL gate. Source-rights evidence is also unresolved for 869 published directory rows; no mass republishing without dataset-specific permission.
+- Next: monitor merge-SHA workflows, complete remaining P0 security review, and prepare a separately reviewed production release only after backup/restore and source-rights blockers are resolved.
+
+---
 # Latest execution checkpoint — 2026-11-18 — Pass 301–330 directory contact consent
 
 **Current main:** `5d9fd1dbe0b30f8a0274979778b3ed19f07939f4`.  
