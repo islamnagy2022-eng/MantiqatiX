@@ -99,3 +99,11 @@ Treat these documents as historical design/intent notes, not as certification. R
 7. Do not claim production readiness until encrypted off-site backup and isolated restore rehearsal are independently verified.
 
 **No Production SQL, migration, GRANT, RLS, Auth, Edge deployment, payment, wallet, settlement, user data or role assignment was changed during this archive review.**
+
+## 8. Test and build reproducibility
+
+The archive contains 15 files matching `*.test.ts` / `*test*` under `src`, and the inspected test file uses Node's built-in `node:test` API. However, the archive's `package.json` scripts expose `dev`, `start`, `build`, `preview`, `clean`, and `lint`; there is no `test` script and no CI workflow was present in the archive inventory. `RELEASE_REPORT.md` claims 99 unit tests passed, but that claim is not reproducible through the provided package scripts as uploaded.
+
+The `lint` script is `tsc --noEmit`; it is not a unit-test command. The archive does not include `node_modules`, `dist`, coverage output, or the ignored `.data` runtime state. The exact uploaded archive was not built in this environment because its dependencies and Android toolchain were not installed. Therefore no fresh build/test pass is claimed.
+
+Required: wire the Node test suite into an explicit package script, add a CI workflow that runs typecheck + unit tests + production build, publish test counts from the actual runner, and verify the Android build separately with a complete SDK/Gradle project.
