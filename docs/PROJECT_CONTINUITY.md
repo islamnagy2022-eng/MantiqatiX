@@ -1,3 +1,21 @@
+# Latest execution checkpoint — 2026-11-18 — Pass 461–480 Paymob forward-release gate
+
+**Current main:** `b7d148dab0f3c8b9a1c8f5d0885f1191d3508fc9`.  
+**Code baseline:** `c85115d4dcc247d1dd4f02cde72ee3224930b7ad`.  
+**Open code candidate:** PR #776 — RC475 Paymob webhook forward repair.  
+**Production:** **BLOCKED / NOT CERTIFIED**.
+
+- PR #774 / RC474 is merged; exact-head integration and forward migration replay passed.
+- Pages deploy run `44227923453` passed all jobs and deployed-origin browser checks. Current root is the legacy catalog; `/legacy/` is rollback; `/v6-preview/` is preview. PR #778 corrected the source map and merged.
+- Latest R7 archive (11) hash and ZIP integrity were rechecked. It remains reference-only; do not import wholesale or discard Android files.
+- PR #776 introduces RC475 forward repair and Paymob atomic webhook processing. Static review confirms four service-role-only SECURITY DEFINER processors with empty search_path; Edge-level early idempotent acknowledgement removed. Exact-head checks are still queued; not merged.
+- Live Supabase ledger ends at `20261110150618`; RC464–RC475 remain unapplied. Live payment-intent RPC remains old tenant-only authorization with `search_path=public, pg_temp`. Paymob provider events/order intents/subscription intents currently count 0 each.
+- Organization plan Free; no verified off-site backup/restore evidence. No Production migration, Edge, Auth, RLS, GRANT, payment, wallet or settlement mutation occurred.
+
+**Next:** finish PR #776 exact-head checks; close concurrent replay verification; obtain and verify off-site backup/restore; then coordinate all required migrations and Edge deployments. Do not certify or deploy payment processing until those gates pass.
+
+---
+
 # Latest execution checkpoint — 2026-11-18 — Pass 441–460 closed; RC474 merged and post-merge tested
 
 **Main:** `c85115d4dcc247d1dd4f02cde72ee3224930b7ad` — PR #772 and PR #774 merged; follow-up fixture alignment committed directly to main.  

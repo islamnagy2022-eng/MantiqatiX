@@ -2828,3 +2828,17 @@ Evidence branch: `fix/e2e-directory-card-heading-query-20261118`; source change 
 - The overall workflow run was marked cancelled because the separate `validate_public_only` job was cancelled; do not label the entire workflow green. The actual deploy job and deployed-origin browser suite passed.
 - No production Supabase migration or Edge deployment occurred.
 
+
+
+## 2026-11-18 — Pass 461–480 — Paymob webhook forward-release gate
+
+- Verified PR #774 / RC474 merged and its exact-head integration/forward replay passed.
+- Verified Pages deploy run 44227923453 passed all deploy and deployed-origin checks.
+- Merged PR #778 as b7d148d; current production root is legacy catalog, /legacy/ rollback, /v6-preview/ preview. No root cutover.
+- Rechecked latest R7 archive hash and ZIP integrity; retained Android wrapper and classified archive as reference-only.
+- Reviewed PR #776 RC475: four SECURITY DEFINER processors use empty search_path and service_role-only execution; webhook calls atomic RPCs and no longer returns early on a duplicate event before database validation.
+- Exact-head PR #776 checks remain queued; no merge claimed. A separate concurrent multi-session replay test is not yet evidenced.
+- Read-only Production parity: ledger ends 20261110150618; RC464–RC475 absent; live create_payment_intent_backend remains old tenant-only guard and search_path=public, pg_temp. Paymob event/order-intent/subscription-intent counts are all zero.
+- Supabase Free plan; no verified off-site backup/restore artifact. Production remained read-only; no schema, Edge, Auth/RLS/GRANT, payment or settlement mutation.
+- Next: finish PR #776 exact-head checks, verify concurrent replay behavior, obtain restore-tested backup, then plan coordinated migration + Edge rollout.
+

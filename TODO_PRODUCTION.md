@@ -6,13 +6,29 @@
 ## Current source map — 2026-11-18
 
 - Governing operating directive: `docs/MASTER_SOURCE_OF_TRUTH.md` — sole current project execution authority; older prompts and continuity notes are subordinate.
-- Current production implementation: GitHub `main`, commit `c85115d4dcc247d1dd4f02cde72ee3224930b7ad`.
+- Current GitHub main: `b7d148dab0f3c8b9a1c8f5d0885f1191d3508fc9` (documentation-only source-map reconciliation after code baseline `c85115d4dcc247d1dd4f02cde72ee3224930b7ad`).
 - Latest user upload: `bizcatalog-manager (11).zip`, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, 270 entries / 118 source files, Android wrapper retained. This is a distinct R7-era candidate; see `docs/audits/R7_ARCHIVE_11_INTAKE_20261118.md`. It is not approved for wholesale import/deployment.
 - Previous R7 archives (including `bizcatalog-manager (9)(1).zip` and older numbered copies) are separate historical artifacts. Do not conflate their hashes or audits with the latest upload.
 - Supabase remains the sole source of truth for identity, permissions and production data. Do not accept the R7 archive's local-JSON authority or browser-stored roles.
 - Current GitHub Pages production root is the legacy catalog application; `/legacy/` is its rollback copy; `/v6-preview/` is the V6 preview alias. No root cutover has occurred.
 - Preserve Android wrapper files and all source archives; do not delete or replace them before a verified, documented migration.
 
+
+## Pass 461–480 — Paymob webhook forward-release gate (2026-11-18)
+
+- [x] Verify RC474 PR #774 merged and exact-head tests/forward replay passed.
+- [x] Verify Pages production deploy run 44227923453 completed successfully, including deployed-origin browser checks.
+- [x] Merge PR #778 to correct production root/preview path truth and preserve the latest R7 archive intake.
+- [x] Re-hash the latest user archive and verify ZIP integrity; preserve Android wrapper and reject wholesale import while P0 security gaps remain.
+- [x] Review RC475 migration and Paymob Edge source: service-role-only atomic RPC boundaries, empty search_path, no Edge-level idempotent acknowledgement bypass.
+- [x] Recheck live Production migration ledger and Paymob event/intent counts read-only.
+- [ ] Pass all exact-head PR #776 checks, including RC475 migration replay and PostgreSQL integration.
+- [ ] Add or explicitly close the separate concurrent multi-session replay test gap.
+- [ ] Obtain off-site logical backup and successful restore evidence.
+- [ ] Apply RC464–RC475 in controlled order, then deploy matching Edge versions and run post-deploy smoke tests.
+- [ ] Complete P0 platform-admin/RLS/SECURITY DEFINER production parity before certifying launch.
+
+Evidence: `docs/audits/PASS_461_480_PAYMOB_WEBHOOK_FORWARD_RELEASE_20261118.md`. Production remained read-only; no payment, migration, Auth/RLS/GRANT or Edge mutation.
 
 ## Historical R7 archive (7) baseline — 2026-11-11
 
