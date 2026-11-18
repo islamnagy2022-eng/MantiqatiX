@@ -2526,3 +2526,25 @@ Production boundary: deployed Supabase health remains version 3 runtime-only at 
 - [ ] Enable leaked-password protection after owner approval and verify the expected Auth UX/registration behavior. The live advisor currently reports it disabled.
 
 No Production security setting, policy, grant, function, schema, or data was changed during this read-only audit. Security Advisor warnings are triage evidence, not proof that every flagged function/policy is exploitable. Full release remains BLOCKED / NOT CERTIFIED.
+
+
+## Pass 821–840 — RC480 public digital-page column boundary merged; legal Edge ACL parity found (2026-11-18)
+
+- [x] Merged PR #814 to main as `1a012b59dbffae6db54893c47fddb9f01792ad99`.
+- [x] Public digital-page renderer now requests only its 10 required columns: id, page_type, slug, title, subtitle, description, seo_title, seo_description, status, and version. Unused theme/published_at fields are no longer fetched.
+- [x] Added RC480 candidate migration `20261118210000_rc480_digital_pages_anon_column_boundary.sql`: revoke anonymous table-level SELECT on `public.digital_pages`, then grant only the exact renderer/filter column list. Authenticated table grants and service_role ACL are unchanged.
+- [x] Added PostgreSQL 16 fixture and integration tests proving anonymous published-page rendering works, drafts remain hidden, created_by and wildcard reads fail, authenticated owner reads remain available, and service_role privileges are unchanged.
+- [x] Added RC480 to the required production migration version contract, source verifier, and migration chain gate (59 required versions). The reconciliation manifest records RC480 as source-only and unapplied.
+- [x] Exact-head CI on PR #814 passed: Module Professionalization validation; RC480, RC479 and RC471 disposable PostgreSQL integrations; targeted ADS and matrimony database tests; forward migration replay from the isolated Production-schema checkpoint (94 source migrations, including RC480); migration version uniqueness; collision guard; migration history immutability; Primary Catalog build; professional-dashboard browser E2E. The Pages deployment job was skipped under the existing PR production gate.
+- [ ] Do not apply RC480 to Production until the complete ordered migration reconciliation, encrypted backup, disposable restore rehearsal, rollback plan and release approval are satisfied. The live Production ledger remains 310 rows through `20261110150618`; RC480 is not applied.
+
+### Legal Center / CMS — verified live ACL-to-Edge contract mismatch
+
+- [x] Read-only inspection confirmed deployed `legal-center` is ACTIVE v4 and `legal-cms` is ACTIVE v6; both use the server-side `SUPABASE_SERVICE_ROLE_KEY` after verifying the caller's user token.
+- [x] Read-only Production privilege checks confirmed service_role has no SELECT on `legal_documents`, `legal_document_versions`, `legal_requirements`, `user_consents` or `consent_audit_log`; it also has no INSERT on `legal_documents`, `legal_document_versions` or `consent_audit_log`.
+- [x] Confirmed the Legal Center direct reads and Legal CMS direct inserts reference those same tables. Separate legal SECURITY DEFINER RPCs have service_role EXECUTE and are not the missing direct-table path.
+- [ ] Prepare RC481 least-privilege column-level grants for the exact legal-center SELECT projections and legal-cms INSERT/audit fields; do not grant broad UPDATE/DELETE or blanket ALL to service_role.
+- [ ] Add PostgreSQL regressions proving service_role can perform only the required direct reads/inserts, cannot read unrelated consent metadata or creator/internal fields, and authenticated/anon grants remain unchanged.
+- [ ] After isolated validation, reconcile the RC481 migration with the production migration chain; do not apply it directly to Production without the same backup/restore and release gate.
+
+Evidence boundary: no Production SQL, migration, GRANT, RLS, Auth, Edge deployment, consent or legal-document data mutation was performed in this pass. The Legal Center runtime was not invoked using a real user's token; the direct query/insert paths are blocked by the observed effective table privileges. Full platform remains BLOCKED / NOT CERTIFIED.
