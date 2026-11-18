@@ -4,6 +4,9 @@ import assert from "node:assert/strict";
 const health = fs.readFileSync("supabase/functions/health/index.ts", "utf8");
 const monitor = fs.readFileSync(".github/workflows/production-health-monitor.yml", "utf8");
 
+assert.ok(health.includes('if (req.method !== "GET")') && health.includes('status: 405') &&
+  health.includes('"Allow": "GET"'),
+  "public health database probe must reject non-GET methods before querying the database");
 assert.ok(health.includes('createClient(supabaseUrl, serviceRoleKey'),
   "health function must use its server-side service-role client");
 assert.ok(health.includes('Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")'),
