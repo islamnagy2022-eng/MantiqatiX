@@ -183,7 +183,8 @@
       "20261118190000",
       "20261118210000",
       "20261118220000",
-      "20261119020000"
+      "20261119020000",
+      "20261119030000"
     ],
     "missing_versions": [
       "20261009120000",
@@ -245,10 +246,11 @@
       "20261118070000",
       "20261118210000",
       "20261118220000",
-      "20261119020000"
+      "20261119020000",
+      "20261119030000"
     ],
     "recorded_required_versions": [],
-    "interpretation": "The latest verified live ledger snapshot remains 310 rows through 20261110150618. RC480, RC481 and RC482 are source-only candidates with later timestamps and have not been applied; no Production migration or ledger row has been written. RC479 retains its separate historical reconciliation status."
+    "interpretation": "The latest verified live ledger snapshot remains 310 rows through 20261110150618. RC480, RC481, RC482 and RC483 are source-only candidates with later timestamps and have not been applied; no Production migration or ledger row has been written. RC479 retains its separate historical reconciliation status."
   },
   "critical_edge_function_source_parity_check": {
     "status": "HISTORICAL_SNAPSHOT_SUPERSEDED",
