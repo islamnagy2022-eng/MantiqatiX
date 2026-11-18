@@ -5,8 +5,7 @@ BEGIN
     RAISE EXCEPTION 'RC482_SERVICE_ROLE_EXECUTE_MISSING';
   END IF;
   IF has_function_privilege('anon','public.legal_cms_is_platform_admin(uuid)','EXECUTE')
-     OR has_function_privilege('authenticated','public.legal_cms_is_platform_admin(uuid)','EXECUTE')
-     OR has_function_privilege('public','public.legal_cms_is_platform_admin(uuid)','EXECUTE') THEN
+     OR has_function_privilege('authenticated','public.legal_cms_is_platform_admin(uuid)','EXECUTE') THEN
     RAISE EXCEPTION 'RC482_UNTRUSTED_EXECUTE_GRANTED';
   END IF;
   IF NOT (SELECT prosecdef FROM pg_proc WHERE oid='public.legal_cms_is_platform_admin(uuid)'::regprocedure) THEN
