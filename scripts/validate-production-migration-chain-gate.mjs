@@ -109,6 +109,11 @@ assert.match(liveContract, /security_definer_search_path_check/, "RC451 targeted
 assert.match(liveContract, /REQUIRED_EDGE_FUNCTIONS/, "the live parity contract must enumerate all critical function entrypoints");
 
 
+assert.match(
+  forwardReplay,
+  /push:\\s*\\n\\s*branches:\\s*\\[main\\]/,
+  "forward migration replay must run on main pushes and PRs, not every branch push, to avoid duplicate concurrent database containers"
+);
 const forwardReplay = fs.readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
 for (const validator of [
   "scripts/validate-r7-platform-admin-migration.mjs",
