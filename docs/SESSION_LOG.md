@@ -2750,3 +2750,16 @@ Read-only Supabase production schema cross-check completed: retrieved definition
 - Retained search_path/ACL assertions: empty path, anon+authenticated execution by design, no PUBLIC execution.
 - Exact-head CI pending; no Production mutation.
 
+
+
+## Pass 321–340 — post-deploy browser regression triage (2026-11-18)
+
+- [x] Read the exact failed GitHub Pages browser job log; distinguish successful Pages deployment from the subsequent browser-test failure.
+- [x] Confirm the production root and legacy root returned HTTP success before Playwright started.
+- [x] Trace the failing specialty pagination scenario to its card locator.
+- [x] Identify the mismatch: each directory card intentionally uses a `<button>` as the interactive container and nests its visual title in an `<h3>`. Under accessibility-tree semantics, descendants of a button are presentational, so Playwright `getByRole('heading')` cannot find those titles even though the DOM contains 20 rendered cards. The test already observed 20 matching DOM `h3` elements before the incorrect role query returned 0.
+- [x] Change the regression test to query the visual card-title DOM nodes directly; preserve the existing exact 20/25 card and cursor-pagination assertions.
+- [ ] Run exact-head browser/CI workflows and confirm the deployed-origin scenario passes.
+- [ ] Confirm the next Pages deployment is green; do not report the earlier run as a deployment upload failure.
+
+Evidence branch: `fix/e2e-directory-card-heading-query-20261118`; source change commit `d8d47c1a73335d63201d556df8f1616737078a12`. No application UI, data, Supabase, or Production behavior was changed in this pass.
