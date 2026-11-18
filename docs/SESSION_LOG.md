@@ -2854,3 +2854,27 @@ Evidence branch: `fix/e2e-directory-card-heading-query-20261118`; source change 
 - Pages run `44232355366` passed all 3 jobs, including deployed-origin browser checks for root, legacy rollback, preview alias and dashboard/mobile/QR routes.
 - No Production Supabase or payment/financial mutation. Current main at checkpoint: `2e47364c19af0771a09ea70abae80162e2fa5825`.
 - Next active work: PR #776 RC475; fixed the missing SQL function terminator, expanded the required migration verifier/manifest from 42 to 54 exact versions (RC464–RC475), and added a true two-session concurrent replay regression. RC475 isolated PostgreSQL workflow is passing; full forward-chain replay and remaining PR checks are still running. No merge or Production rollout yet.
+
+
+## 2026-11-18 — Pass 501–540
+
+### RC475 Paymob forward repair
+- Merged PR #776: `2b4cbc9e124e484f7c1acdb05f504b61d508949a`.
+- Added atomic provider event/intent replay binding and service-role-only SECURITY DEFINER processors with empty search_path.
+- Fixed the preflight to check the actual `payment_intents.payment_method` field, not a nonexistent `orders.payment_method`.
+- Canonical release contract/verifier/manifest now agree on 54 required versions (RC464–RC475) and 29 core objects; live ledger truthfully remains 0/54.
+- RC475 isolated PostgreSQL integration and concurrent replay passed: first execution false/idempotent false, replay true, one event/reconciliation/commission.
+- Full forward replay applied 89 migrations from the captured Production schema checkpoint; tenant isolation and related payment/commission contracts passed.
+- Exact-head and main post-merge checks passed, including the 32-journey Primary Catalog browser E2E and Pages deployed-origin checks.
+
+### Neutral wide business cover
+- Merged PR #782: `4fc65f68a304c10e9ec63e073e5e1e392b75f161`.
+- Added a local 16:9 neutral cover for unknown activity categories; logo and item placeholders remain distinct.
+- Updated business creation, merchant auto-cover, production mapping and catalog-admin provenance handling; no owner image is reclassified as automatic.
+- Exact-head Primary Catalog and legacy catalog validations passed. Post-merge main verification remains in progress.
+
+### Production safety
+- Read-only live ledger after PR #776: 310 rows, latest `20261110150618`; no RC464–RC475 migration was applied.
+- No Production Edge deployment, Auth/RLS/GRANT change, payment or financial mutation.
+- Backup/restore remains the external release blocker. No Production DB credentials were exposed or requested.
+- Latest main checkpoint: `4fc65f68a304c10e9ec63e073e5e1e392b75f161`.
