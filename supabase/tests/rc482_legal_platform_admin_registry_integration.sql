@@ -55,6 +55,7 @@ BEGIN
 END;
 $authenticated$;
 RESET ROLE;
+RESET request.jwt.claim.sub;
 
 -- The service-role Edge assertion accepts only the protected registry actor.
 SET ROLE service_role;
