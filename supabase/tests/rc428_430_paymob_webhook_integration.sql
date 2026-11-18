@@ -262,6 +262,20 @@ begin
     raise exception 'RC430 replay duplicated the business subscription';
   end if;
 
+  -- RC430 must reject the same signed provider event when it is replayed against another subscription intent.
+  rejected := false;
+  begin
+    perform public.process_verified_subscription_payment_backend(
+      'evt-r430-cross-intent','paymob:sub-success',sub_legal,'sub-success',500,'EGP',
+      'sub-order-legal',true,'{}'::jsonb
+    );
+    raise exception 'TEST_FAILED: RC430 accepted cross-intent event replay';
+  exception when others then
+    if sqlerrm <> 'SUBSCRIPTION_PAYMENT_EVENT_REPLAY_MISMATCH' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'RC430 cross-intent event replay was not rejected'; end if;
+
   -- RC430 never downgrades a paid intent when a later failure callback arrives.
   result := public.process_verified_subscription_payment_failure(
     'evt-r429-late-failure','paymob:sub-late-failure',sub_success,'sub-late-failure',200,'EGP',
