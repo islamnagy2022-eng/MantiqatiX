@@ -73,3 +73,10 @@ No Production schema, data, Auth, RLS, GRANT, Edge Function, payment, wallet or 
 - Complete the current main post-merge frontend E2E and Pages deployment verification.
 - Keep native Android integration separate until a complete, origin-safe project is available.
 - Continue the owner-operated Free-plan backup and restore gate; do not claim disaster recovery from a runbook or health monitor alone.
+
+
+## 5. New R7 AI Studio archive reconciliation — 2026-11-19
+
+The later uploaded R7 archive was inspected independently. It is a separate React/Vite/Express source tree and is not the same application layout as current `main`. The source comparison found a mismatched Supabase project reference, hardcoded secret fallbacks, a browser-importable shared Supabase client that prefers the service-role environment variable, a dual authoritative local-JSON/Supabase architecture, and an incomplete three-file Android wrapper with no explicit WebView origin allowlist.
+
+Detailed file-level evidence and the safe integration order are recorded in `docs/audits/R7_AI_STUDIO_ARCHIVE_RECONCILIATION_20261119.md`. Preserve the archive and Android files as reference material; do not overwrite current main or certify its embedded release report. No production data or configuration was changed.
