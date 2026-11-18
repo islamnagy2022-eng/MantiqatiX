@@ -12,6 +12,7 @@ declare
   business_four uuid := '20000000-0000-4000-8000-000000004284';
   order_one uuid := '30000000-0000-4000-8000-000000004281';
   order_two uuid := '30000000-0000-4000-8000-000000004282';
+  order_three uuid := '30000000-0000-4000-8000-000000004283';
   sub_success uuid := '40000000-0000-4000-8000-000000004281';
   sub_failure uuid := '40000000-0000-4000-8000-000000004282';
   sub_legal uuid := '40000000-0000-4000-8000-000000004283';
@@ -60,16 +61,26 @@ begin
     (actor_two,business_two,'ACTIVE','OWNER'),
     (actor_three,business_four,'ACTIVE','BUSINESS_OWNER');
 
-  insert into public.orders(id,tenant_id,status,total,currency,pricing_version,pricing_hash,pricing_authority) values
-    (order_one,'tenant-a','PENDING',100,'EGP',7,'pricing-hash-a','catalog_v1'),
-    (order_two,'tenant-a','PENDING',100,'EGP',7,'pricing-hash-a','catalog_v1');
+  insert into public.orders(id,tenant_id,business_id,payment_method,status,total,currency,pricing_version,pricing_hash,pricing_authority) values
+    (order_one,'tenant-a',business_one,'PAYMOB','PENDING',100,'EGP',7,'pricing-hash-a','catalog_v1'),
+    (order_two,'tenant-a',business_one,'PAYMOB','PENDING',100,'EGP',7,'pricing-hash-a','catalog_v1'),
+    (order_three,'tenant-a',business_one,'PAYMOB','PENDING',100,'EGP',7,'pricing-hash-a','catalog_v1');
 
   insert into public.payment_intents(
-    id,tenant_id,order_id,amount,currency,status,provider,provider_order_id,pricing_version,pricing_hash
+    id,tenant_id,order_id,amount,currency,status,provider,provider_order_id,payment_method,pricing_version,pricing_hash
   ) values
-    ('pi-failure','tenant-a',order_one,100,'EGP','PENDING','PAYMOB','paymob-order-failure',7,'pricing-hash-a'),
-    ('pi-final','tenant-a',order_two,100,'EGP','SUCCEEDED','PAYMOB','paymob-order-final',7,'pricing-hash-a'),
-    ('pi-atomic','tenant-a',order_one,100,'EGP','PENDING','PAYMOB','paymob-order-atomic',7,'pricing-hash-a');
+    ('pi-failure','tenant-a',order_one,100,'EGP','PENDING','PAYMOB','paymob-order-failure','PAYMOB',7,'pricing-hash-a'),
+    ('pi-final','tenant-a',order_two,100,'EGP','SUCCEEDED','PAYMOB','paymob-order-final','PAYMOB',7,'pricing-hash-a'),
+    ('pi-atomic','tenant-a',order_one,100,'EGP','PENDING','PAYMOB','paymob-order-atomic','PAYMOB',7,'pricing-hash-a'),
+    ('pi-success','tenant-a',order_three,100,'EGP','PENDING','PAYMOB','paymob-order-success','PAYMOB',7,'pricing-hash-a');
+
+  insert into public.commission_rules(
+    id,tenant_id,business_id,rule_type,percentage,fixed_amount,active,updated_at,
+    calculation_mode,scope_type,eligibility_event,rule_priority,is_exempt,approval_status,version_no
+  ) values (
+    'commission-rule-success','tenant-a',business_one,'PERCENTAGE',10,null,true,now(),
+    'PERCENTAGE','BUSINESS','PAYMENT_SUCCEEDED',1,false,'APPROVED',1
+  );
 
   insert into public.subscription_payment_intents(
     id,business_id,tier_code,billing_cycle,sector,amount,currency,status,provider,
@@ -184,6 +195,52 @@ begin
     rejected := true;
   end;
   if not rejected then raise exception 'RC428 cross-intent event replay was not rejected'; end if;
+
+  -- RC475 exact successful order-payment replay is idempotent only for the same intent and final state.
+  result := public.process_verified_provider_payment(
+    'paymob:txn-success','tenant-a','PAYMOB','paymob:txn-success','pi-success',
+    'TRANSACTION',true,100,'EGP',100
+  );
+  if result->>'status' <> 'success' or result->>'idempotent' <> 'false' then
+    raise exception 'RC475 first successful order payment returned unexpected result: %',result;
+  end if;
+  if (select status from public.payment_intents where id='pi-success') <> 'SUCCEEDED' then
+    raise exception 'RC475 did not finalize the successful order payment';
+  end if;
+
+  result := public.process_verified_provider_payment(
+    'paymob:txn-success','tenant-a','PAYMOB','paymob:txn-success','pi-success',
+    'TRANSACTION',true,100,'EGP',100
+  );
+  if result->>'idempotent' <> 'true' then
+    raise exception 'RC475 exact successful order-payment replay was not idempotent: %',result;
+  end if;
+
+  rejected := false;
+  begin
+    perform public.process_verified_provider_payment(
+      'paymob:txn-success','tenant-a','PAYMOB','paymob:txn-success','pi-final',
+      'TRANSACTION',true,100,'EGP',100
+    );
+    raise exception 'TEST_FAILED: RC475 accepted cross-intent successful order-payment replay';
+  exception when others then
+    if sqlerrm <> 'EXTERNAL_EVENT_REPLAY_MISMATCH' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'RC475 cross-intent successful order-payment replay was not rejected'; end if;
+
+  rejected := false;
+  begin
+    perform public.process_verified_provider_payment_failure(
+      'evt-r428-success-as-failure','tenant-a','PAYMOB','paymob:txn-success',
+      'pi-success','TRANSACTION',true,100,'EGP','txn-success','paymob-order-success','{}'::jsonb
+    );
+    raise exception 'TEST_FAILED: RC428 accepted a failure replay of a successful event';
+  exception when others then
+    if sqlerrm <> 'PAYMENT_FAILURE_REPLAY_STATUS_MISMATCH' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'RC428 success/failure event status mismatch was not rejected'; end if;
 
   -- RC429 rejects invalid signatures, provider-order mismatch, and amount mismatch.
   rejected := false;
