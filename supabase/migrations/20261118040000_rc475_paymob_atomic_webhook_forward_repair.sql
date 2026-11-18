@@ -633,13 +633,13 @@ DECLARE
   v_commission_tx_id varchar := 'electronic_commission:' || p_payment_intent_id;
   v_reconciliation_id varchar := 'payment_reconciliation:' || p_payment_intent_id;
 BEGIN
+  IF coalesce(p_signature_verified, false) IS NOT TRUE THEN RAISE EXCEPTION 'WEBHOOK_SIGNATURE_NOT_VERIFIED'; END IF;
   IF nullif(btrim(p_event_id), '') IS NULL
      OR nullif(btrim(p_external_event_id), '') IS NULL
      OR nullif(btrim(p_provider), '') IS NULL THEN
     RAISE EXCEPTION 'PROVIDER_EVENT_ID_REQUIRED';
   END IF;
   PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_external_event_id, 0));
-  IF coalesce(p_signature_verified, false) IS NOT TRUE THEN RAISE EXCEPTION 'WEBHOOK_SIGNATURE_NOT_VERIFIED'; END IF;
   IF p_provider_confirmed_amount IS NULL OR p_provider_confirmed_amount <= 0 THEN RAISE EXCEPTION 'INVALID_PROVIDER_AMOUNT'; END IF;
   SELECT * INTO v_intent FROM public.payment_intents WHERE id::text=p_payment_intent_id::text FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'PAYMENT_INTENT_NOT_FOUND'; END IF;
