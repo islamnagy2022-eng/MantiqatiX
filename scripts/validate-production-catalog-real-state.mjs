@@ -366,8 +366,14 @@ assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("village"
   'Village must be applied with prefix-tolerant matching before the page limit.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.in\("id", addressVisibleIds\)\.ilike\("address",/,
   "Area/address must be applied only to listings with active ADDRESS consent before the page limit.");
-assert.match(directoryListingsFunction, /eq\("scope", "ADDRESS"\)\.is\("revoked_at", null\)/,
-  "Exact address search must be restricted to active owner consent records.");
+assert.match(directoryListingsFunction, /loadAddressConsentListingIds/,
+  "Exact address search must use the paginated active owner-consent lookup.");
+assert.match(directoryListingsFunction, /\.eq\("scope", "ADDRESS"\)/,
+  "Exact address search must be restricted to ADDRESS consent records.");
+assert.match(directoryListingsFunction, /\.is\("revoked_at", null\)/,
+  "Exact address search must exclude revoked owner consent records.");
+assert.match(directoryListingsFunction, /\.range\(offset, offset \+ pageSize - 1\)/,
+  "Exact address search must paginate the entire consent registry without a fixed 1,000-row cutoff.");
 assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(search, cursor, taxonomySpecialty \|\| specialty\)/,
   'Selected specialty must be applied before the page limit through the combined server-side filter expression.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.in\("functional_group_id", expandDirectoryFunctionalGroupIds\(functionalGroupId\)\)/,
