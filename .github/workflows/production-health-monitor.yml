@@ -74,7 +74,7 @@ jobs:
           fi
           echo "SUPABASE_DATABASE_READ_ONLY_PROBE=PASS (legacy anon fallback)"
 
-      - name: Check V6 production root and retained legacy catalog
+      - name: Check production root and retained legacy catalog
         run: |
           set -euo pipefail
           SITE_ROOT="https://islamnagy2022-eng.github.io/MantiqatiX"
@@ -90,12 +90,12 @@ jobs:
 
           LEGACY_URL="${SITE_ROOT}/legacy/"
           LEGACY_HTML="$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 "$LEGACY_URL")"
-          grep -Fq "MantiqaTix | منصة إدارة الأنشطة والكتالوجات" <<<"$LEGACY_HTML"
+          grep -Fq "MantiqatiX | منصة إدارة الأنشطة والكتالوجات" <<<"$LEGACY_HTML"
           grep -Fq "/MantiqatiX/legacy/assets/" <<<"$LEGACY_HTML"
           LEGACY_ASSETS="$(grep -oE '(src|href)="/MantiqatiX/legacy/assets/[^" ]+\.(js|css)"' <<<"$LEGACY_HTML" | sed -E 's/^(src|href)="([^"]+)"/\2/' | sort -u)"
           test -n "$LEGACY_ASSETS"
           while IFS= read -r asset; do curl --fail --silent --show-error --location --retry 4 --retry-delay 2 --head "https://islamnagy2022-eng.github.io$asset" >/dev/null; done <<<"$LEGACY_ASSETS"
-          echo "V6_PRODUCTION_ROOT_AND_LEGACY_ASSETS=PASS"
+          echo "MANTIQATIX_PRODUCTION_ROOT_AND_LEGACY_ASSETS=PASS"
 
       - name: Health summary
         run: |
