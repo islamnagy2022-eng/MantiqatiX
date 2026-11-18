@@ -2925,3 +2925,27 @@ Evidence: read-only Production SQL inspection on 2026-11-18; issue #804. No Prod
 - [ ] Create any eventual migration using `supabase migration new` in a CLI-enabled source workspace, run advisors and isolated tests, and reconcile exact migration chronology before any production release. No migration filename or historical migration ledger entry is fabricated.
 
 Evidence: read-only Production ACL and `has_column_privilege` checks on 2026-11-18; source review of current main. No Production SQL, migration, GRANT, RLS, Auth, Edge, data, or deployment mutation occurred. This remains a release blocker; no private profile values were selected.
+
+## Pass 721–740 — DB-backed health monitor hardening (2026-11-18)
+
+Implemented in the open source PR #809:
+- Health Edge source performs one minimal read of `public.businesses.id` with its Edge-only service-role client.
+- Public health output contains only fixed status/mode metadata; database failure returns generic HTTP 503 and responses are `no-store`.
+- Non-GET methods are rejected with HTTP 405 before the database client is constructed.
+- Hourly monitor selects the DB-aware Edge probe only after seeing its explicit success marker; the existing anon REST probe remains a temporary compatibility fallback.
+- Static validator now checks method-guard ordering, service-role environment use, response non-disclosure, HTTP behavior, and monitor branch behavior.
+- Runbook restores monitoring limitations and states that RC479 cannot be applied as an isolated migration.
+
+Current verification boundary: PR #809 is open and branch is 11+ commits ahead of main (latest head must be rechecked). Connector combined status and PR-filtered workflow-run query returned no status entries; this is NOT evidence of a passing CI run. No Production Edge deploy, database write, migration, privilege change, or site deployment was made.
+
+## Pass 741–760 — authenticate service-role health probe (2026-11-18)
+
+Security review found that a public endpoint backed by the service-role key could be abused to generate unbounded database reads. The source was hardened before deployment:
+- Require a dedicated `HEALTH_MONITOR_TOKEN` bearer secret before constructing the service-role database client.
+- Compare fixed-length SHA-256 digests and reject missing/invalid tokens with generic responses.
+- Configure the GitHub monitor to send the repository secret; if not configured, keep the existing legacy anon probe temporarily.
+- Update validator and runbook. Operator must configure the identical high-entropy secret in Supabase Edge secrets and GitHub Actions repository secrets; the secret is not stored in source or chat.
+
+No Production deployment or data/schema/privilege mutation occurred. CI status for the latest PR head remains unverified; no check pass is claimed.
+
+- [x] Local verification after the authenticated-token hardening: static contract validator PASS, TypeScript syntax transpilation PASS, and monitor shell syntax check PASS. These local checks do not replace the still-unverified GitHub exact-head CI run.
