@@ -1,3 +1,19 @@
+## Latest verified checkpoint — Pass 821–840 — 2026-11-19
+
+- Current `main`: `02a2c5688e53ff023f086c5d3c66c4a72deb59fe`; PR #821 merged.
+- PR #821 updates MantiGO platform-admin regression CI to PostgreSQL 17, matching Production. Dedicated MantiGO Platform Admin Scope Hardening run 44423269037 passed; post-merge main MantiGO run 44423691940 passed.
+- Post-merge main Module Professionalization run 44423691911, MantiGO Open Ride Privacy run 44423692137, Backend-only Module Boundary run 44423691971 and Production Health Monitor run 44423691996 passed. Main Pages deployment run 44423691917 was pending at checkpoint; do not claim deployed-origin success.
+- Fresh read-only Production recheck: all four global MantiGO SECURITY DEFINER RPCs remain authenticated-executable, use `search_path=public`, and do not call `mnty_can_platform_admin()`. The helper still delegates to null-scope `mnty_can('admin',NULL,NULL,NULL)`. The live predicates still accept broad tenant roles including BUSINESS_OWNER.
+- Aggregate-only evidence: one platform-admin registry row; five active BUSINESS_OWNER users; four are not platform admins. No user IDs were queried or exposed.
+- Live MantiGO financial report still references legacy `amount` / `captain_amount`; canonical live ledger fields are `gross_amount`, `commission_amount`, `captain_net_amount`. RC471/RC476 source fixes and PostgreSQL tests pass but remain unapplied.
+- Exact read-only ledger reconciliation: source requires 62 release migration versions through RC483; live ledger has 310 rows through `20261110150618`; 0/62 required versions are present and all 62 are missing.
+- No Production SQL, ACL, Auth, RLS, Edge, payment, wallet, settlement or user-data mutation. Encrypted off-site backup plus isolated restore/RPO/RTO proof remains absent. Full release remains **BLOCKED / NOT CERTIFIED**.
+- Detailed evidence: `docs/audits/PASS_821_840_MANTIGO_LIVE_AUTH_RELEASE_GATE_20261119.md`.
+
+**Next:** owner-controlled encrypted backup and isolated restore; exact ordered 62-version reconciliation/replay; coordinated DB + Edge rollout; post-deploy MantiGO authorization and payment/privacy smoke tests. Do not apply individual migrations or certify release before all gates pass.
+
+---
+
 ## Latest verified checkpoint — Pass 801–820 — 2026-11-19
 
 - Current `main`: `44fc352b7082625fee1165f9779fa05f50a678c1`.
@@ -38,7 +54,7 @@
 ## Current source map — 2026-11-18
 
 - Governing operating directive: `docs/MASTER_SOURCE_OF_TRUTH.md` — sole current project execution authority; older prompts and continuity notes are subordinate.
-- Current GitHub main: `44fc352b7082625fee1165f9779fa05f50a678c1` (PR #819 merged; see latest Pass 801–820 checkpoint above).
+- Current GitHub main: `02a2c5688e53ff023f086c5d3c66c4a72deb59fe` (PR #819, #820 and #821 merged; see latest Pass 821–840 checkpoint above).
 - Latest user upload: `bizcatalog-manager (11).zip`, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, 270 entries / 118 source files, Android wrapper retained. This is a distinct R7-era candidate; see `docs/audits/R7_ARCHIVE_11_INTAKE_20261118.md`. It is not approved for wholesale import/deployment.
 - Previous R7 archives (including `bizcatalog-manager (9)(1).zip` and older numbered copies) are separate historical artifacts. Do not conflate their hashes or audits with the latest upload.
 - Supabase remains the sole source of truth for identity, permissions and production data. Do not accept the R7 archive's local-JSON authority or browser-stored roles.
