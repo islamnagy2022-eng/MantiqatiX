@@ -2078,3 +2078,15 @@ Production schema cross-check (read-only) found the claim/listing/membership/bus
 - GitHub Pages run `44232355366` passed validation, deployment and deployed-origin browser verification for the legacy root, rollback path, V6 preview alias and dashboard/mobile/QR routes.
 - Latest verified main at this checkpoint: `2e47364c19af0771a09ea70abae80162e2fa5825`.
 - Active next release unit: PR #776 / RC475 Paymob replay binding. Keep it unmerged until the exact-head PostgreSQL integration, two-session concurrent replay, forward-chain replay, migration checks and Pages validation all pass. Production remains read-only; verified off-site backup/restore is still required before any Production migration or Edge deployment.
+
+
+## 2026-11-18 — Pass 501–540 — RC475 merge and neutral cover
+
+- PR #776 merged as `2b4cbc9e124e484f7c1acdb05f504b61d508949a`. RC475 adds atomic Paymob event/intent replay binding with empty-search_path service-only processors.
+- Exact-head checks passed: RC475 disposable PostgreSQL integration, two-session concurrent replay, 89-migration forward replay from the captured Production schema checkpoint, tenant isolation, payment/commission, module and browser E2E checks.
+- Concurrent replay evidence: first processing `idempotent=false`; second session replay `idempotent=true`; exactly one provider event, financial reconciliation and commission transaction.
+- PR #782 merged as `4fc65f68a304c10e9ec63e073e5e1e392b75f161`. Unknown activity categories now use a dedicated local 16:9 neutral cover; logo and product placeholders remain distinct. Owner-supplied and recognized category imagery are preserved.
+- PR #782 exact-head checks passed, including the 32-journey Primary Catalog browser E2E and legacy catalog contract validation. Post-merge main verification is still running at this checkpoint.
+- Latest main at this checkpoint: `4fc65f68a304c10e9ec63e073e5e1e392b75f161`.
+- Supabase Production remains read-only: 310 migration rows, latest `20261110150618`, 0/54 required release migrations recorded. No Production migration, Edge deployment, Auth/RLS/GRANT, payment or financial mutation.
+- Remaining external release blocker: authorized operator must create an encrypted off-site logical backup and complete a disposable restore rehearsal. The assistant does not have the Production DB password/connection string. See `docs/operations/FREE_TIER_DATABASE_CONTINUITY.md`.
