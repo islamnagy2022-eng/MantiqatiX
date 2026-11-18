@@ -11,23 +11,24 @@ The existing workflow `.github/workflows/production-health-monitor.yml` is sched
 - Database read-only connectivity through the health Edge Function after its DB-aware version is deployed.
 - A temporary anonymous PostgREST read fallback against `marketing_provider_profiles` remains active only while the deployed health function returns its legacy runtime-only response.
 
-The DB-aware health function uses the server-side `SUPABASE_SERVICE_ROLE_KEY` to execute a single-column, one-row read from `public.businesses`. A read-only Production privilege check confirmed `service_role` has SELECT on this table. The public endpoint returns only a fixed status and probe mode; it never returns business rows, user data, SQL errors, or credentials. It responds with HTTP 503 and a generic degraded status when the database read fails.
+The DB-aware health function first requires a dedicated high-entropy `HEALTH_MONITOR_TOKEN` bearer secret, then uses the server-side `SUPABASE_SERVICE_ROLE_KEY` to execute a single-column, one-row read from `public.businesses`. A read-only Production privilege check confirmed `service_role` has SELECT on this table. The endpoint returns only fixed status metadata; it never returns business rows, user data, SQL errors, or credentials. It rejects missing/invalid tokens before constructing the database client and responds with HTTP 503 when the database read fails.
 
 ### RC479 rollout order — do not reorder
 
-1. Merge the DB-aware health-function source and monitor compatibility update.
-2. Deploy only the reviewed `health` Edge Function and verify its response includes `"database":{"status":"ok","mode":"service_role_read_only"}`.
-3. Confirm the hourly Production Health Monitor reports `SUPABASE_DATABASE_READ_ONLY_PROBE=PASS (Edge service-role)` and no longer takes the anonymous fallback.
-4. Only after those checks, and after the separate backup/restore release gate, apply RC479 to revoke anonymous SELECT on `marketing_provider_profiles`.
-5. Re-run the monitor and confirm the database probe remains green with no anonymous base-table access.
+1. Generate a high-entropy random monitor token. Set the same value as the Supabase Edge secret `HEALTH_MONITOR_TOKEN` and the GitHub Actions repository secret `HEALTH_MONITOR_TOKEN`; never commit, log, or paste it into chat.
+2. Merge the DB-aware health-function source and monitor compatibility update.
+3. Deploy only the reviewed `health` Edge Function and call it with the GitHub secret; verify its response includes `"database":{"status":"ok","mode":"service_role_read_only"}`.
+4. Confirm the hourly Production Health Monitor reports `SUPABASE_DATABASE_READ_ONLY_PROBE=PASS (Edge service-role)` and no longer takes the anonymous fallback.
+5. Only after those checks, and after the separate backup/restore release gate, apply RC479 to revoke anonymous SELECT on `marketing_provider_profiles`.
+6. Re-run the monitor and confirm the database probe remains green with no anonymous base-table access.
 
-Until step 2 is verified, the workflow intentionally falls back to the existing anonymous PostgREST probe so merging source does not break the currently deployed monitor. This fallback must be retired after the DB-aware Edge deployment and before RC479 is applied.
+Until the shared monitor secret is configured and the Edge deployment is verified, the workflow intentionally falls back to the existing anonymous PostgREST probe so merging source does not break the currently deployed monitor. This fallback must be retired after the DB-aware Edge deployment and before RC479 is applied.
 
 ## 1.1 Monitoring limits and security boundary
 
 - A successful probe confirms only that one minimal database read succeeded at that moment. It does not certify Auth, RLS isolation, RPC behavior, payments, financial workflows, or the full application.
 - The hourly GitHub Actions schedule can be delayed and cannot guarantee that a Supabase Free project will never pause. If the project has already paused, this monitor cannot itself resume it.
-- The health endpoint is public by design and returns only fixed status metadata. It must never return database rows, provider/customer identifiers, SQL text, credentials, or raw exception messages.
+- The health endpoint requires a dedicated bearer token before any service-role database access. Keep that token out of source, URLs, logs, issues, and chat. It must never return database rows, provider/customer identifiers, SQL text, credentials, or raw exception messages.
 - Workflow failure notifications depend on repository notification settings. Check the Actions page after the first scheduled run and ensure failure notifications are enabled.
 - RC479 is not an isolated one-off migration. The live migration ledger and required release manifest must first be reconciled semantically in chronological order. The current release gate remains BLOCKED until all predecessor migrations, encrypted backup, disposable restore rehearsal, rollback plan, and approval are verified.
 
