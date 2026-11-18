@@ -4354,3 +4354,6 @@ Evidence: `docs/audits/PASS_231_270_DIRECTORY_CLAIM_ATOMICITY_20261117.md`. No s
 - [ ] Keep Android source preserved and complete the native project/build/signing/origin security as a separate deliverable.
 
 Evidence: `docs/audits/R7_AI_STUDIO_ARCHIVE_RECONCILIATION_20261119.md`. The archive's RELEASE_REPORT/MASTER_TODO PASS claims are historical assertions, not independent production certification.
+
+- [x] Found 15 R7 archive test-related files but no `test` package script; the `RELEASE_REPORT.md` claim of 99 passing tests is not reproducible from the uploaded scripts.
+- [ ] Add a reproducible Node test command and CI workflow to any R7 candidate before treating its test report as evidence.
