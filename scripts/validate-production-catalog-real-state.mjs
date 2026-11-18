@@ -106,6 +106,8 @@ assert.ok(directoryListingsView.includes('listing.metadata?.coverUrl') &&
 assert.ok(directoryListingsView.includes('image.src = listingDefaultCoverImage(detail)') &&
   directoryListingsView.includes('image.src = listingDefaultProfileImage(detail)'),
   'broken uploaded images must fall back once to local category artwork');
+assert.ok(directoryListingsView.includes('image.src = listingDefaultProfileImage(listing)'),
+  'directory result cards must fall back locally when an uploaded profile image fails');
 assert.ok(directoryListingsView.includes('listingProfileImage(detail)') &&
   directoryListingsView.includes('listingCoverImage(detail)'),
   'directory detail pages must render both resolved profile and cover imagery');
