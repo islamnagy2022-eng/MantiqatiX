@@ -2548,3 +2548,17 @@ No Production security setting, policy, grant, function, schema, or data was cha
 - [ ] After isolated validation, reconcile the RC481 migration with the production migration chain; do not apply it directly to Production without the same backup/restore and release gate.
 
 Evidence boundary: no Production SQL, migration, GRANT, RLS, Auth, Edge deployment, consent or legal-document data mutation was performed in this pass. The Legal Center runtime was not invoked using a real user's token; the direct query/insert paths are blocked by the observed effective table privileges. Full platform remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-19 — RC482 Legal CMS platform-root authorization closure (source/CI only)
+
+- [x] Reconciled the current Production ledger read-only: 310 recorded migrations; latest version remains `20261110150618`. RC482 (`20261119020000`) is not applied to Production.
+- [x] Rechecked deployed Edge Functions read-only: `legal-cms` ACTIVE v6 and `health` ACTIVE v3. The deployed Legal CMS function is still older than the RC482 source and has not been redeployed.
+- [x] Completed RC482 source remediation and merged PR #816 into `main` (squash commit `555bf7d174f9bce14ebbb9752a598c68e65dcfe4`). The migration keeps the existing UUID helper signature/default used by policy dependencies, removes the ambiguous zero-argument overload, binds authenticated callers to `auth.uid()`, and uses `private.platform_admins` as the only global legal-admin root authority.
+- [x] Added a service-role-only `legal_assert_admin_backend(uuid)` assertion for the Legal CMS Edge Function. The Edge Function first validates the caller's bearer token through Auth, rejects anonymous users, then verifies the exact user ID against the protected registry before any Legal CMS action. No client-side service key or direct registry access was added.
+- [x] Added disposable PostgreSQL adversarial tests for tenant ADMIN, delegated LEGAL_ADMIN, tenant SUPER_ADMIN, authenticated actor impersonation, canonical registry acceptance, helper ACLs, and direct registry ACL boundaries.
+- [x] Exact-head checks passed: RC482 PostgreSQL integration; RC481 legal Edge ACL integration; RC480 digital-page anon-column integration; RC479 provider-profile anon-read integration; RC471 platform-admin integration; targeted ads and matrimony integrations; migration uniqueness/collision/history gates; migration forward-chain replay; Primary Catalog build; and professional-dashboard browser E2E. Browser E2E reported PASS across catalog, pagination, role scoping, responsive layouts, and dashboard routes.
+- [ ] Do not apply RC482 or deploy the updated `legal-cms` Edge Function yet. First complete chronological Production migration reconciliation (including RC464/RC471 and all intervening versions), encrypted backup and verified restore rehearsal, rollback plan, and explicit release approval. Deploy the Edge Function only after the matching database RPC is confirmed live.
+- [ ] The production deployment workflow's validation completed, but its deploy job was skipped by the existing production dependency gate. Do not describe this source merge as a Production deployment.
+
+Evidence boundary: all Production checks in this continuation were read-only. No Production migration, SQL/GRANT/RLS/Auth change, Edge Function deployment, legal-document/consent mutation, financial operation, or payment action was performed. Release remains **BLOCKED / NOT CERTIFIED**.
