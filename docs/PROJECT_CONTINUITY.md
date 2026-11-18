@@ -1,3 +1,19 @@
+# Latest execution checkpoint — 2026-11-18 — Pass 421–440 payment authorization
+
+**Main:** `30531e00a43d059159b409f3f57ace5d640ad641` (PR #772 merged).  
+**Next candidate:** PR #774 — RC474 payment-intent business/branch scope.  
+**Production:** **BLOCKED / NOT CERTIFIED**.
+
+- PR #772 merged the explicit tenant BUSINESS_OWNER negative regression into the RC449/RC471 disposable test sequence. Exact-head MantiGO Platform Admin Scope workflow passed; static checks 15/15 and PostgreSQL integration passed.
+- Production read-only review found the live `create_payment_intent_backend` financial-role check is tenant-only and can be combined with a non-finance membership in another business/branch. It also skips the finance-role check when `orders.customer_id` is NULL. Current Production has 0 orders and 0 cross-business finance membership pairs; no payment RPC was invoked.
+- PR #774 adds RC474, exact business/branch role scope, NULL-customer protection, empty search_path, normalized ACL and removal of the Edge Function's redundant tenant-only membership precheck. Disposable PostgreSQL tests cover negative and allowed paths.
+- Exact-head PR #774 checks and forward migration replay are pending. No Production payment, schema, function, grant, Edge or data mutation occurred.
+- Production migration ledger remains `20261110150618`; RC464/RC471/RC472/RC473/RC474 remain unapplied. Verified off-site backup + restore is still required before DDL or Edge deployment.
+
+Next: complete PR #774 exact-head CI, merge only if green, then continue P0 financial-journal and payment webhook authorization review. Do not deploy RC474 to Production without backup/restore evidence.
+
+---
+
 # Latest execution checkpoint — 2026-11-18 — Pass 401–420 MantiGO settlement authorization
 
 **Current main baseline:** `89e2755f005953171530cf5955771050fa547d89`.  
