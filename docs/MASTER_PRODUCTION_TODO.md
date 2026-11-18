@@ -4336,3 +4336,21 @@ Evidence: `docs/audits/PASS_231_270_DIRECTORY_CLAIM_ATOMICITY_20261117.md`. No s
 
 - [ ] Reconcile production migration drift: production history lacks `20261027090000` and the live membership index remains NULL-distinct; inspect migration source and preflight before any deployment.
 - [ ] Test claim transaction on a disposable/development database branch, accounting for deferred default-owner and legal activation triggers; do not apply to Production without a separately reviewed release.
+
+
+### R7 archive source reconciliation — 2026-11-19
+
+- [x] Inspected the uploaded `bizcatalog-manager (11).zip` (R7 AI Studio archive, timestamped 2026-11-11) and compared its layout with current `main`.
+- [x] Confirmed the archive is a separate React/Vite/Express source tree; current `main` uses `web/**`, Supabase Edge Functions and ordered migrations. No wholesale overwrite/import is safe.
+- [x] Found a critical Supabase project-ref mismatch in the archive: `moyhiluyhjsujhwlyweuu` vs connected Production `moyhiluyhjsujhwlyeuu`.
+- [x] Found hardcoded fallback values for session JWT, Paymob HMAC and backup encryption secrets in `server.ts` (and backup helper source).
+- [x] Found the shared Supabase client source prefers `SUPABASE_SERVICE_ROLE_KEY` before anon variables; browser-bundle exposure is not proven, but the boundary must be split and service role must never be imported by browser code.
+- [x] Confirmed the R7 archive describes local `.data/production-live-db.json` as an authoritative engine alongside Supabase; this conflicts with the current Supabase-authoritative architecture. The ignored local database is not included in the ZIP.
+- [x] Confirmed the Android wrapper contains only three files and references absent resources/Gradle files; WebView JS bridge lacks an explicit origin allowlist.
+- [ ] Correct the R7 project reference in a candidate copy only and verify it against the connected project before supplying any keys.
+- [ ] Remove hardcoded secret fallbacks and add production fail-closed startup validation.
+- [ ] Split browser anon client and server-only service-role client; scan built assets for secret leakage.
+- [ ] Reconcile R7 React screens against current `web/**` modules and actual Supabase contracts; port incrementally without replacing current UI.
+- [ ] Keep Android source preserved and complete the native project/build/signing/origin security as a separate deliverable.
+
+Evidence: `docs/audits/R7_AI_STUDIO_ARCHIVE_RECONCILIATION_20261119.md`. The archive's RELEASE_REPORT/MASTER_TODO PASS claims are historical assertions, not independent production certification.
