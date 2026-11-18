@@ -2798,3 +2798,14 @@ Evidence branch: `fix/e2e-directory-card-heading-query-20261118`; source change 
 
 
 - Follow-up review confirmed `BUSINESS_OWNER` is a valid business-scoped owner role in the application. RC474 was extended to allow it only when the membership matches the exact order business/branch, with a positive disposable test. The first CI attempt caught a stale validator role-list regex; the validator was corrected and exact-head checks are rerunning.
+
+
+## 2026-11-18 — Pass 441–460 — source and Pages truth reconciliation
+
+- Verified actual GitHub Pages composition from `.github/workflows/pages.yml` and completed run `44224482241`: legacy catalog at production root, `/legacy/` rollback copy, `/v6-preview/` V6 preview alias. Corrected README and current continuity state; no root cutover.
+- Re-audited the exact newly uploaded `bizcatalog-manager (11).zip`: SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, 46,114,882 bytes, ZIP integrity PASS, 270 entries, 118 `src/` files, Android wrapper retained, no WebP, no `.env`, `.data/`, `public/releases/`, `dist/`, `node_modules/` or `.git/`.
+- The new upload has a different hash/source count from prior R7 artifacts. It contains hard-coded server fallback secret values, demo login credentials/role-switcher helpers, browser-stored auth/role state, local JSON declared authoritative, a mismatched Supabase project reference in its manifest, and release/test artifacts claimed by its TODO/reports but absent from the archive.
+- The R7 archive remains reference-only; no wholesale import, deployment or deletion occurred. Android wrapper and prior archives are preserved.
+- Saved the uploaded `الامر-التقني.txt` verbatim as `docs/MASTER_SOURCE_OF_TRUTH.md`.
+- PR #774 already merged RC474 to main; Production migration and Edge deployment remain blocked by the missing verified off-site backup/restore.
+
