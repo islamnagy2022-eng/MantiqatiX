@@ -470,3 +470,16 @@ Evidence boundary: read-only catalog and aggregate checks only. No Production SQ
 - No Production migration, SQL/GRANT/RLS/Auth change, Edge Function deployment, ride expiration, settlement, journal, payment, or wallet mutation was performed.
 - The main-push Production Health Monitor exposed a false-negative title check (`MantiqaTix` typo versus canonical `MantiqatiX`). The workflow and its deploy-gate validator were corrected in commits `237f5fdecdc09c8586ab697329e0a2c4fdcbc7e6` and `814b99f46a96272da762a53b71f05c40bd7443c2`; its rerun and the main Pages deployment gate must still be checked.
 - Release remains **BLOCKED / NOT CERTIFIED** pending chronological migration reconciliation, encrypted backup, verified restore rehearsal, rollback plan, explicit release approval, and the unresolved P0 MantiGO authorization repair.
+
+
+## 2026-11-19 — post-merge catalog deployment and production health verification
+
+- [x] GitHub Pages deploy job on merge commit `22fd25bfcb4561946ded967ad17be1b52f5f643a` completed successfully. The canonical catalog is live at `/`, the retained catalog fallback at `/legacy/`, and the V6 preview alias at `/v6-preview/`; all three asset sets passed post-deploy checks. Demo and SMM placeholder routes remain unpublished.
+- [x] Deployed-origin browser E2E passed, including 20+5 directory pagination, geographic/manual search, GPS consent/denial behavior, owner mobile/desktop accessibility checks, employee scoping, QR/store links, directory administration, and guest/unauthorized route denial.
+- [x] Production Health Monitor passed after correcting its misspelled expected brand title and aligning the step/marker with the catalog-root deployment model. The monitor verified the root and retained legacy assets.
+- [ ] The health monitor still reports `HEALTH_MONITOR_TOKEN` absent and therefore uses the temporary legacy anonymous REST read probe. Configure the same high-entropy secret in Supabase Edge secrets and GitHub Actions repository secrets before switching the monitor to the authenticated service-role health probe. Never place the token in source or chat.
+- [x] The Pages release log explicitly reports `CATALOG_PILOT_GATE=PASS` and `FULL_PLATFORM_GATE=BLOCKED`; only the scoped public catalog frontend was authorized for deployment. This is not certification or deployment of the complete Enterprise Platform.
+- [ ] The deployed-origin E2E contract still confirms activity-module admin writes remain disabled until the atomic audit backend is implemented and verified. Keep those writes disabled rather than exposing unaudited privileged mutations.
+- [ ] Production DB remains unchanged at 310 migrations through `20261110150618`; RC481/RC482/RC483 and RC464/RC471 remain unapplied, and deployed `legal-cms` remains v6. No Edge Function was deployed by the Pages release.
+
+Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The live MantiGO platform-admin authorization gap (4 active non-registry BUSINESS_OWNER users), the 61 missing required migration versions, live object drift, backup/restore rehearsal, payment/finance E2E, and the HEALTH_MONITOR_TOKEN setup remain open release blockers.
