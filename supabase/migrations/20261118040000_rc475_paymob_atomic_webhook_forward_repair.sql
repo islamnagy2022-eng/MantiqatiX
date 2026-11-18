@@ -101,7 +101,6 @@ BEGIN
   FROM (VALUES
     ('orders','business_id','uuid'),
     ('orders','assigned_partner_id','uuid'),
-    ('orders','payment_method','character varying'),
     ('payment_intents','payment_method','character varying'),
     ('commission_rules','id','character varying'),
     ('commission_rules','tenant_id','character varying'),
