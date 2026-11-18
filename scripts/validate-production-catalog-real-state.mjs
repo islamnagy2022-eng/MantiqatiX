@@ -67,8 +67,8 @@ assert.match(coverPlaceholder, /صورة غلاف النشاط غير متاحة
 assert.match(coverPlaceholder, /viewBox="0 0 1600 900"/, 'business cover placeholder must be wide');
 assert.match(defaultImages, /business-cover-placeholder\.svg/, 'unknown categories must resolve to the dedicated wide cover');
 assert.match(productionMapper, /business-cover-placeholder/, 'the production mapper must not treat the neutral cover as an owner upload');
-assert.match(appContext, /business-cover-placeholder\\.svg/, 'new businesses must regenerate or preserve the neutral wide cover as an automatic image');
-assert.match(merchantDashboard, /business-cover-placeholder\\.svg/, 'merchant dashboard must recognize the neutral wide cover as an automatic image');
+assert.match(appContext, /business-cover-placeholder\.svg/, 'new businesses must regenerate or preserve the neutral wide cover as an automatic image');
+assert.match(merchantDashboard, /business-cover-placeholder\.svg/, 'merchant dashboard must recognize the neutral wide cover as an automatic image');
 assert.match(catalogAdminFunction, /business-cover-placeholder/, 'catalog admin must classify the neutral wide cover as automatic, not owner-supplied');
 assert.doesNotMatch(defaultImages, /images\.unsplash\.com|PHOTO_RULES/, 'missing owner images must not be replaced by stock photos that could be mistaken for real catalog imagery');
 assert.match(defaultImages, /catalog-item-placeholder\.svg/, 'products and services must use the local neutral placeholder');
