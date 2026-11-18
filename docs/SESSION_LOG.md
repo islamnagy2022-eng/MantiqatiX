@@ -2947,3 +2947,5 @@ Security review found that a public endpoint backed by the service-role key coul
 - Update validator and runbook. Operator must configure the identical high-entropy secret in Supabase Edge secrets and GitHub Actions repository secrets; the secret is not stored in source or chat.
 
 No Production deployment or data/schema/privilege mutation occurred. CI status for the latest PR head remains unverified; no check pass is claimed.
+
+- [x] Local verification after the authenticated-token hardening: static contract validator PASS, TypeScript syntax transpilation PASS, and monitor shell syntax check PASS. These local checks do not replace the still-unverified GitHub exact-head CI run.
