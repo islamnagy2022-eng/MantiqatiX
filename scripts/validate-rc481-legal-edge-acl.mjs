@@ -19,7 +19,7 @@ assert.doesNotMatch(migration, /REVOKE|DROP POLICY|CREATE POLICY|TRUNCATE|DELETE
 
 const expected = {
   legal_documents_select: ["id","document_type","title","status","published_at","effective_at","target_audience","required_consent","requires_reconsent","sector_codes","locale"],
-  legal_document_versions_select: ["id","document_id","version_number","published_at","effective_at","content_hash","content"],
+  legal_document_versions_select: ["id","document_id","version_number","published_at","effective_at","content_hash","content","status"],
   legal_requirements_select: ["action_key","document_type","target_audience","required","enabled","business_scoped"],
   user_consents_select: ["id","user_id","document_id","document_version_id","agreement_id","account_type","consent_status","consented_at","content_hash","source"],
   legal_documents_insert: ["document_type","title","target_audience","required_consent","requires_reconsent","sector_codes","locale","status","created_by","updated_by"],
