@@ -302,3 +302,43 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc482_test -v ON_ERROR_STOP=1 -f /tmp/rc482_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc482_test -v ON_ERROR_STOP=1 -f /tmp/rc482_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc482_test -v ON_ERROR_STOP=1 -f /tmp/rc482_test.sql
+
+  rc483-atomic-legal-cms-create-audit-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc483_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc483_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Validate RC483 atomic Legal CMS source contract
+        run: node scripts/validate-rc483-atomic-legal-cms-create-audit.mjs
+      - name: Apply RC481, RC482 and RC483 then test atomic audit rollback
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc483_atomic_legal_cms_create_audit_fixture.sql "$pg_container:/tmp/rc483_fixture.sql"
+          docker cp supabase/migrations/20261118220000_rc481_legal_edge_service_role_column_grants.sql "$pg_container:/tmp/rc481_migration.sql"
+          docker cp supabase/migrations/20261119020000_rc482_legal_platform_admin_registry_guard.sql "$pg_container:/tmp/rc482_migration.sql"
+          docker cp supabase/migrations/20261119030000_rc483_atomic_legal_cms_create_audit.sql "$pg_container:/tmp/rc483_migration.sql"
+          docker cp supabase/tests/rc483_atomic_legal_cms_create_audit_integration.sql "$pg_container:/tmp/rc483_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc483_test -v ON_ERROR_STOP=1 -f /tmp/rc483_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc483_test -v ON_ERROR_STOP=1 -f /tmp/rc481_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc483_test -v ON_ERROR_STOP=1 -f /tmp/rc482_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc483_test -v ON_ERROR_STOP=1 -f /tmp/rc483_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc483_test -v ON_ERROR_STOP=1 -f /tmp/rc483_test.sql
