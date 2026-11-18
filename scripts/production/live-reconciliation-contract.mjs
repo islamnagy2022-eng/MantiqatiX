@@ -34,6 +34,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261118210000", // RC480 — restrict anonymous digital-page reads to public renderer columns
   "20261118220000", // RC481 — least-privilege Legal Edge service-role column grants
   "20261119020000", // RC482 — bind global legal admin to protected platform-admin registry
+  "20261119030000", // RC483 — atomic Legal CMS create/audit and remove direct service-role INSERT
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
