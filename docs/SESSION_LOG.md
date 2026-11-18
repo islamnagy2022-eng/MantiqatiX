@@ -2798,3 +2798,33 @@ Evidence branch: `fix/e2e-directory-card-heading-query-20261118`; source change 
 
 
 - Follow-up review confirmed `BUSINESS_OWNER` is a valid business-scoped owner role in the application. RC474 was extended to allow it only when the membership matches the exact order business/branch, with a positive disposable test. The first CI attempt caught a stale validator role-list regex; the validator was corrected and exact-head checks are rerunning.
+
+
+## 2026-11-18 — Pass 441–460 — source and Pages truth reconciliation
+
+- Verified actual GitHub Pages composition from `.github/workflows/pages.yml` and completed run `44224482241`: legacy catalog at production root, `/legacy/` rollback copy, `/v6-preview/` V6 preview alias. Corrected README and current continuity state; no root cutover.
+- Re-audited the exact newly uploaded `bizcatalog-manager (11).zip`: SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, 46,114,882 bytes, ZIP integrity PASS, 270 entries, 118 `src/` files, Android wrapper retained, no WebP, no `.env`, `.data/`, `public/releases/`, `dist/`, `node_modules/` or `.git/`.
+- The new upload has a different hash/source count from prior R7 artifacts. It contains hard-coded server fallback secret values, demo login credentials/role-switcher helpers, browser-stored auth/role state, local JSON declared authoritative, a mismatched Supabase project reference in its manifest, and release/test artifacts claimed by its TODO/reports but absent from the archive.
+- The R7 archive remains reference-only; no wholesale import, deployment or deletion occurred. Android wrapper and prior archives are preserved.
+- Saved the uploaded `الامر-التقني.txt` verbatim as `docs/MASTER_SOURCE_OF_TRUTH.md`.
+- PR #774 already merged RC474 to main; Production migration and Edge deployment remain blocked by the missing verified off-site backup/restore.
+
+
+
+## 2026-11-18 — Post-merge RC474 generated-total fixture alignment
+
+- Main advanced to `c85115d4dcc247d1dd4f02cde72ee3224930b7ad` with a follow-up source/test commit that aligns the RC474 disposable `orders.total` column with Production's generated `GENERATED ALWAYS AS (total_amount) STORED` definition.
+- Updated the RC474 validator to assert that generated-total contract. The post-merge main RC474 workflow passed 10/10 steps (run `44227923341`).
+- The migration retains a fail-closed NULL-total guard as defense in depth; the disposable fixture does not attempt to insert NULL into a generated column.
+- Production migration and Edge deployment remain blocked pending verified off-site backup/restore.
+
+
+
+## 2026-11-18 — Pages post-PR #774 deployed-origin verification
+
+- GitHub Pages run `44227174978` completed the `deploy` job successfully (13/13 steps).
+- Deployed paths verified: legacy catalog at root, rollback copy at `/legacy/`, V6 preview alias at `/v6-preview/`.
+- Deployed-origin `PRIMARY_CATALOG_BROWSER_E2E=PASS` across directory pagination, search, mobile, owner/employee scope, QR/storefront and admin route checks.
+- The overall workflow run was marked cancelled because the separate `validate_public_only` job was cancelled; do not label the entire workflow green. The actual deploy job and deployed-origin browser suite passed.
+- No production Supabase migration or Edge deployment occurred.
+
