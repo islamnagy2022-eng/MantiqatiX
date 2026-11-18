@@ -15,7 +15,7 @@ for (const marker of [
   'expected_search_path',
   'search_path=""',
   'search_path=public, pg_temp',
-  'oidvectortypes(p.proargtypes)'
+  'oidvectortypes(p.proargtypes)','replace(pg_catalog.oidvectortypes'
 ]) {
   if (!sql.includes(marker)) throw new Error('MantiGO release security marker missing: '+marker);
 }
