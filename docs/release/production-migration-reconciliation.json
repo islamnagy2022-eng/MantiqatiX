@@ -4311,5 +4311,15 @@
     ],
     "source_review_finding": "Original RC117 backfill updates marketing_services rows when image_url is blank OR image_source is null/invalid. This can overwrite a non-empty owner-supplied image_url when source metadata is missing.",
     "disposition": "Do not replay the historical 20261027070000 migration out of order or port it unchanged. Build a new forward-only migration after 20261110150618, preserve custom URLs with missing source metadata as image_source='owner', default only genuinely empty/known-placeholder URLs, and test insert/update behavior for businesses, catalog_items and marketing_services."
+  },
+  "rc480_digital_pages_anon_column_boundary": {
+    "migration_version": "20261118210000",
+    "source_file": "supabase/migrations/20261118210000_rc480_digital_pages_anon_column_boundary.sql",
+    "status": "SOURCE_ONLY_NOT_APPLIED",
+    "required_release_gate_included": true,
+    "production_migration_applied": false,
+    "production_data_or_permissions_changed": false,
+    "live_ledger_last_version": "20261110150618",
+    "note": "Added to the source verifier and required migration-version contract after the prior 310-row live ledger snapshot. The candidate remains unapplied; it must ship in chronological order with the complete backup/restore and rollback release gate."
   }
 }
