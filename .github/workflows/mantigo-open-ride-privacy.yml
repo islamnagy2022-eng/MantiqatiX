@@ -30,7 +30,7 @@ jobs:
         run: node scripts/validate-rc477-mantigo-customer-bid-contact-privacy.mjs
       - name: Validate RC478 open-ride forward privacy contract
         run: node scripts/validate-rc478-mantigo-open-ride-forward-privacy.mjs
-      - name: Run RC446 and RC477 privacy integration tests
+      - name: Run RC446, RC477 and RC478 privacy integration tests
         shell: bash
         run: |
           set -euo pipefail
