@@ -30,7 +30,8 @@ PR: #774 — RC474 payment-intent scope hardening
 ## Validation / release status
 
 - Exact-head RC474 validator: 15/15 static assertions passed; disposable PostgreSQL business/branch integration passed; forward migration replay passed with 88 migrations; all 13 exact-head PR checks passed; PR #774 merged to main as `777884bd76c75d792d9e7a565da26fc7e8fca4b7`.
-- RC474's scoped role set includes `BUSINESS_OWNER` for the exact same business/branch, with a positive integration test. The first static CI attempt correctly caught that the validator's expected-role regex had not been updated; the validator was corrected and exact-head CI is rerunning.
+- RC474's scoped role set includes `BUSINESS_OWNER` for the exact same business/branch, with a positive integration test. The first static CI attempt caught the validator's expected-role regex mismatch; the validator was corrected and all final exact-head checks passed.
+- Main follow-up commit `c85115d4dcc247d1dd4f02cde72ee3224930b7ad` aligned the disposable fixture with Production's generated `orders.total` contract; post-merge RC474 workflow passed 10/10 steps (run `44227923341`). The migration retains a NULL-total fail-closed guard, but the generated-column fixture does not insert NULL.
 - PR #773 was closed as superseded because its base became stale after PR #772 merged; no code was merged from #773.
 - Main currently includes PR #772 as `30531e00a43d059159b409f3f57ace5d640ad641`.
 - Supabase Production remains at migration `20261110150618`; RC464/RC471/RC472/RC473/RC474 are not applied.
