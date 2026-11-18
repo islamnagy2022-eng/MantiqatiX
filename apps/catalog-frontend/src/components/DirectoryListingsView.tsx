@@ -3,7 +3,7 @@ import { ArrowRight, BadgeCheck, Building2, CalendarClock, CheckCircle2, Clipboa
 import { useApp } from "../context/AppContext";
 import { fetchPublicDirectoryListings, setPublicDirectoryListingContactConsent, submitDirectoryListingClaim, updateOwnedDirectoryListing, type DirectoryContactConsentScope, type PublicDirectoryListing } from "../lib/directoryListings";
 import { resolveCanonicalSpecialty } from "../data/productionDefaults";
-import { UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from "../utils/defaultImages";
+import { resolveDefaultImage } from "../utils/defaultImages";
 
 function specialtyLabel(value: string | null | undefined) {
   const specialty = String(value || "").trim();
@@ -14,21 +14,34 @@ function phoneHref(value: string | null | undefined) {
   const dial = raw.replace(/[^0-9+]/g, "");
   return dial.length >= 7 ? "tel:" + dial : "";
 }
+function listingImageContext(listing: PublicDirectoryListing) {
+  const metadata = listing.metadata || {};
+  const bio = typeof metadata.bio === "string" ? metadata.bio : "";
+  return {
+    name: listing.display_name,
+    description: [listing.specialty, listing.taxonomy_specialty, bio].filter(Boolean).join(" "),
+    category: [listing.listing_type, listing.functional_group_id, listing.taxonomy_category_id].filter(Boolean).join(" "),
+  };
+}
+
+function listingDefaultProfileImage(listing: PublicDirectoryListing): string {
+  return resolveDefaultImage({ ...listingImageContext(listing), kind: "activity" });
+}
+
+function listingDefaultCoverImage(listing: PublicDirectoryListing): string {
+  return resolveDefaultImage({ ...listingImageContext(listing), kind: "cover" });
+}
+
 function listingProfileImage(listing: PublicDirectoryListing): string {
-  const selected = String(listing.metadata?.profileImageUrl || "").trim();
-  if (/^https:\/\//i.test(selected)) return selected;
-  if (listing.claim_status === "CLAIMED") return "";
-  const listingType = String(listing.listing_type || "").toLowerCase();
-  if (listingType === "doctor") return UNVERIFIED_DOCTOR_IMAGE_URL;
-  if (listingType === "pharmacy") return UNVERIFIED_PHARMACY_IMAGE_URL;
-  return "";
+  const selected = String(
+    listing.metadata?.profileImageUrl || listing.metadata?.logoUrl || listing.metadata?.logo_url || "",
+  ).trim();
+  return /^https:\/\//i.test(selected) ? selected : listingDefaultProfileImage(listing);
 }
 
 function listingCoverImage(listing: PublicDirectoryListing): string {
-  const selected = String(listing.metadata?.coverImageUrl || listing.metadata?.cover_image_url || "").trim();
-  if (/^https:\/\//i.test(selected)) return selected;
-  // Reuse the category profile fallback as the cover for unclaimed doctor/pharmacy pages.
-  return listingProfileImage(listing);
+  const selected = String(listing.metadata?.coverUrl || listing.metadata?.cover_url || "").trim();
+  return /^https:\/\//i.test(selected) ? selected : listingDefaultCoverImage(listing);
 }
 
 export const DirectoryListingsView: React.FC<{
@@ -232,10 +245,10 @@ export const DirectoryListingsView: React.FC<{
         <button type="button" onClick={onBack} className="mb-5 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"><ArrowRight className="h-4 w-4" /> العودة إلى دليل مقدمي الخدمة</button>
         <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
           <div className="relative isolate overflow-hidden bg-gradient-to-l from-slate-950 via-emerald-950 to-slate-900 px-5 py-8 text-white sm:px-8">
-            {listingCoverImage(detail) && <img src={listingCoverImage(detail)} alt="" aria-hidden="true" className="absolute inset-0 z-0 h-full w-full object-cover opacity-35" loading="lazy" decoding="async" />}
+            <img src={listingCoverImage(detail)} alt="" aria-hidden="true" className="absolute inset-0 z-0 h-full w-full object-cover opacity-35" loading="lazy" decoding="async" />
             <div className="absolute inset-0 z-0 bg-gradient-to-l from-slate-950/90 via-emerald-950/75 to-slate-900/80" aria-hidden="true" />
             <div className="relative z-10">
-            {listingProfileImage(detail) ? <img src={listingProfileImage(detail)} alt={"صورة " + detail.display_name} className="mb-4 h-16 w-16 rounded-2xl border border-white/20 bg-white/10 object-cover" loading="lazy" decoding="async" /> : <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10"><Building2 className="h-7 w-7 text-emerald-300" /></div>}
+            <img src={listingProfileImage(detail)} alt={"صورة " + detail.display_name} className="mb-4 h-16 w-16 rounded-2xl border border-white/20 bg-white/10 object-cover" loading="lazy" decoding="async" />
             <div className={`mb-2 inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-black ${claimed ? "border-emerald-300/30 bg-emerald-400/10 text-emerald-200" : pending ? "border-sky-300/30 bg-sky-400/10 text-sky-200" : "border-amber-300/30 bg-amber-400/10 text-amber-200"}`}>{claimed ? <BadgeCheck className="h-3.5 w-3.5" /> : pending ? <CalendarClock className="h-3.5 w-3.5" /> : <ShieldAlert className="h-3.5 w-3.5" />} {claimed ? "صفحة مستلمة بعد المراجعة" : pending ? "طلب الاستلام قيد المراجعة" : "صفحة دليل أولية — غير مستلمة"}</div>
             <h1 className="text-2xl font-black sm:text-3xl">{detail.display_name}</h1>
             <p className="mt-2 text-sm font-semibold text-emerald-100">{specialtyLabel(detail.specialty)}</p>
