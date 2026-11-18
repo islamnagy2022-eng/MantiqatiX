@@ -1,7 +1,7 @@
 # Pass 741–760 — R7 Android wrapper and Production recovery gate
 
 Date: 2026-11-18  
-Baseline: `main` at `d0a525d728037fe60d73bb9ca6861b5424af6a8d`  
+Baseline at PR #801 merge: `d0a525d728037fe60d73bb9ca6861b5424af6a8d`; current main after PR #802: `54fcf4be74a5892a84ffdb20c85abc67a9e36643`  
 Production Supabase project: `moyhiluyhjsujhwlyeuu`
 
 ## 1. Current main and deployment evidence
@@ -33,7 +33,7 @@ The archive does not include a Gradle wrapper, root `settings.gradle.kts`, root 
 
 ### Decision
 
-Keep the uploaded R7 Android wrapper as a historical reference artifact. Do not copy it into the current production tree or label it as an integrated native Android application. The current main mobile deliverable remains the responsive web/PWA surface. A native Android project requires a separate, complete Gradle build, origin-restricted navigation/bridge design, current production URL confirmation, authentication/session contract, runtime permission handling, Android CI, and emulator/device verification.
+Keep the uploaded R7 Android wrapper as a historical reference artifact. Do not copy it into the current production tree or label it as an integrated native Android application. The current repository includes responsive web/PWA code; the published root remains the legacy catalog, while `apps/catalog-frontend` is deployed separately as `/v6-preview/`. Neither should be represented as a certified native Android application. A native Android project requires a separate, complete Gradle build, origin-restricted navigation/bridge design, current production URL confirmation, authentication/session contract, runtime permission handling, Android CI, and emulator/device verification.
 
 No current Android source, mobile-web component, or application behavior was deleted or replaced in this audit.
 
