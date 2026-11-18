@@ -2160,3 +2160,21 @@ Evidence: docs/audits/PASS_331_340_RC473_MERGE_VERIFICATION_20261118.md.
 - [ ] Continue P0 security review and production release gates; backup/restore and source-rights blockers remain unresolved.
 
 Evidence: docs/audits/PASS_341_350_PRODUCTION_PARITY_SECURITY_ADVISORS_20261118.md. Read-only audit only; no Production schema, data, Auth, RLS, GRANT, Edge, payment or settlement mutation.
+
+
+---
+
+## Pass 381–400 — Public targeted-ad output boundary regression (2026-11-18)
+
+- [x] Replace the empty-function RC451 disposable fixture with a schema-faithful synthetic fixture for advertisements, target locations, geography and global advertisements.
+- [x] Preserve the live seven-column public output contract.
+- [x] Add negative fixture rows for inactive, unapproved, expired, future and wrong-placement advertisements.
+- [x] Add geographic best-match coverage and duplicate-target deduplication coverage.
+- [x] Add global approved-ad coverage.
+- [x] Add 51 synthetic limit rows and assertions for the 50-row upper clamp, 1-row lower clamp and default limit of 3.
+- [x] Retain assertions for empty search_path, anon/authenticated EXECUTE, and no PUBLIC EXECUTE.
+- [ ] Run the exact-head RC451 PostgreSQL integration workflow and fix any fixture/test failures.
+- [ ] After CI passes, merge the regression-only change; no Production data, function, ACL or migration change is included.
+- [ ] Verify the live public RPC smoke contract after the future approved backend release.
+
+Evidence: `supabase/tests/rc451_targeted_ads_search_path_fixture.sql` and `supabase/tests/rc451_targeted_ads_search_path_integration.sql`. Disposable synthetic PostgreSQL test only.

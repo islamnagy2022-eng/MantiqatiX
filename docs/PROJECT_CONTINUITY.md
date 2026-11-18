@@ -1,3 +1,11 @@
+# Latest test checkpoint — Pass 381–400 — public targeted-ad output contract
+
+- Added a schema-faithful disposable fixture for the intentional public targeted-ad SECURITY DEFINER RPC.
+- The test now covers seven-column output projection, ACTIVE/APPROVED/date-window filtering, placement filtering, geographic best match, duplicate-target deduplication, global approved ads, and 1–50/default-3 result bounds.
+- Retained empty search_path, anon/authenticated EXECUTE, and no PUBLIC EXECUTE checks.
+- Exact-head PostgreSQL workflow pending; no Production DB/function/ACL/Edge mutation.
+
+---
 # Latest execution checkpoint — 2026-11-18 — Pass 351–360 category imagery deployed
 
 **Current main before documentation merge:** `258da165cced6a72e36b5ea950299e3e6ebb93bd`.  

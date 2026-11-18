@@ -2741,3 +2741,12 @@ Read-only Supabase production schema cross-check completed: retrieved definition
 - PR #762 merged as `0851a5e6762ab8e6e2fc7083731bfce4877789db`, reconciling RC473 and security-advisor findings.
 - No Production DB/Auth/RLS/GRANT/Edge/payment/settlement mutation occurred. RC472/RC473, RC464 authorization hardening, backup/restore, source-rights evidence and the wider SECURITY DEFINER review remain release blockers.
 
+
+
+## 2026-11-18 — Pass 381–400 — targeted-ad public output regression
+
+- Replaced the RC451 disposable fixture's empty-result stub with synthetic schema and the same public delivery query shape.
+- Added behavior assertions for active/approved/date-valid rows only, placement filtering, geography match priority, per-ad deduplication, global fallback, seven-column output and limit clamps.
+- Retained search_path/ACL assertions: empty path, anon+authenticated execution by design, no PUBLIC execution.
+- Exact-head CI pending; no Production mutation.
+
