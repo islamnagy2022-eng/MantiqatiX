@@ -81,8 +81,8 @@ assert.match(productionMapper, /pharmacyFallbackCover = isPharmacy && !isVerifie
 assert.match(productionMapper, /doctorFallbackCover = isDoctor && !isVerified && !hasOwnerSelectedCover/, 'unverified doctors without an owner-selected cover must reuse their doctor default image as the cover');
 assert.match(productionMapper, /coverUrl: doctorFallbackCover \\|\\| pharmacyFallbackCover \\|\\|/, 'owner-selected doctor/pharmacy covers must take precedence over category defaults');
 assert.ok(productionMapper.includes('const hasOwnerSelectedCover = Boolean(savedCover)') && productionMapper.includes('!isStockImageUrl(savedCover)'), 'generated, placeholder, and stock cover assets must not suppress the default doctor/pharmacy cover');
-assert.ok(directoryListingsView.includes('import { resolveDefaultImage } from "../utils/defaultImages";'),
-  'standalone directory profiles must use the shared local category-aware image resolver');
+assert.ok(directoryListingsView.includes('import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from "../utils/defaultImages";'),
+  'standalone directory profiles must use the shared resolver and retain specialist fallbacks');
 assert.ok(directoryListingsView.includes('function listingDefaultProfileImage(listing: PublicDirectoryListing): string') &&
   directoryListingsView.includes('kind: "activity"') &&
   directoryListingsView.includes('listing.functional_group_id') &&
@@ -91,6 +91,11 @@ assert.ok(directoryListingsView.includes('function listingDefaultProfileImage(li
 assert.ok(directoryListingsView.includes('function listingDefaultCoverImage(listing: PublicDirectoryListing): string') &&
   directoryListingsView.includes('kind: "cover"'),
   'standalone directory pages must resolve a separate wide category-aware cover');
+assert.ok(directoryListingsView.includes('listing.claim_status !== "CLAIMED" && listingType === "doctor"') &&
+  directoryListingsView.includes('return UNVERIFIED_DOCTOR_IMAGE_URL') &&
+  directoryListingsView.includes('listing.claim_status !== "CLAIMED" && listingType === "pharmacy"') &&
+  directoryListingsView.includes('return UNVERIFIED_PHARMACY_IMAGE_URL'),
+  'unclaimed doctor/pharmacy photos must remain unchanged while claimed pages use generic category artwork');
 assert.ok(directoryListingsView.includes('listing.metadata?.profileImageUrl') &&
   directoryListingsView.includes('listing.metadata?.logoUrl') &&
   directoryListingsView.includes('listing.metadata?.logo_url'),
