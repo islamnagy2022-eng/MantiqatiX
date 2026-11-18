@@ -1,3 +1,15 @@
+# Latest execution checkpoint — 2026-11-18 — Pages browser test locator correction
+
+- Main remains at the post-PR #759 commit. Source-level platform-admin hardening is present in main but is not applied to Supabase Production.
+- The last GitHub Pages run successfully uploaded/deployed the site and passed URL smoke checks; its *post-deploy Playwright* phase failed at the directory specialty pagination assertion.
+- Exact job log showed the DOM contained 20 matching `h3` titles, then Playwright's `getByRole('heading')` returned 0. Directory cards use a `<button>` wrapper, whose descendants are presentational in the accessibility tree; this is a test locator mismatch, not evidence that the page rendered zero records.
+- Follow-up branch `fix/e2e-directory-card-heading-query-20261118` changes only the test locator to `page.locator('h3')`, preserving the 20/25 pagination assertions. Commit: `d8d47c1a73335d63201d556df8f1616737078a12`.
+- Exact-head CI and next Pages deployment remain pending. Do not call the previous Pages deployment failed; its post-deploy browser verification failed.
+- Supabase Production RC472 / Edge deployment remains blocked by the missing verified off-site backup and the public-directory contact-disclosure decision; no Production mutation has occurred.
+
+Next: verify exact-head PR checks for the locator correction, merge only after pass, then continue the RC464 live security-parity release gates and the RC472 coordinated database/Edge release.
+---
+
 # Latest test checkpoint — Pass 381–400 — public targeted-ad output contract
 
 - Added a schema-faithful disposable fixture for the intentional public targeted-ad SECURITY DEFINER RPC.
