@@ -2120,3 +2120,28 @@ Evidence: `docs/audits/PASS_301_320_POST_MERGE_PARITY_AND_DIRECTORY_PRIVACY_2026
 - [!] Source-rights blocker remains across all 869 published rows: the Production permission-evidence registry is empty and no row references approved evidence. The `dalil140.com` host accounts for 746 rows across several source labels; the single label `Dalil140 — دليل عام غير رسمي` accounts for 497. A public URL is not a republication licence. Do not bulk import or re-publish restricted-source records without written, dataset-specific permission.
 
 Evidence: `docs/audits/PASS_301_330_DIRECTORY_CONTACT_CONSENT_20261118.md`. Source-only candidate; no Production migration or Edge deployment.
+
+---
+
+## Pass 341–350 — category-aware directory imagery and post-merge release verification (2026-11-18)
+
+- [x] Extend category-aware local default imagery to every public directory listing, with distinct profile and cover fallbacks.
+- [x] Preserve valid owner-provided HTTPS profile/logo/cover media as first priority; recover once to local category artwork when an uploaded URL fails.
+- [x] Preserve the existing unclaimed doctor/pharmacy specialist fallbacks; do not present those defaults as owner-uploaded imagery on claimed listings.
+- [x] Add/update source-contract checks for category mappings, required local SVG assets, owner-image precedence, claimed/unclaimed specialist behavior, and broken-image recovery.
+- [x] Merge PR #763 to `main` as `258da165cced6a72e36b5ea950299e3e6ebb93bd`.
+- [x] Exact PR-head CI passed after rerunning the browser E2E failure; build/TypeScript, PostgreSQL employee RBAC, and browser E2E all passed.
+- [x] Post-merge `main` build/typecheck and category-aware imagery validation passed.
+- [x] GitHub Pages deployment step completed successfully on run [44213092913](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/44213092913); automated V6 root / legacy rollback / Preview alias verification passed.
+- [ ] Complete deployed-origin Playwright checks for root, dashboard, mobile and QR routes; record final workflow conclusion before calling deployment fully verified.
+- [ ] Locate and import the separately prepared 16-WebP photographic category asset bundle. Repository tree at this checkpoint contains no category WebP files; current production defaults remain local category SVGs.
+- [ ] Do not mark the photographic asset bundle complete until all 16 files, dimensions, category mapping and built output are verified.
+
+### Continuing blockers (unchanged)
+
+- RC472/RC473 Production migration and Edge Function rollout remain separate from source merge and Pages deployment. Require verified off-site backup/restore, rollback rehearsal, ordered migration review and explicit release approval; do not mutate Production as part of this source-only checkpoint.
+- Source-rights evidence remains unresolved for the 869 published national-directory rows. Public URL visibility is not a republication licence; do not bulk republish restricted-source records.
+- Egypt administrative point assignment remains approximate until licensed ADM1/ADM2/ADM3 polygon datasets, topology and crosswalks are verified.
+- Overall `FULL_PLATFORM_GATE` remains **BLOCKED / NOT CERTIFIED**.
+
+Evidence: PR #763, exact-head workflow run [44209151937](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/44209151937), post-merge Primary Catalog Frontend Validation [44213092799](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/44213092799), Pages deployment [44213092913](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/44213092913). No Production database, migration, Auth/RLS/GRANT, Edge Function, payment or finance mutation was performed.
