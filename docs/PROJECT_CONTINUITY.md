@@ -2333,3 +2333,21 @@ No Production security setting, policy, grant, function, schema, or data was cha
 - [ ] After isolated validation, reconcile the RC481 migration with the production migration chain; do not apply it directly to Production without the same backup/restore and release gate.
 
 Evidence boundary: no Production SQL, migration, GRANT, RLS, Auth, Edge deployment, consent or legal-document data mutation was performed in this pass. The Legal Center runtime was not invoked using a real user's token; the direct query/insert paths are blocked by the observed effective table privileges. Full platform remains BLOCKED / NOT CERTIFIED.
+
+
+## Pass 841–860 — RC481 Legal Edge ACL and RC482 canonical Legal CMS authorization (2026-11-19)
+
+- [x] RC481 source candidate exists on main: `20261118220000_rc481_legal_edge_service_role_column_grants.sql`. It grants only exact column-level SELECT/INSERT rights required by deployed `legal-center` v4 and `legal-cms` v6; no table-wide grants, UPDATE, DELETE, RLS changes or row mutations.
+- [x] RC481 disposable PostgreSQL fixture, positive/negative privilege tests, source validator and CI job are present on main. RC481 remains source-only and unapplied.
+- [x] Read-only Production authorization audit confirmed service_role can read `private.platform_admins`; current active ADMIN and SUPER_ADMIN users are both in that registry. Membership-only authorization in Legal CMS nevertheless allowed a future ordinary tenant ADMIN or membership-only LEGAL_ADMIN to reach legal write actions if such a row is added.
+- [x] Added RC482 candidate migration `20261119020000_rc482_legal_cms_platform_admin_registry.sql`: a SECURITY DEFINER boolean RPC reads only `private.platform_admins`, uses an empty search_path, and grants EXECUTE only to service_role.
+- [x] Updated Legal CMS source to verify the caller's access token first, then require the RC482 canonical registry RPC to return true before any CMS action. It no longer treats a role label in `user_memberships` as sufficient authority.
+- [x] Added disposable PostgreSQL fixture/integration tests proving a registry member is allowed while tenant ADMIN, membership-only LEGAL_ADMIN, and unknown users are denied; anon/authenticated cannot execute the helper; empty search_path and SECURITY DEFINER are asserted.
+- [x] Added the RC482 PostgreSQL CI job and static source validator.
+- [x] Added RC482 version `20261119020000` to the exact required migration contract, source verifier and chronological migration gate (61 required migrations).
+- [x] Recorded RC482 as `SOURCE_ONLY_NOT_APPLIED` in the release reconciliation manifest.
+- [ ] Run exact-head CI and resolve any failures before merge.
+- [ ] Do not deploy the changed Legal CMS Edge Function or apply RC481/RC482 to Production until full chronological reconciliation, encrypted backup, disposable restore rehearsal, rollback plan and release approval are complete.
+- [ ] After approved release, verify Legal Center reads, Legal CMS deny/allow cases, consent audit inserts, and admin publish/suspend workflows with controlled test identities. Do not use production customer data for the tests.
+
+Evidence boundary: no Production migration, GRANT, Edge deployment, role assignment, legal document, consent, Auth, payment or customer data was changed in this pass. Production migration ledger remains 310 rows through `20261110150618`; RC481 and RC482 remain unapplied. Full platform remains BLOCKED / NOT CERTIFIED.
