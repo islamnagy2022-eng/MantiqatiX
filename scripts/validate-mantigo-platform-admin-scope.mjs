@@ -24,6 +24,10 @@ check("RC462 uses the canonical private platform-admin registry bound to auth.ui
   guardBody.includes("from private.platform_admins") &&
   guardBody.includes("pa.user_id = auth.uid()") &&
   !guardBody.includes("from public.user_memberships"));
+check("RC449 integration explicitly rejects tenant BUSINESS_OWNER on platform-wide MantiGO RPCs",
+  integration.includes("tenant_business_owner") &&
+  integration.includes("'BUSINESS_OWNER'") &&
+  integration.includes("assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000048','tenant BUSINESS_OWNER')"));
 check("RC462 guard remains SECURITY DEFINER with empty search_path and narrow ACL",
   guardBody.includes("security definer") &&
   guardBody.includes("set search_path = ''") &&

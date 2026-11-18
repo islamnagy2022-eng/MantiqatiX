@@ -46,12 +46,14 @@ $function$;
 DO $test$
 DECLARE
   tenant_owner uuid := '10000000-0000-4000-8000-000000000041';
+  tenant_business_owner uuid := '10000000-0000-4000-8000-000000000048';
   tenant_admin uuid := '10000000-0000-4000-8000-000000000042';
   platform_admin uuid := '10000000-0000-4000-8000-000000000044';
   result_uuid uuid;
   result_json jsonb;
 BEGIN
   PERFORM pg_temp.assert_r7_helper_callers_denied(tenant_owner,'tenant OWNER');
+  PERFORM pg_temp.assert_r7_helper_callers_denied(tenant_business_owner,'tenant BUSINESS_OWNER');
   PERFORM pg_temp.assert_r7_helper_callers_denied(tenant_admin,'tenant ADMIN');
 
   PERFORM pg_catalog.set_config('request.jwt.claim.sub',platform_admin::text,false);
