@@ -60,7 +60,12 @@ assert.equal(/phone|secondary_phone|address/i.test(publicSearch), false, "free-t
 
 const checks = [
   ["free-text search excludes private phone and address fields", !["phone", "secondary_phone", "address"].some((field) => pagination.includes('"' + field + '"')) && !/phone|secondary_phone|address/i.test(publicSearch)],
-  ["address-specific search requires an active ADDRESS consent record", source.includes('eq("scope", "ADDRESS").is("revoked_at", null)') && source.includes("addressVisibleIds")],
+  ["address-specific search requires an active ADDRESS consent record", source.includes('eq("scope", "ADDRESS")') && source.includes('is("revoked_at", null)') && source.includes("addressVisibleIds")],
+  ["address search paginates the entire consent registry instead of truncating at the first 1000 records",
+    source.includes("loadAddressConsentListingIds") &&
+    source.includes('.order("listing_id", { ascending: true })') &&
+    source.includes(".range(offset, offset + pageSize - 1)") &&
+    !source.includes('.is("revoked_at", null).limit(1000)')],
   ["GET consent lookup fails closed and is used for slug, legacy and paginated reads",
     source.includes("loadContactConsentScopes") && source.includes("directory_listing_contact_consents") &&
     source.includes("sanitizePublicDirectoryListing(data, ownerScopes)") &&
