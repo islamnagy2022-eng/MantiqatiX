@@ -18,6 +18,7 @@ on:
       - "supabase/migrations/20261118040000_rc475_paymob_atomic_webhook_forward_repair.sql"
       - "supabase/tests/rc428_430_paymob_webhook_fixture.sql"
       - "supabase/tests/rc428_430_paymob_webhook_integration.sql"
+      - "scripts/test-rc475-concurrent-replay.sh"
       - "scripts/validate-finance-boundaries.mjs"
       - "scripts/validate-payment-migration-wiring.mjs"
       - "scripts/production/live-reconciliation-contract.mjs"
