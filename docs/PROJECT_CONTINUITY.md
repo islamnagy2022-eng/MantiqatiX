@@ -2090,3 +2090,13 @@ Production schema cross-check (read-only) found the claim/listing/membership/bus
 - Latest main at this checkpoint: `4fc65f68a304c10e9ec63e073e5e1e392b75f161`.
 - Supabase Production remains read-only: 310 migration rows, latest `20261110150618`, 0/54 required release migrations recorded. No Production migration, Edge deployment, Auth/RLS/GRANT, payment or financial mutation.
 - Remaining external release blocker: authorized operator must create an encrypted off-site logical backup and complete a disposable restore rehearsal. The assistant does not have the Production DB password/connection string. See `docs/operations/FREE_TIER_DATABASE_CONTINUITY.md`.
+
+
+## 2026-11-18 — post-merge verification complete for PR #782
+
+- Main commit `4fc65f68a304c10e9ec63e073e5e1e392b75f161` passed all post-merge workflows.
+- Primary Catalog Frontend Validation run `44234486191` passed build, employee/branch RBAC PostgreSQL checks and browser E2E.
+- GitHub Pages deploy run `44234486405` passed validation, deployment and deployed-origin browser checks. The legacy root, `/legacy/` rollback path, `/v6-preview/` alias and dashboard/mobile/QR routes were verified.
+- Production Health Monitor run `44234486359` passed; module, privacy, finance, CORS and legacy catalog workflows also passed.
+- Latest main at this documentation checkpoint: `ef96fec44715ee255780e63bd5a2a2925d89876d` (documentation-only follow-up).
+- Production remains read-only and not certified: 310 migration rows through `20261110150618`, 0/54 required release migrations applied, and no off-site backup/restore rehearsal.
