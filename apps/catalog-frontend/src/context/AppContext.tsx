@@ -637,7 +637,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const defaultCover = !updated.coverUrl?.trim() ||
-      /(?:business-placeholder\.svg|catalog-item-placeholder\.svg|\/legacy\/activity\/|\/legacy\/mnty-cover-ad-)/i.test(updated.coverUrl);
+      /(?:business-cover-placeholder\.svg|business-placeholder\.svg|catalog-item-placeholder\.svg|\/legacy\/activity\/|\/legacy\/mnty-cover-ad-)/i.test(updated.coverUrl);
     let coverUrl = updated.coverUrl?.trim() || '';
     if (defaultCover) {
       const generated = await generateCatalogAiImage({

@@ -245,10 +245,10 @@ export function mapBusiness(raw: any, provider: any): Business {
   const savedLogoSource = String(profile.logo_image_source || profile.logoImageSource || '').toLowerCase();
   const savedCoverSource = String(profile.cover_image_source || profile.coverImageSource || '').toLowerCase();
   const hasOwnerSelectedLogo = Boolean(savedLogo) && savedLogoSource !== 'auto' &&
-    !/(?:business-placeholder|catalog-item-placeholder)\.svg|\/legacy\/(?:activity|activities)\//i.test(savedLogo);
+    !/(?:business-cover-placeholder|business-placeholder|catalog-item-placeholder)\.svg|\/legacy\/(?:activity|activities)\//i.test(savedLogo);
   const hasOwnerSelectedCover = Boolean(savedCover) && savedCoverSource !== 'auto' &&
     !isStockImageUrl(savedCover) &&
-    !/(?:business-placeholder|catalog-item-placeholder)\.svg|\/legacy\/(?:activity|activities)\//i.test(savedCover);
+    !/(?:business-cover-placeholder|business-placeholder|catalog-item-placeholder)\.svg|\/legacy\/(?:activity|activities)\//i.test(savedCover);
   const pharmacyFallbackLogo = isPharmacy && !isVerified && !hasOwnerSelectedLogo
     ? UNVERIFIED_PHARMACY_IMAGE_URL
     : '';

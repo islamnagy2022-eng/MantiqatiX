@@ -89,8 +89,8 @@ export function resolveDefaultImage(input: DefaultImageInput = {}): string {
   const art = inferArt(input);
   if (input.kind === 'activity') return asset(ACTIVITY_ART[art]);
   if (input.kind === 'cover') {
-    // The cover is wide and category-aware; never send the public site back to /web/.
-    return asset(ACTIVITY_ART[art] || 'legacy/mnty-cover-ad-2.svg');
+    // Unknown categories need a neutral wide cover, not the activity logo placeholder.
+    return asset(art === 'general' ? 'business-cover-placeholder.svg' : ACTIVITY_ART[art] || 'business-cover-placeholder.svg');
   }
   return asset(ITEM_ART[art] || 'catalog-item-placeholder.svg');
 }
