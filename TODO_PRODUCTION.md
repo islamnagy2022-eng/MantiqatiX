@@ -2486,3 +2486,14 @@ Evidence: read-only Production ACL and `has_column_privilege` checks on 2026-11-
 - [ ] Merge and deploy the Edge function only after exact-head checks/review; verify live response and monitor mode before retiring anonymous fallback.
 
 No Production Edge deployment, SQL, migration, GRANT, RLS, Auth, payment, wallet, settlement, or Pages deployment was performed. The full platform remains BLOCKED / NOT CERTIFIED.
+
+## Pass 741–760 — authenticate service-role health probe (2026-11-18)
+
+- [x] Closed the public service-role probe exposure: `health` now requires a dedicated `HEALTH_MONITOR_TOKEN` bearer secret before constructing the Supabase service-role client.
+- [x] Added fixed-length SHA-256 digest comparison for the shared token and generic 401/503 responses; no database query occurs for missing or invalid tokens.
+- [x] Updated the hourly GitHub monitor to send `secrets.HEALTH_MONITOR_TOKEN`; when the secret is not configured, it safely retains the existing legacy anon read probe.
+- [x] Updated the validator and backup/restore runbook with the secret setup and rollout order.
+- [ ] Owner/operator must set the same high-entropy token in Supabase Edge secrets and GitHub Actions repository secrets before deploying this Edge Function. Do not share the token in chat.
+- [ ] Exact-head CI remains unverified; no green check is claimed.
+
+No Production Edge deployment, database write, migration, privilege change, Auth change, or Pages deployment occurred. Release remains BLOCKED / NOT CERTIFIED.
