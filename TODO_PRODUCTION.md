@@ -2178,3 +2178,17 @@ Evidence: docs/audits/PASS_341_350_PRODUCTION_PARITY_SECURITY_ADVISORS_20261118.
 - [ ] Verify the live public RPC smoke contract after the future approved backend release.
 
 Evidence: `supabase/tests/rc451_targeted_ads_search_path_fixture.sql` and `supabase/tests/rc451_targeted_ads_search_path_integration.sql`. Disposable synthetic PostgreSQL test only.
+
+
+## P0 — Production directory contact-consent drift (2026-11-18)
+
+- [x] Compare current `main` sanitizer with deployed `directory-listings` Edge version 16 source.
+- [x] Confirm Production has no `public.directory_listing_contact_consents` table.
+- [x] Confirm live Edge v16 selects and returns contact columns without the consent registry/sanitizer.
+- [x] Separate source-republication evidence registry from listing contact-consent registry; do not conflate them.
+- [x] Record stored contact counts without retrieving contact values.
+- [ ] Back up and restore-verify Production off-site.
+- [ ] Apply consent-table migration and deploy matching Edge source in a coordinated, tested release.
+- [ ] Verify no-consent, scope-specific consent, revocation and fail-closed public output on deployed Production.
+
+Evidence: `docs/audits/PRODUCTION_DIRECTORY_CONTACT_CONSENT_DRIFT_20261118.md`. Production remains unchanged; privacy fix is not live.
