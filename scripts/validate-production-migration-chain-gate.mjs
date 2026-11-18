@@ -108,6 +108,28 @@ assert.match(liveContract, /financial_journal_runtime_prerequisite_check/, "jour
 assert.match(liveContract, /security_definer_search_path_check/, "RC451 targeted-ad security-definer search_path must be required");
 assert.match(liveContract, /REQUIRED_EDGE_FUNCTIONS/, "the live parity contract must enumerate all critical function entrypoints");
 
+
+const forwardReplay = fs.readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
+for (const validator of [
+  "scripts/validate-r7-platform-admin-migration.mjs",
+  "scripts/validate-rc476-captain-earnings-live-columns.mjs",
+  "scripts/validate-mantigo-high-risk-definers.mjs",
+  "scripts/validate-rc482-legal-platform-admin-registry.mjs",
+  "scripts/validate-rc483-atomic-legal-cms-create-audit.mjs",
+  "scripts/validate-production-migration-chain-gate.mjs"
+]) {
+  assert.ok(forwardReplay.includes(validator), `forward replay must run ${validator}`);
+}
+for (const contractPath of [
+  "scripts/production/live-reconciliation-contract.mjs",
+  "scripts/production/verify-production.mjs",
+  "docs/release/production-migration-reconciliation.json",
+  "supabase/tests/rc482_legal_platform_admin_registry_integration.sql",
+  "supabase/tests/rc483_atomic_legal_cms_create_audit_integration.sql"
+]) {
+  assert.ok(forwardReplay.includes(contractPath), `forward replay trigger paths must include ${contractPath}`);
+}
+
 const validReconciliation = {
   status: "VERIFIED",
   verified: true,
