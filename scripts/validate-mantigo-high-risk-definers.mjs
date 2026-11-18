@@ -12,7 +12,10 @@ for (const marker of [
   'expire_stale_mantigo_rides_backend',
   "has_function_privilege('anon'",
   "has_function_privilege('authenticated'",
-  'expected_search_path','search_path=""','search_path=public, pg_temp','oidvectortypes(p.proargtypes)'
+  'expected_search_path',
+  'search_path=""',
+  'search_path=public, pg_temp',
+  'oidvectortypes(p.proargtypes)'
 ]) {
   if (!sql.includes(marker)) throw new Error('MantiGO release security marker missing: '+marker);
 }
