@@ -58,13 +58,9 @@ Deno.serve(async (req) => {
   if (!["PENDING", "CREATED"].includes(orderStatus)) return json({ error: "Order is not payable in its current state" }, 409, requestId);
   if (!order.pricing_hash || order.pricing_version == null || !order.pricing_authority) return json({ error: "Order pricing snapshot is unavailable" }, 409, requestId);
 
-  if (order.customer_id && order.customer_id !== user.id) {
-    const { data: financeMembership } = await admin.from("user_memberships").select("id,role")
-      .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE")
-      .in("role", ["OWNER","ADMIN","MANAGER","FINANCE","ACCOUNTANT","FINANCE_MANAGER"]).limit(1).maybeSingle();
-    if (!financeMembership) return json({ error: "Forbidden" }, 403, requestId);
-  }
-
+  // The user-scoped RPC is the single authority for business/branch/role access.
+  // Do not duplicate membership checks here: a tenant-wide role lookup can drift
+  // from the order's exact business and branch scope.
   const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
     global: { headers: { Authorization: auth } }
