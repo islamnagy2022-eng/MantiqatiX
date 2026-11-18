@@ -2160,3 +2160,18 @@ Evidence: docs/audits/PASS_331_340_RC473_MERGE_VERIFICATION_20261118.md.
 - [ ] Continue P0 security review and production release gates; backup/restore and source-rights blockers remain unresolved.
 
 Evidence: docs/audits/PASS_341_350_PRODUCTION_PARITY_SECURITY_ADVISORS_20261118.md. Read-only audit only; no Production schema, data, Auth, RLS, GRANT, Edge, payment or settlement mutation.
+
+
+---
+
+## Supplemental release evidence — deployed directory specialty pagination (2026-11-18)
+
+- [x] Preserve PR #760's browser-test correction: wait for the specialty-filtered API response (HTTP 200) before asserting the 20-row page, and verify the exact category/specialty request.
+- [x] Confirm PR #760 merged as `18711d016a591613791e9596740b367eecb96865`.
+- [x] Confirm Pages run `44205131869` passed deployment and deployed-origin root/dashboard/mobile/QR checks.
+- [x] Confirm the later main run `44213092913` also passed all deployed-origin route checks after the imagery update.
+- [x] Confirm current main Primary Catalog validation includes browser E2E and passed on `258da165cced6a72e36b5ea950299e3e6ebb93bd`.
+- [x] Supersede the stale conflicting documentation PR #761 with this current-main evidence record.
+- [ ] Continue to monitor specialty server pagination and geographic filter retention in future catalog changes.
+
+Evidence: `docs/audits/SUPPLEMENTAL_DEPLOYED_DIRECTORY_PAGINATION_20261118.md`. This is a supplemental release note, not a new numbered Pass range. No Production database or Edge mutation occurred.
