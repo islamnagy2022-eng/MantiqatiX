@@ -34,24 +34,46 @@ BEGIN
     RAISE EXCEPTION 'RC474_PRECONDITION_FAILED: Supabase Auth helpers missing';
   END IF;
 
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema='public' AND table_name='orders'
-      AND column_name='branch_id' AND data_type='character varying'
-  ) OR NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema='public' AND table_name='orders'
-      AND column_name='customer_id' AND data_type='uuid'
-  ) OR NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema='public' AND table_name='user_memberships'
-      AND column_name='branch_id' AND data_type='character varying'
-  ) OR NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema='public' AND table_name='user_memberships'
-      AND column_name='business_id' AND data_type='uuid'
+  IF EXISTS (
+    SELECT 1
+    FROM (VALUES
+      ('orders','tenant_id','character varying'),
+      ('orders','business_id','uuid'),
+      ('orders','branch_id','character varying'),
+      ('orders','customer_id','uuid'),
+      ('orders','status','character varying'),
+      ('orders','total_amount','numeric'),
+      ('orders','total','numeric'),
+      ('orders','currency','character varying'),
+      ('orders','pricing_version','bigint'),
+      ('orders','pricing_hash','character varying'),
+      ('orders','pricing_authority','character varying'),
+      ('user_memberships','user_id','uuid'),
+      ('user_memberships','tenant_id','character varying'),
+      ('user_memberships','business_id','uuid'),
+      ('user_memberships','branch_id','character varying'),
+      ('user_memberships','role','character varying'),
+      ('user_memberships','status','character varying'),
+      ('payment_intents','id','character varying'),
+      ('payment_intents','tenant_id','character varying'),
+      ('payment_intents','order_id','uuid'),
+      ('payment_intents','amount','numeric'),
+      ('payment_intents','currency','character varying'),
+      ('payment_intents','status','character varying'),
+      ('payment_intents','provider','character varying'),
+      ('payment_intents','payment_method','character varying'),
+      ('payment_intents','idempotency_key','character varying'),
+      ('payment_intents','pricing_version','bigint'),
+      ('payment_intents','pricing_hash','character varying')
+    ) AS expected(table_name,column_name,data_type)
+    LEFT JOIN information_schema.columns actual
+      ON actual.table_schema='public'
+     AND actual.table_name=expected.table_name
+     AND actual.column_name=expected.column_name
+     AND actual.data_type=expected.data_type
+    WHERE actual.column_name IS NULL
   ) THEN
-    RAISE EXCEPTION 'RC474_PRECONDITION_FAILED: business/branch authorization columns do not match expected types';
+    RAISE EXCEPTION 'RC474_PRECONDITION_FAILED: payment, order, membership or branch schema does not match expected types';
   END IF;
 END
 $preflight$;
@@ -137,7 +159,7 @@ BEGIN
   IF v_order.pricing_hash IS NULL OR v_order.pricing_version IS NULL OR v_order.pricing_authority IS NULL THEN
     RAISE EXCEPTION 'PRICING_SNAPSHOT_REQUIRED';
   END IF;
-  IF p_amount IS NULL OR p_amount<=0
+  IF p_amount IS NULL OR p_amount<=0 OR v_order.total IS NULL
      OR abs(p_amount-v_order.total_amount)>0.01
      OR abs(p_amount-v_order.total)>0.01 THEN
     RAISE EXCEPTION 'INVALID_AMOUNT';
