@@ -17,7 +17,7 @@ with expected(signature, expect_anon, expect_auth, expected_search_path) as (
  ('public.fulfill_digital_page_publish(uuid,uuid,uuid)',false,true,'search_path=""'),
  ('public.set_mantigo_financial_config_backend(uuid,numeric,text)',false,true,'search_path=""')
  ), actual as (
- select 'public.'||p.proname||'('||pg_catalog.oidvectortypes(p.proargtypes)||')' signature,
+ select 'public.'||p.proname||'('||replace(pg_catalog.oidvectortypes(p.proargtypes), ', ', ',')||')' signature,
         has_function_privilege('anon',p.oid,'EXECUTE') anon_exec,
         has_function_privilege('authenticated',p.oid,'EXECUTE') auth_exec,
         p.prosecdef,
