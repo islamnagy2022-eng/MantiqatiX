@@ -95,7 +95,6 @@ BEGIN
   IF to_regclass('public.uq_subscription_payment_intents_provider_order') IS NULL THEN
     RAISE EXCEPTION 'RC475_SCHEMA_PREFLIGHT_FAILED: subscription provider-order uniqueness is missing';
   END IF;
-END;
 
   SELECT string_agg(format('%s.%s expected %s', r.table_name, r.column_name, r.data_type), ', ')
     INTO v_missing
@@ -173,6 +172,8 @@ END;
      OR to_regclass('public.uk_payment_financial_reconciliation') IS NULL THEN
     RAISE EXCEPTION 'RC475_SCHEMA_PREFLIGHT_FAILED: financial idempotency indexes are missing';
   END IF;
+END;
+
 
 $preflight$;
 
@@ -616,7 +617,7 @@ CREATE OR REPLACE FUNCTION public.process_verified_provider_payment(p_event_id c
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO ''
+ SET search_path = ''
 AS $function$
 DECLARE
   v_intent record; v_order record; v_commission numeric := 0; v_rule record;
@@ -627,7 +628,7 @@ DECLARE
 BEGIN
   IF coalesce(p_signature_verified, false) IS NOT TRUE THEN RAISE EXCEPTION 'WEBHOOK_SIGNATURE_NOT_VERIFIED'; END IF;
   IF p_provider_confirmed_amount IS NULL OR p_provider_confirmed_amount <= 0 THEN RAISE EXCEPTION 'INVALID_PROVIDER_AMOUNT'; END IF;
-  SELECT * INTO v_intent FROM public.payment_intents WHERE id=p_payment_intent_id::uuid FOR UPDATE;
+  SELECT * INTO v_intent FROM public.payment_intents WHERE id::text=p_payment_intent_id::text FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'PAYMENT_INTENT_NOT_FOUND'; END IF;
   SELECT * INTO v_order FROM public.orders WHERE id=v_intent.order_id FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'ORDER_NOT_FOUND'; END IF;
