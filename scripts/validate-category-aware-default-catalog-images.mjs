@@ -74,12 +74,17 @@ assert.ok(catalogSection.includes('import { resolveDefaultImage }'), 'storefront
 assert.ok(catalogSection.includes('image.src = resolveDefaultImage({'), 'broken storefront product images must fall back by category');
 
 const directoryListings = read('apps/catalog-frontend/src/components/DirectoryListingsView.tsx');
-assert.ok(directoryListings.includes("import { resolveDefaultImage } from \"../utils/defaultImages\";"),
+assert.ok(directoryListings.includes("import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from \"../utils/defaultImages\";"),
   'standalone directory pages must use the shared category-aware image resolver');
 assert.ok(directoryListings.includes('listingDefaultProfileImage') && directoryListings.includes("kind: \"activity\""),
   'every directory listing must receive a local category-aware profile image when no owner image exists');
 assert.ok(directoryListings.includes('listingDefaultCoverImage') && directoryListings.includes("kind: \"cover\""),
   'every directory listing must receive a wide category-aware cover when no owner cover exists');
+assert.ok(directoryListings.includes('listing.claim_status !== "CLAIMED" && listingType === "doctor"') &&
+  directoryListings.includes('return UNVERIFIED_DOCTOR_IMAGE_URL') &&
+  directoryListings.includes('listing.claim_status !== "CLAIMED" && listingType === "pharmacy"') &&
+  directoryListings.includes('return UNVERIFIED_PHARMACY_IMAGE_URL'),
+  'existing doctor and pharmacy fallbacks must remain limited to unclaimed listings');
 assert.ok(directoryListings.includes('listing.metadata?.logoUrl') && directoryListings.includes('listing.metadata?.profileImageUrl'),
   'valid owner-provided profile/logo imagery must retain precedence over defaults');
 assert.ok(directoryListings.includes('listing.metadata?.coverUrl') && directoryListings.includes('listing.metadata?.cover_url'),
