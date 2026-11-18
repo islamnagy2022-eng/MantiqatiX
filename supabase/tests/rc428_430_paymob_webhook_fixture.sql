@@ -105,8 +105,6 @@ create table public.business_subscriptions (
   updated_at timestamptz not null default now()
 );
 
-CREATE UNIQUE INDEX payment_provider_events_provider_external_event_id_key
-  ON public.payment_provider_events(provider, external_event_id);
 CREATE UNIQUE INDEX uq_business_subscriptions_idempotency
   ON public.business_subscriptions(idempotency_key) WHERE idempotency_key IS NOT NULL;
 CREATE UNIQUE INDEX uq_subscription_payment_intents_provider_order
