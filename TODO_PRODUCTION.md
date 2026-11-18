@@ -27,11 +27,11 @@
 - Full details and next execution order: docs/release/R7_SOURCE_BASELINE_20261111.md.
 
 ---
-# AUTHORITATIVE PROJECT BASELINE — 2026-11-08 (READ FIRST)
+# HISTORICAL PROJECT BASELINE — 2026-11-08 (superseded by 2026-11-18 master source)
 
 > Historical baseline from 2026-11-08. It is retained for traceability only; the uploaded `docs/MASTER_SOURCE_OF_TRUTH.md` and the Current source map above supersede this section. If any historical statement conflicts with those sources, follow the current master directive.
 
-## 1. Canonical application source — NEWEST USER-APPROVED VERSION
+## 1. Historical R6 application source — reference only
 
 - **Canonical application baseline:** the user's newest uploaded source archive, `bizcatalog-manager (6).zip`.
 - **Verified archive SHA-256:** `c7623e2741d34ac5c58ba2c2c8f9286116e7adc6f5e214955c5c67d050c15447`.
