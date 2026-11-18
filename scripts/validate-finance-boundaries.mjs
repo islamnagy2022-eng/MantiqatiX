@@ -27,7 +27,7 @@ for(const name of ['process_verified_provider_payment_failure','process_verified
   if(!forwardRepair.toLowerCase().includes('create or replace function public.'+name+'(')) throw new Error('RC475 forward repair missing '+name);
 }
 if((forwardRepair.match(/set search_path = ''/gi)||[]).length!==4) throw new Error('RC475 must pin empty search_path on all four SECURITY DEFINER processors');
-if(!forwardRepair.includes('RC475_SCHEMA_PREFLIGHT_FAILED') || !forwardRepair.includes('payment_provider_events_provider_external_event_id_key') || !forwardRepair.includes('uq_business_subscriptions_idempotency') || !forwardRepair.includes('id::text=p_payment_intent_id::text') || !forwardRepair.includes('PAYMENT_INTENT_ALREADY_FINAL_WITHOUT_MATCHING_RECONCILIATION')) throw new Error('RC475 schema and idempotency preflight is incomplete');
+if(!forwardRepair.includes('RC475_SCHEMA_PREFLIGHT_FAILED') || !forwardRepair.includes('payment_provider_events_provider_external_event_id_key') || !forwardRepair.includes('uq_business_subscriptions_idempotency') || !forwardRepair.includes('uq_financial_obligation_idempotent') || !forwardRepair.includes('id::text=p_payment_intent_id::text') || !forwardRepair.includes('PAYMENT_INTENT_ALREADY_FINAL_WITHOUT_MATCHING_RECONCILIATION')) throw new Error('RC475 schema and idempotency preflight is incomplete');
 for(const role of ['public','anon','authenticated']) if(!forwardRepair.toLowerCase().includes(' from '+role+';')) throw new Error('RC475 must revoke direct execution from '+role);
 if((forwardRepair.match(/ to service_role;/gi)||[]).length!==4) throw new Error('RC475 must grant exactly four processors to service_role');
 console.log('RC260 finance/payment boundary validation: PASS');
