@@ -1,3 +1,37 @@
+# CURRENT CONTINUATION SNAPSHOT — 2026-11-18
+
+**Main baseline:** `d0a525d728037fe60d73bb9ca6861b5424af6a8d` (PR #801 merged; duplicate PWA install control removed).  
+**Production release:** `BLOCKED / NOT CERTIFIED`.
+
+## Verified current state
+
+- Main exact-SHA frontend validation: PASS (run 44353399004).
+- Main exact-SHA Module Professionalization Validation: PASS (run 44353398818).
+- Main exact-SHA Backend-only Module Boundary: PASS (run 44353398914).
+- Main exact-SHA MantiGO Open Ride Privacy Boundary: PASS (run 44353398757).
+- Main Production Health Monitor: PASS (run 44353398844). This checks site/runtime/database read probe/assets only; it is not a backup or restore check.
+- Main Pages deployment run 44353398832 was still in progress at this snapshot; do not infer deployment success until its deploy job completes.
+- Live Supabase organization plan: Free. Supabase's official backup documentation says automatic daily database backups are for Pro/Team/Enterprise; Free projects should use Supabase CLI logical exports and keep off-site backups.
+- Live migration ledger: 310 rows, latest `20261110150618`. `public.directory_listing_contact_consents` is absent.
+- Live `directory-listings` Edge Function: ACTIVE v16. Current main source has consent-aware output and the address-consent pagination fix; Production schema/function parity is not closed.
+- No Production backup or isolated restore rehearsal is verified. No Production migration, Auth/RLS/GRANT, Edge, payment, wallet or settlement mutation was performed.
+
+## Newly completed source work
+
+- PR #801 merged: remove duplicate PWA install action without replacing mobile web/PWA.
+- PR #802 opened: fix the MantiGO SECURITY DEFINER workflow path filters. Its exact-head MantiGO Platform Admin Scope Hardening, Module Professionalization, Backend-only Module Boundary, MantiGO privacy and Paymob atomicity workflows passed; its Deploy MantiqatiX Web PR validation was still running at this snapshot.
+- PR #803 opened: document the R7 Android wrapper buildability/security gaps and the Free-plan recovery gate. It is documentation-only.
+
+## Next executable sequence
+
+1. Verify PR #802 deployment validation and merge the CI trigger fix when all exact-head checks pass.
+2. Verify PR #803 documentation checks and merge without changing Production.
+3. Obtain owner-operated encrypted off-site database exports and separate Storage/configuration recovery copies; never commit or upload production data as public GitHub artifacts.
+4. Restore to an isolated disposable target, record measured RPO/RTO, and run tenant isolation, privacy, migration replay, financial reconciliation and application smoke tests.
+5. Only then stage the ordered RC472–RC478 migration chain with the matching directory Edge Function; production release remains gated until the full coordinated rehearsal passes.
+
+---
+
 ## Latest execution checkpoint — 2026-11-17 — Pass 67–86
 
 **Request ID:** `R-20261117-PASS-67-86`  
