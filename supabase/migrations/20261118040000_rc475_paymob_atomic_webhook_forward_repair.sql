@@ -662,6 +662,18 @@ BEGIN
     IF upper(v_intent.status::text) IS DISTINCT FROM 'SUCCEEDED' THEN
       RAISE EXCEPTION 'PAYMENT_INTENT_EVENT_STATE_MISMATCH';
     END IF;
+    SELECT * INTO v_existing_reconciliation
+    FROM public.payment_financial_reconciliations
+    WHERE tenant_id=p_tenant_id AND payment_intent_id=p_payment_intent_id
+    FOR UPDATE;
+    IF NOT FOUND
+       OR v_existing_reconciliation.provider_event_id IS DISTINCT FROM p_external_event_id
+       OR v_existing_reconciliation.gross_amount IS DISTINCT FROM v_order.total
+       OR upper(v_existing_reconciliation.currency::text) IS DISTINCT FROM upper(v_order.currency::text)
+       OR upper(v_existing_reconciliation.reconciliation_status::text) IS DISTINCT FROM 'RECONCILED' THEN
+      RAISE EXCEPTION 'PAYMENT_INTENT_EVENT_WITHOUT_MATCHING_RECONCILIATION';
+    END IF;
+    v_reconciliation_id := v_existing_reconciliation.id;
     RETURN jsonb_build_object('status','success','idempotent',true,'payment_intent_id',p_payment_intent_id,'reconciliation_id',v_reconciliation_id);
   END IF;
   IF v_intent.status = 'SUCCEEDED' THEN
