@@ -2285,3 +2285,16 @@ No Production mutation or deployment occurred. PR #809 remains the source review
 No Production mutation or deployment occurred. PR #809 remains open; platform remains BLOCKED / NOT CERTIFIED.
 
 - [x] Local verification after the authenticated-token hardening: static contract validator PASS, TypeScript syntax transpilation PASS, and monitor shell syntax check PASS. These local checks do not replace the still-unverified GitHub exact-head CI run.
+
+
+## Pass 781–800 — verified source integration checkpoint (2026-11-18)
+
+- PR #813 merged to main as 352325b344f31345c979c73a8d8013d3df7ad525. The RC479 static validator now uses a real whitespace matcher and self-tests forbidden revokes against authenticated, service_role, and PUBLIC.
+- PR #809 merged to main as e11acc7c1199b837529f063f67442ef14548c7f8. Main now contains the hardened health Edge source, GET-only method guard, SHA-256 fixed-length bearer-token comparison, server-side service-role one-row read, safe response handling, monitor compatibility fallback, static validator, and updated operational runbook.
+- Exact PR-head workflow jobs reviewed and successful, including RC479 disposable PostgreSQL integration and Module Professionalization validation. The PR #809 web workflow validate job passed; its deploy job was skipped by the existing production gate.
+- Production is intentionally not changed by these merges. The deployed Supabase health function is still version 3 and runtime-only. The new version is not yet deployed.
+- External operator dependency: configure matching high-entropy HEALTH_MONITOR_TOKEN values in Supabase Edge secrets and GitHub Actions repository secrets. Never share or commit the value.
+- After secret configuration, deploy only the reviewed health function, verify the authenticated DB probe and hourly monitor mode, then preserve the legacy anon fallback until verification is complete.
+- Production migration ledger: 310 entries through 20261110150618; RC479 20261118190000 remains unapplied. Chronological reconciliation, encrypted backup, disposable restore rehearsal, rollback planning, and release approval remain mandatory.
+
+No Production Edge deployment, database mutation, privilege change, Auth change, payment, wallet, settlement, or full-site release was performed. Platform remains BLOCKED / NOT CERTIFIED.
