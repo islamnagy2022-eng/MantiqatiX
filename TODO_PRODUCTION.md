@@ -1,5 +1,19 @@
 # R7 SOURCE BASELINE OVERRIDE — 2026-11-11
 
+
+---
+
+# CURRENT SOURCE MAP — 2026-11-18 (supersedes older archive references below)
+
+- Governing operating directive: `docs/MASTER_SOURCE_OF_TRUTH.md` — sole current project execution authority; older prompts and continuity notes are subordinate.
+- Current production implementation: GitHub `main`, commit `777884bd76c75d792d9e7a565da26fc7e8fca4b7`.
+- Latest user upload: `bizcatalog-manager (11).zip`, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, 270 entries / 118 source files, Android wrapper retained. This is a distinct R7-era candidate; see `docs/audits/R7_ARCHIVE_11_INTAKE_20261118.md`. It is not approved for wholesale import/deployment.
+- Previous R7 archives (including `bizcatalog-manager (9)(1).zip` and older numbered copies) are separate historical artifacts. Do not conflate their hashes or audits with the latest upload.
+- Supabase remains the sole source of truth for identity, permissions and production data. Do not accept the R7 archive's local-JSON authority or browser-stored roles.
+- Current GitHub Pages production root is the legacy catalog application; `/legacy/` is its rollback copy; `/v6-preview/` is the V6 preview alias. No root cutover has occurred.
+- Preserve Android wrapper files and all source archives; do not delete or replace them before a verified, documented migration.
+
+
 > This update supersedes the older R6 source-baseline references below. The user subsequently supplied the newer R7 source archive bizcatalog-manager (7).zip. For application UI and intended R7 behavior, R7 is now the development source of truth. R6 and earlier trees remain reference-only and may be used only for verified gaps. This does not mean R7 has been imported into main, deployed, or approved for Production.
 
 - Original R7 archive SHA-256: 491b25f85218c6ca2196debf860b5225871df710b3997199f1b5a401ef7851ed.
@@ -2230,3 +2244,19 @@ Evidence: `docs/audits/PASS_401_420_MANTIGO_SETTLEMENT_AUTHORIZATION_20261118.md
 - [ ] Obtain verified off-site logical backup and restore before any Production DDL/Edge deployment.
 
 Evidence: `docs/audits/PASS_421_440_PAYMENT_INTENT_SCOPE_20261118.md`. Production remained read-only.
+
+
+## Pass 441–460 — source and Pages truth reconciliation (2026-11-18)
+
+- [x] Verify actual Pages root composition from workflow and completed deployment logs.
+- [x] Correct README: legacy catalog is production root; /legacy/ is rollback copy; /v6-preview/ is preview only.
+- [x] Audit latest uploaded R7 archive by exact SHA-256, not filename alone.
+- [x] Record 270 ZIP entries, 118 source files, Android wrapper files and missing build/release artifacts.
+- [x] Record hard-coded fallback secret, demo-login, localStorage role and local-JSON authority risks without exposing secret values.
+- [x] Preserve earlier R7 archives as distinct historical sources; do not assume byte identity.
+- [x] Preserve Android wrapper and latest archive unchanged.
+- [x] Save the uploaded operating directive as `docs/MASTER_SOURCE_OF_TRUTH.md`.
+- [ ] Port any desired R7 UI/behavior selectively into current main architecture after its security defects are removed and tests pass.
+- [ ] Complete V6 production-root cutover only after full platform gate, backup/restore and explicit release approval.
+
+Evidence: `docs/audits/PASS_441_460_SOURCE_AND_PAGES_TRUTH_20261118.md` and `docs/audits/R7_ARCHIVE_11_INTAKE_20261118.md`.
