@@ -5,10 +5,12 @@ import { buildDirectoryPaginationOrFilter } from "../supabase/functions/director
 import { collectActiveAddressConsentIds } from "../supabase/functions/directory-listings/consent-pagination.mjs";
 
 const source = readFileSync("supabase/functions/directory-listings/index.ts", "utf8");
+const scriptext = readFileSync("scripts/validate-directory-contact-consent.mjs", "utf8");
 const migration = readFileSync("supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql", "utf8");
 const ui = readFileSync("apps/catalog-frontend/src/components/DirectoryListingsView.tsx", "utf8");
 const client = readFileSync("apps/catalog-frontend/src/lib/directoryListings.ts", "utf8");
 const pagination = readFileSync("supabase/functions/directory-listings/pagination-filter.mjs", "utf8");
+const consentPagination = readFileSync("supabase/functions/directory-listings/consent-pagination.mjs", "utf8");
 
 const syntheticConsentRows = Array.from({ length: 2205 }, (_, index) => ({
   listing_id: `listing-${String(index).padStart(4, "0")}`,
@@ -87,6 +89,10 @@ const checks = [
     source.includes('.order("listing_id", { ascending: true })') &&
     source.includes(".range(offset, offset + pageSize - 1)") &&
     !source.includes('.is("revoked_at", null).limit(1000)')],
+  ["address consent pagination continues across server-capped short pages and fails closed on registry errors",
+    source.includes("collectActiveAddressConsentIds") &&
+    consentPagination.includes("offset += rows.length") &&
+    scriptext.includes("2205")],
   ["GET consent lookup fails closed and is used for slug, legacy and paginated reads",
     source.includes("loadContactConsentScopes") && source.includes("directory_listing_contact_consents") &&
     source.includes("sanitizePublicDirectoryListing(data, ownerScopes)") &&
