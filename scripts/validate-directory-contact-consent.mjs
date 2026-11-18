@@ -2,12 +2,33 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { sanitizePublicDirectoryListing } from "../supabase/functions/directory-listings/public-directory-output-contract.mjs";
 import { buildDirectoryPaginationOrFilter } from "../supabase/functions/directory-listings/pagination-filter.mjs";
+import { collectActiveAddressConsentIds } from "../supabase/functions/directory-listings/consent-pagination.mjs";
 
 const source = readFileSync("supabase/functions/directory-listings/index.ts", "utf8");
 const migration = readFileSync("supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql", "utf8");
 const ui = readFileSync("apps/catalog-frontend/src/components/DirectoryListingsView.tsx", "utf8");
 const client = readFileSync("apps/catalog-frontend/src/lib/directoryListings.ts", "utf8");
 const pagination = readFileSync("supabase/functions/directory-listings/pagination-filter.mjs", "utf8");
+
+const syntheticConsentRows = Array.from({ length: 2205 }, (_, index) => ({
+  listing_id: `listing-${String(index).padStart(4, "0")}`,
+}));
+let pageCalls = 0;
+const completeConsentLookup = await collectActiveAddressConsentIds(async (offset, pageSize) => {
+  pageCalls += 1;
+  // Simulate a PostgREST max_rows cap of 400, lower than the requested page size.
+  return { data: syntheticConsentRows.slice(offset, offset + Math.min(pageSize, 400)), error: null };
+});
+assert.equal(completeConsentLookup.ready, true);
+assert.equal(completeConsentLookup.ids.length, 2205, "all consented listings must be collected beyond 1,000 rows");
+assert.equal(pageCalls, 7, "short capped pages must continue until an empty page is observed");
+
+const failedConsentLookup = await collectActiveAddressConsentIds(async (offset) => ({
+  data: offset === 0 ? syntheticConsentRows.slice(0, 1000) : null,
+  error: offset === 0 ? null : new Error("synthetic registry outage"),
+}));
+assert.equal(failedConsentLookup.ready, false, "registry failure must fail closed");
+assert.deepEqual(failedConsentLookup.ids, [], "partial consent results must never be used after a page failure");
 
 const row = {
   id: "listing-1",
