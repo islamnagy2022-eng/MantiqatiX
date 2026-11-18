@@ -266,3 +266,39 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc481_test -v ON_ERROR_STOP=1 -f /tmp/rc481_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc481_test -v ON_ERROR_STOP=1 -f /tmp/rc481_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc481_test -v ON_ERROR_STOP=1 -f /tmp/rc481_test.sql
+
+  rc482-legal-platform-admin-registry-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc482_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc482_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Validate RC482 legal platform-admin registry source contract
+        run: node scripts/validate-rc482-legal-platform-admin-registry.mjs
+      - name: Apply RC482 fixture, migration, and adversarial role tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc482_legal_platform_admin_registry_fixture.sql "$pg_container:/tmp/rc482_fixture.sql"
+          docker cp supabase/migrations/20261119020000_rc482_legal_platform_admin_registry_guard.sql "$pg_container:/tmp/rc482_migration.sql"
+          docker cp supabase/tests/rc482_legal_platform_admin_registry_integration.sql "$pg_container:/tmp/rc482_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc482_test -v ON_ERROR_STOP=1 -f /tmp/rc482_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc482_test -v ON_ERROR_STOP=1 -f /tmp/rc482_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc482_test -v ON_ERROR_STOP=1 -f /tmp/rc482_test.sql
