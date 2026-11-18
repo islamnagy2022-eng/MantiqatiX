@@ -24,18 +24,26 @@ function listingImageContext(listing: PublicDirectoryListing) {
   };
 }
 
+function listingCategoryProfileImage(listing: PublicDirectoryListing): string {
+  return resolveDefaultImage({ ...listingImageContext(listing), kind: "activity" });
+}
+
+function listingCategoryCoverImage(listing: PublicDirectoryListing): string {
+  return resolveDefaultImage({ ...listingImageContext(listing), kind: "cover" });
+}
+
 function listingDefaultProfileImage(listing: PublicDirectoryListing): string {
   const listingType = String(listing.listing_type || "").toLowerCase();
   if (listing.claim_status !== "CLAIMED" && listingType === "doctor") return UNVERIFIED_DOCTOR_IMAGE_URL;
   if (listing.claim_status !== "CLAIMED" && listingType === "pharmacy") return UNVERIFIED_PHARMACY_IMAGE_URL;
-  return resolveDefaultImage({ ...listingImageContext(listing), kind: "activity" });
+  return listingCategoryProfileImage(listing);
 }
 
 function listingDefaultCoverImage(listing: PublicDirectoryListing): string {
   const listingType = String(listing.listing_type || "").toLowerCase();
   if (listing.claim_status !== "CLAIMED" && listingType === "doctor") return UNVERIFIED_DOCTOR_IMAGE_URL;
   if (listing.claim_status !== "CLAIMED" && listingType === "pharmacy") return UNVERIFIED_PHARMACY_IMAGE_URL;
-  return resolveDefaultImage({ ...listingImageContext(listing), kind: "cover" });
+  return listingCategoryCoverImage(listing);
 }
 
 function listingProfileImage(listing: PublicDirectoryListing): string {
@@ -251,10 +259,10 @@ export const DirectoryListingsView: React.FC<{
         <button type="button" onClick={onBack} className="mb-5 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"><ArrowRight className="h-4 w-4" /> العودة إلى دليل مقدمي الخدمة</button>
         <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
           <div className="relative isolate overflow-hidden bg-gradient-to-l from-slate-950 via-emerald-950 to-slate-900 px-5 py-8 text-white sm:px-8">
-            <img src={listingCoverImage(detail)} alt="" aria-hidden="true" className="absolute inset-0 z-0 h-full w-full object-cover opacity-35" loading="lazy" decoding="async" onError={(event) => { const image = event.currentTarget; if (image.dataset.defaultApplied === "true") return; image.dataset.defaultApplied = "true"; image.src = listingDefaultCoverImage(detail); }} />
+            <img src={listingCoverImage(detail)} alt="" aria-hidden="true" className="absolute inset-0 z-0 h-full w-full object-cover opacity-35" loading="lazy" decoding="async" onError={(event) => { const image = event.currentTarget; if (image.dataset.defaultApplied === "true") return; image.dataset.defaultApplied = "true"; image.src = listingCategoryCoverImage(detail); }} />
             <div className="absolute inset-0 z-0 bg-gradient-to-l from-slate-950/90 via-emerald-950/75 to-slate-900/80" aria-hidden="true" />
             <div className="relative z-10">
-            <img src={listingProfileImage(detail)} alt={"صورة " + detail.display_name} className="mb-4 h-16 w-16 rounded-2xl border border-white/20 bg-white/10 object-cover" loading="lazy" decoding="async" onError={(event) => { const image = event.currentTarget; if (image.dataset.defaultApplied === "true") return; image.dataset.defaultApplied = "true"; image.src = listingDefaultProfileImage(detail); }} />
+            <img src={listingProfileImage(detail)} alt={"صورة " + detail.display_name} className="mb-4 h-16 w-16 rounded-2xl border border-white/20 bg-white/10 object-cover" loading="lazy" decoding="async" onError={(event) => { const image = event.currentTarget; if (image.dataset.defaultApplied === "true") return; image.dataset.defaultApplied = "true"; image.src = listingCategoryProfileImage(detail); }} />
             <div className={`mb-2 inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-black ${claimed ? "border-emerald-300/30 bg-emerald-400/10 text-emerald-200" : pending ? "border-sky-300/30 bg-sky-400/10 text-sky-200" : "border-amber-300/30 bg-amber-400/10 text-amber-200"}`}>{claimed ? <BadgeCheck className="h-3.5 w-3.5" /> : pending ? <CalendarClock className="h-3.5 w-3.5" /> : <ShieldAlert className="h-3.5 w-3.5" />} {claimed ? "صفحة مستلمة بعد المراجعة" : pending ? "طلب الاستلام قيد المراجعة" : "صفحة دليل أولية — غير مستلمة"}</div>
             <h1 className="text-2xl font-black sm:text-3xl">{detail.display_name}</h1>
             <p className="mt-2 text-sm font-semibold text-emerald-100">{specialtyLabel(detail.specialty)}</p>
@@ -364,7 +372,7 @@ export const DirectoryListingsView: React.FC<{
         filtered.length ? <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {visibleListings.map((listing) => (
             <article key={listing.id} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-emerald-300 hover:shadow-sm">
-              <div className="flex items-start justify-between gap-2"><div className="flex min-w-0 items-start gap-3">{listingProfileImage(listing) && <img src={listingProfileImage(listing)} alt={"صورة " + listing.display_name} className="h-14 w-14 shrink-0 rounded-xl border border-slate-200 bg-slate-50 object-cover" loading="lazy" decoding="async" onError={(event) => { const image = event.currentTarget; if (image.dataset.defaultApplied === "true") return; image.dataset.defaultApplied = "true"; image.src = listingDefaultProfileImage(listing); }} />}<div className="min-w-0"><h3 className="font-black text-slate-900">{listing.display_name}</h3><p className="mt-1 text-xs font-semibold text-emerald-800">{specialtyLabel(listing.specialty)}</p></div></div><span className="shrink-0 rounded-full bg-amber-50 px-2 py-1 text-[10px] font-black text-amber-900">غير معتمدة</span></div>
+              <div className="flex items-start justify-between gap-2"><div className="flex min-w-0 items-start gap-3">{listingProfileImage(listing) && <img src={listingProfileImage(listing)} alt={"صورة " + listing.display_name} className="h-14 w-14 shrink-0 rounded-xl border border-slate-200 bg-slate-50 object-cover" loading="lazy" decoding="async" onError={(event) => { const image = event.currentTarget; if (image.dataset.defaultApplied === "true") return; image.dataset.defaultApplied = "true"; image.src = listingCategoryProfileImage(listing); }} />}<div className="min-w-0"><h3 className="font-black text-slate-900">{listing.display_name}</h3><p className="mt-1 text-xs font-semibold text-emerald-800">{specialtyLabel(listing.specialty)}</p></div></div><span className="shrink-0 rounded-full bg-amber-50 px-2 py-1 text-[10px] font-black text-amber-900">غير معتمدة</span></div>
               <p className="mt-3 line-clamp-2 text-xs leading-6 text-slate-600"><MapPin className="ml-1 inline h-3.5 w-3.5 text-slate-400" />{listing.address || listing.district}</p>
               {listing.phone && <p className="mt-2 text-sm font-bold text-slate-800" dir="ltr">{listing.phone}</p>}
               <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
