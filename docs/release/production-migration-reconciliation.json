@@ -4361,4 +4361,4 @@
     "note": "RC483 moves Legal CMS document and draft-version creation plus consent_audit_log writes into two service-role-only SECURITY DEFINER RPCs. Each operation commits or rolls back with its audit row. It computes the SHA-256 content hash in PostgreSQL and revokes the RC481 direct service_role INSERT column grants for legal_documents, legal_document_versions and consent_audit_log while retaining the Legal Center's narrow SELECT allowlists. Disposable tests inject audit failures and prove no unaudited document or version persists."
   }
 }
-}
+
