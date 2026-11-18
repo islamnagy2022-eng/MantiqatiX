@@ -242,6 +242,22 @@ begin
   end;
   if not rejected then raise exception 'RC428 success/failure event status mismatch was not rejected'; end if;
 
+  rejected := false;
+  begin
+    perform public.process_verified_provider_payment(
+      'evt-r475-final-without-reconciliation','tenant-a','PAYMOB','paymob:txn-final-without-reconciliation','pi-final',
+      'TRANSACTION',true,100,'EGP',100
+    );
+    raise exception 'TEST_FAILED: RC475 accepted a final intent without a matching reconciliation';
+  exception when others then
+    if sqlerrm <> 'PAYMENT_INTENT_ALREADY_FINAL_WITHOUT_MATCHING_RECONCILIATION' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'RC475 accepted a final intent without matching reconciliation'; end if;
+  select count(*) into n from public.payment_provider_events
+  where external_event_id='paymob:txn-final-without-reconciliation';
+  if n <> 0 then raise exception 'RC475 persisted an event for an unverified final intent'; end if;
+
   -- RC429 rejects invalid signatures, provider-order mismatch, and amount mismatch.
   rejected := false;
   begin
