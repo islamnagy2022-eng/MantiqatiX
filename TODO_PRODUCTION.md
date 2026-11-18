@@ -2417,3 +2417,25 @@ Evidence: `docs/audits/PASS_421_440_PAYMENT_INTENT_SCOPE_20261118.md`. Productio
 - [ ] Complete V6 production-root cutover only after full platform gate, backup/restore and explicit release approval.
 
 Evidence: `docs/audits/PASS_441_460_SOURCE_AND_PAGES_TRUTH_20261118.md` and `docs/audits/R7_ARCHIVE_11_INTAKE_20261118.md`.
+
+
+## Pass 701–720 — provider-profile anonymous base-table read boundary (2026-11-18)
+
+- [x] Rechecked live ACLs for `marketing_provider_profiles`: anon has an explicit SELECT grant; authenticated and service_role also have SELECT.
+- [x] Confirmed the profile table contains `owner_user_id` and `settings`; no actual values were queried.
+- [x] Confirmed the public-active RLS policy filters rows but does not restrict selected columns.
+- [x] Verified the primary catalog frontend uses curated `public-catalog` / `public-catalog-directory` Edge Functions, explicit public field projections and service-role server clients.
+- [x] Verified the owner/provider-services UI has a separate authenticated direct-read path; do not remove it without replacing its owner lookup.
+- [x] Added forward-only RC479 migration to revoke only anon SELECT on the provider-profile base table.
+- [x] Preserved authenticated SELECT and service_role SELECT in the migration contract.
+- [x] Added synthetic PostgreSQL fixture and integration assertions for anon denial, authenticated active-row reads and trusted service-role reads.
+- [x] Added static validator and wired it into Module Professionalization Validation.
+- [x] Added a dedicated PostgreSQL RC479 workflow job.
+- [x] Added RC479 to the source migration verifier and ordered live-reconciliation version contract; expected release versions are now 58.
+- [x] Updated the live reconciliation manifest to 0/58 exact required versions; RC479 remains unapplied in Production.
+- [ ] Pass exact-head RC479 static and PostgreSQL CI checks.
+- [ ] Review the residual authenticated exposure of `owner_user_id` and `settings`; design a compatible owner-scoped projection before changing authenticated table grants.
+- [ ] Verify the deployed public Edge Functions still match source before any coordinated production rollout.
+- [ ] Obtain encrypted off-site backup and complete isolated restore rehearsal before any Production migration or GRANT change.
+
+Evidence: `docs/audits/PASS_701_720_PROVIDER_PROFILE_ANON_READ_BOUNDARY_20261118.md`; RC479 migration and disposable PostgreSQL integration. No Production mutation or deployment.
