@@ -1,3 +1,22 @@
+# Latest execution checkpoint — 2026-11-18 — Pass 351–360 category imagery deployed
+
+**Current main before documentation merge:** `258da165cced6a72e36b5ea950299e3e6ebb93bd`.  
+**Website deployment:** run `44213092913` completed successfully, including deployed-origin Playwright checks.  
+**Production backend:** **BLOCKED / NOT CERTIFIED**.
+
+- PR #763 merged category-aware default imagery and broken-image recovery as `258da165cced6a72e36b5ea950299e3e6ebb93bd`.
+- Primary Catalog Frontend Validation run `44213092799`: build/type-check, professional dashboard browser E2E and employee RBAC PostgreSQL all passed.
+- GitHub Pages run `44213092913`: artifact composed and deployed; V6 root, legacy rollback path, V6 Preview alias, and deployed-origin root/dashboard/mobile/QR Playwright checks all passed.
+- Category images preserve valid owner HTTPS media first, then fall back to local category artwork. Unclaimed doctors/pharmacies retain their specialist defaults; claimed listings do not misrepresent fallback artwork as owner-provided.
+- The latest uploaded archive `bizcatalog-manager (11).zip` was checked for WebP files; it contains no `.webp` assets. The separately mentioned 16-WebP photographic pack is not available in this archive and has not been imported. Existing local SVG defaults remain the production fallback.
+- PR #762 has been merged as `0851a5e6762ab8e6e2fc7083731bfce4877789db`, recording Pass 331–340 RC473 merge verification and Pass 341–350 Supabase security-advisor triage.
+- Supabase Production remains on migration `20261110150618`; RC472/RC473 remain unapplied; `directory-listings` remains v16. No Production database, Auth/RLS/GRANT, Edge, payment or settlement mutation occurred.
+- Hard release blockers remain: verified off-site backup/restore, ordered RC464/RC472/RC473 backend release, source-specific republication permission, and the broader SECURITY DEFINER review.
+
+**Next:** continue the P0 function-by-function authorization audit, then prepare a non-destructive backup/restore rehearsal. Do not run Production DDL or deploy Edge Functions until the backup is verified.
+
+---
+
 # Latest execution checkpoint — 2026-11-18 — Pass 341–350 Supabase security triage
 
 Current main at last verified merge: de0ebab80e624b86f3726a84d5757aefb66120eb. Documentation PR #762 is open and includes Pass 331–340 merge reconciliation.

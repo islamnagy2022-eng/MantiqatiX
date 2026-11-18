@@ -2730,3 +2730,14 @@ Read-only Supabase production schema cross-check completed: retrieved definition
 - Reviewed six authenticated-executable wrappers without direct auth.uid(); inspected wrappers delegate to actor-scoped membership/financial/catalog helpers. No ACL/grant changes were made.
 - Performance advisors: 132 unindexed foreign keys, 375 RLS init-plan notices and 71 unused indexes; health advisor returned zero lints.
 - No Production schema/data/Auth/RLS/GRANT/Edge/payment mutation. Next: individually audit SECURITY DEFINER functions and address leaked-password protection using supported Auth settings.
+
+## 2026-11-18 — Pass 351–360 — category-aware imagery and deployed release verification
+
+- PR #763 merged as `258da165cced6a72e36b5ea950299e3e6ebb93bd`, applying category-aware local profile/cover defaults to all public directory listing cards and recovery from broken owner-uploaded image URLs.
+- Exact-head checks passed after a first browser-test rerun: Primary Catalog Frontend Validation, TypeScript/build, employee RBAC PostgreSQL and professional dashboard browser E2E.
+- Post-merge run `44213092799` passed the primary catalog build, professional dashboard browser E2E and employee RBAC PostgreSQL checks.
+- GitHub Pages deployment run `44213092913` passed. Deployed-origin browser tests for the public root, dashboard, mobile and QR routes all completed successfully; V6 root, legacy rollback path and V6 Preview alias were verified.
+- Inspected the newly uploaded `bizcatalog-manager (11).zip` for the separate 16-WebP photographic pack: no WebP files are present. No unverified/older image bundle was substituted; local SVG category defaults remain in use.
+- PR #762 merged as `0851a5e6762ab8e6e2fc7083731bfce4877789db`, reconciling RC473 and security-advisor findings.
+- No Production DB/Auth/RLS/GRANT/Edge/payment/settlement mutation occurred. RC472/RC473, RC464 authorization hardening, backup/restore, source-rights evidence and the wider SECURITY DEFINER review remain release blockers.
+
