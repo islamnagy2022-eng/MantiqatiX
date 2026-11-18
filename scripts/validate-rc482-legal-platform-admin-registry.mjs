@@ -6,22 +6,22 @@ const cms = fs.readFileSync("supabase/functions/legal-cms/index.ts", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc482_legal_platform_admin_registry_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc482_legal_platform_admin_registry_integration.sql", "utf8");
 
-assert.equal((migration.match(/CREATE OR REPLACE FUNCTION private\\.legal_is_admin/g) || []).length, 2,
+assert.equal((migration.match(/CREATE OR REPLACE FUNCTION private\.legal_is_admin/g) || []).length, 2,
   "RC482 must harden both private legal admin helper signatures");
-assert.equal((migration.match(/FROM private\\.platform_admins/g) || []).length, 2,
+assert.equal((migration.match(/FROM private\.platform_admins/g) || []).length, 2,
   "both private helper signatures must consult the canonical platform-admin registry");
-assert.doesNotMatch(migration, /FROM public\\.user_memberships/i,
+assert.doesNotMatch(migration, /FROM public\.user_memberships/i,
   "global legal authorization must not rely on tenant membership role labels");
-assert.match(migration, /CREATE OR REPLACE FUNCTION public\\.legal_assert_admin_backend\\(p_actor_user_id uuid\\)[\\s\\S]*?SECURITY DEFINER[\\s\\S]*?SET search_path TO ''/);
-assert.match(migration, /REVOKE ALL ON FUNCTION public\\.legal_assert_admin_backend\\(uuid\\) FROM PUBLIC/);
-assert.match(migration, /REVOKE ALL ON FUNCTION public\\.legal_assert_admin_backend\\(uuid\\) FROM anon/);
-assert.match(migration, /REVOKE ALL ON FUNCTION public\\.legal_assert_admin_backend\\(uuid\\) FROM authenticated/);
-assert.match(migration, /GRANT EXECUTE ON FUNCTION public\\.legal_assert_admin_backend\\(uuid\\) TO service_role/);
-assert.doesNotMatch(migration, /GRANT\\s+(?:ALL|SELECT|INSERT|UPDATE|DELETE)\\s+ON\\s+TABLE/i);
+assert.match(migration, /CREATE OR REPLACE FUNCTION public\.legal_assert_admin_backend\(p_actor_user_id uuid\)[\s\S]*?SECURITY DEFINER[\s\S]*?SET search_path TO ''/);
+assert.match(migration, /REVOKE ALL ON FUNCTION public\.legal_assert_admin_backend\(uuid\) FROM PUBLIC/);
+assert.match(migration, /REVOKE ALL ON FUNCTION public\.legal_assert_admin_backend\(uuid\) FROM anon/);
+assert.match(migration, /REVOKE ALL ON FUNCTION public\.legal_assert_admin_backend\(uuid\) FROM authenticated/);
+assert.match(migration, /GRANT EXECUTE ON FUNCTION public\.legal_assert_admin_backend\(uuid\) TO service_role/);
+assert.doesNotMatch(migration, /GRANT\s+(?:ALL|SELECT|INSERT|UPDATE|DELETE)\s+ON\s+TABLE/i);
 
 assert.ok(cms.includes('db.rpc("legal_assert_admin_backend",{p_actor_user_id:user.id})'),
   "Legal CMS must validate the authenticated actor through the service-only backend assertion");
-assert.doesNotMatch(cms, /from\\(["']user_memberships["']\\)/,
+assert.doesNotMatch(cms, /from\(["']user_memberships["']\)/,
   "Legal CMS must not grant global legal authority from an arbitrary membership role");
 
 for (const marker of [
@@ -40,6 +40,6 @@ for (const marker of [
   assert.ok(fixture.includes(marker) || integration.includes(marker),
     "missing RC482 adversarial fixture/assertion: " + marker);
 }
-assert.match(fixture, /REVOKE ALL ON FUNCTION private\\.legal_is_admin\\(\\) FROM PUBLIC/);
-assert.match(fixture, /REVOKE ALL ON FUNCTION private\\.legal_is_admin\\(uuid\\) FROM PUBLIC/);
+assert.match(fixture, /REVOKE ALL ON FUNCTION private\.legal_is_admin\(\) FROM PUBLIC/);
+assert.match(fixture, /REVOKE ALL ON FUNCTION private\.legal_is_admin\(uuid\) FROM PUBLIC/);
 console.log("RC482 legal platform-admin registry authorization contract: PASS");
