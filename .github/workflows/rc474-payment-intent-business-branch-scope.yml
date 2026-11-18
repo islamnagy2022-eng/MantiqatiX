@@ -1,0 +1,60 @@
+name: RC474 Payment Intent Business and Branch Scope
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261118030000_rc474_payment_intent_business_branch_scope.sql"
+      - "supabase/tests/rc474_payment_intent_business_branch_scope_fixture.sql"
+      - "supabase/tests/rc474_payment_intent_business_branch_scope_integration.sql"
+      - "supabase/functions/payment-intent/index.ts"
+      - "scripts/validate-rc474-payment-intent-scope.mjs"
+      - ".github/workflows/rc474-payment-intent-business-branch-scope.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261118030000_rc474_payment_intent_business_branch_scope.sql"
+      - "supabase/tests/rc474_payment_intent_business_branch_scope_fixture.sql"
+      - "supabase/tests/rc474_payment_intent_business_branch_scope_integration.sql"
+      - "supabase/functions/payment-intent/index.ts"
+      - "scripts/validate-rc474-payment-intent-scope.mjs"
+      - ".github/workflows/rc474-payment-intent-business-branch-scope.yml"
+permissions:
+  contents: read
+jobs:
+  rc474-payment-intent-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc474_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc474_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Static RC474 payment-intent scope contract
+        run: node scripts/validate-rc474-payment-intent-scope.mjs
+      - name: Apply RC200 baseline, RC474 and business/branch behavioral tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc474_payment_intent_business_branch_scope_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20260928190000_rc200_cross_tenant_customer_payment_authorization.sql "$pg_container:/tmp/rc200.sql"
+          docker cp supabase/migrations/20261118030000_rc474_payment_intent_business_branch_scope.sql "$pg_container:/tmp/rc474.sql"
+          docker cp supabase/tests/rc474_payment_intent_business_branch_scope_integration.sql "$pg_container:/tmp/integration.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc474_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc474_test -v ON_ERROR_STOP=1 -f /tmp/rc200.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc474_test -v ON_ERROR_STOP=1 -f /tmp/rc474.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc474_test -v ON_ERROR_STOP=1 -f /tmp/integration.sql
