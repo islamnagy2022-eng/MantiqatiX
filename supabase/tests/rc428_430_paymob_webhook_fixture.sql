@@ -130,6 +130,10 @@ CREATE TABLE public.financial_obligations (
   currency varchar NOT NULL, status varchar NOT NULL, payment_method varchar, settled_at timestamptz,
   metadata jsonb NOT NULL DEFAULT '{}'::jsonb
 );
+CREATE UNIQUE INDEX uq_financial_obligation_idempotent
+  ON public.financial_obligations(tenant_id,obligation_type,order_id,beneficiary_id)
+  WHERE order_id IS NOT NULL;
+
 CREATE TABLE public.commission_transactions (
   id varchar PRIMARY KEY, tenant_id varchar NOT NULL, business_id uuid NOT NULL, order_id uuid NOT NULL,
   rule_id varchar, gross_amount numeric NOT NULL, commission_amount numeric NOT NULL,
