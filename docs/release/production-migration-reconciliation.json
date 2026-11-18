@@ -120,7 +120,7 @@
     "method": "Read-only Supabase list_migrations returned 310 records through 20261110150618. Compared exact source-version identifiers for the 54 prior required release migrations plus RC476, RC477, RC478 and RC479; none of the 58 exact source timestamps are present in the current live ledger snapshot. This identity check does not infer all physical object effects; object presence is checked separately. Do not fabricate ledger rows or replay out-of-order historical migrations. RC480 (20261118210000) is a source-only candidate added after the read-only snapshot; its timestamp is newer than the latest live ledger version and it is explicitly not marked applied. RC481 (20261118220000) is a source-only candidate added after the read-only snapshot; its timestamp is newer than the latest live ledger version and it is not marked applied. RC482 (20261119020000) is a source-only authorization correction added after the read-only 310-row snapshot; its timestamp is newer than the latest live ledger version and it is not applied.",
     "live_ledger_count": 310,
     "latest_live_version": "20261110150618",
-    "expected_migration_versions": 61,
+    "expected_migration_versions": 62,
     "found_in_live_ledger": 0,
     "required_versions": [
       "20261009120000",
@@ -4349,5 +4349,16 @@
     "live_membership_aggregate": "The current read-only aggregate found one active ADMIN and one active SUPER_ADMIN user; both users are present in private.platform_admins. No active LEGAL_ADMIN membership row or non-registry ADMIN/SUPER_ADMIN user was found in this aggregate. The authorization predicate remains broader than the intended platform-root registry even though no current non-registry matching actor was observed.",
     "intended_fix": "Use private.platform_admins as the sole root authority in both private.legal_is_admin overloads and require the service-only legal_assert_admin_backend RPC before Legal CMS direct inserts.",
     "note": "Candidate remains unapplied pending disposable PostgreSQL adversarial tests, full chronological migration reconciliation, backup/restore rehearsal, rollback plan and release approval."
+  }  ,
+  "rc483_legal_cms_atomic_create_audit": {
+    "migration_version": "20261119030000",
+    "source_file": "supabase/migrations/20261119030000_rc483_atomic_legal_cms_create_audit.sql",
+    "status": "SOURCE_ONLY_NOT_APPLIED",
+    "required_release_gate_included": true,
+    "production_migration_applied": false,
+    "production_privileges_or_data_changed": false,
+    "live_ledger_last_version": "20261110150618",
+    "note": "RC483 moves Legal CMS document and draft-version creation plus consent_audit_log writes into two service-role-only SECURITY DEFINER RPCs. Each operation commits or rolls back with its audit row. It computes the SHA-256 content hash in PostgreSQL and revokes the RC481 direct service_role INSERT column grants for legal_documents, legal_document_versions and consent_audit_log while retaining the Legal Center's narrow SELECT allowlists. Disposable tests inject audit failures and prove no unaudited document or version persists."
   }
+}
 }
