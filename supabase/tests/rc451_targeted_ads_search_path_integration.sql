@@ -67,4 +67,4 @@ begin
 end;
 $test$;
 
-select 'RC451 targeted-ad public output, ACL, and search_path contract: PASS' as result;
+select 'RC451 targeted ads empty search_path integration: PASS (public output contract)' as result;
