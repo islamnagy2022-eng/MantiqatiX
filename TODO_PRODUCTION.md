@@ -2474,3 +2474,22 @@ Evidence: read-only Production SQL inspection on 2026-11-18; issue #804. No Prod
 - [ ] Create any eventual migration using `supabase migration new` in a CLI-enabled source workspace, run advisors and isolated tests, and reconcile exact migration chronology before any production release. No migration filename or historical migration ledger entry is fabricated.
 
 Evidence: read-only Production ACL and `has_column_privilege` checks on 2026-11-18; source review of current main. No Production SQL, migration, GRANT, RLS, Auth, Edge, data, or deployment mutation occurred. This remains a release blocker; no private profile values were selected.
+
+## 2026-11-18 — Pass 721–740: reverse-bidding UI/RPC/service-catalog contract
+
+- [x] Read the current `web/reverse-bidding-module.js` source and compared its exact RPC arguments with the live Production function definitions.
+- [x] Confirmed the provider form still accepts free-text provider name/type and forwards them as `p_provider_name` / `p_provider_type`. These values are caller-controlled and cannot be trusted for identity or display.
+- [x] Confirmed the request form chooses only free-text domain/category values and does not bind the request to a stable `marketing_services.id`.
+- [x] Confirmed the existing canonical service catalog is reusable: `marketing_services.id` and `marketing_provider_services.service_id` already exist, and the provider-service link has an explicit ACTIVE status.
+- [x] Rechecked the live bid constraints: `provider_rating` and `completed_orders_count` are NOT NULL with defaults; the status default is `OFFERED`, and the allowed states are `OFFERED`, `ACCEPTED`, and `REJECTED`. The current RPC overrides the safe defaults with NULL and invalid `PENDING`.
+- [x] Reconfirmed the live request table has no `service_id`, so the current free-text domain/category cannot safely prove exact provider-service eligibility.
+- [x] Aggregate-only provider-supply cross-check: 16 active verified provider-service links across 16 active MARKETING services currently resolve to one distinct provider; all other service categories have zero active verified provider links. No provider identity/contact/profile rows were selected.
+- [ ] Implement a forward-only request `service_id` relationship and validate the selected service is ACTIVE at the database boundary.
+- [ ] Replace free-text provider identity fields in the bid UI with a server-derived profile identity; verify the caller owns an ACTIVE + verified provider profile and an ACTIVE service link for the exact requested service.
+- [ ] Validate exact normalized area coverage using existing `service_areas` only after its JSON shape and normalization rules are proven; do not use broad category fallback.
+- [ ] Preserve negotiation history with append-only revisions/events; do not overwrite original offer terms when a counter-offer is made.
+- [ ] Add isolated PostgreSQL tests for spoofed identity, inactive/unverified provider, wrong service, wrong area, idempotency/replay, concurrent single-winner acceptance, immutable accepted terms, and completion/dispute lifecycle.
+- [ ] Do not ship a frontend-only RPC signature change. The UI, forward migration, RPC contract, and integration tests must land as one compatible unit.
+- [ ] No Production SQL, migration, RPC invocation, GRANT/RLS/Auth/Edge mutation, payment, wallet, settlement, or deployment was performed.
+
+Evidence: canonical `main` source review of `web/reverse-bidding-module.js` and `supabase/migrations/20261007021500_reverse_bidding_server_authority_v1.sql`; read-only Production schema, function-definition, constraint, and aggregate provider-supply queries on 2026-11-18. The source migration is not proof of live migration application.
