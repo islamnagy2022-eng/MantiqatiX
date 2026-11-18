@@ -88,7 +88,7 @@ The old manifest's 42 required release-version check and object inventory remain
 
 - Read-only Production inspection only. No database write, migration, data mutation, Auth setting, grant, RLS policy, Edge deployment, payment, or Pages deployment occurred.
 - R7 archive (11) is preserved as the current user-supplied UI/behavior candidate, but is **not** approved for import/deployment as-is.
-- Current deployed V6 root and retained `/legacy/` remain unchanged.
+- Historical correction (2026-11-18): the current GitHub Pages production root is the legacy catalog application; `/legacy/` is its rollback copy and `/v6-preview/` is the V6 preview alias. The earlier statement that V6 was the current root is superseded by completed deployment run `44224482241` and `docs/audits/PASS_441_460_SOURCE_AND_PAGES_TRUTH_20261118.md`.
 - `FULL_PLATFORM_GATE = BLOCKED / NOT CERTIFIED`.
 
 
