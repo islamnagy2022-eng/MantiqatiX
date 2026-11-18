@@ -43,6 +43,7 @@ jobs:
           node scripts/validate-production-security.mjs
           node scripts/validate-rbac-contract.mjs
           node scripts/validate-security-definer-contract.mjs
+          node scripts/validate-rc479-provider-profile-anon-read.mjs
           node scripts/validate-rc451-forward-repair.mjs
           node scripts/validate-module-runtime-coverage.mjs
           node scripts/validate-restaurant-module-contract.mjs
@@ -162,3 +163,34 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc471_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449-test.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc471_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/financial-report-test.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc471_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/r7-helper-callers-test.sql
+
+  rc479-provider-profile-anon-read-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc479_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc479_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply RC479 fixture, privilege repair, and regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc479_provider_profile_anon_read_fixture.sql "$pg_container:/tmp/rc479_fixture.sql"
+          docker cp supabase/migrations/20261118190000_rc479_revoke_anon_provider_profile_base_read.sql "$pg_container:/tmp/rc479_migration.sql"
+          docker cp supabase/tests/rc479_provider_profile_anon_read_integration.sql "$pg_container:/tmp/rc479_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc479_test -v ON_ERROR_STOP=1 -f /tmp/rc479_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc479_test -v ON_ERROR_STOP=1 -f /tmp/rc479_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc479_test -v ON_ERROR_STOP=1 -f /tmp/rc479_test.sql
