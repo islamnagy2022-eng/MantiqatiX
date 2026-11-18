@@ -15,6 +15,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261027030000", "20261027040000", "20261027050000",
   "20261027060000", "20261027070000", "20261027090000", "20261027093000",
   "20261031100000",
+  "20261118040000",
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
@@ -36,6 +37,7 @@ export const REQUIRED_CORE_OBJECTS = [
   "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
   "public.uq_payment_intents_one_active_per_order",
   "public.process_verified_provider_payment_failure",
+  "public.process_verified_provider_payment",
   "public.process_verified_subscription_payment_failure",
   "public.process_verified_subscription_payment_backend",
   "public.process_verified_digital_page_payment_backend",
