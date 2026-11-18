@@ -63,9 +63,10 @@ const required = [
   "20261118040000_rc475_paymob_atomic_webhook_forward_repair.sql",
   "20261118050000_rc476_mantigo_captain_earnings_live_ledger_columns.sql",
   "20261118060000_rc477_mantigo_customer_bid_contact_privacy.sql",
-  "20261118070000_rc478_mantigo_open_ride_privacy_forward_repair.sql"
+  "20261118070000_rc478_mantigo_open_ride_privacy_forward_repair.sql",
+  "20261118190000_rc479_revoke_anon_provider_profile_base_read.sql"
 ];
-assert.equal(required.length, 57, "release gate must track all distinct required post-RC424 migration effects, including RC476–RC478");
+assert.equal(required.length, 58, "release gate must track all distinct required post-RC424 migration effects, including RC476–RC479");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");
