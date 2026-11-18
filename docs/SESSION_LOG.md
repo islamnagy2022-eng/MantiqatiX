@@ -2784,3 +2784,14 @@ Evidence branch: `fix/e2e-directory-card-heading-query-20261118`; source change 
 - V6 root, legacy rollback route, V6 Preview alias and dashboard/mobile/QR routes verified on the deployed origin.
 - The earlier run failed only at the incorrect Playwright heading role locator after successful upload/deployment; corrected main run is green.
 
+
+
+## 2026-11-18 — Pass 421–440 — payment intent business/branch authorization
+
+- Read-only inspection confirmed live `create_payment_intent_backend` has tenant-only finance-role matching and skips the finance-role check when `orders.customer_id` is NULL. It remains SECURITY DEFINER with `search_path=public, pg_temp`; authenticated/service_role execute, anon/PUBLIC do not.
+- Production currently has 0 orders and 0 cross-business finance membership pairs. No payment RPC was invoked and no data was changed.
+- Created PR #774 with RC474 forward migration, exact business/branch authorization, NULL-customer guard, empty search_path, explicit ACLs, and removal of redundant tenant-only Edge membership lookup.
+- Added disposable PostgreSQL tests for mixed-business roles, mixed-branch roles, NULL-customer, customer-owned cross-tenant payment, valid branch/business/tenant-wide finance scopes and idempotent replay.
+- Static assertions checked 12/12 locally; exact-head GitHub/PostgreSQL/migration replay checks pending.
+- PR #773 was closed as superseded after PR #772 advanced main; no code from #773 was merged.
+
