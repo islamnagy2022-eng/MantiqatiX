@@ -2211,3 +2211,22 @@ Evidence branch: `fix/e2e-directory-card-heading-query-20261118`; source change 
 - [ ] Apply RC464 → RC471 → RC472 → RC473 only after backup/restore and release review.
 
 Evidence: `docs/audits/PASS_401_420_MANTIGO_SETTLEMENT_AUTHORIZATION_20261118.md`. Production remained read-only; no settlement, payment, ledger, Auth, RLS, GRANT or Edge mutation.
+
+
+---
+
+## Pass 421–440 — Payment intent business/branch scope (2026-11-18)
+
+- [x] Inspect live `create_payment_intent_backend` SECURITY DEFINER body, search_path and ACL.
+- [x] Confirm the non-customer role check is not bound to the target business/branch.
+- [x] Confirm the finance-role check is skipped for NULL `orders.customer_id`.
+- [x] Quantify current live exposure population: 0 orders and 0 cross-business finance membership pairs; no payment RPC invoked.
+- [x] Add RC474 forward migration with exact business/branch scope, NULL-customer enforcement, empty search_path and normalized ACL.
+- [x] Remove the Edge Function's duplicate tenant-only membership precheck so the user-scoped RPC is authoritative.
+- [x] Add disposable PostgreSQL regression cases for cross-business, cross-branch, NULL-customer, customer-owned and valid finance scopes.
+- [x] Add RC474 static validator and dedicated PostgreSQL workflow.
+- [ ] Pass exact-head RC474 disposable PostgreSQL integration, migration replay and all PR #774 checks.
+- [ ] Merge PR #774 only after all exact-head checks pass.
+- [ ] Obtain verified off-site logical backup and restore before any Production DDL/Edge deployment.
+
+Evidence: `docs/audits/PASS_421_440_PAYMENT_INTENT_SCOPE_20261118.md`. Production remained read-only.
