@@ -30,6 +30,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261118050000", // RC476
   "20261118060000", // RC477
   "20261118070000", // RC478
+  "20261118190000", // RC479 — revoke direct anonymous provider-profile base-table read
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
