@@ -19,7 +19,6 @@ DECLARE
   order_tenant_finance uuid := '20000000-0000-4000-8000-000000004747';
   order_no_scope uuid := '20000000-0000-4000-8000-000000004748';
   order_business_owner uuid := '20000000-0000-4000-8000-000000004749';
-  order_missing_total uuid := '20000000-0000-4000-8000-000000004750';
   business_a uuid := '30000000-0000-4000-8000-000000004741';
   business_b uuid := '30000000-0000-4000-8000-000000004742';
   branch_a varchar := 'BRANCH-A';
@@ -40,29 +39,29 @@ BEGIN
     ('business-owner',business_owner_actor,'TENANT-A',business_a,branch_a,'BUSINESS_OWNER','ACTIVE','{}'::jsonb);
 
   INSERT INTO public.orders(
-    id,tenant_id,business_id,branch_id,customer_id,status,total_amount,total,currency,
+    id,tenant_id,business_id,branch_id,customer_id,status,total_amount,currency,
     pricing_version,pricing_hash,pricing_authority
   ) VALUES
-    (order_customer,'TENANT-X',business_a,branch_a,customer,'PENDING',100,100,'EGP',1,'hash-customer','SERVER'),
-    (order_mixed,'TENANT-A',business_a,branch_a,customer,'PENDING',100,100,'EGP',1,'hash-mixed','SERVER'),
-    (order_branch,'TENANT-A',business_a,branch_a,customer,'PENDING',100,100,'EGP',1,'hash-branch','SERVER'),
-    (order_null_customer,'TENANT-A',business_a,branch_a,NULL,'PENDING',100,100,'EGP',1,'hash-null','SERVER'),
-    (order_branch_finance,'TENANT-A',business_a,branch_a,customer,'PENDING',100,100,'EGP',1,'hash-branch-finance','SERVER'),
-    (order_business_finance,'TENANT-A',business_a,branch_b,customer,'PENDING',100,100,'EGP',1,'hash-business-finance','SERVER'),
-    (order_tenant_finance,'TENANT-A',business_b,branch_b,customer,'PENDING',100,100,'EGP',1,'hash-tenant-finance','SERVER'),
-    (order_no_scope,'TENANT-A',business_a,branch_a,customer,'PENDING',100,100,'EGP',1,'hash-no-scope','SERVER'),
-    (order_business_owner,'TENANT-A',business_a,branch_a,customer,'PENDING',100,100,'EGP',1,'hash-business-owner','SERVER'),
-    (order_missing_total,'TENANT-X',business_a,branch_a,customer,'PENDING',100,NULL,'EGP',1,'hash-missing-total','SERVER');
+    (order_customer,'TENANT-X',business_a,branch_a,customer,'PENDING',100,'EGP',1,'hash-customer','SERVER'),
+    (order_mixed,'TENANT-A',business_a,branch_a,customer,'PENDING',100,'EGP',1,'hash-mixed','SERVER'),
+    (order_branch,'TENANT-A',business_a,branch_a,customer,'PENDING',100,'EGP',1,'hash-branch','SERVER'),
+    (order_null_customer,'TENANT-A',business_a,branch_a,NULL,'PENDING',100,'EGP',1,'hash-null','SERVER'),
+    (order_branch_finance,'TENANT-A',business_a,branch_a,customer,'PENDING',100,'EGP',1,'hash-branch-finance','SERVER'),
+    (order_business_finance,'TENANT-A',business_a,branch_b,customer,'PENDING',100,'EGP',1,'hash-business-finance','SERVER'),
+    (order_tenant_finance,'TENANT-A',business_b,branch_b,customer,'PENDING',100,'EGP',1,'hash-tenant-finance','SERVER'),
+    (order_no_scope,'TENANT-A',business_a,branch_a,customer,'PENDING',100,'EGP',1,'hash-no-scope','SERVER'),
+    (order_business_owner,'TENANT-A',business_a,branch_a,customer,'PENDING',100,'EGP',1,'hash-business-owner','SERVER');
 
-  PERFORM pg_catalog.set_config('request.jwt.claim.sub',customer::text,true);
-  -- A NULL legacy total cannot be bypassed by supplying total_amount directly.
-  rejected:=false;
-  BEGIN
-    PERFORM public.create_payment_intent_backend('TENANT-X',order_missing_total,100,'EGP','PAYMOB','CARD','rc474-missing-total-0001');
-  EXCEPTION WHEN OTHERS THEN
-    IF SQLERRM='INVALID_AMOUNT' THEN rejected:=true; ELSE RAISE; END IF;
-  END;
-  IF NOT rejected THEN RAISE EXCEPTION 'payment intent accepted an order with NULL total'; END IF;
+
+  -- The fixture mirrors Production's generated total column contract.
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='orders'
+      AND column_name='total' AND is_generated='ALWAYS'
+      AND generation_expression='total_amount'
+  ) THEN
+    RAISE EXCEPTION 'RC474 fixture orders.total is not generated from total_amount';
+  END IF;
 
   -- A customer can still pay their own order without provider-tenant membership.
   PERFORM pg_catalog.set_config('request.jwt.claim.sub',customer::text,true);

@@ -40,7 +40,7 @@ CREATE TABLE public.orders (
   customer_id uuid,
   status varchar(40) NOT NULL,
   total_amount numeric NOT NULL,
-  total numeric,
+  total numeric GENERATED ALWAYS AS (total_amount) STORED,
   currency varchar(3) NOT NULL,
   pricing_version bigint,
   pricing_hash varchar(200),

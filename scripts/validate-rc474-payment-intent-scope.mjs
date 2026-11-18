@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 const migration = read("../supabase/migrations/20261118030000_rc474_payment_intent_business_branch_scope.sql");
 const integration = read("../supabase/tests/rc474_payment_intent_business_branch_scope_integration.sql");
+const fixture = read("../supabase/tests/rc474_payment_intent_business_branch_scope_fixture.sql");
 const workflow = read("../.github/workflows/rc474-payment-intent-business-branch-scope.yml");
 const edge = read("../supabase/functions/payment-intent/index.ts");
 
@@ -13,7 +14,7 @@ const checks = [
   ["non-customer membership is bound to exact business and branch", migration.includes("m.business_id=v_order.business_id") && migration.includes("m.branch_id=v_order.branch_id") && migration.includes("'BUSINESS_OWNER'")],
   ["tenant-wide membership requires both scope columns NULL", migration.includes("m.business_id IS NULL AND m.branch_id IS NULL")],
   ["customer ownership uses IS DISTINCT FROM so NULL customer orders require staff authorization", migration.includes("v_order.customer_id IS DISTINCT FROM v_uid")],
-  ["NULL order totals fail closed even if a caller supplies total_amount", migration.includes("v_order.total IS NULL") && integration.includes("payment intent accepted an order with NULL total")],
+  ["disposable fixture and integration mirror Production generated total pricing contract", fixture.includes("GENERATED ALWAYS AS (total_amount) STORED") && integration.includes("fixture orders.total is not generated from total_amount")],
   ["preflight verifies the complete orders, memberships and payment_intents schema", migration.includes("payment_intents','payment_method','character varying") && migration.includes("orders','pricing_authority','character varying")],
   ["financial role authorization is evaluated within the same business/branch predicate", /upper\(m\.role::text\) IN \('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','FINANCE','ACCOUNTANT','FINANCE_MANAGER'\)[\s\S]*?m\.business_id=v_order\.business_id[\s\S]*?m\.branch_id=v_order\.branch_id/.test(migration)],
   ["all table and auth references are schema-qualified", migration.includes("public.orders") && migration.includes("public.user_memberships") && migration.includes("public.payment_intents") && migration.includes("auth.uid()") && migration.includes("auth.jwt()")],
