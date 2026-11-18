@@ -2949,3 +2949,15 @@ Security review found that a public endpoint backed by the service-role key coul
 No Production deployment or data/schema/privilege mutation occurred. CI status for the latest PR head remains unverified; no check pass is claimed.
 
 - [x] Local verification after the authenticated-token hardening: static contract validator PASS, TypeScript syntax transpilation PASS, and monitor shell syntax check PASS. These local checks do not replace the still-unverified GitHub exact-head CI run.
+
+
+## 2026-11-18 — Pass 781–800: merge and verify health-monitor hardening
+
+- Merged PR #813 (352325b344f31345c979c73a8d8013d3df7ad525) after reviewing successful exact-head workflows. The RC479 static validator now positively detects forbidden authenticated/service_role/PUBLIC revokes; disposable PostgreSQL integration passed.
+- Merged PR #809 (e11acc7c1199b837529f063f67442ef14548c7f8) after reviewing successful exact-head validation. The new health source requires a dedicated bearer secret before service-role DB access, performs only a one-row businesses.id read, and returns fixed status metadata. The monitor retains the legacy anon fallback until deployment is proven.
+- Read-back confirmed merged source is on main. PR #809 web validation passed; its deploy job was skipped by the production gate.
+- Live Supabase check: deployed health function remains ACTIVE version 3 with the old runtime-only response. No deployment was attempted because the required matching HEALTH_MONITOR_TOKEN secrets are an operator-controlled prerequisite.
+- Live migration ledger remains at 310 entries through 20261110150618; RC479 is not applied. Preserve the chronological migration, encrypted backup, disposable restore, rollback, and approval gates.
+- No Production Edge, SQL, migration, GRANT, RLS, Auth, payment, wallet, settlement, or site deployment mutation was performed.
+
+Next: operator configures the same high-entropy monitor token in Supabase Edge and GitHub Actions secrets; then deploy only health, verify the response and monitor mode, and continue the independent migration/DR release gates.
