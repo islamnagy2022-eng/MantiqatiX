@@ -11,7 +11,7 @@ const required=[
   [settlement,'create_settlement_backend','settlement backend boundary'],
   [paymob,'hmacSha512Hex','Paymob HMAC verification'],
   [paymob,'safeEqual','constant-time signature comparison'],
-  [paymob,'payment_provider_events','provider event idempotency'],
+  [paymob,'eventId','stable provider event identity'],
   [paymob,'process_verified_provider_payment','verified payment processing'],
   [paymob,'process_verified_subscription_payment','verified subscription processing'],
   [paymob,'process_verified_subscription_payment_backend','atomic subscription success processor'],
