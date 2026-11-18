@@ -15,17 +15,15 @@ Next: run exact-head CI; then continue payment/order/inventory SECURITY DEFINER 
 
 ---
 
-# Latest execution checkpoint — 2026-11-18 — Pages browser test locator correction
+# Latest execution checkpoint — 2026-11-18 — deployed pagination browser verification passed
 
-- Main remains at the post-PR #759 commit. Source-level platform-admin hardening is present in main but is not applied to Supabase Production.
-- The last GitHub Pages run successfully uploaded/deployed the site and passed URL smoke checks; its *post-deploy Playwright* phase failed at the directory specialty pagination assertion.
-- Exact job log showed the DOM contained 20 matching `h3` titles, then Playwright's `getByRole('heading')` returned 0. Directory cards use a `<button>` wrapper, whose descendants are presentational in the accessibility tree; this is a test locator mismatch, not evidence that the page rendered zero records.
-- Follow-up branch `fix/e2e-directory-card-heading-query-20261118` changes only the test locator to `page.locator('h3')`, preserving the 20/25 pagination assertions. Commit: `d8d47c1a73335d63201d556df8f1616737078a12`.
-- Exact-head CI and next Pages deployment remain pending. Do not call the previous Pages deployment failed; its post-deploy browser verification failed.
-- Supabase Production RC472 / Edge deployment remains blocked by the missing verified off-site backup and the public-directory contact-disclosure decision; no Production mutation has occurred.
+- Main commit `89e2755f005953171530cf5955771050fa547d89` fixes the pagination E2E card-title locator by querying the rendered DOM `h3` elements; application UI and pagination behavior were unchanged.
+- Primary Catalog Frontend Validation run `44224482188` passed: build 31/31 steps, employee RBAC PostgreSQL 7/7, professional dashboard browser E2E 9/9.
+- GitHub Pages deployment run `44224482241` passed: validation 42/42; deployment and deployed-origin browser verification 13/13. V6 root, `/legacy/`, V6 Preview alias and dashboard/mobile/QR routes passed.
+- The earlier run `44201641989` uploaded/deployed successfully but failed only in the post-deploy browser locator assertion; the corrected main run now passes.
+- Supabase Production RC464/RC471/RC472/RC473 and consent-aware Edge rollout remain blocked by missing verified off-site backup/restore and release review; no Production mutation has occurred.
 
-Next: verify exact-head PR checks for the locator correction, merge only after pass, then continue the RC464 live security-parity release gates and the RC472 coordinated database/Edge release.
----
+Next: continue P0 function-level authorization review and prepare the backup/restore release path.
 
 # Latest test checkpoint — Pass 381–400 — public targeted-ad output contract
 
