@@ -2272,3 +2272,14 @@ Evidence: read-only Production ACL and `has_column_privilege` checks on 2026-11-
 - [ ] After source review/checks: deploy only the `health` Edge Function, verify public output and hourly monitor, then continue RC479 only within the complete chronological migration + backup/restore gate.
 
 No Production mutation or deployment occurred. PR #809 remains the source review boundary; full release remains BLOCKED / NOT CERTIFIED.
+
+## Pass 741–760 — authenticate service-role health probe (2026-11-18)
+
+- [x] Hardened the health Edge source so a dedicated `HEALTH_MONITOR_TOKEN` is required before service-role DB access; missing/invalid token returns generic status and performs no query.
+- [x] Compared SHA-256 digests in fixed-length loop rather than directly comparing variable-length bearer strings.
+- [x] Updated the scheduled monitor to use the GitHub Actions secret and keep the legacy read fallback until the matching Supabase/GitHub secret is configured.
+- [x] Updated static validator and runbook for secret setup and safe rollout.
+- [ ] Set the same high-entropy secret in Supabase Edge environment and GitHub Actions repository secrets (operator action; never paste into chat).
+- [ ] Recheck exact-head CI, merge source, deploy only health function, verify authenticated health response and monitor mode. RC479 remains gated by full chronological migration reconciliation and backup/restore rehearsal.
+
+No Production mutation or deployment occurred. PR #809 remains open; platform remains BLOCKED / NOT CERTIFIED.
