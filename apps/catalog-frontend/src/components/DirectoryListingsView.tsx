@@ -3,7 +3,7 @@ import { ArrowRight, BadgeCheck, Building2, CalendarClock, CheckCircle2, Clipboa
 import { useApp } from "../context/AppContext";
 import { fetchPublicDirectoryListings, setPublicDirectoryListingContactConsent, submitDirectoryListingClaim, updateOwnedDirectoryListing, type DirectoryContactConsentScope, type PublicDirectoryListing } from "../lib/directoryListings";
 import { resolveCanonicalSpecialty } from "../data/productionDefaults";
-import { resolveDefaultImage } from "../utils/defaultImages";
+import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from "../utils/defaultImages";
 
 function specialtyLabel(value: string | null | undefined) {
   const specialty = String(value || "").trim();
@@ -25,10 +25,16 @@ function listingImageContext(listing: PublicDirectoryListing) {
 }
 
 function listingDefaultProfileImage(listing: PublicDirectoryListing): string {
+  const listingType = String(listing.listing_type || "").toLowerCase();
+  if (listing.claim_status !== "CLAIMED" && listingType === "doctor") return UNVERIFIED_DOCTOR_IMAGE_URL;
+  if (listing.claim_status !== "CLAIMED" && listingType === "pharmacy") return UNVERIFIED_PHARMACY_IMAGE_URL;
   return resolveDefaultImage({ ...listingImageContext(listing), kind: "activity" });
 }
 
 function listingDefaultCoverImage(listing: PublicDirectoryListing): string {
+  const listingType = String(listing.listing_type || "").toLowerCase();
+  if (listing.claim_status !== "CLAIMED" && listingType === "doctor") return UNVERIFIED_DOCTOR_IMAGE_URL;
+  if (listing.claim_status !== "CLAIMED" && listingType === "pharmacy") return UNVERIFIED_PHARMACY_IMAGE_URL;
   return resolveDefaultImage({ ...listingImageContext(listing), kind: "cover" });
 }
 
