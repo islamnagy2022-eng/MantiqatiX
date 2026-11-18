@@ -2711,3 +2711,12 @@ Read-only Supabase production schema cross-check completed: retrieved definition
 - PR #757 RC472 merged; main deployment and main post-merge CI passed. Production RC472/RC473 migrations and Edge deployment remain unapplied; live directory-listings Edge remains v16.
 - Supabase Free plan and no verified off-site backup/restore artifact remain Production release blockers. Source rights remain unresolved across all 869 published rows; do not bulk republish without written dataset-specific permission.
 - Next: pass final PR CI, review and merge; then obtain backup/restore evidence and separately authorize ordered RC472/RC473 Production migration + Edge rollout.
+
+
+## 2026-11-18 — Pass 331–340 — RC473 merge verification
+
+- Merged PR #758 (RC473 directory contact disclosure controls) to main as de0ebab80e624b86f3726a84d5757aefb66120eb.
+- Exact-head PR checks passed on 334e4258d14f229e2e6da110ec9a9bc8c54195ca: consent PostgreSQL/source contract; primary catalog build, employee RBAC and browser E2E; directory claim atomicity; forward migration replay; doctor import contract; and cross-module validations.
+- Post-merge main workflows triggered on the merge SHA. Production Health Monitor passed; remaining workflows were in progress at the checkpoint.
+- RC473 source merge does not apply Production migration or deploy Edge Function. RC472 production release is still a dependency; required order is verified backup/restore, RC472 migration + Edge release, RC473 migration + Edge release, then deployed-origin privacy/consent/revocation tests.
+- No Production schema/data/Auth/RLS/GRANT/Edge/payment mutation occurred. Supabase Free backup/restore evidence and source-specific republication permissions remain release blockers.
