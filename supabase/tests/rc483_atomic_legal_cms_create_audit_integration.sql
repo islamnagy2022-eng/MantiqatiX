@@ -94,6 +94,10 @@ DECLARE v_document_id uuid;
 BEGIN
   SELECT id INTO v_document_id FROM public.legal_documents WHERE title='RC483 successful document';
   IF v_document_id IS NULL THEN RAISE EXCEPTION 'RC483_DOCUMENT_NOT_CREATED'; END IF;
+  IF (SELECT target_audience FROM public.legal_documents WHERE id=v_document_id)
+     <> ARRAY['ALL','CUSTOMER']::text[] THEN
+    RAISE EXCEPTION 'RC483_DOCUMENT_AUDIENCE_NORMALIZATION_MISMATCH';
+  END IF;
   IF (SELECT count(*) FROM public.consent_audit_log
       WHERE document_id=v_document_id AND event_type='LEGAL_DOCUMENT_CREATED') <> 1 THEN
     RAISE EXCEPTION 'RC483_DOCUMENT_AUDIT_NOT_ATOMIC_OR_MISSING';
