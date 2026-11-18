@@ -221,6 +221,19 @@ begin
   where external_event_id='paymob:txn-null-signature';
   if n <> 0 then raise exception 'RC475 persisted an event for a NULL signature flag'; end if;
 
+  rejected := false;
+  begin
+    perform public.process_verified_provider_payment(
+      'evt-r475-empty-event-id','tenant-a','PAYMOB',' ','pi-success',
+      'TRANSACTION',true,100,'EGP',100
+    );
+    raise exception 'TEST_FAILED: RC475 accepted an empty provider event id';
+  exception when others then
+    if sqlerrm <> 'PROVIDER_EVENT_ID_REQUIRED' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'RC475 accepted an empty provider event id'; end if;
+
   -- RC475 exact successful order-payment replay is idempotent only for the same intent and final state.
   result := public.process_verified_provider_payment(
     'paymob:txn-success','tenant-a','PAYMOB','paymob:txn-success','pi-success',
