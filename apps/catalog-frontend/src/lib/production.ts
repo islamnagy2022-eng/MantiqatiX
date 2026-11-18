@@ -248,7 +248,7 @@ export function mapBusiness(raw: any, provider: any): Business {
     !/(?:business-cover-placeholder|business-placeholder|catalog-item-placeholder)\.svg|\/legacy\/(?:activity|activities)\//i.test(savedLogo);
   const hasOwnerSelectedCover = Boolean(savedCover) && savedCoverSource !== 'auto' &&
     !isStockImageUrl(savedCover) &&
-    !/(?:business-placeholder|catalog-item-placeholder)\.svg|\/legacy\/(?:activity|activities)\//i.test(savedCover);
+    !/(?:business-cover-placeholder|business-placeholder|catalog-item-placeholder)\.svg|\/legacy\/(?:activity|activities)\//i.test(savedCover);
   const pharmacyFallbackLogo = isPharmacy && !isVerified && !hasOwnerSelectedLogo
     ? UNVERIFIED_PHARMACY_IMAGE_URL
     : '';
