@@ -1,19 +1,22 @@
-# Latest execution checkpoint — 2026-11-18 — PR #757 merged; Production parity gates
+# Latest execution checkpoint — 2026-11-18 — Pass 301–330 directory contact consent
 
-**Status:** GitHub source and website are deployed. Supabase RC472 database/Edge release remains **BLOCKED / NOT CERTIFIED**.
+**Current main:** `5d9fd1dbe0b30f8a0274979778b3ed19f07939f4`.  
+**PR #757:** merged; RC472 source is on main.  
+**Current candidate:** `fix/directory-contact-consent-20261118` / PR #758; exact-head review and CI are pending.  
+**Full Production release:** **BLOCKED / NOT CERTIFIED**.
 
-- Main commit: `ae090081015b0c3af410fb6ee114165f300b1bba`; PR #757 merged.
-- Main-commit CI: all applicable checks passed, including Directory Claim Atomicity, forward migration chain replay from the captured Production checkpoint, Migration Version Uniqueness, Primary Catalog Frontend Validation, Production Health Monitor, and cross-module security/contract checks.
-- GitHub Pages deploy completed successfully. V6 root, legacy catalog rollback path, V6 preview alias and deployed-origin browser checks all passed.
-- Supabase Production remains migration `20261110150618`; RC472 is absent. Live `directory-listings` Edge Function is version 16 and does not contain the atomic claim RPC. No Production schema/data/Auth/RLS/GRANT/Edge mutation occurred.
-- Read-only membership parity: 10 business-wide `branch_id IS NULL` rows; 9 permission objects, 1 legacy `OWNER` row with `["*"]`; zero normalized duplicate groups. A follow-up regression test now ensures RC472 converts the legacy wildcard into explicit least-privilege owner permissions.
-- Public-directory privacy assessment: 965 records total; 869 published; 964 unclaimed; 868 published/unclaimed rows expose a phone and address; source-permission evidence registry contains zero rows. No contact values were extracted. See `docs/audits/PASS_301_320_POST_MERGE_PARITY_AND_DIRECTORY_PRIVACY_20261118.md`.
-- Organization plan is Supabase Free. There is no connected evidence of a verified off-site backup or restore point. Do not apply RC472 or deploy the Edge Function until a logical backup is exported and restore-verified.
-- Current follow-up branch: `test/rc472-legacy-permission-normalization-20261118`; focused exact-head CI and PR pending.
-- **Next:** pass the legacy permission normalization test; make a deliberate tested decision for imported/unclaimed contact disclosure; produce/restore-verify an off-site database backup; then coordinate the RC472 migration with `directory-listings` Edge deployment and post-release smoke tests.
+- PR #757 (RC472 transactional directory claim review) merged as `ae090081015b0c3af410fb6ee114165f300b1bba`. Follow-up main commit `5d9fd1d` adds regression coverage for legacy OWNER wildcard permissions, ensuring the approval transaction normalizes `["*"]` into explicit least-privilege capabilities.
+- Post-merge main checks passed for RC472 integration/concurrency, forward migration replay from the captured Production checkpoint, migration uniqueness, Primary Catalog Frontend build, employee/RBAC PostgreSQL, dashboard browser E2E, cross-module security and Pages deployment. GitHub Pages deployment run [44200224475](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/44200224475) verified V6 root, `/legacy/`, V6 Preview, dashboard/mobile/QR routes and deployed-origin browser checks.
+- Supabase Production ledger remains at `20261110150618`; RC472 migration is not applied. Live `directory-listings` Edge Function is version 16 and lacks the atomic claim RPC. No Production migration or Edge deployment has occurred.
+- Read-only membership audit: 10 business-wide rows; 9 explicit permission objects and 1 legacy OWNER with `["*"]`; zero normalized duplicate groups. A follow-up regression test now covers least-privilege normalization.
+- Read-only public-directory audit: 965 total rows, 869 published, 964 unclaimed; 868 published/unclaimed rows expose phone/address in the current live Edge projection. No contact values were selected.
+- Source permission registry has zero rows and none of the 869 published listings references approved source evidence. The `dalil140.com` host accounts for 746 rows (one source label accounts for 497); Google Maps URLs account for 49; other mixed hosts are present. Public visibility or a URL is not commercial republication permission.
+- Supabase organization is on the Free plan. No verified off-site logical backup or restore point is available in the connected evidence. Do not apply RC472/RC473 or deploy Edge Functions until a backup is exported and restore-verified.
+- RC473 candidate adds private forced-RLS owner consent for PHONE, SECONDARY_PHONE, ADDRESS and PRECISE_LOCATION; fail-closed public projection; search-side-channel controls; owner UI controls and PostgreSQL/source-contract tests. Focused RC473 workflow passed on intermediate head `a9946412e0d004dd990a9fa54e35a2fcfa1493f3`; the legacy doctor-import validator exposed an outdated serializer expectation, which has been updated. Exact-head PR checks are pending after syncing latest main.
+- No Production migration, data mutation, Auth/RLS/GRANT change, Edge deployment or payment action occurred in RC473.
+- **Next:** pass exact-head RC473 + repository-wide checks; merge only after review and all checks pass. Then obtain and restore-verify an off-site backup; coordinate RC472 and RC473 migration/Edge releases; run deployed-origin claim, consent, privacy and revocation smoke tests. Keep source-rights and wider P0 security gates open.
 
 ---
-
 # Latest execution checkpoint — 2026-11-18 — Directory claim atomicity (Pass 271–300)
 
 **Status:** implementation committed to branch; exact-head CI/review pending. Full Production release remains **BLOCKED / NOT CERTIFIED**.

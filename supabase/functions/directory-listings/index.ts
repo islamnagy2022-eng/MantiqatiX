@@ -65,6 +65,27 @@ Deno.serve(async (req: Request) => {
   if (!supabaseUrl || !serviceKey) return out(origin, { error: "SERVER_MISCONFIGURED" }, 500);
   const service = createClient(supabaseUrl, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
+  const loadContactConsentScopes = async (listingIds: string[]) => {
+    const scopes = new Map<string, Set<string>>();
+    const ids = [...new Set(listingIds.map((id) => String(id || "")).filter(Boolean))];
+    if (!ids.length) return { scopes, ready: true };
+    const { data: rows, error } = await service.from("directory_listing_contact_consents")
+      .select("listing_id,scope").in("listing_id", ids).is("revoked_at", null);
+    if (error) {
+      // Fail closed: a consent registry outage must never expose contact details or enable owner controls.
+      console.warn("directory contact consent lookup failed", error.message);
+      return { scopes, ready: false };
+    }
+    for (const row of rows || []) {
+      const id = String(row.listing_id || "");
+      const scope = String(row.scope || "").toUpperCase();
+      if (!id || !["PHONE", "SECONDARY_PHONE", "ADDRESS", "PRECISE_LOCATION"].includes(scope)) continue;
+      if (!scopes.has(id)) scopes.set(id, new Set<string>());
+      scopes.get(id)!.add(scope);
+    }
+    return { scopes, ready: true };
+  };
+
   if (req.method === "GET") {
     const url = new URL(req.url);
     const slug = clean(url.searchParams.get("slug"), 140);
@@ -91,7 +112,17 @@ Deno.serve(async (req: Request) => {
           }
         }
       }
-      return out(origin, { listing: { ...sanitizePublicDirectoryListing(data), can_edit: canEdit, owned_business_id: canEdit ? String(data.claimed_business_id || "") : null } });
+      const consentState = await loadContactConsentScopes([String(data.id)]);
+      const activeScopes = consentState.scopes.get(String(data.id)) || new Set<string>();
+      const ownerScopes = canEdit
+        ? new Set(["PHONE", "SECONDARY_PHONE", "ADDRESS", "PRECISE_LOCATION"])
+        : activeScopes;
+      return out(origin, { listing: {
+        ...sanitizePublicDirectoryListing(data, ownerScopes),
+        can_edit: canEdit,
+        owned_business_id: canEdit ? String(data.claimed_business_id || "") : null,
+        ...(canEdit ? { public_contact_consent_scopes: [...activeScopes], contact_consent_ready: consentState.ready } : {}),
+      } });
     }
     const type = clean(url.searchParams.get("type"), 40);
     const pageMode = ["limit","cursor","governorate","district","village","address","specialty","functionalGroupId","taxonomyCategoryId","taxonomySpecialty","q"].some((key) => url.searchParams.has(key));
@@ -101,7 +132,10 @@ Deno.serve(async (req: Request) => {
       if (type && listingTypes.has(type)) legacyQuery = legacyQuery.eq("listing_type", type);
       const { data, error } = await legacyQuery;
       if (error) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
-      return out(origin, { listings: (data || []).map(sanitizePublicDirectoryListing) });
+      const consentState = await loadContactConsentScopes((data || []).map((row: any) => String(row.id)));
+      return out(origin, { listings: (data || []).map((row: any) =>
+        sanitizePublicDirectoryListing(row, consentState.scopes.get(String(row.id)) || new Set<string>())
+      ) });
     }
 
     // Stable keyset pagination: never use offset for the growing national directory.
@@ -142,7 +176,16 @@ Deno.serve(async (req: Request) => {
     if (villageSearch) pageQuery = pageQuery.ilike("village", "%" + villageSearch + "%");
     if (address) {
       const addressSearch = sanitizeDirectoryPaginationSearch(address);
-      if (addressSearch) pageQuery = pageQuery.ilike("address", "%" + addressSearch + "%");
+      if (addressSearch) {
+        const { data: addressConsents, error: addressConsentError } = await service.from("directory_listing_contact_consents")
+          .select("listing_id").eq("scope", "ADDRESS").is("revoked_at", null).limit(1000);
+        if (addressConsentError) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
+        const addressVisibleIds = [...new Set((addressConsents || []).map((row: any) => String(row.listing_id || "")).filter(Boolean))];
+        if (!addressVisibleIds.length) {
+          return out(origin, { listings: [], nextCursor: null, hasMore: false, pageSize: limit });
+        }
+        pageQuery = pageQuery.in("id", addressVisibleIds).ilike("address", "%" + addressSearch + "%");
+      }
     }
     if (functionalGroupId) pageQuery = pageQuery.in("functional_group_id", expandDirectoryFunctionalGroupIds(functionalGroupId));
     if (taxonomyCategoryId) pageQuery = pageQuery.in("taxonomy_category_id", expandDirectoryTaxonomyCategoryIds(taxonomyCategoryId));
@@ -158,7 +201,13 @@ Deno.serve(async (req: Request) => {
     const listings = hasMore ? rows.slice(0, limit) : rows;
     const last = listings[listings.length - 1];
     const nextCursor = hasMore && last ? encodeDirectoryPaginationCursor({ created_at: last.created_at, id: last.id }) : null;
-    return out(origin, { listings: listings.map(sanitizePublicDirectoryListing), nextCursor, hasMore, pageSize: limit });
+    const consentState = await loadContactConsentScopes(listings.map((row: any) => String(row.id)));
+    return out(origin, {
+      listings: listings.map((row: any) =>
+        sanitizePublicDirectoryListing(row, consentState.scopes.get(String(row.id)) || new Set<string>())
+      ),
+      nextCursor, hasMore, pageSize: limit,
+    });
   }
   if (req.method !== "POST") return out(origin, { error: "METHOD_NOT_ALLOWED" }, 405);
   let body: any;
@@ -171,6 +220,60 @@ Deno.serve(async (req: Request) => {
   const user = userData?.user;
   if (userError || !user || user.is_anonymous) return out(origin, { error: "AUTH_REQUIRED" }, 401);
   const action = String(body.action || "").toUpperCase();
+
+  if (action === "SET_PUBLIC_CONTACT_CONSENT") {
+    const listingId = clean(body.listingId, 80);
+    const scope = clean(body.scope, 40).toUpperCase();
+    const enabled = body.enabled;
+    const allowedScopes = new Set(["PHONE", "SECONDARY_PHONE", "ADDRESS", "PRECISE_LOCATION"]);
+    if (!listingId || !allowedScopes.has(scope) || typeof enabled !== "boolean") {
+      return out(origin, { error: "INVALID_CONTACT_CONSENT" }, 400);
+    }
+    const { data: listing, error: listingError } = await service.from("public_directory_listings")
+      .select("id,listing_status,claim_status,claimed_user_id,claimed_business_id")
+      .eq("id", listingId).maybeSingle();
+    if (listingError) return out(origin, { error: "LISTING_READ_FAILED" }, 500);
+    if (!listing || listing.claim_status !== "CLAIMED" || (enabled && listing.listing_status !== "PUBLISHED")) {
+      return out(origin, { error: "LISTING_OWNER_REQUIRED" }, 403);
+    }
+    let authorized = String(listing.claimed_user_id || "") === String(user.id);
+    if (!authorized && listing.claimed_business_id) {
+      const { data: ownerMemberships, error: ownerError } = await service.from("user_memberships").select("id")
+        .eq("user_id", user.id).eq("business_id", listing.claimed_business_id).eq("status", "ACTIVE")
+        .in("role", ["BUSINESS_OWNER", "OWNER"]).limit(1);
+      if (ownerError) return out(origin, { error: "OWNER_CHECK_FAILED" }, 500);
+      authorized = Boolean(ownerMemberships?.length);
+    }
+    if (!authorized) return out(origin, { error: "LISTING_OWNER_REQUIRED" }, 403);
+
+    if (enabled) {
+      const { data: existing, error: existingError } = await service.from("directory_listing_contact_consents")
+        .select("id").eq("listing_id", listingId).eq("scope", scope).is("revoked_at", null).maybeSingle();
+      if (existingError) return out(origin, { error: "CONTACT_CONSENT_READ_FAILED" }, 500);
+      if (existing) return out(origin, { success: true, scope, enabled: true, unchanged: true });
+      const { error: insertError } = await service.from("directory_listing_contact_consents").insert({
+        listing_id: listingId,
+        scope,
+        consented_by: user.id,
+        consent_version: "directory-contact-v1-2026-11-18",
+      });
+      if (insertError) {
+        if (insertError.code === "23505") return out(origin, { success: true, scope, enabled: true, unchanged: true });
+        return out(origin, { error: "CONTACT_CONSENT_WRITE_FAILED" }, 500);
+      }
+      return out(origin, { success: true, scope, enabled: true });
+    }
+
+    const { data: revoked, error: revokeError } = await service.from("directory_listing_contact_consents")
+      .update({
+        revoked_by: user.id,
+        revoked_at: new Date().toISOString(),
+        revocation_reason: "OWNER_WITHDREW_CONSENT",
+      })
+      .eq("listing_id", listingId).eq("scope", scope).is("revoked_at", null).select("id");
+    if (revokeError) return out(origin, { error: "CONTACT_CONSENT_REVOKE_FAILED" }, 500);
+    return out(origin, { success: true, scope, enabled: false, revoked: (revoked || []).length });
+  }
 
   if (action === "CLAIM_LISTING") {
     const listingId = clean(body.listingId, 80);

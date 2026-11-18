@@ -52,11 +52,11 @@ test("invalid metadata values become an empty object", () => {
 
 test("public Google Maps metadata accepts only HTTPS Google Maps destinations", () => {
   assert.equal(
-    sanitizePublicDirectoryMetadata({ google_maps_url: "https://www.google.com/maps/place/Cairo" }).google_maps_url,
+    sanitizePublicDirectoryMetadata({ google_maps_url: "https://www.google.com/maps/place/Cairo" }, new Set(["PRECISE_LOCATION"])).google_maps_url,
     "https://www.google.com/maps/place/Cairo",
   );
   assert.equal(
-    sanitizePublicDirectoryMetadata({ google_maps_url: "https://maps.app.goo.gl/abc123" }).google_maps_url,
+    sanitizePublicDirectoryMetadata({ google_maps_url: "https://maps.app.goo.gl/abc123" }, new Set(["PRECISE_LOCATION"])).google_maps_url,
     "https://maps.app.goo.gl/abc123",
   );
   for (const value of [
@@ -69,7 +69,7 @@ test("public Google Maps metadata accepts only HTTPS Google Maps destinations", 
     "https://google.com/search?q=clinic",
   ]) {
     assert.equal(
-      sanitizePublicDirectoryMetadata({ google_maps_url: value }).google_maps_url,
+      sanitizePublicDirectoryMetadata({ google_maps_url: value }, new Set(["PRECISE_LOCATION"])).google_maps_url,
       undefined,
       "Unsafe or non-Maps URL must not be exposed: " + value,
     );
@@ -156,4 +156,44 @@ test("public profile URL metadata accepts HTTPS and rejects executable or insecu
     websiteUrl: "https://example.org/clinic",
     coverUrl: "https://example.org/cover.png",
   });
+});
+
+
+test("public directory contact fields are hidden without matching owner consent", () => {
+  const result = sanitizePublicDirectoryListing({
+    id: "listing-contact-1",
+    display_name: "Synthetic provider",
+    phone: "01000000000",
+    secondary_phone: "02000000000",
+    address: "Synthetic exact address",
+    governorate: "Gharbia",
+    district: "Tanta",
+    metadata: { google_maps_url: "https://www.google.com/maps?q=30.7,31.0" },
+  });
+  assert.equal("phone" in result, false);
+  assert.equal("secondary_phone" in result, false);
+  assert.equal("address" in result, false);
+  assert.equal("google_maps_url" in result.metadata, false);
+  assert.equal(result.governorate, "Gharbia");
+  assert.equal(result.district, "Tanta");
+});
+
+test("public directory exposes only independently consented contact scopes", () => {
+  const row = {
+    id: "listing-contact-2",
+    phone: "01000000000",
+    secondary_phone: "02000000000",
+    address: "Synthetic exact address",
+    metadata: { google_maps_url: "https://www.google.com/maps?q=30.7,31.0" },
+  };
+  const phoneOnly = sanitizePublicDirectoryListing(row, new Set(["PHONE"]));
+  assert.equal(phoneOnly.phone, row.phone);
+  assert.equal("secondary_phone" in phoneOnly, false);
+  assert.equal("address" in phoneOnly, false);
+  assert.equal("google_maps_url" in phoneOnly.metadata, false);
+
+  const locationOnly = sanitizePublicDirectoryListing(row, new Set(["ADDRESS", "PRECISE_LOCATION"]));
+  assert.equal(locationOnly.address, row.address);
+  assert.equal("phone" in locationOnly, false);
+  assert.equal(locationOnly.metadata.google_maps_url, row.metadata.google_maps_url);
 });

@@ -1,0 +1,79 @@
+name: Directory Contact Consent
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql"
+      - "supabase/functions/directory-listings/index.ts"
+      - "supabase/functions/directory-listings/public-directory-output-contract.mjs"
+      - "supabase/functions/directory-listings/pagination-filter.mjs"
+      - "supabase/tests/rc473_directory_contact_consent_*"
+      - "apps/catalog-frontend/src/components/DirectoryListingsView.tsx"
+      - "apps/catalog-frontend/src/lib/directoryListings.ts"
+      - "scripts/validate-directory-contact-consent.mjs"
+      - ".github/workflows/directory-contact-consent.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql"
+      - "supabase/functions/directory-listings/index.ts"
+      - "supabase/functions/directory-listings/public-directory-output-contract.mjs"
+      - "supabase/functions/directory-listings/pagination-filter.mjs"
+      - "supabase/tests/rc473_directory_contact_consent_*"
+      - "apps/catalog-frontend/src/components/DirectoryListingsView.tsx"
+      - "apps/catalog-frontend/src/lib/directoryListings.ts"
+      - "scripts/validate-directory-contact-consent.mjs"
+      - ".github/workflows/directory-contact-consent.yml"
+permissions:
+  contents: read
+jobs:
+  consent-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_directory_consent_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_directory_consent_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply isolated fixture, migration and consent audit assertions
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc473_directory_contact_consent_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql "$pg_container:/tmp/migration.sql"
+          docker cp supabase/tests/rc473_directory_contact_consent_integration.sql "$pg_container:/tmp/test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_directory_consent_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_directory_consent_test -v ON_ERROR_STOP=1 -f /tmp/migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_directory_consent_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Test public directory projection and consent contract
+        run: node scripts/validate-directory-contact-consent.mjs
+      - name: Type-check directory Edge Function
+        run: deno check --node-modules-dir=auto supabase/functions/directory-listings/index.ts
+      - name: Build and type-check primary catalog frontend
+        working-directory: apps/catalog-frontend
+        run: |
+          npm install --no-audit --no-fund
+          npm run lint
+          VITE_BASE_PATH=/MantiqatiX/ npm run build

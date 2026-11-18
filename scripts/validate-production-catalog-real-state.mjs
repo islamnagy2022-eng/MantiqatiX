@@ -331,8 +331,10 @@ assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("district
   'Markaz/district must be applied with prefix-tolerant matching before the page limit.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("village",/,
   'Village must be applied with prefix-tolerant matching before the page limit.');
-assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("address",/,
-  'Area/address must be applied to the database query before the page limit.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.in\("id", addressVisibleIds\)\.ilike\("address",/,
+  "Area/address must be applied only to listings with active ADDRESS consent before the page limit.");
+assert.match(directoryListingsFunction, /eq\("scope", "ADDRESS"\)\.is\("revoked_at", null\)/,
+  "Exact address search must be restricted to active owner consent records.");
 assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(search, cursor, taxonomySpecialty \|\| specialty\)/,
   'Selected specialty must be applied before the page limit through the combined server-side filter expression.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.in\("functional_group_id", expandDirectoryFunctionalGroupIds\(functionalGroupId\)\)/,
@@ -356,9 +358,12 @@ assert.match(directoryListingsLib, /address: filters\.address/,
   'The public directory client must pass the selected street/area filter to the paginated API.');
 assert.match(directoryListingsFunction, /address = clean\(url\.searchParams\.get\("address"\)/,
   'The paginated API must support server-side street/area filtering.');
-assert.match(directoryPaginationHelper, /"phone", "secondary_phone"/,
-  'Directory search helper must include both primary and secondary phone fields.');
-
+assert.doesNotMatch(directoryPaginationHelper, /phone|secondary_phone|address/i,
+  "Public free-text search must not probe contact fields that are hidden without consent.");
+assert.match(directoryListingsFunction, /addressVisibleIds/,
+  "Explicit address search must be limited to listings with active ADDRESS consent.");
+assert.match(directoryListingsFunction, /eq\("scope", "ADDRESS"\)\.is\("revoked_at", null\)/,
+  "Address search must consult active, non-revoked owner consent.");
 assert.match(directoryListingsFunction, /parseDirectoryPaginationLimit\(url\.searchParams\.get\("limit"\)\)/,
   'The Edge Function must validate bounded page sizes through the tested helper.');
 assert.match(directoryListingsFunction, /decodeDirectoryPaginationCursor\(clean\(url\.searchParams\.get\("cursor"\)/,
@@ -397,8 +402,8 @@ const combinedDirectoryFilter = buildDirectoryPaginationOrFilter('طبيب', tes
 assert.ok(combinedDirectoryFilter, 'Search + cursor must produce a PostgREST filter expression.');
 assert.match(combinedDirectoryFilter, /and\(or\(display_name\.ilike\.%طبيب%/,
   'Search + cursor must compose the searchable columns as a single OR clause.');
-assert.match(combinedDirectoryFilter, /secondary_phone\.ilike\.%طبيب%/,
-  'Search + cursor must include secondary contact fields.');
+assert.doesNotMatch(combinedDirectoryFilter, /phone|secondary_phone|address/i,
+  "Search + cursor must never probe contact fields without explicit consent.");
 assert.match(combinedDirectoryFilter, /village\.ilike\.%طبيب%/,
   'Search + cursor must include administrative location fields.');
 assert.match(combinedDirectoryFilter, /or\(created_at\.lt\.[\s\S]*id\.lt\./,
@@ -420,7 +425,8 @@ assert.equal(cursorOnlyFilter, 'created_at.lt.2026-11-01T00:00:00.000Z,and(creat
   'Cursor-only pagination must preserve the deterministic timestamp/id continuation.');
 const searchOnlyFilter = buildDirectoryPaginationOrFilter('عيادة', null);
 assert.match(searchOnlyFilter, /display_name\.ilike\.%عيادة%/);
-assert.match(searchOnlyFilter, /phone\.ilike\.%عيادة%/);
+assert.doesNotMatch(searchOnlyFilter, /phone|secondary_phone|address/i,
+  "Free-text search must not probe private contact fields.");
 assert.equal(buildDirectoryPaginationOrFilter('', null), null,
   'No search and no cursor must not add a logical OR filter.');
 assert.equal(sanitizeDirectoryPaginationSearch('دكتور,(x)%";drop'), 'دكتور x drop',
@@ -515,8 +521,10 @@ assert.deepEqual(geoSpecialtyPages.map((row) => row.id), expectedGeoSpecialty.ma
 assert.equal(new Set(geoSpecialtyPages.map((row) => row.id)).size, geoSpecialtyPages.length,
   'Filtered keyset pages must not duplicate records across continuation requests.');
 
-assert.match(directoryPaginationHelper, /"address", "governorate", "district", "village"/,
-  'Directory search helper must include address and administrative hierarchy fields.');
+assert.match(directoryPaginationHelper, /"governorate", "district", "village"/,
+  "Directory search helper must include the coarse administrative hierarchy fields.");
+assert.doesNotMatch(directoryPaginationHelper, /phone|secondary_phone|address/i,
+  "Directory free-text search must exclude private contact fields.");
 assert.match(directory, /fetchPublicDirectoryListingPage\(directoryListingRequestFilters\)/,
   'The main directory must load a server-filtered first page rather than the legacy 500-row list.');
 assert.match(directory, /limit: 20/,

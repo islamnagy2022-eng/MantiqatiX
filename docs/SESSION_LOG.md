@@ -2697,3 +2697,17 @@ Read-only Supabase production schema cross-check completed: retrieved definition
 - Security advisor snapshot: 9 RLS-enabled tables without direct policies (service-role-only design on directory tables), 65 authenticated-executable SECURITY DEFINER functions, and one anon-executable targeted-ad projection requiring a focused review. Health advisor had no lints.
 - Next: pass legacy wildcard normalization regression; decide and test unclaimed public directory contact disclosure; obtain off-site backup + restore evidence; coordinate RC472 migration and Edge release.
 
+
+
+## 2026-11-18 — Pass 301–330 — public directory contact disclosure controls
+
+- Read-only Production aggregate: 965 total directory listings, 869 published, 964 unclaimed; 868 published/unclaimed rows expose phone and address through live `directory-listings` v16. No contact values or row-level personal data were selected.
+- Published source audit: 26 distinct source hosts; `dalil140.com` accounts for 746 rows across source labels (one label accounts for 497); Google Maps URLs account for 49. Production `directory_source_permission_evidence` has zero rows and none of the published listings references a source evidence ID.
+- Added RC473 private forced-RLS contact-consent registry with separate PHONE, SECONDARY_PHONE, ADDRESS and PRECISE_LOCATION scopes, active-grant uniqueness and retained revocation audit.
+- Public directory output fails closed for phone, secondary phone, exact address and precise Maps URL; public free-text search excludes contact fields; explicit address filtering requires active ADDRESS consent.
+- Added authenticated claimed-owner grant/revoke action, four explicit consent controls in the existing owner page, PostgreSQL integration tests, source projection/search tests, Deno check and frontend build workflow.
+- Updated the doctor incremental-import validator and existing output-contract tests to recognize the consent-aware serializer after the first PR run exposed stale assertions.
+- Focused RC473 tests passed on intermediate head `a9946412e0d004dd990a9fa54e35a2fcfa1493f3`; exact-head rerun is pending after latest-main sync.
+- PR #757 RC472 merged; main deployment and main post-merge CI passed. Production RC472/RC473 migrations and Edge deployment remain unapplied; live directory-listings Edge remains v16.
+- Supabase Free plan and no verified off-site backup/restore artifact remain Production release blockers. Source rights remain unresolved across all 869 published rows; do not bulk republish without written dataset-specific permission.
+- Next: pass final PR CI, review and merge; then obtain backup/restore evidence and separately authorize ordered RC472/RC473 Production migration + Edge rollout.

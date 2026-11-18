@@ -1,4 +1,4 @@
-const SEARCH_COLUMNS = Object.freeze(["display_name", "specialty", "taxonomy_specialty", "phone", "secondary_phone", "address", "governorate", "district", "village"]);
+const SEARCH_COLUMNS = Object.freeze(["display_name", "specialty", "taxonomy_specialty", "governorate", "district", "village"]);
 
 export function sanitizeDirectoryPaginationSearch(value) {
   return String(value ?? "").slice(0, 100).replace(/[^\p{L}\p{N}\s+-]/gu, " ").replace(/\s+/g, " ").trim();

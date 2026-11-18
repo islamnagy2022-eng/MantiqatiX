@@ -10,9 +10,9 @@ export type PublicDirectoryListing = {
   taxonomy_category_id: string;
   taxonomy_specialty: string | null;
   specialty: string | null;
-  phone: string | null;
-  secondary_phone: string | null;
-  address: string | null;
+  phone?: string | null;
+  secondary_phone?: string | null;
+  address?: string | null;
   governorate: string;
   district: string;
   village: string | null;
@@ -23,6 +23,8 @@ export type PublicDirectoryListing = {
   claim_status: string;
   can_edit?: boolean;
   owned_business_id?: string | null;
+  public_contact_consent_scopes?: DirectoryContactConsentScope[];
+  contact_consent_ready?: boolean;
   outreach_status?: string;
   outreach_notes?: string | null;
   last_contacted_at?: string | null;
@@ -50,6 +52,8 @@ function normalizeDirectoryListingTaxonomy(listing: PublicDirectoryListing): Pub
     taxonomy_category_id: canonicalCategoryId || listing.taxonomy_category_id,
   };
 }
+
+export type DirectoryContactConsentScope = "PHONE" | "SECONDARY_PHONE" | "ADDRESS" | "PRECISE_LOCATION";
 
 export type DirectoryClaimRequest = {
   id: string;
@@ -155,7 +159,7 @@ async function callDirectoryAdmin(body: Record<string, unknown>): Promise<any> {
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
   if (sessionError) throw new Error(sessionError.message || "تعذر قراءة جلسة الدخول");
   const session = sessionData.session;
-  if (!session?.access_token) throw new Error("سجّل الدخول أولًا بحساب إدارة المنصة.");
+  if (!session?.access_token) throw new Error("سجّل الدخول أولًا بحسابك.");
   const response = await fetch(String(productionRuntime.supabaseUrl) + "/functions/v1/directory-listings", {
     method: "POST",
     headers: {
@@ -301,6 +305,20 @@ export async function reviewDirectoryClaim(input: {
   return callDirectoryAdmin({ action: "REVIEW_CLAIM", ...input });
 }
 
+
+
+export async function setPublicDirectoryListingContactConsent(input: {
+  listingId: string;
+  scope: DirectoryContactConsentScope;
+  enabled: boolean;
+}): Promise<{ success: boolean; scope: DirectoryContactConsentScope; enabled: boolean }> {
+  return callDirectoryAdmin({
+    action: "SET_PUBLIC_CONTACT_CONSENT",
+    listingId: input.listingId,
+    scope: input.scope,
+    enabled: input.enabled,
+  });
+}
 
 export async function updateOwnedDirectoryListing(input: {
   listingId: string; displayName: string; specialty: string; phone: string; secondaryPhone: string;
