@@ -16,6 +16,12 @@ assert.ok(defaults.includes('export function resolveDefaultActivityImages'), 'ac
 assert.ok(defaults.includes("type ArtKey = 'general' |"), 'unknown activity types must resolve to a neutral general category');
 assert.ok(defaults.includes("general: 'business-placeholder.svg'"), 'unknown activities must use the neutral business placeholder');
 assert.ok(defaults.includes("general: 'catalog-item-placeholder.svg'"), 'unknown products and services must use the neutral item placeholder');
+assert.ok(defaults.includes("art === 'general' ? 'business-cover-placeholder.svg'"),
+  'unknown activities must use a dedicated wide neutral cover instead of reusing the logo placeholder');
+assert.ok(fs.existsSync('apps/catalog-frontend/public/business-cover-placeholder.svg'),
+  'wide neutral business cover placeholder asset must exist');
+assert.ok(read('apps/catalog-frontend/public/business-cover-placeholder.svg').includes('viewBox="0 0 1600 900"'),
+  'neutral business cover must use a wide 16:9 canvas');
 assert.ok(defaults.includes("return 'general';"), 'unmatched catalog categories must never be misclassified as grocery');
 assert.ok(fs.existsSync('apps/catalog-frontend/public/business-placeholder.svg'), 'neutral business placeholder asset must exist');
 assert.ok(fs.existsSync('apps/catalog-frontend/public/catalog-item-placeholder.svg'), 'neutral catalog item placeholder asset must exist');
