@@ -29,7 +29,7 @@ PR: #774 — RC474 payment-intent scope hardening
 
 ## Validation / release status
 
-- Static source assertions were locally checked in the orchestration layer: 12/12 targeted checks passed.
+- Exact-head RC474 validator: 15/15 static assertions passed; disposable PostgreSQL business/branch integration passed; forward migration replay passed with 88 migrations; all 13 exact-head PR checks passed; PR #774 merged to main as `777884bd76c75d792d9e7a565da26fc7e8fca4b7`.
 - RC474's scoped role set includes `BUSINESS_OWNER` for the exact same business/branch, with a positive integration test. The first static CI attempt correctly caught that the validator's expected-role regex had not been updated; the validator was corrected and exact-head CI is rerunning.
 - PR #773 was closed as superseded because its base became stale after PR #772 merged; no code was merged from #773.
 - Main currently includes PR #772 as `30531e00a43d059159b409f3f57ace5d640ad641`.
