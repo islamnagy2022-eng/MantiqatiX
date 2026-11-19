@@ -11,6 +11,9 @@ const release = JSON.parse(fs.readFileSync("docs/release/production-migration-re
 const releaseContract = fs.readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
 
 assert.match(edge, /sanitizePublicDirectoryListing/);
+assert.match(edge, /resolveDirectoryOwnerAccess/);
+assert.match(edge, /const ownerAccess = resolveDirectoryOwnerAccess\(isOwner, consentState\.ready, activeScopes\)/);
+assert.match(edge, /can_edit: ownerAccess\.canEdit/);
 assert.match(edge, /collectActiveAddressConsentIds/);
 assert.match(edge, /directory_listing_contact_consents/);
 assert.match(edge, /\.is\("revoked_at", null\)/);
@@ -27,6 +30,8 @@ for (const field of ['"PHONE"', '"SECONDARY_PHONE"', '"ADDRESS"', '"PRECISE_LOCA
 }
 assert.match(output, /if \(key === "phone" && !contactScopes\.has\("PHONE"\)\) continue/);
 assert.match(output, /if \(key === "address" && !contactScopes\.has\("ADDRESS"\)\) continue/);
+assert.match(output, /canEdit: Boolean\(isOwner && consentReady\)/);
+assert.match(output, /contactScopes: isOwner \? new Set\(OWNER_CONTACT_SCOPES\)/);
 assert.match(pagination, /offset \+= rows\.length/,
   "consent pagination must advance by the actual capped response length");
 assert.match(pagination, /return \{ ids: \[\], ready: false \}/,
