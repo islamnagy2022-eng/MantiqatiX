@@ -4373,5 +4373,22 @@
     "found_required_versions": 0,
     "missing_required_versions": 62,
     "production_mutation": "NONE"
+  },
+  "catalog_admin_live_source_recheck_20261119": {
+    "checked_at": "2026-11-19",
+    "deployed_status": "ACTIVE",
+    "deployed_version": 20,
+    "verify_jwt": false,
+    "deployed_bundle_sha256": "7732207160cf91176d4478d101f85be8789b9eb1ce1b9cd56499994b0cf9ea2c",
+    "live_entrypoint_bytes": 37862,
+    "main_entrypoint_bytes": 43730,
+    "exact_entrypoint_match": false,
+    "live_contains_registry_rpc_guard": false,
+    "main_contains_registry_rpc_guard": true,
+    "live_scoped_platform_membership_uses_registry": false,
+    "main_scoped_platform_membership_uses_registry": true,
+    "live_helper_dependency": "Live mnty_can_platform_admin() still delegates to mnty_can('admin',NULL,NULL,NULL), search_path=public, pg_temp.",
+    "status": "BLOCKED_NOT_DEPLOYED",
+    "interpretation": "Production catalog-admin v20 does not contain the merged registry guard; main source does. Deploying this function alone would still rely on the weak live helper. The coordinated RC464/RC471 database release and complete migration/backup gates remain mandatory."
   }
 }
