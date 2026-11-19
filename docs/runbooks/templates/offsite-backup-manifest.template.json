@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "production_project_ref": "moyhiluyhjsujhwlyeuu",
+  "source_commit_sha": "REPLACE_WITH_40_HEX_MAIN_COMMIT",
+  "source_postgres_version": "17.x",
+  "backup_started_at": "YYYY-MM-DDTHH:mm:ss.sssZ",
+  "backup_finished_at": "YYYY-MM-DDTHH:mm:ss.sssZ",
+  "backup_destination": "REDACTED_NON_SECRET_OFFSITE_DESTINATION",
+  "backup_operator": "OPERATOR_ID",
+  "retention_until": "YYYY-MM-DDTHH:mm:ss.sssZ",
+  "encryption": {
+    "algorithm": "age",
+    "recipient_id": "NON_SECRET_RECOVERY_KEY_IDENTIFIER"
+  },
+  "artifacts": [
+    { "kind": "database_roles", "path": "database/roles.sql.age", "bytes": 1, "sha256": "REPLACE_WITH_SHA256" },
+    { "kind": "database_schema", "path": "database/schema.sql.age", "bytes": 1, "sha256": "REPLACE_WITH_SHA256" },
+    { "kind": "database_data", "path": "database/data.sql.age", "bytes": 1, "sha256": "REPLACE_WITH_SHA256" },
+    { "kind": "storage_objects", "path": "storage-objects.tar.gz.age", "bytes": 1, "sha256": "REPLACE_WITH_SHA256" }
+  ],
+  "storage_buckets": [
+    { "name": "BUCKET_NAME", "object_count": 0, "total_bytes": 0, "inventory_match": true }
+  ],
+  "restore_rehearsal": {
+    "status": "PASS",
+    "target_project_ref": "DISPOSABLE_PROJECT_REF_NOT_PRODUCTION",
+    "postgres_major_version": 17,
+    "started_at": "YYYY-MM-DDTHH:mm:ss.sssZ",
+    "finished_at": "YYYY-MM-DDTHH:mm:ss.sssZ",
+    "rpo_seconds": 0,
+    "rto_seconds": 1,
+    "evidence_ref": "NON_SECRET_RESTORE_EVIDENCE_REFERENCE",
+    "reviewer": "INDEPENDENT_REVIEWER_ID",
+    "acceptance": {
+      "postgres_version": true,
+      "schema_inventory": true,
+      "critical_row_counts": true,
+      "auth_records": true,
+      "rls_policies_and_acl": true,
+      "security_definer_owners_and_grants": true,
+      "financial_invariants": true,
+      "storage_inventory": true,
+      "vault_recovery": true,
+      "edge_auth_smoke": true,
+      "rollback_rehearsal": true
+    }
+  }
+}
