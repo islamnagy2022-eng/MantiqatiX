@@ -5,7 +5,7 @@ import {
   constantTimeSecretEquals,
   normalizePushNotification,
   readBoundedJson,
-} from "../supabase/functions/_shared/push-dispatch-security.mjs";
+} from "../functions/_shared/push-dispatch-security.mjs";
 
 test("shared-secret comparison accepts only exact non-empty values", () => {
   assert.equal(constantTimeSecretEquals("secret-value", "secret-value"), true);
