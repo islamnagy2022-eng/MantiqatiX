@@ -12,8 +12,16 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 const EXPECTED_PRODUCTION_PROJECT_REF = "moyhiluyhjsujhwlyeuu";
+const REPOSITORY_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+
+function isInsideDirectory(candidate, parent) {
+  const relative = path.relative(parent, candidate);
+  return relative === "" ||
+    (relative !== ".." && !relative.startsWith(".." + path.sep) && !path.isAbsolute(relative));
+}
 const REQUIRED_ARTIFACT_KINDS = [
   "database_roles",
   "database_schema",
@@ -176,9 +184,9 @@ function verifyRestoreEvidence(manifest) {
     "measured RTO seconds are missing or invalid");
   requireCondition(typeof restore.evidence_ref === "string" && restore.evidence_ref.trim().length > 0,
     "restore evidence reference is required");
-  requireCondition(typeof restore.reviewer === "string" && restore.reviewer.trim().length > 0,
-    "independent restore reviewer is required");
-  requireCondition(restore.acceptance && typeof restore.acceptance === "object",
+  requireCondition(typeof restore.reviewer === "string" && restore.reviewer.trim().length > 0 &&
+    restore.reviewer !== manifest.backup_operator,
+    "independent restore reviewer, separate from the backup operator, is required");
     "restore acceptance results are missing");
   for (const check of REQUIRED_RESTORE_CHECKS) {
     requireCondition(restore.acceptance[check] === true,
@@ -196,6 +204,8 @@ async function main() {
     "manifest must be a regular file");
   const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
   const root = path.dirname(manifestPath);
+  requireCondition(!isInsideDirectory(manifestPath, REPOSITORY_ROOT),
+    "backup manifest and encrypted artifacts must be stored outside the Git repository");
 
   noSensitiveFields(manifest);
   requireCondition(manifest.schema_version === 1, "unsupported manifest schema_version");
@@ -238,7 +248,8 @@ async function main() {
   const rootPrefix = root.endsWith(path.sep) ? root : root + path.sep;
   requireCondition(!identityPath.startsWith(rootPrefix),
     "recovery identity must be stored separately from the backup artifact directory");
-  const identityStat = fs.lstatSync(identityPath);
+  requireCondition(!isInsideDirectory(identityPath, REPOSITORY_ROOT),
+    "recovery identity must be stored outside the Git repository");
   requireCondition(identityStat.isFile() && !identityStat.isSymbolicLink(),
     "recovery identity must be a regular file, not a symlink");
   if (process.platform !== "win32") {
