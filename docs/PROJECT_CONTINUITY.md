@@ -2442,3 +2442,12 @@ Fresh Supabase Advisor results: 9 RLS/no-policy tables (anon/authenticated direc
 PR #837 merged as `9bb68ea638477abd16b8460f4bc65403bd03b0a4`; 28 CI checks passed and 2 expected jobs skipped. Inventory validator, Health Monitor and Directory Claim Atomicity workflows passed. The Pages deployment's validation job passed; deployed-origin browser tests were still running at checkpoint. Detailed evidence: `docs/audits/PASS_930_939_PRODUCTION_SUPABASE_AUTH_ADVISOR_RECHECK_20261119.md`.
 
 No Production SQL/DDL/DML, Auth, RLS, GRANT, Edge, payment, wallet, settlement or site content change occurred. Full Enterprise remains BLOCKED / NOT CERTIFIED; scoped catalog remains the only approved public release surface.
+
+
+## Pass 940–949 — R7 partial secret hardening review (2026-11-19)
+
+Reopened the updated R7 working copy derived from the uploaded archive. A narrow secret-hardening change set is present: fixed Paymob/session/backup secret fallbacks were removed; production startup requires non-placeholder secrets of at least 32 characters; the browser Supabase client no longer reads server environment variables or the service-role key; billing/session/audit/backup helpers no longer have static secret defaults; and backup decryption rejects missing salt. `npm run test:security` passes both static checks.
+
+This is not full application hardening. The updated server still has 113 API routes, including unauthenticated local production-state GET/POST, caller-controlled session-token issuance, legacy admin password bypasses, and unauthenticated wallet/merchant-ledger/finance mutation routes. The global Express middleware does not authenticate Supabase identities or resolve tenant/branch/platform scope. The Android wrapper is incomplete and allows backup. npm dependency installation timed out, so no build/typecheck/full tests/browser E2E are claimed. Detailed evidence: `docs/audits/R7_PARTIAL_SECRET_HARDENING_REVIEW_20261119.md`.
+
+The source-only partial secret patch is not merged into the production repository or deployed. No Production DB/Auth/RLS/GRANT/Edge/payment/wallet/settlement or catalog change was made. R7 remains blocked; the deployed catalog remains the production root.
