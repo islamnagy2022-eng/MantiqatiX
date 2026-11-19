@@ -12,6 +12,7 @@ on:
       - "supabase/tests/baselines/production_live_trigger_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_order_status_history_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_business_branch_anon_acl_overlay_fixture.sql"
+      - "supabase/tests/baselines/rc484_live_storage_policy_overlay_fixture.sql"
       - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
       - "scripts/verify-tenant-isolation.sql"
       - "supabase/tests/rc117_default_images_and_activity_admin_contract.sql"
@@ -169,6 +170,10 @@ jobs:
               if [[ "$filename" == "20261117010000_rc469_shared_platform_admin_caller_search_path.sql" ]]; then
                 echo "RESTORE_TEST_ONLY_KNOWN_LIVE_SHARED_CALLER_SEARCH_PATH_AND_ACL_OVERLAY"
                 psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/rc469_live_shared_helper_search_path_overlay.sql
+              fi
+              if [[ "$filename" == "20261119040000_rc484_registry_backed_is_platform_admin.sql" ]]; then
+                echo "RESTORE_TEST_ONLY_KNOWN_LIVE_RC484_STORAGE_POLICY_OVERLAY"
+                psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/rc484_live_storage_policy_overlay_fixture.sql
               fi
               echo "REPLAY_MIGRATION=$filename"
               psql "$db_url" -v ON_ERROR_STOP=1 -f "$migration"
