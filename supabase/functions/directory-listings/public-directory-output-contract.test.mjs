@@ -97,3 +97,17 @@ test("non-HTTPS public metadata URLs are removed", () => {
   assert.equal("websiteUrl" in result.metadata, false);
   assert.equal("bookingUrl" in result.metadata, false);
 });
+
+
+test("owner controls fail closed when the consent registry is unavailable without hiding the owner's own data", async () => {
+  const { resolveDirectoryOwnerAccess } = await import("./public-directory-output-contract.mjs");
+  const owner = resolveDirectoryOwnerAccess(true, false, new Set());
+  assert.equal(owner.canEdit, false);
+  assert.deepEqual([...owner.contactScopes].sort(), ["ADDRESS", "PHONE", "PRECISE_LOCATION", "SECONDARY_PHONE"]);
+
+  const healthyOwner = resolveDirectoryOwnerAccess(true, true, new Set(["PHONE"]));
+  assert.equal(healthyOwner.canEdit, true);
+  const visitor = resolveDirectoryOwnerAccess(false, false, new Set(["PHONE"]));
+  assert.equal(visitor.canEdit, false);
+  assert.deepEqual([...visitor.contactScopes], ["PHONE"]);
+});
