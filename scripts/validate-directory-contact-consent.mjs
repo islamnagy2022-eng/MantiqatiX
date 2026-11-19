@@ -10,6 +10,30 @@ const ui = readFileSync("apps/catalog-frontend/src/components/DirectoryListingsV
 const client = readFileSync("apps/catalog-frontend/src/lib/directoryListings.ts", "utf8");
 const pagination = readFileSync("supabase/functions/directory-listings/pagination-filter.mjs", "utf8");
 const consentPagination = readFileSync("supabase/functions/directory-listings/consent-pagination.mjs", "utf8");
+const config = readFileSync("supabase/config.toml", "utf8");
+const release = JSON.parse(readFileSync("docs/release/production-migration-reconciliation.json", "utf8"));
+const releaseContract = readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
+const directoryBoundary = release.directory_contact_consent_boundary;
+const directoryBoundaryEvidenceValid = directoryBoundary?.status === "BLOCKED"
+  ? directoryBoundary.live_function?.version === 16 &&
+    directoryBoundary.live_function?.complete_bundle_match === false &&
+    directoryBoundary.live_function?.missing_live_files?.includes("consent-pagination.mjs") &&
+    directoryBoundary.consent_table_exists === false &&
+    directoryBoundary.consent_table?.exists === false &&
+    directoryBoundary.published_contact_rows_without_consent_exposure > 0
+  : directoryBoundary?.status === "PASS"
+    ? directoryBoundary.live_function?.exact_source_match === true &&
+      directoryBoundary.live_function?.complete_bundle_match === true &&
+      directoryBoundary.live_function?.required_files_present === true &&
+      (directoryBoundary.live_function?.missing_live_files?.length ?? 0) === 0 &&
+      directoryBoundary.consent_table_exists === true &&
+      directoryBoundary.consent_table?.exists === true &&
+      directoryBoundary.public_get_contact_fields_consent_scoped === true &&
+      directoryBoundary.published_contact_rows_without_consent_exposure === 0 &&
+      directoryBoundary.anonymous_contract_tests === "PASS" &&
+      directoryBoundary.owner_consent_grant_revoke_tests === "PASS" &&
+      directoryBoundary.registry_outage_fail_closed === true
+    : false;
 
 const syntheticConsentRows = Array.from({ length: 2205 }, (_, index) => ({
   listing_id: `listing-${String(index).padStart(4, "0")}`,
@@ -95,12 +119,39 @@ const checks = [
   ["address consent pagination continues across server-capped short pages and fails closed on registry errors",
     source.includes("collectActiveAddressConsentIds") &&
     consentPagination.includes("offset += rows.length")],
+  ["all public GET paths use consent-aware sanitization and never return raw rows",
+    (source.match(/sanitizePublicDirectoryListing\(/g) || []).length >= 3 &&
+    !source.includes("...publicRow, is_verified") &&
+    !source.includes("listing: { ...publicListing")],
   ["GET consent lookup fails closed and is used for slug, legacy and paginated reads",
     source.includes("loadContactConsentScopes") && source.includes("directory_listing_contact_consents") &&
-    source.includes("sanitizePublicDirectoryListing(data, ownerScopes)") &&
+    source.includes("sanitizePublicDirectoryListing(data, ownerAccess.contactScopes)") &&
+    source.includes("can_edit: ownerAccess.canEdit") &&
     source.includes("consentState.scopes.get(String(row.id)) || new Set<string>()")],
-  ["owner consent controls remain hidden until the registry is available",
-    source.includes("contact_consent_ready: consentState.ready") && source.includes("return { scopes, ready: false }") && ui.includes("detail.contact_consent_ready")],
+  ["owner edit and consent controls fail closed when the registry is unavailable",
+    source.includes("resolveDirectoryOwnerAccess(isOwner, consentState.ready, activeScopes)") &&
+    source.includes("can_edit: ownerAccess.canEdit") &&
+    source.includes("contact_consent_ready: consentState.ready") &&
+    ui.includes("detail.contact_consent_ready === false")],
+  ["directory-listings public JWT boundary is explicitly configured",
+    /\[functions\.directory-listings\]\s*verify_jwt\s*=\s*false/.test(config)],
+  ["exact-address filter requires ready ADDRESS consent IDs and fails closed",
+    source.includes("loadAddressConsentListingIds()") &&
+    source.includes("if (!addressConsentState.ready)") &&
+    source.includes('.in("id", addressVisibleIds).ilike("address"')],
+  ["full-production gate requires exact directory Edge parity and consent proof",
+    releaseContract.includes('"directory-listings"') &&
+    releaseContract.includes('directoryContact?.status === "PASS"') &&
+    releaseContract.includes("complete_bundle_match === true") &&
+    releaseContract.includes("required_files_present === true") &&
+    releaseContract.includes("published_contact_rows_without_consent_exposure === 0")],
+  ["live reconciliation manifest accurately records blocked or verified directory consent evidence",
+    directoryBoundaryEvidenceValid],
+  ["POST consent actions verify a real non-anonymous Supabase user and bind actor to auth.uid",
+    source.includes("service.auth.getUser(token)") &&
+    source.includes("userError || !user || user.is_anonymous") &&
+    source.includes("consented_by: user.id") &&
+    source.includes("revoked_by: user.id")],
   ["only a claimed listing owner or active business owner can change consent",
     source.includes('action === "SET_PUBLIC_CONTACT_CONSENT"') &&
     source.includes('listing.claim_status !== "CLAIMED"') &&

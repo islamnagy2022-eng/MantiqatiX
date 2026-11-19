@@ -3,28 +3,33 @@ on:
   push:
     branches: ["**"]
     paths:
+      - "supabase/migrations/20261118010000_rc472_*.sql"
       - "supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql"
-      - "supabase/functions/directory-listings/index.ts"
-      - "supabase/functions/directory-listings/public-directory-output-contract.mjs"
-      - "supabase/functions/directory-listings/pagination-filter.mjs"
-      - "supabase/functions/directory-listings/consent-pagination.mjs"
+      - "supabase/functions/directory-listings/**"
       - "supabase/tests/rc473_directory_contact_consent_*"
       - "apps/catalog-frontend/src/components/DirectoryListingsView.tsx"
       - "apps/catalog-frontend/src/lib/directoryListings.ts"
       - "scripts/validate-directory-contact-consent.mjs"
+      - "supabase/config.toml"
+      - "docs/release/production-migration-reconciliation.json"
+      - "scripts/production/live-reconciliation-contract.mjs"
+      - "scripts/validate-production-migration-chain-gate.mjs"
       - ".github/workflows/directory-contact-consent.yml"
   pull_request:
     branches: [main]
     paths:
+      - "supabase/migrations/20261118010000_rc472_*.sql"
       - "supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql"
-      - "supabase/functions/directory-listings/index.ts"
-      - "supabase/functions/directory-listings/public-directory-output-contract.mjs"
-      - "supabase/functions/directory-listings/pagination-filter.mjs"
-      - "supabase/functions/directory-listings/consent-pagination.mjs"
+      - "supabase/functions/directory-listings/**"
       - "supabase/tests/rc473_directory_contact_consent_*"
       - "apps/catalog-frontend/src/components/DirectoryListingsView.tsx"
       - "apps/catalog-frontend/src/lib/directoryListings.ts"
       - "scripts/validate-directory-contact-consent.mjs"
+      - "supabase/functions/directory-listings/*.test.mjs"
+      - "supabase/config.toml"
+      - "docs/release/production-migration-reconciliation.json"
+      - "scripts/production/live-reconciliation-contract.mjs"
+      - "scripts/validate-production-migration-chain-gate.mjs"
       - ".github/workflows/directory-contact-consent.yml"
 permissions:
   contents: read

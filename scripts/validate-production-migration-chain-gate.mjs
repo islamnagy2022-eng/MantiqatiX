@@ -193,7 +193,8 @@ const validReconciliation = {
       { slug: "digital-page-payment-intent", exact_match: true },
       { slug: "subscription-payment-intent", exact_match: true },
       { slug: "financial-journal", exact_match: true },
-      { slug: "smm-gateway", exact_match: true }
+      { slug: "smm-gateway", exact_match: true },
+      { slug: "directory-listings", exact_match: true }
     ]
   },
   migration_alias_resolution_check: {
@@ -242,6 +243,16 @@ const validReconciliation = {
       { function_name: "capture_commission_rule_audit", security_definer: true, trigger_enabled: true, search_path_empty: true, public_execute: false, anon_execute: false, authenticated_execute: false, service_role_execute: false }
     ]
   },
+  directory_contact_consent_boundary: {
+    status: "PASS",
+    live_function: { slug: "directory-listings", exact_source_match: true, complete_bundle_match: true, required_files_present: true, missing_live_files: [], verify_jwt: false },
+    consent_table_exists: true,
+    public_get_contact_fields_consent_scoped: true,
+    published_contact_rows_without_consent_exposure: 0,
+    anonymous_contract_tests: "PASS",
+    owner_consent_grant_revoke_tests: "PASS",
+    registry_outage_fail_closed: true
+  },
   financial_journal_runtime_prerequisite_check: {
     status: "PASS",
     live_migrations: {
@@ -263,6 +274,13 @@ const blockedFixtures = [
   value => { value.critical_edge_function_source_parity_check.functions.find(f => f.slug === "paymob-webhook").exact_match = false; },
   value => { value.critical_edge_function_source_parity_check.functions.find(f => f.slug === "order-create").exact_match = false; },
   value => { value.critical_edge_function_source_parity_check.functions.find(f => f.slug === "api").exact_match = false; },
+  value => { value.critical_edge_function_source_parity_check.functions.find(f => f.slug === "directory-listings").exact_match = false; },
+  value => { value.directory_contact_consent_boundary.status = "BLOCKED"; },
+  value => { value.directory_contact_consent_boundary.live_function.complete_bundle_match = false; },
+  value => { value.directory_contact_consent_boundary.live_function.missing_live_files = ["public-directory-output-contract.mjs"]; },
+  value => { value.directory_contact_consent_boundary.consent_table_exists = false; },
+  value => { value.directory_contact_consent_boundary.published_contact_rows_without_consent_exposure = 1; },
+  value => { value.directory_contact_consent_boundary.registry_outage_fail_closed = false; },
   value => { value.critical_edge_function_source_parity_check.functions.find(f => f.slug === "order-status-update").exact_match = false; },
   value => { value.critical_edge_function_source_parity_check.functions.find(f => f.slug === "payment-webhook").exact_match = false; },
   value => { value.financial_journal_runtime_prerequisite_check.live_migrations["20261010180000_rc450_financial_journal_service_role_boundary"] = false; },
@@ -283,7 +301,7 @@ for (const mutate of blockedFixtures) {
   mutate(invalid);
   assert.equal(isLiveReconciliationVerified(invalid), false, "live drift fixture must block certification");
 }
-console.log("Strict live-evidence fixtures (ledger, object drift, Edge Function parity, RC449A/RC450 schema/grants): PASS");
+console.log("Strict live-evidence fixtures (ledger, object drift, Edge Function parity, directory contact consent, RC449A/RC450 schema/grants): PASS");
 
 assert.match(source, /!liveReconciliationVerified/, "missing live evidence must block release even when all migration files exist");
 const runVerifier = event => spawnSync(process.execPath, ["scripts/production/verify-production.mjs"], {

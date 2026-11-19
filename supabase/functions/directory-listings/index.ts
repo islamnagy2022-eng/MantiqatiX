@@ -14,7 +14,7 @@ import {
   resolveDoctorImportStatus,
   sanitizeDoctorImportMetadata,
 } from "./doctor-import-contract.mjs";
-import { sanitizePublicDirectoryListing } from "./public-directory-output-contract.mjs";
+import { sanitizePublicDirectoryListing, resolveDirectoryOwnerAccess } from "./public-directory-output-contract.mjs";
 import { collectActiveAddressConsentIds } from "./consent-pagination.mjs";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -107,32 +107,30 @@ Deno.serve(async (req: Request) => {
       if (error) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
       const data = rawData as unknown as DirectoryListingWithClaim | null;
       if (!data) return out(origin, { error: "LISTING_NOT_FOUND" }, 404);
-      let canEdit = false;
+      let isOwner = false;
       const authHeader = req.headers.get("Authorization") || "";
       const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
       if (bearer) {
         const { data: viewerData } = await service.auth.getUser(bearer);
         const viewer = viewerData?.user;
         if (viewer && !viewer.is_anonymous) {
-          canEdit = data.claim_status === "CLAIMED" && String(data.claimed_user_id || "") === String(viewer.id);
-          if (!canEdit && data.claim_status === "CLAIMED" && data.claimed_business_id) {
+          isOwner = data.claim_status === "CLAIMED" && String(data.claimed_user_id || "") === String(viewer.id);
+          if (!isOwner && data.claim_status === "CLAIMED" && data.claimed_business_id) {
             const { data: memberships } = await service.from("user_memberships").select("id")
               .eq("user_id", viewer.id).eq("business_id", data.claimed_business_id).eq("status", "ACTIVE")
               .in("role", ["BUSINESS_OWNER","OWNER"]).limit(1);
-            canEdit = Boolean(memberships?.length);
+            isOwner = Boolean(memberships?.length);
           }
         }
       }
       const consentState = await loadContactConsentScopes([String(data.id)]);
       const activeScopes = consentState.scopes.get(String(data.id)) || new Set<string>();
-      const ownerScopes = canEdit
-        ? new Set(["PHONE", "SECONDARY_PHONE", "ADDRESS", "PRECISE_LOCATION"])
-        : activeScopes;
+      const ownerAccess = resolveDirectoryOwnerAccess(isOwner, consentState.ready, activeScopes);
       return out(origin, { listing: {
-        ...sanitizePublicDirectoryListing(data, ownerScopes),
-        can_edit: canEdit,
-        owned_business_id: canEdit ? String(data.claimed_business_id || "") : null,
-        ...(canEdit ? { public_contact_consent_scopes: [...activeScopes], contact_consent_ready: consentState.ready } : {}),
+        ...sanitizePublicDirectoryListing(data, ownerAccess.contactScopes),
+        can_edit: ownerAccess.canEdit,
+        owned_business_id: ownerAccess.canEdit ? String(data.claimed_business_id || "") : null,
+        ...(isOwner ? { public_contact_consent_scopes: [...activeScopes], contact_consent_ready: consentState.ready } : {}),
       } });
     }
     const type = clean(url.searchParams.get("type"), 40);

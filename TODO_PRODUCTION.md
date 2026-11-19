@@ -2925,3 +2925,19 @@ Evidence: `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20261119.md`. 
 - [ ] 1029 — Re-run live anonymous response contract after coordinated deployment. No Production changes were made in this pass.
 
 Evidence: `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20261119.md`. Public directory contact-consent boundary remains BLOCKED.
+
+
+## Pass 1030–1039 — directory contact-consent hardening and release gate (2026-11-19)
+
+- [x] 1030 — Added 11 Node unit tests for per-field phone/secondary phone/address/precise-location consent, metadata allowlists, safe URLs and consent pagination failure behavior.
+- [x] 1031 — Wired directory consent unit tests into Primary Catalog Frontend Validation.
+- [x] 1032 — Extended the existing canonical static integration validator to connect Edge handler, frontend consent action, RC473 migration ACL/RLS, JWT config and release gate.
+- [x] 1033 — Added `directory-listings` to required critical Edge source parity for full-production certification.
+- [x] 1034 — Extended `isLiveReconciliationVerified` to require exact live directory source and complete bundle parity, all required helper files present, consent table existence, consent-scoped anonymous output, zero contact exposure without consent, owner/anonymous tests and fail-closed outage behavior.
+- [x] 1035 — Recorded the current live directory boundary as BLOCKED in the release manifest: live v16, only 3/5 required bundle files present (missing consent-pagination and public output sanitizer), 869 published rows with phone/address, 178 with secondary phone, consent table absent.
+- [x] 1036 — Fixed owner access state: authenticated owners can still view their own contact fields, but edit/consent controls are disabled if the consent registry is unavailable; non-owner scopes are emptied on registry outage.
+- [x] 1037 — Added Arabic UI warning when consent verification is unavailable.
+- [x] 1038 — Ran Node 22 unit tests locally: 12/12 PASS, including a guard that free-text search never searches hidden exact addresses. Full PR CI/build/browser/replay checks are pending.
+- [ ] 1039 — Merge only after exact-head CI passes; do not deploy live directory function or apply RC472/RC473 individually. Live privacy gap remains open until coordinated release.
+
+Evidence: PR #845 and `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20261119.md`. No Production resource was modified.

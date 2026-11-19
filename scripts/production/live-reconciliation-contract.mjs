@@ -129,6 +129,7 @@ const REQUIRED_EDGE_FUNCTIONS = [
   "subscription-payment-intent",
   "financial-journal",
   "smm-gateway",
+  "directory-listings",
 ];
 
 const RC449A_VERSION = "20261010175000_rc449a_financial_journal_schema_prerequisites";
@@ -153,6 +154,7 @@ export function isLiveReconciliationVerified(reconciliation) {
   const recordedRequiredVersions = Array.isArray(ledger?.recorded_required_versions) ? ledger.recorded_required_versions : null;
   const securityDefiner = reconciliation.security_definer_search_path_check;
   const qadam = reconciliation.qadam_catalog_followup_check;
+  const directoryContact = reconciliation.directory_contact_consent_boundary;
   const aliasCheck = reconciliation.migration_alias_resolution_check;
   const aliasFindings = Array.isArray(aliasCheck?.aliases) ? aliasCheck.aliases : [];
   const missingColumns = Array.isArray(finance?.schema_preflight?.missing_columns)
@@ -279,6 +281,19 @@ export function isLiveReconciliationVerified(reconciliation) {
     // Source parity must cover every deployed critical entrypoint, not just one function.
     edgeParity?.status === "PASS" &&
     requiredEdgeParityPassed &&
+    directoryContact?.status === "PASS" &&
+    directoryContact.live_function?.slug === "directory-listings" &&
+    directoryContact.live_function?.exact_source_match === true &&
+    directoryContact.live_function?.complete_bundle_match === true &&
+    directoryContact.live_function?.required_files_present === true &&
+    (directoryContact.live_function?.missing_live_files?.length ?? 0) === 0 &&
+    directoryContact.live_function?.verify_jwt === false &&
+    directoryContact.consent_table_exists === true &&
+    directoryContact.public_get_contact_fields_consent_scoped === true &&
+    directoryContact.published_contact_rows_without_consent_exposure === 0 &&
+    directoryContact.anonymous_contract_tests === "PASS" &&
+    directoryContact.owner_consent_grant_revoke_tests === "PASS" &&
+    directoryContact.registry_outage_fail_closed === true &&
 
     // RC449A -> RC450 schema/grant prerequisites must be live and validated.
     finance?.status === "PASS" &&

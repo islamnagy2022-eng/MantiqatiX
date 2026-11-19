@@ -3189,3 +3189,17 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - 869 published rows have phone and address; 178 have secondary phone.
 - Contact-consent table absent in Production; main RC473 creates it with RLS/FORCE RLS and service_role-only access.
 - RC473 remains unapplied; no standalone Edge deploy or migration applied. A minimal emergency hotfix would require explicit owner authorization.
+
+
+## Pass 1030–1039 — directory consent contract hardening
+
+- Added 11 tests for per-field contact consent, metadata allowlist, safe URLs, consent pagination and registry outage behavior.
+- Extended the canonical Edge/frontend/migration/release integration validator; wired Node unit tests and migration gate into Primary Catalog validation.
+- Full production gate now requires directory-listings source parity and consent registry proof; release manifest remains BLOCKED on live v16 gap.
+- Owner controls fail closed on consent registry outage; owner can view own contact fields; public/non-owner scope resets to empty on outage. Added Arabic UI warning.
+- Local Node 22 unit tests: 12/12 PASS, including exact-address search consent guard; CI pending. No Production mutation.
+
+
+### Directory Edge bundle parity
+
+Live directory-listings v16 has 3/5 required source files; missing consent-pagination.mjs and public-directory-output-contract.mjs. Release gate now requires full bundle parity and all required files, not just index.ts match.
