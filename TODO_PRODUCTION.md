@@ -3100,3 +3100,19 @@ Evidence: PR #858, Issue #857 comment 7016846894, `supabase/migrations/202610230
 - [x] 1139 — No live RPC invocation, Production SQL write, migration, ACL/RLS change, Edge deployment, payment, settlement or user-data mutation. Production remains vulnerable to the known role-derived helper issue until RC464/RC471 are applied through the approved release process.
 
 Evidence: `docs/audits/PASS_1130_1139_LIVE_PLATFORM_ADMIN_RECHECK_20261119.md`, Issue #852, RC464 run 43596176271, RC471 run 44213092970, PR #772 exact-head checks. Full platform remains BLOCKED / NOT CERTIFIED.
+
+
+## Pass 1140–1149 — backup/restore capability and plan gate (2026-11-19)
+
+- [x] 1140 — Read current Supabase Production project metadata: project ACTIVE_HEALTHY, PostgreSQL 17.6.1.155 / engine 17.
+- [x] 1141 — Read owning organization metadata: organization plan is Free.
+- [x] 1142 — Checked current Supabase Database Backups documentation: automatic daily backups are available for Pro/Team/Enterprise; Free projects should create logical exports using Supabase CLI `db dump` and keep off-site copies.
+- [x] 1143 — Confirmed current execution environment has no `supabase`, `pg_dump`, `pg_restore` or `docker` executable.
+- [x] 1144 — Confirmed Supabase database backups do not include Storage API objects; Edge Functions/Auth settings require separate recovery/reconfiguration planning.
+- [x] 1145 — Determined no backup export or restore rehearsal can be truthfully marked complete in this environment; backup/restore remains NOT VERIFIED.
+- [x] 1146 — Added the current plan/tooling/backup limitation and safe external-backup route to P1 migration/release issue #104 (comment 7017966595).
+- [x] 1147 — No plan upgrade, paid add-on, project/branch creation, database write, migration, backup restore, Storage mutation or Production change performed.
+- [ ] 1148 — Obtain approved external/off-site logical backup tooling and credentials; export schema/data plus separately preserve Storage objects and configuration.
+- [ ] 1149 — Restore into an isolated database/project, verify schema/data/Auth/Storage completeness, run migration and security regression suites, and record measured RPO/RTO and rollback evidence.
+
+Evidence: Supabase project/organization metadata, Supabase Database Backups documentation, environment binary check, Issue #104 comment 7017966595. Full platform remains BLOCKED / NOT CERTIFIED.
