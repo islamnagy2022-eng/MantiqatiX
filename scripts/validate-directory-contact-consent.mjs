@@ -98,6 +98,10 @@ const checks = [
   ["address consent pagination continues across server-capped short pages and fails closed on registry errors",
     source.includes("collectActiveAddressConsentIds") &&
     consentPagination.includes("offset += rows.length")],
+  ["all public GET paths use consent-aware sanitization and never return raw rows",
+    (source.match(/sanitizePublicDirectoryListing\\(/g) || []).length >= 3 &&
+    !source.includes("...publicRow, is_verified") &&
+    !source.includes("listing: { ...publicListing")],
   ["GET consent lookup fails closed and is used for slug, legacy and paginated reads",
     source.includes("loadContactConsentScopes") && source.includes("directory_listing_contact_consents") &&
     source.includes("sanitizePublicDirectoryListing(data, ownerAccess.contactScopes)") &&
