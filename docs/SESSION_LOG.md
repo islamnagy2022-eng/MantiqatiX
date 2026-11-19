@@ -3316,3 +3316,16 @@ Evidence: docs/audits/PASS_1110_1119_LIVE_EDGE_PAYMENT_FINANCE_PARITY_20261119.m
 - Aggregate active membership/registry counts: BUSINESS_OWNER 9 rows / 5 users / 4 non-registry; OWNER 3/1/0; ADMIN 1/1/0; SUPER_ADMIN 1/1/0. Corrects #772 earlier count (3 non-registry business owners / 6 rows). No identifiers selected.
 - RC464 workflow 43596176271 and RC471 workflow 44213092970 passed; PR #772 exact head 23 success, 2 expected skipped, 0 failure. Tests include synthetic BUSINESS_OWNER denials across global RPCs and helper callers.
 - Updated Issue #852 comment 7017917328. No Production writes or function invocations. Platform remains BLOCKED / NOT CERTIFIED.
+
+
+## Pass 1140–1149 — backup/restore capability and plan gate (2026-11-19)
+
+- Production project metadata: ACTIVE_HEALTHY, PostgreSQL 17.6.1.155 / engine 17.
+- Owning organization plan: Free.
+- Supabase docs: automatic daily backups on Pro/Team/Enterprise; Free plan should use Supabase CLI db dump and off-site copies.
+- Current environment lacks supabase CLI, pg_dump, pg_restore and docker; no export/restore rehearsal possible.
+- Database backups do not include Storage API objects; Edge Functions/Auth settings also require separate recovery planning.
+- Backup/restore remains NOT VERIFIED. Issue #104 updated (comment 7017966595).
+- No plan change, paid add-on, branch/project creation, Production write, migration, restore or Storage change.
+
+Evidence: Supabase project/organization metadata, Supabase backup documentation, environment binary check.
