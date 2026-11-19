@@ -181,7 +181,7 @@ psql \
 
 4. Recreate Storage buckets/configuration as required, then upload the separately backed-up objects to the disposable project's S3 endpoint.
 5. Restore/recreate Vault secrets according to Section 6, and verify all four dependent functions without printing decrypted values.
-6. Because `pg_net` is installed, keep outbound webhooks and scheduled jobs disabled or isolated until the restored environment is explicitly approved for external calls.
+6. Because `pg_net` is installed, keep outbound webhooks and scheduled jobs disabled or isolated until the restored environment is explicitly approved for external calls. The current Production inventory has one enabled `public.notifications` trigger, `mnty_notifications_push_after_insert`, which calls `mnty_push_notification_hook()` and sends to the `mnty-push-dispatch` Edge Function. In the disposable restore only, keep this trigger disabled before any test inserts; re-enable it only after Vault secrets, Edge Function configuration and network isolation are verified. Never disable or alter this trigger in Production as part of the backup rehearsal.
 7. Reconfigure Auth providers, redirect URLs, SMTP, API keys, Edge Functions, secrets, Realtime, webhooks and scheduled jobs using the approved configuration inventory.
 8. Reset custom database-role passwords if applicable; do not assume database exports include them. Never copy Production secrets into an untrusted test environment.
 
