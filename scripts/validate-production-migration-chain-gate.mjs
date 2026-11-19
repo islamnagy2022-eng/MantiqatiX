@@ -139,11 +139,11 @@ for (const contractPath of [
   assert.ok(forwardReplay.includes(contractPath), `forward replay trigger paths must include ${contractPath}`);
 }
 
-assert.match(
-  forwardReplay,
-  /if \\[ -n "\\$\\{MNTY_REPLAY_TEST_DIR:-\\}" \\] && \\[ -d "\\$MNTY_REPLAY_TEST_DIR" \\]; then[\\s\\S]*?cd "\\$MNTY_REPLAY_TEST_DIR"[\\s\\S]*?supabase stop --no-backup \\|\\| true[\\s\\S]*?\\n\\s*fi/,
-  "forward replay cleanup must stop the disposable Supabase instance and close its shell conditional"
-);
+const cleanupIfLine = forwardReplayLines.indexOf('          if [ -n "${MNTY_REPLAY_TEST_DIR:-}" ] && [ -d "$MNTY_REPLAY_TEST_DIR" ]; then');
+assert.ok(cleanupIfLine >= 0, "forward replay cleanup must guard the disposable Supabase directory");
+assert.equal(forwardReplayLines[cleanupIfLine + 1], '            cd "$MNTY_REPLAY_TEST_DIR"');
+assert.equal(forwardReplayLines[cleanupIfLine + 2], "            supabase stop --no-backup || true");
+assert.equal(forwardReplayLines[cleanupIfLine + 3], "          fi", "forward replay cleanup must close its shell conditional");
 
 const validReconciliation = {
   status: "VERIFIED",
