@@ -2507,3 +2507,10 @@ Added 11 Node tests for public field-level consent and capped consent pagination
 ### Bundle-level directory Edge parity detail
 
 The live `directory-listings` v16 bundle exposes only `index.ts`, `pagination-filter.mjs` and `doctor-import-contract.mjs`; main requires five files and the live bundle is missing `consent-pagination.mjs` and `public-directory-output-contract.mjs`. Full-production certification now requires complete bundle parity, required-file presence and no missing files, not merely entrypoint equality.
+
+
+## Pass 1040–1049 — post-merge live bundle and database recheck (2026-11-19)
+
+PR #845 merged into main at `18de15f4ea280e85c995d33fd84b3ac00f5ac4f3` after 42 exact-head checks completed (40 success, 2 skipped, zero failures), including dashboard browser E2E, build, consent PostgreSQL, doctor import and forward migration replay. Fresh read-only Supabase checks: ACTIVE_HEALTHY PostgreSQL 17.6.1.155; 310 migrations through `20261110150618`; 869 published directory rows with phone/address, 178 secondary phones; consent tables absent and RC472/RC473 unapplied. All seven critical Edge entrypoints remain byte-mismatched with main. Live directory-listings v16 has only 3/5 runtime files, missing `consent-pagination.mjs` and `public-directory-output-contract.mjs`. No Production mutation. Full bundle/schema release remains blocked pending chronological migration, backup/restore and rollback reconciliation.
+
+Evidence: `docs/audits/PASS_1040_1049_POST_MERGE_LIVE_BUNDLE_RECHECK_20261119.md`.
