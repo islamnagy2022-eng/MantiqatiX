@@ -15,6 +15,8 @@ RETURNS uuid LANGUAGE sql STABLE
 AS $function$
   SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid
 $function$;
+GRANT USAGE ON SCHEMA auth TO authenticated;
+GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated;
 
 CREATE TABLE private.platform_admins(
   user_id uuid PRIMARY KEY REFERENCES auth.users(id),
@@ -32,6 +34,7 @@ CREATE TABLE public.user_memberships(
   role text NOT NULL,
   status text NOT NULL
 );
+GRANT SELECT ON public.user_memberships TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.is_platform_admin()
 RETURNS boolean LANGUAGE sql STABLE SET search_path TO 'public'
