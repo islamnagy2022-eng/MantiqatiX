@@ -115,13 +115,29 @@ sha256sum "$BACKUP_DIR/storage-objects.tar.gz.age" \
 
 Do not assume Storage object versioning is available; Supabase documents that S3 versioning is not supported by its Storage endpoint.
 
+## 6. Supabase Vault key recovery
+
+The current Production inventory contains **2 rows in `vault.secrets`** and **4 public functions referencing Vault**. The `supabase_vault` extension is installed; `pgsodium` is not installed.
+
+Supabase documents that Vault ciphertext is preserved in database dumps, but the encryption key is stored in Supabase's secured backend systems and is not stored alongside the database data. A separate API endpoint is available for authorized key retrieval.
+
+Before any restore:
+1. Determine whether the two Vault secrets must be preserved or can be recreated.
+2. If preserving them, obtain the project's Vault encryption key only through the current official Supabase Vault key API procedure. Do not guess the endpoint, expose the key in logs, or store it in this repository.
+3. Store the key separately from the encrypted dump and off-site backup account. Restrict access to the designated recovery operator.
+4. If the key cannot be recovered, recreate the secrets in the target project and update/redeploy the dependent functions using the approved secret source; do not assume the copied ciphertext will decrypt under the target project's different key.
+5. In the restore rehearsal, verify the expected two secrets and all four dependent functions without printing decrypted secret values.
+
+Official reference: [Supabase Vault — Encryption key location](https://supabase.com/docs/guides/database/vault#encryption-key-location).
+
 ## 6. Capture non-database configuration
 
 Create a configuration inventory with values redacted:
 - Edge Function names, deployed versions, source commit, `verify_jwt` settings and required secret *names* (never secret values).
 - Auth providers enabled, OAuth redirect URLs, site URL, SMTP configuration, MFA/security settings and CAPTCHA configuration.
 - Realtime publications and settings.
-- Installed Postgres extensions and version.
+- Installed Postgres extensions and version. The current inventory includes `pg_net`, `pg_stat_statements`, `pgcrypto`, `plpgsql`, `supabase_vault` and `uuid-ossp`.
+- Vault secret recovery/key custody and the four functions that consume Vault values.
 - Storage bucket names, public/private status, size/file limits and policies.
 - Webhooks, scheduled jobs, custom domains, CORS, network restrictions and project-level settings.
 - API key inventory and rotation plan; do not export secrets into the manifest.
@@ -164,21 +180,24 @@ psql \
 ```
 
 4. Recreate Storage buckets/configuration as required, then upload the separately backed-up objects to the disposable project's S3 endpoint.
-5. Reconfigure Auth providers, redirect URLs, SMTP, API keys, Edge Functions, secrets, Realtime, webhooks and scheduled jobs using the approved configuration inventory.
-6. Reset custom database-role passwords if applicable; Supabase documents that daily backups do not include custom-role passwords. Never copy Production secrets into an untrusted test environment.
+5. Restore/recreate Vault secrets according to Section 6, and verify all four dependent functions without printing decrypted values.
+6. Because `pg_net` is installed, keep outbound webhooks and scheduled jobs disabled or isolated until the restored environment is explicitly approved for external calls.
+7. Reconfigure Auth providers, redirect URLs, SMTP, API keys, Edge Functions, secrets, Realtime, webhooks and scheduled jobs using the approved configuration inventory.
+8. Reset custom database-role passwords if applicable; do not assume database exports include them. Never copy Production secrets into an untrusted test environment.
 
 ## 9. Restore acceptance tests
 
 The restore rehearsal is not complete until all of these are recorded:
 
-- Database connection and PostgreSQL 17 version verified.
+- Database connection and PostgreSQL 17 version verified. Current source baseline is approximately 28 MB, 187 user tables, 11 non-system schemas and 6 extensions; use a fresh snapshot at backup time for exact comparison.
 - All expected schemas, tables, views, functions, triggers, extensions and migration ledger rows restored.
 - Critical table row counts match the source snapshot within documented expected drift.
 - Auth user count and representative authentication records verified without exposing credentials.
 - RLS enabled/forced flags, policy counts and policy expressions match the source snapshot.
 - Function owners, SECURITY DEFINER flags, `search_path`, EXECUTE grants and table ACLs match the source inventory.
 - Financial invariants reconcile: journal debits/credits balance; wallet balances reconcile to immutable transactions; payment intents and provider events are consistent; orders and inventory invariants hold.
-- Storage object counts and total bytes match; sampled files can be read and checksums match.
+- Storage bucket/object inventory matches. At the latest read-only check there were 2 buckets and 0 object rows; recheck at backup time. Sampled files can be read and checksums match.
+- The 2 Vault secrets decrypt successfully with the recovered key, or have been safely recreated; all 4 Vault-dependent functions pass without exposing secret values.
 - Edge Functions, Auth redirects, CORS, webhooks and Realtime smoke tests pass in the disposable environment.
 - Restore duration and data recovery point are recorded. Calculate measured RTO and RPO; do not estimate them without a completed rehearsal.
 - Reviewer signs off the manifest and evidence bundle.
