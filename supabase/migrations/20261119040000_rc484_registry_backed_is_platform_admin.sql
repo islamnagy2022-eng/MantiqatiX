@@ -81,7 +81,6 @@ $preflight$;
 -- Empty search_path prevents
 -- object-shadowing; every referenced object is schema-qualified.
 ALTER TABLE private.platform_admins FORCE ROW LEVEL SECURITY;
-REVOKE ALL ON TABLE private.platform_admins FROM PUBLIC,anon,authenticated,service_role;
 
 CREATE OR REPLACE FUNCTION public.is_platform_admin()
 RETURNS boolean
