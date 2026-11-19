@@ -26,6 +26,8 @@ ALTER TABLE private.platform_admins ENABLE ROW LEVEL SECURITY;
 ALTER TABLE private.platform_admins FORCE ROW LEVEL SECURITY;
 REVOKE ALL ON SCHEMA private FROM PUBLIC,anon,authenticated;
 REVOKE ALL ON TABLE private.platform_admins FROM PUBLIC,anon,authenticated,service_role;
+-- Mirror the current Production ACL so the RC484 migration must actively remove it.
+GRANT ALL ON TABLE private.platform_admins TO service_role;
 
 CREATE TABLE public.user_memberships(
   id text PRIMARY KEY,
