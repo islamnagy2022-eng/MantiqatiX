@@ -28,3 +28,10 @@ Open PR #828 contained a useful fail-closed preflight for the exact legacy permi
 - No Production migration, SQL/DDL/DML, RLS, GRANT, Auth, Edge, payment, wallet or settlement operation was performed.
 - This PR adds a source migration requirement, so the required release manifest count increases from 62 to 63. Live ledger state remains the previously verified 310 rows through `20261110150618`; the added migration is not applied.
 - Production release remains **BLOCKED / NOT CERTIFIED** pending the full chronological migration reconciliation, encrypted backup, isolated restore rehearsal, rollback plan and explicit release authorization.
+
+
+## Current-main port — 2026-11-19
+
+The source-only change was re-applied to current main after the earlier PR branch diverged. Current base at port creation: `d170501cdd52db4584bb76359da2153d640cbaf9` (includes the merged directory-consent release gate and explicit public Edge JWT configuration). Current PR: #849, head `574547eb4c8e6b594641f3c8c3a9a8256f938409`.
+
+The refreshed release contract preserves the directory-consent certification predicate and now requires 63 unique, timestamp-ordered migration source versions, including RC464B. The live ledger remains 310 rows through `20261110150618`; no required source IDs are recorded. Exact-head CI for PR #849 is pending. No Production operation was performed.
