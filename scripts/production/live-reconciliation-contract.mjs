@@ -36,6 +36,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261118220000", // RC481 — least-privilege Legal Edge service-role column grants
   "20261119020000", // RC482 — bind global legal admin to protected platform-admin registry
   "20261119030000", // RC483 — atomic Legal CMS create/audit and remove direct service-role INSERT
+  "20261119040000", // RC484 — registry-backed global is_platform_admin for 57 RLS policies
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [

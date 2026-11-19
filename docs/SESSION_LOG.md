@@ -3352,3 +3352,14 @@ Evidence: Issue #422 comment 7018060567 and live Security Advisor/pg_policies/AC
 - Additional SECURITY DEFINER callers: create_notification_backend, deactivate_business, fashion_erp_mutate, restaurant_erp_mutate, restaurant_table_mutate, set_platform_feature_flag_backend, resolve_legacy_scope.
 - Current aggregate: ADMIN 1/1/0 non-registry; SUPER_ADMIN 1/1/0; BUSINESS_OWNER 9/5/4; OWNER 3/1/0. No non-registry ADMIN/SUPER_ADMIN now, but future tenant admins would satisfy the global helper.
 - Created P0 Issue #867. No live function invocation or Production mutation. Full platform BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-19 — Pass 1180–1189 — RC484 registry-backed global RLS helper
+
+- Rechecked Production read-only: generic `is_platform_admin()` still derives global authority from active ADMIN/SUPER_ADMIN memberships; 57 RLS policies across 24 tables depend on it.
+- Added source-only PR #870 with RC484 migration, protected-registry preflight, empty-search_path SECURITY DEFINER helper, explicit client ACLs, isolated PostgreSQL 17 fixture and adversarial tests.
+- Added dedicated workflow and updated release migration inventories from 63 to 64 exact versions, including production verifier source inventory.
+- Preserved tenant-local ownership/membership checks; no policy or caller is mass-rewritten.
+- Dedicated RC484 CI run #2 was in progress; full forward-chain and migration collision/history workflows were queued. No test result is claimed before completion.
+- Production remains read-only: migration ledger 310 through `20261110150618`; RC484 not applied; no DDL/DML/RLS/GRANT/Auth/Storage/Edge/financial mutation.
+- Evidence: PR #870, audit `docs/audits/PASS_1180_1189_RC484_REGISTRY_BACKED_RLS_HELPER_20261119.md`, issue #867.
