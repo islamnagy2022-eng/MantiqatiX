@@ -108,6 +108,43 @@ assert.match(liveContract, /financial_journal_runtime_prerequisite_check/, "jour
 assert.match(liveContract, /security_definer_search_path_check/, "RC451 targeted-ad security-definer search_path must be required");
 assert.match(liveContract, /REQUIRED_EDGE_FUNCTIONS/, "the live parity contract must enumerate all critical function entrypoints");
 
+
+const forwardReplay = fs.readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
+const forwardReplayLines = forwardReplay.split(/\r?\n/);
+assert.ok(
+  forwardReplayLines.some((line, index) => line === "  push:" && forwardReplayLines[index + 1] === "    branches: [main]"),
+  "forward migration replay must run on main pushes and PRs, not every branch push, to avoid duplicate concurrent database containers"
+);
+assert.ok(
+  forwardReplayLines.some((line, index) => line === "  pull_request:" && forwardReplayLines[index + 1] === '    branches: ["main"]'),
+  "forward migration replay must validate pull requests targeting main"
+);
+for (const validator of [
+  "scripts/validate-r7-platform-admin-migration.mjs",
+  "scripts/validate-rc476-captain-earnings-live-columns.mjs",
+  "scripts/validate-mantigo-high-risk-definers.mjs",
+  "scripts/validate-rc482-legal-platform-admin-registry.mjs",
+  "scripts/validate-rc483-atomic-legal-cms-create-audit.mjs",
+  "scripts/validate-production-migration-chain-gate.mjs"
+]) {
+  assert.ok(forwardReplay.includes(validator), `forward replay must run ${validator}`);
+}
+for (const contractPath of [
+  "scripts/production/live-reconciliation-contract.mjs",
+  "scripts/production/verify-production.mjs",
+  "docs/release/production-migration-reconciliation.json",
+  "supabase/tests/rc482_legal_platform_admin_registry_integration.sql",
+  "supabase/tests/rc483_atomic_legal_cms_create_audit_integration.sql"
+]) {
+  assert.ok(forwardReplay.includes(contractPath), `forward replay trigger paths must include ${contractPath}`);
+}
+
+const cleanupIfLine = forwardReplayLines.indexOf('          if [ -n "${MNTY_REPLAY_TEST_DIR:-}" ] && [ -d "$MNTY_REPLAY_TEST_DIR" ]; then');
+assert.ok(cleanupIfLine >= 0, "forward replay cleanup must guard the disposable Supabase directory");
+assert.equal(forwardReplayLines[cleanupIfLine + 1], '            cd "$MNTY_REPLAY_TEST_DIR"');
+assert.equal(forwardReplayLines[cleanupIfLine + 2], "            supabase stop --no-backup || true");
+assert.equal(forwardReplayLines[cleanupIfLine + 3], "          fi", "forward replay cleanup must close its shell conditional");
+
 const validReconciliation = {
   status: "VERIFIED",
   verified: true,
