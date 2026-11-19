@@ -101,7 +101,10 @@ test("complete encrypted backup with a separate PostgreSQL 17 restore passes",t=
 test("tampered encrypted artifact is blocked by checksum verification",t=>{
   const f=fixture(t);
   const item=f.manifest.artifacts[0];
-  fs.appendFileSync(path.join(f.root,item.path),"tamper");
+  const encryptedPath=path.join(f.root,item.path);
+  const corrupted=fs.readFileSync(encryptedPath);
+  corrupted[corrupted.length-1]^=1;
+  fs.writeFileSync(encryptedPath,corrupted);
   fs.writeFileSync(f.manifestPath,JSON.stringify(f.manifest));
   const r=invoke(f);
   assert.notEqual(r.status,0);
