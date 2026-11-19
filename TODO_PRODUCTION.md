@@ -2817,3 +2817,19 @@ Evidence: `docs/audits/R7_PARTIAL_SECRET_HARDENING_REVIEW_20261119.md`. R7 remai
 - [ ] 959 — Replace pseudo-HMAC/payment simulation, local JSON authority and incomplete Android wrapper before release. No Production resource was mutated.
 
 Evidence: `docs/audits/R7_PARTIAL_SECRET_HARDENING_REVIEW_20261119.md`. R7 remains BLOCKED / NOT DEPLOYABLE; canonical catalog deployment remains separate.
+
+
+## Pass 960–969 — R7 Android WebView containment revalidation (2026-11-19)
+
+- [x] 960 — Corrected the previous source note: `MainActivity.kt` exists in the original archive; the earlier claim that it was absent was inaccurate.
+- [x] 961 — Restricted WebView navigation to exact `https://mantiqatix.com`; external HTTPS/tel/WhatsApp links leave the WebView; unsafe schemes are denied.
+- [x] 962 — Removed JavaScript bridge exposure; disabled file/content access, mixed content, automatic JS windows and multiple windows; enabled Safe Browsing and TLS-error cancellation.
+- [x] 963 — Set `android:allowBackup=false`; retained cleartext traffic disabled.
+- [x] 964 — Added root Gradle settings/properties, ProGuard rules and vector launcher resources; pinned Android/Kotlin plugin versions.
+- [x] 965 — Added Android WebView static security contract to the R7 `test:security` script; all three static checks PASS.
+- [x] 966 — Android manifest and drawable XML parse PASS.
+- [ ] 967 — Gradle wrapper scripts/JAR absent; native Android build and runtime tests remain NOT RUN.
+- [ ] 968 — Verify deep links, file chooser, permissions, browser handoff and WebView behavior on supported Android versions.
+- [ ] 969 — Keep R7 BLOCKED until Supabase Auth/scope authorization, genuine Paymob verification, build/E2E and native Android evidence pass. No Production mutation.
+
+Evidence: `docs/audits/R7_PARTIAL_SECRET_HARDENING_REVIEW_20261119.md`. R7 remains BLOCKED / NOT DEPLOYABLE.
