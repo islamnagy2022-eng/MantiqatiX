@@ -50,3 +50,10 @@ The live entrypoints for `api`, `order-status-update`, `payment-webhook`, and `s
 - Preserve the catalog-only Pages deployment; it is separate from this Edge parity gate.
 
 **Disposition:** critical Edge Function parity remains **PARTIAL / BLOCKED**. No Edge Function was deployed or changed; no Production SQL/DDL/DML/Auth/RLS/GRANT/payment/wallet/settlement change occurred.
+
+
+## 5.1 Confirmed public directory contact-disclosure gap (high priority)
+
+The live `directory-listings` v16 is deployed with `verify_jwt=false`. Its public GET path requires no bearer token, selects `phone`, `secondary_phone` and `address` through `publicReadFields`, and returns the row with only metadata sanitization; the live entrypoint does not import or call the current main `sanitizePublicDirectoryListing` / `collectActiveAddressConsentIds` contract. A read-only aggregate query found 869 PUBLISHED rows, all 869 with a phone and address, and 178 with a secondary phone. A direct catalog check found `public.directory_listing_contact_consents` and `private.directory_listing_contact_consents` both absent.
+
+Main source includes RC473 (`20261118020000`) to create the consent table with RLS + FORCE RLS, revoke client-role access and grant service_role only; it also imports explicit row-level contact sanitization and consent pagination. RC473 is one of the 62 missing required release migrations. Therefore the live public directory currently does not enforce the intended per-field consent boundary for phone/address. This is a confirmed privacy-contract gap and a release blocker, not a statement about whether each listed phone/address is otherwise public business information. Do not deploy the whole directory function or apply RC473 alone; reconcile RC472/RC473 and all function/schema dependencies in the coordinated release. Consider a separately reviewed, minimal fail-closed public-contact hotfix only if the owner authorizes an emergency mitigation.
