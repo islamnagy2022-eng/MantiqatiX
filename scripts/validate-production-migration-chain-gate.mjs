@@ -245,7 +245,7 @@ const validReconciliation = {
   },
   directory_contact_consent_boundary: {
     status: "PASS",
-    live_function: { slug: "directory-listings", exact_source_match: true, verify_jwt: false },
+    live_function: { slug: "directory-listings", exact_source_match: true, complete_bundle_match: true, required_files_present: true, missing_live_files: [], verify_jwt: false },
     consent_table_exists: true,
     public_get_contact_fields_consent_scoped: true,
     published_contact_rows_without_consent_exposure: 0,
@@ -276,6 +276,8 @@ const blockedFixtures = [
   value => { value.critical_edge_function_source_parity_check.functions.find(f => f.slug === "api").exact_match = false; },
   value => { value.critical_edge_function_source_parity_check.functions.find(f => f.slug === "directory-listings").exact_match = false; },
   value => { value.directory_contact_consent_boundary.status = "BLOCKED"; },
+  value => { value.directory_contact_consent_boundary.live_function.complete_bundle_match = false; },
+  value => { value.directory_contact_consent_boundary.live_function.missing_live_files = ["public-directory-output-contract.mjs"]; },
   value => { value.directory_contact_consent_boundary.consent_table_exists = false; },
   value => { value.directory_contact_consent_boundary.published_contact_rows_without_consent_exposure = 1; },
   value => { value.directory_contact_consent_boundary.registry_outage_fail_closed = false; },
