@@ -3066,7 +3066,7 @@ Evidence boundary: read-only catalog and aggregate checks only. No Production SQ
 - [ ] The deployed-origin E2E contract still confirms activity-module admin writes remain disabled until the atomic audit backend is implemented and verified. Keep those writes disabled rather than exposing unaudited privileged mutations.
 - [ ] Production DB remains unchanged at 310 migrations through `20261110150618`; RC481/RC482/RC483 and RC464/RC471 remain unapplied, and deployed `legal-cms` remains v6. No Edge Function was deployed by the Pages release.
 
-Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The live MantiGO platform-admin authorization gap (4 active non-registry BUSINESS_OWNER users), the 61 missing required migration versions, live object drift, backup/restore rehearsal, payment/finance E2E, and the HEALTH_MONITOR_TOKEN setup remain open release blockers.
+Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The live MantiGO platform-admin authorization gap (4 active non-registry BUSINESS_OWNER users), the 62 missing required migration versions, live object drift, backup/restore rehearsal, payment/finance E2E, and the HEALTH_MONITOR_TOKEN setup remain open release blockers.
 
 
 ## Pass 900–909 — R7 archive security revalidation (2026-11-19)
@@ -3111,3 +3111,13 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - Performance findings recorded: 132 unindexed FKs, 375 RLS initplan, 70 unused indexes, 28 multiple permissive policies. No mass changes.
 - PR #837 merged; inventory CI, health monitor and directory claim workflows passed. Main Pages validation passed; deployed-origin Playwright still pending at checkpoint.
 - No Production mutation. Full Enterprise remains BLOCKED / NOT CERTIFIED.
+
+
+## Pass 940–949 — R7 partial secret hardening
+
+- Revalidated the updated R7 working copy; recorded source manifest/server hashes and 113 API route declarations.
+- Confirmed secret fallback removal, production secret-length gate, browser service-role isolation, explicit secret parameters and backup-salt fail-closed behavior.
+- `npm run test:security`: PASS (browser client + server secret contract).
+- Residual P0s remain: local snapshot GET/POST, caller-selected role/session token minting, default/fixed admin passwords, and unguarded wallet/merchant-ledger/finance routes.
+- No Supabase Auth identity/scope guard is present globally; Android wrapper remains incomplete. npm install timed out; no build/typecheck/full tests/E2E claimed.
+- No R7 runtime authorization code or Production resource changed. R7 remains blocked from deployment.
