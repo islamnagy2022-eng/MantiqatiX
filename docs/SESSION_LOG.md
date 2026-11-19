@@ -3342,3 +3342,13 @@ Evidence: Supabase project/organization metadata, Supabase backup documentation,
 - Leaked-password protection remains disabled; issue #422 updated. No production write.
 
 Evidence: Issue #422 comment 7018060567 and live Security Advisor/pg_policies/ACL queries.
+
+
+## Pass 1160–1169 — generic is_platform_admin RLS blast-radius audit (2026-11-19)
+
+- Live is_platform_admin() checks only active ADMIN/SUPER_ADMIN membership; it does not use private.platform_admins or tenant/business/branch scope.
+- 57 RLS policies across 24 tables call this helper.
+- Affected modules include matrimony, MantiGO, restaurant/fashion ERP, jobs/education, inDrive, school/teacher profiles, used-item ads, platform feature flags and Storage.
+- Additional SECURITY DEFINER callers: create_notification_backend, deactivate_business, fashion_erp_mutate, restaurant_erp_mutate, restaurant_table_mutate, set_platform_feature_flag_backend, resolve_legacy_scope.
+- Current aggregate: ADMIN 1/1/0 non-registry; SUPER_ADMIN 1/1/0; BUSINESS_OWNER 9/5/4; OWNER 3/1/0. No non-registry ADMIN/SUPER_ADMIN now, but future tenant admins would satisfy the global helper.
+- Created P0 Issue #867. No live function invocation or Production mutation. Full platform BLOCKED / NOT CERTIFIED.
