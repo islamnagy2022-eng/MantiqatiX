@@ -2833,3 +2833,18 @@ Evidence: `docs/audits/R7_PARTIAL_SECRET_HARDENING_REVIEW_20261119.md`. R7 remai
 - [ ] 969 — Keep R7 BLOCKED until Supabase Auth/scope authorization, genuine Paymob verification, build/E2E and native Android evidence pass. No Production mutation.
 
 Evidence: `docs/audits/R7_PARTIAL_SECRET_HARDENING_REVIEW_20261119.md`. R7 remains BLOCKED / NOT DEPLOYABLE.
+
+## Pass 970–979 — Paymob payment-integrity containment (2026-11-19)
+
+- [x] 970 — Removed the FNV-style pseudo-HMAC generator from shared billing code.
+- [x] 971 — Added server-only Paymob transaction HMAC-SHA512 verifier using the official 20-field order and timing-safe comparison.
+- [x] 972 — Added fixed transaction fixture plus tamper, wrong-secret, malformed-digest and missing-field tests.
+- [x] 973 — Disabled fake local Paymob intention creation and payment-history claims.
+- [x] 974 — Webhook reads `body.obj` and query `hmac`; invalid signatures are rejected, and valid signatures still cannot mark payments paid without real Intention correlation and atomic Supabase fulfillment.
+- [x] 975 — Disabled direct subscription payment success, auto-renew mutations and automated billing sweep.
+- [x] 976 — Removed fake seeded paid intents and local unverified payment-application helper.
+- [x] 977 — Removed card number, expiry, CVV, wallet PIN and OTP collection from checkout UI.
+- [x] 978 — Five security scripts PASS; 95 TypeScript/TSX files syntax-transpiled with 0 parse errors.
+- [ ] 979 — Official Paymob Intention API, hosted checkout, callback correlation, idempotent Supabase fulfillment and real test-mode transaction remain outstanding. R7 stays BLOCKED.
+
+Evidence: `docs/audits/R7_PAYMOB_PAYMENT_INTEGRITY_REVALIDATION_20261119.md`.
