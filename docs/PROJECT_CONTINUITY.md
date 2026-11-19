@@ -2456,3 +2456,8 @@ The source-only partial secret patch is not merged into the production repositor
 ## Pass 950–959 — R7 fail-closed production API gate (2026-11-19)
 
 Re-opened the isolated R7 working copy. Current `server.ts` SHA-256 is `bd511d6cf6effaba185d82e9e0861fdee8cb4f7e554de7d42ed1fbfd8df923dc`, superseding the earlier hash in Pass 940–949. Verified a hard-coded closed production API gate before route declarations: all production `/api/*` requests except GET `/api/health` return 503 `R7_PRODUCTION_RELEASE_BLOCKED`; health returns 503 `BLOCKED_NOT_CERTIFIED`; production startup skips local JSON DB initialization. `npm run test:security` passed both static checks; syntax-only transpilation passed for 95 TS/TSX files with 0 parse errors. Full typecheck/build/dependency tests/E2E/Android remain unverified. The gate is containment, not Supabase Auth/RBAC implementation. No Production resource or deployed catalog was changed; R7 remains blocked.
+
+
+## Pass 960–969 — R7 Android WebView security containment (2026-11-19)
+
+Corrected an earlier inaccurate note: `MainActivity.kt` was present in the uploaded archive. The real Android gaps were missing root Gradle settings/wrapper files, referenced ProGuard/resources, and unsafe WebView origin/bridge/backup settings. The isolated working copy now uses exact HTTPS origin matching, external browser handoff, unsafe-scheme blocking, TLS-error cancellation, no JS bridge, no file/content access, no mixed content, Safe Browsing, backup disabled, and root Gradle settings/ProGuard/vector icons. All three `test:security` scripts and XML parsing pass. Gradle wrapper and native build/runtime verification remain absent; no Android release claim. No Production resource changed; R7 remains blocked.
