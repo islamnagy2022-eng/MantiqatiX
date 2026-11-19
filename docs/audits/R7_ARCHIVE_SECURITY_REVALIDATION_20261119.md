@@ -48,3 +48,21 @@ This is a source inspection of the uploaded archive, not a live deployment or pe
 9. Preserve R7 as an immutable reference archive; do not overwrite the live catalog or promote this archive directly.
 
 **Release decision:** R7 archive import/deployment remains BLOCKED. The verified catalog deployment on `main` is a separate scoped release and must remain intact.
+
+
+## 2026-11-19 — R7 API route authorization surface recheck (Pass 910–919)
+
+**Scope:** read-only static inspection of the exact uploaded R7 archive, file `server.ts`; this is not a live penetration test.
+
+- [x] Reopened the server route declarations and confirmed the application-wide middleware before route registration contains JSON parsing and an IP rate limiter, but no global authentication/authorization middleware.
+- [x] Static route-handler scan identified **54 POST/PUT/PATCH/DELETE handlers** whose route-local handler bodies contain no recognizable signed-session verification or authorization guard.
+- [x] Manually confirmed representative high-impact write paths directly mutate the local JSON database from caller-supplied data without a visible route-level identity/scope check: `/api/businesses`, `/api/products`, `/api/subscribers`, `/api/sales`, `/api/orders/:id/status`, `/api/wallets/transaction`, `/api/settings`, `/api/grants`, `/api/merchant-hub/ledger`, and `/api/finance/audited-transaction`.
+- [x] Confirmed `/api/finance/audited-transaction` accepts caller-supplied `actorId` and `actorRole` and defaults the actor role to `super_admin` before invoking the local financial transaction helper; this is a critical trust-boundary defect, not proof of a live financial exploit.
+- [x] Distinguished intended public ingress paths (for example contact submission and payment webhooks) from privileged mutations. The 54-count is a static screening result, not a claim that every endpoint should require login; each route needs an explicit public/actor/tenant/platform authorization contract.
+- [ ] Build a route inventory with an explicit policy for every API endpoint: PUBLIC_INGRESS, AUTHENTICATED_USER, TENANT_MEMBER, BUSINESS_BRANCH_SCOPED, PLATFORM_ADMIN, SERVICE_TO_SERVICE, or DISABLED.
+- [ ] Implement shared Supabase Auth token verification and fail-closed authorization helpers; attach them per route according to the approved policy. Do not trust client-supplied role, actorId, businessId, branchId, or localStorage.
+- [ ] Move privileged writes from local JSON into narrowly scoped Supabase RPC/Edge contracts with RLS/ACL and audit atomicity. Keep finance and wallet routes disabled until their backend contracts are verified.
+- [ ] Add negative tests for anonymous callers, forged roles, cross-tenant and cross-branch IDs, inactive memberships, wrong platform-admin registry state, and replay/idempotency.
+- [ ] Add a static CI gate requiring every route to be explicitly classified and every privileged route to declare an authorization guard; exceptions must be narrow, documented, and tested.
+
+**Evidence boundary:** no R7 code was modified in this pass; no Production DB/Auth/RLS/GRANT/Edge/payment/wallet/site changes were performed. R7 remains an untrusted reference candidate, not deployable.
