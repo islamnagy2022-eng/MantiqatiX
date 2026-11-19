@@ -25,7 +25,7 @@
 - No Production SQL, ACL, Auth, RLS, Edge, payment, wallet, settlement or user-data mutation. Encrypted off-site backup plus isolated restore/RPO/RTO proof remains absent. Full release remains **BLOCKED / NOT CERTIFIED**.
 - Detailed evidence: `docs/audits/PASS_821_840_MANTIGO_LIVE_AUTH_RELEASE_GATE_20261119.md`.
 
-**Next:** owner-controlled encrypted backup and isolated restore; exact ordered 62-version reconciliation/replay; coordinated DB + Edge rollout; post-deploy MantiGO authorization and payment/privacy smoke tests. Do not apply individual migrations or certify release before all gates pass.
+**Next:** owner-controlled encrypted backup and isolated restore; exact ordered 63-version reconciliation/replay; coordinated DB + Edge rollout; post-deploy MantiGO authorization and payment/privacy smoke tests. Do not apply individual migrations or certify release before all gates pass.
 
 ---
 
@@ -2665,3 +2665,12 @@ Evidence boundary: read-only catalog and aggregate checks only. No Production SQ
 - [ ] Production DB remains unchanged at 310 migrations through `20261110150618`; RC481/RC482/RC483 and RC464/RC471 remain unapplied, and deployed `legal-cms` remains v6. No Edge Function was deployed by the Pages release.
 
 Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The live MantiGO platform-admin authorization gap (4 active non-registry BUSINESS_OWNER users), the 62 missing required migration versions, live object drift, backup/restore rehearsal, payment/finance E2E, and the HEALTH_MONITOR_TOKEN setup remain open release blockers.
+
+## Pass 868 — RC464B order-read policy preflight on latest main (2026-11-19)
+
+- Added forward-only `20261113220000_rc464b_orders_select_policy_preflight.sql` after RC464 and before RC465. It is read-only and requires the exact permissive SELECT/ALL inventory: 3 authenticated-only SELECT policies on `orders`, 2 on `order_status_history`.
+- Added negative disposable PostgreSQL 17 tests for unexpected order and history SELECT policies; both must fail before RC465 without dropping existing policies.
+- Added RC464B to the production verifier, exact-chain static validator, live reconciliation contract and 63-version release manifest.
+- Read-only live policy inventory: expected policy counts verified (3 orders / 2 history). Live migration ledger: 310 rows through `20261110150618`; 0/63 required IDs recorded.
+- [ ] Re-run exact-head focused tests, migration-chain replay, production verifier and PR validation on this latest-main branch.
+- Production remains **BLOCKED / NOT CERTIFIED**. No Production DDL/DML, migration, RLS policy, grants, Edge Function, data, payment, wallet or settlement changes were performed.
