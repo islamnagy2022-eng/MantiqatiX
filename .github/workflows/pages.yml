@@ -1,4 +1,5 @@
 name: Deploy MantiqatiX Web
+# PR runs are validation-only. RC464B/RC465 are source/replay gates and never authorize PR deployments.
 on:
   push:
     # Also validate the isolated dashboard branch on each source commit; deploy jobs below remain main-only.
