@@ -2713,3 +2713,18 @@ Evidence boundary: read-only catalog and aggregate checks only. No Production SQ
 - [ ] Production DB remains unchanged at 310 migrations through `20261110150618`; RC481/RC482/RC483 and RC464/RC471 remain unapplied, and deployed `legal-cms` remains v6. No Edge Function was deployed by the Pages release.
 
 Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The live MantiGO platform-admin authorization gap (4 active non-registry BUSINESS_OWNER users), the 62 missing required migration versions, live object drift, backup/restore rehearsal, payment/finance E2E, and the HEALTH_MONITOR_TOKEN setup remain open release blockers.
+
+## Pass 900–909 — R7 archive security revalidation (2026-11-19)
+
+- [x] 900 — Revalidated uploaded `bizcatalog-manager (11).zip`; SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`; ZIP integrity PASS; 233 extracted files.
+- [x] 901 — Confirmed 15 test files, but no declared test script/runner in `package.json`.
+- [x] 902 — Confirmed only one SQL migration file; it creates 7 tables and enables RLS on those 7, not the claimed 11.
+- [x] 903 — Identified unauthenticated privileged token minting in `POST /api/auth/session-token` (caller-controlled userId/role, default super_admin).
+- [x] 904 — Identified unauthenticated whole-snapshot GET/POST routes at `/api/production-state`.
+- [x] 905 — Identified static secret fallbacks and admin default/fixed-password bypasses in server/frontend source.
+- [x] 906 — Identified service-role key selection in client-imported `src/lib/supabaseClient.ts`; built-bundle exposure remains unverified and is treated as a release blocker.
+- [x] 907 — Identified frontend auth state being set before backend login result; local JSON is described as authoritative, conflicting with the unified Supabase source-of-truth requirement.
+- [x] 908 — Attempted dependency installation with lifecycle scripts disabled; npm install timed out. Build/typecheck/unit/E2E/Android build therefore remain NOT RUN.
+- [x] 909 — Added `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md` with evidence and required remediation.
+
+**Disposition:** R7 remains an immutable, untrusted development candidate. Do not import or deploy it. Preserve the deployed catalog on `main`. No Production database/Auth/RLS/GRANT/Edge/payment/site mutation occurred in this pass.
