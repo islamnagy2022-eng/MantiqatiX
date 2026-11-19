@@ -251,6 +251,7 @@ async function main() {
     "recovery identity must be stored separately from the backup artifact directory");
   requireCondition(!isInsideDirectory(identityPath, REPOSITORY_ROOT),
     "recovery identity must be stored outside the Git repository");
+  const identityStat = fs.lstatSync(identityPath);
   requireCondition(identityStat.isFile() && !identityStat.isSymbolicLink(),
     "recovery identity must be a regular file, not a symlink");
   if (process.platform !== "win32") {
