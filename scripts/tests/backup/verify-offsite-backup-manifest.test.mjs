@@ -51,7 +51,9 @@ function fixture(t) {
     source_postgres_version:"17.6.1.155",
     backup_started_at:"2026-11-19T18:00:00.000Z",
     backup_finished_at:"2026-11-19T18:05:00.000Z",
-    backup_destination:"s3://offsite-backups/mantiqatix/2026-11-19",
+    backup_destination:"s3://offsite-bucket/mantiqatix/2026-11-19",
+    offsite_destination_outside_supabase_org:true,
+    offsite_retrieval_verified:true,
     backup_operator:"operator-id",
     retention_until:"2027-01-19T00:00:00.000Z",
     encryption:{algorithm:"age",recipient_id:"recovery-key-2026"},
@@ -136,4 +138,45 @@ test("secret-bearing fields are blocked before artifact processing",t=>{
   const r=invoke(f);
   assert.notEqual(r.status,0);
   assert.match(r.stderr,/sensitive field name is prohibited/);
+});
+
+
+test("plaintext database exports are blocked after encryption",t=>{
+  const f=fixture(t);
+  fs.mkdirSync(path.join(f.root,"database"));
+  fs.writeFileSync(path.join(f.root,"database","roles.sql"),"plaintext must not remain");
+  const r=invoke(f);
+  assert.notEqual(r.status,0);
+  assert.match(r.stderr,/plaintext database or Storage archive remains/);
+});
+
+test("recovery identity must stay outside the backup artifact directory",t=>{
+  const f=fixture(t);
+  const localIdentity=path.join(f.root,"local-age-identity.txt");
+  fs.copyFileSync(f.identity,localIdentity);
+  fs.chmodSync(localIdentity,0o600);
+  const r=spawnSync(process.execPath,[script,f.manifestPath],{
+    encoding:"utf8",
+    env:{...process.env,AGE_IDENTITY_FILE:localIdentity}
+  });
+  assert.notEqual(r.status,0);
+  assert.match(r.stderr,/stored separately/);
+});
+
+test("credential-bearing or signed backup URLs are blocked",t=>{
+  const f=fixture(t);
+  f.manifest.backup_destination="https://bucket.example/path?token=private";
+  fs.writeFileSync(f.manifestPath,JSON.stringify(f.manifest));
+  const r=invoke(f);
+  assert.notEqual(r.status,0);
+  assert.match(r.stderr,/non-secret off-site URI/);
+});
+
+test("unverified off-site separation is blocked",t=>{
+  const f=fixture(t);
+  f.manifest.offsite_destination_outside_supabase_org=false;
+  fs.writeFileSync(f.manifestPath,JSON.stringify(f.manifest));
+  const r=invoke(f);
+  assert.notEqual(r.status,0);
+  assert.match(r.stderr,/second-environment retrieval/);
 });
