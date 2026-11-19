@@ -284,6 +284,9 @@ export function isLiveReconciliationVerified(reconciliation) {
     directoryContact?.status === "PASS" &&
     directoryContact.live_function?.slug === "directory-listings" &&
     directoryContact.live_function?.exact_source_match === true &&
+    directoryContact.live_function?.complete_bundle_match === true &&
+    directoryContact.live_function?.required_files_present === true &&
+    (directoryContact.live_function?.missing_live_files?.length ?? 0) === 0 &&
     directoryContact.live_function?.verify_jwt === false &&
     directoryContact.consent_table_exists === true &&
     directoryContact.public_get_contact_fields_consent_scoped === true &&
