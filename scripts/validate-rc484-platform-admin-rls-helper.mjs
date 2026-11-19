@@ -19,6 +19,7 @@ const checks=[
   ["helper is SECURITY DEFINER with empty search_path",/SECURITY DEFINER[\s\S]*?SET search_path TO ''/.test(migration)],
   ["registry has no direct client or service-role grants",migration.includes("REVOKE ALL ON TABLE private.platform_admins FROM PUBLIC,anon,authenticated,service_role")],
   ["authenticated helper execute is retained",migration.includes("GRANT EXECUTE ON FUNCTION public.is_platform_admin() TO authenticated")],
+  ["fixture reproduces existing direct service-role registry grant",fixture.includes("GRANT ALL ON TABLE private.platform_admins TO service_role")],
   ["fixture reproduces 57 policies over 24 tables",/1\.\.24/.test(fixture)&&/1\.\.33/.test(fixture)],
   ["integration denies tenant ADMIN and SUPER_ADMIN",/RC484_TENANT_ADMIN_MUST_NOT_BE_PLATFORM_ADMIN/.test(integration)&&/RC484_TENANT_SUPER_ADMIN_MUST_NOT_BE_PLATFORM_ADMIN/.test(integration)],
   ["integration preserves registered platform-root global access",/RC484_REGISTRY_ONLY_PLATFORM_ADMIN_MUST_PASS/.test(integration)&&/RC484_REGISTERED_PLATFORM_ADMIN_MUST_RETAIN_GLOBAL_POLICY_ACCESS/.test(integration)],
