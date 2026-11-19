@@ -482,15 +482,16 @@ Evidence boundary: read-only catalog and aggregate checks only. No Production SQ
 - [ ] The deployed-origin E2E contract still confirms activity-module admin writes remain disabled until the atomic audit backend is implemented and verified. Keep those writes disabled rather than exposing unaudited privileged mutations.
 - [ ] Production DB remains unchanged at 310 migrations through `20261110150618`; RC481/RC482/RC483 and RC464/RC471 remain unapplied, and deployed `legal-cms` remains v6. No Edge Function was deployed by the Pages release.
 
-Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The live MantiGO platform-admin authorization gap (4 active non-registry BUSINESS_OWNER users), the 61 missing required migration versions, live object drift, backup/restore rehearsal, payment/finance E2E, and the HEALTH_MONITOR_TOKEN setup remain open release blockers.
+Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The live MantiGO platform-admin authorization gap (4 active non-registry BUSINESS_OWNER users), the 62 missing required migration versions, live object drift, backup/restore rehearsal, payment/finance E2E, and the HEALTH_MONITOR_TOKEN setup remain open release blockers.
 
 
-## Pass 861–864 — Catalog Admin platform-root registry enforcement (2026-11-19)
+## Pass 861–865 — Catalog Admin platform-root registry enforcement (2026-11-19)
 
 - [x] 861 — Re-read the live `mnty_can_platform_admin()` definition and confirmed it still delegates to null-scope `mnty_can('admin',NULL,NULL,NULL)`; no production mutation was made.
 - [x] 862 — Reviewed RC464 and RC471 migration definitions and RC464 static/disposable integration contracts; both source migrations implement registry-only authority from `private.platform_admins`, with empty search_path and constrained EXECUTE.
 - [x] 863 — Merged PR #826 to main: `431b3a923773635c796519270f4e4cd3504c38b1`. Catalog Admin root scope and its business recovery bypass now require successful caller-context registry proof; errors fail closed.
 - [x] 864 — Verified exact PR-head workflow runs completed successfully (9 workflows); Pages deployment remained gated/skipped. Main-commit CI and any production deployment are not claimed.
+- [x] 865 — Reconciled the exact 62-version release manifest against the live Supabase migration ledger using read-only SQL: 310 rows through `20261110150618`, 0/62 present, 62/62 missing. Corrected the manifest's stale 61-item missing list and recorded the fresh 2026-11-19 snapshot; no ledger rows or production objects were changed.
 - [ ] Verify post-merge main CI for `431b3a9`.
 - [ ] Coordinate the RC464/RC471 migration chain with full production reconciliation, backup/restore proof, rollback plan, and release approval before any DB/Edge rollout.
 
