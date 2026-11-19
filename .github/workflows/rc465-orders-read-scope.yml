@@ -4,14 +4,16 @@ on:
     branches:
       - "**"
     paths:
-      - "supabase/migrations/20261114010000_rc465_orders_read_scope_hardening.sql"
+      - "supabase/migrations/20261113220000_rc464b_orders_select_policy_preflight.sql"
+      "supabase/migrations/20261114010000_rc465_orders_read_scope_hardening.sql"
       - "supabase/tests/rc465_orders_read_scope_*.sql"
       - "scripts/validate-rc465-orders-read-scope.mjs"
       - ".github/workflows/rc465-orders-read-scope.yml"
   pull_request:
     branches: [main]
     paths:
-      - "supabase/migrations/20261114010000_rc465_orders_read_scope_hardening.sql"
+      - "supabase/migrations/20261113220000_rc464b_orders_select_policy_preflight.sql"
+      "supabase/migrations/20261114010000_rc465_orders_read_scope_hardening.sql"
       - "supabase/tests/rc465_orders_read_scope_*.sql"
       - "scripts/validate-rc465-orders-read-scope.mjs"
       - ".github/workflows/rc465-orders-read-scope.yml"
@@ -33,7 +35,7 @@ jobs:
     timeout-minutes: 10
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: mantiqatix_rc465_orders_scope_test
@@ -50,13 +52,37 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          pg_container="$(docker ps --filter 'ancestor=postgres:17' --format '{{.ID}}' | head -n 1)"
           test -n "$pg_container"
           docker cp supabase/tests/rc465_orders_read_scope_fixture.sql "$pg_container:/tmp/rc465_fixture.sql"
           docker cp supabase/tests/rc465_orders_read_scope_baseline.sql "$pg_container:/tmp/rc465_baseline.sql"
+          docker cp supabase/migrations/20261113220000_rc464b_orders_select_policy_preflight.sql "$pg_container:/tmp/rc465_preflight.sql"
+          docker cp supabase/tests/rc465_orders_read_scope_policy_drift_setup.sql "$pg_container:/tmp/rc465_drift_setup.sql"
+          docker cp supabase/tests/rc465_orders_read_scope_policy_drift_assert.sql "$pg_container:/tmp/rc465_drift_assert.sql"
+          docker cp supabase/tests/rc465_orders_read_scope_policy_drift_history_assert.sql "$pg_container:/tmp/rc465_drift_history_assert.sql"
           docker cp supabase/migrations/20261114010000_rc465_orders_read_scope_hardening.sql "$pg_container:/tmp/rc465_migration.sql"
           docker cp supabase/tests/rc465_orders_read_scope_integration.sql "$pg_container:/tmp/rc465_integration.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_orders_scope_test -v ON_ERROR_STOP=1 -f /tmp/rc465_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_orders_scope_test -v ON_ERROR_STOP=1 -f /tmp/rc465_baseline.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_orders_scope_test -v ON_ERROR_STOP=1 -f /tmp/rc465_preflight.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_orders_scope_test -v ON_ERROR_STOP=1 -f /tmp/rc465_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_orders_scope_test -v ON_ERROR_STOP=1 -f /tmp/rc465_integration.sql
+          # Policy drift must be rejected before the immutable RC465 migration runs.
+          docker exec "$pg_container" createdb -U postgres mantiqatix_rc465_policy_drift_test
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_policy_drift_test -v ON_ERROR_STOP=1 -f /tmp/rc465_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_policy_drift_test -v ON_ERROR_STOP=1 -f /tmp/rc465_drift_setup.sql
+          if docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_policy_drift_test -v ON_ERROR_STOP=1 -f /tmp/rc465_preflight.sql > /tmp/rc465-orders-preflight.log 2>&1; then
+            cat /tmp/rc465-orders-preflight.log
+            echo "RC465 orders policy preflight unexpectedly succeeded" >&2
+            exit 1
+          fi
+          grep -q "RC465_POLICY_PREFLIGHT_UNEXPECTED_ORDERS_SELECT_SET" /tmp/rc465-orders-preflight.log
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_policy_drift_test -v ON_ERROR_STOP=1 -f /tmp/rc465_drift_assert.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_policy_drift_test -v ON_ERROR_STOP=1 -c "DROP POLICY rc465_unexpected_orders_select ON public.orders"
+          if docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_policy_drift_test -v ON_ERROR_STOP=1 -f /tmp/rc465_preflight.sql > /tmp/rc465-history-preflight.log 2>&1; then
+            cat /tmp/rc465-history-preflight.log
+            echo "RC465 history policy preflight unexpectedly succeeded" >&2
+            exit 1
+          fi
+          grep -q "RC465_POLICY_PREFLIGHT_UNEXPECTED_HISTORY_SELECT_SET" /tmp/rc465-history-preflight.log
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_policy_drift_test -v ON_ERROR_STOP=1 -f /tmp/rc465_drift_history_assert.sql
