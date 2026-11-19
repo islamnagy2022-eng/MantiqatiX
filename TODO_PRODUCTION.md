@@ -1,4 +1,4 @@
-## Latest verified checkpoint — Pass 861–866 — 2026-11-19
+## Latest verified checkpoint — Pass 861–867 — 2026-11-19
 
 - PR #826 merged to `main` as `431b3a923773635c796519270f4e4cd3504c38b1`: Catalog Admin platform-root scope now requires both the existing explicit platform membership shape and a successful caller-context `mnty_can_platform_admin()` registry check. RPC errors and false results fail closed; the same registry proof gates the frozen/inactive-business recovery bypass.
 - Exact PR-head validation completed successfully across 9 workflow runs, including Catalog Admin CORS Boundary, Module Professionalization, Primary Catalog Frontend, Backend-only Module Boundary, MantiGO Open Ride Privacy, and the Pages deploy-gate workflow. PR deployment jobs were skipped under the release gate; no Production Edge Function deployment is claimed. Post-merge main CI for `431b3a9` has not yet been independently verified.
@@ -20,11 +20,11 @@
 - Fresh read-only Production recheck: all four global MantiGO SECURITY DEFINER RPCs remain authenticated-executable, use `search_path=public`, and do not call `mnty_can_platform_admin()`. The helper still delegates to null-scope `mnty_can('admin',NULL,NULL,NULL)`. The live predicates still accept broad tenant roles including BUSINESS_OWNER.
 - Aggregate-only evidence: one platform-admin registry row; five active BUSINESS_OWNER users; four are not platform admins. No user IDs were queried or exposed.
 - Live MantiGO financial report still references legacy `amount` / `captain_amount`; canonical live ledger fields are `gross_amount`, `commission_amount`, `captain_net_amount`. RC471/RC476 source fixes and PostgreSQL tests pass but remain unapplied.
-- Exact read-only ledger reconciliation: source requires 62 release migration versions through RC483; live ledger has 310 rows through `20261110150618`; 0/63 required versions are present and all 62 are missing.
+- Exact read-only ledger reconciliation: source requires 63 release migration versions through RC483, including RC464B; live ledger has 310 rows through `20261110150618`; 0/63 required versions are present and all 63 are missing.
 - No Production SQL, ACL, Auth, RLS, Edge, payment, wallet, settlement or user-data mutation. Encrypted off-site backup plus isolated restore/RPO/RTO proof remains absent. Full release remains **BLOCKED / NOT CERTIFIED**.
 - Detailed evidence: `docs/audits/PASS_821_840_MANTIGO_LIVE_AUTH_RELEASE_GATE_20261119.md`.
 
-**Next:** owner-controlled encrypted backup and isolated restore; exact ordered 62-version reconciliation/replay; coordinated DB + Edge rollout; post-deploy MantiGO authorization and payment/privacy smoke tests. Do not apply individual migrations or certify release before all gates pass.
+**Next:** owner-controlled encrypted backup and isolated restore; exact ordered 63-version reconciliation/replay; coordinated DB + Edge rollout; post-deploy MantiGO authorization and payment/privacy smoke tests. Do not apply individual migrations or certify release before all gates pass.
 
 ---
 
