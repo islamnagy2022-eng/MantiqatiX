@@ -25,8 +25,12 @@ BEGIN
   END IF;
 
   IF has_table_privilege('anon','private.platform_admins','SELECT')
-     OR has_table_privilege('authenticated','private.platform_admins','SELECT') THEN
-    RAISE EXCEPTION 'RC484_CLIENT_ROLE_CAN_READ_PRIVATE_REGISTRY';
+     OR has_table_privilege('authenticated','private.platform_admins','SELECT')
+     OR has_table_privilege('service_role','private.platform_admins','SELECT')
+     OR has_table_privilege('service_role','private.platform_admins','INSERT')
+     OR has_table_privilege('service_role','private.platform_admins','UPDATE')
+     OR has_table_privilege('service_role','private.platform_admins','DELETE') THEN
+    RAISE EXCEPTION 'RC484_UNTRUSTED_OR_SERVICE_ROLE_DIRECT_REGISTRY_ACCESS';
   END IF;
   IF has_function_privilege('anon','public.is_platform_admin()','EXECUTE')
      OR has_function_privilege('service_role','public.is_platform_admin()','EXECUTE') THEN
