@@ -7,6 +7,8 @@ const pagination = fs.readFileSync("supabase/functions/directory-listings/consen
 const migration = fs.readFileSync("supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql", "utf8");
 const frontend = fs.readFileSync("apps/catalog-frontend/src/lib/directoryListings.ts", "utf8");
 const workflow = fs.readFileSync(".github/workflows/primary-catalog-frontend.yml", "utf8");
+const release = JSON.parse(fs.readFileSync("docs/release/production-migration-reconciliation.json", "utf8"));
+const releaseContract = fs.readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
 
 assert.match(edge, /sanitizePublicDirectoryListing/);
 assert.match(edge, /collectActiveAddressConsentIds/);
@@ -39,5 +41,11 @@ assert.match(frontend, /SET_PUBLIC_CONTACT_CONSENT/);
 assert.match(frontend, /setPublicDirectoryListingContactConsent/);
 assert.match(workflow, /node --test supabase\/functions\/directory-listings\/\*\.test\.mjs/);
 assert.match(workflow, /validate-directory-listings-consent-contract\.mjs/);
+assert.match(releaseContract, /directoryContact\?\.status === "PASS"/);
+assert.match(releaseContract, /published_contact_rows_without_consent_exposure === 0/);
+assert.equal(release.directory_contact_consent_boundary?.status, "BLOCKED");
+assert.equal(release.directory_contact_consent_boundary?.live_function?.version, 16);
+assert.equal(release.directory_contact_consent_boundary?.consent_table?.exists, false);
+assert.equal(release.directory_contact_consent_boundary?.published_contact_rows_without_consent_exposure, 869);
 
 console.log("DIRECTORY_LISTINGS_CONTACT_CONSENT_CONTRACT_PASS");
