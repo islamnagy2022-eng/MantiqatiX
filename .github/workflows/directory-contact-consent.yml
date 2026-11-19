@@ -16,6 +16,10 @@ on:
       - "docs/release/production-migration-reconciliation.json"
       - "scripts/production/live-reconciliation-contract.mjs"
       - "scripts/validate-production-migration-chain-gate.mjs"
+      - "supabase/config.toml"
+      - "docs/release/production-migration-reconciliation.json"
+      - "scripts/production/live-reconciliation-contract.mjs"
+      - "scripts/validate-production-migration-chain-gate.mjs"
       - ".github/workflows/directory-contact-consent.yml"
   pull_request:
     branches: [main]
@@ -29,6 +33,10 @@ on:
       - "apps/catalog-frontend/src/components/DirectoryListingsView.tsx"
       - "apps/catalog-frontend/src/lib/directoryListings.ts"
       - "scripts/validate-directory-contact-consent.mjs"
+      - "supabase/config.toml"
+      - "docs/release/production-migration-reconciliation.json"
+      - "scripts/production/live-reconciliation-contract.mjs"
+      - "scripts/validate-production-migration-chain-gate.mjs"
       - ".github/workflows/directory-contact-consent.yml"
 permissions:
   contents: read
