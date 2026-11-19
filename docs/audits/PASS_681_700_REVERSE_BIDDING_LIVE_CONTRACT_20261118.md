@@ -71,3 +71,41 @@ Read-only inspection only. No Production SQL, migration, table/data write, Auth 
 - [ ] Create any eventual migration using `supabase migration new` in a CLI-enabled source workspace, run advisors and isolated tests, and reconcile exact migration chronology before any production release. No migration filename or historical migration ledger entry is fabricated.
 
 Evidence: read-only Production ACL and `has_column_privilege` checks on 2026-11-18; source review of current main. No Production SQL, migration, GRANT, RLS, Auth, Edge, data, or deployment mutation occurred. This remains a release blocker; no private profile values were selected.
+
+
+> Historical continuation from PR #810, Pass 721–740 (2026-11-18). These are read-only findings from that checkpoint; re-run the live schema/provider inventory before implementation or deployment.
+
+## Pass 721–740 — current reverse-bidding UI/RPC/service-catalog contract (2026-11-18)
+
+### Client contract findings
+
+The current `web/reverse-bidding-module.js`:
+- Directly reads `indrive_requests` and `indrive_bids` through PostgREST.
+- Renders a provider form with free-text provider name and type, then forwards those values as `p_provider_name` and `p_provider_type` to `create_indrive_bid_backend`.
+- Creates requests with broad `domain_type` and free-text `category_name`; it does not select a canonical service ID.
+- Uses the existing RPC names, so changing the RPC signature without a coordinated UI update would break the current client.
+
+### Live canonical schema
+
+- `marketing_services.id` and `marketing_provider_services.service_id` already exist and can support a stable service relationship without creating a parallel catalog.
+- `marketing_provider_services` has an explicit `status` field; the service link must be ACTIVE.
+- `indrive_requests` has no `service_id` today.
+- `indrive_bids.provider_rating` and `completed_orders_count` are NOT NULL with defaults; `indrive_bids.status` defaults to `OFFERED` and the live CHECK allows `OFFERED`, `ACCEPTED`, and `REJECTED`.
+- The current live bid RPC explicitly supplies NULL rating and `PENDING`, overriding those safe schema defaults and conflicting with the live constraints.
+
+### Aggregate provider supply
+
+A read-only aggregate cross-check found 16 active verified provider-service links across active MARKETING services, resolving to one distinct provider. Other active service categories have no active verified provider links at this time. No provider names, user IDs, phone numbers, or settings were queried. The user-facing product must therefore show no eligible provider for unsupported service categories; it must not synthesize provider identities, offers, ratings, or completed-order metrics.
+
+### Required implementation sequence
+
+1. Add a forward-only `service_id` reference to `indrive_requests`, using the existing `marketing_services` catalog and validating ACTIVE service state on the trusted database boundary.
+2. Derive provider profile, display name, and provider type from `auth.uid()` and an ACTIVE + verified profile; ignore caller-supplied identity fields.
+3. Require an ACTIVE provider-service link for the exact request service and an ACTIVE master service.
+4. Normalize and compare the request area against the provider's actual service areas; do not broaden matching to a whole category or governorate without a verified coverage rule.
+5. Add append-only negotiation revisions/events, immutable accepted terms, atomic single-winner acceptance, and idempotency.
+6. Add explicit completion, dispute, and review transitions before enabling commission settlement.
+7. Keep commission as a shadow obligation only; do not move money or write wallet/ledger/payment records under this scope.
+8. Ship the UI, migration, RPC and adversarial integration tests together.
+
+No Production mutation or RPC invocation was performed during this pass.
