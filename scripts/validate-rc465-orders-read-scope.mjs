@@ -1,14 +1,30 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
+const preflight = fs.readFileSync('supabase/migrations/20261113220000_rc464b_orders_select_policy_preflight.sql', 'utf8');
 const migration = fs.readFileSync('supabase/migrations/20261114010000_rc465_orders_read_scope_hardening.sql', 'utf8');
 const fixture = fs.readFileSync('supabase/tests/rc465_orders_read_scope_fixture.sql', 'utf8');
 const baseline = fs.readFileSync('supabase/tests/rc465_orders_read_scope_baseline.sql', 'utf8');
 const integration = fs.readFileSync('supabase/tests/rc465_orders_read_scope_integration.sql', 'utf8');
+const driftSetup = fs.readFileSync('supabase/tests/rc465_orders_read_scope_policy_drift_setup.sql', 'utf8');
+const driftAssert = fs.readFileSync('supabase/tests/rc465_orders_read_scope_policy_drift_assert.sql', 'utf8');
+const driftHistoryAssert = fs.readFileSync('supabase/tests/rc465_orders_read_scope_policy_drift_history_assert.sql', 'utf8');
+const workflow = fs.readFileSync('.github/workflows/rc465-orders-read-scope.yml', 'utf8');
 const aclOverlay = fs.readFileSync('supabase/tests/baselines/production_live_order_status_history_acl_overlay_fixture.sql', 'utf8');
 const replayWorkflow = fs.readFileSync('.github/workflows/forward-migration-chain-replay.yml', 'utf8');
 
-assert.match(migration, /^BEGIN;/m, 'migration must be transactional');
+assert.match(preflight, /^BEGIN;/m, 'policy preflight must be transactional');
+assert.match(preflight, /^COMMIT;/m, 'policy preflight must commit read-only checks');
+assert.match(preflight, /RC465_POLICY_PREFLIGHT_UNEXPECTED_ORDERS_SELECT_SET/);
+assert.match(preflight, /RC465_POLICY_PREFLIGHT_UNEXPECTED_HISTORY_SELECT_SET/);
+assert.match(preflight, /roles = ARRAY\\['authenticated'\\]::name\\[\\]/, 'policy preflight must require authenticated-only expected policies');
+assert.match(migration, /^BEGIN;/m, 'RC465 migration must remain transactional');
+assert.ok(workflow.includes('20261113220000_rc464b_orders_select_policy_preflight.sql'));
+assert.ok(workflow.indexOf('/tmp/rc465_preflight.sql') < workflow.indexOf('/tmp/rc465_migration.sql'), 'preflight must run before the immutable RC465 migration');
+assert.ok(workflow.includes('image: postgres:17'), 'disposable PostgreSQL version must match Production');
+assert.ok(driftSetup.includes('rc465_unexpected_orders_select') && driftSetup.includes('rc465_unexpected_history_select'));
+assert.ok(driftAssert.includes('orders_member_select') && driftAssert.includes('order_status_history_member_read'));
+assert.ok(driftHistoryAssert.includes('rc465_unexpected_history_select'));
 assert.match(migration, /^COMMIT;/m, 'migration must commit');
 assert.match(migration, /orders_customer_select_own/, 'customer-owned cross-tenant read policy must remain a preflight dependency');
 assert.match(migration, /relrowsecurity/, 'migration must fail closed if RLS is disabled');
@@ -78,4 +94,6 @@ for (const scenario of [
   'Anonymous sessions'
 ]) assert.ok(integration.toLowerCase().includes(scenario.toLowerCase()), `integration test must cover ${scenario}`);
 
+assert.ok(workflow.includes('grep -q "RC465_POLICY_PREFLIGHT_UNEXPECTED_ORDERS_SELECT_SET"'));
+assert.ok(workflow.includes('grep -q "RC465_POLICY_PREFLIGHT_UNEXPECTED_HISTORY_SELECT_SET"'));
 console.log('RC465_ORDER_AND_HISTORY_READ_SCOPE_STATIC=PASS');
