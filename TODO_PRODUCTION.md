@@ -2957,3 +2957,34 @@ Evidence: PR #845 and `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20
 - [x] 1049 — Recorded fresh evidence; no Production database, Edge, Auth, RLS, GRANT, payment or customer-data mutation.
 
 Evidence: `docs/audits/PASS_1040_1049_POST_MERGE_LIVE_BUNDLE_RECHECK_20261119.md`. Enterprise release remains BLOCKED / NOT CERTIFIED.
+
+## Pass 1050–1059 — explicit public Edge JWT configuration (2026-11-19)
+
+- [x] 1050 — Read-only inventory found 10 live Edge Functions with `verify_jwt=false`.
+- [x] 1051 — Compared live settings with `supabase/config.toml`; only 2 of the 10 public gateway settings were explicit in source.
+- [x] 1052 — Traced handler-side controls: real Supabase identity/membership, protected platform-admin registry, webhook HMAC, private push secret, monitor bearer token, or GET-only public reads.
+- [x] 1053 — Added explicit `verify_jwt=false` sections for all 10 reviewed public endpoints; no new endpoint was added to the allowlist.
+- [x] 1054 — Added an exact allowlist validator that checks each handler's security marker and rejects unreviewed public functions.
+- [x] 1055 — Wired the validator and config/script path triggers into Primary Catalog CI.
+- [x] 1056 — Manual exact-source validation passed 10/10 handlers and config sections; Primary Catalog CI validator passed.
+- [x] 1057 — PR #847 merged at `d170501cdd52db4584bb76359da2153d640cbaf9`; 34 checks passed, 2 expected PR deployment checks skipped, zero failures.
+- [x] 1058 — Confirmed live `verify_jwt` values remain unchanged; this was a source/config-only merge, not an Edge deployment.
+- [ ] 1059 — Complete post-merge main CI/deployment verification and record the deployed-origin result.
+
+Evidence: PR #847 and `scripts/validate-edge-jwt-config.mjs`. Gateway JWT bypass is not treated as handler authorization; every listed endpoint retains its own reviewed authentication, signature, secret or read-only contract.
+
+
+## Pass 1060–1069 — RC464B order read-policy preflight port (2026-11-19)
+
+- [x] 1060 — Triaged stale PR #840 (13 commits ahead / 19 behind current main) and PR #828; did not merge either stale branch.
+- [x] 1061 — Closed intermediate current-main port PR #848 as superseded by a fresh port based on latest main.
+- [x] 1062 — Ported the read-only RC464B policy preflight onto current main `d170501cdd52db4584bb76359da2153d640cbaf9`, preserving PR #845 directory-consent release requirements.
+- [x] 1063 — Added disposable negative fixture for unexpected permissive SELECT policy on `orders`.
+- [x] 1064 — Added disposable negative fixture for unexpected permissive SELECT policy on `order_status_history`; both must fail before RC465 and preserve fixture state.
+- [x] 1065 — Updated focused RC465 workflow to PostgreSQL 17 and run RC464B immediately before RC465.
+- [x] 1066 — Added RC464B to the canonical ordered migration version list and production verifier.
+- [x] 1067 — Added RC464B to the fail-closed migration gate while preserving the directory-consent evidence predicate.
+- [x] 1068 — Updated the release manifest to 63 unique required versions and corrected the live critical Edge drift summary to seven functions.
+- [ ] 1069 — PR #849 exact-head CI, review and merge pending. No Production migration, DDL/DML, GRANT, RLS, Auth, Edge, payment, wallet or settlement mutation.
+
+Evidence: `docs/audits/RC464B_ORDERS_POLICY_PREFLIGHT_PORT_20261119.md` and PR #849. Live migration ledger remains 310 rows through `20261110150618`; 0/63 required IDs are recorded. Enterprise release remains BLOCKED / NOT CERTIFIED.
