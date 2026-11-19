@@ -2502,3 +2502,8 @@ Evidence: `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20261119.md`.
 ## Pass 1030–1039 — directory consent hardening (2026-11-19)
 
 Added 11 Node tests for public field-level consent and capped consent pagination; wired them into the primary catalog validation workflow; added a static integration validator; and extended the full-production release contract to require exact `directory-listings` Edge parity plus a present service-role-only RC473 consent table, consent-scoped anonymous output, owner/anonymous tests, and fail-closed outage behavior. The release manifest now records the live gap (v16, verify_jwt=false, 869 published listings with phone/address, 178 secondary phones, consent table absent). Fixed source behavior so owner edit/consent controls disable when the registry is unavailable while the authenticated owner can still see their own fields; non-owner scopes fail closed; added Arabic warning. Local Node 22 tests: 12/12 PASS. Exact-address filtering is restricted to listing IDs with active ADDRESS consent; free-text search excludes the address column. PR CI pending; no live Edge or database change.
+
+
+### Bundle-level directory Edge parity detail
+
+The live `directory-listings` v16 bundle exposes only `index.ts`, `pagination-filter.mjs` and `doctor-import-contract.mjs`; main requires five files and the live bundle is missing `consent-pagination.mjs` and `public-directory-output-contract.mjs`. Full-production certification now requires complete bundle parity, required-file presence and no missing files, not merely entrypoint equality.
