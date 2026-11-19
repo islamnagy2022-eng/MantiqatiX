@@ -3316,3 +3316,16 @@ Evidence: docs/audits/PASS_1110_1119_LIVE_EDGE_PAYMENT_FINANCE_PARITY_20261119.m
 - Aggregate active membership/registry counts: BUSINESS_OWNER 9 rows / 5 users / 4 non-registry; OWNER 3/1/0; ADMIN 1/1/0; SUPER_ADMIN 1/1/0. Corrects #772 earlier count (3 non-registry business owners / 6 rows). No identifiers selected.
 - RC464 workflow 43596176271 and RC471 workflow 44213092970 passed; PR #772 exact head 23 success, 2 expected skipped, 0 failure. Tests include synthetic BUSINESS_OWNER denials across global RPCs and helper callers.
 - Updated Issue #852 comment 7017917328. No Production writes or function invocations. Platform remains BLOCKED / NOT CERTIFIED.
+
+
+## Pass 1150–1159 — Security Advisor and effective anonymous access review (2026-11-19)
+
+- Current Advisor: 9 RLS-enabled/no-policy INFO; 1 anon SECURITY DEFINER RPC; 65 authenticated SECURITY DEFINER warnings; 90 anonymous-access lint findings; leaked-password protection disabled.
+- Direct catalog/ACL review: 19 policies target anon/public roles, including explicit false deny policies and intended public SELECT; 90 Advisor lints do not equal 90 raw anon-exposed tables.
+- No raw anon INSERT/UPDATE/DELETE grant on inspected public application tables.
+- Storage.objects RLS enabled; public read limited to mantiqatix-profile-media; writes/deletes authenticated-only actor/path scoped. storage.buckets and related metadata tables have RLS enabled with no policies.
+- get_mnty_targeted_advertisements uses empty search_path, active/approved/time and geography/ad-space filters, limit 1–50; retain as intentional public ad RPC pending focused disclosure review.
+- Do not blanket revoke the 65 authenticated SECURITY DEFINER functions; individually inspect caller authorization.
+- Leaked-password protection remains disabled; issue #422 updated. No production write.
+
+Evidence: Issue #422 comment 7018060567 and live Security Advisor/pg_policies/ACL queries.
