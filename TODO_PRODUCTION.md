@@ -3189,7 +3189,7 @@ Evidence: `docs/runbooks/PRODUCTION_BACKUP_RESTORE_RC484_20261119.md`, `docs/aud
 - [x] 1204 — Confirmed hardcoded Paymob/JWT/backup fallback secrets and dual local-JSON/Supabase data authority in the exact ZIP.
 - [x] 1205 — Confirmed localStorage persistence for auth/roles/business/financial state and demo role-switcher credentials.
 - [x] 1206 — Corrected Android inventory: wrapper is PRESENT with three files but incomplete, lacks Gradle wrapper/settings/resources/ProGuard and has no trusted-origin bridge allowlist. Preserve; do not ship.
-- [x] 1207 — Mapped R7 UI against current main; Member Messages and MantiGO bidding are gap candidates, while directory/storefront/dashboards/catalog/Auth already have canonical counterparts.
+- [x] 1207 — Mapped R7 UI against current main; Member Messages and MantiGO bidding are gap candidates, while directory/storefront/dashboards/catalog/Auth already have canonical counterparts. Preserved Pass 721–740 reverse-bidding contract: `indrive_requests.service_id` absent at that snapshot, RPC rating/status mismatch, only one distinct verified provider in aggregate; recheck live supply/schema before UI.
 - [x] 1208 — Preserved R7 source and Android audit documents on main; no R7 application source or mobile code imported, deleted or overwritten.
 - [x] 1209 — Recorded source map and safe integration order; R7 remains reference-only, Production remains BLOCKED / NOT CERTIFIED.
 
