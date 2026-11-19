@@ -63,6 +63,7 @@ const requiredReleaseMigrations=[
   "20261027093000_add_qadam_alsaad_homewares_store.sql",
   "20261031100000_rc463_trigger_only_security_definer_acl.sql",
   "20261113214500_rc464_platform_admin_live_registry_hardening.sql",
+  "20261113220000_rc464b_orders_select_policy_preflight.sql",
   "20261114010000_rc465_orders_read_scope_hardening.sql",
   "20261114020000_rc466_business_branch_read_scope_hardening.sql",
   "20261115010000_rc467_commission_scope_hardening.sql",
