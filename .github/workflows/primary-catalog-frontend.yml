@@ -27,6 +27,8 @@ on:
       - "docs/release/production-migration-reconciliation.json"
       - "scripts/validate-production-gate-contract.mjs"
       - "scripts/validate-pages-production-deploy-gate.mjs"
+      - "scripts/validate-edge-jwt-config.mjs"
+      - "supabase/config.toml"
       - ".github/workflows/pages.yml"
       - ".github/workflows/primary-catalog-frontend.yml"
       - "supabase/functions/catalog-platform-admin/**"
@@ -71,6 +73,8 @@ on:
       - "docs/release/production-migration-reconciliation.json"
       - "scripts/validate-production-gate-contract.mjs"
       - "scripts/validate-pages-production-deploy-gate.mjs"
+      - "scripts/validate-edge-jwt-config.mjs"
+      - "supabase/config.toml"
       - ".github/workflows/pages.yml"
       - ".github/workflows/primary-catalog-frontend.yml"
       - "supabase/functions/catalog-platform-admin/**"
@@ -131,6 +135,8 @@ jobs:
         run: node --test supabase/functions/directory-listings/*.test.mjs
       - name: Validate fail-closed production migration release gate
         run: node scripts/validate-production-migration-chain-gate.mjs
+      - name: Validate explicit public Edge JWT boundaries and handler authentication
+        run: node scripts/validate-edge-jwt-config.mjs
       - name: Validate canonical activity/profession taxonomy
         run: node scripts/validate-canonical-activity-taxonomy.mjs
       - name: Validate per-activity admin settings and audit contract
