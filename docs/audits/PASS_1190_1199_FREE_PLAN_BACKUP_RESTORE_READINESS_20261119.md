@@ -16,6 +16,15 @@
 - Supabase database backups/dumps do not include the actual Storage object bytes. Storage metadata is in Postgres, while files must be exported separately through the Storage API or S3-compatible endpoint.
 - Supabase Storage S3 compatibility does not support S3 object versioning; the off-site destination must provide independent retention/versioning.
 
+## Read-only data inventory at checkpoint
+
+- Database size: approximately **28 MB**.
+- User tables: **187** across **11** non-system schemas.
+- Installed extensions: `pg_net`, `pg_stat_statements`, `pgcrypto`, `plpgsql`, `supabase_vault`, `uuid-ossp`.
+- Storage: **2 buckets**, **0 object rows** at the checkpoint. This is only a snapshot; recheck immediately before backup.
+- Vault: **2 encrypted secrets** and **4 public functions** referencing Vault. The Vault extension is installed; `pgsodium` is not.
+- Supabase documents that Vault's encryption key is stored in its secured backend, not alongside database ciphertext. A database dump alone does not prove those secrets can be decrypted in a different project.
+
 ## Work completed
 
 - Added `docs/runbooks/PRODUCTION_BACKUP_RESTORE_RC484_20261119.md`.
