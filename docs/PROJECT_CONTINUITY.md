@@ -2535,3 +2535,16 @@ Evidence: `TODO_PRODUCTION.md`, `docs/audits/PASS_1040_1049_POST_MERGE_LIVE_BUND
 ### Live RC464B read-only inspection — 2026-11-19
 
 Fresh Production catalog inspection found the exact expected permissive policy names/counts for the RC464B preflight: three authenticated SELECT policies on `orders`, two on `order_status_history`; RLS enabled and authenticated SELECT grants present on both; all required `orders`, `order_status_history`, and `user_memberships` business/branch/role/status columns exist. No unexpected permissive SELECT/ALL policy was returned. The old tenant-wide policy expressions are still live; this is not evidence that RC465 business/branch behavior is deployed. Only read-only SELECT queries were run. RC464B/RC465 remain unapplied. See the RC464B audit addendum and Pass 1070–1079 in TODO_PRODUCTION.
+
+
+## Pass 1080–1089 — post-merge deployment and R7 archive reconciliation (2026-11-19)
+
+PR #849 is merged to `main` at `b3a650c5823e5c817788d12e5871ca135797dbee`. Exact-head PR CI completed with 43 successful checks, 2 expected skipped deployment checks and zero failures. Post-merge Primary Catalog Frontend Validation run `44573397535` passed, including build, employee RBAC PostgreSQL and professional-dashboard browser E2E. GitHub Pages deployment run `44573397564` completed successfully; deployment and deployed-origin browser checks for the catalog root, legacy route, Preview alias, dashboard, mobile and QR routes passed.
+
+The exact uploaded `bizcatalog-manager (11).zip` was re-hashed (`210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`) and its ZIP CRC rechecked (270/270 entries pass). The exact archive contains 99 regular files under `src/` (53 TSX, 40 TS, 5 JPG, 1 CSS), plus three Android wrapper files. It excludes populated `.env`, `.data/`, `dist/`, `node_modules/` and the claimed release bundle. This corrects the earlier intake document's 118-file source count. The original archive is preserved unchanged.
+
+R7 remains a UI/feature reference only and is not imported wholesale. Its unauthenticated Express/local JSON API, client-authoritative auth/session, privileged Supabase bridge and payment/finance paths remain disqualifying for production. The current deployed V6/catalog root is preserved. No Production Supabase schema/data/Auth/RLS/GRANT/Edge/payment/wallet/settlement mutation occurred.
+
+Next source task: map R7 screens, fields and API actions to the current Supabase-backed catalog contracts, then port selected additive UI components to an isolated Preview with the existing public root unchanged. Do not bring over R7 server routes or local JSON authority. Keep the full platform gate BLOCKED / NOT CERTIFIED.
+
+Evidence: `docs/audits/PASS_1080_1089_POST_MERGE_DEPLOY_AND_R7_INTAKE_RECONCILIATION_20261119.md`.
