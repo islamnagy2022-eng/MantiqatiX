@@ -1,8 +1,18 @@
 # MantiqatiX Continuous Execution Status
-Last updated: 2026-10-27 — live ledger reconciliation and 52-migration disposable replay verified; production release remains not certified
+Last updated: 2026-11-19 — RC484 merged; exact PR-head CI and 99-migration disposable replay passed; Production remains not certified
 
 ## Release status
 **NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
+
+## Latest checkpoint — 2026-11-19 — RC484 merged, Production remains blocked
+
+- PR [#870](https://github.com/islamnagy2022-eng/MantiqaTix/pull/870) merged at `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`.
+- RC484 source makes `public.is_platform_admin()` registry-only, enforces FORCE RLS on `private.platform_admins`, preserves the trusted service_role table boundary, and protects 57 RLS policies across 24 tables.
+- Exact PR-head CI passed: dedicated RC484 PostgreSQL 17 adversarial tests [44598309128](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44598309128); 99-migration chronological replay from the captured Production schema checkpoint [44598309101](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44598309101); Pages/catalog/V6 desktop/mobile validation [44598309226](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44598309226); Module Professionalization [44598309231](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44598309231); all remaining exact-head workflows passed.
+- A fresh read-only Production recheck still shows 310 migration rows through `20261110150618`; RC471/RC482/RC483/RC484 are not recorded. The live registry still has FORCE RLS disabled and live `public.is_platform_admin()` remains SECURITY INVOKER with `search_path=public`.
+- No Production DDL/DML, migration, RLS, GRANT, Auth, Storage, Edge, payment, wallet or settlement change was made. Source merge and disposable replay do not constitute Production deployment.
+- **Next:** encrypted off-site backup, isolated restore with measured RPO/RTO, rollback proof, exact live schema/Edge parity and authorized ordered release. After deployment, verify all 57 dependent policies adversarially. Keep P0 issue #867 open until live proof is complete.
+
 
 ## Current checkpoint — 2026-10-27
 
