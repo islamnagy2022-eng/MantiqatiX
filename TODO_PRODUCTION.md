@@ -3116,3 +3116,19 @@ Evidence: `docs/audits/PASS_1130_1139_LIVE_PLATFORM_ADMIN_RECHECK_20261119.md`, 
 - [ ] 1149 — Restore into an isolated database/project, verify schema/data/Auth/Storage completeness, run migration and security regression suites, and record measured RPO/RTO and rollback evidence.
 
 Evidence: Supabase project/organization metadata, Supabase Database Backups documentation, environment binary check, Issue #104 comment 7017966595. Full platform remains BLOCKED / NOT CERTIFIED.
+
+
+## Pass 1150–1159 — Security Advisor and effective anonymous access review (2026-11-19)
+
+- [x] 1150 — Refreshed Supabase Security Advisor: 9 RLS-enabled/no-policy INFO tables, 1 anon SECURITY DEFINER RPC, 65 authenticated SECURITY DEFINER warnings, 90 anonymous-access lint findings, 1 leaked-password protection warning.
+- [x] 1151 — Reconciled Advisor anonymous-policy findings with pg_policies and effective ACLs: 19 policies target anon/public roles, including explicit deny-false policies and intended public SELECT surfaces; 90 lints are not proof of 90 raw anon-exposed tables.
+- [x] 1152 — Confirmed no raw anon INSERT/UPDATE/DELETE grants on inspected public application tables; public application grants are limited to intended SELECT surfaces.
+- [x] 1153 — Reviewed Storage RLS: storage.objects RLS enabled; public role has SELECT only for mantiqatix-profile-media bucket; write/delete policies are authenticated-only and actor/path scoped.
+- [x] 1154 — Confirmed storage.buckets and related metadata tables have RLS enabled but no policies; broad underlying grants do not imply row access through RLS.
+- [x] 1155 — Reviewed anon SECURITY DEFINER get_mnty_targeted_advertisements: empty search_path, ACTIVE/APPROVED and time-window filters, ad-space/geographic filters, bounded limit 1–50; retained as intentional public ad discovery pending data-disclosure review.
+- [x] 1156 — Confirmed 65 authenticated SECURITY DEFINER warnings require individual caller/authz review; no blanket EXECUTE revoke proposed.
+- [x] 1157 — Reconfirmed leaked-password protection is disabled in current Advisor; no authorized Auth configuration-write tool available.
+- [x] 1158 — Added fresh evidence and safe interpretation to Auth issue #422 (comment 7018060567).
+- [x] 1159 — No Auth/RLS/ACL/Storage/Edge/database/user-data write performed. Auth leaked-password protection remains NOT VERIFIED and release-blocking.
+
+Evidence: docs/audits/PASS_1150_1159_SECURITY_ADVISOR_ANON_POLICY_RECHECK_20261119.md, Security Advisor snapshot 2026-11-19 18:20:53Z, read-only pg_policies/ACL/RLS queries, Issue #422 comment 7018060567. Full platform remains BLOCKED / NOT CERTIFIED.
