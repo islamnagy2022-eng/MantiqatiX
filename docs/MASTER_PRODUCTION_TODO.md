@@ -4323,3 +4323,8 @@ Evidence: `docs/audits/PASS_231_270_DIRECTORY_CLAIM_ATOMICITY_20261117.md`. No s
 
 - [ ] Reconcile production migration drift: production history lacks `20261027090000` and the live membership index remains NULL-distinct; inspect migration source and preflight before any deployment.
 - [ ] Test claim transaction on a disposable/development database branch, accounting for deferred default-owner and legal activation triggers; do not apply to Production without a separately reviewed release.
+
+
+### RC464B live catalog preflight evidence — 2026-11-19
+
+A read-only Production query confirms the exact policy inventory expected by RC464B: three authenticated permissive SELECT policies on `orders`, two on `order_status_history`; RLS enabled and authenticated SELECT grants present; all required business/branch and membership columns exist. No unexpected permissive SELECT/ALL policy was found. Existing policy expressions remain tenant-wide, so this does not certify RC465 behavior. No Production mutation was performed. RC464B/RC465 remain unapplied pending PR #849 exact-head PostgreSQL 17 tests and the full backup/restore/rollback release gate.
