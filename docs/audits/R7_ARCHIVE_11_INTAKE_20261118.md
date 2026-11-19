@@ -50,3 +50,10 @@ No credential values are reproduced in this audit.
 - **Production data:** use Supabase only. Demo/seed records and local JSON are not verified production businesses or customers.
 
 **Disposition:** retain this archive unchanged for comparison and selective feature extraction. Any desired UI/behavior change must be ported into the current main architecture, then pass semantic typecheck, build, browser/mobile tests and the full security gate. Do not import this archive wholesale or publish it as the production root.
+
+
+## 2026-11-19 — exact archive inventory count correction
+
+The exact uploaded archive was independently re-opened in the current continuation. Its SHA-256 remains `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, and `unzip -t` reports all 270 entries OK. A direct count of non-directory entries beginning with `src/` returns **99**, not 118 as stated in the earlier inventory table. Extension breakdown: 53 `.tsx`, 40 `.ts`, 5 `.jpg`, and 1 `.css`. The Android wrapper contains three regular files: `AndroidManifest.xml`, `build.gradle.kts`, and `src/main/java/com/mantiqatix/app/MainActivity.kt`. The archive does not contain `.env`, `.data/`, `dist/`, `node_modules/`, or the referenced release bundle.
+
+This is an inventory-count correction only. It does not change the archive's reference-only / not-deployable disposition, the P0 security findings, or the requirement to preserve the current deployed catalog root.
