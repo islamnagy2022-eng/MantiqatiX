@@ -3230,3 +3230,11 @@ The current-main dependency graph was rechecked after the initial inventory: `pa
 - No Production DB/Edge/Auth/RLS/GRANT/payment/wallet/settlement/data mutation.
 
 Evidence: `docs/audits/RC464B_ORDERS_POLICY_PREFLIGHT_PORT_20261119.md` and `TODO_PRODUCTION.md`.
+
+
+## Pass 1070–1079 — read-only live policy inspection
+
+- Read-only Production catalog query confirmed exactly 3 expected authenticated permissive SELECT policies on orders and 2 on order_status_history.
+- Both tables retain RLS and authenticated SELECT grants; required business_id/branch_id/user_memberships columns exist.
+- No unexpected permissive SELECT/ALL policy found. Current policy expressions remain tenant-wide; RC465 is not applied.
+- No Production mutation. PR #849 CI remains the gate for the current-main preflight port.
