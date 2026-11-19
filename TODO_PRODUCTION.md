@@ -1,3 +1,15 @@
+## Latest verified checkpoint — Pass 861–864 — 2026-11-19
+
+- PR #826 merged to `main` as `431b3a923773635c796519270f4e4cd3504c38b1`: Catalog Admin platform-root scope now requires both the existing explicit platform membership shape and a successful caller-context `mnty_can_platform_admin()` registry check. RPC errors and false results fail closed; the same registry proof gates the frozen/inactive-business recovery bypass.
+- Exact PR-head validation completed successfully across 9 workflow runs, including Catalog Admin CORS Boundary, Module Professionalization, Primary Catalog Frontend, Backend-only Module Boundary, MantiGO Open Ride Privacy, and the Pages deploy-gate workflow. PR deployment jobs were skipped under the release gate; no Production Edge Function deployment is claimed. Post-merge main CI for `431b3a9` has not yet been independently verified.
+- Reviewed RC464 and RC471 source migrations and their validators: both define the shared helper as registry-only (`private.platform_admins.user_id = auth.uid()`), SECURITY DEFINER with an empty search_path, and authenticated-only EXECUTE. RC464 preflights registry ownership/RLS/client grants and dependent call contracts. These migrations remain source-only; live Production helper was re-read and still delegates to null-scope `mnty_can('admin',NULL,NULL,NULL)`.
+- Therefore PR #826 is integrated in source but must not be deployed independently. Coordinated RC464/RC471 DB reconciliation and release gates remain mandatory.
+- No Production SQL, migration, ACL, Auth, RLS, Edge, payment, wallet, settlement, or user-data mutation was performed. Full platform release remains **BLOCKED / NOT CERTIFIED**.
+
+**Next:** verify post-merge main CI; continue exact migration/physical-schema reconciliation and backup/restore gate; prepare coordinated RC464/RC471 + dependent Edge release only after the production release prerequisites are met.
+
+---
+
 ## Latest verified checkpoint — Pass 821–840 — 2026-11-19
 
 - Current `main` before this documentation PR: `c1f6428c494ddec70d498c52a320279b4626a137`; PR #821 merged.
@@ -2649,4 +2661,4 @@ Evidence boundary: read-only catalog and aggregate checks only. No Production SQ
 - [ ] The deployed-origin E2E contract still confirms activity-module admin writes remain disabled until the atomic audit backend is implemented and verified. Keep those writes disabled rather than exposing unaudited privileged mutations.
 - [ ] Production DB remains unchanged at 310 migrations through `20261110150618`; RC481/RC482/RC483 and RC464/RC471 remain unapplied, and deployed `legal-cms` remains v6. No Edge Function was deployed by the Pages release.
 
-Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The live MantiGO platform-admin authorization gap (4 active non-registry BUSINESS_OWNER users), the 61 missing required migration versions, live object drift, backup/restore rehearsal, payment/finance E2E, and the HEALTH_MONITOR_TOKEN setup remain open release blockers.
+Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The live MantiGO platform-admin authorization gap (4 active non-registry BUSINESS_OWNER users), the 62 missing required migration versions, live object drift, backup/restore rehearsal, payment/finance E2E, and the HEALTH_MONITOR_TOKEN setup remain open release blockers.
