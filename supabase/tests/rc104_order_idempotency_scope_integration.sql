@@ -42,6 +42,57 @@ begin
     raise exception 'TEST_FAILED: verified service-role Edge Function path could not invoke order RPC';
   end if;
 
+
+  -- A verified service-role Edge invocation must be able to create a NEW order,
+  -- not only replay an existing order. The actor is supplied after Edge auth.getUser().
+  perform set_config('request.jwt.claim.sub', '', false);
+  perform set_config('request.jwt.claim.role', 'service_role', false);
+  result := public.create_order_backend(
+    '30000000-0000-4000-8000-000000000095',
+    'tenant-a',
+    '20000000-0000-4000-8000-000000000001',
+    'branch-a',
+    customer_one,
+    'new-service-role-order-key',
+    0,0,0,0,0,'EGP','Customer One','01000000000','New service-role order',
+    '[{"catalogItemId":"40000000-0000-4000-8000-000000000001","quantity":1,"selectedOptionIds":[]}]'::jsonb,
+    null,'{}'::jsonb
+  );
+  if result->>'id' <> '30000000-0000-4000-8000-000000000095' or result->>'idempotent' <> 'false' then
+    raise exception 'TEST_FAILED: verified service-role path could not create a new order';
+  end if;
+  if not exists (
+    select 1 from public.orders
+    where id='30000000-0000-4000-8000-000000000095'
+      and customer_id=customer_one
+      and client_idempotency_key='new-service-role-order-key'
+      and total_amount=125
+  ) then
+    raise exception 'TEST_FAILED: service-role order did not persist with verified actor and server pricing';
+  end if;
+
+  -- A normal authenticated caller cannot impersonate another customer by changing p_customer_id.
+  perform set_config('request.jwt.claim.role', 'authenticated', false);
+  perform set_config('request.jwt.claim.sub', customer_one::text, false);
+  rejected := false;
+  begin
+    perform public.create_order_backend(
+      '30000000-0000-4000-8000-000000000094',
+      'tenant-a',
+      '20000000-0000-4000-8000-000000000001',
+      'branch-a',
+      customer_two,
+      'actor-spoof-key-rc105',
+      0,0,0,0,0,'EGP','Customer Two','01000000001','Spoof attempt',
+      '[{"catalogItemId":"40000000-0000-4000-8000-000000000001","quantity":1,"selectedOptionIds":[]}]'::jsonb,
+      null,'{}'::jsonb
+    );
+  exception when others then
+    if sqlerrm <> 'CUSTOMER_REQUIRED' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'TEST_FAILED: authenticated caller impersonated another customer'; end if;
+
   -- A different authenticated customer must not receive the stored order or pricing snapshot.
   perform set_config('request.jwt.claim.role', 'authenticated', false);
   perform set_config('request.jwt.claim.sub', customer_two::text, false);

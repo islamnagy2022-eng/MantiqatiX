@@ -108,6 +108,12 @@ insert into public.user_memberships(user_id,tenant_id,status,role) values
  ('10000000-0000-4000-8000-000000000001','tenant-a','ACTIVE','CUSTOMER'),
  ('10000000-0000-4000-8000-000000000002','tenant-a','ACTIVE','CUSTOMER');
 
+
+insert into public.catalog_items(id,legacy_ref,tenant_id,business_id,branch_id,name_ar,tax_rate,status) values
+ ('40000000-0000-4000-8000-000000000001',null,'tenant-a','20000000-0000-4000-8000-000000000001','branch-a','Synthetic Test Item',0,'ACTIVE');
+insert into public.catalog_item_prices(catalog_item_id,tenant_id,branch_id,status,unit_price,version)
+values ('40000000-0000-4000-8000-000000000001','tenant-a','branch-a','ACTIVE',125,1);
+
 insert into public.orders(
  id,tenant_id,business_id,branch_id,customer_id,status,total_amount,currency,
  client_idempotency_key,pricing_version,pricing_snapshot,pricing_hash
