@@ -3294,3 +3294,15 @@ Evidence: docs/release/production-migration-reconciliation.json and PR #854.
 - P0 issue #857 created for coordinated Edge/migration parity.
 
 Evidence: docs/audits/PASS_1110_1119_LIVE_EDGE_PAYMENT_FINANCE_PARITY_20261119.md.
+
+
+## Pass 1120–1129 — order-create live RPC identity and source parity follow-up (2026-11-19)
+
+- Completed line-level order-create v8 semantic diff. Live lacks the 256 KiB body cap, strict request/metadata validation, exact branch membership filter and selected-option count/length/uniqueness checks.
+- Live create_order_backend still requires auth.uid() = p_customer_id; live Edge calls through a service-role client after verifying the bearer token separately. Current RC105 source permits verified service_role claim and retains non-service actor binding. RC105 is not in live ledger.
+- Deployed order-create path is expected to reject with CUSTOMER_REQUIRED until approved RC105 rollout. No order request invoked.
+- Added evidence to Issue #857 and PR #858 thread.
+- R7 mapping and 63 migration/60 object crosswalk completed; no R7 code imported.
+- No Production order, migration, grant, Edge deployment, payment or financial write.
+
+Evidence: docs/audits/PASS_1110_1119_LIVE_EDGE_PAYMENT_FINANCE_PARITY_20261119.md and Issue #857.
