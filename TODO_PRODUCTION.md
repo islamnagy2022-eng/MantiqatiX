@@ -2988,3 +2988,19 @@ Evidence: PR #847 and `scripts/validate-edge-jwt-config.mjs`. Gateway JWT bypass
 - [ ] 1069 — PR #849 exact-head CI, review and merge pending. No Production migration, DDL/DML, GRANT, RLS, Auth, Edge, payment, wallet or settlement mutation.
 
 Evidence: `docs/audits/RC464B_ORDERS_POLICY_PREFLIGHT_PORT_20261119.md` and PR #849. Live migration ledger remains 310 rows through `20261110150618`; 0/63 required IDs are recorded. Enterprise release remains BLOCKED / NOT CERTIFIED.
+
+
+## Pass 1070–1079 — live read-only RC464B preflight inspection (2026-11-19)
+
+- [x] 1070 — Queried Production `pg_policies` for permissive SELECT/ALL policies on orders and order_status_history without changing database state.
+- [x] 1071 — Confirmed orders has exactly the three expected authenticated SELECT policies and no additional permissive SELECT/ALL policy.
+- [x] 1072 — Confirmed order_status_history has exactly the two expected authenticated SELECT policies and no additional permissive SELECT/ALL policy.
+- [x] 1073 — Confirmed RLS remains enabled on both tables and authenticated SELECT grants exist on both.
+- [x] 1074 — Confirmed required orders, order_status_history and user_memberships columns exist, including business_id/branch_id and membership role/status.
+- [x] 1075 — Confirmed live catalog state matches the name/count/role/RLS/grant predicates in RC464B; current policy expressions remain the older tenant-wide predicates.
+- [x] 1076 — Preserved Production unchanged; only read-only SELECT queries were executed.
+- [ ] 1077 — Complete exact-head PR #849 CI, including PostgreSQL 17 positive and policy-drift negative tests.
+- [ ] 1078 — Do not apply RC464B or RC465 until the complete chronological release, encrypted backup/restore rehearsal and rollback proof are approved.
+- [ ] 1079 — After coordinated release only, re-run live anonymous/member/customer/branch negative reads and verify the new business/branch predicates.
+
+Evidence: `docs/audits/RC464B_ORDERS_POLICY_PREFLIGHT_PORT_20261119.md`. The read-only inventory matches the RC464B preflight's expected catalog shape; it does not prove RC465 behavior or authorize a Production migration.
