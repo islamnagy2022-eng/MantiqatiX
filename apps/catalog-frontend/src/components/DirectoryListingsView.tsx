@@ -302,6 +302,7 @@ export const DirectoryListingsView: React.FC<{
                 <button disabled={ownerBusy} className="rounded-xl bg-emerald-700 px-5 py-3 text-sm font-black text-white disabled:opacity-50">{ownerBusy ? "جارٍ الحفظ…" : "حفظ التعديلات"}</button>
               </form>}
             </div>}
+            {detail.contact_consent_ready === false && <div role="alert" className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-bold leading-6 text-amber-900">تعذر التحقق من سجل موافقات عرض بيانات التواصل. تم إيقاف تعديل الصفحة وموافقات النشر مؤقتًا حفاظًا على الخصوصية. حاول مرة أخرى لاحقًا.</div>}
             {detail.can_edit && detail.contact_consent_ready && <div className="mt-3 space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
               <div>
                 <h2 className="font-black text-slate-900">موافقة عرض بيانات التواصل للجمهور</h2>
