@@ -76,32 +76,6 @@ for (const legacyGroupId of observedLegacyGroups) {
   assert.ok(defaults.includes(`${legacyGroupId}:`), `Missing legacy group compatibility for ${legacyGroupId}.`);
 }
 
-// Exact 15 top-level groups in the owner-provided R7 archive (11).
-// Every legacy ID must resolve explicitly into the canonical 10 groups.
-const r7LegacyGroupTargets = {
-  dining: 'food_grocery',
-  retail: 'fashion_beauty',
-  services: 'professional_services',
-  healthcare: 'medical_health',
-  crafts_maintenance: 'home_maintenance',
-  education_training: 'education_training',
-  real_estate: 'real_estate',
-  tourism_hotels: 'food_grocery',
-  transport_logistics: 'auto_transport',
-  agriculture_livestock: 'agriculture_animals',
-  technology_software: 'technology_communications',
-  sports_fitness: 'education_training',
-  events_entertainment: 'food_grocery',
-  legal_financial: 'professional_services',
-  industrial_manufacturing: 'agriculture_animals',
-};
-for (const [legacyId, canonicalId] of Object.entries(r7LegacyGroupTargets)) {
-  assert.ok(legacyGroupMappings.has(legacyId), 'R7 legacy group must have an explicit compatibility mapping: ' + legacyId);
-  assert.equal(legacyGroupMappings.get(legacyId), canonicalId, 'R7 group ' + legacyId + ' must map to ' + canonicalId);
-  assert.ok(expectedGroups.includes(canonicalId), 'R7 group ' + legacyId + ' maps outside the canonical 10');
-}
-assert.equal(Object.keys(r7LegacyGroupTargets).length, 15, 'R7 source contract must cover all 15 original sector IDs.');
-
 const observedLegacyCategoryIds = [
   'cat_agriculture_animals_agri_supplies','cat_agriculture_animals_animal_feed','cat_agriculture_animals_veterinary_clinics',
   'cat_auto_transport_auto_maintenance','cat_auto_transport_auto_parts',
@@ -154,7 +128,34 @@ const legacyGroupsInInventory = [...new Set(observedLegacyCategoryIds.map((legac
   const groupId = observedLegacyGroups.find((candidate) => legacyId.startsWith('cat_' + candidate + '_'));
   assert.ok(groupId, 'Could not infer legacy group from category ID ' + legacyId + '.');
   return groupId;
-}))];
+}
+
+// Exact 15 top-level groups in the owner-provided R7 archive (11).
+// Every legacy ID must resolve explicitly into the canonical 10 groups.
+const r7LegacyGroupTargets = {
+  dining: 'food_grocery',
+  retail: 'fashion_beauty',
+  services: 'professional_services',
+  healthcare: 'medical_health',
+  crafts_maintenance: 'home_maintenance',
+  education_training: 'education_training',
+  real_estate: 'real_estate',
+  tourism_hotels: 'food_grocery',
+  transport_logistics: 'auto_transport',
+  agriculture_livestock: 'agriculture_animals',
+  technology_software: 'technology_communications',
+  sports_fitness: 'education_training',
+  events_entertainment: 'food_grocery',
+  legal_financial: 'professional_services',
+  industrial_manufacturing: 'agriculture_animals',
+};
+for (const [legacyId, canonicalId] of Object.entries(r7LegacyGroupTargets)) {
+  assert.ok(legacyGroupMappings.has(legacyId), 'R7 legacy group must have an explicit compatibility mapping: ' + legacyId);
+  assert.equal(legacyGroupMappings.get(legacyId), canonicalId, 'R7 group ' + legacyId + ' must map to ' + canonicalId);
+  assert.ok(expectedGroups.includes(canonicalId), 'R7 group ' + legacyId + ' maps outside the canonical 10');
+}
+assert.equal(Object.keys(r7LegacyGroupTargets).length, 15, 'R7 source contract must cover all 15 original sector IDs.');
+))];
 for (const legacyGroup of legacyGroupsInInventory) {
   assert.ok(expectedGroups.includes(legacyGroupMappings.get(legacyGroup)), 'Legacy group ' + legacyGroup + ' must map into the canonical ten.');
 }
