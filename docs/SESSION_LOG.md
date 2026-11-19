@@ -3163,3 +3163,12 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - Performance Advisor: 132 unindexed FKs, 375 RLS initplan, 70 unused indexes, 28 multiple permissive policies.
 - Verified Pages run `44450929982` on main SHA `80f0b021748a4af43dd9f4596644e64ddcc5b7e4`: build, deployment, root/legacy/V6-preview checks and deployed-origin Playwright dashboard/mobile/QR checks all PASS.
 - Catalog root remains published; legacy rollback and V6 preview retained. Full Enterprise/R7 remain blocked. No Production mutation.
+
+
+## Pass 1000–1009 — MantiGO platform-admin live recheck
+
+- Live aggregate: 9 active BUSINESS_OWNER memberships, 5 distinct users, 4 users outside protected platform-admin registry, registry 1 row.
+- Four global MantiGO SECURITY DEFINER RPCs still use `search_path=public`; `mnty_can_platform_admin()` still delegates to generic membership helper with `search_path=public, pg_temp`.
+- Financial report still references legacy amount/captain_amount tokens; live ledger has gross_amount/commission_amount/captain_net_amount.
+- Source RC464/RC471/RC476 fixes and disposable PostgreSQL regression tests are present; RC471 source check passed, but live DB remains unchanged and migrations missing.
+- No production SQL/DDL/DML/Auth/RLS/GRANT/Edge/payment/wallet/settlement change. MantiGO global admin/finance remains blocked.
