@@ -23,8 +23,12 @@ function run(command,args,options={}) {
 
 function fixture(t) {
   const root=fs.mkdtempSync(path.join(os.tmpdir(),"mnty-backup-gate-"));
-  t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
-  const identity=path.join(root,"age-identity.txt");
+  const identityDir=fs.mkdtempSync(path.join(os.tmpdir(),"mnty-backup-key-"));
+  t.after(()=>{
+    fs.rmSync(root,{recursive:true,force:true});
+    fs.rmSync(identityDir,{recursive:true,force:true});
+  });
+  const identity=path.join(identityDir,"age-identity.txt");
   run("age-keygen",["-o",identity]);
   fs.chmodSync(identity,0o600);
   const recipient=run("age-keygen",["-y",identity]);
