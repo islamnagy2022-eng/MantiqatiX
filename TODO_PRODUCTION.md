@@ -3084,3 +3084,19 @@ Evidence: `docs/audits/PASS_1110_1119_LIVE_EDGE_PAYMENT_FINANCE_PARITY_20261119.
 - [x] 1129 — No Production order, migration, grant, Edge deployment, payment or financial write performed.
 
 Evidence: PR #858, Issue #857 comment 7016846894, `supabase/migrations/20261023050000_rc105_order_create_service_role_identity.sql`, live `create_order_backend` definition and Edge v8 source retrieval. Full platform remains BLOCKED / NOT CERTIFIED.
+
+
+## Pass 1130–1139 — live platform-admin helper and dependent RLS recheck (2026-11-19)
+
+- [x] 1130 — Re-read live `public.mnty_can_platform_admin()` definition and effective function ACLs using read-only pg_proc/catalog inspection.
+- [x] 1131 — Confirmed live helper still delegates to `public.mnty_can('admin',NULL,NULL,NULL)`, remains SECURITY DEFINER with `search_path=public, pg_temp`, authenticated EXECUTE=true, anon=false.
+- [x] 1132 — Enumerated all four direct SECURITY DEFINER helper callers: global ad creation, digital-page publish fulfillment, captain application review and MantiGO financial config update.
+- [x] 1133 — Confirmed all four helper callers remain authenticated-executable, anon denied, with non-empty `search_path=public` or `public, pg_temp`.
+- [x] 1134 — Re-enumerated five dependent RLS policies across digital_pages, mantigo_financial_config and mantigo_rate_limit_config.
+- [x] 1135 — Refreshed aggregate active role/registry counts without selecting user identifiers: BUSINESS_OWNER 9 active rows / 5 users / 4 non-registry users; OWNER 3 rows / 1 user / 0 non-registry; ADMIN 1/1/0; SUPER_ADMIN 1/1/0.
+- [x] 1136 — Corrected previous #772 snapshot (3 non-registry BUSINESS_OWNER users / 6 rows) with the current 4 users / 9 rows result. No non-registry OWNER or ADMIN was found in this aggregate; this does not prove invocation or abuse.
+- [x] 1137 — Verified source-side RC464 workflow 43596176271 and RC471 workflow 44213092970 both succeeded; PR #772 exact-head tests 23 success, 2 expected skipped, 0 failures, including synthetic BUSINESS_OWNER denial across global MantiGO RPCs and shared-helper callers.
+- [x] 1138 — Added fresh read-only evidence and corrected aggregate counts to P0 Issue #852 (comment 7017917328).
+- [x] 1139 — No live RPC invocation, Production SQL write, migration, ACL/RLS change, Edge deployment, payment, settlement or user-data mutation. Production remains vulnerable to the known role-derived helper issue until RC464/RC471 are applied through the approved release process.
+
+Evidence: `docs/audits/PASS_1130_1139_LIVE_PLATFORM_ADMIN_RECHECK_20261119.md`, Issue #852, RC464 run 43596176271, RC471 run 44213092970, PR #772 exact-head checks. Full platform remains BLOCKED / NOT CERTIFIED.
