@@ -496,3 +496,6 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - [ ] Coordinate the RC464/RC471 migration chain with full production reconciliation, backup/restore proof, rollback plan, and release approval before any DB/Edge rollout.
 
 Production remains **BLOCKED / NOT CERTIFIED**. The live helper remains weak until the coordinated database release; do not deploy `catalog-admin` independently.
+
+
+- [x] 866 — Audited the uploaded R7 archive (11), SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`. Source review found P0 authentication, privileged API, token minting, registration verification, secret fallback, wallet mutation and localStorage-authority defects. The archive is not safe for wholesale merge/deployment; its UI/assets/features may be selectively ported. Audit: `docs/audits/R7_ARCHIVE_11_SECURITY_REVIEW_20261119.md`.
