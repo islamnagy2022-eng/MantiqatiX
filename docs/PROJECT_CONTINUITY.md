@@ -2514,3 +2514,8 @@ The live `directory-listings` v16 bundle exposes only `index.ts`, `pagination-fi
 PR #845 merged into main at `18de15f4ea280e85c995d33fd84b3ac00f5ac4f3` after 42 exact-head checks completed (40 success, 2 skipped, zero failures), including dashboard browser E2E, build, consent PostgreSQL, doctor import and forward migration replay. Fresh read-only Supabase checks: ACTIVE_HEALTHY PostgreSQL 17.6.1.155; 310 migrations through `20261110150618`; 869 published directory rows with phone/address, 178 secondary phones; consent tables absent and RC472/RC473 unapplied. All seven critical Edge entrypoints remain byte-mismatched with main. Live directory-listings v16 has only 3/5 runtime files, missing `consent-pagination.mjs` and `public-directory-output-contract.mjs`. No Production mutation. Full bundle/schema release remains blocked pending chronological migration, backup/restore and rollback reconciliation.
 
 Evidence: `docs/audits/PASS_1040_1049_POST_MERGE_LIVE_BUNDLE_RECHECK_20261119.md`.
+
+
+### Edge shared dependency clarification
+
+The current-main dependency graph was rechecked after the initial inventory: `payment-intent` and `digital-page-payment-intent` import `_shared/paymob-intent-correlation.mjs`; `subscription-payment-intent` imports that module plus `_shared/checkout-secret-crypto.mjs`; `directory-listings` imports two local consent modules missing from the live source listing. The two `_shared` modules exist in main and have no further relative imports. Supabase documentation confirms CLI deployment bundles the dependency graph into ESZip, so per-function source listings are not treated as a complete compiled bundle inventory. The seven deployed entrypoints remain byte-mismatched with main.
