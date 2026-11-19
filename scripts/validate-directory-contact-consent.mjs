@@ -18,6 +18,7 @@ const directoryBoundaryEvidenceValid = directoryBoundary?.status === "BLOCKED"
   ? directoryBoundary.live_function?.version === 16 &&
     directoryBoundary.live_function?.complete_bundle_match === false &&
     directoryBoundary.live_function?.missing_live_files?.includes("consent-pagination.mjs") &&
+    directoryBoundary.consent_table_exists === false &&
     directoryBoundary.consent_table?.exists === false &&
     directoryBoundary.published_contact_rows_without_consent_exposure > 0
   : directoryBoundary?.status === "PASS"
@@ -25,6 +26,7 @@ const directoryBoundaryEvidenceValid = directoryBoundary?.status === "BLOCKED"
       directoryBoundary.live_function?.complete_bundle_match === true &&
       directoryBoundary.live_function?.required_files_present === true &&
       (directoryBoundary.live_function?.missing_live_files?.length ?? 0) === 0 &&
+      directoryBoundary.consent_table_exists === true &&
       directoryBoundary.consent_table?.exists === true &&
       directoryBoundary.public_get_contact_fields_consent_scoped === true &&
       directoryBoundary.published_contact_rows_without_consent_exposure === 0 &&
