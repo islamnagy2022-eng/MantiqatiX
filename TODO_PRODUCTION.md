@@ -1,3 +1,14 @@
+## Latest verified checkpoint — Pass 884–891 — 2026-11-19
+
+- Fresh Production retrieval confirms `paymob-webhook` is ACTIVE v10, `verify_jwt=false`, deployed entrypoint 11,538 characters and bundle SHA256 `f26fe1580e66c7f8cb9b885d5bccf4a44e49aa74874b3fe28dd7f9c5ed181cca`. Exact match against current main source (12,376 characters) is false.
+- The live v10 function still verifies Paymob HMAC-SHA512, but its MantiGO payment branch does not bind the callback provider-order ID to the stored intention metadata and directly inserts provider events/updates the financial ledger. Current main validates the provider-order binding and calls atomic `process_verified_mantigo_payment_backend`. This is a confirmed financial webhook source drift and payment-integrity risk; it is not evidence that the HMAC itself is bypassable.
+- Do not deploy `paymob-webhook` independently: current source depends on DB RPC/schema contracts that remain unreconciled in Production. Coordinate the payment migration chain, Edge bundle, signature/order-mismatch/replay tests, sandbox E2E and rollback as one release.
+- No Production Edge, SQL/DDL/DML, payment, wallet, settlement, or customer-data mutation was performed. Full release remains **BLOCKED / NOT CERTIFIED**.
+
+**Next:** reconcile exact live/source bodies and grants for the atomic MantiGO and digital-page payment RPCs and provider-event constraints; run disposable invalid-signature, provider-order mismatch, duplicate-event, amount/currency mismatch and replay tests before coordinated deployment.
+
+---
+
 ## Latest verified checkpoint — Pass 876–883 — 2026-11-19
 
 - Fresh read-only Production SECURITY DEFINER review confirmed the live `public.settle_mantigo_captain_backend(uuid,text,text)` remains the pre-RC464/RC471 definition: SECURITY DEFINER, `search_path=public`, authenticated EXECUTE allowed, anon EXECUTE denied, and authorization accepts any ACTIVE membership whose role is ADMIN, SUPER_ADMIN, OWNER, BUSINESS_OWNER, ACCOUNTANT, FINANCE_MANAGER, or FINANCE. It does not call the canonical platform registry guard. This is a confirmed platform-wide settlement authorization defect in the live database; do not run settlements or deploy this RPC separately.
