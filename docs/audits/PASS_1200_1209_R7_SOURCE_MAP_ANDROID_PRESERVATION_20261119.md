@@ -63,6 +63,18 @@ R7-only or incomplete candidates:
 | Production phase control, backup screen, security scans | No safe browser equivalent | Keep in restricted operator tooling; never expose production toggles or backup/restore controls to ordinary browser users. |
 | AI image completion | Current server-authorized image proxy/default-image resolver exists | Reuse the approved server action only; never expose provider API keys in the browser. |
 
+## 3A. MantiGO reverse-bidding backend contract — historical snapshot
+
+The existing read-only Pass 721–740 contract audit has been preserved in `docs/audits/PASS_681_700_REVERSE_BIDDING_LIVE_CONTRACT_20261118.md`. Its 2026-11-18 snapshot found:
+
+- `marketing_services.id` and `marketing_provider_services.service_id` can provide a stable service relationship; provider-service links must be ACTIVE.
+- `indrive_requests` had no `service_id`; `indrive_bids.provider_rating` and `completed_orders_count` were NOT NULL with defaults; allowed bid statuses were `OFFERED`, `ACCEPTED`, `REJECTED`.
+- The live bid RPC at that checkpoint supplied NULL rating and `PENDING`, conflicting with those schema constraints.
+- A read-only aggregate found 16 active verified provider-service links across active MARKETING services, resolving to one distinct provider. This is historical supply data, not a current guarantee. Do not synthesize providers, offers, ratings or completed-order metrics; re-run the aggregate before enabling the feature.
+- The required implementation sequence is: add a service_id reference, derive provider identity from `auth.uid()`, require active verified service links, validate area matching, add append-only negotiation events and single-winner acceptance, then add completion/dispute/review before any commission settlement. Keep commission shadow-only and do not write wallet/ledger/payment records in the UI pass.
+
+These are historical read-only findings from 2026-11-18. Reconcile the live schema and ordered migration source again before implementing the UI. No bid, wallet or settlement write was performed.
+
 ## 4. Safe integration order
 
 1. Keep GitHub main and Supabase as the only production source of truth.
