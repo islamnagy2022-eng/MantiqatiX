@@ -59,10 +59,19 @@ This is a source inspection of the uploaded archive, not a live deployment or pe
 - [x] Manually confirmed representative high-impact write paths directly mutate the local JSON database from caller-supplied data without a visible route-level identity/scope check: `/api/businesses`, `/api/products`, `/api/subscribers`, `/api/sales`, `/api/orders/:id/status`, `/api/wallets/transaction`, `/api/settings`, `/api/grants`, `/api/merchant-hub/ledger`, and `/api/finance/audited-transaction`.
 - [x] Confirmed `/api/finance/audited-transaction` accepts caller-supplied `actorId` and `actorRole` and defaults the actor role to `super_admin` before invoking the local financial transaction helper; this is a critical trust-boundary defect, not proof of a live financial exploit.
 - [x] Distinguished intended public ingress paths (for example contact submission and payment webhooks) from privileged mutations. The 54-count is a static screening result, not a claim that every endpoint should require login; each route needs an explicit public/actor/tenant/platform authorization contract.
-- [ ] Build a route inventory with an explicit policy for every API endpoint: PUBLIC_INGRESS, AUTHENTICATED_USER, TENANT_MEMBER, BUSINESS_BRANCH_SCOPED, PLATFORM_ADMIN, SERVICE_TO_SERVICE, or DISABLED.
+- [x] Build the complete 113-route policy inventory (Pass 920–929); all rows state enforcement is NOT PROVEN and R7 release remains blocked. See `docs/audits/R7_API_ROUTE_POLICY_INVENTORY_20261119.md`.
 - [ ] Implement shared Supabase Auth token verification and fail-closed authorization helpers; attach them per route according to the approved policy. Do not trust client-supplied role, actorId, businessId, branchId, or localStorage.
 - [ ] Move privileged writes from local JSON into narrowly scoped Supabase RPC/Edge contracts with RLS/ACL and audit atomicity. Keep finance and wallet routes disabled until their backend contracts are verified.
 - [ ] Add negative tests for anonymous callers, forged roles, cross-tenant and cross-branch IDs, inactive memberships, wrong platform-admin registry state, and replay/idempotency.
 - [ ] Add a static CI gate requiring every route to be explicitly classified and every privileged route to declare an authorization guard; exceptions must be narrow, documented, and tested.
 
 **Evidence boundary:** no R7 code was modified in this pass; no Production DB/Auth/RLS/GRANT/Edge/payment/wallet/site changes were performed. R7 remains an untrusted reference candidate, not deployable.
+
+
+## 2026-11-19 — Route policy inventory (Pass 920–929)
+
+- Extracted 113 API routes / 73 mutating declarations from the archive `server.ts`; exact archive and server hashes are in the inventory.
+- Proposed one least-privilege policy per route. No route is marked implemented or runtime-verified.
+- Added a consistency validator and isolated GitHub Actions workflow; public mutating ingress is constrained to a small explicit allowlist and critical unsafe routes must remain DISABLED.
+- No R7 source code or Production service was changed.
+- Remaining work is implementation: Supabase Auth identity verification, trusted membership/scope resolution, registry-only platform root, narrow Supabase RPC/Edge writes, and adversarial tests.
