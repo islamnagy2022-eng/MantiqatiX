@@ -2901,7 +2901,7 @@ Evidence: `docs/audits/PASS_1000_1009_MANTIGO_PLATFORM_ADMIN_LIVE_RECHECK_202611
 - [x] 1011 — Retrieved live source for 11 critical entrypoints and compared each `index.ts` byte-for-byte with main.
 - [x] 1012 — Confirmed exact parity for `api` v17, `order-status-update` v4, `payment-webhook` v3 and `smm-gateway` v13.
 - [x] 1013 — Confirmed mismatches for `order-create` v8, `payment-intent` v8, `paymob-webhook` v10, `digital-page-payment-intent` v5, `subscription-payment-intent` v4, `financial-journal` v3 and `directory-listings` v16.
-- [x] 1014 — Classified this as source-parity drift, not proof of an exploit; payment/order/finance/public-directory replacements are blocked pending dependency reconciliation.
+- [x] 1014 — Classified source-parity drift and confirmed a high-priority public directory contact-disclosure gap: live v16 has verify_jwt=false; its anonymous GET returns phone/address for 869/869 published rows (178 secondary phones); RC473 consent table is absent.
 - [x] 1015 — Confirmed the 62-version database contract remains 0/62 live; critical object, payment/finance E2E and backup/restore blockers remain.
 - [ ] 1016 — Reconcile each mismatched function's complete bundle/imports/config/secrets and verify_jwt behavior against its ordered database release.
 - [ ] 1017 — Run disposable and live negative-path authorization tests plus Paymob sandbox callback/idempotency tests before deployment.
@@ -2909,3 +2909,19 @@ Evidence: `docs/audits/PASS_1000_1009_MANTIGO_PLATFORM_ADMIN_LIVE_RECHECK_202611
 - [ ] 1019 — Re-run exact live bundle parity and post-deploy adversarial checks. No Edge function or Production resource was changed in this pass.
 
 Evidence: `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20261119.md`. Edge parity remains PARTIAL / BLOCKED.
+
+
+## Pass 1020–1029 — directory contact consent privacy gap (2026-11-19)
+
+- [x] 1020 — Inspected live `directory-listings` v16 with `verify_jwt=false`; its GET path has no bearer requirement.
+- [x] 1021 — Verified live public GET selects and returns `phone`, `secondary_phone`, `address` without the current consent-scoped sanitizer.
+- [x] 1022 — Read-only aggregate: 869 published rows; all 869 have phone and address; 178 have a secondary phone.
+- [x] 1023 — Confirmed `public.directory_listing_contact_consents` and `private.directory_listing_contact_consents` are both absent in Production.
+- [x] 1024 — Reviewed main source RC473 and its RLS/FORCE RLS/service-role-only consent table plus consent-aware output sanitizer/pagination.
+- [x] 1025 — Confirmed RC473 `20261118020000` is still missing from the 62-version release ledger.
+- [ ] 1026 — Reconcile RC472/RC473 and full `directory-listings` Edge bundle/schema dependencies; no individual deploy or migration replay.
+- [ ] 1027 — Evaluate a minimal fail-closed public-contact hotfix only with explicit owner authorization and regression coverage.
+- [ ] 1028 — Test anonymous contact-field omission, owner-specific display, consent grant/revoke, pagination completeness and table outage fail-closed behavior.
+- [ ] 1029 — Re-run live anonymous response contract after coordinated deployment. No Production changes were made in this pass.
+
+Evidence: `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20261119.md`. Public directory contact-consent boundary remains BLOCKED.
