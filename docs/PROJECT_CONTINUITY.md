@@ -2468,3 +2468,11 @@ Removed the local pseudo-HMAC and simulated payment-confirmation path from the i
 ## Pass 980–989 — R7 API gate hardening (2026-11-19)
 
 The isolated R7 working copy now has a centralized API decision gate: all production API routes are blocked except health (which reports BLOCKED_NOT_CERTIFIED); privileged auth/backup/finance/platform-admin/integration prefixes are denied in all environments. The gate normalizes path case, percent encoding and duplicate slashes, and rejects malformed encodings. Rate limiting no longer trusts X-Forwarded-For, proxy trust is false, bucket storage is bounded, and development binds to loopback. Six static security scripts pass; 95 TS/TSX files pass syntax-only transpilation. This does not implement Supabase Auth/RBAC. No production resources or deployed catalog changed; R7 remains blocked.
+
+## Pass 990–999 — live Production and published catalog recheck (2026-11-19)
+
+Read-only recheck confirms the canonical Supabase project is ACTIVE_HEALTHY on PostgreSQL 17.6, with 310 live migration rows through `20261110150618`. The explicit release contract contains 62 unique versions and 0/62 are present in the live ledger. Security Advisor remains at 9 RLS/no-policy tables, one anon-executable SECURITY DEFINER public ad RPC, 65 authenticated-executable SECURITY DEFINER functions, and leaked-password protection disabled. Performance Advisor remains 132 unindexed FKs, 375 RLS initplan findings, 70 unused indexes and 28 multiple permissive policies.
+
+Pages run `44450929982` for main SHA `80f0b021748a4af43dd9f4596644e64ddcc5b7e4` passed build/validation, deploy, root/legacy/V6-preview route checks and deployed-origin Playwright dashboard/mobile/QR tests. Production topology remains catalog root, rollback catalog at `/legacy/`, V6 preview at `/v6-preview/`. No Production database/Auth/RLS/GRANT/Edge/payment/wallet/settlement/data mutation occurred. Full Enterprise remains BLOCKED / NOT CERTIFIED; R7 remains BLOCKED / NOT DEPLOYABLE.
+
+Evidence: `docs/audits/PASS_990_999_PRODUCTION_RELEASE_RECHECK_20261119.md`.

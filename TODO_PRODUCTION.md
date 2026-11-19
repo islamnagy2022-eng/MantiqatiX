@@ -2862,3 +2862,18 @@ Evidence: `docs/audits/R7_PAYMOB_PAYMENT_INTEGRITY_REVALIDATION_20261119.md`.
 - [ ] 989 — Implement Supabase Auth and route-level tenant/branch/platform authorization and complete full build/E2E before opening any route. R7 remains blocked.
 
 Evidence: `docs/audits/R7_API_GATE_HARDENING_REVALIDATION_20261119.md`.
+
+## Pass 990–999 — Production release and catalog deployment recheck (2026-11-19)
+
+- [x] 990 — Reconfirmed canonical Supabase project `moyhiluyhjsujhwlyeuu` is ACTIVE_HEALTHY on PostgreSQL 17.6.
+- [x] 991 — Re-read the live migration ledger: 310 rows, latest `20261110150618`.
+- [x] 992 — Parsed the exact 62-version `REQUIRED_RELEASE_MIGRATION_VERSIONS` contract; live ledger matches 0/62, all 62 remain missing.
+- [x] 993 — Re-ran Security Advisor: 9 RLS/no-policy tables, 1 anon-executable SECURITY DEFINER ad-discovery RPC, 65 authenticated-executable SECURITY DEFINER functions, leaked-password protection disabled.
+- [x] 994 — Recorded the exact nine no-policy tables; do not grant or create policies until intended backend/RPC access paths are proven.
+- [x] 995 — Re-ran Performance Advisor: 132 unindexed FKs, 375 RLS initplan, 70 unused indexes, 28 multiple permissive policies; no mass changes.
+- [x] 996 — Verified Pages run `44450929982` for main SHA `80f0b021748a4af43dd9f4596644e64ddcc5b7e4` completed successfully.
+- [x] 997 — Verified build/validation, public CORS/OAuth/ad/catalog smoke checks, Pages deployment and deployed-origin Playwright dashboard/mobile/QR checks all passed.
+- [x] 998 — Confirmed release topology: catalog root, legacy rollback copy at `/legacy/`, V6 preview at `/v6-preview/`.
+- [ ] 999 — Full Enterprise release remains blocked pending chronological 62-migration reconciliation, MantiGO platform-admin/finance repairs, function-by-function ACL review, Auth leaked-password setting, restore rehearsal and payment/finance E2E. No Production mutation occurred.
+
+Evidence: `docs/audits/PASS_990_999_PRODUCTION_RELEASE_RECHECK_20261119.md`. Scoped catalog is deployed; full Enterprise and R7 remain NOT CERTIFIED / NOT DEPLOYABLE.

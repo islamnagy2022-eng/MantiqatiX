@@ -3155,3 +3155,11 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - Rate limiter ignores X-Forwarded-For, proxy trust false, bucket map bounded; dev bind is loopback.
 - Six security scripts PASS; syntax-only TS/TSX parse 95 files / 0 errors. Full typecheck/build/E2E/Android/live payment remain unverified.
 - R7 remains blocked; no production mutation.
+
+## Pass 990–999 — Production gate and deployed catalog
+
+- Re-read exact 62-version release migration contract against live Supabase: 0/62 applied; ledger remains 310 rows through `20261110150618`.
+- Security Advisor: 9 RLS/no-policy tables, 1 public ad SECURITY DEFINER, 65 authenticated SECURITY DEFINER functions, leaked-password protection disabled.
+- Performance Advisor: 132 unindexed FKs, 375 RLS initplan, 70 unused indexes, 28 multiple permissive policies.
+- Verified Pages run `44450929982` on main SHA `80f0b021748a4af43dd9f4596644e64ddcc5b7e4`: build, deployment, root/legacy/V6-preview checks and deployed-origin Playwright dashboard/mobile/QR checks all PASS.
+- Catalog root remains published; legacy rollback and V6 preview retained. Full Enterprise/R7 remain blocked. No Production mutation.
