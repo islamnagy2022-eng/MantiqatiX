@@ -3214,3 +3214,8 @@ Live directory-listings v16 has 3/5 required source files; missing consent-pagin
 - No Production mutation. Coordinated database + complete Edge release remains blocked.
 
 Evidence: `docs/audits/PASS_1040_1049_POST_MERGE_LIVE_BUNDLE_RECHECK_20261119.md`.
+
+
+### Edge shared dependency clarification
+
+The current-main dependency graph was rechecked after the initial inventory: `payment-intent` and `digital-page-payment-intent` import `_shared/paymob-intent-correlation.mjs`; `subscription-payment-intent` imports that module plus `_shared/checkout-secret-crypto.mjs`; `directory-listings` imports two local consent modules missing from the live source listing. The two `_shared` modules exist in main and have no further relative imports. Supabase documentation confirms CLI deployment bundles the dependency graph into ESZip, so per-function source listings are not treated as a complete compiled bundle inventory. The seven deployed entrypoints remain byte-mismatched with main.
