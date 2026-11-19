@@ -499,3 +499,5 @@ Production remains **BLOCKED / NOT CERTIFIED**. The live helper remains weak unt
 
 
 - [x] 866 — Audited the uploaded R7 archive (11), SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`. Source review found P0 authentication, privileged API, token minting, registration verification, secret fallback, wallet mutation and localStorage-authority defects. The archive is not safe for wholesale merge/deployment; its UI/assets/features may be selectively ported. Audit: `docs/audits/R7_ARCHIVE_11_SECURITY_REVIEW_20261119.md`.
+
+- [x] 867 — Retrieved live `catalog-admin` Edge Function source and compared it with current `main`: Production remains ACTIVE v20, and the deployed entrypoint does not contain the merged registry guard; main does. The live helper is also still weak. Recorded the exact bundle hash and source comparison in the reconciliation manifest. No Edge deployment performed.
