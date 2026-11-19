@@ -499,3 +499,13 @@ Production remains **BLOCKED / NOT CERTIFIED**. The live helper remains weak unt
 
 
 - [x] 866 — Audited the uploaded R7 archive (11), SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`. Source review found P0 authentication, privileged API, token minting, registration verification, secret fallback, wallet mutation and localStorage-authority defects. The archive is not safe for wholesale merge/deployment; its UI/assets/features may be selectively ported. Audit: `docs/audits/R7_ARCHIVE_11_SECURITY_REVIEW_20261119.md`.
+
+
+
+## Pass 867 — RC464B policy preflight before immutable RC465 (2026-11-19)
+
+- Added new forward-only migration `20261113220000_rc464b_orders_select_policy_preflight.sql` after RC464 and before RC465. It is read-only and confirms the exact permissive SELECT/ALL policy sets (3 authenticated-only policies on `orders`, 2 on `order_status_history`) before RC465 can replace any policy.
+- Added two disposable drift scenarios that require orders-policy and history-policy drift to fail closed while preserving the previous policy rows. Focused tests run against PostgreSQL 17.
+- Added RC464B to `verify-production.mjs`, the migration-chain static validator, the live reconciliation contract, and the 63-version release manifest.
+- Live Production policy inventory was previously read-only verified as 3/3 expected order SELECT policies and 2/2 expected history SELECT policies. No Production schema, policy, grants, data, Edge, payment or wallet changes were performed.
+- [ ] Exact-head CI, chronological replay, merge and post-merge main validation remain pending.
