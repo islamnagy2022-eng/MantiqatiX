@@ -1,3 +1,18 @@
+## Latest execution checkpoint — Pass 1190–1199 — 2026-11-19 (backup/restore readiness)
+
+- Confirmed Supabase organization plan is **Free** and project is ACTIVE_HEALTHY on PostgreSQL 17.6.1.155. Current Supabase documentation says automatic daily backups are for Pro/Team/Enterprise; Free projects should use CLI exports and off-site backups. PITR is not assumed available.
+- Added `docs/runbooks/PRODUCTION_BACKUP_RESTORE_RC484_20261119.md` with database roles/schema/data export, separate Storage object export, encryption, checksums, off-site retention, configuration inventory, PostgreSQL 17 disposable restore, and acceptance criteria.
+- Added `docs/audits/PASS_1190_1199_FREE_PLAN_BACKUP_RESTORE_READINESS_20261119.md` and updated `TODO_PRODUCTION.md`.
+- No backup or restore was executed: this session has no database password/connection string, Storage S3 credentials, encryption key or off-site storage access. The documented CLI export requires a trusted workstation with Docker and Supabase CLI. No secrets were requested or placed in source control.
+- RC484 source remains merged at `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`; exact PR-head CI and 99-migration disposable replay passed. This is not Production deployment.
+- Fresh read-only Production state remains: 310 migration rows through `20261110150618`; RC471/RC482/RC483/RC484 unapplied; registry FORCE RLS false; live `public.is_platform_admin()` remains SECURITY INVOKER with `search_path=public`.
+- No Production migration, DDL/DML, RLS, GRANT, Auth, Storage, Edge, payment, wallet, settlement or user-data mutation. Full platform remains **BLOCKED / NOT CERTIFIED**.
+- Evidence: `docs/runbooks/PRODUCTION_BACKUP_RESTORE_RC484_20261119.md`, `docs/audits/PASS_1190_1199_FREE_PLAN_BACKUP_RESTORE_READINESS_20261119.md`, P0 issue #867, PRs #870/#871.
+
+**Next:** the backup operator must run the documented database and Storage exports, encrypt and verify the off-site artifacts, then restore into a separate disposable PostgreSQL 17 project and record measured RPO/RTO and rollback evidence. Keep Production read-only until this is complete and the release owner approves the ordered migration window.
+
+---
+
 ## Latest execution checkpoint — Pass 1180–1189 — 2026-11-19 (RC484 merged)
 
 - PR [#870](https://github.com/islamnagy2022-eng/MantiqaTix/pull/870) merged as `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`.
