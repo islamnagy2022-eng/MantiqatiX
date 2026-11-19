@@ -25,7 +25,7 @@ Source-only review of the uploaded archive; it was not executed or deployed and 
 - `src/lib/supabaseClient.ts` gives `SUPABASE_SERVICE_ROLE_KEY` precedence in a client-imported module (lines 9–18). No service-role secret may be exposed to a browser build.
 - `package.json` defines `lint` as `tsc --noEmit` and has no test script, despite the report claiming 99 passing tests.
 - The archive contains only one SQL migration under `supabase/migrations/`, not the current 62-version release chain.
-- The manifest claims Android WebView integration, but no `android-webview-wrapper/` directory was present in this archive listing. Preserve the separately maintained Android source; do not infer it is included here.
+- `android-webview-wrapper/` is PRESENT in this archive with exactly three files: `AndroidManifest.xml`, `build.gradle.kts`, and `src/main/java/com/mantiqatix/app/MainActivity.kt`. It is nevertheless incomplete and not release-ready: there is no Gradle wrapper or settings file, and the module references `proguard-rules.pro`, mipmap icons, and theme resources that are absent from the archive. `MainActivity.kt` exposes a JavaScript bridge without a trusted-origin allowlist while unrestricted navigations remain inside the WebView; the manifest also sets `allowBackup=true`. Preserve the three files, but do not ship until origin/bridge controls, backup policy, complete build inputs, and a signed reproducible APK/AAB are verified.
 
 ## Required disposition
 
