@@ -13,6 +13,7 @@ on:
       - "supabase/tests/baselines/production_live_order_status_history_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_business_branch_anon_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/rc484_live_storage_policy_overlay_fixture.sql"
+      - "supabase/tests/baselines/rc484_live_storage_policy_overlay_fixture.sql"
       - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
       - "scripts/verify-tenant-isolation.sql"
       - "supabase/tests/rc117_default_images_and_activity_admin_contract.sql"
@@ -107,7 +108,7 @@ jobs:
       - name: Validate RC469 shared caller search_path contract
         run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
 
-      - name: Validate strict Production release gate and exact 63-version contract
+      - name: Validate strict Production release gate and exact 64-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
 
       - name: Validate MantiGO platform-admin and financial source contracts
