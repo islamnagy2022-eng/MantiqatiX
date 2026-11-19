@@ -13,6 +13,15 @@ Last updated: 2026-11-19 — RC484 merged; exact PR-head CI and 99-migration dis
 - No Production DDL/DML, migration, RLS, GRANT, Auth, Storage, Edge, payment, wallet or settlement change was made. Source merge and disposable replay do not constitute Production deployment.
 - **Next:** encrypted off-site backup, isolated restore with measured RPO/RTO, rollback proof, exact live schema/Edge parity and authorized ordered release. After deployment, verify all 57 dependent policies adversarially. Keep P0 issue #867 open until live proof is complete.
 
+## Latest R7 source-map checkpoint — 2026-11-19
+
+- Verified the exact R7 ZIP (46,114,882 bytes, integrity PASS, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`).
+- R7 remains a separate feature reference. It has the wrong Supabase project ref, a browser-importable service-role key fallback, hardcoded Paymob/JWT/backup fallback secrets, dual local-JSON/Supabase authority, localStorage role/financial state and demo role-switcher credentials.
+- The Android wrapper is present with three files, but incomplete and unsafe to ship: missing Gradle wrapper/settings/resources/ProGuard and no trusted-origin bridge allowlist. Preserve it; do not delete or certify it as a native app.
+- Current main already has canonical directory, storefront, catalog, merchant/admin/professional dashboards, Supabase Auth, geo discovery and marketing services. R7-only Member Messages and MantiGO bidding are gap candidates pending durable backend contracts and privacy/tenant-scope tests.
+- The historical Pass 721–740 reverse-bidding audit records `indrive_requests.service_id` absent, a live RPC rating/status mismatch against table constraints, and only one distinct verified provider in the 2026-11-18 aggregate snapshot. Recheck live schema and provider supply before any MantiGO UI; do not synthesize providers or settle commissions from the UI.
+- No R7 application code or mobile source was imported, deleted or overwritten. Full source map: `docs/audits/PASS_1200_1209_R7_SOURCE_MAP_ANDROID_PRESERVATION_20261119.md`.
+
 ## Latest backup/restore readiness — 2026-11-19
 
 - Supabase organization plan is Free. Current Supabase documentation says automatic daily database backups are available on Pro/Team/Enterprise; Free projects should export with the CLI and maintain off-site backups. PITR is not assumed available.

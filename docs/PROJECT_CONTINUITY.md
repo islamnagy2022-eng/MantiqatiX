@@ -1,3 +1,19 @@
+## Latest execution checkpoint — Pass 1200–1209 — 2026-11-19 (R7 source map and Android preservation)
+
+- Verified the exact uploaded `bizcatalog-manager (11).zip`: 46,114,882 bytes, `unzip -t` PASS, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`.
+- Current production source remains GitHub `main` (`apps/catalog-frontend/**`, `supabase/**`) and the connected Supabase project `moyhiluyhjsujhwlyeuu`. The R7 archive is a separate React/Vite/Express candidate and is reference-only.
+- Reconfirmed R7 blockers directly from the ZIP: wrong project ref (`moyhiluyhjsujhwlyweuu`), browser-importable service-role key fallback, hardcoded Paymob/JWT/backup fallback secrets, local JSON dual authority, localStorage persistence for auth/roles/financial state, and demo role-switcher credentials.
+- The Android WebView wrapper contains only three files, lacks the Gradle wrapper/root project/resources/ProGuard file, and has no trusted-origin bridge allowlist. Preserve it; do not delete or represent it as a verified native Android release.
+- Current main already has canonical directory, storefront, merchant/admin/professional dashboards, Auth, catalog, cart, geo discovery and marketing services. Do not duplicate them from R7.
+- R7-only candidates are Member Messages and the MantiGO bidding UI; both require verified durable backend contracts, tenant/recipient scope and privacy tests before implementation. The historical Pass 721–740 reverse-bidding audit records a schema/RPC mismatch (`service_id` absent; RPC supplies NULL rating and PENDING against NOT NULL/default/status constraints) and only one distinct provider in the 2026-11-18 aggregate snapshot. Recheck live supply and schema before any UI. Wallet/booking/payment and production-control modals remain blocked.
+- Preserved the detailed R7 archive reconciliation and Android wrapper audit on main; added `docs/audits/PASS_1200_1209_R7_SOURCE_MAP_ANDROID_PRESERVATION_20261119.md`.
+- No R7 source was imported; no application or mobile code was changed. No Production SQL, migration, GRANT, RLS, Auth, Edge, payment, wallet, settlement or user-data mutation occurred.
+- Backup/restore remains blocked on the Free plan until operator-run encrypted database/Storage exports, Vault key recovery or secret recreation, isolated PostgreSQL 17 restore, measured RPO/RTO and rollback evidence are completed.
+
+**Next:** select the first R7-only UI gap (Member Messages or MantiGO bidding) only after its current-main API/Edge/RPC contract and privacy boundary are mapped. Keep the R7 server and Android wrapper out of Production; continue the separate backup/restore gate.
+
+---
+
 ## Latest execution checkpoint — Pass 1190–1199 — 2026-11-19 (backup/restore readiness)
 
 - Confirmed Supabase organization plan is **Free** and project is ACTIVE_HEALTHY on PostgreSQL 17.6.1.155. Current Supabase documentation says automatic daily backups are for Pro/Team/Enterprise; Free projects should use CLI exports and off-site backups. PITR is not assumed available.
