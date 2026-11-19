@@ -3197,4 +3197,4 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - Added static Edge/frontend/migration/CI integration validator and wired both validators into primary catalog workflow.
 - Full production gate now requires directory-listings source parity and consent registry proof; release manifest remains BLOCKED on live v16 gap.
 - Owner controls fail closed on consent registry outage; owner can view own contact fields; public/non-owner scope resets to empty on outage. Added Arabic UI warning.
-- Local Node 22 unit tests: 11/11 PASS; CI pending. No Production mutation.
+- Local Node 22 unit tests: 12/12 PASS, including exact-address search consent guard; CI pending. No Production mutation.
