@@ -2755,6 +2755,22 @@ Evidence: `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md`. No Product
 - [x] 926 — Added `docs/audits/R7_API_ROUTE_POLICY_INVENTORY_20261119.md` with source hashes, complete method/path/line inventory, policy counts and implementation contract.
 - [x] 927 — Added deterministic Node validator for 113-route coverage, policy vocabulary/counts, public mutating ingress allowlist and critical DISABLED routes.
 - [x] 928 — Added dedicated GitHub Actions workflow for the inventory validator; it has no production application behavior.
-- [ ] 929 — Require the exact-head inventory workflow and aggregate PR checks to pass before merging. No R7 runtime code or Production resources were modified.
+- [x] 929 — PR #837 merged as `9bb68ea638477abd16b8460f4bc65403bd03b0a4`; exact-head CI passed (28 success, 2 expected skips), inventory workflow PASS. The Pages deploy workflow validation passed; deployed-origin browser verification was still running at the checkpoint.
 
 **Boundary:** the inventory is a proposed policy contract, not enforcement. R7 remains an untrusted, non-deployable reference until Supabase Auth, tenant/branch/platform authorization, audited data contracts, secrets, tests and build gates are implemented and verified.
+
+
+## Pass 930–939 — Production Supabase authorization and Advisor recheck (2026-11-19)
+
+- [x] 930 — Revalidated canonical Supabase project ID from `list_projects`: `moyhiluyhjsujhwlyeuu` (MANTIQATIX FINAL, ACTIVE_HEALTHY, PostgreSQL 17.6).
+- [x] 931 — Re-read the live migration ledger: 310 rows, latest `20261110150618`; source contract has 62 unique required release versions, 0/62 found live.
+- [x] 932 — Re-read four global MantiGO SECURITY DEFINER RPCs and `mnty_can_platform_admin()`; all four remain broad-membership authorized and the helper remains delegated to `mnty_can('admin',NULL,NULL,NULL)`.
+- [x] 933 — Reconfirmed the live financial-report RPC references absent legacy `amount`/`captain_amount` fields rather than canonical ledger columns.
+- [x] 934 — Re-read Security Advisor: 9 RLS/no-policy tables, 1 anon-executable SECURITY DEFINER public ad RPC, 65 authenticated-executable SECURITY DEFINER functions, and leaked-password protection disabled.
+- [x] 935 — Checked ACLs for all 9 RLS/no-policy tables; anon/authenticated direct SELECT/INSERT are absent. Service-role access is present on 3 and absent on 6; do not change without tracing intended backend paths.
+- [x] 936 — Inspected the public ad RPC body; it filters active/approved advertisements and returns public creative/target fields with a hard limit of 50. Keep as a reviewed public endpoint, not a blind revoke target.
+- [x] 937 — Recorded performance Advisor signals: 132 unindexed FKs, 375 RLS initplan findings, 70 unused indexes, 28 multiple-permissive-policy findings; no bulk DDL performed.
+- [x] 938 — Confirmed PR #837 exact-head CI and inventory workflow passed; Health Monitor and Directory Claim Atomicity workflows passed.
+- [ ] 939 — Complete deployed-origin Playwright checks for main SHA `9bb68ea638477abd16b8460f4bc65403bd03b0a4`; deploy job was still running. Full platform remains BLOCKED / NOT CERTIFIED.
+
+Evidence: `docs/audits/PASS_930_939_PRODUCTION_SUPABASE_AUTH_ADVISOR_RECHECK_20261119.md`. All Production queries were read-only.
