@@ -3238,3 +3238,16 @@ Evidence: `docs/audits/RC464B_ORDERS_POLICY_PREFLIGHT_PORT_20261119.md` and `TOD
 - Both tables retain RLS and authenticated SELECT grants; required business_id/branch_id/user_memberships columns exist.
 - No unexpected permissive SELECT/ALL policy found. Current policy expressions remain tenant-wide; RC465 is not applied.
 - No Production mutation. PR #849 CI remains the gate for the current-main preflight port.
+
+
+## Pass 1080–1089 — post-merge deployment and R7 archive reconciliation (2026-11-19)
+
+- PR #849 merged to main at `b3a650c5823e5c817788d12e5871ca135797dbee`; exact-head CI: 43 success, 2 expected skipped, 0 failures.
+- Post-merge Primary Catalog Frontend Validation run 44573397535 passed, including build, employee RBAC PostgreSQL and professional-dashboard browser E2E.
+- GitHub Pages run 44573397564 completed successfully. Deployed-origin verification passed for the catalog root, legacy route, Preview alias, dashboard, mobile and QR routes.
+- Rehashed the exact uploaded R7 archive: SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`; ZIP CRC 270/270 passed.
+- Corrected the intake inventory count: 99 regular files under src (53 TSX, 40 TS, 5 JPG, 1 CSS), plus three Android wrapper files. The archive excludes .env, .data, dist, node_modules and release bundle.
+- R7 remains reference-only; no wholesale import and no Production Supabase/Edge/Auth/RLS/GRANT/payment/finance/data mutation. The V6/catalog root remains the deployed root.
+- Next: map R7 UI/screen/field/API contracts to current Supabase catalog services and selectively port safe UI into isolated Preview.
+
+Evidence: `docs/audits/PASS_1080_1089_POST_MERGE_DEPLOY_AND_R7_INTAKE_RECONCILIATION_20261119.md`.
