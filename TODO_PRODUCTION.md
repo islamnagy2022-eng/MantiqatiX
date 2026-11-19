@@ -3173,6 +3173,8 @@ Evidence: PR #870, `docs/audits/PASS_1180_1189_RC484_REGISTRY_BACKED_RLS_HELPER_
 - [x] 1193 — Documented separate Storage-object export because database dumps contain metadata, not object bytes.
 - [x] 1194 — Added encryption, SHA-256, off-site retention, key separation and non-secret manifest requirements.
 - [x] 1195 — Added PostgreSQL 17 disposable restore, Auth/Edge/Realtime/Storage reconfiguration and acceptance checklist.
+- [x] 1195A — Read-only inventory: 28 MB database, 187 user tables, 11 non-system schemas, 6 extensions, 2 Storage buckets/0 object rows, 2 Vault secrets and 4 Vault-dependent functions. `pg_net` is installed; isolate outbound calls during restore.
+- [x] 1195B — Added Vault key custody/recovery step; Supabase stores the encryption key outside the database, so ciphertext dump alone is insufficient for cross-project decryption.
 - [ ] 1196 — Run the CLI database export from a trusted workstation; requires database credentials and Docker/CLI.
 - [ ] 1197 — Export all Storage buckets, encrypt all artifacts and verify an off-site copy from a second trusted environment.
 - [ ] 1198 — Restore into a separate disposable project and complete financial, RLS, Auth, Storage and Edge acceptance.
