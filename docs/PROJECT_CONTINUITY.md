@@ -2,6 +2,8 @@
 
 - Confirmed Supabase organization plan is **Free** and project is ACTIVE_HEALTHY on PostgreSQL 17.6.1.155. Current Supabase documentation says automatic daily backups are for Pro/Team/Enterprise; Free projects should use CLI exports and off-site backups. PITR is not assumed available.
 - Added `docs/runbooks/PRODUCTION_BACKUP_RESTORE_RC484_20261119.md` with database roles/schema/data export, separate Storage object export, encryption, checksums, off-site retention, configuration inventory, PostgreSQL 17 disposable restore, and acceptance criteria.
+- Read-only backup inventory: 28 MB database, 187 user tables, 11 non-system schemas, 6 extensions; 2 Storage buckets with 0 object rows at checkpoint; 2 Vault secrets and 4 Vault-dependent functions. `pg_net` is installed and must be isolated from outbound calls during restore.
+- Added a Vault recovery gate: the encryption key is held in Supabase's secured backend, outside the database. Preserve/recover it through the official API procedure or recreate the secrets; do not assume a database dump alone is sufficient.
 - Added `docs/audits/PASS_1190_1199_FREE_PLAN_BACKUP_RESTORE_READINESS_20261119.md` and updated `TODO_PRODUCTION.md`.
 - No backup or restore was executed: this session has no database password/connection string, Storage S3 credentials, encryption key or off-site storage access. The documented CLI export requires a trusted workstation with Docker and Supabase CLI. No secrets were requested or placed in source control.
 - RC484 source remains merged at `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`; exact PR-head CI and 99-migration disposable replay passed. This is not Production deployment.
