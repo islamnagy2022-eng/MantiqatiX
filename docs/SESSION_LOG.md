@@ -3181,3 +3181,11 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - Mismatches: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3, directory-listings v16 (7/11).
 - Do not deploy mismatched functions individually; schema release remains 0/62 and payment/finance/backup prerequisites remain incomplete.
 - No Edge function or Production resource changed. Detailed evidence in `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20261119.md`.
+
+
+## Pass 1020–1029 — directory contact privacy boundary
+
+- Live directory-listings v16 is anonymous (`verify_jwt=false`) and returns phone/address without consent-aware sanitization.
+- 869 published rows have phone and address; 178 have secondary phone.
+- Contact-consent table absent in Production; main RC473 creates it with RLS/FORCE RLS and service_role-only access.
+- RC473 remains unapplied; no standalone Edge deploy or migration applied. A minimal emergency hotfix would require explicit owner authorization.
