@@ -3067,3 +3067,16 @@ Evidence boundary: read-only catalog and aggregate checks only. No Production SQ
 - [ ] Production DB remains unchanged at 310 migrations through `20261110150618`; RC481/RC482/RC483 and RC464/RC471 remain unapplied, and deployed `legal-cms` remains v6. No Edge Function was deployed by the Pages release.
 
 Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The live MantiGO platform-admin authorization gap (4 active non-registry BUSINESS_OWNER users), the 61 missing required migration versions, live object drift, backup/restore rehearsal, payment/finance E2E, and the HEALTH_MONITOR_TOKEN setup remain open release blockers.
+
+
+## Pass 900–909 — R7 archive security revalidation (2026-11-19)
+
+- Reopened the exact uploaded archive and verified SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, ZIP integrity PASS, 233 extracted files.
+- Confirmed unauthenticated `/api/auth/session-token` privileged token minting; caller-controlled role/userId and default super_admin.
+- Confirmed unauthenticated `/api/production-state` GET exposes full local snapshot and POST accepts a client-provided whole-state merge.
+- Confirmed hard-coded secret fallbacks, admin default/fixed password bypasses, client-first auth-state transition and client-imported service-role key selection risk.
+- Confirmed only one SQL migration in archive; 7 tables have RLS enabled. The archive's 11-table claim is not supported.
+- Confirmed 15 test files but no package test script. npm dependency install timed out with scripts disabled; no build/test results are claimed.
+- Created `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md`.
+- No Production SQL/DDL/DML, Auth, RLS, GRANT, Edge deployment, payment, wallet, settlement or Pages deployment change occurred.
+- Decision: preserve R7 as reference only; do not promote/import it until the listed P0 fixes, bundle secret inspection, migration reconciliation and reproducible CI are complete. Main catalog remains the production root.
