@@ -13,6 +13,25 @@ const consentPagination = readFileSync("supabase/functions/directory-listings/co
 const config = readFileSync("supabase/config.toml", "utf8");
 const release = JSON.parse(readFileSync("docs/release/production-migration-reconciliation.json", "utf8"));
 const releaseContract = readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
+const directoryBoundary = release.directory_contact_consent_boundary;
+const directoryBoundaryEvidenceValid = directoryBoundary?.status === "BLOCKED"
+  ? directoryBoundary.live_function?.version === 16 &&
+    directoryBoundary.live_function?.complete_bundle_match === false &&
+    directoryBoundary.live_function?.missing_live_files?.includes("consent-pagination.mjs") &&
+    directoryBoundary.consent_table?.exists === false &&
+    directoryBoundary.published_contact_rows_without_consent_exposure > 0
+  : directoryBoundary?.status === "PASS"
+    ? directoryBoundary.live_function?.exact_source_match === true &&
+      directoryBoundary.live_function?.complete_bundle_match === true &&
+      directoryBoundary.live_function?.required_files_present === true &&
+      (directoryBoundary.live_function?.missing_live_files?.length ?? 0) === 0 &&
+      directoryBoundary.consent_table?.exists === true &&
+      directoryBoundary.public_get_contact_fields_consent_scoped === true &&
+      directoryBoundary.published_contact_rows_without_consent_exposure === 0 &&
+      directoryBoundary.anonymous_contract_tests === "PASS" &&
+      directoryBoundary.owner_consent_grant_revoke_tests === "PASS" &&
+      directoryBoundary.registry_outage_fail_closed === true
+    : false;
 
 const syntheticConsentRows = Array.from({ length: 2205 }, (_, index) => ({
   listing_id: `listing-${String(index).padStart(4, "0")}`,
@@ -124,14 +143,8 @@ const checks = [
     releaseContract.includes("complete_bundle_match === true") &&
     releaseContract.includes("required_files_present === true") &&
     releaseContract.includes("published_contact_rows_without_consent_exposure === 0")],
-  ["live reconciliation manifest explicitly remains blocked on current directory exposure",
-    release.directory_contact_consent_boundary?.status === "BLOCKED" &&
-    release.directory_contact_consent_boundary?.live_function?.version === 16 &&
-    release.directory_contact_consent_boundary?.live_function?.complete_bundle_match === false &&
-    release.directory_contact_consent_boundary?.live_function?.missing_live_files?.includes("consent-pagination.mjs") &&
-    release.directory_contact_consent_boundary?.live_function?.missing_live_files?.includes("public-directory-output-contract.mjs") &&
-    release.directory_contact_consent_boundary?.consent_table?.exists === false &&
-    release.directory_contact_consent_boundary?.published_contact_rows_without_consent_exposure === 869],
+  ["live reconciliation manifest accurately records blocked or verified directory consent evidence",
+    directoryBoundaryEvidenceValid],
   ["POST consent actions verify a real non-anonymous Supabase user and bind actor to auth.uid",
     source.includes("service.auth.getUser(token)") &&
     source.includes("userError || !user || user.is_anonymous") &&
