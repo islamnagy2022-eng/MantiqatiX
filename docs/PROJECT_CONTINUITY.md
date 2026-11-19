@@ -2612,3 +2612,12 @@ Fresh Security Advisor reports 9 RLS-enabled/no-policy INFO tables, 1 anon-execu
 Storage RLS is enabled. The public storage.objects policy grants SELECT only for bucket `mantiqatix-profile-media`; object write/delete policies are authenticated-only and actor/path scoped. storage.buckets and related metadata tables have RLS enabled but no policies; underlying table grants do not establish row access through RLS. The anon SECURITY DEFINER RPC `get_mnty_targeted_advertisements` uses empty search_path, ACTIVE/APPROVED/time-window filters and bounded 1–50 limit; treat it as intentional public ad discovery pending focused data-disclosure review. Do not blanket revoke it or the 65 authenticated function EXECUTEs.
 
 Leaked-password protection remains disabled per current Advisor; no authorized Auth config write action is available. Issue #422 updated. No Auth/RLS/ACL/Storage/Edge/database/user-data mutation occurred. Full platform remains BLOCKED / NOT CERTIFIED.
+
+
+## Pass 1160–1169 — generic is_platform_admin RLS blast-radius audit (2026-11-19)
+
+Fresh read-only Production inspection found `public.is_platform_admin()` returns true for any active `user_memberships` row with role ADMIN or SUPER_ADMIN, without consulting `private.platform_admins` or checking tenant/business/branch scope. **57 RLS policies across 24 tables** call this helper in USING/WITH CHECK. Affected domains include matrimony, MantiGO, restaurant/fashion ERP, jobs/education, inDrive, school/teacher profiles, used-item ads, platform feature flags and Storage. Additional SECURITY DEFINER callers include `create_notification_backend`, `deactivate_business`, `fashion_erp_mutate`, `restaurant_erp_mutate`, `restaurant_table_mutate`, `set_platform_feature_flag_backend`, and `resolve_legacy_scope`.
+
+Fresh aggregate-only counts: ADMIN 1 active row/1 user/0 absent from registry; SUPER_ADMIN 1/1/0; BUSINESS_OWNER 9/5/4; OWNER 3/1/0. No active non-registry ADMIN or SUPER_ADMIN was present in this aggregate. The helper is still a latent global bypass: a future tenant ADMIN/SUPER_ADMIN membership would satisfy it and inherit global bypass across the affected policies/callers. This is not evidence of current abuse or of a current non-registry administrator.
+
+P0 issue #867 tracks the required fix. Do not replace all uses indiscriminately: some call sites need tenant-local admin semantics, while only platform-root checks should use `private.platform_admins`. No live function was invoked and no Production mutation occurred. Full platform remains BLOCKED / NOT CERTIFIED.
