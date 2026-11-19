@@ -3180,3 +3180,18 @@ Evidence: PR #870, `docs/audits/PASS_1180_1189_RC484_REGISTRY_BACKED_RLS_HELPER_
 
 Evidence: `docs/runbooks/PRODUCTION_BACKUP_RESTORE_RC484_20261119.md`, `docs/audits/PASS_1190_1199_FREE_PLAN_BACKUP_RESTORE_READINESS_20261119.md`, official Supabase documentation. No Production mutation.
 
+## Pass 1200–1209 — R7 source map and Android preservation (2026-11-19)
+
+- [x] 1200 — Verified exact R7 archive (11) ZIP integrity and SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b` (46,114,882 bytes).
+- [x] 1201 — Mapped current canonical main (`apps/catalog-frontend/**`, `supabase/**`) against R7's separate React/Vite/Express tree; current main and Supabase remain production authority.
+- [x] 1202 — Confirmed R7's Supabase ref has an extra `w` and does not match the connected Production project.
+- [x] 1203 — Confirmed browser-importable R7 Supabase client prefers `SUPABASE_SERVICE_ROLE_KEY`; this source boundary is unsafe.
+- [x] 1204 — Confirmed hardcoded Paymob/JWT/backup fallback secrets and dual local-JSON/Supabase data authority in the exact ZIP.
+- [x] 1205 — Confirmed localStorage persistence for auth/roles/business/financial state and demo role-switcher credentials.
+- [x] 1206 — Corrected Android inventory: wrapper is PRESENT with three files but incomplete, lacks Gradle wrapper/settings/resources/ProGuard and has no trusted-origin bridge allowlist. Preserve; do not ship.
+- [x] 1207 — Mapped R7 UI against current main; Member Messages and MantiGO bidding are gap candidates, while directory/storefront/dashboards/catalog/Auth already have canonical counterparts.
+- [x] 1208 — Preserved R7 source and Android audit documents on main; no R7 application source or mobile code imported, deleted or overwritten.
+- [x] 1209 — Recorded source map and safe integration order; R7 remains reference-only, Production remains BLOCKED / NOT CERTIFIED.
+
+Evidence: `docs/audits/PASS_1200_1209_R7_SOURCE_MAP_ANDROID_PRESERVATION_20261119.md`, `docs/audits/R7_AI_STUDIO_ARCHIVE_RECONCILIATION_20261119.md`, `docs/audits/R7_ARCHIVE_11_SECURITY_REVIEW_20261119.md`, `docs/audits/PASS_741_760_R7_ANDROID_AND_BACKUP_GATES_20261118.md`. No Production mutation.
+
