@@ -3306,3 +3306,13 @@ Evidence: docs/audits/PASS_1110_1119_LIVE_EDGE_PAYMENT_FINANCE_PARITY_20261119.m
 - No Production order, migration, grant, Edge deployment, payment or financial write.
 
 Evidence: docs/audits/PASS_1110_1119_LIVE_EDGE_PAYMENT_FINANCE_PARITY_20261119.md and Issue #857.
+
+
+## Pass 1130–1139 — live platform-admin helper and dependent RLS recheck (2026-11-19)
+
+- Read live helper: still delegates to mnty_can('admin',NULL,NULL,NULL), SECURITY DEFINER, search_path=public, pg_temp; authenticated EXECUTE true, anon false.
+- Four direct authenticated SECURITY DEFINER helper callers remain: admin_create_global_ad, fulfill_digital_page_publish, review_mantigo_captain_application, set_mantigo_financial_config_backend. All use non-empty search_path.
+- Five dependent RLS policies remain on digital_pages, mantigo_financial_config and mantigo_rate_limit_config.
+- Aggregate active membership/registry counts: BUSINESS_OWNER 9 rows / 5 users / 4 non-registry; OWNER 3/1/0; ADMIN 1/1/0; SUPER_ADMIN 1/1/0. Corrects #772 earlier count (3 non-registry business owners / 6 rows). No identifiers selected.
+- RC464 workflow 43596176271 and RC471 workflow 44213092970 passed; PR #772 exact head 23 success, 2 expected skipped, 0 failure. Tests include synthetic BUSINESS_OWNER denials across global RPCs and helper callers.
+- Updated Issue #852 comment 7017917328. No Production writes or function invocations. Platform remains BLOCKED / NOT CERTIFIED.
