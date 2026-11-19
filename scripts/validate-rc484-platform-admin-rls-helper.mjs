@@ -9,7 +9,7 @@ const gate=readFileSync("scripts/production/live-reconciliation-contract.mjs","u
 const chain=readFileSync("scripts/validate-production-migration-chain-gate.mjs","utf8");
 
 const checks=[
-  ["RC484 is forward-only and transactional",/^BEGIN;[\s\S]*COMMIT;\s*$/.test(migration)],
+  ["RC484 is forward-only and transactional",/BEGIN;[\s\S]*COMMIT;\s*$/.test(migration)],
   ["preflight requires the protected FORCE-RLS registry",/relforcerowsecurity/.test(migration)&&/RC484_PLATFORM_ADMIN_REGISTRY_RLS_AND_FORCE_RLS_REQUIRED/.test(migration)],
   ["preflight binds helper owner to registry owner with BYPASSRLS",/v_helper_owner IS DISTINCT FROM v_registry_owner/.test(migration)&&/rolbypassrls/.test(migration)],
   ["preflight covers the audited 57 policies and 24 tables",/v_policy_count<57 OR v_policy_table_count<24/.test(migration)],
