@@ -2747,8 +2747,8 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - [x] Static scan found 54 mutating route handlers without recognizable route-local session verification/authorization. Manually verified direct local-JSON mutations in business/product/subscriber/sales/order-status/wallet/settings/grants/merchant-ledger/finance paths.
 - [x] Confirmed audited-finance route accepts client-provided actor identity/role and defaults role to super_admin; treat as P0.
 - [x] Classified count as a screening signal, not a proven exploit count; public ingress routes need separate explicit contracts.
-- [ ] Create complete API route policy inventory and classify every route (public ingress, authenticated, tenant, branch, platform admin, service-to-service, disabled).
-- [ ] Implement Supabase Auth verification and per-route fail-closed authorization; reject client-supplied roles/actor identity/scope.
+- [x] Create complete 113-route API policy inventory and classify every route; exact source hashes and line references are recorded. Runtime enforcement remains NOT PROVEN.
+- [ ] Implement Supabase Auth verification and per-route fail-closed authorization; reject client-supplied roles/actor identity/scope. This remains the primary R7 P0 implementation blocker.
 - [ ] Move privileged writes to narrow Supabase RPC/Edge contracts with RLS, ACL, audit atomicity; disable wallet/finance mutations until verified.
 - [ ] Add anonymous/forged-role/cross-tenant/cross-branch/inactive-member/non-platform-admin/replay negative tests and CI route classification gate.
 
@@ -2785,3 +2785,19 @@ Evidence: `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md`. No Product
 - [ ] 939 — Complete deployed-origin Playwright checks for main SHA `9bb68ea638477abd16b8460f4bc65403bd03b0a4`; deploy job was still running. Full platform remains BLOCKED / NOT CERTIFIED.
 
 Evidence: `docs/audits/PASS_930_939_PRODUCTION_SUPABASE_AUTH_ADVISOR_RECHECK_20261119.md`. All Production queries were read-only.
+
+
+## Pass 940–949 — R7 partial secret hardening revalidation (2026-11-19)
+
+- [x] 940 — Reopened the updated R7 working copy derived from the exact uploaded archive; recorded its deterministic file-manifest hash and updated `server.ts` hash.
+- [x] 941 — Verified hard-coded Paymob HMAC, session JWT and backup salt fallbacks were removed from the working copy; production startup requires configured secrets of at least 32 characters.
+- [x] 942 — Verified the browser Supabase client no longer references `process.env` or `SUPABASE_SERVICE_ROLE_KEY`; only Vite publishable/anon variables are read.
+- [x] 943 — Verified billing/session/audit/backup helper defaults were removed; backup decrypt rejects envelopes missing their salt.
+- [x] 944 — Ran `npm run test:security`: both browser-client and server-secret contract checks PASS.
+- [x] 945 — Recounted the updated working copy: 113 API routes (40 GET, 73 mutations). Critical production-state, session-token, admin-login, wallet, merchant-ledger and finance routes still lack a verified authorization boundary.
+- [x] 946 — Confirmed global middleware still supplies headers/rate limiting only; it does not authenticate Supabase users or resolve tenant/branch/platform scope.
+- [x] 947 — Confirmed Android wrapper remains incomplete (no MainActivity/Gradle wrapper/settings in inspected tree; manifest still allows backup).
+- [ ] 948 — Full npm install timed out; build, TypeScript, unit/integration and browser E2E remain unverified.
+- [ ] 949 — Implement Supabase Auth and trusted scope authorization for R7 APIs, then run adversarial tests. No runtime authorization code was changed in this pass.
+
+Evidence: `docs/audits/R7_PARTIAL_SECRET_HARDENING_REVIEW_20261119.md`. R7 remains BLOCKED / NOT DEPLOYABLE; no Production resource was mutated.
