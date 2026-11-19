@@ -39,3 +39,12 @@ test("fails closed when a page response is not an array", async () => {
   const result = await collectActiveAddressConsentIds(async () => ({ data: { listing_id: "a" }, error: null }));
   assert.deepEqual(result, { ids: [], ready: false });
 });
+
+ 
+test("free-text directory search never searches hidden exact addresses", async () => {
+  const { buildDirectoryPaginationOrFilter } = await import("./pagination-filter.mjs");
+  const filter = buildDirectoryPaginationOrFilter("Tala", null, "");
+  assert.match(filter, /governorate\.ilike/);
+  assert.match(filter, /district\.ilike/);
+  assert.doesNotMatch(filter, /address/i);
+});
