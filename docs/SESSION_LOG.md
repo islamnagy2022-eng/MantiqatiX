@@ -3172,3 +3172,12 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - Financial report still references legacy amount/captain_amount tokens; live ledger has gross_amount/commission_amount/captain_net_amount.
 - Source RC464/RC471/RC476 fixes and disposable PostgreSQL regression tests are present; RC471 source check passed, but live DB remains unchanged and migrations missing.
 - No production SQL/DDL/DML/Auth/RLS/GRANT/Edge/payment/wallet/settlement change. MantiGO global admin/finance remains blocked.
+
+
+## Pass 1010–1019 — critical Edge Function parity
+
+- Live `index.ts` source compared byte-for-byte with main for 11 critical Edge Functions.
+- Exact matches: api v17, order-status-update v4, payment-webhook v3, smm-gateway v13 (4/11).
+- Mismatches: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3, directory-listings v16 (7/11).
+- Do not deploy mismatched functions individually; schema release remains 0/62 and payment/finance/backup prerequisites remain incomplete.
+- No Edge function or Production resource changed. Detailed evidence in `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20261119.md`.
