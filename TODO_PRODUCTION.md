@@ -3033,7 +3033,7 @@ Evidence: `docs/audits/PASS_1080_1089_POST_MERGE_DEPLOY_AND_R7_INTAKE_RECONCILIA
 - [x] 1096 — Reviewed preview_commission_backend and upsert_catalog_item_and_price_backend plus their delegated membership checks; no platform-admin bypass concluded from the inspected definitions.
 - [x] 1097 — Created complete P0 tracking issue #852; accidental duplicate #853 was closed as duplicate.
 - [x] 1098 — Completed post-merge Pages deployed-origin browser verification and dashboard browser E2E for PR #851 merge commit. Pages run 44576045283 success; Primary Catalog run 44576045269 success.
-- [ ] 1099 — Next implementation: isolate one additive R7-only visual component in Preview only if it has no privileged state/API dependency; otherwise proceed with 63-version migration reconciliation and production release prerequisites.
+- [x] 1099 — Completed the R7 screen-to-current-main map and selected the safe next lane as migration reconciliation rather than importing another R7 component; no R7 code imported. Exact 63-source/60-object crosswalk is merged in PR #856.
 
 Evidence: `docs/audits/PASS_1090_1099_R7_CONTRACT_MAP_AND_SHARED_AUTHORIZATION_RECHECK_20261119.md`, Issue #852, PR #851, Actions runs 44576045283 and 44576045269. Full platform remains BLOCKED / NOT CERTIFIED.
 
@@ -3048,7 +3048,7 @@ Evidence: `docs/audits/PASS_1090_1099_R7_CONTRACT_MAP_AND_SHARED_AUTHORIZATION_R
 - [x] 1105 — Re-read physical object manifest: 60 required granular object contracts, 30 physically present and 30 absent; semantic contract states 28 PASS and 32 BLOCKED. Presence alone does not establish body/ACL/search_path/runtime correctness.
 - [x] 1106 — Confirmed RC464/RC471 platform-admin fixes and other source migrations remain source-only; no Production migration or ledger write was attempted.
 - [x] 1107 — Confirmed no Production database, Auth, RLS, GRANT, Edge, payment, wallet, settlement or customer data mutation during this continuation.
-- [ ] 1108 — Next: build exact migration/alias/object release matrix for all 63 versions, identify dependencies and physical effects, then complete isolated chronological replay and restore evidence.
+- [x] 1108 — Built and merged the exact 63-version source-file/60-object crosswalk in PR #856; all 63 source files map to the canonical manifest. Two aliases and physical-effect distinctions are preserved. Isolated replay and restore evidence remain separate release gates.
 - [ ] 1109 — Keep full platform release BLOCKED / NOT CERTIFIED until backup/restore, migration identity, Edge parity, authorization, payment/finance E2E and operational monitoring gates pass.
 
 Evidence: `docs/audits/PASS_1090_1099_R7_CONTRACT_MAP_AND_SHARED_AUTHORIZATION_RECHECK_20261119.md`, `docs/release/production-migration-reconciliation.json`, PR #854, Actions runs 44576045283 and 44576045269, Issue #852.
@@ -3063,8 +3063,24 @@ Evidence: `docs/audits/PASS_1090_1099_R7_CONTRACT_MAP_AND_SHARED_AUTHORIZATION_R
 - [x] 1114 — Confirmed live subscription-payment-intent lacks claim-based provider creation, encrypted checkout recovery and shared Paymob response validation; main includes these contracts.
 - [x] 1115 — Confirmed live digital-page-payment-intent lacks provider-order binding and matchesPaymobIntention; main includes both.
 - [x] 1116 — Confirmed live financial-journal v3 uses wildcard CORS and legacy post_financial_journal RPC, while main uses allowlisted CORS and actor-bound post_financial_journal_backend. Read-only live ACL/body checks show RC449A/RC450 journal schema/RPC contract is not live and service_role cannot execute either current journal RPC.
-- [x] 1117 — Confirmed order-create v8 differs from main (10,083 vs 13,988 bytes); both inspected bundles retain auth, tenant/business/branch, idempotency and origin markers. Full semantic diff remains required; no vulnerability is inferred from byte difference alone.
+- [x] 1117 — Completed semantic diff of order-create v8: live lacks main's 256 KiB body cap, strict request/metadata validation, exact branch membership check and selected-option validation. Live create_order_backend still has the old auth.uid() actor guard, incompatible with the service-role Edge call; RC105 source changes this but is absent from the live ledger. No order request was invoked.
 - [x] 1118 — Read-only counts show zero rows in payment_intents, payment_provider_events, business_subscriptions and digital_page_payment_events at inspection time. No payment, journal or financial write was executed.
 - [x] 1119 — Created P0 issue #857 for coordinated payment/order/finance Edge and migration parity. No Edge deployment or Production migration performed.
 
 Evidence: `docs/audits/PASS_1110_1119_LIVE_EDGE_PAYMENT_FINANCE_PARITY_20261119.md`, Issue #857, `docs/runbooks/RC450_FINANCIAL_JOURNAL_ROLLOUT.md`, and live Supabase Edge/function/ACL read-only inspection. Full platform remains BLOCKED / NOT CERTIFIED.
+
+
+## Pass 1120–1129 — order-create live RPC identity and source parity follow-up (2026-11-19)
+
+- [x] 1120 — Completed line-level live order-create v8 versus main comparison.
+- [x] 1121 — Confirmed deployed order-create v8 lacks current main's 256 KiB request-body streaming cap and strict JSON/object/customer/metadata validation.
+- [x] 1122 — Confirmed deployed v8 does not bind staff membership to the exact requested branch; current main adds the branch_id predicate.
+- [x] 1123 — Confirmed deployed v8 lacks catalog item ID length and selected-option count/length/uniqueness validation plus controlled OPTION_ITEM_MISMATCH handling.
+- [x] 1124 — Read-only Production pg_proc inspection confirmed live create_order_backend remains the older SECURITY DEFINER body with unconditional auth.uid() = p_customer_id actor check; service_role EXECUTE is true.
+- [x] 1125 — Confirmed live order-create invokes create_order_backend through a service-role client after admin.auth.getUser(token); this does not forward the end-user auth.uid() to the RPC context.
+- [x] 1126 — Confirmed current main RC105 migration changes the backend guard to allow verified auth.role()='service_role' while retaining actor binding for non-service callers; exact RC105 version remains absent from live ledger.
+- [x] 1127 — Classified the live order-create → RPC path as expected to reject with CUSTOMER_REQUIRED until approved RC105 rollout; no order request was invoked.
+- [x] 1128 — Added detailed evidence to P0 issue #857 and PR #858 review thread.
+- [x] 1129 — No Production order, migration, grant, Edge deployment, payment or financial write performed.
+
+Evidence: PR #858, Issue #857 comment 7016846894, `supabase/migrations/20261023050000_rc105_order_create_service_role_identity.sql`, live `create_order_backend` definition and Edge v8 source retrieval. Full platform remains BLOCKED / NOT CERTIFIED.
