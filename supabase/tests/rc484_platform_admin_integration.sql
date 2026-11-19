@@ -1,4 +1,6 @@
 -- RC484 behavioral acceptance. Run only after rc484_platform_admin_fixture.sql + RC484 migration.
+SET ROLE authenticated;
+
 DO $test$
 DECLARE
   v_count integer;
@@ -35,7 +37,6 @@ BEGIN
     RAISE EXCEPTION 'RC484_AUTHENTICATED_HELPER_EXECUTE_MISSING';
   END IF;
 
-  EXECUTE 'SET LOCAL ROLE authenticated';
   PERFORM pg_catalog.set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000001',true);
   IF public.is_platform_admin() THEN
     RAISE EXCEPTION 'RC484_TENANT_ADMIN_MUST_NOT_BE_PLATFORM_ADMIN';
@@ -64,3 +65,5 @@ BEGIN
   END IF;
 END;
 $test$;
+
+RESET ROLE;
