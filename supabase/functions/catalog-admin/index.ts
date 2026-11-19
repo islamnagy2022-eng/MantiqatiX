@@ -201,7 +201,19 @@ Deno.serve(async (req: Request) => {
     if (membershipError) throw membershipError;
 
     const activeMemberships = memberships || [];
-    const hasPlatformScope = activeMemberships.some(isPlatformAdmin);
+    const hasPlatformAdminMembership = activeMemberships.some(isPlatformAdmin);
+    // A SUPER_ADMIN membership is not, by itself, platform-root authority.
+    // Confirm the caller against private.platform_admins through the caller JWT.
+    // The shared RPC is canonicalized by RC464; any RPC error fails closed.
+    let hasRegisteredPlatformRoot = false;
+    if (hasPlatformAdminMembership) {
+      const { data: registryResult, error: registryError } = await userClient.rpc("mnty_can_platform_admin");
+      hasRegisteredPlatformRoot = !registryError && registryResult === true;
+      if (registryError) {
+        console.error("catalog-admin platform registry check failed", { code: registryError.code });
+      }
+    }
+    const hasPlatformScope = hasRegisteredPlatformRoot && hasPlatformAdminMembership;
 
     if (action === "BUSINESS_LIST") {
       const tenantOwnerScope = tenantId && activeMemberships.some((m: any) =>
@@ -262,7 +274,7 @@ Deno.serve(async (req: Request) => {
       ) &&
       (!m.branch_id || String(m.branch_id) === String(branchId || ""))
     );
-    const scopedPlatformMembership = activeMemberships.some((m: any) =>
+    const scopedPlatformMembership = hasRegisteredPlatformRoot && activeMemberships.some((m: any) =>
       String(m.tenant_id) === tenantId && isPlatformAdmin(m)
     );
     const hasBusinessScope = businessMemberships.length > 0 || scopedPlatformMembership;
