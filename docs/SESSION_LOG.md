@@ -3130,3 +3130,12 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - Verified startup skips local JSON DB initialization in production.
 - `npm run test:security`: PASS; syntax-only TS/TSX transpilation: 95 files, 0 parse errors.
 - Full typecheck/build/unit/integration/E2E/Android remain unverified. Actual Supabase Auth/scope authorization and Paymob HMAC/payment repair remain P0. No production mutation.
+
+
+## Pass 960–969 — Android WebView containment
+
+- Corrected the earlier inaccurate audit note: MainActivity.kt exists in the original archive.
+- Hardened WebView exact-origin navigation, external link handoff, unsafe schemes, TLS error handling, file/content/mixed-content settings and removed JavaScript bridge.
+- Disabled Android backup; added root Gradle settings/properties, ProGuard and vector icon resources.
+- Three static security checks PASS; Android XML parse PASS. Gradle wrapper and native build/runtime verification remain missing.
+- R7 remains blocked; no production database/Auth/RLS/Edge/payment/wallet/settlement/catalog changes.
