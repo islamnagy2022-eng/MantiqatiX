@@ -3203,3 +3203,14 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 ### Directory Edge bundle parity
 
 Live directory-listings v16 has 3/5 required source files; missing consent-pagination.mjs and public-directory-output-contract.mjs. Release gate now requires full bundle parity and all required files, not just index.ts match.
+
+
+## Pass 1040–1049 — verified post-merge recheck
+
+- Merged PR #845 after all exact-head checks completed: 40 success, 2 skipped, zero failures; browser E2E/build/consent PostgreSQL/doctor import/forward replay passed.
+- Main now at `18de15f4ea280e85c995d33fd84b3ac00f5ac4f3`.
+- Fresh read-only Production evidence: 310 migrations through `20261110150618`; 869 published directory rows with phone/address; 178 secondary phones; consent tables absent.
+- Recompared seven critical Edge entrypoints: all mismatch current main. Directory live v16 missing two required runtime helper modules.
+- No Production mutation. Coordinated database + complete Edge release remains blocked.
+
+Evidence: `docs/audits/PASS_1040_1049_POST_MERGE_LIVE_BUNDLE_RECHECK_20261119.md`.
