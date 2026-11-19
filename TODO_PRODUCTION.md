@@ -2893,3 +2893,19 @@ Evidence: `docs/audits/PASS_990_999_PRODUCTION_RELEASE_RECHECK_20261119.md`. Sco
 - [ ] 1009 — Re-run live adversarial authorization, financial schema, ACL, audit atomicity and idempotency checks after the authorized release. No Production mutation occurred.
 
 Evidence: `docs/audits/PASS_1000_1009_MANTIGO_PLATFORM_ADMIN_LIVE_RECHECK_20261119.md`. MantiGO global admin/finance remains BLOCKED.
+
+
+## Pass 1010–1019 — critical Edge Function source parity recheck (2026-11-19)
+
+- [x] 1010 — Listed live Edge Functions in the canonical ACTIVE_HEALTHY Supabase project.
+- [x] 1011 — Retrieved live source for 11 critical entrypoints and compared each `index.ts` byte-for-byte with main.
+- [x] 1012 — Confirmed exact parity for `api` v17, `order-status-update` v4, `payment-webhook` v3 and `smm-gateway` v13.
+- [x] 1013 — Confirmed mismatches for `order-create` v8, `payment-intent` v8, `paymob-webhook` v10, `digital-page-payment-intent` v5, `subscription-payment-intent` v4, `financial-journal` v3 and `directory-listings` v16.
+- [x] 1014 — Classified this as source-parity drift, not proof of an exploit; payment/order/finance/public-directory replacements are blocked pending dependency reconciliation.
+- [x] 1015 — Confirmed the 62-version database contract remains 0/62 live; critical object, payment/finance E2E and backup/restore blockers remain.
+- [ ] 1016 — Reconcile each mismatched function's complete bundle/imports/config/secrets and verify_jwt behavior against its ordered database release.
+- [ ] 1017 — Run disposable and live negative-path authorization tests plus Paymob sandbox callback/idempotency tests before deployment.
+- [ ] 1018 — Deploy only as a coordinated, approved release with rollback evidence; do not deploy mismatched functions individually.
+- [ ] 1019 — Re-run exact live bundle parity and post-deploy adversarial checks. No Edge function or Production resource was changed in this pass.
+
+Evidence: `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20261119.md`. Edge parity remains PARTIAL / BLOCKED.
