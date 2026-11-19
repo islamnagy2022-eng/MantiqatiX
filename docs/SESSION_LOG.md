@@ -3251,3 +3251,17 @@ Evidence: `docs/audits/RC464B_ORDERS_POLICY_PREFLIGHT_PORT_20261119.md` and `TOD
 - Next: map R7 UI/screen/field/API contracts to current Supabase catalog services and selectively port safe UI into isolated Preview.
 
 Evidence: `docs/audits/PASS_1080_1089_POST_MERGE_DEPLOY_AND_R7_INTAKE_RECONCILIATION_20261119.md`.
+
+
+## Pass 1090–1099 — R7 UI/API map and shared authorization boundary recheck (2026-11-19)
+
+- PR #851 merged as 75b2e1060c3b1c71a3837d139a5c875927af2467; exact-head CI 32 success, 2 expected skipped, 0 failures.
+- Mapped R7 Directory, Catalog, Business Profile, Search, Dashboards, Merchant, Mobile, Map, Cart, Commission, Auth, Messages, MantyGo, Booking/Payment, Wallet, Marketing and operator controls against current-main components and trust boundaries.
+- Inspected R7 App.tsx, AppContext.tsx and supabaseClient.ts. Reconfirmed localStorage authority, demo credential role switcher, legacy /api calls and browser service-role-key fallback; archive remains reference-only.
+- Read-only live Production audit: mnty_can_platform_admin still delegates to generic mnty_can('admin',NULL,NULL,NULL); four additional SECURITY DEFINER callers and five RLS policies depend on it.
+- Targeted safe-helper review: commission preview is tenant/finance-membership checked; catalog item and price writes enforce auth.uid() and tenant/business/branch checks in delegated functions.
+- Created P0 issue #852; duplicate #853 closed as duplicate.
+- No Production writes and no R7 code import.
+- Post-merge Pages deployed-origin Playwright and dashboard browser E2E still running at checkpoint.
+
+Evidence: docs/audits/PASS_1090_1099_R7_CONTRACT_MAP_AND_SHARED_AUTHORIZATION_RECHECK_20261119.md.

@@ -3020,3 +3020,19 @@ Evidence: `docs/audits/RC464B_ORDERS_POLICY_PREFLIGHT_PORT_20261119.md`. The rea
 - [ ] 1089 — Next: produce a file-level R7 UI/screen/field/API map against the current Supabase-backed catalog and select additive UI-only components for isolated Preview; retain all R7 backend routes as disabled/untrusted until replaced by verified contracts.
 
 Evidence: `docs/audits/PASS_1080_1089_POST_MERGE_DEPLOY_AND_R7_INTAKE_RECONCILIATION_20261119.md`, PR #849, Actions runs 44573397535 and 44573397564, and `docs/audits/R7_ARCHIVE_11_INTAKE_20261118.md`. Full platform release remains BLOCKED / NOT CERTIFIED.
+
+
+## Pass 1090–1099 — R7 UI/API map and shared authorization boundary recheck (2026-11-19)
+
+- [x] 1090 — PR #851 merged to main as `75b2e1060c3b1c71a3837d139a5c875927af2467`; exact-head CI passed with 32 success, 2 expected skipped, 0 failures.
+- [x] 1091 — Re-opened exact uploaded R7 archive and inspected App.tsx, AppContext.tsx, supabaseClient.ts and key screens. Mapped principal R7 screens to current-main counterparts and identified safe visual-only candidates versus privileged/legacy gaps.
+- [x] 1092 — Reconfirmed R7 localStorage as authority for business/product/subscriber/sales/session/orders/settings and local role-derived permissions; rejected for production integration.
+- [x] 1093 — Reconfirmed direct demo login switcher and browser service-role fallback in R7 source; no R7 source imported.
+- [x] 1094 — Read-only Production pg_proc review reconfirmed mnty_can_platform_admin() delegates to generic mnty_can('admin',NULL,NULL,NULL), with authenticated EXECUTE and search_path public, pg_temp.
+- [x] 1095 — Enumerated four additional authenticated SECURITY DEFINER callers of that helper: admin_create_global_ad, fulfill_digital_page_publish, review_mantigo_captain_application, set_mantigo_financial_config_backend; five RLS policies also depend on the helper.
+- [x] 1096 — Reviewed preview_commission_backend and upsert_catalog_item_and_price_backend plus their delegated membership checks; no platform-admin bypass concluded from the inspected definitions.
+- [x] 1097 — Created complete P0 tracking issue #852; accidental duplicate #853 was closed as duplicate.
+- [ ] 1098 — Complete post-merge Pages deployed-origin browser verification and dashboard browser E2E for PR #851 merge commit.
+- [ ] 1099 — Next implementation: isolate one additive R7-only visual component in Preview only if it has no privileged state/API dependency; otherwise proceed with 63-version migration reconciliation and production release prerequisites.
+
+Evidence: `docs/audits/PASS_1090_1099_R7_CONTRACT_MAP_AND_SHARED_AUTHORIZATION_RECHECK_20261119.md`, Issue #852, PR #851, Actions runs 44576045283 and 44576045269. Full platform remains BLOCKED / NOT CERTIFIED.
