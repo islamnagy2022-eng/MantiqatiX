@@ -92,14 +92,14 @@ function hasAgeHeader(filePath) {
   try {
     const buffer = Buffer.alloc(24);
     const bytesRead = fs.readSync(fd, buffer, 0, buffer.length, 0);
-    return buffer.subarray(0, bytesRead).toString("utf8").startsWith("age-encryption.org/v1\\n");
+    return buffer.subarray(0, bytesRead).toString("utf8").startsWith("age-encryption.org/v1\n");
   } finally {
     fs.closeSync(fd);
   }
 }
 
 function rejectPlaintextBackupFiles(root, manifestPath) {
-  const forbidden = /\\.(sql|dump|backup|tar|tar\\.gz|zip)$/i;
+  const forbidden = /\.(sql|dump|backup|tar|tar\.gz|zip)$/i;
   const walk = directory => {
     for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
       const candidate = path.join(directory, entry.name);
@@ -213,7 +213,7 @@ async function main() {
     Date.parse(manifest.backup_finished_at) >= Date.parse(manifest.backup_started_at),
     "backup timestamps are invalid");
   requireCondition(typeof manifest.backup_destination === "string" &&
-    /^(s3|https?):\\/\\//i.test(manifest.backup_destination) &&
+    /^(s3|https?):\/\//i.test(manifest.backup_destination) &&
     !manifest.backup_destination.includes("@") &&
     !manifest.backup_destination.includes("?"),
     "backup destination must be a non-secret off-site URI without embedded credentials or query tokens");
