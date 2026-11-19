@@ -3090,3 +3090,13 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - Confirmed finance audited-transaction accepts caller-supplied actorId/actorRole and defaults actorRole to super_admin before applying a local JSON ledger mutation.
 - Explicitly treated the scan as a route-screening signal, not proof that all 54 routes are exploitable; public contact/payment ingress require explicit allowlisted contracts.
 - No R7 source edit, Production DB/Auth/RLS/GRANT/Edge/payment/wallet/site mutation. R7 remains untrusted and not deployable.
+
+
+## Pass 920–929 — R7 API route policy register
+
+- Extracted and indexed 113 API routes from the immutable archive; identified 73 mutating declarations.
+- Preserved the 54-handler static-screening signal with explicit caveat that it is not a confirmed exploit count.
+- Proposed one required policy class per route; marked actual enforcement NOT PROVEN and every R7 route as release-blocked.
+- Added a route inventory report and Node consistency validator plus a dedicated Actions workflow.
+- Kept the deployed catalog and Production systems untouched. The change is documentation/CI-only.
+- Next: validate the exact PR head, then begin isolated Supabase Auth and route contract implementation only after the R7 trust boundary is redesigned. Keep production MantiGO/DB release blockers separate.
