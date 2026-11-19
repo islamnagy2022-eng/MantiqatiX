@@ -25,6 +25,8 @@
 - Vault: **2 encrypted secrets** and **4 public functions** referencing Vault. The Vault extension is installed; `pgsodium` is not.
 - Supabase documents that Vault's encryption key is stored in its secured backend, not alongside database ciphertext. A database dump alone does not prove those secrets can be decrypted in a different project.
 
+- External-call inventory: one enabled trigger on `public.notifications` (`mnty_notifications_push_after_insert`) invokes `mnty_push_notification_hook()` and the `mnty-push-dispatch` Edge Function through `pg_net`. Keep this trigger disabled in the disposable restore until Vault secrets and Edge configuration are verified; Production was not changed.
+
 ## Work completed
 
 - Added `docs/runbooks/PRODUCTION_BACKUP_RESTORE_RC484_20261119.md`.
