@@ -5,6 +5,8 @@ const migration=readFileSync("supabase/migrations/20261119040000_rc484_registry_
 const fixture=readFileSync("supabase/tests/rc484_platform_admin_fixture.sql","utf8");
 const integration=readFileSync("supabase/tests/rc484_platform_admin_integration.sql","utf8");
 const workflow=readFileSync(".github/workflows/platform-admin-rls-helper.yml","utf8");
+const replayWorkflow=readFileSync(".github/workflows/forward-migration-chain-replay.yml","utf8");
+const replayOverlay=readFileSync("supabase/tests/baselines/rc484_live_storage_policy_overlay_fixture.sql","utf8");
 const gate=readFileSync("scripts/production/live-reconciliation-contract.mjs","utf8");
 const chain=readFileSync("scripts/validate-production-migration-chain-gate.mjs","utf8");
 
