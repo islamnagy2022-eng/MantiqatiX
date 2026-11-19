@@ -485,7 +485,7 @@ Evidence boundary: read-only catalog and aggregate checks only. No Production SQ
 Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The live MantiGO platform-admin authorization gap (4 active non-registry BUSINESS_OWNER users), the 62 missing required migration versions, live object drift, backup/restore rehearsal, payment/finance E2E, and the HEALTH_MONITOR_TOKEN setup remain open release blockers.
 
 
-## Pass 861–865 — Catalog Admin platform-root registry enforcement (2026-11-19)
+## Pass 861–867 — Catalog Admin platform-root registry enforcement (2026-11-19)
 
 - [x] 861 — Re-read the live `mnty_can_platform_admin()` definition and confirmed it still delegates to null-scope `mnty_can('admin',NULL,NULL,NULL)`; no production mutation was made.
 - [x] 862 — Reviewed RC464 and RC471 migration definitions and RC464 static/disposable integration contracts; both source migrations implement registry-only authority from `private.platform_admins`, with empty search_path and constrained EXECUTE.
@@ -499,5 +499,4 @@ Production remains **BLOCKED / NOT CERTIFIED**. The live helper remains weak unt
 
 
 - [x] 866 — Audited the uploaded R7 archive (11), SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`. Source review found P0 authentication, privileged API, token minting, registration verification, secret fallback, wallet mutation and localStorage-authority defects. The archive is not safe for wholesale merge/deployment; its UI/assets/features may be selectively ported. Audit: `docs/audits/R7_ARCHIVE_11_SECURITY_REVIEW_20261119.md`.
-
 - [x] 867 — Retrieved live `catalog-admin` Edge Function source and compared it with current `main`: Production remains ACTIVE v20, and the deployed entrypoint does not contain the merged registry guard; main does. The live helper is also still weak. Recorded the exact bundle hash and source comparison in the reconciliation manifest. No Edge deployment performed.
