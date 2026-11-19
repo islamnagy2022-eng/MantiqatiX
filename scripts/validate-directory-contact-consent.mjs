@@ -125,6 +125,9 @@ const checks = [
   ["live reconciliation manifest explicitly remains blocked on current directory exposure",
     release.directory_contact_consent_boundary?.status === "BLOCKED" &&
     release.directory_contact_consent_boundary?.live_function?.version === 16 &&
+    release.directory_contact_consent_boundary?.live_function?.complete_bundle_match === false &&
+    release.directory_contact_consent_boundary?.live_function?.missing_live_files?.includes("consent-pagination.mjs") &&
+    release.directory_contact_consent_boundary?.live_function?.missing_live_files?.includes("public-directory-output-contract.mjs") &&
     release.directory_contact_consent_boundary?.consent_table?.exists === false &&
     release.directory_contact_consent_boundary?.published_contact_rows_without_consent_exposure === 869],
   ["only a claimed listing owner or active business owner can change consent",
