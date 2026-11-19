@@ -57,3 +57,14 @@ The working copy still has only the manifest and Gradle build file in `android-w
 6. Complete the Android project structure and WebView origin/bridge/backup restrictions before any mobile release.
 
 **No Production DB/Auth/RLS/GRANT/Edge/payment/wallet/settlement or deployed catalog change was made by this review. The live catalog remains the only approved public release surface.**
+
+
+## Addendum — R7 fail-closed production gate revalidation (2026-11-19, Pass 950–959)
+
+The isolated working copy was re-opened after the earlier partial-secret review. Its current `server.ts` SHA-256 is `bd511d6cf6effaba185d82e9e0861fdee8cb4f7e554de7d42ed1fbfd8df923dc`; this supersedes the earlier working-copy server hash `073640d8bf7f29d7ead2e263b612e0dec66ebb35d9ad28ae0caa9a1b31e25a02` recorded before the additional gate edit.
+
+The current source now includes a hard-coded closed production API gate: in `NODE_ENV=production`, every `/api/*` request except `GET /api/health` is rejected with HTTP 503 and `R7_PRODUCTION_RELEASE_BLOCKED`; the health route itself returns HTTP 503 with `BLOCKED_NOT_CERTIFIED`. The gate is registered before route declarations. Production startup skips `ensureProductionDb()`, so the local JSON store is not initialized/read by startup. The gate is containment only; it does not authenticate Supabase users, establish tenant/branch/platform scope, or make the remaining routes safe to enable.
+
+Revalidation on the current working copy: `npm run test:security` PASS (`BROWSER_SUPABASE_CLIENT_SECURITY_PASS`, `SERVER_SECRET_CONTRACT_PASS`); TypeScript/TSX syntax-only transpilation PASS for 95 files with 0 parse errors. No full TypeScript type-check, Vite build, dependency-backed unit/integration tests, browser E2E, or Android build is claimed. `node_modules` is absent and the prior npm install attempt timed out.
+
+Remaining critical findings are unchanged: no verified Supabase Auth/tenant/branch/platform authorization; unsafe local snapshot/token/admin/wallet/ledger/finance route implementations remain in source but are contained by the closed production API gate; pseudo-HMAC/Paymob callback handling is not production-valid; Android wrapper is incomplete and `allowBackup=true`. No Production resources or deployed catalog were changed. R7 remains BLOCKED / NOT DEPLOYABLE.
