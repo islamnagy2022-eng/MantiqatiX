@@ -441,6 +441,23 @@ const results = [];
     assert.equal(await nav.getAttribute('data-testid'), 'mantiqatix-primary-navigation', 'the V4 navigation shell must expose a stable browser-test hook');
     assert.equal(await nav.getByRole('button', { name: 'الرئيسية', exact: true }).count(), 1, 'the marketplace homepage must have a distinct navigation tab');
     assert.equal(await nav.getByRole('button', { name: 'بحث الأنشطة والخدمات', exact: true }).count(), 1, 'activity and service search must have a distinct navigation tab');
+
+    // The brand/home control must be a native keyboard-operable button, not a clickable div.
+    const brandHome = page.getByRole('button', { name: 'العودة إلى دليل الأنشطة والخدمات', exact: true });
+    await brandHome.focus();
+    await page.keyboard.press('Enter');
+    await page.getByRole('heading', { name: /اكتشف كافة المشاريع والخدمات في/ }).waitFor({ state: 'visible', timeout: 15000 });
+    assert.equal(new URL(page.url()).searchParams.get('view'), 'directory', 'Enter on the brand control must open the public directory');
+    await nav.getByRole('button', { name: 'الرئيسية', exact: true }).click();
+    await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
+
+    await brandHome.focus();
+    await page.keyboard.press('Space');
+    await page.getByRole('heading', { name: /اكتشف كافة المشاريع والخدمات في/ }).waitFor({ state: 'visible', timeout: 15000 });
+    assert.equal(new URL(page.url()).searchParams.get('view'), 'directory', 'Space on the brand control must open the public directory');
+    await nav.getByRole('button', { name: 'الرئيسية', exact: true }).click();
+    await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
+
     await nav.getByRole('button', { name: 'بحث الأنشطة والخدمات', exact: true }).click();
     await page.getByRole('heading', { name: /اكتشف كافة المشاريع والخدمات في/ }).waitFor({ state: 'visible', timeout: 15000 });
     const directorySearchPanel = page.getByTestId('directory-search-panel');
