@@ -5,7 +5,7 @@ on:
       - "**"
     paths:
       - "supabase/migrations/20261113220000_rc464b_orders_select_policy_preflight.sql"
-      "supabase/migrations/20261114010000_rc465_orders_read_scope_hardening.sql"
+      - "supabase/migrations/20261114010000_rc465_orders_read_scope_hardening.sql"
       - "supabase/tests/rc465_orders_read_scope_*.sql"
       - "scripts/validate-rc465-orders-read-scope.mjs"
       - ".github/workflows/rc465-orders-read-scope.yml"
@@ -13,7 +13,7 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/20261113220000_rc464b_orders_select_policy_preflight.sql"
-      "supabase/migrations/20261114010000_rc465_orders_read_scope_hardening.sql"
+      - "supabase/migrations/20261114010000_rc465_orders_read_scope_hardening.sql"
       - "supabase/tests/rc465_orders_read_scope_*.sql"
       - "scripts/validate-rc465-orders-read-scope.mjs"
       - ".github/workflows/rc465-orders-read-scope.yml"
