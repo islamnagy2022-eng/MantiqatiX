@@ -4660,7 +4660,14 @@
         "index.ts",
         "pagination-filter.mjs",
         "doctor-import-contract.mjs"
-      ]
+      ],
+      "complete_bundle_match": false,
+      "required_files_present": false,
+      "missing_live_files": [
+        "consent-pagination.mjs",
+        "public-directory-output-contract.mjs"
+      ],
+      "unexpected_live_files": []
     },
     "public_data_aggregate": {
       "published_rows": 869,
@@ -4685,6 +4692,13 @@
       "public-directory-output-contract.mjs",
       "consent-pagination.mjs"
     ],
-    "reason": "Live directory-listings v16 returns phone/address in anonymous GET responses without the main-source consent-aware sanitizer. The RC473 consent table is absent. Main frontend exposes an owner consent action not supported by the live function."
+    "reason": "Live directory-listings v16 returns phone/address in anonymous GET responses without the main-source consent-aware sanitizer. The RC473 consent table is absent. Main frontend exposes an owner consent action not supported by the live function.",
+    "required_main_source_files": [
+      "index.ts",
+      "doctor-import-contract.mjs",
+      "pagination-filter.mjs",
+      "consent-pagination.mjs",
+      "public-directory-output-contract.mjs"
+    ]
   }
 }
