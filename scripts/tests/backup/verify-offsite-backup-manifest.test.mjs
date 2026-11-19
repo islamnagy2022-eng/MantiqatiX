@@ -180,3 +180,27 @@ test("unverified off-site separation is blocked",t=>{
   assert.notEqual(r.status,0);
   assert.match(r.stderr,/second-environment retrieval/);
 });
+
+
+test("backup manifest and encrypted artifacts cannot be stored in the repository",t=>{
+  const root=fs.mkdtempSync(path.join(process.cwd(),"backup-gate-inside-repo-"));
+  t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+  const outside=fixture(t);
+  const insideManifest=path.join(root,"manifest.json");
+  fs.copyFileSync(outside.manifestPath,insideManifest);
+  const r=spawnSync(process.execPath,[script,insideManifest],{
+    encoding:"utf8",
+    env:{...process.env,AGE_IDENTITY_FILE:outside.identity}
+  });
+  assert.notEqual(r.status,0);
+  assert.match(r.stderr,/stored outside the Git repository/);
+});
+
+test("restore reviewer cannot be the backup operator",t=>{
+  const f=fixture(t);
+  f.manifest.restore_rehearsal.reviewer=f.manifest.backup_operator;
+  fs.writeFileSync(f.manifestPath,JSON.stringify(f.manifest));
+  const r=invoke(f);
+  assert.notEqual(r.status,0);
+  assert.match(r.stderr,/separate from the backup operator/);
+});
