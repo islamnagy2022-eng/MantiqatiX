@@ -1,3 +1,14 @@
+## Latest verified checkpoint — Pass 892–899 — 2026-11-19
+
+- PR #832 already merged Pass 884–891's live Paymob-webhook MantiGO drift record to main as `dbfd3e4bb995166ccb7aeeca1e16d7c4ba5d2fd4`; this continuation adds a distinct digital-page provider-order regression guard rather than duplicating that report.
+- Digital-page live/source recheck: ACTIVE `digital-page-payment-intent` v5 still uses the legacy four-argument finalizer and does not persist provider_order_id; ACTIVE `paymob-webhook` v10 looks up by unsigned merchant_order_id but does not compare the selected order's stored provider_order_id with HMAC-covered order.id; the live SECURITY DEFINER processor is the exact legacy RC424 body (MD5 `a5e65a21d159846e2814c82bb89925ce`, 2,997 chars) without provider-order, transaction-event or event-lock guards.
+- Live digital-page order count = 0, Paymob order count = 0, pending Paymob orders = 0, payment events = 0. No exploitation or customer impact observed. Keep digital-page checkout disabled pending the coordinated repair.
+- Current main source contains the full correction through RC426/RC431/RC468/RC470: strict Paymob intention matching, five-argument provider-order finalizer, webhook comparison to signed order.id before RPC, and DB processor equality/transaction/replay guards with empty search_path and service_role-only EXECUTE.
+- Added regression assertions to `scripts/validate-digital-pages-boundaries.mjs` for HMAC field trust, order binding before processor RPC, RC470 guard, and RC431 mismatch/no-mutation assertions. This script already runs in Pages validation. Exact-head CI is pending.
+- RC426 `20261009130000`, RC431 `20261009180000`, RC468 `20261115030000`, and RC470 `20261117020000` are absent from the live ledger. Full ledger remains 310 rows through `20261110150618`, 0/62 exact required release identifiers.
+- Full evidence: `docs/audits/PASS_892_899_DIGITAL_PAGE_PAYMOB_CORRELATION_REGRESSION_20261119.md`. Source/tests/docs only; no Production database, Auth, RLS, GRANT, Edge Function, payment or site deployment change. Production remains **BLOCKED / NOT CERTIFIED**.
+
+---
 ## Latest verified checkpoint — Pass 884–891 — 2026-11-19
 
 - Fresh Production retrieval confirms `paymob-webhook` is ACTIVE v10, `verify_jwt=false`, deployed entrypoint 11,538 characters and bundle SHA256 `f26fe1580e66c7f8cb9b885d5bccf4a44e49aa74874b3fe28dd7f9c5ed181cca`. Exact match against current main source (12,376 characters) is false.
