@@ -2953,7 +2953,7 @@ Evidence: PR #845 and `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20
 - [x] 1045 — Read-only SQL confirmed 869 published directory rows; all 869 have phone/address and 178 have secondary phone.
 - [x] 1046 — Confirmed public/private contact-consent tables absent and RC472/RC473 unapplied.
 - [x] 1047 — Compared all seven critical Edge entrypoints byte-for-byte; all seven remain mismatched with main.
-- [x] 1048 — Confirmed live directory v16 has 3/5 required runtime files; consent pagination and public output sanitizer modules are missing.
+- [x] 1048 — Reconciled runtime imports: payment-intent, digital-page-payment-intent and subscription-payment-intent depend on two verified `_shared` modules; directory v16 exposes only 3/5 required source modules and omits the consent pagination and public output sanitizer modules. Supabase CLI bundles dependency graphs into ESZip, so the per-function file listing is not misrepresented as the compiled bundle inventory.
 - [x] 1049 — Recorded fresh evidence; no Production database, Edge, Auth, RLS, GRANT, payment or customer-data mutation.
 
 Evidence: `docs/audits/PASS_1040_1049_POST_MERGE_LIVE_BUNDLE_RECHECK_20261119.md`. Enterprise release remains BLOCKED / NOT CERTIFIED.
