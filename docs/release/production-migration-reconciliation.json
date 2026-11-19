@@ -24,8 +24,8 @@
   "payment_finance_e2e": "NOT VERIFIED — read-only inspection found zero rows in public.tenant_payment_methods; provider_secrets were not selected or inspected; sandbox secret presence is not exposed by the available connector; no payment, webhook replay, refund, settlement or finance E2E was initiated. The seven live Edge Function source mismatches must be reconciled before a meaningful sandbox run.",
   "backup_restore_rehearsal": "NOT VERIFIED — the available Supabase connector exposes no backup inventory or restore-rehearsal operation. No backup was restored, no recovery project was created, and RPO/RTO remain unmeasured.",
   "evidence_ref": "docs/audits/PRODUCTION_RECONCILIATION_20261114.md",
-  "checked_at": "2026-11-18",
-  "reason": "BLOCKED / NOT CERTIFIED: live migration ledger has 310 rows through 20261110150618 and 0/61 required exact migration identifiers; current 60-object physical refresh is 30/60 present and 30/60 absent; seven critical Edge Function entrypoints differ from main; payment/finance E2E and backup/restore rehearsal are unverified; RC117 server-side default-image triggers/columns are absent and its historical marketing_services backfill can overwrite custom images; R7 archive (11) still has P0 authentication, persistence, secret and payment-state defects. RC464–RC467 are merged as source and passed isolated replay only; no Production migration or Edge deployment was performed.",
+  "checked_at": "2026-11-19",
+  "reason": "BLOCKED / NOT CERTIFIED: live migration ledger has 310 rows through 20261110150618 and 0/62 required exact migration identifiers; current 60-object physical refresh is 30/60 present and 30/60 absent; seven critical Edge Function entrypoints differ from main; payment/finance E2E and backup/restore rehearsal are unverified; RC117 server-side default-image triggers/columns are absent and its historical marketing_services backfill can overwrite custom images; R7 archive (11) still has P0 authentication, persistence, secret and payment-state defects. RC464–RC467 are merged as source and passed isolated replay only; no Production migration or Edge deployment was performed.",
   "edge_function_contracts": "PARTIAL — six critical live Edge Function entrypoints differ from main. Financial-journal current main source calls post_financial_journal_backend, which is the RPC name/signature defined by canonical RC450; the production blocker is that RC449A/RC450 are absent and the live RPC body/ACL is old, while deployed Edge v3 still calls the legacy post_financial_journal with wildcard CORS. Do not deploy payment/finance functions individually until schema, grants, sandbox E2E and rollback are verified.",
   "smm_gateway_parity": "PARTIAL — live SMM gateway remains ACTIVE v13, verify_jwt=true, and source matches main with SMM_INITIAL_LAUNCH_DEFERRED=true. Anonymous/authenticated negative runtime tests still unverified; keep deferred.",
   "auth_security_settings": "NOT VERIFIED — current connector does not expose project Auth security configuration. The prior 2026-11-06 advisor snapshot reported leaked-password protection disabled; owner-dashboard confirmation and remediation evidence are still required. No Auth settings were changed.",
@@ -116,8 +116,8 @@
   },
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
-    "checked_at": "2026-11-18",
-    "method": "Read-only Supabase list_migrations returned 310 records through 20261110150618. Compared exact source-version identifiers for the 54 prior required release migrations plus RC476, RC477, RC478 and RC479; none of the 58 exact source timestamps are present in the current live ledger snapshot. This identity check does not infer all physical object effects; object presence is checked separately. Do not fabricate ledger rows or replay out-of-order historical migrations. RC480 (20261118210000) is a source-only candidate added after the read-only snapshot; its timestamp is newer than the latest live ledger version and it is explicitly not marked applied. RC481 (20261118220000) is a source-only candidate added after the read-only snapshot; its timestamp is newer than the latest live ledger version and it is not marked applied. RC482 (20261119020000) is a source-only authorization correction added after the read-only 310-row snapshot; its timestamp is newer than the latest live ledger version and it is not applied.",
+    "checked_at": "2026-11-19",
+    "method": "Fresh read-only SELECT against supabase_migrations.schema_migrations, compared against the exact 62 required source-version identifiers in this manifest.",
     "live_ledger_count": 310,
     "latest_live_version": "20261110150618",
     "expected_migration_versions": 62,
@@ -244,13 +244,14 @@
       "20261118050000",
       "20261118060000",
       "20261118070000",
+      "20261118190000",
       "20261118210000",
       "20261118220000",
       "20261119020000",
       "20261119030000"
     ],
     "recorded_required_versions": [],
-    "interpretation": "The latest verified live ledger snapshot remains 310 rows through 20261110150618. RC480, RC481, RC482 and RC483 are source-only candidates with later timestamps and have not been applied; no Production migration or ledger row has been written. RC479 retains its separate historical reconciliation status."
+    "interpretation": "Fresh read-only query confirms 310 live ledger rows through 20261110150618; none of the 62 required release identifiers are recorded. This is a migration-identity mismatch, not proof that every intended physical effect is absent. Physical schema and function/Edge parity must be reconciled independently. Do not fabricate ledger rows or replay the chain blindly."
   },
   "critical_edge_function_source_parity_check": {
     "status": "HISTORICAL_SNAPSHOT_SUPERSEDED",
@@ -4351,7 +4352,7 @@
     "live_membership_aggregate": "The current read-only aggregate found one active ADMIN and one active SUPER_ADMIN user; both users are present in private.platform_admins. No active LEGAL_ADMIN membership row or non-registry ADMIN/SUPER_ADMIN user was found in this aggregate. The authorization predicate remains broader than the intended platform-root registry even though no current non-registry matching actor was observed.",
     "intended_fix": "Use private.platform_admins as the sole root authority in both private.legal_is_admin overloads and require the service-only legal_assert_admin_backend RPC before Legal CMS direct inserts.",
     "note": "Candidate remains unapplied pending disposable PostgreSQL adversarial tests, full chronological migration reconciliation, backup/restore rehearsal, rollback plan and release approval."
-  }  ,
+  },
   "rc483_legal_cms_atomic_create_audit": {
     "migration_version": "20261119030000",
     "source_file": "supabase/migrations/20261119030000_rc483_atomic_legal_cms_create_audit.sql",
@@ -4361,6 +4362,16 @@
     "production_privileges_or_data_changed": false,
     "live_ledger_last_version": "20261110150618",
     "note": "RC483 moves Legal CMS document and draft-version creation plus consent_audit_log writes into two service-role-only SECURITY DEFINER RPCs. Each operation commits or rolls back with its audit row. It computes the SHA-256 content hash in PostgreSQL and revokes the RC481 direct service_role INSERT column grants for legal_documents, legal_document_versions and consent_audit_log while retaining the Legal Center's narrow SELECT allowlists. Disposable tests inject audit failures and prove no unaudited document or version persists."
+  },
+  "latest_live_ledger_snapshot_20261119": {
+    "status": "READ_ONLY_VERIFIED",
+    "checked_at": "2026-11-19",
+    "method": "SELECT count(*), max(version), and exact JOIN/LEFT JOIN comparison against all required_versions in required_release_migration_ledger_check.",
+    "live_ledger_count": 310,
+    "latest_version": "20261110150618",
+    "required_release_versions": 62,
+    "found_required_versions": 0,
+    "missing_required_versions": 62,
+    "production_mutation": "NONE"
   }
 }
-
