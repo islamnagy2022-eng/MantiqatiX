@@ -79,3 +79,13 @@ The current working copy now restricts WebView in-app navigation to exact HTTPS 
 Verification on the isolated working copy: `npm run test:security` PASS for browser client, server secret/API gate and Android WebView checks; Android manifest/drawable XML parsing PASS. MainActivity SHA-256 `7cad176f5ae445c3d6a75e1bd25d42bcbad78a3b94da05315175ade58ce1cde5`; manifest SHA-256 `a777421891496af3d4ceb4589661e0155855cfb88caa2e8e3c0478a710fca123`; Android security checker SHA-256 `18ac37cf048d8b8b5064c767ec2e56dcd544ed36543b50e2814f28dc2d14ca2e`.
 
 The Android Gradle wrapper scripts/JAR are still absent and no native Android build/runtime test was run. Deep links, file chooser, permission flows and external-intent behavior still need native verification. The WebView change is containment, not Android release certification. R7 remains BLOCKED / NOT DEPLOYABLE; no Production resource or deployed catalog was changed.
+
+## Addendum — Paymob payment-integrity containment (Pass 970–979, 2026-11-19)
+
+The isolated R7 working copy was further hardened after identifying a false-payment path. The previous FNV-style pseudo-HMAC generator and local payment-application helper were removed; fake seeded payment intents marked `paid` were removed. The checkout no longer collects card PAN, expiry, CVV, wallet PIN or OTP. Fake local Paymob intention creation, payment history, direct subscription payment, auto-renew mutation and billing sweep now fail closed with HTTP 503.
+
+A server-only transaction callback verifier was added at `src/server/paymobTransactionHmac.mjs`. It uses Paymob's documented 20-field concatenation order, HMAC-SHA512 and timing-safe comparison. The webhook reads `body.obj` and the `hmac` query parameter. Invalid signatures return 403. A valid signature still returns 503 without changing state because the archive does not yet implement official Intention API correlation and atomic Supabase fulfillment; no payment is marked paid.
+
+Verification: all five dependency-free security scripts PASS, including a fixed transaction fixture with tamper/wrong-secret/malformed/missing-field rejection and a static payment-security contract. TypeScript/TSX syntax-only transpilation PASS for 95 files with 0 parse errors. No full typecheck, Vite build, dependency-backed tests, live Paymob transaction, browser E2E or Android build is claimed. Current `server.ts` SHA-256: `da0ba4af7a722624974ad4fcafa38552d742e8912b80f2164f80cc9ba0faa1d3`.
+
+Official contract references: https://developers.paymob.com/paymob-docs/developers/webhook-callbacks-and-hmac/hmac and https://developers.paymob.com/paymob-docs/integration-paths/apis. No Production resource or deployed catalog was changed. R7 remains BLOCKED / NOT DEPLOYABLE.
