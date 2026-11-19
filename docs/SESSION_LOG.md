@@ -3139,3 +3139,11 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - Disabled Android backup; added root Gradle settings/properties, ProGuard and vector icon resources.
 - Three static security checks PASS; Android XML parse PASS. Gradle wrapper and native build/runtime verification remain missing.
 - R7 remains blocked; no production database/Auth/RLS/Edge/payment/wallet/settlement/catalog changes.
+
+## Pass 970–979 — Paymob payment-integrity containment
+
+- Removed FNV-style pseudo-HMAC and local self-confirmation helper; removed fake seeded paid intents.
+- Added server-only SHA-512 HMAC verifier using official Paymob transaction field order and timing-safe compare.
+- Disabled fake intention/history, direct subscription success, auto-renew and billing sweep; webhook cannot mark paid even with valid HMAC until Supabase fulfillment/correlation is implemented.
+- Removed PAN/expiry/CVV/wallet PIN/OTP collection from checkout.
+- Five security scripts PASS; syntax-only TS/TSX transpilation: 95 files, 0 parse errors. No live payment/build/E2E claim; no Production mutation.
