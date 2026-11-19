@@ -2938,6 +2938,22 @@ Evidence: `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20261119.md`. 
 - [x] 1036 — Fixed owner access state: authenticated owners can still view their own contact fields, but edit/consent controls are disabled if the consent registry is unavailable; non-owner scopes are emptied on registry outage.
 - [x] 1037 — Added Arabic UI warning when consent verification is unavailable.
 - [x] 1038 — Ran Node 22 unit tests locally: 12/12 PASS, including a guard that free-text search never searches hidden exact addresses. Full PR CI/build/browser/replay checks are pending.
-- [ ] 1039 — Merge only after exact-head CI passes; do not deploy live directory function or apply RC472/RC473 individually. Live privacy gap remains open until coordinated release.
+- [x] 1039 — PR #845 merged after exact-head CI passed (40 success, 2 skipped, 0 failures); live directory function was not deployed and RC472/RC473 were not applied. Privacy gap remains open until coordinated release.
 
 Evidence: PR #845 and `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20261119.md`. No Production resource was modified.
+
+
+## Pass 1040–1049 — post-merge live bundle and database recheck (2026-11-19)
+
+- [x] 1040 — Verified PR #845 merged into main at `18de15f4ea280e85c995d33fd84b3ac00f5ac4f3`.
+- [x] 1041 — Exact-head PR CI completed: 42 checks, 40 success, 2 skipped, zero failures.
+- [x] 1042 — Browser dashboard E2E, catalog build, directory consent PostgreSQL, doctor import contract and forward migration replay passed.
+- [x] 1043 — Reconfirmed canonical Supabase project ACTIVE_HEALTHY on PostgreSQL 17.6.1.155.
+- [x] 1044 — Re-read 310 live migrations; latest remains `20261110150618`.
+- [x] 1045 — Read-only SQL confirmed 869 published directory rows; all 869 have phone/address and 178 have secondary phone.
+- [x] 1046 — Confirmed public/private contact-consent tables absent and RC472/RC473 unapplied.
+- [x] 1047 — Compared all seven critical Edge entrypoints byte-for-byte; all seven remain mismatched with main.
+- [x] 1048 — Confirmed live directory v16 has 3/5 required runtime files; consent pagination and public output sanitizer modules are missing.
+- [x] 1049 — Recorded fresh evidence; no Production database, Edge, Auth, RLS, GRANT, payment or customer-data mutation.
+
+Evidence: `docs/audits/PASS_1040_1049_POST_MERGE_LIVE_BUNDLE_RECHECK_20261119.md`. Enterprise release remains BLOCKED / NOT CERTIFIED.
