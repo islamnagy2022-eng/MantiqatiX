@@ -7,6 +7,7 @@ const baseline = fs.readFileSync('supabase/tests/rc465_orders_read_scope_baselin
 const integration = fs.readFileSync('supabase/tests/rc465_orders_read_scope_integration.sql', 'utf8');
 const driftSetup = fs.readFileSync('supabase/tests/rc465_orders_read_scope_policy_drift_setup.sql', 'utf8');
 const driftAssert = fs.readFileSync('supabase/tests/rc465_orders_read_scope_policy_drift_assert.sql', 'utf8');
+const driftHistoryAssert = fs.readFileSync('supabase/tests/rc465_orders_read_scope_policy_drift_history_assert.sql', 'utf8');
 const workflow = fs.readFileSync('.github/workflows/rc465-orders-read-scope.yml', 'utf8');
 const aclOverlay = fs.readFileSync('supabase/tests/baselines/production_live_order_status_history_acl_overlay_fixture.sql', 'utf8');
 const replayWorkflow = fs.readFileSync('.github/workflows/forward-migration-chain-replay.yml', 'utf8');
@@ -22,6 +23,7 @@ assert.ok(workflow.includes('RC465_UNEXPECTED_PERMISSIVE_ORDERS_SELECT_POLICY_SE
 assert.ok(workflow.includes('RC465_UNEXPECTED_PERMISSIVE_HISTORY_SELECT_POLICY_SET'));
 assert.ok(driftSetup.includes('rc465_unexpected_orders_select') && driftSetup.includes('rc465_unexpected_history_select'));
 assert.ok(driftAssert.includes('orders_member_select') && driftAssert.includes('order_status_history_member_read'));
+assert.ok(driftHistoryAssert.includes('rc465_unexpected_history_select') && driftHistoryAssert.includes('orders_member_select'));
 assert.match(migration, /relrowsecurity/, 'migration must fail closed if RLS is disabled');
 assert.match(migration, /has_table_privilege\('authenticated', 'public\.orders', 'SELECT'\)/, 'existing authenticated read-only order grant must be present');
 assert.match(migration, /upper\(m\.role\) IN \('OWNER', 'ADMIN'\)[\s\S]*?m\.business_id IS NULL[\s\S]*?m\.branch_id IS NULL/, 'tenant-wide access must require fully unscoped OWNER/ADMIN');
