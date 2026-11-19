@@ -2801,3 +2801,19 @@ Evidence: `docs/audits/PASS_930_939_PRODUCTION_SUPABASE_AUTH_ADVISOR_RECHECK_202
 - [ ] 949 — Implement Supabase Auth and trusted scope authorization for R7 APIs, then run adversarial tests. No runtime authorization code was changed in this pass.
 
 Evidence: `docs/audits/R7_PARTIAL_SECRET_HARDENING_REVIEW_20261119.md`. R7 remains BLOCKED / NOT DEPLOYABLE; no Production resource was mutated.
+
+
+## Pass 950–959 — R7 fail-closed API containment revalidation (2026-11-19)
+
+- [x] 950 — Reopened the isolated R7 working copy and recalculated current `server.ts` SHA-256: `bd511d6cf6effaba185d82e9e0861fdee8cb4f7e554de7d42ed1fbfd8df923dc`; supersedes the earlier audit hash.
+- [x] 951 — Verified the hard-coded closed production gate is registered before all API route declarations.
+- [x] 952 — Verified every production `/api/*` request except `GET /api/health` receives HTTP 503 `R7_PRODUCTION_RELEASE_BLOCKED` while the compile-time gate remains false.
+- [x] 953 — Verified `/api/health` returns `BLOCKED_NOT_CERTIFIED` and HTTP 503; it does not claim official production health.
+- [x] 954 — Verified production startup skips `ensureProductionDb()` and therefore does not initialize/read the local JSON database at startup.
+- [x] 955 — Re-ran `npm run test:security`: both browser-client and server-secret/gate contract checks PASS.
+- [x] 956 — Re-ran TypeScript/TSX syntax-only transpilation: 95 files parsed, 0 syntax errors.
+- [ ] 957 — Full install/typecheck/build/unit/integration/browser E2E and Android build remain unverified; dependency installation previously timed out.
+- [ ] 958 — Implement actual Supabase Auth identity and trusted membership/tenant/branch/platform authorization; keep production gate closed until adversarial tests pass.
+- [ ] 959 — Replace pseudo-HMAC/payment simulation, local JSON authority and incomplete Android wrapper before release. No Production resource was mutated.
+
+Evidence: `docs/audits/R7_PARTIAL_SECRET_HARDENING_REVIEW_20261119.md`. R7 remains BLOCKED / NOT DEPLOYABLE; canonical catalog deployment remains separate.
