@@ -1,3 +1,17 @@
+## Latest execution checkpoint — Pass 1180–1189 — 2026-11-19
+
+- Candidate PR #870: https://github.com/islamnagy2022-eng/MantiqaTix/pull/870 — RC484 changes `public.is_platform_admin()` to use only `private.platform_admins`, protecting the 57-policy/24-table global RLS blast radius.
+- Source changes include a transactional migration, FORCE-RLS/owner/BYPASSRLS/ACL/policy-count preflight, isolated PostgreSQL 17 adversarial fixture, behavior test, dedicated workflow, and updates to the 64-version release migration contract and production verifier inventory.
+- Tenant-local owner/membership predicates are unchanged; the migration changes only the global platform-root helper semantics.
+- Dedicated RC484 workflow run #2 was in progress at checkpoint; forward migration chain replay and migration history/collision checks were queued. No CI result is claimed until completed.
+- Fresh read-only Production state: 310 migration rows through `20261110150618`; private registry exists with one row; current active ADMIN and SUPER_ADMIN each have one user and none outside registry. The live `is_platform_admin()` and `mnty_can_platform_admin()` definitions remain stale.
+- No Production migration, DDL/DML, RLS, GRANT, Auth, Storage, Edge, payment, wallet, settlement or user-data mutation. RC484 is source-only; Production remains **BLOCKED / NOT CERTIFIED**.
+- Evidence: `docs/audits/PASS_1180_1189_RC484_REGISTRY_BACKED_RLS_HELPER_20261119.md`, P0 issue #867, PR #870.
+
+**Next:** complete RC484 and full forward-chain CI; correct any failures; only then merge source. Keep Production read-only until encrypted backup/restore/rollback and all release gates are evidenced and approved.
+
+---
+
 ## Latest verified checkpoint — Pass 701–720 — 2026-11-18
 
 - Current `main`: `ba81fb0c44ee7682eed419d3b0482246582308f1`.
