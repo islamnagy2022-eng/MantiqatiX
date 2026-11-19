@@ -500,3 +500,13 @@ Production remains **BLOCKED / NOT CERTIFIED**. The live helper remains weak unt
 
 - [x] 866 — Audited the uploaded R7 archive (11), SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`. Source review found P0 authentication, privileged API, token minting, registration verification, secret fallback, wallet mutation and localStorage-authority defects. The archive is not safe for wholesale merge/deployment; its UI/assets/features may be selectively ported. Audit: `docs/audits/R7_ARCHIVE_11_SECURITY_REVIEW_20261119.md`.
 - [x] 867 — Retrieved live `catalog-admin` Edge Function source and compared it with current `main`: Production remains ACTIVE v20, and the deployed entrypoint does not contain the merged registry guard; main does. The live helper is also still weak. Recorded the exact bundle hash and source comparison in the reconciliation manifest. No Edge deployment performed.
+
+
+## Pass 868 — RC464B order-read policy preflight on latest main (2026-11-19)
+
+- Added forward-only `20261113220000_rc464b_orders_select_policy_preflight.sql` after RC464 and before RC465. It is read-only and requires the exact permissive SELECT/ALL inventory: 3 authenticated-only SELECT policies on `orders`, 2 on `order_status_history`.
+- Added negative disposable PostgreSQL 17 tests for unexpected order and history SELECT policies; both must fail before RC465 without dropping existing policies.
+- Added RC464B to the production verifier, exact-chain static validator, live reconciliation contract and 63-version release manifest.
+- Read-only live policy inventory: expected policy counts verified (3 orders / 2 history). Live migration ledger: 310 rows through `20261110150618`; 0/63 required IDs recorded.
+- [ ] Re-run exact-head focused tests, migration-chain replay, production verifier and PR validation on this latest-main branch.
+- Production remains **BLOCKED / NOT CERTIFIED**. No Production DDL/DML, migration, RLS policy, grants, Edge Function, data, payment, wallet or settlement changes were performed.
