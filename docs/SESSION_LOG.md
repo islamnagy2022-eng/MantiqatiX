@@ -3306,3 +3306,16 @@ Evidence: docs/audits/PASS_1110_1119_LIVE_EDGE_PAYMENT_FINANCE_PARITY_20261119.m
 - No Production order, migration, grant, Edge deployment, payment or financial write.
 
 Evidence: docs/audits/PASS_1110_1119_LIVE_EDGE_PAYMENT_FINANCE_PARITY_20261119.md and Issue #857.
+
+
+## Pass 1140–1149 — backup/restore capability and plan gate (2026-11-19)
+
+- Production project metadata: ACTIVE_HEALTHY, PostgreSQL 17.6.1.155 / engine 17.
+- Owning organization plan: Free.
+- Supabase docs: automatic daily backups on Pro/Team/Enterprise; Free plan should use Supabase CLI db dump and off-site copies.
+- Current environment lacks supabase CLI, pg_dump, pg_restore and docker; no export/restore rehearsal possible.
+- Database backups do not include Storage API objects; Edge Functions/Auth settings also require separate recovery planning.
+- Backup/restore remains NOT VERIFIED. Issue #104 updated (comment 7017966595).
+- No plan change, paid add-on, branch/project creation, Production write, migration, restore or Storage change.
+
+Evidence: Supabase project/organization metadata, Supabase backup documentation, environment binary check.
