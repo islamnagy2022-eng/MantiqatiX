@@ -13,6 +13,14 @@ Last updated: 2026-11-19 — RC484 merged; exact PR-head CI and 99-migration dis
 - No Production DDL/DML, migration, RLS, GRANT, Auth, Storage, Edge, payment, wallet or settlement change was made. Source merge and disposable replay do not constitute Production deployment.
 - **Next:** encrypted off-site backup, isolated restore with measured RPO/RTO, rollback proof, exact live schema/Edge parity and authorized ordered release. After deployment, verify all 57 dependent policies adversarially. Keep P0 issue #867 open until live proof is complete.
 
+## Latest backup/restore readiness — 2026-11-19
+
+- Supabase organization plan is Free. Current Supabase documentation says automatic daily database backups are available on Pro/Team/Enterprise; Free projects should export with the CLI and maintain off-site backups. PITR is not assumed available.
+- Runbook added: `docs/runbooks/PRODUCTION_BACKUP_RESTORE_RC484_20261119.md`. It covers the three-part database dump, separate Storage object export, encryption/checksums/off-site retention, configuration inventory, disposable PostgreSQL 17 restore and acceptance checks.
+- Read-only inventory: 28 MB database, 187 user tables, 11 non-system schemas, 6 extensions; 2 Storage buckets/0 object rows at checkpoint; 2 Vault secrets and 4 Vault-dependent functions. The Vault encryption key is held outside the database; cross-project restore must recover it through the official API procedure or recreate the secrets. `pg_net` is installed and outbound calls must remain isolated during restore.
+- No database or Storage backup has been created in this session: protected database connection details, S3 credentials, encryption key and off-site destination are not available here. No secret was requested. Actual export/restore requires a trusted operator workstation with Docker and Supabase CLI.
+- Production remains read-only and NOT CERTIFIED. Do not run the migration chain against Production until backup/restore/rollback evidence and explicit release approval exist.
+
 
 ## Current checkpoint — 2026-10-27
 

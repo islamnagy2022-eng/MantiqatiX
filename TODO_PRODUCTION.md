@@ -3164,3 +3164,19 @@ Evidence: docs/audits/PASS_1160_1169_GENERIC_PLATFORM_ADMIN_RLS_BLAST_RADIUS_202
 - [x] 1189 — Fresh read-only Production recheck after merge: 310 ledger rows through `20261110150618`; RC471/RC482/RC483/RC484 remain unapplied; registry FORCE RLS is false and live `public.is_platform_admin()` remains SECURITY INVOKER with `search_path=public`. No Production mutation; full platform remains BLOCKED / NOT CERTIFIED.
 
 Evidence: PR #870, `docs/audits/PASS_1180_1189_RC484_REGISTRY_BACKED_RLS_HELPER_20261119.md`, issue #867. Source implementation is not Production deployment.
+
+## Pass 1190–1199 — Free-plan backup and restore readiness (2026-11-19)
+
+- [x] 1190 — Confirmed the connected Supabase project is ACTIVE_HEALTHY on PostgreSQL 17.6.1.155.
+- [x] 1191 — Confirmed the organization plan is Free; no automatic daily backup or PITR capability is assumed.
+- [x] 1192 — Reviewed current Supabase backup documentation and documented the supported CLI roles/schema/data export.
+- [x] 1193 — Documented separate Storage-object export because database dumps contain metadata, not object bytes.
+- [x] 1194 — Added encryption, SHA-256, off-site retention, key separation and non-secret manifest requirements.
+- [x] 1195 — Added PostgreSQL 17 disposable restore, Auth/Edge/Realtime/Storage reconfiguration and acceptance checklist; recorded the 28 MB/187-table/11-schema/6-extension baseline, 2 Storage buckets/0 object rows, 2 Vault secrets and 4 Vault-dependent functions. Added Vault key custody and `pg_net` isolation requirements.
+- [ ] 1196 — Run the CLI database export from a trusted workstation; requires database credentials and Docker/CLI.
+- [ ] 1197 — Export all Storage buckets, encrypt all artifacts and verify an off-site copy from a second trusted environment.
+- [ ] 1198 — Restore into a separate disposable project and complete financial, RLS, Auth, Storage and Edge acceptance.
+- [ ] 1199 — Record measured RPO/RTO, rollback evidence and release-owner approval. Production remains BLOCKED / NOT CERTIFIED.
+
+Evidence: `docs/runbooks/PRODUCTION_BACKUP_RESTORE_RC484_20261119.md`, `docs/audits/PASS_1190_1199_FREE_PLAN_BACKUP_RESTORE_READINESS_20261119.md`, official Supabase documentation. No Production mutation.
+
