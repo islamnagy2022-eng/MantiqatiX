@@ -5,7 +5,9 @@
   "source_postgres_version": "17.x",
   "backup_started_at": "YYYY-MM-DDTHH:mm:ss.sssZ",
   "backup_finished_at": "YYYY-MM-DDTHH:mm:ss.sssZ",
-  "backup_destination": "REDACTED_NON_SECRET_OFFSITE_DESTINATION",
+  "backup_destination": "s3://OFFSITE_BUCKET/mantiqatix/BACKUP_ID",
+  "offsite_destination_outside_supabase_org": true,
+  "offsite_retrieval_verified": true,
   "backup_operator": "OPERATOR_ID",
   "retention_until": "YYYY-MM-DDTHH:mm:ss.sssZ",
   "encryption": {
