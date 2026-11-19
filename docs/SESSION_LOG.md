@@ -3198,3 +3198,8 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - Full production gate now requires directory-listings source parity and consent registry proof; release manifest remains BLOCKED on live v16 gap.
 - Owner controls fail closed on consent registry outage; owner can view own contact fields; public/non-owner scope resets to empty on outage. Added Arabic UI warning.
 - Local Node 22 unit tests: 12/12 PASS, including exact-address search consent guard; CI pending. No Production mutation.
+
+
+### Directory Edge bundle parity
+
+Live directory-listings v16 has 3/5 required source files; missing consent-pagination.mjs and public-directory-output-contract.mjs. Release gate now requires full bundle parity and all required files, not just index.ts match.
