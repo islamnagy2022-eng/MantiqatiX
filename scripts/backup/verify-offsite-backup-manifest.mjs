@@ -187,6 +187,7 @@ function verifyRestoreEvidence(manifest) {
   requireCondition(typeof restore.reviewer === "string" && restore.reviewer.trim().length > 0 &&
     restore.reviewer !== manifest.backup_operator,
     "independent restore reviewer, separate from the backup operator, is required");
+  requireCondition(restore.acceptance && typeof restore.acceptance === "object",
     "restore acceptance results are missing");
   for (const check of REQUIRED_RESTORE_CHECKS) {
     requireCondition(restore.acceptance[check] === true,
