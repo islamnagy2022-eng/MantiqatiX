@@ -191,7 +191,7 @@ const LEGACY_GROUP_MAP: Record<string, FunctionalGroup['id']> = {
   tourism_events: 'food_grocery', tourism_hotels: 'food_grocery', events_entertainment: 'food_grocery',
   finance_insurance: 'professional_services', legal_financial: 'professional_services',
   industry_workshops: 'agriculture_animals', agriculture_animals: 'agriculture_animals',
-  industrial_manufacturing: 'agriculture_animals',
+  agriculture_livestock: 'agriculture_animals', industrial_manufacturing: 'agriculture_animals',
   transport_logistics: 'auto_transport',
   auto_transport: 'auto_transport', real_estate: 'real_estate',
   technology_communications: 'technology_communications',
