@@ -2584,3 +2584,8 @@ Read-only counts show zero rows in payment_intents, payment_provider_events, bus
 ### Order-create identity follow-up — 2026-11-19
 
 The exact live `order-create` v8 vs main semantic diff is complete. Live v8 lacks current body-size/parser limits, strict body/metadata validation, exact branch membership filtering and selected-option bounds. More critically, live `create_order_backend` still requires `auth.uid() = p_customer_id`, while the live Edge calls it through a service-role client after separate token verification. RC105 in main explicitly permits the verified service-role claim and retains actor binding for non-service callers; RC105 is not recorded in the live ledger. The deployed order-create path is expected to reject with `CUSTOMER_REQUIRED` until the approved RC105 migration sequence is applied. No order request was invoked. See Issue #857 and Pass 1120–1129.
+
+
+## Historical release-count correction — 2026-11-19
+
+Earlier handoff entries in this file refer to a 62-version release contract. Those entries are historical snapshots and are superseded by the merged RC464B update. The canonical current contract in `scripts/production/live-reconciliation-contract.mjs` and `scripts/validate-production-migration-chain-gate.mjs` contains **63** exact required migration identifiers. The latest live reconciliation remains 0/63 recorded in the 310-row ledger. The forward-migration replay workflow label has been aligned to 63; the validator already enforces 63 and exact chronological ordering. Do not interpret the older 62 references above as current status.
