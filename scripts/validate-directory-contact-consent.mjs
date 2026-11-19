@@ -10,6 +10,9 @@ const ui = readFileSync("apps/catalog-frontend/src/components/DirectoryListingsV
 const client = readFileSync("apps/catalog-frontend/src/lib/directoryListings.ts", "utf8");
 const pagination = readFileSync("supabase/functions/directory-listings/pagination-filter.mjs", "utf8");
 const consentPagination = readFileSync("supabase/functions/directory-listings/consent-pagination.mjs", "utf8");
+const config = readFileSync("supabase/config.toml", "utf8");
+const release = JSON.parse(readFileSync("docs/release/production-migration-reconciliation.json", "utf8"));
+const releaseContract = readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
 
 const syntheticConsentRows = Array.from({ length: 2205 }, (_, index) => ({
   listing_id: `listing-${String(index).padStart(4, "0")}`,
@@ -97,10 +100,29 @@ const checks = [
     consentPagination.includes("offset += rows.length")],
   ["GET consent lookup fails closed and is used for slug, legacy and paginated reads",
     source.includes("loadContactConsentScopes") && source.includes("directory_listing_contact_consents") &&
-    source.includes("sanitizePublicDirectoryListing(data, ownerScopes)") &&
+    source.includes("sanitizePublicDirectoryListing(data, ownerAccess.contactScopes)") &&
+    source.includes("can_edit: ownerAccess.canEdit") &&
     source.includes("consentState.scopes.get(String(row.id)) || new Set<string>()")],
-  ["owner consent controls remain hidden until the registry is available",
-    source.includes("contact_consent_ready: consentState.ready") && source.includes("return { scopes, ready: false }") && ui.includes("detail.contact_consent_ready")],
+  ["owner edit and consent controls fail closed when the registry is unavailable",
+    source.includes("resolveDirectoryOwnerAccess(isOwner, consentState.ready, activeScopes)") &&
+    source.includes("can_edit: ownerAccess.canEdit") &&
+    source.includes("contact_consent_ready: consentState.ready") &&
+    ui.includes("detail.contact_consent_ready === false")],
+  ["directory-listings public JWT boundary is explicitly configured",
+    /\[functions\.directory-listings\]\s*verify_jwt\s*=\s*false/.test(config)],
+  ["exact-address filter requires ready ADDRESS consent IDs and fails closed",
+    source.includes("loadAddressConsentListingIds()") &&
+    source.includes("if (!addressConsentState.ready)") &&
+    source.includes('.in("id", addressVisibleIds).ilike("address"')],
+  ["full-production gate requires exact directory Edge parity and consent proof",
+    releaseContract.includes('"directory-listings"') &&
+    releaseContract.includes('directoryContact?.status === "PASS"') &&
+    releaseContract.includes("published_contact_rows_without_consent_exposure === 0")],
+  ["live reconciliation manifest explicitly remains blocked on current directory exposure",
+    release.directory_contact_consent_boundary?.status === "BLOCKED" &&
+    release.directory_contact_consent_boundary?.live_function?.version === 16 &&
+    release.directory_contact_consent_boundary?.consent_table?.exists === false &&
+    release.directory_contact_consent_boundary?.published_contact_rows_without_consent_exposure === 869],
   ["only a claimed listing owner or active business owner can change consent",
     source.includes('action === "SET_PUBLIC_CONTACT_CONSENT"') &&
     source.includes('listing.claim_status !== "CLAIMED"') &&
