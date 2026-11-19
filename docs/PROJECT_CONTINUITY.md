@@ -2404,3 +2404,14 @@ Evidence boundary: read-only catalog and aggregate checks only. No Production SQ
 - [ ] Production DB remains unchanged at 310 migrations through `20261110150618`; RC481/RC482/RC483 and RC464/RC471 remain unapplied, and deployed `legal-cms` remains v6. No Edge Function was deployed by the Pages release.
 
 Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The live MantiGO platform-admin authorization gap (4 active non-registry BUSINESS_OWNER users), the 61 missing required migration versions, live object drift, backup/restore rehearsal, payment/finance E2E, and the HEALTH_MONITOR_TOKEN setup remain open release blockers.
+
+
+## 2026-11-19 — R7 archive revalidation (Pass 900–909)
+
+The uploaded archive `bizcatalog-manager (11).zip` was re-opened and inspected. SHA-256 is `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`; ZIP integrity passed and 233 files were extracted. It remains a reference candidate, not the deployed source.
+
+Confirmed source blockers include unauthenticated super-admin token minting, unauthenticated whole-snapshot production-state GET/POST, static secret fallbacks, default/fixed admin password bypasses, frontend auth state set before backend verification, and client-imported Supabase client code selecting a service-role environment variable. The latter's actual emitted-bundle exposure is not established because a build could not be run; it remains blocked pending bundle inspection.
+
+The archive contains one SQL migration creating/enabling RLS on 7 tables, not the 11-table claim. It has 15 test files but no declared test script. Dependency installation timed out with lifecycle scripts disabled, so build/typecheck/unit/E2E/Android validation was not run. Detailed evidence and remediation are in `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md`.
+
+**Disposition:** do not import or deploy R7. Keep the verified public catalog on `main` intact. Continue R7 remediation in an isolated branch/worktree, beginning with Auth/token issuance and production-state route removal; no Production mutation was performed.
