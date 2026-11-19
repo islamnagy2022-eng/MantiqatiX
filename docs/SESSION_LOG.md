@@ -3080,3 +3080,13 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - Created `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md`.
 - No Production SQL/DDL/DML, Auth, RLS, GRANT, Edge deployment, payment, wallet, settlement or Pages deployment change occurred.
 - Decision: preserve R7 as reference only; do not promote/import it until the listed P0 fixes, bundle secret inspection, migration reconciliation and reproducible CI are complete. Main catalog remains the production root.
+
+
+## Pass 910–919 — R7 API authorization surface review (2026-11-19)
+
+- Reopened the exact uploaded R7 archive and inspected the complete Express route registration boundary.
+- Confirmed no global auth middleware before route registration; only JSON parsing and IP rate limiting are applied globally.
+- Static screening found 54 mutating route handlers without recognizable route-local session verification or authorization; manually checked representative business, product, subscriber, sales, order-status, wallet, settings, grants, merchant-ledger and finance handlers.
+- Confirmed finance audited-transaction accepts caller-supplied actorId/actorRole and defaults actorRole to super_admin before applying a local JSON ledger mutation.
+- Explicitly treated the scan as a route-screening signal, not proof that all 54 routes are exploitable; public contact/payment ingress require explicit allowlisted contracts.
+- No R7 source edit, Production DB/Auth/RLS/GRANT/Edge/payment/wallet/site mutation. R7 remains untrusted and not deployable.
