@@ -2933,8 +2933,8 @@ Evidence: `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20261119.md`. 
 - [x] 1031 — Wired directory consent unit tests into Primary Catalog Frontend Validation.
 - [x] 1032 — Added a static integration validator connecting Edge handler, frontend consent action, RC473 migration ACL/RLS and CI test execution.
 - [x] 1033 — Added `directory-listings` to required critical Edge source parity for full-production certification.
-- [x] 1034 — Extended `isLiveReconciliationVerified` to require exact live directory source parity, consent table existence, consent-scoped anonymous output, zero contact exposure without consent, owner/anonymous tests and fail-closed outage behavior.
-- [x] 1035 — Recorded the current live directory boundary as BLOCKED in the release manifest: live v16, 869 published rows with phone/address, 178 with secondary phone, consent table absent.
+- [x] 1034 — Extended `isLiveReconciliationVerified` to require exact live directory source and complete bundle parity, all required helper files present, consent table existence, consent-scoped anonymous output, zero contact exposure without consent, owner/anonymous tests and fail-closed outage behavior.
+- [x] 1035 — Recorded the current live directory boundary as BLOCKED in the release manifest: live v16, only 3/5 required bundle files present (missing consent-pagination and public output sanitizer), 869 published rows with phone/address, 178 with secondary phone, consent table absent.
 - [x] 1036 — Fixed owner access state: authenticated owners can still view their own contact fields, but edit/consent controls are disabled if the consent registry is unavailable; non-owner scopes are emptied on registry outage.
 - [x] 1037 — Added Arabic UI warning when consent verification is unavailable.
 - [x] 1038 — Ran Node 22 unit tests locally: 12/12 PASS, including a guard that free-text search never searches hidden exact addresses. Full PR CI/build/browser/replay checks are pending.
