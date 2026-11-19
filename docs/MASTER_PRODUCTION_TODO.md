@@ -1,3 +1,24 @@
+# Latest execution checkpoint — 2026-11-19 — Pass 1040–1069
+
+**Current main:** `d170501cdd52db4584bb76359da2153d640cbaf9`  
+**Full platform gate:** **BLOCKED / NOT CERTIFIED**  
+**Production mutation policy:** no migration, Edge, Auth, RLS, GRANT, payment, wallet, settlement or customer-data mutation without the complete coordinated release gate.
+
+- PR #845 merged directory contact-consent hardening after 40 successful checks, 2 expected skipped PR deployment checks, and zero failures. The live directory function and RC472/RC473 were not deployed/applied.
+- PR #846 merged the post-merge live bundle/database evidence checkpoint.
+- PR #847 merged explicit `verify_jwt=false` configuration for the 10 live public Edge gateway endpoints. Exact-head CI: 34 success, 2 expected skipped, zero failures. The validator requires an exact public allowlist and checks handler-side identity, role, signature, secret, monitor-token or read-only contracts. Live Edge settings were not changed.
+- PR #849 is the current-main RC464B port: read-only order-policy preflight, PostgreSQL 17 negative policy-drift fixtures, and the 63-version migration release gate. Exact-head CI is pending; do not merge until all required checks pass. PR #848 was closed as superseded. Older PRs #840 and #828 must be closed as superseded only after #849 merges.
+- Fresh read-only Supabase inventory: ACTIVE_HEALTHY PostgreSQL 17.6.1.155; 310 migration rows through `20261110150618`; 0/63 required migration IDs recorded. This is a ledger identity gap, not proof every physical effect is absent.
+- Published directory: 869 rows have phone/address; 178 have secondary phone. Consent registry tables are absent; RC472/RC473 remain unapplied. Live directory-listings v16 differs from main and its source listing lacks two consent helpers.
+- Seven critical Edge entrypoints differ from current main: order-create, payment-intent, paymob-webhook, digital-page-payment-intent, subscription-payment-intent, financial-journal and directory-listings. Do not deploy them individually.
+- Uploaded R7 archive `bizcatalog-manager (11).zip` remains REFERENCE ONLY, NOT DEPLOYABLE. Preserve the Android wrapper; do not import its local JSON authority or legacy server/auth/payment code wholesale.
+
+**Next:** finish PR #849 exact-head CI and merge only if green/current-base; close superseded PRs #840/#828; continue full chronological migration/source reconciliation, backup inventory and isolated restore rehearsal, rollback proof, Paymob Sandbox E2E, complete Edge dependency/config/secrets parity, and live negative authorization checks. Keep the catalog as the approved public surface; full Enterprise certification remains blocked.
+
+Evidence: `TODO_PRODUCTION.md`; `docs/PROJECT_CONTINUITY.md`; `docs/audits/PASS_1040_1049_POST_MERGE_LIVE_BUNDLE_RECHECK_20261119.md`; `docs/audits/RC464B_ORDERS_POLICY_PREFLIGHT_PORT_20261119.md`.
+
+---
+
 ## Latest execution checkpoint — 2026-11-17 — Pass 67–86
 
 **Request ID:** `R-20261117-PASS-67-86`  
