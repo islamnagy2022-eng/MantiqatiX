@@ -2742,3 +2742,19 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - [ ] Add anonymous/forged-role/cross-tenant/cross-branch/inactive-member/non-platform-admin/replay negative tests and CI route classification gate.
 
 Evidence: `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md`. No Production mutation; R7 remains untrusted and not deployable.
+
+
+## Pass 920–929 — R7 API route policy inventory and CI guard (2026-11-19)
+
+- [x] 920 — Reopened the immutable R7 archive and extracted all 113 distinct `/api/*` route declarations from `server.ts`; archive/source SHA-256 values are recorded in the route inventory.
+- [x] 921 — Counted 73 mutating route declarations (55 POST, 11 PUT, 7 DELETE).
+- [x] 922 — Preserved the prior static-screening result: 54 mutating handlers did not show a recognizable route-local session/authorization guard; this remains a screening signal, not proof every route is exploitable.
+- [x] 923 — Assigned every route a proposed least-privilege policy: PUBLIC_INGRESS, AUTHENTICATED_USER, TENANT_MEMBER, BUSINESS_BRANCH_SCOPED, PLATFORM_ADMIN, SERVICE_TO_SERVICE, or DISABLED.
+- [x] 924 — Explicitly marked runtime enforcement NOT PROVEN and all routes BLOCKED_NOT_DEPLOYABLE; business/branch policy assignments remain provisional pending owner/field-level review.
+- [x] 925 — Marked privileged local-state, session-token minting, wallet/finance mutation, RLS-evaluation and production rollback/restore routes DISABLED pending replacement by reviewed backend contracts.
+- [x] 926 — Added `docs/audits/R7_API_ROUTE_POLICY_INVENTORY_20261119.md` with source hashes, complete method/path/line inventory, policy counts and implementation contract.
+- [x] 927 — Added deterministic Node validator for 113-route coverage, policy vocabulary/counts, public mutating ingress allowlist and critical DISABLED routes.
+- [x] 928 — Added dedicated GitHub Actions workflow for the inventory validator; it has no production application behavior.
+- [ ] 929 — Require the exact-head inventory workflow and aggregate PR checks to pass before merging. No R7 runtime code or Production resources were modified.
+
+**Boundary:** the inventory is a proposed policy contract, not enforcement. R7 remains an untrusted, non-deployable reference until Supabase Auth, tenant/branch/platform authorization, audited data contracts, secrets, tests and build gates are implemented and verified.
