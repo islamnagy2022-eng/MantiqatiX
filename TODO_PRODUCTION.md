@@ -3116,3 +3116,19 @@ Evidence: `docs/audits/PASS_1130_1139_LIVE_PLATFORM_ADMIN_RECHECK_20261119.md`, 
 - [ ] 1149 — Restore into an isolated database/project, verify schema/data/Auth/Storage completeness, run migration and security regression suites, and record measured RPO/RTO and rollback evidence.
 
 Evidence: Supabase project/organization metadata, Supabase Database Backups documentation, environment binary check, Issue #104 comment 7017966595. Full platform remains BLOCKED / NOT CERTIFIED.
+
+
+## Pass 1160–1169 — generic is_platform_admin RLS blast-radius audit (2026-11-19)
+
+- [x] 1160 — Read live `public.is_platform_admin()`: returns true for any active `user_memberships` row whose role is ADMIN or SUPER_ADMIN, without private registry, tenant, business or branch scope.
+- [x] 1161 — Counted 57 live RLS policies across 24 tables that call `is_platform_admin()` in USING/WITH CHECK.
+- [x] 1162 — Mapped sensitive affected domains: matrimony, MantiGO, restaurant/fashion ERP, jobs/education, inDrive, school/teacher profiles, used-item ads, feature flags and Storage.
+- [x] 1163 — Found additional SECURITY DEFINER callers: create_notification_backend, deactivate_business, fashion_erp_mutate, restaurant_erp_mutate, restaurant_table_mutate, set_platform_feature_flag_backend and resolve_legacy_scope.
+- [x] 1164 — Refreshed active role/registry counts: ADMIN 1 row/1 user/0 non-registry; SUPER_ADMIN 1/1/0; BUSINESS_OWNER 9/5/4; OWNER 3/1/0.
+- [x] 1165 — Classified the helper as a latent cross-tenant/global bypass: no non-registry ADMIN/SUPER_ADMIN is present in the current aggregate, but any future tenant ADMIN/SUPER_ADMIN would satisfy the global helper.
+- [x] 1166 — Created P0 issue #867 with exact 57-policy/24-table blast radius and required registry-backed/tenant-scoped remediation.
+- [x] 1167 — Confirmed no helper/function invocation, user identifier selection, or adversarial live access attempt was performed.
+- [x] 1168 — No Production DDL/DML, RLS, ACL, Auth, Storage, Edge or financial write performed.
+- [x] 1169 — Keep #867 open until all 57 policies and seven function callers are migrated/tested in disposable PostgreSQL and then verified live after approved release.
+
+Evidence: Issue #867, read-only pg_proc/pg_policies inspection and active role/registry aggregate. Full platform remains BLOCKED / NOT CERTIFIED.
