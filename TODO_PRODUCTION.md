@@ -3160,7 +3160,7 @@ Evidence: docs/audits/PASS_1160_1169_GENERIC_PLATFORM_ADMIN_RLS_BLAST_RADIUS_202
 - [x] 1185 — Added behavioral assertions denying tenant ADMIN/SUPER_ADMIN global access while preserving registered platform-root access.
 - [x] 1186 — Added dedicated CI workflow and exact source validator.
 - [x] 1187 — Updated source migration inventory and production release contract from 63 to 64 versions.
-- [x] 1188 — Opened PR #870; exact-head CI and full migration replay pending at checkpoint.
-- [x] 1189 — No Production mutation; ledger remains 310 rows through `20261110150618`; full platform remains BLOCKED / NOT CERTIFIED.
+- [x] 1188 — Merged PR #870 at `902e4059c76da7b5da3c6ca354a11eefdd36ed4f` after all exact-head CI passed: RC484 PostgreSQL 17 adversarial workflow, 99-migration Production-checkpoint replay, Pages/V6 desktop/mobile validation, and all module, migration, privacy, Paymob and directory workflows.
+- [x] 1189 — Fresh read-only Production recheck after merge: 310 ledger rows through `20261110150618`; RC471/RC482/RC483/RC484 remain unapplied; registry FORCE RLS is false and live `public.is_platform_admin()` remains SECURITY INVOKER with `search_path=public`. No Production mutation; full platform remains BLOCKED / NOT CERTIFIED.
 
 Evidence: PR #870, `docs/audits/PASS_1180_1189_RC484_REGISTRY_BACKED_RLS_HELPER_20261119.md`, issue #867. Source implementation is not Production deployment.

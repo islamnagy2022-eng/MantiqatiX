@@ -1,14 +1,16 @@
-## Latest execution checkpoint — Pass 1180–1189 — 2026-11-19
+## Latest execution checkpoint — Pass 1180–1189 — 2026-11-19 (RC484 merged)
 
-- Candidate PR #870: https://github.com/islamnagy2022-eng/MantiqaTix/pull/870 — RC484 changes `public.is_platform_admin()` to use only `private.platform_admins`, protecting the 57-policy/24-table global RLS blast radius.
-- Source changes include a transactional migration, FORCE-RLS/owner/BYPASSRLS/ACL/policy-count preflight, isolated PostgreSQL 17 adversarial fixture, behavior test, dedicated workflow, and updates to the 64-version release migration contract and production verifier inventory.
-- Tenant-local owner/membership predicates are unchanged; the migration changes only the global platform-root helper semantics.
-- Dedicated RC484 workflow run #2 was in progress at checkpoint; forward migration chain replay and migration history/collision checks were queued. No CI result is claimed until completed.
-- Fresh read-only Production state: 310 migration rows through `20261110150618`; private registry exists with one row; current active ADMIN and SUPER_ADMIN each have one user and none outside registry. The live `is_platform_admin()` and `mnty_can_platform_admin()` definitions remain stale.
-- No Production migration, DDL/DML, RLS, GRANT, Auth, Storage, Edge, payment, wallet, settlement or user-data mutation. RC484 is source-only; Production remains **BLOCKED / NOT CERTIFIED**.
+- PR [#870](https://github.com/islamnagy2022-eng/MantiqaTix/pull/870) merged as `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`.
+- RC484 changes `public.is_platform_admin()` to consult only `private.platform_admins`, closing the generic tenant ADMIN/SUPER_ADMIN global RLS bypass in the source for 57 policies across 24 tables.
+- The migration enforces FORCE RLS on the registry, requires helper/registry owner parity with BYPASSRLS, preserves trusted service_role registry operations, uses an empty search_path, and grants helper EXECUTE only to authenticated.
+- Exact PR-head CI passed: RC484 PostgreSQL 17 adversarial workflow [44598309128](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44598309128); 99-migration Production-checkpoint replay [44598309101](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44598309101); Pages/catalog/V6 Preview validation [44598309226](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44598309226); Module Professionalization [44598309231](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44598309231); all other exact-head migration, privacy, Paymob, directory, module and audit workflows passed.
+- The forward replay restored the known live-only Storage policy through a test-only overlay and applied 99 migrations in timestamp order. This is disposable replay evidence, not a Production deployment.
+- Fresh read-only Production recheck: 310 migration rows through `20261110150618`; RC471, RC482, RC483 and RC484 remain unrecorded. `private.platform_admins` has RLS enabled but FORCE RLS disabled. Live `public.is_platform_admin()` remains SECURITY INVOKER with `search_path=public`; the generic helper is still live.
+- No separate post-merge main status rows were returned by the connector; exact PR-head CI is verified, main-triggered CI is not independently claimed.
+- No Production migration, DDL/DML, RLS, GRANT, Auth, Storage, Edge, payment, wallet, settlement or user-data mutation. RC484 is source-merged only. Full platform remains **BLOCKED / NOT CERTIFIED**.
 - Evidence: `docs/audits/PASS_1180_1189_RC484_REGISTRY_BACKED_RLS_HELPER_20261119.md`, P0 issue #867, PR #870.
 
-**Next:** complete RC484 and full forward-chain CI; correct any failures; only then merge source. Keep Production read-only until encrypted backup/restore/rollback and all release gates are evidenced and approved.
+**Next:** keep Production read-only until encrypted off-site backup, isolated restore/RPO/RTO, rollback, complete ordered migration/Edge parity, and an approved release window are evidenced. After the approved rollout, verify the helper and all 57 dependent policies live; keep #867 open until then.
 
 ---
 
