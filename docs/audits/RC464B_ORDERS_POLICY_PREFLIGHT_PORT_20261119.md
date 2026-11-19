@@ -35,3 +35,15 @@ Open PR #828 contained a useful fail-closed preflight for the exact legacy permi
 The source-only change was re-applied to current main after the earlier PR branch diverged. Current base at port creation: `d170501cdd52db4584bb76359da2153d640cbaf9` (includes the merged directory-consent release gate and explicit public Edge JWT configuration). Current PR: #849, latest source head `467f17f96763dbd735c320577f9c097d12143add` (after the current-main port and additional read-only contract assertions).
 
 The refreshed release contract preserves the directory-consent certification predicate and now requires 63 unique, timestamp-ordered migration source versions, including RC464B. The live ledger remains 310 rows through `20261110150618`; no required source IDs are recorded. Exact-head CI for PR #849 is pending. No Production operation was performed.
+
+
+## Read-only Production policy preflight evidence — 2026-11-19
+
+A fresh read-only catalog query was run against Production after the current-main port:
+
+- `public.orders`: RLS enabled; authenticated SELECT grant present; exactly three permissive SELECT policies: `orders_member_select`, `orders_provider_select_own_business`, `orders_customer_select_own`; all target `authenticated`.
+- `public.order_status_history`: RLS enabled; authenticated SELECT grant present; exactly two permissive SELECT policies: `order_status_history_member_read`, `order_status_history_customer_select_own`; all target `authenticated`.
+- Required `orders`, `order_status_history`, and `user_memberships` columns used by RC465 exist, including business_id and branch_id on orders/history/memberships, and role/status/user_id on memberships.
+- No unexpected permissive SELECT/ALL policy was returned for either table. The catalog counts, names, role arrays, RLS flags and SELECT grants match the RC464B preflight predicates.
+
+The current live policy expressions still use the older tenant-wide membership predicates; this read-only check does not prove RC465's new business/branch policy behavior. RC465's PostgreSQL 17 behavioral tests must pass before any coordinated production release. RC464B and RC465 have **not** been applied to Production.
