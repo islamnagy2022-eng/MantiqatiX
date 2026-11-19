@@ -11,6 +11,10 @@ DECLARE
   v_orders_rls boolean;
   v_memberships_rls boolean;
   v_history_rls boolean;
+  v_orders_select_policy_count integer;
+  v_orders_expected_select_policy_count integer;
+  v_history_select_policy_count integer;
+  v_history_expected_select_policy_count integer;
 BEGIN
   IF pg_catalog.to_regclass('public.orders') IS NULL
      OR pg_catalog.to_regclass('public.user_memberships') IS NULL
@@ -73,6 +77,50 @@ BEGIN
       AND policyname = 'order_status_history_customer_select_own' AND cmd = 'SELECT'
   ) THEN
     RAISE EXCEPTION 'RC465_EXPECTED_ORDER_AND_HISTORY_SELECT_POLICIES_MISSING';
+  END IF;
+
+  -- RLS policies are permissive by default and OR together. An unreviewed
+  -- extra SELECT/ALL policy could silently bypass the scoped policies below.
+  -- Match the complete live policy set exactly before replacing anything.
+  SELECT count(*) INTO v_orders_select_policy_count
+  FROM pg_catalog.pg_policies
+  WHERE schemaname = 'public' AND tablename = 'orders'
+    AND cmd IN ('SELECT', 'ALL') AND permissive = 'PERMISSIVE';
+
+  SELECT count(*) INTO v_orders_expected_select_policy_count
+  FROM pg_catalog.pg_policies
+  WHERE schemaname = 'public' AND tablename = 'orders'
+    AND cmd IN ('SELECT', 'ALL') AND permissive = 'PERMISSIVE'
+    AND policyname IN (
+      'orders_member_select',
+      'orders_provider_select_own_business',
+      'orders_customer_select_own'
+    )
+    AND roles = ARRAY['authenticated']::name[];
+
+  IF v_orders_select_policy_count <> 3 OR v_orders_expected_select_policy_count <> 3 THEN
+    RAISE EXCEPTION 'RC465_UNEXPECTED_PERMISSIVE_ORDERS_SELECT_POLICY_SET: total %, expected authenticated policies %',
+      v_orders_select_policy_count, v_orders_expected_select_policy_count;
+  END IF;
+
+  SELECT count(*) INTO v_history_select_policy_count
+  FROM pg_catalog.pg_policies
+  WHERE schemaname = 'public' AND tablename = 'order_status_history'
+    AND cmd IN ('SELECT', 'ALL') AND permissive = 'PERMISSIVE';
+
+  SELECT count(*) INTO v_history_expected_select_policy_count
+  FROM pg_catalog.pg_policies
+  WHERE schemaname = 'public' AND tablename = 'order_status_history'
+    AND cmd IN ('SELECT', 'ALL') AND permissive = 'PERMISSIVE'
+    AND policyname IN (
+      'order_status_history_member_read',
+      'order_status_history_customer_select_own'
+    )
+    AND roles = ARRAY['authenticated']::name[];
+
+  IF v_history_select_policy_count <> 2 OR v_history_expected_select_policy_count <> 2 THEN
+    RAISE EXCEPTION 'RC465_UNEXPECTED_PERMISSIVE_HISTORY_SELECT_POLICY_SET: total %, expected authenticated policies %',
+      v_history_select_policy_count, v_history_expected_select_policy_count;
   END IF;
 END;
 $preflight$;
