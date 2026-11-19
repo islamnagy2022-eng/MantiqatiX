@@ -4444,5 +4444,78 @@
     "production_mutation": "NONE",
     "release_status": "BLOCKED_NOT_CERTIFIED",
     "interpretation": "Four global MantiGO RPCs and five RLS policies still depend on generic membership-role authorization through the live weak helper. Source-only RC464/RC471 provide the registry-only repair and negative tests but remain unapplied. Four non-registry active users match each relevant live role predicate; this is eligibility evidence, not proof of invocation or exploitation. Financial report also references absent legacy ledger columns. Require encrypted backup/restore, exact schema/ledger reconciliation, coordinated migration/Edge rollout and post-deploy adversarial verification."
+  },
+  "p0_digital_page_paymob_provider_order_correlation_20261119": {
+    "status": "VERIFIED_READ_ONLY",
+    "checked_at": "2026-11-19",
+    "live_edge_functions": {
+      "digital_page_payment_intent": {
+        "status": "ACTIVE",
+        "version": 5,
+        "verify_jwt": true,
+        "bundle_sha256": "8aa3d2e9c025e7b74d4d1847e8a6744bc84a9ded7cfc0c721f9604efd177af4b",
+        "provider_order_id_persisted": false,
+        "uses_legacy_four_argument_finalizer": true,
+        "strict_paymob_intention_response_match": false
+      },
+      "paymob_webhook": {
+        "status": "ACTIVE",
+        "version": 10,
+        "verify_jwt": false,
+        "bundle_sha256": "f26fe1580e66c7f8cb9b885d5bccf4a44e49aa74874b3fe28dd7f9c5ed181cca",
+        "hmac_covers_order_id": true,
+        "hmac_covers_merchant_order_id": false,
+        "checks_selected_order_provider_id_against_signed_order_id": false
+      }
+    },
+    "live_database": {
+      "processor_signature": "public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)",
+      "security_definer": true,
+      "owner": "postgres",
+      "search_path": "public, pg_temp",
+      "execute": {
+        "service_role": true,
+        "authenticated": false,
+        "anon": false
+      },
+      "legacy_rc424_body_md5": "a5e65a21d159846e2814c82bb89925ce",
+      "legacy_body_chars": 2997,
+      "provider_order_equality_guard": false,
+      "event_transaction_binding": false,
+      "advisory_event_lock": false,
+      "finalizer_legacy_signature": "finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)",
+      "legacy_finalizer_authenticated_execute": true,
+      "required_five_argument_finalizer_present": false
+    },
+    "live_data_counts": {
+      "digital_page_orders": 0,
+      "paymob_orders": 0,
+      "pending_paymob_orders": 0,
+      "digital_page_payment_events": 0
+    },
+    "required_migration_versions": {
+      "RC426": "20261009130000",
+      "RC431": "20261009180000",
+      "RC468": "20261115030000",
+      "RC470": "20261117020000",
+      "found_in_live_ledger": 0
+    },
+    "release_manifest": {
+      "live_ledger_rows": 310,
+      "latest_live_version": "20261110150618",
+      "required_exact_versions": 62,
+      "recorded_exact_versions": 0
+    },
+    "current_main_repairs": {
+      "payment_intent_edge": "matchesPaymobIntention + exact cents/currency/reference/provider IDs + five-argument provider-order persistence",
+      "webhook_edge": "compares stored digital_page_orders.provider_order_id to HMAC-covered Paymob order.id before RPC",
+      "database": "RC470 requires non-null provider_order_id equal to p_provider_order_id, binds external event ID to transaction ID, serializes per-event callbacks, validates replay state, pins empty search_path, service_role-only EXECUTE",
+      "source_tests": "RC431 negative provider-order mismatch/no-mutation, invalid signature, transaction binding, replay/idempotency and atomic rollback; RC470 legacy fingerprint/postcondition workflow",
+      "static_regression": "scripts/validate-digital-pages-boundaries.mjs now asserts the HMAC/merchant-reference boundary, pre-RPC stored-order comparison, RC470 guard and RC431 no-mutation test markers"
+    },
+    "static_regression_status": "IMPLEMENTED_PENDING_EXACT_HEAD_CI",
+    "production_mutation": "NONE",
+    "release_status": "BLOCKED_NOT_CERTIFIED",
+    "interpretation": "The production digital-page Paymob flow is not safe to enable before the provider-order correlation fixes are applied. Since merchant_order_id is not in the HMAC canonical list, it is only a lookup hint; the selected row must be bound to signed order.id. Current live Edge and database processor omit this check. This is a potential first-delivery cross-order misapplication path, not evidence of exploitation; the live order/event tables are empty. Current main and RC426/RC431/RC468/RC470 contain the forward repairs, but all four migration IDs remain absent and matching Edge bundles are not deployed. Require backup/restore, exact migration reconciliation, coordinated DB/Edge rollout, and sandbox negative/positive/concurrency tests."
   }
 }
