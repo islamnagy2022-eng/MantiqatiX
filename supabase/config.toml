@@ -6,3 +6,36 @@ verify_jwt = true
 
 [functions.directory-listings]
 verify_jwt = false
+
+
+# Public catalog reads are read-only and enforce their own published-data projection.
+[functions.public-catalog-directory]
+verify_jwt = false
+
+# Internal dispatch is authenticated in-handler with the private push webhook secret.
+[functions.mnty-push-dispatch]
+verify_jwt = false
+
+# Paymob callbacks are authenticated by the provider HMAC contract in the handler.
+[functions.paymob-webhook]
+verify_jwt = false
+
+# Internal payment callbacks verify the signed timestamp/body envelope in-handler.
+[functions.payment-webhook]
+verify_jwt = false
+
+# The health monitor uses its dedicated bearer monitor token, not a Supabase user JWT.
+[functions.health]
+verify_jwt = false
+
+# MantiGO payment intent creation validates a real Supabase user and ledger ownership in-handler.
+[functions.mantigo-payment-intent]
+verify_jwt = false
+
+# API routes resolve the Supabase user and exact membership/business scope in-handler.
+[functions.api]
+verify_jwt = false
+
+# Admin actions validate the Supabase user and protected platform-admin registry in-handler.
+[functions.catalog-admin]
+verify_jwt = false
