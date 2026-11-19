@@ -4328,3 +4328,17 @@ Evidence: `docs/audits/PASS_231_270_DIRECTORY_CLAIM_ATOMICITY_20261117.md`. No s
 ### RC464B live catalog preflight evidence — 2026-11-19
 
 A read-only Production query confirms the exact policy inventory expected by RC464B: three authenticated permissive SELECT policies on `orders`, two on `order_status_history`; RLS enabled and authenticated SELECT grants present; all required business/branch and membership columns exist. No unexpected permissive SELECT/ALL policy was found. Existing policy expressions remain tenant-wide, so this does not certify RC465 behavior. No Production mutation was performed. RC464B/RC465 remain unapplied pending PR #849 exact-head PostgreSQL 17 tests and the full backup/restore/rollback release gate.
+
+
+### P0 — RC484 generic platform-admin helper / RLS blast radius
+
+- [x] Reconfirm live `is_platform_admin()` semantics and 57 dependent RLS policies across 24 tables.
+- [x] Add source-only RC484 migration using the protected `private.platform_admins` registry, empty search_path and least-privilege EXECUTE ACL.
+- [x] Add isolated PostgreSQL 17 adversarial test fixture for tenant ADMIN/SUPER_ADMIN denial and registry-only platform-root access.
+- [x] Add RC484 workflow and include migration in the 64-version source/release inventories.
+- [ ] Complete exact-head RC484 PostgreSQL CI and production-checkpoint forward migration replay.
+- [ ] Merge PR #870 only after all required checks pass.
+- [ ] Apply RC484 only as part of the approved ordered production release after encrypted backup/restore/rollback evidence; re-read helper ACL/search_path and test all 57 dependent policies.
+- [ ] Keep issue #867 open until live post-deployment verification proves the global bypass is closed.
+
+Evidence: PR #870; `docs/audits/PASS_1180_1189_RC484_REGISTRY_BACKED_RLS_HELPER_20261119.md`. No Production mutation.
