@@ -31,7 +31,7 @@ for (const field of ['"PHONE"', '"SECONDARY_PHONE"', '"ADDRESS"', '"PRECISE_LOCA
 assert.match(output, /if \(key === "phone" && !contactScopes\.has\("PHONE"\)\) continue/);
 assert.match(output, /if \(key === "address" && !contactScopes\.has\("ADDRESS"\)\) continue/);
 assert.match(output, /canEdit: Boolean\(isOwner && consentReady\)/);
-assert.match(output, /contactScopes: isOwner \? new Set\(OWNER_CONTACT_SCOPES\)/);
+assert.match(output, /contactScopes: isOwner \? new Set\(OWNER_CONTACT_SCOPES\) : consentReady \? new Set\(activeScopes\) : new Set\(\)/);
 assert.match(pagination, /offset \+= rows\.length/,
   "consent pagination must advance by the actual capped response length");
 assert.match(pagination, /return \{ ids: \[\], ready: false \}/,
