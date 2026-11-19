@@ -2548,3 +2548,16 @@ R7 remains a UI/feature reference only and is not imported wholesale. Its unauth
 Next source task: map R7 screens, fields and API actions to the current Supabase-backed catalog contracts, then port selected additive UI components to an isolated Preview with the existing public root unchanged. Do not bring over R7 server routes or local JSON authority. Keep the full platform gate BLOCKED / NOT CERTIFIED.
 
 Evidence: `docs/audits/PASS_1080_1089_POST_MERGE_DEPLOY_AND_R7_INTAKE_RECONCILIATION_20261119.md`.
+
+
+## Pass 1090–1099 — R7 UI/API map and shared authorization boundary recheck (2026-11-19)
+
+PR #851 merged to main at `75b2e1060c3b1c71a3837d139a5c875927af2467`; exact-head CI passed with 32 success, 2 expected skipped and zero failures. Post-merge Pages deployment completed the deploy and root/legacy/Preview checks, while deployed-origin Playwright verification was still in progress at this checkpoint. Primary catalog build and employee RBAC PostgreSQL checks passed; professional dashboard browser E2E remained in progress. Do not mark the post-merge gate complete until both browser workflows finish.
+
+The exact R7 archive was re-opened and its App.tsx, AppContext.tsx, supabaseClient.ts and key screens were inspected. A screen-to-current-main map is recorded in `docs/audits/PASS_1090_1099_R7_CONTRACT_MAP_AND_SHARED_AUTHORIZATION_RECHECK_20261119.md`. Existing current-main directory, catalog, dashboard, merchant, account, cart, commission, geography and navbar components are preferred. R7-only messaging and MantyGo UI remain gap candidates; wallet/payment, production backup, production phase controls and live operations controls are not approved for browser port. R7's demo role switcher, localStorage-authoritative data/session, legacy /api calls and browser service-role-key fallback make the archive reference-only. No R7 code was imported.
+
+A read-only Production SECURITY DEFINER audit confirmed the shared `mnty_can_platform_admin()` helper still delegates to generic `mnty_can('admin',NULL,NULL,NULL)`. Four additional authenticated-executable SECURITY DEFINER callers use the helper (`admin_create_global_ad`, `fulfill_digital_page_publish`, `review_mantigo_captain_application`, `set_mantigo_financial_config_backend`), and five RLS policies also depend on it. This extends the known MantiGO global RPC gap. Issue #852 records the P0 release dependency. No live function was invoked and no Production write was performed.
+
+Targeted review found `preview_commission_backend` delegates to a tenant-bound finance membership assertion, and catalog item/price writes bind auth.uid() and tenant/business/branch scope in their delegated functions; no bypass was concluded from those definitions.
+
+Next: finish post-merge deployed-origin browser checks, then continue release prerequisites and only prototype R7-only UI in isolated Preview after removing legacy trust dependencies. Full platform remains BLOCKED / NOT CERTIFIED.
