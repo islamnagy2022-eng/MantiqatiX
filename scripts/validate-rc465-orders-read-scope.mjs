@@ -18,6 +18,16 @@ assert.match(preflight, /^COMMIT;/m, 'policy preflight must commit read-only che
 assert.match(preflight, /RC465_POLICY_PREFLIGHT_UNEXPECTED_ORDERS_SELECT_SET/);
 assert.match(preflight, /RC465_POLICY_PREFLIGHT_UNEXPECTED_HISTORY_SELECT_SET/);
 assert.ok(preflight.includes("roles = ARRAY['authenticated']::name[]"), 'policy preflight must require authenticated-only expected policies');
+assert.doesNotMatch(preflight, /^\s*(?:CREATE|ALTER|DROP|GRANT|REVOKE|INSERT|UPDATE|DELETE|TRUNCATE)\b/im, "RC464B must remain read-only and must not mutate schema, ACLs or business data");
+for (const expectedPolicy of [
+  "orders_member_select",
+  "orders_provider_select_own_business",
+  "orders_customer_select_own",
+  "order_status_history_member_read",
+  "order_status_history_customer_select_own"
+]) assert.ok(preflight.includes(expectedPolicy), "RC464B must validate the exact expected policy set: " + expectedPolicy);
+assert.match(preflight, /v_orders_total <> 3/, "RC464B must reject any additional/missing permissive orders SELECT/ALL policy");
+assert.match(preflight, /v_history_total <> 2/, "RC464B must reject any additional/missing permissive history SELECT/ALL policy");
 assert.ok(workflow.includes('20261113220000_rc464b_orders_select_policy_preflight.sql'));
 assert.ok(workflow.indexOf('/tmp/rc465_preflight.sql') < workflow.indexOf('/tmp/rc465_migration.sql'), 'preflight must run before the immutable RC465 migration');
 assert.ok(workflow.includes('image: postgres:17'), 'disposable PostgreSQL version must match Production');
