@@ -2519,3 +2519,19 @@ Evidence: `docs/audits/PASS_1040_1049_POST_MERGE_LIVE_BUNDLE_RECHECK_20261119.md
 ### Edge shared dependency clarification
 
 The current-main dependency graph was rechecked after the initial inventory: `payment-intent` and `digital-page-payment-intent` import `_shared/paymob-intent-correlation.mjs`; `subscription-payment-intent` imports that module plus `_shared/checkout-secret-crypto.mjs`; `directory-listings` imports two local consent modules missing from the live source listing. The two `_shared` modules exist in main and have no further relative imports. Supabase documentation confirms CLI deployment bundles the dependency graph into ESZip, so per-function source listings are not treated as a complete compiled bundle inventory. The seven deployed entrypoints remain byte-mismatched with main.
+
+
+## Pass 1050–1069 — current continuation checkpoint (2026-11-19)
+
+Main includes PR #845 directory-consent hardening, PR #846 post-merge live evidence, and PR #847 explicit public Edge JWT config. PR #847 is merged at `d170501cdd52db4584bb76359da2153d640cbaf9` after 34 successful exact-head checks, 2 expected skipped deployment checks, and zero failures. Ten live `verify_jwt=false` Edge endpoints now have explicit source config; handler security contracts are checked by `scripts/validate-edge-jwt-config.mjs` in Primary Catalog CI. No live Edge setting was changed.
+
+The stale RC465/RC464B work was not merged as-is. A current-main port is open as PR #849, based on d170, adding read-only RC464B policy-set preflight, PostgreSQL 17 negative drift fixtures, and 63-version release-manifest integration. CI is pending. PR #848 was closed as superseded. Do not merge PR #849 until exact-head CI and current-base checks pass.
+
+Production remains unchanged: 310 migration rows through `20261110150618`; 0/63 required source IDs recorded; 869 published directory rows have phone/address; 178 have secondary phone; contact-consent tables absent; seven critical Edge entrypoints differ from main; live directory v16 lacks two consent helper source modules. No Production migration, Edge, Auth, RLS, GRANT, payment, wallet, settlement or data mutation. Full release remains BLOCKED / NOT CERTIFIED.
+
+Evidence: `TODO_PRODUCTION.md`, `docs/audits/PASS_1040_1049_POST_MERGE_LIVE_BUNDLE_RECHECK_20261119.md`, `docs/audits/RC464B_ORDERS_POLICY_PREFLIGHT_PORT_20261119.md`, PRs #845–#849.
+
+
+### Live RC464B read-only inspection — 2026-11-19
+
+Fresh Production catalog inspection found the exact expected permissive policy names/counts for the RC464B preflight: three authenticated SELECT policies on `orders`, two on `order_status_history`; RLS enabled and authenticated SELECT grants present on both; all required `orders`, `order_status_history`, and `user_memberships` business/branch/role/status columns exist. No unexpected permissive SELECT/ALL policy was returned. The old tenant-wide policy expressions are still live; this is not evidence that RC465 business/branch behavior is deployed. Only read-only SELECT queries were run. RC464B/RC465 remain unapplied. See the RC464B audit addendum and Pass 1070–1079 in TODO_PRODUCTION.

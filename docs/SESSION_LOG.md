@@ -3219,3 +3219,22 @@ Evidence: `docs/audits/PASS_1040_1049_POST_MERGE_LIVE_BUNDLE_RECHECK_20261119.md
 ### Edge shared dependency clarification
 
 The current-main dependency graph was rechecked after the initial inventory: `payment-intent` and `digital-page-payment-intent` import `_shared/paymob-intent-correlation.mjs`; `subscription-payment-intent` imports that module plus `_shared/checkout-secret-crypto.mjs`; `directory-listings` imports two local consent modules missing from the live source listing. The two `_shared` modules exist in main and have no further relative imports. Supabase documentation confirms CLI deployment bundles the dependency graph into ESZip, so per-function source listings are not treated as a complete compiled bundle inventory. The seven deployed entrypoints remain byte-mismatched with main.
+
+
+## Pass 1050–1069 — current session
+
+- PR #847 merged: explicit `verify_jwt=false` config for the 10 currently public Edge endpoints, plus an exact allowlist and handler-contract validator. Exact-head checks: 34 success, 2 expected skipped, 0 failure.
+- Read-only live inventory confirmed those 10 public gateway functions; no live config or Edge version changed.
+- PR #840 was stale relative to main and not merged. Ported RC464B to current main in PR #849 with a read-only catalog preflight, PostgreSQL 17 negative policy-drift fixtures, and 63-version migration gate integration.
+- PR #848 was closed as superseded. PR #849 exact-head CI is pending.
+- No Production DB/Edge/Auth/RLS/GRANT/payment/wallet/settlement/data mutation.
+
+Evidence: `docs/audits/RC464B_ORDERS_POLICY_PREFLIGHT_PORT_20261119.md` and `TODO_PRODUCTION.md`.
+
+
+## Pass 1070–1079 — read-only live policy inspection
+
+- Read-only Production catalog query confirmed exactly 3 expected authenticated permissive SELECT policies on orders and 2 on order_status_history.
+- Both tables retain RLS and authenticated SELECT grants; required business_id/branch_id/user_memberships columns exist.
+- No unexpected permissive SELECT/ALL policy found. Current policy expressions remain tenant-wide; RC465 is not applied.
+- No Production mutation. PR #849 CI remains the gate for the current-main preflight port.
