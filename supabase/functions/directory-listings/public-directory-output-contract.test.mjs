@@ -107,7 +107,11 @@ test("owner controls fail closed when the consent registry is unavailable withou
 
   const healthyOwner = resolveDirectoryOwnerAccess(true, true, new Set(["PHONE"]));
   assert.equal(healthyOwner.canEdit, true);
-  const visitor = resolveDirectoryOwnerAccess(false, false, new Set(["PHONE"]));
-  assert.equal(visitor.canEdit, false);
-  assert.deepEqual([...visitor.contactScopes], ["PHONE"]);
+  const visitorWithoutRegistry = resolveDirectoryOwnerAccess(false, false, new Set(["PHONE"]));
+  assert.equal(visitorWithoutRegistry.canEdit, false);
+  assert.deepEqual([...visitorWithoutRegistry.contactScopes], []);
+
+  const visitorWithConsent = resolveDirectoryOwnerAccess(false, true, new Set(["PHONE"]));
+  assert.equal(visitorWithConsent.canEdit, false);
+  assert.deepEqual([...visitorWithConsent.contactScopes], ["PHONE"]);
 });
