@@ -3121,3 +3121,12 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - Residual P0s remain: local snapshot GET/POST, caller-selected role/session token minting, default/fixed admin passwords, and unguarded wallet/merchant-ledger/finance routes.
 - No Supabase Auth identity/scope guard is present globally; Android wrapper remains incomplete. npm install timed out; no build/typecheck/full tests/E2E claimed.
 - No R7 runtime authorization code or Production resource changed. R7 remains blocked from deployment.
+
+
+## Pass 950–959 — R7 API fail-closed containment
+
+- Rechecked isolated R7 working copy; current `server.ts` SHA-256 `bd511d6cf6effaba185d82e9e0861fdee8cb4f7e554de7d42ed1fbfd8df923dc` supersedes the earlier audit hash.
+- Verified production API gate is closed before route declarations; only GET health bypasses the generic 503 gate and health itself returns 503 BLOCKED_NOT_CERTIFIED.
+- Verified startup skips local JSON DB initialization in production.
+- `npm run test:security`: PASS; syntax-only TS/TSX transpilation: 95 files, 0 parse errors.
+- Full typecheck/build/unit/integration/E2E/Android remain unverified. Actual Supabase Auth/scope authorization and Paymob HMAC/payment repair remain P0. No production mutation.
