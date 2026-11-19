@@ -50,6 +50,7 @@ const required = [
   "20261027093000_add_qadam_alsaad_homewares_store.sql",
   "20261031100000_rc463_trigger_only_security_definer_acl.sql",
   "20261113214500_rc464_platform_admin_live_registry_hardening.sql",
+  "20261113220000_rc464b_orders_select_policy_preflight.sql",
   "20261114010000_rc465_orders_read_scope_hardening.sql",
   "20261114020000_rc466_business_branch_read_scope_hardening.sql",
   "20261115010000_rc467_commission_scope_hardening.sql",
@@ -70,7 +71,7 @@ const required = [
   "20261119020000_rc482_legal_platform_admin_registry_guard.sql",
   "20261119030000_rc483_atomic_legal_cms_create_audit.sql"
 ];
-assert.equal(required.length, 62, "release gate must track all distinct required post-RC424 migration effects, including RC476–RC483");
+assert.equal(required.length, 63, "release gate must track all distinct required post-RC424 migration effects, including RC464B and RC476–RC483");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");
