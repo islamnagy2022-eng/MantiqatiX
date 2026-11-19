@@ -17,7 +17,7 @@ assert.match(preflight, /^BEGIN;/m, 'policy preflight must be transactional');
 assert.match(preflight, /^COMMIT;/m, 'policy preflight must commit read-only checks');
 assert.match(preflight, /RC465_POLICY_PREFLIGHT_UNEXPECTED_ORDERS_SELECT_SET/);
 assert.match(preflight, /RC465_POLICY_PREFLIGHT_UNEXPECTED_HISTORY_SELECT_SET/);
-assert.match(preflight, /roles = ARRAY\\['authenticated'\\]::name\\[\\]/, 'policy preflight must require authenticated-only expected policies');
+assert.ok(preflight.includes("roles = ARRAY['authenticated']::name[]"), 'policy preflight must require authenticated-only expected policies');
 assert.match(migration, /^BEGIN;/m, 'RC465 migration must remain transactional');
 assert.ok(workflow.includes('20261113220000_rc464b_orders_select_policy_preflight.sql'));
 assert.ok(workflow.indexOf('/tmp/rc465_preflight.sql') < workflow.indexOf('/tmp/rc465_migration.sql'), 'preflight must run before the immutable RC465 migration');
