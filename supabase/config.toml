@@ -3,3 +3,6 @@ verify_jwt = false
 
 [functions.facebook-page-import]
 verify_jwt = true
+
+[functions.directory-listings]
+verify_jwt = false
