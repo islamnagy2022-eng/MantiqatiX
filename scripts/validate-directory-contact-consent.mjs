@@ -121,6 +121,8 @@ const checks = [
   ["full-production gate requires exact directory Edge parity and consent proof",
     releaseContract.includes('"directory-listings"') &&
     releaseContract.includes('directoryContact?.status === "PASS"') &&
+    releaseContract.includes("complete_bundle_match === true") &&
+    releaseContract.includes("required_files_present === true") &&
     releaseContract.includes("published_contact_rows_without_consent_exposure === 0")],
   ["live reconciliation manifest explicitly remains blocked on current directory exposure",
     release.directory_contact_consent_boundary?.status === "BLOCKED" &&
