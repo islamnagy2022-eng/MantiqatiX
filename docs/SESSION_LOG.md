@@ -3100,3 +3100,14 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - Added a route inventory report and Node consistency validator plus a dedicated Actions workflow.
 - Kept the deployed catalog and Production systems untouched. The change is documentation/CI-only.
 - Next: validate the exact PR head, then begin isolated Supabase Auth and route contract implementation only after the R7 trust boundary is redesigned. Keep production MantiGO/DB release blockers separate.
+
+
+## Pass 930–939 — Production Supabase Advisor recheck
+
+- Correct canonical Supabase project ref from the live project list: `moyhiluyhjsujhwlyeuu`.
+- Live migration ledger remains 310 rows through `20261110150618`; required source contract contains 62 unique versions and 0 are applied.
+- Four global MantiGO RPCs and the shared platform-admin helper remain in their known unsafe live state; RC464/RC471/RC476 are not applied.
+- Advisor findings classified: 9 RLS/no-policy tables, 1 intentionally public ad-discovery SECURITY DEFINER candidate (reviewed body and output), 65 authenticated SECURITY DEFINER functions to review individually, leaked-password protection disabled.
+- Performance findings recorded: 132 unindexed FKs, 375 RLS initplan, 70 unused indexes, 28 multiple permissive policies. No mass changes.
+- PR #837 merged; inventory CI, health monitor and directory claim workflows passed. Main Pages validation passed; deployed-origin Playwright still pending at checkpoint.
+- No Production mutation. Full Enterprise remains BLOCKED / NOT CERTIFIED.
