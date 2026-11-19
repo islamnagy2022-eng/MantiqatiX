@@ -130,7 +130,7 @@ Before any restore:
 
 Official reference: [Supabase Vault — Encryption key location](https://supabase.com/docs/guides/database/vault#encryption-key-location).
 
-## 6. Capture non-database configuration
+## 7. Capture non-database configuration
 
 Create a configuration inventory with values redacted:
 - Edge Function names, deployed versions, source commit, `verify_jwt` settings and required secret *names* (never secret values).
@@ -144,7 +144,7 @@ Create a configuration inventory with values redacted:
 
 Edge Function source is preserved in the repository; the deployment configuration and secret values must be restored separately from the approved secret manager.
 
-## 7. Create an off-site backup manifest
+## 8. Create an off-site backup manifest
 
 The manifest must contain only non-secret metadata:
 - Project identifier (not database URL or credentials).
@@ -158,7 +158,7 @@ The manifest must contain only non-secret metadata:
 
 Upload only encrypted artifacts, checksums and the non-secret manifest to a separate off-site storage account. Confirm download access from a second trusted environment.
 
-## 8. Restore rehearsal — disposable project only
+## 9. Restore rehearsal — disposable project only
 
 Create a separate temporary Supabase project running PostgreSQL 17. Configure required extensions and platform services first. Never point these commands at Production.
 
@@ -185,7 +185,7 @@ psql \
 7. Reconfigure Auth providers, redirect URLs, SMTP, API keys, Edge Functions, secrets, Realtime, webhooks and scheduled jobs using the approved configuration inventory.
 8. Reset custom database-role passwords if applicable; do not assume database exports include them. Never copy Production secrets into an untrusted test environment.
 
-## 9. Restore acceptance tests
+## 10. Restore acceptance tests
 
 The restore rehearsal is not complete until all of these are recorded:
 
@@ -202,7 +202,7 @@ The restore rehearsal is not complete until all of these are recorded:
 - Restore duration and data recovery point are recorded. Calculate measured RTO and RPO; do not estimate them without a completed rehearsal.
 - Reviewer signs off the manifest and evidence bundle.
 
-## 10. Production release gate
+## 11. Production release gate
 
 RC484 and the other required migrations remain source-only until:
 - encrypted database and Storage backups exist off-site;
