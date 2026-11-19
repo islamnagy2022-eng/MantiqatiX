@@ -2476,3 +2476,10 @@ Read-only recheck confirms the canonical Supabase project is ACTIVE_HEALTHY on P
 Pages run `44450929982` for main SHA `80f0b021748a4af43dd9f4596644e64ddcc5b7e4` passed build/validation, deploy, root/legacy/V6-preview route checks and deployed-origin Playwright dashboard/mobile/QR tests. Production topology remains catalog root, rollback catalog at `/legacy/`, V6 preview at `/v6-preview/`. No Production database/Auth/RLS/GRANT/Edge/payment/wallet/settlement/data mutation occurred. Full Enterprise remains BLOCKED / NOT CERTIFIED; R7 remains BLOCKED / NOT DEPLOYABLE.
 
 Evidence: `docs/audits/PASS_990_999_PRODUCTION_RELEASE_RECHECK_20261119.md`.
+
+
+## Pass 1000–1009 — MantiGO live authorization recheck (2026-11-19)
+
+Fresh read-only Production inspection reconfirmed 9 active BUSINESS_OWNER memberships across 5 users, with 4 distinct users outside `private.platform_admins`; the registry contains 1 row. Four global MantiGO SECURITY DEFINER RPCs remain authenticated-executable, anon-denied, with `search_path=public`; the shared platform-admin helper remains `search_path=public, pg_temp` and delegates to generic `mnty_can('admin',NULL,NULL,NULL)`. The financial report still references legacy `amount`/`captain_amount` instead of canonical ledger `gross_amount`/`captain_net_amount`. Source RC464/RC471/RC476 repairs and disposable CI tests are present, but none is applied live. Keep MantiGO global admin/finance blocked until the full ordered release and restore/rollback/adversarial gates pass. No Production mutation.
+
+Evidence: `docs/audits/PASS_1000_1009_MANTIGO_PLATFORM_ADMIN_LIVE_RECHECK_20261119.md`.
