@@ -158,6 +158,26 @@ The manifest must contain only non-secret metadata:
 
 Upload only encrypted artifacts, checksums and the non-secret manifest to a separate off-site storage account. Confirm download access from a second trusted environment.
 
+### Automated evidence verification
+
+The repository includes a non-mutating verifier and a non-secret manifest template:
+
+- Template: `docs/runbooks/templates/offsite-backup-manifest.template.json`
+- Verifier: `scripts/backup/verify-offsite-backup-manifest.mjs`
+- Test suite: `scripts/tests/backup/verify-offsite-backup-manifest.test.mjs`
+
+After the artifacts have been copied back from the off-site destination, complete the manifest with the real encrypted-file byte counts and SHA-256 hashes, the actual Storage bucket inventory, and the completed isolated restore evidence. Then run:
+
+```bash
+chmod 600 "$AGE_IDENTITY_FILE"
+AGE_IDENTITY_FILE="$AGE_IDENTITY_FILE" \\
+  node scripts/backup/verify-offsite-backup-manifest.mjs "$BACKUP_DIR/manifest.json"
+```
+
+The verifier checks the four required encrypted artifacts, age headers, exact byte counts, SHA-256, decryption using the protected recovery identity (output is discarded, never written to disk), separate Production/restore project references, PostgreSQL 17, storage inventory, measured RPO/RTO and all restore acceptance checks. It refuses secret-bearing manifest fields and unsafe artifact paths. It reads files only; it does not run a restore or connect to Production.
+
+A successful verifier result is evidence validation, not authorization to run the Production migration release.
+
 ## 9. Restore rehearsal — disposable project only
 
 Create a separate temporary Supabase project running PostgreSQL 17. Configure required extensions and platform services first. Never point these commands at Production.

@@ -1,0 +1,34 @@
+name: Encrypted Backup Manifest and Restore Evidence Gate
+on:
+  pull_request:
+    paths:
+      - "scripts/backup/**"
+      - "scripts/tests/backup/**"
+      - "docs/runbooks/PRODUCTION_BACKUP_RESTORE_RC484_20261119.md"
+      - "docs/runbooks/templates/offsite-backup-manifest.template.json"
+      - ".github/workflows/backup-manifest-validation.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/backup/**"
+      - "scripts/tests/backup/**"
+      - "docs/runbooks/PRODUCTION_BACKUP_RESTORE_RC484_20261119.md"
+      - "docs/runbooks/templates/offsite-backup-manifest.template.json"
+      - ".github/workflows/backup-manifest-validation.yml"
+  workflow_dispatch: {}
+
+jobs:
+  backup-manifest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Install age test dependency
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y age
+      - name: Test encrypted artifact, checksum, path and restore evidence gates
+        run: node --test scripts/tests/backup/verify-offsite-backup-manifest.test.mjs
