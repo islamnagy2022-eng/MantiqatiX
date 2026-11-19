@@ -3147,3 +3147,11 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - Disabled fake intention/history, direct subscription success, auto-renew and billing sweep; webhook cannot mark paid even with valid HMAC until Supabase fulfillment/correlation is implemented.
 - Removed PAN/expiry/CVV/wallet PIN/OTP collection from checkout.
 - Five security scripts PASS; syntax-only TS/TSX transpilation: 95 files, 0 parse errors. No live payment/build/E2E claim; no Production mutation.
+## Pass 980–989 — centralized API gate and local exposure containment
+
+- Added reusable API gate module before all API routes: production API is denied except health (which returns BLOCKED_NOT_CERTIFIED).
+- Added all-environment denial for privileged auth, backup, finance, wallet, platform-admin, production-control and integration prefixes.
+- Normalized case/percent encoding/repeated slashes; malformed paths fail closed.
+- Rate limiter ignores X-Forwarded-For, proxy trust false, bucket map bounded; dev bind is loopback.
+- Six security scripts PASS; syntax-only TS/TSX parse 95 files / 0 errors. Full typecheck/build/E2E/Android/live payment remain unverified.
+- R7 remains blocked; no production mutation.
