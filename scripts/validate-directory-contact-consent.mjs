@@ -132,6 +132,11 @@ const checks = [
     release.directory_contact_consent_boundary?.live_function?.missing_live_files?.includes("public-directory-output-contract.mjs") &&
     release.directory_contact_consent_boundary?.consent_table?.exists === false &&
     release.directory_contact_consent_boundary?.published_contact_rows_without_consent_exposure === 869],
+  ["POST consent actions verify a real non-anonymous Supabase user and bind actor to auth.uid",
+    source.includes("service.auth.getUser(token)") &&
+    source.includes("userError || !user || user.is_anonymous") &&
+    source.includes("consented_by: user.id") &&
+    source.includes("revoked_by: user.id")],
   ["only a claimed listing owner or active business owner can change consent",
     source.includes('action === "SET_PUBLIC_CONTACT_CONSENT"') &&
     source.includes('listing.claim_status !== "CLAIMED"') &&
