@@ -2848,3 +2848,17 @@ Evidence: `docs/audits/R7_PARTIAL_SECRET_HARDENING_REVIEW_20261119.md`. R7 remai
 - [ ] 979 — Official Paymob Intention API, hosted checkout, callback correlation, idempotent Supabase fulfillment and real test-mode transaction remain outstanding. R7 stays BLOCKED.
 
 Evidence: `docs/audits/R7_PAYMOB_PAYMENT_INTEGRITY_REVALIDATION_20261119.md`.
+## Pass 980–989 — centralized API gate and local exposure containment (2026-11-19)
+
+- [x] 980 — Added reusable server-only API gate decision module and registered it before every route declaration.
+- [x] 981 — Production denies every `/api/*` request except GET health; the health route itself returns 503 BLOCKED_NOT_CERTIFIED.
+- [x] 982 — Privileged auth, backup, finance, grants, merchant-hub, monitoring, production, readiness, security, settings, stages, Supabase, telemetry, wallets and WhatsApp prefixes are disabled in all environments.
+- [x] 983 — Gate normalizes path case, percent encoding and repeated slashes; malformed encodings fail closed.
+- [x] 984 — Added behavioral tests for production denial, health-only exception, privileged route denial and path bypass variants.
+- [x] 985 — Express trust proxy explicitly false; rate limiting uses socket-derived req.ip, not client-controlled X-Forwarded-For.
+- [x] 986 — Rate-limit bucket map bounded to 10,000 entries.
+- [x] 987 — Development server binds to 127.0.0.1; production binds to 0.0.0.0 while API remains blocked.
+- [x] 988 — Six security scripts PASS; syntax-only TS/TSX transpilation: 95 files, 0 parse errors.
+- [ ] 989 — Implement Supabase Auth and route-level tenant/branch/platform authorization and complete full build/E2E before opening any route. R7 remains blocked.
+
+Evidence: `docs/audits/R7_API_GATE_HARDENING_REVALIDATION_20261119.md`.
