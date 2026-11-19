@@ -34,9 +34,18 @@ Fetched deployed bundle metadata and source files from Supabase and compared eve
 | `financial-journal` | 3 | true | `index.ts` | MISMATCH |
 | `directory-listings` | 16 | false | `index.ts`, `pagination-filter.mjs`, `doctor-import-contract.mjs` | MISMATCH |
 
-All seven live entrypoints differ from current `main`. The six non-directory functions have no additional relative runtime helper files in either the live bundle or the repository tree. The live directory bundle is incomplete: current main requires five runtime files (`index.ts`, `doctor-import-contract.mjs`, `pagination-filter.mjs`, `consent-pagination.mjs`, `public-directory-output-contract.mjs`); live v16 has only three and lacks the last two helper modules. Test files are not runtime bundle dependencies.
+All seven live entrypoints differ from current `main`. A dependency-graph inspection of current main found these additional relative runtime imports outside the individual function folders:
 
-This confirms the source-parity and directory-consent release blockers. It does not establish that every difference is independently exploitable; each function requires its own contract, dependency, secret, JWT, and schema review before coordinated deployment.
+- `payment-intent` → `../_shared/paymob-intent-correlation.mjs`
+- `digital-page-payment-intent` → `../_shared/paymob-intent-correlation.mjs`
+- `subscription-payment-intent` → `../_shared/paymob-intent-correlation.mjs` and `../_shared/checkout-secret-crypto.mjs`
+- `directory-listings` → `./pagination-filter.mjs`, `./doctor-import-contract.mjs`, `./consent-pagination.mjs`, and `./public-directory-output-contract.mjs`
+
+The two shared modules were verified in `supabase/functions/_shared/` and have no further relative imports. `order-create`, `paymob-webhook`, and `financial-journal` have no relative source imports. Supabase's current Edge Functions documentation says the CLI bundles a function and its dependency graph into an ESZip; therefore the per-function source-file listing must not be treated as a complete inventory of the final compiled ESZip. The direct evidence is the byte-mismatched live entrypoint source and its imports, plus the live directory source-file list.
+
+For `directory-listings`, current main requires five runtime source files (`index.ts`, `doctor-import-contract.mjs`, `pagination-filter.mjs`, `consent-pagination.mjs`, `public-directory-output-contract.mjs`); the Management API's live source listing exposes only three and omits the two new consent helpers. Test files are not runtime dependencies.
+
+This confirms source-parity drift and the directory-consent release blocker. It does not establish that every difference is independently exploitable; each function requires its own contract, dependency, secret, JWT, and schema review before coordinated deployment. Supabase documentation: [Edge Functions architecture and bundling](https://supabase.com/docs/guides/functions/architecture) and [development tips / shared code layout](https://supabase.com/docs/guides/functions/development-tips).
 
 ## Current security-advisor snapshot
 
