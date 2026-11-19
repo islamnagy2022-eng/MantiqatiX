@@ -2985,7 +2985,7 @@ Evidence: PR #847 and `scripts/validate-edge-jwt-config.mjs`. Gateway JWT bypass
 - [x] 1066 — Added RC464B to the canonical ordered migration version list and production verifier.
 - [x] 1067 — Added RC464B to the fail-closed migration gate while preserving the directory-consent evidence predicate.
 - [x] 1068 — Updated the release manifest to 63 unique required versions and corrected the live critical Edge drift summary to seven functions.
-- [ ] 1069 — PR #849 exact-head CI, review and merge pending. No Production migration, DDL/DML, GRANT, RLS, Auth, Edge, payment, wallet or settlement mutation.
+- [x] 1069 — PR #849 exact-head CI passed; merged to `main` as `b3a650c5823e5c817788d12e5871ca135797dbee`. No Production migration, DDL/DML, GRANT, RLS, Auth, Edge, payment, wallet or settlement mutation.
 
 Evidence: `docs/audits/RC464B_ORDERS_POLICY_PREFLIGHT_PORT_20261119.md` and PR #849. Live migration ledger remains 310 rows through `20261110150618`; 0/63 required IDs are recorded. Enterprise release remains BLOCKED / NOT CERTIFIED.
 
@@ -2999,8 +2999,24 @@ Evidence: `docs/audits/RC464B_ORDERS_POLICY_PREFLIGHT_PORT_20261119.md` and PR #
 - [x] 1074 — Confirmed required orders, order_status_history and user_memberships columns exist, including business_id/branch_id and membership role/status.
 - [x] 1075 — Confirmed live catalog state matches the name/count/role/RLS/grant predicates in RC464B; current policy expressions remain the older tenant-wide predicates.
 - [x] 1076 — Preserved Production unchanged; only read-only SELECT queries were executed.
-- [ ] 1077 — Complete exact-head PR #849 CI, including PostgreSQL 17 positive and policy-drift negative tests.
+- [x] 1077 — Completed exact-head PR #849 CI, including PostgreSQL 17 positive and policy-drift negative tests; all required PR checks passed (43 success, 2 expected skipped, zero failures).
 - [ ] 1078 — Do not apply RC464B or RC465 until the complete chronological release, encrypted backup/restore rehearsal and rollback proof are approved.
 - [ ] 1079 — After coordinated release only, re-run live anonymous/member/customer/branch negative reads and verify the new business/branch predicates.
 
 Evidence: `docs/audits/RC464B_ORDERS_POLICY_PREFLIGHT_PORT_20261119.md`. The read-only inventory matches the RC464B preflight's expected catalog shape; it does not prove RC465 behavior or authorize a Production migration.
+
+
+## Pass 1080–1089 — post-merge deployment and R7 archive reconciliation (2026-11-19)
+
+- [x] 1080 — Verified PR #849 is merged on current `main` at `b3a650c5823e5c817788d12e5871ca135797dbee`.
+- [x] 1081 — Verified Primary Catalog Frontend Validation run `44573397535` completed successfully, including build, employee RBAC PostgreSQL and professional-dashboard browser E2E.
+- [x] 1082 — Verified GitHub Pages deployment run `44573397564` completed successfully; deployment, root/legacy/Preview alias checks and deployed-origin browser checks for catalog/dashboard/mobile/QR routes passed.
+- [x] 1083 — Recomputed SHA-256 of the exact uploaded `bizcatalog-manager (11).zip`: `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`; matches the existing R7 Archive 11 intake/security audit identity.
+- [x] 1084 — Re-ran ZIP CRC integrity: all 270 archive entries passed.
+- [x] 1085 — Independently counted 99 regular files under `src/` (53 TSX, 40 TS, 5 JPG and 1 CSS) and confirmed three Android wrapper source/config files; `.env`, `.data/`, `dist/`, `node_modules/` and release bundle are absent.
+- [x] 1086 — Recorded a correction to the earlier intake inventory statement of 118 source files: the exact archive contains 99 regular files under `src/`. The archive remains immutable and reference-only.
+- [x] 1087 — Confirmed R7 archive remains inadmissible for wholesale import/deployment because its Express/local-JSON/auth/payment trust boundaries are not production-safe; no source files from the archive were copied into the live app.
+- [x] 1088 — Preserved deployed V6/catalog root and Android source; only the already-reviewed current-main commit was deployed. No Supabase Production DB/Auth/RLS/GRANT/Edge/payment/wallet/settlement/data mutation occurred.
+- [ ] 1089 — Next: produce a file-level R7 UI/screen/field/API map against the current Supabase-backed catalog and select additive UI-only components for isolated Preview; retain all R7 backend routes as disabled/untrusted until replaced by verified contracts.
+
+Evidence: `docs/audits/PASS_1080_1089_POST_MERGE_DEPLOY_AND_R7_INTAKE_RECONCILIATION_20261119.md`, PR #849, Actions runs 44573397535 and 44573397564, and `docs/audits/R7_ARCHIVE_11_INTAKE_20261118.md`. Full platform release remains BLOCKED / NOT CERTIFIED.
