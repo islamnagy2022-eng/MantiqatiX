@@ -91,6 +91,6 @@ const OWNER_CONTACT_SCOPES = new Set(["PHONE", "SECONDARY_PHONE", "ADDRESS", "PR
 export function resolveDirectoryOwnerAccess(isOwner, consentReady, activeScopes = new Set()) {
   return {
     canEdit: Boolean(isOwner && consentReady),
-    contactScopes: isOwner ? new Set(OWNER_CONTACT_SCOPES) : new Set(activeScopes),
+    contactScopes: isOwner ? new Set(OWNER_CONTACT_SCOPES) : consentReady ? new Set(activeScopes) : new Set(),
   };
 }
