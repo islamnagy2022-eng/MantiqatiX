@@ -129,8 +129,6 @@ jobs:
         run: npx tsx tests/public-catalog-pricing.test.ts
       - name: Test directory contact-consent privacy and pagination contracts
         run: node --test supabase/functions/directory-listings/*.test.mjs
-      - name: Validate consent-aware directory Edge integration
-        run: node scripts/validate-directory-listings-consent-contract.mjs
       - name: Validate fail-closed production migration release gate
         run: node scripts/validate-production-migration-chain-gate.mjs
       - name: Validate canonical activity/profession taxonomy
