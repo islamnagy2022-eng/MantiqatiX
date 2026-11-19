@@ -49,3 +49,27 @@ These counts do not certify the Edge functions or broader order state.
 ## Release decision
 
 Issue [#857](https://github.com/islamnagy2022-eng/MantiqatiX/issues/857) tracks coordinated payment/order/finance Edge parity. No live Edge deployment, migration, GRANT, payment, journal, wallet, settlement or customer-data write was performed. Full platform remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Order-create identity follow-up
+
+The exact live `order-create` v8 vs current-main line-level diff is complete.
+
+The live bundle lacks:
+- bounded request-body streaming (256 KiB cap);
+- strict JSON/object/customer/metadata validation;
+- exact `branch_id` membership filtering for staff operations;
+- catalog item ID length and selected-option count/length/uniqueness checks;
+- controlled `OPTION_ITEM_MISMATCH` handling.
+
+Both live and main bundles retain bearer-user verification, business/branch fields, idempotency and allowed-origin checks.
+
+A read-only Production inspection of `public.create_order_backend(...)` found:
+- SECURITY DEFINER, `search_path=public`, service_role EXECUTE=true;
+- the live body still requires `auth.uid() = p_customer_id` unconditionally;
+- live Edge `order-create` invokes this RPC through a service-role client after separately verifying the bearer token with `admin.auth.getUser(token)`;
+- current main RC105 changes the guard to allow `auth.role()='service_role'` while retaining actor binding for non-service callers.
+
+RC105 is absent from the exact live migration ledger. The deployed order-create → RPC path is therefore expected to reject with `CUSTOMER_REQUIRED` until RC105 is applied through the approved chronological release. This is a code/definition inference; no order request was invoked.
+
+Detailed evidence was added to Issue #857 (comment 7016846894) and PR #858 review thread. Do not hot-edit the live RPC, grant broader access, or deploy the Edge bundle separately.
