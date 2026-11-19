@@ -77,7 +77,7 @@ jobs:
             exit 1
           fi
           grep -q "RC465_UNEXPECTED_PERMISSIVE_ORDERS_SELECT_POLICY_SET" /tmp/rc465-drift-preflight.log
-          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_policy_drift_test -v ON_ERROR_STOP=1 -f /tmp/rc465_drift_history_assert.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_policy_drift_test -v ON_ERROR_STOP=1 -f /tmp/rc465_drift_assert.sql
 
           # Remove the extra orders policy only; the remaining extra history
           # policy must independently stop the migration on the history gate.
@@ -88,4 +88,4 @@ jobs:
             exit 1
           fi
           grep -q "RC465_UNEXPECTED_PERMISSIVE_HISTORY_SELECT_POLICY_SET" /tmp/rc465-history-drift-preflight.log
-          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_policy_drift_test -v ON_ERROR_STOP=1 -f /tmp/rc465_drift_assert.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_policy_drift_test -v ON_ERROR_STOP=1 -f /tmp/rc465_drift_history_assert.sql
