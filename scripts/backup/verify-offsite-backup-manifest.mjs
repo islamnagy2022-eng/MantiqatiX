@@ -34,7 +34,7 @@ const REQUIRED_RESTORE_CHECKS = [
   "rollback_rehearsal",
 ];
 const SENSITIVE_KEY_PATTERN =
-  /(password|secret_value|access_token|refresh_token|service_role_key|private_key|database_url|connection_string|jwt_secret|api_key_value)/i;
+  /(password|secret|token|credential|service_role|private_key|database_url|connection_string|jwt|api_key|access_key)/i;
 
 function blocked(message) {
   console.error(`BACKUP_GATE=BLOCKED ${message}`);
@@ -96,6 +96,24 @@ function hasAgeHeader(filePath) {
   } finally {
     fs.closeSync(fd);
   }
+}
+
+function rejectPlaintextBackupFiles(root, manifestPath) {
+  const forbidden = /\\.(sql|dump|backup|tar|tar\\.gz|zip)$/i;
+  const walk = directory => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const candidate = path.join(directory, entry.name);
+      if (candidate === manifestPath) continue;
+      if (entry.isSymbolicLink()) throw new Error("symlink found inside backup artifact directory");
+      if (entry.isDirectory()) {
+        if (entry.name === "storage") throw new Error("plaintext Storage export directory remains beside encrypted artifacts");
+        walk(candidate);
+      } else if (entry.isFile() && forbidden.test(entry.name)) {
+        throw new Error("plaintext database or Storage archive remains beside encrypted artifacts");
+      }
+    }
+  };
+  walk(root);
 }
 
 function verifyDecrypts(filePath, identityPath) {
@@ -195,8 +213,13 @@ async function main() {
     Date.parse(manifest.backup_finished_at) >= Date.parse(manifest.backup_started_at),
     "backup timestamps are invalid");
   requireCondition(typeof manifest.backup_destination === "string" &&
-    manifest.backup_destination.trim().length > 0,
-    "separate off-site backup destination is required");
+    /^(s3|https?):\\/\\//i.test(manifest.backup_destination) &&
+    !manifest.backup_destination.includes("@") &&
+    !manifest.backup_destination.includes("?"),
+    "backup destination must be a non-secret off-site URI without embedded credentials or query tokens");
+  requireCondition(manifest.offsite_destination_outside_supabase_org === true &&
+    manifest.offsite_retrieval_verified === true,
+    "off-site storage separation and second-environment retrieval must be verified");
   requireCondition(typeof manifest.backup_operator === "string" &&
     manifest.backup_operator.trim().length > 0,
     "backup operator is required");
@@ -212,6 +235,9 @@ async function main() {
   const identityArgument = process.env.AGE_IDENTITY_FILE;
   requireCondition(identityArgument, "AGE_IDENTITY_FILE must point to the recovery identity outside this repository");
   const identityPath = path.resolve(identityArgument);
+  const rootPrefix = root.endsWith(path.sep) ? root : root + path.sep;
+  requireCondition(!identityPath.startsWith(rootPrefix),
+    "recovery identity must be stored separately from the backup artifact directory");
   const identityStat = fs.lstatSync(identityPath);
   requireCondition(identityStat.isFile() && !identityStat.isSymbolicLink(),
     "recovery identity must be a regular file, not a symlink");
@@ -225,6 +251,9 @@ async function main() {
   requireCondition(new Set(kinds).size === kinds.length, "duplicate artifact kind in manifest");
   requireCondition(REQUIRED_ARTIFACT_KINDS.every(kind => kinds.includes(kind)),
     "manifest must include roles, schema, data and Storage-object encrypted artifacts");
+
+  rejectPlaintextBackupFiles(root, manifestPath);
+  console.log("PLAINTEXT_SCAN=PASS");
 
   for (const artifact of manifest.artifacts) {
     await verifyArtifact(root, artifact, identityPath);
