@@ -11,6 +11,8 @@ const rc425 = read("supabase/migrations/20261009120000_rc425_atomic_mantigo_paym
 const rc426 = read("supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql");
 const rc427 = read("supabase/migrations/20261009140000_rc427_one_active_payment_intent_per_order.sql");
 const rc427Integration = read("supabase/tests/rc426_427_payment_intent_integration.sql");
+const rc427 = read("supabase/migrations/20261009140000_rc427_one_active_payment_intent_per_order.sql");
+const rc427Integration = read("supabase/tests/rc426_427_payment_intent_integration.sql");
 const rc428 = read("supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql");
 const rc429 = read("supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql");
 const rc430 = read("supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql");
@@ -100,6 +102,46 @@ assert.ok(checkoutCrypto.includes("PAYMOB_CHECKOUT_ENCRYPTION_ACTIVE_VERSION"), 
 assert.ok(subscriptionIntent.includes("checkoutCryptoKey(version)") && subscriptionIntent.includes("intent.client_secret_key_version"), "existing checkout secrets must be decrypted using their stored key version");
 assert.ok(subscriptionIntent.indexOf("try{readCheckoutSecretKey(checkoutKeyVersion,readSecretEnv);}") >= 0 && subscriptionIntent.indexOf("try{readCheckoutSecretKey(checkoutKeyVersion,readSecretEnv);}") < subscriptionIntent.indexOf('rpc("create_subscription_payment_intent_claimable_backend"'), "active checkout key material must be validated before intent creation or provider network I/O");
 assert.ok(webhook.includes("SUBSCRIPTION_PROVIDER_ORDER_MISMATCH") && webhook.includes("DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH"), "subscription and digital-page webhooks must enforce exact Paymob provider-order binding");
+
+const standardIntentLookup = webhook.indexOf('const {data:intentByRef}');
+const standardProviderOrderGuard = webhook.indexOf('if(!paymobOrderId||String(intent.provider_order_id??"")!==paymobOrderId)', standardIntentLookup);
+const standardFailureProcessor = webhook.indexOf('admin.rpc("process_verified_provider_payment_failure"', standardProviderOrderGuard);
+const standardSuccessProcessor = webhook.indexOf('admin.rpc("process_verified_provider_payment"', standardProviderOrderGuard);
+assert.ok(standardIntentLookup >= 0 && standardProviderOrderGuard > standardIntentLookup &&
+  standardFailureProcessor > standardProviderOrderGuard && standardSuccessProcessor > standardProviderOrderGuard,
+  "standard payment webhook must bind the selected intent to HMAC-covered provider order ID before success/failure RPCs");
+const standardPaymentBranch = webhook.slice(standardIntentLookup);
+assert.doesNotMatch(standardPaymentBranch, /from\("payment_provider_events"\)\.insert/,
+  "standard payment events must not be inserted outside the atomic database processors");
+assert.doesNotMatch(standardPaymentBranch, /from\("payment_intents"\)\.update/,
+  "standard payment intent state must not be updated outside the atomic database processors");
+
+const subscriptionIntentLookup = webhook.indexOf('const {data:subByRef}');
+const subscriptionProviderOrderGuard = webhook.indexOf('if(!paymobOrderId||String(sub.provider_order_id??"")!==paymobOrderId)', subscriptionIntentLookup);
+const subscriptionFailureProcessor = webhook.indexOf('admin.rpc("process_verified_subscription_payment_failure"', subscriptionProviderOrderGuard);
+const subscriptionSuccessProcessor = webhook.indexOf('admin.rpc("process_verified_subscription_payment_backend"', subscriptionProviderOrderGuard);
+assert.ok(subscriptionIntentLookup >= 0 && subscriptionProviderOrderGuard > subscriptionIntentLookup &&
+  subscriptionFailureProcessor > subscriptionProviderOrderGuard && subscriptionSuccessProcessor > subscriptionProviderOrderGuard,
+  "subscription webhook must bind the selected intent to HMAC-covered provider order ID before success/failure RPCs");
+const subscriptionBranchEnd = webhook.indexOf('const {data:digitalByRef}', subscriptionIntentLookup);
+const subscriptionBranch = webhook.slice(subscriptionIntentLookup, subscriptionBranchEnd > subscriptionIntentLookup ? subscriptionBranchEnd : webhook.length);
+assert.doesNotMatch(subscriptionBranch, /from\("subscription_payment_intents"\)\.(?:insert|update)/,
+  "subscription webhook state transitions must remain inside atomic database processors");
+
+assert.match(rc427, /having count\(\*\) > 1[\s\S]*RC427_DUPLICATE_ACTIVE_PAYMENT_INTENTS_REQUIRE_RECONCILIATION/,
+  "RC427 must fail closed on pre-existing multiple active payment intents");
+assert.match(rc427, /create unique index if not exists uq_payment_intents_one_active_per_order[\s\S]*where upper\(status\) in \('CREATED', 'PENDING', 'SUCCEEDED'\)/i,
+  "RC427 must enforce exactly one CREATED/PENDING/SUCCEEDED intent per order");
+assert.ok(rc427Integration.includes("RC427 active-intent duplicate was not rejected") &&
+  rc427Integration.includes("RC427 succeeded-intent duplicate was not rejected") &&
+  rc427Integration.includes("RC427 partial unique index was not created"),
+  "RC426/RC427 integration must reject duplicate active and succeeded intents");
+for (const [label, source] of [["RC428",rc428],["RC429",rc429],["RC430",rc430]]) {
+  assert.ok(source.includes("provider_order_id") && source.includes("p_external_event_id") &&
+    source.includes("p_provider_transaction_id") && source.includes("set search_path = ''"),
+    label + " must bind provider order/transaction/event and pin an empty search_path");
+}
+
 
 const standardIntentLookup = webhook.indexOf('const {data:intentByRef}');
 const standardProviderOrderGuard = webhook.indexOf('if(!paymobOrderId||String(intent.provider_order_id??"")!==paymobOrderId)', standardIntentLookup);
