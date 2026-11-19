@@ -178,17 +178,21 @@ export function resolveCanonicalSpecialty(value: string, categoryId?: string): s
 }
 
 const LEGACY_GROUP_MAP: Record<string, FunctionalGroup['id']> = {
+  // R7 archive (11) legacy group IDs — keep every source ID readable while
+  // presenting only the canonical 10-group taxonomy in the live catalog.
   dining: 'food_grocery', food_grocery: 'food_grocery',
   retail: 'fashion_beauty', trade_ecommerce: 'fashion_beauty',
   services: 'professional_services', public_community: 'professional_services',
   healthcare: 'medical_health', medical_health: 'medical_health',
   crafts_maintenance: 'home_maintenance', construction_decor: 'home_maintenance',
   home_maintenance: 'home_maintenance',
-  marketing_media: 'technology_communications',
+  marketing_media: 'technology_communications', technology_software: 'technology_communications',
   sports_fitness: 'education_training', education_training: 'education_training',
-  tourism_events: 'food_grocery',
-  finance_insurance: 'professional_services',
+  tourism_events: 'food_grocery', tourism_hotels: 'food_grocery', events_entertainment: 'food_grocery',
+  finance_insurance: 'professional_services', legal_financial: 'professional_services',
   industry_workshops: 'agriculture_animals', agriculture_animals: 'agriculture_animals',
+  agriculture_livestock: 'agriculture_animals', industrial_manufacturing: 'agriculture_animals',
+  transport_logistics: 'auto_transport',
   auto_transport: 'auto_transport', real_estate: 'real_estate',
   technology_communications: 'technology_communications',
   professional_services: 'professional_services', fashion_beauty: 'fashion_beauty',
