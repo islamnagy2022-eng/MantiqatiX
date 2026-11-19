@@ -2483,3 +2483,17 @@ Evidence: `docs/audits/PASS_990_999_PRODUCTION_RELEASE_RECHECK_20261119.md`.
 Fresh read-only Production inspection reconfirmed 9 active BUSINESS_OWNER memberships across 5 users, with 4 distinct users outside `private.platform_admins`; the registry contains 1 row. Four global MantiGO SECURITY DEFINER RPCs remain authenticated-executable, anon-denied, with `search_path=public`; the shared platform-admin helper remains `search_path=public, pg_temp` and delegates to generic `mnty_can('admin',NULL,NULL,NULL)`. The financial report still references legacy `amount`/`captain_amount` instead of canonical ledger `gross_amount`/`captain_net_amount`. Source RC464/RC471/RC476 repairs and disposable CI tests are present, but none is applied live. Keep MantiGO global admin/finance blocked until the full ordered release and restore/rollback/adversarial gates pass. No Production mutation.
 
 Evidence: `docs/audits/PASS_1000_1009_MANTIGO_PLATFORM_ADMIN_LIVE_RECHECK_20261119.md`.
+
+
+## Pass 1010–1019 — live Edge Function parity (2026-11-19)
+
+Fetched live Supabase metadata and `index.ts` source for 11 critical Edge Functions and compared each entrypoint byte-for-byte with main. Exact matches: `api`, `order-status-update`, `payment-webhook`, `smm-gateway` (4/11). Mismatches: `order-create`, `payment-intent`, `paymob-webhook`, `digital-page-payment-intent`, `subscription-payment-intent`, `financial-journal`, `directory-listings` (7/11). All 11 are ACTIVE; verify_jwt settings are recorded in the audit. This is source-parity drift, not proof of exploit. Do not deploy mismatches individually while 62 migrations remain 0/62, required objects are absent, and payment/finance/backup gates remain open. No Edge or Production mutation.
+
+Evidence: `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20261119.md`.
+
+
+## Pass 1020–1029 — directory contact consent gap (2026-11-19)
+
+Read-only inspection confirmed live `directory-listings` v16 has `verify_jwt=false`; anonymous GET returns public listing rows selected with phone/address fields and does not use main's consent-aware sanitizer. Production has 869 published rows, all with phone/address and 178 with secondary phone. Both public/private `directory_listing_contact_consents` tables are absent; main RC473 creates the table with RLS/FORCE RLS and service-role-only access but is not applied. Treat as a high-priority privacy-contract gap. Do not deploy the full function or apply RC473 alone; coordinate RC472/RC473, full Edge bundle and schema. No Production mutation.
+
+Evidence: `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20261119.md`.
