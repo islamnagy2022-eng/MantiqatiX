@@ -19,7 +19,7 @@ const checks=[
   ["fixture reproduces 57 policies over 24 tables",/1\.\.24/.test(fixture)&&/1\.\.33/.test(fixture)],
   ["integration denies tenant ADMIN and SUPER_ADMIN",/RC484_TENANT_ADMIN_MUST_NOT_BE_PLATFORM_ADMIN/.test(integration)&&/RC484_TENANT_SUPER_ADMIN_MUST_NOT_BE_PLATFORM_ADMIN/.test(integration)],
   ["integration preserves registered platform-root global access",/RC484_REGISTRY_ONLY_PLATFORM_ADMIN_MUST_PASS/.test(integration)&&/RC484_REGISTERED_PLATFORM_ADMIN_MUST_RETAIN_GLOBAL_POLICY_ACCESS/.test(integration)],
-  ["workflow applies fixture, migration, then behavior test",workflow.indexOf("rc484_platform_admin_fixture.sql")<workflow.indexOf("20261119040000_rc484_registry_backed_is_platform_admin.sql")&&workflow.indexOf("20261119040000_rc484_registry_backed_is_platform_admin.sql")<workflow.indexOf("rc484_platform_admin_integration.sql")],
+  ["workflow applies fixture, migration, then behavior test",workflow.indexOf("-f /tmp/fixture.sql")<workflow.indexOf("-f /tmp/rc484.sql")&&workflow.indexOf("-f /tmp/rc484.sql")<workflow.indexOf("-f /tmp/integration.sql")],
   ["production migration contract includes RC484",/20261119040000/.test(gate)&&/20261119040000_rc484_registry_backed_is_platform_admin\.sql/.test(chain)],
 ];
 for(const [name,ok] of checks) console.log((ok?"PASS ":"FAIL ")+name);
