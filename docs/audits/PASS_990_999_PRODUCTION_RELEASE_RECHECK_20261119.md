@@ -37,6 +37,15 @@ The nine no-policy tables are:
 
 The public ad RPC remains a reviewed public-read candidate; do not revoke it blindly because public sponsored-ad delivery depends on it.
 
+### 2.1 Exact table ACL recheck for the nine no-policy tables
+
+A read-only `has_table_privilege` and `pg_policies` query confirmed all nine have RLS enabled, zero policies, and no direct `anon` or `authenticated` SELECT/INSERT/UPDATE/DELETE privileges. Only three have `service_role` table privileges (SELECT/INSERT/UPDATE/DELETE): `directory_listing_claim_requests`, `directory_source_permission_evidence`, and `public_directory_listings`. The other six have no direct service_role table privileges either: `business_employees`, `business_job_positions`, `commission_rule_audit`, `digital_page_payment_events`, `platform_custom_roles`, and `platform_role_assignments`. Keep this deny-by-default posture; verify the Edge/RPC paths and exact least-privilege columns before changing ACLs.
+
+### 2.2 Public targeted-advertisement RPC contract
+
+The live `get_mnty_targeted_advertisements(...)` function is `SECURITY DEFINER`, has an explicitly empty `search_path`, and is executable by `anon` and `authenticated` but not `service_role`. The inspected SQL body filters both local and global advertisements to `ACTIVE` and `APPROVED`, enforces start/end windows, joins active geographic areas for targeted ads, deduplicates to the best match, and caps the requested limit at 50. Retain it as a reviewed public discovery endpoint; continue monitoring its return columns and source-table grants rather than revoking it blindly.
+
+
 ## 3. Performance Advisor snapshot
 
 | Finding | Current count |
