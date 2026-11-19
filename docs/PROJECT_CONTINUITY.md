@@ -2415,3 +2415,10 @@ Confirmed source blockers include unauthenticated super-admin token minting, una
 The archive contains one SQL migration creating/enabling RLS on 7 tables, not the 11-table claim. It has 15 test files but no declared test script. Dependency installation timed out with lifecycle scripts disabled, so build/typecheck/unit/E2E/Android validation was not run. Detailed evidence and remediation are in `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md`.
 
 **Disposition:** do not import or deploy R7. Keep the verified public catalog on `main` intact. Continue R7 remediation in an isolated branch/worktree, beginning with Auth/token issuance and production-state route removal; no Production mutation was performed.
+
+
+## 2026-11-19 — R7 API route authorization recheck (Pass 910–919)
+
+A second static pass over the exact uploaded R7 `server.ts` found no global authentication middleware before route declarations (JSON parser and IP rate limiter only). A route-handler scan identified 54 mutating handlers without recognizable route-local token verification/authorization. Representative direct local-JSON writes include business/product/subscriber/sales/order-status/wallet/settings/grants/merchant-ledger/finance. The finance endpoint accepts caller-provided actor identity and defaults actorRole to super_admin. This is a source-level trust-boundary defect; it is not evidence of a live exploit. Public contact/webhook ingress paths must be classified separately rather than blanket-blocked.
+
+Next: inventory every route's intended policy; implement Supabase Auth identity plus per-route tenant/branch/platform/service authorization; remove client role authority; move privileged writes to audited Supabase contracts; add negative adversarial tests and a CI route-classification gate. R7 remains an immutable, untrusted development candidate. No Production changes occurred.

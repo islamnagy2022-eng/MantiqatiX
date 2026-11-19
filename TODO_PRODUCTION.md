@@ -2728,3 +2728,17 @@ Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The li
 - [x] 909 — Added `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md` with evidence and required remediation.
 
 **Disposition:** R7 remains an immutable, untrusted development candidate. Do not import or deploy it. Preserve the deployed catalog on `main`. No Production database/Auth/RLS/GRANT/Edge/payment/site mutation occurred in this pass.
+
+
+## Pass 910–919 — R7 API route authorization surface (2026-11-19)
+
+- [x] Reopened exact R7 `server.ts`; verified no global authentication middleware is registered before route declarations (only JSON parsing and IP rate limiting are present).
+- [x] Static scan found 54 mutating route handlers without recognizable route-local session verification/authorization. Manually verified direct local-JSON mutations in business/product/subscriber/sales/order-status/wallet/settings/grants/merchant-ledger/finance paths.
+- [x] Confirmed audited-finance route accepts client-provided actor identity/role and defaults role to super_admin; treat as P0.
+- [x] Classified count as a screening signal, not a proven exploit count; public ingress routes need separate explicit contracts.
+- [ ] Create complete API route policy inventory and classify every route (public ingress, authenticated, tenant, branch, platform admin, service-to-service, disabled).
+- [ ] Implement Supabase Auth verification and per-route fail-closed authorization; reject client-supplied roles/actor identity/scope.
+- [ ] Move privileged writes to narrow Supabase RPC/Edge contracts with RLS, ACL, audit atomicity; disable wallet/finance mutations until verified.
+- [ ] Add anonymous/forged-role/cross-tenant/cross-branch/inactive-member/non-platform-admin/replay negative tests and CI route classification gate.
+
+Evidence: `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md`. No Production mutation; R7 remains untrusted and not deployable.
