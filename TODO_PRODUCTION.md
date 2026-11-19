@@ -2931,7 +2931,7 @@ Evidence: `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20261119.md`. 
 
 - [x] 1030 — Added 11 Node unit tests for per-field phone/secondary phone/address/precise-location consent, metadata allowlists, safe URLs and consent pagination failure behavior.
 - [x] 1031 — Wired directory consent unit tests into Primary Catalog Frontend Validation.
-- [x] 1032 — Added a static integration validator connecting Edge handler, frontend consent action, RC473 migration ACL/RLS and CI test execution.
+- [x] 1032 — Extended the existing canonical static integration validator to connect Edge handler, frontend consent action, RC473 migration ACL/RLS, JWT config and release gate.
 - [x] 1033 — Added `directory-listings` to required critical Edge source parity for full-production certification.
 - [x] 1034 — Extended `isLiveReconciliationVerified` to require exact live directory source and complete bundle parity, all required helper files present, consent table existence, consent-scoped anonymous output, zero contact exposure without consent, owner/anonymous tests and fail-closed outage behavior.
 - [x] 1035 — Recorded the current live directory boundary as BLOCKED in the release manifest: live v16, only 3/5 required bundle files present (missing consent-pagination and public output sanitizer), 869 published rows with phone/address, 178 with secondary phone, consent table absent.
