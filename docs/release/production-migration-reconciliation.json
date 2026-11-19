@@ -4699,6 +4699,7 @@
       "pagination-filter.mjs",
       "consent-pagination.mjs",
       "public-directory-output-contract.mjs"
-    ]
+    ],
+    "consent_table_exists": false
   }
 }
