@@ -4390,5 +4390,59 @@
     "live_helper_dependency": "Live mnty_can_platform_admin() still delegates to mnty_can('admin',NULL,NULL,NULL), search_path=public, pg_temp.",
     "status": "BLOCKED_NOT_DEPLOYED",
     "interpretation": "Production catalog-admin v20 does not contain the merged registry guard; main source does. Deploying this function alone would still rely on the weak live helper. The coordinated RC464/RC471 database release and complete migration/backup gates remain mandatory."
+  },
+  "p0_mantigo_global_authorization_recheck_20261119": {
+    "status": "VERIFIED_READ_ONLY",
+    "checked_at": "2026-11-19",
+    "live_ledger": {
+      "rows": 310,
+      "latest_version": "20261110150618",
+      "required_exact_identifiers": 62,
+      "recorded_exact_identifiers": 0
+    },
+    "exposed_authenticated_security_definer_functions": [
+      "public.get_mantigo_admin_dashboard_backend(uuid)",
+      "public.get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz)",
+      "public.expire_stale_mantigo_rides_backend(uuid,integer)",
+      "public.settle_mantigo_captain_backend(uuid,text,text)"
+    ],
+    "helper": "public.mnty_can_platform_admin() delegates to public.mnty_can('admin',NULL,NULL,NULL), rather than private.platform_admins.",
+    "dependent_rls_policies": [
+      "public.digital_pages.digital_pages_admin_manage",
+      "public.mantigo_financial_config.mantigo_financial_config_admin_select",
+      "public.mantigo_financial_config.mantigo_financial_config_admin_update",
+      "public.mantigo_rate_limit_config.mantigo_rate_limit_config_admin_select",
+      "public.mantigo_rate_limit_config.mantigo_rate_limit_config_admin_update"
+    ],
+    "aggregate_role_population": {
+      "dashboard_financial_expiration": {
+        "eligible_active_users": 5,
+        "eligible_users_not_in_platform_admin_registry": 4
+      },
+      "captain_settlement": {
+        "eligible_active_users": 5,
+        "eligible_users_not_in_platform_admin_registry": 4
+      },
+      "identifiers_selected": false,
+      "invocation_or_exploitation_inferred": false
+    },
+    "live_financial_ledger_columns": [
+      "gross_amount",
+      "commission_amount",
+      "captain_net_amount"
+    ],
+    "legacy_report_columns_present": false,
+    "source_repairs": [
+      "20261113214500_rc464_platform_admin_live_registry_hardening.sql",
+      "20261117190000_rc471_mantigo_platform_admin_forward_hardening.sql"
+    ],
+    "source_tests": [
+      "supabase/tests/rc449_mantigo_platform_admin_integration.sql",
+      "scripts/validate-rc464-platform-admin-live-hardening.mjs",
+      "scripts/validate-r7-platform-admin-migration.mjs"
+    ],
+    "production_mutation": "NONE",
+    "release_status": "BLOCKED_NOT_CERTIFIED",
+    "interpretation": "Four global MantiGO RPCs and five RLS policies still depend on generic membership-role authorization through the live weak helper. Source-only RC464/RC471 provide the registry-only repair and negative tests but remain unapplied. Four non-registry active users match each relevant live role predicate; this is eligibility evidence, not proof of invocation or exploitation. Financial report also references absent legacy ledger columns. Require encrypted backup/restore, exact schema/ledger reconciliation, coordinated migration/Edge rollout and post-deploy adversarial verification."
   }
 }
