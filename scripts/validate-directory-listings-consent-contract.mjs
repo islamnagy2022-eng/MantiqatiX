@@ -7,13 +7,17 @@ const pagination = fs.readFileSync("supabase/functions/directory-listings/consen
 const migration = fs.readFileSync("supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql", "utf8");
 const frontend = fs.readFileSync("apps/catalog-frontend/src/lib/directoryListings.ts", "utf8");
 const workflow = fs.readFileSync(".github/workflows/primary-catalog-frontend.yml", "utf8");
+const config = fs.readFileSync("supabase/config.toml", "utf8");
 const release = JSON.parse(fs.readFileSync("docs/release/production-migration-reconciliation.json", "utf8"));
 const releaseContract = fs.readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
 
 assert.match(edge, /sanitizePublicDirectoryListing/);
+assert.match(config, /\[functions\.directory-listings\]\s*verify_jwt\s*=\s*false/);
 assert.match(edge, /resolveDirectoryOwnerAccess/);
 assert.match(edge, /const ownerAccess = resolveDirectoryOwnerAccess\(isOwner, consentState\.ready, activeScopes\)/);
 assert.match(edge, /can_edit: ownerAccess\.canEdit/);
+assert.doesNotMatch(edge, /return \{ \.\.\.publicRow, is_verified/);
+assert.doesNotMatch(edge, /listing: \{ \.\.\.publicListing/);
 assert.match(edge, /collectActiveAddressConsentIds/);
 assert.match(edge, /directory_listing_contact_consents/);
 assert.match(edge, /\.is\("revoked_at", null\)/);
