@@ -31,4 +31,9 @@ assert.match(source, /SUBSCRIPTION_FROZEN/, "frozen subscriptions must reject me
 
 assert.match(source, /!m\.business_id &&\s*!m\.branch_id &&\s*m\.permissions\?\.scope === "PLATFORM"/, "platform-wide privileges must not be attached to a branch-scoped membership");
 
+assert.match(source, /await userClient\.rpc\("mnty_can_platform_admin"\)/, "platform-root authorization must consult the caller-context canonical registry guard");
+assert.match(source, /hasRegisteredPlatformRoot = !registryError && registryResult === true/, "registry lookup errors and false results must fail closed");
+assert.match(source, /hasPlatformScope = hasRegisteredPlatformRoot && hasPlatformAdminMembership/, "platform membership claims alone must never grant root scope");
+assert.match(source, /scopedPlatformMembership = hasRegisteredPlatformRoot && activeMemberships\.some/, "business recovery bypass must also require canonical registry membership");
+
 console.log("Catalog admin CORS, authorization, and subscription enforcement source contract: PASS");
