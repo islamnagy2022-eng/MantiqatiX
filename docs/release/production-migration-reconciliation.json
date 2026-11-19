@@ -4517,5 +4517,132 @@
     "production_mutation": "NONE",
     "release_status": "BLOCKED_NOT_CERTIFIED",
     "interpretation": "The production digital-page Paymob flow is not safe to enable before provider-order correlation is repaired. merchant_order_id is not in the HMAC canonical list and is only a lookup hint; the selected order must be bound to signed order.id. Current live Edge and DB processor omit that check. This is a potential first-delivery cross-order misapplication path, not evidence of exploitation; live order and event tables are empty. Current main and RC426/RC431/RC468/RC470 contain the forward repairs, but all four migration IDs remain absent and matching Edge bundles are not deployed. Require backup/restore, exact migration reconciliation, coordinated DB/Edge rollout and sandbox negative/positive/concurrency tests."
+  },
+  "p0_standard_payment_subscription_live_drift_20261119": {
+    "status": "VERIFIED_READ_ONLY",
+    "checked_at": "2026-11-19",
+    "live_edge_functions": {
+      "payment_intent": {
+        "status": "ACTIVE",
+        "version": 8,
+        "verify_jwt": true,
+        "bundle_sha256": "d6b8faee1582c73ead440614cbe983114d1e7f31aa50f69795522fb20e737f54",
+        "exact_cent_validation": false,
+        "strict_paymob_response_correlation": false,
+        "provider_order_id_persisted": false
+      },
+      "paymob_webhook": {
+        "status": "ACTIVE",
+        "version": 10,
+        "verify_jwt": false,
+        "bundle_sha256": "f26fe1580e66c7f8cb9b885d5bccf4a44e49aa74874b3fe28dd7f9c5ed181cca",
+        "hmac_covers_order_id": true,
+        "hmac_covers_merchant_order_id": false,
+        "standard_payment_stored_order_id_checked_before_processor": false,
+        "standard_failure_uses_atomic_failure_rpc": false,
+        "subscription_stored_order_id_checked_before_processor": false,
+        "subscription_failure_uses_atomic_failure_rpc": false
+      },
+      "subscription_payment_intent": {
+        "status": "ACTIVE",
+        "version": 4,
+        "verify_jwt": true,
+        "bundle_sha256": "4466345787ea6b10a29b1dd63e9f0ab3cae640e9bb4d8ecb6d09445809e077e5",
+        "uses_claimable_intent_rpc": false,
+        "uses_atomic_provider_creation_claim": false,
+        "strict_paymob_response_correlation": false,
+        "encrypted_checkout_secret_recovery": false
+      }
+    },
+    "live_database": {
+      "payment_intents": {
+        "rows": 0,
+        "active_order_unique_index_present": false,
+        "unique_tenant_idempotency_index_present": true,
+        "unique_provider_order_index_present": true
+      },
+      "payment_provider_events": {
+        "rows": 0,
+        "unique_provider_external_event_index_present": true
+      },
+      "subscription_payment_intents": {
+        "rows": 0,
+        "unique_idempotency_index_present": true,
+        "unique_provider_intent_index_present": true,
+        "unique_provider_order_index_present": true
+      },
+      "missing_subscription_columns": [
+        "provider_creation_state",
+        "provider_creation_claimed_at",
+        "client_secret_ciphertext",
+        "client_secret_iv",
+        "client_secret_key_version"
+      ],
+      "legacy_standard_success_processor": {
+        "signature": "process_verified_provider_payment(character varying,character varying,character varying,character varying,character varying,character varying,boolean,numeric,character varying,numeric)",
+        "body_md5": "c0bc9993c83e98830801b44834faf51b",
+        "body_chars": 7962,
+        "search_path": "public",
+        "provider_order_parameter": false,
+        "execute": {
+          "service_role": true,
+          "authenticated": false,
+          "anon": false
+        }
+      },
+      "legacy_subscription_success_processor": {
+        "signature": "process_verified_subscription_payment(text,text,uuid,text,numeric,text,boolean)",
+        "body_md5": "9bb0e3d2541e8515a210a6070be23e94",
+        "body_chars": 2957,
+        "search_path": "",
+        "provider_order_parameter": false,
+        "subscription_event_payment_intent_id": "NULL"
+      }
+    },
+    "missing_rpc_signatures": [
+      "public.process_verified_provider_payment_failure(text,text,text,text,text,text,boolean,numeric,text,text,text,jsonb)",
+      "public.process_verified_subscription_payment_failure(text,text,uuid,text,numeric,text,text,boolean,jsonb)",
+      "public.process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb)",
+      "public.create_subscription_payment_intent_claimable_backend(uuid,text,text,text,text,uuid)",
+      "public.claim_subscription_provider_intent_creation_backend(uuid,uuid)"
+    ],
+    "required_release_migrations": {
+      "RC427": "20261009140000",
+      "RC428": "20261009150000",
+      "RC429": "20261009160000",
+      "RC430": "20261009170000",
+      "RC435": "20261009210000",
+      "RC439": "20261010010000",
+      "found_in_live_ledger": 0
+    },
+    "full_ledger": {
+      "rows": 310,
+      "latest_version": "20261110150618",
+      "required_exact_versions": 62,
+      "recorded_exact_versions": 0
+    },
+    "current_main_repairs": {
+      "payment_intent_edge": "exact-cent and matchesPaymobIntention validation; persists provider_intent_id + provider_order_id",
+      "standard_webhook": "compares selected intent.provider_order_id with HMAC-covered order.id before success/failure RPC; uses atomic failure RPC",
+      "subscription_intent_edge": "claimable intent creation and provider creation claim; exact Paymob correlation; versioned encrypted checkout-secret recovery",
+      "subscription_webhook": "explicit provider-order comparison and atomic success/failure RPCs",
+      "database": "RC427 active-order partial unique index; RC428-430 atomic event/state transitions with provider order and event/transaction binding; RC435 claim states; RC439 encrypted secret columns"
+    },
+    "source_tests": {
+      "rc426_427": "supabase/tests/rc426_427_payment_intent_integration.sql rejects duplicate active/succeeded payment intents",
+      "rc428_430": "supabase/tests/rc428_430_paymob_webhook_integration.sql tests provider-order mismatch, event/intent replay, atomic failure rollback, subscription replay and legal activation gates",
+      "validator": "scripts/validate-payment-migration-wiring.mjs now asserts standard/subscription provider-order guard ordering, no direct payment/subscription state writes, RC427 active-intent partial unique index and duplicate tests, and RC428-430 processor trust boundaries",
+      "workflow": ".github/workflows/rc428-430-paymob-webhook-atomicity.yml invokes the validator and disposable PostgreSQL tests"
+    },
+    "static_regression_status": "IMPLEMENTED_PENDING_EXACT_HEAD_CI",
+    "aggregate_data_impact": {
+      "payment_intents": 0,
+      "payment_provider_events": 0,
+      "subscription_payment_intents": 0,
+      "exploitation_or_customer_impact": "NOT_OBSERVED"
+    },
+    "production_mutation": "NONE",
+    "release_status": "BLOCKED_NOT_CERTIFIED",
+    "interpretation": "Standard payment and subscription Production Edge/RPC contracts lag current main. The standard Paymob webhook uses unsigned merchant_order_id as a lookup hint but does not bind a merchant-reference lookup to signed order.id before processing; the live success RPC cannot independently compare provider order, and failure is non-atomic. RC427's one-active-intent-per-order index is absent. Subscription claimable creation, atomic provider claims, encrypted checkout recovery columns and new RC429/RC430 processors are absent; legacy success processor lacks provider-order binding and stores event payment_intent_id NULL. No payment or subscription rows currently exist; no exploitation or impact observed. Current main contains forward fixes and disposable regression tests. Require encrypted backup/restore, exact 62-version and object/ACL reconciliation, coordinated DB/Edge rollout and sandbox concurrency/replay/negative tests."
   }
 }
