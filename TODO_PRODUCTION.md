@@ -2877,3 +2877,19 @@ Evidence: `docs/audits/R7_API_GATE_HARDENING_REVALIDATION_20261119.md`.
 - [ ] 999 — Full Enterprise release remains blocked pending chronological 62-migration reconciliation, MantiGO platform-admin/finance repairs, function-by-function ACL review, Auth leaked-password setting, restore rehearsal and payment/finance E2E. No Production mutation occurred.
 
 Evidence: `docs/audits/PASS_990_999_PRODUCTION_RELEASE_RECHECK_20261119.md`. Scoped catalog is deployed; full Enterprise and R7 remain NOT CERTIFIED / NOT DEPLOYABLE.
+
+
+## Pass 1000–1009 — MantiGO platform-admin and finance live recheck (2026-11-19)
+
+- [x] 1000 — Rechecked active BUSINESS_OWNER membership population: 9 memberships / 5 distinct users.
+- [x] 1001 — Reconfirmed 4 distinct active BUSINESS_OWNER users are outside `private.platform_admins`; registry contains 1 row; all active membership users = 15.
+- [x] 1002 — Re-read all four global MantiGO SECURITY DEFINER RPCs: anon EXECUTE false, authenticated EXECUTE true, search_path still `public`.
+- [x] 1003 — Re-read `mnty_can_platform_admin()`: still SECURITY DEFINER with `search_path=public, pg_temp`, delegates to generic `mnty_can('admin',NULL,NULL,NULL)`.
+- [x] 1004 — Reconfirmed financial report references legacy `amount`/`captain_amount` and omits canonical `gross_amount`/`captain_net_amount` from the live ledger.
+- [x] 1005 — Reviewed source RC464/RC471 registry-only repairs and RC476 captain earnings column repair; source changes include explicit auth.uid binding and empty search_path.
+- [x] 1006 — Confirmed disposable PostgreSQL source checks for RC471 passed in PR #842 CI; this is not live Production verification.
+- [x] 1007 — Confirmed RC464/RC471/RC476 remain among the missing live required migrations.
+- [ ] 1008 — Execute only through the coordinated chronological release after encrypted backup, isolated restore rehearsal, migration alias reconciliation and rollback proof.
+- [ ] 1009 — Re-run live adversarial authorization, financial schema, ACL, audit atomicity and idempotency checks after the authorized release. No Production mutation occurred.
+
+Evidence: `docs/audits/PASS_1000_1009_MANTIGO_PLATFORM_ADMIN_LIVE_RECHECK_20261119.md`. MantiGO global admin/finance remains BLOCKED.
