@@ -3278,3 +3278,19 @@ Evidence: docs/audits/PASS_1090_1099_R7_CONTRACT_MAP_AND_SHARED_AUTHORIZATION_RE
 - Next: exact 63-version migration/alias/object matrix, isolated chronological replay, verified backup/restore.
 
 Evidence: docs/release/production-migration-reconciliation.json and PR #854.
+
+
+## Pass 1110–1119 — live Edge payment/finance parity audit (2026-11-19)
+
+- Retrieved live bundles for six critical payment/order/finance Edge Functions and compared them with current main. All six differ; mantigo-payment-intent v5 matches current main byte-for-byte.
+- payment-intent v8 lacks provider_order_id persistence and shared Paymob response validation.
+- paymob-webhook v10 lacks atomic failure RPC handling.
+- subscription-payment-intent v4 lacks claim-based creation, encrypted checkout recovery and shared response validation.
+- digital-page-payment-intent v5 lacks provider-order binding and shared response validation.
+- financial-journal v3 uses wildcard CORS and legacy post_financial_journal; current source uses allowlisted CORS and actor-bound post_financial_journal_backend.
+- Live journal schema columns required by RC449A are absent; RC450 backend ACL/actor contract is not live and service_role cannot execute current journal RPCs.
+- order-create v8 differs from main; inspected auth/scope/idempotency/origin markers remain in both. Full semantic diff remains open.
+- Four payment/event tables have zero rows at read time. No writes or deployments.
+- P0 issue #857 created for coordinated Edge/migration parity.
+
+Evidence: docs/audits/PASS_1110_1119_LIVE_EDGE_PAYMENT_FINANCE_PARITY_20261119.md.
