@@ -1,0 +1,28 @@
+name: R7 API route policy inventory
+
+on:
+  pull_request:
+    paths:
+      - 'docs/audits/R7_API_ROUTE_POLICY_INVENTORY_20261119.md'
+      - 'scripts/validate-r7-api-route-policy-inventory.mjs'
+      - '.github/workflows/r7-api-route-policy-inventory.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/audits/R7_API_ROUTE_POLICY_INVENTORY_20261119.md'
+      - 'scripts/validate-r7-api-route-policy-inventory.mjs'
+      - '.github/workflows/r7-api-route-policy-inventory.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate frozen R7 route policy inventory
+        run: node scripts/validate-r7-api-route-policy-inventory.mjs

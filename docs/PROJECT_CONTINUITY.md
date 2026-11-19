@@ -2422,3 +2422,12 @@ The archive contains one SQL migration creating/enabling RLS on 7 tables, not th
 A second static pass over the exact uploaded R7 `server.ts` found no global authentication middleware before route declarations (JSON parser and IP rate limiter only). A route-handler scan identified 54 mutating handlers without recognizable route-local token verification/authorization. Representative direct local-JSON writes include business/product/subscriber/sales/order-status/wallet/settings/grants/merchant-ledger/finance. The finance endpoint accepts caller-provided actor identity and defaults actorRole to super_admin. This is a source-level trust-boundary defect; it is not evidence of a live exploit. Public contact/webhook ingress paths must be classified separately rather than blanket-blocked.
 
 Next: inventory every route's intended policy; implement Supabase Auth identity plus per-route tenant/branch/platform/service authorization; remove client role authority; move privileged writes to audited Supabase contracts; add negative adversarial tests and a CI route-classification gate. R7 remains an immutable, untrusted development candidate. No Production changes occurred.
+
+
+## Pass 920–929 — R7 route classification (2026-11-19)
+
+Completed a source-only route inventory for the exact immutable R7 upload. The archive contains 113 unique API route declarations and 73 mutating routes (55 POST, 11 PUT, 7 DELETE). The previous static scan's 54 unguarded mutation signal is retained with the stated limitation that it is not proof every route is exploitable. Every route now has a proposed policy class; every row explicitly says runtime enforcement is not proven and R7 release remains blocked. A dedicated Node validator and GitHub Actions workflow were added to protect inventory completeness, policy vocabulary/counts, narrow public mutation allowlists, and disabled critical endpoints.
+
+Inventory: `docs/audits/R7_API_ROUTE_POLICY_INVENTORY_20261119.md`.
+
+No R7 source, production database, Auth, RLS, GRANT, Edge Function, payment, wallet, settlement, or catalog deployment was changed. The proposed business/branch classifications are provisional and require exact ownership/data-field verification during implementation.
