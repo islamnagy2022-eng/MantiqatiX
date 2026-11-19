@@ -83,3 +83,14 @@ export function sanitizePublicDirectoryListing(value, contactScopes = new Set())
   publicRow.metadata = sanitizePublicDirectoryMetadata(value.metadata, contactScopes);
   return publicRow;
 }
+
+
+const OWNER_CONTACT_SCOPES = new Set(["PHONE", "SECONDARY_PHONE", "ADDRESS", "PRECISE_LOCATION"]);
+
+/** Owners may view their own contact fields, but editing/consent controls fail closed if the consent registry is unavailable. */
+export function resolveDirectoryOwnerAccess(isOwner, consentReady, activeScopes = new Set()) {
+  return {
+    canEdit: Boolean(isOwner && consentReady),
+    contactScopes: isOwner ? new Set(OWNER_CONTACT_SCOPES) : new Set(activeScopes),
+  };
+}
