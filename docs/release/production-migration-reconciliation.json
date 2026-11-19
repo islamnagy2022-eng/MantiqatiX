@@ -25,8 +25,8 @@
   "backup_restore_rehearsal": "NOT VERIFIED — the available Supabase connector exposes no backup inventory or restore-rehearsal operation. No backup was restored, no recovery project was created, and RPO/RTO remain unmeasured.",
   "evidence_ref": "docs/audits/PRODUCTION_RECONCILIATION_20261114.md",
   "checked_at": "2026-11-19",
-  "reason": "BLOCKED / NOT CERTIFIED: live migration ledger has 310 rows through 20261110150618 and 0/62 required exact migration identifiers; current 60-object physical refresh is 30/60 present and 30/60 absent; seven critical Edge Function entrypoints differ from main; payment/finance E2E and backup/restore rehearsal are unverified; RC117 server-side default-image triggers/columns are absent and its historical marketing_services backfill can overwrite custom images; R7 archive (11) still has P0 authentication, persistence, secret and payment-state defects. RC464–RC467 are merged as source and passed isolated replay only; no Production migration or Edge deployment was performed. Directory contact-consent boundary is BLOCKED: live directory-listings v16 anonymously returns phone/address for 869 published rows; RC473 consent table absent.",
-  "edge_function_contracts": "PARTIAL — six critical live Edge Function entrypoints differ from main. Financial-journal current main source calls post_financial_journal_backend, which is the RPC name/signature defined by canonical RC450; the production blocker is that RC449A/RC450 are absent and the live RPC body/ACL is old, while deployed Edge v3 still calls the legacy post_financial_journal with wildcard CORS. Do not deploy payment/finance functions individually until schema, grants, sandbox E2E and rollback are verified.",
+  "reason": "BLOCKED / NOT CERTIFIED: live migration ledger has 310 rows through 20261110150618 and 0/63 required exact migration identifiers; current 60-object physical refresh is 30/60 present and 30/60 absent; seven critical Edge Function entrypoints differ from main; payment/finance E2E and backup/restore rehearsal are unverified; RC117 server-side default-image triggers/columns are absent and its historical marketing_services backfill can overwrite custom images; R7 archive (11) still has P0 authentication, persistence, secret and payment-state defects. RC464/RC464B–RC467 are merged as source and passed isolated replay only; no Production migration or Edge deployment was performed. Directory contact-consent boundary is BLOCKED: live directory-listings v16 anonymously returns phone/address for 869 published rows; RC473 consent table absent.",
+  "edge_function_contracts": "PARTIAL — seven critical live Edge Function entrypoints differ from current main: order-create, payment-intent, paymob-webhook, digital-page-payment-intent, subscription-payment-intent, financial-journal and directory-listings. Financial-journal main source calls post_financial_journal_backend, which is defined by RC450; live v3 still calls legacy post_financial_journal with wildcard CORS. Do not deploy payment/finance/directory functions individually until schema, grants, complete source bundles, secrets, sandbox E2E and rollback are verified.",
   "smm_gateway_parity": "PARTIAL — live SMM gateway remains ACTIVE v13, verify_jwt=true, and source matches main with SMM_INITIAL_LAUNCH_DEFERRED=true. Anonymous/authenticated negative runtime tests still unverified; keep deferred.",
   "auth_security_settings": "NOT VERIFIED — current connector does not expose project Auth security configuration. The prior 2026-11-06 advisor snapshot reported leaked-password protection disabled; owner-dashboard confirmation and remediation evidence are still required. No Auth settings were changed.",
   "rc424_reconciliation": {
@@ -117,10 +117,10 @@
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
     "checked_at": "2026-11-19",
-    "method": "Fresh read-only SELECT against supabase_migrations.schema_migrations, compared against the exact 62 required source-version identifiers in this manifest.",
+    "method": "Fresh read-only SELECT against supabase_migrations.schema_migrations, compared against the exact 63 required source-version identifiers in this manifest.",
     "live_ledger_count": 310,
     "latest_live_version": "20261110150618",
-    "expected_migration_versions": 62,
+    "expected_migration_versions": 63,
     "found_in_live_ledger": 0,
     "required_versions": [
       "20261009120000",
@@ -166,6 +166,7 @@
       "20261027093000",
       "20261031100000",
       "20261113214500",
+      "20261113220000",
       "20261114010000",
       "20261114020000",
       "20261115010000",
@@ -230,6 +231,7 @@
       "20261027093000",
       "20261031100000",
       "20261113214500",
+      "20261113220000",
       "20261114010000",
       "20261114020000",
       "20261115010000",
@@ -251,7 +253,7 @@
       "20261119030000"
     ],
     "recorded_required_versions": [],
-    "interpretation": "Fresh read-only query confirms 310 live ledger rows through 20261110150618; none of the 62 required release identifiers are recorded. This is a migration-identity mismatch, not proof that every intended physical effect is absent. Physical schema and function/Edge parity must be reconciled independently. Do not fabricate ledger rows or replay the chain blindly."
+    "interpretation": "Fresh read-only query confirms 310 live ledger rows through 20261110150618; none of the 63 required release identifiers are recorded. This is a migration-identity mismatch, not proof that every intended physical effect is absent. Physical schema and function/Edge parity must be reconciled independently. Do not fabricate ledger rows or replay the chain blindly."
   },
   "critical_edge_function_source_parity_check": {
     "status": "HISTORICAL_SNAPSHOT_SUPERSEDED",
