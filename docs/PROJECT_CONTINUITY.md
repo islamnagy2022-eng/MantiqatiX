@@ -2403,7 +2403,7 @@ Evidence boundary: read-only catalog and aggregate checks only. No Production SQ
 - [ ] The deployed-origin E2E contract still confirms activity-module admin writes remain disabled until the atomic audit backend is implemented and verified. Keep those writes disabled rather than exposing unaudited privileged mutations.
 - [ ] Production DB remains unchanged at 310 migrations through `20261110150618`; RC481/RC482/RC483 and RC464/RC471 remain unapplied, and deployed `legal-cms` remains v6. No Edge Function was deployed by the Pages release.
 
-Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The live MantiGO platform-admin authorization gap (4 active non-registry BUSINESS_OWNER users), the 61 missing required migration versions, live object drift, backup/restore rehearsal, payment/finance E2E, and the HEALTH_MONITOR_TOKEN setup remain open release blockers.
+Release status remains **BLOCKED / NOT CERTIFIED** for the full platform. The live MantiGO platform-admin authorization gap (4 active non-registry BUSINESS_OWNER users), the 62 missing required migration versions, live object drift, backup/restore rehearsal, payment/finance E2E, and the HEALTH_MONITOR_TOKEN setup remain open release blockers.
 
 
 ## 2026-11-19 — R7 archive revalidation (Pass 900–909)
@@ -2431,3 +2431,14 @@ Completed a source-only route inventory for the exact immutable R7 upload. The a
 Inventory: `docs/audits/R7_API_ROUTE_POLICY_INVENTORY_20261119.md`.
 
 No R7 source, production database, Auth, RLS, GRANT, Edge Function, payment, wallet, settlement, or catalog deployment was changed. The proposed business/branch classifications are provisional and require exact ownership/data-field verification during implementation.
+
+
+## Pass 930–939 — Production Supabase authorization and Advisor recheck (2026-11-19)
+
+Canonical Supabase project ID revalidated from the live project list as `moyhiluyhjsujhwlyeuu` (MANTIQATIX FINAL, ACTIVE_HEALTHY, PostgreSQL 17.6). The Production migration ledger remains 310 rows through `20261110150618`; the current source contract contains 62 unique required release versions and 0/62 are present live. Four global MantiGO SECURITY DEFINER functions still accept broad tenant membership roles, `mnty_can_platform_admin()` still delegates to `mnty_can('admin',NULL,NULL,NULL)`, and the financial report still uses legacy absent ledger columns. RC464/RC471/RC476 remain source-only.
+
+Fresh Supabase Advisor results: 9 RLS/no-policy tables (anon/authenticated direct SELECT/INSERT absent; service_role SELECT/INSERT present on 3 and absent on 6), one anon-executable SECURITY DEFINER ad-discovery function whose body returns active/approved public ad fields and caps results at 50, 65 authenticated-executable SECURITY DEFINER functions requiring per-contract review, and leaked-password protection disabled. Performance signals: 132 unindexed FKs, 375 RLS initplan, 70 unused indexes, 28 multiple-permissive-policy findings. No blanket grants, revokes, policies, indexes or Auth changes were made.
+
+PR #837 merged as `9bb68ea638477abd16b8460f4bc65403bd03b0a4`; 28 CI checks passed and 2 expected jobs skipped. Inventory validator, Health Monitor and Directory Claim Atomicity workflows passed. The Pages deployment's validation job passed; deployed-origin browser tests were still running at checkpoint. Detailed evidence: `docs/audits/PASS_930_939_PRODUCTION_SUPABASE_AUTH_ADVISOR_RECHECK_20261119.md`.
+
+No Production SQL/DDL/DML, Auth, RLS, GRANT, Edge, payment, wallet, settlement or site content change occurred. Full Enterprise remains BLOCKED / NOT CERTIFIED; scoped catalog remains the only approved public release surface.
