@@ -2530,3 +2530,8 @@ The stale RC465/RC464B work was not merged as-is. A current-main port is open as
 Production remains unchanged: 310 migration rows through `20261110150618`; 0/63 required source IDs recorded; 869 published directory rows have phone/address; 178 have secondary phone; contact-consent tables absent; seven critical Edge entrypoints differ from main; live directory v16 lacks two consent helper source modules. No Production migration, Edge, Auth, RLS, GRANT, payment, wallet, settlement or data mutation. Full release remains BLOCKED / NOT CERTIFIED.
 
 Evidence: `TODO_PRODUCTION.md`, `docs/audits/PASS_1040_1049_POST_MERGE_LIVE_BUNDLE_RECHECK_20261119.md`, `docs/audits/RC464B_ORDERS_POLICY_PREFLIGHT_PORT_20261119.md`, PRs #845–#849.
+
+
+### Live RC464B read-only inspection — 2026-11-19
+
+Fresh Production catalog inspection found the exact expected permissive policy names/counts for the RC464B preflight: three authenticated SELECT policies on `orders`, two on `order_status_history`; RLS enabled and authenticated SELECT grants present on both; all required `orders`, `order_status_history`, and `user_memberships` business/branch/role/status columns exist. No unexpected permissive SELECT/ALL policy was returned. The old tenant-wide policy expressions are still live; this is not evidence that RC465 business/branch behavior is deployed. Only read-only SELECT queries were run. RC464B/RC465 remain unapplied. See the RC464B audit addendum and Pass 1070–1079 in TODO_PRODUCTION.
