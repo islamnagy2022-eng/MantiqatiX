@@ -2937,7 +2937,7 @@ Evidence: `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20261119.md`. 
 - [x] 1035 — Recorded the current live directory boundary as BLOCKED in the release manifest: live v16, 869 published rows with phone/address, 178 with secondary phone, consent table absent.
 - [x] 1036 — Fixed owner access state: authenticated owners can still view their own contact fields, but edit/consent controls are disabled if the consent registry is unavailable; non-owner scopes are emptied on registry outage.
 - [x] 1037 — Added Arabic UI warning when consent verification is unavailable.
-- [x] 1038 — Ran Node 22 unit tests locally: 11/11 PASS. Full PR CI/build/browser/replay checks are pending.
+- [x] 1038 — Ran Node 22 unit tests locally: 12/12 PASS, including a guard that free-text search never searches hidden exact addresses. Full PR CI/build/browser/replay checks are pending.
 - [ ] 1039 — Merge only after exact-head CI passes; do not deploy live directory function or apply RC472/RC473 individually. Live privacy gap remains open until coordinated release.
 
 Evidence: PR #845 and `docs/audits/PASS_1010_1019_CRITICAL_EDGE_SOURCE_PARITY_20261119.md`. No Production resource was modified.
