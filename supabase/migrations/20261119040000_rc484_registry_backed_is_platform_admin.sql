@@ -22,8 +22,8 @@ BEGIN
   JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
   WHERE n.nspname='private' AND c.relname='platform_admins';
 
-  IF NOT coalesce(v_registry_rls,false) OR NOT coalesce(v_registry_force_rls,false) THEN
-    RAISE EXCEPTION 'RC484_PLATFORM_ADMIN_REGISTRY_RLS_AND_FORCE_RLS_REQUIRED';
+  IF NOT coalesce(v_registry_rls,false) THEN
+    RAISE EXCEPTION 'RC484_PLATFORM_ADMIN_REGISTRY_RLS_REQUIRED';
   END IF;
 
   IF NOT EXISTS (
@@ -75,10 +75,13 @@ BEGIN
 END;
 $preflight$;
 
--- SECURITY DEFINER is required because the canonical registry is FORCE-RLS and
--- intentionally has no client-role table grants. The function owner is checked
--- above to be the registry owner with BYPASSRLS. Empty search_path prevents
+-- The canonical registry is locked under FORCE RLS before the helper is replaced.
+-- The helper owner is checked above to be the registry owner with BYPASSRLS, so
+-- the SECURITY DEFINER lookup remains functional without granting client access.
+-- Empty search_path prevents
 -- object-shadowing; every referenced object is schema-qualified.
+ALTER TABLE private.platform_admins FORCE ROW LEVEL SECURITY;
+
 CREATE OR REPLACE FUNCTION public.is_platform_admin()
 RETURNS boolean
 LANGUAGE sql
