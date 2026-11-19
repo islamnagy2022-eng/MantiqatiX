@@ -3148,3 +3148,19 @@ Evidence: docs/audits/PASS_1150_1159_SECURITY_ADVISOR_ANON_POLICY_RECHECK_202611
 - [x] 1169 — Keep #867 open until all 57 policies and seven function callers are migrated/tested in disposable PostgreSQL and then verified live after approved release.
 
 Evidence: docs/audits/PASS_1160_1169_GENERIC_PLATFORM_ADMIN_RLS_BLAST_RADIUS_20261119.md, Issue #867, read-only pg_proc/pg_policies inspection and active role/registry aggregate. Full platform remains BLOCKED / NOT CERTIFIED.
+
+
+## Pass 1180–1189 — RC484 registry-backed global RLS helper (2026-11-19)
+
+- [x] 1180 — Reconfirmed the live `is_platform_admin()` helper still uses generic active ADMIN/SUPER_ADMIN memberships.
+- [x] 1181 — Reconfirmed 57 dependent RLS policies across 24 tables and documented the blast radius in issue #867.
+- [x] 1182 — Added forward-only RC484 source migration to use `private.platform_admins` and `auth.uid()` exclusively for platform-root authority.
+- [x] 1183 — Added fail-closed preflight for FORCE RLS, registry ACL, function/table owner parity, BYPASSRLS and policy blast-radius drift.
+- [x] 1184 — Added isolated PostgreSQL 17 fixture with 57 helper-dependent policies across 24 tables.
+- [x] 1185 — Added behavioral assertions denying tenant ADMIN/SUPER_ADMIN global access while preserving registered platform-root access.
+- [x] 1186 — Added dedicated CI workflow and exact source validator.
+- [x] 1187 — Updated source migration inventory and production release contract from 63 to 64 versions.
+- [x] 1188 — Opened PR #870; exact-head CI and full migration replay pending at checkpoint.
+- [x] 1189 — No Production mutation; ledger remains 310 rows through `20261110150618`; full platform remains BLOCKED / NOT CERTIFIED.
+
+Evidence: PR #870, `docs/audits/PASS_1180_1189_RC484_REGISTRY_BACKED_RLS_HELPER_20261119.md`, issue #867. Source implementation is not Production deployment.
