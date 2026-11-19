@@ -128,6 +128,9 @@ const legacyGroupsInInventory = [...new Set(observedLegacyCategoryIds.map((legac
   const groupId = observedLegacyGroups.find((candidate) => legacyId.startsWith('cat_' + candidate + '_'));
   assert.ok(groupId, 'Could not infer legacy group from category ID ' + legacyId + '.');
   return groupId;
+}))];
+for (const legacyGroup of legacyGroupsInInventory) {
+  assert.ok(expectedGroups.includes(legacyGroupMappings.get(legacyGroup)), 'Legacy group ' + legacyGroup + ' must map into the canonical ten.');
 }
 
 // Exact 15 top-level groups in the owner-provided R7 archive (11).
@@ -155,10 +158,7 @@ for (const [legacyId, canonicalId] of Object.entries(r7LegacyGroupTargets)) {
   assert.ok(expectedGroups.includes(canonicalId), 'R7 group ' + legacyId + ' maps outside the canonical 10');
 }
 assert.equal(Object.keys(r7LegacyGroupTargets).length, 15, 'R7 source contract must cover all 15 original sector IDs.');
-))];
-for (const legacyGroup of legacyGroupsInInventory) {
-  assert.ok(expectedGroups.includes(legacyGroupMappings.get(legacyGroup)), 'Legacy group ' + legacyGroup + ' must map into the canonical ten.');
-}
+
 assert.ok(directoryListings.includes('normalizeDirectoryListingTaxonomy'), 'Public and admin directory listing reads must normalize legacy taxonomy IDs.');
 assert.ok(directoryListings.includes('resolveCanonicalDirectoryCategoryId'), 'Directory listing normalization must map legacy category IDs.');
 assert.ok(directoryListingsView.includes('resolveCanonicalSpecialty'), 'Legacy specialty labels must match canonical specialty filters through the shared resolver.');
