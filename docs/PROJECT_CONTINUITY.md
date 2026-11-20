@@ -2882,3 +2882,10 @@ Evidence: `docs/audits/PASS_1400_1409_MANTIGO_DATA_ACCESS_REVIEW_20261120.md`. R
 Reviewed direct-auth functions 31–40. All nine dedicated `mnty_platform_admin_*` SECURITY DEFINER functions are registry-backed, use empty search_path and are authenticated-executable. Employee position/employee upsert functions enforce permission ceilings, confirmed Auth identity binding and membership synchronization; however, employee upsert can pair a branch-specific position with a NULL-branch employee/membership when called by a business-wide manager. This is a P2 least-privilege/data-consistency gap tracked in #917; no cross-tenant breach was demonstrated. Commission rule drafts still use the old membership-derived platform gate live; RC467 source repair and replay test exist but remain unapplied (#884).
 
 Evidence: `docs/audits/PASS_1410_1419_PLATFORM_ADMIN_AND_EMPLOYEE_SCOPE_REVIEW_20261120.md`. Remaining direct-auth functions to review: 19.
+
+
+## Commission, payment-claim, settlement and job review — Pass 1420–1429 (2026-11-20)
+
+Reviewed direct-auth functions 41–50. Platform membership/custom-role management and permission resolution use the protected registry and scoped permissions. Payment claim release binds actor, order owner and token. Commission previews still use the older membership-derived global gate (RC467 fixes source, #884). Captain review and global financial config still depend on weak platform helper (RC464/471, #867). Captain settlement validates completed ride, paid/cash-confirmed state, commission lock and idempotency, but live authorization accepts broad global membership roles; RC471 source fixes this (#92/#94). Job application RPC correctly binds applicant and unique index prevents duplicate races, but it does not require `jobs.is_active=true`; P2 #919 opened.
+
+Evidence: `docs/audits/PASS_1420_1429_COMMISSION_PAYMENT_JOBS_REVIEW_20261120.md`. Remaining direct-auth functions to review: 9.
