@@ -309,7 +309,14 @@ const blockedFixtures = [
   value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.subscription_payment_intents.provider_creation_state"); },
   value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.subscription_payment_intents.client_secret_ciphertext"); },
   value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.create_subscription_payment_intent_claimable_backend(uuid,text,text,text,text,uuid)"); },
-  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.claim_subscription_provider_intent_creation_backend(uuid,uuid)"); }
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.claim_subscription_provider_intent_creation_backend(uuid,uuid)"); },
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.process_verified_provider_payment_failure(text,text,text,text,text,text,boolean,numeric,text,text,text,jsonb)"); },
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb)"); },
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.process_verified_subscription_payment_failure(text,text,uuid,text,numeric,text,text,boolean,jsonb)"); },
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb)"); },
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.subscription_payment_intents.provider_creation_claimed_at"); },
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.subscription_payment_intents.client_secret_iv"); },
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.subscription_payment_intents.client_secret_key_version"); }
 ];
 for (const mutate of blockedFixtures) {
   const invalid = clone(validReconciliation);
