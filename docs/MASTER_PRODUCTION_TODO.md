@@ -4468,8 +4468,8 @@ Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.m
 - [x] Inspect live `mnty_can_platform_admin()`, `mnty_can()` and `mnty_active_membership()`; confirm unscoped tenant OWNER/ADMIN membership can satisfy global `admin`.
 - [x] Identify four authenticated SECURITY DEFINER callers: `admin_create_global_ad`, `fulfill_digital_page_publish`, `review_mantigo_captain_application`, `set_mantigo_financial_config_backend`.
 - [x] Inspect RC484 source migration and confirm it does not update `mnty_can_platform_admin()`; add finding/callers to P0 Issue #867 and record evidence in Pass 1370–1379 audit.
-- [ ] Replace platform-root authorization with registry-backed authority while preserving tenant-local OWNER/ADMIN permissions.
-- [ ] Add adversarial PostgreSQL tests for tenant OWNER/ADMIN denial, registry-only platform admin success, and caller-specific business/payment invariants.
-- [ ] Reconcile the helper and all callers with RC484, dependent RLS policies, and the coordinated migration/Edge release. No hot edit or isolated Production deployment.
+- [x] Confirm existing RC464 migration replaces the helper with registry-backed authority and is included in the required release migration chain.
+- [x] Confirm RC471 and R7 PostgreSQL tests cover the four additional global helper callers, deny tenant OWNER/BUSINESS_OWNER/ADMIN, and allow registry-only platform admin.
+- [ ] Complete the coordinated migration/Edge release and post-deployment live verification; Production currently has 0/64 required migration identifiers. RC484 is a separate `is_platform_admin()` repair, not a replacement for RC464. No hot edit or isolated Production deployment.
 
 Evidence: `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`; Issue #867 comment 7045989396.
