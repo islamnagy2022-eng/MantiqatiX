@@ -70,3 +70,13 @@ The RC490 fixture defines `auth.jwt()` but its permissive owner policies invoke 
 ### 6. Finance overlap analysis
 
 PR #947's nine finance/payment tables are a strict subset of the 15 tables already covered by PR #946's RC489 migration and integration inventory. PR #947 contributes no additional table coverage and creates a direct migration-version collision. Prefer consolidating its tests/contract into the broader #946 candidate and closing/superseding the duplicate only after #946 is corrected and its exact-head tests pass.
+
+
+## Follow-up execution — source corrections committed to PR branches
+
+- PR #946 branch now changes every RC488–RC492 policy to the fail-closed predicate `(SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE` and adds missing-claim denial assertions to all five integration tests. Static validators now require both the fail-closed predicate and corresponding missing-claim assertion. Exact-head checks were queued at the last inspection; no result is claimed yet.
+- PR #948 was corrected: the colliding RC490 migration was replaced with unique RC493 version `20261120280000`; its predicate now fails closed; the fixture now defines `auth.uid()`; and integration coverage now denies a missing anonymous claim while preserving confirmed-owner reads. The PR title/body and dedicated validator were updated. Its exact-head CI was queued at last inspection.
+- PR #947 was closed as superseded by #946 because its nine finance/payment tables are a strict subset of the 15 tables in #946 RC489. The branch/history was not deleted. This removes the duplicate 20261120240000 migration collision; #948 was re-versioned to RC493, removing the 20261120250000 collision.
+- PR #948's previous RC490 CI failure was independently confirmed from job logs as `function auth.uid() does not exist`; the fixture correction addresses that failure. The corrected run remains pending, not yet verified.
+
+The source corrections are not Production deployments. Do not mark the anonymous-auth boundary complete until all exact-head tests, migration uniqueness/collision checks and chronological replay pass.
