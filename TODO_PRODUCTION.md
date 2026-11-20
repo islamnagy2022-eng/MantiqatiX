@@ -1,3 +1,17 @@
+## PASS 1310–1319 — Backup verifier canonical path hardening — 2026-11-20
+
+- [x] 1310 — Identify lexical-path repository boundary weakness in the encrypted backup manifest verifier.
+- [x] 1311 — Canonicalize repository root, manifest directory, artifact paths and recovery identity using real paths.
+- [x] 1312 — Add adversarial symlink-parent tests for manifests and recovery identities; ensure the test harness executes the verifier itself.
+- [x] 1313 — Exact backup-manifest workflow passed **14/14** tests with zero failures or skips.
+- [x] 1314 — Exact-head Module Professionalization, Backend-only Module Boundary, RC425 atomicity, MantiGO privacy and Pages/V6 validation workflows passed; Pages deployment was skipped for the PR as expected.
+- [x] 1315 — Merge PR #899 to main at `ef152fbb351db6a52a64c4913140394a9c29eca7`.
+- [ ] 1316 — Operator-run encrypted Production DB + Storage export, off-site retrieval, Vault recovery and separate PostgreSQL 17 restore/rollback with measured RPO/RTO remain BLOCKED / WAIT.
+
+Evidence: `docs/audits/PASS_1310_1319_BACKUP_PATH_HARDENING_20261120.md`; PR #899; workflow runs 44761709639, 44761709703, 44761709863, 44761709778, 44761709645 and 44761709664.
+
+---
+
 ## PASS 1300–1309 — Post-merge and live Production recheck — 2026-11-20
 
 - Verified PR #897 merge and exact workflow run 44683168406: both `source-contract` and `consent-postgres` completed successfully.
