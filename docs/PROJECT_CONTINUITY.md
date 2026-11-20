@@ -2851,3 +2851,12 @@ Evidence: `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`;
 The exact source migration `supabase/migrations/20261119040000_rc484_registry_backed_is_platform_admin.sql` was inspected. It changes `public.is_platform_admin()` and the protected `private.platform_admins` registry, but contains no reference to `public.mnty_can_platform_admin()`. The latter is already corrected in source by RC464 and continued by RC471; RC484 is not a substitute. Both source chains remain part of the coordinated Production release, and the live helper must be verified after deployment.
 
 Evidence: `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`; P0 Issue #867 comment 7045989396.
+
+
+### RC464 source CI and fresh live recheck — 2026-11-20
+
+RC464 was integrated into main via merged PR #742, tested head `3ecf6142d1a41b9f0adda7bf6c81d873eda66bea`. Relevant workflows passed: RC464 PostgreSQL 44048036994; MantiGO Platform Admin Scope/R7 44048037021; chronological migration replay 44048037316; migration uniqueness 44048037168; PR collision guard 44048037131; migration history immutability 44048037034.
+
+Fresh read-only Production SQL on 2026-11-20: 310 migration rows, latest `20261110150618`; RC464, RC471 and RC484 absent. Live `mnty_can_platform_admin()` remains SECURITY DEFINER with `search_path=public, pg_temp`, authenticated EXECUTE true, anon false, and body `mnty_can('admin',NULL,NULL,NULL)`. Five RLS policies still reference it. Thus source and disposable CI are ready, but Production is not migrated. No function invocation or Production mutation. Keep release blocked until coordinated rollout and live post-deployment verification.
+
+Evidence: `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`; PR #742.
