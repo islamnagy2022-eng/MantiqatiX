@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { QRCodeModal } from '../common/QRCodeModal';
 import { normalizeDialPhone, normalizeSocialUrl, normalizeWhatsAppPhone } from '../../utils/socialLinks';
-import { resolveDefaultImage } from '../../utils/defaultImages';
+import { isMantiqatiXBrandName, resolveDefaultImage } from '../../utils/defaultImages';
 import {
   MessageCircle,
   MapPin,
@@ -30,7 +30,7 @@ export const BusinessProfileHeader: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [shareFailed, setShareFailed] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
-  const isPlatformBrandProfile = isMantiqatiXBrandProfile(currentBusiness?.name);
+  const isPlatformBrandProfile = isMantiqatiXBrandName(currentBusiness?.name);
   const defaultLogo = currentBusiness ? resolveDefaultImage({
     name: currentBusiness.name, description: currentBusiness.bio, category: currentBusiness.category, kind: 'activity',
   }) : BUSINESS_PLACEHOLDER;
