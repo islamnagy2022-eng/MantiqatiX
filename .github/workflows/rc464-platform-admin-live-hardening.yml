@@ -26,6 +26,9 @@ on:
       - "supabase/tests/rc464_platform_admin_shared_helper_callers.sql"
       - "scripts/validate-rc464-platform-admin-live-hardening.mjs"
       - ".github/workflows/rc464-platform-admin-live-hardening.yml"
+      - "supabase/tests/rc479_anonymous_auth_session_boundary_integration.sql"
+      - "scripts/validate-rc479-anonymous-auth-session-boundary.mjs"
+      - ".github/workflows/rc479-anonymous-auth-session-boundary.yml"
 
 permissions:
   contents: read
