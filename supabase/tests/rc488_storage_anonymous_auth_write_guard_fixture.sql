@@ -134,4 +134,5 @@ GRANT SELECT ON storage.buckets TO anon,authenticated,service_role;
 GRANT SELECT,INSERT,UPDATE,DELETE ON storage.objects TO authenticated;
 GRANT SELECT ON storage.objects TO anon,service_role;
 GRANT INSERT,UPDATE,DELETE ON storage.objects TO service_role;
-GRANT SELECT,INSERT,UPDATE,DELETE ON public.marketing_provider_profiles TO service_role;
+GRANT SELECT ON public.marketing_provider_profiles TO authenticated,service_role;
+GRANT INSERT,UPDATE,DELETE ON public.marketing_provider_profiles TO service_role;
