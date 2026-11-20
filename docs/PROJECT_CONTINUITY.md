@@ -2853,3 +2853,16 @@ Two additional live source-parity gaps were freshly reconfirmed:
 - Commission draft/preview RPCs still use membership-derived platform roles, and the operational preview still uses tenant-only finance membership without business/branch binding. RC467 source/tests are merged and replay-green, but RC467 is absent from the live ledger. P1 Issue #884 updated.
 
 Exact evidence and limits are in `docs/audits/PASS_1380_1389_SECURITY_DEFINER_DELEGATION_AND_LIVE_DRIFT_20261120.md`. The 59 direct-auth functions still require full-body signature-by-signature review; do not claim the entire 65-function audit complete. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## Latest direct-auth SECURITY DEFINER review — Pass 1390–1399 (2026-11-20)
+
+The first 20 of 59 authenticated-callable SECURITY DEFINER functions with direct `auth.uid()` were reviewed by full body. Key findings:
+- `accept_mantigo_bid_backend` binds the customer and ride but does not require the selected bid to be OFFERED; P1 #912 opened.
+- `admin_create_global_ad` and digital-page fulfillment depend on RC464/471 platform-admin repair.
+- MantiGO stale-ride expiry, global dashboard and financial report still use broad membership roles; RC471 source fixes these; issues #92/#94/#118 updated.
+- Live captain earnings uses removed `amount`/`captain_amount` ledger columns; RC476 source fixes; P1 #914 opened.
+- Live customer ride RPC returns full bid JSON including captain phone/plate before acceptance; RC477 source fixes; P1 #913 opened.
+- Medical appointment active-slot unique index protects concurrent doctor/time bookings; payment-intent path binds customer/membership, pricing snapshot and idempotency.
+
+The source fixes RC471/RC476/RC477/RC478 are merged and CI/replay-tested, but all corresponding migration IDs remain absent from Production. Exact evidence is in `docs/audits/PASS_1390_1399_FIRST_20_DIRECT_AUTH_DEFINERS_20261120.md`. Continue review of remaining 39 direct-auth functions; no full 65-function certification yet.
