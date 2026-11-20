@@ -4622,7 +4622,7 @@ Evidence: `docs/audits/PASS_1470_1479_ANONYMOUS_POLICY_MATRIX_20261120.md`; Issu
 - [x] Confirm live active-provider policy targets authenticated and authenticated retains SELECT to all 19 columns, including owner_user_id/settings.
 - [x] Add disposable baseline reproduction plus test-only restrictive-policy overlay and confirmed-user compatibility assertion.
 - [x] Add static validator and PostgreSQL 16 workflow.
-- [ ] Generate actual forward-only restrictive migration with Supabase CLI; preserve owner CRUD and curated public Edge projection.
+- [ ] Generate actual forward-only RESTRICTIVE FOR SELECT migration with Supabase CLI; keep existing owner ALL DML policy unchanged and preserve curated public Edge projection.
 - [ ] Run real-migration PostgreSQL integration, full chronological replay and coordinated release gates.
 
 Evidence: `docs/audits/PASS_1480_1489_RC479_ANONYMOUS_AUTH_SESSION_GAP_20261120.md`; Issue #928.
