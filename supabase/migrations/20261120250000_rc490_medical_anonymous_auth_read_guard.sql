@@ -30,7 +30,7 @@ ON public.medical_appointments
 AS RESTRICTIVE
 FOR SELECT
 TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 COMMENT ON POLICY mnty_confirmed_auth_medical_read ON public.medical_appointments IS
   'RC490: patient/provider appointment records require a confirmed Auth identity.';
