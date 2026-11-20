@@ -77,7 +77,7 @@ BEGIN
       WHEN j<=50 THEN 'DELETE'
       ELSE 'ALL'
     END;
-    IF policy_command='ALL' THEN
+    IF policy_command='ALL' AND j<57 THEN
       policy_sql:=format(
         'CREATE POLICY %I ON public.%I FOR ALL TO authenticated USING (public.is_platform_admin() OR EXISTS (SELECT 1 FROM public.user_memberships m WHERE m.user_id=(SELECT auth.uid()) AND m.status=''ACTIVE'' AND m.tenant_id=%I.tenant_id AND m.business_id=%I.business_id AND m.branch_id=%I.branch_id))',
         'rc484_policy_'||j,t,t,t,t
@@ -85,6 +85,13 @@ BEGIN
       policy_sql:=policy_sql||format(
         ' WITH CHECK (public.is_platform_admin() OR EXISTS (SELECT 1 FROM public.user_memberships m WHERE m.user_id=(SELECT auth.uid()) AND m.status=''ACTIVE'' AND m.tenant_id=%I.tenant_id AND m.business_id=%I.business_id AND m.branch_id=%I.branch_id))',
         t,t,t
+      );
+    ELSIF policy_command='ALL' THEN
+      -- The remaining ALL policy mirrors platform_feature_flags write-admin:
+      -- only the registered platform root may write global feature flags.
+      policy_sql:=format(
+        'CREATE POLICY %I ON public.%I FOR ALL TO authenticated USING (public.is_platform_admin()) WITH CHECK (public.is_platform_admin())',
+        'rc484_policy_'||j,t
       );
     ELSIF policy_command='SELECT' AND j=10 THEN
       -- Mirror platform_feature_flags tenant-member read semantics.
@@ -123,7 +130,7 @@ INSERT INTO public.scope_probe(id,owner_user_id,tenant_id) VALUES
  (2,'10000000-0000-4000-8000-000000000002','TENANT-B'),
  (3,NULL,'TENANT-C');
 
--- The seven live ALL policies include a tenant/business/branch membership path.
+-- Six live ALL policies include a tenant/business/branch membership path; the seventh is platform-root-only.
 -- This representative table exercises that local-admin path alongside platform root.
 INSERT INTO public.scope_probe_03(id,owner_user_id,tenant_id,business_id,branch_id) VALUES
  (1,'10000000-0000-4000-8000-000000000002','TENANT-A','BUSINESS-A','BRANCH-A'),
