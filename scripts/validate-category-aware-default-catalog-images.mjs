@@ -18,7 +18,6 @@ assert.ok(production.includes("name.trim().toLocaleLowerCase() === 'mantiqatix'"
   'official platform showcase mapping must replace expiring social-CDN media with stable local brand assets');
 assert.ok(directoryView.includes("kind: 'activity'"), 'broken directory logos must fall back to square activity artwork');
 const context = read('apps/catalog-frontend/src/context/AppContext.tsx');
-const production = read('apps/catalog-frontend/src/lib/production.ts');
 const profileHeader = read('apps/catalog-frontend/src/components/storefront/BusinessProfileHeader.tsx');
 const marketplace = read('apps/catalog-frontend/src/components/MarketplaceHome.tsx');
 const catalogSection = read('apps/catalog-frontend/src/components/storefront/CatalogSection.tsx');
