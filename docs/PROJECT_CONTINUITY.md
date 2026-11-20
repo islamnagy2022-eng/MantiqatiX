@@ -2954,3 +2954,10 @@ Evidence: `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md`; `docs/audi
 Found existing disposable anonymous-session coverage in RC102 (provider-service owner isolation), RC453 (marketing campaign creation), RC455 (commission preview), RC465 (orders visibility/history), RC466 (business/branch/inventory visibility), and RC467 (commission finance preview). RC465 PostgreSQL run 44048037235 and RC466 run 44048037214 passed on merged PR #742 candidate head. These are targeted tests only; they do not cover all 90 Advisor warnings. Continue by mapping every warning table/command to existing tests and adding only uncovered cases. Pass 1456 remains open; no blanket deny policy or Production change.
 
 Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`; P1 #928.
+
+
+### Pass 1456 — anonymous-policy source test matrix expanded — 2026-11-20
+
+Code search of current main found explicit anonymous-JWT test assertions for RC102 provider services, RC453 marketing campaign creation, RC455 commission preview, RC465 orders, RC466 business/branch/inventory, RC467 finance preview, and RC478 MantiGO open rides. RC465/RC466 CI runs 44048037235/44048037214 passed. Related but not explicitly anonymous tests were found for digital-page payment, journal, payment provider events, SMM service-role ACL, CRM and storage overlay. The remaining high-risk command gaps include payment events/intents/provider events/reconciliations, refunds/settlements/wallets, medical/support/notifications/push, digital-page orders/sections, MantiGO ledger/config and storage object read/write/delete. No live anon probes or Production changes.
+
+Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`; P1 #928.
