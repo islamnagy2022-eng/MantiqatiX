@@ -10,7 +10,8 @@ Date: 2026-11-20
 ## Additional issue discovered
 - The profile header was not the only public surface that used saved `logoUrl` / `coverUrl` directly.
 - Homepage business cards and featured imagery, plus Activity module directory cards, could still render the legacy Facebook CDN URLs.
-- This follow-up centralizes exact official-brand name detection in `defaultImages.ts` and uses first-party logo/cover assets on those surfaces while preserving normal merchant media for all other activities.
+- This follow-up centralizes exact official-brand name detection (including whitespace normalization) in `defaultImages.ts` and uses first-party logo/cover assets on those surfaces while preserving normal merchant media for all other activities.
+- Regression validator expanded to assert the profile header, homepage card/featured cover, Activity directory logo/cover and local SVG assets.
 
 ## Safety
 - Source-only correction; no Production data, Storage, Auth, RLS, Edge, payments or customer records modified.
