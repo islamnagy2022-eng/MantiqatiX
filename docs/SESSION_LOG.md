@@ -3494,3 +3494,8 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Added the fresh finding to P0 Issue #867 (comment 7045989396); recorded evidence in `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`.
 - No application rows selected; no function invoked; no Production mutation, grant/RLS/Auth/Storage/Edge change or deployment.
 - Next: complete coordinated migration/Edge release prerequisites, then verify the registry-backed helper, ACL, search_path, policies and callers against live Production. Production remains BLOCKED / NOT CERTIFIED.
+
+
+- Verified merged PR #742 candidate head `3ecf6142d1a41b9f0adda7bf6c81d873eda66bea`: RC464 PostgreSQL, R7/RC471, chronological migration replay, migration uniqueness, collision guard and history immutability workflows all succeeded.
+- Fresh read-only Production recheck: 310 ledger rows through `20261110150618`; RC464/RC471/RC484 absent; live helper still membership-derived with `search_path=public, pg_temp`; five RLS policies depend on it.
+- No function invocation or Production mutation. Source CI is green; Production release remains blocked until coordinated migration/Edge/backup/payment gates and post-deployment verification pass.
