@@ -17,4 +17,5 @@ assert.ok(migration.includes("auth.jwt()") && migration.includes("IS FALSE"), "m
 assert.ok(migration.includes("auth.jwt()") && migration.includes("is_anonymous"), "missing anonymous Auth claim guard");
 assert.match(integration,/RC493_ANONYMOUS_PRIVATE_READ_SUCCEEDED/);
 assert.match(integration,/RC493_CONFIRMED_OWNER_READ_REGRESSED/);
+assert.match(integration,/RC493_MISSING_ANONYMOUS_CLAIM_READ_SUCCEEDED/);
 console.log("RC493 private CRM/project/notification read contract: PASS");
