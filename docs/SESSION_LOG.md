@@ -3458,3 +3458,15 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - No Production rows/personal data selected and no Production mutation/deployment performed.
 - Production remains BLOCKED / NOT CERTIFIED pending encrypted off-site DB+Storage backup, Vault recovery, isolated PG17 restore/rollback with measured RPO/RTO, migration/RPC reconciliation, coordinated Edge release, and sandbox payment/privacy/authorization E2E.
 - Evidence: `docs/audits/PASS_1340_1349_LIVE_EDGE_PARITY_CONSENT_POLICY_20261120.md`.
+
+
+## 2026-11-20 — Pass 1350–1359 — SECURITY DEFINER and RLS/grant review
+
+- Security Advisor refreshed: 9 RLS-enabled/no-policy tables, 1 anon-callable SECURITY DEFINER, 65 authenticated-callable SECURITY DEFINER.
+- Catalog inventory: 149 public SECURITY DEFINER functions; zero without explicit function search_path; 28 empty search_path; 91 search_path=public.
+- Targeted-ad public discovery RPC checked: empty search_path, public approved/active/time-window ad filtering, limit clamp 1–50, RC451 source contract preserves anon execution.
+- Representative authenticated definer functions reviewed for auth.uid(), membership, role, tenant/business/branch checks.
+- Anon/authenticated no CREATE on public; neither has SELECT/INSERT grants on the nine no-policy tables inspected. Service role SELECT/INSERT only on directory claim requests, source permission evidence and public directory listings in this set.
+- No blanket REVOKE, no table policy/grant/function changes, no Production mutation or data-row reads.
+- Full review of all 65 callable functions remains open; Production stays BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_1350_1359_SECURITY_DEFINER_RLS_GRANTS_REVIEW_20261120.md`.
