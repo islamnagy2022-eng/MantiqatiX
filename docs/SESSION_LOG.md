@@ -3522,3 +3522,13 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Confirmed source migrations and CI/replay are present; live ledger remains at 310 entries through 20261110150618 and these migrations are unapplied.
 - No application rows or sensitive values selected; no RPC invoked; no Production mutation.
 - Remaining direct-auth SECURITY DEFINER functions: 29. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-20 — Pass 1410–1419 — platform-admin and employee scope review
+
+- Reviewed direct-auth functions 31–40: employee position/employee upsert, commission draft management, and dedicated platform-admin role/business/audit/list RPCs.
+- Confirmed all nine dedicated `mnty_platform_admin_*` SECURITY DEFINER functions are registry-backed, empty search_path, authenticated-executable.
+- Identified employee/position branch mismatch (business-wide actor can assign branch-specific position to branchless employee/membership); tracked as P2 #917, not claimed as cross-tenant exploit.
+- Reconfirmed RC467 commission draft authorization source repair is unapplied in Production; #884 remains open.
+- No employee/membership/audit/commission rows selected; no RPC invoked; no Production mutation.
+- Remaining direct-auth SECURITY DEFINER functions: 19. Production remains BLOCKED / NOT CERTIFIED.
