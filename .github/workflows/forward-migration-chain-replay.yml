@@ -45,9 +45,6 @@ on:
       - "scripts/validate-rc487-smm-first-user-bootstrap-removal.mjs"
       - "scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"
       - "supabase/tests/rc487_smm_first_user_bootstrap_removal_integration.sql"
-      - "supabase/migrations/20261120230000_rc488_storage_anonymous_auth_write_guard.sql"
-      - "scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"
-      - "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql"
       - "supabase/tests/rc482_legal_platform_admin_registry_fixture.sql"
       - "supabase/tests/rc482_legal_platform_admin_registry_integration.sql"
       - "supabase/tests/rc483_atomic_legal_cms_create_audit_fixture.sql"
@@ -58,9 +55,6 @@ on:
     branches: ["main"]
     paths:
       - "supabase/migrations/**"
-      - "supabase/migrations/20261120230000_rc488_storage_anonymous_auth_write_guard.sql"
-      - "scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"
-      - "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql"
       - "supabase/tests/baselines/production_schema_snapshot.sql"
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
@@ -147,9 +141,6 @@ jobs:
 
       - name: Validate RC487 SMM first-user bootstrap removal contract
         run: node scripts/validate-rc487-smm-first-user-bootstrap-removal.mjs
-
-      - name: Validate RC488 Storage anonymous Auth write isolation contract
-        run: node scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs
 
       - name: Validate RC488 Storage anonymous Auth write-guard contract
         run: node scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs
