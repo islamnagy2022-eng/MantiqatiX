@@ -114,3 +114,30 @@ Not performed:
 - No proof that the service-role environment value is currently exposed in an actual deployed bundle.
 
 **Result:** R7 is a feature/reference archive, not an approved production baseline. P0 identity/session and dual-authority design issues must be resolved before any of its backend/auth patterns are adopted.
+
+
+## 5. Cross-reference to the exact prior R7 forensic review — P0 findings
+
+The uploaded archive SHA-256 was independently computed as:
+
+`210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`
+
+This is byte-for-byte the same archive already examined in `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md`. That deeper forensic review is the authoritative source for route-level findings and must be read together with this pass. I reopened it and rechecked the corresponding exact source sections in the uploaded `server.ts`.
+
+The archive has additional P0 findings beyond the initial source-pattern list above:
+
+1. `POST /api/auth/session-token` accepts caller-supplied `userId` and `role`, defaults to a privileged `super_admin` role, and issues a signed token without visible caller authentication.
+2. `GET /api/production-state` returns the complete local JSON snapshot; `POST /api/production-state` accepts caller-supplied object data and merges it into the local authoritative JSON store without visible route-level authentication/authorization.
+3. `PAYMOB_HMAC_SECRET` and `SESSION_JWT_SECRET` have static source fallbacks in `server.ts`; helper defaults also exist in frontend-importable code.
+4. Admin login falls back to a weak default and accepts a fixed alternative password. This is a source-level bypass pattern, not proof it was used against a deployed service.
+5. A static route scan in the prior forensic review identified 54 mutating handlers without recognizable route-local session verification/authorization. The prior report separately inventories 113 API routes / 73 mutating declarations and correctly marks route enforcement NOT PROVEN.
+6. `/api/finance/audited-transaction` trusts caller-supplied actor ID/role and defaults the actor role to `super_admin` before invoking the local financial helper.
+7. The Android wrapper in this archive consists of only three files; it is not independently proven to be a complete/buildable Android project. Preserve it as a reference, but do not treat it as a verified mobile release.
+
+These are source-level defects in the R7 archive, not evidence that the deployed canonical site has these same routes or that a live compromise occurred. No R7 route was executed, no token was minted, and no production endpoint was probed.
+
+**Updated disposition:** R7 must not be deployed or promoted. It is reference-only for selective UI/assets/features. Do not port its server/auth/finance/local-state implementation. The existing detailed forensic record remains `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md`; this pass links the exact same uploaded artifact hash and summarizes the critical blockers to prevent the initial abbreviated review from being mistaken as exhaustive.
+
+## 6. R7 feature adoption gate
+
+No R7 code or feature was selected for direct adoption during this pass. Therefore no UI/API/DB feature port is marked complete. Any future selected feature must first be mapped to the current `main` UI, API/RPC, schema, authorization and test contracts; only then may a minimal isolated port be proposed. R7 auth, local JSON authority, payment, wallet, finance and admin patterns remain excluded.
