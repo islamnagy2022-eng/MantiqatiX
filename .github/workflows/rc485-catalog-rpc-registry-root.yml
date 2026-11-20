@@ -1,0 +1,31 @@
+name: RC485 Catalog RPC Registry Root Guard
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261120200000_rc485_catalog_rpc_registry_root.sql"
+      - "scripts/validate-rc485-catalog-rpc-registry-root.mjs"
+      - ".github/workflows/rc485-catalog-rpc-registry-root.yml"
+  push:
+    branches:
+      - "fix/p0-catalog-rpc-registry-root-20261120"
+    paths:
+      - "supabase/migrations/20261120200000_rc485_catalog_rpc_registry_root.sql"
+      - "scripts/validate-rc485-catalog-rpc-registry-root.mjs"
+      - ".github/workflows/rc485-catalog-rpc-registry-root.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Validate registry-only platform-root authority in catalog RPCs
+        run: node scripts/validate-rc485-catalog-rpc-registry-root.mjs
