@@ -34,6 +34,7 @@ assert.ok(anonymousAuthTest.includes("RC479_ANONYMOUS_AUTH_BASELINE_NOT_REPRODUC
   "test must first reproduce the post-RC479 anonymous Auth residual read");
 assert.ok(anonymousAuthTest.includes("CREATE POLICY rc479_test_only_anonymous_auth_session_deny")
   && anonymousAuthTest.includes("AS RESTRICTIVE")
+  && anonymousAuthTest.includes("FOR SELECT")
   && anonymousAuthTest.includes("TO authenticated"),
   "test-only overlay must model a restrictive guard for anonymous Auth sessions");
 assert.ok(anonymousAuthTest.includes("auth.jwt()->>'is_anonymous'"),
