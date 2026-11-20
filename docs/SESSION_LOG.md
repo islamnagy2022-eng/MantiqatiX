@@ -3552,3 +3552,13 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Added seven catalog global-root RPCs still using legacy SUPER_ADMIN membership flags to P0 #867.
 - Reconciled complete inventory: 65 authenticated-callable SECURITY DEFINER functions; 59 direct auth.uid and six delegated paths; all 65 explicit search_path; one intentional anon public ad RPC.
 - Manual review of all 65 is complete. Production remains BLOCKED / NOT CERTIFIED; no Production mutation or RPC invocation.
+
+
+## 2026-11-20 — Pass 1440–1449 — Edge authentication and anonymous-policy review
+
+- Inspected all 10 deployed Edge Functions with verify_jwt=false out of 42 active functions.
+- Confirmed manual bearer validation/anonymous rejection on catalog-admin, directory-listings, mantigo-payment-intent and api; HMAC/secret protection on payment webhooks and push dispatch; public GET/health contracts on catalog/directory endpoints.
+- Added catalog-admin v20 and directory-listings v16 legacy platform-root membership predicates to P0 #867.
+- Security Advisor reports 90 anonymous-policy warnings and leaked-password protection disabled. Focused grants review found no direct anon SELECT/INSERT on high-risk tables inspected; policy-by-policy reconciliation remains open.
+- Opened P1 #924 for leaked-password protection; no Auth settings changed.
+- No Edge function invoked, no data rows selected, no Production mutation.
