@@ -3602,3 +3602,8 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Confirmed the archive's Android wrapper has three files only and is not a verified independently buildable Android app. Preserve it as reference; do not claim mobile release readiness.
 - No R7 backend/auth/finance/local JSON code adopted. No feature selected for direct adoption in this pass; future feature ports remain gated.
 - Updated Pass 1460–1469 audit with exact-hash cross-reference. Evidence: `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md` and `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md`.
+
+
+- Follow-up mapped existing anonymous-JWT test coverage: RC102 provider services, RC453 campaigns, RC455 commission preview, RC465 orders, RC466 business/branch/inventory, RC467 finance preview.
+- Verified RC465 PostgreSQL workflow 44048037235 and RC466 workflow 44048037214 passed on PR #742 candidate head.
+- Remaining work is a full 90-table/table-command coverage matrix and targeted tests for uncovered high-risk policies. No blanket RLS change; Pass 1456 remains open.

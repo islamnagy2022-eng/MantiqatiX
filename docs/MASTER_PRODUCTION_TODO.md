@@ -4589,3 +4589,9 @@ Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`.
 - [ ] For any future R7 UI/feature adoption, map to current-main UI/API/DB/Auth contracts and add isolated regression tests before a minimal port.
 
 Evidence: `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md`; `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md`.
+
+
+- [x] Map existing anonymous Auth-session tests: RC102 provider services, RC453 marketing campaign, RC455 commission preview, RC465 order read/history, RC466 business/branch/inventory, RC467 finance preview. RC465/RC466 PostgreSQL CI passed on PR #742 candidate.
+- [ ] Map all 90 Advisor warning tables and commands to existing tests; add disposable anonymous-JWT tests only for uncovered high-risk combinations. Keep Pass 1456 open.
+
+Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`.

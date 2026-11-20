@@ -3574,7 +3574,7 @@ Evidence: audit file; Issues #867, #924. No Edge invocation or Production mutati
 - [x] 1453 — Confirm 56 public-schema + 1 storage policy reference is_platform_admin across 24 tables.
 - [x] 1454 — Verify RC484 exact preflight count is 57 policies / 24 tables when storage.objects is included; test-only overlay restores checkpoint omission and must never be applied to Production.
 - [x] 1455 — Record evidence in `docs/audits/PASS_1450_1459_ANONYMOUS_POLICY_AND_RC484_PREFLIGHT_20261120.md`.
-- [ ] 1456 — Complete remaining policy-by-policy review of the 90 Advisor warnings and multiple-permissive policy interactions. Partial evidence: 86/90 have authenticated permissive policies; 46/90 have a table-wide is_anonymous restrictive guard; 40/90 require command-level review. P1 #928 tracks disposable anonymous-JWT tests.
+- [ ] 1456 — Complete the policy-by-policy matrix for 90 Advisor warnings and multiple-permissive policy interactions. Existing disposable tests cover RC102 provider services, RC453 marketing campaigns, RC455 commission preview, RC465 orders, RC466 business/branch, and RC467 commission scope; RC465/RC466 CI passed on PR #742. Fresh aggregation: 86/90 have authenticated permissive policies; 46/90 have a table-wide is_anonymous restrictive guard; 40/90 require table/command coverage mapping. P1 #928 tracks remaining gaps.
 - [ ] 1457 — Enable leaked-password protection if supported and verify sign-up/reset/change flows (#924).
 - [ ] 1458 — Apply RC484 only in the coordinated migration/Edge release; verify all 57 policies and registry helper live.
 - [ ] 1459 — Keep Production blocked until backup/restore, Vault, PG17 rollback, migration/Edge, payment/privacy and post-deploy gates pass.
