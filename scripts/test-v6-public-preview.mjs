@@ -102,7 +102,7 @@ try {
         return {
           id: businessId,
           slug: `v6-preview-business-${number}`,
-          name: number === 1 ? 'نشاط تجريبي للاختبار' : number === 2 ? 'نشاط اختباري فريد 2' : number === 4 ? 'صيدلية اختبار 4' : number === 25 ? 'نشاط غير موثق للاختبار' : `نشاط تجريبي رقم ${number}`,
+          name: number === 1 ? 'نشاط تجريبي للاختبار' : number === 2 ? 'MantiqatiX' : number === 4 ? 'صيدلية اختبار 4' : number === 25 ? 'نشاط غير موثق للاختبار' : `نشاط تجريبي رقم ${number}`,
           category: ['متاجر', 'مطاعم', 'خدمات', 'صحة'][index % 4],
           operationallyAvailable: true,
           selectedBranchId: branchId,
@@ -184,6 +184,18 @@ try {
   await page.goto(canonicalStoreUrl.toString(), { waitUntil: 'domcontentloaded' });
   await page.getByRole('heading', { name: 'نشاط تجريبي للاختبار', exact: true }).waitFor({ timeout: 15000 });
   console.log('V6_CANONICAL_STORE_LINK=PASS');
+
+  const platformBrandUrl = new URL(appUrl);
+  platformBrandUrl.searchParams.set('businessId', 'v6-preview-business-2');
+  await page.goto(platformBrandUrl.toString(), { waitUntil: 'domcontentloaded' });
+  await page.getByRole('heading', { name: 'MantiqatiX', exact: true }).waitFor({ timeout: 15000 });
+  const platformBrandLogo = page.locator('img[src*="mantiqatix-brand-logo.svg"]');
+  const platformBrandCover = page.locator('img[src*="mantiqatix-brand-cover.svg"]');
+  await platformBrandLogo.waitFor({ timeout: 10000 });
+  await platformBrandCover.waitFor({ timeout: 10000 });
+  assert.equal(await platformBrandLogo.count(), 1, 'V6 official MantiqatiX profile must render the first-party logo');
+  assert.equal(await platformBrandCover.count(), 1, 'V6 official MantiqatiX profile must render the first-party cover');
+  console.log('V6_MANTIQATIX_FIRST_PARTY_PROFILE_BRANDING=PASS logo=1 cover=1');
 
   await page.goto(appUrl, { waitUntil: 'domcontentloaded' });
   await page.getByRole('heading', { name: 'اكتشف الأنشطة والخدمات القريبة منك' }).waitFor({ timeout: 15000 });
@@ -305,8 +317,8 @@ try {
   assert.ok(cardBounds.every((rect) => rect.width > 0 && rect.height > 0), 'Every desktop activity card must have visible dimensions');
   console.log(`V6_PREVIEW_MULTI_ACTIVITY_LAYOUT=${JSON.stringify(cardBounds)}`);
   const directorySearch = page.getByPlaceholder(/ابحث عن نشاط أو خدمة أو تخصص/);
-  await directorySearch.fill('نشاط اختباري فريد 2');
-  await page.waitForFunction(() => document.body.innerText.includes('نشاط اختباري فريد 2'));
+  await directorySearch.fill('MantiqatiX');
+  await page.waitForFunction(() => document.body.innerText.includes('MantiqatiX'));
   assert.equal(await activityCards.count(), 1, 'Directory search must reduce 25 activities to the unique matching result');
   await page.waitForFunction(() => Array.from(document.querySelectorAll('button')).filter((button) => !button.getAttribute('aria-label')?.startsWith('عرض النشاط:') && button.textContent.trim() === 'عرض النشاط').length === 1);
   assert.equal(await liveCatalogStrip.getByTestId('live-published-catalog-card').count(), 26, 'Directory search must not mutate the separate live published catalog strip');
