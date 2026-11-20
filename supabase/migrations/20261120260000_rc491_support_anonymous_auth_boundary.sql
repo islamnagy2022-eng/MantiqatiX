@@ -30,7 +30,7 @@ $preflight$;
 
 CREATE POLICY mnty_confirmed_auth_support_select
 ON public.support_tickets AS RESTRICTIVE FOR SELECT TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 COMMENT ON POLICY mnty_confirmed_auth_support_select ON public.support_tickets IS
   'RC491: support tickets are visible only to confirmed Auth sessions.';
