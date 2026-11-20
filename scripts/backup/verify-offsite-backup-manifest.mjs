@@ -18,7 +18,9 @@ const EXPECTED_PRODUCTION_PROJECT_REF = "moyhiluyhjsujhwlyeuu";
 const REPOSITORY_ROOT = fs.realpathSync.native(path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../.."));
 
 function isInsideDirectory(candidate, parent) {
-  const relative = path.relative(parent, candidate);
+  const canonicalCandidate = fs.realpathSync.native(candidate);
+  const canonicalParent = fs.realpathSync.native(parent);
+  const relative = path.relative(canonicalParent, canonicalCandidate);
   return relative === "" ||
     (relative !== ".." && !relative.startsWith(".." + path.sep) && !path.isAbsolute(relative));
 }
