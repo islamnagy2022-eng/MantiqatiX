@@ -4,6 +4,7 @@
 - Added an idempotent V6 source-preparation overlay that recognizes the exact MantiqatiX activity name, serves the canonical first-party SVG logo/cover through Vite's configured base path, and preserves all other businesses' uploaded media.
 - The overlay copies the canonical SVGs from `apps/catalog-frontend/public/` into the generated V6 `public/` folder; added a source contract test and a browser E2E fixture that checks the V6 profile's actual logo and cover.
 - Added post-deployment HTTP checks for both assets at the production root and retained V6 preview alias.
+- First CI run passed the overlay self-test, asset copy, and V6 source-contract test, then exposed an incorrect required-file path (the root test script was being sought inside the extracted V6 worktree). Corrected the gate; rerun is pending.
 - This is a source/CI change only. It does not alter Production profile metadata, Storage, Auth, RLS, Edge functions, payments, or customer records. PR #896 pending CI and merge.
 
 ---
