@@ -3481,3 +3481,13 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Opened P1 Issue #906 with forward-only fix requirements and PostgreSQL tests.
 - Supabase CLI binary is not installed in the current execution container; no migration file was invented or applied.
 - Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.md`. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-20 — Pass 1370–1379 — platform-admin helper live recheck
+
+- Fresh read-only Production SQL: 310 migration rows through `20261110150618`; RC464/RC471/RC484 absent.
+- Live `mnty_can_platform_admin()` still delegates to `mnty_can('admin',NULL,NULL,NULL)`; SECURITY DEFINER, `search_path=public, pg_temp`, authenticated EXECUTE true, anon false; five RLS policies reference it.
+- Confirmed source repair already exists in RC464/RC471, is included in the required migration chain, and is merged via PR #742.
+- Verified successful candidate CI on PR #742 head: RC464 PostgreSQL 44048036994, R7/RC471 44048037021, chronological replay 44048037316, uniqueness 44048037168, collision 44048037131, history immutability 44048037034.
+- Updated P0 Issue #867 with fresh live evidence and CI results. No application rows selected, no function invoked, no Production mutation.
+- Next: coordinated release after backup/restore, migration/Edge parity and payment/privacy gates; then verify live helper, policies and callers. Production remains BLOCKED / NOT CERTIFIED.
