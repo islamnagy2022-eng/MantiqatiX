@@ -131,6 +131,9 @@ jobs:
       - name: Validate RC485 catalog RPC registry-root authorization contract
         run: node scripts/validate-rc485-catalog-rpc-registry-root.mjs
 
+      - name: Validate RC486 catalog price version serialization contract
+        run: node scripts/validate-rc486-catalog-price-version-serialization.mjs
+
       - name: Start isolated Supabase instance with no repository migrations
         shell: bash
         run: |
