@@ -46,9 +46,12 @@ python3 "$ROOT/scripts/disable-v6-medical-directory.py" --self-test
 python3 "$ROOT/scripts/disable-v6-medical-directory.py" "$WORKTREE"
 python3 "$ROOT/scripts/patch-v6-geo-discovery.py" --self-test
 python3 "$ROOT/scripts/patch-v6-geo-discovery.py" "$WORKTREE" "$ROOT/apps/aistudio-v6/geo/egyptGeoDiscovery.ts"
+python3 "$ROOT/scripts/patch-v6-mantiqatix-branding.py" --self-test
+python3 "$ROOT/scripts/patch-v6-mantiqatix-branding.py" "$WORKTREE" "$ROOT/apps/catalog-frontend/public"
+node "$ROOT/scripts/test-v6-mantiqatix-branding.mjs" "$WORKTREE" "$ROOT/apps/catalog-frontend/public"
 node "$ROOT/scripts/test-v6-geo-discovery-contract.mjs" "$WORKTREE"
 node "$ROOT/scripts/test-v6-medical-directory-disabled.mjs" "$WORKTREE"
-for required in package.json bun.lock src/main.tsx src/App.tsx src/components/DirectoryView.tsx src/components/common/PublicSectorGrid.tsx src/components/common/PublicTargetedAdsRail.tsx src/services/publicTargetedAds.ts src/services/publicTargetedAds.test.mjs scripts/audit-v6-source-security.mjs scripts/verify-v6-remediation.mjs src/context/PublicAppContext.tsx src/utils/publicContact.ts src/utils/publicCatalog.ts src/components/common/PublicGeoDiscovery.tsx src/data/egyptGeoDiscovery.ts; do
+for required in package.json bun.lock src/main.tsx src/App.tsx src/components/DirectoryView.tsx src/components/common/PublicSectorGrid.tsx src/components/common/PublicTargetedAdsRail.tsx src/services/publicTargetedAds.ts src/services/publicTargetedAds.test.mjs scripts/audit-v6-source-security.mjs scripts/verify-v6-remediation.mjs src/context/PublicAppContext.tsx src/utils/publicContact.ts src/utils/publicCatalog.ts src/components/common/PublicGeoDiscovery.tsx src/data/egyptGeoDiscovery.ts public/mantiqatix-brand-logo.svg public/mantiqatix-brand-cover.svg; do
   test -f "$WORKTREE/$required" || { echo "V6_REQUIRED_FILE_MISSING=$required" >&2; exit 1; }
 done
 node "$ROOT/scripts/test-v6-public-context-boundary.mjs" "$WORKTREE"
