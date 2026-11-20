@@ -43,19 +43,16 @@ The live Production helper still has the weak membership-derived body observed a
 
 A comment with the additional finding and exact four callers was added to Issue #867 (comment ID 7045989396).
 
-## Required correction and acceptance
+## Release acceptance and next actions
 
-- Make platform-root authorization depend on `private.platform_admins` or a reviewed registry-backed helper, not generic tenant membership.
-- Preserve tenant-local OWNER/ADMIN permissions in tenant-scoped endpoints; do not globally replace every admin predicate with platform-root authority.
-- Review all four callers and any transitive helper paths, including the additional payment/page/business checks in digital-page fulfillment.
-- Add disposable PostgreSQL adversarial tests proving:
-  - tenant OWNER and tenant ADMIN outside the registry are denied platform-wide ad creation;
-  - tenant OWNER and tenant ADMIN outside the registry cannot review global captain applications or change platform financial configuration;
-  - registry-only platform admins retain intended platform-wide operations;
-  - tenant-local managers retain only their own tenant/business/branch permissions;
-  - paid digital-page fulfillment still enforces payment, owner, page-type, and business-scope invariants.
-- Pin SECURITY DEFINER search paths to `''` where feasible and schema-qualify object references.
-- Include this helper and all callers in the full ordered migration/Edge release reconciliation. No hot edit or isolated production deployment.
+The implementation and adversarial tests already exist in RC464/RC471/R7. Remaining acceptance is release-focused:
+
+- Confirm RC464 and RC471 remain in the exact ordered release migration chain and their CI jobs pass on the candidate head.
+- Complete the full chronological migration replay and reconcile the complete live schema/RPC contracts before production rollout.
+- Keep migration and Edge deployment coordinated; do not hot-apply RC464 alone while the live schema and Edge bundle remain out of parity.
+- After authorized rollout, re-query the helper body, owner, SECURITY DEFINER flag, empty search_path, effective ACL, the four helper-dependent callers, the four MantiGO global RPCs, and all dependent RLS policies.
+- Run negative authorization checks for tenant OWNER/BUSINESS_OWNER/ADMIN and positive registry-only platform-admin checks against the deployed version.
+- Preserve digital-page payment, page-owner, page-type, business-scope, and tenant-local authorization invariants.
 
 ## Disposition
 
