@@ -2961,3 +2961,15 @@ Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`; P
 Code search of current main found explicit anonymous-JWT test assertions for RC102 provider services, RC453 marketing campaign creation, RC455 commission preview, RC465 orders, RC466 business/branch/inventory, RC467 finance preview, and RC478 MantiGO open rides. RC465/RC466 CI runs 44048037235/44048037214 passed. Related but not explicitly anonymous tests were found for digital-page payment, journal, payment provider events, SMM service-role ACL, CRM and storage overlay. The remaining high-risk command gaps include payment events/intents/provider events/reconciliations, refunds/settlements/wallets, medical/support/notifications/push, digital-page orders/sections, MantiGO ledger/config and storage object read/write/delete. No live anon probes or Production changes.
 
 Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`; P1 #928.
+
+
+## Latest execution checkpoint — Pass 1470–1479 — anonymous Auth/RLS matrix (2026-11-20)
+
+- Reconciled all 90 current Security Advisor anonymous-policy findings against live `pg_policies` and effective grants: 364 policies across 90 relations; 89 relations have authenticated policies.
+- 46 relations have a restrictive predicate explicitly checking `is_anonymous`; 40 have permissive policies without a detected table-wide explicit anonymous guard. 51 relations have multiple permissive policies requiring OR/AND-aware testing. No relation in this Advisor set is policy-free.
+- Eight relations have a policy targeting `anon`/`public`; five relations have effective anon SELECT; one relation (`storage.objects`) has anon INSERT at ACL layer but no anon INSERT policy. This is not proof that the write is reachable.
+- Confirmed `marketing_provider_profiles` still exposes all 19 columns to anon via direct SELECT, including `owner_user_id` and `settings`; RC479 is source-only and absent from live migration ledger.
+- Confirmed public `mantiqatix-profile-media` bucket with broad bucket-wide public SELECT policy; aggregate object count was zero. Keep public media intentional, but require negative anonymous upload/update/delete tests and consider separating private attachments.
+- Recorded complete table/command/role/grant matrix in `docs/audits/PASS_1470_1479_ANONYMOUS_POLICY_MATRIX_20261120.md`; updated P1 #928. No application rows or provider profile values selected; no Production mutation.
+- Remaining: disposable anonymous-JWT tests for all 40 no-guard and 51 multi-permissive relations; leaked-password protection (#924); coordinated RC479/RC480/RC464/RC471/RC484 and full Edge release after actual encrypted backup/restore and rollback.
+- Production remains **BLOCKED / NOT CERTIFIED**.
