@@ -174,3 +174,27 @@ A separate read-only ACL/policy check found a remaining minimum-privilege privac
 
 No provider identifiers, names, contacts or settings values were selected. There is no evidence in this check that data was exploited or extracted. Do not hot-edit Production grants; apply RC479 in the approved chronological release after the encrypted backup/restore/rollback gate, then recheck anon denial and authenticated/service_role compatibility.
 
+## 10. SECURITY DEFINER execution-surface triage — 2026-11-20
+
+A fresh read-only catalog query counted 149 SECURITY DEFINER functions in `public`. Effective EXECUTE inventory:
+- 65 are executable by `authenticated`;
+- 1 is executable by `anon` (`get_mnty_targeted_advertisements`);
+- 34 are executable by `service_role`.
+
+These sets overlap. Of the 65 authenticated-executable functions, 18 use an empty `search_path`; 47 have a non-empty or unset search_path. A non-empty path is a hardening/review signal, not by itself proof of exploitability. Each function needs its exact identity source, tenant/business/branch scope, delegated checks, exposed result shape and role ACL reviewed.
+
+Six authenticated-executable functions in the catalog do not contain a direct `auth.uid()` call. Their definitions/delegations were inspected:
+
+| Function | Observed authorization/delegation | Result |
+|---|---|---|
+| `mnty_business_employee_list` | Delegates to `mnty_business_employee_list_scoped`, which requires `auth.uid()`, rejects anonymous sessions, validates tenant/business/branch relationships, and checks active scoped membership or explicit employee-view/manage permission. | Delegated identity/scope guard present. |
+| `mnty_can` | Delegates to `mnty_active_membership` for the current actor and supplied scope. | Shared identity helper; the null-scope admin use remains separately tracked under #852. |
+| `mnty_can_platform_admin` | Delegates to `mnty_can('admin',NULL,NULL,NULL)`. | P0 global-root scope defect; see #852 and section 8 above. |
+| `preview_commission_backend` | Delegates to `assert_financial_membership`, which uses `auth.uid()` and requires an active finance-capable role in the supplied tenant. | Tenant-level check observed; no active Finance/Accountant/Finance Manager memberships or commission rules were present in the current aggregate snapshot. Review business scope before introducing business-specific finance roles. |
+| `upsert_catalog_item_and_price_backend` | Delegates to the item and price RPCs, each of which checks `auth.uid()`, active tenant membership, business/branch relationships and allowed write roles. | Delegated actor/business/branch checks present; callers' search_path and grant contracts still require continued review. |
+| `get_mnty_targeted_advertisements` | Read-only public discovery of active, approved, date-valid ads; returns advertisement creative/target fields and bounded geographic match data. Empty search_path; intentional anon EXECUTE. | Public surface retained only with its bounded/read-only contract; continue output/targeting review. |
+
+The aggregate membership query found zero active Finance/Accountant/Finance Manager membership rows/users, zero tenant-wide or business/branch-scoped finance memberships, one tenant with multiple ACTIVE businesses, and zero commission rules. No business or tenant identifiers, user identifiers, personal values or commission rule values were selected.
+
+**Disposition:** this was a targeted delegation triage, not a certification of all 149 function bodies. Keep the shared global-admin helper defect open. Prioritize further review of authenticated SECURITY DEFINER functions with non-empty search_path and any newly introduced business-specific finance membership model. No function was invoked, no grants were changed, and no Production mutation occurred.
+
