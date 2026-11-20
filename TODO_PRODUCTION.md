@@ -1,3 +1,12 @@
+## Continuation checkpoint — Pass 1260–1264 — 2026-11-20
+
+- Diagnosed the MantiqatiX official activity profile branding issue from the live record and canonical frontend source: stored logo/cover metadata points to Facebook CDN URLs, while the first-party logo and cover assets already exist in the catalog frontend.
+- Corrected `BusinessProfileHeader` so the exact official MantiqatiX profile uses its bundled first-party logo and cover instead of preferring potentially expired social-CDN URLs. Other activities retain their own media; manually selected cover-gallery images remain supported.
+- Added `scripts/validate-mantiqatix-profile-branding.mjs` and wired it into the primary catalog frontend CI workflow.
+- No Production data, Storage, Auth, RLS, Edge Function, payment, or customer record was changed. The source correction is awaiting PR CI and deployment; do not claim it is live until the deploy gate completes.
+
+---
+
 ## Continuation checkpoint — Pass 1250–1259 — 2026-11-20
 
 - Reverified the uploaded R7 archive: ZIP integrity PASS; SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`. It remains a separate reference candidate, not the current production source. It uses localStorage for business/customer/order/wallet state; do not import wholesale or treat browser state as identity, authorization, tenant or financial authority.
