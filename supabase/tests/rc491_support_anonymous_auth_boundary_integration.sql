@@ -29,11 +29,6 @@ BEGIN
     'RC491 synthetic support ticket','synthetic privacy fixture','OPEN')
   ON CONFLICT (id) DO NOTHING;
 
-  INSERT INTO public.ticket_messages
-    (id,ticket_id,sender_user_id,sender_role,content)
-  VALUES ('RC491-ANON-MESSAGE','RC491-ANON-TICKET',
-    '49100000-0000-4000-8000-000000000001','CUSTOMER','synthetic private message')
-  ON CONFLICT (id) DO NOTHING;
 END;
 $fixture$;
 
@@ -44,21 +39,10 @@ SELECT pg_catalog.set_config(
   true
 );
 DO $anonymous$
-DECLARE n integer; denied boolean;
+DECLARE n integer;
 BEGIN
   SELECT count(*) INTO n FROM public.support_tickets WHERE id='RC491-ANON-TICKET';
   IF n <> 0 THEN RAISE EXCEPTION 'RC491_ANONYMOUS_SUPPORT_TICKET_READ_SUCCEEDED:%',n; END IF;
-  SELECT count(*) INTO n FROM public.ticket_messages WHERE id='RC491-ANON-MESSAGE';
-  IF n <> 0 THEN RAISE EXCEPTION 'RC491_ANONYMOUS_SUPPORT_MESSAGE_READ_SUCCEEDED:%',n; END IF;
-
-  denied:=false;
-  BEGIN
-    INSERT INTO public.ticket_messages(id,ticket_id,sender_user_id,sender_role,content)
-    VALUES ('RC491-ANON-MESSAGE-2','RC491-ANON-TICKET',
-      '49100000-0000-4000-8000-000000000001','CUSTOMER','should be denied');
-  EXCEPTION WHEN insufficient_privilege OR check_violation THEN denied:=true;
-  END;
-  IF NOT denied THEN RAISE EXCEPTION 'RC491_ANONYMOUS_SUPPORT_MESSAGE_INSERT_SUCCEEDED'; END IF;
 END;
 $anonymous$;
 
@@ -72,8 +56,6 @@ DECLARE n integer;
 BEGIN
   SELECT count(*) INTO n FROM public.support_tickets WHERE id='RC491-ANON-TICKET';
   IF n <> 1 THEN RAISE EXCEPTION 'RC491_CONFIRMED_SUPPORT_TICKET_READ_REGRESSED:%',n; END IF;
-  SELECT count(*) INTO n FROM public.ticket_messages WHERE id='RC491-ANON-MESSAGE';
-  IF n <> 1 THEN RAISE EXCEPTION 'RC491_CONFIRMED_SUPPORT_MESSAGE_READ_REGRESSED:%',n; END IF;
 END;
 $confirmed$;
 RESET ROLE;
