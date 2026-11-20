@@ -4595,3 +4595,9 @@ Evidence: `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md`; `docs/audi
 - [ ] Map all 90 Advisor warning tables and commands to existing tests; add disposable anonymous-JWT tests only for uncovered high-risk combinations. Keep Pass 1456 open.
 
 Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`.
+
+
+- [x] Code-search current main for anonymous JWT tests; found targeted coverage for RC102, RC453, RC455, RC465, RC466, RC467 and RC478.
+- [ ] Add anonymous-vs-confirmed JWT tests for remaining high-risk payment/finance, medical/support, notification/push, digital-page, MantiGO financial and Storage object command paths. Existing non-anonymous contract tests do not close this gate.
+
+Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`.
