@@ -3484,3 +3484,19 @@ Evidence: audit file; Issues #867, #884, #911; RC464/RC467/RC478 source CI. Read
 - [ ] 1399 — Continue full-body review of remaining 39 direct-auth SECURITY DEFINER functions; do not certify all 65 until complete.
 
 Evidence: audit file; Issues #867, #884, #911–#914, #92, #94, #118; RC471/RC476/RC477/RC478 source CI and replay. No Production mutation.
+
+
+## PASS 1400–1409 — MantiGO data-access and delegated RPC review — 2026-11-20
+
+- [x] 1400 — Review functions 21–25 of the 59 direct-auth SECURITY DEFINER set: captain earnings, captain/customer ride listing, open rides and fare locking.
+- [x] 1401 — Reconfirm RC476 captain earnings live column mismatch; RC476 source/CI exists; P1 #914 remains open.
+- [x] 1402 — Reconfirm RC477 customer ride RPC leaks phone/plate on non-accepted bids; RC477 source/CI exists; P1 #913 remains open.
+- [x] 1403 — Reconfirm RC478 open-ride listing lacks verified/available captain gate; RC478 source/CI exists; P1 #911 remains open.
+- [x] 1404 — Review MantiGO rating and notification-read RPCs for customer ownership and auth.uid row binding.
+- [x] 1405 — Review ride matching RPC; confirm active/verified/available and vehicle-category filters and sanitized output.
+- [x] 1406 — Review active-membership and scoped employee-list helper chains for actor, tenant, business, branch and HR permission checks.
+- [x] 1407 — Record findings in `docs/audits/PASS_1400_1409_MANTIGO_DATA_ACCESS_REVIEW_20261120.md`.
+- [ ] 1408 — Continue full-body review of remaining 29 direct-auth SECURITY DEFINER functions.
+- [ ] 1409 — Keep Production blocked until coordinated migration/Edge, backup/restore, payment/privacy and post-deployment gates pass.
+
+Evidence: audit file; Issues #911, #913, #914; CI runs 44237312712, 44239964164, 44239964551. No Production mutation.

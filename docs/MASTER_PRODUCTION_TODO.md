@@ -4495,3 +4495,13 @@ Evidence: `docs/audits/PASS_1380_1389_SECURITY_DEFINER_DELEGATION_AND_LIVE_DRIFT
 - [ ] Continue full-body review of remaining 39 direct-auth SECURITY DEFINER functions; maintain production block until all release gates and live verification pass.
 
 Evidence: `docs/audits/PASS_1390_1399_FIRST_20_DIRECT_AUTH_DEFINERS_20261120.md`.
+
+
+### MantiGO data-access and delegated RPC review — 2026-11-20
+
+- [x] Review MantiGO ride listing, matching, fare lock, rating and notification read authorization paths.
+- [x] Reconfirm RC476/RC477/RC478 source repairs and exact-head CI/replay evidence; live migrations remain unapplied. Track #911, #913, #914.
+- [ ] Continue full-body review of remaining 29 direct-auth SECURITY DEFINER functions.
+- [ ] Keep Production blocked until coordinated migration/Edge, backup/restore, payment/privacy and post-deployment live checks pass.
+
+Evidence: `docs/audits/PASS_1400_1409_MANTIGO_DATA_ACCESS_REVIEW_20261120.md`.
