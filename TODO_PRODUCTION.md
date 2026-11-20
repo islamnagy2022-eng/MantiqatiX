@@ -3631,3 +3631,6 @@ Evidence: audit file; branch `fix/rc479-anonymous-auth-profile-boundary-tests-20
 
 
 **Pass 1480 correction:** the live `Owners manage their marketing provider profile` ALL policy already blocks anonymous Auth DML and binds the owner to `auth.uid()`. The missing control is specifically a RESTRICTIVE FOR SELECT policy for `authenticated` requiring `is_anonymous=false`; preserve owner CRUD and the public confirmed-user read contract.
+
+
+**Final live recheck (2026-11-20):** Production remains at 310 migration rows through `20261110150618`; RC479/RC480/RC484 are absent. Effective anon SELECT and authenticated SELECT remain true on `marketing_provider_profiles`, and the active-profile SELECT policy still targets `anon,authenticated`. Disposable CI passing does not change Production. No Production mutation.
