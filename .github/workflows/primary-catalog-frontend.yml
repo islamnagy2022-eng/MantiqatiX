@@ -15,6 +15,7 @@ on:
       - "scripts/test-activity-module-overrides.mjs"
       - "scripts/validate-catalog-geographic-search.mjs"
       - "scripts/validate-category-aware-default-catalog-images.mjs"
+      - "scripts/validate-mantiqatix-profile-branding.mjs"
       - "scripts/validate-paid-subscription-gate.mjs"
       - "scripts/validate-business-create-inflight-guard.mjs"
       - "scripts/validate-catalog-membership-bootstrap.mjs"
@@ -65,6 +66,7 @@ on:
       - "scripts/validate-business-social-links.mjs"
       - "scripts/validate-catalog-geographic-search.mjs"
       - "scripts/validate-category-aware-default-catalog-images.mjs"
+      - "scripts/validate-mantiqatix-profile-branding.mjs"
       - "scripts/validate-paid-subscription-gate.mjs"
       - "scripts/validate-business-create-inflight-guard.mjs"
       - "scripts/validate-catalog-membership-bootstrap.mjs"
@@ -147,6 +149,8 @@ jobs:
         run: node scripts/validate-catalog-geographic-search.mjs
       - name: Validate category-aware default catalog imagery
         run: node scripts/validate-category-aware-default-catalog-images.mjs
+      - name: Validate MantiqatiX platform profile first-party branding
+        run: node scripts/validate-mantiqatix-profile-branding.mjs
       - name: Validate Google OAuth session and role contract
         run: node scripts/validate-catalog-google-auth-contract.mjs
       - name: Validate additive subscriber account portal contract

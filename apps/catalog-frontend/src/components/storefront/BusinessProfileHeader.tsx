@@ -20,6 +20,9 @@ import {
   QrCode,
 } from 'lucide-react';
 
+const isMantiqatiXBrandProfile = (name?: string | null): boolean =>
+  /^mantiqatix$/i.test(String(name || '').replace(/\s+/g, '').trim());
+
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
 
 export const BusinessProfileHeader: React.FC = () => {
@@ -27,6 +30,7 @@ export const BusinessProfileHeader: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [shareFailed, setShareFailed] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const isPlatformBrandProfile = isMantiqatiXBrandProfile(currentBusiness?.name);
   const defaultLogo = currentBusiness ? resolveDefaultImage({
     name: currentBusiness.name, description: currentBusiness.bio, category: currentBusiness.category, kind: 'activity',
   }) : BUSINESS_PLACEHOLDER;
@@ -38,8 +42,9 @@ export const BusinessProfileHeader: React.FC = () => {
     if (!currentBusiness) return [BUSINESS_PLACEHOLDER];
     const merchantCovers = (currentBusiness.coverImages || []).filter((url) => Boolean(url && url.trim()));
     if (merchantCovers.length > 0) return merchantCovers.slice(0, 2);
-    return [currentBusiness.coverUrl || defaultCover];
-  }, [currentBusiness, defaultCover]);
+    // The official platform profile must use first-party brand media, not expiring social-CDN URLs stored in legacy profile metadata.
+    return [isPlatformBrandProfile ? defaultCover : currentBusiness.coverUrl || defaultCover];
+  }, [currentBusiness, defaultCover, isPlatformBrandProfile]);
 
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
@@ -209,7 +214,7 @@ export const BusinessProfileHeader: React.FC = () => {
               {/* Business Logo */}
               <div className="relative -mt-16 sm:-mt-20 md:-mt-24 w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-3xl bg-white p-1.5 shadow-2xl ring-4 ring-white flex-shrink-0 overflow-hidden z-20">
                 <img
-                  src={currentBusiness.logoUrl || defaultLogo}
+                  src={isPlatformBrandProfile ? defaultLogo : currentBusiness.logoUrl || defaultLogo}
                   alt={`شعار ${currentBusiness.name}`}
                   className={`w-full h-full object-cover rounded-2xl bg-slate-100 ${
                     isFrozen ? 'grayscale opacity-80' : ''
