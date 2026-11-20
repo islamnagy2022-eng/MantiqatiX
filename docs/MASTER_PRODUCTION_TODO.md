@@ -4582,3 +4582,10 @@ Evidence: `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md`.
 - [ ] Complete all 40 table policy compositions and disposable anonymous-JWT tests. No blanket deny migration.
 
 Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`.
+
+
+- [x] Cross-check the uploaded R7 archive SHA against the prior forensic review; record P0 unauthenticated token minting/state disclosure+mutation, static JWT/Paymob secrets, weak admin bypass, 54 mutating routes lacking recognizable route-local auth guards, and caller-supplied finance actor/role.
+- [x] Keep R7 backend/auth/finance/local JSON patterns excluded; no R7 feature selected for direct adoption in this pass.
+- [ ] For any future R7 UI/feature adoption, map to current-main UI/API/DB/Auth contracts and add isolated regression tests before a minimal port.
+
+Evidence: `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md`; `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md`.
