@@ -2987,3 +2987,6 @@ Evidence: `docs/audits/PASS_1480_1489_RC479_ANONYMOUS_AUTH_SESSION_GAP_20261120.
 ### RC479 anonymous Auth disposable CI result — 2026-11-20
 
 The regression passed PostgreSQL 16 in dedicated workflow 44794969322. Combined workflow 44794969419 also passed both RC464 platform-admin and RC479 anonymous Auth jobs. Tested code head: `77e782e651f0c73f4481d50495f06a55dd7260da`; later `aff22504149e562686ec85800994acb91fa5072e` changed only audit documentation. Test harness merged in PR #936, merge commit `c77240643002d713ed69d223e2d4a9792829308e`. This validates disposable reproduction and test-only restrictive SELECT overlay, not a Production migration. Actual forward migration generation and chronological replay remain pending.
+
+
+Final live recheck after PR #936: Production ledger remains 310 rows through `20261110150618`; RC479/RC480/RC484 absent. Effective anon/authenticated SELECT on `marketing_provider_profiles` remains true and active-profile public policy still targets both roles. Test harness merge did not change Production. Both exposure paths remain live until coordinated rollout.
