@@ -30,7 +30,7 @@ AS RESTRICTIVE
 FOR INSERT
 TO authenticated
 WITH CHECK (
-  coalesce(auth.jwt()->>'is_anonymous','false') <> 'true'
+  (SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE
 );
 
 CREATE POLICY storage_objects_confirmed_auth_update
@@ -39,10 +39,10 @@ AS RESTRICTIVE
 FOR UPDATE
 TO authenticated
 USING (
-  coalesce(auth.jwt()->>'is_anonymous','false') <> 'true'
+  (SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE
 )
 WITH CHECK (
-  coalesce(auth.jwt()->>'is_anonymous','false') <> 'true'
+  (SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE
 );
 
 CREATE POLICY storage_objects_confirmed_auth_delete
@@ -51,7 +51,7 @@ AS RESTRICTIVE
 FOR DELETE
 TO authenticated
 USING (
-  coalesce(auth.jwt()->>'is_anonymous','false') <> 'true'
+  (SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE
 );
 
 COMMENT ON POLICY storage_objects_confirmed_auth_insert ON storage.objects IS
