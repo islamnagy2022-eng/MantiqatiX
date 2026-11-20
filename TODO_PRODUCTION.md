@@ -3548,3 +3548,19 @@ Evidence: audit file; Issues #867, #884, #92, #94, #919; RC464/RC467/RC471 CI an
 - [ ] 1439 — Keep Production blocked until encrypted backup/restore, Vault recovery, independent PG17 restore/rollback, migration/Edge parity, sandbox payment/privacy E2E, release approval and post-deploy verification pass.
 
 Evidence: audit file; Issues #867, #884, #911–#922, #92, #94, #118. No Production mutation.
+
+
+## PASS 1440–1449 — Edge authentication boundaries and anonymous-policy review — 2026-11-20
+
+- [x] 1440 — Inventory 42 active Edge Functions; identify 10 with verify_jwt=false.
+- [x] 1441 — Inspect manual bearer validation on catalog-admin v20, directory-listings v16, mantigo-payment-intent v5 and api v17; all reject anonymous users.
+- [x] 1442 — Inspect webhook boundaries: mnty-push-dispatch secret header, Paymob HMAC-SHA512 and payment-webhook HMAC-SHA256/timestamp.
+- [x] 1443 — Inspect public GET/health endpoints: public-catalog, public-catalog-directory and health; confirm GET-only/public-read contracts.
+- [x] 1444 — Add catalog-admin and directory-listings legacy platform membership root checks to P0 #867.
+- [x] 1445 — Reconcile Security Advisor snapshot: 9 no-policy RLS tables, 1 intentional anon SECURITY DEFINER, 65 authenticated definer, 90 anonymous-policy warnings, leaked-password protection disabled.
+- [x] 1446 — Focused grant/policy review: no anon SELECT/INSERT on high-risk tables inspected; document self-scoped, public-read and legacy platform-root policy paths.
+- [x] 1447 — Open P1 #924 for leaked-password protection enablement/verification.
+- [x] 1448 — Record evidence in `docs/audits/PASS_1440_1449_EDGE_AUTH_AND_ANONYMOUS_POLICY_REVIEW_20261120.md`.
+- [ ] 1449 — Complete policy-by-policy reconciliation of 90 anonymous-policy warnings and enable leaked-password protection if supported; do not apply blanket policy changes.
+
+Evidence: audit file; Issues #867, #924. No Edge invocation or Production mutation.
