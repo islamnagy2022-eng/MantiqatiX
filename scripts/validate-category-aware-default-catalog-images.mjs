@@ -5,6 +5,18 @@ import path from 'node:path';
 
 const read = (file) => fs.readFileSync(file, 'utf8');
 const defaults = read('apps/catalog-frontend/src/utils/defaultImages.ts');
+const production = read('apps/catalog-frontend/src/lib/production.ts');
+const directoryView = read('apps/catalog-frontend/src/components/DirectoryView.tsx');
+assert.ok(fs.existsSync('apps/catalog-frontend/public/mantiqatix-brand-logo.svg'), 'official MantiqatiX logo asset must exist');
+assert.ok(fs.existsSync('apps/catalog-frontend/public/mantiqatix-brand-cover.svg'), 'official MantiqatiX cover asset must exist');
+assert.ok(defaults.includes("asset('mantiqatix-brand-logo.svg')") && defaults.includes("asset('mantiqatix-brand-cover.svg')"),
+  'the official MantiqatiX identity must resolve to dedicated local logo and cover assets');
+assert.ok(production.includes("name.trim().toLocaleLowerCase() === 'mantiqatix'") &&
+  production.includes("String(raw.code || '').toUpperCase() === 'MNTY-MARKETING'") &&
+  production.includes("officialBrandLogo || String(profile.logoUrl") &&
+  production.includes("officialBrandCover || String(profile.coverUrl"),
+  'official platform showcase mapping must replace expiring social-CDN media with stable local brand assets');
+assert.ok(directoryView.includes("kind: 'activity'"), 'broken directory logos must fall back to square activity artwork');
 const context = read('apps/catalog-frontend/src/context/AppContext.tsx');
 const production = read('apps/catalog-frontend/src/lib/production.ts');
 const profileHeader = read('apps/catalog-frontend/src/components/storefront/BusinessProfileHeader.tsx');
