@@ -7,7 +7,7 @@
 - Production deploy job completed all 12 steps, including GitHub Pages deployment, root/legacy/V6-preview route verification, and deployed-origin browser tests.
 - Deployed-origin Playwright result: `PRIMARY_CATALOG_BROWSER_E2E=PASS`. Covered canonical root and directory search, 20-item pagination, geographic scope, guest route denial, owner/employee/branch authorization, dashboard responsive layouts and accessibility checks, QR routes, GPS consent behavior, verified storefronts, Activity/Specialty navigation, and subscriber portal.
 - Primary catalog validation run `44677886011`: **completed / success**. Build, TypeScript, privacy/contract checks, employee RBAC PostgreSQL tests, and dashboard browser E2E all passed.
-- V6 source preview browser validation passed desktop/mobile; the production deploy workflow confirmed the V6 root, legacy rollback route, and V6 preview alias. Do not overstate the V6 fixture test as a live customer-record image test.
+- The production root is the catalog frontend build at `/`; `/legacy/` is its path-adjusted rollback copy; isolated AI Studio V6 is served at `/v6-preview/`. The deployed-origin primary catalog browser suite and the separate V6 desktop/mobile preview suite both passed. PR #893/#894 cover catalog branding; PR #896 covers V6 preview branding. Do not conflate the surfaces or overstate the V6 fixture test as a live customer-record image test.
 
 ## Uploaded source archive recheck
 
