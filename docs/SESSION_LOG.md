@@ -3532,3 +3532,13 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Reconfirmed RC467 commission draft authorization source repair is unapplied in Production; #884 remains open.
 - No employee/membership/audit/commission rows selected; no RPC invoked; no Production mutation.
 - Remaining direct-auth SECURITY DEFINER functions: 19. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-20 — Pass 1420–1429 — commission, payment-claim, settlement and job review
+
+- Reviewed direct-auth functions 41–50: platform membership/custom role management, permission resolver, commission previews, payment claim release, captain review, financial config, settlement and job application.
+- Confirmed registry-backed dedicated platform-admin membership/custom-role operations and scoped permission resolver.
+- Reconfirmed RC467 commission preview, RC464/471 captain review/config and RC471 settlement live drift; source repairs exist but remain unapplied.
+- Found job application RPC does not require jobs.is_active=true; unique index prevents duplicates. Opened P2 #919.
+- No application/commission/financial/settlement/job rows selected; no function invoked; no Production mutation.
+- Remaining direct-auth SECURITY DEFINER functions: 9. Production remains BLOCKED / NOT CERTIFIED.
