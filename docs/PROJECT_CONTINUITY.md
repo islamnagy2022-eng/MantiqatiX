@@ -3025,3 +3025,8 @@ The regression passed PostgreSQL 16 in dedicated workflow 44794969322. Combined 
 ## Latest continuation — 2026-11-20, Pass 1500–1510
 
 Current security work is in open PRs #946 and #948. RC488–RC492 now use explicit `is_anonymous=false` (missing/NULL denied) with missing-claim regression cases and strengthened validators. PR #948 was repaired: auth.uid fixture added, missing-claim coverage added, CRM/notification migration moved to unique RC493 version 20261120280000. Duplicate finance-only PR #947 was closed because its table set is a subset of RC489's 15 tables. Exact-head checks were still queued/pending at last inspection. No PR merged and no Production mutations/deployment occurred. Next: review exact-head CI; consolidate the migration chain; rehearse complete replay on disposable PostgreSQL 17; verify backup/restore, Edge parity and security/payment/privacy E2E; then seek release approval.
+
+
+## CI update — Pass 1511–1515 (2026-11-20)
+
+PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395` has passed RC493 PostgreSQL integration, static validation, migration version, cross-PR collision, migration-history immutability and forward migration replay. Snapshot: 16 success, 2 skipped, 0 failures, 12 queued. PR #946 exact head: 29 queued, 1 skipped, no failures at last inspection. Neither PR is merged; deploy jobs are skipped. Production remains blocked.
