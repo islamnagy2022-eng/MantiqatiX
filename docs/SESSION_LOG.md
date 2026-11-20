@@ -3389,3 +3389,7 @@ Evidence: Issue #422 comment 7018060567 and live Security Advisor/pg_policies/AC
 - Earlier duplicate documentation PR #880 was closed as superseded by main commit `1ccee7920d9e798e4c709e8cb403b4bf605ade5f`, which already contained the main Pass 1220–1229 parity checkpoint.
 - No Production SQL writes, migrations, helper/RPC invocation, Auth/RLS/GRANT/Storage/Edge changes, payment, wallet, settlement or journal operation occurred. Full platform remains **BLOCKED / NOT CERTIFIED**.
 
+- Additional P1 recheck on 2026-11-20: `anon` still has table-level SELECT on `public.marketing_provider_profiles`; the ACTIVE-only RLS policy does not restrict columns, and effective anon privileges include `owner_user_id` and `settings`. Aggregate-only snapshot: 10 ACTIVE profiles; 4 with owner UUID; no owner IDs or settings values selected.
+- Current live `public-catalog` v8 and `public-catalog-directory` v18 use explicit provider response projections via service_role, so the direct anon grant is a separate PostgREST path, not the curated Edge output.
+- Current main already contains RC479 (`REVOKE SELECT ... FROM anon`) plus its source validator and disposable PostgreSQL compatibility tests. Production still has anon SELECT because RC479 is not recorded in the 64-ID ledger.
+- Opened P1 issue #882. No Production grant/migration, provider record, Edge, Auth or user-data mutation occurred. Evidence appended to Pass 1220 audit and release manifest.
