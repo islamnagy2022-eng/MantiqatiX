@@ -3542,3 +3542,13 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Found job application RPC does not require jobs.is_active=true; unique index prevents duplicates. Opened P2 #919.
 - No application/commission/financial/settlement/job rows selected; no function invoked; no Production mutation.
 - Remaining direct-auth SECURITY DEFINER functions: 9. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-20 — Pass 1430–1439 — final direct-auth SECURITY DEFINER review
+
+- Reviewed final nine direct-auth functions 51–59: captain application, catalog item status, captain presence, trip state, medical appointment status, catalog profile/item/price/settings.
+- Opened P1 #921 for medical provider ownership and unrestricted status transitions.
+- Opened P2 #922 for catalog price MAX(version)+1 race without lock/unique index.
+- Added seven catalog global-root RPCs still using legacy SUPER_ADMIN membership flags to P0 #867.
+- Reconciled complete inventory: 65 authenticated-callable SECURITY DEFINER functions; 59 direct auth.uid and six delegated paths; all 65 explicit search_path; one intentional anon public ad RPC.
+- Manual review of all 65 is complete. Production remains BLOCKED / NOT CERTIFIED; no Production mutation or RPC invocation.

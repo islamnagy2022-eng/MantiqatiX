@@ -2889,3 +2889,14 @@ Evidence: `docs/audits/PASS_1410_1419_PLATFORM_ADMIN_AND_EMPLOYEE_SCOPE_REVIEW_2
 Reviewed direct-auth functions 41–50. Platform membership/custom-role management and permission resolution use the protected registry and scoped permissions. Payment claim release binds actor, order owner and token. Commission previews still use the older membership-derived global gate (RC467 fixes source, #884). Captain review and global financial config still depend on weak platform helper (RC464/471, #867). Captain settlement validates completed ride, paid/cash-confirmed state, commission lock and idempotency, but live authorization accepts broad global membership roles; RC471 source fixes this (#92/#94). Job application RPC correctly binds applicant and unique index prevents duplicate races, but it does not require `jobs.is_active=true`; P2 #919 opened.
 
 Evidence: `docs/audits/PASS_1420_1429_COMMISSION_PAYMENT_JOBS_REVIEW_20261120.md`. Remaining direct-auth functions to review: 9.
+
+
+## Final SECURITY DEFINER review closure — Pass 1430–1439 (2026-11-20)
+
+The manual review of all 65 authenticated-callable public SECURITY DEFINER functions is complete: 59 direct-`auth.uid()` bodies and six delegated paths. All 65 have explicit function-level search_path; one anon-callable targeted-ad discovery RPC was verified as an intentional constrained public read.
+
+New final-slice findings: medical appointment provider ownership/status transition gap (#921); catalog price version allocation race (#922); seven catalog write RPCs retain legacy SUPER_ADMIN membership global bypass and were added to P0 #867. Earlier findings remain open: MantiGO bid state (#912), captain contact privacy (#913), earnings ledger columns (#914), open-ride privacy (#911), commission scope (#884), employee branch/position mismatch (#917), inactive job applications (#919), platform root and MantiGO global admin (#867/#92/#94/#118).
+
+**Review completion is not release certification.** Production remains BLOCKED / NOT CERTIFIED. Live migration ledger is 310 rows through `20261110150618`; RC464/467/471/476/477/478/484 are absent. Full backup/restore, Vault recovery, independent PG17 restore/rollback, migration/Edge parity, payment/privacy E2E and post-deploy verification remain mandatory.
+
+Evidence: `docs/audits/PASS_1430_1439_FINAL_SECURITY_DEFINER_REVIEW_20261120.md`.

@@ -4526,3 +4526,14 @@ Evidence: `docs/audits/PASS_1410_1419_PLATFORM_ADMIN_AND_EMPLOYEE_SCOPE_REVIEW_2
 - [ ] Continue full-body review of remaining 9 direct-auth SECURITY DEFINER functions.
 
 Evidence: `docs/audits/PASS_1420_1429_COMMISSION_PAYMENT_JOBS_REVIEW_20261120.md`.
+
+
+### Final SECURITY DEFINER review closure — 2026-11-20
+
+- [x] Complete manual signature/body review of all 65 authenticated-callable SECURITY DEFINER functions: 59 direct auth.uid and six delegated paths; all explicit search_path.
+- [x] Add seven catalog global-root membership bypasses to P0 #867.
+- [x] Track P1 medical appointment provider/transition gap #921 and P2 catalog price version race #922.
+- [ ] Remediate all tracked source findings via forward-only migrations and adversarial tests.
+- [ ] Keep Production blocked until encrypted backup/restore, Vault recovery, PG17 restore/rollback, full migration/Edge parity, payment/privacy E2E, approval and post-deploy live verification pass.
+
+Evidence: `docs/audits/PASS_1430_1439_FINAL_SECURITY_DEFINER_REVIEW_20261120.md`.
