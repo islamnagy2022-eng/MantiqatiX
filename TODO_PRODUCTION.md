@@ -1,3 +1,15 @@
+## Continuation checkpoint — PR #889 exact-head verification — 2026-11-20
+
+- PR #889 (`test(security): cover RC484 RLS command matrix`) completed all reported exact-head workflows successfully: RC484 Platform Admin RLS, MantiGO Open Ride Privacy, RC425 MantiGO Paymob Atomicity, Backend-only Module Boundary, Module Professionalization Validation, and Deploy MantiqatiX Web validation.
+- Deploy workflow run 44665393420 completed successfully. Its browser validation passed: pinned Playwright install, V6 Preview desktop/mobile tests, screenshot upload, and composed-site upload. The deploy job itself was **SKIPPED** by the release gate; this is not a new Production deployment or V6 root cutover.
+- PR #889 was merged by squash as `094dca3ae75d1b6c5ca580f764442d2126a86f2f`. This merged test coverage only; it did not apply RC484 to Production.
+- PR #890 was opened with a TODO checkpoint but became non-mergeable after PR #889 advanced main. This refreshed mainline checkpoint supersedes that stale PR; close the stale PR #890 after confirming this replacement PR is created.
+- Production remains **BLOCKED / NOT CERTIFIED**: 0/64 required migration identifiers in the live ledger, 4/11 critical Edge source matches, directory contact-consent unresolved, RC484 unapplied, and no actual encrypted off-site backup/restore, Vault recovery, RPO/RTO or rollback evidence.
+- No Production DB/Auth/RLS/GRANT/Edge/payment/customer-data mutation occurred. Legacy catalog root, V6 Preview separation and mobile application files remain preserved.
+
+**Next:** continue with owner-controlled encrypted DB + Storage backup and isolated PostgreSQL 17 restore evidence; reconcile and rehearse the ordered migration chain; only then prepare the coordinated DB + Edge release with payment sandbox and negative privacy/authorization tests. Do not deploy mismatched critical Edge functions individually.
+
+---
 ## Latest verified checkpoint — Pass 1220–1229 — 2026-11-20
 
 - Main: `57862b714c0b049419204b6143b966c149682906`; PR #875 merged the read-only encrypted-backup manifest/evidence verifier. Exact-head CI: **12/12 PASS**. This does not create off-site backups or perform restore rehearsal.
