@@ -3501,3 +3501,15 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - RC478 privacy integration run 44239964164 and replay 44239964551 passed. RC467 validator and behavioral SQL test passed within replay 44239964551.
 - No application rows or sensitive customer/financial data selected; no RPC invoked; no Production mutation.
 - Remaining: full-body review of 59 direct-auth functions and coordinated release after backup/restore, payment/privacy and Edge parity gates. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-20 — Pass 1390–1399 — first 20 direct-auth SECURITY DEFINER functions
+
+- Reviewed full bodies for first 20 direct-`auth.uid()` authenticated-callable SECURITY DEFINER functions.
+- Found MantiGO bid acceptance lacks selected-bid OFFERED-state guard; opened P1 #912.
+- Reconfirmed RC476 live captain earnings schema mismatch (legacy amount/captain_amount vs canonical gross_amount/captain_net_amount); opened #914.
+- Reconfirmed RC477 live customer ride RPC returns full bid JSON including phone/plate before acceptance; opened #913.
+- Reconfirmed RC471 global MantiGO dashboard, financial report and stale-ride expiry still use broad membership roles; updated #92/#94/#118.
+- Confirmed medical appointment active doctor/time unique index protects concurrent booking; payment-intent authorization includes owner/membership, pricing snapshot and idempotency.
+- Source fixes are merged and CI/replay-tested but not applied to Production. No rows selected or functions invoked; no Production mutation.
+- Remaining direct-auth functions to review: 39. Production remains BLOCKED / NOT CERTIFIED.
