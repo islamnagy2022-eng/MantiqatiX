@@ -59,3 +59,25 @@ The implementation and adversarial tests already exist in RC464/RC471/R7. Remain
 **Confirmed live Production drift; source repair already exists; exploit not demonstrated.** The current live definition and effective EXECUTE grants were inspected read-only. No user, membership, payment, ride, advertisement, or financial rows were queried. No function was invoked. No Production schema, data, grants, RLS, Auth, Storage, Edge Function, or deployment change was made.
 
 Production remains **BLOCKED / NOT CERTIFIED** pending the coordinated authorization, migration, Edge, backup/restore, and payment release gates.
+
+
+## CI and fresh Production recheck — 2026-11-20
+
+The RC464 source was integrated into main through merged PR **#742** (merge commit `8ae9ab8901a589b618ff9fc45bc52631146e481e`; tested head `3ecf6142d1a41b9f0adda7bf6c81d873eda66bea`). On that exact candidate head, the following relevant GitHub Actions runs completed successfully:
+
+- RC464 Platform Admin Live Hardening — run **44048036994**.
+- MantiGO Platform Admin Scope Hardening (RC471/R7 caller suite) — run **44048037021**.
+- Forward Migration Chain Replay from Production Schema Checkpoint — run **44048037316**.
+- Migration Version Uniqueness — run **44048037168**.
+- Open PR Migration Collision Guard — run **44048037131**.
+- Migration History Immutability — run **44048037034**.
+
+These are disposable CI/replay results on the merged source candidate, not Production deployment evidence.
+
+A fresh read-only Production recheck on 2026-11-20 reconfirmed:
+- Migration ledger: **310** rows; latest version **`20261110150618`**.
+- RC464 `20261113214500`, RC471 `20261117190000`, and RC484 `20261119040000`: all **absent** from the live ledger.
+- Live `mnty_can_platform_admin()`: SECURITY DEFINER; `search_path=public, pg_temp`; authenticated EXECUTE true; anon EXECUTE false; body still delegates to `mnty_can('admin',NULL,NULL,NULL)`.
+- Five live RLS policies reference `mnty_can_platform_admin()`.
+
+No function was invoked and no Production mutation was performed. This confirms the deployment gap remains after successful source integration and CI. Do not mark the authorization gate closed until the coordinated release is deployed and live post-deployment checks pass.
