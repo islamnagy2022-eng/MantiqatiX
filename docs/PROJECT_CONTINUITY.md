@@ -3002,3 +3002,13 @@ Evidence: `docs/audits/PASS_1480_1489_RC479_ANONYMOUS_AUTH_SESSION_GAP_20261120.
 ### RC479 anonymous Auth disposable CI result — 2026-11-20
 
 The regression passed PostgreSQL 16 in dedicated workflow 44794969322. Combined workflow 44794969419 also passed both RC464 platform-admin and RC479 anonymous Auth jobs. Tested code head: `77e782e651f0c73f4481d50495f06a55dd7260da`; later `aff22504149e562686ec85800994acb91fa5072e` changed only audit documentation. Test harness merged in PR #936, merge commit `c77240643002d713ed69d223e2d4a9792829308e`. This validates disposable reproduction and test-only restrictive SELECT overlay, not a Production migration. Actual forward migration generation and chronological replay remain pending.
+
+
+## 2026-11-20 — Pass 1490–1499 — anonymous Auth and platform-root parity
+
+- Inspected RC488–RC492 source and open PRs #946–#948. Found fail-open NULL handling in anonymous JWT guards: missing `is_anonymous` claim is coalesced to false and allowed. Posted correction and true/false/missing integration-test requirements to all affected PRs.
+- Confirmed cross-PR migration collisions: #946/#947 both allocate 20261120240000; #946/#948 both allocate 20261120250000. PR #947's Open PR Migration Collision Guard failed with explicit log evidence. Consolidation/re-versioning is required before merge.
+- Read-only live Supabase catalog: `private.platform_admins(user_id uuid)` exists, RLS is enabled, and anon/authenticated have no direct table grants. Live `mnty_can_platform_admin()` still delegates to membership-based `mnty_can()`; canonical main RC462/RC464 source is registry-backed but absent from the live migration ledger. Production remains blocked on source/live migration parity.
+- PR #940 has 28 successful checks at inspected head, deployment jobs skipped, but is five commits behind current main/diverged. Requested update/rebase and exact-head CI; its RC472/RC473 dependency remains a coordinated release requirement.
+- Added audit `docs/audits/PASS_1490_1499_ANONYMOUS_AUTH_AND_PLATFORM_ROOT_PARITY_20261120.md` and updated `TODO_PRODUCTION.md` with remaining actions.
+- No Production database, RLS, GRANT, Storage, Edge, Auth, payment or customer-data mutation. **PRODUCTION: BLOCKED / NOT CERTIFIED.**
