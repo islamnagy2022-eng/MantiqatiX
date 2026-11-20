@@ -3020,3 +3020,8 @@ The regression passed PostgreSQL 16 in dedicated workflow 44794969322. Combined 
 - Corrected PR #948 by replacing the duplicate RC490 timestamp with RC493 `20261120280000`, fixing the missing `auth.uid()` test fixture function, using the fail-closed predicate, and adding missing-claim denial coverage. PR title/body and validator updated; exact-head CI pending.
 - Closed PR #947 as superseded by #946 because its nine finance/payment targets are included in #946's 15-table RC489 scope. No branch history deleted.
 - Updated audit and `TODO_PRODUCTION.md`. No Production mutation. Keep release BLOCKED / NOT CERTIFIED until exact-head CI, collision/uniqueness checks, chronological replay and backup/restore gates pass.
+
+
+## Latest continuation — 2026-11-20, Pass 1500–1510
+
+Current security work is in open PRs #946 and #948. RC488–RC492 now use explicit `is_anonymous=false` (missing/NULL denied) with missing-claim regression cases and strengthened validators. PR #948 was repaired: auth.uid fixture added, missing-claim coverage added, CRM/notification migration moved to unique RC493 version 20261120280000. Duplicate finance-only PR #947 was closed because its table set is a subset of RC489's 15 tables. Exact-head checks were still queued/pending at last inspection. No PR merged and no Production mutations/deployment occurred. Next: review exact-head CI; consolidate the migration chain; rehearse complete replay on disposable PostgreSQL 17; verify backup/restore, Edge parity and security/payment/privacy E2E; then seek release approval.
