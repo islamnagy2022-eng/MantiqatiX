@@ -132,3 +132,95 @@ The source release gate previously required many payment RPCs by generic functio
 The 2026-11-20 read-only physical evidence marks the exact legacy-compatible standard success RPC and the two provider-order columns present; it marks the other 11 required RPC/column objects absent. The manifest now records each observation explicitly as PASS or BLOCKED. The validator's complete synthetic fixture includes all 14 contracts and negative fixtures verify that missing claim RPCs/checkout columns block certification.
 
 This is **source-side release-gate hardening only**. It does not create missing objects, apply RC435/RC439, or change Production. The exact PR-head CI/replay results are pending until the focused follow-up PR is opened and executed.
+
+## 8. Additional platform-root helper and advisor recheck — 2026-11-20
+
+A separate read-only catalog review confirms the second global-admin helper is still unresolved in Production; it is distinct from the generic `is_platform_admin()` issue covered by RC484.
+
+### Shared `mnty_can_platform_admin()` boundary
+
+- Live `public.mnty_can_platform_admin()` remains `SECURITY DEFINER`, `search_path=public, pg_temp`, and delegates to `public.mnty_can('admin', NULL, NULL, NULL)`. It does not use the protected `private.platform_admins` registry directly.
+- Five live RLS policies across three tables depend on this helper: the ALL policy on `digital_pages`, SELECT/UPDATE on `mantigo_financial_config`, and SELECT/UPDATE on `mantigo_rate_limit_config`.
+- Four additional live SECURITY DEFINER functions call the helper directly: `admin_create_global_ad`, `fulfill_digital_page_publish`, `review_mantigo_captain_application`, and `set_mantigo_financial_config_backend`. Their live search_path settings are not uniformly empty.
+- The four MantiGO global RPCs remain a separate source/production drift set: `get_mantigo_admin_dashboard_backend`, `get_mantigo_admin_financial_report_backend`, `settle_mantigo_captain_backend`, and `expire_stale_mantigo_rides_backend`. The registry-backed RC464/RC471 source remediation exists, but the corresponding Production migration identifiers are not recorded.
+- Issue #852 tracks this shared-helper/global-RPC remediation. No helper or RPC was invoked; no Production mutation occurred.
+
+### Fresh Supabase Security Advisor
+
+Observed at 2026-11-20 00:08:56 UTC. The Advisor returned **94 lint entries**: 1 INFO and 93 WARN.
+
+| Finding group | Count | Level | Interpretation |
+|---|---:|---|---|
+| RLS enabled with no policies | 9 | INFO | Private-by-default tables may be intentional; verify access paths and grants individually. |
+| Anon can execute SECURITY DEFINER | 1 | WARN | The known function is `public.get_mnty_targeted_advertisements`, a public ad-discovery RPC; retain only with its bounded/read-only output contract and empty search_path checks. |
+| Authenticated can execute SECURITY DEFINER | 65 | WARN | This is an inventory requiring per-function identity, tenant scope, search_path and ACL review; it is not 65 confirmed vulnerabilities. |
+| Anonymous-role policy warnings | 90 | WARN | These are Advisor findings, not proof of 90 exposed tables or exploitable disclosures. |
+| Leaked-password protection disabled | 1 | WARN | Configuration still requires an authorized Auth Dashboard change and post-change evidence; the connected tools do not expose that setting's write operation. |
+
+A separate read-only `pg_policies` inventory found **21 policies across 21 tables** whose role lists include `anon` or `public`. This count is deliberately reported separately from the 90 Advisor warnings. No blanket policy revocation is justified: review each policy's command, predicate, JWT anonymity check, table sensitivity and public product contract.
+
+### Fresh Supabase Performance Advisor
+
+Observed on 2026-11-20:
+
+| Finding group | Count | Level |
+|---|---:|---|
+| Unindexed foreign keys | 132 | INFO |
+| Auth/RLS initialization-plan findings | 375 | WARN |
+| Unused indexes | 70 | INFO |
+| Multiple permissive policies | 28 | WARN |
+
+These are optimization candidates, not an instruction to create/drop indexes or rewrite policies in Production. Rank by query frequency, table growth, execution plans, existing index coverage and regression tests in an isolated environment.
+
+**Disposition:** both platform-root helper families remain **BLOCKED / NOT DEPLOYED**. Source-level RC484 and RC464/RC471 tests do not change the live catalog. Leaked-password protection remains unverified/disabled until an authorized owner-side configuration change is evidenced. No Production DDL/DML, migration, RLS, GRANT, Auth, Storage, Edge, payment, wallet, settlement or journal write was performed.
+
+## 9. Provider-profile anonymous base-table read — RC479 remains unapplied
+
+A separate read-only ACL/policy check found a remaining minimum-privilege privacy gap on `public.marketing_provider_profiles`:
+
+- `anon` has effective table-level SELECT. The `Public can view active marketing providers` policy filters rows to `status='ACTIVE'`, but RLS does not restrict which columns an anon caller can select.
+- Effective anon column privileges include `owner_user_id` and `settings`; these are not part of the curated public response projection.
+- Read-only aggregates: 10 provider profiles total, all 10 ACTIVE; 4 active profiles have a non-null owner UUID. The audit counted only settings-key names and did not retrieve settings values or owner IDs.
+- Live `public-catalog` v8 and `public-catalog-directory` v18 provider queries both use explicit public field projections (`business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured`) and run with a server-side service-role client. The direct anon PostgREST grant is a separate path outside those Edge projections.
+- The `mantiqatix-profile-media` bucket is configured public for profile media; its storage-object policy is separate from the provider profile base-table grant and is not modified by RC479.
+- Current main already contains the single-purpose RC479 migration, `REVOKE SELECT ON TABLE public.marketing_provider_profiles FROM anon;`, plus a static validator and disposable PostgreSQL integration. The tests require anon direct read to fail while authenticated owner/admin reads and service_role Edge reads continue to work.
+- RC479 remains one of the exact 64 required migration IDs; the live Production ledger records 0/64. Therefore the source fix is present, but the live anonymous table grant is still in effect.
+- Opened P1 issue [#882](https://github.com/islamnagy2022-eng/MantiqaTix/issues/882) for post-release proof.
+
+No provider identifiers, names, contacts or settings values were selected. There is no evidence in this check that data was exploited or extracted. Do not hot-edit Production grants; apply RC479 in the approved chronological release after the encrypted backup/restore/rollback gate, then recheck anon denial and authenticated/service_role compatibility.
+
+## 10. SECURITY DEFINER execution-surface triage — 2026-11-20
+
+A fresh read-only catalog query counted 149 SECURITY DEFINER functions in `public`. Effective EXECUTE inventory:
+- 65 are executable by `authenticated`;
+- 1 is executable by `anon` (`get_mnty_targeted_advertisements`);
+- 34 are executable by `service_role`.
+
+These sets overlap. Of the 65 authenticated-executable functions, 18 use an empty `search_path`; 47 have a non-empty or unset search_path. A non-empty path is a hardening/review signal, not by itself proof of exploitability. Each function needs its exact identity source, tenant/business/branch scope, delegated checks, exposed result shape and role ACL reviewed.
+
+Six authenticated-executable functions in the catalog do not contain a direct `auth.uid()` call. Their definitions/delegations were inspected:
+
+| Function | Observed authorization/delegation | Result |
+|---|---|---|
+| `mnty_business_employee_list` | Delegates to `mnty_business_employee_list_scoped`, which requires `auth.uid()`, rejects anonymous sessions, validates tenant/business/branch relationships, and checks active scoped membership or explicit employee-view/manage permission. | Delegated identity/scope guard present. |
+| `mnty_can` | Delegates to `mnty_active_membership` for the current actor and supplied scope. | Shared identity helper; the null-scope admin use remains separately tracked under #852. |
+| `mnty_can_platform_admin` | Delegates to `mnty_can('admin',NULL,NULL,NULL)`. | P0 global-root scope defect; see #852 and section 8 above. |
+| `preview_commission_backend` | Live Production still delegates to `assert_financial_membership(p_tenant_id)`; that helper checks `auth.uid()`, active tenant membership and an allowed role, but does not match `p_business_id` or branch. Source migration RC467 replaces this with exact business/tenant-wide finance scoping and rejects branch-scoped actors from the branch-less RPC. | **Latent cross-business preview authorization gap in Production.** The live predicate permits tenant ADMIN/SUPER_ADMIN/OWNER/BUSINESS_OWNER/finance roles without matching the requested business. Current snapshot: 14 eligible membership rows across 5 users in the one tenant with multiple active businesses (11 business/branch-scoped, 3 tenant-wide); `commission_rules` currently has 0 rows, so no rule data disclosure was observed. RC467 source/test exists but is not recorded in the live ledger; it also requires RC464's canonical platform-admin helper first. |
+| `upsert_catalog_item_and_price_backend` | Delegates to the item and price RPCs, each of which checks `auth.uid()`, active tenant membership, business/branch relationships and allowed write roles. | Delegated actor/business/branch checks present; callers' search_path and grant contracts still require continued review. |
+| `get_mnty_targeted_advertisements` | Read-only public discovery of active, approved, date-valid ads; returns advertisement creative/target fields and bounded geographic match data. Empty search_path; intentional anon EXECUTE. | Public surface retained only with its bounded/read-only contract; continue output/targeting review. |
+
+The aggregate membership query found zero explicit ACCOUNTANT/FINANCE/FINANCE_MANAGER memberships, but it did find 14 rows in roles accepted by the live helper (ADMIN 1, OWNER 3, SUPER_ADMIN 1, BUSINESS_OWNER 9) across 5 distinct users in the one tenant with multiple ACTIVE businesses. Eleven rows are business/branch scoped (including two branch-scoped rows) and three are tenant-wide. The live `commission_rules` table has 0 rows; therefore this is a latent authorization gap, not evidence of actual commission-rule disclosure. No business/tenant identifiers, user identifiers, personal values or commission rule values were selected.
+
+
+ 
+### RC467 source correction and Production dependency
+
+Current main already contains `supabase/migrations/20261115010000_rc467_commission_scope_hardening.sql`, `supabase/tests/rc467_commission_scope_integration.sql`, and `scripts/validate-rc467-commission-scope.mjs`. RC467:
+- restricts commission draft administration, draft preview and commission resolution to the canonical platform-root helper;
+- retains legacy operational preview only for tenant-wide finance or exact-business finance memberships;
+- explicitly rejects branch-scoped finance actors because the operational preview RPC has no `branch_id` input;
+- tests cross-business finance preview denial, branch-finance denial, anonymous denial, and valid tenant/business finance paths.
+
+RC467's preflight requires the canonical registry-backed, empty-search_path `mnty_can_platform_admin()` introduced by RC464. Production still has the null-scope helper and RC464/RC467 exact migration IDs are absent from the live ledger. The source fix is therefore **merged/source-only, not live**. Do not apply RC467 independently or before RC464 in the coordinated release. The mainline disposable test and validator are included in the forward migration replay workflow.
+
+**Disposition:** this was a targeted delegation triage, not a certification of all 149 function bodies. Keep the shared global-admin helper defect open. Prioritize further review of authenticated SECURITY DEFINER functions with non-empty search_path and any newly introduced business-specific finance membership model. No function was invoked, no grants were changed, and no Production mutation occurred.

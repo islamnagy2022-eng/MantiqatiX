@@ -3377,3 +3377,24 @@ Evidence: Issue #422 comment 7018060567 and live Security Advisor/pg_policies/AC
 - Production mutation: NONE. No DDL/DML, migration, RLS, GRANT, Auth, Storage, Edge, payment, wallet, settlement or user-data write. Full platform remains BLOCKED / NOT CERTIFIED.
 
 **Next:** operator-owned off-site encrypted DB/Storage backup, Vault recovery and independent PostgreSQL 17 restore/rollback with measured RPO/RTO; then one ordered schema/Edge release, sandbox tests and live verification.
+
+## 2026-11-20 — Pass 1230–1239 — shared platform-root helper and Advisor recheck
+
+- Reconfirmed the distinct live `public.mnty_can_platform_admin()` gap: SECURITY DEFINER, `search_path=public, pg_temp`, and null-scope delegation to `public.mnty_can('admin',NULL,NULL,NULL)`; it is not directly backed by `private.platform_admins`.
+- Live blast radius: 5 RLS policies across 3 tables and 4 direct SECURITY DEFINER callers. Four global MantiGO admin/report/settlement/expiration RPCs remain a separate RC471 source/Production mismatch. Issue #852 remains open.
+- Fresh Security Advisor snapshot (2026-11-20 00:08:56 UTC): 94 entries (1 INFO, 93 WARN): 9 RLS/no-policy, 1 anon-executable SECURITY DEFINER, 65 authenticated-executable SECURITY DEFINER, 90 anonymous-role policy lints, leaked-password protection disabled. These are per-object review findings, not proof of 90 exploitable exposures.
+- Fresh Performance Advisor: 132 unindexed foreign keys, 375 RLS initplan, 70 unused-index, 28 multiple-permissive-policy findings. Record as optimization backlog; no production index/policy mutation.
+- A separate current catalog query found 21 policies across 21 tables with anon/public role entries. No blanket revocation performed.
+- Supplemented `docs/audits/PASS_1220_1229_EDGE_PAYMENT_PRODUCTION_PARITY_20261120.md` and the release manifest with helper/caller/policy and Advisor evidence.
+- Earlier duplicate documentation PR #880 was closed as superseded by main commit `1ccee7920d9e798e4c709e8cb403b4bf605ade5f`, which already contained the main Pass 1220–1229 parity checkpoint.
+- No Production SQL writes, migrations, helper/RPC invocation, Auth/RLS/GRANT/Storage/Edge changes, payment, wallet, settlement or journal operation occurred. Full platform remains **BLOCKED / NOT CERTIFIED**.
+
+- Additional P1 recheck on 2026-11-20: `anon` still has table-level SELECT on `public.marketing_provider_profiles`; the ACTIVE-only RLS policy does not restrict columns, and effective anon privileges include `owner_user_id` and `settings`. Aggregate-only snapshot: 10 ACTIVE profiles; 4 with owner UUID; no owner IDs or settings values selected.
+- Current live `public-catalog` v8 and `public-catalog-directory` v18 use explicit provider response projections via service_role, so the direct anon grant is a separate PostgREST path, not the curated Edge output.
+- Current main already contains RC479 (`REVOKE SELECT ... FROM anon`) plus its source validator and disposable PostgreSQL compatibility tests. Production still has anon SELECT because RC479 is not recorded in the 64-ID ledger.
+- Opened P1 issue #882. No Production grant/migration, provider record, Edge, Auth or user-data mutation occurred. Evidence appended to Pass 1220 audit and release manifest.
+
+- Targeted SECURITY DEFINER ACL triage on 2026-11-20: 149 public SECURITY DEFINER functions; 65 authenticated-executable, 1 anon-executable and 34 service_role-executable (overlapping sets). Of the 65 authenticated functions, 18 use empty search_path and 47 have non-empty/unset paths. These are review counts, not vulnerability counts.
+- Read six authenticated-executable functions without direct `auth.uid()` and inspected their delegates. Five have explicit delegated identity/scope or are an intentional bounded public read; `mnty_can_platform_admin()` remains the known null-scope P0 helper tracked under #852. The live `preview_commission_backend` still uses a tenant-only assertion without binding the membership to `p_business_id`; in the single active multi-business tenant, 14 allowed-role membership rows across 5 users can satisfy that check (9 business-wide, 2 branch-scoped, 3 tenant-wide), while `commission_rules` is empty. Main already contains RC467 exact-business/tenant-wide scope and cross-business/branch-negative tests; Production has not applied RC464/RC467. Opened P1 issue #884; no commission rule values were read.
+- Updated the Pass 1220 audit and reconciliation manifest with the triage, without invoking any RPC or changing Production.
+- RC467 follow-up: reviewed the live `preview_commission_backend` and exact RC467 source/test. The live tenant-only helper is a latent cross-business gap; RC467 source fix exists and depends on RC464 first. Current eligible membership snapshot is 14 rows / 5 users in the one multi-business tenant; `commission_rules` remains empty. Opened P1 issue #884 and updated audit/manifest; no RPC invoked.
