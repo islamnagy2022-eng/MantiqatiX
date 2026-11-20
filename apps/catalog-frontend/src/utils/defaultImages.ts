@@ -89,7 +89,7 @@ export function resolveDefaultImage(input: DefaultImageInput = {}): string {
   const art = inferArt(input);
   // The platform's own official showcase has a dedicated master identity.
   // Never fall back to an expired social-CDN thumbnail or a generic marketing icon.
-  const isMantiqatiXBrand = /^mantiqatix$/i.test(String(input.name || '').replace(/\\s+/g, '').trim());
+  const isMantiqatiXBrand = /^mantiqatix$/i.test(String(input.name || '').replace(/\s+/g, '').trim());
   if (isMantiqatiXBrand && input.kind === 'activity') return asset('mantiqatix-brand-logo.svg');
   if (isMantiqatiXBrand && input.kind === 'cover') return asset('mantiqatix-brand-cover.svg');
   if (input.kind === 'activity') return asset(ACTIVITY_ART[art]);
