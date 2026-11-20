@@ -3691,3 +3691,14 @@ Evidence: `docs/audits/PASS_1490_1499_ANONYMOUS_AUTH_AND_PLATFORM_ROOT_PARITY_20
 - [ ] 1510 — Production release approval and live post-deploy verification. Do not deploy before all prerequisites pass.
 
 **Release status: BLOCKED / NOT CERTIFIED.** Changes above are source/tests and PR metadata only. No Production database, RLS, GRANT, Auth, Storage, Edge, payment or customer data was modified.
+
+
+## Pass 1511–1515 — CI evidence refresh — 2026-11-20
+
+- [x] 1511 — PR #948 RC493 PostgreSQL private-read integration passed on exact head `5a475124cb6076f21940a64334ea94f5751f6395`.
+- [x] 1512 — PR #948 static validation passed on exact head.
+- [x] 1513 — PR #948 migration-version validation passed.
+- [x] 1514 — PR #948 cross-PR migration-collision guard, migration-history immutability and forward-chain replay passed.
+- [x] 1515 — PR #948 had 16 successful checks, 2 intentionally skipped deploy/public-only checks, 0 failures, and 12 queued checks at the last inspection. PR #946 exact head had 29 queued checks and 1 skipped; no failure reported at that inspection. Do not merge until required checks finish.
+
+**Release status remains BLOCKED / NOT CERTIFIED.** These are CI results on source branches; no Production release occurred.
