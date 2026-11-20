@@ -3436,3 +3436,19 @@ Evidence: `docs/audits/PASS_1350_1359_SECURITY_DEFINER_RLS_GRANTS_REVIEW_2026112
 - [ ] 1369 — Add disposable PostgreSQL preservation/idempotency tests and verify chronological replay before any release consideration.
 
 Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.md`; Issue #906. No Production rows read or mutated.
+
+
+## PASS 1370–1379 — Platform-admin helper authorization review — 2026-11-20
+
+- [x] 1370 — Enumerate the 65 authenticated-callable public SECURITY DEFINER functions and inspect their names/signatures in read-only catalog queries.
+- [x] 1371 — Inspect live `mnty_can_platform_admin()` and confirm it delegates to `mnty_can('admin', NULL, NULL, NULL)`.
+- [x] 1372 — Trace the helper through `mnty_can()` and `mnty_active_membership()`; confirm tenant OWNER/ADMIN role mapping can satisfy the global `admin` permission without the protected platform-admin registry.
+- [x] 1373 — Verify helper and caller EXECUTE privileges for authenticated; anon cannot execute the helper.
+- [x] 1374 — Identify four authenticated-callable SECURITY DEFINER callers: global ad creation, digital-page fulfillment, MantiGO captain review, and MantiGO financial configuration.
+- [x] 1375 — Inspect exact RC484 migration `20261119040000_rc484_registry_backed_is_platform_admin.sql`; confirm it updates `is_platform_admin()` only and does not reference `mnty_can_platform_admin()`.
+- [x] 1376 — Add the additional live finding and four callers to P0 Issue #867 (comment 7045989396).
+- [x] 1377 — Record evidence in `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`.
+- [ ] 1378 — Implement registry-backed helper correction and disposable PostgreSQL adversarial tests for tenant OWNER/ADMIN denial and registry-only platform-admin success.
+- [ ] 1379 — Keep Production blocked until both global-admin helpers, all dependent policies/callers, migration/Edge parity, backup/restore, and payment gates pass. No hot edit or blanket REVOKE.
+
+Evidence: audit file above; Issue #867 comment 7045989396. Read-only catalog/privilege inspection only; no function invocation or Production mutation.
