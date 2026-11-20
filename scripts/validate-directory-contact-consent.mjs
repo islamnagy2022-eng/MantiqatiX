@@ -173,6 +173,35 @@ const checks = [
   ["client action calls the authenticated directory Edge Function",
     client.includes("SET_PUBLIC_CONTACT_CONSENT") &&
     client.includes("setPublicDirectoryListingContactConsent")],
+  ["consent POST authenticates before dispatching any privileged action",
+    source.indexOf('service.auth.getUser(token)') >= 0 &&
+    source.indexOf('service.auth.getUser(token)') < source.indexOf('if (action === "SET_PUBLIC_CONTACT_CONSENT")')],
+  ["consent input rejects unknown scopes and non-boolean enabled values",
+    source.includes('new Set(["PHONE", "SECONDARY_PHONE", "ADDRESS", "PRECISE_LOCATION"])') &&
+    source.includes('typeof enabled !== "boolean"') &&
+    source.includes('INVALID_CONTACT_CONSENT')],
+  ["consent cannot be granted for an unclaimed or unpublished listing",
+    source.includes('listing.claim_status !== "CLAIMED"') &&
+    source.includes('(enabled && listing.listing_status !== "PUBLISHED")')],
+  ["owner authorization is bound to the authenticated user and exact claimed business",
+    source.includes('String(listing.claimed_user_id || "") === String(user.id)') &&
+    source.includes('.eq("business_id", listing.claimed_business_id)') &&
+    source.includes('.eq("user_id", user.id)') &&
+    source.includes('.eq("status", "ACTIVE")') &&
+    source.includes('.in("role", ["BUSINESS_OWNER", "OWNER"])')],
+  ["consent grant ignores caller-supplied actor identity and persists auth.uid-derived user.id",
+    source.includes("consented_by: user.id") &&
+    !/consented_by\\s*:\\s*body\\./.test(source) &&
+    !/consented_by\\s*:\\s*String\\(body\\./.test(source)],
+  ["repeated grants are idempotent and concurrent unique-index conflicts do not fail open",
+    source.includes('if (existing) return out(origin, { success: true, scope, enabled: true, unchanged: true })') &&
+    source.includes('if (insertError.code === "23505") return out(origin, { success: true, scope, enabled: true, unchanged: true })')],
+  ["revocation is owner-only, scope-bound, active-row-only and retains revocation attribution",
+    source.includes('.update({') &&
+    source.includes('revoked_by: user.id') &&
+    source.includes('revoked_at: new Date().toISOString()') &&
+    source.includes('revocation_reason: "OWNER_WITHDREW_CONSENT"') &&
+    source.includes('.eq("listing_id", listingId).eq("scope", scope).is("revoked_at", null)')],
 ];
 for (const [name, ok] of checks) {
   console.log((ok ? "PASS " : "FAIL ") + name);
