@@ -71,3 +71,42 @@ These are exact targeted contract tests and CI evidence, not proof that every on
 3. Prioritize the remaining sensitive financial/payment, medical, support, digital-page and self-service flows that have no matching anonymous-JWT test.
 4. Add tests only for uncovered command/table combinations, preserving public-read and tenant-local contracts.
 5. Keep Auth anonymous-sign-in configuration unverified; the available connector does not expose that setting.
+
+
+## Code-search coverage matrix — first pass over the 40-table queue
+
+A source search of current `main` was performed for each of the 40 table names. This is a source-discovery pass, not proof that every located test exercises the anonymous path.
+
+### Explicit anonymous-JWT tests located
+
+| Contract surface | Existing test | Anonymous assertion |
+|---|---|---|
+| Marketing provider services | `rc102_provider_services_integration.sql` | Anonymous Auth session cannot write a provider service |
+| Marketing campaign create | `rc453_marketing_campaign_integration.sql` | Anonymous Auth session cannot create a campaign |
+| Commission preview | `rc455_commission_preview_integration.sql` | Anonymous Auth session is rejected |
+| Orders read/history | `rc465_orders_read_scope_integration.sql` | Anonymous Auth session sees no order visibility/history |
+| Business/branch/inventory | `rc466_business_branch_scope_integration.sql` | Anonymous Auth session sees no business/branch/inventory rows |
+| Commission/finance scope | `rc467_commission_scope_integration.sql` | Anonymous Auth session is not a finance actor |
+| MantiGO open rides | `rc478_mantigo_open_ride_forward_privacy_integration.sql` | Anonymous Auth session is rejected on open-ride flow |
+
+RC465 and RC466 PostgreSQL CI runs are independently confirmed green (44048037235 and 44048037214). The other test files were inspected for explicit anonymous assertions, but their latest workflow run status was not refreshed in this pass.
+
+### Related tests found, but no explicit anonymous-JWT assertion located in the searched test source
+
+- Digital-page lifecycle/payment: `rc431`, `rc458`, `rc468`, `rc480` — relevant contract tests exist, but the source search did not find a direct anonymous JWT scenario for all direct-table commands.
+- Financial journal/ledger: `rc449a`, `rc450` — finance contract tests exist; no direct anonymous-JWT assertion was found in those test files during this search.
+- Payment intents/provider events/reconciliation: `rc426`, `rc428`, `rc430`, `rc474` — provider/payment tests exist; no explicit anonymous-JWT test was found by this search.
+- MantiGO: `rc446`, `rc449`, `rc476`, `rc478` — open-ride and platform-admin tests exist; direct anonymous tests for the financial ledger/config policies were not located.
+- Marketing CRM: `rc444`, `rc452` — tenant/CRM scope tests exist; no direct anonymous JWT test was found for marketing projects/leads as a full table-command matrix.
+- SMM: `rc456` — service-role ACL boundary exists; the integration test focuses direct grants, not anonymous Auth JWT behavior.
+- Storage: RC484 overlay fixture preserves the live maintenance-provider read policy; it is not a complete anonymous object-read/write/delete adversarial suite.
+
+### High-priority table-command gaps to test next
+
+Based on policy sensitivity and the source search, prioritize:
+1. Financial/payment: `payment_events`, `payment_financial_reconciliations`, `payment_intents`, `payment_provider_events`, `refund_transactions`, `settlement_attempts`, `settlement_transactions`, `wallet_accounts`, `wallet_transactions`, `general_ledger`, `journal_entries`, `journal_entry_lines`, `mantigo_financial_ledger`.
+2. Medical/support/private communications: `medical_appointments`, `support_tickets`, `ticket_messages`, `notifications`, `push_subscriptions`.
+3. Digital-page and commerce: `digital_page_orders`, `digital_page_sections`, `digital_page_products`.
+4. Provider/marketing and media: `marketing_projects`, `marketing_provider_profiles`, `platform_brand_assets`, `storage.objects`.
+
+Do not treat this list as proof of exposure. Some tables have no direct client grants or require tenant membership; those grant and policy conditions must be part of each test. No direct Production access test was attempted.
