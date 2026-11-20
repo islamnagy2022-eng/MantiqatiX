@@ -3593,6 +3593,6 @@ Evidence: audit file; Issues #867, #924. No Production mutation.
 - [x] 1466 — Compare R7 claims with actual inspected source and classify findings without assuming an unverified key is valid or exposed in a deployed bundle.
 - [x] 1467 — Record non-destructive adoption decision: R7 reference-only; no wholesale copy or production replacement.
 - [x] 1468 — Record audit evidence and update continuity/TODO/session log.
-- [ ] 1469 — For any R7 feature selected for adoption, map its UI/API/DB contracts to current main and add isolated regression tests before porting. Keep P0 auth and dual-authority patterns excluded.
+- [x] 1469 — No R7 feature selected for direct adoption in this pass; confirm the exact archive SHA matches the prior forensic review and record its P0 unauthenticated token-mint/state-mutation, secret-fallback, admin-bypass and unguarded-route findings. Any future feature port remains gated by current-main UI/API/DB/auth contract mapping and isolated tests.
 
 Evidence: `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md`; uploaded `bizcatalog-manager (11).zip` and `الامر-التقني.txt`. No production mutation or deployment.
