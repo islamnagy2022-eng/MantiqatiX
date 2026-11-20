@@ -15,6 +15,10 @@ export interface DefaultImageInput {
   kind?: DefaultImageKind;
 }
 
+export function isMantiqatiXBrandName(name?: string | null): boolean {
+  return /^mantiqatix$/i.test(String(name || '').replace(/\s+/g, '').trim());
+}
+
 const asset = (name: string): string => {
   const base = import.meta.env.BASE_URL || '/';
   return `${base.endsWith('/') ? base : `${base}/`}${name}`;
