@@ -76,9 +76,10 @@ const required = [
   "20261120220000_rc487_remove_smm_first_user_admin_bootstrap.sql",
   "20261120230000_rc488_storage_anonymous_auth_write_guard.sql",
   "20261120240000_rc489_financial_anonymous_auth_read_guard.sql",
-  "20261120250000_rc490_medical_anonymous_auth_read_guard.sql"
+  "20261120250000_rc490_medical_anonymous_auth_read_guard.sql",
+  "20261120260000_rc491_support_anonymous_auth_boundary.sql"
 ];
-assert.equal(required.length, 70, "release gate must track all distinct required post-RC424 migration effects, including RC464B and RC476–RC490");
+assert.equal(required.length, 71, "release gate must track all distinct required post-RC424 migration effects, including RC464B and RC476–RC491");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");
