@@ -1,4 +1,13 @@
 -- Disposable PostgreSQL fixture for RC479. Synthetic rows only.
+CREATE SCHEMA auth;
+CREATE OR REPLACE FUNCTION auth.jwt()
+RETURNS jsonb LANGUAGE sql STABLE AS $function$
+  SELECT coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb
+$function$;
+CREATE OR REPLACE FUNCTION auth.uid()
+RETURNS uuid LANGUAGE sql STABLE AS $function$
+  SELECT nullif(auth.jwt()->>'sub', '')::uuid
+$function$;
 CREATE ROLE anon NOLOGIN;
 CREATE ROLE authenticated NOLOGIN;
 CREATE ROLE service_role NOLOGIN BYPASSRLS;
@@ -22,4 +31,18 @@ CREATE POLICY "Public can view active marketing providers"
   USING (status = 'ACTIVE');
 
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION auth.jwt() TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated;
+CREATE POLICY "Owners manage their marketing provider profile"
+  ON public.marketing_provider_profiles FOR ALL TO authenticated
+  USING (
+    COALESCE((auth.jwt() ->> 'is_anonymous'), 'false') <> 'true'
+    AND auth.uid() = owner_user_id
+  )
+  WITH CHECK (
+    COALESCE((auth.jwt() ->> 'is_anonymous'), 'false') <> 'true'
+    AND auth.uid() = owner_user_id
+  );
 GRANT SELECT ON TABLE public.marketing_provider_profiles TO anon, authenticated, service_role;
+GRANT UPDATE ON TABLE public.marketing_provider_profiles TO authenticated;
