@@ -3613,3 +3613,13 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Explicit anonymous-JWT assertions found in RC102, RC453, RC455, RC465, RC466, RC467 and RC478. RC465/RC466 CI pass verified.
 - Related test suites exist for digital-page/payment, finance journal, MantiGO, CRM, SMM ACL and Storage overlay but do not all contain explicit anonymous-JWT cases.
 - Remaining high-priority command gaps are listed in the Pass 1456 audit; no live anon probes or Production changes.
+
+
+## 2026-11-20 — Pass 1470–1479 — SMM bootstrap trigger review
+
+- Inspected live Auth user triggers read-only. Customer membership trigger returns early for anonymous users; SMM bootstrap trigger does not.
+- Confirmed `smm_bootstrap_first_admin()` inserts the first Auth user into `smm_admins` when empty, with no `NEW.is_anonymous` or allowlisted bootstrap check; function is postgres-owned SECURITY DEFINER with `search_path=public`.
+- Confirmed current `smm_admins` has one row via aggregate count only; no identity selected. RLS enabled, FORCE RLS disabled, no direct SELECT grants for anon/authenticated/service_role.
+- SMM gateway remains deferred and rejects anonymous sessions, but first-user-wins bootstrap is a dormant privilege-escalation path if the table is emptied.
+- Opened P1 #933. No trigger/function invoked, no user identity/data selected, no Production mutation.
+- Next: forward-only trusted bootstrap replacement and disposable PostgreSQL tests. Evidence: `docs/audits/PASS_1470_1479_SMM_FIRST_USER_BOOTSTRAP_REVIEW_20261120.md`.
