@@ -1,3 +1,5 @@
+import test from "node:test";
+import assert from "node:assert/strict";
 import {
   isPlatformAdminMembershipCandidate,
   resolveDirectoryPlatformAdmin,
@@ -18,20 +20,20 @@ const tenantAdmin = {
   permissions: { scope: "PLATFORM", full_control: true },
 };
 
-Deno.test("registry-backed directory admin accepts only a candidate confirmed by the registry", () => {
-  if (!isPlatformAdminMembershipCandidate(registeredCandidate)) throw new Error("candidate rejected");
-  if (!resolveDirectoryPlatformAdmin([registeredCandidate], true, null)) throw new Error("registry-confirmed admin rejected");
+test("registry-backed directory admin accepts only a candidate confirmed by the registry", () => {
+  assert.equal(isPlatformAdminMembershipCandidate(registeredCandidate), true);
+  assert.equal(resolveDirectoryPlatformAdmin([registeredCandidate], true, null), true);
 });
 
-Deno.test("legacy tenant SUPER_ADMIN membership cannot grant platform-root authority", () => {
-  if (isPlatformAdminMembershipCandidate(tenantAdmin)) throw new Error("tenant admin treated as platform candidate");
-  if (resolveDirectoryPlatformAdmin([tenantAdmin], true, null)) throw new Error("tenant admin granted platform access");
+test("legacy tenant SUPER_ADMIN membership cannot grant platform-root authority", () => {
+  assert.equal(isPlatformAdminMembershipCandidate(tenantAdmin), false);
+  assert.equal(resolveDirectoryPlatformAdmin([tenantAdmin], true, null), false);
 });
 
-Deno.test("registry false, RPC errors, malformed values, and inactive membership fail closed", () => {
-  if (resolveDirectoryPlatformAdmin([registeredCandidate], false, null)) throw new Error("unregistered candidate accepted");
-  if (resolveDirectoryPlatformAdmin([registeredCandidate], true, { code: "RPC_FAILED" })) throw new Error("RPC error did not fail closed");
-  if (resolveDirectoryPlatformAdmin([registeredCandidate], "true", null)) throw new Error("non-boolean registry result accepted");
-  if (resolveDirectoryPlatformAdmin([{ ...registeredCandidate, status: "INACTIVE" }], true, null)) throw new Error("inactive membership accepted");
-  if (resolveDirectoryPlatformAdmin([], true, null)) throw new Error("registry without required platform membership accepted");
+test("registry false, RPC errors, malformed values, and inactive membership fail closed", () => {
+  assert.equal(resolveDirectoryPlatformAdmin([registeredCandidate], false, null), false);
+  assert.equal(resolveDirectoryPlatformAdmin([registeredCandidate], true, { code: "RPC_FAILED" }), false);
+  assert.equal(resolveDirectoryPlatformAdmin([registeredCandidate], "true", null), false);
+  assert.equal(resolveDirectoryPlatformAdmin([{ ...registeredCandidate, status: "INACTIVE" }], true, null), false);
+  assert.equal(resolveDirectoryPlatformAdmin([], true, null), false);
 });
