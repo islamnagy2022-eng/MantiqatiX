@@ -1,3 +1,19 @@
+# Latest execution checkpoint — 2026-11-20 — Pass 1310–1319
+
+**Current main:** `ef152fbb351db6a52a64c4913140394a9c29eca7`  
+**Full platform gate:** **BLOCKED / NOT CERTIFIED**  
+**Production mutation policy:** remain read-only until encrypted backup, independent restore, migration, Edge, privacy, authorization and payment gates pass.
+
+- PR #899 merged canonical real-path checks into the off-site backup verifier.
+- Exact backup workflow 44761709639: **14/14 PASS**. Symlinked manifest and recovery identity regression cases now execute the verifier and are rejected.
+- Exact-head Module Professionalization, Backend-only Module Boundary, RC425 atomicity, MantiGO privacy and Pages/V6 validation workflows passed; Pages deploy skipped for PR.
+- No Production mutation. No real backup or restore has been performed by this work.
+- Evidence: `docs/audits/PASS_1310_1319_BACKUP_PATH_HARDENING_20261120.md`.
+
+**Next:** operator-run encrypted DB + Storage export, off-site retrieval, Vault recovery and independent PostgreSQL 17 restore/rollback with measured RPO/RTO. Then reconcile and rehearse the ordered migration and complete Edge bundle before any Production release.
+
+---
+
 # Latest execution checkpoint — 2026-11-20 — Pass 1300–1309
 
 **Current main observed:** `a009bc83507fe0ffc0f6d8c599f924517f3d0193`  

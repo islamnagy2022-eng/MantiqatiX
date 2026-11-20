@@ -3406,3 +3406,16 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Full platform remains BLOCKED / NOT CERTIFIED. The next hard dependency is operator-owned encrypted DB + Storage backup, Vault recovery and isolated PostgreSQL 17 restore/rollback with measured RPO/RTO.
 - Evidence: `docs/audits/PASS_1300_1309_POST_MERGE_PRODUCTION_RECHECK_20261120.md`.
 
+
+
+## 2026-11-20 — Pass 1310–1319 — backup verifier canonical path hardening
+
+- Added canonical real-path enforcement for the repository root, manifest directory, artifact files and recovery identity.
+- Added two symlink-parent regression tests and corrected their invocation to execute the verifier script with the manifest argument.
+- Exact backup verifier workflow run 44761709639: 14/14 PASS, zero failures and zero skips.
+- Exact-head Module Professionalization (44761709703), Backend-only Module Boundary (44761709863), RC425 atomicity (44761709778), MantiGO privacy (44761709645) and Pages/V6 validation (44761709664) all passed; actual deploy was skipped for the PR as expected.
+- Merged PR #899 at `ef152fbb351db6a52a64c4913140394a9c29eca7`.
+- No Production mutation, backup export, Vault recovery, restore rehearsal, payment or customer-data access occurred.
+- Full platform remains BLOCKED / NOT CERTIFIED pending operator-controlled encrypted backup/restore, measured RPO/RTO, migration reconciliation and coordinated DB/Edge release.
+- Evidence: `docs/audits/PASS_1310_1319_BACKUP_PATH_HARDENING_20261120.md`.
+
