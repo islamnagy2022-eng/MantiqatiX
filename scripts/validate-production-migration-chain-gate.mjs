@@ -126,7 +126,7 @@ const rc486Validator = fs.readFileSync("scripts/validate-rc486-catalog-price-ver
 assert.ok(forwardReplay.includes("node scripts/validate-rc486-catalog-price-version-serialization.mjs"), "forward replay must validate RC486 price serialization");
 assert.ok(forwardReplay.includes("supabase/tests/rc486_catalog_price_version_serialization_integration.sql"), "forward replay must run the RC486 post-migration contract");
 assert.match(rc486Validator, /pg_catalog\\.pg_advisory_xact_lock/);
-assert.match(rc486Validator, /lock must be acquired before reading MAX\\(version\\)/i);
+assert.ok(rc486Validator.includes("the lock must be acquired before reading MAX(version)"), "RC486 validator must assert lock-before-MAX ordering");
 const forwardReplayLines = forwardReplay.split(/\r?\n/);
 assert.ok(
   forwardReplayLines.some((line, index) => line === "  push:" && forwardReplayLines[index + 1] === "    branches: [main]"),
