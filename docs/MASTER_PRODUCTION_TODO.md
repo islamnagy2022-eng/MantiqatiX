@@ -4467,7 +4467,7 @@ Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.m
 
 - [x] Inspect live `mnty_can_platform_admin()`, `mnty_can()` and `mnty_active_membership()`; confirm unscoped tenant OWNER/ADMIN membership can satisfy global `admin`.
 - [x] Identify four authenticated SECURITY DEFINER callers: `admin_create_global_ad`, `fulfill_digital_page_publish`, `review_mantigo_captain_application`, `set_mantigo_financial_config_backend`.
-- [x] Add finding and caller list to P0 Issue #867; record evidence in Pass 1370–1379 audit.
+- [x] Inspect RC484 source migration and confirm it does not update `mnty_can_platform_admin()`; add finding/callers to P0 Issue #867 and record evidence in Pass 1370–1379 audit.
 - [ ] Replace platform-root authorization with registry-backed authority while preserving tenant-local OWNER/ADMIN permissions.
 - [ ] Add adversarial PostgreSQL tests for tenant OWNER/ADMIN denial, registry-only platform admin success, and caller-specific business/payment invariants.
 - [ ] Reconcile the helper and all callers with RC484, dependent RLS policies, and the coordinated migration/Edge release. No hot edit or isolated Production deployment.
