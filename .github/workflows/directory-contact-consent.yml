@@ -10,6 +10,7 @@ on:
       - "apps/catalog-frontend/src/components/DirectoryListingsView.tsx"
       - "apps/catalog-frontend/src/lib/directoryListings.ts"
       - "scripts/validate-directory-contact-consent.mjs"
+      - "scripts/validate-directory-platform-admin-registry.mjs"
       - "supabase/config.toml"
       - "docs/release/production-migration-reconciliation.json"
       - "scripts/production/live-reconciliation-contract.mjs"
@@ -76,6 +77,10 @@ jobs:
           deno-version: v2.x
       - name: Test public directory projection and consent contract
         run: node scripts/validate-directory-contact-consent.mjs
+      - name: Verify registry-backed directory platform-admin boundary
+        run: node scripts/validate-directory-platform-admin-registry.mjs
+      - name: Test registry-backed directory platform-admin behavior
+        run: deno test supabase/functions/directory-listings/platform-admin-registry.test.mjs
       - name: Type-check directory Edge Function
         run: deno check --node-modules-dir=auto supabase/functions/directory-listings/index.ts
       - name: Build and type-check primary catalog frontend
