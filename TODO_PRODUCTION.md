@@ -3450,6 +3450,5 @@ Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.m
 - [x] 1377 — Update the fresh audit, continuity, and issue #867 to distinguish the existing source repair from the live Production deployment gap.
 - [x] 1378 — Reuse existing RC464/RC471 forward migrations and R7 adversarial tests; do not create a duplicate migration. Confirm CI and live reconciliation before release.
 - [ ] 1379 — Keep Production blocked until the coordinated migration/Edge release, backup/restore, payment, and post-deployment authorization verification gates pass.
-- [ ] 1379 — Keep Production blocked until both global-admin helpers, all dependent policies/callers, migration/Edge parity, backup/restore, and payment gates pass. No hot edit or blanket REVOKE.
 
 Evidence: audit file above; Issue #867 comment 7045989396. Read-only catalog/privilege inspection only; no function invocation or Production mutation.
