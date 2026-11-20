@@ -1,3 +1,16 @@
+## Latest execution checkpoint — Pass 1275–1284 — 2026-11-20 (production deploy closure)
+
+- Main commit `295f48789a3d943ba122f2216225b617c3d93290` deployed successfully. Deploy run `44677886002` completed with success; the production-origin Playwright suite returned `PRIMARY_CATALOG_BROWSER_E2E=PASS` across catalog, pagination, geographic search, owner/employee/branch permissions, responsive dashboard, accessibility, QR, GPS consent, storefront and subscriber portal checks.
+- Primary frontend run `44677886011` completed successfully, including build, TypeScript/contract gates, employee RBAC PostgreSQL tests and dashboard browser E2E. V6 desktop/mobile preview tests and root/legacy/preview route verification also passed.
+- The official MantiqatiX logo and cover source fix is deployed. The V6 fixture E2E and public asset checks do not claim that a real production customer profile was opened in a live browser.
+- Rechecked uploaded `bizcatalog-manager (11).zip`: SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, identical to the previously audited R7 reference archive. It continues to use localStorage for application business/customer/order/wallet/auth state and is not promoted over current main/Supabase. Preserve its Android wrapper; it is not a verified native release.
+- P0 issues #867 (platform-admin scope), #876 (directory contact consent), and #857 (coordinated payment/order/finance release) remain open. Migration reconciliation and real encrypted off-site DB/Storage backup, Vault recovery, PostgreSQL 17 restore, RPO/RTO and rollback evidence remain blockers. No Production database, Auth, RLS, GRANT, Storage, Edge, payment or customer-data mutation occurred.
+- Detailed evidence: `docs/audits/PASS_1275_1284_DEPLOYMENT_CLOSURE_20261120.md`.
+
+**Next:** continue source/CI-only P0 security remediation; keep payment Edge releases and all Production mutations gated until coordinated migration/function parity and owner-controlled backup/restore evidence are complete.
+
+---
+
 ## Latest execution checkpoint — Pass 1220–1229 — 2026-11-20 (Production Edge/payment parity recheck)
 
 - Main: `57862b714c0b049419204b6143b966c149682906`. PR #875 is merged; the read-only encrypted backup manifest/evidence verifier passed 12/12 CI tests. It validates operator-generated encrypted artifacts and restore evidence only; no real Production backup, off-site upload, Vault recovery or restore rehearsal has been performed.
