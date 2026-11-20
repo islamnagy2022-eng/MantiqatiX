@@ -117,3 +117,45 @@ Required release sequence remains:
 **Production changes:** NONE — no DDL/DML, migration, RLS, GRANT, Auth, Storage, Edge deployment, payment, wallet, settlement, or customer-data mutation.
 
 **Next executable work:** keep P0 issues #857 and #867 open; track the RC473 directory public-contact gap separately; continue schema/Edge compatibility analysis and test coverage on source branches, but do not deploy the seven mismatched functions independently.
+
+## 8. Additional platform-root helper and advisor recheck — 2026-11-20
+
+A separate read-only catalog review confirms the second global-admin helper is still unresolved in Production; it is distinct from the generic `is_platform_admin()` issue covered by RC484.
+
+### Shared `mnty_can_platform_admin()` boundary
+
+- Live `public.mnty_can_platform_admin()` remains `SECURITY DEFINER`, `search_path=public, pg_temp`, and delegates to `public.mnty_can('admin', NULL, NULL, NULL)`. It does not use the protected `private.platform_admins` registry directly.
+- Five live RLS policies across three tables depend on this helper: the ALL policy on `digital_pages`, SELECT/UPDATE on `mantigo_financial_config`, and SELECT/UPDATE on `mantigo_rate_limit_config`.
+- Four additional live SECURITY DEFINER functions call the helper directly: `admin_create_global_ad`, `fulfill_digital_page_publish`, `review_mantigo_captain_application`, and `set_mantigo_financial_config_backend`. Their live search_path settings are not uniformly empty.
+- The four MantiGO global RPCs remain a separate source/production drift set: `get_mantigo_admin_dashboard_backend`, `get_mantigo_admin_financial_report_backend`, `settle_mantigo_captain_backend`, and `expire_stale_mantigo_rides_backend`. The registry-backed RC464/RC471 source remediation exists, but the corresponding Production migration identifiers are not recorded.
+- Issue #852 tracks this shared-helper/global-RPC remediation. No helper or RPC was invoked; no Production mutation occurred.
+
+### Fresh Supabase Security Advisor
+
+Observed at 2026-11-20 00:08:56 UTC. The Advisor returned **94 lint entries**: 1 INFO and 93 WARN.
+
+| Finding group | Count | Level | Interpretation |
+|---|---:|---|---|
+| RLS enabled with no policies | 9 | INFO | Private-by-default tables may be intentional; verify access paths and grants individually. |
+| Anon can execute SECURITY DEFINER | 1 | WARN | The known function is `public.get_mnty_targeted_advertisements`, a public ad-discovery RPC; retain only with its bounded/read-only output contract and empty search_path checks. |
+| Authenticated can execute SECURITY DEFINER | 65 | WARN | This is an inventory requiring per-function identity, tenant scope, search_path and ACL review; it is not 65 confirmed vulnerabilities. |
+| Anonymous-role policy warnings | 90 | WARN | These are Advisor findings, not proof of 90 exposed tables or exploitable disclosures. |
+| Leaked-password protection disabled | 1 | WARN | Configuration still requires an authorized Auth Dashboard change and post-change evidence; the connected tools do not expose that setting's write operation. |
+
+A separate read-only `pg_policies` inventory found **21 policies across 21 tables** whose role lists include `anon` or `public`. This count is deliberately reported separately from the 90 Advisor warnings. No blanket policy revocation is justified: review each policy's command, predicate, JWT anonymity check, table sensitivity and public product contract.
+
+### Fresh Supabase Performance Advisor
+
+Observed on 2026-11-20:
+
+| Finding group | Count | Level |
+|---|---:|---|
+| Unindexed foreign keys | 132 | INFO |
+| Auth/RLS initialization-plan findings | 375 | WARN |
+| Unused indexes | 70 | INFO |
+| Multiple permissive policies | 28 | WARN |
+
+These are optimization candidates, not an instruction to create/drop indexes or rewrite policies in Production. Rank by query frequency, table growth, execution plans, existing index coverage and regression tests in an isolated environment.
+
+**Disposition:** both platform-root helper families remain **BLOCKED / NOT DEPLOYED**. Source-level RC484 and RC464/RC471 tests do not change the live catalog. Leaked-password protection remains unverified/disabled until an authorized owner-side configuration change is evidenced. No Production DDL/DML, migration, RLS, GRANT, Auth, Storage, Edge, payment, wallet, settlement or journal write was performed.
+
