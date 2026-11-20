@@ -3377,3 +3377,19 @@ Evidence: Issue #422 comment 7018060567 and live Security Advisor/pg_policies/AC
 - Production mutation: NONE. No DDL/DML, migration, RLS, GRANT, Auth, Storage, Edge, payment, wallet, settlement or user-data write. Full platform remains BLOCKED / NOT CERTIFIED.
 
 **Next:** operator-owned off-site encrypted DB/Storage backup, Vault recovery and independent PostgreSQL 17 restore/rollback with measured RPO/RTO; then one ordered schema/Edge release, sandbox tests and live verification.
+
+
+## 2026-11-20 — Pass 1190–1199 — RC484 exact-head validation and source merge
+
+- [x] 1190 — Rechecked the exact PR #870 head and merge state; PR merged to main at `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`.
+- [x] 1191 — Dedicated PostgreSQL 17 RC484 workflow run #16 passed; source validator reported 14/14 checks passed.
+- [x] 1192 — Isolated fixture + RC484 migration + adversarial tenant ADMIN/SUPER_ADMIN and registry-only platform-root tests completed successfully.
+- [x] 1193 — Production-checkpoint ordered migration replay run #2391 passed.
+- [x] 1194 — Migration version uniqueness, migration history immutability and cross-PR collision checks passed.
+- [x] 1195 — Pages workflow validation passed; actual deploy job was skipped by the production dependency gate. No deploy claim.
+- [x] 1196 — Re-read Production helper and registry metadata: helper remains SECURITY INVOKER/search_path=public; registry RLS enabled but FORCE RLS false; 57 policies/24 tables remain. RC484 is not applied.
+- [x] 1197 — Preserved source-vs-Production distinction and updated the master TODO, continuity handoff and P0 issue #867.
+- [x] 1198 — No Production writes or function invocations; no Edge/payment/wallet/settlement changes.
+- [x] 1199 — Full platform remains BLOCKED / NOT CERTIFIED pending 64-version live reconciliation, encrypted off-site backup, Storage/Vault recovery, independent restore/rollback, Edge parity and approved release.
+
+Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC484 workflow run #16, forward replay run #2391, migration uniqueness/history/collision runs, and read-only Production catalog queries.
