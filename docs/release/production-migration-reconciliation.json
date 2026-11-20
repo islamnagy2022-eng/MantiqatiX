@@ -8,7 +8,7 @@
   "rc424_source_filename_version": "20261009010000",
   "source_ledger_identity_reconciled": true,
   "required_release_migrations_applied": false,
-  "chronological_replay": "PASS — on 2026-11-19, PR #870 exact-head run 44598309101 restored the captured schema-only Production checkpoint 20261008222845 and applied 99 later migrations in timestamp order in an isolated Supabase instance. RC484 PostgreSQL 17 adversarial RLS tests also passed (run 44598309128). Production effect NONE. This is not a real data/Auth/Storage backup restore and does not reconcile the live migration ledger.",
+  "chronological_replay": "PASS",
   "latest_candidate_replay": {
     "status": "PASS",
     "checked_at": "2026-11-19",
@@ -4948,5 +4948,6 @@
     "isolated_postgres17_adversarial_tests": "PASS",
     "production_mutation": "NONE",
     "release_status": "BLOCKED_NOT_CERTIFIED"
-  }
+  },
+  "chronological_replay_evidence": "2026-11-19 RC484 exact-head isolated replay run 44598309101 restored the captured schema-only checkpoint 20261008222845 and applied 99 later migrations in timestamp order; RC484 adversarial PostgreSQL 17 tests passed in run 44598309128. This is not a real backup restore and has no Production effect."
 }
