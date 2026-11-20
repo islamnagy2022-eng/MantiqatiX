@@ -82,3 +82,16 @@ The new regression passed in GitHub Actions:
 - Test harness and workflow were merged in PR **#936**, merge commit `c77240643002d713ed69d223e2d4a9792829308e`.
 
 These are disposable tests only. They do not apply a Production migration or prove live anonymous sign-in configuration. The actual forward-only SELECT guard migration remains pending Supabase CLI generation and chronological replay.
+
+
+## 8. Fresh live Production recheck after test merge — 2026-11-20
+
+A final read-only recheck confirms the test merge did not change Production:
+
+- Migration ledger remains **310 rows**, latest version `20261110150618`.
+- RC479 `20261118190000`, RC480 `20261118210000`, and RC484 `20261119040000` remain **absent** from the live ledger.
+- Live `marketing_provider_profiles` still has effective anon SELECT and authenticated SELECT.
+- `Public can view active marketing providers` still targets `anon,authenticated` with predicate `status='ACTIVE'`.
+- The owner ALL policy still rejects anonymous JWTs and binds owner to `auth.uid()`; no policy was changed.
+
+Therefore both raw anon and anonymous Auth exposure paths remain live until the coordinated migration chain is applied. The disposable CI result does not close the Production gate. No function was invoked and no Production mutation occurred.
