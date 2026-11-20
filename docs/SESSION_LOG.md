@@ -3642,3 +3642,15 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 
 - RC479 anonymous Auth regression passed PostgreSQL 16 in run 44794969322; combined run 44794969419 passed both RC464 and RC479 jobs. Static validator passed. Test code head 77e782e651f0c73f4481d50495f06a55dd7260da; later change was audit-only.
 - Test harness merged in PR #936, merge commit c77240643002d713ed69d223e2d4a9792829308e. Production migration is still pending; test-only overlay is not deployed. No Production mutation.
+
+
+## 2026-11-20 — Pass 1490–1499 — RC479 anonymous Auth-session forward SELECT guard
+
+- Merged PR [#938](https://github.com/islamnagy2022-eng/MantiqatiX/pull/938) as `436b7a5a4aa12aa979f5ea4b52b9ce9d3971a046`.
+- Added forward-only restrictive SELECT policy for anonymous Auth JWTs using PostgreSQL role `authenticated`; preserved historical raw-`anon` migration.
+- Added disposable baseline and post-migration tests for anonymous denial, confirmed-user read compatibility, owner UPDATE and wrong-owner denial.
+- Exact PR-head RC479, RC464, migration replay, migration uniqueness, collision guard, migration history, Module Professionalization, Backend-only Module Boundary and MantiGO privacy workflows all passed (runs 44803731818, 44803731787, 44803731771, 44803731767, 44803731827, 44803732001, 44803731831, 44803731811 and 44803731854).
+- Pages workflow validation passed; deployment jobs were skipped. No Production deploy or Supabase mutation occurred.
+- Confirmed authenticated users' `owner_user_id` / `settings` visibility remains a separate unresolved data-minimization issue.
+- Production remains **BLOCKED / NOT CERTIFIED** pending operator-controlled backup/restore and coordinated DB/Edge release.
+- Next: continue source/CI-only P0 security remediation; no standalone Production migration or Edge deployment.

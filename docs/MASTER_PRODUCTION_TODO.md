@@ -1,3 +1,18 @@
+## Pass 1490–1499 — RC479 anonymous Auth-session forward guard merged — 2026-11-20
+
+- PR [#938](https://github.com/islamnagy2022-eng/MantiqatiX/pull/938) merged to `main` as `436b7a5a4aa12aa979f5ea4b52b9ce9d3971a046`.
+- Added forward migration `20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql`: a RESTRICTIVE SELECT policy for `authenticated` role JWTs where `is_anonymous=true`. Historical RC479 raw-`anon` revoke remains unchanged.
+- Added a disposable pre-migration reproduction and post-migration regression coverage: anonymous Auth read denied, confirmed-user read preserved, owner UPDATE preserved, wrong-owner UPDATE affects zero rows, owner policy unchanged.
+- Exact PR-head CI passed: RC479 Anonymous Auth Session Boundary run 44803731818; RC464 Platform Admin Live Hardening 44803731787; Forward Migration Chain Replay 44803731771; Migration Version Uniqueness 44803731767; Open PR Migration Collision Guard 44803731827; Migration History Immutability 44803732001; Module Professionalization 44803731831; Backend-only Module Boundary 44803731811; MantiGO privacy 44803731854; plus the remaining listed PR workflows.
+- The Pages workflow validation passed but `validate_public_only` and `deploy` were skipped. No Production deployment, Supabase migration, DDL/DML, GRANT, RLS, Auth, Storage, Edge, payment, wallet or customer-data mutation occurred.
+- Production remains **BLOCKED / NOT CERTIFIED**. The new migration is source-only and must join the coordinated migration/Edge release after the operator-owned encrypted DB + Storage backup, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO gates.
+- Residual privacy boundary: confirmed authenticated users still retain base-table SELECT and may see `owner_user_id` / `settings` under the existing public-active SELECT policy. This PR intentionally does not change confirmed-user projection or owner UI contracts; track as a separate data-minimization change.
+- Evidence: PR #938, merge commit above, exact-head workflow runs listed above.
+
+**Next:** continue source/CI-only P0 security work in dependency order; keep Production read-only until backup/restore and coordinated release gates pass.
+
+---
+
 # Latest execution checkpoint — 2026-11-20 — Pass 1310–1319
 
 **Current main:** `ef152fbb351db6a52a64c4913140394a9c29eca7`  
