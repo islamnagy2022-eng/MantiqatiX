@@ -11,6 +11,10 @@ on:
       - "supabase/tests/rc464_platform_admin_shared_helper_callers.sql"
       - "scripts/validate-rc464-platform-admin-live-hardening.mjs"
       - ".github/workflows/rc464-platform-admin-live-hardening.yml"
+      - "supabase/migrations/20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql"
+      - "supabase/tests/rc479_anonymous_auth_session_baseline.sql"
+      - "supabase/migrations/20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql"
+      - "supabase/tests/rc479_anonymous_auth_session_baseline.sql"
       - "supabase/tests/rc479_anonymous_auth_session_boundary_integration.sql"
       - "scripts/validate-rc479-anonymous-auth-session-boundary.mjs"
       - ".github/workflows/rc479-anonymous-auth-session-boundary.yml"
@@ -99,7 +103,7 @@ jobs:
           node-version: "22"
       - name: Verify anonymous Auth-session source contract
         run: node scripts/validate-rc479-anonymous-auth-session-boundary.mjs
-      - name: Reproduce residual anonymous Auth read, then test restrictive boundary
+      - name: Reproduce baseline, apply forward migration, and verify boundary
         shell: bash
         run: |
           set -euo pipefail
@@ -108,8 +112,12 @@ jobs:
           docker cp supabase/tests/rc479_provider_profile_anon_read_fixture.sql "$pg_container:/tmp/fixture.sql"
           docker cp supabase/migrations/20261118190000_rc479_revoke_anon_provider_profile_base_read.sql "$pg_container:/tmp/rc479.sql"
           docker cp supabase/tests/rc479_provider_profile_anon_read_integration.sql "$pg_container:/tmp/raw-anon-integration.sql"
-          docker cp supabase/tests/rc479_anonymous_auth_session_boundary_integration.sql "$pg_container:/tmp/anonymous-auth-integration.sql"
+          docker cp supabase/tests/rc479_anonymous_auth_session_baseline.sql "$pg_container:/tmp/anonymous-auth-baseline.sql"
+          docker cp supabase/migrations/20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql "$pg_container:/tmp/rc479-forward.sql"
+          docker cp supabase/tests/rc479_anonymous_auth_session_boundary_integration.sql "$pg_container:/tmp/anonymous-auth-post-migration.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc479_anon_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc479_anon_test -v ON_ERROR_STOP=1 -f /tmp/rc479.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc479_anon_test -v ON_ERROR_STOP=1 -f /tmp/raw-anon-integration.sql
-          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc479_anon_test -v ON_ERROR_STOP=1 -f /tmp/anonymous-auth-integration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc479_anon_test -v ON_ERROR_STOP=1 -f /tmp/anonymous-auth-baseline.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc479_anon_test -v ON_ERROR_STOP=1 -f /tmp/rc479-forward.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc479_anon_test -v ON_ERROR_STOP=1 -f /tmp/anonymous-auth-post-migration.sql
