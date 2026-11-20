@@ -1,3 +1,15 @@
+## Latest execution checkpoint — Pass 1285–1294 — 2026-11-20 (directory consent live-boundary recheck)
+
+- Read-only live Supabase check: `directory-listings` ACTIVE v16, `verify_jwt=false`, only three deployed files; no consent sanitizer, consent pagination dependency or registry lookup. `directory_listing_contact_consents` table and RC473 ledger version `20261118020000` are absent.
+- Direct anon/authenticated SELECT on `public.public_directory_listings` is denied. Aggregate-only check found 869 published listings, all with phone or address populated. The remaining exposure path is the legacy public Edge Function response; no individual contact values or owner identifiers were selected.
+- Current main contains the complete RC473 migration, fail-closed Edge Function, scope-specific sanitizer, owner consent grant/revoke API, audit history, pagination tests and exact-bundle release gate. Source is not deployed. Issue #876 remains open.
+- No Production mutation of any kind occurred. Keep migration and complete Edge bundle blocked pending encrypted off-site DB/Storage backup, Vault recovery, isolated PostgreSQL 17 restore, RPO/RTO/rollback and coordinated release verification.
+- Evidence: `docs/audits/PASS_1285_1294_DIRECTORY_CONSENT_LIVE_BOUNDARY_20261120.md`.
+
+**Next:** strengthen source/CI adversarial tests for consent grant/revoke and maintain the coordinated RC472/RC473 + complete Edge release gate. No independent Production migration or Edge deployment.
+
+---
+
 ## Deployment topology clarification — verified against current `.github/workflows/pages.yml` — 2026-11-20
 
 - The public root `/` is the catalog frontend build (the workflow's `mantiqatix-legacy-root-build` artifact); a path-adjusted copy is retained at `/legacy/`; the isolated AI Studio V6 build is at `/v6-preview/`.
