@@ -9,6 +9,7 @@ const defaults = readFileSync('apps/catalog-frontend/src/utils/defaultImages.ts'
 
 assert.match(component, /isMantiqatiXBrandName/);
 assert.match(utility, /export function isMantiqatiXBrandName/);
+assert.match(utility, /replace\\(\\/\\\\s\\+\\/g/, 'brand-name matching must normalize whitespace');
 assert.match(marketplace, /isMantiqatiXBrandName\(business\.name\)/);
 assert.match(marketplace, /isPlatformBrandProfile \? defaultLogo : business\.logoUrl/);
 assert.match(marketplace, /isPlatformBrandProfile \? defaultCover : business\.coverUrl/);
