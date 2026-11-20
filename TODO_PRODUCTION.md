@@ -3646,3 +3646,19 @@ Evidence: audit file; branch `fix/rc479-anonymous-auth-profile-boundary-tests-20
 
 
 **Pass 1480 correction:** the live `Owners manage their marketing provider profile` ALL policy already blocks anonymous Auth DML and binds the owner to `auth.uid()`. The missing control is specifically a RESTRICTIVE FOR SELECT policy for `authenticated` requiring `is_anonymous=false`; preserve owner CRUD and the public confirmed-user read contract.
+
+
+## Pass 1490–1499 — anonymous Auth guards and platform-root parity — 2026-11-20
+
+- [x] 1490 — Inspect RC488–RC492 Storage, finance, medical, support and InDrive restrictive policies; identify fail-open NULL handling in `coalesce(auth.jwt()->>'is_anonymous','false') <> 'true'`.
+- [x] 1491 — Post fail-closed predicate and missing-claim test requirements to PR #946; same finding posted to PR #947 and #948.
+- [x] 1492 — Confirm cross-PR migration version collisions: #946/#947 both use 20261120240000; #946/#948 both use 20261120250000. CI on #947 failed the collision guard with explicit evidence.
+- [x] 1493 — Verify live `private.platform_admins` table exists with UUID user_id, RLS enabled, and no direct anon/authenticated table grants.
+- [x] 1494 — Verify live `mnty_can_platform_admin()` still delegates to membership-based `mnty_can()`; canonical main RC462/RC464 source already uses private registry, but the corresponding migration is absent from live migration ledger.
+- [x] 1495 — Verify PR #940 exact-head checks (28 successful, deploy jobs skipped at inspected head); identify it is five commits behind/diverged from current main; request update/rebase and exact-head rerun.
+- [x] 1496 — Record detailed findings and release requirements in `docs/audits/PASS_1490_1499_ANONYMOUS_AUTH_AND_PLATFORM_ROOT_PARITY_20261120.md`.
+- [ ] 1497 — Consolidate/re-version #946–#948 into a single collision-free chronological migration chain; preserve every table and test.
+- [ ] 1498 — Implement fail-closed handling for true/false/missing anonymous JWT claim across all affected policies and PostgreSQL integration tests.
+- [ ] 1499 — Keep Production blocked until migration replay, encrypted backup/restore, exact Edge parity, release approval and post-deploy live verification pass.
+
+**Release status: BLOCKED / NOT CERTIFIED.** No Production database, RLS, GRANT, Storage, Edge, Auth, payment or customer-data mutation was performed in this pass.
