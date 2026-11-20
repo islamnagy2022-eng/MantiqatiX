@@ -27,9 +27,19 @@ Read-only catalog enumeration found four authenticated-callable SECURITY DEFINER
 
 Each listed caller is executable by `authenticated`; none was invoked. The exact blast radius of each operation depends on its remaining in-function validations, but the shared global-admin predicate is broader than the protected platform-root registry and can admit tenant-local OWNER/ADMIN roles.
 
-## Relation to existing RC484 work
+## Existing source repair and Production deployment gap
 
-Existing P0 Issue #867 covers the separate `public.is_platform_admin()` helper and its 57 RLS-policy dependencies. I inspected the exact source migration `supabase/migrations/20261119040000_rc484_registry_backed_is_platform_admin.sql`: it replaces `public.is_platform_admin()` with a registry-backed helper and enables FORCE RLS on `private.platform_admins`, but it contains no reference to `mnty_can_platform_admin()`. The reviewed live `mnty_can_platform_admin()` definition therefore remains the membership-derived expression above. The four direct callers need explicit coverage in the same coordinated authorization remediation; passing RC484 tests alone does not fix this second helper.
+The repository already contains the correct forward source repair; do not create a duplicate migration:
+
+- RC464 `supabase/migrations/20261113214500_rc464_platform_admin_live_registry_hardening.sql` replaces `mnty_can_platform_admin()` with a SECURITY DEFINER lookup of `private.platform_admins.user_id = auth.uid()`, pins an empty search_path, removes PUBLIC/anon EXECUTE, and preserves authenticated EXECUTE. Its preflight verifies registry ownership/RLS/client grants and the four helper callers.
+- RC464 disposable PostgreSQL coverage reproduces the weak baseline, applies the repair, then tests the protected boundary and all four direct callers.
+- RC471 `supabase/migrations/20261117190000_rc471_mantigo_platform_admin_forward_hardening.sql` is the follow-forward hardening for the four other global MantiGO RPCs and the four helper-dependent callers.
+- R7 integration tests explicitly deny tenant OWNER, BUSINESS_OWNER, and ADMIN across all four helper callers while allowing the registered platform admin. Static validators check the registry-only predicate, empty search_path, caller replacements, and test ordering.
+- RC464 is already included in the required production migration chain.
+
+The live Production helper still has the weak membership-derived body observed above. The current reconciliation says the Production migration ledger has 0/64 required release identifiers applied (latest live version `20261110150618`), so RC464/RC471 are source-ready but not deployed. RC484 is a separate later registry fix for `is_platform_admin()`; it does not replace RC464.
+
+**Disposition:** no new authorization migration is needed for this specific finding. The remaining work is to finish the coordinated release prerequisites, apply the ordered migration chain through the authorized deployment process, then re-query the live helper definition, ACL, search_path, dependent RLS policies, and all eight callers. Do not hot-apply RC464 alone while the live schema and Edge bundle remain out of parity.
 
 A comment with the additional finding and exact four callers was added to Issue #867 (comment ID 7045989396).
 
@@ -49,6 +59,6 @@ A comment with the additional finding and exact four callers was added to Issue 
 
 ## Disposition
 
-**Confirmed source/live authorization defect; exploit not demonstrated.** The current live definition and effective EXECUTE grants were inspected read-only. No user, membership, payment, ride, advertisement, or financial rows were queried. No function was invoked. No Production schema, data, grants, RLS, Auth, Storage, Edge Function, or deployment change was made.
+**Confirmed live Production drift; source repair already exists; exploit not demonstrated.** The current live definition and effective EXECUTE grants were inspected read-only. No user, membership, payment, ride, advertisement, or financial rows were queried. No function was invoked. No Production schema, data, grants, RLS, Auth, Storage, Edge Function, or deployment change was made.
 
 Production remains **BLOCKED / NOT CERTIFIED** pending the coordinated authorization, migration, Edge, backup/restore, and payment release gates.
