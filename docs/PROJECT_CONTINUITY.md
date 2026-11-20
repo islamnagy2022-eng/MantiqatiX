@@ -2961,3 +2961,12 @@ Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`; P
 Code search of current main found explicit anonymous-JWT test assertions for RC102 provider services, RC453 marketing campaign creation, RC455 commission preview, RC465 orders, RC466 business/branch/inventory, RC467 finance preview, and RC478 MantiGO open rides. RC465/RC466 CI runs 44048037235/44048037214 passed. Related but not explicitly anonymous tests were found for digital-page payment, journal, payment provider events, SMM service-role ACL, CRM and storage overlay. The remaining high-risk command gaps include payment events/intents/provider events/reconciliations, refunds/settlements/wallets, medical/support/notifications/push, digital-page orders/sections, MantiGO ledger/config and storage object read/write/delete. No live anon probes or Production changes.
 
 Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`; P1 #928.
+
+
+## SMM first-user bootstrap security checkpoint — Pass 1470–1479 (2026-11-20)
+
+Fresh read-only Production inspection found two `auth.users` triggers. The customer-membership trigger correctly rejects `NEW.is_anonymous`; the SMM trigger calls `public.smm_bootstrap_first_admin()`, which inserts `NEW.id` into `public.smm_admins` whenever that table is empty, with no anonymous or pre-authorized-user check. The function is trigger-only, postgres-owned SECURITY DEFINER with `search_path=public`, and not found in current-main source search under its exact name. `smm_admins` has RLS enabled, FORCE RLS disabled, no direct SELECT grants to anon/authenticated/service_role, and one current row (aggregate count only; no identity read). Therefore the bootstrap path is dormant now but becomes a first-Auth-user privilege escalation if the table is emptied. SMM gateway is currently deferred and rejects anonymous sessions; that is only a mitigation. P1 Issue #933 tracks a forward-only trusted bootstrap, anonymous rejection, empty search_path, and disposable tests.
+
+No function invoked; no identity/app rows selected; no Production mutation. Production remains blocked.
+
+Evidence: `docs/audits/PASS_1470_1479_SMM_FIRST_USER_BOOTSTRAP_REVIEW_20261120.md`.
