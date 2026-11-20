@@ -37,7 +37,7 @@ CREATE OR REPLACE FUNCTION public.adjust_catalog_stock_backend(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO 'public'
+SET search_path TO ''
 AS $function$
 DECLARE
   v_uid uuid := auth.uid();
@@ -254,7 +254,7 @@ CREATE OR REPLACE FUNCTION public.create_catalog_warehouse_backend(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO 'public'
+SET search_path TO ''
 AS $function$
 DECLARE
   v_uid uuid := auth.uid();
@@ -359,7 +359,7 @@ CREATE OR REPLACE FUNCTION public.upsert_catalog_item_backend(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO 'public'
+SET search_path TO ''
 AS $function$
 DECLARE
   v_id uuid;
@@ -540,7 +540,7 @@ CREATE OR REPLACE FUNCTION public.upsert_catalog_price_backend(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO 'public'
+SET search_path TO ''
 AS $function$
 DECLARE
   v_id uuid;
@@ -630,7 +630,7 @@ CREATE OR REPLACE FUNCTION public.upsert_catalog_settings_backend(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO 'public'
+SET search_path TO ''
 AS $function$
 DECLARE
   v_uid uuid := auth.uid();
@@ -719,7 +719,7 @@ CREATE OR REPLACE FUNCTION public.update_catalog_item_status_backend(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO 'public'
+SET search_path TO ''
 AS $function$
 DECLARE
   v_status text := upper(trim(coalesce(p_status, '')));
@@ -819,7 +819,7 @@ CREATE OR REPLACE FUNCTION public.upsert_catalog_business_profile_backend(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO 'public'
+SET search_path TO ''
 AS $function$
 DECLARE
   v_uid uuid := auth.uid();
