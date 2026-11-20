@@ -3363,3 +3363,17 @@ Evidence: Issue #422 comment 7018060567 and live Security Advisor/pg_policies/AC
 - Dedicated RC484 CI run #2 was in progress; full forward-chain and migration collision/history workflows were queued. No test result is claimed before completion.
 - Production remains read-only: migration ledger 310 through `20261110150618`; RC484 not applied; no DDL/DML/RLS/GRANT/Auth/Storage/Edge/financial mutation.
 - Evidence: PR #870, audit `docs/audits/PASS_1180_1189_RC484_REGISTRY_BACKED_RLS_HELPER_20261119.md`, issue #867.
+
+
+## 2026-11-20 — Pass 1220–1229 — Production Edge/payment release parity
+
+- Main: `57862b714c0b049419204b6143b966c149682906`. PR #875 merged the encrypted off-site backup manifest/evidence verifier, non-secret template, operator runbook and disposable tests; exact-head backup CI passed 12/12. It does not create an actual backup or perform a restore.
+- Exact 11-function live Edge comparison: 4 matches (`api`, `order-status-update`, `payment-webhook`, `smm-gateway`) and 7 mismatches (`order-create`, `payment-intent`, `paymob-webhook`, `digital-page-payment-intent`, `subscription-payment-intent`, `financial-journal`, `directory-listings`).
+- Fresh Production catalog checks: 310 migration ledger rows through `20261110150618`; 0/64 exact current release IDs recorded. Separately identified missing/incompatible RC425, RC427, RC435, RC439, RC450 and payment/subscription/MantiGO RPC dependencies. Do not interpret exact-ID absence as proof all intended physical effects are absent.
+- Payment/order/event/ledger aggregates: all checked tables returned 0 rows. No Paymob request, webhook replay, journal, refund or settlement was executed.
+- Directory aggregate: 965 total records; 869 published; all 869 have phone/address; 178 have a secondary phone. Public/private consent registries are absent; live anonymous `directory-listings` v16 differs from main. Created P0 issue #876.
+- Added audit `docs/audits/PASS_1220_1229_EDGE_PAYMENT_PRODUCTION_PARITY_20261120.md`; refreshed `docs/release/production-migration-reconciliation.json`, Master TODO, Project Continuity and TODO handoff.
+- Updated issues #857 and #599; RC484 P0 #867 remains open. Production helper remains the old SECURITY INVOKER membership-based helper; registry FORCE RLS still disabled; 57 dependent policies across 24 tables.
+- Production mutation: NONE. No DDL/DML, migration, RLS, GRANT, Auth, Storage, Edge, payment, wallet, settlement or user-data write. Full platform remains BLOCKED / NOT CERTIFIED.
+
+**Next:** operator-owned off-site encrypted DB/Storage backup, Vault recovery and independent PostgreSQL 17 restore/rollback with measured RPO/RTO; then one ordered schema/Edge release, sandbox tests and live verification.

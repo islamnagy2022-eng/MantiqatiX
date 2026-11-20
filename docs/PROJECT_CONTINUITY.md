@@ -1,3 +1,18 @@
+## Latest execution checkpoint — Pass 1220–1229 — 2026-11-20 (Production Edge/payment parity recheck)
+
+- Main: `57862b714c0b049419204b6143b966c149682906`. PR #875 is merged; the read-only encrypted backup manifest/evidence verifier passed 12/12 CI tests. It validates operator-generated encrypted artifacts and restore evidence only; no real Production backup, off-site upload, Vault recovery or restore rehearsal has been performed.
+- Added `docs/audits/PASS_1220_1229_EDGE_PAYMENT_PRODUCTION_PARITY_20261120.md` and refreshed `docs/release/production-migration-reconciliation.json` with the exact 64-version contract and fresh live evidence.
+- Exact current Edge entrypoint parity: **4/11 exact matches** (`api`, `order-status-update`, `payment-webhook`, `smm-gateway`); **7/11 mismatches** (`order-create`, `payment-intent`, `paymob-webhook`, `digital-page-payment-intent`, `subscription-payment-intent`, `financial-journal`, `directory-listings`). Do not deploy the mismatched payment/order/finance/directory functions individually.
+- Fresh Production ledger: 310 rows through `20261110150618`; **0/64 exact release migration IDs recorded**. This is a migration-identity gap, not proof that all effects are physically absent. Separately verified gaps include absent RC425 MantiGO provider-event table, RC427 active-order unique index, RC435 claim state/claim RPCs, RC439 encrypted checkout columns, atomic standard/subscription/MantiGO RPCs, and RC450 service_role EXECUTE on the financial journal backend.
+- Fresh payment aggregate checks: 0 rows in `orders`, `payment_intents`, `payment_provider_events`, `subscription_payment_intents`, `digital_page_orders`, `digital_page_payment_events`, and `mantigo_financial_ledger`. No Paymob or financial E2E was run.
+- Directory privacy remains blocked: 965 directory records, 869 published; all 869 published rows have phone/address, 178 have secondary phone. Public and private consent tables remain absent; live `directory-listings` v16 is anonymous and differs from main. Opened P0 issue [#876](https://github.com/islamnagy2022-eng/MantiqaTix/issues/876). No row-level contact data was selected.
+- RC484 is merged source ([PR #870](https://github.com/islamnagy2022-eng/MantiqaTix/pull/870)) and passed adversarial PostgreSQL 17 CI plus 99-migration disposable chronological replay, but Production remains unchanged: `is_platform_admin()` is still SECURITY INVOKER with `search_path=public`, registry FORCE RLS is disabled, and 57 policies across 24 tables still depend on it. Keep P0 issue #867 open.
+- P0 payment/finance drift remains in [#857](https://github.com/islamnagy2022-eng/MantiqaTix/issues/857). No Production migration, DDL/DML, RLS, GRANT, Auth, Storage, Edge deployment, payment, wallet, settlement or user-data mutation occurred.
+
+**Next:** the authorized operator must perform encrypted off-site database and Storage exports, Vault recovery and a separate PostgreSQL 17 restore/rollback rehearsal with measured RPO/RTO. Continue source-side dependency/test work, then plan one approved migration + Edge release with exact live post-deploy verification. Preserve the catalog root and Android wrapper; R7 remains reference-only and must not be imported wholesale.
+
+---
+
 ## Latest execution checkpoint — Pass 1200–1209 — 2026-11-19 (R7 source map and Android preservation)
 
 - Verified the exact uploaded `bizcatalog-manager (11).zip`: 46,114,882 bytes, `unzip -t` PASS, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`.

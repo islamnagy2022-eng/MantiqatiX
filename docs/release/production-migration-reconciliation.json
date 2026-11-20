@@ -8,25 +8,27 @@
   "rc424_source_filename_version": "20261009010000",
   "source_ledger_identity_reconciled": true,
   "required_release_migrations_applied": false,
-  "chronological_replay": "PASS — on 2026-11-06, run 42271053737 restored the captured schema-only checkpoint 20261008222845 and applied 76 forward migrations in timestamp order in a fresh disposable local Supabase instance through 20261101150000. RC117, owner-profile persistence, RC455/RC456 commission previews and synthetic Tenant A/B isolation passed. Production effect NONE. This is not a genuine data backup/restore rehearsal.",
+  "chronological_replay": "PASS",
   "latest_candidate_replay": {
     "status": "PASS",
-    "checked_at": "2026-11-17",
-    "pr": 742,
+    "checked_at": "2026-11-19",
+    "pr": 870,
+    "merge_commit": "902e4059c76da7b5da3c6ca354a11eefdd36ed4f",
     "checkpoint_version": "20261008222845",
-    "forward_migrations_applied": 80,
-    "source_branch": "integration/rc464-rc467-current-main-20261117",
-    "result": "Exact-head 14/14 PR workflows succeeded, including ordered forward migration chain replay and RC464–RC467 isolated PostgreSQL authorization tests.",
-    "production_effect": "NONE — no Production schema/data/grants/Auth/Edge Functions/payments/wallets or migration ledger rows were changed.",
-    "limitation": "This is an isolated schema-checkpoint replay, not a genuine backup restore; RPO/RTO and production customer/Auth/Storage recovery remain unverified."
+    "forward_migrations_applied": 99,
+    "workflow_run": "https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44598309101",
+    "rls_integration_run": "https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44598309128",
+    "result": "Exact RC484 PR-head PostgreSQL 17 adversarial RLS tests and 99-migration chronological replay from the captured Production schema checkpoint passed in disposable Supabase.",
+    "production_effect": "NONE — no Production schema/data/grants/Auth/Edge Functions/payments/wallets or migration ledger rows changed.",
+    "limitation": "Schema-only disposable replay, not a genuine Production backup restore. RPO/RTO and live post-deploy authorization remain unverified."
   },
   "tenant_isolation_tests": "PASS — run 42271053737 repeated synthetic Tenant A/B read and mutation checks for orders/payment intents. Tenant A could read its own rows but not Tenant B private rows and could not update Tenant B rows; reciprocal Tenant B restrictions also passed. This is a limited synthetic contract test, not complete adversarial Production RLS certification.",
-  "payment_finance_e2e": "NOT VERIFIED — read-only inspection found zero rows in public.tenant_payment_methods; provider_secrets were not selected or inspected; sandbox secret presence is not exposed by the available connector; no payment, webhook replay, refund, settlement or finance E2E was initiated. The seven live Edge Function source mismatches must be reconciled before a meaningful sandbox run.",
-  "backup_restore_rehearsal": "NOT VERIFIED — the available Supabase connector exposes no backup inventory or restore-rehearsal operation. No backup was restored, no recovery project was created, and RPO/RTO remain unmeasured.",
+  "payment_finance_e2e": "NOT VERIFIED — current read-only aggregate counts were zero for orders, payment_intents, payment_provider_events, subscription_payment_intents, digital_page_orders, digital_page_payment_events and mantigo_financial_ledger. No Paymob sandbox request, callback replay, refund, settlement or journal posting was initiated. Physical DB contracts remain incomplete: RC427 active-order unique index absent; subscription RC435 claim and RC439 encrypted-checkout columns absent; new atomic standard/subscription/MantiGO failure/success processors absent; provider-order binding and RC450 journal ACL not fully live. Empty tables do not establish safe payment readiness.",
+  "backup_restore_rehearsal": "NOT VERIFIED — no actual Production database/Storage export, off-site upload/retrieval, Vault recovery, separate-project PostgreSQL 17 restore, measured RPO/RTO or rollback rehearsal occurred. PR #875 merged a read-only encrypted backup manifest/evidence validator; exact-head CI passed 12/12 disposable tests (run 44640871190). The tool validates operator-created artifacts/evidence only and does not create backups or perform restores.",
   "evidence_ref": "docs/audits/PRODUCTION_RECONCILIATION_20261114.md",
-  "checked_at": "2026-11-19",
-  "reason": "BLOCKED / NOT CERTIFIED: live migration ledger has 310 rows through 20261110150618 and 0/63 required exact migration identifiers; current 60-object physical refresh is 30/60 present and 30/60 absent; seven critical Edge Function entrypoints differ from main; payment/finance E2E and backup/restore rehearsal are unverified; RC117 server-side default-image triggers/columns are absent and its historical marketing_services backfill can overwrite custom images; R7 archive (11) still has P0 authentication, persistence, secret and payment-state defects. RC464/RC464B–RC467 are merged as source and passed isolated replay only; no Production migration or Edge deployment was performed. Directory contact-consent boundary is BLOCKED: live directory-listings v16 anonymously returns phone/address for 869 published rows; RC473 consent table absent.",
-  "edge_function_contracts": "PARTIAL — seven critical live Edge Function entrypoints differ from current main: order-create, payment-intent, paymob-webhook, digital-page-payment-intent, subscription-payment-intent, financial-journal and directory-listings. Financial-journal main source calls post_financial_journal_backend, which is defined by RC450; live v3 still calls legacy post_financial_journal with wildcard CORS. Do not deploy payment/finance/directory functions individually until schema, grants, complete source bundles, secrets, sandbox E2E and rollback are verified.",
+  "checked_at": "2026-11-20",
+  "reason": "BLOCKED / NOT CERTIFIED: fresh read-only Production check on 2026-11-20 found 310 migration rows through 20261110150618 and 0/64 exact required release identifiers. Exact live Edge entrypoint parity is 4/11; seven critical functions differ from main (order-create, payment-intent, paymob-webhook, digital-page-payment-intent, subscription-payment-intent, financial-journal, directory-listings). Independent physical contract gaps include missing RC425 MantiGO provider-event table, RC427 active-order unique index, RC435 subscription claim columns/RPCs, RC439 encrypted checkout fields, newer atomic payment/subscription/MantiGO processors and RC450 service_role journal EXECUTE. Directory contact-consent remains BLOCKED: live anonymous directory GET exposes phone/address for 869 published rows while RC473 consent tables are absent. Backup verifier is merged and 12/12 CI tests passed, but no actual encrypted backup or isolated restore was performed; RPO/RTO and rollback remain unverified. RC484 is merged source with isolated adversarial/replay PASS, but is not applied in Production; live is_platform_admin remains SECURITY INVOKER/search_path=public and registry FORCE RLS remains disabled. No Production mutation was performed.",
+  "edge_function_contracts": "PARTIAL — fresh exact entrypoint comparison on 2026-11-20 found 7/11 critical live Edge functions differ from current main: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3, directory-listings v16. Four exact matches: api v17, order-status-update v4, payment-webhook v3, smm-gateway v13 (still deferred). Do not deploy mismatched payment/finance/directory/order functions individually; the live database is missing or has older payment, subscription, journal, order and directory consent contracts.",
   "smm_gateway_parity": "PARTIAL — live SMM gateway remains ACTIVE v13, verify_jwt=true, and source matches main with SMM_INITIAL_LAUNCH_DEFERRED=true. Anonymous/authenticated negative runtime tests still unverified; keep deferred.",
   "auth_security_settings": "NOT VERIFIED — current connector does not expose project Auth security configuration. The prior 2026-11-06 advisor snapshot reported leaked-password protection disabled; owner-dashboard confirmation and remediation evidence are still required. No Auth settings were changed.",
   "rc424_reconciliation": {
@@ -116,11 +118,11 @@
   },
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
-    "checked_at": "2026-11-19",
-    "method": "Fresh read-only SELECT against supabase_migrations.schema_migrations, compared against the exact 63 required source-version identifiers in this manifest.",
+    "checked_at": "2026-11-20",
+    "method": "Fresh read-only SELECT from supabase_migrations.schema_migrations compared against the exact 64 versions in scripts/production/live-reconciliation-contract.mjs on main commit 57862b714c0b049419204b6143b966c149682906.",
     "live_ledger_count": 310,
     "latest_live_version": "20261110150618",
-    "expected_migration_versions": 63,
+    "expected_migration_versions": 64,
     "found_in_live_ledger": 0,
     "required_versions": [
       "20261009120000",
@@ -185,7 +187,8 @@
       "20261118210000",
       "20261118220000",
       "20261119020000",
-      "20261119030000"
+      "20261119030000",
+      "20261119040000"
     ],
     "missing_versions": [
       "20261009120000",
@@ -250,176 +253,133 @@
       "20261118210000",
       "20261118220000",
       "20261119020000",
-      "20261119030000"
+      "20261119030000",
+      "20261119040000"
     ],
     "recorded_required_versions": [],
-    "interpretation": "Fresh read-only query confirms 310 live ledger rows through 20261110150618; none of the 63 required release identifiers are recorded. This is a migration-identity mismatch, not proof that every intended physical effect is absent. Physical schema and function/Edge parity must be reconciled independently. Do not fabricate ledger rows or replay the chain blindly."
+    "interpretation": "None of the 64 exact source-version identifiers are recorded in the current live ledger. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
   },
   "critical_edge_function_source_parity_check": {
-    "status": "HISTORICAL_SNAPSHOT_SUPERSEDED",
-    "checked_at": "2026-11-14T05:04:22.840Z",
-    "method": "Read-only get_edge_function retrieval and exact UTF-8 index.ts comparison against current main; deployed bundle SHA-256 and repository blob SHA recorded. No Edge Function was deployed.",
+    "status": "BLOCKED",
+    "checked_at": "2026-11-20",
+    "method": "Supabase live get_edge_function index.ts exact comparison against current main source with CRLF normalized to LF. No Edge bundle was deployed.",
+    "expected_critical_functions": 11,
+    "exact_source_matches": 4,
+    "mismatches": 7,
     "functions": [
-      {
-        "slug": "order-create",
-        "live_version": 8,
-        "verify_jwt": true,
-        "exact_match": false,
-        "observed_difference": "Live entrypoint lacks main's bounded streaming request-body limit, strict body/JSON validation, branch-scoped membership lookup, duplicate-option checks, and option-to-item relationship guard.",
-        "status": "BLOCKED",
-        "live_bundle_sha256": "16f9b8bb687c33afeca14d85cb4c43af9948bd8b3ef3178990cc76ca1abea782",
-        "repo_blob_sha": "3a6777683e537dcff1ad30cbd1c89e431f77d926",
-        "live_entrypoint_chars": 10083,
-        "repo_entrypoint_chars": 13988
-      },
-      {
-        "slug": "payment-intent",
-        "live_version": 8,
-        "verify_jwt": true,
-        "exact_match": false,
-        "observed_difference": "Live entrypoint lacks main's Paymob intent correlation helper and exact cents amount/provider-intent correlation checks.",
-        "status": "BLOCKED",
-        "live_bundle_sha256": "d6b8faee1582c73ead440614cbe983114d1e7f31aa50f69795522fb20e737f54",
-        "repo_blob_sha": "c88f62db0d3781f949ca5da77590a04590e8ae7d",
-        "live_entrypoint_chars": 8114,
-        "repo_entrypoint_chars": 10366
-      },
-      {
-        "slug": "paymob-webhook",
-        "live_version": 10,
-        "verify_jwt": false,
-        "exact_match": false,
-        "observed_difference": "Live entrypoint lacks main's explicit finite amount guard; callback signature, amount, currency, intent/order binding and replay/idempotency must be revalidated together.",
-        "status": "BLOCKED",
-        "live_bundle_sha256": "f26fe1580e66c7f8cb9b885d5bccf4a44e49aa74874b3fe28dd7f9c5ed181cca",
-        "repo_blob_sha": "b7a386d4b4fd7aa74187df7186e9235046ad660f",
-        "live_entrypoint_chars": 11538,
-        "repo_entrypoint_chars": 12665
-      },
-      {
-        "slug": "digital-page-payment-intent",
-        "live_version": 5,
-        "verify_jwt": true,
-        "exact_match": false,
-        "observed_difference": "Live entrypoint lacks the Paymob correlation helper present in main.",
-        "status": "BLOCKED",
-        "live_bundle_sha256": "8aa3d2e9c025e7b74d4d1847e8a6744bc84a9ded7cfc0c721f9604efd177af4b",
-        "repo_blob_sha": "0d0476b0120996d83fff1299e06ea2c037e62e8e",
-        "live_entrypoint_chars": 5345,
-        "repo_entrypoint_chars": 6532
-      },
-      {
-        "slug": "subscription-payment-intent",
-        "live_version": 4,
-        "verify_jwt": true,
-        "exact_match": false,
-        "observed_difference": "Live entrypoint materially differs from main and lacks Paymob intent correlation plus encrypted checkout-secret guards.",
-        "status": "BLOCKED",
-        "live_bundle_sha256": "4466345787ea6b10a29b1dd63e9f0ab3cae640e9bb4d8ecb6d09445809e077e5",
-        "repo_blob_sha": "c702d7a70ea85727ec5e14695ebf8fb26158514e",
-        "live_entrypoint_chars": 5196,
-        "repo_entrypoint_chars": 11100
-      },
-      {
-        "slug": "financial-journal",
-        "live_version": 3,
-        "verify_jwt": true,
-        "exact_match": false,
-        "observed_difference": "Live v3 uses wildcard CORS and calls legacy post_financial_journal; current main uses allow-listed CORS and calls post_financial_journal_backend. The main RPC contract matches canonical RC450, not the earlier RC436-only alternative. Live production lacks RC449A/RC450; the old live post_financial_journal_backend RPC has no service_role EXECUTE and requires p_user_id=auth.uid(), so it is incompatible with the trusted Edge service-role flow.",
-        "status": "BLOCKED",
-        "live_bundle_sha256": "79ee18d0544e7cab8fe33fe84c27a5017d1163f411eb5b9e07b99fd79e16e366",
-        "repo_blob_sha": "49706589cc6d77af713ae44bcc0818066de72243",
-        "live_entrypoint_chars": 1591,
-        "repo_entrypoint_chars": 3387
-      },
-      {
-        "slug": "directory-listings",
-        "live_version": 16,
-        "verify_jwt": false,
-        "exact_match": false,
-        "observed_difference": "Live v16 differs from current main. It adds public metadata allowlisting/sanitization and derives an is_verified boolean from verified_by while stripping the UUID from public responses. However, verified_by is set by the owner-claim flow, not by professional-registration verification; do not port that ambiguous badge without an explicit product definition. Its two helper files match main, but index.ts differs. Security gap: BULK_IMPORT requires an approved sourcePermissionEvidenceId and records source permission metadata, but honors a requested PUBLISHED status instead of staging-only. More importantly, direct UPSERT_LISTING can publish a doctor with a valid phone and no source permission evidence. Current main has a staging-only bulk-import rule and requires current approved evidence for new doctor publication, draft-to-public transitions, and source changes. The live evidence table itself enforces approved_by/approved_at and approved_by != created_by. Reconcile by preserving live public sanitization/verified badge and evidence workflow while porting main's stricter publication gate; do not deploy main wholesale or keep the direct bypass.",
-        "status": "BLOCKED",
-        "live_bundle_sha256": "13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0",
-        "repo_blob_sha": "a501fa4c8f9e1a97aa3b1a80745951e2f04e9877",
-        "live_entrypoint_chars": 46907,
-        "repo_entrypoint_chars": 47755,
-        "source_snapshot_path": "docs/audits/snapshots/directory-listings-v16-live-index.ts.txt",
-        "file_parity": [
-          {
-            "name": "index.ts",
-            "exact_match": false,
-            "live_chars": 46907,
-            "repo_blob_sha": "a501fa4c8f9e1a97aa3b1a80745951e2f04e9877",
-            "snapshot_path": "docs/audits/snapshots/directory-listings-v16-live-index.ts.txt"
-          },
-          {
-            "name": "pagination-filter.mjs",
-            "exact_match": true,
-            "repo_blob_sha": "07e73486a8552e98f90b690a89035a426caa0ef8"
-          },
-          {
-            "name": "doctor-import-contract.mjs",
-            "exact_match": true,
-            "repo_blob_sha": "097e39b2f39912e151b24368f0c049e9afadd060"
-          }
-        ],
-        "snapshot_secret_scan": {
-          "jwt_literals": 0,
-          "provider_secret_literals": 0,
-          "bearer_literals": 0,
-          "private_key_blocks": 0
-        }
-      },
-      {
-        "slug": "smm-gateway",
-        "live_version": 13,
-        "verify_jwt": true,
-        "exact_match": true,
-        "observed_difference": "Source has SMM_INITIAL_LAUNCH_DEFERRED=true and returns SMM_DEFERRED before processing; runtime anonymous/authenticated negative requests still not verified.",
-        "status": "DEFERRED_NOT_RUNTIME_VERIFIED",
-        "live_bundle_sha256": "a45cee9f5c90beba2c2409ba4fe2927f5be3df4965fb3929f5b7d467b3121b72",
-        "repo_blob_sha": "6f3fe066e2b99d7d4f4725b846beae988f509077",
-        "live_entrypoint_chars": 20040,
-        "repo_entrypoint_chars": 20040
-      },
       {
         "slug": "api",
         "live_version": 17,
         "verify_jwt": false,
         "exact_match": true,
-        "observed_difference": "Entry point matches main; route-level bearer-token authorization still requires runtime tests.",
-        "status": "PASS_SOURCE_PARITY",
+        "live_chars": 16432,
+        "main_chars": 16432,
         "live_bundle_sha256": "7fadbd2f2556a5af308b9a2bde9ade307cacec36950398aa655adf4ac48c677f",
-        "repo_blob_sha": "48f49b775b6f590402a3505d8a6696882532d53c",
-        "live_entrypoint_chars": 16432,
-        "repo_entrypoint_chars": 16432
+        "status": "PASS_SOURCE_PARITY"
+      },
+      {
+        "slug": "order-create",
+        "live_version": 8,
+        "verify_jwt": true,
+        "exact_match": false,
+        "live_chars": 10083,
+        "main_chars": 13988,
+        "live_bundle_sha256": "16f9b8bb687c33afeca14d85cb4c43af9948bd8b3ef3178990cc76ca1abea782",
+        "status": "BLOCKED"
       },
       {
         "slug": "order-status-update",
         "live_version": 4,
         "verify_jwt": true,
         "exact_match": true,
-        "observed_difference": "Entry point matches main; real order-state and branch authorization E2E remains open.",
-        "status": "PASS_SOURCE_PARITY",
+        "live_chars": 1986,
+        "main_chars": 1986,
         "live_bundle_sha256": "c8c41f70399909b9ea27ea74ccd1661fb5aeac7f15e63fd15449ba6de33ae1e6",
-        "repo_blob_sha": "47de61413d6867f39a40c9029c2cf7cbd1f07775",
-        "live_entrypoint_chars": 1986,
-        "repo_entrypoint_chars": 1986
+        "status": "PASS_SOURCE_PARITY"
+      },
+      {
+        "slug": "payment-intent",
+        "live_version": 8,
+        "verify_jwt": true,
+        "exact_match": false,
+        "live_chars": 8114,
+        "main_chars": 10146,
+        "live_bundle_sha256": "d6b8faee1582c73ead440614cbe983114d1e7f31aa50f69795522fb20e737f54",
+        "status": "BLOCKED"
       },
       {
         "slug": "payment-webhook",
         "live_version": 3,
         "verify_jwt": false,
         "exact_match": true,
-        "observed_difference": "Entry point matches main; callback signature verification and idempotent runtime processing remain open.",
-        "status": "PASS_SOURCE_PARITY",
+        "live_chars": 3356,
+        "main_chars": 3356,
         "live_bundle_sha256": "1a415557f2fccaec6704fcc01a4b71dbaedc95b5f9c611fef23781c4b18d8642",
-        "repo_blob_sha": "1fd9f87d9b8628ed0b4468ee6d49201548548738",
-        "live_entrypoint_chars": 3356,
-        "repo_entrypoint_chars": 3356
+        "status": "PASS_SOURCE_PARITY"
+      },
+      {
+        "slug": "paymob-webhook",
+        "live_version": 10,
+        "verify_jwt": false,
+        "exact_match": false,
+        "live_chars": 11538,
+        "main_chars": 12376,
+        "live_bundle_sha256": "f26fe1580e66c7f8cb9b885d5bccf4a44e49aa74874b3fe28dd7f9c5ed181cca",
+        "status": "BLOCKED"
+      },
+      {
+        "slug": "digital-page-payment-intent",
+        "live_version": 5,
+        "verify_jwt": true,
+        "exact_match": false,
+        "live_chars": 5345,
+        "main_chars": 6532,
+        "live_bundle_sha256": "8aa3d2e9c025e7b74d4d1847e8a6744bc84a9ded7cfc0c721f9604efd177af4b",
+        "status": "BLOCKED"
+      },
+      {
+        "slug": "subscription-payment-intent",
+        "live_version": 4,
+        "verify_jwt": true,
+        "exact_match": false,
+        "live_chars": 5196,
+        "main_chars": 11100,
+        "live_bundle_sha256": "4466345787ea6b10a29b1dd63e9f0ab3cae640e9bb4d8ecb6d09445809e077e5",
+        "status": "BLOCKED"
+      },
+      {
+        "slug": "financial-journal",
+        "live_version": 3,
+        "verify_jwt": true,
+        "exact_match": false,
+        "live_chars": 1591,
+        "main_chars": 3387,
+        "live_bundle_sha256": "79ee18d0544e7cab8fe33fe84c27a5017d1163f411eb5b9e07b99fd79e16e366",
+        "status": "BLOCKED"
+      },
+      {
+        "slug": "smm-gateway",
+        "live_version": 13,
+        "verify_jwt": true,
+        "exact_match": true,
+        "live_chars": 20040,
+        "main_chars": 20040,
+        "live_bundle_sha256": "a45cee9f5c90beba2c2409ba4fe2927f5be3df4965fb3929f5b7d467b3121b72",
+        "status": "DEFERRED_SOURCE_MATCH_RUNTIME_NOT_VERIFIED"
+      },
+      {
+        "slug": "directory-listings",
+        "live_version": 16,
+        "verify_jwt": false,
+        "exact_match": false,
+        "live_chars": 46907,
+        "main_chars": 51305,
+        "live_bundle_sha256": "13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0",
+        "status": "BLOCKED"
       }
     ],
-    "interpretation": "Historical 2026-11-14 snapshot. Superseded by critical_edge_function_source_parity_check_20261117, which confirms seven live entrypoints differ from current main, including directory-listings v16."
+    "production_mutation": "NONE",
+    "interpretation": "Fresh read-only source parity is 4/11 exact matches and 7/11 mismatches. This check intentionally blocks production certification until all 11 entrypoints are reconciled and the matching database/ACL/config dependencies pass. SMM remains deferred despite source parity."
   },
   "financial_journal_runtime_prerequisite_check": {
     "status": "BLOCKING_DRIFT",
@@ -3750,7 +3710,7 @@
     "interpretation": "Advisor findings are not vulnerability counts. No-policy findings require effective grant/RPC path review. The two SECURITY DEFINER lint findings refer to trigger-only functions assign_default_owner_to_unowned_business and capture_commission_rule_audit; their attached triggers are enabled, but direct EXECUTE ACL remains broader than desired. RC463 remains unrecorded and unapplied. Auth leaked-password protection remains NOT VERIFIED."
   },
   "full_platform_gate": "BLOCKED / NOT CERTIFIED",
-  "full_platform_gate_last_checked_at": "2026-11-17",
+  "full_platform_gate_last_checked_at": "2026-11-20",
   "rc431_rc438_live_rpc_recheck_20261104": {
     "checked_at": "2026-11-04",
     "method": "Read-only pg_proc function identity, proconfig and has_function_privilege queries.",
@@ -4649,7 +4609,7 @@
   },
   "directory_contact_consent_boundary": {
     "status": "BLOCKED",
-    "checked_at": "2026-11-19",
+    "checked_at": "2026-11-20",
     "live_function": {
       "slug": "directory-listings",
       "version": 16,
@@ -4672,6 +4632,7 @@
       "unexpected_live_files": []
     },
     "public_data_aggregate": {
+      "total_rows": 965,
       "published_rows": 869,
       "with_phone": 869,
       "with_address": 869,
@@ -4694,7 +4655,7 @@
       "public-directory-output-contract.mjs",
       "consent-pagination.mjs"
     ],
-    "reason": "Live directory-listings v16 returns phone/address in anonymous GET responses without the main-source consent-aware sanitizer. The RC473 consent table is absent. Main frontend exposes an owner consent action not supported by the live function.",
+    "reason": "Fresh aggregate count still shows 869 PUBLISHED rows with phone and address and 178 with secondary phone. Both public/private consent registries remain absent; the live directory-listings v16 entrypoint remains different from the consent-aware main source. No individual contact data was selected.",
     "required_main_source_files": [
       "index.ts",
       "doctor-import-contract.mjs",
@@ -4703,5 +4664,246 @@
       "public-directory-output-contract.mjs"
     ],
     "consent_table_exists": false
-  }
+  },
+  "edge_source_parity_recheck_20261120": {
+    "status": "VERIFIED_READ_ONLY",
+    "checked_at": "2026-11-20",
+    "method": "Supabase live get_edge_function index.ts exact comparison against current main source with CRLF normalized to LF. No Edge bundle was deployed.",
+    "expected_critical_functions": 11,
+    "exact_source_matches": 4,
+    "mismatches": 7,
+    "functions": [
+      {
+        "slug": "api",
+        "live_version": 17,
+        "verify_jwt": false,
+        "exact_match": true,
+        "live_chars": 16432,
+        "main_chars": 16432,
+        "live_bundle_sha256": "7fadbd2f2556a5af308b9a2bde9ade307cacec36950398aa655adf4ac48c677f",
+        "status": "PASS_SOURCE_PARITY"
+      },
+      {
+        "slug": "order-create",
+        "live_version": 8,
+        "verify_jwt": true,
+        "exact_match": false,
+        "live_chars": 10083,
+        "main_chars": 13988,
+        "live_bundle_sha256": "16f9b8bb687c33afeca14d85cb4c43af9948bd8b3ef3178990cc76ca1abea782",
+        "status": "BLOCKED"
+      },
+      {
+        "slug": "order-status-update",
+        "live_version": 4,
+        "verify_jwt": true,
+        "exact_match": true,
+        "live_chars": 1986,
+        "main_chars": 1986,
+        "live_bundle_sha256": "c8c41f70399909b9ea27ea74ccd1661fb5aeac7f15e63fd15449ba6de33ae1e6",
+        "status": "PASS_SOURCE_PARITY"
+      },
+      {
+        "slug": "payment-intent",
+        "live_version": 8,
+        "verify_jwt": true,
+        "exact_match": false,
+        "live_chars": 8114,
+        "main_chars": 10146,
+        "live_bundle_sha256": "d6b8faee1582c73ead440614cbe983114d1e7f31aa50f69795522fb20e737f54",
+        "status": "BLOCKED"
+      },
+      {
+        "slug": "payment-webhook",
+        "live_version": 3,
+        "verify_jwt": false,
+        "exact_match": true,
+        "live_chars": 3356,
+        "main_chars": 3356,
+        "live_bundle_sha256": "1a415557f2fccaec6704fcc01a4b71dbaedc95b5f9c611fef23781c4b18d8642",
+        "status": "PASS_SOURCE_PARITY"
+      },
+      {
+        "slug": "paymob-webhook",
+        "live_version": 10,
+        "verify_jwt": false,
+        "exact_match": false,
+        "live_chars": 11538,
+        "main_chars": 12376,
+        "live_bundle_sha256": "f26fe1580e66c7f8cb9b885d5bccf4a44e49aa74874b3fe28dd7f9c5ed181cca",
+        "status": "BLOCKED"
+      },
+      {
+        "slug": "digital-page-payment-intent",
+        "live_version": 5,
+        "verify_jwt": true,
+        "exact_match": false,
+        "live_chars": 5345,
+        "main_chars": 6532,
+        "live_bundle_sha256": "8aa3d2e9c025e7b74d4d1847e8a6744bc84a9ded7cfc0c721f9604efd177af4b",
+        "status": "BLOCKED"
+      },
+      {
+        "slug": "subscription-payment-intent",
+        "live_version": 4,
+        "verify_jwt": true,
+        "exact_match": false,
+        "live_chars": 5196,
+        "main_chars": 11100,
+        "live_bundle_sha256": "4466345787ea6b10a29b1dd63e9f0ab3cae640e9bb4d8ecb6d09445809e077e5",
+        "status": "BLOCKED"
+      },
+      {
+        "slug": "financial-journal",
+        "live_version": 3,
+        "verify_jwt": true,
+        "exact_match": false,
+        "live_chars": 1591,
+        "main_chars": 3387,
+        "live_bundle_sha256": "79ee18d0544e7cab8fe33fe84c27a5017d1163f411eb5b9e07b99fd79e16e366",
+        "status": "BLOCKED"
+      },
+      {
+        "slug": "smm-gateway",
+        "live_version": 13,
+        "verify_jwt": true,
+        "exact_match": true,
+        "live_chars": 20040,
+        "main_chars": 20040,
+        "live_bundle_sha256": "a45cee9f5c90beba2c2409ba4fe2927f5be3df4965fb3929f5b7d467b3121b72",
+        "status": "DEFERRED_SOURCE_MATCH_RUNTIME_NOT_VERIFIED"
+      },
+      {
+        "slug": "directory-listings",
+        "live_version": 16,
+        "verify_jwt": false,
+        "exact_match": false,
+        "live_chars": 46907,
+        "main_chars": 51305,
+        "live_bundle_sha256": "13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0",
+        "status": "BLOCKED"
+      }
+    ],
+    "production_mutation": "NONE"
+  },
+  "production_dependency_recheck_20261120": {
+    "status": "BLOCKED_READ_ONLY",
+    "checked_at": "2026-11-20",
+    "source_commit": "57862b714c0b049419204b6143b966c149682906",
+    "release_ledger": {
+      "rows": 310,
+      "latest_version": "20261110150618",
+      "exact_required_versions": 64,
+      "recorded_exact_versions": 0
+    },
+    "absent_objects": [
+      "public.mantigo_payment_provider_events",
+      "public.uq_payment_intents_one_active_per_order"
+    ],
+    "missing_subscription_columns": [
+      "provider_creation_state",
+      "provider_creation_claimed_at",
+      "client_secret_ciphertext",
+      "client_secret_iv",
+      "client_secret_key_version"
+    ],
+    "missing_rpc_names": [
+      "process_verified_provider_payment_failure",
+      "process_verified_subscription_payment_backend",
+      "process_verified_subscription_payment_failure",
+      "create_subscription_payment_intent_claimable_backend",
+      "claim_subscription_provider_intent_creation_backend",
+      "process_verified_mantigo_payment_backend"
+    ],
+    "present_but_incompatible_rpc_contracts": [
+      {
+        "signature": "post_financial_journal_backend(uuid,jsonb,jsonb)",
+        "security_definer": true,
+        "search_path": "public",
+        "postgres_execute": true,
+        "service_role_execute": false
+      },
+      {
+        "signature": "process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)",
+        "security_definer": true,
+        "search_path": "public, pg_temp",
+        "service_role_execute": true
+      },
+      {
+        "signature": "process_verified_provider_payment(character varying,character varying,character varying,character varying,character varying,character varying,boolean,numeric,character varying,numeric)",
+        "security_definer": true,
+        "search_path": "public",
+        "provider_order_parameter": false,
+        "service_role_execute": true
+      },
+      {
+        "signature": "process_verified_subscription_payment(text,text,uuid,text,numeric,text,boolean)",
+        "security_definer": true,
+        "search_path": "",
+        "provider_order_parameter": false,
+        "service_role_execute": true
+      },
+      {
+        "signature": "create_order_backend(uuid,character varying,uuid,character varying,uuid,character varying,numeric,numeric,numeric,numeric,numeric,character varying,text,text,text,jsonb,text,jsonb)",
+        "security_definer": true,
+        "search_path": "public",
+        "service_role_execute": true,
+        "actor_guard": "legacy auth.uid() = p_customer_id; RC105 service-role identity repair not recorded"
+      }
+    ],
+    "table_row_counts": {
+      "orders": 0,
+      "payment_intents": 0,
+      "payment_provider_events": 0,
+      "subscription_payment_intents": 0,
+      "digital_page_orders": 0,
+      "digital_page_payment_events": 0,
+      "mantigo_financial_ledger": 0
+    },
+    "directory_contact": {
+      "published": 869,
+      "with_phone": 869,
+      "with_address": 869,
+      "with_secondary_phone": 178,
+      "public_consent_table_exists": false,
+      "private_consent_table_exists": false
+    },
+    "production_mutation": "NONE",
+    "interpretation": "Production contains legacy fragments of the new source contract, but several critical objects, columns, RPC signatures, search_path settings and service_role ACLs are absent or incompatible. Do not deploy functions or apply migrations one-by-one."
+  },
+  "backup_manifest_validation_tool_20261120": {
+    "status": "MERGED_SOURCE_CI_PASS",
+    "pr": 875,
+    "merge_commit": "57862b714c0b049419204b6143b966c149682906",
+    "workflow_run": "https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44640871190",
+    "tests": 12,
+    "passed": 12,
+    "failed": 0,
+    "scope": "Read-only operator artifact/evidence verifier; validates .age encryption, SHA-256, decryption, plaintext leftovers, off-site separation/retrieval, separate PostgreSQL 17 restore evidence, RPO/RTO, independent reviewer, and rollback/acceptance fields.",
+    "limitation": "No real database/Storage export, off-site backup, Vault recovery, restore, RPO/RTO measurement or rollback rehearsal was performed."
+  },
+  "p0_mantigo_global_authorization_recheck_20261120": {
+    "status": "VERIFIED_READ_ONLY_SOURCE_REPAIR_MERGED",
+    "checked_at": "2026-11-20",
+    "source_migration": "20261119040000_rc484_registry_backed_is_platform_admin.sql",
+    "source_pr": 870,
+    "source_merge_commit": "902e4059c76da7b5da3c6ca354a11eefdd36ed4f",
+    "live_helper": "SECURITY INVOKER; search_path=public; still checks active ADMIN/SUPER_ADMIN memberships rather than private.platform_admins",
+    "live_registry": {
+      "rows": 1,
+      "rls_enabled": true,
+      "force_rls": false,
+      "helper_owner": "postgres",
+      "helper_owner_bypassrls": true
+    },
+    "dependent_policies": {
+      "count": 57,
+      "tables": 24
+    },
+    "exact_release_migration_recorded": false,
+    "isolated_postgres17_adversarial_tests": "PASS",
+    "production_mutation": "NONE",
+    "release_status": "BLOCKED_NOT_CERTIFIED"
+  },
+  "chronological_replay_evidence": "2026-11-19 RC484 exact-head isolated replay run 44598309101 restored the captured schema-only checkpoint 20261008222845 and applied 99 later migrations in timestamp order; RC484 adversarial PostgreSQL 17 tests passed in run 44598309128. This is not a real backup restore and has no Production effect."
 }
