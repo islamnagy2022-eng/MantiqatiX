@@ -44,6 +44,8 @@ for (const name of functions) {
   assert.equal(signatureHeader(migration, name), signatureHeader(oldSource, name),
     `${name} signature must remain unchanged`);
   assert.match(newBlock, /SECURITY DEFINER/i, `${name} must remain SECURITY DEFINER`);
+  assert.match(newBlock, /SET search_path TO ''/i, `${name} must pin search_path to empty`);
+  assert.doesNotMatch(newBlock, /SET search_path TO 'public'/i, `${name} must not retain public search_path`);
   assert.match(newBlock, /public\.is_platform_admin\(\)/,
     `${name} platform-root path must use the RC484 registry helper`);
   assert.doesNotMatch(newBlock, /permissions\s*->>\s*'scope'|permissions\s*->>\s*'full_control'/i,
