@@ -3436,3 +3436,19 @@ Evidence: `docs/audits/PASS_1350_1359_SECURITY_DEFINER_RLS_GRANTS_REVIEW_2026112
 - [ ] 1369 — Add disposable PostgreSQL preservation/idempotency tests and verify chronological replay before any release consideration.
 
 Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.md`; Issue #906. No Production rows read or mutated.
+
+
+## PASS 1370–1379 — Platform-admin helper authorization live recheck — 2026-11-20
+
+- [x] 1370 — Recheck live `mnty_can_platform_admin()`, effective EXECUTE grants, and five dependent RLS policies using read-only Production SQL.
+- [x] 1371 — Confirm live helper remains SECURITY DEFINER with `search_path=public, pg_temp`, authenticated EXECUTE true, anon false, and body `mnty_can('admin',NULL,NULL,NULL)`.
+- [x] 1372 — Confirm Production migration ledger has 310 rows through `20261110150618`; RC464, RC471, and RC484 are absent.
+- [x] 1373 — Inspect existing RC464/RC471 source repairs, their R7 negative/positive authorization tests, and inclusion in the required migration chain; do not create duplicate SQL.
+- [x] 1374 — Verify merged PR #742 candidate CI: RC464 PostgreSQL run 44048036994; MantiGO Platform Admin Scope/R7 run 44048037021; chronological replay 44048037316; migration uniqueness/collision/history checks passed.
+- [x] 1375 — Update P0 Issue #867 with the fresh live recheck and source-CI evidence.
+- [x] 1376 — Record findings in `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`.
+- [x] 1377 — Update continuity, master TODO, session log, and release checklist.
+- [ ] 1378 — Complete coordinated migration/Edge release only after the separate backup/restore, payment, privacy, and full migration/Edge parity gates pass.
+- [ ] 1379 — After authorized rollout, verify live helper body/owner/SECURITY DEFINER/search_path/ACL, five dependent RLS policies, all eight global callers, and negative tenant-role/positive registry-admin tests.
+
+Evidence: audit file; P0 Issue #867 comments 7045989396 and 7046157101; merged PR #742. Read-only Production inspection only; no function invocation or Production mutation.
