@@ -21,6 +21,8 @@ for (const command of ["INSERT", "UPDATE", "DELETE"]) {
   );
   assert.match(migration, policy, "missing restrictive anonymous-auth guard for " + command);
 }
+assert.ok(migration.includes("(SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE"), "Storage guards must fail closed when is_anonymous is missing");
+assert.ok(integration.includes("RC488_MISSING_ANONYMOUS_CLAIM_WRITE_SUCCEEDED"), "missing Storage missing-claim regression");
 assert.doesNotMatch(migration, /FOR\s+SELECT/i,
   "RC488 must not restrict public profile-media reads");
 assert.ok(migration.includes("mantiqatix-profile-media") === false,
