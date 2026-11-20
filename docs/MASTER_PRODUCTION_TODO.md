@@ -4621,7 +4621,7 @@ Evidence: `docs/audits/PASS_1470_1479_ANONYMOUS_POLICY_MATRIX_20261120.md`; Issu
 - [x] Confirm raw-anon RC479 revoke does not block anonymous Auth JWTs using role `authenticated`.
 - [x] Confirm live active-provider policy targets authenticated and authenticated retains SELECT to all 19 columns, including owner_user_id/settings.
 - [x] Add disposable baseline reproduction plus test-only restrictive-policy overlay and confirmed-user compatibility assertion.
-- [x] Add static validator and PostgreSQL 16 workflow.
+- [x] Add static validator and PostgreSQL 16 workflow; RC479 run 44794969322 and combined RC464/RC479 run 44794969419 passed; merged PR #936 (c77240643002d713ed69d223e2d4a9792829308e).
 - [ ] Generate actual forward-only RESTRICTIVE FOR SELECT migration with Supabase CLI; keep existing owner ALL DML policy unchanged and preserve curated public Edge projection.
 - [ ] Run real-migration PostgreSQL integration, full chronological replay and coordinated release gates.
 
