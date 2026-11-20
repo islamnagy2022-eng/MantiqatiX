@@ -3445,7 +3445,7 @@ Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.m
 - [x] 1372 — Trace the helper through `mnty_can()` and `mnty_active_membership()`; confirm tenant OWNER/ADMIN role mapping can satisfy the global `admin` permission without the protected platform-admin registry.
 - [x] 1373 — Verify helper and caller EXECUTE privileges for authenticated; anon cannot execute the helper.
 - [x] 1374 — Identify four authenticated-callable SECURITY DEFINER callers: global ad creation, digital-page fulfillment, MantiGO captain review, and MantiGO financial configuration.
-- [x] 1375 — Compare the finding with the separate RC484 `is_platform_admin()` remediation; record that `mnty_can_platform_admin()` needs explicit coverage too.
+- [x] 1375 — Inspect exact RC484 migration `20261119040000_rc484_registry_backed_is_platform_admin.sql`; confirm it updates `is_platform_admin()` only and does not reference `mnty_can_platform_admin()`.
 - [x] 1376 — Add the additional live finding and four callers to P0 Issue #867 (comment 7045989396).
 - [x] 1377 — Record evidence in `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`.
 - [ ] 1378 — Implement registry-backed helper correction and disposable PostgreSQL adversarial tests for tenant OWNER/ADMIN denial and registry-only platform-admin success.
