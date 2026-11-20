@@ -2807,3 +2807,16 @@ Evidence: `docs/audits/PASS_1340_1349_LIVE_EDGE_PARITY_CONSENT_POLICY_20261120.m
 The canonical release contract contains 64 exact required migration identifiers; a fresh comparison with the 310-row live ledger found **0/64** recorded, latest live version `20261110150618`. A read-only PostgreSQL catalog/information_schema recheck of the 74 granular object contracts found **31 present and 43 absent**. This is a migration identity plus physical object drift finding; it does not prove all intended migration effects are absent. Exact function grants/owners/search_path, RLS policies, overloads and runtime behavior remain separate checks. No application rows were selected and no Production mutation/deployment occurred.
 
 Evidence: `docs/audits/PASS_1340_1349_LIVE_EDGE_PARITY_CONSENT_POLICY_20261120.md`.
+
+
+## Latest security checkpoint — Pass 1350–1359 — SECURITY DEFINER and RLS/grant review (2026-11-20)
+
+Fresh read-only Supabase Security Advisor reports 9 RLS-enabled/no-policy tables, 1 anon-callable SECURITY DEFINER and 65 authenticated-callable SECURITY DEFINER functions. Catalog inventory found 149 public SECURITY DEFINER functions total; all have explicit function-level search_path settings, 28 use an empty search path and 91 use search_path=public. The anon-callable function is the targeted-ad public discovery RPC; live definition has empty search_path and RC451 source explicitly preserves anon execution for approved public ads with a 1–50 limit.
+
+Representative authenticated functions reviewed include MantiGO bid/cash-payment, digital-page payment-intent claim, platform global-ad creation, active-membership, scoped HR list, financial membership and catalog upsert. The reviewed paths include caller identity or scoped membership/role checks, but this is not a full audit of all 65 callable functions.
+
+Anon/authenticated have no CREATE on public. Neither browser role has SELECT/INSERT on the nine RLS-enabled/no-policy tables inspected. Service role has SELECT/INSERT on directory claim requests, source permission evidence and public directory listings only among that set. No blanket REVOKE was performed; preserve legitimate workflows until each function is reviewed.
+
+No Production rows or personal data selected; no Production mutation. Production remains BLOCKED / NOT CERTIFIED.
+
+Evidence: `docs/audits/PASS_1350_1359_SECURITY_DEFINER_RLS_GRANTS_REVIEW_20261120.md`.
