@@ -4483,3 +4483,15 @@ Evidence: `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`;
 - [ ] Apply only as part of the coordinated migration/Edge release after backup/restore, payment/privacy E2E and rollback gates; post-verify exact live function bodies, ACL, search_path and behavior.
 
 Evidence: `docs/audits/PASS_1380_1389_SECURITY_DEFINER_DELEGATION_AND_LIVE_DRIFT_20261120.md`; Issues #884 and #911.
+
+
+### First 20 direct-auth SECURITY DEFINER functions — 2026-11-20
+
+- [x] Review first 20 full function bodies and classify actor binding, resource ownership, tenant/business/branch scope, state transitions and delegated global authorization.
+- [x] Open P1 #912 for MantiGO bid acceptance missing OFFERED-state precondition.
+- [x] Open P1 #913 for live customer ride RPC exposing captain phone/plate before bid acceptance; RC477 source repair exists.
+- [x] Open P1 #914 for live captain earnings RPC referencing absent ledger columns; RC476 source repair exists.
+- [x] Update #92/#94/#118 for RC471 global MantiGO authorization and financial report drift.
+- [ ] Continue full-body review of remaining 39 direct-auth SECURITY DEFINER functions; maintain production block until all release gates and live verification pass.
+
+Evidence: `docs/audits/PASS_1390_1399_FIRST_20_DIRECT_AUTH_DEFINERS_20261120.md`.
