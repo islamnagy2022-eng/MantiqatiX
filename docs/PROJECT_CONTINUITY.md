@@ -1,3 +1,17 @@
+## Latest execution checkpoint — Pass 1300–1309 — 2026-11-20
+
+- PR #897 merged at `e5d5aa42152bdd41b49e2e0419122e831bc7301b`; exact workflow run 44683168406 passed both `source-contract` and `consent-postgres`.
+- Fresh read-only Production recheck: 310 migration rows through `20261110150618`; directory consent registry absent from public/private; `directory-listings` v16 remains without RC473 dependencies.
+- `is_platform_admin()` still derives platform-wide access from ACTIVE tenant ADMIN/SUPER_ADMIN membership; SECURITY INVOKER, `search_path=public`; registry FORCE RLS false. 56 public + 1 storage RLS policies still reference the helper.
+- Security Advisor: 9 RLS-enabled/no-policy INFO; 1 anon SECURITY DEFINER WARN; 65 authenticated SECURITY DEFINER WARN; leaked-password protection disabled WARN. Treat these as scoped review findings, not confirmed exploit counts.
+- Uploaded R7 ZIP integrity PASS, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`; master directive SHA-256 `b51078e5aa164067c46347fd327c7230c5968f3cd36df5a354691504a3364ee2`. Preserve Android wrapper; R7 remains reference-only.
+- No Production mutation occurred. Full platform remains **BLOCKED / NOT CERTIFIED** until operator-owned encrypted backup/Storage export, Vault recovery, isolated PostgreSQL 17 restore/rollback with measured RPO/RTO, migration reconciliation, coordinated Edge release, payment sandbox and negative privacy/RLS tests are complete.
+- Evidence: `docs/audits/PASS_1300_1309_POST_MERGE_PRODUCTION_RECHECK_20261120.md`.
+
+**Next:** complete the operator-controlled backup/restore gate, then rehearse the ordered database migration and complete Edge bundle as one release. Do not deploy RC473, RC484 or mismatched payment/directory functions independently.
+
+---
+
 ## Latest execution checkpoint — Pass 1295–1299 — 2026-11-20 (RC473 endpoint adversarial tests)
 
 - PR #897 merged as `e5d5aa42152bdd41b49e2e0419122e831bc7301b`. Added endpoint source-contract assertions for auth ordering, invalid scopes/types, listing eligibility, owner/business authorization binding, actor spoofing, idempotency/race handling and revocation attribution.

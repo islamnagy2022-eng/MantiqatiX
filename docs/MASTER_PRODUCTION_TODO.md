@@ -1,3 +1,21 @@
+# Latest execution checkpoint — 2026-11-20 — Pass 1300–1309
+
+**Current main observed:** `a009bc83507fe0ffc0f6d8c599f924517f3d0193`  
+**Full platform gate:** **BLOCKED / NOT CERTIFIED**  
+**Production mutation policy:** read-only until the coordinated backup, restore, migration, Edge, privacy, authorization and payment release gates are evidenced.
+
+- PR #897 merged; exact workflow 44683168406: `source-contract` and `consent-postgres` PASS.
+- Fresh Production ledger: 310 migrations through `20261110150618`; directory consent registry absent in public/private; live `directory-listings` v16 lacks RC473 dependencies.
+- Live `is_platform_admin()` remains tenant-role-derived (ACTIVE ADMIN/SUPER_ADMIN), SECURITY INVOKER, `search_path=public`; `private.platform_admins` FORCE RLS=false; 56 public + 1 storage policies depend on the helper.
+- Security Advisor: 9 RLS-enabled/no-policy INFO, 1 anon SECURITY DEFINER WARN, 65 authenticated SECURITY DEFINER WARN, leaked-password protection disabled WARN. Review each contract; do not blanket-revoke.
+- R7 ZIP is intact but reference-only; preserve the incomplete Android wrapper and do not ship it as a native release.
+- No Production mutation occurred. The source/CI test pass is not live Production certification.
+- Evidence: `docs/audits/PASS_1300_1309_POST_MERGE_PRODUCTION_RECHECK_20261120.md`.
+
+**Next:** operator-run encrypted DB + Storage backup, Vault recovery and independent PostgreSQL 17 restore/rollback with measured RPO/RTO; then rehearse all required migrations and compatible Edge bundles together with Paymob sandbox and negative privacy/RLS tests.
+
+---
+
 # Latest execution checkpoint — 2026-11-20 — Pass 1220–1229
 
 **Current main:** `57862b714c0b049419204b6143b966c149682906`  

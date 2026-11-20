@@ -1,3 +1,16 @@
+## PASS 1300–1309 — Post-merge and live Production recheck — 2026-11-20
+
+- Verified PR #897 merge and exact workflow run 44683168406: both `source-contract` and `consent-postgres` completed successfully.
+- Rechecked the uploaded archive and master technical directive hashes; ZIP integrity passed. R7 remains reference-only.
+- Fresh read-only Production SQL: 310 migrations through `20261110150618`; directory consent table absent from public/private; `is_platform_admin()` still derives global authority from ACTIVE tenant ADMIN/SUPER_ADMIN membership, SECURITY INVOKER, `search_path=public`; platform-admin registry FORCE RLS remains false.
+- Counted 56 public-schema and 1 storage-schema RLS policies referencing the generic helper (57 total).
+- Refreshed Security Advisor: 9 RLS-enabled/no-policy INFO findings, 1 anon SECURITY DEFINER WARN, 65 authenticated SECURITY DEFINER WARN and leaked-password protection disabled WARN. Findings require scoped review; no blanket grants/revokes.
+- No Production mutation was performed. Source tests do not establish live consent enforcement or platform-admin remediation.
+- Full platform remains **BLOCKED / NOT CERTIFIED** pending encrypted off-site backup/Storage export, Vault recovery, isolated PostgreSQL 17 restore and rollback/RPO/RTO evidence, chronological migration reconciliation, coordinated Edge parity, sandbox payment and negative authorization/privacy E2E.
+- Evidence: `docs/audits/PASS_1300_1309_POST_MERGE_PRODUCTION_RECHECK_20261120.md`, PR #897, workflow run 44683168406, read-only Supabase SQL and Security Advisor snapshot.
+
+---
+
 ## PASS 1295–1299 — RC473 consent endpoint adversarial contract tests — 2026-11-20
 
 - Merged PR #897 (`e5d5aa42152bdd41b49e2e0419122e831bc7301b`) adding explicit source-contract checks for auth-before-action, scope/type validation, claimed/published listing eligibility, exact owner/business membership binding, actor spoof resistance, idempotent grants/unique-index races, and attributed revocation.
