@@ -3513,3 +3513,12 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Confirmed medical appointment active doctor/time unique index protects concurrent booking; payment-intent authorization includes owner/membership, pricing snapshot and idempotency.
 - Source fixes are merged and CI/replay-tested but not applied to Production. No rows selected or functions invoked; no Production mutation.
 - Remaining direct-auth functions to review: 39. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-20 — Pass 1400–1409 — MantiGO data-access and delegated RPC review
+
+- Reviewed direct-auth functions 21–30: MantiGO captain earnings, customer/captain/open ride listing, fare locking, ratings, notification reads, ride matching, active membership and scoped employee listing.
+- Confirmed captain earnings still references missing legacy ledger columns (RC476, #914); customer ride listing still exposes phone/plate before acceptance (RC477, #913); open-ride listing still lacks verified/available captain gate (RC478, #911).
+- Confirmed source migrations and CI/replay are present; live ledger remains at 310 entries through 20261110150618 and these migrations are unapplied.
+- No application rows or sensitive values selected; no RPC invoked; no Production mutation.
+- Remaining direct-auth SECURITY DEFINER functions: 29. Production remains BLOCKED / NOT CERTIFIED.
