@@ -3372,3 +3372,19 @@ Evidence: `docs/audits/PASS_1200_1209_R7_SOURCE_MAP_ANDROID_PRESERVATION_2026111
 - [x] 1329 — Confirmed source-only scope: no Production DB/migration/RLS/GRANT/Auth/Storage/Edge/payment/wallet/settlement/customer-data mutation; no production deployment claimed. Production remains BLOCKED / NOT CERTIFIED pending the independent backup/restore and coordinated release gates.
 
 Evidence: `docs/audits/PASS_1320_1329_DIRECTORY_CONTACT_CONSENT_PAGINATION_20261120.md`, PR #901, merge commit `a4c803a8d7e851ab9d591d70e6fdeb65c4e8ae19`, exact-head workflow runs listed in the audit.
+
+
+## PASS 1330–1339 — Directory direct database boundary recheck — 2026-11-20
+
+- [x] 1330 — Confirmed the connected Production project is ACTIVE_HEALTHY on PostgreSQL 17.6.1.155.
+- [x] 1331 — Confirmed public.public_directory_listings is a base table (relkind r), not a view.
+- [x] 1332 — Confirmed RLS is enabled on public.public_directory_listings.
+- [x] 1333 — Confirmed FORCE RLS is enabled on public.public_directory_listings.
+- [x] 1334 — Confirmed effective anon SELECT privilege on the base directory table is false.
+- [x] 1335 — Confirmed effective authenticated SELECT privilege on the base directory table is false.
+- [x] 1336 — Confirmed service_role retains SELECT for the Edge server-side path.
+- [x] 1337 — Confirmed no RLS policies exist on the base directory table; no browser-role table access is granted.
+- [x] 1338 — Confirmed public.directory_listing_contact_consents remains absent in Production; RC473 is not applied.
+- [x] 1339 — Added read-only evidence to P0 Issue #876 and explicitly recorded that consent expiry is not implemented in RC473 source; no row data or personal data was selected and no Production mutation occurred.
+
+Evidence: `docs/audits/PASS_1330_1339_DIRECTORY_DB_BOUNDARY_RECHECK_20261120.md`, Issue #876 comment 7043684354. The direct table boundary is not the public disclosure path; the deployed directory-listings Edge Function remains the privacy-critical route. Issue #876 remains BLOCKED / NOT CERTIFIED.
