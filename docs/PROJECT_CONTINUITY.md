@@ -2848,6 +2848,6 @@ Evidence: `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`;
 
 ## Authorization follow-through — RC484 coverage boundary (2026-11-20)
 
-The exact source migration `supabase/migrations/20261119040000_rc484_registry_backed_is_platform_admin.sql` was inspected. It changes `public.is_platform_admin()` and the protected `private.platform_admins` registry, but contains no reference to `public.mnty_can_platform_admin()`. Therefore the second helper and its four SECURITY DEFINER callers remain a separate open correction even after RC484. Do not close the global authorization gate based only on RC484.
+The exact source migration `supabase/migrations/20261119040000_rc484_registry_backed_is_platform_admin.sql` was inspected. It changes `public.is_platform_admin()` and the protected `private.platform_admins` registry, but contains no reference to `public.mnty_can_platform_admin()`. The latter is already corrected in source by RC464 and continued by RC471; RC484 is not a substitute. Both source chains remain part of the coordinated Production release, and the live helper must be verified after deployment.
 
 Evidence: `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`; P0 Issue #867 comment 7045989396.
