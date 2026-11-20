@@ -203,6 +203,60 @@ test("backup manifest and encrypted artifacts cannot be stored in the repository
   assert.match(r.stderr,/stored outside the Git repository/);
 });
 
+
+test("repository backup restriction cannot be bypassed through a symlinked manifest directory",t=>{
+  const f=fixture(t);
+  const repositoryTarget=fs.mkdtempSync(path.join(process.cwd(),"backup-gate-symlink-target-"));
+  const symlinkParent=fs.mkdtempSync(path.join(os.tmpdir(),"mnty-backup-symlink-parent-"));
+  const alias=path.join(symlinkParent,"linked-backup");
+  t.after(()=>{
+    fs.rmSync(repositoryTarget,{recursive:true,force:true});
+    fs.rmSync(symlinkParent,{recursive:true,force:true});
+  });
+  for(const artifact of f.manifest.artifacts) {
+    fs.copyFileSync(path.join(f.root,artifact.path),path.join(repositoryTarget,artifact.path));
+  }
+  fs.copyFileSync(f.manifestPath,path.join(repositoryTarget,"manifest.json"));
+  try {
+    fs.symlinkSync(repositoryTarget,alias,"dir");
+  } catch(error) {
+    if(["EPERM","EACCES","ENOTSUP"].includes(error.code)) return t.skip("directory symlinks are unavailable");
+    throw error;
+  }
+  const r=spawnSync(process.execPath,[path.join(alias,"manifest.json")],{
+    encoding:"utf8",
+    env:{...process.env,AGE_IDENTITY_FILE:f.identity}
+  });
+  assert.notEqual(r.status,0);
+  assert.match(r.stderr,/stored outside the Git repository/);
+});
+
+test("recovery identity cannot be hidden inside the repository through a symlinked parent",t=>{
+  const f=fixture(t);
+  const repositoryKeyDir=fs.mkdtempSync(path.join(process.cwd(),"backup-gate-key-symlink-target-"));
+  const symlinkParent=fs.mkdtempSync(path.join(os.tmpdir(),"mnty-key-symlink-parent-"));
+  const alias=path.join(symlinkParent,"linked-key");
+  t.after(()=>{
+    fs.rmSync(repositoryKeyDir,{recursive:true,force:true});
+    fs.rmSync(symlinkParent,{recursive:true,force:true});
+  });
+  const repositoryIdentity=path.join(repositoryKeyDir,"age-identity.txt");
+  fs.copyFileSync(f.identity,repositoryIdentity);
+  fs.chmodSync(repositoryIdentity,0o600);
+  try {
+    fs.symlinkSync(repositoryKeyDir,alias,"dir");
+  } catch(error) {
+    if(["EPERM","EACCES","ENOTSUP"].includes(error.code)) return t.skip("directory symlinks are unavailable");
+    throw error;
+  }
+  const r=spawnSync(process.execPath,[f.manifestPath],{
+    encoding:"utf8",
+    env:{...process.env,AGE_IDENTITY_FILE:path.join(alias,"age-identity.txt")}
+  });
+  assert.notEqual(r.status,0);
+  assert.match(r.stderr,/stored outside the Git repository/);
+});
+
 test("restore reviewer cannot be the backup operator",t=>{
   const f=fixture(t);
   f.manifest.restore_rehearsal.reviewer=f.manifest.backup_operator;
