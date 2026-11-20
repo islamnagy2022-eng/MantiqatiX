@@ -1,3 +1,23 @@
+# Latest execution checkpoint — 2026-11-20 — Pass 1220–1229
+
+**Current main baseline:** `57862b714c0b049419204b6143b966c149682906`  
+**Production project:** `moyhiluyhjsujhwlyeuu` — ACTIVE_HEALTHY, PostgreSQL 17.6.1.155, Free plan  
+**Full platform gate:** **BLOCKED / NOT CERTIFIED**  
+**Production changes in this pass:** NONE
+
+- PR #870 / RC484 is merged at `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`. Dedicated PostgreSQL 17 adversarial tests passed (run 44598309128), and the 99-migration chronological replay from the captured Production schema checkpoint passed (run 44598309101). These are source/isolated replay results, not Production deployment.
+- Fresh read-only Production reconciliation against the 64 exact required migration identifiers returned 310 ledger rows through `20261110150618`, **0/64 required identifiers present**. Treat this as migration-history identity mismatch; do not fabricate ledger rows or replay directly against Production.
+- Fresh exact byte comparisons of all 11 critical Edge Functions against current `main`: 4 match and 7 differ. Drift remains in `order-create`, `payment-intent`, `paymob-webhook`, `digital-page-payment-intent`, `subscription-payment-intent`, `financial-journal`, and `directory-listings`. Do not deploy them individually.
+- Payment data tables inspected are empty (zero payment intents, provider events, subscription payment intents and digital-page payment events). Current payment/provider correlation, subscription claims/encrypted checkout, atomic failure RPC, digital-page finalizer and RC449A/RC450 journal contracts remain absent or incomplete in Production.
+- `public.is_platform_admin()` remains the old SECURITY INVOKER helper with `search_path=public`; the protected platform registry still lacks FORCE RLS; its 57 dependent RLS policies across 24 tables remain live. RC484 is not applied. `mnty_can_platform_admin()` also remains a generic null-scope membership helper; RC464/RC471 are not applied.
+- Fresh Supabase Security Advisor: 94 lint entries (1 INFO, 93 WARN): 9 RLS-enabled/no-policy INFO, 1 anon SECURITY DEFINER, 65 authenticated SECURITY DEFINER, 90 anon-policy warnings, and leaked-password protection disabled. Performance Advisor: 132 unindexed foreign keys, 375 auth/RLS initplan, 70 unused indexes, 28 multiple permissive-policy findings. These are review inventories, not proof every warning is exploitable.
+- Backup/restore remains NOT VERIFIED. PR #875 merged the manifest/evidence verifier, but no live export, Storage export, Vault key recovery, off-site transfer, isolated restore, measured RPO/RTO or rollback rehearsal was executed. The Free plan and missing operator credentials/storage destination prevent this session from providing the required evidence.
+- Issues #867, #852 and #857 remain open pending actual Production remediation and post-deployment verification. Full evidence: `docs/audits/PASS_1220_1229_PRODUCTION_RELEASE_AND_EDGE_RECHECK_20261120.md`; refreshed release manifest: `docs/release/production-migration-reconciliation.json`.
+
+**Next:** continue P0 source/CI remediation and per-object security review; prepare the coordinated migration + Edge release, but do not apply or deploy until off-site backup/restore/rollback evidence and the approved Production release prerequisites exist.
+
+---
+
 ## Latest execution checkpoint — Pass 1200–1209 — 2026-11-19 (R7 source map and Android preservation)
 
 - Verified the exact uploaded `bizcatalog-manager (11).zip`: 46,114,882 bytes, `unzip -t` PASS, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`.
