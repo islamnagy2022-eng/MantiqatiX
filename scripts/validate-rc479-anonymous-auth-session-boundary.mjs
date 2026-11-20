@@ -41,6 +41,8 @@ assert.ok(!/FOR (ALL|INSERT|UPDATE|DELETE)/i.test(forwardMigration),
 assert.ok(fixture.includes(
   "GRANT SELECT ON TABLE public.marketing_provider_profiles TO anon, authenticated, service_role;"
 ), "fixture must model the pre-RC479 grants");
+assert.ok(fixture.includes("GRANT UPDATE ON TABLE public.marketing_provider_profiles TO authenticated;"),
+  "fixture must provide the existing owner update privilege");
 assert.ok(fixture.includes('"Owners manage their marketing provider profile"')
   && fixture.includes("auth.uid() = owner_user_id"),
   "fixture must model the existing owner-scoped DML policy");
