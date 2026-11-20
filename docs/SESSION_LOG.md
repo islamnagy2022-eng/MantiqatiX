@@ -3491,3 +3491,13 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Verified successful candidate CI on PR #742 head: RC464 PostgreSQL 44048036994, R7/RC471 44048037021, chronological replay 44048037316, uniqueness 44048037168, collision 44048037131, history immutability 44048037034.
 - Updated P0 Issue #867 with fresh live evidence and CI results. No application rows selected, no function invoked, no Production mutation.
 - Next: coordinated release after backup/restore, migration/Edge parity and payment/privacy gates; then verify live helper, policies and callers. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-20 — Pass 1380–1389 — SECURITY DEFINER delegated paths and live drift
+
+- Recounted 65 authenticated-callable SECURITY DEFINER functions: 59 direct `auth.uid()`, six delegated/no direct reference. Inspected all six call chains and `mnty_platform_has_permission`.
+- Fresh live MantiGO open-ride function still exposes customer names and pickup/destination to any authenticated caller; RC478 source/tests are merged and CI-green but unapplied. Opened P1 Issue #911.
+- Fresh live commission functions still use membership-derived admin/tenant-only finance checks; RC467 source/tests are merged and replay-green but unapplied. Updated P1 Issue #884.
+- RC478 privacy integration run 44239964164 and replay 44239964551 passed. RC467 validator and behavioral SQL test passed within replay 44239964551.
+- No application rows or sensitive customer/financial data selected; no RPC invoked; no Production mutation.
+- Remaining: full-body review of 59 direct-auth functions and coordinated release after backup/restore, payment/privacy and Edge parity gates. Production remains BLOCKED / NOT CERTIFIED.
