@@ -227,9 +227,9 @@ test("repository backup restriction cannot be bypassed through a symlinked manif
     if(["EPERM","EACCES","ENOTSUP"].includes(error.code)) return t.skip("directory symlinks are unavailable");
     throw error;
   }
-  const r=spawnSync(process.execPath,[path.join(alias,"manifest.json")],{
+  const r=spawnSync(process.execPath,[script,path.join(alias,"manifest.json")],{
     encoding:"utf8",
-    env:{...process.env,AGE_IDENTITY_FILE:f.identity,BACKUP_GATE_DEBUG_PATHS:"1"}
+    env:{...process.env,AGE_IDENTITY_FILE:f.identity}
   });
   assert.notEqual(r.status,0,r.stdout+r.stderr);
   assert.match(r.stderr,/stored outside the Git repository/);
@@ -257,9 +257,9 @@ test("recovery identity cannot be hidden inside the repository through a symlink
     if(["EPERM","EACCES","ENOTSUP"].includes(error.code)) return t.skip("directory symlinks are unavailable");
     throw error;
   }
-  const r=spawnSync(process.execPath,[f.manifestPath],{
+  const r=spawnSync(process.execPath,[script,f.manifestPath],{
     encoding:"utf8",
-    env:{...process.env,AGE_IDENTITY_FILE:path.join(alias,"age-identity.txt"),BACKUP_GATE_DEBUG_PATHS:"1"}
+    env:{...process.env,AGE_IDENTITY_FILE:path.join(alias,"age-identity.txt")}
   });
   assert.notEqual(r.status,0,r.stdout+r.stderr);
   assert.match(r.stderr,/stored outside the Git repository/);
