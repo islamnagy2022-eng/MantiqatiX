@@ -3452,3 +3452,9 @@ Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.m
 - [ ] 1379 — Keep Production blocked until the coordinated migration/Edge release, backup/restore, payment, and post-deployment authorization verification gates pass.
 
 Evidence: audit file above; Issue #867 comment 7045989396. Read-only catalog/privilege inspection only; no function invocation or Production mutation.
+
+
+- [x] 1378 — Verify exact merged RC464 candidate CI: RC464 PostgreSQL run 44048036994, R7/RC471 run 44048037021, chronological replay run 44048037316, migration uniqueness/collision/history checks all passed on PR #742 head.
+- [ ] 1379 — Keep Production blocked: fresh read-only check confirms 310 ledger rows through 20261110150618, RC464/RC471/RC484 absent, weak live helper unchanged, and five dependent RLS policies. Complete coordinated release then recheck live ACL/body/search_path/policies/callers.
+
+Evidence: audit file above; merged PR #742; no Production mutation.
