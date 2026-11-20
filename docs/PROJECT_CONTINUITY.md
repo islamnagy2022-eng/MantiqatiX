@@ -2787,3 +2787,23 @@ Read-only PostgreSQL 17 catalog inspection confirmed `public.public_directory_li
 The RC473 source schema has no `expires_at` column or expiry behavior; current owner UI describes consent as active until withdrawal. Expiry must not be claimed as implemented or tested. A separately designed expiry policy, forward-only migration, owner UI and adversarial tests remain needed before closing P0 Issue #876. Findings added to Issue #876 comment 7043684354.
 
 Evidence: `docs/audits/PASS_1330_1339_DIRECTORY_DB_BOUNDARY_RECHECK_20261120.md`. Production remains **BLOCKED / NOT CERTIFIED** pending encrypted backup/restore, Vault recovery, independent PG17 restore/rollback with measured RPO/RTO, ordered migration and Edge bundle release, and post-release live verification.
+
+
+## Latest execution checkpoint — Pass 1340–1349 — live Edge parity and consent policy (2026-11-20)
+
+Fresh read-only inspection confirms Production remains ACTIVE_HEALTHY on PostgreSQL 17.6.1.155, with 310 migration ledger entries through `20261110150618` and 42 active Edge Functions. Direct byte-for-byte comparison found all seven checked critical deployed Edge `index.ts` files differ from current GitHub main: `directory-listings`, `order-create`, `payment-intent`, `paymob-webhook`, `digital-page-payment-intent`, `subscription-payment-intent`, and `financial-journal`.
+
+The deployed `directory-listings` v16 bundle contains only three files and lacks current main's public output sanitizer and consent-pagination dependencies. The Production consent registry table remains absent. Direct base-table browser access remains denied, but the service-role public Edge path must not be considered protected until the matching sanitizer/consent implementation is deployed with its migration.
+
+Owner decision confirmed: contact consent remains active until the activity owner explicitly withdraws it. No timed expiry will be added. Decision recorded in Issue #876 comment 7043793414; Edge parity evidence recorded in Issue #857 comment 7043920765.
+
+No Production rows or personal/contact data were selected. No Production database, migration, grant, RLS, Auth, Storage, Edge, payment, wallet, settlement or deployment mutation occurred. Production remains **BLOCKED / NOT CERTIFIED** pending encrypted off-site DB + Storage backup, Vault recovery, independent PostgreSQL 17 restore/rollback with measured RPO/RTO, chronological migration/RPC reconciliation, coordinated Edge bundle release, sandbox payment and negative privacy/authorization E2E.
+
+Evidence: `docs/audits/PASS_1340_1349_LIVE_EDGE_PARITY_CONSENT_POLICY_20261120.md`.
+
+
+### Additional Pass 1348 evidence — exact migration/object recheck (2026-11-20)
+
+The canonical release contract contains 64 exact required migration identifiers; a fresh comparison with the 310-row live ledger found **0/64** recorded, latest live version `20261110150618`. A read-only PostgreSQL catalog/information_schema recheck of the 74 granular object contracts found **31 present and 43 absent**. This is a migration identity plus physical object drift finding; it does not prove all intended migration effects are absent. Exact function grants/owners/search_path, RLS policies, overloads and runtime behavior remain separate checks. No application rows were selected and no Production mutation/deployment occurred.
+
+Evidence: `docs/audits/PASS_1340_1349_LIVE_EDGE_PARITY_CONSENT_POLICY_20261120.md`.
