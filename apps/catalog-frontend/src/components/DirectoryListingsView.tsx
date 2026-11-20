@@ -3,7 +3,7 @@ import { ArrowRight, BadgeCheck, Building2, CalendarClock, CheckCircle2, Clipboa
 import { useApp } from "../context/AppContext";
 import { fetchPublicDirectoryListings, setPublicDirectoryListingContactConsent, submitDirectoryListingClaim, updateOwnedDirectoryListing, type DirectoryContactConsentScope, type PublicDirectoryListing } from "../lib/directoryListings";
 import { resolveCanonicalSpecialty } from "../data/productionDefaults";
-import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from "../utils/defaultImages";
+import { resolveDefaultImage } from "../utils/defaultImages";
 
 function specialtyLabel(value: string | null | undefined) {
   const specialty = String(value || "").trim();
@@ -33,16 +33,13 @@ function listingCategoryCoverImage(listing: PublicDirectoryListing): string {
 }
 
 function listingDefaultProfileImage(listing: PublicDirectoryListing): string {
-  const listingType = String(listing.listing_type || "").toLowerCase();
-  if (listing.claim_status !== "CLAIMED" && listingType === "doctor") return UNVERIFIED_DOCTOR_IMAGE_URL;
-  if (listing.claim_status !== "CLAIMED" && listingType === "pharmacy") return UNVERIFIED_PHARMACY_IMAGE_URL;
+  // Verification/claim status is a trust state, not an image category.
+  // Both claimed and unclaimed records use the same activity-specific artwork
+  // unless the owner supplied a valid image.
   return listingCategoryProfileImage(listing);
 }
 
 function listingDefaultCoverImage(listing: PublicDirectoryListing): string {
-  const listingType = String(listing.listing_type || "").toLowerCase();
-  if (listing.claim_status !== "CLAIMED" && listingType === "doctor") return UNVERIFIED_DOCTOR_IMAGE_URL;
-  if (listing.claim_status !== "CLAIMED" && listingType === "pharmacy") return UNVERIFIED_PHARMACY_IMAGE_URL;
   return listingCategoryCoverImage(listing);
 }
 
