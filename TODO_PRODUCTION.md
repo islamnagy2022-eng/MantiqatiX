@@ -1,3 +1,15 @@
+## PASS 1285–1294 — Directory consent live-boundary recheck — 2026-11-20
+
+- Live `directory-listings` is ACTIVE v16 with `verify_jwt=false`; its 3-file bundle lacks the consent sanitizer and consent-pagination dependencies. It does not query the consent registry and does not fail closed. Read-only SQL confirms `directory_listing_contact_consents` is absent and RC473 migration ledger version `20261118020000` is absent.
+- `public.public_directory_listings` exists, but direct anon/authenticated SELECT is denied. Aggregate-only count: 869 published listings, all 869 have phone or address fields. The remaining public disclosure path is the legacy public Edge Function output.
+- Current main already has the complete RC473 source migration, fail-closed Edge implementation, per-field sanitizer, owner consent grant/revoke, durable audit history, pagination, isolated PostgreSQL tests and exact-bundle production release gate. Source presence is not live deployment.
+- No contact values or owner IDs were selected. No Production mutation occurred. Keep #876 open and keep migration + full Edge bundle blocked until the backup/restore and coordinated release gates pass.
+- Evidence: `docs/audits/PASS_1285_1294_DIRECTORY_CONSENT_LIVE_BOUNDARY_20261120.md`.
+
+**Next:** add/verify adversarial grant/revoke endpoint tests and retain RC472/RC473 plus the complete Edge bundle in one gated release. No standalone migration or Edge deployment.
+
+---
+
 ## Deployment topology clarification — verified against current `.github/workflows/pages.yml` — 2026-11-20
 
 - The public root `/` is the catalog frontend build (the workflow's `mantiqatix-legacy-root-build` artifact); a path-adjusted copy is retained at `/legacy/`; the isolated AI Studio V6 build is at `/v6-preview/`.
