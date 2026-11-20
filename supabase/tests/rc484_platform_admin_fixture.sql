@@ -26,7 +26,6 @@ ALTER TABLE private.platform_admins ENABLE ROW LEVEL SECURITY;
 ALTER TABLE private.platform_admins FORCE ROW LEVEL SECURITY;
 REVOKE ALL ON SCHEMA private FROM PUBLIC,anon,authenticated;
 REVOKE ALL ON TABLE private.platform_admins FROM PUBLIC,anon,authenticated,service_role;
--- Mirror the current Production ACL so the RC484 migration must actively remove it.
 GRANT ALL ON TABLE private.platform_admins TO service_role;
 
 CREATE TABLE public.user_memberships(
@@ -53,30 +52,37 @@ GRANT EXECUTE ON FUNCTION public.is_platform_admin() TO authenticated;
 DO $tables$
 DECLARE
   i integer;
-  j integer:=0;
+  j integer;
   t text;
+  policy_command text;
+  policy_sql text;
 BEGIN
   FOR i IN 1..24 LOOP
     t:=CASE WHEN i=1 THEN 'scope_probe' ELSE 'scope_probe_'||lpad(i::text,2,'0') END;
     EXECUTE format('CREATE TABLE public.%I(id integer PRIMARY KEY,owner_user_id uuid,tenant_id text)',t);
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY',t);
     EXECUTE format('GRANT SELECT,INSERT,UPDATE,DELETE ON public.%I TO authenticated',t);
-    EXECUTE format(
-      'CREATE POLICY %I ON public.%I FOR SELECT TO authenticated USING (owner_user_id=(SELECT auth.uid()) OR public.is_platform_admin())',
-      'rc484_base_'||i,t
-    );
   END LOOP;
 
-  -- The production snapshot has 57 helper-dependent policies over 24 tables.
-  -- Add 33 distinct policies to the first nine fixture tables to reproduce that
-  -- blast-radius shape without importing Production data or policy contents.
-  FOR j IN 1..33 LOOP
-    i:=((j-1)%9)+1;
+  -- Mirror the live 57-policy command distribution: 18 SELECT, 17 UPDATE,
+  -- 15 DELETE and 7 ALL, without importing production expressions or data.
+  FOR j IN 1..57 LOOP
+    i:=((j-1)%24)+1;
     t:=CASE WHEN i=1 THEN 'scope_probe' ELSE 'scope_probe_'||lpad(i::text,2,'0') END;
-    EXECUTE format(
-      'CREATE POLICY %I ON public.%I FOR SELECT TO authenticated USING (public.is_platform_admin())',
-      'rc484_extra_'||j,t
+    policy_command:=CASE
+      WHEN j<=18 THEN 'SELECT'
+      WHEN j<=35 THEN 'UPDATE'
+      WHEN j<=50 THEN 'DELETE'
+      ELSE 'ALL'
+    END;
+    policy_sql:=format(
+      'CREATE POLICY %I ON public.%I FOR %s TO authenticated USING (owner_user_id=(SELECT auth.uid()) OR public.is_platform_admin())',
+      'rc484_policy_'||j,t,policy_command
     );
+    IF policy_command IN ('UPDATE','ALL') THEN
+      policy_sql:=policy_sql||' WITH CHECK (owner_user_id=(SELECT auth.uid()) OR public.is_platform_admin())';
+    END IF;
+    EXECUTE policy_sql;
   END LOOP;
 END;
 $tables$;
