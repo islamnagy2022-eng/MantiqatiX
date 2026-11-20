@@ -5018,5 +5018,252 @@
     "production_mutation": "NONE",
     "release_status": "BLOCKED_NOT_CERTIFIED"
   },
-  "chronological_replay_evidence": "2026-11-19 RC484 exact-head isolated replay run 44598309101 restored the captured schema-only checkpoint 20261008222845 and applied 99 later migrations in timestamp order; RC484 adversarial PostgreSQL 17 tests passed in run 44598309128. This is not a real backup restore and has no Production effect."
+  "chronological_replay_evidence": "2026-11-19 RC484 exact-head isolated replay run 44598309101 restored the captured schema-only checkpoint 20261008222845 and applied 99 later migrations in timestamp order; RC484 adversarial PostgreSQL 17 tests passed in run 44598309128. This is not a real backup restore and has no Production effect.",
+  "mnty_can_platform_admin_recheck_20261120": {
+    "status": "BLOCKED_NOT_DEPLOYED",
+    "checked_at": "2026-11-20",
+    "live_helper": {
+      "signature": "public.mnty_can_platform_admin()",
+      "security_definer": true,
+      "search_path": [
+        "search_path=public, pg_temp"
+      ],
+      "definition": "SELECT public.mnty_can('admin',NULL,NULL,NULL)",
+      "uses_private_platform_admins_registry": false
+    },
+    "dependent_rls_policies": {
+      "count": 5,
+      "tables": 3,
+      "policy_names": [
+        "public.digital_pages.digital_pages_admin_manage",
+        "public.mantigo_financial_config.mantigo_financial_config_admin_select",
+        "public.mantigo_financial_config.mantigo_financial_config_admin_update",
+        "public.mantigo_rate_limit_config.mantigo_rate_limit_config_admin_select",
+        "public.mantigo_rate_limit_config.mantigo_rate_limit_config_admin_update"
+      ]
+    },
+    "direct_security_definer_callers": [
+      {
+        "signature": "public.admin_create_global_ad(character varying,text,text,timestamp with time zone,timestamp with time zone)",
+        "search_path": [
+          "search_path=public, pg_temp"
+        ]
+      },
+      {
+        "signature": "public.fulfill_digital_page_publish(uuid,uuid,uuid)",
+        "search_path": [
+          "search_path=public, pg_temp"
+        ]
+      },
+      {
+        "signature": "public.review_mantigo_captain_application(uuid,uuid,text,text,text,text,jsonb)",
+        "search_path": [
+          "search_path=public"
+        ]
+      },
+      {
+        "signature": "public.set_mantigo_financial_config_backend(uuid,numeric,text)",
+        "search_path": [
+          "search_path=public"
+        ]
+      }
+    ],
+    "global_mantigo_rpcs_requiring_rc471": [
+      "public.get_mantigo_admin_dashboard_backend(uuid)",
+      "public.get_mantigo_admin_financial_report_backend(uuid,timestamp with time zone,timestamp with time zone)",
+      "public.settle_mantigo_captain_backend(uuid,text,text)",
+      "public.expire_stale_mantigo_rides_backend(uuid,integer)"
+    ],
+    "source_status": "RC464/RC471 source and disposable tests exist; exact live migration identifiers remain unrecorded.",
+    "issue": 852,
+    "production_mutation": "NONE",
+    "interpretation": "This helper is separate from public.is_platform_admin() and the RC484 issue. Five live policies and four direct SECURITY DEFINER callers still depend on a null-scope membership-based helper. Keep P0 blocked until the coordinated RC464/RC471 release and post-deploy caller/policy tests."
+  },
+  "security_advisor_snapshot_20261120": {
+    "checked_at": "2026-11-20T00:08:56.033Z",
+    "source": "Supabase Security Advisor",
+    "lint_entries": 94,
+    "levels": {
+      "INFO": 1,
+      "WARN": 93
+    },
+    "findings": {
+      "rls_enabled_no_policy": {
+        "count": 9,
+        "level": "INFO"
+      },
+      "anon_security_definer_function_executable": {
+        "count": 1,
+        "level": "WARN",
+        "function": "public.get_mnty_targeted_advertisements"
+      },
+      "authenticated_security_definer_function_executable": {
+        "count": 65,
+        "level": "WARN"
+      },
+      "auth_allow_anonymous_sign_ins": {
+        "count": 90,
+        "level": "WARN"
+      },
+      "auth_leaked_password_protection": {
+        "count": 1,
+        "level": "WARN",
+        "status": "DISABLED"
+      }
+    },
+    "catalog_policy_inventory": {
+      "policies_with_anon_or_public_role": 21,
+      "distinct_tables": 21,
+      "method": "Read-only pg_policies role-array inventory."
+    },
+    "interpretation": "Advisor counts are findings, not exploit counts. The 90 anonymous-role lint warnings are not proof of 90 anonymously exposed tables. Retain no blanket revoke; review exact policy/RPC semantics. Targeted ad discovery remains an intentional public read candidate with continued output-boundary review."
+  },
+  "performance_advisor_snapshot_20261120": {
+    "checked_at": "2026-11-20",
+    "source": "Supabase Performance Advisor",
+    "findings": {
+      "unindexed_foreign_keys": {
+        "count": 132,
+        "level": "INFO"
+      },
+      "auth_rls_initplan": {
+        "count": 375,
+        "level": "WARN"
+      },
+      "unused_index": {
+        "count": 70,
+        "level": "INFO"
+      },
+      "multiple_permissive_policies": {
+        "count": 28,
+        "level": "WARN"
+      }
+    },
+    "interpretation": "Optimization backlog only. Validate production query plans, workload frequency and equivalent indexes in isolated tests before proposing any index/policy write."
+  },
+  "p1_provider_profile_anon_read_recheck_20261120": {
+    "status": "BLOCKED_NOT_DEPLOYED",
+    "checked_at": "2026-11-20",
+    "table": "public.marketing_provider_profiles",
+    "live_acl": {
+      "anon_table_select": true,
+      "authenticated_table_select": true,
+      "service_role_table_select": true,
+      "anon_can_select_owner_user_id": true,
+      "anon_can_select_settings": true
+    },
+    "public_rls_policy": {
+      "name": "Public can view active marketing providers",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "predicate": "status = 'ACTIVE'",
+      "interpretation": "Row filter limits visible rows but does not limit selected columns."
+    },
+    "aggregate_only_counts": {
+      "total_profiles": 10,
+      "active_profiles": 10,
+      "active_profiles_with_owner_user_id": 4,
+      "settings_values_retrieved": false,
+      "owner_ids_retrieved": false
+    },
+    "curated_public_edge_paths": {
+      "public-catalog": {
+        "live_version": 8,
+        "verify_jwt": false,
+        "provider_projection": "business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured",
+        "service_role_access": true
+      },
+      "public-catalog-directory": {
+        "live_version": 18,
+        "verify_jwt": false,
+        "provider_projection": "business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured",
+        "service_role_access": true
+      }
+    },
+    "source_fix": {
+      "migration": "20261118190000_rc479_revoke_anon_provider_profile_base_read.sql",
+      "source_statement": "REVOKE SELECT ON TABLE public.marketing_provider_profiles FROM anon;",
+      "exact_release_migration_recorded": false,
+      "static_validator": "scripts/validate-rc479-provider-profile-anon-read.mjs",
+      "disposable_postgres_integration": "supabase/tests/rc479_provider_profile_anon_read_integration.sql",
+      "test_contract": "anon direct read denied; authenticated owner/admin read preserved; service_role curated Edge read preserved."
+    },
+    "issue": 882,
+    "production_mutation": "NONE",
+    "data_exfiltration_evidence": "NONE_OBSERVED",
+    "interpretation": "The current active-row RLS policy limits rows but permits anon SELECT of owner_user_id/settings on active profiles via the direct table grant. Main already contains RC479 and disposable tests; Production remains unchanged because the required migration is absent from the exact live ledger. No specific profile/settings values were read. Apply only in the approved coordinated release and reverify all three roles."
+  },
+  "security_definer_execution_surface_recheck_20261120": {
+    "checked_at": "2026-11-20",
+    "source": "Read-only pg_proc, pg_namespace, proconfig, proacl, has_function_privilege and exact delegated function body inspection.",
+    "public_security_definer_functions": 149,
+    "effective_execute_counts": {
+      "authenticated": 65,
+      "anon": 1,
+      "service_role": 34,
+      "overlapping_roles": true
+    },
+    "authenticated_search_path": {
+      "empty": 18,
+      "nonempty_or_unset": 47
+    },
+    "authenticated_executable_without_direct_auth_uid": 6,
+    "inspected_delegation_paths": [
+      {
+        "function": "public.mnty_business_employee_list(character varying,uuid)",
+        "delegate": "public.mnty_business_employee_list_scoped(character varying,uuid,character varying)",
+        "identity_check": "auth.uid() and non-anonymous check",
+        "scope": "tenant/business/branch membership or mnty_platform_has_permission",
+        "status": "DELEGATED_SCOPED_GUARD_PRESENT"
+      },
+      {
+        "function": "public.mnty_can(text,character varying,uuid,character varying)",
+        "delegate": "public.mnty_active_membership",
+        "identity_check": "current actor through shared membership helper",
+        "scope": "supplied scope",
+        "status": "DELEGATED_ACTOR_GUARD_PRESENT"
+      },
+      {
+        "function": "public.mnty_can_platform_admin()",
+        "delegate": "public.mnty_can('admin',NULL,NULL,NULL)",
+        "identity_check": "null-scope membership helper",
+        "scope": "not canonical platform registry",
+        "status": "P0_BLOCKED_SEPARATELY_ISSUE_852"
+      },
+      {
+        "function": "public.preview_commission_backend(character varying,uuid,character varying,numeric)",
+        "delegate": "public.assert_financial_membership(character varying)",
+        "identity_check": "auth.uid()",
+        "scope": "active finance role in supplied tenant; no business/branch predicate in the shared assertion",
+        "status": "TENANT_FINANCE_GUARD_PRESENT_SCOPE_REVIEW_REQUIRED"
+      },
+      {
+        "function": "public.upsert_catalog_item_and_price_backend(...)",
+        "delegate": "public.upsert_catalog_item_backend + public.upsert_catalog_price_backend",
+        "identity_check": "auth.uid() in both delegated RPCs",
+        "scope": "active membership and explicit business/branch checks in both RPCs",
+        "status": "DELEGATED_ACTOR_AND_SCOPE_GUARDS_PRESENT"
+      },
+      {
+        "function": "public.get_mnty_targeted_advertisements(...)",
+        "delegate": "read-only SQL",
+        "identity_check": "not applicable to intentional public read",
+        "scope": "active, approved, date-valid ads; bounded limit and location match",
+        "status": "INTENTIONAL_ANON_READ_EMPTY_SEARCH_PATH"
+      }
+    ],
+    "aggregate_scope_snapshot": {
+      "active_finance_accountant_finance_manager_membership_rows": 0,
+      "distinct_users": 0,
+      "tenant_wide_rows": 0,
+      "business_scoped_rows": 0,
+      "branch_scoped_rows": 0,
+      "tenants_with_multiple_active_businesses": 1,
+      "commission_rules": 0
+    },
+    "interpretation": "This targeted triage is not certification of all 149 functions. A non-empty or unset search_path is a review signal, not proof of exploitability. Continue per-function review of the 47 authenticated-executable non-empty/unset paths; retain P0 mnty_can_platform_admin issue #852; review business scoping before adding business-specific finance roles. No RPC was invoked and no Production mutation occurred."
+  }
 }
