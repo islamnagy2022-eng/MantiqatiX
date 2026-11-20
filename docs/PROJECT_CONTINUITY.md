@@ -2982,3 +2982,8 @@ A source/live contract review found RC479 is incomplete for anonymous Auth sessi
 Added a disposable PostgreSQL contract that reproduces the residual read after RC479, applies a test-only restrictive `FOR SELECT` `is_anonymous=false` policy, verifies anonymous Auth is denied, and preserves confirmed authenticated reads. Added a static validator and dedicated GitHub Actions workflow. This is a test-only overlay, not a production migration. RC479 remains immutable. Actual forward migration requires Supabase CLI in an authorized development environment; no migration version was invented.
 
 Evidence: `docs/audits/PASS_1480_1489_RC479_ANONYMOUS_AUTH_SESSION_GAP_20261120.md`; P1 #928. Production remains BLOCKED / NOT CERTIFIED.
+
+
+### RC479 anonymous Auth disposable CI result — 2026-11-20
+
+The new RC479 anonymous Auth regression passed PostgreSQL 16 in dedicated workflow 44794969322. Combined workflow 44794969419 also passed both RC464 platform-admin and RC479 anonymous Auth jobs. The tested code head was `77e782e651f0c73f4481d50495f06a55dd7260da`; later commit `aff22504149e562686ec85800994acb91fa5072e` changed only audit documentation. This validates the disposable baseline reproduction and test-only restrictive SELECT overlay, not a Production migration. Actual forward migration generation and chronological replay remain pending.
