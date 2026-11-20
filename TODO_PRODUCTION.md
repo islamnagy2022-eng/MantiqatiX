@@ -3674,3 +3674,20 @@ Evidence: audit file; branch `fix/rc479-anonymous-auth-profile-boundary-tests-20
 - [ ] Reconcile and replay the full migration chain in disposable PostgreSQL 17 before any release; Production remains BLOCKED / NOT CERTIFIED.
 
 Evidence: `docs/audits/PASS_1490_1499_ANONYMOUS_AUTH_AND_PLATFORM_ROOT_PARITY_20261120.md`. Source-only changes; no Production mutation.
+
+
+## Pass 1500–1510 — fail-closed anonymous Auth correction — 2026-11-20
+
+- [x] 1500 — Replaced permissive NULL-coalescing anonymous JWT checks in RC488–RC492 with explicit non-NULL false checks; missing claim is denied.
+- [x] 1501 — Added missing-claim regression cases to Storage, finance, medical, support and InDrive integration suites.
+- [x] 1502 — Updated five static validators to assert the fail-closed predicate and missing-claim test marker.
+- [x] 1503 — Identified and fixed PR #948 isolated PostgreSQL fixture: define auth.uid() from JWT sub; added missing-claim tests for private CRM/projects/notifications.
+- [x] 1504 — Re-versioned PR #948 private CRM/notification migration to unique RC493 version 20261120280000; updated workflow and validator references.
+- [x] 1505 — Closed duplicate finance-only PR #947; its nine tables are already covered by the broader 15-table RC489 in PR #946.
+- [x] 1506 — Updated PR #946 description with the corrected fail-closed contract, coverage, coordination and release gates.
+- [ ] 1507 — Await and review exact-head CI for PR #946 and #948; fix any new failures.
+- [ ] 1508 — Consolidate #946 and #948 into one collision-free release chain and replay all migrations on disposable PostgreSQL 17.
+- [ ] 1509 — Verify encrypted backup, restore/rollback, Edge source/bundle parity and security E2E.
+- [ ] 1510 — Production release approval and live post-deploy verification. Do not deploy before all prerequisites pass.
+
+**Release status: BLOCKED / NOT CERTIFIED.** Changes above are source/tests and PR metadata only. No Production database, RLS, GRANT, Auth, Storage, Edge, payment or customer data was modified.
