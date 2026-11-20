@@ -3638,3 +3638,7 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 
 
 - Refined the proposed correction after inspecting all live provider-profile policies: the existing owner ALL policy already rejects anonymous Auth sessions for INSERT/UPDATE/DELETE and binds auth.uid to owner_user_id. The new guard must be RESTRICTIVE FOR SELECT only; do not broaden it to DML.
+
+
+- RC479 anonymous Auth regression passed PostgreSQL 16 in run 44794969322; combined run 44794969419 passed both RC464 and RC479 jobs. Static validator passed. Test code head 77e782e651f0c73f4481d50495f06a55dd7260da; later change was audit-only.
+- Test harness merged in PR #936, merge commit c77240643002d713ed69d223e2d4a9792829308e. Production migration is still pending; test-only overlay is not deployed. No Production mutation.
