@@ -87,7 +87,7 @@ function fixture(t) {
 function invoke(f) {
   return spawnSync(process.execPath,[script,f.manifestPath],{
     encoding:"utf8",
-    env:{...process.env,AGE_IDENTITY_FILE:f.identity}
+    env:{...process.env,AGE_IDENTITY_FILE:f.identity,BACKUP_GATE_DEBUG_PATHS:"1"}
   });
 }
 
@@ -199,7 +199,69 @@ test("backup manifest and encrypted artifacts cannot be stored in the repository
     encoding:"utf8",
     env:{...process.env,AGE_IDENTITY_FILE:outside.identity}
   });
-  assert.notEqual(r.status,0);
+  assert.notEqual(r.status,0,r.stdout+r.stderr);
+  assert.match(r.stderr,/stored outside the Git repository/);
+});
+
+
+test("repository backup restriction cannot be bypassed through a symlinked manifest directory",t=>{
+  const f=fixture(t);
+  const repositoryTarget=fs.mkdtempSync(path.join(process.cwd(),"backup-gate-symlink-target-"));
+  const expectedRepositoryRoot=fs.realpathSync.native(path.resolve(path.dirname(script),"../.."));
+  const realRepositoryTarget=fs.realpathSync.native(repositoryTarget);
+  assert.ok(realRepositoryTarget.startsWith(expectedRepositoryRoot+path.sep),
+    "symlink target fixture must resolve inside the repository root");
+  const symlinkParent=fs.mkdtempSync(path.join(os.tmpdir(),"mnty-backup-symlink-parent-"));
+  const alias=path.join(symlinkParent,"linked-backup");
+  t.after(()=>{
+    fs.rmSync(repositoryTarget,{recursive:true,force:true});
+    fs.rmSync(symlinkParent,{recursive:true,force:true});
+  });
+  for(const artifact of f.manifest.artifacts) {
+    fs.copyFileSync(path.join(f.root,artifact.path),path.join(repositoryTarget,artifact.path));
+  }
+  fs.copyFileSync(f.manifestPath,path.join(repositoryTarget,"manifest.json"));
+  try {
+    fs.symlinkSync(repositoryTarget,alias,"dir");
+  } catch(error) {
+    if(["EPERM","EACCES","ENOTSUP"].includes(error.code)) return t.skip("directory symlinks are unavailable");
+    throw error;
+  }
+  const r=spawnSync(process.execPath,[script,path.join(alias,"manifest.json")],{
+    encoding:"utf8",
+    env:{...process.env,AGE_IDENTITY_FILE:f.identity}
+  });
+  assert.notEqual(r.status,0,r.stdout+r.stderr);
+  assert.match(r.stderr,/stored outside the Git repository/);
+});
+
+test("recovery identity cannot be hidden inside the repository through a symlinked parent",t=>{
+  const f=fixture(t);
+  const repositoryKeyDir=fs.mkdtempSync(path.join(process.cwd(),"backup-gate-key-symlink-target-"));
+  const expectedRepositoryRoot=fs.realpathSync.native(path.resolve(path.dirname(script),"../.."));
+  const realRepositoryKeyDir=fs.realpathSync.native(repositoryKeyDir);
+  assert.ok(realRepositoryKeyDir.startsWith(expectedRepositoryRoot+path.sep),
+    "symlink target fixture must resolve inside the repository root");
+  const symlinkParent=fs.mkdtempSync(path.join(os.tmpdir(),"mnty-key-symlink-parent-"));
+  const alias=path.join(symlinkParent,"linked-key");
+  t.after(()=>{
+    fs.rmSync(repositoryKeyDir,{recursive:true,force:true});
+    fs.rmSync(symlinkParent,{recursive:true,force:true});
+  });
+  const repositoryIdentity=path.join(repositoryKeyDir,"age-identity.txt");
+  fs.copyFileSync(f.identity,repositoryIdentity);
+  fs.chmodSync(repositoryIdentity,0o600);
+  try {
+    fs.symlinkSync(repositoryKeyDir,alias,"dir");
+  } catch(error) {
+    if(["EPERM","EACCES","ENOTSUP"].includes(error.code)) return t.skip("directory symlinks are unavailable");
+    throw error;
+  }
+  const r=spawnSync(process.execPath,[script,f.manifestPath],{
+    encoding:"utf8",
+    env:{...process.env,AGE_IDENTITY_FILE:path.join(alias,"age-identity.txt")}
+  });
+  assert.notEqual(r.status,0,r.stdout+r.stderr);
   assert.match(r.stderr,/stored outside the Git repository/);
 });
 
