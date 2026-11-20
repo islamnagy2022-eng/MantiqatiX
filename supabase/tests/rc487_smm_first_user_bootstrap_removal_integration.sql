@@ -28,7 +28,9 @@ BEGIN
     RAISE EXCEPTION 'RC487_FIRST_USER_BOOTSTRAP_TRIGGER_STILL_EXISTS';
   END IF;
 
-  IF has_table_privilege('anon','public.smm_admins','INSERT')
+  IF has_table_privilege('anon','public.smm_admins','SELECT')
+     OR has_table_privilege('authenticated','public.smm_admins','SELECT')
+     OR has_table_privilege('anon','public.smm_admins','INSERT')
      OR has_table_privilege('authenticated','public.smm_admins','INSERT')
      OR has_table_privilege('anon','public.smm_admins','UPDATE')
      OR has_table_privilege('authenticated','public.smm_admins','UPDATE')
@@ -37,9 +39,13 @@ BEGIN
     RAISE EXCEPTION 'RC487_CLIENT_SMM_ADMIN_TABLE_PRIVILEGE_EXPOSURE';
   END IF;
 
+  IF NOT has_table_privilege('service_role','public.smm_admins','SELECT') THEN
+    RAISE EXCEPTION 'RC487_SERVICE_ROLE_ALLOWLIST_READ_MISSING';
+  END IF;
   IF has_table_privilege('service_role','public.smm_admins','INSERT')
      OR has_table_privilege('service_role','public.smm_admins','UPDATE')
-     OR has_table_privilege('service_role','public.smm_admins','DELETE') THEN
+     OR has_table_privilege('service_role','public.smm_admins','DELETE')
+     OR has_table_privilege('service_role','public.smm_admins','TRUNCATE') THEN
     RAISE EXCEPTION 'RC487_SERVICE_ROLE_MUST_NOT_MUTATE_SMM_ADMIN_ALLOWLIST';
   END IF;
 END;
