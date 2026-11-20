@@ -23,6 +23,11 @@ BEGIN
     RAISE EXCEPTION 'RC488_PRIVATE_MEDIA_BUCKET_MISSING';
   END IF;
 
+  INSERT INTO public.user_memberships(id,user_id,status,role)
+  VALUES
+    ('RC488-ANON-ADMIN',v_anon,'ACTIVE','SUPER_ADMIN'),
+    ('RC488-CONFIRMED-ADMIN',v_owner,'ACTIVE','SUPER_ADMIN');
+
   INSERT INTO public.marketing_provider_profiles
     (id,provider_kind,owner_user_id,name_ar,slug,status)
   VALUES
@@ -86,15 +91,15 @@ BEGIN
   BEGIN
     INSERT INTO storage.objects(bucket_id,name,owner,owner_id,metadata,path_tokens)
     VALUES ('mantiqatix-profile-media',
-      'users/48800000-0000-4000-8000-000000000001/providers/48800000-0000-4000-8000-000000000011/logo.jpg',
+      'platform/branding/logo-999.jpg',
       '48800000-0000-4000-8000-000000000001'::uuid,
       '48800000-0000-4000-8000-000000000001',
       '{"mimetype":"image/jpeg","size":10}'::jsonb,
-      ARRAY['users','48800000-0000-4000-8000-000000000001','providers','48800000-0000-4000-8000-000000000011','logo.jpg']);
+      ARRAY['platform','branding','logo-999.jpg']);
   EXCEPTION WHEN insufficient_privilege OR check_violation THEN
     denied:=true;
   END;
-  IF NOT denied THEN RAISE EXCEPTION 'RC488_ANONYMOUS_PROFILE_MEDIA_INSERT_SUCCEEDED'; END IF;
+  IF NOT denied THEN RAISE EXCEPTION 'RC488_ANONYMOUS_PLATFORM_BRAND_INSERT_SUCCEEDED'; END IF;
 END;
 $anonymous_write$;
 RESET ROLE;
@@ -117,6 +122,15 @@ BEGIN
   DELETE FROM storage.objects WHERE id='48800000-0000-4000-8000-000000000102';
   GET DIAGNOSTICS n=ROW_COUNT;
   IF n <> 1 THEN RAISE EXCEPTION 'RC488_CONFIRMED_OWNER_DELETE_REGRESSED:%',n; END IF;
+
+  INSERT INTO storage.objects(bucket_id,name,owner,owner_id,metadata,path_tokens)
+  VALUES ('mantiqatix-profile-media','platform/branding/logo-998.jpg',
+    '48800000-0000-4000-8000-000000000002'::uuid,
+    '48800000-0000-4000-8000-000000000002',
+    '{"mimetype":"image/jpeg","size":10}'::jsonb,
+    ARRAY['platform','branding','logo-998.jpg']);
+  GET DIAGNOSTICS n=ROW_COUNT;
+  IF n <> 1 THEN RAISE EXCEPTION 'RC488_CONFIRMED_ADMIN_INSERT_REGRESSED:%',n; END IF;
 END;
 $confirmed_owner$;
 RESET ROLE;
