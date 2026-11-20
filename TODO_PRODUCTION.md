@@ -3612,3 +3612,19 @@ Evidence: `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md`; u
 - [ ] 1479 — Complete semantic command-by-command anonymous JWT tests for the 40 unguarded relations and 51 multi-permissive surfaces in disposable PostgreSQL/Storage; do not change Production policies/grants until tests pass.
 
 Evidence: audit file; Issue #928; Supabase Security Advisor and read-only catalog/ACL checks. No application rows or provider profile values selected. No Production mutation.
+
+
+## PASS 1480–1489 — RC479 anonymous Auth-session residual read — 2026-11-20
+
+- [x] 1480 — Re-read RC479 migration and existing integration test; confirm it revokes raw anon SELECT only and tests `SET ROLE anon`, not anonymous Auth JWT.
+- [x] 1481 — Reconcile live `marketing_provider_profiles` SELECT grants and policy roles; authenticated SELECT remains granted and active-profile policy targets authenticated.
+- [x] 1482 — Confirm the 19-column provider table includes private `owner_user_id` and `settings`; no values selected.
+- [x] 1483 — Identify the anonymous Auth role mismatch: anonymous Auth JWTs use PostgreSQL role `authenticated`, so the current active-profile policy remains a read path if anonymous sign-in is available.
+- [x] 1484 — Add disposable SQL regression that reproduces the post-RC479 anonymous Auth read and then verifies a test-only restrictive guard denies it while confirmed authenticated reads continue.
+- [x] 1485 — Add static source validator and dedicated PostgreSQL 16 GitHub Actions workflow for the disposable sequence.
+- [x] 1486 — Record the residual gap and non-actions in `docs/audits/PASS_1480_1489_RC479_ANONYMOUS_AUTH_SESSION_GAP_20261120.md`.
+- [ ] 1487 — Generate a forward-only production migration with Supabase CLI in an authorized CLI-enabled source workspace; do not edit RC479 or invent a migration version.
+- [ ] 1488 — Run exact-head disposable PostgreSQL tests with the real forward migration, owner CRUD regression, public Edge projection and chronological replay.
+- [ ] 1489 — Keep Production blocked until coordinated migration/Edge/backup/restore approval and live post-deployment ACL/policy verification.
+
+Evidence: audit file; branch `fix/rc479-anonymous-auth-profile-boundary-tests-20261120`; Issue #928. No Production mutation.
