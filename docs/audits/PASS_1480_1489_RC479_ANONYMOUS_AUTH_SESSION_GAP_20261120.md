@@ -13,7 +13,8 @@ The current live `public.marketing_provider_profiles` contract is:
 - `authenticated` retains table-level SELECT.
 - The policy `Public can view active marketing providers` targets both `anon` and `authenticated` and uses only `status='ACTIVE'`.
 - The table has 19 columns, including `owner_user_id` and `settings`; effective anon column SELECT was confirmed for all 19 before RC479 is applied.
-- The RC479 source migration contains only `REVOKE SELECT ON TABLE public.marketing_provider_profiles FROM anon;`. It does not add an `is_anonymous` restrictive policy.
+- The RC479 source migration contains only `REVOKE SELECT ON TABLE public.marketing_provider_profiles FROM anon;`. It does not add an `is_anonymous` restrictive SELECT policy.
+- The live `Owners manage their marketing provider profile` ALL policy already requires `is_anonymous <> true` and `auth.uid() = owner_user_id` in both USING and WITH CHECK. The remaining gap is the public-active SELECT policy, not owner DML.
 - RC479's current integration test simulates `SET ROLE anon` and verifies raw-anon denial. It does not simulate an anonymous Auth JWT where the database role is `authenticated` and the JWT has `is_anonymous=true`.
 
 Supabase anonymous Auth sessions use the `authenticated` database role. Therefore, if anonymous Auth sessions are permitted by project Auth configuration, they still satisfy the existing active-provider SELECT policy and retain the `authenticated` table grant. That path can read active profile rows and private columns such as `owner_user_id` and `settings` despite the raw-`anon` RC479 revoke.
@@ -44,9 +45,9 @@ The overlay is a test contract only. It is not a Production migration and must n
 
 ## 4. Required production correction
 
-- Add a forward-only restrictive policy for `authenticated` sessions requiring `coalesce((auth.jwt()->>'is_anonymous')::boolean,false)=false` for the provider-profile base table, covering both `USING` and `WITH CHECK`.
+- Add a forward-only **RESTRICTIVE FOR SELECT** policy for `authenticated` sessions requiring `coalesce((auth.jwt()->>'is_anonymous')::boolean,false)=false` in USING. Keep the existing owner ALL policy and its DML checks unchanged.
 - Preserve the existing active-profile public SELECT behavior for confirmed authenticated users and curated public Edge projections.
-- Preserve owner/business scoped insert/update/delete behavior and verify all affected workflows.
+- Preserve the existing owner-scoped ALL policy for insert/update/delete; it already rejects anonymous JWTs and binds `auth.uid()` to `owner_user_id`. Verify owner CRUD in the forward-migration regression.
 - Add adversarial tests for raw anon, anonymous Auth, confirmed authenticated, wrong-owner, and service-role/Edge projection behavior.
 - Re-run the complete chronological migration replay and full Edge/source contract before coordinated release.
 
