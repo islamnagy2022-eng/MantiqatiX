@@ -8,5 +8,7 @@ assert.match(migration,/relrowsecurity AND c\.relforcerowsecurity/);
 assert.match(migration,/has_table_privilege\('authenticated','public\.support_tickets','SELECT'\)/);
 assert.match(test,/RC491_ANONYMOUS_SUPPORT_TICKET_READ_SUCCEEDED/);
 assert.match(test,/RC491_CONFIRMED_SUPPORT_TICKET_READ_REGRESSED/);
+assert.ok(migration.includes("(SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE"), "support guard must fail closed on missing claim");
+assert.match(test,/RC491_MISSING_ANONYMOUS_CLAIM_READ_SUCCEEDED/);
 assert.match(test,/ROLLBACK;/);
 console.log("RC491 support anonymous Auth read boundary contract: PASS");
