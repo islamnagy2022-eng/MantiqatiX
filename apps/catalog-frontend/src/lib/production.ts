@@ -160,6 +160,7 @@ export async function fetchPublicCatalog(businessId: string, branchId?: string):
   const business = mapBusiness({
     id: body.business?.id || businessId,
     tenantId: body.business?.tenantId || body.business?.tenant_id,
+    code: body.business?.code,
     name: body.business?.name,
     category: body.profile?.category || body.provider?.kind,
     activityGroupCode: body.business?.activityGroupCode,
@@ -236,10 +237,16 @@ export function mapBusiness(raw: any, provider: any): Business {
     meta.activity_classification_type || profile.activity_classification_type || 'activity',
   ).toLowerCase() === 'profession' ? 'profession' : 'activity';
   const officialShowcase = Boolean(raw.isOfficialShowcase || raw.settings?.source === 'OFFICIAL_PLATFORM_SHOWCASE' || raw.settings?.managed_by === 'SUPER_ADMIN');
-  const savedLogo = String(profile.logoUrl || profile.logo_url || raw.logoUrl || '');
-  const savedCover = String(profile.coverUrl || profile.cover_url || raw.coverUrl || '');
-  const externalLogoUrl = String(profile.externalLogoUrl ?? profile.external_logo_url ?? profile.logo_url ?? raw.externalLogoUrl ?? '');
-  const externalCoverUrl = String(profile.externalCoverUrl ?? profile.external_cover_url ?? profile.cover_url ?? raw.externalCoverUrl ?? '');
+  const isOfficialMantiqatiX = name.trim().toLocaleLowerCase() === 'mantiqatix' &&
+    (String(raw.code || '').toUpperCase() === 'MNTY-MARKETING' || officialShowcase);
+  const officialBrandLogo = isOfficialMantiqatiX ? resolveDefaultImage({ name: 'MantiqatiX', kind: 'activity' }) : '';
+  const officialBrandCover = isOfficialMantiqatiX ? resolveDefaultImage({ name: 'MantiqatiX', kind: 'cover' }) : '';
+  // The official showcase previously stored time-limited Facebook CDN URLs.
+  // Prefer the versioned local brand assets so expiry/hotlinking cannot blank the platform profile.
+  const savedLogo = officialBrandLogo || String(profile.logoUrl || profile.logo_url || raw.logoUrl || '');
+  const savedCover = officialBrandCover || String(profile.coverUrl || profile.cover_url || raw.coverUrl || '');
+  const externalLogoUrl = isOfficialMantiqatiX ? '' : String(profile.externalLogoUrl ?? profile.external_logo_url ?? profile.logo_url ?? raw.externalLogoUrl ?? '');
+  const externalCoverUrl = isOfficialMantiqatiX ? '' : String(profile.externalCoverUrl ?? profile.external_cover_url ?? profile.cover_url ?? raw.externalCoverUrl ?? '');
   const isVerified = Boolean(provider?.verified ?? provider?.is_verified ?? raw.isVerified);
   const isPharmacy = /صيدل|pharmacy/i.test([name, category, activityCategoryCode, raw.activityGroupCode, raw.activity_group_code].join(' '));
   const savedLogoSource = String(profile.logo_image_source || profile.logoImageSource || '').toLowerCase();
