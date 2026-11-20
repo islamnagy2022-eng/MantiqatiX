@@ -71,9 +71,10 @@ const required = [
   "20261119020000_rc482_legal_platform_admin_registry_guard.sql",
   "20261119030000_rc483_atomic_legal_cms_create_audit.sql",
   "20261119040000_rc484_registry_backed_is_platform_admin.sql",
-  "20261120200000_rc485_catalog_rpc_registry_root.sql"
+  "20261120200000_rc485_catalog_rpc_registry_root.sql",
+  "20261120210000_rc486_catalog_price_version_serialization.sql"
 ];
-assert.equal(required.length, 65, "release gate must track all distinct required post-RC424 migration effects, including RC464B and RC476–RC485");
+assert.equal(required.length, 66, "release gate must track all distinct required post-RC424 migration effects, including RC464B and RC476–RC486");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");
