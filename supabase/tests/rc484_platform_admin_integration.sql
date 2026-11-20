@@ -95,7 +95,7 @@ BEGIN
   GET DIAGNOSTICS v_count=ROW_COUNT;
   IF v_count<>1 THEN RAISE EXCEPTION 'RC484_TENANT_ADMIN_LOCAL_MEMBERSHIP_DELETE_LOST'; END IF;
   INSERT INTO public.scope_probe_03(id,owner_user_id,tenant_id,business_id,branch_id)
-  VALUES(4,'10000000-0000-4000-8000-000000000002','TENANT-A','BUSINESS-A','BRANCH-A');
+  VALUES(4,'10000000-0000-4000-8000-000000000003','TENANT-A','BUSINESS-A','BRANCH-A');
   v_denied:=false;
   BEGIN
     INSERT INTO public.scope_probe_03(id,owner_user_id,tenant_id,business_id,branch_id)
