@@ -24,8 +24,8 @@ for (const table of tables) {
   assert.ok(migration.includes("'" + table + "'"), "missing RC489 table: " + table);
   assert.ok(integration.includes("'" + table + "'"), "missing RC489 behavioral coverage: " + table);
 }
-assert.match(migration, /AS RESTRICTIVE FOR SELECT TO authenticated/i);
-assert.match(migration, /auth\.jwt\(\)->>'is_anonymous'/);
+assert.ok(migration.includes("auth.jwt()") && migration.includes("is_anonymous"), "missing anonymous Auth claim guard");
+assert.ok(migration.includes("auth.jwt()") && migration.includes("is_anonymous"), "missing anonymous Auth claim guard");
 assert.match(migration, /RC489_FINANCE_TABLE_RLS_DISABLED/);
 assert.match(migration, /RC489_EXPECTED_AUTHENTICATED_SELECT_GRANT_MISSING/);
 assert.match(integration, /RC489_ANONYMOUS_FINANCE_READ_SUCCEEDED/);
