@@ -3468,3 +3468,19 @@ Evidence: audit file; P0 Issue #867 comments 7045989396 and 7046157101; merged P
 - [ ] 1389 — Keep Production blocked until coordinated migration/Edge, backup/restore, payment/privacy and post-deployment verification gates pass.
 
 Evidence: audit file; Issues #867, #884, #911; RC464/RC467/RC478 source CI. Read-only Production inspection only.
+
+
+## PASS 1390–1399 — First 20 direct-auth SECURITY DEFINER function review — 2026-11-20
+
+- [x] 1390 — Review full definitions for first 10 direct-`auth.uid()` authenticated-callable SECURITY DEFINER functions, including catalog, payment, education, jobs and MantiGO bid acceptance.
+- [x] 1391 — Review full definitions for direct-auth functions 11–15, including MantiGO ride/bid, medical appointment and payment intent.
+- [x] 1392 — Review full definitions for direct-auth functions 16–20, including stale ride expiry, digital-page payment finalization/fulfillment and MantiGO global dashboard/report.
+- [x] 1393 — Confirm medical appointment active-slot unique index protects concurrent doctor/time booking.
+- [x] 1394 — Identify missing OFFERED-state guard in `accept_mantigo_bid_backend`; open P1 Issue #912.
+- [x] 1395 — Reconfirm RC476 captain earnings legacy-column drift against live ledger schema; open P1 Issue #914.
+- [x] 1396 — Reconfirm RC477 customer bid phone/plate disclosure before acceptance; open P1 Issue #913.
+- [x] 1397 — Reconfirm RC471 global MantiGO admin/dashboard/expiry authorization and financial-report column drift; update Issues #92, #94, #118.
+- [x] 1398 — Record findings in `docs/audits/PASS_1390_1399_FIRST_20_DIRECT_AUTH_DEFINERS_20261120.md`.
+- [ ] 1399 — Continue full-body review of remaining 39 direct-auth SECURITY DEFINER functions; do not certify all 65 until complete.
+
+Evidence: audit file; Issues #867, #884, #911–#914, #92, #94, #118; RC471/RC476/RC477/RC478 source CI and replay. No Production mutation.
