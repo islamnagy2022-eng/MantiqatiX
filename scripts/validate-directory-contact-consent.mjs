@@ -191,8 +191,8 @@ const checks = [
     source.includes('.in("role", ["BUSINESS_OWNER", "OWNER"])')],
   ["consent grant ignores caller-supplied actor identity and persists auth.uid-derived user.id",
     source.includes("consented_by: user.id") &&
-    !/consented_by\\s*:\\s*body\\./.test(source) &&
-    !/consented_by\\s*:\\s*String\\(body\\./.test(source)],
+    !source.includes("consented_by: body.") &&
+    !source.includes("consented_by: String(body.")],
   ["repeated grants are idempotent and concurrent unique-index conflicts do not fail open",
     source.includes('if (existing) return out(origin, { success: true, scope, enabled: true, unchanged: true })') &&
     source.includes('if (insertError.code === "23505") return out(origin, { success: true, scope, enabled: true, unchanged: true })')],
