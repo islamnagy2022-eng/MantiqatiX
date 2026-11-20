@@ -3672,3 +3672,8 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Corrected PR #948 by replacing the duplicate RC490 timestamp with RC493 `20261120280000`, fixing the missing `auth.uid()` test fixture function, using the fail-closed predicate, and adding missing-claim denial coverage. PR title/body and validator updated; exact-head CI pending.
 - Closed PR #947 as superseded by #946 because its nine finance/payment targets are included in #946's 15-table RC489 scope. No branch history deleted.
 - Updated audit and `TODO_PRODUCTION.md`. No Production mutation. Keep release BLOCKED / NOT CERTIFIED until exact-head CI, collision/uniqueness checks, chronological replay and backup/restore gates pass.
+
+
+## 2026-11-20 — Pass 1500–1510
+
+Corrected anonymous Auth security chain: RC488–RC492 now fail closed if `is_anonymous` is absent/NULL, and their PostgreSQL integration tests cover anonymous=true, missing claim, and confirmed-user behavior. Five static validators were strengthened. PR #948's disposable fixture now defines auth.uid() from JWT sub; CRM/project/notification tests cover missing claims. Its migration was re-versioned to unique RC493/20261120280000 to remove RC490 collision. Closed redundant PR #947 because its finance tables are already included in RC489's 15-table scope in PR #946. Updated PR #946 summary. Exact-head CI for #946/#948 was pending at last check; no merge or Production deployment. **Production remains BLOCKED / NOT CERTIFIED.**
