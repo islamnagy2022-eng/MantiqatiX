@@ -2,6 +2,13 @@
 -- Synthetic provider profiles and Storage metadata rows are rolled back.
 BEGIN;
 
+INSERT INTO auth.users
+  (id,aud,role,email,encrypted_password,email_confirmed_at,raw_app_meta_data,raw_user_meta_data,created_at,updated_at,is_sso_user,is_anonymous)
+VALUES
+  ('48800000-0000-4000-8000-000000000001','authenticated','authenticated','rc488-anon@example.invalid','',now(),'{"provider":"email","providers":["email"]}'::jsonb,'{"rc488_fixture":true}'::jsonb,now(),now(),false,true),
+  ('48800000-0000-4000-8000-000000000002','authenticated','authenticated','rc488-owner@example.invalid','',now(),'{"provider":"email","providers":["email"]}'::jsonb,'{"rc488_fixture":true}'::jsonb,now(),now(),false,false)
+ON CONFLICT (id) DO NOTHING;
+
 DO $fixture$
 DECLARE
   v_anon uuid := '48800000-0000-4000-8000-000000000001';
@@ -19,8 +26,8 @@ BEGIN
   INSERT INTO public.marketing_provider_profiles
     (id,provider_kind,owner_user_id,name_ar,slug,status)
   VALUES
-    (v_anon_profile,'INDIVIDUAL',v_anon,'RC488 anonymous fixture','rc488-anon-fixture','ACTIVE'),
-    (v_owner_profile,'INDIVIDUAL',v_owner,'RC488 confirmed fixture','rc488-owner-fixture','ACTIVE');
+    (v_anon_profile,'FREELANCER',v_anon,'RC488 anonymous fixture','rc488-anon-fixture','ACTIVE'),
+    (v_owner_profile,'FREELANCER',v_owner,'RC488 confirmed fixture','rc488-owner-fixture','ACTIVE');
 
   INSERT INTO storage.objects(id,bucket_id,name,owner,owner_id,metadata,path_tokens)
   VALUES
