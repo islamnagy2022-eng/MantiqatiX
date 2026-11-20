@@ -2831,3 +2831,14 @@ The canonical Production object inventory reports all nine RC117 image contracts
 The execution container has Node.js but no Supabase CLI binary; no migration file was invented. The forward migration must be generated in an authorized environment using Supabase CLI, then tested with disposable PostgreSQL replay. Production remains BLOCKED / NOT CERTIFIED.
 
 Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.md`; Issue #906.
+
+
+## Latest authorization release checkpoint — Pass 1370–1379 (2026-11-20)
+
+Fresh read-only Production SQL reconfirmed the global-admin helper drift. `mnty_can_platform_admin()` is still SECURITY DEFINER, `search_path=public, pg_temp`, authenticated EXECUTE true, anon EXECUTE false, and delegates to `mnty_can('admin',NULL,NULL,NULL)`. Five live RLS policies still reference it. The migration ledger has 310 rows through `20261110150618`; RC464, RC471, and RC484 are absent.
+
+The registry-backed repair already exists: RC464 replaces the helper with `private.platform_admins.user_id=auth.uid()`; RC471 continues caller hardening. The source is included in the required migration chain and integrated through merged PR #742. On tested head `3ecf6142d1a41b9f0adda7bf6c81d873eda66bea`, RC464 PostgreSQL, R7/RC471, chronological replay, migration uniqueness, collision guard and history immutability workflows all passed (runs 44048036994, 44048037021, 44048037316, 44048037168, 44048037131, 44048037034).
+
+Therefore the remaining issue is not missing code or tests: the source repair is merged and CI-green, but unapplied to Production. Do not create a duplicate migration or hot-apply RC464 alone. Keep Production blocked until coordinated migration/Edge, backup/restore, payment/privacy and release gates pass; then verify helper body, ACL, search_path, five policies and eight global callers live.
+
+Evidence: `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`; Issue #867.
