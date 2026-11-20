@@ -2844,3 +2844,10 @@ The additional finding and exact callers were added to P0 Issue #867 (comment 70
 No application rows were queried, no function was invoked, and no Production mutation/deployment occurred. Production remains BLOCKED / NOT CERTIFIED.
 
 Evidence: `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`; Issue #867.
+
+
+## Authorization follow-through — RC484 coverage boundary (2026-11-20)
+
+The exact source migration `supabase/migrations/20261119040000_rc484_registry_backed_is_platform_admin.sql` was inspected. It changes `public.is_platform_admin()` and the protected `private.platform_admins` registry, but contains no reference to `public.mnty_can_platform_admin()`. Therefore the second helper and its four SECURITY DEFINER callers remain a separate open correction even after RC484. Do not close the global authorization gate based only on RC484.
+
+Evidence: `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`; P0 Issue #867 comment 7045989396.
