@@ -229,9 +229,9 @@ test("repository backup restriction cannot be bypassed through a symlinked manif
   }
   const r=spawnSync(process.execPath,[path.join(alias,"manifest.json")],{
     encoding:"utf8",
-    env:{...process.env,AGE_IDENTITY_FILE:f.identity}
+    env:{...process.env,AGE_IDENTITY_FILE:f.identity,BACKUP_GATE_DEBUG_PATHS:"1"}
   });
-  assert.notEqual(r.status,0);
+  assert.notEqual(r.status,0,r.stdout+r.stderr);
   assert.match(r.stderr,/stored outside the Git repository/);
 });
 
@@ -261,7 +261,7 @@ test("recovery identity cannot be hidden inside the repository through a symlink
     encoding:"utf8",
     env:{...process.env,AGE_IDENTITY_FILE:path.join(alias,"age-identity.txt"),BACKUP_GATE_DEBUG_PATHS:"1"}
   });
-  assert.notEqual(r.status,0);
+  assert.notEqual(r.status,0,r.stdout+r.stderr);
   assert.match(r.stderr,/stored outside the Git repository/);
 });
 
