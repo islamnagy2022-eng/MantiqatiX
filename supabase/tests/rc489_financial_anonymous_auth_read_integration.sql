@@ -58,6 +58,19 @@ $anonymous$;
 
 SELECT pg_catalog.set_config(
   'request.jwt.claims',
+  '{"sub":"48900000-0000-4000-8000-000000000001","role":"authenticated"}',
+  true
+);
+DO $missing_claim$
+DECLARE n integer;
+BEGIN
+  SELECT count(*) INTO n FROM public.commission_rules WHERE id='RC489-ANON-GUARD';
+  IF n <> 0 THEN RAISE EXCEPTION 'RC489_MISSING_ANONYMOUS_CLAIM_READ_SUCCEEDED:%',n; END IF;
+END;
+$missing_claim$;
+
+SELECT pg_catalog.set_config(
+  'request.jwt.claims',
   '{"sub":"48900000-0000-4000-8000-000000000001","role":"authenticated","is_anonymous":false}',
   true
 );
