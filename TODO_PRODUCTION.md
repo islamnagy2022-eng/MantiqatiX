@@ -3516,3 +3516,19 @@ Evidence: audit file; Issues #911, #913, #914; CI runs 44237312712, 44239964164,
 - [ ] 1419 — Continue full-body review of remaining 19 direct-auth SECURITY DEFINER functions; no full 65-function certification yet.
 
 Evidence: audit file; Issues #867, #884, #917; RC467 replay run 44239964551. No Production mutation.
+
+
+## PASS 1420–1429 — Commission, payment-claim, settlement and job-application review — 2026-11-20
+
+- [x] 1420 — Review direct-auth function 41: platform membership management; confirm registry gate, protected platform admins, reserved-role rejection and audit.
+- [x] 1421 — Review direct-auth function 42: custom role upsert; confirm registry gate, scope validation, reserved key/system-role protections and audit.
+- [x] 1422 — Review direct-auth function 43: permission resolver; confirm registry root and scoped staff/custom-role branches.
+- [x] 1423 — Review direct-auth functions 44–45: commission preview gates remain membership-derived live; RC467 source repair and tests exist but unapplied; #884.
+- [x] 1424 — Review direct-auth function 46: payment-intent claim release bound to auth.uid, order owner and exact token.
+- [x] 1425 — Review direct-auth functions 47–48: captain review/global financial config depend on weak live platform-admin helper; #867.
+- [x] 1426 — Review direct-auth function 49: settlement validates ride/payment/commission/idempotency but live authorization accepts broad global membership roles; RC471 source repair exists; #92/#94.
+- [x] 1427 — Review direct-auth function 50: job application actor binding and duplicate unique index; identify missing active-job check; open P2 #919.
+- [x] 1428 — Record findings in `docs/audits/PASS_1420_1429_COMMISSION_PAYMENT_JOBS_REVIEW_20261120.md`.
+- [ ] 1429 — Continue full-body review of remaining 9 direct-auth SECURITY DEFINER functions; do not certify all 65 until complete.
+
+Evidence: audit file; Issues #867, #884, #92, #94, #919; RC464/RC467/RC471 CI and replay. No Production mutation.
