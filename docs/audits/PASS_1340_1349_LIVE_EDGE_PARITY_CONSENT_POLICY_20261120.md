@@ -45,3 +45,21 @@ The fresh seven-function comparison was recorded in P0 Issue #857 comment **7043
 6. Separate approved Production release window and post-release verification.
 
 No Production rows or personal/contact data were selected. No Production database, migration, grant, RLS, Auth, Storage, Edge Function, payment, wallet, settlement, or deployment mutation occurred.
+
+
+## Additional exact migration and physical-object recheck — 2026-11-20
+
+After the initial audit was drafted, the canonical `REQUIRED_RELEASE_MIGRATION_VERSIONS` array in `scripts/production/live-reconciliation-contract.mjs` was parsed and compared against a fresh Production migration inventory:
+
+- Required exact release migration identifiers: **64**.
+- Exact required identifiers found in the live ledger: **0/64**.
+- Live ledger remains **310** entries through `20261110150618`.
+- Interpretation remains a migration-identity gap, not proof that all 64 physical effects are absent. Do not fabricate ledger rows or blindly replay the migration files.
+
+A fresh read-only catalog query rechecked the 74 object names in the canonical release object contract:
+- Physically present: **31/74**.
+- Physically absent: **43/74**.
+- The query inspected PostgreSQL catalogs and information_schema only; it did not select application rows.
+- Presence checks are not a substitute for checking function grants/owners/search_path, RLS policies, exact RPC overloads, or behavior. Those remain separate release checks.
+
+No Production mutation or deployment occurred.
