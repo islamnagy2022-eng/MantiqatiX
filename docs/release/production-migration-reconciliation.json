@@ -5027,5 +5027,60 @@
       }
     },
     "interpretation": "Optimization backlog only. Validate production query plans, workload frequency and equivalent indexes in isolated tests before proposing any index/policy write."
+  },
+  "p1_provider_profile_anon_read_recheck_20261120": {
+    "status": "BLOCKED_NOT_DEPLOYED",
+    "checked_at": "2026-11-20",
+    "table": "public.marketing_provider_profiles",
+    "live_acl": {
+      "anon_table_select": true,
+      "authenticated_table_select": true,
+      "service_role_table_select": true,
+      "anon_can_select_owner_user_id": true,
+      "anon_can_select_settings": true
+    },
+    "public_rls_policy": {
+      "name": "Public can view active marketing providers",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "predicate": "status = 'ACTIVE'",
+      "interpretation": "Row filter limits visible rows but does not limit selected columns."
+    },
+    "aggregate_only_counts": {
+      "total_profiles": 10,
+      "active_profiles": 10,
+      "active_profiles_with_owner_user_id": 4,
+      "settings_values_retrieved": false,
+      "owner_ids_retrieved": false
+    },
+    "curated_public_edge_paths": {
+      "public-catalog": {
+        "live_version": 8,
+        "verify_jwt": false,
+        "provider_projection": "business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured",
+        "service_role_access": true
+      },
+      "public-catalog-directory": {
+        "live_version": 18,
+        "verify_jwt": false,
+        "provider_projection": "business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured",
+        "service_role_access": true
+      }
+    },
+    "source_fix": {
+      "migration": "20261118190000_rc479_revoke_anon_provider_profile_base_read.sql",
+      "source_statement": "REVOKE SELECT ON TABLE public.marketing_provider_profiles FROM anon;",
+      "exact_release_migration_recorded": false,
+      "static_validator": "scripts/validate-rc479-provider-profile-anon-read.mjs",
+      "disposable_postgres_integration": "supabase/tests/rc479_provider_profile_anon_read_integration.sql",
+      "test_contract": "anon direct read denied; authenticated owner/admin read preserved; service_role curated Edge read preserved."
+    },
+    "issue": 882,
+    "production_mutation": "NONE",
+    "data_exfiltration_evidence": "NONE_OBSERVED",
+    "interpretation": "The current active-row RLS policy limits rows but permits anon SELECT of owner_user_id/settings on active profiles via the direct table grant. Main already contains RC479 and disposable tests; Production remains unchanged because the required migration is absent from the exact live ledger. No specific profile/settings values were read. Apply only in the approved coordinated release and reverify all three roles."
   }
 }
