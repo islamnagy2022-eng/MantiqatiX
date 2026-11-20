@@ -31,16 +31,16 @@ $preflight$;
 
 CREATE POLICY mnty_confirmed_auth_indrive_insert
 ON public.indrive_requests AS RESTRICTIVE FOR INSERT TO authenticated
-WITH CHECK (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+WITH CHECK ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 CREATE POLICY mnty_confirmed_auth_indrive_update
 ON public.indrive_requests AS RESTRICTIVE FOR UPDATE TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true')
-WITH CHECK (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE)
+WITH CHECK ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 CREATE POLICY mnty_confirmed_auth_indrive_delete
 ON public.indrive_requests AS RESTRICTIVE FOR DELETE TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 COMMENT ON POLICY mnty_confirmed_auth_indrive_insert ON public.indrive_requests IS
   'RC492: InDrive request creation requires a confirmed Auth identity.';
