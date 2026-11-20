@@ -2,7 +2,7 @@
 
 - Merged PR #893 after the MantiqatiX profile branding source test, TypeScript/build, primary catalog browser E2E, isolated employee RBAC PostgreSQL tests, and all related PR validation workflows passed. Merge commit: `472964f5f58f58f961f3619d06c9d6c3487f4853`.
 - The GitHub Pages PR validation workflow completed, but its deployment job was skipped by the production release gate. Do not describe the logo/cover fix as live yet.
-- Continued source inspection found two additional UI paths that still preferred stale saved media: homepage business cards/featured cover and Activity module directory cards. Started a follow-up source correction so all three public surfaces share one exact-name brand resolver.
+- Extended the fix to homepage business cards/featured cover and Activity module directory cards. A shared exact-name brand resolver now selects first-party assets consistently across the profile header, homepage and Activity module. Regression checks cover each surface and whitespace normalization.
 - No production data or Supabase state was changed.
 
 ---
