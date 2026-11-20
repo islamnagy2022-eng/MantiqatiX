@@ -35,7 +35,7 @@ ON public.commission_rules
 AS RESTRICTIVE
 FOR SELECT
 TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 COMMENT ON POLICY mnty_confirmed_auth_financial_read ON public.commission_rules IS
   'RC489: private financial/payment records require a confirmed Auth identity.';
@@ -45,7 +45,7 @@ ON public.commission_transactions
 AS RESTRICTIVE
 FOR SELECT
 TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 COMMENT ON POLICY mnty_confirmed_auth_financial_read ON public.commission_transactions IS
   'RC489: private financial/payment records require a confirmed Auth identity.';
@@ -55,7 +55,7 @@ ON public.general_ledger
 AS RESTRICTIVE
 FOR SELECT
 TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 COMMENT ON POLICY mnty_confirmed_auth_financial_read ON public.general_ledger IS
   'RC489: private financial/payment records require a confirmed Auth identity.';
@@ -65,7 +65,7 @@ ON public.journal_entries
 AS RESTRICTIVE
 FOR SELECT
 TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 COMMENT ON POLICY mnty_confirmed_auth_financial_read ON public.journal_entries IS
   'RC489: private financial/payment records require a confirmed Auth identity.';
@@ -75,7 +75,7 @@ ON public.journal_entry_lines
 AS RESTRICTIVE
 FOR SELECT
 TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 COMMENT ON POLICY mnty_confirmed_auth_financial_read ON public.journal_entry_lines IS
   'RC489: private financial/payment records require a confirmed Auth identity.';
@@ -85,7 +85,7 @@ ON public.payment_events
 AS RESTRICTIVE
 FOR SELECT
 TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 COMMENT ON POLICY mnty_confirmed_auth_financial_read ON public.payment_events IS
   'RC489: private financial/payment records require a confirmed Auth identity.';
@@ -95,7 +95,7 @@ ON public.payment_financial_reconciliations
 AS RESTRICTIVE
 FOR SELECT
 TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 COMMENT ON POLICY mnty_confirmed_auth_financial_read ON public.payment_financial_reconciliations IS
   'RC489: private financial/payment records require a confirmed Auth identity.';
@@ -105,7 +105,7 @@ ON public.payment_intents
 AS RESTRICTIVE
 FOR SELECT
 TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 COMMENT ON POLICY mnty_confirmed_auth_financial_read ON public.payment_intents IS
   'RC489: private financial/payment records require a confirmed Auth identity.';
@@ -115,7 +115,7 @@ ON public.payment_provider_events
 AS RESTRICTIVE
 FOR SELECT
 TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 COMMENT ON POLICY mnty_confirmed_auth_financial_read ON public.payment_provider_events IS
   'RC489: private financial/payment records require a confirmed Auth identity.';
@@ -125,7 +125,7 @@ ON public.refund_transactions
 AS RESTRICTIVE
 FOR SELECT
 TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 COMMENT ON POLICY mnty_confirmed_auth_financial_read ON public.refund_transactions IS
   'RC489: private financial/payment records require a confirmed Auth identity.';
@@ -135,7 +135,7 @@ ON public.settlement_attempts
 AS RESTRICTIVE
 FOR SELECT
 TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 COMMENT ON POLICY mnty_confirmed_auth_financial_read ON public.settlement_attempts IS
   'RC489: private financial/payment records require a confirmed Auth identity.';
@@ -145,7 +145,7 @@ ON public.settlement_transactions
 AS RESTRICTIVE
 FOR SELECT
 TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 COMMENT ON POLICY mnty_confirmed_auth_financial_read ON public.settlement_transactions IS
   'RC489: private financial/payment records require a confirmed Auth identity.';
@@ -155,7 +155,7 @@ ON public.subscription_payment_intents
 AS RESTRICTIVE
 FOR SELECT
 TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 COMMENT ON POLICY mnty_confirmed_auth_financial_read ON public.subscription_payment_intents IS
   'RC489: private financial/payment records require a confirmed Auth identity.';
@@ -165,7 +165,7 @@ ON public.wallet_accounts
 AS RESTRICTIVE
 FOR SELECT
 TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 COMMENT ON POLICY mnty_confirmed_auth_financial_read ON public.wallet_accounts IS
   'RC489: private financial/payment records require a confirmed Auth identity.';
@@ -175,7 +175,7 @@ ON public.wallet_transactions
 AS RESTRICTIVE
 FOR SELECT
 TO authenticated
-USING (coalesce(auth.jwt()->>'is_anonymous','false') <> 'true');
+USING ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE);
 
 COMMENT ON POLICY mnty_confirmed_auth_financial_read ON public.wallet_transactions IS
   'RC489: private financial/payment records require a confirmed Auth identity.';
