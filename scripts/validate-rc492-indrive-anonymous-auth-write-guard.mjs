@@ -17,6 +17,8 @@ for (const marker of [
   "RC492_CONFIRMED_OWNER_UPDATE_REGRESSED",
   "RC492_CONFIRMED_OWNER_DELETE_REGRESSED"
 ]) assert.ok(test.includes(marker),"missing RC492 assertion "+marker);
+assert.ok(migration.includes("(SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE"), "InDrive guard must fail closed on missing claim");
+assert.match(test,/RC492_MISSING_ANONYMOUS_CLAIM_WRITE_SUCCEEDED/);
 assert.match(migration,/relrowsecurity AND c\.relforcerowsecurity/);
 assert.match(test,/ROLLBACK;/);
 console.log("RC492 InDrive anonymous Auth write isolation contract: PASS");
