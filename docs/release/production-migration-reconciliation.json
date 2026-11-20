@@ -27,7 +27,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED — no actual Production database/Storage export, off-site upload/retrieval, Vault recovery, separate-project PostgreSQL 17 restore, measured RPO/RTO or rollback rehearsal occurred. PR #875 merged a read-only encrypted backup manifest/evidence validator; exact-head CI passed 12/12 disposable tests (run 44640871190). The tool validates operator-created artifacts/evidence only and does not create backups or perform restores.",
   "evidence_ref": "docs/audits/PRODUCTION_RECONCILIATION_20261114.md",
   "checked_at": "2026-11-20",
-  "reason": "BLOCKED / NOT CERTIFIED: fresh read-only Production check on 2026-11-20 found 310 migration rows through 20261110150618 and 0/64 exact required release identifiers. Exact live Edge entrypoint parity is 4/11; seven critical functions differ from main (order-create, payment-intent, paymob-webhook, digital-page-payment-intent, subscription-payment-intent, financial-journal, directory-listings). Independent physical contract gaps include missing RC425 MantiGO provider-event table, RC427 active-order unique index, RC435 subscription claim columns/RPCs, RC439 encrypted checkout fields, newer atomic payment/subscription/MantiGO processors and RC450 service_role journal EXECUTE. Directory contact-consent remains BLOCKED: live anonymous directory GET exposes phone/address for 869 published rows while RC473 consent tables are absent. Backup verifier is merged and 12/12 CI tests passed, but no actual encrypted backup or isolated restore was performed; RPO/RTO and rollback remain unverified. RC484 is merged source with isolated adversarial/replay PASS, but is not applied in Production; live is_platform_admin remains SECURITY INVOKER/search_path=public and registry FORCE RLS remains disabled. No Production mutation was performed.",
+  "reason": "BLOCKED / NOT CERTIFIED: fresh read-only Production check on 2026-11-20 found 310 migration rows through 20261110150618 and 0/64 exact required release identifiers. Exact live Edge entrypoint parity is 4/11; seven critical functions differ from main (order-create, payment-intent, paymob-webhook, digital-page-payment-intent, subscription-payment-intent, financial-journal, directory-listings). Independent physical contract gaps include missing RC425 MantiGO provider-event table, RC427 active-order unique index, RC435 subscription claim columns/RPCs, RC439 encrypted checkout fields, newer atomic payment/subscription/MantiGO processors and RC450 service_role journal EXECUTE. Directory contact-consent remains BLOCKED: live anonymous directory GET exposes phone/address for 869 published rows while RC473 consent tables are absent. Backup verifier is merged and 12/12 CI tests passed, but no actual encrypted backup or isolated restore was performed; RPO/RTO and rollback remain unverified. RC484 is merged source with isolated adversarial/replay PASS, but is not applied in Production; live is_platform_admin remains SECURITY INVOKER/search_path=public and registry FORCE RLS remains disabled. No Production mutation was performed. The release contract has now been extended to require exact RC435/RC439 subscription claim RPC signatures and all persisted provider-order/checkout-encryption columns; the 2026-11-20 physical recheck explicitly records the missing functions/columns as BLOCKED instead of passing on generic function-name presence.",
   "edge_function_contracts": "PARTIAL — fresh exact entrypoint comparison on 2026-11-20 found 7/11 critical live Edge functions differ from current main: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3, directory-listings v16. Four exact matches: api v17, order-status-update v4, payment-webhook v3, smm-gateway v13 (still deferred). Do not deploy mismatched payment/finance/directory/order functions individually; the live database is missing or has older payment, subscription, journal, order and directory consent contracts.",
   "smm_gateway_parity": "PARTIAL — live SMM gateway remains ACTIVE v13, verify_jwt=true, and source matches main with SMM_INITIAL_LAUNCH_DEFERRED=true. Anonymous/authenticated negative runtime tests still unverified; keep deferred.",
   "auth_security_settings": "NOT VERIFIED — current connector does not expose project Auth security configuration. The prior 2026-11-06 advisor snapshot reported leaked-password protection disabled; owner-dashboard confirmation and remediation evidence are still required. No Auth settings were changed.",
@@ -448,7 +448,7 @@
   },
   "required_release_object_presence_check": {
     "status": "MIXED_DRIFT_READ_ONLY_REFRESHED",
-    "checked_at": "2026-11-17",
+    "checked_at": "2026-11-20",
     "method": "Read-only PostgreSQL catalog inspection using to_regprocedure, to_regclass, pg_proc, pg_trigger, pg_attribute and pg_constraint.",
     "observed": [
       {
@@ -990,6 +990,119 @@
         "physical_checked_at": "2026-11-17",
         "status": "BLOCKED",
         "prior_status": "BLOCKED"
+      },
+      {
+        "migration": "RC475",
+        "object": "public.process_verified_provider_payment(character varying,character varying,character varying,character varying,character varying,character varying,boolean,numeric,character varying,numeric)",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-20",
+        "status": "PASS",
+        "note": "Legacy-compatible exact signature exists; request-order correlation is enforced in the matching Edge handler and separately checked."
+      },
+      {
+        "migration": "RC428/RC475",
+        "object": "public.process_verified_provider_payment_failure(text,text,text,text,text,text,boolean,numeric,text,text,text,jsonb)",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-20",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC430/RC475",
+        "object": "public.process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb)",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-20",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC429/RC475",
+        "object": "public.process_verified_subscription_payment_failure(text,text,uuid,text,numeric,text,text,boolean,jsonb)",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-20",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC435",
+        "object": "public.create_subscription_payment_intent_claimable_backend(uuid,text,text,text,text,uuid)",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-20",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC435",
+        "object": "public.claim_subscription_provider_intent_creation_backend(uuid,uuid)",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-20",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC425",
+        "object": "public.process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb)",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-20",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC426/RC475",
+        "object": "public.payment_intents.provider_order_id",
+        "exists": true,
+        "physical_found_as": "COLUMN",
+        "physical_checked_at": "2026-11-20",
+        "status": "PASS"
+      },
+      {
+        "migration": "RC426",
+        "object": "public.digital_page_orders.provider_order_id",
+        "exists": true,
+        "physical_found_as": "COLUMN",
+        "physical_checked_at": "2026-11-20",
+        "status": "PASS"
+      },
+      {
+        "migration": "RC435",
+        "object": "public.subscription_payment_intents.provider_creation_state",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-20",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC435",
+        "object": "public.subscription_payment_intents.provider_creation_claimed_at",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-20",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC439",
+        "object": "public.subscription_payment_intents.client_secret_ciphertext",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-20",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC439",
+        "object": "public.subscription_payment_intents.client_secret_iv",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-20",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC439",
+        "object": "public.subscription_payment_intents.client_secret_key_version",
+        "exists": false,
+        "physical_found_as": "ABSENT",
+        "physical_checked_at": "2026-11-20",
+        "status": "BLOCKED"
       }
     ],
     "interpretation": "Current 2026-11-17 refresh confirms 30/60 physical objects present and 30/60 absent. The RC117 default-image helper, three trigger functions, three triggers, and marketing_services image_url/image_source columns are absent. Two physically present payment/order functions remain blocked by contract drift. Do not replay missing historical migrations out of order; use reviewed forward-only repairs.",
@@ -1002,7 +1115,7 @@
     "total_granular_object_contracts": 60,
     "total_missing_granular_object_contracts": 53,
     "note": "2026-11-17 read-only refresh: 30/60 required objects physically present and 30/60 absent; semantic non-PASS remains 32. The marketing_services.image_url column is now confirmed absent, alongside image_source and the three default-image trigger chains.",
-    "observed_count": 60,
+    "observed_count": 74,
     "non_pass": [
       {
         "migration": "RC117",
@@ -1293,7 +1406,7 @@
         "detail": "Physical object is absent or contract remains blocked."
       }
     ],
-    "non_pass_count": 32,
+    "non_pass_count": 43,
     "physical_recheck_20261104": {
       "status": "READ_ONLY_REFRESHED",
       "checked_at": "2026-11-04",
