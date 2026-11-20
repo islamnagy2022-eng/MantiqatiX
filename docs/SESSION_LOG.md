@@ -3654,3 +3654,13 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Confirmed authenticated users' `owner_user_id` / `settings` visibility remains a separate unresolved data-minimization issue.
 - Production remains **BLOCKED / NOT CERTIFIED** pending operator-controlled backup/restore and coordinated DB/Edge release.
 - Next: continue source/CI-only P0 security remediation; no standalone Production migration or Edge deployment.
+
+
+## 2026-11-20 — Pass 1490–1499 — anonymous Auth and platform-root parity
+
+- Inspected RC488–RC492 source and open PRs #946–#948. Found fail-open NULL handling in anonymous JWT guards: missing `is_anonymous` claim is coalesced to false and allowed. Posted correction and true/false/missing integration-test requirements to all affected PRs.
+- Confirmed cross-PR migration collisions: #946/#947 both allocate 20261120240000; #946/#948 both allocate 20261120250000. PR #947's Open PR Migration Collision Guard failed with explicit log evidence. Consolidation/re-versioning is required before merge.
+- Read-only live Supabase catalog: `private.platform_admins(user_id uuid)` exists, RLS is enabled, and anon/authenticated have no direct table grants. Live `mnty_can_platform_admin()` still delegates to membership-based `mnty_can()`; canonical main RC462/RC464 source is registry-backed but absent from the live migration ledger. Production remains blocked on source/live migration parity.
+- PR #940 has 28 successful checks at inspected head, deployment jobs skipped, but is five commits behind current main/diverged. Requested update/rebase and exact-head CI; its RC472/RC473 dependency remains a coordinated release requirement.
+- Added audit `docs/audits/PASS_1490_1499_ANONYMOUS_AUTH_AND_PLATFORM_ROOT_PARITY_20261120.md` and updated `TODO_PRODUCTION.md` with remaining actions.
+- No Production database, RLS, GRANT, Storage, Edge, Auth, payment or customer-data mutation. **PRODUCTION: BLOCKED / NOT CERTIFIED.**
