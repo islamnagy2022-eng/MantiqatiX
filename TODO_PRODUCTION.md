@@ -3564,3 +3564,19 @@ Evidence: audit file; Issues #867, #884, #911–#922, #92, #94, #118. No Product
 - [ ] 1449 — Complete policy-by-policy reconciliation of 90 anonymous-policy warnings and enable leaked-password protection if supported; do not apply blanket policy changes.
 
 Evidence: audit file; Issues #867, #924. No Edge invocation or Production mutation.
+
+
+## PASS 1450–1459 — Anonymous-policy reconciliation and RC484 preflight verification — 2026-11-20
+
+- [x] 1450 — Reconcile 90 Security Advisor anonymous-policy warnings against pg_policies and effective table grants; classify 200 authenticated policies lacking explicit anonymous marker.
+- [x] 1451 — Review high-risk tables; confirm no direct anon SELECT/INSERT grants on MantiGO, medical, payment, membership, tenant and other inspected tables.
+- [x] 1452 — Classify unmarked predicates as membership/scoped, user-bound, platform-helper, explicit public read, deny-false or individual-review.
+- [x] 1453 — Confirm 56 public-schema + 1 storage policy reference is_platform_admin across 24 tables.
+- [x] 1454 — Verify RC484 exact preflight count is 57 policies / 24 tables when storage.objects is included; test-only overlay restores checkpoint omission and must never be applied to Production.
+- [x] 1455 — Record evidence in `docs/audits/PASS_1450_1459_ANONYMOUS_POLICY_AND_RC484_PREFLIGHT_20261120.md`.
+- [ ] 1456 — Complete remaining policy-by-policy review of the 90 Advisor warnings and multiple-permissive policy interactions.
+- [ ] 1457 — Enable leaked-password protection if supported and verify sign-up/reset/change flows (#924).
+- [ ] 1458 — Apply RC484 only in the coordinated migration/Edge release; verify all 57 policies and registry helper live.
+- [ ] 1459 — Keep Production blocked until backup/restore, Vault, PG17 rollback, migration/Edge, payment/privacy and post-deploy gates pass.
+
+Evidence: audit file; Issues #867, #924. No Production mutation.
