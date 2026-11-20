@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Business, Product } from '../types';
-import { resolveDefaultImage } from '../utils/defaultImages';
+import { isMantiqatiXBrandName, resolveDefaultImage } from '../utils/defaultImages';
 import { supabase } from '../lib/production';
 
 type TargetedAdvertisement = {
@@ -37,8 +37,9 @@ const BusinessCard: React.FC<{ business: Business; onOpen: (business: Business) 
   const defaultCover = resolveDefaultImage({
     name: business.name, description: business.bio, category: business.category, kind: 'cover',
   });
-  const logo = business.logoUrl || defaultLogo;
-  const cover = business.coverUrl || defaultCover;
+  const isPlatformBrandProfile = isMantiqatiXBrandName(business.name);
+  const logo = isPlatformBrandProfile ? defaultLogo : business.logoUrl || defaultLogo;
+  const cover = isPlatformBrandProfile ? defaultCover : business.coverUrl || defaultCover;
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
       <button type="button" onClick={() => onOpen(business)} className="block w-full text-right" aria-label={'فتح كتالوج ' + business.name}>
@@ -239,7 +240,7 @@ export const MarketplaceHome: React.FC = () => {
             </div>
           </div>
           <div className="relative min-h-64 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-emerald-900 via-slate-900 to-slate-800 p-5 shadow-2xl sm:min-h-80">
-            {verifiedBusinesses[0]?.coverUrl && <img src={verifiedBusinesses[0].coverUrl} alt="" className="absolute inset-0 h-full w-full object-cover opacity-25" />}
+            {verifiedBusinesses[0] && <img src={isMantiqatiXBrandName(verifiedBusinesses[0].name) ? resolveDefaultImage({ name: verifiedBusinesses[0].name, kind: 'cover' }) : verifiedBusinesses[0].coverUrl || resolveDefaultImage({ name: verifiedBusinesses[0].name, description: verifiedBusinesses[0].bio, category: verifiedBusinesses[0].category, kind: 'cover' })} alt="" className="absolute inset-0 h-full w-full object-cover opacity-25" />}
             <div className="absolute -left-10 -top-10 h-44 w-44 rounded-full border border-emerald-300/20" />
             <div className="absolute -bottom-20 -right-8 h-64 w-64 rounded-full border border-emerald-300/20" />
             <div className="relative flex h-full min-h-64 flex-col justify-between sm:min-h-72">
