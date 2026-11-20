@@ -62,3 +62,10 @@ Do not revoke SELECT from `authenticated` wholesale: the owner/provider workflow
 - No Supabase migration filename invented; CLI is not installed in the current execution container.
 
 **Result:** RC479 raw-anon boundary is incomplete for anonymous Auth sessions. Disposable reproduction and target-behavior test source are prepared; actual forward migration and exact-head CI are pending. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 6. Scope limitation — confirmed authenticated base-table reads
+
+This correction only addresses anonymous Auth sessions. The current RC479 compatibility contract intentionally preserves `authenticated` table SELECT and the public-active policy, so confirmed authenticated users still have direct SELECT to the full table projection, including `owner_user_id` and `settings`. The existing RC479 integration explicitly expects authenticated active-profile reads to continue.
+
+If the product intends those columns to be private from ordinary confirmed users too, that requires a separate data-minimization decision: for example, revoke direct base-table SELECT from ordinary authenticated users, retain narrowly scoped owner/CRM access, and keep public discovery on curated Edge projections. Do not silently change that contract in this anonymous-session fix.
