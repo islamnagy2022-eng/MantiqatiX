@@ -43,6 +43,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261120230000", // RC488 — block anonymous Auth writes to Storage objects
   "20261120240000", // RC489 — require confirmed Auth identity for private financial reads
   "20261120250000", // RC490 — require confirmed Auth identity for medical appointment reads
+  "20261120260000", // RC491 — require confirmed Auth identity for support ticket reads
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
