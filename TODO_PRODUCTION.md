@@ -3356,3 +3356,19 @@ Evidence: `docs/runbooks/PRODUCTION_BACKUP_RESTORE_RC484_20261119.md`, `docs/aud
 
 Evidence: `docs/audits/PASS_1200_1209_R7_SOURCE_MAP_ANDROID_PRESERVATION_20261119.md`, `docs/audits/R7_AI_STUDIO_ARCHIVE_RECONCILIATION_20261119.md`, `docs/audits/R7_ARCHIVE_11_SECURITY_REVIEW_20261119.md`, `docs/audits/PASS_741_760_R7_ANDROID_AND_BACKUP_GATES_20261118.md`. No Production mutation.
 
+
+
+## PASS 1320–1329 — Directory contact-consent pagination — 2026-11-20
+
+- [x] 1320 — Reproduced the contact-consent lookup completeness risk: one unpaginated PostgREST response could be capped below the maximum active scope rows for 500 directory listings.
+- [x] 1321 — Added a dedicated paginated collector for active PHONE, SECONDARY_PHONE, ADDRESS and PRECISE_LOCATION consent scopes.
+- [x] 1322 — Deduplicated listing IDs and enforced stable listing_id/scope ordering with explicit range pagination.
+- [x] 1323 — Ensured offsets advance by actual returned rows, tolerating response caps below the requested page size.
+- [x] 1324 — Ensured thrown, errored or malformed page responses discard all partial scopes and fail closed.
+- [x] 1325 — Added synthetic coverage for 2,205 rows, 600 unique listings plus duplicate input, four scopes and 400-row page caps.
+- [x] 1326 — Added failure-path, malformed-response and empty-input regression tests.
+- [x] 1327 — Exact-head Directory Contact Consent workflow 44763355453 passed, including isolated PostgreSQL integration, source contract, Deno type-check and frontend lint/build.
+- [x] 1328 — All seven additional exact-head workflows passed: MantiGO privacy 44763355928, Doctor import 44763355391, Backend Module Boundary 44763355379, RC425 atomicity 44763355538, Module Professionalization 44763355603, Pages validation 44763355360 and Primary Catalog validation 44763355499. PR #901 merged to main at a4c803a8d7e851ab9d591d70e6fdeb65c4e8ae19.
+- [x] 1329 — Confirmed source-only scope: no Production DB/migration/RLS/GRANT/Auth/Storage/Edge/payment/wallet/settlement/customer-data mutation; no production deployment claimed. Production remains BLOCKED / NOT CERTIFIED pending the independent backup/restore and coordinated release gates.
+
+Evidence: `docs/audits/PASS_1320_1329_DIRECTORY_CONTACT_CONSENT_PAGINATION_20261120.md`, PR #901, merge commit `a4c803a8d7e851ab9d591d70e6fdeb65c4e8ae19`, exact-head workflow runs listed in the audit.
