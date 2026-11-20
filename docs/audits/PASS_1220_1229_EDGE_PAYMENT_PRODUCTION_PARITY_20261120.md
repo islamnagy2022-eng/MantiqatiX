@@ -159,3 +159,18 @@ These are optimization candidates, not an instruction to create/drop indexes or 
 
 **Disposition:** both platform-root helper families remain **BLOCKED / NOT DEPLOYED**. Source-level RC484 and RC464/RC471 tests do not change the live catalog. Leaked-password protection remains unverified/disabled until an authorized owner-side configuration change is evidenced. No Production DDL/DML, migration, RLS, GRANT, Auth, Storage, Edge, payment, wallet, settlement or journal write was performed.
 
+## 9. Provider-profile anonymous base-table read — RC479 remains unapplied
+
+A separate read-only ACL/policy check found a remaining minimum-privilege privacy gap on `public.marketing_provider_profiles`:
+
+- `anon` has effective table-level SELECT. The `Public can view active marketing providers` policy filters rows to `status='ACTIVE'`, but RLS does not restrict which columns an anon caller can select.
+- Effective anon column privileges include `owner_user_id` and `settings`; these are not part of the curated public response projection.
+- Read-only aggregates: 10 provider profiles total, all 10 ACTIVE; 4 active profiles have a non-null owner UUID. The audit counted only settings-key names and did not retrieve settings values or owner IDs.
+- Live `public-catalog` v8 and `public-catalog-directory` v18 provider queries both use explicit public field projections (`business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured`) and run with a server-side service-role client. The direct anon PostgREST grant is a separate path outside those Edge projections.
+- The `mantiqatix-profile-media` bucket is configured public for profile media; its storage-object policy is separate from the provider profile base-table grant and is not modified by RC479.
+- Current main already contains the single-purpose RC479 migration, `REVOKE SELECT ON TABLE public.marketing_provider_profiles FROM anon;`, plus a static validator and disposable PostgreSQL integration. The tests require anon direct read to fail while authenticated owner/admin reads and service_role Edge reads continue to work.
+- RC479 remains one of the exact 64 required migration IDs; the live Production ledger records 0/64. Therefore the source fix is present, but the live anonymous table grant is still in effect.
+- Opened P1 issue [#882](https://github.com/islamnagy2022-eng/MantiqaTix/issues/882) for post-release proof.
+
+No provider identifiers, names, contacts or settings values were selected. There is no evidence in this check that data was exploited or extracted. Do not hot-edit Production grants; apply RC479 in the approved chronological release after the encrypted backup/restore/rollback gate, then recheck anon denial and authenticated/service_role compatibility.
+
