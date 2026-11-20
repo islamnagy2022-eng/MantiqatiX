@@ -4537,3 +4537,15 @@ Evidence: `docs/audits/PASS_1420_1429_COMMISSION_PAYMENT_JOBS_REVIEW_20261120.md
 - [ ] Keep Production blocked until encrypted backup/restore, Vault recovery, PG17 restore/rollback, full migration/Edge parity, payment/privacy E2E, approval and post-deploy live verification pass.
 
 Evidence: `docs/audits/PASS_1430_1439_FINAL_SECURITY_DEFINER_REVIEW_20261120.md`.
+
+
+### Edge authentication and anonymous-policy review — 2026-11-20
+
+- [x] Inspect all 10 active Edge Functions with verify_jwt=false; classify manual JWT, webhook secret/HMAC and public-read contracts.
+- [x] Add catalog-admin and directory-listings legacy platform-root membership checks to P0 #867.
+- [x] Focused high-risk RLS/grant review finds no direct anon SELECT/INSERT grants on inspected sensitive tables; 90 Advisor warnings remain for policy-by-policy reconciliation.
+- [x] Open P1 #924 for leaked-password protection.
+- [ ] Reconcile all anonymous-policy warnings and enable leaked-password protection if supported; no blanket RLS changes.
+- [ ] Keep Production blocked until all release gates pass.
+
+Evidence: `docs/audits/PASS_1440_1449_EDGE_AUTH_AND_ANONYMOUS_POLICY_REVIEW_20261120.md`.
