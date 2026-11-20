@@ -3621,7 +3621,7 @@ Evidence: audit file; Issue #928; Supabase Security Advisor and read-only catalo
 - [x] 1482 — Confirm the 19-column provider table includes private `owner_user_id` and `settings`; no values selected.
 - [x] 1483 — Identify the anonymous Auth role mismatch: anonymous Auth JWTs use PostgreSQL role `authenticated`, so the current active-profile policy remains a read path if anonymous sign-in is available.
 - [x] 1484 — Add disposable SQL regression that reproduces the post-RC479 anonymous Auth read and then verifies a test-only restrictive guard denies it while confirmed authenticated reads continue.
-- [x] 1485 — Add static source validator and dedicated PostgreSQL 16 GitHub Actions workflow for the disposable sequence.
+- [x] 1485 — Add static source validator and dedicated PostgreSQL 16 workflow; RC479 run 44794969322 and combined RC464/RC479 run 44794969419 both passed. Test harness merged in PR #936 (c77240643002d713ed69d223e2d4a9792829308e).
 - [x] 1486 — Record the residual gap and non-actions in `docs/audits/PASS_1480_1489_RC479_ANONYMOUS_AUTH_SESSION_GAP_20261120.md`.
 - [ ] 1487 — Generate a forward-only production migration with Supabase CLI in an authorized CLI-enabled source workspace; do not edit RC479 or invent a migration version.
 - [ ] 1488 — Run exact-head disposable PostgreSQL tests with the real forward migration, owner CRUD regression, public Edge projection and chronological replay.
