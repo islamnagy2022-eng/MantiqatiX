@@ -4435,3 +4435,16 @@ Evidence: `docs/audits/PASS_1330_1339_DIRECTORY_DB_BOUNDARY_RECHECK_20261120.md`
 - [ ] Complete payment sandbox, negative authorization/privacy E2E, approved release and post-release live verification.
 
 Evidence: `docs/audits/PASS_1340_1349_LIVE_EDGE_PARITY_CONSENT_POLICY_20261120.md`; Issues #857 and #876. No Production mutation.
+
+
+### SECURITY DEFINER and RLS/grant review — 2026-11-20
+
+- [x] Refresh Security Advisor and catalog inventory: 149 public SECURITY DEFINER functions; 65 authenticated-callable, 1 anon-callable; all have explicit search_path.
+- [x] Verify the anon-callable targeted-ad discovery function uses empty search_path and conforms to RC451's intentional public discovery contract.
+- [x] Inspect representative user/tenant-scoped definer functions and verify browser-role CREATE is absent on public.
+- [x] Verify no browser SELECT/INSERT grants on the nine RLS-enabled/no-policy tables inspected; record service-role grants.
+- [ ] Complete manual review of every authenticated-callable definer function and its transitive authorization helpers.
+- [ ] Preserve no-policy/closed table boundaries unless a documented access contract and tests require change; no blanket revoke.
+- [ ] Keep Production blocked pending coordinated migration/Edge release and backup/restore/payment E2E gates.
+
+Evidence: `docs/audits/PASS_1350_1359_SECURITY_DEFINER_RLS_GRANTS_REVIEW_20261120.md`.

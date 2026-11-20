@@ -3404,3 +3404,19 @@ Evidence: `docs/audits/PASS_1330_1339_DIRECTORY_DB_BOUNDARY_RECHECK_20261120.md`
 - [ ] 1349 — Keep Production blocked until encrypted off-site backup, Storage export, Vault recovery, independent PG17 restore/rollback, measured RPO/RTO, sandbox payment tests and coordinated Edge/database release pass.
 
 Evidence: audit file above; Issue #876 comment 7043793414; Issue #857 comment 7043920765. No Production mutation or deployment.
+
+
+## PASS 1350–1359 — SECURITY DEFINER and RLS/grant review — 2026-11-20
+
+- [x] 1350 — Refresh Supabase Security Advisor: 9 RLS-enabled/no-policy tables, 1 anon-callable SECURITY DEFINER, 65 authenticated-callable SECURITY DEFINER.
+- [x] 1351 — Inventory all public SECURITY DEFINER functions: 149 total; 0 missing explicit function search_path; 28 empty search_path; 91 search_path=public.
+- [x] 1352 — Inspect the anon-callable targeted-ad RPC; confirm empty search_path, schema-qualified application tables, approved/active/time-window filtering, bounded 1–50 result limit, and RC451 intentional public-discovery contract.
+- [x] 1353 — Inspect representative ride, cash-payment, digital-page-payment, platform-admin, membership, HR, finance and catalog definer authorization paths.
+- [x] 1354 — Verify anon/authenticated have no CREATE on public schema; service_role also has no CREATE.
+- [x] 1355 — Verify anon/authenticated have no SELECT/INSERT grants on the nine RLS-enabled/no-policy tables reviewed.
+- [x] 1356 — Verify service_role table grants for those nine tables and record the three with SELECT/INSERT.
+- [x] 1357 — Record evidence in `docs/audits/PASS_1350_1359_SECURITY_DEFINER_RLS_GRANTS_REVIEW_20261120.md`.
+- [ ] 1358 — Finish manual signature-by-signature and transitive-helper review of all 65 authenticated-callable SECURITY DEFINER functions; do not infer safety from representative samples.
+- [ ] 1359 — Keep Production blocked until coordinated Edge/migration, backup/restore, payment and release gates pass. No blanket REVOKE.
+
+Evidence: `docs/audits/PASS_1350_1359_SECURITY_DEFINER_RLS_GRANTS_REVIEW_20261120.md`; Security Advisor snapshot 2026-11-20 15:56 UTC. No Production mutation.
