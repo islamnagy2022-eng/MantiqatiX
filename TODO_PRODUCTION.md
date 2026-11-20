@@ -1,3 +1,16 @@
+## Continuation checkpoint — Pass 1250–1259 — 2026-11-20
+
+- Reverified the uploaded R7 archive: ZIP integrity PASS; SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`. It remains a separate reference candidate, not the current production source. It uses localStorage for business/customer/order/wallet state; do not import wholesale or treat browser state as identity, authorization, tenant or financial authority.
+- Fresh read-only Production inventory: ACTIVE_HEALTHY; 310 migration rows through `20261110150618`; 0/64 exact required release IDs; 137/137 public tables report RLS enabled; 42 active Edge Functions; critical Edge parity 4/11, with seven mismatched functions blocked from standalone deployment.
+- Reconfirmed P0 platform-admin registry gap, P0 directory contact-consent gap, P1 anonymous provider-profile base-table read, and payment/subscription/finance physical contract gaps. Security/Performance Advisor counts remain review inventories, not vulnerability counts.
+- Existing RC484 PostgreSQL 17 adversarial tests and 99-migration disposable replay are source/CI evidence only, not a real Production backup restore.
+- R7 package install timed out; no build/typecheck/lint/test result is claimed. Its 15 test files have no declared package test script; Android wrapper remains a preserved three-file source fragment, not a verified release.
+- No Production SQL/DDL/DML, migration, grant, RLS, Auth, Storage, Edge, payment, wallet, settlement, journal or customer-data mutation occurred.
+- Detailed evidence and exact prerequisites: `docs/audits/PASS_1250_1259_EXECUTION_RECHECK_20261120.md`.
+- Production remains **BLOCKED / NOT CERTIFIED** pending owner-controlled encrypted DB + Storage backup, Vault recovery, separate PostgreSQL 17 restore, measured RPO/RTO and rollback, exact chronological migration replay, coordinated DB/Edge release, payment sandbox and privacy/authorization negative tests.
+
+---
+
 ## Continuation checkpoint — PR #889 exact-head verification — 2026-11-20
 
 - PR #889 (`test(security): cover RC484 RLS command matrix`) completed all reported exact-head workflows successfully: RC484 Platform Admin RLS, MantiGO Open Ride Privacy, RC425 MantiGO Paymob Atomicity, Backend-only Module Boundary, Module Professionalization Validation, and Deploy MantiqatiX Web validation.
