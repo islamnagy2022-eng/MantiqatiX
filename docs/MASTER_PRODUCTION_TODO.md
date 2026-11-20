@@ -4422,3 +4422,16 @@ Evidence: `docs/audits/PASS_1320_1329_DIRECTORY_CONTACT_CONSENT_PAGINATION_20261
 - [ ] Release RC473 plus the complete compatible Edge bundle only after backup/restore and ordered migration gates; verify the live anonymous Edge contract.
 
 Evidence: `docs/audits/PASS_1330_1339_DIRECTORY_DB_BOUNDARY_RECHECK_20261120.md`, P0 Issue #876 comment 7043684354. No Production mutation.
+
+
+### Live Edge parity and contact-consent policy — 2026-11-20
+
+- [x] Recheck live Supabase inventory: ACTIVE_HEALTHY, PostgreSQL 17.6.1.155, 310 migration rows through `20261110150618`, 42 active Edge Functions.
+- [x] Byte-compare deployed entrypoint source for the seven critical order/payment/finance/directory functions against GitHub main; all seven differ.
+- [x] Confirm directory-listings v16 lacks current main's public-output sanitizer and consent pagination modules; Production consent registry table remains absent.
+- [x] Record owner decision: consent remains active until explicit withdrawal; no automatic expiry.
+- [ ] Reconcile exact schema/RPC contracts and prepare one coordinated migration + complete Edge bundle; no independent function deployments.
+- [ ] Complete encrypted off-site DB and Storage backup, Vault recovery, independent PG17 restore/rollback, measured RPO/RTO and independent review.
+- [ ] Complete payment sandbox, negative authorization/privacy E2E, approved release and post-release live verification.
+
+Evidence: `docs/audits/PASS_1340_1349_LIVE_EDGE_PARITY_CONSENT_POLICY_20261120.md`; Issues #857 and #876. No Production mutation.
