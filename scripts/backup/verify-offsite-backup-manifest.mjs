@@ -15,7 +15,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const EXPECTED_PRODUCTION_PROJECT_REF = "moyhiluyhjsujhwlyeuu";
-const REPOSITORY_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const REPOSITORY_ROOT = fs.realpathSync.native(path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../.."));
 
 function isInsideDirectory(candidate, parent) {
   const relative = path.relative(parent, candidate);
@@ -147,6 +147,9 @@ async function verifyArtifact(root, artifact, identityPath) {
     `invalid SHA-256 for ${artifact.kind}`);
 
   const filePath = resolveArtifactPath(root, artifact.path);
+  const realFilePath = fs.realpathSync.native(filePath);
+  requireCondition(isInsideDirectory(realFilePath, root) && realFilePath !== root,
+    "artifact path resolves outside the canonical backup directory");
   const stat = fs.lstatSync(filePath);
   requireCondition(stat.isFile() && !stat.isSymbolicLink(),
     `${artifact.kind} must be a regular file, not a symlink`);
@@ -154,13 +157,13 @@ async function verifyArtifact(root, artifact, identityPath) {
     `byte count mismatch for ${artifact.kind}`);
   requireCondition(String(artifact.path).endsWith(".age"),
     `${artifact.kind} must be an encrypted .age artifact`);
-  requireCondition(hasAgeHeader(filePath),
+  requireCondition(hasAgeHeader(realFilePath),
     `${artifact.kind} does not have an age encryption header`);
 
-  const actualHash = await sha256File(filePath);
+  const actualHash = await sha256File(realFilePath);
   requireCondition(actualHash.toLowerCase() === artifact.sha256.toLowerCase(),
     `SHA-256 mismatch for ${artifact.kind}`);
-  verifyDecrypts(filePath, identityPath);
+  verifyDecrypts(realFilePath, identityPath);
 }
 
 function verifyRestoreEvidence(manifest) {
@@ -199,12 +202,13 @@ async function main() {
   const manifestArgument = process.argv[2];
   requireCondition(manifestArgument, "usage: verify-offsite-backup-manifest.mjs <manifest.json>");
 
-  const manifestPath = path.resolve(manifestArgument);
-  const manifestStat = fs.lstatSync(manifestPath);
+  const manifestInputPath = path.resolve(manifestArgument);
+  const manifestStat = fs.lstatSync(manifestInputPath);
   requireCondition(manifestStat.isFile() && !manifestStat.isSymbolicLink(),
     "manifest must be a regular file");
+  const manifestPath = fs.realpathSync.native(manifestInputPath);
   const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-  const root = path.dirname(manifestPath);
+  const root = fs.realpathSync.native(path.dirname(manifestPath));
   requireCondition(!isInsideDirectory(manifestPath, REPOSITORY_ROOT),
     "backup manifest and encrypted artifacts must be stored outside the Git repository");
 
@@ -245,15 +249,16 @@ async function main() {
 
   const identityArgument = process.env.AGE_IDENTITY_FILE;
   requireCondition(identityArgument, "AGE_IDENTITY_FILE must point to the recovery identity outside this repository");
-  const identityPath = path.resolve(identityArgument);
+  const identityInputPath = path.resolve(identityArgument);
+  const identityStat = fs.lstatSync(identityInputPath);
+  requireCondition(identityStat.isFile() && !identityStat.isSymbolicLink(),
+    "recovery identity must be a regular file, not a symlink");
+  const identityPath = fs.realpathSync.native(identityInputPath);
   const rootPrefix = root.endsWith(path.sep) ? root : root + path.sep;
   requireCondition(!identityPath.startsWith(rootPrefix),
     "recovery identity must be stored separately from the backup artifact directory");
   requireCondition(!isInsideDirectory(identityPath, REPOSITORY_ROOT),
     "recovery identity must be stored outside the Git repository");
-  const identityStat = fs.lstatSync(identityPath);
-  requireCondition(identityStat.isFile() && !identityStat.isSymbolicLink(),
-    "recovery identity must be a regular file, not a symlink");
   if (process.platform !== "win32") {
     requireCondition((identityStat.mode & 0o077) === 0,
       "recovery identity permissions must be owner-only (chmod 600)");
