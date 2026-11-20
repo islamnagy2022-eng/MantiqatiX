@@ -29,7 +29,7 @@ Each listed caller is executable by `authenticated`; none was invoked. The exact
 
 ## Relation to existing RC484 work
 
-Existing P0 Issue #867 covers the separate `public.is_platform_admin()` helper and its 57 RLS-policy dependencies. RC484 source replaces that helper with registry-backed authority and enables FORCE RLS on `private.platform_admins`, but the reviewed live `mnty_can_platform_admin()` definition remains the membership-derived expression above. The four direct callers therefore need explicit coverage in the same coordinated authorization remediation; passing RC484 tests alone must not be treated as proof that this second helper is fixed.
+Existing P0 Issue #867 covers the separate `public.is_platform_admin()` helper and its 57 RLS-policy dependencies. I inspected the exact source migration `supabase/migrations/20261119040000_rc484_registry_backed_is_platform_admin.sql`: it replaces `public.is_platform_admin()` with a registry-backed helper and enables FORCE RLS on `private.platform_admins`, but it contains no reference to `mnty_can_platform_admin()`. The reviewed live `mnty_can_platform_admin()` definition therefore remains the membership-derived expression above. The four direct callers need explicit coverage in the same coordinated authorization remediation; passing RC484 tests alone does not fix this second helper.
 
 A comment with the additional finding and exact four callers was added to Issue #867 (comment ID 7045989396).
 
