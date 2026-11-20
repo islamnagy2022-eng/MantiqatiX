@@ -4473,3 +4473,9 @@ Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.m
 - [ ] Complete the coordinated migration/Edge release and post-deployment live verification; Production currently has 0/64 required migration identifiers. RC484 is a separate `is_platform_admin()` repair, not a replacement for RC464. No hot edit or isolated Production deployment.
 
 Evidence: `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`; Issue #867 comment 7045989396.
+
+
+- [x] Verify RC464/RC471 source repair is merged in PR #742 and relevant RC464 PostgreSQL, R7 caller, chronological replay, migration uniqueness/collision/history CI passed on tested head.
+- [ ] Apply the coordinated ordered migration/Edge release only after backup/restore, migration parity and payment/privacy gates pass. Fresh live check: 310 ledger rows through `20261110150618`; RC464/RC471/RC484 absent; live helper remains weak; five dependent RLS policies remain. Verify body/ACL/search_path/policies/callers after rollout.
+
+Evidence: `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`; PR #742.
