@@ -3488,6 +3488,7 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Enumerated the 65 authenticated-callable public SECURITY DEFINER functions using read-only catalog queries.
 - Found that live `mnty_can_platform_admin()` calls `mnty_can('admin',NULL,NULL,NULL)`; its unscoped membership resolver and role mapping allow tenant OWNER/ADMIN roles to satisfy the global admin predicate.
 - Verified authenticated EXECUTE on the helper and identified four authenticated SECURITY DEFINER callers: global ad creation, digital-page fulfillment, MantiGO captain review, and MantiGO financial configuration.
+- Inspected exact RC484 migration `20261119040000_rc484_registry_backed_is_platform_admin.sql`; it replaces `is_platform_admin()` but contains no `mnty_can_platform_admin()` reference.
 - Added the finding to P0 Issue #867 (comment 7045989396); recorded the evidence in `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`.
 - No application rows selected; no function invoked; no Production mutation, grant/RLS/Auth/Storage/Edge change or deployment.
 - Next: registry-backed correction plus adversarial disposable PostgreSQL tests; preserve tenant-local permissions and all caller-specific checks. Production remains BLOCKED / NOT CERTIFIED.
