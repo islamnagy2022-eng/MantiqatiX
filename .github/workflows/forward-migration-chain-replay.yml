@@ -41,8 +41,11 @@ on:
       - "scripts/validate-rc486-catalog-price-version-serialization.mjs"
       - "supabase/tests/rc486_catalog_price_version_serialization_integration.sql"
       - "supabase/migrations/20261120220000_rc487_remove_smm_first_user_admin_bootstrap.sql"
+      - "supabase/migrations/20261120230000_rc488_storage_anonymous_auth_write_guard.sql"
       - "scripts/validate-rc487-smm-first-user-bootstrap-removal.mjs"
+      - "scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"
       - "supabase/tests/rc487_smm_first_user_bootstrap_removal_integration.sql"
+      - "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql"
       - "supabase/tests/rc482_legal_platform_admin_registry_fixture.sql"
       - "supabase/tests/rc482_legal_platform_admin_registry_integration.sql"
       - "supabase/tests/rc483_atomic_legal_cms_create_audit_fixture.sql"
@@ -140,6 +143,9 @@ jobs:
       - name: Validate RC487 SMM first-user bootstrap removal contract
         run: node scripts/validate-rc487-smm-first-user-bootstrap-removal.mjs
 
+      - name: Validate RC488 Storage anonymous Auth write-guard contract
+        run: node scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs
+
       - name: Start isolated Supabase instance with no repository migrations
         shell: bash
         run: |
@@ -211,6 +217,9 @@ jobs:
 
           echo "RC487_SMM_FIRST_USER_BOOTSTRAP_REMOVAL_INTEGRATION"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc487_smm_first_user_bootstrap_removal_integration.sql
+
+          echo "RC488_STORAGE_ANONYMOUS_AUTH_WRITE_GUARD_INTEGRATION"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql
 
           echo "RC117_DEFAULT_IMAGES_AND_ACTIVITY_ADMIN_CONTRACT"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc117_default_images_and_activity_admin_contract.sql
