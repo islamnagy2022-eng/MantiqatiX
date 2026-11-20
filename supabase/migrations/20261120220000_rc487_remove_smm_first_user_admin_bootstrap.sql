@@ -29,5 +29,10 @@ $preflight$;
 DROP TRIGGER IF EXISTS trg_smm_bootstrap_admin ON auth.users;
 DROP FUNCTION IF EXISTS public.smm_bootstrap_first_admin();
 
--- Deliberately do not alter public.smm_admins rows or widen any table grants.
+-- The trusted gateway may read the explicit allowlist, but no API role may
+-- mutate it. Operator onboarding remains a database-owner-only action.
+REVOKE ALL ON TABLE public.smm_admins FROM PUBLIC, anon, authenticated, service_role;
+GRANT SELECT ON TABLE public.smm_admins TO service_role;
+
+-- Deliberately do not alter public.smm_admins rows.
 COMMIT;
