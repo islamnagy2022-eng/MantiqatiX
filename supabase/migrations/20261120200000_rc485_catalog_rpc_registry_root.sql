@@ -6,15 +6,18 @@ BEGIN;
 DO $preflight$
 DECLARE
   v_helper oid := pg_catalog.to_regprocedure('public.is_platform_admin()');
-  v_definition text;
+  v_helper_config text;
 BEGIN
   IF v_helper IS NULL THEN
     RAISE EXCEPTION 'RC485_REGISTRY_BACKED_PLATFORM_ADMIN_HELPER_REQUIRED';
   END IF;
-  SELECT pg_catalog.pg_get_functiondef(v_helper) INTO v_definition;
-  IF v_definition NOT ILIKE '%private.platform_admins%'
-     OR v_definition NOT ILIKE '%SECURITY DEFINER%'
-     OR v_definition NOT ILIKE '%search_path TO ''''' THEN
+  SELECT pg_catalog.array_to_string(p.proconfig, ',')
+    INTO v_helper_config
+    FROM pg_catalog.pg_proc p
+   WHERE p.oid = v_helper;
+  IF pg_catalog.pg_get_functiondef(v_helper) NOT ILIKE '%private.platform_admins%'
+     OR pg_catalog.pg_get_functiondef(v_helper) NOT ILIKE '%SECURITY DEFINER%'
+     OR coalesce(v_helper_config, '') NOT ILIKE '%search_path=""%' THEN
     RAISE EXCEPTION 'RC485_PLATFORM_ADMIN_HELPER_CONTRACT_MISMATCH';
   END IF;
 END;
