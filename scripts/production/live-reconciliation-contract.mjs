@@ -41,6 +41,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261120210000", // RC486 — serialize item/branch price versions and enforce uniqueness
   "20261120220000", // RC487 — remove public first-Auth-user SMM admin bootstrap
   "20261120230000", // RC488 — block anonymous Auth writes to Storage objects
+  "20261120230000", // RC488 — block anonymous Auth writes to Storage objects
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
