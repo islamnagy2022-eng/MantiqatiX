@@ -9,8 +9,10 @@ on:
       - "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql"
       - "scripts/validate-rc489-financial-anonymous-auth-read-guard.mjs"
       - "scripts/validate-rc490-medical-anonymous-auth-read-guard.mjs"
+      - "scripts/validate-rc491-support-anonymous-auth-boundary.mjs"
       - "supabase/tests/rc489_financial_anonymous_auth_read_integration.sql"
       - "supabase/tests/rc490_medical_anonymous_auth_read_integration.sql"
+      - "supabase/tests/rc491_support_anonymous_auth_boundary_integration.sql"
       - "supabase/tests/baselines/production_schema_snapshot.sql"
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
@@ -50,6 +52,7 @@ on:
       - "supabase/migrations/20261120230000_rc488_storage_anonymous_auth_write_guard.sql"
       - "supabase/migrations/20261120240000_rc489_financial_anonymous_auth_read_guard.sql"
       - "supabase/migrations/20261120250000_rc490_medical_anonymous_auth_read_guard.sql"
+      - "supabase/migrations/20261120260000_rc491_support_anonymous_auth_boundary.sql"
       - "scripts/validate-rc487-smm-first-user-bootstrap-removal.mjs"
       - "scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"
       - "scripts/validate-rc489-financial-anonymous-auth-read-guard.mjs"
@@ -130,7 +133,7 @@ jobs:
       - name: Validate RC469 shared caller search_path contract
         run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
 
-      - name: Validate strict Production release gate and exact 70-version contract
+      - name: Validate strict Production release gate and exact 71-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
 
       - name: Validate MantiGO platform-admin and financial source contracts
@@ -161,6 +164,9 @@ jobs:
 
       - name: Validate RC490 medical anonymous Auth read guard contract
         run: node scripts/validate-rc490-medical-anonymous-auth-read-guard.mjs
+
+      - name: Validate RC491 support anonymous Auth boundary contract
+        run: node scripts/validate-rc491-support-anonymous-auth-boundary.mjs
 
       - name: Start isolated Supabase instance with no repository migrations
         shell: bash
@@ -242,6 +248,9 @@ jobs:
 
           echo "RC490_MEDICAL_ANONYMOUS_AUTH_READ_INTEGRATION"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc490_medical_anonymous_auth_read_integration.sql
+
+          echo "RC491_SUPPORT_ANONYMOUS_AUTH_BOUNDARY_INTEGRATION"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc491_support_anonymous_auth_boundary_integration.sql
 
           echo "RC117_DEFAULT_IMAGES_AND_ACTIVITY_ADMIN_CONTRACT"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc117_default_images_and_activity_admin_contract.sql
