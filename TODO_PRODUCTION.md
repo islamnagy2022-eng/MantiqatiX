@@ -1,3 +1,13 @@
+## Continuation checkpoint — Pass 1270–1274 — 2026-11-20
+
+- Verified the currently published root is the sanitized AI Studio V6 public MVP; the previous catalog is retained at `/legacy/`. Its verified-business profile uses `src/data/imageAssets.ts` resolvers, which previously preferred stale social-CDN URLs and had no MantiqatiX-specific identity.
+- Added an idempotent V6 source-preparation overlay that recognizes the exact MantiqatiX activity name, serves the canonical first-party SVG logo/cover through Vite's configured base path, and preserves all other businesses' uploaded media.
+- The overlay copies the canonical SVGs from `apps/catalog-frontend/public/` into the generated V6 `public/` folder; added a source contract test and a browser E2E fixture that checks the V6 profile's actual logo and cover.
+- Added post-deployment HTTP checks for both assets at the production root and retained V6 preview alias.
+- This is a source/CI change only. It does not alter Production profile metadata, Storage, Auth, RLS, Edge functions, payments, or customer records. PR #896 pending CI and merge.
+
+---
+
 ## Continuation checkpoint — Pass 1265–1269 — 2026-11-20
 
 - Merged PR #893 after the MantiqatiX profile branding source test, TypeScript/build, primary catalog browser E2E, isolated employee RBAC PostgreSQL tests, and all related PR validation workflows passed. Merge commit: `472964f5f58f58f961f3619d06c9d6c3487f4853`.
