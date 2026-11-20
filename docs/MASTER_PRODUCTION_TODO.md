@@ -4410,3 +4410,15 @@ Evidence: PR #870; `docs/audits/PASS_1180_1189_RC484_REGISTRY_BACKED_RLS_HELPER_
 - [ ] Verify consent table, grants/RLS, function parity and public output against live Production after the approved release.
 
 Evidence: `docs/audits/PASS_1320_1329_DIRECTORY_CONTACT_CONSENT_PAGINATION_20261120.md`. No Production mutation or deployment.
+
+
+### Directory Production access-boundary recheck — 2026-11-20
+
+- [x] Verify the base directory table has RLS and FORCE RLS enabled.
+- [x] Verify anon and authenticated have no effective SELECT on the base directory table and no RLS policies grant browser access.
+- [x] Verify service_role is the only role with the required SELECT path for the Edge Function.
+- [x] Confirm the RC473 consent registry is absent from Production; do not treat source migration as deployed.
+- [ ] Resolve whether directory contact consent should expire: define product policy, add a forward-only schema migration and owner UI, and test active/expired/revoked disclosure behavior.
+- [ ] Release RC473 plus the complete compatible Edge bundle only after backup/restore and ordered migration gates; verify the live anonymous Edge contract.
+
+Evidence: `docs/audits/PASS_1330_1339_DIRECTORY_DB_BOUNDARY_RECHECK_20261120.md`, P0 Issue #876 comment 7043684354. No Production mutation.
