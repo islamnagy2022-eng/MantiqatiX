@@ -1,5 +1,19 @@
 # MantiqatiX Continuous Execution Status
-Last updated: 2026-11-19 — RC484 merged; exact PR-head CI and 99-migration disposable replay passed; Production remains not certified
+Last updated: 2026-11-20 — Pass 1220–1229; 7/11 critical Edge source mismatch, 0/64 exact migration IDs; Production read-only
+
+## Latest checkpoint — 2026-11-20 — Pass 1220–1229
+
+- Current main: `57862b714c0b049419204b6143b966c149682906`.
+- PR #875 backup manifest/evidence verifier merged; exact-head CI passed 12/12. This is operator-evidence validation only, not a real Production backup or restore.
+- Critical Edge parity: 4/11 exact matches; 7/11 mismatches: `order-create`, `payment-intent`, `paymob-webhook`, `digital-page-payment-intent`, `subscription-payment-intent`, `financial-journal`, `directory-listings`.
+- Fresh ledger: 310 rows through `20261110150618`; 0/64 exact release IDs. Physical contract checks independently found missing RC425 table, RC427 active-order index, RC435 claim columns/RPCs, RC439 encrypted checkout columns, new atomic payment/subscription/MantiGO RPCs, and RC450 service_role journal EXECUTE.
+- Current payment/order/event/ledger aggregates checked are all zero; no E2E payment was initiated.
+- Directory: 869 published listings have phone/address; 178 also have secondary phone; consent tables absent. P0 issue #876 opened.
+- RC484 is source-merged with isolated PostgreSQL 17 tests and 99-migration disposable replay PASS; live Production helper remains weak and #867 stays open.
+- No Production DDL/DML/RLS/GRANT/Auth/Storage/Edge/payment/wallet/settlement/data mutation occurred. Full production release remains **BLOCKED / NOT CERTIFIED**.
+
+**Next:** operator backup + independent PostgreSQL 17 restore/RPO/RTO/rollback evidence; ordered schema/Edge reconciliation; coordinated release and live post-deploy verification.
+
 
 ## Release status
 **NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
