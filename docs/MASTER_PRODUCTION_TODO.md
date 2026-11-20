@@ -4516,3 +4516,13 @@ Evidence: `docs/audits/PASS_1400_1409_MANTIGO_DATA_ACCESS_REVIEW_20261120.md`.
 - [ ] Apply RC467 only in coordinated migration/Edge release; verify commission registry gate live after deployment.
 
 Evidence: `docs/audits/PASS_1410_1419_PLATFORM_ADMIN_AND_EMPLOYEE_SCOPE_REVIEW_20261120.md`.
+
+
+### Commission, payment claim, settlement and job application review — 2026-11-20
+
+- [x] Verify platform membership/custom-role admin RPCs use protected registry and scoped permission helper.
+- [x] Reconfirm RC467 commission preview gate, RC464 captain review/config gate, and RC471 settlement gate remain unapplied in Production; issues #884, #867, #92/#94.
+- [x] Confirm job application unique index prevents duplicate submissions; open P2 #919 because inactive jobs are not rejected by RPC.
+- [ ] Continue full-body review of remaining 9 direct-auth SECURITY DEFINER functions.
+
+Evidence: `docs/audits/PASS_1420_1429_COMMISSION_PAYMENT_JOBS_REVIEW_20261120.md`.
