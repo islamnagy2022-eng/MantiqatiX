@@ -9,6 +9,11 @@ RETURNS jsonb LANGUAGE sql STABLE AS $function$
 $function$;
 GRANT USAGE ON SCHEMA public,auth TO anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION auth.jwt() TO anon,authenticated,service_role;
+CREATE OR REPLACE FUNCTION auth.uid()
+RETURNS uuid LANGUAGE sql STABLE AS $function$
+  SELECT nullif(auth.jwt()->>'sub','')::uuid
+$function$;
+GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated,service_role;
 
 DO $fixture$
 DECLARE v_table text;
