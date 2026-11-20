@@ -117,3 +117,18 @@ Required release sequence remains:
 **Production changes:** NONE — no DDL/DML, migration, RLS, GRANT, Auth, Storage, Edge deployment, payment, wallet, settlement, or customer-data mutation.
 
 **Next executable work:** keep P0 issues #857 and #867 open; track the RC473 directory public-contact gap separately; continue schema/Edge compatibility analysis and test coverage on source branches, but do not deploy the seven mismatched functions independently.
+
+
+## 7. Release-gate hardening after physical contract recheck
+
+The source release gate previously required many payment RPCs by generic function name; that could accept a legacy overload with the same name but a different callable contract. A follow-on source change adds `REQUIRED_PAYMENT_CONTRACT_OBJECTS` (14 exact object contracts) to the live reconciliation gate:
+
+- Exact standard payment success/failure and subscription success/failure RPC signatures.
+- Exact RC435 subscription claimable-create and provider-creation-claim RPC signatures.
+- Exact RC425 MantiGO atomic payment processor signature.
+- Provider-order persistence columns on standard payment intents and digital-page orders.
+- Both provider-creation claim columns and all three RC439 encrypted checkout-secret columns on subscription intents.
+
+The 2026-11-20 read-only physical evidence marks the exact legacy-compatible standard success RPC and the two provider-order columns present; it marks the other 11 required RPC/column objects absent. The manifest now records each observation explicitly as PASS or BLOCKED. The validator's complete synthetic fixture includes all 14 contracts and negative fixtures verify that missing claim RPCs/checkout columns block certification.
+
+This is **source-side release-gate hardening only**. It does not create missing objects, apply RC435/RC439, or change Production. The exact PR-head CI/replay results are pending until the focused follow-up PR is opened and executed.
