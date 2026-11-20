@@ -2,7 +2,7 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const migration = fs.readFileSync(
-  "supabase/migrations/20261120250000_rc490_private_crm_notification_read_guards.sql",
+  "supabase/migrations/20261120280000_rc493_private_crm_notification_read_guards.sql",
   "utf8",
 );
 const integration = fs.readFileSync(
@@ -13,8 +13,8 @@ for (const table of ["marketing_leads","marketing_projects","notifications"]) {
   assert.ok(migration.includes("'" + table + "'"), "missing migration target: " + table);
   assert.ok(integration.includes("'" + table + "'"), "missing integration target: " + table);
 }
+assert.ok(migration.includes("auth.jwt()") && migration.includes("IS FALSE"), "missing fail-closed confirmed Auth claim guard");
 assert.ok(migration.includes("auth.jwt()") && migration.includes("is_anonymous"), "missing anonymous Auth claim guard");
-assert.ok(migration.includes("auth.jwt()") && migration.includes("is_anonymous"), "missing anonymous Auth claim guard");
-assert.match(integration,/RC490_ANONYMOUS_PRIVATE_READ_SUCCEEDED/);
-assert.match(integration,/RC490_CONFIRMED_OWNER_READ_REGRESSED/);
-console.log("RC490 private CRM/project/notification read contract: PASS");
+assert.match(integration,/RC493_ANONYMOUS_PRIVATE_READ_SUCCEEDED/);
+assert.match(integration,/RC493_CONFIRMED_OWNER_READ_REGRESSED/);
+console.log("RC493 private CRM/project/notification read contract: PASS");
