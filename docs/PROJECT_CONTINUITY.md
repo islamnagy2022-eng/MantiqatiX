@@ -2685,3 +2685,15 @@ Fresh read-only Production inspection found `public.is_platform_admin()` returns
 Fresh aggregate-only counts: ADMIN 1 active row/1 user/0 absent from registry; SUPER_ADMIN 1/1/0; BUSINESS_OWNER 9/5/4; OWNER 3/1/0. No active non-registry ADMIN or SUPER_ADMIN was present in this aggregate. The helper is still a latent global bypass: a future tenant ADMIN/SUPER_ADMIN membership would satisfy it and inherit global bypass across the affected policies/callers. This is not evidence of current abuse or of a current non-registry administrator.
 
 P0 issue #867 tracks the required fix. Do not replace all uses indiscriminately: some call sites need tenant-local admin semantics, while only platform-root checks should use `private.platform_admins`. No live function was invoked and no Production mutation occurred. Full platform remains BLOCKED / NOT CERTIFIED.
+
+
+## Latest execution checkpoint — Pass 1190–1199 — 2026-11-20
+
+- PR #870 merged to main at `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`; RC484 is now source-merged.
+- Dedicated PostgreSQL 17 workflow run #16 passed. Its source validator reported 14/14 checks passed; the isolated fixture, migration and adversarial integration job completed successfully.
+- Production-checkpoint chronological forward replay run #2391 passed. Migration version uniqueness, migration history immutability and cross-PR collision checks also passed.
+- GitHub Pages workflow validation passed, but the actual deploy job was **skipped by the existing production dependency gate**. No website deployment is claimed from this PR.
+- Fresh read-only Production recheck remains unchanged: `is_platform_admin()` is SECURITY INVOKER with `search_path=public`; `private.platform_admins` has RLS enabled but FORCE RLS disabled; 57 dependent policies across 24 tables remain. RC484 is not applied.
+- No Production DDL/DML, migration, RLS/GRANT/Auth/Storage/Edge/payment/wallet/settlement/user-data mutation was performed. Full platform remains **BLOCKED / NOT CERTIFIED**.
+
+**Next:** continue the 64-version live reconciliation and operator-owned encrypted off-site backup/Storage/Vault recovery plus independent PostgreSQL 17 restore/rollback evidence. Keep RC484 for the approved ordered release only; re-read helper/registry ACL and all dependent policy behavior after release. Keep issue #867 open until live verification passes.
