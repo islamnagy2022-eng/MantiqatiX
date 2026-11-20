@@ -19,3 +19,9 @@ Date: 2026-11-20
 - Source-only; no Production database, Storage, Auth, RLS, Edge, payment or customer records changed.
 - The immutable V6 source archive remains unchanged; the checked-in preparation overlay is deterministic and repeatable.
 - Await PR CI and deployment evidence. Do not call the V6 fix live until the post-deployment checks pass.
+
+## CI correction
+- First PR validation executed the overlay self-test, copied both canonical SVGs, and passed the V6 branding source-contract test.
+- The preparation gate then failed because the root-repository test script was mistakenly included in the list of files required inside the extracted V6 worktree. The script correctly runs from the repository root; it is not part of the archived V6 app.
+- Removed that incorrect worktree-only requirement. The test invocation remains in place and will run again in the updated PR validation.
+- No product-code or Production-data failure was reported in this first attempt; the release gate remained closed.
