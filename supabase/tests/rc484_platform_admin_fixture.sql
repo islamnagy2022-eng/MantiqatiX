@@ -144,3 +144,7 @@ INSERT INTO public.scope_probe_10(id,owner_user_id,tenant_id,business_id,branch_
  (2,'10000000-0000-4000-8000-000000000003','TENANT-B','BUSINESS-B','BRANCH-B'),
  (3,NULL,NULL,NULL,NULL);
 
+-- The seventh ALL policy mirrors platform-root-only feature-flag writes.
+INSERT INTO public.scope_probe_09(id,owner_user_id,tenant_id,business_id,branch_id)
+VALUES(1,'10000000-0000-4000-8000-000000000003','TENANT-A','BUSINESS-A','BRANCH-A');
+
