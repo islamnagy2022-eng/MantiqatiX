@@ -1,0 +1,59 @@
+name: RC489 Finance Anonymous Auth Read Isolation
+
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/20261120240000_rc489_finance_anonymous_auth_select_guards.sql"
+      - "supabase/tests/rc489_finance_anonymous_auth_select_guards_fixture.sql"
+      - "supabase/tests/rc489_finance_anonymous_auth_select_guards_integration.sql"
+      - "scripts/validate-rc489-finance-anonymous-auth-select-guards.mjs"
+      - ".github/workflows/rc489-finance-anonymous-auth-select-guards.yml"
+  push:
+    branches:
+      - "security/rc489-finance-anonymous-auth-read-guards"
+    paths:
+      - "supabase/migrations/20261120240000_rc489_finance_anonymous_auth_select_guards.sql"
+      - "supabase/tests/rc489_finance_anonymous_auth_select_guards_fixture.sql"
+      - "supabase/tests/rc489_finance_anonymous_auth_select_guards_integration.sql"
+      - "scripts/validate-rc489-finance-anonymous-auth-select-guards.mjs"
+      - ".github/workflows/rc489-finance-anonymous-auth-select-guards.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  rc489-finance-anon-auth-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc489_finance_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc489_finance_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Validate RC489 static contract
+        run: node scripts/validate-rc489-finance-anonymous-auth-select-guards.mjs
+      - name: Apply isolated finance fixture and forward migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc489_finance_anonymous_auth_select_guards_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261120240000_rc489_finance_anonymous_auth_select_guards.sql "$pg_container:/tmp/rc489.sql"
+          docker cp supabase/tests/rc489_finance_anonymous_auth_select_guards_integration.sql "$pg_container:/tmp/integration.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc489_finance_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc489_finance_test -v ON_ERROR_STOP=1 -f /tmp/rc489.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc489_finance_test -v ON_ERROR_STOP=1 -f /tmp/integration.sql
