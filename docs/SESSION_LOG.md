@@ -3562,3 +3562,12 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Security Advisor reports 90 anonymous-policy warnings and leaked-password protection disabled. Focused grants review found no direct anon SELECT/INSERT on high-risk tables inspected; policy-by-policy reconciliation remains open.
 - Opened P1 #924 for leaked-password protection; no Auth settings changed.
 - No Edge function invoked, no data rows selected, no Production mutation.
+
+
+## 2026-11-20 — Pass 1450–1459 — anonymous-policy and RC484 preflight review
+
+- Reconciled Security Advisor's 90 anonymous-policy warnings with PostgreSQL metadata: 200 authenticated-role policies lack explicit anonymous markers; classified by membership, user-bound, platform helper, public-read and deny-false predicates.
+- Focused high-risk table review found no direct anon SELECT/INSERT grants on MantiGO, medical, payment, membership, tenant and other inspected tables.
+- Verified RC484 preflight across all schemas: 57 is_platform_admin policies across 24 tables (56 public + one storage.objects). Storage overlay is test-only; never apply to Production.
+- Remaining: complete all warning/policy interactions, leaked-password protection #924, coordinated RC484 rollout and live post-check.
+- No data rows or sensitive values selected; no Production mutation.
