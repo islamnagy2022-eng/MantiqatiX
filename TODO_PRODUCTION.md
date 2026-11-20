@@ -1,3 +1,17 @@
+## Latest verified checkpoint — Pass 1220–1229 — 2026-11-20
+
+- Main: `57862b714c0b049419204b6143b966c149682906`; PR #875 merged the read-only encrypted-backup manifest/evidence verifier. Exact-head CI: **12/12 PASS**. This does not create off-site backups or perform restore rehearsal.
+- Fresh exact parity across 11 critical Edge functions: 4 exact matches (`api`, `order-status-update`, `payment-webhook`, `smm-gateway`); 7 mismatches (`order-create`, `payment-intent`, `paymob-webhook`, `digital-page-payment-intent`, `subscription-payment-intent`, `financial-journal`, `directory-listings`). Keep all seven blocked from standalone deployment.
+- Fresh Production ledger: 310 migrations through `20261110150618`; **0/64** exact required release identifiers recorded. Exact ledger absence must not be confused with proof every physical effect is absent.
+- Independently confirmed DB dependency gaps: missing `mantigo_payment_provider_events`, missing `uq_payment_intents_one_active_per_order`, subscription claim and encrypted checkout columns missing, new atomic standard/subscription/MantiGO payment RPCs absent, and `post_financial_journal_backend` lacks service_role EXECUTE. Live directory consent tables absent.
+- Payment and ledger aggregate tables checked contain zero rows. No Paymob/financial E2E has been run.
+- Directory contact privacy remains BLOCKED: 869 published listings all have phone/address and 178 have secondary phone; no consent registry tables are live. P0 issue #876 opened.
+- RC484 is source-merged, with isolated PostgreSQL 17 adversarial tests and 99-migration chronological replay PASS. Production remains read-only and the old generic `is_platform_admin()` helper remains live; issue #867 stays open.
+- Evidence: `docs/audits/PASS_1220_1229_EDGE_PAYMENT_PRODUCTION_PARITY_20261120.md`; refreshed `docs/release/production-migration-reconciliation.json`.
+
+**Next:** complete real encrypted off-site DB + Storage export, Vault recovery and separate PostgreSQL 17 restore with independent review/RPO/RTO/rollback evidence; only then prepare a coordinated 64-version DB + complete Edge release with sandbox and negative privacy/authorization tests. No Production mutation occurred.
+
+---
 ## Latest verified checkpoint — Pass 900–907 — 2026-11-19
 
 - Fresh read-only Production review: `payment-intent` ACTIVE v8 and `paymob-webhook` ACTIVE v10 remain older than main. The live payment-intent does not validate exact cents/whole Paymob response or persist `provider_order_id`; the webhook can select by unsigned `merchant_order_id` without comparing stored provider order to signed `order.id`, and its failure branch writes provider event and payment status separately. The live success processor has no provider-order argument.
