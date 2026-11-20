@@ -69,3 +69,16 @@ Do not revoke SELECT from `authenticated` wholesale: the owner/provider workflow
 This correction only addresses anonymous Auth sessions. The current RC479 compatibility contract intentionally preserves `authenticated` table SELECT and the public-active policy, so confirmed authenticated users still have direct SELECT to the full table projection, including `owner_user_id` and `settings`. The existing RC479 integration explicitly expects authenticated active-profile reads to continue.
 
 If the product intends those columns to be private from ordinary confirmed users too, that requires a separate data-minimization decision: for example, revoke direct base-table SELECT from ordinary authenticated users, retain narrowly scoped owner/CRM access, and keep public discovery on curated Edge projections. Do not silently change that contract in this anonymous-session fix.
+
+
+## 7. Disposable CI verification — 2026-11-20
+
+The new regression passed in GitHub Actions:
+
+- Dedicated RC479 anonymous Auth session workflow **44794969322** — job `rc479-anonymous-auth-postgres`: **SUCCESS**. Static contract validation, PostgreSQL 16 baseline reproduction, RC479 raw-anon integration, and test-only restrictive SELECT overlay all completed successfully.
+- Combined existing RC464 workflow **44794969419** — `rc464-platform-admin-postgres`: **SUCCESS**; `rc479-anonymous-auth-postgres`: **SUCCESS**.
+- The tested code head was `77e782e651f0c73f4481d50495f06a55dd7260da`. Later commit `aff22504149e562686ec85800994acb91fa5072e` changed only audit scope-limitation documentation; no test or workflow source changed after the passing run.
+- Local Node syntax/static contract check also passed.
+- Test harness and workflow were merged in PR **#936**, merge commit `c77240643002d713ed69d223e2d4a9792829308e`.
+
+These are disposable tests only. They do not apply a Production migration or prove live anonymous sign-in configuration. The actual forward-only SELECT guard migration remains pending Supabase CLI generation and chronological replay.
