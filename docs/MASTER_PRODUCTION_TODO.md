@@ -1,3 +1,22 @@
+# Latest execution checkpoint — 2026-11-20 — Pass 1220–1229
+
+**Current main:** `57862b714c0b049419204b6143b966c149682906`  
+**Full platform gate:** **BLOCKED / NOT CERTIFIED**  
+**Production mutation policy:** no migration, Edge, Auth, RLS, GRANT, payment, wallet, settlement or customer-data mutation without the complete coordinated release gate.
+
+- PR #875 merged: encrypted backup manifest/evidence validator and non-secret manifest template. Exact-head CI passed 12/12 tests; this tool checks operator-created artifacts/evidence and does not create a backup or restore Production.
+- Exact live Edge/source parity is 4/11 matches and 7/11 mismatches. Mismatched: `order-create`, `payment-intent`, `paymob-webhook`, `digital-page-payment-intent`, `subscription-payment-intent`, `financial-journal`, `directory-listings`. Do not deploy any of these independently.
+- Fresh read-only ledger check: 310 rows through `20261110150618`; 0/64 exact release IDs recorded. This is an identity gap, not proof that every intended physical effect is absent.
+- Confirmed physical gaps: RC425 MantiGO provider-event table missing; RC427 active-order uniqueness index missing; RC435 subscription claim fields/RPCs missing; RC439 encrypted checkout secret fields missing; atomic standard/subscription/MantiGO payment processors absent; RC450 financial journal backend EXECUTE is not granted to service_role.
+- Payment/order/event/ledger tables checked had zero rows. Payment E2E is not run and cannot be inferred from empty tables.
+- Directory privacy: 869 published rows, all carrying phone and address; 178 secondary phone fields. Consent tables are absent and deployed anonymous directory Edge v16 differs from current main. P0 issue #876 opened.
+- RC484 merged in PR #870 with PostgreSQL 17 adversarial CI and 99-migration disposable replay PASS. Production still has the generic global helper; registry FORCE RLS is disabled and 57 RLS policies across 24 tables still depend on it. Issue #867 remains open.
+- P0 payment/finance blocker #857 remains open. Detailed evidence: `docs/audits/PASS_1220_1229_EDGE_PAYMENT_PRODUCTION_PARITY_20261120.md` and `docs/release/production-migration-reconciliation.json`.
+
+**Next:** prioritize operator-owned encrypted backup + separate PostgreSQL 17 restore/rollback with RPO/RTO; then reconcile the ordered 64-version migration chain, ACL/schema contracts and all 7 Edge source drifts; run full positive/negative sandbox and privacy/RLS E2E. Preserve existing catalog screens and Android files; R7 remains reference-only. No Production mutation occurred.
+
+---
+
 # Latest execution checkpoint — 2026-11-19 — Pass 1040–1069
 
 **Current main:** `d170501cdd52db4584bb76359da2153d640cbaf9`  
