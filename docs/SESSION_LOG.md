@@ -3582,3 +3582,13 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Decision: R7 is reference-only; no wholesale merge. Preserve current main, Supabase authority and Android assets. Port features selectively after backend-contract mapping and isolated tests.
 - No production data/schema/Auth/RLS/grant/Edge/payment/deployment mutation.
 - Evidence: `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md`.
+
+
+## 2026-11-20 — Pass 1456 — anonymous-auth policy review (partial)
+
+- Refreshed Security Advisor: 90 anonymous-auth policy warnings.
+- Queried live policy/grant metadata: 86/90 have authenticated permissive policies; 46/90 have a table-wide restrictive is_anonymous guard; 40 need command-level review. This is not a count of proven leaks.
+- Public schema: 8 anon SELECT-grant tables, no anon INSERT/UPDATE/DELETE grants. Storage has broader grant privileges but no matching anon write policy in the inspected RLS inventory; public profile-media bucket requires path/content validation.
+- Reviewed high-risk self/tenant-bound examples and opened P1 #928 for complete 40-table policy composition and anonymous-JWT disposable tests.
+- No application rows or personal data selected; no anonymous access probe or Production mutation.
+- Pass 1456 remains open. Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`.

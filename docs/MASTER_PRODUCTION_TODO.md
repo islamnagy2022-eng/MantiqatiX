@@ -4571,3 +4571,14 @@ Evidence: `docs/audits/PASS_1450_1459_ANONYMOUS_POLICY_AND_RC484_PREFLIGHT_20261
 - [ ] For each selected R7 UI/feature, map to current-main API/DB contracts and add isolated regression coverage before porting.
 
 Evidence: `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md`.
+
+
+### Pass 1456 — anonymous-auth RLS policy reconciliation (partial) — 2026-11-20
+
+- [x] Refresh Security Advisor and reconcile the 90 anonymous-auth table warnings with live policy and grant metadata.
+- [x] Identify 46 tables with table-wide restrictive `is_anonymous` guards and 40 requiring command-level review; distinguish policy warnings from confirmed exposure.
+- [x] Confirm public-schema anon grants are SELECT-only across eight tables; no public-schema anon write grants.
+- [x] Open P1 #928 for 40-table command-level review and anonymous/confirmed JWT regression tests.
+- [ ] Complete all 40 table policy compositions and disposable anonymous-JWT tests. No blanket deny migration.
+
+Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`.

@@ -2929,3 +2929,12 @@ R7 archive declares `Dual-Engine (Local Authoritative JSON + Supabase PostgreSQL
 Decision: R7 is reference-only and must not replace current main or be wholesale merged. Keep Supabase authoritative for identity, permissions and production data. Port UI/features/assets only after mapping each feature to current backend contracts and tests. Preserve Android files. No application data, Supabase schema/Auth/RLS/grants, Edge, payments or production deployment changed.
 
 Evidence: `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md`.
+
+
+### Pass 1456 partial update — anonymous-auth policy review — 2026-11-20
+
+Fresh Security Advisor still reports 90 anonymous-auth policy warnings. Read-only aggregation across those tables: 86 have authenticated permissive policies; 46 have a table-wide restrictive `is_anonymous` guard; 40 lack such a table-wide guard and need command-by-command review. This is not a finding that 40 tables are exposed: many predicates are UID-, membership-, owner-, or platform-helper-scoped, and some public-read policies are intentional. Public schema has 8 anon SELECT-grant tables and no anon write grants. Storage has anon grant privileges on objects but no anon write policy in the inspected policy set; `mantiqatix-profile-media` is a public bucket and needs explicit path/content review. Auth anonymous-sign-in configuration is not available through the connected Supabase tools.
+
+P1 Issue #928 tracks the remaining 40-table policy composition review and disposable tests for anonymous JWT versus confirmed Auth JWT. No anonymous data access attempt or Production mutation. Pass 1456 remains open.
+
+Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`.
