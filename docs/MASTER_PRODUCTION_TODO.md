@@ -4355,8 +4355,9 @@ A read-only Production query confirms the exact policy inventory expected by RC4
 - [x] Add source-only RC484 migration using the protected `private.platform_admins` registry, empty search_path and least-privilege EXECUTE ACL.
 - [x] Add isolated PostgreSQL 17 adversarial test fixture for tenant ADMIN/SUPER_ADMIN denial and registry-only platform-root access.
 - [x] Add RC484 workflow and include migration in the 64-version source/release inventories.
-- [ ] Complete exact-head RC484 PostgreSQL CI and production-checkpoint forward migration replay.
-- [ ] Merge PR #870 only after all required checks pass.
+- [x] Complete exact-head RC484 PostgreSQL 17 CI: dedicated workflow run #16 passed, including 14/14 source checks and the isolated adversarial migration/integration job.
+- [x] Complete production-checkpoint forward migration replay run #2391; migration uniqueness, history immutability and cross-PR collision gates also passed.
+- [x] Merge PR #870 to main at merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`.
 - [ ] Apply RC484 only as part of the approved ordered production release after encrypted backup/restore/rollback evidence; re-read helper ACL/search_path and test all 57 dependent policies.
 - [ ] Keep issue #867 open until live post-deployment verification proves the global bypass is closed.
 
