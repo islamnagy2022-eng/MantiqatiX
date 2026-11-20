@@ -32,6 +32,8 @@ CREATE TABLE public.user_memberships(
   id text PRIMARY KEY,
   user_id uuid NOT NULL,
   tenant_id text NOT NULL,
+  business_id text,
+  branch_id text,
   role text NOT NULL,
   status text NOT NULL
 );
@@ -59,7 +61,7 @@ DECLARE
 BEGIN
   FOR i IN 1..24 LOOP
     t:=CASE WHEN i=1 THEN 'scope_probe' ELSE 'scope_probe_'||lpad(i::text,2,'0') END;
-    EXECUTE format('CREATE TABLE public.%I(id integer PRIMARY KEY,owner_user_id uuid,tenant_id text)',t);
+    EXECUTE format('CREATE TABLE public.%I(id integer PRIMARY KEY,owner_user_id uuid,tenant_id text,business_id text,branch_id text)',t);
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY',t);
     EXECUTE format('GRANT SELECT,INSERT,UPDATE,DELETE ON public.%I TO authenticated',t);
   END LOOP;
@@ -75,12 +77,23 @@ BEGIN
       WHEN j<=50 THEN 'DELETE'
       ELSE 'ALL'
     END;
-    policy_sql:=format(
-      'CREATE POLICY %I ON public.%I FOR %s TO authenticated USING (owner_user_id=(SELECT auth.uid()) OR public.is_platform_admin())',
-      'rc484_policy_'||j,t,policy_command
-    );
-    IF policy_command IN ('UPDATE','ALL') THEN
-      policy_sql:=policy_sql||' WITH CHECK (owner_user_id=(SELECT auth.uid()) OR public.is_platform_admin())';
+    IF policy_command='ALL' THEN
+      policy_sql:=format(
+        'CREATE POLICY %I ON public.%I FOR ALL TO authenticated USING (public.is_platform_admin() OR EXISTS (SELECT 1 FROM public.user_memberships m WHERE m.user_id=(SELECT auth.uid()) AND m.status=''ACTIVE'' AND m.tenant_id=%I.tenant_id AND m.business_id=%I.business_id AND m.branch_id=%I.branch_id))',
+        'rc484_policy_'||j,t,t,t,t
+      );
+      policy_sql:=policy_sql||format(
+        ' WITH CHECK (public.is_platform_admin() OR EXISTS (SELECT 1 FROM public.user_memberships m WHERE m.user_id=(SELECT auth.uid()) AND m.status=''ACTIVE'' AND m.tenant_id=%I.tenant_id AND m.business_id=%I.business_id AND m.branch_id=%I.branch_id))',
+        t,t,t
+      );
+    ELSE
+      policy_sql:=format(
+        'CREATE POLICY %I ON public.%I FOR %s TO authenticated USING (owner_user_id=(SELECT auth.uid()) OR public.is_platform_admin())',
+        'rc484_policy_'||j,t,policy_command
+      );
+      IF policy_command='UPDATE' THEN
+        policy_sql:=policy_sql||' WITH CHECK (owner_user_id=(SELECT auth.uid()) OR public.is_platform_admin())';
+      END IF;
     END IF;
     EXECUTE policy_sql;
   END LOOP;
@@ -92,9 +105,9 @@ INSERT INTO auth.users(id) VALUES
  ('10000000-0000-4000-8000-000000000002'),
  ('10000000-0000-4000-8000-000000000003');
 
-INSERT INTO public.user_memberships(id,user_id,tenant_id,role,status) VALUES
- ('tenant-admin','10000000-0000-4000-8000-000000000001','TENANT-A','ADMIN','ACTIVE'),
- ('tenant-super-admin','10000000-0000-4000-8000-000000000002','TENANT-B','SUPER_ADMIN','ACTIVE');
+INSERT INTO public.user_memberships(id,user_id,tenant_id,business_id,branch_id,role,status) VALUES
+ ('tenant-admin','10000000-0000-4000-8000-000000000001','TENANT-A','BUSINESS-A','BRANCH-A','ADMIN','ACTIVE'),
+ ('tenant-super-admin','10000000-0000-4000-8000-000000000002','TENANT-B','BUSINESS-B','BRANCH-B','SUPER_ADMIN','ACTIVE');
 
 INSERT INTO private.platform_admins(user_id)
 VALUES ('10000000-0000-4000-8000-000000000003');
@@ -103,3 +116,10 @@ INSERT INTO public.scope_probe(id,owner_user_id,tenant_id) VALUES
  (1,'10000000-0000-4000-8000-000000000001','TENANT-A'),
  (2,'10000000-0000-4000-8000-000000000002','TENANT-B'),
  (3,NULL,'TENANT-C');
+
+-- The seven live ALL policies include a tenant/business/branch membership path.
+-- This representative table exercises that local-admin path alongside platform root.
+INSERT INTO public.scope_probe_03(id,owner_user_id,tenant_id,business_id,branch_id) VALUES
+ (1,'10000000-0000-4000-8000-000000000002','TENANT-A','BUSINESS-A','BRANCH-A'),
+ (2,'10000000-0000-4000-8000-000000000003','TENANT-B','BUSINESS-B','BRANCH-B'),
+ (3,NULL,'TENANT-C','BUSINESS-C','BRANCH-C');
