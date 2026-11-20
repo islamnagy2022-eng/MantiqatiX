@@ -3436,3 +3436,35 @@ Evidence: `docs/audits/PASS_1350_1359_SECURITY_DEFINER_RLS_GRANTS_REVIEW_2026112
 - [ ] 1369 — Add disposable PostgreSQL preservation/idempotency tests and verify chronological replay before any release consideration.
 
 Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.md`; Issue #906. No Production rows read or mutated.
+
+
+## PASS 1370–1379 — Platform-admin helper authorization live recheck — 2026-11-20
+
+- [x] 1370 — Recheck live `mnty_can_platform_admin()`, effective EXECUTE grants, and five dependent RLS policies using read-only Production SQL.
+- [x] 1371 — Confirm live helper remains SECURITY DEFINER with `search_path=public, pg_temp`, authenticated EXECUTE true, anon false, and body `mnty_can('admin',NULL,NULL,NULL)`.
+- [x] 1372 — Confirm Production migration ledger has 310 rows through `20261110150618`; RC464, RC471, and RC484 are absent.
+- [x] 1373 — Inspect existing RC464/RC471 source repairs, their R7 negative/positive authorization tests, and inclusion in the required migration chain; do not create duplicate SQL.
+- [x] 1374 — Verify merged PR #742 candidate CI: RC464 PostgreSQL run 44048036994; MantiGO Platform Admin Scope/R7 run 44048037021; chronological replay 44048037316; migration uniqueness/collision/history checks passed.
+- [x] 1375 — Update P0 Issue #867 with the fresh live recheck and source-CI evidence.
+- [x] 1376 — Record findings in `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`.
+- [x] 1377 — Update continuity, master TODO, session log, and release checklist.
+- [ ] 1378 — Complete coordinated migration/Edge release only after the separate backup/restore, payment, privacy, and full migration/Edge parity gates pass.
+- [ ] 1379 — After authorized rollout, verify live helper body/owner/SECURITY DEFINER/search_path/ACL, five dependent RLS policies, all eight global callers, and negative tenant-role/positive registry-admin tests.
+
+Evidence: audit file; P0 Issue #867 comments 7045989396 and 7046157101; merged PR #742. Read-only Production inspection only; no function invocation or Production mutation.
+
+
+## PASS 1380–1389 — SECURITY DEFINER delegated paths and cross-module live drift — 2026-11-20
+
+- [x] 1380 — Recount 65 authenticated-callable SECURITY DEFINER functions: 59 direct `auth.uid()`, 6 delegated/no direct reference; all have explicit function-level search_path.
+- [x] 1381 — Inspect all six no-direct-auth functions and trace their delegated authorization paths; classify the public ad-discovery RPC as intentional public read.
+- [x] 1382 — Inspect `mnty_platform_has_permission` and confirm registry-root or scoped staff/custom-role authorization.
+- [x] 1383 — Recheck live MantiGO open-ride RPC: no active/verified/available captain or vehicle-category gate; customer name and pickup/destination fields are returned.
+- [x] 1384 — Confirm RC478 source repair and integration tests already exist; verify exact-head privacy CI run 44239964164 and replay run 44239964551; open P1 Issue #911.
+- [x] 1385 — Recheck live commission RPC authorization paths; confirm draft management still uses membership roles and operational preview still uses tenant-only finance helper.
+- [x] 1386 — Confirm RC467 source repair and behavioral test already exist; verify static validator and integration test passed in replay run 44239964551; update P1 Issue #884.
+- [x] 1387 — Record delegated-path review and cross-module drift in `docs/audits/PASS_1380_1389_SECURITY_DEFINER_DELEGATION_AND_LIVE_DRIFT_20261120.md`.
+- [ ] 1388 — Continue full-body signature-by-signature review of the 59 direct-`auth.uid()` SECURITY DEFINER functions and their transitive helpers; current pass is not full certification.
+- [ ] 1389 — Keep Production blocked until coordinated migration/Edge, backup/restore, payment/privacy and post-deployment verification gates pass.
+
+Evidence: audit file; Issues #867, #884, #911; RC464/RC467/RC478 source CI. Read-only Production inspection only.

@@ -2831,3 +2831,25 @@ The canonical Production object inventory reports all nine RC117 image contracts
 The execution container has Node.js but no Supabase CLI binary; no migration file was invented. The forward migration must be generated in an authorized environment using Supabase CLI, then tested with disposable PostgreSQL replay. Production remains BLOCKED / NOT CERTIFIED.
 
 Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.md`; Issue #906.
+
+
+## Latest authorization release checkpoint — Pass 1370–1379 (2026-11-20)
+
+Fresh read-only Production SQL reconfirmed the global-admin helper drift. `mnty_can_platform_admin()` is still SECURITY DEFINER, `search_path=public, pg_temp`, authenticated EXECUTE true, anon EXECUTE false, and delegates to `mnty_can('admin',NULL,NULL,NULL)`. Five live RLS policies still reference it. The migration ledger has 310 rows through `20261110150618`; RC464, RC471, and RC484 are absent.
+
+The registry-backed repair already exists: RC464 replaces the helper with `private.platform_admins.user_id=auth.uid()`; RC471 continues caller hardening. The source is included in the required migration chain and integrated through merged PR #742. On tested head `3ecf6142d1a41b9f0adda7bf6c81d873eda66bea`, RC464 PostgreSQL, R7/RC471, chronological replay, migration uniqueness, collision guard and history immutability workflows all passed (runs 44048036994, 44048037021, 44048037316, 44048037168, 44048037131, 44048037034).
+
+Therefore the remaining issue is not missing code or tests: the source repair is merged and CI-green, but unapplied to Production. Do not create a duplicate migration or hot-apply RC464 alone. Keep Production blocked until coordinated migration/Edge, backup/restore, payment/privacy and release gates pass; then verify helper body, ACL, search_path, five policies and eight global callers live.
+
+Evidence: `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`; Issue #867.
+
+
+## Latest SECURITY DEFINER delegation checkpoint — Pass 1380–1389 (2026-11-20)
+
+Fresh catalog inventory: 65 authenticated-callable SECURITY DEFINER functions; 59 contain direct `auth.uid()`, six rely on delegated paths. All six were traced: intentional public targeted-ad discovery; employee listing to scoped HR list; RBAC `mnty_can` to auth-bound active membership; platform-admin helper to the known weak null-scope membership path (RC464 fixes source); commission preview to tenant-only finance helper (RC467 fixes source); catalog item/price composite to individually guarded scoped writers. `mnty_platform_has_permission` uses the protected registry for platform root and scoped staff/custom-role grants.
+
+Two additional live source-parity gaps were freshly reconfirmed:
+- MantiGO open-ride list still lets any authenticated user reach a result containing customer names and pickup/destination locations; live body lacks captain ACTIVE/VERIFIED/AVAILABLE and vehicle-category checks. RC478 source/tests are merged in PR #793 and CI-green, but RC446/RC478 are absent from the live ledger. P1 Issue #911 opened.
+- Commission draft/preview RPCs still use membership-derived platform roles, and the operational preview still uses tenant-only finance membership without business/branch binding. RC467 source/tests are merged and replay-green, but RC467 is absent from the live ledger. P1 Issue #884 updated.
+
+Exact evidence and limits are in `docs/audits/PASS_1380_1389_SECURITY_DEFINER_DELEGATION_AND_LIVE_DRIFT_20261120.md`. The 59 direct-auth functions still require full-body signature-by-signature review; do not claim the entire 65-function audit complete. Production remains BLOCKED / NOT CERTIFIED.
