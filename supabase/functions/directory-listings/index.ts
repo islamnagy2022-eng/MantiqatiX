@@ -17,6 +17,10 @@ import {
 import { sanitizePublicDirectoryListing, resolveDirectoryOwnerAccess } from "./public-directory-output-contract.mjs";
 import { collectActiveAddressConsentIds } from "./consent-pagination.mjs";
 import { collectActiveContactConsentScopes } from "./contact-consent-pagination.mjs";
+import {
+  isPlatformAdminMembershipCandidate,
+  resolveDirectoryPlatformAdmin,
+} from "./platform-admin-registry.mjs";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const allowedOrigins = new Set([
@@ -52,11 +56,7 @@ const slugify = (value: unknown) => {
   return slug || ("listing-" + crypto.randomUUID().slice(0, 8));
 };
 const clean = (value: unknown, max = 500) => String(value ?? "").trim().slice(0, max);
-const platformAdmin = (membership: any) =>
-  String(membership?.role || "").toUpperCase() === "SUPER_ADMIN" &&
-  !membership?.business_id && !membership?.branch_id &&
-  membership?.permissions?.scope === "PLATFORM" &&
-  membership?.permissions?.full_control === true;
+
 
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("Origin");
@@ -226,6 +226,12 @@ Deno.serve(async (req: Request) => {
   const { data: userData, error: userError } = await service.auth.getUser(token);
   const user = userData?.user;
   if (userError || !user || user.is_anonymous) return out(origin, { error: "AUTH_REQUIRED" }, 401);
+  // Keep the verified caller JWT for the registry-backed RPC. Never infer
+  // platform-root authority from the service-role client or membership claims.
+  const userClient = createClient(supabaseUrl, serviceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
   const action = String(body.action || "").toUpperCase();
 
   if (action === "SET_PUBLIC_CONTACT_CONSENT") {
@@ -372,7 +378,18 @@ Deno.serve(async (req: Request) => {
     .select("id,user_id,tenant_id,organization_id,business_id,branch_id,role,status,permissions")
     .eq("user_id", user.id).eq("status", "ACTIVE").limit(250);
   if (membershipsError) return out(origin, { error: "ADMIN_PERMISSION_LOOKUP_FAILED" }, 500);
-  if (!(memberships || []).some(platformAdmin)) return out(origin, { error: "PLATFORM_ADMIN_REQUIRED" }, 403);
+  const hasPlatformAdminMembership = (memberships || []).some(isPlatformAdminMembershipCandidate);
+  if (!hasPlatformAdminMembership) return out(origin, { error: "PLATFORM_ADMIN_REQUIRED" }, 403);
+
+  // Membership claims only identify a possible platform operator. The protected
+  // private.platform_admins registry is the actual global-root authority.
+  const { data: registryResult, error: registryError } = await userClient.rpc("mnty_can_platform_admin");
+  if (registryError) {
+    console.error("directory-listings platform registry check failed", { code: registryError.code });
+  }
+  if (!resolveDirectoryPlatformAdmin(memberships, registryResult, registryError)) {
+    return out(origin, { error: "PLATFORM_ADMIN_REQUIRED" }, 403);
+  }
 
   if (action === "ADMIN_LIST_SOURCE_PERMISSION_EVIDENCE") {
     const { data, error } = await service.from("directory_source_permission_evidence")
