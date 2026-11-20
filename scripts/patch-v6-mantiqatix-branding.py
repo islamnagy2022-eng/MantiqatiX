@@ -15,7 +15,7 @@ OLD_LOGO = """export function resolveBusinessLogo(
   }
   return getSectorDefaultLogo(business?.functionalGroupId);
 }"""
-NEW_LOGO = """const isMantiqatiXBrandBusiness = (business?: { name?: string | null } | null): boolean =>
+NEW_LOGO = r"""const isMantiqatiXBrandBusiness = (business?: { name?: string | null } | null): boolean =>
   /^mantiqatix$/i.test(String(business?.name || '').replace(/\\s+/g, '').trim());
 
 const resolveV6PublicAsset = (fileName: string): string => {
