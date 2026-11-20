@@ -4601,3 +4601,16 @@ Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`.
 - [ ] Add anonymous-vs-confirmed JWT tests for remaining high-risk payment/finance, medical/support, notification/push, digital-page, MantiGO financial and Storage object command paths. Existing non-anonymous contract tests do not close this gate.
 
 Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`.
+
+
+### Anonymous Auth/RLS 90-relation matrix — 2026-11-20
+
+- [x] Refresh the 90 Advisor findings and map all 90 relations/364 policies with commands, roles, permissive/restrictive mode and effective table grants.
+- [x] Confirm 46 explicit restrictive anonymous guards, 40 permissive relations without a detected table-wide `is_anonymous` guard, and 51 multiple-permissive policy compositions.
+- [x] Confirm five direct anon SELECT grants and one anon INSERT ACL on `storage.objects` (no matching anon INSERT RLS policy).
+- [x] Record provider-profile anon SELECT of all 19 columns including `owner_user_id`/`settings`; RC479 remains unapplied.
+- [x] Record public profile-media bucket broad read policy and zero current objects in aggregate.
+- [ ] Complete anonymous JWT and Storage adversarial tests for all 40 no-guard and 51 multiple-permissive surfaces; no blanket policy/grant changes.
+- [ ] Enable and verify leaked-password protection if supported (#924).
+
+Evidence: `docs/audits/PASS_1470_1479_ANONYMOUS_POLICY_MATRIX_20261120.md`; Issue #928.
