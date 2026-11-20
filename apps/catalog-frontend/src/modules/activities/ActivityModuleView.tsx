@@ -5,6 +5,7 @@ import type { PublicDirectoryListing } from '../../lib/directoryListings';
 import { useApp } from '../../context/AppContext';
 import { resolveActivityModuleConfig } from './activityModuleRegistry';
 import { resolveCanonicalSpecialty } from '../../data/productionDefaults';
+import { isMantiqatiXBrandName, resolveDefaultImage } from '../../utils/defaultImages';
 
 type Section = 'overview' | 'specialties' | 'marketing' | 'operations';
 interface Props {
@@ -205,11 +206,11 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {visibleBusinesses.map((business) => <article key={business.id} className={`overflow-hidden rounded-2xl border bg-white shadow-sm ${business.isVerified ? 'border-emerald-200' : 'border-red-200'}`}>
               <div className="relative h-28 bg-slate-100">
-                {business.coverUrl && <img src={business.coverUrl} alt="" loading="lazy" className="h-full w-full object-cover" />}
+                {(business.coverUrl || isMantiqatiXBrandName(business.name)) && <img src={isMantiqatiXBrandName(business.name) ? resolveDefaultImage({ name: business.name, kind: 'cover' }) : business.coverUrl || ''} alt="" loading="lazy" className="h-full w-full object-cover" />}
                 <span className={`absolute right-2 top-2 rounded-full px-2 py-1 text-[10px] font-black text-white ${business.isVerified ? 'bg-emerald-700' : 'bg-red-700'}`}>{business.isVerified ? 'موثق' : 'غير موثق'}</span>
               </div>
               <div className="flex items-center gap-3 p-3">
-                {business.logoUrl ? <img src={business.logoUrl} alt="" className="h-12 w-12 rounded-xl border object-cover" /> : <Store className="h-10 w-10 text-slate-400" />}
+                {business.logoUrl || isMantiqatiXBrandName(business.name) ? <img src={isMantiqatiXBrandName(business.name) ? resolveDefaultImage({ name: business.name, kind: 'activity' }) : business.logoUrl || ''} alt="" className="h-12 w-12 rounded-xl border object-cover" /> : <Store className="h-10 w-10 text-slate-400" />}
                 <div className="min-w-0"><h3 className="font-black text-slate-900">{business.name}</h3><p className="text-xs text-slate-500">{business.activitySpecialty || business.category}</p>
                   <p className="text-xs text-slate-500">{[business.village, business.markaz, business.governorate].filter(Boolean).join('، ')}</p></div>
               </div>
