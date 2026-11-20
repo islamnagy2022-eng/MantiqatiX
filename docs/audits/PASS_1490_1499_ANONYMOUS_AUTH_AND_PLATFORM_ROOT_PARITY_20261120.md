@@ -61,3 +61,12 @@ No production changes were made. Remaining release prerequisites include full ch
 3. Reconcile all current-main migrations from the live checkpoint in a disposable PostgreSQL 17 clone.
 4. Rebase #940 on current main, rerun its source/contract/browser checks, and keep deployment skipped until RC472/RC473 coordinated release.
 5. Re-read live helper definitions, RLS policies, grants, migration ledger and Edge hashes only after an approved coordinated release.
+
+
+### 5. Additional PR #948 isolated-test fixture issue
+
+The RC490 fixture defines `auth.jwt()` but its permissive owner policies invoke `auth.uid()`; the fixture does not define that function. The isolated PostgreSQL workflow is expected to fail while creating the policies before it reaches the migration assertions. A targeted comment was posted to #948 requesting a deterministic `auth.uid()` fixture derived from the JWT `sub` claim and a static assertion.
+
+### 6. Finance overlap analysis
+
+PR #947's nine finance/payment tables are a strict subset of the 15 tables already covered by PR #946's RC489 migration and integration inventory. PR #947 contributes no additional table coverage and creates a direct migration-version collision. Prefer consolidating its tests/contract into the broader #946 candidate and closing/superseding the duplicate only after #946 is corrected and its exact-head tests pass.
