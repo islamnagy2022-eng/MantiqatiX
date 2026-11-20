@@ -36,6 +36,7 @@ on:
       - "scripts/validate-rc482-legal-platform-admin-registry.mjs"
       - "scripts/validate-rc483-atomic-legal-cms-create-audit.mjs"
       - "scripts/validate-rc485-catalog-rpc-registry-root.mjs"
+      - "supabase/tests/rc485_catalog_rpc_registry_root_integration.sql"
       - "supabase/tests/rc482_legal_platform_admin_registry_fixture.sql"
       - "supabase/tests/rc482_legal_platform_admin_registry_integration.sql"
       - "supabase/tests/rc483_atomic_legal_cms_create_audit_fixture.sql"
@@ -71,6 +72,7 @@ on:
       - "scripts/validate-rc482-legal-platform-admin-registry.mjs"
       - "scripts/validate-rc483-atomic-legal-cms-create-audit.mjs"
       - "scripts/validate-rc485-catalog-rpc-registry-root.mjs"
+      - "supabase/tests/rc485_catalog_rpc_registry_root_integration.sql"
       - "supabase/tests/rc482_legal_platform_admin_registry_fixture.sql"
       - "supabase/tests/rc482_legal_platform_admin_registry_integration.sql"
       - "supabase/tests/rc483_atomic_legal_cms_create_audit_fixture.sql"
@@ -188,6 +190,9 @@ jobs:
 
           test "$migration_count" -gt 0
           echo "FORWARD_MIGRATIONS_APPLIED=$migration_count"
+
+          echo "RC485_CATALOG_RPC_REGISTRY_ROOT_INTEGRATION"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc485_catalog_rpc_registry_root_integration.sql
 
           echo "RC117_DEFAULT_IMAGES_AND_ACTIVITY_ADMIN_CONTRACT"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc117_default_images_and_activity_admin_contract.sql
