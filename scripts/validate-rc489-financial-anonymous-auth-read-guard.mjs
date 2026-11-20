@@ -18,5 +18,7 @@ assert.match(migration,/relrowsecurity AND c\.relforcerowsecurity/);
 assert.match(test,/RC489_ANONYMOUS_FINANCE_TABLE_READ_SUCCEEDED/);
 assert.match(test,/RC489_CONFIRMED_FINANCE_MEMBER_READ_REGRESSED/);
 assert.match(test,/RC489_FINANCIAL_ANONYMOUS_GUARDS_MISSING/);
+assert.ok(migration.includes("(SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE"), "finance guard must fail closed on missing claim");
+assert.match(test,/RC489_MISSING_ANONYMOUS_CLAIM_READ_SUCCEEDED/);
 assert.match(test,/ROLLBACK;/);
 console.log("RC489 financial anonymous Auth read isolation contract: PASS");
