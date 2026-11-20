@@ -42,6 +42,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261120220000", // RC487 — remove public first-Auth-user SMM admin bootstrap
   "20261120230000", // RC488 — block anonymous Auth writes to Storage objects
   "20261120240000", // RC489 — require confirmed Auth identity for private financial reads
+  "20261120250000", // RC490 — require confirmed Auth identity for medical appointment reads
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
