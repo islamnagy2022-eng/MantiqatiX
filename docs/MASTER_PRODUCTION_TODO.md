@@ -4461,3 +4461,15 @@ Evidence: `docs/audits/PASS_1350_1359_SECURITY_DEFINER_RLS_GRANTS_REVIEW_2026112
 - [ ] Pass chronological replay and full Production backup/restore gates before release.
 
 Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.md`.
+
+
+### Platform-admin helper authorization review — 2026-11-20
+
+- [x] Inspect live `mnty_can_platform_admin()`, `mnty_can()` and `mnty_active_membership()`; confirm unscoped tenant OWNER/ADMIN membership can satisfy global `admin`.
+- [x] Identify four authenticated SECURITY DEFINER callers: `admin_create_global_ad`, `fulfill_digital_page_publish`, `review_mantigo_captain_application`, `set_mantigo_financial_config_backend`.
+- [x] Add finding and caller list to P0 Issue #867; record evidence in Pass 1370–1379 audit.
+- [ ] Replace platform-root authorization with registry-backed authority while preserving tenant-local OWNER/ADMIN permissions.
+- [ ] Add adversarial PostgreSQL tests for tenant OWNER/ADMIN denial, registry-only platform admin success, and caller-specific business/payment invariants.
+- [ ] Reconcile the helper and all callers with RC484, dependent RLS policies, and the coordinated migration/Edge release. No hot edit or isolated Production deployment.
+
+Evidence: `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`; Issue #867 comment 7045989396.
