@@ -3635,3 +3635,6 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Added a disposable PostgreSQL regression that reproduces the residual path, overlays a test-only restrictive anonymous guard, verifies anonymous denial and confirmed-authenticated read compatibility.
 - Added static validator and dedicated PostgreSQL 16 workflow; recorded audit. No actual migration created because Supabase CLI is not installed; RC479 remains unchanged.
 - Next: generate a forward-only migration in an authorized CLI workspace and test with owner CRUD, curated Edge projection, and chronological replay. Production remains BLOCKED / NOT CERTIFIED.
+
+
+- Refined the proposed correction after inspecting all live provider-profile policies: the existing owner ALL policy already rejects anonymous Auth sessions for INSERT/UPDATE/DELETE and binds auth.uid to owner_user_id. The new guard must be RESTRICTIVE FOR SELECT only; do not broaden it to DML.
