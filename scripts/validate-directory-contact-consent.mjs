@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { sanitizePublicDirectoryListing } from "../supabase/functions/directory-listings/public-directory-output-contract.mjs";
 import { buildDirectoryPaginationOrFilter } from "../supabase/functions/directory-listings/pagination-filter.mjs";
 import { collectActiveAddressConsentIds } from "../supabase/functions/directory-listings/consent-pagination.mjs";
+import { collectActiveContactConsentScopes } from "../supabase/functions/directory-listings/contact-consent-pagination.mjs";
 
 const source = readFileSync("supabase/functions/directory-listings/index.ts", "utf8");
 const migration = readFileSync("supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql", "utf8");
@@ -58,6 +59,67 @@ assert.deepEqual(failedConsentLookup.ids, [], "partial consent results must neve
 const malformedConsentLookup = await collectActiveAddressConsentIds(async () => ({ data: null, error: null }));
 assert.equal(malformedConsentLookup.ready, false, "malformed registry responses must fail closed");
 assert.deepEqual(malformedConsentLookup.ids, [], "malformed registry responses must not yield partial consent IDs");
+
+const contactScopes = ["PHONE", "SECONDARY_PHONE", "ADDRESS", "PRECISE_LOCATION"];
+const syntheticContactRows = Array.from({ length: 2205 }, (_, index) => ({
+  listing_id: `listing-${String(Math.floor(index / 4)).padStart(4, "0")}`,
+  scope: contactScopes[index % 4],
+}));
+const requestedListingIds = Array.from({ length: 600 }, (_, index) =>
+  `listing-${String(index).padStart(4, "0")}`);
+let contactPageCalls = 0;
+const completeContactLookup = await collectActiveContactConsentScopes(
+  [...requestedListingIds, requestedListingIds[0]],
+  async (offset, pageSize, ids) => {
+    contactPageCalls += 1;
+    assert.equal(ids.length, 600, "listing IDs must be deduplicated before querying");
+    return {
+      data: syntheticContactRows.slice(offset, offset + Math.min(pageSize, 400)),
+      error: null,
+    };
+  },
+);
+assert.equal(completeContactLookup.ready, true);
+assert.equal(completeContactLookup.scopes.size, 552,
+  "all returned listing consent groups must be collected across capped pages");
+assert.deepEqual(
+  [...completeContactLookup.scopes.get("listing-0000")].sort(),
+  [...contactScopes].sort(),
+  "all four independent scopes must survive pagination",
+);
+assert.equal(contactPageCalls, 7,
+  "short capped consent pages must continue until an empty page is observed");
+
+const failedContactLookup = await collectActiveContactConsentScopes(
+  requestedListingIds,
+  async (offset) => ({
+    data: offset === 0 ? syntheticContactRows.slice(0, 400) : null,
+    error: offset === 0 ? null : new Error("synthetic registry outage"),
+  }),
+);
+assert.equal(failedContactLookup.ready, false,
+  "contact consent lookup must fail closed after any page error");
+assert.equal(failedContactLookup.scopes.size, 0,
+  "partial contact consent rows must be discarded after a later page error");
+
+const malformedContactLookup = await collectActiveContactConsentScopes(
+  requestedListingIds,
+  async () => ({ data: null, error: null }),
+);
+assert.equal(malformedContactLookup.ready, false,
+  "malformed contact consent pages must fail closed");
+assert.equal(malformedContactLookup.scopes.size, 0,
+  "malformed contact consent pages must not produce partial scopes");
+
+let emptyContactFetchCalls = 0;
+const emptyContactLookup = await collectActiveContactConsentScopes([], async () => {
+  emptyContactFetchCalls += 1;
+  return { data: [], error: null };
+});
+assert.equal(emptyContactLookup.ready, true);
+assert.equal(emptyContactLookup.scopes.size, 0);
+assert.equal(emptyContactFetchCalls, 0, "empty listing sets must not query the consent registry");
+
 
 const row = {
   id: "listing-1",
@@ -128,6 +190,14 @@ const checks = [
     source.includes("sanitizePublicDirectoryListing(data, ownerAccess.contactScopes)") &&
     source.includes("can_edit: ownerAccess.canEdit") &&
     source.includes("consentState.scopes.get(String(row.id)) || new Set<string>()")],
+  ["all active contact-consent scopes are paginated in stable listing/scope order",
+    source.includes("collectActiveContactConsentScopes") &&
+    source.includes('.order("listing_id", { ascending: true })') &&
+    source.includes('.order("scope", { ascending: true })') &&
+    source.includes(".range(offset, offset + pageSize - 1)")],
+  ["contact-consent lookup discards partial pages and fails closed on registry errors",
+    source.includes("if (!result.ready)") &&
+    source.includes("partial consent pages must never enable contact disclosure")],
   ["owner edit and consent controls fail closed when the registry is unavailable",
     source.includes("resolveDirectoryOwnerAccess(isOwner, consentState.ready, activeScopes)") &&
     source.includes("can_edit: ownerAccess.canEdit") &&
@@ -207,4 +277,4 @@ for (const [name, ok] of checks) {
   console.log((ok ? "PASS " : "FAIL ") + name);
 }
 assert.equal(checks.every(([, ok]) => ok), true, "Directory contact consent source contract failed");
-console.log("DIRECTORY_CONTACT_CONSENT=" + (checks.length + 4) + "/" + (checks.length + 4) + " PASS");
+console.log("DIRECTORY_CONTACT_CONSENT=" + (checks.length + 8) + "/" + (checks.length + 8) + " PASS");
