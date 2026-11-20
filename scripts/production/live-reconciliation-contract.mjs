@@ -84,6 +84,26 @@ export const REQUIRED_CORE_OBJECTS = [
   "public.expire_stale_mantigo_rides_backend",
 ];
 
+// Pin the exact subscription/payment RPC signatures and persisted checkout/order
+// correlation columns required by the current Edge bundles. Generic function-name
+// presence is insufficient: legacy overloads can exist with unsafe semantics.
+export const REQUIRED_PAYMENT_CONTRACT_OBJECTS = [
+  "public.process_verified_provider_payment(character varying,character varying,character varying,character varying,character varying,character varying,boolean,numeric,character varying,numeric)",
+  "public.process_verified_provider_payment_failure(text,text,text,text,text,text,boolean,numeric,text,text,text,jsonb)",
+  "public.process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb)",
+  "public.process_verified_subscription_payment_failure(text,text,uuid,text,numeric,text,text,boolean,jsonb)",
+  "public.create_subscription_payment_intent_claimable_backend(uuid,text,text,text,text,uuid)",
+  "public.claim_subscription_provider_intent_creation_backend(uuid,uuid)",
+  "public.process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb)",
+  "public.payment_intents.provider_order_id",
+  "public.digital_page_orders.provider_order_id",
+  "public.subscription_payment_intents.provider_creation_state",
+  "public.subscription_payment_intents.provider_creation_claimed_at",
+  "public.subscription_payment_intents.client_secret_ciphertext",
+  "public.subscription_payment_intents.client_secret_iv",
+  "public.subscription_payment_intents.client_secret_key_version",
+];
+
 export const REQUIRED_CONTROL_CENTER_OBJECTS = [
   "public.platform_custom_roles",
   "public.platform_role_assignments",
@@ -186,7 +206,7 @@ export function isLiveReconciliationVerified(reconciliation) {
     )
   );
 
-  const requiredLiveObjectsPassed = [...REQUIRED_CORE_OBJECTS, ...REQUIRED_CONTROL_CENTER_OBJECTS].every(name =>
+  const requiredLiveObjectsPassed = [...REQUIRED_CORE_OBJECTS, ...REQUIRED_PAYMENT_CONTRACT_OBJECTS, ...REQUIRED_CONTROL_CENTER_OBJECTS].every(name =>
     objectFindings.some(row =>
       (row?.name ?? row?.object) === name &&
       row?.exists === true &&
