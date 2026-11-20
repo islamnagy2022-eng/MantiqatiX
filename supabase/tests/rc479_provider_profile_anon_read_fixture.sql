@@ -45,3 +45,4 @@ CREATE POLICY "Owners manage their marketing provider profile"
     AND auth.uid() = owner_user_id
   );
 GRANT SELECT ON TABLE public.marketing_provider_profiles TO anon, authenticated, service_role;
+GRANT UPDATE ON TABLE public.marketing_provider_profiles TO authenticated;
