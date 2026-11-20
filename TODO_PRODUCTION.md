@@ -3420,3 +3420,19 @@ Evidence: audit file above; Issue #876 comment 7043793414; Issue #857 comment 70
 - [ ] 1359 — Keep Production blocked until coordinated Edge/migration, backup/restore, payment and release gates pass. No blanket REVOKE.
 
 Evidence: `docs/audits/PASS_1350_1359_SECURITY_DEFINER_RLS_GRANTS_REVIEW_20261120.md`; Security Advisor snapshot 2026-11-20 15:56 UTC. No Production mutation.
+
+
+## PASS 1360–1369 — RC117 default-image preservation review — 2026-11-20
+
+- [x] 1360 — Inspect immutable RC117 default-image migration and trigger logic.
+- [x] 1361 — Compare marketing-service trigger preservation behavior with its historical bulk backfill.
+- [x] 1362 — Confirm non-empty custom `marketing_services.image_url` with blank `image_source` is overwritten by the RC117 bulk backfill predicate.
+- [x] 1363 — Review RC117 SQL contract and confirm this custom-image/provenance case is not covered.
+- [x] 1364 — Compare frontend category-aware fallback and shared Edge default-image helper; neither replaces the need for safe database backfill semantics.
+- [x] 1365 — Confirm canonical Production object inventory currently reports all nine RC117 image contracts absent; no evidence the defective backfill ran in Production.
+- [x] 1366 — Open P1 Issue #906 with forward-only repair requirements and adversarial test cases.
+- [x] 1367 — Record evidence in `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.md`.
+- [ ] 1368 — Install/enable the approved Supabase CLI in the authorized development environment and generate a new forward-only migration; do not invent a migration filename.
+- [ ] 1369 — Add disposable PostgreSQL preservation/idempotency tests and verify chronological replay before any release consideration.
+
+Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.md`; Issue #906. No Production rows read or mutated.

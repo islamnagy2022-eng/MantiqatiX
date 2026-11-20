@@ -4448,3 +4448,16 @@ Evidence: `docs/audits/PASS_1340_1349_LIVE_EDGE_PARITY_CONSENT_POLICY_20261120.m
 - [ ] Keep Production blocked pending coordinated migration/Edge release and backup/restore/payment E2E gates.
 
 Evidence: `docs/audits/PASS_1350_1359_SECURITY_DEFINER_RLS_GRANTS_REVIEW_20261120.md`.
+
+
+### RC117 default-image preservation correction — 2026-11-20
+
+- [x] Identify unsafe historical RC117 marketing-service backfill predicate: a non-empty custom URL with blank `image_source` is overwritten.
+- [x] Confirm RC117 trigger itself preserves the URL, but migration bulk backfill does not.
+- [x] Confirm the current Production object inventory reports all nine RC117 image contracts absent; no evidence the backfill ran live.
+- [x] Open P1 Issue #906 and document the safe forward-only correction.
+- [ ] Generate a new migration with Supabase CLI in an authorized development environment; preserve immutable historical migration.
+- [ ] Add PostgreSQL tests for custom URL/provenance, blank URL, owner/AI preservation and idempotent rerun.
+- [ ] Pass chronological replay and full Production backup/restore gates before release.
+
+Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.md`.
