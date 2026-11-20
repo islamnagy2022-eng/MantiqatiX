@@ -2909,3 +2909,12 @@ Inspected all 10 deployed Edge Functions with `verify_jwt=false` out of 42 activ
 Security Advisor reports 90 anonymous-policy warnings and leaked-password protection disabled. Focused policy/grant review found no direct anon SELECT/INSERT on high-risk tables checked; many unmarked policies are self-scoped, deny-all, or intentional public reads. This is not evidence of 90 data leaks, but every warning needs policy-by-policy reconciliation. P1 #924 opened for leaked-password protection.
 
 Evidence: `docs/audits/PASS_1440_1449_EDGE_AUTH_AND_ANONYMOUS_POLICY_REVIEW_20261120.md`. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## Anonymous-policy and RC484 preflight checkpoint — Pass 1450–1459 (2026-11-20)
+
+Security Advisor's 90 anonymous-policy warnings were reconciled against PostgreSQL policy/grant metadata. There are 200 authenticated-role policies without explicit anonymous markers; these include membership-scoped, user-bound, platform-helper, explicit public-read and deny-false predicates. Focused high-risk table review found no direct anon SELECT/INSERT grants on MantiGO rides/bids/ledger, medical appointments, digital-page orders, notifications, push subscriptions, user memberships, businesses or tenants. This is not a claim that all 90 warnings are resolved; remaining policy-by-policy and permissive-OR review stays open.
+
+RC484 exact preflight was verified across all schemas: 57 policies on 24 tables reference `is_platform_admin()` (56 public + one storage.objects). The storage policy exists in Production but is omitted from the captured replay checkpoint; its overlay fixture is test-only and must never be deployed. RC484's threshold is consistent with live Production.
+
+Evidence: `docs/audits/PASS_1450_1459_ANONYMOUS_POLICY_AND_RC484_PREFLIGHT_20261120.md`. P0 #867 and P1 #924 remain open.
