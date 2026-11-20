@@ -2900,3 +2900,12 @@ New final-slice findings: medical appointment provider ownership/status transiti
 **Review completion is not release certification.** Production remains BLOCKED / NOT CERTIFIED. Live migration ledger is 310 rows through `20261110150618`; RC464/467/471/476/477/478/484 are absent. Full backup/restore, Vault recovery, independent PG17 restore/rollback, migration/Edge parity, payment/privacy E2E and post-deploy verification remain mandatory.
 
 Evidence: `docs/audits/PASS_1430_1439_FINAL_SECURITY_DEFINER_REVIEW_20261120.md`.
+
+
+## Edge authentication and anonymous-policy checkpoint — Pass 1440–1449 (2026-11-20)
+
+Inspected all 10 deployed Edge Functions with `verify_jwt=false` out of 42 active functions. Admin/payment/API functions manually validate bearer tokens and reject anonymous users; webhook functions use secret/HMAC validation; public catalog/directory/health functions are GET-only or static public reads. However, `catalog-admin` v20 and `directory-listings` v16 still authorize global platform-admin actions using legacy SUPER_ADMIN membership flags rather than `private.platform_admins`; added to P0 #867.
+
+Security Advisor reports 90 anonymous-policy warnings and leaked-password protection disabled. Focused policy/grant review found no direct anon SELECT/INSERT on high-risk tables checked; many unmarked policies are self-scoped, deny-all, or intentional public reads. This is not evidence of 90 data leaks, but every warning needs policy-by-policy reconciliation. P1 #924 opened for leaked-password protection.
+
+Evidence: `docs/audits/PASS_1440_1449_EDGE_AUTH_AND_ANONYMOUS_POLICY_REVIEW_20261120.md`. Production remains BLOCKED / NOT CERTIFIED.
