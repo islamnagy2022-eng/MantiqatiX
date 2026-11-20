@@ -3470,3 +3470,14 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - No blanket REVOKE, no table policy/grant/function changes, no Production mutation or data-row reads.
 - Full review of all 65 callable functions remains open; Production stays BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1350_1359_SECURITY_DEFINER_RLS_GRANTS_REVIEW_20261120.md`.
+
+
+## 2026-11-20 — Pass 1360–1369 — RC117 image preservation review
+
+- Inspected RC117 migration, trigger logic, SQL contract and current category-aware frontend fallback.
+- Found a source-level inconsistency: marketing service trigger preserves non-empty custom image URL with blank provenance, but historical bulk backfill updates any row with blank `image_source`, overwriting that URL.
+- Existing RC117 SQL contract does not test custom image + blank source; frontend validator does not cover the historical DB backfill.
+- Canonical Production physical-object manifest reports all nine RC117 image contracts absent; no evidence the defective backfill ran in Production. No application rows were selected.
+- Opened P1 Issue #906 with forward-only fix requirements and PostgreSQL tests.
+- Supabase CLI binary is not installed in the current execution container; no migration file was invented or applied.
+- Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.md`. Production remains BLOCKED / NOT CERTIFIED.
