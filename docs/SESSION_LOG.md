@@ -3613,3 +3613,15 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Explicit anonymous-JWT assertions found in RC102, RC453, RC455, RC465, RC466, RC467 and RC478. RC465/RC466 CI pass verified.
 - Related test suites exist for digital-page/payment, finance journal, MantiGO, CRM, SMM ACL and Storage overlay but do not all contain explicit anonymous-JWT cases.
 - Remaining high-priority command gaps are listed in the Pass 1456 audit; no live anon probes or Production changes.
+
+
+## 2026-11-20 — Pass 1470–1479 — anonymous Auth/RLS matrix
+
+- Refreshed Security Advisor and reconciled all 90 anonymous-policy warnings to 364 live policies.
+- Mapped per relation policy count, command, roles, permissive/restrictive mode, explicit anonymous guard, and effective table grants.
+- Found 46 explicit restrictive anonymous guards; 40 permissive relations without a detected table-wide `is_anonymous` guard; 51 multiple-permissive policy surfaces.
+- Effective anon grants: five direct SELECT relations; one ACL-level INSERT grant on `storage.objects` with no anon INSERT policy. Eight relations have anon/public role policies, including one explicit deny-only policy.
+- Reconfirmed direct anon SELECT on all 19 columns of `marketing_provider_profiles`, including `owner_user_id` and `settings`; RC479 is not live.
+- Confirmed public `mantiqatix-profile-media` bucket has broad read policy and zero objects at the aggregate check.
+- Added audit `docs/audits/PASS_1470_1479_ANONYMOUS_POLICY_MATRIX_20261120.md`; updated P1 #928. No row values selected, no Production mutation.
+- Next: disposable anonymous-JWT/Storage tests for the remaining surfaces. Production remains BLOCKED / NOT CERTIFIED.
