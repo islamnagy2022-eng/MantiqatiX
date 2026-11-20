@@ -3642,3 +3642,6 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 
 - RC479 anonymous Auth regression passed PostgreSQL 16 in run 44794969322; combined run 44794969419 passed both RC464 and RC479 jobs. Static validator passed. Test code head 77e782e651f0c73f4481d50495f06a55dd7260da; later change was audit-only.
 - Test harness merged in PR #936, merge commit c77240643002d713ed69d223e2d4a9792829308e. Production migration is still pending; test-only overlay is not deployed. No Production mutation.
+
+
+- Final read-only Production recheck after PR #936: 310 ledger rows through 20261110150618; RC479/RC480/RC484 absent; anon and authenticated SELECT still effective on marketing_provider_profiles; active public SELECT policy still targets both. No Production mutation.
