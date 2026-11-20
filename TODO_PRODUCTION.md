@@ -3388,3 +3388,19 @@ Evidence: `docs/audits/PASS_1320_1329_DIRECTORY_CONTACT_CONSENT_PAGINATION_20261
 - [x] 1339 — Added read-only evidence to P0 Issue #876 and explicitly recorded that consent expiry is not implemented in RC473 source; no row data or personal data was selected and no Production mutation occurred.
 
 Evidence: `docs/audits/PASS_1330_1339_DIRECTORY_DB_BOUNDARY_RECHECK_20261120.md`, Issue #876 comment 7043684354. The direct table boundary is not the public disclosure path; the deployed directory-listings Edge Function remains the privacy-critical route. Issue #876 remains BLOCKED / NOT CERTIFIED.
+
+
+## PASS 1340–1349 — Live Edge parity and contact-consent policy — 2026-11-20
+
+- [x] 1340 — Recheck live Supabase project status, PostgreSQL version, migration ledger and active Edge Function inventory using read-only tools.
+- [x] 1341 — Retrieve deployed source for the seven critical order/payment/finance/directory Edge Functions.
+- [x] 1342 — Compare each deployed entrypoint byte-for-byte with current GitHub main; all seven deployed `index.ts` files differ from current source.
+- [x] 1343 — Confirm deployed `directory-listings` v16 contains only three files and lacks current public-output sanitizer and consent-pagination modules.
+- [x] 1344 — Confirm Production migration ledger remains at 310 entries through `20261110150618` and the contact-consent registry table remains absent.
+- [x] 1345 — Record owner policy: contact consent remains active until explicit owner withdrawal; no automatic expiry.
+- [x] 1346 — Record current parity evidence in P0 Issues #857 and #876.
+- [x] 1347 — Add audit evidence: `docs/audits/PASS_1340_1349_LIVE_EDGE_PARITY_CONSENT_POLICY_20261120.md`.
+- [ ] 1348 — Continue source-side contract review and exact migration/RPC reconciliation; do not deploy mismatched functions independently.
+- [ ] 1349 — Keep Production blocked until encrypted off-site backup, Storage export, Vault recovery, independent PG17 restore/rollback, measured RPO/RTO, sandbox payment tests and coordinated Edge/database release pass.
+
+Evidence: audit file above; Issue #876 comment 7043793414; Issue #857 comment 7043920765. No Production mutation or deployment.
