@@ -3419,3 +3419,17 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Full platform remains BLOCKED / NOT CERTIFIED pending operator-controlled encrypted backup/restore, measured RPO/RTO, migration reconciliation and coordinated DB/Edge release.
 - Evidence: `docs/audits/PASS_1310_1319_BACKUP_PATH_HARDENING_20261120.md`.
 
+
+
+## 2026-11-20 — Pass 1320–1329 — directory contact-consent pagination
+
+- Identified the incomplete-read risk in the legacy directory contact-consent lookup: a single PostgREST response could be capped before all active scopes were returned.
+- Added `contact-consent-pagination.mjs`, deduplicated listing IDs, stable listing/scope ordering and explicit range pagination.
+- Integrated the collector into `directory-listings/index.ts`; partial consent results are discarded and the route fails closed after any query error, thrown exception or malformed response.
+- Added synthetic tests for 2,205 consent rows, 600 unique listings plus duplicate input, four independent scopes, 400-row server caps, later-page failure, malformed responses and empty input.
+- Directory Contact Consent workflow 44763355453 passed, including isolated PostgreSQL integration, source contract, Deno type-check and frontend lint/build.
+- MantiGO privacy 44763355928, Doctor import 44763355391, Backend Module Boundary 44763355379, RC425 atomicity 44763355538, Module Professionalization 44763355603, Pages validation 44763355360 and Primary Catalog validation 44763355499 all passed.
+- Merged PR #901 at `a4c803a8d7e851ab9d591d70e6fdeb65c4e8ae19`.
+- No Production database/migration/RLS/GRANT/Auth/Storage/Edge/payment/wallet/settlement/customer-data mutation or Production deployment occurred.
+- Production remains BLOCKED / NOT CERTIFIED pending operator-controlled encrypted backup/restore, Vault recovery, independent PG17 restore/rollback with measured RPO/RTO, migration reconciliation and coordinated Edge release.
+- Evidence: `docs/audits/PASS_1320_1329_DIRECTORY_CONTACT_CONSENT_PAGINATION_20261120.md`.
