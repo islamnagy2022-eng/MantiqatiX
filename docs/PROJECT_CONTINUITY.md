@@ -3012,3 +3012,11 @@ The regression passed PostgreSQL 16 in dedicated workflow 44794969322. Combined 
 - PR #940 has 28 successful checks at inspected head, deployment jobs skipped, but is five commits behind current main/diverged. Requested update/rebase and exact-head CI; its RC472/RC473 dependency remains a coordinated release requirement.
 - Added audit `docs/audits/PASS_1490_1499_ANONYMOUS_AUTH_AND_PLATFORM_ROOT_PARITY_20261120.md` and updated `TODO_PRODUCTION.md` with remaining actions.
 - No Production database, RLS, GRANT, Storage, Edge, Auth, payment or customer-data mutation. **PRODUCTION: BLOCKED / NOT CERTIFIED.**
+
+
+### Pass 1490–1499 source correction follow-up — 2026-11-20
+
+- Corrected RC488–RC492 in PR #946 to use explicit `is_anonymous=false` fail-closed predicates; added missing-claim denial cases and validator requirements across all five integration suites. Exact-head CI was pending at last check.
+- Corrected PR #948 by replacing the duplicate RC490 timestamp with RC493 `20261120280000`, fixing the missing `auth.uid()` test fixture function, using the fail-closed predicate, and adding missing-claim denial coverage. PR title/body and validator updated; exact-head CI pending.
+- Closed PR #947 as superseded by #946 because its nine finance/payment targets are included in #946's 15-table RC489 scope. No branch history deleted.
+- Updated audit and `TODO_PRODUCTION.md`. No Production mutation. Keep release BLOCKED / NOT CERTIFIED until exact-head CI, collision/uniqueness checks, chronological replay and backup/restore gates pass.
