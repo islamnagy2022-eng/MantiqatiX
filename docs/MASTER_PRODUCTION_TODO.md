@@ -4626,3 +4626,7 @@ Evidence: `docs/audits/PASS_1470_1479_ANONYMOUS_POLICY_MATRIX_20261120.md`; Issu
 - [ ] Run real-migration PostgreSQL integration, full chronological replay and coordinated release gates.
 
 Evidence: `docs/audits/PASS_1480_1489_RC479_ANONYMOUS_AUTH_SESSION_GAP_20261120.md`; Issue #928.
+
+
+- [x] Recheck live Production after test merge: RC479/RC480/RC484 remain unapplied; anon/authenticated provider-profile SELECT still effective.
+- [ ] Keep Production release blocked until actual forward migration and full chronological chain are approved and applied; verify both anonymous roles denied while confirmed owner/CRM/Edge contracts remain intact.
