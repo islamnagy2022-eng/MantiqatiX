@@ -3662,3 +3662,15 @@ Evidence: audit file; branch `fix/rc479-anonymous-auth-profile-boundary-tests-20
 - [ ] 1499 — Keep Production blocked until migration replay, encrypted backup/restore, exact Edge parity, release approval and post-deploy live verification pass.
 
 **Release status: BLOCKED / NOT CERTIFIED.** No Production database, RLS, GRANT, Storage, Edge, Auth, payment or customer-data mutation was performed in this pass.
+
+
+### Pass 1490–1499 execution follow-up — source corrections
+
+- [x] Correct PR #946 RC488–RC492 migrations to require an explicit false `is_anonymous` JWT claim; missing/NULL now fails closed.
+- [x] Add missing-claim denial assertions to Storage, finance, medical, support and InDrive integration tests; static validators enforce both the predicate and test markers.
+- [x] Replace PR #948 colliding RC490 migration with unique RC493 version `20261120280000`; add fail-closed predicate, fixture `auth.uid()`, and missing-claim integration assertion.
+- [x] Close PR #947 as superseded by #946; its nine finance/payment tables were a subset of #946's 15-table coverage. Branch history retained.
+- [ ] Await exact-head CI for #946 and #948; rerun/fix any failures, then ensure #948 is rebased on current main and included in ordered forward replay.
+- [ ] Reconcile and replay the full migration chain in disposable PostgreSQL 17 before any release; Production remains BLOCKED / NOT CERTIFIED.
+
+Evidence: `docs/audits/PASS_1490_1499_ANONYMOUS_AUTH_AND_PLATFORM_ROOT_PARITY_20261120.md`. Source-only changes; no Production mutation.
