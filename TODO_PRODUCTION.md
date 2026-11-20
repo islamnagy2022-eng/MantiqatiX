@@ -3574,7 +3574,7 @@ Evidence: audit file; Issues #867, #924. No Edge invocation or Production mutati
 - [x] 1453 — Confirm 56 public-schema + 1 storage policy reference is_platform_admin across 24 tables.
 - [x] 1454 — Verify RC484 exact preflight count is 57 policies / 24 tables when storage.objects is included; test-only overlay restores checkpoint omission and must never be applied to Production.
 - [x] 1455 — Record evidence in `docs/audits/PASS_1450_1459_ANONYMOUS_POLICY_AND_RC484_PREFLIGHT_20261120.md`.
-- [ ] 1456 — Complete the policy-by-policy matrix for 90 Advisor warnings and multiple-permissive policy interactions. Existing disposable tests cover RC102 provider services, RC453 marketing campaigns, RC455 commission preview, RC465 orders, RC466 business/branch, and RC467 commission scope; RC465/RC466 CI passed on PR #742. Fresh aggregation: 86/90 have authenticated permissive policies; 46/90 have a table-wide is_anonymous restrictive guard; 40/90 require table/command coverage mapping. P1 #928 tracks remaining gaps. Explicit anonymous-JWT tests located for RC102 provider services, RC453 campaigns, RC455 commission preview, RC465 orders, RC466 business/branch/inventory, RC467 finance, and RC478 MantiGO open rides; payment/medical/support/wallet/storage/digital-page command coverage still needs mapping/testing.
+- [ ] 1456 — Complete the policy-by-policy matrix for 90 Advisor warnings and multiple-permissive policy interactions. Existing disposable tests cover RC102 provider services, RC453 marketing campaigns, RC455 commission preview, RC465 orders, RC466 business/branch, and RC467 commission scope; RC465/RC466 CI passed on PR #742. Fresh aggregation on 2026-11-20 18:30 UTC: 89/90 have authenticated policies; 46/90 have a restrictive is_anonymous guard; 40/90 have permissive policies but no detected table-wide is_anonymous guard; 51/90 have multiple permissive policies. Only 5/90 have effective direct anon SELECT grants and 1/90 has an anon INSERT grant at the ACL layer (storage.objects, with no anon INSERT policy). P1 #928 tracks remaining gaps. Explicit anonymous-JWT tests located for RC102 provider services, RC453 campaigns, RC455 commission preview, RC465 orders, RC466 business/branch/inventory, RC467 finance, and RC478 MantiGO open rides; payment/medical/support/wallet/storage/digital-page command coverage still needs mapping/testing.
 - [ ] 1457 — Enable leaked-password protection if supported and verify sign-up/reset/change flows (#924).
 - [ ] 1458 — Apply RC484 only in the coordinated migration/Edge release; verify all 57 policies and registry helper live.
 - [ ] 1459 — Keep Production blocked until backup/restore, Vault, PG17 rollback, migration/Edge, payment/privacy and post-deploy gates pass.
@@ -3596,3 +3596,19 @@ Evidence: audit file; Issues #867, #924. No Production mutation.
 - [x] 1469 — No R7 feature selected for direct adoption in this pass; confirm the exact archive SHA matches the prior forensic review and record its P0 unauthenticated token-mint/state-mutation, secret-fallback, admin-bypass and unguarded-route findings. Any future feature port remains gated by current-main UI/API/DB/auth contract mapping and isolated tests.
 
 Evidence: `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md`; uploaded `bizcatalog-manager (11).zip` and `الامر-التقني.txt`. No production mutation or deployment.
+
+
+## PASS 1470–1479 — Anonymous Auth/RLS 90-relation matrix — 2026-11-20
+
+- [x] 1470 — Refresh Security Advisor; confirm 90 distinct `auth_allow_anonymous_sign_ins` findings.
+- [x] 1471 — Reconcile all 90 relations against `pg_policies`; inventory 364 policies, command, permissive/restrictive mode, and roles.
+- [x] 1472 — Recheck effective table privileges: 5 relations have anon SELECT; 1 has anon INSERT grant at ACL layer; 8 relations have a policy targeting anon/public (including one restrictive deny-only policy).
+- [x] 1473 — Count restrictive `is_anonymous` guards: 46 relations; identify 40 with permissive policies but no detected table-wide explicit anonymous guard; no relation in the Advisor set has zero policies.
+- [x] 1474 — Map multiple-permissive composition: 51 relations have more than one permissive policy and require OR/AND-aware test coverage.
+- [x] 1475 — Verify public profile-provider base-table exposure: anon can SELECT all 19 columns, including `owner_user_id` and `settings`; RC479 exists in source but is not applied to Production.
+- [x] 1476 — Verify `mantiqatix-profile-media` is public with broad bucket SELECT policy; aggregate object count is zero at inspection time; anon INSERT ACL exists but no anon INSERT RLS policy was found.
+- [x] 1477 — Preserve intentional public contracts for published digital pages/sections, active Egypt geo areas and curated public discovery; distinguish policy presence from effective table grants.
+- [x] 1478 — Record the full 90-relation matrix in `docs/audits/PASS_1470_1479_ANONYMOUS_POLICY_MATRIX_20261120.md` and update P1 #928 with fresh evidence.
+- [ ] 1479 — Complete semantic command-by-command anonymous JWT tests for the 40 unguarded relations and 51 multi-permissive surfaces in disposable PostgreSQL/Storage; do not change Production policies/grants until tests pass.
+
+Evidence: audit file; Issue #928; Supabase Security Advisor and read-only catalog/ACL checks. No application rows or provider profile values selected. No Production mutation.
