@@ -4472,3 +4472,14 @@ Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.m
 - [ ] Post-deploy verify helper body/owner/search_path/ACL, all five policies, all eight global callers and adversarial tenant-role denial.
 
 Evidence: `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`; Issue #867.
+
+
+### SECURITY DEFINER delegated paths and cross-module live drift — 2026-11-20
+
+- [x] Classify six authenticated-callable SECURITY DEFINER functions without direct `auth.uid()` by tracing their delegated helper paths; distinguish intentional public ad discovery.
+- [x] Reconfirm RC478 open-ride privacy gap live; RC478 source/CI exists but is unapplied. Track P1 Issue #911.
+- [x] Reconfirm RC467 commission scope gap live; RC467 source/CI exists but is unapplied. Update P1 Issue #884.
+- [ ] Continue full-body manual review of 59 direct-`auth.uid()` definer functions and their transitive authorization/object references.
+- [ ] Apply only as part of the coordinated migration/Edge release after backup/restore, payment/privacy E2E and rollback gates; post-verify exact live function bodies, ACL, search_path and behavior.
+
+Evidence: `docs/audits/PASS_1380_1389_SECURITY_DEFINER_DELEGATION_AND_LIVE_DRIFT_20261120.md`; Issues #884 and #911.
