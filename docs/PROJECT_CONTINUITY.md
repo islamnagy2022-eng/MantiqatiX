@@ -2800,3 +2800,10 @@ Owner decision confirmed: contact consent remains active until the activity owne
 No Production rows or personal/contact data were selected. No Production database, migration, grant, RLS, Auth, Storage, Edge, payment, wallet, settlement or deployment mutation occurred. Production remains **BLOCKED / NOT CERTIFIED** pending encrypted off-site DB + Storage backup, Vault recovery, independent PostgreSQL 17 restore/rollback with measured RPO/RTO, chronological migration/RPC reconciliation, coordinated Edge bundle release, sandbox payment and negative privacy/authorization E2E.
 
 Evidence: `docs/audits/PASS_1340_1349_LIVE_EDGE_PARITY_CONSENT_POLICY_20261120.md`.
+
+
+### Additional Pass 1348 evidence — exact migration/object recheck (2026-11-20)
+
+The canonical release contract contains 64 exact required migration identifiers; a fresh comparison with the 310-row live ledger found **0/64** recorded, latest live version `20261110150618`. A read-only PostgreSQL catalog/information_schema recheck of the 74 granular object contracts found **31 present and 43 absent**. This is a migration identity plus physical object drift finding; it does not prove all intended migration effects are absent. Exact function grants/owners/search_path, RLS policies, overloads and runtime behavior remain separate checks. No application rows were selected and no Production mutation/deployment occurred.
+
+Evidence: `docs/audits/PASS_1340_1349_LIVE_EDGE_PARITY_CONSENT_POLICY_20261120.md`.
