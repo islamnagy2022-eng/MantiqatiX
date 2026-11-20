@@ -16,7 +16,7 @@ export interface DefaultImageInput {
 }
 
 export function isMantiqatiXBrandName(name?: string | null): boolean {
-  return /^mantiqatix$/i.test(String(name || '').replace(/\\s+/g, '').trim());
+  return /^mantiqatix$/i.test(String(name || '').replace(/\s+/g, '').trim());
 }
 
 const asset = (name: string): string => {
