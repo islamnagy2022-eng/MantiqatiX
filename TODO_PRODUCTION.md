@@ -3596,3 +3596,19 @@ Evidence: audit file; Issues #867, #924. No Production mutation.
 - [x] 1469 — No R7 feature selected for direct adoption in this pass; confirm the exact archive SHA matches the prior forensic review and record its P0 unauthenticated token-mint/state-mutation, secret-fallback, admin-bypass and unguarded-route findings. Any future feature port remains gated by current-main UI/API/DB/auth contract mapping and isolated tests.
 
 Evidence: `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md`; uploaded `bizcatalog-manager (11).zip` and `الامر-التقني.txt`. No production mutation or deployment.
+
+
+## PASS 1470–1479 — SMM first-user admin bootstrap review — 2026-11-20
+
+- [x] 1470 — Enumerate live triggers on `auth.users`.
+- [x] 1471 — Verify customer-membership trigger rejects anonymous users.
+- [x] 1472 — Inspect `smm_bootstrap_first_admin()`; confirm it promotes the first Auth user whenever `smm_admins` is empty and does not check `NEW.is_anonymous`.
+- [x] 1473 — Verify trigger-only function owner, SECURITY DEFINER, search_path, effective EXECUTE ACL and `smm_admins` RLS/grants.
+- [x] 1474 — Query only aggregate existence/count; confirm one current SMM admin row without selecting identity.
+- [x] 1475 — Confirm SMM gateway is launch-deferred and rejects anonymous users; record as mitigation, not closure.
+- [x] 1476 — Open P1 Issue #933 for removal of first-user-wins bootstrap.
+- [x] 1477 — Record evidence and required disposable tests.
+- [ ] 1478 — Build a forward-only replacement trigger/provisioning path with explicit trusted bootstrap identity/secret, anonymous rejection, empty search_path and schema-qualified table reference.
+- [ ] 1479 — Add disposable PostgreSQL negative/positive tests, reconcile source provenance, and verify RC456 SMM service-role boundary before release.
+
+Evidence: `docs/audits/PASS_1470_1479_SMM_FIRST_USER_BOOTSTRAP_REVIEW_20261120.md`; Issue #933. No Production mutation.
