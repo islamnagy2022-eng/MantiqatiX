@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { isLiveReconciliationVerified, REQUIRED_RELEASE_MIGRATION_VERSIONS, REQUIRED_CORE_OBJECTS, REQUIRED_CONTROL_CENTER_OBJECTS, REQUIRED_MIGRATION_ALIASES } from "./production/live-reconciliation-contract.mjs";
+import { isLiveReconciliationVerified, REQUIRED_RELEASE_MIGRATION_VERSIONS, REQUIRED_CORE_OBJECTS, REQUIRED_PAYMENT_CONTRACT_OBJECTS, REQUIRED_CONTROL_CENTER_OBJECTS, REQUIRED_MIGRATION_ALIASES } from "./production/live-reconciliation-contract.mjs";
 
 const source = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
 const workflow = fs.readFileSync(".github/workflows/pages.yml", "utf8");
@@ -100,6 +100,12 @@ assert.doesNotMatch(rc451, /\b(grant|revoke)\b/i, "RC451 must preserve the inten
 
 assert.match(liveContract, /REQUIRED_RELEASE_MIGRATION_VERSIONS/, "the live ledger contract must enumerate all required migration versions");
 assert.equal(REQUIRED_CORE_OBJECTS.length, 29, "release gate must track granular payment, finance, ERP, and MantiGo object contracts");
+assert.equal(REQUIRED_PAYMENT_CONTRACT_OBJECTS.length, 14, "release gate must pin exact RC435/RC439 payment and subscription RPC/column contracts");
+assert.ok(REQUIRED_PAYMENT_CONTRACT_OBJECTS.includes("public.create_subscription_payment_intent_claimable_backend(uuid,text,text,text,text,uuid)"));
+assert.ok(REQUIRED_PAYMENT_CONTRACT_OBJECTS.includes("public.claim_subscription_provider_intent_creation_backend(uuid,uuid)"));
+assert.ok(REQUIRED_PAYMENT_CONTRACT_OBJECTS.includes("public.subscription_payment_intents.client_secret_ciphertext"));
+assert.ok(REQUIRED_PAYMENT_CONTRACT_OBJECTS.includes("public.subscription_payment_intents.client_secret_key_version"));
+assert.match(liveContract, /REQUIRED_PAYMENT_CONTRACT_OBJECTS/, "live release contract must require exact payment/subscription runtime objects");
 assert.equal(REQUIRED_MIGRATION_ALIASES.length, 2, "release gate must reconcile duplicate source aliases through controlled migration repair");
 assert.equal(REQUIRED_CONTROL_CENTER_OBJECTS.length, 33, "release gate must require every RC113–RC117 feature object");
 assert.match(liveContract, /REQUIRED_CONTROL_CENTER_OBJECTS/, "control-center, hiring, subscriber-admin and default-image objects must be required");
@@ -180,6 +186,7 @@ const validReconciliation = {
     observed: [
       { name: "required-object-fixture", exists: true, status: "PASS" },
       ...REQUIRED_CORE_OBJECTS.map(name => ({ name, exists: true, status: "PASS" })),
+      ...REQUIRED_PAYMENT_CONTRACT_OBJECTS.map(name => ({ name, exists: true, status: "PASS" })),
       ...REQUIRED_CONTROL_CENTER_OBJECTS.map(name => ({ name, exists: true, status: "PASS" }))
     ]
   },
@@ -296,7 +303,11 @@ const blockedFixtures = [
   value => { value.qadam_catalog_followup_check.owner_membership_active = false; },
   value => { value.qadam_catalog_followup_check.matching_price_rows = 11; },
   value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.business_employees"); },
-  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.mantigo_payment_provider_events"); }
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.mantigo_payment_provider_events"); },
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.subscription_payment_intents.provider_creation_state"); },
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.subscription_payment_intents.client_secret_ciphertext"); },
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.create_subscription_payment_intent_claimable_backend(uuid,text,text,text,text,uuid)"); },
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.claim_subscription_provider_intent_creation_backend(uuid,uuid)"); }
 ];
 for (const mutate of blockedFixtures) {
   const invalid = clone(validReconciliation);
