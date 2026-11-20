@@ -229,7 +229,7 @@ RC484 and the other required migrations remain source-only until:
 - checksum/decryption verification passes;
 - isolated restore rehearsal passes with measured RPO/RTO;
 - rollback/recovery plan is approved;
-- the full ordered 66-version migration chain (including RC485 catalog RPC registry-root and RC486 catalog price-version hardening) and live schema drift are reconciled;
+- the full ordered 67-version migration chain (including RC485 catalog RPC registry-root, RC486 catalog price-version, and RC487 SMM bootstrap hardening) and live schema drift are reconciled;
 - payment/finance/Edge/Auth/Storage acceptance is complete;
 - the release owner explicitly approves the Production window.
 

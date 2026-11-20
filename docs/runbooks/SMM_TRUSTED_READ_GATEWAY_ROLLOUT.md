@@ -1,6 +1,6 @@
 # SMM Trusted Read Gateway — Controlled Rollout Runbook
 
-**Status:** Planned only. PR #145 is source/CI-verified but not merged or deployed.  
+**Status:** Planned only. PR #145 is source/CI-verified but not merged or deployed. PR #944 proposes removing the unsafe first-Auth-user SMM admin bootstrap; it is not merged or deployed.  
 **Production safety:** No Edge Function deployment, secret change, wallet mutation, or payment is authorized by this document.
 
 ## Why the rollout must be coordinated
@@ -17,6 +17,28 @@ The gateway also tightens SMM administration: tenant OWNER/ADMIN roles alone no 
 4. Confirm a dedicated authenticated test account exists for a non-admin, and an approved platform-admin test identity exists. Avoid real customer wallet changes and real provider transactions.
 5. Capture the currently deployed `smm-gateway` version and the current web asset/cache-key checkpoint for rollback.
 6. Confirm the deployment operator has explicit approval for the production Edge Function and web release. No production migration is needed for these two read actions.
+
+## Trusted SMM administrator onboarding after RC487
+
+The `auth.users` first-user trigger is not an administrator provisioning mechanism. After RC487 is approved and deployed:
+
+1. Obtain an explicit change approval naming the intended operator and the reason for SMM administration.
+2. Verify the exact Auth user ID through the approved identity-verification process. Do not infer authorization from signup order, email domain, tenant OWNER/ADMIN role, or a client-supplied ID.
+3. Have an authorized database operator use the Supabase SQL Editor under the database-owner role to add only that approved identity. The application `service_role`, `authenticated`, and `anon` roles must not receive INSERT/UPDATE/DELETE on `public.smm_admins`.
+4. Use a reviewed, parameter-substituted statement; never paste an unverified identifier:
+
+```sql
+BEGIN;
+INSERT INTO public.smm_admins (user_id)
+VALUES ('<APPROVED_AUTH_USER_UUID>'::uuid)
+ON CONFLICT (user_id) DO NOTHING;
+COMMIT;
+```
+
+5. Verify only the expected membership exists using a boolean/count check. Do not export the allowlist or unrelated Auth user data.
+6. For revocation, remove only the approved user's allowlist row through the same controlled database-operator process and record the change.
+
+If no approved administrator is available, keep SMM administration disabled. Do not restore first-user-wins behavior or grant service-role table mutation privileges as a workaround.
 
 ## Deployment order
 
