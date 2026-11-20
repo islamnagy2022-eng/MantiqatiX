@@ -1,7 +1,7 @@
 import { createClient, type User } from '@supabase/supabase-js';
 import type { ActivityModuleOverrides, AdminSettings, AuthSession, Business, FunctionalGroupId, Product, Subscriber } from '../types';
 import { DEFAULT_CATEGORIES, DEFAULT_FUNCTIONAL_GROUPS, DEFAULT_PAYMOB_CONFIG, INITIAL_ADMIN_SETTINGS, normalizeCanonicalTaxonomySettings, resolveCanonicalGroupId, resolveCanonicalActivityCategoryId } from '../data/productionDefaults';
-import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from '../utils/defaultImages';
+import { resolveDefaultImage } from '../utils/defaultImages';
 import { resolvePublicCatalogAvailability } from './catalogPricing';
 
 const runtime = (window as any).MANTIQATIX_CONFIG || (window as any).MNTY_CONFIG;
@@ -249,24 +249,12 @@ export function mapBusiness(raw: any, provider: any): Business {
   const hasOwnerSelectedCover = Boolean(savedCover) && savedCoverSource !== 'auto' &&
     !isStockImageUrl(savedCover) &&
     !/(?:business-cover-placeholder|business-placeholder|catalog-item-placeholder)\.svg|\/legacy\/(?:activity|activities)\//i.test(savedCover);
-  const pharmacyFallbackLogo = isPharmacy && !isVerified && !hasOwnerSelectedLogo
-    ? UNVERIFIED_PHARMACY_IMAGE_URL
-    : '';
-  const pharmacyFallbackCover = isPharmacy && !isVerified && !hasOwnerSelectedCover
-    ? UNVERIFIED_PHARMACY_IMAGE_URL
-    : '';
   const isDoctor = /طبيب|طبيبة|دكتور|دكتورة|doctor|physician/i.test([
     name, category, activityCategoryCode, raw.activityGroupCode, raw.activity_group_code,
     raw.activitySpecialty, raw.activity_specialty, profile.activity_specialty,
     provider?.kind, provider?.providerKind, provider?.provider_kind,
     raw.providerKind, raw.provider_kind, raw.kind, raw.type, raw.listingType, raw.listing_type,
   ].join(' ')) || (functionalGroupId === 'medical_health' && classificationType === 'profession');
-  const doctorFallbackLogo = isDoctor && !isVerified && !hasOwnerSelectedLogo
-    ? UNVERIFIED_DOCTOR_IMAGE_URL
-    : '';
-  const doctorFallbackCover = isDoctor && !isVerified && !hasOwnerSelectedCover
-    ? UNVERIFIED_DOCTOR_IMAGE_URL
-    : '';
   const categoryDefaultLogo = resolveDefaultImage({
     name, description: String(profile.bio || raw.bio || provider?.description || ''),
     category, kind: 'activity',
@@ -287,8 +275,8 @@ export function mapBusiness(raw: any, provider: any): Business {
     functionalGroupId,
     categoryClassificationType: classificationType,
     activitySpecialty: String(raw.activitySpecialty || raw.activity_specialty || raw.settings?.activity_specialty || meta.activity_specialty || profile.activity_specialty || '') || undefined,
-    logoUrl: doctorFallbackLogo || pharmacyFallbackLogo || (logoNeedsDefault ? categoryDefaultLogo : savedLogo),
-    coverUrl: doctorFallbackCover || pharmacyFallbackCover || (coverNeedsDefault ? categoryDefaultCover : savedCover),
+    logoUrl: logoNeedsDefault ? categoryDefaultLogo : savedLogo,
+    coverUrl: coverNeedsDefault ? categoryDefaultCover : savedCover,
     externalLogoUrl: /^https:\/\//i.test(externalLogoUrl) ? externalLogoUrl : '',
     externalCoverUrl: /^https:\/\//i.test(externalCoverUrl) ? externalCoverUrl : '',
     bio: String(profile.bio || raw.bio || provider?.description || ''),
