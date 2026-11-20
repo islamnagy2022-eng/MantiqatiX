@@ -2778,3 +2778,12 @@ Exact-head CI passed: Directory Contact Consent 44763355453; MantiGO privacy 447
 No Production DB/migration/RLS/GRANT/Auth/Storage/Edge/payment/wallet/settlement/customer-data mutation occurred. Existing Production release blockers remain unchanged: encrypted off-site DB and Storage backup, Vault recovery, independent PostgreSQL 17 restore/rollback with measured RPO/RTO, exact migration reconciliation, Edge parity and approved coordinated release. Full platform remains **BLOCKED / NOT CERTIFIED**.
 
 Evidence: `docs/audits/PASS_1320_1329_DIRECTORY_CONTACT_CONSENT_PAGINATION_20261120.md`, PR #901.
+
+
+## Latest execution checkpoint — Pass 1330–1339 — directory direct database boundary (2026-11-20)
+
+Read-only PostgreSQL 17 catalog inspection confirmed `public.public_directory_listings` is a base table with RLS and FORCE RLS enabled, no policies, and no effective SELECT for anon or authenticated; service_role retains SELECT. The RC473 consent registry remains absent from Production. This rules out direct anon/authenticated SELECT on the base table but does not close the known public Edge Function disclosure path. No row data or personal data was read and no Production mutation occurred.
+
+The RC473 source schema has no `expires_at` column or expiry behavior; current owner UI describes consent as active until withdrawal. Expiry must not be claimed as implemented or tested. A separately designed expiry policy, forward-only migration, owner UI and adversarial tests remain needed before closing P0 Issue #876. Findings added to Issue #876 comment 7043684354.
+
+Evidence: `docs/audits/PASS_1330_1339_DIRECTORY_DB_BOUNDARY_RECHECK_20261120.md`. Production remains **BLOCKED / NOT CERTIFIED** pending encrypted backup/restore, Vault recovery, independent PG17 restore/rollback with measured RPO/RTO, ordered migration and Edge bundle release, and post-release live verification.
