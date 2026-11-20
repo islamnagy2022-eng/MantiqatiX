@@ -8,6 +8,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read # Poll the Pages artifact until GitHub's Actions API exposes its metadata.
   pages: write
   id-token: write
 concurrency:
@@ -556,6 +557,24 @@ jobs:
         with:
           name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
           path: ./site
+      - name: Wait for Pages artifact metadata to become available
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_ARTIFACT: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          for attempt in {1..15}; do
+            artifact_id="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?per_page=100" --jq ".artifacts[] | select(.name == \"${EXPECTED_ARTIFACT}\" and .expired == false) | .id" 2>/dev/null | head -n 1 || true)"
+            if [ -n "${artifact_id}" ]; then
+              echo "PAGES_ARTIFACT_METADATA_READY=PASS artifact_id=${artifact_id} attempt=${attempt}"
+              exit 0
+            fi
+            echo "Waiting for GitHub Actions artifact metadata (${attempt}/15)..."
+            sleep 2
+          done
+          echo "PAGES_ARTIFACT_METADATA_TIMEOUT: ${EXPECTED_ARTIFACT}"
+          gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?per_page=100" --jq '.artifacts[].name' || true
+          exit 1
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
