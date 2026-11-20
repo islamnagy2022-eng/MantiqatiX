@@ -22,9 +22,12 @@ const upsertStart = edge.indexOf('if (action === "UPSERT_LISTING")', actionStart
 assert.notEqual(upsertStart, -1, "Existing UPSERT_LISTING handler must remain after import action");
 
 const action = edge.slice(actionStart, upsertStart);
-const adminGate = edge.indexOf('if (!(memberships || []).some(platformAdmin))');
-assert.notEqual(adminGate, -1, "Platform-admin authorization gate must exist");
-assert.ok(adminGate < actionStart, "Batch import must be protected by the platform-admin gate");
+const adminGate = edge.indexOf("if (!resolveDirectoryPlatformAdmin(memberships, registryResult, registryError))");
+assert.notEqual(adminGate, -1, "Registry-backed platform-admin authorization gate must exist");
+const registryCall = edge.indexOf('userClient.rpc("mnty_can_platform_admin")');
+assert.notEqual(registryCall, -1, "Directory admin routes must consult the protected platform-admin registry");
+assert.ok(registryCall < adminGate && adminGate < actionStart,
+  "Batch import must be protected by the caller-JWT registry-backed platform-admin gate");
 
 assert.match(action, /rows\.length > 20/, "Batch size must be capped at 20");
 assert.match(action, /for \(let index = 0; index < rows\.length; index \+= 1\)/, "Rows must be processed sequentially");
