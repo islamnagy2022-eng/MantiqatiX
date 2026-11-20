@@ -71,9 +71,10 @@ const required = [
   "20261119020000_rc482_legal_platform_admin_registry_guard.sql",
   "20261119030000_rc483_atomic_legal_cms_create_audit.sql",
   "20261119040000_rc484_registry_backed_is_platform_admin.sql",
-  "20261120200000_rc485_catalog_rpc_registry_root.sql"
+  "20261120200000_rc485_catalog_rpc_registry_root.sql",
+  "20261120210000_rc486_catalog_price_version_serialization.sql"
 ];
-assert.equal(required.length, 65, "release gate must track all distinct required post-RC424 migration effects, including RC464B and RC476–RC485");
+assert.equal(required.length, 66, "release gate must track all distinct required post-RC424 migration effects, including RC464B and RC476–RC486");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");
@@ -121,6 +122,11 @@ assert.match(liveContract, /REQUIRED_EDGE_FUNCTIONS/, "the live parity contract 
 
 
 const forwardReplay = fs.readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
+const rc486Validator = fs.readFileSync("scripts/validate-rc486-catalog-price-version-serialization.mjs", "utf8");
+assert.ok(forwardReplay.includes("node scripts/validate-rc486-catalog-price-version-serialization.mjs"), "forward replay must validate RC486 price serialization");
+assert.ok(forwardReplay.includes("supabase/tests/rc486_catalog_price_version_serialization_integration.sql"), "forward replay must run the RC486 post-migration contract");
+assert.ok(rc486Validator.includes("pg_catalog.pg_advisory_xact_lock"), "RC486 validator must check advisory lock");
+assert.ok(rc486Validator.includes("the lock must be acquired before reading MAX(version)"), "RC486 validator must assert lock-before-MAX ordering");
 const forwardReplayLines = forwardReplay.split(/\r?\n/);
 assert.ok(
   forwardReplayLines.some((line, index) => line === "  push:" && forwardReplayLines[index + 1] === "    branches: [main]"),

@@ -84,7 +84,8 @@ const requiredReleaseMigrations=[
   "20261119020000_rc482_legal_platform_admin_registry_guard.sql",
   "20261119030000_rc483_atomic_legal_cms_create_audit.sql",
   "20261119040000_rc484_registry_backed_is_platform_admin.sql",
-  "20261120200000_rc485_catalog_rpc_registry_root.sql"
+  "20261120200000_rc485_catalog_rpc_registry_root.sql",
+  "20261120210000_rc486_catalog_price_version_serialization.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
