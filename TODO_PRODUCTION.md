@@ -3416,7 +3416,7 @@ Evidence: audit file above; Issue #876 comment 7043793414; Issue #857 comment 70
 - [x] 1355 — Verify anon/authenticated have no SELECT/INSERT grants on the nine RLS-enabled/no-policy tables reviewed.
 - [x] 1356 — Verify service_role table grants for those nine tables and record the three with SELECT/INSERT.
 - [x] 1357 — Record evidence in `docs/audits/PASS_1350_1359_SECURITY_DEFINER_RLS_GRANTS_REVIEW_20261120.md`.
-- [ ] 1358 — Finish manual signature-by-signature and transitive-helper review of all 65 authenticated-callable SECURITY DEFINER functions; do not infer safety from representative samples.
+- [x] 1358 — Complete manual signature-by-signature and transitive-helper review of all 65 authenticated-callable SECURITY DEFINER functions; 59 direct-auth bodies and 6 delegated paths reviewed across Pass 1380–1439. Findings remain open; review completion is not production certification.
 - [ ] 1359 — Keep Production blocked until coordinated Edge/migration, backup/restore, payment and release gates pass. No blanket REVOKE.
 
 Evidence: `docs/audits/PASS_1350_1359_SECURITY_DEFINER_RLS_GRANTS_REVIEW_20261120.md`; Security Advisor snapshot 2026-11-20 15:56 UTC. No Production mutation.
@@ -3464,7 +3464,7 @@ Evidence: audit file; P0 Issue #867 comments 7045989396 and 7046157101; merged P
 - [x] 1385 — Recheck live commission RPC authorization paths; confirm draft management still uses membership roles and operational preview still uses tenant-only finance helper.
 - [x] 1386 — Confirm RC467 source repair and behavioral test already exist; verify static validator and integration test passed in replay run 44239964551; update P1 Issue #884.
 - [x] 1387 — Record delegated-path review and cross-module drift in `docs/audits/PASS_1380_1389_SECURITY_DEFINER_DELEGATION_AND_LIVE_DRIFT_20261120.md`.
-- [ ] 1388 — Continue full-body signature-by-signature review of the 59 direct-`auth.uid()` SECURITY DEFINER functions and their transitive helpers; current pass is not full certification.
+- [x] 1388 — Complete full-body review of the 59 direct-`auth.uid()` SECURITY DEFINER functions; remaining functions were reviewed in Pass 1390–1439. Findings are tracked separately.
 - [ ] 1389 — Keep Production blocked until coordinated migration/Edge, backup/restore, payment/privacy and post-deployment verification gates pass.
 
 Evidence: audit file; Issues #867, #884, #911; RC464/RC467/RC478 source CI. Read-only Production inspection only.
@@ -3481,7 +3481,7 @@ Evidence: audit file; Issues #867, #884, #911; RC464/RC467/RC478 source CI. Read
 - [x] 1396 — Reconfirm RC477 customer bid phone/plate disclosure before acceptance; open P1 Issue #913.
 - [x] 1397 — Reconfirm RC471 global MantiGO admin/dashboard/expiry authorization and financial-report column drift; update Issues #92, #94, #118.
 - [x] 1398 — Record findings in `docs/audits/PASS_1390_1399_FIRST_20_DIRECT_AUTH_DEFINERS_20261120.md`.
-- [ ] 1399 — Continue full-body review of remaining 39 direct-auth SECURITY DEFINER functions; do not certify all 65 until complete.
+- [x] 1399 — Complete full-body review of the remaining 39 direct-auth SECURITY DEFINER functions through Pass 1400–1439; do not infer Production certification from review completion.
 
 Evidence: audit file; Issues #867, #884, #911–#914, #92, #94, #118; RC471/RC476/RC477/RC478 source CI and replay. No Production mutation.
 
@@ -3496,7 +3496,7 @@ Evidence: audit file; Issues #867, #884, #911–#914, #92, #94, #118; RC471/RC47
 - [x] 1405 — Review ride matching RPC; confirm active/verified/available and vehicle-category filters and sanitized output.
 - [x] 1406 — Review active-membership and scoped employee-list helper chains for actor, tenant, business, branch and HR permission checks.
 - [x] 1407 — Record findings in `docs/audits/PASS_1400_1409_MANTIGO_DATA_ACCESS_REVIEW_20261120.md`.
-- [ ] 1408 — Continue full-body review of remaining 29 direct-auth SECURITY DEFINER functions.
+- [x] 1408 — Complete full-body review of remaining 29 direct-auth SECURITY DEFINER functions through Pass 1410–1439; findings remain open.
 - [ ] 1409 — Keep Production blocked until coordinated migration/Edge, backup/restore, payment/privacy and post-deployment gates pass.
 
 Evidence: audit file; Issues #911, #913, #914; CI runs 44237312712, 44239964164, 44239964551. No Production mutation.
@@ -3513,7 +3513,7 @@ Evidence: audit file; Issues #911, #913, #914; CI runs 44237312712, 44239964164,
 - [x] 1416 — Review platform business update/deactivate/restore RPC; confirm registry gate, row lock and audit.
 - [x] 1417 — Aggregate all 9 `mnty_platform_admin_*` SECURITY DEFINER functions: all registry-backed, empty search_path, authenticated-executable.
 - [x] 1418 — Record evidence in `docs/audits/PASS_1410_1419_PLATFORM_ADMIN_AND_EMPLOYEE_SCOPE_REVIEW_20261120.md`.
-- [ ] 1419 — Continue full-body review of remaining 19 direct-auth SECURITY DEFINER functions; no full 65-function certification yet.
+- [x] 1419 — Complete full-body review of remaining 19 direct-auth SECURITY DEFINER functions through Pass 1420–1439; findings remain open.
 
 Evidence: audit file; Issues #867, #884, #917; RC467 replay run 44239964551. No Production mutation.
 
@@ -3529,6 +3529,22 @@ Evidence: audit file; Issues #867, #884, #917; RC467 replay run 44239964551. No 
 - [x] 1426 — Review direct-auth function 49: settlement validates ride/payment/commission/idempotency but live authorization accepts broad global membership roles; RC471 source repair exists; #92/#94.
 - [x] 1427 — Review direct-auth function 50: job application actor binding and duplicate unique index; identify missing active-job check; open P2 #919.
 - [x] 1428 — Record findings in `docs/audits/PASS_1420_1429_COMMISSION_PAYMENT_JOBS_REVIEW_20261120.md`.
-- [ ] 1429 — Continue full-body review of remaining 9 direct-auth SECURITY DEFINER functions; do not certify all 65 until complete.
+- [x] 1429 — Complete full-body review of remaining 9 direct-auth SECURITY DEFINER functions in Pass 1430–1439; review is complete but Production remains BLOCKED / NOT CERTIFIED.
 
 Evidence: audit file; Issues #867, #884, #92, #94, #919; RC464/RC467/RC471 CI and replay. No Production mutation.
+
+
+## PASS 1430–1439 — Final direct-auth SECURITY DEFINER review and release gates — 2026-11-20
+
+- [x] 1430 — Review final 9 direct-auth SECURITY DEFINER functions 51–59.
+- [x] 1431 — Identify medical appointment provider ownership and status transition gap; open P1 #921.
+- [x] 1432 — Identify catalog price version allocation race; open P2 #922.
+- [x] 1433 — Confirm job application unique index and inactive-job gap #919; confirm employee/position branch consistency gap #917.
+- [x] 1434 — Add seven catalog global-root RPCs using legacy SUPER_ADMIN membership flags to P0 #867 review scope.
+- [x] 1435 — Reconcile full SECURITY DEFINER inventory: 65 authenticated-callable; 59 direct auth.uid and 6 delegated; all 65 explicit search_path; one intentional anon-callable public ad RPC.
+- [x] 1436 — Close manual signature-by-signature review of all 65 authenticated-callable SECURITY DEFINER functions; findings remain open and Production is not certified.
+- [x] 1437 — Record evidence in `docs/audits/PASS_1430_1439_FINAL_SECURITY_DEFINER_REVIEW_20261120.md`.
+- [ ] 1438 — Remediate tracked source defects via forward-only migrations and adversarial tests; coordinate with full release chain.
+- [ ] 1439 — Keep Production blocked until encrypted backup/restore, Vault recovery, independent PG17 restore/rollback, migration/Edge parity, sandbox payment/privacy E2E, release approval and post-deploy verification pass.
+
+Evidence: audit file; Issues #867, #884, #911–#922, #92, #94, #118. No Production mutation.
