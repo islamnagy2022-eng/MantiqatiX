@@ -56,12 +56,6 @@ CREATE TABLE public.marketing_provider_profiles(
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-ALTER TABLE public.marketing_provider_profiles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY marketing_provider_profiles_public_active_read
-ON public.marketing_provider_profiles FOR SELECT TO anon,authenticated
-USING(status='ACTIVE');
-GRANT SELECT ON public.marketing_provider_profiles TO anon,authenticated;
-
 CREATE TABLE storage.buckets(id text PRIMARY KEY,name text NOT NULL,public boolean NOT NULL DEFAULT false);
 INSERT INTO storage.buckets(id,name,public) VALUES
  ('mantiqatix-profile-media','mantiqatix-profile-media',true),
@@ -98,61 +92,13 @@ WITH CHECK(
   )
 );
 
+-- Legacy platform-brand policy intentionally lacks an anonymous-Auth predicate.
+-- RC488's table-wide restrictive INSERT guard must still block anonymous sessions.
 CREATE POLICY mnty_platform_brand_insert
 ON storage.objects FOR INSERT TO authenticated
 WITH CHECK(
   bucket_id='mantiqatix-profile-media'
-  AND name ~ '^platform/branding/(logo|mark)-[0-9]+\\.(jpg|jpeg|png|webp|svg) TO authenticated
-USING(
-  bucket_id='mantiqatix-profile-media'
-  AND split_part(name,'/',2)=auth.uid()::text
-  AND EXISTS(
-    SELECT 1 FROM public.marketing_provider_profiles p
-    WHERE p.id=(split_part(objects.name,'/',4))::uuid
-      AND p.owner_user_id=auth.uid()
-  )
-)
-WITH CHECK(
-  bucket_id='mantiqatix-profile-media'
-  AND split_part(name,'/',2)=auth.uid()::text
-  AND name ~ '^users/[0-9a-fA-F-]{36}/providers/[0-9a-fA-F-]{36}/(cover|logo)\.(jpg|jpeg|png|webp)$'
-  AND EXISTS(
-    SELECT 1 FROM public.marketing_provider_profiles p
-    WHERE p.id=(split_part(objects.name,'/',4))::uuid
-      AND p.owner_user_id=auth.uid()
-  )
-);
-
-CREATE POLICY mnty_profile_media_owner_delete
-ON storage.objects FOR DELETE TO authenticated
-USING(
-  bucket_id='mantiqatix-profile-media'
-  AND split_part(name,'/',2)=auth.uid()::text
-  AND EXISTS(
-    SELECT 1 FROM public.marketing_provider_profiles p
-    WHERE p.id=(split_part(objects.name,'/',4))::uuid
-      AND p.owner_user_id=auth.uid()
-  )
-);
-
-CREATE POLICY mantiqatix_media_authenticated_read
-ON storage.objects FOR SELECT TO authenticated
-USING(
-  bucket_id='mantiqatix-media'
-  AND coalesce(auth.jwt()->>'is_anonymous','false')<>'true'
-  AND (owner_id=auth.uid()::text OR name LIKE 'users/'||auth.uid()::text||'/%')
-);
-
-GRANT USAGE ON SCHEMA public,auth,storage TO anon,authenticated,service_role;
-GRANT EXECUTE ON FUNCTION auth.jwt() TO anon,authenticated,service_role;
-GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated,service_role;
-GRANT SELECT ON storage.buckets TO anon,authenticated,service_role;
-GRANT SELECT,INSERT,UPDATE,DELETE ON storage.objects TO authenticated;
-GRANT SELECT ON storage.objects TO anon,service_role;
-GRANT INSERT,UPDATE,DELETE ON storage.objects TO service_role;
-GRANT SELECT ON public.marketing_provider_profiles TO authenticated,service_role;
-GRANT INSERT,UPDATE,DELETE ON public.marketing_provider_profiles TO service_role;
-
+  AND name ~ '^platform/branding/(logo|mark)-[0-9]+\.(jpg|jpeg|png|webp|svg)$'
   AND EXISTS(
     SELECT 1 FROM public.user_memberships m
     WHERE m.user_id=auth.uid() AND m.status='ACTIVE' AND upper(m.role)='SUPER_ADMIN'
@@ -208,5 +154,6 @@ GRANT SELECT ON storage.buckets TO anon,authenticated,service_role;
 GRANT SELECT,INSERT,UPDATE,DELETE ON storage.objects TO authenticated;
 GRANT SELECT ON storage.objects TO anon,service_role;
 GRANT INSERT,UPDATE,DELETE ON storage.objects TO service_role;
-GRANT SELECT ON public.marketing_provider_profiles TO authenticated,service_role;
+GRANT SELECT ON public.marketing_provider_profiles TO anon,authenticated,service_role;
+GRANT SELECT ON public.user_memberships TO authenticated,service_role;
 GRANT INSERT,UPDATE,DELETE ON public.marketing_provider_profiles TO service_role;
