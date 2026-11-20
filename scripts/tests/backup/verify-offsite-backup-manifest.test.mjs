@@ -87,7 +87,7 @@ function fixture(t) {
 function invoke(f) {
   return spawnSync(process.execPath,[script,f.manifestPath],{
     encoding:"utf8",
-    env:{...process.env,AGE_IDENTITY_FILE:f.identity}
+    env:{...process.env,AGE_IDENTITY_FILE:f.identity,BACKUP_GATE_DEBUG_PATHS:"1"}
   });
 }
 
@@ -259,7 +259,7 @@ test("recovery identity cannot be hidden inside the repository through a symlink
   }
   const r=spawnSync(process.execPath,[f.manifestPath],{
     encoding:"utf8",
-    env:{...process.env,AGE_IDENTITY_FILE:path.join(alias,"age-identity.txt")}
+    env:{...process.env,AGE_IDENTITY_FILE:path.join(alias,"age-identity.txt"),BACKUP_GATE_DEBUG_PATHS:"1"}
   });
   assert.notEqual(r.status,0);
   assert.match(r.stderr,/stored outside the Git repository/);
