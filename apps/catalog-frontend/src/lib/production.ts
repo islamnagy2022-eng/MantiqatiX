@@ -241,7 +241,6 @@ export function mapBusiness(raw: any, provider: any): Business {
   const externalLogoUrl = String(profile.externalLogoUrl ?? profile.external_logo_url ?? profile.logo_url ?? raw.externalLogoUrl ?? '');
   const externalCoverUrl = String(profile.externalCoverUrl ?? profile.external_cover_url ?? profile.cover_url ?? raw.externalCoverUrl ?? '');
   const isVerified = Boolean(provider?.verified ?? provider?.is_verified ?? raw.isVerified);
-  const isPharmacy = /صيدل|pharmacy/i.test([name, category, activityCategoryCode, raw.activityGroupCode, raw.activity_group_code].join(' '));
   const savedLogoSource = String(profile.logo_image_source || profile.logoImageSource || '').toLowerCase();
   const savedCoverSource = String(profile.cover_image_source || profile.coverImageSource || '').toLowerCase();
   const hasOwnerSelectedLogo = Boolean(savedLogo) && savedLogoSource !== 'auto' &&
@@ -249,12 +248,6 @@ export function mapBusiness(raw: any, provider: any): Business {
   const hasOwnerSelectedCover = Boolean(savedCover) && savedCoverSource !== 'auto' &&
     !isStockImageUrl(savedCover) &&
     !/(?:business-cover-placeholder|business-placeholder|catalog-item-placeholder)\.svg|\/legacy\/(?:activity|activities)\//i.test(savedCover);
-  const isDoctor = /طبيب|طبيبة|دكتور|دكتورة|doctor|physician/i.test([
-    name, category, activityCategoryCode, raw.activityGroupCode, raw.activity_group_code,
-    raw.activitySpecialty, raw.activity_specialty, profile.activity_specialty,
-    provider?.kind, provider?.providerKind, provider?.provider_kind,
-    raw.providerKind, raw.provider_kind, raw.kind, raw.type, raw.listingType, raw.listing_type,
-  ].join(' ')) || (functionalGroupId === 'medical_health' && classificationType === 'profession');
   const categoryDefaultLogo = resolveDefaultImage({
     name, description: String(profile.bio || raw.bio || provider?.description || ''),
     category, kind: 'activity',
