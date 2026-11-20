@@ -2938,3 +2938,12 @@ Fresh Security Advisor still reports 90 anonymous-auth policy warnings. Read-onl
 P1 Issue #928 tracks the remaining 40-table policy composition review and disposable tests for anonymous JWT versus confirmed Auth JWT. No anonymous data access attempt or Production mutation. Pass 1456 remains open.
 
 Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`.
+
+
+### R7 exact-archive forensic cross-check — 2026-11-20
+
+The uploaded `bizcatalog-manager (11).zip` SHA-256 is `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, exactly matching `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md`. Reopened that full forensic report and rechecked the source: R7 has P0 unauthenticated privileged session-token minting; unauthenticated full production-state read/write; hard-coded JWT/Paymob secret fallbacks; weak/default admin bypass; 54 mutating routes without recognizable route-local auth guards; and a financial transaction endpoint trusting caller-supplied actor ID/role. These are source-level findings, not evidence of a live exploit in canonical main. The archive Android wrapper is only three files and is not a verified buildable app. R7 remains reference-only; no backend/auth/finance/local-state code is to be ported. No R7 routes were executed or Production endpoints probed.
+
+No R7 feature was selected for direct adoption in this pass, so the conditional feature-mapping gate is closed for this pass only. Future feature adoption still requires current-main API/DB/auth mapping and isolated tests.
+
+Evidence: `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md`; `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md`.
