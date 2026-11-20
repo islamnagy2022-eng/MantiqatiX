@@ -26,13 +26,14 @@ ALTER TABLE private.platform_admins ENABLE ROW LEVEL SECURITY;
 ALTER TABLE private.platform_admins FORCE ROW LEVEL SECURITY;
 REVOKE ALL ON SCHEMA private FROM PUBLIC,anon,authenticated;
 REVOKE ALL ON TABLE private.platform_admins FROM PUBLIC,anon,authenticated,service_role;
--- Mirror the current Production ACL so the RC484 migration must actively remove it.
 GRANT ALL ON TABLE private.platform_admins TO service_role;
 
 CREATE TABLE public.user_memberships(
   id text PRIMARY KEY,
   user_id uuid NOT NULL,
   tenant_id text NOT NULL,
+  business_id text,
+  branch_id text,
   role text NOT NULL,
   status text NOT NULL
 );
@@ -53,30 +54,61 @@ GRANT EXECUTE ON FUNCTION public.is_platform_admin() TO authenticated;
 DO $tables$
 DECLARE
   i integer;
-  j integer:=0;
+  j integer;
   t text;
+  policy_command text;
+  policy_sql text;
 BEGIN
   FOR i IN 1..24 LOOP
     t:=CASE WHEN i=1 THEN 'scope_probe' ELSE 'scope_probe_'||lpad(i::text,2,'0') END;
-    EXECUTE format('CREATE TABLE public.%I(id integer PRIMARY KEY,owner_user_id uuid,tenant_id text)',t);
+    EXECUTE format('CREATE TABLE public.%I(id integer PRIMARY KEY,owner_user_id uuid,tenant_id text,business_id text,branch_id text)',t);
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY',t);
     EXECUTE format('GRANT SELECT,INSERT,UPDATE,DELETE ON public.%I TO authenticated',t);
-    EXECUTE format(
-      'CREATE POLICY %I ON public.%I FOR SELECT TO authenticated USING (owner_user_id=(SELECT auth.uid()) OR public.is_platform_admin())',
-      'rc484_base_'||i,t
-    );
   END LOOP;
 
-  -- The production snapshot has 57 helper-dependent policies over 24 tables.
-  -- Add 33 distinct policies to the first nine fixture tables to reproduce that
-  -- blast-radius shape without importing Production data or policy contents.
-  FOR j IN 1..33 LOOP
-    i:=((j-1)%9)+1;
+  -- Mirror the live 57-policy command distribution: 18 SELECT, 17 UPDATE,
+  -- 15 DELETE and 7 ALL, without importing production expressions or data.
+  FOR j IN 1..57 LOOP
+    i:=((j-1)%24)+1;
     t:=CASE WHEN i=1 THEN 'scope_probe' ELSE 'scope_probe_'||lpad(i::text,2,'0') END;
-    EXECUTE format(
-      'CREATE POLICY %I ON public.%I FOR SELECT TO authenticated USING (public.is_platform_admin())',
-      'rc484_extra_'||j,t
-    );
+    policy_command:=CASE
+      WHEN j<=18 THEN 'SELECT'
+      WHEN j<=35 THEN 'UPDATE'
+      WHEN j<=50 THEN 'DELETE'
+      ELSE 'ALL'
+    END;
+    IF policy_command='ALL' AND j<57 THEN
+      policy_sql:=format(
+        'CREATE POLICY %I ON public.%I FOR ALL TO authenticated USING (public.is_platform_admin() OR EXISTS (SELECT 1 FROM public.user_memberships m WHERE m.user_id=(SELECT auth.uid()) AND m.status=''ACTIVE'' AND m.tenant_id=%I.tenant_id AND m.business_id=%I.business_id AND m.branch_id=%I.branch_id))',
+        'rc484_policy_'||j,t,t,t,t
+      );
+      policy_sql:=policy_sql||format(
+        ' WITH CHECK (public.is_platform_admin() OR EXISTS (SELECT 1 FROM public.user_memberships m WHERE m.user_id=(SELECT auth.uid()) AND m.status=''ACTIVE'' AND m.tenant_id=%I.tenant_id AND m.business_id=%I.business_id AND m.branch_id=%I.branch_id))',
+        t,t,t
+      );
+    ELSIF policy_command='ALL' THEN
+      -- The remaining ALL policy mirrors platform_feature_flags write-admin:
+      -- only the registered platform root may write global feature flags.
+      policy_sql:=format(
+        'CREATE POLICY %I ON public.%I FOR ALL TO authenticated USING (public.is_platform_admin()) WITH CHECK (public.is_platform_admin())',
+        'rc484_policy_'||j,t
+      );
+    ELSIF policy_command='SELECT' AND j=10 THEN
+      -- Mirror platform_feature_flags tenant-member read semantics.
+      policy_sql:=format(
+        'CREATE POLICY %I ON public.%I FOR SELECT TO authenticated USING (tenant_id IS NULL OR public.is_platform_admin() OR EXISTS (SELECT 1 FROM public.user_memberships m WHERE m.user_id=(SELECT auth.uid()) AND m.status=''ACTIVE'' AND m.tenant_id=%I.tenant_id AND (m.business_id=%I.business_id OR %I.business_id IS NULL) AND (m.branch_id=%I.branch_id OR %I.branch_id IS NULL)))',
+        'rc484_policy_'||j,t,t,t,t,t,t
+      );
+    ELSE
+      policy_sql:=format(
+        'CREATE POLICY %I ON public.%I FOR %s TO authenticated USING (owner_user_id=(SELECT auth.uid()) OR public.is_platform_admin())',
+        'rc484_policy_'||j,t,policy_command
+      );
+      IF policy_command='UPDATE' THEN
+        policy_sql:=policy_sql||' WITH CHECK (owner_user_id=(SELECT auth.uid()) OR public.is_platform_admin())';
+      END IF;
+    END IF;
+    EXECUTE policy_sql;
   END LOOP;
 END;
 $tables$;
@@ -86,9 +118,9 @@ INSERT INTO auth.users(id) VALUES
  ('10000000-0000-4000-8000-000000000002'),
  ('10000000-0000-4000-8000-000000000003');
 
-INSERT INTO public.user_memberships(id,user_id,tenant_id,role,status) VALUES
- ('tenant-admin','10000000-0000-4000-8000-000000000001','TENANT-A','ADMIN','ACTIVE'),
- ('tenant-super-admin','10000000-0000-4000-8000-000000000002','TENANT-B','SUPER_ADMIN','ACTIVE');
+INSERT INTO public.user_memberships(id,user_id,tenant_id,business_id,branch_id,role,status) VALUES
+ ('tenant-admin','10000000-0000-4000-8000-000000000001','TENANT-A','BUSINESS-A','BRANCH-A','ADMIN','ACTIVE'),
+ ('tenant-super-admin','10000000-0000-4000-8000-000000000002','TENANT-B','BUSINESS-B','BRANCH-B','SUPER_ADMIN','ACTIVE');
 
 INSERT INTO private.platform_admins(user_id)
 VALUES ('10000000-0000-4000-8000-000000000003');
@@ -97,3 +129,22 @@ INSERT INTO public.scope_probe(id,owner_user_id,tenant_id) VALUES
  (1,'10000000-0000-4000-8000-000000000001','TENANT-A'),
  (2,'10000000-0000-4000-8000-000000000002','TENANT-B'),
  (3,NULL,'TENANT-C');
+
+-- Six live ALL policies include a tenant/business/branch membership path; the seventh is platform-root-only.
+-- This representative table exercises that local-admin path alongside platform root.
+INSERT INTO public.scope_probe_03(id,owner_user_id,tenant_id,business_id,branch_id) VALUES
+ (1,'10000000-0000-4000-8000-000000000002','TENANT-A','BUSINESS-A','BRANCH-A'),
+ (2,'10000000-0000-4000-8000-000000000003','TENANT-B','BUSINESS-B','BRANCH-B'),
+ (3,NULL,'TENANT-A','BUSINESS-A','BRANCH-OTHER'),
+ (9,NULL,'TENANT-A','BUSINESS-OTHER','BRANCH-A');
+
+-- Mirror tenant-member/global feature-flag reads (one of the live SELECT policies).
+INSERT INTO public.scope_probe_10(id,owner_user_id,tenant_id,business_id,branch_id) VALUES
+ (1,'10000000-0000-4000-8000-000000000003','TENANT-A','BUSINESS-A','BRANCH-A'),
+ (2,'10000000-0000-4000-8000-000000000003','TENANT-B','BUSINESS-B','BRANCH-B'),
+ (3,NULL,NULL,NULL,NULL);
+
+-- The seventh ALL policy mirrors platform-root-only feature-flag writes.
+INSERT INTO public.scope_probe_09(id,owner_user_id,tenant_id,business_id,branch_id)
+VALUES(1,'10000000-0000-4000-8000-000000000003','TENANT-A','BUSINESS-A','BRANCH-A');
+
