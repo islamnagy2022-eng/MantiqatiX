@@ -2866,3 +2866,12 @@ The first 20 of 59 authenticated-callable SECURITY DEFINER functions with direct
 - Medical appointment active-slot unique index protects concurrent doctor/time bookings; payment-intent path binds customer/membership, pricing snapshot and idempotency.
 
 The source fixes RC471/RC476/RC477/RC478 are merged and CI/replay-tested, but all corresponding migration IDs remain absent from Production. Exact evidence is in `docs/audits/PASS_1390_1399_FIRST_20_DIRECT_AUTH_DEFINERS_20261120.md`. Continue review of remaining 39 direct-auth functions; no full 65-function certification yet.
+
+
+## MantiGO data-access review — Pass 1400–1409 (2026-11-20)
+
+Reviewed direct-auth SECURITY DEFINER functions 21–30. Captain ride listing is limited to accepted bids; matching returns only active/verified/available vehicle-category matches and does not return contact/plate; fare locking is customer-owned and idempotent; ratings require the customer's own completed ride; notification reads are bound to `auth.uid()`; active membership and scoped employee list enforce actor/tenant/business/branch/HR boundaries.
+
+Three live Production defects remain source-fixed but unapplied: RC476 captain earnings uses removed ledger columns (#914); RC477 customer ride response exposes captain phone/plate before acceptance (#913); RC478 open-ride list lacks verified/available captain gate (#911). Source CI/replay passed, but Production ledger remains 310 rows through `20261110150618`, and these migration IDs are absent.
+
+Evidence: `docs/audits/PASS_1400_1409_MANTIGO_DATA_ACCESS_REVIEW_20261120.md`. Remaining direct-auth functions to review: 29.
