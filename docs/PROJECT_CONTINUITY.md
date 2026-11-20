@@ -1,3 +1,16 @@
+## Latest execution checkpoint — Pass 1310–1319 — 2026-11-20
+
+- Merged PR #899 at `ef152fbb351db6a52a64c4913140394a9c29eca7`: canonical real-path enforcement for backup manifest, artifact directory, artifact files and recovery identity.
+- Added two symlink-parent regression tests; exact backup verifier workflow [44761709639](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/44761709639) passed **14/14**.
+- Exact-head Module Professionalization, Backend-only Module Boundary, RC425, MantiGO privacy and Pages/V6 desktop/mobile validation workflows passed. The Pages deploy job was skipped as expected for a PR.
+- No Production mutation or actual backup/restore occurred. This is verifier hardening only.
+- Full platform remains **BLOCKED / NOT CERTIFIED** pending operator-owned encrypted DB + Storage backup, off-site retrieval, Vault recovery, independent PostgreSQL 17 restore/rollback, measured RPO/RTO, chronological migration reconciliation and coordinated Edge release.
+- Evidence: `docs/audits/PASS_1310_1319_BACKUP_PATH_HARDENING_20261120.md`.
+
+**Next:** complete the operator-controlled backup/restore gate. Do not apply Production migrations or deploy Edge functions independently.
+
+---
+
 ## Latest execution checkpoint — Pass 1300–1309 — 2026-11-20
 
 - PR #897 merged at `e5d5aa42152bdd41b49e2e0419122e831bc7301b`; exact workflow run 44683168406 passed both `source-contract` and `consent-postgres`.
