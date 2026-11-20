@@ -49,6 +49,12 @@ CREATE TABLE public.marketing_provider_profiles(
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+ALTER TABLE public.marketing_provider_profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY marketing_provider_profiles_public_active_read
+ON public.marketing_provider_profiles FOR SELECT TO anon,authenticated
+USING(status='ACTIVE');
+GRANT SELECT ON public.marketing_provider_profiles TO anon,authenticated;
+
 CREATE TABLE storage.buckets(id text PRIMARY KEY,name text NOT NULL,public boolean NOT NULL DEFAULT false);
 INSERT INTO storage.buckets(id,name,public) VALUES
  ('mantiqatix-profile-media','mantiqatix-profile-media',true),
