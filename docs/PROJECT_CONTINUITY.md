@@ -2767,3 +2767,14 @@ P0 issue #867 tracks the required fix. Do not replace all uses indiscriminately:
 - No Production DDL/DML, migration, RLS/GRANT/Auth/Storage/Edge/payment/wallet/settlement/user-data mutation was performed. Full platform remains **BLOCKED / NOT CERTIFIED**.
 
 **Next:** continue the 64-version live reconciliation and operator-owned encrypted off-site backup/Storage/Vault recovery plus independent PostgreSQL 17 restore/rollback evidence. Keep RC484 for the approved ordered release only; re-read helper/registry ACL and all dependent policy behavior after release. Keep issue #867 open until live verification passes.
+
+
+## Latest execution checkpoint — Pass 1320–1329 — directory contact-consent pagination (2026-11-20)
+
+PR #901 merged to main at `a4c803a8d7e851ab9d591d70e6fdeb65c4e8ae19`. The legacy `directory-listings` Edge source now collects active PHONE, SECONDARY_PHONE, ADDRESS and PRECISE_LOCATION consent rows through stable range pagination. It advances by actual response length and discards partial results/fails closed on thrown, errored or malformed pages. Regression coverage exercises 2,205 synthetic consent rows, 600 unique listing IDs plus duplicate input, four independent scopes, 400-row response caps, later-page registry failure, malformed data and empty input.
+
+Exact-head CI passed: Directory Contact Consent 44763355453; MantiGO privacy 44763355928; Doctor import 44763355391; Backend Module Boundary 44763355379; RC425 atomicity 44763355538; Module Professionalization 44763355603; Pages validation 44763355360; Primary Catalog validation 44763355499. Pages validation and smoke checks passed, but this PR did not deploy to Production.
+
+No Production DB/migration/RLS/GRANT/Auth/Storage/Edge/payment/wallet/settlement/customer-data mutation occurred. Existing Production release blockers remain unchanged: encrypted off-site DB and Storage backup, Vault recovery, independent PostgreSQL 17 restore/rollback with measured RPO/RTO, exact migration reconciliation, Edge parity and approved coordinated release. Full platform remains **BLOCKED / NOT CERTIFIED**.
+
+Evidence: `docs/audits/PASS_1320_1329_DIRECTORY_CONTACT_CONSENT_PAGINATION_20261120.md`, PR #901.

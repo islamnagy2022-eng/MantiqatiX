@@ -4396,3 +4396,17 @@ A read-only Production query confirms the exact policy inventory expected by RC4
 - [ ] Keep issue #867 open until live post-deployment verification proves the global bypass is closed.
 
 Evidence: PR #870; `docs/audits/PASS_1180_1189_RC484_REGISTRY_BACKED_RLS_HELPER_20261119.md`. No Production mutation.
+
+
+### Directory contact-consent pagination — PR #901
+
+- [x] Paginate active field-specific contact consents in stable listing/scope order.
+- [x] Continue correctly when PostgREST returns fewer rows than requested.
+- [x] Discard partial pages and fail closed on query errors or malformed responses.
+- [x] Cover large consent sets, duplicate IDs, all four scopes, registry failure and empty input with synthetic regression tests.
+- [x] Pass exact-head Directory Contact Consent PostgreSQL/source/type/frontend workflow and all cross-module, privacy, payment and catalog workflows.
+- [x] Merge PR #901 to main at `a4c803a8d7e851ab9d591d70e6fdeb65c4e8ae19`.
+- [ ] Release the coordinated RC473 migration and matching Edge bundle only after encrypted off-site backup, Storage/Vault recovery, independent PG17 restore/rollback and approval gates pass.
+- [ ] Verify consent table, grants/RLS, function parity and public output against live Production after the approved release.
+
+Evidence: `docs/audits/PASS_1320_1329_DIRECTORY_CONTACT_CONSENT_PAGINATION_20261120.md`. No Production mutation or deployment.
