@@ -1,3 +1,14 @@
+## PASS 1295–1299 — RC473 consent endpoint adversarial contract tests — 2026-11-20
+
+- Merged PR #897 (`e5d5aa42152bdd41b49e2e0419122e831bc7301b`) adding explicit source-contract checks for auth-before-action, scope/type validation, claimed/published listing eligibility, exact owner/business membership binding, actor spoof resistance, idempotent grants/unique-index races, and attributed revocation.
+- Dedicated `Directory Contact Consent` workflow completed successfully: source contract, Deno type-check, primary catalog lint/build, isolated PostgreSQL fixture and grant/revoke audit assertions all passed.
+- Production deployment remains BLOCKED: live `directory-listings` is v16 without RC473 dependencies; registry table and migration ledger row absent. No Production mutation was performed.
+- Evidence: PR https://github.com/islamnagy2022-eng/MantiqatiX/pull/897 and workflow run https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/44683168406.
+
+**Next:** verify post-merge production workflow checks, then continue the coordinated backup/restore and RC472/RC473 release prerequisites. Do not apply the migration or deploy the Edge Function separately.
+
+---
+
 ## PASS 1285–1294 — Directory consent live-boundary recheck — 2026-11-20
 
 - Live `directory-listings` is ACTIVE v16 with `verify_jwt=false`; its 3-file bundle lacks the consent sanitizer and consent-pagination dependencies. It does not query the consent registry and does not fail closed. Read-only SQL confirms `directory_listing_contact_consents` is absent and RC473 migration ledger version `20261118020000` is absent.
