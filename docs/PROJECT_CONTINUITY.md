@@ -2820,3 +2820,14 @@ Anon/authenticated have no CREATE on public. Neither browser role has SELECT/INS
 No Production rows or personal data selected; no Production mutation. Production remains BLOCKED / NOT CERTIFIED.
 
 Evidence: `docs/audits/PASS_1350_1359_SECURITY_DEFINER_RLS_GRANTS_REVIEW_20261120.md`.
+
+
+## Latest source-integrity checkpoint — Pass 1360–1369 — RC117 image preservation (2026-11-20)
+
+Review of historical RC117 found a mismatch between the marketing-service trigger and the migration backfill. The trigger preserves a non-empty image URL when source metadata is blank, but the bulk backfill updates rows where either `image_url` OR `image_source` is blank, replacing a custom URL when only provenance is missing. Existing RC117 SQL contract tests do not cover this case.
+
+The canonical Production object inventory reports all nine RC117 image contracts absent, so this is a source defect to correct before forward deployment; no evidence the defective backfill has run in Production. No application rows were read. P1 Issue #906 tracks a forward-only correction: preserve non-empty URLs, normalize unknown provenance to owner, default only truly blank URLs or exact reviewed placeholders, preserve AI/owner images, and test idempotency.
+
+The execution container has Node.js but no Supabase CLI binary; no migration file was invented. The forward migration must be generated in an authorized environment using Supabase CLI, then tested with disposable PostgreSQL replay. Production remains BLOCKED / NOT CERTIFIED.
+
+Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.md`; Issue #906.
