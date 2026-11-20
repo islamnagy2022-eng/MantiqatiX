@@ -21,8 +21,8 @@ const checks=[
   ["authenticated helper execute is retained",migration.includes("GRANT EXECUTE ON FUNCTION public.is_platform_admin() TO authenticated")],
   ["fixture reproduces existing direct service-role registry grant",fixture.includes("GRANT ALL ON TABLE private.platform_admins TO service_role")],
   ["fixture reproduces 57 policies over 24 tables",/1\.\.24/.test(fixture)&&/1\.\.33/.test(fixture)],
-  ["integration denies tenant ADMIN and SUPER_ADMIN",/RC484_TENANT_ADMIN_MUST_NOT_BE_PLATFORM_ADMIN/.test(integration)&&/RC484_TENANT_SUPER_ADMIN_MUST_NOT_BE_PLATFORM_ADMIN/.test(integration)],
-  ["integration preserves registered platform-root global access",/RC484_REGISTRY_ONLY_PLATFORM_ADMIN_MUST_PASS/.test(integration)&&/RC484_REGISTERED_PLATFORM_ADMIN_MUST_RETAIN_GLOBAL_POLICY_ACCESS/.test(integration)],
+  ["integration denies tenant ADMIN and SUPER_ADMIN across SELECT/INSERT/UPDATE/DELETE",["SELECT","INSERT","UPDATE","DELETE"].every(op=>integration.includes("CROSSTENANT_"+op+"_BYPASS"))&&integration.includes("RC484_TENANT_ADMIN_MUST_NOT_BE_PLATFORM_ADMIN")&&integration.includes("RC484_TENANT_SUPER_ADMIN_MUST_NOT_BE_PLATFORM_ADMIN")],
+  ["integration preserves registered platform-root global access across SELECT/INSERT/UPDATE/DELETE",["GLOBAL_SELECT_FAILED","GLOBAL_UPDATE_FAILED","GLOBAL_DELETE_FAILED"].every(x=>integration.includes(x))&&integration.includes("INSERT INTO public.scope_probe_03")&&integration.includes("RC484_REGISTRY_ONLY_PLATFORM_ADMIN_MUST_PASS")],
   ["workflow applies fixture, migration, then behavior test",workflow.indexOf("-f /tmp/fixture.sql")<workflow.indexOf("-f /tmp/rc484.sql")&&workflow.indexOf("-f /tmp/rc484.sql")<workflow.indexOf("-f /tmp/integration.sql")],
   ["production migration contract includes RC484",/20261119040000/.test(gate)&&/20261119040000_rc484_registry_backed_is_platform_admin\.sql/.test(chain)],
 ];
