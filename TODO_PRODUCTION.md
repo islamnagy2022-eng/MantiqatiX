@@ -3500,3 +3500,19 @@ Evidence: audit file; Issues #867, #884, #911–#914, #92, #94, #118; RC471/RC47
 - [ ] 1409 — Keep Production blocked until coordinated migration/Edge, backup/restore, payment/privacy and post-deployment gates pass.
 
 Evidence: audit file; Issues #911, #913, #914; CI runs 44237312712, 44239964164, 44239964551. No Production mutation.
+
+
+## PASS 1410–1419 — Platform-admin and employee scope review — 2026-11-20
+
+- [x] 1410 — Review direct-auth function 31: employee position upsert, permission ceiling, branch and membership synchronization.
+- [x] 1411 — Review direct-auth function 32: employee upsert, confirmed Auth identity binding, permission subset, membership revocation/sync.
+- [x] 1412 — Identify P2 branch-position mismatch: NULL employee branch can select a branch-specific position; open Issue #917.
+- [x] 1413 — Review direct-auth function 33 commission rule drafts; reconfirm RC467 source repair exists but is unapplied; update #884 already recorded.
+- [x] 1414 — Review platform custom-role assignment and validate role scope, active tenant, business/branch mapping and audit.
+- [x] 1415 — Review platform audit/business/people/custom-role/assignment list RPCs; confirm registry-only and bounded list outputs.
+- [x] 1416 — Review platform business update/deactivate/restore RPC; confirm registry gate, row lock and audit.
+- [x] 1417 — Aggregate all 9 `mnty_platform_admin_*` SECURITY DEFINER functions: all registry-backed, empty search_path, authenticated-executable.
+- [x] 1418 — Record evidence in `docs/audits/PASS_1410_1419_PLATFORM_ADMIN_AND_EMPLOYEE_SCOPE_REVIEW_20261120.md`.
+- [ ] 1419 — Continue full-body review of remaining 19 direct-auth SECURITY DEFINER functions; no full 65-function certification yet.
+
+Evidence: audit file; Issues #867, #884, #917; RC467 replay run 44239964551. No Production mutation.

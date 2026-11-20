@@ -2875,3 +2875,10 @@ Reviewed direct-auth SECURITY DEFINER functions 21–30. Captain ride listing is
 Three live Production defects remain source-fixed but unapplied: RC476 captain earnings uses removed ledger columns (#914); RC477 customer ride response exposes captain phone/plate before acceptance (#913); RC478 open-ride list lacks verified/available captain gate (#911). Source CI/replay passed, but Production ledger remains 310 rows through `20261110150618`, and these migration IDs are absent.
 
 Evidence: `docs/audits/PASS_1400_1409_MANTIGO_DATA_ACCESS_REVIEW_20261120.md`. Remaining direct-auth functions to review: 29.
+
+
+## Platform-admin and employee scope review — Pass 1410–1419 (2026-11-20)
+
+Reviewed direct-auth functions 31–40. All nine dedicated `mnty_platform_admin_*` SECURITY DEFINER functions are registry-backed, use empty search_path and are authenticated-executable. Employee position/employee upsert functions enforce permission ceilings, confirmed Auth identity binding and membership synchronization; however, employee upsert can pair a branch-specific position with a NULL-branch employee/membership when called by a business-wide manager. This is a P2 least-privilege/data-consistency gap tracked in #917; no cross-tenant breach was demonstrated. Commission rule drafts still use the old membership-derived platform gate live; RC467 source repair and replay test exist but remain unapplied (#884).
+
+Evidence: `docs/audits/PASS_1410_1419_PLATFORM_ADMIN_AND_EMPLOYEE_SCOPE_REVIEW_20261120.md`. Remaining direct-auth functions to review: 19.

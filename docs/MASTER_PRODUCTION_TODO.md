@@ -4505,3 +4505,14 @@ Evidence: `docs/audits/PASS_1390_1399_FIRST_20_DIRECT_AUTH_DEFINERS_20261120.md`
 - [ ] Keep Production blocked until coordinated migration/Edge, backup/restore, payment/privacy and post-deployment live checks pass.
 
 Evidence: `docs/audits/PASS_1400_1409_MANTIGO_DATA_ACCESS_REVIEW_20261120.md`.
+
+
+### Platform-admin and employee scope review — 2026-11-20
+
+- [x] Confirm all nine dedicated platform-admin SECURITY DEFINER RPCs use `private.platform_admins`, empty search_path and authenticated-only execution.
+- [x] Review employee permission ceiling, confirmed identity binding and membership synchronization.
+- [x] Track P2 employee/position branch mismatch in #917; add branch-position equality and negative/positive tests.
+- [ ] Continue full-body review of remaining 19 direct-auth SECURITY DEFINER functions.
+- [ ] Apply RC467 only in coordinated migration/Edge release; verify commission registry gate live after deployment.
+
+Evidence: `docs/audits/PASS_1410_1419_PLATFORM_ADMIN_AND_EMPLOYEE_SCOPE_REVIEW_20261120.md`.
