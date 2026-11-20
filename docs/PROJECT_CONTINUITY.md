@@ -2842,3 +2842,14 @@ The registry-backed repair already exists: RC464 replaces the helper with `priva
 Therefore the remaining issue is not missing code or tests: the source repair is merged and CI-green, but unapplied to Production. Do not create a duplicate migration or hot-apply RC464 alone. Keep Production blocked until coordinated migration/Edge, backup/restore, payment/privacy and release gates pass; then verify helper body, ACL, search_path, five policies and eight global callers live.
 
 Evidence: `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`; Issue #867.
+
+
+## Latest SECURITY DEFINER delegation checkpoint — Pass 1380–1389 (2026-11-20)
+
+Fresh catalog inventory: 65 authenticated-callable SECURITY DEFINER functions; 59 contain direct `auth.uid()`, six rely on delegated paths. All six were traced: intentional public targeted-ad discovery; employee listing to scoped HR list; RBAC `mnty_can` to auth-bound active membership; platform-admin helper to the known weak null-scope membership path (RC464 fixes source); commission preview to tenant-only finance helper (RC467 fixes source); catalog item/price composite to individually guarded scoped writers. `mnty_platform_has_permission` uses the protected registry for platform root and scoped staff/custom-role grants.
+
+Two additional live source-parity gaps were freshly reconfirmed:
+- MantiGO open-ride list still lets any authenticated user reach a result containing customer names and pickup/destination locations; live body lacks captain ACTIVE/VERIFIED/AVAILABLE and vehicle-category checks. RC478 source/tests are merged in PR #793 and CI-green, but RC446/RC478 are absent from the live ledger. P1 Issue #911 opened.
+- Commission draft/preview RPCs still use membership-derived platform roles, and the operational preview still uses tenant-only finance membership without business/branch binding. RC467 source/tests are merged and replay-green, but RC467 is absent from the live ledger. P1 Issue #884 updated.
+
+Exact evidence and limits are in `docs/audits/PASS_1380_1389_SECURITY_DEFINER_DELEGATION_AND_LIVE_DRIFT_20261120.md`. The 59 direct-auth functions still require full-body signature-by-signature review; do not claim the entire 65-function audit complete. Production remains BLOCKED / NOT CERTIFIED.
