@@ -4601,3 +4601,15 @@ Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`.
 - [ ] Add anonymous-vs-confirmed JWT tests for remaining high-risk payment/finance, medical/support, notification/push, digital-page, MantiGO financial and Storage object command paths. Existing non-anonymous contract tests do not close this gate.
 
 Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`.
+
+
+### SMM first-user bootstrap hardening — 2026-11-20
+
+- [x] Inspect live `auth.users` triggers and verify customer membership handler rejects anonymous users.
+- [x] Find SMM first-user bootstrap trigger that promotes `NEW.id` whenever `smm_admins` is empty, without checking anonymous status or a pre-authorized bootstrap identity.
+- [x] Verify current SMM admin table has one row (aggregate only), RLS enabled, no direct client SELECT grant; record that the trigger is dormant now but unsafe after an empty-table reset.
+- [x] Open P1 #933 and record source/live evidence.
+- [ ] Replace first-user-wins bootstrap with explicit trusted provisioning, reject anonymous users, pin empty search_path and schema-qualify objects.
+- [ ] Add disposable PostgreSQL tests and verify RC456 service-role boundary.
+
+Evidence: `docs/audits/PASS_1470_1479_SMM_FIRST_USER_BOOTSTRAP_REVIEW_20261120.md`.
