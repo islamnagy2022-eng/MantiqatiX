@@ -83,6 +83,8 @@ assert.match(source, /migrationChainBlocked\?"BLOCKED":"PASS"/, "missing migrati
 assert.match(source, /r=>\(r\.status==="FAIL"\|\|r\.status==="BLOCKED"\)&&r\.severity==="P0"/, "P0 FAIL or BLOCKED checks must set production_gate=BLOCKED");
 assert.match(source, /const nonProductionValidation=process\.env\.GITHUB_EVENT_NAME==="pull_request"\|\|\(process\.env\.GITHUB_EVENT_NAME==="push"&&process\.env\.GITHUB_REF!=="refs\/heads\/main"\);if\(results\.some\(r=>\(r\.status==="FAIL"\|\|r\.status==="BLOCKED"\)&&r\.severity==="P0"\)&&!nonProductionValidation\)process\.exitCode=1;/, "P0 gate blocks main/dispatch deployment while allowing PR and non-main branch validation");
 assert.ok(workflow.includes("node scripts/validate-production-migration-chain-gate.mjs"), "Pages validation must run the release-chain gate contract");
+assert.ok(forwardReplay.includes("node scripts/validate-rc486-catalog-price-version-serialization.mjs"), "forward replay must validate RC486 price serialization");
+assert.ok(forwardReplay.includes("supabase/tests/rc486_catalog_price_version_serialization_integration.sql"), "forward replay must run the RC486 post-migration contract");
 assert.match(source, /migrationTimestampOrderViolations/, "migration timestamp/order conflicts must be checked");
 assert.match(source, /const reconciliationPath="docs\/release\/production-migration-reconciliation\.json"/, "live reconciliation manifest must be read");
 assert.match(liveContract, /source_ledger_identity_reconciled\s*===\s*true/, "source/ledger identity must be reconciled");
@@ -122,6 +124,9 @@ assert.match(liveContract, /REQUIRED_EDGE_FUNCTIONS/, "the live parity contract 
 
 
 const forwardReplay = fs.readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
+const rc486Validator = fs.readFileSync("scripts/validate-rc486-catalog-price-version-serialization.mjs", "utf8");
+assert.match(rc486Validator, /pg_catalog\\.pg_advisory_xact_lock/);
+assert.match(rc486Validator, /lock must be acquired before reading MAX\\(version\\)/i);
 const forwardReplayLines = forwardReplay.split(/\r?\n/);
 assert.ok(
   forwardReplayLines.some((line, index) => line === "  push:" && forwardReplayLines[index + 1] === "    branches: [main]"),
