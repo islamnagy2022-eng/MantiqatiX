@@ -3628,3 +3628,6 @@ Evidence: audit file; Issue #928; Supabase Security Advisor and read-only catalo
 - [ ] 1489 — Keep Production blocked until coordinated migration/Edge/backup/restore approval and live post-deployment ACL/policy verification.
 
 Evidence: audit file; branch `fix/rc479-anonymous-auth-profile-boundary-tests-20261120`; Issue #928. No Production mutation.
+
+
+**Pass 1480 correction:** the live `Owners manage their marketing provider profile` ALL policy already blocks anonymous Auth DML and binds the owner to `auth.uid()`. The missing control is specifically a RESTRICTIVE FOR SELECT policy for `authenticated` requiring `is_anonymous=false`; preserve owner CRUD and the public confirmed-user read contract.
