@@ -3625,3 +3625,16 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Confirmed public `mantiqatix-profile-media` bucket has broad read policy and zero objects at the aggregate check.
 - Added audit `docs/audits/PASS_1470_1479_ANONYMOUS_POLICY_MATRIX_20261120.md`; updated P1 #928. No row values selected, no Production mutation.
 - Next: disposable anonymous-JWT/Storage tests for the remaining surfaces. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-20 — Pass 1480–1489 — RC479 anonymous Auth-session residual
+
+- Inspected the exact RC479 migration and integration test. The migration revokes raw anon SELECT; the test covers SET ROLE anon but not authenticated-role JWT with is_anonymous=true.
+- Fresh live grants/policy show authenticated still has SELECT and `Public can view active marketing providers` targets authenticated using status='ACTIVE'. This allows anonymous Auth sessions to read active provider-profile rows if anonymous sign-in is available.
+- Effective access includes all 19 columns, including owner_user_id/settings; no values selected. Live anonymous Auth user count is zero in reconciliation, but sign-in setting remains unverified.
+- Added a disposable PostgreSQL regression that reproduces the residual path, overlays a test-only restrictive anonymous guard, verifies anonymous denial and confirmed-authenticated read compatibility.
+- Added static validator and dedicated PostgreSQL 16 workflow; recorded audit. No actual migration created because Supabase CLI is not installed; RC479 remains unchanged.
+- Next: generate a forward-only migration in an authorized CLI workspace and test with owner CRUD, curated Edge projection, and chronological replay. Production remains BLOCKED / NOT CERTIFIED.
+
+
+- Refined the proposed correction after inspecting all live provider-profile policies: the existing owner ALL policy already rejects anonymous Auth sessions for INSERT/UPDATE/DELETE and binds auth.uid to owner_user_id. The new guard must be RESTRICTIVE FOR SELECT only; do not broaden it to DML.
