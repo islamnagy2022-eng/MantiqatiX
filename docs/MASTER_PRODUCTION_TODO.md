@@ -4560,3 +4560,14 @@ Evidence: `docs/audits/PASS_1440_1449_EDGE_AUTH_AND_ANONYMOUS_POLICY_REVIEW_2026
 - [ ] Apply RC484 only in coordinated release and verify 57 policies + registry helper live (#867).
 
 Evidence: `docs/audits/PASS_1450_1459_ANONYMOUS_POLICY_AND_RC484_PREFLIGHT_20261120.md`.
+
+
+### R7 archive security/source-integrity review — 2026-11-20
+
+- [x] Inspect the uploaded R7 archive and master technical directive; preserve canonical main/Supabase authority and Android assets.
+- [x] Identify R7 source risks: client-side localStorage role/session authority, fixture-password login and dashboard role switchers, browser-client service-role env fallback, hard-coded Gemini-key-shaped seed value, and dual local-JSON/Supabase authority.
+- [x] Classify uncertainty correctly: no proof that the service-role value reached a built bundle or that the Gemini-shaped value is a valid credential.
+- [x] Record R7 as reference-only; do not wholesale merge or import its 100%/VERIFIED release claims.
+- [ ] For each selected R7 UI/feature, map to current-main API/DB contracts and add isolated regression coverage before porting.
+
+Evidence: `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md`.

@@ -3580,3 +3580,19 @@ Evidence: audit file; Issues #867, #924. No Edge invocation or Production mutati
 - [ ] 1459 — Keep Production blocked until backup/restore, Vault, PG17 rollback, migration/Edge, payment/privacy and post-deploy gates pass.
 
 Evidence: audit file; Issues #867, #924. No Production mutation.
+
+
+## PASS 1460–1469 — R7 archive source-integrity and security review — 2026-11-20
+
+- [x] 1460 — Read the uploaded master technical directive and adopt its source-of-truth/continuous-execution rules.
+- [x] 1461 — Inspect R7 archive metadata, release manifest, package, TODO and release claims.
+- [x] 1462 — Inspect client authentication/session persistence; confirm localStorage-backed role state and client-side fixture authentication.
+- [x] 1463 — Inspect browser Supabase client key resolution; flag service-role environment fallback in client module source.
+- [x] 1464 — Inspect seed data and UI for fixed demo credentials/default admin password and hard-coded Gemini-key-shaped config.
+- [x] 1465 — Inspect server persistence and manifest architecture; confirm R7 declares local JSON authoritative alongside Supabase.
+- [x] 1466 — Compare R7 claims with actual inspected source and classify findings without assuming an unverified key is valid or exposed in a deployed bundle.
+- [x] 1467 — Record non-destructive adoption decision: R7 reference-only; no wholesale copy or production replacement.
+- [x] 1468 — Record audit evidence and update continuity/TODO/session log.
+- [ ] 1469 — For any R7 feature selected for adoption, map its UI/API/DB contracts to current main and add isolated regression tests before porting. Keep P0 auth and dual-authority patterns excluded.
+
+Evidence: `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md`; uploaded `bizcatalog-manager (11).zip` and `الامر-التقني.txt`. No production mutation or deployment.

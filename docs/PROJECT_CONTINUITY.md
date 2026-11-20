@@ -2918,3 +2918,14 @@ Security Advisor's 90 anonymous-policy warnings were reconciled against PostgreS
 RC484 exact preflight was verified across all schemas: 57 policies on 24 tables reference `is_platform_admin()` (56 public + one storage.objects). The storage policy exists in Production but is omitted from the captured replay checkpoint; its overlay fixture is test-only and must never be deployed. RC484's threshold is consistent with live Production.
 
 Evidence: `docs/audits/PASS_1450_1459_ANONYMOUS_POLICY_AND_RC484_PREFLIGHT_20261120.md`. P0 #867 and P1 #924 remain open.
+
+
+## R7 archive source-integrity checkpoint — Pass 1460–1469 (2026-11-20)
+
+Reviewed uploaded `bizcatalog-manager (11).zip` and its companion master directive. The directive explicitly keeps current GitHub main and live Supabase authoritative, prohibits localStorage as a trusted permission source, and says R6/R7 are reference inputs rather than replacements.
+
+R7 archive declares `Dual-Engine (Local Authoritative JSON + Supabase PostgreSQL)` and claims all 23 gates VERIFIED. Inspected code contradicts those claims in critical areas: React auth role is loaded from and persisted to localStorage; client login validates against seed fixtures and sets local role before the asynchronous API response is checked; dashboard role switchers expose fixed demo logins; seed data contains a default admin password, fixed demo credentials, and a Gemini API-key-shaped value; browser Supabase client source checks `process.env.SUPABASE_SERVICE_ROLE_KEY`; server persists `.data/production-live-db.json` while exposing separate Supabase pull/push synchronization. The service-role value was not proven to be in a built bundle, and the Gemini value was not proven valid. These are source risks, not proof of live credential compromise.
+
+Decision: R7 is reference-only and must not replace current main or be wholesale merged. Keep Supabase authoritative for identity, permissions and production data. Port UI/features/assets only after mapping each feature to current backend contracts and tests. Preserve Android files. No application data, Supabase schema/Auth/RLS/grants, Edge, payments or production deployment changed.
+
+Evidence: `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md`.
