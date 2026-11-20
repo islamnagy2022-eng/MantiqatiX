@@ -1,3 +1,12 @@
+## Continuation checkpoint — Pass 1265–1269 — 2026-11-20
+
+- Merged PR #893 after the MantiqatiX profile branding source test, TypeScript/build, primary catalog browser E2E, isolated employee RBAC PostgreSQL tests, and all related PR validation workflows passed. Merge commit: `472964f5f58f58f961f3619d06c9d6c3487f4853`.
+- The GitHub Pages PR validation workflow completed, but its deployment job was skipped by the production release gate. Do not describe the logo/cover fix as live yet.
+- Continued source inspection found two additional UI paths that still preferred stale saved media: homepage business cards/featured cover and Activity module directory cards. Started a follow-up source correction so all three public surfaces share one exact-name brand resolver.
+- No production data or Supabase state was changed.
+
+---
+
 ## Continuation checkpoint — Pass 1260–1264 — 2026-11-20
 
 - Diagnosed the MantiqatiX official activity profile branding issue from the live record and canonical frontend source: stored logo/cover metadata points to Facebook CDN URLs, while the first-party logo and cover assets already exist in the catalog frontend.
