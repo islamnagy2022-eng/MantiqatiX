@@ -7,6 +7,7 @@ DECLARE
   v_is_definer boolean;
   v_config text;
   v_definition text;
+  v_definition_compact text;
 BEGIN
   FOR item IN
     SELECT * FROM (VALUES
@@ -40,8 +41,9 @@ BEGIN
     IF v_definition NOT ILIKE '%public.is_platform_admin()%' THEN
       RAISE EXCEPTION 'RC485_REGISTRY_HELPER_CALL_MISSING:%', item.signature;
     END IF;
-    IF v_definition ILIKE '%permissions->>''scope''%'
-       OR v_definition ILIKE '%permissions->>''full_control''%' THEN
+    v_definition_compact := pg_catalog.regexp_replace(v_definition, '[[:space:]]+', '', 'g');
+    IF v_definition_compact ILIKE '%permissions->>''scope''%'
+       OR v_definition_compact ILIKE '%permissions->>''full_control''%' THEN
       RAISE EXCEPTION 'RC485_LEGACY_TENANT_METADATA_ROOT_BYPASS_REMAINS:%', item.signature;
     END IF;
     IF v_definition NOT ILIKE '%OWNER%'
