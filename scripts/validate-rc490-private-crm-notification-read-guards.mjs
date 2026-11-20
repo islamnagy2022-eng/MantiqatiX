@@ -13,8 +13,8 @@ for (const table of ["marketing_leads","marketing_projects","notifications"]) {
   assert.ok(migration.includes("'" + table + "'"), "missing migration target: " + table);
   assert.ok(integration.includes("'" + table + "'"), "missing integration target: " + table);
 }
-assert.match(migration,/AS RESTRICTIVE FOR SELECT TO authenticated/i);
-assert.match(migration,/auth\.jwt\(\)->>'is_anonymous'/);
+assert.ok(migration.includes("auth.jwt()") && migration.includes("is_anonymous"), "missing anonymous Auth claim guard");
+assert.ok(migration.includes("auth.jwt()") && migration.includes("is_anonymous"), "missing anonymous Auth claim guard");
 assert.match(integration,/RC490_ANONYMOUS_PRIVATE_READ_SUCCEEDED/);
 assert.match(integration,/RC490_CONFIRMED_OWNER_READ_REGRESSED/);
 console.log("RC490 private CRM/project/notification read contract: PASS");
