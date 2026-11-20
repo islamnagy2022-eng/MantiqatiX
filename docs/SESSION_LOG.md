@@ -3433,3 +3433,15 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - No Production database/migration/RLS/GRANT/Auth/Storage/Edge/payment/wallet/settlement/customer-data mutation or Production deployment occurred.
 - Production remains BLOCKED / NOT CERTIFIED pending operator-controlled encrypted backup/restore, Vault recovery, independent PG17 restore/rollback with measured RPO/RTO, migration reconciliation and coordinated Edge release.
 - Evidence: `docs/audits/PASS_1320_1329_DIRECTORY_CONTACT_CONSENT_PAGINATION_20261120.md`.
+
+
+## 2026-11-20 — Pass 1330–1339 — directory direct database boundary recheck
+
+- Confirmed Production project ACTIVE_HEALTHY, PostgreSQL 17.6.1.155.
+- Read PostgreSQL catalogs only: public.public_directory_listings is a base table; RLS and FORCE RLS enabled; no policies; anon/authenticated effective SELECT false; service_role SELECT true.
+- Confirmed public.directory_listing_contact_consents remains absent; RC473 is not applied.
+- Narrowed the exposure path: direct browser-role SELECT on the base table is denied, while the public directory-listings Edge Function remains the privacy-critical path because it uses service_role.
+- Identified a source feature gap: RC473 has no expires_at column or expiry behavior; current owner UI indicates consent remains active until withdrawal. Expiry is not implemented/tested and needs a separately defined policy, migration, UI and regression tests.
+- Added read-only evidence and the expiry gap to P0 Issue #876 comment 7043684354.
+- No row data, contact fields, user identifiers or customer records selected; no Production mutation or Edge invocation.
+- Evidence: `docs/audits/PASS_1330_1339_DIRECTORY_DB_BOUNDARY_RECHECK_20261120.md`. P0 remains BLOCKED / NOT CERTIFIED.
