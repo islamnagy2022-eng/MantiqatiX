@@ -211,11 +211,7 @@ async function main() {
   const manifestPath = fs.realpathSync.native(manifestInputPath);
   const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
   const root = fs.realpathSync.native(path.dirname(manifestPath));
-  const manifestInsideRepository = isInsideDirectory(manifestPath, REPOSITORY_ROOT);
-  if (process.env.BACKUP_GATE_DEBUG_PATHS === "1") {
-    console.error(`DEBUG_MANIFEST_INSIDE_REPOSITORY=${manifestInsideRepository}`);
-  }
-  requireCondition(!manifestInsideRepository,
+  requireCondition(!isInsideDirectory(manifestPath, REPOSITORY_ROOT),
     "backup manifest and encrypted artifacts must be stored outside the Git repository");
 
   noSensitiveFields(manifest);
@@ -263,11 +259,7 @@ async function main() {
   const rootPrefix = root.endsWith(path.sep) ? root : root + path.sep;
   requireCondition(!identityPath.startsWith(rootPrefix),
     "recovery identity must be stored separately from the backup artifact directory");
-  const identityInsideRepository = isInsideDirectory(identityPath, REPOSITORY_ROOT);
-  if (process.env.BACKUP_GATE_DEBUG_PATHS === "1") {
-    console.error(`DEBUG_IDENTITY_INSIDE_REPOSITORY=${identityInsideRepository}`);
-  }
-  requireCondition(!identityInsideRepository,
+  requireCondition(!isInsideDirectory(identityPath, REPOSITORY_ROOT),
     "recovery identity must be stored outside the Git repository");
   if (process.platform !== "win32") {
     requireCondition((identityStat.mode & 0o077) === 0,
