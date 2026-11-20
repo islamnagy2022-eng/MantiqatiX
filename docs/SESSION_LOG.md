@@ -3677,3 +3677,8 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 ## 2026-11-20 — Pass 1500–1510
 
 Corrected anonymous Auth security chain: RC488–RC492 now fail closed if `is_anonymous` is absent/NULL, and their PostgreSQL integration tests cover anonymous=true, missing claim, and confirmed-user behavior. Five static validators were strengthened. PR #948's disposable fixture now defines auth.uid() from JWT sub; CRM/project/notification tests cover missing claims. Its migration was re-versioned to unique RC493/20261120280000 to remove RC490 collision. Closed redundant PR #947 because its finance tables are already included in RC489's 15-table scope in PR #946. Updated PR #946 summary. Exact-head CI for #946/#948 was pending at last check; no merge or Production deployment. **Production remains BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-11-20 — Pass 1511–1515 — CI refresh
+
+PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable PostgreSQL integration, static validation, migration-version validation, cross-PR collision guard, migration-history immutability and forward-chain replay all passed. Overall 16 successful, 2 skipped (deploy/public-only), 0 failed, 12 queued at inspection. PR #946 exact head had 29 queued and 1 skipped, with no failures reported at inspection. No merge or Production deployment. Continue polling and reviewing remaining exact-head checks.
