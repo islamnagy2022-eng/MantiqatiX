@@ -3400,7 +3400,7 @@ Evidence: `docs/audits/PASS_1330_1339_DIRECTORY_DB_BOUNDARY_RECHECK_20261120.md`
 - [x] 1345 — Record owner policy: contact consent remains active until explicit owner withdrawal; no automatic expiry.
 - [x] 1346 — Record current parity evidence in P0 Issues #857 and #876.
 - [x] 1347 — Add audit evidence: `docs/audits/PASS_1340_1349_LIVE_EDGE_PARITY_CONSENT_POLICY_20261120.md`.
-- [ ] 1348 — Continue source-side contract review and exact migration/RPC reconciliation; do not deploy mismatched functions independently.
+- [x] 1348 — Reconcile the canonical 64 required migration identifiers against the live ledger (0/64 recorded) and refresh 74 physical object-presence checks (31 present, 43 absent); treat this as identity/physical drift, not proof every migration effect is absent.
 - [ ] 1349 — Keep Production blocked until encrypted off-site backup, Storage export, Vault recovery, independent PG17 restore/rollback, measured RPO/RTO, sandbox payment tests and coordinated Edge/database release pass.
 
 Evidence: audit file above; Issue #876 comment 7043793414; Issue #857 comment 7043920765. No Production mutation or deployment.
