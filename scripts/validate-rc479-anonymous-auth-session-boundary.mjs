@@ -41,6 +41,9 @@ assert.ok(!/FOR (ALL|INSERT|UPDATE|DELETE)/i.test(forwardMigration),
 assert.ok(fixture.includes(
   "GRANT SELECT ON TABLE public.marketing_provider_profiles TO anon, authenticated, service_role;"
 ), "fixture must model the pre-RC479 grants");
+assert.ok(fixture.includes('"Owners manage their marketing provider profile"')
+  && fixture.includes("auth.uid() = owner_user_id"),
+  "fixture must model the existing owner-scoped DML policy");
 assert.ok(rawAnonTest.includes("RC479_ANON_DIRECT_READ_SUCCEEDED"),
   "raw anon direct REST read denial must remain tested");
 assert.ok(baseline.includes('"role":"authenticated","is_anonymous":true')
@@ -48,6 +51,9 @@ assert.ok(baseline.includes('"role":"authenticated","is_anonymous":true')
   "test must reproduce anonymous Auth read before the forward migration");
 assert.ok(postMigration.includes("RC479_ANONYMOUS_AUTH_PRIVATE_PROFILE_READ_REMAINS")
   && postMigration.includes("RC479_CONFIRMED_AUTHENTICATED_PROFILE_READ_REGRESSED")
-  && postMigration.includes("RC479_FORWARD_RESTRICTIVE_SELECT_POLICY_MISSING"),
-  "post-migration tests must verify anonymous denial and confirmed-user compatibility");
+  && postMigration.includes("RC479_FORWARD_RESTRICTIVE_SELECT_POLICY_MISSING")
+  && postMigration.includes("RC479_OWNER_DML_REGRESSED")
+  && postMigration.includes("RC479_WRONG_OWNER_DML_SUCCEEDED")
+  && postMigration.includes("RC479_OWNER_POLICY_CHANGED_OR_MISSING"),
+  "post-migration tests must verify anonymous denial, confirmed-user compatibility, and owner DML boundaries");
 console.log("RC479 forward anonymous Auth-session migration contract: PASS");
