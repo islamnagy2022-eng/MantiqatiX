@@ -13,10 +13,13 @@ const test = fs.readFileSync(
 assert.match(migration, /DROP TRIGGER IF EXISTS trg_smm_bootstrap_admin ON auth\.users/i);
 assert.match(migration, /DROP FUNCTION IF EXISTS public\.smm_bootstrap_first_admin\(\)/i);
 assert.match(migration, /RC487_UNEXPECTED_SMM_BOOTSTRAP_TRIGGER_DEPENDENCY/);
+assert.match(migration, /REVOKE ALL ON TABLE public\\.smm_admins FROM PUBLIC, anon, authenticated, service_role/i);
+assert.match(migration, /GRANT SELECT ON TABLE public\\.smm_admins TO service_role/i);
 assert.doesNotMatch(migration, /\b(delete|truncate)\s+from\s+public\.smm_admins/i,
   "existing trusted SMM admin allowlist rows must be preserved");
 assert.match(test, /RC487_FIRST_USER_BOOTSTRAP_FUNCTION_STILL_EXISTS/);
 assert.match(test, /RC487_FIRST_USER_BOOTSTRAP_TRIGGER_STILL_EXISTS/);
 assert.match(test, /RC487_CLIENT_SMM_ADMIN_TABLE_PRIVILEGE_EXPOSURE/);
 assert.match(test, /RC487_SERVICE_ROLE_MUST_NOT_MUTATE_SMM_ADMIN_ALLOWLIST/);
+assert.match(test, /RC487_SERVICE_ROLE_ALLOWLIST_READ_MISSING/);
 console.log("RC487 source contract: PASS (removes signup privilege bootstrap, preserves allowlist, retains backend-only ACL)");
