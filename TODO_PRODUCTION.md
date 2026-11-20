@@ -1,3 +1,15 @@
+## Continuation checkpoint — PR #889 exact-head verification — 2026-11-20
+
+- Reviewed open PR #889, `test(security): cover RC484 RLS command matrix`, head `7c22d4f2b9019de9436ce6cf5c99ad769ce2ef78`. PR remains OPEN and unmerged; GitHub reports mergeable, but its branch is diverged from current main: 18 commits ahead, 1 behind. Do not force-update/rebase the branch without preserving and revalidating all PR commits.
+- Latest-head CI recheck: Platform Admin RLS Helper Registry Hardening **PASS**; MantiGO Open Ride Privacy Boundary **PASS**; RC425 MantiGO Paymob Atomicity **PASS**; Backend-only Module Boundary **PASS** (financial-journal RC450 integration, validate, approval-action audit PostgreSQL).
+- Deploy MantiqatiX Web validation is still in progress. Completed steps include catalog build/type-check, canonical V6 Preview build, public-bundle privacy checks, professional dashboard/subscriber portal contracts, permissions, geo-discovery, OAuth and live public-catalog smoke checks. Browser validation remains pending: install pinned Playwright, desktop/mobile V6 Preview test, screenshot acceptance, then composed-site upload/deploy steps.
+- Module Professionalization Validation was still queued at recheck; its nine jobs had not started. Do not report the complete PR check suite green.
+- Current `TODO_PRODUCTION.md` main checkpoint still records release **BLOCKED / NOT CERTIFIED**: 0/64 exact required migration identifiers in the live ledger, 4/11 critical Edge functions exact source matches, seven critical mismatches, directory contact-consent privacy unresolved, RC484 not applied to Production, and no real encrypted off-site backup/restore or measured RPO/RTO evidence.
+- No Production DB/Auth/RLS/GRANT/Edge/payment/customer-data mutation was performed during this checkpoint. No PR merge or deployment completion is claimed.
+
+**Next actions:** finish the in-progress web validation and all queued professionalization checks; inspect exact-head conclusions; safely reconcile the single-commit main divergence without losing PR commits; merge only after all required checks pass. Then continue the coordinated release prerequisites: encrypted off-site DB + Storage backup, Vault recovery, isolated PostgreSQL 17 restore and rollback/RPO/RTO evidence, ordered migration reconciliation, coordinated Edge release, payment sandbox and privacy/authorization negative tests.
+ 
+---
 ## Latest verified checkpoint — Pass 1220–1229 — 2026-11-20
 
 - Main: `57862b714c0b049419204b6143b966c149682906`; PR #875 merged the read-only encrypted-backup manifest/evidence verifier. Exact-head CI: **12/12 PASS**. This does not create off-site backups or perform restore rehearsal.
