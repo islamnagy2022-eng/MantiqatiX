@@ -4549,3 +4549,14 @@ Evidence: `docs/audits/PASS_1430_1439_FINAL_SECURITY_DEFINER_REVIEW_20261120.md`
 - [ ] Keep Production blocked until all release gates pass.
 
 Evidence: `docs/audits/PASS_1440_1449_EDGE_AUTH_AND_ANONYMOUS_POLICY_REVIEW_20261120.md`.
+
+
+### Anonymous-policy reconciliation and RC484 preflight — 2026-11-20
+
+- [x] Reconcile 90 Advisor warnings against policy predicates and effective grants; focused review finds no direct anon SELECT/INSERT on high-risk tables inspected.
+- [x] Verify RC484 full-schema preflight exactly matches 57 policies across 24 tables including one storage.objects policy; overlay is test-only.
+- [ ] Finish all remaining anonymous-policy/multiple-permissive policy review.
+- [ ] Enable leaked-password protection if supported by plan (#924).
+- [ ] Apply RC484 only in coordinated release and verify 57 policies + registry helper live (#867).
+
+Evidence: `docs/audits/PASS_1450_1459_ANONYMOUS_POLICY_AND_RC484_PREFLIGHT_20261120.md`.
