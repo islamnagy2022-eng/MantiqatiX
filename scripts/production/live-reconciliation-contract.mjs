@@ -39,6 +39,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261119040000", // RC484 — registry-backed global is_platform_admin for 57 RLS policies
   "20261120200000", // RC485 — bind seven catalog RPC global-root paths to the platform registry
   "20261120210000", // RC486 — serialize item/branch price versions and enforce uniqueness
+  "20261120220000", // RC487 — remove public first-Auth-user SMM admin bootstrap
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
