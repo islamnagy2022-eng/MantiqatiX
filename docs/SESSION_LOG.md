@@ -3445,3 +3445,16 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Added read-only evidence and the expiry gap to P0 Issue #876 comment 7043684354.
 - No row data, contact fields, user identifiers or customer records selected; no Production mutation or Edge invocation.
 - Evidence: `docs/audits/PASS_1330_1339_DIRECTORY_DB_BOUNDARY_RECHECK_20261120.md`. P0 remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-20 — Pass 1340–1349 — live Edge parity and contact-consent policy
+
+- Fresh read-only Supabase inventory: ACTIVE_HEALTHY, PostgreSQL 17.6.1.155, 310 migration ledger entries through `20261110150618`, 42 active Edge Functions.
+- Compared deployed entrypoint source with GitHub main for seven critical functions; all seven deployed `index.ts` files differ from current source.
+- Deployed `directory-listings` v16 contains only index.ts, pagination-filter.mjs and doctor-import-contract.mjs; current main additionally requires public-directory-output-contract.mjs, consent-pagination.mjs and contact-consent-pagination.mjs.
+- Production `directory_listing_contact_consents` table remains absent. Direct browser-role access to the base directory table is denied, but the service-role Edge response remains the privacy boundary.
+- Owner confirmed consent remains active until explicit withdrawal; no automatic expiry will be implemented. Decision added to Issue #876 comment 7043793414.
+- Added exact Edge parity evidence to Issue #857 comment 7043920765.
+- No Production rows/personal data selected and no Production mutation/deployment performed.
+- Production remains BLOCKED / NOT CERTIFIED pending encrypted off-site DB+Storage backup, Vault recovery, isolated PG17 restore/rollback with measured RPO/RTO, migration/RPC reconciliation, coordinated Edge release, and sandbox payment/privacy/authorization E2E.
+- Evidence: `docs/audits/PASS_1340_1349_LIVE_EDGE_PARITY_CONSENT_POLICY_20261120.md`.
