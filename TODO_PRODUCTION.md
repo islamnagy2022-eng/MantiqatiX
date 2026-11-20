@@ -3445,10 +3445,11 @@ Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.m
 - [x] 1372 — Trace the helper through `mnty_can()` and `mnty_active_membership()`; confirm tenant OWNER/ADMIN role mapping can satisfy the global `admin` permission without the protected platform-admin registry.
 - [x] 1373 — Verify helper and caller EXECUTE privileges for authenticated; anon cannot execute the helper.
 - [x] 1374 — Identify four authenticated-callable SECURITY DEFINER callers: global ad creation, digital-page fulfillment, MantiGO captain review, and MantiGO financial configuration.
-- [x] 1375 — Inspect exact RC484 migration `20261119040000_rc484_registry_backed_is_platform_admin.sql`; confirm it updates `is_platform_admin()` only and does not reference `mnty_can_platform_admin()`.
-- [x] 1376 — Add the additional live finding and four callers to P0 Issue #867 (comment 7045989396).
-- [x] 1377 — Record evidence in `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`.
-- [ ] 1378 — Implement registry-backed helper correction and disposable PostgreSQL adversarial tests for tenant OWNER/ADMIN denial and registry-only platform-admin success.
+- [x] 1375 — Trace existing RC464/RC471 source repairs and R7 tests: RC464 already makes `mnty_can_platform_admin()` registry-backed; RC471 hardens its dependent callers; both remain unapplied in Production.
+- [x] 1376 — Confirm RC464 is present in the required release migration chain and inspect the RC464/R7 validators and PostgreSQL fixtures.
+- [x] 1377 — Update the fresh audit, continuity, and issue #867 to distinguish the existing source repair from the live Production deployment gap.
+- [x] 1378 — Reuse existing RC464/RC471 forward migrations and R7 adversarial tests; do not create a duplicate migration. Confirm CI and live reconciliation before release.
+- [ ] 1379 — Keep Production blocked until the coordinated migration/Edge release, backup/restore, payment, and post-deployment authorization verification gates pass.
 - [ ] 1379 — Keep Production blocked until both global-admin helpers, all dependent policies/callers, migration/Edge parity, backup/restore, and payment gates pass. No hot edit or blanket REVOKE.
 
 Evidence: audit file above; Issue #867 comment 7045989396. Read-only catalog/privilege inspection only; no function invocation or Production mutation.
