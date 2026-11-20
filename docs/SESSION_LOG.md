@@ -3377,3 +3377,15 @@ Evidence: Issue #422 comment 7018060567 and live Security Advisor/pg_policies/AC
 - Production mutation: NONE. No DDL/DML, migration, RLS, GRANT, Auth, Storage, Edge, payment, wallet, settlement or user-data write. Full platform remains BLOCKED / NOT CERTIFIED.
 
 **Next:** operator-owned off-site encrypted DB/Storage backup, Vault recovery and independent PostgreSQL 17 restore/rollback with measured RPO/RTO; then one ordered schema/Edge release, sandbox tests and live verification.
+
+## 2026-11-20 — Pass 1230–1239 — shared platform-root helper and Advisor recheck
+
+- Reconfirmed the distinct live `public.mnty_can_platform_admin()` gap: SECURITY DEFINER, `search_path=public, pg_temp`, and null-scope delegation to `public.mnty_can('admin',NULL,NULL,NULL)`; it is not directly backed by `private.platform_admins`.
+- Live blast radius: 5 RLS policies across 3 tables and 4 direct SECURITY DEFINER callers. Four global MantiGO admin/report/settlement/expiration RPCs remain a separate RC471 source/Production mismatch. Issue #852 remains open.
+- Fresh Security Advisor snapshot (2026-11-20 00:08:56 UTC): 94 entries (1 INFO, 93 WARN): 9 RLS/no-policy, 1 anon-executable SECURITY DEFINER, 65 authenticated-executable SECURITY DEFINER, 90 anonymous-role policy lints, leaked-password protection disabled. These are per-object review findings, not proof of 90 exploitable exposures.
+- Fresh Performance Advisor: 132 unindexed foreign keys, 375 RLS initplan, 70 unused-index, 28 multiple-permissive-policy findings. Record as optimization backlog; no production index/policy mutation.
+- A separate current catalog query found 21 policies across 21 tables with anon/public role entries. No blanket revocation performed.
+- Supplemented `docs/audits/PASS_1220_1229_EDGE_PAYMENT_PRODUCTION_PARITY_20261120.md` and the release manifest with helper/caller/policy and Advisor evidence.
+- Earlier duplicate documentation PR #880 was closed as superseded by main commit `1ccee7920d9e798e4c709e8cb403b4bf605ade5f`, which already contained the main Pass 1220–1229 parity checkpoint.
+- No Production SQL writes, migrations, helper/RPC invocation, Auth/RLS/GRANT/Storage/Edge changes, payment, wallet, settlement or journal operation occurred. Full platform remains **BLOCKED / NOT CERTIFIED**.
+
