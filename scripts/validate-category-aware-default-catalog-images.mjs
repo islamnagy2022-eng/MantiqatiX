@@ -86,17 +86,16 @@ assert.ok(catalogSection.includes('import { resolveDefaultImage }'), 'storefront
 assert.ok(catalogSection.includes('image.src = resolveDefaultImage({'), 'broken storefront product images must fall back by category');
 
 const directoryListings = read('apps/catalog-frontend/src/components/DirectoryListingsView.tsx');
-assert.ok(directoryListings.includes("import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from \"../utils/defaultImages\";"),
-  'standalone directory pages must use the shared category-aware image resolver');
+assert.ok(directoryListings.includes('import { resolveDefaultImage } from "../utils/defaultImages";'),
+  'standalone directory pages must use the shared category-aware image resolver without remote unverified stock images');
 assert.ok(directoryListings.includes('listingDefaultProfileImage') && directoryListings.includes("kind: \"activity\""),
   'every directory listing must receive a local category-aware profile image when no owner image exists');
 assert.ok(directoryListings.includes('listingDefaultCoverImage') && directoryListings.includes("kind: \"cover\""),
   'every directory listing must receive a wide category-aware cover when no owner cover exists');
-assert.ok(directoryListings.includes('listing.claim_status !== "CLAIMED" && listingType === "doctor"') &&
-  directoryListings.includes('return UNVERIFIED_DOCTOR_IMAGE_URL') &&
-  directoryListings.includes('listing.claim_status !== "CLAIMED" && listingType === "pharmacy"') &&
-  directoryListings.includes('return UNVERIFIED_PHARMACY_IMAGE_URL'),
-  'existing doctor and pharmacy fallbacks must remain limited to unclaimed listings');
+assert.ok(directoryListings.includes('return listingCategoryProfileImage(listing);') &&
+  directoryListings.includes('return listingCategoryCoverImage(listing);') &&
+  directoryListings.includes('Verification/claim status is a trust state, not an image category.'),
+  'verified and unverified listings must share category-specific local image defaults');
 assert.ok(directoryListings.includes('listing.metadata?.logoUrl') && directoryListings.includes('listing.metadata?.profileImageUrl'),
   'valid owner-provided profile/logo imagery must retain precedence over defaults');
 assert.ok(directoryListings.includes('listing.metadata?.coverUrl') && directoryListings.includes('listing.metadata?.cover_url'),
@@ -111,7 +110,11 @@ assert.ok(directoryListings.includes('function listingCategoryProfileImage') &&
   directoryListings.includes('function listingCategoryCoverImage'),
   'broken external specialist photos must fall back to local category assets instead of retrying the same URL');
 assert.ok(directoryListings.includes('listing.functional_group_id') && directoryListings.includes('listing.taxonomy_category_id'),
-  'directory image selection must use canonical category context rather than only doctor/pharmacy type');
+  'directory image selection must use canonical category context rather than verification status');
+assert.ok(production.includes('logoUrl: logoNeedsDefault ? categoryDefaultLogo : savedLogo') &&
+  production.includes('coverUrl: coverNeedsDefault ? categoryDefaultCover : savedCover') &&
+  !production.includes('UNVERIFIED_DOCTOR_IMAGE_URL') && !production.includes('UNVERIFIED_PHARMACY_IMAGE_URL'),
+  'public business mapping must use category-specific defaults consistently for verified and unverified activities');
 
 console.log('CATEGORY_AWARE_DEFAULT_CATALOG_IMAGES=PASS');
 console.log('DEFAULT_ACTIVITY_ASSETS=' + new Set(referencedAssets).size);
