@@ -2973,3 +2973,12 @@ Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`; P
 - Recorded complete table/command/role/grant matrix in `docs/audits/PASS_1470_1479_ANONYMOUS_POLICY_MATRIX_20261120.md`; updated P1 #928. No application rows or provider profile values selected; no Production mutation.
 - Remaining: disposable anonymous-JWT tests for all 40 no-guard and 51 multi-permissive relations; leaked-password protection (#924); coordinated RC479/RC480/RC464/RC471/RC484 and full Edge release after actual encrypted backup/restore and rollback.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Latest privacy finding — RC479 anonymous Auth-session residual — 2026-11-20
+
+A source/live contract review found RC479 is incomplete for anonymous Auth sessions. RC479 revokes SELECT from raw database role `anon`, but the live `authenticated` role still has SELECT and the policy `Public can view active marketing providers` targets both `anon` and `authenticated` with only `status='ACTIVE'`. Anonymous Auth JWTs use role `authenticated`; if anonymous sign-in is available, those sessions can still read active profile rows and all granted columns, including `owner_user_id` and `settings`. No profile values were selected and no live anonymous token was used. The reconciliation shows zero existing anonymous Auth users, but Auth sign-in configuration remains unverified.
+
+Added a disposable PostgreSQL contract that reproduces the residual read after RC479, applies a test-only restrictive `is_anonymous=false` policy, verifies anonymous Auth is denied, and preserves confirmed authenticated reads. Added a static validator and dedicated GitHub Actions workflow. This is a test-only overlay, not a production migration. RC479 remains immutable. Actual forward migration requires Supabase CLI in an authorized development environment; no migration version was invented.
+
+Evidence: `docs/audits/PASS_1480_1489_RC479_ANONYMOUS_AUTH_SESSION_GAP_20261120.md`; P1 #928. Production remains BLOCKED / NOT CERTIFIED.
