@@ -3571,3 +3571,14 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Verified RC484 preflight across all schemas: 57 is_platform_admin policies across 24 tables (56 public + one storage.objects). Storage overlay is test-only; never apply to Production.
 - Remaining: complete all warning/policy interactions, leaked-password protection #924, coordinated RC484 rollout and live post-check.
 - No data rows or sensitive values selected; no Production mutation.
+
+
+## 2026-11-20 — Pass 1460–1469 — R7 archive security/source-integrity review
+
+- Read the uploaded master technical directive and reviewed the new R7 archive (270 entries; ~46.06 MB uncompressed).
+- Inspected package/release manifest, TODO/security reports, client Supabase setup, AppContext authentication/session logic, seed fixtures, dashboard role switcher, server local JSON persistence and sync routes.
+- Found localStorage-backed role/session authority; fixture-based client login and fixed demo credentials; browser-client source fallback to SUPABASE_SERVICE_ROLE_KEY; hard-coded Gemini-key-shaped seed config; and a declared local-JSON-authoritative dual-engine design.
+- Did not claim that the service-role secret is in a deployed bundle or that the Gemini-shaped string is valid. No dependencies installed; no build/test/browser execution performed.
+- Decision: R7 is reference-only; no wholesale merge. Preserve current main, Supabase authority and Android assets. Port features selectively after backend-contract mapping and isolated tests.
+- No production data/schema/Auth/RLS/grant/Edge/payment/deployment mutation.
+- Evidence: `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md`.
