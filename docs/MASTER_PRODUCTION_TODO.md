@@ -4461,3 +4461,14 @@ Evidence: `docs/audits/PASS_1350_1359_SECURITY_DEFINER_RLS_GRANTS_REVIEW_2026112
 - [ ] Pass chronological replay and full Production backup/restore gates before release.
 
 Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.md`.
+
+
+### Platform-admin authorization live release recheck — 2026-11-20
+
+- [x] Confirm live helper remains membership-derived; authenticated can execute; anon cannot; five RLS policies depend on it.
+- [x] Confirm live migration ledger 310 rows through `20261110150618`; RC464/RC471/RC484 absent.
+- [x] Confirm existing RC464/RC471 registry-backed source repair is merged in PR #742 and relevant PostgreSQL, R7, migration replay, uniqueness, collision and history CI passed.
+- [ ] Complete coordinated migration/Edge release only after full migration parity, backup/restore, payment/privacy E2E and rollback gates pass.
+- [ ] Post-deploy verify helper body/owner/search_path/ACL, all five policies, all eight global callers and adversarial tenant-role denial.
+
+Evidence: `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`; Issue #867.
