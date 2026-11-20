@@ -102,6 +102,19 @@ BEGIN
   IF NOT denied THEN RAISE EXCEPTION 'RC488_ANONYMOUS_PLATFORM_BRAND_INSERT_SUCCEEDED'; END IF;
 END;
 $anonymous_write$;
+
+-- Missing identity classification must not authorize Storage writes.
+SELECT pg_catalog.set_config('request.jwt.claims',
+  '{"sub":"48800000-0000-4000-8000-000000000001","role":"authenticated"}',true);
+DO $missing_claim_write$
+DECLARE n integer;
+BEGIN
+  UPDATE storage.objects SET metadata=jsonb_set(metadata,'{rc488_missing_claim}','true'::jsonb,true)
+  WHERE id='48800000-0000-4000-8000-000000000101';
+  GET DIAGNOSTICS n=ROW_COUNT;
+  IF n <> 0 THEN RAISE EXCEPTION 'RC488_MISSING_ANONYMOUS_CLAIM_WRITE_SUCCEEDED:%',n; END IF;
+END;
+$missing_claim_write$;
 RESET ROLE;
 
 -- A confirmed owner retains the intended profile-media update and delete flow.
