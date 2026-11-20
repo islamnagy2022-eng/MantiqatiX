@@ -199,7 +199,7 @@ test("backup manifest and encrypted artifacts cannot be stored in the repository
     encoding:"utf8",
     env:{...process.env,AGE_IDENTITY_FILE:outside.identity}
   });
-  assert.notEqual(r.status,0);
+  assert.notEqual(r.status,0,r.stdout+r.stderr);
   assert.match(r.stderr,/stored outside the Git repository/);
 });
 
@@ -207,6 +207,10 @@ test("backup manifest and encrypted artifacts cannot be stored in the repository
 test("repository backup restriction cannot be bypassed through a symlinked manifest directory",t=>{
   const f=fixture(t);
   const repositoryTarget=fs.mkdtempSync(path.join(process.cwd(),"backup-gate-symlink-target-"));
+  const expectedRepositoryRoot=fs.realpathSync.native(path.resolve(path.dirname(script),"../.."));
+  const realRepositoryTarget=fs.realpathSync.native(repositoryTarget);
+  assert.ok(realRepositoryTarget.startsWith(expectedRepositoryRoot+path.sep),
+    "symlink target fixture must resolve inside the repository root");
   const symlinkParent=fs.mkdtempSync(path.join(os.tmpdir(),"mnty-backup-symlink-parent-"));
   const alias=path.join(symlinkParent,"linked-backup");
   t.after(()=>{
@@ -234,6 +238,10 @@ test("repository backup restriction cannot be bypassed through a symlinked manif
 test("recovery identity cannot be hidden inside the repository through a symlinked parent",t=>{
   const f=fixture(t);
   const repositoryKeyDir=fs.mkdtempSync(path.join(process.cwd(),"backup-gate-key-symlink-target-"));
+  const expectedRepositoryRoot=fs.realpathSync.native(path.resolve(path.dirname(script),"../.."));
+  const realRepositoryKeyDir=fs.realpathSync.native(repositoryKeyDir);
+  assert.ok(realRepositoryKeyDir.startsWith(expectedRepositoryRoot+path.sep),
+    "symlink target fixture must resolve inside the repository root");
   const symlinkParent=fs.mkdtempSync(path.join(os.tmpdir(),"mnty-key-symlink-parent-"));
   const alias=path.join(symlinkParent,"linked-key");
   t.after(()=>{
