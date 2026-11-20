@@ -1,3 +1,14 @@
+## Latest execution checkpoint — Pass 1295–1299 — 2026-11-20 (RC473 endpoint adversarial tests)
+
+- PR #897 merged as `e5d5aa42152bdd41b49e2e0419122e831bc7301b`. Added endpoint source-contract assertions for auth ordering, invalid scopes/types, listing eligibility, owner/business authorization binding, actor spoofing, idempotency/race handling and revocation attribution.
+- Dedicated Directory Contact Consent workflow completed successfully: source contract, Deno check, frontend lint/build, isolated PostgreSQL fixture and audit assertions passed.
+- This is source/CI hardening only. Live production Edge Function v16 and missing RC473 table/migration remain unresolved; no Production mutation occurred.
+- Evidence: https://github.com/islamnagy2022-eng/MantiqatiX/pull/897 and https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/44683168406.
+
+**Next:** check post-merge workflows and maintain the coordinated backup/restore + RC472/RC473 release gate.
+
+---
+
 ## Latest execution checkpoint — Pass 1285–1294 — 2026-11-20 (directory consent live-boundary recheck)
 
 - Read-only live Supabase check: `directory-listings` ACTIVE v16, `verify_jwt=false`, only three deployed files; no consent sanitizer, consent pagination dependency or registry lookup. `directory_listing_contact_consents` table and RC473 ledger version `20261118020000` are absent.
