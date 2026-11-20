@@ -10,5 +10,7 @@ assert.match(migration,/CREATE\s+POLICY\s+mnty_confirmed_auth_medical_read[\s\S]
 assert.match(migration,/relrowsecurity AND c\.relforcerowsecurity/);
 assert.match(test,/RC490_ANONYMOUS_MEDICAL_APPOINTMENT_READ_SUCCEEDED/);
 assert.match(test,/RC490_CONFIRMED_MEDICAL_READ_REGRESSED/);
+assert.ok(migration.includes("(SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE"), "medical guard must fail closed on missing claim");
+assert.match(test,/RC490_MISSING_ANONYMOUS_CLAIM_READ_SUCCEEDED/);
 assert.match(test,/ROLLBACK;/);
 console.log("RC490 medical anonymous Auth read isolation contract: PASS");
