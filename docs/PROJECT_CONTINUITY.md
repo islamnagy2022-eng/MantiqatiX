@@ -2831,3 +2831,16 @@ The canonical Production object inventory reports all nine RC117 image contracts
 The execution container has Node.js but no Supabase CLI binary; no migration file was invented. The forward migration must be generated in an authorized environment using Supabase CLI, then tested with disposable PostgreSQL replay. Production remains BLOCKED / NOT CERTIFIED.
 
 Evidence: `docs/audits/PASS_1360_1369_RC117_IMAGE_PRESERVATION_REVIEW_20261120.md`; Issue #906.
+
+
+## Latest authorization checkpoint — Pass 1370–1379 — platform-admin helper review (2026-11-20)
+
+A read-only review of the 65 authenticated-callable SECURITY DEFINER functions found a second global authorization issue beyond the existing RC484 `public.is_platform_admin()` issue. Live `public.mnty_can_platform_admin()` delegates to `public.mnty_can('admin',NULL,NULL,NULL)`; the underlying role map grants `admin` to tenant OWNER and ADMIN roles from unscoped active memberships. The helper is SECURITY DEFINER, uses `search_path=public, pg_temp`, and is executable by authenticated.
+
+Four authenticated-callable SECURITY DEFINER functions call it: `admin_create_global_ad`, `fulfill_digital_page_publish`, `review_mantigo_captain_application`, and `set_mantigo_financial_config_backend`. The digital-page fulfillment function has additional payment, page-owner, page-type and business-scope checks; these must remain intact. This is a confirmed overbroad authorization predicate, not proof that a user exploited it or accessed data.
+
+The exact RC484 source migration `20261119040000_rc484_registry_backed_is_platform_admin.sql` contains no reference to `mnty_can_platform_admin()`; its source/replay coverage for `is_platform_admin()` must not be treated as proof that this second helper is fixed. The additional finding and exact callers were added to P0 Issue #867 (comment 7045989396). Required work: registry-backed platform-root predicate, caller-by-caller review, tenant-local role preservation, and disposable PostgreSQL adversarial tests.
+
+No application rows were queried, no function was invoked, and no Production mutation/deployment occurred. Production remains BLOCKED / NOT CERTIFIED.
+
+Evidence: `docs/audits/PASS_1370_1379_PLATFORM_ADMIN_HELPER_REVIEW_20261120.md`; Issue #867.
