@@ -44,10 +44,9 @@ RESET ROLE;
 CREATE POLICY rc479_test_only_anonymous_auth_session_deny
 ON public.marketing_provider_profiles
 AS RESTRICTIVE
-FOR ALL
+FOR SELECT
 TO authenticated
-USING (coalesce((auth.jwt()->>'is_anonymous')::boolean, false) = false)
-WITH CHECK (coalesce((auth.jwt()->>'is_anonymous')::boolean, false) = false);
+USING (coalesce((auth.jwt()->>'is_anonymous')::boolean, false) = false);
 
 -- Anonymous Auth sessions must no longer see owner_user_id/settings or any rows.
 SET ROLE authenticated;
