@@ -3393,3 +3393,16 @@ Evidence: Issue #422 comment 7018060567 and live Security Advisor/pg_policies/AC
 - [x] 1199 — Full platform remains BLOCKED / NOT CERTIFIED pending 64-version live reconciliation, encrypted off-site backup, Storage/Vault recovery, independent restore/rollback, Edge parity and approved release.
 
 Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC484 workflow run #16, forward replay run #2391, migration uniqueness/history/collision runs, and read-only Production catalog queries.
+
+
+## 2026-11-20 — Pass 1300–1309 — post-merge and live Production recheck
+
+- Re-read the latest current-main commit and verified PR #897 merge evidence.
+- Fetched exact workflow run 44683168406 jobs: `source-contract` and `consent-postgres` both completed successfully.
+- Recomputed uploaded archive SHA-256 and ran `unzip -t`: integrity PASS; archive remains R7 reference-only. Recomputed the uploaded master directive hash.
+- Executed read-only Production SQL: 310 migration rows through `20261110150618`; public/private directory consent tables absent; generic platform-admin helper remains tenant-role-derived, SECURITY INVOKER, `search_path=public`; registry FORCE RLS false; 56 public + 1 storage dependent policies.
+- Refreshed Security Advisor at 2026-11-20 15:07:54Z: 9 RLS-enabled/no-policy INFO, 1 anon SECURITY DEFINER WARN, 65 authenticated SECURITY DEFINER WARN, leaked-password protection disabled WARN.
+- No Production mutation, Edge deployment, Auth/RLS/GRANT change, financial action or customer-row access occurred.
+- Full platform remains BLOCKED / NOT CERTIFIED. The next hard dependency is operator-owned encrypted DB + Storage backup, Vault recovery and isolated PostgreSQL 17 restore/rollback with measured RPO/RTO.
+- Evidence: `docs/audits/PASS_1300_1309_POST_MERGE_PRODUCTION_RECHECK_20261120.md`.
+
