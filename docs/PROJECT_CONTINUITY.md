@@ -2839,7 +2839,7 @@ A read-only review of the 65 authenticated-callable SECURITY DEFINER functions f
 
 Four authenticated-callable SECURITY DEFINER functions call it: `admin_create_global_ad`, `fulfill_digital_page_publish`, `review_mantigo_captain_application`, and `set_mantigo_financial_config_backend`. The digital-page fulfillment function has additional payment, page-owner, page-type and business-scope checks; these must remain intact. This is a confirmed overbroad authorization predicate, not proof that a user exploited it or accessed data.
 
-The additional finding and exact callers were added to P0 Issue #867 (comment 7045989396). RC484's existing source/replay coverage for `is_platform_admin()` must not be treated as proof that `mnty_can_platform_admin()` is fixed. Required work: registry-backed platform-root predicate, caller-by-caller review, tenant-local role preservation, and disposable PostgreSQL adversarial tests.
+The additional finding and exact callers were added to P0 Issue #867 (comment 7045989396). The exact RC484 source migration `20261119040000_rc484_registry_backed_is_platform_admin.sql` contains no reference to `mnty_can_platform_admin()`; its source/replay coverage for `is_platform_admin()` must not be treated as proof that this second helper is fixed. Required work: registry-backed platform-root predicate, caller-by-caller review, tenant-local role preservation, and disposable PostgreSQL adversarial tests.
 
 No application rows were queried, no function was invoked, and no Production mutation/deployment occurred. Production remains BLOCKED / NOT CERTIFIED.
 
