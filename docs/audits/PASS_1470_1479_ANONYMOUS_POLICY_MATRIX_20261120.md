@@ -50,6 +50,7 @@ High-priority families:
 - **Medical/support/customer communication:** `medical_appointments`, `notifications`, `support_tickets`, `ticket_messages`.
 - **MantiGO and provider/customer flows:** `indrive_bids`, `indrive_requests`, `mantigo_captain_profiles`, `marketing_leads`, `marketing_projects`, `marketing_provider_profiles`, `push_subscriptions`.
 - **Digital pages and SMM:** `digital_page_orders`, `digital_page_products`, `digital_page_sections`, `digital_pages`, `smm_order_events`, `smm_orders`, `smm_wallet_transactions`, `smm_wallets`, `subscription_payment_intents`.
+- **Public/storage surfaces:** `objects` (Storage), `platform_brand_assets`, and `platform_geo_areas`.
 
 Additional note: the `indrive_requests` and `indrive_bids` SELECT predicates explicitly reject anonymous JWTs, but UPDATE/DELETE policies still include the legacy `is_platform_admin()` branch. That is tracked separately under P0 #867/RC484 and must not be marked fixed by this matrix. The MantiGO financial config policies rely on `mnty_can_platform_admin()`, which remains a live Production deployment gap tracked under #867/RC464/RC471.
 
