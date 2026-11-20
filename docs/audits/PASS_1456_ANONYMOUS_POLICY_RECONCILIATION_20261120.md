@@ -45,3 +45,29 @@ P1 Issue **#928** tracks the remaining policy-by-policy review and disposable an
 No anonymous data access was attempted. No app data, user identities, memberships, payment rows, patient records, ride details, customer contacts, or storage object names were selected. No RLS, GRANT, Auth, Storage, Edge, payment, wallet, or production deployment change occurred.
 
 **Pass 1456 remains OPEN.** The next required work is command-by-command policy composition review of the 40 tables without a table-wide anonymous guard, plus disposable PostgreSQL tests using both anonymous and confirmed-authenticated JWT claims. Preserve intended public discovery and tenant-local flows; no blanket deny migration.
+
+
+## Existing disposable anonymous-session regression coverage located
+
+A source search found targeted tests already present in current `main`; do not duplicate these contracts:
+
+- `supabase/tests/rc102_provider_services_integration.sql`: owner isolation and rejects an anonymous Auth session writing a provider service.
+- `supabase/tests/rc453_marketing_campaign_integration.sql`: rejects anonymous campaign creation.
+- `supabase/tests/rc455_commission_preview_integration.sql`: rejects anonymous commission preview.
+- `supabase/tests/rc465_orders_read_scope_integration.sql`: anonymous Auth session receives no order visibility or order-history rows in the disposable fixture.
+- `supabase/tests/rc466_business_branch_scope_integration.sql`: rejects anonymous business/branch visibility and inventory reads in the disposable fixture.
+- `supabase/tests/rc467_commission_scope_integration.sql`: rejects anonymous finance/commission preview.
+
+The RC465 and RC466 PostgreSQL workflows passed on the merged PR #742 candidate head:
+- RC465 Orders Read Scope: run **44048037235**.
+- RC466 Business Branch Read Scope: run **44048037214**.
+
+These are exact targeted contract tests and CI evidence, not proof that every one of the 90 Advisor warnings is covered. They narrow the remaining queue; the 40 tables without a table-wide guard still need an explicit coverage matrix against existing tests, and uncovered commands need additional disposable tests.
+
+## Revised next-step queue
+
+1. Map each of the 90 Advisor table findings to existing test file(s), if any, and record the tested SQL commands.
+2. Mark which tables have table-wide restrictive guards versus per-policy anonymous predicates.
+3. Prioritize the remaining sensitive financial/payment, medical, support, digital-page and self-service flows that have no matching anonymous-JWT test.
+4. Add tests only for uncovered command/table combinations, preserving public-read and tenant-local contracts.
+5. Keep Auth anonymous-sign-in configuration unverified; the available connector does not expose that setting.
