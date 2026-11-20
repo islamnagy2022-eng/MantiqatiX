@@ -86,6 +86,12 @@ BEGIN
         ' WITH CHECK (public.is_platform_admin() OR EXISTS (SELECT 1 FROM public.user_memberships m WHERE m.user_id=(SELECT auth.uid()) AND m.status=''ACTIVE'' AND m.tenant_id=%I.tenant_id AND m.business_id=%I.business_id AND m.branch_id=%I.branch_id))',
         t,t,t
       );
+    ELSIF policy_command='SELECT' AND j=10 THEN
+      -- Mirror platform_feature_flags tenant-member read semantics.
+      policy_sql:=format(
+        'CREATE POLICY %I ON public.%I FOR SELECT TO authenticated USING (tenant_id IS NULL OR public.is_platform_admin() OR EXISTS (SELECT 1 FROM public.user_memberships m WHERE m.user_id=(SELECT auth.uid()) AND m.status=''ACTIVE'' AND m.tenant_id=%I.tenant_id AND (m.business_id=%I.business_id OR %I.business_id IS NULL) AND (m.branch_id=%I.branch_id OR %I.branch_id IS NULL)))',
+        'rc484_policy_'||j,t,t,t,t,t,t
+      );
     ELSE
       policy_sql:=format(
         'CREATE POLICY %I ON public.%I FOR %s TO authenticated USING (owner_user_id=(SELECT auth.uid()) OR public.is_platform_admin())',
@@ -124,3 +130,10 @@ INSERT INTO public.scope_probe_03(id,owner_user_id,tenant_id,business_id,branch_
  (2,'10000000-0000-4000-8000-000000000003','TENANT-B','BUSINESS-B','BRANCH-B'),
  (3,NULL,'TENANT-A','BUSINESS-A','BRANCH-OTHER'),
  (9,NULL,'TENANT-A','BUSINESS-OTHER','BRANCH-A');
+
+-- Mirror tenant-member/global feature-flag reads (one of the live SELECT policies).
+INSERT INTO public.scope_probe_10(id,owner_user_id,tenant_id,business_id,branch_id) VALUES
+ (1,'10000000-0000-4000-8000-000000000003','TENANT-A','BUSINESS-A','BRANCH-A'),
+ (2,'10000000-0000-4000-8000-000000000003','TENANT-B','BUSINESS-B','BRANCH-B'),
+ (3,NULL,NULL,NULL,NULL);
+
