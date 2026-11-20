@@ -15,3 +15,6 @@ This import does not deploy Pages or mutate production.
 
 
 V6 loads the shared public runtime configuration from `/MantiqatiX/config.js`. The config adapter accepts only a Supabase publishable key or an anon-role JWT; service-role credentials are rejected. Standalone builds can still use `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`.
+
+
+The preparation overlay also applies the official MantiqatiX logo and cover to the V6 verified-business profile resolver. It copies the first-party SVG assets from `apps/catalog-frontend/public/` into the generated V6 `public/` folder and makes exact-name platform branding take precedence over stale social-CDN profile URLs. Merchant-uploaded media remains unchanged for all other activities.

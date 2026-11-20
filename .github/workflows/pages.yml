@@ -571,6 +571,11 @@ jobs:
           ROOT_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}")"
           grep -Fq 'MantiqatiX | منصة إدارة الأنشطة والكتالوجات' <<<"${ROOT_HTML}"
           grep -Fq '/MantiqatiX/assets/' <<<"${ROOT_HTML}"
+          for brand_asset in "mantiqatix-brand-logo.svg" "mantiqatix-brand-cover.svg"; do
+            curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${SITE_ROOT}/${brand_asset}" >/dev/null
+            curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${SITE_ROOT}/v6-preview/${brand_asset}" >/dev/null
+          done
+          echo "V6_MANTIQATIX_FIRST_PARTY_BRAND_ASSETS=PASS root_and_preview=true"
           LEGACY_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${SITE_ROOT}/legacy/")"
           grep -Fq 'MantiqatiX | منصة إدارة الأنشطة والكتالوجات' <<<"${LEGACY_HTML}"
           grep -Fq '/MantiqatiX/legacy/assets/' <<<"${LEGACY_HTML}"
