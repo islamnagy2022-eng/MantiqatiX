@@ -16,7 +16,7 @@ OLD_LOGO = """export function resolveBusinessLogo(
   return getSectorDefaultLogo(business?.functionalGroupId);
 }"""
 NEW_LOGO = r"""const isMantiqatiXBrandBusiness = (business?: { name?: string | null } | null): boolean =>
-  /^mantiqatix$/i.test(String(business?.name || '').replace(/\\s+/g, '').trim());
+  /^mantiqatix$/i.test(String(business?.name || '').replace(/\s+/g, '').trim());
 
 const resolveV6PublicAsset = (fileName: string): string => {
   const base = (import.meta as ImportMeta & { env?: { BASE_URL?: string } }).env?.BASE_URL || '/';
@@ -86,7 +86,7 @@ def self_test() -> None:
     assert "mantiqatix-brand-cover.svg" in updated
     again, changed_again = patch(updated)
     assert not changed_again and again == updated
-    assert "replace(/\\\\s+/g" in NEW_LOGO
+    assert "replace(/\\s+/g" in NEW_LOGO
 
 def main() -> None:
     if len(sys.argv) == 2 and sys.argv[1] == "--self-test":
