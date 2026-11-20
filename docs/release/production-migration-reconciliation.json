@@ -119,7 +119,7 @@
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
     "checked_at": "2026-11-20",
-    "method": "Fresh read-only SELECT from supabase_migrations.schema_migrations compared against the exact 64 versions in scripts/production/live-reconciliation-contract.mjs on main commit 57862b714c0b049419204b6143b966c149682906.",
+    "method": "Fresh read-only SELECT from supabase_migrations.schema_migrations compared against the exact 64 versions in scripts/production/live-reconciliation-contract.mjs at latest main source baseline 6f6fc6e4a2cb8dfacce824456f16796b1f0b911e (release-gate payment/subscription contract expansion preserved). The exact required version identifiers remain the same; the physical payment/subscription RPC/column contract is tracked separately by the current main verifier.",
     "live_ledger_count": 310,
     "latest_live_version": "20261110150618",
     "expected_migration_versions": 64,
@@ -5235,10 +5235,10 @@
       },
       {
         "function": "public.preview_commission_backend(character varying,uuid,character varying,numeric)",
-        "delegate": "public.assert_financial_membership(character varying)",
-        "identity_check": "auth.uid()",
-        "scope": "active finance role in supplied tenant; no business/branch predicate in the shared assertion",
-        "status": "TENANT_FINANCE_GUARD_PRESENT_SCOPE_REVIEW_REQUIRED"
+        "delegate": "public.assert_financial_membership(character varying) [live Production]",
+        "identity_check": "auth.uid(); active user_memberships row in p_tenant_id; allowed role",
+        "scope": "Live Production does not match p_business_id or branch. RC467 source replaces this with platform-root OR exact tenant-wide/exact-business finance membership; branch-scoped actors are denied because the RPC lacks branch_id.",
+        "status": "LATENT_CROSS_BUSINESS_FINANCE_PREVIEW_GAP_LIVE_RC467_SOURCE_FIX_UNAPPLIED"
       },
       {
         "function": "public.upsert_catalog_item_and_price_backend(...)",
@@ -5256,14 +5256,66 @@
       }
     ],
     "aggregate_scope_snapshot": {
-      "active_finance_accountant_finance_manager_membership_rows": 0,
-      "distinct_users": 0,
-      "tenant_wide_rows": 0,
-      "business_scoped_rows": 0,
-      "branch_scoped_rows": 0,
-      "tenants_with_multiple_active_businesses": 1,
-      "commission_rules": 0
+      "explicit_accountant_finance_finance_manager_rows": 0,
+      "eligible_live_helper_rows_in_multi_business_tenant": 14,
+      "distinct_users": 5,
+      "multi_business_tenants": 1,
+      "roles": {
+        "ADMIN": 1,
+        "OWNER": 3,
+        "SUPER_ADMIN": 1,
+        "BUSINESS_OWNER": 9
+      },
+      "tenant_wide_rows": 3,
+      "business_scoped_rows": 9,
+      "branch_scoped_rows": 2,
+      "commission_rules": 0,
+      "no_identifiers_or_rule_values_selected": true
     },
-    "interpretation": "This targeted triage is not certification of all 149 functions. A non-empty or unset search_path is a review signal, not proof of exploitability. Continue per-function review of the 47 authenticated-executable non-empty/unset paths; retain P0 mnty_can_platform_admin issue #852; review business scoping before adding business-specific finance roles. No RPC was invoked and no Production mutation occurred."
+    "interpretation": "149 public SECURITY DEFINER functions are an inventory, not a vulnerability count. For preview_commission_backend, live Production still has a latent cross-business authorization gap: its tenant-only delegate does not bind the allowed membership to p_business_id. Current evidence has one tenant with multiple ACTIVE businesses, 14 allowed-role membership rows across five users, and zero commission_rules, so no rule-data disclosure was observed. Main contains RC467 with exact-business/tenant-wide scope, branch-scoped denial and cross-business negative tests; it is not recorded in the live migration ledger and requires RC464 canonical platform-root repair first. A non-empty or unset search_path is a review signal, not proof of exploitability. No RPC was invoked and no Production mutation occurred."
+  },
+  "commission_preview_business_scope_recheck_20261120": {
+    "status": "LATENT_GAP_IN_PRODUCTION_SOURCE_FIX_EXISTS_NOT_APPLIED",
+    "checked_at": "2026-11-20",
+    "live_function": {
+      "signature": "public.preview_commission_backend(character varying,uuid,character varying,numeric)",
+      "security_definer": true,
+      "authenticated_execute": true,
+      "anon_execute": false,
+      "search_path": [
+        "search_path=public"
+      ],
+      "delegates_to": "public.assert_financial_membership(character varying)",
+      "scope_failure": "Live assertion requires auth.uid(), an ACTIVE membership in p_tenant_id and an allowed role, but does not match the membership business_id to p_business_id and does not reject branch-scoped finance memberships."
+    },
+    "read_only_membership_snapshot": {
+      "multi_business_active_tenant_count": 1,
+      "eligible_membership_rows": 14,
+      "distinct_users": 5,
+      "role_rows": {
+        "ADMIN": 1,
+        "OWNER": 3,
+        "SUPER_ADMIN": 1,
+        "BUSINESS_OWNER": 9
+      },
+      "tenant_wide_rows": 3,
+      "business_wide_rows": 9,
+      "branch_scoped_rows": 2,
+      "commission_rule_rows": 0,
+      "user_identifiers_selected": false,
+      "tenant_or_business_identifiers_selected": false,
+      "commission_rule_values_selected": false
+    },
+    "source_fix": {
+      "migration": "20261115010000_rc467_commission_scope_hardening.sql",
+      "validator": "scripts/validate-rc467-commission-scope.mjs",
+      "integration_test": "supabase/tests/rc467_commission_scope_integration.sql",
+      "behavior": "canonical platform root OR exact-business/tenant-wide finance membership; branch-scoped finance is denied because no branch input exists; rejects cross-business preview; draft administration and rule resolution are platform-root-only.",
+      "requires_before_rc467": "RC464 registry-backed, empty-search_path mnty_can_platform_admin()",
+      "source_status": "present_on_main_with_disposable_test_and_forward-replay-workflow",
+      "production_ledger_recorded": false
+    },
+    "issue": 884,
+    "interpretation": "This is a latent cross-business/branch preview authorization gap in the live function, not evidence of an executed disclosure. The live commission_rules table is empty, but the allowed role predicate covers Business Owners/Owners/Admins in a tenant with multiple ACTIVE businesses. Keep P1 open until RC464 then RC467 are applied in order under the approved release and live positive/negative scope tests pass. No function was invoked or Production mutation performed."
   }
 }
