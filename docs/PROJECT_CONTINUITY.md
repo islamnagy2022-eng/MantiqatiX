@@ -1,3 +1,10 @@
+## Deployment topology clarification — verified against current `.github/workflows/pages.yml` — 2026-11-20
+
+- The public root `/` is the catalog frontend build (the workflow's `mantiqatix-legacy-root-build` artifact); a path-adjusted copy is retained at `/legacy/`; the isolated AI Studio V6 build is at `/v6-preview/`.
+- The workflow step label "Publish the legacy catalog as the production root" is not evidence that V6 is the production root. The deployed-origin Playwright test is the primary catalog frontend suite.
+- PR #893/#894 contain the catalog frontend MantiqatiX branding fixes. PR #896 adds the separate V6 preview branding overlay. Do not conflate their deployment surfaces.
+- The V6 desktop/mobile preview test and the root catalog browser test are distinct suites. The deploy job passed both.
+
 ## Latest execution checkpoint — Pass 1275–1284 — 2026-11-20 (production deploy closure)
 
 - Main commit `295f48789a3d943ba122f2216225b617c3d93290` deployed successfully. Deploy run `44677886002` completed with success; the production-origin Playwright suite returned `PRIMARY_CATALOG_BROWSER_E2E=PASS` across catalog, pagination, geographic search, owner/employee/branch permissions, responsive dashboard, accessibility, QR, GPS consent, storefront and subscriber portal checks.
