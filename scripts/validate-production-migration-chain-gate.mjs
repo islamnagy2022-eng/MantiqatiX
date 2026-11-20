@@ -124,10 +124,15 @@ assert.match(liveContract, /REQUIRED_EDGE_FUNCTIONS/, "the live parity contract 
 
 const forwardReplay = fs.readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
 const rc486Validator = fs.readFileSync("scripts/validate-rc486-catalog-price-version-serialization.mjs", "utf8");
+const rc487Validator = fs.readFileSync("scripts/validate-rc487-smm-first-user-bootstrap-removal.mjs", "utf8");
 assert.ok(forwardReplay.includes("node scripts/validate-rc486-catalog-price-version-serialization.mjs"), "forward replay must validate RC486 price serialization");
 assert.ok(forwardReplay.includes("supabase/tests/rc486_catalog_price_version_serialization_integration.sql"), "forward replay must run the RC486 post-migration contract");
 assert.ok(rc486Validator.includes("pg_catalog.pg_advisory_xact_lock"), "RC486 validator must check advisory lock");
 assert.ok(rc486Validator.includes("the lock must be acquired before reading MAX(version)"), "RC486 validator must assert lock-before-MAX ordering");
+assert.ok(forwardReplay.includes("node scripts/validate-rc487-smm-first-user-bootstrap-removal.mjs"), "forward replay must validate RC487 SMM bootstrap removal");
+assert.ok(forwardReplay.includes("supabase/tests/rc487_smm_first_user_bootstrap_removal_integration.sql"), "forward replay must run the RC487 post-migration contract");
+assert.ok(rc487Validator.includes("DROP TRIGGER IF EXISTS trg_smm_bootstrap_admin ON auth.users"), "RC487 must remove the first-user Auth trigger");
+assert.ok(rc487Validator.includes("DROP FUNCTION IF EXISTS public.smm_bootstrap_first_admin()"), "RC487 must remove the unsafe trigger function");
 const forwardReplayLines = forwardReplay.split(/\r?\n/);
 assert.ok(
   forwardReplayLines.some((line, index) => line === "  push:" && forwardReplayLines[index + 1] === "    branches: [main]"),
