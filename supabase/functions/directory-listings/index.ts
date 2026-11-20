@@ -16,6 +16,7 @@ import {
 } from "./doctor-import-contract.mjs";
 import { sanitizePublicDirectoryListing, resolveDirectoryOwnerAccess } from "./public-directory-output-contract.mjs";
 import { collectActiveAddressConsentIds } from "./consent-pagination.mjs";
+import { collectActiveContactConsentScopes } from "./contact-consent-pagination.mjs";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const allowedOrigins = new Set([
@@ -67,24 +68,22 @@ Deno.serve(async (req: Request) => {
   const service = createClient(supabaseUrl, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
   const loadContactConsentScopes = async (listingIds: string[]) => {
-    const scopes = new Map<string, Set<string>>();
-    const ids = [...new Set(listingIds.map((id) => String(id || "")).filter(Boolean))];
-    if (!ids.length) return { scopes, ready: true };
-    const { data: rows, error } = await service.from("directory_listing_contact_consents")
-      .select("listing_id,scope").in("listing_id", ids).is("revoked_at", null);
-    if (error) {
-      // Fail closed: a consent registry outage must never expose contact details or enable owner controls.
-      console.warn("directory contact consent lookup failed", error.message);
-      return { scopes, ready: false };
+    const result = await collectActiveContactConsentScopes(
+      listingIds,
+      async (offset: number, pageSize: number, ids: string[]) => await service
+        .from("directory_listing_contact_consents")
+        .select("listing_id,scope")
+        .in("listing_id", ids)
+        .is("revoked_at", null)
+        .order("listing_id", { ascending: true })
+        .order("scope", { ascending: true })
+        .range(offset, offset + pageSize - 1),
+    );
+    if (!result.ready) {
+      // Fail closed: partial consent pages must never enable contact disclosure or owner controls.
+      console.warn("directory contact consent lookup failed; response will be sanitized without consent");
     }
-    for (const row of rows || []) {
-      const id = String(row.listing_id || "");
-      const scope = String(row.scope || "").toUpperCase();
-      if (!id || !["PHONE", "SECONDARY_PHONE", "ADDRESS", "PRECISE_LOCATION"].includes(scope)) continue;
-      if (!scopes.has(id)) scopes.set(id, new Set<string>());
-      scopes.get(id)!.add(scope);
-    }
-    return { scopes, ready: true };
+    return result;
   };
 
   const loadAddressConsentListingIds = async () => collectActiveAddressConsentIds(
