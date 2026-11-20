@@ -21,7 +21,7 @@ for (const command of ["INSERT", "UPDATE", "DELETE"]) {
   );
   assert.match(migration, policy, "missing restrictive anonymous-auth guard for " + command);
 }
-assert.doesNotMatch(migration, /FOR\\s+SELECT/i,
+assert.doesNotMatch(migration, /FOR\s+SELECT/i,
   "RC488 must not restrict public profile-media reads");
 assert.ok(migration.includes("mantiqatix-profile-media") === false,
   "migration must be bucket-agnostic so it protects all authenticated Storage writes");
@@ -37,5 +37,5 @@ for (const marker of [
 ]) {
   assert.ok(integration.includes(marker), "missing RC488 behavioral assertion: " + marker);
 }
-assert.match(migration, /BEGIN;[\\s\\S]*COMMIT;/);
+assert.match(migration, /BEGIN;[\s\S]*COMMIT;/);
 console.log("RC488 Storage anonymous Auth write-guard contract: PASS");
