@@ -20,7 +20,7 @@ const checks=[
   ["migration does not revoke trusted service-role registry operations",!migration.includes("REVOKE ALL ON TABLE private.platform_admins")],
   ["authenticated helper execute is retained",migration.includes("GRANT EXECUTE ON FUNCTION public.is_platform_admin() TO authenticated")],
   ["fixture reproduces existing direct service-role registry grant",fixture.includes("GRANT ALL ON TABLE private.platform_admins TO service_role")],
-  ["fixture reproduces 57 policies over 24 tables",/1\.\.24/.test(fixture)&&/1\.\.33/.test(fixture)],
+  ["fixture reproduces live 57-policy command mix over 24 tables",fixture.includes("FOR i IN 1..24 LOOP")&&fixture.includes("FOR j IN 1..57 LOOP")&&fixture.includes("WHEN j<=18 THEN 'SELECT'")&&fixture.includes("WHEN j<=35 THEN 'UPDATE'")&&fixture.includes("WHEN j<=50 THEN 'DELETE'")&&fixture.includes("ELSE 'ALL'")],
   ["integration denies tenant ADMIN and SUPER_ADMIN across SELECT/INSERT/UPDATE/DELETE",["SELECT","INSERT","UPDATE","DELETE"].every(op=>integration.includes("CROSSTENANT_"+op+"_BYPASS"))&&integration.includes("RC484_TENANT_ADMIN_MUST_NOT_BE_PLATFORM_ADMIN")&&integration.includes("RC484_TENANT_SUPER_ADMIN_MUST_NOT_BE_PLATFORM_ADMIN")],
   ["integration preserves registered platform-root global access across SELECT/INSERT/UPDATE/DELETE",["GLOBAL_SELECT_FAILED","GLOBAL_UPDATE_FAILED","GLOBAL_DELETE_FAILED"].every(x=>integration.includes(x))&&integration.includes("INSERT INTO public.scope_probe_03")&&integration.includes("RC484_REGISTRY_ONLY_PLATFORM_ADMIN_MUST_PASS")],
   ["workflow applies fixture, migration, then behavior test",workflow.indexOf("-f /tmp/fixture.sql")<workflow.indexOf("-f /tmp/rc484.sql")&&workflow.indexOf("-f /tmp/rc484.sql")<workflow.indexOf("-f /tmp/integration.sql")],
