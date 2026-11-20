@@ -260,170 +260,126 @@
     "interpretation": "None of the 64 exact source-version identifiers are recorded in the current live ledger. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
   },
   "critical_edge_function_source_parity_check": {
-    "status": "HISTORICAL_SNAPSHOT_SUPERSEDED",
-    "checked_at": "2026-11-14T05:04:22.840Z",
-    "method": "Read-only get_edge_function retrieval and exact UTF-8 index.ts comparison against current main; deployed bundle SHA-256 and repository blob SHA recorded. No Edge Function was deployed.",
+    "status": "BLOCKED",
+    "checked_at": "2026-11-20",
+    "method": "Supabase live get_edge_function index.ts exact comparison against current main source with CRLF normalized to LF. No Edge bundle was deployed.",
+    "expected_critical_functions": 11,
+    "exact_source_matches": 4,
+    "mismatches": 7,
     "functions": [
-      {
-        "slug": "order-create",
-        "live_version": 8,
-        "verify_jwt": true,
-        "exact_match": false,
-        "observed_difference": "Live entrypoint lacks main's bounded streaming request-body limit, strict body/JSON validation, branch-scoped membership lookup, duplicate-option checks, and option-to-item relationship guard.",
-        "status": "BLOCKED",
-        "live_bundle_sha256": "16f9b8bb687c33afeca14d85cb4c43af9948bd8b3ef3178990cc76ca1abea782",
-        "repo_blob_sha": "3a6777683e537dcff1ad30cbd1c89e431f77d926",
-        "live_entrypoint_chars": 10083,
-        "repo_entrypoint_chars": 13988
-      },
-      {
-        "slug": "payment-intent",
-        "live_version": 8,
-        "verify_jwt": true,
-        "exact_match": false,
-        "observed_difference": "Live entrypoint lacks main's Paymob intent correlation helper and exact cents amount/provider-intent correlation checks.",
-        "status": "BLOCKED",
-        "live_bundle_sha256": "d6b8faee1582c73ead440614cbe983114d1e7f31aa50f69795522fb20e737f54",
-        "repo_blob_sha": "c88f62db0d3781f949ca5da77590a04590e8ae7d",
-        "live_entrypoint_chars": 8114,
-        "repo_entrypoint_chars": 10366
-      },
-      {
-        "slug": "paymob-webhook",
-        "live_version": 10,
-        "verify_jwt": false,
-        "exact_match": false,
-        "observed_difference": "Live entrypoint lacks main's explicit finite amount guard; callback signature, amount, currency, intent/order binding and replay/idempotency must be revalidated together.",
-        "status": "BLOCKED",
-        "live_bundle_sha256": "f26fe1580e66c7f8cb9b885d5bccf4a44e49aa74874b3fe28dd7f9c5ed181cca",
-        "repo_blob_sha": "b7a386d4b4fd7aa74187df7186e9235046ad660f",
-        "live_entrypoint_chars": 11538,
-        "repo_entrypoint_chars": 12665
-      },
-      {
-        "slug": "digital-page-payment-intent",
-        "live_version": 5,
-        "verify_jwt": true,
-        "exact_match": false,
-        "observed_difference": "Live entrypoint lacks the Paymob correlation helper present in main.",
-        "status": "BLOCKED",
-        "live_bundle_sha256": "8aa3d2e9c025e7b74d4d1847e8a6744bc84a9ded7cfc0c721f9604efd177af4b",
-        "repo_blob_sha": "0d0476b0120996d83fff1299e06ea2c037e62e8e",
-        "live_entrypoint_chars": 5345,
-        "repo_entrypoint_chars": 6532
-      },
-      {
-        "slug": "subscription-payment-intent",
-        "live_version": 4,
-        "verify_jwt": true,
-        "exact_match": false,
-        "observed_difference": "Live entrypoint materially differs from main and lacks Paymob intent correlation plus encrypted checkout-secret guards.",
-        "status": "BLOCKED",
-        "live_bundle_sha256": "4466345787ea6b10a29b1dd63e9f0ab3cae640e9bb4d8ecb6d09445809e077e5",
-        "repo_blob_sha": "c702d7a70ea85727ec5e14695ebf8fb26158514e",
-        "live_entrypoint_chars": 5196,
-        "repo_entrypoint_chars": 11100
-      },
-      {
-        "slug": "financial-journal",
-        "live_version": 3,
-        "verify_jwt": true,
-        "exact_match": false,
-        "observed_difference": "Live v3 uses wildcard CORS and calls legacy post_financial_journal; current main uses allow-listed CORS and calls post_financial_journal_backend. The main RPC contract matches canonical RC450, not the earlier RC436-only alternative. Live production lacks RC449A/RC450; the old live post_financial_journal_backend RPC has no service_role EXECUTE and requires p_user_id=auth.uid(), so it is incompatible with the trusted Edge service-role flow.",
-        "status": "BLOCKED",
-        "live_bundle_sha256": "79ee18d0544e7cab8fe33fe84c27a5017d1163f411eb5b9e07b99fd79e16e366",
-        "repo_blob_sha": "49706589cc6d77af713ae44bcc0818066de72243",
-        "live_entrypoint_chars": 1591,
-        "repo_entrypoint_chars": 3387
-      },
-      {
-        "slug": "directory-listings",
-        "live_version": 16,
-        "verify_jwt": false,
-        "exact_match": false,
-        "observed_difference": "Live v16 differs from current main. It adds public metadata allowlisting/sanitization and derives an is_verified boolean from verified_by while stripping the UUID from public responses. However, verified_by is set by the owner-claim flow, not by professional-registration verification; do not port that ambiguous badge without an explicit product definition. Its two helper files match main, but index.ts differs. Security gap: BULK_IMPORT requires an approved sourcePermissionEvidenceId and records source permission metadata, but honors a requested PUBLISHED status instead of staging-only. More importantly, direct UPSERT_LISTING can publish a doctor with a valid phone and no source permission evidence. Current main has a staging-only bulk-import rule and requires current approved evidence for new doctor publication, draft-to-public transitions, and source changes. The live evidence table itself enforces approved_by/approved_at and approved_by != created_by. Reconcile by preserving live public sanitization/verified badge and evidence workflow while porting main's stricter publication gate; do not deploy main wholesale or keep the direct bypass.",
-        "status": "BLOCKED",
-        "live_bundle_sha256": "13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0",
-        "repo_blob_sha": "a501fa4c8f9e1a97aa3b1a80745951e2f04e9877",
-        "live_entrypoint_chars": 46907,
-        "repo_entrypoint_chars": 47755,
-        "source_snapshot_path": "docs/audits/snapshots/directory-listings-v16-live-index.ts.txt",
-        "file_parity": [
-          {
-            "name": "index.ts",
-            "exact_match": false,
-            "live_chars": 46907,
-            "repo_blob_sha": "a501fa4c8f9e1a97aa3b1a80745951e2f04e9877",
-            "snapshot_path": "docs/audits/snapshots/directory-listings-v16-live-index.ts.txt"
-          },
-          {
-            "name": "pagination-filter.mjs",
-            "exact_match": true,
-            "repo_blob_sha": "07e73486a8552e98f90b690a89035a426caa0ef8"
-          },
-          {
-            "name": "doctor-import-contract.mjs",
-            "exact_match": true,
-            "repo_blob_sha": "097e39b2f39912e151b24368f0c049e9afadd060"
-          }
-        ],
-        "snapshot_secret_scan": {
-          "jwt_literals": 0,
-          "provider_secret_literals": 0,
-          "bearer_literals": 0,
-          "private_key_blocks": 0
-        }
-      },
-      {
-        "slug": "smm-gateway",
-        "live_version": 13,
-        "verify_jwt": true,
-        "exact_match": true,
-        "observed_difference": "Source has SMM_INITIAL_LAUNCH_DEFERRED=true and returns SMM_DEFERRED before processing; runtime anonymous/authenticated negative requests still not verified.",
-        "status": "DEFERRED_NOT_RUNTIME_VERIFIED",
-        "live_bundle_sha256": "a45cee9f5c90beba2c2409ba4fe2927f5be3df4965fb3929f5b7d467b3121b72",
-        "repo_blob_sha": "6f3fe066e2b99d7d4f4725b846beae988f509077",
-        "live_entrypoint_chars": 20040,
-        "repo_entrypoint_chars": 20040
-      },
       {
         "slug": "api",
         "live_version": 17,
         "verify_jwt": false,
         "exact_match": true,
-        "observed_difference": "Entry point matches main; route-level bearer-token authorization still requires runtime tests.",
-        "status": "PASS_SOURCE_PARITY",
+        "live_chars": 16432,
+        "main_chars": 16432,
         "live_bundle_sha256": "7fadbd2f2556a5af308b9a2bde9ade307cacec36950398aa655adf4ac48c677f",
-        "repo_blob_sha": "48f49b775b6f590402a3505d8a6696882532d53c",
-        "live_entrypoint_chars": 16432,
-        "repo_entrypoint_chars": 16432
+        "status": "PASS_SOURCE_PARITY"
+      },
+      {
+        "slug": "order-create",
+        "live_version": 8,
+        "verify_jwt": true,
+        "exact_match": false,
+        "live_chars": 10083,
+        "main_chars": 13988,
+        "live_bundle_sha256": "16f9b8bb687c33afeca14d85cb4c43af9948bd8b3ef3178990cc76ca1abea782",
+        "status": "BLOCKED"
       },
       {
         "slug": "order-status-update",
         "live_version": 4,
         "verify_jwt": true,
         "exact_match": true,
-        "observed_difference": "Entry point matches main; real order-state and branch authorization E2E remains open.",
-        "status": "PASS_SOURCE_PARITY",
+        "live_chars": 1986,
+        "main_chars": 1986,
         "live_bundle_sha256": "c8c41f70399909b9ea27ea74ccd1661fb5aeac7f15e63fd15449ba6de33ae1e6",
-        "repo_blob_sha": "47de61413d6867f39a40c9029c2cf7cbd1f07775",
-        "live_entrypoint_chars": 1986,
-        "repo_entrypoint_chars": 1986
+        "status": "PASS_SOURCE_PARITY"
+      },
+      {
+        "slug": "payment-intent",
+        "live_version": 8,
+        "verify_jwt": true,
+        "exact_match": false,
+        "live_chars": 8114,
+        "main_chars": 10146,
+        "live_bundle_sha256": "d6b8faee1582c73ead440614cbe983114d1e7f31aa50f69795522fb20e737f54",
+        "status": "BLOCKED"
       },
       {
         "slug": "payment-webhook",
         "live_version": 3,
         "verify_jwt": false,
         "exact_match": true,
-        "observed_difference": "Entry point matches main; callback signature verification and idempotent runtime processing remain open.",
-        "status": "PASS_SOURCE_PARITY",
+        "live_chars": 3356,
+        "main_chars": 3356,
         "live_bundle_sha256": "1a415557f2fccaec6704fcc01a4b71dbaedc95b5f9c611fef23781c4b18d8642",
-        "repo_blob_sha": "1fd9f87d9b8628ed0b4468ee6d49201548548738",
-        "live_entrypoint_chars": 3356,
-        "repo_entrypoint_chars": 3356
+        "status": "PASS_SOURCE_PARITY"
+      },
+      {
+        "slug": "paymob-webhook",
+        "live_version": 10,
+        "verify_jwt": false,
+        "exact_match": false,
+        "live_chars": 11538,
+        "main_chars": 12376,
+        "live_bundle_sha256": "f26fe1580e66c7f8cb9b885d5bccf4a44e49aa74874b3fe28dd7f9c5ed181cca",
+        "status": "BLOCKED"
+      },
+      {
+        "slug": "digital-page-payment-intent",
+        "live_version": 5,
+        "verify_jwt": true,
+        "exact_match": false,
+        "live_chars": 5345,
+        "main_chars": 6532,
+        "live_bundle_sha256": "8aa3d2e9c025e7b74d4d1847e8a6744bc84a9ded7cfc0c721f9604efd177af4b",
+        "status": "BLOCKED"
+      },
+      {
+        "slug": "subscription-payment-intent",
+        "live_version": 4,
+        "verify_jwt": true,
+        "exact_match": false,
+        "live_chars": 5196,
+        "main_chars": 11100,
+        "live_bundle_sha256": "4466345787ea6b10a29b1dd63e9f0ab3cae640e9bb4d8ecb6d09445809e077e5",
+        "status": "BLOCKED"
+      },
+      {
+        "slug": "financial-journal",
+        "live_version": 3,
+        "verify_jwt": true,
+        "exact_match": false,
+        "live_chars": 1591,
+        "main_chars": 3387,
+        "live_bundle_sha256": "79ee18d0544e7cab8fe33fe84c27a5017d1163f411eb5b9e07b99fd79e16e366",
+        "status": "BLOCKED"
+      },
+      {
+        "slug": "smm-gateway",
+        "live_version": 13,
+        "verify_jwt": true,
+        "exact_match": true,
+        "live_chars": 20040,
+        "main_chars": 20040,
+        "live_bundle_sha256": "a45cee9f5c90beba2c2409ba4fe2927f5be3df4965fb3929f5b7d467b3121b72",
+        "status": "DEFERRED_SOURCE_MATCH_RUNTIME_NOT_VERIFIED"
+      },
+      {
+        "slug": "directory-listings",
+        "live_version": 16,
+        "verify_jwt": false,
+        "exact_match": false,
+        "live_chars": 46907,
+        "main_chars": 51305,
+        "live_bundle_sha256": "13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0",
+        "status": "BLOCKED"
       }
     ],
-    "interpretation": "Historical 2026-11-14 snapshot. Superseded by critical_edge_function_source_parity_check_20261117, which confirms seven live entrypoints differ from current main, including directory-listings v16."
+    "production_mutation": "NONE",
+    "interpretation": "Fresh read-only source parity is 4/11 exact matches and 7/11 mismatches. This check intentionally blocks production certification until all 11 entrypoints are reconciled and the matching database/ACL/config dependencies pass. SMM remains deferred despite source parity."
   },
   "financial_journal_runtime_prerequisite_check": {
     "status": "BLOCKING_DRIFT",
