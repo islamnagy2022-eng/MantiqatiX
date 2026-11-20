@@ -3592,3 +3592,13 @@ Evidence: PR #870, merge commit `902e4059c76da7b5da3c6ca354a11eefdd36ed4f`, RC48
 - Reviewed high-risk self/tenant-bound examples and opened P1 #928 for complete 40-table policy composition and anonymous-JWT disposable tests.
 - No application rows or personal data selected; no anonymous access probe or Production mutation.
 - Pass 1456 remains open. Evidence: `docs/audits/PASS_1456_ANONYMOUS_POLICY_RECONCILIATION_20261120.md`.
+
+
+## 2026-11-20 — R7 archive exact-hash forensic cross-check
+
+- Computed SHA-256 of the newly uploaded archive; it exactly matches the archive in the prior forensic report `R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md`.
+- Reopened that report and rechecked server.ts: unauthenticated privileged session-token minting; unauthenticated full local production-state read/write; hard-coded JWT/Paymob secret fallbacks; weak/default admin bypass; 54 mutating handlers without recognizable route-local auth checks; finance endpoint trusts caller-supplied actorId/actorRole.
+- Confirmed these are archive source defects only; no R7 route or live Production endpoint was executed.
+- Confirmed the archive's Android wrapper has three files only and is not a verified independently buildable Android app. Preserve it as reference; do not claim mobile release readiness.
+- No R7 backend/auth/finance/local JSON code adopted. No feature selected for direct adoption in this pass; future feature ports remain gated.
+- Updated Pass 1460–1469 audit with exact-hash cross-reference. Evidence: `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md` and `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md`.
