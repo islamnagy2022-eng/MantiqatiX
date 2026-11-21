@@ -18,19 +18,41 @@ BEGIN
 
   SELECT with_check INTO v_policy FROM pg_catalog.pg_policies
   WHERE schemaname='storage' AND tablename='objects' AND policyname='mnty_platform_brand_insert';
-  IF v_policy IS NULL OR v_policy NOT ILIKE '%user_memberships%' OR v_policy NOT ILIKE '%SUPER_ADMIN%' THEN
-    RAISE EXCEPTION 'RC493_PLATFORM_BRAND_AUTHORIZATION_SCOPE_REGRESSED';
+  IF v_policy IS NULL OR v_policy NOT ILIKE '%user_memberships%' OR v_policy NOT ILIKE '%SUPER_ADMIN%'
+     OR v_policy NOT LIKE '%[.]%' THEN
+    RAISE EXCEPTION 'RC493_PLATFORM_BRAND_INSERT_POLICY_REGRESSED';
+  END IF;
+
+  SELECT qual INTO v_policy FROM pg_catalog.pg_policies
+  WHERE schemaname='storage' AND tablename='objects' AND policyname='mnty_platform_brand_update';
+  IF v_policy IS NULL OR v_policy NOT ILIKE '%user_memberships%' OR v_policy NOT ILIKE '%SUPER_ADMIN%'
+     OR v_policy NOT LIKE '%[.]%' THEN
+    RAISE EXCEPTION 'RC493_PLATFORM_BRAND_UPDATE_USING_REGRESSED';
+  END IF;
+
+  SELECT with_check INTO v_policy FROM pg_catalog.pg_policies
+  WHERE schemaname='storage' AND tablename='objects' AND policyname='mnty_platform_brand_update';
+  IF v_policy IS NULL OR v_policy NOT ILIKE '%user_memberships%' OR v_policy NOT ILIKE '%SUPER_ADMIN%'
+     OR v_policy NOT LIKE '%[.]%' THEN
+    RAISE EXCEPTION 'RC493_PLATFORM_BRAND_UPDATE_CHECK_REGRESSED';
+  END IF;
+
+  SELECT qual INTO v_policy FROM pg_catalog.pg_policies
+  WHERE schemaname='storage' AND tablename='objects' AND policyname='mnty_platform_brand_delete';
+  IF v_policy IS NULL OR v_policy NOT ILIKE '%user_memberships%' OR v_policy NOT ILIKE '%SUPER_ADMIN%'
+     OR v_policy NOT LIKE '%[.]%' THEN
+    RAISE EXCEPTION 'RC493_PLATFORM_BRAND_DELETE_POLICY_REGRESSED';
   END IF;
 
   SELECT with_check INTO v_policy FROM pg_catalog.pg_policies
   WHERE schemaname='storage' AND tablename='objects' AND policyname='mnty_profile_media_owner_insert';
-  IF v_policy IS NULL OR v_policy NOT ILIKE '%owner_user_id%' OR v_policy NOT ILIKE '%is_anonymous%' THEN
+  IF v_policy IS NULL OR v_policy NOT ILIKE '%owner_user_id%' OR v_policy NOT ILIKE '%is_anonymous%' OR v_policy NOT LIKE '%[.]%' THEN
     RAISE EXCEPTION 'RC493_PROFILE_MEDIA_OWNER_SCOPE_REGRESSED';
   END IF;
 
   SELECT with_check INTO v_policy FROM pg_catalog.pg_policies
   WHERE schemaname='storage' AND tablename='objects' AND policyname='mnty_profile_media_owner_update';
-  IF v_policy IS NULL OR v_policy NOT ILIKE '%owner_user_id%' THEN
+  IF v_policy IS NULL OR v_policy NOT ILIKE '%owner_user_id%' OR v_policy NOT LIKE '%[.]%' THEN
     RAISE EXCEPTION 'RC493_PROFILE_MEDIA_UPDATE_OWNER_SCOPE_REGRESSED';
   END IF;
 END;
