@@ -306,6 +306,8 @@ BEGIN
       WHERE je.id=v_existing.journal_entry_id
         AND je.tenant_id=p_tenant_id
         AND je.business_id IS NOT DISTINCT FROM p_business_id
+        AND je.organization_id IS NULL
+        AND je.branch_id IS NULL
         AND je.status='POSTED'
     ) THEN
       RAISE EXCEPTION 'SETTLEMENT_IDENTITY_MISMATCH';
