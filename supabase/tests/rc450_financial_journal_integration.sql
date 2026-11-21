@@ -215,4 +215,53 @@ begin
 end;
 $balance_test$;
 
+
+-- Anonymous Auth identities must not read tenant financial records merely
+-- because PostgREST maps them to the authenticated database role.
+SET ROLE authenticated;
+SELECT set_config(
+  'request.jwt.claims',
+  '{"sub":"10000000-0000-4000-8000-000000000568","role":"authenticated","is_anonymous":true}',
+  false
+);
+DO $anonymous_finance_read$
+DECLARE
+  n integer;
+BEGIN
+  BEGIN
+    SELECT count(*) INTO n
+    FROM public.journal_entries
+    WHERE id IN ('rc450-journal-001','rc450-journal-002');
+    IF n <> 0 THEN
+      RAISE EXCEPTION 'RC450_ANONYMOUS_JOURNAL_ENTRY_READ_SUCCEEDED:%',n;
+    END IF;
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL;
+  END;
+
+  BEGIN
+    SELECT count(*) INTO n
+    FROM public.journal_entry_lines
+    WHERE journal_entry_id IN ('rc450-journal-001','rc450-journal-002');
+    IF n <> 0 THEN
+      RAISE EXCEPTION 'RC450_ANONYMOUS_JOURNAL_LINES_READ_SUCCEEDED:%',n;
+    END IF;
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL;
+  END;
+
+  BEGIN
+    SELECT count(*) INTO n
+    FROM public.general_ledger
+    WHERE journal_entry_id IN ('rc450-journal-001','rc450-journal-002');
+    IF n <> 0 THEN
+      RAISE EXCEPTION 'RC450_ANONYMOUS_GENERAL_LEDGER_READ_SUCCEEDED:%',n;
+    END IF;
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL;
+  END;
+END;
+$anonymous_finance_read$;
+RESET ROLE;
+
 select 'RC450 financial journal integration: PASS' as result;

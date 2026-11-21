@@ -3702,3 +3702,23 @@ Evidence: `docs/audits/PASS_1490_1499_ANONYMOUS_AUTH_AND_PLATFORM_ROOT_PARITY_20
 - [x] 1515 — PR #948 had 16 successful checks, 2 intentionally skipped deploy/public-only checks, 0 failures, and 12 queued checks at the last inspection. PR #946 exact head had 29 queued checks and 1 skipped; no failure reported at that inspection. Do not merge until required checks finish.
 
 **Release status remains BLOCKED / NOT CERTIFIED.** These are CI results on source branches; no Production release occurred.
+
+## Pass 1516–1520 — RC488 replay failure isolation and Storage policy finding — 2026-11-21
+
+- [x] 1516 — Inspect exact-head PostgreSQL 17 forward-replay failure from run 44849641258; migrations through RC492 applied, then RC488 integration failed at the confirmed-user platform-brand INSERT assertion.
+- [x] 1517 — Read-only Production policy inspection confirmed the legacy `mnty_platform_brand_insert` regex is over-escaped: a valid `platform/branding/logo-998.jpg` name does not match the stored pattern; the correctly escaped literal-dot pattern does.
+- [x] 1518 — Separate the RC488 regression test from the unrelated legacy platform-brand filename predicate: the confirmed-user assertion now exercises the existing owner-profile upload contract instead of assuming the platform-brand policy accepts a path already shown invalid by Production.
+- [x] 1519 — Align the RC488 static validator with the confirmed-owner upload assertion; source changes committed on the PR #946 branch.
+- [x] 1520 — Opened P1 security/bug Issue [#949](https://github.com/islamnagy2022-eng/MantiqatiX/issues/949) for a separate forward-only migration to repair platform-brand INSERT/UPDATE/DELETE filename predicates, with regression tests and chronological replay.
+- [ ] Await fresh exact-head RC488 and full forward migration replay CI after the test correction. Do not merge or deploy while replay/browser/deploy checks remain pending or failing.
+
+**Safety:** the only Production action was read-only inspection of `pg_policies` and regex behavior. No Production policy, grant, Storage object, Auth setting, application row, or customer data was modified. The platform-brand regex repair remains source-only and unimplemented pending a properly generated forward migration.
+
+- [x] Follow-up — The profile-media owner INSERT policy also contains an over-escaped extension predicate in Production; moved the RC488 confirmed-user INSERT regression to the private `mantiqatix-media` owner-upload path, and added the matching permissive policy to the isolated fixture. This preserves the intended test of RC488's table-wide restrictive guard without masking the separate profile-media filename issue.
+
+- [x] Follow-up — RC488 isolated fixture exposed dependency ordering: `public.is_platform_admin()` was created before `auth.uid()`. Moved the helper definition after the Auth functions so PostgreSQL can resolve the function at creation time. The previous RC488 CI run failed at fixture setup before exercising the updated policy behavior; fresh exact-head CI is required.
+
+- [x] Follow-up — Extended the forward-replay workflow path filters so changes to the RC488 Storage fixture, integration test, or static validator trigger the full chronological replay on pull requests; previously test-only corrections could run the focused Storage job without automatically re-running the full migration-chain workflow.
+
+- [x] RC488 focused PostgreSQL workflow passed on commit `6082cc3553c43bfc2a3c39d7d6fd2e9d1370e0b5`: static contract validator and isolated Storage integration both passed after correcting fixture function-definition order and testing confirmed-owner upload through the private-media policy.
+- [ ] Full chronological PostgreSQL 17 replay must pass on the latest exact PR head after the RC488 test and workflow-trigger updates; previous replay failures are from earlier commits and are not evidence of the latest state.
