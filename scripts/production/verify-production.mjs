@@ -86,7 +86,12 @@ const requiredReleaseMigrations=[
   "20261119040000_rc484_registry_backed_is_platform_admin.sql",
   "20261120200000_rc485_catalog_rpc_registry_root.sql",
   "20261120210000_rc486_catalog_price_version_serialization.sql",
-  "20261120220000_rc487_remove_smm_first_user_admin_bootstrap.sql"
+  "20261120220000_rc487_remove_smm_first_user_admin_bootstrap.sql",
+  "20261120230000_rc488_storage_anonymous_auth_write_guard.sql",
+  "20261120240000_rc489_financial_anonymous_auth_read_guard.sql",
+  "20261120250000_rc490_medical_anonymous_auth_read_guard.sql",
+  "20261120260000_rc491_support_anonymous_auth_boundary.sql",
+  "20261120270000_rc492_indrive_anonymous_auth_write_guard.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
