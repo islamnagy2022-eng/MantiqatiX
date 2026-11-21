@@ -44,7 +44,9 @@ assert.doesNotMatch(catalogPlatformAdmin, /\.in\("id", tenantIds\)/,
 assert.match(catalogAdmin, /userClient\.rpc\("mnty_can_platform_admin"\)/);
 assert.match(catalogAdmin, /const hasPlatformScope = hasRegisteredPlatformRoot/);
 assert.match(catalogAdmin, /const scopedPlatformMembership = hasRegisteredPlatformRoot/);
-assert.match(catalogAdmin, /from\("tenants"\)[\s\S]*select\("id"\)[\s\S]*eq\("status", "ACTIVE"\)/);
+assert.match(catalogAdmin, /from\("tenants"\)[\s\S]*select\("id,name,code,settings"\)[\s\S]*eq\("status", "ACTIVE"\)/);
+assert.match(catalogAdmin, /const productionTenants = \(activeTenants \|\| \[\]\)\.filter/);
+assert.match(catalogAdmin, /testIdentity/);
 assert.doesNotMatch(catalogAdmin, /isPlatformAdmin|platformTenants|hasPlatformAdminMembership/);
 assert.match(catalogAdmin, /global:\s*\{\s*headers:\s*\{\s*Authorization:\s*auth\s*\}/,
   "catalog admin registry RPC must use the verified caller JWT");
