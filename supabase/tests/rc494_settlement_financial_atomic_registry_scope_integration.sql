@@ -36,15 +36,73 @@ VALUES
  ('RC494-TENANT-FINANCE-MEMBERSHIP','49400000-0000-4000-8000-000000000004','RC494-TENANT',NULL,NULL,NULL,'FINANCE_MANAGER','{}'::jsonb,'ACTIVE',now()-interval '1 day')
 ON CONFLICT (id) DO NOTHING;
 
+INSERT INTO public.chart_of_accounts(id,tenant_id,account_code,account_name,account_type,is_active)
+SELECT v.id,v.tenant_id,v.account_code,v.account_name,v.account_type,true
+FROM (VALUES
+ ('RC494-PLATFORM-2010','MNTY-PLATFORM','2010','Merchant payable','LIABILITY'),
+ ('RC494-PLATFORM-1020','MNTY-PLATFORM','1020','Cash payout','ASSET'),
+ ('RC494-PLATFORM-2050','MNTY-PLATFORM','2050','Voucher reserve','LIABILITY'),
+ ('RC494-PLATFORM-5030','MNTY-PLATFORM','5030','Partner commission expense','EXPENSE'),
+ ('RC494-TENANT-2010','RC494-TENANT','2010','Merchant payable','LIABILITY'),
+ ('RC494-TENANT-1020','RC494-TENANT','1020','Cash payout','ASSET'),
+ ('RC494-TENANT-2050','RC494-TENANT','2050','Voucher reserve','LIABILITY'),
+ ('RC494-TENANT-5030','RC494-TENANT','5030','Partner commission expense','EXPENSE')
+) AS v(id,tenant_id,account_code,account_name,account_type)
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.chart_of_accounts c
+  WHERE c.tenant_id=v.tenant_id AND c.account_code=v.account_code
+);
+
 INSERT INTO public.journal_entries
   (id,tenant_id,organization_id,business_id,branch_id,entry_number,reference_type,reference_id,
    description,status,total_debit,total_credit,entry_date,posted_at,created_by)
 VALUES
- ('je_RC494_PLATFORM_ROOT','MNTY-PLATFORM',NULL,NULL,NULL,'RC494-JE-PLATFORM-ROOT','PARTNER_COMMISSION_SETTLEMENT','RC494-PLATFORM-ROOT','RC494 idempotent platform fixture','POSTED',100,100,current_date,now(),'49400000-0000-4000-8000-000000000001'),
- ('je_RC494_FAKE_ROOT','MNTY-PLATFORM',NULL,NULL,NULL,'RC494-JE-FAKE-ROOT','PARTNER_COMMISSION_SETTLEMENT','RC494-FAKE-ROOT','RC494 fake platform fixture','POSTED',100,100,current_date,now(),'49400000-0000-4000-8000-000000000002'),
- ('je_RC494_BUSINESS','RC494-TENANT',NULL,'49400000-0000-4000-8000-000000000101',NULL,'RC494-JE-BUSINESS','ORDER_SETTLEMENT','RC494-TENANT-BUSINESS','RC494 business fixture','POSTED',100,100,current_date,now(),'49400000-0000-4000-8000-000000000003'),
- ('je_RC494_TENANT','RC494-TENANT',NULL,NULL,NULL,'RC494-JE-TENANT','ORDER_SETTLEMENT','RC494-TENANT-WIDE','RC494 tenant fixture','POSTED',100,100,current_date,now(),'49400000-0000-4000-8000-000000000004')
+ ('je_RC494_PLATFORM_ROOT','MNTY-PLATFORM',NULL,NULL,NULL,'RC494-JE-PLATFORM-ROOT','PARTNER_COMMISSION_SETTLEMENT','RC494-PLATFORM-ROOT','RC494 idempotent platform fixture','DRAFT',0,0,current_date,NULL,'49400000-0000-4000-8000-000000000001'),
+ ('je_RC494_FAKE_ROOT','MNTY-PLATFORM',NULL,NULL,NULL,'RC494-JE-FAKE-ROOT','PARTNER_COMMISSION_SETTLEMENT','RC494-FAKE-ROOT','RC494 fake platform fixture','DRAFT',0,0,current_date,NULL,'49400000-0000-4000-8000-000000000002'),
+ ('je_RC494_BUSINESS','RC494-TENANT',NULL,'49400000-0000-4000-8000-000000000101',NULL,'RC494-JE-BUSINESS','ORDER_SETTLEMENT','RC494-TENANT-BUSINESS','RC494 business fixture','DRAFT',0,0,current_date,NULL,'49400000-0000-4000-8000-000000000003'),
+ ('je_RC494_TENANT','RC494-TENANT',NULL,NULL,NULL,'RC494-JE-TENANT','PARTNER_COMMISSION_SETTLEMENT','RC494-TENANT-WIDE','RC494 tenant fixture','DRAFT',0,0,current_date,NULL,'49400000-0000-4000-8000-000000000004')
 ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
+SELECT 'jel_RC494_PLATFORM_ROOT_5030','je_RC494_PLATFORM_ROOT',c.id,1,100,0,'RC494 partner expense'
+FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='5030';
+INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
+SELECT 'jel_RC494_PLATFORM_ROOT_1020','je_RC494_PLATFORM_ROOT',c.id,2,0,100,'RC494 partner payout'
+FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='1020';
+INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
+SELECT 'jel_RC494_PLATFORM_ROOT_2050','je_RC494_PLATFORM_ROOT',c.id,3,0,0,'RC494 voucher reserve'
+FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='2050';
+
+INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
+SELECT 'jel_RC494_FAKE_ROOT_5030','je_RC494_FAKE_ROOT',c.id,1,100,0,'RC494 partner expense'
+FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='5030';
+INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
+SELECT 'jel_RC494_FAKE_ROOT_1020','je_RC494_FAKE_ROOT',c.id,2,0,100,'RC494 partner payout'
+FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='1020';
+INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
+SELECT 'jel_RC494_FAKE_ROOT_2050','je_RC494_FAKE_ROOT',c.id,3,0,0,'RC494 voucher reserve'
+FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='2050';
+
+INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
+SELECT 'jel_RC494_BUSINESS_2010','je_RC494_BUSINESS',c.id,1,100,0,'RC494 merchant payable'
+FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='2010';
+INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
+SELECT 'jel_RC494_BUSINESS_1020','je_RC494_BUSINESS',c.id,2,0,100,'RC494 merchant payout'
+FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='1020';
+
+INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
+SELECT 'jel_RC494_TENANT_5030','je_RC494_TENANT',c.id,1,100,0,'RC494 partner expense'
+FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='5030';
+INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
+SELECT 'jel_RC494_TENANT_1020','je_RC494_TENANT',c.id,2,0,100,'RC494 partner payout'
+FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='1020';
+INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
+SELECT 'jel_RC494_TENANT_2050','je_RC494_TENANT',c.id,3,0,0,'RC494 voucher reserve'
+FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='2050';
+
+UPDATE public.journal_entries
+SET status='POSTED',total_debit=100,total_credit=100,posted_at=now()
+WHERE id IN ('je_RC494_PLATFORM_ROOT','je_RC494_FAKE_ROOT','je_RC494_BUSINESS','je_RC494_TENANT');
 
 INSERT INTO public.settlement_transactions
   (id,tenant_id,beneficiary_type,beneficiary_id,gross_amount,platform_fee,net_payout,voucher_reserve,
