@@ -280,6 +280,18 @@ BEGIN
     RAISE EXCEPTION 'RC494_BUSINESS_FINANCE_SCOPE_REGRESSED:%',v_result;
   END IF;
 
+  -- Another independently authorized business owner may safely retry the same
+  -- completed settlement; the original journal creator is not the caller identity.
+  v_result := public.create_settlement_and_post_journal(
+    'RC494-TENANT-BUSINESS','RC494-TENANT','MERCHANT','merchant-business-a',
+    100,0,100,0,'BANK_TRANSFER','RC494-TENANT-BUSINESS',
+    '49400000-0000-4000-8000-000000000101','other authorized owner idempotent retry',
+    '49400000-0000-4000-8000-000000000001'
+  );
+  IF v_result->>'idempotent' IS DISTINCT FROM 'true' THEN
+    RAISE EXCEPTION 'RC494_OTHER_AUTHORIZED_OWNER_IDEMPOTENT_RETRY_FAILED:%',v_result;
+  END IF;
+
   BEGIN
     PERFORM public.create_settlement_and_post_journal(
       'RC494-CROSS-BUSINESS','RC494-TENANT','MERCHANT','merchant-business-b',
