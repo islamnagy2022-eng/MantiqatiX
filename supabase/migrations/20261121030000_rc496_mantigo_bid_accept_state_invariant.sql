@@ -8,6 +8,11 @@ BEGIN
   IF pg_catalog.to_regprocedure('public.accept_mantigo_bid_backend(uuid,text,text)') IS NULL THEN
     RAISE EXCEPTION 'RC496_ACCEPT_BID_FUNCTION_MISSING';
   END IF;
+  IF pg_catalog.to_regprocedure(
+    'public.create_mantigo_bid_backend(uuid,text,text,text,numeric,text,text,text,numeric,integer,text)'
+  ) IS NULL THEN
+    RAISE EXCEPTION 'RC496_CREATE_BID_FUNCTION_MISSING';
+  END IF;
   IF pg_catalog.to_regprocedure('public.lock_mantigo_fare_backend(uuid,text)') IS NULL THEN
     RAISE EXCEPTION 'RC496_FARE_LOCK_FUNCTION_MISSING';
   END IF;
@@ -34,6 +39,24 @@ BEGIN
   END IF;
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='mantigo_captain_profiles'
+      AND column_name IN (
+        'captain_id','status','verification_status','availability_status',
+        'vehicle_category','vehicle_model','vehicle_plate','rating'
+      )
+    GROUP BY table_name HAVING count(DISTINCT column_name)=8
+  ) THEN
+    RAISE EXCEPTION 'RC496_MANTIGO_CAPTAIN_PROFILE_SCHEMA_NOT_READY';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.mantigo_bids
+    WHERE status='ACCEPTED'
+    GROUP BY ride_id HAVING count(*)>1
+  ) THEN
+    RAISE EXCEPTION 'RC496_MULTIPLE_ACCEPTED_BIDS_EXIST';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
     WHERE table_schema='public' AND table_name='mantigo_financial_ledger'
       AND column_name IN (
         'id','ride_id','customer_id','captain_id','currency','gross_amount',
@@ -50,6 +73,10 @@ $preflight$;
 -- The fare-lock helper is part of the acceptance state machine. Replacing its
 -- blind "row exists => idempotent" branch prevents an unrelated/stale ledger row
 -- from being accepted as the financial record for a different winning captain.
+CREATE UNIQUE INDEX IF NOT EXISTS mantigo_bids_one_accepted_per_ride_idx
+  ON public.mantigo_bids(ride_id)
+  WHERE status='ACCEPTED';
+
 CREATE OR REPLACE FUNCTION public.lock_mantigo_fare_backend(
   p_user_id uuid,
   p_ride_id text
@@ -162,6 +189,155 @@ BEGIN
   );
 END;
 $function$;
+
+CREATE OR REPLACE FUNCTION public.create_mantigo_bid_backend(
+  p_user_id uuid,
+  p_ride_id text,
+  p_captain_name text,
+  p_captain_phone text,
+  p_captain_rating numeric,
+  p_vehicle_category text,
+  p_vehicle_model text,
+  p_vehicle_plate text,
+  p_offered_price numeric,
+  p_eta_minutes integer,
+  p_captain_message text
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+DECLARE
+  v_id text := 'BID-' || pg_catalog.upper(pg_catalog.substr(pg_catalog.replace(pg_catalog.gen_random_uuid()::text,'-',''),1,12));
+  v_customer uuid;
+  v_profile public.mantigo_captain_profiles%rowtype;
+BEGIN
+  IF p_user_id IS NULL OR p_user_id IS DISTINCT FROM auth.uid() THEN
+    RAISE EXCEPTION 'USER_CONTEXT_MISMATCH';
+  END IF;
+  IF p_offered_price IS NULL OR p_offered_price<=0 THEN
+    RAISE EXCEPTION 'PRICE_REQUIRED';
+  END IF;
+  IF pg_catalog.coalesce(p_eta_minutes,0)<0 THEN
+    RAISE EXCEPTION 'INVALID_ETA';
+  END IF;
+
+  SELECT * INTO v_profile
+  FROM public.mantigo_captain_profiles
+  WHERE captain_id=p_user_id
+  FOR UPDATE;
+
+  IF NOT FOUND THEN RAISE EXCEPTION 'CAPTAIN_PROFILE_NOT_FOUND'; END IF;
+  IF v_profile.status IS DISTINCT FROM 'ACTIVE' THEN RAISE EXCEPTION 'CAPTAIN_NOT_ACTIVE'; END IF;
+  IF v_profile.verification_status IS DISTINCT FROM 'VERIFIED' THEN RAISE EXCEPTION 'CAPTAIN_NOT_VERIFIED'; END IF;
+  IF v_profile.availability_status IS DISTINCT FROM 'AVAILABLE' THEN RAISE EXCEPTION 'CAPTAIN_NOT_AVAILABLE'; END IF;
+  IF v_profile.vehicle_category IS NULL OR pg_catalog.btrim(v_profile.vehicle_category)='' THEN
+    RAISE EXCEPTION 'CAPTAIN_VEHICLE_NOT_CONFIGURED';
+  END IF;
+
+  -- Ride-first lock serializes offer submission against bid acceptance and other
+  -- offer writes. Existing accepted winners and inconsistent stale winners fail closed.
+  SELECT r.customer_id INTO v_customer
+  FROM public.mantigo_rides r
+  WHERE r.id=p_ride_id
+    AND r.status IN ('OPEN','OPEN_FOR_BIDS')
+    AND r.vehicle_category=v_profile.vehicle_category
+    AND r.accepted_bid_id IS NULL
+    AND NOT EXISTS (
+      SELECT 1 FROM public.mantigo_bids b
+      WHERE b.ride_id=r.id AND b.status='ACCEPTED'
+    )
+  FOR UPDATE OF r;
+
+  IF v_customer IS NULL THEN
+    RAISE EXCEPTION 'RIDE_NOT_OPEN_OR_VEHICLE_MISMATCH';
+  END IF;
+  IF v_customer=p_user_id THEN RAISE EXCEPTION 'CAPTAIN_CANNOT_BID_OWN_RIDE'; END IF;
+
+  INSERT INTO public.mantigo_bids(
+    id,ride_id,captain_id,captain_name,captain_phone,captain_rating,
+    vehicle_category,vehicle_model,vehicle_plate,offered_price,eta_minutes,captain_message,status
+  ) VALUES (
+    v_id,p_ride_id,p_user_id,
+    pg_catalog.coalesce(pg_catalog.nullif(pg_catalog.btrim(p_captain_name),''),'كابتن MantiGO'),
+    pg_catalog.coalesce(pg_catalog.btrim(p_captain_phone),''),
+    pg_catalog.greatest(0,pg_catalog.coalesce(v_profile.rating,0)),
+    v_profile.vehicle_category,
+    pg_catalog.coalesce(v_profile.vehicle_model,''),
+    pg_catalog.coalesce(v_profile.vehicle_plate,''),
+    p_offered_price,pg_catalog.greatest(0,pg_catalog.coalesce(p_eta_minutes,0)),
+    pg_catalog.coalesce(pg_catalog.btrim(p_captain_message),''),'OFFERED'
+  )
+  ON CONFLICT (ride_id,captain_id) DO UPDATE SET
+    captain_name=EXCLUDED.captain_name,
+    captain_phone=EXCLUDED.captain_phone,
+    captain_rating=EXCLUDED.captain_rating,
+    vehicle_category=EXCLUDED.vehicle_category,
+    vehicle_model=EXCLUDED.vehicle_model,
+    vehicle_plate=EXCLUDED.vehicle_plate,
+    offered_price=EXCLUDED.offered_price,
+    eta_minutes=EXCLUDED.eta_minutes,
+    captain_message=EXCLUDED.captain_message,
+    status='OFFERED',
+    created_at=pg_catalog.now()
+  WHERE public.mantigo_bids.status IN ('OFFERED','REJECTED','WITHDRAWN','EXPIRED')
+  RETURNING id INTO v_id;
+
+  IF v_id IS NULL THEN
+    RAISE EXCEPTION 'BID_ALREADY_ACCEPTED_OR_NOT_REUSABLE';
+  END IF;
+
+  UPDATE public.mantigo_rides
+  SET status=CASE WHEN status='OPEN' THEN 'OPEN_FOR_BIDS' ELSE status END,
+      updated_at=pg_catalog.now()
+  WHERE id=p_ride_id
+    AND customer_id=v_customer
+    AND status IN ('OPEN','OPEN_FOR_BIDS')
+    AND accepted_bid_id IS NULL;
+
+  INSERT INTO public.audit_logs(
+    id,tenant_id,actor_user_id,action,entity_type,entity_id,
+    old_values,new_values,result
+  ) VALUES (
+    'AUD-MG-'||pg_catalog.replace(pg_catalog.gen_random_uuid()::text,'-',''),
+    'MNTY-PLATFORM',p_user_id,'MANTIGO_BID_CREATED','MANTIGO_BID',v_id,'{}'::jsonb,
+    pg_catalog.jsonb_build_object(
+      'ride_id',p_ride_id,'status','OFFERED',
+      'offered_price',p_offered_price,'vehicle_category',v_profile.vehicle_category
+    ),
+    'SUCCESS'
+  );
+
+  BEGIN
+    INSERT INTO public.notifications(
+      id,tenant_id,user_id,type,title,body,entity_type,entity_id
+    ) VALUES (
+      'NTF-'||pg_catalog.replace(pg_catalog.gen_random_uuid()::text,'-',''),
+      'MNTY-PLATFORM',v_customer,'MANTIGO_BID',
+      'عرض جديد على رحلتك MantiGO',
+      'تم استلام عرض جديد بقيمة '||pg_catalog.to_char(p_offered_price,'FM999999990D00')||' ج.م',
+      'MANTIGO_RIDE',p_ride_id
+    );
+  EXCEPTION WHEN OTHERS THEN
+    INSERT INTO public.audit_logs(
+      id,tenant_id,actor_user_id,action,entity_type,entity_id,
+      old_values,new_values,result
+    ) VALUES (
+      'AUD-MG-'||pg_catalog.replace(pg_catalog.gen_random_uuid()::text,'-',''),
+      'MNTY-PLATFORM',p_user_id,'MANTIGO_NOTIFICATION_FAILED',
+      'MANTIGO_RIDE',p_ride_id,'{}'::jsonb,
+      pg_catalog.jsonb_build_object('notification_type','MANTIGO_BID','error',SQLERRM),
+      'PARTIAL'
+    );
+  END;
+
+  RETURN pg_catalog.jsonb_build_object('id',v_id,'status','OFFERED');
+END;
+$function$;
+
+COMMENT ON FUNCTION public.create_mantigo_bid_backend(uuid,text,text,text,numeric,text,text,text,numeric,integer,text) IS
+  'RC496: prevents offers from reopening accepted/terminal bids or rides; locks ride before offer writes and preserves one-winner invariants.';
 
 CREATE OR REPLACE FUNCTION public.accept_mantigo_bid_backend(
   p_user_id uuid,
