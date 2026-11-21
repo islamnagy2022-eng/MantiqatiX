@@ -228,26 +228,38 @@ DO $anonymous_finance_read$
 DECLARE
   n integer;
 BEGIN
-  SELECT count(*) INTO n
-  FROM public.journal_entries
-  WHERE id IN ('rc450-journal-001','rc450-journal-002');
-  IF n <> 0 THEN
-    RAISE EXCEPTION 'RC450_ANONYMOUS_JOURNAL_ENTRY_READ_SUCCEEDED:%',n;
-  END IF;
+  BEGIN
+    SELECT count(*) INTO n
+    FROM public.journal_entries
+    WHERE id IN ('rc450-journal-001','rc450-journal-002');
+    IF n <> 0 THEN
+      RAISE EXCEPTION 'RC450_ANONYMOUS_JOURNAL_ENTRY_READ_SUCCEEDED:%',n;
+    END IF;
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL;
+  END;
 
-  SELECT count(*) INTO n
-  FROM public.journal_entry_lines
-  WHERE journal_entry_id IN ('rc450-journal-001','rc450-journal-002');
-  IF n <> 0 THEN
-    RAISE EXCEPTION 'RC450_ANONYMOUS_JOURNAL_LINES_READ_SUCCEEDED:%',n;
-  END IF;
+  BEGIN
+    SELECT count(*) INTO n
+    FROM public.journal_entry_lines
+    WHERE journal_entry_id IN ('rc450-journal-001','rc450-journal-002');
+    IF n <> 0 THEN
+      RAISE EXCEPTION 'RC450_ANONYMOUS_JOURNAL_LINES_READ_SUCCEEDED:%',n;
+    END IF;
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL;
+  END;
 
-  SELECT count(*) INTO n
-  FROM public.general_ledger
-  WHERE journal_entry_id IN ('rc450-journal-001','rc450-journal-002');
-  IF n <> 0 THEN
-    RAISE EXCEPTION 'RC450_ANONYMOUS_GENERAL_LEDGER_READ_SUCCEEDED:%',n;
-  END IF;
+  BEGIN
+    SELECT count(*) INTO n
+    FROM public.general_ledger
+    WHERE journal_entry_id IN ('rc450-journal-001','rc450-journal-002');
+    IF n <> 0 THEN
+      RAISE EXCEPTION 'RC450_ANONYMOUS_GENERAL_LEDGER_READ_SUCCEEDED:%',n;
+    END IF;
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL;
+  END;
 END;
 $anonymous_finance_read$;
 RESET ROLE;
