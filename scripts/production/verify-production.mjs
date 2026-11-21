@@ -94,7 +94,8 @@ const requiredReleaseMigrations=[
   "20261120270000_rc492_indrive_anonymous_auth_write_guard.sql",
   "20261120280000_rc493_private_crm_notification_read_guards.sql",
   "20261120290000_rc494_settlement_financial_atomic_registry_scope_hardening.sql",
-  "20261121020000_rc495_storage_filename_regex_forward_repair.sql"
+  "20261121020000_rc495_storage_filename_regex_forward_repair.sql",
+  "20261121030000_rc496_mantigo_bid_accept_state_invariant.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
