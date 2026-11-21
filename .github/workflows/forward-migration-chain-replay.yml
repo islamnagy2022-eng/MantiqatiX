@@ -43,6 +43,7 @@ on:
       - "supabase/migrations/20261120220000_rc487_remove_smm_first_user_admin_bootstrap.sql"
       - "scripts/validate-rc487-smm-first-user-bootstrap-removal.mjs"
       - "supabase/tests/rc487_smm_first_user_bootstrap_removal_integration.sql"
+      - "supabase/tests/rc493_storage_filename_regex_forward_repair.sql"
       - "supabase/tests/rc482_legal_platform_admin_registry_fixture.sql"
       - "supabase/tests/rc482_legal_platform_admin_registry_integration.sql"
       - "supabase/tests/rc483_atomic_legal_cms_create_audit_fixture.sql"
@@ -211,6 +212,8 @@ jobs:
 
           echo "RC487_SMM_FIRST_USER_BOOTSTRAP_REMOVAL_INTEGRATION"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc487_smm_first_user_bootstrap_removal_integration.sql
+           echo "RC493_STORAGE_FILENAME_REGEX_FORWARD_REPAIR"
+           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc493_storage_filename_regex_forward_repair.sql
 
           echo "RC117_DEFAULT_IMAGES_AND_ACTIVITY_ADMIN_CONTRACT"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc117_default_images_and_activity_admin_contract.sql
