@@ -30,7 +30,8 @@ assert.ok(migration.includes("mnty_confirmed_auth_indrive_bids_read"),
   "RC492 must fail closed for anonymous and missing-claim bid reads");
 assert.ok(test.includes("RC492_MISSING_ANONYMOUS_CLAIM_BID_READ_SUCCEEDED"),
   "RC492 integration must test missing-claim bid-read denial");
-assert.match(test,/COMMIT;[\\s\\S]*-- Remove only the synthetic fixture rows/, "each JWT scenario must finish before synthetic fixture cleanup");\nassert.match(test,/DELETE FROM public\\.indrive_bids[\\s\\S]*DELETE FROM public\\.indrive_requests[\\s\\S]*DELETE FROM auth\\.users/, "integration must clean up only its synthetic fixture rows");
+assert.match(test,/COMMIT;[\\s\\S]*-- Remove only the synthetic fixture rows/, "each JWT scenario must finish before synthetic fixture cleanup");
+assert.match(test,/DELETE FROM public\\.indrive_bids[\\s\\S]*DELETE FROM public\\.indrive_requests[\\s\\S]*DELETE FROM auth\\.users/, "integration must clean up only its synthetic fixture rows");
 assert.match(fixture,/GRANT SELECT, DELETE ON public\.indrive_requests TO authenticated;/, "request fixture must mirror Production SELECT and DELETE grants");
 assert.match(fixture,/GRANT SELECT ON public\.indrive_bids TO authenticated;/, "bid fixture must mirror Production SELECT grant");
 assert.doesNotMatch(fixture,/GRANT (?:INSERT|UPDATE) ON public\.indrive_requests|GRANT (?:INSERT|UPDATE|DELETE) ON public\.indrive_bids/, "fixture must not widen Production direct table grants");
