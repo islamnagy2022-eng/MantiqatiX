@@ -4741,3 +4741,20 @@ Evidence: `docs/audits/PASS_1470_1479_ANONYMOUS_POLICY_MATRIX_20261120.md`; Issu
 - [ ] Run real-migration PostgreSQL integration, full chronological replay and coordinated release gates.
 
 Evidence: `docs/audits/PASS_1480_1489_RC479_ANONYMOUS_AUTH_SESSION_GAP_20261120.md`; Issue #928.
+
+
+### Pass 1641–1650 — directory listing owner authorization hardening — 2026-11-22
+
+- [x] Correct business-linked directory listing ownership resolution: require the current user to hold an ACTIVE BUSINESS_OWNER/OWNER membership on the exact claimed business with branch_id IS NULL.
+- [x] Restrict legacy claimed_user_id fallback to listings with no claimed_business_id; the original claimant no longer retains business-wide control after membership removal or narrowing to a branch.
+- [x] Reuse the same owner resolver for listing detail owner status, public-contact-consent management and UPDATE_OWNED_LISTING.
+- [x] Add source-contract regression assertions for exact business/user membership, active status, owner roles, business-wide scope and all three call sites.
+- [x] Exact-head CI for commit 86637e064ec1dd07714072298bb19a3ea1504c16: 12/12 associated workflow runs completed successfully.
+- [x] Merge PR #962 by squash as 5b4163f53309676bd9fb91b0b5b3b5f1dc690756.
+- [ ] Deploy the updated directory-listings Edge Function only after coordinated release gates, deployed-bundle verification and approval.
+- [ ] Run deployed positive/negative authorization checks for business owner, branch-scoped member, revoked member, legacy unlinked claimant and unrelated user.
+- [ ] Preserve the global Production block until encrypted off-site backup/restore, migration parity, Edge parity and payment/privacy release gates are complete.
+
+Evidence: PR #962 https://github.com/islamnagy2022-eng/MantiqaTix/pull/962; tested head 86637e064ec1dd07714072298bb19a3ea1504c16; merge commit 5b4163f53309676bd9fb91b0b5b3b5f1dc690756.
+
+Safety: source/test changes merged only. No Production database, migration, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet or customer data was changed. Production remains BLOCKED / NOT CERTIFIED.
