@@ -64,3 +64,13 @@ Fresh read-only Production ledger check against the exact 75-version release lis
 - Exact-head run `44871878345` (forward migration replay) was still running its disposable Supabase startup at the latest check; the full chronological replay and RC494/RC495 integration result are therefore pending. Do not claim replay success yet.
 - At that checkpoint, Directory Contact Consent, Directory Claim Atomicity, RC488, RC492, RC493, RC475, RC425, migration uniqueness/history, platform-admin registry hardening, MantiGO privacy, approval-audit atomicity, backup-manifest evidence validation and migration-collision checks had passed on the current head. Primary Catalog browser E2E and V6 Preview validation were still running.
 - PR #957's exact-head suite completed 15/15 successful checks, but it remains open pending integration/review coordination with PR #958. No Production migration, RLS/GRANT change, Edge deployment, Pages deployment or customer-data mutation occurred.
+
+
+## RC494 replay fixture schema correction — 2026-11-21
+
+- The first replay after the owner-membership fixture correction advanced through all 111 forward migrations and RC485–RC492 integration tests, then failed at the RC494 integration fixture before settlement assertions.
+- Exact PostgreSQL error: `businesses_status_check` rejected `DRAFT`. The captured Production schema permits only `ACTIVE`, `INACTIVE`, and `SUSPENDED` for `public.businesses.status`; the earlier fixture used an unsupported status.
+- Corrected the isolated fixture to create both synthetic businesses as `INACTIVE`, insert active OWNER memberships, and only then transition them to `ACTIVE`. This preserves the real legal-owner activation guard and conforms to the captured schema.
+- Fixture correction commit: `0a342c480dd592f2aee318651017b8041736cf66`.
+- New exact-head CI has been triggered. Forward replay and all dependent checks remain pending; no pass is claimed until the new head completes.
+- No Production migration, DDL/DML, RLS/GRANT, Edge deployment, Storage, Auth, payment, wallet, or customer-data mutation occurred.
