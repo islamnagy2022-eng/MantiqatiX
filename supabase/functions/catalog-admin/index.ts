@@ -212,11 +212,22 @@ Deno.serve(async (req: Request) => {
       );
       if (!hasPlatformScope && !tenantOwnerScope) return out(origin, { error: "CATALOG_BUSINESS_LIST_FORBIDDEN" }, 403);
       let authorizedTenants: string[] = tenantId ? [tenantId] : [];
-      if (hasPlatformScope && !tenantId) {
+      if (hasPlatformScope) {
         const { data: activeTenants, error: tenantListError } = await service.from("tenants")
-          .select("id").eq("status", "ACTIVE").limit(100);
+          .select("id,name,code,settings").eq("status", "ACTIVE").limit(100);
         if (tenantListError) throw tenantListError;
-        authorizedTenants = (activeTenants || []).map((tenant: any) => String(tenant.id));
+        const productionTenants = (activeTenants || []).filter((tenant: any) => {
+          const id = String(tenant.id || "").toUpperCase();
+          const purpose = String(tenant.settings?.purpose || "").toLowerCase();
+          const code = String(tenant.code || "").toUpperCase();
+          const name = String(tenant.name || "").toLowerCase();
+          const testIdentity = /(^|[-_])TEST([-_]|$)|ISOLATION/.test(id) || /(^|[-_])TEST([-_]|$)|ISOLATION/.test(code);
+          return !testIdentity && !purpose.includes("test") && !purpose.includes("isolation")
+            && !name.includes("isolation test") && !name.includes("اختبار العزل");
+        });
+        const productionTenantIds = productionTenants.map((tenant: any) => String(tenant.id));
+        if (tenantId && !productionTenantIds.includes(tenantId)) return out(origin, { error: "TENANT_SCOPE_FORBIDDEN" }, 403);
+        authorizedTenants = tenantId ? [tenantId] : productionTenantIds;
       }
       if (!authorizedTenants.length || authorizedTenants.some((value: string) => !value)) return out(origin, { businesses: [] });
       let query = service.from("businesses")
