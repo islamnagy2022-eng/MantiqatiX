@@ -375,7 +375,10 @@ BEGIN
           ELSE 'ORDER_SETTLEMENT'
         END
         AND je.reference_id IS NOT DISTINCT FROM coalesce(p_reference_id,p_id)
+        AND je.entry_number IS NOT DISTINCT FROM 'JE-'||p_id
         AND je.created_by IS NOT DISTINCT FROM p_actor_user_id
+        AND je.total_debit IS NOT DISTINCT FROM v_total
+        AND je.total_credit IS NOT DISTINCT FROM v_total
         AND je.status='POSTED'
         AND je.posted_at IS NOT NULL
     ) THEN
@@ -461,7 +464,11 @@ BEGIN
           ELSE 'ORDER_SETTLEMENT'
         END
         OR je.reference_id IS DISTINCT FROM coalesce(p_reference_id,p_id)
+        OR je.entry_number IS DISTINCT FROM 'JE-'||p_id
         OR je.created_by IS DISTINCT FROM p_actor_user_id
+        OR je.total_debit IS DISTINCT FROM 0::numeric
+        OR je.total_credit IS DISTINCT FROM 0::numeric
+        OR je.posted_at IS NOT NULL
         OR je.status IS DISTINCT FROM 'DRAFT'
       )
   ) THEN
