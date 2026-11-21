@@ -1,3 +1,12 @@
+# Directory privacy recheck — 2026-11-21
+
+- Deployed `directory-listings`: ACTIVE v16, `verify_jwt=false`; deployed bundle remains behind current source and lacks consent-scoped GET sanitization.
+- Read-only production aggregate: 869 published listings; 869 contain primary phone and 869 contain address.
+- Current directory source includes RC473 consent registry lookup, scope-specific sanitization and fail-closed pagination; it is not deployed yet.
+- Treat directory contact disclosure as a live P0 blocker. Do not publish the Edge function until the RC473 table is applied with the full migration chain and bundle-level E2E passes.
+
+---
+
 # Latest continuation checkpoint — 2026-11-21 — Pass 1576–1585
 
 **Working baseline:** current GitHub `main`; PR #957 contains directory platform-admin and R7/mobile preservation corrections; PR #958 is the consolidated RC488–RC494 security candidate.  
