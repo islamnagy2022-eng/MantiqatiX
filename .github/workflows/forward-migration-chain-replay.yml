@@ -87,6 +87,10 @@ on:
       - "supabase/tests/rc495_storage_filename_regex_forward_repair.sql"
       - "supabase/tests/baselines/production_live_settlement_function_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_storage_brand_policy_overlay_fixture.sql"
+      - "docs/MASTER_PRODUCTION_TODO.md"
+      - "docs/PROJECT_CONTINUITY.md"
+      - "docs/SESSION_LOG.md"
+      - "docs/runbooks/PRODUCTION_BACKUP_RESTORE_RC484_20261119.md"
   pull_request:
     branches: ["main"]
     paths:
@@ -145,6 +149,10 @@ on:
       - "supabase/tests/rc495_storage_filename_regex_forward_repair.sql"
       - "supabase/tests/baselines/production_live_settlement_function_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_storage_brand_policy_overlay_fixture.sql"
+      - "docs/MASTER_PRODUCTION_TODO.md"
+      - "docs/PROJECT_CONTINUITY.md"
+      - "docs/SESSION_LOG.md"
+      - "docs/runbooks/PRODUCTION_BACKUP_RESTORE_RC484_20261119.md"
   workflow_dispatch: {}
 
 permissions:
