@@ -64,6 +64,7 @@ assert.match(integration, /idempotent/);
 assert.match(integration, /RC496_TEST_FARE_LOCK_FAILURE/);
 assert.match(integration, /MANTIGO_FINANCIAL_IDENTITY_MISMATCH/);
 assert.match(integration, /RC496-LEDGER-MISMATCH/);
+assert.match(integration, /RC496-DUPLICATE-WINNER/);
 assert.match(integration, /mantigo_financial_ledger/);
 assert.match(fixture, /CREATE TABLE public\.mantigo_financial_ledger/);
 assert.match(fixture, /CREATE TRIGGER rc496_fail_fare_lock_before_insert/);
