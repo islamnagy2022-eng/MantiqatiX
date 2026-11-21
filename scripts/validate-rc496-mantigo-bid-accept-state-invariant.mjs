@@ -49,6 +49,7 @@ assert.match(integration, /USER_CONTEXT_MISMATCH/);
 assert.match(integration, /CREATE TRIGGER rc496_delay_accept_update/);
 assert.match(concurrency, /success_count/);
 assert.match(concurrency, /denied_count/);
+assert.match(concurrency, /RIDE_NOT_OPEN/);
 assert.match(concurrency, /one winner/i);
 assert.match(concurrency, /RC496-CONCURRENT/);
 
