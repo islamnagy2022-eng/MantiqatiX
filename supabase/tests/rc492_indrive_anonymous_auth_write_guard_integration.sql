@@ -108,6 +108,15 @@ SELECT pg_catalog.set_config(
 DO $confirmed$
 DECLARE n integer;
 BEGIN
+  IF auth.uid() IS DISTINCT FROM '49200000-0000-4000-8000-000000000001'::uuid THEN
+    RAISE EXCEPTION 'RC492_CONFIRMED_AUTH_UID_MISMATCH:%',auth.uid();
+  END IF;
+  IF ((SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE) IS NOT TRUE THEN
+    RAISE EXCEPTION 'RC492_CONFIRMED_AUTH_CLAIM_NOT_FALSE:%',auth.jwt();
+  END IF;
+  IF NOT pg_catalog.has_table_privilege(current_user,'public.indrive_requests','DELETE') THEN
+    RAISE EXCEPTION 'RC492_CONFIRMED_DELETE_PRIVILEGE_MISSING';
+  END IF;
   DELETE FROM public.indrive_requests
   WHERE id='49200000-0000-4000-8000-000000000011';
   GET DIAGNOSTICS n=ROW_COUNT;
