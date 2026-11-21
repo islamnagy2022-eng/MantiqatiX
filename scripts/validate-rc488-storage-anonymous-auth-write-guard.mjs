@@ -34,6 +34,7 @@ assert.ok(integration.includes("RC488_MISSING_ANONYMOUS_CLAIM_WRITE_SUCCEEDED"),
 assert.ok(fixture.includes("CREATE TABLE private.platform_admins"), "RC488 fixture must model RC484's authoritative platform-admin registry");
 assert.ok(fixture.includes("public.is_platform_admin()"), "platform branding policy must use registry-backed platform authority");
 assert.ok(integration.includes("INSERT INTO private.platform_admins(user_id)"), "confirmed platform-admin branding regression must seed the authoritative registry");
+assert.ok(integration.includes("VALUES (v_anon),(v_owner)"), "anonymous branding denial must be tested against an otherwise-authorized legacy permissive policy");
 assert.doesNotMatch(migration, /FOR\s+SELECT/i,
   "RC488 must not restrict public profile-media reads");
 assert.ok(migration.includes("mantiqatix-profile-media") === false,
