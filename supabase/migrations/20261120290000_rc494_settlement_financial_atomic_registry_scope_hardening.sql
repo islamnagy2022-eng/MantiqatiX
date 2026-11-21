@@ -60,6 +60,16 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'RC494_PLATFORM_ADMIN_REGISTRY_USER_ID_MISSING';
   END IF;
+  IF pg_catalog.has_table_privilege('anon', v_registry, 'SELECT')
+     OR pg_catalog.has_table_privilege('anon', v_registry, 'INSERT')
+     OR pg_catalog.has_table_privilege('anon', v_registry, 'UPDATE')
+     OR pg_catalog.has_table_privilege('anon', v_registry, 'DELETE')
+     OR pg_catalog.has_table_privilege('authenticated', v_registry, 'SELECT')
+     OR pg_catalog.has_table_privilege('authenticated', v_registry, 'INSERT')
+     OR pg_catalog.has_table_privilege('authenticated', v_registry, 'UPDATE')
+     OR pg_catalog.has_table_privilege('authenticated', v_registry, 'DELETE') THEN
+    RAISE EXCEPTION 'RC494_PLATFORM_ADMIN_REGISTRY_CLIENT_TABLE_GRANT_FOUND';
+  END IF;
   IF NOT pg_catalog.has_function_privilege('service_role', v_function, 'EXECUTE')
      OR pg_catalog.has_function_privilege('anon', v_function, 'EXECUTE')
      OR pg_catalog.has_function_privilege('authenticated', v_function, 'EXECUTE') THEN
