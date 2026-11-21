@@ -108,7 +108,13 @@ BEGIN
   IF NOT pg_catalog.has_function_privilege('service_role', v_function, 'EXECUTE')
      OR pg_catalog.has_function_privilege('anon', v_function, 'EXECUTE')
      OR pg_catalog.has_function_privilege('authenticated', v_function, 'EXECUTE') THEN
-    RAISE EXCEPTION 'RC494_SETTLEMENT_FUNCTION_EXECUTE_ACL_UNEXPECTED';
+    RAISE EXCEPTION 'RC494_SETTLEMENT_FUNCTION_EXECUTE_ACL_UNEXPECTED:anon=%,authenticated=%,service_role=%,anon_member_service_role=%,authenticated_member_service_role=%,acl=%',
+      pg_catalog.has_function_privilege('anon',v_function,'EXECUTE'),
+      pg_catalog.has_function_privilege('authenticated',v_function,'EXECUTE'),
+      pg_catalog.has_function_privilege('service_role',v_function,'EXECUTE'),
+      pg_catalog.pg_has_role('anon','service_role','MEMBER'),
+      pg_catalog.pg_has_role('authenticated','service_role','MEMBER'),
+      (SELECT coalesce(array_to_string(p.proacl,','),'(default ACL)') FROM pg_catalog.pg_proc p WHERE p.oid=v_function);
   END IF;
   SELECT p.proowner, p.prosecdef, p.proconfig
     INTO v_helper_owner, v_helper_security_definer, v_helper_config
