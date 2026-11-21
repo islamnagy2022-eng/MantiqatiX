@@ -28,6 +28,19 @@ The R7 manifest contains project ref `moyhiluyhjsujhwlyweuu`, which differs from
 4. Reconcile application ID, package identity, first-party domain, current OAuth/session handling, API contract, deep links, safe WebView navigation, permissions, build resources, signing and CI before any native Android integration.
 5. Adapt useful mobile UI features to current `apps/catalog-frontend` only after verifying current component contracts and responsive E2E tests.
 
+## Fresh read-only Production checkpoint — 2026-11-21
+
+Supabase project `moyhiluyhjsujhwlyeuu` was queried read-only after the source reconciliation:
+
+- Migration ledger: 310 rows; latest applied version `20261110150618`.
+- RC488–RC494: 0 of 7 applied.
+- RC473 directory contact-consent migration: not applied.
+- `public.directory_listing_contact_consents`: absent.
+- `public.directory_source_permission_evidence`: present.
+- `public.indrive_requests` and `public.indrive_bids`: present; both have RLS enabled and FORCE RLS enabled.
+
+No Production schema, data, migration ledger, RLS, grant, Auth, Storage, Edge Function, payment or wallet changes were made.
+
 ## Verification limits
 
 This pass inspected archive metadata, source layout, R7 release manifest, package manifest, Android wrapper source and mobile component imports. It did not build the Android application, test on a device, deploy any source, change Supabase, or modify Production data.
