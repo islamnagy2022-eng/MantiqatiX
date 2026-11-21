@@ -43,8 +43,17 @@ CREATE TABLE public.mantigo_bids (
   id text PRIMARY KEY,
   ride_id text NOT NULL REFERENCES public.mantigo_rides(id),
   captain_id uuid NOT NULL,
+  captain_name text NOT NULL DEFAULT '',
+  captain_phone text NOT NULL DEFAULT '',
+  captain_rating numeric NOT NULL DEFAULT 0,
+  vehicle_category text NOT NULL DEFAULT 'SEDAN',
+  vehicle_model text NOT NULL DEFAULT '',
+  vehicle_plate text NOT NULL DEFAULT '',
   offered_price numeric NOT NULL,
+  eta_minutes integer NOT NULL DEFAULT 0,
+  captain_message text NOT NULL DEFAULT '',
   status text NOT NULL CHECK (status IN ('OFFERED','ACCEPTED','REJECTED','WITHDRAWN','EXPIRED')),
+  created_at timestamptz NOT NULL DEFAULT pg_catalog.now(),
   UNIQUE (ride_id,captain_id)
 );
 
