@@ -28,10 +28,11 @@ BEGIN
     ('RC488-ANON-ADMIN',v_anon,'MNTY-PLATFORM','ACTIVE','SUPER_ADMIN'),
     ('RC488-CONFIRMED-ADMIN',v_owner,'MNTY-PLATFORM','ACTIVE','SUPER_ADMIN');
 
-  -- RC484 makes the private registry authoritative; legacy SUPER_ADMIN
-  -- membership alone must not be treated as platform-root authority.
+  -- RC484 makes the private registry authoritative. Seed both synthetic
+  -- identities so the anonymous test exercises RC488's restrictive guard even
+  -- when the older permissive platform-brand policy would otherwise authorize it.
   INSERT INTO private.platform_admins(user_id)
-  VALUES (v_owner)
+  VALUES (v_anon),(v_owner)
   ON CONFLICT (user_id) DO NOTHING;
 
   INSERT INTO public.marketing_provider_profiles
