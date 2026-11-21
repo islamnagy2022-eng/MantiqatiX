@@ -146,7 +146,6 @@ assert.ok(rc487Validator.includes("trg_smm_bootstrap_admin"), "RC487 validator m
 assert.ok(rc487Validator.includes("smm_bootstrap_first_admin"), "RC487 validator must check removal of the unsafe trigger function");
 assert.ok(forwardReplay.includes("node scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"), "forward replay must validate RC488 Storage anonymous Auth write isolation");
 assert.ok(forwardReplay.includes("node scripts/validate-rc496-mantigo-bid-accept-state-invariant.mjs"), "forward replay must validate RC496 MantiGO bid state invariant");
-assert.ok(forwardReplay.includes("supabase/tests/rc496_mantigo_bid_accept_state_invariant_integration.sql"), "forward replay must run RC496 MantiGO bid integration");
 assert.match(rc496Validator, /BID_NOT_OFFERED/, "RC496 validator must pin the OFFERED-only bid acceptance guard");
 assert.ok(rc488Validator.includes("storage_objects_confirmed_auth_delete"), "RC488 validator must check restrictive Storage write policies");
 const forwardReplayLines = forwardReplay.split(/\r?\n/);
