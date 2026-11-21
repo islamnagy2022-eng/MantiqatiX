@@ -77,6 +77,14 @@ on:
       - "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql"
       - "docs/release/production-migration-reconciliation.json"
       - ".github/workflows/forward-migration-chain-replay.yml"
+      - "scripts/validate-rc490-private-crm-notification-read-guards.mjs"
+      - "scripts/validate-rc494-settlement-financial-atomic-registry-scope.mjs"
+      - "scripts/validate-rc495-storage-filename-regex-forward-repair.mjs"
+      - "supabase/tests/rc490_private_crm_notification_read_guards_fixture.sql"
+      - "supabase/tests/rc490_private_crm_notification_read_guards_integration.sql"
+      - "supabase/tests/rc492_indrive_anonymous_auth_write_guard_fixture.sql"
+      - "supabase/tests/rc494_settlement_financial_atomic_registry_scope_integration.sql"
+      - "supabase/tests/rc495_storage_filename_regex_forward_repair.sql"
   pull_request:
     branches: ["main"]
     paths:
@@ -114,6 +122,25 @@ on:
       - "supabase/tests/rc483_atomic_legal_cms_create_audit_integration.sql"
       - "docs/release/production-migration-reconciliation.json"
       - ".github/workflows/forward-migration-chain-replay.yml"
+      - "scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"
+      - "scripts/validate-rc489-financial-anonymous-auth-read-guard.mjs"
+      - "scripts/validate-rc490-medical-anonymous-auth-read-guard.mjs"
+      - "scripts/validate-rc490-private-crm-notification-read-guards.mjs"
+      - "scripts/validate-rc491-support-anonymous-auth-boundary.mjs"
+      - "scripts/validate-rc492-indrive-anonymous-auth-write-guard.mjs"
+      - "scripts/validate-rc494-settlement-financial-atomic-registry-scope.mjs"
+      - "scripts/validate-rc495-storage-filename-regex-forward-repair.mjs"
+      - "supabase/tests/rc488_storage_anonymous_auth_write_guard_fixture.sql"
+      - "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql"
+      - "supabase/tests/rc489_financial_anonymous_auth_read_integration.sql"
+      - "supabase/tests/rc490_medical_anonymous_auth_read_integration.sql"
+      - "supabase/tests/rc490_private_crm_notification_read_guards_fixture.sql"
+      - "supabase/tests/rc490_private_crm_notification_read_guards_integration.sql"
+      - "supabase/tests/rc491_support_anonymous_auth_boundary_integration.sql"
+      - "supabase/tests/rc492_indrive_anonymous_auth_write_guard_fixture.sql"
+      - "supabase/tests/rc492_indrive_anonymous_auth_write_guard_integration.sql"
+      - "supabase/tests/rc494_settlement_financial_atomic_registry_scope_integration.sql"
+      - "supabase/tests/rc495_storage_filename_regex_forward_repair.sql"
   workflow_dispatch: {}
 
 permissions:
