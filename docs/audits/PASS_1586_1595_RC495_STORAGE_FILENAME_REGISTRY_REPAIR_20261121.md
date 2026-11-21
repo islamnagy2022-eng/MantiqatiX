@@ -1,0 +1,85 @@
+# Pass 1586–1595 — RC495 Storage filename and platform-root registry repair
+
+Date: 2026-11-21  
+Candidate: PR #958 (consolidated security/migration release candidate)  
+New migration: `20261121020000_rc495_storage_filename_regex_forward_repair.sql`  
+Production status: **BLOCKED / NOT CERTIFIED**.
+
+## Fresh read-only Production evidence
+
+Supabase project `moyhiluyhjsujhwlyeuu`:
+
+- Migration ledger: 310 rows, latest applied version `20261110150618`.
+- RC488–RC495 applied: 0.
+- The five affected Storage policies exist on `storage.objects`.
+- Live `mnty_platform_brand_insert/update/delete` policies authorize through ACTIVE `SUPER_ADMIN` rows in `public.user_memberships`, not the canonical private platform-admin registry.
+- The platform-brand and provider profile-media filename predicates contain over-escaped literal-dot expressions (catalog output contains doubled backslashes before the dot).
+- `public.mnty_can_platform_admin()` and `private.platform_admins` exist, but the live helper is not yet verified with an empty search_path. RC464 in the ordered source chain hardens the helper before RC495 uses it.
+- No Storage object names or customer media were read; only policy metadata and aggregate migration state were queried.
+
+## Source correction
+
+PR #950 proposed a timestamp `20261121010000` RC493 migration that repairs the regex but retains membership-derived platform-brand authority. It is not adopted. The consolidated candidate instead adds RC495 at unique timestamp `20261121020000` and:
+
+1. Uses `public.mnty_can_platform_admin()` for platform branding INSERT, UPDATE and DELETE. It removes the direct `user_memberships` / `SUPER_ADMIN` authorization predicate.
+2. Repairs the five affected filename predicates using `[.]` for literal extension separators.
+3. Preserves provider profile ownership checks and bucket boundaries.
+4. Requires explicit `is_anonymous=false` in provider profile-media INSERT and UPDATE predicates; RC488 restrictive policies remain in the ordered chain as an additional confirmed-Auth boundary.
+5. Adds SQL regression coverage for accepted/rejected filenames, policy expressions, registry-backed platform root, owner scope and missing/anonymous Auth claims.
+6. Extends the exact release migration contract, production verifier, migration-gate validator, reconciliation manifest and PostgreSQL forward-replay workflow from 74 to 75 ordered versions.
+
+## Validation state
+
+- Static source cross-check confirms 75 migration timestamps in the exact ledger contract, 75 entries in the migration-gate list and 75 entries in the production verifier; all are chronologically ordered and include RC495.
+- Reconciliation manifest now records 75 required versions and the fresh live ledger still has 0 applied.
+- RC495 source validator and PostgreSQL replay/integration workflow are wired. Exact-head CI is pending; no test pass is claimed yet.
+
+## Safety and disposition
+
+- No Production migration, DDL/DML, RLS/GRANT, Storage object, Auth, Edge Function, payment, wallet or customer-data mutation occurred.
+- Do not merge PR #950's membership-derived Storage policy version. It is superseded by the RC495 registry-backed correction in PR #958.
+- Do not deploy Storage policy or Edge changes independently. Apply only after the complete chronological migration chain, verified encrypted backup/restore, coordinated Edge parity, and release approval.
+- Production remains **BLOCKED / NOT CERTIFIED**.
+
+## CI failure triage and correction — 2026-11-21
+
+- A completed run on overlapping PR #959 exposed a validator-only failure before full forward replay: the RC492 validator used double-escaped dots in JavaScript regex literals, so it searched for a backslash plus wildcard rather than the literal schema/table separator.
+- Corrected the two grant-match expressions and the no-privilege-widening expression in consolidated PR #958 at commit `918d437738af7db0541f2948d411c69f3d7f78ad`.
+- Independently re-evaluated the corrected assertions against the exact fixture: request SELECT+DELETE matched; bid SELECT matched; unauthorized request INSERT/UPDATE and bid INSERT/UPDATE/DELETE grants remained absent.
+- PR #958 exact-head CI restarted at the correction commit; all 14 reported checks were queued at the latest read. This is not a CI pass. The previous PR #959 PostgreSQL 16 and forward-replay failures were caused by the same static validator assertion; replay did not reach the complete migration sequence.
+- No Production mutation occurred.
+
+
+## Follow-up regression coverage hardening — 2026-11-21
+
+A final source review found that RC495's migration already included the confirmed-Auth predicate in provider-media UPDATE `USING`, but the SQL regression assertion only checked owner scope and anonymous-claim text without pinning the filename expression in that `USING` predicate. The source was correct; the regression test was incomplete. The test asserts confirmed-Auth and owner scope in UPDATE `USING`; the literal-dot filename predicate and doubled-backslash rejection remain asserted on the UPDATE `WITH CHECK` predicate, where the new object name is validated. The static validator pins the confirmed-Auth predicate in UPDATE `USING`. Commits: `975e138f0e7d3f43e37706c4f0abdc52a9d7a8f4` and `ff3e5f5daff94b38014d26552eca95664ba863d1`.
+
+Fresh read-only Production ledger check against the exact 75-version release list: 310 rows; latest `20261110150618`; 0/75 required versions applied; RC488–RC495 0/8 applied. No Production changes.
+
+## Exact-head CI follow-up — 2026-11-21
+
+- On commit `30a67c1948b8c08f9d91031d859e66a90041817c`, the RC495 static validator failed because the live-overlay assertion double-escaped the whitespace regex (`[\\\\s\\\\S]`). Corrected it to the intended JavaScript regex at commit `a4ba9691e35b4213e780868ad83af960ad480b67`. The RC495 static validator then passed on the next exact-head forward-replay run.
+- That replay advanced through all 111 forward migrations and RC485–RC492 integration tests, then exposed a fixture setup defect in RC494: its synthetic businesses were inserted ACTIVE without an active OWNER/BUSINESS_OWNER membership, correctly triggering the existing `LEGAL_BUSINESS_OWNER_REQUIRED` business activation guard.
+- Corrected only the isolated RC494 test fixture at commit `baa59409b8f4a088d8a61af6c12a4b74ed1ada12`: insert businesses as DRAFT, create active owner memberships for both synthetic businesses, then transition them to ACTIVE. The test now satisfies the real legal activation boundary rather than bypassing it.
+- Exact-head run `44871878345` (forward migration replay) was still running its disposable Supabase startup at the latest check; the full chronological replay and RC494/RC495 integration result are therefore pending. Do not claim replay success yet.
+- At that checkpoint, Directory Contact Consent, Directory Claim Atomicity, RC488, RC492, RC493, RC475, RC425, migration uniqueness/history, platform-admin registry hardening, MantiGO privacy, approval-audit atomicity, backup-manifest evidence validation and migration-collision checks had passed on the current head. Primary Catalog browser E2E and V6 Preview validation were still running.
+- PR #957's exact-head suite completed 15/15 successful checks, but it remains open pending integration/review coordination with PR #958. No Production migration, RLS/GRANT change, Edge deployment, Pages deployment or customer-data mutation occurred.
+
+
+## RC494 replay fixture schema correction — 2026-11-21
+
+- The first replay after the owner-membership fixture correction advanced through all 111 forward migrations and RC485–RC492 integration tests, then failed at the RC494 integration fixture before settlement assertions.
+- Exact PostgreSQL error: `businesses_status_check` rejected `DRAFT`. The captured Production schema permits only `ACTIVE`, `INACTIVE`, and `SUSPENDED` for `public.businesses.status`; the earlier fixture used an unsupported status.
+- Corrected the isolated fixture to create both synthetic businesses as `INACTIVE`, insert active OWNER memberships, and only then transition them to `ACTIVE`. This preserves the real legal-owner activation guard and conforms to the captured schema.
+- Fixture correction commit: `0a342c480dd592f2aee318651017b8041736cf66`.
+- New exact-head CI has been triggered. Forward replay and all dependent checks remain pending; no pass is claimed until the new head completes.
+- No Production migration, DDL/DML, RLS/GRANT, Edge deployment, Storage, Auth, payment, wallet, or customer-data mutation occurred.
+
+## RC494 pre-existing journal conflict fixture identity correction — 2026-11-21
+
+- The next exact-head forward replay applied all 111 forward migrations and passed the RC485–RC492 integration checks, then reached the RC494 negative test for a pre-existing journal identity conflict.
+- The negative test unexpectedly returned normally because its fixture journal ID used underscores (je_RC494_PREEXISTING_CONFLICT) while the settlement writer deterministically looks up je_ plus the settlement ID, which contains hyphens (je_RC494-PREEXISTING-CONFLICT). The test therefore did not exercise the intended conflicting row; this was a fixture defect, not evidence that the SQL conflict guard failed.
+- Corrected the fixture journal ID to exactly match the writer's deterministic ID. No production function or migration logic was changed.
+- Correction commit: 74415f5f34375106033dc565445bb44fa3ef8a71.
+- Exact-head CI has been triggered. The replay and all dependent checks remain pending; no pass is claimed until the current head completes.
+- No Production migration, DDL/DML, RLS/GRANT, Edge deployment, Storage, Auth, payment, wallet, or customer-data mutation occurred.
