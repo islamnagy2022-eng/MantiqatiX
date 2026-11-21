@@ -22,10 +22,13 @@ const response = (origin: string | null, body: unknown, status = 200) =>
 // PostgreSQL UUID columns accept legacy UUID-shaped values even when their
 // version/variant nibbles do not follow RFC 4122.
 const isUuid = (value: unknown) => typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
-const isPlatformAdmin = (m: any) => String(m.role || "").toUpperCase() === "SUPER_ADMIN"
-  && !m.business_id && !m.branch_id
-  && m.permissions?.scope === "PLATFORM" && m.permissions?.full_control === true;
-
+const safeBranch = (value: unknown) =>
+  typeof value === "string" && value.length > 0 && value.length <= 80 && /^[a-z0-9_-]+$/i.test(value);
+// Legacy membership metadata is used only to keep old platform rows non-editable in the UI.
+// It is never an authorization source; every platform action is gated by mnty_can_platform_admin().
+const isProtectedPlatformMembership = (m: any) => String(m?.role || "").toUpperCase() === "SUPER_ADMIN"
+  && !m?.business_id && !m?.branch_id
+  && m?.permissions?.scope === "PLATFORM" && m?.permissions?.full_control === true;
 const slugify = (value: string) => value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 
 Deno.serve(async (req: Request) => {
@@ -55,16 +58,21 @@ Deno.serve(async (req: Request) => {
   const action = String(body.action || "").toUpperCase();
 
   try {
-    const { data: memberships, error: membershipError } = await service.from("user_memberships")
-      .select("id,user_id,tenant_id,organization_id,business_id,branch_id,role,status,permissions,created_at")
-      .eq("user_id", user.id).eq("status", "ACTIVE").limit(250);
-    if (membershipError) throw membershipError;
-    const platformMemberships = (memberships || []).filter(isPlatformAdmin);
-    if (!platformMemberships.length) return response(origin, { error: "PLATFORM_ADMIN_REQUIRED" }, 403);
-    const tenantIds = [...new Set(platformMemberships.map((m: any) => String(m.tenant_id || "")).filter(Boolean))];
+    const { data: registryResult, error: registryError } = await userClient.rpc("mnty_can_platform_admin");
+    if (registryError) {
+      console.error("catalog platform-admin registry check failed", { code: registryError.code });
+      return response(origin, { error: "PLATFORM_ADMIN_CHECK_UNAVAILABLE" }, 503);
+    }
+    if (registryResult !== true) return response(origin, { error: "PLATFORM_ADMIN_REQUIRED" }, 403);
+
+    // Membership data is only a preferred organization hint after registry authorization;
+    // it never grants platform-wide access or determines which tenants are visible.
+    const { data: membershipPreferences, error: membershipPreferenceError } = await service.from("user_memberships")
+      .select("tenant_id,organization_id").eq("user_id", user.id).eq("status", "ACTIVE").limit(250);
+    if (membershipPreferenceError) throw membershipPreferenceError;
 
     const { data: tenants, error: tenantsError } = await service.from("tenants")
-      .select("id,name,code,status,settings").in("id", tenantIds).eq("status", "ACTIVE").limit(100);
+      .select("id,name,code,status,settings").eq("status", "ACTIVE").limit(100);
     if (tenantsError) throw tenantsError;
     const productionTenants = (tenants || []).filter((t: any) => {
       const id = String(t.id || "").toUpperCase();
@@ -385,7 +393,7 @@ Deno.serve(async (req: Request) => {
           membershipStatus: String(m.status || "INACTIVE").toUpperCase(),
           permissions: m.permissions && typeof m.permissions === "object" && !Array.isArray(m.permissions) ? m.permissions : {},
           isAccountOnly: false,
-          isPlatformAccount: isPlatformAdmin(m),
+          isPlatformAccount: isProtectedPlatformMembership(m),
         };
       });
       for (const u of authUsers) {
@@ -483,11 +491,11 @@ Deno.serve(async (req: Request) => {
         message: "هذه بيانات النشاط مسجلة بالفعل؛ لم يتم إنشاء سجل جديد.",
         businessId: duplicate.id,
       }, 409);
-      const platformMembership = platformMemberships.find((m: any) => String(m.tenant_id) === tenantId);
       const { data: orgs, error: orgError } = await service.from("organizations").select("id")
         .eq("tenant_id", tenantId).eq("status", "ACTIVE").limit(1);
       if (orgError) throw orgError;
-      const organizationId = platformMembership?.organization_id || orgs?.[0]?.id || null;
+      const membershipPreference = (membershipPreferences || []).find((m: any) => String(m.tenant_id) === tenantId);
+      const organizationId = membershipPreference?.organization_id || orgs?.[0]?.id || null;
       const randomCode = crypto.randomUUID().slice(0, 8).toUpperCase();
       const slug = slugify(String(input.slug || name)) || `business-${randomCode.toLowerCase()}`;
       let createdBusinessId = "";
@@ -668,7 +676,7 @@ Deno.serve(async (req: Request) => {
         .select("id,user_id,tenant_id,business_id,branch_id,role,status,permissions").eq("id", membershipId).maybeSingle();
       if (findError) throw findError;
       if (!membership || !productionTenantIds.includes(String(membership.tenant_id))
-        || String(membership.role || "").toUpperCase() === "SUPER_ADMIN" || isPlatformAdmin(membership)) {
+        || String(membership.role || "").toUpperCase() === "SUPER_ADMIN" || isProtectedPlatformMembership(membership)) {
         throw new Error("SUBSCRIBER_NOT_FOUND");
       }
       const role = String(membership.role || "").toUpperCase();
@@ -763,7 +771,7 @@ Deno.serve(async (req: Request) => {
         existing = data;
         if (!existing || !productionTenantIds.includes(String(existing.tenant_id))
           || String(existing.user_id) !== userId
-          || String(existing.role || "").toUpperCase() === "SUPER_ADMIN" || isPlatformAdmin(existing)) {
+          || String(existing.role || "").toUpperCase() === "SUPER_ADMIN" || isProtectedPlatformMembership(existing)) {
           return response(origin, { error: "MEMBERSHIP_NOT_EDITABLE" }, 403);
         }
       } else {
@@ -774,7 +782,7 @@ Deno.serve(async (req: Request) => {
         existingQuery = branchId ? existingQuery.eq("branch_id", branchId) : existingQuery.is("branch_id", null);
         const { data, error } = await existingQuery;
         if (error) throw error;
-        existing = (data || []).find((row: any) => String(row.role || "").toUpperCase() !== "SUPER_ADMIN" && !isPlatformAdmin(row)) || null;
+        existing = (data || []).find((row: any) => String(row.role || "").toUpperCase() !== "SUPER_ADMIN" && !isProtectedPlatformMembership(row)) || null;
       }
 
       const previousPermissions = existing?.permissions && typeof existing.permissions === "object" && !Array.isArray(existing.permissions)

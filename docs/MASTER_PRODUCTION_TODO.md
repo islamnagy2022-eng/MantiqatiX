@@ -1,3 +1,24 @@
+- [ ] P0 directory privacy: deploy RC473 consent table and complete current `directory-listings` Edge bundle together; live v16 currently exposes phone/address for 869 published listings without consent. Require anonymous/owner consent grant-revoke and registry-outage fail-closed E2E before release.
+## Pass 1576–1585 — Directory registry, CI repair and R7/mobile source reconciliation — 2026-11-21
+
+- [x] Fixed undefined `memberships` reference in directory claim review. The action is already behind the verified private platform-admin registry gate; root admins can review claims for active businesses across tenants without synthetic tenant membership.
+- [x] Updated Google-auth hydration contract to reflect current platform-root business loading and bounded tenant-owner loading.
+- [x] Updated platform-registry source contract to assert the actual fail-closed AI proxy expression (`!registryError && registryResult === true`).
+- [x] Added the platform-admin registry RPC to the browser E2E mock; only the designated platform-admin fixture receives boolean true.
+- [x] Inspected all five prior PR #957 CI failures and patched their root causes: TypeScript undefined symbol, stale Google-auth contract, AI registry assertion, E2E registry mock, and the dependent validation contract.
+- [x] Reconciled uploaded R7 archive (2026-11-10) against current main (2026-11-21). R7 is a historical feature/design source, not a replacement runtime. Its manifest Supabase ref differs from the live project ref; do not use the archive value.
+- [x] Preserved R7 mobile web components and minimal Android WebView source as archive references. The Android wrapper is incomplete, hardcodes a legacy domain/API and lacks a secure host allowlist; it is not integrated or release-ready.
+- [x] Added `docs/audits/PASS_1576_1585_R7_SOURCE_AND_MOBILE_RECONCILIATION_20261121.md` and updated `docs/release/MOBILE_ANDROID_PRESERVATION_REGISTER_20261108.md`.
+- [ ] Verify exact-head CI on PR #957 after the latest source/docs commits; no pass is claimed while jobs are queued.
+- [ ] Verify exact-head CI on consolidated security PR #958, especially RC492 PostgreSQL 16 and forward migration replay.
+- [ ] Keep PR #959 as a duplicate overlapping RC488–RC493 candidate until PR #958 is green and its final diff is reconciled; do not merge both overlapping migration sets.
+- [ ] Continue backup/restore, directory consent DB+Edge parity, payment/finance sandbox and Auth hardening gates before Production release.
+- **Safety:** no Production database, migration, RLS/GRANT, Auth, Storage, Edge, payment, wallet or customer-data mutation. Production remains **BLOCKED / NOT CERTIFIED**.
+
+Evidence: `docs/audits/PASS_1576_1585_R7_SOURCE_AND_MOBILE_RECONCILIATION_20261121.md`.
+
+---
+
 ## Pass 1546–1555 — post-merge directory privacy guard and live release recheck — 2026-11-21
 
 - [x] Exact-head CI for source commit `43bf69244a9a798ffb53a3c8ccf4ac4e282cb7e5`: all 8 associated workflow runs completed successfully.

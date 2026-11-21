@@ -1,3 +1,9 @@
+import { execFileSync } from "node:child_process";
+import "./validate-directory-platform-admin-registry.mjs";
+
+execFileSync(process.execPath, ["--test", "supabase/functions/settlement-financial-atomic/authorization.test.mjs"], {
+  stdio: "inherit",
+});
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { sanitizePublicDirectoryListing } from "../supabase/functions/directory-listings/public-directory-output-contract.mjs";
@@ -281,6 +287,8 @@ const checks = [
     source.includes('.eq("user_id", user.id)') &&
     source.includes('.eq("status", "ACTIVE")') &&
     source.includes('.in("role", ["BUSINESS_OWNER", "OWNER"])')],
+  ["branch-scoped memberships cannot inspect or change business-level contact consent",
+    (source.match(/\.is\("branch_id", null\)/g) || []).length === 2],
   ["consent grant ignores caller-supplied actor identity and persists auth.uid-derived user.id",
     source.includes("consented_by: user.id") &&
     !source.includes("consented_by: body.") &&

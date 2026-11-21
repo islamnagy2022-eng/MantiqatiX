@@ -29,7 +29,7 @@ assert.ok(context.includes("queryParams: { prompt: 'select_account' }"), 'Google
 
 assert.ok(production.includes('async function mapWithConcurrency<T, R>'), 'Authorized catalog hydration must use a bounded concurrent worker pool.');
 assert.ok(production.includes('uniqueRows.slice(0, 250), 8'), 'Catalog reads must use bounded concurrency while preserving the existing row cap.');
-assert.ok(production.includes('Promise.all(tenantIds.map(async (tenantId)'), 'Platform tenant business lists must load concurrently.');
+assert.ok(production.includes("if (platform) {\n    const list: any = await callCatalogAdmin({ action: 'BUSINESS_LIST' });") && production.includes('Promise.all(tenantWideOwnerIds.map(async (tenantId)'), 'Platform root loads its authorized business registry directly while tenant-wide owners load their own tenant lists concurrently.');
 assert.ok(production.includes('Promise.all(tenantWideOwnerIds.map(async (tenantId)'), 'Tenant-wide owner business lists must load concurrently.');
 assert.ok(production.includes("callPlatformAdmin({ action: 'LIST_SUBSCRIBERS' })") && production.includes("callPlatformAdmin({ action: 'GET_SETTINGS' })"), 'Platform subscriber and settings reads must remain available.');
 const bootstrapSection = production.slice(production.indexOf('export async function bootstrapProductionUser'), production.indexOf('export const productionRuntime'));

@@ -19,10 +19,6 @@ const IMAGE_PROFILE_ROLES = new Set(["OWNER", "BUSINESS_OWNER", "ADMIN"]);
 const IMAGE_CATALOG_WRITE_ROLES = new Set(["OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER", "PROVIDER_OWNER", "PROVIDER_ADMIN", "BRANCH_MANAGER"]);
 const isUuid = (value: unknown) =>
   typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
-const isPlatformAdminMembership = (m: any) =>
-  String(m.role || "").toUpperCase() === "SUPER_ADMIN" &&
-  !m.business_id && !m.branch_id &&
-  m.permissions?.scope === "PLATFORM" && m.permissions?.full_control === true;
 const catalogWriteAllowed = (m: any) => {
   const role = String(m?.role || "").toUpperCase();
   if (!IMAGE_CATALOG_WRITE_ROLES.has(role)) return false;
@@ -89,6 +85,9 @@ Deno.serve(async (req: Request) => {
   }
 
   const action = String(body.action ?? "assistant").trim();
+  if (action === "generate_catalog_image" && user.is_anonymous) {
+    return reply({ error: "confirmed_auth_required" }, 401);
+  }
 
   if (action === "generate_catalog_image") {
     const businessId = String(body.businessId || "").trim();
@@ -120,8 +119,12 @@ Deno.serve(async (req: Request) => {
         .eq("user_id", user.id).eq("status", "ACTIVE").limit(250);
       if (membershipsError) throw membershipsError;
       const sameTenantMemberships = (memberships || []).filter((m: any) => String(m.tenant_id) === String(business.tenant_id));
-      const hasPlatformScope = sameTenantMemberships.some(isPlatformAdminMembership);
       const businessMemberships = sameTenantMemberships.filter((m: any) => String(m.business_id || "") === businessId);
+      const { data: registryResult, error: registryError } = await supabase.rpc("mnty_can_platform_admin");
+      if (registryError) {
+        console.error("AI catalog image platform-admin registry check failed", registryError.message);
+      }
+      const hasPlatformScope = !registryError && registryResult === true;
       let authorized = hasPlatformScope;
 
       if (!authorized && (imageKind === "activity" || imageKind === "cover")) {
@@ -146,6 +149,9 @@ Deno.serve(async (req: Request) => {
         authorized = businessMemberships.some((m: any) =>
           catalogWriteAllowed(m) && (!m.branch_id || (branchIsValid && String(m.branch_id) === branchId))
         );
+      }
+      if (!authorized && registryError && businessMemberships.length === 0) {
+        return reply({ error: "platform_admin_check_unavailable" }, 503);
       }
       if (!authorized) return reply({ error: "catalog_image_permission_denied" }, 403);
 

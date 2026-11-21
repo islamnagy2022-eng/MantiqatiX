@@ -28,11 +28,17 @@ Deno.serve(async(req)=>{
   const tenantId=String(body.tenantId??"").trim(),businessId=String(body.businessId??"").trim(),name=String(body.name??"").trim();
   if(!tenantId||!businessId||!name)return out({error:"TENANT_BUSINESS_NAME_REQUIRED"},400);
   if(name.length>200)return out({error:"FIELD_TOO_LONG"},400);
-  const {data:membership,error:me}=await db.from("user_memberships").select("id,role,business_id,status,permissions").eq("user_id",user.id).eq("tenant_id",tenantId).eq("status","ACTIVE").or(`business_id.eq.${businessId},business_id.is.null`).order("id").limit(20);
+  const {data:membership,error:me}=await db.from("user_memberships").select("id,role,business_id,branch_id,status").eq("user_id",user.id).eq("tenant_id",tenantId).eq("status","ACTIVE").or(`business_id.eq.${businessId},business_id.is.null`).order("id").limit(20);
   if(me)return out({error:"MEMBERSHIP_READ_FAILED"},500);
-  const allowed=(membership||[]).some((m:any)=>["OWNER","ADMIN","BUSINESS_OWNER","MANAGER"].includes(String(m.role).toUpperCase())&&String(m.business_id||"")===businessId)
-    || (membership||[]).some((m:any)=>String(m.role).toUpperCase()==="SUPER_ADMIN"&&String(m.business_id||"")===""&&m.permissions?.scope==="PLATFORM"&&m.permissions?.full_control===true);
-  if(!allowed)return out({error:"BUSINESS_MANAGEMENT_REQUIRED"},403);
+  const businessManager=(membership||[]).some((m:any)=>["OWNER","ADMIN","BUSINESS_OWNER","MANAGER"].includes(String(m.role).toUpperCase())&&String(m.business_id||"")===businessId&&String(m.branch_id||"")==="");
+  let isPlatformAdmin=false;
+  if(!businessManager){
+    const registryClient=createClient(url,key,{auth:{autoRefreshToken:false,persistSession:false},global:{headers:{Authorization:auth}}});
+    const {data:registryResult,error:registryError}=await registryClient.rpc("mnty_can_platform_admin");
+    if(registryError)return out({error:"PLATFORM_ADMIN_CHECK_UNAVAILABLE"},503);
+    isPlatformAdmin=registryResult===true;
+  }
+  if(!businessManager&&!isPlatformAdmin)return out({error:"BUSINESS_MANAGEMENT_REQUIRED"},403);
   const {data:business,error:be}=await db.from("businesses").select("id,status,organization_id").eq("id",businessId).eq("tenant_id",tenantId).single();
   if(be||!business)return out({error:"BUSINESS_NOT_FOUND"},404);
   if(String(business.status).toUpperCase()!=="ACTIVE")return out({error:"BUSINESS_NOT_ACTIVE"},409);

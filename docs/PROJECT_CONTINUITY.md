@@ -1,3 +1,29 @@
+# Directory privacy recheck — 2026-11-21
+
+- Deployed `directory-listings`: ACTIVE v16, `verify_jwt=false`; deployed bundle remains behind current source and lacks consent-scoped GET sanitization.
+- Read-only production aggregate: 869 published listings; 869 contain primary phone and 869 contain address.
+- Current directory source includes RC473 consent registry lookup, scope-specific sanitization and fail-closed pagination; it is not deployed yet.
+- Treat directory contact disclosure as a live P0 blocker. Do not publish the Edge function until the RC473 table is applied with the full migration chain and bundle-level E2E passes.
+
+---
+
+# Latest continuation checkpoint — 2026-11-21 — Pass 1576–1585
+
+**Working baseline:** current GitHub `main`; PR #957 contains directory platform-admin and R7/mobile preservation corrections; PR #958 is the consolidated RC488–RC494 security candidate.  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.  
+**Production mutation policy:** read-only until verified backup/restore and coordinated DB/Edge release.
+
+- PR #957: repaired five previously observed CI root causes: directory TypeScript undefined `memberships`, stale Google-auth source assertion, outdated AI registry assertion, missing platform-admin registry RPC browser mock, and dependent validation failure. Latest exact-head CI has been triggered; verify before merge.
+- PR #958: consolidated RC488–RC494; RC492 fixture now mirrors narrow column-level privileges observed in Production. Exact-head checks must pass before merge.
+- PR #959 overlaps RC488–RC493. Do not merge duplicate migration sets; reconcile and close/retire the duplicate only after #958 passes.
+- Uploaded `bizcatalog-manager (11).zip` is R7 dated 2026-11-10. It is a historical feature/mobile reference, not the active runtime replacement. It uses a different root architecture and contains a mismatched Supabase project ref.
+- R7 contains mobile UI source and a minimal Android WebView wrapper, but the wrapper is incomplete, hardcodes a legacy origin/API and lacks a secure first-party navigation allowlist. Preserve it; do not integrate or certify until rebuilt against current app/backend contracts.
+- Evidence: `docs/audits/PASS_1576_1585_R7_SOURCE_AND_MOBILE_RECONCILIATION_20261121.md`.
+
+**Next:** verify exact-head CI and fix new failures; continue independent source work. No Production mutation, deployment or release certification is authorized by these source changes.
+
+---
+
 # Latest continuation checkpoint — 2026-11-21 — Pass 1546–1555
 
 **Current main:** `3084283da8e83c9f216631248b3a06a0e5ca3431`  

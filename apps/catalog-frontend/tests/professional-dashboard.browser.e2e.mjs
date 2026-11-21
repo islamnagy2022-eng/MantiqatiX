@@ -191,6 +191,9 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
     if (url.pathname.endsWith('/auth/v1/token')) {
       return session ? json(session) : json({ error: 'invalid_grant' }, 400);
     }
+    if (url.pathname.endsWith('/rest/v1/rpc/mnty_can_platform_admin')) {
+      return json(Boolean(scenario && scenario.id === roles.platformAdmin.id));
+    }
     if (url.pathname.endsWith('/rest/v1/user_memberships')) {
       if (!scenario) return json([]);
       const baseMembership = {

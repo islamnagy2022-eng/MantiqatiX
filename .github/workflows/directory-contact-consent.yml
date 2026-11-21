@@ -5,7 +5,16 @@ on:
     paths:
       - "supabase/migrations/20261118010000_rc472_*.sql"
       - "supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql"
+      - "supabase/migrations/20261113214500_rc464_platform_admin_live_registry_hardening.sql"
+      - "scripts/validate-directory-platform-admin-registry.mjs"
+      - "scripts/production/validate-doctor-incremental-import.mjs"
       - "supabase/functions/directory-listings/**"
+      - "supabase/functions/catalog-platform-admin/index.ts"
+      - "supabase/functions/catalog-admin/index.ts"
+      - "supabase/functions/ai-gemini-proxy/index.ts"
+      - "supabase/functions/business-register/index.ts"
+      - "supabase/functions/business-branch-admin/index.ts"
+      - "supabase/functions/settlement-financial-atomic/**"
       - "supabase/tests/rc473_directory_contact_consent_*"
       - "apps/catalog-frontend/src/components/DirectoryListingsView.tsx"
       - "apps/catalog-frontend/src/lib/directoryListings.ts"
@@ -20,7 +29,16 @@ on:
     paths:
       - "supabase/migrations/20261118010000_rc472_*.sql"
       - "supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql"
+      - "supabase/migrations/20261119040000_rc484_registry_backed_is_platform_admin.sql"
+      - "scripts/validate-directory-platform-admin-registry.mjs"
+      - "scripts/production/validate-doctor-incremental-import.mjs"
       - "supabase/functions/directory-listings/**"
+      - "supabase/functions/catalog-platform-admin/index.ts"
+      - "supabase/functions/catalog-admin/index.ts"
+      - "supabase/functions/ai-gemini-proxy/index.ts"
+      - "supabase/functions/business-register/index.ts"
+      - "supabase/functions/business-branch-admin/index.ts"
+      - "supabase/functions/settlement-financial-atomic/**"
       - "supabase/tests/rc473_directory_contact_consent_*"
       - "apps/catalog-frontend/src/components/DirectoryListingsView.tsx"
       - "apps/catalog-frontend/src/lib/directoryListings.ts"
@@ -76,8 +94,28 @@ jobs:
           deno-version: v2.x
       - name: Test public directory projection and consent contract
         run: node scripts/validate-directory-contact-consent.mjs
+      - name: Validate registry-backed directory platform-admin authorization
+        run: node scripts/validate-directory-platform-admin-registry.mjs
+      - name: Test registry helper fail-closed behavior
+        run: deno test --node-modules-dir=auto supabase/functions/directory-listings/platform-admin-registry.test.mjs
+      - name: Validate incremental import admin boundary
+        run: node scripts/production/validate-doctor-incremental-import.mjs
       - name: Type-check directory Edge Function
         run: deno check --node-modules-dir=auto supabase/functions/directory-listings/index.ts
+      - name: Type-check catalog platform-admin Edge Function
+        run: deno check --node-modules-dir=auto supabase/functions/catalog-platform-admin/index.ts
+      - name: Type-check catalog admin Edge Function
+        run: deno check --node-modules-dir=auto supabase/functions/catalog-admin/index.ts
+      - name: Type-check AI Gemini proxy Edge Function
+        run: deno check --node-modules-dir=auto supabase/functions/ai-gemini-proxy/index.ts
+      - name: Type-check business registration Edge Function
+        run: deno check --node-modules-dir=auto supabase/functions/business-register/index.ts
+      - name: Type-check business branch admin Edge Function
+        run: deno check --node-modules-dir=auto supabase/functions/business-branch-admin/index.ts
+      - name: Type-check settlement financial atomic Edge Function
+        run: deno check --node-modules-dir=auto supabase/functions/settlement-financial-atomic/index.ts
+      - name: Test settlement financial authorization
+        run: deno test --allow-read=supabase/functions/settlement-financial-atomic/index.ts --node-modules-dir=auto supabase/functions/settlement-financial-atomic/authorization.test.mjs
       - name: Build and type-check primary catalog frontend
         working-directory: apps/catalog-frontend
         run: |

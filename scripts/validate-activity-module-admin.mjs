@@ -30,8 +30,9 @@ assert.match(registry, /persistedOverrides\?: ActivityModuleOverrides/, 'The act
 assert.match(registry, /state: 'planned' as const/, 'Persisted configuration must never promote a planned capability to available.');
 assert.match(moduleView, /resolveActivityModuleConfig\(category, adminSettings\.activityModuleOverrides\)/, 'Public activity pages must consume saved admin configuration.');
 assert.match(backend, /sanitizeActivityModuleOverrides/, 'The Edge Function must validate activity settings server-side.');
-assert.match(backend, /const isPlatformAdmin = \(m: any\) => String\(m\.role \|\| ""\)\.toUpperCase\(\) === "SUPER_ADMIN"/, 'The settings endpoint must retain its explicit Super Admin identity check.');
-assert.match(backend, /platformMemberships = \(memberships \|\| \[\]\)\.filter\(isPlatformAdmin\)/, 'Every platform settings action must run behind the authenticated platform membership gate.');
+assert.match(backend, /userClient\.rpc\("mnty_can_platform_admin"\)/, 'Platform settings must use the canonical private registry.');
+assert.match(backend, /registryResult !== true/, 'Registry false and malformed results must fail closed.');
+assert.doesNotMatch(backend, /platformMemberships =|activeMemberships\.some\(isPlatformAdmin\)/, 'Membership rows must not confer platform-root authority.');
 assert.match(backend, /PLATFORM_ADMIN_REQUIRED/, 'Non-platform users must be denied by the Edge Function.');
 assert.match(backend, /oldValues: Object\.fromEntries/, 'The audit record must capture previous activity field values.');
 assert.match(backend, /newValues: Object\.fromEntries/, 'The audit record must capture new activity field values.');

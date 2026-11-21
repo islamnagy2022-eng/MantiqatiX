@@ -58,13 +58,6 @@ const cors = (_origin: string | null) => ({
 const out = (origin: string | null, body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: cors(origin) });
 
-const isPlatformAdmin = (m: any) =>
-  String(m.role || "").toUpperCase() === "SUPER_ADMIN" &&
-  !m.business_id &&
-  !m.branch_id &&
-  m.permissions?.scope === "PLATFORM" &&
-  m.permissions?.full_control === true;
-
 const BUSINESS_SCOPE_ROLES = [
   "OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER", "FINANCE", "SALES", "MARKETING",
   "SUPPORT", "SUPPORT_MANAGER", "EMPLOYEE", "STAFF", "SERVICE_PROVIDER", "PROVIDER_OWNER",
@@ -201,19 +194,31 @@ Deno.serve(async (req: Request) => {
     if (membershipError) throw membershipError;
 
     const activeMemberships = memberships || [];
-    const hasPlatformAdminMembership = activeMemberships.some(isPlatformAdmin);
-    // A SUPER_ADMIN membership is not, by itself, platform-root authority.
-    // Confirm the caller against private.platform_admins through the caller JWT.
-    // The shared RPC is canonicalized by RC464; any RPC error fails closed.
-    let hasRegisteredPlatformRoot = false;
-    if (hasPlatformAdminMembership) {
-      const { data: registryResult, error: registryError } = await userClient.rpc("mnty_can_platform_admin");
-      hasRegisteredPlatformRoot = !registryError && registryResult === true;
-      if (registryError) {
-        console.error("catalog-admin platform registry check failed", { code: registryError.code });
-      }
+    // The private registry is the sole source of platform-root authority.
+    // Tenant membership metadata is never required to activate a registered root.
+    const { data: registryResult, error: registryError } = await userClient.rpc("mnty_can_platform_admin");
+    if (registryError) {
+      console.error("catalog-admin platform registry check failed", { code: registryError.code });
     }
-    const hasPlatformScope = hasRegisteredPlatformRoot && hasPlatformAdminMembership;
+    const hasRegisteredPlatformRoot = !registryError && registryResult === true;
+    const hasPlatformScope = hasRegisteredPlatformRoot;
+    let productionTenantIds: string[] | null = null;
+    if (hasPlatformScope) {
+      const { data: activeTenants, error: tenantListError } = await service.from("tenants")
+        .select("id,name,code,settings").eq("status", "ACTIVE").limit(100);
+      if (tenantListError) throw tenantListError;
+      const productionTenants = (activeTenants || []).filter((tenant: any) => {
+        const id = String(tenant.id || "").toUpperCase();
+        const purpose = String(tenant.settings?.purpose || "").toLowerCase();
+        const code = String(tenant.code || "").toUpperCase();
+        const name = String(tenant.name || "").toLowerCase();
+        const testIdentity = /(^|[-_])TEST([-_]|$)|ISOLATION/.test(id) || /(^|[-_])TEST([-_]|$)|ISOLATION/.test(code);
+        return !testIdentity && !purpose.includes("test") && !purpose.includes("isolation")
+          && !name.includes("isolation test") && !name.includes("اختبار العزل");
+      });
+      productionTenantIds = productionTenants.map((tenant: any) => String(tenant.id));
+      if (tenantId && !productionTenantIds.includes(tenantId)) return out(origin, { error: "TENANT_SCOPE_FORBIDDEN" }, 403);
+    }
 
     if (action === "BUSINESS_LIST") {
       const tenantOwnerScope = tenantId && activeMemberships.some((m: any) =>
@@ -223,9 +228,8 @@ Deno.serve(async (req: Request) => {
         String(m.status || "").toUpperCase() === "ACTIVE"
       );
       if (!hasPlatformScope && !tenantOwnerScope) return out(origin, { error: "CATALOG_BUSINESS_LIST_FORBIDDEN" }, 403);
-      const platformTenants = [...new Set(activeMemberships.filter(isPlatformAdmin).map((m: any) => String(m.tenant_id)))];
-      if (hasPlatformScope && tenantId && !platformTenants.includes(tenantId)) return out(origin, { error: "TENANT_SCOPE_FORBIDDEN" }, 403);
-      const authorizedTenants = hasPlatformScope ? platformTenants : [tenantId];
+      let authorizedTenants: string[] = tenantId ? [tenantId] : [];
+      if (hasPlatformScope) authorizedTenants = tenantId ? [tenantId] : (productionTenantIds || []);
       if (!authorizedTenants.length || authorizedTenants.some((value: string) => !value)) return out(origin, { businesses: [] });
       let query = service.from("businesses")
         .select("id,tenant_id,organization_id,name,code,status,settings")
@@ -274,9 +278,7 @@ Deno.serve(async (req: Request) => {
       ) &&
       (!m.branch_id || String(m.branch_id) === String(branchId || ""))
     );
-    const scopedPlatformMembership = hasRegisteredPlatformRoot && activeMemberships.some((m: any) =>
-      String(m.tenant_id) === tenantId && isPlatformAdmin(m)
-    );
+    const scopedPlatformMembership = hasRegisteredPlatformRoot;
     const hasBusinessScope = businessMemberships.length > 0 || scopedPlatformMembership;
     if (!hasBusinessScope) return out(origin, { error: "BUSINESS_MANAGEMENT_REQUIRED" }, 403);
 

@@ -17,6 +17,7 @@ import {
 import { sanitizePublicDirectoryListing, resolveDirectoryOwnerAccess } from "./public-directory-output-contract.mjs";
 import { collectActiveAddressConsentIds } from "./consent-pagination.mjs";
 import { collectActiveContactConsentScopes } from "./contact-consent-pagination.mjs";
+import { resolveDirectoryPlatformAdmin } from "./platform-admin-registry.mjs";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const allowedOrigins = new Set([
@@ -52,12 +53,6 @@ const slugify = (value: unknown) => {
   return slug || ("listing-" + crypto.randomUUID().slice(0, 8));
 };
 const clean = (value: unknown, max = 500) => String(value ?? "").trim().slice(0, max);
-const platformAdmin = (membership: any) =>
-  String(membership?.role || "").toUpperCase() === "SUPER_ADMIN" &&
-  !membership?.business_id && !membership?.branch_id &&
-  membership?.permissions?.scope === "PLATFORM" &&
-  membership?.permissions?.full_control === true;
-
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("Origin");
   if (origin && !allowedOrigins.has(origin)) return out(origin, { error: "ORIGIN_NOT_ALLOWED" }, 403);
@@ -116,7 +111,8 @@ Deno.serve(async (req: Request) => {
           isOwner = data.claim_status === "CLAIMED" && String(data.claimed_user_id || "") === String(viewer.id);
           if (!isOwner && data.claim_status === "CLAIMED" && data.claimed_business_id) {
             const { data: memberships } = await service.from("user_memberships").select("id")
-              .eq("user_id", viewer.id).eq("business_id", data.claimed_business_id).eq("status", "ACTIVE")
+              .eq("user_id", viewer.id).eq("business_id", data.claimed_business_id)
+              .is("branch_id", null).eq("status", "ACTIVE")
               .in("role", ["BUSINESS_OWNER","OWNER"]).limit(1);
             isOwner = Boolean(memberships?.length);
           }
@@ -226,6 +222,12 @@ Deno.serve(async (req: Request) => {
   const { data: userData, error: userError } = await service.auth.getUser(token);
   const user = userData?.user;
   if (userError || !user || user.is_anonymous) return out(origin, { error: "AUTH_REQUIRED" }, 401);
+  // Preserve the verified caller JWT so the RPC evaluates auth.uid() against the
+  // registry-backed SECURITY DEFINER function, not the service-role identity.
+  const userClient = createClient(supabaseUrl, serviceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
   const action = String(body.action || "").toUpperCase();
 
   if (action === "SET_PUBLIC_CONTACT_CONSENT") {
@@ -246,7 +248,8 @@ Deno.serve(async (req: Request) => {
     let authorized = String(listing.claimed_user_id || "") === String(user.id);
     if (!authorized && listing.claimed_business_id) {
       const { data: ownerMemberships, error: ownerError } = await service.from("user_memberships").select("id")
-        .eq("user_id", user.id).eq("business_id", listing.claimed_business_id).eq("status", "ACTIVE")
+        .eq("user_id", user.id).eq("business_id", listing.claimed_business_id)
+        .is("branch_id", null).eq("status", "ACTIVE")
         .in("role", ["BUSINESS_OWNER", "OWNER"]).limit(1);
       if (ownerError) return out(origin, { error: "OWNER_CHECK_FAILED" }, 500);
       authorized = Boolean(ownerMemberships?.length);
@@ -368,11 +371,14 @@ Deno.serve(async (req: Request) => {
     return out(origin, { success: true, listing: { ...saved, can_edit: true, owned_business_id: String(listing.claimed_business_id || "") } });
   }
 
-  const { data: memberships, error: membershipsError } = await service.from("user_memberships")
-    .select("id,user_id,tenant_id,organization_id,business_id,branch_id,role,status,permissions")
-    .eq("user_id", user.id).eq("status", "ACTIVE").limit(250);
-  if (membershipsError) return out(origin, { error: "ADMIN_PERMISSION_LOOKUP_FAILED" }, 500);
-  if (!(memberships || []).some(platformAdmin)) return out(origin, { error: "PLATFORM_ADMIN_REQUIRED" }, 403);
+  const { data: registryResult, error: registryError } = await userClient.rpc("mnty_can_platform_admin");
+  if (registryError) {
+    console.error("directory platform-admin registry lookup failed", registryError.message);
+    return out(origin, { error: "PLATFORM_ADMIN_CHECK_UNAVAILABLE" }, 503);
+  }
+  if (!resolveDirectoryPlatformAdmin(registryResult, registryError)) {
+    return out(origin, { error: "PLATFORM_ADMIN_REQUIRED" }, 403);
+  }
 
   if (action === "ADMIN_LIST_SOURCE_PERMISSION_EVIDENCE") {
     const { data, error } = await service.from("directory_source_permission_evidence")
@@ -812,10 +818,9 @@ Deno.serve(async (req: Request) => {
           billing.paymentConfirmedByAdmin !== true || body.subscriptionPaid !== true) {
         return out(origin, { error: "PAID_SUBSCRIPTION_REQUIRED", message: "لا يمكن تسليم الملكية قبل تأكيد الاشتراك المدفوع من إدارة المنصة." }, 409);
       }
-      if (String(business.tenant_id || "") !== "MNTY-PLATFORM" &&
-          !memberships.some((m: any) => String(m.tenant_id) === String(business.tenant_id))) {
-        return out(origin, { error: "BUSINESS_SCOPE_FORBIDDEN" }, 403);
-      }
+      // This action is reachable only after the verified caller passed the private
+      // platform-admin registry gate above. Root administrators may review claims
+      // for any active tenant; tenant membership is not a prerequisite for root scope.
     }
 
     // The database function locks claim, listing and business rows and commits
