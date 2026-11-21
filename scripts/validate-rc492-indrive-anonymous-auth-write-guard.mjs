@@ -18,7 +18,7 @@ assert.ok(migration.includes("(SELECT (auth.jwt()->>'is_anonymous')::boolean) IS
 assert.doesNotMatch(test,/RC492_MISSING_ANONYMOUS_CLAIM_WRITE_SUCCEEDED/);
 assert.match(test,/RC492_CONFIRMED_OWNER_DELETE_REGRESSED/);
 const authenticatedSection = test.split("SET LOCAL ROLE authenticated;")[1] ?? "";
-assert.doesNotMatch(authenticatedSection,/UPDATE public\\.indrive_requests|INSERT INTO public\\.indrive_requests/i,
+assert.doesNotMatch(authenticatedSection,/UPDATE public\.indrive_requests|INSERT INTO public\.indrive_requests/i,
   "integration must not assert operations that Production does not grant to authenticated");
 assert.match(migration,/relrowsecurity AND c\.relforcerowsecurity/);
 assert.doesNotMatch(migration,/has_table_privilege/i,
