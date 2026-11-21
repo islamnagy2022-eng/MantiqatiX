@@ -119,13 +119,12 @@ Deno.serve(async (req: Request) => {
         .eq("user_id", user.id).eq("status", "ACTIVE").limit(250);
       if (membershipsError) throw membershipsError;
       const sameTenantMemberships = (memberships || []).filter((m: any) => String(m.tenant_id) === String(business.tenant_id));
+      const businessMemberships = sameTenantMemberships.filter((m: any) => String(m.business_id || "") === businessId);
       const { data: registryResult, error: registryError } = await supabase.rpc("mnty_can_platform_admin");
       if (registryError) {
         console.error("AI catalog image platform-admin registry check failed", registryError.message);
-        return reply({ error: "platform_admin_check_unavailable" }, 503);
       }
-      const hasPlatformScope = registryResult === true;
-      const businessMemberships = sameTenantMemberships.filter((m: any) => String(m.business_id || "") === businessId);
+      const hasPlatformScope = !registryError && registryResult === true;
       let authorized = hasPlatformScope;
 
       if (!authorized && (imageKind === "activity" || imageKind === "cover")) {
@@ -150,6 +149,9 @@ Deno.serve(async (req: Request) => {
         authorized = businessMemberships.some((m: any) =>
           catalogWriteAllowed(m) && (!m.branch_id || (branchIsValid && String(m.branch_id) === branchId))
         );
+      }
+      if (!authorized && registryError && businessMemberships.length === 0) {
+        return reply({ error: "platform_admin_check_unavailable" }, 503);
       }
       if (!authorized) return reply({ error: "catalog_image_permission_denied" }, 403);
 
