@@ -1,3 +1,4 @@
+- [ ] P0 directory privacy: deploy RC473 consent table and complete current `directory-listings` Edge bundle together; live v16 currently exposes phone/address for 869 published listings without consent. Require anonymous/owner consent grant-revoke and registry-outage fail-closed E2E before release.
 ## Pass 1576–1585 — Directory registry, CI repair and R7/mobile source reconciliation — 2026-11-21
 
 - [x] Fixed undefined `memberships` reference in directory claim review. The action is already behind the verified private platform-admin registry gate; root admins can review claims for active businesses across tenants without synthetic tenant membership.
