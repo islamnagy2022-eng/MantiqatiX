@@ -1,3 +1,4 @@
+import "./validate-directory-platform-admin-registry.mjs";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { sanitizePublicDirectoryListing } from "../supabase/functions/directory-listings/public-directory-output-contract.mjs";
