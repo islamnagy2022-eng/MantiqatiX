@@ -3726,3 +3726,15 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - **Unresolved release blockers:** 0/76 migration identifiers in the live ledger; 7/11 live Edge entrypoints differ from main; RC472/RC473 consent tables and current directory Edge bundle are not deployed; 869 live published directory records expose phone/address; encrypted off-site backup, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO remain unverified; Paymob sandbox and payment/finance authorization gates remain open.
 - **Next:** complete operator-owned backup/restore, read-only physical schema/object/ACL reconciliation, then coordinate RC472/RC473 with the full consent-aware directory Edge bundle and run deployed-origin consent tests. Keep Production database/Edge read-only until approved.
 
+
+
+## 2026-11-22 — Pass 1641–1650 — directory owner authorization fix
+
+- Polled PR #962 exact-head workflows for commit 86637e064ec1dd07714072298bb19a3ea1504c16; all 12/12 completed successfully with no failures.
+- Rechecked PR #962 metadata: open, mergeable, exact expected head unchanged.
+- Squash-merged PR #962 to main as 5b4163f53309676bd9fb91b0b5b3b5f1dc690756.
+- Authorization correction: business-linked listings require current ACTIVE BUSINESS_OWNER/OWNER membership on the exact business with branch_id IS NULL; legacy claimant fallback applies only when no business is linked.
+- Shared owner resolver covers detail owner status, contact-consent mutation and listing update. Regression source-contract assertions cover scope and all call sites.
+- No Production DB/migration/Auth/RLS/GRANT/Storage/Edge/payment/wallet/customer-data mutation. No Edge deployment inferred from PR CI.
+- Remaining: coordinated migration and Edge release, verified encrypted off-site backup and independent PostgreSQL 17 restore/rollback, exact live bundle parity, and deployed positive/negative authorization tests.
+- Disposition: source fix merged and exact-head CI green; PRODUCTION BLOCKED / NOT CERTIFIED.
