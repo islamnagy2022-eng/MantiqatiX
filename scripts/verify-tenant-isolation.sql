@@ -58,6 +58,8 @@ $preflight$;
 
 SELECT set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000001',true);
 SELECT set_config('request.jwt.claim.role','authenticated',true);
+SELECT set_config('request.jwt.claims',
+  jsonb_build_object('sub','20000000-0000-4000-8000-000000000001','role','authenticated','is_anonymous',false)::text,true);
 SET LOCAL ROLE authenticated;
 
 DO $tenant_a$
@@ -81,6 +83,9 @@ BEGIN
   SELECT count(*) INTO v_cross_payments FROM public.payment_intents WHERE tenant_id='MNTY-TEST-B';
   SELECT count(*) INTO v_own_onboarding FROM public.provider_onboarding_requests WHERE tenant_id='MNTY-TEST-A';
   SELECT count(*) INTO v_cross_onboarding FROM public.provider_onboarding_requests WHERE tenant_id='MNTY-TEST-B';
+
+  RAISE NOTICE 'TENANT_A_COUNTS businesses=% orders=% payments=% onboarding=%',
+    v_own_businesses,v_own_orders,v_own_payments,v_own_onboarding;
 
   IF v_own_businesses=0 OR v_own_orders=0 OR v_own_payments=0 OR v_own_onboarding=0 THEN
     RAISE EXCEPTION 'E2E_FIXTURE_OWN_ROWS_NOT_VISIBLE_TO_TENANT_A';
@@ -112,6 +117,8 @@ $tenant_a$;
 
 RESET ROLE;
 SELECT set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000002',true);
+SELECT set_config('request.jwt.claims',
+  jsonb_build_object('sub','20000000-0000-4000-8000-000000000002','role','authenticated','is_anonymous',false)::text,true);
 SET LOCAL ROLE authenticated;
 
 DO $tenant_b$
