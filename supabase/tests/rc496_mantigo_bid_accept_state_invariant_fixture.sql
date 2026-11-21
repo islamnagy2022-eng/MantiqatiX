@@ -11,7 +11,7 @@ AS $function$
 $function$;
 
 CREATE OR REPLACE FUNCTION public.mantigo_accept_bid(p_ride_id text,p_bid_id text)
-RETURNS void LANGUAGE sql AS $function$ SELECT NULL::void $function$;
+RETURNS void LANGUAGE plpgsql AS $function$ BEGIN RETURN; END; $function$;
 
 CREATE OR REPLACE FUNCTION public.mantigo_submit_bid(
   p_ride_id text,p_offered_price numeric,p_captain_name text,
