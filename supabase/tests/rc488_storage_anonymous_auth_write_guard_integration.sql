@@ -80,9 +80,20 @@ BEGIN
   GET DIAGNOSTICS n=ROW_COUNT;
   IF n <> 0 THEN RAISE EXCEPTION 'RC488_ANONYMOUS_PROFILE_MEDIA_UPDATE_SUCCEEDED:%',n; END IF;
 
-  -- Storage blocks direct SQL DELETE before RLS. Verify the installed restrictive
-  -- DELETE policy here; the dedicated RC488 PostgreSQL fixture exercises actual
-  -- anonymous-denied and confirmed-owner-allowed DELETE row behavior.
+  -- The real Supabase Storage schema blocks direct SQL DELETE before RLS.
+  -- In its disposable full-schema replay, verify the restrictive DELETE policy;
+  -- the isolated RC488 fixture has no Storage API trigger and tests actual DELETE.
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_trigger
+    WHERE tgrelid='storage.objects'::regclass
+      AND tgname='protect_objects_delete'
+      AND NOT tgisinternal
+  ) THEN
+    DELETE FROM storage.objects WHERE id='48800000-0000-4000-8000-000000000101';
+    GET DIAGNOSTICS n=ROW_COUNT;
+    IF n <> 0 THEN RAISE EXCEPTION 'RC488_ANONYMOUS_PROFILE_MEDIA_DELETE_SUCCEEDED:%',n; END IF;
+  END IF;
+
   SELECT count(*) INTO n
   FROM pg_catalog.pg_policies
   WHERE schemaname='storage'
@@ -137,6 +148,17 @@ BEGIN
   WHERE id='48800000-0000-4000-8000-000000000102';
   GET DIAGNOSTICS n=ROW_COUNT;
   IF n <> 1 THEN RAISE EXCEPTION 'RC488_CONFIRMED_OWNER_UPDATE_REGRESSED:%',n; END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_trigger
+    WHERE tgrelid='storage.objects'::regclass
+      AND tgname='protect_objects_delete'
+      AND NOT tgisinternal
+  ) THEN
+    DELETE FROM storage.objects WHERE id='48800000-0000-4000-8000-000000000102';
+    GET DIAGNOSTICS n=ROW_COUNT;
+    IF n <> 1 THEN RAISE EXCEPTION 'RC488_CONFIRMED_OWNER_DELETE_REGRESSED:%',n; END IF;
+  END IF;
 
   INSERT INTO storage.objects(bucket_id,name,owner,owner_id,metadata)
   VALUES ('mantiqatix-profile-media','platform/branding/logo-998.jpg',
