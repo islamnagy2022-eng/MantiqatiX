@@ -9,7 +9,8 @@ VALUES
   ('49400000-0000-4000-8000-000000000001','authenticated','authenticated','rc494-platform-root@example.invalid','',now(),'{"provider":"email","providers":["email"]}'::jsonb,'{"rc494_fixture":true}'::jsonb,now(),now(),false,false),
   ('49400000-0000-4000-8000-000000000002','authenticated','authenticated','rc494-fake-platform-member@example.invalid','',now(),'{"provider":"email","providers":["email"]}'::jsonb,'{"rc494_fixture":true}'::jsonb,now(),now(),false,false),
   ('49400000-0000-4000-8000-000000000003','authenticated','authenticated','rc494-business-finance@example.invalid','',now(),'{"provider":"email","providers":["email"]}'::jsonb,'{"rc494_fixture":true}'::jsonb,now(),now(),false,false),
-  ('49400000-0000-4000-8000-000000000004','authenticated','authenticated','rc494-tenant-finance@example.invalid','',now(),'{"provider":"email","providers":["email"]}'::jsonb,'{"rc494_fixture":true}'::jsonb,now(),now(),false,false)
+  ('49400000-0000-4000-8000-000000000004','authenticated','authenticated','rc494-tenant-finance@example.invalid','',now(),'{"provider":"email","providers":["email"]}'::jsonb,'{"rc494_fixture":true}'::jsonb,now(),now(),false,false),
+  ('49400000-0000-4000-8000-000000000005','authenticated','authenticated','rc494-branch-finance@example.invalid','',now(),'{"provider":"email","providers":["email"]}'::jsonb,'{"rc494_fixture":true}'::jsonb,now(),now(),false,false)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.tenants(id,name,code,status,settings)
@@ -28,12 +29,17 @@ INSERT INTO private.platform_admins(user_id)
 VALUES ('49400000-0000-4000-8000-000000000001')
 ON CONFLICT (user_id) DO NOTHING;
 
+INSERT INTO public.branches(id,tenant_id,organization_id,business_id,name,code,status,settings)
+VALUES ('RC494-BRANCH','RC494-TENANT',NULL,'49400000-0000-4000-8000-000000000101','RC494 branch','RC494-BRANCH','ACTIVE','{}'::jsonb)
+ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO public.user_memberships
   (id,user_id,tenant_id,organization_id,business_id,branch_id,role,permissions,status,created_at)
 VALUES
  ('RC494-FAKE-PLATFORM-MEMBERSHIP','49400000-0000-4000-8000-000000000002','MNTY-PLATFORM',NULL,NULL,NULL,'SUPER_ADMIN','{"scope":"PLATFORM","full_control":true}'::jsonb,'ACTIVE',now()-interval '1 day'),
  ('RC494-BUSINESS-FINANCE-MEMBERSHIP','49400000-0000-4000-8000-000000000003','RC494-TENANT',NULL,'49400000-0000-4000-8000-000000000101',NULL,'ACCOUNTANT','{}'::jsonb,'ACTIVE',now()-interval '1 day'),
- ('RC494-TENANT-FINANCE-MEMBERSHIP','49400000-0000-4000-8000-000000000004','RC494-TENANT',NULL,NULL,NULL,'FINANCE_MANAGER','{}'::jsonb,'ACTIVE',now()-interval '1 day')
+ ('RC494-TENANT-FINANCE-MEMBERSHIP','49400000-0000-4000-8000-000000000004','RC494-TENANT',NULL,NULL,NULL,'FINANCE_MANAGER','{}'::jsonb,'ACTIVE',now()-interval '1 day'),
+ ('RC494-BRANCH-FINANCE-MEMBERSHIP','49400000-0000-4000-8000-000000000005','RC494-TENANT',NULL,'49400000-0000-4000-8000-000000000101','RC494-BRANCH','ACCOUNTANT','{}'::jsonb,'ACTIVE',now()-interval '1 day')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.chart_of_accounts(id,tenant_id,account_code,account_name,account_type,is_active)
@@ -175,6 +181,18 @@ BEGIN
     RAISE EXCEPTION 'RC494_BUSINESS_ROLE_TENANT_WIDE_SETTLEMENT_SUCCEEDED';
   EXCEPTION WHEN others THEN
     IF SQLERRM <> 'TENANT_FINANCE_SCOPE_REQUIRED' THEN RAISE; END IF;
+  END;
+
+  BEGIN
+    PERFORM public.create_settlement_and_post_journal(
+      'RC494-BRANCH-SCOPE','RC494-TENANT','MERCHANT','merchant-branch-scope',
+      100,0,100,0,'BANK_TRANSFER','RC494-BRANCH-SCOPE',
+      '49400000-0000-4000-8000-000000000101','branch-scoped finance must fail',
+      '49400000-0000-4000-8000-000000000005'
+    );
+    RAISE EXCEPTION 'RC494_BRANCH_SCOPED_SETTLEMENT_SUCCEEDED';
+  EXCEPTION WHEN others THEN
+    IF SQLERRM <> 'BUSINESS_SCOPE_DENIED' THEN RAISE; END IF;
   END;
 
   v_result := public.create_settlement_and_post_journal(
