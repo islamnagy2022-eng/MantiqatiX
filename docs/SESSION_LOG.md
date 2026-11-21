@@ -3710,3 +3710,14 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - PR #951's docs branch is one commit behind and diverged from main; a fresh docs branch is being prepared instead of force-merging.
 
 **Disposition: SOURCE FIX MERGED / CI PASS; PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-11-21 — SESSION-NEW — Pass 1556–1565 — RC488–RC493 anonymous Auth boundary
+
+- Confirmed PR #952 and PR #955 merged. Current main includes the address-consent thrown-fetch fail-closed fix and regression.
+- Read-only Production: 310 migration rows through 20261110150618; none of the 73 required release versions are present. RC472/RC473 remain unapplied.
+- Corrected RC492 based on live privileges: indrive_requests grants authenticated DELETE only; indrive_bids grants authenticated SELECT only. Added a restrictive bid-read guard; no grants are widened. Disposable integration fixture matches Production and does not claim to test unavailable INSERT/UPDATE operations.
+- Added RC488–RC493 forward migrations, integration coverage, release contract updates and dedicated RC492 PostgreSQL workflow in PR #959. Exact-head workflows are queued; merge withheld pending successful checks.
+- Read-only SECURITY DEFINER inventory: 65 authenticated-executable public functions; 0 without configured search_path; 47 use public, 18 empty, 17 include pg_temp; only one is also anon-executable and is the constrained targeted-ad read RPC with empty search_path. No blanket changes made.
+- Production remains blocked pending encrypted DB/Storage backup, off-site retrieval, Vault recovery, independent PostgreSQL 17 restore/rollback and RPO/RTO; coordinated RC472/RC473 and full Edge bundle; directory-consent E2E.
+- No Production DB, migration, RLS/GRANT, Auth, Storage, Edge, payment or customer-data mutation.
