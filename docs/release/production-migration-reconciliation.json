@@ -27,7 +27,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED — no actual Production database/Storage export, off-site upload/retrieval, Vault recovery, separate-project PostgreSQL 17 restore, measured RPO/RTO or rollback rehearsal occurred. PR #875 merged a read-only encrypted backup manifest/evidence validator; exact-head CI passed 12/12 disposable tests (run 44640871190). The tool validates operator-created artifacts/evidence only and does not create backups or perform restores.",
   "evidence_ref": "docs/audits/PRODUCTION_RECONCILIATION_20261114.md",
   "checked_at": "2026-11-21",
-  "reason": "BLOCKED / NOT CERTIFIED: fresh read-only Production check on 2026-11-21 found 310 migration rows through 20261110150618 and 0/76 exact required release identifiers. Exact live Edge entrypoint parity remains 4/11, with seven critical functions differing from main. Independent physical contract gaps include missing payment/order/subscription RPCs and columns, RC450 service_role journal EXECUTE, and registry-backed global-admin hardening. Directory contact-consent remains BLOCKED: live anonymous directory GET exposes phone/address for 869 published rows while RC473 consent tables are absent. Anonymous Auth and Storage policy guards RC488–RC495 are source candidates only and not applied; RC494 additionally closes the service-role settlement writer's membership-only MNTY-PLATFORM authority and enforces business/tenant finance scope. The backup verifier has disposable CI coverage, but no actual encrypted database/Storage backup, off-site retrieval, Vault recovery or independent PostgreSQL 17 restore/rollback was performed; RPO/RTO remain unverified. No Production mutation was performed. RC495 adds a forward-only Storage filename/registry authorization repair after the RC488–RC494 chain; it is source-only and unapplied. PR #961 re-applies the RC488–RC496 source set on the post-PR #957 current main without overwriting the newer directory-registry changes; its exact-head replay is pending. The prior PR #958 replay evidence is retained separately as historical evidence and is not used to certify PR #961.",
+  "reason": "BLOCKED / NOT CERTIFIED: fresh read-only Production check on 2026-11-21 found 310 migration rows through 20261110150618 and 0/76 exact required release identifiers. Exact live Edge entrypoint parity remains 4/11, with seven critical functions differing from main. Independent physical contract gaps include missing payment/order/subscription RPCs and columns, RC450 service_role journal EXECUTE, and registry-backed global-admin hardening. Directory contact-consent remains BLOCKED: live anonymous directory GET exposes phone/address for 869 published rows while RC473 consent tables are absent. Anonymous Auth and Storage policy guards RC488–RC495 are source candidates only and not applied; RC494 additionally closes the service-role settlement writer's membership-only MNTY-PLATFORM authority and enforces business/tenant finance scope. The backup verifier has disposable CI coverage, but no actual encrypted database/Storage backup, off-site retrieval, Vault recovery or independent PostgreSQL 17 restore/rollback was performed; RPO/RTO remain unverified. No Production mutation was performed. RC495 adds a forward-only Storage filename/registry authorization repair after the RC488–RC494 chain; it is source-only and unapplied. PR #961 merged as a0af2a4d2f561794f17eff5cf57d15ab3f1aa58b after 19/19 exact-head CI workflows passed, including 112-migration chronological disposable replay and catalog browser E2E. This is source/CI evidence only; no Production migration or deployment was performed. The prior PR #958 replay evidence remains historical.",
   "edge_function_contracts": "PARTIAL — fresh exact entrypoint comparison on 2026-11-20 found 7/11 critical live Edge functions differ from current main: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3, directory-listings v16. Four exact matches: api v17, order-status-update v4, payment-webhook v3, smm-gateway v13 (still deferred). Do not deploy mismatched payment/finance/directory/order functions individually; the live database is missing or has older payment, subscription, journal, order and directory consent contracts.",
   "smm_gateway_parity": "PARTIAL — live SMM gateway remains ACTIVE v13, verify_jwt=true, and source matches main with SMM_INITIAL_LAUNCH_DEFERRED=true. Anonymous/authenticated negative runtime tests still unverified; keep deferred.",
   "auth_security_settings": "NOT VERIFIED — current connector does not expose project Auth security configuration. The prior 2026-11-06 advisor snapshot reported leaked-password protection disabled; owner-dashboard confirmation and remediation evidence are still required. No Auth settings were changed.",
@@ -5115,20 +5115,24 @@
     "method": "Read-only catalog checks using to_regclass, to_regprocedure, pg_class, pg_proc, RLS flags and has_table_privilege; no application data selected."
   },
   "latest_candidate_replay_20261121": {
-    "status": "PENDING",
+    "status": "PASS",
     "checked_at": "2026-11-21",
     "pr": 961,
-    "source_commit": "8dd155cb3a3fa0d63c7e67dd1f3903ddf00ba280",
+    "source_commit": "c0cd7aca54c80881e335c6b184b9773683144ada",
+    "merge_commit": "a0af2a4d2f561794f17eff5cf57d15ab3f1aa58b",
     "checkpoint_version": "20261008222845",
-    "forward_migrations_expected": 111,
-    "workflow_run": "https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44938067633",
+    "forward_migrations_applied": 112,
+    "workflow_run": "https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44938468275",
     "exact_head_check_runs": {
-      "status": "PENDING"
+      "success": 19,
+      "skipped": 0,
+      "failed": 0,
+      "incomplete": 0
     },
-    "critical_browser_e2e": "PENDING",
-    "result": "The reconciled current-main PR #961 is undergoing exact-head checks and chronological replay. No replay or browser E2E pass is claimed until the current run completes.",
-    "production_effect": "NONE — source-only PR and disposable CI; no Production schema/data/grants/Auth/Edge Functions/payments/wallets or migration ledger rows changed.",
-    "limitation": "A schema-only disposable replay is not a genuine Production backup restore. Off-site backup retrieval, Vault recovery, independent PostgreSQL 17 restore/rollback, measured RPO/RTO and live post-deploy authorization remain unverified."
+    "critical_browser_e2e": "PASS",
+    "result": "PR #961 merged to main after all 19 exact-head pull-request workflows passed. Disposable Supabase restored the captured schema-only checkpoint and applied 112 forward migrations chronologically. RC488–RC496 contract/integration checks and synthetic two-tenant isolation checks passed. The catalog browser E2E and employee RBAC PostgreSQL checks passed.",
+    "production_effect": "NONE — source merge and disposable CI only. No Production schema/data/grants/Auth/Edge Functions/payments/wallets or migration ledger rows changed.",
+    "limitation": "The schema-only disposable replay is not a genuine Production backup restore. Off-site backup retrieval, Vault recovery, independent PostgreSQL 17 restore/rollback, measured RPO/RTO and live post-deploy authorization remain unverified. The post-merge main Pages deploy and browser workflow are still running as of this checkpoint; no live deployment is claimed."
   },
   "production_security_recheck_20261121": {
     "checked_at": "2026-11-21",
