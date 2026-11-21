@@ -69,3 +69,12 @@ No Production migration, DDL/DML, RLS/GRANT, Edge deployment, Auth, Storage, pay
 - Added disposable test cases for duplicate ACCEPTED bid rows and a pre-existing ledger tied to the wrong captain. The fare-lock failure trigger still verifies full rollback of accepted ride/bid state and prevents partial financial rows.
 - The test fixture now models the actual financial ledger fields and the concurrency test asserts exactly one persisted ledger row, rather than counting test-only lock-call markers.
 - The updated exact-head RC496 workflow and full 76-migration replay must complete before claiming a test pass. No Production function, data, ledger or Edge deployment was changed.
+
+## Terminal accepted-bid fixture expectation correction — 2026-11-21
+
+- The first dedicated RC496 workflow run applied the migration successfully and failed in the adversarial fixture at the terminal-state matrix. The `RC496-ACCEPTED` case deliberately models a legacy inconsistent state: the ride row is still `OPEN` with no `accepted_bid_id`, while a related bid row is already `ACCEPTED`.
+- The migration correctly detects that inconsistent winner state before inspecting the requested bid and raises `RIDE_ACCEPTANCE_STATE_MISMATCH`; this fail-closed behavior prevents creating a second winner. The fixture incorrectly expected `BID_NOT_OFFERED` for that case.
+- Updated only the test expectation: the inconsistent `ACCEPTED` row expects `RIDE_ACCEPTANCE_STATE_MISMATCH`; `REJECTED`, `WITHDRAWN`, and `EXPIRED` rows continue to expect `BID_NOT_OFFERED`. No migration or production function logic was weakened or changed.
+- Test correction commit: `47057fe870ef486d197a74d79d8ef34b600891b2`.
+- The exact-head workflow and forward migration replay have been retriggered by the commit. No pass is claimed until both complete.
+- No Production migration, function, DDL/DML, RLS/GRANT, Edge deployment, Auth, Storage, payment, settlement or customer data was modified.
