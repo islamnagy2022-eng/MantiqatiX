@@ -106,7 +106,16 @@ Deno.serve(async (req) => {
     }
 
     const authorizedMemberships = (memberships ?? []) as unknown as SettlementMembership[];
-    if (!hasSettlementAuthority({ tenantId, businessId, memberships: authorizedMemberships })) {
+    let isPlatformAdmin = false;
+    if (tenantId === "MNTY-PLATFORM") {
+      const { data: registryResult, error: registryError } = await userClient.rpc("mnty_can_platform_admin");
+      if (registryError) {
+        console.error("settlement platform-admin registry check failed", { code: registryError.code });
+        return json({ error: "PLATFORM_ADMIN_CHECK_UNAVAILABLE" }, 503);
+      }
+      isPlatformAdmin = registryResult === true;
+    }
+    if (!hasSettlementAuthority({ tenantId, businessId, memberships: authorizedMemberships, isPlatformAdmin })) {
       return json({ error: "SETTLEMENT_FORBIDDEN" }, 403);
     }
 
