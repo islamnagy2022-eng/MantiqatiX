@@ -56,3 +56,11 @@ A final source review found that RC495's migration already included the confirme
 
 Fresh read-only Production ledger check against the exact 75-version release list: 310 rows; latest `20261110150618`; 0/75 required versions applied; RC488–RC495 0/8 applied. No Production changes.
 
+## Exact-head CI follow-up — 2026-11-21
+
+- On commit `30a67c1948b8c08f9d91031d859e66a90041817c`, the RC495 static validator failed because the live-overlay assertion double-escaped the whitespace regex (`[\\\\s\\\\S]`). Corrected it to the intended JavaScript regex at commit `a4ba9691e35b4213e780868ad83af960ad480b67`. The RC495 static validator then passed on the next exact-head forward-replay run.
+- That replay advanced through all 111 forward migrations and RC485–RC492 integration tests, then exposed a fixture setup defect in RC494: its synthetic businesses were inserted ACTIVE without an active OWNER/BUSINESS_OWNER membership, correctly triggering the existing `LEGAL_BUSINESS_OWNER_REQUIRED` business activation guard.
+- Corrected only the isolated RC494 test fixture at commit `baa59409b8f4a088d8a61af6c12a4b74ed1ada12`: insert businesses as DRAFT, create active owner memberships for both synthetic businesses, then transition them to ACTIVE. The test now satisfies the real legal activation boundary rather than bypassing it.
+- Exact-head run `44871878345` (forward migration replay) was still running its disposable Supabase startup at the latest check; the full chronological replay and RC494/RC495 integration result are therefore pending. Do not claim replay success yet.
+- At that checkpoint, Directory Contact Consent, Directory Claim Atomicity, RC488, RC492, RC493, RC475, RC425, migration uniqueness/history, platform-admin registry hardening, MantiGO privacy, approval-audit atomicity, backup-manifest evidence validation and migration-collision checks had passed on the current head. Primary Catalog browser E2E and V6 Preview validation were still running.
+- PR #957's exact-head suite completed 15/15 successful checks, but it remains open pending integration/review coordination with PR #958. No Production migration, RLS/GRANT change, Edge deployment, Pages deployment or customer-data mutation occurred.
