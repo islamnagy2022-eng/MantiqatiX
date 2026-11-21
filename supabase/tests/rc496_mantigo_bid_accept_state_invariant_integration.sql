@@ -155,8 +155,12 @@ BEGIN
     EXCEPTION WHEN OTHERS THEN
       v_error:=SQLERRM;
     END;
-    IF v_error IS DISTINCT FROM 'BID_NOT_OFFERED' THEN
-      RAISE EXCEPTION 'RC496 state % expected BID_NOT_OFFERED, got %',v_pair[1],v_error;
+    v_expected := CASE
+      WHEN v_pair[1]='RC496-ACCEPTED' THEN 'RIDE_ACCEPTANCE_STATE_MISMATCH'
+      ELSE 'BID_NOT_OFFERED'
+    END;
+    IF v_error IS DISTINCT FROM v_expected THEN
+      RAISE EXCEPTION 'RC496 state % expected %, got %',v_pair[1],v_expected,v_error;
     END IF;
     SELECT status INTO v_status FROM public.mantigo_bids WHERE id=v_pair[2];
     IF v_status NOT IN ('ACCEPTED','REJECTED','WITHDRAWN','EXPIRED') THEN
