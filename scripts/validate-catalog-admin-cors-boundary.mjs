@@ -29,11 +29,13 @@ assert.match(source, /paymentStatus \|\| ""\)\.toLowerCase\(\) === "frozen"/, "l
 assert.match(source, /BUSINESS_INACTIVE/, "inactive businesses must not accept merchant mutations");
 assert.match(source, /SUBSCRIPTION_FROZEN/, "frozen subscriptions must reject merchant mutations");
 
-assert.match(source, /!m\.business_id &&\s*!m\.branch_id &&\s*m\.permissions\?\.scope === "PLATFORM"/, "platform-wide privileges must not be attached to a branch-scoped membership");
+assert.doesNotMatch(source, /m\.permissions\?\.scope\s*===\s*"PLATFORM"/, "membership metadata must never confer platform-root authority");
 
 assert.match(source, /await userClient\.rpc\("mnty_can_platform_admin"\)/, "platform-root authorization must consult the caller-context canonical registry guard");
 assert.match(source, /hasRegisteredPlatformRoot = !registryError && registryResult === true/, "registry lookup errors and false results must fail closed");
-assert.match(source, /hasPlatformScope = hasRegisteredPlatformRoot && hasPlatformAdminMembership/, "platform membership claims alone must never grant root scope");
-assert.match(source, /scopedPlatformMembership = hasRegisteredPlatformRoot && activeMemberships\.some/, "business recovery bypass must also require canonical registry membership");
+assert.match(source, /hasPlatformScope = hasRegisteredPlatformRoot/, "the private registry alone must confer platform-root scope");
+assert.match(source, /scopedPlatformMembership = hasRegisteredPlatformRoot/, "registered roots must recover businesses without a tenant membership row");
+assert.doesNotMatch(source, /isPlatformAdmin|hasPlatformAdminMembership|platformTenants/, "platform scope must not depend on membership-derived root claims or tenant lists");
+assert.match(source, /service\.from\("tenants"\)[\s\S]*?select\("id"\)[\s\S]*?eq\("status", "ACTIVE"\)/, "root tenant enumeration must come from active persisted tenants");
 
 console.log("Catalog admin CORS, authorization, and subscription enforcement source contract: PASS");
