@@ -78,3 +78,14 @@ No Production migration, DDL/DML, RLS/GRANT, Edge deployment, Auth, Storage, pay
 - Test correction commit: `47057fe870ef486d197a74d79d8ef34b600891b2`.
 - The exact-head workflow and forward migration replay have been retriggered by the commit. No pass is claimed until both complete.
 - No Production migration, function, DDL/DML, RLS/GRANT, Edge deployment, Auth, Storage, payment, settlement or customer data was modified.
+
+## Exact-head RC496 regression verification — PASS — 2026-11-21
+
+- Exact source head: `bb3e0d021857401d6e33101ad15cc83307eab6b6`.
+- GitHub Actions workflow: `MantiGO Bid Acceptance State Invariant RC496`, run `44919294795`.
+- Disposable PostgreSQL schema fixture creation: PASS.
+- RC496 migration application: PASS.
+- Adversarial state and idempotency tests: PASS.
+- Two-session concurrent acceptance race: PASS.
+- The accepted-ride inconsistent legacy fixture now asserts `RIDE_ACCEPTANCE_STATE_MISMATCH`, matching the migration's fail-closed behavior; other non-OFFERED states assert `BID_NOT_OFFERED`.
+- This is a CI/disposable-database result only. The full chronological production-checkpoint migration replay and remaining PR checks are still running; no Production migration or deployment is implied.
