@@ -317,6 +317,26 @@ BEGIN
     END IF;
   END IF;
 
+  IF EXISTS (
+    SELECT 1 FROM public.journal_entries je
+    WHERE je.id=v_je_id
+      AND (
+        je.tenant_id IS DISTINCT FROM p_tenant_id
+        OR je.business_id IS DISTINCT FROM p_business_id
+        OR je.organization_id IS NOT NULL
+        OR je.branch_id IS NOT NULL
+        OR je.reference_type IS DISTINCT FROM CASE
+          WHEN p_beneficiary_type='PARTNER' THEN 'PARTNER_COMMISSION_SETTLEMENT'
+          ELSE 'ORDER_SETTLEMENT'
+        END
+        OR je.reference_id IS DISTINCT FROM coalesce(p_reference_id,p_id)
+        OR je.created_by IS DISTINCT FROM p_actor_user_id
+        OR je.status IS DISTINCT FROM 'DRAFT'
+      )
+  ) THEN
+    RAISE EXCEPTION 'SETTLEMENT_IDENTITY_MISMATCH';
+  END IF;
+
   SELECT id INTO v_account_2010 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='2010' AND is_active=true LIMIT 1;
   SELECT id INTO v_account_1020 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='1020' AND is_active=true LIMIT 1;
   SELECT id INTO v_account_2050 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='2050' AND is_active=true LIMIT 1;
