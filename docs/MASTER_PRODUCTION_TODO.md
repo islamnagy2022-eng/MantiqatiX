@@ -4758,3 +4758,19 @@ Evidence: `docs/audits/PASS_1480_1489_RC479_ANONYMOUS_AUTH_SESSION_GAP_20261120.
 Evidence: PR #962 https://github.com/islamnagy2022-eng/MantiqaTix/pull/962; tested head 86637e064ec1dd07714072298bb19a3ea1504c16; merge commit 5b4163f53309676bd9fb91b0b5b3b5f1dc690756.
 
 Safety: source/test changes merged only. No Production database, migration, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet or customer data was changed. Production remains BLOCKED / NOT CERTIFIED.
+
+
+### Pass 1651–1660 — live directory and platform-root parity recheck — 2026-11-22
+
+- [x] Read-only Production recheck: 310 migration rows through 20261110150618; required RC471/482/483/484/485/486/487 versions present: 0/7.
+- [x] Confirm live is_platform_admin remains membership-derived SECURITY INVOKER with search_path=public; private.platform_admins FORCE RLS remains false; 57 policies across 24 tables still depend on it.
+- [x] Confirm public.directory_listing_contact_consents is absent and 869 published directory rows exist (aggregate count only; no contact values selected).
+- [x] Compare deployed directory-listings v16 bundle with canonical main: live bundle hash 13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0 lacks the consent/public-output/owner-registry dependencies now imported by main and lacks resolveListingOwner.
+- [ ] Complete encrypted off-site backup, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO.
+- [ ] Rehearse and reconcile the complete chronological migration chain before any coordinated Production database/Edge release.
+- [ ] Deploy consent-aware directory migrations and full Edge bundle together; verify exact deployed hash and consent/owner adversarial tests.
+- [ ] Resolve P0 platform-root helper/policy live drift and recheck all 57 dependent policies after approved release.
+
+Evidence: docs/audits/PASS_1651_1660_LIVE_DIRECTORY_AND_PLATFORM_ROOT_RECHECK_20261122.md; live read-only SQL snapshot; deployed Edge metadata; canonical main source blob 0d378cc88770ab23ab029a628bd891848a2348f4.
+
+Safety: no Production mutation or deployment. Production remains BLOCKED / NOT CERTIFIED.
