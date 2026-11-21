@@ -325,6 +325,17 @@ BEGIN
   IF p_beneficiary_type='PARTNER' AND round(p_net+p_voucher,2)<>round(p_gross,2) THEN RAISE EXCEPTION 'PARTNER_SETTLEMENT_MUST_EQUAL_GROSS'; END IF;
   IF p_beneficiary_type='MERCHANT' AND p_voucher<>0 THEN RAISE EXCEPTION 'MERCHANT_VOUCHER_MUST_BE_ZERO'; END IF;
 
+  SELECT id INTO v_account_2010 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='2010' AND is_active=true LIMIT 1;
+  SELECT id INTO v_account_1020 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='1020' AND is_active=true LIMIT 1;
+  SELECT id INTO v_account_2050 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='2050' AND is_active=true LIMIT 1;
+  SELECT id INTO v_account_5030 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='5030' AND is_active=true LIMIT 1;
+  IF v_account_1020 IS NULL THEN RAISE EXCEPTION 'COA_1020_MISSING'; END IF;
+  IF p_beneficiary_type='MERCHANT' AND v_account_2010 IS NULL THEN RAISE EXCEPTION 'COA_2010_MISSING'; END IF;
+  IF p_beneficiary_type='PARTNER' AND (v_account_2050 IS NULL OR v_account_5030 IS NULL) THEN RAISE EXCEPTION 'COA_PARTNER_ACCOUNTS_MISSING'; END IF;
+
+  v_total := CASE WHEN p_beneficiary_type='PARTNER' THEN p_gross ELSE p_net END;
+  IF v_total<=0 THEN RAISE EXCEPTION 'SETTLEMENT_TOTAL_MUST_BE_POSITIVE'; END IF;
+
   SELECT * INTO v_existing
   FROM public.settlement_transactions
   WHERE id=p_id
@@ -340,7 +351,9 @@ BEGIN
        OR v_existing.net_payout IS DISTINCT FROM p_net
        OR v_existing.voucher_reserve IS DISTINCT FROM p_voucher
        OR (p_channel IS NOT NULL AND v_existing.payout_channel IS DISTINCT FROM p_channel)
-       OR v_existing.reference_id IS DISTINCT FROM p_reference_id THEN
+       OR v_existing.reference_id IS DISTINCT FROM p_reference_id
+       OR (v_existing.journal_entry_id IS NOT NULL AND v_existing.journal_entry_id IS DISTINCT FROM v_je_id)
+       OR (v_existing.status='SETTLED' AND v_existing.journal_entry_id IS NULL) THEN
       RAISE EXCEPTION 'SETTLEMENT_IDENTITY_MISMATCH';
     END IF;
     IF v_existing.journal_entry_id IS NOT NULL AND NOT EXISTS (
@@ -355,6 +368,53 @@ BEGIN
       RAISE EXCEPTION 'SETTLEMENT_IDENTITY_MISMATCH';
     END IF;
     IF v_existing.status='SETTLED' AND v_existing.journal_entry_id IS NOT NULL THEN
+      -- Idempotent retries must validate the posted journal contents too; a matching
+      -- settlement row/header cannot bless altered, missing or extra journal lines.
+      IF (SELECT count(*) FROM public.journal_entry_lines
+          WHERE journal_entry_id=v_je_id) <> CASE WHEN p_beneficiary_type='PARTNER' THEN 3 ELSE 2 END THEN
+        RAISE EXCEPTION 'SETTLEMENT_JOURNAL_LINES_IDENTITY_MISMATCH';
+      END IF;
+
+      IF p_beneficiary_type='PARTNER' THEN
+        IF NOT EXISTS (
+          SELECT 1 FROM public.journal_entry_lines
+          WHERE id='jel_'||p_id||'_5030' AND journal_entry_id=v_je_id
+            AND account_id=v_account_5030 AND line_number=1
+            AND debit IS NOT DISTINCT FROM p_gross AND credit IS NOT DISTINCT FROM 0::numeric
+            AND description IS NOT DISTINCT FROM 'Partner commission expense'
+        ) OR NOT EXISTS (
+          SELECT 1 FROM public.journal_entry_lines
+          WHERE id='jel_'||p_id||'_1020' AND journal_entry_id=v_je_id
+            AND account_id=v_account_1020 AND line_number=2
+            AND debit IS NOT DISTINCT FROM 0::numeric AND credit IS NOT DISTINCT FROM p_net
+            AND description IS NOT DISTINCT FROM 'Partner cash payout'
+        ) OR NOT EXISTS (
+          SELECT 1 FROM public.journal_entry_lines
+          WHERE id='jel_'||p_id||'_2050' AND journal_entry_id=v_je_id
+            AND account_id=v_account_2050 AND line_number=3
+            AND debit IS NOT DISTINCT FROM 0::numeric AND credit IS NOT DISTINCT FROM p_voucher
+            AND description IS NOT DISTINCT FROM 'Partner voucher reserve'
+        ) THEN
+          RAISE EXCEPTION 'SETTLEMENT_JOURNAL_LINES_IDENTITY_MISMATCH';
+        END IF;
+      ELSE
+        IF NOT EXISTS (
+          SELECT 1 FROM public.journal_entry_lines
+          WHERE id='jel_'||p_id||'_2010' AND journal_entry_id=v_je_id
+            AND account_id=v_account_2010 AND line_number=1
+            AND debit IS NOT DISTINCT FROM p_net AND credit IS NOT DISTINCT FROM 0::numeric
+            AND description IS NOT DISTINCT FROM 'Close merchant payable'
+        ) OR NOT EXISTS (
+          SELECT 1 FROM public.journal_entry_lines
+          WHERE id='jel_'||p_id||'_1020' AND journal_entry_id=v_je_id
+            AND account_id=v_account_1020 AND line_number=2
+            AND debit IS NOT DISTINCT FROM 0::numeric AND credit IS NOT DISTINCT FROM p_net
+            AND description IS NOT DISTINCT FROM 'Merchant cash payout'
+        ) THEN
+          RAISE EXCEPTION 'SETTLEMENT_JOURNAL_LINES_IDENTITY_MISMATCH';
+        END IF;
+      END IF;
+
       RETURN jsonb_build_object('id',p_id,'status',v_existing.status,'journalEntryId',v_existing.journal_entry_id,'idempotent',true);
     END IF;
   END IF;
@@ -378,17 +438,6 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'SETTLEMENT_IDENTITY_MISMATCH';
   END IF;
-
-  SELECT id INTO v_account_2010 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='2010' AND is_active=true LIMIT 1;
-  SELECT id INTO v_account_1020 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='1020' AND is_active=true LIMIT 1;
-  SELECT id INTO v_account_2050 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='2050' AND is_active=true LIMIT 1;
-  SELECT id INTO v_account_5030 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='5030' AND is_active=true LIMIT 1;
-  IF v_account_1020 IS NULL THEN RAISE EXCEPTION 'COA_1020_MISSING'; END IF;
-  IF p_beneficiary_type='MERCHANT' AND v_account_2010 IS NULL THEN RAISE EXCEPTION 'COA_2010_MISSING'; END IF;
-  IF p_beneficiary_type='PARTNER' AND (v_account_2050 IS NULL OR v_account_5030 IS NULL) THEN RAISE EXCEPTION 'COA_PARTNER_ACCOUNTS_MISSING'; END IF;
-
-  v_total := CASE WHEN p_beneficiary_type='PARTNER' THEN p_gross ELSE p_net END;
-  IF v_total<=0 THEN RAISE EXCEPTION 'SETTLEMENT_TOTAL_MUST_BE_POSITIVE'; END IF;
 
   INSERT INTO public.journal_entries(
     id,tenant_id,organization_id,business_id,branch_id,entry_number,reference_type,reference_id,
