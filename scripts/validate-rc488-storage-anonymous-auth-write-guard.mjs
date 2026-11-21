@@ -9,6 +9,10 @@ const integration = fs.readFileSync(
   "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql",
   "utf8",
 );
+const fixture = fs.readFileSync(
+  "supabase/tests/rc488_storage_anonymous_auth_write_guard_fixture.sql",
+  "utf8",
+);
 
 for (const [command, policyName] of [
   ["INSERT", "storage_objects_confirmed_auth_insert"],
@@ -27,6 +31,9 @@ for (const [command, policyName] of [
 }
 assert.ok(migration.includes("(SELECT (auth.jwt()->>'is_anonymous')::boolean) IS FALSE"), "Storage guards must fail closed when is_anonymous is missing");
 assert.ok(integration.includes("RC488_MISSING_ANONYMOUS_CLAIM_WRITE_SUCCEEDED"), "missing Storage missing-claim regression");
+assert.ok(fixture.includes("CREATE TABLE private.platform_admins"), "RC488 fixture must model RC484's authoritative platform-admin registry");
+assert.ok(fixture.includes("public.is_platform_admin()"), "platform branding policy must use registry-backed platform authority");
+assert.ok(integration.includes("INSERT INTO private.platform_admins(user_id)"), "confirmed platform-admin branding regression must seed the authoritative registry");
 assert.doesNotMatch(migration, /FOR\s+SELECT/i,
   "RC488 must not restrict public profile-media reads");
 assert.ok(migration.includes("mantiqatix-profile-media") === false,
