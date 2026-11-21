@@ -131,10 +131,10 @@ SELECT 'jel_RC494-FAKE-ROOT_2050','je_RC494-FAKE-ROOT',c.id,3,0,1,'Partner vouch
 FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='2050';
 
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
-SELECT 'jel_RC494-TENANT-BUSINESS_2010','je_RC494-TENANT-BUSINESS',c.id,1,100,0,'RC494 merchant payable'
+SELECT 'jel_RC494-TENANT-BUSINESS_2010','je_RC494-TENANT-BUSINESS',c.id,1,100,0,'Close merchant payable'
 FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='2010';
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
-SELECT 'jel_RC494-TENANT-BUSINESS_1020','je_RC494-TENANT-BUSINESS',c.id,2,0,100,'RC494 merchant payout'
+SELECT 'jel_RC494-TENANT-BUSINESS_1020','je_RC494-TENANT-BUSINESS',c.id,2,0,100,'Merchant cash payout'
 FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='1020';
 
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
