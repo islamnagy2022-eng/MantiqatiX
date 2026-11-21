@@ -332,10 +332,10 @@ BEGIN
     pg_catalog.hashtextextended('settlement:' || p_id, 0)
   );
 
-  SELECT id INTO v_account_2010 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='2010' AND is_active=true LIMIT 1;
-  SELECT id INTO v_account_1020 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='1020' AND is_active=true LIMIT 1;
-  SELECT id INTO v_account_2050 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='2050' AND is_active=true LIMIT 1;
-  SELECT id INTO v_account_5030 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='5030' AND is_active=true LIMIT 1;
+  SELECT id INTO v_account_2010 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='2010' LIMIT 1;
+  SELECT id INTO v_account_1020 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='1020' LIMIT 1;
+  SELECT id INTO v_account_2050 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='2050' LIMIT 1;
+  SELECT id INTO v_account_5030 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='5030' LIMIT 1;
   IF v_account_1020 IS NULL THEN RAISE EXCEPTION 'COA_1020_MISSING'; END IF;
   IF p_beneficiary_type='MERCHANT' AND v_account_2010 IS NULL THEN RAISE EXCEPTION 'COA_2010_MISSING'; END IF;
   IF p_beneficiary_type='PARTNER' AND (v_account_2050 IS NULL OR v_account_5030 IS NULL) THEN RAISE EXCEPTION 'COA_PARTNER_ACCOUNTS_MISSING'; END IF;
@@ -432,6 +432,21 @@ BEGIN
       RETURN jsonb_build_object('id',p_id,'status',v_existing.status,'journalEntryId',v_existing.journal_entry_id,'idempotent',true);
     END IF;
   END IF;
+
+  -- Completed idempotent retries above can still be recognized when an account
+  -- was later deactivated. New or incomplete settlements must use active accounts.
+  IF NOT EXISTS (
+    SELECT 1 FROM public.chart_of_accounts
+    WHERE id=v_account_1020 AND tenant_id=p_tenant_id AND is_active=true
+  ) THEN RAISE EXCEPTION 'COA_1020_MISSING'; END IF;
+  IF p_beneficiary_type='MERCHANT' AND NOT EXISTS (
+    SELECT 1 FROM public.chart_of_accounts
+    WHERE id=v_account_2010 AND tenant_id=p_tenant_id AND is_active=true
+  ) THEN RAISE EXCEPTION 'COA_2010_MISSING'; END IF;
+  IF p_beneficiary_type='PARTNER' AND (
+    NOT EXISTS (SELECT 1 FROM public.chart_of_accounts WHERE id=v_account_2050 AND tenant_id=p_tenant_id AND is_active=true)
+    OR NOT EXISTS (SELECT 1 FROM public.chart_of_accounts WHERE id=v_account_5030 AND tenant_id=p_tenant_id AND is_active=true)
+  ) THEN RAISE EXCEPTION 'COA_PARTNER_ACCOUNTS_MISSING'; END IF;
 
   IF EXISTS (
     SELECT 1 FROM public.journal_entries je
