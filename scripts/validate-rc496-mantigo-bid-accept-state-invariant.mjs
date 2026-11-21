@@ -32,6 +32,8 @@ assert.match(fn, /public\.lock_mantigo_fare_backend\(p_user_id,p_ride_id\)/, "fa
 assert.match(fn, /v_status='ACCEPTED' AND v_accepted_bid_id=p_bid_id[\s\S]*?idempotent',true/, "same winning bid retry must be idempotent");
 assert.match(migration, /REVOKE ALL ON FUNCTION public\.accept_mantigo_bid_backend\(uuid,text,text\) FROM PUBLIC,anon/i);
 assert.match(migration, /GRANT EXECUTE ON FUNCTION public\.accept_mantigo_bid_backend\(uuid,text,text\) TO authenticated/i);
+assert.match(migration, /REVOKE ALL ON FUNCTION public\.mantigo_accept_bid\(text,text\) FROM PUBLIC,anon,authenticated/i);
+assert.match(migration, /REVOKE ALL ON FUNCTION public\.mantigo_submit_bid\(text,numeric,text,text,text,text\) FROM PUBLIC,anon,authenticated/i);
 
 for (const state of ["ACCEPTED", "REJECTED", "WITHDRAWN", "EXPIRED"]) {
   assert.ok(integration.includes(`ARRAY['RC496-${state}','RC496-SELECT-${state}']`),
