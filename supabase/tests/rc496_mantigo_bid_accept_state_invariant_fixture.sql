@@ -83,6 +83,9 @@ BEGIN
      OR v_bid_status IS DISTINCT FROM 'ACCEPTED' THEN
     RAISE EXCEPTION 'RC496_FARE_LOCK_REQUIRES_ACCEPTED_WINNER';
   END IF;
+  IF p_ride_id='RC496-FARE-FAIL' THEN
+    RAISE EXCEPTION 'RC496_TEST_FARE_LOCK_FAILURE';
+  END IF;
   INSERT INTO public.rc496_financial_lock_calls(ride_id,caller_id,accepted_bid_id)
   VALUES(p_ride_id,p_user_id,v_bid_id);
   RETURN pg_catalog.jsonb_build_object(
