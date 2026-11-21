@@ -15,7 +15,12 @@ SET business_id=je.business_id
 FROM public.journal_entries je
 WHERE st.journal_entry_id=je.id
   AND st.business_id IS NULL
-  AND je.business_id IS NOT NULL;
+  AND je.business_id IS NOT NULL
+  AND je.tenant_id=st.tenant_id
+  AND EXISTS (
+    SELECT 1 FROM public.businesses b
+    WHERE b.id=je.business_id AND b.tenant_id=st.tenant_id
+  );
 
 DO $business_fk$
 BEGIN
