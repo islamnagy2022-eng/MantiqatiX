@@ -52,7 +52,7 @@ state="$(psql "$DATABASE_URL" -X -At -v ON_ERROR_STOP=1 -c "
     (SELECT count(*) FROM public.mantigo_bids WHERE ride_id='RC496-CONCURRENT' AND status='REJECTED')::text || ':' ||
     (SELECT count(*) FROM public.mantigo_bids WHERE ride_id='RC496-CONCURRENT' AND status='OFFERED')::text || ':' ||
     coalesce((SELECT accepted_bid_id FROM public.mantigo_rides WHERE id='RC496-CONCURRENT'),'') || ':' ||
-    (SELECT count(*) FROM public.rc496_financial_lock_calls WHERE ride_id='RC496-CONCURRENT')::text || ':' ||
+    (SELECT count(*) FROM public.mantigo_financial_ledger WHERE ride_id='RC496-CONCURRENT')::text || ':' ||
     (SELECT count(*) FROM public.audit_logs WHERE action='MANTIGO_BID_ACCEPTED' AND entity_id='RC496-CONCURRENT')::text || ':' ||
     (SELECT count(*) FROM public.notifications WHERE type='MANTIGO_ACCEPTED' AND entity_id='RC496-CONCURRENT')::text
 ")"
