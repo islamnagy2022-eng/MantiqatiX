@@ -81,9 +81,10 @@ const required = [
   "20261120270000_rc492_indrive_anonymous_auth_write_guard.sql",
   "20261120280000_rc493_private_crm_notification_read_guards.sql",
   "20261120290000_rc494_settlement_financial_atomic_registry_scope_hardening.sql",
-  "20261121020000_rc495_storage_filename_regex_forward_repair.sql"
+  "20261121020000_rc495_storage_filename_regex_forward_repair.sql",
+  "20261121030000_rc496_mantigo_bid_accept_state_invariant.sql"
 ];
-assert.equal(required.length, 75, "release gate must track all distinct required post-RC424 migration effects, including RC464B and RC476–RC495");
+assert.equal(required.length, 76, "release gate must track all distinct required post-RC424 migration effects, including RC464B and RC476–RC496");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");
@@ -130,6 +131,7 @@ assert.match(liveContract, /security_definer_search_path_check/, "RC451 targeted
 assert.match(liveContract, /REQUIRED_EDGE_FUNCTIONS/, "the live parity contract must enumerate all critical function entrypoints");
 
 
+const rc496Validator = fs.readFileSync("scripts/validate-rc496-mantigo-bid-accept-state-invariant.mjs", "utf8");
 const forwardReplay = fs.readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
 const rc486Validator = fs.readFileSync("scripts/validate-rc486-catalog-price-version-serialization.mjs", "utf8");
 const rc487Validator = fs.readFileSync("scripts/validate-rc487-smm-first-user-bootstrap-removal.mjs", "utf8");
@@ -143,6 +145,9 @@ assert.ok(forwardReplay.includes("supabase/tests/rc487_smm_first_user_bootstrap_
 assert.ok(rc487Validator.includes("trg_smm_bootstrap_admin"), "RC487 validator must check removal of the first-user Auth trigger");
 assert.ok(rc487Validator.includes("smm_bootstrap_first_admin"), "RC487 validator must check removal of the unsafe trigger function");
 assert.ok(forwardReplay.includes("node scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"), "forward replay must validate RC488 Storage anonymous Auth write isolation");
+assert.ok(forwardReplay.includes("node scripts/validate-rc496-mantigo-bid-accept-state-invariant.mjs"), "forward replay must validate RC496 MantiGO bid state invariant");
+assert.ok(forwardReplay.includes("supabase/tests/rc496_mantigo_bid_accept_state_invariant_integration.sql"), "forward replay must run RC496 MantiGO bid integration");
+assert.match(rc496Validator, /BID_NOT_OFFERED/, "RC496 validator must pin the OFFERED-only bid acceptance guard");
 assert.ok(rc488Validator.includes("storage_objects_confirmed_auth_delete"), "RC488 validator must check restrictive Storage write policies");
 const forwardReplayLines = forwardReplay.split(/\r?\n/);
 assert.ok(
