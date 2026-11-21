@@ -3751,3 +3751,16 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - No Production SQL/DDL/DML, migration, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet or customer data mutation.
 - Next: verified encrypted backup + Vault recovery + independent PG17 restore/rollback + RPO/RTO; full chronological replay; coordinated DB/Edge deployment and live adversarial verification.
 - Disposition: Production BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-22 — Pass 1661–1670 — current-main release rehearsal
+
+- Current main inspected: `413814a3ea4bdad782fe6a3f89958442e830e89d`.
+- Forward migration chain replay passed on current main in isolated Supabase, restoring the schema checkpoint and applying all later migrations chronologically (run 44959408678).
+- Production Health Monitor passed (run 44959408639).
+- GitHub Pages deployment passed, including deployed-origin catalog/dashboard/mobile/QR route checks (run 44959408621).
+- Read-only live recheck: Supabase ledger still 310 rows through `20261110150618`; required RC471/482/483/484/485/486/487 identifiers absent. Directory Edge remains v16 with old bundle hash; no Edge deployment.
+- Security Advisor still reports anonymous-session policy warnings and leaked-password protection disabled.
+- No Production database/migration/Auth/RLS/GRANT/Storage/Edge/payment/wallet/customer-data mutation.
+- Next release gates: encrypted off-site backup/Vault recovery; independent PostgreSQL 17 restore/rollback and measured RPO/RTO; coordinated DB migration + full consent-aware Edge bundle; platform-root live parity; Auth hardening.
+- Disposition: source/replay/static-site checks green; **PRODUCTION BLOCKED / NOT CERTIFIED**.
