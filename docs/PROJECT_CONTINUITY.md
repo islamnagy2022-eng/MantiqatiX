@@ -136,6 +136,7 @@
 
 - Verified the exact uploaded `bizcatalog-manager (11).zip`: 46,114,882 bytes, `unzip -t` PASS, SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`.
 - Current production source remains GitHub `main` (`apps/catalog-frontend/**`, `supabase/**`) and the connected Supabase project `moyhiluyhjsujhwlyeuu`. The R7 archive is a separate React/Vite/Express candidate and is reference-only.
+- Current Pages topology: `apps/catalog-frontend/dist` is the public root `/`; a path-adjusted catalog rollback copy is retained at `/legacy/`; the isolated V6 build is at `/v6-preview/`. The old `web/**` tree is validated but not copied into the Pages artifact, so its reverse-bidding module is not the active production UI.
 - Reconfirmed R7 blockers directly from the ZIP: wrong project ref (`moyhiluyhjsujhwlyweuu`), browser-importable service-role key fallback, hardcoded Paymob/JWT/backup fallback secrets, local JSON dual authority, localStorage persistence for auth/roles/financial state, and demo role-switcher credentials.
 - The Android WebView wrapper contains only three files, lacks the Gradle wrapper/root project/resources/ProGuard file, and has no trusted-origin bridge allowlist. Preserve it; do not delete or represent it as a verified native Android release.
 - Current main already has canonical directory, storefront, merchant/admin/professional dashboards, Auth, catalog, cart, geo discovery and marketing services. Do not duplicate them from R7.

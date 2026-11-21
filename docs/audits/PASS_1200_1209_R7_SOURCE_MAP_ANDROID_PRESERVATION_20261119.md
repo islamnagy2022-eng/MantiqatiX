@@ -21,6 +21,14 @@
 
 The deployed public root remains the legacy catalog; V6 Preview is a separate path. Do not replace either deployment or create a parallel catalog.
 
+## 1A. Current public deployment topology
+
+The current `.github/workflows/pages.yml` builds `apps/catalog-frontend` twice:
+- Primary catalog build at the public root `/`.
+- A path-adjusted rollback copy at `/legacy/`.
+
+The isolated V6 application is built separately at `/v6-preview/`. The old `web/**` tree is retained and statically validated, but it is not copied into the current Pages artifact. Therefore `web/reverse-bidding-module.js` is not the active production catalog UI; it is retained legacy source. The current React catalog UI gap for R7's MantiGO bidding screen remains real.
+
 ## 2. Archive integrity and critical blockers
 
 The exact uploaded ZIP was independently checked with `unzip -t` and SHA-256. ZIP integrity passed and the hash matches the preserved archive record.

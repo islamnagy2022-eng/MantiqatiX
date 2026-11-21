@@ -3359,7 +3359,7 @@ Evidence: `docs/runbooks/PRODUCTION_BACKUP_RESTORE_RC484_20261119.md`, `docs/aud
 ## Pass 1200–1209 — R7 source map and Android preservation (2026-11-19)
 
 - [x] 1200 — Verified exact R7 archive (11) ZIP integrity and SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b` (46,114,882 bytes).
-- [x] 1201 — Mapped current canonical main (`apps/catalog-frontend/**`, `supabase/**`) against R7's separate React/Vite/Express tree; current main and Supabase remain production authority.
+- [x] 1201 — Mapped current canonical main (`apps/catalog-frontend/**`, `supabase/**`) against R7's separate React/Vite/Express tree; current main and Supabase remain production authority. Pages topology is catalog root `/`, rollback copy `/legacy/`, isolated V6 preview `/v6-preview/`; old `web/**` is not copied into the current artifact.
 - [x] 1202 — Confirmed R7's Supabase ref has an extra `w` and does not match the connected Production project.
 - [x] 1203 — Confirmed browser-importable R7 Supabase client prefers `SUPABASE_SERVICE_ROLE_KEY`; this source boundary is unsafe.
 - [x] 1204 — Confirmed hardcoded Paymob/JWT/backup fallback secrets and dual local-JSON/Supabase data authority in the exact ZIP.
