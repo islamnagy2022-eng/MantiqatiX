@@ -52,3 +52,8 @@ No Production schema, data, migration ledger, RLS, grant, Auth, Storage, Edge Fu
 This pass inspected archive metadata, source layout, R7 release manifest, package manifest, Android wrapper source and mobile component imports. It did not build the Android application, test on a device, deploy any source, change Supabase, or modify Production data.
 
 **Disposition:** R7 archive preserved as a historical reference; current main remains the working code baseline; native Android is not yet integrated or release-certified.
+
+## Directory privacy production recheck — 2026-11-21
+
+A fresh read-only Supabase Edge inspection confirms deployed `directory-listings` is still ACTIVE version 16, `verify_jwt=false`, and its bundle does not contain the current contact-consent modules/contract. The deployed GET path still selects and returns phone/address without consent-aware sanitization. A read-only aggregate query confirms 869 published listings, all 869 with a primary phone and all 869 with an address. Current source on the directory branch contains the RC473 consent lookup, field-specific sanitization and fail-closed pagination; this source is not yet deployed. This is a live P0 privacy release blocker, not evidence that the current source fix is already protecting Production.
+
