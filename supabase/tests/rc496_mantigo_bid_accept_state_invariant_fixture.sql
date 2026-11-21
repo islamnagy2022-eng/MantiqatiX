@@ -204,4 +204,5 @@ FOR EACH ROW
 EXECUTE FUNCTION public.rc496_fail_fare_lock();
 
 GRANT EXECUTE ON FUNCTION public.lock_mantigo_fare_backend(uuid,text) TO authenticated;
+REVOKE ALL ON FUNCTION public.create_mantigo_bid_backend(uuid,text,text,text,numeric,text,text,text,numeric,integer,text) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.create_mantigo_bid_backend(uuid,text,text,text,numeric,text,text,text,numeric,integer,text) TO authenticated;
