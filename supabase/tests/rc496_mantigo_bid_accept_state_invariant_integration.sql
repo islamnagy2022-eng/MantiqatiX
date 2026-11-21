@@ -11,7 +11,8 @@ VALUES
  ('RC496-OWNER','49600000-0000-4000-8000-000000000001','OPEN',NULL),
  ('RC496-REPLAY-DIFFERENT','49600000-0000-4000-8000-000000000001','OPEN',NULL),
  ('RC496-FARE-FAIL','49600000-0000-4000-8000-000000000001','OPEN',NULL),
- ('RC496-STALE-WINNER','49600000-0000-4000-8000-000000000001','OPEN',NULL);
+ ('RC496-STALE-WINNER','49600000-0000-4000-8000-000000000001','OPEN',NULL),
+ ('RC496-LEDGER-MISMATCH','49600000-0000-4000-8000-000000000001','ACCEPTED','RC496-LEDGER-MISMATCH-BID');
 
 INSERT INTO public.mantigo_bids(id,ride_id,captain_id,offered_price,status)
 VALUES
@@ -27,7 +28,20 @@ VALUES
  ('RC496-FARE-FAIL-WINNER','RC496-FARE-FAIL','49600000-0000-4000-8000-000000000020',100,'OFFERED'),
  ('RC496-FARE-FAIL-SIBLING','RC496-FARE-FAIL','49600000-0000-4000-8000-000000000023',110,'OFFERED'),
  ('RC496-STALE-ACCEPTED','RC496-STALE-WINNER','49600000-0000-4000-8000-000000000024',90,'ACCEPTED'),
- ('RC496-STALE-OFFERED','RC496-STALE-WINNER','49600000-0000-4000-8000-000000000025',100,'OFFERED');
+ ('RC496-STALE-OFFERED','RC496-STALE-WINNER','49600000-0000-4000-8000-000000000025',100,'OFFERED'),
+ ('RC496-LEDGER-MISMATCH-BID','RC496-LEDGER-MISMATCH','49600000-0000-4000-8000-000000000026',120,'ACCEPTED');
+
+INSERT INTO public.mantigo_financial_ledger(
+  id,ride_id,customer_id,captain_id,currency,gross_amount,commission_amount,
+  captain_net_amount,payment_status,settlement_status,idempotency_key,metadata
+) VALUES (
+  'MGO-FIN-RC496-MISMATCH','RC496-LEDGER-MISMATCH',
+  '49600000-0000-4000-8000-000000000001',
+  '49600000-0000-4000-8000-000000000099',
+  'EGP',120,0,120,'REQUIRED','NOT_READY',
+  'MGO-FARE-RC496-LEDGER-MISMATCH',
+  '{"fare_locked":true,"accepted_bid_id":"RC496-LEDGER-MISMATCH-BID","source":"MANTIGO_ACCEPT"}'::jsonb
+);
 
 DO $test$
 DECLARE
@@ -108,7 +122,7 @@ BEGIN
      OR (SELECT accepted_bid_id FROM public.mantigo_rides WHERE id='RC496-STALE-WINNER') IS NOT NULL
      OR (SELECT status FROM public.mantigo_bids WHERE id='RC496-STALE-ACCEPTED')<>'ACCEPTED'
      OR (SELECT status FROM public.mantigo_bids WHERE id='RC496-STALE-OFFERED')<>'OFFERED'
-     OR EXISTS (SELECT 1 FROM public.rc496_financial_lock_calls WHERE ride_id='RC496-STALE-WINNER') THEN
+     OR EXISTS (SELECT 1 FROM public.mantigo_financial_ledger WHERE ride_id='RC496-STALE-WINNER') THEN
     RAISE EXCEPTION 'RC496 stale accepted winner state was mutated';
   END IF;
 
@@ -127,7 +141,7 @@ BEGIN
      OR (SELECT accepted_bid_id FROM public.mantigo_rides WHERE id='RC496-FARE-FAIL') IS NOT NULL
      OR (SELECT status FROM public.mantigo_bids WHERE id='RC496-FARE-FAIL-WINNER')<>'OFFERED'
      OR (SELECT status FROM public.mantigo_bids WHERE id='RC496-FARE-FAIL-SIBLING')<>'OFFERED'
-     OR EXISTS (SELECT 1 FROM public.rc496_financial_lock_calls WHERE ride_id='RC496-FARE-FAIL')
+     OR EXISTS (SELECT 1 FROM public.mantigo_financial_ledger WHERE ride_id='RC496-FARE-FAIL')
      OR EXISTS (SELECT 1 FROM public.audit_logs WHERE action='MANTIGO_BID_ACCEPTED' AND entity_id='RC496-FARE-FAIL')
      OR EXISTS (SELECT 1 FROM public.notifications WHERE type='MANTIGO_ACCEPTED' AND entity_id='RC496-FARE-FAIL') THEN
     RAISE EXCEPTION 'RC496 fare-lock failure left a partial acceptance';
@@ -137,7 +151,8 @@ BEGIN
   -- are rejected, and the fare lock is invoked after the winner is persisted.
   v_result:=public.accept_mantigo_bid_backend(v_customer,'RC496-VALID','RC496-WINNER');
   IF v_result->>'status'<>'ACCEPTED' OR v_result->>'idempotent'<>'false'
-     OR v_result->'financial'->>'locked'<>'true' THEN
+     OR v_result->'financial'->>'idempotent'<>'false'
+     OR v_result->'financial'->>'payment_status'<>'REQUIRED' THEN
     RAISE EXCEPTION 'RC496 valid OFFERED acceptance failed: %',v_result;
   END IF;
   IF (SELECT status FROM public.mantigo_rides WHERE id='RC496-VALID')<>'ACCEPTED'
@@ -147,7 +162,7 @@ BEGIN
      OR (SELECT status FROM public.mantigo_bids WHERE id='RC496-WITHDRAWN-SIBLING')<>'WITHDRAWN' THEN
     RAISE EXCEPTION 'RC496 valid acceptance broke single-winner/sibling-state invariant';
   END IF;
-  IF (SELECT count(*) FROM public.rc496_financial_lock_calls WHERE ride_id='RC496-VALID')<>1
+  IF (SELECT count(*) FROM public.mantigo_financial_ledger WHERE ride_id='RC496-VALID')<>1
      OR (SELECT count(*) FROM public.audit_logs WHERE action='MANTIGO_BID_ACCEPTED' AND entity_id='RC496-VALID')<>1
      OR (SELECT count(*) FROM public.notifications WHERE type='MANTIGO_ACCEPTED' AND entity_id='RC496-VALID')<>1 THEN
     RAISE EXCEPTION 'RC496 valid acceptance must create one fare lock, audit and notification';
@@ -158,8 +173,30 @@ BEGIN
   IF v_result->>'idempotent'<>'true' OR
      (SELECT count(*) FROM public.audit_logs WHERE action='MANTIGO_BID_ACCEPTED' AND entity_id='RC496-VALID')<>1 OR
      (SELECT count(*) FROM public.notifications WHERE type='MANTIGO_ACCEPTED' AND entity_id='RC496-VALID')<>1 OR
-     (SELECT count(*) FROM public.rc496_financial_lock_calls WHERE ride_id='RC496-VALID')<>2 THEN
+     (SELECT count(*) FROM public.mantigo_financial_ledger WHERE ride_id='RC496-VALID')<>1 OR
+     v_result->'financial'->>'idempotent'<>'true' THEN
     RAISE EXCEPTION 'RC496 same-winner retry was not idempotent: %',v_result;
+  END IF;
+
+  -- The same accepted bid cannot reuse a financial ledger row bound to a
+  -- different captain, even when the ride and amount otherwise look plausible.
+  v_error:=NULL;
+  BEGIN
+    PERFORM public.accept_mantigo_bid_backend(
+      v_customer,'RC496-LEDGER-MISMATCH','RC496-LEDGER-MISMATCH-BID'
+    );
+  EXCEPTION WHEN OTHERS THEN
+    v_error:=SQLERRM;
+  END;
+  IF v_error IS DISTINCT FROM 'MANTIGO_FINANCIAL_IDENTITY_MISMATCH' THEN
+    RAISE EXCEPTION 'RC496 mismatched existing fare ledger expected identity denial, got %',v_error;
+  END IF;
+  IF (SELECT count(*) FROM public.mantigo_financial_ledger WHERE ride_id='RC496-LEDGER-MISMATCH')<>1
+     OR (SELECT captain_id FROM public.mantigo_financial_ledger WHERE ride_id='RC496-LEDGER-MISMATCH')
+        IS DISTINCT FROM '49600000-0000-4000-8000-000000000099'::uuid
+     OR EXISTS (SELECT 1 FROM public.audit_logs WHERE action='MANTIGO_BID_ACCEPTED' AND entity_id='RC496-LEDGER-MISMATCH')
+     OR EXISTS (SELECT 1 FROM public.notifications WHERE type='MANTIGO_ACCEPTED' AND entity_id='RC496-LEDGER-MISMATCH') THEN
+    RAISE EXCEPTION 'RC496 mismatched existing financial identity was mutated';
   END IF;
 
   v_error:=NULL;
@@ -192,6 +229,19 @@ BEGIN
   END;
   IF v_error IS DISTINCT FROM 'RIDE_OR_BID_NOT_FOUND' THEN
     RAISE EXCEPTION 'RC496 missing bid expected RIDE_OR_BID_NOT_FOUND, got %',v_error;
+  END IF;
+
+  -- The fare-lock helper remains authenticated-only and empty-search-path.
+  IF pg_catalog.has_function_privilege('anon','public.lock_mantigo_fare_backend(uuid,text)','EXECUTE')
+     OR NOT pg_catalog.has_function_privilege('authenticated','public.lock_mantigo_fare_backend(uuid,text)','EXECUTE') THEN
+    RAISE EXCEPTION 'RC496_FARE_LOCK_EXECUTE_ACL_MISMATCH';
+  END IF;
+  SELECT pg_catalog.array_to_string(p.proconfig,',') INTO v_status
+  FROM pg_catalog.pg_proc p
+  WHERE p.oid='public.lock_mantigo_fare_backend(uuid,text)'::regprocedure
+    AND p.prosecdef;
+  IF v_status IS DISTINCT FROM 'search_path=""' THEN
+    RAISE EXCEPTION 'RC496_FARE_LOCK_SEARCH_PATH_MISMATCH: %',v_status;
   END IF;
 
   -- Legacy acceptance/submission RPCs must remain revoked from browser roles.
