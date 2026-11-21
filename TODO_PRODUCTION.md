@@ -3646,3 +3646,14 @@ Evidence: audit file; branch `fix/rc479-anonymous-auth-profile-boundary-tests-20
 
 
 **Pass 1480 correction:** the live `Owners manage their marketing provider profile` ALL policy already blocks anonymous Auth DML and binds the owner to `auth.uid()`. The missing control is specifically a RESTRICTIVE FOR SELECT policy for `authenticated` requiring `is_anonymous=false`; preserve owner CRUD and the public confirmed-user read contract.
+
+## Pass 1516–1520 — RC488 replay failure isolation and Storage policy finding — 2026-11-21
+
+- [x] 1516 — Inspect exact-head PostgreSQL 17 forward-replay failure from run 44849641258; migrations through RC492 applied, then RC488 integration failed at the confirmed-user platform-brand INSERT assertion.
+- [x] 1517 — Read-only Production policy inspection confirmed the legacy `mnty_platform_brand_insert` regex is over-escaped: a valid `platform/branding/logo-998.jpg` name does not match the stored pattern; the correctly escaped literal-dot pattern does.
+- [x] 1518 — Separate the RC488 regression test from the unrelated legacy platform-brand filename predicate: the confirmed-user assertion now exercises the existing owner-profile upload contract instead of assuming the platform-brand policy accepts a path already shown invalid by Production.
+- [x] 1519 — Align the RC488 static validator with the confirmed-owner upload assertion; source changes committed on the PR #946 branch.
+- [x] 1520 — Opened P1 security/bug Issue [#949](https://github.com/islamnagy2022-eng/MantiqatiX/issues/949) for a separate forward-only migration to repair platform-brand INSERT/UPDATE/DELETE filename predicates, with regression tests and chronological replay.
+- [ ] Await fresh exact-head RC488 and full forward migration replay CI after the test correction. Do not merge or deploy while replay/browser/deploy checks remain pending or failing.
+
+**Safety:** the only Production action was read-only inspection of `pg_policies` and regex behavior. No Production policy, grant, Storage object, Auth setting, application row, or customer data was modified. The platform-brand regex repair remains source-only and unimplemented pending a properly generated forward migration.
