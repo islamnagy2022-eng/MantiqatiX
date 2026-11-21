@@ -23,10 +23,10 @@ BEGIN
     RAISE EXCEPTION 'RC488_PRIVATE_MEDIA_BUCKET_MISSING';
   END IF;
 
-  INSERT INTO public.user_memberships(id,user_id,status,role)
+  INSERT INTO public.user_memberships(id,user_id,tenant_id,status,role)
   VALUES
-    ('RC488-ANON-ADMIN',v_anon,'ACTIVE','SUPER_ADMIN'),
-    ('RC488-CONFIRMED-ADMIN',v_owner,'ACTIVE','SUPER_ADMIN');
+    ('RC488-ANON-ADMIN',v_anon,'MNTY-PLATFORM','ACTIVE','SUPER_ADMIN'),
+    ('RC488-CONFIRMED-ADMIN',v_owner,'MNTY-PLATFORM','ACTIVE','SUPER_ADMIN');
 
   INSERT INTO public.marketing_provider_profiles
     (id,provider_kind,owner_user_id,name_ar,slug,status)
