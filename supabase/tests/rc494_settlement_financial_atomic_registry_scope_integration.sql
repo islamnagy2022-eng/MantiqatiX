@@ -21,8 +21,8 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.businesses(id,tenant_id,name,code,status,settings)
 VALUES
- ('49400000-0000-4000-8000-000000000101','RC494-TENANT','RC494 Business A','RC494-BUSINESS-A','DRAFT','{}'::jsonb),
- ('49400000-0000-4000-8000-000000000102','RC494-TENANT','RC494 Business B','RC494-BUSINESS-B','DRAFT','{}'::jsonb)
+ ('49400000-0000-4000-8000-000000000101','RC494-TENANT','RC494 Business A','RC494-BUSINESS-A','INACTIVE','{}'::jsonb),
+ ('49400000-0000-4000-8000-000000000102','RC494-TENANT','RC494 Business B','RC494-BUSINESS-B','INACTIVE','{}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO private.platform_admins(user_id)
@@ -44,8 +44,8 @@ VALUES
  ('RC494-BUSINESS-B-OWNER','49400000-0000-4000-8000-000000000002','RC494-TENANT',NULL,'49400000-0000-4000-8000-000000000102',NULL,'OWNER','{}'::jsonb,'ACTIVE',now()-interval '2 days')
 ON CONFLICT (id) DO NOTHING;
 
--- Satisfy the real business activation gate in the isolated fixture instead of
--- bypassing the legal owner requirement: each business has an active owner first.
+-- Use the schema-supported INACTIVE state (businesses_status_check excludes DRAFT),
+-- then satisfy the real activation gate: each business has an active owner first.
 UPDATE public.businesses SET status='ACTIVE'
 WHERE id IN ('49400000-0000-4000-8000-000000000101','49400000-0000-4000-8000-000000000102')
   AND status <> 'ACTIVE';
