@@ -1,3 +1,24 @@
+## Pass 1586–1595 — RC495 Storage filename and platform-root registry repair — 2026-11-21
+
+- [x] Rechecked live Storage policy metadata and identified doubled-backslash filename suffix predicates on five existing policies.
+- [x] Confirmed platform branding Storage policies still derive root authority from ACTIVE `SUPER_ADMIN` rows in `user_memberships`, not the canonical private registry.
+- [x] Rejected PR #950's membership-derived variant as unsafe to adopt; ported the repair as RC495 with unique timestamp `20261121020000`.
+- [x] Added RC495 forward migration: platform branding INSERT/UPDATE/DELETE use `public.mnty_can_platform_admin()`; profile media policies retain owner/business binding; all five filename predicates use literal-dot `[.]`.
+- [x] Added explicit confirmed-Auth checks to provider profile-media INSERT/UPDATE policies, while retaining RC488 restrictive guards.
+- [x] Added RC495 SQL regression test and static validator; wired both into chronological PostgreSQL forward replay.
+- [x] Extended live ledger contract, source verifier, migration-gate test and release manifest from 74 to 75 ordered required migration versions.
+- [x] Fresh read-only Production query: 310 migration rows through `20261110150618`; RC488–RC495 applied = 0; no Production mutation.
+- [x] Recorded evidence in `docs/audits/PASS_1586_1595_RC495_STORAGE_FILENAME_REGISTRY_REPAIR_20261121.md`.
+- [ ] Complete exact-head RC495 source validator and PostgreSQL 17 full forward migration replay; fix any failure.
+- [ ] Complete exact-head RC492 PostgreSQL 16 test and all consolidated PR #958 checks before merge.
+- [ ] Retire PR #950 only after PR #958 is green and supersedes its migration safely.
+- [ ] Complete encrypted Production backup/restore, Vault recovery, Edge parity, payment/finance sandbox and Auth security gates before any coordinated release.
+- **Safety:** no Production migration, DDL/DML, RLS/GRANT, Storage object, Auth, Edge, payment, wallet or customer-data mutation. Production remains **BLOCKED / NOT CERTIFIED**.
+
+Evidence: `docs/audits/PASS_1586_1595_RC495_STORAGE_FILENAME_REGISTRY_REPAIR_20261121.md`.
+
+---
+
 ## Pass 1566–1575 — RC488–RC494 consolidation and RC492 grant-faithful tests — 2026-11-21
 
 - [x] Fixed release-gate omission: exact gate and reconciliation contract now both contain 74 chronologically ordered migration versions, including RC494.
