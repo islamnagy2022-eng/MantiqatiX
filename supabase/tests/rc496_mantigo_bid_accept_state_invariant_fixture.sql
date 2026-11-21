@@ -10,6 +10,15 @@ AS $function$
   SELECT nullif(pg_catalog.current_setting('request.jwt.claim.sub',true),'')::uuid
 $function$;
 
+CREATE OR REPLACE FUNCTION public.mantigo_accept_bid(p_ride_id text,p_bid_id text)
+RETURNS void LANGUAGE sql AS $function$ SELECT NULL::void $function$;
+
+CREATE OR REPLACE FUNCTION public.mantigo_submit_bid(
+  p_ride_id text,p_offered_price numeric,p_captain_name text,
+  p_vehicle_category text,p_vehicle_model text,p_captain_message text
+)
+RETURNS text LANGUAGE sql AS $function$ SELECT NULL::text $function$;
+
 CREATE TABLE public.mantigo_rides (
   id text PRIMARY KEY,
   customer_id uuid NOT NULL,
