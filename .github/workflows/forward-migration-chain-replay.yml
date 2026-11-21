@@ -68,6 +68,9 @@ on:
       - "supabase/tests/rc482_legal_platform_admin_registry_integration.sql"
       - "supabase/tests/rc483_atomic_legal_cms_create_audit_fixture.sql"
       - "supabase/tests/rc483_atomic_legal_cms_create_audit_integration.sql"
+      - "scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"
+      - "supabase/tests/rc488_storage_anonymous_auth_write_guard_fixture.sql"
+      - "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql"
       - "docs/release/production-migration-reconciliation.json"
       - ".github/workflows/forward-migration-chain-replay.yml"
   pull_request:
