@@ -86,6 +86,7 @@ on:
       - "supabase/tests/rc494_settlement_financial_atomic_registry_scope_integration.sql"
       - "supabase/tests/rc495_storage_filename_regex_forward_repair.sql"
       - "supabase/tests/baselines/production_live_settlement_function_acl_overlay_fixture.sql"
+      - "supabase/tests/baselines/production_live_storage_brand_policy_overlay_fixture.sql"
   pull_request:
     branches: ["main"]
     paths:
@@ -143,6 +144,7 @@ on:
       - "supabase/tests/rc494_settlement_financial_atomic_registry_scope_integration.sql"
       - "supabase/tests/rc495_storage_filename_regex_forward_repair.sql"
       - "supabase/tests/baselines/production_live_settlement_function_acl_overlay_fixture.sql"
+      - "supabase/tests/baselines/production_live_storage_brand_policy_overlay_fixture.sql"
   workflow_dispatch: {}
 
 permissions:
@@ -276,6 +278,10 @@ jobs:
               if [[ "$filename" == "20261120290000_rc494_settlement_financial_atomic_registry_scope_hardening.sql" ]]; then
                 echo "RESTORE_TEST_ONLY_KNOWN_LIVE_RC494_SETTLEMENT_FUNCTION_ACL_OVERLAY"
                 psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/production_live_settlement_function_acl_overlay_fixture.sql
+              fi
+              if [[ "$filename" == "20261121020000_rc495_storage_filename_regex_forward_repair.sql" ]]; then
+                echo "RESTORE_TEST_ONLY_KNOWN_LIVE_RC495_STORAGE_BRAND_POLICY_OVERLAY"
+                psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/production_live_storage_brand_policy_overlay_fixture.sql
               fi
               echo "REPLAY_MIGRATION=$filename"
               psql "$db_url" -v ON_ERROR_STOP=1 -f "$migration"
