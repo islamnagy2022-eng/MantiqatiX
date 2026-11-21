@@ -22,6 +22,8 @@ const response = (origin: string | null, body: unknown, status = 200) =>
 // PostgreSQL UUID columns accept legacy UUID-shaped values even when their
 // version/variant nibbles do not follow RFC 4122.
 const isUuid = (value: unknown) => typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+const safeBranch = (value: unknown) =>
+  typeof value === "string" && value.length > 0 && value.length <= 80 && /^[a-z0-9_-]+$/i.test(value);
 // Legacy membership metadata is used only to keep old platform rows non-editable in the UI.
 // It is never an authorization source; every platform action is gated by mnty_can_platform_admin().
 const isProtectedPlatformMembership = (m: any) => String(m?.role || "").toUpperCase() === "SUPER_ADMIN"
