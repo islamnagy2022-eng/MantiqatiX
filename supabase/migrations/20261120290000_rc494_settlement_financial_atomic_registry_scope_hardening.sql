@@ -15,6 +15,9 @@ DECLARE
   v_registry_owner oid;
   v_owner_bypassrls boolean;
   v_function_security_definer boolean;
+  v_helper_owner oid;
+  v_helper_security_definer boolean;
+  v_helper_config text[];
   v_registry_rls boolean;
   v_registry_force_rls boolean;
 BEGIN
@@ -61,6 +64,18 @@ BEGIN
      OR pg_catalog.has_function_privilege('anon', v_function, 'EXECUTE')
      OR pg_catalog.has_function_privilege('authenticated', v_function, 'EXECUTE') THEN
     RAISE EXCEPTION 'RC494_SETTLEMENT_FUNCTION_EXECUTE_ACL_UNEXPECTED';
+  END IF;
+  SELECT p.proowner, p.prosecdef, p.proconfig
+    INTO v_helper_owner, v_helper_security_definer, v_helper_config
+  FROM pg_catalog.pg_proc p
+  WHERE p.oid = v_registry_helper;
+
+  IF v_helper_owner <> v_registry_owner OR NOT coalesce(v_helper_security_definer, false)
+     OR NOT EXISTS (
+       SELECT 1 FROM unnest(coalesce(v_helper_config, ARRAY[]::text[])) cfg
+       WHERE cfg = 'search_path=""'
+     ) THEN
+    RAISE EXCEPTION 'RC494_PLATFORM_ADMIN_HELPER_SECURITY_CONTRACT_UNEXPECTED';
   END IF;
   IF NOT pg_catalog.has_function_privilege('authenticated', v_registry_helper, 'EXECUTE')
      OR pg_catalog.has_function_privilege('anon', v_registry_helper, 'EXECUTE') THEN
@@ -119,7 +134,7 @@ CREATE OR REPLACE FUNCTION public.create_settlement_and_post_journal(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO 'pg_catalog', 'public'
+SET search_path = ''
 AS $function$
 DECLARE
   v_existing public.settlement_transactions%rowtype;
