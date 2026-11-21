@@ -90,6 +90,9 @@ test("Edge Function performs verified-user scope authorization before the privil
   assert.match(source, /\.eq\("user_id", user\.id\)/);
   assert.match(source, /hasSettlementAuthority\(\{ tenantId, businessId, memberships:/);
   assert.match(source, /userClient\.rpc\("mnty_can_platform_admin"\)/);
+  assert.match(source, /const AUTHORIZATION_SETTLEMENT_ERRORS = new Set/);
+  assert.match(source, /AUTHORIZATION_SETTLEMENT_ERRORS\.has\(code\)[\s\S]*?403/);
+  assert.match(source, /SETTLEMENT_IDENTITY_MISMATCH/);
   assert.match(source, /tenantId === "MNTY-PLATFORM"/);
   assert.match(source, /isPlatformAdmin/);
   assert.doesNotMatch(source, /isPlatformSuperAdmin/);
