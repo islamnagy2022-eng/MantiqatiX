@@ -452,12 +452,30 @@ BEGIN
     ) ORDER BY line_number)
      FROM public.journal_entry_lines WHERE journal_entry_id='je_RC494-PLATFORM-ROOT');
 
-  v_result := public.create_settlement_and_post_journal(
-    'RC494-PLATFORM-ROOT','MNTY-PLATFORM','PARTNER','partner-platform-root',
-    100,0,99,1,'BANK_TRANSFER','RC494-PLATFORM-ROOT',NULL,
-    'idempotent settled retry after account deactivation',
-    '49400000-0000-4000-8000-000000000001'
-  );
+  BEGIN
+    v_result := public.create_settlement_and_post_journal(
+      'RC494-PLATFORM-ROOT','MNTY-PLATFORM','PARTNER','partner-platform-root',
+      100,0,99,1,'BANK_TRANSFER','RC494-PLATFORM-ROOT',NULL,
+      'idempotent settled retry after account deactivation',
+      '49400000-0000-4000-8000-000000000001'
+    );
+  EXCEPTION WHEN others THEN
+    RAISE EXCEPTION 'RC494_PLATFORM_ROOT_RETRY_DIAGNOSTIC:%',
+      jsonb_build_object(
+        'cause',SQLERRM,
+        'accounts',(SELECT jsonb_object_agg(account_code,id)
+          FROM public.chart_of_accounts
+          WHERE tenant_id='MNTY-PLATFORM' AND account_code IN ('1020','2050','5030')),
+        'lines',(SELECT jsonb_agg(jsonb_build_object(
+          'id',id,'account_id',account_id,'line_number',line_number,
+          'debit',debit,'credit',credit,'description',description
+        ) ORDER BY line_number)
+          FROM public.journal_entry_lines
+          WHERE journal_entry_id='je_RC494-PLATFORM-ROOT'),
+        'line_count',(SELECT count(*) FROM public.journal_entry_lines
+          WHERE journal_entry_id='je_RC494-PLATFORM-ROOT')
+      );
+  END;
   IF v_result->>'idempotent' IS DISTINCT FROM 'true' THEN
     RAISE EXCEPTION 'RC494_SETTLED_RETRY_WITH_INACTIVE_ACCOUNTS_FAILED:%',v_result;
   END IF;
