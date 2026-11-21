@@ -139,19 +139,5 @@ BEGIN
 END;
 $confirmed$;
 RESET ROLE;
-COMMIT;
-
--- Remove only the synthetic fixture rows.
-DELETE FROM public.indrive_bids WHERE id='49200000-0000-4000-8000-000000000014';
-DELETE FROM public.indrive_requests
-WHERE id IN (
-  '49200000-0000-4000-8000-000000000011',
-  '49200000-0000-4000-8000-000000000013'
-);
-DELETE FROM auth.users
-WHERE id IN (
-  '49200000-0000-4000-8000-000000000001',
-  '49200000-0000-4000-8000-000000000002'
-);
-
+ROLLBACK;
 SELECT 'RC492 InDrive anonymous Auth read/delete isolation: PASS' AS result;
