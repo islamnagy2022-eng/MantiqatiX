@@ -3135,3 +3135,12 @@ The public directory consent table is absent. Aggregate published directory coun
 Do not deploy the Edge function alone: the live consent table is absent, so its compatible migration and complete Edge bundle must be coordinated. No Production mutation or deployment occurred. Production remains BLOCKED / NOT CERTIFIED.
 
 Next: operator-owned encrypted off-site backup, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO; full chronological migration rehearsal; then coordinated database + Edge release and live positive/negative contact-consent and owner-scope tests. Evidence: docs/audits/PASS_1651_1660_LIVE_DIRECTORY_AND_PLATFORM_ROOT_RECHECK_20261122.md.
+
+
+## 2026-11-22 — Pass 1661–1670 — current-main replay and static deployment
+
+On main commit `413814a3ea4bdad782fe6a3f89958442e830e89d`, the forward migration chain replay passed in isolated Supabase (run 44959408678): the captured schema checkpoint was restored and all later migrations were applied in timestamp order. Production Health Monitor passed (44959408639). GitHub Pages static deployment and deployed-origin checks for catalog, dashboard, mobile and QR routes passed (44959408621).
+
+This is meaningful source/replay/static-site validation, not Production database or Edge deployment. Live Supabase remains at 310 migration rows through `20261110150618`; required RC471/RC482/RC483/RC484/RC485/RC486/RC487 identifiers remain absent. Live directory Edge remains v16 with old bundle hash `13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0`; it does not include merged consent-aware/current-owner code. Security Advisor still reports anonymous-session policy warnings and leaked-password protection disabled.
+
+Next: operator-controlled encrypted off-site backup and Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO, then coordinated migration + complete directory Edge release with exact hash and adversarial live tests. No Production DB/Auth/RLS/GRANT/Storage/Edge/payment/wallet/customer-data mutation occurred. **PRODUCTION BLOCKED / NOT CERTIFIED.**
