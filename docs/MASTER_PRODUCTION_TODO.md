@@ -1,3 +1,4 @@
+- [x] RC495 final test hardening: provider-media UPDATE `USING` now explicitly asserts confirmed Auth and corrected filename regex; static validator pins the exact policy clause.
 ## Pass 1586–1595 — RC495 Storage filename and platform-root registry repair — 2026-11-21
 
 - [x] Rechecked live Storage policy metadata and identified doubled-backslash filename suffix predicates on five existing policies.
