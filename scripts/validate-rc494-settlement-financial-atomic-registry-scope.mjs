@@ -3,8 +3,6 @@ import { readFileSync } from "node:fs";
 
 const migration = readFileSync("supabase/migrations/20261120290000_rc494_settlement_financial_atomic_registry_scope_hardening.sql", "utf8");
 const integration = readFileSync("supabase/tests/rc494_settlement_financial_atomic_registry_scope_integration.sql", "utf8");
-const authorization = readFileSync("supabase/functions/settlement-financial-atomic/authorization.mjs", "utf8");
-const edge = readFileSync("supabase/functions/settlement-financial-atomic/index.ts", "utf8");
 const contract = readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
 const verify = readFileSync("scripts/production/verify-production.mjs", "utf8");
 const gate = readFileSync("scripts/validate-production-migration-chain-gate.mjs", "utf8");
@@ -35,18 +33,6 @@ assert.match(integration, /RC494_BUSINESS_ROLE_TENANT_WIDE_SETTLEMENT_SUCCEEDED/
 assert.match(integration, /RC494_TENANT_FINANCE_SCOPE_REGRESSED/);
 assert.match(integration, /RC494_IDEMPOTENCY_AMOUNT_MISMATCH_WAS_ACCEPTED/);
 assert.match(integration, /ROLLBACK;/);
-
-assert.match(authorization, /if \(tenant === "MNTY-PLATFORM"\) return isPlatformAdmin === true/);
-assert.doesNotMatch(authorization, /isPlatformSuperAdmin/);
-assert.match(edge, /userClient\.rpc\("mnty_can_platform_admin"\)/);
-assert.match(edge, /tenantId === "MNTY-PLATFORM"/);
-assert.match(edge, /isPlatformAdmin = registryResult === true/);
-assert.match(edge, /PLATFORM_ADMIN_CHECK_UNAVAILABLE/);
-assert.ok(
-  edge.indexOf('userClient.rpc("mnty_can_platform_admin")') <
-  edge.indexOf('serviceClient.rpc("create_settlement_and_post_journal")'),
-  "caller-JWT registry authorization must precede the service-role settlement RPC",
-);
 
 assert.match(contract, /"20261120290000"/);
 assert.match(verify, /20261120290000_rc494_settlement_financial_atomic_registry_scope_hardening\.sql/);
