@@ -440,6 +440,18 @@ BEGIN
   WHERE tenant_id='MNTY-PLATFORM'
     AND account_code IN ('1020','2050','5030');
 
+  -- Diagnostic evidence for the isolated replay: compare canonical COA IDs and
+  -- persisted journal lines before the idempotent retry. This does not mutate data.
+  RAISE NOTICE 'RC494_PLATFORM_ROOT_ACCOUNT_IDS: %',
+    (SELECT jsonb_object_agg(account_code,id) FROM public.chart_of_accounts
+     WHERE tenant_id='MNTY-PLATFORM' AND account_code IN ('1020','2050','5030'));
+  RAISE NOTICE 'RC494_PLATFORM_ROOT_JOURNAL_LINES: %',
+    (SELECT jsonb_agg(jsonb_build_object(
+      'id',id,'account_id',account_id,'line_number',line_number,
+      'debit',debit,'credit',credit,'description',description
+    ) ORDER BY line_number)
+     FROM public.journal_entry_lines WHERE journal_entry_id='je_RC494-PLATFORM-ROOT');
+
   v_result := public.create_settlement_and_post_journal(
     'RC494-PLATFORM-ROOT','MNTY-PLATFORM','PARTNER','partner-platform-root',
     100,0,99,1,'BANK_TRANSFER','RC494-PLATFORM-ROOT',NULL,
