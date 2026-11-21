@@ -6,7 +6,7 @@
 **Production mutation policy:** read-only until verified backup/restore and coordinated DB/Edge release.
 
 - Corrected the exact release gate to 74 required migration versions; source and live reconciliation arrays both contain 74 timestamps in identical chronological order.
-- Consolidated PR #958 now includes RC488–RC494 and RC492's grant-faithful PostgreSQL 16 fixture/workflow. RC492 tests match Production's authenticated DELETE-only request grant and SELECT-only bid grant; no fake INSERT/UPDATE grant tests.
+- Consolidated PR #958 now includes RC488–RC494 and RC492's grant-faithful PostgreSQL 16 fixture/workflow. RC492 tests match Production's authenticated SELECT + DELETE request grants and SELECT-only bid grants; no fake INSERT/UPDATE grant tests.
 - Fresh read-only Supabase query: 310 migration rows through `20261110150618`; 0/74 exact release versions applied; RC488–RC494 all absent.
 - PR #958 head: `1fb8945f41d38bbf3a535b2ef750417a87424f2f`; mergeable, but exact-head checks are pending. No new-head pass or merge is claimed.
 - No Production mutation was performed. Directory contact-consent, payment/finance, Edge parity, backup/restore, and Auth security configuration remain release blockers.
