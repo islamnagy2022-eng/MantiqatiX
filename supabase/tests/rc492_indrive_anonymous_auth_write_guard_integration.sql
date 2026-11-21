@@ -123,8 +123,10 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_catalog.pg_policies
     WHERE schemaname='public' AND tablename='indrive_requests'
-      AND policyname='rc492_request_delete' AND cmd='DELETE'
+      AND cmd='DELETE' AND permissive='PERMISSIVE'
       AND 'authenticated'=ANY(roles)
+      AND coalesce(qual,'') ILIKE '%owner_user_id%'
+      AND coalesce(qual,'') ILIKE '%auth.uid%'
   ) THEN RAISE EXCEPTION 'RC492_CONFIRMED_OWNER_DELETE_POLICY_MISSING'; END IF;
   DELETE FROM public.indrive_requests
   WHERE id='49200000-0000-4000-8000-000000000011';
