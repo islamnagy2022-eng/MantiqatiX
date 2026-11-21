@@ -3738,3 +3738,16 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - No Production DB/migration/Auth/RLS/GRANT/Storage/Edge/payment/wallet/customer-data mutation. No Edge deployment inferred from PR CI.
 - Remaining: coordinated migration and Edge release, verified encrypted off-site backup and independent PostgreSQL 17 restore/rollback, exact live bundle parity, and deployed positive/negative authorization tests.
 - Disposition: source fix merged and exact-head CI green; PRODUCTION BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-22 — Pass 1651–1660 — live Production parity verification
+
+- Read-only Supabase SQL: 310 migration rows through 20261110150618; none of RC471/482/483/484/485/486/487 recorded.
+- Live platform helper remains SECURITY INVOKER with search_path=public and membership-derived ADMIN/SUPER_ADMIN predicate; registry FORCE RLS false; 57 dependent policies across 24 tables.
+- public.directory_listing_contact_consents is absent. Aggregate PUBLISHED directory count is 869; no personal/contact rows were read.
+- Live directory-listings Edge Function is ACTIVE v16, SHA-256 13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0. Deployed files: index.ts, pagination-filter.mjs, doctor-import-contract.mjs.
+- Current main index blob 0d378cc88770ab23ab029a628bd891848a2348f4 imports the consent/public-output/platform-admin helper modules and uses resolveListingOwner; live v16 lacks these and retains stale claimant/business owner checks. Live public projection includes phone, secondary_phone and address.
+- Created audit docs/audits/PASS_1651_1660_LIVE_DIRECTORY_AND_PLATFORM_ROOT_RECHECK_20261122.md.
+- No Production SQL/DDL/DML, migration, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet or customer data mutation.
+- Next: verified encrypted backup + Vault recovery + independent PG17 restore/rollback + RPO/RTO; full chronological replay; coordinated DB/Edge deployment and live adversarial verification.
+- Disposition: Production BLOCKED / NOT CERTIFIED.
