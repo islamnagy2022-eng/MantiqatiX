@@ -1,22 +1,27 @@
-# Latest continuation checkpoint — 2026-11-21 — Pass 1546–1555
+# Latest continuation checkpoint — 2026-11-21 — Pass 1556–1565
 
-**Current main:** `3084283da8e83c9f216631248b3a06a0e5ca3431`  
-**Latest source merge:** PR #952, directory address-consent fetch exception fail-closed guard.  
+**Current main:** `3c41d49eda67564479a95c456d6987e3bac54e43`  
+**Open security PR:** [#959](https://github.com/islamnagy2022-eng/MantiqatiX/pull/959) — exact-head CI queued; not merged.  
 **Production gate:** **BLOCKED / NOT CERTIFIED**.  
 **Production mutation policy:** read-only until verified backup/restore and coordinated DB/Edge release.
 
-- Exact PR-head CI: 8/8 associated workflow runs completed successfully. Directory consent source contract, Deno check, PostgreSQL integration, frontend build/type-check, and catalog browser/RBAC validations passed.
-- Pages workflow's `deploy` and `validate_public_only` jobs were skipped. Do not claim a Production deployment.
-- Live Supabase: 310 migrations through `20261110150618`; RC472/RC473 absent. Directory Edge ACTIVE v16 still lacks current-main consent modules; deployed hash `13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0`.
-- Read-only privilege check: all 9 RLS-enabled/no-policy tables have no direct anon/authenticated SELECT or INSERT grants. Eight have FORCE RLS; `digital_page_payment_events` does not, but has no direct browser-role SELECT/INSERT grants. The public targeted-ad SECURITY DEFINER RPC is read-only, empty-search_path, and constrained to active/approved/time-valid ads; no blanket revoke was made.
-- Remaining high-priority gates: operator-owned encrypted DB + Storage backup, off-site retrieval, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO; then coordinated RC472/RC473 + full Edge bundle deployment and consent E2E.
-- PR #951's documentation branch is one commit behind main and diverged. It was not force-merged; a fresh docs branch is being prepared.
+- RC492 was corrected against live grants: `indrive_requests` authenticated DELETE only (no INSERT/UPDATE); `indrive_bids` authenticated SELECT only. Migration does not add grants; integration tests mirror the live privilege boundary.
+- Current-main PR #959 adds RC488–RC493 restrictive Auth-boundary policies, tests, and dedicated RC492 PostgreSQL 16 workflow. Wait for exact-head CI before merge.
+- Live ledger remains 310 rows through `20261110150618`; 0/73 required release identifiers present. RC472/RC473 remain absent.
+- Read-only SECURITY DEFINER inventory: 65 authenticated-executable public functions; no missing search_path; 47 configured to public, 18 empty, 17 include pg_temp; only one also anon-executable (the constrained targeted-ad read RPC with empty search_path). No blanket privilege/search_path changes.
+- Production blockers unchanged: verified encrypted database/Storage backup, off-site retrieval, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO; coordinated RC472/RC473 plus complete Edge bundle deployment; directory contact-consent E2E and live/source parity.
 
-**Next:** continue source/CI work and dependency-ordered release preparation. No Production mutation occurred in this pass.
+## Latest execution
+- PR #952 and #955 are merged.
+- PR #956 was closed without merge; its changes were re-based/ported to current main in PR #959.
+- PR #959 exact-head workflows are queued; no CI pass is claimed until completed.
+- No Production mutation was performed.
 
----
+## Next
+1. Resolve all PR #959 checks, especially RC492 isolated PostgreSQL and full forward-chain replay.
+2. Independently review the SECURITY DEFINER functions and scoped privileges; do not blanket rewrite.
+3. Continue backup/restore and coordinated directory-consent release gates.
 
-## Latest execution checkpoint — Pass 1536–1545 — 2026-11-21
 
 - Revalidated the live directory privacy blocker: Production migration ledger has 310 rows through `20261110150618`; RC472/RC473 are absent. Live `directory-listings` remains ACTIVE v16 and does not include the current-main contact/address consent modules.
 - Inspected RC473 migration, public output sanitizer, address/contact pagination helpers, consent endpoint and frontend owner controls.
