@@ -46,7 +46,7 @@ assert.match(catalogAdmin, /const hasPlatformScope = hasRegisteredPlatformRoot/)
 assert.match(catalogAdmin, /const scopedPlatformMembership = hasRegisteredPlatformRoot/);
 assert.match(catalogAdmin, /from\("tenants"\)[\s\S]*select\("id"\)[\s\S]*eq\("status", "ACTIVE"\)/);
 assert.doesNotMatch(catalogAdmin, /isPlatformAdmin|platformTenants|hasPlatformAdminMembership/);
-assert.match(catalogAdmin, /global:\\s*\\{\\s*headers:\\s*\\{\\s*Authorization:\\s*auth\\s*\\}/,
+assert.match(catalogAdmin, /global:\s*\{\s*headers:\s*\{\s*Authorization:\s*auth\s*\}/,
   "catalog admin registry RPC must use the verified caller JWT");
 
 // AI catalog image path: service-role writes require a confirmed user and registry-backed root
@@ -67,12 +67,12 @@ assert.match(helperTests, /registry unavailable/);
 assert.match(businessRegister, /registryClient\.rpc\("mnty_can_platform_admin"\)/);
 assert.match(businessRegister, /isPlatformAdmin=registryResult===true/);
 assert.match(businessRegister, /m\.business_id==null&&m\.branch_id==null/);
-assert.doesNotMatch(businessRegister, /permissions\?\.scope===\"PLATFORM\"/);
+assert.doesNotMatch(businessRegister, /permissions\?\.scope\s*===\s*["']PLATFORM["']/);
 
 assert.match(businessBranchAdmin, /registryClient\.rpc\("mnty_can_platform_admin"\)/);
 assert.match(businessBranchAdmin, /isPlatformAdmin=registryResult===true/);
 assert.match(businessBranchAdmin, /String\(m\.branch_id\|\|\"\"\)===\"\"/);
-assert.doesNotMatch(businessBranchAdmin, /permissions\?\.scope===\"PLATFORM\"/);
+assert.doesNotMatch(businessBranchAdmin, /permissions\?\.scope\s*===\s*["']PLATFORM["']/);
 
 assert.match(settlementEdge, /userClient\.rpc\("mnty_can_platform_admin"\)/);
 assert.match(settlementEdge, /tenantId === "MNTY-PLATFORM"/);
