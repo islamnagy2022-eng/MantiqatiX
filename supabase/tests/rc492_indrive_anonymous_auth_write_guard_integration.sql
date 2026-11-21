@@ -117,6 +117,15 @@ BEGIN
   IF NOT pg_catalog.has_table_privilege(current_user,'public.indrive_requests','DELETE') THEN
     RAISE EXCEPTION 'RC492_CONFIRMED_DELETE_PRIVILEGE_MISSING';
   END IF;
+  SELECT count(*) INTO n FROM public.indrive_requests
+  WHERE id='49200000-0000-4000-8000-000000000011';
+  IF n <> 1 THEN RAISE EXCEPTION 'RC492_CONFIRMED_OWNER_FIXTURE_NOT_VISIBLE:%',n; END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_policies
+    WHERE schemaname='public' AND tablename='indrive_requests'
+      AND policyname='rc492_request_delete' AND cmd='DELETE'
+      AND 'authenticated'=ANY(roles)
+  ) THEN RAISE EXCEPTION 'RC492_CONFIRMED_OWNER_DELETE_POLICY_MISSING'; END IF;
   DELETE FROM public.indrive_requests
   WHERE id='49200000-0000-4000-8000-000000000011';
   GET DIAGNOSTICS n=ROW_COUNT;
