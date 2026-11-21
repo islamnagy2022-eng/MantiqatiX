@@ -1,3 +1,22 @@
+## Pass 1621–1630 — RC488–RC496 current-main security reconciliation — 2026-11-21
+
+- [x] Rebased the RC488–RC496 security source set onto the current main after PR #957, preserving the newer directory platform-admin registry and frontend changes.
+- [x] Corrected the RC494 merchant journal integration fixture to use the canonical merchant posting descriptions; authorization and financial assertions were not weakened.
+- [x] PR [#961](https://github.com/islamnagy2022-eng/MantiqaTix/pull/961) merged to main as `a0af2a4d2f561794f17eff5cf57d15ab3f1aa58b`.
+- [x] Exact PR-head CI: 19 workflows successful, 0 failed. The disposable Supabase replay restored schema-only checkpoint `20261008222845` and applied 112 forward migrations chronologically; RC488–RC496 checks and synthetic two-tenant isolation passed.
+- [x] Primary Catalog browser E2E and employee RBAC PostgreSQL checks passed on the PR head.
+- [x] Encrypted backup evidence gate, Directory Contact Consent, RC475, RC492, RC493, RC496, migration uniqueness/history, platform-admin registry, and module-boundary checks passed on the PR head.
+- [ ] Post-merge main browser E2E and Pages deployment workflows are still running at this checkpoint; no live website deployment is claimed until the workflow confirms completion.
+- [ ] Production migration ledger still requires independent read-only reconciliation; the source release contract's missing version IDs are not authorization to apply migrations or fabricate ledger entries.
+- [ ] Complete operator-owned encrypted DB + Storage backup, off-site retrieval, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO.
+- [ ] Resolve P0 directory privacy by applying RC472/RC473 and deploying the complete consent-aware `directory-listings` Edge bundle together, then verify anonymous/owner grant-revoke and registry-outage fail-closed behavior.
+- [ ] Reconcile the seven critical live Edge source mismatches and payment/order/subscription/finance physical contract gaps; run Paymob sandbox and negative authorization tests before any coordinated release.
+- **Safety:** PR #961 is source/CI only. No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge deployment, payment, wallet or customer-data mutation. Production remains **BLOCKED / NOT CERTIFIED**.
+
+Evidence: PR #961; merge commit `a0af2a4d2f561794f17eff5cf57d15ab3f1aa58b`; replay run [44938468275](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44938468275).
+
+---
+
 - [ ] P0 directory privacy: deploy RC473 consent table and complete current `directory-listings` Edge bundle together; live v16 currently exposes phone/address for 869 published listings without consent. Require anonymous/owner consent grant-revoke and registry-outage fail-closed E2E before release.
 ## Pass 1576–1585 — Directory registry, CI repair and R7/mobile source reconciliation — 2026-11-21
 
