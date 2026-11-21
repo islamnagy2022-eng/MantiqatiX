@@ -3682,3 +3682,17 @@ Corrected anonymous Auth security chain: RC488–RC492 now fail closed if `is_an
 ## 2026-11-20 — Pass 1511–1515 — CI refresh
 
 PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable PostgreSQL integration, static validation, migration-version validation, cross-PR collision guard, migration-history immutability and forward-chain replay all passed. Overall 16 successful, 2 skipped (deploy/public-only), 0 failed, 12 queued at inspection. PR #946 exact head had 29 queued and 1 skipped, with no failures reported at inspection. No merge or Production deployment. Continue polling and reviewing remaining exact-head checks.
+
+
+## 2026-11-21 — SESSION — Pass 1536–1545 — directory consent fetch exception hardening
+
+- User instruction: continue MantiqaTix toward a secure production release; preserve existing UI and mobile assets.
+- Rechecked canonical TODO/continuity, GitHub main, live Supabase migration ledger, Edge Function inventory, Security Advisor and P0 issue #876.
+- Verified current Production ledger: 310 migrations through `20261110150618`; RC472/RC473 absent. Live `directory-listings` ACTIVE v16; deployed bundle lacks the consent-aware sanitizer/pagination modules present in main. No Production write was attempted.
+- Inspected RC473 consent migration, public projection sanitizer, contact/address pagination helpers, endpoint and owner UI. Found address-consent pagination did not catch a rejected fetch promise, unlike contact-scope pagination. This could propagate an unhandled runtime/network failure instead of the helper's explicit fail-closed `ready:false` response.
+- Implemented a source-only fix on `fix/directory-address-consent-fetch-exception-guard-20261121`: catch fetch exceptions, discard any partial consent IDs, return `{ ids: [], ready: false }`.
+- Added a regression case where the first page succeeds and the second page throws. Opened draft PR #952: https://github.com/islamnagy2022-eng/MantiqatiX/pull/952.
+- Exact-PR CI was not yet visible at checkpoint; no test pass or merge is claimed.
+- No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge deployment, payment, or customer-data mutation occurred.
+- Remaining blockers: verified encrypted off-site DB/Storage backup and independent PostgreSQL 17 restore/rollback; RC472/RC473 migration + complete Edge bundle coordinated release; explicit source-republication rights policy; itemized Security Advisor review; post-deployment consent positive/negative checks.
+- Next: inspect PR #952 exact-head checks, resolve failures, merge only when green, then proceed to operator-owned backup/restore and coordinated release planning. Production remains BLOCKED / NOT CERTIFIED.
