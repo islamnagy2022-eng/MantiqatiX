@@ -325,6 +325,33 @@ BEGIN
     RAISE EXCEPTION 'RC496_FARE_LOCK_SEARCH_PATH_MISMATCH: %',v_status;
   END IF;
 
+  -- The offer writer must remain authenticated-only and use an empty search_path.
+  IF pg_catalog.has_function_privilege(
+       'anon','public.create_mantigo_bid_backend(uuid,text,text,text,numeric,text,text,text,numeric,integer,text)','EXECUTE'
+     )
+     OR NOT pg_catalog.has_function_privilege(
+       'authenticated','public.create_mantigo_bid_backend(uuid,text,text,text,numeric,text,text,text,numeric,integer,text)','EXECUTE'
+     ) THEN
+    RAISE EXCEPTION 'RC496_CREATE_BID_EXECUTE_ACL_MISMATCH';
+  END IF;
+  SELECT pg_catalog.array_to_string(p.proconfig,',') INTO v_status
+  FROM pg_catalog.pg_proc p
+  WHERE p.oid='public.create_mantigo_bid_backend(uuid,text,text,text,numeric,text,text,text,numeric,integer,text)'::regprocedure
+    AND p.prosecdef;
+  IF v_status IS DISTINCT FROM 'search_path=""' THEN
+    RAISE EXCEPTION 'RC496_CREATE_BID_SEARCH_PATH_MISMATCH: %',v_status;
+  END IF;
+
+  -- The partial unique index is active for every database writer, not just RPCs.
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_index i
+    WHERE i.indexrelid='public.mantigo_bids_one_accepted_per_ride_idx'::regclass
+      AND i.indisunique
+      AND i.indpred IS NOT NULL
+  ) THEN
+    RAISE EXCEPTION 'RC496_ONE_ACCEPTED_BID_INDEX_MISSING';
+  END IF;
+
   -- Legacy acceptance/submission RPCs must remain revoked from browser roles.
   IF pg_catalog.has_function_privilege('anon','public.mantigo_accept_bid(text,text)','EXECUTE')
      OR pg_catalog.has_function_privilege('authenticated','public.mantigo_accept_bid(text,text)','EXECUTE')
