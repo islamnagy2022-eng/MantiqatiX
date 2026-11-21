@@ -46,6 +46,8 @@ assert.match(catalogAdmin, /const hasPlatformScope = hasRegisteredPlatformRoot/)
 assert.match(catalogAdmin, /const scopedPlatformMembership = hasRegisteredPlatformRoot/);
 assert.match(catalogAdmin, /from\("tenants"\)[\s\S]*select\("id"\)[\s\S]*eq\("status", "ACTIVE"\)/);
 assert.doesNotMatch(catalogAdmin, /isPlatformAdmin|platformTenants|hasPlatformAdminMembership/);
+assert.match(catalogAdmin, /global:\\s*\\{\\s*headers:\\s*\\{\\s*Authorization:\\s*auth\\s*\\}/,
+  "catalog admin registry RPC must use the verified caller JWT");
 
 // AI catalog image path: service-role writes require a confirmed user and registry-backed root
 // or a normal business-scoped catalog membership.
@@ -78,7 +80,7 @@ assert.match(settlementEdge, /isPlatformAdmin = registryResult === true/);
 assert.match(settlementAuthorization, /if \(tenant === "MNTY-PLATFORM"\) return isPlatformAdmin === true/);
 assert.doesNotMatch(settlementAuthorization, /isPlatformSuperAdmin/);
 
-// RC464 is the canonical platform-root helper used by all three Edge Functions.
+// RC464 is the canonical platform-root helper used by the platform-facing Edge Functions.
 assert.match(registryMigration, /function public\.mnty_can_platform_admin\(\)/i);
 assert.match(registryMigration, /security definer/i);
 assert.match(registryMigration, /set search_path = ''/i);
