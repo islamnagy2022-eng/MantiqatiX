@@ -3657,3 +3657,5 @@ Evidence: audit file; branch `fix/rc479-anonymous-auth-profile-boundary-tests-20
 - [ ] Await fresh exact-head RC488 and full forward migration replay CI after the test correction. Do not merge or deploy while replay/browser/deploy checks remain pending or failing.
 
 **Safety:** the only Production action was read-only inspection of `pg_policies` and regex behavior. No Production policy, grant, Storage object, Auth setting, application row, or customer data was modified. The platform-brand regex repair remains source-only and unimplemented pending a properly generated forward migration.
+
+- [x] Follow-up — The profile-media owner INSERT policy also contains an over-escaped extension predicate in Production; moved the RC488 confirmed-user INSERT regression to the private `mantiqatix-media` owner-upload path, and added the matching permissive policy to the isolated fixture. This preserves the intended test of RC488's table-wide restrictive guard without masking the separate profile-media filename issue.
