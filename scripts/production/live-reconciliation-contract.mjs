@@ -46,6 +46,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261120260000", // RC491 — require confirmed Auth identity for support ticket reads
   "20261120270000", // RC492 — require confirmed Auth identity for InDrive request writes
   "20261120280000", // RC493 — require confirmed Auth identity for private CRM/project/notification reads
+  "20261120290000", // RC494 — registry-backed platform settlement and tenant/business scope
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
