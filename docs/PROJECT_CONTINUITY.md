@@ -3124,3 +3124,14 @@ Exact-head CI: 12/12 workflows completed successfully. PR #962 is merged. The Pa
 No Production SQL/DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge, payment, wallet or customer-data mutation occurred. This is a source-level authorization correction, not live authorization certification.
 
 Next: include the Edge Function in the coordinated release only after verified encrypted off-site backup and independent PostgreSQL 17 restore/rollback, migration parity, exact deployed Edge bundle parity, and payment/privacy E2E gates. After approved deployment, test business owner allow; branch member, revoked member, legacy unlinked claimant and unrelated user boundaries. Keep Production BLOCKED / NOT CERTIFIED until all gates pass.
+
+
+## 2026-11-22 — Pass 1651–1660 — live directory and platform-root parity recheck
+
+Fresh read-only Supabase Production inspection confirms 310 migration rows through 20261110150618; none of RC471/RC482/RC483/RC484/RC485/RC486/RC487 is present. Live public.is_platform_admin() is still SECURITY INVOKER with search_path=public and membership-derived ADMIN/SUPER_ADMIN logic; private.platform_admins FORCE RLS is false. Its blast radius remains 57 RLS policies across 24 tables.
+
+The public directory consent table is absent. Aggregate published directory count is 869; no contact rows or phone/address values were selected. Deployed directory-listings is ACTIVE v16 with SHA-256 13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0. Its deployed bundle contains index.ts, pagination-filter.mjs and doctor-import-contract.mjs only. Canonical main index blob 0d378cc88770ab23ab029a628bd891848a2348f4 additionally imports public-directory-output-contract.mjs, consent-pagination.mjs, contact-consent-pagination.mjs and platform-admin-registry.mjs, and contains resolveListingOwner. The live v16 entrypoint does not contain that resolver and still trusts the original claimant before checking current business membership; the live membership query does not constrain branch_id to NULL. The deployed public field projection includes phone, secondary_phone and address.
+
+Do not deploy the Edge function alone: the live consent table is absent, so its compatible migration and complete Edge bundle must be coordinated. No Production mutation or deployment occurred. Production remains BLOCKED / NOT CERTIFIED.
+
+Next: operator-owned encrypted off-site backup, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO; full chronological migration rehearsal; then coordinated database + Edge release and live positive/negative contact-consent and owner-scope tests. Evidence: docs/audits/PASS_1651_1660_LIVE_DIRECTORY_AND_PLATFORM_ROOT_RECHECK_20261122.md.
