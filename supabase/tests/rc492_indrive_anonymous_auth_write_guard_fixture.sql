@@ -51,6 +51,9 @@ CREATE POLICY rc492_request_delete ON public.indrive_requests
   FOR DELETE TO authenticated USING(owner_user_id=auth.uid());
 
 -- Production has DELETE only on requests; do not widen this grant in the fixture.
+-- DELETE predicates reference id and the existing owner policy references owner_user_id.
+-- Production grants these columns individually rather than granting table-wide SELECT.
+GRANT SELECT (id, owner_user_id) ON public.indrive_requests TO authenticated;
 GRANT DELETE ON public.indrive_requests TO authenticated;
 
 CREATE TABLE public.indrive_bids (
@@ -65,4 +68,5 @@ ALTER TABLE public.indrive_bids ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.indrive_bids FORCE ROW LEVEL SECURITY;
 CREATE POLICY rc492_bid_provider_read ON public.indrive_bids
   FOR SELECT TO authenticated USING(provider_user_id=auth.uid());
-GRANT SELECT ON public.indrive_bids TO authenticated;
+-- The bid read test filters by id; the existing provider policy reads provider_user_id.
+GRANT SELECT (id, provider_user_id) ON public.indrive_bids TO authenticated;
