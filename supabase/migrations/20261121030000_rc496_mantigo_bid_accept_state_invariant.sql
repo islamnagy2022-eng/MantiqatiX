@@ -27,8 +27,8 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_schema='public' AND table_name='mantigo_rides'
-      AND column_name IN ('id','customer_id','status','accepted_bid_id','updated_at')
-    GROUP BY table_name HAVING count(DISTINCT column_name)=5
+      AND column_name IN ('id','customer_id','vehicle_category','status','accepted_bid_id','updated_at')
+    GROUP BY table_name HAVING count(DISTINCT column_name)=6
   ) OR NOT EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_schema='public' AND table_name='mantigo_bids'
