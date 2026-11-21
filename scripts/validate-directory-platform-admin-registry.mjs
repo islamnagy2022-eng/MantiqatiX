@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 
 const directoryEdge = readFileSync("supabase/functions/directory-listings/index.ts", "utf8");
 const catalogPlatformAdmin = readFileSync("supabase/functions/catalog-platform-admin/index.ts", "utf8");
+const catalogAdmin = readFileSync("supabase/functions/catalog-admin/index.ts", "utf8");
 const aiGeminiProxy = readFileSync("supabase/functions/ai-gemini-proxy/index.ts", "utf8");
 const businessRegister = readFileSync("supabase/functions/business-register/index.ts", "utf8");
 const businessBranchAdmin = readFileSync("supabase/functions/business-branch-admin/index.ts", "utf8");
@@ -39,6 +40,12 @@ assert.doesNotMatch(catalogPlatformAdmin, /platformMemberships/,
   "platform-wide tenant enumeration must not depend on synthetic platform membership rows");
 assert.doesNotMatch(catalogPlatformAdmin, /\.in\("id", tenantIds\)/,
   "registered platform root must enumerate active production tenants from the registry authority");
+
+assert.match(catalogAdmin, /userClient\.rpc\("mnty_can_platform_admin"\)/);
+assert.match(catalogAdmin, /const hasPlatformScope = hasRegisteredPlatformRoot/);
+assert.match(catalogAdmin, /const scopedPlatformMembership = hasRegisteredPlatformRoot/);
+assert.match(catalogAdmin, /from\("tenants"\)[\s\S]*select\("id"\)[\s\S]*eq\("status", "ACTIVE"\)/);
+assert.doesNotMatch(catalogAdmin, /isPlatformAdmin|platformTenants|hasPlatformAdminMembership/);
 
 // AI catalog image path: service-role writes require a confirmed user and registry-backed root
 // or a normal business-scoped catalog membership.
