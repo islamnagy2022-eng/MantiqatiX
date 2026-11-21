@@ -7,6 +7,7 @@ on:
       - "supabase/migrations/**"
       - "supabase/tests/rc488_storage_anonymous_auth_write_guard_fixture.sql"
       - "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql"
+      - "supabase/tests/rc494_storage_filename_regex_forward_repair.sql"
       - "scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"
       - "scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"
       - "supabase/tests/rc488_storage_anonymous_auth_write_guard_fixture.sql"
