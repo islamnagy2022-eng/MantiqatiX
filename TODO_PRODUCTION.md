@@ -3730,3 +3730,18 @@ Evidence: `docs/audits/PASS_1490_1499_ANONYMOUS_AUTH_AND_PLATFORM_ROOT_PARITY_20
 
 - [x] Pass follow-up — Full chronological replay on exact head 5a35a2b failed only in the synthetic tenant-isolation verifier: Tenant A saw zero own payment_intents because the verifier set `request.jwt.claim.sub` and role but omitted `request.jwt.claims.is_anonymous=false`, now required by RC489. Added the explicit confirmed-user JWT claims for Tenant A and Tenant B, matching existing test-suite practice. This corrects the test identity rather than weakening the fail-closed migration.
 - [ ] Re-run the full production-checkpoint migration replay after the JWT fixture correction; verify Tenant A/B own-row visibility and cross-tenant denial both pass.
+
+
+## Pass 1526–1530 — Tenant replay JWT correction and Storage repair sequencing — 2026-11-21
+
+- [x] 1526 — Read exact full-chain replay failure on PR #946 head `5a35a2b`: RC488 and RC489 integration both passed; tenant-isolation verifier failed because its synthetic authenticated sessions omitted `request.jwt.claims.is_anonymous=false`.
+- [x] 1527 — Updated `scripts/verify-tenant-isolation.sql` to set the full confirmed-user JWT claims for Tenant A and Tenant B while preserving the separate `request.jwt.claim.sub` setting used by `auth.uid()`.
+- [x] 1528 — Confirmed the corrected verifier follows established RC465/RC466/RC467/RC478 test conventions; no migration predicate was weakened.
+- [x] 1529 — Rechecked web workflow: PR run 44852183800 completed its source validation and artifact build, but its log explicitly states Production deploy is restricted to `main`; the live Production verifier remains BLOCKED and the PR run did not deploy to the production origin.
+- [x] 1530 — Kept the Storage filename regex repair out of PR #946 until the RC493 chain is integrated. Closed PR #949 is based on an older branch head and labels its migration RC493, colliding semantically with PR #948's distinct RC493 migration. Preserve the repair for a new forward-only RC494 after #946/#948 chain consolidation; do not merge the stale PR #949 branch.
+
+- [ ] Await exact-head forward replay run 44852606787 and remaining PR #946 checks; confirm both Tenant A and Tenant B own-row visibility plus cross-tenant read/write denial.
+- [ ] Integrate RC493 from PR #948 in chronological order after RC488–RC492; then reissue the Storage filename correction as a unique RC494 with full replay coverage.
+- [ ] Production remains BLOCKED / NOT CERTIFIED: the current production verifier reports 68 required migrations absent from the live ledger, payment/finance runtime contracts incomplete, seven critical Edge function source mismatches, Auth security settings unverified, and backup/restore rehearsal not verified. No Production mutation was performed in this pass.
+
+**Safety:** all Supabase checks in this pass were read-only. The only writes were source/test/workflow/TODO changes on the PR #946 branch. No Production DDL/DML, policy, grant, Auth, Storage object, Edge Function, payment or customer data was changed.
