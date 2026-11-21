@@ -22,6 +22,11 @@ const response = (origin: string | null, body: unknown, status = 200) =>
 // PostgreSQL UUID columns accept legacy UUID-shaped values even when their
 // version/variant nibbles do not follow RFC 4122.
 const isUuid = (value: unknown) => typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+// Legacy membership metadata is used only to keep old platform rows non-editable in the UI.
+// It is never an authorization source; every platform action is gated by mnty_can_platform_admin().
+const isProtectedPlatformMembership = (m: any) => String(m?.role || "").toUpperCase() === "SUPER_ADMIN"
+  && !m?.business_id && !m?.branch_id
+  && m?.permissions?.scope === "PLATFORM" && m?.permissions?.full_control === true;
 const slugify = (value: string) => value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 
 Deno.serve(async (req: Request) => {
@@ -386,7 +391,7 @@ Deno.serve(async (req: Request) => {
           membershipStatus: String(m.status || "INACTIVE").toUpperCase(),
           permissions: m.permissions && typeof m.permissions === "object" && !Array.isArray(m.permissions) ? m.permissions : {},
           isAccountOnly: false,
-          isPlatformAccount: isPlatformAdmin(m),
+          isPlatformAccount: isProtectedPlatformMembership(m),
         };
       });
       for (const u of authUsers) {
@@ -669,7 +674,7 @@ Deno.serve(async (req: Request) => {
         .select("id,user_id,tenant_id,business_id,branch_id,role,status,permissions").eq("id", membershipId).maybeSingle();
       if (findError) throw findError;
       if (!membership || !productionTenantIds.includes(String(membership.tenant_id))
-        || String(membership.role || "").toUpperCase() === "SUPER_ADMIN" || isPlatformAdmin(membership)) {
+        || String(membership.role || "").toUpperCase() === "SUPER_ADMIN" || isProtectedPlatformMembership(membership)) {
         throw new Error("SUBSCRIBER_NOT_FOUND");
       }
       const role = String(membership.role || "").toUpperCase();
@@ -764,7 +769,7 @@ Deno.serve(async (req: Request) => {
         existing = data;
         if (!existing || !productionTenantIds.includes(String(existing.tenant_id))
           || String(existing.user_id) !== userId
-          || String(existing.role || "").toUpperCase() === "SUPER_ADMIN" || isPlatformAdmin(existing)) {
+          || String(existing.role || "").toUpperCase() === "SUPER_ADMIN" || isProtectedPlatformMembership(existing)) {
           return response(origin, { error: "MEMBERSHIP_NOT_EDITABLE" }, 403);
         }
       } else {
@@ -775,7 +780,7 @@ Deno.serve(async (req: Request) => {
         existingQuery = branchId ? existingQuery.eq("branch_id", branchId) : existingQuery.is("branch_id", null);
         const { data, error } = await existingQuery;
         if (error) throw error;
-        existing = (data || []).find((row: any) => String(row.role || "").toUpperCase() !== "SUPER_ADMIN" && !isPlatformAdmin(row)) || null;
+        existing = (data || []).find((row: any) => String(row.role || "").toUpperCase() !== "SUPER_ADMIN" && !isProtectedPlatformMembership(row)) || null;
       }
 
       const previousPermissions = existing?.permissions && typeof existing.permissions === "object" && !Array.isArray(existing.permissions)
