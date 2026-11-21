@@ -8,6 +8,7 @@ const verify = readFileSync("scripts/production/verify-production.mjs", "utf8");
 const gate = readFileSync("scripts/validate-production-migration-chain-gate.mjs", "utf8");
 const manifest = JSON.parse(readFileSync("docs/release/production-migration-reconciliation.json", "utf8"));
 const workflow = readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
+const aclOverlay = readFileSync("supabase/tests/baselines/production_live_settlement_function_acl_overlay_fixture.sql", "utf8");
 
 assert.match(migration, /CREATE OR REPLACE FUNCTION public\.create_settlement_and_post_journal/);
 assert.match(migration, /SET search_path = ''/);
@@ -57,5 +58,10 @@ assert.ok(manifest.required_release_migration_ledger_check.required_versions.inc
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261120290000"));
 assert.match(workflow, /validate-rc494-settlement-financial-atomic-registry-scope\.mjs/);
 assert.match(workflow, /rc494_settlement_financial_atomic_registry_scope_integration\.sql/);
+assert.match(workflow, /RESTORE_TEST_ONLY_KNOWN_LIVE_RC494_SETTLEMENT_FUNCTION_ACL_OVERLAY/);
+assert.match(workflow, /production_live_settlement_function_acl_overlay_fixture\.sql/);
+assert.match(aclOverlay, /REVOKE ALL ON FUNCTION public\.create_settlement_and_post_journal[\s\S]*FROM PUBLIC, anon, authenticated/);
+assert.match(aclOverlay, /GRANT EXECUTE ON FUNCTION public\.create_settlement_and_post_journal[\s\S]*TO service_role/);
+assert.match(aclOverlay, /TEST ONLY[\s\S]*Never apply this fixture to a hosted or production database/);
 
 console.log("RC494_SETTLEMENT_REGISTRY_SCOPE=PASS");
