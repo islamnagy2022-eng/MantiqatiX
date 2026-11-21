@@ -40,6 +40,12 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261120200000", // RC485 — bind seven catalog RPC global-root paths to the platform registry
   "20261120210000", // RC486 — serialize item/branch price versions and enforce uniqueness
   "20261120220000", // RC487 — remove public first-Auth-user SMM admin bootstrap
+  "20261120230000", // RC488 — block anonymous Auth writes to Storage objects
+  "20261120240000", // RC489 — require confirmed Auth identity for private financial reads
+  "20261120250000", // RC490 — require confirmed Auth identity for medical appointment reads
+  "20261120260000", // RC491 — require confirmed Auth identity for support ticket reads
+  "20261120270000", // RC492 — require confirmed Auth identity for InDrive request writes
+  "20261120280000", // RC493 — require confirmed Auth identity for private CRM/project/notification reads
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
@@ -85,6 +91,8 @@ export const REQUIRED_CORE_OBJECTS = [
   "public.get_mantigo_admin_financial_report_backend",
   "public.settle_mantigo_captain_backend",
   "public.expire_stale_mantigo_rides_backend",
+  "private.platform_admins",
+  "public.is_platform_admin()",
 ];
 
 // Require exact runtime function signatures and persisted Paymob/checkout
