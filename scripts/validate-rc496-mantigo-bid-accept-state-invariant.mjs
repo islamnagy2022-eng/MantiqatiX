@@ -40,6 +40,8 @@ for (const state of ["ACCEPTED", "REJECTED", "WITHDRAWN", "EXPIRED"]) {
 assert.match(integration, /RC496-WINNER/);
 assert.match(integration, /RC496-SIBLING/);
 assert.match(integration, /idempotent/);
+assert.match(integration, /RC496_TEST_FARE_LOCK_FAILURE/);
+assert.match(integration, /fare-lock failure left a partial acceptance/);
 assert.match(integration, /CUSTOMER_REQUIRED/);
 assert.match(integration, /USER_CONTEXT_MISMATCH/);
 assert.match(integration, /CREATE TRIGGER rc496_delay_accept_update/);
