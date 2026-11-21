@@ -5,6 +5,26 @@ CREATE ROLE service_role NOLOGIN BYPASSRLS;
 
 CREATE SCHEMA auth;
 CREATE SCHEMA storage;
+CREATE SCHEMA private;
+
+CREATE TABLE private.platform_admins(
+  user_id uuid PRIMARY KEY,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE OR REPLACE FUNCTION public.is_platform_admin()
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $function$
+  SELECT EXISTS (
+    SELECT 1 FROM private.platform_admins pa
+    WHERE pa.user_id = (SELECT auth.uid())
+  )
+$function$;
+GRANT EXECUTE ON FUNCTION public.is_platform_admin() TO authenticated;
 
 CREATE OR REPLACE FUNCTION auth.jwt()
 RETURNS jsonb LANGUAGE sql STABLE AS $function$
@@ -99,11 +119,8 @@ CREATE POLICY mnty_platform_brand_insert
 ON storage.objects FOR INSERT TO authenticated
 WITH CHECK(
   bucket_id='mantiqatix-profile-media'
-  AND name ~ '^platform/branding/(logo|mark)-[0-9]+\.(jpg|jpeg|png|webp|svg)$'
-  AND EXISTS(
-    SELECT 1 FROM public.user_memberships m
-    WHERE m.user_id=auth.uid() AND m.status='ACTIVE' AND upper(m.role)='SUPER_ADMIN'
-  )
+  AND name ~ '^platform/branding/(logo|mark)-[0-9]+\\.(jpg|jpeg|png|webp|svg)$'
+  AND public.is_platform_admin()
 );
 
 CREATE POLICY mnty_profile_media_owner_update
