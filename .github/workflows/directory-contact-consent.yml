@@ -115,7 +115,7 @@ jobs:
       - name: Type-check settlement financial atomic Edge Function
         run: deno check --node-modules-dir=auto supabase/functions/settlement-financial-atomic/index.ts
       - name: Test settlement financial authorization
-        run: deno test --node-modules-dir=auto supabase/functions/settlement-financial-atomic/authorization.test.mjs
+        run: deno test --allow-read=supabase/functions/settlement-financial-atomic/index.ts --node-modules-dir=auto supabase/functions/settlement-financial-atomic/authorization.test.mjs
       - name: Build and type-check primary catalog frontend
         working-directory: apps/catalog-frontend
         run: |
