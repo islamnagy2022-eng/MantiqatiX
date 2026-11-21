@@ -163,7 +163,7 @@ BEGIN
     WHERE id='48800000-0000-4000-8000-000000000012'
       AND owner_user_id=v_auth_uid
   ) INTO v_profile_visible;
-  v_path_matches := v_path ~ '^users/[0-9a-fA-F-]{36}/providers/[0-9a-fA-F-]{36}/(cover|logo)[.](jpg|jpeg|png|webp)
+  v_path_matches := v_path ~ '^users/[0-9a-fA-F-]{36}/providers/[0-9a-fA-F-]{36}/(cover|logo)[.](jpg|jpeg|png|webp)$';
   GET DIAGNOSTICS n=ROW_COUNT;
   IF n <> 1 THEN RAISE EXCEPTION 'RC488_CONFIRMED_OWNER_UPDATE_REGRESSED:%',n; END IF;
 
