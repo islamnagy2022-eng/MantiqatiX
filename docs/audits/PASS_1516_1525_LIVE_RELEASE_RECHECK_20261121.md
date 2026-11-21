@@ -103,3 +103,18 @@ These results are exact-head CI evidence for the referenced commit/workflows onl
 No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge deployment, payment, or customer-data mutation was performed.
 
 Next: obtain and verify the operator-owned encrypted database and Storage backups, off-site retrieval, Vault recovery, independent PostgreSQL 17 restore/rollback, and measured RPO/RTO. Then rehearse the exact ordered migration chain with the complete compatible directory Edge bundle and consent regression tests. Keep the Production gate **BLOCKED / NOT CERTIFIED** until these gates and post-deployment checks are evidenced.
+
+
+---
+
+## PASS 1536–1545 — address-consent fetch exception hardening — 2026-11-21
+
+- Re-inspected the canonical directory consent source and live Production boundary. Production still has 310 migration rows through `20261110150618`; RC472/RC473 are absent and live `directory-listings` remains ACTIVE v16 without consent-aware modules.
+- Found one fail-closed consistency gap in `collectActiveAddressConsentIds`: returned PostgREST errors and malformed responses produced `ready:false`, but a thrown network/runtime exception was not caught and could escape the helper.
+- Added try/catch around each page fetch. On exception, the helper discards all previously collected IDs and returns `{ ids: [], ready: false }`; no partial consent result can be used for exact-address filtering.
+- Added regression coverage for a successful first page followed by a thrown second-page fetch.
+- Focused Node 22 execution passed for capped pagination beyond 1,000 rows, thrown-fetch fail-closed, returned-error fail-closed and partial-ID discard.
+- Draft PR [#952](https://github.com/islamnagy2022-eng/MantiqatiX/pull/952) contains two source/test files. Exact-PR GitHub workflow, Deno check, PostgreSQL integration and frontend lint/build are not yet observed; no full CI pass is claimed.
+- No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge deployment, payment or customer-data mutation.
+
+**Disposition:** source fix proposed and focused helper test passed; await exact-head CI before merge. Production directory privacy release remains **BLOCKED / NOT CERTIFIED** pending verified backup/restore and coordinated RC472/RC473 + complete Edge bundle release.
