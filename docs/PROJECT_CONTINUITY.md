@@ -1,3 +1,17 @@
+## Latest execution checkpoint — Pass 1536–1545 — 2026-11-21
+
+- Revalidated the live directory privacy blocker: Production migration ledger has 310 rows through `20261110150618`; RC472/RC473 are absent. Live `directory-listings` remains ACTIVE v16 and does not include the current-main contact/address consent modules.
+- Inspected RC473 migration, public output sanitizer, address/contact pagination helpers, consent endpoint and frontend owner controls.
+- Found a fail-closed consistency gap: address-consent pagination handled PostgREST error objects and malformed responses but did not catch a rejected fetch promise. A later-page network/runtime exception could bubble out rather than return `ready:false`.
+- Proposed fix on branch `fix/directory-address-consent-fetch-exception-guard-20261121`: catch fetch exceptions, discard all partial IDs and return `{ ids: [], ready: false }`.
+- Added a regression test for first-page success followed by a thrown second-page fetch.
+- Draft PR [#952](https://github.com/islamnagy2022-eng/MantiqatiX/pull/952) opened with two source/test files. Exact-PR CI has not yet been observed; do not treat as passed.
+- No Production mutation. Directory privacy, RC472/RC473 migration and Edge release, verified backup/restore, source-republication rights, and broader platform certification remain blocked.
+
+**Next:** inspect PR #952 checks, fix any failures, merge only after exact-head green checks; then continue coordinated backup/restore and directory Edge release preparation. Preserve existing UI and Android/mobile assets.
+
+---
+
 ## Pass 1490–1499 — RC479 anonymous Auth-session forward guard merged — 2026-11-20
 
 - PR [#938](https://github.com/islamnagy2022-eng/MantiqatiX/pull/938) merged to `main` as `436b7a5a4aa12aa979f5ea4b52b9ce9d3971a046`.
