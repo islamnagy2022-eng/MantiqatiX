@@ -50,15 +50,16 @@ test("tenant-wide finance role is limited to unscoped tenant membership", () => 
   assert.equal(hasSettlementAuthority({ tenantId: "TENANT-A", memberships: [{ ...membership, business_id: "business-A" }] }), false);
 });
 
-test("MNTY-PLATFORM tenant-wide settlement requires the exact full-control platform Super Admin", () => {
-  assert.equal(hasSettlementAuthority({ tenantId: "MNTY-PLATFORM", memberships: [platformAdmin()] }), true);
-  assert.equal(hasSettlementAuthority({ tenantId: "MNTY-PLATFORM", memberships: [{ ...platformAdmin(), role: "ADMIN", permissions: {} }] }), false);
-  assert.equal(hasSettlementAuthority({ tenantId: "MNTY-PLATFORM", memberships: [platformAdmin({ permissions: { scope: "PLATFORM", full_control: false } })] }), false);
+test("MNTY-PLATFORM settlement requires registry authorization, never membership metadata", () => {
+  assert.equal(hasSettlementAuthority({ tenantId: "MNTY-PLATFORM", memberships: [platformAdmin()] }), false);
+  assert.equal(hasSettlementAuthority({ tenantId: "MNTY-PLATFORM", memberships: [platformAdmin()], isPlatformAdmin: true }), true);
+  assert.equal(hasSettlementAuthority({ tenantId: "MNTY-PLATFORM", memberships: [], isPlatformAdmin: true }), true);
+  assert.equal(hasSettlementAuthority({ tenantId: "MNTY-PLATFORM", memberships: [platformAdmin()], isPlatformAdmin: "true" }), false);
   assert.equal(hasSettlementAuthority({ tenantId: "MNTY-PLATFORM", memberships: [businessOwner("business-A", { tenant_id: "MNTY-PLATFORM" })] }), false);
 });
 
-test("a platform Super Admin may perform a scoped settlement within the platform tenant", () => {
-  assert.equal(hasSettlementAuthority({ tenantId: "MNTY-PLATFORM", businessId: "business-A", memberships: [platformAdmin()] }), true);
+test("a registry-authorized platform root may perform a scoped settlement", () => {
+  assert.equal(hasSettlementAuthority({ tenantId: "MNTY-PLATFORM", businessId: "business-A", memberships: [], isPlatformAdmin: true }), true);
 });
 
 test("database-selected earliest membership must also satisfy the RPC role contract", () => {
@@ -88,6 +89,11 @@ test("Edge Function performs verified-user scope authorization before the privil
   assert.match(source, /\.from\("user_memberships"\)/);
   assert.match(source, /\.eq\("user_id", user\.id\)/);
   assert.match(source, /hasSettlementAuthority\(\{ tenantId, businessId, memberships:/);
+  assert.match(source, /userClient\.rpc\("mnty_can_platform_admin"\)/);
+  assert.match(source, /tenantId === "MNTY-PLATFORM"/);
+  assert.match(source, /isPlatformAdmin/);
+  assert.doesNotMatch(source, /isPlatformSuperAdmin/);
+  assert.ok(source.indexOf('userClient.rpc("mnty_can_platform_admin")') < source.indexOf('serviceClient.rpc("create_settlement_and_post_journal"'));
   assert.match(source, /\.order\("created_at", \{ ascending: true \}\)/);
   assert.match(source, /error: "SETTLEMENT_FORBIDDEN"/);
   assert.match(source, /beneficiaryType === "MERCHANT" && !businessId/);
