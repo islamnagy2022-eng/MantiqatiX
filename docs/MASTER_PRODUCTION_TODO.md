@@ -4774,3 +4774,20 @@ Safety: source/test changes merged only. No Production database, migration, Auth
 Evidence: docs/audits/PASS_1651_1660_LIVE_DIRECTORY_AND_PLATFORM_ROOT_RECHECK_20261122.md; live read-only SQL snapshot; deployed Edge metadata; canonical main source blob 0d378cc88770ab23ab029a628bd891848a2348f4.
 
 Safety: no Production mutation or deployment. Production remains BLOCKED / NOT CERTIFIED.
+
+
+### Pass 1661–1670 — current-main release rehearsal and deployment verification — 2026-11-22
+
+- [x] Verify current-main forward migration chain replay on `413814a3ea4bdad782fe6a3f89958442e830e89d`; isolated PostgreSQL checkpoint restore and timestamp-ordered later migrations passed (run 44959408678).
+- [x] Verify Production Health Monitor passed on the same main commit (run 44959408639).
+- [x] Verify GitHub Pages deployment and deployed-origin browser checks passed for legacy catalog root, dashboard, mobile and QR routes (run 44959408621).
+- [x] Reconfirm live Supabase migration ledger remains 310 rows through `20261110150618`; required RC471/RC482/RC483/RC484/RC485/RC486/RC487 identifiers remain absent.
+- [x] Reconfirm directory Edge is still ACTIVE v16 and lacks current main consent/owner code; no Edge deployment occurred.
+- [ ] Obtain operator-controlled encrypted off-site database/Storage backup and Vault recovery evidence.
+- [ ] Complete independent PostgreSQL 17 restore, rollback rehearsal and measured RPO/RTO.
+- [ ] Coordinate chronological Production migration release with the complete consent-aware directory Edge bundle; verify exact deployed versions/hashes and adversarial access tests.
+- [ ] Resolve platform-root helper/policy parity and Auth leaked-password protection before certification.
+
+Evidence: `docs/audits/PASS_1661_1670_CURRENT_MAIN_REPLAY_AND_DEPLOYMENT_20261122.md`; replay run 44959408678; health run 44959408639; Pages run 44959408621.
+
+Safety: isolated replay and static-site deployment only. No Production database, Auth, RLS/GRANT, Storage, Edge, payment, wallet or customer-data mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
