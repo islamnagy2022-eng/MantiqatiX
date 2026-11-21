@@ -163,7 +163,92 @@ BEGIN
     WHERE id='48800000-0000-4000-8000-000000000012'
       AND owner_user_id=v_auth_uid
   ) INTO v_profile_visible;
-  v_path_matches := v_path ~ '^users/[0-9a-fA-F-]{36}/providers/[0-9a-fA-F-]{36}/(cover|logo)\\.(jpg|jpeg|png|webp)
+  v_path_matches := v_path ~ '^users/[0-9a-fA-F-]{36}/providers/[0-9a-fA-F-]{36}/(cover|logo)[.](jpg|jpeg|png|webp)
+  GET DIAGNOSTICS n=ROW_COUNT;
+  IF n <> 1 THEN RAISE EXCEPTION 'RC488_CONFIRMED_OWNER_UPDATE_REGRESSED:%',n; END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_trigger
+    WHERE tgrelid='storage.objects'::regclass
+      AND tgname='protect_objects_delete'
+      AND NOT tgisinternal
+  ) THEN
+    DELETE FROM storage.objects WHERE id='48800000-0000-4000-8000-000000000102';
+    GET DIAGNOSTICS n=ROW_COUNT;
+    IF n <> 1 THEN RAISE EXCEPTION 'RC488_CONFIRMED_OWNER_DELETE_REGRESSED:%',n; END IF;
+  END IF;
+
+  INSERT INTO storage.objects(bucket_id,name,owner,owner_id,metadata)
+  VALUES ('mantiqatix-profile-media','platform/branding/logo-998.jpg',
+    '48800000-0000-4000-8000-000000000002'::uuid,
+    '48800000-0000-4000-8000-000000000002',
+    '{"mimetype":"image/jpeg","size":10}'::jsonb);
+  GET DIAGNOSTICS n=ROW_COUNT;
+  IF n <> 1 THEN RAISE EXCEPTION 'RC488_CONFIRMED_ADMIN_INSERT_REGRESSED:%',n; END IF;
+END;
+$confirmed_owner$;
+RESET ROLE;
+
+-- Public role still reads public profile media, while private bucket remains unavailable.
+SET LOCAL ROLE anon;
+DO $raw_anon$
+DECLARE n integer;
+BEGIN
+  SELECT count(*) INTO n FROM storage.objects
+  WHERE id='48800000-0000-4000-8000-000000000101';
+  IF n <> 1 THEN RAISE EXCEPTION 'RC488_RAW_ANON_PUBLIC_PROFILE_READ_REGRESSED:%',n; END IF;
+END;
+$raw_anon$;
+RESET ROLE;
+
+ROLLBACK;
+SELECT 'RC488 Storage anonymous Auth write isolation: PASS' AS result;
+;
+  RAISE NOTICE 'RC488_OWNER_UPDATE_DIAGNOSTIC auth_uid=% path_user=% profile_owner=% is_anonymous=% path_matches=% profile_visible=%',
+    v_auth_uid, split_part(v_path,'/',2), v_profile_owner, v_anon, v_path_matches, v_profile_visible;
+
+  UPDATE storage.objects SET metadata=jsonb_set(metadata,'{rc488}','true'::jsonb,true)
+  WHERE id='48800000-0000-4000-8000-000000000102';
+  GET DIAGNOSTICS n=ROW_COUNT;
+  IF n <> 1 THEN RAISE EXCEPTION 'RC488_CONFIRMED_OWNER_UPDATE_REGRESSED:%',n; END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_trigger
+    WHERE tgrelid='storage.objects'::regclass
+      AND tgname='protect_objects_delete'
+      AND NOT tgisinternal
+  ) THEN
+    DELETE FROM storage.objects WHERE id='48800000-0000-4000-8000-000000000102';
+    GET DIAGNOSTICS n=ROW_COUNT;
+    IF n <> 1 THEN RAISE EXCEPTION 'RC488_CONFIRMED_OWNER_DELETE_REGRESSED:%',n; END IF;
+  END IF;
+
+  INSERT INTO storage.objects(bucket_id,name,owner,owner_id,metadata)
+  VALUES ('mantiqatix-profile-media','platform/branding/logo-998.jpg',
+    '48800000-0000-4000-8000-000000000002'::uuid,
+    '48800000-0000-4000-8000-000000000002',
+    '{"mimetype":"image/jpeg","size":10}'::jsonb);
+  GET DIAGNOSTICS n=ROW_COUNT;
+  IF n <> 1 THEN RAISE EXCEPTION 'RC488_CONFIRMED_ADMIN_INSERT_REGRESSED:%',n; END IF;
+END;
+$confirmed_owner$;
+RESET ROLE;
+
+-- Public role still reads public profile media, while private bucket remains unavailable.
+SET LOCAL ROLE anon;
+DO $raw_anon$
+DECLARE n integer;
+BEGIN
+  SELECT count(*) INTO n FROM storage.objects
+  WHERE id='48800000-0000-4000-8000-000000000101';
+  IF n <> 1 THEN RAISE EXCEPTION 'RC488_RAW_ANON_PUBLIC_PROFILE_READ_REGRESSED:%',n; END IF;
+END;
+$raw_anon$;
+RESET ROLE;
+
+ROLLBACK;
+SELECT 'RC488 Storage anonymous Auth write isolation: PASS' AS result;
+;
   GET DIAGNOSTICS n=ROW_COUNT;
   IF n <> 1 THEN RAISE EXCEPTION 'RC488_CONFIRMED_OWNER_UPDATE_REGRESSED:%',n; END IF;
 
