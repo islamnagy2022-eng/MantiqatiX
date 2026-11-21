@@ -45,7 +45,9 @@ assert.match(migration, /GRANT EXECUTE ON FUNCTION public\.accept_mantigo_bid_ba
 assert.match(lockFn, /SET search_path TO ''/i, "fare-lock SECURITY DEFINER RPC must use an empty search_path");
 assert.match(lockFn, /v_existing\.customer_id IS DISTINCT FROM v_customer/);
 assert.match(lockFn, /v_existing\.captain_id IS DISTINCT FROM v_captain/);
+assert.match(lockFn, /v_existing\.currency IS DISTINCT FROM 'EGP'/);
 assert.match(lockFn, /v_existing\.gross_amount IS DISTINCT FROM v_amount/);
+assert.match(lockFn, /count\(\*\)[\s\S]*?status='ACCEPTED'[\s\S]*?RIDE_ACCEPTANCE_STATE_MISMATCH/);
 assert.match(lockFn, /v_existing\.idempotency_key IS DISTINCT FROM v_key/);
 assert.match(lockFn, /metadata->>'accepted_bid_id'/);
 assert.match(lockFn, /MANTIGO_FINANCIAL_IDENTITY_MISMATCH/);
