@@ -1,3 +1,12 @@
+# RC495 follow-up — 2026-11-21
+
+- Added missing regression assertion for provider profile-media UPDATE `USING`: confirmed Auth, owner scope, literal-dot filename pattern and no doubled-backslash regression. Migration already contained the guard; this closes a test-coverage gap.
+- Fresh read-only Production: 310 migrations through `20261110150618`; 0/75 required release versions applied; RC488–RC495 0/8 applied.
+- PR #958 exact head `ff3e5f5daff94b38014d26552eca95664ba863d1`; 13 checks queued, 0 completed. Do not merge or claim CI pass.
+- Production remains read-only and release blocked.
+
+---
+
 # Latest continuation checkpoint — 2026-11-21 — Pass 1586–1595
 
 **Consolidated candidate:** PR #958 now includes RC488–RC495; exact-head CI pending.  
