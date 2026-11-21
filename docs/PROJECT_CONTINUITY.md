@@ -1,3 +1,24 @@
+# Latest continuation checkpoint — 2026-11-21 — Pass 1631–1640
+
+**Current main at checkpoint:** `6f1f425117948f9ee8ea8aa83629b91303a3a670` (documentation follow-up after PR #961).  
+**Latest source merge:** PR #961, merge commit `a0af2a4d2f561794f17eff5cf57d15ab3f1aa58b`.  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.  
+**Production mutation policy:** no database, Auth/RLS/GRANT, Storage, Edge, payment, wallet or customer-data mutation without the independent backup/restore and coordinated release gates.
+
+- PR #961 reconciled RC488–RC496 onto the post-PR #957 main without overwriting the newer directory platform-admin registry changes. PR #958 and duplicate PR #960 were closed as superseded.
+- Exact tested PR head `c0cd7aca54c80881e335c6b184b9773683144ada`: **19/19 workflows passed**, including Primary Catalog browser E2E and employee RBAC PostgreSQL integration.
+- Forward Migration Chain Replay [44938468275](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44938468275) restored schema-only checkpoint `20261008222845` in disposable Supabase and applied **112** later migrations chronologically. RC488–RC492, RC494 settlement integration, RC495 Storage integration, RC468/RC470 and two-tenant isolation passed.
+- Post-merge current-main replay [44938983010](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44938983010) also passed with 112 migrations. Production Health Monitor [44938983055](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44938983055) passed.
+- Primary Catalog browser E2E on the post-merge docs/release commit passed in [44938978157](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44938978157).
+- GitHub Pages deployment [44938792825](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44938792825) completed successfully. Deployed-origin browser verification passed for the V6 production root, legacy catalog root, dashboard, mobile and QR routes. This is a static-site deployment only; it did not deploy Supabase migrations or Edge Functions.
+- The subsequent documentation-only Pages run for main commit `6f1f425117948f9ee8ea8aa83629b91303a3a670` is being validated separately; it does not change application source.
+- The live release gate remains blocked: 310 Production migration-ledger rows through `20261110150618`, with 0/76 exact release identifiers present; live Edge entrypoint parity remains 4/11; directory consent RC472/RC473 remain absent and 869 published directory records expose phone/address in the live API.
+- No real encrypted off-site database/Storage backup, Vault recovery, independent PostgreSQL 17 restore/rollback or measured RPO/RTO has been completed. A schema-only disposable replay is not a Production backup restore.
+- Preserve the R7 Android/mobile archive; do not treat its incomplete legacy WebView wrapper as release-ready.
+
+**Next executable work:** operator-owned encrypted DB + Storage backup and independent restore/rollback evidence; read-only physical migration/object/ACL reconciliation; coordinated RC472/RC473 + complete consent-aware directory Edge deployment and live consent tests; Paymob sandbox and payment/finance authorization checks. Keep Production database and Edge read-only until those gates pass.
+
+---
 # Directory privacy recheck — 2026-11-21
 
 - Deployed `directory-listings`: ACTIVE v16, `verify_jwt=false`; deployed bundle remains behind current source and lacks consent-scoped GET sanitization.

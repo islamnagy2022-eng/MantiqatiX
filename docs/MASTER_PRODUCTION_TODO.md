@@ -1,3 +1,21 @@
+## Pass 1631–1640 — post-merge replay and deployed-site verification — 2026-11-21
+
+- [x] Post-merge main forward replay [44938983010](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44938983010) passed: 112 forward migrations applied chronologically from the schema-only checkpoint in disposable Supabase.
+- [x] Post-merge Production Health Monitor [44938983055](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44938983055) passed.
+- [x] Post-merge Primary Catalog browser E2E [44938978157](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44938978157) passed.
+- [x] GitHub Pages static deployment [44938792825](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44938792825) passed, including deployed-origin checks for V6 root, legacy catalog root, dashboard, mobile and QR routes.
+- [x] PR #961 merged as `a0af2a4d2f561794f17eff5cf57d15ab3f1aa58b`; stale overlapping PRs #958 and #960 closed.
+- [ ] Documentation-only Pages validation/deploy for current main `6f1f425117948f9ee8ea8aa83629b91303a3a670` is still running; no result claimed until complete.
+- [ ] Production migration ledger reconciliation remains blocked: 310 live rows through `20261110150618`, 0/76 exact required release identifiers. Do not fabricate ledger rows or blindly replay migrations.
+- [ ] Complete encrypted off-site DB + Storage backup, retrieval, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO.
+- [ ] Resolve P0 directory privacy: RC472/RC473 and the complete consent-aware `directory-listings` Edge bundle must be deployed together, followed by anonymous/owner grant-revoke and registry-outage fail-closed tests. Current live API exposes phone/address for 869 published records.
+- [ ] Reconcile seven critical live Edge source mismatches, payment/order/subscription/finance physical contract gaps, RC450 journal EXECUTE ACL, and Paymob sandbox/negative authorization tests.
+- **Safety:** GitHub Pages static site deployed only. No Production DB migration, SQL mutation, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, settlement or customer-data mutation. Production remains **BLOCKED / NOT CERTIFIED**.
+
+Evidence: PR #961; merge `a0af2a4d2f561794f17eff5cf57d15ab3f1aa58b`; replay runs 44938468275 and 44938983010; Pages deploy run 44938792825.
+
+---
+
 ## Pass 1621–1630 — RC488–RC496 current-main security reconciliation — 2026-11-21
 
 - [x] Rebased the RC488–RC496 security source set onto the current main after PR #957, preserving the newer directory platform-admin registry and frontend changes.

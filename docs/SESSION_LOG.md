@@ -3710,3 +3710,19 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - PR #951's docs branch is one commit behind and diverged from main; a fresh docs branch is being prepared instead of force-merging.
 
 **Disposition: SOURCE FIX MERGED / CI PASS; PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-11-21 — Pass 1631–1640 — RC488–RC496 merged, main replay and Pages deployment verified
+
+- **Current main checkpoint:** `6f1f425117948f9ee8ea8aa83629b91303a3a670`; security source merge PR #961 at `a0af2a4d2f561794f17eff5cf57d15ab3f1aa58b`.
+- PR #961 exact tested head `c0cd7aca54c80881e335c6b184b9773683144ada` passed all **19/19** associated workflows. Primary Catalog browser E2E and employee RBAC PostgreSQL tests passed.
+- Forward migration replay [44938468275](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44938468275) passed from schema-only checkpoint `20261008222845`, applying 112 later migrations in timestamp order in disposable local Supabase. RC488–RC492, RC494 settlement registry/scope integration, RC495 Storage repair, RC468/RC470 and two-tenant isolation passed.
+- Corrected the 76-version release manifest after the first candidate still reported 64; retained the read-only Production finding of 0/76 exact required version identifiers in the live ledger. Corrected RC494 merchant journal fixture descriptions to match the canonical posted-line contract; did not weaken the function or authorization assertions.
+- PR #961 merged. Stale overlapping PRs #958 and #960 closed as superseded.
+- Post-merge main replay [44938983010](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44938983010) passed with 112 migrations. Production Health Monitor [44938983055](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44938983055) passed. Primary Catalog browser E2E [44938978157](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44938978157) passed.
+- GitHub Pages static-site deployment [44938792825](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44938792825) passed, including deployed-origin checks for V6 root, legacy catalog root, dashboard, mobile and QR routes. This is not a Supabase database or Edge deployment.
+- A later docs-only Pages workflow for main `6f1f425117948f9ee8ea8aa83629b91303a3a670` is being validated separately. No application-source change is included in that documentation commit.
+- **Production impact:** no Production SQL/DDL/DML, migration-ledger row, RLS/GRANT, Auth, Storage, Edge Function, payment, wallet, settlement or customer data changed. Only the GitHub Pages static site was deployed.
+- **Unresolved release blockers:** 0/76 migration identifiers in the live ledger; 7/11 live Edge entrypoints differ from main; RC472/RC473 consent tables and current directory Edge bundle are not deployed; 869 live published directory records expose phone/address; encrypted off-site backup, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO remain unverified; Paymob sandbox and payment/finance authorization gates remain open.
+- **Next:** complete operator-owned backup/restore, read-only physical schema/object/ACL reconciliation, then coordinate RC472/RC473 with the full consent-aware directory Edge bundle and run deployed-origin consent tests. Keep Production database/Edge read-only until approved.
+
