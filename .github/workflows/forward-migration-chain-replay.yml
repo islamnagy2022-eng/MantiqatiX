@@ -81,6 +81,22 @@ on:
     branches: ["main"]
     paths:
       - "supabase/migrations/**"
+      - "scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"
+      - "scripts/validate-rc489-financial-anonymous-auth-read-guard.mjs"
+      - "scripts/validate-rc490-medical-anonymous-auth-read-guard.mjs"
+      - "scripts/validate-rc491-support-anonymous-auth-boundary.mjs"
+      - "scripts/validate-rc492-indrive-anonymous-auth-write-guard.mjs"
+      - "scripts/validate-rc490-private-crm-notification-read-guards.mjs"
+      - "supabase/tests/rc488_storage_anonymous_auth_write_guard_fixture.sql"
+      - "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql"
+      - "supabase/tests/rc489_financial_anonymous_auth_read_integration.sql"
+      - "supabase/tests/rc490_medical_anonymous_auth_read_integration.sql"
+      - "supabase/tests/rc491_support_anonymous_auth_boundary_integration.sql"
+      - "supabase/tests/rc492_indrive_anonymous_auth_write_guard_fixture.sql"
+      - "supabase/tests/rc492_indrive_anonymous_auth_write_guard_integration.sql"
+      - "supabase/tests/rc490_private_crm_notification_read_guards_fixture.sql"
+      - "supabase/tests/rc490_private_crm_notification_read_guards_integration.sql"
+      - ".github/workflows/forward-migration-chain-replay.yml"
       - "supabase/tests/baselines/production_schema_snapshot.sql"
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
@@ -146,7 +162,7 @@ jobs:
       - name: Validate RC469 shared caller search_path contract
         run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
 
-      - name: Validate strict Production release gate and exact 72-version contract
+      - name: Validate strict Production release gate and exact 73-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
 
       - name: Validate MantiGO platform-admin and financial source contracts
