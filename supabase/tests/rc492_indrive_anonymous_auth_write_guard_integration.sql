@@ -1,4 +1,6 @@
 -- RC492 isolated integration. Run only after the complete disposable forward migration replay.
+-- Each JWT scenario uses a separate transaction, matching Supabase's per-request claim
+-- lifecycle and preventing transaction-local claim changes from contaminating later cases.
 BEGIN;
 
 INSERT INTO auth.users
@@ -50,6 +52,10 @@ VALUES
    'Synthetic provider','PROVIDER',90)
 ON CONFLICT (id) DO NOTHING;
 
+COMMIT;
+
+-- Anonymous Auth session: owner DELETE and provider bid SELECT must both be denied.
+BEGIN;
 SET LOCAL ROLE authenticated;
 SELECT pg_catalog.set_config(
   'request.jwt.claims',
@@ -69,7 +75,12 @@ BEGIN
   IF n <> 0 THEN RAISE EXCEPTION 'RC492_ANONYMOUS_INDRIVE_BID_READ_SUCCEEDED:%',n; END IF;
 END;
 $anonymous$;
+RESET ROLE;
+COMMIT;
 
+-- Missing is_anonymous claim: fail closed for bid visibility.
+BEGIN;
+SET LOCAL ROLE authenticated;
 SELECT pg_catalog.set_config(
   'request.jwt.claims',
   '{"sub":"49200000-0000-4000-8000-000000000001","role":"authenticated"}',
@@ -83,7 +94,12 @@ BEGIN
   IF n <> 0 THEN RAISE EXCEPTION 'RC492_MISSING_ANONYMOUS_CLAIM_BID_READ_SUCCEEDED:%',n; END IF;
 END;
 $missing_claim$;
+RESET ROLE;
+COMMIT;
 
+-- Confirmed Auth session: existing owner deletion and provider bid visibility remain intact.
+BEGIN;
+SET LOCAL ROLE authenticated;
 SELECT pg_catalog.set_config(
   'request.jwt.claims',
   '{"sub":"49200000-0000-4000-8000-000000000001","role":"authenticated","is_anonymous":false}',
@@ -103,6 +119,19 @@ BEGIN
 END;
 $confirmed$;
 RESET ROLE;
+COMMIT;
 
-ROLLBACK;
-SELECT 'RC492 InDrive anonymous Auth read/write isolation: PASS' AS result;
+-- Remove only the synthetic fixture rows.
+DELETE FROM public.indrive_bids WHERE id='49200000-0000-4000-8000-000000000014';
+DELETE FROM public.indrive_requests
+WHERE id IN (
+  '49200000-0000-4000-8000-000000000011',
+  '49200000-0000-4000-8000-000000000013'
+);
+DELETE FROM auth.users
+WHERE id IN (
+  '49200000-0000-4000-8000-000000000001',
+  '49200000-0000-4000-8000-000000000002'
+);
+
+SELECT 'RC492 InDrive anonymous Auth read/delete isolation: PASS' AS result;
