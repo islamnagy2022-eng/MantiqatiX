@@ -147,13 +147,19 @@ INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_numbe
 SELECT 'jel_RC494_TENANT_2050','je_RC494_TENANT',c.id,3,0,1,'RC494 voucher reserve'
 FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='2050';
 
-UPDATE public.journal_entries
-SET status='POSTED',total_debit=100,total_credit=100,posted_at=now()
-WHERE id IN ('je_RC494_PLATFORM_ROOT','je_RC494_FAKE_ROOT','je_RC494_BUSINESS','je_RC494_TENANT','je_RC494-IDEMPOTENT-LINE-CONFLICT');
--- This settled conflict journal is internally balanced at 90/90. RC494 must
--- reject it because the settlement requires 100/100 exact line identity.
+-- Preserve the 90/90 conflicting journal while it is still a draft.
+-- Posted journal headers are immutable; the later idempotency test must reject
+-- the balanced 90/90 lines because the settled transaction requires 100/100.
 UPDATE public.journal_entries
 SET total_debit=90,total_credit=90
+WHERE id='je_RC494-IDEMPOTENT-LINE-CONFLICT';
+
+UPDATE public.journal_entries
+SET status='POSTED',total_debit=100,total_credit=100,posted_at=now()
+WHERE id IN ('je_RC494_PLATFORM_ROOT','je_RC494_FAKE_ROOT','je_RC494_BUSINESS','je_RC494_TENANT');
+
+UPDATE public.journal_entries
+SET status='POSTED',posted_at=now()
 WHERE id='je_RC494-IDEMPOTENT-LINE-CONFLICT';
 
 INSERT INTO public.settlement_transactions
