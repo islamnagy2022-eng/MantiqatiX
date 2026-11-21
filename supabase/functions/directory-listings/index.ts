@@ -816,10 +816,9 @@ Deno.serve(async (req: Request) => {
           billing.paymentConfirmedByAdmin !== true || body.subscriptionPaid !== true) {
         return out(origin, { error: "PAID_SUBSCRIPTION_REQUIRED", message: "لا يمكن تسليم الملكية قبل تأكيد الاشتراك المدفوع من إدارة المنصة." }, 409);
       }
-      if (String(business.tenant_id || "") !== "MNTY-PLATFORM" &&
-          !memberships.some((m: any) => String(m.tenant_id) === String(business.tenant_id))) {
-        return out(origin, { error: "BUSINESS_SCOPE_FORBIDDEN" }, 403);
-      }
+      // This action is reachable only after the verified caller passed the private
+      // platform-admin registry gate above. Root administrators may review claims
+      // for any active tenant; tenant membership is not a prerequisite for root scope.
     }
 
     // The database function locks claim, listing and business rows and commits
