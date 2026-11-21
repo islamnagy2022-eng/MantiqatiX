@@ -4,6 +4,10 @@ import { readFileSync } from "node:fs";
 const directoryEdge = readFileSync("supabase/functions/directory-listings/index.ts", "utf8");
 const catalogPlatformAdmin = readFileSync("supabase/functions/catalog-platform-admin/index.ts", "utf8");
 const aiGeminiProxy = readFileSync("supabase/functions/ai-gemini-proxy/index.ts", "utf8");
+const businessRegister = readFileSync("supabase/functions/business-register/index.ts", "utf8");
+const businessBranchAdmin = readFileSync("supabase/functions/business-branch-admin/index.ts", "utf8");
+const settlementEdge = readFileSync("supabase/functions/settlement-financial-atomic/index.ts", "utf8");
+const settlementAuthorization = readFileSync("supabase/functions/settlement-financial-atomic/authorization.mjs", "utf8");
 const helper = readFileSync("supabase/functions/directory-listings/platform-admin-registry.mjs", "utf8");
 const helperTests = readFileSync("supabase/functions/directory-listings/platform-admin-registry.test.mjs", "utf8");
 const registryMigration = readFileSync("supabase/migrations/20261113214500_rc464_platform_admin_live_registry_hardening.sql", "utf8");
@@ -50,6 +54,22 @@ assert.doesNotMatch(aiGeminiProxy, /isPlatformAdminMembership|some\(isPlatformAd
 assert.match(helper, /!registryError && registryResult === true/);
 assert.match(helperTests, /resolveDirectoryPlatformAdmin\(true, null\)/);
 assert.match(helperTests, /registry unavailable/);
+
+assert.match(businessRegister, /registryClient\.rpc\("mnty_can_platform_admin"\)/);
+assert.match(businessRegister, /isPlatformAdmin=registryResult===true/);
+assert.match(businessRegister, /m\.business_id==null&&m\.branch_id==null/);
+assert.doesNotMatch(businessRegister, /permissions\?\.scope===\"PLATFORM\"/);
+
+assert.match(businessBranchAdmin, /registryClient\.rpc\("mnty_can_platform_admin"\)/);
+assert.match(businessBranchAdmin, /isPlatformAdmin=registryResult===true/);
+assert.match(businessBranchAdmin, /String\(m\.branch_id\|\|\"\"\)===\"\"/);
+assert.doesNotMatch(businessBranchAdmin, /permissions\?\.scope===\"PLATFORM\"/);
+
+assert.match(settlementEdge, /userClient\.rpc\("mnty_can_platform_admin"\)/);
+assert.match(settlementEdge, /tenantId === "MNTY-PLATFORM"/);
+assert.match(settlementEdge, /isPlatformAdmin = registryResult === true/);
+assert.match(settlementAuthorization, /if \(tenant === "MNTY-PLATFORM"\) return isPlatformAdmin === true/);
+assert.doesNotMatch(settlementAuthorization, /isPlatformSuperAdmin/);
 
 // RC464 is the canonical platform-root helper used by all three Edge Functions.
 assert.match(registryMigration, /function public\.mnty_can_platform_admin\(\)/i);
