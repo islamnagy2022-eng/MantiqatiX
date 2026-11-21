@@ -67,20 +67,20 @@ INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_numbe
 SELECT 'jel_RC494_PLATFORM_ROOT_5030','je_RC494_PLATFORM_ROOT',c.id,1,100,0,'RC494 partner expense'
 FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='5030';
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
-SELECT 'jel_RC494_PLATFORM_ROOT_1020','je_RC494_PLATFORM_ROOT',c.id,2,0,100,'RC494 partner payout'
+SELECT 'jel_RC494_PLATFORM_ROOT_1020','je_RC494_PLATFORM_ROOT',c.id,2,0,99,'RC494 partner payout'
 FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='1020';
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
-SELECT 'jel_RC494_PLATFORM_ROOT_2050','je_RC494_PLATFORM_ROOT',c.id,3,0,0,'RC494 voucher reserve'
+SELECT 'jel_RC494_PLATFORM_ROOT_2050','je_RC494_PLATFORM_ROOT',c.id,3,0,1,'RC494 voucher reserve'
 FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='2050';
 
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
 SELECT 'jel_RC494_FAKE_ROOT_5030','je_RC494_FAKE_ROOT',c.id,1,100,0,'RC494 partner expense'
 FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='5030';
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
-SELECT 'jel_RC494_FAKE_ROOT_1020','je_RC494_FAKE_ROOT',c.id,2,0,100,'RC494 partner payout'
+SELECT 'jel_RC494_FAKE_ROOT_1020','je_RC494_FAKE_ROOT',c.id,2,0,99,'RC494 partner payout'
 FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='1020';
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
-SELECT 'jel_RC494_FAKE_ROOT_2050','je_RC494_FAKE_ROOT',c.id,3,0,0,'RC494 voucher reserve'
+SELECT 'jel_RC494_FAKE_ROOT_2050','je_RC494_FAKE_ROOT',c.id,3,0,1,'RC494 voucher reserve'
 FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='2050';
 
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
@@ -94,10 +94,10 @@ INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_numbe
 SELECT 'jel_RC494_TENANT_5030','je_RC494_TENANT',c.id,1,100,0,'RC494 partner expense'
 FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='5030';
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
-SELECT 'jel_RC494_TENANT_1020','je_RC494_TENANT',c.id,2,0,100,'RC494 partner payout'
+SELECT 'jel_RC494_TENANT_1020','je_RC494_TENANT',c.id,2,0,99,'RC494 partner payout'
 FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='1020';
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
-SELECT 'jel_RC494_TENANT_2050','je_RC494_TENANT',c.id,3,0,0,'RC494 voucher reserve'
+SELECT 'jel_RC494_TENANT_2050','je_RC494_TENANT',c.id,3,0,1,'RC494 voucher reserve'
 FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='2050';
 
 UPDATE public.journal_entries
@@ -108,10 +108,10 @@ INSERT INTO public.settlement_transactions
   (id,tenant_id,beneficiary_type,beneficiary_id,gross_amount,platform_fee,net_payout,voucher_reserve,
    payout_channel,journal_entry_id,status,reference_id)
 VALUES
- ('RC494-PLATFORM-ROOT','MNTY-PLATFORM','PARTNER','partner-platform-root',100,0,100,0,'BANK_TRANSFER','je_RC494_PLATFORM_ROOT','SETTLED','RC494-PLATFORM-ROOT'),
- ('RC494-FAKE-ROOT','MNTY-PLATFORM','PARTNER','partner-fake-root',100,0,100,0,'BANK_TRANSFER','je_RC494_FAKE_ROOT','SETTLED','RC494-FAKE-ROOT'),
+ ('RC494-PLATFORM-ROOT','MNTY-PLATFORM','PARTNER','partner-platform-root',100,0,99,1,'BANK_TRANSFER','je_RC494_PLATFORM_ROOT','SETTLED','RC494-PLATFORM-ROOT'),
+ ('RC494-FAKE-ROOT','MNTY-PLATFORM','PARTNER','partner-fake-root',100,0,99,1,'BANK_TRANSFER','je_RC494_FAKE_ROOT','SETTLED','RC494-FAKE-ROOT'),
  ('RC494-TENANT-BUSINESS','RC494-TENANT','MERCHANT','merchant-business-a',100,0,100,0,'BANK_TRANSFER','je_RC494_BUSINESS','SETTLED','RC494-TENANT-BUSINESS'),
- ('RC494-TENANT-WIDE','RC494-TENANT','PARTNER','partner-tenant-wide',100,0,100,0,'BANK_TRANSFER','je_RC494_TENANT','SETTLED','RC494-TENANT-WIDE')
+ ('RC494-TENANT-WIDE','RC494-TENANT','PARTNER','partner-tenant-wide',100,0,99,1,'BANK_TRANSFER','je_RC494_TENANT','SETTLED','RC494-TENANT-WIDE')
 ON CONFLICT (id) DO NOTHING;
 
 DO $rc494$
@@ -120,7 +120,7 @@ DECLARE
 BEGIN
   v_result := public.create_settlement_and_post_journal(
     'RC494-PLATFORM-ROOT','MNTY-PLATFORM','PARTNER','partner-platform-root',
-    100,0,100,0,'BANK_TRANSFER','RC494-PLATFORM-ROOT',NULL,'registry root idempotency test',
+    100,0,99,1,'BANK_TRANSFER','RC494-PLATFORM-ROOT',NULL,'registry root idempotency test',
     '49400000-0000-4000-8000-000000000001'
   );
   IF v_result->>'idempotent' IS DISTINCT FROM 'true' THEN
@@ -130,7 +130,7 @@ BEGIN
   BEGIN
     PERFORM public.create_settlement_and_post_journal(
       'RC494-FAKE-ROOT','MNTY-PLATFORM','PARTNER','partner-fake-root',
-      100,0,100,0,'BANK_TRANSFER','RC494-FAKE-ROOT',NULL,'membership-only root must fail',
+      100,0,99,1,'BANK_TRANSFER','RC494-FAKE-ROOT',NULL,'membership-only root must fail',
       '49400000-0000-4000-8000-000000000002'
     );
     RAISE EXCEPTION 'RC494_MEMBERSHIP_ONLY_PLATFORM_ADMIN_SUCCEEDED';
@@ -174,7 +174,7 @@ BEGIN
 
   v_result := public.create_settlement_and_post_journal(
     'RC494-TENANT-WIDE','RC494-TENANT','PARTNER','partner-tenant-wide',
-    100,0,100,0,'BANK_TRANSFER','RC494-TENANT-WIDE',
+    100,0,99,1,'BANK_TRANSFER','RC494-TENANT-WIDE',
     NULL,'tenant-scoped finance test',
     '49400000-0000-4000-8000-000000000004'
   );
