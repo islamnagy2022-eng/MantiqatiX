@@ -2,6 +2,7 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const migration=fs.readFileSync("supabase/migrations/20261120270000_rc492_indrive_anonymous_auth_write_guard.sql","utf8");
+const fixture=fs.readFileSync("supabase/tests/rc492_indrive_anonymous_auth_write_guard_fixture.sql","utf8");
 const test=fs.readFileSync("supabase/tests/rc492_indrive_anonymous_auth_write_guard_integration.sql","utf8");
 for (const command of ["DELETE"]) {
   const policy=new RegExp(
@@ -30,4 +31,7 @@ assert.ok(migration.includes("mnty_confirmed_auth_indrive_bids_read"),
 assert.ok(test.includes("RC492_MISSING_ANONYMOUS_CLAIM_BID_READ_SUCCEEDED"),
   "RC492 integration must test missing-claim bid-read denial");
 assert.match(test,/ROLLBACK;/);
+assert.match(fixture,/GRANT SELECT \\(id, owner_user_id\\) ON public\\.indrive_requests TO authenticated;/, "request DELETE fixture must include only the Production column-level SELECT dependencies");
+assert.match(fixture,/GRANT SELECT \\(id, provider_user_id\\) ON public\\.indrive_bids TO authenticated;/, "bid read fixture must mirror Production column-level SELECT privileges");
+assert.doesNotMatch(fixture,/GRANT SELECT ON public\\.indrive_requests|GRANT SELECT ON public\\.indrive_bids/, "fixture must not replace column grants with broader table-wide SELECT");
 console.log("RC492 InDrive anonymous Auth read/delete isolation contract: PASS");
