@@ -4749,3 +4749,19 @@ Evidence: `docs/audits/PASS_1480_1489_RC479_ANONYMOUS_AUTH_SESSION_GAP_20261120.
 - [ ] Obtain explicit release-window approval; then deploy the coordinated DB + Edge bundle and run positive/negative tenant, privacy, Auth, settlement, payment and Storage tests.
 
 **Disposition: SOURCE VALIDATION IN PROGRESS / PRODUCTION BLOCKED / NOT CERTIFIED.** No Production migration, Edge deployment, permission change, payment mutation or customer-data change is authorized by this checkpoint.
+
+### RC496 — MantiGO bid acceptance state invariant — 2026-11-21
+
+- [x] Verify the live `accept_mantigo_bid_backend(uuid,text,text)` state-machine contract and identify the missing OFFERED-only predicate; no live RPC was invoked.
+- [x] Add forward-only RC496 migration with ride-first row locking, selected-bid row locking, OFFERED-only conditional update, one-winner guard, post-transition fare locking and exact same-winner idempotency.
+- [x] Add disposable PostgreSQL tests for ACCEPTED/REJECTED/WITHDRAWN/EXPIRED denials, caller/owner authorization, missing/cross-ride bid, same-winner retry, competing winner denial, and fare-lock failure rollback.
+- [x] Add a two-session PostgreSQL race test and dedicated CI workflow.
+- [x] Extend exact release migration inventory, chain validator, replay workflow and operator backup/restore runbook from 75 to 76 ordered versions.
+- [ ] Complete dedicated RC496 PostgreSQL 16 workflow on the latest exact PR #958 head.
+- [ ] Complete full 76-version forward migration replay and all exact-head PR #958 checks after final source/docs updates.
+- [ ] Obtain required review and merge RC #958 only after exact-head CI, branch integration and release coordination pass.
+- [ ] Apply RC496 only in the approved coordinated Production release; verify live function body, empty search_path, EXECUTE ACL and positive/negative/concurrent behavior.
+- [ ] Close P1 #912 only after live post-release evidence proves non-OFFERED states cannot be accepted.
+
+Evidence: `docs/audits/PASS_1600_1610_RC496_MANTIGO_BID_ACCEPTANCE_STATE_INVARIANT_20261121.md`.
+
