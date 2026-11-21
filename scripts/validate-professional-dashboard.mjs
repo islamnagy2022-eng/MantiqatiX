@@ -87,6 +87,10 @@ assert.match(types, /membershipPermissions\?: Record<string, unknown>/);
 
 assert.match(production, /membershipRole: String\(chosenMembership\?\.role \|\| ''\)\.toUpperCase\(\)/);
 assert.match(production, /const selectMembershipForBusiness =/);
+assert.match(production, /supabase\.rpc\('mnty_can_platform_admin'\)/);
+assert.match(production, /const platform = !registryError && registryResult === true/);
+assert.match(production, /callCatalogAdmin\(\{ action: 'BUSINESS_LIST' \}\)/);
+assert.doesNotMatch(production, /isPlatformAdmin|platformMemberships/, 'frontend platform-root UI must not derive from membership flags');
 assert.match(production, /selectMembershipForBusiness\(roleMemberships, businessId, tenantId\)/);
 assert.match(production, /selectMembershipForBusiness\(roleMemberships, chosen\.id, String\(chosen\.tenantId \|\| ''\)\)/);
 assert.match(production, /const branchId = platform \? String\(row\.branchId \|\| ''\) : String\(membership\?\.branch_id \|\| ''\)/);
