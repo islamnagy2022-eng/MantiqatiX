@@ -11,6 +11,10 @@ BEGIN
   IF pg_catalog.to_regprocedure('public.lock_mantigo_fare_backend(uuid,text)') IS NULL THEN
     RAISE EXCEPTION 'RC496_FARE_LOCK_FUNCTION_MISSING';
   END IF;
+  IF pg_catalog.to_regprocedure('public.mantigo_accept_bid(text,text)') IS NULL
+     OR pg_catalog.to_regprocedure('public.mantigo_submit_bid(text,numeric,text,text,text,text)') IS NULL THEN
+    RAISE EXCEPTION 'RC496_LEGACY_BID_RPC_BOUNDARY_FUNCTION_MISSING';
+  END IF;
   IF pg_catalog.to_regclass('public.mantigo_rides') IS NULL
      OR pg_catalog.to_regclass('public.mantigo_bids') IS NULL THEN
     RAISE EXCEPTION 'RC496_MANTIGO_TABLES_MISSING';
@@ -175,6 +179,10 @@ $function$;
 
 REVOKE ALL ON FUNCTION public.accept_mantigo_bid_backend(uuid,text,text) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.accept_mantigo_bid_backend(uuid,text,text) TO authenticated;
+-- These legacy SECURITY DEFINER endpoints were already revoked from client roles;
+-- keep them pinned so the canonical backend RPC remains the only client acceptance path.
+REVOKE ALL ON FUNCTION public.mantigo_accept_bid(text,text) FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION public.mantigo_submit_bid(text,numeric,text,text,text,text) FROM PUBLIC,anon,authenticated;
 
 COMMENT ON FUNCTION public.accept_mantigo_bid_backend(uuid,text,text) IS
   'RC496: a ride owner may accept only an OFFERED bid; a per-ride row lock serializes competing winners and same-bid retries are idempotent.';
