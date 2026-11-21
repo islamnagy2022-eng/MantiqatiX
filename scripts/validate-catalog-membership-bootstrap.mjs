@@ -13,6 +13,8 @@ for (const phrase of ['عضوية نشطة', 'لم يتم تغيير الاشت�
   assert.ok(guardBlock.includes(phrase), 'Bootstrap failure must disclose the issue without mutating subscription or granting fallback access.');
 }
 assert.ok(source.includes(".eq('user_id', user.id).eq('status', 'ACTIVE')"), 'Only active memberships are considered by this guard.');
-assert.ok(source.includes("const platform = platformMemberships.length > 0;"), 'Platform-admin workspaces must remain separate from business-owner failure handling.');
+assert.ok(source.includes("const platform = !registryError && registryResult === true;"), 'Platform-admin workspaces must derive from the verified private registry RPC, not membership metadata.');
+assert.doesNotMatch(source, /const platform = .*platformMemberships/,
+  'Platform-admin workspaces must never be inferred from a membership row.');
 
 console.log('CATALOG_MEMBERSHIP_BOOTSTRAP_FAIL_CLOSED=PASS');
