@@ -80,6 +80,10 @@ on:
       - "scripts/validate-rc490-private-crm-notification-read-guards.mjs"
       - "scripts/validate-rc494-settlement-financial-atomic-registry-scope.mjs"
       - "scripts/validate-rc495-storage-filename-regex-forward-repair.mjs"
+      - "scripts/validate-rc496-mantigo-bid-accept-state-invariant.mjs"
+      - "scripts/test-rc496-mantigo-bid-accept-concurrency.sh"
+      - "supabase/tests/rc496_mantigo_bid_accept_state_invariant_fixture.sql"
+      - "supabase/tests/rc496_mantigo_bid_accept_state_invariant_integration.sql"
       - "supabase/tests/rc490_private_crm_notification_read_guards_fixture.sql"
       - "supabase/tests/rc490_private_crm_notification_read_guards_integration.sql"
       - "supabase/tests/rc492_indrive_anonymous_auth_write_guard_fixture.sql"
@@ -136,6 +140,10 @@ on:
       - "scripts/validate-rc492-indrive-anonymous-auth-write-guard.mjs"
       - "scripts/validate-rc494-settlement-financial-atomic-registry-scope.mjs"
       - "scripts/validate-rc495-storage-filename-regex-forward-repair.mjs"
+      - "scripts/validate-rc496-mantigo-bid-accept-state-invariant.mjs"
+      - "scripts/test-rc496-mantigo-bid-accept-concurrency.sh"
+      - "supabase/tests/rc496_mantigo_bid_accept_state_invariant_fixture.sql"
+      - "supabase/tests/rc496_mantigo_bid_accept_state_invariant_integration.sql"
       - "supabase/tests/rc488_storage_anonymous_auth_write_guard_fixture.sql"
       - "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql"
       - "supabase/tests/rc489_financial_anonymous_auth_read_integration.sql"
@@ -185,7 +193,7 @@ jobs:
       - name: Validate RC469 shared caller search_path contract
         run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
 
-      - name: Validate strict Production release gate and exact 75-version contract
+      - name: Validate strict Production release gate and exact 76-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
 
       - name: Validate MantiGO platform-admin and financial source contracts
@@ -228,6 +236,9 @@ jobs:
 
       - name: Validate RC495 Storage filename and platform-root registry contract
         run: node scripts/validate-rc495-storage-filename-regex-forward-repair.mjs
+      
+      - name: Validate RC496 MantiGO bid acceptance state invariant
+        run: node scripts/validate-rc496-mantigo-bid-accept-state-invariant.mjs
 
       - name: Start isolated Supabase instance with no repository migrations
         shell: bash
@@ -329,6 +340,9 @@ jobs:
 
           echo "RC495_STORAGE_FILENAME_REGEX_FORWARD_REPAIR"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc495_storage_filename_regex_forward_repair.sql
+
+          echo "RC496_MANTIGO_BID_ACCEPT_STATE_INVARIANT_INTEGRATION"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc496_mantigo_bid_accept_state_invariant_integration.sql
 
           echo "RC117_DEFAULT_IMAGES_AND_ACTIVITY_ADMIN_CONTRACT"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc117_default_images_and_activity_admin_contract.sql
