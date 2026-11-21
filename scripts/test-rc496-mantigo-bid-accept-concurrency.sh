@@ -39,10 +39,12 @@ wait "$pid_a"
 wait "$pid_b"
 
 cat "$tmp_dir/a.log" "$tmp_dir/b.log"
-success_count="$(grep -h -c 'RC496_CONCURRENT_RESULT=SUCCESS:' "$tmp_dir"/*.log | awk '{sum += $1} END {print sum+0}')"
-denied_count="$(grep -h -c 'RC496_CONCURRENT_RESULT=DENIED:' "$tmp_dir"/*.log | awk '{sum += $1} END {print sum+0}')"
+success_count="$(awk '/RC496_CONCURRENT_RESULT=SUCCESS:/{n++} END {print n+0}' "$tmp_dir"/*.log)"
+denied_count="$(awk '/RC496_CONCURRENT_RESULT=DENIED:/{n++} END {print n+0}' "$tmp_dir"/*.log)"
+expected_denial_count="$(awk '/RC496_CONCURRENT_RESULT=DENIED:RIDE_NOT_OPEN/{n++} END {print n+0}' "$tmp_dir"/*.log)"
 test "$success_count" -eq 1
 test "$denied_count" -eq 1
+test "$expected_denial_count" -eq 1
 
 state="$(psql "$DATABASE_URL" -X -At -v ON_ERROR_STOP=1 -c "
   SELECT
