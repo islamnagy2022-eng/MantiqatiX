@@ -38,6 +38,6 @@ assert.match(workflow, /production_live_storage_brand_policy_overlay_fixture\.sq
 for (const policy of ["mnty_platform_brand_insert", "mnty_platform_brand_update", "mnty_platform_brand_delete"]) {
   assert.match(liveOverlay, new RegExp("CREATE POLICY " + policy + "[\\s\\S]*?ON storage\\.objects"));
 }
-assert.match(liveOverlay, /user_memberships[\\s\\S]*SUPER_ADMIN/);
-assert.match(liveOverlay, /TEST ONLY[\\s\\S]*Never apply this fixture to a hosted or production database/);
+assert.match(liveOverlay, /user_memberships[\s\S]*SUPER_ADMIN/);
+assert.match(liveOverlay, /TEST ONLY[\s\S]*Never apply this fixture to a hosted or production database/);
 console.log("RC495 Storage filename regex and platform-root registry contract: PASS");
