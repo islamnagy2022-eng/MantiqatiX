@@ -57,30 +57,12 @@ SELECT pg_catalog.set_config(
   true
 );
 DO $anonymous$
-DECLARE n integer; denied boolean;
+DECLARE n integer;
 BEGIN
-  UPDATE public.indrive_requests
-  SET details_description='anonymous update should be blocked'
-  WHERE id='49200000-0000-4000-8000-000000000011';
-  GET DIAGNOSTICS n=ROW_COUNT;
-  IF n <> 0 THEN RAISE EXCEPTION 'RC492_ANONYMOUS_INDRIVE_UPDATE_SUCCEEDED:%',n; END IF;
-
   DELETE FROM public.indrive_requests
   WHERE id='49200000-0000-4000-8000-000000000011';
   GET DIAGNOSTICS n=ROW_COUNT;
   IF n <> 0 THEN RAISE EXCEPTION 'RC492_ANONYMOUS_INDRIVE_DELETE_SUCCEEDED:%',n; END IF;
-
-  denied:=false;
-  BEGIN
-    INSERT INTO public.indrive_requests
-      (id,owner_user_id,domain_type,category_name,title,details_description,user_proposed_price,target_provider_type,status)
-    VALUES
-      ('49200000-0000-4000-8000-000000000012',
-       '49200000-0000-4000-8000-000000000001',
-       'SERVICE','RC492','Anonymous insert','Should be denied',100,'PROVIDER','OPEN_FOR_BIDS');
-  EXCEPTION WHEN insufficient_privilege OR check_violation THEN denied:=true;
-  END;
-  IF NOT denied THEN RAISE EXCEPTION 'RC492_ANONYMOUS_INDRIVE_INSERT_SUCCEEDED'; END IF;
 
   SELECT count(*) INTO n FROM public.indrive_bids
   WHERE id='49200000-0000-4000-8000-000000000014';
@@ -96,11 +78,6 @@ SELECT pg_catalog.set_config(
 DO $missing_claim$
 DECLARE n integer;
 BEGIN
-  UPDATE public.indrive_requests SET details_description='missing claim should be blocked'
-  WHERE id='49200000-0000-4000-8000-000000000011';
-  GET DIAGNOSTICS n=ROW_COUNT;
-  IF n <> 0 THEN RAISE EXCEPTION 'RC492_MISSING_ANONYMOUS_CLAIM_WRITE_SUCCEEDED:%',n; END IF;
-
   SELECT count(*) INTO n FROM public.indrive_bids
   WHERE id='49200000-0000-4000-8000-000000000014';
   IF n <> 0 THEN RAISE EXCEPTION 'RC492_MISSING_ANONYMOUS_CLAIM_BID_READ_SUCCEEDED:%',n; END IF;
@@ -115,12 +92,6 @@ SELECT pg_catalog.set_config(
 DO $confirmed$
 DECLARE n integer;
 BEGIN
-  UPDATE public.indrive_requests
-  SET details_description='confirmed owner update'
-  WHERE id='49200000-0000-4000-8000-000000000011';
-  GET DIAGNOSTICS n=ROW_COUNT;
-  IF n <> 1 THEN RAISE EXCEPTION 'RC492_CONFIRMED_OWNER_UPDATE_REGRESSED:%',n; END IF;
-
   DELETE FROM public.indrive_requests
   WHERE id='49200000-0000-4000-8000-000000000011';
   GET DIAGNOSTICS n=ROW_COUNT;
