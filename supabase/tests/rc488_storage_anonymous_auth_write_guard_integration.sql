@@ -192,8 +192,8 @@ BEGIN
   END IF;
 
   INSERT INTO storage.objects(bucket_id,name,owner,owner_id,metadata)
-  VALUES ('mantiqatix-profile-media',
-    'users/48800000-0000-4000-8000-000000000002/providers/48800000-0000-4000-8000-000000000012/logo.jpg',
+  VALUES ('mantiqatix-media',
+    'users/48800000-0000-4000-8000-000000000002/rc488-confirmed-upload.jpg',
     '48800000-0000-4000-8000-000000000002'::uuid,
     '48800000-0000-4000-8000-000000000002',
     '{"mimetype":"image/jpeg","size":10}'::jsonb);
