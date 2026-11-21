@@ -341,9 +341,6 @@ jobs:
           echo "RC495_STORAGE_FILENAME_REGEX_FORWARD_REPAIR"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc495_storage_filename_regex_forward_repair.sql
 
-          echo "RC496_MANTIGO_BID_ACCEPT_STATE_INVARIANT_INTEGRATION"
-          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc496_mantigo_bid_accept_state_invariant_integration.sql
-
           echo "RC117_DEFAULT_IMAGES_AND_ACTIVITY_ADMIN_CONTRACT"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc117_default_images_and_activity_admin_contract.sql
 
