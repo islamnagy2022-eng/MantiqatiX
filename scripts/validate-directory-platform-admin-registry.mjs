@@ -33,7 +33,7 @@ assert.match(helperTests, /resolveDirectoryPlatformAdmin\(true, null\)/);
 assert.match(helperTests, /registry unavailable/);
 assert.match(registryMigration, /function public\.is_platform_admin\(\)/i);
 assert.match(registryMigration, /security definer/i);
-assert.match(registryMigration, /set search_path = ''/i);
+assert.match(registryMigration, /set search_path(?:=|to)\\s*''/i);
 assert.match(registryMigration, /private\.platform_admins/i);
 assert.match(registryMigration, /grant execute on function public\.is_platform_admin\(\) to authenticated/i);
 
