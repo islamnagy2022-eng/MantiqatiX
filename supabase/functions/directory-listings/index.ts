@@ -369,7 +369,7 @@ Deno.serve(async (req: Request) => {
     return out(origin, { success: true, listing: { ...saved, can_edit: true, owned_business_id: String(listing.claimed_business_id || "") } });
   }
 
-  const { data: registryResult, error: registryError } = await userClient.rpc("is_platform_admin");
+  const { data: registryResult, error: registryError } = await userClient.rpc("mnty_can_platform_admin");
   if (registryError) {
     console.error("directory platform-admin registry lookup failed", registryError.message);
     return out(origin, { error: "PLATFORM_ADMIN_CHECK_UNAVAILABLE" }, 503);
