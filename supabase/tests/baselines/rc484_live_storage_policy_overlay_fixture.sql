@@ -67,9 +67,18 @@ $verify$;
 
 SELECT 'TEST_ONLY_RC484_STORAGE_POLICY_OVERLAY=PASS' AS result;
 
--- The captured checkpoint also omits the known Production profile-media policy
--- set. Restore it only in this disposable replay so RC488 can verify that its
--- restrictive policies preserve the real owner/public-media contract.
+-- The captured checkpoint also omits Storage bucket rows and the known Production
+-- profile-media policy set. Restore them only in this disposable replay so RC488
+-- can verify that its restrictive policies preserve the real owner/public-media contract.
+INSERT INTO storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
+VALUES
+  ('mantiqatix-profile-media','mantiqatix-profile-media',true,5242880,ARRAY['image/jpeg','image/png','image/webp']),
+  ('mantiqatix-media','mantiqatix-media',false,5242880,ARRAY['image/jpeg','image/png','image/webp'])
+ON CONFLICT (id) DO UPDATE
+SET public=EXCLUDED.public,
+    file_size_limit=EXCLUDED.file_size_limit,
+    allowed_mime_types=EXCLUDED.allowed_mime_types;
+
 DO $profile_media_overlay$
 BEGIN
   IF pg_catalog.to_regclass('storage.objects') IS NULL
