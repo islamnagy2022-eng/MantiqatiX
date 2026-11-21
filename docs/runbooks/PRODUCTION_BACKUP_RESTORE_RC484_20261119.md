@@ -229,8 +229,8 @@ RC484 and the other required migrations remain source-only until:
 - checksum/decryption verification passes;
 - isolated restore rehearsal passes with measured RPO/RTO;
 - rollback/recovery plan is approved;
-- the full ordered 67-version migration chain (including RC485 catalog RPC registry-root, RC486 catalog price-version, and RC487 SMM bootstrap hardening) and live schema drift are reconciled;
+- the full ordered 76-version exact migration chain (including RC472/RC473 directory contact-consent foundation, RC485 catalog RPC registry-root, RC486 catalog price-version, RC487 SMM bootstrap hardening, RC488–RC493 anonymous-Auth guards, RC494 settlement registry/scope hardening, and RC495 Storage filename-policy repair, plus RC496 MantiGO OFFERED-only bid acceptance) and live schema drift are reconciled;
 - payment/finance/Edge/Auth/Storage acceptance is complete;
 - the release owner explicitly approves the Production window.
 
-After the approved rollout, re-read the live migration ledger, RC484 function definition/ACL/search_path, registry FORCE-RLS state, and all 57 dependent policies. Test tenant ADMIN and tenant SUPER_ADMIN cross-tenant denial and registry-only platform-root access. Keep P0 issue #867 open until this live evidence is attached.
+After the approved rollout, re-read the live migration ledger, RC464/RC484/RC494 function definitions, owners, ACLs and empty search_path, registry FORCE-RLS state, RC488–RC495 RLS/Storage policy boundaries, and the RC472/RC473 consent registry. Test confirmed-user and anonymous-session behavior, tenant ADMIN and tenant SUPER_ADMIN cross-tenant denial, registry-only platform-root access, settlement scope/idempotency, and Storage filename constraints. Keep the directory-contact privacy blocker and related P0 release issues open until this live evidence is attached.

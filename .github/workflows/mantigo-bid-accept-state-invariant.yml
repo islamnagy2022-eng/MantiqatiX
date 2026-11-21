@@ -1,0 +1,58 @@
+name: MantiGO Bid Acceptance State Invariant RC496
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261121030000_rc496_mantigo_bid_accept_state_invariant.sql"
+      - "supabase/tests/rc496_mantigo_bid_accept_state_invariant_fixture.sql"
+      - "supabase/tests/rc496_mantigo_bid_accept_state_invariant_integration.sql"
+      - "scripts/validate-rc496-mantigo-bid-accept-state-invariant.mjs"
+      - "scripts/test-rc496-mantigo-bid-accept-concurrency.sh"
+      - ".github/workflows/mantigo-bid-accept-state-invariant.yml"
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/migrations/20261121030000_rc496_mantigo_bid_accept_state_invariant.sql"
+      - "supabase/tests/rc496_mantigo_bid_accept_state_invariant_fixture.sql"
+      - "supabase/tests/rc496_mantigo_bid_accept_state_invariant_integration.sql"
+      - "scripts/validate-rc496-mantigo-bid-accept-state-invariant.mjs"
+      - "scripts/test-rc496-mantigo-bid-accept-concurrency.sh"
+      - ".github/workflows/mantigo-bid-accept-state-invariant.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  bid-acceptance-invariant:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rc496_mantigo
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rc496_mantigo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/rc496_mantigo
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate RC496 source contract
+        run: node scripts/validate-rc496-mantigo-bid-accept-state-invariant.mjs
+      - name: Create disposable MantiGO schema fixture
+        run: psql "$DATABASE_URL" -X -v ON_ERROR_STOP=1 -f supabase/tests/rc496_mantigo_bid_accept_state_invariant_fixture.sql
+      - name: Apply RC496 migration to disposable PostgreSQL
+        run: psql "$DATABASE_URL" -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261121030000_rc496_mantigo_bid_accept_state_invariant.sql
+      - name: Run adversarial state and idempotency tests
+        run: psql "$DATABASE_URL" -X -v ON_ERROR_STOP=1 -f supabase/tests/rc496_mantigo_bid_accept_state_invariant_integration.sql
+      - name: Run two-session concurrent acceptance race
+        run: bash scripts/test-rc496-mantigo-bid-accept-concurrency.sh
