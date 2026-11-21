@@ -3722,7 +3722,7 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - PR remains open and is not merged because RC464/RC494 and the coordinated Production release gates are not yet satisfied.
 
 ### Anonymous Auth / settlement / Storage hardening — PR #958
-- Consolidates RC488–RC495; PR #959 is a duplicate subset and must not be merged independently.
+- Consolidates RC488–RC495; PR #959 and regex-only PR #950 were closed as superseded; their unique RC492 test/workflow fixes and registry-backed RC495 replacement are represented in PR #958. Neither was merged.
 - RC492 fixture now mirrors owner SELECT visibility and its integration test asserts the effective owner DELETE policy predicate, then rolls back all synthetic rows.
 - RC494 replay initially exposed that the captured schema checkpoint retains direct anon/authenticated EXECUTE ACLs on `create_settlement_and_post_journal`, while read-only Production evidence confirms only `service_role` has EXECUTE. Added a TEST-ONLY replay overlay to reconcile that known checkpoint drift; the migration itself remains fail-closed and Production is unchanged.
 - RC495 replay exposed three platform-brand Storage policies present in Production but absent from the captured checkpoint. Added a separate TEST-ONLY overlay to recreate those legacy membership-based policies before RC495 replaces them with registry-backed predicates and corrected filename regexes.
