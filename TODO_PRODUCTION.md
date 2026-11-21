@@ -3663,3 +3663,6 @@ Evidence: audit file; branch `fix/rc479-anonymous-auth-profile-boundary-tests-20
 - [x] Follow-up — RC488 isolated fixture exposed dependency ordering: `public.is_platform_admin()` was created before `auth.uid()`. Moved the helper definition after the Auth functions so PostgreSQL can resolve the function at creation time. The previous RC488 CI run failed at fixture setup before exercising the updated policy behavior; fresh exact-head CI is required.
 
 - [x] Follow-up — Extended the forward-replay workflow path filters so changes to the RC488 Storage fixture, integration test, or static validator trigger the full chronological replay on pull requests; previously test-only corrections could run the focused Storage job without automatically re-running the full migration-chain workflow.
+
+- [x] RC488 focused PostgreSQL workflow passed on commit `6082cc3553c43bfc2a3c39d7d6fd2e9d1370e0b5`: static contract validator and isolated Storage integration both passed after correcting fixture function-definition order and testing confirmed-owner upload through the private-media policy.
+- [ ] Full chronological PostgreSQL 17 replay must pass on the latest exact PR head after the RC488 test and workflow-trigger updates; previous replay failures are from earlier commits and are not evidence of the latest state.
