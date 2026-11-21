@@ -26,8 +26,8 @@
   "payment_finance_e2e": "NOT VERIFIED — current read-only aggregate counts were zero for orders, payment_intents, payment_provider_events, subscription_payment_intents, digital_page_orders, digital_page_payment_events and mantigo_financial_ledger. No Paymob sandbox request, callback replay, refund, settlement or journal posting was initiated. Physical DB contracts remain incomplete: RC427 active-order unique index absent; subscription RC435 claim and RC439 encrypted-checkout columns absent; new atomic standard/subscription/MantiGO failure/success processors absent; provider-order binding and RC450 journal ACL not fully live. Empty tables do not establish safe payment readiness.",
   "backup_restore_rehearsal": "NOT VERIFIED — no actual Production database/Storage export, off-site upload/retrieval, Vault recovery, separate-project PostgreSQL 17 restore, measured RPO/RTO or rollback rehearsal occurred. PR #875 merged a read-only encrypted backup manifest/evidence validator; exact-head CI passed 12/12 disposable tests (run 44640871190). The tool validates operator-created artifacts/evidence only and does not create backups or perform restores.",
   "evidence_ref": "docs/audits/PRODUCTION_RECONCILIATION_20261114.md",
-  "checked_at": "2026-11-20",
-  "reason": "BLOCKED / NOT CERTIFIED: fresh read-only Production check on 2026-11-20 found 310 migration rows through 20261110150618 and 0/64 exact required release identifiers. Exact live Edge entrypoint parity is 4/11; seven critical functions differ from main (order-create, payment-intent, paymob-webhook, digital-page-payment-intent, subscription-payment-intent, financial-journal, directory-listings). Independent physical contract gaps include missing RC425 MantiGO provider-event table, RC427 active-order unique index, RC435 subscription claim columns/RPCs, RC439 encrypted checkout fields, newer atomic payment/subscription/MantiGO processors and RC450 service_role journal EXECUTE. Directory contact-consent remains BLOCKED: live anonymous directory GET exposes phone/address for 869 published rows while RC473 consent tables are absent. Backup verifier is merged and 12/12 CI tests passed, but no actual encrypted backup or isolated restore was performed; RPO/RTO and rollback remain unverified. RC484 is merged source with isolated adversarial/replay PASS, but is not applied in Production; live is_platform_admin remains SECURITY INVOKER/search_path=public and registry FORCE RLS remains disabled. No Production mutation was performed. The release contract has now been extended to require exact RC435/RC439 subscription claim RPC signatures and all persisted provider-order/checkout-encryption columns; the 2026-11-20 physical recheck explicitly records the missing functions/columns as BLOCKED instead of passing on generic function-name presence.",
+  "checked_at": "2026-11-21",
+  "reason": "BLOCKED / NOT CERTIFIED: fresh read-only Production check on 2026-11-21 found 310 migration rows through 20261110150618 and 0/76 exact required release identifiers. Exact live Edge entrypoint parity remains 4/11, with seven critical functions differing from main. Independent physical contract gaps include missing payment/order/subscription RPCs and columns, RC450 service_role journal EXECUTE, and registry-backed global-admin hardening. Directory contact-consent remains BLOCKED: live anonymous directory GET exposes phone/address for 869 published rows while RC473 consent tables are absent. Anonymous Auth and Storage policy guards RC488–RC495 are source candidates only and not applied; RC494 additionally closes the service-role settlement writer's membership-only MNTY-PLATFORM authority and enforces business/tenant finance scope. The backup verifier has disposable CI coverage, but no actual encrypted database/Storage backup, off-site retrieval, Vault recovery or independent PostgreSQL 17 restore/rollback was performed; RPO/RTO remain unverified. No Production mutation was performed. RC495 adds a forward-only Storage filename/registry authorization repair after the RC488–RC494 chain; it is source-only and unapplied. PR #961 re-applies the RC488–RC496 source set on the post-PR #957 current main without overwriting the newer directory-registry changes; its exact-head replay is pending. The prior PR #958 replay evidence is retained separately as historical evidence and is not used to certify PR #961.",
   "edge_function_contracts": "PARTIAL — fresh exact entrypoint comparison on 2026-11-20 found 7/11 critical live Edge functions differ from current main: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3, directory-listings v16. Four exact matches: api v17, order-status-update v4, payment-webhook v3, smm-gateway v13 (still deferred). Do not deploy mismatched payment/finance/directory/order functions individually; the live database is missing or has older payment, subscription, journal, order and directory consent contracts.",
   "smm_gateway_parity": "PARTIAL — live SMM gateway remains ACTIVE v13, verify_jwt=true, and source matches main with SMM_INITIAL_LAUNCH_DEFERRED=true. Anonymous/authenticated negative runtime tests still unverified; keep deferred.",
   "auth_security_settings": "NOT VERIFIED — current connector does not expose project Auth security configuration. The prior 2026-11-06 advisor snapshot reported leaked-password protection disabled; owner-dashboard confirmation and remediation evidence are still required. No Auth settings were changed.",
@@ -118,11 +118,11 @@
   },
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
-    "checked_at": "2026-11-20",
-    "method": "Fresh read-only SELECT from supabase_migrations.schema_migrations compared against the exact 64 versions in scripts/production/live-reconciliation-contract.mjs on main commit 57862b714c0b049419204b6143b966c149682906.",
+    "checked_at": "2026-11-21",
+    "method": "Read-only Production migration-ledger inventory retained from 2026-11-21 and compared against the exact 76-version release contract carried by PR #961. No Production migration was applied.",
     "live_ledger_count": 310,
     "latest_live_version": "20261110150618",
-    "expected_migration_versions": 64,
+    "expected_migration_versions": 76,
     "found_in_live_ledger": 0,
     "required_versions": [
       "20261009120000",
@@ -188,7 +188,19 @@
       "20261118220000",
       "20261119020000",
       "20261119030000",
-      "20261119040000"
+      "20261119040000",
+      "20261120200000",
+      "20261120210000",
+      "20261120220000",
+      "20261120230000",
+      "20261120240000",
+      "20261120250000",
+      "20261120260000",
+      "20261120270000",
+      "20261120280000",
+      "20261120290000",
+      "20261121020000",
+      "20261121030000"
     ],
     "missing_versions": [
       "20261009120000",
@@ -254,10 +266,22 @@
       "20261118220000",
       "20261119020000",
       "20261119030000",
-      "20261119040000"
+      "20261119040000",
+      "20261120200000",
+      "20261120210000",
+      "20261120220000",
+      "20261120230000",
+      "20261120240000",
+      "20261120250000",
+      "20261120260000",
+      "20261120270000",
+      "20261120280000",
+      "20261120290000",
+      "20261121020000",
+      "20261121030000"
     ],
     "recorded_required_versions": [],
-    "interpretation": "None of the 64 exact source-version identifiers are recorded in the current live ledger. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
+    "interpretation": "None of the 76 exact required source-version identifiers are recorded in the current live ledger. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
   },
   "critical_edge_function_source_parity_check": {
     "status": "BLOCKED",
@@ -448,8 +472,8 @@
   },
   "required_release_object_presence_check": {
     "status": "MIXED_DRIFT_READ_ONLY_REFRESHED",
-    "checked_at": "2026-11-20",
-    "method": "Read-only PostgreSQL catalog inspection using to_regprocedure, to_regclass, pg_proc, pg_trigger, pg_attribute and pg_constraint.",
+    "checked_at": "2026-11-21",
+    "method": "Read-only PostgreSQL catalog inspection using to_regprocedure, to_regclass, pg_proc, pg_trigger, pg_attribute, pg_constraint, pg_class, RLS flags and has_table_privilege. No application rows or identities selected.",
     "observed": [
       {
         "migration": "RC114",
@@ -1103,19 +1127,39 @@
         "physical_found_as": "ABSENT",
         "physical_checked_at": "2026-11-20",
         "status": "BLOCKED"
+      },
+      {
+        "migration": "RC484",
+        "object": "private.platform_admins",
+        "exists": true,
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-21",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED",
+        "detail": "Table exists with RLS enabled and no direct anon/authenticated table privileges, but FORCE RLS is false. RC484 source requires FORCE ROW LEVEL SECURITY and the registry-backed helper owner/ACL contract."
+      },
+      {
+        "migration": "RC484",
+        "object": "public.is_platform_admin()",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-21",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED",
+        "detail": "Function exists but live definition is SECURITY INVOKER with search_path=public and derives platform admin from user_memberships ADMIN/SUPER_ADMIN roles. RC484 source requires SECURITY DEFINER, empty search_path and lookup against private.platform_admins."
       }
     ],
-    "interpretation": "Current 2026-11-17 refresh confirms 30/60 physical objects present and 30/60 absent. The RC117 default-image helper, three trigger functions, three triggers, and marketing_services image_url/image_source columns are absent. Two physically present payment/order functions remain blocked by contract drift. Do not replay missing historical migrations out of order; use reviewed forward-only repairs.",
-    "required_core_object_contracts": 27,
-    "present_core_object_contracts": 7,
-    "missing_core_object_contracts": 20,
+    "interpretation": "The live catalog confirms 10/31 core objects present and 21/31 absent, plus 0/33 control-center objects present. Two registry objects exist physically but remain blocked on their exact security contract. Do not infer semantic PASS from to_regclass/to_regprocedure presence.",
+    "required_core_object_contracts": 31,
+    "present_core_object_contracts": 10,
+    "missing_core_object_contracts": 21,
     "required_control_center_object_contracts": 33,
     "present_control_center_object_contracts": 0,
     "missing_control_center_object_contracts": 33,
-    "total_granular_object_contracts": 60,
-    "total_missing_granular_object_contracts": 53,
-    "note": "2026-11-17 read-only refresh: 30/60 required objects physically present and 30/60 absent; semantic non-PASS remains 32. The marketing_services.image_url column is now confirmed absent, alongside image_source and the three default-image trigger chains.",
-    "observed_count": 74,
+    "total_granular_object_contracts": 64,
+    "total_missing_granular_object_contracts": 54,
+    "note": "2026-11-21 read-only refresh: 10/31 core objects physically present and 21/31 absent; all 33 control-center object contracts remain absent. Two physically present registry objects are still contract-blocked: private.platform_admins is not FORCE RLS, and public.is_platform_admin() remains SECURITY INVOKER/search_path=public and membership-derived instead of using the private registry. Physical presence is not semantic PASS.",
+    "observed_count": 76,
     "non_pass": [
       {
         "migration": "RC117",
@@ -1404,6 +1448,26 @@
         "physical_found_as": "ABSENT",
         "physical_checked_at": "2026-11-17",
         "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC484",
+        "object": "private.platform_admins",
+        "exists": true,
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-21",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED",
+        "detail": "Table exists with RLS enabled and no direct anon/authenticated table privileges, but FORCE RLS is false. RC484 source requires FORCE ROW LEVEL SECURITY and the registry-backed helper owner/ACL contract."
+      },
+      {
+        "migration": "RC484",
+        "object": "public.is_platform_admin()",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-21",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED",
+        "detail": "Function exists but live definition is SECURITY INVOKER with search_path=public and derives platform admin from user_memberships ADMIN/SUPER_ADMIN roles. RC484 source requires SECURITY DEFINER, empty search_path and lookup against private.platform_admins."
       }
     ],
     "non_pass_count": 43,
@@ -3823,7 +3887,7 @@
     "interpretation": "Advisor findings are not vulnerability counts. No-policy findings require effective grant/RPC path review. The two SECURITY DEFINER lint findings refer to trigger-only functions assign_default_owner_to_unowned_business and capture_commission_rule_audit; their attached triggers are enabled, but direct EXECUTE ACL remains broader than desired. RC463 remains unrecorded and unapplied. Auth leaked-password protection remains NOT VERIFIED."
   },
   "full_platform_gate": "BLOCKED / NOT CERTIFIED",
-  "full_platform_gate_last_checked_at": "2026-11-20",
+  "full_platform_gate_last_checked_at": "2026-11-21",
   "rc431_rc438_live_rpc_recheck_20261104": {
     "checked_at": "2026-11-04",
     "method": "Read-only pg_proc function identity, proconfig and has_function_privilege queries.",
@@ -4722,13 +4786,14 @@
   },
   "directory_contact_consent_boundary": {
     "status": "BLOCKED",
-    "checked_at": "2026-11-20",
+    "checked_at": "2026-11-21",
     "live_function": {
       "slug": "directory-listings",
       "version": 16,
       "status": "ACTIVE",
       "verify_jwt": false,
       "exact_source_match": false,
+      "deployed_bundle_sha256": "13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0",
       "public_get_requires_bearer": false,
       "returns_contact_fields_without_consent": true,
       "live_source_files": [
@@ -4768,7 +4833,7 @@
       "public-directory-output-contract.mjs",
       "consent-pagination.mjs"
     ],
-    "reason": "Fresh aggregate count still shows 869 PUBLISHED rows with phone and address and 178 with secondary phone. Both public/private consent registries remain absent; the live directory-listings v16 entrypoint remains different from the consent-aware main source. No individual contact data was selected.",
+    "reason": "Fresh 2026-11-21 read-only database and deployed-bundle checks reconfirm 869 PUBLISHED rows with phone and address and 178 with a secondary phone. The deployed directory-listings v16 bundle lacks the consent pagination and public output sanitizer modules; neither public nor private contact-consent registry table exists. Do not deploy the consent-aware Edge bundle before the chronological RC472/RC473 migration sequence and verified release prerequisites.",
     "required_main_source_files": [
       "index.ts",
       "doctor-import-contract.mjs",
@@ -5018,5 +5083,139 @@
     "production_mutation": "NONE",
     "release_status": "BLOCKED_NOT_CERTIFIED"
   },
-  "chronological_replay_evidence": "2026-11-19 RC484 exact-head isolated replay run 44598309101 restored the captured schema-only checkpoint 20261008222845 and applied 99 later migrations in timestamp order; RC484 adversarial PostgreSQL 17 tests passed in run 44598309128. This is not a real backup restore and has no Production effect."
+  "chronological_replay_evidence": "2026-11-19 RC484 exact-head isolated replay run 44598309101 restored the captured schema-only checkpoint 20261008222845 and applied 99 later migrations in timestamp order; RC484 adversarial PostgreSQL 17 tests passed in run 44598309128. This is not a real backup restore and has no Production effect.",
+  "physical_presence_refresh_20261121": {
+    "status": "READ_ONLY_REFRESHED",
+    "checked_at": "2026-11-21",
+    "total_core_contracts": 31,
+    "core_physical_presence": {
+      "present": 10,
+      "absent": 21
+    },
+    "control_center_contracts": 33,
+    "control_center_physical_presence": {
+      "present": 0,
+      "absent": 33
+    },
+    "total_granular_contracts": 64,
+    "total_granular_physical_presence": {
+      "present": 10,
+      "absent": 54
+    },
+    "present_but_contract_blocked": [
+      {
+        "object": "private.platform_admins",
+        "reason": "RLS enabled but FORCE RLS false; RC484 registry hardening not applied."
+      },
+      {
+        "object": "public.is_platform_admin()",
+        "reason": "Live function remains SECURITY INVOKER/search_path=public and membership-derived; RC484 registry-backed SECURITY DEFINER body not applied."
+      }
+    ],
+    "method": "Read-only catalog checks using to_regclass, to_regprocedure, pg_class, pg_proc, RLS flags and has_table_privilege; no application data selected."
+  },
+  "latest_candidate_replay_20261121": {
+    "status": "PENDING",
+    "checked_at": "2026-11-21",
+    "pr": 961,
+    "source_commit": "8dd155cb3a3fa0d63c7e67dd1f3903ddf00ba280",
+    "checkpoint_version": "20261008222845",
+    "forward_migrations_expected": 111,
+    "workflow_run": "https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44938067633",
+    "exact_head_check_runs": {
+      "status": "PENDING"
+    },
+    "critical_browser_e2e": "PENDING",
+    "result": "The reconciled current-main PR #961 is undergoing exact-head checks and chronological replay. No replay or browser E2E pass is claimed until the current run completes.",
+    "production_effect": "NONE — source-only PR and disposable CI; no Production schema/data/grants/Auth/Edge Functions/payments/wallets or migration ledger rows changed.",
+    "limitation": "A schema-only disposable replay is not a genuine Production backup restore. Off-site backup retrieval, Vault recovery, independent PostgreSQL 17 restore/rollback, measured RPO/RTO and live post-deploy authorization remain unverified."
+  },
+  "production_security_recheck_20261121": {
+    "checked_at": "2026-11-21",
+    "project_ref": "moyhiluyhjsujhwlyeuu",
+    "project_status": "ACTIVE_HEALTHY",
+    "postgres_version": "17.6.1.155",
+    "live_migration_ledger": {
+      "count": 310,
+      "latest_version": "20261110150618",
+      "latest_name": "revoke_public_execute_from_trigger_functions"
+    },
+    "platform_admin_registry": {
+      "table": "private.platform_admins",
+      "exists": true,
+      "rows": 1,
+      "rls_enabled": true,
+      "force_rls": false,
+      "anon_select_or_mutate": false,
+      "authenticated_select_or_mutate": false,
+      "helper": "public.mnty_can_platform_admin()",
+      "helper_security_definer": true,
+      "helper_search_path": "public, pg_temp",
+      "current_helper_uses_registry_backed_rc464_contract": false
+    },
+    "security_advisor": {
+      "rls_enabled_no_policy": {
+        "level": "INFO",
+        "count": 9
+      },
+      "anon_security_definer_executable": {
+        "level": "WARN",
+        "count": 1,
+        "known_function": "public.get_mnty_targeted_advertisements"
+      },
+      "authenticated_security_definer_executable": {
+        "level": "WARN",
+        "count": 65
+      },
+      "leaked_password_protection_enabled": false,
+      "performance_warnings": {
+        "unindexed_foreign_keys": 132,
+        "auth_rls_initplan": 375,
+        "unused_indexes": 70,
+        "multiple_permissive_policies": 28
+      },
+      "health_advisors": 0
+    },
+    "interpretation": "The anonymous-executable SECURITY DEFINER function is a bounded public active/approved-advertisement read with an empty search_path; it is not treated as a confirmed exposure from this finding alone. The platform-admin registry/helper remain on the pre-RC464 contract. The Auth leaked-password protection setting remains disabled according to the live Security Advisor and requires owner-dashboard remediation. Performance advisories require prioritization, not blanket index or policy changes.",
+    "production_mutation": "NONE — read-only queries, metadata and advisor checks only."
+  },
+  "rc496_bid_acceptance_state_invariant": {
+    "source_migration": "20261121030000",
+    "status": "SOURCE_CANDIDATE_NOT_APPLIED",
+    "issue": 912,
+    "required_behavior": "Only OFFERED bids can be accepted; ride-first row locking serializes competing winners; same winning bid retries are idempotent.",
+    "exact_production_rpc_checked_at": "2026-11-21",
+    "production_mutation": "NONE",
+    "required_release_tests": [
+      "offered-positive",
+      "accepted-negative",
+      "rejected-negative",
+      "withdrawn-negative",
+      "expired-negative",
+      "owner-and-actor-binding",
+      "same-winner-idempotency",
+      "different-winner-denial",
+      "two-session-concurrent-single-winner"
+    ],
+    "note": "Source and disposable test candidate only. Do not close issue #912 until RC496 migration is applied under the coordinated backup/release gate and live RPC body/ACL/search_path plus positive/negative runtime behavior are verified."
+  },
+  "prior_candidate_replay_20261121_pr958": {
+    "status": "PASS",
+    "checked_at": "2026-11-21",
+    "pr": 958,
+    "source_commit": "222d40e06998e108bf4d4f224766b10ec93199b3",
+    "checkpoint_version": "20261008222845",
+    "forward_migrations_applied": 111,
+    "workflow_run": "https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44873783015",
+    "exact_head_check_runs": {
+      "success": 28,
+      "skipped": 2,
+      "failed": 0,
+      "incomplete": 0
+    },
+    "critical_browser_e2e": "PASS",
+    "result": "The exact PR #958 head completed the full 111-migration chronological replay from the captured schema-only Production checkpoint, including RC494 and RC495 integration coverage. All exact-head checks completed: 28 success, 2 skipped, none failed; Primary Catalog browser E2E passed.",
+    "production_effect": "NONE — disposable Supabase replay and CI only; no Production schema/data/grants/Auth/Edge Functions/payments/wallets or migration ledger rows changed.",
+    "limitation": "A schema-only disposable replay is not a genuine Production backup restore. RPO/RTO, off-site backup retrieval, Vault recovery and live post-deploy authorization remain unverified."
+  }
 }
