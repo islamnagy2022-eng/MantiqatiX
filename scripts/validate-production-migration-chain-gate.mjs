@@ -81,7 +81,7 @@ const required = [
   "20261120270000_rc492_indrive_anonymous_auth_write_guard.sql",
   "20261120280000_rc493_private_crm_notification_read_guards.sql"
 ];
-assert.equal(required.length, 73, "release gate must track all distinct required post-RC424 migration effects, including RC464B and RC476–RC492");
+assert.equal(required.length, 73, "release gate must track all distinct required post-RC424 migration effects, including RC464B and RC476–RC493");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");
