@@ -15,7 +15,7 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.tenants(id,name,code,status,settings)
 VALUES
- ('MNTY-PLATFORM','MantiqaTix Platform','RC494-PLATFORM','ACTIVE','{}'::jsonb),
+ ('MNTY-PLATFORM','RC494 MantiqaTix Platform Fixture','RC494-PLATFORM','ACTIVE','{}'::jsonb),
  ('RC494-TENANT','RC494 isolated settlement tenant','RC494-TENANT','ACTIVE','{}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
