@@ -7,7 +7,7 @@
 - RC495 addresses five live Storage policy filename expressions and replaces membership-derived platform branding authorization with the canonical `mnty_can_platform_admin()` registry helper.
 - PR #950's proposed RC493 storage repair is not adopted because it retains direct membership-derived SUPER_ADMIN authorization. PR #958 carries a unique later RC495 timestamp.
 - The exact release migration contract, production verifier, gate validator and reconciliation manifest now contain 75 ordered versions. Fresh live query: 310 ledger rows through `20261110150618`; 0/75 required versions applied.
-- RC495 SQL test, source validator and full chronological replay are wired but exact-head CI has not yet passed.
+- RC495 SQL test, source validator and full chronological replay are wired. A related PR #959 run exposed a false-negative RC492 fixture validator caused by over-escaped JavaScript regexes; fixed on PR #958 at commit `918d437738af7db0541f2948d411c69f3d7f78ad`. Independent in-memory checks now match both actual grants and reject privilege widening. Exact-head CI restarted and remains queued.
 - RC492 test fixture mirrors live grants: authenticated SELECT+DELETE on `indrive_requests`, SELECT on `indrive_bids`; no authenticated INSERT/UPDATE grants are invented.
 - Evidence: `docs/audits/PASS_1586_1595_RC495_STORAGE_FILENAME_REGISTRY_REPAIR_20261121.md`.
 
