@@ -50,7 +50,6 @@ CREATE POLICY rc492_request_update ON public.indrive_requests
 CREATE POLICY rc492_request_delete ON public.indrive_requests
   FOR DELETE TO authenticated USING(owner_user_id=auth.uid());
 
--- Production has DELETE only on requests; do not widen this grant in the fixture.
 -- Production grants table SELECT and DELETE on requests, but not INSERT or UPDATE.
 GRANT SELECT, DELETE ON public.indrive_requests TO authenticated;
 
