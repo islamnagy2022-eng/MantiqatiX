@@ -140,7 +140,7 @@ BEGIN
 END;
 $missing_claim_write$;
 RESET ROLE;
--- A confirmed owner retains the intended profile-media update and delete flow.
+-- A confirmed owner retains the intended profile-media update and delete flow.\n-- Positive INSERT is covered by the separate RC493 filename-policy repair; do not\n-- couple RC488's anonymous-write guard to the pre-existing filename predicate defect.
 SET LOCAL ROLE authenticated;
 SELECT pg_catalog.set_config(
   'request.jwt.claims',
@@ -191,14 +191,6 @@ BEGIN
     IF n <> 1 THEN RAISE EXCEPTION 'RC488_CONFIRMED_OWNER_DELETE_REGRESSED:%',n; END IF;
   END IF;
 
-  INSERT INTO storage.objects(bucket_id,name,owner,owner_id,metadata)
-  VALUES ('mantiqatix-profile-media',
-    'users/48800000-0000-4000-8000-000000000002/providers/48800000-0000-4000-8000-000000000012/logo.jpg',
-    '48800000-0000-4000-8000-000000000002'::uuid,
-    '48800000-0000-4000-8000-000000000002',
-    '{"mimetype":"image/jpeg","size":10}'::jsonb);
-  GET DIAGNOSTICS n=ROW_COUNT;
-  IF n <> 1 THEN RAISE EXCEPTION 'RC488_CONFIRMED_OWNER_INSERT_REGRESSED:%',n; END IF;
 END;
 $confirmed_owner$;
 RESET ROLE;
