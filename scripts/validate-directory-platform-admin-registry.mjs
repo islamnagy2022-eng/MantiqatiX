@@ -69,6 +69,7 @@ assert.match(helper, /!registryError && registryResult === true/);
 assert.match(helperTests, /resolveDirectoryPlatformAdmin\(true, null\)/);
 assert.match(helperTests, /registry unavailable/);
 
+assert.match(businessRegister, /user\.is_anonymous/);
 assert.match(businessRegister, /registryClient\.rpc\("mnty_can_platform_admin"\)/);
 assert.match(businessRegister, /isPlatformAdmin=registryResult===true/);
 assert.match(businessRegister, /m\.business_id==null&&m\.branch_id==null/);
@@ -76,6 +77,7 @@ assert.doesNotMatch(businessRegister, /permissions\?\.scope\s*===\s*["']PLATFORM
 assert.match(businessRegister, /global:\{headers:\{Authorization:authorization\}\}/,
   "business registration registry RPC must use the verified caller JWT");
 
+assert.match(businessBranchAdmin, /user\.is_anonymous/);
 assert.match(businessBranchAdmin, /registryClient\.rpc\("mnty_can_platform_admin"\)/);
 assert.match(businessBranchAdmin, /isPlatformAdmin=registryResult===true/);
 assert.match(businessBranchAdmin, /String\(m\.branch_id\|\|\"\"\)===\"\"/);
