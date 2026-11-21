@@ -277,7 +277,7 @@ BEGIN
   END IF;
   IF v_customer=p_user_id THEN RAISE EXCEPTION 'CAPTAIN_CANNOT_BID_OWN_RIDE'; END IF;
 
-  INSERT INTO public.mantigo_bids(
+  INSERT INTO public.mantigo_bids AS existing_bid(
     id,ride_id,captain_id,captain_name,captain_phone,captain_rating,
     vehicle_category,vehicle_model,vehicle_plate,offered_price,eta_minutes,captain_message,status
   ) VALUES (
@@ -303,7 +303,7 @@ BEGIN
     captain_message=EXCLUDED.captain_message,
     status='OFFERED',
     created_at=pg_catalog.now()
-  WHERE public.mantigo_bids.status IN ('OFFERED','REJECTED','WITHDRAWN','EXPIRED')
+  WHERE existing_bid.status IN ('OFFERED','REJECTED','WITHDRAWN','EXPIRED')
   RETURNING id INTO v_id;
 
   IF v_id IS NULL THEN
