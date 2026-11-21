@@ -3715,7 +3715,7 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 ## 2026-11-21 — Current continuation checkpoint: PR #957 / PR #958
 
 ### Registry-backed Edge authorization — PR #957
-- Candidate head: `9c14cf023f1f9f0ceaff556607cbf87c7be1799e`.
+- Candidate head is tracked by the open PR; verify its live head SHA and exact-head CI before release.
 - All 19 exact-head workflow runs completed successfully, including Directory Contact Consent source contract/PostgreSQL integration, settlement authorization tests, Edge Deno type-checks, Primary Catalog build, employee RBAC PostgreSQL tests and dashboard browser E2E.
 - Pages validation passed; actual `deploy` and `validate_public_only` jobs were skipped. No deployment occurred.
 - Fixed two source/CI defects discovered by tests: restored a safe branch-ID validator and separated protected legacy platform-membership display records from the registry authorization decision; corrected the membership-bootstrap contract to require the private registry RPC; granted the settlement source-inspection test read access only to its Edge source file.
