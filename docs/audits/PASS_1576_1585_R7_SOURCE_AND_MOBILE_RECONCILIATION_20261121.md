@@ -14,7 +14,7 @@ The R7 manifest contains project ref `moyhiluyhjsujhwlyweuu`, which differs from
 ## Mobile source found in R7
 
 - Mobile web components exist at `src/components/mobile/MobileAppBottomNav.tsx` and `src/components/mobile/MobileSponsoredStoriesBar.tsx`.
-- A minimal Android WebView source exists at `android-webview-wrapper/AndroidManifest.xml`, `android-webview-wrapper/build.gradle.kts`, and `android-webview-wrapper/src/main/java/com/mantiqatix/app/MainActivity.kt`.
+- A minimal Android WebView source exists at `android-webview-wrapper/AndroidManifest.xml`, `android-webview-wrapper/build.gradle.kts`, and `android-webview-wrapper/src/main/java/com/mantiqatix/app/MainActivity.kt`; the three source files are now preserved in the repository under `archive/r7-mobile-source/` with a non-production warning README.
 - The Android wrapper hardcodes `https://mantiqatix.com/?client=android_app` and `https://mantiqatix.com/api`, while current web deployment is under GitHub Pages. It is not aligned with the current deployment origin.
 - The wrapper directory does not include a Gradle settings file, root Gradle build, Gradle wrapper, referenced mipmap launcher resources, or the referenced ProGuard rules file. It is not a complete independently buildable Android project.
 - Its WebView bridge enables JavaScript and exposes a native JavaScript interface; navigation handling only externalizes WhatsApp/telephone URLs and does not enforce an explicit first-party host allowlist. It must not be promoted to production without a security redesign and review.
