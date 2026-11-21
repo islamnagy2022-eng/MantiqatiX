@@ -54,7 +54,7 @@ assert.match(catalogAdmin, /global:\s*\{\s*headers:\s*\{\s*Authorization:\s*auth
 // AI catalog image path: service-role writes require a confirmed user and registry-backed root
 // or a normal business-scoped catalog membership.
 assert.match(aiGeminiProxy, /supabase\.rpc\("mnty_can_platform_admin"\)/);
-assert.match(aiGeminiProxy, /const hasPlatformScope = registryResult === true/);
+assert.match(aiGeminiProxy, /const hasPlatformScope = !registryError && registryResult === true/);
 assert.match(aiGeminiProxy, /platform_admin_check_unavailable/);
 assert.match(aiGeminiProxy, /if \(!authorized && registryError && businessMemberships\.length === 0\)/);
 assert.ok(
