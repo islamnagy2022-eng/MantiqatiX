@@ -134,4 +134,4 @@ $confirmed$;
 RESET ROLE;
 
 ROLLBACK;
-SELECT 'RC492 InDrive anonymous Auth write isolation: PASS' AS result;
+SELECT 'RC492 InDrive anonymous Auth read/write isolation: PASS' AS result;
