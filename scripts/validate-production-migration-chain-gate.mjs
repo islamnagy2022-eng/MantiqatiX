@@ -108,7 +108,7 @@ assert.match(rc451, /alter function public\.get_mnty_targeted_advertisements\([\
 assert.doesNotMatch(rc451, /\b(grant|revoke)\b/i, "RC451 must preserve the intentional public ad-discovery EXECUTE boundary");
 
 assert.match(liveContract, /REQUIRED_RELEASE_MIGRATION_VERSIONS/, "the live ledger contract must enumerate all required migration versions");
-assert.equal(REQUIRED_CORE_OBJECTS.length, 29, "release gate must track granular payment, finance, ERP, and MantiGo object contracts");
+assert.equal(REQUIRED_CORE_OBJECTS.length, 31, "release gate must track granular payment, finance, ERP, and MantiGo object contracts");
 assert.equal(REQUIRED_PAYMENT_CONTRACT_OBJECTS.length, 14, "release gate must pin exact RC435/RC439 payment and subscription RPC/column contracts");
 assert.ok(REQUIRED_PAYMENT_CONTRACT_OBJECTS.includes("public.process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb)"));
 assert.ok(REQUIRED_PAYMENT_CONTRACT_OBJECTS.includes("public.process_verified_subscription_payment_failure(text,text,uuid,text,numeric,text,text,boolean,jsonb)"));
