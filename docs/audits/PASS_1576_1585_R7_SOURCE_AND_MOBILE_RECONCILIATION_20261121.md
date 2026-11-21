@@ -28,6 +28,12 @@ The R7 manifest contains project ref `moyhiluyhjsujhwlyweuu`, which differs from
 4. Reconcile application ID, package identity, first-party domain, current OAuth/session handling, API contract, deep links, safe WebView navigation, permissions, build resources, signing and CI before any native Android integration.
 5. Adapt useful mobile UI features to current `apps/catalog-frontend` only after verifying current component contracts and responsive E2E tests.
 
+## R7 security review cross-reference
+
+The exact uploaded archive was previously byte-hash matched to `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md` (SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`) and reviewed again in `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md`. Those reviews identify source-level P0 patterns in the R7 backend/auth/local-state model, including unauthenticated session-token issuance from caller-supplied identity/role, local production-state read/write routes, static secret fallbacks, weak admin-login fallback and caller-supplied finance actor/role. These are defects in the archive source, not proof of deployed compromise or proof the canonical site shares those routes.
+
+Accordingly, R7 server/auth/finance/local JSON authority must remain excluded. Only individually mapped UI/assets may be adapted after matching current-main API, database, identity, authorization and regression-test contracts. No R7 backend code was imported.
+
 ## Fresh read-only Production checkpoint — 2026-11-21
 
 Supabase project `moyhiluyhjsujhwlyeuu` was queried read-only after the source reconciliation:
