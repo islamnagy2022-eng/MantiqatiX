@@ -466,8 +466,8 @@
   },
   "required_release_object_presence_check": {
     "status": "MIXED_DRIFT_READ_ONLY_REFRESHED",
-    "checked_at": "2026-11-20",
-    "method": "Read-only PostgreSQL catalog inspection using to_regprocedure, to_regclass, pg_proc, pg_trigger, pg_attribute and pg_constraint.",
+    "checked_at": "2026-11-21",
+    "method": "Read-only PostgreSQL catalog inspection using to_regprocedure, to_regclass, pg_proc, pg_trigger, pg_attribute, pg_constraint, pg_class, RLS flags and has_table_privilege. No application rows or identities selected.",
     "observed": [
       {
         "migration": "RC114",
@@ -1121,19 +1121,39 @@
         "physical_found_as": "ABSENT",
         "physical_checked_at": "2026-11-20",
         "status": "BLOCKED"
+      },
+      {
+        "migration": "RC484",
+        "object": "private.platform_admins",
+        "exists": true,
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-21",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED",
+        "detail": "Table exists with RLS enabled and no direct anon/authenticated table privileges, but FORCE RLS is false. RC484 source requires FORCE ROW LEVEL SECURITY and the registry-backed helper owner/ACL contract."
+      },
+      {
+        "migration": "RC484",
+        "object": "public.is_platform_admin()",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-21",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED",
+        "detail": "Function exists but live definition is SECURITY INVOKER with search_path=public and derives platform admin from user_memberships ADMIN/SUPER_ADMIN roles. RC484 source requires SECURITY DEFINER, empty search_path and lookup against private.platform_admins."
       }
     ],
-    "interpretation": "Current 2026-11-17 refresh confirms 30/60 physical objects present and 30/60 absent. The RC117 default-image helper, three trigger functions, three triggers, and marketing_services image_url/image_source columns are absent. Two physically present payment/order functions remain blocked by contract drift. Do not replay missing historical migrations out of order; use reviewed forward-only repairs.",
-    "required_core_object_contracts": 27,
-    "present_core_object_contracts": 7,
-    "missing_core_object_contracts": 20,
+    "interpretation": "The live catalog confirms 10/31 core objects present and 21/31 absent, plus 0/33 control-center objects present. Two registry objects exist physically but remain blocked on their exact security contract. Do not infer semantic PASS from to_regclass/to_regprocedure presence.",
+    "required_core_object_contracts": 31,
+    "present_core_object_contracts": 10,
+    "missing_core_object_contracts": 21,
     "required_control_center_object_contracts": 33,
     "present_control_center_object_contracts": 0,
     "missing_control_center_object_contracts": 33,
-    "total_granular_object_contracts": 60,
-    "total_missing_granular_object_contracts": 53,
-    "note": "2026-11-17 read-only refresh: 30/60 required objects physically present and 30/60 absent; semantic non-PASS remains 32. The marketing_services.image_url column is now confirmed absent, alongside image_source and the three default-image trigger chains.",
-    "observed_count": 74,
+    "total_granular_object_contracts": 64,
+    "total_missing_granular_object_contracts": 54,
+    "note": "2026-11-21 read-only refresh: 10/31 core objects physically present and 21/31 absent; all 33 control-center object contracts remain absent. Two physically present registry objects are still contract-blocked: private.platform_admins is not FORCE RLS, and public.is_platform_admin() remains SECURITY INVOKER/search_path=public and membership-derived instead of using the private registry. Physical presence is not semantic PASS.",
+    "observed_count": 76,
     "non_pass": [
       {
         "migration": "RC117",
@@ -1422,6 +1442,26 @@
         "physical_found_as": "ABSENT",
         "physical_checked_at": "2026-11-17",
         "detail": "Physical object is absent or contract remains blocked."
+      },
+      {
+        "migration": "RC484",
+        "object": "private.platform_admins",
+        "exists": true,
+        "physical_found_as": "TABLE",
+        "physical_checked_at": "2026-11-21",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED",
+        "detail": "Table exists with RLS enabled and no direct anon/authenticated table privileges, but FORCE RLS is false. RC484 source requires FORCE ROW LEVEL SECURITY and the registry-backed helper owner/ACL contract."
+      },
+      {
+        "migration": "RC484",
+        "object": "public.is_platform_admin()",
+        "exists": true,
+        "physical_found_as": "FUNCTION",
+        "physical_checked_at": "2026-11-21",
+        "status": "BLOCKED",
+        "prior_status": "BLOCKED",
+        "detail": "Function exists but live definition is SECURITY INVOKER with search_path=public and derives platform admin from user_memberships ADMIN/SUPER_ADMIN roles. RC484 source requires SECURITY DEFINER, empty search_path and lookup against private.platform_admins."
       }
     ],
     "non_pass_count": 43,
@@ -5036,5 +5076,35 @@
     "production_mutation": "NONE",
     "release_status": "BLOCKED_NOT_CERTIFIED"
   },
-  "chronological_replay_evidence": "2026-11-19 RC484 exact-head isolated replay run 44598309101 restored the captured schema-only checkpoint 20261008222845 and applied 99 later migrations in timestamp order; RC484 adversarial PostgreSQL 17 tests passed in run 44598309128. This is not a real backup restore and has no Production effect."
+  "chronological_replay_evidence": "2026-11-19 RC484 exact-head isolated replay run 44598309101 restored the captured schema-only checkpoint 20261008222845 and applied 99 later migrations in timestamp order; RC484 adversarial PostgreSQL 17 tests passed in run 44598309128. This is not a real backup restore and has no Production effect.",
+  "physical_presence_refresh_20261121": {
+    "status": "READ_ONLY_REFRESHED",
+    "checked_at": "2026-11-21",
+    "total_core_contracts": 31,
+    "core_physical_presence": {
+      "present": 10,
+      "absent": 21
+    },
+    "control_center_contracts": 33,
+    "control_center_physical_presence": {
+      "present": 0,
+      "absent": 33
+    },
+    "total_granular_contracts": 64,
+    "total_granular_physical_presence": {
+      "present": 10,
+      "absent": 54
+    },
+    "present_but_contract_blocked": [
+      {
+        "object": "private.platform_admins",
+        "reason": "RLS enabled but FORCE RLS false; RC484 registry hardening not applied."
+      },
+      {
+        "object": "public.is_platform_admin()",
+        "reason": "Live function remains SECURITY INVOKER/search_path=public and membership-derived; RC484 registry-backed SECURITY DEFINER body not applied."
+      }
+    ],
+    "method": "Read-only catalog checks using to_regclass, to_regprocedure, pg_class, pg_proc, RLS flags and has_table_privilege; no application data selected."
+  }
 }
