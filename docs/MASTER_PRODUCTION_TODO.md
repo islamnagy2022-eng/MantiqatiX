@@ -1,3 +1,19 @@
+## Pass 1556–1565 — anonymous Auth boundary and RC492 live-grant correction — 2026-11-21
+
+- [x] Confirmed PR #952 merged and PR #955 regression test merged; current main includes the thrown-fetch fail-closed address-consent guard and its test.
+- [x] Read-only Production recheck: 310 migration ledger rows through `20261110150618`; 0/73 required release migration identifiers present. RC472/RC473 remain unapplied.
+- [x] Read-only Production review of `indrive_requests`: authenticated INSERT=false, UPDATE=false, DELETE=true; existing permissive policies exist for all three operations. `indrive_bids`: authenticated SELECT=true. RC492 source was corrected not to add or require grants and now protects bid reads as well as request deletion.
+- [x] Added an isolated PostgreSQL 16 RC492 fixture matching the live privilege boundary and a dedicated CI workflow. The integration test validates anonymous/missing-claim bid-read denial and request-delete denial, while confirmed provider/request-owner behavior remains intact. It deliberately does not treat missing INSERT/UPDATE grants as RLS test success.
+- [x] Added RC488–RC493 restrictive RLS migrations, focused validators/integration tests, release gate contract (73 migration versions; 31 core object contracts), and refreshed read-only Production evidence.
+- [x] Opened current-main PR #959: https://github.com/islamnagy2022-eng/MantiqatiX/pull/959. Exact-head CI workflows are queued; no new-head pass or merge is claimed.
+- [x] Read-only SECURITY DEFINER inventory: 65 public functions executable by authenticated; 0 lack a configured search_path; 47 use search_path=public, 18 use empty search_path, 17 include pg_temp; only one is also anon-executable, the targeted-ad read RPC with empty search_path and active/approved/time-valid filtering. No blanket grants or search_path rewrites were applied.
+- [ ] Complete exact-head CI on PR #959, including RC492 disposable PostgreSQL test and full forward migration replay; resolve any failures before merge.
+- [ ] Independently review SECURITY DEFINER bodies and effective grants; inventory count alone is not a vulnerability finding.
+- [ ] Production remains BLOCKED / NOT CERTIFIED: no backup/restore proof, RC472/RC473 coordinated migration, current full Edge bundle deployment, or directory-consent E2E proof.
+- **Safety:** no Production database/migration/RLS/GRANT/Auth/Storage/Edge/payment/customer-data mutation in this pass.
+
+---
+
 ## Pass 1546–1555 — post-merge directory privacy guard and live release recheck — 2026-11-21
 
 - [x] Exact-head CI for source commit `43bf69244a9a798ffb53a3c8ccf4ac4e282cb7e5`: all 8 associated workflow runs completed successfully.
