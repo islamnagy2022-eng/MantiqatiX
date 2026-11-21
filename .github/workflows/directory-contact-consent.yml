@@ -5,7 +5,7 @@ on:
     paths:
       - "supabase/migrations/20261118010000_rc472_*.sql"
       - "supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql"
-      - "supabase/migrations/20261119040000_rc484_registry_backed_is_platform_admin.sql"
+      - "supabase/migrations/20261113214500_rc464_platform_admin_live_registry_hardening.sql"
       - "scripts/validate-directory-platform-admin-registry.mjs"
       - "scripts/production/validate-doctor-incremental-import.mjs"
       - "supabase/functions/directory-listings/**"
