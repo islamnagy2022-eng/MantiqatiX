@@ -150,7 +150,7 @@ BEGIN
     'payment_status','REQUIRED','settlement_status','NOT_READY','idempotent',false
   );
 END;
-$function$;;
+$function$;
 
 CREATE OR REPLACE FUNCTION public.rc496_fail_fare_lock()
 RETURNS trigger
