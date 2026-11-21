@@ -36,6 +36,8 @@ assert.match(source, /hasRegisteredPlatformRoot = !registryError && registryResu
 assert.match(source, /hasPlatformScope = hasRegisteredPlatformRoot/, "the private registry alone must confer platform-root scope");
 assert.match(source, /scopedPlatformMembership = hasRegisteredPlatformRoot/, "registered roots must recover businesses without a tenant membership row");
 assert.doesNotMatch(source, /isPlatformAdmin|hasPlatformAdminMembership|platformTenants/, "platform scope must not depend on membership-derived root claims or tenant lists");
-assert.match(source, /service\.from\("tenants"\)[\s\S]*?select\("id"\)[\s\S]*?eq\("status", "ACTIVE"\)/, "root tenant enumeration must come from active persisted tenants");
+assert.match(source, /service\.from\("tenants"\)[\s\S]*?select\("id,name,code,settings"\)[\s\S]*?eq\("status", "ACTIVE"\)/, "root tenant enumeration must come from active persisted tenants");
+assert.match(source, /const productionTenants = \(activeTenants \|\| \[\]\)\.filter/);
+assert.match(source, /testIdentity/, "platform root must not expose test or isolation tenants in the production catalog");
 
 console.log("Catalog admin CORS, authorization, and subscription enforcement source contract: PASS");
