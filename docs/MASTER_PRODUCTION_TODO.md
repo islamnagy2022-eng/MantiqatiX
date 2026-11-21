@@ -1,3 +1,45 @@
+## Pass 1546–1555 — post-merge directory privacy guard and live release recheck — 2026-11-21
+
+- [x] Exact-head CI for source commit `43bf69244a9a798ffb53a3c8ccf4ac4e282cb7e5`: all 8 associated workflow runs completed successfully.
+- [x] Directory Contact Consent source-contract, Deno type-check, frontend build/type-check, and isolated PostgreSQL migration/consent assertions passed.
+- [x] Primary Catalog Frontend Validation passed browser E2E, employee RBAC PostgreSQL integration, TypeScript, privacy and release-gate validations.
+- [x] Web workflow `deploy` and `validate_public_only` jobs were SKIPPED; PR CI is not a Production deployment.
+- [x] PR [#952](https://github.com/islamnagy2022-eng/MantiqaTix/pull/952) merged to `main` as `3084283da8e83c9f216631248b3a06a0e5ca3431`. Fix catches thrown address-consent page fetch exceptions, discards partial IDs and returns fail-closed not-ready state.
+- [x] Rechecked live Production: ACTIVE_HEALTHY PostgreSQL 17.6; 310 migration rows through `20261110150618`; RC472/RC473 still absent.
+- [x] Rechecked deployed `directory-listings`: ACTIVE v16, `verify_jwt=false`, bundle SHA-256 `13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0`; bundle still has only index.ts, pagination-filter.mjs and doctor-import-contract.mjs, with no consent sanitizer/helper modules.
+- [x] Read-only SQL confirmed the 9 Security Advisor RLS-enabled/no-policy tables have no direct anon/authenticated SELECT or INSERT grants. Eight have FORCE RLS; `digital_page_payment_events` does not, but has no direct anon/authenticated SELECT/INSERT grant. Do not add blanket policies or grants.
+- [x] Reviewed the sole anon-executable SECURITY DEFINER RPC `get_mnty_targeted_advertisements`: read-only SQL, empty search_path, bounded to active/approved/time-valid ads and capped result count. Treat as intentional public read endpoint pending product contract review; do not revoke blindly.
+- [ ] Itemize and review the remaining 90 anonymous-session policy warnings and 65 authenticated-executable SECURITY DEFINER routines against exact caller contracts; no blanket revoke.
+- [ ] Complete encrypted off-site DB + Storage backup, Vault recovery, independent PostgreSQL 17 restore/rollback, and measured RPO/RTO.
+- [ ] Reconcile RC472/RC473 and the complete directory Edge bundle as one coordinated release; perform positive/negative deployed-origin consent tests only after backup/restore gates.
+- [ ] Reconcile PR #951 documentation branch (one commit behind main and diverged) on a fresh branch; do not force-merge its stale head.
+
+Production impact: NONE. No Production DDL/DML, migration, Edge deployment, RLS/GRANT, Auth, Storage, payment or customer-data mutation.
+
+**Status: SOURCE FIX MERGED / EXACT-HEAD CI PASS; PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+---
+
+## Pass 1536–1545 — address-consent pagination exception hardening — 2026-11-21
+
+- [x] Re-read canonical TODO, continuity, Production migration ledger, live Edge inventory, Security Advisor and P0 directory issue #876.
+- [x] Confirmed Production remains at 310 migration rows through `20261110150618`; RC472/RC473 remain unapplied; `directory-listings` remains ACTIVE v16 with consent modules absent.
+- [x] Inspected RC473 sanitizer, forced-RLS consent registry migration, contact/address pagination helpers, owner consent endpoint, frontend controls and regression validator.
+- [x] Identified an unhandled thrown exception in `collectActiveAddressConsentIds`: returned PostgREST errors failed closed, but a rejected network/runtime fetch could escape the helper instead of returning the same explicit not-ready state.
+- [x] Added a guarded fetch with partial-ID discard and a regression where the first page succeeds and a later page throws.
+- [x] Opened draft PR [#952](https://github.com/islamnagy2022-eng/MantiqatiX/pull/952), source/test-only, with 2 files changed.
+- [x] Focused Node 22 helper execution passed: capped pagination beyond 1,000 rows, thrown-fetch fail-closed, returned-error fail-closed and partial-ID discard.
+- [ ] Exact-PR Directory Contact Consent workflow, Deno check, PostgreSQL integration and frontend lint/build: NOT YET OBSERVED. No CI pass is claimed.
+- [ ] Review and merge PR #952 only after required checks pass.
+- [ ] Keep RC472/RC473 Production rollout blocked pending verified encrypted off-site DB/Storage backup, independent PostgreSQL 17 restore/rollback, source-permission policy decision, full Edge bundle parity and coordinated post-deploy consent tests.
+- [ ] Continue scoped Security Advisor review; no blanket GRANT/RLS changes.
+
+Production impact: NONE. No Production SQL, migration, Edge deployment, RLS/GRANT, Auth, Storage, payment or customer-data mutation.
+
+**Status: SOURCE FIX PROPOSED / CI PENDING; PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+---
+
 ## Pass 1490–1499 — RC479 anonymous Auth-session forward guard merged — 2026-11-20
 
 - PR [#938](https://github.com/islamnagy2022-eng/MantiqatiX/pull/938) merged to `main` as `436b7a5a4aa12aa979f5ea4b52b9ce9d3971a046`.
