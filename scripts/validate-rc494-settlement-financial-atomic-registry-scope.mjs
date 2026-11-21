@@ -31,6 +31,7 @@ assert.match(integration, /RC494_REGISTERED_PLATFORM_ROOT_WITHOUT_MEMBERSHIP_DEN
 assert.match(integration, /RC494_MEMBERSHIP_ONLY_PLATFORM_ADMIN_SUCCEEDED/);
 assert.match(integration, /RC494_CROSS_BUSINESS_SETTLEMENT_SUCCEEDED/);
 assert.match(integration, /RC494_BUSINESS_ROLE_TENANT_WIDE_SETTLEMENT_SUCCEEDED/);
+assert.match(integration, /RC494_BRANCH_SCOPED_SETTLEMENT_SUCCEEDED/);
 assert.match(integration, /RC494_TENANT_FINANCE_SCOPE_REGRESSED/);
 assert.match(integration, /RC494_IDEMPOTENCY_AMOUNT_MISMATCH_WAS_ACCEPTED/);
 assert.match(integration, /ROLLBACK;/);
