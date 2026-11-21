@@ -1,3 +1,22 @@
+## Pass 1536–1545 — address-consent pagination exception hardening — 2026-11-21
+
+- [x] Re-read canonical TODO, continuity, Production migration ledger, live Edge inventory, Security Advisor and P0 directory issue #876.
+- [x] Confirmed Production remains at 310 migration rows through `20261110150618`; RC472/RC473 remain unapplied; `directory-listings` remains ACTIVE v16 with consent modules absent.
+- [x] Inspected RC473 sanitizer, forced-RLS consent registry migration, contact/address pagination helpers, owner consent endpoint, frontend controls and regression validator.
+- [x] Identified an unhandled thrown exception in `collectActiveAddressConsentIds`: returned PostgREST errors failed closed, but a rejected network/runtime fetch could escape the helper instead of returning the same explicit not-ready state.
+- [x] Added a guarded fetch with partial-ID discard and a regression where the first page succeeds and a later page throws.
+- [x] Opened draft PR [#952](https://github.com/islamnagy2022-eng/MantiqatiX/pull/952), source/test-only, with 2 files changed.
+- [ ] Exact-PR Directory Contact Consent workflow, Deno check, PostgreSQL integration and frontend lint/build: NOT YET OBSERVED. No CI pass is claimed.
+- [ ] Review and merge PR #952 only after required checks pass.
+- [ ] Keep RC472/RC473 Production rollout blocked pending verified encrypted off-site DB/Storage backup, independent PostgreSQL 17 restore/rollback, source-permission policy decision, full Edge bundle parity and coordinated post-deploy consent tests.
+- [ ] Continue scoped Security Advisor review; no blanket GRANT/RLS changes.
+
+Production impact: NONE. No Production SQL, migration, Edge deployment, RLS/GRANT, Auth, Storage, payment or customer-data mutation.
+
+**Status: SOURCE FIX PROPOSED / CI PENDING; PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+---
+
 ## Pass 1490–1499 — RC479 anonymous Auth-session forward guard merged — 2026-11-20
 
 - PR [#938](https://github.com/islamnagy2022-eng/MantiqatiX/pull/938) merged to `main` as `436b7a5a4aa12aa979f5ea4b52b9ce9d3971a046`.
