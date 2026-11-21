@@ -1,5 +1,6 @@
 -- RC488: prevent anonymous Auth identities from mutating any Storage object.
 -- Public profile-media SELECT remains intentionally available; this is write-only hardening.
+-- Require an explicit false claim: missing/NULL is intentionally denied by these restrictive policies.
 BEGIN;
 
 DO $preflight$
