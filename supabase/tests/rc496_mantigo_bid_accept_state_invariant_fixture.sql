@@ -58,12 +58,29 @@ CREATE TABLE public.notifications (
   entity_id text NOT NULL
 );
 
-CREATE TABLE public.rc496_financial_lock_calls (
-  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  ride_id text NOT NULL,
-  caller_id uuid NOT NULL,
-  accepted_bid_id text NOT NULL,
-  called_at timestamptz NOT NULL DEFAULT pg_catalog.now()
+CREATE TABLE public.mantigo_financial_ledger (
+  id text PRIMARY KEY,
+  ride_id text NOT NULL UNIQUE REFERENCES public.mantigo_rides(id),
+  customer_id uuid NOT NULL,
+  captain_id uuid NOT NULL,
+  currency text NOT NULL DEFAULT 'EGP',
+  gross_amount numeric NOT NULL,
+  commission_amount numeric NOT NULL DEFAULT 0,
+  captain_net_amount numeric NOT NULL DEFAULT 0,
+  payment_method text,
+  payment_status text NOT NULL DEFAULT 'REQUIRED',
+  settlement_status text NOT NULL DEFAULT 'NOT_READY',
+  payment_reference text,
+  settlement_reference text,
+  idempotency_key text NOT NULL UNIQUE,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamptz NOT NULL DEFAULT pg_catalog.now(),
+  updated_at timestamptz NOT NULL DEFAULT pg_catalog.now(),
+  commission_rate numeric,
+  payment_confirmed_at timestamptz,
+  provider text,
+  provider_intent_id text,
+  provider_transaction_id text
 );
 
 CREATE OR REPLACE FUNCTION public.lock_mantigo_fare_backend(p_user_id uuid,p_ride_id text)
@@ -74,33 +91,83 @@ SET search_path TO ''
 AS $function$
 DECLARE
   v_customer uuid;
+  v_captain uuid;
+  v_amount numeric;
   v_status text;
   v_bid_id text;
-  v_bid_status text;
+  v_key text;
+  v_existing public.mantigo_financial_ledger%rowtype;
 BEGIN
   IF p_user_id IS DISTINCT FROM auth.uid() THEN
     RAISE EXCEPTION 'USER_CONTEXT_MISMATCH';
   END IF;
-  SELECT r.customer_id,r.status,r.accepted_bid_id,b.status
-    INTO v_customer,v_status,v_bid_id,v_bid_status
+  SELECT r.customer_id,r.status,r.accepted_bid_id,b.captain_id,b.offered_price
+    INTO v_customer,v_status,v_bid_id,v_captain,v_amount
   FROM public.mantigo_rides r
-  LEFT JOIN public.mantigo_bids b ON b.id=r.accepted_bid_id AND b.ride_id=r.id
-  WHERE r.id=p_ride_id;
+  JOIN public.mantigo_bids b ON b.id=r.accepted_bid_id AND b.ride_id=r.id
+  WHERE r.id=p_ride_id
+  FOR UPDATE OF r;
   IF v_customer IS DISTINCT FROM p_user_id
      OR v_status IS DISTINCT FROM 'ACCEPTED'
-     OR v_bid_id IS NULL
-     OR v_bid_status IS DISTINCT FROM 'ACCEPTED' THEN
+     OR v_bid_id IS NULL THEN
     RAISE EXCEPTION 'RC496_FARE_LOCK_REQUIRES_ACCEPTED_WINNER';
   END IF;
   IF p_ride_id='RC496-FARE-FAIL' THEN
     RAISE EXCEPTION 'RC496_TEST_FARE_LOCK_FAILURE';
   END IF;
-  INSERT INTO public.rc496_financial_lock_calls(ride_id,caller_id,accepted_bid_id)
-  VALUES(p_ride_id,p_user_id,v_bid_id);
+
+  v_key:='MGO-FARE-'||p_ride_id;
+  SELECT * INTO v_existing FROM public.mantigo_financial_ledger
+  WHERE ride_id=p_ride_id FOR UPDATE;
+  IF FOUND THEN
+    IF v_existing.customer_id IS DISTINCT FROM v_customer
+       OR v_existing.captain_id IS DISTINCT FROM v_captain
+       OR v_existing.gross_amount IS DISTINCT FROM v_amount
+       OR v_existing.captain_net_amount IS DISTINCT FROM v_amount
+       OR v_existing.idempotency_key IS DISTINCT FROM v_key
+       OR v_existing.metadata->>'accepted_bid_id' IS DISTINCT FROM v_bid_id
+       OR v_existing.metadata->>'source' IS DISTINCT FROM 'MANTIGO_ACCEPT' THEN
+      RAISE EXCEPTION 'MANTIGO_FINANCIAL_IDENTITY_MISMATCH';
+    END IF;
+    RETURN pg_catalog.jsonb_build_object(
+      'id',v_existing.id,'ride_id',p_ride_id,'gross_amount',v_existing.gross_amount,
+      'payment_status',v_existing.payment_status,
+      'settlement_status',v_existing.settlement_status,'idempotent',true
+    );
+  END IF;
+
+  INSERT INTO public.mantigo_financial_ledger(
+    id,ride_id,customer_id,captain_id,currency,gross_amount,commission_amount,
+    captain_net_amount,payment_status,settlement_status,idempotency_key,metadata
+  ) VALUES (
+    'MGO-FIN-'||pg_catalog.upper(pg_catalog.substr(pg_catalog.replace(pg_catalog.gen_random_uuid()::text,'-',''),1,16)),
+    p_ride_id,v_customer,v_captain,'EGP',v_amount,0,v_amount,'REQUIRED','NOT_READY',v_key,
+    pg_catalog.jsonb_build_object('fare_locked',true,'accepted_bid_id',v_bid_id,'source','MANTIGO_ACCEPT')
+  )
+  RETURNING id INTO v_key;
   RETURN pg_catalog.jsonb_build_object(
-    'ride_id',p_ride_id,'accepted_bid_id',v_bid_id,'locked',true
+    'id',v_key,'ride_id',p_ride_id,'gross_amount',v_amount,
+    'payment_status','REQUIRED','settlement_status','NOT_READY','idempotent',false
   );
 END;
+$function$;;
+
+CREATE OR REPLACE FUNCTION public.rc496_fail_fare_lock()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path TO ''
+AS $function$
+BEGIN
+  IF NEW.ride_id='RC496-FARE-FAIL' THEN
+    RAISE EXCEPTION 'RC496_TEST_FARE_LOCK_FAILURE';
+  END IF;
+  RETURN NEW;
+END;
 $function$;
+
+CREATE TRIGGER rc496_fail_fare_lock_before_insert
+BEFORE INSERT ON public.mantigo_financial_ledger
+FOR EACH ROW
+EXECUTE FUNCTION public.rc496_fail_fare_lock();
 
 GRANT EXECUTE ON FUNCTION public.lock_mantigo_fare_backend(uuid,text) TO authenticated;
