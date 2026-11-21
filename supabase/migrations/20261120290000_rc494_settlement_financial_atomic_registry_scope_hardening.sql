@@ -107,6 +107,45 @@ BEGIN
   END IF;
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='settlement_transactions'
+      AND column_name IN ('id','tenant_id','beneficiary_type','beneficiary_id','gross_amount','platform_fee','net_payout','voucher_reserve','payout_channel','journal_entry_id','status','reference_id')
+    GROUP BY table_name HAVING count(DISTINCT column_name)=12
+  ) THEN
+    RAISE EXCEPTION 'RC494_SETTLEMENT_TRANSACTION_SCHEMA_NOT_READY';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='chart_of_accounts'
+      AND column_name IN ('id','tenant_id','account_code','is_active')
+    GROUP BY table_name HAVING count(DISTINCT column_name)=4
+  ) THEN
+    RAISE EXCEPTION 'RC494_CHART_OF_ACCOUNTS_SCHEMA_NOT_READY';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='journal_entry_lines'
+      AND column_name IN ('id','journal_entry_id','account_id','line_number','debit','credit','description')
+    GROUP BY table_name HAVING count(DISTINCT column_name)=7
+  ) THEN
+    RAISE EXCEPTION 'RC494_JOURNAL_ENTRY_LINES_SCHEMA_NOT_READY';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='general_ledger' AND column_name='journal_entry_id'
+  ) THEN
+    RAISE EXCEPTION 'RC494_GENERAL_LEDGER_SCHEMA_NOT_READY';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_trigger t
+    JOIN pg_catalog.pg_class c ON c.oid=t.tgrelid
+    JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+    WHERE n.nspname='public' AND c.relname='journal_entries'
+      AND t.tgname='trg_post_journal_to_gl' AND NOT t.tgisinternal
+  ) THEN
+    RAISE EXCEPTION 'RC494_JOURNAL_TO_GL_TRIGGER_MISSING';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
     WHERE table_schema='public' AND table_name='user_memberships'
       AND column_name IN ('user_id','tenant_id','business_id','branch_id','role','status','created_at')
     GROUP BY table_name HAVING count(DISTINCT column_name)=7
