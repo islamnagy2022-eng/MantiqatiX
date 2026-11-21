@@ -13,6 +13,15 @@ $function$;
 CREATE OR REPLACE FUNCTION public.mantigo_accept_bid(p_ride_id text,p_bid_id text)
 RETURNS void LANGUAGE plpgsql AS $function$ BEGIN RETURN; END; $function$;
 
+CREATE OR REPLACE FUNCTION public.accept_mantigo_bid_backend(
+  p_user_id uuid,p_ride_id text,p_bid_id text
+)
+RETURNS jsonb LANGUAGE plpgsql AS $function$
+BEGIN
+  RETURN pg_catalog.jsonb_build_object('id',p_ride_id,'accepted_bid_id',p_bid_id,'status','ACCEPTED');
+END;
+$function$;
+
 CREATE OR REPLACE FUNCTION public.create_mantigo_bid_backend(
   p_user_id uuid,p_ride_id text,p_captain_name text,p_captain_phone text,
   p_captain_rating numeric,p_vehicle_category text,p_vehicle_model text,
