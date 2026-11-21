@@ -358,12 +358,19 @@ BEGIN
     END IF;
     IF v_existing.journal_entry_id IS NOT NULL AND NOT EXISTS (
       SELECT 1 FROM public.journal_entries je
-      WHERE je.id=v_existing.journal_entry_id
+      WHERE je.id=v_je_id
         AND je.tenant_id=p_tenant_id
         AND je.business_id IS NOT DISTINCT FROM p_business_id
         AND je.organization_id IS NULL
         AND je.branch_id IS NULL
+        AND je.reference_type IS NOT DISTINCT FROM CASE
+          WHEN p_beneficiary_type='PARTNER' THEN 'PARTNER_COMMISSION_SETTLEMENT'
+          ELSE 'ORDER_SETTLEMENT'
+        END
+        AND je.reference_id IS NOT DISTINCT FROM coalesce(p_reference_id,p_id)
+        AND je.created_by IS NOT DISTINCT FROM p_actor_user_id
         AND je.status='POSTED'
+        AND je.posted_at IS NOT NULL
     ) THEN
       RAISE EXCEPTION 'SETTLEMENT_IDENTITY_MISMATCH';
     END IF;
