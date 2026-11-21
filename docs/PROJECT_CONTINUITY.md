@@ -3131,3 +3131,9 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395` has passed RC493 P
 - No Production migration, DDL/DML, RLS/GRANT, Edge deployment, Auth, Storage, payment, settlement, wallet, or customer-data mutation occurred. Encrypted backup/restore, Vault recovery, independent PostgreSQL 17 restore/rollback, measured RPO/RTO, and coordinated post-deploy tests remain unverified.
 
 **Disposition: SOURCE CANDIDATE / CI PENDING / PRODUCTION BLOCKED / NOT CERTIFIED.** Issue #912 remains open until RC496 is applied under the approved coordinated release and live positive/negative tests pass.
+
+### RC496 follow-up — fare ledger identity hardening
+
+- RC496 also replaces `lock_mantigo_fare_backend(uuid,text)` in the same transactionally coordinated migration. It requires one and only one ACCEPTED bid for the selected ride and validates existing ledger identity (customer, captain, currency, gross/commission/net, idempotency key, accepted bid and source) before treating a retry as idempotent.
+- Read-only Production inventory showed 0 existing `mantigo_financial_ledger` rows at the check, so the source guard does not encounter a known legacy ledger population in that snapshot. Re-read before any release.
+- RC496 disposable tests now include duplicate ACCEPTED bid rows, mismatched existing ledger captain, downstream fare-lock failure rollback, and single-ledger concurrency assertions. Current exact-head CI remains pending until refreshed.
