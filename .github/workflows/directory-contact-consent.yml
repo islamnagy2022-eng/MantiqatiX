@@ -9,6 +9,8 @@ on:
       - "scripts/validate-directory-platform-admin-registry.mjs"
       - "scripts/production/validate-doctor-incremental-import.mjs"
       - "supabase/functions/directory-listings/**"
+      - "supabase/functions/catalog-platform-admin/index.ts"
+      - "supabase/functions/ai-gemini-proxy/index.ts"
       - "supabase/tests/rc473_directory_contact_consent_*"
       - "apps/catalog-frontend/src/components/DirectoryListingsView.tsx"
       - "apps/catalog-frontend/src/lib/directoryListings.ts"
@@ -27,6 +29,8 @@ on:
       - "scripts/validate-directory-platform-admin-registry.mjs"
       - "scripts/production/validate-doctor-incremental-import.mjs"
       - "supabase/functions/directory-listings/**"
+      - "supabase/functions/catalog-platform-admin/index.ts"
+      - "supabase/functions/ai-gemini-proxy/index.ts"
       - "supabase/tests/rc473_directory_contact_consent_*"
       - "apps/catalog-frontend/src/components/DirectoryListingsView.tsx"
       - "apps/catalog-frontend/src/lib/directoryListings.ts"
@@ -90,6 +94,10 @@ jobs:
         run: node scripts/production/validate-doctor-incremental-import.mjs
       - name: Type-check directory Edge Function
         run: deno check --node-modules-dir=auto supabase/functions/directory-listings/index.ts
+      - name: Type-check catalog platform-admin Edge Function
+        run: deno check --node-modules-dir=auto supabase/functions/catalog-platform-admin/index.ts
+      - name: Type-check AI Gemini proxy Edge Function
+        run: deno check --node-modules-dir=auto supabase/functions/ai-gemini-proxy/index.ts
       - name: Build and type-check primary catalog frontend
         working-directory: apps/catalog-frontend
         run: |
