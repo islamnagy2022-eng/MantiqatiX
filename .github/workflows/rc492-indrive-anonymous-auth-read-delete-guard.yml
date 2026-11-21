@@ -1,0 +1,59 @@
+name: RC492 InDrive Anonymous Auth Read/Delete Isolation
+
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/20261120270000_rc492_indrive_anonymous_auth_write_guard.sql"
+      - "supabase/tests/rc492_indrive_anonymous_auth_write_guard_fixture.sql"
+      - "supabase/tests/rc492_indrive_anonymous_auth_write_guard_integration.sql"
+      - "scripts/validate-rc492-indrive-anonymous-auth-write-guard.mjs"
+      - ".github/workflows/rc492-indrive-anonymous-auth-read-delete-guard.yml"
+  push:
+    branches:
+      - "security/**"
+    paths:
+      - "supabase/migrations/20261120270000_rc492_indrive_anonymous_auth_write_guard.sql"
+      - "supabase/tests/rc492_indrive_anonymous_auth_write_guard_fixture.sql"
+      - "supabase/tests/rc492_indrive_anonymous-auth_write_guard_integration.sql"
+      - "scripts/validate-rc492-indrive-anonymous-auth-write-guard.mjs"
+      - ".github/workflows/rc492-indrive-anonymous-auth-read-delete-guard.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  rc492-indrive-anon-auth-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc492_indrive_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc492_indrive_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Validate RC492 static contract
+        run: node scripts/validate-rc492-indrive-anonymous-auth-write-guard.mjs
+      - name: Apply isolated fixture and forward migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc492_indrive_anonymous_auth_write_guard_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261120270000_rc492_indrive_anonymous_auth_write_guard.sql "$pg_container:/tmp/rc492.sql"
+          docker cp supabase/tests/rc492_indrive_anonymous_auth_write_guard_integration.sql "$pg_container:/tmp/integration.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc492_indrive_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc492_indrive_test -v ON_ERROR_STOP=1 -f /tmp/rc492.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc492_indrive_test -v ON_ERROR_STOP=1 -f /tmp/integration.sql
