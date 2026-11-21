@@ -24,5 +24,9 @@ assert.doesNotMatch(migration,/has_table_privilege/i,
   "RC492 must not require or widen table grants; existing Production grants remain unchanged");
 assert.doesNotMatch(migration,/\bGRANT\b/i,
   "RC492 must not grant new direct table privileges");
+assert.ok(migration.includes("mnty_confirmed_auth_indrive_bids_read"),
+  "RC492 must fail closed for anonymous and missing-claim bid reads");
+assert.ok(test.includes("RC492_MISSING_ANONYMOUS_CLAIM_BID_READ_SUCCEEDED"),
+  "RC492 integration must test missing-claim bid-read denial");
 assert.match(test,/ROLLBACK;/);
 console.log("RC492 InDrive anonymous Auth write isolation contract: PASS");
