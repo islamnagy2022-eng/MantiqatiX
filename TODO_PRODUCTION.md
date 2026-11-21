@@ -3702,3 +3702,15 @@ Evidence: `docs/audits/PASS_1490_1499_ANONYMOUS_AUTH_AND_PLATFORM_ROOT_PARITY_20
 - [x] 1515 — PR #948 had 16 successful checks, 2 intentionally skipped deploy/public-only checks, 0 failures, and 12 queued checks at the last inspection. PR #946 exact head had 29 queued checks and 1 skipped; no failure reported at that inspection. Do not merge until required checks finish.
 
 **Release status remains BLOCKED / NOT CERTIFIED.** These are CI results on source branches; no Production release occurred.
+
+
+## Pass 1521–1525 — RC493 Storage filename regex forward repair — 2026-11-21
+
+- [x] 1521 — Re-inspected Production `storage.objects` policies read-only and identified five affected operations: platform-brand INSERT/UPDATE/DELETE plus provider profile-media INSERT and UPDATE `WITH CHECK`.
+- [x] 1522 — Confirmed exact current authorization scopes from `pg_policies`: platform branding requires an ACTIVE `SUPER_ADMIN` membership; provider media requires matching provider ownership and, on INSERT, a non-anonymous Auth identity.
+- [x] 1523 — Added forward-only migration `20261121010000_rc493_storage_filename_regex_forward_repair.sql`; it uses `[.]` for a literal extension separator and recreates the five policies while preserving bucket and authorization boundaries.
+- [x] 1524 — Added `rc493_storage_filename_regex_forward_repair.sql` regression coverage for valid/invalid branding and provider image filenames and retained authorization predicates.
+- [x] 1525 — Opened PR #949 from `fix/storage-filename-regex-forward-repair`; migration replay is required before merge. No Production policy or object was changed.
+- [ ] Await RC493 full chronological replay and SQL regression; verify PR checks before merge.
+
+**Production safety:** all discovery queries were read-only. RC493 is source-only until CI replay, backup/restore checks, and release gates pass.
