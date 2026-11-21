@@ -33,6 +33,7 @@ CREATE TABLE auth.users(
 CREATE TABLE public.user_memberships(
   id text PRIMARY KEY,
   user_id uuid NOT NULL,
+  tenant_id text NOT NULL,
   status text NOT NULL,
   role text NOT NULL
 );
