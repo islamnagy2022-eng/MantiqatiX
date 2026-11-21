@@ -68,11 +68,15 @@ assert.match(businessRegister, /registryClient\.rpc\("mnty_can_platform_admin"\)
 assert.match(businessRegister, /isPlatformAdmin=registryResult===true/);
 assert.match(businessRegister, /m\.business_id==null&&m\.branch_id==null/);
 assert.doesNotMatch(businessRegister, /permissions\?\.scope\s*===\s*["']PLATFORM["']/);
+assert.match(businessRegister, /global:\{headers:\{Authorization:authorization\}\}/,
+  "business registration registry RPC must use the verified caller JWT");
 
 assert.match(businessBranchAdmin, /registryClient\.rpc\("mnty_can_platform_admin"\)/);
 assert.match(businessBranchAdmin, /isPlatformAdmin=registryResult===true/);
 assert.match(businessBranchAdmin, /String\(m\.branch_id\|\|\"\"\)===\"\"/);
 assert.doesNotMatch(businessBranchAdmin, /permissions\?\.scope\s*===\s*["']PLATFORM["']/);
+assert.match(businessBranchAdmin, /global:\{headers:\{Authorization:auth\}\}/,
+  "business branch registry RPC must use the verified caller JWT");
 
 assert.match(settlementEdge, /userClient\.rpc\("mnty_can_platform_admin"\)/);
 assert.match(settlementEdge, /tenantId === "MNTY-PLATFORM"/);
