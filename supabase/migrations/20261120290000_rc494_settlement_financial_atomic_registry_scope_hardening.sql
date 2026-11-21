@@ -82,8 +82,8 @@ BEGIN
 
   IF v_helper_owner <> v_registry_owner OR NOT coalesce(v_helper_security_definer, false)
      OR NOT EXISTS (
-       SELECT 1 FROM unnest(coalesce(v_helper_config, ARRAY[]::text[])) cfg
-       WHERE cfg = 'search_path=""'
+       SELECT 1 FROM unnest(coalesce(v_helper_config, ARRAY[]::text[])) AS setting(value)
+       WHERE setting.value = 'search_path=""'
      ) THEN
     RAISE EXCEPTION 'RC494_PLATFORM_ADMIN_HELPER_SECURITY_CONTRACT_UNEXPECTED';
   END IF;
