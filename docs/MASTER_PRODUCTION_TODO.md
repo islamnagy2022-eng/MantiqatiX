@@ -4765,3 +4765,10 @@ Evidence: `docs/audits/PASS_1480_1489_RC479_ANONYMOUS_AUTH_SESSION_GAP_20261120.
 
 Evidence: `docs/audits/PASS_1600_1610_RC496_MANTIGO_BID_ACCEPTANCE_STATE_INVARIANT_20261121.md`.
 
+### RC496 fare-ledger identity follow-up
+
+- [x] Replace MantiGO fare-lock idempotency's blind existing-row return with exact customer/captain/currency/amount/commission/net/idempotency/accepted-bid/source validation.
+- [x] Require exactly one accepted bid row for the ride before creating or reusing the fare ledger.
+- [x] Add disposable regression coverage for wrong captain ledger, duplicate accepted bids, and financial rollback.
+- [ ] Complete RC496 exact-head PostgreSQL workflow and current 76-version chronological replay.
+- [ ] Verify live RC496 acceptance/fare-lock function definitions, owners, ACLs, empty search_path and negative tests after the coordinated release.
