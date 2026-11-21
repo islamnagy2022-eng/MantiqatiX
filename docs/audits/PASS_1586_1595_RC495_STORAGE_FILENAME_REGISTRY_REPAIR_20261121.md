@@ -48,3 +48,11 @@ PR #950 proposed a timestamp `20261121010000` RC493 migration that repairs the r
 - Independently re-evaluated the corrected assertions against the exact fixture: request SELECT+DELETE matched; bid SELECT matched; unauthorized request INSERT/UPDATE and bid INSERT/UPDATE/DELETE grants remained absent.
 - PR #958 exact-head CI restarted at the correction commit; all 14 reported checks were queued at the latest read. This is not a CI pass. The previous PR #959 PostgreSQL 16 and forward-replay failures were caused by the same static validator assertion; replay did not reach the complete migration sequence.
 - No Production mutation occurred.
+
+
+## Follow-up regression coverage hardening — 2026-11-21
+
+A final source review found that RC495's migration already included the confirmed-Auth predicate in provider-media UPDATE `USING`, but the SQL regression assertion only checked owner scope and anonymous-claim text without pinning the filename expression in that `USING` predicate. The source was correct; the regression test was incomplete. The test now also asserts the literal-dot filename predicate and rejects the doubled-backslash pattern in UPDATE `USING`, and the static validator pins the confirmed-Auth predicate in that exact policy clause. Commits: `975e138f0e7d3f43e37706c4f0abdc52a9d7a8f4` and `ff3e5f5daff94b38014d26552eca95664ba863d1`.
+
+Fresh read-only Production ledger check against the exact 75-version release list: 310 rows; latest `20261110150618`; 0/75 required versions applied; RC488–RC495 0/8 applied. No Production changes.
+
