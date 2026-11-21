@@ -43,6 +43,10 @@ CREATE TABLE public.indrive_requests (
 ALTER TABLE public.indrive_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.indrive_requests FORCE ROW LEVEL SECURITY;
 
+CREATE POLICY rc492_request_select ON public.indrive_requests
+  FOR SELECT TO authenticated USING(owner_user_id=auth.uid());
+GRANT SELECT ON public.indrive_requests TO authenticated;
+
 CREATE POLICY rc492_request_insert ON public.indrive_requests
   FOR INSERT TO authenticated WITH CHECK(owner_user_id=auth.uid());
 CREATE POLICY rc492_request_update ON public.indrive_requests
