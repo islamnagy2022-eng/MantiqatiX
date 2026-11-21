@@ -22,6 +22,7 @@ assert.match(migration, /\[\.\]/, "filename suffix separators must use a literal
 assert.equal(migration.includes("\\\\."), false, "over-escaped filename suffix predicates must not return");
 assert.match(migration, /\(SELECT \(auth\.jwt\(\)->>'is_anonymous'\)::boolean\) IS FALSE/);
 assert.match(storageGuard, /\(SELECT \(auth\.jwt\(\)->>'is_anonymous'\)::boolean\) IS FALSE/);
+assert.match(migration, /CREATE POLICY mnty_profile_media_owner_update[\s\S]*?USING \([\s\S]*?\(SELECT \(auth\.jwt\(\)->>'is_anonymous'\)::boolean\) IS FALSE[\s\S]*?owner_user_id/);
 for (const marker of [
   "RC495_PLATFORM_BRAND_INSERT_REGISTRY_OR_REGEX_REGRESSED",
   "RC495_PLATFORM_BRAND_UPDATE_USING_REGRESSED",
