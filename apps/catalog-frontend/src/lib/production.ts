@@ -438,9 +438,6 @@ const isStockImageUrl = (value: unknown): boolean =>
 const isNeutralPlaceholderUrl = (value: unknown): boolean =>
   /(?:^|\/)catalog-item-placeholder\.svg(?:[?#].*)?$/i.test(String(value || '').trim());
 
-const isPlatformAdmin = (m: any) => String(m.role || '').toUpperCase() === 'SUPER_ADMIN'
-  && !m.business_id && !m.branch_id && m.permissions?.scope === 'PLATFORM' && m.permissions?.full_control === true;
-
 const BUSINESS_WIDE_MANAGEMENT_ROLES = new Set(['OWNER', 'BUSINESS_OWNER', 'ADMIN']);
 const DASHBOARD_SUPPORTED_MEMBERSHIP_ROLES = new Set(['OWNER', 'BUSINESS_OWNER', 'ADMIN', 'EMPLOYEE', 'STAFF']);
 
@@ -521,19 +518,26 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
     };
   }
 
-  const { data: memberships, error } = await supabase.from('user_memberships')
-    .select('id,user_id,tenant_id,organization_id,business_id,branch_id,role,status,permissions,created_at')
-    .eq('user_id', user.id).eq('status', 'ACTIVE').limit(250);
+  const [{ data: memberships, error }, { data: registryResult, error: registryError }] = await Promise.all([
+    supabase.from('user_memberships')
+      .select('id,user_id,tenant_id,organization_id,business_id,branch_id,role,status,permissions,created_at')
+      .eq('user_id', user.id).eq('status', 'ACTIVE').limit(250),
+    supabase.rpc('mnty_can_platform_admin'),
+  ]);
   if (error) throw new Error('تعذر تحميل صلاحيات الحساب من قاعدة الإنتاج.');
+  if (registryError) {
+    // Registry outages disable platform-root UI only; ordinary tenant/business
+    // memberships remain usable and are still checked by the Edge Functions.
+    console.warn('[MantiqaTix] platform registry check unavailable', registryError.message);
+  }
   const active = memberships || [];
-  const platformMemberships = active.filter(isPlatformAdmin);
   const roleMemberships = active.filter((m: any) => [
     'OWNER', 'BUSINESS_OWNER', 'ADMIN', 'MANAGER', 'FINANCE', 'SALES', 'MARKETING',
     'SUPPORT', 'SUPPORT_MANAGER', 'EMPLOYEE', 'STAFF', 'SERVICE_PROVIDER', 'PROVIDER_OWNER',
     'PROVIDER_ADMIN', 'BRANCH_MANAGER', 'PROVIDER_FINANCE', 'PROVIDER_MARKETING',
     'PROVIDER_OPERATIONS', 'PROVIDER_SUPPORT',
   ].includes(String(m.role || '').toUpperCase()));
-  const platform = platformMemberships.length > 0;
+  const platform = !registryError && registryResult === true;
   // Platform settings are independent from catalog discovery. Start the read
   // now so it overlaps tenant/business listing and bounded catalog hydration.
   const platformSettingsPromise = platform
@@ -542,12 +546,8 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
   const permittedRows: any[] = [];
 
   if (platform) {
-    const tenantIds = [...new Set(platformMemberships.map((m: any) => String(m.tenant_id || '')).filter(Boolean))];
-    const tenantLists = await Promise.all(tenantIds.map(async (tenantId) => {
-      const list: any = await callCatalogAdmin({ action: 'BUSINESS_LIST', tenantId });
-      return Array.isArray(list?.businesses) ? list.businesses : [];
-    }));
-    permittedRows.push(...tenantLists.flat());
+    const list: any = await callCatalogAdmin({ action: 'BUSINESS_LIST' });
+    permittedRows.push(...(Array.isArray(list?.businesses) ? list.businesses : []));
   } else {
     const tenantWideOwnerIds = [...new Set(roleMemberships.filter((m: any) => String(m.role).toUpperCase() === 'OWNER' && !m.business_id && !m.branch_id).map((m: any) => String(m.tenant_id || '')).filter(Boolean))];
     const tenantLists = await Promise.all(tenantWideOwnerIds.map(async (tenantId) => {
