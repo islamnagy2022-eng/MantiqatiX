@@ -117,13 +117,13 @@ SET status='POSTED',total_debit=100,total_credit=100,posted_at=now()
 WHERE id IN ('je_RC494_PLATFORM_ROOT','je_RC494_FAKE_ROOT','je_RC494_BUSINESS','je_RC494_TENANT');
 
 INSERT INTO public.settlement_transactions
-  (id,tenant_id,beneficiary_type,beneficiary_id,gross_amount,platform_fee,net_payout,voucher_reserve,
+  (id,tenant_id,business_id,beneficiary_type,beneficiary_id,gross_amount,platform_fee,net_payout,voucher_reserve,
    payout_channel,journal_entry_id,status,reference_id)
 VALUES
- ('RC494-PLATFORM-ROOT','MNTY-PLATFORM','PARTNER','partner-platform-root',100,0,99,1,'BANK_TRANSFER','je_RC494_PLATFORM_ROOT','SETTLED','RC494-PLATFORM-ROOT'),
- ('RC494-FAKE-ROOT','MNTY-PLATFORM','PARTNER','partner-fake-root',100,0,99,1,'BANK_TRANSFER','je_RC494_FAKE_ROOT','SETTLED','RC494-FAKE-ROOT'),
- ('RC494-TENANT-BUSINESS','RC494-TENANT','MERCHANT','merchant-business-a',100,0,100,0,'BANK_TRANSFER','je_RC494_BUSINESS','SETTLED','RC494-TENANT-BUSINESS'),
- ('RC494-TENANT-WIDE','RC494-TENANT','PARTNER','partner-tenant-wide',100,0,99,1,'BANK_TRANSFER','je_RC494_TENANT','SETTLED','RC494-TENANT-WIDE')
+ ('RC494-PLATFORM-ROOT','MNTY-PLATFORM',NULL,'PARTNER','partner-platform-root',100,0,99,1,'BANK_TRANSFER','je_RC494_PLATFORM_ROOT','SETTLED','RC494-PLATFORM-ROOT'),
+ ('RC494-FAKE-ROOT','MNTY-PLATFORM',NULL,'PARTNER','partner-fake-root',100,0,99,1,'BANK_TRANSFER','je_RC494_FAKE_ROOT','SETTLED','RC494-FAKE-ROOT'),
+ ('RC494-TENANT-BUSINESS','RC494-TENANT','49400000-0000-4000-8000-000000000101','MERCHANT','merchant-business-a',100,0,100,0,'BANK_TRANSFER','je_RC494_BUSINESS','SETTLED','RC494-TENANT-BUSINESS'),
+ ('RC494-TENANT-WIDE','RC494-TENANT',NULL,'PARTNER','partner-tenant-wide',100,0,99,1,'BANK_TRANSFER','je_RC494_TENANT','SETTLED','RC494-TENANT-WIDE')
 ON CONFLICT (id) DO NOTHING;
 
 SET LOCAL ROLE service_role;
@@ -132,6 +132,45 @@ DO $rc494$
 DECLARE
   v_result jsonb;
 BEGIN
+  v_result := public.create_settlement_and_post_journal(
+    'RC494-PLATFORM-NEW','MNTY-PLATFORM','PARTNER','partner-platform-new',
+    100,0,99,1,'BANK_TRANSFER','RC494-PLATFORM-NEW',NULL,'registry root new settlement test',
+    '49400000-0000-4000-8000-000000000001'
+  );
+  IF v_result->>'status' <> 'SETTLED' OR v_result->>'idempotent' <> 'false' THEN
+    RAISE EXCEPTION 'RC494_PLATFORM_ROOT_NEW_SETTLEMENT_FAILED:%',v_result;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.settlement_transactions st
+    JOIN public.journal_entries je ON je.id=st.journal_entry_id
+    WHERE st.id='RC494-PLATFORM-NEW' AND st.business_id IS NULL
+      AND je.tenant_id='MNTY-PLATFORM' AND je.status='POSTED'
+      AND EXISTS (SELECT 1 FROM public.general_ledger gl WHERE gl.journal_entry_id=je.id)
+  ) THEN
+    RAISE EXCEPTION 'RC494_PLATFORM_ROOT_NEW_SETTLEMENT_SCOPE_NOT_PERSISTED';
+  END IF;
+
+  v_result := public.create_settlement_and_post_journal(
+    'RC494-BUSINESS-NEW','RC494-TENANT','MERCHANT','merchant-business-a',
+    100,0,100,0,'BANK_TRANSFER','RC494-BUSINESS-NEW',
+    '49400000-0000-4000-8000-000000000101','business scoped new settlement test',
+    '49400000-0000-4000-8000-000000000003'
+  );
+  IF v_result->>'status' <> 'SETTLED' OR v_result->>'idempotent' <> 'false' THEN
+    RAISE EXCEPTION 'RC494_BUSINESS_NEW_SETTLEMENT_FAILED:%',v_result;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.settlement_transactions st
+    JOIN public.journal_entries je ON je.id=st.journal_entry_id
+    WHERE st.id='RC494-BUSINESS-NEW'
+      AND st.business_id='49400000-0000-4000-8000-000000000101'
+      AND je.business_id='49400000-0000-4000-8000-000000000101'
+      AND je.status='POSTED'
+      AND EXISTS (SELECT 1 FROM public.general_ledger gl WHERE gl.journal_entry_id=je.id)
+  ) THEN
+    RAISE EXCEPTION 'RC494_BUSINESS_NEW_SETTLEMENT_SCOPE_NOT_PERSISTED';
+  END IF;
+
   v_result := public.create_settlement_and_post_journal(
     'RC494-PLATFORM-ROOT','MNTY-PLATFORM','PARTNER','partner-platform-root',
     100,0,99,1,'BANK_TRANSFER','RC494-PLATFORM-ROOT',NULL,'registry root idempotency test',
