@@ -3724,3 +3724,15 @@ Evidence: `docs/audits/PASS_1490_1499_ANONYMOUS_AUTH_AND_PLATFORM_ROOT_PARITY_20
 - [ ] Full chronological PostgreSQL 17 replay must pass on the latest exact PR head after the RC488 test and workflow-trigger updates; previous replay failures are from earlier commits and are not evidence of the latest state.
 
 - [x] RC488 isolation correction — Full forward replay showed the confirmed-owner INSERT assertion is blocked by the independently confirmed legacy filename regex defect (now tracked in PR #949 / RC493), not by the RC488 restrictive guard. Removed that unrelated positive INSERT from RC488 integration; anonymous INSERT remains explicitly denied, and confirmed-owner UPDATE/DELETE remain covered. Positive provider-profile upload behavior is now owned by RC493 regression tests.
+
+
+## Pass 1521–1525 — RC493 Storage filename regex forward repair — 2026-11-21
+
+- [x] 1521 — Re-inspected Production `storage.objects` policies read-only and identified five affected operations: platform-brand INSERT/UPDATE/DELETE plus provider profile-media INSERT and UPDATE `WITH CHECK`.
+- [x] 1522 — Confirmed exact current authorization scopes from `pg_policies`: platform branding requires an ACTIVE `SUPER_ADMIN` membership; provider media requires matching provider ownership and, on INSERT, a non-anonymous Auth identity.
+- [x] 1523 — Added forward-only migration `20261121010000_rc493_storage_filename_regex_forward_repair.sql`; it uses `[.]` for a literal extension separator and recreates the five policies while preserving bucket and authorization boundaries.
+- [x] 1524 — Added `rc493_storage_filename_regex_forward_repair.sql` regression coverage for valid/invalid branding and provider image filenames and retained authorization predicates.
+- [x] 1525 — Prepared a stacked PR based on PR #946 so RC493 follows RC488–RC492 in migration order; full chronological replay is required before merge. No Production policy or object was changed.
+- [ ] Await RC493 full chronological replay and SQL regression; verify PR checks before merge.
+
+**Production safety:** all discovery queries were read-only. RC493 is source-only until CI replay, backup/restore checks, and release gates pass.
