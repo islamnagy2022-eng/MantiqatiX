@@ -111,23 +111,23 @@ SELECT 'jel_RC494-IDEMPOTENT-LINE-CONFLICT_1020','je_RC494-IDEMPOTENT-LINE-CONFL
 FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='1020';
 
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
-SELECT 'jel_RC494-PLATFORM-ROOT_5030','je_RC494-PLATFORM-ROOT',c.id,1,100,0,'RC494 partner expense'
+SELECT 'jel_RC494-PLATFORM-ROOT_5030','je_RC494-PLATFORM-ROOT',c.id,1,100,0,'Partner commission expense'
 FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='5030';
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
-SELECT 'jel_RC494-PLATFORM-ROOT_1020','je_RC494-PLATFORM-ROOT',c.id,2,0,99,'RC494 partner payout'
+SELECT 'jel_RC494-PLATFORM-ROOT_1020','je_RC494-PLATFORM-ROOT',c.id,2,0,99,'Partner cash payout'
 FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='1020';
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
-SELECT 'jel_RC494-PLATFORM-ROOT_2050','je_RC494-PLATFORM-ROOT',c.id,3,0,1,'RC494 voucher reserve'
+SELECT 'jel_RC494-PLATFORM-ROOT_2050','je_RC494-PLATFORM-ROOT',c.id,3,0,1,'Partner voucher reserve'
 FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='2050';
 
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
-SELECT 'jel_RC494-FAKE-ROOT_5030','je_RC494-FAKE-ROOT',c.id,1,100,0,'RC494 partner expense'
+SELECT 'jel_RC494-FAKE-ROOT_5030','je_RC494-FAKE-ROOT',c.id,1,100,0,'Partner commission expense'
 FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='5030';
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
-SELECT 'jel_RC494-FAKE-ROOT_1020','je_RC494-FAKE-ROOT',c.id,2,0,99,'RC494 partner payout'
+SELECT 'jel_RC494-FAKE-ROOT_1020','je_RC494-FAKE-ROOT',c.id,2,0,99,'Partner cash payout'
 FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='1020';
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
-SELECT 'jel_RC494-FAKE-ROOT_2050','je_RC494-FAKE-ROOT',c.id,3,0,1,'RC494 voucher reserve'
+SELECT 'jel_RC494-FAKE-ROOT_2050','je_RC494-FAKE-ROOT',c.id,3,0,1,'Partner voucher reserve'
 FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='2050';
 
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
@@ -138,13 +138,13 @@ SELECT 'jel_RC494-TENANT-BUSINESS_1020','je_RC494-TENANT-BUSINESS',c.id,2,0,100,
 FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='1020';
 
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
-SELECT 'jel_RC494-TENANT-WIDE_5030','je_RC494-TENANT-WIDE',c.id,1,100,0,'RC494 partner expense'
+SELECT 'jel_RC494-TENANT-WIDE_5030','je_RC494-TENANT-WIDE',c.id,1,100,0,'Partner commission expense'
 FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='5030';
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
-SELECT 'jel_RC494-TENANT-WIDE_1020','je_RC494-TENANT-WIDE',c.id,2,0,99,'RC494 partner payout'
+SELECT 'jel_RC494-TENANT-WIDE_1020','je_RC494-TENANT-WIDE',c.id,2,0,99,'Partner cash payout'
 FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='1020';
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
-SELECT 'jel_RC494-TENANT-WIDE_2050','je_RC494-TENANT-WIDE',c.id,3,0,1,'RC494 voucher reserve'
+SELECT 'jel_RC494-TENANT-WIDE_2050','je_RC494-TENANT-WIDE',c.id,3,0,1,'Partner voucher reserve'
 FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='2050';
 
 -- Preserve the 90/90 conflicting journal while it is still a draft.
