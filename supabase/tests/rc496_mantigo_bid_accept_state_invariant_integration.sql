@@ -348,6 +348,8 @@ BEGIN
     WHERE i.indexrelid='public.mantigo_bids_one_accepted_per_ride_idx'::regclass
       AND i.indisunique
       AND i.indpred IS NOT NULL
+      AND pg_catalog.pg_get_expr(i.indpred,i.indrelid) ILIKE '%ACCEPTED%'
+      AND pg_catalog.pg_get_indexdef(i.indexrelid) ILIKE '%(ride_id)%'
   ) THEN
     RAISE EXCEPTION 'RC496_ONE_ACCEPTED_BID_INDEX_MISSING';
   END IF;
