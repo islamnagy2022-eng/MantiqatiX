@@ -176,10 +176,10 @@ BEGIN
     - pg_catalog.length(pg_catalog.replace(v_definition,'SETTLEMENT_JOURNAL_LINES_IDENTITY_MISMATCH',''))
   ) / pg_catalog.length('SETTLEMENT_JOURNAL_LINES_IDENTITY_MISMATCH');
 
-  IF pg_catalog.position('pg_advisory_xact_lock' IN v_definition)=0
-     OR pg_catalog.position('settlement:' IN v_definition)=0
-     OR pg_catalog.position('SETTLEMENT_JOURNAL_LINES_IDENTITY_MISMATCH' IN v_definition)
-        > pg_catalog.position('idempotent' IN v_definition)
+  IF pg_catalog.strpos(v_definition,'pg_advisory_xact_lock')=0
+     OR pg_catalog.strpos(v_definition,'settlement:')=0
+     OR pg_catalog.strpos(v_definition,'SETTLEMENT_JOURNAL_LINES_IDENTITY_MISMATCH')
+        > pg_catalog.strpos(v_definition,'idempotent')
      OR v_line_guard_count < 2 THEN
     RAISE EXCEPTION 'RC494_SETTLEMENT_IDEMPOTENCY_GUARDS_MISSING';
   END IF;
