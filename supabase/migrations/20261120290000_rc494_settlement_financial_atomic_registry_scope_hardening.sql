@@ -417,6 +417,70 @@ BEGIN
     v_line_count:=2;
   END IF;
 
+  -- An existing journal ID is not sufficient evidence of idempotency. Verify that
+  -- the complete line set is exactly the one this settlement is authorized to post.
+  -- This prevents ON CONFLICT DO NOTHING from silently accepting forged, stale,
+  -- incomplete, extra or amount/account-mismatched journal lines.
+  IF (SELECT count(*) FROM public.journal_entry_lines
+      WHERE journal_entry_id=v_je_id) <> v_line_count THEN
+    RAISE EXCEPTION 'SETTLEMENT_JOURNAL_LINES_IDENTITY_MISMATCH';
+  END IF;
+
+  IF p_beneficiary_type='PARTNER' THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM public.journal_entry_lines
+      WHERE id='jel_'||p_id||'_5030'
+        AND journal_entry_id=v_je_id
+        AND account_id=v_account_5030
+        AND line_number=1
+        AND debit IS NOT DISTINCT FROM p_gross
+        AND credit IS NOT DISTINCT FROM 0::numeric
+        AND description IS NOT DISTINCT FROM 'Partner commission expense'
+    ) OR NOT EXISTS (
+      SELECT 1 FROM public.journal_entry_lines
+      WHERE id='jel_'||p_id||'_1020'
+        AND journal_entry_id=v_je_id
+        AND account_id=v_account_1020
+        AND line_number=2
+        AND debit IS NOT DISTINCT FROM 0::numeric
+        AND credit IS NOT DISTINCT FROM p_net
+        AND description IS NOT DISTINCT FROM 'Partner cash payout'
+    ) OR NOT EXISTS (
+      SELECT 1 FROM public.journal_entry_lines
+      WHERE id='jel_'||p_id||'_2050'
+        AND journal_entry_id=v_je_id
+        AND account_id=v_account_2050
+        AND line_number=3
+        AND debit IS NOT DISTINCT FROM 0::numeric
+        AND credit IS NOT DISTINCT FROM p_voucher
+        AND description IS NOT DISTINCT FROM 'Partner voucher reserve'
+    ) THEN
+      RAISE EXCEPTION 'SETTLEMENT_JOURNAL_LINES_IDENTITY_MISMATCH';
+    END IF;
+  ELSE
+    IF NOT EXISTS (
+      SELECT 1 FROM public.journal_entry_lines
+      WHERE id='jel_'||p_id||'_2010'
+        AND journal_entry_id=v_je_id
+        AND account_id=v_account_2010
+        AND line_number=1
+        AND debit IS NOT DISTINCT FROM p_net
+        AND credit IS NOT DISTINCT FROM 0::numeric
+        AND description IS NOT DISTINCT FROM 'Close merchant payable'
+    ) OR NOT EXISTS (
+      SELECT 1 FROM public.journal_entry_lines
+      WHERE id='jel_'||p_id||'_1020'
+        AND journal_entry_id=v_je_id
+        AND account_id=v_account_1020
+        AND line_number=2
+        AND debit IS NOT DISTINCT FROM 0::numeric
+        AND credit IS NOT DISTINCT FROM p_net
+        AND description IS NOT DISTINCT FROM 'Merchant cash payout'
+    ) THEN
+      RAISE EXCEPTION 'SETTLEMENT_JOURNAL_LINES_IDENTITY_MISMATCH';
+    END IF;
+  END IF;
+
   UPDATE public.journal_entries
   SET status='POSTED',total_debit=v_total,total_credit=v_total,posted_at=now()
   WHERE id=v_je_id;
