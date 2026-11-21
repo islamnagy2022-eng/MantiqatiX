@@ -287,6 +287,8 @@ const checks = [
     source.includes('.eq("user_id", user.id)') &&
     source.includes('.eq("status", "ACTIVE")') &&
     source.includes('.in("role", ["BUSINESS_OWNER", "OWNER"])')],
+  ["branch-scoped memberships cannot inspect or change business-level contact consent",
+    (source.match(/\\.is\\("branch_id", null\\)/g) || []).length === 2],
   ["consent grant ignores caller-supplied actor identity and persists auth.uid-derived user.id",
     source.includes("consented_by: user.id") &&
     !source.includes("consented_by: body.") &&
