@@ -91,6 +91,8 @@ export const REQUIRED_CORE_OBJECTS = [
   "public.get_mantigo_admin_financial_report_backend",
   "public.settle_mantigo_captain_backend",
   "public.expire_stale_mantigo_rides_backend",
+  "private.platform_admins",
+  "public.is_platform_admin()",
 ];
 
 // Require exact runtime function signatures and persisted Paymob/checkout
