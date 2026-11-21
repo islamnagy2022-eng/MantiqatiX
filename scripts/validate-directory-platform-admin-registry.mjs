@@ -29,7 +29,7 @@ assert.doesNotMatch(directoryEdge, /some\(platformAdmin\)/,
 assert.match(catalogPlatformAdmin, /userClient\.rpc\("mnty_can_platform_admin"\)/);
 assert.match(catalogPlatformAdmin, /registryResult !== true/);
 assert.match(catalogPlatformAdmin, /PLATFORM_ADMIN_CHECK_UNAVAILABLE/);
-assert.match(catalogPlatformAdmin, /global:\\s*\\{\\s*headers:\\s*\\{\\s*Authorization:\\s*authorization/,
+assert.match(catalogPlatformAdmin, /global:\s*\{\s*headers:\s*\{\s*Authorization:\s*authorization/,
   "catalog platform-admin registry RPC must use the verified caller Authorization header");
 assert.doesNotMatch(catalogPlatformAdmin, /platformMemberships/,
   "platform-wide tenant enumeration must not depend on synthetic platform membership rows");
@@ -41,7 +41,7 @@ assert.doesNotMatch(catalogPlatformAdmin, /\.in\("id", tenantIds\)/,
 assert.match(aiGeminiProxy, /supabase\.rpc\("mnty_can_platform_admin"\)/);
 assert.match(aiGeminiProxy, /const hasPlatformScope = registryResult === true/);
 assert.match(aiGeminiProxy, /platform_admin_check_unavailable/);
-assert.match(aiGeminiProxy, /global:\\s*\\{\\s*headers:\\s*\\{\\s*Authorization:\\s*authHeader/,
+assert.match(aiGeminiProxy, /global:\s*\{\s*headers:\s*\{\s*Authorization:\s*authHeader/,
   "AI catalog image registry RPC must use the verified caller Authorization header");
 assert.match(aiGeminiProxy, /action === "generate_catalog_image" && user\.is_anonymous/);
 assert.doesNotMatch(aiGeminiProxy, /isPlatformAdminMembership|some\(isPlatformAdminMembership\)/);
