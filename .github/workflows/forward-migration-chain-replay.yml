@@ -146,7 +146,7 @@ jobs:
       - name: Validate RC469 shared caller search_path contract
         run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
 
-      - name: Validate strict Production release gate and exact 74-version contract
+      - name: Validate strict Production release gate and exact 75-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
 
       - name: Validate MantiGO platform-admin and financial source contracts
@@ -186,6 +186,9 @@ jobs:
 
       - name: Validate RC494 settlement registry and scope contract
         run: node scripts/validate-rc494-settlement-financial-atomic-registry-scope.mjs
+
+      - name: Validate RC495 Storage filename and platform-root registry contract
+        run: node scripts/validate-rc495-storage-filename-regex-forward-repair.mjs
 
       - name: Start isolated Supabase instance with no repository migrations
         shell: bash
@@ -276,6 +279,9 @@ jobs:
 
           echo "RC494_SETTLEMENT_FINANCIAL_ATOMIC_REGISTRY_SCOPE_INTEGRATION"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc494_settlement_financial_atomic_registry_scope_integration.sql
+
+          echo "RC495_STORAGE_FILENAME_REGEX_FORWARD_REPAIR"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc495_storage_filename_regex_forward_repair.sql
 
           echo "RC117_DEFAULT_IMAGES_AND_ACTIVITY_ADMIN_CONTRACT"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc117_default_images_and_activity_admin_contract.sql
