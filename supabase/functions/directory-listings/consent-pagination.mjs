@@ -5,7 +5,15 @@ export async function collectActiveAddressConsentIds(fetchPage, pageSize = 1000)
   let offset = 0;
 
   while (true) {
-    const { data, error } = await fetchPage(offset, pageSize);
+    let result;
+    try {
+      result = await fetchPage(offset, pageSize);
+    } catch {
+      // Network/runtime exceptions are equivalent to an unavailable consent registry.
+      // Discard partial results so callers cannot accidentally disclose address data.
+      return { ids: [], ready: false };
+    }
+    const { data, error } = result || {};
     if (error || !Array.isArray(data)) return { ids: [], ready: false };
 
     const rows = data;
