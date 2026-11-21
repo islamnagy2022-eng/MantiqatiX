@@ -3722,3 +3722,5 @@ Evidence: `docs/audits/PASS_1490_1499_ANONYMOUS_AUTH_AND_PLATFORM_ROOT_PARITY_20
 
 - [x] RC488 focused PostgreSQL workflow passed on commit `6082cc3553c43bfc2a3c39d7d6fd2e9d1370e0b5`: static contract validator and isolated Storage integration both passed after correcting fixture function-definition order and testing confirmed-owner upload through the private-media policy.
 - [ ] Full chronological PostgreSQL 17 replay must pass on the latest exact PR head after the RC488 test and workflow-trigger updates; previous replay failures are from earlier commits and are not evidence of the latest state.
+
+- [x] RC488 isolation correction — Full forward replay showed the confirmed-owner INSERT assertion is blocked by the independently confirmed legacy filename regex defect (now tracked in PR #949 / RC493), not by the RC488 restrictive guard. Removed that unrelated positive INSERT from RC488 integration; anonymous INSERT remains explicitly denied, and confirmed-owner UPDATE/DELETE remain covered. Positive provider-profile upload behavior is now owned by RC493 regression tests.
