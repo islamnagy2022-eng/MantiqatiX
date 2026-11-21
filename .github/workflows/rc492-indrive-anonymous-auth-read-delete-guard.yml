@@ -14,7 +14,7 @@ on:
     paths:
       - "supabase/migrations/20261120270000_rc492_indrive_anonymous_auth_write_guard.sql"
       - "supabase/tests/rc492_indrive_anonymous_auth_write_guard_fixture.sql"
-      - "supabase/tests/rc492_indrive_anonymous-auth_write_guard_integration.sql"
+      - "supabase/tests/rc492_indrive_anonymous_auth_write_guard_integration.sql"
       - "scripts/validate-rc492-indrive-anonymous-auth-write-guard.mjs"
       - ".github/workflows/rc492-indrive-anonymous-auth-read-delete-guard.yml"
 
