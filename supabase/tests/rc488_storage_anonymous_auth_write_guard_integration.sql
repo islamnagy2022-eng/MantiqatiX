@@ -192,12 +192,13 @@ BEGIN
   END IF;
 
   INSERT INTO storage.objects(bucket_id,name,owner,owner_id,metadata)
-  VALUES ('mantiqatix-profile-media','platform/branding/logo-998.jpg',
+  VALUES ('mantiqatix-profile-media',
+    'users/48800000-0000-4000-8000-000000000002/providers/48800000-0000-4000-8000-000000000012/logo.jpg',
     '48800000-0000-4000-8000-000000000002'::uuid,
     '48800000-0000-4000-8000-000000000002',
     '{"mimetype":"image/jpeg","size":10}'::jsonb);
   GET DIAGNOSTICS n=ROW_COUNT;
-  IF n <> 1 THEN RAISE EXCEPTION 'RC488_CONFIRMED_ADMIN_INSERT_REGRESSED:%',n; END IF;
+  IF n <> 1 THEN RAISE EXCEPTION 'RC488_CONFIRMED_OWNER_INSERT_REGRESSED:%',n; END IF;
 END;
 $confirmed_owner$;
 RESET ROLE;
