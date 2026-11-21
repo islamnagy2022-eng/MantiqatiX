@@ -27,7 +27,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED — no actual Production database/Storage export, off-site upload/retrieval, Vault recovery, separate-project PostgreSQL 17 restore, measured RPO/RTO or rollback rehearsal occurred. PR #875 merged a read-only encrypted backup manifest/evidence validator; exact-head CI passed 12/12 disposable tests (run 44640871190). The tool validates operator-created artifacts/evidence only and does not create backups or perform restores.",
   "evidence_ref": "docs/audits/PRODUCTION_RECONCILIATION_20261114.md",
   "checked_at": "2026-11-20",
-  "reason": "BLOCKED / NOT CERTIFIED: fresh read-only Production check on 2026-11-21 found 310 migration rows through 20261110150618 and 0/75 exact required release identifiers. Exact live Edge entrypoint parity remains 4/11, with seven critical functions differing from main. Independent physical contract gaps include missing payment/order/subscription RPCs and columns, RC450 service_role journal EXECUTE, and registry-backed global-admin hardening. Directory contact-consent remains BLOCKED: live anonymous directory GET exposes phone/address for 869 published rows while RC473 consent tables are absent. Anonymous Auth and Storage policy guards RC488–RC495 are source candidates only and not applied; RC494 additionally closes the service-role settlement writer's membership-only MNTY-PLATFORM authority and enforces business/tenant finance scope. The backup verifier has disposable CI coverage, but no actual encrypted database/Storage backup, off-site retrieval, Vault recovery or independent PostgreSQL 17 restore/rollback was performed; RPO/RTO remain unverified. No Production mutation was performed. RC495 adds a forward-only Storage filename/registry authorization repair after the RC488–RC494 chain; it is source-only and unapplied.",
+  "reason": "BLOCKED / NOT CERTIFIED: fresh read-only Production check on 2026-11-21 found 310 migration rows through 20261110150618 and 0/76 exact required release identifiers. Exact live Edge entrypoint parity remains 4/11, with seven critical functions differing from main. Independent physical contract gaps include missing payment/order/subscription RPCs and columns, RC450 service_role journal EXECUTE, and registry-backed global-admin hardening. Directory contact-consent remains BLOCKED: live anonymous directory GET exposes phone/address for 869 published rows while RC473 consent tables are absent. Anonymous Auth and Storage policy guards RC488–RC495 are source candidates only and not applied; RC494 additionally closes the service-role settlement writer's membership-only MNTY-PLATFORM authority and enforces business/tenant finance scope. The backup verifier has disposable CI coverage, but no actual encrypted database/Storage backup, off-site retrieval, Vault recovery or independent PostgreSQL 17 restore/rollback was performed; RPO/RTO remain unverified. No Production mutation was performed. RC495 adds a forward-only Storage filename/registry authorization repair after the RC488–RC494 chain; it is source-only and unapplied.",
   "edge_function_contracts": "PARTIAL — fresh exact entrypoint comparison on 2026-11-20 found 7/11 critical live Edge functions differ from current main: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3, directory-listings v16. Four exact matches: api v17, order-status-update v4, payment-webhook v3, smm-gateway v13 (still deferred). Do not deploy mismatched payment/finance/directory/order functions individually; the live database is missing or has older payment, subscription, journal, order and directory consent contracts.",
   "smm_gateway_parity": "PARTIAL — live SMM gateway remains ACTIVE v13, verify_jwt=true, and source matches main with SMM_INITIAL_LAUNCH_DEFERRED=true. Anonymous/authenticated negative runtime tests still unverified; keep deferred.",
   "auth_security_settings": "NOT VERIFIED — current connector does not expose project Auth security configuration. The prior 2026-11-06 advisor snapshot reported leaked-password protection disabled; owner-dashboard confirmation and remediation evidence are still required. No Auth settings were changed.",
@@ -119,10 +119,10 @@
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
     "checked_at": "2026-11-21",
-    "method": "Fresh read-only SELECT from supabase_migrations.schema_migrations compared against the exact 75 versions in scripts/production/live-reconciliation-contract.mjs on the current release candidate.",
+    "method": "Fresh read-only SELECT from supabase_migrations.schema_migrations compared against the exact 76 versions in scripts/production/live-reconciliation-contract.mjs on the current release candidate.",
     "live_ledger_count": 310,
     "latest_live_version": "20261110150618",
-    "expected_migration_versions": 75,
+    "expected_migration_versions": 76,
     "found_in_live_ledger": 0,
     "required_versions": [
       "20261009120000",
@@ -199,7 +199,8 @@
       "20261120270000",
       "20261120280000",
       "20261120290000",
-      "20261121020000"
+      "20261121020000",
+      "20261121030000"
     ],
     "missing_versions": [
       "20261009120000",
@@ -276,7 +277,8 @@
       "20261120270000",
       "20261120280000",
       "20261120290000",
-      "20261121020000"
+      "20261121020000",
+      "20261121030000"
     ],
     "recorded_required_versions": [],
     "interpretation": "None of the 75 exact required source-version identifiers are recorded in the current live ledger. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
@@ -5179,5 +5181,25 @@
     },
     "interpretation": "The anonymous-executable SECURITY DEFINER function is a bounded public active/approved-advertisement read with an empty search_path; it is not treated as a confirmed exposure from this finding alone. The platform-admin registry/helper remain on the pre-RC464 contract. The Auth leaked-password protection setting remains disabled according to the live Security Advisor and requires owner-dashboard remediation. Performance advisories require prioritization, not blanket index or policy changes.",
     "production_mutation": "NONE — read-only queries, metadata and advisor checks only."
+  },
+  "rc496_bid_acceptance_state_invariant": {
+    "source_migration": "20261121030000",
+    "status": "SOURCE_CANDIDATE_NOT_APPLIED",
+    "issue": 912,
+    "required_behavior": "Only OFFERED bids can be accepted; ride-first row locking serializes competing winners; same winning bid retries are idempotent.",
+    "exact_production_rpc_checked_at": "2026-11-21",
+    "production_mutation": "NONE",
+    "required_release_tests": [
+      "offered-positive",
+      "accepted-negative",
+      "rejected-negative",
+      "withdrawn-negative",
+      "expired-negative",
+      "owner-and-actor-binding",
+      "same-winner-idempotency",
+      "different-winner-denial",
+      "two-session-concurrent-single-winner"
+    ],
+    "note": "Source and disposable test candidate only. Do not close issue #912 until RC496 migration is applied under the coordinated backup/release gate and live RPC body/ACL/search_path plus positive/negative runtime behavior are verified."
   }
 }
