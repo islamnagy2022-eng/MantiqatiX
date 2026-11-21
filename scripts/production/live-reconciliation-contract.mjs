@@ -48,6 +48,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261120280000", // RC493 — require confirmed Auth identity for private CRM/project/notification reads
   "20261120290000", // RC494 — registry-backed platform settlement and tenant/business scope
   "20261121020000", // RC495 — repair Storage filename policies and use canonical platform-root registry
+  "20261121030000", // RC496 — require OFFERED MantiGO bids and serialize per-ride acceptance
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
