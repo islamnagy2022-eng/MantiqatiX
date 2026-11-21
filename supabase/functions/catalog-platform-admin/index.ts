@@ -58,6 +58,12 @@ Deno.serve(async (req: Request) => {
     }
     if (registryResult !== true) return response(origin, { error: "PLATFORM_ADMIN_REQUIRED" }, 403);
 
+    // Membership data is only a preferred organization hint after registry authorization;
+    // it never grants platform-wide access or determines which tenants are visible.
+    const { data: membershipPreferences, error: membershipPreferenceError } = await service.from("user_memberships")
+      .select("tenant_id,organization_id").eq("user_id", user.id).eq("status", "ACTIVE").limit(250);
+    if (membershipPreferenceError) throw membershipPreferenceError;
+
     const { data: tenants, error: tenantsError } = await service.from("tenants")
       .select("id,name,code,status,settings").eq("status", "ACTIVE").limit(100);
     if (tenantsError) throw tenantsError;
@@ -481,7 +487,8 @@ Deno.serve(async (req: Request) => {
       const { data: orgs, error: orgError } = await service.from("organizations").select("id")
         .eq("tenant_id", tenantId).eq("status", "ACTIVE").limit(1);
       if (orgError) throw orgError;
-      const organizationId = orgs?.[0]?.id || null;
+      const membershipPreference = (membershipPreferences || []).find((m: any) => String(m.tenant_id) === tenantId);
+      const organizationId = membershipPreference?.organization_id || orgs?.[0]?.id || null;
       const randomCode = crypto.randomUUID().slice(0, 8).toUpperCase();
       const slug = slugify(String(input.slug || name)) || `business-${randomCode.toLowerCase()}`;
       let createdBusinessId = "";
