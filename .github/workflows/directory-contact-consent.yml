@@ -76,6 +76,12 @@ jobs:
           deno-version: v2.x
       - name: Test public directory projection and consent contract
         run: node scripts/validate-directory-contact-consent.mjs
+      - name: Validate registry-backed directory platform-admin authorization
+        run: node scripts/validate-directory-platform-admin-registry.mjs
+      - name: Test registry helper fail-closed behavior
+        run: deno test --node-modules-dir=auto supabase/functions/directory-listings/platform-admin-registry.test.mjs
+      - name: Validate incremental import admin boundary
+        run: node scripts/production/validate-doctor-incremental-import.mjs
       - name: Type-check directory Edge Function
         run: deno check --node-modules-dir=auto supabase/functions/directory-listings/index.ts
       - name: Build and type-check primary catalog frontend
