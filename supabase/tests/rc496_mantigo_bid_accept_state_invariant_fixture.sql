@@ -13,6 +13,17 @@ $function$;
 CREATE OR REPLACE FUNCTION public.mantigo_accept_bid(p_ride_id text,p_bid_id text)
 RETURNS void LANGUAGE plpgsql AS $function$ BEGIN RETURN; END; $function$;
 
+CREATE OR REPLACE FUNCTION public.create_mantigo_bid_backend(
+  p_user_id uuid,p_ride_id text,p_captain_name text,p_captain_phone text,
+  p_captain_rating numeric,p_vehicle_category text,p_vehicle_model text,
+  p_vehicle_plate text,p_offered_price numeric,p_eta_minutes integer,p_captain_message text
+)
+RETURNS jsonb LANGUAGE plpgsql AS $function$
+BEGIN
+  RETURN pg_catalog.jsonb_build_object('id','RC496-STUB','status','OFFERED');
+END;
+$function$;
+
 CREATE OR REPLACE FUNCTION public.mantigo_submit_bid(
   p_ride_id text,p_offered_price numeric,p_captain_name text,
   p_vehicle_category text,p_vehicle_model text,p_captain_message text
@@ -22,6 +33,7 @@ RETURNS text LANGUAGE sql AS $function$ SELECT NULL::text $function$;
 CREATE TABLE public.mantigo_rides (
   id text PRIMARY KEY,
   customer_id uuid NOT NULL,
+  vehicle_category text NOT NULL DEFAULT 'SEDAN',
   status text NOT NULL,
   accepted_bid_id text,
   updated_at timestamptz NOT NULL DEFAULT pg_catalog.now()
@@ -32,7 +44,19 @@ CREATE TABLE public.mantigo_bids (
   ride_id text NOT NULL REFERENCES public.mantigo_rides(id),
   captain_id uuid NOT NULL,
   offered_price numeric NOT NULL,
-  status text NOT NULL CHECK (status IN ('OFFERED','ACCEPTED','REJECTED','WITHDRAWN','EXPIRED'))
+  status text NOT NULL CHECK (status IN ('OFFERED','ACCEPTED','REJECTED','WITHDRAWN','EXPIRED')),
+  UNIQUE (ride_id,captain_id)
+);
+
+CREATE TABLE public.mantigo_captain_profiles (
+  captain_id uuid PRIMARY KEY,
+  status text NOT NULL,
+  verification_status text NOT NULL,
+  availability_status text NOT NULL,
+  vehicle_category text NOT NULL,
+  vehicle_model text NOT NULL DEFAULT '',
+  vehicle_plate text NOT NULL DEFAULT '',
+  rating numeric NOT NULL DEFAULT 0
 );
 
 CREATE TABLE public.audit_logs (
@@ -171,3 +195,4 @@ FOR EACH ROW
 EXECUTE FUNCTION public.rc496_fail_fare_lock();
 
 GRANT EXECUTE ON FUNCTION public.lock_mantigo_fare_backend(uuid,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.create_mantigo_bid_backend(uuid,text,text,text,numeric,text,text,text,numeric,integer,text) TO authenticated;
