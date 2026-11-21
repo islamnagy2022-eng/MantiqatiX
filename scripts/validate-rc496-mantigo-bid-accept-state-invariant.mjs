@@ -43,10 +43,10 @@ assert.match(createFn, /FOR UPDATE OF r/, "offer writer must lock the ride befor
 assert.match(createFn, /ON CONFLICT \(ride_id,captain_id\) DO UPDATE[\s\S]*?WHERE existing_bid\.status IN \('OFFERED','REJECTED','WITHDRAWN','EXPIRED'\)/,
   "offer resubmission may only update non-accepted bids");
 assert.match(createFn, /BID_ALREADY_ACCEPTED_OR_NOT_REUSABLE/);
-assert.match(migration, /REVOKE ALL ON FUNCTION public\\.create_mantigo_bid_backend\\(uuid,text,text,text,numeric,text,text,text,numeric,integer,text\\) FROM PUBLIC,anon/i);
-assert.match(migration, /GRANT EXECUTE ON FUNCTION public\\.create_mantigo_bid_backend\\(uuid,text,text,text,numeric,text,text,text,numeric,integer,text\\) TO authenticated/i);
-assert.match(migration, /CREATE UNIQUE INDEX IF NOT EXISTS mantigo_bids_one_accepted_per_ride_idx[\\s\\S]*?ON public\\.mantigo_bids\\(ride_id\\)[\\s\\S]*?WHERE status='ACCEPTED'/);
-assert.match(integration, /pg_get_expr\\(i\\.indpred,i\\.indrelid\\) ILIKE '%ACCEPTED%'/);
+assert.match(migration, /REVOKE ALL ON FUNCTION public\.create_mantigo_bid_backend\(uuid,text,text,text,numeric,text,text,text,numeric,integer,text\) FROM PUBLIC,anon/i);
+assert.match(migration, /GRANT EXECUTE ON FUNCTION public\.create_mantigo_bid_backend\(uuid,text,text,text,numeric,text,text,text,numeric,integer,text\) TO authenticated/i);
+assert.match(migration, /CREATE UNIQUE INDEX IF NOT EXISTS mantigo_bids_one_accepted_per_ride_idx[\s\S]*?ON public\.mantigo_bids\(ride_id\)[\s\S]*?WHERE status='ACCEPTED'/);
+assert.match(integration, /pg_get_expr\(i\.indpred,i\.indrelid\) ILIKE '%ACCEPTED%'/);
 assert.match(migration, /CREATE UNIQUE INDEX IF NOT EXISTS mantigo_bids_one_accepted_per_ride_idx[\s\S]*?WHERE status='ACCEPTED'/);
 assert.match(fn, /SET search_path TO ''/i, "SECURITY DEFINER acceptance RPC must have an empty search_path");
 assert.match(fn, /p_user_id IS DISTINCT FROM auth\.uid\(\)/, "caller identity must be bound to auth.uid()");
