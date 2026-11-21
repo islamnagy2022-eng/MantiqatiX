@@ -28,7 +28,16 @@ type SettlementMembership = {
   permissions: Record<string, unknown> | null;
 };
 
+const AUTHORIZATION_SETTLEMENT_ERRORS = new Set([
+  "PLATFORM_ADMIN_REQUIRED",
+  "TENANT_ACCESS_DENIED",
+  "FINANCE_ROLE_REQUIRED",
+  "BUSINESS_SCOPE_DENIED",
+  "TENANT_FINANCE_SCOPE_REQUIRED",
+]);
+
 const SAFE_SETTLEMENT_ERRORS = new Set([
+  "SETTLEMENT_IDENTITY_MISMATCH",
   "INVALID_BENEFICIARY_TYPE",
   "BENEFICIARY_REQUIRED",
   "INVALID_SETTLEMENT_AMOUNT",
@@ -153,6 +162,7 @@ Deno.serve(async (req) => {
     if (error) {
       console.error("settlement RPC failed", { code: error.code, message: error.message });
       const code = String(error.message ?? "").trim();
+      if (AUTHORIZATION_SETTLEMENT_ERRORS.has(code)) return json({ error: code }, 403);
       return json({ error: SAFE_SETTLEMENT_ERRORS.has(code) ? code : "SETTLEMENT_FAILED" }, SAFE_SETTLEMENT_ERRORS.has(code) ? 409 : 500);
     }
 
