@@ -3710,3 +3710,33 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - PR #951's docs branch is one commit behind and diverged from main; a fresh docs branch is being prepared instead of force-merging.
 
 **Disposition: SOURCE FIX MERGED / CI PASS; PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-11-21 — Current continuation checkpoint: PR #957 / PR #958
+
+### Registry-backed Edge authorization — PR #957
+- Candidate head: `9c14cf023f1f9f0ceaff556607cbf87c7be1799e`.
+- All 19 exact-head workflow runs completed successfully, including Directory Contact Consent source contract/PostgreSQL integration, settlement authorization tests, Edge Deno type-checks, Primary Catalog build, employee RBAC PostgreSQL tests and dashboard browser E2E.
+- Pages validation passed; actual `deploy` and `validate_public_only` jobs were skipped. No deployment occurred.
+- Fixed two source/CI defects discovered by tests: restored a safe branch-ID validator and separated protected legacy platform-membership display records from the registry authorization decision; corrected the membership-bootstrap contract to require the private registry RPC; granted the settlement source-inspection test read access only to its Edge source file.
+- PR remains open and is not merged because RC464/RC494 and the coordinated Production release gates are not yet satisfied.
+
+### Anonymous Auth / settlement / Storage hardening — PR #958
+- Consolidates RC488–RC495; PR #959 is a duplicate subset and must not be merged independently.
+- RC492 fixture now mirrors owner SELECT visibility and its integration test asserts the effective owner DELETE policy predicate, then rolls back all synthetic rows.
+- RC494 replay initially exposed that the captured schema checkpoint retains direct anon/authenticated EXECUTE ACLs on `create_settlement_and_post_journal`, while read-only Production evidence confirms only `service_role` has EXECUTE. Added a TEST-ONLY replay overlay to reconcile that known checkpoint drift; the migration itself remains fail-closed and Production is unchanged.
+- RC495 replay exposed three platform-brand Storage policies present in Production but absent from the captured checkpoint. Added a separate TEST-ONLY overlay to recreate those legacy membership-based policies before RC495 replaces them with registry-backed predicates and corrected filename regexes.
+- Current candidate head: `1d0a6c14e70aaf07dffddb9d19d0de4907a6bb15`. Exact-head CI is running again, including the 75-version chronological replay. Do not mark replay passed until it completes successfully.
+- Prior exact-head runs passed RC488, RC492, RC493, migration-history, collision/uniqueness, and Pages validation; later commits added the RC494/RC495 replay overlays and must be revalidated.
+
+### Live Production privacy evidence — read-only
+- `public.public_directory_listings`: 965 total, 869 PUBLISHED; all 869 published rows have a phone and an address; 178 also have a secondary phone.
+- Neither `public.directory_listing_contact_consents` nor `private.directory_listing_contact_consents` exists in Production.
+- Deployed `directory-listings` Edge Function remains v16 and does not yet contain the current source consent projection. Treat this as a P0 privacy release blocker.
+- No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge deployment, payment, wallet, settlement or customer-data mutation occurred.
+
+### Release disposition
+- Production remains **BLOCKED / NOT CERTIFIED**.
+- Operator-owned encrypted DB + Storage export, off-site retrieval, Vault recovery, independent PostgreSQL 17 restore/rollback, and measured RPO/RTO remain unverified.
+- RC464/RC472/RC473/RC484/RC488–RC495 and complete Edge bundle must be reconciled and released as one approved sequence; post-release positive/negative privacy, Auth, tenant, settlement and Storage tests are still required.
+- Preserve Android assets and existing UI; no destructive cleanup or deployment is authorized by these source/test changes.
