@@ -219,7 +219,7 @@ BEGIN
   IF p_offered_price IS NULL OR p_offered_price<=0 THEN
     RAISE EXCEPTION 'PRICE_REQUIRED';
   END IF;
-  IF pg_catalog.coalesce(p_eta_minutes,0)<0 THEN
+  IF coalesce(p_eta_minutes,0)<0 THEN
     RAISE EXCEPTION 'INVALID_ETA';
   END IF;
 
@@ -260,14 +260,14 @@ BEGIN
     vehicle_category,vehicle_model,vehicle_plate,offered_price,eta_minutes,captain_message,status
   ) VALUES (
     v_id,p_ride_id,p_user_id,
-    pg_catalog.coalesce(pg_catalog.nullif(pg_catalog.btrim(p_captain_name),''),'كابتن MantiGO'),
-    pg_catalog.coalesce(pg_catalog.btrim(p_captain_phone),''),
-    pg_catalog.greatest(0,pg_catalog.coalesce(v_profile.rating,0)),
+    coalesce(nullif(pg_catalog.btrim(p_captain_name),''),'كابتن MantiGO'),
+    coalesce(pg_catalog.btrim(p_captain_phone),''),
+    greatest(0,coalesce(v_profile.rating,0)),
     v_profile.vehicle_category,
-    pg_catalog.coalesce(v_profile.vehicle_model,''),
-    pg_catalog.coalesce(v_profile.vehicle_plate,''),
-    p_offered_price,pg_catalog.greatest(0,pg_catalog.coalesce(p_eta_minutes,0)),
-    pg_catalog.coalesce(pg_catalog.btrim(p_captain_message),''),'OFFERED'
+    coalesce(v_profile.vehicle_model,''),
+    coalesce(v_profile.vehicle_plate,''),
+    p_offered_price,greatest(0,coalesce(p_eta_minutes,0)),
+    coalesce(pg_catalog.btrim(p_captain_message),''),'OFFERED'
   )
   ON CONFLICT (ride_id,captain_id) DO UPDATE SET
     captain_name=EXCLUDED.captain_name,
