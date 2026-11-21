@@ -34,6 +34,8 @@ assert.match(integration, /RC494_BUSINESS_ROLE_TENANT_WIDE_SETTLEMENT_SUCCEEDED/
 assert.match(integration, /RC494_BRANCH_SCOPED_SETTLEMENT_SUCCEEDED/);
 assert.match(integration, /RC494_TENANT_FINANCE_SCOPE_REGRESSED/);
 assert.match(integration, /RC494_IDEMPOTENCY_AMOUNT_MISMATCH_WAS_ACCEPTED/);
+assert.match(integration, /SET LOCAL ROLE service_role/);
+assert.match(integration, /RESET ROLE/);
 assert.match(integration, /ROLLBACK;/);
 
 assert.match(contract, /"20261120290000"/);
