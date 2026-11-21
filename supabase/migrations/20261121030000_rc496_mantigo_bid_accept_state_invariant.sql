@@ -361,6 +361,12 @@ $function$;
 COMMENT ON FUNCTION public.create_mantigo_bid_backend(uuid,text,text,text,numeric,text,text,text,numeric,integer,text) IS
   'RC496: prevents offers from reopening accepted/terminal bids or rides; locks ride before offer writes and preserves one-winner invariants.';
 
+REVOKE ALL ON FUNCTION public.create_mantigo_bid_backend(uuid,text,text,text,numeric,text,text,text,numeric,integer,text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.create_mantigo_bid_backend(uuid,text,text,text,numeric,text,text,text,numeric,integer,text) TO authenticated;
+
+REVOKE ALL ON FUNCTION public.lock_mantigo_fare_backend(uuid,text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.lock_mantigo_fare_backend(uuid,text) TO authenticated;
+
 CREATE OR REPLACE FUNCTION public.accept_mantigo_bid_backend(
   p_user_id uuid,
   p_ride_id text,
