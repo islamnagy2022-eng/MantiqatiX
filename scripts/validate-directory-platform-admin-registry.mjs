@@ -54,6 +54,11 @@ assert.match(catalogAdmin, /global:\s*\{\s*headers:\s*\{\s*Authorization:\s*auth
 assert.match(aiGeminiProxy, /supabase\.rpc\("mnty_can_platform_admin"\)/);
 assert.match(aiGeminiProxy, /const hasPlatformScope = registryResult === true/);
 assert.match(aiGeminiProxy, /platform_admin_check_unavailable/);
+assert.match(aiGeminiProxy, /if \(!authorized && registryError && businessMemberships\.length === 0\)/);
+assert.ok(
+  aiGeminiProxy.indexOf("const businessMemberships") < aiGeminiProxy.indexOf('supabase.rpc("mnty_can_platform_admin")'),
+  "tenant business memberships must be available if the optional root-registry check is unavailable",
+);
 assert.match(aiGeminiProxy, /global:\s*\{\s*headers:\s*\{\s*Authorization:\s*authHeader/,
   "AI catalog image registry RPC must use the verified caller Authorization header");
 assert.match(aiGeminiProxy, /action === "generate_catalog_image" && user\.is_anonymous/);
