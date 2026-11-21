@@ -32,10 +32,32 @@ BEGIN
   ) OR NOT EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_schema='public' AND table_name='mantigo_bids'
-      AND column_name IN ('id','ride_id','captain_id','offered_price','status')
-    GROUP BY table_name HAVING count(DISTINCT column_name)=5
+      AND column_name IN (
+        'id','ride_id','captain_id','captain_name','captain_phone','captain_rating',
+        'vehicle_category','vehicle_model','vehicle_plate','offered_price',
+        'eta_minutes','captain_message','status','created_at'
+      )
+    GROUP BY table_name HAVING count(DISTINCT column_name)=14
   ) THEN
     RAISE EXCEPTION 'RC496_MANTIGO_STATE_SCHEMA_NOT_READY';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='audit_logs'
+      AND column_name IN (
+        'id','tenant_id','actor_user_id','action','entity_type','entity_id',
+        'old_values','new_values','result'
+      )
+    GROUP BY table_name HAVING count(DISTINCT column_name)=9
+  ) OR NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='notifications'
+      AND column_name IN (
+        'id','tenant_id','user_id','type','title','body','entity_type','entity_id'
+      )
+    GROUP BY table_name HAVING count(DISTINCT column_name)=8
+  ) THEN
+    RAISE EXCEPTION 'RC496_MANTIGO_AUDIT_NOTIFICATION_SCHEMA_NOT_READY';
   END IF;
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns
