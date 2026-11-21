@@ -56,7 +56,8 @@ BEGIN
 
   SELECT qual INTO v_expr FROM pg_catalog.pg_policies
   WHERE schemaname='storage' AND tablename='objects' AND policyname='mnty_profile_media_owner_update';
-  IF v_expr IS NULL OR v_expr NOT ILIKE '%owner_user_id%' OR v_expr NOT ILIKE '%is_anonymous%' THEN
+  IF v_expr IS NULL OR v_expr NOT ILIKE '%owner_user_id%' OR v_expr NOT ILIKE '%is_anonymous%'
+     OR v_expr NOT LIKE '%[.]%' OR position(repeat(chr(92),2)||'.' in v_expr)>0 THEN
     RAISE EXCEPTION 'RC495_PROFILE_MEDIA_OWNER_UPDATE_SCOPE_REGRESSED';
   END IF;
 
