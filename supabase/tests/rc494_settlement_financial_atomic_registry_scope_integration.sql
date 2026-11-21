@@ -83,6 +83,25 @@ VALUES
  ('je_RC494-PREEXISTING-CONFLICT','RC494-TENANT',NULL,'49400000-0000-4000-8000-000000000102',NULL,'RC494-JE-PREEXISTING-CONFLICT','ORDER_SETTLEMENT','RC494-PREEXISTING-CONFLICT','RC494 conflicting draft journal','DRAFT',0,0,current_date,NULL,'49400000-0000-4000-8000-000000000003')
 ON CONFLICT (id) DO NOTHING;
 
+-- Matching journal header with balanced but incorrect pre-existing amounts.
+-- RC494 must reject the line identity mismatch before posting or settling.
+INSERT INTO public.journal_entries
+  (id,tenant_id,organization_id,business_id,branch_id,entry_number,reference_type,reference_id,
+   description,status,total_debit,total_credit,entry_date,posted_at,created_by)
+VALUES
+ ('je_RC494-PREEXISTING-LINE-CONFLICT','RC494-TENANT',NULL,'49400000-0000-4000-8000-000000000101',NULL,
+  'RC494-JE-PREEXISTING-LINE-CONFLICT','ORDER_SETTLEMENT','RC494-PREEXISTING-LINE-CONFLICT',
+  'RC494 matching header with conflicting journal lines','DRAFT',0,0,current_date,NULL,
+  '49400000-0000-4000-8000-000000000003')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
+SELECT 'jel_RC494-PREEXISTING-LINE-CONFLICT_2010','je_RC494-PREEXISTING-LINE-CONFLICT',c.id,1,90,0,'Wrong debit amount'
+FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='2010';
+INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
+SELECT 'jel_RC494-PREEXISTING-LINE-CONFLICT_1020','je_RC494-PREEXISTING-LINE-CONFLICT',c.id,2,0,90,'Wrong credit amount'
+FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='1020';
+
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
 SELECT 'jel_RC494_PLATFORM_ROOT_5030','je_RC494_PLATFORM_ROOT',c.id,1,100,0,'RC494 partner expense'
 FROM public.chart_of_accounts c WHERE c.tenant_id='MNTY-PLATFORM' AND c.account_code='5030';
@@ -244,6 +263,27 @@ BEGIN
   EXCEPTION WHEN others THEN
     IF SQLERRM <> 'SETTLEMENT_IDENTITY_MISMATCH' THEN RAISE; END IF;
   END;
+
+  BEGIN
+    PERFORM public.create_settlement_and_post_journal(
+      'RC494-PREEXISTING-LINE-CONFLICT','RC494-TENANT','MERCHANT','merchant-business-a',
+      100,0,100,0,'BANK_TRANSFER','RC494-PREEXISTING-LINE-CONFLICT',
+      '49400000-0000-4000-8000-000000000101','pre-existing balanced but mismatched lines must fail',
+      '49400000-0000-4000-8000-000000000003'
+    );
+    RAISE EXCEPTION 'RC494_PREEXISTING_JOURNAL_LINE_CONFLICT_SUCCEEDED';
+  EXCEPTION WHEN others THEN
+    IF SQLERRM <> 'SETTLEMENT_JOURNAL_LINES_IDENTITY_MISMATCH' THEN RAISE; END IF;
+  END;
+  IF EXISTS (
+    SELECT 1 FROM public.settlement_transactions
+    WHERE id='RC494-PREEXISTING-LINE-CONFLICT'
+  ) OR NOT EXISTS (
+    SELECT 1 FROM public.journal_entries
+    WHERE id='je_RC494-PREEXISTING-LINE-CONFLICT' AND status='DRAFT'
+  ) THEN
+    RAISE EXCEPTION 'RC494_PREEXISTING_JOURNAL_LINE_CONFLICT_MUTATED_LEDGER';
+  END IF;
 
   BEGIN
     PERFORM public.create_settlement_and_post_journal(
