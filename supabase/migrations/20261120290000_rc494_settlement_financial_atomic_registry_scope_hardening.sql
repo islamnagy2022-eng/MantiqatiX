@@ -89,8 +89,8 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_schema='public' AND table_name='journal_entries'
-      AND column_name IN ('entry_number','total_debit','total_credit','posted_at')
-    GROUP BY table_name HAVING count(DISTINCT column_name)=4
+      AND column_name IN ('id','tenant_id','organization_id','business_id','branch_id','entry_number','reference_type','reference_id','description','status','total_debit','total_credit','entry_date','posted_at','created_by')
+    GROUP BY table_name HAVING count(DISTINCT column_name)=15
   ) OR NOT EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_schema='public' AND table_name='journal_entry_lines' AND column_name='line_number'
@@ -141,8 +141,14 @@ BEGIN
     JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
     WHERE n.nspname='public' AND c.relname='journal_entries'
       AND t.tgname='trg_post_journal_to_gl' AND NOT t.tgisinternal
+  ) OR NOT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_trigger t
+    JOIN pg_catalog.pg_class c ON c.oid=t.tgrelid
+    JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+    WHERE n.nspname='public' AND c.relname='journal_entries'
+      AND t.tgname='trg_validate_journal_balance' AND NOT t.tgisinternal
   ) THEN
-    RAISE EXCEPTION 'RC494_JOURNAL_TO_GL_TRIGGER_MISSING';
+    RAISE EXCEPTION 'RC494_JOURNAL_POSTING_TRIGGERS_MISSING';
   END IF;
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns
