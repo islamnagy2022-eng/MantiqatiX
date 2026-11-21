@@ -1,3 +1,42 @@
+# Latest continuation checkpoint — 2026-11-22 — Pass 1681–1690
+
+**Current main audit commit:** `785632a16f184674f4342622891f51c71e4a155b` (Pass 1671–1680 live production recheck).  
+**Latest docs update:** see SESSION_LOG Pass 1681–1690 and MASTER_PRODUCTION_TODO Pass 1681–1690.  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.  
+**Mutation policy:** do not apply migrations, change Auth/RLS/GRANT/Storage, deploy Edge, or mutate payments/wallet/customer data until encrypted backup, key recovery, independent restore and rollback evidence exist.
+
+## Current-main CI
+- Production Health Monitor run `44964067349`: SUCCESS.
+- Module Professionalization Validation run `44964067384`: 9/9 jobs SUCCESS, including RC479, RC471, RC480, RC481, RC482 and RC483 tests.
+- Backend-only Module Boundary and MantiGO Open Ride Privacy Boundary: SUCCESS.
+- Pages deploy run `44964067531`: validate and public-only validation succeeded; deploy job was IN_PROGRESS at last observation. Recheck terminal result and deployed-origin browser smoke tests before claiming release completion.
+
+## Live production blockers
+- 310 migration rows through `20261110150618`; exact current-main release gate set is 0/76 applied.
+- Public directory contact consent registry table absent; 869 published records all have phone and address; live `directory-listings` remains v16 with old bundle hash.
+- `is_platform_admin()` still trusts tenant ADMIN/SUPER_ADMIN membership; 57 policies across 24 tables depend on it. Platform registry exists with RLS enabled but FORCE RLS is false.
+- `mnty_can_platform_admin()` still uses the legacy membership helper; SMM first-user bootstrap trigger/function remains live.
+- Security Advisor reports 90 anonymous-access policy findings, 65 authenticated-callable SECURITY DEFINER findings, 1 anon-callable SECURITY DEFINER finding, 9 RLS-enabled/no-policy informational findings, and leaked-password protection disabled.
+- PostgreSQL 17.6; read-only snapshot counted 188 user tables, 8 Auth users, 0 anonymous Auth users, 1 unconfirmed email user. These counts do not prove backup integrity or security correctness.
+
+## Recovery branch and backup
+- Supabase branch listing showed only the existing `main` branch; no isolated recovery branch exists.
+- Creating a Supabase branch incurs compute/hourly cost and requires explicit cost confirmation. None was created.
+- Operator must provide encrypted off-site database + Storage backup and Vault/key recovery evidence; then perform independent PostgreSQL 17 restore/rollback and record RPO/RTO.
+
+## Next exact sequence
+1. Recheck run `44964067531` and deployed-origin browser tests.
+2. Secure and verify backup + keys; restore to isolated PostgreSQL 17 and prove rollback.
+3. Reconcile all 76 migrations against live physical schema/ACLs, then execute the controlled ordered release.
+4. Deploy the exact consent-aware `directory-listings` bundle compatible with the new schema.
+5. Run positive/negative tests for consent, owner membership scope, registry-backed platform admin, anonymous access, SMM bootstrap, payments and finance.
+6. Re-run Security Advisor and update release evidence.
+
+Detailed evidence: `docs/audits/PASS_1671_1680_LIVE_PRODUCTION_RECHECK_20261122.md`.  
+No Production mutation was performed in Pass 1681–1690. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+---
+
 # Latest continuation checkpoint — 2026-11-21 — Pass 1631–1640
 
 **Current main at checkpoint:** `6f1f425117948f9ee8ea8aa83629b91303a3a670` (documentation follow-up after PR #961).  
