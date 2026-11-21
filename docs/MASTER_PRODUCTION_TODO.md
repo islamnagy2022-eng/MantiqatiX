@@ -9,7 +9,9 @@
 - [x] Extended live ledger contract, source verifier, migration-gate test and release manifest from 74 to 75 ordered required migration versions.
 - [x] Fresh read-only Production query: 310 migration rows through `20261110150618`; RC488–RC495 applied = 0; no Production mutation.
 - [x] Recorded evidence in `docs/audits/PASS_1586_1595_RC495_STORAGE_FILENAME_REGISTRY_REPAIR_20261121.md`.
-- [ ] Complete exact-head RC495 source validator and PostgreSQL 17 full forward migration replay; fix any failure.
+- [x] Diagnosed PR #959's RC492 validator failure: JavaScript regex literals double-escaped the dot and could not match the fixture's actual `public.indrive_requests` / `public.indrive_bids` grants.
+- [x] Fixed both RC492 fixture grant regexes on consolidated PR #958; independently rechecked the request SELECT+DELETE grant, bid SELECT grant and absence of unauthorized INSERT/UPDATE/DELETE grants against the fixture.
+- [ ] Complete exact-head RC495 source validator and PostgreSQL 17 full forward migration replay after the RC492 validator correction; fix any new failure.
 - [ ] Complete exact-head RC492 PostgreSQL 16 test and all consolidated PR #958 checks before merge.
 - [ ] Retire PR #950 only after PR #958 is green and supersedes its migration safely.
 - [ ] Complete encrypted Production backup/restore, Vault recovery, Edge parity, payment/finance sandbox and Auth security gates before any coordinated release.
