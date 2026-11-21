@@ -162,6 +162,30 @@ VALUES
  ('RC494-IDEMPOTENT-LINE-CONFLICT','RC494-TENANT','49400000-0000-4000-8000-000000000101','MERCHANT','merchant-business-a',100,0,100,0,'BANK_TRANSFER','je_RC494-IDEMPOTENT-LINE-CONFLICT','SETTLED','RC494-IDEMPOTENT-LINE-CONFLICT')
 ON CONFLICT (id) DO NOTHING;
 
+DO $rc494_source_contract$
+DECLARE
+  v_definition text;
+  v_line_guard_count integer;
+BEGIN
+  SELECT pg_catalog.pg_get_functiondef(
+    'public.create_settlement_and_post_journal(character varying,character varying,character varying,character varying,numeric,numeric,numeric,numeric,character varying,character varying,uuid,text,uuid)'::regprocedure
+  ) INTO v_definition;
+
+  v_line_guard_count := (
+    pg_catalog.length(v_definition)
+    - pg_catalog.length(pg_catalog.replace(v_definition,'SETTLEMENT_JOURNAL_LINES_IDENTITY_MISMATCH',''))
+  ) / pg_catalog.length('SETTLEMENT_JOURNAL_LINES_IDENTITY_MISMATCH');
+
+  IF pg_catalog.position('pg_advisory_xact_lock' IN v_definition)=0
+     OR pg_catalog.position('settlement:' IN v_definition)=0
+     OR pg_catalog.position('SETTLEMENT_JOURNAL_LINES_IDENTITY_MISMATCH' IN v_definition)
+        > pg_catalog.position('idempotent' IN v_definition)
+     OR v_line_guard_count < 2 THEN
+    RAISE EXCEPTION 'RC494_SETTLEMENT_IDEMPOTENCY_GUARDS_MISSING';
+  END IF;
+END;
+$rc494_source_contract$;
+
 SET LOCAL ROLE service_role;
 
 DO $rc494$
