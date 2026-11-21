@@ -19,12 +19,21 @@ Deno.serve(async(req)=>{
   const organizationId=body.organizationId?String(body.organizationId):null;
   if(!tenantId||!name)return response({error:"TENANT_AND_NAME_REQUIRED"},400);
   if(name.length>200||phone.length>64||address.length>500||city.length>120||district.length>120||sector.length>80)return response({error:"FIELD_TOO_LONG"},400);
-  const {data:memberships,error:membershipError}=await supabase.from("user_memberships").select("id,role,business_id,organization_id,permissions").eq("user_id",user.id).eq("tenant_id",tenantId).eq("status","ACTIVE").limit(20);
+  const {data:memberships,error:membershipError}=await supabase.from("user_memberships").select("id,role,business_id,branch_id,organization_id").eq("user_id",user.id).eq("tenant_id",tenantId).eq("status","ACTIVE").limit(20);
   if(membershipError)throw membershipError;
   const allowedRoles=new Set(["SERVICE_PROVIDER","BUSINESS_OWNER","OWNER","ADMIN"]);
-  const membership=(memberships||[]).find((m)=>allowedRoles.has(String(m.role||"").toUpperCase()));
-  const superAdmin=(memberships||[]).find((m)=>String(m.role||"").toUpperCase()==="SUPER_ADMIN"&&m.business_id==null&&m.permissions?.scope==="PLATFORM"&&m.permissions?.full_control===true);
-  if(!membership&&!superAdmin)return response({error:"BUSINESS_CREATE_ROLE_REQUIRED"},403);
+  const membership=(memberships||[]).find((m)=>allowedRoles.has(String(m.role||"").toUpperCase())&&m.business_id==null&&m.branch_id==null);
+  let isPlatformAdmin=false;
+  if(!membership){
+   const registryClient=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,{
+    auth:{autoRefreshToken:false,persistSession:false},
+    global:{headers:{Authorization:authorization}},
+   });
+   const {data:registryResult,error:registryError}=await registryClient.rpc("mnty_can_platform_admin");
+   if(registryError)return response({error:"PLATFORM_ADMIN_CHECK_UNAVAILABLE"},503);
+   isPlatformAdmin=registryResult===true;
+  }
+  if(!membership&&!isPlatformAdmin)return response({error:"BUSINESS_CREATE_ROLE_REQUIRED"},403);
   const {data:existing}=await supabase.from("approval_requests").select("id,business_id,status").eq("tenant_id",tenantId).eq("requested_by",user.id).eq("entity_type","BUSINESS").eq("request_type","CREATE").eq("status","PENDING").limit(1);
   if(existing?.length)return response({error:"PENDING_BUSINESS_REQUEST_EXISTS",businessId:existing[0].business_id??null},409);
   // Reject a duplicate business submission across users as well as repeated clicks.
@@ -48,7 +57,7 @@ Deno.serve(async(req)=>{
   const {data:business,error}=await supabase.from("businesses").insert({tenant_id:tenantId,organization_id:resolvedOrganizationId,name,code,status:"INACTIVE",settings:{sector,address,phone,city,district,registration_source:"web",approval_status:"PENDING"}}).select("id,name,code,status,tenant_id,organization_id").single();
   if(error)throw error;
   const requestId="APR-"+crypto.randomUUID();
-  const {error:approvalError}=await supabase.from("approval_requests").insert({id:requestId,tenant_id:tenantId,organization_id:resolvedOrganizationId,business_id:business.id,request_type:"CREATE",entity_type:"BUSINESS",entity_id:business.id,requested_by:user.id,status:"PENDING",priority:"NORMAL",reason:"طلب تسجيل نشاط جديد من الويب",metadata:{sector,address,phone,city,district,created_by_super_admin:!!superAdmin}});
+  const {error:approvalError}=await supabase.from("approval_requests").insert({id:requestId,tenant_id:tenantId,organization_id:resolvedOrganizationId,business_id:business.id,request_type:"CREATE",entity_type:"BUSINESS",entity_id:business.id,requested_by:user.id,status:"PENDING",priority:"NORMAL",reason:"طلب تسجيل نشاط جديد من الويب",metadata:{sector,address,phone,city,district,created_by_super_admin:isPlatformAdmin}});
   if(approvalError){await supabase.from("businesses").delete().eq("id",business.id);throw approvalError;}
   return response({success:true,business,approvalRequestId:requestId,pendingApproval:true});
  }catch(error){return response({error:error instanceof Error?error.message:"BUSINESS_REGISTER_FAILED"},400);}
