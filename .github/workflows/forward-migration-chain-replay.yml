@@ -81,6 +81,7 @@ on:
       - "supabase/tests/baselines/production_live_trigger_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_order_status_history_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_business_branch_anon_acl_overlay_fixture.sql"
+      - "supabase/tests/baselines/rc484_live_storage_policy_overlay_fixture.sql"
       - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
       - "scripts/verify-tenant-isolation.sql"
       - "supabase/tests/rc117_default_images_and_activity_admin_contract.sql"
