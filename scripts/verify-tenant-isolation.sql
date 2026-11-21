@@ -58,6 +58,8 @@ $preflight$;
 
 SELECT set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000001',true);
 SELECT set_config('request.jwt.claim.role','authenticated',true);
+SELECT set_config('request.jwt.claims',
+  jsonb_build_object('sub','20000000-0000-4000-8000-000000000001','role','authenticated','is_anonymous',false)::text,true);
 SET LOCAL ROLE authenticated;
 
 DO $tenant_a$
@@ -115,6 +117,8 @@ $tenant_a$;
 
 RESET ROLE;
 SELECT set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000002',true);
+SELECT set_config('request.jwt.claims',
+  jsonb_build_object('sub','20000000-0000-4000-8000-000000000002','role','authenticated','is_anonymous',false)::text,true);
 SET LOCAL ROLE authenticated;
 
 DO $tenant_b$
