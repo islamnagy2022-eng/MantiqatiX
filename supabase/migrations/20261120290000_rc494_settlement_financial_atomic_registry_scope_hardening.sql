@@ -349,11 +349,6 @@ BEGIN
   FOR UPDATE;
 
   IF FOUND THEN
-    IF v_existing.status IS DISTINCT FROM 'PENDING'
-       AND v_existing.status IS DISTINCT FROM 'SETTLED' THEN
-      RAISE EXCEPTION 'SETTLEMENT_NOT_RETRYABLE';
-    END IF;
-
     IF v_existing.tenant_id IS DISTINCT FROM p_tenant_id
        OR v_existing.business_id IS DISTINCT FROM p_business_id
        OR v_existing.beneficiary_type IS DISTINCT FROM p_beneficiary_type
@@ -367,6 +362,10 @@ BEGIN
        OR (v_existing.journal_entry_id IS NOT NULL AND v_existing.journal_entry_id IS DISTINCT FROM v_je_id)
        OR (v_existing.status='SETTLED' AND v_existing.journal_entry_id IS NULL) THEN
       RAISE EXCEPTION 'SETTLEMENT_IDENTITY_MISMATCH';
+    END IF;
+    IF v_existing.status IS DISTINCT FROM 'PENDING'
+       AND v_existing.status IS DISTINCT FROM 'SETTLED' THEN
+      RAISE EXCEPTION 'SETTLEMENT_NOT_RETRYABLE';
     END IF;
     IF v_existing.journal_entry_id IS NOT NULL AND NOT EXISTS (
       SELECT 1 FROM public.journal_entries je
