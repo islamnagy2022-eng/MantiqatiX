@@ -40,3 +40,11 @@ PR #950 proposed a timestamp `20261121010000` RC493 migration that repairs the r
 - Do not merge PR #950's membership-derived Storage policy version. It is superseded by the RC495 registry-backed correction in PR #958.
 - Do not deploy Storage policy or Edge changes independently. Apply only after the complete chronological migration chain, verified encrypted backup/restore, coordinated Edge parity, and release approval.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+## CI failure triage and correction — 2026-11-21
+
+- A completed run on overlapping PR #959 exposed a validator-only failure before full forward replay: the RC492 validator used double-escaped dots in JavaScript regex literals, so it searched for a backslash plus wildcard rather than the literal schema/table separator.
+- Corrected the two grant-match expressions and the no-privilege-widening expression in consolidated PR #958 at commit `918d437738af7db0541f2948d411c69f3d7f78ad`.
+- Independently re-evaluated the corrected assertions against the exact fixture: request SELECT+DELETE matched; bid SELECT matched; unauthorized request INSERT/UPDATE and bid INSERT/UPDATE/DELETE grants remained absent.
+- PR #958 exact-head CI restarted at the correction commit; all 14 reported checks were queued at the latest read. This is not a CI pass. The previous PR #959 PostgreSQL 16 and forward-replay failures were caused by the same static validator assertion; replay did not reach the complete migration sequence.
+- No Production mutation occurred.
