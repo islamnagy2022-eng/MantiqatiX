@@ -74,3 +74,12 @@ Fresh read-only Production ledger check against the exact 75-version release lis
 - Fixture correction commit: `0a342c480dd592f2aee318651017b8041736cf66`.
 - New exact-head CI has been triggered. Forward replay and all dependent checks remain pending; no pass is claimed until the new head completes.
 - No Production migration, DDL/DML, RLS/GRANT, Edge deployment, Storage, Auth, payment, wallet, or customer-data mutation occurred.
+
+## RC494 pre-existing journal conflict fixture identity correction — 2026-11-21
+
+- The next exact-head forward replay applied all 111 forward migrations and passed the RC485–RC492 integration checks, then reached the RC494 negative test for a pre-existing journal identity conflict.
+- The negative test unexpectedly returned normally because its fixture journal ID used underscores (je_RC494_PREEXISTING_CONFLICT) while the settlement writer deterministically looks up je_ plus the settlement ID, which contains hyphens (je_RC494-PREEXISTING-CONFLICT). The test therefore did not exercise the intended conflicting row; this was a fixture defect, not evidence that the SQL conflict guard failed.
+- Corrected the fixture journal ID to exactly match the writer's deterministic ID. No production function or migration logic was changed.
+- Correction commit: 74415f5f34375106033dc565445bb44fa3ef8a71.
+- Exact-head CI has been triggered. The replay and all dependent checks remain pending; no pass is claimed until the current head completes.
+- No Production migration, DDL/DML, RLS/GRANT, Edge deployment, Storage, Auth, payment, wallet, or customer-data mutation occurred.
