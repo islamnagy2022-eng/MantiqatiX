@@ -80,7 +80,8 @@ VALUES
  ('je_RC494_FAKE_ROOT','MNTY-PLATFORM',NULL,NULL,NULL,'RC494-JE-FAKE-ROOT','PARTNER_COMMISSION_SETTLEMENT','RC494-FAKE-ROOT','RC494 fake platform fixture','DRAFT',0,0,current_date,NULL,'49400000-0000-4000-8000-000000000002'),
  ('je_RC494_BUSINESS','RC494-TENANT',NULL,'49400000-0000-4000-8000-000000000101',NULL,'RC494-JE-BUSINESS','ORDER_SETTLEMENT','RC494-TENANT-BUSINESS','RC494 business fixture','DRAFT',0,0,current_date,NULL,'49400000-0000-4000-8000-000000000003'),
  ('je_RC494_TENANT','RC494-TENANT',NULL,NULL,NULL,'RC494-JE-TENANT','PARTNER_COMMISSION_SETTLEMENT','RC494-TENANT-WIDE','RC494 tenant fixture','DRAFT',0,0,current_date,NULL,'49400000-0000-4000-8000-000000000004'),
- ('je_RC494-PREEXISTING-CONFLICT','RC494-TENANT',NULL,'49400000-0000-4000-8000-000000000102',NULL,'RC494-JE-PREEXISTING-CONFLICT','ORDER_SETTLEMENT','RC494-PREEXISTING-CONFLICT','RC494 conflicting draft journal','DRAFT',0,0,current_date,NULL,'49400000-0000-4000-8000-000000000003')
+ ('je_RC494-PREEXISTING-CONFLICT','RC494-TENANT',NULL,'49400000-0000-4000-8000-000000000102',NULL,'RC494-JE-PREEXISTING-CONFLICT','ORDER_SETTLEMENT','RC494-PREEXISTING-CONFLICT','RC494 conflicting draft journal','DRAFT',0,0,current_date,NULL,'49400000-0000-4000-8000-000000000003'),
+ ('je_RC494-IDEMPOTENT-LINE-CONFLICT','RC494-TENANT',NULL,'49400000-0000-4000-8000-000000000101',NULL,'RC494-JE-IDEMPOTENT-LINE-CONFLICT','ORDER_SETTLEMENT','RC494-IDEMPOTENT-LINE-CONFLICT','RC494 idempotent settled header with bad journal lines','DRAFT',0,0,current_date,NULL,'49400000-0000-4000-8000-000000000003')
 ON CONFLICT (id) DO NOTHING;
 
 -- Matching journal header with balanced but incorrect pre-existing amounts.
@@ -100,6 +101,13 @@ SELECT 'jel_RC494-PREEXISTING-LINE-CONFLICT_2010','je_RC494-PREEXISTING-LINE-CON
 FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='2010';
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
 SELECT 'jel_RC494-PREEXISTING-LINE-CONFLICT_1020','je_RC494-PREEXISTING-LINE-CONFLICT',c.id,2,0,90,'Wrong credit amount'
+FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='1020';
+
+INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
+SELECT 'jel_RC494-IDEMPOTENT-LINE-CONFLICT_2010','je_RC494-IDEMPOTENT-LINE-CONFLICT',c.id,1,90,0,'Wrong debit amount'
+FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='2010';
+INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
+SELECT 'jel_RC494-IDEMPOTENT-LINE-CONFLICT_1020','je_RC494-IDEMPOTENT-LINE-CONFLICT',c.id,2,0,90,'Wrong credit amount'
 FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_code='1020';
 
 INSERT INTO public.journal_entry_lines(id,journal_entry_id,account_id,line_number,debit,credit,description)
@@ -141,7 +149,7 @@ FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_c
 
 UPDATE public.journal_entries
 SET status='POSTED',total_debit=100,total_credit=100,posted_at=now()
-WHERE id IN ('je_RC494_PLATFORM_ROOT','je_RC494_FAKE_ROOT','je_RC494_BUSINESS','je_RC494_TENANT');
+WHERE id IN ('je_RC494_PLATFORM_ROOT','je_RC494_FAKE_ROOT','je_RC494_BUSINESS','je_RC494_TENANT','je_RC494-IDEMPOTENT-LINE-CONFLICT');
 
 INSERT INTO public.settlement_transactions
   (id,tenant_id,business_id,beneficiary_type,beneficiary_id,gross_amount,platform_fee,net_payout,voucher_reserve,
@@ -150,7 +158,8 @@ VALUES
  ('RC494-PLATFORM-ROOT','MNTY-PLATFORM',NULL,'PARTNER','partner-platform-root',100,0,99,1,'BANK_TRANSFER','je_RC494_PLATFORM_ROOT','SETTLED','RC494-PLATFORM-ROOT'),
  ('RC494-FAKE-ROOT','MNTY-PLATFORM',NULL,'PARTNER','partner-fake-root',100,0,99,1,'BANK_TRANSFER','je_RC494_FAKE_ROOT','SETTLED','RC494-FAKE-ROOT'),
  ('RC494-TENANT-BUSINESS','RC494-TENANT','49400000-0000-4000-8000-000000000101','MERCHANT','merchant-business-a',100,0,100,0,'BANK_TRANSFER','je_RC494_BUSINESS','SETTLED','RC494-TENANT-BUSINESS'),
- ('RC494-TENANT-WIDE','RC494-TENANT',NULL,'PARTNER','partner-tenant-wide',100,0,99,1,'BANK_TRANSFER','je_RC494_TENANT','SETTLED','RC494-TENANT-WIDE')
+ ('RC494-TENANT-WIDE','RC494-TENANT',NULL,'PARTNER','partner-tenant-wide',100,0,99,1,'BANK_TRANSFER','je_RC494_TENANT','SETTLED','RC494-TENANT-WIDE'),
+ ('RC494-IDEMPOTENT-LINE-CONFLICT','RC494-TENANT','49400000-0000-4000-8000-000000000101','MERCHANT','merchant-business-a',100,0,100,0,'BANK_TRANSFER','je_RC494-IDEMPOTENT-LINE-CONFLICT','SETTLED','RC494-IDEMPOTENT-LINE-CONFLICT')
 ON CONFLICT (id) DO NOTHING;
 
 SET LOCAL ROLE service_role;
@@ -299,6 +308,30 @@ BEGIN
   EXCEPTION WHEN others THEN
     IF SQLERRM <> 'BUSINESS_SCOPE_DENIED' THEN RAISE; END IF;
   END;
+
+  BEGIN
+    PERFORM public.create_settlement_and_post_journal(
+      'RC494-IDEMPOTENT-LINE-CONFLICT','RC494-TENANT','MERCHANT','merchant-business-a',
+      100,0,100,0,'BANK_TRANSFER','RC494-IDEMPOTENT-LINE-CONFLICT',
+      '49400000-0000-4000-8000-000000000101','settled idempotent retry with altered posted lines must fail',
+      '49400000-0000-4000-8000-000000000003'
+    );
+    RAISE EXCEPTION 'RC494_IDEMPOTENT_JOURNAL_LINE_CONFLICT_SUCCEEDED';
+  EXCEPTION WHEN others THEN
+    IF SQLERRM <> 'SETTLEMENT_JOURNAL_LINES_IDENTITY_MISMATCH' THEN RAISE; END IF;
+  END;
+  IF (SELECT count(*) FROM public.journal_entry_lines
+      WHERE journal_entry_id='je_RC494-IDEMPOTENT-LINE-CONFLICT') <> 2
+     OR (SELECT count(*) FROM public.general_ledger
+         WHERE journal_entry_id='je_RC494-IDEMPOTENT-LINE-CONFLICT') <> 2
+     OR NOT EXISTS (
+       SELECT 1 FROM public.settlement_transactions
+       WHERE id='RC494-IDEMPOTENT-LINE-CONFLICT'
+         AND status='SETTLED'
+         AND journal_entry_id='je_RC494-IDEMPOTENT-LINE-CONFLICT'
+     ) THEN
+    RAISE EXCEPTION 'RC494_IDEMPOTENT_JOURNAL_LINE_CONFLICT_MUTATED_LEDGER';
+  END IF;
 
   v_result := public.create_settlement_and_post_journal(
     'RC494-TENANT-WIDE','RC494-TENANT','PARTNER','partner-tenant-wide',
