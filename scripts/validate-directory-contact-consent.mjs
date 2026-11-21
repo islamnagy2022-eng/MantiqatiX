@@ -56,6 +56,15 @@ const failedConsentLookup = await collectActiveAddressConsentIds(async (offset) 
 assert.equal(failedConsentLookup.ready, false, "registry failure must fail closed");
 assert.deepEqual(failedConsentLookup.ids, [], "partial consent results must never be used after a page failure");
 
+const thrownConsentLookup = await collectActiveAddressConsentIds(async (offset) => {
+  if (offset === 0) return { data: syntheticConsentRows.slice(0, 1000), error: null };
+  throw new Error("synthetic network failure");
+});
+assert.equal(thrownConsentLookup.ready, false,
+  "thrown network/runtime errors must fail closed");
+assert.deepEqual(thrownConsentLookup.ids, [],
+  "partial address consent IDs must be discarded after a thrown fetch error");
+
 const malformedConsentLookup = await collectActiveAddressConsentIds(async () => ({ data: null, error: null }));
 assert.equal(malformedConsentLookup.ready, false, "malformed registry responses must fail closed");
 assert.deepEqual(malformedConsentLookup.ids, [], "malformed registry responses must not yield partial consent IDs");
