@@ -156,6 +156,14 @@ USING(
   )
 );
 
+CREATE POLICY mantiqatix_media_user_insert
+ON storage.objects FOR INSERT TO authenticated
+WITH CHECK(
+  bucket_id='mantiqatix-media'
+  AND coalesce(auth.jwt()->>'is_anonymous','false')<>'true'
+  AND name LIKE 'users/'||auth.uid()::text||'/%'
+);
+
 CREATE POLICY mantiqatix_media_authenticated_read
 ON storage.objects FOR SELECT TO authenticated
 USING(
