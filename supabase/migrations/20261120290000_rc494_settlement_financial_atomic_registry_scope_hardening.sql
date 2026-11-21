@@ -398,7 +398,7 @@ BEGIN
       -- Idempotent retries must validate the posted journal contents too; a matching
       -- settlement row/header cannot bless altered, missing or extra journal lines.
       IF (SELECT count(*) FROM public.journal_entry_lines
-          WHERE journal_entry_id=v_je_id) <> CASE WHEN p_beneficiary_type='PARTNER' THEN 3 ELSE 2 END THEN
+          WHERE journal_entry_id=v_je_id) <> (CASE WHEN p_beneficiary_type='PARTNER' THEN 3 ELSE 2 END) THEN
         RAISE EXCEPTION 'SETTLEMENT_JOURNAL_LINES_IDENTITY_MISMATCH';
       END IF;
 
