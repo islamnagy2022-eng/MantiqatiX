@@ -3740,3 +3740,15 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Operator-owned encrypted DB + Storage export, off-site retrieval, Vault recovery, independent PostgreSQL 17 restore/rollback, and measured RPO/RTO remain unverified.
 - RC464/RC472/RC473/RC484/RC488–RC495 and complete Edge bundle must be reconciled and released as one approved sequence; post-release positive/negative privacy, Auth, tenant, settlement and Storage tests are still required.
 - Preserve Android assets and existing UI; no destructive cleanup or deployment is authorized by these source/test changes.
+
+## 2026-11-21 — Pass 1600–1610 — RC496 MantiGO bid acceptance state invariant
+
+- Read the exact Production function body for `public.accept_mantigo_bid_backend(uuid,text,text)` and verified issue #912: ride ownership/open-state checks existed, but the selected bid's current `status='OFFERED'` was not required.
+- Added forward-only migration RC496 (`20261121030000`): serialize by locking the ride first, lock selected bid, require OFFERED, conditional row-count checked transition, reject only OFFERED siblings, conditional ride winner update, call fare lock after state transition in the same transaction, and permit only same-winner idempotent retries.
+- Hardened the SECURITY DEFINER RPC with empty search_path and retained authenticated-only EXECUTE. Historical migration files were left unchanged.
+- Added disposable PostgreSQL fixture, negative and positive state tests, authorization tests, idempotency tests, fare-lock rollback test, and two-session competing-winner race script/workflow.
+- Updated the exact source release inventory from 75 to 76 versions in the live contract, gate validator, chronological replay workflow, reconciliation JSON and backup/restore runbook. The 76-version inventory was programmatically checked for exact count and chronological order.
+- Audit: `docs/audits/PASS_1600_1610_RC496_MANTIGO_BID_ACCEPTANCE_STATE_INVARIANT_20261121.md`.
+- Current PR #958 exact-head RC496 and full replay checks are pending; no RC496 pass is claimed before exact latest-head completion. No Production mutation or deployment occurred.
+- Production remains **BLOCKED / NOT CERTIFIED** pending encrypted backup/restore, Vault recovery, 76-version coordinated migration release, RC472/RC473 directory consent deployment, RC464/RC484 platform registry parity, RC494/RC496 settlement and ride authorization verification, and post-deploy negative/positive checks.
+
