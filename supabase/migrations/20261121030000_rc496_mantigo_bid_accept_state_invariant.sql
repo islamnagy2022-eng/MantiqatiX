@@ -76,12 +76,21 @@ BEGIN
   SELECT r.customer_id,r.status,r.accepted_bid_id,b.captain_id,b.offered_price
     INTO v_customer,v_status,v_bid,v_captain,v_amount
   FROM public.mantigo_rides r
-  JOIN public.mantigo_bids b ON b.id=r.accepted_bid_id AND b.ride_id=r.id
+  JOIN public.mantigo_bids b
+    ON b.id=r.accepted_bid_id
+   AND b.ride_id=r.id
+   AND b.status='ACCEPTED'
   WHERE r.id=p_ride_id
   FOR UPDATE OF r;
 
   IF v_customer IS NULL OR v_bid IS NULL THEN
     RAISE EXCEPTION 'RIDE_OR_ACCEPTED_BID_NOT_FOUND';
+  END IF;
+  IF (
+    SELECT count(*) FROM public.mantigo_bids b
+    WHERE b.ride_id=p_ride_id AND b.status='ACCEPTED'
+  ) <> 1 THEN
+    RAISE EXCEPTION 'RIDE_ACCEPTANCE_STATE_MISMATCH';
   END IF;
   IF p_user_id IS DISTINCT FROM v_customer THEN
     RAISE EXCEPTION 'CUSTOMER_REQUIRED';
