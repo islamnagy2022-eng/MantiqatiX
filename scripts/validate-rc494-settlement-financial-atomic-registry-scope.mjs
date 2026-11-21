@@ -18,6 +18,8 @@ assert.match(migration, /BUSINESS_SCOPE_DENIED/);
 assert.match(migration, /TENANT_FINANCE_SCOPE_REQUIRED/);
 assert.match(migration, /branch_id IS NULL/);
 assert.match(migration, /je\.business_id IS NOT DISTINCT FROM p_business_id/);
+assert.match(migration, /je\.organization_id IS NULL/);
+assert.match(migration, /je\.branch_id IS NULL/);
 assert.match(migration, /je\.status='POSTED'/);
 assert.match(migration, /v_existing\.gross_amount IS DISTINCT FROM p_gross/);
 assert.match(migration, /v_existing\.net_payout IS DISTINCT FROM p_net/);
