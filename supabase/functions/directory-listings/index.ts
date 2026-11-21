@@ -62,6 +62,23 @@ Deno.serve(async (req: Request) => {
   if (!supabaseUrl || !serviceKey) return out(origin, { error: "SERVER_MISCONFIGURED" }, 500);
   const service = createClient(supabaseUrl, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
+  // A business-linked listing is controlled by its current business-wide owner,
+  // not permanently by the user who originally submitted the claim.
+  const resolveListingOwner = async (
+    listing: { claimed_user_id?: unknown; claimed_business_id?: unknown },
+    userId: string,
+  ) => {
+    const businessId = String(listing.claimed_business_id || "");
+    if (!businessId) {
+      return { isOwner: String(listing.claimed_user_id || "") === userId, error: null };
+    }
+    const { data, error } = await service.from("user_memberships").select("id")
+      .eq("user_id", userId).eq("business_id", businessId)
+      .is("branch_id", null).eq("status", "ACTIVE")
+      .in("role", ["BUSINESS_OWNER", "OWNER"]).limit(1);
+    return { isOwner: !error && Boolean(data?.length), error };
+  };
+
   const loadContactConsentScopes = async (listingIds: string[]) => {
     const result = await collectActiveContactConsentScopes(
       listingIds,
@@ -107,15 +124,9 @@ Deno.serve(async (req: Request) => {
       if (bearer) {
         const { data: viewerData } = await service.auth.getUser(bearer);
         const viewer = viewerData?.user;
-        if (viewer && !viewer.is_anonymous) {
-          isOwner = data.claim_status === "CLAIMED" && String(data.claimed_user_id || "") === String(viewer.id);
-          if (!isOwner && data.claim_status === "CLAIMED" && data.claimed_business_id) {
-            const { data: memberships } = await service.from("user_memberships").select("id")
-              .eq("user_id", viewer.id).eq("business_id", data.claimed_business_id)
-              .is("branch_id", null).eq("status", "ACTIVE")
-              .in("role", ["BUSINESS_OWNER","OWNER"]).limit(1);
-            isOwner = Boolean(memberships?.length);
-          }
+        if (viewer && !viewer.is_anonymous && data.claim_status === "CLAIMED") {
+          const ownerCheck = await resolveListingOwner(data, viewer.id);
+          isOwner = ownerCheck.isOwner;
         }
       }
       const consentState = await loadContactConsentScopes([String(data.id)]);
@@ -245,16 +256,9 @@ Deno.serve(async (req: Request) => {
     if (!listing || listing.claim_status !== "CLAIMED" || (enabled && listing.listing_status !== "PUBLISHED")) {
       return out(origin, { error: "LISTING_OWNER_REQUIRED" }, 403);
     }
-    let authorized = String(listing.claimed_user_id || "") === String(user.id);
-    if (!authorized && listing.claimed_business_id) {
-      const { data: ownerMemberships, error: ownerError } = await service.from("user_memberships").select("id")
-        .eq("user_id", user.id).eq("business_id", listing.claimed_business_id)
-        .is("branch_id", null).eq("status", "ACTIVE")
-        .in("role", ["BUSINESS_OWNER", "OWNER"]).limit(1);
-      if (ownerError) return out(origin, { error: "OWNER_CHECK_FAILED" }, 500);
-      authorized = Boolean(ownerMemberships?.length);
-    }
-    if (!authorized) return out(origin, { error: "LISTING_OWNER_REQUIRED" }, 403);
+    const ownerCheck = await resolveListingOwner(listing, user.id);
+    if (ownerCheck.error) return out(origin, { error: "OWNER_CHECK_FAILED" }, 500);
+    if (!ownerCheck.isOwner) return out(origin, { error: "LISTING_OWNER_REQUIRED" }, 403);
 
     if (enabled) {
       const { data: existing, error: existingError } = await service.from("directory_listing_contact_consents")
@@ -325,15 +329,9 @@ Deno.serve(async (req: Request) => {
       .eq("id", listingId).eq("listing_status", "PUBLISHED").maybeSingle();
     if (listingError) return out(origin, { error: "LISTING_READ_FAILED" }, 500);
     if (!listing || listing.claim_status !== "CLAIMED") return out(origin, { error: "LISTING_NOT_CLAIMED" }, 409);
-    let authorized = String(listing.claimed_user_id || "") === String(user.id);
-    if (!authorized && listing.claimed_business_id) {
-      const { data: memberships, error: membershipError } = await service.from("user_memberships").select("id")
-        .eq("user_id", user.id).eq("business_id", listing.claimed_business_id).eq("status", "ACTIVE")
-        .in("role", ["BUSINESS_OWNER","OWNER"]).limit(1);
-      if (membershipError) return out(origin, { error: "OWNER_CHECK_FAILED" }, 500);
-      authorized = Boolean(memberships?.length);
-    }
-    if (!authorized) return out(origin, { error: "LISTING_OWNER_REQUIRED" }, 403);
+    const ownerCheck = await resolveListingOwner(listing, user.id);
+    if (ownerCheck.error) return out(origin, { error: "OWNER_CHECK_FAILED" }, 500);
+    if (!ownerCheck.isOwner) return out(origin, { error: "LISTING_OWNER_REQUIRED" }, 403);
     const displayName = clean(body.displayName, 200);
     const phone = clean(body.phone, 40);
     const secondaryPhone = clean(body.secondaryPhone, 40);

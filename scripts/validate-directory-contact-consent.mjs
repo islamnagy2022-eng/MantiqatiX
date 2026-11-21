@@ -12,6 +12,8 @@ import { collectActiveAddressConsentIds } from "../supabase/functions/directory-
 import { collectActiveContactConsentScopes } from "../supabase/functions/directory-listings/contact-consent-pagination.mjs";
 
 const source = readFileSync("supabase/functions/directory-listings/index.ts", "utf8");
+const listingOwnerHelper = source.split("const resolveListingOwner = async")[1]?.split("\n  };")[0] || "";
+const ownedListingUpdate = source.split('if (action === "UPDATE_OWNED_LISTING")')[1]?.split('\n  if (action === "')[0] || "";
 const migration = readFileSync("supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql", "utf8");
 const ui = readFileSync("apps/catalog-frontend/src/components/DirectoryListingsView.tsx", "utf8");
 const client = readFileSync("apps/catalog-frontend/src/lib/directoryListings.ts", "utf8");
@@ -281,14 +283,19 @@ const checks = [
   ["consent cannot be granted for an unclaimed or unpublished listing",
     source.includes('listing.claim_status !== "CLAIMED"') &&
     source.includes('(enabled && listing.listing_status !== "PUBLISHED")')],
-  ["owner authorization is bound to the authenticated user and exact claimed business",
-    source.includes('String(listing.claimed_user_id || "") === String(user.id)') &&
-    source.includes('.eq("business_id", listing.claimed_business_id)') &&
-    source.includes('.eq("user_id", user.id)') &&
-    source.includes('.eq("status", "ACTIVE")') &&
-    source.includes('.in("role", ["BUSINESS_OWNER", "OWNER"])')],
-  ["branch-scoped memberships cannot inspect or change business-level contact consent",
-    (source.match(/\.is\("branch_id", null\)/g) || []).length === 2],
+  ["business-linked listing owner authorization requires an active business-wide owner membership",
+    listingOwnerHelper.includes('if (!businessId)') &&
+    listingOwnerHelper.includes('String(listing.claimed_user_id || "") === userId') &&
+    listingOwnerHelper.includes('.eq("business_id", businessId)') &&
+    listingOwnerHelper.includes('.eq("user_id", userId)') &&
+    listingOwnerHelper.includes('.is("branch_id", null)') &&
+    listingOwnerHelper.includes('.eq("status", "ACTIVE")') &&
+    listingOwnerHelper.includes('.in("role", ["BUSINESS_OWNER", "OWNER"])')],
+  ["detail, consent and profile actions all use the same current-owner authorization",
+    (source.match(/resolveListingOwner\(/g) || []).length === 3 &&
+    source.includes("resolveListingOwner(data, viewer.id)") &&
+    source.includes("resolveListingOwner(listing, user.id)") &&
+    ownedListingUpdate.includes("resolveListingOwner(listing, user.id)")],
   ["consent grant ignores caller-supplied actor identity and persists auth.uid-derived user.id",
     source.includes("consented_by: user.id") &&
     !source.includes("consented_by: body.") &&
