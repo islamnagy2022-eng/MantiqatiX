@@ -111,6 +111,19 @@ assert.equal(failedContactLookup.ready, false,
 assert.equal(failedContactLookup.scopes.size, 0,
   "partial contact consent rows must be discarded after a later page error");
 
+const thrownContactLookup = await collectActiveContactConsentScopes(
+  requestedListingIds,
+  async (offset) => {
+    if (offset === 0) return { data: syntheticContactRows.slice(0, 400), error: null };
+    throw new Error("synthetic contact registry network failure");
+  },
+  400,
+);
+assert.equal(thrownContactLookup.ready, false,
+  "thrown contact-consent network/runtime errors must fail closed");
+assert.equal(thrownContactLookup.scopes.size, 0,
+  "partial contact consent scopes must be discarded after a thrown fetch error");
+
 const malformedContactLookup = await collectActiveContactConsentScopes(
   requestedListingIds,
   async () => ({ data: null, error: null }),
