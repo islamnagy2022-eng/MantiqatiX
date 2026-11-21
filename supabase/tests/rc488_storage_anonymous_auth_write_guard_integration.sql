@@ -28,6 +28,12 @@ BEGIN
     ('RC488-ANON-ADMIN',v_anon,'MNTY-PLATFORM','ACTIVE','SUPER_ADMIN'),
     ('RC488-CONFIRMED-ADMIN',v_owner,'MNTY-PLATFORM','ACTIVE','SUPER_ADMIN');
 
+  -- RC484 makes the private registry authoritative; legacy SUPER_ADMIN
+  -- membership alone must not be treated as platform-root authority.
+  INSERT INTO private.platform_admins(user_id)
+  VALUES (v_owner)
+  ON CONFLICT (user_id) DO NOTHING;
+
   INSERT INTO public.marketing_provider_profiles
     (id,provider_kind,owner_user_id,name_ar,slug,status)
   VALUES
