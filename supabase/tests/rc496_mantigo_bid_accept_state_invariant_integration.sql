@@ -164,7 +164,7 @@ BEGIN
   -- Missing bids fail closed.
   v_error:=NULL;
   BEGIN
-    PERFORM public.accept_mantigo_bid_backend(v_customer,'RC496-VALID','RC496-NOT-THERE');
+    PERFORM public.accept_mantigo_bid_backend(v_customer,'RC496-OWNER','RC496-NOT-THERE');
   EXCEPTION WHEN OTHERS THEN
     v_error:=SQLERRM;
   END;
