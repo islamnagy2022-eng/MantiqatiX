@@ -1,4 +1,4 @@
--- RC492: anonymous Auth sessions cannot create, modify, or delete InDrive requests.
+-- RC492: anonymous Auth sessions cannot create, modify, or delete InDrive requests or read bids.
 -- Existing owner and platform-admin predicates remain unchanged for confirmed users.
 BEGIN;
 
