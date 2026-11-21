@@ -10,10 +10,14 @@ const integration = fs.readFileSync(
   "utf8",
 );
 
-for (const command of ["INSERT", "UPDATE", "DELETE"]) {
+for (const [command, policyName] of [
+  ["INSERT", "storage_objects_confirmed_auth_insert"],
+  ["UPDATE", "storage_objects_confirmed_auth_update"],
+  ["DELETE", "storage_objects_confirmed_auth_delete"],
+]) {
   const policy = new RegExp(
-    "CREATE\\s+POLICY\\s+storage_objects_confirmed_auth_" +
-      command.toLowerCase() +
+    "CREATE\\s+POLICY\\s+" +
+      policyName +
       "[\\s\\S]*?AS\\s+RESTRICTIVE[\\s\\S]*?FOR\\s+" +
       command +
       "[\\s\\S]*?TO\\s+authenticated[\\s\\S]*?is_anonymous",
