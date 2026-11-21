@@ -12,6 +12,15 @@ CREATE TABLE private.platform_admins(
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE OR REPLACE FUNCTION auth.jwt()
+RETURNS jsonb LANGUAGE sql STABLE AS $function$
+  SELECT coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb
+$function$;
+CREATE OR REPLACE FUNCTION auth.uid()
+RETURNS uuid LANGUAGE sql STABLE AS $function$
+  SELECT nullif(auth.jwt()->>'sub','')::uuid
+$function$;
+
 CREATE OR REPLACE FUNCTION public.is_platform_admin()
 RETURNS boolean
 LANGUAGE sql
@@ -25,15 +34,6 @@ AS $function$
   )
 $function$;
 GRANT EXECUTE ON FUNCTION public.is_platform_admin() TO authenticated;
-
-CREATE OR REPLACE FUNCTION auth.jwt()
-RETURNS jsonb LANGUAGE sql STABLE AS $function$
-  SELECT coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb
-$function$;
-CREATE OR REPLACE FUNCTION auth.uid()
-RETURNS uuid LANGUAGE sql STABLE AS $function$
-  SELECT nullif(auth.jwt()->>'sub','')::uuid
-$function$;
 
 CREATE TABLE auth.users(
   id uuid PRIMARY KEY,
