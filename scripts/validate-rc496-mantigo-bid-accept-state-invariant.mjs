@@ -40,7 +40,7 @@ assert.match(createFn, /p_user_id IS DISTINCT FROM auth\.uid\(\)/, "offer writer
 assert.match(createFn, /accepted_bid_id IS NULL/, "offer writer cannot reopen an accepted ride");
 assert.match(createFn, /NOT EXISTS \([\s\S]*?status='ACCEPTED'/, "offer writer rejects stale accepted bid rows");
 assert.match(createFn, /FOR UPDATE OF r/, "offer writer must lock the ride before changing offers");
-assert.match(createFn, /ON CONFLICT \(ride_id,captain_id\) DO UPDATE[\s\S]*?WHERE public\.mantigo_bids\.status IN \('OFFERED','REJECTED','WITHDRAWN','EXPIRED'\)/,
+assert.match(createFn, /ON CONFLICT \(ride_id,captain_id\) DO UPDATE[\s\S]*?WHERE existing_bid\.status IN \('OFFERED','REJECTED','WITHDRAWN','EXPIRED'\)/,
   "offer resubmission may only update non-accepted bids");
 assert.match(createFn, /BID_ALREADY_ACCEPTED_OR_NOT_REUSABLE/);
 assert.match(migration, /REVOKE ALL ON FUNCTION public\\.create_mantigo_bid_backend\\(uuid,text,text,text,numeric,text,text,text,numeric,integer,text\\) FROM PUBLIC,anon/i);
