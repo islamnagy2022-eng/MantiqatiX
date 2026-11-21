@@ -92,7 +92,8 @@ const requiredReleaseMigrations=[
   "20261120250000_rc490_medical_anonymous_auth_read_guard.sql",
   "20261120260000_rc491_support_anonymous_auth_boundary.sql",
   "20261120270000_rc492_indrive_anonymous_auth_write_guard.sql",
-  "20261120280000_rc493_private_crm_notification_read_guards.sql"
+  "20261120280000_rc493_private_crm_notification_read_guards.sql",
+  "20261120290000_rc494_settlement_financial_atomic_registry_scope_hardening.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
