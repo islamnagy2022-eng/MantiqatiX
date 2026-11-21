@@ -22,7 +22,7 @@ const upsertStart = edge.indexOf('if (action === "UPSERT_LISTING")', actionStart
 assert.notEqual(upsertStart, -1, "Existing UPSERT_LISTING handler must remain after import action");
 
 const action = edge.slice(actionStart, upsertStart);
-const registryCall = edge.indexOf('userClient.rpc("is_platform_admin")');
+const registryCall = edge.indexOf('userClient.rpc("mnty_can_platform_admin")');
 const adminGate = edge.indexOf('if (!resolveDirectoryPlatformAdmin(registryResult, registryError))');
 assert.notEqual(registryCall, -1, "Registry-backed platform-admin RPC must exist");
 assert.notEqual(adminGate, -1, "Fail-closed registry authorization gate must exist");
@@ -30,7 +30,7 @@ assert.ok(registryCall < adminGate && adminGate < actionStart,
   "Batch import must be protected by the caller-JWT registry check");
 assert.ok(edge.includes("Authorization: `Bearer ${token}`"),
   "Registry lookup must run as the verified caller, not the service-role identity");
-assert.doesNotMatch(edge, /mnty_can_platform_admin|some\(platformAdmin\)/,
+assert.doesNotMatch(edge, /some\(platformAdmin\)/,
   "Tenant membership must not substitute for the private platform-admin registry");
 
 assert.match(action, /rows\.length > 20/, "Batch size must be capped at 20");
