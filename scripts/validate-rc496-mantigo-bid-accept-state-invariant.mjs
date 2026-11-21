@@ -78,7 +78,7 @@ assert.match(integration, /RC496-SUBMIT/);
 assert.match(integration, /offer resubmission did not safely revise/);
 assert.match(integration, /RIDE_NOT_OPEN_OR_VEHICLE_MISMATCH/);
 assert.match(integration, /RC496_ONE_ACCEPTED_BID_INDEX_MISSING/);
-assert.match(integration, /CREATE-BID_SEARCH_PATH_MISMATCH/);
+assert.match(integration, /RC496_CREATE_BID_SEARCH_PATH_MISMATCH/);
 assert.match(integration, /RC496-WINNER/);
 assert.match(integration, /RC496-SIBLING/);
 assert.match(integration, /idempotent/);
