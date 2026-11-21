@@ -60,3 +60,12 @@ At the time of this record the latest PR #958 exact-head checks were queued; no 
 No Production migration, DDL/DML, RLS/GRANT, Edge deployment, Auth, Storage, payment, financial settlement, or customer-data mutation occurred.
 
 **Disposition: RC496 SOURCE CANDIDATE / CI PENDING / PRODUCTION BLOCKED / NOT CERTIFIED.** Issue #912 remains open until coordinated migration application and live positive/negative authorization verification pass.
+
+## Fare-ledger identity and corrupt-state follow-up — 2026-11-21
+
+- Extended the RC496 migration to replace `lock_mantigo_fare_backend(uuid,text)` in the same forward-only release. The helper now requires the accepted bid row to belong to the ride and have `status='ACCEPTED'`, and exactly one accepted bid may exist for the ride before any fare lock is created.
+- Idempotent fare-lock retries now verify the persisted ledger's customer, captain, EGP currency, gross amount, zero commission, captain net, deterministic idempotency key and metadata's accepted bid/source before returning the existing record. A mismatch raises `MANTIGO_FINANCIAL_IDENTITY_MISMATCH`; it is not silently accepted as an idempotent retry.
+- Production ledger inventory was checked read-only before adding this guard: zero live MantiGO financial-ledger rows existed at the check, so no existing customer ledger required reconciliation in this snapshot.
+- Added disposable test cases for duplicate ACCEPTED bid rows and a pre-existing ledger tied to the wrong captain. The fare-lock failure trigger still verifies full rollback of accepted ride/bid state and prevents partial financial rows.
+- The test fixture now models the actual financial ledger fields and the concurrency test asserts exactly one persisted ledger row, rather than counting test-only lock-call markers.
+- The updated exact-head RC496 workflow and full 76-migration replay must complete before claiming a test pass. No Production function, data, ledger or Edge deployment was changed.
