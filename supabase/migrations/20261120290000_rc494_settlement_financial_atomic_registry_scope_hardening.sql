@@ -4,6 +4,36 @@
 
 BEGIN;
 
+-- Persist business scope on the settlement row itself. Backfill only from the
+-- linked journal entry; unresolved legacy rows remain NULL and fail closed on
+-- a business-scoped retry until they are reconciled.
+ALTER TABLE public.settlement_transactions
+  ADD COLUMN IF NOT EXISTS business_id uuid;
+
+UPDATE public.settlement_transactions st
+SET business_id=je.business_id
+FROM public.journal_entries je
+WHERE st.journal_entry_id=je.id
+  AND st.business_id IS NULL
+  AND je.business_id IS NOT NULL;
+
+DO $business_fk$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_constraint
+    WHERE conrelid='public.settlement_transactions'::regclass
+      AND conname='settlement_transactions_business_id_fkey'
+  ) THEN
+    ALTER TABLE public.settlement_transactions
+      ADD CONSTRAINT settlement_transactions_business_id_fkey
+      FOREIGN KEY (business_id) REFERENCES public.businesses(id) ON DELETE RESTRICT;
+  END IF;
+END;
+$business_fk$;
+
+CREATE INDEX IF NOT EXISTS settlement_transactions_business_id_idx
+  ON public.settlement_transactions(business_id);
+
 DO $preflight$
 DECLARE
   v_function oid := pg_catalog.to_regprocedure(
@@ -118,8 +148,8 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_schema='public' AND table_name='settlement_transactions'
-      AND column_name IN ('id','tenant_id','beneficiary_type','beneficiary_id','gross_amount','platform_fee','net_payout','voucher_reserve','payout_channel','journal_entry_id','status','reference_id')
-    GROUP BY table_name HAVING count(DISTINCT column_name)=12
+      AND column_name IN ('id','tenant_id','business_id','beneficiary_type','beneficiary_id','gross_amount','platform_fee','net_payout','voucher_reserve','payout_channel','journal_entry_id','status','reference_id')
+    GROUP BY table_name HAVING count(DISTINCT column_name)=13
   ) THEN
     RAISE EXCEPTION 'RC494_SETTLEMENT_TRANSACTION_SCHEMA_NOT_READY';
   END IF;
@@ -291,6 +321,7 @@ BEGIN
 
   IF FOUND THEN
     IF v_existing.tenant_id IS DISTINCT FROM p_tenant_id
+       OR v_existing.business_id IS DISTINCT FROM p_business_id
        OR v_existing.beneficiary_type IS DISTINCT FROM p_beneficiary_type
        OR v_existing.beneficiary_id IS DISTINCT FROM p_beneficiary_id
        OR v_existing.gross_amount IS DISTINCT FROM p_gross
@@ -388,16 +419,16 @@ BEGIN
 
   IF v_existing.id IS NULL THEN
     INSERT INTO public.settlement_transactions(
-      id,tenant_id,beneficiary_type,beneficiary_id,gross_amount,platform_fee,net_payout,voucher_reserve,
+      id,tenant_id,business_id,beneficiary_type,beneficiary_id,gross_amount,platform_fee,net_payout,voucher_reserve,
       payout_channel,journal_entry_id,status,reference_id
     )
     VALUES(
-      p_id,p_tenant_id,p_beneficiary_type,p_beneficiary_id,p_gross,p_platform_fee,p_net,p_voucher,
+      p_id,p_tenant_id,p_business_id,p_beneficiary_type,p_beneficiary_id,p_gross,p_platform_fee,p_net,p_voucher,
       coalesce(p_channel,'BANK_TRANSFER'),v_je_id,'SETTLED',p_reference_id
     );
   ELSE
     UPDATE public.settlement_transactions
-    SET gross_amount=p_gross,platform_fee=p_platform_fee,net_payout=p_net,voucher_reserve=p_voucher,
+    SET business_id=p_business_id,gross_amount=p_gross,platform_fee=p_platform_fee,net_payout=p_net,voucher_reserve=p_voucher,
         payout_channel=coalesce(p_channel,payout_channel),journal_entry_id=v_je_id,status='SETTLED',reference_id=p_reference_id
     WHERE id=p_id;
   END IF;
