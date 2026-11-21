@@ -203,10 +203,13 @@ BEGIN
     END IF;
   END IF;
 
-  IF p_beneficiary_type NOT IN ('PARTNER','MERCHANT') THEN RAISE EXCEPTION 'INVALID_BENEFICIARY_TYPE'; END IF;
+  IF p_beneficiary_type IS NULL OR p_beneficiary_type NOT IN ('PARTNER','MERCHANT') THEN RAISE EXCEPTION 'INVALID_BENEFICIARY_TYPE'; END IF;
   IF p_beneficiary_id IS NULL OR p_beneficiary_id='' THEN RAISE EXCEPTION 'BENEFICIARY_REQUIRED'; END IF;
   IF p_beneficiary_type='MERCHANT' AND p_business_id IS NULL THEN RAISE EXCEPTION 'BUSINESS_SCOPE_REQUIRED'; END IF;
-  IF p_gross < 0 OR p_platform_fee < 0 OR p_net < 0 OR p_voucher < 0 THEN RAISE EXCEPTION 'INVALID_SETTLEMENT_AMOUNT'; END IF;
+  IF p_gross IS NULL OR p_platform_fee IS NULL OR p_net IS NULL OR p_voucher IS NULL
+     OR p_gross < 0 OR p_platform_fee < 0 OR p_net < 0 OR p_voucher < 0 THEN
+    RAISE EXCEPTION 'INVALID_SETTLEMENT_AMOUNT';
+  END IF;
   IF round(p_gross,2) <> round(p_platform_fee+p_net+p_voucher,2) THEN RAISE EXCEPTION 'SETTLEMENT_BREAKDOWN_MISMATCH'; END IF;
   IF p_beneficiary_type='PARTNER' AND round(p_net+p_voucher,2)<>round(p_gross,2) THEN RAISE EXCEPTION 'PARTNER_SETTLEMENT_MUST_EQUAL_GROSS'; END IF;
   IF p_beneficiary_type='MERCHANT' AND p_voucher<>0 THEN RAISE EXCEPTION 'MERCHANT_VOUCHER_MUST_BE_ZERO'; END IF;
@@ -219,7 +222,13 @@ BEGIN
   IF FOUND THEN
     IF v_existing.tenant_id IS DISTINCT FROM p_tenant_id
        OR v_existing.beneficiary_type IS DISTINCT FROM p_beneficiary_type
-       OR v_existing.beneficiary_id IS DISTINCT FROM p_beneficiary_id THEN
+       OR v_existing.beneficiary_id IS DISTINCT FROM p_beneficiary_id
+       OR v_existing.gross_amount IS DISTINCT FROM p_gross
+       OR v_existing.platform_fee IS DISTINCT FROM p_platform_fee
+       OR v_existing.net_payout IS DISTINCT FROM p_net
+       OR v_existing.voucher_reserve IS DISTINCT FROM p_voucher
+       OR (p_channel IS NOT NULL AND v_existing.payout_channel IS DISTINCT FROM p_channel)
+       OR v_existing.reference_id IS DISTINCT FROM p_reference_id THEN
       RAISE EXCEPTION 'SETTLEMENT_IDENTITY_MISMATCH';
     END IF;
     IF v_existing.journal_entry_id IS NOT NULL AND NOT EXISTS (
