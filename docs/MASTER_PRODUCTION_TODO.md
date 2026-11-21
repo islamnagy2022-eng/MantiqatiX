@@ -4725,3 +4725,27 @@ Evidence: `docs/audits/PASS_1470_1479_ANONYMOUS_POLICY_MATRIX_20261120.md`; Issu
 - [ ] Run real-migration PostgreSQL integration, full chronological replay and coordinated release gates.
 
 Evidence: `docs/audits/PASS_1480_1489_RC479_ANONYMOUS_AUTH_SESSION_GAP_20261120.md`; Issue #928.
+
+
+## 2026-11-21 execution checkpoint — current priorities
+
+### Completed source/test evidence
+- [x] PR #957 registry-backed Edge authorization candidate: 19/19 exact-head workflow runs passed, including directory consent, settlement authorization, Edge type-checks, Primary Catalog build, employee RBAC and dashboard browser E2E. Pages deploy jobs were skipped; source is not merged or deployed.
+- [x] Read-only Production ACL check for `public.create_settlement_and_post_journal`: postgres owns the function; only `service_role` has EXECUTE; anon/authenticated EXECUTE are false.
+- [x] Read-only Production directory inventory: 965 listings, 869 published with phone and address, 178 with secondary phone; no public/private contact-consent registry relation exists.
+
+### In progress — source PR #958
+- [ ] Complete exact-head CI for consolidated RC488–RC495.
+- [ ] Complete 75-version chronological replay from the captured Production schema checkpoint through RC495.
+- [ ] Validate the TEST-ONLY settlement-function ACL and platform-brand Storage policy overlays against read-only Production evidence. These files are disposable replay fixtures only and must never be applied to Production.
+- [ ] Close duplicate PR #959 and superseded RC495 PR only after the consolidated PR #958 exact-head CI passes and all fixes are confirmed present.
+
+### P0 Production blockers — operator/release gate
+- [ ] Resolve directory contact privacy exposure through coordinated RC472/RC473 migration + full Edge bundle deployment. Production currently has 869 published records containing phone and address and no consent registry. No deployment before backup/restore gate.
+- [ ] Capture encrypted database roles/schema/data and Storage object exports; verify hashes/decryption and off-site retrieval from a second trusted environment.
+- [ ] Recover/recreate Vault secrets using the official process without exposing values; verify all dependent functions.
+- [ ] Complete independent disposable PostgreSQL 17 restore/rollback rehearsal; measure and record RPO/RTO and obtain independent review.
+- [ ] Reconcile exact 75-version migration inventory, current live ledger, Edge Function bodies/versions/owners/ACL/search_path, Auth, Storage, RLS and grants.
+- [ ] Obtain explicit release-window approval; then deploy the coordinated DB + Edge bundle and run positive/negative tenant, privacy, Auth, settlement, payment and Storage tests.
+
+**Disposition: SOURCE VALIDATION IN PROGRESS / PRODUCTION BLOCKED / NOT CERTIFIED.** No Production migration, Edge deployment, permission change, payment mutation or customer-data change is authorized by this checkpoint.
