@@ -53,6 +53,11 @@ WHERE NOT EXISTS (
   WHERE c.tenant_id=v.tenant_id AND c.account_code=v.account_code
 );
 
+UPDATE public.chart_of_accounts
+SET is_active=true
+WHERE tenant_id IN ('MNTY-PLATFORM','RC494-TENANT')
+  AND account_code IN ('2010','1020','2050','5030');
+
 INSERT INTO public.journal_entries
   (id,tenant_id,organization_id,business_id,branch_id,entry_number,reference_type,reference_id,
    description,status,total_debit,total_credit,entry_date,posted_at,created_by)
