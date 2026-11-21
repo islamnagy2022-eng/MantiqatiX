@@ -4738,7 +4738,7 @@ Evidence: `docs/audits/PASS_1480_1489_RC479_ANONYMOUS_AUTH_SESSION_GAP_20261120.
 - [ ] Complete exact-head CI for consolidated RC488–RC495.
 - [ ] Complete 75-version chronological replay from the captured Production schema checkpoint through RC495.
 - [ ] Validate the TEST-ONLY settlement-function ACL and platform-brand Storage policy overlays against read-only Production evidence. These files are disposable replay fixtures only and must never be applied to Production.
-- [ ] Close duplicate PR #959 and superseded RC495 PR only after the consolidated PR #958 exact-head CI passes and all fixes are confirmed present.
+- [x] Close duplicate PR #959 and superseded regex-only PR #950 after confirming their unique RC492 test/workflow fixes and RC495 registry-backed repair are represented in PR #958. Neither PR was merged.
 
 ### P0 Production blockers — operator/release gate
 - [ ] Resolve directory contact privacy exposure through coordinated RC472/RC473 migration + full Edge bundle deployment. Production currently has 869 published records containing phone and address and no consent registry. No deployment before backup/restore gate.
