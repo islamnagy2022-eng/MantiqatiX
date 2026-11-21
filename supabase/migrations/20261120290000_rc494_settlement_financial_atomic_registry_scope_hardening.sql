@@ -349,6 +349,11 @@ BEGIN
   FOR UPDATE;
 
   IF FOUND THEN
+    IF v_existing.status IS DISTINCT FROM 'PENDING'
+       AND v_existing.status IS DISTINCT FROM 'SETTLED' THEN
+      RAISE EXCEPTION 'SETTLEMENT_NOT_RETRYABLE';
+    END IF;
+
     IF v_existing.tenant_id IS DISTINCT FROM p_tenant_id
        OR v_existing.business_id IS DISTINCT FROM p_business_id
        OR v_existing.beneficiary_type IS DISTINCT FROM p_beneficiary_type
