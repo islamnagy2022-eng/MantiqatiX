@@ -3682,3 +3682,31 @@ Corrected anonymous Auth security chain: RC488–RC492 now fail closed if `is_an
 ## 2026-11-20 — Pass 1511–1515 — CI refresh
 
 PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable PostgreSQL integration, static validation, migration-version validation, cross-PR collision guard, migration-history immutability and forward-chain replay all passed. Overall 16 successful, 2 skipped (deploy/public-only), 0 failed, 12 queued at inspection. PR #946 exact head had 29 queued and 1 skipped, with no failures reported at inspection. No merge or Production deployment. Continue polling and reviewing remaining exact-head checks.
+
+
+## 2026-11-21 — SESSION — Pass 1536–1545 — directory consent fetch exception hardening
+
+- User instruction: continue MantiqaTix toward a secure production release; preserve existing UI and mobile assets.
+- Rechecked canonical TODO/continuity, GitHub main, live Supabase migration ledger, Edge Function inventory, Security Advisor and P0 issue #876.
+- Verified current Production ledger: 310 migrations through `20261110150618`; RC472/RC473 absent. Live `directory-listings` ACTIVE v16; deployed bundle lacks the consent-aware sanitizer/pagination modules present in main. No Production write was attempted.
+- Inspected RC473 consent migration, public projection sanitizer, contact/address pagination helpers, endpoint and owner UI. Found address-consent pagination did not catch a rejected fetch promise, unlike contact-scope pagination. This could propagate an unhandled runtime/network failure instead of the helper's explicit fail-closed `ready:false` response.
+- Implemented a source-only fix on `fix/directory-address-consent-fetch-exception-guard-20261121`: catch fetch exceptions, discard any partial consent IDs, return `{ ids: [], ready: false }`.
+- Added a regression case where the first page succeeds and the second page throws. Opened draft PR #952: https://github.com/islamnagy2022-eng/MantiqatiX/pull/952.
+- Exact-PR CI was not yet visible at checkpoint; no test pass or merge is claimed.
+- No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge deployment, payment, or customer-data mutation occurred.
+- Remaining blockers: verified encrypted off-site DB/Storage backup and independent PostgreSQL 17 restore/rollback; RC472/RC473 migration + complete Edge bundle coordinated release; explicit source-republication rights policy; itemized Security Advisor review; post-deployment consent positive/negative checks.
+- Next: inspect PR #952 exact-head checks, resolve failures, merge only when green, then proceed to operator-owned backup/restore and coordinated release planning. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-21 — Pass 1546–1555 — post-merge directory privacy guard and live release recheck
+
+- Verified exact-head CI for source commit `43bf69244a9a798ffb53a3c8ccf4ac4e282cb7e5`: eight associated workflows all completed successfully. Directory Contact Consent source contract, Deno type-check, frontend build/type-check and isolated PostgreSQL assertions passed. Primary Catalog Frontend Validation browser E2E, employee RBAC PostgreSQL integration and privacy/release validators passed.
+- Pages workflow `deploy` and `validate_public_only` were skipped; no Production web or Edge deploy is inferred.
+- Merged PR #952 to main as `3084283da8e83c9f216631248b3a06a0e5ca3431`. The address-consent pagination helper now catches thrown fetch errors, discards partial consent IDs and returns fail-closed `ready:false`.
+- Live Supabase read-only recheck: 310 migrations through `20261110150618`; RC472/RC473 absent; `directory-listings` remains ACTIVE v16 with deployed bundle hash `13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0`, and no consent sanitizer/helpers.
+- Read-only SQL confirmed no direct anon/authenticated SELECT or INSERT grants on the 9 RLS-enabled/no-policy tables. Eight FORCE RLS; `digital_page_payment_events` does not, but has no direct browser-role SELECT/INSERT grants. The public targeted-ad SECURITY DEFINER function is read-only, has empty search_path, and returns only active/approved/time-valid ads with a bounded limit; no blanket revoke.
+- No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge deployment, payment or customer-data mutation.
+- Remaining: operator-owned encrypted DB/Storage backup and off-site retrieval; Vault recovery; independent PostgreSQL 17 restore/rollback and measured RPO/RTO; coordinated RC472/RC473 + full directory Edge bundle and positive/negative live consent tests; scoped review of anonymous-session policies and SECURITY DEFINER routines.
+- PR #951's docs branch is one commit behind and diverged from main; a fresh docs branch is being prepared instead of force-merging.
+
+**Disposition: SOURCE FIX MERGED / CI PASS; PRODUCTION BLOCKED / NOT CERTIFIED.**
