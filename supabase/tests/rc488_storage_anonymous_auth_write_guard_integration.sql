@@ -34,20 +34,17 @@ BEGIN
     (v_anon_profile,'FREELANCER',v_anon,'RC488 anonymous fixture','rc488-anon-fixture','ACTIVE'),
     (v_owner_profile,'FREELANCER',v_owner,'RC488 confirmed fixture','rc488-owner-fixture','ACTIVE');
 
-  INSERT INTO storage.objects(id,bucket_id,name,owner,owner_id,metadata,path_tokens)
+  INSERT INTO storage.objects(id,bucket_id,name,owner,owner_id,metadata)
   VALUES
     ('48800000-0000-4000-8000-000000000101','mantiqatix-profile-media',
       'users/'||v_anon::text||'/providers/'||v_anon_profile::text||'/cover.jpg',
-      v_anon,v_anon::text,'{"mimetype":"image/jpeg","size":10}'::jsonb,
-      ARRAY['users',v_anon::text,'providers',v_anon_profile::text,'cover.jpg']),
+      v_anon,v_anon::text,'{"mimetype":"image/jpeg","size":10}'::jsonb),
     ('48800000-0000-4000-8000-000000000102','mantiqatix-profile-media',
       'users/'||v_owner::text||'/providers/'||v_owner_profile::text||'/cover.jpg',
-      v_owner,v_owner::text,'{"mimetype":"image/jpeg","size":10}'::jsonb,
-      ARRAY['users',v_owner::text,'providers',v_owner_profile::text,'cover.jpg']),
+      v_owner,v_owner::text,'{"mimetype":"image/jpeg","size":10}'::jsonb),
     ('48800000-0000-4000-8000-000000000103','mantiqatix-media',
       'users/'||v_anon::text||'/private-fixture.jpg',
-      v_anon,v_anon::text,'{"mimetype":"image/jpeg","size":10}'::jsonb,
-      ARRAY['users',v_anon::text,'private-fixture.jpg']);
+      v_anon,v_anon::text,'{"mimetype":"image/jpeg","size":10}'::jsonb);
 END;
 $fixture$;
 
