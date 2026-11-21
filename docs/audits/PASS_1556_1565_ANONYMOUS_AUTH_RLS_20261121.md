@@ -60,6 +60,11 @@ A read-only catalog inventory found:
 
 This is an inventory, not a blanket vulnerability finding. No blanket GRANT revocation or search-path rewrite was made. Continue reviewing function bodies, object qualification and effective privileges individually.
 
+Additional read-only check:
+- `anon` and `authenticated` both have database TEMP privilege.
+- For the 30 SECURITY DEFINER functions configured with exactly `search_path=public` (without an explicit `pg_temp` entry), a catalog/body scan found no unqualified references to existing public tables. The 17 functions whose configured path includes `pg_temp` place it after `public`.
+- This check reduces the immediate temp-table-shadowing concern for the inspected functions; it does not replace a per-function review of all names, types, operators, casts, dynamic SQL, ownership and effective ACLs.
+
 ## 5. CI and release status
 
 - A dedicated RC492 PostgreSQL 16 workflow was added.
