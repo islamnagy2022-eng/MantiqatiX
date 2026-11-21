@@ -1,3 +1,37 @@
+# Latest continuation checkpoint — 2026-11-21 — Pass 1546–1555
+
+**Current main:** `3084283da8e83c9f216631248b3a06a0e5ca3431`  
+**Latest source merge:** PR #952, directory address-consent fetch exception fail-closed guard.  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.  
+**Production mutation policy:** read-only until verified backup/restore and coordinated DB/Edge release.
+
+- Exact PR-head CI: 8/8 associated workflow runs completed successfully. Directory consent source contract, Deno check, PostgreSQL integration, frontend build/type-check, and catalog browser/RBAC validations passed.
+- Pages workflow's `deploy` and `validate_public_only` jobs were skipped. Do not claim a Production deployment.
+- Live Supabase: 310 migrations through `20261110150618`; RC472/RC473 absent. Directory Edge ACTIVE v16 still lacks current-main consent modules; deployed hash `13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0`.
+- Read-only privilege check: all 9 RLS-enabled/no-policy tables have no direct anon/authenticated SELECT or INSERT grants. Eight have FORCE RLS; `digital_page_payment_events` does not, but has no direct browser-role SELECT/INSERT grants. The public targeted-ad SECURITY DEFINER RPC is read-only, empty-search_path, and constrained to active/approved/time-valid ads; no blanket revoke was made.
+- Remaining high-priority gates: operator-owned encrypted DB + Storage backup, off-site retrieval, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO; then coordinated RC472/RC473 + full Edge bundle deployment and consent E2E.
+- PR #951's documentation branch is one commit behind main and diverged. It was not force-merged; a fresh docs branch is being prepared.
+
+**Next:** continue source/CI work and dependency-ordered release preparation. No Production mutation occurred in this pass.
+
+---
+
+## Latest execution checkpoint — Pass 1536–1545 — 2026-11-21
+
+- Revalidated the live directory privacy blocker: Production migration ledger has 310 rows through `20261110150618`; RC472/RC473 are absent. Live `directory-listings` remains ACTIVE v16 and does not include the current-main contact/address consent modules.
+- Inspected RC473 migration, public output sanitizer, address/contact pagination helpers, consent endpoint and frontend owner controls.
+- Found a fail-closed consistency gap: address-consent pagination handled PostgREST error objects and malformed responses but did not catch a rejected fetch promise. A later-page network/runtime exception could bubble out rather than return `ready:false`.
+- Proposed fix on branch `fix/directory-address-consent-fetch-exception-guard-20261121`: catch fetch exceptions, discard all partial IDs and return `{ ids: [], ready: false }`.
+- Added a regression test for first-page success followed by a thrown second-page fetch.
+- Draft PR [#952](https://github.com/islamnagy2022-eng/MantiqatiX/pull/952) opened with two source/test files.
+- Focused Node 22 helper execution passed for capped pagination, thrown-fetch fail-closed, returned-error fail-closed and partial-ID discard.
+- Exact-PR CI has not yet been observed; do not treat as passed.
+- No Production mutation. Directory privacy, RC472/RC473 migration and Edge release, verified backup/restore, source-republication rights, and broader platform certification remain blocked.
+
+**Next:** inspect PR #952 checks, fix any failures, merge only after exact-head green checks; then continue coordinated backup/restore and directory Edge release preparation. Preserve existing UI and Android/mobile assets.
+
+---
+
 ## Pass 1490–1499 — RC479 anonymous Auth-session forward guard merged — 2026-11-20
 
 - PR [#938](https://github.com/islamnagy2022-eng/MantiqatiX/pull/938) merged to `main` as `436b7a5a4aa12aa979f5ea4b52b9ce9d3971a046`.
