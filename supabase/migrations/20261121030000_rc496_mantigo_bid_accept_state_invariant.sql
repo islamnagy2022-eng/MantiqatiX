@@ -94,6 +94,14 @@ BEGIN
   IF v_accepted_bid_id IS NOT NULL THEN
     RAISE EXCEPTION 'RIDE_ACCEPTANCE_STATE_MISMATCH';
   END IF;
+  -- Refuse to create a second winner if legacy/corrupt state already contains an
+  -- ACCEPTED bid while the ride row is still OPEN and accepted_bid_id is NULL.
+  IF EXISTS (
+    SELECT 1 FROM public.mantigo_bids b
+    WHERE b.ride_id=p_ride_id AND b.status='ACCEPTED'
+  ) THEN
+    RAISE EXCEPTION 'RIDE_ACCEPTANCE_STATE_MISMATCH';
+  END IF;
 
   SELECT b.status,b.captain_id,b.offered_price
     INTO v_bid_status,v_captain,v_price
