@@ -120,7 +120,6 @@ USING(
 WITH CHECK(
   bucket_id='mantiqatix-profile-media'
   AND split_part(name,'/',2)=auth.uid()::text
-  AND name ~ '^users/[0-9a-fA-F-]{36}/providers/[0-9a-fA-F-]{36}/(cover|logo)\.(jpg|jpeg|png|webp)$'
   AND EXISTS(
     SELECT 1 FROM public.marketing_provider_profiles p
     WHERE p.id=(split_part(objects.name,'/',4))::uuid
