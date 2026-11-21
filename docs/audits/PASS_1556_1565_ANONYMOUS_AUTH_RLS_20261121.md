@@ -82,3 +82,19 @@ Additional read-only check:
 5. Verify directory source/republication rights and all remaining P0 security controls.
 
 **Production gate: BLOCKED / NOT CERTIFIED.**
+
+## 7. Fresh Supabase Security Advisor snapshot
+
+Observed at `2026-11-21T03:40:07Z`:
+- 90 `auth_allow_anonymous_sign_ins` table findings.
+- 9 `rls_enabled_no_policy` findings (INFO).
+- 65 authenticated-executable SECURITY DEFINER findings.
+- 1 anon-executable SECURITY DEFINER finding.
+- 1 leaked-password-protection-disabled finding.
+
+Interpretation:
+- Supabase anonymous Auth users carry the `authenticated` database role, so the 90 policy warnings are not equivalent to 90 tables exposed to the raw `anon` database role. Each finding needs its own privilege and policy review.
+- Some tables already have restrictive policies that deny an explicit `is_anonymous=true` claim but use `COALESCE(..., false)` or equivalent logic that allows a missing claim. That is not the strict fail-closed contract used by RC488–RC493.
+- RC488–RC493 addresses only its explicitly scoped Storage, financial, medical, support, InDrive and private CRM tables. The remaining 90-finding inventory must be classified by sensitivity and intended anonymous-session product behavior; do not blanket-deny public catalog/profile browsing or blanket-revoke RPCs.
+- Leaked-password protection remains disabled. Treat as an Auth configuration remediation candidate; no Auth settings were changed.
+- The single anon-executable SECURITY DEFINER finding is the targeted-ad read RPC described above. Its body was inspected and remains read-only, empty-search_path, and limited to active/approved/time-valid ads. Do not revoke it without replacing the public ad experience.
