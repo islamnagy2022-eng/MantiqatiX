@@ -388,6 +388,23 @@ BEGIN
   EXCEPTION WHEN others THEN
     IF SQLERRM <> 'SETTLEMENT_IDENTITY_MISMATCH' THEN RAISE; END IF;
   END;
+
+  -- A settled transaction remains idempotently readable even if its COA accounts
+  -- are later made inactive; the function must not attempt to re-post or mutate it.
+  UPDATE public.chart_of_accounts
+  SET is_active=false
+  WHERE tenant_id='MNTY-PLATFORM'
+    AND account_code IN ('1020','2050','5030');
+
+  v_result := public.create_settlement_and_post_journal(
+    'RC494-PLATFORM-ROOT','MNTY-PLATFORM','PARTNER','partner-platform-root',
+    100,0,99,1,'BANK_TRANSFER','RC494-PLATFORM-ROOT',NULL,
+    'idempotent settled retry after account deactivation',
+    '49400000-0000-4000-8000-000000000001'
+  );
+  IF v_result->>'idempotent' IS DISTINCT FROM 'true' THEN
+    RAISE EXCEPTION 'RC494_SETTLED_RETRY_WITH_INACTIVE_ACCOUNTS_FAILED:%',v_result;
+  END IF;
 END;
 $rc494$;
 
