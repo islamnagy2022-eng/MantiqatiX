@@ -2,7 +2,7 @@
 
 - [x] Fixed release-gate omission: exact gate and reconciliation contract now both contain 74 chronologically ordered migration versions, including RC494.
 - [x] Integrated the RC492 Production-grant-faithful fixture, static validator, integration test and dedicated PostgreSQL 16 workflow into consolidated PR #958.
-- [x] Verified the disposable RC492 fixture grants authenticated DELETE on `indrive_requests` and SELECT on `indrive_bids` only; tests do not assert unauthorized INSERT/UPDATE calls.
+- [x] Verified the disposable RC492 fixture mirrors Production: authenticated SELECT + DELETE on `indrive_requests` and SELECT on `indrive_bids`; neither table grants authenticated INSERT/UPDATE, and bids do not grant DELETE.
 - [x] Fresh read-only Production query: 310 migration rows through `20261110150618`; 0/74 exact required versions applied; RC488–RC494 applied = 0.
 - [x] Recorded evidence in `docs/audits/PASS_1566_1575_RC488_RC494_CONSOLIDATION_20261121.md`.
 - [ ] Complete exact-head CI on PR #958, including RC492 PostgreSQL 16, migration collision/uniqueness/immutability and full forward replay; fix any failure before merge.
