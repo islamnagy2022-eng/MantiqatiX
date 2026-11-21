@@ -325,11 +325,11 @@ BEGIN
   IF p_beneficiary_type='PARTNER' AND round(p_net+p_voucher,2)<>round(p_gross,2) THEN RAISE EXCEPTION 'PARTNER_SETTLEMENT_MUST_EQUAL_GROSS'; END IF;
   IF p_beneficiary_type='MERCHANT' AND p_voucher<>0 THEN RAISE EXCEPTION 'MERCHANT_VOUCHER_MUST_BE_ZERO'; END IF;
 
-  -- Serialize retries by tenant + settlement ID. Without this lock, two first-time
+  -- Serialize retries by the settlement primary key. Without this lock, two first-time
   -- requests can both observe no row; one posts successfully while the other races
   -- through ON CONFLICT line inserts and then fails on the settlement primary key.
   PERFORM pg_catalog.pg_advisory_xact_lock(
-    pg_catalog.hashtextextended(p_tenant_id || ':' || p_id, 0)
+    pg_catalog.hashtextextended('settlement:' || p_id, 0)
   );
 
   SELECT id INTO v_account_2010 FROM public.chart_of_accounts WHERE tenant_id=p_tenant_id AND account_code='2010' AND is_active=true LIMIT 1;
