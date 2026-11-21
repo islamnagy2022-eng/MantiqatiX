@@ -4,6 +4,7 @@ BEGIN;
 INSERT INTO public.mantigo_rides(id,customer_id,status,accepted_bid_id)
 VALUES
  ('RC496-VALID','49600000-0000-4000-8000-000000000001','OPEN',NULL),
+ ('RC496-SUBMIT','49600000-0000-4000-8000-000000000001','OPEN',NULL),
  ('RC496-ACCEPTED','49600000-0000-4000-8000-000000000001','OPEN',NULL),
  ('RC496-REJECTED','49600000-0000-4000-8000-000000000001','OPEN',NULL),
  ('RC496-WITHDRAWN','49600000-0000-4000-8000-000000000001','OPEN',NULL),
@@ -32,7 +33,13 @@ VALUES
  ('RC496-STALE-OFFERED','RC496-STALE-WINNER','49600000-0000-4000-8000-000000000025',100,'OFFERED'),
  ('RC496-LEDGER-MISMATCH-BID','RC496-LEDGER-MISMATCH','49600000-0000-4000-8000-000000000026',120,'ACCEPTED'),
  ('RC496-DUPLICATE-WINNER-A','RC496-DUPLICATE-WINNER','49600000-0000-4000-8000-000000000027',100,'ACCEPTED'),
- ('RC496-DUPLICATE-WINNER-B','RC496-DUPLICATE-WINNER','49600000-0000-4000-8000-000000000028',110,'ACCEPTED');
+ ('RC496-DUPLICATE-WINNER-B','RC496-DUPLICATE-WINNER','49600000-0000-4000-8000-000000000028',110,'OFFERED');
+
+INSERT INTO public.mantigo_captain_profiles(
+  captain_id,status,verification_status,availability_status,vehicle_category,vehicle_model,vehicle_plate,rating
+) VALUES
+ ('49600000-0000-4000-8000-000000000029','ACTIVE','VERIFIED','AVAILABLE','SEDAN','Test Sedan','TEST-029',4.9),
+ ('49600000-0000-4000-8000-000000000030','ACTIVE','VERIFIED','AVAILABLE','SEDAN','Test Sedan 2','TEST-030',4.8);
 
 INSERT INTO public.mantigo_financial_ledger(
   id,ride_id,customer_id,captain_id,currency,gross_amount,commission_amount,
@@ -56,7 +63,58 @@ DECLARE
   v_expected text;
   v_pair text[];
   v_calls bigint;
+  v_captain uuid := '49600000-0000-4000-8000-000000000029';
+  v_bid_id text;
+  v_retry_id text;
 BEGIN
+  PERFORM pg_catalog.set_config('request.jwt.claim.sub',v_customer::text,true);
+
+  -- An active, verified and available captain may submit an OFFERED bid.
+  PERFORM pg_catalog.set_config('request.jwt.claim.sub',v_captain::text,true);
+  v_result:=public.create_mantigo_bid_backend(
+    v_captain,'RC496-SUBMIT','Test Captain','01000000029',5,
+    'SEDAN','Test Sedan','TEST-029',110,10,'first offer'
+  );
+  v_bid_id:=v_result->>'id';
+  IF v_result->>'status'<>'OFFERED' OR v_bid_id IS NULL THEN
+    RAISE EXCEPTION 'RC496 valid offer submission failed: %',v_result;
+  END IF;
+
+  -- The same captain can revise their existing non-accepted offer, without
+  -- creating a duplicate row or changing it into any terminal state.
+  v_result:=public.create_mantigo_bid_backend(
+    v_captain,'RC496-SUBMIT','Test Captain','01000000029',5,
+    'SEDAN','Test Sedan','TEST-029',115,12,'revised offer'
+  );
+  v_retry_id:=v_result->>'id';
+  IF v_retry_id IS DISTINCT FROM v_bid_id
+     OR (SELECT count(*) FROM public.mantigo_bids WHERE ride_id='RC496-SUBMIT' AND captain_id=v_captain)<>1
+     OR NOT EXISTS (
+       SELECT 1 FROM public.mantigo_bids
+       WHERE id=v_bid_id AND status='OFFERED' AND offered_price=115 AND eta_minutes=12
+     ) THEN
+    RAISE EXCEPTION 'RC496 offer resubmission did not safely revise the existing OFFERED bid';
+  END IF;
+
+  -- The offer writer must reject an inconsistent open ride that already carries
+  -- an ACCEPTED bid row; it must not add another offer or reopen a terminal winner.
+  v_error:=NULL;
+  BEGIN
+    PERFORM public.create_mantigo_bid_backend(
+      v_captain,'RC496-STALE-WINNER','Test Captain','01000000029',5,
+      'SEDAN','Test Sedan','TEST-029',100,10,'stale winner attempt'
+    );
+  EXCEPTION WHEN OTHERS THEN
+    v_error:=SQLERRM;
+  END;
+  IF v_error IS DISTINCT FROM 'RIDE_NOT_OPEN_OR_VEHICLE_MISMATCH' THEN
+    RAISE EXCEPTION 'RC496 offer on stale accepted ride expected denial, got %',v_error;
+  END IF;
+  IF (SELECT status FROM public.mantigo_bids WHERE id='RC496-STALE-ACCEPTED')<>'ACCEPTED'
+     OR (SELECT status FROM public.mantigo_bids WHERE id='RC496-STALE-OFFERED')<>'OFFERED' THEN
+    RAISE EXCEPTION 'RC496 offer writer mutated stale accepted bid state';
+  END IF;
+
   PERFORM pg_catalog.set_config('request.jwt.claim.sub',v_customer::text,true);
 
   -- Actor mismatch cannot be used to accept a bid on another user's behalf.
@@ -181,21 +239,24 @@ BEGIN
     RAISE EXCEPTION 'RC496 same-winner retry was not idempotent: %',v_result;
   END IF;
 
-  -- An accepted ride with two ACCEPTED bid rows is inconsistent; neither
-  -- retry nor fare lock may create a financial row for that corrupt winner state.
+  -- The database-level partial unique index is a second line of defense for
+  -- every writer, not only the canonical RPC. A second accepted bid cannot exist.
   v_error:=NULL;
   BEGIN
-    PERFORM public.accept_mantigo_bid_backend(
-      v_customer,'RC496-DUPLICATE-WINNER','RC496-DUPLICATE-WINNER-A'
-    );
-  EXCEPTION WHEN OTHERS THEN
-    v_error:=SQLERRM;
+    UPDATE public.mantigo_bids
+    SET status='ACCEPTED'
+    WHERE id='RC496-DUPLICATE-WINNER-B';
+  EXCEPTION WHEN unique_violation THEN
+    v_error:='unique_violation';
   END;
-  IF v_error IS DISTINCT FROM 'RIDE_ACCEPTANCE_STATE_MISMATCH' THEN
-    RAISE EXCEPTION 'RC496 duplicate accepted bids expected state mismatch, got %',v_error;
+  IF v_error IS DISTINCT FROM 'unique_violation'
+     OR (SELECT count(*) FROM public.mantigo_bids
+         WHERE ride_id='RC496-DUPLICATE-WINNER' AND status='ACCEPTED')<>1
+     OR (SELECT status FROM public.mantigo_bids WHERE id='RC496-DUPLICATE-WINNER-B')<>'OFFERED' THEN
+    RAISE EXCEPTION 'RC496 partial unique index failed to enforce one accepted bid per ride';
   END IF;
   IF EXISTS (SELECT 1 FROM public.mantigo_financial_ledger WHERE ride_id='RC496-DUPLICATE-WINNER') THEN
-    RAISE EXCEPTION 'RC496 duplicate accepted bids created a financial ledger row';
+    RAISE EXCEPTION 'RC496 unique-index rejection created a financial ledger row';
   END IF;
 
   -- The same accepted bid cannot reuse a financial ledger row bound to a
