@@ -38,15 +38,6 @@ function isActive(membership, tenantId) {
     String(membership.status ?? "").toUpperCase() === "ACTIVE";
 }
 
-function isPlatformSuperAdmin(membership) {
-  const permissions = membership?.permissions ?? {};
-  return String(membership?.role ?? "").toUpperCase() === "SUPER_ADMIN" &&
-    normalizedId(membership?.business_id) === null &&
-    normalizedId(membership?.branch_id) === null &&
-    permissions?.scope === "PLATFORM" &&
-    String(permissions?.full_control).toLowerCase() === "true";
-}
-
 /**
  * Decide whether a verified actor may create a settlement for this tenant/business.
  * The Edge Function must load memberships for the authenticated user only and order
@@ -68,14 +59,18 @@ function isPlatformSuperAdmin(membership) {
  * @param {{
  *   tenantId: string,
  *   businessId?: string | null,
- *   memberships?: SettlementMembership[]
+ *   memberships?: SettlementMembership[],
+ *   isPlatformAdmin?: boolean
  * }} input
  * @returns {boolean}
  */
-export function hasSettlementAuthority({ tenantId, businessId = null, memberships = [] }) {
+export function hasSettlementAuthority({ tenantId, businessId = null, memberships = [], isPlatformAdmin = false }) {
   const tenant = normalizedId(tenantId);
   const business = normalizedId(businessId);
   if (!tenant || !Array.isArray(memberships)) return false;
+
+  // MNTY-PLATFORM is a root-only tenant. Membership metadata never grants this scope.
+  if (tenant === "MNTY-PLATFORM") return isPlatformAdmin === true;
 
   const active = memberships.filter((membership) => isActive(membership, tenant));
   if (!active.length) return false;
@@ -90,8 +85,6 @@ export function hasSettlementAuthority({ tenantId, businessId = null, membership
   })[0];
   if (!DATABASE_FINANCE_ROLES.has(String(earliest?.role ?? "").toUpperCase())) return false;
 
-  if (tenant === "MNTY-PLATFORM" && active.some(isPlatformSuperAdmin)) return true;
-
   if (business) {
     return active.some((membership) =>
       normalizedId(membership.business_id) === business &&
@@ -101,7 +94,6 @@ export function hasSettlementAuthority({ tenantId, businessId = null, membership
   }
 
   // A tenant-wide settlement must never be authorized by a business-level role.
-  if (tenant === "MNTY-PLATFORM") return false;
   return active.some((membership) =>
     normalizedId(membership.business_id) === null &&
     normalizedId(membership.branch_id) === null &&
