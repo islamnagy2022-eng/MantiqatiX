@@ -71,3 +71,35 @@ Disposition: R7 remains reference-only. Do not wholesale merge or deploy it. No 
 6. Keep Production blocked until coordinated release approval and post-deployment live verification.
 
 **Status: BLOCKED / NOT CERTIFIED.**
+
+---
+
+## PASS 1526–1535 — exact-head RC493 and live parity recheck — 2026-11-21
+
+### Verified GitHub Actions evidence
+
+The RC493 head `5a475124cb6076f21940a64334ea94f5751f6395` on the private CRM/notification guard workstream was checked directly.
+
+- Workflow run [44823050590](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44823050590) — RC493 private-read PostgreSQL integration: **SUCCESS**. Static contract, isolated fixture, and forward migration steps passed.
+- Workflow run [44823050369](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44823050369) — forward migration chain replay: **SUCCESS**. The workflow restored its captured checkpoint and applied the candidate chain in timestamp order; its strict 67-version release-gate contract passed.
+- Workflow run [44823050284](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44823050284) — open-PR migration collision guard: **SUCCESS**.
+- Workflow run [44823050526](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44823050526) — migration version uniqueness: **SUCCESS**.
+- Workflow run [44823050285](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44823050285) — migration history immutability: **SUCCESS**.
+- Workflow run [44823050376](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44823050376) — web validation: **SUCCESS**; the `validate_public_only` and `deploy` jobs were **SKIPPED**. This is not a production deployment.
+
+These results are exact-head CI evidence for the referenced commit/workflows only. They do not prove Production migration application, backup/restore, or full platform certification.
+
+### Fresh live Supabase inventory
+
+- Project `moyhiluyhjsujhwlyeuu`: ACTIVE_HEALTHY, PostgreSQL 17.6.1.
+- Migration ledger: 310 rows; latest `20261110150618`. RC472/RC473 remain absent.
+- Edge Functions: 42 deployed functions.
+- `directory-listings`: ACTIVE v16, `verify_jwt=false`, deployed bundle SHA-256 `13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0`.
+- Current-main directory source imports consent-aware output sanitization and contact/address consent pagination modules; deployed v16 does not. This is a confirmed source/deployment mismatch and remains a P0 privacy release blocker.
+- Security Advisor snapshot remains 90 anonymous-auth warnings, 9 RLS-enabled/no-policy findings, 1 anon-executable SECURITY DEFINER, 65 authenticated-executable SECURITY DEFINER findings, and leaked-password protection disabled. Findings require scoped semantic review; no blanket policy or grant changes were made.
+
+### Production impact and next action
+
+No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge deployment, payment, or customer-data mutation was performed.
+
+Next: obtain and verify the operator-owned encrypted database and Storage backups, off-site retrieval, Vault recovery, independent PostgreSQL 17 restore/rollback, and measured RPO/RTO. Then rehearse the exact ordered migration chain with the complete compatible directory Edge bundle and consent regression tests. Keep the Production gate **BLOCKED / NOT CERTIFIED** until these gates and post-deployment checks are evidenced.
