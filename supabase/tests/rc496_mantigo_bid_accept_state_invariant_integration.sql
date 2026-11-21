@@ -153,7 +153,7 @@ BEGIN
   -- Wrong ride/bid pairing is indistinguishable from missing bid.
   v_error:=NULL;
   BEGIN
-    PERFORM public.accept_mantigo_bid_backend(v_customer,'RC496-VALID','RC496-DIFFERENT-BID');
+    PERFORM public.accept_mantigo_bid_backend(v_customer,'RC496-OWNER','RC496-DIFFERENT-BID');
   EXCEPTION WHEN OTHERS THEN
     v_error:=SQLERRM;
   END;
