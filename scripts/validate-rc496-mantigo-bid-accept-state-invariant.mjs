@@ -28,6 +28,7 @@ assert.match(fn, /WHERE id=p_bid_id AND ride_id=p_ride_id AND status='OFFERED'/,
 assert.match(fn, /GET DIAGNOSTICS v_rows = ROW_COUNT[\s\S]*?BID_ACCEPTANCE_RACE_LOST/, "state transition must check exact row count");
 assert.match(fn, /WHERE ride_id=p_ride_id AND status='OFFERED' AND id<>p_bid_id/, "only other OFFERED bids may be rejected");
 assert.match(fn, /accepted_bid_id IS NULL/, "an existing winner cannot be replaced");
+assert.match(fn, /b\\.status='ACCEPTED'[\\s\\S]*?RIDE_ACCEPTANCE_STATE_MISMATCH/, "a stale accepted bid must block a second winner when ride state is inconsistent");
 assert.match(fn, /public\.lock_mantigo_fare_backend\(p_user_id,p_ride_id\)/, "fare lock must be called after winner persistence");
 assert.match(fn, /v_status='ACCEPTED' AND v_accepted_bid_id=p_bid_id[\s\S]*?idempotent',true/, "same winning bid retry must be idempotent");
 assert.match(migration, /REVOKE ALL ON FUNCTION public\.accept_mantigo_bid_backend\(uuid,text,text\) FROM PUBLIC,anon/i);
