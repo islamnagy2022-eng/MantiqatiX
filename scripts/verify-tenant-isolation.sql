@@ -82,6 +82,9 @@ BEGIN
   SELECT count(*) INTO v_own_onboarding FROM public.provider_onboarding_requests WHERE tenant_id='MNTY-TEST-A';
   SELECT count(*) INTO v_cross_onboarding FROM public.provider_onboarding_requests WHERE tenant_id='MNTY-TEST-B';
 
+  RAISE NOTICE 'TENANT_A_COUNTS businesses=% orders=% payments=% onboarding=%',
+    v_own_businesses,v_own_orders,v_own_payments,v_own_onboarding;
+
   IF v_own_businesses=0 OR v_own_orders=0 OR v_own_payments=0 OR v_own_onboarding=0 THEN
     RAISE EXCEPTION 'E2E_FIXTURE_OWN_ROWS_NOT_VISIBLE_TO_TENANT_A';
   END IF;
