@@ -5,7 +5,9 @@
 - Found a fail-closed consistency gap: address-consent pagination handled PostgREST error objects and malformed responses but did not catch a rejected fetch promise. A later-page network/runtime exception could bubble out rather than return `ready:false`.
 - Proposed fix on branch `fix/directory-address-consent-fetch-exception-guard-20261121`: catch fetch exceptions, discard all partial IDs and return `{ ids: [], ready: false }`.
 - Added a regression test for first-page success followed by a thrown second-page fetch.
-- Draft PR [#952](https://github.com/islamnagy2022-eng/MantiqatiX/pull/952) opened with two source/test files. Exact-PR CI has not yet been observed; do not treat as passed.
+- Draft PR [#952](https://github.com/islamnagy2022-eng/MantiqatiX/pull/952) opened with two source/test files.
+- Focused Node 22 helper execution passed for capped pagination, thrown-fetch fail-closed, returned-error fail-closed and partial-ID discard.
+- Exact-PR CI has not yet been observed; do not treat as passed.
 - No Production mutation. Directory privacy, RC472/RC473 migration and Edge release, verified backup/restore, source-republication rights, and broader platform certification remain blocked.
 
 **Next:** inspect PR #952 checks, fix any failures, merge only after exact-head green checks; then continue coordinated backup/restore and directory Edge release preparation. Preserve existing UI and Android/mobile assets.
