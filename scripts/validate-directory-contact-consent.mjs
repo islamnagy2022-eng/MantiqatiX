@@ -12,6 +12,7 @@ import { collectActiveAddressConsentIds } from "../supabase/functions/directory-
 import { collectActiveContactConsentScopes } from "../supabase/functions/directory-listings/contact-consent-pagination.mjs";
 
 const source = readFileSync("supabase/functions/directory-listings/index.ts", "utf8");
+const ownedListingUpdate = source.split('if (action === "UPDATE_OWNED_LISTING")')[1]?.split('\n  if (action === "')[0] || "";
 const migration = readFileSync("supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql", "utf8");
 const ui = readFileSync("apps/catalog-frontend/src/components/DirectoryListingsView.tsx", "utf8");
 const client = readFileSync("apps/catalog-frontend/src/lib/directoryListings.ts", "utf8");
@@ -287,8 +288,12 @@ const checks = [
     source.includes('.eq("user_id", user.id)') &&
     source.includes('.eq("status", "ACTIVE")') &&
     source.includes('.in("role", ["BUSINESS_OWNER", "OWNER"])')],
-  ["branch-scoped memberships cannot inspect or change business-level contact consent",
-    (source.match(/\.is\("branch_id", null\)/g) || []).length === 2],
+  ["business-level directory owner checks consistently exclude branch-scoped memberships",
+    (source.match(/\.is\("branch_id", null\)/g) || []).length === 3],
+  ["branch-scoped memberships cannot update a business-level directory listing",
+    ownedListingUpdate.includes('.is("branch_id", null)') &&
+    ownedListingUpdate.includes('.eq("business_id", listing.claimed_business_id)') &&
+    ownedListingUpdate.includes('.in("role", ["BUSINESS_OWNER","OWNER"])')],
   ["consent grant ignores caller-supplied actor identity and persists auth.uid-derived user.id",
     source.includes("consented_by: user.id") &&
     !source.includes("consented_by: body.") &&
