@@ -111,7 +111,8 @@ Deno.serve(async (req: Request) => {
           isOwner = data.claim_status === "CLAIMED" && String(data.claimed_user_id || "") === String(viewer.id);
           if (!isOwner && data.claim_status === "CLAIMED" && data.claimed_business_id) {
             const { data: memberships } = await service.from("user_memberships").select("id")
-              .eq("user_id", viewer.id).eq("business_id", data.claimed_business_id).eq("status", "ACTIVE")
+              .eq("user_id", viewer.id).eq("business_id", data.claimed_business_id)
+              .is("branch_id", null).eq("status", "ACTIVE")
               .in("role", ["BUSINESS_OWNER","OWNER"]).limit(1);
             isOwner = Boolean(memberships?.length);
           }
@@ -247,7 +248,8 @@ Deno.serve(async (req: Request) => {
     let authorized = String(listing.claimed_user_id || "") === String(user.id);
     if (!authorized && listing.claimed_business_id) {
       const { data: ownerMemberships, error: ownerError } = await service.from("user_memberships").select("id")
-        .eq("user_id", user.id).eq("business_id", listing.claimed_business_id).eq("status", "ACTIVE")
+        .eq("user_id", user.id).eq("business_id", listing.claimed_business_id)
+        .is("branch_id", null).eq("status", "ACTIVE")
         .in("role", ["BUSINESS_OWNER", "OWNER"]).limit(1);
       if (ownerError) return out(origin, { error: "OWNER_CHECK_FAILED" }, 500);
       authorized = Boolean(ownerMemberships?.length);
