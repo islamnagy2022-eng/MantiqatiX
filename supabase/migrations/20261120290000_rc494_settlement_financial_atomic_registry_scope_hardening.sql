@@ -380,7 +380,7 @@ BEGIN
         END
         AND je.reference_id IS NOT DISTINCT FROM coalesce(p_reference_id,p_id)
         AND je.entry_number IS NOT DISTINCT FROM 'JE-'||p_id
-        AND je.created_by IS NOT DISTINCT FROM p_actor_user_id
+        AND je.created_by IS NOT NULL
         AND je.total_debit IS NOT DISTINCT FROM (
           SELECT coalesce(sum(jel.debit),0)
           FROM public.journal_entry_lines jel WHERE jel.journal_entry_id=je.id
