@@ -1,3 +1,13 @@
+# Pass 1612–1620 — directory registry merge and RC494 retry diagnosis — 2026-11-21
+
+- Merged PR #957 to `main` at `adc7337f87ae7ac7f8c0d99fe0736aa7784bde9b` after all 15 exact-head workflows succeeded. Pages deployment jobs were skipped; no Production migration or Edge deployment occurred.
+- PR #958 exact-head chronological replay at commit `1387d5e2cda17cd7cfbd34958f96cd9b20ad440c` failed in the RC494 test. The failing exception was from the first platform-root idempotent retry, not the later inactive-account retry.
+- Added a diagnostic wrapper to that first retry in `a364cae1334bff2a520bafcb3de794049df8a90f`, capturing the underlying exception plus canonical COA IDs and journal line identity/amount/description data.
+- Exact-head CI for the diagnostic commit must be observed before claiming any new result. PR #958 is behind the new main and currently non-mergeable; reconcile it on a fresh branch after the failing test is understood. Do not force-merge.
+- Production remains read-only / BLOCKED / NOT CERTIFIED. No Production SQL, migration, Edge, Auth, RLS/GRANT, Storage, payment, wallet, settlement or customer-data mutation.
+
+---
+
 # MantiqatiX — Append-only Session Log
 
 This is the chronological handoff ledger for material project decisions and execution across ChatGPT sessions. The latest state is summarized in `docs/PROJECT_CONTINUITY.md`; the open work list is `docs/MASTER_PRODUCTION_TODO.md`.
