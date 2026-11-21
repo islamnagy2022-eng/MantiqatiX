@@ -1,3 +1,20 @@
+# Latest continuation checkpoint — 2026-11-21 — Pass 1586–1595
+
+**Consolidated candidate:** PR #958 now includes RC488–RC495; exact-head CI pending.  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.  
+**Production mutation policy:** read-only until verified backup/restore and coordinated DB/Edge release.
+
+- RC495 addresses five live Storage policy filename expressions and replaces membership-derived platform branding authorization with the canonical `mnty_can_platform_admin()` registry helper.
+- PR #950's proposed RC493 storage repair is not adopted because it retains direct membership-derived SUPER_ADMIN authorization. PR #958 carries a unique later RC495 timestamp.
+- The exact release migration contract, production verifier, gate validator and reconciliation manifest now contain 75 ordered versions. Fresh live query: 310 ledger rows through `20261110150618`; 0/75 required versions applied.
+- RC495 SQL test, source validator and full chronological replay are wired but exact-head CI has not yet passed.
+- RC492 test fixture mirrors live grants: authenticated SELECT+DELETE on `indrive_requests`, SELECT on `indrive_bids`; no authenticated INSERT/UPDATE grants are invented.
+- Evidence: `docs/audits/PASS_1586_1595_RC495_STORAGE_FILENAME_REGISTRY_REPAIR_20261121.md`.
+
+**Next:** verify RC495 static and PostgreSQL replay CI, RC492 PostgreSQL 16, and all exact-head PR #958 checks. Do not merge #950 or deploy any isolated Storage policy. No Production mutation or release certification.
+
+---
+
 # Latest continuation checkpoint — 2026-11-21 — Pass 1566–1575
 
 **Current main:** `3c41d49eda67564479a95c456d6987e3bac54e43`  
