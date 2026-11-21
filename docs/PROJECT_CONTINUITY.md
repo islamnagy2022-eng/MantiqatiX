@@ -1,3 +1,22 @@
+# Latest continuation checkpoint — 2026-11-21 — Pass 1566–1575
+
+**Current main:** `3c41d49eda67564479a95c456d6987e3bac54e43`  
+**Consolidated security PR:** [#958](https://github.com/islamnagy2022-eng/MantiqaTix/pull/958) — RC488–RC494; exact-head CI pending.  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.  
+**Production mutation policy:** read-only until verified backup/restore and coordinated DB/Edge release.
+
+- Corrected the exact release gate to 74 required migration versions; source and live reconciliation arrays both contain 74 timestamps in identical chronological order.
+- Consolidated PR #958 now includes RC488–RC494 and RC492's grant-faithful PostgreSQL 16 fixture/workflow. RC492 tests match Production's authenticated DELETE-only request grant and SELECT-only bid grant; no fake INSERT/UPDATE grant tests.
+- Fresh read-only Supabase query: 310 migration rows through `20261110150618`; 0/74 exact release versions applied; RC488–RC494 all absent.
+- PR #958 head: `1fb8945f41d38bbf3a535b2ef750417a87424f2f`; mergeable, but exact-head checks are pending. No new-head pass or merge is claimed.
+- No Production mutation was performed. Directory contact-consent, payment/finance, Edge parity, backup/restore, and Auth security configuration remain release blockers.
+
+**Next:** complete exact-head CI and fix any failures; continue scoped source/test work independently. Do not apply Production migrations or deploy mismatched Edge bundles until the coordinated backup, migration, and runtime gates pass.
+
+Evidence: `docs/audits/PASS_1566_1575_RC488_RC494_CONSOLIDATION_20261121.md`.
+
+---
+
 # Latest continuation checkpoint — 2026-11-21 — Pass 1546–1555
 
 **Current main:** `3084283da8e83c9f216631248b3a06a0e5ca3431`  
