@@ -172,6 +172,14 @@ BEGIN
     RAISE EXCEPTION 'RC496 missing bid expected RIDE_OR_BID_NOT_FOUND, got %',v_error;
   END IF;
 
+  -- Legacy acceptance/submission RPCs must remain revoked from browser roles.
+  IF pg_catalog.has_function_privilege('anon','public.mantigo_accept_bid(text,text)','EXECUTE')
+     OR pg_catalog.has_function_privilege('authenticated','public.mantigo_accept_bid(text,text)','EXECUTE')
+     OR pg_catalog.has_function_privilege('anon','public.mantigo_submit_bid(text,numeric,text,text,text,text)','EXECUTE')
+     OR pg_catalog.has_function_privilege('authenticated','public.mantigo_submit_bid(text,numeric,text,text,text,text)','EXECUTE') THEN
+    RAISE EXCEPTION 'RC496_LEGACY_BID_RPC_CLIENT_GRANT_FOUND';
+  END IF;
+
   -- Exact function grants and hardened SECURITY DEFINER search_path.
   IF pg_catalog.has_function_privilege('anon','public.accept_mantigo_bid_backend(uuid,text,text)','EXECUTE')
      OR NOT pg_catalog.has_function_privilege('authenticated','public.accept_mantigo_bid_backend(uuid,text,text)','EXECUTE') THEN
