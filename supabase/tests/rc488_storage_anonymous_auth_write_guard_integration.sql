@@ -48,6 +48,22 @@ BEGIN
 END;
 $fixture$;
 
+-- Supabase Storage intentionally blocks direct SQL DELETE. Disable only that
+-- statement-level API guard inside this disposable transaction so this test can
+-- isolate the RLS DELETE policy; it is re-enabled before the test rolls back.
+DO $disable_storage_delete_guard$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_catalog.pg_trigger
+    WHERE tgrelid='storage.objects'::regclass
+      AND tgname='protect_objects_delete'
+      AND NOT tgisinternal
+  ) THEN
+    ALTER TABLE storage.objects DISABLE TRIGGER protect_objects_delete;
+  END IF;
+END
+$disable_storage_delete_guard$;
+
 -- Anonymous Auth remains able to SELECT intentionally public provider media.
 SET LOCAL ROLE authenticated;
 SELECT pg_catalog.set_config(
@@ -86,13 +102,12 @@ BEGIN
 
   denied:=false;
   BEGIN
-    INSERT INTO storage.objects(bucket_id,name,owner,owner_id,metadata,path_tokens)
+    INSERT INTO storage.objects(bucket_id,name,owner,owner_id,metadata)
     VALUES ('mantiqatix-profile-media',
       'platform/branding/logo-999.jpg',
       '48800000-0000-4000-8000-000000000001'::uuid,
       '48800000-0000-4000-8000-000000000001',
-      '{"mimetype":"image/jpeg","size":10}'::jsonb,
-      ARRAY['platform','branding','logo-999.jpg']);
+      '{"mimetype":"image/jpeg","size":10}'::jsonb);
   EXCEPTION WHEN insufficient_privilege OR check_violation THEN
     denied:=true;
   END;
@@ -133,17 +148,29 @@ BEGIN
   GET DIAGNOSTICS n=ROW_COUNT;
   IF n <> 1 THEN RAISE EXCEPTION 'RC488_CONFIRMED_OWNER_DELETE_REGRESSED:%',n; END IF;
 
-  INSERT INTO storage.objects(bucket_id,name,owner,owner_id,metadata,path_tokens)
+  INSERT INTO storage.objects(bucket_id,name,owner,owner_id,metadata)
   VALUES ('mantiqatix-profile-media','platform/branding/logo-998.jpg',
     '48800000-0000-4000-8000-000000000002'::uuid,
     '48800000-0000-4000-8000-000000000002',
-    '{"mimetype":"image/jpeg","size":10}'::jsonb,
-    ARRAY['platform','branding','logo-998.jpg']);
+    '{"mimetype":"image/jpeg","size":10}'::jsonb);
   GET DIAGNOSTICS n=ROW_COUNT;
   IF n <> 1 THEN RAISE EXCEPTION 'RC488_CONFIRMED_ADMIN_INSERT_REGRESSED:%',n; END IF;
 END;
 $confirmed_owner$;
 RESET ROLE;
+
+DO $enable_storage_delete_guard$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_catalog.pg_trigger
+    WHERE tgrelid='storage.objects'::regclass
+      AND tgname='protect_objects_delete'
+      AND NOT tgisinternal
+  ) THEN
+    ALTER TABLE storage.objects ENABLE TRIGGER protect_objects_delete;
+  END IF;
+END
+$enable_storage_delete_guard$;
 
 -- Public role still reads public profile media, while private bucket remains unavailable.
 SET LOCAL ROLE anon;
