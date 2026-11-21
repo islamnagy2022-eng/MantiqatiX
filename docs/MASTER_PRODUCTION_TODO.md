@@ -6,6 +6,7 @@
 - [x] Identified an unhandled thrown exception in `collectActiveAddressConsentIds`: returned PostgREST errors failed closed, but a rejected network/runtime fetch could escape the helper instead of returning the same explicit not-ready state.
 - [x] Added a guarded fetch with partial-ID discard and a regression where the first page succeeds and a later page throws.
 - [x] Opened draft PR [#952](https://github.com/islamnagy2022-eng/MantiqatiX/pull/952), source/test-only, with 2 files changed.
+- [x] Focused Node 22 helper execution passed: capped pagination beyond 1,000 rows, thrown-fetch fail-closed, returned-error fail-closed and partial-ID discard.
 - [ ] Exact-PR Directory Contact Consent workflow, Deno check, PostgreSQL integration and frontend lint/build: NOT YET OBSERVED. No CI pass is claimed.
 - [ ] Review and merge PR #952 only after required checks pass.
 - [ ] Keep RC472/RC473 Production rollout blocked pending verified encrypted off-site DB/Storage backup, independent PostgreSQL 17 restore/rollback, source-permission policy decision, full Edge bundle parity and coordinated post-deploy consent tests.
