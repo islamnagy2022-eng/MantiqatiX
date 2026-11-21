@@ -229,7 +229,7 @@ RC484 and the other required migrations remain source-only until:
 - checksum/decryption verification passes;
 - isolated restore rehearsal passes with measured RPO/RTO;
 - rollback/recovery plan is approved;
-- the full ordered 75-version exact migration chain (including RC472/RC473 directory contact-consent foundation, RC485 catalog RPC registry-root, RC486 catalog price-version, RC487 SMM bootstrap hardening, RC488–RC493 anonymous-Auth guards, RC494 settlement registry/scope hardening, and RC495 Storage filename-policy repair) and live schema drift are reconciled;
+- the full ordered 76-version exact migration chain (including RC472/RC473 directory contact-consent foundation, RC485 catalog RPC registry-root, RC486 catalog price-version, RC487 SMM bootstrap hardening, RC488–RC493 anonymous-Auth guards, RC494 settlement registry/scope hardening, and RC495 Storage filename-policy repair, plus RC496 MantiGO OFFERED-only bid acceptance) and live schema drift are reconciled;
 - payment/finance/Edge/Auth/Storage acceptance is complete;
 - the release owner explicitly approves the Production window.
 
