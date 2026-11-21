@@ -3111,3 +3111,16 @@ Current security work is in open PRs #946 and #948. RC488–RC492 now use explic
 ## CI update — Pass 1511–1515 (2026-11-20)
 
 PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395` has passed RC493 PostgreSQL integration, static validation, migration version, cross-PR collision, migration-history immutability and forward migration replay. Snapshot: 16 success, 2 skipped, 0 failures, 12 queued. PR #946 exact head: 29 queued, 1 skipped, no failures at last inspection. Neither PR is merged; deploy jobs are skipped. Production remains blocked.
+
+
+## 2026-11-22 — Pass 1641–1650 — directory listing current-owner authorization
+
+Merged PR #962 (security(directory): require current business-wide owner for listing access) to main by squash. Tested head: 86637e064ec1dd07714072298bb19a3ea1504c16; merge commit: 5b4163f53309676bd9fb91b0b5b3b5f1dc690756.
+
+The directory Edge Function now resolves business-linked listing ownership from the user's current ACTIVE membership on the exact claimed business, requiring BUSINESS_OWNER or OWNER and branch_id IS NULL. A branch-scoped membership cannot edit a business-level listing. The legacy claimed_user_id fallback is retained only for records without a linked business, so a previous claimant cannot retain authority after their business membership is removed or narrowed. The shared resolver is used by detail owner status, public-contact-consent management and UPDATE_OWNED_LISTING. Source-contract tests cover the membership filters and all three paths.
+
+Exact-head CI: 12/12 workflows completed successfully. PR #962 is merged. The Pages workflow's validation success does not imply an Edge Function deployment; no Edge deploy occurred.
+
+No Production SQL/DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge, payment, wallet or customer-data mutation occurred. This is a source-level authorization correction, not live authorization certification.
+
+Next: include the Edge Function in the coordinated release only after verified encrypted off-site backup and independent PostgreSQL 17 restore/rollback, migration parity, exact deployed Edge bundle parity, and payment/privacy E2E gates. After approved deployment, test business owner allow; branch member, revoked member, legacy unlinked claimant and unrelated user boundaries. Keep Production BLOCKED / NOT CERTIFIED until all gates pass.
