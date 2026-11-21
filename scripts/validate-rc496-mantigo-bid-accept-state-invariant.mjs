@@ -13,8 +13,8 @@ const fixture = fs.readFileSync(
   "supabase/tests/rc496_mantigo_bid_accept_state_invariant_fixture.sql",
   "utf8"
 );
-assert.match(fixture, /CREATE TABLE public\\.mantigo_captain_profiles/);
-assert.match(fixture, /UNIQUE \\(ride_id,captain_id\\)/);
+assert.match(fixture, /CREATE TABLE public\.mantigo_captain_profiles/);
+assert.match(fixture, /UNIQUE \(ride_id,captain_id\)/);
 const concurrency = fs.readFileSync(
   "scripts/test-rc496-mantigo-bid-accept-concurrency.sh",
   "utf8"
@@ -36,14 +36,14 @@ assert.ok(lockStart >= 0 && lockEnd > lockStart, "RC496 must replace the fare-lo
 const lockFn = migration.slice(lockStart, lockEnd);
 
 assert.match(createFn, /SET search_path TO ''/i, "SECURITY DEFINER offer writer must have an empty search_path");
-assert.match(createFn, /p_user_id IS DISTINCT FROM auth\\.uid\\(\\)/, "offer writer caller must be auth.uid()");
+assert.match(createFn, /p_user_id IS DISTINCT FROM auth\.uid\(\)/, "offer writer caller must be auth.uid()");
 assert.match(createFn, /accepted_bid_id IS NULL/, "offer writer cannot reopen an accepted ride");
-assert.match(createFn, /NOT EXISTS \\([\\s\\S]*?status='ACCEPTED'/, "offer writer rejects stale accepted bid rows");
+assert.match(createFn, /NOT EXISTS \([\s\S]*?status='ACCEPTED'/, "offer writer rejects stale accepted bid rows");
 assert.match(createFn, /FOR UPDATE OF r/, "offer writer must lock the ride before changing offers");
-assert.match(createFn, /ON CONFLICT \\(ride_id,captain_id\\) DO UPDATE[\\s\\S]*?WHERE public\\.mantigo_bids\\.status IN \\('OFFERED','REJECTED','WITHDRAWN','EXPIRED'\\)/,
+assert.match(createFn, /ON CONFLICT \(ride_id,captain_id\) DO UPDATE[\s\S]*?WHERE public\.mantigo_bids\.status IN \('OFFERED','REJECTED','WITHDRAWN','EXPIRED'\)/,
   "offer resubmission may only update non-accepted bids");
 assert.match(createFn, /BID_ALREADY_ACCEPTED_OR_NOT_REUSABLE/);
-assert.match(migration, /CREATE UNIQUE INDEX IF NOT EXISTS mantigo_bids_one_accepted_per_ride_idx[\\s\\S]*?WHERE status='ACCEPTED'/);
+assert.match(migration, /CREATE UNIQUE INDEX IF NOT EXISTS mantigo_bids_one_accepted_per_ride_idx[\s\S]*?WHERE status='ACCEPTED'/);
 assert.match(fn, /SET search_path TO ''/i, "SECURITY DEFINER acceptance RPC must have an empty search_path");
 assert.match(fn, /p_user_id IS DISTINCT FROM auth\.uid\(\)/, "caller identity must be bound to auth.uid()");
 assert.match(fn, /FROM public\.mantigo_rides r[\s\S]*?FOR UPDATE;/, "ride row must be locked before reading acceptance state");
