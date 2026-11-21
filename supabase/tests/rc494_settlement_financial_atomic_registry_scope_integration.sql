@@ -81,7 +81,7 @@ VALUES
  ('je_RC494_BUSINESS','RC494-TENANT',NULL,'49400000-0000-4000-8000-000000000101',NULL,'RC494-JE-BUSINESS','ORDER_SETTLEMENT','RC494-TENANT-BUSINESS','RC494 business fixture','DRAFT',0,0,current_date,NULL,'49400000-0000-4000-8000-000000000003'),
  ('je_RC494_TENANT','RC494-TENANT',NULL,NULL,NULL,'RC494-JE-TENANT','PARTNER_COMMISSION_SETTLEMENT','RC494-TENANT-WIDE','RC494 tenant fixture','DRAFT',0,0,current_date,NULL,'49400000-0000-4000-8000-000000000004'),
  ('je_RC494-PREEXISTING-CONFLICT','RC494-TENANT',NULL,'49400000-0000-4000-8000-000000000102',NULL,'RC494-JE-PREEXISTING-CONFLICT','ORDER_SETTLEMENT','RC494-PREEXISTING-CONFLICT','RC494 conflicting draft journal','DRAFT',0,0,current_date,NULL,'49400000-0000-4000-8000-000000000003'),
- ('je_RC494-IDEMPOTENT-LINE-CONFLICT','RC494-TENANT',NULL,'49400000-0000-4000-8000-000000000101',NULL,'RC494-JE-IDEMPOTENT-LINE-CONFLICT','ORDER_SETTLEMENT','RC494-IDEMPOTENT-LINE-CONFLICT','RC494 idempotent settled header with bad journal lines','DRAFT',0,0,current_date,NULL,'49400000-0000-4000-8000-000000000003')
+ ('je_RC494-IDEMPOTENT-LINE-CONFLICT','RC494-TENANT',NULL,'49400000-0000-4000-8000-000000000101',NULL,'JE-RC494-IDEMPOTENT-LINE-CONFLICT','ORDER_SETTLEMENT','RC494-IDEMPOTENT-LINE-CONFLICT','RC494 idempotent settled header with bad journal lines','DRAFT',0,0,current_date,NULL,'49400000-0000-4000-8000-000000000003')
 ON CONFLICT (id) DO NOTHING;
 
 -- Matching journal header with balanced but incorrect pre-existing amounts.
@@ -150,6 +150,11 @@ FROM public.chart_of_accounts c WHERE c.tenant_id='RC494-TENANT' AND c.account_c
 UPDATE public.journal_entries
 SET status='POSTED',total_debit=100,total_credit=100,posted_at=now()
 WHERE id IN ('je_RC494_PLATFORM_ROOT','je_RC494_FAKE_ROOT','je_RC494_BUSINESS','je_RC494_TENANT','je_RC494-IDEMPOTENT-LINE-CONFLICT');
+-- This settled conflict journal is internally balanced at 90/90. RC494 must
+-- reject it because the settlement requires 100/100 exact line identity.
+UPDATE public.journal_entries
+SET total_debit=90,total_credit=90
+WHERE id='je_RC494-IDEMPOTENT-LINE-CONFLICT';
 
 INSERT INTO public.settlement_transactions
   (id,tenant_id,business_id,beneficiary_type,beneficiary_id,gross_amount,platform_fee,net_payout,voucher_reserve,
