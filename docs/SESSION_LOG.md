@@ -3726,7 +3726,7 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - RC492 fixture now mirrors owner SELECT visibility and its integration test asserts the effective owner DELETE policy predicate, then rolls back all synthetic rows.
 - RC494 replay initially exposed that the captured schema checkpoint retains direct anon/authenticated EXECUTE ACLs on `create_settlement_and_post_journal`, while read-only Production evidence confirms only `service_role` has EXECUTE. Added a TEST-ONLY replay overlay to reconcile that known checkpoint drift; the migration itself remains fail-closed and Production is unchanged.
 - RC495 replay exposed three platform-brand Storage policies present in Production but absent from the captured checkpoint. Added a separate TEST-ONLY overlay to recreate those legacy membership-based policies before RC495 replaces them with registry-backed predicates and corrected filename regexes.
-- Current candidate head: `1d0a6c14e70aaf07dffddb9d19d0de4907a6bb15`. Exact-head CI is running again, including the 75-version chronological replay. Do not mark replay passed until it completes successfully.
+- Current candidate head: `d788cea8a215f73597f00c68c248146cef54680c`. Exact-head CI is running again, including the 75-version chronological replay. Do not mark replay passed until it completes successfully.
 - Prior exact-head runs passed RC488, RC492, RC493, migration-history, collision/uniqueness, and Pages validation; later commits added the RC494/RC495 replay overlays and must be revalidated.
 
 ### Live Production privacy evidence — read-only
