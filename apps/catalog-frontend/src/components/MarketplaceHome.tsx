@@ -7,7 +7,7 @@ import { useApp } from '../context/AppContext';
 import { Business, Product } from '../types';
 import { isMantiqatiXBrandName, resolveDefaultImage } from '../utils/defaultImages';
 import { supabase } from '../lib/production';
-import { loadTargetedAdvertisements } from '../utils/targetedAdvertisements';
+import { loadTargetedAdvertisements, TargetedAdvertisement } from '../utils/targetedAdvertisements';
 
 const currency = (value: number): string =>
   Number(value || 0).toLocaleString('ar-EG', { maximumFractionDigits: 2 }) + ' ج.م';
