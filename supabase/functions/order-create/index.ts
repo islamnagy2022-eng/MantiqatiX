@@ -120,20 +120,19 @@ Deno.serve(async (req: Request) => {
   if (!["EGP"].includes(String(body.currency).toUpperCase())) return json({ error: "UNSUPPORTED_CURRENCY" }, 400);
 
   const branchId = body.branchId ? String(body.branchId) : null;
-  let targetMembershipQuery = admin
+  const { data: targetMemberships, error: targetMembershipError } = await admin
     .from("user_memberships")
     .select("id,role,status,branch_id")
     .eq("user_id", user.id)
     .eq("tenant_id", body.tenantId)
     .eq("business_id", body.businessId)
     .eq("status", "ACTIVE");
-  // Staff operations must be authorized for the exact selected branch, not just
-  // any branch belonging to the same business.
-  if (branchId) targetMembershipQuery = targetMembershipQuery.eq("branch_id", branchId);
-  const { data: targetMembership, error: targetMembershipError } = await targetMembershipQuery
-    .limit(1)
-    .maybeSingle();
   if (targetMembershipError) return json({ error: "MEMBERSHIP_READ_FAILED" }, 500);
+  // A branchless membership is business-wide and may operate on any branch
+  // of this business. A branch-bound membership must match the selected branch.
+  const targetMembership = (targetMemberships ?? []).some((membership: any) =>
+    !branchId || membership.branch_id == null || String(membership.branch_id) === branchId
+  );
 
   if (!targetMembership) {
     const { data: customerMembership, error: customerMembershipError } = await admin
