@@ -126,3 +126,11 @@ Li2Lak is used as a public product-pattern reference only. Feature availability 
 ## Uploaded R7 archive — source reconciliation
 
 The uploaded 2026-11-10 R7 snapshot is a historical UX/feature reference, not the authoritative runtime. It declares local JSON authoritative and contains multiple release-blocking patterns (browser service-role key reference, deterministic server secret fallbacks, localStorage role state, and fail-open verified/paid defaults). Do not merge it wholesale. See `docs/audits/PASS_1761_1770_AI_STUDIO_R7_ARCHIVE_RECONCILIATION_20261122.md`.
+
+## Pass 1791–1800 — Li2Lak directory privacy and release verification — 2026-11-22
+
+- The current source implements consent-gated business-directory contact projection, but the deployed `directory-listings` v16 Edge Function does not include those modules and returns contact columns through the public GET path.
+- Production has 869 published listings; aggregate-only counts show 869 with phone, 178 with secondary phone, and 869 with address. The RC473 consent registry is absent and its migration is not recorded as applied.
+- This is a P0 release/privacy blocker for Li2Lak's public directory. Do not enable customer-facing public contact until the consent registry and complete Edge bundle are deployed together and verified with anonymous negative and owner-consent positive tests.
+- The current source sanitizer hides phone, secondary phone, address and precise map URL independently unless the corresponding active consent scope exists; lookup failures discard partial results and fail closed.
+- No Production mutation or deployment occurred. See `docs/audits/PASS_1791_1800_LIVE_DIRECTORY_CONSENT_RELEASE_GATE_20261122.md`.
