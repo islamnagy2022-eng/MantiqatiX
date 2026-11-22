@@ -80,6 +80,8 @@ for (const token of [
   "RC497_ADMIN_QUEUE_LOOKUP_FAILED",
   "RC497_ADMIN_QUEUE_DISCLOSED_CUSTOMER",
   "RC497_ADMIN_QUEUE_MISSING_PENDING_REVIEW",
+  "RC497_ADMIN_QUEUE_PAGINATION_METADATA_INVALID",
+  "RC497_ADMIN_QUEUE_PAGINATION_FAILED",
   "RC497_TENANT_OWNER_ACCESSED_MODERATION_QUEUE",
   "BUSINESS_REVIEW_FORBIDDEN",
   "REVIEW_ALREADY_SUBMITTED",
@@ -108,6 +110,8 @@ assert.match(customerReviewPanel, /order\.status\.toUpperCase\(\) === 'DELIVERED
   "customer review form must only be offered for delivered orders");
 assert.match(ownerReviewPanel, /supabase\.rpc\('respond_to_business_review'[\s\S]*?p_review_id:[\s\S]*?p_response:/,
   "business owner UI must use the scoped response RPC rather than direct table writes");
+assert.match(adminReviewPanel, /p_offset: offset[\s\S]*?nextOffset < totalCount[\s\S]*?loadMore/,
+  "platform moderation queue must paginate older pending reviews without unbounded reads");
 assert.match(adminReviewPanel, /supabase\.rpc\('get_platform_business_review_moderation_queue'[\s\S]*?supabase\.rpc\('moderate_business_review'/,
   "platform moderation UI must use only the registry-protected queue and moderation RPCs");
 assert.match(adminDashboard, /BusinessReviewModerationPanel[\s\S]*?activeAdminTab === 'business_reviews'/,
