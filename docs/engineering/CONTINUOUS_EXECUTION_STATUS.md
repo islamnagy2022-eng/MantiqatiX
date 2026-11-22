@@ -1,18 +1,18 @@
 # MantiqatiX Continuous Execution Status
 
-## Latest checkpoint — 2026-11-22 — PR982 merged; live Production still blocked
+## Latest checkpoint — 2026-11-22 — PR982 merged; post-merge Pages deployment verified
 
 - PR #982 merged as `dbf40f6b9f8087fd5a274749c4a4db3ceb7c7564` after all nine exact-head workflow runs passed, including Primary Catalog build, dashboard browser E2E and employee RBAC PostgreSQL.
-- The PR-associated Deploy MantiqatiX Web workflow's deploy job was skipped; post-merge main deployment is not yet verified.
+- Post-merge main Pages deployment [45074694031](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45074694031) succeeded, including deployed-origin browser checks for catalog root, dashboard, mobile and QR.
 - Fresh read-only Production recheck: 310 migration rows, latest `20261110150618`; required release migrations **0/76**; contact-consent and migration-release registry tables absent.
 - Selected deployed Edge Functions remain directory-listings v18, catalog-admin v20, public-catalog-directory v19, public-catalog v9. National directory remains intentionally disabled.
 - Fresh security advisor snapshot: 9 RLS-enabled/no-policy INFO findings; 1 anon-callable and 65 authenticated-callable SECURITY DEFINER WARN findings; anonymous-policy warnings; leaked-password protection disabled.
 - No Production mutation or Edge deployment occurred. **PRODUCTION BLOCKED / NOT CERTIFIED.**
 - Evidence: `docs/audits/PASS_1831_PR982_MERGE_LIVE_RECHECK_20261122.md`.
 
-Last updated: 2026-11-22 — current main 54e433d; PR978 browser E2E 28/2 passed (draft); PR982 default-closed directory gate CI pending; live migration 0/76 and selected Edge source mismatches; Production BLOCKED / NOT CERTIFIED
+Last updated: 2026-11-22 — main 4963b1b; PR982 merged (28/2 passed); Pages deployment and deployed-origin E2E passed (45074694031); PR978 gallery remains draft; Production 0/76 migration IDs and Edge parity blockers; BLOCKED / NOT CERTIFIED
 
-## Latest checkpoint — 2026-11-22 — current main 54e433d
+## Earlier checkpoint — 2026-11-22 — current main 54e433d
 
 - PR976 post-merge Pages deployment and Primary Catalog browser validation succeeded (45071129013, 45071128944).
 - PR978 fixed-cover/promotional-gallery feature remains draft; exact-head checks 28 passed, 2 skipped, 0 failed. It has not been merged or deployed.
