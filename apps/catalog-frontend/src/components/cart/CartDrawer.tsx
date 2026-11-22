@@ -366,9 +366,10 @@ export const CartDrawer: React.FC = () => {
                 <h3 className="font-black text-lg text-emerald-950">
                   {completedOrderDetails.method === 'paymob'
                     ? 'تم سداد الطلب بنجاح عبر Paymob وإرسال التفاصيل!'
-                    : 'تم تأكيد طلبك وإرساله عبر الواتساب!'}
+                    : '{completedOrderDetails.tracked ? 'تم تسجيل الطلب وإرسال التفاصيل عبر واتساب!' : 'تم إرسال طلبك عبر واتساب فقط!'}'}
                 </h3>
 
+                {completedOrderDetails.tracked && completedOrderDetails.orderId && (<p className="rounded-xl border border-emerald-200 bg-white p-3 text-sm font-bold text-emerald-900">رقم الطلب المسجل: <span dir="ltr" className="font-mono">{completedOrderDetails.orderId}</span></p>)}
                 {completedOrderDetails.method === 'paymob' && (
                   <div className="bg-white p-3.5 rounded-2xl border border-emerald-300 text-right space-y-1.5 text-xs shadow-xs">
                     <div className="flex items-center justify-between text-slate-500 font-semibold">
@@ -807,13 +808,14 @@ export const CartDrawer: React.FC = () => {
               <button
                 type="submit"
                 form="order-form"
+                disabled={isCreatingOrder}
                 className={`w-full py-3.5 px-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer text-white ${
                   paymentMethod === 'paymob'
                     ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/25'
                     : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25'
                 }`}
               >
-                {paymentMethod === 'paymob' ? (
+                {isCreatingOrder ? <span>{authSession.isAuthenticated ? 'جارٍ تسجيل الطلب ثم فتح واتساب…' : 'جارٍ تجهيز واتساب…'}</span> : paymentMethod === 'paymob' ? (
                   <>
                     <CreditCard className="w-4 h-4" />
                     <span>المتابعة للدفع عبر Paymob ({finalTotal.toFixed(2)} {adminSettings.currency})</span>
