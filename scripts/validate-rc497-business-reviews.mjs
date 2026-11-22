@@ -170,6 +170,10 @@ assert.match(cartDrawer, /completedOrderDetails\\.tracked && completedOrderDetai
   "checkout confirmation must display the persisted order reference");
 assert.match(cartDrawer, /completedOrderDetails\\.whatsappUrl &&[\\s\\S]*?rel="noopener noreferrer"/,
   "checkout confirmation must provide a safe manual WhatsApp fallback when popup navigation is blocked");
+assert.match(cartDrawer, /لن يتم إرسال الرسالة إلا بعد الضغط على زر الإرسال داخل واتساب/,
+  "checkout must disclose that WhatsApp is opened for manual sending, not sent automatically");
+assert.doesNotMatch(cartDrawer, /تم إرسال كافة تفاصيل الفاتورة وحالة السداد إلى واتساب صاحب النشاط/,
+  "checkout must not claim a WhatsApp message was sent before customer confirmation");
 assert.match(customerReviewPanel, /get_customer_business_review_status[\s\S]*?submit_business_review/,
   "customer order portal must check owned review status before submission");
 assert.match(customerReviewPanel, /\.eq\('customer_id', userId\)/,
