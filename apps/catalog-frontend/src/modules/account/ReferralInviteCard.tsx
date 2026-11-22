@@ -23,8 +23,9 @@ export const ReferralInviteCard: React.FC<{ userId?: string }> = ({ userId }) =>
       return () => { active = false; };
     }
 
-    void supabase.rpc('get_or_create_my_referral_profile')
-      .then(({ data, error }) => {
+    void (async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_or_create_my_referral_profile');
         if (!active) return;
         if (error || !data || typeof data.code !== 'string') {
           setLoadFailed(true);
@@ -35,13 +36,12 @@ export const ReferralInviteCard: React.FC<{ userId?: string }> = ({ userId }) =>
           code: data.code,
           referralsCount: Number.isFinite(Number(data.referralsCount)) ? Number(data.referralsCount) : 0,
         });
-      })
-      .catch(() => {
+      } catch {
         if (active) setLoadFailed(true);
-      })
-      .finally(() => {
+      } finally {
         if (active) setLoading(false);
-      });
+      }
+    })();
 
     return () => { active = false; };
   }, [userId]);
