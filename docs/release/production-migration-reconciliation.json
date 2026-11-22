@@ -3202,8 +3202,8 @@
   },
   "catalog_pilot_edge_function_parity_check": {
     "status": "PARTIAL_WITH_PUBLIC_READ_PARITY",
-    "checked_at": "2026-11-04",
-    "checked_via": "Supabase get_edge_function source retrieval compared to current main source blobs after deployment.",
+    "checked_at": "2026-11-22",
+    "checked_via": "Fresh read-only Supabase function retrieval; exact byte comparison of all entrypoint and shared dependency files against current main.",
     "functions": [
       {
         "slug": "catalog-platform-admin",
@@ -3222,31 +3222,36 @@
         "slug": "catalog-admin",
         "live_version": 20,
         "verify_jwt": false,
-        "source_exact_match": true,
+        "source_exact_match": false,
         "source_blob_sha": "e07917748d4f710895ed43f99c35ddc64be470ac",
         "scope": "catalog owner/admin operations",
-        "status": "PASS_SOURCE_PARITY"
+        "status": "DRIFT_FOUND",
+        "deferred_write_scope": "public-contact-consent-audit-and-platform-root-registry",
+        "contact_consent_ui_enabled": false,
+        "observed_difference": "Live v20 does not include the current main public-contact consent audit writer; keep the owner consent UI hidden and routine profile saves free of consent fields."
       },
       {
         "slug": "public-catalog-directory",
-        "live_version": 17,
+        "live_version": 19,
         "verify_jwt": false,
         "source_exact_match": true,
-        "source_blob_sha": "71b98a86380df4e38dcf9b60f0294462428c2560",
+        "source_blob_sha": "8176081d24b7c1e93017ddcdf982d73d755f4ea8",
         "scope": "sanitized read-only public directory and catalog items",
         "dependency_files": [
           "supabase/functions/_shared/activity-module-overrides.mjs"
         ],
-        "status": "PASS_SOURCE_PARITY"
+        "status": "PASS_SOURCE_PARITY",
+        "live_entrypoint_sha256": "9eec1b65e5f85f0ac640ee44ace2e50abb7106da97bbfe52b8a2fb5ee449b9c6"
       },
       {
         "slug": "public-catalog",
-        "live_version": 7,
+        "live_version": 9,
         "verify_jwt": false,
         "source_exact_match": true,
-        "source_blob_sha": "a66e6bbb0a0f7bcd88bbb8c3e16b1575898ce1fd",
+        "source_blob_sha": "207c1669b3897a5d1c718a527781609c798b575b",
         "scope": "read-only public storefront",
-        "status": "PASS_SOURCE_PARITY"
+        "status": "PASS_SOURCE_PARITY",
+        "live_entrypoint_sha256": "e12cb7794c4083617924ccf6fb8aae5e572985c2e111e7df7e898dd4be824800"
       }
     ],
     "unrelated_functions_deployed": false,
@@ -5463,7 +5468,7 @@
         "version": 19,
         "updated_at": "2026-11-22T04:27:34.624Z",
         "sha256": "9eec1b65e5f85f0ac640ee44ace2e50abb7106da97bbfe52b8a2fb5ee449b9c6",
-        "matches_main": false,
+        "matches_main": true,
         "deployed_has_contact_consent_projection": false,
         "deployed_has_promotional_gallery_projection": false
       },
@@ -5472,7 +5477,7 @@
         "version": 9,
         "updated_at": "2026-11-22T04:26:19.794Z",
         "sha256": "e12cb7794c4083617924ccf6fb8aae5e572985c2e111e7df7e898dd4be824800",
-        "matches_main": false,
+        "matches_main": true,
         "deployed_has_contact_consent_projection": false,
         "deployed_has_promotional_gallery_projection": false
       }
@@ -5516,5 +5521,28 @@
     },
     "contract": "Require exact server-side DIRECTORY_LISTINGS_ENABLED=true and reachable public.directory_listing_contact_consents before directory GET/POST routes execute; absent/false flag yields empty GET and 503 POST.",
     "production_effect": "NONE; no server flag set and no Edge deployment."
+  },
+  "website_v1_unclaimed_directory_gate": {
+    "status": "PASS_DISABLED_FOR_V1",
+    "checked_at": "2026-11-22",
+    "function_slug": "directory-listings",
+    "live_function_version": 18,
+    "function_status": "ACTIVE",
+    "verify_jwt": false,
+    "source_exact_match": true,
+    "live_entrypoint_sha256": "bb65d74325f8bdf08f060f7ae2517bb30901630635d1de4f35523d7cef6afe48",
+    "endpoint_behavior": "GET_200_EMPTY_POST_503",
+    "response_error": "DIRECTORY_LISTINGS_DISABLED_FOR_V1",
+    "public_contact_data_returned": false,
+    "frontend_enabled": false,
+    "direct_listing_routes_enabled": false,
+    "contact_consent_registry_present": false,
+    "deferred_until": [
+      "RC472",
+      "RC473",
+      "source-rights-review",
+      "contact-consent-http-tests"
+    ],
+    "note": "The deployed v18 disabled stub returns an empty-success GET and a fixed 503 POST without database reads. Current main source uses a default-closed exact server flag plus consent-registry gate; do not enable the feature or deploy an isolated Edge bundle."
   }
 }

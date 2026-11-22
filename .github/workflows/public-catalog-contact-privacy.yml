@@ -8,12 +8,19 @@ on:
       - "supabase/functions/public-catalog/index.ts"
       - "supabase/functions/public-catalog-directory/index.ts"
       - "supabase/functions/catalog-admin/index.ts"
+      - "supabase/functions/directory-listings/index.ts"
+      - "apps/catalog-frontend/src/components/DirectoryView.tsx"
+      - "apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx"
+      - "apps/catalog-frontend/src/context/AppContext.tsx"
+      - "scripts/production/smoke-directory-listings-disabled.mjs"
+      - "scripts/production/verify-catalog-pilot.mjs"
       - "apps/catalog-frontend/src/lib/production.ts"
       - "apps/catalog-frontend/src/context/AppContext.tsx"
       - "apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx"
       - "apps/catalog-frontend/src/types/index.ts"
       - "scripts/validate-public-contact-visibility.mjs"
       - ".github/workflows/public-catalog-contact-privacy.yml"
+  workflow_dispatch: {}
   pull_request:
     branches: [main]
     paths:
