@@ -213,7 +213,7 @@ jobs:
       - name: Validate RC469 shared caller search_path contract
         run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
 
-      - name: Validate strict Production release gate and exact 77-version contract
+      - name: Validate strict Production release gate and exact 78-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
 
       - name: Validate MantiGO platform-admin and financial source contracts
