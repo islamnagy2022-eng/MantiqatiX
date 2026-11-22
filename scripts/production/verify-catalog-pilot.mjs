@@ -54,9 +54,9 @@ assert.equal(catalogFunctions?.activity_module_admin_deferred_until_atomic_audit
 assert.equal(catalogFunctions?.unrelated_functions_deployed, false, 'No unrelated Edge Functions may be deployed by the catalog pilot');
 const expectedCatalogFunctions = new Map([
   ['catalog-platform-admin', { version: 23, verifyJwt: true, exact: false }],
-  ['catalog-admin', { version: 20, verifyJwt: false, exact: true }],
-  ['public-catalog-directory', { version: 17, verifyJwt: false, exact: true }],
-  ['public-catalog', { version: 7, verifyJwt: false, exact: true }],
+  ['catalog-admin', { version: 20, verifyJwt: false, exact: false }],
+  ['public-catalog-directory', { version: 19, verifyJwt: false, exact: true }],
+  ['public-catalog', { version: 9, verifyJwt: false, exact: true }],
 ]);
 for (const fn of catalogFunctions.functions || []) {
   const expected = expectedCatalogFunctions.get(fn.slug);
@@ -68,12 +68,44 @@ for (const fn of catalogFunctions.functions || []) {
     assert.equal(fn.status, 'DRIFT_FOUND', 'The non-parity admin function must remain explicitly disclosed');
     assert.equal(fn.deferred_write_scope, 'activity-module-overrides-and-audit');
     assert.equal(fn.write_disabled_in_frontend, true);
+  } else if (fn.slug === 'catalog-admin') {
+    assert.equal(fn.status, 'DRIFT_FOUND', 'The live catalog-admin baseline must remain separate from the un-deployed audited-consent source');
+    assert.equal(fn.deferred_write_scope, 'public-contact-consent-audit-and-platform-root-registry');
+    assert.equal(fn.contact_consent_ui_enabled, false);
   } else {
     assert.equal(fn.status, 'PASS_SOURCE_PARITY', fn.slug + ' must be source-aligned with main');
   }
   expectedCatalogFunctions.delete(fn.slug);
 }
 assert.equal(expectedCatalogFunctions.size, 0, 'Every scoped catalog Edge Function must be accounted for');
+
+const directoryGate = report.website_v1_unclaimed_directory_gate;
+const directoryApi = read('supabase/functions/directory-listings/index.ts');
+const directoryView = read('apps/catalog-frontend/src/components/DirectoryView.tsx');
+const merchantProfile = read('apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx');
+const directorySmoke = read('scripts/production/smoke-directory-listings-disabled.mjs');
+const appContext = read('apps/catalog-frontend/src/context/AppContext.tsx');
+
+assert.equal(directoryGate?.status, 'PASS_DISABLED_FOR_V1', 'Unclaimed directory listings must stay disabled until their consent registry is released');
+assert.equal(directoryGate?.live_function_version, 17, 'The live disabled directory Edge version must match Production');
+assert.equal(directoryGate?.verify_jwt, false, 'The disabled endpoint must preserve its existing JWT mode');
+assert.equal(directoryGate?.source_exact_match, true, 'The disabled endpoint must match its reviewed source');
+assert.equal(directoryGate?.endpoint_behavior, 'GET_POST_503');
+assert.equal(directoryGate?.response_error, 'DIRECTORY_LISTINGS_DISABLED_FOR_V1');
+assert.equal(directoryGate?.frontend_enabled, false);
+assert.equal(directoryGate?.direct_listing_routes_enabled, false);
+assert.ok(directoryApi.includes('DIRECTORY_LISTINGS_DISABLED_FOR_V1'), 'Directory endpoint must return its explicit V1-disabled marker');
+assert.ok(directoryApi.includes('}, 503);'), 'Directory endpoint must fail closed with HTTP 503');
+assert.ok(!directoryApi.includes('createClient') && !directoryApi.includes('.from('), 'Disabled directory endpoint must not query Production rows');
+assert.ok(directoryView.includes('PUBLIC_UNCLAIMED_DIRECTORY_LISTINGS_ENABLED = false'), 'Unclaimed listings must be disabled in the public directory UI');
+assert.ok(directoryView.includes('if (!PUBLIC_UNCLAIMED_DIRECTORY_LISTINGS_ENABLED) {'), 'The UI must not fetch unclaimed listings');
+assert.ok(directoryView.includes('const [listingSlug, setListingSlug] = useState<string>(() => PUBLIC_UNCLAIMED_DIRECTORY_LISTINGS_ENABLED ?'), 'Direct listing URLs must stay closed');
+assert.ok(!merchantProfile.includes('bizPublicContactEnabled') && !merchantProfile.includes('أوافق صراحة على إظهار'), 'Do not expose a consent switch until the live audit handler is deployed');
+assert.ok(merchantProfile.includes('عرض بيانات التواصل العامة متوقف مؤقتًا'), 'Merchant UI must explain why public contact sharing is temporarily unavailable');
+assert.ok(appContext.includes("Object.prototype.hasOwnProperty.call(updated, 'publicContactEnabled')"), 'Profile saves must not send a default consent value');
+assert.ok(directorySmoke.includes('DIRECTORY_LISTINGS_DISABLED_FOR_V1'), 'Pages smoke must verify the disabled endpoint contract');
+assert.ok(directorySmoke.includes('supabaseUrl:\\s*') && directorySmoke.includes('supabaseKey:\\s*'), 'Pages smoke must parse the published Supabase config keys');
+
 
 assert.ok(vite.includes("base: process.env.VITE_BASE_PATH || '/MantiqatiX/'"), 'Catalog frontend must support the retained legacy subpath without claiming the platform root');
 assert.equal(manifest.scope, '/MantiqatiX/', 'Catalog PWA scope must not claim the platform root');
@@ -106,4 +138,4 @@ assert.ok(!pagesWorkflow.includes('cp -a web/'), 'Legacy UI must not be copied i
 
 console.log('CATALOG_PILOT_GATE=PASS');
 console.log(`FULL_PLATFORM_GATE=${report.status}; this scoped gate authorizes only the catalog frontend and paid-subscription guard, not platform-wide certification.`);
-console.log('CATALOG_PILOT_BACKEND_SCOPE=catalog-platform-admin + catalog-admin + public-catalog + public-catalog-directory; no payment-intent, webhook, order, finance, SMM, or MantiGO deployments.');
+console.log('CATALOG_PILOT_BACKEND_SCOPE=catalog-platform-admin v23 (activity-module writes disabled), catalog-admin v20 preserved as baseline, public-catalog v9, public-catalog-directory v19; directory-listings v17 disabled for V1. No payment-intent, webhook, order, finance, SMM, or MantiGO deployments.');
