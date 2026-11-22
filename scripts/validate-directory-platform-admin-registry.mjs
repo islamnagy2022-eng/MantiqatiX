@@ -13,23 +13,24 @@ const helper = readFileSync("supabase/functions/directory-listings/platform-admi
 const helperTests = readFileSync("supabase/functions/directory-listings/platform-admin-registry.test.mjs", "utf8");
 const registryMigration = readFileSync("supabase/migrations/20261113214500_rc464_platform_admin_live_registry_hardening.sql", "utf8");
 
-// Directory listings: verify caller first, then use its JWT to query the canonical registry.
-const verifiedUser = directoryEdge.indexOf("if (userError || !user || user.is_anonymous)");
-const userClient = directoryEdge.indexOf("const userClient = createClient(supabaseUrl, serviceKey");
-const registryCall = directoryEdge.indexOf('userClient.rpc("mnty_can_platform_admin")');
-const registryGate = directoryEdge.indexOf("if (!resolveDirectoryPlatformAdmin(registryResult, registryError))");
-const importAction = directoryEdge.indexOf('if (action === "IMPORT_DOCTOR_BATCH")');
-assert.ok(verifiedUser >= 0 && userClient > verifiedUser,
-  "directory caller must be verified before creating the JWT-bound registry client");
-assert.ok(userClient < registryCall && registryCall < registryGate && registryGate < importAction,
-  "directory admin authorization must run before platform-admin actions");
-assert.match(directoryEdge, /global:\s*\{\s*headers:\s*\{\s*Authorization:\s*`Bearer \$\{token\}`/,
-  "directory registry RPC must receive the verified caller JWT");
-assert.match(directoryEdge, /PLATFORM_ADMIN_CHECK_UNAVAILABLE/);
-assert.match(directoryEdge, /PLATFORM_ADMIN_REQUIRED/);
-assert.doesNotMatch(directoryEdge, /some\(platformAdmin\)/,
-  "directory root access must not be inferred from tenant memberships");
-
+// V1 disables the unclaimed directory endpoint entirely. It must remain database-free.
+const directoryListingsDisabled = directoryEdge.includes('DIRECTORY_LISTINGS_DISABLED_FOR_V1');
+if (directoryListingsDisabled) {
+  assert.ok(directoryEdge.includes('directoryDisabled: true') && directoryEdge.includes('listings: []'));
+  assert.ok(directoryEdge.includes('DIRECTORY_LISTINGS_DISABLED_FOR_V1'));
+  assert.ok(!directoryEdge.includes('createClient(') && !directoryEdge.includes('service.auth.getUser') && !directoryEdge.includes('.from(') && !directoryEdge.includes('.rpc('),
+    'disabled V1 directory must not access database, auth, or registry');
+} else {
+  const verifiedUser = directoryEdge.indexOf('if (userError || !user || user.is_anonymous)');
+  const userClient = directoryEdge.indexOf('const userClient = createClient(supabaseUrl, serviceKey');
+  const registryCall = directoryEdge.indexOf('userClient.rpc("mnty_can_platform_admin")');
+  const registryGate = directoryEdge.indexOf('if (!resolveDirectoryPlatformAdmin(registryResult, registryError))');
+  const importAction = directoryEdge.indexOf('if (action === "IMPORT_DOCTOR_BATCH")');
+  assert.ok(verifiedUser >= 0 && userClient > verifiedUser, 'directory caller must be verified before registry client creation');
+  assert.ok(userClient < registryCall && registryCall < registryGate && registryGate < importAction, 'directory admin authorization must precede platform-admin actions');
+  assert.ok(directoryEdge.includes('PLATFORM_ADMIN_CHECK_UNAVAILABLE') && directoryEdge.includes('PLATFORM_ADMIN_REQUIRED'));
+  assert.ok(directoryEdge.includes('sanitizePublicDirectoryListing') && directoryEdge.includes('loadContactConsentScopes'));
+}
 // Catalog platform-admin console: the private registry, not membership metadata, grants root.
 assert.match(catalogPlatformAdmin, /userClient\.rpc\("mnty_can_platform_admin"\)/);
 assert.match(catalogPlatformAdmin, /registryResult !== true/);
