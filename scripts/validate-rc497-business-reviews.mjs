@@ -10,6 +10,7 @@ const adminReviewPanel = fs.readFileSync("apps/catalog-frontend/src/components/a
 const adminDashboard = fs.readFileSync("apps/catalog-frontend/src/components/admin/AdminDashboard.tsx", "utf8");
 const merchantDashboard = fs.readFileSync("apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx", "utf8");
 const appShell = fs.readFileSync("apps/catalog-frontend/src/App.tsx", "utf8");
+const cartDrawer = fs.readFileSync("apps/catalog-frontend/src/components/cart/CartDrawer.tsx", "utf8");
 const migration = fs.readFileSync(migrationPath, "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc497_business_reviews_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc497_business_reviews_integration.sql", "utf8");
@@ -113,6 +114,14 @@ assert.match(reviewPanel, /currentBusiness\?\.isVerified[\s\S]*?operationalStatu
   "public review panel must be restricted to active verified businesses");
 assert.match(reviewPanel, /verifiedInteraction === true/,
   "public storefront must reject review rows without verified-order provenance");
+assert.match(cartDrawer, /functions\\.invoke\\('order-create'/,
+  "authenticated catalog checkout must persist orders through the existing order-create Edge Function");
+assert.match(cartDrawer, /authSession\\.isAuthenticated[\\s\\S]*?catalogItemId: product\\.id[\\s\\S]*?clientIdempotencyKey/,
+  "tracked checkout must use the authenticated session, canonical catalog item IDs and an idempotency key");
+assert.doesNotMatch(cartDrawer, /p_subtotal:|p_total_amount:|p_tax:/,
+  "browser checkout must not submit authoritative financial totals");
+assert.match(cartDrawer, /completedOrderDetails\\.tracked && completedOrderDetails\\.orderId/,
+  "checkout confirmation must display the persisted order reference");
 assert.match(customerReviewPanel, /get_customer_business_review_status[\s\S]*?submit_business_review/,
   "customer order portal must check owned review status before submission");
 assert.match(customerReviewPanel, /\.eq\('customer_id', userId\)/,
