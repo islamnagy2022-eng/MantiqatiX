@@ -19,6 +19,7 @@ export const isSafeHttpUrl = (value: unknown): string => {
   if (typeof value !== 'string' || !value.trim()) return '';
   try {
     const url = new URL(value);
+    if (url.username || url.password) return '';
     return url.protocol === 'https:' || url.protocol === 'http:' ? url.toString() : '';
   } catch {
     return '';
