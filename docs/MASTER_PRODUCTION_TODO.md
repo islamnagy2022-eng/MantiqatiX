@@ -1,3 +1,11 @@
+### Pass 1831–1840 — Li2Lak branch reconciliation — 2026-11-22
+- [x] Reconciled feature history with latest `main` using a two-parent merge commit; verified both parents and preserved the feature tree unchanged.
+- [x] GitHub compare now reports feature branch 123 commits ahead and 0 behind current `main`.
+- [x] Rechecked PR #971: open, not merged; GitHub reports mergeable=true / mergeable_state=unstable through the raw PR endpoint.
+- [ ] Exact-head CI remains unverified: earlier runs #44974204333 and #44974204332 are still queued against prior event SHA; latest branch commit has no reported workflow run or combined status.
+- [ ] Wait for exact-head validation before merge. Do not bypass pending checks.
+- **Safety:** Git history reconciliation only; no file-tree changes in merge commit, no Production mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
 ### Pass 1821–1830 — Li2Lak CI source repair and live contract recheck — 2026-11-22
 - [x] Removed a duplicate top-level `apiEdge` declaration from `scripts/validate-rc497-business-reviews.mjs`; verified no duplicate top-level const declarations remain.
 - [x] Aligned the Li2Lak disposable PostgreSQL lifecycle workflow from PostgreSQL 16 to PostgreSQL 17, matching the live Production major version.
