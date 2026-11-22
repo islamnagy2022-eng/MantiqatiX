@@ -1916,6 +1916,8 @@ async function accountView(){
  const profileMeta=user?.user_metadata||{};
  const profileName=profileMeta.full_name||profileMeta.name||user?.email?.split('@')[0]||'مستخدم MantiqatiX';
  const providerProfile=live.myProviderProfile;
+ let referralCenterHtml='';
+ try{referralCenterHtml=window.MNTYReferral?await window.MNTYReferral.render({sb,user}):'';}catch(referralRenderError){console.warn('[MantiqatiX referral] render unavailable',referralRenderError);}
  let digitalProducts=[];
  let digitalOrders=[];
  try{
@@ -1931,12 +1933,13 @@ async function accountView(){
  const commercialHtml='<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">DIGITAL SERVICES</span><h3>صفحات مدفوعة من حسابي</h3><p class="muted">اطلب Portfolio شخصية أو Menu للنشاط. السعر يثبت من الخادم ولا يتم النشر تلقائيًا بمجرد الدفع.</p></div></div><div class="action-bar">'+(portfolioProducts.length?'<button class="btn btn-primary" id="account-buy-portfolio" style="width:auto">طلب Portfolio مدفوعة</button>':'')+(providerProfile&&providerProfile.business_id&&menuProducts.length?'<button class="btn btn-outline" id="account-buy-menu" style="width:auto">طلب Menu للنشاط</button>':'')+'</div>'+(!providerProfile&&menuProducts.length?'<p class="muted">لطلب Menu، أكمل تسجيل نشاطك أولًا واعتمد النشاط.</p>':'')+(digitalOrders.length?'<div class="request-list" style="margin-top:12px">'+digitalOrders.slice(0,8).map(o=>'<div class="request-row"><span>'+esc(o.title)+' · '+esc(o.page_type==='PORTFOLIO'?'Portfolio':'Menu')+'</span><b>'+esc(o.payment_status==='PAID'?(o.fulfillment_status==='PUBLISHED'?'منشور':'مدفوع'):o.payment_status==='PENDING'?'بانتظار الدفع':o.payment_status==='FAILED'?'فشل الدفع':'غير مكتمل')+'</b></div>').join('')+'</div>':'<p class="muted" style="margin-top:12px">لا توجد طلبات صفحات رقمية حتى الآن.</p>')+'</section>';
  const profileCard='<section class="mx-profile-card mx-profile-card--account">'+(profileAvatar?'<img class="mx-profile-card__avatar-img" src="'+esc(profileAvatar)+'" alt="صورة الملف الشخصي">':'<div class="mx-profile-card__avatar">'+esc(profileName.slice(0,1).toUpperCase())+'</div>')+'<div class="mx-profile-card__body"><span class="eyebrow">PROFILE</span><h2>'+esc(profileName)+'</h2><p>'+esc(user?.email||'—')+'</p><small><i></i> الحساب مسجل الدخول</small></div></section>';
  const activityCard=providerProfile?'<section class="mx-profile-card mx-profile-card--activity"><div class="mx-profile-card__avatar">'+esc((providerProfile.name_ar||providerProfile.name_en||'نشاط').slice(0,1))+'</div><div class="mx-profile-card__body"><span class="eyebrow">ACTIVITY PROFILE</span><h2>'+esc(providerProfile.name_ar||providerProfile.name_en||'النشاط')+'</h2><p>'+esc(roleLabel(providerProfile.provider_kind||'SERVICE_PROVIDER'))+'</p><small>'+(providerProfile.is_verified?'✓ نشاط موثق':'نشاط منشور')+'</small></div></section>':'<section class="mx-profile-card mx-profile-card--activity"><div class="mx-profile-card__avatar">＋</div><div class="mx-profile-card__body"><span class="eyebrow">ACTIVITY PROFILE</span><h2>ملف النشاط</h2><p>أنشئ أو أكمل ملف نشاطك لعرض الخدمات والتخصصات.</p><button class="text-btn" id="profile-provider-start">استكمال ملف النشاط ←</button></div></section>';
- document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card mx-account-card"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><div class="mx-account-heading"><div><span class="eyebrow">ACCOUNT CENTER</span><h1>حسابي ومساحات العمل</h1><p>كل نشاط يظهر في بطاقة مستقلة موضحًا <b>المالك، اسم النشاط، القسم والفرع</b>.</p></div><span class="mx-account-count">'+memberships.length+' عضوية</span></div>'+accountStatusPanel()+profileCard+activityCard+'<h3 class="mx-account-section-title">مساحات العمل والعضويات</h3>'+membershipRows+'<h3>طلبات العضوية الإضافية</h3>'+requestRows+onboardingHtml+'<div class="action-bar">'+requestButtons+'</div>'+privilegedNote+'<div class="action-bar"><button class="btn btn-primary" id="account-home">العودة للرئيسية</button><button class="btn btn-outline" id="account-logout">تسجيل الخروج</button></div>'+commercialHtml+'</section></main>';
+ document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card mx-account-card"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><div class="mx-account-heading"><div><span class="eyebrow">ACCOUNT CENTER</span><h1>حسابي ومساحات العمل</h1><p>كل نشاط يظهر في بطاقة مستقلة موضحًا <b>المالك، اسم النشاط، القسم والفرع</b>.</p></div><span class="mx-account-count">'+memberships.length+' عضوية</span></div>'+accountStatusPanel()+profileCard+activityCard+referralCenterHtml+'<h3 class="mx-account-section-title">مساحات العمل والعضويات</h3>'+membershipRows+'<h3>طلبات العضوية الإضافية</h3>'+requestRows+onboardingHtml+'<div class="action-bar">'+requestButtons+'</div>'+privilegedNote+'<div class="action-bar"><button class="btn btn-primary" id="account-home">العودة للرئيسية</button><button class="btn btn-outline" id="account-logout">تسجيل الخروج</button></div>'+commercialHtml+'</section></main>';
  document.getElementById('profile-provider-start')?.addEventListener('click',()=>typeof providerOnboardingView==='function'?providerOnboardingView():showToast('مسار تسجيل النشاط غير متاح حاليًا.','error'));
  document.getElementById('account-buy-portfolio')?.addEventListener('click',()=>openDigitalPageOrderModal('PORTFOLIO'));
  document.getElementById('account-buy-menu')?.addEventListener('click',()=>openDigitalPageOrderModal('MENU',providerProfile?.business_id||null));
  document.getElementById('account-home').onclick=()=>{window.MXHomeLanding?MXHomeLanding():landingView()};
  document.getElementById('account-logout').onclick=logout;
+ window.MNTYReferral?.bind?.(document.getElementById('mx-referral-center'));
  document.querySelectorAll('[data-membership-open]').forEach(btn=>btn.addEventListener('click',async()=>{
    const id=btn.getAttribute('data-membership-open');
    if(!id)return;
@@ -2182,6 +2185,9 @@ if(!authUser?.id)return;
 const force=options?.force===true;
 if(!force&&user?.id===authUser.id&&window.MNTYAuthState?.authenticated)return;
 user=authUser;
+// Claim an invitation only after Supabase has confirmed the signed-in user.
+// The RPC enforces self-referral and one-referral-per-account server-side.
+try{if(window.MNTYReferral?.claimPending)await window.MNTYReferral.claimPending(sb);}catch(referralError){console.warn('[MantiqatiX referral] claim deferred',referralError);}
 window.MNTYAuthState={authenticated:true,email:authUser.email||'',membership:false};
 if(authRenderLock)return;
 authRenderLock=true;
