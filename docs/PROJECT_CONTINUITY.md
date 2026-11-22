@@ -1,3 +1,19 @@
+# Latest continuation checkpoint — 2026-11-22 — Pass 1831–1840
+
+**Active feature PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
+**Latest branch head:** `a24f0f332cd43d3cb61f3e9bf78a914f211a2a08`  
+**Current main:** `6f8fd143ecbc3ccb2c5894cb1f053a884d6580ae`  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+- Merged latest main history into the isolated feature branch with a two-parent commit; verified the merge tree is exactly the pre-merge feature tree.
+- GitHub compare: 123 commits ahead, 0 behind.
+- PR #971 remains open and unmerged. Raw GitHub PR state is mergeable but unstable while checks are pending.
+- Exact-head CI is still not proven. Existing runs are queued against an earlier event SHA and must not be treated as validation of the current head.
+- No Production database, Auth, RLS, grants, Storage, Edge, payment, wallet or customer data was changed.
+- Keep current catalog root and Android/mobile source intact.
+
+---
+
 # Latest continuation checkpoint — 2026-11-22 — Pass 1821–1830
 
 **Active feature PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
