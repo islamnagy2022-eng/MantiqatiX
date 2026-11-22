@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { QRCodeModal } from '../common/QRCodeModal';
 import { normalizeDialPhone, normalizeSocialUrl, normalizeWhatsAppPhone } from '../../utils/socialLinks';
@@ -37,26 +37,12 @@ export const BusinessProfileHeader: React.FC = () => {
   const defaultCover = currentBusiness ? resolveDefaultImage({
     name: currentBusiness.name, description: currentBusiness.bio, category: currentBusiness.category, kind: 'cover',
   }) : BUSINESS_PLACEHOLDER;
-  // Keep owner-selected covers first; every new or legacy catalog gets category-aware local artwork otherwise.
-  const slides = React.useMemo(() => {
-    if (!currentBusiness) return [BUSINESS_PLACEHOLDER];
-    const merchantCovers = (currentBusiness.coverImages || []).filter((url) => Boolean(url && url.trim()));
-    if (merchantCovers.length > 0) return merchantCovers.slice(0, 2);
-    // The official platform profile must use first-party brand media, not expiring social-CDN URLs stored in legacy profile metadata.
-    return [isPlatformBrandProfile ? defaultCover : currentBusiness.coverUrl || defaultCover];
-  }, [currentBusiness, defaultCover, isPlatformBrandProfile]);
-
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-
-  useEffect(() => {
-    setCurrentSlideIndex(0);
-    if (slides.length <= 1) return;
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
-    const timer = window.setInterval(() => {
-      setCurrentSlideIndex((prev) => (prev + 1) % slides.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [slides.length, currentBusiness?.id]);
+  // A storefront has one fixed cover. Promotional imagery is rendered in its own gallery below.
+  // The official platform profile must use first-party brand media, not expiring social-CDN URLs.
+  const coverImage = isPlatformBrandProfile ? defaultCover : currentBusiness?.coverUrl || defaultCover;
+  const promotionalImages = (currentBusiness?.promotionalImages || [])
+    .filter((url) => typeof url === 'string' && url.startsWith('https://'))
+    .slice(0, 10);
 
   if (!currentBusiness) {
     return (
@@ -100,50 +86,24 @@ export const BusinessProfileHeader: React.FC = () => {
         </div>
       )}
 
-      {/* 1. Cover photo slider; auto-rotation respects the visitor's reduced-motion preference. */}
+      {/* One fixed cover image; promotional images are displayed in a separate gallery. */}
       <div className="w-full px-0 py-0">
         <section aria-label={`غلاف نشاط ${currentBusiness.name}`} data-testid="storefront-cover-hero" className="mx-v4-storefront-cover relative w-full aspect-[16/9] sm:aspect-[1440/390] overflow-hidden group">
-        {slides.map((imgUrl, idx) => (
-          <div
-            key={idx}
-            aria-hidden={idx !== currentSlideIndex}
-            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out motion-reduce:transition-none ${
-              idx === currentSlideIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+          <img
+            src={coverImage}
+            alt={`غلاف ${currentBusiness.name}`}
+            className={`w-full h-full object-cover object-center transform transition-transform duration-700 ${
+              isFrozen ? 'grayscale contrast-125 opacity-75' : ''
             }`}
-          >
-            <img
-              src={imgUrl}
-              alt={`غلاف ${currentBusiness.name} - شريحة ${idx + 1}`}
-              className={`w-full h-full object-cover object-center transform transition-transform duration-700 ${
-                isFrozen ? 'grayscale contrast-125 opacity-75' : ''
-              }`}
-              onError={(e) => {
-                const image = e.currentTarget;
-                if (image.dataset.defaultFallbackApplied !== 'true') {
-                  image.dataset.defaultFallbackApplied = 'true';
-                  image.src = defaultCover;
-                }
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-black/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none" aria-hidden="true" />
-          </div>
-        ))}
-
-        {/* Slider Indicators (Dots) */}
-        <div role="group" aria-label="التنقل بين صور الغلاف" className="absolute bottom-4 right-1/2 translate-x-1/2 z-20 flex items-center gap-1.5 bg-black/40 backdrop-blur-xs px-3 py-1.5 rounded-full border border-white/15">
-          {slides.map((_, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => setCurrentSlideIndex(idx)}
-              aria-pressed={idx === currentSlideIndex}
-              className={`h-2 rounded-full transition-all cursor-pointer ${
-                idx === currentSlideIndex ? 'w-6 bg-sky-400' : 'w-2 bg-white/50 hover:bg-white'
-              }`}
-              aria-label={`انتقل للشريحة ${idx + 1}`}
-            />
-          ))}
-        </div>
+            onError={(e) => {
+              const image = e.currentTarget;
+              if (image.dataset.defaultFallbackApplied !== 'true') {
+                image.dataset.defaultFallbackApplied = 'true';
+                image.src = defaultCover;
+              }
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-black/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100" aria-hidden="true" />
 
         {/* Top Floating Badge: Verification & Status */}
         <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 flex max-w-[calc(100%-1.5rem)] items-center gap-2">
@@ -337,6 +297,43 @@ export const BusinessProfileHeader: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {promotionalImages.length > 0 && (
+        <section
+          aria-label={`الصور الترويجية لنشاط ${currentBusiness.name}`}
+          data-testid="storefront-promotional-gallery"
+          className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8"
+        >
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-black text-slate-900">صور وأعمال النشاط</h2>
+              <p className="mt-1 text-xs text-slate-500">معرض الصور الترويجية</p>
+            </div>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-600">
+              {promotionalImages.length} صور
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {promotionalImages.map((image, index) => (
+              <a
+                key={image}
+                href={image}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`فتح الصورة الترويجية رقم ${index + 1}`}
+                className="group overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <img
+                  src={image}
+                  alt={`صورة ترويجية ${index + 1} لنشاط ${currentBusiness.name}`}
+                  loading="lazy"
+                  className="aspect-square w-full object-cover transition duration-300 group-hover:scale-105"
+                />
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
 
       <QRCodeModal
         business={currentBusiness}
