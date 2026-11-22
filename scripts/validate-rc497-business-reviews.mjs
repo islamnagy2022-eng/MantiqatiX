@@ -175,6 +175,12 @@ assert.doesNotMatch(apiEdge, /supabaseAdmin\.rpc\("create_order_backend"/,
   "legacy Orders API must not invoke the auth.uid()-enforcing RPC through service_role");
 assert.match(orderIntegration, /RC498_AUTHENTICATED_EXECUTE_MISSING[\s\S]*?RC498_ANON_EXECUTE_PRESENT[\s\S]*?RC498 authenticated order RPC ACL, identity and pricing: PASS/,
   "order integration suite must cover authenticated execution, anon denial, identity and authoritative pricing");
+assert.match(orderMigration, /catalog_item_prices cp[\\s\\S]*?upper\\(cp\\.currency\\)\\s*=\\s*v_currency/,
+  "RC498 must select an active catalog price in the authoritative business currency");
+assert.match(orderFixture, /currency varchar not null default 'EGP'[\\s\\S]*?EGP'[\\s\\S]*?125,1[\\s\\S]*?USD'[\\s\\S]*?999,2/,
+  "order fixture must include a higher-version foreign-currency price to prove currency isolation");
+assert.match(orderIntegration, /total_amount=125/,
+  "authenticated order integration must preserve the EGP price instead of selecting the higher-version USD row");
 assert.ok(orderWorkflow.includes(orderMigrationPath), "order workflow must apply RC498 after RC105");
 assert.ok(orderWorkflow.includes("image: postgres:17") && orderWorkflow.includes("ancestor=postgres:17"),
   "RC498 idempotency integration must run against the same PostgreSQL 17 major version as forward replay");
