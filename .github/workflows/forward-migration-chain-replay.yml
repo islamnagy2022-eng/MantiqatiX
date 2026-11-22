@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/**"
+      - "supabase/tests/rc497_business_reviews_fixture.sql"
+      - "supabase/tests/rc497_business_reviews_integration.sql"
+      - "scripts/validate-rc497-business-reviews.mjs"
+      - ".github/workflows/li2lak-verified-business-reviews.yml"
       - "supabase/tests/rc488_storage_anonymous_auth_write_guard_fixture.sql"
       - "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql"
       - "scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"
@@ -193,7 +197,7 @@ jobs:
       - name: Validate RC469 shared caller search_path contract
         run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
 
-      - name: Validate strict Production release gate and exact 76-version contract
+      - name: Validate strict Production release gate and exact 77-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
 
       - name: Validate MantiGO platform-admin and financial source contracts
@@ -239,6 +243,9 @@ jobs:
       
       - name: Validate RC496 MantiGO bid acceptance state invariant
         run: node scripts/validate-rc496-mantigo-bid-accept-state-invariant.mjs
+
+      - name: Validate RC497 verified business review source contract
+        run: node scripts/validate-rc497-business-reviews.mjs
 
       - name: Start isolated Supabase instance with no repository migrations
         shell: bash
@@ -377,3 +384,42 @@ jobs:
             cd "$MNTY_REPLAY_TEST_DIR"
             supabase stop --no-backup || true
           fi
+
+  rc497-verified-business-review-lifecycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: li2lak_reviews_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d li2lak_reviews_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout candidate source
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Validate RC497 source and exact release manifest
+        run: node scripts/validate-rc497-business-reviews.mjs
+
+      - name: Apply disposable fixture and RC497 migration
+        run: |
+          set -euo pipefail
+          db_url="postgresql://postgres:postgres@localhost:5432/li2lak_reviews_test"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc497_business_reviews_fixture.sql
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/migrations/20261122010000_rc497_verified_business_reviews.sql
+
+      - name: Test verified order provenance, moderation, business scope, privacy and account deletion
+        run: |
+          psql "postgresql://postgres:postgres@localhost:5432/li2lak_reviews_test" -v ON_ERROR_STOP=1 -f supabase/tests/rc497_business_reviews_integration.sql
