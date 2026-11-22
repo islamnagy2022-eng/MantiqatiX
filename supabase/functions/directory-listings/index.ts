@@ -19,6 +19,7 @@ import { collectActiveAddressConsentIds } from "./consent-pagination.mjs";
 import { collectActiveContactConsentScopes } from "./contact-consent-pagination.mjs";
 import { resolveDirectoryPlatformAdmin } from "./platform-admin-registry.mjs";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { resolveDirectoryListingsReleaseGate } from "./release-gate.mjs";
 
 const allowedOrigins = new Set([
   "https://islamnagy2022-eng.github.io",
@@ -57,10 +58,34 @@ Deno.serve(async (req: Request) => {
   const origin = req.headers.get("Origin");
   if (origin && !allowedOrigins.has(origin)) return out(origin, { error: "ORIGIN_NOT_ALLOWED" }, 403);
   if (req.method === "OPTIONS") return new Response("ok", { status: 200, headers: cors(origin) });
+
+  // Fail closed until an operator explicitly enables the directory after the
+  // contact-consent schema and source-rights release have passed their gates.
+  // The absent flag defaults to disabled and keeps this endpoint read-only/empty.
+  const directoryListingsEnabled = Deno.env.get("DIRECTORY_LISTINGS_ENABLED");
+  if (directoryListingsEnabled !== "true") {
+    const gate = resolveDirectoryListingsReleaseGate(req.method, directoryListingsEnabled, false);
+    if (gate) return out(origin, gate.body, gate.status);
+  }
+
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceKey) return out(origin, { error: "SERVER_MISCONFIGURED" }, 500);
   const service = createClient(supabaseUrl, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+
+  // Even with the explicit switch, require the contact-consent registry to be
+  // reachable before exposing any listing rows or accepting a consent mutation.
+  const { error: consentRegistryProbeError } = await service
+    .from("directory_listing_contact_consents")
+    .select("listing_id")
+    .limit(0);
+  const consentRegistryAvailable = !consentRegistryProbeError;
+  const releaseGate = resolveDirectoryListingsReleaseGate(
+    req.method,
+    directoryListingsEnabled,
+    consentRegistryAvailable,
+  );
+  if (releaseGate) return out(origin, releaseGate.body, releaseGate.status);
 
   // A business-linked listing is controlled by its current business-wide owner,
   // not permanently by the user who originally submitted the claim.
