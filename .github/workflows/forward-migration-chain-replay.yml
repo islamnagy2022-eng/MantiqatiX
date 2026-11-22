@@ -193,7 +193,7 @@ jobs:
       - name: Validate RC469 shared caller search_path contract
         run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
 
-      - name: Validate strict Production release gate and exact 76-version contract
+      - name: Validate strict Production release gate and exact 77-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
 
       - name: Validate MantiGO platform-admin and financial source contracts
@@ -239,6 +239,9 @@ jobs:
       
       - name: Validate RC496 MantiGO bid acceptance state invariant
         run: node scripts/validate-rc496-mantigo-bid-accept-state-invariant.mjs
+
+      - name: Validate RC497 verified business review source contract
+        run: node scripts/validate-rc497-business-reviews.mjs
 
       - name: Start isolated Supabase instance with no repository migrations
         shell: bash
