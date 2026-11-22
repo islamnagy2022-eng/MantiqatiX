@@ -163,3 +163,62 @@ end;
 $test$;
 
 select 'RC104 order idempotency ownership/scope: PASS' as result;
+
+
+-- RC498: authenticated browser/Edge clients may call the same RPC with their own JWT.
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000001',false);
+SELECT set_config('request.jwt.claim.role','authenticated',false);
+
+DO $rc498_authenticated_order$
+DECLARE
+  v_oid oid := to_regprocedure('public.create_order_backend(uuid, character varying, uuid, character varying, uuid, character varying, numeric, numeric, numeric, numeric, numeric, character varying, text, text, text, jsonb, text, jsonb)');
+  v_config text[];
+  v_result jsonb;
+BEGIN
+  IF NOT has_function_privilege('authenticated', v_oid, 'EXECUTE') THEN
+    RAISE EXCEPTION 'RC498_AUTHENTICATED_EXECUTE_MISSING';
+  END IF;
+  IF has_function_privilege('anon', v_oid, 'EXECUTE') THEN
+    RAISE EXCEPTION 'RC498_ANON_EXECUTE_PRESENT';
+  END IF;
+  IF NOT has_function_privilege('service_role', v_oid, 'EXECUTE') THEN
+    RAISE EXCEPTION 'RC498_SERVICE_ROLE_EXECUTE_MISSING';
+  END IF;
+  SELECT proconfig INTO v_config FROM pg_proc WHERE oid=v_oid;
+  IF NOT EXISTS (
+    SELECT 1 FROM unnest(coalesce(v_config, ARRAY[]::text[])) setting
+    WHERE setting='search_path=pg_catalog, public, extensions, pg_temp'
+  ) THEN
+    RAISE EXCEPTION 'RC498_SEARCH_PATH_INVALID: %', v_config;
+  END IF;
+
+  v_result := public.create_order_backend(
+    '30000000-0000-4000-8000-000000000091',
+    'tenant-a',
+    '20000000-0000-4000-8000-000000000001',
+    'branch-a',
+    auth.uid(),
+    'authenticated-order-key-rc498',
+    0,0,0,0,0,'EGP','Customer One','01000000000','Authenticated customer address',
+    '[{"catalogItemId":"40000000-0000-4000-8000-000000000001","quantity":1,"selectedOptionIds":[]}]'::jsonb,
+    null,'{}'::jsonb
+  );
+  IF v_result->>'id' <> '30000000-0000-4000-8000-000000000091'
+     OR v_result->>'idempotent' <> 'false' THEN
+    RAISE EXCEPTION 'RC498_AUTHENTICATED_ORDER_CREATE_FAILED: %', v_result;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.orders
+     WHERE id='30000000-0000-4000-8000-000000000091'
+       AND customer_id=auth.uid()
+       AND total_amount=125
+  ) THEN
+    RAISE EXCEPTION 'RC498_AUTHENTICATED_ORDER_NOT_PERSISTED_WITH_SERVER_PRICE';
+  END IF;
+END
+$rc498_authenticated_order$;
+
+RESET ROLE;
+
+SELECT 'RC498 authenticated order RPC ACL, identity and pricing: PASS' AS result;
