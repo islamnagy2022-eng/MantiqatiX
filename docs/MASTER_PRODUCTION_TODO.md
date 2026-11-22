@@ -4979,7 +4979,7 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Confirmed `directory-listings` v18 is intentionally disabled: GET returns empty results and POST mutation returns 503. Keep it disabled until the complete consent/source-rights release.
 - [x] Read-only query: live migration ledger 310 rows, latest `20261110150618`; exact comparison of all 76 required release version IDs returned **0/76 present**.
 - [x] Confirmed `public.directory_listing_contact_consents` and `public.migration_release_registry` are absent.
-- [ ] Complete exact-head PR #978 browser E2E and all required CI checks. Latest snapshot at documentation checkpoint: 26 success, 3 in progress, 1 skipped, 0 failures; keep PR in draft and do not deploy its Edge sources independently.
+- [ ] Complete exact-head PR #978 browser E2E and all required CI checks. Exact-head CI completed: 28 success, 2 skipped, 0 failures; build, RBAC PostgreSQL and browser E2E passed. Keep PR in draft and do not deploy its Edge sources independently.
 - [ ] Obtain a genuine encrypted off-site database + Storage backup, verify Vault recovery, perform independent PostgreSQL 17 restore/rollback and measure RPO/RTO.
 - [ ] Reconcile and apply the ordered 76-version release only after backup/restore approval; do not apply isolated migrations.
 - [ ] Deploy consent schema, catalog-admin audit writer, both public reader projections, authorization dependencies and tests as one coordinated release. Preserve disabled directory until all checks pass.
