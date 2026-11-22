@@ -5073,3 +5073,11 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Extend PostgreSQL integration tests for fractional quantity, over-limit options and over-limit item arrays.
 - [ ] Run exact-head PostgreSQL 17 integration and forward replay; these source checks are not a substitute for executed SQL.
 - **Safety:** source/test changes only. No Production DB, Auth, RLS/GRANT, Edge, payment, wallet, Storage or public deployment mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+### Pass 1921–1930 — Li2Lak branch lookup bound hardening — 2026-11-22
+- [x] Replaced the fixed 100-row active-branch listing in `order-create` with an exact selected-branch lookup; when no branch is supplied, use a bounded one-row existence query to determine whether selection is required.
+- [x] Added source-contract assertions preventing arbitrary pagination limits from rejecting valid branches beyond the first 100 rows.
+- [x] Re-fetched both changed files from the PR head and independently evaluated the new branch-query assertions against the source: PASS.
+- [ ] Exact-head GitHub Actions, PostgreSQL 17 integration, migration replay, frontend build/E2E and security workflows must complete before merge.
+- **Safety:** source-only PR change. No Production database, Auth/RLS/GRANT, Edge Function deployment, payment, wallet, customer data or public deployment mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
