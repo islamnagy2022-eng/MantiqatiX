@@ -35,18 +35,26 @@ Deno.serve(async (req) => {
     return out(origin, { error: "ORIGIN_NOT_ALLOWED" }, 403);
   }
 
-  if (req.method !== "GET" && req.method !== "POST") {
-    return out(origin, { error: "METHOD_NOT_ALLOWED" }, 405);
+  if (req.method === "GET") {
+    // Preserve the existing public page contract while returning no unconsented records.
+    // This prevents the already-published frontend from showing a false network error.
+    return out(origin, {
+      listings: [],
+      pageSize: 0,
+      hasMore: false,
+      nextCursor: null,
+      directoryDisabled: true,
+    }, 200);
   }
 
-  // V1 disables unclaimed third-party directory data until contact-consent
-  // migrations RC472/RC473 and the matching public bundle are released together.
-  return out(origin, {
-    error: "DIRECTORY_LISTINGS_DISABLED_FOR_V1",
-    message: "This directory is temporarily unavailable while owner contact permissions are being verified.",
-    listings: [],
-    pageSize: 0,
-    hasMore: false,
-    nextCursor: null,
-  }, 503);
+  if (req.method === "POST") {
+    // All unclaimed listing claims and mutations remain disabled until RC472/RC473
+    // and the owner contact-consent/source-rights release gate are complete.
+    return out(origin, {
+      error: "DIRECTORY_LISTINGS_DISABLED_FOR_V1",
+      message: "This directory is temporarily unavailable while owner contact permissions are being verified.",
+    }, 503);
+  }
+
+  return out(origin, { error: "METHOD_NOT_ALLOWED" }, 405);
 });
