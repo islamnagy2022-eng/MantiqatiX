@@ -3336,3 +3336,12 @@ Hardened the existing Marketplace Home ad URL contract on PR #969. HTTPS is requ
 - [ ] Reconcile live `order-create` v8 with current source; it is active and JWT-protected but not byte-identical to main source. No Edge redeploy performed.
 - [ ] Complete genuine encrypted database/Storage backup, independent restore/rollback rehearsal, P0 directory-contact-consent and platform-admin authorization gates before any Production release.
 - **Production effect:** NONE. No Production migration, Auth/RLS/GRANT, Edge deployment, Storage, payment, wallet, customer data or public deployment was changed. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+### RC105 live order-create identity blocker — 2026-11-22
+
+- Read-only Production SQL confirmed migration version `20261023050000` (RC105) is absent from `supabase_migrations.schema_migrations`; RC497 `20261122010000` is also absent.
+- Live `public.create_order_backend(...)` still requires `auth.uid() = p_customer_id` unconditionally.
+- Live `order-create` Edge Function v8 has `verify_jwt=true`, verifies the bearer token using `admin.auth.getUser(token)`, then invokes `create_order_backend` with the service-role client. The database function therefore rejects the call with `CUSTOMER_REQUIRED` until RC105 is applied.
+- RC105 already exists in the canonical source chain and explicitly permits the verified service-role Edge Function path while keeping non-service-role callers bound to `auth.uid()`; it does not broaden browser EXECUTE privileges.
+- Exact release manifest confirms RC105 is required and missing from the live ledger. The CartDrawer integration is source-only and must not be deployed before the coordinated release includes RC105 and RC497.
+- No order request was invoked; no Production mutation occurred. Do not hot-edit the function, grant authenticated EXECUTE, or deploy the Edge Function separately.
