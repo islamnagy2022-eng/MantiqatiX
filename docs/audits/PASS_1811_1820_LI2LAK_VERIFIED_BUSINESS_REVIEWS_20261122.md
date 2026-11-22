@@ -31,7 +31,10 @@ Add a separate customer-review capability to Li2Lak without reusing MantiGO ride
 - Added `BusinessReviewsPanel` to the public business storefront after the catalog.
 - The panel calls only `get_public_business_review_summary`, validates the returned payload, and displays a rating, bounded published review cards, and business responses.
 - It renders only for ACTIVE, verified and non-frozen businesses; if the RC497 RPC is not deployed or fails, the panel fails closed and remains hidden.
-- The current app does not have a customer order-history/review-entry screen. Therefore the customer submission UI and business-owner response UI remain incomplete; the backend RPC contracts are present, but those user journeys must be integrated before calling the review feature complete.
+- The customer order-history/review-entry flow is now implemented in `CustomerOrderReviews.tsx` and mounted in `SubscriberAccountPortal.tsx`; it reads only the authenticated customer's orders, checks review status through the owner-scoped RPC, and submits through `submit_business_review`.
+- The business-owner response flow is implemented in `BusinessReviewManagementPanel.tsx` and mounted in `MerchantDashboard.tsx`; it reads published reviews through the public summary RPC and posts a single scoped response through `respond_to_business_review`.
+- The platform moderation flow is implemented in `BusinessReviewModerationPanel.tsx` and mounted in `AdminDashboard.tsx`; it uses the registry-protected moderation queue and moderation RPC. Tenant admins may see the tab but cannot read the queue or moderate unless they are in `private.platform_admins`.
+- The public storefront review panel is mounted in `App.tsx` and remains restricted to active verified businesses. No customer identity is returned by public RPCs.
 
 ## Automated tests added
 
@@ -42,19 +45,18 @@ Add a separate customer-review capability to Li2Lak without reusing MantiGO ride
 
 ## Release ledger reconciliation
 
-- The exact production release contract now tracks 77 migration identities, including RC497.
+- The exact production release contract now tracks 77 migration identities, including RC497. The candidate includes six narrow review RPCs: customer status, customer submission, registry-admin moderation queue, registry-admin moderation, business-owner response, and bounded public summary.
 - The retained live ledger snapshot still records zero of the 77 required exact source identifiers, with latest recorded live version `20261110150618`.
 - This is a migration identity gap, not proof that every corresponding physical schema effect is absent. Physical schema, function bodies, ACLs, RLS and Edge parity must continue to be reconciled independently.
 - Do not synthesize ledger entries or blindly replay migrations against Production.
 
 ## Current PR and validation
 
-- PR #970: https://github.com/islamnagy2022-eng/MantiqatiX/pull/970
-- Branch: `feat/li2lak-verified-business-reviews-20261122`.
-- Latest source commit at report time: `b3c7e123c94f418c73b336a7ceab6531469a518c`.
-- Earlier exact-head workflow run for commit `d45e2b6a65143806a362de8dfcf27eeaf4c7f900` was created, but jobs were still QUEUED at last check. Later source updates require a fresh exact-head CI result. No test pass is claimed.
-- PR remains unmerged. No public deployment occurred.
+- PR #971: replacement/rebased candidate against current `main` after PR #969 merged.
+- Branch: `feat/li2lak-verified-business-reviews-rebased-20261122`.
+- The earlier PR #970 was closed as superseded after PR #969 advanced `main`; its source work was carried onto the rebased branch. No duplicate RC497 migration remains open.
+- Latest exact-head CI must complete before merge. No test pass is claimed for the rebased branch. No Production migration or public deployment occurred.
 
 ## Release decision
 
-**PRODUCTION BLOCKED / NOT CERTIFIED.** RC497 is a source candidate only. Do not merge or deploy until exact-head CI, full chronological replay, independent backup/restore rehearsal, migration alias/physical-object reconciliation, and the broader P0 directory-consent and platform-admin authorization gates are resolved.
+**PRODUCTION BLOCKED / NOT CERTIFIED.** RC497 is a source candidate only; the live order count remains zero, so there is no real customer transaction available for an end-to-end production review test. Do not merge or deploy until exact-head CI, full chronological replay, independent backup/restore rehearsal, migration alias/physical-object reconciliation, and the broader P0 directory-consent and platform-admin authorization gates are resolved.
