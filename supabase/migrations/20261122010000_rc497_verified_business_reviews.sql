@@ -9,7 +9,7 @@ CREATE TABLE public.business_reviews (
   tenant_id varchar NOT NULL,
   business_id uuid NOT NULL REFERENCES public.businesses(id) ON DELETE RESTRICT,
   order_id uuid NOT NULL REFERENCES public.orders(id) ON DELETE RESTRICT,
-  customer_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  customer_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   rating smallint NOT NULL CHECK (rating BETWEEN 1 AND 5),
   review_text text,
   status text NOT NULL DEFAULT 'PENDING'
@@ -38,7 +38,7 @@ CREATE INDEX business_reviews_customer_created_idx
 CREATE TABLE public.business_review_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   review_id uuid NOT NULL REFERENCES public.business_reviews(id) ON DELETE RESTRICT,
-  actor_user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  actor_user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   event_type text NOT NULL CHECK (event_type IN ('SUBMITTED','MODERATED','BUSINESS_RESPONDED')),
   previous_status text,
   new_status text,
@@ -105,8 +105,10 @@ BEGIN
      OR coalesce(v_order.total_amount, 0) <= 0 THEN
     RAISE EXCEPTION 'ORDER_NOT_REVIEWABLE';
   END IF;
-  IF coalesce(jsonb_typeof(v_order.items_json), '') <> 'array'
-     OR jsonb_array_length(v_order.items_json) = 0 THEN
+  IF coalesce(jsonb_typeof(v_order.items_json), '') <> 'array' THEN
+    RAISE EXCEPTION 'ORDER_NOT_REVIEWABLE';
+  END IF;
+  IF jsonb_array_length(v_order.items_json) = 0 THEN
     RAISE EXCEPTION 'ORDER_NOT_REVIEWABLE';
   END IF;
 
