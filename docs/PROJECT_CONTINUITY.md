@@ -1,3 +1,17 @@
+
+
+## Latest continuation checkpoint — 2026-11-22 — Pass 1721–1730
+
+**Baseline main:** `a04a057a5878d0a9b7fb1b4404348c8f760fe96b` (Li2Lak benchmark documentation merged).  
+**Working branch:** `fix/li2lak-marketplace-ads-resilience-20261122-v2`.  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+- Marketplace Home already uses the approved public ad RPC and actual catalog discounts; it was not rebuilt.
+- Implemented independent HOME_HERO / HOME_SPONSORED loading, per-placement fail-closed behavior, creative/target URL validation and deduplication.
+- Four focused regression tests pass locally under Node 22; isolated TypeScript helper check passes. Exact-head CI is pending.
+- No Production mutation or deployment occurred.
+
+**Next:** await exact-head CI, then inspect full review/rating schema and Storage media policies before any additional Li2Lak-inspired implementation. Preserve Activity → Specialty, Egypt-wide discovery, existing public-price consent and mobile assets.
 ## Pass 1701–1710 — source inspection refinement
 
 - Marketplace Home is implemented on main; do not duplicate the directory, ad hub or discount listings.
@@ -3252,3 +3266,32 @@ Next: inspect the MantiGO ratings table-creation migration, triggers, constraint
 ### MantiGO rating migration ordering clarification — 2026-11-22
 
 The initial rating immutability migration (`20261006121810`) is superseded at the RPC-definition level by later `20261006171000_mantigo_notification_lifecycle_v1.sql`, which redefines `mantigo_rate_ride` with `ON CONFLICT (ride_id,customer_id) DO UPDATE`. Current-main chronological source therefore allows a rating/comment update for the same ride/customer; the old immutability claim is not accurate for the final migration chain. The customer-rides RPC at `20261006180000` returns the caller's own rating only. Confirm intended edit policy and add disposable PostgreSQL tests before changing this subsystem. No Production change occurred.
+
+
+## Latest continuation checkpoint — 2026-11-22 — Pass 1731–1740
+
+**Production project:** `moyhiluyhjsujhwlyeuu` (`MANTIQATIX FINAL`, ACTIVE_HEALTHY).  
+**Current source branch:** `fix/li2lak-marketplace-ads-resilience-20261122-v2`.  
+**Current PR:** #968; the earlier PR #967 was superseded after adding stricter URL validation and expanded regression cases.  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+Live read-only Supabase inspection confirms 310 applied migrations through `20261110150618`; current source forward-chain replay is a separate CI gate and does not mean the later source migrations are deployed. No general business review table exists in the live table inventory; only MantiGO ride ratings exist. Both current Storage buckets are image-only and limited to 5 MiB. Security Advisor reports 9 RLS-enabled/no-policy relations, one anonymous-callable public ads SECURITY DEFINER RPC, and 65 authenticated-callable SECURITY DEFINER functions. See `docs/audits/PASS_1731_1740_LIVE_SUPABASE_SCHEMA_STORAGE_REVIEW_20261122.md`.
+
+No production mutation occurred. Next: continue function/RLS/storage authorization reconciliation in source + disposable tests; do not introduce reviews or video upload by reusing unrelated rating/media contracts.
+
+
+### Marketplace regression coverage update — 2026-11-22
+
+The Marketplace ad loader now has six focused regression cases: one-placement rejection, returned RPC error, invalid payloads, unsafe creative/target URLs, credential-bearing target URLs, and duplicate placement records. The earlier four-case subset passed TypeScript + focused CI tests; the two additional cases and the final URL-credential guard require fresh exact-head CI on PR #968 before merge.
+
+
+## Pass 1741–1750 — Live catalog RPC authorization drift — 2026-11-22
+
+A fresh read-only Production inspection confirms seven catalog/stock SECURITY DEFINER functions remain on the legacy authorization contract: `adjust_catalog_stock_backend`, `create_catalog_warehouse_backend`, `update_catalog_item_status_backend`, `upsert_catalog_business_profile_backend`, `upsert_catalog_item_backend`, `upsert_catalog_price_backend`, and `upsert_catalog_settings_backend`. All seven still use `search_path=public`, do not call `public.is_platform_admin()`, and read mutable membership `scope/full_control` metadata for platform-root authority. This is a P0 source/live mismatch.
+
+The repair already exists in source: RC484 registry-backed helper followed by RC485's seven-function rewrite and disposable integration test. Do not create a duplicate migration or deploy these independently. The live migration ledger remains 310 through `20261110150618`; RC484/RC485 and the full ordered release chain remain unapplied. The nine RLS-enabled/no-policy tables have no direct anon/authenticated grants; maintain their backend-only boundary. Production remains **BLOCKED / NOT CERTIFIED** pending coordinated backup/restore and release approval.
+
+
+### RC484 platform-admin registry dependency — live recheck — 2026-11-22
+
+Live `private.platform_admins` has one row, RLS enabled, FORCE RLS false, and no direct anon/authenticated grants. The deployed `public.is_platform_admin()` is still SECURITY INVOKER with `search_path=public`, checks active ADMIN/SUPER_ADMIN membership and does not consult the private registry. 57 live RLS policy expressions call this helper. Existing RC484 source is the intended coordinated repair; RC485's seven catalog RPC fixes depend on RC484. Apply neither separately. Production remains **BLOCKED / NOT CERTIFIED**.
