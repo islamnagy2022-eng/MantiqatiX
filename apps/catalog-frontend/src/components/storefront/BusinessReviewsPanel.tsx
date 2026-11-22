@@ -84,7 +84,7 @@ export const BusinessReviewsPanel: React.FC = () => {
     return () => { active = false; };
   }, [currentBusiness?.id, currentBusiness?.isVerified, currentBusiness?.operationalStatus, currentBusiness?.isFrozen]);
 
-  if (!currentBusiness?.isVerified || currentBusiness.operationalStatus !== 'ACTIVE' || currentBusiness.isFrozen || !summary) {
+  if (!currentBusiness?.isVerified || currentBusiness.operationalStatus !== 'ACTIVE' || currentBusiness.isFrozen || (!summary && !loading)) {
     return null;
   }
 
@@ -101,12 +101,12 @@ export const BusinessReviewsPanel: React.FC = () => {
           </div>
           <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 px-4 py-2 text-emerald-900">
             <Star className="h-5 w-5 fill-current" />
-            <strong className="text-xl">{summary.averageRating === null ? '—' : summary.averageRating.toFixed(1)}</strong>
-            <span className="text-xs">({summary.reviewCount} تقييم)</span>
+            <strong className="text-xl">{summary?.averageRating === null || summary?.averageRating === undefined ? '—' : summary.averageRating.toFixed(1)}</strong>
+            <span className="text-xs">({summary?.reviewCount ?? 0} تقييم)</span>
           </div>
         </div>
 
-        {loading ? (
+        {loading || !summary ? (
           <p role="status" className="py-5 text-center text-sm text-slate-500">جارٍ تحميل التقييمات…</p>
         ) : summary.reviews.length === 0 ? (
           <p className="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">لا توجد تقييمات منشورة وموثقة حتى الآن.</p>
