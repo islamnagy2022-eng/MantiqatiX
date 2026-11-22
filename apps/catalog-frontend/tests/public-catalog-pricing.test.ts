@@ -16,6 +16,22 @@ test('quote-only services stay available without a numeric price', () => {
   );
 });
 
+test('missing public-price permission defaults to quote-only even if a price row is present', () => {
+  assert.deepEqual(
+    resolvePublicCatalogAvailability({ is_available: true }, { available: true }, { unit_price: 120 }),
+    { requiresQuote: true, available: true },
+  );
+});
+
+test('malformed public-price permission never grants numeric price disclosure', () => {
+  for (const showPrice of ['true', 1, null, undefined]) {
+    assert.deepEqual(
+      resolvePublicCatalogAvailability({ show_price: showPrice, is_available: true }, { available: true }, { unit_price: 120 }),
+      { requiresQuote: true, available: true },
+    );
+  }
+});
+
 test('an explicit quote-only flag also keeps an item available', () => {
   assert.deepEqual(
     resolvePublicCatalogAvailability({ is_available: true }, { requiresQuote: true }, undefined),
@@ -23,7 +39,7 @@ test('an explicit quote-only flag also keeps an item available', () => {
   );
 });
 
-test('ordinary items without a current price are not orderable', () => {
+test('ordinary items without a current price are not orderable when public pricing is enabled', () => {
   assert.deepEqual(
     resolvePublicCatalogAvailability({ show_price: true, is_available: true }, { available: true }, undefined),
     { requiresQuote: false, available: false },

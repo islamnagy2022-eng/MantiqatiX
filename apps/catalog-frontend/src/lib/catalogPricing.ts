@@ -9,15 +9,15 @@ export type PublicCatalogPriceAvailabilityItem = {
 };
 
 /**
- * Resolve public availability without requiring a numeric price for quote-only
- * catalogue entries. This applies equally to products and services.
+ * Public prices are opt-in. Missing, false, or malformed permission must
+ * never expose a numeric price; keep an otherwise available item quote-only.
  */
 export function resolvePublicCatalogAvailability(
   metadata: PublicCatalogPriceAvailabilityMetadata,
   item: PublicCatalogPriceAvailabilityItem,
   price: unknown,
 ): { requiresQuote: boolean; available: boolean } {
-  const requiresQuote = metadata.show_price === false || item.requiresQuote === true;
+  const requiresQuote = metadata.show_price !== true || item.requiresQuote === true;
   const available = metadata.is_available !== false
     && item.available !== false
     && (requiresQuote || Boolean(price));
