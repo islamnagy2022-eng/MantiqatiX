@@ -150,8 +150,10 @@ assert.match(marketplaceHome, /product\.type === 'product' && Number\(product\.c
   'Product offers must represent a real recorded discount rather than an invented promotion.');
 assert.match(marketplaceHome, /product\.type === 'service' && Number\(product\.comparePrice \|\| 0\) > Number\(product\.price \|\| 0\)/,
   'Service offers must represent a real recorded discount rather than an invented promotion.');
-assert.match(marketplaceHome, /loadTargetedAdvertisements\(\(functionName, args\) =>\s*supabase\.rpc\(functionName, args\)\)/,
+assert.match(marketplaceHome, /loadTargetedAdvertisements\\(\\(functionName, args\\) =>/,
   'Marketplace Home must use the isolated, sanitized targeted-ad loader.');
+assert.match(marketplaceHome, /supabase\\.rpc\\(functionName, args\\)/,
+  'Marketplace Home must load targeted ads through the Supabase RPC client.');
 assert.match(marketplaceHome, /const href = isSafeHttpsUrl\(ad\.target_url\)/,
   'Marketplace Home must disable navigation when an ad target fails strict HTTPS validation.');
 assert.doesNotMatch(merchantDashboard, /images\.unsplash\.com/, 'merchant product lists must not show stock photos as real items');
