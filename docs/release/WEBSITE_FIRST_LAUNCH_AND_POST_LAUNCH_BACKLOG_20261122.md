@@ -44,14 +44,14 @@ Production Supabase project: moyhiluyhjsujhwlyeuu.
 
 Direct live Edge inspection on 2026-11-22:
 - public-catalog: ACTIVE v8, verify_jwt=false. The deployed entrypoint differs from current main and does not call the shared explicit-contact consent projection.
-- public-catalog-directory: ACTIVE v18, verify_jwt=false. The deployed entrypoint differs from current main and still returns branch phone/address and contact profile fields outside the current consent projection.
+- public-catalog-directory: ACTIVE v19, verify_jwt=false. The deployed entrypoint differs from current main and still returns branch phone/address and contact profile fields outside the current consent projection.
 - catalog-admin: ACTIVE v20, verify_jwt=false. The deployed source differs from current main and has no public-contact consent audit handling.
 - catalog-platform-admin: ACTIVE v23, verify_jwt=true; its activity-module override write capability remains intentionally disabled until its audit write is atomic.
 
 Current main already contains the fail-closed helper and owner consent flow:
 - Public contact is blank unless both public_contact_enabled and public_contact_consent_audit_verified are true.
-- The merchant dashboard presents an Arabic explicit-consent checkbox and sends publicContactEnabled.
-- catalog-admin records a durable audit_logs row; only after successful audit does it mark consent verified.
+- The main-branch merchant dashboard contains an Arabic explicit-consent checkbox, but that UI is removed from the website-first branch until the Production catalog-admin audit endpoint is safe to deploy.
+- The current-main catalog-admin candidate records a durable audit_logs row only after its registry-backed authorization prerequisites are deployed. Production v20 does not have this handler.
 - Revocation returns the profile to a hidden state.
 
 Aggregate-only live database inspection:
@@ -70,17 +70,17 @@ Database prerequisites for the current-main consent handler were checked read-on
 - public.mnty_can_platform_admin() exists.
 No database migration or production data mutation was performed for this check.
 
-**Required release action:** deploy and verify the exact current-main bundles for public-catalog, public-catalog-directory and catalog-admin. Include each function's relative _shared dependencies. Preserve their existing verify_jwt modes. Deploy the two public projection functions first so default contact disclosure is closed; deploy catalog-admin after that so owner consent can be audited. Read each deployed bundle back and verify exact source parity before releasing the Pages build.
+**Completed bounded Edge actions:** deployed public-catalog v9 and public-catalog-directory v19 from current main with all shared dependencies, preserving verify_jwt=false; both bundles were read back and matched source exactly. Kept catalog-admin v20 untouched because current main assumes registry-backed authorization that Production does not yet have. The owner public-contact consent switch is hidden in V1. The two safe public projections now return blank contact fields unless both audited consent flags are true.
 
 ### P0 — separate directory-listings surface
 
-The separate directory-listings Edge Function is ACTIVE v16 with verify_jwt=false. The production table public.directory_listing_contact_consents is absent. The current source requires the RC472/RC473 claim/contact-consent dependencies and the complete consent-aware bundle.
+The separate directory-listings Edge Function is now ACTIVE v17 with verify_jwt=false and returns only a fixed HTTP 503 response marked DIRECTORY_LISTINGS_DISABLED_FOR_V1. Its deployed entrypoint was read back and matches the branch stub; it has no Supabase client import or table reads. The frontend does not request unclaimed rows and ignores direct ?listing= routes. The production table public.directory_listing_contact_consents is absent.
 
-Do not deploy the current directory-listings source or apply RC473 alone. For the first website release, hide/disable any navigation route that depends on this separate directory-listings endpoint. Bring it back after its ordered migration chain, current bundle, consent grants/revocations and source-rights review have passed.
+Do not restore the old directory bundle or apply RC473 alone. Bring the feature back only after RC472/RC473 are reconciled in order, a consent-aware complete Edge bundle is deployed and tested, owner grant/revoke audit works, and the third-party dataset source/licence review passes.
 
 ### P0 — stale live-release evidence
 
-The main release manifest's catalog-pilot parity snapshot is dated 2026-11-04 and reports public-catalog v7, public-catalog-directory v17 and catalog-admin v20 as exact. That evidence no longer matches the directly inspected Production functions on 2026-11-22 (v8, v18 and v20 respectively); catalog-admin v20 also lacks the current-main consent code. The pilot verifier still expects v7/v17. Do not simply change version numbers or mark parity true.
+The release manifest and pilot verifier are refreshed to the actual Production versions: public-catalog v9 and public-catalog-directory v19 byte-for-byte match current main; directory-listings v17 is a deliberate fixed-503 disabled endpoint; catalog-admin v20 and catalog-platform-admin v23 are preserved as explicit drift/deferred exceptions. Do not mark admin parity true or deploy the consent candidate before registry authorization is safe.
 
 After the Edge rollout:
 1. Read back each live function and compare every deployed source file to current main.
@@ -116,12 +116,12 @@ The Pages pipeline's explicit CATALOG_PILOT_GATE is the only permitted route for
 1. Freeze V1 to public catalog/search/business pages. Hide the separate directory-listings surface and all unverified payment/order/finance entry points.
 2. Run the public-contact privacy test suite and Deno checks against current main.
 3. Capture the current live bundles and versions for the three catalog functions as rollback/evidence records.
-4. Deploy current-main public-catalog and public-catalog-directory with the shared contact helper and their existing dependencies.
-5. Deploy current-main catalog-admin with the audited owner-consent flow. Do not deploy catalog-platform-admin's unfinished activity-module write feature.
-6. Read the functions back. Verify exact source parity, JWT configuration, blank contacts for non-consenting businesses, and correct owner consent grant/revoke audit behavior.
-7. Refresh the reconciliation snapshot and pilot verifier with actual returned versions; re-run the catalog pilot gate.
+4. Deploy current-main public-catalog v9 and public-catalog-directory v19 with their exact shared helper bundles; read back all files and preserve verify_jwt=false.
+5. Disable directory-listings as v17 with a fixed 503 response, and keep its UI and direct detail routes closed. Read back the exact entrypoint and confirm there are no database queries.
+6. Keep catalog-admin v20 as the current production baseline. Do not deploy current-main catalog-admin until RC464/RC471 authorization prerequisites are released and verified. Keep the owner contact-consent control hidden.
+7. Refresh the reconciliation snapshot with the actual returned versions and explicit admin drift; run the catalog-pilot verifier and Pages HTTP smoke tests.
 8. Let the existing main Pages workflow build and deploy. Do not bypass its main-only deploy condition.
-9. Verify the deployed origin and record the Pages run, commit, endpoint versions, smoke-test results and rollback reference.
+9. Verify the deployed origin and record the Pages run, commit, endpoint versions, smoke-test results and rollback references.
 
 No production database migration is required by the public-contact projection itself. The Edge deployment changes production immediately, so each deployment must be limited to the named catalog functions and verified immediately.
 
@@ -165,9 +165,9 @@ No production database migration is required by the public-contact projection it
 ## 6. Release acceptance record
 
 Do not set the project to LAUNCHED until all of these are recorded:
-- Exact current-main source parity for the three catalog Edge Functions.
-- Contact disclosure is absent without audited owner consent, and consent grant/revoke works with a durable audit event.
-- The separate unconsented directory-listings route is not reachable from V1.
+- Exact current-main source parity for public-catalog v9 and public-catalog-directory v19; catalog-admin v20 drift is explicitly recorded and the consent switch remains hidden.
+- Contact and precise-location fields are absent unless both audited consent flags are true.
+- The separate directory-listings API returns 503 and its list/detail routes are disabled in V1.
 - Catalog pilot validator passes on a fresh Production evidence snapshot.
 - Pages workflow completed successfully on main and the deployed origin passes browser/HTTP smoke.
 - Rollback references are recorded.
