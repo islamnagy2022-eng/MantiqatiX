@@ -1,3 +1,11 @@
+## Production Edge update — website-first privacy boundary (2026-11-22)
+
+- Deployed and read back public-catalog v9 and public-catalog-directory v19. Both preserve verify_jwt=false and every deployed file is byte-for-byte equal to current main, including the shared contact consent helper.
+- Deployed directory-listings v17 as a fixed-503 endpoint marked DIRECTORY_LISTINGS_DISABLED_FOR_V1. It reads no database rows and preserves verify_jwt=false; the Pages workflow now has a dedicated HTTP smoke to test GET/POST 503 and CORS.
+- The website-first branch does not fetch unclaimed directory rows or open direct ?listing= detail routes. The merchant public-contact consent checkbox is hidden because catalog-admin v20 remains the current baseline and the safe registry-backed audit handler is not yet deployed.
+- catalog-admin v20 and catalog-platform-admin v23 are preserved with drift disclosed. No Production SQL, migration, RLS, GRANT, Auth, or table data mutation occurred.
+- No Pages deploy and no PR merge occurred. Full platform gate remains BLOCKED.
+
 ## Active delivery checkpoint — website first, backlog second (2026-11-22)
 
 **Release target:** public catalog at the website root. The V1 scope and ordered post-launch backlog are recorded in [WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md](release/WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md).
