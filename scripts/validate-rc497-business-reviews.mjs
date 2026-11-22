@@ -57,6 +57,8 @@ assert.match(migration, /COMMENT ON FUNCTION public\.get_platform_business_revie
 
 assert.match(migration, /v_existing\.rating = p_rating AND v_existing\.review_text IS NOT DISTINCT FROM v_text[\s\S]*?REVIEW_ALREADY_SUBMITTED/,
   "exact retry must be idempotent while changed duplicate payloads are rejected");
+assert.match(migration, /ON CONFLICT \(order_id\) DO NOTHING[\s\S]*?IF NOT FOUND THEN[\s\S]*?REVIEW_ALREADY_SUBMITTED/,
+  "review insertion must close the unique-order conflict race without accepting changed duplicate payloads");
 assert.match(migration, /v_decision IN \('REJECTED','HIDDEN'\) AND v_reason IS NULL[\s\S]*?MODERATION_REASON_REQUIRED/,
   "rejected or hidden reviews must carry an auditable moderation reason");
 assert.match(migration, /FROM private\.platform_admins pa WHERE pa\.user_id = v_actor/,
