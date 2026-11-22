@@ -1,3 +1,14 @@
+## Pass 1701–1710 — source inspection refinement
+
+- Marketplace Home is implemented on main; do not duplicate the directory, ad hub or discount listings.
+- Public ads are fetched from the targeted-ad RPC for HOME_HERO and HOME_SPONSORED. Its documented contract returns ACTIVE, APPROVED, date-valid ads. Homepage query currently passes Egypt country code and null governorate/center/coordinates.
+- Product/service offers use public catalog records and compare-price checks. Public numeric prices require explicit `catalog_public.show_price === true`.
+- Image uploads exist for AI-generated catalog assets and Facebook media import. No public video/reels pipeline was confirmed.
+- No obvious review/rating table/RPC/UI was found in targeted code search; do a complete schema/migration inventory before calling it absent.
+- Next: build focused Marketplace edge-case tests and complete review schema inventory. No app code or Production state changed.
+
+---
+
 # Latest continuation checkpoint — 2026-11-22 — Pass 1701–1710
 
 **Working branch:** `docs/li2lak-benchmark-20261122`  
