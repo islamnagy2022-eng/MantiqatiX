@@ -3904,3 +3904,15 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Recorded exact findings in `docs/audits/PASS_1781_1790_LIVE_PAYMENT_RPC_AND_EDGE_CONTRACT_DRIFT_20261122.md`.
 - No provider callback, payment, order, journal, wallet or settlement operation was invoked. No Production mutation/deployment.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-11-22 — Pass 1791–1800 — live directory contact-consent release gate
+
+- Re-read the deployed `directory-listings` v16 Edge bundle and compared its file set and public GET response path with current main source.
+- Confirmed deployed GET selects and returns phone, secondary phone and address without current consent-aware sanitization; current source adds four required modules and fail-closed per-scope projection.
+- Confirmed the production consent registry table is absent and RC473 migration ledger row count is zero.
+- Aggregate-only query: 869 published rows; 869 with primary phone; 178 with secondary phone; 869 with address. No individual contact data was selected.
+- Rechecked Security Advisor: 9 RLS-enabled/no-policy tables, 65 authenticated-callable SECURITY DEFINER functions, 1 anon-callable SECURITY DEFINER function, leaked-password protection disabled. Findings need effective-ACL and call-chain review; no blanket changes.
+- Recorded full evidence and coordinated release sequence in `docs/audits/PASS_1791_1800_LIVE_DIRECTORY_CONSENT_RELEASE_GATE_20261122.md`.
+- PR #969 remains open/unmerged; latest exact-head CI queued/pending. No green result claimed.
+- No Production DDL/DML, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, customer-data change or public deployment.
+- Disposition: **PRODUCTION BLOCKED / NOT CERTIFIED**.
