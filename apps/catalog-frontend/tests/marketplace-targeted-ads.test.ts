@@ -54,3 +54,12 @@ test('deduplicates ads returned in both placements', async () => {
 
   assert.equal(ads.length, 1);
 });
+
+test('fails closed when both placements return invalid payloads', async () => {
+  const ads = await loadTargetedAdvertisements(async () => ({
+    data: { unexpected: 'object' },
+    error: null,
+  }));
+
+  assert.deepEqual(ads, []);
+});
