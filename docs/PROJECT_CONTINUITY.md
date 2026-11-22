@@ -1,23 +1,28 @@
-## Latest continuation checkpoint — 2026-11-22 — PR978 E2E passed; PR982 default-closed source gate; live Production parity recheck
+## Latest continuation checkpoint — 2026-11-22 — PR982 merged; post-merge Pages deployment verified
 
-**Current main:** 54e433d54ace06a154d438ea672da4a781990730  
-**Verified application deployment:** PR976 post-merge Pages run [45071129013](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45071129013) SUCCESS; Primary Catalog browser validation [45071128944](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45071128944) SUCCESS.
+**Current main:** `4963b1b86d22f04f179663d7ed21cb7a832a3fd0`  
+**Post-merge website deployment:** [Pages run 45074694031](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45074694031) **SUCCESS**. The deployed-origin browser check for the legacy catalog root, dashboard, mobile and QR routes passed.  
+**Primary Catalog after PR982:** run [45074571077](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45074571077) **SUCCESS** (build, browser E2E and employee RBAC PostgreSQL).
 
-### Feature work
-- PR [#978](https://github.com/islamnagy2022-eng/MantiqatiX/pull/978) remains DRAFT at 96a6946e248c7abac24a02e93dd3b392819ee44a. Exact-head CI completed **28 success, 2 skipped, 0 failed**; build, employee RBAC PostgreSQL and browser E2E passed. It keeps one fixed storefront cover and a separate up-to-10 HTTPS promotional image URL gallery. It does not upload local files. Do not merge/deploy the Edge changes individually because deployed catalog Edge functions lack matching gallery and consent projections.
-- PR [#982](https://github.com/islamnagy2022-eng/MantiqatiX/pull/982) is open against current main at head 240363205d4fad7d06a35500a59cd99c6b423535. It adds a default-closed source gate for national directory listings: exact server value DIRECTORY_LISTINGS_ENABLED=true plus a reachable contact-consent registry are required before GET/POST logic can run. It does not set the flag or deploy an Edge function. At last check 29 workflows were queued and 1 skipped, with no failures reported; exact-head CI is still pending.
-- PR #981 merged to main as 54e433d54ace06a154d438ea672da4a781990730; its mitigation audit remains preserved at docs/audits/PASS_1821_1830_LIVE_DIRECTORY_DISABLED_MITIGATION_20261122.md.
+### Merged source safety gate
+- PR [#982](https://github.com/islamnagy2022-eng/MantiqatiX/pull/982) merged as `dbf40f6b9f8087fd5a274749c4a4db3ceb7c7564`; exact-head CI completed **28 success, 2 skipped, 0 failures**.
+- The national directory source is now deny-by-default. It requires exact server-side `DIRECTORY_LISTINGS_ENABLED=true` and a reachable `directory_listing_contact_consents` table before GET/POST logic can execute. If either condition is absent, GET stays empty with `directoryDisabled=true`, POST remains 503.
+- No Production flag was set and no Edge Function was deployed. The deployed `directory-listings` v18 remains intentionally disabled.
+
+### Separate feature work
+- PR [#978](https://github.com/islamnagy2022-eng/MantiqatiX/pull/978) remains **DRAFT** at head `96a6946e248c7abac24a02e93dd3b392819ee44a`. Exact-head CI: **28 success, 2 skipped, 0 failures**, including browser E2E. It provides one fixed storefront cover and a separate gallery of up to 10 public HTTPS image URLs. It does not upload local files.
+- Do not merge or deploy PR978's Edge source alone. Live `catalog-admin` v20, `public-catalog-directory` v19 and `public-catalog` v9 still lack the current consent/gallery projections. Keep it draft until the coordinated schema, audit writer, public readers, authorization dependencies and storage contract are released together.
 
 ### Fresh read-only Production state — 2026-11-22
-- Migration ledger: **310 rows**, latest 20261110150618; exact comparison against the 76 required release migration IDs returned **0/76 present**.
-- public.directory_listing_contact_consents and public.migration_release_registry are absent.
-- Selected live Edge entrypoints differ from current main: directory-listings v18 (protectively disabled), catalog-admin v20, public-catalog-directory v19, and public-catalog v9. Deployed catalog admin/public readers lack the current consent audit/projection contract; public readers also lack the new promotional gallery projection.
-- Preserve the disabled national directory. Do not deploy these Edge functions one by one. Release schema, audit writer, readers and authorization dependencies together after real backup/restore and migration gates.
+- Migration ledger: **310 rows**, latest `20261110150618`; exact comparison against the 76 required release migration IDs returned **0/76 present**.
+- `public.directory_listing_contact_consents` and `public.migration_release_registry` are absent.
+- Selected live Edge versions: `directory-listings` v18 (intentionally disabled), `catalog-admin` v20, `public-catalog-directory` v19 and `public-catalog` v9. Deployed entrypoints differ from current main source.
+- Fresh security advisor snapshot: 9 RLS-enabled/no-policy INFO findings; 1 anon-callable and 65 authenticated-callable SECURITY DEFINER WARN findings; anonymous-role policy warnings; leaked-password protection disabled. Review actual grants/callers before action; do not blanket-revoke.
 - No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge deploy, payments, wallet, settlement or customer-data write occurred.
 
-Detailed evidence: docs/audits/PASS_1821_1830_LIVE_PRODUCTION_EDGE_MIGRATION_RECHECK_20261122.md and docs/audits/PASS_1821_1830_LIVE_DIRECTORY_DISABLED_MITIGATION_20261122.md.
+Detailed evidence: `docs/audits/PASS_1821_1830_LIVE_PRODUCTION_EDGE_MIGRATION_RECHECK_20261122.md`, `docs/audits/PASS_1821_1830_LIVE_DIRECTORY_DISABLED_MITIGATION_20261122.md`, and `docs/audits/PASS_1831_PR982_MERGE_LIVE_RECHECK_20261122.md`.
 
-**Next:** finish PR982 exact-head CI; keep PR978 draft until its coordinated Edge/schema bundle exists; obtain genuine encrypted off-site database + Storage backup and independent PostgreSQL 17 restore/RPO/RTO evidence; reconcile and apply the ordered 76-version release only after those gates. Production remains **BLOCKED / NOT CERTIFIED**.
+**Next:** keep directory disabled; obtain genuine encrypted off-site DB + Storage backup and independent PostgreSQL 17 restore/RPO/RTO evidence; reconcile/apply the ordered 76-version release only after those gates; release consent schema + writer + readers + authorization together. PR978 remains draft until the matching Edge/schema release is ready. Full Production remains **BLOCKED / NOT CERTIFIED**.
 
 
 ---
