@@ -1,0 +1,95 @@
+# PASS 1811–1820 — Li2Lak verified business reviews — 2026-11-22
+
+## Objective
+
+Add a separate customer-review capability to Li2Lak without reusing MantiGO ride ratings. Reviews must have verified transaction provenance, moderation, business-scoped responses, bounded public output and a privacy-safe account-deletion lifecycle.
+
+## Production facts checked read-only
+
+- Live schema has `public.orders`, `public.businesses`, `public.user_memberships` and `public.marketing_provider_profiles`.
+- `orders.id`, `businesses.id`, and `orders.business_id` are UUID; `orders.tenant_id` and `businesses.tenant_id` are varchar; `orders.customer_id` is UUID; `orders.status` is varchar; `orders.total_amount` is numeric; `orders.items_json` is jsonb.
+- Membership tenant and business identifiers are varchar and UUID respectively.
+- No general business review table was present at the read-only checkpoint.
+- Public order count was zero at the earlier checkpoint; the feature therefore has no current delivered-order source to accept reviews from.
+- No Production schema, Auth, RLS, grants, Storage, Edge, payment or wallet change was performed.
+
+## Source implementation in PR #970
+
+- Migration: `supabase/migrations/20261122010000_rc497_verified_business_reviews.sql`.
+- `business_reviews` stores one review per order, rating 1–5, bounded review text, moderation state and one business response.
+- `business_review_events` records submission, moderation and business response transitions.
+- Customer submission requires a non-anonymous authenticated actor, their own DELIVERED order, a non-empty order snapshot and a matching order/business tenant.
+- A unique order constraint prevents multiple reviews. An exact retry is idempotent; changed duplicate payloads are rejected.
+- All reviews begin PENDING. Moderation requires direct membership in `private.platform_admins`; tenant-level ADMIN/OWNER is not a global moderation grant.
+- A business response is limited to an active owner/business-owner/admin/manager scoped to the reviewed business; only one response is allowed.
+- Public reads are bounded (maximum 20 rows per page), and expose only PUBLISHED reviews for ACTIVE verified businesses, without customer identity.
+- Review/event tables use ENABLE + FORCE RLS and direct privileges are revoked from anon, authenticated and service_role. Four narrowly scoped SECURITY DEFINER RPCs use an empty search_path and explicit EXECUTE grants.
+- Customer and event actor references use ON DELETE SET NULL so account deletion anonymizes retained review history rather than deleting it.
+
+## Storefront integration
+
+- Added `BusinessReviewsPanel` to the public business storefront after the catalog.
+- The panel calls only `get_public_business_review_summary`, validates the returned payload, and displays a rating, bounded published review cards, and business responses.
+- It renders only for ACTIVE, verified and non-frozen businesses; if the RC497 RPC is not deployed or fails, the panel fails closed and remains hidden.
+- The customer order-history/review-entry flow is now implemented in `CustomerOrderReviews.tsx` and mounted in `SubscriberAccountPortal.tsx`; it reads only the authenticated customer's orders, checks review status through the owner-scoped RPC, and submits through `submit_business_review`.
+- The business-owner response flow is implemented in `BusinessReviewManagementPanel.tsx` and mounted in `MerchantDashboard.tsx`; it reads published reviews through the public summary RPC and posts a single response through `respond_to_business_review`. Review rows preserve the order branch; branch-specific managers cannot respond to another branch's review.
+- The platform moderation flow is implemented in `BusinessReviewModerationPanel.tsx` and mounted in `AdminDashboard.tsx`; it uses a bounded, paginated registry-protected moderation queue and moderation RPC. Tenant admins may see the tab but cannot read the queue or moderate unless they are in `private.platform_admins`. The queue omits customer identity and requires a reason for rejection/hidden decisions.
+- The public storefront review panel is mounted in `App.tsx` and remains restricted to active verified businesses. No customer identity is returned by public RPCs.
+
+## Authenticated Li2Lak checkout linkage
+
+- Read-only inspection of the deployed `order-create` Edge Function confirmed ACTIVE version 8 with `verify_jwt=true`.
+- Its handler validates the bearer token with `auth.getUser`, rejects anonymous users, checks an active customer membership or matching business membership, verifies the business/tenant, resolves active catalog items and current prices from `catalog_items` and `catalog_item_prices`, and computes subtotal/tax on the server.
+- The cart now invokes that existing function for authenticated customers only, passing canonical catalog item IDs, quantities, a client idempotency key and delivery details. It does not pass authoritative totals. The server-generated order ID is shown after successful persistence and appended to the WhatsApp message.
+- Guest WhatsApp-only requests remain available but are clearly distinguished from persisted customer orders and cannot enter the verified-order review flow.
+- This change does not deploy or modify the production Edge Function, database, payment system or wallet.
+
+## Automated tests added
+
+- Disposable PostgreSQL 16 fixture.
+- Integration tests cover own delivered order, idempotent retry, duplicate change rejection, undelivered order, foreign-customer order, order/business tenant mismatch, unverified business moderation state, tenant-role moderation denial, registry-admin moderation, audit previous-state capture, business response authorization and one-response limit, public identity-free output, direct table privilege denial, FORCE RLS, and account deletion anonymization.
+- Static validator checks source security contract and exact release manifest.
+- The existing forward-migration replay workflow now includes a separate RC497 PostgreSQL lifecycle job and runs the RC497 validator in the chronological replay job.
+
+## Release ledger reconciliation
+
+- The exact production release contract now tracks 78 migration identities, including RC497 and RC498. The candidate includes six narrow review RPCs: customer status, customer submission, registry-admin moderation queue, registry-admin moderation, business-owner response, and bounded public summary.
+- The retained live ledger snapshot still records zero of the 78 required exact source identifiers, with latest recorded live version `20261110150618`.
+- This is a migration identity gap, not proof that every corresponding physical schema effect is absent. Physical schema, function bodies, ACLs, RLS and Edge parity must continue to be reconciled independently.
+- Do not synthesize ledger entries or blindly replay migrations against Production.
+
+## Current PR and validation
+
+- PR #971: replacement/rebased candidate against current `main` after PR #969 merged.
+- Branch: `feat/li2lak-verified-business-reviews-rebased-20261122`.
+- The earlier PR #970 was closed as superseded after PR #969 advanced `main`; its source work was carried onto the rebased branch. No duplicate RC497 migration remains open.
+- Latest exact-head CI must complete before merge. No test pass is claimed for the rebased branch. No Production migration or public deployment occurred.
+
+## Release decision
+
+**PRODUCTION BLOCKED / NOT CERTIFIED.** RC497 and RC498 are source candidates only; the live order count remains zero, so there is no real customer transaction available for an end-to-end production review test. Do not merge or deploy until exact-head CI, full chronological replay, independent backup/restore rehearsal, migration alias/physical-object reconciliation, and the broader P0 directory-consent and platform-admin authorization gates are resolved.
+
+
+## Pass 1821–1830 — canonical order identity and checkout correction
+
+- Live read-only inspection of `public.create_order_backend(...)` confirmed a SECURITY DEFINER RPC with server-side catalog price calculation, but the live body had drifted from the repository's RC105 contract: it required `auth.uid()` unconditionally, omitted the verified `auth.role() = service_role` path, and omitted RC105's explicit cross-customer/business/branch idempotency conflict guard.
+- Live ACL inspection confirmed: `anon EXECUTE=false`, `authenticated EXECUTE=false`, `service_role EXECUTE=true`; the live function's search_path was only `public`.
+- Live `order-create` Edge Function v8 verifies the Bearer token through `admin.auth.getUser(token)`, but then called the identity-enforcing RPC through a service-role client. That call context does not carry the customer's JWT identity into `auth.uid()`; the order path was therefore not certified as usable.
+- Added RC498 source migration to restore the RC105 identity/idempotency implementation, harden search_path to `pg_catalog, public, extensions, pg_temp`, deny PUBLIC/anon, and grant authenticated plus service_role execution explicitly.
+- Updated both `order-create` and authenticated `api` order entry points to keep privileged reads on the service client but invoke `create_order_backend` through an anon-key client carrying the verified customer Bearer JWT. The restored RC105 body also preserves the trusted service-role Edge path for verified server callers.
+- Extended the existing RC104/RC105 disposable PostgreSQL fixture to cover authenticated execution, anon denial, retained service-role ACL, hardened search_path, spoofed `p_customer_id` rejection, cross-scope idempotency and authoritative catalog price calculation.
+- Added RC498 to the exact release contract: 78 migration identities. The live ledger still records zero of these exact required source identities; RC498 is SOURCE_CANDIDATE_NOT_APPLIED.
+- Updated Li2Lak cart to invoke the existing order-create function for authenticated customers, send canonical item IDs/quantities plus an idempotency key, show the persisted order ID, and keep guest WhatsApp-only requests explicitly untracked.
+- No Production migration, Edge deployment, grant, data mutation or public deployment was performed. Release ordering must apply/reconcile RC498 before deploying the changed Edge Function.
+
+
+## RC498 — authenticated canonical order RPC
+
+- Read-only Production inspection found the active `order-create` v8 and legacy Orders API were invoking `create_order_backend` through the service-role client, while the live RPC body unconditionally required `auth.uid() = p_customer_id`. The live body also lacked the RC105 cross-customer/business/branch idempotency-key conflict guard. This was a source/runtime mismatch, not a confirmed exploit.
+- Candidate source now creates a caller-scoped Supabase client carrying the already verified Bearer JWT and invokes the RPC through that client in both `order-create` and the legacy authenticated Orders API. Privileged reads remain on the service-role client.
+- RC498 restores the verified RC105 order-creation contract, including customer identity binding, tenant/customer membership, business/provider/branch checks, canonical active catalog and price resolution, server-authoritative totals, idempotency conflict protection and snapshot creation.
+- RC498 hardens the SECURITY DEFINER search path to `pg_catalog, public, extensions, pg_temp`; denies PUBLIC/anon execution; grants authenticated execution under the JWT identity guard; and preserves the controlled service_role execution path.
+- Disposable PostgreSQL coverage applies RC104, RC105 and RC498 chronologically, then tests existing idempotency behavior plus authenticated RPC execution, anon denial, server-priced persistence and search_path/ACL state.
+- The exact release contract now carries 78 required migration versions. The retained live ledger evidence records 0/78 exact required source identities; this remains a migration identity gap and does not prove every intended physical schema effect is absent.
+- No Production migration, Edge Function deployment, Auth, RLS, GRANT, payment, wallet, order data or public release was changed.
+
