@@ -82,3 +82,14 @@ Add a separate customer-review capability to Li2Lak without reusing MantiGO ride
 - Updated Li2Lak cart to invoke the existing order-create function for authenticated customers, send canonical item IDs/quantities plus an idempotency key, show the persisted order ID, and keep guest WhatsApp-only requests explicitly untracked.
 - No Production migration, Edge deployment, grant, data mutation or public deployment was performed. Release ordering must apply/reconcile RC498 before deploying the changed Edge Function.
 
+
+## RC498 — authenticated canonical order RPC
+
+- Read-only Production inspection found the active `order-create` v8 and legacy Orders API were invoking `create_order_backend` through the service-role client, while the live RPC body unconditionally required `auth.uid() = p_customer_id`. The live body also lacked the RC105 cross-customer/business/branch idempotency-key conflict guard. This was a source/runtime mismatch, not a confirmed exploit.
+- Candidate source now creates a caller-scoped Supabase client carrying the already verified Bearer JWT and invokes the RPC through that client in both `order-create` and the legacy authenticated Orders API. Privileged reads remain on the service-role client.
+- RC498 restores the verified RC105 order-creation contract, including customer identity binding, tenant/customer membership, business/provider/branch checks, canonical active catalog and price resolution, server-authoritative totals, idempotency conflict protection and snapshot creation.
+- RC498 hardens the SECURITY DEFINER search path to `pg_catalog, public, extensions, pg_temp`; denies PUBLIC/anon execution; grants authenticated execution under the JWT identity guard; and preserves the controlled service_role execution path.
+- Disposable PostgreSQL coverage applies RC104, RC105 and RC498 chronologically, then tests existing idempotency behavior plus authenticated RPC execution, anon denial, server-priced persistence and search_path/ACL state.
+- The exact release contract now carries 78 required migration versions. The retained live ledger evidence records 0/78 exact required source identities; this remains a migration identity gap and does not prove every intended physical schema effect is absent.
+- No Production migration, Edge Function deployment, Auth, RLS, GRANT, payment, wallet, order data or public release was changed.
+
