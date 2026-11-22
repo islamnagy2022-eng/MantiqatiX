@@ -4894,3 +4894,13 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Existing RC484 source migration is the intended repair: FORCE RLS, registry-owner/BYPASSRLS preflight, no client grants, SECURITY DEFINER helper with empty search_path and private registry only.
 - [ ] Apply only through the complete coordinated RC484→RC496 release after genuine Production backup/restore, rollback plan, and release approval; then verify all 57 policy consumers plus seven RC485 catalog RPCs.
 - **P0:** Do not deploy RC484 alone, RC485 alone, or hand-edit individual policies. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+### Pass 1751–1760 — Li2Lak verified-review contract design — 2026-11-22
+- [x] Confirmed live review schema boundary: only MantiGO ride ratings exist; no general business reviews table.
+- [x] Inspected authoritative order/appointment status RPCs and identified eligible source states: standard order DELIVERED; medical appointment COMPLETED.
+- [x] Excluded restaurant_orders from review eligibility because its live schema has no customer Auth user ID.
+- [x] Wrote a business-level-only verified-interaction review specification with RLS/RPC, moderation, owner response, privacy and adversarial PostgreSQL acceptance criteria.
+- [ ] Obtain product policy decisions for moderation publication, edit window, retention, appeals and disputes before authoring a migration.
+- [ ] Do not implement UI stars or aggregate ratings before server-authoritative review RPCs and disposable PostgreSQL tests pass.
+- **Safety:** design/spec only; no Production schema/data/ACL/RLS/Storage/Auth/Edge/payment changes. **PRODUCTION BLOCKED / NOT CERTIFIED.**
