@@ -1,3 +1,10 @@
+### Pass 1951–1960 — currency regression validator wiring repair — 2026-11-22
+- [x] During post-edit validator review, caught that the new currency-fixture assertion referenced orderFixture without loading that file.
+- [x] Added the explicit order fixture read from supabase/tests/rc104_order_idempotency_scope_fixture.sql.
+- [x] Re-fetched the validator and confirmed the declared fixture variable and both currency assertions are present.
+- [ ] Execute the validator and PostgreSQL 17 integration on exact-head CI; neither is yet certified.
+- **Safety:** feature branch only; no Production mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
 ### Pass 1941–1950 — authoritative currency-bound order pricing — 2026-11-22
 - [x] Found an order-pricing integrity gap in RC498: the SECURITY DEFINER RPC selected the newest active catalog price without constraining its currency, even though catalog price records carry a currency and the business settings define the authoritative currency.
 - [x] Updated RC498 to select only prices where upper(currency) matches the business currency resolved from catalog settings.
