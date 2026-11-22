@@ -1,4 +1,15 @@
 # MantiqatiX Continuous Execution Status
+
+## Latest checkpoint — 2026-11-22 — PR982 merged; live Production still blocked
+
+- PR #982 merged as `dbf40f6b9f8087fd5a274749c4a4db3ceb7c7564` after all nine exact-head workflow runs passed, including Primary Catalog build, dashboard browser E2E and employee RBAC PostgreSQL.
+- The PR-associated Deploy MantiqatiX Web workflow's deploy job was skipped; post-merge main deployment is not yet verified.
+- Fresh read-only Production recheck: 310 migration rows, latest `20261110150618`; required release migrations **0/76**; contact-consent and migration-release registry tables absent.
+- Selected deployed Edge Functions remain directory-listings v18, catalog-admin v20, public-catalog-directory v19, public-catalog v9. National directory remains intentionally disabled.
+- Fresh security advisor snapshot: 9 RLS-enabled/no-policy INFO findings; 1 anon-callable and 65 authenticated-callable SECURITY DEFINER WARN findings; anonymous-policy warnings; leaked-password protection disabled.
+- No Production mutation or Edge deployment occurred. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+- Evidence: `docs/audits/PASS_1831_PR982_MERGE_LIVE_RECHECK_20261122.md`.
+
 Last updated: 2026-11-22 — current main 54e433d; PR978 browser E2E 28/2 passed (draft); PR982 default-closed directory gate CI pending; live migration 0/76 and selected Edge source mismatches; Production BLOCKED / NOT CERTIFIED
 
 ## Latest checkpoint — 2026-11-22 — current main 54e433d
