@@ -4028,3 +4028,12 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Runtime Node validator, Edge typecheck, HTTP/E2E and exact-head CI remain pending. Production API v17 unchanged; no production deployment or mutation.
 - Audit: `docs/audits/PASS_1991_2000_LEGACY_API_ORDER_READ_SCOPE_20261122.md`.
 - **PR #971 open/unmerged. PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+## 2026-11-22 — Pass 2001–2010 — RC474 payment authorization / PostgreSQL 17 verification
+- Production's live `create_payment_intent_backend` remains on the pre-RC474 body. It is intentionally authenticated-executable; the old two-step same-tenant/business plus financial-role checks are not tied consistently to the order business/branch.
+- Re-read candidate RC474 migration, which already wraps the financial-role check inside `customer_id IS DISTINCT FROM auth.uid()` and binds the same membership row to order business plus order branch or approved business-wide scope; tenant-wide finance requires both scope columns NULL. A NULL customer order is therefore not exempt from the financial-role gate. The correction was validator strength, not migration SQL.
+- Strengthened `scripts/validate-rc474-payment-intent-scope.mjs` to require the nested financial check and disallow the old nullable-customer-only bypass.
+- Upgraded isolated RC474 workflow to PostgreSQL 17 and added manual workflow dispatch.
+- Nine source checks passed. Exact-head GitHub Actions queued RC474, Li2Lak, Order Idempotency, Forward Migration Replay and Primary Catalog Frontend. No successful runtime result is claimed yet.
+- No Production database/Auth/RLS/GRANT/payment/Edge changes. RC474 remains unapplied; Production not certified.
+- Audit: `docs/audits/PASS_2001_2010_RC474_PAYMENT_SCOPE_PG17_20261122.md`.
