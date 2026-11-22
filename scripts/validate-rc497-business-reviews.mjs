@@ -130,6 +130,8 @@ assert.match(orderMigration, /set search_path=pg_catalog, public, extensions, pg
   "RC498 function body must use a valid paired PostgreSQL dollar-quote delimiter");
 assert.match(orderMigration, /REVOKE ALL ON FUNCTION public\.create_order_backend[\s\S]*?FROM PUBLIC, anon, authenticated[\s\S]*?GRANT EXECUTE ON FUNCTION public\.create_order_backend[\s\S]*?TO authenticated/,
   "RC498 must deny PUBLIC/anon, reset authenticated ACL and grant authenticated execution");
+assert.match(orderMigration, /on conflict \(tenant_id, client_idempotency_key\) where client_idempotency_key is not null do nothing[\s\S]*?SELECT \* INTO v_existing FROM orders[\s\S]*?IDEMPOTENCY_KEY_CONFLICT[\s\S]*?idempotent',true/,
+  "order creation must resolve concurrent idempotency-key conflicts to the canonical existing order without crossing customer/business/branch scope");
 assert.ok(["auth.uid()", "auth.role()", "IDEMPOTENCY_KEY_CONFLICT", "catalog_item_prices", "CUSTOMER_REQUIRED"].every((token) => orderMigration.includes(token)),
   "RC498 must retain identity, service-role verification, idempotency-scope and server-pricing guards");
 assert.match(orderMigration, /v_qty<>trunc\(v_qty\)/,
