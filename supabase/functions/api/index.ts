@@ -265,7 +265,7 @@ serve(async (req) => {
       const orderBusinessId = String(linkedOrder.business_id)
       const orderBranchId = linkedOrder.branch_id == null ? null : String(linkedOrder.branch_id)
       const tenantWideOwner = ["OWNER", "ADMIN"].includes(role) && businessId === null && branchId === null
-      const exactBusinessBranch = businessId === orderBusinessId && branchId === orderBranchId
+      const businessBranchScope = businessId === orderBusinessId && (branchId === null || branchId === orderBranchId)
       const scopedFinanceRole = [
         "OWNER", "ADMIN", "BUSINESS_OWNER", "MANAGER", "CASHIER", "STAFF", "FINANCE", "ACCOUNTANT", "FINANCE_MANAGER",
       ].includes(role)
@@ -273,7 +273,7 @@ serve(async (req) => {
       const providerOwnBusiness = role === "SERVICE_PROVIDER"
         && businessId === orderBusinessId
         && (branchId === null || branchId === orderBranchId)
-      return tenantWideOwner || (exactBusinessBranch && (scopedFinanceRole || permissions.includes("PAYMENT_READ_ALL"))) || providerOwnBusiness
+      return tenantWideOwner || (businessBranchScope && (scopedFinanceRole || permissions.includes("PAYMENT_READ_ALL"))) || providerOwnBusiness
     })
     const assignedPartner = String(linkedOrder.assigned_partner_id ?? "") === user.id
       && (memberships ?? []).some((membership: any) => {
@@ -307,10 +307,10 @@ serve(async (req) => {
       const orderBusinessId = String(linkedOrder.business_id)
       const orderBranchId = linkedOrder.branch_id == null ? null : String(linkedOrder.branch_id)
       const tenantWideOwner = ["OWNER", "ADMIN"].includes(role) && businessId === null && branchId === null
-      const exactBusinessBranch = businessId === orderBusinessId && branchId === orderBranchId
+      const businessBranchScope = businessId === orderBusinessId && (branchId === null || branchId === orderBranchId)
       const allowedRole = ["ADMIN", "MANAGER", "CASHIER", "STAFF", "OWNER"].includes(role)
       const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
-      return tenantWideOwner || (exactBusinessBranch && (allowedRole || permissions.includes("PAYMENT_CONFIRM_CASH")))
+      return tenantWideOwner || (businessBranchScope && (allowedRole || permissions.includes("PAYMENT_CONFIRM_CASH")))
     })
     if (!authorized) return json({ error: "Forbidden: insufficient business/branch payment permissions" }, 403)
 
