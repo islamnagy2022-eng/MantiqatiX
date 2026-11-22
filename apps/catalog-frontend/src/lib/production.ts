@@ -9,6 +9,9 @@ if (!runtime?.supabaseUrl || !runtime?.supabaseKey) {
   throw new Error('تعذر تحميل إعدادات الاتصال الإنتاجي لمنصة MantiqatiX');
 }
 
+// Referral UI stays fail-closed until the coordinated Production RPC migration is released.
+export const isReferralSharingEnabled = runtime?.referralSharingEnabled === true;
+
 export type CatalogAiImageKind = 'activity' | 'cover' | 'product' | 'service';
 
 export async function generateCatalogAiImage(input: {
