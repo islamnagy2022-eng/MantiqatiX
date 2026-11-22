@@ -3789,3 +3789,48 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - No Production database, migration, Auth, RLS, GRANT, Storage, Edge, payment, wallet, settlement or customer-data mutation.
 - Next: continue source-side security/reliability work; keep Production data-plane release blocked pending encrypted off-site DB+Storage backup, Vault/key recovery, independent PostgreSQL 17 restore/rollback, measured RPO/RTO, and coordinated migration/Edge verification.
 - **Status: CI + static deployment verified; Production BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-11-22 — Pass 1701–1710 — Li2Lak benchmark and product gap triage
+
+- **User decision:** approved using Li2Lak as a benchmark reference, not as a source to copy.
+- **Repository baseline:** main at `9fb568dd16e48078773c97015722181a1e69a209`.
+- **Action:** created isolated branch `docs/li2lak-benchmark-20261122`.
+- **Action:** added `docs/product/Li2Lak_COMPETITOR_BENCHMARK_20261122.md`, mapping public product patterns against current-main MantiqaTix source and the existing AI Studio parity map.
+- **Findings:** core directory, taxonomy, verified-first, geography, storefront, contact consent, pagination, dashboards and QR capabilities already exist. Potential focused gaps are durable moderated reviews, Marketplace offers integration, and production-ready video/media; each remains subject to deeper source/contract verification.
+- **Not performed:** no application code changes, no Production DB/Auth/RLS/GRANT/Storage/Edge/payment/customer-data mutation, no deployment.
+- **Next:** inspect Marketplace Home and ad/discount contracts, reviews schema/RPCs, and media Storage policies; implement only a proven gap with tests.
+- **Release:** **PRODUCTION BLOCKED / NOT CERTIFIED**.
+
+
+
+
+## 2026-11-22 — Pass 1701–1710 — Marketplace, reviews and media source inspection
+
+- **Action:** inspected current-main `MarketplaceHome.tsx`, public targeted-ad RPC contract, public catalog pricing contract and relevant media upload entry points.
+- **Verified:** Marketplace Home already serves verified active businesses, public ads from `get_mnty_targeted_advertisements` (HOME_HERO/HOME_SPONSORED), and product/service discounts based on actual catalog prices. Do not rebuild this feature.
+- **Verified:** public numeric prices are gated by explicit `catalog_public.show_price === true`.
+- **Verified:** AI image generation and Facebook media import have Storage upload paths. A public video/reels pipeline was not established by inspected sources.
+- **Not established:** absence of a customer reviews system; targeted code search found no obvious table/RPC/UI, but complete schema inventory remains required.
+- **Next:** test Marketplace failure/empty/expired-ad/price-permission paths; inspect all migrations and schema references for review/rating models; evaluate geo-targeting using explicit consent only.
+- **Safety:** no application code, Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet or customer data changed. No deployment. **PRODUCTION BLOCKED / NOT CERTIFIED**.
+
+
+
+## 2026-11-22 — Pass 1711–1720 — ratings inventory correction
+
+- Enumerated the current-main Git tree: 1,281 tracked files, including 238 Supabase migrations.
+- Found `20261006121810_mantigo_rating_immutability_v1.sql`; inspected its function body and ACL. It implements authenticated, own-completed-ride 1–5 rating for MantiGO with exact-request idempotent replay and immutable second submission.
+- Found `public.mantigo_ride_ratings` in the live policy inventory; its policies are scoped to authenticated sessions and MantiGO ratings.
+- Clarified that this is not a directory-business/product/service review workflow. Targeted searches did not find a general review model, but complete migration/schema confirmation remains pending.
+- PR #963 remains open and unmerged. Latest head status returned no CI status entries; PR reviews list empty. No CI success/failure inferred.
+- No Marketplace test suite was executed in this pass. No application code, Production DB/Auth/RLS/GRANT/Storage/Edge/payment/customer-data change or deployment.
+- Next: inspect MantiGO rating table creation, constraints/triggers/read paths; complete general-business review inventory; inspect Storage/media policies; add executable Marketplace regression tests only with reproducible harness.
+- Disposition: **PRODUCTION BLOCKED / NOT CERTIFIED**.
+
+
+### Additional finding — MantiGO rating migration ordering
+
+- Inspected the chronological definitions of `mantigo_rate_ride`: migration `20261006121810` rejects changed duplicate submissions, but later `20261006171000` replaces it with an upsert/update path.
+- Current-main final definition therefore does not preserve the earlier immutability behavior. `20261006180000` includes the caller's own rating in customer ride-history output.
+- This remains separate from general directory-business reviews. Intended edit policy and PostgreSQL regression coverage need confirmation before any code/migration change.
