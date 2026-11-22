@@ -190,18 +190,22 @@ Deno.serve(async (req: Request) => {
     .eq("status", "ACTIVE");
   if (itemError) return json({ error: "CATALOG_READ_FAILED" }, 500);
 
-  const { data: activeBranches, error: branchReadError } = await admin
+  // Check only the selected branch when provided. A fixed 100-row listing
+  // incorrectly rejects valid branches beyond the first page for large businesses.
+  const branchQuery = admin
     .from("branches")
     .select("id")
     .eq("tenant_id", body.tenantId)
     .eq("business_id", body.businessId)
-    .eq("status", "ACTIVE")
-    .limit(100);
+    .eq("status", "ACTIVE");
+  const { data: activeBranch, error: branchReadError } = branchId
+    ? await branchQuery.eq("id", branchId).maybeSingle()
+    : await branchQuery.limit(1).maybeSingle();
   if (branchReadError) return json({ error: "BRANCH_READ_FAILED" }, 500);
-  if ((activeBranches ?? []).length > 0 && !branchId) {
+  if (!branchId && activeBranch) {
     return json({ error: "BRANCH_REQUIRED" }, 409);
   }
-  if (branchId && !(activeBranches ?? []).some((branch: any) => String(branch.id) === branchId)) {
+  if (branchId && !activeBranch) {
     return json({ error: "BRANCH_NOT_AVAILABLE" }, 409);
   }
   const itemMap = new Map((catalogItems ?? [])
