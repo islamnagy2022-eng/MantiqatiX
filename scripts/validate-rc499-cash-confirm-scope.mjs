@@ -43,6 +43,8 @@ assert.match(fixture, /CREATE TABLE public\.user_memberships[\s\S]*?CREATE TABLE
   "fixture must model all tables required by the cash confirmation transaction");
 assert.match(fixture, /CREATE TABLE public\.payment_events \(\s*id varchar PRIMARY KEY/,
   "fixture payment-event ID type must match the live varchar schema");
+assert.match(fixture, /CREATE TABLE public\.financial_obligations \([\s\S]*?id varchar PRIMARY KEY[\s\S]*?payment_intent_id varchar[\s\S]*?settlement_id varchar[\s\S]*?settled_at timestamptz/,
+  "fixture financial-obligation fields must match the live settlement contract");
 assert.ok(integration.includes("unrelated membership is inserted before the authorized membership"),
   "integration must cover an unrelated same-tenant membership preceding the correct membership");
 assert.ok(integration.includes("cross-branch manager confirmed cash payment"),
