@@ -5276,7 +5276,8 @@
       "source_repair": "RC484 + RC485 already exist in the ordered source chain; RC485 changes all seven to empty search_path and registry-backed platform-root authorization while retaining tenant-local role scope.",
       "source_integration_test": "supabase/tests/rc485_catalog_rpc_registry_root_integration.sql",
       "source_validator": "scripts/validate-rc485-catalog-rpc-registry-root.mjs",
-      "production_migrations_applied": false
+      "production_migrations_applied": false,
+      "release_dependency": "RC485 depends on RC484; both are source-only and must be applied as part of the coordinated complete ordered release."
     },
     "rls_no_policy_relations": {
       "count": 9,
@@ -5314,6 +5315,25 @@
       "video_upload_configured": false,
       "live_platform_brand_policy": "Still checks active SUPER_ADMIN membership; RC495 source repairs it to public.mnty_can_platform_admin() and is not applied to Production."
     },
-    "production_mutation": "NONE — read-only metadata/catalog/advisor inspection only."
+    "production_mutation": "NONE — read-only metadata/catalog/advisor inspection only.",
+    "platform_admin_registry": {
+      "table": "private.platform_admins",
+      "rows": 1,
+      "rls_enabled": true,
+      "force_rls": false,
+      "direct_anon_authenticated_grants": 0,
+      "live_helper": {
+        "name": "public.is_platform_admin()",
+        "security_definer": false,
+        "search_path": "public",
+        "uses_registry": false,
+        "behavior": "returns true for active ADMIN or SUPER_ADMIN membership"
+      },
+      "dependent_live_rls_policies": 57,
+      "source_repair": "20261119040000_rc484_registry_backed_is_platform_admin.sql",
+      "source_repair_behavior": "FORCE RLS on private.platform_admins; verify owner/BYPASSRLS and no client grants; replace helper with SECURITY DEFINER + empty search_path backed only by private.platform_admins.",
+      "release_dependency": "RC484 must precede RC485; apply and verify the complete ordered chain, not the helper or policies individually.",
+      "production_applied": false
+    }
   }
 }
