@@ -72,6 +72,7 @@ on:
       - "scripts/validate-catalog-membership-bootstrap.mjs"
       - "scripts/validate-directory-listings-origin-allowlist.mjs"
       - "scripts/production/verify-catalog-pilot.mjs"
+      - "scripts/validate-production-catalog-real-state.mjs"
       - "docs/release/production-migration-reconciliation.json"
       - "scripts/validate-production-gate-contract.mjs"
       - "scripts/validate-pages-production-deploy-gate.mjs"
