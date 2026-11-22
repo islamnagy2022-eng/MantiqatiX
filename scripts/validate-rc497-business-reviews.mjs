@@ -174,6 +174,8 @@ assert.ok(orderWorkflow.includes("supabase/tests/rc104_order_idempotency_scope_c
   "PostgreSQL 17 order workflow must execute the concurrent idempotency race test");
 assert.match(orderConcurrency, /pg_sleep\(2\.5\)[\s\S]*?concurrent-order-key-rc498[\s\S]*?RC498_CONCURRENT_ORDER_IDEMPOTENCY=PASS/,
   "concurrency test must overlap two calls on one idempotency key and assert convergence");
+assert.match(orderConcurrency, /rc498_test_order_insert_counter[\s\S]*?attempts=.*SELECT calls[\s\S]*?if \[\[ "\$attempts" != "2" \]\]/,
+  "concurrency test must prove both transactions reached the insert path before the winner committed");
 assert.match(orderConcurrency, /Refusing to run concurrency test outside its disposable PostgreSQL test database/,
   "concurrency test must fail closed outside its exact disposable database URL");
 assert.ok(orderWorkflow.includes("supabase/functions/order-create/index.ts") && orderWorkflow.includes("supabase/functions/api/index.ts"),
