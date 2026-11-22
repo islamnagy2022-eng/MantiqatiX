@@ -5413,7 +5413,7 @@
   "rc497_verified_business_reviews": {
     "source_migration": "20261122010000",
     "status": "SOURCE_CANDIDATE_NOT_APPLIED",
-    "pr": 970,
+    "pr": 971,
     "live_review_table_found": false,
     "live_orders_at_checkpoint": 0,
     "required_behavior": [
