@@ -1,3 +1,22 @@
+## Latest continuation checkpoint — 2026-11-22 — PR975 deployed; PR976 public price opt-in correction
+
+**Main:** `cf21e768d0384c55ffde93ae741febcd3c738112`  
+**Verified Pages deployment:** [run 45070154380](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45070154380) SUCCESS.  
+**Verified Primary Catalog main checks:** [run 45070154418](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45070154418) SUCCESS, including browser E2E.
+
+- PR [#975](https://github.com/islamnagy2022-eng/MantiqatiX/pull/975) merged as `cf21e768d0384c55ffde93ae741febcd3c738112`; exact-head contract checks passed 28, with 2 skipped and no failures.
+- PR [#976](https://github.com/islamnagy2022-eng/MantiqatiX/pull/976) is open at head `75d0293c19825345e07ad08fbce1c2fcced0d48e`. It requires explicit `catalog_public.show_price === true` for numeric price disclosure; missing/false/malformed values remain quote-only. Current check snapshot: 27 success, 1 browser E2E in progress, 2 skipped, 0 failures; do not merge before the final browser job succeeds.
+- The first PR976 CI attempt exposed one stale static assertion. It has been updated to match explicit opt-in in `scripts/validate-production-catalog-real-state.mjs`; the new exact head is the commit above.
+- Live catalog content audit found 10 active public-enabled businesses; four have public items (16 MantiqatiX services, 2 Sameh Market products, 14 Burger Fakher products, 15 Qadam Al-Saad products). Existing missing descriptions/images are owner-content follow-ups; do not generate fake records.
+- Production remains **BLOCKED / NOT CERTIFIED**. Critical blockers remain: 0/76 required release migrations in the last live ledger check; RC473 consent registry absent and deployed `directory-listings` v16 behind current consent-aware source; registry-backed platform-admin/RPC parity; 7/11 critical Edge entrypoints mismatched; missing payment/finance contracts; no actual encrypted off-site DB+Storage backup, Vault recovery, PostgreSQL 17 restore, measured RPO/RTO or rollback rehearsal.
+- No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge, payment, wallet, settlement or customer-data changes were performed.
+
+Detailed evidence: `docs/audits/PASS_1811_1820_POST_PR975_AND_PUBLIC_PRICE_OPT_IN_20261122.md`.
+
+**Next:** finish PR976 exact-head browser E2E; merge only after all required checks succeed; verify post-merge Pages deployment; then continue the coordinated privacy/backup/release gates. Never deploy directory Edge or payment functions individually ahead of the matching schema and authorization release.
+
+---
+
 ## Pass 1701–1710 — source inspection refinement
 
 - Marketplace Home is implemented on main; do not duplicate the directory, ad hub or discount listings.
