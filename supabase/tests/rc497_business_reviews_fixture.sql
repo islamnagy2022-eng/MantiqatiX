@@ -32,7 +32,7 @@ CREATE TABLE public.orders (
   id uuid PRIMARY KEY,
   tenant_id varchar NOT NULL,
   business_id uuid NOT NULL REFERENCES public.businesses(id),
-  customer_id uuid REFERENCES auth.users(id),
+  customer_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   status varchar NOT NULL,
   total_amount numeric NOT NULL,
   items_json jsonb NOT NULL
