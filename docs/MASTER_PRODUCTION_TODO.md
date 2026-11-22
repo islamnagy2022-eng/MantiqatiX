@@ -4922,3 +4922,13 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] P0: perform encrypted DB+Storage backup, key recovery and independent PostgreSQL 17 restore/rollback before coordinated migration + Edge release.
 - [ ] Deploy exact seven-file consent-aware Edge bundle with ordered schema release; verify hash, anonymous no-contact response, grant/revoke, owner scope, stale-cache behavior and fail-closed outage.
 - **Safety:** read-only inspection only. No Production mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+### Pass 1781–1790 — live payment RPC and Edge contract drift — 2026-11-22
+- [x] Retrieved and compared seven critical live Edge entrypoints against current main; all seven differ byte-for-byte (order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3, directory-listings v16).
+- [x] Verified six source-required payment/subscription/MantiGO atomic RPC contracts are absent from live PostgreSQL.
+- [x] Confirmed legacy subscription success, subscription creation and digital-page finalize signatures exist but do not match current source contracts.
+- [x] Confirmed live digital-page claim/release/finalize RPCs deny service_role EXECUTE while current Edge calls them with service role; financial-journal backend RPC also denies service_role EXECUTE.
+- [ ] Reconcile full RC425–RC435/RC450/RC468/RC475 schema, signatures, SECURITY DEFINER search_path and ACL in disposable PostgreSQL; do not patch live grants ad hoc.
+- [ ] Complete encrypted backup/restore, key recovery, Paymob sandbox, negative replay/correlation, balanced journal and tenant-scope tests before a coordinated migration + Edge release.
+- **Safety:** read-only catalog/source review; no payment or Production mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
