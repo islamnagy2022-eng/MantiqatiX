@@ -364,6 +364,14 @@ assert.match(aiGeminiProxy, /service\.storage\.from\(IMAGE_BUCKET\)\.upload/, 'G
 assert.match(aiGeminiProxy, /imageKind === "cover" \? "16:9" : "1:1"/, 'Generated covers and square catalogue images must use suitable aspect ratios.');
 
 
+const unclaimedDirectoryDisabledForV1 = directoryListingsFunction.includes("DIRECTORY_LISTINGS_DISABLED_FOR_V1");
+if (unclaimedDirectoryDisabledForV1) {
+  assert.match(directoryListingsFunction, /directoryDisabled:\s*true/);
+  assert.match(directoryListingsFunction, /listings:\s*\[\]/);
+  assert.doesNotMatch(directoryListingsFunction, /createClient\(|\.from\(|\.rpc\(/,
+    "V1-disabled unclaimed directory must remain database-free.");
+  console.log("UNCLAIMED_DIRECTORY_PAGINATION=DEFERRED_FOR_V1");
+} else {
 assert.match(directoryListingsFunction, /Stable keyset pagination/,
   'Public directory pagination must use stable keyset pagination rather than offset pagination.');
 assert.match(directoryListingsFunction, /const pageMode = \["limit","cursor","governorate"/,
@@ -602,4 +610,5 @@ assert.match(activityModuleView, /onLoadMoreListings/,
   'Activity and specialty folders must expose their own load-more action.');
 assert.doesNotMatch(directory, /fetchPublicDirectoryListings\(\)/,
   'The main directory must not fall back to the capped legacy directory fetch.');
+}
 console.log('PRODUCTION_CATALOG_REAL_STATE=PASS');
