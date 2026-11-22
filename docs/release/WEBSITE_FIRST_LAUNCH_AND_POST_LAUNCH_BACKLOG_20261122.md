@@ -74,13 +74,13 @@ No database migration or production data mutation was performed for this check.
 
 ### P0 — separate directory-listings surface
 
-The separate directory-listings Edge Function is now ACTIVE v17 with verify_jwt=false and returns an empty-success GET response and fixed HTTP 503 for POST, with mutation error marker DIRECTORY_LISTINGS_DISABLED_FOR_V1. Its deployed entrypoint was read back and matches the branch stub; it has no Supabase client import or table reads. The frontend does not request unclaimed rows and ignores direct ?listing= routes. The production table public.directory_listing_contact_consents is absent.
+The separate directory-listings Edge Function is now ACTIVE v18 with verify_jwt=false and returns an empty-success GET response and fixed HTTP 503 for POST, with mutation error marker DIRECTORY_LISTINGS_DISABLED_FOR_V1. Its deployed entrypoint was read back and matches the branch stub; it has no Supabase client import or table reads. The frontend does not request unclaimed rows and ignores direct ?listing= routes. The production table public.directory_listing_contact_consents is absent.
 
 Do not restore the old directory bundle or apply RC473 alone. Bring the feature back only after RC472/RC473 are reconciled in order, a consent-aware complete Edge bundle is deployed and tested, owner grant/revoke audit works, and the third-party dataset source/licence review passes.
 
 ### P0 — stale live-release evidence
 
-The release manifest and pilot verifier are refreshed to the actual Production versions: public-catalog v9 and public-catalog-directory v19 byte-for-byte match current main; directory-listings v17 is a deliberate fixed-503 disabled endpoint; catalog-admin v20 and catalog-platform-admin v23 are preserved as explicit drift/deferred exceptions. Do not mark admin parity true or deploy the consent candidate before registry authorization is safe.
+The release manifest and pilot verifier are refreshed to the actual Production versions: public-catalog v9 and public-catalog-directory v19 byte-for-byte match current main; directory-listings v18 is a deliberate fixed-503 disabled endpoint; catalog-admin v20 and catalog-platform-admin v23 are preserved as explicit drift/deferred exceptions. Do not mark admin parity true or deploy the consent candidate before registry authorization is safe.
 
 After the Edge rollout:
 1. Read back each live function and compare every deployed source file to current main.
