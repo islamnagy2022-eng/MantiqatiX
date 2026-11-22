@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/**"
+      - "apps/catalog-frontend/src/components/merchant/BusinessReviewManagementPanel.tsx"
+      - "apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx"
       - "apps/catalog-frontend/src/components/account/CustomerOrderReviews.tsx"
       - "apps/catalog-frontend/src/modules/account/SubscriberAccountPortal.tsx"
       - "supabase/tests/rc497_business_reviews_fixture.sql"
@@ -105,6 +107,8 @@ on:
     branches: ["main"]
     paths:
       - "supabase/migrations/**"
+      - "apps/catalog-frontend/src/components/merchant/BusinessReviewManagementPanel.tsx"
+      - "apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx"
       - "apps/catalog-frontend/src/components/account/CustomerOrderReviews.tsx"
       - "apps/catalog-frontend/src/modules/account/SubscriberAccountPortal.tsx"
       - "supabase/tests/baselines/production_schema_snapshot.sql"
