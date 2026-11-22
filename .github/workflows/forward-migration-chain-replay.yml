@@ -6,6 +6,7 @@ on:
     paths:
       - "supabase/migrations/**"
       - "supabase/functions/order-create/index.ts"
+      - "supabase/functions/api/index.ts"
       - "apps/catalog-frontend/src/components/cart/CartDrawer.tsx"
       - "apps/catalog-frontend/src/components/admin/BusinessReviewModerationPanel.tsx"
       - "apps/catalog-frontend/src/components/merchant/BusinessReviewManagementPanel.tsx"
@@ -111,6 +112,7 @@ on:
     paths:
       - "supabase/migrations/**"
       - "supabase/functions/order-create/index.ts"
+      - "supabase/functions/api/index.ts"
       - "apps/catalog-frontend/src/components/cart/CartDrawer.tsx"
       - "apps/catalog-frontend/src/components/admin/BusinessReviewModerationPanel.tsx"
       - "apps/catalog-frontend/src/components/merchant/BusinessReviewManagementPanel.tsx"
