@@ -104,7 +104,7 @@ assert.match(cartDrawer, /authSession\.isAuthenticated[\s\S]*?catalogItemId: pro
   "tracked checkout must bind to the authenticated customer and use canonical catalog IDs plus an idempotency key");
 assert.doesNotMatch(cartDrawer, /p_subtotal:|p_total_amount:|p_tax:/,
   "browser checkout must not submit authoritative financial totals directly to the backend RPC");
-assert.match(cartDrawer, /tracked \? 'تم تسجيل الطلب وإرسال التفاصيل عبر واتساب!'/,
+assert.match(cartDrawer, /completedOrderDetails\.tracked \? \(completedOrderDetails\.whatsappSent/,
   "checkout must distinguish a persisted order from a WhatsApp-only guest request");
 assert.match(customerReviewPanel, /get_customer_business_review_status[\s\S]*?submit_business_review/,
   "customer order portal must check owned review status before submission");
