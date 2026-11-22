@@ -666,9 +666,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       bio: updated.bio || '',
       phone: updated.ownerWhatsApp || updated.phone || '',
       additionalContactPhones: updated.additionalContactPhones || [],
-      ...(Object.prototype.hasOwnProperty.call(updated, 'publicContactEnabled')
-        ? { publicContactEnabled: Boolean(updated.publicContactEnabled) }
-        : {}),
       facebookUrl: updated.facebookUrl || '',
       instagramUrl: updated.instagramUrl || '',
       tiktokUrl: updated.tiktokUrl || '',
