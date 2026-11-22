@@ -132,6 +132,10 @@ assert.match(orderMigration, /REVOKE ALL ON FUNCTION public\.create_order_backen
   "RC498 must deny PUBLIC/anon, reset authenticated ACL and grant authenticated execution");
 assert.ok(["auth.uid()", "auth.role()", "IDEMPOTENCY_KEY_CONFLICT", "catalog_item_prices", "CUSTOMER_REQUIRED"].every((token) => orderMigration.includes(token)),
   "RC498 must retain identity, service-role verification, idempotency-scope and server-pricing guards");
+assert.match(orderMigration, /v_qty<>trunc\(v_qty\)/,
+  "the authoritative RPC must reject fractional quantities even when called directly by authenticated users");
+assert.ok(orderIntegration.includes("RC498_FRACTIONAL_QUANTITY_ACCEPTED") && orderIntegration.includes('"quantity":1.5'),
+  "RC498 integration must prove authenticated direct RPC callers cannot submit fractional quantities");
 assert.ok(orderCreateEdge.includes("Authorization: `Bearer ${token}`") && orderCreateEdge.includes('userClient.rpc("create_order_backend"'),
   "order-create must invoke the backend RPC with the verified customer JWT");
 assert.match(orderCreateEdge, /admin\.auth\.getUser\(token\)[\s\S]*?userClient\.rpc\("create_order_backend"/,
