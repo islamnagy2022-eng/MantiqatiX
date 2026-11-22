@@ -12,11 +12,23 @@ BEGIN
   IF has_function_privilege('anon', 'public.claim_referral(character varying)', 'EXECUTE') THEN
     RAISE EXCEPTION 'anon must not execute claim_referral';
   END IF;
-  IF has_table_privilege('authenticated', 'public.referral_codes', 'SELECT')
+  IF has_table_privilege('anon', 'public.referral_codes', 'SELECT')
+     OR has_table_privilege('anon', 'public.referral_codes', 'INSERT')
+     OR has_table_privilege('anon', 'public.referral_codes', 'UPDATE')
+     OR has_table_privilege('anon', 'public.referral_codes', 'DELETE')
+     OR has_table_privilege('anon', 'public.referral_events', 'SELECT')
+     OR has_table_privilege('anon', 'public.referral_events', 'INSERT')
+     OR has_table_privilege('anon', 'public.referral_events', 'UPDATE')
+     OR has_table_privilege('anon', 'public.referral_events', 'DELETE')
+     OR has_table_privilege('authenticated', 'public.referral_codes', 'SELECT')
      OR has_table_privilege('authenticated', 'public.referral_codes', 'INSERT')
+     OR has_table_privilege('authenticated', 'public.referral_codes', 'UPDATE')
+     OR has_table_privilege('authenticated', 'public.referral_codes', 'DELETE')
      OR has_table_privilege('authenticated', 'public.referral_events', 'SELECT')
-     OR has_table_privilege('authenticated', 'public.referral_events', 'INSERT') THEN
-    RAISE EXCEPTION 'referral tables must remain inaccessible to direct authenticated DML';
+     OR has_table_privilege('authenticated', 'public.referral_events', 'INSERT')
+     OR has_table_privilege('authenticated', 'public.referral_events', 'UPDATE')
+     OR has_table_privilege('authenticated', 'public.referral_events', 'DELETE') THEN
+    RAISE EXCEPTION 'referral tables must remain inaccessible to direct browser-role DML';
   END IF;
   IF NOT EXISTS (
     SELECT 1 FROM pg_class
