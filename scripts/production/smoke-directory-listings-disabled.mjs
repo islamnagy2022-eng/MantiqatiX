@@ -27,14 +27,15 @@ const getResponse = await fetch(endpoint, {
   cache: "no-store",
   signal: AbortSignal.timeout(responseTimeoutMs),
 });
-assert.equal(getResponse.status, 503, "Unconsented directory reads must remain disabled in V1");
+assert.equal(getResponse.status, 200, "Public listing reads must preserve the empty-success response contract");
 assert.equal(getResponse.headers.get("access-control-allow-origin"), siteOrigin);
 const bodyText = await getResponse.text();
 const body = JSON.parse(bodyText);
-assert.equal(body.error, "DIRECTORY_LISTINGS_DISABLED_FOR_V1");
 assert.deepEqual(body.listings, []);
+assert.equal(body.pageSize, 0);
 assert.equal(body.hasMore, false);
 assert.equal(body.nextCursor, null);
+assert.equal(body.directoryDisabled, true);
 assert.ok(!/"?(?:phone|secondary_phone|address|display_name)"?\s*:/.test(bodyText), "Disabled endpoint must not expose directory contact fields");
 
 const postResponse = await fetch(endpoint, {
@@ -54,4 +55,4 @@ const preflight = await fetch(endpoint, {
 });
 assert.equal(preflight.status, 200, "CORS preflight should remain available for the disabled endpoint");
 
-console.log("DIRECTORY_LISTINGS_DISABLED_FOR_V1=PASS; GET=503; POST=503; CORS=PASS; contact_data_returned=false");
+console.log("DIRECTORY_LISTINGS_EMPTY_READ_V1=PASS; GET=200_EMPTY; POST=503; CORS=PASS; contact_data_returned=false");
