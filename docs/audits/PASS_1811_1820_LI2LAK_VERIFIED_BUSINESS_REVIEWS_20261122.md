@@ -36,6 +36,14 @@ Add a separate customer-review capability to Li2Lak without reusing MantiGO ride
 - The platform moderation flow is implemented in `BusinessReviewModerationPanel.tsx` and mounted in `AdminDashboard.tsx`; it uses a bounded, paginated registry-protected moderation queue and moderation RPC. Tenant admins may see the tab but cannot read the queue or moderate unless they are in `private.platform_admins`. The queue omits customer identity and requires a reason for rejection/hidden decisions.
 - The public storefront review panel is mounted in `App.tsx` and remains restricted to active verified businesses. No customer identity is returned by public RPCs.
 
+## Authenticated Li2Lak checkout linkage
+
+- Read-only inspection of the deployed `order-create` Edge Function confirmed ACTIVE version 8 with `verify_jwt=true`.
+- Its handler validates the bearer token with `auth.getUser`, rejects anonymous users, checks an active customer membership or matching business membership, verifies the business/tenant, resolves active catalog items and current prices from `catalog_items` and `catalog_item_prices`, and computes subtotal/tax on the server.
+- The cart now invokes that existing function for authenticated customers only, passing canonical catalog item IDs, quantities, a client idempotency key and delivery details. It does not pass authoritative totals. The server-generated order ID is shown after successful persistence and appended to the WhatsApp message.
+- Guest WhatsApp-only requests remain available but are clearly distinguished from persisted customer orders and cannot enter the verified-order review flow.
+- This change does not deploy or modify the production Edge Function, database, payment system or wallet.
+
 ## Automated tests added
 
 - Disposable PostgreSQL 16 fixture.
