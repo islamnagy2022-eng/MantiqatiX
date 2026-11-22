@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertCircle, CheckCircle2, Clock3, LoaderCircle, MessageSquareText, PackageCheck, Star } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/production';
@@ -93,10 +93,22 @@ export const CustomerOrderReviews: React.FC = () => {
   const [drafts, setDrafts] = useState<Record<string, { rating: number; text: string }>>({});
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [success, setSuccess] = useState('');
+  const requestGenerationRef = useRef(0);
+  const identityRef = useRef({ userId, isAuthenticated: authSession.isAuthenticated });
+  identityRef.current = { userId, isAuthenticated: authSession.isAuthenticated };
 
   const loadOrders = useCallback(async () => {
+    const generation = ++requestGenerationRef.current;
+    const isCurrent = () => requestGenerationRef.current === generation
+      && identityRef.current.userId === userId
+      && identityRef.current.isAuthenticated === authSession.isAuthenticated;
     if (!userId || !authSession.isAuthenticated) {
       setOrders([]);
+      setDrafts({});
+      setSubmitting(null);
+      setSuccess('');
+      setError('');
+      setLoading(false);
       return;
     }
     setLoading(true);
@@ -109,6 +121,7 @@ export const CustomerOrderReviews: React.FC = () => {
         .order('created_at', { ascending: false })
         .limit(50);
       if (orderError) throw orderError;
+      if (!isCurrent()) return;
 
       const ownedOrders = (Array.isArray(data) ? data : []) as CustomerOrder[];
       const withReviewStatus: OrderWithReview[] = [];
@@ -137,24 +150,37 @@ export const CustomerOrderReviews: React.FC = () => {
             : { hasReview: false };
           return { ...order, reviewStatus };
         }));
+        if (!isCurrent()) return;
         withReviewStatus.push(...batch);
       }
-      setOrders(withReviewStatus);
+      if (isCurrent()) setOrders(withReviewStatus);
     } catch (cause) {
+      if (!isCurrent()) return;
       setOrders([]);
       setError(cause instanceof Error ? cause.message : 'تعذر تحميل سجل الطلبات');
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
   }, [userId, authSession.isAuthenticated]);
 
   useEffect(() => {
+    setOrders([]);
+    setDrafts({});
+    setSubmitting(null);
+    setSuccess('');
+    setError('');
     void loadOrders();
+    return () => {
+      requestGenerationRef.current += 1;
+    };
   }, [loadOrders]);
 
   const submitReview = async (order: OrderWithReview) => {
     const draft = drafts[order.id] || { rating: 5, text: '' };
-    if (submitting) return;
+    if (submitting || !userId || !authSession.isAuthenticated) return;
+    const attemptUserId = userId;
+    const isSameIdentity = () => identityRef.current.userId === attemptUserId
+      && identityRef.current.isAuthenticated === true;
     setSubmitting(order.id);
     setError('');
     setSuccess('');
@@ -164,15 +190,16 @@ export const CustomerOrderReviews: React.FC = () => {
         p_rating: draft.rating,
         p_review_text: draft.text.trim() || null,
       });
+      if (!isSameIdentity()) return;
       if (submitError) throw submitError;
       const result = data && typeof data === 'object' ? data as Record<string, unknown> : {};
       if (typeof result.reviewId !== 'string') throw new Error('لم يتم تأكيد حفظ التقييم');
       setSuccess('تم إرسال تقييمك بنجاح وسيظهر بعد مراجعة الإدارة');
       await loadOrders();
     } catch (cause) {
-      setError(reviewSubmissionError(cause));
+      if (isSameIdentity()) setError(reviewSubmissionError(cause));
     } finally {
-      setSubmitting(null);
+      if (isSameIdentity()) setSubmitting(null);
     }
   };
 
