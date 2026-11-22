@@ -1,3 +1,11 @@
+### Pass 1851–1860 — Li2Lak release-validator consistency repair — 2026-11-22
+- [x] Found and corrected stale RC497 validator assertions expecting 77 required migrations after RC498 raised the canonical release set to 78.
+- [x] Updated both RC497 checks to the same 78-migration release contract; RC498 checks remain aligned.
+- [x] Corrected the release manifest's active PR reference from superseded PR #970 to PR #971.
+- [x] Rechecked validator top-level declarations: no duplicate const declarations remain.
+- [ ] Run PostgreSQL 17 lifecycle and full forward replay on the exact latest head; no green CI is claimed.
+- **Safety:** isolated source/docs changes only. Production database and deployed functions remain untouched. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
 ### Pass 1841–1850 — Li2Lak migration signature defect fixed — 2026-11-22
 - [x] Found a blocking RC497 migration defect: COMMENT ON FUNCTION referenced the moderation queue with one integer argument although the function has two.
 - [x] Corrected the COMMENT signature to `(integer, integer)`.
