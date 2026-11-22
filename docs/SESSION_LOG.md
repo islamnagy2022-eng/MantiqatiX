@@ -3923,7 +3923,7 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Added regression coverage for nonstandard ports/local domains and IPv4/IPv6/trailing-dot cases.
 - Commits: `6b3386b`, `f2411ee`, `9316c5d`, `820778a`; evidence recorded in `docs/audits/PASS_1801_1810_LI2LAK_MARKETPLACE_AD_HARDENING_20261122.md`.
 - PR #969 exact-head CI subsequently passed all 10 workflows and was squash-merged as `9566713978275cbddf927ac08d2ef68a28ec9828`; PR deploy job was skipped, so live Pages publication remains unverified. No Production mutation.
-- Next: public-offer contract tests and safe media lifecycle design; general reviews require independent verified-interaction/moderation model.
+- Next: public-offer contract tests and safe media lifecycle design. Verified business reviews now have their own RC497 model and UI; PR #971 exact-head CI is pending.
 
 ## 2026-11-22 — Pass 1811–1820 — Li2Lak verified business reviews
 
