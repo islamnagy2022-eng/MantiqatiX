@@ -2,6 +2,10 @@
 set -euo pipefail
 
 : "${DB_URL:?DB_URL must point to the disposable PostgreSQL 17 test database}"
+if [[ "$DB_URL" != "postgresql://postgres:postgres@localhost:5432/mantiqatix_rc104_order_idempotency_test" ]]; then
+  echo "Refusing to run concurrency test outside its disposable PostgreSQL test database." >&2
+  exit 1
+fi
 tmp_dir="$(mktemp -d)"
 pid_one=""
 pid_two=""
@@ -28,7 +32,7 @@ LANGUAGE plpgsql
 AS $function$
 BEGIN
   IF NEW.client_idempotency_key = 'concurrent-order-key-rc498' THEN
-    PERFORM pg_sleep(1.5);
+    PERFORM pg_sleep(2.5);
   END IF;
   RETURN NEW;
 END;
