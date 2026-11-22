@@ -43,6 +43,9 @@ assert.doesNotMatch(migration.match(/CREATE OR REPLACE FUNCTION public\.moderate
   "tenant-derived global admin helpers must not authorize review moderation");
 assert.match(migration, /m\.business_id = v_review\.business_id[\s\S]*?BUSINESS_REVIEW_RESPONSE_FORBIDDEN/,
   "business response must be restricted to the reviewed business");
+assert.match(migration, /m\.branch_id IS NULL OR \(v_review\.branch_id IS NOT NULL AND m\.branch_id = v_review\.branch_id\)/,
+  "branch-scoped managers must not answer reviews for another branch");
+
 assert.match(migration, /pp\.status = 'ACTIVE' AND pp\.is_verified = true/,
   "public review reads must be restricted to active verified business profiles");
 assert.match(migration, /r\.status = 'PUBLISHED'/,
@@ -88,6 +91,7 @@ for (const token of [
   "MODERATION_REASON_REQUIRED",
   "PLATFORM_ADMIN_REQUIRED",
   "BUSINESS_REVIEW_RESPONSE_FORBIDDEN",
+  "RC497_CROSS_BRANCH_MANAGER_RESPONDED",
   "BUSINESS_REVIEW_ALREADY_ANSWERED",
   "RC497_PUBLIC_REVIEW_DISCLOSES_PRIVATE_IDENTITY",
   "RC497_DIRECT_TABLE_READ_GRANT_FOUND",
