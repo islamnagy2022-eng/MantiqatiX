@@ -4970,4 +4970,18 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Complete exact-head CI for rebased PR #971 and full chronological replay before merge.
 - [ ] Complete encrypted off-site DB+Storage backup and independent PostgreSQL 17 restore/rollback before any Production migration.
 - [ ] Reconcile physical schema, function bodies, grants, RLS and migration aliases; Production currently has zero orders and no business-review table.
-- **Safety:** RC497 source-only; not applied. No Production DB, Auth/RLS/GRANT, Storage, Edge, payment, wallet or public deployment change. **PRODUCTION BLOCKED / NOT CERTIFIED.** Evidence: `docs/audits/PASS_1811_1820_LI2LAK_VERIFIED_BUSINESS_REVIEWS_20261122.md`.
+- **Safety:** RC497/RC498 source-only; neither applied. No Production DB, Auth/RLS/GRANT, Storage, Edge, payment, wallet or public deployment change. **PRODUCTION BLOCKED / NOT CERTIFIED.** Evidence: `docs/audits/PASS_1811_1820_LI2LAK_VERIFIED_BUSINESS_REVIEWS_20261122.md`.
+
+
+### Pass 1821–1830 — Li2Lak canonical order identity and checkout correction — 2026-11-22
+- [x] Read-only audit of live `create_order_backend`: it requires `auth.uid() = p_customer_id`, validates membership/provider/business/branch and recalculates catalog prices.
+- [x] Identify mismatch: deployed `order-create` v8 verifies the user with admin auth but invokes the identity-enforcing RPC through service_role; direct authenticated EXECUTE is currently denied.
+- [x] Add RC498 candidate: harden SECURITY DEFINER search_path, deny PUBLIC/anon, grant authenticated execution, preserve existing service_role grant.
+- [x] Update candidate `order-create` and authenticated `api` routes to call the RPC with the verified user JWT while retaining privileged reads on the service client.
+- [x] Add fixture and integration assertions for ACLs, search_path, correct customer identity and spoofed customer rejection.
+- [x] Connect authenticated Li2Lak cart to existing order-create, idempotency and server-side catalog pricing; guest WhatsApp requests remain untracked.
+- [ ] Complete exact-head CI for PR #971 and fix all failures before merge.
+- [ ] Run full chronological migration replay and verify all 78 source migrations against live physical objects, aliases, ACLs and RLS.
+- [ ] Complete encrypted off-site DB+Storage backup and independent PostgreSQL 17 restore/rollback before any Production migration or Edge deployment.
+- [ ] Reconcile deployed order-create v8 and API Edge source; release RC498 before deploying JWT-scoped Edge callers. Run two-user/two-tenant order-create E2E with real customer membership, branch, active provider and catalog prices.
+- **Safety:** RC497/RC498 source-only; neither applied. No Production DB/Auth/RLS/GRANT/Storage/Edge/payment/wallet/public deployment mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.** Evidence: `docs/audits/PASS_1811_1820_LI2LAK_VERIFIED_BUSINESS_REVIEWS_20261122.md`.
