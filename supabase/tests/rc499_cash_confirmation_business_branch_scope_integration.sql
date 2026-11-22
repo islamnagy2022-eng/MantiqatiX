@@ -30,6 +30,10 @@ DECLARE
   intent_false_permission text := '50000000-0000-0000-0000-000000000007';
   intent_customer_permission text := '50000000-0000-0000-0000-000000000008';
   intent_tenant_manager text := '50000000-0000-0000-0000-000000000009';
+  order_obligation_conflict uuid := '40000000-0000-0000-0000-000000000010';
+  order_event_conflict uuid := '40000000-0000-0000-0000-000000000011';
+  intent_obligation_conflict text := '50000000-0000-0000-0000-000000000010';
+  intent_event_conflict text := '50000000-0000-0000-0000-000000000011';
   v_result jsonb;
 BEGIN
   INSERT INTO public.tenant_payment_methods(tenant_id,payment_method,provider,is_enabled)
@@ -50,7 +54,9 @@ BEGIN
     (order_array_permission,'TENANT-A',business_a,'BRANCH-A','30000000-0000-0000-0000-000000000001','PENDING',100,'EGP','hash-1',1),
     (order_false_permission,'TENANT-A',business_a,'BRANCH-A','30000000-0000-0000-0000-000000000001','PENDING',100,'EGP','hash-1',1),
     (order_customer_permission,'TENANT-A',business_a,'BRANCH-A','30000000-0000-0000-0000-000000000001','PENDING',100,'EGP','hash-1',1),
-    (order_tenant_manager,'TENANT-A',business_a,'BRANCH-A','30000000-0000-0000-0000-000000000001','PENDING',100,'EGP','hash-1',1);
+    (order_tenant_manager,'TENANT-A',business_a,'BRANCH-A','30000000-0000-0000-0000-000000000001','PENDING',100,'EGP','hash-1',1),
+    (order_obligation_conflict,'TENANT-A',business_a,'BRANCH-A','30000000-0000-0000-0000-000000000001','PENDING',100,'EGP','hash-1',1),
+    (order_event_conflict,'TENANT-A',business_a,'BRANCH-A','30000000-0000-0000-0000-000000000001','PENDING',100,'EGP','hash-1',1);
 
   INSERT INTO public.payment_intents(id,tenant_id,order_id,amount,currency,status,payment_method,provider,pricing_hash,pricing_version)
   VALUES
@@ -62,7 +68,31 @@ BEGIN
     (intent_array_permission,'TENANT-A',order_array_permission,100,'EGP','PENDING','CASH_ON_DELIVERY','CASH_ON_DELIVERY','hash-1',1),
     (intent_false_permission,'TENANT-A',order_false_permission,100,'EGP','PENDING','CASH_ON_DELIVERY','CASH_ON_DELIVERY','hash-1',1),
     (intent_customer_permission,'TENANT-A',order_customer_permission,100,'EGP','PENDING','CASH_ON_DELIVERY','CASH_ON_DELIVERY','hash-1',1),
-    (intent_tenant_manager,'TENANT-A',order_tenant_manager,100,'EGP','PENDING','CASH_ON_DELIVERY','CASH_ON_DELIVERY','hash-1',1);
+    (intent_tenant_manager,'TENANT-A',order_tenant_manager,100,'EGP','PENDING','CASH_ON_DELIVERY','CASH_ON_DELIVERY','hash-1',1),
+    (intent_obligation_conflict,'TENANT-A',order_obligation_conflict,100,'EGP','PENDING','CASH_ON_DELIVERY','CASH_ON_DELIVERY','hash-1',1),
+    (intent_event_conflict,'TENANT-A',order_event_conflict,100,'EGP','PENDING','CASH_ON_DELIVERY','CASH_ON_DELIVERY','hash-1',1);
+
+  -- Deliberately pre-seed conflicting idempotency keys. Confirmation must fail closed.
+  INSERT INTO public.financial_obligations(
+    id,tenant_id,business_id,order_id,payment_intent_id,beneficiary_type,beneficiary_id,
+    obligation_type,gross_amount,amount,currency,status,payment_method,metadata
+  ) VALUES (
+    'cash_commission:'||intent_obligation_conflict,'TENANT-A',business_a,order_obligation_conflict,
+    intent_obligation_conflict,'PLATFORM','PLATFORM','PLATFORM_COMMISSION',100,99,'EGP','DUE','CASH',
+    jsonb_build_object('reason','CUSTOMER_PAID_PROVIDER_DIRECTLY','commission_rule_id','wrong-rule',
+      'commission_rate',10,'confirmed_by',actor_multi)
+  );
+
+  INSERT INTO public.payment_events(
+    id,tenant_id,event_id,payment_id,amount,payment_method,status,raw_payload,created_at
+  ) VALUES (
+    gen_random_uuid(),'TENANT-A','cash_confirmed:'||intent_event_conflict,intent_event_conflict,
+    99,'CASH_ON_DELIVERY','PROCESSED',
+    jsonb_build_object('action','CASH_CONFIRMED','confirmed_by',actor_multi,
+      'previous_status','PENDING','new_status','SUCCEEDED','commission_amount',10,
+      'commission_rule_id','wrong-rule'),
+    now()
+  );
 
   -- An unrelated membership is inserted before the authorized membership.
   -- The RPC must select the branch-A manager row, not an arbitrary tenant row.
@@ -155,6 +185,39 @@ BEGIN
     IF SQLERRM = 'TEST_FAILED: tenant-wide MANAGER received OWNER/ADMIN-only scope' THEN RAISE; END IF;
     IF SQLERRM <> 'FORBIDDEN' THEN RAISE EXCEPTION 'TEST_FAILED: expected FORBIDDEN for unscoped MANAGER, got %',SQLERRM; END IF;
   END;
+
+  PERFORM set_config('request.jwt.claim.sub',actor_multi::text,true);
+  BEGIN
+    PERFORM public.confirm_cash_payment(intent_obligation_conflict,actor_multi);
+    RAISE EXCEPTION 'TEST_FAILED: conflicting cash commission obligation was accepted';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'TEST_FAILED: conflicting cash commission obligation was accepted' THEN RAISE; END IF;
+    IF SQLERRM <> 'CASH_COMMISSION_OBLIGATION_CONFLICT' THEN
+      RAISE EXCEPTION 'TEST_FAILED: expected commission obligation conflict, got %',SQLERRM;
+    END IF;
+  END;
+  IF (SELECT status FROM public.payment_intents WHERE id=intent_obligation_conflict) <> 'PENDING' THEN
+    RAISE EXCEPTION 'TEST_FAILED: obligation conflict partially confirmed payment';
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.payment_events WHERE event_id='cash_confirmed:'||intent_obligation_conflict) THEN
+    RAISE EXCEPTION 'TEST_FAILED: obligation conflict emitted a payment event';
+  END IF;
+
+  BEGIN
+    PERFORM public.confirm_cash_payment(intent_event_conflict,actor_multi);
+    RAISE EXCEPTION 'TEST_FAILED: conflicting cash payment event was accepted';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'TEST_FAILED: conflicting cash payment event was accepted' THEN RAISE; END IF;
+    IF SQLERRM <> 'CASH_PAYMENT_EVENT_CONFLICT' THEN
+      RAISE EXCEPTION 'TEST_FAILED: expected payment event conflict, got %',SQLERRM;
+    END IF;
+  END;
+  IF (SELECT status FROM public.payment_intents WHERE id=intent_event_conflict) <> 'PENDING' THEN
+    RAISE EXCEPTION 'TEST_FAILED: event conflict partially confirmed payment';
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.financial_obligations WHERE id='cash_commission:'||intent_event_conflict) THEN
+    RAISE EXCEPTION 'TEST_FAILED: event conflict created a commission obligation';
+  END IF;
 
   IF (SELECT count(*) FROM public.payment_events WHERE event_id='cash_confirmed:'||intent_multi) <> 1 THEN
     RAISE EXCEPTION 'TEST_FAILED: duplicate cash confirmation event';
