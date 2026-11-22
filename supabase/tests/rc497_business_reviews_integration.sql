@@ -100,6 +100,13 @@ DO $moderation$
 DECLARE v_review_id uuid; result jsonb;
 BEGIN
   v_review_id := current_setting('test.review_id')::uuid;
+  BEGIN
+    PERFORM public.moderate_business_review(v_review_id, 'REJECTED', NULL);
+    RAISE EXCEPTION 'RC497_REJECTION_WITHOUT_REASON_ACCEPTED';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'MODERATION_REASON_REQUIRED' THEN RAISE; END IF;
+  END;
+
   result := public.moderate_business_review(v_review_id, 'PUBLISHED', 'اجتاز مراجعة المحتوى');
   IF result->>'status' <> 'PUBLISHED' THEN
     RAISE EXCEPTION 'RC497_MODERATION_FAILED';
@@ -207,9 +214,27 @@ BEGIN
   IF has_table_privilege('anon','public.business_reviews','SELECT')
      OR has_table_privilege('authenticated','public.business_reviews','SELECT')
      OR has_table_privilege('service_role','public.business_reviews','SELECT')
+     OR has_table_privilege('anon','public.business_reviews','INSERT')
+     OR has_table_privilege('authenticated','public.business_reviews','INSERT')
+     OR has_table_privilege('service_role','public.business_reviews','INSERT')
+     OR has_table_privilege('anon','public.business_reviews','UPDATE')
+     OR has_table_privilege('authenticated','public.business_reviews','UPDATE')
+     OR has_table_privilege('service_role','public.business_reviews','UPDATE')
+     OR has_table_privilege('anon','public.business_reviews','DELETE')
+     OR has_table_privilege('authenticated','public.business_reviews','DELETE')
+     OR has_table_privilege('service_role','public.business_reviews','DELETE')
      OR has_table_privilege('anon','public.business_review_events','SELECT')
      OR has_table_privilege('authenticated','public.business_review_events','SELECT')
-     OR has_table_privilege('service_role','public.business_review_events','SELECT') THEN
+     OR has_table_privilege('service_role','public.business_review_events','SELECT')
+     OR has_table_privilege('anon','public.business_review_events','INSERT')
+     OR has_table_privilege('authenticated','public.business_review_events','INSERT')
+     OR has_table_privilege('service_role','public.business_review_events','INSERT')
+     OR has_table_privilege('anon','public.business_review_events','UPDATE')
+     OR has_table_privilege('authenticated','public.business_review_events','UPDATE')
+     OR has_table_privilege('service_role','public.business_review_events','UPDATE')
+     OR has_table_privilege('anon','public.business_review_events','DELETE')
+     OR has_table_privilege('authenticated','public.business_review_events','DELETE')
+     OR has_table_privilege('service_role','public.business_review_events','DELETE') THEN
     RAISE EXCEPTION 'RC497_DIRECT_TABLE_READ_GRANT_FOUND';
   END IF;
   IF NOT has_function_privilege('anon','public.get_public_business_review_summary(uuid,integer,integer)','EXECUTE')
