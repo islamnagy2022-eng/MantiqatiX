@@ -8,6 +8,10 @@ on:
       - "supabase/functions/public-catalog/index.ts"
       - "supabase/functions/public-catalog-directory/index.ts"
       - "supabase/functions/catalog-admin/index.ts"
+      - "supabase/functions/directory-listings/index.ts"
+      - "apps/catalog-frontend/src/components/DirectoryView.tsx"
+      - "scripts/production/smoke-directory-listings-disabled.mjs"
+      - "scripts/production/verify-catalog-pilot.mjs"
       - "apps/catalog-frontend/src/lib/production.ts"
       - "apps/catalog-frontend/src/context/AppContext.tsx"
       - "apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx"
@@ -47,5 +51,7 @@ jobs:
         run: node --test supabase/functions/_shared/public-contact-visibility.test.mjs
       - name: Validate public contact source contract
         run: node scripts/validate-public-contact-visibility.mjs
+      - name: Validate website-first catalog and directory release boundaries
+        run: node scripts/production/verify-catalog-pilot.mjs
       - name: Type-check affected public Supabase Edge Functions
         run: deno check --node-modules-dir=auto supabase/functions/public-catalog-directory/index.ts supabase/functions/public-catalog/index.ts supabase/functions/catalog-admin/index.ts
