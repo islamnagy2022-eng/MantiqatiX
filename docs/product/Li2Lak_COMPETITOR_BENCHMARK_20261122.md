@@ -121,3 +121,8 @@ Li2Lak is used as a public product-pattern reference only. Feature availability 
 - The live public ad RPC remains a deliberate anonymous read for approved, active, date-valid ads with empty search_path and a bounded result limit. Preserve its read-only allowlisted contract.
 
 **Disposition:** review and video features remain design-gated; Marketplace reliability work is source/test-only and awaiting exact-head CI. No Production state was mutated.
+
+
+## Uploaded R7 archive — source reconciliation
+
+The uploaded 2026-11-10 R7 snapshot is a historical UX/feature reference, not the authoritative runtime. It declares local JSON authoritative and contains multiple release-blocking patterns (browser service-role key reference, deterministic server secret fallbacks, localStorage role state, and fail-open verified/paid defaults). Do not merge it wholesale. See `docs/audits/PASS_1761_1770_AI_STUDIO_R7_ARCHIVE_RECONCILIATION_20261122.md`.
