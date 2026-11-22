@@ -1,3 +1,19 @@
+## Active delivery checkpoint — website first, backlog second (2026-11-22)
+
+**Release target:** public catalog at the website root. The V1 scope and ordered post-launch backlog are recorded in [WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md](release/WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md).
+
+**Current position: NOT RELEASED / NOT CERTIFIED.**
+- Main Pages deploy run 44975555376 is queued; prior run 44975548041 was cancelled. A PR run is not a Pages deployment.
+- Production is project moyhiluyhjsujhwlyeuu. Current live public-catalog/public-catalog-directory are v8/v18 and differ from main's consent-aware source. catalog-admin v20 also differs and lacks the current-main consent audit flow.
+- All 10 active catalog branches have a phone, 7 have an address, and 0 of 10 public businesses have both audited public-contact consent flags. Contact data must remain hidden unless both flags are true.
+- The directory-listings consent registry is absent from Production; keep that separate surface out of V1 until RC472/RC473 and its complete Edge bundle are released.
+- The catalog pilot is data-ready at 15 active items / 12 active price rows. The full-platform release contract remains blocked: 310 Production migration rows, latest 20261110150618, versus 76 required exact migration identities with 0 matches.
+- No Production SQL mutation, migration application, Edge deployment, PR merge or Pages deployment was performed in this checkpoint.
+
+**Do next:** run the public-contact privacy CI, deploy/read-back only the three required catalog Edge bundles, refresh the catalog-pilot evidence, then use the existing main-only Pages workflow. Keep PR #971 as post-launch Li2Lak work.
+
+---
+
 ## Pass 1701–1710 — source inspection refinement
 
 - Marketplace Home is implemented on main; do not duplicate the directory, ad hub or discount listings.
