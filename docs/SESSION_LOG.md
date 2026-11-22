@@ -3967,3 +3967,14 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - This is a source-validator improvement only. The updated validator has not yet been executed by exact-head CI; PostgreSQL 17 lifecycle, order idempotency and forward replay remain pending.
 - No Production database, Auth, RLS, GRANT, Storage, Edge Function, payment, wallet, customer-data or public deployment change.
 - **Status: SOURCE CONTRACT UPDATED; CI PENDING; PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-11-22 — Pass 1941–1950 — authoritative currency-bound order pricing
+
+- Audit found RC498 selected an active catalog price by branch/effective date/version but did not constrain catalog_item_prices.currency, despite business settings carrying the authoritative currency.
+- Updated the RC498 RPC price lookup to require upper(cp.currency) = v_currency, where v_currency is resolved from the business catalog settings.
+- Extended the disposable PostgreSQL order fixture with a higher-version USD price (999, version 2) alongside the EGP price (125, version 1). Existing authenticated integration assertion requires persisted total_amount=125; without the currency predicate the higher USD row would be selected and the test would fail.
+- Added static validator assertions for the currency predicate, adversarial fixture rows and expected persisted EGP amount.
+- Source and fixture changes are committed to the PR branch. PostgreSQL 17 lifecycle and exact-head CI have not yet executed successfully; no integration pass is claimed.
+- No Production database, Auth, RLS, GRANT, Edge Function, payment, wallet, customer-data or public deployment change.
+- **Status: SOURCE HARDENED; INTEGRATION PENDING; PRODUCTION BLOCKED / NOT CERTIFIED.**
