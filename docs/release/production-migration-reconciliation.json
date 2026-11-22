@@ -3202,19 +3202,19 @@
   },
   "catalog_pilot_edge_function_parity_check": {
     "status": "PARTIAL_WITH_PUBLIC_READ_PARITY",
-    "checked_at": "2026-11-04",
-    "checked_via": "Supabase get_edge_function source retrieval compared to current main source blobs after deployment.",
+    "checked_at": "2026-11-22",
+    "checked_via": "Read-only Supabase deployed function bundle retrieval and byte-for-byte comparison against current main after bounded website-first deployments.",
     "functions": [
       {
         "slug": "catalog-platform-admin",
         "live_version": 23,
         "verify_jwt": true,
         "source_exact_match": false,
-        "source_blob_sha": "adb7a0e8ac227fbe852bc70506756675593d26a1",
+        "source_blob_sha": "f6a825316f56bb20bec6a79d278d823a16700930",
+        "live_entrypoint_sha256": "4f0d4432c134b51848038a5c3344b1e15c95875619b8b1c17f21ab6f097508c5",
         "scope": "platform admin settings and controls",
         "status": "DRIFT_FOUND",
-        "observed_difference": "Live v23 retains the paid subscription activation guard but lacks the current main activityModuleOverrides sanitizer/write and audit result contract. The frontend keeps ACTIVITY_MODULE_ADMIN_WRITE_ENABLED=false and browser E2E asserts no SAVE_SETTINGS request. Do not overwrite live v23 until write plus audit are atomic.",
-        "live_entrypoint_sha256": "4f0d4432c134b51848038a5c3344b1e15c95875619b8b1c17f21ab6f097508c5",
+        "observed_difference": "Live v23 retains the paid subscription activation guard but lacks the current main activityModuleOverrides sanitizer/write and audit result contract. Keep activity-module writes disabled; do not overwrite live v23 until settings and audit are atomic.",
         "deferred_write_scope": "activity-module-overrides-and-audit",
         "write_disabled_in_frontend": true
       },
@@ -3222,30 +3222,42 @@
         "slug": "catalog-admin",
         "live_version": 20,
         "verify_jwt": false,
-        "source_exact_match": true,
-        "source_blob_sha": "e07917748d4f710895ed43f99c35ddc64be470ac",
-        "scope": "catalog owner/admin operations",
-        "status": "PASS_SOURCE_PARITY"
+        "source_exact_match": false,
+        "main_source_blob_sha": "88d2f2ef4e1c3a7ca160125e595110b4e6c7b80b",
+        "live_entrypoint_sha256": "7732207160cf91176d4478d101f85be8789b9eb1ce1b9cd56499994b0cf9ea2c",
+        "scope": "baseline catalog owner/admin operations",
+        "status": "DRIFT_FOUND",
+        "observed_difference": "Live v20 is not byte-for-byte aligned with current main and lacks the current audited owner public-contact consent flow. The current main flow depends on registry-backed platform-admin authorization, while Production mnty_can_platform_admin remains membership-backed. Preserve v20; do not deploy the new flow before RC464/RC471 authorization prerequisites pass the release gate.",
+        "deferred_write_scope": "public-contact-consent-audit-and-platform-root-registry",
+        "contact_consent_ui_enabled": false
       },
       {
         "slug": "public-catalog-directory",
-        "live_version": 17,
+        "live_version": 19,
         "verify_jwt": false,
         "source_exact_match": true,
-        "source_blob_sha": "71b98a86380df4e38dcf9b60f0294462428c2560",
-        "scope": "sanitized read-only public directory and catalog items",
+        "source_blob_sha": "8176081d24b7c1e93017ddcdf982d73d755f4ea8",
+        "live_entrypoint_sha256": "9eec1b65e5f85f0ac640ee44ace2e50abb7106da97bbfe52b8a2fb5ee449b9c6",
+        "scope": "read-only public directory and catalog items with consent-aware contact projection",
         "dependency_files": [
-          "supabase/functions/_shared/activity-module-overrides.mjs"
+          "supabase/functions/_shared/activity-module-overrides.mjs",
+          "supabase/functions/_shared/public-price-visibility.mjs",
+          "supabase/functions/_shared/public-contact-visibility.mjs"
         ],
         "status": "PASS_SOURCE_PARITY"
       },
       {
         "slug": "public-catalog",
-        "live_version": 7,
+        "live_version": 9,
         "verify_jwt": false,
         "source_exact_match": true,
-        "source_blob_sha": "a66e6bbb0a0f7bcd88bbb8c3e16b1575898ce1fd",
-        "scope": "read-only public storefront",
+        "source_blob_sha": "207c1669b3897a5d1c718a527781609c798b575b",
+        "live_entrypoint_sha256": "e12cb7794c4083617924ccf6fb8aae5e572985c2e111e7df7e898dd4be824800",
+        "scope": "read-only public storefront with consent-aware contact projection",
+        "dependency_files": [
+          "supabase/functions/_shared/public-price-visibility.mjs",
+          "supabase/functions/_shared/public-contact-visibility.mjs"
+        ],
         "status": "PASS_SOURCE_PARITY"
       }
     ],
@@ -3260,7 +3272,7 @@
       "SMM",
       "MantiGO"
     ],
-    "note": "The public read-only functions and catalog-admin are exact source-parity aligned. catalog-platform-admin has one explicitly deferred settings/audit scope; paid-subscription enforcement is present in the live function. This limited exception does not alter FULL_PLATFORM_GATE=BLOCKED.",
+    "note": "The public read functions are byte-for-byte aligned with main. catalog-admin v20 remains the Production baseline and is intentionally not overwritten because the audited-consent handler's registry-backed authorization prerequisites are not yet deployed. catalog-platform-admin activity-module writes remain disabled. These scoped exceptions do not alter FULL_PLATFORM_GATE=BLOCKED.",
     "activity_module_admin_writes_enabled": false,
     "activity_module_admin_deferred_until_atomic_audit": true
   },
@@ -5405,5 +5417,28 @@
       "post_financial_journal_backend(uuid,jsonb,jsonb): service_role EXECUTE false; anon/authenticated false"
     ],
     "production_mutation": "NONE — no payment, order, webhook, journal, wallet, settlement or schema/ACL/Edge operation was invoked."
+  },
+  "website_v1_unclaimed_directory_gate": {
+    "status": "PASS_DISABLED_FOR_V1",
+    "checked_at": "2026-11-22",
+    "function_slug": "directory-listings",
+    "live_function_version": 17,
+    "function_status": "ACTIVE",
+    "verify_jwt": false,
+    "source_exact_match": true,
+    "live_entrypoint_sha256": "1e424d34847c4cad10fc36c8da4aa7d765c4285f7303520fe8ff234429dfff3c",
+    "endpoint_behavior": "GET_POST_503",
+    "response_error": "DIRECTORY_LISTINGS_DISABLED_FOR_V1",
+    "public_contact_data_returned": false,
+    "frontend_enabled": false,
+    "direct_listing_routes_enabled": false,
+    "contact_consent_registry_present": false,
+    "deferred_until": [
+      "RC472",
+      "RC473",
+      "source-rights-review",
+      "contact-consent-http-tests"
+    ],
+    "note": "The public endpoint returns a fixed 503 response without querying Production rows. Re-enable only after owner consent, claim, source-rights and pagination contracts pass on the full Edge bundle."
   }
 }
