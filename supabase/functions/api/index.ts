@@ -206,7 +206,7 @@ const hasPermission = (permissions: unknown, permission: string): boolean => {
       const orderBusinessId = String(order.business_id)
       const orderBranchId = order.branch_id == null ? null : String(order.branch_id)
       const tenantWideOwner = ["OWNER", "ADMIN"].includes(role) && businessId === null && branchId === null
-      const exactBusinessBranch = businessId === orderBusinessId && branchId === orderBranchId
+      const exactBusinessBranch = businessId === orderBusinessId && (branchId === null || branchId === orderBranchId)
       const scopedOperationalRole = [
         "OWNER", "ADMIN", "BUSINESS_OWNER", "MANAGER", "STAFF", "EMPLOYEE", "FINANCE", "ACCOUNTANT", "FINANCE_MANAGER",
       ].includes(role)
