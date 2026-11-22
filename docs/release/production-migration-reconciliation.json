@@ -5422,7 +5422,14 @@
       "public output contains only PUBLISHED reviews for ACTIVE verified businesses",
       "public output excludes customer identity and is bounded to 20 reviews per page",
       "direct table access is denied to anon/authenticated/service_role and FORCE RLS is enabled",
-      "account deletion anonymizes reviewer and event actor references without deleting review history"
+      "account deletion anonymizes reviewer and event actor references without deleting review history",
+      "customer may read only their own review status for an order they own; foreign order IDs return no review data",
+      "platform moderation queue is bounded to 50 pending reviews and requires direct private.platform_admins registry membership",
+      "customer order portal reads only orders scoped to auth.uid() and offers review submission only after DELIVERED",
+      "merchant dashboard exposes one-time business-scoped responses through the authorized RPC",
+      "platform admin dashboard exposes moderation actions with mandatory reasons for reject/hide",
+      "authenticated cart checkout persists through the existing JWT-protected order-create Edge Function with server-authoritative catalog pricing",
+      "guest WhatsApp-only requests are not persisted and are never treated as verified-review eligible"
     ],
     "required_release_tests": [
       "own-delivered-order-positive",
@@ -5437,9 +5444,17 @@
       "unverified-business-public-read-hidden",
       "anonymous-public-output-identity-free",
       "direct-table-privilege-negative",
-      "account-deletion-anonymization"
+      "account-deletion-anonymization",
+      "customer-review-status-own-order-only",
+      "customer-review-status-foreign-order-private",
+      "platform-moderation-queue-direct-registry-only",
+      "moderation-queue-customer-identity-free",
+      "authenticated-cart-order-create-server-priced",
+      "customer-delivered-order-review-ui",
+      "merchant-business-response-ui",
+      "platform-admin-moderation-ui"
     ],
     "production_mutation": "NONE",
-    "note": "Source candidate only. Production has no general business review table and zero public.orders rows at the read-only checkpoint. No reviews can be submitted until real delivered customer orders exist and this feature is released through the coordinated backup/migration gate."
+    "note": "Source candidate only. Production has no general business review table and zero public.orders rows at the read-only checkpoint. The cart now calls the already ACTIVE JWT-protected order-create Edge Function for authenticated customers, but the RC497 migration is not applied and the delivered-order lifecycle and full CI remain unverified. Guest WhatsApp-only requests are not review-eligible."
   }
 }
