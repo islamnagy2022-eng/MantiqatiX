@@ -5452,9 +5452,20 @@
       "authenticated-cart-order-create-server-priced",
       "customer-delivered-order-review-ui",
       "merchant-business-response-ui",
-      "platform-admin-moderation-ui"
+      "platform-admin-moderation-ui",
+      "rc105-service-role-identity-repair-before-order-create"
     ],
     "production_mutation": "NONE",
-    "note": "Source candidate only. Production has no general business review table and zero public.orders rows at the read-only checkpoint. The cart now calls the already ACTIVE JWT-protected order-create Edge Function for authenticated customers, but the RC497 migration is not applied and the delivered-order lifecycle and full CI remain unverified. Guest WhatsApp-only requests are not review-eligible."
+    "note": "Source candidate only. RC105 service-role identity repair is already in the source release chain but is absent from the live ledger; the deployed order-create v8 therefore remains expected to fail with CUSTOMER_REQUIRED until the coordinated migration release. RC497 is also not applied. No order request was invoked. Guest WhatsApp-only requests are not review-eligible.",
+    "order_create_service_role_dependency": {
+      "source_migration": "20261023050000_rc105_order_create_service_role_identity.sql",
+      "source_status": "PRESENT_IN_SOURCE_CHAIN",
+      "live_ledger_status": "ABSENT",
+      "live_function_guard": "auth.uid() must equal p_customer_id unconditionally",
+      "live_edge_function": "ACTIVE v8; verify_jwt=true; verifies bearer with auth.getUser then calls create_order_backend using service_role",
+      "expected_live_failure": "CUSTOMER_REQUIRED until RC105 is applied through the approved chronological release",
+      "release_rule": "Do not grant authenticated EXECUTE, do not hot-edit the live function, and do not deploy the Edge Function separately",
+      "production_mutation": "NONE"
+    }
   }
 }
