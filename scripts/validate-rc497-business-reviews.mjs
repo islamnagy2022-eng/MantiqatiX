@@ -22,6 +22,13 @@ const manifest = JSON.parse(fs.readFileSync("docs/release/production-migration-r
 
 assert.match(migration, /CONSTRAINT business_reviews_one_per_order UNIQUE \(order_id\)/,
   "one immutable review per order must be enforced by a database unique constraint");
+assert.match(migration, /branch_id varchar REFERENCES public\.branches\(id\)/,
+  "review provenance must retain the order branch for scoped owner responses");
+assert.match(migration, /v_order\.branch_id/,
+  "review submission must bind the review to the order's branch");
+assert.match(fixture, /CREATE TABLE public\.branches[\s\S]*?branch-a2/,
+  "fixture must cover multiple branches of one business");
+
 assert.match(migration, /v_order\.customer_id IS DISTINCT FROM v_actor[\s\S]*?upper\(coalesce\(v_order\.status, ''\)\) <> 'DELIVERED'[\s\S]*?ORDER_BUSINESS_TENANT_MISMATCH/,
   "review submission must bind the authenticated actor to their own delivered order");
 assert.match(migration, /CREATE OR REPLACE FUNCTION public\.get_customer_business_review_status[\s\S]*?o\.customer_id = v_actor[\s\S]*?r\.customer_id = v_actor/,
