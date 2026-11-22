@@ -399,9 +399,9 @@ export const CartDrawer: React.FC = () => {
                 )}
 
                 <p className="text-xs text-emerald-800 leading-relaxed">
-                  تم إرسال كافة تفاصيل الفاتورة وحالة السداد إلى واتساب صاحب النشاط (
-                  <span dir="ltr" className="font-bold">{currentBusiness?.ownerWhatsApp}</span>
-                  ).
+                  {completedOrderDetails.whatsappUrl
+                    ? <>تم تجهيز تفاصيل الطلب لفتح محادثة واتساب صاحب النشاط (<span dir="ltr" className="font-bold">{currentBusiness?.ownerWhatsApp}</span>). لن يتم إرسال الرسالة إلا بعد الضغط على زر الإرسال داخل واتساب.</>
+                    : 'تم تسجيل الطلب، لكن لم يتم إرسال رسالة واتساب. يمكنك نسخ رقم الطلب والتواصل مع النشاط.'}
                 </p>
 
                 {completedOrderDetails.whatsappUrl && (
