@@ -1,3 +1,17 @@
+# Latest continuation checkpoint — 2026-11-22 — Pass 1841–1850
+
+**Active PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
+**Li2Lak work:** verified business reviews + authenticated order creation  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+- Fixed a real RC497 SQL migration failure: the moderation queue COMMENT ON FUNCTION had the wrong argument count.
+- Added a regression assertion for that signature and cross-checked all RC497 function comments plus the RC498 order RPC comment.
+- Current feature branch includes the latest main history (0 commits behind at last comparison).
+- PostgreSQL 17 full migration replay and integration CI remain mandatory; no pass is claimed until exact-head checks complete.
+- No Production mutation or deployment. Preserve mobile and current catalog sources.
+
+---
+
 # Latest continuation checkpoint — 2026-11-22 — Pass 1831–1840
 
 **Active feature PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
