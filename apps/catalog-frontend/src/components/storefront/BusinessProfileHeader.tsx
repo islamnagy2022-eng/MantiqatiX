@@ -40,9 +40,9 @@ export const BusinessProfileHeader: React.FC = () => {
   // A storefront has one fixed cover. Promotional imagery is rendered in its own gallery below.
   // The official platform profile must use first-party brand media, not expiring social-CDN URLs.
   const coverImage = isPlatformBrandProfile ? defaultCover : currentBusiness?.coverUrl || defaultCover;
-  const promotionalImages = (currentBusiness?.promotionalImages || [])
-    .filter((url) => typeof url === 'string' && url.startsWith('https://'))
-    .slice(0, 10);
+  const promotionalImages = Array.isArray(currentBusiness?.promotionalImages)
+    ? currentBusiness.promotionalImages.filter((url) => typeof url === 'string' && url.startsWith('https://')).slice(0, 10)
+    : [];
 
   if (!currentBusiness) {
     return (
