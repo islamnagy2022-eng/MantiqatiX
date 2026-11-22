@@ -3946,3 +3946,17 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Change remains frontend resolver + tests + static validation contract. No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge, payment, wallet, settlement or customer-data mutation.
 - Next: verify run IDs 45071129013 (Pages), 45071128944 (Primary Catalog), 45071128896 (Health Monitor), 45071128926 (Backend-only), 45071128872 (MantiGO Privacy), and 45071128985 (Module Professionalization), then continue production release gates.
 
+
+
+## 2026-11-22 — Pass 1821–1830 — read-only live Production Edge and migration recheck
+
+- Verified post-PR976 GitHub Pages deployment [45071129013](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45071129013) SUCCESS and Primary Catalog validation [45071128944](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45071128944) SUCCESS.
+- PR [#978](https://github.com/islamnagy2022-eng/MantiqatiX/pull/978) remains DRAFT at head `96a6946e248c7abac24a02e93dd3b392819ee44a`; it implements one fixed cover and a separate max-10 public HTTPS promotional URL gallery. Direct file upload is not implemented. Latest exact-head CI snapshot: 26 success, 3 running, 1 skipped, 0 failures; browser E2E still running at the checkpoint.
+- Read-only Supabase migration ledger query: `310` rows, latest version `20261110150618`. Compared all 76 exact required version IDs from the release manifest: `found_count=0`, `missing_count=76`.
+- `to_regclass` checks confirmed `public.directory_listing_contact_consents` absent and `public.migration_release_registry` absent.
+- Compared live deployed `index.ts` files with current main source: directory-listings v18, catalog-admin v20, public-catalog-directory v19 and public-catalog v9 are all different from main. The directory-listings v18 implementation intentionally returns empty public listings and rejects POST mutations with 503. This protective disablement stays in place.
+- Deployed catalog-admin v20 lacks the main-source public-contact consent audit writer; deployed public-catalog-directory v19 and public-catalog v9 lack main's consent-aware public contact projection. These must be released with the corresponding schema and authorization dependencies as one unit.
+- The production migration reconciliation manifest now includes `live_recheck_20261122` with the exact observations and version set.
+- No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge deployment, payment, wallet, settlement or customer-data mutation occurred.
+- Production remains **BLOCKED / NOT CERTIFIED**. Evidence: `docs/audits/PASS_1821_1830_LIVE_PRODUCTION_EDGE_MIGRATION_RECHECK_20261122.md`.
+
