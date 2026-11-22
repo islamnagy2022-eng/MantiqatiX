@@ -200,7 +200,6 @@ export const MerchantDashboard: React.FC = () => {
   const [bizCoverUrl, setBizCoverUrl] = useState(currentBusiness?.coverUrl || '');
   const [bizOwnerWhatsApp, setBizOwnerWhatsApp] = useState(currentBusiness?.ownerWhatsApp || '');
   const [bizAdditionalPhones, setBizAdditionalPhones] = useState<string[]>(currentBusiness?.additionalContactPhones || []);
-  const [bizPublicContactEnabled, setBizPublicContactEnabled] = useState(currentBusiness?.publicContactEnabled === true);
   const [bizFacebookUrl, setBizFacebookUrl] = useState(currentBusiness?.facebookUrl || '');
   const [bizInstagramUrl, setBizInstagramUrl] = useState(currentBusiness?.instagramUrl || '');
   const [bizTikTokUrl, setBizTikTokUrl] = useState(currentBusiness?.tiktokUrl || '');
@@ -253,7 +252,6 @@ export const MerchantDashboard: React.FC = () => {
     setBizCoverUrl(currentBusiness?.coverUrl || '');
     setBizOwnerWhatsApp(currentBusiness?.ownerWhatsApp || '');
     setBizAdditionalPhones(currentBusiness?.additionalContactPhones || []);
-    setBizPublicContactEnabled(currentBusiness?.publicContactEnabled === true);
     setBizFacebookUrl(currentBusiness?.facebookUrl || '');
     setBizInstagramUrl(currentBusiness?.instagramUrl || '');
     setBizTikTokUrl(currentBusiness?.tiktokUrl || '');
@@ -449,7 +447,6 @@ export const MerchantDashboard: React.FC = () => {
         coverUrl: bizCoverUrl.trim(),
         ownerWhatsApp: bizOwnerWhatsApp.trim(),
         additionalContactPhones,
-        publicContactEnabled: bizPublicContactEnabled,
         facebookUrl,
         instagramUrl,
         tiktokUrl,
@@ -1151,17 +1148,9 @@ export const MerchantDashboard: React.FC = () => {
               </div>
 
               <div className="md:col-span-2 rounded-xl border border-amber-200 bg-amber-50/60 p-3">
-                <label className="flex cursor-pointer items-start gap-2 text-xs font-bold text-slate-800">
-                  <input
-                    type="checkbox"
-                    checked={bizPublicContactEnabled}
-                    onChange={(event) => setBizPublicContactEnabled(event.target.checked)}
-                    className="mt-0.5 h-4 w-4 accent-emerald-600"
-                  />
-                  <span>أوافق صراحة على إظهار رقم واتساب النشاط والعنوان وأرقام التواصل الإضافية للعامة في صفحة النشاط.</span>
-                </label>
-                <p className="mt-2 text-[11px] leading-5 text-slate-600">
-                  بدون تفعيل هذا الاختيار تظل بيانات الاتصال والعنوان مخفية عن الزوار حتى لو كانت محفوظة داخل حساب النشاط. يمكنك إلغاء الموافقة في أي وقت.
+                <p className="text-xs font-black text-amber-950">عرض بيانات التواصل العامة متوقف مؤقتًا</p>
+                <p className="mt-2 text-[11px] leading-5 text-amber-900">
+                  يمكنك حفظ بيانات الهاتف والعنوان داخل حساب النشاط، لكنها ستظل مخفية عن الزوار حتى يكتمل سجل الموافقة والتدقيق الخاص بالنشاط.
                 </p>
               </div>
               <div className="md:col-span-2 rounded-xl border border-slate-200 bg-white p-3 space-y-3">
