@@ -366,7 +366,7 @@ export const CartDrawer: React.FC = () => {
                 <h3 className="font-black text-lg text-emerald-950">
                   {completedOrderDetails.method === 'paymob'
                     ? 'تم سداد الطلب بنجاح عبر Paymob وإرسال التفاصيل!'
-                    : '{completedOrderDetails.tracked ? 'تم تسجيل الطلب وإرسال التفاصيل عبر واتساب!' : 'تم إرسال طلبك عبر واتساب فقط!'}'}
+                    : completedOrderDetails.tracked ? 'تم تسجيل الطلب وإرسال التفاصيل عبر واتساب!' : 'تم إرسال طلبك عبر واتساب فقط!'}
                 </h3>
 
                 {completedOrderDetails.tracked && completedOrderDetails.orderId && (<p className="rounded-xl border border-emerald-200 bg-white p-3 text-sm font-bold text-emerald-900">رقم الطلب المسجل: <span dir="ltr" className="font-mono">{completedOrderDetails.orderId}</span></p>)}
