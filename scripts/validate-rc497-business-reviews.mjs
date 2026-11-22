@@ -224,6 +224,8 @@ assert.match(customerReviewPanel, /\.eq\('customer_id', userId\)/,
   "customer order list must scope every order query to the authenticated identity");
 assert.match(customerReviewPanel, /row\.name_ar \|\| row\.name/,
   "customer order history must display the Arabic item names stored in the authoritative pricing snapshot");
+assert.match(customerReviewPanel, /for \(let index = 0; index < ownedOrders\.length; index \+= 5\)[\s\S]*?ownedOrders\.slice\(index, index \+ 5\)/,
+  "customer review status lookups must use bounded batches rather than 50 concurrent RPC calls");
 assert.match(customerReviewPanel, /total_amount,currency,items_json[\s\S]*?amountLabel\(order\.total_amount, order\.currency\)/,
   "customer order history must format the total using the persisted order currency");
 assert.match(customerReviewPanel, /order\.status\.toUpperCase\(\) === 'DELIVERED'/,
