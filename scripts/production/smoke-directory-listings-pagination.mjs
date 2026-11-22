@@ -49,6 +49,19 @@ assert.equal(
 );
 const first = await json(firstResponse);
 assert.ok(Array.isArray(first.listings), "First page must contain a listings array");
+
+// Production may intentionally keep the national doctor directory disabled until
+// the owner contact-consent release gate is complete. In that state, verify that
+// no rows or pagination cursor are exposed; only run the pagination suite after
+// the public directory is explicitly re-enabled.
+if (first.directoryDisabled === true) {
+  assert.equal(first.listings.length, 0, "A disabled public directory must not expose listing rows");
+  assert.equal(first.pageSize, 0, "A disabled public directory must not advertise a page size");
+  assert.equal(first.hasMore, false, "A disabled public directory must not advertise more results");
+  assert.equal(first.nextCursor, null, "A disabled public directory must not expose a continuation cursor");
+  console.log("DIRECTORY_DISABLED_RELEASE_GATE=PASS; listing data and pagination remain withheld pending consent approval.");
+  process.exit(0);
+}
 assert.equal(first.pageSize, 2, "Server must honor the requested two-row page size");
 assert.ok(first.listings.length > 0 && first.listings.length <= 2, "First page must return at most two public rows");
 assert.equal(first.hasMore, true, "Production doctor baseline should exercise keyset continuation");
