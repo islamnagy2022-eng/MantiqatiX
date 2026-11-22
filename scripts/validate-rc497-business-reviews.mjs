@@ -112,7 +112,7 @@ assert.match(adminReviewPanel, /supabase\.rpc\('get_platform_business_review_mod
   "platform moderation UI must use only the registry-protected queue and moderation RPCs");
 assert.match(adminDashboard, /BusinessReviewModerationPanel[\s\S]*?activeAdminTab === 'business_reviews'/,
   "platform moderation panel must be mounted in the admin dashboard");
-assert.match(merchantDashboard, /BusinessReviewManagementPanel[\\s\\S]*?activeTab === 'reviews'/,
+assert.match(merchantDashboard, /BusinessReviewManagementPanel[\s\S]*?activeTab === 'reviews'/,
   "business owner review-response panel must be mounted behind the merchant dashboard tab");
 assert.match(accountPortal, /<CustomerOrderReviews \/>/,
   "customer order history and review form must be mounted in the account portal");
