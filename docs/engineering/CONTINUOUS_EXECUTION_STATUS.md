@@ -1,5 +1,5 @@
 # MantiqatiX Continuous Execution Status
-Last updated: 2026-11-20 — Pass 1220–1229; 7/11 critical Edge source mismatch, 0/64 exact migration IDs; Production read-only
+Last updated: 2026-11-22 — PR975 merged and Pages deploy verified; PR976 exact-head CI pending final browser E2E; Production remains BLOCKED / NOT CERTIFIED; Production read-only
 
 ## Latest checkpoint — 2026-11-20 — Pass 1220–1229
 
