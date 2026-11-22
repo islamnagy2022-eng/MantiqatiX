@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/20261122010000_rc497_verified_business_reviews.sql"
+      - "apps/catalog-frontend/src/components/cart/CartDrawer.tsx"
+      - "apps/catalog-frontend/src/components/admin/BusinessReviewModerationPanel.tsx"
       - "apps/catalog-frontend/src/components/merchant/BusinessReviewManagementPanel.tsx"
       - "apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx"
       - "apps/catalog-frontend/src/components/account/CustomerOrderReviews.tsx"
@@ -16,6 +18,8 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/20261122010000_rc497_verified_business_reviews.sql"
+      - "apps/catalog-frontend/src/components/cart/CartDrawer.tsx"
+      - "apps/catalog-frontend/src/components/admin/BusinessReviewModerationPanel.tsx"
       - "apps/catalog-frontend/src/components/merchant/BusinessReviewManagementPanel.tsx"
       - "apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx"
       - "apps/catalog-frontend/src/components/account/CustomerOrderReviews.tsx"
