@@ -68,7 +68,7 @@ const required=[
   ["Tenant-wide order reads require unscoped OWNER/ADMIN membership", "tenantWideOwner", api],
   ["Business-scoped order reads require exact business and branch match", "exactBusinessBranch", api],
   ["Legacy payment intents use the authenticated canonical backend RPC", 'supabaseUser.rpc("create_payment_intent_backend"', api],
-  ["Payment amount comes from persisted server total_amount", "p_amount: Number(order.total_amount)", api],
+  ["Payment amount comes from persisted server total_amount", "p_amount: String(order.total_amount)", api],
   ["Payment requires pricing snapshot", "pricing_hash", payment],
   ["Payment revalidates pricing before provider call", "Authoritative pricing changed; restart payment", payment],
   ["Payment provider is Paymob", 'p_provider: "PAYMOB"', payment],
