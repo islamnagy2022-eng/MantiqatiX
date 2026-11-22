@@ -3934,3 +3934,15 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Production read-only checkpoint: zero order rows and no business-review table. RC497 remains unapplied; no real customer review is currently possible.
 - PR #970 closed as superseded after PR #969 merged. Rebased candidate carried to PR #971; exact-head CI pending. No Production mutation or deployment.
 - Evidence: `docs/audits/PASS_1811_1820_LI2LAK_VERIFIED_BUSINESS_REVIEWS_20261122.md`.
+
+
+## 2026-11-22 — Pass 1821–1830 — Li2Lak canonical order identity and checkout correction
+
+- Read-only audit found `create_order_backend` requires `auth.uid() = p_customer_id`, but live ACL allows service_role only; authenticated/anon execution denied. SECURITY DEFINER search_path was only `public`.
+- Deployed `order-create` v8 verified Bearer identity with service-role Auth API then invoked the RPC through service_role, so the customer JWT identity was not propagated to `auth.uid()`. This path was not certified as working.
+- Added RC498 candidate: safe search_path, PUBLIC/anon denial, authenticated EXECUTE, retained service_role grant and fixture assertions.
+- Updated source `order-create` and authenticated `api` Edge routes to invoke the backend RPC with the verified user JWT.
+- Li2Lak cart now records authenticated orders through order-create with canonical catalog IDs and idempotency; guest WhatsApp-only requests remain untracked.
+- Release contract now tracks 78 migration identities. RC497/RC498 not applied; no Production mutation or deployment.
+- PR #971 rebased candidate exact-head CI pending; release remains **PRODUCTION BLOCKED / NOT CERTIFIED**.
+- Evidence: `docs/audits/PASS_1811_1820_LI2LAK_VERIFIED_BUSINESS_REVIEWS_20261122.md`.
