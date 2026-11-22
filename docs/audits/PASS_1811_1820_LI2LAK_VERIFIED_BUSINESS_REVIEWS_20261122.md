@@ -53,8 +53,8 @@ Add a separate customer-review capability to Li2Lak without reusing MantiGO ride
 
 ## Release ledger reconciliation
 
-- The exact production release contract now tracks 77 migration identities, including RC497. The candidate includes six narrow review RPCs: customer status, customer submission, registry-admin moderation queue, registry-admin moderation, business-owner response, and bounded public summary.
-- The retained live ledger snapshot still records zero of the 77 required exact source identifiers, with latest recorded live version `20261110150618`.
+- The exact production release contract now tracks 78 migration identities, including RC497 and RC498. The candidate includes six narrow review RPCs: customer status, customer submission, registry-admin moderation queue, registry-admin moderation, business-owner response, and bounded public summary.
+- The retained live ledger snapshot still records zero of the 78 required exact source identifiers, with latest recorded live version `20261110150618`.
 - This is a migration identity gap, not proof that every corresponding physical schema effect is absent. Physical schema, function bodies, ACLs, RLS and Edge parity must continue to be reconciled independently.
 - Do not synthesize ledger entries or blindly replay migrations against Production.
 
@@ -67,4 +67,18 @@ Add a separate customer-review capability to Li2Lak without reusing MantiGO ride
 
 ## Release decision
 
-**PRODUCTION BLOCKED / NOT CERTIFIED.** RC497 is a source candidate only; the live order count remains zero, so there is no real customer transaction available for an end-to-end production review test. Do not merge or deploy until exact-head CI, full chronological replay, independent backup/restore rehearsal, migration alias/physical-object reconciliation, and the broader P0 directory-consent and platform-admin authorization gates are resolved.
+**PRODUCTION BLOCKED / NOT CERTIFIED.** RC497 and RC498 are source candidates only; the live order count remains zero, so there is no real customer transaction available for an end-to-end production review test. Do not merge or deploy until exact-head CI, full chronological replay, independent backup/restore rehearsal, migration alias/physical-object reconciliation, and the broader P0 directory-consent and platform-admin authorization gates are resolved.
+
+
+## Pass 1821–1830 — canonical order identity and checkout correction
+
+- Live read-only inspection of `public.create_order_backend(...)` confirmed the SECURITY DEFINER RPC checks `auth.uid() = p_customer_id`, validates customer membership and active business/provider/branch, and recalculates prices from `catalog_item_prices`.
+- Live ACL inspection confirmed: `anon EXECUTE=false`, `authenticated EXECUTE=false`, `service_role EXECUTE=true`; the live function's search_path was only `public`.
+- Live `order-create` Edge Function v8 verifies the Bearer token through `admin.auth.getUser(token)`, but then called the identity-enforcing RPC through a service-role client. That call context does not carry the customer's JWT identity into `auth.uid()`; the order path was therefore not certified as usable.
+- Added RC498 source migration to harden the RPC search_path to `pg_catalog, public, extensions, pg_temp`, deny PUBLIC/anon execution and grant authenticated execution while retaining the existing controlled service-role grant.
+- Updated both `order-create` and authenticated `api` order entry points to keep privileged reads on the service client but invoke `create_order_backend` through an anon-key client carrying the verified customer Bearer JWT.
+- Added disposable fixture assertions for authenticated execution, anon denial, retained service-role ACL, search_path hardening and rejection of a spoofed `p_customer_id`.
+- Added RC498 to the exact release contract: 78 migration identities. The live ledger still records zero of these exact required source identities; RC498 is SOURCE_CANDIDATE_NOT_APPLIED.
+- Updated Li2Lak cart to invoke the existing order-create function for authenticated customers, send canonical item IDs/quantities plus an idempotency key, show the persisted order ID, and keep guest WhatsApp-only requests explicitly untracked.
+- No Production migration, Edge deployment, grant, data mutation or public deployment was performed. Release ordering must apply/reconcile RC498 before deploying the changed Edge Function.
+
