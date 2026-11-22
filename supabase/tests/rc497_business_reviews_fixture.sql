@@ -23,6 +23,45 @@ GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION auth.uid() TO anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION auth.jwt() TO anon, authenticated, service_role;
 
+-- RC498 fixture stub: production RPC contract is separately verified read-only.
+CREATE OR REPLACE FUNCTION public.create_order_backend(
+  p_order_id uuid,
+  p_tenant_id character varying,
+  p_business_id uuid,
+  p_branch_id character varying,
+  p_customer_id uuid,
+  p_client_idempotency_key character varying,
+  p_subtotal numeric,
+  p_discount numeric,
+  p_tax numeric,
+  p_delivery_fee numeric,
+  p_total_amount numeric,
+  p_currency character varying,
+  p_customer_name text,
+  p_customer_phone text,
+  p_delivery_address text,
+  p_items_json jsonb,
+  p_notes text DEFAULT NULL,
+  p_metadata jsonb DEFAULT '{}'::jsonb
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+BEGIN
+  IF auth.uid() IS NULL OR auth.uid() <> p_customer_id THEN
+    RAISE EXCEPTION 'CUSTOMER_REQUIRED';
+  END IF;
+  RETURN jsonb_build_object('id', p_order_id, 'status', 'PENDING');
+END;
+$function$;
+GRANT EXECUTE ON FUNCTION public.create_order_backend(
+  uuid, character varying, uuid, character varying, uuid, character varying,
+  numeric, numeric, numeric, numeric, numeric, character varying,
+  text, text, text, jsonb, text, jsonb
+) TO service_role;
+
 CREATE TABLE public.businesses (
   id uuid PRIMARY KEY,
   tenant_id varchar NOT NULL,
