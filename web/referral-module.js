@@ -12,21 +12,30 @@
       const queryCode = normalizeCode(url.searchParams.get("ref"));
       const pathMatch = url.pathname.match(/\/join\/([A-Za-z0-9]{6,32})\/?$/i);
       const code = queryCode || normalizeCode(pathMatch?.[1]);
-      if (code) localStorage.setItem(STORAGE_KEY, code);
+      if (code) {
+        try { localStorage.setItem(STORAGE_KEY, code); }
+        catch (_) { try { sessionStorage.setItem(STORAGE_KEY, code); } catch (__) {} }
+      }
     } catch (_) {}
   }
   function pendingCode() {
     try {
-      const stored = normalizeCode(localStorage.getItem(STORAGE_KEY));
+      let stored = "";
+      try { stored = normalizeCode(localStorage.getItem(STORAGE_KEY)); } catch (_) {}
+      if (!stored) { try { stored = normalizeCode(sessionStorage.getItem(STORAGE_KEY)); } catch (_) {} }
       if (stored) return stored;
       const url = new URL(window.location.href);
       const code = normalizeCode(url.searchParams.get("ref"));
-      if (code) localStorage.setItem(STORAGE_KEY, code);
+      if (code) {
+        try { localStorage.setItem(STORAGE_KEY, code); }
+        catch (_) { try { sessionStorage.setItem(STORAGE_KEY, code); } catch (__) {} }
+      }
       return code;
     } catch (_) { return ""; }
   }
   function clearPendingCode() {
     try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+    try { sessionStorage.removeItem(STORAGE_KEY); } catch (_) {}
     try {
       const url = new URL(window.location.href);
       if (url.searchParams.has("ref")) {
