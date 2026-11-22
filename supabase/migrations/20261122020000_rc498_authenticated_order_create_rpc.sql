@@ -91,7 +91,7 @@ begin
          or length(btrim(option_value #>> '{}'))=0
          or length(option_value #>> '{}')>100
    ) then raise exception 'INVALID_ITEM_OPTIONS'; end if;
-   select * into v_price from catalog_item_prices cp where cp.catalog_item_id=v_ci.id and cp.tenant_id=p_tenant_id and cp.status='ACTIVE' and cp.effective_from<=now() and (cp.effective_to is null or cp.effective_to>now()) and (cp.branch_id is null or cp.branch_id=p_branch_id) order by (cp.branch_id is not null) desc,cp.effective_from desc,cp.version desc limit 1;
+   select * into v_price from catalog_item_prices cp where cp.catalog_item_id=v_ci.id and cp.tenant_id=p_tenant_id and upper(cp.currency)=v_currency and cp.status='ACTIVE' and cp.effective_from<=now() and (cp.effective_to is null or cp.effective_to>now()) and (cp.branch_id is null or cp.branch_id=p_branch_id) order by (cp.branch_id is not null) desc,cp.effective_from desc,cp.version desc limit 1;
    if not found then raise exception 'CATALOG_PRICE_NOT_FOUND:%',v_ci.id; end if;
    select coalesce(sum(o.price_delta),0),count(o.id) into v_opt_total,v_opt_count from catalog_item_options o where o.catalog_item_id=v_ci.id and o.status='ACTIVE' and o.id::text in (select jsonb_array_elements_text(coalesce(v_item->'selectedOptionIds','[]'::jsonb)));
    if v_opt_count<>v_requested_opts then raise exception 'INVALID_ITEM_OPTIONS'; end if;
