@@ -3946,3 +3946,15 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Release contract now tracks 78 migration identities. RC497/RC498 not applied; no Production mutation or deployment.
 - PR #971 rebased candidate exact-head CI pending; release remains **PRODUCTION BLOCKED / NOT CERTIFIED**.
 - Evidence: `docs/audits/PASS_1811_1820_LI2LAK_VERIFIED_BUSINESS_REVIEWS_20261122.md`.
+
+
+## 2026-11-22 — Li2Lak selected-branch lookup hardening
+
+- **Context:** PR #971 adds authenticated order creation and verified business reviews. Review of the candidate `order-create` Edge Function found an arbitrary `.limit(100)` active-branch scan. A valid selected branch outside the first 100 rows could be rejected as unavailable.
+- **Source change:** replaced the list scan with an exact `id + tenant_id + business_id + ACTIVE` lookup when a branch is selected; when omitted, query only one active row to determine whether branch selection is required.
+- **Regression contract:** extended `scripts/validate-rc497-business-reviews.mjs` to require the exact lookup and reject reintroduction of the fixed 100-row validation. Re-fetched source and validator and independently evaluated both new assertions successfully.
+- **Commits:** Edge change `5f610c6ee75ba02a477bc6e539862df0b5c54704`; validator `500e53df8613b285eaab7629e2027263b10cfbd4`, then multiline-regex correction `25658e2059e3bcc856238cba61bfc752e6b8a2e5`; TODO record `7f316166bcf64bd5b95363d3c7c15f7974dedb5f`.
+- **Current PR:** #971 remains open and unmerged. The latest head must receive fresh exact-head CI; earlier queued runs do not validate the latest source.
+- **Not performed:** no Production migration, Edge Function deployment, Auth/RLS/GRANT change, payment, wallet, customer-data mutation or public deployment.
+- **Next:** wait for and inspect exact-head Li2Lak lifecycle, PostgreSQL 17 order/idempotency, forward migration replay, frontend build/E2E and security workflows. Fix any concrete failures before considering merge.
+- **Release state:** **BLOCKED / NOT CERTIFIED**.
