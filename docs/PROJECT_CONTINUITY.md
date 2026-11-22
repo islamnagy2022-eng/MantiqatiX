@@ -1,3 +1,17 @@
+# Latest continuation checkpoint — 2026-11-22 — Pass 1861–1870
+
+**Active PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
+**Latest feature:** Li2Lak verified business reviews and authenticated order creation  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+- Added backend enforcement against self-reviews by active business members and recorded business owners.
+- Added a delivered owner-order fixture and a negative PostgreSQL integration case.
+- Added validator and release-manifest coverage for this rule.
+- Static source consistency checks passed; PostgreSQL 17 execution is still pending exact-head CI.
+- No Production mutation/deployment. Preserve Android/mobile and current catalog root.
+
+---
+
 # Latest continuation checkpoint — 2026-11-22 — Pass 1851–1860
 
 **Active PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
