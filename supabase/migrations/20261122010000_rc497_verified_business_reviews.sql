@@ -8,6 +8,7 @@ CREATE TABLE public.business_reviews (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id varchar NOT NULL,
   business_id uuid NOT NULL REFERENCES public.businesses(id) ON DELETE RESTRICT,
+  branch_id varchar REFERENCES public.branches(id) ON DELETE RESTRICT,
   order_id uuid NOT NULL REFERENCES public.orders(id) ON DELETE RESTRICT,
   customer_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   rating smallint NOT NULL CHECK (rating BETWEEN 1 AND 5),
@@ -162,9 +163,9 @@ BEGIN
   END IF;
 
   INSERT INTO public.business_reviews (
-    tenant_id, business_id, order_id, customer_id, rating, review_text
+    tenant_id, business_id, branch_id, order_id, customer_id, rating, review_text
   ) VALUES (
-    v_order.tenant_id, v_order.business_id, v_order.id, v_actor, p_rating, v_text
+    v_order.tenant_id, v_order.business_id, v_order.branch_id, v_order.id, v_actor, p_rating, v_text
   )
   RETURNING * INTO v_review;
 
@@ -383,10 +384,17 @@ BEGIN
        AND m.tenant_id = v_review.tenant_id
        AND m.status = 'ACTIVE'
        AND (
-         (m.business_id = v_review.business_id
-          AND upper(m.role::text) IN ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER'))
+         (
+           m.business_id = v_review.business_id
+           AND upper(m.role::text) IN ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER')
+           AND (
+             m.branch_id IS NULL
+             OR (v_review.branch_id IS NOT NULL AND m.branch_id = v_review.branch_id)
+           )
+         )
          OR
          (m.business_id IS NULL
+          AND m.branch_id IS NULL
           AND upper(m.role::text) = 'OWNER')
        )
   ) THEN
