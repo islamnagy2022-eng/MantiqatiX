@@ -4912,3 +4912,13 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Obtain product policy decisions for moderation publication, edit window, retention, appeals and disputes before authoring a migration.
 - [ ] Do not implement UI stars or aggregate ratings before server-authoritative review RPCs and disposable PostgreSQL tests pass.
 - **Safety:** design/spec only; no Production schema/data/ACL/RLS/Storage/Auth/Edge/payment changes. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+### Pass 1771–1780 — live directory Edge consent drift — 2026-11-22
+- [x] Retrieved live `directory-listings` Edge source: ACTIVE v16, `verify_jwt=false`, SHA256 `13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0`.
+- [x] Compared deployed bundle with current main: only 3/7 files present; output sanitizer, contact/address consent pagination, and platform-admin registry modules are missing; deployed pagination helper differs.
+- [x] Confirmed live GET still selects/returns phone, secondary_phone and address. Aggregate-only query: 869/869 published rows contain phone and address.
+- [x] Confirmed both expected contact-consent registry table names are absent in live Production.
+- [ ] P0: perform encrypted DB+Storage backup, key recovery and independent PostgreSQL 17 restore/rollback before coordinated migration + Edge release.
+- [ ] Deploy exact seven-file consent-aware Edge bundle with ordered schema release; verify hash, anonymous no-contact response, grant/revoke, owner scope, stale-cache behavior and fail-closed outage.
+- **Safety:** read-only inspection only. No Production mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
