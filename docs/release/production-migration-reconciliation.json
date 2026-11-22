@@ -118,11 +118,11 @@
   },
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
-    "checked_at": "2026-11-21",
-    "method": "Read-only Production migration-ledger inventory retained from 2026-11-21 and compared against the exact 76-version release contract carried by PR #961. No Production migration was applied.",
+    "checked_at": "2026-11-22",
+    "method": "Read-only Production migration-ledger inventory retained from 2026-11-22 and compared against the exact 77-version release contract carried by PR #970. No Production migration was applied.",
     "live_ledger_count": 310,
     "latest_live_version": "20261110150618",
-    "expected_migration_versions": 76,
+    "expected_migration_versions": 77,
     "found_in_live_ledger": 0,
     "required_versions": [
       "20261009120000",
@@ -200,7 +200,8 @@
       "20261120280000",
       "20261120290000",
       "20261121020000",
-      "20261121030000"
+      "20261121030000",
+      "20261122010000"
     ],
     "missing_versions": [
       "20261009120000",
@@ -278,10 +279,11 @@
       "20261120280000",
       "20261120290000",
       "20261121020000",
-      "20261121030000"
+      "20261121030000",
+      "20261122010000"
     ],
     "recorded_required_versions": [],
-    "interpretation": "None of the 76 exact required source-version identifiers are recorded in the current live ledger. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
+    "interpretation": "None of the 77 exact required source-version identifiers are recorded in the current live ledger. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
   },
   "critical_edge_function_source_parity_check": {
     "status": "BLOCKED",
@@ -5405,5 +5407,39 @@
       "post_financial_journal_backend(uuid,jsonb,jsonb): service_role EXECUTE false; anon/authenticated false"
     ],
     "production_mutation": "NONE — no payment, order, webhook, journal, wallet, settlement or schema/ACL/Edge operation was invoked."
+  },
+  "rc497_verified_business_reviews": {
+    "source_migration": "20261122010000",
+    "status": "SOURCE_CANDIDATE_NOT_APPLIED",
+    "pr": 970,
+    "live_review_table_found": false,
+    "live_orders_at_checkpoint": 0,
+    "required_behavior": [
+      "one immutable review per authenticated customer's own DELIVERED order",
+      "exact retry is idempotent; changed duplicate review is rejected",
+      "all submissions remain PENDING until direct platform-admin registry moderation",
+      "one business-scoped response by active OWNER/BUSINESS_OWNER/ADMIN/MANAGER",
+      "public output contains only PUBLISHED reviews for ACTIVE verified businesses",
+      "public output excludes customer identity and is bounded to 20 reviews per page",
+      "direct table access is denied to anon/authenticated/service_role and FORCE RLS is enabled",
+      "account deletion anonymizes reviewer and event actor references without deleting review history"
+    ],
+    "required_release_tests": [
+      "own-delivered-order-positive",
+      "undelivered-order-negative",
+      "foreign-customer-order-negative",
+      "same-payload-idempotency",
+      "changed-payload-duplicate-negative",
+      "tenant-role-cannot-moderate",
+      "platform-registry-admin-moderation-positive",
+      "business-owner-response-scope",
+      "one-response-only",
+      "unverified-business-public-read-hidden",
+      "anonymous-public-output-identity-free",
+      "direct-table-privilege-negative",
+      "account-deletion-anonymization"
+    ],
+    "production_mutation": "NONE",
+    "note": "Source candidate only. Production has no general business review table and zero public.orders rows at the read-only checkpoint. No reviews can be submitted until real delivered customer orders exist and this feature is released through the coordinated backup/migration gate."
   }
 }
