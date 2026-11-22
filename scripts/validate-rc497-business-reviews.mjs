@@ -3,6 +3,8 @@ import fs from "node:fs";
 
 const migrationPath = "supabase/migrations/20261122010000_rc497_verified_business_reviews.sql";
 const reviewPanel = fs.readFileSync("apps/catalog-frontend/src/components/storefront/BusinessReviewsPanel.tsx", "utf8");
+const customerReviewPanel = fs.readFileSync("apps/catalog-frontend/src/components/account/CustomerOrderReviews.tsx", "utf8");
+const accountPortal = fs.readFileSync("apps/catalog-frontend/src/modules/account/SubscriberAccountPortal.tsx", "utf8");
 const appShell = fs.readFileSync("apps/catalog-frontend/src/App.tsx", "utf8");
 const migration = fs.readFileSync(migrationPath, "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc497_business_reviews_fixture.sql", "utf8");
@@ -18,6 +20,10 @@ assert.match(migration, /CONSTRAINT business_reviews_one_per_order UNIQUE \(orde
   "one immutable review per order must be enforced by a database unique constraint");
 assert.match(migration, /v_order\.customer_id IS DISTINCT FROM v_actor[\s\S]*?upper\(coalesce\(v_order\.status, ''\)\) <> 'DELIVERED'[\s\S]*?ORDER_BUSINESS_TENANT_MISMATCH/,
   "review submission must bind the authenticated actor to their own delivered order");
+assert.match(migration, /CREATE OR REPLACE FUNCTION public\.get_customer_business_review_status[\s\S]*?o\.customer_id = v_actor[\s\S]*?r\.customer_id = v_actor/,
+  "customer review status RPC must return only the authenticated customer's own review");
+assert.match(migration, /REVOKE ALL ON FUNCTION public\.get_customer_business_review_status\(uuid\) FROM PUBLIC, anon, service_role[\s\S]*?GRANT EXECUTE ON FUNCTION public\.get_customer_business_review_status\(uuid\) TO authenticated/,
+  "private customer review status RPC must be authenticated-only");
 assert.match(migration, /v_existing\.rating = p_rating AND v_existing\.review_text IS NOT DISTINCT FROM v_text[\s\S]*?REVIEW_ALREADY_SUBMITTED/,
   "exact retry must be idempotent while changed duplicate payloads are rejected");
 assert.match(migration, /v_decision IN \('REJECTED','HIDDEN'\) AND v_reason IS NULL[\s\S]*?MODERATION_REASON_REQUIRED/,
@@ -51,15 +57,17 @@ assert.match(migration, /REVOKE ALL ON TABLE public\.business_reviews FROM PUBLI
   "review table must not grant direct API-role access");
 assert.match(migration, /REVOKE ALL ON TABLE public\.business_review_events FROM PUBLIC, anon, authenticated, service_role/,
   "review event ledger must not grant direct API-role access");
-assert.equal((migration.match(/SECURITY DEFINER/g) ?? []).length, 4,
+assert.equal((migration.match(/SECURITY DEFINER/g) ?? []).length, 5,
   "only the four intentional review RPCs should be SECURITY DEFINER");
-assert.equal((migration.match(/SET search_path TO ''/g) ?? []).length, 5,
+assert.equal((migration.match(/SET search_path TO ''/g) ?? []).length, 6,
   "all four review SECURITY DEFINER RPCs and the trigger function must use an empty search_path");
 assert.match(fixture, /CREATE TABLE public\.orders[\s\S]*?customer_id uuid REFERENCES auth\.users\(id\) ON DELETE SET NULL/,
   "fixture must model customer account deletion without blocking order retention");
 for (const token of [
   "ORDER_NOT_DELIVERED",
   "ORDER_BUSINESS_TENANT_MISMATCH",
+  "RC497_CUSTOMER_REVIEW_STATUS_LOOKUP_FAILED",
+  "RC497_CUSTOMER_READS_FOREIGN_REVIEW_STATUS",
   "BUSINESS_REVIEW_FORBIDDEN",
   "REVIEW_ALREADY_SUBMITTED",
   "MODERATION_REASON_REQUIRED",
@@ -79,6 +87,14 @@ assert.match(reviewPanel, /currentBusiness\?\.isVerified[\s\S]*?operationalStatu
   "public review panel must be restricted to active verified businesses");
 assert.match(reviewPanel, /verifiedInteraction === true/,
   "public storefront must reject review rows without verified-order provenance");
+assert.match(customerReviewPanel, /get_customer_business_review_status[\s\S]*?submit_business_review/,
+  "customer order portal must check owned review status before submission");
+assert.match(customerReviewPanel, /\.eq\('customer_id', userId\)/,
+  "customer order list must scope every order query to the authenticated identity");
+assert.match(customerReviewPanel, /order\.status\.toUpperCase\(\) === 'DELIVERED'/,
+  "customer review form must only be offered for delivered orders");
+assert.match(accountPortal, /<CustomerOrderReviews \/>/,
+  "customer order history and review form must be mounted in the account portal");
 assert.match(appShell, /<BusinessReviewsPanel \/>/,
   "verified public review panel must be mounted in the business storefront");
 assert.ok(workflow.includes(migrationPath), "dedicated workflow must apply RC497 migration");
