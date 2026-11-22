@@ -39,6 +39,7 @@ import { QRCodeModal } from '../common/QRCodeModal';
 import { BusinessEmployeeManager } from './BusinessEmployeeManager';
 import { CatalogImportPanel } from './CatalogImportPanel';
 import { normalizeSocialUrl } from '../../utils/socialLinks';
+import { normalizePromotionalImageLines } from '../../utils/promotionalImages';
 
 
 type FacebookPageOption = { id: string; name: string; link?: string; category?: string };
@@ -198,6 +199,7 @@ export const MerchantDashboard: React.FC = () => {
   const [bizBio, setBizBio] = useState(currentBusiness?.bio || '');
   const [bizLogoUrl, setBizLogoUrl] = useState(currentBusiness?.logoUrl || '');
   const [bizCoverUrl, setBizCoverUrl] = useState(currentBusiness?.coverUrl || '');
+  const [bizPromotionalImagesText, setBizPromotionalImagesText] = useState((currentBusiness?.promotionalImages || []).join('\n'));
   const [bizOwnerWhatsApp, setBizOwnerWhatsApp] = useState(currentBusiness?.ownerWhatsApp || '');
   const [bizAdditionalPhones, setBizAdditionalPhones] = useState<string[]>(currentBusiness?.additionalContactPhones || []);
   const [bizPublicContactEnabled, setBizPublicContactEnabled] = useState(currentBusiness?.publicContactEnabled === true);
@@ -251,6 +253,7 @@ export const MerchantDashboard: React.FC = () => {
     setBizBio(currentBusiness?.bio || '');
     setBizLogoUrl(currentBusiness?.logoUrl || '');
     setBizCoverUrl(currentBusiness?.coverUrl || '');
+    setBizPromotionalImagesText((currentBusiness?.promotionalImages || []).join('\n'));
     setBizOwnerWhatsApp(currentBusiness?.ownerWhatsApp || '');
     setBizAdditionalPhones(currentBusiness?.additionalContactPhones || []);
     setBizPublicContactEnabled(currentBusiness?.publicContactEnabled === true);
@@ -408,6 +411,8 @@ export const MerchantDashboard: React.FC = () => {
     (g) => g.id === currentBusiness.functionalGroupId
   );
 
+  const promotionalImagePreview = normalizePromotionalImageLines(bizPromotionalImagesText);
+
   const handleSaveBusiness = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setSaveSuccess(false);
@@ -438,6 +443,11 @@ export const MerchantDashboard: React.FC = () => {
       setProfileSaveError('الرابط غير صالح. أدخل رابط موقع يبدأ بـ https:// أو http:// أو اسم نطاق صالح.');
       return;
     }
+    const promotionalImages = normalizePromotionalImageLines(bizPromotionalImagesText);
+    if (!promotionalImages.valid) {
+      setProfileSaveError(promotionalImages.error || 'راجع روابط الصور الترويجية.');
+      return;
+    }
 
     setProfileSaving(true);
     try {
@@ -447,6 +457,7 @@ export const MerchantDashboard: React.FC = () => {
         bio: bizBio.trim(),
         logoUrl: bizLogoUrl.trim(),
         coverUrl: bizCoverUrl.trim(),
+        promotionalImages: promotionalImages.images,
         ownerWhatsApp: bizOwnerWhatsApp.trim(),
         additionalContactPhones,
         publicContactEnabled: bizPublicContactEnabled,
@@ -1077,6 +1088,49 @@ export const MerchantDashboard: React.FC = () => {
                 />
               </div>
             </div>
+
+            <section className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 sm:p-5 space-y-3" aria-labelledby="promotional-images-heading">
+              <div>
+                <h4 id="promotional-images-heading" className="font-black text-sm text-slate-900">معرض الصور الترويجية — حتى 10 صور</h4>
+                <p className="mt-1 text-xs leading-6 text-slate-600">
+                  الغلاف الرئيسي صورة واحدة ثابتة. أضف هنا صور المنتجات أو الأعمال أو العروض بشكل مستقل، رابط HTTPS واحد في كل سطر. هذه الخانة تقبل الصور فقط ولا تدعم الفيديو.
+                </p>
+              </div>
+              <label className="block text-xs font-bold text-slate-700" htmlFor="business-promotional-images">
+                روابط الصور الترويجية
+              </label>
+              <textarea
+                id="business-promotional-images"
+                rows={6}
+                dir="ltr"
+                value={bizPromotionalImagesText}
+                onChange={(event) => setBizPromotionalImagesText(event.target.value)}
+                placeholder={"https://example.com/promo-1.webp\nhttps://example.com/promo-2.webp"}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                aria-describedby="business-promotional-images-help"
+              />
+              <p id="business-promotional-images-help" className="text-[11px] text-slate-500">
+                استخدم رابطًا عامًا مباشرًا يبدأ بـ https://. الحد الأقصى 10 روابط، والتكرارات تُحذف تلقائيًا.
+              </p>
+              {!promotionalImagePreview.valid && (
+                <p className="rounded-lg bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700" role="alert">
+                  {promotionalImagePreview.error}
+                </p>
+              )}
+              {promotionalImagePreview.valid && promotionalImagePreview.images.length > 0 && (
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-5" aria-label="معاينة الصور الترويجية">
+                  {promotionalImagePreview.images.map((image, index) => (
+                    <div key={image} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                      <img src={image} alt={`معاينة الصورة الترويجية ${index + 1}`} loading="lazy" className="aspect-square w-full object-cover" />
+                      <p className="px-2 py-1 text-center text-[10px] font-bold text-slate-500">{index + 1} / 10</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-[11px] font-bold text-emerald-800">
+                {promotionalImagePreview.valid ? `عدد الصور الجاهزة للحفظ: ${promotionalImagePreview.images.length} من 10` : 'لن تُحفظ الروابط غير الصالحة.'}
+              </p>
+            </section>
 
             <div className="pt-4 space-y-2">
               {profileSaveError && (
