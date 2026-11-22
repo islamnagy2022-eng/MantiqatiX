@@ -117,7 +117,7 @@ export const CartDrawer: React.FC = () => {
       setIsPaymobModalOpen(true);
     } else {
       // Standard Cash on Delivery
-      executeOrderSubmission({
+      void executeOrderSubmission({
         method: 'cod',
         fee: 0,
         total: subtotal,
@@ -125,35 +125,128 @@ export const CartDrawer: React.FC = () => {
     }
   };
 
-  // Execute WhatsApp order dispatch
-  const executeOrderSubmission = (details: {
+  // Persist authenticated orders through the existing JWT-protected, server-priced Edge Function.
+  const executeOrderSubmission = async (details: {
     method: 'cod' | 'paymob';
     channel?: PaymobChannel;
     fee: number;
     total: number;
     ref?: string;
   }) => {
-    const result = submitOrderViaWhatsApp({
-      customerName,
-      customerPhone,
-      customerAddress,
-      deliveryNotes,
-      paymentMethod: details.method,
-      paymobChannel: details.channel,
-      paymobFee: details.fee,
-      paymobTotalPaid: details.total,
-      paymobTransactionRef: details.ref,
-    });
+    if (isCreatingOrder) return;
+    setIsCreatingOrder(true);
+    setErrorMessage('');
+    const whatsappWindow = window.open('about:blank', '_blank');
 
-    if (result.success && result.url) {
-      setCompletedOrderDetails({
-        whatsappUrl: result.url,
-        ...details,
+    try {
+      if (!currentBusiness) throw new Error('النشاط الحالي غير محدد.');
+      const ownerPhoneDigits = String(currentBusiness.ownerWhatsApp || '').replace(/\D/g, '');
+      if (ownerPhoneDigits.length < 10 || ownerPhoneDigits.length > 15) {
+        throw new Error('رقم واتساب صاحب النشاط غير متوفر أو غير صالح.');
+      }
+      if (cartItems.some(({ product }) =>
+        product.businessId !== currentBusiness.id || !product.isAvailable || product.requiresQuote
+      )) {
+        throw new Error('يوجد منتج غير متاح أو لا ينتمي إلى النشاط الحالي. حدّث السلة ثم حاول مرة أخرى.');
+      }
+
+      let orderId: string | undefined;
+      let tracked = false;
+      let whatsappNotes = deliveryNotes;
+
+      if (authSession.isAuthenticated) {
+        if (!authSession.userId) throw new Error('تعذر التحقق من هوية حسابك. أعد تسجيل الدخول قبل إرسال الطلب.');
+        if (!currentBusiness.tenantId) throw new Error('تعذر تحديد نطاق النشاط التجاري؛ لم يتم إرسال الطلب.');
+        const items = cartItems.map(({ product, quantity }) => {
+          if (!/^[0-9a-f-]{36}$/i.test(product.id)) {
+            throw new Error('أحد المنتجات لا يحمل معرف كتالوج معتمدًا. لم يتم إرسال الطلب.');
+          }
+          if (!Number.isInteger(quantity) || quantity < 1 || quantity > 1000) {
+            throw new Error('كمية أحد المنتجات غير صالحة.');
+          }
+          return { catalogItemId: product.id, quantity, selectedOptionIds: [] as string[] };
+        });
+        const fingerprint = JSON.stringify({
+          businessId: currentBusiness.id,
+          tenantId: currentBusiness.tenantId,
+          branchId: currentBusiness.branchId || null,
+          customerName: customerName.trim(),
+          customerPhone: customerPhone.trim(),
+          customerAddress: customerAddress.trim(),
+          deliveryNotes: deliveryNotes.trim(),
+          items,
+        });
+        if (!orderAttemptRef.current || orderAttemptRef.current.fingerprint !== fingerprint) {
+          orderAttemptRef.current = {
+            fingerprint,
+            orderId: crypto.randomUUID(),
+            idempotencyKey: crypto.randomUUID(),
+          };
+        }
+        const attempt = orderAttemptRef.current;
+        const { data, error } = await supabase.functions.invoke('order-create', {
+          body: {
+            orderId: attempt.orderId,
+            tenantId: currentBusiness.tenantId,
+            businessId: currentBusiness.id,
+            branchId: currentBusiness.branchId || null,
+            clientIdempotencyKey: attempt.idempotencyKey,
+            currency: 'EGP',
+            customerName: customerName.trim(),
+            customerPhone: customerPhone.trim(),
+            deliveryAddress: customerAddress.trim(),
+            items,
+            notes: deliveryNotes.trim() || null,
+            metadata: { source: 'li2lak_catalog', catalog_authoritative: true },
+          },
+        });
+        if (error) {
+          let detail = error.message || 'تعذر تسجيل الطلب';
+          try {
+            const payload = await (error as any).context?.json?.();
+            detail = String(payload?.error || payload?.message || detail);
+          } catch { /* Network errors may not contain a JSON response. */ }
+          throw new Error(detail);
+        }
+        if (!data || typeof data.id !== 'string' || !data.id) {
+          throw new Error('لم يصل تأكيد تسجيل الطلب من الخادم. لم يتم فتح واتساب.');
+        }
+        orderId = data.id;
+        tracked = true;
+        whatsappNotes = [deliveryNotes.trim(), 'رقم الطلب المسجل: ' + orderId].filter(Boolean).join('\n');
+      }
+
+      const result = submitOrderViaWhatsApp({
+        customerName,
+        customerPhone,
+        customerAddress,
+        deliveryNotes: whatsappNotes,
+        paymentMethod: details.method,
+        paymobChannel: details.channel,
+        paymobFee: details.fee,
+        paymobTotalPaid: details.total,
+        paymobTransactionRef: details.ref,
       });
+
+      if (!result.success) {
+        if (orderId) {
+          setCompletedOrderDetails({ orderId, tracked, ...details });
+          setOrderSentSuccess(true);
+          setErrorMessage(result.error || 'تم تسجيل الطلب، لكن تعذر إنشاء رابط واتساب.');
+          return;
+        }
+        throw new Error(result.error || 'حدث خطأ أثناء إنشاء رابط الطلب.');
+      }
+
+      setCompletedOrderDetails({ whatsappUrl: result.url, orderId, tracked, ...details });
       setOrderSentSuccess(true);
-      window.open(result.url, '_blank');
-    } else {
-      setErrorMessage(result.error || 'حدث خطأ أثناء إنشاء رابط الطلب.');
+      if (result.url && whatsappWindow) whatsappWindow.location.href = result.url;
+      if (orderAttemptRef.current) orderAttemptRef.current = null;
+    } catch (cause) {
+      if (whatsappWindow && !whatsappWindow.closed) whatsappWindow.close();
+      setErrorMessage(cause instanceof Error ? cause.message : 'تعذر إنشاء الطلب. حاول مرة أخرى.');
+    } finally {
+      setIsCreatingOrder(false);
     }
   };
 
