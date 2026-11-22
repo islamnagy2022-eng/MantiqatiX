@@ -106,7 +106,7 @@ DO $owner_before_publish$
 DECLARE review_id uuid;
 BEGIN
   BEGIN
-    PERFORM public.get_platform_business_review_moderation_queue(10);
+    PERFORM public.get_platform_business_review_moderation_queue(10, 0);
     RAISE EXCEPTION 'RC497_TENANT_OWNER_ACCESSED_MODERATION_QUEUE';
   EXCEPTION WHEN OTHERS THEN
     IF SQLERRM <> 'PLATFORM_ADMIN_REQUIRED' THEN RAISE; END IF;
@@ -148,6 +148,16 @@ BEGIN
      WHERE item->>'reviewId' = v_review_id::text
   ) THEN
     RAISE EXCEPTION 'RC497_ADMIN_QUEUE_MISSING_PENDING_REVIEW';
+  END IF;
+  IF (result->>'totalCount')::integer <> 2
+     OR (result->>'nextOffset')::integer <> 2 THEN
+    RAISE EXCEPTION 'RC497_ADMIN_QUEUE_PAGINATION_METADATA_INVALID: %', result;
+  END IF;
+  result := public.get_platform_business_review_moderation_queue(1, 1);
+  IF jsonb_array_length(result->'reviews') <> 1
+     OR (result->>'totalCount')::integer <> 2
+     OR (result->>'nextOffset')::integer <> 2 THEN
+    RAISE EXCEPTION 'RC497_ADMIN_QUEUE_PAGINATION_FAILED: %', result;
   END IF;
   BEGIN
     PERFORM public.moderate_business_review(v_review_id, 'REJECTED', NULL);
