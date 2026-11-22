@@ -18,6 +18,10 @@ SQL
 trap cleanup EXIT
 
 psql "$DB_URL" -X -q -v ON_ERROR_STOP=1 <<'SQL'
+INSERT INTO public.catalog_business_settings(business_id,tenant_id,currency,delivery_fee,tax_inclusive)
+VALUES ('20000000-0000-4000-8000-000000000001','tenant-a','EGP',0,false)
+ON CONFLICT (business_id) DO NOTHING;
+
 CREATE OR REPLACE FUNCTION public.rc498_test_delay_order_idempotency_insert()
 RETURNS trigger
 LANGUAGE plpgsql
