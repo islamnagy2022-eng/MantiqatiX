@@ -10,7 +10,7 @@
     try {
       const url = new URL(window.location.href);
       const queryCode = normalizeCode(url.searchParams.get("ref"));
-      const pathMatch = url.pathname.match(/\\/join\\/([A-Za-z0-9]{6,32})\\/?$/i);
+      const pathMatch = url.pathname.match(/\/join\/([A-Za-z0-9]{6,32})\/?$/i);
       const code = queryCode || normalizeCode(pathMatch?.[1]);
       if (code) localStorage.setItem(STORAGE_KEY, code);
     } catch (_) {}
