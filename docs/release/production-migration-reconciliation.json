@@ -5548,6 +5548,22 @@
     ],
     "public_price_visibility": "The deployed public-catalog v9 entrypoint inspected reads catalog_public.show_price=true before exposing stored price rows; PR #976 source-level fail-closed resolver fix has been merged to main but the currently deployed public-catalog version remains a distinct source-parity item.",
     "code_changes_from_this_recheck": "NONE",
-    "production_effect": "NONE — no schema/data/GRANT/RLS/Auth/Storage/Edge Function/payment/wallet/customer-data writes and no migration was applied."
+    "production_effect": "NONE — no schema/data/GRANT/RLS/Auth/Storage/Edge Function/payment/wallet/customer-data writes and no migration was applied.",
+    "pr978_gallery_feature": {
+      "pr": 978,
+      "head": "96a6946e248c7abac24a02e93dd3b392819ee44a",
+      "status": "DRAFT — NOT MERGED",
+      "checks": {
+        "success": 28,
+        "skipped": 2,
+        "failed": 0
+      },
+      "build": "PASS",
+      "employee_rbac_postgres": "PASS",
+      "browser_e2e": "PASS",
+      "scope": "Single fixed storefront cover plus separate promotional gallery of up to 10 owner-provided public HTTPS URLs.",
+      "limitation": "No direct local file upload. Current live Supabase catalog-admin v20 and public readers do not implement the new promotional_images field.",
+      "rollout": "Do not merge/deploy frontend or Edge sources alone; wait for coordinated schema, owner/audit, public reader, storage authorization and release gates."
+    }
   }
 }
