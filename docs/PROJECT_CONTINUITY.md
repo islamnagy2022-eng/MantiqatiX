@@ -1,3 +1,17 @@
+# Latest continuation checkpoint — 2026-11-22 — Pass 1881–1890
+
+**Active PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
+**Current feature head at checkpoint:** `14e64eb045fe51b115d045579f811a2a8cf2eb6b`  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+- PR description updated with latest Li2Lak security and migration repairs.
+- Feature branch is 0 commits behind main.
+- Exact-head Li2Lak lifecycle workflow #44975572762 and forward migration replay #44975572579 are QUEUED.
+- Do not merge until both workflows and all required PR checks finish successfully.
+- No Production data, Auth, RLS, grants, Storage, Edge, payments, wallets or public deployment changed.
+
+---
+
 # Latest continuation checkpoint — 2026-11-22 — Pass 1871–1880
 
 **Active PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
