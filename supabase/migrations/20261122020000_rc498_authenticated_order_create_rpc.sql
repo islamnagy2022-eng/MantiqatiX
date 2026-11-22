@@ -102,8 +102,27 @@ begin
  v_total:=round(v_subtotal-v_discount+v_tax+v_delivery,2);
  v_hash:=encode(digest(v_snapshot::text||'|'||v_currency||'|'||v_total::text||'|'||v_delivery::text||'|'||v_tax::text||'|'||v_discount::text,'sha256'),'hex');
  insert into orders(id,tenant_id,business_id,branch_id,customer_id,status,subtotal,discount,tax,delivery_fee,total_amount,currency,customer_name,customer_phone,delivery_address,items_json,notes,metadata,client_idempotency_key,pricing_version,pricing_snapshot,pricing_hash,pricing_authority)
- values(p_order_id,p_tenant_id,p_business_id,p_branch_id,p_customer_id,'PENDING',v_subtotal,v_discount,v_tax,v_delivery,v_total,v_currency,p_customer_name,p_customer_phone,p_delivery_address,v_snapshot,p_notes,coalesce(p_metadata,'{}')||jsonb_build_object('pricing_server_authoritative',true),trim(p_client_idempotency_key),v_pricing_version,v_snapshot,v_hash,'catalog_v1');
- return jsonb_build_object('id',p_order_id,'status','PENDING','subtotal',v_subtotal,'discount',v_discount,'tax',v_tax,'delivery_fee',v_delivery,'total_amount',v_total,'currency',v_currency,'pricing_version',v_pricing_version,'pricing_hash',v_hash,'pricing_snapshot',v_snapshot,'idempotent',false);
+ values(p_order_id,p_tenant_id,p_business_id,p_branch_id,p_customer_id,'PENDING',v_subtotal,v_discount,v_tax,v_delivery,v_total,v_currency,p_customer_name,p_customer_phone,p_delivery_address,v_snapshot,p_notes,coalesce(p_metadata,'{}')||jsonb_build_object('pricing_server_authoritative',true),trim(p_client_idempotency_key),v_pricing_version,v_snapshot,v_hash,'catalog_v1')
+ on conflict (tenant_id, client_idempotency_key) where client_idempotency_key is not null do nothing
+ returning * into v_existing;
+
+ IF NOT FOUND THEN
+   -- Two simultaneous retries can both pass the pre-read. Resolve the unique-key
+   -- winner after ON CONFLICT waits for its transaction to finish.
+   SELECT * INTO v_existing FROM orders
+    WHERE tenant_id=p_tenant_id
+      AND client_idempotency_key=trim(p_client_idempotency_key)
+    FOR UPDATE;
+   IF NOT FOUND THEN RAISE EXCEPTION 'ORDER_IDEMPOTENCY_CONFLICT'; END IF;
+   IF v_existing.customer_id IS DISTINCT FROM p_customer_id
+      OR v_existing.business_id IS DISTINCT FROM p_business_id
+      OR v_existing.branch_id IS DISTINCT FROM p_branch_id THEN
+     RAISE EXCEPTION 'IDEMPOTENCY_KEY_CONFLICT';
+   END IF;
+   RETURN jsonb_build_object('id',v_existing.id,'status',v_existing.status,'total_amount',v_existing.total_amount,'currency',v_existing.currency,'pricing_version',v_existing.pricing_version,'pricing_hash',v_existing.pricing_hash,'pricing_snapshot',v_existing.pricing_snapshot,'idempotent',true);
+ END IF;
+
+ return jsonb_build_object('id',v_existing.id,'status',v_existing.status,'subtotal',v_existing.subtotal,'discount',v_existing.discount,'tax',v_existing.tax,'delivery_fee',v_existing.delivery_fee,'total_amount',v_existing.total_amount,'currency',v_existing.currency,'pricing_version',v_existing.pricing_version,'pricing_hash',v_existing.pricing_hash,'pricing_snapshot',v_existing.pricing_snapshot,'idempotent',false);
 end $$;
 
 DO $postflight$
