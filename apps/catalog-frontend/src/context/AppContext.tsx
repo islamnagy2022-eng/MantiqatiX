@@ -396,7 +396,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCartItems([]);
         // Keep an explicit public storefront route visible during private account
         // hydration. Public catalog access must not depend on dashboard bootstrap.
-        setCurrentViewState(directStoreId ? 'public_storefront' : 'directory');
+        if (directStoreId) {
+          setCurrentViewState('public_storefront');
+        } else {
+          setCurrentViewState('directory');
+        }
         setAuthBootstrapError('');
         setAuthLoading(true);
       } else if (force) {
