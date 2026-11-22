@@ -153,7 +153,7 @@ assert.ok(orderCreateEdge.includes("Authorization: `Bearer ${token}`") && orderC
   "order-create must invoke the backend RPC with the verified customer JWT");
 assert.match(orderCreateEdge, /admin\.auth\.getUser\(token\)[\s\S]*?userClient\.rpc\("create_order_backend"/,
   "order-create must verify the bearer token with Supabase Auth before invoking the customer-scoped RPC");
-assert.match(orderCreateEdge, /const branchQuery = admin[\s\S]*?branchId \? await branchQuery\.eq\("id", branchId\)\.maybeSingle\(\)[\s\S]*?: await branchQuery\.limit\(1\)\.maybeSingle\(\)/,
+assert.match(orderCreateEdge, /const branchQuery = admin[\s\S]*?branchId\s*\?\s*await branchQuery\.eq\("id", branchId\)\.maybeSingle\(\)[\s\S]*?:\s*await branchQuery\.limit\(1\)\.maybeSingle\(\)/,
   "order-create must validate a selected branch by exact ID and detect branch requirement with a bounded existence query");
 assert.doesNotMatch(orderCreateEdge, /\.from\("branches"\)[\s\S]*?\.limit\(100\)[\s\S]*?BRANCH_NOT_AVAILABLE/,
   "order-create must not reject valid branches merely because they fall beyond an arbitrary 100-row query limit");
