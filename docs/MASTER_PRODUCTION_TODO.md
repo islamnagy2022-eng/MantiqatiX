@@ -1,3 +1,11 @@
+### Pass 1761–1770 — uploaded AI Studio R7 archive reconciliation — 2026-11-22
+- [x] Inspected the uploaded `bizcatalog-manager (11).zip`: 233 files, internal R7-v7.0.0 manifest dated 2026-11-10.
+- [x] Confirmed it is a historical reference snapshot with local authoritative JSON + Supabase architecture, not the current runtime baseline.
+- [x] Recorded P0 risks: browser module references SERVICE_ROLE_KEY, server falls back to hardcoded HMAC/JWT/backup secrets, local JSON is production-authoritative, role session is localStorage-persisted, new businesses default verified, and payment defaults to paid.
+- [x] Marked archive as REFERENCE ONLY; no archive code or SQL copied into current app.
+- [ ] If archive-derived features are reused, port them one at a time to current Supabase Auth/tenant/registry/RPC contracts and add bundle-secret scanning + fail-closed secret startup checks.
+- **Safety:** archive inspected statically; no code execution, Production mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
 ### Pass 1701–1710 — source inspection refinement
 - [x] Confirmed Marketplace Home already exists and is wired to verified active businesses, the public targeted-ad RPC for HOME_HERO/HOME_SPONSORED, and real public catalog product/service discounts.
 - [x] Confirmed public numeric price disclosure requires explicit `catalog_public.show_price === true`; no price-visibility bypass proposed.
