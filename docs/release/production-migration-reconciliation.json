@@ -5506,15 +5506,23 @@
     "rollout": "Hold draft until matching current-main Edge/schema/authorization bundle is ready; live catalog Edge source is not at parity."
   },
   "pr982_default_closed_directory_gate_20261122": {
-    "head": "240363205d4fad7d06a35500a59cd99c6b423535",
-    "base_main_at_last_check": "54e433d54ace06a154d438ea672da4a781990730",
-    "status": "OPEN — CI QUEUED",
-    "checks_at_last_check": {
-      "queued": 29,
-      "skipped": 1,
+    "head": "4decec8a8f4aa317c8094c33eac27386e5497485",
+    "base_main_at_merge": "54e433d54ace06a154d438ea672da4a781990730",
+    "status": "MERGED_TO_MAIN",
+    "merge_commit": "dbf40f6b9f8087fd5a274749c4a4db3ceb7c7564",
+    "checks_at_merge": {
+      "success": 28,
+      "skipped": 2,
       "failures": 0
     },
     "contract": "Require exact server-side DIRECTORY_LISTINGS_ENABLED=true and reachable public.directory_listing_contact_consents before directory GET/POST routes execute; absent/false flag yields empty GET and 503 POST.",
-    "production_effect": "NONE; no server flag set and no Edge deployment."
+    "production_effect": "NONE; no server flag set and no Edge deployment; live directory-listings v18 remains intentionally disabled."
+  },
+  "post_pr982_pages_deployment_20261122": {
+    "main_sha": "4963b1b86d22f04f179663d7ed21cb7a832a3fd0",
+    "workflow_run": 45074694031,
+    "status": "SUCCESS",
+    "deployed_origin_tests": "PASS — catalog root, dashboard, mobile and QR routes",
+    "production_edge_effect": "NONE — no Supabase Edge Functions deployed."
   }
 }
