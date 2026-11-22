@@ -3946,3 +3946,15 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Change remains frontend resolver + tests + static validation contract. No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge, payment, wallet, settlement or customer-data mutation.
 - Next: verify run IDs 45071129013 (Pages), 45071128944 (Primary Catalog), 45071128896 (Health Monitor), 45071128926 (Backend-only), 45071128872 (MantiGO Privacy), and 45071128985 (Module Professionalization), then continue production release gates.
 
+
+
+## 2026-11-22 — Pass 1821–1830 — PR978 browser pass and fresh Production release recheck
+
+- PR978 exact-head 96a6946e248c7abac24a02e93dd3b392819ee44a completed with 28 successful checks, 2 skipped, 0 failed. Build, employee RBAC PostgreSQL and storefront browser E2E verified one fixed cover plus a separate promotional gallery with two images. PR remains draft because matching Supabase Edge/schema contracts are not deployed.
+- PR981 merged to main as 54e433d54ace06a154d438ea672da4a781990730, preserving the live disabled-directory mitigation evidence in docs/audits/PASS_1821_1830_LIVE_DIRECTORY_DISABLED_MITIGATION_20261122.md.
+- Fresh read-only migration ledger query: 310 rows, latest 20261110150618; exact required version check found 0/76. The directory_listing_contact_consents and migration_release_registry tables are absent.
+- Selected live Edge source comparisons: directory-listings v18, catalog-admin v20, public-catalog-directory v19, public-catalog v9; all deployed entrypoints differ from current main. Directory-listings v18 is intentionally disabled (empty GET contract, POST 503); preserve this.
+- PR982 adds a default-closed main-source release guard requiring exact DIRECTORY_LISTINGS_ENABLED=true plus a reachable consent registry. It does not set production environment values or deploy Edge. At checkpoint its exact-head CI had 29 queued checks, 1 skipped, no failures.
+- PR980 was stale because PR981 moved main forward; these documentation changes are being re-applied on a fresh current-main branch to preserve PR981's updates. No Production DDL/DML/migrations/Auth/RLS/Storage/Edge/payments/wallet/settlement/customer data changes.
+- Production remains **BLOCKED / NOT CERTIFIED**. Evidence: docs/audits/PASS_1821_1830_LIVE_PRODUCTION_EDGE_MIGRATION_RECHECK_20261122.md and docs/audits/PASS_1821_1830_LIVE_DIRECTORY_DISABLED_MITIGATION_20261122.md.
+
