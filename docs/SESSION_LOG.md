@@ -3856,3 +3856,12 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Recorded live platform-brand Storage policy's legacy SUPER_ADMIN membership predicate as a source/live reconciliation item; no Production policy changed.
 - No Production DDL/data, Auth, RLS, GRANT, Storage, Edge, payment, wallet, user data or deployment changes.
 - Disposition: **PRODUCTION BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-11-22 — Pass 1741–1750 — Catalog RPC authorization drift
+
+- Read-only live inspection of seven catalog/stock RPCs confirms legacy membership-derived SUPER_ADMIN platform-root logic remains deployed; all seven are SECURITY DEFINER with `search_path=public`, lack registry-helper calls and read legacy scope/full_control flags.
+- Existing source repair is RC484 + RC485; RC485 updates all seven to empty search_path and registry-backed root authority while retaining tenant-local roles. Its static validator and disposable PostgreSQL integration test already exist.
+- Confirmed all nine RLS-enabled/no-policy relations have no direct anon/authenticated grants; no blanket RLS policies are warranted.
+- Updated production migration reconciliation manifest and audit evidence. No Production DDL/function/ACL/RLS/Storage/Auth/Edge/payment mutation or deployment.
+- P0 remains open until the full ordered release is approved, applied and post-verified after a real backup/restore rehearsal. **PRODUCTION BLOCKED / NOT CERTIFIED.**
