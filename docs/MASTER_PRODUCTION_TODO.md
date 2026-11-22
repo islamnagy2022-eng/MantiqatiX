@@ -4944,3 +4944,14 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Rehearse ordered RC473 + prerequisite migration chain, then deploy the complete seven-file directory Edge bundle as a coordinated release.
 - [ ] Pass deployed-origin anonymous no-consent negative tests, per-scope consent positive tests, owner/branch boundaries, registry outage and pagination-cap tests.
 - **Safety:** read-only checks only; no Production DDL/DML, Auth/RLS/GRANT, Storage, Edge, payment, wallet, customer-data mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.** Evidence: `docs/audits/PASS_1791_1800_LIVE_DIRECTORY_CONSENT_RELEASE_GATE_20261122.md`.
+
+### Pass 1801–1810 — Li2Lak marketplace ad hardening — 2026-11-22
+- [x] Require HTTPS and reject embedded URL credentials for public ad creatives/targets.
+- [x] Reject non-default ports, localhost, `.localhost`, `.local`, IPv4 and IPv6 literal destinations.
+- [x] Correct terminal-dot hostname normalization and add targeted regression cases.
+- [x] Preserve independent placement loading, deduplication and fail-closed creative validation.
+- [ ] Obtain completed exact-head CI for PR #969; latest known checks were queued, not passed.
+- [ ] Add focused Marketplace public-offer tests for explicit `show_price === true`, availability, effective price and verified business provenance; do not change the existing offer data contract without evidence.
+- [ ] Design owner-scoped business media lifecycle with upload limits, MIME sniffing, moderation, publication consent, cleanup and responsive delivery; no video bucket exists in Production.
+- [ ] Keep business reviews separate from MantiGO ride ratings; require verified interaction provenance and moderation before implementation.
+- **Safety:** no Production database, Storage, Auth/RLS/GRANT, Edge, payment, wallet, or public deployment change. **PRODUCTION BLOCKED / NOT CERTIFIED.** Evidence: `docs/audits/PASS_1801_1810_LI2LAK_MARKETPLACE_AD_HARDENING_20261122.md`.
