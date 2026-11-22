@@ -43,6 +43,9 @@ jobs:
           test -d dist/assets
           grep -q '/MantiqatiX/legacy/assets/' dist/index.html
           grep -Fq '/MantiqatiX/config.js' dist/index.html
+      - name: Test referral attribution and invite-link contract
+        working-directory: apps/catalog-frontend
+        run: npx tsx tests/referrals.test.ts
       - name: Setup Bun for the isolated V6 Preview
         uses: oven-sh/setup-bun@v2
         with:

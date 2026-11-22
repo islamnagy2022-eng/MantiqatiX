@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard, hasBusinessModulePermission } from '../../utils/dashboardAccess';
 import type { Business } from '../../types';
 import { BadgeCheck, Building2, CreditCard, Eye, LayoutDashboard, LockKeyhole, LogOut, Package, ShieldCheck, Store, UserRound } from 'lucide-react';
+import { ReferralInviteCard } from './ReferralInviteCard';
 
 type Section = 'overview' | 'subscription' | 'permissions' | 'activities' | 'manage';
 
@@ -197,6 +198,7 @@ export const SubscriberAccountPortal: React.FC = () => {
                     </article>
                   </div>
                 )}
+                <ReferralInviteCard userId={authSession.userId} />
               </>
             )}
 

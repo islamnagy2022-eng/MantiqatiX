@@ -23,7 +23,12 @@ assert.ok(context.includes("lastAuthLoadKeyRef"), 'INITIAL_SESSION and getSessio
 assert.ok(context.includes("setBusinesses([])") && context.includes("setSubscribers([])"), 'Changing Google identities must clear prior identity data before rehydration.');
 assert.ok(authTypes.includes("isAuthenticated?: boolean;") && authTypes.includes("email?: string;"), 'AuthSession must carry identity state separately from role grants.');
 assert.ok(context.includes("provider: 'google'"), 'Interactive login must use Google OAuth.');
-assert.ok(context.includes("new URL('/MantiqatiX/', window.location.origin).toString()"), 'Google OAuth must use the allowlisted platform root before the callback relay.');
+assert.ok(
+  context.includes("const redirectUrl = new URL('/MantiqatiX/', window.location.origin);") &&
+  context.includes("const redirectTo = redirectUrl.toString();") &&
+  context.includes("redirectUrl.searchParams.set('ref', pendingReferralCode)"),
+  'Google OAuth must use the allowlisted platform root and preserve a captured referral code through the callback.'
+);
 assert.ok(fs.readFileSync('web/index.html', 'utf8').includes("new URL('/MantiqatiX/catalog-app/', current.origin)"), 'The platform root must relay OAuth callback parameters into the catalog subpath before loading its app.');
 assert.ok(context.includes("queryParams: { prompt: 'select_account' }"), 'Google login must allow choosing the intended Google identity explicitly.');
 

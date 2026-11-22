@@ -25,7 +25,8 @@ import {
   getCurrentAppBasePath,
   generateWhatsAppOrderUrl,
 } from '../utils/rules';
-import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPlatformSubscribers, fetchPublicCatalog, fetchPublicDirectory, generateCatalogAiImage, mapBusiness, mapProducts, supabase } from '../lib/production';
+import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPlatformSubscribers, fetchPublicCatalog, fetchPublicDirectory, generateCatalogAiImage, isReferralSharingEnabled, mapBusiness, mapProducts, supabase } from '../lib/production';
+import { capturePendingReferralFromLocation, clearPendingReferral, getPendingReferralCode } from '../utils/referrals';
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../utils/dashboardAccess';
 
@@ -180,6 +181,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const authLoadSequence = useRef(0);
   const authUserIdRef = useRef<string | null | undefined>(undefined);
   const lastAuthLoadKeyRef = useRef<string | null>(null);
+  const referralClaimKeyRef = useRef<string | null>(null);
 
   // Manual retry is admin-only and bound to the exact authenticated identity and
   // auth-load sequence. A late response must never repopulate a newer session.
@@ -363,6 +365,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   useEffect(() => {
+    // Preserve invite attribution before OAuth or route handling changes the URL.
+    capturePendingReferralFromLocation();
     let active = true;
     const loadSession = async (session: any, force = false) => {
       const incomingUserId = session?.user?.id || null;
@@ -457,6 +461,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => { active = false; subscription.unsubscribe(); };
   }, []);
 
+  useEffect(() => {
+    if (!isReferralSharingEnabled || !authSession.isAuthenticated || !authSession.userId) return;
+    const code = getPendingReferralCode();
+    if (!code) return;
+
+    const claimKey = `${authSession.userId}:${code}`;
+    if (referralClaimKeyRef.current === claimKey) return;
+    referralClaimKeyRef.current = claimKey;
+    let active = true;
+
+    void (async () => {
+      try {
+        const { data, error } = await supabase.rpc('claim_referral', { p_code: code });
+        if (!active) return;
+        if (error) {
+          const message = String(error.message || error.code || '');
+          if (/INVALID_REFERRAL_CODE|SELF_REFERRAL_NOT_ALLOWED/.test(message)) {
+            clearPendingReferral();
+          } else {
+            referralClaimKeyRef.current = null;
+          }
+          return;
+        }
+        clearPendingReferral();
+      } catch {
+        if (active) referralClaimKeyRef.current = null;
+      }
+    })();
+
+    return () => { active = false; };
+  }, [authSession.isAuthenticated, authSession.userId]);
+
   const setSelectedBusinessId = (id: string) => {
     commitSelectedBusinessId(id);
     setCartItems([]);
@@ -526,9 +562,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Always return OAuth to the canonical GitHub Pages app root.
       // Carrying arbitrary query/hash state into Supabase redirect allowlists can
       // cause a successful Google consent flow to return without hydrating the app.
-      // Supabase currently allowlists the platform root. The root shell relays
-      // only OAuth callback parameters to /catalog-app/ before loading its own app.
-      const redirectTo = new URL('/MantiqatiX/', window.location.origin).toString();
+      // GitHub Pages serves the canonical catalog frontend at the platform root.
+      // Keep referral attribution on that callback URL; AppContext captures it on return.
+      capturePendingReferralFromLocation();
+      const redirectUrl = new URL('/MantiqatiX/', window.location.origin);
+      const pendingReferralCode = getPendingReferralCode();
+      if (pendingReferralCode) redirectUrl.searchParams.set('ref', pendingReferralCode);
+      const redirectTo = redirectUrl.toString();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo, queryParams: { prompt: 'select_account' } },
@@ -544,7 +584,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!email.includes('@')) return { success: false, error: 'اكتب بريدًا إلكترونيًا صالحًا.' };
     if (password.length < 8) return { success: false, error: 'كلمة المرور يجب ألا تقل عن 8 أحرف.' };
     try {
-      const redirectTo = `${window.location.origin}${window.location.pathname}`;
+      const redirectUrl = new URL(window.location.pathname, window.location.origin);
+      const pendingReferralCode = getPendingReferralCode();
+      if (pendingReferralCode) redirectUrl.searchParams.set('ref', pendingReferralCode);
+      const redirectTo = redirectUrl.toString();
       const { data, error } = await supabase.auth.signUp({
         email,
         password,

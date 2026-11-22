@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/**"
+      - "supabase/tests/referral_self_service_rpc_grants.sql"
       - "supabase/tests/rc488_storage_anonymous_auth_write_guard_fixture.sql"
       - "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql"
       - "scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"
@@ -99,6 +100,7 @@ on:
     branches: ["main"]
     paths:
       - "supabase/migrations/**"
+      - "supabase/tests/referral_self_service_rpc_grants.sql"
       - "supabase/tests/baselines/production_schema_snapshot.sql"
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
@@ -310,6 +312,9 @@ jobs:
 
           test "$migration_count" -gt 0
           echo "FORWARD_MIGRATIONS_APPLIED=$migration_count"
+
+          echo "PERSONAL_REFERRAL_SELF_SERVICE_RPC_ACL"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/referral_self_service_rpc_grants.sql
 
           echo "RC485_CATALOG_RPC_REGISTRY_ROOT_INTEGRATION"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc485_catalog_rpc_registry_root_integration.sql
