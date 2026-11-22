@@ -29,10 +29,17 @@ CREATE TABLE public.businesses (
   name text NOT NULL,
   status varchar NOT NULL
 );
+CREATE TABLE public.branches (
+  id varchar PRIMARY KEY,
+  tenant_id varchar NOT NULL,
+  business_id uuid NOT NULL REFERENCES public.businesses(id),
+  status varchar NOT NULL
+);
 CREATE TABLE public.orders (
   id uuid PRIMARY KEY,
   tenant_id varchar NOT NULL,
   business_id uuid NOT NULL REFERENCES public.businesses(id),
+  branch_id varchar REFERENCES public.branches(id),
   customer_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   status varchar NOT NULL,
   total_amount numeric NOT NULL,
@@ -42,6 +49,7 @@ CREATE TABLE public.user_memberships (
   user_id uuid NOT NULL REFERENCES auth.users(id),
   tenant_id varchar NOT NULL,
   business_id uuid,
+  branch_id varchar,
   role varchar NOT NULL,
   status varchar NOT NULL
 );
@@ -60,28 +68,36 @@ INSERT INTO auth.users(id) VALUES
  ('10000000-0000-4000-8000-000000000002'),
  ('10000000-0000-4000-8000-000000000003'),
  ('10000000-0000-4000-8000-000000000004'),
- ('10000000-0000-4000-8000-000000000005');
+ ('10000000-0000-4000-8000-000000000005'),
+ ('10000000-0000-4000-8000-000000000006');
 
-INSERT INTO public.businesses(id,tenant_id,status) VALUES
- ('20000000-0000-4000-8000-000000000001','tenant-a','ACTIVE'),
- ('20000000-0000-4000-8000-000000000002','tenant-a','ACTIVE'),
- ('20000000-0000-4000-8000-000000000003','tenant-b','ACTIVE');
+INSERT INTO public.businesses(id,tenant_id,name,status) VALUES
+ ('20000000-0000-4000-8000-000000000001','tenant-a','Verified Test Business','ACTIVE'),
+ ('20000000-0000-4000-8000-000000000002','tenant-a','Unverified Test Business','ACTIVE'),
+ ('20000000-0000-4000-8000-000000000003','tenant-b','Cross Tenant Test Business','ACTIVE');
+
+INSERT INTO public.branches(id,tenant_id,business_id,status) VALUES
+ ('branch-a1','tenant-a','20000000-0000-4000-8000-000000000001','ACTIVE'),
+ ('branch-a2','tenant-a','20000000-0000-4000-8000-000000000001','ACTIVE'),
+ ('branch-b1','tenant-a','20000000-0000-4000-8000-000000000002','ACTIVE'),
+ ('branch-c1','tenant-b','20000000-0000-4000-8000-000000000003','ACTIVE');
 
 INSERT INTO public.marketing_provider_profiles(business_id,status,is_verified) VALUES
  ('20000000-0000-4000-8000-000000000001','ACTIVE',true),
  ('20000000-0000-4000-8000-000000000002','ACTIVE',false),
  ('20000000-0000-4000-8000-000000000003','ACTIVE',true);
 
-INSERT INTO public.user_memberships(user_id,tenant_id,business_id,role,status) VALUES
- ('10000000-0000-4000-8000-000000000002','tenant-a','20000000-0000-4000-8000-000000000001','OWNER','ACTIVE'),
- ('10000000-0000-4000-8000-000000000005','tenant-a','20000000-0000-4000-8000-000000000002','OWNER','ACTIVE');
+INSERT INTO public.user_memberships(user_id,tenant_id,business_id,branch_id,role,status) VALUES
+ ('10000000-0000-4000-8000-000000000002','tenant-a','20000000-0000-4000-8000-000000000001',NULL,'OWNER','ACTIVE'),
+ ('10000000-0000-4000-8000-000000000005','tenant-a','20000000-0000-4000-8000-000000000002',NULL,'OWNER','ACTIVE'),
+ ('10000000-0000-4000-8000-000000000006','tenant-a','20000000-0000-4000-8000-000000000001','branch-a2','MANAGER','ACTIVE');
 
 INSERT INTO private.platform_admins(user_id)
 VALUES ('10000000-0000-4000-8000-000000000003');
 
-INSERT INTO public.orders(id,tenant_id,business_id,customer_id,status,total_amount,items_json) VALUES
- ('30000000-0000-4000-8000-000000000001','tenant-a','20000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','DELIVERED',150,'[{"catalogItemId":"40000000-0000-4000-8000-000000000001","name":"Test item","quantity":1}]'),
- ('30000000-0000-4000-8000-000000000002','tenant-a','20000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','PREPARING',75,'[{"catalogItemId":"40000000-0000-4000-8000-000000000002","name":"Test item","quantity":1}]'),
- ('30000000-0000-4000-8000-000000000003','tenant-a','20000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000004','DELIVERED',90,'[{"catalogItemId":"40000000-0000-4000-8000-000000000003","name":"Test item","quantity":1}]'),
- ('30000000-0000-4000-8000-000000000004','tenant-a','20000000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000001','DELIVERED',90,'[{"catalogItemId":"40000000-0000-4000-8000-000000000004","name":"Test item","quantity":1}]'),
- ('30000000-0000-4000-8000-000000000005','tenant-a','20000000-0000-4000-8000-000000000003','10000000-0000-4000-8000-000000000001','DELIVERED',90,'[{"catalogItemId":"40000000-0000-4000-8000-000000000005","name":"Test item","quantity":1}]');
+INSERT INTO public.orders(id,tenant_id,business_id,branch_id,customer_id,status,total_amount,items_json) VALUES
+ ('30000000-0000-4000-8000-000000000001','tenant-a','20000000-0000-4000-8000-000000000001','branch-a1','10000000-0000-4000-8000-000000000001','DELIVERED',150,'[{"catalogItemId":"40000000-0000-4000-8000-000000000001","name":"Test item","quantity":1}]'),
+ ('30000000-0000-4000-8000-000000000002','tenant-a','20000000-0000-4000-8000-000000000001','branch-a1','10000000-0000-4000-8000-000000000001','PREPARING',75,'[{"catalogItemId":"40000000-0000-4000-8000-000000000002","name":"Test item","quantity":1}]'),
+ ('30000000-0000-4000-8000-000000000003','tenant-a','20000000-0000-4000-8000-000000000001','branch-a1','10000000-0000-4000-8000-000000000004','DELIVERED',90,'[{"catalogItemId":"40000000-0000-4000-8000-000000000003","name":"Test item","quantity":1}]'),
+ ('30000000-0000-4000-8000-000000000004','tenant-a','20000000-0000-4000-8000-000000000002','branch-b1','10000000-0000-4000-8000-000000000001','DELIVERED',90,'[{"catalogItemId":"40000000-0000-4000-8000-000000000004","name":"Test item","quantity":1}]'),
+ ('30000000-0000-4000-8000-000000000005','tenant-a','20000000-0000-4000-8000-000000000003','branch-c1','10000000-0000-4000-8000-000000000001','DELIVERED',90,'[{"catalogItemId":"40000000-0000-4000-8000-000000000005","name":"Test item","quantity":1}]');
