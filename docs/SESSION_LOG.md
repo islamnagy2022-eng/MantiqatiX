@@ -3978,3 +3978,13 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Source and fixture changes are committed to the PR branch. PostgreSQL 17 lifecycle and exact-head CI have not yet executed successfully; no integration pass is claimed.
 - No Production database, Auth, RLS, GRANT, Edge Function, payment, wallet, customer-data or public deployment change.
 - **Status: SOURCE HARDENED; INTEGRATION PENDING; PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-11-22 — Pass 1951–1960 — currency regression validator wiring repair
+
+- Post-edit source review caught an undeclared variable in the new static assertion: the validator referenced orderFixture without reading the RC104 order fixture.
+- Added the explicit file read for supabase/tests/rc104_order_idempotency_scope_fixture.sql.
+- Re-fetched the validator and confirmed the fixture declaration precedes its use and the currency regression assertions remain present.
+- Validator execution and PostgreSQL 17 integration remain pending exact-head CI. No test success is claimed.
+- No Production database, Auth, RLS, GRANT, Edge Function, payment, wallet, customer data or public deployment change.
+- **Status: VALIDATOR SOURCE REPAIRED; CI PENDING; PRODUCTION BLOCKED / NOT CERTIFIED.**
