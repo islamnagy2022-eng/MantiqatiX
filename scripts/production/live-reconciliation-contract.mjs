@@ -49,6 +49,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261120290000", // RC494 — registry-backed platform settlement and tenant/business scope
   "20261121020000", // RC495 — repair Storage filename policies and use canonical platform-root registry
   "20261121030000", // RC496 — require OFFERED MantiGO bids and serialize per-ride acceptance
+  "20261122010000", // RC497 — verified business reviews, delivered-order provenance and identity-free public output
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
