@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/20261122010000_rc497_verified_business_reviews.sql"
+      - "supabase/migrations/20261122020000_rc498_authenticated_order_create_rpc.sql"
+      - "supabase/functions/order-create/index.ts"
       - "apps/catalog-frontend/src/components/cart/CartDrawer.tsx"
       - "apps/catalog-frontend/src/components/admin/BusinessReviewModerationPanel.tsx"
       - "apps/catalog-frontend/src/components/merchant/BusinessReviewManagementPanel.tsx"
@@ -18,6 +20,8 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/20261122010000_rc497_verified_business_reviews.sql"
+      - "supabase/migrations/20261122020000_rc498_authenticated_order_create_rpc.sql"
+      - "supabase/functions/order-create/index.ts"
       - "apps/catalog-frontend/src/components/cart/CartDrawer.tsx"
       - "apps/catalog-frontend/src/components/admin/BusinessReviewModerationPanel.tsx"
       - "apps/catalog-frontend/src/components/merchant/BusinessReviewManagementPanel.tsx"
@@ -57,5 +61,7 @@ jobs:
         run: psql "postgresql://postgres:postgres@localhost:5432/li2lak_reviews_test" -v ON_ERROR_STOP=1 -f supabase/tests/rc497_business_reviews_fixture.sql
       - name: Apply RC497 migration
         run: psql "postgresql://postgres:postgres@localhost:5432/li2lak_reviews_test" -v ON_ERROR_STOP=1 -f supabase/migrations/20261122010000_rc497_verified_business_reviews.sql
+      - name: Apply RC498 authenticated order RPC migration
+        run: psql "postgresql://postgres:postgres@localhost:5432/li2lak_reviews_test" -v ON_ERROR_STOP=1 -f supabase/migrations/20261122020000_rc498_authenticated_order_create_rpc.sql
       - name: Run verified-order provenance, moderation, owner-scope and public privacy tests
         run: psql "postgresql://postgres:postgres@localhost:5432/li2lak_reviews_test" -v ON_ERROR_STOP=1 -f supabase/tests/rc497_business_reviews_integration.sql
