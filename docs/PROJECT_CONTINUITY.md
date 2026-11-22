@@ -3247,3 +3247,8 @@ Repository tree inventory returned 1,281 tracked files and 238 Supabase migratio
 PR #963 remains OPEN, UNMERGED, documentation-only. Latest head: `6e2f4c7c4f787c85e085e7614ff6f5bd04f02486`; combined commit statuses returned an empty list and PR review list was empty. This is neither a CI pass nor a CI failure. No Marketplace regression tests were executed in this pass. No Production mutation or deployment occurred.
 
 Next: inspect the MantiGO ratings table-creation migration, triggers, constraints and read/aggregate consumers; finish a comprehensive general-business review schema inventory; inspect Storage bucket policies/media lifecycle; then add focused Marketplace regression tests only where the existing test harness supports execution. Keep Production **BLOCKED / NOT CERTIFIED** pending backup/restore, migration/Edge parity, security/privacy and live acceptance gates.
+
+
+### MantiGO rating migration ordering clarification — 2026-11-22
+
+The initial rating immutability migration (`20261006121810`) is superseded at the RPC-definition level by later `20261006171000_mantigo_notification_lifecycle_v1.sql`, which redefines `mantigo_rate_ride` with `ON CONFLICT (ride_id,customer_id) DO UPDATE`. Current-main chronological source therefore allows a rating/comment update for the same ride/customer; the old immutability claim is not accurate for the final migration chain. The customer-rides RPC at `20261006180000` returns the caller's own rating only. Confirm intended edit policy and add disposable PostgreSQL tests before changing this subsystem. No Production change occurred.
