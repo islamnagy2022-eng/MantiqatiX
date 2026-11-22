@@ -50,6 +50,7 @@ import { SuperAdminControlCenter } from './SuperAdminControlCenter';
 import { ActivityModulesAdmin } from './ActivityModulesAdmin';
 import { CommissionRulesManager } from './CommissionRulesManager';
 import { DirectoryListingsAdmin } from './DirectoryListingsAdmin';
+import { BusinessReviewModerationPanel } from './BusinessReviewModerationPanel';
 import { resolveDefaultImage } from '../../utils/defaultImages';
 import { callPlatformAdmin } from '../../lib/production';
 
@@ -108,8 +109,8 @@ export const AdminDashboard: React.FC = () => {
     deleteBusiness,
   } = useApp();
 
-  type AdminTab = 'billing' | 'commissions' | 'taxonomy' | 'businesses' | 'subscribers' | 'directory_listings' | 'activity_modules' | 'settings' | 'backup' | 'control_center';
-  const ADMIN_TABS: AdminTab[] = ['billing', 'commissions', 'taxonomy', 'businesses', 'subscribers', 'directory_listings', 'activity_modules', 'settings', 'backup', 'control_center'];
+  type AdminTab = 'billing' | 'commissions' | 'taxonomy' | 'businesses' | 'subscribers' | 'directory_listings' | 'activity_modules' | 'business_reviews' | 'settings' | 'backup' | 'control_center';
+  const ADMIN_TABS: AdminTab[] = ['billing', 'commissions', 'taxonomy', 'businesses', 'subscribers', 'directory_listings', 'activity_modules', 'business_reviews', 'settings', 'backup', 'control_center'];
   const readAdminTabFromUrl = (): AdminTab => {
     const requested = new URLSearchParams(window.location.search).get('tab') as AdminTab | null;
     return requested && ADMIN_TABS.includes(requested) ? requested : 'billing';
@@ -698,6 +699,16 @@ export const AdminDashboard: React.FC = () => {
           <span>إعدادات وحدات الأنشطة</span>
         </button>
 
+        <button
+          type="button"
+          aria-pressed={activeAdminTab === 'business_reviews'}
+          onClick={() => setActiveAdminTab('business_reviews')}
+          className={adminTabClass('business_reviews')}
+        >
+          <ShieldCheck className="w-4 h-4" />
+          <span>مراجعة تقييمات الأنشطة</span>
+        </button>
+
         {/* Tab 5: Settings */}
         <button
           type="button"
@@ -721,6 +732,8 @@ export const AdminDashboard: React.FC = () => {
       {activeAdminTab === 'directory_listings' && <DirectoryListingsAdmin businesses={businesses} categories={categories} functionalGroups={functionalGroups} />}
 
       {activeAdminTab === 'activity_modules' && <ActivityModulesAdmin />}
+
+      {activeAdminTab === 'business_reviews' && <BusinessReviewModerationPanel />}
 
       {/* =========================================================================
           TAB: BILLING & COMMISSION (Mandatory Request Feature)
