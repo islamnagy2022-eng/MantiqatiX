@@ -4855,3 +4855,13 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - The earlier `20261006121810_mantigo_rating_immutability_v1.sql` rejects changed second submissions, but later `20261006171000_mantigo_notification_lifecycle_v1.sql` replaces the same RPC with `ON CONFLICT (ride_id, customer_id) DO UPDATE`. Current-main final migration order therefore permits an existing ride/customer rating and comment to be updated. Do not describe the final behavior as immutable until this override is reconciled.
 - `20261006180000_mantigo_customer_tracking_and_finance_indexes_v1.sql` returns only the authenticated customer's own rating in their ride-history payload; no public business-review aggregate was established.
 - [ ] Confirm intended edit policy and add PostgreSQL regression coverage before changing any MantiGO rating migration.
+
+
+### Pass 1721–1730 — Li2Lak benchmark: Marketplace ad resilience — 2026-11-22
+- [x] Preserved the existing Marketplace Home and its approved HOME_HERO / HOME_SPONSORED server-side ad contract; no parallel ads system introduced.
+- [x] Changed ad placement loading to fail independently: an RPC/network failure for one placement no longer suppresses valid ads from the other.
+- [x] Kept creative URL validation, disabled unsafe target URLs, and deduplicated cross-placement records.
+- [x] Added four focused tests: rejected RPC, returned RPC error, unsafe creative/target URL, and duplicate placement records. Local Node 22 execution: 4/4 PASS; isolated TypeScript helper check: PASS.
+- [ ] Exact-head GitHub Actions on the updated branch; do not merge until all required checks are green.
+- [ ] Continue complete general-business review schema inventory and inspect media Storage policies before proposing new Li2Lak-inspired modules.
+- **Safety:** source/tests/CI only. No Production DB, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, customer data or public deployment changed. **PRODUCTION BLOCKED / NOT CERTIFIED.**
