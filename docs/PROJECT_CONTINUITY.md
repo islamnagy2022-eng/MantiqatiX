@@ -1,21 +1,26 @@
-## Latest continuation checkpoint — 2026-11-22 — PR975 deployed; PR976 public price opt-in correction
+## Latest continuation checkpoint — 2026-11-22 — PR976 deployed; live Production Edge/migration recheck; PR978 gallery draft
 
-**Main:** `cf21e768d0384c55ffde93ae741febcd3c738112`  
-**Verified Pages deployment:** [run 45070154380](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45070154380) SUCCESS.  
-**Verified Primary Catalog main checks:** [run 45070154418](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45070154418) SUCCESS, including browser E2E.
+**Main:** `976b69ca5b062cfc89109b9f71ce4e22915e49b1`  
+**Verified application deployment:** PR976 post-merge Pages run [45071129013](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45071129013) SUCCESS; Primary Catalog browser validation [45071128944](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45071128944) SUCCESS. PR #977 was documentation-only.
 
-- PR [#975](https://github.com/islamnagy2022-eng/MantiqatiX/pull/975) merged as `cf21e768d0384c55ffde93ae741febcd3c738112`; exact-head contract checks passed 28, with 2 skipped and no failures.
-- PR [#976](https://github.com/islamnagy2022-eng/MantiqatiX/pull/976) merged at `1fbc94e69987b9a00aa2f09ddc2acc230aa85b8c` after exact-head checks completed: 28 successful, 2 skipped, 0 failed. It requires explicit `catalog_public.show_price === true` for numeric price disclosure; missing/false/malformed values remain quote-only.
-- The first PR976 CI attempt exposed one stale static assertion. It has been updated to match explicit opt-in in `scripts/validate-production-catalog-real-state.mjs`; the new exact head is the commit above.
-- Live catalog content audit found 10 active public-enabled businesses; four have public items (16 MantiqatiX services, 2 Sameh Market products, 14 Burger Fakher products, 15 Qadam Al-Saad products). Existing missing descriptions/images are owner-content follow-ups; do not generate fake records.
-- Production remains **BLOCKED / NOT CERTIFIED**. Critical blockers remain: 0/76 required release migrations in the last live ledger check; RC473 consent registry absent and deployed `directory-listings` v16 behind current consent-aware source; registry-backed platform-admin/RPC parity; 7/11 critical Edge entrypoints mismatched; missing payment/finance contracts; no actual encrypted off-site DB+Storage backup, Vault recovery, PostgreSQL 17 restore, measured RPO/RTO or rollback rehearsal.
-- No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge, payment, wallet, settlement or customer-data changes were performed.
+### Current development
+- PR [#978](https://github.com/islamnagy2022-eng/MantiqatiX/pull/978) is a DRAFT at exact head `96a6946e248c7abac24a02e93dd3b392819ee44a`.
+- It separates the fixed single storefront cover from an owner-managed promotional gallery (up to 10 public HTTPS image URLs). The editor currently accepts URLs; it does **not** upload local files.
+- Latest exact-head snapshot: 26 successful, 3 in progress, 1 skipped, 0 failures. The final browser test now checks one cover image and a separate promotional gallery. Do not merge/deploy the new Edge source alone: live public readers/admin still lack the matching gallery and contact-consent contracts.
 
-Detailed evidence: `docs/audits/PASS_1811_1820_POST_PR975_AND_PUBLIC_PRICE_OPT_IN_20261122.md`.
+### Fresh read-only Production recheck — 2026-11-22
+- Migration ledger: 310 rows, latest `20261110150618`; exact required release set: **0/76 found**. All 76 expected versions are currently absent.
+- `public.directory_listing_contact_consents` absent; `public.migration_release_registry` absent.
+- Selected deployed Edge functions all differ from current main source:
+  - `directory-listings` v18 (2026-11-22): intentionally disabled; GET returns empty listings and POST mutations return 503. Preserve this protective state.
+  - `catalog-admin` v20 (2026-10-29): deployed entrypoint lacks main's public-contact consent audit writer.
+  - `public-catalog-directory` v19 (2026-11-22) and `public-catalog` v9 (2026-11-22): deployed entrypoints lack main's contact-consent-aware public projections and promotional gallery projection.
+- Do not deploy these functions one by one. Release consent schema, owner audit writer, public reader bundle, authorization dependencies and tests together after backups/migration gates pass.
+- No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge deploy, payment, wallet, settlement or customer-data write occurred during this recheck.
 
-**Next:** verify the post-merge main Pages deployment and Primary Catalog E2E (new runs 45071129013 and 45071128944 were queued at the follow-up checkpoint); then continue the coordinated privacy/backup/release gates. Never deploy directory Edge or payment functions individually ahead of the matching schema and authorization release.
+Detailed evidence: `docs/audits/PASS_1821_1830_LIVE_PRODUCTION_EDGE_MIGRATION_RECHECK_20261122.md`; structured manifest refresh: `docs/release/production-migration-reconciliation.json`.
 
----
+**Production status remains BLOCKED / NOT CERTIFIED.** Next: finish PR978 exact-head E2E; keep draft while the matched migration/consent/Edge release is prepared; obtain genuine encrypted off-site backup and independent restore evidence; reconcile all 76 ordered release migrations; only then proceed with the coordinated consent + public reader release and promotional media activation.
 
 ## Pass 1701–1710 — source inspection refinement
 
