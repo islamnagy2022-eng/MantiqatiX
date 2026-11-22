@@ -5473,6 +5473,12 @@
       "preserve backend customer, membership, tenant, business, provider, branch, catalog, pricing and idempotency checks"
     ],
     "production_mutation": "NONE",
-    "note": "Live order-create v8 currently validates the Bearer user with admin.auth.getUser(token) but invokes create_order_backend through the service-role client. The backend RPC requires auth.uid() = p_customer_id. Candidate source switches only the RPC invocation to a user-scoped anon-key client carrying the verified Bearer token; RC498 grants authenticated EXECUTE after hardening search_path. Neither migration nor Edge Function was deployed."
+    "note": "Read-only Production body inspection showed drift from the repository's RC105 source: the live function unconditionally requires auth.uid(), lacks the RC105 service-role bypass and lacks its explicit idempotency scope conflict guard. The current Edge Function v8 calls through service_role, so this combination is not certified. RC498 restores the RC105 body contract and hardens ACL/search_path. The candidate Edge entry points use a user-scoped client carrying the verified Bearer token. Neither migration nor Edge Function was deployed.",
+    "live_body_matches_rc105_source": false,
+    "live_body_gaps": [
+      "live body requires auth.uid() unconditionally and does not permit the verified service_role Edge caller described by RC105",
+      "live body lacks the RC105 cross-customer/business/branch idempotency conflict guard before returning an existing order snapshot"
+    ],
+    "candidate_body": "Restores the RC105 identity/idempotency implementation, adds a hardened SECURITY DEFINER search_path, revokes PUBLIC/anon/authenticated then grants authenticated and service_role explicitly."
   }
 }
