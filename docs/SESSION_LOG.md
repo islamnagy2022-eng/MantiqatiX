@@ -3827,3 +3827,10 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - No Marketplace test suite was executed in this pass. No application code, Production DB/Auth/RLS/GRANT/Storage/Edge/payment/customer-data change or deployment.
 - Next: inspect MantiGO rating table creation, constraints/triggers/read paths; complete general-business review inventory; inspect Storage/media policies; add executable Marketplace regression tests only with reproducible harness.
 - Disposition: **PRODUCTION BLOCKED / NOT CERTIFIED**.
+
+
+### Additional finding — MantiGO rating migration ordering
+
+- Inspected the chronological definitions of `mantigo_rate_ride`: migration `20261006121810` rejects changed duplicate submissions, but later `20261006171000` replaces it with an upsert/update path.
+- Current-main final definition therefore does not preserve the earlier immutability behavior. `20261006180000` includes the caller's own rating in customer ride-history output.
+- This remains separate from general directory-business reviews. Intended edit policy and PostgreSQL regression coverage need confirmation before any code/migration change.
