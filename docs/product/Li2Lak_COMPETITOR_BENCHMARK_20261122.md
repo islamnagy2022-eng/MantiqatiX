@@ -102,3 +102,35 @@ Li2Lak is used as a public product-pattern reference only. Feature availability 
 - `20261006180000_mantigo_customer_tracking_and_finance_indexes_v1.sql` returns the current customer's own ride rating in the customer-rides payload. This is a customer-specific read path, not evidence of public business-review aggregation.
 - The MantiGO rating creation table is referenced by migration and fixture contracts, and the live policy matrix confirms its presence and policies. Its complete originating DDL/constraints and all trigger/aggregate behavior still require a focused pass.
 - Follow-up priority: verify whether editable ratings are intentional product policy; if immutability is required, reconcile the later migration with the intended contract and add PostgreSQL regression tests before proposing a migration. No production change is authorized or made here.
+
+
+## Pass 1731–1750 — live Production confirmation and implementation decisions
+
+### Reviews and ratings
+- Read-only live Production table inventory confirms no general business/storefront/product/service review or rating table. The only review/rating-named application table is `public.mantigo_ride_ratings`, with `ride_id`, `customer_id`, `captain_id`, integer `rating`, `comment` and `created_at`. Keep this exclusive to completed MantiGO ride/captain reviews; do not repurpose it.
+- Candidate interaction sources exist but have different identity/eligibility contracts: `public.orders` includes nullable `customer_id` and `business_id`; `public.medical_appointments` includes `patient_id` and `business_id`; `public.restaurant_orders` has no customer Auth user ID column. A universal “verified customer” review cannot safely treat these as equivalent. A separate design specification now defines the proposed business-level-only contract and disposable acceptance matrix: `docs/product/BUSINESS_REVIEWS_VERIFIED_INTERACTION_SPEC_20261122.md`. Before implementation, the product owner must approve moderation, edit-window, retention and dispute policy.
+- Proposed first release should be business-level only, one review per verified completed interaction, no anonymous or self-reviews, server-derived reviewer identity, no client-supplied business/owner authority, moderated publication, abuse reporting, owner reply scoped to active business membership, and aggregate ratings calculated from published eligible reviews only. Product/service-level reviews should wait until canonical order-line identity and provenance are confirmed.
+
+### Media
+- Live Storage has only two 5 MiB image buckets: private `mantiqatix-media` (JPEG/PNG/WebP) and public-read `mantiqatix-profile-media` (JPEG/PNG/WebP/SVG). No video MIME type, transcoding path, duration policy or public video pipeline is configured.
+- Do not ship video/reels controls. A later media release requires separate upload authorization, private staging, MIME/content validation, byte/duration quotas, moderation, publication policy, signed delivery, retention/deletion, and measured bandwidth/storage costs.
+
+### Marketplace verification
+- The primary Marketplace loader now isolates HOME_HERO and HOME_SPONSORED RPC failures; one failed placement no longer suppresses the other. It validates creative/target URLs, rejects credential-bearing URLs and deduplicates ads. Six regression cases are in PR #969; the earlier four-case subset passed exact-head TypeScript/focused tests, while the two additional cases require the new PR's full CI.
+- The primary Marketplace request remains Egypt-wide (`EG`) with governorate/center/coordinates null. Do not introduce GPS targeting without explicit location consent; all-Egypt remains the default discovery scope.
+- The live public ad RPC remains a deliberate anonymous read for approved, active, date-valid ads with empty search_path and a bounded result limit. Preserve its read-only allowlisted contract.
+
+**Disposition:** review and video features remain design-gated; Marketplace reliability work is source/test-only and awaiting exact-head CI. No Production state was mutated.
+
+
+## Uploaded R7 archive — source reconciliation
+
+The uploaded 2026-11-10 R7 snapshot is a historical UX/feature reference, not the authoritative runtime. It declares local JSON authoritative and contains multiple release-blocking patterns (browser service-role key reference, deterministic server secret fallbacks, localStorage role state, and fail-open verified/paid defaults). Do not merge it wholesale. See `docs/audits/PASS_1761_1770_AI_STUDIO_R7_ARCHIVE_RECONCILIATION_20261122.md`.
+
+## Pass 1791–1800 — Li2Lak directory privacy and release verification — 2026-11-22
+
+- The current source implements consent-gated business-directory contact projection, but the deployed `directory-listings` v16 Edge Function does not include those modules and returns contact columns through the public GET path.
+- Production has 869 published listings; aggregate-only counts show 869 with phone, 178 with secondary phone, and 869 with address. The RC473 consent registry is absent and its migration is not recorded as applied.
+- This is a P0 release/privacy blocker for Li2Lak's public directory. Do not enable customer-facing public contact until the consent registry and complete Edge bundle are deployed together and verified with anonymous negative and owner-consent positive tests.
+- The current source sanitizer hides phone, secondary phone, address and precise map URL independently unless the corresponding active consent scope exists; lookup failures discard partial results and fail closed.
+- No Production mutation or deployment occurred. See `docs/audits/PASS_1791_1800_LIVE_DIRECTORY_CONSENT_RELEASE_GATE_20261122.md`.

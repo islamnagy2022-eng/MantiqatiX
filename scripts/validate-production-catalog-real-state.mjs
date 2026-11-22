@@ -138,6 +138,24 @@ assert.match(storefrontCatalog, /اطلب عرض سعر لـ \$\{product\.name\}
 assert.match(productionMapper, /catalogPublished: Boolean\(raw\.catalogPublished/, 'public directory presence must stay separate from the enabled public catalogue flag');
 assert.doesNotMatch(storefrontHeader, /platformAdCover|isCurrentSlideAd|images\.unsplash\.com/, 'storefront must not inject fabricated platform ad slides or stock cover photos');
 assert.doesNotMatch(storefrontCatalog, /images\.unsplash\.com/, 'public product cards must not use stock-photo fallbacks');
+
+const marketplaceHome = fs.readFileSync('apps/catalog-frontend/src/components/MarketplaceHome.tsx', 'utf8');
+assert.match(marketplaceHome, /verifiedBusinesses = useMemo\(\(\) => eligibleBusinesses\.filter\(\(business\) => business\.isVerified\)/,
+  'Marketplace Home business cards must be sourced from verified businesses only.');
+assert.match(marketplaceHome, /const businessById = useMemo\(\(\) => new Map<string, Business>\(verifiedBusinesses\.map/,
+  'Marketplace product/service offers must resolve only against verified business records.');
+assert.match(marketplaceHome, /product\.isAvailable && businessById\.has\(product\.businessId\)/,
+  'Marketplace offers must exclude unavailable items and products belonging to unverified/unlisted businesses.');
+assert.match(marketplaceHome, /product\.type === 'product' && Number\(product\.comparePrice \|\| 0\) > Number\(product\.price \|\| 0\)/,
+  'Product offers must represent a real recorded discount rather than an invented promotion.');
+assert.match(marketplaceHome, /product\.type === 'service' && Number\(product\.comparePrice \|\| 0\) > Number\(product\.price \|\| 0\)/,
+  'Service offers must represent a real recorded discount rather than an invented promotion.');
+assert.match(marketplaceHome, /loadTargetedAdvertisements\(\(functionName, args\) =>/,
+  'Marketplace Home must use the isolated, sanitized targeted-ad loader.');
+assert.match(marketplaceHome, /supabase\.rpc\(functionName, args\)/,
+  'Marketplace Home must load targeted ads through the Supabase RPC client.');
+assert.match(marketplaceHome, /const href = isSafeHttpsUrl\(ad\.target_url\)/,
+  'Marketplace Home must disable navigation when an ad target fails strict HTTPS validation.');
 assert.doesNotMatch(merchantDashboard, /images\.unsplash\.com/, 'merchant product lists must not show stock photos as real items');
 assert.doesNotMatch(catalogAdminFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'catalog admin must not generate stock-photo URLs for item imagery');
 assert.match(catalogAdminFunction, /legacyStockUrl = \/\^https:/, 'catalog admin must clear legacy stock-photo URLs when an item is edited');

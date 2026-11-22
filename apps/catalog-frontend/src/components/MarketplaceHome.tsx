@@ -7,25 +7,7 @@ import { useApp } from '../context/AppContext';
 import { Business, Product } from '../types';
 import { isMantiqatiXBrandName, resolveDefaultImage } from '../utils/defaultImages';
 import { supabase } from '../lib/production';
-
-type TargetedAdvertisement = {
-  advertisement_id: string;
-  title: string;
-  creative_url: string;
-  target_url?: string | null;
-  ad_space_id?: string;
-  match_level?: string;
-};
-
-const isSafeHttpUrl = (value?: string | null): string => {
-  if (!value) return '';
-  try {
-    const url = new URL(value);
-    return url.protocol === 'https:' || url.protocol === 'http:' ? url.toString() : '';
-  } catch {
-    return '';
-  }
-};
+import { isSafeHttpsUrl, loadTargetedAdvertisements, TargetedAdvertisement } from '../utils/targetedAdvertisements';
 
 const currency = (value: number): string =>
   Number(value || 0).toLocaleString('ar-EG', { maximumFractionDigits: 2 }) + ' ج.م';
@@ -177,23 +159,10 @@ export const MarketplaceHome: React.FC = () => {
     const loadAdvertisements = async () => {
       setAdsLoading(true);
       try {
-        const spaces = ['HOME_HERO', 'HOME_SPONSORED'];
-        const responses = await Promise.all(spaces.map((space) => supabase.rpc('get_mnty_targeted_advertisements', {
-          p_country_code: 'EG',
-          p_governorate_code: null,
-          p_center_code: null,
-          p_lat: null,
-          p_lon: null,
-          p_ad_space_id: space,
-          p_limit: 4,
-        })));
-        const rows = responses.flatMap((response) => Array.isArray(response.data) ? response.data : []) as TargetedAdvertisement[];
-        const safeRows = rows.flatMap((row) => {
-          const creativeUrl = isSafeHttpUrl(row?.creative_url);
-          return row?.advertisement_id && creativeUrl ? [{ ...row, creative_url: creativeUrl }] : [];
-        });
-        const unique = Array.from(new Map(safeRows.map((row) => [row.advertisement_id, row])).values());
-        if (active) setAdvertisements(unique);
+        const rows = await loadTargetedAdvertisements((functionName, args) =>
+          supabase.rpc(functionName, args)
+        );
+        if (active) setAdvertisements(rows);
       } catch {
         if (active) setAdvertisements([]);
       } finally {
@@ -289,7 +258,7 @@ export const MarketplaceHome: React.FC = () => {
           <SectionHeading title="إعلانات وشراكات المنصة" subtitle="تظهر الإعلانات المعتمدة والنشطة فقط." icon={<Megaphone className="h-5 w-5" />} />
           {advertisements.length ? <div className="grid gap-4 md:grid-cols-2">
             {advertisements.slice(0, 4).map((ad) => {
-              const href = isSafeHttpUrl(ad.target_url);
+              const href = isSafeHttpsUrl(ad.target_url);
               const card = <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <img src={ad.creative_url} alt={ad.title || 'إعلان'} className="max-h-64 min-h-40 w-full object-cover" loading="lazy" />
                 <div className="flex items-center justify-between gap-3 p-3"><p className="line-clamp-1 text-sm font-black">{ad.title}</p><span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">إعلان معتمد</span></div>
