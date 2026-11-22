@@ -16,6 +16,7 @@ cleanup() {
 DROP TRIGGER IF EXISTS trg_rc498_delay_order_idempotency_test ON public.orders;
 DROP FUNCTION IF EXISTS public.rc498_test_delay_order_idempotency_insert();
 DELETE FROM public.orders WHERE tenant_id='tenant-a' AND client_idempotency_key='concurrent-order-key-rc498';
+DROP TABLE IF EXISTS public.rc498_test_order_insert_counter;
 SQL
   rm -rf "$tmp_dir"
 }
@@ -26,12 +27,19 @@ INSERT INTO public.catalog_business_settings(business_id,tenant_id,currency,deli
 VALUES ('20000000-0000-4000-8000-000000000001','tenant-a','EGP',0,false)
 ON CONFLICT (business_id) DO NOTHING;
 
+CREATE TABLE public.rc498_test_order_insert_counter (
+  id boolean PRIMARY KEY DEFAULT true CHECK (id),
+  calls integer NOT NULL DEFAULT 0
+);
+INSERT INTO public.rc498_test_order_insert_counter(id,calls) VALUES (true,0);
+
 CREATE OR REPLACE FUNCTION public.rc498_test_delay_order_idempotency_insert()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $function$
 BEGIN
   IF NEW.client_idempotency_key = 'concurrent-order-key-rc498' THEN
+    UPDATE public.rc498_test_order_insert_counter SET calls=calls+1 WHERE id=true;
     PERFORM pg_sleep(2.5);
   END IF;
   RETURN NEW;
@@ -90,5 +98,10 @@ NODE
 count="$(psql "$DB_URL" -X -qAt -v ON_ERROR_STOP=1 -c "SELECT count(*) FROM public.orders WHERE tenant_id='tenant-a' AND client_idempotency_key='concurrent-order-key-rc498'")"
 if [[ "$count" != "1" ]]; then
   echo "Expected one order for concurrent idempotency key; found $count" >&2
+  exit 1
+fi
+attempts="$(psql "$DB_URL" -X -qAt -v ON_ERROR_STOP=1 -c "SELECT calls FROM public.rc498_test_order_insert_counter WHERE id=true")"
+if [[ "$attempts" != "2" ]]; then
+  echo "Expected both transactions to reach the INSERT conflict path; observed $attempts attempts" >&2
   exit 1
 fi
