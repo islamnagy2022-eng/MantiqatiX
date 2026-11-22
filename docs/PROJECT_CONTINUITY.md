@@ -1,3 +1,17 @@
+# Latest continuation checkpoint — 2026-11-22 — Pass 1851–1860
+
+**Active PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
+**Latest work:** Li2Lak review/order feature, migration repair and validator consistency  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+- Corrected the stale RC497 static-validator expectations from 77 to 78 migrations, matching the combined RC497/RC498 release gate.
+- Corrected the release manifest's PR pointer from superseded #970 to active PR #971.
+- Rechecked duplicate top-level declarations; none remain.
+- PostgreSQL 17 migration replay and full integration CI remain unverified on the latest head.
+- No Production mutation or deployment. Keep mobile sources and current catalog root intact.
+
+---
+
 # Latest continuation checkpoint — 2026-11-22 — Pass 1841–1850
 
 **Active PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
