@@ -51,6 +51,15 @@ BEGIN
     IF SQLERRM <> 'BUSINESS_REVIEW_FORBIDDEN' THEN RAISE; END IF;
   END;
 
+  BEGIN
+    PERFORM public.submit_business_review(
+      '30000000-0000-4000-8000-000000000005', 4, 'طلب لنشاط في مستأجر آخر'
+    );
+    RAISE EXCEPTION 'RC497_ORDER_BUSINESS_TENANT_MISMATCH_ACCEPTED';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'ORDER_BUSINESS_TENANT_MISMATCH' THEN RAISE; END IF;
+  END;
+
   result := public.submit_business_review(
     '30000000-0000-4000-8000-000000000004', 4, 'نشاط غير موثق بعد'
   );
