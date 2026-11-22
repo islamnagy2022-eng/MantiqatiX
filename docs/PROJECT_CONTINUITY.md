@@ -3266,3 +3266,15 @@ Next: inspect the MantiGO ratings table-creation migration, triggers, constraint
 ### MantiGO rating migration ordering clarification — 2026-11-22
 
 The initial rating immutability migration (`20261006121810`) is superseded at the RPC-definition level by later `20261006171000_mantigo_notification_lifecycle_v1.sql`, which redefines `mantigo_rate_ride` with `ON CONFLICT (ride_id,customer_id) DO UPDATE`. Current-main chronological source therefore allows a rating/comment update for the same ride/customer; the old immutability claim is not accurate for the final migration chain. The customer-rides RPC at `20261006180000` returns the caller's own rating only. Confirm intended edit policy and add disposable PostgreSQL tests before changing this subsystem. No Production change occurred.
+
+
+## Latest continuation checkpoint — 2026-11-22 — Pass 1731–1740
+
+**Production project:** `moyhiluyhjsujhwlyeuu` (`MANTIQATIX FINAL`, ACTIVE_HEALTHY).  
+**Current source branch:** `fix/li2lak-marketplace-ads-resilience-20261122-v2`.  
+**Current PR:** #967; exact-head CI is running.  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+Live read-only Supabase inspection confirms 310 applied migrations through `20261110150618`; current source forward-chain replay is a separate CI gate and does not mean the later source migrations are deployed. No general business review table exists in the live table inventory; only MantiGO ride ratings exist. Both current Storage buckets are image-only and limited to 5 MiB. Security Advisor reports 9 RLS-enabled/no-policy relations, one anonymous-callable public ads SECURITY DEFINER RPC, and 65 authenticated-callable SECURITY DEFINER functions. See `docs/audits/PASS_1731_1740_LIVE_SUPABASE_SCHEMA_STORAGE_REVIEW_20261122.md`.
+
+No production mutation occurred. Next: continue function/RLS/storage authorization reconciliation in source + disposable tests; do not introduce reviews or video upload by reusing unrelated rating/media contracts.
