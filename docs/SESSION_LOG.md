@@ -3958,3 +3958,12 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - **Not performed:** no Production migration, Edge Function deployment, Auth/RLS/GRANT change, payment, wallet, customer-data mutation or public deployment.
 - **Next:** wait for and inspect exact-head Li2Lak lifecycle, PostgreSQL 17 order/idempotency, forward migration replay, frontend build/E2E and security workflows. Fix any concrete failures before considering merge.
 - **Release state:** **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-11-22 — Pass 1931–1940 — selected-branch authorization regression contract
+
+- Re-read the current PR #971 order-create Edge source. The selected-branch lookup is constrained by tenant_id, business_id, status = ACTIVE, and the exact requested branch ID; the no-selection path checks existence with limit(1).
+- Strengthened scripts/validate-rc497-business-reviews.mjs to require all four predicates, while retaining the existing regression check against arbitrary .limit(100) branch scans.
+- This is a source-validator improvement only. The updated validator has not yet been executed by exact-head CI; PostgreSQL 17 lifecycle, order idempotency and forward replay remain pending.
+- No Production database, Auth, RLS, GRANT, Storage, Edge Function, payment, wallet, customer-data or public deployment change.
+- **Status: SOURCE CONTRACT UPDATED; CI PENDING; PRODUCTION BLOCKED / NOT CERTIFIED.**
