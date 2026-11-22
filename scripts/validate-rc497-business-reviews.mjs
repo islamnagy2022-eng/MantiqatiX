@@ -140,6 +140,8 @@ assert.match(orderMigration, /jsonb_typeof\(coalesce\(v_item->'selectedOptionIds
   "the authoritative RPC must validate option array shape and identifier length");
 assert.ok(orderIntegration.includes("RC498_OPTION_LIMIT_BYPASSED") && orderIntegration.includes("RC498_ITEM_COUNT_LIMIT_BYPASSED"),
   "RC498 integration must cover direct-call option and item-count limits");
+assert.ok(orderIntegration.includes("RC498_NON_ARRAY_ITEMS_ACCEPTED") && orderIntegration.includes('{"not":"an array"}'),
+  "RC498 integration must reject malformed non-array JSON item payloads");
 assert.ok(orderIntegration.includes("RC498_FRACTIONAL_QUANTITY_ACCEPTED") && orderIntegration.includes('"quantity":1.5'),
   "RC498 integration must prove authenticated direct RPC callers cannot submit fractional quantities");
 assert.ok(orderCreateEdge.includes("Authorization: `Bearer ${token}`") && orderCreateEdge.includes('userClient.rpc("create_order_backend"'),
