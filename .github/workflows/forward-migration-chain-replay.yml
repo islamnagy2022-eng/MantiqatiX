@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/**"
+      - "apps/catalog-frontend/src/components/merchant/BusinessReviewManagementPanel.tsx"
+      - "apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx"
+      - "apps/catalog-frontend/src/components/account/CustomerOrderReviews.tsx"
+      - "apps/catalog-frontend/src/modules/account/SubscriberAccountPortal.tsx"
       - "supabase/tests/rc497_business_reviews_fixture.sql"
       - "supabase/tests/rc497_business_reviews_integration.sql"
       - "scripts/validate-rc497-business-reviews.mjs"
@@ -103,6 +107,10 @@ on:
     branches: ["main"]
     paths:
       - "supabase/migrations/**"
+      - "apps/catalog-frontend/src/components/merchant/BusinessReviewManagementPanel.tsx"
+      - "apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx"
+      - "apps/catalog-frontend/src/components/account/CustomerOrderReviews.tsx"
+      - "apps/catalog-frontend/src/modules/account/SubscriberAccountPortal.tsx"
       - "supabase/tests/baselines/production_schema_snapshot.sql"
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
