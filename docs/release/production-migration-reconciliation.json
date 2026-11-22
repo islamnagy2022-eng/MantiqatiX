@@ -5427,7 +5427,7 @@
     "verify_jwt": false,
     "source_exact_match": true,
     "live_entrypoint_sha256": "1e424d34847c4cad10fc36c8da4aa7d765c4285f7303520fe8ff234429dfff3c",
-    "endpoint_behavior": "GET_POST_503",
+    "endpoint_behavior": "GET_200_EMPTY_POST_503",
     "response_error": "DIRECTORY_LISTINGS_DISABLED_FOR_V1",
     "public_contact_data_returned": false,
     "frontend_enabled": false,
@@ -5439,6 +5439,6 @@
       "source-rights-review",
       "contact-consent-http-tests"
     ],
-    "note": "The public endpoint returns a fixed 503 response without querying Production rows. Re-enable only after owner consent, claim, source-rights and pagination contracts pass on the full Edge bundle."
+    "note": "The public endpoint returns an empty-success GET response for compatibility with the already-published V1 frontend and a fixed 503 for every POST. It performs no database reads. Re-enable only after owner consent, claim, source-rights and pagination contracts pass on the full Edge bundle."
   }
 }
