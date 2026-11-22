@@ -287,8 +287,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return;
         }
       }
-      commitSelectedBusinessId('');
-      setCurrentView(defaultView);
+      // Keep the shared route in place when the public read is unavailable.
+      // This preserves the requested activity URL and avoids silently sending users home.
+      commitSelectedBusinessId(requestedId);
+      setCurrentView('public_storefront');
       return;
     }
 
@@ -332,6 +334,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => { active = false; };
   }, []);
 
+  // Resolve a shared public storefront independently from account/session bootstrap.
+  // A guest must be able to open a published catalog even when private bootstrap is slow or fails.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedId = params.get('store') || params.get('businessId') || '';
+    if (!/^[0-9a-f-]{36}$/i.test(requestedId)) return;
+
+    let active = true;
+    routeBusinessIdRef.current = requestedId;
+    setSelectedBusinessIdState(requestedId);
+    setCurrentViewState('public_storefront');
+
+    void fetchPublicCatalog(requestedId)
+      .then((catalog) => {
+        if (!active || !catalog) return;
+        setBusinesses((previous) => [catalog.business, ...previous.filter((business) => business.id !== catalog.business.id)]);
+        setProducts((previous) => [...previous.filter((product) => product.businessId !== catalog.business.id), ...catalog.products]);
+        routeBusinessIdRef.current = catalog.business.id;
+        setSelectedBusinessIdState(catalog.business.id);
+        setCurrentViewState('public_storefront');
+      })
+      .catch((error) => {
+        if (active) console.warn('[MantiqatiX direct public storefront]', error);
+      });
+
+    return () => { active = false; };
+  }, []);
+
   useEffect(() => {
     let active = true;
     const loadSession = async (session: any, force = false) => {
@@ -359,12 +389,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setProducts([]);
         setSubscribers([]);
         setSubscribersLoading(false);
-        setSelectedBusinessIdState('');
+        const directRouteParams = new URLSearchParams(window.location.search);
+        const directStoreId = directRouteParams.get('store') || directRouteParams.get('businessId') || '';
+        routeBusinessIdRef.current = directStoreId;
+        setSelectedBusinessIdState(directStoreId);
         setCartItems([]);
-        // Hide any privileged view while the new identity is loading without
-        // rewriting the URL; applyUser must inspect the original requested route
-        // after the role has been resolved and authorize or reject it.
-        setCurrentViewState('directory');
+        // Keep an explicit public storefront route visible during private account
+        // hydration. Public catalog access must not depend on dashboard bootstrap.
+        setCurrentViewState(directStoreId ? 'public_storefront' : 'directory');
         setAuthBootstrapError('');
         setAuthLoading(true);
       } else if (force) {
