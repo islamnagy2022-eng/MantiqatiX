@@ -47,6 +47,9 @@ import { fetchPublicDirectoryListingPage, type PublicDirectoryListing, type Publ
 import { DEFAULT_FUNCTIONAL_GROUPS, resolveCanonicalSpecialty } from '../data/productionDefaults';
 import { EGYPT_GEO_DISTRICTS, EGYPT_GEO_GOVERNORATES, loadEgyptDistrictShiyakhas, resolveEgyptAdministrativeLocation, type EgyptGeoShiyakha } from '../data/egyptGeoDiscovery';
 
+// Unclaimed directory rows stay out of V1 until RC472/RC473 and the matching public Edge bundle are released together.
+const PUBLIC_UNCLAIMED_DIRECTORY_LISTINGS_ENABLED = false;
+
 const whatsappDigits = (value: unknown): string => {
   let digits = String(value || '').replace(/\D/g, '');
   if (digits.startsWith('00')) digits = digits.slice(2);
@@ -386,6 +389,15 @@ export const DirectoryView: React.FC = () => {
   useEffect(() => {
     let cancelled = false;
     const requestGeneration = ++directoryPaginationGeneration.current;
+    if (!PUBLIC_UNCLAIMED_DIRECTORY_LISTINGS_ENABLED) {
+      setDirectoryListingsLoaded(true);
+      setDirectoryListingsHasMore(false);
+      setDirectoryListingsCursor(null);
+      setDirectoryListingsLoadingMore(false);
+      setDirectoryListingsError('');
+      setUnconfirmedListings([]);
+      return () => { cancelled = true; };
+    }
     setDirectoryListingsLoaded(false);
     setDirectoryListingsHasMore(false);
     setDirectoryListingsCursor(null);
@@ -416,7 +428,7 @@ export const DirectoryView: React.FC = () => {
   }, [directoryListingRequestFilters]);
 
   const loadMoreDirectoryListings = useCallback(async () => {
-    if (!directoryListingsHasMore || !directoryListingsCursor || directoryListingsLoadingMore) return;
+    if (!PUBLIC_UNCLAIMED_DIRECTORY_LISTINGS_ENABLED || !directoryListingsHasMore || !directoryListingsCursor || directoryListingsLoadingMore) return;
     const requestGeneration = directoryPaginationGeneration.current;
     setDirectoryListingsLoadingMore(true);
     setDirectoryListingsError('');
@@ -493,8 +505,9 @@ export const DirectoryView: React.FC = () => {
     return () => { cancelled = true; };
   }, [selectedAdministrativeDistrict?.id]);
 
-  const [listingSlug, setListingSlug] = useState<string>(() => new URLSearchParams(window.location.search).get('listing') || '');
+  const [listingSlug, setListingSlug] = useState<string>(() => PUBLIC_UNCLAIMED_DIRECTORY_LISTINGS_ENABLED ? new URLSearchParams(window.location.search).get('listing') || '' : '');
   const openDirectoryListing = (slug: string) => {
+    if (!PUBLIC_UNCLAIMED_DIRECTORY_LISTINGS_ENABLED) return;
     const url = new URL(window.location.href);
     url.searchParams.delete('store');
     url.searchParams.delete('businessId');
@@ -512,7 +525,7 @@ export const DirectoryView: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   };
   useEffect(() => {
-    const syncListingRoute = () => setListingSlug(new URLSearchParams(window.location.search).get('listing') || '');
+    const syncListingRoute = () => setListingSlug(PUBLIC_UNCLAIMED_DIRECTORY_LISTINGS_ENABLED ? new URLSearchParams(window.location.search).get('listing') || '' : '');
     window.addEventListener('popstate', syncListingRoute);
     return () => window.removeEventListener('popstate', syncListingRoute);
   }, []);
