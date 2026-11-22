@@ -3924,3 +3924,25 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Commits: `6b3386b`, `f2411ee`, `9316c5d`, `820778a`; evidence recorded in `docs/audits/PASS_1801_1810_LI2LAK_MARKETPLACE_AD_HARDENING_20261122.md`.
 - Exact-head CI not yet completed at last check; no test pass claimed. No Production mutation/deployment.
 - Next: public-offer contract tests and safe media lifecycle design; general reviews require independent verified-interaction/moderation model.
+
+
+## 2026-11-22 — PR975 deployed and public price disclosure default tightened
+
+- PR [#975](https://github.com/islamnagy2022-eng/MantiqatiX/pull/975) merged to main at `cf21e768d0384c55ffde93ae741febcd3c738112` after exact-head checks passed (28 success, 2 skipped, 0 failed). This adds regression coverage for public price visibility contracts.
+- Verified Production Health Monitor [45070154362](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45070154362), Pages deploy [45070154380](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45070154380), and Primary Catalog browser validation [45070154418](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45070154418) all completed successfully on the resulting main commit. This is website deployment evidence, not full Supabase production certification.
+- Read-only catalog pricing review found the shared public resolver treated a missing `show_price` flag differently from the explicit opt-in contract. Opened PR [#976](https://github.com/islamnagy2022-eng/MantiqatiX/pull/976) to make only boolean true permit numeric public price display; missing, false and malformed flags remain quote-only. Regression tests include malformed permissions and explicit opt-in.
+- An initial PR976 CI attempt failed because a static production verifier asserted the previous resolver expression. Updated that assertion on the same branch; current exact head is `75d0293c19825345e07ad08fbce1c2fcced0d48e`. Latest status when recorded: 27 successful checks, 1 browser E2E in progress, 2 skipped, no failures. Do not merge until the final browser check succeeds.
+- No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge, payment, wallet, settlement or customer-data mutation was performed.
+- Production remains **BLOCKED / NOT CERTIFIED** because the 76-version migration set, live directory consent registry/Edge parity, platform-admin registry/RPC parity, seven critical Edge mismatches, financial/payment contracts, and actual encrypted backup + independent restore/RPO/RTO/rollback evidence remain unresolved.
+- Next: finish PR976 exact-head browser E2E; merge only after all required checks pass; then proceed to operator-owned backup/restore and coordinated migration + Edge privacy release gates.
+
+
+
+## 2026-11-22 — PR976 exact-head CI passed and merged
+
+- PR [#976](https://github.com/islamnagy2022-eng/MantiqatiX/pull/976) completed exact-head CI on `75d0293c19825345e07ad08fbce1c2fcced0d48e`: 28 successful, 2 skipped, 0 failed. The browser E2E, build, employee RBAC PostgreSQL checks, module validation, backend boundary, MantiGO privacy and RC425 Paymob atomicity workflows all passed.
+- PR #976 merged to main as `1fbc94e69987b9a00aa2f09ddc2acc230aa85b8c`.
+- Main-branch post-merge workflows started. At the time recorded, Production Health Monitor, Backend-only Module Boundary and MantiGO Open Ride Privacy Boundary were in progress; Pages deploy and Primary Catalog Frontend Validation were queued. Do not claim post-PR976 deployment until those exact-main runs finish.
+- Change remains frontend resolver + tests + static validation contract. No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge, payment, wallet, settlement or customer-data mutation.
+- Next: verify run IDs 45071129013 (Pages), 45071128944 (Primary Catalog), 45071128896 (Health Monitor), 45071128926 (Backend-only), 45071128872 (MantiGO Privacy), and 45071128985 (Module Professionalization), then continue production release gates.
+

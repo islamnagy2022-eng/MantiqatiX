@@ -4955,3 +4955,19 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Design owner-scoped business media lifecycle with upload limits, MIME sniffing, moderation, publication consent, cleanup and responsive delivery; no video bucket exists in Production.
 - [ ] Keep business reviews separate from MantiGO ride ratings; require verified interaction provenance and moderation before implementation.
 - **Safety:** no Production database, Storage, Auth/RLS/GRANT, Edge, payment, wallet, or public deployment change. **PRODUCTION BLOCKED / NOT CERTIFIED.** Evidence: `docs/audits/PASS_1801_1810_LI2LAK_MARKETPLACE_AD_HARDENING_20261122.md`.
+
+
+### Pass 1811–1820 — post-PR975 release and public price opt-in correction — 2026-11-22
+- [x] Merged PR #975 as `cf21e768d0384c55ffde93ae741febcd3c738112`; exact-head CI 28 successful, 2 skipped, 0 failed.
+- [x] Verified main Production Health Monitor, GitHub Pages deployment and Primary Catalog browser E2E passed (runs 45070154362, 45070154380, 45070154418).
+- [x] Found and corrected a fail-open catalog pricing default: only `catalog_public.show_price === true` now permits numeric public price disclosure; missing/false/malformed values resolve as quote-only.
+- [x] Updated the stale static production-catalog assertion to the explicit opt-in contract.
+- [x] Completed exact-head CI for PR #976 (`75d0293c19825345e07ad08fbce1c2fcced0d48e`): 28 successful, 2 skipped, 0 failed; merged as `1fbc94e69987b9a00aa2f09ddc2acc230aa85b8c`.
+- [ ] Re-run main deployment and deployed-origin browser checks after PR #976 merge; runs 45071129013 (Pages) and 45071128944 (Primary Catalog) were queued at the follow-up checkpoint.
+- [ ] Resolve directory P0 only through operator backup/restore, full ordered migration release, RC473 consent schema and complete compatible Edge bundle; no isolated Edge or migration deployment.
+- [ ] Obtain actual encrypted off-site DB+Storage backup, Vault recovery, independent PostgreSQL 17 restore, measured RPO/RTO and rollback evidence.
+- [ ] Reconcile 76 required migration IDs, exact live object/ACL parity, registry-backed platform admin, and seven mismatched critical Edge functions.
+- [ ] Proceed to Paymob sandbox/financial E2E only after the coordinated backend release is ready; monthly subscriptions remain deferred.
+- **Safety:** source/test/documentation changes only; no Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement or customer-data mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+- Evidence: `docs/audits/PASS_1811_1820_POST_PR975_AND_PUBLIC_PRICE_OPT_IN_20261122.md`, PR #975/#976, runs 45070154362/45070154380/45070154418.
+
