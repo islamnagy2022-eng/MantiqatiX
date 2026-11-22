@@ -123,6 +123,12 @@ GRANT EXECUTE ON FUNCTION public.create_order_backend(
   text, text, text, jsonb, text, jsonb
 ) TO authenticated;
 
+GRANT EXECUTE ON FUNCTION public.create_order_backend(
+  uuid, character varying, uuid, character varying, uuid, character varying,
+  numeric, numeric, numeric, numeric, numeric, character varying,
+  text, text, text, jsonb, text, jsonb
+) TO service_role;
+
 COMMENT ON FUNCTION public.create_order_backend(
   uuid, character varying, uuid, character varying, uuid, character varying,
   numeric, numeric, numeric, numeric, numeric, character varying,
