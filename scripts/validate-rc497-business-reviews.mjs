@@ -161,6 +161,8 @@ assert.doesNotMatch(cartDrawer, /p_subtotal:|p_total_amount:|p_tax:/,
   "browser checkout must not submit authoritative financial totals");
 assert.match(cartDrawer, /completedOrderDetails\\.tracked && completedOrderDetails\\.orderId/,
   "checkout confirmation must display the persisted order reference");
+assert.match(cartDrawer, /completedOrderDetails\\.whatsappUrl &&[\\s\\S]*?rel="noopener noreferrer"/,
+  "checkout confirmation must provide a safe manual WhatsApp fallback when popup navigation is blocked");
 assert.match(customerReviewPanel, /get_customer_business_review_status[\s\S]*?submit_business_review/,
   "customer order portal must check owned review status before submission");
 assert.match(customerReviewPanel, /\.eq\('customer_id', userId\)/,
