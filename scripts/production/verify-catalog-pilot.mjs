@@ -90,12 +90,13 @@ assert.equal(directoryGate?.status, 'PASS_DISABLED_FOR_V1', 'Unclaimed directory
 assert.equal(directoryGate?.live_function_version, 17, 'The live disabled directory Edge version must match Production');
 assert.equal(directoryGate?.verify_jwt, false, 'The disabled endpoint must preserve its existing JWT mode');
 assert.equal(directoryGate?.source_exact_match, true, 'The disabled endpoint must match its reviewed source');
-assert.equal(directoryGate?.endpoint_behavior, 'GET_POST_503');
+assert.equal(directoryGate?.endpoint_behavior, 'GET_200_EMPTY_POST_503');
 assert.equal(directoryGate?.response_error, 'DIRECTORY_LISTINGS_DISABLED_FOR_V1');
 assert.equal(directoryGate?.frontend_enabled, false);
 assert.equal(directoryGate?.direct_listing_routes_enabled, false);
 assert.ok(directoryApi.includes('DIRECTORY_LISTINGS_DISABLED_FOR_V1'), 'Directory endpoint must return its explicit V1-disabled marker');
-assert.ok(directoryApi.includes('}, 503);'), 'Directory endpoint must fail closed with HTTP 503');
+assert.ok(directoryApi.includes('directoryDisabled: true'), 'Directory endpoint must return an empty public listing response for old clients');
+assert.ok(directoryApi.includes('DIRECTORY_LISTINGS_DISABLED_FOR_V1'), 'Directory mutations must fail closed with the V1-disabled marker');
 assert.ok(!directoryApi.includes('createClient') && !directoryApi.includes('.from('), 'Disabled directory endpoint must not query Production rows');
 assert.ok(directoryView.includes('PUBLIC_UNCLAIMED_DIRECTORY_LISTINGS_ENABLED = false'), 'Unclaimed listings must be disabled in the public directory UI');
 assert.ok(directoryView.includes('if (!PUBLIC_UNCLAIMED_DIRECTORY_LISTINGS_ENABLED) {'), 'The UI must not fetch unclaimed listings');
@@ -108,7 +109,8 @@ const profileUpdateEnd = appContext.indexOf(String.fromCharCode(10) + "    });",
 assert.ok(profileUpdateEnd > profileUpdateStart, 'The canonical business profile update payload must be bounded');
 const profileUpdatePayload = appContext.slice(profileUpdateStart, profileUpdateEnd);
 assert.ok(!profileUpdatePayload.includes('publicContactEnabled'), 'Routine profile saves must not submit a contact-consent value');
-assert.ok(directorySmoke.includes('DIRECTORY_LISTINGS_DISABLED_FOR_V1'), 'Pages smoke must verify the disabled endpoint contract');
+assert.ok(directorySmoke.includes('DIRECTORY_LISTINGS_DISABLED_FOR_V1'), 'Pages smoke must verify the disabled mutation contract');
+assert.ok(directorySmoke.includes('assert.equal(getResponse.status, 200'), 'Pages smoke must preserve a non-error empty GET response for the existing frontend');
 assert.ok(directorySmoke.includes('supabaseUrl:\\s*') && directorySmoke.includes('supabaseKey:\\s*'), 'Pages smoke must parse the published Supabase config keys');
 
 
