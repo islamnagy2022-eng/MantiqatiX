@@ -41,8 +41,8 @@ run_order() {
   local order_id="$1"
   local output="$2"
   psql "$DB_URL" -X -qAt -v ON_ERROR_STOP=1 >"$output" <<SQL
-SELECT set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000001',false) AS _sub \\gset
-SELECT set_config('request.jwt.claim.role','authenticated',false) AS _role \\gset
+SELECT set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000001',false) AS _sub \gset
+SELECT set_config('request.jwt.claim.role','authenticated',false) AS _role \gset
 SELECT public.create_order_backend(
   '$order_id',
   'tenant-a',
