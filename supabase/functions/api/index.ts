@@ -193,14 +193,20 @@ serve(async (req) => {
       const role = String(membership.role ?? "").toUpperCase()
       const businessId = membership.business_id == null ? null : String(membership.business_id)
       const branchId = membership.branch_id == null ? null : String(membership.branch_id)
+      const orderBusinessId = String(order.business_id)
+      const orderBranchId = order.branch_id == null ? null : String(order.branch_id)
       const tenantWideOwner = ["OWNER", "ADMIN"].includes(role) && businessId === null && branchId === null
-      const exactBusinessBranch = businessId === String(order.business_id)
-        && branchId === (order.branch_id == null ? null : String(order.branch_id))
+      const exactBusinessBranch = businessId === orderBusinessId && branchId === orderBranchId
       const scopedOperationalRole = [
-        "OWNER", "ADMIN", "MANAGER", "STAFF", "CASHIER", "DRIVER", "BUSINESS_OWNER", "SERVICE_PROVIDER",
+        "OWNER", "ADMIN", "BUSINESS_OWNER", "MANAGER", "STAFF", "EMPLOYEE", "FINANCE", "ACCOUNTANT", "FINANCE_MANAGER",
       ].includes(role)
-      const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
-      return tenantWideOwner || (exactBusinessBranch && (scopedOperationalRole || permissions.includes("ORDER_READ_ALL")))
+      const assignedPartner = String(order.assigned_partner_id ?? "") === user.id
+        && (businessId === null || businessId === orderBusinessId)
+        && (branchId === null || branchId === orderBranchId)
+      const providerOwnBusiness = role === "SERVICE_PROVIDER"
+        && businessId === orderBusinessId
+        && (branchId === null || branchId === orderBranchId)
+      return tenantWideOwner || (exactBusinessBranch && scopedOperationalRole) || assignedPartner || providerOwnBusiness
     })
     if (order.customer_id !== user.id && !operationalOrderRead) return json({ error: "Forbidden" }, 403)
     return json(order)
