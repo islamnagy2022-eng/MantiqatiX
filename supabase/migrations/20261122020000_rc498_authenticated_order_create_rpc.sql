@@ -62,7 +62,7 @@ begin
    v_token:=coalesce(nullif(v_item->>'catalogItemId',''),nullif(v_item->>'productId','')); if v_token is null then raise exception 'CATALOG_ITEM_REQUIRED'; end if;
    select * into v_ci from catalog_items ci where ci.tenant_id=p_tenant_id and ci.business_id=p_business_id and ci.status='ACTIVE' and (ci.id::text=v_token or ci.legacy_ref=v_token) and (ci.branch_id is null or ci.branch_id=p_branch_id) order by (ci.branch_id is not null) desc limit 1;
    if not found then raise exception 'CATALOG_ITEM_NOT_FOUND:%',v_token; end if;
-   v_qty:=coalesce(nullif(v_item->>'quantity','')::numeric,0); if v_qty<=0 or v_qty>10000 then raise exception 'INVALID_QUANTITY'; end if;
+   v_qty:=coalesce(nullif(v_item->>'quantity','')::numeric,0); if v_qty<=0 or v_qty>10000 or v_qty<>trunc(v_qty) then raise exception 'INVALID_QUANTITY'; end if;
    select * into v_price from catalog_item_prices cp where cp.catalog_item_id=v_ci.id and cp.tenant_id=p_tenant_id and cp.status='ACTIVE' and cp.effective_from<=now() and (cp.effective_to is null or cp.effective_to>now()) and (cp.branch_id is null or cp.branch_id=p_branch_id) order by (cp.branch_id is not null) desc,cp.effective_from desc,cp.version desc limit 1;
    if not found then raise exception 'CATALOG_PRICE_NOT_FOUND:%',v_ci.id; end if;
    select coalesce(sum(o.price_delta),0),count(o.id) into v_opt_total,v_opt_count from catalog_item_options o where o.catalog_item_id=v_ci.id and o.status='ACTIVE' and o.id::text in (select jsonb_array_elements_text(coalesce(v_item->'selectedOptionIds','[]'::jsonb)));
