@@ -138,6 +138,9 @@ jobs:
       - name: Test public catalog quote-only visibility contract
         working-directory: apps/catalog-frontend
         run: npx tsx tests/public-catalog-pricing.test.ts
+      - name: Test Marketplace targeted-ad partial-failure and URL safety
+        working-directory: apps/catalog-frontend
+        run: npx tsx tests/marketplace-targeted-ads.test.ts
       - name: Test directory contact-consent privacy and pagination contracts
         run: node --test supabase/functions/directory-listings/*.test.mjs
       - name: Validate fail-closed production migration release gate
