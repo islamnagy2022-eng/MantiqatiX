@@ -3789,3 +3789,16 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - No Production database, migration, Auth, RLS, GRANT, Storage, Edge, payment, wallet, settlement or customer-data mutation.
 - Next: continue source-side security/reliability work; keep Production data-plane release blocked pending encrypted off-site DB+Storage backup, Vault/key recovery, independent PostgreSQL 17 restore/rollback, measured RPO/RTO, and coordinated migration/Edge verification.
 - **Status: CI + static deployment verified; Production BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-11-22 — Pass 1701–1710 — Li2Lak benchmark and product gap triage
+
+- **User decision:** approved using Li2Lak as a benchmark reference, not as a source to copy.
+- **Repository baseline:** main at `9fb568dd16e48078773c97015722181a1e69a209`.
+- **Action:** created isolated branch `docs/li2lak-benchmark-20261122`.
+- **Action:** added `docs/product/Li2Lak_COMPETITOR_BENCHMARK_20261122.md`, mapping public product patterns against current-main MantiqaTix source and the existing AI Studio parity map.
+- **Findings:** core directory, taxonomy, verified-first, geography, storefront, contact consent, pagination, dashboards and QR capabilities already exist. Potential focused gaps are durable moderated reviews, Marketplace offers integration, and production-ready video/media; each remains subject to deeper source/contract verification.
+- **Not performed:** no application code changes, no Production DB/Auth/RLS/GRANT/Storage/Edge/payment/customer-data mutation, no deployment.
+- **Next:** inspect Marketplace Home and ad/discount contracts, reviews schema/RPCs, and media Storage policies; implement only a proven gap with tests.
+- **Release:** **PRODUCTION BLOCKED / NOT CERTIFIED**.
+
