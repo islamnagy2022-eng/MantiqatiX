@@ -4855,3 +4855,21 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - The earlier `20261006121810_mantigo_rating_immutability_v1.sql` rejects changed second submissions, but later `20261006171000_mantigo_notification_lifecycle_v1.sql` replaces the same RPC with `ON CONFLICT (ride_id, customer_id) DO UPDATE`. Current-main final migration order therefore permits an existing ride/customer rating and comment to be updated. Do not describe the final behavior as immutable until this override is reconciled.
 - `20261006180000_mantigo_customer_tracking_and_finance_indexes_v1.sql` returns only the authenticated customer's own rating in their ride-history payload; no public business-review aggregate was established.
 - [ ] Confirm intended edit policy and add PostgreSQL regression coverage before changing any MantiGO rating migration.
+
+
+### Pass 1821–1830 — Li2Lak verified review lifecycle and persisted checkout — 2026-11-22
+
+- [x] Added customer-only `get_customer_business_review_status(uuid)`; foreign order IDs return no review data and the RPC is authenticated-only.
+- [x] Added a bounded platform moderation queue RPC limited to 50 PENDING reviews and direct `private.platform_admins` registry members; no customer identity is returned.
+- [x] Added customer account order history and a review form available only for DELIVERED orders without an existing review.
+- [x] Added merchant dashboard review-response panel using the business-scoped one-time response RPC.
+- [x] Added platform AdminDashboard moderation panel with publish/reject/hide actions; reject/hide require a reason.
+- [x] Added public storefront verified review panel, restricted to ACTIVE verified businesses and the public identity-free summary RPC.
+- [x] Connected authenticated cart checkout to existing ACTIVE `order-create` Edge Function v8 (`verify_jwt=true`). Browser sends canonical catalog IDs/quantities and idempotency key; server calculates/validates prices and creates the order. Order ID is added to the WhatsApp message.
+- [x] Guest WhatsApp-only orders remain possible but are explicitly untracked and not review-eligible.
+- [x] Added tests/static contracts for private customer review status, registry-gated queue, account/merchant/admin UI wiring and server-priced checkout. Corrected newline and regex escaping in the source validator after static inspection.
+- [ ] Run RC497 PostgreSQL lifecycle job and full chronological migration replay on the exact final branch head; connector currently returns no exact-head workflow runs/statuses.
+- [ ] Resolve branch divergence from main (branch is one commit behind; mergeability remains false) and re-run all required checks.
+- [ ] Reconcile live `order-create` v8 with current source; it is active and JWT-protected but not byte-identical to main source. No Edge redeploy performed.
+- [ ] Complete genuine encrypted database/Storage backup, independent restore/rollback rehearsal, P0 directory-contact-consent and platform-admin authorization gates before any Production release.
+- **Production effect:** NONE. No Production migration, Auth/RLS/GRANT, Edge deployment, Storage, payment, wallet, customer data or public deployment was changed. **PRODUCTION BLOCKED / NOT CERTIFIED.**
