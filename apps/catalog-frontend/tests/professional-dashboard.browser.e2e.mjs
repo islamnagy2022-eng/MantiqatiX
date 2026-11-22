@@ -1185,9 +1185,9 @@ try {
     } finally { await context.close(); }
   }
 
-  // 12. Specialty folders open their own result list and scoped search while retaining geography and browser navigation.
+  // 12. Stale unclaimed directory fixtures must never render in the V1 public activity route.
   {
-    const withPhone = {
+    const staleUnclaimed = {
       id: 'listing-module-phone-0001',
       slug: 'clinic-module-phone',
       display_name: 'عيادة اختبار داخل النشاط',
@@ -1197,80 +1197,27 @@ try {
       taxonomy_specialty: 'باطنة',
       specialty: 'باطنة',
       phone: '01012345678',
-      secondary_phone: null,
       address: 'شارع الاختبار',
       governorate: 'المنوفية',
       district: 'بركة السبع',
       village: 'قرية الاختبار',
-      source_name: 'Activity module E2E',
-      source_url: null,
       listing_status: 'PUBLISHED',
       claim_status: 'UNCLAIMED',
     };
-    const withoutPhone = {
-      ...withPhone,
-      id: 'listing-module-no-phone-0002',
-      slug: 'clinic-module-no-phone',
-      display_name: 'عيادة اختبار بدون رقم',
-      phone: null,
-      secondary_phone: null,
-    };
-    const outsideGeo = {
-      ...withPhone,
-      id: 'listing-module-outside-geo-0003',
-      slug: 'clinic-module-outside-geo',
-      display_name: 'عيادة خارج النطاق الجغرافي',
-      governorate: 'القاهرة',
-      district: 'مدينة نصر',
-      village: 'الحي السابع',
-    };
-    const { context, page } = await newScenario(browser, null, [], {
+    const { context, page, directoryListingPageRequests } = await newScenario(browser, null, [], {
       geoPreference: {
         completed: true, mode: 'manual', governorate: 'المنوفية',
         markaz: 'بركة السبع', village: 'قرية الاختبار', area: 'all',
       },
-      directoryListingsState: { listings: [withPhone, withoutPhone, outsideGeo] },
+      initialRoute: '?view=directory&listing=clinic-module-phone',
+      directoryListingsState: { listings: [staleUnclaimed] },
     });
     try {
-      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
-      const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
-      if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
-        await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
-        await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
-      }
-      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
-      await page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first().click();
-      const modulePage = page.locator('main[dir="rtl"]');
-      await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
-      await modulePage.getByRole('button', { name: /^باطنة/ }).waitFor({ state: 'visible' });
-      await modulePage.getByRole('button', { name: /^باطنة/ }).click();
-      assert.equal(new URL(page.url()).searchParams.get('specialty'), 'باطنة', 'specialty folder must have a dedicated, refreshable URL');
-      await modulePage.getByText('عيادة اختبار داخل النشاط', { exact: true }).waitFor({ state: 'visible' });
-      assert.equal(await modulePage.getByText('غير موثق', { exact: true }).count(), 1, 'published unclaimed records must carry the red unverified badge');
-      assert.equal(await modulePage.getByText('عيادة اختبار بدون رقم', { exact: true }).count(), 0, 'entities without a public phone number must not render');
-      assert.equal(await modulePage.getByText('عيادة خارج النطاق الجغرافي', { exact: true }).count(), 0, 'the specialty page must preserve the selected geo scope');
-
-      const specialtySearch = modulePage.getByRole('searchbox', { name: 'البحث داخل باطنة' });
-      await specialtySearch.waitFor({ state: 'visible' });
-      await specialtySearch.fill('مركز غير موجود');
-      await modulePage.getByText('لا توجد نتائج مطابقة داخل هذا التخصص والنطاق الجغرافي المحدد.', { exact: true }).waitFor({ state: 'visible' });
-      assert.equal(await modulePage.getByText('عيادة اختبار داخل النشاط', { exact: true }).count(), 0, 'search must only retain matching results from the active specialty');
-      await specialtySearch.fill('عيادة اختبار داخل النشاط');
-      await modulePage.getByText('عيادة اختبار داخل النشاط', { exact: true }).waitFor({ state: 'visible' });
-
-      await page.goBack();
-      await modulePage.getByRole('button', { name: /^باطنة/ }).waitFor({ state: 'visible' });
-      assert.equal(new URL(page.url()).searchParams.has('specialty'), false, 'browser back must return to the specialty folders');
-      await modulePage.getByRole('button', { name: /^باطنة/ }).click();
-      await modulePage.getByText('عيادة اختبار داخل النشاط', { exact: true }).waitFor({ state: 'visible' });
-      await page.reload({ waitUntil: 'domcontentloaded' });
-      await page.locator('main[dir="rtl"]').getByText('عيادة اختبار داخل النشاط', { exact: true }).waitFor({ state: 'visible' });
-      await assertNoHorizontalOverflow(page, '390px specialty directory');
-      await page.setViewportSize({ width: 768, height: 1024 });
-      await assertNoHorizontalOverflow(page, '768px specialty directory');
-      await page.setViewportSize({ width: 1440, height: 900 });
-      await assertNoHorizontalOverflow(page, '1440px specialty directory');
-      results.push('activity-specialty-folders-scoped-search-geography-and-refresh');
+      await page.goto(baseUrl + '?view=directory&listing=clinic-module-phone', { waitUntil: 'domcontentloaded' });
+      await page.waitForTimeout(300);
+      assert.equal(directoryListingPageRequests.length, 0, 'V1 must not request unclaimed listing rows, even when stale fixtures exist');
+      assert.equal(await page.getByText('عيادة اختبار داخل النشاط', { exact: true }).count(), 0, 'stale unclaimed listing details and contact data must remain hidden');
+      results.push('stale-unclaimed-directory-fixtures-never-render-in-v1');
     } finally { await context.close(); }
   }
 
