@@ -1,3 +1,15 @@
+# Latest continuation checkpoint — 2026-11-22 — Pass 1871–1880
+
+**Active PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+- Customer review portal now translates backend self-review, undelivered-order, duplicate-review and foreign-order errors into clear Arabic messages.
+- Static validator checks the self-review message.
+- Browser E2E and PostgreSQL 17 integration remain pending exact-head CI.
+- No Production mutation or deployment. Mobile and catalog roots remain preserved.
+
+---
+
 # Latest continuation checkpoint — 2026-11-22 — Pass 1861–1870
 
 **Active PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
