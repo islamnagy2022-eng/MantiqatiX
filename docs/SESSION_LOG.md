@@ -4009,3 +4009,13 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Exact-head checks for PR #971 still show 20 queued runs and no combined status. PostgreSQL 17 integration, full forward replay and frontend build/E2E are not verified as passed.
 - Advisor snapshot: no health lints; security warnings remain (65 authenticated SECURITY DEFINER functions require individual review, plus Auth configuration warnings); performance warnings remain (132 unindexed FKs, 375 RLS initplan, 70 unused indexes, 28 multiple permissive policies). No broad revokes or Auth settings changes were made.
 - **Status: PRODUCTION PREFLIGHT RECORDED; RELEASE BLOCKED; NO PRODUCTION MUTATION OR DEPLOYMENT.**
+
+## 2026-11-22 — Pass 1981–1990 — Li2Lak customer session isolation
+- Finding: although `CustomerOrderReviews` already filtered the orders query by the authenticated `customer_id`, an in-flight request could finish after sign-out/account switch and overwrite the next identity's local component state.
+- Added a request generation ref, a render-synchronous identity ref and generation invalidation in effect cleanup. Stale async responses are ignored after the order fetch and after each five-order review-status batch; stale catches/finally blocks cannot overwrite the new session's state.
+- Cleared customer orders, review drafts, submission state, success notices and errors when identity changes or the user signs out.
+- Guarded review submission response state against an account switch.
+- Added static regression assertions to `scripts/validate-rc497-business-reviews.mjs`. Re-read the committed source and validator and confirmed the guards are present.
+- TypeScript build, browser E2E, full validator execution and PostgreSQL integration are pending exact-head CI; no passing execution is claimed.
+- **No Production mutation or deployment. PR #971 remains open/unmerged. PRODUCTION BLOCKED / NOT CERTIFIED.**
+- Audit: `docs/audits/PASS_1981_1990_LI2LAK_CUSTOMER_SESSION_ISOLATION_20261122.md`.
