@@ -107,6 +107,7 @@ BEGIN
 
   RETURN jsonb_build_object(
     'code', v_code,
+    'inviteUrl', 'https://mantiqatix.com/join/' || v_code,
     'referralsCount', COALESCE(v_count, 0)
   );
 END;
