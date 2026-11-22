@@ -182,6 +182,12 @@ assert.ok(orderGetRouteStart >= 0 && orderGetRouteEnd > orderGetRouteStart,
   "legacy order-read route must remain independently identifiable for authorization validation");
 const orderGetRoute = apiEdge.slice(orderGetRouteStart, orderGetRouteEnd);
 
+
+assert.match(apiEdge, /const hasPermission = \(permissions: unknown, permission: string\): boolean => \{[\s\S]*?Array\.isArray\(permissions\)[\s\S]*?Object\.prototype\.hasOwnProperty\.call\(permissions, permission\)[\s\S]*?\[permission\] === true/,
+  "payment permission checks must support the live JSONB array and boolean-object shapes without treating false as a grant");
+assert.ok(apiEdge.includes('hasPermission(membership.permissions, "PAYMENT_READ_ALL")')
+  && apiEdge.includes('hasPermission(membership.permissions, "PAYMENT_CONFIRM_CASH")'),
+  "payment read and cash confirmation must use the shared JSONB permission decoder");
 const paymentIntentReadStart = apiEdge.indexOf("const paymentIntentMatch = path.match");
 const cashConfirmStart = apiEdge.indexOf("const cashConfirmMatch = path.match", paymentIntentReadStart);
 const notFoundStart = apiEdge.indexOf('return json({ error: "Not Found" }, 404)', cashConfirmStart);
