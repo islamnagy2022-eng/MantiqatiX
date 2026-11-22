@@ -87,7 +87,7 @@ BEGIN
   LIMIT 1;
 
   IF v_code IS NULL THEN
-    v_code := upper(substr(md5(gen_random_uuid()::text || v_uid::text), 1, 10));
+    v_code := upper(substr(md5(gen_random_uuid()::text || v_uid::text), 1, 16));
     INSERT INTO public.referral_codes(user_id, code)
     VALUES (v_uid, v_code)
     ON CONFLICT (user_id) DO NOTHING;
