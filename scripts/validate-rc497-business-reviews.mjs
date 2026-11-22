@@ -157,6 +157,8 @@ assert.match(orderCreateEdge, /admin\.auth\.getUser\(token\)[\s\S]*?userClient\.
   "order-create must verify the bearer token with Supabase Auth before invoking the customer-scoped RPC");
 assert.match(orderCreateEdge, /const branchQuery = admin[\s\S]*?branchId\s*\?\s*await branchQuery\.eq\("id", branchId\)\.maybeSingle\(\)[\s\S]*?:\s*await branchQuery\.limit\(1\)\.maybeSingle\(\)/,
   "order-create must validate a selected branch by exact ID and detect branch requirement with a bounded existence query");
+assert.match(orderCreateEdge, /const branchQuery = admin[\s\S]*?\.eq\("tenant_id", body\.tenantId\)[\s\S]*?\.eq\("business_id", body\.businessId\)[\s\S]*?\.eq\("status", "ACTIVE"\)[\s\S]*?branchId\s*\?\s*await branchQuery\.eq\("id", branchId\)\.maybeSingle\(\)/,
+  "selected branch lookup must enforce tenant, business, ACTIVE status and exact branch identity");
 assert.doesNotMatch(orderCreateEdge, /\.from\("branches"\)[\s\S]*?\.limit\(100\)[\s\S]*?BRANCH_NOT_AVAILABLE/,
   "order-create must not reject valid branches merely because they fall beyond an arbitrary 100-row query limit");
 assert.match(apiEdge, /supabaseAdmin\.auth\.getUser\(token\)[\s\S]*?supabaseUser\.rpc\("create_order_backend"/,
