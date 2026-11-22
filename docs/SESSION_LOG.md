@@ -3958,3 +3958,13 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - PR980 was stale because PR981 moved main forward; these documentation changes are being re-applied on a fresh current-main branch to preserve PR981's updates. No Production DDL/DML/migrations/Auth/RLS/Storage/Edge/payments/wallet/settlement/customer data changes.
 - Production remains **BLOCKED / NOT CERTIFIED**. Evidence: docs/audits/PASS_1821_1830_LIVE_PRODUCTION_EDGE_MIGRATION_RECHECK_20261122.md and docs/audits/PASS_1821_1830_LIVE_DIRECTORY_DISABLED_MITIGATION_20261122.md.
 
+
+
+## 2026-11-22 — PR982 merged — default-closed national directory source gate
+
+- PR [#982](https://github.com/islamnagy2022-eng/MantiqatiX/pull/982) merged to main as `dbf40f6b9f8087fd5a274749c4a4db3ceb7c7564` after exact-head checks completed: **28 successful, 2 skipped, 0 failed**.
+- The merged source requires the exact server-side flag `DIRECTORY_LISTINGS_ENABLED=true` and a reachable `directory_listing_contact_consents` table before GET/POST directory routes proceed. Otherwise GET remains empty with `directoryDisabled=true` and POST remains 503. User-facing directory error state is covered by the frontend test.
+- No production environment flag was set and no Supabase Edge deployment occurred. The live v18 function remains intentionally disabled.
+- Post-merge main Pages deployment run `45074571318` was still **pending** at the follow-up checkpoint; no post-PR982 web deployment is claimed.
+- Production remains **BLOCKED / NOT CERTIFIED**.
+
