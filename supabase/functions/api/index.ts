@@ -32,11 +32,24 @@ serve(async (req) => {
   if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401)
   const token = authHeader.slice(7)
 
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+  if (!supabaseUrl || !serviceRoleKey || !anonKey) return json({ error: "Server misconfigured" }, 500);
+
   const supabaseAdmin = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    supabaseUrl,
+    serviceRoleKey,
     { auth: { persistSession: false, autoRefreshToken: false } },
   )
+  const supabaseUser = createClient(
+    supabaseUrl,
+    anonKey,
+    {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    },
+  );
 
   const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
   if (authError || !user || user.is_anonymous) return json({ error: "Unauthorized" }, 401)
@@ -154,7 +167,7 @@ serve(async (req) => {
       .select("id").eq("business_id", String(body.businessId)).eq("status", "ACTIVE").limit(1).maybeSingle()
     if (!provider) return json({ error: "Provider not available" }, 404)
 
-    const { data, error } = await supabaseAdmin.rpc("create_order_backend", {
+    const { data, error } = await supabaseUser.rpc("create_order_backend", {
       p_order_id: String(body.orderId),
       p_tenant_id: String(body.tenantId),
       p_business_id: String(body.businessId),
