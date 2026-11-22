@@ -4865,3 +4865,14 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Exact-head GitHub Actions on the updated branch; do not merge until all required checks are green.
 - [ ] Continue complete general-business review schema inventory and inspect media Storage policies before proposing new Li2Lak-inspired modules.
 - **Safety:** source/tests/CI only. No Production DB, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, customer data or public deployment changed. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+### Pass 1731–1740 — Live Supabase schema and Storage review — 2026-11-22
+- [x] Reconnected to the actual ACTIVE_HEALTHY Production Supabase project and read the applied migration ledger: 310 rows, latest `20261110150618`.
+- [x] Queried live schema metadata and confirmed the only rating/review-named application table is `mantigo_ride_ratings`; no dedicated business/storefront/product/service reviews table was found.
+- [x] Queried live Storage configuration: private `mantiqatix-media` and public-read `mantiqatix-profile-media`, both limited to 5 MiB and image MIME types; video upload is not currently supported.
+- [x] Re-read Security Advisor: 9 RLS-enabled/no-policy relations, 1 anonymous-callable SECURITY DEFINER public ads RPC, and 65 authenticated-callable SECURITY DEFINER functions. These are review inventories, not blanket proof of vulnerability.
+- [ ] Reconcile the nine backend-only/no-policy relations and 65 function bodies against intended server-side access paths; no blanket RLS/GRANT change.
+- [ ] Resolve the live platform-brand Storage policy's legacy SUPER_ADMIN membership predicate through a forward-only, isolated-tested migration before any Production approval.
+- [ ] Keep Li2Lak-inspired business reviews and video upload as separately designed features; do not fabricate ratings or widen current image buckets.
+- **Safety:** read-only Production inspection only. No DB/Auth/RLS/GRANT/Storage/Edge/payment/user-data mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
