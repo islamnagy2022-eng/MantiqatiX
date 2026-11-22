@@ -5422,7 +5422,9 @@
       "public output contains only PUBLISHED reviews for ACTIVE verified businesses",
       "public output excludes customer identity and is bounded to 20 reviews per page",
       "direct table access is denied to anon/authenticated/service_role and FORCE RLS is enabled",
-      "account deletion anonymizes reviewer and event actor references without deleting review history"
+      "account deletion anonymizes reviewer and event actor references without deleting review history",
+      "review records retain the order branch; branch-scoped managers can respond only within their assigned branch",
+      "platform moderation queue is bounded and paginated; customer identity is omitted from admin queue output"
     ],
     "required_release_tests": [
       "own-delivered-order-positive",
@@ -5437,7 +5439,11 @@
       "unverified-business-public-read-hidden",
       "anonymous-public-output-identity-free",
       "direct-table-privilege-negative",
-      "account-deletion-anonymization"
+      "account-deletion-anonymization",
+      "cross-branch-manager-response-negative",
+      "tenant-business-mismatch-negative",
+      "moderation-queue-pagination",
+      "customer-own-review-status-scope"
     ],
     "production_mutation": "NONE",
     "note": "Source candidate only. Production has no general business review table and zero public.orders rows at the read-only checkpoint. No reviews can be submitted until real delivered customer orders exist and this feature is released through the coordinated backup/migration gate."
