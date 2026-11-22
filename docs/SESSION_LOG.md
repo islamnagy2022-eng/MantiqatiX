@@ -3958,3 +3958,17 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - PR980 was stale because PR981 moved main forward; these documentation changes are being re-applied on a fresh current-main branch to preserve PR981's updates. No Production DDL/DML/migrations/Auth/RLS/Storage/Edge/payments/wallet/settlement/customer data changes.
 - Production remains **BLOCKED / NOT CERTIFIED**. Evidence: docs/audits/PASS_1821_1830_LIVE_PRODUCTION_EDGE_MIGRATION_RECHECK_20261122.md and docs/audits/PASS_1821_1830_LIVE_DIRECTORY_DISABLED_MITIGATION_20261122.md.
 
+
+
+## 2026-11-22 — Pass 1832 — PR982 post-merge site deployment verified
+
+- PR982 merged as `dbf40f6b9f8087fd5a274749c4a4db3ceb7c7564` after exact-head CI completed: 28 success, 2 skipped, 0 failures.
+- Primary Catalog validation [45074571077](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45074571077) passed build, browser E2E and employee RBAC PostgreSQL.
+- Production Health Monitor [45074694044](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45074694044) passed.
+- GitHub Pages deployment [45074694031](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45074694031) completed successfully on main SHA `4963b1b86d22f04f179663d7ed21cb7a832a3fd0`. Deployed-origin browser checks for the legacy catalog root, dashboard, mobile and QR routes passed.
+- PR982 source gate is now in main; no Production flag was set and no Supabase Edge function was deployed. Live national directory v18 remains disabled.
+- PR978 remains DRAFT: 28 success, 2 skipped, 0 failures; no gallery Edge deployment. Live catalog Edge source parity and consent schema remain unresolved.
+- Production release blockers remain: 0/76 exact migration versions, missing contact-consent and migration-release registry tables, selected live Edge source mismatches, no verified encrypted off-site backup and independent restore/RPO/RTO.
+- No Production DDL/DML, migrations, Auth/RLS/GRANT, Storage, Edge deploy, payment, wallet, settlement or customer-data writes.
+- Production remains **BLOCKED / NOT CERTIFIED**.
+
