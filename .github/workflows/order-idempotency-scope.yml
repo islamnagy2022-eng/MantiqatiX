@@ -10,6 +10,7 @@ on:
       - "supabase/functions/order-create/index.ts"
       - "supabase/functions/api/index.ts"
       - "supabase/tests/rc104_order_idempotency_scope_*.sql"
+      - "supabase/tests/rc104_order_idempotency_scope_concurrency.sh"
       - "scripts/validate-booking-payment-flow.mjs"
       - ".github/workflows/order-idempotency-scope.yml"
   pull_request:
@@ -21,6 +22,7 @@ on:
       - "supabase/functions/order-create/index.ts"
       - "supabase/functions/api/index.ts"
       - "supabase/tests/rc104_order_idempotency_scope_*.sql"
+      - "supabase/tests/rc104_order_idempotency_scope_concurrency.sh"
       - "scripts/validate-booking-payment-flow.mjs"
       - ".github/workflows/order-idempotency-scope.yml"
 permissions:
@@ -70,3 +72,13 @@ jobs:
           docker cp supabase/migrations/20261122020000_rc498_authenticated_order_create_rpc.sql "$pg_container:/tmp/rc498_migration.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc104_order_idempotency_test -v ON_ERROR_STOP=1 -f /tmp/rc498_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc104_order_idempotency_test -v ON_ERROR_STOP=1 -f /tmp/rc104_test.sql
+
+      - name: Install PostgreSQL client for concurrent idempotency race test
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Prove concurrent idempotency retries converge on one canonical order
+        env:
+          DB_URL: postgresql://postgres:postgres@localhost:5432/mantiqatix_rc104_order_idempotency_test
+        run: bash supabase/tests/rc104_order_idempotency_scope_concurrency.sh
