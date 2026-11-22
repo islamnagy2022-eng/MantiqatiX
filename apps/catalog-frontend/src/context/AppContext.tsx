@@ -562,8 +562,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Always return OAuth to the canonical GitHub Pages app root.
       // Carrying arbitrary query/hash state into Supabase redirect allowlists can
       // cause a successful Google consent flow to return without hydrating the app.
-      // Supabase currently allowlists the platform root. The root shell relays
-      // only OAuth callback parameters to /catalog-app/ before loading its own app.
+      // GitHub Pages serves the canonical catalog frontend at the platform root.
+      // Keep referral attribution on that callback URL; AppContext captures it on return.
       capturePendingReferralFromLocation();
       const redirectUrl = new URL('/MantiqatiX/', window.location.origin);
       const pendingReferralCode = getPendingReferralCode();
