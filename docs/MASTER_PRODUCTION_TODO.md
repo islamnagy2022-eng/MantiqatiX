@@ -4950,7 +4950,7 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Reject non-default ports, localhost, `.localhost`, `.local`, IPv4 and IPv6 literal destinations.
 - [x] Correct terminal-dot hostname normalization and add targeted regression cases.
 - [x] Preserve independent placement loading, deduplication and fail-closed creative validation.
-- [ ] Obtain completed exact-head CI for PR #969; latest known checks were queued, not passed.
+- [x] Obtain completed exact-head CI for PR #969: all 10 workflows passed and PR was squash-merged. Verify actual Pages publication separately; PR deploy job was skipped.
 - [ ] Add focused Marketplace public-offer tests for explicit `show_price === true`, availability, effective price and verified business provenance; do not change the existing offer data contract without evidence.
 - [ ] Design owner-scoped business media lifecycle with upload limits, MIME sniffing, moderation, publication consent, cleanup and responsive delivery; no video bucket exists in Production.
 - [ ] Keep business reviews separate from MantiGO ride ratings; require verified interaction provenance and moderation before implementation.
