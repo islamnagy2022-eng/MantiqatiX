@@ -47,6 +47,7 @@ export const BusinessReviewManagementPanel: React.FC = () => {
       setCount(0);
       setNextOffset(0);
       setLoadingMore(false);
+      setLoading(false);
       return;
     }
     setLoading(true);
@@ -75,9 +76,9 @@ export const BusinessReviewManagementPanel: React.FC = () => {
       setCount(reviewCount);
       setAverage(averageRating);
     } catch (cause) {
+      if (businessIdRef.current !== currentBusiness.id) return;
       setReviews([]);
       setCount(0);
-      if (businessIdRef.current !== currentBusiness.id) return;
       setAverage(null);
       setError(cause instanceof Error ? cause.message : 'تعذر تحميل التقييمات');
     } finally {
