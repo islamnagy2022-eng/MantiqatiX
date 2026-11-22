@@ -88,3 +88,16 @@ test('rejects insecure HTTP creative and target URLs', async () => {
   assert.deepEqual(ads.map((ad) => ad.advertisement_id), ['http-target']);
   assert.equal(ads[0].target_url, null);
 });
+
+test('rejects protocol-relative and malformed ad URLs', async () => {
+  const ads = await loadTargetedAdvertisements(async () => ({
+    data: [
+      validAd('relative-creative', { creative_url: '//cdn.example.test/ad.webp' }),
+      validAd('malformed-target', { target_url: 'https://[invalid-host' }),
+    ],
+    error: null,
+  }));
+
+  assert.deepEqual(ads.map((ad) => ad.advertisement_id), ['malformed-target']);
+  assert.equal(ads[0].target_url, null);
+});
