@@ -119,10 +119,10 @@
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
     "checked_at": "2026-11-22",
-    "method": "Read-only Production migration-ledger inventory retained from 2026-11-22 and compared against the exact 77-version release contract carried by PR #970. No Production migration was applied.",
+    "method": "Read-only Production migration-ledger inventory retained from 2026-11-22 and compared against the exact 78-version release contract carried by the Li2Lak RC497/RC498 candidate. No Production migration was applied.",
     "live_ledger_count": 310,
     "latest_live_version": "20261110150618",
-    "expected_migration_versions": 77,
+    "expected_migration_versions": 78,
     "found_in_live_ledger": 0,
     "required_versions": [
       "20261009120000",
@@ -201,7 +201,8 @@
       "20261120290000",
       "20261121020000",
       "20261121030000",
-      "20261122010000"
+      "20261122010000",
+      "20261122020000"
     ],
     "missing_versions": [
       "20261009120000",
@@ -280,10 +281,11 @@
       "20261120290000",
       "20261121020000",
       "20261121030000",
-      "20261122010000"
+      "20261122010000",
+      "20261122020000"
     ],
     "recorded_required_versions": [],
-    "interpretation": "None of the 77 exact required source-version identifiers are recorded in the current live ledger. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
+    "interpretation": "None of the 78 exact required source-version identifiers are recorded in the current live ledger. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
   },
   "critical_edge_function_source_parity_check": {
     "status": "BLOCKED",
@@ -5447,5 +5449,30 @@
     ],
     "production_mutation": "NONE",
     "note": "Source candidate only. Production has no general business review table and zero public.orders rows at the read-only checkpoint. No reviews can be submitted until real delivered customer orders exist and this feature is released through the coordinated backup/migration gate."
+  },
+  "rc498_authenticated_order_create_rpc": {
+    "source_migration": "20261122020000",
+    "status": "SOURCE_CANDIDATE_NOT_APPLIED",
+    "production_rpc": "public.create_order_backend(...)",
+    "live_security_definer": true,
+    "live_anon_execute": false,
+    "live_authenticated_execute": false,
+    "live_service_role_execute": true,
+    "live_search_path": "public",
+    "live_order_create_edge_function": {
+      "status": "ACTIVE",
+      "version": 8,
+      "verify_jwt": true,
+      "rpc_client": "service_role"
+    },
+    "required_behavior": [
+      "call create_order_backend with the verified customer JWT so auth.uid() matches p_customer_id",
+      "grant EXECUTE only to authenticated callers in addition to the existing controlled service_role path",
+      "keep anon and PUBLIC execution denied",
+      "harden SECURITY DEFINER search_path with pg_catalog first and pg_temp last",
+      "preserve backend customer, membership, tenant, business, provider, branch, catalog, pricing and idempotency checks"
+    ],
+    "production_mutation": "NONE",
+    "note": "Live order-create v8 currently validates the Bearer user with admin.auth.getUser(token) but invokes create_order_backend through the service-role client. The backend RPC requires auth.uid() = p_customer_id. Candidate source switches only the RPC invocation to a user-scoped anon-key client carrying the verified Bearer token; RC498 grants authenticated EXECUTE after hardening search_path. Neither migration nor Edge Function was deployed."
   }
 }
