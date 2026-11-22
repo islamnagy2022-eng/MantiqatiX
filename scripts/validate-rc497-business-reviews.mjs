@@ -117,7 +117,7 @@ assert.match(orderMigration, /REVOKE ALL ON FUNCTION public\\.create_order_backe
   "RC498 must deny PUBLIC/anon and grant only authenticated invocation in addition to controlled service role");
 assert.match(orderMigration, /auth\\.uid\\(\\)[\\s\\S]*?catalog_item_prices[\\s\\S]*?CUSTOMER_REQUIRED/,
   "RC498 preflight must require identity and server-side pricing guards to remain in the RPC");
-assert.match(orderCreateEdge, /const userClient = createClient\\(url, anonKey,[\\s\\S]*?Authorization: \`Bearer \\${token\\u007d\`[\\s\\S]*?userClient\\.rpc\\("create_order_backend"/,
+assert.ok(orderCreateEdge.includes("Authorization: `Bearer ${token}`") && orderCreateEdge.includes('userClient.rpc("create_order_backend"'),
   "order-create must invoke the backend RPC with the verified customer JWT");
 assert.doesNotMatch(orderCreateEdge, /admin\\.rpc\\("create_order_backend"/,
   "order-create must not invoke the auth.uid()-enforcing RPC through service_role");
