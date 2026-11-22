@@ -75,3 +75,16 @@ test('rejects URLs containing embedded credentials', async () => {
   assert.equal(ads.length, 1);
   assert.equal(ads[0].target_url, null);
 });
+
+test('rejects insecure HTTP creative and target URLs', async () => {
+  const ads = await loadTargetedAdvertisements(async () => ({
+    data: [
+      validAd('http-creative', { creative_url: 'http://cdn.example.test/ad.webp' }),
+      validAd('http-target', { target_url: 'http://example.test/offer' }),
+    ],
+    error: null,
+  }));
+
+  assert.deepEqual(ads.map((ad) => ad.advertisement_id), ['http-target']);
+  assert.equal(ads[0].target_url, null);
+});
