@@ -9,6 +9,7 @@ const orderStatus=fs.readFileSync("supabase/functions/order-status-update/index.
 const orderStatusScope=fs.readFileSync("supabase/migrations/20261023030000_rc103_order_status_branch_scope.sql","utf8");
 const orderIdempotencyScope=fs.readFileSync("supabase/migrations/20261023040000_rc104_order_idempotency_scope.sql","utf8");
 const orderCreateServiceRoleScope=fs.readFileSync("supabase/migrations/20261023050000_rc105_order_create_service_role_identity.sql","utf8");
+const orderCreateAuthScope=fs.readFileSync("supabase/migrations/20261122020000_rc498_authenticated_order_create_rpc.sql","utf8");
 const orderStatusServiceRoleScope=fs.readFileSync("supabase/migrations/20261023060000_rc106_order_status_service_role_identity.sql","utf8");
 const medicalBooking=fs.readFileSync("supabase/migrations/20261001003000_security_hardening_medical_status_authz.sql","utf8");
 const medicalCreate=fs.readFileSync("supabase/migrations/20260928210000_rc172_restore_medical_booking_contract.sql","utf8");
@@ -29,6 +30,12 @@ const required=[
   ["Order-create bounds customer name, phone, address, and notes", "INVALID_CUSTOMER_NAME", order],
   ["Order-create rejects unsupported client metadata keys", "UNSUPPORTED_ORDER_METADATA", order],
   ["Order creation uses backend RPC", 'rpc("create_order_backend"', api],
+  ["order-create invokes the RPC with the verified customer JWT", 'userClient.rpc("create_order_backend"', order],
+  ["authenticated Orders API invokes the RPC with the verified customer JWT", 'supabaseUser.rpc("create_order_backend"', api],
+  ["RC498 grants authenticated order RPC execution", "TO authenticated", orderCreateAuthScope],
+  ["RC498 explicitly denies PUBLIC, anon and resets authenticated ACL", "FROM PUBLIC, anon, authenticated", orderCreateAuthScope],
+  ["RC498 hardens order RPC SECURITY DEFINER search_path", "pg_catalog, public, extensions, pg_temp", orderCreateAuthScope],
+  ["RC498 restores idempotency scope conflict protection", "IDEMPOTENCY_KEY_CONFLICT", orderCreateAuthScope],
   ["Order creation validates catalog items", "CATALOG_ITEM_NOT_AVAILABLE", order],
   ["Order creation validates active pricing", "ACTIVE_PRICE_NOT_AVAILABLE", order],
   ["Order creation rejects duplicate or oversized selected options", "INVALID_ITEM_OPTIONS", order],
