@@ -25,6 +25,13 @@ export function clearPendingReferralCode(storage: Pick<Storage, 'removeItem'>): 
   storage.removeItem(PENDING_REFERRAL_STORAGE_KEY);
 }
 
+export function stripReferralParameter(search: string): string {
+  const params = new URLSearchParams(search);
+  params.delete('ref');
+  const next = params.toString();
+  return next ? `?${next}` : '';
+}
+
 export function buildReferralInviteUrl(code: unknown, origin: string, basePath: string): string | null {
   const normalized = normalizeReferralCode(code);
   if (!normalized) return null;
@@ -36,7 +43,12 @@ export function buildReferralInviteUrl(code: unknown, origin: string, basePath: 
 export function capturePendingReferralFromLocation(): string | null {
   if (typeof window === 'undefined') return null;
   try {
-    return captureReferralCodeFromSearch(window.location.search, window.sessionStorage);
+    const code = captureReferralCodeFromSearch(window.location.search, window.sessionStorage);
+    if (code) {
+      const nextSearch = stripReferralParameter(window.location.search);
+      window.history.replaceState(window.history.state, '', `${window.location.pathname}${nextSearch}${window.location.hash}`);
+    }
+    return code;
   } catch {
     return null;
   }
