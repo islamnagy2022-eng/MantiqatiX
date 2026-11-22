@@ -519,7 +519,7 @@ COMMENT ON FUNCTION public.submit_business_review(uuid, integer, text) IS
   'RC497: authenticated customer may submit one immutable review only for their own DELIVERED order.';
 COMMENT ON FUNCTION public.get_customer_business_review_status(uuid) IS
   'RC497: customer may read only their own review status for an order they own; no order or reviewer data is exposed.';
-COMMENT ON FUNCTION public.get_platform_business_review_moderation_queue(integer) IS
+COMMENT ON FUNCTION public.get_platform_business_review_moderation_queue(integer, integer) IS
   'RC497: direct platform-admin registry members only; bounded pending queue excludes customer identity.';
 COMMENT ON FUNCTION public.moderate_business_review(uuid, text, text) IS
   'RC497: moderation requires direct membership in private.platform_admins; tenant roles do not grant global moderation.';
