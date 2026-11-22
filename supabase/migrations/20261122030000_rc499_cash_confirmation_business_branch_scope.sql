@@ -45,7 +45,7 @@ SECURITY DEFINER
 SET search_path TO pg_catalog, public, pg_temp
 AS $function$
 DECLARE
-  v_payment_intent_id uuid;
+  v_payment_intent_id text;
   v_intent record;
   v_order record;
   v_membership record;
@@ -56,7 +56,7 @@ DECLARE
   v_event_id text;
   v_obligation_id text;
 BEGIN
-  v_payment_intent_id := p_payment_intent_id::uuid;
+  v_payment_intent_id := p_payment_intent_id;
   IF auth.uid() IS NOT NULL AND auth.uid() <> p_user_id THEN
     RAISE EXCEPTION 'FORBIDDEN';
   END IF;
