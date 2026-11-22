@@ -4,7 +4,12 @@ on:
   push:
     branches: [main]
     paths:
-      - "supabase/migrations/**"
+name: Forward Migration Chain Replay from Production Schema Checkpoint
+
+on:
+  push:
+    branches: [main]
+    paths:
       - "supabase/tests/rc488_storage_anonymous_auth_write_guard_fixture.sql"
       - "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql"
       - "scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"
@@ -98,7 +103,111 @@ on:
   pull_request:
     branches: ["main"]
     paths:
-      - "supabase/migrations/**"
+name: Forward Migration Chain Replay from Production Schema Checkpoint
+
+on:
+  push:
+    branches: [main]
+    paths:
+name: Forward Migration Chain Replay from Production Schema Checkpoint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/tests/rc488_storage_anonymous_auth_write_guard_fixture.sql"
+      - "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql"
+      - "scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"
+      - "scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"
+      - "supabase/tests/rc488_storage_anonymous_auth_write_guard_fixture.sql"
+      - "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql"
+      - "scripts/validate-rc489-financial-anonymous-auth-read-guard.mjs"
+      - "scripts/validate-rc490-medical-anonymous-auth-read-guard.mjs"
+      - "scripts/validate-rc491-support-anonymous-auth-boundary.mjs"
+      - "scripts/validate-rc492-indrive-anonymous-auth-write-guard.mjs"
+      - "supabase/tests/rc489_financial_anonymous_auth_read_integration.sql"
+      - "supabase/tests/rc490_medical_anonymous_auth_read_integration.sql"
+      - "supabase/tests/rc491_support_anonymous_auth_boundary_integration.sql"
+      - "supabase/tests/rc492_indrive_anonymous_auth_write_guard_integration.sql"
+      - "supabase/tests/baselines/production_schema_snapshot.sql"
+      - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
+      - "supabase/tests/baselines/production_schema_migration_versions.txt"
+      - "supabase/tests/baselines/production_data_prerequisites_fixture.sql"
+      - "supabase/tests/baselines/production_live_trigger_overlay_fixture.sql"
+      - "supabase/tests/baselines/production_live_order_status_history_acl_overlay_fixture.sql"
+      - "supabase/tests/baselines/production_live_business_branch_anon_acl_overlay_fixture.sql"
+      - "supabase/tests/baselines/rc484_live_storage_policy_overlay_fixture.sql"
+      - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
+      - "scripts/verify-tenant-isolation.sql"
+      - "supabase/tests/rc117_default_images_and_activity_admin_contract.sql"
+      - "supabase/tests/owner_profile_persistence_integration.sql"
+      - "supabase/tests/rc455_commission_preview_integration.sql"
+      - "supabase/tests/rc456_commission_resolution_preview_integration.sql"
+      - "supabase/tests/rc467_commission_scope_integration.sql"
+      - "supabase/tests/rc468_digital_page_payment_claim_integration.sql"
+      - "supabase/tests/rc470_digital_page_webhook_forward_repair.sql"
+      - "scripts/validate-rc467-commission-scope.mjs"
+      - "supabase/tests/rc468_digital_page_payment_claim_integration.sql"
+      - "supabase/tests/rc469_shared_platform_admin_caller_search_path.sql"
+      - "supabase/tests/baselines/rc469_live_shared_helper_search_path_overlay.sql"
+      - "scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs"
+      - "scripts/production/live-reconciliation-contract.mjs"
+      - "scripts/production/verify-production.mjs"
+      - "scripts/validate-production-migration-chain-gate.mjs"
+      - "scripts/validate-r7-platform-admin-migration.mjs"
+      - "scripts/validate-rc476-captain-earnings-live-columns.mjs"
+      - "scripts/validate-mantigo-high-risk-definers.mjs"
+      - "scripts/validate-rc482-legal-platform-admin-registry.mjs"
+      - "scripts/validate-rc483-atomic-legal-cms-create-audit.mjs"
+      - "scripts/validate-rc485-catalog-rpc-registry-root.mjs"
+      - "supabase/tests/rc485_catalog_rpc_registry_root_integration.sql"
+      - "supabase/migrations/20261120210000_rc486_catalog_price_version_serialization.sql"
+      - "scripts/validate-rc486-catalog-price-version-serialization.mjs"
+      - "supabase/tests/rc486_catalog_price_version_serialization_integration.sql"
+      - "supabase/migrations/20261120220000_rc487_remove_smm_first_user_admin_bootstrap.sql"
+      - "supabase/migrations/20261120230000_rc488_storage_anonymous_auth_write_guard.sql"
+      - "supabase/migrations/20261120240000_rc489_financial_anonymous_auth_read_guard.sql"
+      - "supabase/migrations/20261120250000_rc490_medical_anonymous_auth_read_guard.sql"
+      - "supabase/migrations/20261120260000_rc491_support_anonymous_auth_boundary.sql"
+      - "supabase/migrations/20261120270000_rc492_indrive_anonymous_auth_write_guard.sql"
+      - "scripts/validate-rc487-smm-first-user-bootstrap-removal.mjs"
+      - "scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"
+      - "scripts/validate-rc489-financial-anonymous-auth-read-guard.mjs"
+      - "supabase/tests/rc487_smm_first_user_bootstrap_removal_integration.sql"
+      - "supabase/tests/rc488_storage_anonymous_auth_write_guard_fixture.sql"
+      - "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql"
+      - "supabase/tests/rc489_financial_anonymous_auth_read_integration.sql"
+      - "supabase/tests/rc482_legal_platform_admin_registry_fixture.sql"
+      - "supabase/tests/rc482_legal_platform_admin_registry_integration.sql"
+      - "supabase/tests/rc483_atomic_legal_cms_create_audit_fixture.sql"
+      - "supabase/tests/rc483_atomic_legal_cms_create_audit_integration.sql"
+      # Keep RC488 static validator and both fixture contracts in the PR replay trigger.
+      - "scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"
+      - "supabase/tests/rc488_storage_anonymous_auth_write_guard_fixture.sql"
+      - "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql"
+      - "docs/release/production-migration-reconciliation.json"
+      - ".github/workflows/forward-migration-chain-replay.yml"
+      - "scripts/validate-rc490-private-crm-notification-read-guards.mjs"
+      - "scripts/validate-rc494-settlement-financial-atomic-registry-scope.mjs"
+      - "scripts/validate-rc495-storage-filename-regex-forward-repair.mjs"
+      - "scripts/validate-rc496-mantigo-bid-accept-state-invariant.mjs"
+      - "scripts/test-rc496-mantigo-bid-accept-concurrency.sh"
+      - "supabase/tests/rc496_mantigo_bid_accept_state_invariant_fixture.sql"
+      - "supabase/tests/rc496_mantigo_bid_accept_state_invariant_integration.sql"
+      - "supabase/tests/rc490_private_crm_notification_read_guards_fixture.sql"
+      - "supabase/tests/rc490_private_crm_notification_read_guards_integration.sql"
+      - "supabase/tests/rc492_indrive_anonymous_auth_write_guard_fixture.sql"
+      - "supabase/tests/rc494_settlement_financial_atomic_registry_scope_integration.sql"
+      - "supabase/tests/rc495_storage_filename_regex_forward_repair.sql"
+      - "supabase/tests/baselines/production_live_settlement_function_acl_overlay_fixture.sql"
+      - "supabase/tests/baselines/production_live_storage_brand_policy_overlay_fixture.sql"
+      - "docs/MASTER_PRODUCTION_TODO.md"
+      - "docs/PROJECT_CONTINUITY.md"
+      - "docs/SESSION_LOG.md"
+      - "docs/runbooks/PRODUCTION_BACKUP_RESTORE_RC484_20261119.md"
+  pull_request:
+    branches: ["main"]
+    paths:
       - "supabase/tests/baselines/production_schema_snapshot.sql"
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
@@ -310,6 +419,9 @@ jobs:
 
           test "$migration_count" -gt 0
           echo "FORWARD_MIGRATIONS_APPLIED=$migration_count"
+
+          echo "PERSONAL_REFERRAL_SELF_SERVICE_RPC_ACL"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/referral_self_service_rpc_grants.sql
 
           echo "RC485_CATALOG_RPC_REGISTRY_ROOT_INTEGRATION"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc485_catalog_rpc_registry_root_integration.sql
