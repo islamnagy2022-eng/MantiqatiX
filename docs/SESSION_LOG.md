@@ -3834,3 +3834,13 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Inspected the chronological definitions of `mantigo_rate_ride`: migration `20261006121810` rejects changed duplicate submissions, but later `20261006171000` replaces it with an upsert/update path.
 - Current-main final definition therefore does not preserve the earlier immutability behavior. `20261006180000` includes the caller's own rating in customer ride-history output.
 - This remains separate from general directory-business reviews. Intended edit policy and PostgreSQL regression coverage need confirmation before any code/migration change.
+
+
+## 2026-11-22 — Pass 1721–1730 — Marketplace ad resilience
+
+- Merged the documentation-only Li2Lak benchmark PR #963 to main as `a04a057a5878d0a9b7fb1b4404348c8f760fe96b`.
+- Implemented a focused Marketplace reliability fix on `fix/li2lak-marketplace-ads-resilience-20261122-v2`: HOME_HERO and HOME_SPONSORED calls now fail independently, safe creative URLs are required, unsafe target URLs are disabled, and duplicate ads are collapsed.
+- Added four tests covering rejected RPC, returned RPC error, URL safety and duplicate placement records. Local Node 22 run: 4/4 PASS; helper TypeScript check: PASS.
+- Added the tests to Primary Catalog Frontend Validation. Exact-head GitHub Actions remains pending; no merge/deployment is claimed.
+- No Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, customer data or public deployment was changed.
+- Production remains **BLOCKED / NOT CERTIFIED** pending backup/restore, migration and Edge parity, security/privacy, and live acceptance gates.
