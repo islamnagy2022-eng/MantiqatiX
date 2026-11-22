@@ -4876,3 +4876,12 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Resolve the live platform-brand Storage policy's legacy SUPER_ADMIN membership predicate through a forward-only, isolated-tested migration before any Production approval.
 - [ ] Keep Li2Lak-inspired business reviews and video upload as separately designed features; do not fabricate ratings or widen current image buckets.
 - **Safety:** read-only Production inspection only. No DB/Auth/RLS/GRANT/Storage/Edge/payment/user-data mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+### Pass 1741–1750 — Live catalog RPC authorization drift — 2026-11-22
+- [x] Re-read all seven live catalog/stock SECURITY DEFINER RPC bodies and function configs.
+- [x] Confirmed all seven still use `search_path=public`, do not call the registry-backed helper, and read legacy membership `scope/full_control` metadata for platform-root authority.
+- [x] Matched the live gap to existing source repairs RC484 + RC485; no duplicate migration needed. RC485 includes seven-function disposable integration coverage and static validator.
+- [x] Confirmed nine RLS-enabled/no-policy relations have no direct anon/authenticated grants; preserve the backend-only direct-access boundary.
+- [ ] Production release must apply the complete ordered migration chain only after real backup/restore rehearsal and coordinated release approval; then re-check all seven function bodies, ACLs, helper registry, Storage policy and negative/positive authorization tests.
+- **P0 RELEASE BLOCKER:** live catalog RPC root authority is still membership-derived. No Production function/ACL/DDL/Storage/Auth/Edge/payment mutation occurred. **PRODUCTION BLOCKED / NOT CERTIFIED.**
