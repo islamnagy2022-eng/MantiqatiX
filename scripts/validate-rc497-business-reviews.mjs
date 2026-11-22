@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const migrationPath = "supabase/migrations/20261122010000_rc497_verified_business_reviews.sql";
+const reviewPanel = fs.readFileSync("apps/catalog-frontend/src/components/storefront/BusinessReviewsPanel.tsx", "utf8");
+const appShell = fs.readFileSync("apps/catalog-frontend/src/App.tsx", "utf8");
 const migration = fs.readFileSync(migrationPath, "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc497_business_reviews_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc497_business_reviews_integration.sql", "utf8");
@@ -71,6 +73,14 @@ for (const token of [
   "RC497_ACCOUNT_DELETION_DID_NOT_SCRUB_REVIEW_TEXT",
 ]) assert.ok(integration.includes(token), `integration suite must cover ${token}`);
 
+assert.match(reviewPanel, /get_public_business_review_summary/,
+  "public storefront must read reviews only through the bounded public RPC");
+assert.match(reviewPanel, /currentBusiness\\?\\.isVerified[\\s\\S]*?operationalStatus !== 'ACTIVE'/,
+  "public review panel must be restricted to active verified businesses");
+assert.match(reviewPanel, /verifiedInteraction === true/,
+  "public storefront must reject review rows without verified-order provenance");
+assert.match(appShell, /<BusinessReviewsPanel \/>/,
+  "verified public review panel must be mounted in the business storefront");
 assert.ok(workflow.includes(migrationPath), "dedicated workflow must apply RC497 migration");
 assert.ok(workflow.includes("supabase/tests/rc497_business_reviews_integration.sql"), "dedicated workflow must execute integration tests");
 assert.ok(forwardReplay.includes("node scripts/validate-rc497-business-reviews.mjs"), "full forward replay must run RC497 source validation");
