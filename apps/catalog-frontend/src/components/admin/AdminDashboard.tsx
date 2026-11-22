@@ -50,6 +50,7 @@ import { SuperAdminControlCenter } from './SuperAdminControlCenter';
 import { ActivityModulesAdmin } from './ActivityModulesAdmin';
 import { CommissionRulesManager } from './CommissionRulesManager';
 import { DirectoryListingsAdmin } from './DirectoryListingsAdmin';
+import { PlatformBusinessReviewModerationPanel } from './PlatformBusinessReviewModerationPanel';
 import { resolveDefaultImage } from '../../utils/defaultImages';
 import { callPlatformAdmin } from '../../lib/production';
 
@@ -108,8 +109,8 @@ export const AdminDashboard: React.FC = () => {
     deleteBusiness,
   } = useApp();
 
-  type AdminTab = 'billing' | 'commissions' | 'taxonomy' | 'businesses' | 'subscribers' | 'directory_listings' | 'activity_modules' | 'settings' | 'backup' | 'control_center';
-  const ADMIN_TABS: AdminTab[] = ['billing', 'commissions', 'taxonomy', 'businesses', 'subscribers', 'directory_listings', 'activity_modules', 'settings', 'backup', 'control_center'];
+  type AdminTab = 'billing' | 'commissions' | 'taxonomy' | 'businesses' | 'subscribers' | 'directory_listings' | 'business_reviews' | 'activity_modules' | 'settings' | 'backup' | 'control_center';
+  const ADMIN_TABS: AdminTab[] = ['billing', 'commissions', 'taxonomy', 'businesses', 'subscribers', 'directory_listings', 'business_reviews', 'activity_modules', 'settings', 'backup', 'control_center'];
   const readAdminTabFromUrl = (): AdminTab => {
     const requested = new URLSearchParams(window.location.search).get('tab') as AdminTab | null;
     return requested && ADMIN_TABS.includes(requested) ? requested : 'billing';
@@ -687,6 +688,17 @@ export const AdminDashboard: React.FC = () => {
           <span>دليل الأنشطة والمطالبات</span>
         </button>
 
+        {/* Verified business review moderation */}
+        <button
+          type="button"
+          aria-pressed={activeAdminTab === 'business_reviews'}
+          onClick={() => setActiveAdminTab('business_reviews')}
+          className={adminTabClass('business_reviews')}
+        >
+          <ShieldCheck className="w-4 h-4" />
+          <span>مراجعة تقييمات الأنشطة</span>
+        </button>
+
         {/* Per-activity module configuration */}
         <button
           type="button"
@@ -719,6 +731,7 @@ export const AdminDashboard: React.FC = () => {
       {activeAdminTab === 'control_center' && <SuperAdminControlCenter />}
 
       {activeAdminTab === 'directory_listings' && <DirectoryListingsAdmin businesses={businesses} categories={categories} functionalGroups={functionalGroups} />}
+      {activeAdminTab === 'business_reviews' && <PlatformBusinessReviewModerationPanel />}
 
       {activeAdminTab === 'activity_modules' && <ActivityModulesAdmin />}
 
