@@ -290,18 +290,29 @@ serve(async (req) => {
   if (req.method === "POST" && cashConfirmMatch) {
     const intentId = cashConfirmMatch[1]
     const { data: intent, error: intentError } = await supabaseAdmin.from("payment_intents")
-      .select("tenant_id").eq("id", intentId).single()
+      .select("tenant_id,order_id").eq("id", intentId).single()
     if (intentError || !intent) return json({ error: "Payment intent not found" }, 404)
+    const { data: linkedOrder, error: linkedOrderError } = await supabaseAdmin.from("orders")
+      .select("business_id,branch_id").eq("id", intent.order_id).eq("tenant_id", intent.tenant_id).maybeSingle()
+    if (linkedOrderError || !linkedOrder) return json({ error: "Linked order not found" }, 404)
 
-    const { data: membership } = await supabaseAdmin.from("user_memberships")
-      .select("role,permissions").eq("user_id", user.id).eq("tenant_id", intent.tenant_id)
-      .eq("status", "ACTIVE").limit(1).maybeSingle()
-    if (!membership) return json({ error: "Forbidden" }, 403)
-
-    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
-    const authorized = ["ADMIN","MANAGER","CASHIER","STAFF","OWNER"].includes(String(membership.role ?? "").toUpperCase()) ||
-      permissions.includes("PAYMENT_CONFIRM_CASH")
-    if (!authorized) return json({ error: "Forbidden: insufficient permissions" }, 403)
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("role,permissions,business_id,branch_id").eq("user_id", user.id)
+      .eq("tenant_id", intent.tenant_id).eq("status", "ACTIVE")
+    if (membershipError) return json({ error: "Failed to validate cash confirmation access" }, 500)
+    const authorized = (memberships ?? []).some((membership: any) => {
+      const role = String(membership.role ?? "").toUpperCase()
+      const businessId = membership.business_id == null ? null : String(membership.business_id)
+      const branchId = membership.branch_id == null ? null : String(membership.branch_id)
+      const orderBusinessId = String(linkedOrder.business_id)
+      const orderBranchId = linkedOrder.branch_id == null ? null : String(linkedOrder.branch_id)
+      const tenantWideOwner = ["OWNER", "ADMIN"].includes(role) && businessId === null && branchId === null
+      const exactBusinessBranch = businessId === orderBusinessId && branchId === orderBranchId
+      const allowedRole = ["ADMIN", "MANAGER", "CASHIER", "STAFF", "OWNER"].includes(role)
+      const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
+      return tenantWideOwner || (exactBusinessBranch && (allowedRole || permissions.includes("PAYMENT_CONFIRM_CASH")))
+    })
+    if (!authorized) return json({ error: "Forbidden: insufficient business/branch payment permissions" }, 403)
 
     const { data, error } = await supabaseAdmin.rpc("confirm_cash_payment", {
       p_payment_intent_id: intentId,
