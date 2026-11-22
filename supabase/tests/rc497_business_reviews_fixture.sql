@@ -26,7 +26,8 @@ GRANT EXECUTE ON FUNCTION auth.jwt() TO anon, authenticated, service_role;
 CREATE TABLE public.businesses (
   id uuid PRIMARY KEY,
   tenant_id varchar NOT NULL,
-  status varchar NOT NULL
+  status varchar NOT NULL,
+  name varchar NOT NULL
 );
 CREATE TABLE public.orders (
   id uuid PRIMARY KEY,
@@ -61,10 +62,10 @@ INSERT INTO auth.users(id) VALUES
  ('10000000-0000-4000-8000-000000000004'),
  ('10000000-0000-4000-8000-000000000005');
 
-INSERT INTO public.businesses(id,tenant_id,status) VALUES
- ('20000000-0000-4000-8000-000000000001','tenant-a','ACTIVE'),
- ('20000000-0000-4000-8000-000000000002','tenant-a','ACTIVE'),
- ('20000000-0000-4000-8000-000000000003','tenant-b','ACTIVE');
+INSERT INTO public.businesses(id,tenant_id,status,name) VALUES
+ ('20000000-0000-4000-8000-000000000001','tenant-a','ACTIVE','نشاط موثق'),
+ ('20000000-0000-4000-8000-000000000002','tenant-a','ACTIVE','نشاط غير موثق'),
+ ('20000000-0000-4000-8000-000000000003','tenant-b','ACTIVE','نشاط آخر');
 
 INSERT INTO public.marketing_provider_profiles(business_id,status,is_verified) VALUES
  ('20000000-0000-4000-8000-000000000001','ACTIVE',true),
