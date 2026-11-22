@@ -430,6 +430,26 @@ async function assertNoHorizontalOverflow(page, label) {
 const browser = await chromium.launch({ headless: true });
 const results = [];
 
+// Exercise the exact production share URL against the live public-catalog API.
+// Keep this production-origin-only: local preview origins are intentionally not
+// allowlisted by the public Edge Function's CORS policy.
+if (new URL(baseUrl).origin === 'https://islamnagy2022-eng.github.io') {
+  const businessId = '41b42921-d111-4514-bc47-380d7f048980';
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+  try {
+    const page = await context.newPage();
+    await page.goto(baseUrl + '?store=' + businessId, { waitUntil: 'domcontentloaded' });
+    await page.getByRole('heading', { name: 'الصالح مول', exact: true }).waitFor({ state: 'visible', timeout: 20000 });
+    await page.getByTestId('storefront-cover-hero').waitFor({ state: 'visible', timeout: 10000 });
+    await page.getByRole('heading', { name: 'قائمة عروض وكتالوج الصالح مول', exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+    await page.getByRole('heading', { name: 'لا توجد منتجات أو خدمات مطابقة', exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+    assert.equal(new URL(page.url()).searchParams.get('store'), businessId, 'direct storefront URL must retain the requested activity id');
+    results.push('live-production-direct-storefront-salih-mall-route-and-empty-catalog-state');
+  } finally {
+    await context.close();
+  }
+}
+
 // The canonical site root is the marketplace home; the directory remains a separate reload-safe route.
 {
   const { context, page } = await newScenario(browser, null, liveDirectory.businesses);
