@@ -5,7 +5,7 @@
 
 ## 1. Release decision
 
-Prioritize a bounded public website release before Li2Lak checkout, payments, settlement, MantiGO and other enterprise workflows. The first release is the public catalog and business-discovery experience, not a certification of every MantiqatiX module.
+Prioritize a bounded public website release first. The pre-launch scope includes the public catalog/business-discovery experience and monthly subscriptions only. Li2Lak, Paymob integration, and all non-monthly financial/accounting workflows are explicitly post-launch. This is not a certification of every MantiqatiX module.
 
 The existing Pages workflow already separates the full-platform gate from the scoped catalog pilot: when the full-platform verifier reports BLOCKED, it may continue only if the catalog-pilot gate has passed. Preserve that separation. Do not weaken or rewrite the 76-migration full-platform gate to make the website pass.
 
@@ -24,12 +24,13 @@ Include only features whose production contracts are verified:
 - Geographic/business profile display using approved public fields.
 - Existing approved showcase/catalog content and public imagery.
 - Owner sign-in and the already-supported basic catalog management path, after the contact-consent endpoint is aligned with the frontend.
+- Monthly subscription plans, subscription status/entitlement checks, and only the already-existing verified monthly renewal/activation path. Do not add a new payment provider integration to V1.
 - Public numeric prices only where the existing explicit catalog-public price flag allows them.
 
 Do not certify or promote as live:
-- Li2Lak tracked checkout, order status, reviews or merchant response/moderation.
-- Paymob or any digital payment/settlement flow.
-- Commission accrual, financial journal, payouts or refunds.
+- All Li2Lak marketplace workflows: tracked checkout, orders, status transitions, reviews, merchant responses/moderation, delivery assignment and proof of delivery.
+- Paymob integration changes, new Paymob intents/webhooks, digital payments outside the already-approved monthly subscription path, and settlement flows.
+- All non-monthly financial/accounting workflows: commission accrual, financial journal, wallet, payouts, refunds, reconciliation and settlements.
 - MantiGO ride lifecycle or ratings.
 - Unclaimed directory-listing contact disclosure.
 - Activity-module administrative writes; the current frontend correctly keeps this disabled pending atomic audit.
@@ -117,7 +118,7 @@ The Pages pipeline's explicit CATALOG_PILOT_GATE is the only permitted route for
 2. Run the public-contact privacy test suite and Deno checks against current main.
 3. Capture the current live bundles and versions for the three catalog functions as rollback/evidence records.
 4. Deploy current-main public-catalog v9 and public-catalog-directory v19 with their exact shared helper bundles; read back all files and preserve verify_jwt=false.
-5. Disable directory-listings as v17 with an empty-success read contract and fixed 503 mutation response, and keep its UI and direct detail routes closed. Read back the exact entrypoint and confirm there are no database queries.
+5. Disable directory-listings as v18 with an empty-success read contract and fixed 503 mutation response, and keep its UI and direct detail routes closed. Read back the exact entrypoint and confirm there are no database queries.
 6. Keep catalog-admin v20 as the current production baseline. Do not deploy current-main catalog-admin until RC464/RC471 authorization prerequisites are released and verified. Keep the owner contact-consent control hidden.
 7. Refresh the reconciliation snapshot with the actual returned versions and explicit admin drift; run the catalog-pilot verifier and Pages HTTP smoke tests.
 8. Let the existing main Pages workflow build and deploy. Do not bypass its main-only deploy condition.
@@ -127,7 +128,7 @@ No production database migration is required by the public-contact projection it
 
 ## 5. Post-launch backlog — execute in this order
 
-### P1 — Li2Lak orders and verified reviews
+### P1 — Li2Lak marketplace (post-launch only)
 - Finish PR #971 only after exact-head CI is green.
 - PostgreSQL 17 tests for RC497 verified reviews, RC498 authenticated order creation, RC499 cash confirmation and the order-idempotency race.
 - Revalidate order creation, customer history, branch-scoped order reads and exact-branch status updates.
@@ -135,11 +136,11 @@ No production database migration is required by the public-contact projection it
 - Complete merchant responses, platform moderation, customer cancellation and refund coupling.
 - Add delivery assignment and proof of delivery (time, actor, order/branch binding and tamper-resistant evidence) before declaring delivery complete.
 
-### P1 — real payment, refund and settlement
-- Implement server-created Paymob intents, signed webhooks, idempotent event processing, reconciliation, refund and failure handling.
+### P1 — Paymob and non-monthly financial/accounting (post-launch only)
+- Implement server-created Paymob intents, signed webhooks, idempotent event processing, reconciliation, refund and failure handling. This is explicitly outside the website launch gate.
 - Keep any mock payment path disabled and fail closed.
 - Connect payment success to order state only through verified server-side events.
-- Complete commission accrual, financial-obligation lifecycle, journal posting, settlement, payout and reversal tests.
+- Complete non-monthly commission accrual, financial-obligation lifecycle, journal posting, wallet, settlement, payout and reversal tests.
 - Keep flexible commission rules RC452/RC455/RC456 inactive drafts until the live calculation/activation engine and audit path are approved.
 
 ### P1 — directory claims and contact rights
@@ -166,9 +167,10 @@ No production database migration is required by the public-contact projection it
 
 Do not set the project to LAUNCHED until all of these are recorded:
 - Exact current-main source parity for public-catalog v9 and public-catalog-directory v19; catalog-admin v20 drift is explicitly recorded and the consent switch remains hidden.
+- Monthly subscription path is verified independently; no new Paymob integration or non-monthly finance flow is required or exposed for V1.
 - Contact and precise-location fields are absent unless both audited consent flags are true.
 - The separate directory-listings API returns 503 and its list/detail routes are disabled in V1.
 - Catalog pilot validator passes on a fresh Production evidence snapshot.
 - Pages workflow completed successfully on main and the deployed origin passes browser/HTTP smoke.
 - Rollback references are recorded.
-- Li2Lak, payment, delivery, settlement and full-platform work remain listed as post-launch rather than implied as delivered.
+- Li2Lak, Paymob integration, delivery, non-monthly accounting/finance, settlement and full-platform work remain listed as post-launch rather than implied as delivered.
