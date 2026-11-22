@@ -55,6 +55,7 @@ CREATE TABLE public.user_memberships (
 );
 CREATE TABLE public.marketing_provider_profiles (
   business_id uuid NOT NULL REFERENCES public.businesses(id),
+  owner_user_id uuid REFERENCES auth.users(id),
   status varchar NOT NULL,
   is_verified boolean NOT NULL DEFAULT false
 );
@@ -82,10 +83,10 @@ INSERT INTO public.branches(id,tenant_id,business_id,status) VALUES
  ('branch-b1','tenant-a','20000000-0000-4000-8000-000000000002','ACTIVE'),
  ('branch-c1','tenant-b','20000000-0000-4000-8000-000000000003','ACTIVE');
 
-INSERT INTO public.marketing_provider_profiles(business_id,status,is_verified) VALUES
- ('20000000-0000-4000-8000-000000000001','ACTIVE',true),
- ('20000000-0000-4000-8000-000000000002','ACTIVE',false),
- ('20000000-0000-4000-8000-000000000003','ACTIVE',true);
+INSERT INTO public.marketing_provider_profiles(business_id,owner_user_id,status,is_verified) VALUES
+ ('20000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000002','ACTIVE',true),
+ ('20000000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000005','ACTIVE',false),
+ ('20000000-0000-4000-8000-000000000003',NULL,'ACTIVE',true);
 
 INSERT INTO public.user_memberships(user_id,tenant_id,business_id,branch_id,role,status) VALUES
  ('10000000-0000-4000-8000-000000000002','tenant-a','20000000-0000-4000-8000-000000000001',NULL,'OWNER','ACTIVE'),
@@ -100,4 +101,5 @@ INSERT INTO public.orders(id,tenant_id,business_id,branch_id,customer_id,status,
  ('30000000-0000-4000-8000-000000000002','tenant-a','20000000-0000-4000-8000-000000000001','branch-a1','10000000-0000-4000-8000-000000000001','PREPARING',75,'[{"catalogItemId":"40000000-0000-4000-8000-000000000002","name":"Test item","quantity":1}]'),
  ('30000000-0000-4000-8000-000000000003','tenant-a','20000000-0000-4000-8000-000000000001','branch-a1','10000000-0000-4000-8000-000000000004','DELIVERED',90,'[{"catalogItemId":"40000000-0000-4000-8000-000000000003","name":"Test item","quantity":1}]'),
  ('30000000-0000-4000-8000-000000000004','tenant-a','20000000-0000-4000-8000-000000000002','branch-b1','10000000-0000-4000-8000-000000000001','DELIVERED',90,'[{"catalogItemId":"40000000-0000-4000-8000-000000000004","name":"Test item","quantity":1}]'),
- ('30000000-0000-4000-8000-000000000005','tenant-a','20000000-0000-4000-8000-000000000003','branch-c1','10000000-0000-4000-8000-000000000001','DELIVERED',90,'[{"catalogItemId":"40000000-0000-4000-8000-000000000005","name":"Test item","quantity":1}]');
+ ('30000000-0000-4000-8000-000000000005','tenant-a','20000000-0000-4000-8000-000000000003','branch-c1','10000000-0000-4000-8000-000000000001','DELIVERED',90,'[{"catalogItemId":"40000000-0000-4000-8000-000000000005","name":"Test item","quantity":1}]'),
+ ('30000000-0000-4000-8000-000000000006','tenant-a','20000000-0000-4000-8000-000000000001','branch-a1','10000000-0000-4000-8000-000000000002','DELIVERED',120,'[{"catalogItemId":"40000000-0000-4000-8000-000000000006","name":"Owner test item","quantity":1}]');
