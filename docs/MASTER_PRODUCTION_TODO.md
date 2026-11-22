@@ -4971,3 +4971,20 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - **Safety:** source/test/documentation changes only; no Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement or customer-data mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
 - Evidence: `docs/audits/PASS_1811_1820_POST_PR975_AND_PUBLIC_PRICE_OPT_IN_20261122.md`, PR #975/#976, runs 45070154362/45070154380/45070154418.
 
+
+
+### Pass 1821–1830 — live Production Edge/migration recheck — 2026-11-22
+- [x] Verified PR #976 post-merge Pages deployment run 45071129013 and Primary Catalog browser validation run 45071128944 succeeded.
+- [x] Reconciled four selected live Supabase Edge entrypoints against current main: `directory-listings` v18, `catalog-admin` v20, `public-catalog-directory` v19, `public-catalog` v9. All four deployed entrypoints differ from current main.
+- [x] Confirmed `directory-listings` v18 is intentionally disabled: GET returns empty results and POST mutation returns 503. Keep it disabled until the complete consent/source-rights release.
+- [x] Read-only query: live migration ledger 310 rows, latest `20261110150618`; exact comparison of all 76 required release version IDs returned **0/76 present**.
+- [x] Confirmed `public.directory_listing_contact_consents` and `public.migration_release_registry` are absent.
+- [ ] Complete exact-head PR #978 browser E2E and all required CI checks. Latest snapshot at documentation checkpoint: 26 success, 3 in progress, 1 skipped, 0 failures; keep PR in draft and do not deploy its Edge sources independently.
+- [ ] Obtain a genuine encrypted off-site database + Storage backup, verify Vault recovery, perform independent PostgreSQL 17 restore/rollback and measure RPO/RTO.
+- [ ] Reconcile and apply the ordered 76-version release only after backup/restore approval; do not apply isolated migrations.
+- [ ] Deploy consent schema, catalog-admin audit writer, both public reader projections, authorization dependencies and tests as one coordinated release. Preserve disabled directory until all checks pass.
+- [ ] Implement direct image upload only with an owner-scoped storage/Edge contract. Current PR #978 handles HTTPS image URLs, not local file upload. Do not broaden bucket policy without a reviewed storage authorization release.
+- [ ] Paymob/financial E2E remains after backend schema/RPC/ACL reconciliation; monthly subscriptions and medical directory remain deferred.
+- **Safety:** all live production rechecks were read-only. No Production DDL/DML, migration, GRANT/RLS, Auth, Storage, Edge deploy, payments, wallet, settlement or customer-data write. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+- Evidence: `docs/audits/PASS_1821_1830_LIVE_PRODUCTION_EDGE_MIGRATION_RECHECK_20261122.md`; `docs/release/production-migration-reconciliation.json`.
+
