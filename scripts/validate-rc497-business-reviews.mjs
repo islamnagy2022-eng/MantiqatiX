@@ -26,6 +26,11 @@ assert.match(migration, /CREATE OR REPLACE FUNCTION public\.get_customer_busines
   "customer review status RPC must return only the authenticated customer's own review");
 assert.match(migration, /REVOKE ALL ON FUNCTION public\.get_customer_business_review_status\(uuid\) FROM PUBLIC, anon, service_role[\s\S]*?GRANT EXECUTE ON FUNCTION public\.get_customer_business_review_status\(uuid\) TO authenticated/,
   "private customer review status RPC must be authenticated-only");
+assert.match(migration, /CREATE OR REPLACE FUNCTION public\.get_platform_business_review_moderation_queue[\s\S]*?FROM private\.platform_admins pa WHERE pa\.user_id = v_actor/,
+  "moderation queue must require direct platform-admin registry membership");
+assert.match(migration, /REVOKE ALL ON FUNCTION public\.get_platform_business_review_moderation_queue\(integer\) FROM PUBLIC, anon, service_role[\s\S]*?GRANT EXECUTE ON FUNCTION public\.get_platform_business_review_moderation_queue\(integer\) TO authenticated/,
+  "moderation queue RPC must be authenticated-only with registry authorization");
+
 assert.match(migration, /v_existing\.rating = p_rating AND v_existing\.review_text IS NOT DISTINCT FROM v_text[\s\S]*?REVIEW_ALREADY_SUBMITTED/,
   "exact retry must be idempotent while changed duplicate payloads are rejected");
 assert.match(migration, /v_decision IN \('REJECTED','HIDDEN'\) AND v_reason IS NULL[\s\S]*?MODERATION_REASON_REQUIRED/,
@@ -59,10 +64,10 @@ assert.match(migration, /REVOKE ALL ON TABLE public\.business_reviews FROM PUBLI
   "review table must not grant direct API-role access");
 assert.match(migration, /REVOKE ALL ON TABLE public\.business_review_events FROM PUBLIC, anon, authenticated, service_role/,
   "review event ledger must not grant direct API-role access");
-assert.equal((migration.match(/SECURITY DEFINER/g) ?? []).length, 5,
-  "only the four intentional review RPCs should be SECURITY DEFINER");
-assert.equal((migration.match(/SET search_path TO ''/g) ?? []).length, 6,
-  "all four review SECURITY DEFINER RPCs and the trigger function must use an empty search_path");
+assert.equal((migration.match(/SECURITY DEFINER/g) ?? []).length, 6,
+  "only the six intentional review RPCs should be SECURITY DEFINER");
+assert.equal((migration.match(/SET search_path TO ''/g) ?? []).length, 7,
+  "all six review SECURITY DEFINER RPCs and the trigger function must use an empty search_path");
 assert.match(fixture, /CREATE TABLE public\.orders[\s\S]*?customer_id uuid REFERENCES auth\.users\(id\) ON DELETE SET NULL/,
   "fixture must model customer account deletion without blocking order retention");
 for (const token of [
@@ -70,6 +75,8 @@ for (const token of [
   "ORDER_BUSINESS_TENANT_MISMATCH",
   "RC497_CUSTOMER_REVIEW_STATUS_LOOKUP_FAILED",
   "RC497_CUSTOMER_READS_FOREIGN_REVIEW_STATUS",
+  "RC497_ADMIN_QUEUE_LOOKUP_FAILED",
+  "RC497_TENANT_OWNER_ACCESSED_MODERATION_QUEUE",
   "BUSINESS_REVIEW_FORBIDDEN",
   "REVIEW_ALREADY_SUBMITTED",
   "MODERATION_REASON_REQUIRED",
