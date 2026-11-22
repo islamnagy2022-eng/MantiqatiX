@@ -79,6 +79,20 @@ BEGIN
     IF SQLERRM <> 'ORDER_BUSINESS_TENANT_MISMATCH' THEN RAISE; END IF;
   END;
 
+  -- A business owner cannot create a customer review for their own business.
+  PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000002',false);
+  PERFORM set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000002","role":"authenticated"}',false);
+  BEGIN
+    PERFORM public.submit_business_review(
+      '30000000-0000-4000-8000-000000000006', 5, 'تقييم من صاحب النشاط لنفسه'
+    );
+    RAISE EXCEPTION 'RC497_SELF_REVIEW_WAS_ACCEPTED';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'BUSINESS_REVIEW_SELF_REVIEW_FORBIDDEN' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000001',false);
+  PERFORM set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated"}',false);
+
   result := public.submit_business_review(
     '30000000-0000-4000-8000-000000000004', 4, 'نشاط غير موثق بعد'
   );
