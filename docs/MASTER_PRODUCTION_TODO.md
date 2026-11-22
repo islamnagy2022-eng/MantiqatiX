@@ -4989,3 +4989,23 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - **Safety:** read-only Production checks and code/docs/CI source changes only. No Production DDL/DML, migrations, GRANT/RLS, Auth, Storage, Edge deploy, payments, wallet, settlement or customer-data writes. **PRODUCTION BLOCKED / NOT CERTIFIED.**
 - Evidence: docs/audits/PASS_1821_1830_LIVE_PRODUCTION_EDGE_MIGRATION_RECHECK_20261122.md, docs/audits/PASS_1821_1830_LIVE_DIRECTORY_DISABLED_MITIGATION_20261122.md, docs/release/production-migration-reconciliation.json.
 
+
+
+### Pass 1832 — Website V1 deployed and post-launch backlog locked — 2026-11-22
+- [x] PR #982 merged: national directory default-closed source gate; no Production flag or Edge deployment.
+- [x] PR #984 merged: live Production migration and selected Edge parity evidence.
+- [x] PR #985 merged as `c95ccc0d891e0670fe34d97c4c1beca6bd0f4fa2`; PR #972 closed as superseded.
+- [x] Exact PR985 head CI: 11 workflow runs successful, including build, dashboard browser E2E, employee RBAC, contact privacy and Pages validation.
+- [x] Main Pages deployment run 45076054135 SUCCESS, including deployed-origin browser tests for public root, dashboard, mobile and QR routes. Website V1 is deployed.
+- [x] Main Primary Catalog run 45076054161 SUCCESS; forward disposable migration replay run 45076054131 SUCCESS with 112 migrations and tenant-isolation checks.
+- [x] Exact live bundle comparison: public-catalog v9 and public-catalog-directory v19 match all current-main files; directory-listings v18 matches reviewed disabled stub and makes no DB client call. catalog-admin v20 and catalog-platform-admin v23 remain drifted.
+- [x] PR978 stays DRAFT; gallery not live. Public-contact consent control remains hidden; unclaimed national directory remains disabled.
+- [ ] Obtain encrypted off-site DB + Storage backup, verify Vault recovery, independently restore PostgreSQL 17, and record rollback/RPO/RTO.
+- [ ] Reconcile exact required release migration IDs: latest read-only check 0/76 present; consent registry and migration release registry absent. No isolated Production migrations.
+- [ ] Release RC472/RC473 consent schema, owner audit writer, public readers and authorization as one bundle; keep directory closed until all tests pass.
+- [ ] Verify monthly subscription checkout with current claim-based intent + signed Paymob sandbox callback; live subscription-payment-intent v4 is source-drifted. Keep checkout disabled until verified.
+- [ ] Resume gallery after matching Edge/schema writer-reader release; direct file upload still requires a reviewed owner-scoped Storage contract.
+- [ ] Keep Li2Lak, Paymob integration expansion, wallet, commissions, refunds, payouts, reconciliation, settlement and non-monthly accounting in post-launch backlog.
+- **Production:** Website V1 deployed; full platform **BLOCKED / NOT CERTIFIED**. No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge, payment, wallet, settlement or customer-data mutation in this pass.
+- Evidence: `docs/audits/PASS_1832_WEBSITE_V1_DEPLOYMENT_20261122.md`, `docs/release/WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md`, Pages run 45076054135, Primary Catalog run 45076054161, replay run 45076054131.
+
