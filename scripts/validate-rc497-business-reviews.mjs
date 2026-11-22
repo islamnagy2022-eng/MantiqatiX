@@ -7,6 +7,8 @@ const customerReviewPanel = fs.readFileSync("apps/catalog-frontend/src/component
 const accountPortal = fs.readFileSync("apps/catalog-frontend/src/modules/account/SubscriberAccountPortal.tsx", "utf8");
 const ownerReviewPanel = fs.readFileSync("apps/catalog-frontend/src/components/merchant/BusinessReviewManagementPanel.tsx", "utf8");
 const merchantDashboard = fs.readFileSync("apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx", "utf8");
+const adminReviewPanel = fs.readFileSync("apps/catalog-frontend/src/components/admin/PlatformBusinessReviewModerationPanel.tsx", "utf8");
+const adminDashboard = fs.readFileSync("apps/catalog-frontend/src/components/admin/AdminDashboard.tsx", "utf8");
 const appShell = fs.readFileSync("apps/catalog-frontend/src/App.tsx", "utf8");
 const migration = fs.readFileSync(migrationPath, "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc497_business_reviews_fixture.sql", "utf8");
@@ -22,6 +24,10 @@ assert.match(migration, /CONSTRAINT business_reviews_one_per_order UNIQUE \(orde
   "one immutable review per order must be enforced by a database unique constraint");
 assert.match(migration, /v_order\.customer_id IS DISTINCT FROM v_actor[\s\S]*?upper\(coalesce\(v_order\.status, ''\)\) <> 'DELIVERED'[\s\S]*?ORDER_BUSINESS_TENANT_MISMATCH/,
   "review submission must bind the authenticated actor to their own delivered order");
+assert.match(migration, /CREATE OR REPLACE FUNCTION public\\.get_platform_business_review_moderation_queue[\\s\\S]*?private\\.platform_admins pa WHERE pa\\.user_id = v_actor[\\s\\S]*?r\\.status = 'PENDING'/,
+  "moderation queue RPC must be bounded to pending reviews and the direct platform-admin registry");
+assert.match(migration, /REVOKE ALL ON FUNCTION public\\.get_platform_business_review_moderation_queue\\(integer\\) FROM PUBLIC, anon, service_role[\\s\\S]*?GRANT EXECUTE ON FUNCTION public\\.get_platform_business_review_moderation_queue\\(integer\\) TO authenticated/,
+  "moderation queue RPC must be authenticated-only and registry-gated");
 assert.match(migration, /CREATE OR REPLACE FUNCTION public\.get_customer_business_review_status[\s\S]*?o\.customer_id = v_actor[\s\S]*?r\.customer_id = v_actor/,
   "customer review status RPC must return only the authenticated customer's own review");
 assert.match(migration, /REVOKE ALL ON FUNCTION public\.get_customer_business_review_status\(uuid\) FROM PUBLIC, anon, service_role[\s\S]*?GRANT EXECUTE ON FUNCTION public\.get_customer_business_review_status\(uuid\) TO authenticated/,
@@ -59,9 +65,9 @@ assert.match(migration, /REVOKE ALL ON TABLE public\.business_reviews FROM PUBLI
   "review table must not grant direct API-role access");
 assert.match(migration, /REVOKE ALL ON TABLE public\.business_review_events FROM PUBLIC, anon, authenticated, service_role/,
   "review event ledger must not grant direct API-role access");
-assert.equal((migration.match(/SECURITY DEFINER/g) ?? []).length, 5,
+assert.equal((migration.match(/SECURITY DEFINER/g) ?? []).length, 6,
   "only the four intentional review RPCs should be SECURITY DEFINER");
-assert.equal((migration.match(/SET search_path TO ''/g) ?? []).length, 6,
+assert.equal((migration.match(/SET search_path TO ''/g) ?? []).length, 7,
   "all four review SECURITY DEFINER RPCs and the trigger function must use an empty search_path");
 assert.match(fixture, /CREATE TABLE public\.orders[\s\S]*?customer_id uuid REFERENCES auth\.users\(id\) ON DELETE SET NULL/,
   "fixture must model customer account deletion without blocking order retention");
@@ -69,7 +75,7 @@ for (const token of [
   "ORDER_NOT_DELIVERED",
   "ORDER_BUSINESS_TENANT_MISMATCH",
   "RC497_CUSTOMER_REVIEW_STATUS_LOOKUP_FAILED",
-  "RC497_CUSTOMER_READS_FOREIGN_REVIEW_STATUS",
+  "RC497_CUSTOMER_READS_FOREIGN_REVIEW_STATUS",\n  "RC497_TENANT_OWNER_ACCESSED_MODERATION_QUEUE",\n  "RC497_PLATFORM_MODERATION_QUEUE_SCOPE_OR_PRIVACY_INVALID",
   "BUSINESS_REVIEW_FORBIDDEN",
   "REVIEW_ALREADY_SUBMITTED",
   "MODERATION_REASON_REQUIRED",
@@ -99,6 +105,10 @@ assert.match(ownerReviewPanel, /respond_to_business_review[\\s\\S]*?p_review_id:
   "business owner UI must use the scoped response RPC rather than direct table writes");
 assert.match(merchantDashboard, /BusinessReviewManagementPanel[\\s\\S]*?activeTab === 'reviews'/,
   "business owner review-response panel must be mounted behind the merchant dashboard tab");
+assert.match(adminReviewPanel, /get_platform_business_review_moderation_queue[\\s\\S]*?moderate_business_review/,
+  "platform admin UI must use the registry-gated queue and moderation RPCs");
+assert.match(adminDashboard, /<PlatformBusinessReviewModerationPanel \/>/,
+  "platform review moderation panel must be mounted in the admin dashboard");
 assert.match(accountPortal, /<CustomerOrderReviews \/>/,
   "customer order history and review form must be mounted in the account portal");
 assert.match(appShell, /<BusinessReviewsPanel \/>/,
