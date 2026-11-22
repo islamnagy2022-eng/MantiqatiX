@@ -27,6 +27,8 @@ const gate = fs.readFileSync("scripts/validate-production-migration-chain-gate.m
 const verifier = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
 const liveContract = fs.readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
 const manifest = JSON.parse(fs.readFileSync("docs/release/production-migration-reconciliation.json", "utf8"));
+const masterTodo = fs.readFileSync("docs/MASTER_PRODUCTION_TODO.md", "utf8");
+const sessionLog = fs.readFileSync("docs/SESSION_LOG.md", "utf8");
 
 assert.match(migration, /CONSTRAINT business_reviews_one_per_order UNIQUE \(order_id\)/,
   "one immutable review per order must be enforced by a database unique constraint");
@@ -269,4 +271,6 @@ assert.equal(manifest.rc497_verified_business_reviews.status, "SOURCE_CANDIDATE_
   "manifest must not claim RC497 is deployed");
 assert.equal(manifest.rc497_verified_business_reviews.pr, 971,
   "manifest must reference the active rebased Li2Lak pull request");
+assert.ok(masterTodo.includes("Pass 1921–1930") && sessionLog.includes("Li2Lak selected-branch lookup hardening"),
+  "master TODO and append-only session log must retain the latest Li2Lak branch validation hardening record");
 console.log("RC497_BUSINESS_REVIEWS_SOURCE_CONTRACT=PASS");
