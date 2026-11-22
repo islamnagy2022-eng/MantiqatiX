@@ -1,7 +1,7 @@
 ## Production Edge update — website-first privacy boundary (2026-11-22)
 
 - Deployed and read back public-catalog v9 and public-catalog-directory v19. Both preserve verify_jwt=false and every deployed file is byte-for-byte equal to current main, including the shared contact consent helper.
-- Deployed directory-listings v17 as a fixed-503 endpoint marked DIRECTORY_LISTINGS_DISABLED_FOR_V1. It reads no database rows and preserves verify_jwt=false; the Pages workflow now has a dedicated HTTP smoke to test GET 200-empty, POST 503 and CORS.
+- Deployed directory-listings v18 as a fixed-503 endpoint marked DIRECTORY_LISTINGS_DISABLED_FOR_V1. It reads no database rows and preserves verify_jwt=false; the Pages workflow now has a dedicated HTTP smoke to test GET 200-empty, POST 503 and CORS.
 - The website-first branch does not fetch unclaimed directory rows or open direct ?listing= detail routes. The merchant public-contact consent checkbox is hidden because catalog-admin v20 remains the current baseline and the safe registry-backed audit handler is not yet deployed.
 - catalog-admin v20 and catalog-platform-admin v23 are preserved with drift disclosed. No Production SQL, migration, RLS, GRANT, Auth, or table data mutation occurred.
 - No Pages deploy and no PR merge occurred. Full platform gate remains BLOCKED.
@@ -13,7 +13,7 @@
 **Current position: NOT RELEASED / NOT CERTIFIED.**
 - PR #972 is open and mergeable; head CI is pending. Pages validation run 44985676119 has its `validate` job queued; `validate_public_only` is skipped. This is a PR validation run, not a Pages deployment.
 - Production public-catalog v9 and public-catalog-directory v19 are ACTIVE, preserve `verify_jwt=false`, and their complete deployed bundles match current main byte-for-byte. Both now apply the audited-contact projection.
-- Production directory-listings v17 is ACTIVE with the V1 fixed-503 stub; the read-back code contains no database client or table query and matches the branch source. The Pages workflow now tests GET/POST 503 and CORS; HTTP smoke and CI are still pending.
+- Production directory-listings v18 is ACTIVE with the V1 fixed-503 stub; the read-back code contains no database client or table query and matches the branch source. The Pages workflow now tests GET/POST 503 and CORS; HTTP smoke and CI are still pending.
 - catalog-admin v20 and catalog-platform-admin v23 remain unchanged with drift disclosed. The owner public-contact consent UI is hidden because the current-main audited handler depends on registry-backed authorization not yet deployed. No contact-sharing grants are enabled.
 - Aggregate Production check: 10 active branches have phone fields, 7 have addresses, and 0/10 public businesses have both audited public-contact consent flags. Therefore contact details remain hidden by the public projection.
 - The separate directory consent registry is absent; unclaimed third-party listings and direct detail routes are disabled in V1.
