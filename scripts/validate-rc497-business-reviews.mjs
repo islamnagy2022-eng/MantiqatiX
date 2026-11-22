@@ -134,6 +134,12 @@ assert.ok(["auth.uid()", "auth.role()", "IDEMPOTENCY_KEY_CONFLICT", "catalog_ite
   "RC498 must retain identity, service-role verification, idempotency-scope and server-pricing guards");
 assert.match(orderMigration, /v_qty<>trunc\(v_qty\)/,
   "the authoritative RPC must reject fractional quantities even when called directly by authenticated users");
+assert.match(orderMigration, /jsonb_array_length\(p_items_json\)>100[\s\S]*?v_qty>1000[\s\S]*?v_requested_opts>20/,
+  "the authoritative RPC must enforce the same item, quantity and option-count limits as its Edge caller");
+assert.match(orderMigration, /jsonb_typeof\(coalesce\(v_item->'selectedOptionIds','\[\]'::jsonb\)\) is distinct from 'array'[\s\S]*?length\(option_value #>> '\{\}'\)>100/,
+  "the authoritative RPC must validate option array shape and identifier length");
+assert.ok(orderIntegration.includes("RC498_OPTION_LIMIT_BYPASSED") && orderIntegration.includes("RC498_ITEM_COUNT_LIMIT_BYPASSED"),
+  "RC498 integration must cover direct-call option and item-count limits");
 assert.ok(orderIntegration.includes("RC498_FRACTIONAL_QUANTITY_ACCEPTED") && orderIntegration.includes('"quantity":1.5'),
   "RC498 integration must prove authenticated direct RPC callers cannot submit fractional quantities");
 assert.ok(orderCreateEdge.includes("Authorization: `Bearer ${token}`") && orderCreateEdge.includes('userClient.rpc("create_order_backend"'),
