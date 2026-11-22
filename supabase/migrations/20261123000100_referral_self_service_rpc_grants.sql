@@ -74,23 +74,31 @@ AS $function$
 DECLARE
   v_uid uuid := auth.uid();
   v_code varchar(32);
+  v_status varchar(16);
   v_count bigint;
 BEGIN
   IF v_uid IS NULL OR COALESCE(auth.jwt()->>'is_anonymous','false') = 'true' THEN
     RAISE EXCEPTION 'AUTH_REQUIRED';
   END IF;
 
-  SELECT code INTO v_code
+  SELECT code, status INTO v_code, v_status
   FROM public.referral_codes
-  WHERE user_id = v_uid AND status = 'ACTIVE'
+  WHERE user_id = v_uid
   LIMIT 1;
 
   IF v_code IS NULL THEN
     v_code := upper(substr(md5(gen_random_uuid()::text || v_uid::text), 1, 10));
     INSERT INTO public.referral_codes(user_id, code)
     VALUES (v_uid, v_code)
-    ON CONFLICT (user_id) DO UPDATE SET updated_at = now()
-    RETURNING code INTO v_code;
+    ON CONFLICT (user_id) DO NOTHING;
+    SELECT code, status INTO v_code, v_status
+    FROM public.referral_codes
+    WHERE user_id = v_uid
+    LIMIT 1;
+  END IF;
+
+  IF v_status <> 'ACTIVE' THEN
+    RAISE EXCEPTION 'REFERRAL_CODE_NOT_ACTIVE';
   END IF;
 
   SELECT count(*) INTO v_count
