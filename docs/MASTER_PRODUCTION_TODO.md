@@ -5053,3 +5053,13 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Await and inspect exact-head CI for PR #971; no success is claimed before PostgreSQL execution and required checks finish.
 - [ ] Complete full migration replay, backup/restore and Production physical schema/ACL/RLS reconciliation before any release.
 - **Safety:** source/workflow/ledger changes only. No Production database, Auth, RLS/GRANT, Storage, Edge, payment, wallet, customer-data or public deployment mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+### Pass 1901–1910 — Li2Lak checkout payment fail-closed correction — 2026-11-22
+- [x] Confirm Paymob is explicitly disabled platform-wide in the Li2Lak cart pending real gateway approval and verified server-side authorization.
+- [x] Remove the client-side simulated Paymob authorization handshake and random transaction-reference generation.
+- [x] Reject any Paymob order-submission call before order persistence and state clearly that no amount was collected.
+- [x] Remove the false Paymob payment-success confirmation and add static regression guards against fake references and simulated success.
+- [ ] Keep Paymob disabled until the real payment-intent, provider callback/webhook signature, server-side status reconciliation, refund/chargeback and settlement paths pass end-to-end tests.
+- [ ] Re-run exact-head frontend/build and all PR checks; no CI success is claimed for the latest source head yet.
+- **Safety:** source and test changes only. No payment, wallet, Production, Edge or public deployment mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
