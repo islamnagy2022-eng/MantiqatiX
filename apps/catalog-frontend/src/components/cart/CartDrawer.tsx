@@ -60,6 +60,7 @@ export const CartDrawer: React.FC = () => {
     ref?: string;
     orderId?: string;
     tracked?: boolean;
+    whatsappSent?: boolean;
   } | null>(null);
 
   // Paymob Payment Method State
@@ -228,9 +229,9 @@ export const CartDrawer: React.FC = () => {
         paymobTransactionRef: details.ref,
       });
 
-      if (!result.success) {
+      if (!result.success || !result.url) {
         if (orderId) {
-          setCompletedOrderDetails({ orderId, tracked, ...details });
+          setCompletedOrderDetails({ orderId, tracked, whatsappSent: false, ...details });
           setOrderSentSuccess(true);
           setErrorMessage(result.error || 'تم تسجيل الطلب، لكن تعذر إنشاء رابط واتساب.');
           return;
@@ -242,6 +243,7 @@ export const CartDrawer: React.FC = () => {
         whatsappUrl: result.url,
         orderId,
         tracked,
+        whatsappSent: true,
         ...details,
       });
       setOrderSentSuccess(true);
@@ -371,9 +373,14 @@ export const CartDrawer: React.FC = () => {
                 <h3 className="font-black text-lg text-emerald-950">
                   {completedOrderDetails.method === 'paymob'
                     ? 'تم سداد الطلب بنجاح عبر Paymob وإرسال التفاصيل!'
-                    : completedOrderDetails.tracked ? 'تم تسجيل الطلب وإرسال التفاصيل عبر واتساب!' : 'تم إرسال طلبك عبر واتساب فقط!'}
+                    : completedOrderDetails.tracked ? (completedOrderDetails.whatsappSent === false ? 'تم تسجيل الطلب لكن تعذر فتح واتساب' : 'تم تسجيل الطلب وإرسال التفاصيل عبر واتساب!') : 'تم إرسال طلبك عبر واتساب فقط!'}
                 </h3>
 
+                {completedOrderDetails.tracked && completedOrderDetails.whatsappSent === false && (
+                  <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                    تم حفظ الطلب في حسابك. لم يتم إنشاء رابط واتساب؛ يمكنك التواصل مع النشاط من بياناته المسجلة.
+                  </p>
+                )}
                 {completedOrderDetails.tracked && completedOrderDetails.orderId && (
                   <p className="rounded-xl border border-emerald-200 bg-white p-3 text-sm font-bold text-emerald-900">
                     رقم الطلب المسجل: <span dir="ltr" className="font-mono">{completedOrderDetails.orderId}</span>
