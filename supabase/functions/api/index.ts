@@ -228,7 +228,7 @@ serve(async (req) => {
     const { data, error } = await supabaseUser.rpc("create_payment_intent_backend", {
       p_tenant_id: String(order.tenant_id),
       p_order_id: String(order.id),
-      p_amount: Number(order.total_amount),
+      p_amount: String(order.total_amount),
       p_currency: String(order.currency),
       p_provider: "CASH_ON_DELIVERY",
       p_payment_method: "CASH_ON_DELIVERY",
