@@ -37,6 +37,8 @@ jobs:
           --health-retries 12
     steps:
       - uses: actions/checkout@v6
+      - name: Validate RC497 source security and release contract
+        run: node scripts/validate-rc497-business-reviews.mjs
       - name: Apply isolated Supabase fixture
         run: psql "postgresql://postgres:postgres@localhost:5432/li2lak_reviews_test" -v ON_ERROR_STOP=1 -f supabase/tests/rc497_business_reviews_fixture.sql
       - name: Apply RC497 migration
