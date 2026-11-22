@@ -3295,3 +3295,8 @@ The repair already exists in source: RC484 registry-backed helper followed by RC
 ### RC484 platform-admin registry dependency — live recheck — 2026-11-22
 
 Live `private.platform_admins` has one row, RLS enabled, FORCE RLS false, and no direct anon/authenticated grants. The deployed `public.is_platform_admin()` is still SECURITY INVOKER with `search_path=public`, checks active ADMIN/SUPER_ADMIN membership and does not consult the private registry. 57 live RLS policy expressions call this helper. Existing RC484 source is the intended coordinated repair; RC485's seven catalog RPC fixes depend on RC484. Apply neither separately. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Pass 1751–1760 — Li2Lak verified-review contract design — 2026-11-22
+
+Live source evidence confirms standard `orders` has nullable `customer_id` and a business-side DELIVERED terminal state; `medical_appointments` has `patient_id` and a provider-side COMPLETED terminal state. `restaurant_orders` has no customer Auth ID and is excluded from v1. No general business-review table exists. A separate design spec now defines a business-level review model based on verified completed orders/appointments, with immutable provenance, moderation, owner response, reports, aggregates, RLS and RPC boundaries. No schema or UI implementation was created. Product decisions on moderation/edit/retention/disputes remain open. Production stays **BLOCKED / NOT CERTIFIED**.
