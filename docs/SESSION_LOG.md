@@ -3802,3 +3802,16 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - **Next:** inspect Marketplace Home and ad/discount contracts, reviews schema/RPCs, and media Storage policies; implement only a proven gap with tests.
 - **Release:** **PRODUCTION BLOCKED / NOT CERTIFIED**.
 
+
+
+
+## 2026-11-22 — Pass 1701–1710 — Marketplace, reviews and media source inspection
+
+- **Action:** inspected current-main `MarketplaceHome.tsx`, public targeted-ad RPC contract, public catalog pricing contract and relevant media upload entry points.
+- **Verified:** Marketplace Home already serves verified active businesses, public ads from `get_mnty_targeted_advertisements` (HOME_HERO/HOME_SPONSORED), and product/service discounts based on actual catalog prices. Do not rebuild this feature.
+- **Verified:** public numeric prices are gated by explicit `catalog_public.show_price === true`.
+- **Verified:** AI image generation and Facebook media import have Storage upload paths. A public video/reels pipeline was not established by inspected sources.
+- **Not established:** absence of a customer reviews system; targeted code search found no obvious table/RPC/UI, but complete schema inventory remains required.
+- **Next:** test Marketplace failure/empty/expired-ad/price-permission paths; inspect all migrations and schema references for review/rating models; evaluate geo-targeting using explicit consent only.
+- **Safety:** no application code, Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet or customer data changed. No deployment. **PRODUCTION BLOCKED / NOT CERTIFIED**.
+
