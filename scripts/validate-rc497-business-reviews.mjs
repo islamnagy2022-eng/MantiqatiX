@@ -181,6 +181,26 @@ const orderGetRouteEnd = apiEdge.indexOf('if (req.method === "POST" && path === 
 assert.ok(orderGetRouteStart >= 0 && orderGetRouteEnd > orderGetRouteStart,
   "legacy order-read route must remain independently identifiable for authorization validation");
 const orderGetRoute = apiEdge.slice(orderGetRouteStart, orderGetRouteEnd);
+
+const paymentIntentReadStart = apiEdge.indexOf("const paymentIntentMatch = path.match");
+const cashConfirmStart = apiEdge.indexOf("const cashConfirmMatch = path.match", paymentIntentReadStart);
+const notFoundStart = apiEdge.indexOf('return json({ error: "Not Found" }, 404)', cashConfirmStart);
+assert.ok(paymentIntentReadStart >= 0 && cashConfirmStart > paymentIntentReadStart && notFoundStart > cashConfirmStart,
+  "payment-intent read and cash-confirm routes must remain separately identifiable");
+const paymentIntentReadRoute = apiEdge.slice(paymentIntentReadStart, cashConfirmStart);
+const cashConfirmRoute = apiEdge.slice(cashConfirmStart, notFoundStart);
+assert.ok(paymentIntentReadRoute.includes("businessBranchScope = businessId === orderBusinessId && (branchId === null || branchId === orderBranchId)"),
+  "payment-intent reads must allow branchless finance memberships only within their own business");
+assert.ok(paymentIntentReadRoute.includes('businessBranchScope && (scopedFinanceRole || permissions.includes("PAYMENT_READ_ALL"))'),
+  "payment-intent reads must apply the business/branch scope to finance roles and explicit read permission");
+assert.ok(cashConfirmRoute.includes("businessBranchScope = businessId === orderBusinessId && (branchId === null || branchId === orderBranchId)"),
+  "cash confirmation must allow branchless business managers only within their own business");
+assert.ok(cashConfirmRoute.includes('businessBranchScope && (allowedRole || permissions.includes("PAYMENT_CONFIRM_CASH"))'),
+  "cash confirmation must apply business/branch scope before accepting a role or explicit permission");
+assert.ok(paymentIntentReadRoute.includes('tenantWideOwner = ["OWNER", "ADMIN"].includes(role) && businessId === null && branchId === null')
+  && cashConfirmRoute.includes('tenantWideOwner = ["OWNER", "ADMIN"].includes(role) && businessId === null && branchId === null'),
+  "tenant-wide payment access must remain limited to fully unscoped OWNER/ADMIN");
+
 assert.ok(orderGetRoute.includes('.eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE")'),
   "legacy order reads must validate an ACTIVE membership for the requesting user in the order tenant");
 assert.ok(orderGetRoute.includes('tenantWideOwner = ["OWNER", "ADMIN"].includes(role) && businessId === null && branchId === null'),
