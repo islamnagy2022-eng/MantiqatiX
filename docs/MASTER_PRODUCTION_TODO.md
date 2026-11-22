@@ -4832,3 +4832,19 @@ Safety: no Production mutation or deployment. Production remains BLOCKED / NOT C
 Evidence: `docs/audits/PASS_1661_1670_CURRENT_MAIN_REPLAY_AND_DEPLOYMENT_20261122.md`; replay run 44959408678; health run 44959408639; Pages run 44959408621.
 
 Safety: isolated replay and static-site deployment only. No Production database, Auth, RLS/GRANT, Storage, Edge, payment, wallet or customer-data mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+### Pass 1711–1720 — scoped ratings inventory and product-review gap triage — 2026-11-22
+
+- [x] Enumerated the repository Git tree: 1,281 tracked files and 238 Supabase migration files.
+- [x] Found and inspected `20261006121810_mantigo_rating_immutability_v1.sql`; it implements immutable/idempotent 1–5 ratings for a customer's own completed MantiGO ride and its accepted captain.
+- [x] Confirmed the live-schema policy inventory includes `public.mantigo_ride_ratings` with authenticated-session and MantiGO-specific policies.
+- [x] Corrected the gap statement: ratings exist for MantiGO rides; a general public review system for directory businesses/products/services was not found in targeted searches and remains pending full schema confirmation.
+- [ ] Inspect the table-creation migration, constraints, trigger(s), read/aggregate RPCs and all MantiGO rating consumers before judging the MantiGO subsystem complete.
+- [ ] Confirm the absence/presence of a general business-review table through full migration-content/schema inventory, not code-search absence alone.
+- [ ] Add and run Marketplace component/RPC regression tests for partial RPC failure, invalid creative/target URLs, empty ads, expiry and price-disclosure boundaries. No such test run is claimed in this pass.
+- [ ] Inspect Storage bucket policies and media lifecycle before any video/reels work.
+
+Evidence: `supabase/migrations/20261006121810_mantigo_rating_immutability_v1.sql`; `docs/audits/PASS_1470_1479_ANONYMOUS_POLICY_MATRIX_20261120.md`; current-main Git tree and targeted code-search results.
+
+Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Storage/Edge/payment/customer-data mutation. No deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
