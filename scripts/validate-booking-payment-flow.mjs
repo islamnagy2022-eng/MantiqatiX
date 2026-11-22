@@ -62,6 +62,13 @@ const required=[
   ["Order idempotency conflict is checked before returning a stored snapshot", "o.customer_id is distinct from p_customer_id", orderIdempotencyScope],
   ["RC104 preserves existing RPC ACLs without grant changes", "CREATE OR REPLACE preserves the existing function identity and its ACL", orderIdempotencyScope],
   ["Payment requires authenticated user", "user.is_anonymous", payment],
+  ["Legacy order API keeps branchId optional for branchless businesses", 'const required = ["orderId","tenantId","businessId","clientIdempotencyKey","items"]', api],
+  ["Legacy order API requires explicit branch when active branches exist", "Branch selection is required", api],
+  ["Legacy order reads query every active membership with branch scope", 'select("id,role,permissions,business_id,branch_id")', api],
+  ["Tenant-wide order reads require unscoped OWNER/ADMIN membership", "tenantWideOwner", api],
+  ["Business-scoped order reads require exact business and branch match", "exactBusinessBranch", api],
+  ["Legacy payment intents use the authenticated canonical backend RPC", 'supabaseUser.rpc("create_payment_intent_backend"', api],
+  ["Payment amount comes from persisted server total_amount", "p_amount: Number(order.total_amount)", api],
   ["Payment requires pricing snapshot", "pricing_hash", payment],
   ["Payment revalidates pricing before provider call", "Authoritative pricing changed; restart payment", payment],
   ["Payment provider is Paymob", 'p_provider: "PAYMOB"', payment],
@@ -72,6 +79,10 @@ const forbiddenClientOrder=[
   [/.from\(['"]orders['"]\)\.insert\(/, "Direct client order INSERT"],
   [/\.from\(['"]orders['"]\)\.update\(/, "Direct client order UPDATE"],
   [/\.from\(['"]payment_intents['"]\)\.insert\(/, "Direct client payment_intent INSERT"]
+];
+
+const forbiddenApiPayment=[
+  [/\.from\(['"]payment_intents['"]\)\.upsert\(/, "Direct service-role payment_intent upsert in API"]
 ];
 
 
@@ -111,6 +122,7 @@ if(orderIdempotencyScope.toLowerCase().includes("grant execute")||orderIdempoten
 if(orderCreateServiceRoleScope.toLowerCase().includes("grant execute")||orderCreateServiceRoleScope.toLowerCase().includes("revoke execute")) failures.push("RC105 must not broaden or alter backend-only order-create RPC execution grants");
 if(orderStatusServiceRoleScope.toLowerCase().includes("grant execute")||orderStatusServiceRoleScope.toLowerCase().includes("revoke execute")) failures.push("RC106 must not broaden or alter backend-only order-status RPC execution grants");
 for(const [re,label] of forbiddenClientOrder) if(re.test(app)) failures.push(label);
+for(const [re,label] of forbiddenApiPayment) if(re.test(api)) failures.push(label);
 
 if(failures.length){
   console.error("Booking/payment production invariant check failed:");
