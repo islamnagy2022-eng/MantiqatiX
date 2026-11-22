@@ -3885,3 +3885,12 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - No archive code or SQL was merged. Detailed evidence: `docs/audits/PASS_1761_1770_AI_STUDIO_R7_ARCHIVE_RECONCILIATION_20261122.md`.
 - Tightened homepage ad URL validation to HTTPS-only and added HTTP downgrade regression coverage; exact-head CI is still queued.
 - No Production changes/deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-11-22 — Pass 1771–1780 — Directory Edge consent drift
+
+- Retrieved live `directory-listings` version 16, `verify_jwt=false`, SHA256 `13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0`.
+- Compared deployed Edge files to current main: 3/7 present; deployed source lacks output sanitization, contact-consent pagination and registry-backed platform-admin modules; pagination helper differs.
+- Read-only aggregate: 869 published rows; all 869 contain phone and address. Both contact-consent registry table names absent.
+- Confirmed P0 privacy release blocker. No Production migration, Edge deployment, DDL/DML, Auth/RLS/GRANT, Storage, payment or wallet change.
+- Evidence: `docs/audits/PASS_1771_1780_DIRECTORY_EDGE_CONSENT_LIVE_DRIFT_20261122.md`. **PRODUCTION BLOCKED / NOT CERTIFIED.**
