@@ -134,3 +134,9 @@ The uploaded 2026-11-10 R7 snapshot is a historical UX/feature reference, not th
 - This is a P0 release/privacy blocker for Li2Lak's public directory. Do not enable customer-facing public contact until the consent registry and complete Edge bundle are deployed together and verified with anonymous negative and owner-consent positive tests.
 - The current source sanitizer hides phone, secondary phone, address and precise map URL independently unless the corresponding active consent scope exists; lookup failures discard partial results and fail closed.
 - No Production mutation or deployment occurred. See `docs/audits/PASS_1791_1800_LIVE_DIRECTORY_CONSENT_RELEASE_GATE_20261122.md`.
+
+## Pass 1811–1820 — verified business reviews — 2026-11-22
+
+Li2Lak now has a source candidate for the verified business review journey: authenticated customers can review only their own delivered orders; reviews are held pending registry-admin moderation; active business-scoped owners can post one response; and only published reviews for active verified businesses appear publicly without customer identity. Customer account, merchant dashboard, admin moderation and public storefront components are mounted in the frontend. This is deliberately separate from MantiGO ride ratings.
+
+The live Production project currently has zero order rows and no business-review table. Therefore the feature has no real production review data and is not active. RC497 is source-only, included in the 77-version release gate, and awaits exact-head CI plus backup/restore and coordinated migration approval. No Production mutation or deployment occurred. Evidence: `docs/audits/PASS_1811_1820_LI2LAK_VERIFIED_BUSINESS_REVIEWS_20261122.md`.
