@@ -63,3 +63,15 @@ test('fails closed when both placements return invalid payloads', async () => {
 
   assert.deepEqual(ads, []);
 });
+
+test('rejects URLs containing embedded credentials', async () => {
+  const ads = await loadTargetedAdvertisements(async () => ({
+    data: [
+      validAd('credential-url', { target_url: 'https://user:secret@example.test/offer' }),
+    ],
+    error: null,
+  }));
+
+  assert.equal(ads.length, 1);
+  assert.equal(ads[0].target_url, null);
+});
