@@ -4037,3 +4037,11 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Nine source checks passed. Exact-head GitHub Actions queued RC474, Li2Lak, Order Idempotency, Forward Migration Replay and Primary Catalog Frontend. No successful runtime result is claimed yet.
 - No Production database/Auth/RLS/GRANT/payment/Edge changes. RC474 remains unapplied; Production not certified.
 - Audit: `docs/audits/PASS_2001_2010_RC474_PAYMENT_SCOPE_PG17_20261122.md`.
+
+## 2026-11-22 — Pass 2011–2020 — API order-read authorization parity with RC465
+- Extended the RC497 source validator to compare the candidate legacy API `GET /api/v1/orders/:id` access gate with the RC465 orders-member RLS policy.
+- Required the same nine scoped roles (OWNER, ADMIN, BUSINESS_OWNER, MANAGER, STAFF, EMPLOYEE, FINANCE, ACCOUNTANT, FINANCE_MANAGER), excluded CASHIER/DELIVERY_PARTNER from unscoped order-member reads, and asserted the tenant-wide OWNER/ADMIN guard, exact business/branch equality, exact assigned-partner order binding, and provider own-business branch exception.
+- Re-fetched API, RLS migration and validator source; all 18 manual source invariants passed.
+- Full Node validator execution, frontend/Edge build and runtime authorization tests remain unverified pending exact-head CI.
+- No Production or Android changes. PR #971 stays open/unmerged; Production blocked/not certified.
+- Audit: `docs/audits/PASS_2011_2020_API_ORDER_READ_SCOPE_RLS_PARITY_20261122.md`.
