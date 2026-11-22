@@ -4960,7 +4960,7 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Add one immutable review per authenticated customer's own DELIVERED order, enforced by database unique order constraint and order-row lock.
 - [x] Add exact-retry idempotency and reject changed duplicate submissions.
 - [x] Keep reviews PENDING until moderation by a user directly present in `private.platform_admins`; tenant role helpers cannot authorize moderation.
-- [x] Add a bounded platform moderation queue that excludes customer identity, plus approve/reject UI with mandatory rejection reason.
+- [x] Add a bounded, paginated platform moderation queue that excludes customer identity, plus approve/reject UI with mandatory rejection reason.
 - [x] Add a business-scoped one-time response RPC and merchant dashboard panel.
 - [x] Add customer order review form and own-review status RPC; order query is explicitly filtered by authenticated customer id.
 - [x] Add bounded identity-free public review summary for ACTIVE verified businesses and mount it in storefront.
