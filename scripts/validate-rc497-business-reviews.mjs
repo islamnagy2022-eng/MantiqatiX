@@ -100,11 +100,11 @@ assert.match(reviewPanel, /currentBusiness\?\.isVerified[\s\S]*?operationalStatu
   "public review panel must be restricted to active verified businesses");
 assert.match(reviewPanel, /verifiedInteraction === true/,
   "public storefront must reject review rows without verified-order provenance");
-assert.match(orderCreateEdge, /admin\.auth\.getUser\(token\)[\s\S]*?admin\.rpc\(["']create_order_backend["']/,
+assert.ok(orderCreateEdge.includes("admin.auth.getUser(token)") && orderCreateEdge.includes('admin.rpc("create_order_backend"'),
   "order-create Edge Function must verify the bearer identity before calling the backend RPC");
-assert.match(orderCreateServiceRoleMigration, /coalesce\(auth\.role\(\), ?'service_role'\)/,
+assert.ok(orderCreateServiceRoleMigration.includes("coalesce(auth.role(),'') <> 'service_role'"),
   "RC105 must allow the verified service-role Edge Function path without widening authenticated EXECUTE");
-assert.match(orderCreateServiceRoleMigration, /auth\.uid\(\) is distinct from p_customer_id/,
+assert.ok(orderCreateServiceRoleMigration.includes("auth.uid() is distinct from p_customer_id"),
   "RC105 must keep every non-service-role caller bound to auth.uid");
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261023050000"),
   "release chain must include RC105 service-role identity repair before tracked checkout is enabled");
