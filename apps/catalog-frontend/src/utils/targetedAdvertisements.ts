@@ -15,12 +15,12 @@ export type TargetedAdvertisementRpc = (
 
 const AD_SPACES = ['HOME_HERO', 'HOME_SPONSORED'] as const;
 
-export const isSafeHttpUrl = (value: unknown): string => {
+export const isSafeHttpsUrl = (value: unknown): string => {
   if (typeof value !== 'string' || !value.trim()) return '';
   try {
     const url = new URL(value);
     if (url.username || url.password) return '';
-    return url.protocol === 'https:' || url.protocol === 'http:' ? url.toString() : '';
+    return url.protocol === 'https:' ? url.toString() : '';
   } catch {
     return '';
   }
@@ -56,7 +56,7 @@ export async function loadTargetedAdvertisements(
     if (!candidate || typeof candidate !== 'object') continue;
     const row = candidate as Record<string, unknown>;
     const id = typeof row.advertisement_id === 'string' ? row.advertisement_id.trim() : '';
-    const creativeUrl = isSafeHttpUrl(row.creative_url);
+    const creativeUrl = isSafeHttpsUrl(row.creative_url);
     if (!id || !creativeUrl) continue;
 
     if (!unique.has(id)) {
@@ -64,7 +64,7 @@ export async function loadTargetedAdvertisements(
         advertisement_id: id,
         title: typeof row.title === 'string' ? row.title : '',
         creative_url: creativeUrl,
-        target_url: isSafeHttpUrl(row.target_url) || null,
+        target_url: isSafeHttpsUrl(row.target_url) || null,
         ...(typeof row.ad_space_id === 'string' ? { ad_space_id: row.ad_space_id } : {}),
         ...(typeof row.match_level === 'string' ? { match_level: row.match_level } : {}),
       });
