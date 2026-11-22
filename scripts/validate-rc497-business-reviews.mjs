@@ -38,6 +38,9 @@ assert.match(migration, /customer_id uuid REFERENCES auth\.users\(id\) ON DELETE
   "account deletion must anonymize reviewer references without deleting review history");
 assert.match(migration, /actor_user_id uuid REFERENCES auth\.users\(id\) ON DELETE SET NULL/,
   "account deletion must anonymize event actor references");
+assert.match(migration, /trg_business_review_customer_anonymization[\s\S]*?NEW\.review_text := NULL/,
+  "account deletion must scrub customer-authored review text while retaining the verified rating");
+
 assert.match(migration, /ALTER TABLE public\.business_reviews ENABLE ROW LEVEL SECURITY;[\s\S]*?FORCE ROW LEVEL SECURITY/,
   "review table must enforce RLS");
 assert.match(migration, /ALTER TABLE public\.business_review_events ENABLE ROW LEVEL SECURITY;[\s\S]*?FORCE ROW LEVEL SECURITY/,
@@ -65,6 +68,7 @@ for (const token of [
   "RC497_DIRECT_TABLE_READ_GRANT_FOUND",
   "RC497_ACCOUNT_DELETION_REMOVED_REVIEWS",
   "RC497_ACCOUNT_DELETION_DID_NOT_ANONYMIZE_REVIEW",
+  "RC497_ACCOUNT_DELETION_DID_NOT_SCRUB_REVIEW_TEXT",
 ]) assert.ok(integration.includes(token), `integration suite must cover ${token}`);
 
 assert.ok(workflow.includes(migrationPath), "dedicated workflow must apply RC497 migration");
