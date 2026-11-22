@@ -1,3 +1,12 @@
+### Pass 1701–1710 — source inspection refinement
+- [x] Confirmed Marketplace Home already exists and is wired to verified active businesses, the public targeted-ad RPC for HOME_HERO/HOME_SPONSORED, and real public catalog product/service discounts.
+- [x] Confirmed public numeric price disclosure requires explicit `catalog_public.show_price === true`; no price-visibility bypass proposed.
+- [x] Confirmed image Storage uploads exist in AI image generation and Facebook media import; no public video/reels pipeline confirmed.
+- [ ] Complete migration/schema/RPC inventory for customer reviews before declaring the feature absent or designing it.
+- [ ] Add Marketplace tests for RPC failure/empty states, expired ads, public price permissions and optional geographic targeting.
+- Evidence: `docs/product/Li2Lak_COMPETITOR_BENCHMARK_20261122.md`.
+- **Safety:** source inspection/documentation only. Production remains **BLOCKED / NOT CERTIFIED**.
+
 ## Pass 1701–1710 — Li2Lak product benchmark — 2026-11-22
 - [x] Compared publicly observable Li2Lak product patterns with current-main MantiqaTix source and the existing AI Studio parity map.
 - [x] Recorded existing strengths: Activity → Specialty discovery, verified-first directory, unclaimed/claimed separation, geographic search, owner storefronts, consent-scoped contact, progressive pagination, owner/admin dashboards and QR.
