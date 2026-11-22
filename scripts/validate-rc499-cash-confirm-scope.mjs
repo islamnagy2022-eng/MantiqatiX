@@ -27,6 +27,16 @@ assert.match(migration, /ORDER BY[\s\S]*?m\.branch_id IS NOT DISTINCT FROM v_ord
   "the exact matching membership must be deterministically preferred");
 assert.ok(migration.indexOf("IF NOT FOUND THEN RAISE EXCEPTION 'FORBIDDEN'") < migration.indexOf("IF v_intent.status = 'SUCCEEDED'"),
   "membership authorization must occur before returning an already-succeeded payment");
+assert.match(migration, /CASH_PAYMENT_EVENT_CONFLICT/,
+  "a conflicting pre-existing cash event must fail closed");
+assert.match(migration, /CASH_COMMISSION_OBLIGATION_CONFLICT/,
+  "a conflicting pre-existing commission obligation must fail closed");
+assert.match(migration, /v_existing_obligation\.gross_amount IS DISTINCT FROM v_intent\.amount[\s\S]*?v_existing_obligation\.amount IS DISTINCT FROM v_commission_amount/,
+  "an existing cash commission obligation must match both gross and commission amounts");
+assert.match(migration, /IF v_existing_event\.id IS NULL THEN[\s\S]*?INSERT INTO public\.payment_events[\s\S]*?END IF;/,
+  "an exact pre-existing event must not be duplicated");
+assert.match(migration, /IF v_existing_obligation\.id IS NULL THEN[\s\S]*?INSERT INTO public\.financial_obligations[\s\S]*?END IF;/,
+  "an exact pre-existing obligation must not be duplicated");
 assert.match(migration, /REVOKE ALL ON FUNCTION public\.confirm_cash_payment\(character varying, uuid\) FROM PUBLIC, anon, authenticated;[\s\S]*?GRANT EXECUTE ON FUNCTION public\.confirm_cash_payment\(character varying, uuid\) TO service_role;/,
   "cash confirmation must remain service-role-only");
 assert.match(fixture, /CREATE TABLE public\.user_memberships[\s\S]*?CREATE TABLE public\.orders[\s\S]*?CREATE TABLE public\.payment_intents[\s\S]*?CREATE TABLE public\.commission_rules[\s\S]*?CREATE TABLE public\.payment_events[\s\S]*?CREATE TABLE public\.financial_obligations/,
@@ -47,6 +57,10 @@ assert.ok(integration.includes("tenant-wide MANAGER received OWNER/ADMIN-only sc
   "integration must reject an unscoped MANAGER");
 assert.ok(integration.includes("Already confirmed"),
   "integration must retain idempotent retry behavior after authorization");
+assert.ok(integration.includes("conflicting cash commission obligation was accepted"),
+  "integration must reject a conflicting pre-existing commission obligation");
+assert.ok(integration.includes("conflicting cash payment event was accepted"),
+  "integration must reject a conflicting pre-existing payment event");
 assert.match(api, /const hasPermission = \(permissions: unknown, permission: string\): boolean => \{[\s\S]*?Array\.isArray\(permissions\)[\s\S]*?\[permission\] === true/,
   "API permission decoder must recognize arrays and boolean-object grants only when true");
 assert.ok(api.includes('businessBranchScope && (scopedFinanceRole || hasPermission(membership.permissions, "PAYMENT_READ_ALL"))'),
