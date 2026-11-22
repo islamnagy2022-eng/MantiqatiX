@@ -154,7 +154,8 @@ export const CartDrawer: React.FC = () => {
       let tracked = false;
       let whatsappNotes = deliveryNotes;
 
-      if (authSession.isAuthenticated && authSession.userId) {
+      if (authSession.isAuthenticated) {
+        if (!authSession.userId) throw new Error('تعذر التحقق من هوية حسابك. أعد تسجيل الدخول قبل إرسال الطلب.');
         if (!currentBusiness.tenantId) throw new Error('تعذر تحديد نطاق النشاط التجاري؛ لم يتم إرسال الطلب.');
         const items = cartItems.map(({ product, quantity }) => {
           if (!/^[0-9a-f-]{36}$/i.test(product.id)) {
@@ -169,8 +170,10 @@ export const CartDrawer: React.FC = () => {
           businessId: currentBusiness.id,
           tenantId: currentBusiness.tenantId,
           branchId: currentBusiness.branchId || null,
+          customerName: customerName.trim(),
           customerPhone: customerPhone.trim(),
           customerAddress: customerAddress.trim(),
+          deliveryNotes: deliveryNotes.trim(),
           items,
         });
         if (!orderAttemptRef.current || orderAttemptRef.current.fingerprint !== fingerprint) {
@@ -806,7 +809,7 @@ export const CartDrawer: React.FC = () => {
                 <span>
                   {paymentMethod === 'paymob'
                     ? 'سيتم دفع المبلغ بأمان عبر Paymob ثم إرسال الفاتورة والرقم المرجعي لواتساب النشاط.'
-                    : `سيتم تحويل هذا الطلب مباشرة إلى واتساب النشاط (${currentBusiness?.ownerWhatsApp}).`}
+                    : authSession.isAuthenticated ? `سيتم تسجيل الطلب في حسابك بالأسعار المعتمدة من الكتالوج ثم تحويل التفاصيل إلى واتساب النشاط (${currentBusiness?.ownerWhatsApp}).` : `سيتم تحويل الطلب إلى واتساب النشاط (${currentBusiness?.ownerWhatsApp}) فقط. سجّل الدخول لتسجيل الطلب في حسابك وإتاحة تقييمه بعد التسليم.`}
                 </span>
               </div>
 
