@@ -26,8 +26,8 @@
   "payment_finance_e2e": "NOT VERIFIED — current read-only aggregate counts were zero for orders, payment_intents, payment_provider_events, subscription_payment_intents, digital_page_orders, digital_page_payment_events and mantigo_financial_ledger. No Paymob sandbox request, callback replay, refund, settlement or journal posting was initiated. Physical DB contracts remain incomplete: RC427 active-order unique index absent; subscription RC435 claim and RC439 encrypted-checkout columns absent; new atomic standard/subscription/MantiGO failure/success processors absent; provider-order binding and RC450 journal ACL not fully live. Empty tables do not establish safe payment readiness.",
   "backup_restore_rehearsal": "NOT VERIFIED — no actual Production database/Storage export, off-site upload/retrieval, Vault recovery, separate-project PostgreSQL 17 restore, measured RPO/RTO or rollback rehearsal occurred. PR #875 merged a read-only encrypted backup manifest/evidence validator; exact-head CI passed 12/12 disposable tests (run 44640871190). The tool validates operator-created artifacts/evidence only and does not create backups or perform restores.",
   "evidence_ref": "docs/audits/PRODUCTION_RECONCILIATION_20261114.md",
-  "checked_at": "2026-11-21",
-  "reason": "BLOCKED / NOT CERTIFIED: fresh read-only Production check on 2026-11-21 found 310 migration rows through 20261110150618 and 0/76 exact required release identifiers. Exact live Edge entrypoint parity remains 4/11, with seven critical functions differing from main. Independent physical contract gaps include missing payment/order/subscription RPCs and columns, RC450 service_role journal EXECUTE, and registry-backed global-admin hardening. Directory contact-consent remains BLOCKED: live anonymous directory GET exposes phone/address for 869 published rows while RC473 consent tables are absent. Anonymous Auth and Storage policy guards RC488–RC495 are source candidates only and not applied; RC494 additionally closes the service-role settlement writer's membership-only MNTY-PLATFORM authority and enforces business/tenant finance scope. The backup verifier has disposable CI coverage, but no actual encrypted database/Storage backup, off-site retrieval, Vault recovery or independent PostgreSQL 17 restore/rollback was performed; RPO/RTO remain unverified. No Production database or Edge mutation was performed; GitHub Pages static site deployment was verified separately. RC495 adds a forward-only Storage filename/registry authorization repair after the RC488–RC494 chain; it is source-only and unapplied. PR #961 merged as a0af2a4d2f561794f17eff5cf57d15ab3f1aa58b after 19/19 exact-head CI workflows passed, including 112-migration chronological disposable replay and catalog browser E2E. This is source/CI evidence only; no Production migration or deployment was performed. The prior PR #958 replay evidence remains historical.",
+  "checked_at": "2026-11-22",
+  "reason": "BLOCKED / NOT CERTIFIED: fresh read-only Production check on 2026-11-21 found 310 migration rows through 20261110150618 and 0/76 exact required release identifiers. Exact live Edge entrypoint parity remains 4/11, with seven critical functions differing from main. Independent physical contract gaps include missing payment/order/subscription RPCs and columns, RC450 service_role journal EXECUTE, and registry-backed global-admin hardening. Directory contact-consent remains BLOCKED: live anonymous directory GET exposes phone/address for 869 published rows while RC473 consent tables are absent. Anonymous Auth and Storage policy guards RC488–RC495 are source candidates only and not applied; RC494 additionally closes the service-role settlement writer's membership-only MNTY-PLATFORM authority and enforces business/tenant finance scope. The backup verifier has disposable CI coverage, but no actual encrypted database/Storage backup, off-site retrieval, Vault recovery or independent PostgreSQL 17 restore/rollback was performed; RPO/RTO remain unverified. No Production database or Edge mutation was performed; GitHub Pages static site deployment was verified separately. RC495 adds a forward-only Storage filename/registry authorization repair after the RC488–RC494 chain; it is source-only and unapplied. PR #961 merged as a0af2a4d2f561794f17eff5cf57d15ab3f1aa58b after 19/19 exact-head CI workflows passed, including 112-migration chronological disposable replay and catalog browser E2E. This is source/CI evidence only; no Production migration or deployment was performed. The prior PR #958 replay evidence remains historical. Fresh read-only 2026-11-22 catalog RPC inspection confirms all seven RC485-targeted SECURITY DEFINER functions still use search_path=public and mutable membership metadata for platform-root authorization; RC484/RC485 source repairs are present but unapplied. The nine RLS-enabled/no-policy relations have no direct anon/authenticated grants. RC495 source repairs the live platform-brand Storage legacy membership policy but remains unapplied. Production remains blocked; no DDL, ACL, Storage, Auth, Edge or payment mutation occurred.",
   "edge_function_contracts": "PARTIAL — fresh exact entrypoint comparison on 2026-11-20 found 7/11 critical live Edge functions differ from current main: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3, directory-listings v16. Four exact matches: api v17, order-status-update v4, payment-webhook v3, smm-gateway v13 (still deferred). Do not deploy mismatched payment/finance/directory/order functions individually; the live database is missing or has older payment, subscription, journal, order and directory consent contracts.",
   "smm_gateway_parity": "PARTIAL — live SMM gateway remains ACTIVE v13, verify_jwt=true, and source matches main with SMM_INITIAL_LAUNCH_DEFERRED=true. Anonymous/authenticated negative runtime tests still unverified; keep deferred.",
   "auth_security_settings": "NOT VERIFIED — current connector does not expose project Auth security configuration. The prior 2026-11-06 advisor snapshot reported leaked-password protection disabled; owner-dashboard confirmation and remediation evidence are still required. No Auth settings were changed.",
@@ -5251,5 +5251,69 @@
     "result": "The exact PR #958 head completed the full 111-migration chronological replay from the captured schema-only Production checkpoint, including RC494 and RC495 integration coverage. All exact-head checks completed: 28 success, 2 skipped, none failed; Primary Catalog browser E2E passed.",
     "production_effect": "NONE — disposable Supabase replay and CI only; no Production schema/data/grants/Auth/Edge Functions/payments/wallets or migration ledger rows changed.",
     "limitation": "A schema-only disposable replay is not a genuine Production backup restore. RPO/RTO, off-site backup retrieval, Vault recovery and live post-deploy authorization remain unverified."
+  },
+  "production_security_recheck_20261122": {
+    "status": "BLOCKED_READ_ONLY",
+    "checked_at": "2026-11-22",
+    "project_ref": "moyhiluyhjsujhwlyeuu",
+    "project_status": "ACTIVE_HEALTHY",
+    "live_migration_ledger": {
+      "rows": 310,
+      "latest_version": "20261110150618"
+    },
+    "catalog_rpc_registry_root": {
+      "status": "LIVE_SOURCE_DRIFT_CONFIRMED",
+      "affected_functions": [
+        "adjust_catalog_stock_backend",
+        "create_catalog_warehouse_backend",
+        "update_catalog_item_status_backend",
+        "upsert_catalog_business_profile_backend",
+        "upsert_catalog_item_backend",
+        "upsert_catalog_price_backend",
+        "upsert_catalog_settings_backend"
+      ],
+      "live_contract": "All seven are SECURITY DEFINER, search_path=public, do not call public.is_platform_admin(), and still read mutable membership permissions scope/full_control for platform-root authority.",
+      "source_repair": "RC484 + RC485 already exist in the ordered source chain; RC485 changes all seven to empty search_path and registry-backed platform-root authorization while retaining tenant-local role scope.",
+      "source_integration_test": "supabase/tests/rc485_catalog_rpc_registry_root_integration.sql",
+      "source_validator": "scripts/validate-rc485-catalog-rpc-registry-root.mjs",
+      "production_migrations_applied": false
+    },
+    "rls_no_policy_relations": {
+      "count": 9,
+      "direct_anon_grants": 0,
+      "direct_authenticated_grants": 0,
+      "policies": 0,
+      "interpretation": "Read-only grant/policy check confirms these remain backend-only at the direct table API layer. Preserve no-direct-client-access; do not add blanket policies."
+    },
+    "security_advisor": {
+      "anonymous_security_definer_functions": 1,
+      "known_public_function": "get_mnty_targeted_advertisements",
+      "authenticated_security_definer_functions": 65,
+      "interpretation": "Counts are review inventories; the public ads function has empty search_path and bounded active/approved ad projection; review other functions individually."
+    },
+    "storage": {
+      "private_bucket": {
+        "id": "mantiqatix-media",
+        "max_bytes": 5242880,
+        "allowed_mime_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ]
+      },
+      "public_profile_bucket": {
+        "id": "mantiqatix-profile-media",
+        "max_bytes": 5242880,
+        "allowed_mime_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "image/svg+xml"
+        ]
+      },
+      "video_upload_configured": false,
+      "live_platform_brand_policy": "Still checks active SUPER_ADMIN membership; RC495 source repairs it to public.mnty_can_platform_admin() and is not applied to Production."
+    },
+    "production_mutation": "NONE — read-only metadata/catalog/advisor inspection only."
   }
 }
