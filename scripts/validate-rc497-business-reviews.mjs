@@ -18,7 +18,6 @@ const orderCreateEdge = fs.readFileSync("supabase/functions/order-create/index.t
 const apiEdge = fs.readFileSync("supabase/functions/api/index.ts", "utf8");
 const orderIntegration = fs.readFileSync("supabase/tests/rc104_order_idempotency_scope_integration.sql", "utf8");
 const orderWorkflow = fs.readFileSync(".github/workflows/order-idempotency-scope.yml", "utf8");
-const apiEdge = fs.readFileSync("supabase/functions/api/index.ts", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc497_business_reviews_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc497_business_reviews_integration.sql", "utf8");
 const workflow = fs.readFileSync(".github/workflows/li2lak-verified-business-reviews.yml", "utf8");
