@@ -4971,3 +4971,21 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - **Safety:** source/test/documentation changes only; no Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement or customer-data mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
 - Evidence: `docs/audits/PASS_1811_1820_POST_PR975_AND_PUBLIC_PRICE_OPT_IN_20261122.md`, PR #975/#976, runs 45070154362/45070154380/45070154418.
 
+
+
+### Pass 1821–1830 — live Production Edge/migration parity and directory source gate — 2026-11-22
+- [x] Verified PR976 post-merge Pages run 45071129013 and Primary Catalog browser validation 45071128944.
+- [x] PR978 exact-head checks completed: 28 success, 2 skipped, 0 failed; build, RBAC PostgreSQL and browser E2E passed. Keep it DRAFT pending coordinated Edge/schema release; direct file upload is not implemented.
+- [x] PR981 merged as 54e433d54ace06a154d438ea672da4a781990730; preserved its live directory-disabled mitigation audit.
+- [x] Fresh read-only live migration query: 310 ledger rows, latest 20261110150618, expected 76 versions, found 0.
+- [x] Confirmed directory contact consent table and migration release registry absent.
+- [x] Compared live Edge entrypoints against current main: directory-listings v18, catalog-admin v20, public-catalog-directory v19 and public-catalog v9. All differ from current main. Preserve directory-listings v18's disabled response.
+- [ ] Complete PR982 exact-head CI (default-closed source gate). At checkpoint 29 checks queued, 1 skipped, 0 failures. Do not deploy Edge or enable the flag from this PR.
+- [ ] Obtain genuine encrypted off-site DB + Storage backup, verify Vault recovery, perform independent PostgreSQL 17 restore/rollback, and measure RPO/RTO.
+- [ ] Reconcile the exact 76-version release migration chain and physical object/ACL dependencies. No isolated Production migration runs.
+- [ ] Release RC472/RC473 consent schema, owner audit writer, public readers, authorization dependencies and negative/positive tests as one bundle; keep national listings disabled until all gates pass.
+- [ ] Complete gallery writer/reader deployment in the same coordinated release. Current PR978 supports HTTPS URLs, not local file uploads; any upload pipeline needs a separately reviewed owner-scoped Storage/Edge contract.
+- [ ] Continue Paymob/financial E2E only after backend schema/RPC/ACL reconciliation. Monthly subscriptions and medical directory remain deferred.
+- **Safety:** read-only Production checks and code/docs/CI source changes only. No Production DDL/DML, migrations, GRANT/RLS, Auth, Storage, Edge deploy, payments, wallet, settlement or customer-data writes. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+- Evidence: docs/audits/PASS_1821_1830_LIVE_PRODUCTION_EDGE_MIGRATION_RECHECK_20261122.md, docs/audits/PASS_1821_1830_LIVE_DIRECTORY_DISABLED_MITIGATION_20261122.md, docs/release/production-migration-reconciliation.json.
+
