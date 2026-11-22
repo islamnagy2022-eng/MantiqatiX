@@ -102,7 +102,12 @@ assert.ok(directoryView.includes('if (!PUBLIC_UNCLAIMED_DIRECTORY_LISTINGS_ENABL
 assert.ok(directoryView.includes('const [listingSlug, setListingSlug] = useState<string>(() => PUBLIC_UNCLAIMED_DIRECTORY_LISTINGS_ENABLED ?'), 'Direct listing URLs must stay closed');
 assert.ok(!merchantProfile.includes('bizPublicContactEnabled') && !merchantProfile.includes('أوافق صراحة على إظهار'), 'Do not expose a consent switch until the live audit handler is deployed');
 assert.ok(merchantProfile.includes('عرض بيانات التواصل العامة متوقف مؤقتًا'), 'Merchant UI must explain why public contact sharing is temporarily unavailable');
-assert.ok(appContext.includes("Object.prototype.hasOwnProperty.call(updated, 'publicContactEnabled')"), 'Profile saves must not send a default consent value');
+const profileUpdateStart = appContext.indexOf("await callCatalogAdmin({\\n      action: 'BUSINESS_PROFILE_UPSERT'");
+assert.ok(profileUpdateStart >= 0, 'The canonical business profile update payload must remain present');
+const profileUpdateEnd = appContext.indexOf("\\n    });", profileUpdateStart);
+assert.ok(profileUpdateEnd > profileUpdateStart, 'The canonical business profile update payload must be bounded');
+const profileUpdatePayload = appContext.slice(profileUpdateStart, profileUpdateEnd);
+assert.ok(!profileUpdatePayload.includes('publicContactEnabled'), 'Routine profile saves must not submit a contact-consent value');
 assert.ok(directorySmoke.includes('DIRECTORY_LISTINGS_DISABLED_FOR_V1'), 'Pages smoke must verify the disabled endpoint contract');
 assert.ok(directorySmoke.includes('supabaseUrl:\\s*') && directorySmoke.includes('supabaseKey:\\s*'), 'Pages smoke must parse the published Supabase config keys');
 
