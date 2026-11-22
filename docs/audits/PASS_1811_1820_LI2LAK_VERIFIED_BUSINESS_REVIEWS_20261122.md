@@ -72,12 +72,12 @@ Add a separate customer-review capability to Li2Lak without reusing MantiGO ride
 
 ## Pass 1821–1830 — canonical order identity and checkout correction
 
-- Live read-only inspection of `public.create_order_backend(...)` confirmed the SECURITY DEFINER RPC checks `auth.uid() = p_customer_id`, validates customer membership and active business/provider/branch, and recalculates prices from `catalog_item_prices`.
+- Live read-only inspection of `public.create_order_backend(...)` confirmed a SECURITY DEFINER RPC with server-side catalog price calculation, but the live body had drifted from the repository's RC105 contract: it required `auth.uid()` unconditionally, omitted the verified `auth.role() = service_role` path, and omitted RC105's explicit cross-customer/business/branch idempotency conflict guard.
 - Live ACL inspection confirmed: `anon EXECUTE=false`, `authenticated EXECUTE=false`, `service_role EXECUTE=true`; the live function's search_path was only `public`.
 - Live `order-create` Edge Function v8 verifies the Bearer token through `admin.auth.getUser(token)`, but then called the identity-enforcing RPC through a service-role client. That call context does not carry the customer's JWT identity into `auth.uid()`; the order path was therefore not certified as usable.
-- Added RC498 source migration to harden the RPC search_path to `pg_catalog, public, extensions, pg_temp`, deny PUBLIC/anon execution and grant authenticated execution while retaining the existing controlled service-role grant.
-- Updated both `order-create` and authenticated `api` order entry points to keep privileged reads on the service client but invoke `create_order_backend` through an anon-key client carrying the verified customer Bearer JWT.
-- Added disposable fixture assertions for authenticated execution, anon denial, retained service-role ACL, search_path hardening and rejection of a spoofed `p_customer_id`.
+- Added RC498 source migration to restore the RC105 identity/idempotency implementation, harden search_path to `pg_catalog, public, extensions, pg_temp`, deny PUBLIC/anon, and grant authenticated plus service_role execution explicitly.
+- Updated both `order-create` and authenticated `api` order entry points to keep privileged reads on the service client but invoke `create_order_backend` through an anon-key client carrying the verified customer Bearer JWT. The restored RC105 body also preserves the trusted service-role Edge path for verified server callers.
+- Extended the existing RC104/RC105 disposable PostgreSQL fixture to cover authenticated execution, anon denial, retained service-role ACL, hardened search_path, spoofed `p_customer_id` rejection, cross-scope idempotency and authoritative catalog price calculation.
 - Added RC498 to the exact release contract: 78 migration identities. The live ledger still records zero of these exact required source identities; RC498 is SOURCE_CANDIDATE_NOT_APPLIED.
 - Updated Li2Lak cart to invoke the existing order-create function for authenticated customers, send canonical item IDs/quantities plus an idempotency key, show the persisted order ID, and keep guest WhatsApp-only requests explicitly untracked.
 - No Production migration, Edge deployment, grant, data mutation or public deployment was performed. Release ordering must apply/reconcile RC498 before deploying the changed Edge Function.
