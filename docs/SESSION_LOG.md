@@ -3868,3 +3868,11 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 
 
 - Additional RC484 recheck: private platform-admin registry has one row, RLS on/FORCE RLS off, no direct client grants; live helper remains membership-derived SECURITY INVOKER/search_path=public; 57 policies call it. Existing RC484+RC485 source chain addresses this; release must be coordinated and approved. No Production mutation.
+
+
+## 2026-11-22 — Pass 1751–1760 — Li2Lak verified-review design
+
+- Confirmed review provenance candidates from live table metadata and read-only status RPC definitions: `orders.customer_id` + DELIVERED, `medical_appointments.patient_id` + COMPLETED.
+- Excluded `restaurant_orders` because no customer Auth identity is stored; MantiGO ride ratings remain separate.
+- Added `docs/product/BUSINESS_REVIEWS_VERIFIED_INTERACTION_SPEC_20261122.md` with business-level-only v1 design, immutable interaction provenance, moderation, scoped owner responses, reporting, safe public aggregation, RLS/RPC contracts and adversarial PostgreSQL acceptance matrix.
+- Design only; no migration, table, UI or Production mutation. Product decisions on moderation, edit window, retention and disputes remain open.
