@@ -7,6 +7,7 @@ import {
   clearPendingReferralCode,
   normalizeReferralCode,
   readPendingReferralCode,
+  stripReferralParameter,
 } from '../src/utils/referrals';
 
 class MemoryStorage {
@@ -50,4 +51,9 @@ test('clears a referral only after a terminal claim result', () => {
   storage.setItem(PENDING_REFERRAL_STORAGE_KEY, 'AB12CD34');
   clearPendingReferralCode(storage);
   assert.equal(readPendingReferralCode(storage), null);
+});
+
+test('strips referral attribution from the address bar while preserving other route state', () => {
+  assert.equal(stripReferralParameter('?ref=AB12CD34&view=account_portal&tab=overview'), '?view=account_portal&tab=overview');
+  assert.equal(stripReferralParameter('?ref=AB12CD34'), '');
 });
