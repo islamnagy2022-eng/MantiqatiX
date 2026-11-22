@@ -5150,3 +5150,11 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Nine independent source checks passed; exact-head GitHub Actions jobs started but remained queued. Runtime SQL integration and CI completion remain unverified.
 - **Audit:** `docs/audits/PASS_2001_2010_RC474_PAYMENT_SCOPE_PG17_20261122.md`.
 - **Release:** RC474 is not Production-applied; no Production mutation/deployment; **PRODUCTION BLOCKED / NOT CERTIFIED**.
+
+### Pass 2011–2020 — API order-read parity with RC465 — 2026-11-22
+- [x] Extended the RC497 source validator to compare the legacy API order-read route with the established RC465 orders RLS policy.
+- [x] Asserted the same nine scoped operational roles, excluded CASHIER/DELIVERY_PARTNER from unscoped order-member reads, and retained exact tenant-owner, business/branch, assigned-partner and provider rules.
+- [x] Manually evaluated 18 independent source invariants; 18/18 passed.
+- [ ] Full Node validator, TypeScript/Deno build and API runtime authorization tests remain pending exact-head CI.
+- **Audit:** `docs/audits/PASS_2011_2020_API_ORDER_READ_SCOPE_RLS_PARITY_20261122.md`.
+- **Release:** PR #971 remains open/unmerged; no Production mutation/deployment; **PRODUCTION BLOCKED / NOT CERTIFIED**.
