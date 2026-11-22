@@ -75,7 +75,7 @@ for (const token of [
 
 assert.match(reviewPanel, /get_public_business_review_summary/,
   "public storefront must read reviews only through the bounded public RPC");
-assert.match(reviewPanel, /currentBusiness\\?\\.isVerified[\\s\\S]*?operationalStatus !== 'ACTIVE'/,
+assert.match(reviewPanel, /currentBusiness\?\.isVerified[\s\S]*?operationalStatus !== 'ACTIVE'/,
   "public review panel must be restricted to active verified businesses");
 assert.match(reviewPanel, /verifiedInteraction === true/,
   "public storefront must reject review rows without verified-order provenance");
