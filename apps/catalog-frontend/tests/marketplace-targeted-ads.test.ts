@@ -141,6 +141,7 @@ test('rejects IP-literal destinations and normalizes trailing-dot hostnames', as
     error: null,
   }));
 
-  assert.deepEqual(ads.map((ad) => ad.advertisement_id), ['trailing-dot-host']);
-  assert.equal(ads[0].creative_url, 'https://cdn.example.test./ad.webp');
+  assert.deepEqual(ads.map((ad) => ad.advertisement_id), ['ipv6-target', 'trailing-dot-host']);
+  assert.equal(ads[0].target_url, null, 'IPv6-literal targets must be disabled without discarding the ad');
+  assert.equal(ads[1].creative_url, 'https://cdn.example.test./ad.webp');
 });
