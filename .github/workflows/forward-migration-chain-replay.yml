@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/**"
+      - "apps/catalog-frontend/src/components/admin/PlatformBusinessReviewModerationPanel.tsx"
+      - "apps/catalog-frontend/src/components/admin/AdminDashboard.tsx"
       - "apps/catalog-frontend/src/components/merchant/BusinessReviewManagementPanel.tsx"
       - "apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx"
       - "apps/catalog-frontend/src/components/account/CustomerOrderReviews.tsx"
@@ -107,6 +109,8 @@ on:
     branches: ["main"]
     paths:
       - "supabase/migrations/**"
+      - "apps/catalog-frontend/src/components/admin/PlatformBusinessReviewModerationPanel.tsx"
+      - "apps/catalog-frontend/src/components/admin/AdminDashboard.tsx"
       - "apps/catalog-frontend/src/components/merchant/BusinessReviewManagementPanel.tsx"
       - "apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx"
       - "apps/catalog-frontend/src/components/account/CustomerOrderReviews.tsx"
