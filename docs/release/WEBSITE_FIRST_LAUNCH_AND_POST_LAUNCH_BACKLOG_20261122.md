@@ -169,7 +169,7 @@ Do not set the project to LAUNCHED until all of these are recorded:
 - Exact current-main source parity for public-catalog v9 and public-catalog-directory v19; catalog-admin v20 drift is explicitly recorded and the consent switch remains hidden.
 - Monthly subscription path is verified independently; no new Paymob integration or non-monthly finance flow is required or exposed for V1.
 - Contact and precise-location fields are absent unless both audited consent flags are true.
-- The separate directory-listings API returns 503 and its list/detail routes are disabled in V1.
+- The separate directory-listings API returns an empty-success GET with no records and 503 for POST mutations; its list/detail routes are disabled in V1.
 - Catalog pilot validator passes on a fresh Production evidence snapshot.
 - Pages workflow completed successfully on main and the deployed origin passes browser/HTTP smoke.
 - Rollback references are recorded.
