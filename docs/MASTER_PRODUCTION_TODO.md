@@ -1,3 +1,88 @@
+### Pass 1961–1970 — currency regression assertion verification — 2026-11-22
+- [x] Corrected the regex escaping in the two new currency regression assertions; the previous source used escaped backslashes that would not match whitespace in regex literals.
+- [x] Evaluated both patterns against the fetched RC498 SQL and disposable order fixture; both matched.
+- [x] Confirmed orderFixture is declared and loaded before the assertion uses it.
+- [ ] The Node validator itself and PostgreSQL 17 integration still require exact-head CI execution.
+- **Safety:** feature branch only; no Production mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+### Pass 1951–1960 — currency regression validator wiring repair — 2026-11-22
+- [x] During post-edit validator review, caught that the new currency-fixture assertion referenced orderFixture without loading that file.
+- [x] Added the explicit order fixture read from supabase/tests/rc104_order_idempotency_scope_fixture.sql.
+- [x] Re-fetched the validator and confirmed the declared fixture variable and both currency assertions are present.
+- [ ] Execute the validator and PostgreSQL 17 integration on exact-head CI; neither is yet certified.
+- **Safety:** feature branch only; no Production mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+### Pass 1941–1950 — authoritative currency-bound order pricing — 2026-11-22
+- [x] Found an order-pricing integrity gap in RC498: the SECURITY DEFINER RPC selected the newest active catalog price without constraining its currency, even though catalog price records carry a currency and the business settings define the authoritative currency.
+- [x] Updated RC498 to select only prices where upper(currency) matches the business currency resolved from catalog settings.
+- [x] Extended the disposable PostgreSQL fixture with an EGP price (125, version 1) and a higher-version USD price (999, version 2) for the same item. The existing authenticated integration assertion requires the persisted total to remain 125.
+- [x] Added source-validator assertions for the currency predicate and cross-currency regression fixture.
+- [ ] PostgreSQL 17 execution and exact-head CI remain pending. Do not treat source edits/static assertions as integration success.
+- **Safety:** feature branch only; no Production migration, Edge deployment, payment, wallet, customer-data or public deployment change. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+### Pass 1931–1940 — selected-branch authorization regression contract — 2026-11-22
+- [x] Re-read the current PR #971 Edge Function and confirmed selected branches are queried by exact ID, tenant, business and ACTIVE status; omitted branch selection uses a bounded existence query.
+- [x] Strengthened the Li2Lak source validator to assert all four selected-branch scope predicates, in addition to the no-arbitrary-100-row regression.
+- [ ] Exact-head CI must execute the strengthened validator and PostgreSQL 17 lifecycle/replay workflows; source edits are not a test pass.
+- **Safety:** PR feature branch only. No Production migration, Auth/RLS/GRANT, Edge deployment, payment, wallet, customer data or public deployment changed. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+### Pass 1881–1890 — exact-head CI queued — 2026-11-22
+- [x] Updated PR #971 description with self-review prevention, SQL signature repair, 78-migration validator alignment and current release boundaries.
+- [x] Confirmed current feature branch is 0 commits behind main after history reconciliation.
+- [x] Triggered exact-head workflows for commit `14e64eb045fe51b115d045579f811a2a8cf2eb6b`; Li2Lak lifecycle run `44975572762` and forward migration replay `44975572579` are both QUEUED.
+- [ ] Wait for both workflows and all required PR checks to reach terminal success; queued is not passed.
+- **Safety:** source branch only; no Production mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+### Pass 1871–1880 — Li2Lak review rejection UX — 2026-11-22
+- [x] Mapped the new self-review backend rejection to a clear Arabic message in the customer order/review portal.
+- [x] Added friendly Arabic handling for undelivered orders, duplicate reviews and foreign-order attempts.
+- [x] Added a static UI regression assertion for the self-review rejection message.
+- [ ] Verify browser rendering and the full PostgreSQL 17 lifecycle on exact-head CI; neither is claimed complete yet.
+- **Safety:** feature-branch UI and test changes only. No Production mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+### Pass 1861–1870 — Li2Lak self-review prevention — 2026-11-22
+- [x] Added a server-side guard preventing active business members and recorded provider owners from reviewing their own business.
+- [x] Extended the disposable fixture with owner identity and a delivered owner order.
+- [x] Added an integration negative case asserting self-review is rejected with `BUSINESS_REVIEW_SELF_REVIEW_FORBIDDEN`.
+- [x] Added static-validator assertions and release-manifest behavior/test entries for self-review exclusion.
+- [x] Source consistency checks pass for migration guard, fixture, integration test, validator and release manifest.
+- [ ] Full PostgreSQL 17 execution remains pending exact-head CI; static consistency is not a substitute for integration success.
+- **Safety:** isolated feature-branch changes only. No Production mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+### Pass 1851–1860 — Li2Lak release-validator consistency repair — 2026-11-22
+- [x] Found and corrected stale RC497 validator assertions expecting 77 required migrations after RC498 raised the canonical release set to 78.
+- [x] Updated both RC497 checks to the same 78-migration release contract; RC498 checks remain aligned.
+- [x] Corrected the release manifest's active PR reference from superseded PR #970 to PR #971.
+- [x] Rechecked validator top-level declarations: no duplicate const declarations remain.
+- [ ] Run PostgreSQL 17 lifecycle and full forward replay on the exact latest head; no green CI is claimed.
+- **Safety:** isolated source/docs changes only. Production database and deployed functions remain untouched. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+### Pass 1841–1850 — Li2Lak migration signature defect fixed — 2026-11-22
+- [x] Found a blocking RC497 migration defect: COMMENT ON FUNCTION referenced the moderation queue with one integer argument although the function has two.
+- [x] Corrected the COMMENT signature to `(integer, integer)`.
+- [x] Added a static regression assertion so the COMMENT identity must match the two-argument function.
+- [x] Cross-checked all six RC497 function COMMENT signatures against their definitions and RC498's 18-argument order RPC comment; no remaining arity mismatch found.
+- [ ] Run full PostgreSQL 17 migration + integration workflow on the exact current head; CI has not yet produced a passing result.
+- **Safety:** isolated source-only migration/test fix; no Production migration or data change. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+### Pass 1831–1840 — Li2Lak branch reconciliation — 2026-11-22
+- [x] Reconciled feature history with latest `main` using a two-parent merge commit; verified both parents and preserved the feature tree unchanged.
+- [x] GitHub compare now reports feature branch 123 commits ahead and 0 behind current `main`.
+- [x] Rechecked PR #971: open, not merged; GitHub reports mergeable=true / mergeable_state=unstable through the raw PR endpoint.
+- [ ] Exact-head CI remains unverified: earlier runs #44974204333 and #44974204332 are still queued against prior event SHA; latest branch commit has no reported workflow run or combined status.
+- [ ] Wait for exact-head validation before merge. Do not bypass pending checks.
+- **Safety:** Git history reconciliation only; no file-tree changes in merge commit, no Production mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+### Pass 1821–1830 — Li2Lak CI source repair and live contract recheck — 2026-11-22
+- [x] Removed a duplicate top-level `apiEdge` declaration from `scripts/validate-rc497-business-reviews.mjs`; verified no duplicate top-level const declarations remain.
+- [x] Aligned the Li2Lak disposable PostgreSQL lifecycle workflow from PostgreSQL 16 to PostgreSQL 17, matching the live Production major version.
+- [x] Rechecked Production read-only: RC497 review tables and submission RPC are absent; RC498 order RPC remains service_role-only (anon=false, authenticated=false, service_role=true); live `order-create` remains ACTIVE v8 with JWT verification enabled.
+- [x] Confirmed RC497/RC498 migration versions are not present in the 310-row live migration ledger.
+- [ ] CI runs created against the earlier PR head remain QUEUED; no successful exact-head test result is claimed. Latest PR #971 head is `78196b19e65736080341d2f3f44ebb26912b998e`.
+- [ ] PR #971 is 2 commits behind current main; reconcile latest main before merge and require exact-head CI.
+- [ ] Keep production blocked until independent encrypted DB+Storage backup, Vault/key recovery, PostgreSQL 17 restore/rollback, migration reconciliation and coordinated Edge/RPC release are evidenced.
+- **Safety:** source-only fixes and read-only Production inspection. No Production DDL/DML, Auth/RLS/GRANT, Storage, Edge, payment, wallet, customer-data mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
 ### Pass 1761–1770 — uploaded AI Studio R7 archive reconciliation — 2026-11-22
 - [x] Inspected the uploaded `bizcatalog-manager (11).zip`: 233 files, internal R7-v7.0.0 manifest dated 2026-11-10.
 - [x] Confirmed it is a historical reference snapshot with local authoritative JSON + Supabase architecture, not the current runtime baseline.
@@ -4950,8 +5035,126 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Reject non-default ports, localhost, `.localhost`, `.local`, IPv4 and IPv6 literal destinations.
 - [x] Correct terminal-dot hostname normalization and add targeted regression cases.
 - [x] Preserve independent placement loading, deduplication and fail-closed creative validation.
-- [ ] Obtain completed exact-head CI for PR #969; latest known checks were queued, not passed.
+- [x] Obtain completed exact-head CI for PR #969: all 10 workflows passed and PR was squash-merged. Verify actual Pages publication separately; PR deploy job was skipped.
 - [ ] Add focused Marketplace public-offer tests for explicit `show_price === true`, availability, effective price and verified business provenance; do not change the existing offer data contract without evidence.
 - [ ] Design owner-scoped business media lifecycle with upload limits, MIME sniffing, moderation, publication consent, cleanup and responsive delivery; no video bucket exists in Production.
-- [ ] Keep business reviews separate from MantiGO ride ratings; require verified interaction provenance and moderation before implementation.
+- [x] Keep business reviews separate from MantiGO ride ratings; RC497 now enforces delivered-order provenance and registry-admin moderation in a separate review model.
 - **Safety:** no Production database, Storage, Auth/RLS/GRANT, Edge, payment, wallet, or public deployment change. **PRODUCTION BLOCKED / NOT CERTIFIED.** Evidence: `docs/audits/PASS_1801_1810_LI2LAK_MARKETPLACE_AD_HARDENING_20261122.md`.
+
+### Pass 1811–1820 — Li2Lak verified business reviews — 2026-11-22
+- [x] Add one immutable review per authenticated customer's own DELIVERED order, enforced by database unique order constraint and order-row lock.
+- [x] Add exact-retry idempotency and reject changed duplicate submissions.
+- [x] Keep reviews PENDING until moderation by a user directly present in `private.platform_admins`; tenant role helpers cannot authorize moderation.
+- [x] Add a bounded, paginated platform moderation queue that excludes customer identity, plus approve/reject UI with mandatory rejection reason.
+- [x] Add a business- and branch-scoped one-time response RPC and merchant dashboard panel.
+- [x] Add customer order review form and own-review status RPC; order query is explicitly filtered by authenticated customer id.
+- [x] Add bounded identity-free public review summary for ACTIVE verified businesses and mount it in storefront.
+- [x] Revoke direct table privileges from anon/authenticated/service_role, FORCE RLS on review/event tables, and audit review lifecycle events.
+- [x] Anonymize reviewer and event actor references on account deletion and scrub customer-authored review text while retaining rating/audit history.
+- [x] Add PostgreSQL 17 fixture, lifecycle/privacy integration suite, static source validator and forward migration replay job.
+- [ ] Complete exact-head CI for rebased PR #971 and full chronological replay before merge.
+- [ ] Complete encrypted off-site DB+Storage backup and independent PostgreSQL 17 restore/rollback before any Production migration.
+- [ ] Reconcile physical schema, function bodies, grants, RLS and migration aliases; Production currently has zero orders and no business-review table.
+- **Safety:** RC497/RC498 source-only; neither applied. No Production DB, Auth/RLS/GRANT, Storage, Edge, payment, wallet or public deployment change. **PRODUCTION BLOCKED / NOT CERTIFIED.** Evidence: `docs/audits/PASS_1811_1820_LI2LAK_VERIFIED_BUSINESS_REVIEWS_20261122.md`.
+
+
+### Pass 1821–1830 — Li2Lak canonical order identity and checkout correction — 2026-11-22
+- [x] Read-only audit of live `create_order_backend`: it requires `auth.uid() = p_customer_id`, validates membership/provider/business/branch and recalculates catalog prices.
+- [x] Identify mismatch: deployed `order-create` v8 verifies the user with admin auth but invokes the identity-enforcing RPC through service_role; direct authenticated EXECUTE is currently denied.
+- [x] Add RC498 candidate: harden SECURITY DEFINER search_path, deny PUBLIC/anon, grant authenticated execution, preserve existing service_role grant.
+- [x] Update candidate `order-create` and authenticated `api` routes to call the RPC with the verified user JWT while retaining privileged reads on the service client.
+- [x] Add fixture and integration assertions for ACLs, search_path, correct customer identity and spoofed customer rejection.
+- [x] Connect authenticated Li2Lak cart to existing order-create, idempotency and server-side catalog pricing; guest WhatsApp requests remain untracked.
+- [ ] Complete exact-head CI for PR #971 and fix all failures before merge.
+- [ ] Run full chronological migration replay and verify all 78 source migrations against live physical objects, aliases, ACLs and RLS.
+- [ ] Complete encrypted off-site DB+Storage backup and independent PostgreSQL 17 restore/rollback before any Production migration or Edge deployment.
+- [ ] Reconcile deployed order-create v8 and API Edge source; release RC498 before deploying JWT-scoped Edge callers. Run two-user/two-tenant order-create E2E with real customer membership, branch, active provider and catalog prices.
+- **Safety:** RC497/RC498 source-only; neither applied. No Production DB/Auth/RLS/GRANT/Storage/Edge/payment/wallet/public deployment mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.** Evidence: `docs/audits/PASS_1811_1820_LI2LAK_VERIFIED_BUSINESS_REVIEWS_20261122.md`.
+
+
+### Pass 1891–1900 — Li2Lak review concurrency and order-test parity — 2026-11-22
+- [x] Harden RC497 insertion with `ON CONFLICT (order_id) DO NOTHING` and a locked reread so concurrent duplicate submissions cannot create a second review.
+- [x] Preserve reviewer ownership checks, exact-retry idempotency and changed-payload rejection in the unique-conflict fallback.
+- [x] Add a static regression assertion for the unique-order conflict fallback.
+- [x] Align the RC104/RC105/RC498 disposable order integration workflow to PostgreSQL 17, matching forward replay and review lifecycle test major versions.
+- [x] Extend source validation to require verified Bearer-token lookup before both JWT-scoped order RPC callers and to assert authenticated/anon/service-role ACL integration coverage.
+- [ ] Await and inspect exact-head CI for PR #971; no success is claimed before PostgreSQL execution and required checks finish.
+- [ ] Complete full migration replay, backup/restore and Production physical schema/ACL/RLS reconciliation before any release.
+- **Safety:** source/workflow/ledger changes only. No Production database, Auth, RLS/GRANT, Storage, Edge, payment, wallet, customer-data or public deployment mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+### Pass 1901–1910 — Li2Lak checkout payment fail-closed correction — 2026-11-22
+- [x] Confirm Paymob is explicitly disabled platform-wide in the Li2Lak cart pending real gateway approval and verified server-side authorization.
+- [x] Remove the client-side simulated Paymob authorization handshake and random transaction-reference generation.
+- [x] Reject any Paymob order-submission call before order persistence and state clearly that no amount was collected.
+- [x] Remove the false Paymob payment-success confirmation and add static regression guards against fake references and simulated success.
+- [ ] Keep Paymob disabled until the real payment-intent, provider callback/webhook signature, server-side status reconciliation, refund/chargeback and settlement paths pass end-to-end tests.
+- [ ] Re-run exact-head frontend/build and all PR checks; no CI success is claimed for the latest source head yet.
+- **Safety:** source and test changes only. No payment, wallet, Production, Edge or public deployment mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+### Pass 1911–1920 — Li2Lak authoritative order RPC input bounds — 2026-11-22
+- [x] Close the direct-RPC validation gap created by granting authenticated callers EXECUTE: enforce integer quantities and cap each quantity at 1,000 inside SQL.
+- [x] Enforce a maximum of 100 order items at the authoritative RPC boundary, not only in Edge validation.
+- [x] Validate item object shape, catalog token length, option-array type, maximum 20 options and option identifier type/length.
+- [x] Bound idempotency key, customer name, phone, delivery address, notes and metadata shape in the RPC itself.
+- [x] Extend PostgreSQL integration tests for fractional quantity, over-limit options and over-limit item arrays.
+- [ ] Run exact-head PostgreSQL 17 integration and forward replay; these source checks are not a substitute for executed SQL.
+- **Safety:** source/test changes only. No Production DB, Auth, RLS/GRANT, Edge, payment, wallet, Storage or public deployment mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+### Pass 1921–1930 — Li2Lak branch lookup bound hardening — 2026-11-22
+- [x] Replaced the fixed 100-row active-branch listing in `order-create` with an exact selected-branch lookup; when no branch is supplied, use a bounded one-row existence query to determine whether selection is required.
+- [x] Added source-contract assertions preventing arbitrary pagination limits from rejecting valid branches beyond the first 100 rows.
+- [x] Re-fetched both changed files from the PR head and independently evaluated the new branch-query assertions against the source: PASS.
+- [ ] Exact-head GitHub Actions, PostgreSQL 17 integration, migration replay, frontend build/E2E and security workflows must complete before merge.
+- **Safety:** source-only PR change. No Production database, Auth/RLS/GRANT, Edge Function deployment, payment, wallet, customer data or public deployment mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+### Pass 1971–1980 — Li2Lak production preflight and access-boundary audit — 2026-11-22
+- [x] Reconciled Production against the RC497/RC498 release candidate: both migration versions are absent and both business-review tables are not yet created.
+- [x] Verified live `create_order_backend` still uses `SECURITY DEFINER SET search_path=public`, denies `authenticated` EXECUTE, grants service-role EXECUTE, and requires `auth.uid() = p_customer_id`. Current deployed `order-create` v8 and `api` v17 still call through service-role clients; the PR candidate changes this to a verified customer-JWT RPC call. This is a source/configuration mismatch, not a confirmed production order failure.
+- [x] Confirmed the customer review portal already filters `orders.customer_id = authSession.userId`; the static validator guards this exact predicate. No duplicate UI patch was made.
+- [x] Audited the nine current RLS-without-policy INFO findings against live table privileges: no direct anon/authenticated access; the directory listing, claim and source-evidence tables are service-role-only and are mediated by the JWT-checking `directory-listings` Edge Function.
+- [x] Reviewed the only anonymous SECURITY DEFINER warning: the targeted-advertisement RPC has empty search_path, returns only active/approved time-valid ads, and caps rows at 50. Retained this intentional public-read endpoint.
+- [x] Reviewed RC497 RPC source contracts: authenticated customer identity, delivered-order requirement, one review per order, two-way idempotent conflict handling, platform-admin registry checks, branch-scoped business responses, identity-free public output, and bounded public pagination.
+- [ ] Do not merge or deploy until exact-head GitHub Actions, PostgreSQL 17 review/order integration, forward migration replay, frontend build/E2E and release/security gates complete.
+- [ ] Reconcile the live order RPC/Edge caller mismatch through the tested candidate migration and Edge release; keep Production unchanged until that gate.
+- [ ] Review the remaining 65 authenticated SECURITY DEFINER findings individually; do not mass-revoke. Revisit Auth anonymous sign-ins/leaked-password settings and performance lints only with their application impact understood.
+- **Evidence:** exact-head PR checks remained queued with no combined status; no PostgreSQL 17 integration or full forward replay success is claimed. Fresh Supabase health advisor returned no health lints; performance advisor still reports broad existing findings (132 unindexed foreign keys, 375 RLS initplan, 70 unused indexes, 28 multiple permissive policies).
+- **Safety:** read-only Production schema, grants, Edge source/version, logs and advisor inspection; documentation-only PR commits. No Production DB/Auth/RLS/GRANT/Storage/Edge/payment/wallet/customer-data/public-site mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+### Pass 1981–1990 — Li2Lak customer session isolation — 2026-11-22
+- [x] Found and fixed stale customer-order history responses that could update component state after account switch/sign-out.
+- [x] Added request-generation invalidation and render-time identity checks before storing order history, review status, errors or loading completion.
+- [x] Clear order list, review drafts, submission state, notices and errors on identity change/unmount.
+- [x] Prevent stale review-submission responses from writing status into a different account's UI.
+- [x] Extended the RC497 source validator to require the session-generation, identity and stale-result guards.
+- [ ] Exact-head TypeScript build, browser E2E and validator execution must pass before this fix is considered fully verified.
+- **Audit:** `docs/audits/PASS_1981_1990_LI2LAK_CUSTOMER_SESSION_ISOLATION_20261122.md`.
+- **Release state:** no Production change; PR #971 remains unmerged; **PRODUCTION BLOCKED / NOT CERTIFIED**.
+
+### Pass 1991–2000 — Legacy API order-read scope isolation — 2026-11-22
+- [x] Identified production `api` v17 same-tenant role checks that did not bind operational roles to business/branch before returning `GET /api/v1/orders/:id`.
+- [x] Candidate API keeps customer ownership, narrows tenant-wide access to fully unscoped OWNER/ADMIN, and requires exact business+branch for scoped operational memberships.
+- [x] Reconciled NULL-branch behavior against RC465 integration tests; did not widen scoped membership to all branches. Provider-specific NULL-branch exception remains explicitly bounded to the provider's own business.
+- [x] Added five static authorization-contract assertions to the RC497 validator; six manual source checks passed on the candidate API route.
+- [ ] Exact-head CI, validator execution, Deno/Edge typecheck and HTTP authorization E2E remain required.
+- **Audit:** `docs/audits/PASS_1991_2000_LEGACY_API_ORDER_READ_SCOPE_20261122.md`.
+- **Release:** Production API v17 unchanged; no Production mutation/deployment; PR #971 remains unmerged; **PRODUCTION BLOCKED / NOT CERTIFIED**.
+
+### Pass 2001–2010 — RC474 payment authorization / PostgreSQL 17 verification — 2026-11-22
+- [x] Confirmed the live Production `create_payment_intent_backend` is still the pre-RC474 version; direct authenticated execution remains intentional but its old membership/financial-role checks are not bound to one exact scope.
+- [x] Confirmed candidate RC474 already nests same-scope business/branch financial-role authorization inside `customer_id IS DISTINCT FROM auth.uid()`; NULL-customer orders are therefore covered. No duplicate SQL rewrite was made.
+- [x] Strengthened RC474 validator to prove the nested finance-role gate, including NULL-customer cases, rather than only checking for an identity predicate somewhere.
+- [x] Updated RC474 isolated integration workflow from PostgreSQL 16 to PostgreSQL 17 and added `workflow_dispatch`.
+- [x] Nine independent source checks passed; exact-head GitHub Actions jobs started but remained queued. Runtime SQL integration and CI completion remain unverified.
+- **Audit:** `docs/audits/PASS_2001_2010_RC474_PAYMENT_SCOPE_PG17_20261122.md`.
+- **Release:** RC474 is not Production-applied; no Production mutation/deployment; **PRODUCTION BLOCKED / NOT CERTIFIED**.
+
+### Pass 2011–2020 — API order-read parity with RC465 — 2026-11-22
+- [x] Extended the RC497 source validator to compare the legacy API order-read route with the established RC465 orders RLS policy.
+- [x] Asserted the same nine scoped operational roles, excluded CASHIER/DELIVERY_PARTNER from unscoped order-member reads, and retained exact tenant-owner, business/branch, assigned-partner and provider rules.
+- [x] Manually evaluated 18 independent source invariants; 18/18 passed.
+- [ ] Full Node validator, TypeScript/Deno build and API runtime authorization tests remain pending exact-head CI.
+- **Audit:** `docs/audits/PASS_2011_2020_API_ORDER_READ_SCOPE_RLS_PARITY_20261122.md`.
+- **Release:** PR #971 remains open/unmerged; no Production mutation/deployment; **PRODUCTION BLOCKED / NOT CERTIFIED**.

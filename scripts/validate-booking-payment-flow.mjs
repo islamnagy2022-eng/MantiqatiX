@@ -9,6 +9,7 @@ const orderStatus=fs.readFileSync("supabase/functions/order-status-update/index.
 const orderStatusScope=fs.readFileSync("supabase/migrations/20261023030000_rc103_order_status_branch_scope.sql","utf8");
 const orderIdempotencyScope=fs.readFileSync("supabase/migrations/20261023040000_rc104_order_idempotency_scope.sql","utf8");
 const orderCreateServiceRoleScope=fs.readFileSync("supabase/migrations/20261023050000_rc105_order_create_service_role_identity.sql","utf8");
+const orderCreateAuthScope=fs.readFileSync("supabase/migrations/20261122020000_rc498_authenticated_order_create_rpc.sql","utf8");
 const orderStatusServiceRoleScope=fs.readFileSync("supabase/migrations/20261023060000_rc106_order_status_service_role_identity.sql","utf8");
 const medicalBooking=fs.readFileSync("supabase/migrations/20261001003000_security_hardening_medical_status_authz.sql","utf8");
 const medicalCreate=fs.readFileSync("supabase/migrations/20260928210000_rc172_restore_medical_booking_contract.sql","utf8");
@@ -29,6 +30,12 @@ const required=[
   ["Order-create bounds customer name, phone, address, and notes", "INVALID_CUSTOMER_NAME", order],
   ["Order-create rejects unsupported client metadata keys", "UNSUPPORTED_ORDER_METADATA", order],
   ["Order creation uses backend RPC", 'rpc("create_order_backend"', api],
+  ["order-create invokes the RPC with the verified customer JWT", 'userClient.rpc("create_order_backend"', order],
+  ["authenticated Orders API invokes the RPC with the verified customer JWT", 'supabaseUser.rpc("create_order_backend"', api],
+  ["RC498 grants authenticated order RPC execution", "TO authenticated", orderCreateAuthScope],
+  ["RC498 explicitly denies PUBLIC, anon and resets authenticated ACL", "FROM PUBLIC, anon, authenticated", orderCreateAuthScope],
+  ["RC498 hardens order RPC SECURITY DEFINER search_path", "pg_catalog, public, extensions, pg_temp", orderCreateAuthScope],
+  ["RC498 restores idempotency scope conflict protection", "IDEMPOTENCY_KEY_CONFLICT", orderCreateAuthScope],
   ["Order creation validates catalog items", "CATALOG_ITEM_NOT_AVAILABLE", order],
   ["Order creation validates active pricing", "ACTIVE_PRICE_NOT_AVAILABLE", order],
   ["Order creation rejects duplicate or oversized selected options", "INVALID_ITEM_OPTIONS", order],
@@ -37,7 +44,9 @@ const required=[
   ["Order pricing rejects non-finite final totals", "if (!Number.isFinite(totalAmount))", order],
   ["Server requires branch when active branches exist", "BRANCH_REQUIRED", order],
   ["Server validates selected branch", "BRANCH_NOT_AVAILABLE", order],
-  ["Staff order creation is authorized for the exact selected branch", 'targetMembershipQuery.eq("branch_id", branchId)', order],
+  ["Branch-bound staff membership must match the selected branch", 'String(membership.branch_id) === branchId', order],
+  ["Business-wide branchless membership may operate on branches of its business", "membership.branch_id == null", order],
+  ["Order-create checks all active memberships in the requested business before scope filtering", "const { data: targetMemberships, error: targetMembershipError }", order],
   ["Order creation resolves branch scope before membership authorization", 'const branchId = body.branchId ? String(body.branchId) : null;', order],
   ["Catalog API exposes active branches", "branches: branches ?? []", api],
   ["Customer catalog requires branch selection", "mx-catalog-branch", app],
@@ -55,6 +64,13 @@ const required=[
   ["Order idempotency conflict is checked before returning a stored snapshot", "o.customer_id is distinct from p_customer_id", orderIdempotencyScope],
   ["RC104 preserves existing RPC ACLs without grant changes", "CREATE OR REPLACE preserves the existing function identity and its ACL", orderIdempotencyScope],
   ["Payment requires authenticated user", "user.is_anonymous", payment],
+  ["Legacy order API keeps branchId optional for branchless businesses", 'const required = ["orderId","tenantId","businessId","clientIdempotencyKey","items"]', api],
+  ["Legacy order API requires explicit branch when active branches exist", "Branch selection is required", api],
+  ["Legacy order reads query every active membership with branch scope", 'select("id,role,permissions,business_id,branch_id")', api],
+  ["Tenant-wide order reads require unscoped OWNER/ADMIN membership", "tenantWideOwner", api],
+  ["Business-scoped order reads allow business-wide membership and enforce branch-bound membership", 'branchId === null || branchId === orderBranchId', api],
+  ["Legacy payment intents use the authenticated canonical backend RPC", 'supabaseUser.rpc("create_payment_intent_backend"', api],
+  ["Payment amount comes from persisted server total_amount", "p_amount: String(order.total_amount)", api],
   ["Payment requires pricing snapshot", "pricing_hash", payment],
   ["Payment revalidates pricing before provider call", "Authoritative pricing changed; restart payment", payment],
   ["Payment provider is Paymob", 'p_provider: "PAYMOB"', payment],
@@ -65,6 +81,10 @@ const forbiddenClientOrder=[
   [/.from\(['"]orders['"]\)\.insert\(/, "Direct client order INSERT"],
   [/\.from\(['"]orders['"]\)\.update\(/, "Direct client order UPDATE"],
   [/\.from\(['"]payment_intents['"]\)\.insert\(/, "Direct client payment_intent INSERT"]
+];
+
+const forbiddenApiPayment=[
+  [/\.from\(['"]payment_intents['"]\)\.upsert\(/, "Direct service-role payment_intent upsert in API"]
 ];
 
 
@@ -95,15 +115,17 @@ const additionalRequired=[
 const failures=[];
 for(const [name,marker,source] of required) if(!source.includes(marker)) failures.push(name);
 for(const [name,marker,source] of additionalRequired) if(!source.includes(marker)) failures.push(name);
-const branchScopeIndex=order.indexOf('if (branchId) targetMembershipQuery = targetMembershipQuery.eq("branch_id", branchId);');
+const branchScopeIndex=order.indexOf("const targetMembership = (targetMemberships ?? []).some");
 const customerFallbackIndex=order.indexOf("if (!targetMembership)");
 if(branchScopeIndex<0||customerFallbackIndex<0||branchScopeIndex>customerFallbackIndex) failures.push("Staff branch scope must be checked before customer fallback authorization");
+if(!order.includes("membership.branch_id == null") || !order.includes("String(membership.branch_id) === branchId")) failures.push("Business-wide and exact-branch memberships must be distinguished during order creation");
 if(order.split("const branchId = body.branchId").length-1!==1) failures.push("Order creation must define branch scope exactly once before membership authorization");
 if(orderStatusScope.toLowerCase().includes("grant execute")||orderStatusScope.toLowerCase().includes("revoke execute")) failures.push("RC103 must not broaden or alter backend-only order-status RPC execution grants");
 if(orderIdempotencyScope.toLowerCase().includes("grant execute")||orderIdempotencyScope.toLowerCase().includes("revoke execute")) failures.push("RC104 must not broaden or alter backend-only order-create RPC execution grants");
 if(orderCreateServiceRoleScope.toLowerCase().includes("grant execute")||orderCreateServiceRoleScope.toLowerCase().includes("revoke execute")) failures.push("RC105 must not broaden or alter backend-only order-create RPC execution grants");
 if(orderStatusServiceRoleScope.toLowerCase().includes("grant execute")||orderStatusServiceRoleScope.toLowerCase().includes("revoke execute")) failures.push("RC106 must not broaden or alter backend-only order-status RPC execution grants");
 for(const [re,label] of forbiddenClientOrder) if(re.test(app)) failures.push(label);
+for(const [re,label] of forbiddenApiPayment) if(re.test(api)) failures.push(label);
 
 if(failures.length){
   console.error("Booking/payment production invariant check failed:");

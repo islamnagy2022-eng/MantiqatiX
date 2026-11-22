@@ -7,13 +7,16 @@ const integration = read("../supabase/tests/rc474_payment_intent_business_branch
 const fixture = read("../supabase/tests/rc474_payment_intent_business_branch_scope_fixture.sql");
 const workflow = read("../.github/workflows/rc474-payment-intent-business-branch-scope.yml");
 const edge = read("../supabase/functions/payment-intent/index.ts");
+const nonCustomerAuthorizationStart = migration.indexOf("IF v_order.customer_id IS DISTINCT FROM v_uid THEN");
+const nonCustomerAuthorizationEnd = migration.indexOf("IF v_order.pricing_hash IS NULL", nonCustomerAuthorizationStart);
+const nonCustomerAuthorizationBlock = migration.slice(nonCustomerAuthorizationStart, nonCustomerAuthorizationEnd);
 
 const checks = [
   ["migration is transactional and preflights the exact existing RPC", /BEGIN;[\s\S]*?DO \$preflight\$/.test(migration) && migration.includes("RC474_PRECONDITION_FAILED") && /COMMIT;\s*$/.test(migration)],
   ["migration retains SECURITY DEFINER and pins empty search_path", /SECURITY DEFINER\s+SET search_path = ''/i.test(migration)],
   ["non-customer membership is bound to exact business and branch", migration.includes("m.business_id=v_order.business_id") && migration.includes("m.branch_id=v_order.branch_id") && migration.includes("'BUSINESS_OWNER'")],
   ["tenant-wide membership requires both scope columns NULL", migration.includes("m.business_id IS NULL AND m.branch_id IS NULL")],
-  ["customer ownership uses IS DISTINCT FROM so NULL customer orders require staff authorization", migration.includes("v_order.customer_id IS DISTINCT FROM v_uid")],
+  ["every non-customer order, including NULL customer_id, must pass the same-scope financial role gate", nonCustomerAuthorizationStart >= 0 && nonCustomerAuthorizationEnd > nonCustomerAuthorizationStart && nonCustomerAuthorizationBlock.includes("IF NOT EXISTS") && nonCustomerAuthorizationBlock.includes("upper(m.role::text) IN ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','FINANCE','ACCOUNTANT','FINANCE_MANAGER')") && nonCustomerAuthorizationBlock.includes("m.branch_id IS NULL OR m.branch_id=v_order.branch_id") && !migration.includes("IF v_order.customer_id IS NOT NULL AND v_order.customer_id<>v_uid")],
   ["disposable fixture and integration mirror Production generated total pricing contract", fixture.includes("GENERATED ALWAYS AS (total_amount) STORED") && integration.includes("fixture orders.total is not generated from total_amount")],
   ["preflight verifies the complete orders, memberships and payment_intents schema", migration.includes("payment_intents','payment_method','character varying") && migration.includes("orders','pricing_authority','character varying")],
   ["financial role authorization is evaluated within the same business/branch predicate", /upper\(m\.role::text\) IN \('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','FINANCE','ACCOUNTANT','FINANCE_MANAGER'\)[\s\S]*?m\.business_id=v_order\.business_id[\s\S]*?m\.branch_id=v_order\.branch_id/.test(migration)],
@@ -23,6 +26,8 @@ const checks = [
   ["integration retains customer-owned payment and idempotent replay", integration.includes("customer-owned cross-tenant payment intent") && integration.includes("payment intent replay was not idempotent")],
   ["integration permits exact-branch, business-wide and tenant-wide finance roles", integration.includes("same-branch finance actor was denied") && integration.includes("same-business BUSINESS_OWNER was denied") && integration.includes("business-wide finance actor was denied") && integration.includes("tenant-wide finance actor was denied")],
   ["workflow applies the source migration then runs disposable behavioral tests", workflow.includes("20260928190000_rc200_cross_tenant_customer_payment_authorization.sql") && workflow.includes("20261118030000_rc474_payment_intent_business_branch_scope.sql") && workflow.includes("rc474_payment_intent_business_branch_scope_integration.sql")],
+  ["PostgreSQL integration matches Production major version 17", workflow.includes("image: postgres:17") && workflow.includes("ancestor=postgres:17") && !workflow.includes("postgres:16")],
+  ["workflow supports an explicit manual run", workflow.includes("workflow_dispatch: {}")],
   ["Edge endpoint delegates final business/branch authorization to the user-scoped RPC", edge.includes('userClient.rpc("create_payment_intent_backend"') && !edge.includes('admin.from("user_memberships")')],
 ];
 

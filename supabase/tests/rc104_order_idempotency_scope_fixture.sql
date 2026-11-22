@@ -1,6 +1,17 @@
 -- Disposable PostgreSQL fixture for RC104 idempotency ownership/scope tests.
 create extension if not exists pgcrypto;
+
+do $roles$
+begin
+  if not exists (select 1 from pg_roles where rolname='anon') then create role anon nologin; end if;
+  if not exists (select 1 from pg_roles where rolname='authenticated') then create role authenticated nologin; end if;
+  if not exists (select 1 from pg_roles where rolname='service_role') then create role service_role nologin bypassrls; end if;
+end
+$roles$;
+
+grant usage on schema public to anon, authenticated, service_role;
 create schema if not exists auth;
+grant usage on schema auth to anon, authenticated, service_role;
 create or replace function auth.uid()
 returns uuid language sql stable
 as $function$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $function$;
@@ -8,6 +19,8 @@ as $function$ select nullif(current_setting('request.jwt.claim.sub', true), ''):
 create or replace function auth.role()
 returns text language sql stable
 as $function$ select nullif(current_setting('request.jwt.claim.role', true), '') $function$;
+grant execute on function auth.uid() to anon, authenticated, service_role;
+grant execute on function auth.role() to anon, authenticated, service_role;
 
 create table public.orders (
   id uuid primary key,
@@ -82,6 +95,7 @@ create table public.catalog_item_prices (
   catalog_item_id uuid not null,
   tenant_id varchar not null,
   branch_id varchar,
+  currency varchar not null default 'EGP',
   status varchar not null default 'ACTIVE',
   unit_price numeric not null,
   version bigint not null default 1,
@@ -111,8 +125,11 @@ insert into public.user_memberships(user_id,tenant_id,status,role) values
 
 insert into public.catalog_items(id,legacy_ref,tenant_id,business_id,branch_id,name_ar,tax_rate,status) values
  ('40000000-0000-4000-8000-000000000001',null,'tenant-a','20000000-0000-4000-8000-000000000001','branch-a','Synthetic Test Item',0,'ACTIVE');
-insert into public.catalog_item_prices(catalog_item_id,tenant_id,branch_id,status,unit_price,version)
-values ('40000000-0000-4000-8000-000000000001','tenant-a','branch-a','ACTIVE',125,1);
+insert into public.catalog_item_prices(catalog_item_id,tenant_id,branch_id,currency,status,unit_price,version)
+values
+ ('40000000-0000-4000-8000-000000000001','tenant-a','branch-a','EGP','ACTIVE',125,1),
+ -- Higher-version foreign-currency price must never be selected for an EGP business.
+ ('40000000-0000-4000-8000-000000000001','tenant-a','branch-a','USD','ACTIVE',999,2);
 
 insert into public.orders(
  id,tenant_id,business_id,branch_id,customer_id,status,total_amount,currency,

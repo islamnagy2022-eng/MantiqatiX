@@ -8,6 +8,7 @@ import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from './ut
 const MarketplaceHome = lazy(() => import('./components/MarketplaceHome').then((module) => ({ default: module.MarketplaceHome })));
 const BusinessProfileHeader = lazy(() => import('./components/storefront/BusinessProfileHeader').then((module) => ({ default: module.BusinessProfileHeader })));
 const CatalogSection = lazy(() => import('./components/storefront/CatalogSection').then((module) => ({ default: module.CatalogSection })));
+const BusinessReviewsPanel = lazy(() => import('./components/storefront/BusinessReviewsPanel').then((module) => ({ default: module.BusinessReviewsPanel })));
 const MerchantDashboard = lazy(() => import('./components/merchant/MerchantDashboard').then((module) => ({ default: module.MerchantDashboard })));
 const AdminDashboard = lazy(() => import('./components/admin/AdminDashboard').then((module) => ({ default: module.AdminDashboard })));
 const ProfessionalDashboard = lazy(() => import('./modules/dashboard/ProfessionalDashboard').then((module) => ({ default: module.ProfessionalDashboard })));
@@ -76,6 +77,7 @@ const MainContent: React.FC = () => {
             <div>
               <BusinessProfileHeader />
               <CatalogSection />
+              <BusinessReviewsPanel />
             </div>
           </Suspense>
         )}

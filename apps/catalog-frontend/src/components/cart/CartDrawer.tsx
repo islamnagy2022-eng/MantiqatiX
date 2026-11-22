@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { calculateCartTotals, calculatePaymobFee } from '../../utils/rules';
 import { PaymobChannel } from '../../types';
+import { supabase } from '../../lib/production';
 import {
   X,
   ShoppingBag,
@@ -34,6 +35,7 @@ export const CartDrawer: React.FC = () => {
     setIsCartOpen,
     cartItems,
     currentBusiness,
+    authSession,
     adminSettings,
     updateCartQuantity,
     removeFromCart,
@@ -47,6 +49,8 @@ export const CartDrawer: React.FC = () => {
   const [deliveryNotes, setDeliveryNotes] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [orderSentSuccess, setOrderSentSuccess] = useState(false);
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+  const orderAttemptRef = useRef<{ fingerprint: string; orderId: string; idempotencyKey: string } | null>(null);
   const [completedOrderDetails, setCompletedOrderDetails] = useState<{
     whatsappUrl?: string;
     method: 'cod' | 'paymob';
@@ -54,6 +58,8 @@ export const CartDrawer: React.FC = () => {
     fee: number;
     total: number;
     ref?: string;
+    orderId?: string;
+    tracked?: boolean;
   } | null>(null);
 
   // Paymob Payment Method State
@@ -111,7 +117,7 @@ export const CartDrawer: React.FC = () => {
       setIsPaymobModalOpen(true);
     } else {
       // Standard Cash on Delivery
-      executeOrderSubmission({
+      void executeOrderSubmission({
         method: 'cod',
         fee: 0,
         total: subtotal,
@@ -119,80 +125,139 @@ export const CartDrawer: React.FC = () => {
     }
   };
 
-  // Execute WhatsApp order dispatch
-  const executeOrderSubmission = (details: {
+  // Persist authenticated orders through the existing JWT-protected, server-priced Edge Function.
+  const executeOrderSubmission = async (details: {
     method: 'cod' | 'paymob';
     channel?: PaymobChannel;
     fee: number;
     total: number;
     ref?: string;
   }) => {
-    const result = submitOrderViaWhatsApp({
-      customerName,
-      customerPhone,
-      customerAddress,
-      deliveryNotes,
-      paymentMethod: details.method,
-      paymobChannel: details.channel,
-      paymobFee: details.fee,
-      paymobTotalPaid: details.total,
-      paymobTransactionRef: details.ref,
-    });
+    if (details.method === 'paymob') {
+      setErrorMessage('الدفع الإلكتروني غير متاح حاليا. لم يتم تحصيل أي مبلغ.');
+      return;
+    }
+    if (isCreatingOrder) return;
+    setIsCreatingOrder(true);
+    setErrorMessage('');
+    const whatsappWindow = window.open('about:blank', '_blank');
 
-    if (result.success && result.url) {
-      setCompletedOrderDetails({
-        whatsappUrl: result.url,
-        ...details,
+    try {
+      if (!currentBusiness) throw new Error('النشاط الحالي غير محدد.');
+      const ownerPhoneDigits = String(currentBusiness.ownerWhatsApp || '').replace(/\D/g, '');
+      if (ownerPhoneDigits.length < 10 || ownerPhoneDigits.length > 15) {
+        throw new Error('رقم واتساب صاحب النشاط غير متوفر أو غير صالح.');
+      }
+      if (cartItems.some(({ product }) =>
+        product.businessId !== currentBusiness.id || !product.isAvailable || product.requiresQuote
+      )) {
+        throw new Error('يوجد منتج غير متاح أو لا ينتمي إلى النشاط الحالي. حدّث السلة ثم حاول مرة أخرى.');
+      }
+
+      let orderId: string | undefined;
+      let tracked = false;
+      let whatsappNotes = deliveryNotes;
+
+      if (authSession.isAuthenticated) {
+        if (!authSession.userId) throw new Error('تعذر التحقق من هوية حسابك. أعد تسجيل الدخول قبل إرسال الطلب.');
+        if (!currentBusiness.tenantId) throw new Error('تعذر تحديد نطاق النشاط التجاري؛ لم يتم إرسال الطلب.');
+        const items = cartItems.map(({ product, quantity }) => {
+          if (!/^[0-9a-f-]{36}$/i.test(product.id)) {
+            throw new Error('أحد المنتجات لا يحمل معرف كتالوج معتمدًا. لم يتم إرسال الطلب.');
+          }
+          if (!Number.isInteger(quantity) || quantity < 1 || quantity > 1000) {
+            throw new Error('كمية أحد المنتجات غير صالحة.');
+          }
+          return { catalogItemId: product.id, quantity, selectedOptionIds: [] as string[] };
+        });
+        const fingerprint = JSON.stringify({
+          businessId: currentBusiness.id,
+          tenantId: currentBusiness.tenantId,
+          branchId: currentBusiness.branchId || null,
+          customerName: customerName.trim(),
+          customerPhone: customerPhone.trim(),
+          customerAddress: customerAddress.trim(),
+          deliveryNotes: deliveryNotes.trim(),
+          items,
+        });
+        if (!orderAttemptRef.current || orderAttemptRef.current.fingerprint !== fingerprint) {
+          orderAttemptRef.current = {
+            fingerprint,
+            orderId: crypto.randomUUID(),
+            idempotencyKey: crypto.randomUUID(),
+          };
+        }
+        const attempt = orderAttemptRef.current;
+        const { data, error } = await supabase.functions.invoke('order-create', {
+          body: {
+            orderId: attempt.orderId,
+            tenantId: currentBusiness.tenantId,
+            businessId: currentBusiness.id,
+            branchId: currentBusiness.branchId || null,
+            clientIdempotencyKey: attempt.idempotencyKey,
+            currency: 'EGP',
+            customerName: customerName.trim(),
+            customerPhone: customerPhone.trim(),
+            deliveryAddress: customerAddress.trim(),
+            items,
+            notes: deliveryNotes.trim() || null,
+            metadata: { source: 'li2lak_catalog', catalog_authoritative: true },
+          },
+        });
+        if (error) {
+          let detail = error.message || 'تعذر تسجيل الطلب';
+          try {
+            const payload = await (error as any).context?.json?.();
+            detail = String(payload?.error || payload?.message || detail);
+          } catch { /* Network errors may not contain a JSON response. */ }
+          throw new Error(detail);
+        }
+        if (!data || typeof data.id !== 'string' || !data.id) {
+          throw new Error('لم يصل تأكيد تسجيل الطلب من الخادم. لم يتم فتح واتساب.');
+        }
+        orderId = data.id;
+        tracked = true;
+        whatsappNotes = [deliveryNotes.trim(), 'رقم الطلب المسجل: ' + orderId].filter(Boolean).join('\n');
+      }
+
+      const result = submitOrderViaWhatsApp({
+        customerName,
+        customerPhone,
+        customerAddress,
+        deliveryNotes: whatsappNotes,
+        paymentMethod: details.method,
+        paymobChannel: details.channel,
+        paymobFee: details.fee,
+        paymobTotalPaid: details.total,
+        paymobTransactionRef: details.ref,
       });
+
+      if (!result.success) {
+        if (orderId) {
+          setCompletedOrderDetails({ orderId, tracked, ...details });
+          setOrderSentSuccess(true);
+          setErrorMessage(result.error || 'تم تسجيل الطلب، لكن تعذر إنشاء رابط واتساب.');
+          return;
+        }
+        throw new Error(result.error || 'حدث خطأ أثناء إنشاء رابط الطلب.');
+      }
+
+      setCompletedOrderDetails({ whatsappUrl: result.url, orderId, tracked, ...details });
       setOrderSentSuccess(true);
-      window.open(result.url, '_blank');
-    } else {
-      setErrorMessage(result.error || 'حدث خطأ أثناء إنشاء رابط الطلب.');
+      if (result.url && whatsappWindow) whatsappWindow.location.href = result.url;
+      if (orderAttemptRef.current) orderAttemptRef.current = null;
+    } catch (cause) {
+      if (whatsappWindow && !whatsappWindow.closed) whatsappWindow.close();
+      setErrorMessage(cause instanceof Error ? cause.message : 'تعذر إنشاء الطلب. حاول مرة أخرى.');
+    } finally {
+      setIsCreatingOrder(false);
     }
   };
 
-  // Simulate Paymob Electronic Transaction Confirmation
+  // Fail closed: no client-side payment simulation or generated transaction references.
   const handleConfirmPaymobPayment = () => {
-    setPaymobError('');
-
-    if (paymobChannel === 'card') {
-      const sanitizedCard = cardNumber.replace(/\s+/g, '');
-      if (sanitizedCard.length < 15) {
-        setPaymobError('يرجى إدخال رقم بطاقة صالح (16 رقماً).');
-        return;
-      }
-      if (!cardExpiry.includes('/') || cardExpiry.length < 5) {
-        setPaymobError('يرجى إدخال تاريخ انتهاء صالح (شهر/سنة MM/YY).');
-        return;
-      }
-      if (cardCvv.length < 3) {
-        setPaymobError('يرجى إدخال رمز الأمان CVV (3 أرقام).');
-        return;
-      }
-    } else if (paymobChannel === 'wallet') {
-      if (!walletPhone.trim() || walletPhone.length < 10) {
-        setPaymobError('يرجى إدخال رقم محفظة هاتف كاش صالح (مثل: 01012345678).');
-        return;
-      }
-    }
-
-    setIsProcessingPaymob(true);
-
-    // Simulate Paymob gateway authorization handshake
-    setTimeout(() => {
-      setIsProcessingPaymob(false);
-      setIsPaymobModalOpen(false);
-
-      const generatedRef = `PMB-EG-${Math.floor(100000 + Math.random() * 900000)}`;
-
-      executeOrderSubmission({
-        method: 'paymob',
-        channel: paymobChannel,
-        fee: paymobFee,
-        total: finalTotal,
-        ref: generatedRef,
-      });
-    }, 1800);
+    setPaymobError('الدفع الإلكتروني غير متاح حاليا. لا تدخل بيانات بطاقتك أو محفظتك هنا.');
+    setIsProcessingPaymob(false);
   };
 
   // Helper formatters
@@ -266,10 +331,12 @@ export const CartDrawer: React.FC = () => {
                 </div>
                 <h3 className="font-black text-lg text-emerald-950">
                   {completedOrderDetails.method === 'paymob'
-                    ? 'تم سداد الطلب بنجاح عبر Paymob وإرسال التفاصيل!'
-                    : 'تم تأكيد طلبك وإرساله عبر الواتساب!'}
+                    ? 'لا يوجد تأكيد دفع إلكتروني لهذا الطلب'
+                    : completedOrderDetails.tracked ? 'تم تسجيل الطلب بنجاح' : 'تم تجهيز الطلب للإرسال عبر واتساب'}
                 </h3>
 
+                {completedOrderDetails.tracked && completedOrderDetails.orderId && (<p className="rounded-xl border border-emerald-200 bg-white p-3 text-sm font-bold text-emerald-900">رقم الطلب المسجل: <span dir="ltr" className="font-mono">{completedOrderDetails.orderId}</span></p>)}
+                {completedOrderDetails.whatsappUrl && (<a href={completedOrderDetails.whatsappUrl} target="_blank" rel="noopener noreferrer" className="inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-700">فتح واتساب وإرسال تفاصيل الطلب</a>)}
                 {completedOrderDetails.method === 'paymob' && (
                   <div className="bg-white p-3.5 rounded-2xl border border-emerald-300 text-right space-y-1.5 text-xs shadow-xs">
                     <div className="flex items-center justify-between text-slate-500 font-semibold">
@@ -298,9 +365,9 @@ export const CartDrawer: React.FC = () => {
                 )}
 
                 <p className="text-xs text-emerald-800 leading-relaxed">
-                  تم إرسال كافة تفاصيل الفاتورة وحالة السداد إلى واتساب صاحب النشاط (
-                  <span dir="ltr" className="font-bold">{currentBusiness?.ownerWhatsApp}</span>
-                  ).
+                  {completedOrderDetails.whatsappUrl
+                    ? <>تم تجهيز تفاصيل الطلب لفتح محادثة واتساب صاحب النشاط (<span dir="ltr" className="font-bold">{currentBusiness?.ownerWhatsApp}</span>). لن يتم إرسال الرسالة إلا بعد الضغط على زر الإرسال داخل واتساب.</>
+                    : 'تم تسجيل الطلب، لكن لم يتم إرسال رسالة واتساب. يمكنك نسخ رقم الطلب والتواصل مع النشاط.'}
                 </p>
 
                 {completedOrderDetails.whatsappUrl && (
@@ -708,13 +775,14 @@ export const CartDrawer: React.FC = () => {
               <button
                 type="submit"
                 form="order-form"
+                disabled={isCreatingOrder}
                 className={`w-full py-3.5 px-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer text-white ${
                   paymentMethod === 'paymob'
                     ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/25'
                     : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25'
                 }`}
               >
-                {paymentMethod === 'paymob' ? (
+                {isCreatingOrder ? <span>{authSession.isAuthenticated ? 'جارٍ تسجيل الطلب ثم فتح واتساب…' : 'جارٍ تجهيز واتساب…'}</span> : paymentMethod === 'paymob' ? (
                   <>
                     <CreditCard className="w-4 h-4" />
                     <span>المتابعة للدفع عبر Paymob ({finalTotal.toFixed(2)} {adminSettings.currency})</span>

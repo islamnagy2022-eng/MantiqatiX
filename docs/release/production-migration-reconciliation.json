@@ -118,11 +118,11 @@
   },
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
-    "checked_at": "2026-11-21",
-    "method": "Read-only Production migration-ledger inventory retained from 2026-11-21 and compared against the exact 76-version release contract carried by PR #961. No Production migration was applied.",
+    "checked_at": "2026-11-22",
+    "method": "Read-only Production migration-ledger inventory retained from 2026-11-22 and compared against the exact 78-version release contract carried by the Li2Lak RC497/RC498 candidate. No Production migration was applied.",
     "live_ledger_count": 310,
     "latest_live_version": "20261110150618",
-    "expected_migration_versions": 76,
+    "expected_migration_versions": 78,
     "found_in_live_ledger": 0,
     "required_versions": [
       "20261009120000",
@@ -200,7 +200,9 @@
       "20261120280000",
       "20261120290000",
       "20261121020000",
-      "20261121030000"
+      "20261121030000",
+      "20261122010000",
+      "20261122020000"
     ],
     "missing_versions": [
       "20261009120000",
@@ -278,10 +280,12 @@
       "20261120280000",
       "20261120290000",
       "20261121020000",
-      "20261121030000"
+      "20261121030000",
+      "20261122010000",
+      "20261122020000"
     ],
     "recorded_required_versions": [],
-    "interpretation": "None of the 76 exact required source-version identifiers are recorded in the current live ledger. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
+    "interpretation": "None of the 78 exact required source-version identifiers are recorded in the current live ledger. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
   },
   "critical_edge_function_source_parity_check": {
     "status": "BLOCKED",
@@ -5405,5 +5409,78 @@
       "post_financial_journal_backend(uuid,jsonb,jsonb): service_role EXECUTE false; anon/authenticated false"
     ],
     "production_mutation": "NONE — no payment, order, webhook, journal, wallet, settlement or schema/ACL/Edge operation was invoked."
+  },
+  "rc497_verified_business_reviews": {
+    "source_migration": "20261122010000",
+    "status": "SOURCE_CANDIDATE_NOT_APPLIED",
+    "pr": 971,
+    "live_review_table_found": false,
+    "live_orders_at_checkpoint": 0,
+    "required_behavior": [
+      "one immutable review per authenticated customer's own DELIVERED order",
+      "exact retry is idempotent; changed duplicate review is rejected",
+      "all submissions remain PENDING until direct platform-admin registry moderation",
+      "one business-scoped response by active OWNER/BUSINESS_OWNER/ADMIN/MANAGER",
+      "public output contains only PUBLISHED reviews for ACTIVE verified businesses",
+      "public output excludes customer identity and is bounded to 20 reviews per page",
+      "direct table access is denied to anon/authenticated/service_role and FORCE RLS is enabled",
+      "account deletion anonymizes reviewer and event actor references without deleting review history",
+      "review records retain the order branch; branch-scoped managers can respond only within their assigned branch",
+      "platform moderation queue is bounded and paginated; customer identity is omitted from admin queue output",
+      "active business owners and members cannot review their own business"
+    ],
+    "required_release_tests": [
+      "own-delivered-order-positive",
+      "undelivered-order-negative",
+      "foreign-customer-order-negative",
+      "same-payload-idempotency",
+      "changed-payload-duplicate-negative",
+      "tenant-role-cannot-moderate",
+      "platform-registry-admin-moderation-positive",
+      "business-owner-response-scope",
+      "one-response-only",
+      "unverified-business-public-read-hidden",
+      "anonymous-public-output-identity-free",
+      "direct-table-privilege-negative",
+      "account-deletion-anonymization",
+      "cross-branch-manager-response-negative",
+      "tenant-business-mismatch-negative",
+      "moderation-queue-pagination",
+      "customer-own-review-status-scope",
+      "business-self-review-negative"
+    ],
+    "production_mutation": "NONE",
+    "note": "Source candidate only. Production has no general business review table and zero public.orders rows at the read-only checkpoint. No reviews can be submitted until real delivered customer orders exist and this feature is released through the coordinated backup/migration gate."
+  },
+  "rc498_authenticated_order_create_rpc": {
+    "source_migration": "20261122020000",
+    "status": "SOURCE_CANDIDATE_NOT_APPLIED",
+    "production_rpc": "public.create_order_backend(...)",
+    "live_security_definer": true,
+    "live_anon_execute": false,
+    "live_authenticated_execute": false,
+    "live_service_role_execute": true,
+    "live_search_path": "public",
+    "live_order_create_edge_function": {
+      "status": "ACTIVE",
+      "version": 8,
+      "verify_jwt": true,
+      "rpc_client": "service_role"
+    },
+    "required_behavior": [
+      "call create_order_backend with the verified customer JWT so auth.uid() matches p_customer_id",
+      "grant EXECUTE only to authenticated callers in addition to the existing controlled service_role path",
+      "keep anon and PUBLIC execution denied",
+      "harden SECURITY DEFINER search_path with pg_catalog first and pg_temp last",
+      "preserve backend customer, membership, tenant, business, provider, branch, catalog, pricing and idempotency checks"
+    ],
+    "production_mutation": "NONE",
+    "note": "Read-only Production body inspection showed drift from the repository's RC105 source: the live function unconditionally requires auth.uid(), lacks the RC105 service-role bypass and lacks its explicit idempotency scope conflict guard. The current Edge Function v8 calls through service_role, so this combination is not certified. RC498 restores the RC105 body contract and hardens ACL/search_path. The candidate Edge entry points use a user-scoped client carrying the verified Bearer token. Neither migration nor Edge Function was deployed.",
+    "live_body_matches_rc105_source": false,
+    "live_body_gaps": [
+      "live body requires auth.uid() unconditionally and does not permit the verified service_role Edge caller described by RC105",
+      "live body lacks the RC105 cross-customer/business/branch idempotency conflict guard before returning an existing order snapshot"
+    ],
+    "candidate_body": "Restores the RC105 identity/idempotency implementation, adds a hardened SECURITY DEFINER search_path, revokes PUBLIC/anon/authenticated then grants authenticated and service_role explicitly."
   }
 }

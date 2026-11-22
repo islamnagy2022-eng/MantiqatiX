@@ -1,0 +1,361 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+
+const migrationPath = "supabase/migrations/20261122010000_rc497_verified_business_reviews.sql";
+const orderMigrationPath = "supabase/migrations/20261122020000_rc498_authenticated_order_create_rpc.sql";
+const reviewPanel = fs.readFileSync("apps/catalog-frontend/src/components/storefront/BusinessReviewsPanel.tsx", "utf8");
+const customerReviewPanel = fs.readFileSync("apps/catalog-frontend/src/components/account/CustomerOrderReviews.tsx", "utf8");
+const accountPortal = fs.readFileSync("apps/catalog-frontend/src/modules/account/SubscriberAccountPortal.tsx", "utf8");
+const ownerReviewPanel = fs.readFileSync("apps/catalog-frontend/src/components/merchant/BusinessReviewManagementPanel.tsx", "utf8");
+const adminReviewPanel = fs.readFileSync("apps/catalog-frontend/src/components/admin/BusinessReviewModerationPanel.tsx", "utf8");
+const adminDashboard = fs.readFileSync("apps/catalog-frontend/src/components/admin/AdminDashboard.tsx", "utf8");
+const merchantDashboard = fs.readFileSync("apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx", "utf8");
+const appShell = fs.readFileSync("apps/catalog-frontend/src/App.tsx", "utf8");
+const cartDrawer = fs.readFileSync("apps/catalog-frontend/src/components/cart/CartDrawer.tsx", "utf8");
+const migration = fs.readFileSync(migrationPath, "utf8");
+const orderMigration = fs.readFileSync(orderMigrationPath, "utf8");
+const orderCreateEdge = fs.readFileSync("supabase/functions/order-create/index.ts", "utf8");
+const apiEdge = fs.readFileSync("supabase/functions/api/index.ts", "utf8");
+const ordersReadScopeMigration = fs.readFileSync("supabase/migrations/20261114010000_rc465_orders_read_scope_hardening.sql", "utf8");
+const orderIntegration = fs.readFileSync("supabase/tests/rc104_order_idempotency_scope_integration.sql", "utf8");
+const orderFixture = fs.readFileSync("supabase/tests/rc104_order_idempotency_scope_fixture.sql", "utf8");
+const orderConcurrency = fs.readFileSync("supabase/tests/rc104_order_idempotency_scope_concurrency.sh", "utf8");
+const orderWorkflow = fs.readFileSync(".github/workflows/order-idempotency-scope.yml", "utf8");
+const fixture = fs.readFileSync("supabase/tests/rc497_business_reviews_fixture.sql", "utf8");
+const integration = fs.readFileSync("supabase/tests/rc497_business_reviews_integration.sql", "utf8");
+const workflow = fs.readFileSync(".github/workflows/li2lak-verified-business-reviews.yml", "utf8");
+const forwardReplay = fs.readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
+const gate = fs.readFileSync("scripts/validate-production-migration-chain-gate.mjs", "utf8");
+const verifier = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
+const liveContract = fs.readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
+const manifest = JSON.parse(fs.readFileSync("docs/release/production-migration-reconciliation.json", "utf8"));
+const masterTodo = fs.readFileSync("docs/MASTER_PRODUCTION_TODO.md", "utf8");
+const sessionLog = fs.readFileSync("docs/SESSION_LOG.md", "utf8");
+
+assert.match(migration, /CONSTRAINT business_reviews_one_per_order UNIQUE \(order_id\)/,
+  "one immutable review per order must be enforced by a database unique constraint");
+assert.match(migration, /branch_id varchar REFERENCES public\.branches\(id\)/,
+  "review provenance must retain the order branch for scoped owner responses");
+assert.match(migration, /v_order\.branch_id/,
+  "review submission must bind the review to the order's branch");
+assert.match(fixture, /CREATE TABLE public\.branches[\s\S]*?branch-a2/,
+  "fixture must cover multiple branches of one business");
+
+assert.match(migration, /v_order\.customer_id IS DISTINCT FROM v_actor[\s\S]*?upper\(coalesce\(v_order\.status, ''\)\) <> 'DELIVERED'[\s\S]*?ORDER_BUSINESS_TENANT_MISMATCH/,
+  "review submission must bind the authenticated actor to their own delivered order");
+assert.match(migration, /marketing_provider_profiles pp[\s\S]*?pp\.owner_user_id = v_actor[\s\S]*?BUSINESS_REVIEW_SELF_REVIEW_FORBIDDEN/,
+  "business owners and active business members must not review their own business");
+assert.match(fixture, /owner_user_id uuid REFERENCES auth\.users\(id\)/,
+  "review fixture must model business ownership for self-review rejection");
+assert.match(integration, /RC497_SELF_REVIEW_WAS_ACCEPTED[\s\S]*?BUSINESS_REVIEW_SELF_REVIEW_FORBIDDEN/,
+  "review integration suite must reject an owner's self-review");
+assert.match(migration, /CREATE OR REPLACE FUNCTION public\.get_customer_business_review_status[\s\S]*?o\.customer_id = v_actor[\s\S]*?r\.customer_id = v_actor/,
+  "customer review status RPC must return only the authenticated customer's own review");
+assert.match(migration, /REVOKE ALL ON FUNCTION public\.get_customer_business_review_status\(uuid\) FROM PUBLIC, anon, service_role[\s\S]*?GRANT EXECUTE ON FUNCTION public\.get_customer_business_review_status\(uuid\) TO authenticated/,
+  "private customer review status RPC must be authenticated-only");
+assert.match(migration, /CREATE OR REPLACE FUNCTION public\.get_platform_business_review_moderation_queue[\s\S]*?FROM private\.platform_admins pa WHERE pa\.user_id = v_actor/,
+  "moderation queue must require direct platform-admin registry membership");
+assert.match(migration, /REVOKE ALL ON FUNCTION public\.get_platform_business_review_moderation_queue\(integer, integer\) FROM PUBLIC, anon, service_role[\s\S]*?GRANT EXECUTE ON FUNCTION public\.get_platform_business_review_moderation_queue\(integer, integer\) TO authenticated/,
+  "moderation queue RPC must be authenticated-only with registry authorization");
+assert.match(migration, /COMMENT ON FUNCTION public\.get_platform_business_review_moderation_queue\(integer, integer\) IS/,
+  "moderation queue COMMENT signature must match its two-argument function identity");
+
+assert.match(migration, /v_existing\.rating = p_rating AND v_existing\.review_text IS NOT DISTINCT FROM v_text[\s\S]*?REVIEW_ALREADY_SUBMITTED/,
+  "exact retry must be idempotent while changed duplicate payloads are rejected");
+assert.match(migration, /ON CONFLICT \(order_id\) DO NOTHING[\s\S]*?IF NOT FOUND THEN[\s\S]*?REVIEW_ALREADY_SUBMITTED/,
+  "review insertion must close the unique-order conflict race without accepting changed duplicate payloads");
+assert.match(migration, /v_decision IN \('REJECTED','HIDDEN'\) AND v_reason IS NULL[\s\S]*?MODERATION_REASON_REQUIRED/,
+  "rejected or hidden reviews must carry an auditable moderation reason");
+assert.match(migration, /FROM private\.platform_admins pa WHERE pa\.user_id = v_actor/,
+  "moderation must depend on the protected platform-admin registry, not tenant roles");
+assert.doesNotMatch(migration.match(/CREATE OR REPLACE FUNCTION public\.moderate_business_review[\s\S]*?\$function\$;/)?.[0] ?? "", /mnty_can_platform_admin|is_platform_admin/,
+  "tenant-derived global admin helpers must not authorize review moderation");
+assert.match(migration, /m\.business_id = v_review\.business_id[\s\S]*?BUSINESS_REVIEW_RESPONSE_FORBIDDEN/,
+  "business response must be restricted to the reviewed business");
+assert.match(migration, /m\.branch_id IS NULL[\s\S]*?v_review\.branch_id IS NOT NULL AND m\.branch_id = v_review\.branch_id/,
+  "branch-scoped managers must not answer reviews for another branch");
+
+assert.match(migration, /pp\.status = 'ACTIVE' AND pp\.is_verified = true/,
+  "public review reads must be restricted to active verified business profiles");
+assert.match(migration, /r\.status = 'PUBLISHED'/,
+  "public review reads must be moderation-gated");
+assert.match(migration, /least\(greatest\(coalesce\(p_limit, 10\), 1\), 20\)/,
+  "public review page size must be clamped to at most 20");
+assert.match(migration, /'verifiedInteraction', true/,
+  "public review rows must be explicitly marked as delivered-order verified interactions");
+assert.match(migration, /customer_id uuid REFERENCES auth\.users\(id\) ON DELETE SET NULL/,
+  "account deletion must anonymize reviewer references without deleting review history");
+assert.match(migration, /actor_user_id uuid REFERENCES auth\.users\(id\) ON DELETE SET NULL/,
+  "account deletion must anonymize event actor references");
+assert.match(migration, /anonymize_business_review_on_customer_delete[\s\S]*?NEW\.review_text := NULL/,
+  "account deletion must scrub customer-authored review text while retaining the verified rating");
+
+assert.match(migration, /ALTER TABLE public\.business_reviews ENABLE ROW LEVEL SECURITY;[\s\S]*?FORCE ROW LEVEL SECURITY/,
+  "review table must enforce RLS");
+assert.match(migration, /ALTER TABLE public\.business_review_events ENABLE ROW LEVEL SECURITY;[\s\S]*?FORCE ROW LEVEL SECURITY/,
+  "review event ledger must enforce RLS");
+assert.match(migration, /REVOKE ALL ON TABLE public\.business_reviews FROM PUBLIC, anon, authenticated, service_role/,
+  "review table must not grant direct API-role access");
+assert.match(migration, /REVOKE ALL ON TABLE public\.business_review_events FROM PUBLIC, anon, authenticated, service_role/,
+  "review event ledger must not grant direct API-role access");
+assert.equal((migration.match(/SECURITY DEFINER/g) ?? []).length, 6,
+  "only the six intentional review RPCs should be SECURITY DEFINER");
+assert.equal((migration.match(/SET search_path TO ''/g) ?? []).length, 7,
+  "all six review SECURITY DEFINER RPCs and the trigger function must use an empty search_path");
+assert.match(fixture, /CREATE TABLE public\.orders[\s\S]*?customer_id uuid REFERENCES auth\.users\(id\) ON DELETE SET NULL/,
+  "fixture must model customer account deletion without blocking order retention");
+for (const token of [
+  "ORDER_NOT_DELIVERED",
+  "ORDER_BUSINESS_TENANT_MISMATCH",
+  "RC497_CUSTOMER_REVIEW_STATUS_LOOKUP_FAILED",
+  "RC497_CUSTOMER_READS_FOREIGN_REVIEW_STATUS",
+  "RC497_ADMIN_QUEUE_LOOKUP_FAILED",
+  "RC497_ADMIN_QUEUE_DISCLOSED_CUSTOMER",
+  "RC497_ADMIN_QUEUE_MISSING_PENDING_REVIEW",
+  "RC497_ADMIN_QUEUE_PAGINATION_METADATA_INVALID",
+  "RC497_ADMIN_QUEUE_PAGINATION_FAILED",
+  "RC497_TENANT_OWNER_ACCESSED_MODERATION_QUEUE",
+  "BUSINESS_REVIEW_FORBIDDEN",
+  "REVIEW_ALREADY_SUBMITTED",
+  "MODERATION_REASON_REQUIRED",
+  "PLATFORM_ADMIN_REQUIRED",
+  "BUSINESS_REVIEW_RESPONSE_FORBIDDEN",
+  "RC497_CROSS_BRANCH_MANAGER_RESPONDED",
+  "BUSINESS_REVIEW_ALREADY_ANSWERED",
+  "RC497_PUBLIC_REVIEW_DISCLOSES_PRIVATE_IDENTITY",
+  "RC497_DIRECT_TABLE_READ_GRANT_FOUND",
+  "RC497_ACCOUNT_DELETION_REMOVED_REVIEWS",
+  "RC497_ACCOUNT_DELETION_DID_NOT_ANONYMIZE_REVIEW",
+  "RC497_ACCOUNT_DELETION_DID_NOT_SCRUB_REVIEW_TEXT",
+]) assert.ok(integration.includes(token), `integration suite must cover ${token}`);
+
+assert.match(orderMigration, /create or replace function public\.create_order_backend[\s\S]*?set search_path=pg_catalog, public, extensions, pg_temp/i,
+  "RC498 must restore the canonical order function and harden its SECURITY DEFINER search_path");
+assert.match(orderMigration, /set search_path=pg_catalog, public, extensions, pg_temp as \$\$[\s\S]*?end \$\$;/i,
+  "RC498 function body must use a valid paired PostgreSQL dollar-quote delimiter");
+assert.match(orderMigration, /REVOKE ALL ON FUNCTION public\.create_order_backend[\s\S]*?FROM PUBLIC, anon, authenticated[\s\S]*?GRANT EXECUTE ON FUNCTION public\.create_order_backend[\s\S]*?TO authenticated/,
+  "RC498 must deny PUBLIC/anon, reset authenticated ACL and grant authenticated execution");
+assert.match(orderMigration, /on conflict \(tenant_id, client_idempotency_key\) where client_idempotency_key is not null do nothing[\s\S]*?SELECT \* INTO v_existing FROM orders[\s\S]*?IDEMPOTENCY_KEY_CONFLICT[\s\S]*?idempotent',true/,
+  "order creation must resolve concurrent idempotency-key conflicts to the canonical existing order without crossing customer/business/branch scope");
+assert.ok(["auth.uid()", "auth.role()", "IDEMPOTENCY_KEY_CONFLICT", "catalog_item_prices", "CUSTOMER_REQUIRED"].every((token) => orderMigration.includes(token)),
+  "RC498 must retain identity, service-role verification, idempotency-scope and server-pricing guards");
+assert.match(orderMigration, /v_qty<>trunc\(v_qty\)/,
+  "the authoritative RPC must reject fractional quantities even when called directly by authenticated users");
+assert.match(orderMigration, /jsonb_array_length\(p_items_json\)>100[\s\S]*?v_qty>1000[\s\S]*?v_requested_opts>20/,
+  "the authoritative RPC must enforce the same item, quantity and option-count limits as its Edge caller");
+assert.match(orderMigration, /if p_items_json is null or jsonb_typeof\(p_items_json\) is distinct from 'array' then[\s\S]*?raise exception 'INVALID_ITEMS'[\s\S]*?if jsonb_array_length\(p_items_json\)=0/,
+  "the RPC must validate JSON array type before calling jsonb_array_length on untrusted input");
+assert.match(orderMigration, /jsonb_typeof\(coalesce\(v_item->'selectedOptionIds','\[\]'::jsonb\)\) is distinct from 'array'[\s\S]*?length\(option_value #>> '\{\}'\)>100/,
+  "the authoritative RPC must validate option array shape and identifier length");
+assert.ok(orderIntegration.includes("RC498_OPTION_LIMIT_BYPASSED") && orderIntegration.includes("RC498_ITEM_COUNT_LIMIT_BYPASSED"),
+  "RC498 integration must cover direct-call option and item-count limits");
+assert.ok(orderIntegration.includes("RC498_NON_ARRAY_ITEMS_ACCEPTED") && orderIntegration.includes('{"not":"an array"}'),
+  "RC498 integration must reject malformed non-array JSON item payloads");
+assert.ok(orderIntegration.includes("RC498_FRACTIONAL_QUANTITY_ACCEPTED") && orderIntegration.includes('"quantity":1.5'),
+  "RC498 integration must prove authenticated direct RPC callers cannot submit fractional quantities");
+assert.ok(orderCreateEdge.includes("Authorization: `Bearer ${token}`") && orderCreateEdge.includes('userClient.rpc("create_order_backend"'),
+  "order-create must invoke the backend RPC with the verified customer JWT");
+assert.match(orderCreateEdge, /admin\.auth\.getUser\(token\)[\s\S]*?userClient\.rpc\("create_order_backend"/,
+  "order-create must verify the bearer token with Supabase Auth before invoking the customer-scoped RPC");
+assert.match(orderCreateEdge, /const branchQuery = admin[\s\S]*?branchId\s*\?\s*await branchQuery\.eq\("id", branchId\)\.maybeSingle\(\)[\s\S]*?:\s*await branchQuery\.limit\(1\)\.maybeSingle\(\)/,
+  "order-create must validate a selected branch by exact ID and detect branch requirement with a bounded existence query");
+assert.match(orderCreateEdge, /const branchQuery = admin[\s\S]*?\.eq\("tenant_id", body\.tenantId\)[\s\S]*?\.eq\("business_id", body\.businessId\)[\s\S]*?\.eq\("status", "ACTIVE"\)[\s\S]*?branchId\s*\?\s*await branchQuery\.eq\("id", branchId\)\.maybeSingle\(\)/,
+  "selected branch lookup must enforce tenant, business, ACTIVE status and exact branch identity");
+assert.doesNotMatch(orderCreateEdge, /\.from\("branches"\)[\s\S]*?\.limit\(100\)[\s\S]*?BRANCH_NOT_AVAILABLE/,
+  "order-create must not reject valid branches merely because they fall beyond an arbitrary 100-row query limit");
+assert.match(apiEdge, /supabaseAdmin\.auth\.getUser\(token\)[\s\S]*?supabaseUser\.rpc\("create_order_backend"/,
+  "legacy Orders API must verify the bearer token before invoking the customer-scoped RPC");
+assert.match(orderIntegration, /SET ROLE authenticated[\s\S]*?RC498_AUTHENTICATED_EXECUTE_MISSING[\s\S]*?RC498_ANON_EXECUTE_PRESENT[\s\S]*?RESET ROLE/,
+  "RC498 integration must exercise authenticated grants and anonymous denial under the actual authenticated role");
+assert.match(orderIntegration, /request\.jwt\.claim\.role', 'service_role'[\s\S]*?service-role path could not create a new order/,
+  "RC498 integration must preserve the verified service-role backend path");
+assert.doesNotMatch(orderCreateEdge, /admin\.rpc\("create_order_backend"/,
+  "order-create must not invoke the auth.uid()-enforcing RPC through service_role");
+assert.ok(apiEdge.includes("Authorization: `Bearer ${token}`") && apiEdge.includes('supabaseUser.rpc("create_order_backend"'),
+  "legacy authenticated Orders API must invoke the backend RPC with the verified customer JWT");
+assert.doesNotMatch(apiEdge, /supabaseAdmin\.rpc\("create_order_backend"/,
+  "legacy Orders API must not invoke the auth.uid()-enforcing RPC through service_role");
+
+const orderGetRouteStart = apiEdge.indexOf('const orderMatch = path.match');
+const orderGetRouteEnd = apiEdge.indexOf('if (req.method === "POST" && path === "/api/v1/payments/intents")', orderGetRouteStart);
+assert.ok(orderGetRouteStart >= 0 && orderGetRouteEnd > orderGetRouteStart,
+  "legacy order-read route must remain independently identifiable for authorization validation");
+const orderGetRoute = apiEdge.slice(orderGetRouteStart, orderGetRouteEnd);
+
+
+assert.match(apiEdge, /const hasPermission = \(permissions: unknown, permission: string\): boolean => \{[\s\S]*?Array\.isArray\(permissions\)[\s\S]*?Object\.prototype\.hasOwnProperty\.call\(permissions, permission\)[\s\S]*?\[permission\] === true/,
+  "payment permission checks must support the live JSONB array and boolean-object shapes without treating false as a grant");
+assert.ok(apiEdge.includes('hasPermission(membership.permissions, "PAYMENT_READ_ALL")')
+  && apiEdge.includes('hasPermission(membership.permissions, "PAYMENT_CONFIRM_CASH")'),
+  "payment read and cash confirmation must use the shared JSONB permission decoder");
+const paymentIntentReadStart = apiEdge.indexOf("const paymentIntentMatch = path.match");
+const cashConfirmStart = apiEdge.indexOf("const cashConfirmMatch = path.match", paymentIntentReadStart);
+const notFoundStart = apiEdge.indexOf('return json({ error: "Not Found" }, 404)', cashConfirmStart);
+assert.ok(paymentIntentReadStart >= 0 && cashConfirmStart > paymentIntentReadStart && notFoundStart > cashConfirmStart,
+  "payment-intent read and cash-confirm routes must remain separately identifiable");
+const paymentIntentReadRoute = apiEdge.slice(paymentIntentReadStart, cashConfirmStart);
+const cashConfirmRoute = apiEdge.slice(cashConfirmStart, notFoundStart);
+assert.ok(paymentIntentReadRoute.includes("businessBranchScope = businessId === orderBusinessId && (branchId === null || branchId === orderBranchId)"),
+  "payment-intent reads must allow branchless finance memberships only within their own business");
+assert.ok(paymentIntentReadRoute.includes('businessBranchScope && (scopedFinanceRole || permissions.includes("PAYMENT_READ_ALL"))'),
+  "payment-intent reads must apply the business/branch scope to finance roles and explicit read permission");
+assert.ok(cashConfirmRoute.includes("businessBranchScope = businessId === orderBusinessId && (branchId === null || branchId === orderBranchId)"),
+  "cash confirmation must allow branchless business managers only within their own business");
+assert.ok(cashConfirmRoute.includes('businessBranchScope && (allowedRole || permissions.includes("PAYMENT_CONFIRM_CASH"))'),
+  "cash confirmation must apply business/branch scope before accepting a role or explicit permission");
+assert.ok(paymentIntentReadRoute.includes('tenantWideOwner = ["OWNER", "ADMIN"].includes(role) && businessId === null && branchId === null')
+  && cashConfirmRoute.includes('tenantWideOwner = ["OWNER", "ADMIN"].includes(role) && businessId === null && branchId === null'),
+  "tenant-wide payment access must remain limited to fully unscoped OWNER/ADMIN");
+
+assert.ok(orderGetRoute.includes('.eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE")'),
+  "legacy order reads must validate an ACTIVE membership for the requesting user in the order tenant");
+assert.ok(orderGetRoute.includes('tenantWideOwner = ["OWNER", "ADMIN"].includes(role) && businessId === null && branchId === null'),
+  "tenant-wide order reads must require a fully unscoped OWNER or ADMIN membership");
+assert.ok(orderGetRoute.includes('exactBusinessBranch = businessId === orderBusinessId && branchId === orderBranchId'),
+  "scoped operational order reads must match both the exact business and exact branch");
+assert.ok(orderGetRoute.includes('if (order.customer_id !== user.id && !operationalOrderRead) return json({ error: "Forbidden" }, 403)'),
+  "legacy order reads must reject requests that are neither customer-owned nor operationally scoped");
+assert.ok(!orderGetRoute.includes('["SUPER_ADMIN","ADMIN","OWNER","MANAGER","STAFF","CASHIER","DELIVERY_PARTNER"].includes(role)'),
+  "tenant membership roles must not regain broad unscoped same-tenant order access");
+
+const ordersMemberPolicyStart = ordersReadScopeMigration.indexOf("CREATE POLICY orders_member_select");
+const ordersProviderPolicyStart = ordersReadScopeMigration.indexOf("CREATE POLICY orders_provider_select_own_business", ordersMemberPolicyStart);
+assert.ok(ordersMemberPolicyStart >= 0 && ordersProviderPolicyStart > ordersMemberPolicyStart,
+  "RC465 authoritative orders-member scope policy must remain available to compare with the API route");
+const ordersMemberPolicy = ordersReadScopeMigration.slice(ordersMemberPolicyStart, ordersProviderPolicyStart);
+const expectedScopedOrderRoles = ["OWNER", "ADMIN", "BUSINESS_OWNER", "MANAGER", "STAFF", "EMPLOYEE", "FINANCE", "ACCOUNTANT", "FINANCE_MANAGER"];
+for (const role of expectedScopedOrderRoles) {
+  assert.ok(orderGetRoute.includes('"' + role + '"') && ordersMemberPolicy.includes("'" + role + "'"),
+    "API order-read role scope must stay aligned with RC465 for " + role);
+}
+assert.ok(!orderGetRoute.includes('"CASHIER"') && !orderGetRoute.includes('"DELIVERY_PARTNER"'),
+  "cashier and delivery-partner roles must not regain unscoped order-member reads");
+assert.ok(orderGetRoute.includes('String(order.assigned_partner_id ?? "") === user.id'),
+  "explicit assigned-partner order reads must remain tied to the exact order assignment");
+assert.ok(orderGetRoute.includes('role === "SERVICE_PROVIDER"')
+  && orderGetRoute.includes('businessId === orderBusinessId')
+  && orderGetRoute.includes('(branchId === null || branchId === orderBranchId)'),
+  "service-provider reads must remain limited to their own business and applicable branch");
+
+
+assert.match(orderIntegration, /RC498_AUTHENTICATED_EXECUTE_MISSING[\s\S]*?RC498_ANON_EXECUTE_PRESENT[\s\S]*?RC498 authenticated order RPC ACL, identity and pricing: PASS/,
+  "order integration suite must cover authenticated execution, anon denial, identity and authoritative pricing");
+assert.match(orderMigration, /catalog_item_prices cp[\s\S]*?upper\(cp\.currency\)\s*=\s*v_currency/,
+  "RC498 must select an active catalog price in the authoritative business currency");
+assert.match(orderFixture, /currency varchar not null default 'EGP'[\s\S]*?EGP'[\s\S]*?125,1[\s\S]*?USD'[\s\S]*?999,2/,
+  "order fixture must include a higher-version foreign-currency price to prove currency isolation");
+assert.match(orderIntegration, /total_amount=125/,
+  "authenticated order integration must preserve the EGP price instead of selecting the higher-version USD row");
+assert.ok(orderWorkflow.includes(orderMigrationPath), "order workflow must apply RC498 after RC105");
+assert.ok(orderWorkflow.includes("image: postgres:17") && orderWorkflow.includes("ancestor=postgres:17"),
+  "RC498 idempotency integration must run against the same PostgreSQL 17 major version as forward replay");
+assert.ok(orderWorkflow.includes("supabase/tests/rc104_order_idempotency_scope_concurrency.sh") && orderWorkflow.includes("bash supabase/tests/rc104_order_idempotency_scope_concurrency.sh"),
+  "PostgreSQL 17 order workflow must execute the concurrent idempotency race test");
+assert.match(orderConcurrency, /pg_sleep\(2\.5\)[\s\S]*?concurrent-order-key-rc498[\s\S]*?RC498_CONCURRENT_ORDER_IDEMPOTENCY=PASS/,
+  "concurrency test must overlap two calls on one idempotency key and assert convergence");
+assert.match(orderConcurrency, /rc498_test_order_insert_counter[\s\S]*?attempts=.*SELECT calls[\s\S]*?if \[\[ "\$attempts" != "2" \]\]/,
+  "concurrency test must prove both transactions reached the insert path before the winner committed");
+assert.match(orderConcurrency, /Refusing to run concurrency test outside its disposable PostgreSQL test database/,
+  "concurrency test must fail closed outside its exact disposable database URL");
+assert.ok(orderWorkflow.includes("supabase/functions/order-create/index.ts") && orderWorkflow.includes("supabase/functions/api/index.ts"),
+  "order workflow must trigger for both JWT-scoped order entry points");
+assert.ok(gate.includes(JSON.stringify("20261122020000_rc498_authenticated_order_create_rpc.sql")), "exact release gate must track RC498");
+assert.match(gate, /required\.length, 78/, "exact release gate must count all 78 required migrations");
+assert.ok(verifier.includes(JSON.stringify("20261122020000_rc498_authenticated_order_create_rpc.sql")), "Production verifier must track RC498");
+assert.ok(liveContract.includes('"20261122020000"'), "live reconciliation contract must include RC498");
+assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 78,
+  "release manifest must track all 78 required versions");
+assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261122020000"),
+  "release manifest required version list must include RC498");
+assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261122020000"),
+  "Production must remain blocked until RC498 is explicitly reconciled");
+assert.equal(manifest.rc498_authenticated_order_create_rpc.status, "SOURCE_CANDIDATE_NOT_APPLIED",
+  "manifest must not claim RC498 is deployed");
+
+assert.match(reviewPanel, /get_public_business_review_summary/,
+  "public storefront must read reviews only through the bounded public RPC");
+assert.match(reviewPanel, /currentBusiness\?\.isVerified[\s\S]*?operationalStatus !== 'ACTIVE'/,
+  "public review panel must be restricted to active verified businesses");
+assert.match(reviewPanel, /verifiedInteraction === true/,
+  "public storefront must reject review rows without verified-order provenance");
+assert.match(cartDrawer, /functions\\.invoke\\('order-create'/,
+  "authenticated catalog checkout must persist orders through the existing order-create Edge Function");
+assert.match(cartDrawer, /authSession\\.isAuthenticated[\\s\\S]*?catalogItemId: product\\.id[\\s\\S]*?clientIdempotencyKey/,
+  "tracked checkout must use the authenticated session, canonical catalog item IDs and an idempotency key");
+assert.doesNotMatch(cartDrawer, /p_subtotal:|p_total_amount:|p_tax:/,
+  "browser checkout must not submit authoritative financial totals");
+assert.match(cartDrawer, /completedOrderDetails\\.tracked && completedOrderDetails\\.orderId/,
+  "checkout confirmation must display the persisted order reference");
+assert.match(cartDrawer, /details\.method === 'paymob'[\s\S]*?لم يتم تحصيل أي مبلغ/,
+  "checkout must fail closed if any caller attempts to submit a Paymob order while gateway verification is disabled");
+assert.match(cartDrawer, /const isPaymobAllowed = false/);
+assert.doesNotMatch(cartDrawer, /PMB-EG-|Simulate Paymob gateway authorization handshake|تم سداد الطلب بنجاح عبر Paymob/,
+  "checkout must not generate fake Paymob references or display simulated payment success");
+assert.match(cartDrawer, /completedOrderDetails\\.whatsappUrl &&[\\s\\S]*?rel="noopener noreferrer"/,
+  "checkout confirmation must provide a safe manual WhatsApp fallback when popup navigation is blocked");
+assert.match(cartDrawer, /لن يتم إرسال الرسالة إلا بعد الضغط على زر الإرسال داخل واتساب/,
+  "checkout must disclose that WhatsApp is opened for manual sending, not sent automatically");
+assert.doesNotMatch(cartDrawer, /تم إرسال كافة تفاصيل الفاتورة وحالة السداد إلى واتساب صاحب النشاط/,
+  "checkout must not claim a WhatsApp message was sent before customer confirmation");
+assert.match(customerReviewPanel, /get_customer_business_review_status[\s\S]*?submit_business_review/,
+  "customer order portal must check owned review status before submission");
+assert.match(customerReviewPanel, /\.eq\('customer_id', userId\)/,
+  "customer order list must scope every order query to the authenticated identity");
+assert.match(customerReviewPanel, /const requestGenerationRef = useRef\(0\)/,
+  "customer history loads must carry a generation token to block stale account responses");
+assert.match(customerReviewPanel, /identityRef\.current\.userId === userId/,
+  "customer history responses must match the currently rendered account identity");
+assert.match(customerReviewPanel, /if \(!isCurrent\(\)\) return;/,
+  "stale customer order/status responses must not update account state");
+assert.match(customerReviewPanel, /requestGenerationRef\.current \+= 1/,
+  "changing or unmounting the customer identity must invalidate in-flight history loads");
+assert.match(customerReviewPanel, /setDrafts\(\{\}\)/,
+  "review drafts must be cleared when the customer identity changes");
+assert.match(customerReviewPanel, /if \(!isSameIdentity\(\)\) return;/,
+  "a review submission started in a previous account must not update the current account UI");
+assert.match(customerReviewPanel, /row\.name_ar \|\| row\.name/,
+  "customer order history must display the Arabic item names stored in the authoritative pricing snapshot");
+assert.match(customerReviewPanel, /for \(let index = 0; index < ownedOrders\.length; index \+= 5\)[\s\S]*?ownedOrders\.slice\(index, index \+ 5\)/,
+  "customer review status lookups must use bounded batches rather than 50 concurrent RPC calls");
+assert.match(customerReviewPanel, /total_amount,currency,items_json[\s\S]*?amountLabel\(order\.total_amount, order\.currency\)/,
+  "customer order history must format the total using the persisted order currency");
+assert.match(customerReviewPanel, /order\.status\.toUpperCase\(\) === 'DELIVERED'/,
+  "customer review form must only be offered for delivered orders");
+assert.match(customerReviewPanel, /BUSINESS_REVIEW_SELF_REVIEW_FORBIDDEN[\s\S]*?لا يمكنك تقييم نشاط تملكه أو تعمل به/,
+  "self-review rejection must be shown to customers as a clear Arabic message");
+assert.match(ownerReviewPanel, /supabase\.rpc\('respond_to_business_review'[\s\S]*?p_review_id:[\s\S]*?p_response:/,
+  "business owner UI must use the scoped response RPC rather than direct table writes");
+assert.match(adminReviewPanel, /p_offset: offset[\s\S]*?nextOffset < totalCount[\s\S]*?loadMore/,
+  "platform moderation queue must paginate older pending reviews without unbounded reads");
+assert.match(adminReviewPanel, /supabase\.rpc\('get_platform_business_review_moderation_queue'[\s\S]*?supabase\.rpc\('moderate_business_review'/,
+  "platform moderation UI must use only the registry-protected queue and moderation RPCs");
+assert.match(adminDashboard, /BusinessReviewModerationPanel[\s\S]*?activeAdminTab === 'business_reviews'/,
+  "platform moderation panel must be mounted in the admin dashboard");
+assert.match(merchantDashboard, /BusinessReviewManagementPanel[\s\S]*?activeTab === 'reviews'/,
+  "business owner review-response panel must be mounted behind the merchant dashboard tab");
+assert.match(accountPortal, /<CustomerOrderReviews \/>/,
+  "customer order history and review form must be mounted in the account portal");
+assert.match(appShell, /<BusinessReviewsPanel \/>/,
+  "verified public review panel must be mounted in the business storefront");
+assert.ok(workflow.includes(migrationPath), "dedicated workflow must apply RC497 migration");
+assert.ok(workflow.includes("supabase/tests/rc497_business_reviews_integration.sql"), "dedicated workflow must execute integration tests");
+assert.ok(forwardReplay.includes("node scripts/validate-rc497-business-reviews.mjs"), "full forward replay must run RC497 source validation");
+assert.ok(forwardReplay.includes("image: postgres:17"), "RC497 forward replay lifecycle must use the Production PostgreSQL major version");
+assert.ok(forwardReplay.includes("exact 78-version contract"), "forward replay workflow must describe the exact 78-version release gate");
+assert.ok(gate.includes(JSON.stringify("20261122010000_rc497_verified_business_reviews.sql")), "exact release gate must track RC497 migration");
+assert.match(gate, /required\.length, 78/, "exact release gate must count all 78 required migrations");
+assert.ok(verifier.includes(JSON.stringify("20261122010000_rc497_verified_business_reviews.sql")), "Production verifier must track RC497 migration");
+assert.ok(liveContract.includes('"20261122010000"'), "live reconciliation contract must include RC497 version");
+assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 78,
+  "release manifest must track all 78 required versions");
+assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261122010000"),
+  "release manifest required version list must include RC497");
+assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261122010000"),
+  "Production must remain blocked until RC497 is explicitly applied");
+assert.equal(manifest.rc497_verified_business_reviews.status, "SOURCE_CANDIDATE_NOT_APPLIED",
+  "manifest must not claim RC497 is deployed");
+assert.equal(manifest.rc497_verified_business_reviews.pr, 971,
+  "manifest must reference the active rebased Li2Lak pull request");
+assert.ok(masterTodo.includes("Pass 1921–1930") && sessionLog.includes("Li2Lak selected-branch lookup hardening"),
+  "master TODO and append-only session log must retain the latest Li2Lak branch validation hardening record");
+console.log("RC497_BUSINESS_REVIEWS_SOURCE_CONTRACT=PASS");

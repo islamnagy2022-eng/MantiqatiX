@@ -1,3 +1,101 @@
+# Latest continuation checkpoint — 2026-11-22 — Pass 1881–1890
+
+**Active PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
+**Current feature head at checkpoint:** `14e64eb045fe51b115d045579f811a2a8cf2eb6b`  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+- PR description updated with latest Li2Lak security and migration repairs.
+- Feature branch is 0 commits behind main.
+- Exact-head Li2Lak lifecycle workflow #44975572762 and forward migration replay #44975572579 are QUEUED.
+- Do not merge until both workflows and all required PR checks finish successfully.
+- No Production data, Auth, RLS, grants, Storage, Edge, payments, wallets or public deployment changed.
+
+---
+
+# Latest continuation checkpoint — 2026-11-22 — Pass 1871–1880
+
+**Active PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+- Customer review portal now translates backend self-review, undelivered-order, duplicate-review and foreign-order errors into clear Arabic messages.
+- Static validator checks the self-review message.
+- Browser E2E and PostgreSQL 17 integration remain pending exact-head CI.
+- No Production mutation or deployment. Mobile and catalog roots remain preserved.
+
+---
+
+# Latest continuation checkpoint — 2026-11-22 — Pass 1861–1870
+
+**Active PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
+**Latest feature:** Li2Lak verified business reviews and authenticated order creation  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+- Added backend enforcement against self-reviews by active business members and recorded business owners.
+- Added a delivered owner-order fixture and a negative PostgreSQL integration case.
+- Added validator and release-manifest coverage for this rule.
+- Static source consistency checks passed; PostgreSQL 17 execution is still pending exact-head CI.
+- No Production mutation/deployment. Preserve Android/mobile and current catalog root.
+
+---
+
+# Latest continuation checkpoint — 2026-11-22 — Pass 1851–1860
+
+**Active PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
+**Latest work:** Li2Lak review/order feature, migration repair and validator consistency  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+- Corrected the stale RC497 static-validator expectations from 77 to 78 migrations, matching the combined RC497/RC498 release gate.
+- Corrected the release manifest's PR pointer from superseded #970 to active PR #971.
+- Rechecked duplicate top-level declarations; none remain.
+- PostgreSQL 17 migration replay and full integration CI remain unverified on the latest head.
+- No Production mutation or deployment. Keep mobile sources and current catalog root intact.
+
+---
+
+# Latest continuation checkpoint — 2026-11-22 — Pass 1841–1850
+
+**Active PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
+**Li2Lak work:** verified business reviews + authenticated order creation  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+- Fixed a real RC497 SQL migration failure: the moderation queue COMMENT ON FUNCTION had the wrong argument count.
+- Added a regression assertion for that signature and cross-checked all RC497 function comments plus the RC498 order RPC comment.
+- Current feature branch includes the latest main history (0 commits behind at last comparison).
+- PostgreSQL 17 full migration replay and integration CI remain mandatory; no pass is claimed until exact-head checks complete.
+- No Production mutation or deployment. Preserve mobile and current catalog sources.
+
+---
+
+# Latest continuation checkpoint — 2026-11-22 — Pass 1831–1840
+
+**Active feature PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
+**Latest branch head:** `a24f0f332cd43d3cb61f3e9bf78a914f211a2a08`  
+**Current main:** `6f8fd143ecbc3ccb2c5894cb1f053a884d6580ae`  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+- Merged latest main history into the isolated feature branch with a two-parent commit; verified the merge tree is exactly the pre-merge feature tree.
+- GitHub compare: 123 commits ahead, 0 behind.
+- PR #971 remains open and unmerged. Raw GitHub PR state is mergeable but unstable while checks are pending.
+- Exact-head CI is still not proven. Existing runs are queued against an earlier event SHA and must not be treated as validation of the current head.
+- No Production database, Auth, RLS, grants, Storage, Edge, payment, wallet or customer data was changed.
+- Keep current catalog root and Android/mobile source intact.
+
+---
+
+# Latest continuation checkpoint — 2026-11-22 — Pass 1821–1830
+
+**Active feature PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
+**Latest feature head at checkpoint:** `78196b19e65736080341d2f3f44ebb26912b998e`  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+- Repaired a duplicate top-level declaration in the Li2Lak static validator and moved its isolated PostgreSQL lifecycle workflow to PostgreSQL 17.
+- Production read-only evidence: review tables/RPC absent; RC498 order RPC remains callable only by service_role; live `order-create` remains v8 with JWT verification enabled; RC497/RC498 versions absent from the 310-row migration ledger.
+- Existing CI runs were queued against an earlier PR head; do not claim success until exact-head workflows finish.
+- PR branch is two commits behind current main. Reconcile before merge; do not bypass branch or release gates.
+- No Production mutation or deployment occurred. Preserve Android/mobile sources and the current main catalog root.
+
+---
+
 ## Pass 1701–1710 — source inspection refinement
 
 - Marketplace Home is implemented on main; do not duplicate the directory, ad hub or discount listings.
@@ -3319,4 +3417,41 @@ Do not deploy only the Edge bundle or only RC473. First require encrypted off-si
 
 ## Pass 1801–1810 — Li2Lak marketplace ad hardening — 2026-11-22
 
-Hardened the existing Marketplace Home ad URL contract on PR #969. HTTPS is required; non-default ports, embedded credentials, localhost, `.localhost`, `.local`, and IPv4/IPv6 literal hosts are rejected. Invalid creative URLs discard the ad; invalid target URLs leave a non-clickable creative. Fixed trailing-dot hostname normalization and added regression cases. Commits: `6b3386b`, `f2411ee`, `9316c5d`, `820778a`. Evidence: `docs/audits/PASS_1801_1810_LI2LAK_MARKETPLACE_AD_HARDENING_20261122.md`. Exact-head CI was still queued at last check; no pass claimed. No Production change. Continue next with Marketplace public-offer permission/availability regression coverage and then owner-scoped media design; do not start general business reviews or video deployment without separate provenance/moderation and storage contracts. Production remains **BLOCKED / NOT CERTIFIED**.
+Hardened the existing Marketplace Home ad URL contract on PR #969. HTTPS is required; non-default ports, embedded credentials, localhost, `.localhost`, `.local`, and IPv4/IPv6 literal hosts are rejected. Invalid creative URLs discard the ad; invalid target URLs leave a non-clickable creative. Fixed trailing-dot hostname normalization and added regression cases. Commits: `6b3386b`, `f2411ee`, `9316c5d`, `820778a`. Evidence: `docs/audits/PASS_1801_1810_LI2LAK_MARKETPLACE_AD_HARDENING_20261122.md`. Exact-head CI subsequently passed all 10 workflows and PR #969 was squash-merged as `9566713978275cbddf927ac08d2ef68a28ec9828`; its PR deploy job was skipped, so live Pages publication remains unverified. No Production DB/Storage/Edge mutation occurred. Continue with Marketplace public-offer permission/availability regression coverage and owner-scoped media design. Verified business reviews were implemented separately under Pass 1811–1820 with their own provenance and moderation contracts. Production remains **BLOCKED / NOT CERTIFIED**.
+## Pass 1811–1820 — Li2Lak verified business reviews — 2026-11-22
+
+Implemented the RC497 verified-interaction business review candidate as a source-only feature. It includes one immutable review per authenticated customer's own DELIVERED order; exact retry idempotency; PENDING moderation; direct `private.platform_admins` authorization for the moderation queue and decision; one response by an active business-scoped owner/business-owner/admin/manager, with branch managers limited to the order's branch; moderation queue is bounded and paginated; bounded identity-free public output for ACTIVE verified businesses; direct table privilege revocation plus FORCE RLS; and account-deletion anonymization that scrubs customer-authored review text while retaining the verified rating and audit event history. Six narrow RPCs support customer status/submission, platform moderation queue/decision, owner response and public summary.
+
+Frontend flows are now mounted in the public storefront (`BusinessReviewsPanel`), customer account portal (`CustomerOrderReviews`), merchant dashboard (`BusinessReviewManagementPanel`) and admin dashboard (`BusinessReviewModerationPanel`). Static source validation, a disposable PostgreSQL 17 fixture and lifecycle/privacy integration tests are included. The exact release contract tracks 78 migrations including RC497/RC498. Evidence: `docs/audits/PASS_1811_1820_LI2LAK_VERIFIED_BUSINESS_REVIEWS_20261122.md`.
+
+PR #969 marketplace ad hardening was merged after all 10 exact-head workflows passed (merge commit `9566713978275cbddf927ac08d2ef68a28ec9828`); its PR deploy job was skipped, so live Pages publication still requires verification. PR #970 was closed as superseded after #969 advanced main. The rebased replacement is PR #971 on `feat/li2lak-verified-business-reviews-rebased-20261122`; exact-head CI remains pending. Production still has zero order rows and no business-review table; RC497 is not applied. No Production DB/Auth/RLS/GRANT/Storage/Edge/payment/wallet mutation or deployment occurred. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+## Pass 1821–1830 — Li2Lak canonical order identity and checkout correction — 2026-11-22
+
+Read-only Production inspection found a mismatch in the canonical order path. `create_order_backend` requires `auth.uid() = p_customer_id`, but its current ACL permits service_role only (not anon/authenticated). The deployed `order-create` v8 verifies the Bearer user using `admin.auth.getUser(token)` then invokes the RPC through the service-role client. That invocation does not propagate the customer's JWT identity into `auth.uid()`; successful customer order creation therefore remains unverified. The RPC also had SECURITY DEFINER search_path set only to `public`.
+
+Candidate RC498 restores the RC105 identity/idempotency function body, hardens search_path, denies PUBLIC/anon, and grants authenticated plus service_role EXECUTE. The updated Edge source calls with the verified customer JWT; the restored function also preserves the verified service-role server path. Both candidate Edge entry points (`order-create` and authenticated `api`) now invoke the RPC with an anon-key client carrying the verified customer's Bearer token; privileged reads remain on the service-role client. Disposable tests cover ACLs, search_path and spoofed customer rejection. The Li2Lak cart now persists authenticated orders through `order-create`, displays the order reference and passes an idempotency key; guest WhatsApp-only requests remain untracked.
+
+RC498 is source-only. The release contract now tracks 78 required migration identities and the live ledger records zero exact matches at the retained checkpoint. No Production migration, grant, Edge deployment, payment/wallet mutation or public deployment occurred. Apply/reconcile RC498 before deploying updated Edge callers. PR #971 contains the rebased RC497/RC498 candidate; exact-head CI must finish. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+## Pass 1891–1900 — Li2Lak review concurrency and order-test parity — 2026-11-22
+
+RC497 review submission now uses `INSERT ... ON CONFLICT (order_id) DO NOTHING` followed by a locked reread. The normal path still performs the pre-read and order-row lock; the unique-conflict fallback additionally protects exact retry semantics if a concurrent insert reaches the unique constraint. Same-payload retries return the existing review; changed payloads remain rejected, and only a successful new insert emits the SUBMITTED event. A static regression assertion covers the fallback.
+
+The RC104/RC105/RC498 order integration workflow now runs PostgreSQL 17, matching the review lifecycle job and full forward replay. Source validation additionally requires both Edge callers to verify the Bearer token before invoking the customer-scoped RPC, and checks authenticated execution, anonymous denial and retained service-role integration coverage. These are source/test changes only; the new migration/function candidates remain unapplied. Latest source head at the time of the code change: `babd3417750796918d0beb074a6e8842dd784a1a`; the subsequent continuity/TODO documentation commits are not code validation. Exact-head CI for the current branch head must be checked again before claiming success. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Pass 1901–1910 — Li2Lak checkout payment fail-closed correction — 2026-11-22
+
+A targeted checkout review found dormant client-side Paymob mock code: a card/wallet form could simulate authorization after a timeout, generate a random `PMB-EG-...` reference and display a successful-payment message. The current platform flag was already `isPaymobAllowed = false`, so the mock flow was not available in the rendered payment choices, but the handler itself was not fail-closed. It is now explicitly blocked at both the payment confirmation handler and order-submission boundary. The fake handshake/reference generation and false success copy were removed. Any Paymob submission attempt now exits before order persistence and states that no amount was collected. Static regression assertions prevent reintroducing the simulated success path.
+
+Paymob remains disabled until real server-side payment intent creation, signed provider webhook verification, status reconciliation, refunds/chargebacks and settlement are tested. No payment, wallet, Production, Edge or public deployment mutation occurred. Latest source change is recorded in PR #971; exact-head CI must pass before merge. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+## Pass 1911–1920 — Li2Lak authoritative order RPC input bounds — 2026-11-22
+
+Because RC498 grants authenticated users direct EXECUTE on the canonical order RPC, request validation cannot rely only on the Edge Function. RC498 now enforces the server-side input contract as well: maximum 100 items; integer quantity from 1 to 1,000; item object shape and catalog token length; selectedOptionIds must be an array of at most 20 non-empty string IDs, each at most 100 characters; idempotency key length 8–200; bounded customer name/phone/address/notes; and object-shaped metadata. The RPC continues to recalculate all prices from active catalog rows and does not trust caller-supplied totals.
+
+The RC104 integration suite now includes direct authenticated-call negative cases for fractional quantities, 21 options, 101 items and a malformed non-array JSON payload. These checks are added to the PostgreSQL 17 order workflow and static validator. They have not yet been executed in CI at the latest code head; no SQL pass is claimed until the job completes. No Production schema, ACL, Auth, Edge, payment or wallet mutation occurred. **PRODUCTION BLOCKED / NOT CERTIFIED.**

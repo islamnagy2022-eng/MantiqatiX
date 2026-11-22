@@ -31,9 +31,16 @@ Deno.serve(async (req: Request) => {
 
   const url = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!url || !serviceKey) return json({ error: "SERVER_MISCONFIGURED" }, 500);
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!url || !serviceKey || !anonKey) return json({ error: "SERVER_MISCONFIGURED" }, 500);
 
   const admin = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  // Keep privileged reads on the service client, but invoke the identity-enforcing
+  // order RPC with the caller JWT so auth.uid() is the verified customer.
+  const userClient = createClient(url, anonKey, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
   const { data: userData, error: userError } = await admin.auth.getUser(token);
   const user = userData?.user;
   if (userError || !user || user.is_anonymous) return json({ error: "UNAUTHORIZED" }, 401);
@@ -113,20 +120,19 @@ Deno.serve(async (req: Request) => {
   if (!["EGP"].includes(String(body.currency).toUpperCase())) return json({ error: "UNSUPPORTED_CURRENCY" }, 400);
 
   const branchId = body.branchId ? String(body.branchId) : null;
-  let targetMembershipQuery = admin
+  const { data: targetMemberships, error: targetMembershipError } = await admin
     .from("user_memberships")
     .select("id,role,status,branch_id")
     .eq("user_id", user.id)
     .eq("tenant_id", body.tenantId)
     .eq("business_id", body.businessId)
     .eq("status", "ACTIVE");
-  // Staff operations must be authorized for the exact selected branch, not just
-  // any branch belonging to the same business.
-  if (branchId) targetMembershipQuery = targetMembershipQuery.eq("branch_id", branchId);
-  const { data: targetMembership, error: targetMembershipError } = await targetMembershipQuery
-    .limit(1)
-    .maybeSingle();
   if (targetMembershipError) return json({ error: "MEMBERSHIP_READ_FAILED" }, 500);
+  // A branchless membership is business-wide and may operate on any branch
+  // of this business. A branch-bound membership must match the selected branch.
+  const targetMembership = (targetMemberships ?? []).some((membership: any) =>
+    !branchId || membership.branch_id == null || String(membership.branch_id) === branchId
+  );
 
   if (!targetMembership) {
     const { data: customerMembership, error: customerMembershipError } = await admin
@@ -183,18 +189,22 @@ Deno.serve(async (req: Request) => {
     .eq("status", "ACTIVE");
   if (itemError) return json({ error: "CATALOG_READ_FAILED" }, 500);
 
-  const { data: activeBranches, error: branchReadError } = await admin
+  // Check only the selected branch when provided. A fixed 100-row listing
+  // incorrectly rejects valid branches beyond the first page for large businesses.
+  const branchQuery = admin
     .from("branches")
     .select("id")
     .eq("tenant_id", body.tenantId)
     .eq("business_id", body.businessId)
-    .eq("status", "ACTIVE")
-    .limit(100);
+    .eq("status", "ACTIVE");
+  const { data: activeBranch, error: branchReadError } = branchId
+    ? await branchQuery.eq("id", branchId).maybeSingle()
+    : await branchQuery.limit(1).maybeSingle();
   if (branchReadError) return json({ error: "BRANCH_READ_FAILED" }, 500);
-  if ((activeBranches ?? []).length > 0 && !branchId) {
+  if (!branchId && activeBranch) {
     return json({ error: "BRANCH_REQUIRED" }, 409);
   }
-  if (branchId && !(activeBranches ?? []).some((branch: any) => String(branch.id) === branchId)) {
+  if (branchId && !activeBranch) {
     return json({ error: "BRANCH_NOT_AVAILABLE" }, 409);
   }
   const itemMap = new Map((catalogItems ?? [])
@@ -277,7 +287,7 @@ Deno.serve(async (req: Request) => {
   const totalAmount = subtotal + tax;
   if (!Number.isFinite(totalAmount)) return json({ error: "INVALID_SERVER_TOTAL" }, 500);
 
-  const { data, error } = await admin.rpc("create_order_backend", {
+  const { data, error } = await userClient.rpc("create_order_backend", {
     p_order_id: body.orderId,
     p_tenant_id: body.tenantId,
     p_business_id: body.businessId,

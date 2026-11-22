@@ -163,3 +163,156 @@ end;
 $test$;
 
 select 'RC104 order idempotency ownership/scope: PASS' as result;
+
+
+-- RC498: authenticated browser/Edge clients may call the same RPC with their own JWT.
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000001',false);
+SELECT set_config('request.jwt.claim.role','authenticated',false);
+
+DO $rc498_authenticated_order$
+DECLARE
+  v_oid oid := to_regprocedure('public.create_order_backend(uuid, character varying, uuid, character varying, uuid, character varying, numeric, numeric, numeric, numeric, numeric, character varying, text, text, text, jsonb, text, jsonb)');
+  v_config text[];
+  v_result jsonb;
+  v_rejected boolean := false;
+BEGIN
+  IF NOT has_function_privilege('authenticated', v_oid, 'EXECUTE') THEN
+    RAISE EXCEPTION 'RC498_AUTHENTICATED_EXECUTE_MISSING';
+  END IF;
+  IF has_function_privilege('anon', v_oid, 'EXECUTE') THEN
+    RAISE EXCEPTION 'RC498_ANON_EXECUTE_PRESENT';
+  END IF;
+  IF NOT has_function_privilege('service_role', v_oid, 'EXECUTE') THEN
+    RAISE EXCEPTION 'RC498_SERVICE_ROLE_EXECUTE_MISSING';
+  END IF;
+  SELECT proconfig INTO v_config FROM pg_proc WHERE oid=v_oid;
+  IF NOT EXISTS (
+    SELECT 1 FROM unnest(coalesce(v_config, ARRAY[]::text[])) setting
+    WHERE setting='search_path=pg_catalog, public, extensions, pg_temp'
+  ) THEN
+    RAISE EXCEPTION 'RC498_SEARCH_PATH_INVALID: %', v_config;
+  END IF;
+
+  v_result := public.create_order_backend(
+    '30000000-0000-4000-8000-000000000091',
+    'tenant-a',
+    '20000000-0000-4000-8000-000000000001',
+    'branch-a',
+    auth.uid(),
+    'authenticated-order-key-rc498',
+    0,0,0,0,0,'EGP','Customer One','01000000000','Authenticated customer address',
+    '[{"catalogItemId":"40000000-0000-4000-8000-000000000001","quantity":1,"selectedOptionIds":[]}]'::jsonb,
+    null,'{}'::jsonb
+  );
+  IF v_result->>'id' <> '30000000-0000-4000-8000-000000000091'
+     OR v_result->>'idempotent' <> 'false' THEN
+    RAISE EXCEPTION 'RC498_AUTHENTICATED_ORDER_CREATE_FAILED: %', v_result;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.orders
+     WHERE id='30000000-0000-4000-8000-000000000091'
+       AND customer_id=auth.uid()
+       AND total_amount=125
+  ) THEN
+    RAISE EXCEPTION 'RC498_AUTHENTICATED_ORDER_NOT_PERSISTED_WITH_SERVER_PRICE';
+  END IF;
+
+  -- Authenticated callers can invoke this RPC directly, so SQL must reject
+  -- fractional quantities even when the Edge Function's integer check is bypassed.
+  BEGIN
+    PERFORM public.create_order_backend(
+      '30000000-0000-4000-8000-000000000092',
+      'tenant-a',
+      '20000000-0000-4000-8000-000000000001',
+      'branch-a',
+      auth.uid(),
+      'fractional-quantity-key-rc498',
+      0,0,0,0,0,'EGP','Customer One','01000000000','Fractional quantity attempt',
+      '[{"catalogItemId":"40000000-0000-4000-8000-000000000001","quantity":1.5,"selectedOptionIds":[]}]'::jsonb,
+      null,'{}'::jsonb
+    );
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'INVALID_QUANTITY' THEN RAISE; END IF;
+    v_rejected := true;
+  END;
+  IF NOT v_rejected THEN
+    RAISE EXCEPTION 'RC498_FRACTIONAL_QUANTITY_ACCEPTED';
+  END IF;
+
+  v_rejected := false;
+  BEGIN
+    PERFORM public.create_order_backend(
+      '30000000-0000-4000-8000-000000000093',
+      'tenant-a',
+      '20000000-0000-4000-8000-000000000001',
+      'branch-a',
+      auth.uid(),
+      'too-many-options-key-rc498',
+      0,0,0,0,0,'EGP','Customer One','01000000000','Too many options',
+      jsonb_build_array(jsonb_build_object(
+        'catalogItemId','40000000-0000-4000-8000-000000000001',
+        'quantity',1,
+        'selectedOptionIds',(SELECT jsonb_agg(to_jsonb('option-' || g::text)) FROM generate_series(1,21) AS seq(g))
+      )),
+      null,'{}'::jsonb
+    );
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'INVALID_ITEM_OPTIONS' THEN RAISE; END IF;
+    v_rejected := true;
+  END;
+  IF NOT v_rejected THEN
+    RAISE EXCEPTION 'RC498_OPTION_LIMIT_BYPASSED';
+  END IF;
+
+  v_rejected := false;
+  BEGIN
+    PERFORM public.create_order_backend(
+      '30000000-0000-4000-8000-000000000094',
+      'tenant-a',
+      '20000000-0000-4000-8000-000000000001',
+      'branch-a',
+      auth.uid(),
+      'too-many-items-key-rc498',
+      0,0,0,0,0,'EGP','Customer One','01000000000','Too many items',
+      (SELECT jsonb_agg(jsonb_build_object(
+        'catalogItemId','40000000-0000-4000-8000-000000000001',
+        'quantity',1,
+        'selectedOptionIds','[]'::jsonb
+      )) FROM generate_series(1,101) AS seq(g)),
+      null,'{}'::jsonb
+    );
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'INVALID_ITEMS' THEN RAISE; END IF;
+    v_rejected := true;
+  END;
+  IF NOT v_rejected THEN
+    RAISE EXCEPTION 'RC498_ITEM_COUNT_LIMIT_BYPASSED';
+  END IF;
+
+  v_rejected := false;
+  BEGIN
+    PERFORM public.create_order_backend(
+      '30000000-0000-4000-8000-000000000095',
+      'tenant-a',
+      '20000000-0000-4000-8000-000000000001',
+      'branch-a',
+      auth.uid(),
+      'non-array-items-key-rc498',
+      0,0,0,0,0,'EGP','Customer One','01000000000','Malformed items payload',
+      '{"not":"an array"}'::jsonb,
+      null,'{}'::jsonb
+    );
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'INVALID_ITEMS' THEN RAISE; END IF;
+    v_rejected := true;
+  END;
+  IF NOT v_rejected THEN
+    RAISE EXCEPTION 'RC498_NON_ARRAY_ITEMS_ACCEPTED';
+  END IF;
+END
+$rc498_authenticated_order$;
+
+RESET ROLE;
+
+SELECT 'RC498 authenticated order RPC ACL, identity and pricing: PASS' AS result;
