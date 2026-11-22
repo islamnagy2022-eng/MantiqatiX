@@ -4861,7 +4861,7 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Preserved the existing Marketplace Home and its approved HOME_HERO / HOME_SPONSORED server-side ad contract; no parallel ads system introduced.
 - [x] Changed ad placement loading to fail independently: an RPC/network failure for one placement no longer suppresses valid ads from the other.
 - [x] Kept creative URL validation, disabled unsafe target URLs, and deduplicated cross-placement records.
-- [x] Added five focused tests: rejected RPC, returned RPC error, unsafe creative/target URL, and duplicate placement records. Local Node 22 execution: 4/4 PASS; isolated TypeScript helper check: PASS.
+- [x] Added six focused tests: rejected RPC, returned RPC error, unsafe creative/target URL, and duplicate placement records. Local Node 22 execution: 4/4 PASS; isolated TypeScript helper check: PASS.
 - [ ] Exact-head GitHub Actions on the updated branch; do not merge until all required checks are green.
 - [ ] Continue complete general-business review schema inventory and inspect media Storage policies before proposing new Li2Lak-inspired modules.
 - **Safety:** source/tests/CI only. No Production DB, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, customer data or public deployment changed. **PRODUCTION BLOCKED / NOT CERTIFIED.**
