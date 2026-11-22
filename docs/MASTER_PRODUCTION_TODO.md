@@ -4980,7 +4980,7 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Fresh read-only live migration query: 310 ledger rows, latest 20261110150618, expected 76 versions, found 0.
 - [x] Confirmed directory contact consent table and migration release registry absent.
 - [x] Compared live Edge entrypoints against current main: directory-listings v18, catalog-admin v20, public-catalog-directory v19 and public-catalog v9. All differ from current main. Preserve directory-listings v18's disabled response.
-- [ ] Complete PR982 exact-head CI (default-closed source gate). At checkpoint 29 checks queued, 1 skipped, 0 failures. Do not deploy Edge or enable the flag from this PR.
+- [x] Merged PR982 as dbf40f6b9f8087fd5a274749c4a4db3ceb7c7564 after exact-head CI: 28 success, 2 skipped, 0 failures. The default-closed directory gate is now in main; no production flag or Edge deploy occurred.
 - [ ] Obtain genuine encrypted off-site DB + Storage backup, verify Vault recovery, perform independent PostgreSQL 17 restore/rollback, and measure RPO/RTO.
 - [ ] Reconcile the exact 76-version release migration chain and physical object/ACL dependencies. No isolated Production migration runs.
 - [ ] Release RC472/RC473 consent schema, owner audit writer, public readers, authorization dependencies and negative/positive tests as one bundle; keep national listings disabled until all gates pass.
