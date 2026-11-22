@@ -133,6 +133,10 @@ export const CartDrawer: React.FC = () => {
     total: number;
     ref?: string;
   }) => {
+    if (details.method === 'paymob') {
+      setErrorMessage('الدفع الإلكتروني غير متاح حاليا. لم يتم تحصيل أي مبلغ.');
+      return;
+    }
     if (isCreatingOrder) return;
     setIsCreatingOrder(true);
     setErrorMessage('');
@@ -250,48 +254,10 @@ export const CartDrawer: React.FC = () => {
     }
   };
 
-  // Simulate Paymob Electronic Transaction Confirmation
+  // Fail closed: no client-side payment simulation or generated transaction references.
   const handleConfirmPaymobPayment = () => {
-    setPaymobError('');
-
-    if (paymobChannel === 'card') {
-      const sanitizedCard = cardNumber.replace(/\s+/g, '');
-      if (sanitizedCard.length < 15) {
-        setPaymobError('يرجى إدخال رقم بطاقة صالح (16 رقماً).');
-        return;
-      }
-      if (!cardExpiry.includes('/') || cardExpiry.length < 5) {
-        setPaymobError('يرجى إدخال تاريخ انتهاء صالح (شهر/سنة MM/YY).');
-        return;
-      }
-      if (cardCvv.length < 3) {
-        setPaymobError('يرجى إدخال رمز الأمان CVV (3 أرقام).');
-        return;
-      }
-    } else if (paymobChannel === 'wallet') {
-      if (!walletPhone.trim() || walletPhone.length < 10) {
-        setPaymobError('يرجى إدخال رقم محفظة هاتف كاش صالح (مثل: 01012345678).');
-        return;
-      }
-    }
-
-    setIsProcessingPaymob(true);
-
-    // Simulate Paymob gateway authorization handshake
-    setTimeout(() => {
-      setIsProcessingPaymob(false);
-      setIsPaymobModalOpen(false);
-
-      const generatedRef = `PMB-EG-${Math.floor(100000 + Math.random() * 900000)}`;
-
-      executeOrderSubmission({
-        method: 'paymob',
-        channel: paymobChannel,
-        fee: paymobFee,
-        total: finalTotal,
-        ref: generatedRef,
-      });
-    }, 1800);
+    setPaymobError('الدفع الإلكتروني غير متاح حاليا. لا تدخل بيانات بطاقتك أو محفظتك هنا.');
+    setIsProcessingPaymob(false);
   };
 
   // Helper formatters
@@ -365,7 +331,7 @@ export const CartDrawer: React.FC = () => {
                 </div>
                 <h3 className="font-black text-lg text-emerald-950">
                   {completedOrderDetails.method === 'paymob'
-                    ? 'تم سداد الطلب بنجاح عبر Paymob وإرسال التفاصيل!'
+                    ? 'لا يوجد تأكيد دفع إلكتروني لهذا الطلب'
                     : completedOrderDetails.tracked ? 'تم تسجيل الطلب بنجاح' : 'تم تجهيز الطلب للإرسال عبر واتساب'}
                 </h3>
 
