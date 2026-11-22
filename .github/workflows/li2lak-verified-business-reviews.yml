@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/20261122010000_rc497_verified_business_reviews.sql"
+      - "supabase/migrations/20261122020000_rc498_authenticated_order_create_rpc.sql"
       - "apps/catalog-frontend/src/components/cart/CartDrawer.tsx"
       - "apps/catalog-frontend/src/components/admin/BusinessReviewModerationPanel.tsx"
       - "apps/catalog-frontend/src/components/merchant/BusinessReviewManagementPanel.tsx"
@@ -18,6 +19,7 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/20261122010000_rc497_verified_business_reviews.sql"
+      - "supabase/migrations/20261122020000_rc498_authenticated_order_create_rpc.sql"
       - "apps/catalog-frontend/src/components/cart/CartDrawer.tsx"
       - "apps/catalog-frontend/src/components/admin/BusinessReviewModerationPanel.tsx"
       - "apps/catalog-frontend/src/components/merchant/BusinessReviewManagementPanel.tsx"
