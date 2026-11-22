@@ -111,27 +111,34 @@ export const CustomerOrderReviews: React.FC = () => {
       if (orderError) throw orderError;
 
       const ownedOrders = (Array.isArray(data) ? data : []) as CustomerOrder[];
-      const withReviewStatus = await Promise.all(ownedOrders.map(async (order): Promise<OrderWithReview> => {
-        if (order.status.toUpperCase() !== 'DELIVERED') {
-          return { ...order, reviewStatus: { hasReview: false } };
-        }
-        const { data: reviewData, error: reviewError } = await supabase.rpc('get_customer_business_review_status', {
-          p_order_id: order.id,
-        });
-        if (reviewError) throw reviewError;
-        const raw = reviewData && typeof reviewData === 'object' ? reviewData as Record<string, unknown> : {};
-        const reviewStatus: ReviewStatus = raw.hasReview === true
-          ? {
-              hasReview: true,
-              reviewId: typeof raw.reviewId === 'string' ? raw.reviewId : undefined,
-              status: typeof raw.status === 'string' ? raw.status : undefined,
-              rating: Number(raw.rating),
-              reviewText: typeof raw.reviewText === 'string' ? raw.reviewText : null,
-              createdAt: typeof raw.createdAt === 'string' ? raw.createdAt : undefined,
-            }
-          : { hasReview: false };
-        return { ...order, reviewStatus };
-      }));
+      const withReviewStatus: OrderWithReview[] = [];
+
+      // Keep the per-order status RPC fan-out bounded for customers with a long history.
+      // Five concurrent lookups preserve responsive loading without flooding PostgREST.
+      for (let index = 0; index < ownedOrders.length; index += 5) {
+        const batch = await Promise.all(ownedOrders.slice(index, index + 5).map(async (order): Promise<OrderWithReview> => {
+          if (order.status.toUpperCase() !== 'DELIVERED') {
+            return { ...order, reviewStatus: { hasReview: false } };
+          }
+          const { data: reviewData, error: reviewError } = await supabase.rpc('get_customer_business_review_status', {
+            p_order_id: order.id,
+          });
+          if (reviewError) throw reviewError;
+          const raw = reviewData && typeof reviewData === 'object' ? reviewData as Record<string, unknown> : {};
+          const reviewStatus: ReviewStatus = raw.hasReview === true
+            ? {
+                hasReview: true,
+                reviewId: typeof raw.reviewId === 'string' ? raw.reviewId : undefined,
+                status: typeof raw.status === 'string' ? raw.status : undefined,
+                rating: Number(raw.rating),
+                reviewText: typeof raw.reviewText === 'string' ? raw.reviewText : null,
+                createdAt: typeof raw.createdAt === 'string' ? raw.createdAt : undefined,
+              }
+            : { hasReview: false };
+          return { ...order, reviewStatus };
+        }));
+        withReviewStatus.push(...batch);
+      }
       setOrders(withReviewStatus);
     } catch (cause) {
       setOrders([]);
