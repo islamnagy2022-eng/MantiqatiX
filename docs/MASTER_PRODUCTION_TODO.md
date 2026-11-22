@@ -1,3 +1,10 @@
+### Pass 1871–1880 — Li2Lak review rejection UX — 2026-11-22
+- [x] Mapped the new self-review backend rejection to a clear Arabic message in the customer order/review portal.
+- [x] Added friendly Arabic handling for undelivered orders, duplicate reviews and foreign-order attempts.
+- [x] Added a static UI regression assertion for the self-review rejection message.
+- [ ] Verify browser rendering and the full PostgreSQL 17 lifecycle on exact-head CI; neither is claimed complete yet.
+- **Safety:** feature-branch UI and test changes only. No Production mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
 ### Pass 1861–1870 — Li2Lak self-review prevention — 2026-11-22
 - [x] Added a server-side guard preventing active business members and recorded provider owners from reviewing their own business.
 - [x] Extended the disposable fixture with owner identity and a delivered owner order.
