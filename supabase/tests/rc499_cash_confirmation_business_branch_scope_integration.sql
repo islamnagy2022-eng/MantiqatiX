@@ -36,7 +36,9 @@ BEGIN
   VALUES ('TENANT-A','CASH_ON_DELIVERY','CASH_ON_DELIVERY',true);
 
   INSERT INTO public.commission_rules(tenant_id,business_id,active,rule_type,percentage,updated_at)
-  VALUES ('TENANT-A',business_a,true,'PERCENTAGE',10,now());
+  VALUES
+    ('TENANT-A',business_a,true,'PERCENTAGE',10,now()),
+    ('TENANT-A',business_b,true,'PERCENTAGE',10,now());
 
   INSERT INTO public.orders(id,tenant_id,business_id,branch_id,customer_id,status,total_amount,currency,pricing_hash,pricing_version)
   VALUES
