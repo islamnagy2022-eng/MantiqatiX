@@ -10,6 +10,7 @@ const merchantDashboard = fs.readFileSync("apps/catalog-frontend/src/components/
 const adminReviewPanel = fs.readFileSync("apps/catalog-frontend/src/components/admin/PlatformBusinessReviewModerationPanel.tsx", "utf8");
 const adminDashboard = fs.readFileSync("apps/catalog-frontend/src/components/admin/AdminDashboard.tsx", "utf8");
 const appShell = fs.readFileSync("apps/catalog-frontend/src/App.tsx", "utf8");
+const cartDrawer = fs.readFileSync("apps/catalog-frontend/src/components/cart/CartDrawer.tsx", "utf8");
 const migration = fs.readFileSync(migrationPath, "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc497_business_reviews_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc497_business_reviews_integration.sql", "utf8");
@@ -95,6 +96,14 @@ assert.match(reviewPanel, /currentBusiness\?\.isVerified[\s\S]*?operationalStatu
   "public review panel must be restricted to active verified businesses");
 assert.match(reviewPanel, /verifiedInteraction === true/,
   "public storefront must reject review rows without verified-order provenance");
+assert.match(cartDrawer, /functions\\.invoke\\('order-create'/,
+  "authenticated catalog checkout must persist the order through the existing order-create Edge Function");
+assert.match(cartDrawer, /authSession\\.isAuthenticated[\\s\\S]*?catalogItemId: product\\.id[\\s\\S]*?clientIdempotencyKey/,
+  "tracked checkout must bind to the authenticated customer and use canonical catalog IDs plus an idempotency key");
+assert.doesNotMatch(cartDrawer, /p_subtotal:|p_total_amount:|p_tax:/,
+  "browser checkout must not submit authoritative financial totals directly to the backend RPC");
+assert.match(cartDrawer, /tracked \\? 'تم تسجيل الطلب وإرسال التفاصيل عبر واتساب!'/,
+  "checkout must distinguish a persisted order from a WhatsApp-only guest request");
 assert.match(customerReviewPanel, /get_customer_business_review_status[\s\S]*?submit_business_review/,
   "customer order portal must check owned review status before submission");
 assert.match(customerReviewPanel, /\.eq\('customer_id', userId\)/,
