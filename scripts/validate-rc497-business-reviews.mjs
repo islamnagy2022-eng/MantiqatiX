@@ -17,6 +17,7 @@ const orderMigration = fs.readFileSync(orderMigrationPath, "utf8");
 const orderCreateEdge = fs.readFileSync("supabase/functions/order-create/index.ts", "utf8");
 const apiEdge = fs.readFileSync("supabase/functions/api/index.ts", "utf8");
 const orderIntegration = fs.readFileSync("supabase/tests/rc104_order_idempotency_scope_integration.sql", "utf8");
+const orderConcurrency = fs.readFileSync("supabase/tests/rc104_order_idempotency_scope_concurrency.sh", "utf8");
 const orderWorkflow = fs.readFileSync(".github/workflows/order-idempotency-scope.yml", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc497_business_reviews_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc497_business_reviews_integration.sql", "utf8");
@@ -169,6 +170,12 @@ assert.match(orderIntegration, /RC498_AUTHENTICATED_EXECUTE_MISSING[\s\S]*?RC498
 assert.ok(orderWorkflow.includes(orderMigrationPath), "order workflow must apply RC498 after RC105");
 assert.ok(orderWorkflow.includes("image: postgres:17") && orderWorkflow.includes("ancestor=postgres:17"),
   "RC498 idempotency integration must run against the same PostgreSQL 17 major version as forward replay");
+assert.ok(orderWorkflow.includes("supabase/tests/rc104_order_idempotency_scope_concurrency.sh") && orderWorkflow.includes("bash supabase/tests/rc104_order_idempotency_scope_concurrency.sh"),
+  "PostgreSQL 17 order workflow must execute the concurrent idempotency race test");
+assert.match(orderConcurrency, /pg_sleep\(2\.5\)[\s\S]*?concurrent-order-key-rc498[\s\S]*?RC498_CONCURRENT_ORDER_IDEMPOTENCY=PASS/,
+  "concurrency test must overlap two calls on one idempotency key and assert convergence");
+assert.match(orderConcurrency, /Refusing to run concurrency test outside its disposable PostgreSQL test database/,
+  "concurrency test must fail closed outside its exact disposable database URL");
 assert.ok(orderWorkflow.includes("supabase/functions/order-create/index.ts") && orderWorkflow.includes("supabase/functions/api/index.ts"),
   "order workflow must trigger for both JWT-scoped order entry points");
 assert.ok(gate.includes(JSON.stringify("20261122020000_rc498_authenticated_order_create_rpc.sql")), "exact release gate must track RC498");
