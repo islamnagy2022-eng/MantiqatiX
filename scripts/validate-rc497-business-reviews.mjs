@@ -51,8 +51,8 @@ assert.match(migration, /REVOKE ALL ON TABLE public\.business_review_events FROM
   "review event ledger must not grant direct API-role access");
 assert.equal((migration.match(/SECURITY DEFINER/g) ?? []).length, 4,
   "only the four intentional review RPCs should be SECURITY DEFINER");
-assert.equal((migration.match(/SET search_path TO ''/g) ?? []).length, 4,
-  "every review SECURITY DEFINER RPC must use an empty search_path");
+assert.equal((migration.match(/SET search_path TO ''/g) ?? []).length, 5,
+  "all four review SECURITY DEFINER RPCs and the trigger function must use an empty search_path");
 assert.match(fixture, /CREATE TABLE public\.orders[\s\S]*?customer_id uuid REFERENCES auth\.users\(id\) ON DELETE SET NULL/,
   "fixture must model customer account deletion without blocking order retention");
 for (const token of [
