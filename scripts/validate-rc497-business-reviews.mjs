@@ -38,7 +38,7 @@ assert.match(migration, /customer_id uuid REFERENCES auth\.users\(id\) ON DELETE
   "account deletion must anonymize reviewer references without deleting review history");
 assert.match(migration, /actor_user_id uuid REFERENCES auth\.users\(id\) ON DELETE SET NULL/,
   "account deletion must anonymize event actor references");
-assert.match(migration, /trg_business_review_customer_anonymization[\s\S]*?NEW\.review_text := NULL/,
+assert.match(migration, /anonymize_business_review_on_customer_delete[\s\S]*?NEW\.review_text := NULL/,
   "account deletion must scrub customer-authored review text while retaining the verified rating");
 
 assert.match(migration, /ALTER TABLE public\.business_reviews ENABLE ROW LEVEL SECURITY;[\s\S]*?FORCE ROW LEVEL SECURITY/,
