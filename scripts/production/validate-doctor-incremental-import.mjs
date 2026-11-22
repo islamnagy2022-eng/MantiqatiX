@@ -9,6 +9,10 @@ const importContractPath = "supabase/functions/directory-listings/doctor-import-
 const publicOutputContractPath = "supabase/functions/directory-listings/public-directory-output-contract.mjs";
 
 const edge = readFileSync(edgePath, "utf8");
+if (edge.includes("DIRECTORY_LISTINGS_DISABLED_FOR_V1")) {
+  console.log("DOCTOR_INCREMENTAL_IMPORT=DEFERRED_FOR_V1 (unclaimed directory endpoint is intentionally disabled)");
+  process.exit(0);
+}
 const frontend = readFileSync(frontendPath, "utf8");
 const admin = readFileSync(adminPath, "utf8");
 const evidenceMigration = readFileSync(evidenceMigrationPath, "utf8");
