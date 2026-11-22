@@ -86,6 +86,9 @@ export const CustomerOrderReviews: React.FC = () => {
 
       const ownedOrders = (Array.isArray(data) ? data : []) as CustomerOrder[];
       const withReviewStatus = await Promise.all(ownedOrders.map(async (order): Promise<OrderWithReview> => {
+        if (order.status.toUpperCase() !== 'DELIVERED') {
+          return { ...order, reviewStatus: { hasReview: false } };
+        }
         const { data: reviewData, error: reviewError } = await supabase.rpc('get_customer_business_review_status', {
           p_order_id: order.id,
         });
