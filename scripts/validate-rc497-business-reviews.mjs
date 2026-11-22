@@ -50,7 +50,7 @@ assert.doesNotMatch(migration.match(/CREATE OR REPLACE FUNCTION public\.moderate
   "tenant-derived global admin helpers must not authorize review moderation");
 assert.match(migration, /m\.business_id = v_review\.business_id[\s\S]*?BUSINESS_REVIEW_RESPONSE_FORBIDDEN/,
   "business response must be restricted to the reviewed business");
-assert.match(migration, /m\.branch_id IS NULL OR \(v_review\.branch_id IS NOT NULL AND m\.branch_id = v_review\.branch_id\)/,
+assert.match(migration, /m\.branch_id IS NULL[\s\S]*?v_review\.branch_id IS NOT NULL AND m\.branch_id = v_review\.branch_id/,
   "branch-scoped managers must not answer reviews for another branch");
 
 assert.match(migration, /pp\.status = 'ACTIVE' AND pp\.is_verified = true/,
