@@ -142,14 +142,6 @@ BEGIN
   IF jsonb_array_length(v_order.items_json) = 0 THEN
     RAISE EXCEPTION 'ORDER_NOT_REVIEWABLE';
   END IF;
-  IF NOT EXISTS (
-    SELECT 1 FROM public.businesses b
-     WHERE b.id = v_order.business_id
-       AND b.tenant_id = v_order.tenant_id
-  ) THEN
-    RAISE EXCEPTION 'ORDER_BUSINESS_TENANT_MISMATCH';
-  END IF;
-
   SELECT r.* INTO v_existing
     FROM public.business_reviews r
    WHERE r.order_id = v_order.id
