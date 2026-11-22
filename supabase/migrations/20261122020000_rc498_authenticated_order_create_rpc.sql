@@ -39,8 +39,10 @@ begin
  if p_metadata is not null and jsonb_typeof(p_metadata) is distinct from 'object' then
    raise exception 'INVALID_ORDER_METADATA';
  end if;
- if p_items_json is null or jsonb_typeof(p_items_json)<>'array'
-   or jsonb_array_length(p_items_json)=0 or jsonb_array_length(p_items_json)>100 then
+ if p_items_json is null or jsonb_typeof(p_items_json) is distinct from 'array' then
+   raise exception 'INVALID_ITEMS';
+ end if;
+ if jsonb_array_length(p_items_json)=0 or jsonb_array_length(p_items_json)>100 then
    raise exception 'INVALID_ITEMS';
  end if;
  select exists(select 1 from user_memberships m where m.user_id=p_customer_id and m.tenant_id=p_tenant_id and coalesce(m.status,'ACTIVE')='ACTIVE') into v_customer_member;
