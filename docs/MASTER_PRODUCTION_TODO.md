@@ -4962,8 +4962,8 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Verified main Production Health Monitor, GitHub Pages deployment and Primary Catalog browser E2E passed (runs 45070154362, 45070154380, 45070154418).
 - [x] Found and corrected a fail-open catalog pricing default: only `catalog_public.show_price === true` now permits numeric public price disclosure; missing/false/malformed values resolve as quote-only.
 - [x] Updated the stale static production-catalog assertion to the explicit opt-in contract.
-- [ ] Complete exact-head CI for PR #976 (`75d0293c19825345e07ad08fbce1c2fcced0d48e`); latest snapshot 27 successful, 1 browser E2E running, 2 skipped, 0 failed. Do not merge until browser E2E passes.
-- [ ] Re-run main deployment and deployed-origin browser checks after PR #976 is merged.
+- [x] Completed exact-head CI for PR #976 (`75d0293c19825345e07ad08fbce1c2fcced0d48e`): 28 successful, 2 skipped, 0 failed; merged as `1fbc94e69987b9a00aa2f09ddc2acc230aa85b8c`.
+- [ ] Re-run main deployment and deployed-origin browser checks after PR #976 merge; runs 45071129013 (Pages) and 45071128944 (Primary Catalog) were queued at the follow-up checkpoint.
 - [ ] Resolve directory P0 only through operator backup/restore, full ordered migration release, RC473 consent schema and complete compatible Edge bundle; no isolated Edge or migration deployment.
 - [ ] Obtain actual encrypted off-site DB+Storage backup, Vault recovery, independent PostgreSQL 17 restore, measured RPO/RTO and rollback evidence.
 - [ ] Reconcile 76 required migration IDs, exact live object/ACL parity, registry-backed platform admin, and seven mismatched critical Edge functions.
