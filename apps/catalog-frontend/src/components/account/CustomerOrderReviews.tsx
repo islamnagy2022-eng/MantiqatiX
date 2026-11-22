@@ -58,6 +58,23 @@ const statusLabel = (value: string): string => {
   return value || 'غير محدد';
 };
 
+const reviewSubmissionError = (cause: unknown): string => {
+  const message = cause instanceof Error ? cause.message : '';
+  if (message.includes('BUSINESS_REVIEW_SELF_REVIEW_FORBIDDEN')) {
+    return 'لا يمكنك تقييم نشاط تملكه أو تعمل به.';
+  }
+  if (message.includes('ORDER_NOT_DELIVERED')) {
+    return 'يمكنك تقييم الطلب بعد تأكيد تسليمه فقط.';
+  }
+  if (message.includes('REVIEW_ALREADY_SUBMITTED')) {
+    return 'تم إرسال تقييم لهذا الطلب من قبل.';
+  }
+  if (message.includes('BUSINESS_REVIEW_FORBIDDEN')) {
+    return 'لا يمكن استخدام هذا الطلب لإرسال التقييم من هذا الحساب.';
+  }
+  return message || 'تعذر إرسال التقييم';
+};
+
 export const CustomerOrderReviews: React.FC = () => {
   const { authSession } = useApp();
   const userId = authSession.userId;
@@ -137,7 +154,7 @@ export const CustomerOrderReviews: React.FC = () => {
       setSuccess('تم إرسال تقييمك بنجاح وسيظهر بعد مراجعة الإدارة');
       await loadOrders();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'تعذر إرسال التقييم');
+      setError(reviewSubmissionError(cause));
     } finally {
       setSubmitting(null);
     }
