@@ -3988,3 +3988,12 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Validator execution and PostgreSQL 17 integration remain pending exact-head CI. No test success is claimed.
 - No Production database, Auth, RLS, GRANT, Edge Function, payment, wallet, customer data or public deployment change.
 - **Status: VALIDATOR SOURCE REPAIRED; CI PENDING; PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-11-22 — Pass 1961–1970 — currency regression assertion verification
+
+- Corrected over-escaped backslashes in the two new currency assertions in scripts/validate-rc497-business-reviews.mjs.
+- Evaluated the actual regex patterns against the fetched RC498 SQL migration and order fixture; both matched. Confirmed orderFixture is loaded before its assertion.
+- This validates the assertion patterns only. The Node validator has not been run in the repository workspace, and PostgreSQL 17 integration remains pending exact-head CI.
+- No Production mutation or deployment.
+- **Status: STATIC ASSERTION PATTERNS VERIFIED; CI PENDING; PRODUCTION BLOCKED / NOT CERTIFIED.**
