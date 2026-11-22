@@ -5508,13 +5508,19 @@
   "pr982_default_closed_directory_gate_20261122": {
     "head": "240363205d4fad7d06a35500a59cd99c6b423535",
     "base_main_at_last_check": "54e433d54ace06a154d438ea672da4a781990730",
-    "status": "OPEN — CI QUEUED",
+    "status": "MERGED_TO_MAIN",
     "checks_at_last_check": {
       "queued": 29,
       "skipped": 1,
       "failures": 0
     },
     "contract": "Require exact server-side DIRECTORY_LISTINGS_ENABLED=true and reachable public.directory_listing_contact_consents before directory GET/POST routes execute; absent/false flag yields empty GET and 503 POST.",
-    "production_effect": "NONE; no server flag set and no Edge deployment."
+    "production_effect": "NONE; no server flag set, no Edge deployment, live directory v18 remains disabled.",
+    "merge_commit": "dbf40f6b9f8087fd5a274749c4a4db3ceb7c7564",
+    "checks_at_merge": {
+      "success": 28,
+      "skipped": 2,
+      "failures": 0
+    }
   }
 }
