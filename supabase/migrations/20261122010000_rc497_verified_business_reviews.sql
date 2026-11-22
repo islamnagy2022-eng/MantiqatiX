@@ -182,6 +182,51 @@ BEGIN
 END;
 $function$;
 
+CREATE OR REPLACE FUNCTION public.get_customer_business_review_status(
+  p_order_id uuid
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+DECLARE
+  v_actor uuid := auth.uid();
+  v_review public.business_reviews%rowtype;
+BEGIN
+  IF v_actor IS NULL OR coalesce(auth.jwt()->>'is_anonymous', 'false') = 'true' THEN
+    RAISE EXCEPTION 'AUTHENTICATED_CUSTOMER_REQUIRED';
+  END IF;
+  IF p_order_id IS NULL OR NOT EXISTS (
+    SELECT 1
+      FROM public.orders o
+     WHERE o.id = p_order_id
+       AND o.customer_id = v_actor
+  ) THEN
+    RETURN jsonb_build_object('hasReview', false);
+  END IF;
+
+  SELECT r.* INTO v_review
+    FROM public.business_reviews r
+   WHERE r.order_id = p_order_id
+     AND r.customer_id = v_actor;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('hasReview', false);
+  END IF;
+
+  RETURN jsonb_build_object(
+    'hasReview', true,
+    'reviewId', v_review.id,
+    'status', v_review.status,
+    'rating', v_review.rating,
+    'reviewText', v_review.review_text,
+    'createdAt', v_review.created_at
+  );
+END;
+$function$;
+
 CREATE OR REPLACE FUNCTION public.moderate_business_review(
   p_review_id uuid,
   p_decision text,
@@ -385,18 +430,18 @@ END;
 $function$;
 
 REVOKE ALL ON FUNCTION public.submit_business_review(uuid, integer, text) FROM PUBLIC, anon, service_role;
-REVOKE ALL ON FUNCTION public.moderate_business_review(uuid, text, text) FROM PUBLIC, anon, service_role;
+REVOKE ALL ON FUNCTION public.get_customer_business_review_status(uuid) FROM PUBLIC, anon, service_role;\nREVOKE ALL ON FUNCTION public.moderate_business_review(uuid, text, text) FROM PUBLIC, anon, service_role;
 REVOKE ALL ON FUNCTION public.respond_to_business_review(uuid, text) FROM PUBLIC, anon, service_role;
 REVOKE ALL ON FUNCTION public.get_public_business_review_summary(uuid, integer, integer) FROM PUBLIC, service_role;
 
 GRANT EXECUTE ON FUNCTION public.submit_business_review(uuid, integer, text) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.moderate_business_review(uuid, text, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_customer_business_review_status(uuid) TO authenticated;\nGRANT EXECUTE ON FUNCTION public.moderate_business_review(uuid, text, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.respond_to_business_review(uuid, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_public_business_review_summary(uuid, integer, integer) TO anon, authenticated;
 
 COMMENT ON FUNCTION public.submit_business_review(uuid, integer, text) IS
   'RC497: authenticated customer may submit one immutable review only for their own DELIVERED order.';
-COMMENT ON FUNCTION public.moderate_business_review(uuid, text, text) IS
+COMMENT ON FUNCTION public.get_customer_business_review_status(uuid) IS\n  'RC497: customer may read only their own review status for an order they own; no order or reviewer data is exposed.';\nCOMMENT ON FUNCTION public.moderate_business_review(uuid, text, text) IS
   'RC497: moderation requires direct membership in private.platform_admins; tenant roles do not grant global moderation.';
 COMMENT ON FUNCTION public.respond_to_business_review(uuid, text) IS
   'RC497: active owner/business-owner/admin/manager may post one response to a published review for their business.';
