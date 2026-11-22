@@ -4932,3 +4932,15 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Reconcile full RC425–RC435/RC450/RC468/RC475 schema, signatures, SECURITY DEFINER search_path and ACL in disposable PostgreSQL; do not patch live grants ad hoc.
 - [ ] Complete encrypted backup/restore, key recovery, Paymob sandbox, negative replay/correlation, balanced journal and tenant-scope tests before a coordinated migration + Edge release.
 - **Safety:** read-only catalog/source review; no payment or Production mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+### Pass 1791–1800 — live directory contact-consent release gate — 2026-11-22
+- [x] Re-retrieved live `directory-listings` v16 source and confirmed the deployed GET response path selects and returns phone/secondary phone/address without the current consent-aware sanitizer.
+- [x] Confirmed the live bundle has 3 files while current source requires 7 files, including sanitizer, consent pagination and platform-admin registry modules.
+- [x] Confirmed `public.directory_listing_contact_consents` is absent and RC473 migration ledger count is zero.
+- [x] Rechecked aggregate-only published listing counts: 869 total, 869 with phone, 178 with secondary phone, 869 with address; no contact values selected.
+- [x] Verified current-source output sanitizer is per-scope and fail-closed on missing/partial consent registry data; owner controls fail closed when registry unavailable.
+- [x] Refreshed Security Advisor: 9 RLS-enabled/no-policy tables, 65 authenticated-callable SECURITY DEFINER functions, 1 anon-callable SECURITY DEFINER function, leaked-password protection disabled. Do not infer exploitability from lint counts alone or mass-revoke.
+- [ ] Complete encrypted off-site DB+Storage backup, key/Vault recovery, independent PostgreSQL 17 restore/rollback and RPO/RTO evidence.
+- [ ] Rehearse ordered RC473 + prerequisite migration chain, then deploy the complete seven-file directory Edge bundle as a coordinated release.
+- [ ] Pass deployed-origin anonymous no-consent negative tests, per-scope consent positive tests, owner/branch boundaries, registry outage and pagination-cap tests.
+- **Safety:** read-only checks only; no Production DDL/DML, Auth/RLS/GRANT, Storage, Edge, payment, wallet, customer-data mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.** Evidence: `docs/audits/PASS_1791_1800_LIVE_DIRECTORY_CONSENT_RELEASE_GATE_20261122.md`.
