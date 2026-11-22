@@ -96,7 +96,8 @@ const requiredReleaseMigrations=[
   "20261120290000_rc494_settlement_financial_atomic_registry_scope_hardening.sql",
   "20261121020000_rc495_storage_filename_regex_forward_repair.sql",
   "20261121030000_rc496_mantigo_bid_accept_state_invariant.sql",
-  "20261122010000_rc497_verified_business_reviews.sql"
+  "20261122010000_rc497_verified_business_reviews.sql",
+  "20261122020000_rc498_authenticated_order_create_rpc.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
