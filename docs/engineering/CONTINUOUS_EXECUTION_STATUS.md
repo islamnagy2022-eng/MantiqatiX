@@ -1,14 +1,14 @@
 # MantiqatiX Continuous Execution Status
-Last updated: 2026-11-22 — current main 54e433d; PR978 browser E2E 28/2 passed (draft); PR982 default-closed directory gate CI pending; live migration 0/76 and selected Edge source mismatches; Production BLOCKED / NOT CERTIFIED
+Last updated: 2026-11-22 — current main dbf40f6b; PR982 merged after 28 success/2 skipped; PR978 gallery draft 28/2 passed; live migration 0/76 and selected Edge source mismatches; post-merge Pages deployment pending; Production BLOCKED / NOT CERTIFIED
 
-## Latest checkpoint — 2026-11-22 — current main 54e433d
+## Latest checkpoint — 2026-11-22 — current main dbf40f6b
 
 - PR976 post-merge Pages deployment and Primary Catalog browser validation succeeded (45071129013, 45071128944).
 - PR978 fixed-cover/promotional-gallery feature remains draft; exact-head checks 28 passed, 2 skipped, 0 failed. It has not been merged or deployed.
-- PR982 default-closed directory source gate is open against current main; exact-head checks were queued (29 queued, 1 skipped, no failures at last poll). It does not deploy Edge or set the server flag.
+- PR982 default-closed directory source gate merged as dbf40f6b after exact-head checks 28 success, 2 skipped, 0 failures. No production flag was set and no Edge function was deployed.
 - Live migration ledger: 310 rows, latest 20261110150618; exact required release set 0/76 present. Contact-consent registry and migration-release registry absent.
 - Selected deployed Edge functions differ from main: directory-listings v18 (protectively disabled), catalog-admin v20, public-catalog-directory v19, public-catalog v9. No individual function deployment.
-- No Production mutation occurred in this pass. **Production BLOCKED / NOT CERTIFIED.**
+- No Production mutation occurred in this pass. Main Pages deployment run 45074571318 was pending at checkpoint. **Production BLOCKED / NOT CERTIFIED.**
 - Evidence: docs/audits/PASS_1821_1830_LIVE_PRODUCTION_EDGE_MIGRATION_RECHECK_20261122.md.
 
 ## Latest checkpoint — 2026-11-20 — Pass 1220–1229
