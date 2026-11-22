@@ -6,7 +6,7 @@
 **Production:** **BLOCKED / NOT CERTIFIED**.
 
 ## Work completed in this continuation
-- Marketplace homepage ads load independently per placement, validate URLs, reject credential-bearing URLs and deduplicate records. HTTPS-only validation was added; six prior cases plus the new HTTP downgrade regression case are now in the branch. The earlier four-case subset passed on a prior exact head; the latest seven-case set needs exact-head CI.
+- Marketplace homepage ads load independently per placement, validate URLs, reject credential-bearing URLs and deduplicate records. HTTPS-only validation was added; seven focused cases, including HTTPS-only URL enforcement and HTTP downgrade rejection are now in the branch. The earlier four-case subset passed on a prior exact head; the latest seven-case set needs exact-head CI.
 - Live Supabase review confirmed no general business reviews table; only MantiGO ride ratings exist. A separate verified-interaction business review design spec is documented; no schema/UI was created.
 - Live Supabase Storage remains image-only, 5 MiB buckets; no video/reels pipeline is configured.
 - Live authorization rechecks show RC484/RC485 source fixes exist but are not applied to Production; live helper remains membership-derived and 57 RLS policies depend on it. Do not deploy these migrations separately.
