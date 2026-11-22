@@ -4,7 +4,7 @@ Last updated: 2026-11-22 — PR975/976 merged and deployed; PR978 gallery featur
 ## Latest checkpoint — 2026-11-22 — Pass 1821–1830
 
 - Main: `976b69ca5b062cfc89109b9f71ce4e22915e49b1`. PR976 post-merge Pages deployment and Primary Catalog browser validation succeeded (runs 45071129013 and 45071128944).
-- PR978 is DRAFT at `96a6946e248c7abac24a02e93dd3b392819ee44a`; 26 success, 3 running, 1 skipped, no failures at last check. It introduces a fixed single cover and a separate up-to-10 HTTPS promotional URL gallery. Not direct file upload. Hold pending matched Supabase Edge/schema release.
+- PR978 is DRAFT at `96a6946e248c7abac24a02e93dd3b392819ee44a`; 28 success, 2 skipped, 0 failures; build, RBAC PostgreSQL and browser E2E passed. It introduces a fixed single cover and a separate up-to-10 HTTPS promotional URL gallery. Not direct file upload. Hold pending matched Supabase Edge/schema release.
 - Live migration ledger: 310 rows, latest `20261110150618`; required release set 0/76 present. Consent registry and migration release registry tables are absent.
 - Selected live Edge versions: directory-listings v18 (intentionally disabled), catalog-admin v20, public-catalog-directory v19, public-catalog v9. All four deployed entrypoints differ from current main. Do not deploy individually. The disabled directory remains empty until the complete consent/release gate passes.
 - No Production writes/deploys were performed in this pass. Production remains **BLOCKED / NOT CERTIFIED**.
