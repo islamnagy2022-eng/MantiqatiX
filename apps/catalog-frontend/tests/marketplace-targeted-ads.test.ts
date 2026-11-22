@@ -101,3 +101,17 @@ test('rejects protocol-relative and malformed ad URLs', async () => {
   assert.deepEqual(ads.map((ad) => ad.advertisement_id), ['malformed-target']);
   assert.equal(ads[0].target_url, null);
 });
+
+test('rejects data, file and FTP schemes for ad destinations', async () => {
+  const ads = await loadTargetedAdvertisements(async () => ({
+    data: [
+      validAd('data-target', { target_url: 'data:text/html,<script>alert(1)</script>' }),
+      validAd('file-target', { target_url: 'file:///etc/passwd' }),
+      validAd('ftp-target', { target_url: 'ftp://example.test/offer' }),
+    ],
+    error: null,
+  }));
+
+  assert.equal(ads.length, 3);
+  assert.ok(ads.every((ad) => ad.target_url === null));
+});
