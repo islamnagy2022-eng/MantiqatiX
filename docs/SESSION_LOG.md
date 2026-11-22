@@ -3997,3 +3997,15 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - This validates the assertion patterns only. The Node validator has not been run in the repository workspace, and PostgreSQL 17 integration remains pending exact-head CI.
 - No Production mutation or deployment.
 - **Status: STATIC ASSERTION PATTERNS VERIFIED; CI PENDING; PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+## 2026-11-22 — Pass 1971–1980 — Li2Lak Production preflight and access-boundary audit
+
+- Reconciled the live Supabase project with the release candidate: RC497/RC498 ledger versions are absent and the two business-review tables do not yet exist.
+- Read the deployed `create_order_backend` definition and ACLs: it is SECURITY DEFINER with `search_path=public`, requires `auth.uid() = p_customer_id`, denies authenticated EXECUTE, and grants service_role EXECUTE. Deployed `order-create` v8 and `api` v17 still call via service-role clients; candidate source creates a verified customer-JWT client and invokes the RPC with that JWT. This is a confirmed source/configuration mismatch, but no recent order-create or `/api/v1/orders` invocation was present in the sampled function logs, so no actual customer-facing failure is claimed.
+- Re-read the customer order review component and confirmed its query already includes `.eq('customer_id', userId)`; its source validator asserts this predicate. No duplicate filter change was needed.
+- Audited the nine Supabase RLS-without-policy INFO findings against live grants. Direct anon/authenticated table access is absent for all nine; three directory tables are service-role-readable only and all mutating POST paths in `directory-listings` verify the bearer token and platform-admin/business ownership before mutation.
+- Reviewed the anonymous targeted-advertisement SECURITY DEFINER function. It has an empty search_path and restricts output to active, approved, time-valid ads with a hard limit of 50. Retained this intended public advertising endpoint.
+- Rechecked RC497 SQL: customer ownership and delivered-order gates, unique one-review-per-order invariant, duplicate-submit conflict fallback, admin registry checks, branch-aware merchant response scope, identity-free published output and bounded public pagination are present in source.
+- Exact-head checks for PR #971 still show 20 queued runs and no combined status. PostgreSQL 17 integration, full forward replay and frontend build/E2E are not verified as passed.
+- Advisor snapshot: no health lints; security warnings remain (65 authenticated SECURITY DEFINER functions require individual review, plus Auth configuration warnings); performance warnings remain (132 unindexed FKs, 375 RLS initplan, 70 unused indexes, 28 multiple permissive policies). No broad revokes or Auth settings changes were made.
+- **Status: PRODUCTION PREFLIGHT RECORDED; RELEASE BLOCKED; NO PRODUCTION MUTATION OR DEPLOYMENT.**
