@@ -589,135 +589,23 @@ try {
     } finally { await context.close(); }
   }
 
-  // 0b. Public directory uses a 20-row server page and continues with the returned keyset cursor.
+  // 0b. Unclaimed public directory listings are intentionally disabled before V1 launch.
   {
-    const pageRows = Array.from({ length: 25 }, (_, index) => {
-      const suffix = String(index + 1).padStart(2, '0');
-      return {
-        id: '123e4567-e89b-42d3-a456-' + String(index + 1).padStart(12, '0'),
-        slug: 'cursor-doctor-' + suffix,
-        display_name: 'عيادة اختبار المؤشر ' + suffix,
-        listing_type: 'clinic',
-        functional_group_id: 'medical_health',
-        taxonomy_category_id: 'cat_medical_health_medical_practices',
-        taxonomy_specialty: 'باطنة',
-        specialty: 'باطنة',
-        phone: '0101234' + String(index + 1).padStart(4, '0'),
-        secondary_phone: null,
-        address: 'شارع الاختبار',
-        governorate: 'المنوفية',
-        district: 'بركة السبع',
-        village: 'قرية الاختبار',
-        source_name: 'Activity module cursor E2E',
-        source_url: null,
-        listing_status: 'PUBLISHED',
-        claim_status: 'UNCLAIMED',
-        metadata: {},
-        created_at: '2026-11-01T00:00:00.000Z',
-      };
-    });
     const { context, page, directoryListingPageRequests } = await newScenario(browser, null, [], {
-      geoPreference: {
-        completed: true, mode: 'manual',
-        governorate: 'المنوفية', markaz: 'بركة السبع',
-        village: 'قرية الاختبار', area: 'all',
-      },
-      directoryListingsPageHandler: (params) => {
-        const secondPage = params.cursor === 'e2e-cursor-page-two';
-        return {
-          listings: secondPage ? pageRows.slice(20) : pageRows.slice(0, 20),
-          nextCursor: secondPage ? null : 'e2e-cursor-page-two',
-          hasMore: !secondPage,
-          pageSize: 20,
-        };
-      },
+      initialRoute: '?view=directory&listing=cursor-doctor-01',
+      directoryListingsPageHandler: () => ({
+        listings: [{ id: 'e2e-unclaimed', display_name: 'عيادة اختبار المؤشر 01', listing_status: 'PUBLISHED' }],
+        nextCursor: null, hasMore: false, pageSize: 20,
+      }),
     });
     try {
-      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
-      const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
-      if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
-        await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
-        await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
-      }
-      // The dedicated directory route shows activity groups, not listing cards. Follow the public folder navigation.
-      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
-      await page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first().click();
-      const modulePage = page.locator('main[dir="rtl"]');
-      await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
-      const cursorCards = page.locator('h3').filter({ hasText: /^عيادة اختبار المؤشر [0-9]{2}$/ });
-      const matchesDirectoryPageRequest = (request, specialtyPage) =>
-        request.taxonomyCategoryId === 'cat_medical_health_medical_practices' &&
-        (specialtyPage ? request.taxonomySpecialty === 'باطنة' : !request.taxonomySpecialty) &&
-        !request.cursor;
-      const waitForRequest = async (specialtyPage) => {
-        const deadline = Date.now() + 15000;
-        while (!directoryListingPageRequests.some((request) => matchesDirectoryPageRequest(request, specialtyPage)) && Date.now() < deadline) {
-          await page.waitForTimeout(50);
-        }
-        const request = directoryListingPageRequests.find((item) => matchesDirectoryPageRequest(item, specialtyPage));
-        assert.ok(request, (specialtyPage
-          ? 'opening the specialty must trigger a fresh server-filtered request'
-          : 'opening the activity must trigger a category request') +
-          '. Page requests: ' + JSON.stringify(directoryListingPageRequests));
-        return request;
-      };
-      const waitForTwentyCards = async (label) => {
-        try {
-          await page.waitForFunction(() => [...document.querySelectorAll('h3')]
-            .filter((node) => /^عيادة اختبار المؤشر [0-9]{2}$/.test((node.textContent || '').trim())).length === 20,
-          null, { timeout: 15000 });
-        } catch {
-          throw new Error(label + '. Page requests: ' + JSON.stringify(directoryListingPageRequests) +
-            '; visible page text: ' + JSON.stringify((await page.locator('body').innerText().catch(() => '')).slice(0, 1800)));
-        }
-        assert.equal(await cursorCards.count(), 20, label);
-      };
-
-      // Wait for the actual category request before accepting its 20-row result.
-      const activityPageRequest = await waitForRequest(false);
-      await waitForTwentyCards('opening an activity must render its first 20 server rows before specialty selection');
-
-      const specialtyFolderButton = modulePage.getByRole('button', { name: /^باطنة/ }).first();
-      const specialtyResponsePromise = page.waitForResponse((response) => {
-        try {
-          const responseUrl = new URL(response.url());
-          return responseUrl.pathname.endsWith('/functions/v1/directory-listings') &&
-            responseUrl.searchParams.get('taxonomyCategoryId') === 'cat_medical_health_medical_practices' &&
-            responseUrl.searchParams.get('taxonomySpecialty') === 'باطنة' &&
-            !responseUrl.searchParams.has('cursor');
-        } catch {
-          return false;
-        }
-      }, { timeout: 15000 });
-      await specialtyFolderButton.click();
-      // Wait for the actual server response, not a transient loading indicator:
-      // the mocked/API request may complete before Playwright observes the spinner.
-      const specialtyResponse = await specialtyResponsePromise;
-      assert.equal(specialtyResponse.status(), 200, 'the specialty-filtered directory page request must succeed');
-      await waitForRequest(true);
-      await waitForTwentyCards('specialty folder must render its first 20-row server page after its filtered response completes');
-
-      await page.getByRole('button', { name: 'رؤية المزيد من هذا التخصص', exact: true }).click();
-      await page.waitForFunction(() => [...document.querySelectorAll('h3')]
-        .filter((node) => /^عيادة اختبار المؤشر [0-9]{2}$/.test((node.textContent || '').trim())).length === 25);
-      assert.equal(await cursorCards.count(), 25, 'cursor continuation must append the remaining five public listings without duplicates');
-      const specialtyPageRequest = directoryListingPageRequests.find((request) =>
-        request.taxonomyCategoryId === 'cat_medical_health_medical_practices' && request.taxonomySpecialty === 'باطنة' && !request.cursor);
-      assert.ok(specialtyPageRequest, 'opening the specialty folder must request a server-filtered first page');
-      assert.equal(specialtyPageRequest.limit, '20', 'the specialty first request must be bounded to 20 rows');
-      assert.equal(specialtyPageRequest.governorate, 'المنوفية', 'the specialty request must retain the selected governorate');
-      assert.equal(specialtyPageRequest.district, 'بركة السبع', 'the specialty request must retain the selected markaz/district');
-      const continuationRequest = directoryListingPageRequests.find((request) => request.cursor === 'e2e-cursor-page-two');
-      assert.ok(continuationRequest, 'the continuation request must carry the exact nextCursor returned by the first page');
-      assert.equal(continuationRequest.limit, '20', 'continuation must preserve the page-size bound');
-      assert.equal(continuationRequest.governorate, 'المنوفية', 'continuation must preserve the selected governorate');
-      assert.equal(continuationRequest.district, 'بركة السبع', 'continuation must preserve the selected markaz/district');
-      assert.equal(continuationRequest.taxonomyCategoryId, 'cat_medical_health_medical_practices', 'continuation must preserve the activity category');
-      assert.equal(continuationRequest.taxonomySpecialty, 'باطنة', 'continuation must preserve the selected specialty');
-      results.push('directory-server-cursor-pagination-20-plus-5-geographic-scope');
+      await page.goto(baseUrl + '?view=directory&listing=cursor-doctor-01', { waitUntil: 'domcontentloaded' });
+      await page.waitForTimeout(300);
+      assert.equal(directoryListingPageRequests.length, 0, 'V1 must not call the retired unclaimed directory API');
+      assert.equal(await page.getByText('عيادة اختبار المؤشر 01', { exact: true }).count(), 0, 'direct listing routes must not expose unclaimed listing details');
+      results.push('unclaimed-directory-api-and-direct-listing-routes-disabled-for-v1');
     } finally { await context.close(); }
   }
-
   // 1. Guest direct URL must not render privileged dashboard UI.
   {
     const { context, page } = await newScenario(browser);
