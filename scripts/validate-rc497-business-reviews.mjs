@@ -14,10 +14,12 @@ const manifest = JSON.parse(fs.readFileSync("docs/release/production-migration-r
 
 assert.match(migration, /CONSTRAINT business_reviews_one_per_order UNIQUE \(order_id\)/,
   "one immutable review per order must be enforced by a database unique constraint");
-assert.match(migration, /v_order\.customer_id IS DISTINCT FROM v_actor[\s\S]*?upper\(coalesce\(v_order\.status, ''\)\) <> 'DELIVERED'/,
+assert.match(migration, /v_order\.customer_id IS DISTINCT FROM v_actor[\s\S]*?upper\(coalesce\(v_order\.status, ''\)\) <> 'DELIVERED'[\s\S]*?ORDER_BUSINESS_TENANT_MISMATCH/,
   "review submission must bind the authenticated actor to their own delivered order");
 assert.match(migration, /v_existing\.rating = p_rating AND v_existing\.review_text IS NOT DISTINCT FROM v_text[\s\S]*?REVIEW_ALREADY_SUBMITTED/,
   "exact retry must be idempotent while changed duplicate payloads are rejected");
+assert.match(migration, /v_decision IN \('REJECTED','HIDDEN'\) AND v_reason IS NULL[\s\S]*?MODERATION_REASON_REQUIRED/,
+  "rejected or hidden reviews must carry an auditable moderation reason");
 assert.match(migration, /FROM private\.platform_admins pa WHERE pa\.user_id = v_actor/,
   "moderation must depend on the protected platform-admin registry, not tenant roles");
 assert.doesNotMatch(migration.match(/CREATE OR REPLACE FUNCTION public\.moderate_business_review[\s\S]*?\$function\$;/)?.[0] ?? "", /mnty_can_platform_admin|is_platform_admin/,
@@ -52,6 +54,7 @@ for (const token of [
   "ORDER_NOT_DELIVERED",
   "BUSINESS_REVIEW_FORBIDDEN",
   "REVIEW_ALREADY_SUBMITTED",
+  "MODERATION_REASON_REQUIRED",
   "PLATFORM_ADMIN_REQUIRED",
   "BUSINESS_REVIEW_RESPONSE_FORBIDDEN",
   "BUSINESS_REVIEW_ALREADY_ANSWERED",
