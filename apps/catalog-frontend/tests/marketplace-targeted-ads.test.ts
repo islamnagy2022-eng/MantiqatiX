@@ -130,3 +130,17 @@ test('rejects nonstandard HTTPS ports and local-network ad destinations', async 
   assert.deepEqual(ads.map((ad) => ad.advertisement_id), ['custom-port-target', 'localhost-target']);
   assert.ok(ads.every((ad) => ad.target_url === null));
 });
+
+test('rejects IP-literal destinations and normalizes trailing-dot hostnames', async () => {
+  const ads = await loadTargetedAdvertisements(async () => ({
+    data: [
+      validAd('ipv4-creative', { creative_url: 'https://127.0.0.1/ad.webp' }),
+      validAd('ipv6-target', { target_url: 'https://[::1]/offer' }),
+      validAd('trailing-dot-host', { creative_url: 'https://cdn.example.test./ad.webp' }),
+    ],
+    error: null,
+  }));
+
+  assert.deepEqual(ads.map((ad) => ad.advertisement_id), ['trailing-dot-host']);
+  assert.equal(ads[0].creative_url, 'https://cdn.example.test./ad.webp');
+});
