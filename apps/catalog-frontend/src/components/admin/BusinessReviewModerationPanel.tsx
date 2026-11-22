@@ -35,30 +35,50 @@ const dateLabel = (value: string): string => {
 
 export const BusinessReviewModerationPanel: React.FC = () => {
   const [reviews, setReviews] = useState<ModerationReview[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [nextOffset, setNextOffset] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [reasons, setReasons] = useState<Record<string, string>>({});
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (offset = 0, append = false) => {
     setLoading(true);
     setError('');
     try {
       const { data, error: rpcError } = await supabase.rpc('get_platform_business_review_moderation_queue', {
         p_limit: 50,
+        p_offset: offset,
       });
       if (rpcError) throw rpcError;
       if (!data || typeof data !== 'object') throw new Error('استجابة قائمة المراجعة غير صالحة');
       const result = data as Record<string, unknown>;
-      setReviews(Array.isArray(result.reviews) ? result.reviews.filter(isModerationReview) : []);
+      const rows = Array.isArray(result.reviews) ? result.reviews.filter(isModerationReview) : [];
+      setReviews((current) => append
+        ? [...current, ...rows.filter((row) => !current.some((existing) => existing.reviewId === row.reviewId))]
+        : rows);
+      setTotalCount(Number.isFinite(Number(result.totalCount)) ? Number(result.totalCount) : rows.length);
+      setNextOffset(Number.isFinite(Number(result.nextOffset)) ? Number(result.nextOffset) : offset + rows.length);
     } catch (cause) {
-      setReviews([]);
+      if (!append) {
+        setReviews([]);
+        setTotalCount(0);
+        setNextOffset(0);
+      }
       setError(cause instanceof Error ? cause.message : 'تعذر تحميل قائمة مراجعة التقييمات');
     } finally {
       setLoading(false);
     }
   }, []);
+
+  const loadMore = async () => {
+    if (loading || loadingMore || nextOffset >= totalCount) return;
+    setLoadingMore(true);
+    await load(nextOffset, true);
+    setLoadingMore(false);
+  };
 
   useEffect(() => { void load(); }, [load]);
 
@@ -81,6 +101,8 @@ export const BusinessReviewModerationPanel: React.FC = () => {
       });
       if (rpcError) throw rpcError;
       setReviews((current) => current.filter((item) => item.reviewId !== review.reviewId));
+      setTotalCount((current) => Math.max(0, current - 1));
+      setNextOffset((current) => Math.max(0, current - 1));
       setNotice(decision === 'PUBLISHED' ? 'تم اعتماد التقييم ونشره' : 'تم رفض التقييم مع حفظ سبب القرار');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'تعذر حفظ قرار المراجعة');
@@ -153,6 +175,13 @@ export const BusinessReviewModerationPanel: React.FC = () => {
               </div>
             </article>
           ))}
+        </div>
+      )}
+      {reviews.length > 0 && nextOffset < totalCount && (
+        <div className="flex justify-center">
+          <button type="button" onClick={() => void loadMore()} disabled={loading || loadingMore} className="rounded-xl border border-slate-200 px-5 py-2.5 text-xs font-black text-slate-700 disabled:opacity-50">
+            {loadingMore ? 'جاري تحميل المزيد...' : 'تحميل تقييمات أقدم'}
+          </button>
         </div>
       )}
       <p className="flex items-center gap-2 text-[10px] text-slate-400"><Clock3 className="h-3.5 w-3.5" /> يتم الاحتفاظ بسجل قرارات المراجعة داخل سجل التدقيق.</p>
