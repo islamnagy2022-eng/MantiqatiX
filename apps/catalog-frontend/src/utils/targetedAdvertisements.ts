@@ -19,8 +19,18 @@ export const isSafeHttpsUrl = (value: unknown): string => {
   if (typeof value !== 'string' || !value.trim()) return '';
   try {
     const url = new URL(value);
-    if (url.username || url.password) return '';
-    return url.protocol === 'https:' ? url.toString() : '';
+    const hostname = url.hostname.toLowerCase().replace(/\\.$/, '');
+    if (
+      url.protocol !== 'https:' ||
+      !hostname ||
+      url.username ||
+      url.password ||
+      url.port ||
+      hostname === 'localhost' ||
+      hostname.endsWith('.localhost') ||
+      hostname.endsWith('.local')
+    ) return '';
+    return url.toString();
   } catch {
     return '';
   }
