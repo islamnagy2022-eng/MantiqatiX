@@ -115,3 +115,18 @@ test('rejects data, file and FTP schemes for ad destinations', async () => {
   assert.equal(ads.length, 3);
   assert.ok(ads.every((ad) => ad.target_url === null));
 });
+
+test('rejects nonstandard HTTPS ports and local-network ad destinations', async () => {
+  const ads = await loadTargetedAdvertisements(async () => ({
+    data: [
+      validAd('custom-port-creative', { creative_url: 'https://cdn.example.test:8443/ad.webp' }),
+      validAd('custom-port-target', { target_url: 'https://example.test:8443/offer' }),
+      validAd('localhost-target', { target_url: 'https://localhost/offer' }),
+      validAd('local-domain-creative', { creative_url: 'https://assets.example.local/ad.webp' }),
+    ],
+    error: null,
+  }));
+
+  assert.deepEqual(ads.map((ad) => ad.advertisement_id), ['custom-port-target', 'localhost-target']);
+  assert.ok(ads.every((ad) => ad.target_url === null));
+});
