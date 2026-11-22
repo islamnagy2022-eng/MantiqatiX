@@ -141,31 +141,21 @@ serve(async (req) => {
 
   if (req.method === "POST" && path === "/api/v1/orders") {
     const body = await req.json().catch(() => null)
-    if (!body || typeof body !== "object") return json({ error: "Invalid JSON body" }, 400)
-    const required = ["orderId","tenantId","businessId","branchId","clientIdempotencyKey","items"]
+    if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "Invalid JSON body" }, 400)
+    const required = ["orderId","tenantId","businessId","clientIdempotencyKey","items"]
     if (required.some((k) => body[k] == null || body[k] === "")) return json({ error: "Missing required order fields" }, 400)
-    if (!Array.isArray(body.items) || body.items.length === 0 || body.items.length > 100) return json({ error: "Invalid items" }, 400)
-    if (String(body.clientIdempotencyKey).length > 200) return json({ error: "Invalid idempotency key" }, 400)
-
-    const { data: business, error: businessError } = await supabaseAdmin.from("businesses")
-      .select("id,tenant_id,status").eq("id", String(body.businessId)).single()
-    if (businessError || !business || String(business.status ?? "").toUpperCase() !== "ACTIVE")
-      return json({ error: "Business not available" }, 404)
-    const tenantId = String(business.tenant_id)
-    if (String(body.tenantId) !== tenantId) return json({ error: "Business tenant mismatch" }, 403)
-
-    const { data: membership } = await supabaseAdmin.from("user_memberships")
-      .select("id,role").eq("user_id", user.id).eq("tenant_id", tenantId).eq("status", "ACTIVE")
-      .limit(1).maybeSingle()
-    if (!membership) {
-      const { data: customerMembership } = await supabaseAdmin.from("user_memberships")
-        .select("id,role").eq("user_id", user.id).eq("status", "ACTIVE").eq("role", "CUSTOMER")
-        .limit(1).maybeSingle()
-      if (!customerMembership) return json({ error: "Forbidden" }, 403)
+    if (!/^[0-9a-f-]{36}$/i.test(String(body.orderId)) || !/^[0-9a-f-]{36}$/i.test(String(body.businessId))) {
+      return json({ error: "Invalid order or business identifier" }, 400)
     }
-    const { data: provider } = await supabaseAdmin.from("marketing_provider_profiles")
-      .select("id").eq("business_id", String(body.businessId)).eq("status", "ACTIVE").limit(1).maybeSingle()
-    if (!provider) return json({ error: "Provider not available" }, 404)
+    if (String(body.clientIdempotencyKey).trim().length < 8 || String(body.clientIdempotencyKey).length > 200) {
+      return json({ error: "Invalid idempotency key" }, 400)
+    }
+    if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 100) return json({ error: "Invalid items" }, 400)
+    const { data: activeBranches, error: branchesError } = await supabaseAdmin.from("branches")
+      .select("id").eq("business_id", String(body.businessId)).eq("tenant_id", String(body.tenantId))
+      .eq("status", "ACTIVE").limit(1)
+    if (branchesError) return json({ error: "Failed to validate business branches" }, 500)
+    if ((activeBranches ?? []).length > 0 && !body.branchId) return json({ error: "Branch selection is required" }, 400)
 
     const { data, error } = await supabaseUser.rpc("create_order_backend", {
       p_order_id: String(body.orderId),
@@ -173,7 +163,7 @@ serve(async (req) => {
       p_business_id: String(body.businessId),
       p_branch_id: body.branchId == null ? null : String(body.branchId),
       p_customer_id: user.id,
-      p_client_idempotency_key: String(body.clientIdempotencyKey),
+      p_client_idempotency_key: String(body.clientIdempotencyKey).trim(),
       p_subtotal: 0,
       p_discount: 0,
       p_tax: 0,
@@ -185,75 +175,67 @@ serve(async (req) => {
       p_delivery_address: String(body.deliveryAddress || ""),
       p_items_json: body.items,
       p_notes: body.notes == null ? null : String(body.notes),
-      p_metadata: body.metadata && typeof body.metadata === "object" ? body.metadata : {},
+      p_metadata: body.metadata && typeof body.metadata === "object" && !Array.isArray(body.metadata) ? body.metadata : {},
     })
     if (error) return json({ error: error.message }, 400)
-    return json(data, 201)
+    return json(data, data?.idempotent ? 200 : 201)
   }
 
   const orderMatch = path.match(/^\/api\/v1\/orders\/([^/]+)$/)
   if (req.method === "GET" && orderMatch) {
     const { data: order, error } = await supabaseAdmin.from("orders").select("*").eq("id", orderMatch[1]).single()
     if (error || !order) return json({ error: "Order not found" }, 404)
-    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions,business_id")
-      .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
-    if (!membership) return json({ error: "Forbidden" }, 403)
-    const role = String(membership.role ?? "").toUpperCase()
-    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
-    const operationalOrderRead =
-      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","STAFF","CASHIER","DELIVERY_PARTNER"].includes(role) ||
-      permissions.includes("ORDER_READ_ALL")
-    const providerOrderRead =
-      role === "SERVICE_PROVIDER" &&
-      !!membership.business_id &&
-      String(membership.business_id) === String(order.business_id)
-    if (order.customer_id !== user.id && !operationalOrderRead && !providerOrderRead) return json({ error: "Forbidden" }, 403)
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("id,role,permissions,business_id,branch_id")
+      .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE")
+    if (membershipError) return json({ error: "Failed to validate order access" }, 500)
+    const operationalOrderRead = (memberships ?? []).some((membership: any) => {
+      const role = String(membership.role ?? "").toUpperCase()
+      const businessId = membership.business_id == null ? null : String(membership.business_id)
+      const branchId = membership.branch_id == null ? null : String(membership.branch_id)
+      const tenantWideOwner = ["OWNER", "ADMIN"].includes(role) && businessId === null && branchId === null
+      const exactBusinessBranch = businessId === String(order.business_id)
+        && branchId === (order.branch_id == null ? null : String(order.branch_id))
+      const scopedOperationalRole = [
+        "OWNER", "ADMIN", "MANAGER", "STAFF", "CASHIER", "DRIVER", "BUSINESS_OWNER", "SERVICE_PROVIDER",
+      ].includes(role)
+      const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
+      return tenantWideOwner || (exactBusinessBranch && (scopedOperationalRole || permissions.includes("ORDER_READ_ALL")))
+    })
+    if (order.customer_id !== user.id && !operationalOrderRead) return json({ error: "Forbidden" }, 403)
     return json(order)
   }
 
   if (req.method === "POST" && path === "/api/v1/payments/intents") {
     const body = await req.json().catch(() => null)
-    if (!body) return json({ error: "Invalid JSON body" }, 400)
+    if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "Invalid JSON body" }, 400)
     const { orderId, provider, idempotencyKey } = body
     if (provider !== "CASH_ON_DELIVERY") return json({ error: "Only CASH_ON_DELIVERY is enabled in production" }, 400)
-    if (!orderId || !idempotencyKey || String(idempotencyKey).length > 200) return json({ error: "orderId and idempotencyKey are required" }, 400)
+    if (!/^[0-9a-f-]{36}$/i.test(String(orderId ?? "")) || String(idempotencyKey ?? "").trim().length < 8 || String(idempotencyKey).length > 200) {
+      return json({ error: "orderId and a valid idempotencyKey are required" }, 400)
+    }
 
     const { data: order, error: orderError } = await supabaseAdmin.from("orders")
-      .select("id,tenant_id,total,currency,customer_id").eq("id", orderId).single()
+      .select("id,tenant_id,total_amount,currency").eq("id", String(orderId)).single()
     if (orderError || !order) return json({ error: "Order not found" }, 404)
 
-    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions")
-      .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
-    if (!membership) return json({ error: "Forbidden" }, 403)
-
-    const role = String(membership.role ?? "").toUpperCase()
-    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
-    const operationalPaymentAccess =
-      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) ||
-      permissions.includes("PAYMENT_CREATE")
-    const isOrderOwner = order.customer_id === user.id
-    if (!isOrderOwner && !operationalPaymentAccess) return json({ error: "Forbidden" }, 403)
-
-    const { data: configuredMethod } = await supabaseAdmin.from("tenant_payment_methods").select("id")
+    const { data: configuredMethod, error: methodError } = await supabaseAdmin.from("tenant_payment_methods").select("id")
       .eq("tenant_id", order.tenant_id).eq("payment_method", "CASH_ON_DELIVERY")
       .eq("provider", "CASH_ON_DELIVERY").eq("is_enabled", true).limit(1).maybeSingle()
+    if (methodError) return json({ error: "Failed to validate payment configuration" }, 500)
     if (!configuredMethod) return json({ error: "Cash payment is not enabled for this tenant" }, 409)
 
-    const newIntent = {
-      id: crypto.randomUUID(),
-      tenant_id: order.tenant_id,
-      order_id: order.id,
-      amount: order.total,
-      currency: order.currency,
-      status: "CREATED",
-      provider: "CASH_ON_DELIVERY",
-      payment_method: "CASH_ON_DELIVERY",
-      idempotency_key: String(idempotencyKey),
-    }
-    const { data, error } = await supabaseAdmin.from("payment_intents")
-      .upsert(newIntent, { onConflict: "tenant_id,idempotency_key" }).select().single()
-    if (error) return json({ error: "Failed to create payment intent" }, 500)
-    return json(data)
+    const { data, error } = await supabaseUser.rpc("create_payment_intent_backend", {
+      p_tenant_id: String(order.tenant_id),
+      p_order_id: String(order.id),
+      p_amount: Number(order.total_amount),
+      p_currency: String(order.currency),
+      p_provider: "CASH_ON_DELIVERY",
+      p_payment_method: "CASH_ON_DELIVERY",
+      p_idempotency_key: String(idempotencyKey).trim(),
+    })
+    if (error) return json({ error: error.message }, 400)
+    return json(data, data?.idempotent ? 200 : 201)
   }
 
   const paymentIntentMatch = path.match(/^\/api\/v1\/payments\/intents\/([^/]+)$/)
