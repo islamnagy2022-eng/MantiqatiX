@@ -182,6 +182,11 @@ assert.doesNotMatch(cartDrawer, /p_subtotal:|p_total_amount:|p_tax:/,
   "browser checkout must not submit authoritative financial totals");
 assert.match(cartDrawer, /completedOrderDetails\\.tracked && completedOrderDetails\\.orderId/,
   "checkout confirmation must display the persisted order reference");
+assert.match(cartDrawer, /details\.method === 'paymob'[\s\S]*?لم يتم تحصيل أي مبلغ/,
+  "checkout must fail closed if any caller attempts to submit a Paymob order while gateway verification is disabled");
+assert.match(cartDrawer, /const isPaymobAllowed = false/);
+assert.doesNotMatch(cartDrawer, /PMB-EG-|Simulate Paymob gateway authorization handshake|تم سداد الطلب بنجاح عبر Paymob/,
+  "checkout must not generate fake Paymob references or display simulated payment success");
 assert.match(cartDrawer, /completedOrderDetails\\.whatsappUrl &&[\\s\\S]*?rel="noopener noreferrer"/,
   "checkout confirmation must provide a safe manual WhatsApp fallback when popup navigation is blocked");
 assert.match(cartDrawer, /لن يتم إرسال الرسالة إلا بعد الضغط على زر الإرسال داخل واتساب/,
