@@ -17,6 +17,22 @@ BEGIN
   END IF;
   PERFORM set_config('test.review_id', result->>'reviewId', false);
 
+  result := public.get_customer_business_review_status(
+    '30000000-0000-4000-8000-000000000001'
+  );
+  IF result->>'hasReview' <> 'true'
+     OR result->>'status' <> 'PENDING'
+     OR result->>'reviewId' IS NULL THEN
+    RAISE EXCEPTION 'RC497_CUSTOMER_REVIEW_STATUS_LOOKUP_FAILED: %', result;
+  END IF;
+
+  result := public.get_customer_business_review_status(
+    '30000000-0000-4000-8000-000000000003'
+  );
+  IF result->>'hasReview' <> 'false' OR result ? 'reviewId' THEN
+    RAISE EXCEPTION 'RC497_CUSTOMER_READS_FOREIGN_REVIEW_STATUS: %', result;
+  END IF;
+
   result := public.submit_business_review(
     '30000000-0000-4000-8000-000000000001', 5, 'تجربة شراء موثقة'
   );
