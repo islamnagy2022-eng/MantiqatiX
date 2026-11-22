@@ -16,6 +16,9 @@ const migration = fs.readFileSync(migrationPath, "utf8");
 const orderMigration = fs.readFileSync(orderMigrationPath, "utf8");
 const orderCreateEdge = fs.readFileSync("supabase/functions/order-create/index.ts", "utf8");
 const apiEdge = fs.readFileSync("supabase/functions/api/index.ts", "utf8");
+const orderIntegration = fs.readFileSync("supabase/tests/rc104_order_idempotency_scope_integration.sql", "utf8");
+const orderWorkflow = fs.readFileSync(".github/workflows/order-idempotency-scope.yml", "utf8");
+const apiEdge = fs.readFileSync("supabase/functions/api/index.ts", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc497_business_reviews_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc497_business_reviews_integration.sql", "utf8");
 const workflow = fs.readFileSync(".github/workflows/li2lak-verified-business-reviews.yml", "utf8");
@@ -112,25 +115,25 @@ for (const token of [
   "RC497_ACCOUNT_DELETION_DID_NOT_SCRUB_REVIEW_TEXT",
 ]) assert.ok(integration.includes(token), `integration suite must cover ${token}`);
 
-assert.match(orderMigration, /ALTER FUNCTION public\\.create_order_backend\\([\\s\\S]*?SET search_path = pg_catalog, public, extensions, pg_temp/,
-  "RC498 must harden the canonical order SECURITY DEFINER search_path");
-assert.match(orderMigration, /REVOKE ALL ON FUNCTION public\\.create_order_backend\\([\\s\\S]*?FROM PUBLIC, anon[\\s\\S]*?GRANT EXECUTE ON FUNCTION public\\.create_order_backend\\([\\s\\S]*?TO authenticated/,
-  "RC498 must deny PUBLIC/anon and grant only authenticated invocation in addition to controlled service role");
-assert.match(orderMigration, /auth\\.uid\\(\\)[\\s\\S]*?catalog_item_prices[\\s\\S]*?CUSTOMER_REQUIRED/,
-  "RC498 preflight must require identity and server-side pricing guards to remain in the RPC");
+assert.match(orderMigration, /CREATE OR REPLACE FUNCTION public\\.create_order_backend[\\s\\S]*?SET search_path=pg_catalog, public, extensions, pg_temp/,
+  "RC498 must restore the canonical order function and harden its SECURITY DEFINER search_path");
+assert.match(orderMigration, /REVOKE ALL ON FUNCTION public\\.create_order_backend[\\s\\S]*?FROM PUBLIC, anon, authenticated[\\s\\S]*?GRANT EXECUTE ON FUNCTION public\\.create_order_backend[\\s\\S]*?TO authenticated/,
+  "RC498 must deny PUBLIC/anon, reset authenticated ACL and grant authenticated execution");
+assert.match(orderMigration, /auth\\.uid\\(\\)[\\s\\S]*?auth\\.role\\(\\)[\\s\\S]*?IDEMPOTENCY_KEY_CONFLICT[\\s\\S]*?catalog_item_prices/,
+  "RC498 must retain identity, service-role verification, idempotency-scope and server-pricing guards");
 assert.ok(orderCreateEdge.includes("Authorization: `Bearer ${token}`") && orderCreateEdge.includes('userClient.rpc("create_order_backend"'),
   "order-create must invoke the backend RPC with the verified customer JWT");
 assert.doesNotMatch(orderCreateEdge, /admin\\.rpc\\("create_order_backend"/,
   "order-create must not invoke the auth.uid()-enforcing RPC through service_role");
 assert.ok(apiEdge.includes("Authorization: `Bearer ${token}`") && apiEdge.includes('supabaseUser.rpc("create_order_backend"'),
-  "legacy authenticated Orders API must also invoke the backend RPC with the verified customer JWT");
+  "legacy authenticated Orders API must invoke the backend RPC with the verified customer JWT");
 assert.doesNotMatch(apiEdge, /supabaseAdmin\\.rpc\\("create_order_backend"/,
   "legacy Orders API must not invoke the auth.uid()-enforcing RPC through service_role");
-assert.match(integration, /RC498_AUTHENTICATED_ORDER_RPC_EXECUTE_MISSING[\\s\\S]*?RC498_ANON_ORDER_RPC_EXECUTE_PRESENT[\\s\\S]*?RC498_SPOOFED_CUSTOMER_ID_ACCEPTED/,
-  "disposable integration suite must cover authenticated ACL, anon denial and customer identity binding");
-assert.ok(workflow.includes(orderMigrationPath), "dedicated workflow must apply RC498 after RC497");
-assert.ok(workflow.includes("supabase/functions/order-create/index.ts"), "dedicated workflow must trigger for order-create source changes");
-assert.ok(forwardReplay.includes(orderMigrationPath), "forward replay workflow must include RC498 migration source");
+assert.match(orderIntegration, /RC498_AUTHENTICATED_EXECUTE_MISSING[\\s\\S]*?RC498_ANON_EXECUTE_PRESENT[\\s\\S]*?RC498 authenticated order RPC ACL, identity and pricing: PASS/,
+  "order integration suite must cover authenticated execution, anon denial, identity and authoritative pricing");
+assert.ok(orderWorkflow.includes(orderMigrationPath), "order workflow must apply RC498 after RC105");
+assert.ok(orderWorkflow.includes("supabase/functions/order-create/index.ts") && orderWorkflow.includes("supabase/functions/api/index.ts"),
+  "order workflow must trigger for both JWT-scoped order entry points");
 assert.ok(gate.includes(JSON.stringify("20261122020000_rc498_authenticated_order_create_rpc.sql")), "exact release gate must track RC498");
 assert.match(gate, /required\\.length, 78/, "exact release gate must count all 78 required migrations");
 assert.ok(verifier.includes(JSON.stringify("20261122020000_rc498_authenticated_order_create_rpc.sql")), "Production verifier must track RC498");
