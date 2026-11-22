@@ -1,3 +1,13 @@
+### Pass 1821–1830 — Li2Lak CI source repair and live contract recheck — 2026-11-22
+- [x] Removed a duplicate top-level `apiEdge` declaration from `scripts/validate-rc497-business-reviews.mjs`; verified no duplicate top-level const declarations remain.
+- [x] Aligned the Li2Lak disposable PostgreSQL lifecycle workflow from PostgreSQL 16 to PostgreSQL 17, matching the live Production major version.
+- [x] Rechecked Production read-only: RC497 review tables and submission RPC are absent; RC498 order RPC remains service_role-only (anon=false, authenticated=false, service_role=true); live `order-create` remains ACTIVE v8 with JWT verification enabled.
+- [x] Confirmed RC497/RC498 migration versions are not present in the 310-row live migration ledger.
+- [ ] CI runs created against the earlier PR head remain QUEUED; no successful exact-head test result is claimed. Latest PR #971 head is `78196b19e65736080341d2f3f44ebb26912b998e`.
+- [ ] PR #971 is 2 commits behind current main; reconcile latest main before merge and require exact-head CI.
+- [ ] Keep production blocked until independent encrypted DB+Storage backup, Vault/key recovery, PostgreSQL 17 restore/rollback, migration reconciliation and coordinated Edge/RPC release are evidenced.
+- **Safety:** source-only fixes and read-only Production inspection. No Production DDL/DML, Auth/RLS/GRANT, Storage, Edge, payment, wallet, customer-data mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
 ### Pass 1761–1770 — uploaded AI Studio R7 archive reconciliation — 2026-11-22
 - [x] Inspected the uploaded `bizcatalog-manager (11).zip`: 233 files, internal R7-v7.0.0 manifest dated 2026-11-10.
 - [x] Confirmed it is a historical reference snapshot with local authoritative JSON + Supabase architecture, not the current runtime baseline.
