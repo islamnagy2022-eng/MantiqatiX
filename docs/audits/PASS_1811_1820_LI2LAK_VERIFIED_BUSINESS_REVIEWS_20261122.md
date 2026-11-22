@@ -55,7 +55,8 @@ Add a separate customer-review capability to Li2Lak without reusing MantiGO ride
 ## Automated tests added
 
 - Disposable PostgreSQL 16 fixture.
-- Integration tests cover own delivered order, idempotent retry, duplicate change rejection, undelivered order, foreign-customer order, order/business tenant mismatch, unverified business moderation state, tenant-role moderation denial, registry-admin moderation, audit previous-state capture, business response authorization and one-response limit, public identity-free output, direct table privilege denial, FORCE RLS, and account deletion anonymization.
+- Integration tests cover own delivered order, customer-only review-status lookup, foreign-order status privacy, idempotent retry, duplicate change rejection, undelivered order, foreign-customer order, order/business tenant mismatch, unverified business moderation state, tenant-role moderation denial and queue denial, registry-admin moderation and pending-queue privacy, audit previous-state capture, business response authorization and one-response limit, public identity-free output, direct table privilege denial, FORCE RLS, and account deletion anonymization.
+- Static source validation covers the customer account review form, merchant response panel, platform moderation panel, storefront integration, and persisted cart checkout contract.
 - Static validator checks source security contract and exact release manifest.
 - The existing forward-migration replay workflow now includes a separate RC497 PostgreSQL lifecycle job and runs the RC497 validator in the chronological replay job.
 
@@ -70,8 +71,8 @@ Add a separate customer-review capability to Li2Lak without reusing MantiGO ride
 
 - PR #970: https://github.com/islamnagy2022-eng/MantiqatiX/pull/970
 - Branch: `feat/li2lak-verified-business-reviews-20261122`.
-- Latest source commit at report time: `b3c7e123c94f418c73b336a7ceab6531469a518c`.
-- Earlier exact-head workflow run for commit `d45e2b6a65143806a362de8dfcf27eeaf4c7f900` was created, but jobs were still QUEUED at last check. Later source updates require a fresh exact-head CI result. No test pass is claimed.
+- Latest source commit at report time: `eeeb91141e61ef2c477fc0541ff5c7a713a5d242`.
+- GitHub connector returned no workflow runs or combined statuses for this exact head at the last check; this is not a pass. The PR must receive fresh exact-head CI before merge. No test pass is claimed.
 - PR remains unmerged. No public deployment occurred.
 
 ## Release decision
