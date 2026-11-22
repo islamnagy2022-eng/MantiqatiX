@@ -4019,3 +4019,12 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - TypeScript build, browser E2E, full validator execution and PostgreSQL integration are pending exact-head CI; no passing execution is claimed.
 - **No Production mutation or deployment. PR #971 remains open/unmerged. PRODUCTION BLOCKED / NOT CERTIFIED.**
 - Audit: `docs/audits/PASS_1981_1990_LI2LAK_CUSTOMER_SESSION_ISOLATION_20261122.md`.
+
+## 2026-11-22 — Pass 1991–2000 — Legacy API order-read scope isolation
+- Found that production `api` v17 GET `/api/v1/orders/:id` authenticated users and checked an active same-tenant membership, but tenant-wide role names and `ORDER_READ_ALL` were not constrained to the order's business and branch. Provider access was already business-scoped. The risk is same-tenant cross-business/branch order read by a scoped operational membership, not anonymous or arbitrary unauthenticated read.
+- Candidate API narrows tenant-wide OWNER/ADMIN to both scope IDs NULL; other operational roles require exact business and branch; assigned partner is tied to the order assignment; service provider remains restricted to own business and branch rule; customer must own the order.
+- Reconciled branch=NULL semantics against existing RC465 migration/integration: orders-member scoped access expects exact branch; branchless business-scoped membership does not automatically receive every branch. Did not widen it. Provider policy remains a distinct business-wide branch-null exception.
+- Added five static assertions to RC497 validator; six manual source-level checks passed against candidate API.
+- Runtime Node validator, Edge typecheck, HTTP/E2E and exact-head CI remain pending. Production API v17 unchanged; no production deployment or mutation.
+- Audit: `docs/audits/PASS_1991_2000_LEGACY_API_ORDER_READ_SCOPE_20261122.md`.
+- **PR #971 open/unmerged. PRODUCTION BLOCKED / NOT CERTIFIED.**
