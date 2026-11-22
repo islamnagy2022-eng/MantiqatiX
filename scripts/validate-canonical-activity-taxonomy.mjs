@@ -177,9 +177,14 @@ assert.ok(browserE2E.includes('platformAdmin: {'), 'Browser E2E must include an 
 assert.ok(browserE2E.includes('platform-admin-directory-legacy-specialty-edit-and-new-listing-save-round-trip'), 'Browser E2E must cover both edit and create save round trips for directory listings.');
 assert.ok(browserE2E.includes('non-platform-role-denied-directory-admin-route'), 'Browser E2E must verify that non-platform roles cannot load the directory admin UI or bundle.');
 assert.ok(browserE2E.includes('directoryAdminRequests'), 'Directory admin E2E must inspect the actual request payload and bearer authorization contract.');
-assert.ok(directoryListingsEdge.includes('TAXONOMY_GROUP_MISMATCH'), 'The directory Edge Function must reject category/group mismatches.');
-assert.ok(directoryListingsEdge.includes('PHONE_REQUIRED_FOR_PUBLICATION'), 'The directory Edge Function must keep the phone requirement for published listings.');
-assert.ok(directoryListingsEdge.includes('const validGroups = new Set(["medical_health","food_grocery","fashion_beauty","home_maintenance","auto_transport","real_estate","education_training","technology_communications","professional_services","agriculture_animals"])'), 'Directory listing writes must accept only canonical group IDs.');
+// The unclaimed directory Edge Function is intentionally database-free and disabled in V1.
+// Keep its full taxonomy/write contract for the post-launch reactivation gate.
+const unclaimedDirectoryDisabledForV1 = directoryListingsEdge.includes('DIRECTORY_LISTINGS_DISABLED_FOR_V1');
+if (!unclaimedDirectoryDisabledForV1) {
+  assert.ok(directoryListingsEdge.includes('TAXONOMY_GROUP_MISMATCH'), 'The directory Edge Function must reject category/group mismatches.');
+  assert.ok(directoryListingsEdge.includes('PHONE_REQUIRED_FOR_PUBLICATION'), 'The directory Edge Function must keep the phone requirement for published listings.');
+  assert.ok(directoryListingsEdge.includes('const validGroups = new Set(["medical_health","food_grocery","fashion_beauty","home_maintenance","auto_transport","real_estate","education_training","technology_communications","professional_services","agriculture_animals"])'), 'Directory listing writes must accept only canonical group IDs.');
+}
 
 assert.ok(admin.includes('النشاط الرئيسي'), 'Admin business form must select a primary activity.');
 assert.ok(admin.includes('التخصص الدقيق (اختياري)'), 'Admin activity form must expose an optional specialty selector.');
