@@ -182,4 +182,18 @@
   }
   captureReferralCode();
   window.MNTYReferral = Object.freeze({ render, bind, claimPending, pendingCode });
+
+  // Handle the case where app.js restored an existing session before this module loaded.
+  // New sign-ins are also handled by enterAuthenticatedApp in app.js.
+  try {
+    const client = window.MNTY_SB;
+    if (client?.auth?.getSession) {
+      client.auth.getSession().then(({ data, error }) => {
+        if (!error && data?.session?.user && pendingCode()) {
+          return claimPending(client);
+        }
+        return null;
+      }).catch((error) => console.warn("[MantiqatiX referral] session claim deferred", error));
+    }
+  } catch (_) {}
 })();
