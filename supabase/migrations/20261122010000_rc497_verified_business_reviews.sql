@@ -105,6 +105,14 @@ BEGIN
      OR coalesce(v_order.total_amount, 0) <= 0 THEN
     RAISE EXCEPTION 'ORDER_NOT_REVIEWABLE';
   END IF;
+  IF NOT EXISTS (
+    SELECT 1
+      FROM public.businesses b
+     WHERE b.id = v_order.business_id
+       AND b.tenant_id = v_order.tenant_id
+  ) THEN
+    RAISE EXCEPTION 'ORDER_BUSINESS_TENANT_MISMATCH';
+  END IF;
   IF coalesce(jsonb_typeof(v_order.items_json), '') <> 'array' THEN
     RAISE EXCEPTION 'ORDER_NOT_REVIEWABLE';
   END IF;
