@@ -1,3 +1,16 @@
+# Active priority — website-first release (2026-11-22)
+
+The current delivery order is: **launch the bounded public catalog first; then execute the post-launch backlog.** The canonical launch gate, current Production evidence and ordered backlog are in [WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md](release/WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md).
+
+- [ ] Close public Edge contact disclosure drift and align catalog-admin's audited owner-consent action.
+- [ ] Refresh stale live Edge parity evidence; do not accept the old v7/v17 snapshot.
+- [ ] Pass the scoped catalog-pilot gate and main Pages deployed-origin smoke tests.
+- [ ] Keep PR #971 and Li2Lak order/payment/review work out of the first website release.
+- [ ] Keep the full-platform 76-migration gate BLOCKED until its own evidence is complete.
+- [ ] Use the linked post-launch backlog for all deferred features; do not mix them into V1.
+
+---
+
 ### Pass 1761–1770 — uploaded AI Studio R7 archive reconciliation — 2026-11-22
 - [x] Inspected the uploaded `bizcatalog-manager (11).zip`: 233 files, internal R7-v7.0.0 manifest dated 2026-11-10.
 - [x] Confirmed it is a historical reference snapshot with local authoritative JSON + Supabase architecture, not the current runtime baseline.
