@@ -25,9 +25,9 @@ assert.match(migration, /CONSTRAINT business_reviews_one_per_order UNIQUE \(orde
   "one immutable review per order must be enforced by a database unique constraint");
 assert.match(migration, /v_order\.customer_id IS DISTINCT FROM v_actor[\s\S]*?upper\(coalesce\(v_order\.status, ''\)\) <> 'DELIVERED'[\s\S]*?ORDER_BUSINESS_TENANT_MISMATCH/,
   "review submission must bind the authenticated actor to their own delivered order");
-assert.match(migration, /CREATE OR REPLACE FUNCTION public\\.get_platform_business_review_moderation_queue[\\s\\S]*?private\\.platform_admins pa WHERE pa\\.user_id = v_actor[\\s\\S]*?r\\.status = 'PENDING'/,
+assert.match(migration, /CREATE OR REPLACE FUNCTION public\.get_platform_business_review_moderation_queue[\s\S]*?private\.platform_admins pa WHERE pa\.user_id = v_actor[\s\S]*?r\.status = 'PENDING'/,
   "moderation queue RPC must be bounded to pending reviews and the direct platform-admin registry");
-assert.match(migration, /REVOKE ALL ON FUNCTION public\\.get_platform_business_review_moderation_queue\\(integer\\) FROM PUBLIC, anon, service_role[\\s\\S]*?GRANT EXECUTE ON FUNCTION public\\.get_platform_business_review_moderation_queue\\(integer\\) TO authenticated/,
+assert.match(migration, /REVOKE ALL ON FUNCTION public\.get_platform_business_review_moderation_queue\(integer\) FROM PUBLIC, anon, service_role[\s\S]*?GRANT EXECUTE ON FUNCTION public\.get_platform_business_review_moderation_queue\(integer\) TO authenticated/,
   "moderation queue RPC must be authenticated-only and registry-gated");
 assert.match(migration, /CREATE OR REPLACE FUNCTION public\.get_customer_business_review_status[\s\S]*?o\.customer_id = v_actor[\s\S]*?r\.customer_id = v_actor/,
   "customer review status RPC must return only the authenticated customer's own review");
@@ -98,13 +98,13 @@ assert.match(reviewPanel, /currentBusiness\?\.isVerified[\s\S]*?operationalStatu
   "public review panel must be restricted to active verified businesses");
 assert.match(reviewPanel, /verifiedInteraction === true/,
   "public storefront must reject review rows without verified-order provenance");
-assert.match(cartDrawer, /functions\\.invoke\\('order-create'/,
+assert.match(cartDrawer, /functions\.invoke\('order-create'/,
   "authenticated catalog checkout must persist the order through the existing order-create Edge Function");
-assert.match(cartDrawer, /authSession\\.isAuthenticated[\\s\\S]*?catalogItemId: product\\.id[\\s\\S]*?clientIdempotencyKey/,
+assert.match(cartDrawer, /authSession\.isAuthenticated[\s\S]*?catalogItemId: product\.id[\s\S]*?clientIdempotencyKey/,
   "tracked checkout must bind to the authenticated customer and use canonical catalog IDs plus an idempotency key");
 assert.doesNotMatch(cartDrawer, /p_subtotal:|p_total_amount:|p_tax:/,
   "browser checkout must not submit authoritative financial totals directly to the backend RPC");
-assert.match(cartDrawer, /tracked \\? 'تم تسجيل الطلب وإرسال التفاصيل عبر واتساب!'/,
+assert.match(cartDrawer, /tracked \? 'تم تسجيل الطلب وإرسال التفاصيل عبر واتساب!'/,
   "checkout must distinguish a persisted order from a WhatsApp-only guest request");
 assert.match(customerReviewPanel, /get_customer_business_review_status[\s\S]*?submit_business_review/,
   "customer order portal must check owned review status before submission");
@@ -112,11 +112,11 @@ assert.match(customerReviewPanel, /\.eq\('customer_id', userId\)/,
   "customer order list must scope every order query to the authenticated identity");
 assert.match(customerReviewPanel, /order\.status\.toUpperCase\(\) === 'DELIVERED'/,
   "customer review form must only be offered for delivered orders");
-assert.match(ownerReviewPanel, /respond_to_business_review[\\s\\S]*?p_review_id:[\\s\\S]*?p_response:/,
+assert.match(ownerReviewPanel, /respond_to_business_review[\s\S]*?p_review_id:[\s\S]*?p_response:/,
   "business owner UI must use the scoped response RPC rather than direct table writes");
-assert.match(merchantDashboard, /BusinessReviewManagementPanel[\\s\\S]*?activeTab === 'reviews'/,
+assert.match(merchantDashboard, /BusinessReviewManagementPanel[\s\S]*?activeTab === 'reviews'/,
   "business owner review-response panel must be mounted behind the merchant dashboard tab");
-assert.match(adminReviewPanel, /get_platform_business_review_moderation_queue[\\s\\S]*?moderate_business_review/,
+assert.match(adminReviewPanel, /get_platform_business_review_moderation_queue[\s\S]*?moderate_business_review/,
   "platform admin UI must use the registry-gated queue and moderation RPCs");
 assert.match(adminDashboard, /<PlatformBusinessReviewModerationPanel \/>/,
   "platform review moderation panel must be mounted in the admin dashboard");
