@@ -38,6 +38,7 @@ import {
 import { QRCodeModal } from '../common/QRCodeModal';
 import { BusinessEmployeeManager } from './BusinessEmployeeManager';
 import { CatalogImportPanel } from './CatalogImportPanel';
+import { BusinessReviewManagementPanel } from './BusinessReviewManagementPanel';
 import { normalizeSocialUrl } from '../../utils/socialLinks';
 
 
@@ -162,10 +163,10 @@ export const MerchantDashboard: React.FC = () => {
     ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(permanentStoreUrl)}`
     : '';
 
-  type MerchantDashboardTab = 'products' | 'import' | 'branding' | 'profile' | 'functional_engine' | 'qr' | 'employees';
+  type MerchantDashboardTab = 'products' | 'import' | 'branding' | 'profile' | 'functional_engine' | 'qr' | 'employees' | 'reviews';
   const readMerchantTabFromUrl = (): MerchantDashboardTab => {
     const requested = new URLSearchParams(window.location.search).get('merchantTab');
-    const allowedTabs: MerchantDashboardTab[] = ['products', 'import', 'branding', 'profile', 'functional_engine', 'qr', 'employees'];
+    const allowedTabs: MerchantDashboardTab[] = ['products', 'import', 'branding', 'profile', 'functional_engine', 'qr', 'employees', 'reviews'];
     return requested && allowedTabs.includes(requested as MerchantDashboardTab) ? requested as MerchantDashboardTab : 'products';
   };
   const [activeTab, setActiveTabState] = useState<MerchantDashboardTab>(readMerchantTabFromUrl);
@@ -747,6 +748,15 @@ export const MerchantDashboard: React.FC = () => {
           </button>
           <button
             type="button"
+            onClick={() => setActiveTab('reviews')}
+            aria-pressed={activeTab === 'reviews'}
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'reviews' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+          >
+            <MessageCircle className="h-4 w-4" />
+            <span>تقييمات العملاء</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setActiveTab('qr')}
             aria-pressed={activeTab === 'qr'}
             className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${activeTab === 'qr' ? 'mx-v4-tab-active' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
@@ -772,6 +782,7 @@ export const MerchantDashboard: React.FC = () => {
       </nav>
 
       {activeTab === 'employees' && <BusinessEmployeeManager business={currentBusiness} />}
+      {activeTab === 'reviews' && <BusinessReviewManagementPanel />}
       {activeTab === 'import' && <CatalogImportPanel />}
 
       {/* Tab 1: Products and Catalog Management */}
