@@ -26,6 +26,13 @@ Add a separate customer-review capability to Li2Lak without reusing MantiGO ride
 - Review/event tables use ENABLE + FORCE RLS and direct privileges are revoked from anon, authenticated and service_role. Four narrowly scoped SECURITY DEFINER RPCs use an empty search_path and explicit EXECUTE grants.
 - Customer and event actor references use ON DELETE SET NULL so account deletion anonymizes retained review history rather than deleting it.
 
+## Storefront integration
+
+- Added `BusinessReviewsPanel` to the public business storefront after the catalog.
+- The panel calls only `get_public_business_review_summary`, validates the returned payload, and displays a rating, bounded published review cards, and business responses.
+- It renders only for ACTIVE, verified and non-frozen businesses; if the RC497 RPC is not deployed or fails, the panel fails closed and remains hidden.
+- The current app does not have a customer order-history/review-entry screen. Therefore the customer submission UI and business-owner response UI remain incomplete; the backend RPC contracts are present, but those user journeys must be integrated before calling the review feature complete.
+
 ## Automated tests added
 
 - Disposable PostgreSQL 16 fixture.
