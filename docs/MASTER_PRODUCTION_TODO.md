@@ -3,7 +3,7 @@
 The current delivery order is: **launch the public website with monthly subscriptions only; after launch start Li2Lak, Paymob and all non-monthly financial/accounting workflows.** No Li2Lak, Paymob integration expansion, wallet, commissions, refunds, payouts, settlements or general accounting is part of the V1 gate. The canonical launch gate, current Production evidence and ordered backlog are in [WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md](release/WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md).
 
 - [x] Deploy public-catalog v9 and public-catalog-directory v19 with consent-aware public projections and exact source readback.
-- [x] Disable directory-listings at Edge v18 with a fixed 503 response and disable its V1 frontend routes.
+- [x] Disable directory-listings at Edge v18 with an empty-success GET, blocked POST mutations (503), and disabled V1 frontend routes.
 - [ ] Keep catalog-admin v20 as the baseline; complete RC464/RC471 before enabling its audited owner-consent action.
 - [x] Refresh live Edge parity evidence to public-catalog v9, public-catalog-directory v19, directory-listings v18 disabled, and explicit catalog-admin/catalog-platform-admin drift.
 - [ ] Pass the scoped catalog-pilot gate and main Pages deployed-origin smoke tests.
