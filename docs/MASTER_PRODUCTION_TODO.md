@@ -5,7 +5,7 @@ The current delivery order is: **launch the bounded public catalog first; then e
 - [x] Deploy public-catalog v9 and public-catalog-directory v19 with consent-aware public projections and exact source readback.
 - [x] Disable directory-listings at Edge v17 with a fixed 503 response and disable its V1 frontend routes.
 - [ ] Keep catalog-admin v20 as the baseline; complete RC464/RC471 before enabling its audited owner-consent action.
-- [ ] Refresh stale live Edge parity evidence; do not accept the old v7/v17 snapshot.
+- [x] Refresh live Edge parity evidence to public-catalog v9, public-catalog-directory v19, directory-listings v17 disabled, and explicit catalog-admin/catalog-platform-admin drift.
 - [ ] Pass the scoped catalog-pilot gate and main Pages deployed-origin smoke tests.
 - [ ] Keep PR #971 and Li2Lak order/payment/review work out of the first website release.
 - [ ] Keep the full-platform 76-migration gate BLOCKED until its own evidence is complete.
