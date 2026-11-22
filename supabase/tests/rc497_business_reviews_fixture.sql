@@ -10,6 +10,8 @@ $roles$;
 CREATE SCHEMA IF NOT EXISTS auth;
 CREATE SCHEMA IF NOT EXISTS private;
 
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+
 CREATE TABLE auth.users (id uuid PRIMARY KEY);
 CREATE OR REPLACE FUNCTION auth.uid()
 RETURNS uuid LANGUAGE sql STABLE
