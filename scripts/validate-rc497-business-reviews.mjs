@@ -220,6 +220,10 @@ assert.match(customerReviewPanel, /get_customer_business_review_status[\s\S]*?su
   "customer order portal must check owned review status before submission");
 assert.match(customerReviewPanel, /\.eq\('customer_id', userId\)/,
   "customer order list must scope every order query to the authenticated identity");
+assert.match(customerReviewPanel, /row\.name_ar \|\| row\.name/,
+  "customer order history must display the Arabic item names stored in the authoritative pricing snapshot");
+assert.match(customerReviewPanel, /total_amount,currency,items_json[\s\S]*?amountLabel\(order\.total_amount, order\.currency\)/,
+  "customer order history must format the total using the persisted order currency");
 assert.match(customerReviewPanel, /order\.status\.toUpperCase\(\) === 'DELIVERED'/,
   "customer review form must only be offered for delivered orders");
 assert.match(customerReviewPanel, /BUSINESS_REVIEW_SELF_REVIEW_FORBIDDEN[\s\S]*?لا يمكنك تقييم نشاط تملكه أو تعمل به/,
