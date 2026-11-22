@@ -23,6 +23,8 @@ const checks = [
   ["integration retains customer-owned payment and idempotent replay", integration.includes("customer-owned cross-tenant payment intent") && integration.includes("payment intent replay was not idempotent")],
   ["integration permits exact-branch, business-wide and tenant-wide finance roles", integration.includes("same-branch finance actor was denied") && integration.includes("same-business BUSINESS_OWNER was denied") && integration.includes("business-wide finance actor was denied") && integration.includes("tenant-wide finance actor was denied")],
   ["workflow applies the source migration then runs disposable behavioral tests", workflow.includes("20260928190000_rc200_cross_tenant_customer_payment_authorization.sql") && workflow.includes("20261118030000_rc474_payment_intent_business_branch_scope.sql") && workflow.includes("rc474_payment_intent_business_branch_scope_integration.sql")],
+  ["PostgreSQL integration matches Production major version 17", workflow.includes("image: postgres:17") && workflow.includes("ancestor=postgres:17") && !workflow.includes("postgres:16")],
+  ["workflow supports an explicit manual run", workflow.includes("workflow_dispatch: {}")],
   ["Edge endpoint delegates final business/branch authorization to the user-scoped RPC", edge.includes('userClient.rpc("create_payment_intent_backend"') && !edge.includes('admin.from("user_memberships")')],
 ];
 
