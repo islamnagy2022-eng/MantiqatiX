@@ -4955,3 +4955,19 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Design owner-scoped business media lifecycle with upload limits, MIME sniffing, moderation, publication consent, cleanup and responsive delivery; no video bucket exists in Production.
 - [ ] Keep business reviews separate from MantiGO ride ratings; require verified interaction provenance and moderation before implementation.
 - **Safety:** no Production database, Storage, Auth/RLS/GRANT, Edge, payment, wallet, or public deployment change. **PRODUCTION BLOCKED / NOT CERTIFIED.** Evidence: `docs/audits/PASS_1801_1810_LI2LAK_MARKETPLACE_AD_HARDENING_20261122.md`.
+
+### Pass 1811–1820 — Li2Lak verified business reviews — 2026-11-22
+- [x] Add one immutable review per authenticated customer's own DELIVERED order, enforced by database unique order constraint and order-row lock.
+- [x] Add exact-retry idempotency and reject changed duplicate submissions.
+- [x] Keep reviews PENDING until moderation by a user directly present in `private.platform_admins`; tenant role helpers cannot authorize moderation.
+- [x] Add a bounded platform moderation queue that excludes customer identity, plus approve/reject UI with mandatory rejection reason.
+- [x] Add a business-scoped one-time response RPC and merchant dashboard panel.
+- [x] Add customer order review form and own-review status RPC; order query is explicitly filtered by authenticated customer id.
+- [x] Add bounded identity-free public review summary for ACTIVE verified businesses and mount it in storefront.
+- [x] Revoke direct table privileges from anon/authenticated/service_role, FORCE RLS on review/event tables, and audit review lifecycle events.
+- [x] Anonymize reviewer and event actor references on account deletion and scrub customer-authored review text while retaining rating/audit history.
+- [x] Add PostgreSQL 16 fixture, lifecycle/privacy integration suite, static source validator and forward migration replay job.
+- [ ] Complete exact-head CI for rebased PR #971 and full chronological replay before merge.
+- [ ] Complete encrypted off-site DB+Storage backup and independent PostgreSQL 17 restore/rollback before any Production migration.
+- [ ] Reconcile physical schema, function bodies, grants, RLS and migration aliases; Production currently has zero orders and no business-review table.
+- **Safety:** RC497 source-only; not applied. No Production DB, Auth/RLS/GRANT, Storage, Edge, payment, wallet or public deployment change. **PRODUCTION BLOCKED / NOT CERTIFIED.** Evidence: `docs/audits/PASS_1811_1820_LI2LAK_VERIFIED_BUSINESS_REVIEWS_20261122.md`.
