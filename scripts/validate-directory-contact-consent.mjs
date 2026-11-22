@@ -12,6 +12,16 @@ import { collectActiveAddressConsentIds } from "../supabase/functions/directory-
 import { collectActiveContactConsentScopes } from "../supabase/functions/directory-listings/contact-consent-pagination.mjs";
 
 const source = readFileSync("supabase/functions/directory-listings/index.ts", "utf8");
+
+if (source.includes("DIRECTORY_LISTINGS_DISABLED_FOR_V1")) {
+  assert.ok(source.includes("directoryDisabled: true") && source.includes("listings: []"));
+  assert.ok(source.includes("DIRECTORY_LISTINGS_DISABLED_FOR_V1"));
+  assert.ok(source.includes("}, 200)") && source.includes("}, 503)"));
+  assert.ok(!source.includes("createClient(") && !source.includes("service.auth.getUser") && !source.includes(".from(") && !source.includes(".rpc("),
+    "disabled V1 directory must not access the database, auth, or consent registry");
+  console.log("DIRECTORY_CONTACT_CONSENT_V1_BOUNDARY=PASS; endpoint disabled; no unconsented rows or writes");
+  process.exit(0);
+}
 const listingOwnerHelper = source.split("const resolveListingOwner = async")[1]?.split("\n  };")[0] || "";
 const ownedListingUpdate = source.split('if (action === "UPDATE_OWNED_LISTING")')[1]?.split('\n  if (action === "')[0] || "";
 const migration = readFileSync("supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql", "utf8");
