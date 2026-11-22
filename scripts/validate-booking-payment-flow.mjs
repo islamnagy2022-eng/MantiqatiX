@@ -68,7 +68,7 @@ const required=[
   ["Legacy order API requires explicit branch when active branches exist", "Branch selection is required", api],
   ["Legacy order reads query every active membership with branch scope", 'select("id,role,permissions,business_id,branch_id")', api],
   ["Tenant-wide order reads require unscoped OWNER/ADMIN membership", "tenantWideOwner", api],
-  ["Business-scoped order reads require exact business and branch match", "exactBusinessBranch", api],
+  ["Business-scoped order reads allow business-wide membership and enforce branch-bound membership", 'branchId === null || branchId === orderBranchId', api],
   ["Legacy payment intents use the authenticated canonical backend RPC", 'supabaseUser.rpc("create_payment_intent_backend"', api],
   ["Payment amount comes from persisted server total_amount", "p_amount: String(order.total_amount)", api],
   ["Payment requires pricing snapshot", "pricing_hash", payment],
@@ -115,9 +115,10 @@ const additionalRequired=[
 const failures=[];
 for(const [name,marker,source] of required) if(!source.includes(marker)) failures.push(name);
 for(const [name,marker,source] of additionalRequired) if(!source.includes(marker)) failures.push(name);
-const branchScopeIndex=order.indexOf('if (branchId) targetMembershipQuery = targetMembershipQuery.eq("branch_id", branchId);');
+const branchScopeIndex=order.indexOf("const targetMembership = (targetMemberships ?? []).some");
 const customerFallbackIndex=order.indexOf("if (!targetMembership)");
 if(branchScopeIndex<0||customerFallbackIndex<0||branchScopeIndex>customerFallbackIndex) failures.push("Staff branch scope must be checked before customer fallback authorization");
+if(!order.includes("membership.branch_id == null") || !order.includes("String(membership.branch_id) === branchId")) failures.push("Business-wide and exact-branch memberships must be distinguished during order creation");
 if(order.split("const branchId = body.branchId").length-1!==1) failures.push("Order creation must define branch scope exactly once before membership authorization");
 if(orderStatusScope.toLowerCase().includes("grant execute")||orderStatusScope.toLowerCase().includes("revoke execute")) failures.push("RC103 must not broaden or alter backend-only order-status RPC execution grants");
 if(orderIdempotencyScope.toLowerCase().includes("grant execute")||orderIdempotencyScope.toLowerCase().includes("revoke execute")) failures.push("RC104 must not broaden or alter backend-only order-create RPC execution grants");
