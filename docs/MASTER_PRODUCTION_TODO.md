@@ -1,3 +1,11 @@
+## 2026-11-23 — Personal referral sharing center — source implementation in review
+
+- Added an account-center invitation panel with a stable per-user referral code, a current-origin invitation URL, native mobile sharing, WhatsApp, Facebook, Telegram, SMS and copy-link actions. Instagram is supported through copy/paste; the platform does not request social-account credentials or contact-book access.
+- Captures `?ref=CODE` before authentication, persists it across the Google OAuth round trip, and calls `claim_referral` only after Supabase confirms the signed-in user. Self-referral and one-claim-per-user are enforced server-side; failed temporary RPC calls keep the code pending for retry.
+- Production inspection found the personal referral tables and RPCs already exist, but neither `anon` nor `authenticated` can currently execute the two required RPCs; direct table privileges are also absent. The new idempotent migration recreates the scoped schema/function contract for clean source replays, keeps direct table access revoked, revokes PUBLIC/anon execution, and grants only authenticated execution to the two guarded functions.
+- Source work is on branch `feat/referral-sharing-center-20261123`. No Production migration, grant, Auth, Edge or deployment was performed. Production remains BLOCKED / NOT CERTIFIED under the existing backup/restore and coordinated-release gates. Do not expose the live referral center until the migration is reviewed, replay-tested, and released through the approved coordinated process.
+- No referral rewards or financial incentives are enabled in this release; the counter reflects recorded referrals only.
+
 ### Pass 1761–1770 — uploaded AI Studio R7 archive reconciliation — 2026-11-22
 - [x] Inspected the uploaded `bizcatalog-manager (11).zip`: 233 files, internal R7-v7.0.0 manifest dated 2026-11-10.
 - [x] Confirmed it is a historical reference snapshot with local authoritative JSON + Supabase architecture, not the current runtime baseline.
