@@ -3283,3 +3283,10 @@ No production mutation occurred. Next: continue function/RLS/storage authorizati
 ### Marketplace regression coverage update — 2026-11-22
 
 The Marketplace ad loader now has six focused regression cases: one-placement rejection, returned RPC error, invalid payloads, unsafe creative/target URLs, credential-bearing target URLs, and duplicate placement records. The earlier four-case subset passed TypeScript + focused CI tests; the two additional cases and the final URL-credential guard require fresh exact-head CI on PR #968 before merge.
+
+
+## Pass 1741–1750 — Live catalog RPC authorization drift — 2026-11-22
+
+A fresh read-only Production inspection confirms seven catalog/stock SECURITY DEFINER functions remain on the legacy authorization contract: `adjust_catalog_stock_backend`, `create_catalog_warehouse_backend`, `update_catalog_item_status_backend`, `upsert_catalog_business_profile_backend`, `upsert_catalog_item_backend`, `upsert_catalog_price_backend`, and `upsert_catalog_settings_backend`. All seven still use `search_path=public`, do not call `public.is_platform_admin()`, and read mutable membership `scope/full_control` metadata for platform-root authority. This is a P0 source/live mismatch.
+
+The repair already exists in source: RC484 registry-backed helper followed by RC485's seven-function rewrite and disposable integration test. Do not create a duplicate migration or deploy these independently. The live migration ledger remains 310 through `20261110150618`; RC484/RC485 and the full ordered release chain remain unapplied. The nine RLS-enabled/no-policy tables have no direct anon/authenticated grants; maintain their backend-only boundary. Production remains **BLOCKED / NOT CERTIFIED** pending coordinated backup/restore and release approval.
