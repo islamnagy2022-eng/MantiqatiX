@@ -15,6 +15,7 @@ const cartDrawer = fs.readFileSync("apps/catalog-frontend/src/components/cart/Ca
 const migration = fs.readFileSync(migrationPath, "utf8");
 const orderMigration = fs.readFileSync(orderMigrationPath, "utf8");
 const orderCreateEdge = fs.readFileSync("supabase/functions/order-create/index.ts", "utf8");
+const apiEdge = fs.readFileSync("supabase/functions/api/index.ts", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc497_business_reviews_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc497_business_reviews_integration.sql", "utf8");
 const workflow = fs.readFileSync(".github/workflows/li2lak-verified-business-reviews.yml", "utf8");
@@ -121,6 +122,10 @@ assert.ok(orderCreateEdge.includes("Authorization: `Bearer ${token}`") && orderC
   "order-create must invoke the backend RPC with the verified customer JWT");
 assert.doesNotMatch(orderCreateEdge, /admin\\.rpc\\("create_order_backend"/,
   "order-create must not invoke the auth.uid()-enforcing RPC through service_role");
+assert.ok(apiEdge.includes("Authorization: `Bearer ${token}`") && apiEdge.includes('supabaseUser.rpc("create_order_backend"'),
+  "legacy authenticated Orders API must also invoke the backend RPC with the verified customer JWT");
+assert.doesNotMatch(apiEdge, /supabaseAdmin\\.rpc\\("create_order_backend"/,
+  "legacy Orders API must not invoke the auth.uid()-enforcing RPC through service_role");
 assert.match(integration, /RC498_AUTHENTICATED_ORDER_RPC_EXECUTE_MISSING[\\s\\S]*?RC498_ANON_ORDER_RPC_EXECUTE_PRESENT[\\s\\S]*?RC498_SPOOFED_CUSTOMER_ID_ACCEPTED/,
   "disposable integration suite must cover authenticated ACL, anon denial and customer identity binding");
 assert.ok(workflow.includes(orderMigrationPath), "dedicated workflow must apply RC498 after RC497");
