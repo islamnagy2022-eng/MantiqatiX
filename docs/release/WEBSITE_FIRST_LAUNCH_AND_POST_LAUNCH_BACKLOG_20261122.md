@@ -74,7 +74,7 @@ No database migration or production data mutation was performed for this check.
 
 ### P0 — separate directory-listings surface
 
-The separate directory-listings Edge Function is now ACTIVE v17 with verify_jwt=false and returns only a fixed HTTP 503 response marked DIRECTORY_LISTINGS_DISABLED_FOR_V1. Its deployed entrypoint was read back and matches the branch stub; it has no Supabase client import or table reads. The frontend does not request unclaimed rows and ignores direct ?listing= routes. The production table public.directory_listing_contact_consents is absent.
+The separate directory-listings Edge Function is now ACTIVE v17 with verify_jwt=false and returns an empty-success GET response and fixed HTTP 503 for POST, with mutation error marker DIRECTORY_LISTINGS_DISABLED_FOR_V1. Its deployed entrypoint was read back and matches the branch stub; it has no Supabase client import or table reads. The frontend does not request unclaimed rows and ignores direct ?listing= routes. The production table public.directory_listing_contact_consents is absent.
 
 Do not restore the old directory bundle or apply RC473 alone. Bring the feature back only after RC472/RC473 are reconciled in order, a consent-aware complete Edge bundle is deployed and tested, owner grant/revoke audit works, and the third-party dataset source/licence review passes.
 
@@ -117,7 +117,7 @@ The Pages pipeline's explicit CATALOG_PILOT_GATE is the only permitted route for
 2. Run the public-contact privacy test suite and Deno checks against current main.
 3. Capture the current live bundles and versions for the three catalog functions as rollback/evidence records.
 4. Deploy current-main public-catalog v9 and public-catalog-directory v19 with their exact shared helper bundles; read back all files and preserve verify_jwt=false.
-5. Disable directory-listings as v17 with a fixed 503 response, and keep its UI and direct detail routes closed. Read back the exact entrypoint and confirm there are no database queries.
+5. Disable directory-listings as v17 with an empty-success read contract and fixed 503 mutation response, and keep its UI and direct detail routes closed. Read back the exact entrypoint and confirm there are no database queries.
 6. Keep catalog-admin v20 as the current production baseline. Do not deploy current-main catalog-admin until RC464/RC471 authorization prerequisites are released and verified. Keep the owner contact-consent control hidden.
 7. Refresh the reconciliation snapshot with the actual returned versions and explicit admin drift; run the catalog-pilot verifier and Pages HTTP smoke tests.
 8. Let the existing main Pages workflow build and deploy. Do not bypass its main-only deploy condition.
