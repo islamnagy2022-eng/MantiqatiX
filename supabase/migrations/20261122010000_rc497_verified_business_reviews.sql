@@ -502,7 +502,7 @@ REVOKE ALL ON FUNCTION public.get_public_business_review_summary(uuid, integer, 
 
 GRANT EXECUTE ON FUNCTION public.submit_business_review(uuid, integer, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_customer_business_review_status(uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.get_platform_business_review_moderation_queue(integer) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_platform_business_review_moderation_queue(integer, integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.moderate_business_review(uuid, text, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.respond_to_business_review(uuid, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_public_business_review_summary(uuid, integer, integer) TO anon, authenticated;
