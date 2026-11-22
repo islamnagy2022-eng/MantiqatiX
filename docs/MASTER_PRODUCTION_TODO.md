@@ -1,3 +1,11 @@
+### Pass 1841–1850 — Li2Lak migration signature defect fixed — 2026-11-22
+- [x] Found a blocking RC497 migration defect: COMMENT ON FUNCTION referenced the moderation queue with one integer argument although the function has two.
+- [x] Corrected the COMMENT signature to `(integer, integer)`.
+- [x] Added a static regression assertion so the COMMENT identity must match the two-argument function.
+- [x] Cross-checked all six RC497 function COMMENT signatures against their definitions and RC498's 18-argument order RPC comment; no remaining arity mismatch found.
+- [ ] Run full PostgreSQL 17 migration + integration workflow on the exact current head; CI has not yet produced a passing result.
+- **Safety:** isolated source-only migration/test fix; no Production migration or data change. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
 ### Pass 1831–1840 — Li2Lak branch reconciliation — 2026-11-22
 - [x] Reconciled feature history with latest `main` using a two-parent merge commit; verified both parents and preserved the feature tree unchanged.
 - [x] GitHub compare now reports feature branch 123 commits ahead and 0 behind current `main`.
