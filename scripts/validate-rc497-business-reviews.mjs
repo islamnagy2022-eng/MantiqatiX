@@ -237,6 +237,18 @@ assert.match(customerReviewPanel, /get_customer_business_review_status[\s\S]*?su
   "customer order portal must check owned review status before submission");
 assert.match(customerReviewPanel, /\.eq\('customer_id', userId\)/,
   "customer order list must scope every order query to the authenticated identity");
+assert.match(customerReviewPanel, /const requestGenerationRef = useRef\(0\)/,
+  "customer history loads must carry a generation token to block stale account responses");
+assert.match(customerReviewPanel, /identityRef\.current\.userId === userId/,
+  "customer history responses must match the currently rendered account identity");
+assert.match(customerReviewPanel, /if \(!isCurrent\(\)\) return;/,
+  "stale customer order/status responses must not update account state");
+assert.match(customerReviewPanel, /requestGenerationRef\.current \+= 1/,
+  "changing or unmounting the customer identity must invalidate in-flight history loads");
+assert.match(customerReviewPanel, /setDrafts\(\{\}\)/,
+  "review drafts must be cleared when the customer identity changes");
+assert.match(customerReviewPanel, /if \(!isSameIdentity\(\)\) return;/,
+  "a review submission started in a previous account must not update the current account UI");
 assert.match(customerReviewPanel, /row\.name_ar \|\| row\.name/,
   "customer order history must display the Arabic item names stored in the authoritative pricing snapshot");
 assert.match(customerReviewPanel, /for \(let index = 0; index < ownedOrders\.length; index \+= 5\)[\s\S]*?ownedOrders\.slice\(index, index \+ 5\)/,
