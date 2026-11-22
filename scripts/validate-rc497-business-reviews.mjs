@@ -176,6 +176,8 @@ assert.match(customerReviewPanel, /\.eq\('customer_id', userId\)/,
   "customer order list must scope every order query to the authenticated identity");
 assert.match(customerReviewPanel, /order\.status\.toUpperCase\(\) === 'DELIVERED'/,
   "customer review form must only be offered for delivered orders");
+assert.match(customerReviewPanel, /BUSINESS_REVIEW_SELF_REVIEW_FORBIDDEN[\s\S]*?لا يمكنك تقييم نشاط تملكه أو تعمل به/,
+  "self-review rejection must be shown to customers as a clear Arabic message");
 assert.match(ownerReviewPanel, /supabase\.rpc\('respond_to_business_review'[\s\S]*?p_review_id:[\s\S]*?p_response:/,
   "business owner UI must use the scoped response RPC rather than direct table writes");
 assert.match(adminReviewPanel, /p_offset: offset[\s\S]*?nextOffset < totalCount[\s\S]*?loadMore/,
