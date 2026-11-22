@@ -27,6 +27,23 @@ CREATE TABLE IF NOT EXISTS public.referral_events (
   CONSTRAINT referral_events_not_self CHECK (referrer_user_id <> referred_user_id)
 );
 
+-- Existing Production tables predate the explicit database-level self-referral check.
+-- Add it idempotently and validate it against existing rows before the RPC is exposed.
+DO $
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid = 'public.referral_events'::regclass
+      AND conname = 'referral_events_not_self'
+  ) THEN
+    ALTER TABLE public.referral_events
+      ADD CONSTRAINT referral_events_not_self
+      CHECK (referrer_user_id <> referred_user_id) NOT VALID;
+  END IF;
+END
+$;
+ALTER TABLE public.referral_events VALIDATE CONSTRAINT referral_events_not_self;
+
 CREATE INDEX IF NOT EXISTS idx_referral_events_referrer_created
   ON public.referral_events(referrer_user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_referral_events_code_created
@@ -61,7 +78,7 @@ BEGIN
   LIMIT 1;
 
   IF v_code IS NULL THEN
-    v_code := upper(substr(md5(gen_random_uuid()::text || v_uid::text), 1, 16));
+    v_code := upper(substr(md5(gen_random_uuid()::text || v_uid::text), 1, 20));
     INSERT INTO public.referral_codes(user_id, code)
     VALUES (v_uid, v_code)
     ON CONFLICT (user_id) DO NOTHING;
