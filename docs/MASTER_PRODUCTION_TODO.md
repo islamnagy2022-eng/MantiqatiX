@@ -4961,7 +4961,7 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Add exact-retry idempotency and reject changed duplicate submissions.
 - [x] Keep reviews PENDING until moderation by a user directly present in `private.platform_admins`; tenant role helpers cannot authorize moderation.
 - [x] Add a bounded, paginated platform moderation queue that excludes customer identity, plus approve/reject UI with mandatory rejection reason.
-- [x] Add a business-scoped one-time response RPC and merchant dashboard panel.
+- [x] Add a business- and branch-scoped one-time response RPC and merchant dashboard panel.
 - [x] Add customer order review form and own-review status RPC; order query is explicitly filtered by authenticated customer id.
 - [x] Add bounded identity-free public review summary for ACTIVE verified businesses and mount it in storefront.
 - [x] Revoke direct table privileges from anon/authenticated/service_role, FORCE RLS on review/event tables, and audit review lifecycle events.
