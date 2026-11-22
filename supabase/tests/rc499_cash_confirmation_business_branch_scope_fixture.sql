@@ -80,7 +80,7 @@ CREATE TABLE public.commission_rules (
 );
 
 CREATE TABLE public.payment_events (
-  id uuid PRIMARY KEY,
+  id varchar PRIMARY KEY,
   tenant_id varchar NOT NULL,
   event_id text NOT NULL UNIQUE,
   payment_id varchar NOT NULL,
