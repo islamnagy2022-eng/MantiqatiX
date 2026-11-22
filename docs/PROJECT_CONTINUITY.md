@@ -1,3 +1,12 @@
+## 2026-11-23 — Canonical referral sharing integration (source-only; feature disabled)
+
+- Closed PR #989 unmerged because it targeted the legacy `web/**` compatibility tree; `web/index.html` is a redirect relay and the current Pages build is `apps/catalog-frontend/**`.
+- Reimplemented the referral invite card in the canonical `SubscriberAccountPortal`, backed by the existing Supabase RPCs. Invite attribution is captured from `?ref=` into session-scoped storage before authentication, carried through the canonical Google OAuth/email confirmation redirect, and claimed only after a valid Supabase identity is hydrated.
+- Added pure referral attribution/link tests and wired them into the Pages validation workflow. Added a self-service RPC migration with a locked-down `search_path`, server-derived `auth.uid()`, unique referred-user constraint, self-referral rejection, authenticated-only EXECUTE and no direct browser table access.
+- Fresh read-only Production inspection confirms the existing `referral_codes` / `referral_events` columns and key constraints match the candidate RPC contract. The two RPCs are currently not executable by `authenticated` or `anon`; direct table privileges remain false. No Production DDL, GRANT, migration or data write was performed.
+- `referralSharingEnabled` is explicitly `false` in the public runtime config. The UI and claim path remain disabled until the coordinated Production migration/ACL release is approved and verified.
+- Working branch: `feat/referral-sharing-center-catalog-20261123`. Exact-head CI pending. Production remains **BLOCKED / NOT CERTIFIED** pending encrypted off-site DB + Storage backup, independent PostgreSQL 17 restore/rollback, exact migration reconciliation and coordinated release.
+
 ## Latest continuation checkpoint — 2026-11-22 — Website V1 deployed and verified; full-platform gate remains blocked
 
 **Website deployment commit:** `c95ccc0d891e0670fe34d97c4c1beca6bd0f4fa2` (PR #985; no application-code changes after deployment)  
