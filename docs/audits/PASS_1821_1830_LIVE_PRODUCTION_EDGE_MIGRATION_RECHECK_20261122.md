@@ -10,7 +10,7 @@
 - Post-PR976 Pages deployment [45071129013](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45071129013) and Primary Catalog validation [45071128944](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45071128944) passed.
 - PR #977 documentation-only continuity update was merged as `976b69ca5b062cfc89109b9f71ce4e22915e49b1`; PR #981 later added the live directory-disabled mitigation record and advanced main to `54e433d54ace06a154d438ea672da4a781990730`.
 - PR [#978](https://github.com/islamnagy2022-eng/MantiqatiX/pull/978) remains DRAFT at head `96a6946e248c7abac24a02e93dd3b392819ee44a`. Exact-head CI passed: **28 success, 2 skipped, 0 failures**, including build, employee RBAC PostgreSQL and browser E2E. It implements one fixed cover and a separate gallery of up to 10 public HTTPS image URLs. It does not upload local files. Keep it draft because live catalog Edge functions lack the corresponding writer/reader projections and contact-consent parity.
-- PR [#982](https://github.com/islamnagy2022-eng/MantiqatiX/pull/982) adds a default-closed guard to the national directory source. It requires an exact server flag `DIRECTORY_LISTINGS_ENABLED=true` and a reachable contact-consent registry before GET/POST logic proceeds. At this checkpoint its exact-head checks were queued (29 queued, 1 skipped, 0 failures). No production flag was set and no Edge function was deployed.
+- PR [#982](https://github.com/islamnagy2022-eng/MantiqatiX/pull/982) merged into main as dbf40f6b9f8087fd5a274749c4a4db3ceb7c7564 after exact-head CI: **28 success, 2 skipped, 0 failures**. Its default-closed guard requires exact server flag DIRECTORY_LISTINGS_ENABLED=true and a reachable contact-consent registry before GET/POST logic proceeds. No production flag was set and no Edge function was deployed.
 
 ## Fresh read-only Production checks
 
@@ -48,6 +48,12 @@ The current main source for `catalog-admin` includes an owner-consent audit writ
 4. Reconcile the 76 exact release migrations and required physical objects/ACLs; apply only as a reviewed ordered release after restore evidence.
 5. Deploy RC472/RC473 contact-consent registry, owner audit writer, public reader projection and authorization dependencies together. Keep the national directory disabled until anonymous and owner grant/revoke/outage tests pass.
 6. Resume Paymob/financial-journal E2E only after their schema/RPC/ACL contracts are reconciled. Monthly subscriptions and the medical directory remain deferred.
+
+## Post-merge verification — PR #982
+
+- PR982 merged as `dbf40f6b9f8087fd5a274749c4a4db3ceb7c7564`; exact-head CI 28 success, 2 skipped, 0 failed.
+- Main Pages deployment run `45074571318` was pending when this note was updated. Do not claim post-merge website deployment until it succeeds.
+- No Supabase Edge Function deployment and no Production environment flag change occurred.
 
 ## Change boundary
 
