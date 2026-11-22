@@ -234,4 +234,33 @@ BEGIN
 END
 $acl$;
 
+DO $account_deletion$
+DECLARE retained integer; actor_refs integer;
+BEGIN
+  DELETE FROM auth.users WHERE id='10000000-0000-4000-8000-000000000001';
+  SELECT count(*)::integer INTO retained
+    FROM public.business_reviews
+   WHERE order_id IN (
+     '30000000-0000-4000-8000-000000000001',
+     '30000000-0000-4000-8000-000000000004'
+   );
+  IF retained <> 2 THEN
+    RAISE EXCEPTION 'RC497_ACCOUNT_DELETION_REMOVED_REVIEWS';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.business_reviews
+     WHERE order_id='30000000-0000-4000-8000-000000000001'
+       AND customer_id IS NOT NULL
+  ) THEN
+    RAISE EXCEPTION 'RC497_ACCOUNT_DELETION_DID_NOT_ANONYMIZE_REVIEW';
+  END IF;
+  SELECT count(*)::integer INTO actor_refs
+    FROM public.business_review_events
+   WHERE actor_user_id='10000000-0000-4000-8000-000000000001';
+  IF actor_refs <> 0 THEN
+    RAISE EXCEPTION 'RC497_ACCOUNT_DELETION_RETAINED_ACTOR_REFERENCE';
+  END IF;
+END
+$account_deletion$;
+
 SELECT 'RC497_BUSINESS_REVIEWS_INTEGRATION=PASS';
