@@ -3916,3 +3916,11 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - PR #969 remains open/unmerged; latest exact-head CI queued/pending. No green result claimed.
 - No Production DDL/DML, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, customer-data change or public deployment.
 - Disposition: **PRODUCTION BLOCKED / NOT CERTIFIED**.
+
+## 2026-11-22 — Pass 1801–1810 — Li2Lak marketplace ad hardening
+
+- Hardened ad URL validation: HTTPS only, reject credentials, explicit ports, local hostnames and IP literal destinations; normalize terminal-dot hostnames.
+- Added regression coverage for nonstandard ports/local domains and IPv4/IPv6/trailing-dot cases.
+- Commits: `6b3386b`, `f2411ee`, `9316c5d`, `820778a`; evidence recorded in `docs/audits/PASS_1801_1810_LI2LAK_MARKETPLACE_AD_HARDENING_20261122.md`.
+- Exact-head CI not yet completed at last check; no test pass claimed. No Production mutation/deployment.
+- Next: public-offer contract tests and safe media lifecycle design; general reviews require independent verified-interaction/moderation model.
