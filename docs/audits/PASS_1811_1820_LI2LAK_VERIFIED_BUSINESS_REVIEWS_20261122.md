@@ -91,3 +91,12 @@ Add a separate customer-review capability to Li2Lak without reusing MantiGO ride
 - The RC497 migration, fixture, integration tests, static validator, release manifest and CI workflow were updated to include customer status privacy, moderation queue privacy and the complete customer/merchant/admin UI.
 - Exact-head CI is still unavailable; no tests are claimed PASS. Production remains blocked pending clean branch synchronization, exact-head CI, backup/restore rehearsal and the P0 security release gates.
 - **Production effect: NONE.** No Production migration, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, customer data or public deployment was changed.
+
+### RC105 live order-create identity blocker — 2026-11-22
+
+- Read-only Production SQL confirmed migration version `20261023050000` (RC105) is absent from `supabase_migrations.schema_migrations`; RC497 `20261122010000` is also absent.
+- Live `public.create_order_backend(...)` still requires `auth.uid() = p_customer_id` unconditionally.
+- Live `order-create` Edge Function v8 has `verify_jwt=true`, verifies the bearer token using `admin.auth.getUser(token)`, then invokes `create_order_backend` with the service-role client. The database function therefore rejects the call with `CUSTOMER_REQUIRED` until RC105 is applied.
+- RC105 already exists in the canonical source chain and explicitly permits the verified service-role Edge Function path while keeping non-service-role callers bound to `auth.uid()`; it does not broaden browser EXECUTE privileges.
+- Exact release manifest confirms RC105 is required and missing from the live ledger. The CartDrawer integration is source-only and must not be deployed before the coordinated release includes RC105 and RC497.
+- No order request was invoked; no Production mutation occurred. Do not hot-edit the function, grant authenticated EXECUTE, or deploy the Edge Function separately.
