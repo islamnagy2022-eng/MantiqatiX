@@ -3238,3 +3238,12 @@ On main commit `413814a3ea4bdad782fe6a3f89958442e830e89d`, the forward migration
 This is meaningful source/replay/static-site validation, not Production database or Edge deployment. Live Supabase remains at 310 migration rows through `20261110150618`; required RC471/RC482/RC483/RC484/RC485/RC486/RC487 identifiers remain absent. Live directory Edge remains v16 with old bundle hash `13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0`; it does not include merged consent-aware/current-owner code. Security Advisor still reports anonymous-session policy warnings and leaked-password protection disabled.
 
 Next: operator-controlled encrypted off-site backup and Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO, then coordinated migration + complete directory Edge release with exact hash and adversarial live tests. No Production DB/Auth/RLS/GRANT/Storage/Edge/payment/wallet/customer-data mutation occurred. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-11-22 — Pass 1711–1720 — ratings scope correction and next verification
+
+Repository tree inventory returned 1,281 tracked files and 238 Supabase migration files. A rating-specific migration exists: `20261006121810_mantigo_rating_immutability_v1.sql`. It defines authenticated, completed-ride-owner-only, immutable/idempotent 1–5 ratings for MantiGO rides and their accepted captains. The live policy inventory includes `public.mantigo_ride_ratings`. This is not a general business/storefront/product review workflow. Targeted searches found no obvious general-business review model, but the complete migration-content/schema confirmation is still open. Do not label all ratings absent and do not repurpose MantiGO ride ratings for directory businesses.
+
+PR #963 remains OPEN, UNMERGED, documentation-only. Latest head: `6e2f4c7c4f787c85e085e7614ff6f5bd04f02486`; combined commit statuses returned an empty list and PR review list was empty. This is neither a CI pass nor a CI failure. No Marketplace regression tests were executed in this pass. No Production mutation or deployment occurred.
+
+Next: inspect the MantiGO ratings table-creation migration, triggers, constraints and read/aggregate consumers; finish a comprehensive general-business review schema inventory; inspect Storage bucket policies/media lifecycle; then add focused Marketplace regression tests only where the existing test harness supports execution. Keep Production **BLOCKED / NOT CERTIFIED** pending backup/restore, migration/Edge parity, security/privacy and live acceptance gates.
