@@ -2,7 +2,9 @@
 
 The current delivery order is: **launch the bounded public catalog first; then execute the post-launch backlog.** The canonical launch gate, current Production evidence and ordered backlog are in [WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md](release/WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md).
 
-- [ ] Close public Edge contact disclosure drift and align catalog-admin's audited owner-consent action.
+- [x] Deploy public-catalog v9 and public-catalog-directory v19 with consent-aware public projections and exact source readback.
+- [x] Disable directory-listings at Edge v17 with a fixed 503 response and disable its V1 frontend routes.
+- [ ] Keep catalog-admin v20 as the baseline; complete RC464/RC471 before enabling its audited owner-consent action.
 - [ ] Refresh stale live Edge parity evidence; do not accept the old v7/v17 snapshot.
 - [ ] Pass the scoped catalog-pilot gate and main Pages deployed-origin smoke tests.
 - [ ] Keep PR #971 and Li2Lak order/payment/review work out of the first website release.
