@@ -1,3 +1,11 @@
+### Pass 1941–1950 — authoritative currency-bound order pricing — 2026-11-22
+- [x] Found an order-pricing integrity gap in RC498: the SECURITY DEFINER RPC selected the newest active catalog price without constraining its currency, even though catalog price records carry a currency and the business settings define the authoritative currency.
+- [x] Updated RC498 to select only prices where upper(currency) matches the business currency resolved from catalog settings.
+- [x] Extended the disposable PostgreSQL fixture with an EGP price (125, version 1) and a higher-version USD price (999, version 2) for the same item. The existing authenticated integration assertion requires the persisted total to remain 125.
+- [x] Added source-validator assertions for the currency predicate and cross-currency regression fixture.
+- [ ] PostgreSQL 17 execution and exact-head CI remain pending. Do not treat source edits/static assertions as integration success.
+- **Safety:** feature branch only; no Production migration, Edge deployment, payment, wallet, customer-data or public deployment change. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
 ### Pass 1931–1940 — selected-branch authorization regression contract — 2026-11-22
 - [x] Re-read the current PR #971 Edge Function and confirmed selected branches are queried by exact ID, tenant, business and ACTIVE status; omitted branch selection uses a bounded existence query.
 - [x] Strengthened the Li2Lak source validator to assert all four selected-branch scope predicates, in addition to the no-arbitrary-100-row regression.
