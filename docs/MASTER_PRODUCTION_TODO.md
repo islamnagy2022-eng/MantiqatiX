@@ -4848,3 +4848,10 @@ Safety: isolated replay and static-site deployment only. No Production database,
 Evidence: `supabase/migrations/20261006121810_mantigo_rating_immutability_v1.sql`; `docs/audits/PASS_1470_1479_ANONYMOUS_POLICY_MATRIX_20261120.md`; current-main Git tree and targeted code-search results.
 
 Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Storage/Edge/payment/customer-data mutation. No deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+#### MantiGO rating migration ordering clarification — Pass 1711–1720
+
+- The earlier `20261006121810_mantigo_rating_immutability_v1.sql` rejects changed second submissions, but later `20261006171000_mantigo_notification_lifecycle_v1.sql` replaces the same RPC with `ON CONFLICT (ride_id, customer_id) DO UPDATE`. Current-main final migration order therefore permits an existing ride/customer rating and comment to be updated. Do not describe the final behavior as immutable until this override is reconciled.
+- `20261006180000_mantigo_customer_tracking_and_finance_indexes_v1.sql` returns only the authenticated customer's own rating in their ride-history payload; no public business-review aggregate was established.
+- [ ] Confirm intended edit policy and add PostgreSQL regression coverage before changing any MantiGO rating migration.
