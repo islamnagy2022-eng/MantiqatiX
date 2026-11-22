@@ -5254,6 +5254,160 @@
     "production_effect": "NONE — disposable Supabase replay and CI only; no Production schema/data/grants/Auth/Edge Functions/payments/wallets or migration ledger rows changed.",
     "limitation": "A schema-only disposable replay is not a genuine Production backup restore. RPO/RTO, off-site backup retrieval, Vault recovery and live post-deploy authorization remain unverified."
   },
+  "production_security_recheck_20261122": {
+    "status": "BLOCKED_READ_ONLY",
+    "checked_at": "2026-11-22",
+    "project_ref": "moyhiluyhjsujhwlyeuu",
+    "project_status": "ACTIVE_HEALTHY",
+    "live_migration_ledger": {
+      "rows": 310,
+      "latest_version": "20261110150618"
+    },
+    "catalog_rpc_registry_root": {
+      "status": "LIVE_SOURCE_DRIFT_CONFIRMED",
+      "affected_functions": [
+        "adjust_catalog_stock_backend",
+        "create_catalog_warehouse_backend",
+        "update_catalog_item_status_backend",
+        "upsert_catalog_business_profile_backend",
+        "upsert_catalog_item_backend",
+        "upsert_catalog_price_backend",
+        "upsert_catalog_settings_backend"
+      ],
+      "live_contract": "All seven are SECURITY DEFINER, search_path=public, do not call public.is_platform_admin(), and still read mutable membership permissions scope/full_control for platform-root authority.",
+      "source_repair": "RC484 + RC485 already exist in the ordered source chain; RC485 changes all seven to empty search_path and registry-backed platform-root authorization while retaining tenant-local role scope.",
+      "source_integration_test": "supabase/tests/rc485_catalog_rpc_registry_root_integration.sql",
+      "source_validator": "scripts/validate-rc485-catalog-rpc-registry-root.mjs",
+      "production_migrations_applied": false,
+      "release_dependency": "RC485 depends on RC484; both are source-only and must be applied as part of the coordinated complete ordered release."
+    },
+    "rls_no_policy_relations": {
+      "count": 9,
+      "direct_anon_grants": 0,
+      "direct_authenticated_grants": 0,
+      "policies": 0,
+      "interpretation": "Read-only grant/policy check confirms these remain backend-only at the direct table API layer. Preserve no-direct-client-access; do not add blanket policies."
+    },
+    "security_advisor": {
+      "anonymous_security_definer_functions": 1,
+      "known_public_function": "get_mnty_targeted_advertisements",
+      "authenticated_security_definer_functions": 65,
+      "interpretation": "Counts are review inventories; the public ads function has empty search_path and bounded active/approved ad projection; review other functions individually."
+    },
+    "storage": {
+      "private_bucket": {
+        "id": "mantiqatix-media",
+        "max_bytes": 5242880,
+        "allowed_mime_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ]
+      },
+      "public_profile_bucket": {
+        "id": "mantiqatix-profile-media",
+        "max_bytes": 5242880,
+        "allowed_mime_types": [
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "image/svg+xml"
+        ]
+      },
+      "video_upload_configured": false,
+      "live_platform_brand_policy": "Still checks active SUPER_ADMIN membership; RC495 source repairs it to public.mnty_can_platform_admin() and is not applied to Production."
+    },
+    "production_mutation": "NONE — read-only metadata/catalog/advisor inspection only.",
+    "platform_admin_registry": {
+      "table": "private.platform_admins",
+      "rows": 1,
+      "rls_enabled": true,
+      "force_rls": false,
+      "direct_anon_authenticated_grants": 0,
+      "live_helper": {
+        "name": "public.is_platform_admin()",
+        "security_definer": false,
+        "search_path": "public",
+        "uses_registry": false,
+        "behavior": "returns true for active ADMIN or SUPER_ADMIN membership"
+      },
+      "dependent_live_rls_policies": 57,
+      "source_repair": "20261119040000_rc484_registry_backed_is_platform_admin.sql",
+      "source_repair_behavior": "FORCE RLS on private.platform_admins; verify owner/BYPASSRLS and no client grants; replace helper with SECURITY DEFINER + empty search_path backed only by private.platform_admins.",
+      "release_dependency": "RC484 must precede RC485; apply and verify the complete ordered chain, not the helper or policies individually.",
+      "production_applied": false
+    }
+  },
+  "live_payment_edge_recheck_20261122": {
+    "checked_at": "2026-11-22",
+    "status": "BLOCKED_READ_ONLY",
+    "critical_edge_entrypoints_exact_source_match": 0,
+    "critical_edge_entrypoints_checked": 7,
+    "deployed_functions": [
+      {
+        "name": "order-create",
+        "version": 8,
+        "verify_jwt": true,
+        "index_exact_match": false
+      },
+      {
+        "name": "payment-intent",
+        "version": 8,
+        "verify_jwt": true,
+        "index_exact_match": false
+      },
+      {
+        "name": "paymob-webhook",
+        "version": 10,
+        "verify_jwt": false,
+        "index_exact_match": false
+      },
+      {
+        "name": "digital-page-payment-intent",
+        "version": 5,
+        "verify_jwt": true,
+        "index_exact_match": false
+      },
+      {
+        "name": "subscription-payment-intent",
+        "version": 4,
+        "verify_jwt": true,
+        "index_exact_match": false
+      },
+      {
+        "name": "financial-journal",
+        "version": 3,
+        "verify_jwt": true,
+        "index_exact_match": false
+      },
+      {
+        "name": "directory-listings",
+        "version": 16,
+        "verify_jwt": false,
+        "index_exact_match": false
+      }
+    ],
+    "missing_live_rpc_contracts": [
+      "process_verified_provider_payment_failure",
+      "process_verified_subscription_payment_failure",
+      "process_verified_subscription_payment_backend",
+      "process_verified_mantigo_payment_backend",
+      "create_subscription_payment_intent_claimable_backend",
+      "claim_subscription_provider_intent_creation_backend"
+    ],
+    "legacy_signature_mismatches": [
+      "process_verified_subscription_payment(text,text,uuid,text,numeric,text,boolean) exists; source requires provider-order-bound atomic success/failure RPCs",
+      "create_subscription_payment_intent_backend(uuid,text,text,text,text,uuid) exists; source requires claimable intent + provider creation claim RPCs",
+      "finalize_digital_page_payment_intent_backend(uuid,uuid,text,text) exists; source requires provider-order-bound five-argument signature"
+    ],
+    "live_acl_blockers": [
+      "claim_digital_page_payment_intent_backend(uuid,uuid,text,text): authenticated EXECUTE true; service_role false",
+      "release_digital_page_payment_intent_claim_backend(uuid,uuid,text): authenticated EXECUTE true; service_role false",
+      "finalize_digital_page_payment_intent_backend(uuid,uuid,text,text): authenticated EXECUTE true; service_role false",
+      "post_financial_journal_backend(uuid,jsonb,jsonb): service_role EXECUTE false; anon/authenticated false"
+    ],
+    "production_mutation": "NONE — no payment, order, webhook, journal, wallet, settlement or schema/ACL/Edge operation was invoked."
+  },
   "rc497_verified_business_reviews": {
     "source_migration": "20261122010000",
     "status": "SOURCE_CANDIDATE_NOT_APPLIED",
