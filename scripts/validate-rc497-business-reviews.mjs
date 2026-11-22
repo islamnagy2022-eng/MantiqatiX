@@ -136,6 +136,8 @@ assert.match(orderMigration, /v_qty<>trunc\(v_qty\)/,
   "the authoritative RPC must reject fractional quantities even when called directly by authenticated users");
 assert.match(orderMigration, /jsonb_array_length\(p_items_json\)>100[\s\S]*?v_qty>1000[\s\S]*?v_requested_opts>20/,
   "the authoritative RPC must enforce the same item, quantity and option-count limits as its Edge caller");
+assert.match(orderMigration, /if p_items_json is null or jsonb_typeof\(p_items_json\) is distinct from 'array' then[\s\S]*?raise exception 'INVALID_ITEMS'[\s\S]*?if jsonb_array_length\(p_items_json\)=0/,
+  "the RPC must validate JSON array type before calling jsonb_array_length on untrusted input");
 assert.match(orderMigration, /jsonb_typeof\(coalesce\(v_item->'selectedOptionIds','\[\]'::jsonb\)\) is distinct from 'array'[\s\S]*?length\(option_value #>> '\{\}'\)>100/,
   "the authoritative RPC must validate option array shape and identifier length");
 assert.ok(orderIntegration.includes("RC498_OPTION_LIMIT_BYPASSED") && orderIntegration.includes("RC498_ITEM_COUNT_LIMIT_BYPASSED"),
