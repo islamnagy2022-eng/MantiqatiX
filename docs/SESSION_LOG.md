@@ -3924,3 +3924,13 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Commits: `6b3386b`, `f2411ee`, `9316c5d`, `820778a`; evidence recorded in `docs/audits/PASS_1801_1810_LI2LAK_MARKETPLACE_AD_HARDENING_20261122.md`.
 - Exact-head CI not yet completed at last check; no test pass claimed. No Production mutation/deployment.
 - Next: public-offer contract tests and safe media lifecycle design; general reviews require independent verified-interaction/moderation model.
+
+## 2026-11-22 — Pass 1811–1820 — Li2Lak verified business reviews
+
+- Added RC497 source migration: six narrow RPCs, one review per delivered customer order, registry-admin moderation, scoped business response, identity-free verified-business public summary, FORCE RLS and no direct API-role table grants.
+- Added account deletion anonymization and customer-authored review text scrubbing while preserving rating and event history.
+- Added customer order submission UI, merchant response UI, platform moderation queue UI and public storefront display.
+- Added disposable PostgreSQL 16 fixture, integration tests, source validator, release manifest entry and forward migration replay job; release gate now tracks 77 migration identities.
+- Production read-only checkpoint: zero order rows and no business-review table. RC497 remains unapplied; no real customer review is currently possible.
+- PR #970 closed as superseded after PR #969 merged. Rebased candidate carried to PR #971; exact-head CI pending. No Production mutation or deployment.
+- Evidence: `docs/audits/PASS_1811_1820_LI2LAK_VERIFIED_BUSINESS_REVIEWS_20261122.md`.
