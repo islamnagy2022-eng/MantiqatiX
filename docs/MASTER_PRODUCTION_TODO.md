@@ -4953,7 +4953,7 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Obtain completed exact-head CI for PR #969: all 10 workflows passed and PR was squash-merged. Verify actual Pages publication separately; PR deploy job was skipped.
 - [ ] Add focused Marketplace public-offer tests for explicit `show_price === true`, availability, effective price and verified business provenance; do not change the existing offer data contract without evidence.
 - [ ] Design owner-scoped business media lifecycle with upload limits, MIME sniffing, moderation, publication consent, cleanup and responsive delivery; no video bucket exists in Production.
-- [ ] Keep business reviews separate from MantiGO ride ratings; require verified interaction provenance and moderation before implementation.
+- [x] Keep business reviews separate from MantiGO ride ratings; RC497 now enforces delivered-order provenance and registry-admin moderation in a separate review model.
 - **Safety:** no Production database, Storage, Auth/RLS/GRANT, Edge, payment, wallet, or public deployment change. **PRODUCTION BLOCKED / NOT CERTIFIED.** Evidence: `docs/audits/PASS_1801_1810_LI2LAK_MARKETPLACE_AD_HARDENING_20261122.md`.
 
 ### Pass 1811–1820 — Li2Lak verified business reviews — 2026-11-22
