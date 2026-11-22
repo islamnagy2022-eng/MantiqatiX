@@ -35,7 +35,8 @@ export function stripReferralParameter(search: string): string {
 export function buildReferralInviteUrl(code: unknown, origin: string, basePath: string): string | null {
   const normalized = normalizeReferralCode(code);
   if (!normalized) return null;
-  const url = new URL(basePath || '/', origin);
+  const canonicalBasePath = (basePath || '/').replace(/\\/legacy\\/?$/, '/');
+  const url = new URL(canonicalBasePath, origin);
   url.searchParams.set('ref', normalized);
   return url.toString();
 }
