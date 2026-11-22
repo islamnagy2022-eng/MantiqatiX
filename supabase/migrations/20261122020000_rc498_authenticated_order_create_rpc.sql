@@ -41,7 +41,7 @@ REVOKE ALL ON FUNCTION public.create_order_backend(
   uuid, character varying, uuid, character varying, uuid, character varying,
   numeric, numeric, numeric, numeric, numeric, character varying,
   text, text, text, jsonb, text, jsonb
-) FROM PUBLIC, anon;
+) FROM PUBLIC, anon, authenticated;
 
 GRANT EXECUTE ON FUNCTION public.create_order_backend(
   uuid, character varying, uuid, character varying, uuid, character varying,
