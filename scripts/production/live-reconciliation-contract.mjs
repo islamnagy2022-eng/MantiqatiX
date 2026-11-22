@@ -50,6 +50,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261121020000", // RC495 — repair Storage filename policies and use canonical platform-root registry
   "20261121030000", // RC496 — require OFFERED MantiGO bids and serialize per-ride acceptance
   "20261122010000", // RC497 — verified business reviews, delivered-order provenance and identity-free public output
+  "20261122020000", // RC498 — JWT-scoped canonical order RPC execution and hardened search_path
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
