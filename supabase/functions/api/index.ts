@@ -276,6 +276,12 @@ serve(async (req) => {
       return tenantWideOwner || (exactBusinessBranch && (scopedFinanceRole || permissions.includes("PAYMENT_READ_ALL"))) || providerOwnBusiness
     })
     const assignedPartner = String(linkedOrder.assigned_partner_id ?? "") === user.id
+      && (memberships ?? []).some((membership: any) => {
+        const businessId = membership.business_id == null ? null : String(membership.business_id)
+        const branchId = membership.branch_id == null ? null : String(membership.branch_id)
+        return (businessId === null || businessId === String(linkedOrder.business_id))
+          && (branchId === null || branchId === (linkedOrder.branch_id == null ? null : String(linkedOrder.branch_id)))
+      })
     if (linkedOrder.customer_id !== user.id && !operationalPaymentRead && !assignedPartner) return json({ error: "Forbidden" }, 403)
     return json(intent)
   }
