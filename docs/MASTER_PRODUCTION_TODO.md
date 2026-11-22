@@ -5063,3 +5063,13 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Keep Paymob disabled until the real payment-intent, provider callback/webhook signature, server-side status reconciliation, refund/chargeback and settlement paths pass end-to-end tests.
 - [ ] Re-run exact-head frontend/build and all PR checks; no CI success is claimed for the latest source head yet.
 - **Safety:** source and test changes only. No payment, wallet, Production, Edge or public deployment mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+### Pass 1911–1920 — Li2Lak authoritative order RPC input bounds — 2026-11-22
+- [x] Close the direct-RPC validation gap created by granting authenticated callers EXECUTE: enforce integer quantities and cap each quantity at 1,000 inside SQL.
+- [x] Enforce a maximum of 100 order items at the authoritative RPC boundary, not only in Edge validation.
+- [x] Validate item object shape, catalog token length, option-array type, maximum 20 options and option identifier type/length.
+- [x] Bound idempotency key, customer name, phone, delivery address, notes and metadata shape in the RPC itself.
+- [x] Extend PostgreSQL integration tests for fractional quantity, over-limit options and over-limit item arrays.
+- [ ] Run exact-head PostgreSQL 17 integration and forward replay; these source checks are not a substitute for executed SQL.
+- **Safety:** source/test changes only. No Production DB, Auth, RLS/GRANT, Edge, payment, wallet, Storage or public deployment mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
