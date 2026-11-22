@@ -3844,3 +3844,15 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Added the tests to Primary Catalog Frontend Validation. Exact-head GitHub Actions remains pending; no merge/deployment is claimed.
 - No Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, customer data or public deployment was changed.
 - Production remains **BLOCKED / NOT CERTIFIED** pending backup/restore, migration and Edge parity, security/privacy, and live acceptance gates.
+
+
+## 2026-11-22 — Pass 1731–1740 — Live Supabase schema and Storage review
+
+- Reconnected to the actual Production project `MANTIQATIX FINAL`, status ACTIVE_HEALTHY.
+- Live migration ledger: 310 rows through `20261110150618`; later repository migrations are not thereby deployed.
+- Live table metadata found only `mantigo_ride_ratings` among review/rating-named application tables; no general business/storefront/product/service review model was found.
+- Live Storage configuration has two 5 MiB image-only buckets: private `mantiqatix-media` and public-read `mantiqatix-profile-media`. Video upload is not currently configured.
+- Security Advisor: 9 RLS-enabled/no-policy relations, 1 anonymous-callable SECURITY DEFINER public ad RPC, and 65 authenticated-callable SECURITY DEFINER functions. Treat as inventories for authorization-aware review, not automatic vulnerabilities.
+- Recorded live platform-brand Storage policy's legacy SUPER_ADMIN membership predicate as a source/live reconciliation item; no Production policy changed.
+- No Production DDL/data, Auth, RLS, GRANT, Storage, Edge, payment, wallet, user data or deployment changes.
+- Disposition: **PRODUCTION BLOCKED / NOT CERTIFIED**.
