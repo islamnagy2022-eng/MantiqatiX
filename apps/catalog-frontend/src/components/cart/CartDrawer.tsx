@@ -168,6 +168,7 @@ export const CartDrawer: React.FC = () => {
           return { catalogItemId: product.id, quantity, selectedOptionIds: [] as string[] };
         });
         const fingerprint = JSON.stringify({
+          customerId: authSession.userId,
           businessId: currentBusiness.id,
           tenantId: currentBusiness.tenantId,
           branchId: currentBusiness.branchId || null,
