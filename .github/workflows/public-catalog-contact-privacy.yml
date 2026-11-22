@@ -14,6 +14,7 @@ on:
       - "apps/catalog-frontend/src/types/index.ts"
       - "scripts/validate-public-contact-visibility.mjs"
       - ".github/workflows/public-catalog-contact-privacy.yml"
+  workflow_dispatch: {}
   pull_request:
     branches: [main]
     paths:
