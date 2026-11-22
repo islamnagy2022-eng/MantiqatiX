@@ -79,6 +79,7 @@ BEGIN
   result := public.submit_business_review(
     '30000000-0000-4000-8000-000000000004', 4, 'نشاط غير موثق بعد'
   );
+  PERFORM set_config('test.pending_review_id', result->>'reviewId', false);
   IF result->>'status' <> 'PENDING' THEN
     RAISE EXCEPTION 'RC497_UNVERIFIED_BUSINESS_REVIEW_NOT_PENDING';
   END IF;
@@ -104,6 +105,12 @@ SELECT set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-00000000
 DO $owner_before_publish$
 DECLARE review_id uuid;
 BEGIN
+  BEGIN
+    PERFORM public.get_platform_business_review_moderation_queue(10);
+    RAISE EXCEPTION 'RC497_TENANT_OWNER_ACCESSED_MODERATION_QUEUE';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'PLATFORM_ADMIN_REQUIRED' THEN RAISE; END IF;
+  END;
   review_id := current_setting('test.review_id')::uuid;
   BEGIN
     PERFORM public.respond_to_business_review(review_id, 'شكرًا لثقتك');
@@ -135,6 +142,14 @@ BEGIN
   result := public.moderate_business_review(v_review_id, 'PUBLISHED', 'اجتاز مراجعة المحتوى');
   IF result->>'status' <> 'PUBLISHED' THEN
     RAISE EXCEPTION 'RC497_MODERATION_FAILED';
+  END IF;
+
+  result := public.get_platform_business_review_moderation_queue(100);
+  IF jsonb_array_length(result->'reviews') <> 1
+     OR result->'reviews'->0->>'reviewId' <> current_setting('test.pending_review_id')
+     OR result->'reviews'->0 ? 'customerId'
+     OR result->'reviews'->0 ? 'customer_id' THEN
+    RAISE EXCEPTION 'RC497_PLATFORM_MODERATION_QUEUE_SCOPE_OR_PRIVACY_INVALID: %', result;
   END IF;
 END
 $moderation$;
