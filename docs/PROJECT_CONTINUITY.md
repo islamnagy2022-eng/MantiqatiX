@@ -1,3 +1,19 @@
+# Latest continuation checkpoint — 2026-11-22 — Pass 1701–1710
+
+**Working branch:** `docs/li2lak-benchmark-20261122`  
+**Baseline main:** `9fb568dd16e48078773c97015722181a1e69a209`  
+**Benchmark:** `docs/product/Li2Lak_COMPETITOR_BENCHMARK_20261122.md`  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+- Completed a source-grounded product benchmark against Li2Lak.
+- MantiqaTix already has the core directory patterns: Activity → Specialty, Egypt/geographic discovery, verified-first ordering, separate unclaimed listings, storefronts, contact consent, progressive pagination, owner/admin workflows and QR.
+- No duplicate directory or alternate taxonomy is proposed.
+- Next source inspection: Marketplace Home and active ad/discount contracts; review/rating schema and moderation; Storage/media policies before any video/reels proposal.
+- Work is documentation-only on an isolated branch. No Production mutation or deployment.
+- Preserve all mobile files and current production root.
+
+---
+
 # Latest continuation checkpoint — 2026-11-22 — Pass 1691–1700
 
 **Current verified CI/deploy checkpoint:** `17a70bd08e5df04cde844d089fc5d37716e2e2c9` audit record, followed by continuity updates.  
