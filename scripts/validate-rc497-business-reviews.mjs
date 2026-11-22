@@ -16,6 +16,7 @@ const migration = fs.readFileSync(migrationPath, "utf8");
 const orderMigration = fs.readFileSync(orderMigrationPath, "utf8");
 const orderCreateEdge = fs.readFileSync("supabase/functions/order-create/index.ts", "utf8");
 const apiEdge = fs.readFileSync("supabase/functions/api/index.ts", "utf8");
+const ordersReadScopeMigration = fs.readFileSync("supabase/migrations/20261114010000_rc465_orders_read_scope_hardening.sql", "utf8");
 const orderIntegration = fs.readFileSync("supabase/tests/rc104_order_idempotency_scope_integration.sql", "utf8");
 const orderFixture = fs.readFileSync("supabase/tests/rc104_order_idempotency_scope_fixture.sql", "utf8");
 const orderConcurrency = fs.readFileSync("supabase/tests/rc104_order_idempotency_scope_concurrency.sh", "utf8");
@@ -190,6 +191,26 @@ assert.ok(orderGetRoute.includes('if (order.customer_id !== user.id && !operatio
   "legacy order reads must reject requests that are neither customer-owned nor operationally scoped");
 assert.ok(!orderGetRoute.includes('["SUPER_ADMIN","ADMIN","OWNER","MANAGER","STAFF","CASHIER","DELIVERY_PARTNER"].includes(role)'),
   "tenant membership roles must not regain broad unscoped same-tenant order access");
+
+const ordersMemberPolicyStart = ordersReadScopeMigration.indexOf("CREATE POLICY orders_member_select");
+const ordersProviderPolicyStart = ordersReadScopeMigration.indexOf("CREATE POLICY orders_provider_select_own_business", ordersMemberPolicyStart);
+assert.ok(ordersMemberPolicyStart >= 0 && ordersProviderPolicyStart > ordersMemberPolicyStart,
+  "RC465 authoritative orders-member scope policy must remain available to compare with the API route");
+const ordersMemberPolicy = ordersReadScopeMigration.slice(ordersMemberPolicyStart, ordersProviderPolicyStart);
+const expectedScopedOrderRoles = ["OWNER", "ADMIN", "BUSINESS_OWNER", "MANAGER", "STAFF", "EMPLOYEE", "FINANCE", "ACCOUNTANT", "FINANCE_MANAGER"];
+for (const role of expectedScopedOrderRoles) {
+  assert.ok(orderGetRoute.includes('"' + role + '"') && ordersMemberPolicy.includes("'" + role + "'"),
+    "API order-read role scope must stay aligned with RC465 for " + role);
+}
+assert.ok(!orderGetRoute.includes('"CASHIER"') && !orderGetRoute.includes('"DELIVERY_PARTNER"'),
+  "cashier and delivery-partner roles must not regain unscoped order-member reads");
+assert.ok(orderGetRoute.includes('String(order.assigned_partner_id ?? "") === user.id'),
+  "explicit assigned-partner order reads must remain tied to the exact order assignment");
+assert.ok(orderGetRoute.includes('role === "SERVICE_PROVIDER"')
+  && orderGetRoute.includes('businessId === orderBusinessId')
+  && orderGetRoute.includes('(branchId === null || branchId === orderBranchId)'),
+  "service-provider reads must remain limited to their own business and applicable branch");
+
 
 assert.match(orderIntegration, /RC498_AUTHENTICATED_EXECUTE_MISSING[\s\S]*?RC498_ANON_EXECUTE_PRESENT[\s\S]*?RC498 authenticated order RPC ACL, identity and pricing: PASS/,
   "order integration suite must cover authenticated execution, anon denial, identity and authoritative pricing");
