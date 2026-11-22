@@ -31,9 +31,16 @@ Deno.serve(async (req: Request) => {
 
   const url = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!url || !serviceKey) return json({ error: "SERVER_MISCONFIGURED" }, 500);
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!url || !serviceKey || !anonKey) return json({ error: "SERVER_MISCONFIGURED" }, 500);
 
   const admin = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  // Keep privileged reads on the service client, but invoke the identity-enforcing
+  // order RPC with the caller JWT so auth.uid() is the verified customer.
+  const userClient = createClient(url, anonKey, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
   const { data: userData, error: userError } = await admin.auth.getUser(token);
   const user = userData?.user;
   if (userError || !user || user.is_anonymous) return json({ error: "UNAUTHORIZED" }, 401);
@@ -277,7 +284,7 @@ Deno.serve(async (req: Request) => {
   const totalAmount = subtotal + tax;
   if (!Number.isFinite(totalAmount)) return json({ error: "INVALID_SERVER_TOTAL" }, 500);
 
-  const { data, error } = await admin.rpc("create_order_backend", {
+  const { data, error } = await userClient.rpc("create_order_backend", {
     p_order_id: body.orderId,
     p_tenant_id: body.tenantId,
     p_business_id: body.businessId,
