@@ -9,7 +9,7 @@ create or replace function public.create_order_backend(
  p_client_idempotency_key varchar,p_subtotal numeric,p_discount numeric,p_tax numeric,p_delivery_fee numeric,
  p_total_amount numeric,p_currency varchar,p_customer_name text,p_customer_phone text,p_delivery_address text,
  p_items_json jsonb,p_notes text default null,p_metadata jsonb default '{}'::jsonb
-) returns jsonb language plpgsql security definer set search_path=pg_catalog, public, extensions, pg_temp as $
+) returns jsonb language plpgsql security definer set search_path=pg_catalog, public, extensions, pg_temp as $$
 declare
  v_existing orders; v_settings catalog_business_settings; v_currency varchar;
  v_subtotal numeric:=0; v_tax numeric:=0; v_total numeric:=0; v_delivery numeric:=0; v_discount numeric:=0;
