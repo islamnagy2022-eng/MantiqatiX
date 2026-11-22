@@ -3300,3 +3300,8 @@ The initial rating immutability migration (`20261006121810`) is superseded at th
 - Production is not certified: RC484/RC485 authorization drift, 57 dependent policy consumers, directory contact-consent/Edge parity, encrypted off-site DB+Storage backup, key recovery, independent PostgreSQL 17 restore/rollback and other payment/finance gates remain unresolved.
 - No Production DDL/DML, Auth, RLS/GRANT, Storage, Edge, payment, wallet, customer-data or public deployment mutation occurred during these passes.
 - Preserve mobile app source/assets and current main architecture. Supabase remains authoritative; no local JSON source-of-truth replacement.
+
+
+## Pass 1771–1780 — Live directory Edge consent drift — 2026-11-22
+
+A fresh read-only check confirms `directory-listings` is ACTIVE v16 with `verify_jwt=false`, deployed SHA256 `13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0`. Deployed bundle contains only 3 files; current main has 7, including public output sanitization, contact-consent pagination and platform-admin registry modules absent from the live deployment. The deployed GET still returns phone/secondary phone/address. Live aggregate check: 869 published rows, 869 with phone and 869 with address; contact-consent registry table is absent. This is a confirmed P0 privacy blocker. Do not deploy the Edge bundle or apply migrations until encrypted off-site DB+Storage backup, key recovery and independent PostgreSQL 17 restore/rollback pass. Evidence: `docs/audits/PASS_1771_1780_DIRECTORY_EDGE_CONSENT_LIVE_DRIFT_20261122.md`.
