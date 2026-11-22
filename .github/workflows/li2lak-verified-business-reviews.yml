@@ -4,6 +4,9 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/20261122010000_rc497_verified_business_reviews.sql"
+      - "apps/catalog-frontend/src/components/account/CustomerOrderReviews.tsx"
+      - "apps/catalog-frontend/src/modules/account/SubscriberAccountPortal.tsx"
+      - "scripts/validate-rc497-business-reviews.mjs"
       - "supabase/tests/rc497_business_reviews_fixture.sql"
       - "supabase/tests/rc497_business_reviews_integration.sql"
       - ".github/workflows/li2lak-verified-business-reviews.yml"
@@ -11,6 +14,9 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/20261122010000_rc497_verified_business_reviews.sql"
+      - "apps/catalog-frontend/src/components/account/CustomerOrderReviews.tsx"
+      - "apps/catalog-frontend/src/modules/account/SubscriberAccountPortal.tsx"
+      - "scripts/validate-rc497-business-reviews.mjs"
       - "supabase/tests/rc497_business_reviews_fixture.sql"
       - "supabase/tests/rc497_business_reviews_integration.sql"
       - ".github/workflows/li2lak-verified-business-reviews.yml"
