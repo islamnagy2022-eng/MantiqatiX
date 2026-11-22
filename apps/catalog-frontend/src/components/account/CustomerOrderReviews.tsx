@@ -8,6 +8,7 @@ type CustomerOrder = {
   status: string;
   created_at: string;
   total_amount: number | string | null;
+  currency: string | null;
   items_json: unknown;
 };
 
@@ -29,7 +30,7 @@ const orderItemsSummary = (value: unknown): string => {
   const names = value.slice(0, 3).map((item) => {
     if (!item || typeof item !== 'object') return '';
     const row = item as Record<string, unknown>;
-    return String(row.name || row.productName || row.title || '').trim();
+    return String(row.name_ar || row.name || row.productName || row.title || '').trim();
   }).filter(Boolean);
   return names.length ? names.join('، ') : 'طلب مشتريات';
 };
@@ -41,11 +42,19 @@ const dateLabel = (value: string): string => {
     : new Intl.DateTimeFormat('ar-EG', { dateStyle: 'medium' }).format(date);
 };
 
-const amountLabel = (value: number | string | null): string => {
+const amountLabel = (value: number | string | null, currency: string | null): string => {
   const amount = Number(value);
-  return Number.isFinite(amount)
-    ? new Intl.NumberFormat('ar-EG', { maximumFractionDigits: 2 }).format(amount) + ' ج.م'
-    : '—';
+  if (!Number.isFinite(amount)) return '—';
+  const code = (currency || 'EGP').toUpperCase();
+  try {
+    return new Intl.NumberFormat('ar-EG', {
+      style: 'currency',
+      currency: code,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return new Intl.NumberFormat('ar-EG', { maximumFractionDigits: 2 }).format(amount) + ' ' + code;
+  }
 };
 
 const statusLabel = (value: string): string => {
@@ -95,7 +104,7 @@ export const CustomerOrderReviews: React.FC = () => {
     try {
       const { data, error: orderError } = await supabase
         .from('orders')
-        .select('id,status,created_at,total_amount,items_json')
+        .select('id,status,created_at,total_amount,currency,items_json')
         .eq('customer_id', userId)
         .order('created_at', { ascending: false })
         .limit(50);
@@ -202,7 +211,7 @@ export const CustomerOrderReviews: React.FC = () => {
                     <p className="mt-1 text-xs text-slate-500">{dateLabel(order.created_at)} • رقم الطلب {order.id.slice(0, 8)}</p>
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-black text-slate-900">{amountLabel(order.total_amount)}</p>
+                    <p className="text-sm font-black text-slate-900">{amountLabel(order.total_amount, order.currency)}</p>
                     <span className={delivered ? 'mt-1 inline-flex rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-bold text-emerald-800' : 'mt-1 inline-flex rounded-full bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-600'}>
                       {statusLabel(order.status)}
                     </span>
