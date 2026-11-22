@@ -1,3 +1,9 @@
+### Pass 1931–1940 — selected-branch authorization regression contract — 2026-11-22
+- [x] Re-read the current PR #971 Edge Function and confirmed selected branches are queried by exact ID, tenant, business and ACTIVE status; omitted branch selection uses a bounded existence query.
+- [x] Strengthened the Li2Lak source validator to assert all four selected-branch scope predicates, in addition to the no-arbitrary-100-row regression.
+- [ ] Exact-head CI must execute the strengthened validator and PostgreSQL 17 lifecycle/replay workflows; source edits are not a test pass.
+- **Safety:** PR feature branch only. No Production migration, Auth/RLS/GRANT, Edge deployment, payment, wallet, customer data or public deployment changed. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
 ### Pass 1881–1890 — exact-head CI queued — 2026-11-22
 - [x] Updated PR #971 description with self-review prevention, SQL signature repair, 78-migration validator alignment and current release boundaries.
 - [x] Confirmed current feature branch is 0 commits behind main after history reconciliation.
