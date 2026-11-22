@@ -6,6 +6,68 @@ SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000001',false);
 SELECT set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated"}',false);
 
+-- RC498: the backend order RPC must receive the real customer JWT identity.
+DO $rc498_order_rpc$
+DECLARE
+  v_result jsonb;
+  v_oid oid := to_regprocedure('public.create_order_backend(uuid, character varying, uuid, character varying, uuid, character varying, numeric, numeric, numeric, numeric, numeric, character varying, text, text, text, jsonb, text, jsonb)');
+  v_config text[];
+BEGIN
+  IF NOT has_function_privilege('authenticated', v_oid, 'EXECUTE') THEN
+    RAISE EXCEPTION 'RC498_AUTHENTICATED_ORDER_RPC_EXECUTE_MISSING';
+  END IF;
+  IF has_function_privilege('anon', v_oid, 'EXECUTE') THEN
+    RAISE EXCEPTION 'RC498_ANON_ORDER_RPC_EXECUTE_PRESENT';
+  END IF;
+  IF NOT has_function_privilege('service_role', v_oid, 'EXECUTE') THEN
+    RAISE EXCEPTION 'RC498_SERVICE_ROLE_COMPATIBILITY_REMOVED';
+  END IF;
+  SELECT proconfig INTO v_config FROM pg_proc WHERE oid = v_oid;
+  IF NOT EXISTS (
+    SELECT 1 FROM unnest(coalesce(v_config, ARRAY[]::text[])) setting
+     WHERE setting = 'search_path=pg_catalog, public, extensions, pg_temp'
+  ) THEN
+    RAISE EXCEPTION 'RC498_ORDER_RPC_SEARCH_PATH_NOT_HARDENED: %', v_config;
+  END IF;
+
+  v_result := public.create_order_backend(
+    '90000000-0000-4000-8000-000000000001',
+    'tenant-a',
+    '20000000-0000-4000-8000-000000000001',
+    'branch-a1',
+    auth.uid(),
+    'rc498-client-key-0001',
+    0, 0, 0, 0, 0, 'EGP',
+    'عميل اختبار', '01000000000', 'عنوان اختبار',
+    '[]'::jsonb, NULL, '{}'::jsonb
+  );
+  IF v_result->>'id' <> '90000000-0000-4000-8000-000000000001'
+     OR v_result->>'status' <> 'PENDING' THEN
+    RAISE EXCEPTION 'RC498_AUTHENTICATED_ORDER_RPC_RESULT_INVALID: %', v_result;
+  END IF;
+
+  BEGIN
+    PERFORM public.create_order_backend(
+      '90000000-0000-4000-8000-000000000002',
+      'tenant-a',
+      '20000000-0000-4000-8000-000000000001',
+      'branch-a1',
+      '10000000-0000-4000-8000-000000000004',
+      'rc498-client-key-0002',
+      0, 0, 0, 0, 0, 'EGP',
+      'عميل آخر', '01000000000', 'عنوان اختبار',
+      '[]'::jsonb, NULL, '{}'::jsonb
+    );
+    RAISE EXCEPTION 'RC498_SPOOFED_CUSTOMER_ID_ACCEPTED';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'RC498_SPOOFED_CUSTOMER_ID_ACCEPTED' OR SQLERRM <> 'CUSTOMER_REQUIRED' THEN
+      RAISE;
+    END IF;
+  END;
+END
+$rc498_order_rpc$;
+
+
 DO $customer_review$
 DECLARE result jsonb;
 BEGIN
