@@ -5132,3 +5132,12 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Exact-head TypeScript build, browser E2E and validator execution must pass before this fix is considered fully verified.
 - **Audit:** `docs/audits/PASS_1981_1990_LI2LAK_CUSTOMER_SESSION_ISOLATION_20261122.md`.
 - **Release state:** no Production change; PR #971 remains unmerged; **PRODUCTION BLOCKED / NOT CERTIFIED**.
+
+### Pass 1991–2000 — Legacy API order-read scope isolation — 2026-11-22
+- [x] Identified production `api` v17 same-tenant role checks that did not bind operational roles to business/branch before returning `GET /api/v1/orders/:id`.
+- [x] Candidate API keeps customer ownership, narrows tenant-wide access to fully unscoped OWNER/ADMIN, and requires exact business+branch for scoped operational memberships.
+- [x] Reconciled NULL-branch behavior against RC465 integration tests; did not widen scoped membership to all branches. Provider-specific NULL-branch exception remains explicitly bounded to the provider's own business.
+- [x] Added five static authorization-contract assertions to the RC497 validator; six manual source checks passed on the candidate API route.
+- [ ] Exact-head CI, validator execution, Deno/Edge typecheck and HTTP authorization E2E remain required.
+- **Audit:** `docs/audits/PASS_1991_2000_LEGACY_API_ORDER_READ_SCOPE_20261122.md`.
+- **Release:** Production API v17 unchanged; no Production mutation/deployment; PR #971 remains unmerged; **PRODUCTION BLOCKED / NOT CERTIFIED**.
