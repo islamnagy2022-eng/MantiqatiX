@@ -1,0 +1,45 @@
+name: Li2Lak Verified Business Reviews
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261122010000_rc497_verified_business_reviews.sql"
+      - "supabase/tests/rc497_business_reviews_fixture.sql"
+      - "supabase/tests/rc497_business_reviews_integration.sql"
+      - ".github/workflows/li2lak-verified-business-reviews.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261122010000_rc497_verified_business_reviews.sql"
+      - "supabase/tests/rc497_business_reviews_fixture.sql"
+      - "supabase/tests/rc497_business_reviews_integration.sql"
+      - ".github/workflows/li2lak-verified-business-reviews.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verified-business-reviews:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: li2lak_reviews_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d li2lak_reviews_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply isolated Supabase fixture
+        run: psql "postgresql://postgres:postgres@localhost:5432/li2lak_reviews_test" -v ON_ERROR_STOP=1 -f supabase/tests/rc497_business_reviews_fixture.sql
+      - name: Apply RC497 migration
+        run: psql "postgresql://postgres:postgres@localhost:5432/li2lak_reviews_test" -v ON_ERROR_STOP=1 -f supabase/migrations/20261122010000_rc497_verified_business_reviews.sql
+      - name: Run verified-order provenance, moderation, owner-scope and public privacy tests
+        run: psql "postgresql://postgres:postgres@localhost:5432/li2lak_reviews_test" -v ON_ERROR_STOP=1 -f supabase/tests/rc497_business_reviews_integration.sql
