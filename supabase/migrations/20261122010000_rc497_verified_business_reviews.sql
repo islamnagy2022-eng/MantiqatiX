@@ -111,6 +111,13 @@ BEGIN
   IF jsonb_array_length(v_order.items_json) = 0 THEN
     RAISE EXCEPTION 'ORDER_NOT_REVIEWABLE';
   END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.businesses b
+     WHERE b.id = v_order.business_id
+       AND b.tenant_id = v_order.tenant_id
+  ) THEN
+    RAISE EXCEPTION 'ORDER_BUSINESS_TENANT_MISMATCH';
+  END IF;
 
   SELECT r.* INTO v_existing
     FROM public.business_reviews r
@@ -175,6 +182,9 @@ BEGIN
   IF v_decision NOT IN ('PUBLISHED','REJECTED','HIDDEN')
      OR length(coalesce(p_reason, '')) > 1000 THEN
     RAISE EXCEPTION 'INVALID_REVIEW_MODERATION';
+  END IF;
+  IF v_decision IN ('REJECTED','HIDDEN') AND v_reason IS NULL THEN
+    RAISE EXCEPTION 'MODERATION_REASON_REQUIRED';
   END IF;
   IF NOT EXISTS (
     SELECT 1 FROM private.platform_admins pa WHERE pa.user_id = v_actor
