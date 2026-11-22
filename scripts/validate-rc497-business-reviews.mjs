@@ -26,8 +26,10 @@ assert.doesNotMatch(migration.match(/CREATE OR REPLACE FUNCTION public\.moderate
   "tenant-derived global admin helpers must not authorize review moderation");
 assert.match(migration, /m\.business_id = v_review\.business_id[\s\S]*?BUSINESS_REVIEW_RESPONSE_FORBIDDEN/,
   "business response must be restricted to the reviewed business");
-assert.match(migration, /status = 'PUBLISHED'[\s\S]*?pp\.is_verified = true/,
-  "public review reads must be moderation-gated and verified-business-only");
+assert.match(migration, /pp\.status = 'ACTIVE' AND pp\.is_verified = true/,
+  "public review reads must be restricted to active verified business profiles");
+assert.match(migration, /r\.status = 'PUBLISHED'/,
+  "public review reads must be moderation-gated");
 assert.match(migration, /least\(greatest\(coalesce\(p_limit, 10\), 1\), 20\)/,
   "public review page size must be clamped to at most 20");
 assert.match(migration, /'verifiedInteraction', true/,
