@@ -43,14 +43,14 @@ If a surface depends on the separate directory-listings endpoint, keep that surf
 Production Supabase project: moyhiluyhjsujhwlyeuu.
 
 Direct live Edge inspection on 2026-11-22:
-- public-catalog: ACTIVE v8, verify_jwt=false. The deployed entrypoint differs from current main and does not call the shared explicit-contact consent projection.
-- public-catalog-directory: ACTIVE v19, verify_jwt=false. The deployed entrypoint differs from current main and still returns branch phone/address and contact profile fields outside the current consent projection.
+- public-catalog: ACTIVE v9, verify_jwt=false. The full deployed bundle matches current main byte-for-byte and uses the audited-contact projection.
+- public-catalog-directory: ACTIVE v19, verify_jwt=false. The full deployed bundle matches current main byte-for-byte and uses the audited-contact projection.
 - catalog-admin: ACTIVE v20, verify_jwt=false. The deployed source differs from current main and has no public-contact consent audit handling.
 - catalog-platform-admin: ACTIVE v23, verify_jwt=true; its activity-module override write capability remains intentionally disabled until its audit write is atomic.
 
 Current main already contains the fail-closed helper and owner consent flow:
 - Public contact is blank unless both public_contact_enabled and public_contact_consent_audit_verified are true.
-- The main-branch merchant dashboard contains an Arabic explicit-consent checkbox, but that UI is removed from the website-first branch until the Production catalog-admin audit endpoint is safe to deploy.
+- The main-branch merchant dashboard contains an Arabic explicit-consent checkbox, but the website-first branch hides it until the Production catalog-admin audit endpoint is safe to deploy.
 - The current-main catalog-admin candidate records a durable audit_logs row only after its registry-backed authorization prerequisites are deployed. Production v20 does not have this handler.
 - Revocation returns the profile to a hidden state.
 
