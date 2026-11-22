@@ -18,4 +18,20 @@ BEGIN
      OR has_table_privilege('authenticated', 'public.referral_events', 'INSERT') THEN
     RAISE EXCEPTION 'referral tables must remain inaccessible to direct authenticated DML';
   END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_class
+    WHERE oid = 'public.referral_codes'::regclass AND relrowsecurity
+  ) OR NOT EXISTS (
+    SELECT 1 FROM pg_class
+    WHERE oid = 'public.referral_events'::regclass AND relrowsecurity
+  ) THEN
+    RAISE EXCEPTION 'RLS must be enabled on referral tables';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid = 'public.referral_events'::regclass
+      AND conname = 'referral_events_not_self' AND convalidated
+  ) THEN
+    RAISE EXCEPTION 'referral_events self-referral constraint must be validated';
+  END IF;
 END $$;
