@@ -4855,3 +4855,42 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - The earlier `20261006121810_mantigo_rating_immutability_v1.sql` rejects changed second submissions, but later `20261006171000_mantigo_notification_lifecycle_v1.sql` replaces the same RPC with `ON CONFLICT (ride_id, customer_id) DO UPDATE`. Current-main final migration order therefore permits an existing ride/customer rating and comment to be updated. Do not describe the final behavior as immutable until this override is reconciled.
 - `20261006180000_mantigo_customer_tracking_and_finance_indexes_v1.sql` returns only the authenticated customer's own rating in their ride-history payload; no public business-review aggregate was established.
 - [ ] Confirm intended edit policy and add PostgreSQL regression coverage before changing any MantiGO rating migration.
+
+
+### Pass 1721–1730 — Li2Lak benchmark: Marketplace ad resilience — 2026-11-22
+- [x] Preserved the existing Marketplace Home and its approved HOME_HERO / HOME_SPONSORED server-side ad contract; no parallel ads system introduced.
+- [x] Changed ad placement loading to fail independently: an RPC/network failure for one placement no longer suppresses valid ads from the other.
+- [x] Kept creative URL validation, disabled unsafe target URLs, and deduplicated cross-placement records.
+- [x] Added six focused tests: rejected RPC, returned RPC error, unsafe creative/target URL, and duplicate placement records. Local Node 22 execution: 4/4 PASS; isolated TypeScript helper check: PASS.
+- [ ] Exact-head GitHub Actions on the updated branch; do not merge until all required checks are green.
+- [ ] Continue complete general-business review schema inventory and inspect media Storage policies before proposing new Li2Lak-inspired modules.
+- **Safety:** source/tests/CI only. No Production DB, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, customer data or public deployment changed. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+### Pass 1731–1740 — Live Supabase schema and Storage review — 2026-11-22
+- [x] Reconnected to the actual ACTIVE_HEALTHY Production Supabase project and read the applied migration ledger: 310 rows, latest `20261110150618`.
+- [x] Queried live schema metadata and confirmed the only rating/review-named application table is `mantigo_ride_ratings`; no dedicated business/storefront/product/service reviews table was found.
+- [x] Queried live Storage configuration: private `mantiqatix-media` and public-read `mantiqatix-profile-media`, both limited to 5 MiB and image MIME types; video upload is not currently supported.
+- [x] Re-read Security Advisor: 9 RLS-enabled/no-policy relations, 1 anonymous-callable SECURITY DEFINER public ads RPC, and 65 authenticated-callable SECURITY DEFINER functions. These are review inventories, not blanket proof of vulnerability.
+- [ ] Reconcile the nine backend-only/no-policy relations and 65 function bodies against intended server-side access paths; no blanket RLS/GRANT change.
+- [ ] Resolve the live platform-brand Storage policy's legacy SUPER_ADMIN membership predicate through a forward-only, isolated-tested migration before any Production approval.
+- [ ] Keep Li2Lak-inspired business reviews and video upload as separately designed features; do not fabricate ratings or widen current image buckets.
+- **Safety:** read-only Production inspection only. No DB/Auth/RLS/GRANT/Storage/Edge/payment/user-data mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+### Pass 1741–1750 — Live catalog RPC authorization drift — 2026-11-22
+- [x] Re-read all seven live catalog/stock SECURITY DEFINER RPC bodies and function configs.
+- [x] Confirmed all seven still use `search_path=public`, do not call the registry-backed helper, and read legacy membership `scope/full_control` metadata for platform-root authority.
+- [x] Matched the live gap to existing source repairs RC484 + RC485; no duplicate migration needed. RC485 includes seven-function disposable integration coverage and static validator.
+- [x] Confirmed nine RLS-enabled/no-policy relations have no direct anon/authenticated grants; preserve the backend-only direct-access boundary.
+- [ ] Production release must apply the complete ordered migration chain only after real backup/restore rehearsal and coordinated release approval; then re-check all seven function bodies, ACLs, helper registry, Storage policy and negative/positive authorization tests.
+- **P0 RELEASE BLOCKER:** live catalog RPC root authority is still membership-derived. No Production function/ACL/DDL/Storage/Auth/Edge/payment mutation occurred. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+### RC484 dependency — platform-admin registry drift confirmed live — 2026-11-22
+- [x] Live `private.platform_admins`: 1 row, RLS enabled, FORCE RLS false, no direct anon/authenticated grants.
+- [x] Live `public.is_platform_admin()`: SECURITY INVOKER, search_path=public, membership-derived (ADMIN/SUPER_ADMIN), not registry-backed.
+- [x] Confirmed 57 live RLS policy expressions still call this legacy helper.
+- [x] Existing RC484 source migration is the intended repair: FORCE RLS, registry-owner/BYPASSRLS preflight, no client grants, SECURITY DEFINER helper with empty search_path and private registry only.
+- [ ] Apply only through the complete coordinated RC484→RC496 release after genuine Production backup/restore, rollback plan, and release approval; then verify all 57 policy consumers plus seven RC485 catalog RPCs.
+- **P0:** Do not deploy RC484 alone, RC485 alone, or hand-edit individual policies. **PRODUCTION BLOCKED / NOT CERTIFIED.**
