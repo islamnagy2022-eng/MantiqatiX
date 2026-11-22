@@ -174,6 +174,23 @@ assert.ok(apiEdge.includes("Authorization: `Bearer ${token}`") && apiEdge.includ
   "legacy authenticated Orders API must invoke the backend RPC with the verified customer JWT");
 assert.doesNotMatch(apiEdge, /supabaseAdmin\.rpc\("create_order_backend"/,
   "legacy Orders API must not invoke the auth.uid()-enforcing RPC through service_role");
+
+const orderGetRouteStart = apiEdge.indexOf('const orderMatch = path.match');
+const orderGetRouteEnd = apiEdge.indexOf('if (req.method === "POST" && path === "/api/v1/payments/intents")', orderGetRouteStart);
+assert.ok(orderGetRouteStart >= 0 && orderGetRouteEnd > orderGetRouteStart,
+  "legacy order-read route must remain independently identifiable for authorization validation");
+const orderGetRoute = apiEdge.slice(orderGetRouteStart, orderGetRouteEnd);
+assert.ok(orderGetRoute.includes('.eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE")'),
+  "legacy order reads must validate an ACTIVE membership for the requesting user in the order tenant");
+assert.ok(orderGetRoute.includes('tenantWideOwner = ["OWNER", "ADMIN"].includes(role) && businessId === null && branchId === null'),
+  "tenant-wide order reads must require a fully unscoped OWNER or ADMIN membership");
+assert.ok(orderGetRoute.includes('exactBusinessBranch = businessId === orderBusinessId && branchId === orderBranchId'),
+  "scoped operational order reads must match both the exact business and exact branch");
+assert.ok(orderGetRoute.includes('if (order.customer_id !== user.id && !operationalOrderRead) return json({ error: "Forbidden" }, 403)'),
+  "legacy order reads must reject requests that are neither customer-owned nor operationally scoped");
+assert.ok(!orderGetRoute.includes('["SUPER_ADMIN","ADMIN","OWNER","MANAGER","STAFF","CASHIER","DELIVERY_PARTNER"].includes(role)'),
+  "tenant membership roles must not regain broad unscoped same-tenant order access");
+
 assert.match(orderIntegration, /RC498_AUTHENTICATED_EXECUTE_MISSING[\s\S]*?RC498_ANON_EXECUTE_PRESENT[\s\S]*?RC498 authenticated order RPC ACL, identity and pricing: PASS/,
   "order integration suite must cover authenticated execution, anon denial, identity and authoritative pricing");
 assert.match(orderMigration, /catalog_item_prices cp[\s\S]*?upper\(cp\.currency\)\s*=\s*v_currency/,
