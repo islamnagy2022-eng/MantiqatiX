@@ -43,18 +43,22 @@ export const BusinessReviewsPanel: React.FC = () => {
   const { currentBusiness } = useApp();
   const [summary, setSummary] = useState<PublicReviewSummary | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextOffset, setNextOffset] = useState(0);
 
   useEffect(() => {
     let active = true;
     const businessId = currentBusiness?.id;
     if (!businessId || !currentBusiness?.isVerified || currentBusiness.operationalStatus !== 'ACTIVE' || currentBusiness.isFrozen) {
       setSummary(null);
+      setNextOffset(0);
       setLoading(false);
       return () => { active = false; };
     }
 
     setLoading(true);
     setSummary(null);
+    setNextOffset(0);
     void supabase.rpc('get_public_business_review_summary', {
       p_business_id: businessId,
       p_limit: 10,
@@ -66,7 +70,9 @@ export const BusinessReviewsPanel: React.FC = () => {
         return;
       }
       const raw = data as Record<string, unknown>;
-      const reviews = Array.isArray(raw.reviews) ? raw.reviews.filter(isPublicReview) : [];
+      const rawReviews = Array.isArray(raw.reviews) ? raw.reviews : [];
+      const reviews = rawReviews.filter(isPublicReview);
+      setNextOffset(rawReviews.length);
       const reviewCount = Number(raw.reviewCount);
       const averageRating = raw.averageRating === null ? null : Number(raw.averageRating);
       if (!Number.isFinite(reviewCount) || reviewCount < 0
@@ -83,6 +89,31 @@ export const BusinessReviewsPanel: React.FC = () => {
 
     return () => { active = false; };
   }, [currentBusiness?.id, currentBusiness?.isVerified, currentBusiness?.operationalStatus, currentBusiness?.isFrozen]);
+
+  const loadMore = async () => {
+    const businessId = currentBusiness?.id;
+    if (!businessId || !summary || loadingMore || nextOffset >= summary.reviewCount || nextOffset >= 500) return;
+    setLoadingMore(true);
+    try {
+      const { data, error } = await supabase.rpc('get_public_business_review_summary', {
+        p_business_id: businessId,
+        p_limit: 10,
+        p_offset: nextOffset,
+      });
+      if (error || !data || typeof data !== 'object') throw error || new Error('تعذر تحميل تقييمات إضافية');
+      const raw = data as Record<string, unknown>;
+      const rawReviews = Array.isArray(raw.reviews) ? raw.reviews : [];
+      const page = rawReviews.filter(isPublicReview);
+      setSummary((current) => current && current.reviewCount === Number(raw.reviewCount)
+        ? { ...current, reviews: [...current.reviews, ...page.filter((item) => !current.reviews.some((existing) => existing.reviewId === item.reviewId))] }
+        : current);
+      setNextOffset((current) => current + rawReviews.length);
+    } catch {
+      // Keep already loaded public reviews visible if a later page fails.
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   if (!currentBusiness?.isVerified || currentBusiness.operationalStatus !== 'ACTIVE' || currentBusiness.isFrozen || (!summary && !loading)) {
     return null;
@@ -132,6 +163,13 @@ export const BusinessReviewsPanel: React.FC = () => {
                 <span className="mt-3 inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-800">طلب تم تسليمه</span>
               </article>
             ))}
+          </div>
+        )}
+        {summary && summary.reviews.length < summary.reviewCount && nextOffset < 500 && (
+          <div className="mt-5 flex justify-center">
+            <button type="button" onClick={() => void loadMore()} disabled={loadingMore} className="rounded-xl border border-slate-200 px-5 py-2.5 text-xs font-bold text-slate-700 disabled:opacity-50">
+              {loadingMore ? 'جارٍ تحميل المزيد…' : 'عرض تقييمات أقدم'}
+            </button>
           </div>
         )}
       </div>
