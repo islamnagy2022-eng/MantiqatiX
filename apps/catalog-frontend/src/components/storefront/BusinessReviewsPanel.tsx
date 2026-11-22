@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { MessageSquareText, Star } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/production';
@@ -52,6 +52,7 @@ export const BusinessReviewsPanel: React.FC = () => {
     if (!businessId || !currentBusiness?.isVerified || currentBusiness.operationalStatus !== 'ACTIVE' || currentBusiness.isFrozen) {
       setSummary(null);
       setNextOffset(0);
+      setLoadingMore(false);
       setLoading(false);
       return () => { active = false; };
     }
@@ -59,6 +60,7 @@ export const BusinessReviewsPanel: React.FC = () => {
     setLoading(true);
     setSummary(null);
     setNextOffset(0);
+    setLoadingMore(false);
     void supabase.rpc('get_public_business_review_summary', {
       p_business_id: businessId,
       p_limit: 10,
@@ -101,13 +103,14 @@ export const BusinessReviewsPanel: React.FC = () => {
         p_offset: nextOffset,
       });
       if (error || !data || typeof data !== 'object') throw error || new Error('تعذر تحميل تقييمات إضافية');
+      if (currentBusinessIdRef.current !== businessId) return;
       const raw = data as Record<string, unknown>;
       const rawReviews = Array.isArray(raw.reviews) ? raw.reviews : [];
       const page = rawReviews.filter(isPublicReview);
       setSummary((current) => current && current.reviewCount === Number(raw.reviewCount)
         ? { ...current, reviews: [...current.reviews, ...page.filter((item) => !current.reviews.some((existing) => existing.reviewId === item.reviewId))] }
         : current);
-      setNextOffset((current) => current + rawReviews.length);
+      setNextOffset((current) => rawReviews.length === 0 ? 500 : current + rawReviews.length);
     } catch {
       // Keep already loaded public reviews visible if a later page fails.
     } finally {
