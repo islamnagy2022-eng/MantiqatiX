@@ -41,3 +41,16 @@ The source repository already contains the ordered repair chain:
 - Do not apply RC484/RC485 independently or one at a time. Do not create duplicate migrations. Do not use mutable `user_memberships.permissions` metadata as platform-root authority.
 
 No Production DDL/data, function definition, ACL, RLS, Storage, Auth, Edge Function, payment, wallet or user data was changed.
+
+
+## Registry/helper and dependent-policy confirmation
+
+A second read-only catalog query confirmed:
+
+- `private.platform_admins` exists with 1 row, RLS enabled, and FORCE RLS still false.
+- No direct `anon` or `authenticated` table grants were found on the registry.
+- The live `public.is_platform_admin()` helper is SECURITY INVOKER, `search_path=public`, and returns true for active `ADMIN` or `SUPER_ADMIN` membership; it does not consult `private.platform_admins`.
+- 57 live RLS policy expressions still call `is_platform_admin()` and therefore inherit the legacy helper semantics.
+- Existing RC484 source migration `20261119040000_rc484_registry_backed_is_platform_admin.sql` is specifically designed to FORCE RLS on the registry, verify owner/BYPASSRLS conditions and no direct client grants, replace the helper with SECURITY DEFINER + empty search_path backed only by `private.platform_admins`, and preserve tenant-local policy branches. RC485 then updates the seven catalog RPCs.
+
+This confirms RC484 is a platform-wide P0 dependency for RC485 and the 57 dependent RLS policies. The complete RC484→RC485 order must be tested and released together; no isolated helper or policy change is safe.
