@@ -5,6 +5,8 @@ const migrationPath = "supabase/migrations/20261122010000_rc497_verified_busines
 const reviewPanel = fs.readFileSync("apps/catalog-frontend/src/components/storefront/BusinessReviewsPanel.tsx", "utf8");
 const customerReviewPanel = fs.readFileSync("apps/catalog-frontend/src/components/account/CustomerOrderReviews.tsx", "utf8");
 const accountPortal = fs.readFileSync("apps/catalog-frontend/src/modules/account/SubscriberAccountPortal.tsx", "utf8");
+const ownerReviewPanel = fs.readFileSync("apps/catalog-frontend/src/components/merchant/BusinessReviewManagementPanel.tsx", "utf8");
+const merchantDashboard = fs.readFileSync("apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx", "utf8");
 const appShell = fs.readFileSync("apps/catalog-frontend/src/App.tsx", "utf8");
 const migration = fs.readFileSync(migrationPath, "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc497_business_reviews_fixture.sql", "utf8");
@@ -93,6 +95,10 @@ assert.match(customerReviewPanel, /\.eq\('customer_id', userId\)/,
   "customer order list must scope every order query to the authenticated identity");
 assert.match(customerReviewPanel, /order\.status\.toUpperCase\(\) === 'DELIVERED'/,
   "customer review form must only be offered for delivered orders");
+assert.match(ownerReviewPanel, /respond_to_business_review[\\s\\S]*?p_review_id:[\\s\\S]*?p_response:/,
+  "business owner UI must use the scoped response RPC rather than direct table writes");
+assert.match(merchantDashboard, /BusinessReviewManagementPanel[\\s\\S]*?activeTab === 'reviews'/,
+  "business owner review-response panel must be mounted behind the merchant dashboard tab");
 assert.match(accountPortal, /<CustomerOrderReviews \/>/,
   "customer order history and review form must be mounted in the account portal");
 assert.match(appShell, /<BusinessReviewsPanel \/>/,
