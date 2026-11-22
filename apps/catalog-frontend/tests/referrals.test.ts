@@ -47,7 +47,7 @@ test('builds a stable invite URL at the configured public application base', () 
     buildReferralInviteUrl('ab12cd34', 'https://example.test', '/MantiqatiX/legacy/'),
     'https://example.test/MantiqatiX/?ref=AB12CD34',
   );
-  assert.equal(buildReferralInviteUrl('invalid', 'https://example.test', '/'), null);
+  assert.equal(buildReferralInviteUrl('BAD-CODE', 'https://example.test', '/'), null);
 });
 
 test('clears a referral only after a terminal claim result', () => {
