@@ -5122,3 +5122,13 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Review the remaining 65 authenticated SECURITY DEFINER findings individually; do not mass-revoke. Revisit Auth anonymous sign-ins/leaked-password settings and performance lints only with their application impact understood.
 - **Evidence:** exact-head PR checks remained queued with no combined status; no PostgreSQL 17 integration or full forward replay success is claimed. Fresh Supabase health advisor returned no health lints; performance advisor still reports broad existing findings (132 unindexed foreign keys, 375 RLS initplan, 70 unused indexes, 28 multiple permissive policies).
 - **Safety:** read-only Production schema, grants, Edge source/version, logs and advisor inspection; documentation-only PR commits. No Production DB/Auth/RLS/GRANT/Storage/Edge/payment/wallet/customer-data/public-site mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+### Pass 1981–1990 — Li2Lak customer session isolation — 2026-11-22
+- [x] Found and fixed stale customer-order history responses that could update component state after account switch/sign-out.
+- [x] Added request-generation invalidation and render-time identity checks before storing order history, review status, errors or loading completion.
+- [x] Clear order list, review drafts, submission state, notices and errors on identity change/unmount.
+- [x] Prevent stale review-submission responses from writing status into a different account's UI.
+- [x] Extended the RC497 source validator to require the session-generation, identity and stale-result guards.
+- [ ] Exact-head TypeScript build, browser E2E and validator execution must pass before this fix is considered fully verified.
+- **Audit:** `docs/audits/PASS_1981_1990_LI2LAK_CUSTOMER_SESSION_ISOLATION_20261122.md`.
+- **Release state:** no Production change; PR #971 remains unmerged; **PRODUCTION BLOCKED / NOT CERTIFIED**.
