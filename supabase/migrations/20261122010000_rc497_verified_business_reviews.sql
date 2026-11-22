@@ -137,6 +137,23 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'ORDER_BUSINESS_TENANT_MISMATCH';
   END IF;
+  -- Owners and active business members cannot review a business they control.
+  IF EXISTS (
+    SELECT 1
+      FROM public.user_memberships m
+     WHERE m.user_id = v_actor
+       AND m.tenant_id = v_order.tenant_id
+       AND m.business_id = v_order.business_id
+       AND m.status = 'ACTIVE'
+  ) OR EXISTS (
+    SELECT 1
+      FROM public.marketing_provider_profiles pp
+     WHERE pp.business_id = v_order.business_id
+       AND pp.owner_user_id = v_actor
+  ) THEN
+    RAISE EXCEPTION 'BUSINESS_REVIEW_SELF_REVIEW_FORBIDDEN';
+  END IF;
+
   IF coalesce(jsonb_typeof(v_order.items_json), '') <> 'array' THEN
     RAISE EXCEPTION 'ORDER_NOT_REVIEWABLE';
   END IF;
