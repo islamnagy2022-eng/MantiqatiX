@@ -3876,3 +3876,12 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Excluded `restaurant_orders` because no customer Auth identity is stored; MantiGO ride ratings remain separate.
 - Added `docs/product/BUSINESS_REVIEWS_VERIFIED_INTERACTION_SPEC_20261122.md` with business-level-only v1 design, immutable interaction provenance, moderation, scoped owner responses, reporting, safe public aggregation, RLS/RPC contracts and adversarial PostgreSQL acceptance matrix.
 - Design only; no migration, table, UI or Production mutation. Product decisions on moderation, edit window, retention and disputes remain open.
+
+
+## 2026-11-22 — Pass 1761–1770 — AI Studio R7 archive reconciliation
+
+- Inspected uploaded `bizcatalog-manager (11).zip`, internal R7-v7.0.0 manifest dated 2026-11-10, 233 files/45 MiB extracted.
+- Marked archive as reference-only: local JSON declared authoritative, client Supabase module references SERVICE_ROLE_KEY, server contains fixed secret fallbacks, browser auth role persists in localStorage, and SQL defaults new businesses to verified and payment status to paid.
+- No archive code or SQL was merged. Detailed evidence: `docs/audits/PASS_1761_1770_AI_STUDIO_R7_ARCHIVE_RECONCILIATION_20261122.md`.
+- Tightened homepage ad URL validation to HTTPS-only and added HTTP downgrade regression coverage; exact-head CI is still queued.
+- No Production changes/deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
