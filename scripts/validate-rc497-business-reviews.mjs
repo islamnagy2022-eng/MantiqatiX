@@ -188,10 +188,10 @@ assert.ok(workflow.includes(migrationPath), "dedicated workflow must apply RC497
 assert.ok(workflow.includes("supabase/tests/rc497_business_reviews_integration.sql"), "dedicated workflow must execute integration tests");
 assert.ok(forwardReplay.includes("node scripts/validate-rc497-business-reviews.mjs"), "full forward replay must run RC497 source validation");
 assert.ok(gate.includes(JSON.stringify("20261122010000_rc497_verified_business_reviews.sql")), "exact release gate must track RC497 migration");
-assert.match(gate, /required\.length, 77/, "exact release gate must count all 77 required migrations");
+assert.match(gate, /required\.length, 77/, "exact release gate must count all 78 required migrations");
 assert.ok(verifier.includes(JSON.stringify("20261122010000_rc497_verified_business_reviews.sql")), "Production verifier must track RC497 migration");
 assert.ok(liveContract.includes('"20261122010000"'), "live reconciliation contract must include RC497 version");
-assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 77,
+assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 78,
   "release manifest must track all 77 required versions");
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261122010000"),
   "release manifest required version list must include RC497");
@@ -199,4 +199,6 @@ assert.ok(manifest.required_release_migration_ledger_check.missing_versions.incl
   "Production must remain blocked until RC497 is explicitly applied");
 assert.equal(manifest.rc497_verified_business_reviews.status, "SOURCE_CANDIDATE_NOT_APPLIED",
   "manifest must not claim RC497 is deployed");
+assert.equal(manifest.rc497_verified_business_reviews.pr, 971,
+  "manifest must reference the active rebased Li2Lak pull request");
 console.log("RC497_BUSINESS_REVIEWS_SOURCE_CONTRACT=PASS");
