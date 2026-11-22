@@ -55,6 +55,8 @@ DECLARE
   v_is_authorized boolean := false;
   v_event_id text;
   v_obligation_id text;
+  v_existing_event public.payment_events%rowtype;
+  v_existing_obligation public.financial_obligations%rowtype;
 BEGIN
   v_payment_intent_id := p_payment_intent_id;
   IF auth.uid() IS NOT NULL AND auth.uid() <> p_user_id THEN
@@ -192,46 +194,98 @@ BEGIN
   END IF;
   IF v_commission_amount > v_intent.amount THEN RAISE EXCEPTION 'COMMISSION_EXCEEDS_ORDER'; END IF;
 
+  v_event_id := 'cash_confirmed:' || v_payment_intent_id;
+  v_obligation_id := 'cash_commission:' || v_payment_intent_id;
+
+  -- Do not let a pre-existing event silently suppress a new financial record.
+  -- A pre-existing row is acceptable only when every monetary and actor binding matches.
+  SELECT * INTO v_existing_event
+    FROM public.payment_events
+   WHERE event_id = v_event_id
+   FOR UPDATE;
+  IF FOUND AND (
+       v_existing_event.tenant_id IS DISTINCT FROM v_intent.tenant_id
+    OR v_existing_event.payment_id IS DISTINCT FROM v_payment_intent_id
+    OR v_existing_event.amount IS DISTINCT FROM v_intent.amount
+    OR v_existing_event.payment_method IS DISTINCT FROM 'CASH_ON_DELIVERY'
+    OR v_existing_event.status IS DISTINCT FROM 'PROCESSED'
+    OR v_existing_event.raw_payload->>'action' IS DISTINCT FROM 'CASH_CONFIRMED'
+    OR v_existing_event.raw_payload->>'confirmed_by' IS DISTINCT FROM p_user_id::text
+    OR v_existing_event.raw_payload->>'previous_status' IS DISTINCT FROM v_intent.status
+    OR v_existing_event.raw_payload->>'new_status' IS DISTINCT FROM 'SUCCEEDED'
+    OR coalesce((v_existing_event.raw_payload->>'commission_amount')::numeric, -1) IS DISTINCT FROM v_commission_amount
+    OR v_existing_event.raw_payload->>'commission_rule_id' IS DISTINCT FROM v_rule.id::text
+  ) THEN
+    RAISE EXCEPTION 'CASH_PAYMENT_EVENT_CONFLICT';
+  END IF;
+
+  SELECT * INTO v_existing_obligation
+    FROM public.financial_obligations
+   WHERE id = v_obligation_id
+   FOR UPDATE;
+  IF FOUND AND (
+       v_existing_obligation.tenant_id IS DISTINCT FROM v_intent.tenant_id
+    OR v_existing_obligation.business_id IS DISTINCT FROM v_order.business_id
+    OR v_existing_obligation.order_id IS DISTINCT FROM v_order.id
+    OR v_existing_obligation.payment_intent_id IS DISTINCT FROM v_intent.id::text
+    OR v_existing_obligation.beneficiary_type IS DISTINCT FROM 'PLATFORM'
+    OR v_existing_obligation.beneficiary_id IS DISTINCT FROM 'PLATFORM'
+    OR v_existing_obligation.obligation_type IS DISTINCT FROM 'PLATFORM_COMMISSION'
+    OR v_existing_obligation.gross_amount IS DISTINCT FROM v_intent.amount
+    OR v_existing_obligation.amount IS DISTINCT FROM v_commission_amount
+    OR v_existing_obligation.currency IS DISTINCT FROM v_intent.currency
+    OR v_existing_obligation.status IS DISTINCT FROM 'DUE'
+    OR v_existing_obligation.payment_method IS DISTINCT FROM 'CASH'
+    OR v_existing_obligation.settlement_id IS NOT NULL
+    OR v_existing_obligation.settled_at IS NOT NULL
+    OR v_existing_obligation.metadata->>'reason' IS DISTINCT FROM 'CUSTOMER_PAID_PROVIDER_DIRECTLY'
+    OR v_existing_obligation.metadata->>'commission_rule_id' IS DISTINCT FROM v_rule.id::text
+    OR v_existing_obligation.metadata->>'confirmed_by' IS DISTINCT FROM p_user_id::text
+    OR coalesce((v_existing_obligation.metadata->>'commission_rate')::numeric, -1) IS DISTINCT FROM coalesce(v_rule.percentage, 0)
+  ) THEN
+    RAISE EXCEPTION 'CASH_COMMISSION_OBLIGATION_CONFLICT';
+  END IF;
+
   UPDATE public.payment_intents
      SET status = 'SUCCEEDED', updated_at = now()
    WHERE id = v_payment_intent_id;
 
-  v_event_id := 'cash_confirmed:' || v_payment_intent_id::text;
-  INSERT INTO public.payment_events (
-    id, tenant_id, event_id, payment_id, amount, payment_method, status, raw_payload, created_at
-  ) VALUES (
-    pg_catalog.gen_random_uuid(), v_intent.tenant_id, v_event_id, p_payment_intent_id,
-    v_intent.amount, 'CASH_ON_DELIVERY', 'PROCESSED',
-    jsonb_build_object(
-      'action', 'CASH_CONFIRMED',
-      'confirmed_by', p_user_id,
-      'previous_status', v_intent.status,
-      'new_status', 'SUCCEEDED',
-      'commission_amount', v_commission_amount,
-      'commission_rule_id', v_rule.id,
-      'timestamp', now()
-    ),
-    now()
-  )
-  ON CONFLICT (event_id) DO NOTHING;
+  IF v_existing_event.id IS NULL THEN
+    INSERT INTO public.payment_events (
+      id, tenant_id, event_id, payment_id, amount, payment_method, status, raw_payload, created_at
+    ) VALUES (
+      pg_catalog.gen_random_uuid(), v_intent.tenant_id, v_event_id, p_payment_intent_id,
+      v_intent.amount, 'CASH_ON_DELIVERY', 'PROCESSED',
+      jsonb_build_object(
+        'action', 'CASH_CONFIRMED',
+        'confirmed_by', p_user_id,
+        'previous_status', v_intent.status,
+        'new_status', 'SUCCEEDED',
+        'commission_amount', v_commission_amount,
+        'commission_rule_id', v_rule.id,
+        'timestamp', now()
+      ),
+      now()
+    );
+  END IF;
 
-  v_obligation_id := 'cash_commission:' || v_payment_intent_id::text;
-  INSERT INTO public.financial_obligations (
-    id, tenant_id, business_id, order_id, payment_intent_id, beneficiary_type,
-    beneficiary_id, obligation_type, gross_amount, amount, currency, status,
-    payment_method, metadata
-  ) VALUES (
-    v_obligation_id, v_intent.tenant_id, v_order.business_id, v_order.id,
-    v_intent.id::text, 'PLATFORM', 'PLATFORM', 'PLATFORM_COMMISSION',
-    v_intent.amount, v_commission_amount, v_intent.currency, 'DUE', 'CASH',
-    jsonb_build_object(
-      'reason', 'CUSTOMER_PAID_PROVIDER_DIRECTLY',
-      'commission_rule_id', v_rule.id,
-      'commission_rate', coalesce(v_rule.percentage, 0),
-      'confirmed_by', p_user_id
-    )
-  )
-  ON CONFLICT (id) DO NOTHING;
+  IF v_existing_obligation.id IS NULL THEN
+    INSERT INTO public.financial_obligations (
+      id, tenant_id, business_id, order_id, payment_intent_id, beneficiary_type,
+      beneficiary_id, obligation_type, gross_amount, amount, currency, status,
+      payment_method, metadata
+    ) VALUES (
+      v_obligation_id, v_intent.tenant_id, v_order.business_id, v_order.id,
+      v_intent.id::text, 'PLATFORM', 'PLATFORM', 'PLATFORM_COMMISSION',
+      v_intent.amount, v_commission_amount, v_intent.currency, 'DUE', 'CASH',
+      jsonb_build_object(
+        'reason', 'CUSTOMER_PAID_PROVIDER_DIRECTLY',
+        'commission_rule_id', v_rule.id,
+        'commission_rate', coalesce(v_rule.percentage, 0),
+        'confirmed_by', p_user_id
+      )
+    );
+  END IF;
 
   SELECT *
     INTO v_intent
