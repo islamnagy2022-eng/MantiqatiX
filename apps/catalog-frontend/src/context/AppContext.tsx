@@ -471,8 +471,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     referralClaimKeyRef.current = claimKey;
     let active = true;
 
-    void supabase.rpc('claim_referral', { p_code: code })
-      .then(({ data, error }) => {
+    void (async () => {
+      try {
+        const { data, error } = await supabase.rpc('claim_referral', { p_code: code });
         if (!active) return;
         if (error) {
           const message = String(error.message || error.code || '');
@@ -484,10 +485,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return;
         }
         clearPendingReferral();
-      })
-      .catch(() => {
+      } catch {
         if (active) referralClaimKeyRef.current = null;
-      });
+      }
+    })();
 
     return () => { active = false; };
   }, [authSession.isAuthenticated, authSession.userId]);
