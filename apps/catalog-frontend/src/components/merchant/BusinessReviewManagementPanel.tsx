@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertCircle, LoaderCircle, MessageSquareText, Send, Star } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/production';
@@ -34,6 +34,8 @@ export const BusinessReviewManagementPanel: React.FC = () => {
   const [count, setCount] = useState(0);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextOffset, setNextOffset] = useState(0);
   const [saving, setSaving] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -43,10 +45,13 @@ export const BusinessReviewManagementPanel: React.FC = () => {
       setReviews([]);
       setAverage(null);
       setCount(0);
+      setNextOffset(0);
+      setLoadingMore(false);
       return;
     }
     setLoading(true);
     setError('');
+    setNextOffset(0);
     try {
       const { data, error: rpcError } = await supabase.rpc('get_public_business_review_summary', {
         p_business_id: currentBusiness.id,
@@ -54,9 +59,12 @@ export const BusinessReviewManagementPanel: React.FC = () => {
         p_offset: 0,
       });
       if (rpcError) throw rpcError;
+      if (businessIdRef.current !== currentBusiness.id) return;
       if (!data || typeof data !== 'object') throw new Error('استجابة التقييمات غير صالحة');
       const result = data as Record<string, unknown>;
-      const rows = Array.isArray(result.reviews) ? result.reviews.filter(isReviewRow) : [];
+      const rawRows = Array.isArray(result.reviews) ? result.reviews : [];
+      const rows = rawRows.filter(isReviewRow);
+      setNextOffset(rawRows.length);
       const reviewCount = Number(result.reviewCount);
       const averageRating = result.averageRating === null ? null : Number(result.averageRating);
       if (!Number.isFinite(reviewCount) || reviewCount < 0
@@ -69,14 +77,40 @@ export const BusinessReviewManagementPanel: React.FC = () => {
     } catch (cause) {
       setReviews([]);
       setCount(0);
+      if (businessIdRef.current !== currentBusiness.id) return;
       setAverage(null);
       setError(cause instanceof Error ? cause.message : 'تعذر تحميل التقييمات');
     } finally {
-      setLoading(false);
+      if (businessIdRef.current === currentBusiness.id) setLoading(false);
     }
   }, [currentBusiness?.id, currentBusiness?.isVerified, currentBusiness?.operationalStatus, currentBusiness?.isFrozen]);
 
   useEffect(() => { void load(); }, [load]);
+
+  const loadMore = async () => {
+    const businessId = currentBusiness?.id;
+    if (!businessId || loadingMore || loading || nextOffset >= count || nextOffset >= 500) return;
+    setLoadingMore(true);
+    try {
+      const { data, error: rpcError } = await supabase.rpc('get_public_business_review_summary', {
+        p_business_id: businessId,
+        p_limit: 20,
+        p_offset: nextOffset,
+      });
+      if (rpcError) throw rpcError;
+      if (businessIdRef.current !== businessId) return;
+      if (!data || typeof data !== 'object') throw new Error('استجابة التقييمات غير صالحة');
+      const result = data as Record<string, unknown>;
+      const rawRows = Array.isArray(result.reviews) ? result.reviews : [];
+      const rows = rawRows.filter(isReviewRow);
+      setReviews((current) => [...current, ...rows.filter((row) => !current.some((existing) => existing.reviewId === row.reviewId))]);
+      setNextOffset((current) => rawRows.length === 0 ? 500 : current + rawRows.length);
+    } catch (cause) {
+      if (businessIdRef.current === businessId) setError(cause instanceof Error ? cause.message : 'تعذر تحميل تقييمات إضافية');
+    } finally {
+      if (businessIdRef.current === businessId) setLoadingMore(false);
+    }
+  };
 
   const respond = async (reviewId: string) => {
     const response = (drafts[reviewId] || '').trim();
@@ -155,6 +189,13 @@ export const BusinessReviewManagementPanel: React.FC = () => {
               )}
             </article>
           ))}
+        </div>
+      )}
+      {reviews.length < count && nextOffset < 500 && (
+        <div className="mt-4 flex justify-center">
+          <button type="button" onClick={() => void loadMore()} disabled={loading || loadingMore} className="rounded-xl border border-slate-200 px-5 py-2.5 text-xs font-bold text-slate-700 disabled:opacity-50">
+            {loadingMore ? 'جارٍ تحميل المزيد…' : 'عرض تقييمات أقدم'}
+          </button>
         </div>
       )}
       <p className="mt-4 text-[11px] text-slate-400">يتم التحقق من صلاحية الرد داخل قاعدة البيانات عند كل إرسال؛ إخفاء عناصر الواجهة ليس وسيلة تفويض.</p>
