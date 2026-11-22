@@ -3254,6 +3254,72 @@ Next: inspect the MantiGO ratings table-creation migration, triggers, constraint
 The initial rating immutability migration (`20261006121810`) is superseded at the RPC-definition level by later `20261006171000_mantigo_notification_lifecycle_v1.sql`, which redefines `mantigo_rate_ride` with `ON CONFLICT (ride_id,customer_id) DO UPDATE`. Current-main chronological source therefore allows a rating/comment update for the same ride/customer; the old immutability claim is not accurate for the final migration chain. The customer-rides RPC at `20261006180000` returns the caller's own rating only. Confirm intended edit policy and add disposable PostgreSQL tests before changing this subsystem. No Production change occurred.
 
 
+# Latest continuation checkpoint — 2026-11-22 — Pass 1721–1770
+
+**Canonical source:** `islamnagy2022-eng/MantiqatiX`, `main`.  
+**Working branch:** `fix/li2lak-marketplace-ads-resilience-20261122-v3`.  
+**Current PR:** #969 (open; latest exact-head CI is not green/complete).  
+**Production:** **BLOCKED / NOT CERTIFIED**.
+
+## Pass 1721–1730 — Marketplace reliability
+- Marketplace Home already uses the approved public ad RPC and real catalog discounts; no duplicate directory was built.
+- Added independent HOME_HERO / HOME_SPONSORED loading, per-placement failure isolation, safe creative/target URL parsing, credential rejection and ad deduplication.
+- Initial four-case regression subset passed on an earlier exact source head; latest expanded suite still needs fresh exact-head CI.
+
+## Pass 1731–1740 — Live Supabase schema and media
+- Production migration ledger: 310 rows through `20261110150618`; source migration replay is not evidence that those migrations are applied in Production.
+- No general business/storefront/product/service review table exists in the live inventory; `mantigo_ride_ratings` remains ride/captain-only.
+- Storage has two 5 MiB image-only buckets: private `mantiqatix-media` and public-read `mantiqatix-profile-media`; no video/reels pipeline.
+- Security Advisor: 9 RLS-enabled/no-policy relations, one anonymous public ads SECURITY DEFINER RPC, 65 authenticated-callable SECURITY DEFINER functions. The nine relations have no direct anon/authenticated grants; preserve their backend-only boundary.
+- Evidence: `docs/audits/PASS_1731_1740_LIVE_SUPABASE_SCHEMA_STORAGE_REVIEW_20261122.md`.
+
+## Pass 1741–1750 — Platform-admin authorization drift
+- Live `private.platform_admins`: one row, RLS enabled, FORCE RLS false, no direct client grants.
+- Live `public.is_platform_admin()` remains SECURITY INVOKER with `search_path=public`, membership-derived rather than private-registry-backed; 57 live RLS policies call it.
+- Seven catalog/stock SECURITY DEFINER RPCs still use legacy membership `scope/full_control` metadata and `search_path=public`.
+- Existing RC484→RC485 source chain is the repair; do not duplicate or apply either independently. Production ledger remains before this release chain.
+- Evidence: `docs/audits/PASS_1741_1750_LIVE_CATALOG_RPC_AUTHORIZATION_RECHECK_20261122.md`.
+
+## Pass 1751–1760 — Verified business review design
+- Standard orders can qualify only at DELIVERED with authenticated `customer_id`; medical appointments only at COMPLETED with authenticated `patient_id`.
+- `restaurant_orders` has no customer Auth ID and is excluded; MantiGO ratings stay separate.
+- Designed a business-level-only review contract with immutable verified-interaction provenance, moderation, scoped business replies, reports, safe aggregates, RLS/RPC boundaries and adversarial tests. No schema/UI was created.
+- Evidence: `docs/product/BUSINESS_REVIEWS_VERIFIED_INTERACTION_SPEC_20261122.md`.
+
+## Pass 1761–1770 — Uploaded AI Studio R7 archive
+- Uploaded archive is an R7-v7.0.0 snapshot dated 2026-11-10, 233 files/45 MiB extracted, and is reference-only rather than the canonical runtime.
+- Static inspection found a browser module reference to `SUPABASE_SERVICE_ROLE_KEY`, hardcoded fallback HMAC/JWT/backup secrets, local JSON declared authoritative, localStorage-persisted role/session presentation state, and fail-open verified/paid database defaults. Actual service-role emission into a production bundle was not proven; nevertheless the browser must never reference a service-role secret.
+- No archive code or SQL was copied into current app. Preserve useful UX/mobile assets only after contract/security review.
+- Evidence: `docs/audits/PASS_1761_1770_AI_STUDIO_R7_ARCHIVE_RECONCILIATION_20261122.md`.
+
+## Current Marketplace source work
+- Ad creative and target URLs now require HTTPS; credential-bearing URLs are rejected. Seven focused regression cases are present, including HTTP downgrade rejection.
+- PR #969 includes the implementation, tests, audit documents and continuity updates. The latest exact-head commit must pass all required CI before merge; cancelled/queued checks are not successes.
+
+## Release blockers and safety
+- Production is not certified: RC484/RC485 authorization drift, 57 dependent policy consumers, directory contact-consent/Edge parity, encrypted off-site DB+Storage backup, key recovery, independent PostgreSQL 17 restore/rollback and other payment/finance gates remain unresolved.
+- No Production DDL/DML, Auth, RLS/GRANT, Storage, Edge, payment, wallet, customer-data or public deployment mutation occurred during these passes.
+- Preserve mobile app source/assets and current main architecture. Supabase remains authoritative; no local JSON source-of-truth replacement.
+
+
+## Pass 1771–1780 — Live directory Edge consent drift — 2026-11-22
+
+A fresh read-only check confirms `directory-listings` is ACTIVE v16 with `verify_jwt=false`, deployed SHA256 `13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0`. Deployed bundle contains only 3 files; current main has 7, including public output sanitization, contact-consent pagination and platform-admin registry modules absent from the live deployment. The deployed GET still returns phone/secondary phone/address. Live aggregate check: 869 published rows, 869 with phone and 869 with address; contact-consent registry table is absent. This is a confirmed P0 privacy blocker. Do not deploy the Edge bundle or apply migrations until encrypted off-site DB+Storage backup, key recovery and independent PostgreSQL 17 restore/rollback pass. Evidence: `docs/audits/PASS_1771_1780_DIRECTORY_EDGE_CONSENT_LIVE_DRIFT_20261122.md`.
+
+
+## Pass 1781–1790 — Live payment RPC and Edge drift — 2026-11-22
+
+Fresh read-only review confirms all seven critical deployed Edge entrypoints differ from current main. Six current-source payment/subscription/MantiGO atomic RPC contracts are absent in live PostgreSQL. Legacy subscription success/creation and digital-page finalization signatures exist but do not match current source. The three digital-page claim/release/finalize RPCs have authenticated EXECUTE but deny service_role EXECUTE, while the current Edge path calls them with the service key. The live `post_financial_journal_backend` also denies service_role EXECUTE, so the current finance Edge call cannot pass its ACL. Do not grant the legacy journal RPC as a shortcut. Evidence: `docs/audits/PASS_1781_1790_LIVE_PAYMENT_RPC_AND_EDGE_CONTRACT_DRIFT_20261122.md`. No payment operation or Production mutation occurred. Production remains **BLOCKED / NOT CERTIFIED**.
+
+## Pass 1791–1800 — Live directory contact-consent release gate recheck — 2026-11-22
+
+A fresh read-only retrieval of the live `directory-listings` v16 bundle confirms the deployed GET projection includes phone, secondary phone and address but does not load the current consent/sanitization modules. The live consent registry table is absent and RC473 has zero migration-ledger rows. Aggregate-only count: 869 published listings; 869 with phone; 178 with secondary phone; 869 with address. Current GitHub source includes a fail-closed consent-aware sanitizer, four-scope consent lookup, and owner/platform authorization modules, but they are not deployed. The complete evidence and safe release sequence are in `docs/audits/PASS_1791_1800_LIVE_DIRECTORY_CONSENT_RELEASE_GATE_20261122.md`.
+
+Do not deploy only the Edge bundle or only RC473. First require encrypted off-site DB+Storage backup, key recovery, independent PostgreSQL 17 restore/rollback, chronological migration rehearsal, then coordinated schema+complete Edge release and anonymous/owner positive-negative tests. Security Advisor also reports 9 RLS-enabled/no-policy tables, 65 authenticated-callable SECURITY DEFINER functions, 1 anon-callable SECURITY DEFINER function, and leaked-password protection disabled; these findings require contextual ACL review, not blanket revocation. No Production mutation or deployment occurred. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+## Pass 1801–1810 — Li2Lak marketplace ad hardening — 2026-11-22
+
+Hardened the existing Marketplace Home ad URL contract on PR #969. HTTPS is required; non-default ports, embedded credentials, localhost, `.localhost`, `.local`, and IPv4/IPv6 literal hosts are rejected. Invalid creative URLs discard the ad; invalid target URLs leave a non-clickable creative. Fixed trailing-dot hostname normalization and added regression cases. Commits: `6b3386b`, `f2411ee`, `9316c5d`, `820778a`. Evidence: `docs/audits/PASS_1801_1810_LI2LAK_MARKETPLACE_AD_HARDENING_20261122.md`. Exact-head CI was still queued at last check; no pass claimed. No Production change. Continue next with Marketplace public-offer permission/availability regression coverage and then owner-scoped media design; do not start general business reviews or video deployment without separate provenance/moderation and storage contracts. Production remains **BLOCKED / NOT CERTIFIED**.
 ### Pass 1821–1830 — Li2Lak verified review lifecycle and persisted checkout — 2026-11-22
 
 - [x] Added customer-only `get_customer_business_review_status(uuid)`; foreign order IDs return no review data and the RPC is authenticated-only.
