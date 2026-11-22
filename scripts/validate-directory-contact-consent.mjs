@@ -12,6 +12,7 @@ import { collectActiveAddressConsentIds } from "../supabase/functions/directory-
 import { collectActiveContactConsentScopes } from "../supabase/functions/directory-listings/contact-consent-pagination.mjs";
 
 const source = readFileSync("supabase/functions/directory-listings/index.ts", "utf8");
+const releaseGate = readFileSync("supabase/functions/directory-listings/release-gate.mjs", "utf8");
 const listingOwnerHelper = source.split("const resolveListingOwner = async")[1]?.split("\n  };")[0] || "";
 const ownedListingUpdate = source.split('if (action === "UPDATE_OWNED_LISTING")')[1]?.split('\n  if (action === "')[0] || "";
 const migration = readFileSync("supabase/migrations/20261118020000_rc473_directory_listing_contact_consent.sql", "utf8");
@@ -309,6 +310,18 @@ const checks = [
     source.includes('revoked_at: new Date().toISOString()') &&
     source.includes('revocation_reason: "OWNER_WITHDREW_CONSENT"') &&
     source.includes('.eq("listing_id", listingId).eq("scope", scope).is("revoked_at", null)')],
+   ["directory remains disabled by default unless exact server flag and consent registry are both ready",
+     source.includes('Deno.env.get("DIRECTORY_LISTINGS_ENABLED")') &&
+     source.includes('if (directoryListingsEnabled !== "true")') &&
+     source.includes("resolveDirectoryListingsReleaseGate(") &&
+     source.includes("consentRegistryAvailable = !consentRegistryProbeError") &&
+     source.indexOf('resolveDirectoryListingsReleaseGate(req.method, directoryListingsEnabled, false)') < source.indexOf('const supabaseUrl = Deno.env.get("SUPABASE_URL")')],
+   ["directory release gate only allows exact true and requires registry availability",
+     releaseGate.includes('enabledFlag === "true"') &&
+     releaseGate.includes('consentRegistryAvailable !== true') &&
+     releaseGate.includes('DIRECTORY_LISTINGS_DISABLED_FOR_V1') &&
+     releaseGate.includes('directoryDisabled: true')],
+
 ];
 for (const [name, ok] of checks) {
   console.log((ok ? "PASS " : "FAIL ") + name);
