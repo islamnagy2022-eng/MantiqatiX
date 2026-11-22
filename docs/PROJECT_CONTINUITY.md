@@ -1,3 +1,10 @@
+## Scope decision — monthly subscriptions before launch; Li2Lak/Paymob/other finance after launch (2026-11-22)
+
+- V1 includes the public website/catalog, owner sign-in/basic catalog management, and the monthly subscription path only (plan/status/entitlement and the already-existing approved monthly renewal/activation path).
+- V1 excludes every Li2Lak workflow, Paymob integration changes/new payment intents/webhooks, and all non-monthly finance/accounting: commissions, wallet, journal, refunds, payouts, reconciliation and settlement.
+- Do not add a new Paymob dependency to make monthly subscriptions appear ready. Verify the existing monthly subscription path independently; if it depends on an unavailable/unverified provider path, keep that subscription action gated rather than claiming it works.
+- PR #971 stays post-launch. PR #972 remains the website-first launch branch and its release gate must not be widened by deferred work.
+
 ## Production Edge update — website-first privacy boundary (2026-11-22)
 
 - Deployed and read back public-catalog v9 and public-catalog-directory v19. Both preserve verify_jwt=false and every deployed file is byte-for-byte equal to current main, including the shared contact consent helper.
