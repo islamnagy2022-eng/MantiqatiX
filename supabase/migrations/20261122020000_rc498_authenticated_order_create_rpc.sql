@@ -25,8 +25,24 @@ begin
    and (auth.uid() is null or auth.uid() is distinct from p_customer_id) then
    raise exception 'CUSTOMER_REQUIRED';
  end if;
- if p_tenant_id is null or p_tenant_id='' or p_business_id is null or p_client_idempotency_key is null or length(trim(p_client_idempotency_key))<8 then raise exception 'INVALID_ORDER_REQUEST'; end if;
- if p_items_json is null or jsonb_typeof(p_items_json)<>'array' or jsonb_array_length(p_items_json)=0 then raise exception 'INVALID_ITEMS'; end if;
+ if p_order_id is null or p_tenant_id is null or p_tenant_id='' or p_business_id is null
+   or p_client_idempotency_key is null or length(trim(p_client_idempotency_key))<8
+   or length(trim(p_client_idempotency_key))>200 then
+   raise exception 'INVALID_ORDER_REQUEST';
+ end if;
+ if p_customer_name is null or length(btrim(p_customer_name))=0 or length(btrim(p_customer_name))>200
+   or p_customer_phone is null or length(p_customer_phone)>32
+   or p_delivery_address is null or length(p_delivery_address)>500
+   or (p_notes is not null and length(p_notes)>2000) then
+   raise exception 'INVALID_ORDER_CONTACT';
+ end if;
+ if p_metadata is not null and jsonb_typeof(p_metadata) is distinct from 'object' then
+   raise exception 'INVALID_ORDER_METADATA';
+ end if;
+ if p_items_json is null or jsonb_typeof(p_items_json)<>'array'
+   or jsonb_array_length(p_items_json)=0 or jsonb_array_length(p_items_json)>100 then
+   raise exception 'INVALID_ITEMS';
+ end if;
  select exists(select 1 from user_memberships m where m.user_id=p_customer_id and m.tenant_id=p_tenant_id and coalesce(m.status,'ACTIVE')='ACTIVE') into v_customer_member;
  if not v_customer_member and not exists(select 1 from user_memberships m where m.user_id=p_customer_id and coalesce(m.status,'ACTIVE')='ACTIVE' and upper(m.role)='CUSTOMER') then raise exception 'CUSTOMER_MEMBERSHIP_REQUIRED'; end if;
  if not exists(select 1 from businesses b where b.id=p_business_id and b.tenant_id=p_tenant_id and coalesce(b.status,'ACTIVE')='ACTIVE') then raise exception 'BUSINESS_TENANT_MISMATCH'; end if;
@@ -59,14 +75,24 @@ begin
  if not found then insert into catalog_business_settings(business_id,tenant_id) values(p_business_id,p_tenant_id) on conflict (business_id) do nothing; select * into v_settings from catalog_business_settings where business_id=p_business_id; end if;
  v_currency:=upper(coalesce(v_settings.currency,p_currency,'EGP')); v_delivery:=v_settings.delivery_fee;
  for v_item in select value from jsonb_array_elements(p_items_json) loop
-   v_token:=coalesce(nullif(v_item->>'catalogItemId',''),nullif(v_item->>'productId','')); if v_token is null then raise exception 'CATALOG_ITEM_REQUIRED'; end if;
+   if jsonb_typeof(v_item) is distinct from 'object' then raise exception 'INVALID_ITEM'; end if;
+   v_token:=coalesce(nullif(v_item->>'catalogItemId',''),nullif(v_item->>'productId',''));
+   if v_token is null or length(v_token)>100 then raise exception 'CATALOG_ITEM_REQUIRED'; end if;
    select * into v_ci from catalog_items ci where ci.tenant_id=p_tenant_id and ci.business_id=p_business_id and ci.status='ACTIVE' and (ci.id::text=v_token or ci.legacy_ref=v_token) and (ci.branch_id is null or ci.branch_id=p_branch_id) order by (ci.branch_id is not null) desc limit 1;
    if not found then raise exception 'CATALOG_ITEM_NOT_FOUND:%',v_token; end if;
-   v_qty:=coalesce(nullif(v_item->>'quantity','')::numeric,0); if v_qty<=0 or v_qty>10000 or v_qty<>trunc(v_qty) then raise exception 'INVALID_QUANTITY'; end if;
+   v_qty:=coalesce(nullif(v_item->>'quantity','')::numeric,0); if v_qty<=0 or v_qty>1000 or v_qty<>trunc(v_qty) then raise exception 'INVALID_QUANTITY'; end if;
+   if jsonb_typeof(coalesce(v_item->'selectedOptionIds','[]'::jsonb)) is distinct from 'array' then raise exception 'INVALID_ITEM_OPTIONS'; end if;
+   v_requested_opts:=jsonb_array_length(coalesce(v_item->'selectedOptionIds','[]'::jsonb));
+   if v_requested_opts>20 or exists (
+     select 1 from jsonb_array_elements(coalesce(v_item->'selectedOptionIds','[]'::jsonb)) option_value
+      where jsonb_typeof(option_value) is distinct from 'string'
+         or length(btrim(option_value #>> '{}'))=0
+         or length(option_value #>> '{}')>100
+   ) then raise exception 'INVALID_ITEM_OPTIONS'; end if;
    select * into v_price from catalog_item_prices cp where cp.catalog_item_id=v_ci.id and cp.tenant_id=p_tenant_id and cp.status='ACTIVE' and cp.effective_from<=now() and (cp.effective_to is null or cp.effective_to>now()) and (cp.branch_id is null or cp.branch_id=p_branch_id) order by (cp.branch_id is not null) desc,cp.effective_from desc,cp.version desc limit 1;
    if not found then raise exception 'CATALOG_PRICE_NOT_FOUND:%',v_ci.id; end if;
    select coalesce(sum(o.price_delta),0),count(o.id) into v_opt_total,v_opt_count from catalog_item_options o where o.catalog_item_id=v_ci.id and o.status='ACTIVE' and o.id::text in (select jsonb_array_elements_text(coalesce(v_item->'selectedOptionIds','[]'::jsonb)));
-   v_requested_opts:=jsonb_array_length(coalesce(v_item->'selectedOptionIds','[]'::jsonb)); if v_opt_count<>v_requested_opts then raise exception 'INVALID_ITEM_OPTIONS'; end if;
+   if v_opt_count<>v_requested_opts then raise exception 'INVALID_ITEM_OPTIONS'; end if;
    v_line:=round((v_price.unit_price+v_opt_total)*v_qty,2); v_line_tax:=case when v_settings.tax_inclusive then 0 else round(v_line*v_ci.tax_rate/100,2) end;
    v_subtotal:=v_subtotal+v_line; v_tax:=v_tax+v_line_tax; v_pricing_version:=greatest(v_pricing_version,v_price.version);
    v_snapshot:=v_snapshot||jsonb_build_array(jsonb_build_object('catalog_item_id',v_ci.id,'legacy_ref',v_ci.legacy_ref,'name_ar',v_ci.name_ar,'quantity',v_qty,'unit_price',v_price.unit_price,'option_total',v_opt_total,'tax_rate',v_ci.tax_rate,'line_subtotal',v_line,'line_tax',v_line_tax,'price_version',v_price.version,'price_effective_from',v_price.effective_from,'branch_id',v_price.branch_id));
