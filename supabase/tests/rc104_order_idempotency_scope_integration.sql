@@ -175,6 +175,7 @@ DECLARE
   v_oid oid := to_regprocedure('public.create_order_backend(uuid, character varying, uuid, character varying, uuid, character varying, numeric, numeric, numeric, numeric, numeric, character varying, text, text, text, jsonb, text, jsonb)');
   v_config text[];
   v_result jsonb;
+  v_rejected boolean := false;
 BEGIN
   IF NOT has_function_privilege('authenticated', v_oid, 'EXECUTE') THEN
     RAISE EXCEPTION 'RC498_AUTHENTICATED_EXECUTE_MISSING';
@@ -215,6 +216,28 @@ BEGIN
        AND total_amount=125
   ) THEN
     RAISE EXCEPTION 'RC498_AUTHENTICATED_ORDER_NOT_PERSISTED_WITH_SERVER_PRICE';
+  END IF;
+
+  -- Authenticated callers can invoke this RPC directly, so SQL must reject
+  -- fractional quantities even when the Edge Function's integer check is bypassed.
+  BEGIN
+    PERFORM public.create_order_backend(
+      '30000000-0000-4000-8000-000000000092',
+      'tenant-a',
+      '20000000-0000-4000-8000-000000000001',
+      'branch-a',
+      auth.uid(),
+      'fractional-quantity-key-rc498',
+      0,0,0,0,0,'EGP','Customer One','01000000000','Fractional quantity attempt',
+      '[{"catalogItemId":"40000000-0000-4000-8000-000000000001","quantity":1.5,"selectedOptionIds":[]}]'::jsonb,
+      null,'{}'::jsonb
+    );
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'INVALID_QUANTITY' THEN RAISE; END IF;
+    v_rejected := true;
+  END;
+  IF NOT v_rejected THEN
+    RAISE EXCEPTION 'RC498_FRACTIONAL_QUANTITY_ACCEPTED';
   END IF;
 END
 $rc498_authenticated_order$;
