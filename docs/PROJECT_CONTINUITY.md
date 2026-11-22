@@ -1,3 +1,17 @@
+# Latest continuation checkpoint — 2026-11-22 — Pass 1821–1830
+
+**Active feature PR:** [#971](https://github.com/islamnagy2022-eng/MantiqaTix/pull/971)  
+**Latest feature head at checkpoint:** `78196b19e65736080341d2f3f44ebb26912b998e`  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+- Repaired a duplicate top-level declaration in the Li2Lak static validator and moved its isolated PostgreSQL lifecycle workflow to PostgreSQL 17.
+- Production read-only evidence: review tables/RPC absent; RC498 order RPC remains callable only by service_role; live `order-create` remains v8 with JWT verification enabled; RC497/RC498 versions absent from the 310-row migration ledger.
+- Existing CI runs were queued against an earlier PR head; do not claim success until exact-head workflows finish.
+- PR branch is two commits behind current main. Reconcile before merge; do not bypass branch or release gates.
+- No Production mutation or deployment occurred. Preserve Android/mobile sources and the current main catalog root.
+
+---
+
 ## Pass 1701–1710 — source inspection refinement
 
 - Marketplace Home is implemented on main; do not duplicate the directory, ad hub or discount listings.
