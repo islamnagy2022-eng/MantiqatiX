@@ -87,7 +87,7 @@ const directorySmoke = read('scripts/production/smoke-directory-listings-disable
 const appContext = read('apps/catalog-frontend/src/context/AppContext.tsx');
 
 assert.equal(directoryGate?.status, 'PASS_DISABLED_FOR_V1', 'Unclaimed directory listings must stay disabled until their consent registry is released');
-assert.equal(directoryGate?.live_function_version, 17, 'The live disabled directory Edge version must match Production');
+assert.equal(directoryGate?.live_function_version, 18, 'The live disabled directory Edge version must match Production');
 assert.equal(directoryGate?.verify_jwt, false, 'The disabled endpoint must preserve its existing JWT mode');
 assert.equal(directoryGate?.source_exact_match, true, 'The disabled endpoint must match its reviewed source');
 assert.equal(directoryGate?.endpoint_behavior, 'GET_200_EMPTY_POST_503');
