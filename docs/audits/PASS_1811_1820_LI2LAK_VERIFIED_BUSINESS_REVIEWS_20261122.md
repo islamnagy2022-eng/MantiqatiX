@@ -71,10 +71,23 @@ Add a separate customer-review capability to Li2Lak without reusing MantiGO ride
 
 - PR #970: https://github.com/islamnagy2022-eng/MantiqatiX/pull/970
 - Branch: `feat/li2lak-verified-business-reviews-20261122`.
-- Latest source commit at report time: `eeeb91141e61ef2c477fc0541ff5c7a713a5d242`.
-- GitHub connector returned no workflow runs or combined statuses for this exact head at the last check; this is not a pass. The PR must receive fresh exact-head CI before merge. No test pass is claimed.
+- Latest verified branch commit at report time: `55fc8c01d145a408bd9ca5f5632524a019136034`.
+- GitHub connector returned no workflow runs or combined statuses for this exact head at the last check; this is not a pass. The branch is one commit behind main and PR mergeability remains false despite manual reconciliation of overlapping workflow/manifest/continuity files. Fresh exact-head CI and a clean base synchronization are required before merge. No test pass is claimed.
 - PR remains unmerged. No public deployment occurred.
 
 ## Release decision
 
 **PRODUCTION BLOCKED / NOT CERTIFIED.** RC497 is a source candidate only. Do not merge or deploy until exact-head CI, full chronological replay, independent backup/restore rehearsal, migration alias/physical-object reconciliation, and the broader P0 directory-consent and platform-admin authorization gates are resolved.
+
+## Pass 1821–1830 addendum — full Li2Lak review workflow
+
+- Customer order history and review submission are mounted in the account portal. Orders are read under the customer's own RLS scope; only DELIVERED orders can be reviewed.
+- A new authenticated-only RPC returns only the current customer's review state for an order they own.
+- Merchant dashboard now has a review tab; business responses use the existing business-scoped one-response RPC.
+- Admin dashboard now has a moderation tab backed by a 50-row, direct-platform-registry-only pending queue. Customer identity is excluded; reject/hide require a reason.
+- Authenticated cart checkout now calls the existing active `order-create` Edge Function (live version 8, JWT verification enabled), with canonical catalog item IDs, quantities and idempotency key. The browser does not supply authoritative totals. The resulting order ID is included in the WhatsApp message.
+- Guest WhatsApp-only checkout remains intentionally untracked and is not eligible for verified reviews.
+- Additional source inspection found that the deployed `order-create` v8 bundle is not byte-identical to current main source. This integration uses its existing verified request contract and does not redeploy or replace the function.
+- The RC497 migration, fixture, integration tests, static validator, release manifest and CI workflow were updated to include customer status privacy, moderation queue privacy and the complete customer/merchant/admin UI.
+- Exact-head CI is still unavailable; no tests are claimed PASS. Production remains blocked pending clean branch synchronization, exact-head CI, backup/restore rehearsal and the P0 security release gates.
+- **Production effect: NONE.** No Production migration, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, customer data or public deployment was changed.
