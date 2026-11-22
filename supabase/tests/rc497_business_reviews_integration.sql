@@ -132,6 +132,23 @@ DO $moderation$
 DECLARE v_review_id uuid; result jsonb;
 BEGIN
   v_review_id := current_setting('test.review_id')::uuid;
+  result := public.get_platform_business_review_moderation_queue(10);
+  IF jsonb_typeof(result->'reviews') <> 'array'
+     OR jsonb_array_length(result->'reviews') < 2 THEN
+    RAISE EXCEPTION 'RC497_ADMIN_QUEUE_LOOKUP_FAILED: %', result;
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM jsonb_array_elements(result->'reviews') item
+     WHERE item ? 'customerId' OR item ? 'customer_id'
+  ) THEN
+    RAISE EXCEPTION 'RC497_ADMIN_QUEUE_DISCLOSED_CUSTOMER';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM jsonb_array_elements(result->'reviews') item
+     WHERE item->>'reviewId' = v_review_id::text
+  ) THEN
+    RAISE EXCEPTION 'RC497_ADMIN_QUEUE_MISSING_PENDING_REVIEW';
+  END IF;
   BEGIN
     PERFORM public.moderate_business_review(v_review_id, 'REJECTED', NULL);
     RAISE EXCEPTION 'RC497_REJECTION_WITHOUT_REASON_ACCEPTED';
