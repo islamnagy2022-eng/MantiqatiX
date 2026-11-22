@@ -483,18 +483,26 @@ END;
 $function$;
 
 REVOKE ALL ON FUNCTION public.submit_business_review(uuid, integer, text) FROM PUBLIC, anon, service_role;
-REVOKE ALL ON FUNCTION public.get_customer_business_review_status(uuid) FROM PUBLIC, anon, service_role;\nREVOKE ALL ON FUNCTION public.get_platform_business_review_moderation_queue(integer) FROM PUBLIC, anon, service_role;\nREVOKE ALL ON FUNCTION public.moderate_business_review(uuid, text, text) FROM PUBLIC, anon, service_role;
+REVOKE ALL ON FUNCTION public.get_customer_business_review_status(uuid) FROM PUBLIC, anon, service_role;
+REVOKE ALL ON FUNCTION public.get_platform_business_review_moderation_queue(integer) FROM PUBLIC, anon, service_role;
+REVOKE ALL ON FUNCTION public.moderate_business_review(uuid, text, text) FROM PUBLIC, anon, service_role;
 REVOKE ALL ON FUNCTION public.respond_to_business_review(uuid, text) FROM PUBLIC, anon, service_role;
 REVOKE ALL ON FUNCTION public.get_public_business_review_summary(uuid, integer, integer) FROM PUBLIC, service_role;
 
 GRANT EXECUTE ON FUNCTION public.submit_business_review(uuid, integer, text) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.get_customer_business_review_status(uuid) TO authenticated;\nGRANT EXECUTE ON FUNCTION public.get_platform_business_review_moderation_queue(integer) TO authenticated;\nGRANT EXECUTE ON FUNCTION public.moderate_business_review(uuid, text, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_customer_business_review_status(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_platform_business_review_moderation_queue(integer) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.moderate_business_review(uuid, text, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.respond_to_business_review(uuid, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_public_business_review_summary(uuid, integer, integer) TO anon, authenticated;
 
 COMMENT ON FUNCTION public.submit_business_review(uuid, integer, text) IS
   'RC497: authenticated customer may submit one immutable review only for their own DELIVERED order.';
-COMMENT ON FUNCTION public.get_customer_business_review_status(uuid) IS\n  'RC497: customer may read only their own review status for an order they own; no order or reviewer data is exposed.';\nCOMMENT ON FUNCTION public.get_platform_business_review_moderation_queue(integer) IS\n  'RC497: direct platform-admin registry members only; bounded pending queue excludes customer identity.';\nCOMMENT ON FUNCTION public.moderate_business_review(uuid, text, text) IS
+COMMENT ON FUNCTION public.get_customer_business_review_status(uuid) IS
+  'RC497: customer may read only their own review status for an order they own; no order or reviewer data is exposed.';
+COMMENT ON FUNCTION public.get_platform_business_review_moderation_queue(integer) IS
+  'RC497: direct platform-admin registry members only; bounded pending queue excludes customer identity.';
+COMMENT ON FUNCTION public.moderate_business_review(uuid, text, text) IS
   'RC497: moderation requires direct membership in private.platform_admins; tenant roles do not grant global moderation.';
 COMMENT ON FUNCTION public.respond_to_business_review(uuid, text) IS
   'RC497: active owner/business-owner/admin/manager may post one response to a published review for their business.';
