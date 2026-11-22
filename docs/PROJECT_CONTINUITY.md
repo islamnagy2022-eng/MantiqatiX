@@ -1,3 +1,17 @@
+
+
+## Latest continuation checkpoint — 2026-11-22 — Pass 1721–1730
+
+**Baseline main:** `a04a057a5878d0a9b7fb1b4404348c8f760fe96b` (Li2Lak benchmark documentation merged).  
+**Working branch:** `fix/li2lak-marketplace-ads-resilience-20261122-v2`.  
+**Production gate:** **BLOCKED / NOT CERTIFIED**.
+
+- Marketplace Home already uses the approved public ad RPC and actual catalog discounts; it was not rebuilt.
+- Implemented independent HOME_HERO / HOME_SPONSORED loading, per-placement fail-closed behavior, creative/target URL validation and deduplication.
+- Four focused regression tests pass locally under Node 22; isolated TypeScript helper check passes. Exact-head CI is pending.
+- No Production mutation or deployment occurred.
+
+**Next:** await exact-head CI, then inspect full review/rating schema and Storage media policies before any additional Li2Lak-inspired implementation. Preserve Activity → Specialty, Egypt-wide discovery, existing public-price consent and mobile assets.
 ## Pass 1701–1710 — source inspection refinement
 
 - Marketplace Home is implemented on main; do not duplicate the directory, ad hub or discount listings.
