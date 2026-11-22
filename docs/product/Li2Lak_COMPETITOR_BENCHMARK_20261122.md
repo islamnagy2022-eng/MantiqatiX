@@ -83,3 +83,14 @@ Li2Lak is used as a public product-pattern reference only. Feature availability 
 - Storage image uploads are present in the AI image proxy and Facebook Page import. No public video/reels pipeline was confirmed.
 - Repository code search did not surface a customer reviews/rating implementation. This is a likely gap only; complete migration/schema/RPC inventory is required before claiming absence.
 - No application code or Production state was changed during this inspection.
+
+
+## Pass 1711–1720 — review/rating schema inventory correction
+
+- The repository-wide Git tree contains 238 Supabase migration files. Filename scan found a rating-related migration: `20261006121810_mantigo_rating_immutability_v1.sql`.
+- That migration defines `public.mantigo_rate_ride(text, integer, text)`: it requires an authenticated customer, a completed ride owned by that customer, a rating from 1–5, and the accepted captain; it permits exact-request idempotent replay and rejects a changed second rating. It writes an audit record and grants execution to authenticated only.
+- The live-schema policy inventory also identifies `public.mantigo_ride_ratings`, with authenticated-session restrictive policies and MantiGO-specific rating policies. This is a real ratings implementation for the MantiGO ride domain.
+- This does **not** establish a general customer review/rating system for directory businesses, storefronts, products or services. Targeted searches for `business_reviews`, `review_rating`, `rating_count` and frontend review/rating component filenames found no matching general-business workflow. Search-index results are not a complete proof of absence, so that domain remains **not found in inspected source / pending schema confirmation**, not a claim that all ratings are absent.
+- Corrected product decision: retain MantiGO ride ratings; do not duplicate or repurpose that table. If business reviews are later approved, they need their own business/order/booking provenance and moderation contract, not a UI-only star average.
+- Marketplace source inspection remains source-only: no executable app regression test was run in this pass. PR #963 remains documentation-only, open and unmerged; no CI statuses or reviews were returned for its latest head.
+- No Production mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
