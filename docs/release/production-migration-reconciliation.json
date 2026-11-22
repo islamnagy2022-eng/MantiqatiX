@@ -5436,5 +5436,85 @@
       "contact_values_selected": false
     },
     "interpretation": "Current deployed endpoint is fail-closed and suppresses all public directory rows. This is a temporary safety mitigation, not completion of contact-consent. Keep public directory and owner claim/edit actions disabled until encrypted backup/restore evidence, the complete ordered migration chain, RC472/RC473 schema, matching seven-file Edge bundle, registry authorization and anonymous/owner consent tests pass together."
+  },
+  "selected_edge_source_parity_recheck_20261122": {
+    "checked_at": "2026-11-22",
+    "method": "Read-only Edge Function inventory/get_edge_function; exact deployed index.ts content compared with current main source.",
+    "selected_functions": [
+      {
+        "slug": "directory-listings",
+        "version": 18,
+        "updated_at": "2026-11-22T04:38:53.537Z",
+        "sha256": "bb65d74325f8bdf08f060f7ae2517bb30901630635d1de4f35523d7cef6afe48",
+        "matches_main": false,
+        "behavior": "Intentional fail-closed mitigation: GET empty list with directoryDisabled=true; POST 503. Keep disabled."
+      },
+      {
+        "slug": "catalog-admin",
+        "version": 20,
+        "updated_at": "2026-10-29T04:59:07.749Z",
+        "sha256": "7732207160cf91176d4478d101f85be8789b9eb1ce1b9cd56499994b0cf9ea2c",
+        "matches_main": false,
+        "main_has_contact_consent_audit_writer": true,
+        "deployed_has_contact_consent_audit_writer": false
+      },
+      {
+        "slug": "public-catalog-directory",
+        "version": 19,
+        "updated_at": "2026-11-22T04:27:34.624Z",
+        "sha256": "9eec1b65e5f85f0ac640ee44ace2e50abb7106da97bbfe52b8a2fb5ee449b9c6",
+        "matches_main": false,
+        "deployed_has_contact_consent_projection": false,
+        "deployed_has_promotional_gallery_projection": false
+      },
+      {
+        "slug": "public-catalog",
+        "version": 9,
+        "updated_at": "2026-11-22T04:26:19.794Z",
+        "sha256": "e12cb7794c4083617924ccf6fb8aae5e572985c2e111e7df7e898dd4be824800",
+        "matches_main": false,
+        "deployed_has_contact_consent_projection": false,
+        "deployed_has_promotional_gallery_projection": false
+      }
+    ],
+    "release_decision": "No selected Edge function may be deployed individually. Require a coordinated migration + authorization + owner consent audit writer + public reader bundle with exact source parity and adversarial tests."
+  },
+  "live_migration_exact_set_reverification_20261122": {
+    "checked_at": "2026-11-22",
+    "method": "Read-only SELECT count/max on supabase_migrations.schema_migrations and exact JOIN against required_release_migration_ledger_check.required_versions.",
+    "live_ledger_rows": 310,
+    "latest_live_version": "20261110150618",
+    "expected_required_versions": 76,
+    "found_required_versions": 0,
+    "missing_required_versions": 76,
+    "consent_registry_table_present": false,
+    "migration_release_registry_table_present": false,
+    "production_mutation": "NONE"
+  },
+  "pr978_gallery_ci_20261122": {
+    "head": "96a6946e248c7abac24a02e93dd3b392819ee44a",
+    "status": "DRAFT — NOT MERGED",
+    "checks": {
+      "success": 28,
+      "skipped": 2,
+      "failed": 0
+    },
+    "build": "PASS",
+    "employee_rbac_postgres": "PASS",
+    "browser_e2e": "PASS",
+    "limitation": "HTTPS image URLs only; no direct local file upload.",
+    "rollout": "Hold draft until matching current-main Edge/schema/authorization bundle is ready; live catalog Edge source is not at parity."
+  },
+  "pr982_default_closed_directory_gate_20261122": {
+    "head": "240363205d4fad7d06a35500a59cd99c6b423535",
+    "base_main_at_last_check": "54e433d54ace06a154d438ea672da4a781990730",
+    "status": "OPEN — CI QUEUED",
+    "checks_at_last_check": {
+      "queued": 29,
+      "skipped": 1,
+      "failures": 0
+    },
+    "contract": "Require exact server-side DIRECTORY_LISTINGS_ENABLED=true and reachable public.directory_listing_contact_consents before directory GET/POST routes execute; absent/false flag yields empty GET and 503 POST.",
+    "production_effect": "NONE; no server flag set and no Edge deployment."
   }
 }
