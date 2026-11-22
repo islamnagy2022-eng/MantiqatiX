@@ -115,11 +115,11 @@ for (const token of [
   "RC497_ACCOUNT_DELETION_DID_NOT_SCRUB_REVIEW_TEXT",
 ]) assert.ok(integration.includes(token), `integration suite must cover ${token}`);
 
-assert.match(orderMigration, /CREATE OR REPLACE FUNCTION public\.create_order_backend[\s\S]*?SET search_path=pg_catalog, public, extensions, pg_temp/,
+assert.match(orderMigration, /create or replace function public\.create_order_backend[\s\S]*?set search_path=pg_catalog, public, extensions, pg_temp/i,
   "RC498 must restore the canonical order function and harden its SECURITY DEFINER search_path");
 assert.match(orderMigration, /REVOKE ALL ON FUNCTION public\.create_order_backend[\s\S]*?FROM PUBLIC, anon, authenticated[\s\S]*?GRANT EXECUTE ON FUNCTION public\.create_order_backend[\s\S]*?TO authenticated/,
   "RC498 must deny PUBLIC/anon, reset authenticated ACL and grant authenticated execution");
-assert.match(orderMigration, /auth\.uid\(\)[\s\S]*?auth\.role\(\)[\s\S]*?IDEMPOTENCY_KEY_CONFLICT[\s\S]*?catalog_item_prices/,
+assert.ok(["auth.uid()", "auth.role()", "IDEMPOTENCY_KEY_CONFLICT", "catalog_item_prices", "CUSTOMER_REQUIRED"].every((token) => orderMigration.includes(token)),
   "RC498 must retain identity, service-role verification, idempotency-scope and server-pricing guards");
 assert.ok(orderCreateEdge.includes("Authorization: `Bearer ${token}`") && orderCreateEdge.includes('userClient.rpc("create_order_backend"'),
   "order-create must invoke the backend RPC with the verified customer JWT");
