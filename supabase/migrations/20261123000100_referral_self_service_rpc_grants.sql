@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS public.referral_events (
 
 -- Existing Production tables predate the explicit database-level self-referral check.
 -- Add it idempotently and validate it against existing rows before the RPC is exposed.
-DO $
+DO $referral$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_constraint
@@ -41,7 +41,7 @@ BEGIN
       CHECK (referrer_user_id <> referred_user_id) NOT VALID;
   END IF;
 END
-$;
+$referral$;
 ALTER TABLE public.referral_events VALIDATE CONSTRAINT referral_events_not_self;
 
 CREATE INDEX IF NOT EXISTS idx_referral_events_referrer_created
