@@ -15,6 +15,7 @@ BEGIN
   IF result->>'status' <> 'PENDING' OR result->>'idempotent' <> 'false' THEN
     RAISE EXCEPTION 'RC497_SUBMISSION_RESULT_INVALID: %', result;
   END IF;
+  PERFORM set_config('test.review_id', result->>'reviewId', false);
 
   result := public.submit_business_review(
     '30000000-0000-4000-8000-000000000001', 5, 'تجربة شراء موثقة'
@@ -78,8 +79,7 @@ SELECT set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-00000000
 DO $owner_before_publish$
 DECLARE review_id uuid;
 BEGIN
-  SELECT id INTO review_id FROM public.business_reviews
-   WHERE order_id='30000000-0000-4000-8000-000000000001';
+  review_id := current_setting('test.review_id')::uuid;
   BEGIN
     PERFORM public.respond_to_business_review(review_id, 'شكرًا لثقتك');
     RAISE EXCEPTION 'RC497_OWNER_RESPONDED_TO_PENDING_REVIEW';
@@ -97,25 +97,30 @@ SELECT set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000003'
 SELECT set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000003","role":"authenticated"}',false);
 
 DO $moderation$
-DECLARE v_review_id uuid; result jsonb; event_previous text;
+DECLARE v_review_id uuid; result jsonb;
 BEGIN
-  SELECT id INTO v_review_id FROM public.business_reviews
-   WHERE order_id='30000000-0000-4000-8000-000000000001';
+  v_review_id := current_setting('test.review_id')::uuid;
   result := public.moderate_business_review(v_review_id, 'PUBLISHED', 'اجتاز مراجعة المحتوى');
   IF result->>'status' <> 'PUBLISHED' THEN
     RAISE EXCEPTION 'RC497_MODERATION_FAILED';
-  END IF;
-  SELECT previous_status INTO event_previous
-    FROM public.business_review_events
-   WHERE business_review_events.review_id=v_review_id AND event_type='MODERATED'
-   ORDER BY created_at DESC LIMIT 1;
-  IF event_previous <> 'PENDING' THEN
-    RAISE EXCEPTION 'RC497_MODERATION_AUDIT_PREVIOUS_STATE_INVALID: %', event_previous;
   END IF;
 END
 $moderation$;
 
 RESET ROLE;
+
+DO $moderation_audit$
+DECLARE event_previous text;
+BEGIN
+  SELECT previous_status INTO event_previous
+    FROM public.business_review_events
+   WHERE review_id=current_setting('test.review_id')::uuid AND event_type='MODERATED'
+   ORDER BY created_at DESC LIMIT 1;
+  IF event_previous <> 'PENDING' THEN
+    RAISE EXCEPTION 'RC497_MODERATION_AUDIT_PREVIOUS_STATE_INVALID: %', event_previous;
+  END IF;
+END
+$moderation_audit$;
 
 -- Correct business owner may answer exactly once; a different business owner may not.
 SET ROLE authenticated;
@@ -125,8 +130,7 @@ SELECT set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-00000000
 DO $business_response$
 DECLARE review_id uuid; result jsonb;
 BEGIN
-  SELECT id INTO review_id FROM public.business_reviews
-   WHERE order_id='30000000-0000-4000-8000-000000000001';
+  review_id := current_setting('test.review_id')::uuid;
   result := public.respond_to_business_review(review_id, 'شكرًا لملاحظاتك');
   IF result->>'reviewId' IS NULL THEN RAISE EXCEPTION 'RC497_OWNER_RESPONSE_FAILED'; END IF;
 
@@ -148,8 +152,7 @@ SELECT set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-00000000
 DO $wrong_business$
 DECLARE review_id uuid;
 BEGIN
-  SELECT id INTO review_id FROM public.business_reviews
-   WHERE order_id='30000000-0000-4000-8000-000000000001';
+  review_id := current_setting('test.review_id')::uuid;
   BEGIN
     PERFORM public.respond_to_business_review(review_id, 'رد من نشاط آخر');
     RAISE EXCEPTION 'RC497_WRONG_BUSINESS_RESPONDED';
