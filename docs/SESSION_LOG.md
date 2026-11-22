@@ -3815,3 +3815,15 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - **Next:** test Marketplace failure/empty/expired-ad/price-permission paths; inspect all migrations and schema references for review/rating models; evaluate geo-targeting using explicit consent only.
 - **Safety:** no application code, Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet or customer data changed. No deployment. **PRODUCTION BLOCKED / NOT CERTIFIED**.
 
+
+
+## 2026-11-22 — Pass 1711–1720 — ratings inventory correction
+
+- Enumerated the current-main Git tree: 1,281 tracked files, including 238 Supabase migrations.
+- Found `20261006121810_mantigo_rating_immutability_v1.sql`; inspected its function body and ACL. It implements authenticated, own-completed-ride 1–5 rating for MantiGO with exact-request idempotent replay and immutable second submission.
+- Found `public.mantigo_ride_ratings` in the live policy inventory; its policies are scoped to authenticated sessions and MantiGO ratings.
+- Clarified that this is not a directory-business/product/service review workflow. Targeted searches did not find a general review model, but complete migration/schema confirmation remains pending.
+- PR #963 remains open and unmerged. Latest head status returned no CI status entries; PR reviews list empty. No CI success/failure inferred.
+- No Marketplace test suite was executed in this pass. No application code, Production DB/Auth/RLS/GRANT/Storage/Edge/payment/customer-data change or deployment.
+- Next: inspect MantiGO rating table creation, constraints/triggers/read paths; complete general-business review inventory; inspect Storage/media policies; add executable Marketplace regression tests only with reproducible harness.
+- Disposition: **PRODUCTION BLOCKED / NOT CERTIFIED**.
