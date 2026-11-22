@@ -1,3 +1,12 @@
+### Pass 1861–1870 — Li2Lak self-review prevention — 2026-11-22
+- [x] Added a server-side guard preventing active business members and recorded provider owners from reviewing their own business.
+- [x] Extended the disposable fixture with owner identity and a delivered owner order.
+- [x] Added an integration negative case asserting self-review is rejected with `BUSINESS_REVIEW_SELF_REVIEW_FORBIDDEN`.
+- [x] Added static-validator assertions and release-manifest behavior/test entries for self-review exclusion.
+- [x] Source consistency checks pass for migration guard, fixture, integration test, validator and release manifest.
+- [ ] Full PostgreSQL 17 execution remains pending exact-head CI; static consistency is not a substitute for integration success.
+- **Safety:** isolated feature-branch changes only. No Production mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
 ### Pass 1851–1860 — Li2Lak release-validator consistency repair — 2026-11-22
 - [x] Found and corrected stale RC497 validator assertions expecting 77 required migrations after RC498 raised the canonical release set to 78.
 - [x] Updated both RC497 checks to the same 78-migration release contract; RC498 checks remain aligned.
