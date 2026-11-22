@@ -1,11 +1,11 @@
 ## Latest continuation checkpoint — 2026-11-22 — PR978 E2E passed; PR982 default-closed source gate; live Production parity recheck
 
-**Current main:** 54e433d54ace06a154d438ea672da4a781990730  
+**Current main:** dbf40f6b9f8087fd5a274749c4a4db3ceb7c7564  
 **Verified application deployment:** PR976 post-merge Pages run [45071129013](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45071129013) SUCCESS; Primary Catalog browser validation [45071128944](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45071128944) SUCCESS.
 
 ### Feature work
 - PR [#978](https://github.com/islamnagy2022-eng/MantiqatiX/pull/978) remains DRAFT at 96a6946e248c7abac24a02e93dd3b392819ee44a. Exact-head CI completed **28 success, 2 skipped, 0 failed**; build, employee RBAC PostgreSQL and browser E2E passed. It keeps one fixed storefront cover and a separate up-to-10 HTTPS promotional image URL gallery. It does not upload local files. Do not merge/deploy the Edge changes individually because deployed catalog Edge functions lack matching gallery and consent projections.
-- PR [#982](https://github.com/islamnagy2022-eng/MantiqatiX/pull/982) is open against current main at head 240363205d4fad7d06a35500a59cd99c6b423535. It adds a default-closed source gate for national directory listings: exact server value DIRECTORY_LISTINGS_ENABLED=true plus a reachable contact-consent registry are required before GET/POST logic can run. It does not set the flag or deploy an Edge function. At last check 29 workflows were queued and 1 skipped, with no failures reported; exact-head CI is still pending.
+- PR [#982](https://github.com/islamnagy2022-eng/MantiqatiX/pull/982) merged into current main as dbf40f6b9f8087fd5a274749c4a4db3ceb7c7564. Exact-head CI: 28 success, 2 skipped, 0 failures, including Directory Contact Consent, PostgreSQL RBAC and browser E2E. Its default-closed gate requires exact server value DIRECTORY_LISTINGS_ENABLED=true plus a reachable contact-consent registry before GET/POST logic can run. No production flag was set and no Edge function was deployed.
 - PR #981 merged to main as 54e433d54ace06a154d438ea672da4a781990730; its mitigation audit remains preserved at docs/audits/PASS_1821_1830_LIVE_DIRECTORY_DISABLED_MITIGATION_20261122.md.
 
 ### Fresh read-only Production state — 2026-11-22
