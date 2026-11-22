@@ -4980,7 +4980,7 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Fresh read-only live migration query: 310 ledger rows, latest 20261110150618, expected 76 versions, found 0.
 - [x] Confirmed directory contact consent table and migration release registry absent.
 - [x] Compared live Edge entrypoints against current main: directory-listings v18, catalog-admin v20, public-catalog-directory v19 and public-catalog v9. All differ from current main. Preserve directory-listings v18's disabled response.
-- [ ] Complete PR982 exact-head CI (default-closed source gate). At checkpoint 29 checks queued, 1 skipped, 0 failures. Do not deploy Edge or enable the flag from this PR.
+- [x] Merged PR982 as `dbf40f6b9f8087fd5a274749c4a4db3ceb7c7564` after exact-head CI 28 success, 2 skipped, 0 failed. Default-closed source gate is in main; no Production flag was set and no Edge function was deployed.
 - [ ] Obtain genuine encrypted off-site DB + Storage backup, verify Vault recovery, perform independent PostgreSQL 17 restore/rollback, and measure RPO/RTO.
 - [ ] Reconcile the exact 76-version release migration chain and physical object/ACL dependencies. No isolated Production migration runs.
 - [ ] Release RC472/RC473 consent schema, owner audit writer, public readers, authorization dependencies and negative/positive tests as one bundle; keep national listings disabled until all gates pass.
@@ -4988,4 +4988,20 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Continue Paymob/financial E2E only after backend schema/RPC/ACL reconciliation. Monthly subscriptions and medical directory remain deferred.
 - **Safety:** read-only Production checks and code/docs/CI source changes only. No Production DDL/DML, migrations, GRANT/RLS, Auth, Storage, Edge deploy, payments, wallet, settlement or customer-data writes. **PRODUCTION BLOCKED / NOT CERTIFIED.**
 - Evidence: docs/audits/PASS_1821_1830_LIVE_PRODUCTION_EDGE_MIGRATION_RECHECK_20261122.md, docs/audits/PASS_1821_1830_LIVE_DIRECTORY_DISABLED_MITIGATION_20261122.md, docs/release/production-migration-reconciliation.json.
+
+
+
+### Pass 1832 — PR982 post-merge Pages verification — 2026-11-22
+- [x] PR982 is merged as `dbf40f6b9f8087fd5a274749c4a4db3ceb7c7564`; exact-head CI 28 success, 2 skipped, 0 failed.
+- [x] Main Production Health Monitor after PR982 passed (run 45074694044).
+- [x] Primary Catalog build, browser E2E and employee RBAC PostgreSQL passed on PR982 main SHA (run 45074571077).
+- [x] Pages deployment for current main `4963b1b86d22f04f179663d7ed21cb7a832a3fd0` passed (run 45074694031), including deployed-origin browser checks of the catalog root, dashboard, mobile and QR routes.
+- [x] The source gate keeps the national directory fail-closed unless exact server-side `DIRECTORY_LISTINGS_ENABLED=true` and reachable contact-consent registry are both present. No Production environment flag was set and no Edge Function was deployed.
+- [ ] Obtain genuine encrypted off-site database + Storage backup, verify Vault recovery, perform independent PostgreSQL 17 restore/rollback and measure RPO/RTO.
+- [ ] Reconcile the exact 76-version release migration chain and physical object/ACL dependencies; do not run individual Production migrations.
+- [ ] Release RC472/RC473 consent schema, owner audit writer, public readers, authorization dependencies and negative/positive tests as one bundle; keep national listings disabled until every gate passes.
+- [ ] PR978 storefront gallery remains draft until matching catalog Edge/schema bundle is available. Current implementation accepts HTTPS URLs, not local-file uploads.
+- [ ] Continue Paymob/financial E2E only after backend schema/RPC/ACL reconciliation. Monthly subscriptions and medical directory remain deferred.
+- **Safety:** website-only deployment verified. No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge deploy, payment, wallet, settlement or customer-data mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+- Evidence: `docs/audits/PASS_1831_PR982_MERGE_LIVE_RECHECK_20261122.md`, PR #982, Pages run 45074694031, Primary Catalog run 45074571077.
 
