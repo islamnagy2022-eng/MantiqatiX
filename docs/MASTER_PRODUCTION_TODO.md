@@ -1,3 +1,10 @@
+### Pass 1961–1970 — currency regression assertion verification — 2026-11-22
+- [x] Corrected the regex escaping in the two new currency regression assertions; the previous source used escaped backslashes that would not match whitespace in regex literals.
+- [x] Evaluated both patterns against the fetched RC498 SQL and disposable order fixture; both matched.
+- [x] Confirmed orderFixture is declared and loaded before the assertion uses it.
+- [ ] The Node validator itself and PostgreSQL 17 integration still require exact-head CI execution.
+- **Safety:** feature branch only; no Production mutation or deployment. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
 ### Pass 1951–1960 — currency regression validator wiring repair — 2026-11-22
 - [x] During post-edit validator review, caught that the new currency-fixture assertion referenced orderFixture without loading that file.
 - [x] Added the explicit order fixture read from supabase/tests/rc104_order_idempotency_scope_fixture.sql.
