@@ -38,6 +38,12 @@ assert.match(fixture, /CREATE TABLE public\.branches[\s\S]*?branch-a2/,
 
 assert.match(migration, /v_order\.customer_id IS DISTINCT FROM v_actor[\s\S]*?upper\(coalesce\(v_order\.status, ''\)\) <> 'DELIVERED'[\s\S]*?ORDER_BUSINESS_TENANT_MISMATCH/,
   "review submission must bind the authenticated actor to their own delivered order");
+assert.match(migration, /marketing_provider_profiles pp[\s\S]*?pp\.owner_user_id = v_actor[\s\S]*?BUSINESS_REVIEW_SELF_REVIEW_FORBIDDEN/,
+  "business owners and active business members must not review their own business");
+assert.match(fixture, /owner_user_id uuid REFERENCES auth\.users\(id\)/,
+  "review fixture must model business ownership for self-review rejection");
+assert.match(integration, /RC497_SELF_REVIEW_WAS_ACCEPTED[\s\S]*?BUSINESS_REVIEW_SELF_REVIEW_FORBIDDEN/,
+  "review integration suite must reject an owner's self-review");
 assert.match(migration, /CREATE OR REPLACE FUNCTION public\.get_customer_business_review_status[\s\S]*?o\.customer_id = v_actor[\s\S]*?r\.customer_id = v_actor/,
   "customer review status RPC must return only the authenticated customer's own review");
 assert.match(migration, /REVOKE ALL ON FUNCTION public\.get_customer_business_review_status\(uuid\) FROM PUBLIC, anon, service_role[\s\S]*?GRANT EXECUTE ON FUNCTION public\.get_customer_business_review_status\(uuid\) TO authenticated/,
