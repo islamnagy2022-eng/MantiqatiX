@@ -6,6 +6,8 @@ const reviewPanel = fs.readFileSync("apps/catalog-frontend/src/components/storef
 const customerReviewPanel = fs.readFileSync("apps/catalog-frontend/src/components/account/CustomerOrderReviews.tsx", "utf8");
 const accountPortal = fs.readFileSync("apps/catalog-frontend/src/modules/account/SubscriberAccountPortal.tsx", "utf8");
 const ownerReviewPanel = fs.readFileSync("apps/catalog-frontend/src/components/merchant/BusinessReviewManagementPanel.tsx", "utf8");
+const adminReviewPanel = fs.readFileSync("apps/catalog-frontend/src/components/admin/BusinessReviewModerationPanel.tsx", "utf8");
+const adminDashboard = fs.readFileSync("apps/catalog-frontend/src/components/admin/AdminDashboard.tsx", "utf8");
 const merchantDashboard = fs.readFileSync("apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx", "utf8");
 const appShell = fs.readFileSync("apps/catalog-frontend/src/App.tsx", "utf8");
 const migration = fs.readFileSync(migrationPath, "utf8");
@@ -104,8 +106,12 @@ assert.match(customerReviewPanel, /\.eq\('customer_id', userId\)/,
   "customer order list must scope every order query to the authenticated identity");
 assert.match(customerReviewPanel, /order\.status\.toUpperCase\(\) === 'DELIVERED'/,
   "customer review form must only be offered for delivered orders");
-assert.match(ownerReviewPanel, /respond_to_business_review[\\s\\S]*?p_review_id:[\\s\\S]*?p_response:/,
+assert.match(ownerReviewPanel, /supabase\.rpc\('respond_to_business_review'[\s\S]*?p_review_id:[\s\S]*?p_response:/,
   "business owner UI must use the scoped response RPC rather than direct table writes");
+assert.match(adminReviewPanel, /supabase\.rpc\('get_platform_business_review_moderation_queue'[\s\S]*?supabase\.rpc\('moderate_business_review'/,
+  "platform moderation UI must use only the registry-protected queue and moderation RPCs");
+assert.match(adminDashboard, /BusinessReviewModerationPanel[\s\S]*?activeAdminTab === 'business_reviews'/,
+  "platform moderation panel must be mounted in the admin dashboard");
 assert.match(merchantDashboard, /BusinessReviewManagementPanel[\\s\\S]*?activeTab === 'reviews'/,
   "business owner review-response panel must be mounted behind the merchant dashboard tab");
 assert.match(accountPortal, /<CustomerOrderReviews \/>/,
