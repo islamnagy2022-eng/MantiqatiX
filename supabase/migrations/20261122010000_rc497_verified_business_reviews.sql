@@ -228,7 +228,8 @@ END;
 $function$;
 
 CREATE OR REPLACE FUNCTION public.get_platform_business_review_moderation_queue(
-  p_limit integer DEFAULT 30
+  p_limit integer DEFAULT 30,
+  p_offset integer DEFAULT 0
 )
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -240,6 +241,8 @@ DECLARE
   v_actor uuid := auth.uid();
   v_reviews jsonb := '[]'::jsonb;
   v_limit integer := least(greatest(coalesce(p_limit, 30), 1), 50);
+  v_offset integer := least(greatest(coalesce(p_offset, 0), 0), 10000);
+  v_total_count bigint := 0;
 BEGIN
   IF v_actor IS NULL OR coalesce(auth.jwt()->>'is_anonymous', 'false') = 'true' THEN
     RAISE EXCEPTION 'AUTHENTICATED_PLATFORM_ADMIN_REQUIRED';
@@ -249,6 +252,10 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'PLATFORM_ADMIN_REQUIRED';
   END IF;
+
+  SELECT count(*) INTO v_total_count
+    FROM public.business_reviews r
+   WHERE r.status = 'PENDING';
 
   SELECT coalesce(
     jsonb_agg(
@@ -273,10 +280,14 @@ BEGIN
         JOIN public.businesses b ON b.id = r.business_id AND b.tenant_id = r.tenant_id
        WHERE r.status = 'PENDING'
        ORDER BY r.created_at ASC, r.id ASC
-       LIMIT v_limit
+       LIMIT v_limit OFFSET v_offset
     ) page;
 
-  RETURN jsonb_build_object('reviews', v_reviews);
+  RETURN jsonb_build_object(
+    'reviews', v_reviews,
+    'totalCount', v_total_count,
+    'nextOffset', v_offset + jsonb_array_length(v_reviews)
+  );
 END;
 $function$;
 
@@ -484,7 +495,7 @@ $function$;
 
 REVOKE ALL ON FUNCTION public.submit_business_review(uuid, integer, text) FROM PUBLIC, anon, service_role;
 REVOKE ALL ON FUNCTION public.get_customer_business_review_status(uuid) FROM PUBLIC, anon, service_role;
-REVOKE ALL ON FUNCTION public.get_platform_business_review_moderation_queue(integer) FROM PUBLIC, anon, service_role;
+REVOKE ALL ON FUNCTION public.get_platform_business_review_moderation_queue(integer, integer) FROM PUBLIC, anon, service_role;
 REVOKE ALL ON FUNCTION public.moderate_business_review(uuid, text, text) FROM PUBLIC, anon, service_role;
 REVOKE ALL ON FUNCTION public.respond_to_business_review(uuid, text) FROM PUBLIC, anon, service_role;
 REVOKE ALL ON FUNCTION public.get_public_business_review_summary(uuid, integer, integer) FROM PUBLIC, service_role;
