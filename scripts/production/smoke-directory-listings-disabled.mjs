@@ -10,8 +10,8 @@ const configResponse = await fetch(siteConfigUrl, {
 });
 assert.equal(configResponse.status, 200, "Published catalog config.js must be reachable");
 const configText = await configResponse.text();
-const supabaseUrl = configText.match(/supabaseUrl:\\s*'([^']+)'/)?.[1];
-const supabaseKey = configText.match(/supabaseKey:\\s*'([^']+)'/)?.[1];
+const supabaseUrl = configText.match(/supabaseUrl:\s*'([^']+)'/)?.[1];
+const supabaseKey = configText.match(/supabaseKey:\s*'([^']+)'/)?.[1];
 assert.ok(supabaseUrl, "Published config.js must expose the public Supabase URL");
 assert.ok(supabaseKey, "Published config.js must expose the public anon/publishable key");
 
@@ -35,7 +35,7 @@ assert.equal(body.error, "DIRECTORY_LISTINGS_DISABLED_FOR_V1");
 assert.deepEqual(body.listings, []);
 assert.equal(body.hasMore, false);
 assert.equal(body.nextCursor, null);
-assert.ok(!/(?:phone|secondary_phone|address|display_name)\\s*:/i.test(bodyText), "Disabled endpoint must not expose directory contact fields");
+assert.ok(!/"?(?:phone|secondary_phone|address|display_name)"?\s*:/.test(bodyText), "Disabled endpoint must not expose directory contact fields");
 
 const postResponse = await fetch(endpoint, {
   method: "POST",
