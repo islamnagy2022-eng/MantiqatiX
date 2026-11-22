@@ -17,6 +17,7 @@ const orderMigration = fs.readFileSync(orderMigrationPath, "utf8");
 const orderCreateEdge = fs.readFileSync("supabase/functions/order-create/index.ts", "utf8");
 const apiEdge = fs.readFileSync("supabase/functions/api/index.ts", "utf8");
 const orderIntegration = fs.readFileSync("supabase/tests/rc104_order_idempotency_scope_integration.sql", "utf8");
+const orderFixture = fs.readFileSync("supabase/tests/rc104_order_idempotency_scope_fixture.sql", "utf8");
 const orderConcurrency = fs.readFileSync("supabase/tests/rc104_order_idempotency_scope_concurrency.sh", "utf8");
 const orderWorkflow = fs.readFileSync(".github/workflows/order-idempotency-scope.yml", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc497_business_reviews_fixture.sql", "utf8");
