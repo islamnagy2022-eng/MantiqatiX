@@ -19,10 +19,12 @@ export const isSafeHttpsUrl = (value: unknown): string => {
   if (typeof value !== 'string' || !value.trim()) return '';
   try {
     const url = new URL(value);
-    const hostname = url.hostname.toLowerCase().replace(/\\.$/, '');
+    const hostname = url.hostname.toLowerCase().replace(/\.$/, '');
+    const isIpLiteral = hostname.startsWith('[') || /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname);
     if (
       url.protocol !== 'https:' ||
       !hostname ||
+      isIpLiteral ||
       url.username ||
       url.password ||
       url.port ||
