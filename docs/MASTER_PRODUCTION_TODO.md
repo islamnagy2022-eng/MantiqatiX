@@ -5141,3 +5141,12 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Exact-head CI, validator execution, Deno/Edge typecheck and HTTP authorization E2E remain required.
 - **Audit:** `docs/audits/PASS_1991_2000_LEGACY_API_ORDER_READ_SCOPE_20261122.md`.
 - **Release:** Production API v17 unchanged; no Production mutation/deployment; PR #971 remains unmerged; **PRODUCTION BLOCKED / NOT CERTIFIED**.
+
+### Pass 2001–2010 — RC474 payment authorization / PostgreSQL 17 verification — 2026-11-22
+- [x] Confirmed the live Production `create_payment_intent_backend` is still the pre-RC474 version; direct authenticated execution remains intentional but its old membership/financial-role checks are not bound to one exact scope.
+- [x] Confirmed candidate RC474 already nests same-scope business/branch financial-role authorization inside `customer_id IS DISTINCT FROM auth.uid()`; NULL-customer orders are therefore covered. No duplicate SQL rewrite was made.
+- [x] Strengthened RC474 validator to prove the nested finance-role gate, including NULL-customer cases, rather than only checking for an identity predicate somewhere.
+- [x] Updated RC474 isolated integration workflow from PostgreSQL 16 to PostgreSQL 17 and added `workflow_dispatch`.
+- [x] Nine independent source checks passed; exact-head GitHub Actions jobs started but remained queued. Runtime SQL integration and CI completion remain unverified.
+- **Audit:** `docs/audits/PASS_2001_2010_RC474_PAYMENT_SCOPE_PG17_20261122.md`.
+- **Release:** RC474 is not Production-applied; no Production mutation/deployment; **PRODUCTION BLOCKED / NOT CERTIFIED**.
