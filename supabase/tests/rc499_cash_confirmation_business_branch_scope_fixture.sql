@@ -92,11 +92,11 @@ CREATE TABLE public.payment_events (
 );
 
 CREATE TABLE public.financial_obligations (
-  id text PRIMARY KEY,
+  id varchar PRIMARY KEY,
   tenant_id varchar NOT NULL,
   business_id uuid NOT NULL,
   order_id uuid NOT NULL,
-  payment_intent_id text NOT NULL,
+  payment_intent_id varchar NOT NULL,
   beneficiary_type varchar NOT NULL,
   beneficiary_id varchar NOT NULL,
   obligation_type varchar NOT NULL,
@@ -105,6 +105,10 @@ CREATE TABLE public.financial_obligations (
   currency varchar NOT NULL,
   status varchar NOT NULL,
   payment_method varchar NOT NULL,
+  settlement_id varchar,
+  due_at timestamptz,
+  settled_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now(),
   metadata jsonb NOT NULL
 );
 
