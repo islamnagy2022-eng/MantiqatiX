@@ -4885,3 +4885,12 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Confirmed nine RLS-enabled/no-policy relations have no direct anon/authenticated grants; preserve the backend-only direct-access boundary.
 - [ ] Production release must apply the complete ordered migration chain only after real backup/restore rehearsal and coordinated release approval; then re-check all seven function bodies, ACLs, helper registry, Storage policy and negative/positive authorization tests.
 - **P0 RELEASE BLOCKER:** live catalog RPC root authority is still membership-derived. No Production function/ACL/DDL/Storage/Auth/Edge/payment mutation occurred. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+### RC484 dependency — platform-admin registry drift confirmed live — 2026-11-22
+- [x] Live `private.platform_admins`: 1 row, RLS enabled, FORCE RLS false, no direct anon/authenticated grants.
+- [x] Live `public.is_platform_admin()`: SECURITY INVOKER, search_path=public, membership-derived (ADMIN/SUPER_ADMIN), not registry-backed.
+- [x] Confirmed 57 live RLS policy expressions still call this legacy helper.
+- [x] Existing RC484 source migration is the intended repair: FORCE RLS, registry-owner/BYPASSRLS preflight, no client grants, SECURITY DEFINER helper with empty search_path and private registry only.
+- [ ] Apply only through the complete coordinated RC484→RC496 release after genuine Production backup/restore, rollback plan, and release approval; then verify all 57 policy consumers plus seven RC485 catalog RPCs.
+- **P0:** Do not deploy RC484 alone, RC485 alone, or hand-edit individual policies. **PRODUCTION BLOCKED / NOT CERTIFIED.**
