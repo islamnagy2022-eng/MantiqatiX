@@ -124,6 +124,8 @@ for (const token of [
 
 assert.match(orderMigration, /create or replace function public\.create_order_backend[\s\S]*?set search_path=pg_catalog, public, extensions, pg_temp/i,
   "RC498 must restore the canonical order function and harden its SECURITY DEFINER search_path");
+assert.match(orderMigration, /set search_path=pg_catalog, public, extensions, pg_temp as \$\$[\s\S]*?end \$\$;/i,
+  "RC498 function body must use a valid paired PostgreSQL dollar-quote delimiter");
 assert.match(orderMigration, /REVOKE ALL ON FUNCTION public\.create_order_backend[\s\S]*?FROM PUBLIC, anon, authenticated[\s\S]*?GRANT EXECUTE ON FUNCTION public\.create_order_backend[\s\S]*?TO authenticated/,
   "RC498 must deny PUBLIC/anon, reset authenticated ACL and grant authenticated execution");
 assert.ok(["auth.uid()", "auth.role()", "IDEMPOTENCY_KEY_CONFLICT", "catalog_item_prices", "CUSTOMER_REQUIRED"].every((token) => orderMigration.includes(token)),
@@ -199,6 +201,8 @@ assert.match(appShell, /<BusinessReviewsPanel \/>/,
 assert.ok(workflow.includes(migrationPath), "dedicated workflow must apply RC497 migration");
 assert.ok(workflow.includes("supabase/tests/rc497_business_reviews_integration.sql"), "dedicated workflow must execute integration tests");
 assert.ok(forwardReplay.includes("node scripts/validate-rc497-business-reviews.mjs"), "full forward replay must run RC497 source validation");
+assert.ok(forwardReplay.includes("image: postgres:17"), "RC497 forward replay lifecycle must use the Production PostgreSQL major version");
+assert.ok(forwardReplay.includes("exact 78-version contract"), "forward replay workflow must describe the exact 78-version release gate");
 assert.ok(gate.includes(JSON.stringify("20261122010000_rc497_verified_business_reviews.sql")), "exact release gate must track RC497 migration");
 assert.match(gate, /required\.length, 78/, "exact release gate must count all 78 required migrations");
 assert.ok(verifier.includes(JSON.stringify("20261122010000_rc497_verified_business_reviews.sql")), "Production verifier must track RC497 migration");
