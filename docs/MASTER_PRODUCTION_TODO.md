@@ -1,13 +1,14 @@
 # Active priority — website-first release (2026-11-22)
 
-The current delivery order is: **launch the bounded public catalog first; then execute the post-launch backlog.** The canonical launch gate, current Production evidence and ordered backlog are in [WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md](release/WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md).
+The current delivery order is: **launch the public website with monthly subscriptions only; after launch start Li2Lak, Paymob and all non-monthly financial/accounting workflows.** No Li2Lak, Paymob integration expansion, wallet, commissions, refunds, payouts, settlements or general accounting is part of the V1 gate. The canonical launch gate, current Production evidence and ordered backlog are in [WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md](release/WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md).
 
 - [x] Deploy public-catalog v9 and public-catalog-directory v19 with consent-aware public projections and exact source readback.
 - [x] Disable directory-listings at Edge v18 with a fixed 503 response and disable its V1 frontend routes.
 - [ ] Keep catalog-admin v20 as the baseline; complete RC464/RC471 before enabling its audited owner-consent action.
 - [x] Refresh live Edge parity evidence to public-catalog v9, public-catalog-directory v19, directory-listings v18 disabled, and explicit catalog-admin/catalog-platform-admin drift.
 - [ ] Pass the scoped catalog-pilot gate and main Pages deployed-origin smoke tests.
-- [ ] Keep PR #971 and Li2Lak order/payment/review work out of the first website release.
+- [ ] Keep PR #971, all Li2Lak workflows, Paymob integration changes and all non-monthly financial/accounting flows out of the first website release.
+- [ ] Verify monthly subscription status/entitlements and the existing approved monthly subscription flow only; do not introduce new Paymob or general payment dependencies into V1.
 - [ ] Keep the full-platform 76-migration gate BLOCKED until its own evidence is complete.
 - [ ] Use the linked post-launch backlog for all deferred features; do not mix them into V1.
 
