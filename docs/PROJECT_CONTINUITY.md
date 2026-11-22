@@ -1,26 +1,57 @@
-## Latest continuation checkpoint — 2026-11-22 — PR978 E2E passed; PR982 default-closed source gate; live Production parity recheck
+## Latest continuation checkpoint — 2026-11-22 — Website V1 deployed and verified; full-platform gate remains blocked
 
-**Current main:** 54e433d54ace06a154d438ea672da4a781990730  
-**Verified application deployment:** PR976 post-merge Pages run [45071129013](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45071129013) SUCCESS; Primary Catalog browser validation [45071128944](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45071128944) SUCCESS.
+**Current main:** `c95ccc0d891e0670fe34d97c4c1beca6bd0f4fa2`  
+**Website:** [MantiqatiX GitHub Pages](https://islamnagy2022-eng.github.io/MantiqatiX/)  
+**Verified Pages deployment:** [run 45076054135](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45076054135) SUCCESS, including deployed-origin browser checks for the public root, dashboard, mobile layout and QR routes.  
+**Primary Catalog exact-main validation:** [run 45076054161](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45076054161) SUCCESS.  
+**Full-platform status:** **BLOCKED / NOT CERTIFIED**. The static website V1 is deployed; this does not certify every backend/payment/finance module.
 
-### Feature work
-- PR [#978](https://github.com/islamnagy2022-eng/MantiqatiX/pull/978) remains DRAFT at 96a6946e248c7abac24a02e93dd3b392819ee44a. Exact-head CI completed **28 success, 2 skipped, 0 failed**; build, employee RBAC PostgreSQL and browser E2E passed. It keeps one fixed storefront cover and a separate up-to-10 HTTPS promotional image URL gallery. It does not upload local files. Do not merge/deploy the Edge changes individually because deployed catalog Edge functions lack matching gallery and consent projections.
-- PR [#982](https://github.com/islamnagy2022-eng/MantiqatiX/pull/982) is open against current main at head 240363205d4fad7d06a35500a59cd99c6b423535. It adds a default-closed source gate for national directory listings: exact server value DIRECTORY_LISTINGS_ENABLED=true plus a reachable contact-consent registry are required before GET/POST logic can run. It does not set the flag or deploy an Edge function. At last check 29 workflows were queued and 1 skipped, with no failures reported; exact-head CI is still pending.
-- PR #981 merged to main as 54e433d54ace06a154d438ea672da4a781990730; its mitigation audit remains preserved at docs/audits/PASS_1821_1830_LIVE_DIRECTORY_DISABLED_MITIGATION_20261122.md.
+### Merged website and privacy work
 
-### Fresh read-only Production state — 2026-11-22
-- Migration ledger: **310 rows**, latest 20261110150618; exact comparison against the 76 required release migration IDs returned **0/76 present**.
-- public.directory_listing_contact_consents and public.migration_release_registry are absent.
-- Selected live Edge entrypoints differ from current main: directory-listings v18 (protectively disabled), catalog-admin v20, public-catalog-directory v19, and public-catalog v9. Deployed catalog admin/public readers lack the current consent audit/projection contract; public readers also lack the new promotional gallery projection.
-- Preserve the disabled national directory. Do not deploy these Edge functions one by one. Release schema, audit writer, readers and authorization dependencies together after real backup/restore and migration gates.
-- No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge deploy, payments, wallet, settlement or customer-data write occurred.
+- PR #982 merged: default-closed national directory source gate. Exact-head checks passed; it does not enable the directory or deploy an Edge function.
+- PR #984 merged: live Production migration/Edge parity checkpoint.
+- PR #985 merged as `c95ccc0`: V1 frontend privacy boundary, hidden public-contact consent control, no unclaimed-directory requests, disabled-directory smoke and browser coverage.
+- PR #972 closed as superseded by #985.
+- PR #978 remains DRAFT: one fixed cover plus up to 10 promotional HTTPS image URLs; matching catalog writer/reader release is not deployed, and direct file upload is not implemented.
 
-Detailed evidence: docs/audits/PASS_1821_1830_LIVE_PRODUCTION_EDGE_MIGRATION_RECHECK_20261122.md and docs/audits/PASS_1821_1830_LIVE_DIRECTORY_DISABLED_MITIGATION_20261122.md.
+### V1 website behavior now deployed
 
-**Next:** finish PR982 exact-head CI; keep PR978 draft until its coordinated Edge/schema bundle exists; obtain genuine encrypted off-site database + Storage backup and independent PostgreSQL 17 restore/RPO/RTO evidence; reconcile and apply the ordered 76-version release only after those gates. Production remains **BLOCKED / NOT CERTIFIED**.
+- Public catalog root and business/catalog pages remain available.
+- Public unclaimed national directory records and direct `?listing=` details are not requested or rendered.
+- Owner public-contact consent control is hidden until the live audited consent writer/registry is released.
+- Routine owner profile saves do not submit public-contact consent state.
+- `/legacy/` rollback copy and `/v6-preview/` preview alias are retained.
+- Live public readers `public-catalog` v9 and `public-catalog-directory` v19 were compared file-by-file with current main and are exact bundle matches.
+- Live `directory-listings` v18 exactly matches the reviewed disabled stub; it contains no `createClient` call and preserves GET-empty / POST-503.
+- Live `catalog-admin` v20 and `catalog-platform-admin` v23 remain source-drifted; do not deploy replacements individually.
 
+### CI and release evidence
 
----
+- PR #985 exact-head SHA `877a9635bea71e1cee2105af4170cb88a266f83a`: all 11 workflow runs succeeded, including Primary Catalog build/browser/RBAC, Pages validation, privacy, consent PostgreSQL, module boundaries, MantiGO/Paymob atomicity and deferred SMM contracts.
+- Main Pages push run 45076054135 succeeded, including deployed-origin dashboard/mobile/QR browser verification.
+- Main Primary Catalog run 45076054161 succeeded.
+- Main forward migration replay run 45076054131 succeeded: 112 migrations replayed on an isolated disposable PostgreSQL instance with tenant-isolation tests. This is not a Production migration or backup/restore.
+- Production Health Monitor run 45076054204 succeeded.
+
+### Fresh read-only Production state
+
+- Migration ledger: 310 rows, latest `20261110150618`; exact required release set **0/76 present**.
+- `public.directory_listing_contact_consents` and `public.migration_release_registry` remain absent.
+- Security Advisor: 9 RLS-enabled/no-policy INFO findings; 65 authenticated-callable and 1 anon-callable SECURITY DEFINER WARN findings; leaked-password protection disabled. Review by function/caller; do not mass-revoke.
+- Monthly subscription checkout is **not certified**: live `subscription-payment-intent` v4 differs from current main; no signed Paymob sandbox end-to-end proof or verified secret/config state was produced. Plan/status/entitlement may be shown only where server-backed; keep unverified checkout disabled. No new Paymob integration work in V1.
+- No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge deployment, payment, wallet, settlement or customer-data mutation occurred. GitHub Pages static deployment only.
+
+### Next sequence
+
+1. Preserve the deployed V1 and monitor real user-facing behavior; do not re-enable unclaimed listings or contact sharing.
+2. Complete genuine encrypted off-site DB + Storage backup, Vault recovery and independent PostgreSQL 17 restore/rollback with measured RPO/RTO.
+3. Reconcile all 76 exact release migration IDs and physical object/ACL dependencies; no isolated Production migrations.
+4. Release RC472/RC473 consent schema, owner audit writer, matching public readers and authorization dependencies as one tested bundle.
+5. Verify monthly subscription checkout through the current claim-based intent path and signed Paymob sandbox webhook before exposing activation.
+6. Resume PR978 gallery only with matching writer/reader/consent release; owner-scoped file upload requires a separate Storage contract.
+7. Keep Li2Lak, Paymob expansion, wallets, commissions, refunds, payouts, reconciliation, settlement and non-monthly accounting in the post-launch backlog.
+
+**Evidence:** `docs/audits/PASS_1832_WEBSITE_V1_DEPLOYMENT_20261122.md` and `docs/release/WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md`.
 
 ## Pass 1701–1710 — source inspection refinement
 

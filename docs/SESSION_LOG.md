@@ -3958,3 +3958,18 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - PR980 was stale because PR981 moved main forward; these documentation changes are being re-applied on a fresh current-main branch to preserve PR981's updates. No Production DDL/DML/migrations/Auth/RLS/Storage/Edge/payments/wallet/settlement/customer data changes.
 - Production remains **BLOCKED / NOT CERTIFIED**. Evidence: docs/audits/PASS_1821_1830_LIVE_PRODUCTION_EDGE_MIGRATION_RECHECK_20261122.md and docs/audits/PASS_1821_1830_LIVE_DIRECTORY_DISABLED_MITIGATION_20261122.md.
 
+
+
+## 2026-11-22 — SESSION-NEW — Website V1 deployment and post-launch handoff
+
+- **User priority:** launch the website first; defer Li2Lak, Paymob integration expansion and non-monthly accounting/finance work to the post-launch backlog.
+- PR #982 merged the default-closed national directory source gate. PR #984 merged the live Production parity checkpoint. PR #985 merged as `c95ccc0d891e0670fe34d97c4c1beca6bd0f4fa2`; stale PR #972 was closed as superseded.
+- PR985 exact-head `877a9635bea71e1cee2105af4170cb88a266f83a` passed all 11 workflows. Main Pages run 45076054135 deployed GitHub Pages and passed deployed-origin browser verification for the public root, dashboard/mobile and QR routes. Main Primary Catalog run 45076054161 passed build, browser E2E and employee RBAC.
+- Main disposable migration replay run 45076054131 replayed 112 migrations and passed tenant isolation. This is not Production migration/restore evidence.
+- V1 privacy boundary: no unclaimed national directory API requests or direct listing details; owner public-contact consent UI remains hidden; routine profile saves do not write consent. Live directory-listings v18 matches the disabled stub; public-catalog v9 and public-catalog-directory v19 match current main bundle files.
+- PR978 remains DRAFT for the promotional gallery; matching Edge/schema release and local file upload are not complete.
+- Fresh read-only Production state: 310 migration ledger rows, latest 20261110150618, required release set 0/76, consent and migration-release registries absent. Security Advisor has 9 RLS/no-policy INFO, 65 authenticated and 1 anonymous SECURITY DEFINER WARN, and leaked-password protection disabled.
+- Monthly subscription checkout is not certified: live subscription-payment-intent v4 is source-drifted and signed Paymob sandbox E2E was not verified. Keep unverified checkout disabled; no new Paymob work in V1.
+- **No Production DDL/DML, migrations, RLS/GRANT, Auth, Storage, Edge deployments, payment, wallet, settlement or customer-data writes.** GitHub Pages static deployment only. Full platform remains **BLOCKED / NOT CERTIFIED**.
+- Next: encrypted backup/restore and RPO/RTO; reconcile 76 exact migrations; coordinated RC472/RC473 consent bundle; verify monthly checkout; then gallery and post-launch Li2Lak/Paymob/finance work.
+
