@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard, hasBusinessModulePermission } from '../../utils/dashboardAccess';
 import type { Business } from '../../types';
+import { CustomerOrderReviews } from '../../components/account/CustomerOrderReviews';
 import { BadgeCheck, Building2, CreditCard, Eye, LayoutDashboard, LockKeyhole, LogOut, Package, ShieldCheck, Store, UserRound } from 'lucide-react';
 
 type Section = 'overview' | 'subscription' | 'permissions' | 'activities' | 'manage';
@@ -153,6 +154,7 @@ export const SubscriberAccountPortal: React.FC = () => {
           </aside>
 
           <main className="min-w-0">
+            <CustomerOrderReviews />
             {section === 'overview' && (
               <>
                 <div className="mb-5">
