@@ -366,10 +366,11 @@ export const CartDrawer: React.FC = () => {
                 <h3 className="font-black text-lg text-emerald-950">
                   {completedOrderDetails.method === 'paymob'
                     ? 'تم سداد الطلب بنجاح عبر Paymob وإرسال التفاصيل!'
-                    : completedOrderDetails.tracked ? 'تم تسجيل الطلب وإرسال التفاصيل عبر واتساب!' : 'تم إرسال طلبك عبر واتساب فقط!'}
+                    : completedOrderDetails.tracked ? 'تم تسجيل الطلب بنجاح' : 'تم تجهيز الطلب للإرسال عبر واتساب'}
                 </h3>
 
                 {completedOrderDetails.tracked && completedOrderDetails.orderId && (<p className="rounded-xl border border-emerald-200 bg-white p-3 text-sm font-bold text-emerald-900">رقم الطلب المسجل: <span dir="ltr" className="font-mono">{completedOrderDetails.orderId}</span></p>)}
+                {completedOrderDetails.whatsappUrl && (<a href={completedOrderDetails.whatsappUrl} target="_blank" rel="noopener noreferrer" className="inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-700">فتح واتساب وإرسال تفاصيل الطلب</a>)}
                 {completedOrderDetails.method === 'paymob' && (
                   <div className="bg-white p-3.5 rounded-2xl border border-emerald-300 text-right space-y-1.5 text-xs shadow-xs">
                     <div className="flex items-center justify-between text-slate-500 font-semibold">
