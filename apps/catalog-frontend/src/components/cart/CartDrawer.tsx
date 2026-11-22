@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { calculateCartTotals, calculatePaymobFee } from '../../utils/rules';
 import { PaymobChannel } from '../../types';
+import { supabase } from '../../lib/production';
 import {
   X,
   ShoppingBag,
@@ -34,6 +35,7 @@ export const CartDrawer: React.FC = () => {
     setIsCartOpen,
     cartItems,
     currentBusiness,
+    authSession,
     adminSettings,
     updateCartQuantity,
     removeFromCart,
@@ -47,6 +49,8 @@ export const CartDrawer: React.FC = () => {
   const [deliveryNotes, setDeliveryNotes] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [orderSentSuccess, setOrderSentSuccess] = useState(false);
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+  const orderAttemptRef = useRef<{ fingerprint: string; orderId: string; idempotencyKey: string } | null>(null);
   const [completedOrderDetails, setCompletedOrderDetails] = useState<{
     whatsappUrl?: string;
     method: 'cod' | 'paymob';
@@ -54,6 +58,8 @@ export const CartDrawer: React.FC = () => {
     fee: number;
     total: number;
     ref?: string;
+    orderId?: string;
+    tracked?: boolean;
   } | null>(null);
 
   // Paymob Payment Method State
