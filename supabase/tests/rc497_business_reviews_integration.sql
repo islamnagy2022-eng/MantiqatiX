@@ -97,17 +97,17 @@ SELECT set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000003'
 SELECT set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000003","role":"authenticated"}',false);
 
 DO $moderation$
-DECLARE review_id uuid; result jsonb; event_previous text;
+DECLARE v_review_id uuid; result jsonb; event_previous text;
 BEGIN
-  SELECT id INTO review_id FROM public.business_reviews
+  SELECT id INTO v_review_id FROM public.business_reviews
    WHERE order_id='30000000-0000-4000-8000-000000000001';
-  result := public.moderate_business_review(review_id, 'PUBLISHED', 'اجتاز مراجعة المحتوى');
+  result := public.moderate_business_review(v_review_id, 'PUBLISHED', 'اجتاز مراجعة المحتوى');
   IF result->>'status' <> 'PUBLISHED' THEN
     RAISE EXCEPTION 'RC497_MODERATION_FAILED';
   END IF;
   SELECT previous_status INTO event_previous
     FROM public.business_review_events
-   WHERE review_id=review_id AND event_type='MODERATED'
+   WHERE business_review_events.review_id=v_review_id AND event_type='MODERATED'
    ORDER BY created_at DESC LIMIT 1;
   IF event_previous <> 'PENDING' THEN
     RAISE EXCEPTION 'RC497_MODERATION_AUDIT_PREVIOUS_STATE_INVALID: %', event_previous;
