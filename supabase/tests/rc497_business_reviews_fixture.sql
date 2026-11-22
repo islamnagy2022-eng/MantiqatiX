@@ -26,6 +26,7 @@ GRANT EXECUTE ON FUNCTION auth.jwt() TO anon, authenticated, service_role;
 CREATE TABLE public.businesses (
   id uuid PRIMARY KEY,
   tenant_id varchar NOT NULL,
+  name text NOT NULL,
   status varchar NOT NULL
 );
 CREATE TABLE public.orders (
