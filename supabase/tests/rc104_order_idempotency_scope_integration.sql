@@ -289,6 +289,27 @@ BEGIN
   IF NOT v_rejected THEN
     RAISE EXCEPTION 'RC498_ITEM_COUNT_LIMIT_BYPASSED';
   END IF;
+
+  v_rejected := false;
+  BEGIN
+    PERFORM public.create_order_backend(
+      '30000000-0000-4000-8000-000000000095',
+      'tenant-a',
+      '20000000-0000-4000-8000-000000000001',
+      'branch-a',
+      auth.uid(),
+      'non-array-items-key-rc498',
+      0,0,0,0,0,'EGP','Customer One','01000000000','Malformed items payload',
+      '{"not":"an array"}'::jsonb,
+      null,'{}'::jsonb
+    );
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'INVALID_ITEMS' THEN RAISE; END IF;
+    v_rejected := true;
+  END;
+  IF NOT v_rejected THEN
+    RAISE EXCEPTION 'RC498_NON_ARRAY_ITEMS_ACCEPTED';
+  END IF;
 END
 $rc498_authenticated_order$;
 
