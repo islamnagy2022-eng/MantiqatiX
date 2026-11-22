@@ -53,3 +53,11 @@
 6. Only after the release gates and approval pass, proceed to Paymob sandbox/finance E2E, then the deferred Li2Lak business-review/media work.
 
 **Decision:** public price disclosure is safer at source level after PR #976, but full Production remains **BLOCKED / NOT CERTIFIED**.
+
+## Follow-up after checkpoint — PR #976 merged
+
+- PR #976 exact-head checks completed with **28 success, 2 skipped, 0 failures**; the final Primary Catalog browser E2E passed.
+- PR #976 merged to main at `1fbc94e69987b9a00aa2f09ddc2acc230aa85b8c`.
+- Post-merge main workflows were triggered. Pages deploy run `45071129013` and Primary Catalog Frontend Validation run `45071128944` were queued at this follow-up; Production Health Monitor `45071128896`, Backend-only boundary `45071128926`, and MantiGO privacy `45071128872` were in progress. No post-PR976 deployment is claimed until those runs finish.
+- No Production data-plane mutation occurred. All previously documented migration, directory consent, Edge parity, payment/finance and backup/restore blockers remain.
+
