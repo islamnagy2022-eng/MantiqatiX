@@ -133,7 +133,7 @@ assert.match(productionMapper, /item\.name_ar \|\| item\.nameAr/, 'both public A
 assert.match(productionMapper, /item\.status \?\? item\.itemStatus/, 'explicit inactive catalog items must be rejected while server-filtered public API rows may omit status');
 assert.match(productionMapper, /validPrices\.find[\s\S]*?branchId[\s\S]*?validPrices\.find\(\(candidate: any\) => !candidate\.branch_id/, 'public catalog mapping must select the selected branch or global price only, never another branch price');
 assert.match(productionMapper, /resolvePublicCatalogAvailability\(metadata, item, price\)/, 'public catalog mapping must use the tested quote-only availability resolver');
-assert.match(catalogPricing, /metadata\.show_price === false \|\| item\.requiresQuote === true/, 'shared public catalog resolver must retain quote-only items without disclosing a numeric price');
+assert.match(catalogPricing, /metadata\.show_price !== true \|\| item\.requiresQuote === true/, 'shared public catalog resolver must require explicit opt-in before exposing a numeric price and otherwise keep available items quote-only');
 assert.match(storefrontCatalog, /اطلب عرض سعر لـ \$\{product\.name\}/, 'quote-only products and services must use a neutral product/service quote CTA');
 assert.match(productionMapper, /catalogPublished: Boolean\(raw\.catalogPublished/, 'public directory presence must stay separate from the enabled public catalogue flag');
 assert.doesNotMatch(storefrontHeader, /platformAdCover|isCurrentSlideAd|images\.unsplash\.com/, 'storefront must not inject fabricated platform ad slides or stock cover photos');
