@@ -17,7 +17,8 @@ assert.match(activity, /isMantiqatiXBrandName\(business\.name\) \? resolveDefaul
 assert.match(activity, /isMantiqatiXBrandName\(business\.name\) \? resolveDefaultImage\(\{ name: business\.name, kind: 'activity' \}\)/);
 assert.match(component, /const coverImage = isPlatformBrandProfile \? defaultCover : currentBusiness\?\.coverUrl \|\| defaultCover/);
 assert.match(component, /src=\{isPlatformBrandProfile \? defaultLogo : currentBusiness\.logoUrl \|\| defaultLogo\}/);
-assert.match(component, /merchantCovers\.length > 0\) return merchantCovers\.slice\(0, 2\)/);
+assert.doesNotMatch(component, /currentBusiness\.coverImages|merchantCovers|currentSlideIndex|slides\.map/, 'legacy multi-cover rotation must not be used for the main cover');
+assert.match(component, /data-testid="storefront-promotional-gallery"/, 'promotional images must have a separate gallery');
 assert.match(defaults, /mantiqatix-brand-logo\.svg/);
 assert.match(defaults, /mantiqatix-brand-cover\.svg/);
 assert.ok(existsSync('apps/catalog-frontend/public/mantiqatix-brand-logo.svg'), 'first-party logo asset must exist');
