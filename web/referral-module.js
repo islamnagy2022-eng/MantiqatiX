@@ -87,7 +87,38 @@
     field.remove();
     return copied;
   }
+  function ensureStyles() {
+    if (document.getElementById("mx-referral-styles")) return;
+    const style = document.createElement("style");
+    style.id = "mx-referral-styles";
+    style.textContent = `
+      .mx-referral-card{margin:18px 0;padding:22px;border:1px solid #dbe5f4;border-radius:20px;background:linear-gradient(145deg,#fff 0%,#f5f8ff 100%);box-shadow:0 8px 24px rgba(15,23,42,.06)}
+      .mx-referral-heading{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px}
+      .mx-referral-icon{display:grid;place-items:center;width:44px;height:44px;flex:0 0 44px;border-radius:14px;background:#eaf1ff;color:#0750c9;font-size:25px;font-weight:900}
+      .mx-referral-heading h3{margin:2px 0 5px;font-size:19px;color:#14213d}
+      .mx-referral-heading p,.mx-referral-note{margin:0;color:#64748b;font-size:12px;line-height:1.8}
+      .mx-referral-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}
+      .mx-referral-stats>div{padding:12px;border:1px solid #e2e8f0;border-radius:14px;background:#fff}
+      .mx-referral-stats strong,.mx-referral-stats span{display:block}
+      .mx-referral-stats strong{font-size:23px;color:#0750c9}
+      .mx-referral-stats span,.mx-referral-code-row span,.mx-referral-link-label{font-size:11px;color:#64748b}
+      .mx-referral-code-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;margin:12px 0;border:1px dashed #93b4ed;border-radius:12px;background:#fff}
+      .mx-referral-code-row strong{letter-spacing:2px;color:#0f2f67}
+      .mx-referral-link-label{display:block;margin:12px 0 6px;font-weight:800}
+      .mx-referral-link-row{display:flex;gap:8px}
+      .mx-referral-link-row input{min-width:0;flex:1;padding:11px 12px;border:1px solid #dbe3ef;border-radius:11px;background:#fff;color:#334155;font-size:11px}
+      .mx-referral-link-row .btn{width:auto;white-space:nowrap}
+      .mx-referral-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+      .mx-referral-actions .btn{width:auto;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+      .mx-referral-note{margin-top:10px}
+      .mx-referral-status{min-height:20px;margin-top:8px;color:#087443;font-size:12px;font-weight:700}
+      @media(max-width:520px){.mx-referral-card{padding:16px}.mx-referral-link-row{flex-direction:column}.mx-referral-link-row .btn{width:100%}.mx-referral-actions .btn{flex:1 1 42%}}
+    `;
+    document.head.appendChild(style);
+  }
+
   async function render({ sb, user }) {
+    ensureStyles();
     if (!user?.id) return "";
     const { data, error } = await sb.rpc("get_or_create_my_referral_profile");
     if (error) {
