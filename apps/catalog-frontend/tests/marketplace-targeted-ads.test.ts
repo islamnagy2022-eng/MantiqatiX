@@ -13,7 +13,7 @@ const validAd = (id: string, overrides: Record<string, unknown> = {}) => ({
 test('keeps successful placement ads when the other placement rejects', async () => {
   const calls: string[] = [];
   const ads = await loadTargetedAdvertisements(async (_name, args) => {
-    calls.push(args.p_ad_space_id);
+    calls.push(String(args.p_ad_space_id));
     if (args.p_ad_space_id === 'HOME_HERO') throw new Error('network unavailable');
     return { data: [validAd('sponsored-1')], error: null };
   });
