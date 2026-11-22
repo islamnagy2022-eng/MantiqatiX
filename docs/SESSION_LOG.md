@@ -3834,3 +3834,37 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Inspected the chronological definitions of `mantigo_rate_ride`: migration `20261006121810` rejects changed duplicate submissions, but later `20261006171000` replaces it with an upsert/update path.
 - Current-main final definition therefore does not preserve the earlier immutability behavior. `20261006180000` includes the caller's own rating in customer ride-history output.
 - This remains separate from general directory-business reviews. Intended edit policy and PostgreSQL regression coverage need confirmation before any code/migration change.
+
+
+## 2026-11-22 — Pass 1721–1730 — Marketplace ad resilience
+
+- Merged the documentation-only Li2Lak benchmark PR #963 to main as `a04a057a5878d0a9b7fb1b4404348c8f760fe96b`.
+- Implemented a focused Marketplace reliability fix on `fix/li2lak-marketplace-ads-resilience-20261122-v2`: HOME_HERO and HOME_SPONSORED calls now fail independently, safe creative URLs are required, unsafe target URLs are disabled, and duplicate ads are collapsed.
+- Added four tests covering rejected RPC, returned RPC error, URL safety and duplicate placement records. Local Node 22 run: 4/4 PASS; helper TypeScript check: PASS.
+- Added the tests to Primary Catalog Frontend Validation. Exact-head GitHub Actions remains pending; no merge/deployment is claimed.
+- No Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, customer data or public deployment was changed.
+- Production remains **BLOCKED / NOT CERTIFIED** pending backup/restore, migration and Edge parity, security/privacy, and live acceptance gates.
+
+
+## 2026-11-22 — Pass 1731–1740 — Live Supabase schema and Storage review
+
+- Reconnected to the actual Production project `MANTIQATIX FINAL`, status ACTIVE_HEALTHY.
+- Live migration ledger: 310 rows through `20261110150618`; later repository migrations are not thereby deployed.
+- Live table metadata found only `mantigo_ride_ratings` among review/rating-named application tables; no general business/storefront/product/service review model was found.
+- Live Storage configuration has two 5 MiB image-only buckets: private `mantiqatix-media` and public-read `mantiqatix-profile-media`. Video upload is not currently configured.
+- Security Advisor: 9 RLS-enabled/no-policy relations, 1 anonymous-callable SECURITY DEFINER public ad RPC, and 65 authenticated-callable SECURITY DEFINER functions. Treat as inventories for authorization-aware review, not automatic vulnerabilities.
+- Recorded live platform-brand Storage policy's legacy SUPER_ADMIN membership predicate as a source/live reconciliation item; no Production policy changed.
+- No Production DDL/data, Auth, RLS, GRANT, Storage, Edge, payment, wallet, user data or deployment changes.
+- Disposition: **PRODUCTION BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-11-22 — Pass 1741–1750 — Catalog RPC authorization drift
+
+- Read-only live inspection of seven catalog/stock RPCs confirms legacy membership-derived SUPER_ADMIN platform-root logic remains deployed; all seven are SECURITY DEFINER with `search_path=public`, lack registry-helper calls and read legacy scope/full_control flags.
+- Existing source repair is RC484 + RC485; RC485 updates all seven to empty search_path and registry-backed root authority while retaining tenant-local roles. Its static validator and disposable PostgreSQL integration test already exist.
+- Confirmed all nine RLS-enabled/no-policy relations have no direct anon/authenticated grants; no blanket RLS policies are warranted.
+- Updated production migration reconciliation manifest and audit evidence. No Production DDL/function/ACL/RLS/Storage/Auth/Edge/payment mutation or deployment.
+- P0 remains open until the full ordered release is approved, applied and post-verified after a real backup/restore rehearsal. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+- Additional RC484 recheck: private platform-admin registry has one row, RLS on/FORCE RLS off, no direct client grants; live helper remains membership-derived SECURITY INVOKER/search_path=public; 57 policies call it. Existing RC484+RC485 source chain addresses this; release must be coordinated and approved. No Production mutation.
