@@ -253,7 +253,7 @@ BEGIN
       jsonb_build_array(jsonb_build_object(
         'catalogItemId','40000000-0000-4000-8000-000000000001',
         'quantity',1,
-        'selectedOptionIds',(SELECT jsonb_agg(to_jsonb('option-' || g::text)) FROM generate_series(1,21) g)
+        'selectedOptionIds',(SELECT jsonb_agg(to_jsonb('option-' || g::text)) FROM generate_series(1,21) AS seq(g))
       )),
       null,'{}'::jsonb
     );
@@ -279,7 +279,7 @@ BEGIN
         'catalogItemId','40000000-0000-4000-8000-000000000001',
         'quantity',1,
         'selectedOptionIds','[]'::jsonb
-      )) FROM generate_series(1,101)),
+      )) FROM generate_series(1,101) AS seq(g)),
       null,'{}'::jsonb
     );
   EXCEPTION WHEN OTHERS THEN
