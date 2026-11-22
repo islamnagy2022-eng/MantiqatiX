@@ -179,12 +179,36 @@ BEGIN
     RAISE EXCEPTION 'REVIEW_ALREADY_SUBMITTED';
   END IF;
 
+  -- The pre-read above handles ordinary retries. ON CONFLICT closes the race
+  -- where two identical submissions both observe no row before either inserts.
   INSERT INTO public.business_reviews (
     tenant_id, business_id, branch_id, order_id, customer_id, rating, review_text
   ) VALUES (
     v_order.tenant_id, v_order.business_id, v_order.branch_id, v_order.id, v_actor, p_rating, v_text
   )
+  ON CONFLICT (order_id) DO NOTHING
   RETURNING * INTO v_review;
+
+  IF NOT FOUND THEN
+    SELECT r.* INTO v_existing
+      FROM public.business_reviews r
+     WHERE r.order_id = v_order.id
+     FOR UPDATE;
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'REVIEW_SUBMISSION_CONFLICT';
+    END IF;
+    IF v_existing.customer_id IS DISTINCT FROM v_actor THEN
+      RAISE EXCEPTION 'BUSINESS_REVIEW_FORBIDDEN';
+    END IF;
+    IF v_existing.rating = p_rating AND v_existing.review_text IS NOT DISTINCT FROM v_text THEN
+      RETURN jsonb_build_object(
+        'reviewId', v_existing.id,
+        'status', v_existing.status,
+        'idempotent', true
+      );
+    END IF;
+    RAISE EXCEPTION 'REVIEW_ALREADY_SUBMITTED';
+  END IF;
 
   INSERT INTO public.business_review_events (
     review_id, actor_user_id, event_type, new_status
