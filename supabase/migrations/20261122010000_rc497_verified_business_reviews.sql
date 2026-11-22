@@ -35,6 +35,29 @@ CREATE INDEX business_reviews_public_business_created_idx
 CREATE INDEX business_reviews_customer_created_idx
   ON public.business_reviews (customer_id, created_at DESC);
 
+CREATE OR REPLACE FUNCTION private.anonymize_business_review_on_customer_delete()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path TO ''
+AS $function$
+BEGIN
+  IF OLD.customer_id IS NOT NULL AND NEW.customer_id IS NULL THEN
+    -- Keep the verified rating and moderation history, but remove free text
+    -- that may contain customer-identifying information after account deletion.
+    NEW.review_text := NULL;
+    NEW.updated_at := now();
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION private.anonymize_business_review_on_customer_delete() FROM PUBLIC, anon, authenticated, service_role;
+
+CREATE TRIGGER trg_business_review_customer_anonymization
+BEFORE UPDATE OF customer_id ON public.business_reviews
+FOR EACH ROW
+EXECUTE FUNCTION private.anonymize_business_review_on_customer_delete();
+
 CREATE TABLE public.business_review_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   review_id uuid NOT NULL REFERENCES public.business_reviews(id) ON DELETE RESTRICT,
