@@ -196,6 +196,26 @@ BEGIN
 END
 $moderation_audit$;
 
+-- A manager for another branch of the same business may not answer this review.
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000006',false);
+SELECT set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000006","role":"authenticated"}',false);
+
+DO $wrong_branch_manager$
+DECLARE review_id uuid;
+BEGIN
+  review_id := current_setting('test.review_id')::uuid;
+  BEGIN
+    PERFORM public.respond_to_business_review(review_id, 'رد من فرع آخر');
+    RAISE EXCEPTION 'RC497_CROSS_BRANCH_MANAGER_RESPONDED';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'BUSINESS_REVIEW_RESPONSE_FORBIDDEN' THEN RAISE; END IF;
+  END;
+END
+$wrong_branch_manager$;
+
+RESET ROLE;
+
 -- Correct business owner may answer exactly once; a different business owner may not.
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000002',false);
