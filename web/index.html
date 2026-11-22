@@ -73,6 +73,14 @@
       // Open the public website shell first. The landing page is intentionally
       // independent from authenticated app boot so a transient SDK/network
       // failure can never leave the user on a blank/error-only screen.
+      // Capture referral attribution before app.js can sanitize OAuth query parameters.
+      try {
+        var inviteCode = new URL(window.location.href).searchParams.get('ref');
+        if (inviteCode && /^[A-Z0-9]{6,32}$/i.test(inviteCode)) {
+          try { localStorage.setItem('MNTYPendingReferralCode', inviteCode.toUpperCase()); }
+          catch (_) { try { sessionStorage.setItem('MNTYPendingReferralCode', inviteCode.toUpperCase()); } catch (__) {} }
+        }
+      } catch (_) {}
       await load('config.js?v=mnty116');
       await load('location-adapter.js?v=mnty116');
       await load('sector-registry.js?v=rc371');
