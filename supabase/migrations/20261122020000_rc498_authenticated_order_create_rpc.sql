@@ -84,7 +84,7 @@ begin
    if jsonb_typeof(coalesce(v_item->'selectedOptionIds','[]'::jsonb)) is distinct from 'array' then raise exception 'INVALID_ITEM_OPTIONS'; end if;
    v_requested_opts:=jsonb_array_length(coalesce(v_item->'selectedOptionIds','[]'::jsonb));
    if v_requested_opts>20 or exists (
-     select 1 from jsonb_array_elements(coalesce(v_item->'selectedOptionIds','[]'::jsonb)) option_value
+     select 1 from jsonb_array_elements(coalesce(v_item->'selectedOptionIds','[]'::jsonb)) as option_values(option_value)
       where jsonb_typeof(option_value) is distinct from 'string'
          or length(btrim(option_value #>> '{}'))=0
          or length(option_value #>> '{}')>100
