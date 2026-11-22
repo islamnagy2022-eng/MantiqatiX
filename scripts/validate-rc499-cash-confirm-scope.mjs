@@ -40,9 +40,9 @@ assert.match(migration, /IF v_existing_obligation\.id IS NULL THEN[\s\S]*?INSERT
 assert.match(migration, /REVOKE ALL ON FUNCTION public\.confirm_cash_payment\(character varying, uuid\) FROM PUBLIC, anon, authenticated;[\s\S]*?GRANT EXECUTE ON FUNCTION public\.confirm_cash_payment\(character varying, uuid\) TO service_role;/,
   "cash confirmation must remain service-role-only");
 assert.match(fixture, /CREATE TABLE public\.user_memberships[\s\S]*?CREATE TABLE public\.orders[\s\S]*?CREATE TABLE public\.payment_intents[\s\S]*?CREATE TABLE public\.commission_rules[\s\S]*?CREATE TABLE public\.payment_events[\s\S]*?CREATE TABLE public\.financial_obligations/,
+  "fixture must model all tables required by the cash confirmation transaction");
 assert.match(fixture, /CREATE TABLE public\.payment_events \(\s*id varchar PRIMARY KEY/,
   "fixture payment-event ID type must match the live varchar schema");
-  "fixture must model all tables required by the cash confirmation transaction");
 assert.ok(integration.includes("unrelated membership is inserted before the authorized membership"),
   "integration must cover an unrelated same-tenant membership preceding the correct membership");
 assert.ok(integration.includes("cross-branch manager confirmed cash payment"),
