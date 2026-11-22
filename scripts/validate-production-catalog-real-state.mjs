@@ -126,7 +126,7 @@ assert.ok(directoryListingsView.includes('listingProfileImage(detail)') &&
 assert.ok(directoryListingsView.includes('رابط صورة الصفحة (اختياري — رابط HTTPS)') && directoryListingsView.includes('pattern="https://.*"'), 'the claimed page owner editor must expose an HTTPS-only replacement image URL field');
 assert.ok(directoryListingsView.includes('profileImageUrl: asText(meta.profileImageUrl)'), 'the owner image URL must be loaded into the edit form');
 assert.ok(directoryListingsLib.includes('profileImageUrl: input.profileImageUrl.trim()'), 'the owner image URL must be persisted through the existing owned listing update request');
-assert.ok(directoryListingsFunction.includes('"profileImageUrl"'), 'the existing owned-listing server allowlist must continue accepting the owner image URL metadata field');
+assert.ok(directoryListingsFunction.includes('DIRECTORY_LISTINGS_DISABLED_FOR_V1') && !directoryListingsFunction.includes('"profileImageUrl"') && !directoryListingsFunction.includes('createClient('), 'the V1-disabled unclaimed directory endpoint must expose no owner mutation allowlist or database client');
 assert.match(productionMapper, /isStockImageUrl\(savedLogo\) && !officialShowcase/, 'legacy stock image URLs must only be restored for platform-owned showcase activities');
 assert.match(productionMapper, /metadata\.image_url \|\| item\.imageUrl \|\| item\.image_url/, 'legacy and normalized public catalog responses must preserve actual owner-uploaded product images');
 assert.match(productionMapper, /item\.name_ar \|\| item\.nameAr/, 'both public API item-name contracts must be normalized');
