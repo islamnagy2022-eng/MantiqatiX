@@ -3272,7 +3272,7 @@ The initial rating immutability migration (`20261006121810`) is superseded at th
 
 **Production project:** `moyhiluyhjsujhwlyeuu` (`MANTIQATIX FINAL`, ACTIVE_HEALTHY).  
 **Current source branch:** `fix/li2lak-marketplace-ads-resilience-20261122-v2`.  
-**Current PR:** #968; the earlier PR #967 was superseded after adding stricter URL validation and expanded regression cases.  
+**Current PR:** #969; the earlier PR #967 was superseded after adding stricter URL validation and expanded regression cases.  
 **Production gate:** **BLOCKED / NOT CERTIFIED**.
 
 Live read-only Supabase inspection confirms 310 applied migrations through `20261110150618`; current source forward-chain replay is a separate CI gate and does not mean the later source migrations are deployed. No general business review table exists in the live table inventory; only MantiGO ride ratings exist. Both current Storage buckets are image-only and limited to 5 MiB. Security Advisor reports 9 RLS-enabled/no-policy relations, one anonymous-callable public ads SECURITY DEFINER RPC, and 65 authenticated-callable SECURITY DEFINER functions. See `docs/audits/PASS_1731_1740_LIVE_SUPABASE_SCHEMA_STORAGE_REVIEW_20261122.md`.
