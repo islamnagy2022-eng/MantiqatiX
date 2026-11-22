@@ -239,6 +239,56 @@ BEGIN
   IF NOT v_rejected THEN
     RAISE EXCEPTION 'RC498_FRACTIONAL_QUANTITY_ACCEPTED';
   END IF;
+
+  v_rejected := false;
+  BEGIN
+    PERFORM public.create_order_backend(
+      '30000000-0000-4000-8000-000000000093',
+      'tenant-a',
+      '20000000-0000-4000-8000-000000000001',
+      'branch-a',
+      auth.uid(),
+      'too-many-options-key-rc498',
+      0,0,0,0,0,'EGP','Customer One','01000000000','Too many options',
+      jsonb_build_array(jsonb_build_object(
+        'catalogItemId','40000000-0000-4000-8000-000000000001',
+        'quantity',1,
+        'selectedOptionIds',(SELECT jsonb_agg(to_jsonb('option-' || g::text)) FROM generate_series(1,21) g)
+      )),
+      null,'{}'::jsonb
+    );
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'INVALID_ITEM_OPTIONS' THEN RAISE; END IF;
+    v_rejected := true;
+  END;
+  IF NOT v_rejected THEN
+    RAISE EXCEPTION 'RC498_OPTION_LIMIT_BYPASSED';
+  END IF;
+
+  v_rejected := false;
+  BEGIN
+    PERFORM public.create_order_backend(
+      '30000000-0000-4000-8000-000000000094',
+      'tenant-a',
+      '20000000-0000-4000-8000-000000000001',
+      'branch-a',
+      auth.uid(),
+      'too-many-items-key-rc498',
+      0,0,0,0,0,'EGP','Customer One','01000000000','Too many items',
+      (SELECT jsonb_agg(jsonb_build_object(
+        'catalogItemId','40000000-0000-4000-8000-000000000001',
+        'quantity',1,
+        'selectedOptionIds','[]'::jsonb
+      )) FROM generate_series(1,101)),
+      null,'{}'::jsonb
+    );
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'INVALID_ITEMS' THEN RAISE; END IF;
+    v_rejected := true;
+  END;
+  IF NOT v_rejected THEN
+    RAISE EXCEPTION 'RC498_ITEM_COUNT_LIMIT_BYPASSED';
+  END IF;
 END
 $rc498_authenticated_order$;
 
