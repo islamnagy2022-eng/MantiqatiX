@@ -3929,7 +3929,7 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 
 - Added RC497 source migration: six narrow RPCs, one review per delivered customer order, registry-admin moderation, scoped business response, identity-free verified-business public summary, FORCE RLS and no direct API-role table grants.
 - Added account deletion anonymization and customer-authored review text scrubbing while preserving rating and event history.
-- Added customer order submission UI, merchant response UI, platform moderation queue UI and public storefront display.
+- Added customer order submission UI, merchant response UI, platform moderation queue UI and public storefront display; branch managers are limited to the order branch and the moderation queue is paginated.
 - Added disposable PostgreSQL 16 fixture, integration tests, source validator, release manifest entry and forward migration replay job; release gate now tracks 77 migration identities.
 - Production read-only checkpoint: zero order rows and no business-review table. RC497 remains unapplied; no real customer review is currently possible.
 - PR #970 closed as superseded after PR #969 merged. Rebased candidate carried to PR #971; exact-head CI pending. No Production mutation or deployment.
