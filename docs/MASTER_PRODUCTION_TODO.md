@@ -1,3 +1,11 @@
+## Pass 1701–1710 — Li2Lak product benchmark — 2026-11-22
+- [x] Compared publicly observable Li2Lak product patterns with current-main MantiqaTix source and the existing AI Studio parity map.
+- [x] Recorded existing strengths: Activity → Specialty discovery, verified-first directory, unclaimed/claimed separation, geographic search, owner storefronts, consent-scoped contact, progressive pagination, owner/admin dashboards and QR.
+- [x] Identified focused verification candidates: durable moderated reviews, Marketplace active-offer integration, and a production-ready video/media pipeline. These are not assumed absent until source/contracts are fully inspected.
+- [x] Added `docs/product/Li2Lak_COMPETITOR_BENCHMARK_20261122.md` on an isolated documentation branch.
+- [ ] Next: inspect Marketplace Home, ads/discount server contracts, review/rating schema/RPCs and Storage/media policies; implement only a verified non-duplicate gap with tests.
+- **Safety:** documentation/source planning only. No Production DB/Auth/RLS/GRANT/Storage/Edge/payment/customer-data mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
 ## Pass 1691–1700 — CI completion and deployed-origin verification — 2026-11-22
 - [x] Production Health Monitor run [44964216046](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44964216046): SUCCESS.
 - [x] Module Professionalization Validation run [44964216048](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/44964216048): 9/9 jobs SUCCESS.
