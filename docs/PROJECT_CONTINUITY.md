@@ -1,6 +1,6 @@
 ## Latest continuation checkpoint — 2026-11-22 — Website V1 deployed and verified; full-platform gate remains blocked
 
-**Current main:** `c95ccc0d891e0670fe34d97c4c1beca6bd0f4fa2`  
+**Website deployment commit:** `c95ccc0d891e0670fe34d97c4c1beca6bd0f4fa2` (PR #985; no application-code changes after deployment)  
 **Website:** [MantiqatiX GitHub Pages](https://islamnagy2022-eng.github.io/MantiqatiX/)  
 **Verified Pages deployment:** [run 45076054135](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45076054135) SUCCESS, including deployed-origin browser checks for the public root, dashboard, mobile layout and QR routes.  
 **Primary Catalog exact-main validation:** [run 45076054161](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45076054161) SUCCESS.  
