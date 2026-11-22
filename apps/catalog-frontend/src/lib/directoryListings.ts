@@ -1,4 +1,5 @@
 import { productionRuntime, supabase } from "./production";
+import { getDirectoryDisabledMessage } from "./directoryAvailability";
 import { resolveCanonicalDirectoryCategoryId, resolveCanonicalGroupId } from "../data/productionDefaults";
 
 export type PublicDirectoryListing = {
@@ -77,6 +78,8 @@ export type DirectoryAdminBundle = {
 
 async function readBody(response: Response): Promise<any> {
   const body = await response.json().catch(() => ({}));
+  const directoryDisabledMessage = getDirectoryDisabledMessage(body);
+  if (directoryDisabledMessage) throw new Error(directoryDisabledMessage);
   if (!response.ok || body?.error) {
     const message = body?.message || body?.error || "تعذر الاتصال بدليل الأنشطة";
     throw new Error(String(message));
