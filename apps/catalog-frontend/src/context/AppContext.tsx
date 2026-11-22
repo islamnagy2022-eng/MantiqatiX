@@ -296,7 +296,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const isDirectoryDeepLink = params.has('activity') || params.has('listing') || params.has('group');
     const safeRequestedView: ViewMode = !requestedView && !isDirectoryDeepLink
-      ? 'marketplace_home'
+      ? defaultView
       : requestedView === 'directory' || isDirectoryDeepLink
         ? 'directory'
       : requestedView === 'account_portal' && Boolean(boot.authSession.isAuthenticated)
