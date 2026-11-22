@@ -54,6 +54,7 @@ assert.match(fixture, /CREATE TABLE public\.orders[\s\S]*?customer_id uuid REFER
   "fixture must model customer account deletion without blocking order retention");
 for (const token of [
   "ORDER_NOT_DELIVERED",
+  "ORDER_BUSINESS_TENANT_MISMATCH",
   "BUSINESS_REVIEW_FORBIDDEN",
   "REVIEW_ALREADY_SUBMITTED",
   "MODERATION_REASON_REQUIRED",
