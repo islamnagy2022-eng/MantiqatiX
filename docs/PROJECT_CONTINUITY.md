@@ -11,14 +11,16 @@
 **Release target:** public catalog at the website root. The V1 scope and ordered post-launch backlog are recorded in [WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md](release/WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md).
 
 **Current position: NOT RELEASED / NOT CERTIFIED.**
-- Main Pages deploy run 44975555376 is queued; prior run 44975548041 was cancelled. A PR run is not a Pages deployment.
-- Production is project moyhiluyhjsujhwlyeuu. Current live public-catalog/public-catalog-directory are v8/v18 and differ from main's consent-aware source. catalog-admin v20 also differs and lacks the current-main consent audit flow.
-- All 10 active catalog branches have a phone, 7 have an address, and 0 of 10 public businesses have both audited public-contact consent flags. Contact data must remain hidden unless both flags are true.
-- The directory-listings consent registry is absent from Production; keep that separate surface out of V1 until RC472/RC473 and its complete Edge bundle are released.
-- The catalog pilot is data-ready at 15 active items / 12 active price rows. The full-platform release contract remains blocked: 310 Production migration rows, latest 20261110150618, versus 76 required exact migration identities with 0 matches.
-- No Production SQL mutation, migration application, Edge deployment, PR merge or Pages deployment was performed in this checkpoint.
+- PR #972 is open and mergeable; head CI is pending. Pages validation run 44985676119 has its `validate` job queued; `validate_public_only` is skipped. This is a PR validation run, not a Pages deployment.
+- Production public-catalog v9 and public-catalog-directory v19 are ACTIVE, preserve `verify_jwt=false`, and their complete deployed bundles match current main byte-for-byte. Both now apply the audited-contact projection.
+- Production directory-listings v17 is ACTIVE with the V1 fixed-503 stub; the read-back code contains no database client or table query and matches the branch source. The Pages workflow now tests GET/POST 503 and CORS; HTTP smoke and CI are still pending.
+- catalog-admin v20 and catalog-platform-admin v23 remain unchanged with drift disclosed. The owner public-contact consent UI is hidden because the current-main audited handler depends on registry-backed authorization not yet deployed. No contact-sharing grants are enabled.
+- Aggregate Production check: 10 active branches have phone fields, 7 have addresses, and 0/10 public businesses have both audited public-contact consent flags. Therefore contact details remain hidden by the public projection.
+- The separate directory consent registry is absent; unclaimed third-party listings and direct detail routes are disabled in V1.
+- The Qadam pilot data is ready at 15 active items / 12 price rows. Full-platform remains BLOCKED: 310 Production migration rows, latest 20261110150618, versus 76 required exact migration identities and 0 exact matches.
+- No Production SQL/migration/RLS/GRANT/Auth/data change, Pages deployment, PR merge or Li2Lak PR #971 merge occurred. Three scoped Edge deployments described above are the only Production changes in this launch checkpoint.
 
-**Do next:** run the public-contact privacy CI, deploy/read-back only the three required catalog Edge bundles, refresh the catalog-pilot evidence, then use the existing main-only Pages workflow. Keep PR #971 as post-launch Li2Lak work.
+**Do next:** complete exact-head CI and live Pages HTTP smoke, then review the catalog-pilot verifier. Pages deployment remains main-only; do not merge/cut over until the scoped gate is green. Keep PR #971 as post-launch Li2Lak work.
 
 ---
 
