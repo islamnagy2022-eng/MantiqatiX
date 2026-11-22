@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadTargetedAdvertisements } from '../src/utils/targetedAdvertisements';
 
-const validAd = (id, overrides = {}) => ({
+const validAd = (id: string, overrides: Record<string, unknown> = {}) => ({
   advertisement_id: id,
   title: 'إعلان اختبار',
   creative_url: 'https://cdn.example.test/ad.webp',
@@ -11,7 +11,7 @@ const validAd = (id, overrides = {}) => ({
 });
 
 test('keeps successful placement ads when the other placement rejects', async () => {
-  const calls = [];
+  const calls: string[] = [];
   const ads = await loadTargetedAdvertisements(async (_name, args) => {
     calls.push(args.p_ad_space_id);
     if (args.p_ad_space_id === 'HOME_HERO') throw new Error('network unavailable');
