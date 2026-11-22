@@ -5335,5 +5335,75 @@
       "release_dependency": "RC484 must precede RC485; apply and verify the complete ordered chain, not the helper or policies individually.",
       "production_applied": false
     }
+  },
+  "live_payment_edge_recheck_20261122": {
+    "checked_at": "2026-11-22",
+    "status": "BLOCKED_READ_ONLY",
+    "critical_edge_entrypoints_exact_source_match": 0,
+    "critical_edge_entrypoints_checked": 7,
+    "deployed_functions": [
+      {
+        "name": "order-create",
+        "version": 8,
+        "verify_jwt": true,
+        "index_exact_match": false
+      },
+      {
+        "name": "payment-intent",
+        "version": 8,
+        "verify_jwt": true,
+        "index_exact_match": false
+      },
+      {
+        "name": "paymob-webhook",
+        "version": 10,
+        "verify_jwt": false,
+        "index_exact_match": false
+      },
+      {
+        "name": "digital-page-payment-intent",
+        "version": 5,
+        "verify_jwt": true,
+        "index_exact_match": false
+      },
+      {
+        "name": "subscription-payment-intent",
+        "version": 4,
+        "verify_jwt": true,
+        "index_exact_match": false
+      },
+      {
+        "name": "financial-journal",
+        "version": 3,
+        "verify_jwt": true,
+        "index_exact_match": false
+      },
+      {
+        "name": "directory-listings",
+        "version": 16,
+        "verify_jwt": false,
+        "index_exact_match": false
+      }
+    ],
+    "missing_live_rpc_contracts": [
+      "process_verified_provider_payment_failure",
+      "process_verified_subscription_payment_failure",
+      "process_verified_subscription_payment_backend",
+      "process_verified_mantigo_payment_backend",
+      "create_subscription_payment_intent_claimable_backend",
+      "claim_subscription_provider_intent_creation_backend"
+    ],
+    "legacy_signature_mismatches": [
+      "process_verified_subscription_payment(text,text,uuid,text,numeric,text,boolean) exists; source requires provider-order-bound atomic success/failure RPCs",
+      "create_subscription_payment_intent_backend(uuid,text,text,text,text,uuid) exists; source requires claimable intent + provider creation claim RPCs",
+      "finalize_digital_page_payment_intent_backend(uuid,uuid,text,text) exists; source requires provider-order-bound five-argument signature"
+    ],
+    "live_acl_blockers": [
+      "claim_digital_page_payment_intent_backend(uuid,uuid,text,text): authenticated EXECUTE true; service_role false",
+      "release_digital_page_payment_intent_claim_backend(uuid,uuid,text): authenticated EXECUTE true; service_role false",
+      "finalize_digital_page_payment_intent_backend(uuid,uuid,text,text): authenticated EXECUTE true; service_role false",
+      "post_financial_journal_backend(uuid,jsonb,jsonb): service_role EXECUTE false; anon/authenticated false"
+    ],
+    "production_mutation": "NONE — no payment, order, webhook, journal, wallet, settlement or schema/ACL/Edge operation was invoked."
   }
 }
