@@ -102,8 +102,10 @@ BEGIN
     RAISE EXCEPTION 'ORDER_NOT_DELIVERED';
   END IF;
   IF v_order.business_id IS NULL OR v_order.tenant_id IS NULL
-     OR coalesce(v_order.total_amount, 0) <= 0
-     OR jsonb_typeof(v_order.items_json) <> 'array'
+     OR coalesce(v_order.total_amount, 0) <= 0 THEN
+    RAISE EXCEPTION 'ORDER_NOT_REVIEWABLE';
+  END IF;
+  IF coalesce(jsonb_typeof(v_order.items_json), '') <> 'array'
      OR jsonb_array_length(v_order.items_json) = 0 THEN
     RAISE EXCEPTION 'ORDER_NOT_REVIEWABLE';
   END IF;
@@ -163,6 +165,7 @@ DECLARE
   v_review public.business_reviews%rowtype;
   v_decision text := upper(btrim(coalesce(p_decision, '')));
   v_reason text := nullif(btrim(coalesce(p_reason, '')), '');
+  v_previous_status text;
 BEGIN
   IF v_actor IS NULL OR coalesce(auth.jwt()->>'is_anonymous', 'false') = 'true' THEN
     RAISE EXCEPTION 'AUTHENTICATED_PLATFORM_ADMIN_REQUIRED';
@@ -182,6 +185,7 @@ BEGIN
    WHERE r.id = p_review_id
    FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'BUSINESS_REVIEW_NOT_FOUND'; END IF;
+  v_previous_status := v_review.status;
 
   UPDATE public.business_reviews
      SET status = v_decision,
@@ -195,7 +199,7 @@ BEGIN
   INSERT INTO public.business_review_events (
     review_id, actor_user_id, event_type, previous_status, new_status, reason
   ) VALUES (
-    v_review.id, v_actor, 'MODERATED', v_review.status, v_decision, v_reason
+    v_review.id, v_actor, 'MODERATED', v_previous_status, v_decision, v_reason
   );
 
   RETURN jsonb_build_object('reviewId', v_review.id, 'status', v_review.status);
@@ -281,7 +285,7 @@ SECURITY DEFINER
 SET search_path TO ''
 AS $function$
 DECLARE
-  v_count integer := 0;
+  v_count bigint := 0;
   v_average numeric;
   v_reviews jsonb := '[]'::jsonb;
   v_limit integer := least(greatest(coalesce(p_limit, 10), 1), 20);
@@ -304,7 +308,7 @@ BEGIN
     );
   END IF;
 
-  SELECT count(*)::integer, round(avg(r.rating)::numeric, 2)
+  SELECT count(*), round(avg(r.rating)::numeric, 2)
     INTO v_count, v_average
     FROM public.business_reviews r
    WHERE r.business_id = p_business_id
