@@ -5023,7 +5023,7 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Add bounded identity-free public review summary for ACTIVE verified businesses and mount it in storefront.
 - [x] Revoke direct table privileges from anon/authenticated/service_role, FORCE RLS on review/event tables, and audit review lifecycle events.
 - [x] Anonymize reviewer and event actor references on account deletion and scrub customer-authored review text while retaining rating/audit history.
-- [x] Add PostgreSQL 16 fixture, lifecycle/privacy integration suite, static source validator and forward migration replay job.
+- [x] Add PostgreSQL 17 fixture, lifecycle/privacy integration suite, static source validator and forward migration replay job.
 - [ ] Complete exact-head CI for rebased PR #971 and full chronological replay before merge.
 - [ ] Complete encrypted off-site DB+Storage backup and independent PostgreSQL 17 restore/rollback before any Production migration.
 - [ ] Reconcile physical schema, function bodies, grants, RLS and migration aliases; Production currently has zero orders and no business-review table.
@@ -5042,3 +5042,14 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Complete encrypted off-site DB+Storage backup and independent PostgreSQL 17 restore/rollback before any Production migration or Edge deployment.
 - [ ] Reconcile deployed order-create v8 and API Edge source; release RC498 before deploying JWT-scoped Edge callers. Run two-user/two-tenant order-create E2E with real customer membership, branch, active provider and catalog prices.
 - **Safety:** RC497/RC498 source-only; neither applied. No Production DB/Auth/RLS/GRANT/Storage/Edge/payment/wallet/public deployment mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.** Evidence: `docs/audits/PASS_1811_1820_LI2LAK_VERIFIED_BUSINESS_REVIEWS_20261122.md`.
+
+
+### Pass 1891–1900 — Li2Lak review concurrency and order-test parity — 2026-11-22
+- [x] Harden RC497 insertion with `ON CONFLICT (order_id) DO NOTHING` and a locked reread so concurrent duplicate submissions cannot create a second review.
+- [x] Preserve reviewer ownership checks, exact-retry idempotency and changed-payload rejection in the unique-conflict fallback.
+- [x] Add a static regression assertion for the unique-order conflict fallback.
+- [x] Align the RC104/RC105/RC498 disposable order integration workflow to PostgreSQL 17, matching forward replay and review lifecycle test major versions.
+- [x] Extend source validation to require verified Bearer-token lookup before both JWT-scoped order RPC callers and to assert authenticated/anon/service-role ACL integration coverage.
+- [ ] Await and inspect exact-head CI for PR #971; no success is claimed before PostgreSQL execution and required checks finish.
+- [ ] Complete full migration replay, backup/restore and Production physical schema/ACL/RLS reconciliation before any release.
+- **Safety:** source/workflow/ledger changes only. No Production database, Auth, RLS/GRANT, Storage, Edge, payment, wallet, customer-data or public deployment mutation. **PRODUCTION BLOCKED / NOT CERTIFIED.**
