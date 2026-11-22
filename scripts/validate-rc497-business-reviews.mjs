@@ -30,7 +30,7 @@ assert.match(migration, /REVOKE ALL ON FUNCTION public\.get_customer_business_re
   "private customer review status RPC must be authenticated-only");
 assert.match(migration, /CREATE OR REPLACE FUNCTION public\.get_platform_business_review_moderation_queue[\s\S]*?FROM private\.platform_admins pa WHERE pa\.user_id = v_actor/,
   "moderation queue must require direct platform-admin registry membership");
-assert.match(migration, /REVOKE ALL ON FUNCTION public\.get_platform_business_review_moderation_queue\(integer\) FROM PUBLIC, anon, service_role[\s\S]*?GRANT EXECUTE ON FUNCTION public\.get_platform_business_review_moderation_queue\(integer\) TO authenticated/,
+assert.match(migration, /REVOKE ALL ON FUNCTION public\.get_platform_business_review_moderation_queue\(integer, integer\) FROM PUBLIC, anon, service_role[\s\S]*?GRANT EXECUTE ON FUNCTION public\.get_platform_business_review_moderation_queue\(integer, integer\) TO authenticated/,
   "moderation queue RPC must be authenticated-only with registry authorization");
 
 assert.match(migration, /v_existing\.rating = p_rating AND v_existing\.review_text IS NOT DISTINCT FROM v_text[\s\S]*?REVIEW_ALREADY_SUBMITTED/,
