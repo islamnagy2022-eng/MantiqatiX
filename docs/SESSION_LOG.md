@@ -3865,3 +3865,6 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Confirmed all nine RLS-enabled/no-policy relations have no direct anon/authenticated grants; no blanket RLS policies are warranted.
 - Updated production migration reconciliation manifest and audit evidence. No Production DDL/function/ACL/RLS/Storage/Auth/Edge/payment mutation or deployment.
 - P0 remains open until the full ordered release is approved, applied and post-verified after a real backup/restore rehearsal. **PRODUCTION BLOCKED / NOT CERTIFIED.**
+
+
+- Additional RC484 recheck: private platform-admin registry has one row, RLS on/FORCE RLS off, no direct client grants; live helper remains membership-derived SECURITY INVOKER/search_path=public; 57 policies call it. Existing RC484+RC485 source chain addresses this; release must be coordinated and approved. No Production mutation.
