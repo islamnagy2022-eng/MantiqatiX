@@ -5231,3 +5231,19 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Complete exact statement/effect reconciliation, independent encrypted backup/restore, RPO/RTO and rollback, then approved migration + payment E2E.
 - No Production changes. Full Production BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1931_1940_EXACT_MIGRATION_AND_FINANCE_RECHECK_20261123.md`.
+
+
+### Pass 1941–1950 — R7 archive and feature-branch reconciliation — 2026-11-23
+- [x] 1941 — Uploaded master directive hash recorded; current `docs/MASTER_SOURCE_OF_TRUTH.md` matches it.
+- [x] 1942 — R7 ZIP hash recorded; 233 files, manifest R7-v7.0.0 (2026-11-10).
+- [x] 1943 — Main website is `apps/catalog-frontend/**`; R7 has root `src/**` + Express `server.ts`, no canonical frontend path or CI workflows.
+- [x] 1944 — R7 has one migration, 113 API routes, 15 test files, bun.lock, no npm lock/test script. Build/lint could not run because dependencies are absent; not a source compile verdict.
+- [x] 1945 — R7 release claims are not independently evidenced by artifact CI/test scripts or a bundled .data database.
+- [x] 1946 — R7 contains fixed fallback HMAC/JWT/backup secrets; missing secrets do not fail closed.
+- [x] 1947 — R7 Supabase sync/pull routes have no auth guard; sync may use service_role and upsert businesses/products/wallets/audit logs. Critical conditional deployment risk.
+- [x] 1948 — R7 auto-initializes a local authoritative JSON store from seed records; conflicts with Supabase source-of-truth policy.
+- [x] 1949 — R7 rate limiter trusts raw X-Forwarded-For; spoofing risk depends on proxy behavior.
+- [x] 1950 — No R7 code copied or started; no Production call/change.
+- PR #971 diverged 283 ahead/32 behind; #978 draft diverged 18/28; #994 diverged 73/15. All non-mergeable; exact-head CI unverified. Reconcile before merge.
+- R7 = REFERENCE ONLY / NOT SAFE TO DEPLOY. Production BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_1941_1950_R7_ARCHIVE_SECURITY_AND_PR_BRANCH_RECONCILIATION_20261123.md`.
