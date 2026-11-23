@@ -4010,3 +4010,13 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Confirmed anon SELECT remains effective on `marketing_provider_profiles` through public-active SELECT policy despite RLS+FORCE RLS. No provider values selected. Directory consent and migration release registry tables remain absent.
 - No Production DDL/DML, migrations, Auth/RLS/GRANT, Storage, Edge deployment, payments, wallet, settlement, customer-data write or publication.
 - Next: operator-controlled encrypted backup/restore + Vault/RPO/RTO; exact migration reconciliation; coordinated platform-admin, provider-profile and consent/Edge release. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-23 — Pass 1843–1852 — R7/current auth reconciliation
+
+- Recomputed uploaded R7 ZIP hash `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b` and directive hash `b51078e5aa164067c46347fd327c7230c5968f3cd36df5a354691504a3364ee2`; ZIP integrity extraction passed.
+- R7 archive: 270 entries, 233 files, 15 test files, one Supabase migration, three Android wrapper files. Manifest Supabase ref mismatches live project ref.
+- R7 remains non-deployable due documented unsafe local JSON API authority, token/auth bypasses, hard-coded fallback secrets, service-role selection in client-imported module, demo credentials and incomplete Android wrapper.
+- Current main auth source uses Google OAuth for admin, Supabase Auth for subscriber login, ACTIVE membership-derived ordinary roles and no localStorage auth-session persistence in AppContext.
+- Current main still calls `mnty_can_platform_admin`; live helper remains membership-derived. Platform-admin P0 not resolved. Auth contract validator source was inspected; no new CI pass claimed.
+- No Production mutation/deployment. Full Production remains BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1843_1852_R7_SOURCE_AND_CURRENT_AUTH_RECONCILIATION_20261123.md`.
