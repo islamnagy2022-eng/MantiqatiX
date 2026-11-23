@@ -2,6 +2,9 @@ import fs from 'node:fs';
 
 const migration = fs.readFileSync('supabase/migrations/20261123010000_rc921_medical_appointment_provider_state_machine.sql', 'utf8');
 const integration = fs.readFileSync('supabase/tests/rc921_medical_status_integration.sql', 'utf8');
+const productionVerifier = fs.readFileSync('scripts/production/verify-production.mjs', 'utf8');
+const liveContract = fs.readFileSync('scripts/production/live-reconciliation-contract.mjs', 'utf8');
+const migrationGate = fs.readFileSync('scripts/validate-production-migration-chain-gate.mjs', 'utf8');
 const requiredMigration = [
   'p_user_id <> v_uid',
   'for update',
