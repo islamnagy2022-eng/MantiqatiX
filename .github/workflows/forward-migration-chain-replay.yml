@@ -19,6 +19,9 @@ on:
       - "scripts/validate-rc479-anonymous-auth-session-boundary.mjs"
       - "supabase/tests/rc479_anonymous_auth_session_baseline.sql"
       - "supabase/tests/rc479_anonymous_auth_session_boundary_integration.sql"
+      - "scripts/validate-rc479-anonymous-auth-session-boundary.mjs"
+      - "supabase/tests/rc479_anonymous_auth_session_baseline.sql"
+      - "supabase/tests/rc479_anonymous_auth_session_boundary_integration.sql"
       - "scripts/validate-rc921-medical-appointment-state-machine.mjs"
       - "scripts/test-rc921-medical-status-concurrency.sh"
       - "supabase/tests/rc921_medical_status_fixture.sql"
@@ -207,7 +210,7 @@ jobs:
       - name: Validate RC469 shared caller search_path contract
         run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
 
-      - name: Validate strict Production release gate and exact 77-version contract
+      - name: Validate strict Production release gate and exact 78-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
 
       - name: Validate MantiGO platform-admin and financial source contracts
