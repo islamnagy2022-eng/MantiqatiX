@@ -1263,6 +1263,39 @@ try {
     } finally { await context.close(); }
   }
 
+  // The marketing navbar action must open the exact persisted MantiqatiX business UUID.
+  {
+    const marketingBusiness = liveDirectory.businesses.find((business) =>
+      String(business.code || '').trim().toUpperCase() === 'MNTY-MARKETING' &&
+      business.name === 'MantiqatiX' &&
+      business.isOfficialShowcase === true
+    );
+    assert.ok(marketingBusiness, 'live public directory must expose the official MantiqatiX marketing activity');
+    assert.match(String(marketingBusiness.id || ''), /^[0-9a-f-]{36}$/i, 'marketing activity must use a persisted UUID');
+
+    const { context, page } = await newScenario(browser, null, liveDirectory.businesses);
+    try {
+      await page.setViewportSize({ width: 1280, height: 900 });
+      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
+      const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+      if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
+        await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+        await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      }
+
+      const marketingButton = page.locator('button[title="فتح صفحة نشاط MantiqatiX للتسويق الإلكتروني"]');
+      await marketingButton.waitFor({ state: 'visible', timeout: 15000 });
+      await marketingButton.click();
+      await page.waitForURL((url) => url.searchParams.get('store') === marketingBusiness.id, { timeout: 15000 });
+      await page.getByRole('heading', { name: 'قائمة عروض وكتالوج ' + marketingBusiness.name, exact: true })
+        .waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByTestId('storefront-catalog').waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(new URL(page.url()).searchParams.get('store'), marketingBusiness.id,
+        'marketing button must open only the persisted MantiqatiX business id');
+      results.push('marketing-navbar-button-opens-official-mantiqatix-storefront-by-persisted-business-uuid');
+    } finally { await context.close(); }
+  }
+
   // Live verified activities must render badges and open their corresponding catalogues.
   {
     const { context, page } = await newScenario(browser, null, liveDirectory.businesses);
