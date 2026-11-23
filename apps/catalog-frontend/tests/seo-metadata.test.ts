@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { resolveRouteSeoMetadata } from '../src/utils/seoMetadata';
@@ -82,4 +83,11 @@ test('descriptions are sanitized and bounded', () => {
   });
   assert.ok(result.description.length <= 160);
   assert.ok(!result.description.includes('<b>'));
+});
+
+test('SEO metadata is recomputed when public visibility or operational state changes', () => {
+  const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  assert.match(appSource, /currentBusiness\?\.publicEnabled/);
+  assert.match(appSource, /currentBusiness\?\.catalogPublished/);
+  assert.match(appSource, /currentBusiness\?\.operationalStatus/);
 });
