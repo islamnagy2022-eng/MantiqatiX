@@ -5308,3 +5308,17 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] 1990 — No provider/webhook/financial or Production mutation.
 - [ ] Reconcile all 76 migration effects individually; never blindly replay by version or filename.
 - Production remains BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1981_1990_MIGRATION_NAME_AND_PAYMENT_CONTRACT_RECHECK_20261123.md`.
+
+
+### Pass 1991–2000 — provider-profile direct-read privacy — 2026-11-23
+- [x] 1991 — `marketing_provider_profiles` RLS/FORCE RLS on; direct SELECT granted to anon and authenticated; auth also has DML grants.
+- [x] 1992 — Public-active SELECT policy targets anon + authenticated and checks only status ACTIVE.
+- [x] 1993 — CRM-manager SELECT policy trusts any active tenant admin/owner/manager role; no tenant/business scope.
+- [x] 1994 — Owner DML policy rejects anonymous Auth and binds owner_user_id; does not fix broad SELECT policies.
+- [x] 1995 — 19 columns include owner_user_id/settings/profile_image_path; no row values read.
+- [x] 1996 — 0 anonymous Auth users now; anonymous sign-ins remain enabled, and anonymous JWT sessions use authenticated DB role.
+- [x] 1997 — RC479 only revokes anon SELECT; it leaves authenticated SELECT/public-active path intact.
+- [x] 1998 — RC444/RC452 scoped policy source not live; RC452 platform-root branch itself uses membership metadata and needs registry hardening.
+- [ ] Replace base-table public read with curated Edge projections; scope CRM manager reads; preserve owner workflow via narrow backend path; add anonymous Auth negative tests.
+- No data read or Production change. P0 privacy blocker; Full Production BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_1991_2000_PROVIDER_PROFILE_DIRECT_READ_PRIVACY_20261123.md`.
