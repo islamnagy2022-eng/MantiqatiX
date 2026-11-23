@@ -4134,3 +4134,11 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Registry FORCE RLS is currently false; RC464/RC484 set it. No migration applied.
 - This is not full release approval: live ledger 310 through 20261110150618, exact required migration IDs 0/76; full effect reconciliation and independent restore required.
 - No Production changes. BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1971_1980_RC464_RC471_RC484_LIVE_PREFLIGHT_20261123.md`.
+
+
+## 2026-11-23 — Pass 1981–1990 — migration and payment contract correction
+
+- Exact migration IDs 0/76 and exact source names 0/76; live ledger has predecessor/renamed migrations, so do not equate missing IDs with missing effects. Need object-level mapping.
+- Live DB missing current atomic payment/failure processors, subscription claim/release RPCs, provider-order-bound digital-page finalizer, journal service_role EXECUTE and SMM service-role ACL.
+- Existing idempotency/provider-order indexes exist; no unique active-payment-per-order index observed.
+- No provider calls/webhook replay/payment or Production change. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1981_1990_MIGRATION_NAME_AND_PAYMENT_CONTRACT_RECHECK_20261123.md`.
