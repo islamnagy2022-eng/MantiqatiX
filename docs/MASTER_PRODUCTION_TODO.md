@@ -5217,3 +5217,17 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Apply RC472/RC473 through reconciled release chain, verify source rights/owner consent and revocation tests, then deploy directory Edge.
 - No contacts read or published; all directory rows remain hidden. Full Production BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1921_1930_DIRECTORY_CONTACT_CONSENT_RECHECK_20261123.md`.
+
+
+### Pass 1931–1940 — exact migration chain and finance-data recheck — 2026-11-23
+- [x] 1931 — Live ledger: 310 migrations through `20261110150618`.
+- [x] 1932 — Current-main required release chain contains 76 unique versions.
+- [x] 1933 — Exact intersection is 0/76 present; all required identifiers absent.
+- [x] 1934 — Absence of exact IDs is not proof all effects absent; reconcile aliases/forward repairs and later migrations; never blind-replay.
+- [x] 1935 — Disposable 99-migration chronological replay is schema-only and not an actual Production restore/RPO/RTO test.
+- [x] 1936 — Zero rows in nine core order/payment/settlement/journal tables.
+- [x] 1937 — No payment sandbox or signed webhook E2E performed; empty tables do not establish readiness.
+- [x] 1938 — Atomic payment, subscription claim/encryption, digital finalizer and RC449A/RC450 journal contracts remain incomplete live.
+- [ ] Complete exact statement/effect reconciliation, independent encrypted backup/restore, RPO/RTO and rollback, then approved migration + payment E2E.
+- No Production changes. Full Production BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_1931_1940_EXACT_MIGRATION_AND_FINANCE_RECHECK_20261123.md`.
