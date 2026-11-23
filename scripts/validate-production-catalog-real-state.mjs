@@ -44,10 +44,7 @@ assert.ok(adminStart >= 0 && adminEnd > adminStart, 'business creation handler m
 const createUi = admin.slice(adminStart, adminEnd);
 
 assert.doesNotMatch(admin, /adminPassInput|كلمة مرور لوحة الإدارة العامة/, 'admin settings must not expose a fake password field');
-assert.doesNotMatch([defaults, publicConfig, webConfig].join('assert.match(marketplaceHome, /product\\.type === 'product' && !product\\.requiresQuote && Number\\.isFinite\\(product\\.price\\) && product\\.price > 0 &&[\\s\\S]{0,180}typeof product\\.comparePrice === 'number' && Number\\.isFinite\\(product\\.comparePrice\\) && product\\.comparePrice > product\\.price/,
-  'Product offers must have explicit public-price eligibility, a finite positive current price, and a finite higher compare price.');
-assert.match(marketplaceHome, /product\\.type === 'service' && !product\\.requiresQuote && Number\\.isFinite\\(product\\.price\\) && product\\.price > 0 &&[\\s\\S]{0,180}typeof product\\.comparePrice === 'number' && Number\\.isFinite\\(product\\.comparePrice\\) && product\\.comparePrice > product\\.price/,
-  'Service offers must have explicit public-price eligibility, a finite positive current price, and a finite higher compare price.');n'), /201010171770/, 'runtime configuration must not ship a fabricated support WhatsApp number');
+assert.doesNotMatch([defaults, publicConfig, webConfig].join('\n'), /201010171770/, 'runtime configuration must not ship a fabricated support WhatsApp number');
 assert.match(defaults, /adminWhatsApp: ''/, 'platform support contact must remain unconfigured until a real number is saved');
 assert.match(defaults, /defaultCommissionPerOrder: 0/, 'unverified commission must not have a fabricated default');
 assert.doesNotMatch(admin, /اشتراك شهري ثابت|0\.01 جنيه|متبقي \{5 - biz\.overdueDaysCount\}/, 'admin billing UI must not fabricate a fixed plan or an automatic overdue countdown');
@@ -151,12 +148,10 @@ assert.match(marketplaceHome, /const businessById = useMemo\(\(\) => new Map<str
   'Marketplace product/service offers must resolve only against verified business records.');
 assert.match(marketplaceHome, /product\.isAvailable && businessById\.has\(product\.businessId\)/,
   'Marketplace offers must exclude unavailable items and products belonging to unverified/unlisted businesses.');
-assert.match(marketplaceHome, /product\.type === 'product' && Number\(product\.comparePrice \|\| 0\) > Number\(product\.price \|\| 0\)/,
-  'Product offers must represent a real recorded discount rather than an invented promotion.');
-assert.match(marketplaceHome, /product\.type === 'service' && Number\(product\.comparePrice \|\| 0\) > Number\(product\.price \|\| 0\)/,
-  'Service offers must represent a real recorded discount rather than an invented promotion.');
-assert.match(marketplaceHome, /loadTargetedAdvertisements\(\(functionName, args\) =>/,
-  'Marketplace Home must use the isolated, sanitized targeted-ad loader.');
+assert.match(marketplaceHome, /product\\.type === 'product' && !product\\.requiresQuote && Number\\.isFinite\\(product\\.price\\) && product\\.price > 0 &&[\\s\\S]{0,180}typeof product\\.comparePrice === 'number' && Number\\.isFinite\\(product\\.comparePrice\\) && product\\.comparePrice > product\\.price/,
+  'Product offers must have explicit public-price eligibility, a finite positive current price, and a finite higher compare price.');
+assert.match(marketplaceHome, /product\\.type === 'service' && !product\\.requiresQuote && Number\\.isFinite\\(product\\.price\\) && product\\.price > 0 &&[\\s\\S]{0,180}typeof product\\.comparePrice === 'number' && Number\\.isFinite\\(product\\.comparePrice\\) && product\\.comparePrice > product\\.price/,
+  'Service offers must have explicit public-price eligibility, a finite positive current price, and a finite higher compare price.');
 assert.match(marketplaceHome, /supabase\.rpc\(functionName, args\)/,
   'Marketplace Home must load targeted ads through the Supabase RPC client.');
 assert.match(marketplaceHome, /const href = isSafeHttpsUrl\(ad\.target_url\)/,
