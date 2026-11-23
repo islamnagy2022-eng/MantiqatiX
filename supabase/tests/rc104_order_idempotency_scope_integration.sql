@@ -209,15 +209,6 @@ BEGIN
      OR v_result->>'idempotent' <> 'false' THEN
     RAISE EXCEPTION 'RC498_AUTHENTICATED_ORDER_CREATE_FAILED: %', v_result;
   END IF;
-  IF NOT EXISTS (
-    SELECT 1 FROM public.orders
-     WHERE id='30000000-0000-4000-8000-000000000091'
-       AND customer_id=auth.uid()
-       AND total_amount=125
-  ) THEN
-    RAISE EXCEPTION 'RC498_AUTHENTICATED_ORDER_NOT_PERSISTED_WITH_SERVER_PRICE';
-  END IF;
-
   -- Authenticated callers can invoke this RPC directly, so SQL must reject
   -- fractional quantities even when the Edge Function's integer check is bypassed.
   BEGIN
@@ -314,5 +305,18 @@ END
 $rc498_authenticated_order$;
 
 RESET ROLE;
+
+DO $rc498_persisted_order$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM public.orders
+     WHERE id='30000000-0000-4000-8000-000000000091'
+       AND customer_id='10000000-0000-4000-8000-000000000001'
+       AND total_amount=125
+  ) THEN
+    RAISE EXCEPTION 'RC498_AUTHENTICATED_ORDER_NOT_PERSISTED_WITH_SERVER_PRICE';
+  END IF;
+END
+$rc498_persisted_order$;
 
 SELECT 'RC498 authenticated order RPC ACL, identity and pricing: PASS' AS result;
