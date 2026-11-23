@@ -5231,3 +5231,18 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Complete exact statement/effect reconciliation, independent encrypted backup/restore, RPO/RTO and rollback, then approved migration + payment E2E.
 - No Production changes. Full Production BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1931_1940_EXACT_MIGRATION_AND_FINANCE_RECHECK_20261123.md`.
+
+
+### Pass 1951–1960 — live platform-admin helper recheck — 2026-11-23
+- [x] 1951 — Live `mnty_can_platform_admin()` remains SECURITY DEFINER, public/pg_temp path, delegates to global `mnty_can('admin',NULL,NULL,NULL)`, not private registry.
+- [x] 1952 — `mnty_can` grants global SUPER_ADMIN when membership JSON says scope PLATFORM + full_control true; null scope is global.
+- [x] 1953 — `mnty_active_membership` is SECURITY DEFINER and allows null scope parameters.
+- [x] 1954 — `is_platform_admin()` remains invoker and trusts any active ADMIN/SUPER_ADMIN membership.
+- [x] 1955 — 57 policies/24 tables use legacy helper; 5 policies/3 tables use shared helper.
+- [x] 1956 — Main RC464/RC484 source replaces both with registry-only checks and preflights blast radius.
+- [x] 1957 — Live helpers remain legacy; migrations unapplied (ledger latest `20261110150618`).
+- [x] 1958 — 149 public SECURITY DEFINER functions: 65 authenticated executable, 1 anon executable, 120 public search_path, 29 other explicit, 0 missing.
+- [x] 1959 — Preserve intentional bounded targeted-ad public read; continue per-function review, no blanket revoke.
+- [ ] Reconcile migration history; replay RC464/RC484 in independent PG17 restore; test registry positive and tenant/anonymous negatives across all policy paths.
+- No Production changes. P0 / BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_1951_1960_LIVE_PLATFORM_ADMIN_HELPER_RECHECK_20261123.md`.
