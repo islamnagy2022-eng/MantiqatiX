@@ -35,7 +35,7 @@ This is a scoped website launch, not certification of every backend module. Full
 1. Obtain genuine encrypted off-site database and Storage backups.
 2. Verify Vault recovery and perform an independent PostgreSQL 17 restore/rollback.
 3. Measure and record RPO/RTO.
-4. Reconcile the exact 78 required migration IDs and physical object/ACL dependencies. The current release contract includes RC479 (`20261120193000`) and RC921 (`20261123010000`); the latest recorded read-only Production ledger baseline is 310 rows through `20261110150618`, with 0/78 exact required identifiers present. No isolated Production migration execution.
+4. Reconcile the exact 79 required migration IDs and physical object/ACL dependencies. The current release contract includes RC479 (`20261120193000`), RC921 (`20261123010000`) and RC922 (`20261123221950`). The latest recorded read-only Production ledger baseline is 310 rows through `20261110150618`, with 0/79 exact required identifiers present. RC922 passed isolated PostgreSQL 17 behavioral/concurrency tests; no Production migration execution occurred.
 5. Triage Security Advisor findings per function and caller: 9 RLS-enabled/no-policy INFO, 65 authenticated-callable and 1 anon-callable SECURITY DEFINER WARN, leaked-password protection disabled. No blanket EXECUTE revocation.
 
 ### P1 — Monthly subscription checkout
