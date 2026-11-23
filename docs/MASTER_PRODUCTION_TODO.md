@@ -5293,3 +5293,18 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Reconcile 310 live migration statements vs 76 required IDs, perform independent restore and full ordered PG17 replay before any release.
 - No Production changes. Full Production BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1971_1980_RC464_RC471_RC484_LIVE_PREFLIGHT_20261123.md`.
+
+
+### Pass 1981–1990 — migration-name and payment-contract correction — 2026-11-23
+- [x] 1981 — Compared 310 live migration rows with 76 required source filenames.
+- [x] 1982 — 0/76 exact version matches and 0/76 exact source-name matches.
+- [x] 1983 — Live ledger has older/renamed predecessor migrations (payment, RC424, RC159 journal, MantiGO authority, catalog) so exact absence does not mean all effects absent; name similarity does not prove equivalence.
+- [x] 1984 — Object checks confirm critical gaps: atomic payment/failure RPCs, subscription claim RPCs, provider-order-bound finalizer, journal service_role EXECUTE and SMM service ACL.
+- [x] 1985 — Existing idempotency/provider-order unique indexes present; no unique active-payment-per-order index observed.
+- [x] 1986 — Current atomic MantiGO/provider/subscription processors, subscription claim/release RPCs and five-arg digital-page finalizer absent.
+- [x] 1987 — Legacy digital finalizer and some legacy processors present; insufficient for current source contracts.
+- [x] 1988 — Financial journal backend EXECUTE absent for anon/auth/service_role; RC449A/RC450 still required.
+- [x] 1989 — SMM admin service_role CRUD absent; SMM remains deferred pending RC456/RC487.
+- [x] 1990 — No provider/webhook/financial or Production mutation.
+- [ ] Reconcile all 76 migration effects individually; never blindly replay by version or filename.
+- Production remains BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1981_1990_MIGRATION_NAME_AND_PAYMENT_CONTRACT_RECHECK_20261123.md`.
