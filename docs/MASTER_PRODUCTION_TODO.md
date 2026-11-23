@@ -5240,3 +5240,19 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Added RC921 version `20261123010000` and exact RPC signature to the required Production release contract; required chain is now 77 versions.
 - [ ] Apply RC921 only as part of the fully reconciled/approved migration chain; live function remains the old implementation.
 - Production remains BLOCKED / NOT CERTIFIED.
+
+
+### Pass 2011–2020 — RC921 live parity and tenant-wide membership compatibility — 2026-11-23
+- [x] 2011 — Live status RPC remains pre-RC921; no assigned-provider owner binding.
+- [x] 2012 — Live RPC lacks forward-only state transitions; no appointment triggers exist.
+- [x] 2013 — Main RC921 adds assigned-provider binding, patient self-cancel, state matrix, empty search_path and authenticated-only EXECUTE.
+- [x] 2014 — Exact PR #1008 PG17 behavior/concurrency workflow 45144730674 PASS; immutability, version uniqueness, collision guard, backend boundary and module validation PASS.
+- [x] 2015 — Pages validate PASS; deploy skipped.
+- [x] 2016 — One active tenant-wide SERVICE_PROVIDER has business_id NULL and owns 3 active provider profiles.
+- [x] 2017 — One unique tenant-wide ADMIN/MANAGER/OWNER user has business_id NULL.
+- [x] 2018 — Zero live medical appointment rows.
+- [x] 2019 — PR #1013 adds RC921 to required release gate as version 77; still in CI/open.
+- [x] 2020 — RC921 exact business_id check rejects tenant-wide null-business provider/manager memberships; RC922 forward compatibility repair required.
+- [ ] Generate RC922 via Supabase CLI, preserve exact tenant + provider-profile ownership checks, add PG17 positive/negative tests, include in release gate.
+- No Production changes. Full Production BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_2011_2020_RC921_LIVE_PARITY_TENANT_WIDE_COMPATIBILITY_20261123.md`.
