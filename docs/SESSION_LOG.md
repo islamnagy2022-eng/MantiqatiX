@@ -4150,3 +4150,11 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Owner DML policy rejects anonymous Auth and binds owner id, but does not constrain reads. 19 columns include owner_user_id/settings; no row values selected.
 - Main has two RC479 migrations (raw anon revoke + restrictive anonymous-Auth SELECT guard), both unapplied. Confirmed authenticated public-active SELECT still exposes base-table columns; RC452 scoped CRM policy is not live and its platform-root branch uses membership metadata.
 - Fix requires forward migration, curated public Edge projection, owner backend path and PG17 adversarial tests. No Production changes. P0 BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1991_2000_PROVIDER_PROFILE_DIRECT_READ_PRIVACY_20261123.md`.
+
+
+## 2026-11-23 — Pass 2001–2010 — RC479 source/CI/live parity
+
+- RC479 raw-anon revoke + anonymous Auth restrictive SELECT guard are in main; PR #938 merged at `436b7a5a4aa12aa979f5ea4b52b9ce9d3971a046`.
+- Exact-head disposable workflows passed: RC479 44803731818, RC464 44803731787, forward replay 44803731771, plus migration uniqueness/collision/immutability. Pages deploy skipped.
+- Live migrations unapplied; anon SELECT remains, restrictive policy absent. Confirmed-user base table SELECT still exposes owner_user_id/settings; separate projection change required.
+- No Production changes. BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_2001_2010_RC479_SOURCE_CI_LIVE_PARITY_20261123.md`.
