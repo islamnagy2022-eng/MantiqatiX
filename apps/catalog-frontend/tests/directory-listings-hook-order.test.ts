@@ -8,7 +8,7 @@ const emptySearchGuard = source.indexOf(
 
 assert.notEqual(emptySearchGuard, -1, 'The empty global-search guard must remain present.');
 
-const hookCalls = [...source.matchAll(/\\buse(?:Effect|Memo|State)\\s*\\(/g)].map((match) => match.index ?? -1);
+const hookCalls = [...source.matchAll(/\buse(?:Effect|Memo|State)\s*\(/g)].map((match) => match.index ?? -1);
 assert.ok(hookCalls.length > 0, 'Expected component Hooks to be present.');
 const lastHookCall = Math.max(...hookCalls);
 
