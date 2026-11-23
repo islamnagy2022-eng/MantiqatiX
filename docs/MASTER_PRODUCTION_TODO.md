@@ -5188,3 +5188,18 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Resolve customer activation behavior and staging tests; coordinate business-register with registry migrations.
 - No registrations, memberships, approvals, DB objects or Edge functions changed. Full Production BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1901_1910_REGISTRATION_EDGE_PARITY_20261123.md`.
+
+
+### Pass 1911–1920 — Storage ACL and anonymous Auth guard — 2026-11-23
+- [x] 1911 — storage.objects RLS enabled; anon/authenticated have direct table CRUD grants, but row policies govern actual access.
+- [x] 1912 — Current Storage write policies are authenticated; some allow missing anonymous claim, and platform-brand policies do not explicitly reject anonymous Auth.
+- [x] 1913 — RC488 restrictive confirmed-Auth Storage policies absent live.
+- [x] 1914 — Main RC488 denies authenticated INSERT/UPDATE/DELETE unless `is_anonymous=false` explicitly.
+- [x] 1915 — Live platform-brand Storage policies use SUPER_ADMIN membership; RC495 source switches to shared platform helper and fixes filename suffix constraints.
+- [x] 1916 — Aggregate-only: one active SUPER_ADMIN, also in registry; no current non-registry match.
+- [x] 1917 — media bucket private; profile-media bucket public with 5 MiB limits and image MIME allowlists.
+- [x] 1918 — Both buckets currently contain zero objects; no current file leak observed.
+- [x] 1919 — RC488–RC495 not applied live; do not alter buckets/policies outside coordinated chain.
+- [ ] Apply after exact migration replay and verify anon-session deny, confirmed-owner CRUD, registry-root brand write and public-read contract.
+- No Storage/Auth/DB changes. Full Production BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_1911_1920_STORAGE_ANONYMOUS_AUTH_RECHECK_20261123.md`.
