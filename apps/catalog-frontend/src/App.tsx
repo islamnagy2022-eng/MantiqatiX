@@ -25,51 +25,37 @@ const ScreenFallback = () => (
 );
 
 const MainContent: React.FC = () => {
-  const { currentView, setCurrentView, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp, authSession, authLoading, isCartOpen, isLoginModalOpen } = useApp();
+  const { currentView, setCurrentView, adminSettings, currentBusiness, categories, requestCatalogViaAdminWhatsApp, authSession, authLoading, isCartOpen, isLoginModalOpen } = useApp();
   const params = new URLSearchParams(window.location.search);
   const hasDirectPublicCatalogLink = params.has('store') || params.has('businessId');
   const catalogRequestUrl = requestCatalogViaAdminWhatsApp(currentBusiness);
   const useFooterNavigate = (view: 'contact_us' | 'site_map') => setCurrentView(view);
 
   useEffect(() => {
-    const canonicalOrigin = import.meta.env.VITE_CANONICAL_ORIGIN || 'https://islamnagy2022-eng.github.io';
-    const basePath = import.meta.env.BASE_URL || '/';
-    const normalizedBasePath = basePath.endsWith('/') ? basePath : `${basePath}/`;
-    const isCanonicalProductionRoute = import.meta.env.PROD &&
-      window.location.origin === canonicalOrigin &&
-      window.location.pathname === normalizedBasePath;
-    const metadata = resolveRouteSeoMetadata({
-      view: visibleView,
-      business: currentBusiness,
-      origin: canonicalOrigin,
-      basePath: normalizedBasePath,
-      allowIndexing: isCanonicalProductionRoute,
-    });
-    applyRouteSeoMetadata(metadata);
-  }, [visibleView, currentBusiness?.id, currentBusiness?.name, currentBusiness?.bio, currentBusiness?.category, currentBusiness?.governorate, currentBusiness?.markaz, currentBusiness?.isVerified, currentBusiness?.isFrozen, currentBusiness?.publicationStatus]);
-
-  // Never expose a dashboard without a production role. Guests may view a
-  // storefront only through its direct share link, never through a generic tab.
-  const visibleView = authLoading
-    ? (currentView === 'public_storefront' && hasDirectPublicCatalogLink
-      ? 'public_storefront'
-      : currentView === 'directory' || currentView === 'marketplace_home' || currentView === 'contact_us' || currentView === 'site_map'
-        ? currentView
-        : 'directory')
-    : currentView === 'super_admin' && authSession.role !== 'admin'
-      ? 'directory'
-      : currentView === 'merchant_admin' &&
-          (!canAccessMerchantDashboard(authSession) || !currentBusiness)
-        ? 'directory'
-        : currentView === 'professional_dashboard' &&
-          !canAccessProfessionalDashboard(authSession)
-        ? 'directory'
-        : currentView === 'account_portal' && !authSession.isAuthenticated
-          ? 'directory'
-          : currentView === 'public_storefront' &&
-            authSession.role === 'guest' && !hasDirectPublicCatalogLink
-          ? 'directory'
-          : currentView;
+    const applyCurrentRouteSeo = () => {
+      const canonicalOrigin = String(import.meta.env.VITE_CANONICAL_ORIGIN || 'https://islamnagy2022-eng.github.io').replace(/\/$/, '');
+      const basePath = import.meta.env.BASE_URL || '/';
+      const normalizedBasePath = basePath.endsWith('/') ? basePath : basePath + '/';
+      const isCanonicalProductionRoute = import.meta.env.PROD && window.location.origin === canonicalOrigin && window.location.pathname === normalizedBasePath;
+      const params = new URLSearchParams(window.location.search);
+      const activityId = params.get('activity') || undefined;
+      const activityCategory = activityId ? categories.find((category) => category.id === activityId) : undefined;
+      const requestedSpecialty = params.get('specialty') || '';
+      const specialtyName = activityCategory?.specialties?.find((specialty) => specialty === requestedSpecialty);
+      const metadata = resolveRouteSeoMetadata({
+        view: visibleView, business: currentBusiness, origin: canonicalOrigin, basePath: normalizedBasePath,
+        allowIndexing: isCanonicalProductionRoute, activityId: activityCategory?.id, activityName: activityCategory?.name, specialtyName,
+      });
+      applyRouteSeoMetadata(metadata);
+    };
+    applyCurrentRouteSeo();
+    window.addEventListener('popstate', applyCurrentRouteSeo);
+    window.addEventListener('mantiqatix:routechange', applyCurrentRouteSeo);
+    return () => {
+      window.removeEventListener('popstate', applyCurrentRouteSeo);
+      window.removeEventListener('mantiqatix:routechange', applyCurrentRouteSeo);
+    };
+  }, [visibleView, currentBusiness?.id, currentBusiness?.name, currentBusiness?.bio, currentBusiness?.category, currentBusiness?.governorate, currentBusiness?.markaz, currentBusiness?.isVerified, currentBusiness?.isFrozen, currentBusiness?.publicationStatus, categories]);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50/70 text-slate-800">
