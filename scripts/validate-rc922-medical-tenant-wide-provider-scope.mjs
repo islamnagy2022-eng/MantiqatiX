@@ -6,6 +6,7 @@ const migrationDir = "supabase/migrations";
 const migrationFiles = fs.readdirSync(migrationDir)
   .filter(name => /^\d{14}_rc922_medical_appointment_tenant_wide_provider_scope\.sql$/.test(name));
 assert.equal(migrationFiles.length, 1, "RC922 must have one timestamped migration filename produced by Supabase CLI");
+assert.ok(migrationFiles.includes("20261123221950_rc922_medical_appointment_tenant_wide_provider_scope.sql"), "RC922 migration must use the exact CLI-generated timestamped filename included in the release contract");
 
 const sql = fs.readFileSync(path.join(migrationDir, migrationFiles[0]), "utf8");
 const tests = fs.readFileSync("supabase/tests/rc922_medical_status_integration.sql", "utf8");
