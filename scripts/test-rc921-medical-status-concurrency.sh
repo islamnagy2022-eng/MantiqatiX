@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PSQL=(psql -h 127.0.0.1 -U postgres -d rc921_test -v ON_ERROR_STOP=1)
+TEST_DATABASE="${PGDATABASE:-rc921_test}"
+PSQL=(psql -h 127.0.0.1 -U postgres -d "$TEST_DATABASE" -v ON_ERROR_STOP=1)
 PROVIDER_A='c0000000-0000-4000-8000-000000000001'
 
 # The original production function has no explicit audit insert. A live,
