@@ -58,7 +58,7 @@ const MainContent: React.FC = () => {
       window.removeEventListener('popstate', applyCurrentRouteSeo);
       window.removeEventListener('mantiqatix:routechange', applyCurrentRouteSeo);
     };
-  }, [visibleView, currentBusiness?.id, currentBusiness?.name, currentBusiness?.bio, currentBusiness?.category, currentBusiness?.governorate, currentBusiness?.markaz, currentBusiness?.isVerified, currentBusiness?.isFrozen, currentBusiness?.publicationStatus, categories]);
+  }, [visibleView, currentBusiness?.id, currentBusiness?.name, currentBusiness?.bio, currentBusiness?.category, currentBusiness?.governorate, currentBusiness?.markaz, currentBusiness?.isVerified, currentBusiness?.isFrozen, currentBusiness?.publicationStatus, currentBusiness?.publicEnabled, currentBusiness?.catalogPublished, currentBusiness?.operationalStatus, categories]);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50/70 text-slate-800">
