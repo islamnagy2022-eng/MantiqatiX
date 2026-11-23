@@ -5603,6 +5603,56 @@
       "Storage RC488–RC495 and platform registry guard migrations are not applied."
     ],
     "backup_restore": "NOT VERIFIED — no actual encrypted Production database/Storage backup, off-site retrieval, Vault recovery, independent PostgreSQL 17 restore, measured RPO/RTO or rollback rehearsal.",
-    "production_mutations": "NONE — this recheck performed read-only SQL/catalog/Edge source inspection only."
+    "production_mutations": "NONE — this recheck performed read-only SQL/catalog/Edge source inspection only.",
+    "migration_name_comparison": {
+      "required_source_migrations": 76,
+      "exact_version_matches": 0,
+      "exact_source_name_matches": 0,
+      "interpretation": "Absence of exact identifiers/names does not prove all schema effects are absent. Live ledger contains older/renamed predecessor migrations in overlapping domains; map every migration against actual live objects and proven forward repairs before release.",
+      "examples": [
+        {
+          "live_version": "20260906190900",
+          "live_name": "phase11_payment_intents",
+          "domain": "payment intents"
+        },
+        {
+          "live_version": "20261008222845",
+          "live_name": "rc424_atomic_digital_page_payment_webhook",
+          "domain": "digital page payment"
+        },
+        {
+          "live_version": "20260928123245",
+          "live_name": "rc159_financial_journal_backend",
+          "domain": "financial journal"
+        },
+        {
+          "live_version": "20260927065218",
+          "live_name": "mnty_platform_admin_authority",
+          "domain": "platform admin"
+        },
+        {
+          "live_version": "20261027010135",
+          "live_name": "add_qadam_alsaad_homewares_store_and_catalog",
+          "domain": "catalog data"
+        }
+      ],
+      "no_equivalence_assumed": true
+    },
+    "payment_contract_recheck": {
+      "missing_atomic_rpcs": [
+        "process_verified_mantigo_payment_backend",
+        "process_verified_provider_payment_failure",
+        "process_verified_subscription_payment_backend",
+        "process_verified_subscription_payment_failure",
+        "claim_subscription_provider_intent_creation_backend",
+        "release_subscription_provider_intent_creation_backend",
+        "finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)"
+      ],
+      "legacy_digital_finalizer_present": "finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)",
+      "journal_backend_service_role_execute": false,
+      "smm_admin_service_role_select_insert_update_delete": false,
+      "unique_order_intent_guard_observed": false,
+      "note": "Existing provider/idempotency indexes do not replace missing atomic RPC and claim contracts."
+    }
   }
 }
