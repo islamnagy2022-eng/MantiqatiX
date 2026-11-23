@@ -4074,3 +4074,12 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Business-register v9 uses membership metadata; main uses `mnty_can_platform_admin()`, but live helper remains weak/null-scope. Coordinate with RC464/RC471.
 - Aggregate legacy platform membership check: one match, in registry; no IDs selected.
 - No registration request, membership change, Edge deployment or Production write. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1901_1910_REGISTRATION_EDGE_PARITY_20261123.md`.
+
+
+## 2026-11-23 — Pass 1911–1920 — Storage auth review
+
+- storage.objects RLS on; anon/auth table CRUD grants true; actual row access is RLS-controlled.
+- Existing policies lack RC488 restrictive explicit confirmed-auth guard; some allow missing anonymous claim. Platform-brand policies still use active SUPER_ADMIN membership; RC495 source uses registry helper and filename constraints.
+- One active SUPER_ADMIN exists and is in registry; no non-registry match. No IDs read.
+- mantiqatix-media private; mantiqatix-profile-media public; both 5 MiB image buckets. Zero objects currently in either bucket.
+- RC488–RC495 absent live; no Storage change. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1911_1920_STORAGE_ANONYMOUS_AUTH_RECHECK_20261123.md`.
