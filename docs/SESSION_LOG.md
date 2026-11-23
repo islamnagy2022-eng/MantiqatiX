@@ -3979,7 +3979,8 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 
 - Registered the user request in the master request ledger issue #599 and created a dedicated execution branch.
 - Reconciled source of truth: current production website source is apps/catalog-frontend/**; uploaded R7 ZIP is historical reference only. Its legacy 1360px canvas setting is not to be copied into current runtime.
-- Added a dependency-ordered acceptance register for SEO/indexation, responsive devices, activity deep links, social/contact channels, dashboards, HTTPS/security, scalable catalogues, blog and AI support.
+- Added a dependency-ordered acceptance register for SEO/indexation, responsive devices, activity deep links, social/contact channels, dashboards, HTTPS/security, catalogue scaling review, blog and AI support.
+- Verified the uploaded master directive matches the repository's `docs/MASTER_SOURCE_OF_TRUTH.md` operating protocol. The current R7 ZIP contains 233 files and retains the Android WebView wrapper; it remains a historical reference, not the current runtime source.
 - Initial source inspection confirms canonical frontend already uses a responsive viewport meta tag. SEO plan still records owner/domain-dependent tasks: final domain/DNS, Search Console verification, production sitemap/robots/schema, route metadata, prerender/SSR, consent-safe analytics.
 - Safety: no production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement or customer data mutation; no production deployment. Items remain IN PROGRESS / NOT VERIFIED pending implementation and tests.
 
@@ -3993,7 +3994,7 @@ Implemented in source (not yet production-verified):
 - Route-aware title, description, canonical, Open Graph and Twitter metadata for the public root, verified storefronts, and Activity → Specialty query routes.
 - noindex/nofollow for account/admin/dashboard routes and for unverified, frozen, unpublished or non-public storefronts.
 - First-party Organization JSON-LD and a minimal sitemap containing only the current canonical public root. Do not add dynamic records until crawlable rendering and publication/consent eligibility are verified.
-- Removed the hard-coded 150-item frontend catalogue ceiling. Default catalogue quota is now unlimited by item count; finite infrastructure/storage capacity remains. Positive quota representation is retained only for a future server-enforced entitlement.
+- Catalogue entitlement preserved: the current 150-item default remains unchanged. No quota increase or removal is authorized until subscription entitlement and server-side enforcement are reconciled.
 - Added an authenticated AI technical-support panel using the existing Gemini Edge proxy, a dedicated 1,200-character support action and safe Arabic support prompt. It does not persist chat as a ticket, perform account/financial actions, or provide human escalation.
 - Added focused SEO, quota and AI-support safety tests to Primary Catalog Frontend Validation.
 
