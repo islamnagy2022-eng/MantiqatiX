@@ -34,6 +34,10 @@ const requiredTests = [
 for (const token of requiredTests) {
   if (!integration.includes(token)) throw new Error('RC921 integration coverage missing: ' + token);
 }
+if (!productionVerifier.includes('"20261123010000_rc921_medical_appointment_provider_state_machine.sql"')) throw new Error('RC921 is missing from the Production migration verifier');
+if (!liveContract.includes('"20261123010000"')) throw new Error('RC921 is missing from the live reconciliation migration contract');
+if (!liveContract.includes('public.update_medical_appointment_status_backend(uuid,text,text)')) throw new Error('RC921 RPC is missing from required core objects');
+if (!migrationGate.includes('20261123010000_rc921_medical_appointment_provider_state_machine.sql')) throw new Error('RC921 is missing from the migration-chain validator');
 if (/drop\s+function|alter\s+table\s+public\.medical_appointments\s+drop/i.test(migration)) {
   throw new Error('RC921 migration contains destructive DDL');
 }
