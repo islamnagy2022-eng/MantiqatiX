@@ -5256,3 +5256,11 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Generate RC922 via Supabase CLI, preserve exact tenant + provider-profile ownership checks, add PG17 positive/negative tests, include in release gate.
 - No Production changes. Full Production BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_2011_2020_RC921_LIVE_PARITY_TENANT_WIDE_COMPATIBILITY_20261123.md`.
+
+
+### RC479 anonymous Auth provider-profile forward guard release gate — 2026-11-23
+- [x] Added `20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql` to required release versions and exact filename list; required chain is now 78 versions.
+- [x] Added RC479 validator assertions for the release contract and live manifest; added the validator to the forward replay workflow.
+- [ ] Both RC479 migrations remain unapplied in live Production; verify raw anon and anonymous Auth-session denial after the coordinated release.
+- [ ] Confirmed-user base-table SELECT remains a separate privacy issue requiring curated projection/owner backend work.
+- Production remains BLOCKED / NOT CERTIFIED.
