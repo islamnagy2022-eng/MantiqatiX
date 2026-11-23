@@ -144,6 +144,9 @@ jobs:
       - name: Test explicit disabled-directory user messaging
         working-directory: apps/catalog-frontend
         run: npx tsx tests/directory-availability.test.ts
+      - name: Prevent conditional React Hook order in directory listings
+        working-directory: apps/catalog-frontend
+        run: npx tsx tests/directory-listings-hook-order.test.ts
       - name: Validate fail-closed production migration release gate
         run: node scripts/validate-production-migration-chain-gate.mjs
       - name: Validate explicit public Edge JWT boundaries and handler authentication
