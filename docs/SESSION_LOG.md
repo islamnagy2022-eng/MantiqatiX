@@ -4110,3 +4110,19 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - R7 has no CI workflows or test script; 15 test files, bun.lock only. Build/lint unavailable because deps missing.
 - PR branches diverged: #971 +283/-32; #978 +18/-28 draft; #994 +73/-15. No exact-head CI evidence. Do not merge without reconciliation.
 - No Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1941_1950_R7_ARCHIVE_SECURITY_AND_PR_BRANCH_RECONCILIATION_20261123.md`.
+
+
+## 2026-11-23 — Pass 1951–1960 — platform-admin live helper audit
+
+- Live mnty_can_platform_admin still delegates to null-scope mnty_can; active tenant SUPER_ADMIN permissions JSON can satisfy global platform scope.
+- Live is_platform_admin still trusts active tenant ADMIN/SUPER_ADMIN membership.
+- 57 policies across 24 tables use is_platform_admin; 5 policies across 3 tables use mnty_can_platform_admin.
+- Main RC464/RC484 are registry-only fixes but unapplied. 149 public SECURITY DEFINER functions; 65 authenticated execute, 1 anon execute, 0 missing explicit search_path.
+- No Production changes. P0 BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1951_1960_LIVE_PLATFORM_ADMIN_HELPER_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — Pass 1961–1970 — platform Edge registry parity
+
+- Live catalog-platform-admin v23, business-register v9, business-branch-admin v5 and ai-gemini-proxy v5 use membership-derived platform-root checks; current main uses registry helper.
+- settlement-financial-atomic v4 materially behind current authorization module. directory-listings v18 intentionally fail-closed.
+- Do not deploy Edge alone while live DB helper remains weak. No Edge or Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1961_1970_LIVE_PLATFORM_EDGE_REGISTRY_PARITY_20261123.md`.
