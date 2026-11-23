@@ -45,10 +45,12 @@ export const BusinessReviewsPanel: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [nextOffset, setNextOffset] = useState(0);
+  const currentBusinessIdRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     let active = true;
     const businessId = currentBusiness?.id;
+    currentBusinessIdRef.current = businessId;
     if (!businessId || !currentBusiness?.isVerified || currentBusiness.operationalStatus !== 'ACTIVE' || currentBusiness.isFrozen) {
       setSummary(null);
       setNextOffset(0);
@@ -83,13 +85,16 @@ export const BusinessReviewsPanel: React.FC = () => {
         return;
       }
       setSummary({ reviewCount, averageRating, reviews });
-    }).catch(() => {
+    }).then(undefined, () => {
       if (active) setSummary(null);
-    }).finally(() => {
+    }).then(() => {
       if (active) setLoading(false);
     });
 
-    return () => { active = false; };
+    return () => {
+      active = false;
+      if (currentBusinessIdRef.current === businessId) currentBusinessIdRef.current = undefined;
+    };
   }, [currentBusiness?.id, currentBusiness?.isVerified, currentBusiness?.operationalStatus, currentBusiness?.isFrozen]);
 
   const loadMore = async () => {
