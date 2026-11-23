@@ -4065,3 +4065,12 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Paymob webhook, payment-intent, subscription-payment-intent, digital-page-payment-intent, settlement-financial-atomic, financial-journal, order-create, catalog-admin, push-dispatch are behind main. Health endpoint is static. Directory-listings v18 intentionally fail-closed.
 - Live DB lacks four current Paymob atomic processors and two subscription creation claim RPCs; subscription encryption/claim columns absent; digital-page finalizer only four args; journal backend service_role EXECUTE false (RC449A→RC450 needed).
 - No webhook/provider call, payment or Production mutation/deployment. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1891_1900_CRITICAL_EDGE_PAYMENT_PARITY_20261123.md`.
+
+
+## 2026-11-23 — Pass 1901–1910 — registration Edge parity
+
+- Eight of ten registration/onboarding/legal Edge entrypoints match main; customer registration and business-register are behind.
+- Customer registration live v4 calls `ensure_customer_membership_for_user`; main calls `activate_customer_registration_atomic`. Both service_role-only functions exist but differ in behavior; no Edge-only deployment before staging acceptance.
+- Business-register v9 uses membership metadata; main uses `mnty_can_platform_admin()`, but live helper remains weak/null-scope. Coordinate with RC464/RC471.
+- Aggregate legacy platform membership check: one match, in registry; no IDs selected.
+- No registration request, membership change, Edge deployment or Production write. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1901_1910_REGISTRATION_EDGE_PARITY_20261123.md`.
