@@ -85,6 +85,10 @@ Deno.serve(async (req: Request) => {
   }
 
   const action = String(body.action ?? "assistant").trim();
+  if ((action === "generate_catalog_image" || action === "technical_support") && user.is_anonymous) {
+    return reply({ error: "confirmed_auth_required" }, 401);
+  }
+
   if (action === "generate_catalog_image" && user.is_anonymous) {
     return reply({ error: "confirmed_auth_required" }, 401);
   }
