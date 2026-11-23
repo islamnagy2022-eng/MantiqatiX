@@ -202,7 +202,7 @@ export interface AdminSettings {
   currency: string; // "ج.م"
   platformName: string; // "MantiqatiX"
   platformEmail: string;
-  maxAllowedProductsPerBusiness: number; // 150
+  maxAllowedProductsPerBusiness: number; // 0 = unlimited; positive values require server-side enforcement
   defaultCommissionPerOrder: number; // 0.01 جنيه (افتراضي نظام العمولات السري)
   overdueGracePeriodDays: number; // 5 أيام إشعار يومي قبل التجميد
   defaultPaymobFeePercentage: number; // تكلفة الدفع الافتراضية عبر Paymob %
