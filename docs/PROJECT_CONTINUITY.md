@@ -3487,3 +3487,8 @@ Live `storage.objects` RLS is on, but anon/authenticated have table CRUD grants;
 ## 2026-11-23 — Pass 1921–1930 — directory contact-consent recheck
 
 Live contact-consent registry absent. Public listings counts: 868 PUBLISHED/UNCLAIMED, 1 PUBLISHED/CLAIM_PENDING, 87 DRAFT, 9 HIDDEN; no metadata row marks public contact enabled. The listings table remains backend-only. Directory Edge v18 is fail-closed; public-catalog-directory v19 matches main and only returns contact fields when both owner-enabled and server-audited flags are true. Ten business rows exist; zero have either public-contact flag set. No contact details read or published. Keep all 878 directory rows hidden until RC472/RC473, source rights, owner consent and revocation tests pass. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1921_1930_DIRECTORY_CONTACT_CONSENT_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — Pass 1931–1940 — migration chain and finance recheck
+
+Live migration ledger has 310 rows through `20261110150618`; current main requires 76 exact release identifiers, 0 of which are present. This exact-ID mismatch does not mean every migration effect is absent because aliases/forward repairs and later migrations exist; reconcile exact statements/effects and do not blindly replay. Disposable 99-migration schema-only replay is not a real Production backup restore or RPO/RTO test. Nine core financial tables remain empty; no provider sandbox or signed callback E2E performed. No Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1931_1940_EXACT_MIGRATION_AND_FINANCE_RECHECK_20261123.md`.
