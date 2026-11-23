@@ -125,6 +125,7 @@ export interface Business {
   publicationStatus?: 'PENDING_PUBLICATION' | 'PUBLISHED' | 'REJECTED' | string;
   publicationRejectionReason?: string;
   organizationId?: string;
+  businessCode?: string; // Canonical business code from the Supabase businesses registry.
 }
 
 export interface Product {
