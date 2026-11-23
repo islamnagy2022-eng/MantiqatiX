@@ -4148,5 +4148,5 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 
 - marketing_provider_profiles has RLS/FORCE but anon + authenticated direct SELECT. Public-active SELECT policy checks only status ACTIVE; CRM manager SELECT lacks tenant/business scope.
 - Owner DML policy rejects anonymous Auth and binds owner id, but does not constrain reads. 19 columns include owner_user_id/settings; no row values selected.
-- RC479 only revokes anon; authenticated/anonymous-session path remains. RC452 scoped policy not live and platform-root uses membership metadata.
+- Main has two RC479 migrations (raw anon revoke + restrictive anonymous-Auth SELECT guard), both unapplied. Confirmed authenticated public-active SELECT still exposes base-table columns; RC452 scoped CRM policy is not live and its platform-root branch uses membership metadata.
 - Fix requires forward migration, curated public Edge projection, owner backend path and PG17 adversarial tests. No Production changes. P0 BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1991_2000_PROVIDER_PROFILE_DIRECT_READ_PRIVACY_20261123.md`.
