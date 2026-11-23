@@ -5247,3 +5247,33 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - PR #971 diverged 283 ahead/32 behind; #978 draft diverged 18/28; #994 diverged 73/15. All non-mergeable; exact-head CI unverified. Reconcile before merge.
 - R7 = REFERENCE ONLY / NOT SAFE TO DEPLOY. Production BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1941_1950_R7_ARCHIVE_SECURITY_AND_PR_BRANCH_RECONCILIATION_20261123.md`.
+
+
+### Pass 1951–1960 — live platform-admin helper recheck — 2026-11-23
+- [x] 1951 — Live `mnty_can_platform_admin()` remains SECURITY DEFINER, public/pg_temp path, delegates to global `mnty_can('admin',NULL,NULL,NULL)`, not private registry.
+- [x] 1952 — `mnty_can` grants global SUPER_ADMIN when membership JSON says scope PLATFORM + full_control true; null scope is global.
+- [x] 1953 — `mnty_active_membership` is SECURITY DEFINER and allows null scope parameters.
+- [x] 1954 — `is_platform_admin()` remains invoker and trusts any active ADMIN/SUPER_ADMIN membership.
+- [x] 1955 — 57 policies/24 tables use legacy helper; 5 policies/3 tables use shared helper.
+- [x] 1956 — Main RC464/RC484 source replaces both with registry-only checks and preflights blast radius.
+- [x] 1957 — Live helpers remain legacy; migrations unapplied (ledger latest `20261110150618`).
+- [x] 1958 — 149 public SECURITY DEFINER functions: 65 authenticated executable, 1 anon executable, 120 public search_path, 29 other explicit, 0 missing.
+- [x] 1959 — Preserve intentional bounded targeted-ad public read; continue per-function review, no blanket revoke.
+- [ ] Reconcile migration history; replay RC464/RC484 in independent PG17 restore; test registry positive and tenant/anonymous negatives across all policy paths.
+- No Production changes. P0 / BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_1951_1960_LIVE_PLATFORM_ADMIN_HELPER_RECHECK_20261123.md`.
+
+
+### Pass 1961–1970 — live platform-facing Edge parity — 2026-11-23
+- [x] 1961 — catalog-platform-admin v23 uses membership metadata for platform root; current main calls registry helper.
+- [x] 1962 — business-register v9 uses SUPER_ADMIN membership + PLATFORM/full_control metadata; main uses caller-JWT registry RPC.
+- [x] 1963 — business-branch-admin v5 uses membership metadata; main adds registry gate for platform-root actions.
+- [x] 1964 — ai-gemini-proxy v5 uses legacy membership root predicate; main uses registry helper.
+- [x] 1965 — settlement-financial-atomic v4 materially behind main's tenant/business/branch authorization module and registry gate.
+- [x] 1966 — directory-listings v18 is intentionally fail-closed; preserve until RC472/RC473 consent/source-rights release.
+- [x] 1967 — All six ACTIVE; five platform functions verify_jwt=true; directory verify_jwt=false but fail-closed.
+- [x] 1968 — Current-main validator covers registry-only authorization across these Edge paths.
+- [x] 1969 — Live registry helper remains weak; Edge-only deployment would not close the boundary.
+- [ ] Reconcile DB migrations, test registry/tenant/anonymous cases, then deploy matching Edge bundles together.
+- No Edge/DB/financial/storage/directory mutation. P0 BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_1961_1970_LIVE_PLATFORM_EDGE_REGISTRY_PARITY_20261123.md`.
