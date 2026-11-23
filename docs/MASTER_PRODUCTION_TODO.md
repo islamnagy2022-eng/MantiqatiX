@@ -5173,3 +5173,18 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Reconcile all dependent migrations/RPCs/schema/ACLs, replay in isolated PG17, run payment/webhook adversarial tests, then deploy Edge bundles in coordinated order.
 - No provider calls or Production writes/deployments. Full Production BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1891_1900_CRITICAL_EDGE_PAYMENT_PARITY_20261123.md`.
+
+
+### Pass 1901–1910 — registration and business-creation Edge parity — 2026-11-23
+- [x] 1901 — Compared 10 registration/onboarding/legal Edge entrypoints with current main.
+- [x] 1902 — Eight match exactly: business approval, registration review, onboarding status, deactivate, provider onboarding submit/review, legal consent/gate.
+- [x] 1903 — Customer registration v4 calls legacy `ensure_customer_membership_for_user`; main calls `activate_customer_registration_atomic`.
+- [x] 1904 — Both RPCs exist, SECURITY DEFINER, empty search_path, service_role-only; semantics differ materially.
+- [x] 1905 — Existing validator/audit requires behavior decision and staging acceptance matrix; do not deploy to force parity.
+- [x] 1906 — Business-register v9 uses membership metadata for platform-root; main uses `mnty_can_platform_admin()`.
+- [x] 1907 — Aggregate-only: one active membership matches legacy root predicate and is in registry; no non-registry match.
+- [x] 1908 — Live helper remains weak/null-scope; do not deploy business-register source before RC464/RC471.
+- [x] 1909 — Provider onboarding/legal entrypoint parity confirmed for this sample only.
+- [ ] Resolve customer activation behavior and staging tests; coordinate business-register with registry migrations.
+- No registrations, memberships, approvals, DB objects or Edge functions changed. Full Production BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_1901_1910_REGISTRATION_EDGE_PARITY_20261123.md`.
