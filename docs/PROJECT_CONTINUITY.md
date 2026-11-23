@@ -3482,3 +3482,8 @@ Compared 10 registration/onboarding/legal Edge entrypoints. Eight match main. Cu
 ## 2026-11-23 — Pass 1911–1920 — Storage anonymous Auth review
 
 Live `storage.objects` RLS is on, but anon/authenticated have table CRUD grants; row policies decide actual access. Current policies are authenticated, but some allow a missing `is_anonymous` claim, and platform-brand policies use any active SUPER_ADMIN membership. RC488 restrictive confirmed-Auth write policies and RC495 registry-backed brand policies are absent live. Aggregate-only query found one active SUPER_ADMIN and it is in registry. Buckets: media private; profile-media public with image-only 5 MiB limit. Both buckets currently contain zero objects; no current file leak observed. Do not alter Storage until exact migration chain replay/backup gate. No changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1911_1920_STORAGE_ANONYMOUS_AUTH_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — Pass 1921–1930 — directory contact-consent recheck
+
+Live contact-consent registry absent. Public listings counts: 868 PUBLISHED/UNCLAIMED, 1 PUBLISHED/CLAIM_PENDING, 87 DRAFT, 9 HIDDEN; no metadata row marks public contact enabled. The listings table remains backend-only. Directory Edge v18 is fail-closed; public-catalog-directory v19 matches main and only returns contact fields when both owner-enabled and server-audited flags are true. Ten business rows exist; zero have either public-contact flag set. No contact details read or published. Keep all 878 directory rows hidden until RC472/RC473, source rights, owner consent and revocation tests pass. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1921_1930_DIRECTORY_CONTACT_CONSENT_RECHECK_20261123.md`.
