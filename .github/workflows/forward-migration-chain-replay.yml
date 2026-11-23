@@ -16,6 +16,15 @@ on:
       - "scripts/validate-rc490-medical-anonymous-auth-read-guard.mjs"
       - "scripts/validate-rc491-support-anonymous-auth-boundary.mjs"
       - "scripts/validate-rc492-indrive-anonymous-auth-write-guard.mjs"
+      - "scripts/validate-rc921-medical-appointment-state-machine.mjs"
+      - "scripts/test-rc921-medical-status-concurrency.sh"
+      - "supabase/tests/rc921_medical_status_fixture.sql"
+      - "supabase/tests/rc921_medical_status_integration.sql"
+      - ".github/workflows/forward-migration-chain-replay.yml"
+      - "scripts/validate-rc921-medical-appointment-state-machine.mjs"
+      - "scripts/test-rc921-medical-status-concurrency.sh"
+      - "supabase/tests/rc921_medical_status_fixture.sql"
+      - "supabase/tests/rc921_medical_status_integration.sql"
       - "supabase/tests/rc489_financial_anonymous_auth_read_integration.sql"
       - "supabase/tests/rc490_medical_anonymous_auth_read_integration.sql"
       - "supabase/tests/rc491_support_anonymous_auth_boundary_integration.sql"
@@ -382,3 +391,37 @@ jobs:
             cd "$MNTY_REPLAY_TEST_DIR"
             supabase stop --no-backup || true
           fi
+  rc921-medical-appointment-state-machine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rc921_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rc921_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout candidate source
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Validate RC921 source contract
+        run: node scripts/validate-rc921-medical-appointment-state-machine.mjs
+      - name: Run isolated PostgreSQL 17 behavioral and concurrency tests
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d rc921_test -v ON_ERROR_STOP=1 -f supabase/tests/rc921_medical_status_fixture.sql
+          psql -h 127.0.0.1 -U postgres -d rc921_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261123010000_rc921_medical_appointment_provider_state_machine.sql
+          psql -h 127.0.0.1 -U postgres -d rc921_test -v ON_ERROR_STOP=1 -f supabase/tests/rc921_medical_status_integration.sql
+          bash scripts/test-rc921-medical-status-concurrency.sh
