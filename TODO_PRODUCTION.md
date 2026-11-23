@@ -1,3 +1,35 @@
+## 2026-11-23 — MX-WEB-CAP-20261123-01 — Website capabilities and launch-readiness
+
+**Status: IN PROGRESS.** User requested that the following capabilities be added to the permanent TODO and implemented without unnecessary session-by-session approval. Work must target the current canonical website in `apps/catalog-frontend/**`; the uploaded `bizcatalog-manager (11).zip` is a historical R7 reference only and must not replace current main.
+
+### Acceptance register
+
+- [ ] **SEO / Google readiness:** route-specific title, description, canonical, Open Graph and Twitter metadata; SSR/prerender for public routes; verified-only Schema.org; production-only robots.txt and sitemap.xml; Search Console verification/submission using owner-provided domain/DNS proof; noindex for preview/staging; privacy-safe GA4/GTM only after owner supplies real IDs and consent wording.
+- [ ] **Responsive experience:** verify public catalog, activity profiles, merchant dashboard, admin dashboard and account flows at phone/tablet/desktop breakpoints; accessibility, keyboard, zoom and touch-target checks; retain current layout behavior until visual regression evidence supports a change.
+- [ ] **Scalable activity pages:** stable shareable direct URLs for every eligible public activity; correct refresh/deep-link fallback; unique metadata; pagination and query efficiency; only public/approved/consented records may be exposed.
+- [ ] **Social/contact integrations:** WhatsApp, telephone, email and supported Facebook/Instagram/other links for platform and activity owners; validate and sanitize URLs; owner-scoped persistence and explicit public-contact consent; no private contact leakage.
+- [ ] **Dashboards:** verify platform Super Admin and merchant/owner dashboards end-to-end; every KPI/action must be backed by authorized persisted data; include role/tenant/branch isolation, responsive UX, empty/error/loading states and audit evidence.
+- [ ] **SSL / security:** verify canonical production HTTPS, valid certificate/renewal, redirect and HSTS configuration at the hosting/domain layer; review headers, CSP, secret exposure, auth/session, RLS, tenant isolation, rate limits and dependency vulnerabilities. Do not claim SSL from source files alone.
+- [ ] **Scalable products/services:** remove accidental hard-coded item ceilings only after reviewing server/database limits, pagination, storage, plan entitlements and abuse controls; keep configurable subscription quotas where commercially required; do not promise literal infinite capacity.
+- [ ] **Blog / content management:** inspect for existing content modules first; if no equivalent exists, implement authorized article CRUD, drafts/publishing, categories, cover media, slug, metadata, sitemap inclusion, moderation and admin audit; public pages only for published/approved articles.
+- [ ] **AI technical support:** inspect existing AI/support modules first; implement a support assistant only against approved knowledge, with tenant-aware access, safe refusal for private data, conversation/ticket persistence, escalation and usage/rate controls; never expose service-role keys or privileged tools to the browser.
+
+### Execution order and dependencies
+
+1. P0: production domain/HTTPS evidence, privacy boundaries, tenant/RLS/security review, safe public data projection.
+2. P1: mobile/browser regression and direct activity routes; SEO metadata/prerender/sitemap/robots/schema.
+3. P1: validate social/contact settings and owner dashboard flows.
+4. P2: scalable catalogue quotas and pagination, blog/content workflow, AI support.
+5. P3: Search Console/GA4 activation and live indexing/analytics verification after owner-provided domain, DNS and IDs.
+
+### Evidence rules
+
+- Record exact files, commits, CI runs, browser tests and deployed-origin checks.
+- Mark each subtask VERIFIED only after the stated checks pass on the relevant environment.
+- Keep external-owner dependencies WAIT (domain/DNS/Search Console/GA4/privacy copy).
+- Preserve the full-platform gate as BLOCKED / NOT CERTIFIED until independent production gates pass.
+- No production DDL/DML, migration, Auth/RLS/GRANT, Edge deployment, financial action or deployment bypass without the required release approval.
+
 ## Pass 1490–1499 — RC479 anonymous Auth-session forward guard merged — 2026-11-20
 
 - PR [#938](https://github.com/islamnagy2022-eng/MantiqatiX/pull/938) merged to `main` as `436b7a5a4aa12aa979f5ea4b52b9ce9d3971a046`.
