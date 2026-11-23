@@ -4100,3 +4100,11 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Nine core order/payment/settlement/journal tables all contain zero rows. No sandbox Paymob or webhook E2E; empty tables do not prove readiness.
 - Disposable replay is schema-only, not actual backup restore or RPO/RTO evidence.
 - No Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1931_1940_EXACT_MIGRATION_AND_FINANCE_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — RC921 medical status state-machine release gate
+
+- PR #1008 merged RC921 source at `ff25bdb2359c648db47b38b7c11695f9dbe79b58`; exact-head PG17 behavior/concurrency workflow 45144730674 PASS; immutability 45144730536, uniqueness 45144730782, collision guard 45144730731, backend boundary 45144730778 and module validation 45144730500 PASS.
+- Pages validate passed; deploy skipped. No Production deployment.
+- Live status RPC remains legacy; RC921 migration unapplied.
+- Added migration version 20261123010000 and exact RPC signature to release gate; required count 77. No Production changes. BLOCKED / NOT CERTIFIED.
