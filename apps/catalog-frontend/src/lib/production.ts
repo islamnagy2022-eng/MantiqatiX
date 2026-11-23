@@ -246,14 +246,21 @@ export function mapBusiness(raw: any, provider: any): Business {
   const officialBrandCover = isOfficialMantiqatiX ? resolveDefaultImage({ name: 'MantiqatiX', kind: 'cover' }) : '';
   // The official showcase previously stored time-limited Facebook CDN URLs.
   // Prefer the versioned local brand assets so expiry/hotlinking cannot blank the platform profile.
-  const savedLogo = officialBrandLogo || String(profile.logoUrl || profile.logo_url || raw.logoUrl || '');
-  const savedCover = officialBrandCover || String(profile.coverUrl || profile.cover_url || raw.coverUrl || '');
-  const externalLogoUrl = isOfficialMantiqatiX ? '' : String(profile.externalLogoUrl ?? profile.external_logo_url ?? profile.logo_url ?? raw.externalLogoUrl ?? '');
-  const externalCoverUrl = isOfficialMantiqatiX ? '' : String(profile.externalCoverUrl ?? profile.external_cover_url ?? profile.cover_url ?? raw.externalCoverUrl ?? '');
-  const isVerified = Boolean(provider?.verified ?? provider?.is_verified ?? raw.isVerified);
-  const isPharmacy = /صيدل|pharmacy/i.test([name, category, activityCategoryCode, raw.activityGroupCode, raw.activity_group_code].join(' '));
+  const persistedLogo = String(profile.logoUrl || profile.logo_url || raw.logoUrl || '');
+  const persistedCover = String(profile.coverUrl || profile.cover_url || raw.coverUrl || '');
   const savedLogoSource = String(profile.logo_image_source || profile.logoImageSource || '').toLowerCase();
   const savedCoverSource = String(profile.cover_image_source || profile.coverImageSource || '').toLowerCase();
+  // Explicit owner/AI selections must win for the platform's own activity; legacy/automatic media falls back to first-party brand artwork.
+  const savedLogo = isOfficialMantiqatiX && !['owner', 'ai'].includes(savedLogoSource)
+    ? officialBrandLogo || persistedLogo
+    : persistedLogo || officialBrandLogo;
+  const savedCover = isOfficialMantiqatiX && !['owner', 'ai'].includes(savedCoverSource)
+    ? officialBrandCover || persistedCover
+    : persistedCover || officialBrandCover;
+  const externalLogoUrl = isOfficialMantiqatiX ? '' : String(profile.externalLogoUrl ?? profile.external_logo_url ?? profile.logo_url ?? raw.externalLogoUrl ?? '');
+  const externalCoverUrl = isOfficialMantiqaTix ? '' : String(profile.externalCoverUrl ?? profile.external_cover_url ?? profile.cover_url ?? raw.externalCoverUrl ?? '');
+  const isVerified = Boolean(provider?.verified ?? provider?.is_verified ?? raw.isVerified);
+  const isPharmacy = /صيدل|pharmacy/i.test([name, category, activityCategoryCode, raw.activityGroupCode, raw.activity_group_code].join(' '));
   const hasOwnerSelectedLogo = Boolean(savedLogo) && savedLogoSource !== 'auto' &&
     !/(?:business-cover-placeholder|business-placeholder|catalog-item-placeholder)\.svg|\/legacy\/(?:activity|activities)\//i.test(savedLogo);
   const hasOwnerSelectedCover = Boolean(savedCover) && savedCoverSource !== 'auto' &&
