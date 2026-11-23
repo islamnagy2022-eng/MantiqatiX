@@ -1,0 +1,47 @@
+name: RC921 medical appointment provider state machine
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "supabase/migrations/20261123010000_rc921_medical_appointment_provider_state_machine.sql"
+      - "supabase/tests/rc921_medical_status_fixture.sql"
+      - "supabase/tests/rc921_medical_status_integration.sql"
+      - "scripts/validate-rc921-medical-appointment-state-machine.mjs"
+      - ".github/workflows/rc921-medical-appointment-state-machine.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  rc921-postgres17:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rc921_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rc921_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Validate migration contract
+        run: node scripts/validate-rc921-medical-appointment-state-machine.mjs
+      - name: Run isolated PostgreSQL 17 behavioral tests
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d rc921_test -v ON_ERROR_STOP=1 -f supabase/tests/rc921_medical_status_fixture.sql
+          psql -h 127.0.0.1 -U postgres -d rc921_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261123010000_rc921_medical_appointment_provider_state_machine.sql
+          psql -h 127.0.0.1 -U postgres -d rc921_test -v ON_ERROR_STOP=1 -f supabase/tests/rc921_medical_status_integration.sql
