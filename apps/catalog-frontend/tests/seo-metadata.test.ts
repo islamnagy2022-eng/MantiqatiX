@@ -54,6 +54,20 @@ test('unverified, frozen, or non-published business profiles stay noindex', () =
   }
 });
 
+test('activity and specialty routes receive distinct stable metadata', () => {
+  const result = resolveRouteSeoMetadata({
+    ...base,
+    view: 'directory',
+    activityId: 'medical-health',
+    activityName: 'الأنشطة الطبية',
+    specialtyName: 'طب الأطفال',
+  });
+  assert.equal(result.robots, 'index,follow');
+  assert.equal(result.canonicalUrl, 'https://islamnagy2022-eng.github.io/MantiqatiX/?activity=medical-health&specialty=%D8%B7%D8%A8+%D8%A7%D9%84%D8%A3%D8%B7%D9%81%D8%A7%D9%84');
+  assert.match(result.title, /طب الأطفال/);
+  assert.match(result.title, /الأنشطة الطبية/);
+});
+
 test('preview and non-canonical builds remain noindex', () => {
   const result = resolveRouteSeoMetadata({ ...base, allowIndexing: false, view: 'directory' });
   assert.equal(result.robots, 'noindex,nofollow');
