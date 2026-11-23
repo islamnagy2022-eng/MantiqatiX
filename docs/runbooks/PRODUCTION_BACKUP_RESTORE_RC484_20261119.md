@@ -106,7 +106,7 @@ Verify each encrypted file can be decrypted into a protected temporary directory
 
 ## 5. Export Storage objects separately
 
-The database dump contains Storage metadata, not the actual object bytes. Export every production bucket through the Storage S3-compatible endpoint or the Supabase Storage CLI.
+Supabase-managed database backups include Storage metadata but not the actual object bytes. The Supabase CLI `db dump` reference, however, says the managed `storage` schema is excluded. Therefore, do not assume the CLI dump contains `storage.buckets` or `storage.objects`; inspect the generated artifact and use an independently captured source inventory. Export every production bucket's actual bytes through the Storage S3-compatible endpoint or the Supabase Storage CLI.
 
 1. In Supabase Dashboard, open **Storage → Configuration → S3**.
 2. Enable S3 protocol if it is not already enabled, create a dedicated least-privilege access key/secret, and store the secret securely. It is shown only once.
