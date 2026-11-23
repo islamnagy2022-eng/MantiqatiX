@@ -4100,3 +4100,12 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Nine core order/payment/settlement/journal tables all contain zero rows. No sandbox Paymob or webhook E2E; empty tables do not prove readiness.
 - Disposable replay is schema-only, not actual backup restore or RPO/RTO evidence.
 - No Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1931_1940_EXACT_MIGRATION_AND_FINANCE_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — Pass 1951–1960 — platform-admin live helper audit
+
+- Live mnty_can_platform_admin still delegates to null-scope mnty_can; active tenant SUPER_ADMIN permissions JSON can satisfy global platform scope.
+- Live is_platform_admin still trusts active tenant ADMIN/SUPER_ADMIN membership.
+- 57 policies across 24 tables use is_platform_admin; 5 policies across 3 tables use mnty_can_platform_admin.
+- Main RC464/RC484 are registry-only fixes but unapplied. 149 public SECURITY DEFINER functions; 65 authenticated execute, 1 anon execute, 0 missing explicit search_path.
+- No Production changes. P0 BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1951_1960_LIVE_PLATFORM_ADMIN_HELPER_RECHECK_20261123.md`.
