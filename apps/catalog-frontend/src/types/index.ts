@@ -95,7 +95,7 @@ export interface Business {
   longitude?: number;
   workingHours: string;
   isVerified: boolean;
-  maxProductsLimit: number; // 0 = unlimited; positive values require a server-enforced entitlement
+  maxProductsLimit: number; // default 150
   createdAt: string;
 
   // Paymob Payment Gateway Configuration (تحدد من قبل الإدارة لكل نشاط)
@@ -202,7 +202,7 @@ export interface AdminSettings {
   currency: string; // "ج.م"
   platformName: string; // "MantiqatiX"
   platformEmail: string;
-  maxAllowedProductsPerBusiness: number; // 0 = unlimited; positive values require server-side enforcement
+  maxAllowedProductsPerBusiness: number; // 150
   defaultCommissionPerOrder: number; // 0.01 جنيه (افتراضي نظام العمولات السري)
   overdueGracePeriodDays: number; // 5 أيام إشعار يومي قبل التجميد
   defaultPaymobFeePercentage: number; // تكلفة الدفع الافتراضية عبر Paymob %
