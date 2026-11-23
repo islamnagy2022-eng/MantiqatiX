@@ -1,0 +1,60 @@
+name: RC464 PostgreSQL 17 production-version parity
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "supabase/migrations/20261113214500_rc464_platform_admin_live_registry_hardening.sql"
+      - "supabase/tests/rc464_platform_admin_live_baseline.sql"
+      - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
+      - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
+      - "supabase/tests/mantigo_financial_report_live_columns.sql"
+      - "supabase/tests/rc464_platform_admin_shared_helper_callers.sql"
+      - "scripts/validate-rc464-platform-admin-live-hardening.mjs"
+      - ".github/workflows/rc464-platform-admin-postgres17-parity.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  rc464-platform-admin-postgres17:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc464_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc464_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Verify RC464 source contract
+        run: node scripts/validate-rc464-platform-admin-live-hardening.mjs
+      - name: Reproduce live authorization gap, apply RC464, and verify on PostgreSQL 17
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:17' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc449_mantigo_platform_admin_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/tests/rc464_platform_admin_live_baseline.sql "$pg_container:/tmp/live-baseline.sql"
+          docker cp supabase/migrations/20261113214500_rc464_platform_admin_live_registry_hardening.sql "$pg_container:/tmp/rc464.sql"
+          docker cp supabase/tests/rc449_mantigo_platform_admin_integration.sql "$pg_container:/tmp/integration.sql"
+          docker cp supabase/tests/mantigo_financial_report_live_columns.sql "$pg_container:/tmp/financial-report-test.sql"
+          docker cp supabase/tests/rc464_platform_admin_shared_helper_callers.sql "$pg_container:/tmp/shared-callers.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc464_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc464_test -v ON_ERROR_STOP=1 -f /tmp/live-baseline.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc464_test -v ON_ERROR_STOP=1 -f /tmp/rc464.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc464_test -v ON_ERROR_STOP=1 -f /tmp/integration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc464_test -v ON_ERROR_STOP=1 -f /tmp/financial-report-test.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc464_test -v ON_ERROR_STOP=1 -f /tmp/shared-callers.sql
