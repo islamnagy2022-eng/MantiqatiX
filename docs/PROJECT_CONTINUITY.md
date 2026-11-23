@@ -3507,3 +3507,8 @@ Live `mnty_can_platform_admin()` still delegates to `mnty_can('admin',NULL,NULL,
 ## 2026-11-23 — Pass 1961–1970 — live platform-facing Edge registry parity
 
 Compared live Edge bundles with main. catalog-platform-admin v23, business-register v9, business-branch-admin v5 and ai-gemini-proxy v5 still use membership metadata for platform-root authority; current main calls the registry helper. settlement-financial-atomic v4 is materially older than main's explicit tenant/business/branch authorization module. directory-listings v18 remains intentionally fail-closed. Live registry helper itself remains weak, so no Edge-only deployment. No Edge/DB changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1961_1970_LIVE_PLATFORM_EDGE_REGISTRY_PARITY_20261123.md`.
+
+
+## 2026-11-23 — Pass 1971–1980 — registry migration preflight assessment
+
+Selected live preflight predicates for RC464/RC471/RC484 are present: private registry exists, postgres-owned, RLS on (FORCE off), no anon/authenticated table CRUD, one registry row; both helper owners are postgres/BYPASSRLS; four shared helper callers and three required RLS policies exist; all 33 RC471 MantiGO columns and settlement journal dependency exist; RC484 sees 57 legacy policies across 24 tables. These checks do not approve isolated migration execution. Live ledger remains 310 through `20261110150618`, with 0/76 exact required IDs. Need exact migration/effect reconciliation, real backup/restore and full ordered PG17 replay. No Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1971_1980_RC464_RC471_RC484_LIVE_PREFLIGHT_20261123.md`.
