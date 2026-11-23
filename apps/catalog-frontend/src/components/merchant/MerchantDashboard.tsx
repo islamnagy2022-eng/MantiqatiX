@@ -785,12 +785,12 @@ export const MerchantDashboard: React.FC = () => {
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-slate-700">إجمالي الأصناف المعروضة:</span>
               <span className="text-sm font-black text-slate-900">{productsCount}</span>
-              <span className="text-xs text-slate-400">/ {maxLimit} كحد أقصى</span>
+              <span className="text-xs text-slate-400">{catalogQuota.isUnlimited ? "بدون حد عددي ثابت" : `/ ${catalogQuota.limit} كحد أقصى`}</span>
             </div>
 
             <div className="flex items-center gap-2.5 w-full sm:w-auto">
               <button
-                disabled={productsCount >= maxLimit}
+                disabled={!catalogQuota.canAdd}
                 onClick={openAddModal}
                 className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
               >
