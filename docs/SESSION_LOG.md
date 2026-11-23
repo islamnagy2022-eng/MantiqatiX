@@ -4100,3 +4100,12 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Nine core order/payment/settlement/journal tables all contain zero rows. No sandbox Paymob or webhook E2E; empty tables do not prove readiness.
 - Disposable replay is schema-only, not actual backup restore or RPO/RTO evidence.
 - No Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1931_1940_EXACT_MIGRATION_AND_FINANCE_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — Pass 1941–1950 — admin Edge branch-scope review
+
+- Six of ten additional admin/legal/AI Edge entrypoints match main.
+- Legal CMS v6 uses broad membership/direct writes; main uses atomic legal RPCs absent live (RC482/RC483 dependency).
+- Business-branch-admin v5 lacks null branch_id restriction. Aggregate: 2 active branch-scoped admin-role users across 2 businesses; potential sibling-branch management gap.
+- Catalog-platform-admin v23 and AI proxy v5 remain on legacy membership root checks; main uses registry helper; live helper not yet registry-backed.
+- No function invocation, business/branch/legal changes or Production writes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1941_1950_ADMIN_EDGE_BRANCH_SCOPE_RECHECK_20261123.md`.
