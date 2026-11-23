@@ -34,3 +34,7 @@
 - This pass was read-only against Production. No Production DDL/DML, migration, Auth, RLS, GRANT/REVOKE, Storage, Edge deployment, payment, wallet, settlement, customer-data write or public directory publication occurred.
 - `directory-listings` v18 remains fail-closed.
 - **Website V1 deployment is not equivalent to full-platform certification. Full Production remains BLOCKED / NOT CERTIFIED.**
+
+
+## Follow-on pass
+See `docs/audits/PASS_1843_1852_R7_SOURCE_AND_CURRENT_AUTH_RECONCILIATION_20261123.md` for the next source/archive reconciliation and current-main auth review. No Production mutation or deployment occurred; full Production remains BLOCKED / NOT CERTIFIED.
