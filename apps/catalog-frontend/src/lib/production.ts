@@ -258,7 +258,7 @@ export function mapBusiness(raw: any, provider: any): Business {
     ? officialBrandCover || persistedCover
     : persistedCover || officialBrandCover;
   const externalLogoUrl = isOfficialMantiqatiX ? '' : String(profile.externalLogoUrl ?? profile.external_logo_url ?? profile.logo_url ?? raw.externalLogoUrl ?? '');
-  const externalCoverUrl = isOfficialMantiqaTix ? '' : String(profile.externalCoverUrl ?? profile.external_cover_url ?? profile.cover_url ?? raw.externalCoverUrl ?? '');
+  const externalCoverUrl = isOfficialMantiqatiX ? '' : String(profile.externalCoverUrl ?? profile.external_cover_url ?? profile.cover_url ?? raw.externalCoverUrl ?? '');
   const isVerified = Boolean(provider?.verified ?? provider?.is_verified ?? raw.isVerified);
   const isPharmacy = /صيدل|pharmacy/i.test([name, category, activityCategoryCode, raw.activityGroupCode, raw.activity_group_code].join(' '));
   const hasOwnerSelectedLogo = Boolean(savedLogo) && savedLogoSource !== 'auto' &&
