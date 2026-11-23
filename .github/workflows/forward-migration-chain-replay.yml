@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/**"
+      - "supabase/tests/rc922_medical_status_integration.sql"
+      - "supabase/tests/rc922_medical_status_fixture.sql"
+      - "scripts/validate-rc922-medical-tenant-wide-provider-scope.mjs"
       - "supabase/tests/referral_self_service_rpc_grants.sql"
       - "supabase/tests/rc488_storage_anonymous_auth_write_guard_fixture.sql"
       - "supabase/tests/rc488_storage_anonymous_auth_write_guard_integration.sql"
@@ -114,6 +117,9 @@ on:
     branches: ["main"]
     paths:
       - "supabase/migrations/**"
+      - "supabase/tests/rc922_medical_status_integration.sql"
+      - "supabase/tests/rc922_medical_status_fixture.sql"
+      - "scripts/validate-rc922-medical-tenant-wide-provider-scope.mjs"
       - "supabase/tests/referral_self_service_rpc_grants.sql"
       - "supabase/tests/baselines/production_schema_snapshot.sql"
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
@@ -407,19 +413,19 @@ jobs:
             cd "$MNTY_REPLAY_TEST_DIR"
             supabase stop --no-backup || true
           fi
-  rc921-medical-appointment-state-machine:
+  medical-appointment-status-state-machines:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     services:
       postgres:
         image: postgres:17
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: rc921_test
+          POSTGRES_DB: medical_test
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres -d rc921_test"
+          --health-cmd "pg_isready -U postgres -d medical_test"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 12
@@ -432,12 +438,17 @@ jobs:
           node-version: 22
       - name: Validate RC921 source contract
         run: node scripts/validate-rc921-medical-appointment-state-machine.mjs
-      - name: Run isolated PostgreSQL 17 behavioral and concurrency tests
+      - name: Validate RC922 tenant-wide provider exact-profile boundary
+        run: node scripts/validate-rc922-medical-tenant-wide-provider-scope.mjs
+      - name: Run RC921 and RC922 PostgreSQL 17 behavioral plus concurrency tests
         env:
           PGPASSWORD: postgres
+          PGDATABASE: medical_test
         run: |
           set -euo pipefail
-          psql -h 127.0.0.1 -U postgres -d rc921_test -v ON_ERROR_STOP=1 -f supabase/tests/rc921_medical_status_fixture.sql
-          psql -h 127.0.0.1 -U postgres -d rc921_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261123010000_rc921_medical_appointment_provider_state_machine.sql
-          psql -h 127.0.0.1 -U postgres -d rc921_test -v ON_ERROR_STOP=1 -f supabase/tests/rc921_medical_status_integration.sql
+          psql -h 127.0.0.1 -U postgres -d medical_test -v ON_ERROR_STOP=1 -f supabase/tests/rc922_medical_status_fixture.sql
+          psql -h 127.0.0.1 -U postgres -d medical_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261123010000_rc921_medical_appointment_provider_state_machine.sql
+          psql -h 127.0.0.1 -U postgres -d medical_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261123221950_rc922_medical_appointment_tenant_wide_provider_scope.sql
+          psql -h 127.0.0.1 -U postgres -d medical_test -v ON_ERROR_STOP=1 -f supabase/tests/rc921_medical_status_integration.sql
+          psql -h 127.0.0.1 -U postgres -d medical_test -v ON_ERROR_STOP=1 -f supabase/tests/rc922_medical_status_integration.sql
           bash scripts/test-rc921-medical-status-concurrency.sh
