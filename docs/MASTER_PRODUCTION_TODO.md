@@ -5101,3 +5101,17 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] 1852 — Current Google auth source validator encodes the expected Google identity and membership-gated role behavior; source inspection is not a CI pass.
 - **Decision:** R7 remains immutable reference-only. No production mutation or deployment. Full Production remains BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1843_1852_R7_SOURCE_AND_CURRENT_AUTH_RECONCILIATION_20261123.md`.
+
+
+### Pass 1853–1860 — live MantiGO global RPC authorization — 2026-11-23
+- [x] 1853 — Four global MantiGO RPCs remain SECURITY DEFINER, authenticated-executable, anon-denied, and `search_path=public`.
+- [x] 1854 — Dashboard RPC still authorizes broad active tenant roles and reads platform-wide rides/financial aggregates.
+- [x] 1855 — Financial report RPC still uses broad membership authorization and legacy ledger column names; not certified functional.
+- [x] 1856 — Settlement and stale-ride expiration RPCs remain global mutators behind broad legacy membership checks; not invoked.
+- [x] 1857 — Aggregate-only live query: 5 users have active roles accepted by the legacy predicates; 4 are absent from the platform-admin registry. No identifiers selected.
+- [x] 1858 — All four RPCs deny anon but grant authenticated; removing anon EXECUTE alone does not fix this.
+- [x] 1859 — Current-main RC464/RC471 sources already implement registry-backed checks and adversarial tests.
+- [x] 1860 — Live migration ledger remains at `20261110150618`; source fixes are not deployed. No duplicate migration required.
+- **P0 release gate:** reconcile and rehearse the exact migration chain in isolated PG17; coordinate registry helper + all 57 policies + four global RPCs; do not hot-patch or apply isolated migrations.
+- No Production mutation or RPC invocation. Full Production remains BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_1853_1860_LIVE_MANTIGO_GLOBAL_RPC_AUTHORIZATION_20261123.md`.
