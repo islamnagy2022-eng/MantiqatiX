@@ -1,4 +1,5 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
+import { resolveRouteSeoMetadata, applyRouteSeoMetadata } from './utils/seoMetadata';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
 import { DirectoryView } from './components/DirectoryView';
@@ -29,6 +30,23 @@ const MainContent: React.FC = () => {
   const hasDirectPublicCatalogLink = params.has('store') || params.has('businessId');
   const catalogRequestUrl = requestCatalogViaAdminWhatsApp(currentBusiness);
   const useFooterNavigate = (view: 'contact_us' | 'site_map') => setCurrentView(view);
+
+  useEffect(() => {
+    const canonicalOrigin = import.meta.env.VITE_CANONICAL_ORIGIN || 'https://islamnagy2022-eng.github.io';
+    const basePath = import.meta.env.BASE_URL || '/';
+    const normalizedBasePath = basePath.endsWith('/') ? basePath : `${basePath}/`;
+    const isCanonicalProductionRoute = import.meta.env.PROD &&
+      window.location.origin === canonicalOrigin &&
+      window.location.pathname === normalizedBasePath;
+    const metadata = resolveRouteSeoMetadata({
+      view: visibleView,
+      business: currentBusiness,
+      origin: canonicalOrigin,
+      basePath: normalizedBasePath,
+      allowIndexing: isCanonicalProductionRoute,
+    });
+    applyRouteSeoMetadata(metadata);
+  }, [visibleView, currentBusiness?.id, currentBusiness?.name, currentBusiness?.bio, currentBusiness?.category, currentBusiness?.governorate, currentBusiness?.markaz, currentBusiness?.isVerified, currentBusiness?.isFrozen, currentBusiness?.publicationStatus]);
 
   // Never expose a dashboard without a production role. Guests may view a
   // storefront only through its direct share link, never through a generic tab.
