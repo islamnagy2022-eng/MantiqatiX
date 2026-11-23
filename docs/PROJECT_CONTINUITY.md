@@ -3497,3 +3497,13 @@ Live migration ledger has 310 rows through `20261110150618`; current main requir
 ## 2026-11-23 — Pass 1941–1950 — R7 archive and active PR reconciliation
 
 Uploaded directive matches current `docs/MASTER_SOURCE_OF_TRUTH.md`. R7 ZIP SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, 233 files, is historical only: it contains root React source + Express server, one migration, no canonical `apps/catalog-frontend`, no CI workflows, no npm test script and no .data DB. R7 source has fixed fallback Paymob HMAC/JWT/backup secrets; unauthenticated Supabase sync/pull handlers, with sync able to use service_role for business/product/wallet/audit upserts; and startup local JSON seed initialization. Do not deploy or transplant. Build/lint could not execute because deps are absent (not a compile verdict). Open feature branches are diverged: #971 +283/-32, #978 +18/-28 (draft), #994 +73/-15; exact-head CI unverified. Reconcile before merge. No Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1941_1950_R7_ARCHIVE_SECURITY_AND_PR_BRANCH_RECONCILIATION_20261123.md`.
+
+
+## 2026-11-23 — Pass 1951–1960 — live platform-admin helper recheck
+
+Live `mnty_can_platform_admin()` still delegates to `mnty_can('admin',NULL,NULL,NULL)`; the latter treats active SUPER_ADMIN membership JSON with `scope=PLATFORM` and `full_control=true` as global authority. `is_platform_admin()` still trusts any active ADMIN/SUPER_ADMIN membership. Exact live policy counts: 57 policies/24 tables call legacy helper; 5 policies/3 tables call shared helper. Main RC464/RC484 replace both with registry-only checks, but are unapplied; live ledger ends `20261110150618`. Broader catalog: 149 public SECURITY DEFINER functions, 65 authenticated-executable, 1 anon-executable, 120 with public in search_path, 29 other explicit, none missing. No blanket revoke. P0 remains. No Production changes. Evidence: `docs/audits/PASS_1951_1960_LIVE_PLATFORM_ADMIN_HELPER_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — Pass 1961–1970 — live platform-facing Edge registry parity
+
+Compared live Edge bundles with main. catalog-platform-admin v23, business-register v9, business-branch-admin v5 and ai-gemini-proxy v5 still use membership metadata for platform-root authority; current main calls the registry helper. settlement-financial-atomic v4 is materially older than main's explicit tenant/business/branch authorization module. directory-listings v18 remains intentionally fail-closed. Live registry helper itself remains weak, so no Edge-only deployment. No Edge/DB changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1961_1970_LIVE_PLATFORM_EDGE_REGISTRY_PARITY_20261123.md`.
