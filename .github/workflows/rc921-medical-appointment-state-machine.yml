@@ -45,3 +45,4 @@ jobs:
           psql -h 127.0.0.1 -U postgres -d rc921_test -v ON_ERROR_STOP=1 -f supabase/tests/rc921_medical_status_fixture.sql
           psql -h 127.0.0.1 -U postgres -d rc921_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261123010000_rc921_medical_appointment_provider_state_machine.sql
           psql -h 127.0.0.1 -U postgres -d rc921_test -v ON_ERROR_STOP=1 -f supabase/tests/rc921_medical_status_integration.sql
+          bash scripts/test-rc921-medical-status-concurrency.sh
