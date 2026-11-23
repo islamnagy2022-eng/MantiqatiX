@@ -12,7 +12,7 @@ import {
   Subscriber,
 } from '../types';
 
-export const MAX_PRODUCTS_PER_BUSINESS = 0; // 0 = no fixed application-level catalogue ceiling
+export const MAX_PRODUCTS_PER_BUSINESS = 150;
 export const DEFAULT_COMMISSION_PER_ORDER = 0.01; // 0.01 ج.م
 export const OVERDUE_GRACE_PERIOD_DAYS = 5; // 5 أيام إشعار يومي قبل التجميد
 export const DEFAULT_CURRENCY = 'ج.م';
@@ -21,39 +21,17 @@ export const DEFAULT_PAYMOB_FEE_PERCENTAGE = 2.75; // 2.75%
 export const DEFAULT_PAYMOB_FEE_FIXED = 3.0; // 3.00 ج.م
 
 /**
- * Resolve a catalogue quota. A zero/absent limit means the catalogue has no
- * fixed application-level item ceiling; positive values are reserved for a
- * future server-enforced subscription entitlement.
+ * Validates if a merchant can add another product according to the 150 quota limit.
  */
-export function resolveCatalogQuota(currentCount: number, configuredLimit: number = MAX_PRODUCTS_PER_BUSINESS): {
-  isUnlimited: boolean;
-  limit: number | null;
-  remaining: number | null;
-  usagePercent: number | null;
-  canAdd: boolean;
-} {
-  const count = Math.max(0, Math.floor(Number.isFinite(currentCount) ? currentCount : 0));
-  const hasFiniteLimit = Number.isSafeInteger(configuredLimit) && configuredLimit > 0;
-  if (!hasFiniteLimit) {
-    return { isUnlimited: true, limit: null, remaining: null, usagePercent: null, canAdd: true };
-  }
-  const remaining = Math.max(0, configuredLimit - count);
-  return {
-    isUnlimited: false,
-    limit: configuredLimit,
-    remaining,
-    usagePercent: Math.min(100, Math.round((count / configuredLimit) * 100)),
-    canAdd: count < configuredLimit,
-  };
-}
-
-/** Backward-compatible helpers; no fixed cap applies unless a positive limit is supplied. */
 export function canAddProduct(currentCount: number, limit: number = MAX_PRODUCTS_PER_BUSINESS): boolean {
-  return resolveCatalogQuota(currentCount, limit).canAdd;
+  return currentCount < limit;
 }
 
+/**
+ * Calculates remaining allowed products for a business.
+ */
 export function getRemainingProductsCount(currentCount: number, limit: number = MAX_PRODUCTS_PER_BUSINESS): number {
-  return resolveCatalogQuota(currentCount, limit).remaining ?? Number.POSITIVE_INFINITY;
+  return Math.max(0, limit - currentCount);
 }
 
 /**
@@ -235,7 +213,7 @@ export function generateGmailInviteUrl(
   }
   body += `من خلال حسابك يمكنك:\n`;
   body += `1. تخصيص غلاف وشعار نشاطك التجاري (Cover & Logo).\n`;
-  body += `2. إضافة وإدارة منتجاتك وخدماتك في كتالوج مرن دون حد عددي ثابت، مع الأسعار والتصنيفات المخصصة.\n`;
+  body += `2. إضافة وإدارة حتى 150 منتج أو خدمة بأسعارك بالجنيه المصري (ج.م) وتصنيفاتك المخصصة.\n`;
   body += `3. استقبال طلبات الزبائن مباشرة في سلة مخصصة تحوّل فوراً إلى رقم واتساب الخاص بك مع دعم السداد الإلكتروني بـ Paymob.\n`;
   body += `4. الاستفادة من التصنيف الوظيفي المتخصص لنشاطك لتمكين الخصائص المتقدمة.\n\n`;
   body += `🔗 رابط الدخول المباشر لإدارة نشاطك:\n${portalUrl}\n\n`;
@@ -264,7 +242,7 @@ export function formatDirectCredentialsText(
   text += `• البريد / اسم المستخدم: ${identifier}\n`;
   text += `• كلمة المرور: ${password}\n`;
   text += `• رابط تسجيل الدخول:\n${portalUrl}\n\n`;
-  text += `يمكنك الآن الدخول وإدارة منتجاتك وخدماتك في كتالوج مرن وتخصيص الغلاف والشعار وتلقي طلبات الواتساب مباشرة.`;
+  text += `يمكنك الآن الدخول وإدارة حتى 150 منتج أو خدمة وتخصيص الغلاف والشعار وتلقي طلبات الواتساب مباشرة.`;
   return text;
 }
 
