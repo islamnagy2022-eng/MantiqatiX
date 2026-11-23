@@ -4083,3 +4083,11 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - One active SUPER_ADMIN exists and is in registry; no non-registry match. No IDs read.
 - mantiqatix-media private; mantiqatix-profile-media public; both 5 MiB image buckets. Zero objects currently in either bucket.
 - RC488–RC495 absent live; no Storage change. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1911_1920_STORAGE_ANONYMOUS_AUTH_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — Pass 1921–1930 — directory consent review
+
+- Contact consent registry absent live. Public listings: 868 published/unclaimed, 1 published/claim-pending, 87 drafts, 9 hidden. No metadata public-contact flag true.
+- Table remains backend-only; directory Edge v18 returns empty and disabled. Public catalog directory v19 matches main and contact helper requires explicit owner enable + server audit verification.
+- Ten businesses, zero contact-enabled/audit-verified profiles. No phone/address/listing identities read; no publication change.
+- Keep directory disabled until RC472/RC473, source rights, owner consent and revoke/anonymous negative tests pass. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1921_1930_DIRECTORY_CONTACT_CONSENT_RECHECK_20261123.md`.
