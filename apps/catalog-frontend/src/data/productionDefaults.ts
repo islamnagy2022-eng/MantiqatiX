@@ -370,7 +370,7 @@ export const INITIAL_ADMIN_SETTINGS: AdminSettings = {
   currency: 'ج.م',
   platformName: 'MantiqatiX',
   platformEmail: '',
-  maxAllowedProductsPerBusiness: 0,
+  maxAllowedProductsPerBusiness: 150,
   defaultCommissionPerOrder: 0,
   overdueGracePeriodDays: 5,
   defaultPaymobFeePercentage: 0,
