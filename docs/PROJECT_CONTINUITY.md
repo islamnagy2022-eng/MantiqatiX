@@ -3427,3 +3427,14 @@ Do not deploy only the Edge bundle or only RC473. First require encrypted off-si
 ## Pass 1801–1810 — Li2Lak marketplace ad hardening — 2026-11-22
 
 Hardened the existing Marketplace Home ad URL contract on PR #969. HTTPS is required; non-default ports, embedded credentials, localhost, `.localhost`, `.local`, and IPv4/IPv6 literal hosts are rejected. Invalid creative URLs discard the ad; invalid target URLs leave a non-clickable creative. Fixed trailing-dot hostname normalization and added regression cases. Commits: `6b3386b`, `f2411ee`, `9316c5d`, `820778a`. Evidence: `docs/audits/PASS_1801_1810_LI2LAK_MARKETPLACE_AD_HARDENING_20261122.md`. Exact-head CI was still queued at last check; no pass claimed. No Production change. Continue next with Marketplace public-offer permission/availability regression coverage and then owner-scoped media design; do not start general business reviews or video deployment without separate provenance/moderation and storage contracts. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-11-23 — Pass 1833–1842 — current-main and live Production recheck
+
+Current main head observed: `3c24d840f279e0e2f5c0b66302a2ee12ddedab9c`. The Marketing navbar action now resolves the official `MNTY-MARKETING` activity by canonical code and persisted business UUID; a browser E2E asserts that the correct storefront and catalog open. Exact-head CI and deployed-origin verification were not evidenced by the available commit status/workflow lookup and remain open.
+
+Fresh read-only live Supabase inventory: PostgreSQL 17.6.1.155, 310 migration rows through `20261110150618`, 42 active Edge Functions. Security Advisor: 9 RLS/no-policy INFO, 65 authenticated SECURITY DEFINER WARN, 1 anonymous SECURITY DEFINER WARN. Performance Advisor: 28 multiple-permissive-policy WARN. Live `directory-listings` v18 remains intentionally fail-closed (empty GET with `directoryDisabled=true`, POST 503); preserve it.
+
+P0 remains: membership-derived `is_platform_admin()`, membership-delegating `mnty_can_platform_admin()`, 57 referencing policy expressions across 24 tables, and `private.platform_admins` FORCE RLS false. `marketing_provider_profiles` still has anon SELECT plus a public-active SELECT policy, even though RLS and FORCE RLS are enabled. Contact-consent and migration-release registry tables are absent. No provider profile values or other application rows were selected.
+
+Next: operator-owned encrypted DB+Storage backup, Vault/key recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO; then exact migration reconciliation and coordinated registry/consent/Edge release. Keep national directory disabled until consent, source-rights, Edge parity and deployed-origin tests pass. No Production mutation or deployment occurred. **FULL PLATFORM BLOCKED / NOT CERTIFIED.** Evidence: `docs/audits/PASS_1833_1842_LIVE_PRODUCTION_AND_MAINLINE_RECHECK_20261123.md`.
