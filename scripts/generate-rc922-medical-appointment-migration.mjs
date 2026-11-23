@@ -34,12 +34,12 @@ if (!generatedSql.includes("mp.owner_user_id = v_uid")
   throw new Error("Generated RC922 must preserve owner/profile/tenant checks, row locking and empty search_path.");
 }
 
-if (/or\\s+um\\.business_id\\s+is\\s+null\\s*(?:\\n|$)/i.test(generatedSql)) {
+if (/or\s+um\.business_id\s+is\s+null\s*(?:\n|$)/i.test(generatedSql)) {
   throw new Error("Generated RC922 contains an unscoped NULL-business membership exception.");
 }
 
 const generatedFiles = fs.readdirSync(migrationDir)
-  .filter(name => /^\\d{14}_rc922_medical_appointment_tenant_wide_provider_scope\\.sql$/.test(name));
+  .filter(name => /^\d{14}_rc922_medical_appointment_tenant_wide_provider_scope\.sql$/.test(name));
 
 if (generatedFiles.length !== 1) {
   throw new Error(`Expected exactly one CLI-generated RC922 filename, found ${generatedFiles.length}. Run supabase migration new first; do not hand-name a migration file.`);
