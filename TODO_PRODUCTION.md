@@ -3747,3 +3747,8 @@ Evidence: `docs/audits/PASS_1490_1499_ANONYMOUS_AUTH_AND_PLATFORM_ROOT_PARITY_20
 - [x] 1515 — PR #948 had 16 successful checks, 2 intentionally skipped deploy/public-only checks, 0 failures, and 12 queued checks at the last inspection. PR #946 exact head had 29 queued checks and 1 skipped; no failure reported at that inspection. Do not merge until required checks finish.
 
 **Release status remains BLOCKED / NOT CERTIFIED.** These are CI results on source branches; no Production release occurred.
+
+
+## Cross-register checkpoint — 2026-11-23
+
+This detailed catalog TODO is an older execution supplement and its numbered entries stop at Pass 1515. The current global state and newer release gates are maintained in `docs/MASTER_PRODUCTION_TODO.md`, `docs/PROJECT_CONTINUITY.md` and `docs/SESSION_LOG.md`. Do not interpret the old numbered tail as the current project checkpoint. Latest live recheck: `docs/audits/PASS_1833_1842_LIVE_PRODUCTION_AND_MAINLINE_RECHECK_20261123.md`. Full Production remains BLOCKED / NOT CERTIFIED.
