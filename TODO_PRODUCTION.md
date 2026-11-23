@@ -1,3 +1,33 @@
+### Implementation checkpoint — 2026-11-23 — PR #994 — exact-head CI pending
+
+**Branch:** `feat/web-capabilities-launch-readiness-20261123`  
+**Current PR:** https://github.com/islamnagy2022-eng/MantiqatiX/pull/994
+
+Implemented in source (not yet production-verified):
+- Route-aware title, description, canonical, Open Graph and Twitter metadata for the public root, verified storefronts, and Activity → Specialty query routes.
+- noindex/nofollow for account/admin/dashboard routes and for unverified, frozen, unpublished or non-public storefronts.
+- First-party Organization JSON-LD and a minimal sitemap containing only the current canonical public root. Do not add dynamic records until crawlable rendering and publication/consent eligibility are verified.
+- Removed the hard-coded 150-item frontend catalogue ceiling. Default catalogue quota is now unlimited by item count; finite infrastructure/storage capacity remains. Positive quota representation is retained only for a future server-enforced entitlement.
+- Added an authenticated AI technical-support panel using the existing Gemini Edge proxy, a dedicated 1,200-character support action and safe Arabic support prompt. It does not persist chat as a ticket, perform account/financial actions, or provide human escalation.
+- Added focused SEO, quota and AI-support safety tests to Primary Catalog Frontend Validation.
+
+Existing source findings:
+- Current canonical frontend already has a responsive viewport setting and merchant/platform dashboards.
+- Owner profile and storefront code contain WhatsApp, telephone, Facebook, Instagram and TikTok fields/actions. Public contact disclosure remains consent-gated; no consent bypass is permitted.
+- Existing activity/storefront links and QR generation are present.
+- Repository tree has no canonical blog/article frontend or established article schema.
+
+Not yet complete / must remain open:
+- SSR/prerender for dynamic public pages; SPA metadata alone does not guarantee full indexing.
+- Domain-root robots.txt, complete approved-record sitemap, Search Console verification and indexing inspection.
+- GA4/GTM with owner-provided IDs and approved consent copy.
+- Deployed-origin device/accessibility/performance verification.
+- Server-side AI rate limiting, support ticket persistence, staff escalation and official support-channel configuration.
+- Blog/CMS schema, authorization, moderation, publishing and SEO.
+- Exact-head CI, post-merge deployment, deployed-origin smoke tests and final production release approval.
+
+**Release boundary:** source-only PR. No Production database/migration/Auth/RLS/GRANT/Storage/Edge deployment/payment/customer-data changes. Production remains BLOCKED / NOT CERTIFIED.
+
 ## 2026-11-23 — MX-WEB-CAP-20261123-01 — Website capabilities and launch-readiness
 
 **Status: IN PROGRESS.** User requested that the following capabilities be added to the permanent TODO and implemented without unnecessary session-by-session approval. Work must target the current canonical website in `apps/catalog-frontend/**`; the uploaded `bizcatalog-manager (11).zip` is a historical R7 reference only and must not replace current main.
