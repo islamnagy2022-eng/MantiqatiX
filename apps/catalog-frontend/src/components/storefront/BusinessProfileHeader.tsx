@@ -40,10 +40,11 @@ export const BusinessProfileHeader: React.FC = () => {
   // Keep owner-selected covers first; every new or legacy catalog gets category-aware local artwork otherwise.
   const slides = React.useMemo(() => {
     if (!currentBusiness) return [BUSINESS_PLACEHOLDER];
+    // The current profile cover is authoritative; older gallery images are secondary slides only.
+    if (isPlatformBrandProfile) return [currentBusiness.coverUrl || defaultCover];
     const merchantCovers = (currentBusiness.coverImages || []).filter((url) => Boolean(url && url.trim()));
     if (merchantCovers.length > 0) return merchantCovers.slice(0, 2);
-    // The official platform profile must use first-party brand media, not expiring social-CDN URLs stored in legacy profile metadata.
-    return [isPlatformBrandProfile ? defaultCover : currentBusiness.coverUrl || defaultCover];
+    return [currentBusiness.coverUrl || defaultCover];
   }, [currentBusiness, defaultCover, isPlatformBrandProfile]);
 
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -214,7 +215,7 @@ export const BusinessProfileHeader: React.FC = () => {
               {/* Business Logo */}
               <div className="relative -mt-16 sm:-mt-20 md:-mt-24 w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-3xl bg-white p-1.5 shadow-2xl ring-4 ring-white flex-shrink-0 overflow-hidden z-20">
                 <img
-                  src={isPlatformBrandProfile ? defaultLogo : currentBusiness.logoUrl || defaultLogo}
+                  src={currentBusiness.logoUrl || defaultLogo}
                   alt={`شعار ${currentBusiness.name}`}
                   className={`w-full h-full object-cover rounded-2xl bg-slate-100 ${
                     isFrozen ? 'grayscale opacity-80' : ''
