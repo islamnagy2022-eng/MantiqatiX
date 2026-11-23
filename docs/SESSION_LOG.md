@@ -4049,3 +4049,11 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Live SMM gateway v13 hard-coded deferred gate returns 503 before auth; no SMM operations invoked.
 - Current-main RC487 removes bootstrap and sets backend-only read ACL; unapplied. Keep SMM deferred until reconciled release chain, RC456/RC487 and finance/security tests pass.
 - No Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1871_1880_SMM_AUTH_TRIGGER_AND_DEFERRED_SERVICE_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — Pass 1881–1890 — catalog-admin Edge parity
+
+- Live catalog-admin v20 (verify_jwt=false) manually validates Bearer Auth and rejects anonymous users, but platform scope is derived from legacy SUPER_ADMIN membership metadata.
+- Current main source calls `mnty_can_platform_admin()`; deployed v20 is behind main. Aggregate-only check: one active membership matches v20 predicate and is in private registry; zero current non-registry matches. No IDs selected.
+- Live helper still delegates to broad null-scope `mnty_can`; deploying Edge alone before database helper migrations could widen access. Coordinate migration chain and Edge release.
+- No function invocation, deployment or Production mutation. P0 BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1881_1890_CATALOG_ADMIN_EDGE_REGISTRY_PARITY_20261123.md`.
