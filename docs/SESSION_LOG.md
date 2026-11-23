@@ -4091,3 +4091,12 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Table remains backend-only; directory Edge v18 returns empty and disabled. Public catalog directory v19 matches main and contact helper requires explicit owner enable + server audit verification.
 - Ten businesses, zero contact-enabled/audit-verified profiles. No phone/address/listing identities read; no publication change.
 - Keep directory disabled until RC472/RC473, source rights, owner consent and revoke/anonymous negative tests pass. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1921_1930_DIRECTORY_CONTACT_CONSENT_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — Pass 1931–1940 — migration/finance recheck
+
+- Live ledger 310 rows, latest `20261110150618`; required chain 76 unique IDs; 0/76 exact IDs present.
+- Do not blindly replay; reconcile statement bodies, aliases, forward repairs and later migrations against live schema.
+- Nine core order/payment/settlement/journal tables all contain zero rows. No sandbox Paymob or webhook E2E; empty tables do not prove readiness.
+- Disposable replay is schema-only, not actual backup restore or RPO/RTO evidence.
+- No Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1931_1940_EXACT_MIGRATION_AND_FINANCE_RECHECK_20261123.md`.
