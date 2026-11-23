@@ -75,6 +75,11 @@ export function sanitizePublicDirectoryListing(value, contactScopes = new Set())
   const publicRow = {};
   for (const key of PUBLIC_LISTING_KEYS) {
     if (key === "metadata") continue;
+    if (key === "source_url") {
+      const safeSourceUrl = sanitizePublicHttpsUrl(value[key]);
+      if (safeSourceUrl) publicRow[key] = safeSourceUrl;
+      continue;
+    }
     if (key === "phone" && !contactScopes.has("PHONE")) continue;
     if (key === "secondary_phone" && !contactScopes.has("SECONDARY_PHONE")) continue;
     if (key === "address" && !contactScopes.has("ADDRESS")) continue;

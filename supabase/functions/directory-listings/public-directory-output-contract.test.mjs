@@ -6,6 +6,7 @@ const sample = {
   id: "listing-1",
   slug: "clinic-1",
   display_name: "Clinic One",
+  source_url: "https://source.example.test/listing/1",
   listing_type: "clinic",
   specialty: "Cardiology",
   phone: "+20 100 111 2222",
@@ -114,4 +115,20 @@ test("owner controls fail closed when the consent registry is unavailable withou
   const visitorWithConsent = resolveDirectoryOwnerAccess(false, true, new Set(["PHONE"]));
   assert.equal(visitorWithConsent.canEdit, false);
   assert.deepEqual([...visitorWithConsent.contactScopes], ["PHONE"]);
+});
+
+test("public source URLs require HTTPS and reject credentials, ports, and unsafe schemes", () => {
+  const accepted = sanitizePublicDirectoryListing(sample);
+  assert.equal(accepted.source_url, "https://source.example.test/listing/1");
+
+  for (const sourceUrl of [
+    "javascript:alert(1)",
+    "http://source.example.test/listing/1",
+    "https://user:pass@source.example.test/listing/1",
+    "https://source.example.test:8443/listing/1",
+    "not a URL",
+  ]) {
+    const rejected = sanitizePublicDirectoryListing({ ...sample, source_url: sourceUrl });
+    assert.equal("source_url" in rejected, false, `Unsafe source URL must be removed: ${sourceUrl}`);
+  }
 });
