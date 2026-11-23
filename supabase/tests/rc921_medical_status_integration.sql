@@ -76,7 +76,7 @@ begin
   begin
     perform public.update_medical_appointment_status_backend(provider_a,'RC921-TERMINAL','CANCELLED');
   exception when others then
-    if sqlerrm = 'ASSIGNED_PROVIDER_REQUIRED' or sqlerrm = 'ACTIVE_BUSINESS_MEMBERSHIP_REQUIRED' then rejected := true; else raise; end if;
+    if sqlerrm = 'ASSIGNED_PROVIDER_REQUIRED' or sqlerrm = 'ACTIVE_BUSINESS_MEMBERSHIP_REQUIRED' or sqlerrm = 'INVALID_MEDICAL_STATUS_TRANSITION' then rejected := true; else raise; end if;
   end;
   if not rejected then raise exception 'provider changed terminal appointment'; end if;
 end;
