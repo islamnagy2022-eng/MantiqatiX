@@ -45,7 +45,7 @@ export const SupportAssistant: React.FC = () => {
     try {
       const { data, error: invokeError } = await supabase.functions.invoke('ai-gemini-proxy', {
         body: {
-          action: 'assistant',
+          action: 'technical_support',
           query: prompt,
           userRegion: 'Egypt',
           currentModule: 'technical_support',
