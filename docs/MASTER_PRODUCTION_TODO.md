@@ -5064,3 +5064,25 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - **Production:** Website V1 deployed; full platform **BLOCKED / NOT CERTIFIED**. No Production DDL/DML, migration, RLS/GRANT, Auth, Storage, Edge, payment, wallet, settlement or customer-data mutation in this pass.
 - Evidence: `docs/audits/PASS_1832_WEBSITE_V1_DEPLOYMENT_20261122.md`, `docs/release/WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md`, Pages run 45076054135, Primary Catalog run 45076054161, replay run 45076054131.
 
+
+
+### Pass 1833–1842 — live Production and current-main recheck — 2026-11-23
+- [x] 1833 — Confirmed current main head `3c24d840f279e0e2f5c0b66302a2ee12ddedab9c`; the marketing navbar action now resolves the official activity by canonical code `MNTY-MARKETING`, uses its persisted UUID, and fails closed if unavailable.
+- [x] 1834 — Confirmed browser E2E source asserts the official MantiqatiX storefront and catalog render for that exact persisted UUID.
+- [x] 1835 — Fresh live Supabase inventory: PostgreSQL 17.6.1.155; 310 migrations through `20261110150618`; 42 active Edge Functions.
+- [x] 1836 — Retrieved live `directory-listings` v18 source (SHA-256 `bb65d74325f8bdf08f060f7ae2517bb30901630635d1de4f35523d7cef6afe48`); GET remains empty with `directoryDisabled=true`, POST remains 503. Preserve fail-closed behavior.
+- [x] 1837 — Fresh Security Advisor: 9 RLS/no-policy INFO, 65 authenticated-callable SECURITY DEFINER WARN, 1 anon-callable SECURITY DEFINER WARN.
+- [x] 1838 — Fresh Performance Advisor: 28 multiple-permissive-policy WARN. Findings require individual review; no blanket changes.
+- [x] 1839 — Confirmed live `is_platform_admin()` remains membership-derived and `mnty_can_platform_admin()` delegates to tenant membership helper; 57 referencing policy expressions across 24 tables.
+- [x] 1840 — Confirmed `private.platform_admins` has RLS enabled but FORCE RLS false.
+- [x] 1841 — Confirmed `marketing_provider_profiles` still has effective anon SELECT and an anon/public active-profile SELECT policy despite RLS+FORCE RLS. No profile values were read.
+- [x] 1842 — Confirmed live contact-consent registry and migration-release registry tables are absent.
+- [ ] Complete encrypted off-site DB+Storage backup, Vault recovery and independent PostgreSQL 17 restore/rollback with measured RPO/RTO.
+- [ ] Reconcile the exact migration release chain and all required object/ACL dependencies in disposable PostgreSQL 17.
+- [ ] Coordinate registry-backed platform-admin migration repair with all 57 policy consumers and dependent RPCs.
+- [ ] Release RC479 anonymous Auth-session provider-profile read guard with owner CRUD and confirmed-user regression tests.
+- [ ] Release RC472/RC473 consent schema, owner audit writer and compatible directory Edge bundle as one coordinated release; keep public directory disabled.
+- [ ] Complete exact-head CI and deployed-origin verification for the marketing button route; current connector status lookup returned no CI evidence, so this is not marked PASS.
+- [ ] Reconcile critical Edge source/deployed parity and verify monthly checkout only after signed Paymob sandbox E2E.
+- **Safety:** read-only Production checks only. No Production data/schema/Auth/RLS/GRANT/Storage/Edge/payment/wallet/settlement mutation or public directory publication. **FULL PLATFORM BLOCKED / NOT CERTIFIED.**
+- Evidence: `docs/audits/PASS_1833_1842_LIVE_PRODUCTION_AND_MAINLINE_RECHECK_20261123.md`.
