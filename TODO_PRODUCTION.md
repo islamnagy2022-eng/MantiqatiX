@@ -1,3 +1,33 @@
+# BUSINESS IDENTITY & LAUNCH SCOPE — USER-APPROVED — 2026-11-23
+
+**Tracking issue:** [#999 — MantiqatiX Digital Solutions legal identity and deferred compliance integrations](https://github.com/islamnagy2022-eng/MantiqatiX/issues/999)
+
+## Approved direction (planning approval; not yet legally registered)
+- Proposed legal/business name: **MantiqatiX Digital Solutions**.
+- Intended legal form: **مؤسسة فردية (sole proprietorship)**.
+- Launch activities to validate for registration: **التسويق الإلكتروني، الدعاية والإعلان، إدارة الحملات الإعلانية**.
+- Intended business role: own and operate the MantiqatiX platform and provide digital marketing/advertising services to external customers.
+- **Public/customer-facing product brand remains MantiqatiX**. The proposed legal entity name is used only in legal/business identity contexts; do not rename the platform's public brand.
+- Treat the entity name as proposed/approved by the user for planning only. Do not state that the business is registered, licensed, or incorporated until documentary evidence is supplied.
+
+## Deferred activities and integrations
+- Client-facing website design/development, software development, and mobile-app development: **DEFERRED**; add later only on explicit instruction and after activity/licensing review.
+- Government tenders/contracts: **DEFERRED**.
+- Platform integration with commercial registry, tax/accounting systems, or legal/compliance notification services: **DEFERRED — NOT REQUIRED FOR LAUNCH**.
+- Existing operational product notifications (subscriptions, ads, orders/messages, and admin alerts) remain enabled and independent; never make them depend on future legal/accounting integrations.
+- No legal/accounting integration or compliance-notification feature is to be implemented as part of launch unless explicitly requested later.
+
+## Pre-registration checks (TODO)
+- [ ] Verify availability/acceptance of the proposed commercial name and its official Arabic/English rendering.
+- [ ] Confirm the exact commercial-register activity descriptions/codes for digital marketing, advertising, and campaign management.
+- [ ] Obtain an authoritative ITIDA determination on whether operating the platform itself (separate from selling development services) requires an IT activity licence.
+- [ ] Confirm eligibility and application requirements for the simplified tax regime under Law 6/2025; do not assume eligibility.
+- [ ] Confirm VAT, e-invoicing/receipt, and other tax obligations with a qualified Egyptian accountant based on the actual operating model and turnover.
+
+**Status:** DECIDED FOR PLANNING / REGISTRATION, ACTIVITY CLASSIFICATION AND LICENSING NOT YET VERIFIED.
+
+---
+
 ## Latest live Production security recheck — 2026-11-23 — PASS 1771–1780
 
 **Audit:** `docs/audits/PASS_1771_1780_LIVE_SECURITY_RECHECK_20261123.md`  
