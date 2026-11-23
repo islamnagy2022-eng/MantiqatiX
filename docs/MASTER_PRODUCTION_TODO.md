@@ -5277,3 +5277,19 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Reconcile DB migrations, test registry/tenant/anonymous cases, then deploy matching Edge bundles together.
 - No Edge/DB/financial/storage/directory mutation. P0 BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1961_1970_LIVE_PLATFORM_EDGE_REGISTRY_PARITY_20261123.md`.
+
+
+### Pass 1971–1980 — RC464/RC471/RC484 live preflight assessment — 2026-11-23
+- [x] 1971 — Private platform registry exists, postgres-owned, RLS on/FORCE off, one row; anon/auth CRUD false; service_role SELECT true.
+- [x] 1972 — Deny-all client policy exists; no client table grants.
+- [x] 1973 — Both helper owners are postgres/BYPASSRLS; current mnty helper definer, is_platform_admin invoker.
+- [x] 1974 — RC464 four shared-helper caller preflight passes 4/4.
+- [x] 1975 — RC464 three required helper-based RLS policy preflights pass.
+- [x] 1976 — RC464 registry RLS/client ACL predicates pass; migration will enable FORCE RLS.
+- [x] 1977 — RC471 all 33 expected columns and settlement-journal dependency present.
+- [x] 1978 — RC471 four helper callers present.
+- [x] 1979 — RC484 UUID, client ACL, owner/BYPASSRLS and 57-policy/24-table preflight predicates pass.
+- [x] 1980 — Selected preflight checks are not full-chain/restore/adversarial approval; no migration applied.
+- [ ] Reconcile 310 live migration statements vs 76 required IDs, perform independent restore and full ordered PG17 replay before any release.
+- No Production changes. Full Production BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_1971_1980_RC464_RC471_RC484_LIVE_PREFLIGHT_20261123.md`.
