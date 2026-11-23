@@ -278,7 +278,7 @@ assert.match(reviewPanel, /currentBusiness\?\.isVerified[\s\S]*?operationalStatu
   "public review panel must be restricted to active verified businesses");
 assert.match(reviewPanel, /verifiedInteraction === true/,
   "public storefront must reject review rows without verified-order provenance");
-assert.match(cartDrawer, /functions\\.invoke\\('order-create'/,
+assert.match(cartDrawer, /functions\.invoke\('order-create'/,
   "authenticated catalog checkout must persist orders through the existing order-create Edge Function");
 assert.match(cartDrawer, /authSession\\.isAuthenticated[\\s\\S]*?catalogItemId: product\\.id[\\s\\S]*?clientIdempotencyKey/,
   "tracked checkout must use the authenticated session, canonical catalog item IDs and an idempotency key");
