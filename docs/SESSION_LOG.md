@@ -3973,3 +3973,15 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - **No Production DDL/DML, migrations, RLS/GRANT, Auth, Storage, Edge deployments, payment, wallet, settlement or customer-data writes.** GitHub Pages static deployment only. Full platform remains **BLOCKED / NOT CERTIFIED**.
 - Next: encrypted backup/restore and RPO/RTO; reconcile 76 exact migrations; coordinated RC472/RC473 consent bundle; verify monthly checkout; then gallery and post-launch Li2Lak/Paymob/finance work.
 
+
+
+## 2026-11-23 — PASS 1771–1780 — Live Production security recheck
+
+- Read the uploaded `الامر-التقني.txt` as the authoritative execution directive and confirmed its repository counterpart `docs/MASTER_SOURCE_OF_TRUTH.md` is the governing protocol.
+- Read-only Supabase recheck: organization Free, PostgreSQL 17.6.1.155, 310 live migrations through `20261110150618`, 42 active Edge Functions.
+- Advisor snapshot: 9 RLS-enabled/no-policy INFO, 65 authenticated-callable SECURITY DEFINER WARN, 1 anon-callable SECURITY DEFINER WARN, 90 anonymous-Auth policy warnings, leaked-password protection disabled.
+- Confirmed live P0 #867: `public.is_platform_admin()` still trusts ACTIVE tenant ADMIN/SUPER_ADMIN membership; 57 RLS policies across 24 tables reference the helper. Registry-only RC464+ source repair is not live.
+- Confirmed live P0 #928: `public.marketing_provider_profiles` has 19 columns, direct anon SELECT, permissive public-active provider policy, and no restrictive `is_anonymous` guard. RC479 source repairs are not live.
+- Updated issues #867 and #928 with current evidence and created `docs/audits/PASS_1771_1780_LIVE_SECURITY_RECHECK_20261123.md` on `audit/live-security-recheck-pass-1771-1780-20261123`.
+- No Production DDL/DML, migrations, Auth, RLS, GRANT/REVOKE, Storage, Edge, payments, wallets, settlement or customer-data changes.
+- Production remains BLOCKED / NOT CERTIFIED pending encrypted off-site backup/Storage export, Vault recovery, independent PostgreSQL 17 restore/rollback, measured RPO/RTO and coordinated exact migration/Edge release.
