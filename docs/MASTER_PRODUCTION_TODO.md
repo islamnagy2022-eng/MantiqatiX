@@ -7,7 +7,7 @@ Implemented in source (not yet production-verified):
 - Route-aware title, description, canonical, Open Graph and Twitter metadata for the public root, verified storefronts, and Activity → Specialty query routes.
 - noindex/nofollow for account/admin/dashboard routes and for unverified, frozen, unpublished or non-public storefronts.
 - First-party Organization JSON-LD and a minimal sitemap containing only the current canonical public root. Do not add dynamic records until crawlable rendering and publication/consent eligibility are verified.
-- Removed the hard-coded 150-item frontend catalogue ceiling. Default catalogue quota is now unlimited by item count; finite infrastructure/storage capacity remains. Positive quota representation is retained only for a future server-enforced entitlement.
+- Catalogue entitlement preserved: the current 150-item default remains unchanged. No quota increase or removal is authorized until subscription entitlement and server-side enforcement are reconciled.
 - Added an authenticated AI technical-support panel using the existing Gemini Edge proxy, a dedicated 1,200-character support action and safe Arabic support prompt. It does not persist chat as a ticket, perform account/financial actions, or provide human escalation.
 - Added focused SEO, quota and AI-support safety tests to Primary Catalog Frontend Validation.
 
