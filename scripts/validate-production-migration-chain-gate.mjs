@@ -82,9 +82,10 @@ const required = [
   "20261120280000_rc493_private_crm_notification_read_guards.sql",
   "20261120290000_rc494_settlement_financial_atomic_registry_scope_hardening.sql",
   "20261121020000_rc495_storage_filename_regex_forward_repair.sql",
-  "20261121030000_rc496_mantigo_bid_accept_state_invariant.sql"
+  "20261121030000_rc496_mantigo_bid_accept_state_invariant.sql",
+  "20261123010000_rc921_medical_appointment_provider_state_machine.sql"
 ];
-assert.equal(required.length, 76, "release gate must track all distinct required post-RC424 migration effects, including RC464B and RC476–RC496");
+assert.equal(required.length, 77, "release gate must track all distinct required post-RC424 migration effects, including RC464B, RC476–RC496 and RC921");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");
@@ -111,7 +112,7 @@ assert.match(rc451, /alter function public\.get_mnty_targeted_advertisements\([\
 assert.doesNotMatch(rc451, /\b(grant|revoke)\b/i, "RC451 must preserve the intentional public ad-discovery EXECUTE boundary");
 
 assert.match(liveContract, /REQUIRED_RELEASE_MIGRATION_VERSIONS/, "the live ledger contract must enumerate all required migration versions");
-assert.equal(REQUIRED_CORE_OBJECTS.length, 31, "release gate must track granular payment, finance, ERP, and MantiGo object contracts");
+assert.equal(REQUIRED_CORE_OBJECTS.length, 32, "release gate must track granular payment, finance, ERP, MantiGo and medical status contracts");
 assert.equal(REQUIRED_PAYMENT_CONTRACT_OBJECTS.length, 14, "release gate must pin exact RC435/RC439 payment and subscription RPC/column contracts");
 assert.ok(REQUIRED_PAYMENT_CONTRACT_OBJECTS.includes("public.process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb)"));
 assert.ok(REQUIRED_PAYMENT_CONTRACT_OBJECTS.includes("public.process_verified_subscription_payment_failure(text,text,uuid,text,numeric,text,text,boolean,jsonb)"));
@@ -132,6 +133,7 @@ assert.match(liveContract, /REQUIRED_EDGE_FUNCTIONS/, "the live parity contract 
 
 
 const rc496Validator = fs.readFileSync("scripts/validate-rc496-mantigo-bid-accept-state-invariant.mjs", "utf8");
+const rc921Validator = fs.readFileSync("scripts/validate-rc921-medical-appointment-state-machine.mjs", "utf8");
 const forwardReplay = fs.readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
 const rc486Validator = fs.readFileSync("scripts/validate-rc486-catalog-price-version-serialization.mjs", "utf8");
 const rc487Validator = fs.readFileSync("scripts/validate-rc487-smm-first-user-bootstrap-removal.mjs", "utf8");
@@ -147,6 +149,10 @@ assert.ok(rc487Validator.includes("smm_bootstrap_first_admin"), "RC487 validator
 assert.ok(forwardReplay.includes("node scripts/validate-rc488-storage-anonymous-auth-write-guard.mjs"), "forward replay must validate RC488 Storage anonymous Auth write isolation");
 assert.ok(forwardReplay.includes("node scripts/validate-rc496-mantigo-bid-accept-state-invariant.mjs"), "forward replay must validate RC496 MantiGO bid state invariant");
 assert.match(rc496Validator, /BID_NOT_OFFERED/, "RC496 validator must pin the OFFERED-only bid acceptance guard");
+assert.ok(rc921Validator.includes("20261123010000_rc921_medical_appointment_provider_state_machine.sql"), "RC921 validator must pin the medical state-machine migration");
+assert.ok(rc921Validator.includes("public.update_medical_appointment_status_backend(uuid,text,text)"), "RC921 validator must pin the exact medical RPC contract");
+assert.ok(forwardReplay.includes("node scripts/validate-rc921-medical-appointment-state-machine.mjs"), "forward replay must validate RC921 medical appointment authorization");
+assert.ok(forwardReplay.includes("scripts/test-rc921-medical-status-concurrency.sh"), "forward replay must run RC921 concurrency regression");
 assert.ok(rc488Validator.includes("storage_objects_confirmed_auth_delete"), "RC488 validator must check restrictive Storage write policies");
 const forwardReplayLines = forwardReplay.split(/\r?\n/);
 assert.ok(
