@@ -23,6 +23,7 @@ export const Navbar: React.FC = () => {
     currentView,
     setCurrentView,
     businesses,
+    directoryBusinesses,
     selectedBusinessId,
     setSelectedBusinessId,
     currentBusiness,
@@ -39,6 +40,10 @@ export const Navbar: React.FC = () => {
 
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const catalogRequestUrl = requestCatalogViaAdminWhatsApp(currentBusiness);
+  const marketingBusiness = [...directoryBusinesses, ...businesses].find((business) =>
+    String(business.businessCode || '').trim().toUpperCase() === 'MNTY-MARKETING' ||
+    (business.isOfficialShowcase === true && business.name.trim().toLowerCase() === 'mantiqatix')
+  );
 
   return (
     <header className="sticky top-0 z-40 w-full max-w-full overflow-x-clip border-b border-slate-200/80 bg-white/95 shadow-lg shadow-slate-950/[0.04] backdrop-blur-xl">
@@ -240,14 +245,18 @@ export const Navbar: React.FC = () => {
 
               <div className="shrink-0"><FloatingAppInstallButton currentBusiness={currentBusiness} /></div>
 
-              {/* Marketing Project Button */}
+              {/* Marketing always resolves the official platform business ID from Supabase-backed data. */}
               <button
+                type="button"
+                disabled={!marketingBusiness}
                 onClick={() => {
-                  setSelectedBusinessId('biz_mantiqatix_marketing');
+                  if (!marketingBusiness) return;
+                  setSelectedBusinessId(marketingBusiness.id);
                   setCurrentView('public_storefront');
                 }}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs px-3 py-1.5 rounded-xl shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition-all cursor-pointer flex-shrink-0"
-                title="فتح مشروع MantiqatiX للتسويق الإلكتروني"
+                className={`bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs px-3 py-1.5 rounded-xl shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition-all flex-shrink-0 ${marketingBusiness ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
+                title={marketingBusiness ? "فتح صفحة نشاط MantiqatiX للتسويق الإلكتروني" : "صفحة نشاط MantiqatiX غير متاحة حالياً"}
+                aria-disabled={!marketingBusiness}
               >
                 <Megaphone className="w-3.5 h-3.5 text-amber-300" />
                 <span className="hidden sm:inline">تسويق</span>
