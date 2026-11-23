@@ -4116,3 +4116,10 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - One active tenant-wide SERVICE_PROVIDER with business_id NULL owns three active provider profiles; one unique tenant-wide ADMIN/MANAGER/OWNER user has business_id NULL. RC921 exact business_id equality excludes these null-business roles.
 - Zero medical appointment rows live; future provider update workflow would be blocked unless RC922 permits tenant-wide null business membership while retaining exact tenant and profile-owner checks.
 - PR #1013 adds RC921 to release gate as version 77, CI rerun pending. No Production changes. BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_2011_2020_RC921_LIVE_PARITY_TENANT_WIDE_COMPATIBILITY_20261123.md`.
+
+
+## 2026-11-23 — RC479 forward migration release-gate correction
+
+- Added `20261120193000` RC479 anonymous Auth-session SELECT guard to the required release chain; required count 78.
+- Updated production verifier, live contract, migration-chain gate, RC494 count validator, RC479 source validator, forward replay workflow and manifest.
+- Live RC479 migrations remain unapplied. Confirmed-user base-table SELECT remains separate. No Production changes. BLOCKED / NOT CERTIFIED.
