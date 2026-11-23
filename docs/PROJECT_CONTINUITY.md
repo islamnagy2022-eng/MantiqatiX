@@ -3465,3 +3465,10 @@ Live Auth trigger `trg_smm_bootstrap_admin` remains active and calls SECURITY DE
 ## 2026-11-23 — Pass 1881–1890 — catalog-admin Edge registry parity
 
 Deployed `catalog-admin` v20 manually validates Auth but uses a legacy membership-metadata predicate for platform scope. Current main source instead calls `mnty_can_platform_admin()`. Aggregate-only check found one active v20-accepted membership, and it is present in the registry; no non-registry account currently meets that narrower predicate. However, the live helper remains broad/null-scope membership-based. Deploying the current Edge source alone before the helper migration could widen access; do not do so. Coordinate RC464/RC471/RC484/RC485 with migration reconciliation and backup/replay gates, then deploy the matching Edge bundle and test negative roles. No changes. P0 remains BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1881_1890_CATALOG_ADMIN_EDGE_REGISTRY_PARITY_20261123.md`.
+
+
+## 2026-11-23 — Pass 1891–1900 — critical Edge/payment parity
+
+Compared 13 high-impact deployed Edge entrypoints against current main. Nine match exactly (public catalog/directory, payment-webhook, MantiGO payment intent, API, order status, post-financial-journal, settlement-create, subscription-start-trial). High-risk drift remains in Paymob webhook, payment-intent, subscription-payment-intent, digital-page-payment-intent, settlement-financial-atomic, financial-journal, order-create, catalog-admin and push-dispatch; health is still static. Directory-listings v18 intentionally remains fail-closed.
+
+Live DB is missing current Paymob atomic payment/failure RPCs and subscription claim RPCs; subscription encrypted-secret columns are absent; digital-page finalizer is still four-argument; financial-journal service_role EXECUTE remains false pending RC449A→RC450. Do not deploy functions individually. No provider calls or Production writes/deployments. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1891_1900_CRITICAL_EDGE_PAYMENT_PARITY_20261123.md`.
