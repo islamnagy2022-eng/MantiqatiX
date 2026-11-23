@@ -1,3 +1,18 @@
+## Latest live Production security recheck — 2026-11-23 — PASS 1771–1780
+
+**Audit:** `docs/audits/PASS_1771_1780_LIVE_SECURITY_RECHECK_20261123.md`  
+**Branch:** `audit/live-security-recheck-pass-1771-1780-20261123`  
+**Status:** documentation evidence only; no Production changes.
+
+- Supabase organization is Free; PostgreSQL 17.6.1.155; 310 live migrations through `20261110150618`; 42 active Edge Functions.
+- Fresh Advisor: 9 RLS-enabled/no-policy INFO; 65 authenticated-callable SECURITY DEFINER WARN; 1 anon-callable SECURITY DEFINER WARN; 90 anonymous-Auth policy warnings; leaked-password protection disabled.
+- Confirmed P0 #867: live `public.is_platform_admin()` still trusts any ACTIVE tenant membership with ADMIN/SUPER_ADMIN role. 57 policies across 24 tables reference it. RC464+ registry-backed source repair is not live.
+- Confirmed P0 #928: `public.marketing_provider_profiles` has RLS/FORCE RLS, 19 columns, direct anon SELECT grant, a permissive public-active provider policy, and no restrictive anonymous-session guard. RC479 source repairs are not live.
+- RC488–RC493 source hardening remains unapplied in Production; anonymous-auth warnings require table/command analysis and disposable JWT tests, not blanket policy denial.
+- Leaked-password protection is a Free-plan dependency; current Supabase docs state this setting is Pro+.
+- No Production DDL/DML, migrations, Auth, RLS, grants, Storage, Edge, payment, wallet, settlement or customer-data mutation. Full platform remains BLOCKED / NOT CERTIFIED.
+- Issues #867 and #928 received fresh evidence comments. See audit for details and next safe release order.
+
 ## Pass 1490–1499 — RC479 anonymous Auth-session forward guard merged — 2026-11-20
 
 - PR [#938](https://github.com/islamnagy2022-eng/MantiqatiX/pull/938) merged to `main` as `436b7a5a4aa12aa979f5ea4b52b9ce9d3971a046`.
