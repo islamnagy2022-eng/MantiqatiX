@@ -347,7 +347,7 @@ export function mapBusiness(raw: any, provider: any): Business {
     ], -180, 180) : undefined,
     workingHours: String(profile.workingHours || profile.working_hours || raw.workingHours || ''),
     isVerified,
-    maxProductsLimit: 150, createdAt: String(created).slice(0, 10),
+    maxProductsLimit: 0, createdAt: String(created).slice(0, 10),
     registrationDate: String(meta.registrationDate || created).slice(0, 10),
     paymentDueDay: Number(meta.paymentDueDay || 0), paymentDueDate: String(meta.paymentDueDate || ''),
     paymentGracePeriodDays: Number(meta.paymentGracePeriodDays ?? 0),
