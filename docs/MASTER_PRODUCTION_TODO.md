@@ -5231,3 +5231,36 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Complete exact statement/effect reconciliation, independent encrypted backup/restore, RPO/RTO and rollback, then approved migration + payment E2E.
 - No Production changes. Full Production BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1931_1940_EXACT_MIGRATION_AND_FINANCE_RECHECK_20261123.md`.
+
+
+### RC921 medical appointment status-state-machine release gate — 2026-11-23
+- [x] Source fix merged in PR #1008 at `ff25bdb2359c648db47b38b7c11695f9dbe79b58`; exact PR-head PostgreSQL 17 behavioral/concurrency workflow 45144730674 PASS.
+- [x] Other exact-head checks passed: migration immutability 45144730536, migration version uniqueness 45144730782, collision guard 45144730731, backend boundary 45144730778, module validation 45144730500.
+- [x] Pages validation passed but deploy job skipped (run 45144730519); no deployment claimed.
+- [x] Added RC921 version `20261123010000` and exact RPC signature to the required Production release contract; required chain is now 77 versions.
+- [ ] Apply RC921 only as part of the fully reconciled/approved migration chain; live function remains the old implementation.
+- Production remains BLOCKED / NOT CERTIFIED.
+
+
+### Pass 2011–2020 — RC921 live parity and tenant-wide membership compatibility — 2026-11-23
+- [x] 2011 — Live status RPC remains pre-RC921; no assigned-provider owner binding.
+- [x] 2012 — Live RPC lacks forward-only state transitions; no appointment triggers exist.
+- [x] 2013 — Main RC921 adds assigned-provider binding, patient self-cancel, state matrix, empty search_path and authenticated-only EXECUTE.
+- [x] 2014 — Exact PR #1008 PG17 behavior/concurrency workflow 45144730674 PASS; immutability, version uniqueness, collision guard, backend boundary and module validation PASS.
+- [x] 2015 — Pages validate PASS; deploy skipped.
+- [x] 2016 — One active tenant-wide SERVICE_PROVIDER has business_id NULL and owns 3 active provider profiles.
+- [x] 2017 — One unique tenant-wide ADMIN/MANAGER/OWNER user has business_id NULL.
+- [x] 2018 — Zero live medical appointment rows.
+- [x] 2019 — PR #1013 adds RC921 to required release gate as version 77; still in CI/open.
+- [x] 2020 — RC921 exact business_id check rejects tenant-wide null-business provider/manager memberships; RC922 forward compatibility repair required.
+- [ ] Generate RC922 via Supabase CLI, preserve exact tenant + provider-profile ownership checks, add PG17 positive/negative tests, include in release gate.
+- No Production changes. Full Production BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_2011_2020_RC921_LIVE_PARITY_TENANT_WIDE_COMPATIBILITY_20261123.md`.
+
+
+### RC479 anonymous Auth provider-profile forward guard release gate — 2026-11-23
+- [x] Added `20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql` to required release versions and exact filename list; required chain is now 78 versions.
+- [x] Added RC479 validator assertions for the release contract and live manifest; added the validator to the forward replay workflow.
+- [ ] Both RC479 migrations remain unapplied in live Production; verify raw anon and anonymous Auth-session denial after the coordinated release.
+- [ ] Confirmed-user base-table SELECT remains a separate privacy issue requiring curated projection/owner backend work.
+- Production remains BLOCKED / NOT CERTIFIED.

@@ -4100,3 +4100,26 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Nine core order/payment/settlement/journal tables all contain zero rows. No sandbox Paymob or webhook E2E; empty tables do not prove readiness.
 - Disposable replay is schema-only, not actual backup restore or RPO/RTO evidence.
 - No Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1931_1940_EXACT_MIGRATION_AND_FINANCE_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — RC921 medical status state-machine release gate
+
+- PR #1008 merged RC921 source at `ff25bdb2359c648db47b38b7c11695f9dbe79b58`; exact-head PG17 behavior/concurrency workflow 45144730674 PASS; immutability 45144730536, uniqueness 45144730782, collision guard 45144730731, backend boundary 45144730778 and module validation 45144730500 PASS.
+- Pages validate passed; deploy skipped. No Production deployment.
+- Live status RPC remains legacy; RC921 migration unapplied.
+- Added migration version 20261123010000 and exact RPC signature to release gate; required count 77. No Production changes. BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-23 — Pass 2011–2020 — RC921 compatibility recheck
+
+- Live status RPC remains legacy; RC921 source is merged but unapplied. PR #1008 PG17 behavior/concurrency workflow 45144730674 PASS.
+- One active tenant-wide SERVICE_PROVIDER with business_id NULL owns three active provider profiles; one unique tenant-wide ADMIN/MANAGER/OWNER user has business_id NULL. RC921 exact business_id equality excludes these null-business roles.
+- Zero medical appointment rows live; future provider update workflow would be blocked unless RC922 permits tenant-wide null business membership while retaining exact tenant and profile-owner checks.
+- PR #1013 adds RC921 to release gate as version 77, CI rerun pending. No Production changes. BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_2011_2020_RC921_LIVE_PARITY_TENANT_WIDE_COMPATIBILITY_20261123.md`.
+
+
+## 2026-11-23 — RC479 forward migration release-gate correction
+
+- Added `20261120193000` RC479 anonymous Auth-session SELECT guard to the required release chain; required count 78.
+- Updated production verifier, live contract, migration-chain gate, RC494 count validator, RC479 source validator, forward replay workflow and manifest.
+- Live RC479 migrations remain unapplied. Confirmed-user base-table SELECT remains separate. No Production changes. BLOCKED / NOT CERTIFIED.

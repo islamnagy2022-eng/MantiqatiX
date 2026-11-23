@@ -37,6 +37,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261119020000", // RC482 — bind global legal admin to protected platform-admin registry
   "20261119030000", // RC483 — atomic Legal CMS create/audit and remove direct service-role INSERT
   "20261119040000", // RC484 — registry-backed global is_platform_admin for 57 RLS policies
+  "20261120193000", // RC479 forward repair — deny anonymous Auth-session provider-profile SELECT
   "20261120200000", // RC485 — bind seven catalog RPC global-root paths to the platform registry
   "20261120210000", // RC486 — serialize item/branch price versions and enforce uniqueness
   "20261120220000", // RC487 — remove public first-Auth-user SMM admin bootstrap
@@ -49,6 +50,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261120290000", // RC494 — registry-backed platform settlement and tenant/business scope
   "20261121020000", // RC495 — repair Storage filename policies and use canonical platform-root registry
   "20261121030000", // RC496 — require OFFERED MantiGO bids and serialize per-ride acceptance
+  "20261123010000", // RC921 — bind medical status changes to assigned provider and enforce forward-only transitions
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
@@ -96,6 +98,7 @@ export const REQUIRED_CORE_OBJECTS = [
   "public.expire_stale_mantigo_rides_backend",
   "private.platform_admins",
   "public.is_platform_admin()",
+  "public.update_medical_appointment_status_backend(uuid,text,text)",
 ];
 
 // Require exact runtime function signatures and persisted Paymob/checkout

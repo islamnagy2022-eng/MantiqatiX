@@ -84,6 +84,7 @@ const requiredReleaseMigrations=[
   "20261119020000_rc482_legal_platform_admin_registry_guard.sql",
   "20261119030000_rc483_atomic_legal_cms_create_audit.sql",
   "20261119040000_rc484_registry_backed_is_platform_admin.sql",
+  "20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql",
   "20261120200000_rc485_catalog_rpc_registry_root.sql",
   "20261120210000_rc486_catalog_price_version_serialization.sql",
   "20261120220000_rc487_remove_smm_first_user_admin_bootstrap.sql",
@@ -95,7 +96,8 @@ const requiredReleaseMigrations=[
   "20261120280000_rc493_private_crm_notification_read_guards.sql",
   "20261120290000_rc494_settlement_financial_atomic_registry_scope_hardening.sql",
   "20261121020000_rc495_storage_filename_regex_forward_repair.sql",
-  "20261121030000_rc496_mantigo_bid_accept_state_invariant.sql"
+  "20261121030000_rc496_mantigo_bid_accept_state_invariant.sql",
+  "20261123010000_rc921_medical_appointment_provider_state_machine.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
