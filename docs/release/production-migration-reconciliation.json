@@ -118,11 +118,11 @@
   },
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
-    "checked_at": "2026-11-21",
-    "method": "Read-only Production migration-ledger inventory retained from 2026-11-21 and compared against the exact 76-version release contract carried by PR #961. No Production migration was applied.",
+    "checked_at": "2026-11-23",
+    "method": "Read-only live migration ledger inventory refreshed 2026-11-23; compared against 77 exact required source migration versions. Exact identifiers absent are not proof every effect is absent; reconcile renamed predecessors and physical effects separately.",
     "live_ledger_count": 310,
     "latest_live_version": "20261110150618",
-    "expected_migration_versions": 76,
+    "expected_migration_versions": 77,
     "found_in_live_ledger": 0,
     "required_versions": [
       "20261009120000",
@@ -200,7 +200,8 @@
       "20261120280000",
       "20261120290000",
       "20261121020000",
-      "20261121030000"
+      "20261121030000",
+      "20261123010000"
     ],
     "missing_versions": [
       "20261009120000",
@@ -278,7 +279,8 @@
       "20261120280000",
       "20261120290000",
       "20261121020000",
-      "20261121030000"
+      "20261121030000",
+      "20261123010000"
     ],
     "recorded_required_versions": [],
     "interpretation": "None of the 76 exact required source-version identifiers are recorded in the current live ledger. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
@@ -5603,6 +5605,32 @@
       "Storage RC488–RC495 and platform registry guard migrations are not applied."
     ],
     "backup_restore": "NOT VERIFIED — no actual encrypted Production database/Storage backup, off-site retrieval, Vault recovery, independent PostgreSQL 17 restore, measured RPO/RTO or rollback rehearsal.",
-    "production_mutations": "NONE — this recheck performed read-only SQL/catalog/Edge source inspection only."
+    "production_mutations": "NONE — this recheck performed read-only SQL/catalog/Edge source inspection only.",
+    "rc921_medical_appointment_status_state_machine": {
+      "source_migration": "20261123010000_rc921_medical_appointment_provider_state_machine.sql",
+      "source_main": true,
+      "merged_pr": 1008,
+      "merge_commit": "ff25bdb2359c648db47b38b7c11695f9dbe79b58",
+      "exact_head": "f048a6d4b77990af561d09ea30114f7782007b71",
+      "ci_runs": {
+        "rc921_postgres17_behavior_concurrency": 45144730674,
+        "migration_history_immutability": 45144730536,
+        "migration_version_uniqueness": 45144730782,
+        "open_pr_migration_collision_guard": 45144730731,
+        "backend_module_boundary": 45144730778,
+        "module_professionalization": 45144730500
+      },
+      "ci_status": "PASS",
+      "pages_workflow": {
+        "run": 45144730519,
+        "validate": "success",
+        "public_only": "skipped",
+        "deploy": "skipped"
+      },
+      "live_function": "legacy implementation remains; no assigned-provider binding or forward-only transition matrix",
+      "live_migration_applied": false,
+      "required_release_gate_added_in_this_branch": true,
+      "production_mutations": "NONE"
+    }
   }
 }
