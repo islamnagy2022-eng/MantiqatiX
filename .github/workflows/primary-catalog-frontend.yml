@@ -137,6 +137,9 @@ jobs:
       - name: Test unlimited catalogue quota behavior
         working-directory: apps/catalog-frontend
         run: npx tsx tests/catalog-quota.test.ts
+      - name: Test AI technical support client safety contract
+        working-directory: apps/catalog-frontend
+        run: npx tsx tests/ai-support-assistant.test.ts
       - name: Test public catalog quote-only visibility contract
         working-directory: apps/catalog-frontend
         run: npx tsx tests/public-catalog-pricing.test.ts
