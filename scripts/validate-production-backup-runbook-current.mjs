@@ -35,7 +35,7 @@ const backlogRequirements = [
   "20261123221950",
 ];
 for (const required of backlogRequirements) {
-  assert.ok(backlog.includes(required), `Release backlog is missing current 78-version gate text: ${required}`);
+  assert.ok(backlog.includes(required), `Release backlog is missing current 79-version gate text: ${required}`);
 }
 assert.ok(!backlog.includes("76 required migration IDs"), "Release backlog still describes 76 as the current required migration count.");
 assert.ok(!backlog.includes("0/76 present") && !backlog.includes("0/78 exact required identifiers"), "Release backlog still uses a superseded migration status.");
