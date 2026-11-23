@@ -5231,3 +5231,17 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Complete exact statement/effect reconciliation, independent encrypted backup/restore, RPO/RTO and rollback, then approved migration + payment E2E.
 - No Production changes. Full Production BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1931_1940_EXACT_MIGRATION_AND_FINANCE_RECHECK_20261123.md`.
+
+
+### Pass 1941–1950 — admin/legal/AI Edge parity and branch scope — 2026-11-23
+- [x] 1941 — Compared 10 additional admin/legal/AI/business Edge entrypoints.
+- [x] 1942 — Six match main: legal-center, erp-product-create, marketing-lead-create, digital-page-order-create, approval-list, facebook-page-import.
+- [x] 1943 — legal-cms v6 uses direct membership checks/inserts; main uses three atomic legal RPCs, all absent live. RC482/RC483 required.
+- [x] 1944 — business-branch-admin v5 omits null branch scope; main requires business-wide membership or registry root.
+- [x] 1945 — Aggregate-only: 2 active branch-scoped users with admin roles across 2 businesses.
+- [x] 1946 — Potential sibling-branch management gap; P1 pending negative tests and coordinated Edge deployment.
+- [x] 1947 — catalog-platform-admin v23 still uses membership metadata live; main uses registry helper, but live helper remains weak.
+- [x] 1948 — ai-gemini-proxy v5 live uses legacy metadata; main rejects anonymous image generation and uses registry helper. One legacy match is in registry.
+- [ ] Release legal RPCs, registry helper and branch-scope Edge fixes only after migration chain and negative tests.
+- No Production changes. Full Production BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_1941_1950_ADMIN_EDGE_BRANCH_SCOPE_RECHECK_20261123.md`.
