@@ -4014,3 +4014,14 @@ Not yet complete / must remain open:
 - Exact-head CI, post-merge deployment, deployed-origin smoke tests and final production release approval.
 
 **Release boundary:** source-only PR. No Production database/migration/Auth/RLS/GRANT/Storage/Edge deployment/payment/customer-data changes. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-23 — PASS 1771–1780 — Master source-of-truth and live gate reconciliation
+
+- Adopted the uploaded operating directive and confirmed the matching canonical repository file is `docs/MASTER_SOURCE_OF_TRUTH.md`.
+- Inspected R7 archive integrity and security posture; 233 files including Android WebView wrapper. R7 remains reference-only; hardcoded secret fallbacks, service-role references in browser source, local-authority/localStorage data and permissive verified/paid defaults were identified. No R7 code was imported.
+- Fresh read-only Supabase Production snapshot: MANTIQATIX FINAL ACTIVE_HEALTHY, PostgreSQL 17.6.1.155, Free plan; 310 migrations through `20261110150618`; 42 ACTIVE Edge Functions; 8 Auth users (7 confirmed non-anonymous, 1 unconfirmed, 0 anonymous observed).
+- Fresh Security Advisor: 9 RLS-enabled/no-policy INFO, 1 anon SECURITY DEFINER WARN, 65 authenticated SECURITY DEFINER WARN, 90 anonymous-sign-in policy warnings, leaked-password protection disabled. Checked the 9 no-policy tables: direct anon/authenticated SELECT/INSERT privileges false. No blanket policy or EXECUTE changes.
+- PR #994 website work continues in an isolated branch. The existing 150-item catalogue entitlement was restored and preserved. AI support is hidden by default until the deployed Edge v5 is replaced through an approved release, with rate limiting and tests.
+- Backup DB/Storage export, Vault recovery and independent PostgreSQL 17 restore/RPO/RTO remain WAIT for operator-controlled credentials and off-site destination. No Production mutation or deployment.
+- Evidence: `docs/audits/PASS_1771_1780_MASTER_SOURCE_OF_TRUTH_RECONCILIATION_20261123.md`.
