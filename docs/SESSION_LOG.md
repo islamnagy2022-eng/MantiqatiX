@@ -4039,3 +4039,13 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Current main search no `signInAnonymously`; external dependency not yet ruled out.
 - Owner action: enable leaked-password protection; evaluate disabling anonymous Auth after dependency check. No Auth or Production settings changed.
 - Full Production remains BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1861_1870_AUTH_ADVISOR_AND_DENY_BY_DEFAULT_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — Pass 1871–1880 — SMM Auth trigger review
+
+- Active live Auth trigger `trg_smm_bootstrap_admin` calls SECURITY DEFINER first-user SMM admin bootstrap. If allowlist empty, next Auth user becomes SMM admin; current allowlist count is 1 (not proof of current unauthorized admin).
+- Aggregate: 8 Auth users, 1 SMM admin row, 1 platform-admin registry row; no identifiers selected.
+- `smm_admins` RLS on, anon/auth SELECT denied; service_role also currently lacks SELECT/DML.
+- Live SMM gateway v13 hard-coded deferred gate returns 503 before auth; no SMM operations invoked.
+- Current-main RC487 removes bootstrap and sets backend-only read ACL; unapplied. Keep SMM deferred until reconciled release chain, RC456/RC487 and finance/security tests pass.
+- No Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1871_1880_SMM_AUTH_TRIGGER_AND_DEFERRED_SERVICE_RECHECK_20261123.md`.
