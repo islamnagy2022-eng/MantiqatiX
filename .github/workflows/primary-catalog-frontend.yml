@@ -128,6 +128,7 @@ jobs:
       - name: Install dependencies
         working-directory: apps/catalog-frontend
         run: npm ci --no-audit --no-fund
+      # MX-WEB-CAP-20261123-01: route SEO, catalogue quota and AI support safety checks
       - name: TypeScript check
         working-directory: apps/catalog-frontend
         run: npm run lint
