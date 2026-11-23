@@ -6,6 +6,7 @@ on:
     paths:
       - ".release-transfer/parts/**"
       - "apps/catalog-frontend/**"
+      - "scripts/validate-approved-brand-image.py"
       - "scripts/smoke-test-public-catalog-disclosure.mjs"
       - "scripts/validate-catalog-google-auth-contract.mjs"
       - "scripts/validate-unified-account-portal.mjs"
@@ -125,6 +126,10 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
+      - name: Validate approved brand image bytes
+        run: |
+          python -m pip install --disable-pip-version-check --no-input Pillow==11.3.0
+          python scripts/validate-approved-brand-image.py
       - name: Install dependencies
         working-directory: apps/catalog-frontend
         run: npm ci --no-audit --no-fund
