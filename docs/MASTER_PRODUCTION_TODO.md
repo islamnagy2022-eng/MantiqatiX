@@ -5086,3 +5086,18 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Reconcile critical Edge source/deployed parity and verify monthly checkout only after signed Paymob sandbox E2E.
 - **Safety:** read-only Production checks only. No Production data/schema/Auth/RLS/GRANT/Storage/Edge/payment/wallet/settlement mutation or public directory publication. **FULL PLATFORM BLOCKED / NOT CERTIFIED.**
 - Evidence: `docs/audits/PASS_1833_1842_LIVE_PRODUCTION_AND_MAINLINE_RECHECK_20261123.md`.
+
+
+### Pass 1843–1852 — uploaded R7 and current auth source reconciliation — 2026-11-23
+- [x] 1843 — Recomputed uploaded R7 ZIP SHA-256; matches previously reviewed archive hash.
+- [x] 1844 — Recomputed and reopened the uploaded master technical directive; it governs future execution.
+- [x] 1845 — ZIP integrity passed; 270 entries, 233 files, 15 tests, one SQL migration, three Android wrapper files.
+- [x] 1846 — R7 manifest Supabase ref does not match connected live Production ref. Do not use the archive manifest to connect/deploy.
+- [x] 1847 — Reconfirmed R7 source-level P0: local JSON authority, insecure server auth/state/wallet routes, hard-coded fallback secrets, service-role selection in client-imported module.
+- [x] 1848 — Reconfirmed fixed demo credentials and client-side role/admin auth in R7; archive remains non-deployable.
+- [x] 1849 — Android wrapper remains incomplete and requires origin/bridge/backup/build remediation before signed APK/AAB.
+- [x] 1850 — Current main auth is materially safer: Google OAuth admin flow, Supabase Auth subscriber login, active-membership bootstrap, no localStorage auth-session persistence in current AppContext.
+- [x] 1851 — Current main still depends on the live membership-derived `mnty_can_platform_admin` helper; platform-root P0 remains open.
+- [x] 1852 — Current Google auth source validator encodes the expected Google identity and membership-gated role behavior; source inspection is not a CI pass.
+- **Decision:** R7 remains immutable reference-only. No production mutation or deployment. Full Production remains BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_1843_1852_R7_SOURCE_AND_CURRENT_AUTH_RECONCILIATION_20261123.md`.
