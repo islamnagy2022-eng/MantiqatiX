@@ -103,7 +103,7 @@ export const BusinessProfileHeader: React.FC = () => {
 
       {/* 1. Cover photo slider; auto-rotation respects the visitor's reduced-motion preference. */}
       <div className="w-full px-0 py-0">
-        <section aria-label={`غلاف نشاط ${currentBusiness.name}`} data-testid="storefront-cover-hero" className="mx-v4-storefront-cover relative w-full aspect-[16/9] sm:aspect-[1440/390] overflow-hidden group">
+        <section aria-label={`غلاف نشاط ${currentBusiness.name}`} data-testid="storefront-cover-hero" className="mx-v4-storefront-cover relative w-full aspect-[851/315] overflow-hidden group">
         {slides.map((imgUrl, idx) => (
           <div
             key={idx}
