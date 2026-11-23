@@ -29,4 +29,5 @@ test('technical support is bounded and uses a dedicated server-side safe prompt'
 test('AI support does not claim to persist tickets or execute privileged actions', () => {
   assert.doesNotMatch(source, /SUPABASE_SERVICE_ROLE_KEY|service_role|payment_intent|updateBusiness\(/);
   assert.match(source, /لا يستطيع المساعد تنفيذ عمليات مالية أو تعديل صلاحيات الحساب/);
+  assert.match(source, /لا تُحفظ على حسابك أو كتذكرة متابعة/);
 });
