@@ -3998,3 +3998,15 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - **Production impact:** none. No DDL/DML, migration, Auth/RLS/GRANT, Storage, Edge deploy, payment, wallet, settlement, customer-data change or publication.
 - **Next action:** complete operator-owned recovery evidence, reconcile the 76-version chain, run isolated adversarial tests, then perform the coordinated DB + Edge release and deployed-origin consent verification.
 - **Release state:** **PUBLIC DIRECTORY BLOCKED / WAIT; FULL PLATFORM BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-11-23 — Pass 1833–1842 — live Production and mainline recheck
+
+- Confirmed main head `3c24d840f279e0e2f5c0b66302a2ee12ddedab9c`; canonical MantiqatiX Marketing button route uses business code `MNTY-MARKETING` and persisted UUID. Browser E2E source verifies the official storefront and catalog. CI/deployed-origin result was not available in the inspected commit-status/workflow lookup; left open.
+- Read-only Supabase: PostgreSQL 17.6.1.155; 310 migrations through `20261110150618`; 42 active Edge Functions.
+- Live directory-listings v18 remains fail-closed (empty GET, `directoryDisabled=true`; POST 503); SHA-256 `bb65d74325f8bdf08f060f7ae2517bb30901630635d1de4f35523d7cef6afe48`.
+- Security Advisor: 9 RLS/no-policy INFO, 65 authenticated SECURITY DEFINER WARN, 1 anonymous SECURITY DEFINER WARN. Performance Advisor: 28 multiple-permissive-policy WARN.
+- Confirmed P0 platform-root drift: `is_platform_admin()` remains membership-derived; `mnty_can_platform_admin()` delegates to `mnty_can('admin', NULL, NULL, NULL)`; 57 policies across 24 tables; private registry RLS on but FORCE RLS off.
+- Confirmed anon SELECT remains effective on `marketing_provider_profiles` through public-active SELECT policy despite RLS+FORCE RLS. No provider values selected. Directory consent and migration release registry tables remain absent.
+- No Production DDL/DML, migrations, Auth/RLS/GRANT, Storage, Edge deployment, payments, wallet, settlement, customer-data write or publication.
+- Next: operator-controlled encrypted backup/restore + Vault/RPO/RTO; exact migration reconciliation; coordinated platform-admin, provider-profile and consent/Edge release. Production remains BLOCKED / NOT CERTIFIED.
