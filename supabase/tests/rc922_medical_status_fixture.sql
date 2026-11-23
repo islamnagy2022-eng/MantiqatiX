@@ -1,6 +1,6 @@
 -- Disposable PostgreSQL 17 fixture for RC922. Never run against Production.
 -- Start with the exact RC921 fixture and append only RC922 regression actors/data.
-\ir supabase/tests/rc921_medical_status_fixture.sql
+\ir rc921_medical_status_fixture.sql
 
 insert into public.businesses values
  ('a0000000-0000-4000-8000-000000000004','TENANT-A');
