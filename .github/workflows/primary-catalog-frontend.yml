@@ -6,6 +6,8 @@ on:
     paths:
       - ".release-transfer/parts/**"
       - "apps/catalog-frontend/**"
+      - "scripts/validate-marketing-official-storefront-target.mjs"
+      - "scripts/validate-marketing-official-storefront-target.mjs"
       - "scripts/validate-approved-brand-image.py"
       - "scripts/smoke-test-public-catalog-disclosure.mjs"
       - "scripts/validate-catalog-google-auth-contract.mjs"
@@ -136,6 +138,8 @@ jobs:
       - name: TypeScript check
         working-directory: apps/catalog-frontend
         run: npm run lint
+      - name: Validate the marketing button opens only the official MantiqatiX business
+        run: node scripts/validate-marketing-official-storefront-target.mjs
       - name: Test public catalog quote-only visibility contract
         working-directory: apps/catalog-frontend
         run: npx tsx tests/public-catalog-pricing.test.ts
