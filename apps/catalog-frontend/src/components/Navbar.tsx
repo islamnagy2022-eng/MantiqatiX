@@ -175,9 +175,14 @@ export const Navbar: React.FC = () => {
               className="flex items-center gap-2 cursor-pointer group flex-shrink-0 min-w-0"
               title={authSession.role === 'subscriber' ? 'الملف الشخصي التعريفي للمشترك' : 'الرئيسية والدليل الشامل'}
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 text-sm font-black text-white shadow-md shadow-slate-900/15 ring-1 ring-emerald-500/15 transition-transform group-hover:scale-105">
-                MX
-              </div>
+              <img
+                src={`${import.meta.env.BASE_URL}brand/mantiqatix-approved-logo.jpg`}
+                alt="شعار منطقتي X"
+                width={48}
+                height={48}
+                className="h-12 w-12 shrink-0 rounded-full object-contain shadow-md ring-1 ring-amber-500/30 transition-transform group-hover:scale-105"
+                decoding="async"
+              />
               <div>
                 <div className="flex items-baseline gap-1">
                   <h1 className="font-black text-base sm:text-lg text-slate-900 tracking-tight leading-tight">
