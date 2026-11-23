@@ -3492,3 +3492,8 @@ Live contact-consent registry absent. Public listings counts: 868 PUBLISHED/UNCL
 ## 2026-11-23 — Pass 1931–1940 — migration chain and finance recheck
 
 Live migration ledger has 310 rows through `20261110150618`; current main requires 76 exact release identifiers, 0 of which are present. This exact-ID mismatch does not mean every migration effect is absent because aliases/forward repairs and later migrations exist; reconcile exact statements/effects and do not blindly replay. Disposable 99-migration schema-only replay is not a real Production backup restore or RPO/RTO test. Nine core financial tables remain empty; no provider sandbox or signed callback E2E performed. No Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1931_1940_EXACT_MIGRATION_AND_FINANCE_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — Pass 1941–1950 — admin Edge and branch scope
+
+Compared 10 additional admin/legal/AI/business Edge entrypoints. Six match main. Legal CMS v6 remains on direct membership checks and direct writes; main uses three atomic legal RPCs that are absent live, so RC482/RC483 are required before deployment. Business-branch-admin v5 does not require branch_id null for business-wide managers; current main does. Aggregate-only check found two active branch-scoped admin-role users across two businesses, creating a potential sibling-branch management gap. Catalog-platform-admin and AI proxy are also behind registry-based main source; live helper remains weak. No functions invoked or data changed. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1941_1950_ADMIN_EDGE_BRANCH_SCOPE_RECHECK_20261123.md`.
