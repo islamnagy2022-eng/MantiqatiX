@@ -5129,3 +5129,17 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Engineering: continue per-function SECURITY DEFINER review; global MantiGO RPCs remain P0.
 - No Production changes. Full Production remains BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1861_1870_AUTH_ADVISOR_AND_DENY_BY_DEFAULT_RECHECK_20261123.md`.
+
+
+### Pass 1871–1880 — SMM Auth trigger and deferred service recheck — 2026-11-23
+- [x] 1871 — Live `auth.users` still has active `trg_smm_bootstrap_admin` calling SECURITY DEFINER `smm_bootstrap_first_admin()`.
+- [x] 1872 — Trigger promotes first Auth user to SMM admin if allowlist empty; latent bootstrap privilege, not evidence of current unauthorized assignment.
+- [x] 1873 — Aggregate-only: 8 Auth users, 1 SMM allowlist row, 1 platform-admin registry row; no identifiers read.
+- [x] 1874 — `smm_admins` RLS on; anon/authenticated SELECT false; service_role SELECT/DML also false in live ACL.
+- [x] 1875 — Live SMM gateway v13 has hard-coded `SMM_INITIAL_LAUNCH_DEFERRED=true`, verify_jwt=true; all actions return 503 before auth lookup.
+- [x] 1876 — Main RC487 removes trigger/function, preserves allowlist, revokes client/service mutation and grants service_role SELECT only.
+- [x] 1877 — RC487 integration test checks trigger/function absence and exact ACL.
+- [x] 1878 — SMM remains intentionally disabled; no provider/order/wallet operation invoked.
+- [ ] Apply RC487 through reconciled release chain; do not enable SMM until RC456/RC487 and all SMM finance/security gates are live.
+- No Production changes. Full Production BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_1871_1880_SMM_AUTH_TRIGGER_AND_DEFERRED_SERVICE_RECHECK_20261123.md`.
