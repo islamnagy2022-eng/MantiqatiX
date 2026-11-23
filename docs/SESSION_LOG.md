@@ -4100,3 +4100,13 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Nine core order/payment/settlement/journal tables all contain zero rows. No sandbox Paymob or webhook E2E; empty tables do not prove readiness.
 - Disposable replay is schema-only, not actual backup restore or RPO/RTO evidence.
 - No Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1931_1940_EXACT_MIGRATION_AND_FINANCE_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — Pass 1941–1950 — R7 source review
+
+- Uploaded master directive matches canonical `docs/MASTER_SOURCE_OF_TRUTH.md`.
+- R7 ZIP hash `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, 233 files, is not current website source; current main uses `apps/catalog-frontend`.
+- R7 has fixed fallback HMAC/JWT/backup secrets; unauthenticated sync/pull routes; sync can use service_role and upsert critical records; local authoritative JSON auto-seeds on startup. Do not deploy.
+- R7 has no CI workflows or test script; 15 test files, bun.lock only. Build/lint unavailable because deps missing.
+- PR branches diverged: #971 +283/-32; #978 +18/-28 draft; #994 +73/-15. No exact-head CI evidence. Do not merge without reconciliation.
+- No Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1941_1950_R7_ARCHIVE_SECURITY_AND_PR_BRANCH_RECONCILIATION_20261123.md`.
