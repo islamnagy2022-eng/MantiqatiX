@@ -20,8 +20,8 @@ const BusinessCard: React.FC<{ business: Business; onOpen: (business: Business) 
     name: business.name, description: business.bio, category: business.category, kind: 'cover',
   });
   const isPlatformBrandProfile = isMantiqatiXBrandName(business.name);
-  const logo = isPlatformBrandProfile ? defaultLogo : business.logoUrl || defaultLogo;
-  const cover = isPlatformBrandProfile ? defaultCover : business.coverUrl || defaultCover;
+  const logo = business.logoUrl || defaultLogo;
+  const cover = business.coverUrl || defaultCover;
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
       <button type="button" onClick={() => onOpen(business)} className="block w-full text-right" aria-label={'فتح كتالوج ' + business.name}>
