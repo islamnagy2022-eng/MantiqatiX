@@ -115,7 +115,7 @@ export const SupportAssistant: React.FC = () => {
                   />
                   <button type="submit" disabled={busy || !question.trim()} aria-label="إرسال السؤال" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-emerald-600 text-white disabled:cursor-not-allowed disabled:opacity-50"><Send className="h-4 w-4" /></button>
                 </div>
-                <p className="text-[10px] leading-5 text-slate-500">لا ترسل كلمة المرور أو رمز التحقق أو بيانات البطاقة أو مفاتيح API. لا يستطيع المساعد تنفيذ عمليات مالية أو تعديل صلاحيات الحساب، والمحادثة الحالية لا تُحفظ كتذكرة متابعة بعد إغلاق النافذة.</p>
+                <p className="text-[10px] leading-5 text-slate-500">لا ترسل كلمة المرور أو رمز التحقق أو بيانات البطاقة أو مفاتيح API. لا يستطيع المساعد تنفيذ عمليات مالية أو تعديل صلاحيات الحساب، والمحادثة الحالية لا تُحفظ على حسابك أو كتذكرة متابعة، وتختفي عند تحديث الصفحة أو مغادرة الموقع.</p>
               </form>
             )}
             {error && <p role="alert" className="mt-2 text-xs font-semibold text-rose-600">{error}</p>}
