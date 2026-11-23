@@ -144,8 +144,6 @@ export const DirectoryListingsView: React.FC<{
     () => listings.filter((listing) => listing.claim_status !== "CLAIMED" && taxonomyMatches(listing)),
     [listings, functionalGroupId, taxonomyCategoryId, taxonomySpecialty, searchQuery]
   );
-  // When only a global search is active, do not show an empty unverified-results panel if no public-directory entries match.
-  if (!detailSlug && searchQuery.trim() && !functionalGroupId && !taxonomyCategoryId && inTaxonomyScope.length === 0) return null;
   useEffect(() => {
     if (!detail) return;
     const meta = detail.metadata || {};
@@ -245,6 +243,10 @@ export const DirectoryListingsView: React.FC<{
       setOwnerBusy(false);
     }
   };
+
+  // Keep the empty global-search panel hidden only after every Hook has run.
+  // An early return before the detail/owner effects changes Hook order when results arrive.
+  if (!detailSlug && searchQuery.trim() && !functionalGroupId && !taxonomyCategoryId && inTaxonomyScope.length === 0) return null;
 
   if (detailSlug) {
     if (loading) return <div className="mx-auto max-w-4xl p-8 text-center text-sm font-bold text-slate-600">جارٍ تحميل صفحة مقدم الخدمة…</div>;
