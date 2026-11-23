@@ -31,6 +31,8 @@ const MainContent: React.FC = () => {
   const hasDirectPublicCatalogLink = params.has('store') || params.has('businessId');
   const catalogRequestUrl = requestCatalogViaAdminWhatsApp(currentBusiness);
   const useFooterNavigate = (view: 'contact_us' | 'site_map') => setCurrentView(view);
+  // Keep the AI support entry point hidden until the server-side rate limit and deployed Edge contract are released.
+  const isAiSupportEnabled = import.meta.env.VITE_AI_SUPPORT_ENABLED === 'true';
 
   useEffect(() => {
     const applyCurrentRouteSeo = () => {
@@ -117,7 +119,7 @@ const MainContent: React.FC = () => {
         <Suspense fallback={null}><LoginModal /></Suspense>
       )}
 
-      <Suspense fallback={null}><SupportAssistant /></Suspense>
+      <Suspense fallback={null}>{isAiSupportEnabled ? <SupportAssistant /> : null}</Suspense>
 
       {/* Modern MantiqatiX Footer */}
       <footer className="bg-white border-t border-slate-200 mt-auto py-8">
