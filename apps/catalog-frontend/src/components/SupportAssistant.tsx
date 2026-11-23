@@ -1,4 +1,4 @@
-import React, { FormEvent, useState } from 'react';
+import React, { useState, type FormEvent } from 'react';
 import { Bot, LockKeyhole, MessageCircle, Send, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/production';
