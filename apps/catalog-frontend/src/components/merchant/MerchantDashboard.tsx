@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/production';
 import { Product } from '../../types';
-import { generateStorePublicUrl, getCurrentAppBasePath, MAX_PRODUCTS_PER_BUSINESS } from '../../utils/rules';
+import { generateStorePublicUrl, getCurrentAppBasePath, resolveCatalogQuota } from '../../utils/rules';
 import { resolveDefaultImage } from '../../utils/defaultImages';
 import {
   Package,
@@ -398,9 +398,7 @@ export const MerchantDashboard: React.FC = () => {
   }
 
   const productsCount = businessProducts.length;
-  const maxLimit = currentBusiness.maxProductsLimit || MAX_PRODUCTS_PER_BUSINESS;
-  const remainingQuota = Math.max(0, maxLimit - productsCount);
-  const quotaPercent = Math.min(100, Math.round((productsCount / maxLimit) * 100));
+  const catalogQuota = resolveCatalogQuota(productsCount, currentBusiness.maxProductsLimit);
 
   const currentGroupInfo = functionalGroups.find(
     (g) => g.id === currentBusiness.functionalGroupId
@@ -610,7 +608,7 @@ export const MerchantDashboard: React.FC = () => {
               إدارة الكتالوج وتخصيص هوية النشاط
             </h2>
             <p className="mt-1 max-w-2xl text-xs leading-6 text-slate-300 sm:text-sm">
-              أضف وعدّل حتى {maxLimit} منتج أو خدمة، وحدّث صور الغلاف والشعار وبيانات النشاط، وتابع طلبات التواصل من مكان واحد.
+              أضف وعدّل منتجاتك وخدماتك دون حد عددي ثابت، وحدّث صور الغلاف والشعار وبيانات النشاط، وتابع طلبات التواصل من مكان واحد.
             </p>
           </div>
 
@@ -626,7 +624,7 @@ export const MerchantDashboard: React.FC = () => {
             <button
               type="button"
               onClick={openAddModal}
-              disabled={productsCount >= maxLimit}
+              disabled={!catalogQuota.canAdd}
               className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-xs font-black text-slate-950 shadow-md transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
             >
               <Plus className="h-4 w-4" />
@@ -636,29 +634,37 @@ export const MerchantDashboard: React.FC = () => {
         </div>
 
         <div className="mt-6 border-t border-white/10 pt-5">
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs font-black text-slate-100">
-            <span>استهلاك حد الكتالوج</span>
-            <span><strong className="text-emerald-300">{productsCount}</strong> من {maxLimit} منتج / خدمة</span>
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-black text-slate-100">
+            <span>سعة الكتالوج</span>
+            <span><strong className="text-emerald-300">{productsCount}</strong> منتج / خدمة مضافة</span>
           </div>
-          <div
-            className="h-2.5 w-full overflow-hidden rounded-full bg-white/15"
-            role="progressbar"
-            aria-label="استهلاك سعة الكتالوج"
-            aria-valuemin={0}
-            aria-valuemax={maxLimit}
-            aria-valuenow={Math.min(productsCount, maxLimit)}
-          >
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${
-                quotaPercent >= 90 ? 'bg-rose-500' : quotaPercent >= 75 ? 'bg-amber-500' : 'bg-emerald-500'
-              }`}
-              style={{ width: `${quotaPercent}%` }}
-            />
-          </div>
-          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] font-medium text-slate-300">
-            <span>المتبقي للإضافة: {remainingQuota} صنف</span>
-            <span>{quotaPercent}% مستخدم</span>
-          </div>
+          {catalogQuota.isUnlimited ? (
+            <p className="mt-2 text-[11px] font-medium text-emerald-200">
+              الكتالوج مفتوح دون حد عددي ثابت. تظل السعة الفعلية مرتبطة بموارد التخزين وقاعدة البيانات.
+            </p>
+          ) : (
+            <>
+              <div
+                className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-white/15"
+                role="progressbar"
+                aria-label="استهلاك سعة الكتالوج"
+                aria-valuemin={0}
+                aria-valuemax={catalogQuota.limit || 0}
+                aria-valuenow={Math.min(productsCount, catalogQuota.limit || 0)}
+              >
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    (catalogQuota.usagePercent || 0) >= 90 ? 'bg-rose-500' : (catalogQuota.usagePercent || 0) >= 75 ? 'bg-amber-500' : 'bg-emerald-500'
+                  }`}
+                  style={{ width: `${catalogQuota.usagePercent || 0}%` }}
+                />
+              </div>
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] font-medium text-slate-300">
+                <span>المتبقي للإضافة: {catalogQuota.remaining} صنف</span>
+                <span>{catalogQuota.usagePercent}% مستخدم</span>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
