@@ -57,6 +57,10 @@ on:
       - "scripts/production/live-reconciliation-contract.mjs"
       - "scripts/production/verify-production.mjs"
       - "scripts/validate-production-migration-chain-gate.mjs"
+      - "scripts/validate-production-backup-runbook-current.mjs"
+      - "docs/release/WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md"
+      - "scripts/validate-production-backup-runbook-current.mjs"
+      - "docs/release/WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md"
       - "scripts/validate-r7-platform-admin-migration.mjs"
       - "scripts/validate-rc476-captain-earnings-live-columns.mjs"
       - "scripts/validate-mantigo-high-risk-definers.mjs"
@@ -212,6 +216,9 @@ jobs:
 
       - name: Validate strict Production release gate and exact 78-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
+
+      - name: Validate current backup runbook and release migration scope
+        run: node scripts/validate-production-backup-runbook-current.mjs
 
       - name: Validate MantiGO platform-admin and financial source contracts
         run: |
