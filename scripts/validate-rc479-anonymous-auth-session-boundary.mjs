@@ -65,7 +65,7 @@ assert.ok(postMigration.includes("RC479_ANONYMOUS_AUTH_PRIVATE_PROFILE_READ_REMA
 assert.ok(liveContract.includes('"20261120193000"'), "RC479 forward migration must be in the live release version contract");
 assert.ok(productionVerifier.includes("20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql"), "RC479 forward migration must be in the Production verifier");
 assert.ok(migrationGate.includes("20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql"), "RC479 forward migration must be in the migration-chain gate");
-assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 78, "manifest must use the 78-version release contract");
+assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 79, "manifest must use the current 79-version release contract including RC922");
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261120193000"), "manifest must require RC479 forward migration");
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261120193000"), "live manifest must keep unapplied RC479 forward migration blocked");
 console.log("RC479 forward anonymous Auth-session migration contract: PASS");
