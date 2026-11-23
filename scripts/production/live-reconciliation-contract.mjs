@@ -49,6 +49,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261120290000", // RC494 — registry-backed platform settlement and tenant/business scope
   "20261121020000", // RC495 — repair Storage filename policies and use canonical platform-root registry
   "20261121030000", // RC496 — require OFFERED MantiGO bids and serialize per-ride acceptance
+  "20261123010000", // RC921 — bind medical status changes to assigned provider and enforce forward-only transitions
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
@@ -96,6 +97,7 @@ export const REQUIRED_CORE_OBJECTS = [
   "public.expire_stale_mantigo_rides_backend",
   "private.platform_admins",
   "public.is_platform_admin()",
+  "public.update_medical_appointment_status_backend(uuid,text,text)",
 ];
 
 // Require exact runtime function signatures and persisted Paymob/checkout
