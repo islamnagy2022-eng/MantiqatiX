@@ -17,6 +17,7 @@ const SiteMapView = lazy(() => import('./components/SiteMapView').then((module) 
 const CartDrawer = lazy(() => import('./components/cart/CartDrawer').then((module) => ({ default: module.CartDrawer })));
 const LoginModal = lazy(() => import('./components/auth/LoginModal').then((module) => ({ default: module.LoginModal })));
 const SubscriberAccountPortal = lazy(() => import('./modules/account/SubscriberAccountPortal').then((module) => ({ default: module.SubscriberAccountPortal })));
+const SupportAssistant = lazy(() => import('./components/SupportAssistant').then((module) => ({ default: module.SupportAssistant })));
 
 const ScreenFallback = () => (
   <div role="status" aria-live="polite" className="mx-auto mt-4 w-[calc(100%-2rem)] max-w-7xl rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
@@ -115,6 +116,8 @@ const MainContent: React.FC = () => {
       {isLoginModalOpen && (
         <Suspense fallback={null}><LoginModal /></Suspense>
       )}
+
+      <Suspense fallback={null}><SupportAssistant /></Suspense>
 
       {/* Modern MantiqatiX Footer */}
       <footer className="bg-white border-t border-slate-200 mt-auto py-8">
