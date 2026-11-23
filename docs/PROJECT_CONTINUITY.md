@@ -3492,3 +3492,8 @@ Live contact-consent registry absent. Public listings counts: 868 PUBLISHED/UNCL
 ## 2026-11-23 — Pass 1931–1940 — migration chain and finance recheck
 
 Live migration ledger has 310 rows through `20261110150618`; current main requires 76 exact release identifiers, 0 of which are present. This exact-ID mismatch does not mean every migration effect is absent because aliases/forward repairs and later migrations exist; reconcile exact statements/effects and do not blindly replay. Disposable 99-migration schema-only replay is not a real Production backup restore or RPO/RTO test. Nine core financial tables remain empty; no provider sandbox or signed callback E2E performed. No Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1931_1940_EXACT_MIGRATION_AND_FINANCE_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — RC921 medical status state-machine release-gate inclusion
+
+PR #1008 merged RC921 at `ff25bdb2359c648db47b38b7c11695f9dbe79b58`. It binds provider changes to the assigned provider profile, scopes staff by exact tenant/business, permits patient self-cancellation, enforces a forward-only status matrix, and serializes concurrent updates. Exact-head PostgreSQL 17 behavioral/concurrency workflow 45144730674 passed; migration immutability 45144730536, version uniqueness 45144730782, collision guard 45144730731, backend boundary 45144730778 and module validation 45144730500 passed. Pages validate passed but deploy skipped. The live function remains legacy and migration unapplied. Added RC921 migration version and exact RPC signature to the Production release gate (77 required versions). Do not apply separately; Full Production remains BLOCKED / NOT CERTIFIED.
