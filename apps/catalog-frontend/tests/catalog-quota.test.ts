@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { canAddProduct, getRemainingProductsCount, resolveCatalogQuota } from '../src/utils/rules';
+import { canAddProduct, getRemainingProductsCount, MAX_PRODUCTS_PER_BUSINESS, resolveCatalogQuota } from '../src/utils/rules';
+import { readFileSync } from 'node:fs';
+
+const defaultsSource = readFileSync(new URL('../src/data/productionDefaults.ts', import.meta.url), 'utf8');
+
+test('platform and business defaults do not impose a fixed item ceiling', () => {
+  assert.equal(MAX_PRODUCTS_PER_BUSINESS, 0);
+  assert.match(defaultsSource, /maxAllowedProductsPerBusiness:\s*0/);
+});
 
 test('default catalogue quota is unlimited at every item count', () => {
   for (const count of [0, 150, 151, 10000, 1000000]) {
