@@ -4126,3 +4126,11 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Live catalog-platform-admin v23, business-register v9, business-branch-admin v5 and ai-gemini-proxy v5 use membership-derived platform-root checks; current main uses registry helper.
 - settlement-financial-atomic v4 materially behind current authorization module. directory-listings v18 intentionally fail-closed.
 - Do not deploy Edge alone while live DB helper remains weak. No Edge or Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1961_1970_LIVE_PLATFORM_EDGE_REGISTRY_PARITY_20261123.md`.
+
+
+## 2026-11-23 — Pass 1971–1980 — registry migration preflight
+
+- RC464/RC471/RC484 selected preflight predicates pass: registry RLS/client ACL, helper owners, four shared helper callers, required RLS policies, 33 MantiGO columns, settlement journal dependency, RC484 57 policies/24 tables.
+- Registry FORCE RLS is currently false; RC464/RC484 set it. No migration applied.
+- This is not full release approval: live ledger 310 through 20261110150618, exact required migration IDs 0/76; full effect reconciliation and independent restore required.
+- No Production changes. BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1971_1980_RC464_RC471_RC484_LIVE_PREFLIGHT_20261123.md`.
