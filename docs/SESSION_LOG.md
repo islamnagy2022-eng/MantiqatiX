@@ -4057,3 +4057,11 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Current main source calls `mnty_can_platform_admin()`; deployed v20 is behind main. Aggregate-only check: one active membership matches v20 predicate and is in private registry; zero current non-registry matches. No IDs selected.
 - Live helper still delegates to broad null-scope `mnty_can`; deploying Edge alone before database helper migrations could widen access. Coordinate migration chain and Edge release.
 - No function invocation, deployment or Production mutation. P0 BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1881_1890_CATALOG_ADMIN_EDGE_REGISTRY_PARITY_20261123.md`.
+
+
+## 2026-11-23 — Pass 1891–1900 — critical Edge parity
+
+- Compared 13 deployed high-impact Edge entrypoints with current main; nine match exactly.
+- Paymob webhook, payment-intent, subscription-payment-intent, digital-page-payment-intent, settlement-financial-atomic, financial-journal, order-create, catalog-admin, push-dispatch are behind main. Health endpoint is static. Directory-listings v18 intentionally fail-closed.
+- Live DB lacks four current Paymob atomic processors and two subscription creation claim RPCs; subscription encryption/claim columns absent; digital-page finalizer only four args; journal backend service_role EXECUTE false (RC449A→RC450 needed).
+- No webhook/provider call, payment or Production mutation/deployment. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1891_1900_CRITICAL_EDGE_PAYMENT_PARITY_20261123.md`.
