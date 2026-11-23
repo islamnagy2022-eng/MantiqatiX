@@ -3985,3 +3985,16 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Updated issues #867 and #928 with current evidence and created `docs/audits/PASS_1771_1780_LIVE_SECURITY_RECHECK_20261123.md` on `audit/live-security-recheck-pass-1771-1780-20261123`.
 - No Production DDL/DML, migrations, Auth, RLS, GRANT/REVOKE, Storage, Edge, payments, wallets, settlement or customer-data changes.
 - Production remains BLOCKED / NOT CERTIFIED pending encrypted off-site backup/Storage export, Vault recovery, independent PostgreSQL 17 restore/rollback, measured RPO/RTO and coordinated exact migration/Edge release.
+
+## 2026-11-23 — Publish-first live Production gate recheck
+
+- **User instruction:** “كمل نشر اولا” — publication takes priority over further local activity discovery.
+- **Read-only live evidence:** 310 migration rows through `20261110150618`; RC472/RC473 absent; `public.directory_listing_contact_consents` absent; zero approved commercial source-permission records.
+- **Directory Edge:** ACTIVE v18 fail-closed mitigation; GET empty with `directoryDisabled=true`; POST 503 `DIRECTORY_LISTINGS_DISABLED_FOR_V1`. Older v16 findings are historical, not the current deployed state.
+- **District aggregate only:** 358 PUBLISHED, 87 DRAFT, 9 HIDDEN in Barakat El-Sabaa. These do not indicate that the public endpoint serves rows.
+- **Backup/restore:** NOT VERIFIED. No complete encrypted off-site DB + Storage backup, Vault recovery, independent PostgreSQL 17 restore/rollback, measured RPO/RTO or reviewer evidence available in this session. The canonical runbook requires an operator-controlled workstation and secrets/off-site destination not available here.
+- **Source rights:** zero approved commercial-republication evidence rows; do not publish scraped contact leads without a valid source permission basis or owner-submitted consent.
+- **Actions:** added fresh comments to GitHub issues #876 (7092698297), #104 (7092698945) and #599 (7092699586). Prepared an audit and synchronized TODO/continuity docs on a dedicated documentation branch.
+- **Production impact:** none. No DDL/DML, migration, Auth/RLS/GRANT, Storage, Edge deploy, payment, wallet, settlement, customer-data change or publication.
+- **Next action:** complete operator-owned recovery evidence, reconcile the 76-version chain, run isolated adversarial tests, then perform the coordinated DB + Edge release and deployed-origin consent verification.
+- **Release state:** **PUBLIC DIRECTORY BLOCKED / WAIT; FULL PLATFORM BLOCKED / NOT CERTIFIED.**

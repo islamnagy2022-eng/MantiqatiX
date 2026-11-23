@@ -1,3 +1,18 @@
+## 2026-11-23 — Publish-first Production gate recheck
+
+- [x] Rechecked live Production migration ledger: 310 rows through `20261110150618`.
+- [x] Confirmed RC472/RC473 remain unapplied and `public.directory_listing_contact_consents` is absent.
+- [x] Confirmed zero approved commercial-republication source-evidence rows.
+- [x] Confirmed `directory-listings` ACTIVE v18 remains fail-closed: GET empty with `directoryDisabled=true`; POST 503 `DIRECTORY_LISTINGS_DISABLED_FOR_V1`.
+- [x] Recorded district aggregate statuses: 358 PUBLISHED / 87 DRAFT / 9 HIDDEN. These are stored statuses, not public endpoint availability.
+- [ ] WAIT — operator-owned encrypted off-site DB + Storage export, checksum/decryption and retrieval verification, Vault recovery, independent PostgreSQL 17 restore/rollback, measured RPO/RTO and reviewer sign-off.
+- [ ] Reconcile exact 76-version ordered migration set and physical Production object/ACL dependencies.
+- [ ] Run coordinated consent/authorization PostgreSQL 17 tests; apply DB and deploy complete Edge bundle only in an approved release window.
+- [ ] Verify owner grant/revoke/expiry and anonymous no-consent negative cases before re-enabling publication.
+- **Priority decision:** user requested publication first; pause additional activity discovery until the public directory release gate advances.
+- **Safety:** no Production mutation or publication occurred. See `docs/audits/PASS_1841_1850_PUBLISH_FIRST_RELEASE_GATE_20261123.md` and issue comments #876, #104, #599.
+
+---
 ## Latest live Production security recheck — 2026-11-23 — PASS 1771–1780
 
 **Audit:** `docs/audits/PASS_1771_1780_LIVE_SECURITY_RECHECK_20261123.md`  

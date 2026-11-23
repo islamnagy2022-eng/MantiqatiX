@@ -1,3 +1,15 @@
+## Latest continuation — 2026-11-23 — Publish-first release gate rechecked
+
+- User priority: restore public activity-directory publication before more local activity discovery.
+- Fresh read-only Production check: 310 migrations through `20261110150618`; RC472/RC473 absent; consent registry absent; zero approved commercial source-permission records.
+- `directory-listings` ACTIVE v18 remains a deliberate fail-closed mitigation (GET empty, `directoryDisabled=true`; POST 503). This corrects older notes that referenced v16 contact-returning behavior.
+- Barakat El-Sabaa database statuses are 358 PUBLISHED, 87 DRAFT and 9 HIDDEN; these counts do not establish public API availability.
+- Encrypted off-site DB + Storage backup, Vault recovery, independent PostgreSQL 17 restore/rollback, measured RPO/RTO and reviewer approval remain NOT VERIFIED / WAIT.
+- Next order: recovery evidence → 76-migration/physical-object reconciliation → disposable PostgreSQL 17 adversarial tests → coordinated RC472/RC473+authorization DB release → matching complete Edge bundle → deployed-origin privacy tests → lawful/consented publication.
+- No Production mutation or publication occurred. Additional activity discovery is paused by the user's publish-first priority.
+- Audit: `docs/audits/PASS_1841_1850_PUBLISH_FIRST_RELEASE_GATE_20261123.md`; refreshed issue comments: #876, #104, #599.
+
+---
 ## Latest live Production security recheck — 2026-11-23 — PASS 1771–1780
 
 **Audit:** `docs/audits/PASS_1771_1780_LIVE_SECURITY_RECHECK_20261123.md`  
