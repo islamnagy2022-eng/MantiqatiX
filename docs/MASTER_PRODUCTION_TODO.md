@@ -5157,3 +5157,19 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Reconcile/replay migrations, apply registry helpers and dependent RPCs, then deploy matching Edge bundle and adversarially verify.
 - No Edge or Production changes. P0 BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1881_1890_CATALOG_ADMIN_EDGE_REGISTRY_PARITY_20261123.md`.
+
+
+### Pass 1891–1900 — critical Edge and payment parity — 2026-11-23
+- [x] 1891 — Compared 13 high-impact deployed Edge entrypoints with current main.
+- [x] 1892 — Nine entrypoints exactly match current main: public catalog, public directory, payment webhook, MantiGO payment intent, API, order status, post-financial-journal, settlement-create, subscription-start-trial.
+- [x] 1893 — Paymob webhook v10 is behind main; lacks current provider-order binding and atomic payment/failure paths.
+- [x] 1894 — Payment-intent v8 is behind main; current source adds Paymob amount precision, response correlation and unknown-outcome handling.
+- [x] 1895 — Subscription-payment-intent v4 is behind main; required claim RPCs and encrypted checkout-secret columns are absent live.
+- [x] 1896 — Digital-page-payment-intent v5 is behind main; live finalizer is four-argument while current source requires five-argument provider-order binding.
+- [x] 1897 — Settlement-financial-atomic v4 is behind current source authorization/scope hardening.
+- [x] 1898 — Financial-journal v3 is behind current source; live backend RPC service_role EXECUTE false; RC449A→RC450 required.
+- [x] 1899 — Order-create v8 is behind main request/branch/options validation.
+- [x] 1900 — Catalog-admin and push-dispatch are behind main; health endpoint is static; directory-listings intentionally fail-closed. ERP receive also differs.
+- [ ] Reconcile all dependent migrations/RPCs/schema/ACLs, replay in isolated PG17, run payment/webhook adversarial tests, then deploy Edge bundles in coordinated order.
+- No provider calls or Production writes/deployments. Full Production BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_1891_1900_CRITICAL_EDGE_PAYMENT_PARITY_20261123.md`.
