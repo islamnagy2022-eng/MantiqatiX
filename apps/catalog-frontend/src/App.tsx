@@ -147,7 +147,7 @@ const MainContent: React.FC = () => {
               <span>•</span>
               <button type="button" onClick={() => useFooterNavigate('contact_us')} className="font-bold text-slate-600 hover:text-emerald-700">تواصل معنا</button>
               <span>•</span>
-              <span>حد المنتجات: 150 منتج/خدمة لكل مشترك</span>
+              <span>كتالوج مرن للمنتجات والخدمات</span>
               <span>•</span>
               <span>العملة: الجنيه المصري ({adminSettings.currency || 'ج.م'})</span>
               <span>•</span>
