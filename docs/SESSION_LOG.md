@@ -4029,3 +4029,13 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Aggregate-only membership query: 5 active users match legacy role predicates; 4 are not in `private.platform_admins`. No identifiers returned.
 - Financial report references legacy ledger columns. RC464/RC471 source already corrects the relevant functions with registry checks and canonical columns; current live migration ledger has not applied them.
 - No Production DDL/DML, migration, auth, RLS, grant, financial or ride mutation. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1853_1860_LIVE_MANTIGO_GLOBAL_RPC_AUTHORIZATION_20261123.md`.
+
+
+## 2026-11-23 — Pass 1861–1870 — Auth advisor recheck
+
+- Fresh Security Advisor: 9 RLS/no-policy INFO, 65 authenticated-callable SECURITY DEFINER WARN, 1 anon-callable SECURITY DEFINER WARN, anonymous Auth enabled WARN, leaked-password protection disabled WARN.
+- All 9 no-policy tables have no direct anon/authenticated table privileges; deny-by-default, no blanket policies added.
+- One anon definer is targeted-ad discovery: approved/active ads, geo matching, empty search_path, capped at 50; intentional public read pending function-specific review.
+- Current main search no `signInAnonymously`; external dependency not yet ruled out.
+- Owner action: enable leaked-password protection; evaluate disabling anonymous Auth after dependency check. No Auth or Production settings changed.
+- Full Production remains BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1861_1870_AUTH_ADVISOR_AND_DENY_BY_DEFAULT_RECHECK_20261123.md`.
