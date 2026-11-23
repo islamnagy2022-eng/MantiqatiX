@@ -70,3 +70,29 @@ Observed through the connected Supabase project at approximately 2026-11-23 00:3
 Continue source-only P0 security reconciliation while the operator-controlled backup/restore task is WAIT. Prioritize exact deployed Edge source comparison and anonymous-session negative tests; do not weaken current fail-closed directory/contact boundaries. Update the same TODO and continuity record after every exact-head CI, merge, deployment or live verification event.
 
 **Global status: FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED.**
+
+## 7. Exact deployed Edge source comparison — 2026-11-23
+
+A byte-for-byte comparison was performed between the live Production `index.ts` bundle and current-main source for the six payment/finance-critical functions:
+
+| Function | Live version | Live bytes | Main bytes | Exact match |
+|---|---:|---:|---:|---|
+| `order-create` | v8 | 10,083 | 13,988 | NO |
+| `payment-intent` | v8 | 8,114 | 10,146 | NO |
+| `paymob-webhook` | v10 | 11,538 | 12,376 | NO |
+| `digital-page-payment-intent` | v5 | 5,345 | 6,532 | NO |
+| `subscription-payment-intent` | v4 | 5,196 | 11,100 | NO |
+| `financial-journal` | v3 | 1,591 | 3,387 | NO |
+
+Additional live/main comparisons:
+
+| Function | Live version | Live bytes | Main bytes | Exact match |
+|---|---:|---:|---:|---|
+| `catalog-admin` | v20 | 37,862 | 44,115 | NO |
+| `catalog-platform-admin` | v23 | 63,454 | 67,227 | NO |
+| `directory-listings` | v18 | 2,054 | 52,098 | NO — deployed fail-closed stub; preserve until RC472/RC473 consent bundle is released |
+| `ai-gemini-proxy` | v5 | 15,446 | 15,752 | NO; live v5 does not contain `technical_support` |
+
+**Disposition:** These are source mismatches, not permission to deploy. Do not individually replace payment, finance, catalog-admin or directory Edge functions. Reconcile migration/schema/RPC/ACL dependencies and release coupled bundles only after backup/restore and explicit production release approval. Keep the directory fail-closed. Keep AI support UI hidden until its new Edge contract, server-side rate limiting, exact bundle parity and deployed-origin tests are complete.
+
+The deployed `public-catalog` v9 and `public-catalog-directory` v19 were previously recorded as exact bundle matches in the 2026-11-22 continuity checkpoint; their live bundle files are stored under `source/index.ts` plus `_shared/**`, so do not infer a mismatch from comparing only a nonexistent root `index.ts` entry.
