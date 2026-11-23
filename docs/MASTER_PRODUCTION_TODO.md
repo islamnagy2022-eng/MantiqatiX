@@ -5203,3 +5203,17 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Apply after exact migration replay and verify anon-session deny, confirmed-owner CRUD, registry-root brand write and public-read contract.
 - No Storage/Auth/DB changes. Full Production BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1911_1920_STORAGE_ANONYMOUS_AUTH_RECHECK_20261123.md`.
+
+
+### Pass 1921–1930 — public directory contact-consent recheck — 2026-11-23
+- [x] 1921 — Contact-consent registry table absent live.
+- [x] 1922 — Public listing statuses: 868 PUBLISHED/UNCLAIMED, 1 PUBLISHED/CLAIM_PENDING, 87 DRAFT, 9 HIDDEN.
+- [x] 1923 — Zero listing metadata rows with public-contact enabled.
+- [x] 1924 — Public listings table remains RLS/backend-only; no direct anon/auth table access.
+- [x] 1925 — directory-listings v18 remains fail-closed (empty GET; POST 503).
+- [x] 1926 — public-catalog-directory v19 exactly matches main and uses explicit public visibility helpers.
+- [x] 1927 — 10 businesses; zero public contact enabled, audit-verified or both.
+- [x] 1928 — Public contact helper requires both explicit owner choice and server-verified audit flag.
+- [ ] Apply RC472/RC473 through reconciled release chain, verify source rights/owner consent and revocation tests, then deploy directory Edge.
+- No contacts read or published; all directory rows remain hidden. Full Production BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_1921_1930_DIRECTORY_CONTACT_CONSENT_RECHECK_20261123.md`.
