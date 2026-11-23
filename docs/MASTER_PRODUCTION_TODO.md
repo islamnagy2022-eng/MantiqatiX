@@ -5115,3 +5115,17 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - **P0 release gate:** reconcile and rehearse the exact migration chain in isolated PG17; coordinate registry helper + all 57 policies + four global RPCs; do not hot-patch or apply isolated migrations.
 - No Production mutation or RPC invocation. Full Production remains BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1853_1860_LIVE_MANTIGO_GLOBAL_RPC_AUTHORIZATION_20261123.md`.
+
+
+### Pass 1861–1870 — Auth advisor and deny-by-default recheck — 2026-11-23
+- [x] 1861 — Fresh Security Advisor: 9 RLS/no-policy INFO, 65 authenticated SECURITY DEFINER WARN, 1 anon SECURITY DEFINER WARN, anonymous Auth enabled WARN, leaked-password protection disabled WARN.
+- [x] 1862 — All 9 RLS/no-policy tables have no direct anon or authenticated table privileges; do not add broad policies merely to silence INFO findings.
+- [x] 1863 — Sole anon-callable definer is targeted-ad discovery; approved/active/in-window ads only, geo/ad-space matching, empty search_path, result cap 50. Preserve as reviewed public-read contract.
+- [x] 1864 — Current-main search found no `signInAnonymously` call; external integrations still need owner confirmation.
+- [x] 1865 — Anonymous Auth advisor warnings are not direct anon grants; privileged code must reject `is_anonymous=true`.
+- [x] 1866 — Leaked-password protection remains disabled; no Auth setting changed.
+- [ ] Owner: enable leaked-password protection and test signup/password reset.
+- [ ] Owner: verify no external dependency, then disable anonymous Auth sign-ins if not required.
+- [ ] Engineering: continue per-function SECURITY DEFINER review; global MantiGO RPCs remain P0.
+- No Production changes. Full Production remains BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_1861_1870_AUTH_ADVISOR_AND_DENY_BY_DEFAULT_RECHECK_20261123.md`.
