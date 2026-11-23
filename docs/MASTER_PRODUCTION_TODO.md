@@ -5231,3 +5231,12 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Complete exact statement/effect reconciliation, independent encrypted backup/restore, RPO/RTO and rollback, then approved migration + payment E2E.
 - No Production changes. Full Production BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1931_1940_EXACT_MIGRATION_AND_FINANCE_RECHECK_20261123.md`.
+
+
+### RC921 medical appointment status-state-machine release gate — 2026-11-23
+- [x] Source fix merged in PR #1008 at `ff25bdb2359c648db47b38b7c11695f9dbe79b58`; exact PR-head PostgreSQL 17 behavioral/concurrency workflow 45144730674 PASS.
+- [x] Other exact-head checks passed: migration immutability 45144730536, migration version uniqueness 45144730782, collision guard 45144730731, backend boundary 45144730778, module validation 45144730500.
+- [x] Pages validation passed but deploy job skipped (run 45144730519); no deployment claimed.
+- [x] Added RC921 version `20261123010000` and exact RPC signature to the required Production release contract; required chain is now 77 versions.
+- [ ] Apply RC921 only as part of the fully reconciled/approved migration chain; live function remains the old implementation.
+- Production remains BLOCKED / NOT CERTIFIED.
