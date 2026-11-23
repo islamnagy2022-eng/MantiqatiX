@@ -31,6 +31,29 @@ const MainContent: React.FC = () => {
   const hasDirectPublicCatalogLink = params.has('store') || params.has('businessId');
   const catalogRequestUrl = requestCatalogViaAdminWhatsApp(currentBusiness);
   const useFooterNavigate = (view: 'contact_us' | 'site_map') => setCurrentView(view);
+
+  // Never expose a dashboard without a production role. Guests may view a
+  // storefront only through its direct share link, never through a generic tab.
+  const visibleView = authLoading
+    ? (currentView === 'public_storefront' && hasDirectPublicCatalogLink
+      ? 'public_storefront'
+      : currentView === 'directory' || currentView === 'marketplace_home' || currentView === 'contact_us' || currentView === 'site_map'
+        ? currentView
+        : 'directory')
+    : currentView === 'super_admin' && authSession.role !== 'admin'
+      ? 'directory'
+      : currentView === 'merchant_admin' &&
+          (!canAccessMerchantDashboard(authSession) || !currentBusiness)
+        ? 'directory'
+        : currentView === 'professional_dashboard' &&
+          !canAccessProfessionalDashboard(authSession)
+        ? 'directory'
+        : currentView === 'account_portal' && !authSession.isAuthenticated
+          ? 'directory'
+          : currentView === 'public_storefront' &&
+            authSession.role === 'guest' && !hasDirectPublicCatalogLink
+          ? 'directory'
+          : currentView;
   // Keep the AI support entry point hidden until the server-side rate limit and deployed Edge contract are released.
   const isAiSupportEnabled = import.meta.env.VITE_AI_SUPPORT_ENABLED === 'true';
 
