@@ -7,7 +7,6 @@ on:
       - ".release-transfer/parts/**"
       - "apps/catalog-frontend/**"
       - "scripts/validate-marketing-official-storefront-target.mjs"
-      - "scripts/validate-marketing-official-storefront-target.mjs"
       - "scripts/validate-approved-brand-image.py"
       - "scripts/smoke-test-public-catalog-disclosure.mjs"
       - "scripts/validate-catalog-google-auth-contract.mjs"
@@ -62,6 +61,7 @@ on:
     paths:
       - ".release-transfer/parts/**"
       - "apps/catalog-frontend/**"
+      - "scripts/validate-marketing-official-storefront-target.mjs"
       - "scripts/smoke-test-public-catalog-disclosure.mjs"
       - "scripts/validate-catalog-google-auth-contract.mjs"
       - "scripts/validate-unified-account-portal.mjs"
