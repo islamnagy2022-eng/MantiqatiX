@@ -5322,3 +5322,18 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Replace base-table public read with curated Edge projections; scope CRM manager reads; preserve owner workflow via narrow backend path; add anonymous Auth negative tests.
 - No data read or Production change. P0 privacy blocker; Full Production BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1991_2000_PROVIDER_PROFILE_DIRECT_READ_PRIVACY_20261123.md`.
+
+
+### Pass 2001–2010 — RC479 source/CI/live parity — 2026-11-23
+- [x] 2001 — Two RC479 migrations exist: raw anon revoke and anonymous Auth-session restrictive SELECT guard.
+- [x] 2002 — PR #938 merged guard to main at `436b7a5a4aa12aa979f5ea4b52b9ce9d3971a046`.
+- [x] 2003 — Exact PR-head CI: RC479 test 44803731818 PASS; RC464 44803731787 PASS; forward replay 44803731771 PASS; migration uniqueness/collision/immutability PASS.
+- [x] 2004 — Disposable tests cover anonymous denial, confirmed-user compatibility, owner update and wrong-owner denial.
+- [x] 2005 — Restrictive policy blocks `is_anonymous=true` and preserves owner ALL policy.
+- [x] 2006 — Pages deploy skipped; CI is not Production deployment.
+- [x] 2007 — Both RC479 migrations absent live; raw anon SELECT remains and restrictive policy missing.
+- [x] 2008 — Live public-active SELECT still applies to anon/auth; CRM manager SELECT unscoped.
+- [x] 2009 — Confirmed users still retain base-table SELECT to owner_user_id/settings; separate projection redesign required.
+- [x] 2010 — No Production changes.
+- [ ] Build/test confirmed-user-safe public projection and owner workflow; coordinate with full migration chain and independent restore.
+- Evidence: `docs/audits/PASS_2001_2010_RC479_SOURCE_CI_LIVE_PARITY_20261123.md`.
