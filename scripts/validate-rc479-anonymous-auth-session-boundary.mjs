@@ -25,6 +25,10 @@ const postMigration = fs.readFileSync(
   "supabase/tests/rc479_anonymous_auth_session_boundary_integration.sql",
   "utf8",
 );
+const liveContract = fs.readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
+const productionVerifier = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
+const migrationGate = fs.readFileSync("scripts/validate-production-migration-chain-gate.mjs", "utf8");
+const manifest = JSON.parse(fs.readFileSync("docs/release/production-migration-reconciliation.json", "utf8"));
 
 assert.ok(historicalMigration.includes(
   "REVOKE SELECT ON TABLE public.marketing_provider_profiles FROM anon;"
