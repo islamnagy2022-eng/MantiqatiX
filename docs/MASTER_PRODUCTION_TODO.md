@@ -1,3 +1,17 @@
+## 2026-11-23 — Pass 1871–1880 — Li2Lak Marketplace public-offer eligibility merged
+
+- [x] Merged PR #1002 to `main`: https://github.com/islamnagy2022-eng/MantiqatiX/pull/1002
+- [x] Merge commit: `f6d9fa773e398d5fa4c4a600a06a450d5108ac9a`; exact tested head: `9687fad771ee2c8295dc7da1f3a8dd2cd47c9426`.
+- [x] Marketplace Home requires available/verified eligible records, a finite positive public current price, and a finite compare price strictly above current price before showing discount badges or crossed-out prices. Product and service offer paths share the guard.
+- [x] Extended `scripts/validate-production-catalog-real-state.mjs`; all exact-head CI workflows passed, including frontend build, browser E2E, employee RBAC PostgreSQL, module validation (8 jobs), backend-only boundary (3 jobs), MantiGO privacy, RC425 Paymob atomicity and flexible commissions.
+- [x] Deploy workflow validation passed; `validate_public_only` and `deploy` were skipped. No deployment occurred.
+- [x] PR had no submitted reviews or inline review threads. Main points to the merge commit.
+- [ ] Publish-first release gate remains WAIT: operator-owned encrypted off-site DB + Storage backup, Vault recovery, independent PostgreSQL 17 restore/rollback, measured RPO/RTO and reviewer sign-off.
+- [ ] Production has 0/76 exact required release migrations; RC472/RC473 and `public.directory_listing_contact_consents` remain absent. Keep `directory-listings` v18 fail-closed; do not publish directory records or contact data.
+- **Safety:** no Production DB/Auth/RLS/GRANT/Storage/Edge/payment/customer-data mutation and no deployment. Website V1 remains as previously deployed; full platform remains **BLOCKED / NOT CERTIFIED**.
+
+---
+
 ## 2026-11-23 — Publish-first Production gate recheck
 
 - [x] Rechecked live Production migration ledger: 310 rows through `20261110150618`.
