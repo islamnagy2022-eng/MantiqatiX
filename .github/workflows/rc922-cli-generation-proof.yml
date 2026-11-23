@@ -71,6 +71,7 @@ jobs:
       - name: Run RC921 and RC922 behavior plus concurrency tests on disposable PostgreSQL 17
         env:
           PGPASSWORD: postgres
+          PGDATABASE: rc922_test
         run: |
           set -euo pipefail
           psql -h 127.0.0.1 -U postgres -d rc922_test -v ON_ERROR_STOP=1 -f supabase/tests/rc922_medical_status_fixture.sql
