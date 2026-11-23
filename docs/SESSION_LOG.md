@@ -4123,3 +4123,17 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Added `20261120193000` RC479 anonymous Auth-session SELECT guard to the required release chain; required count 78.
 - Updated production verifier, live contract, migration-chain gate, RC494 count validator, RC479 source validator, forward replay workflow and manifest.
 - Live RC479 migrations remain unapplied. Confirmed-user base-table SELECT remains separate. No Production changes. BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-23 — Backup coverage and release-chain documentation correction
+
+- Merged PR #1013 on main as `08e84d0b06e8532c76c9f93094659f91233de6ea`; the required Production release contract now contains 78 exact migration identifiers, including RC479 `20261120193000` and RC921 `20261123010000`.
+- Fresh read-only Supabase migration inventory: 310 rows through `20261110150618`; the current reconciliation record reports 0/78 exact required identifiers present. No migration was applied to Production.
+- Reviewed official Supabase backup documentation. The CLI `db dump` reference says managed `auth` and `storage` schemas are excluded, while the self-hosted restore guide says `auth.users` is included. Because the guidance conflicts, do not assume Auth coverage; inspect generated artifacts and verify an isolated restore.
+- Updated `docs/runbooks/PRODUCTION_BACKUP_RESTORE_RC484_20261119.md` to require explicit Auth/Storage component coverage, separately captured Storage object inventory, and a tested CLI v2.122.0 baseline.
+- Updated `docs/release/WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md` from 76 to 78 required migrations and added RC479/RC921 identifiers.
+- Added `scripts/validate-production-backup-runbook-current.mjs` and wired it to push/PR path filters plus the forward migration replay validation job.
+- Added audit `docs/audits/PASS_2021_2030_BACKUP_RUNBOOK_SCOPE_AND_RELEASE_RECONCILIATION_20261123.md`; updated Master Production TODO and Project Continuity with the current gate and explicit supersession note for older 76-version entries.
+- Exact-branch CI is pending; no merge is claimed yet.
+- Supabase CLI is not installed in the current execution environment; npm package resolution failed with DNS EAI_AGAIN. RC922 must be created using `supabase migration new` when the pinned CLI is available; no manually named migration was added.
+- No Production DB/Auth/RLS/GRANT/Storage/Edge/payment/wallet/settlement/customer-data mutation occurred. No backup files, Storage exports, Vault key recovery, restore or RPO/RTO evidence were created in this pass. Full platform remains **BLOCKED / NOT CERTIFIED**.

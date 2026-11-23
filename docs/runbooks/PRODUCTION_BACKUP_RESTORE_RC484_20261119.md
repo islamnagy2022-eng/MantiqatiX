@@ -9,14 +9,21 @@
 
 The connected Supabase organization reports the `free` plan. Supabase documents automatic daily database backups for Pro, Team and Enterprise projects; Free projects should regularly export their data with the CLI and maintain off-site backups. PITR is a paid add-on and is not assumed available here.
 
-A database dump alone is not a complete project backup:
-- Supabase database backups include Storage metadata, not the actual Storage object files.
+A database dump alone is not a complete project backup. The exact coverage depends on the backup method:
+- Supabase-managed database backups do not include the bytes of objects stored through the Storage API; those objects need a separate export.
+- The Supabase CLI `db dump` reference says managed schemas such as `auth` and `storage` are excluded. The separate "Restore a Platform Project to Self-Hosted" guide says `auth.users` is included. These statements are not sufficiently consistent to assume Auth table coverage: inspect the actual emitted dump and prove the required Auth tables/rows are present, or record a separately approved and encrypted Auth export/recovery path.
+- Do not assume `storage.objects` metadata or bucket configuration is present in the CLI dump. Capture an independent, read-only source inventory and compare it with the separately exported Storage object bytes.
 - Edge Functions, Auth provider settings/API keys, Realtime settings, extensions and project configuration need separate capture/reconfiguration.
 - Supabase Storage S3 compatibility does not provide S3 object versioning; an independent off-site copy is required.
 
+**Backup coverage rule:** a successful `supabase db dump` exit code is not proof that the Auth schema, Storage metadata, or Storage object bytes are in the backup. The actual files and isolated restore must prove each required component independently.
+
 Official references:
 - [Supabase Database Backups](https://supabase.com/docs/guides/platform/backups)
+- [Supabase CLI db dump reference — managed-schema exclusions](https://supabase.com/docs/reference/cli/supabase-db-dump)
+- [Restore a Platform Project to Self-Hosted — Auth coverage guidance](https://supabase.com/docs/guides/self-hosting/restore-from-platform)
 - [Supabase Backup and Restore using the CLI](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore)
+- [Supabase CLI changelog / breaking changes](https://supabase.com/changelog)
 - [Download Storage Objects](https://supabase.com/docs/guides/storage/management/download-objects)
 - [Supabase Storage S3 Compatibility](https://supabase.com/docs/guides/storage/s3/compatibility)
 
@@ -32,9 +39,11 @@ Official references:
 
 ## 3. Database export
 
-Run from a trusted workstation with Docker and the Supabase CLI installed. Use the Session Pooler connection string from the Supabase **Connect** panel unless direct IPv6 connectivity is known to work. Keep shell tracing disabled (`set +x`) and load the connection string from a protected secret store or ephemeral environment variable.
+Run from a trusted workstation with Docker and the Supabase CLI installed. This repository's forward-replay workflow currently pins Supabase CLI **v2.122.0**; use that exact tested version for this runbook until a separately reviewed CLI upgrade updates the backup and restore tests. Verify it with `supabase --version` before running any export. Do not silently switch to CLI v3: the v3 changelog records command-default changes that can alter which target is selected, and the newer CLI reference must be reviewed before changing this procedure.
 
-The following is the documented three-part logical export. The CLI applies Supabase-specific filtering and should be used instead of raw `pg_dump` for this managed project.
+Use the Session Pooler connection string from the Supabase **Connect** panel unless direct IPv6 connectivity is known to work. Keep shell tracing disabled (`set +x`) and load the connection string from a protected secret store or ephemeral environment variable.
+
+The following is the documented three-part logical export. The CLI applies Supabase-specific filtering; use the documented Supabase CLI instead of raw `pg_dump` for this managed project. These files are only one part of the recovery set; verify their actual schema/table coverage rather than assuming all managed schemas are included.
 
 ```bash
 umask 077
@@ -54,12 +63,25 @@ supabase db dump --db-url "$DATABASE_URL" \
 
 Do not run the commands with shell tracing enabled. Do not include the expanded connection string in logs.
 
+### Verify dump coverage before accepting the backup
+
+After export and before encryption, inspect only the SQL structure/metadata needed to establish which schemas and tables are actually present. Do not print or attach production row contents, personal information, tokens, passwords, or secret values to logs, issues, ChatGPT, or repository files.
+
+Record explicit booleans and evidence for at least:
+- whether `auth.users` and `auth.identities` appear in the emitted data/schema artifacts;
+- whether `storage.buckets` and `storage.objects` appear in the emitted data/schema artifacts;
+- whether the relevant custom application schemas, roles, grants, RLS policies, functions and triggers are covered;
+- which items require a separately approved export/reconfiguration process.
+
+If any required table is absent, mark that component **NOT INCLUDED / NOT VERIFIED** and do not claim that the CLI dump alone backs it up. Use only an approved, encrypted, separately tested export/recovery procedure for that component. Never add production Auth rows or secrets to this repository.
+
 Record a read-only source snapshot before and after the dump:
 - UTC start/end timestamps.
 - Git `main` commit SHA and required migration inventory version.
-- PostgreSQL server version.
-- Row counts for critical business tables, `auth.users`, financial journals, wallet ledgers, orders and payment intents.
+- PostgreSQL server version and exact CLI version.
+- Aggregate row counts for critical business tables, `auth.users`, `auth.identities`, financial journals, wallet ledgers, orders, payment intents and Storage metadata. Counts only; do not export row contents into the manifest.
 - Count of schemas, tables, views, functions, triggers, RLS policies and extensions.
+- Per-component inclusion status and artifact reference.
 - Any export warnings or failures.
 
 ## 4. Encrypt and verify database artifacts
@@ -84,7 +106,7 @@ Verify each encrypted file can be decrypted into a protected temporary directory
 
 ## 5. Export Storage objects separately
 
-The database dump contains Storage metadata, not the actual object bytes. Export every production bucket through the Storage S3-compatible endpoint or the Supabase Storage CLI.
+Supabase-managed database backups include Storage metadata but not the actual object bytes. The Supabase CLI `db dump` reference, however, says the managed `storage` schema is excluded. Therefore, do not assume the CLI dump contains `storage.buckets` or `storage.objects`; inspect the generated artifact and use an independently captured source inventory. Export every production bucket's actual bytes through the Storage S3-compatible endpoint or the Supabase Storage CLI.
 
 1. In Supabase Dashboard, open **Storage → Configuration → S3**.
 2. Enable S3 protocol if it is not already enabled, create a dedicated least-privilege access key/secret, and store the secret securely. It is shown only once.
@@ -100,7 +122,7 @@ aws s3 sync "s3://$BUCKET_NAME" "$BACKUP_DIR/storage/$BUCKET_NAME" \
   --region "$SUPABASE_S3_REGION"
 ```
 
-For multiple buckets, repeat and record each bucket's object count and total bytes. Compare the downloaded object inventory with the database's `storage.objects` metadata. Investigate missing or extra objects before marking the backup complete.
+For multiple buckets, repeat and record each bucket's object count and total bytes. Capture a separate read-only source inventory from the project's `storage.objects` metadata; do not assume this table was included in the CLI dump. Compare the downloaded object inventory with that source snapshot. If metadata itself is absent from all backup artifacts or cannot be reconciled, mark Storage restore as NOT VERIFIED. Investigate missing or extra objects before marking the backup complete.
 
 Archive and encrypt the storage export:
 
@@ -149,9 +171,10 @@ Edge Function source is preserved in the repository; the deployment configuratio
 The manifest must contain only non-secret metadata:
 - Project identifier (not database URL or credentials).
 - Backup UTC start/end timestamps.
-- Source PostgreSQL version and `main` commit SHA.
+- Source PostgreSQL version, exact Supabase CLI version and `main` commit SHA.
 - Names, byte sizes and SHA-256 hashes of encrypted database and Storage artifacts.
-- Storage bucket object counts and byte totals.
+- Per-component coverage status for application schemas, roles/ACLs, Auth schema data, Storage metadata and Storage object bytes; include artifact references and restore evidence, not row contents.
+- Storage bucket object counts and byte totals, compared with a separately captured source metadata inventory.
 - Encryption algorithm and recipient/key identifier (never private key material).
 - Backup destination, access-control owner and retention/expiry date.
 - Operator, reviewer and restore-rehearsal reference.
@@ -201,6 +224,8 @@ psql \
 
 4. Recreate Storage buckets/configuration as required, then upload the separately backed-up objects to the disposable project's S3 endpoint.
 5. Restore/recreate Vault secrets according to Section 6, and verify all four dependent functions without printing decrypted values.
+
+Auth coverage is a separate acceptance component: do not infer that `auth.users` or `auth.identities` were restored merely because `schema.sql` and `data.sql` exist. First confirm the actual CLI dump coverage. If Auth data was not present, keep Auth restore status NOT VERIFIED until an approved encrypted recovery path has been completed and tested on the disposable target. Never expose user rows or credentials in logs.
 6. Because `pg_net` is installed, keep outbound webhooks and scheduled jobs disabled or isolated until the restored environment is explicitly approved for external calls. The current Production inventory has one enabled `public.notifications` trigger, `mnty_notifications_push_after_insert`, which calls `mnty_push_notification_hook()` and sends to the `mnty-push-dispatch` Edge Function. In the disposable restore only, keep this trigger disabled before any test inserts; re-enable it only after Vault secrets, Edge Function configuration and network isolation are verified. Never disable or alter this trigger in Production as part of the backup rehearsal.
 7. Reconfigure Auth providers, redirect URLs, SMTP, API keys, Edge Functions, secrets, Realtime, webhooks and scheduled jobs using the approved configuration inventory.
 8. Reset custom database-role passwords if applicable; do not assume database exports include them. Never copy Production secrets into an untrusted test environment.
@@ -212,7 +237,7 @@ The restore rehearsal is not complete until all of these are recorded:
 - Database connection and PostgreSQL 17 version verified. Current source baseline is approximately 28 MB, 187 user tables, 11 non-system schemas and 6 extensions; use a fresh snapshot at backup time for exact comparison.
 - All expected schemas, tables, views, functions, triggers, extensions and migration ledger rows restored.
 - Critical table row counts match the source snapshot within documented expected drift.
-- Auth user count and representative authentication records verified without exposing credentials.
+- Auth user/identity count and authentication behavior verified only when the actual backup artifacts prove that the relevant Auth records were included or a separately approved recovery path was completed. If Auth records were absent from the CLI dump and no separately tested recovery path exists, this acceptance item remains NOT VERIFIED; a CLI dump alone is insufficient evidence.
 - RLS enabled/forced flags, policy counts and policy expressions match the source snapshot.
 - Function owners, SECURITY DEFINER flags, `search_path`, EXECUTE grants and table ACLs match the source inventory.
 - Financial invariants reconcile: journal debits/credits balance; wallet balances reconcile to immutable transactions; payment intents and provider events are consistent; orders and inventory invariants hold.
@@ -229,7 +254,7 @@ RC484 and the other required migrations remain source-only until:
 - checksum/decryption verification passes;
 - isolated restore rehearsal passes with measured RPO/RTO;
 - rollback/recovery plan is approved;
-- the full ordered 76-version exact migration chain (including RC472/RC473 directory contact-consent foundation, RC485 catalog RPC registry-root, RC486 catalog price-version, RC487 SMM bootstrap hardening, RC488–RC493 anonymous-Auth guards, RC494 settlement registry/scope hardening, and RC495 Storage filename-policy repair, plus RC496 MantiGO OFFERED-only bid acceptance) and live schema drift are reconciled;
+- the full ordered **78-version** exact migration chain (including RC472/RC473 directory contact-consent foundation, RC479 anonymous Auth-session guard (`20261120193000`), RC485 catalog RPC registry-root, RC486 catalog price-version, RC487 SMM bootstrap hardening, RC488–RC493 anonymous-Auth guards, RC494 settlement registry/scope hardening, and RC495 Storage filename-policy repair, plus RC496 MantiGO OFFERED-only bid acceptance and RC921 medical appointment state machine (`20261123010000`). RC479 and RC921 were added to the required release contract by merged PR #1013; their presence in source is not proof they are applied in Production) and live schema drift are reconciled;
 - payment/finance/Edge/Auth/Storage acceptance is complete;
 - the release owner explicitly approves the Production window.
 

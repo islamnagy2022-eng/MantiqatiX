@@ -1,3 +1,18 @@
+## 2026-11-23 — Pass 2021–2030 — Backup coverage and release-chain correction
+
+- [x] PR #1013 merged to main as `08e84d0b06e8532c76c9f93094659f91233de6ea`; current Production release contract requires 78 exact migration identifiers, including RC479 (`20261120193000`) and RC921 (`20261123010000`).
+- [x] Fresh read-only Supabase migration inventory: 310 rows through `20261110150618`. The current reconciliation manifest records 0/78 exact required identifiers present; it remains BLOCKED and this does not imply every intended physical effect is absent.
+- [x] Corrected the backup/restore runbook: actual CLI dump coverage for `auth` and `storage` must be inspected; Auth coverage is explicitly conditional because official Supabase references are inconsistent; Storage object bytes remain separately exported.
+- [x] Pinned the runbook to the repository-tested Supabase CLI v2.122.0 and added automated documentation contract validation to the forward migration workflow.
+- [x] Updated the post-launch backlog to the current 78-version release gate.
+- [ ] Run exact-branch CI for this documentation/validator PR, then merge only if all required checks pass.
+- [ ] Operator-owned encrypted off-site DB + Storage backup, Auth coverage evidence, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO remain NOT VERIFIED.
+- [ ] Generate RC922 with Supabase CLI when an execution environment with the pinned CLI is available; add narrow tenant-wide SERVICE_PROVIDER compatibility tests. Do not hand-author or apply the migration to Production.
+- **Safety:** source/docs/CI only; no Production DB/Auth/RLS/GRANT/Storage/Edge/payment/wallet/settlement/customer-data mutation. Website V1 remains separately deployed; full platform remains **BLOCKED / NOT CERTIFIED**.
+- **Correction:** the older 76-version and 0/76 current-status statements below are superseded by the merged 78-version contract and the current 0/78 reconciliation. Historical audit checkpoints remain unchanged.
+
+---
+
 ## 2026-11-23 — Pass 1871–1880 — Li2Lak Marketplace public-offer eligibility merged
 
 - [x] Merged PR #1002 to `main`: https://github.com/islamnagy2022-eng/MantiqatiX/pull/1002
