@@ -246,17 +246,15 @@ export function mapBusiness(raw: any, provider: any): Business {
   const officialBrandCover = isOfficialMantiqatiX ? resolveDefaultImage({ name: 'MantiqatiX', kind: 'cover' }) : '';
   // The official showcase previously stored time-limited Facebook CDN URLs.
   // Prefer the versioned local brand assets so expiry/hotlinking cannot blank the platform profile.
-  const persistedLogo = String(profile.logoUrl || profile.logo_url || raw.logoUrl || '');
-  const persistedCover = String(profile.coverUrl || profile.cover_url || raw.coverUrl || '');
   const savedLogoSource = String(profile.logo_image_source || profile.logoImageSource || '').toLowerCase();
   const savedCoverSource = String(profile.cover_image_source || profile.coverImageSource || '').toLowerCase();
-  // Explicit owner/AI selections must win for the platform's own activity; legacy/automatic media falls back to first-party brand artwork.
+  // Keep the stable local identity for legacy/automatic media, but honor an explicitly selected owner or AI image.
   const savedLogo = isOfficialMantiqatiX && !['owner', 'ai'].includes(savedLogoSource)
-    ? officialBrandLogo || persistedLogo
-    : persistedLogo || officialBrandLogo;
+    ? officialBrandLogo || String(profile.logoUrl || profile.logo_url || raw.logoUrl || '')
+    : String(profile.logoUrl || profile.logo_url || raw.logoUrl || '') || officialBrandLogo;
   const savedCover = isOfficialMantiqatiX && !['owner', 'ai'].includes(savedCoverSource)
-    ? officialBrandCover || persistedCover
-    : persistedCover || officialBrandCover;
+    ? officialBrandCover || String(profile.coverUrl || profile.cover_url || raw.coverUrl || '')
+    : String(profile.coverUrl || profile.cover_url || raw.coverUrl || '') || officialBrandCover;
   const externalLogoUrl = isOfficialMantiqatiX ? '' : String(profile.externalLogoUrl ?? profile.external_logo_url ?? profile.logo_url ?? raw.externalLogoUrl ?? '');
   const externalCoverUrl = isOfficialMantiqatiX ? '' : String(profile.externalCoverUrl ?? profile.external_cover_url ?? profile.cover_url ?? raw.externalCoverUrl ?? '');
   const isVerified = Boolean(provider?.verified ?? provider?.is_verified ?? raw.isVerified);
