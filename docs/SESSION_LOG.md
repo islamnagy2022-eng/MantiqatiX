@@ -3973,3 +3973,12 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - **No Production DDL/DML, migrations, RLS/GRANT, Auth, Storage, Edge deployments, payment, wallet, settlement or customer-data writes.** GitHub Pages static deployment only. Full platform remains **BLOCKED / NOT CERTIFIED**.
 - Next: encrypted backup/restore and RPO/RTO; reconcile 76 exact migrations; coordinated RC472/RC473 consent bundle; verify monthly checkout; then gallery and post-launch Li2Lak/Paymob/finance work.
 
+
+
+## 2026-11-23 — MX-WEB-CAP-20261123-01 — Website capabilities and launch-readiness
+
+- Registered the user request in the master request ledger issue #599 and created a dedicated execution branch.
+- Reconciled source of truth: current production website source is apps/catalog-frontend/**; uploaded R7 ZIP is historical reference only. Its legacy 1360px canvas setting is not to be copied into current runtime.
+- Added a dependency-ordered acceptance register for SEO/indexation, responsive devices, activity deep links, social/contact channels, dashboards, HTTPS/security, scalable catalogues, blog and AI support.
+- Initial source inspection confirms canonical frontend already uses a responsive viewport meta tag. SEO plan still records owner/domain-dependent tasks: final domain/DNS, Search Console verification, production sitemap/robots/schema, route metadata, prerender/SSR, consent-safe analytics.
+- Safety: no production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement or customer data mutation; no production deployment. Items remain IN PROGRESS / NOT VERIFIED pending implementation and tests.
