@@ -4020,3 +4020,12 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Current main auth source uses Google OAuth for admin, Supabase Auth for subscriber login, ACTIVE membership-derived ordinary roles and no localStorage auth-session persistence in AppContext.
 - Current main still calls `mnty_can_platform_admin`; live helper remains membership-derived. Platform-admin P0 not resolved. Auth contract validator source was inspected; no new CI pass claimed.
 - No Production mutation/deployment. Full Production remains BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1843_1852_R7_SOURCE_AND_CURRENT_AUTH_RECONCILIATION_20261123.md`.
+
+
+## 2026-11-23 — Pass 1853–1860 — live MantiGO global RPC recheck
+
+- Four global MantiGO SECURITY DEFINER RPCs are authenticated-executable, anon-denied and use `search_path=public` in live Production.
+- Dashboard/financial report retain broad tenant membership checks but read global platform data; settlement/expiration are global mutators. None invoked.
+- Aggregate-only membership query: 5 active users match legacy role predicates; 4 are not in `private.platform_admins`. No identifiers returned.
+- Financial report references legacy ledger columns. RC464/RC471 source already corrects the relevant functions with registry checks and canonical columns; current live migration ledger has not applied them.
+- No Production DDL/DML, migration, auth, RLS, grant, financial or ride mutation. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1853_1860_LIVE_MANTIGO_GLOBAL_RPC_AUTHORIZATION_20261123.md`.
