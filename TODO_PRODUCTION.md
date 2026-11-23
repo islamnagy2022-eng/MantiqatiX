@@ -1,3 +1,18 @@
+### Superseding execution checkpoint — 2026-11-23 — Master source-of-truth adopted
+
+- Uploaded `الامر-التقني.txt` is the operating protocol; the matching canonical repository file is `docs/MASTER_SOURCE_OF_TRUTH.md`. Follow its DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT TASK loop and P0–P6 priority order.
+- Uploaded `bizcatalog-manager (11).zip` is R7-v7.0.0 historical reference (233 files, 37 directory entries; Android WebView wrapper preserved). It is not the current deployed website source and is NOT SAFE TO DEPLOY as-is. Audit: `docs/audits/PASS_1771_1780_MASTER_SOURCE_OF_TRUTH_RECONCILIATION_20261123.md`.
+- Fresh live read-only Supabase check: Production MANTIQATIX FINAL is ACTIVE_HEALTHY on PostgreSQL 17.6.1.155 / Free plan; Demo is INACTIVE; 310 migration rows through `20261110150618`; 42 ACTIVE Edge Functions.
+- Security Advisor: 9 RLS-enabled/no-policy findings (checked direct anon/authenticated SELECT/INSERT privileges are false on those tables); 1 anon-callable and 65 authenticated-callable SECURITY DEFINER warnings; 90 anonymous-sign-in policy warnings; leaked-password protection disabled. Do not blanket-revoke or mass-change policies.
+- Backup/Storage/Vault export and separate PostgreSQL 17 restore are WAIT for operator-controlled credentials, off-site destination and independent reviewer. Production remains BLOCKED / NOT CERTIFIED.
+- PR #994 remains unmerged. Existing 150-item catalogue entitlement was restored and preserved; no commercial quota change is authorized.
+- AI support UI is now disabled by default behind `VITE_AI_SUPPORT_ENABLED=true`; the live `ai-gemini-proxy` is v5 and does not yet implement `technical_support`. PR source rejects anonymous Auth sessions and treats user input as untrusted JSON, but the feature must remain hidden until server-side rate limiting, source-parity checks, approved Edge deployment and deployed-origin tests pass.
+- No Production database/Auth/RLS/GRANT/Storage/Edge/payment/wallet/settlement mutation or deployment was performed.
+
+**Next:** continue P0 source-only review and exact deployed Edge source comparison; wait on the operator-owned encrypted backup/restore task. Do not merge PR #994 until all exact-head CI checks pass and deployment behavior is confirmed safe.
+
+---
+
 ### Implementation checkpoint — 2026-11-23 — PR #994 — exact-head CI pending
 
 **Branch:** `feat/web-capabilities-launch-readiness-20261123`  
