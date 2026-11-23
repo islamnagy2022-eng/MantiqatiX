@@ -5653,6 +5653,29 @@
       "smm_admin_service_role_select_insert_update_delete": false,
       "unique_order_intent_guard_observed": false,
       "note": "Existing provider/idempotency indexes do not replace missing atomic RPC and claim contracts."
+    },
+    "provider_profile_privacy": {
+      "table": "public.marketing_provider_profiles",
+      "rls": true,
+      "force_rls": true,
+      "anon_select": true,
+      "authenticated_select": true,
+      "policies": {
+        "public_active_select": "PERMISSIVE for anon,authenticated; predicate status='ACTIVE' only",
+        "crm_manager_select": "PERMISSIVE for authenticated; any active SUPER_ADMIN/ADMIN/OWNER/MANAGER/BUSINESS_OWNER membership; no tenant/business scope",
+        "owner_all": "rejects is_anonymous=true and binds owner_user_id=auth.uid()"
+      },
+      "columns": 19,
+      "sensitive_column_names": [
+        "owner_user_id",
+        "settings",
+        "profile_image_path"
+      ],
+      "anonymous_auth_users_current": 0,
+      "anonymous_auth_signins_enabled": true,
+      "rc479_effect": "source migration only revokes anon SELECT; does not remove authenticated public-active SELECT or add anonymous Auth SELECT guard",
+      "no_profile_rows_selected": true,
+      "required_fix": "forward migration to close base table direct read, scope CRM policy, registry-only platform root, preserve owner via narrow backend projection, keep public catalog curated, adversarial PG17 tests"
     }
   }
 }
