@@ -5143,3 +5143,17 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Apply RC487 through reconciled release chain; do not enable SMM until RC456/RC487 and all SMM finance/security gates are live.
 - No Production changes. Full Production BLOCKED / NOT CERTIFIED.
 - Evidence: `docs/audits/PASS_1871_1880_SMM_AUTH_TRIGGER_AND_DEFERRED_SERVICE_RECHECK_20261123.md`.
+
+
+### Pass 1881–1890 — live catalog-admin Edge parity — 2026-11-23
+- [x] 1881 — Deployed catalog-admin v20 ACTIVE, verify_jwt=false, source hash recorded.
+- [x] 1882 — v20 manually validates Bearer Auth and rejects anonymous users, but derives platform scope from SUPER_ADMIN membership metadata rather than registry RPC.
+- [x] 1883 — Current main catalog-admin source calls `mnty_can_platform_admin()` and no longer treats membership metadata alone as root authority.
+- [x] 1884 — Aggregate-only query: one v20-accepted active membership and that user is in private registry; zero non-registry users currently accepted by this narrower predicate.
+- [x] 1885 — Live helper still delegates to broad null-scope `mnty_can('admin',NULL,NULL,NULL)`; deploying current Edge source alone is unsafe and may widen access.
+- [x] 1886 — verify_jwt=false is paired with manual token verification; not itself a flaw.
+- [x] 1887 — Confirmed current-main release notes require coordinated DB + Edge rollout.
+- [x] 1888 — Confirmed deployed v20/source main authorization drift.
+- [ ] Reconcile/replay migrations, apply registry helpers and dependent RPCs, then deploy matching Edge bundle and adversarially verify.
+- No Edge or Production changes. P0 BLOCKED / NOT CERTIFIED.
+- Evidence: `docs/audits/PASS_1881_1890_CATALOG_ADMIN_EDGE_REGISTRY_PARITY_20261123.md`.
