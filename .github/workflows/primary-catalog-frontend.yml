@@ -134,6 +134,9 @@ jobs:
       - name: Test route SEO metadata and private-route noindex behavior
         working-directory: apps/catalog-frontend
         run: npx tsx tests/seo-metadata.test.ts
+      - name: Test unlimited catalogue quota behavior
+        working-directory: apps/catalog-frontend
+        run: npx tsx tests/catalog-quota.test.ts
       - name: Test public catalog quote-only visibility contract
         working-directory: apps/catalog-frontend
         run: npx tsx tests/public-catalog-pricing.test.ts
