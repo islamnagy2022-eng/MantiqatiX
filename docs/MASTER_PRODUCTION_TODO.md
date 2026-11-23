@@ -1,3 +1,18 @@
+## 2026-11-23 — Pass 2031–2040 — RC922 tenant-wide medical provider scope
+
+- [x] Created RC922 using the repository-pinned Supabase CLI v2.122.0 in CI; timestamped filename: `20261123221950_rc922_medical_appointment_tenant_wide_provider_scope.sql`.
+- [x] RC922 only permits a tenant-wide `business_id IS NULL` membership when the membership role is `SERVICE_PROVIDER`; exact owner, active profile, appointment business and tenant checks remain mandatory.
+- [x] Adversarial PostgreSQL 17 tests passed: owned same-business profile is allowed; a provider cannot mutate an unowned profile in another business; tenant-wide `MANAGER`, `ADMIN` and `OWNER` memberships do not receive the exception.
+- [x] RC921 + RC922 behavior and RC921 row-lock concurrency passed in disposable PostgreSQL 17; CI proof: [45278540531](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45278540531). The CLI-generated migration artifact was verified and the exact file committed.
+- [x] Current required release chain increased from 78 to 79 exact versions; RC922 is now included in the live release contract, production verifier, release gate validator, reconciliation manifest and backup/runbook checks.
+- [x] Standard forward-replay workflow now applies RC921 + RC922 and runs their behavioral/concurrency tests on PostgreSQL 17; exact-branch replay and gate CI must pass before PR merge.
+- [ ] Production application remains blocked. The last read-only Production ledger snapshot is 310 rows through `20261110150618`; RC922 is source-only and has not been applied.
+- [ ] Encrypted off-site database + Storage backup, Auth coverage evidence, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO remain NOT VERIFIED.
+- **Safety:** no Production DB/Auth/RLS/GRANT/Storage/Edge/payment/wallet/settlement/customer-data mutation. Website V1 stays separately deployed. Full platform remains **BLOCKED / NOT CERTIFIED**.
+- **Supersession:** the prior 78-version continuation note is a historical snapshot; current exact source gate is 79 versions.
+
+---
+
 ## 2026-11-23 — Pass 2021–2030 — Backup coverage and release-chain correction
 
 - [x] PR #1013 merged to main as `08e84d0b06e8532c76c9f93094659f91233de6ea`; current Production release contract requires 78 exact migration identifiers, including RC479 (`20261120193000`) and RC921 (`20261123010000`).
