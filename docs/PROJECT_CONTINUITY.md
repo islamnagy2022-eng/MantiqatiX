@@ -3427,3 +3427,68 @@ Do not deploy only the Edge bundle or only RC473. First require encrypted off-si
 ## Pass 1801–1810 — Li2Lak marketplace ad hardening — 2026-11-22
 
 Hardened the existing Marketplace Home ad URL contract on PR #969. HTTPS is required; non-default ports, embedded credentials, localhost, `.localhost`, `.local`, and IPv4/IPv6 literal hosts are rejected. Invalid creative URLs discard the ad; invalid target URLs leave a non-clickable creative. Fixed trailing-dot hostname normalization and added regression cases. Commits: `6b3386b`, `f2411ee`, `9316c5d`, `820778a`. Evidence: `docs/audits/PASS_1801_1810_LI2LAK_MARKETPLACE_AD_HARDENING_20261122.md`. Exact-head CI was still queued at last check; no pass claimed. No Production change. Continue next with Marketplace public-offer permission/availability regression coverage and then owner-scoped media design; do not start general business reviews or video deployment without separate provenance/moderation and storage contracts. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-11-23 — Pass 1833–1842 — current-main and live Production recheck
+
+Current main head observed: `3c24d840f279e0e2f5c0b66302a2ee12ddedab9c`. The Marketing navbar action now resolves the official `MNTY-MARKETING` activity by canonical code and persisted business UUID; a browser E2E asserts that the correct storefront and catalog open. Exact-head CI and deployed-origin verification were not evidenced by the available commit status/workflow lookup and remain open.
+
+Fresh read-only live Supabase inventory: PostgreSQL 17.6.1.155, 310 migration rows through `20261110150618`, 42 active Edge Functions. Security Advisor: 9 RLS/no-policy INFO, 65 authenticated SECURITY DEFINER WARN, 1 anonymous SECURITY DEFINER WARN. Performance Advisor: 28 multiple-permissive-policy WARN. Live `directory-listings` v18 remains intentionally fail-closed (empty GET with `directoryDisabled=true`, POST 503); preserve it.
+
+P0 remains: membership-derived `is_platform_admin()`, membership-delegating `mnty_can_platform_admin()`, 57 referencing policy expressions across 24 tables, and `private.platform_admins` FORCE RLS false. `marketing_provider_profiles` still has anon SELECT plus a public-active SELECT policy, even though RLS and FORCE RLS are enabled. Contact-consent and migration-release registry tables are absent. No provider profile values or other application rows were selected.
+
+Next: operator-owned encrypted DB+Storage backup, Vault/key recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO; then exact migration reconciliation and coordinated registry/consent/Edge release. Keep national directory disabled until consent, source-rights, Edge parity and deployed-origin tests pass. No Production mutation or deployment occurred. **FULL PLATFORM BLOCKED / NOT CERTIFIED.** Evidence: `docs/audits/PASS_1833_1842_LIVE_PRODUCTION_AND_MAINLINE_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — Pass 1843–1852 — uploaded R7 and current-main auth reconciliation
+
+Recomputed archive and directive SHA-256 values; archive integrity extraction passed (270 ZIP entries, 233 files, 15 tests, one migration, three Android wrapper files). R7 manifest points to a Supabase ref different from the connected live Production project; do not use the manifest to connect or deploy. R7 still contains the previously documented source-level P0 issues: local JSON authority, unsafe auth/state/wallet routes, fallback secrets, service-role key selection in a client-imported module, demo credentials/client-side admin role, and incomplete Android wrapper. Preserve it as an immutable UI/feature reference only.
+
+Current main auth is materially safer: LoginModal uses Google OAuth, admin login delegates to Google OAuth, subscriber login uses Supabase Auth, bootstrap derives ordinary access from ACTIVE memberships, and no localStorage auth-session persistence was found in current AppContext. However, bootstrap still calls `mnty_can_platform_admin`, which live Production inspection confirmed delegates to membership-derived `mnty_can('admin', NULL, NULL, NULL)`; platform-admin registry P0 remains open. Source validator evidence is not a CI pass. No Production mutation or deployment occurred. **FULL PLATFORM BLOCKED / NOT CERTIFIED.** Evidence: `docs/audits/PASS_1843_1852_R7_SOURCE_AND_CURRENT_AUTH_RECONCILIATION_20261123.md`.
+
+
+## 2026-11-23 — Pass 1853–1860 — live MantiGO global RPC authorization
+
+Fresh read-only live inspection confirms four global MantiGO RPCs remain SECURITY DEFINER, executable by authenticated and not anon, with `search_path=public`. Dashboard and financial report functions still authorize broad active tenant membership roles while reading platform-wide aggregates; settlement and stale-ride expiry remain global mutators behind broad legacy role checks. Aggregate-only query found 5 active users in accepted legacy roles, 4 not present in `private.platform_admins`; no identifiers were selected. Financial report still references legacy ledger column names. Current main already has RC464/RC471 registry-backed replacements and adversarial tests, but Production migration ledger is still behind. Do not apply a single migration or invoke the RPCs. Full Production remains BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1853_1860_LIVE_MANTIGO_GLOBAL_RPC_AUTHORIZATION_20261123.md`.
+
+
+## 2026-11-23 — Pass 1861–1870 — Auth advisor and deny-by-default table recheck
+
+Fresh Security Advisor still reports anonymous Auth enabled and leaked-password protection disabled. The nine RLS-enabled/no-policy tables have no direct anon or authenticated table privileges; they are currently deny-by-default and must not receive blanket policies. The single anon-callable SECURITY DEFINER is targeted-ad discovery: approved active ads only, geo/ad-space matching, empty search_path and limit capped at 50; preserve its intentional public read contract. Current-main source search found no `signInAnonymously` call, but external integrations need confirmation. Owner actions: enable leaked-password protection and test auth flows; disable anonymous Auth only after external dependency check. No Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1861_1870_AUTH_ADVISOR_AND_DENY_BY_DEFAULT_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — Pass 1871–1880 — SMM trigger and deferred service
+
+Live Auth trigger `trg_smm_bootstrap_admin` remains active and calls SECURITY DEFINER `smm_bootstrap_first_admin()`, which grants SMM admin to the first Auth user if `smm_admins` is empty. Current aggregate: 8 Auth users, one SMM allowlist row, one platform-admin registry row; no user IDs selected. Table RLS is on; anon/authenticated direct SELECT denied; service_role has no SELECT/DML. Live SMM gateway v13 is hard-gated by `SMM_INITIAL_LAUNCH_DEFERRED=true` and returns 503 before auth. Current main RC487 removes the first-user trigger/function and grants service_role SELECT only; migration is unapplied. Keep SMM disabled until RC456/RC487 and complete security/finance gates are released. No Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1871_1880_SMM_AUTH_TRIGGER_AND_DEFERRED_SERVICE_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — Pass 1881–1890 — catalog-admin Edge registry parity
+
+Deployed `catalog-admin` v20 manually validates Auth but uses a legacy membership-metadata predicate for platform scope. Current main source instead calls `mnty_can_platform_admin()`. Aggregate-only check found one active v20-accepted membership, and it is present in the registry; no non-registry account currently meets that narrower predicate. However, the live helper remains broad/null-scope membership-based. Deploying the current Edge source alone before the helper migration could widen access; do not do so. Coordinate RC464/RC471/RC484/RC485 with migration reconciliation and backup/replay gates, then deploy the matching Edge bundle and test negative roles. No changes. P0 remains BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1881_1890_CATALOG_ADMIN_EDGE_REGISTRY_PARITY_20261123.md`.
+
+
+## 2026-11-23 — Pass 1891–1900 — critical Edge/payment parity
+
+Compared 13 high-impact deployed Edge entrypoints against current main. Nine match exactly (public catalog/directory, payment-webhook, MantiGO payment intent, API, order status, post-financial-journal, settlement-create, subscription-start-trial). High-risk drift remains in Paymob webhook, payment-intent, subscription-payment-intent, digital-page-payment-intent, settlement-financial-atomic, financial-journal, order-create, catalog-admin and push-dispatch; health is still static. Directory-listings v18 intentionally remains fail-closed.
+
+Live DB is missing current Paymob atomic payment/failure RPCs and subscription claim RPCs; subscription encrypted-secret columns are absent; digital-page finalizer is still four-argument; financial-journal service_role EXECUTE remains false pending RC449A→RC450. Do not deploy functions individually. No provider calls or Production writes/deployments. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1891_1900_CRITICAL_EDGE_PAYMENT_PARITY_20261123.md`.
+
+
+## 2026-11-23 — Pass 1901–1910 — registration/business Edge parity
+
+Compared 10 registration/onboarding/legal Edge entrypoints. Eight match main. Customer registration v4 calls `ensure_customer_membership_for_user`, while main calls `activate_customer_registration_atomic`; both RPCs exist and are service_role-only, but their behavior differs. Existing validator/audit requires an explicit behavior decision and disposable staging matrix before convergence. Business-register v9 still uses membership metadata for platform-root; main calls the registry helper, but the live helper remains weak/null-scope, so Edge alone must not be deployed. Aggregate-only query found one active legacy predicate match and it is in registry. No registration or DB changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1901_1910_REGISTRATION_EDGE_PARITY_20261123.md`.
+
+
+## 2026-11-23 — Pass 1911–1920 — Storage anonymous Auth review
+
+Live `storage.objects` RLS is on, but anon/authenticated have table CRUD grants; row policies decide actual access. Current policies are authenticated, but some allow a missing `is_anonymous` claim, and platform-brand policies use any active SUPER_ADMIN membership. RC488 restrictive confirmed-Auth write policies and RC495 registry-backed brand policies are absent live. Aggregate-only query found one active SUPER_ADMIN and it is in registry. Buckets: media private; profile-media public with image-only 5 MiB limit. Both buckets currently contain zero objects; no current file leak observed. Do not alter Storage until exact migration chain replay/backup gate. No changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1911_1920_STORAGE_ANONYMOUS_AUTH_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — Pass 1921–1930 — directory contact-consent recheck
+
+Live contact-consent registry absent. Public listings counts: 868 PUBLISHED/UNCLAIMED, 1 PUBLISHED/CLAIM_PENDING, 87 DRAFT, 9 HIDDEN; no metadata row marks public contact enabled. The listings table remains backend-only. Directory Edge v18 is fail-closed; public-catalog-directory v19 matches main and only returns contact fields when both owner-enabled and server-audited flags are true. Ten business rows exist; zero have either public-contact flag set. No contact details read or published. Keep all 878 directory rows hidden until RC472/RC473, source rights, owner consent and revocation tests pass. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1921_1930_DIRECTORY_CONTACT_CONSENT_RECHECK_20261123.md`.
+
+
+## 2026-11-23 — Pass 1931–1940 — migration chain and finance recheck
+
+Live migration ledger has 310 rows through `20261110150618`; current main requires 76 exact release identifiers, 0 of which are present. This exact-ID mismatch does not mean every migration effect is absent because aliases/forward repairs and later migrations exist; reconcile exact statements/effects and do not blindly replay. Disposable 99-migration schema-only replay is not a real Production backup restore or RPO/RTO test. Nine core financial tables remain empty; no provider sandbox or signed callback E2E performed. No Production changes. Full Production BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/PASS_1931_1940_EXACT_MIGRATION_AND_FINANCE_RECHECK_20261123.md`.
