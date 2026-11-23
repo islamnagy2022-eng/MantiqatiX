@@ -71,7 +71,8 @@ const ProductCard: React.FC<{
     kind: product.type === 'service' ? 'service' : 'product',
   });
   const image = product.imageUrl || defaultImage;
-  const hasDiscount = Number(product.comparePrice || 0) > Number(product.price || 0);
+  const hasDiscount = !product.requiresQuote && Number.isFinite(product.price) && product.price > 0 &&
+    typeof product.comparePrice === 'number' && Number.isFinite(product.comparePrice) && product.comparePrice > product.price;
   const discount = hasDiscount ? Math.round((1 - product.price / Number(product.comparePrice)) * 100) : 0;
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -146,10 +147,12 @@ export const MarketplaceHome: React.FC = () => {
     product.isAvailable && businessById.has(product.businessId)
   ), [directoryProducts, businessById]);
   const productOffers = useMemo(() => publishedProducts.filter((product) =>
-    product.type === 'product' && Number(product.comparePrice || 0) > Number(product.price || 0)
+    product.type === 'product' && !product.requiresQuote && Number.isFinite(product.price) && product.price > 0 &&
+    typeof product.comparePrice === 'number' && Number.isFinite(product.comparePrice) && product.comparePrice > product.price
   ).slice(0, 8), [publishedProducts]);
   const serviceOffers = useMemo(() => publishedProducts.filter((product) =>
-    product.type === 'service' && Number(product.comparePrice || 0) > Number(product.price || 0)
+    product.type === 'service' && !product.requiresQuote && Number.isFinite(product.price) && product.price > 0 &&
+    typeof product.comparePrice === 'number' && Number.isFinite(product.comparePrice) && product.comparePrice > product.price
   ).slice(0, 8), [publishedProducts]);
   const smartPicks = useMemo(() => verifiedBusinesses.slice(0, 6), [verifiedBusinesses]);
   const personalBusiness = businesses.find((business) => business.id === authSession.businessId);
