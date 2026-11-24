@@ -3584,3 +3584,13 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 - Branch `audit/p0-anonymous-auth-storage-live-recheck-20261124` current checked head `7b585ba393ee076aabf04671ac9da21a69598f95` passed runs 45411811229, 45411811351, 45411811012, 45411811582, 45411811026, 45411811175, 45411810983, 45411811536, 45411811109 and 45411811613. All relevant jobs reported success, including exact chronological replay and PG17 actor matrix with inactive tenant SUPER_ADMIN rejection.
 - Pages workflow 45411811562 passed source validation; deployment and public-only deployment steps were skipped for the PR event. No web deployment occurred.
 - PR #1057 remains an audit/tests-only branch. Production remains read-only; security fixes have not been applied. Do not claim P0 closure or Production certification.
+
+
+## 2026-11-24 — P0.3 directory contact-consent live recheck
+- New evidence: docs/audits/P0_3_DIRECTORY_CONSENT_LIVE_RECHECK_20261124.md.
+- Production contact consent table directory_listing_contact_consents is absent; RC473 migration ID 20261118020000 is absent. RC472 review_directory_listing_claim_atomic RPC and ux_user_memberships_user_business_branch_nullsafe index are also absent.
+- Source-rights evidence table exists under RLS + FORCE RLS with service-role-only access, but its row count is 0 (including 0 approved evidence rows). New doctor imports are staged as DRAFT and doctor publication requires current approved source + commercial republication evidence; non-doctor source-rights rules remain a separate open check.
+- Live public directory tables have RLS + FORCE RLS and no anon/authenticated SELECT grants. Aggregate listing count: 965 total, 869 PUBLISHED, 87 DRAFT, 9 HIDDEN; 568 published doctors. One claim request is REVIEWING; no row identity was read.
+- Supabase returned exact deployed directory-listings v18 source: single-file fail-closed stub, hash bb65d74325f8bdf08f060f7ae2517bb30901630635d1de4f35523d7cef6afe48, verify_jwt=false; GET empty with directoryDisabled=true, POST 503. The endpoint returns no listing or contact values.
+- Updated docs/release/production-migration-reconciliation.json and scripts/validate-directory-contact-consent.mjs to reflect live v18 and distinguish stored DB contact fields from actual public endpoint exposure. No Production changes or deployments.
+- Keep directory disabled until RC472/RC473, source-rights, exact-head CI, backup/restore, full Edge bundle parity and deployed-origin tests pass.
