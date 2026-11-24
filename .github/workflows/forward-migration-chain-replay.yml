@@ -23,6 +23,7 @@ on:
       - "supabase/tests/rc479_anonymous_auth_session_baseline.sql"
       - "supabase/tests/rc479_anonymous_auth_session_boundary_integration.sql"
       - "scripts/validate-rc921-medical-appointment-state-machine.mjs"
+      - "scripts/validate-rc501-is-platform-admin-caller-search-path.mjs"
       - "scripts/test-rc921-medical-status-concurrency.sh"
       - "supabase/tests/rc921_medical_status_fixture.sql"
       - "supabase/tests/rc921_medical_status_integration.sql"
@@ -220,7 +221,10 @@ jobs:
       - name: Validate RC469 shared caller search_path contract
         run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
 
-      - name: Validate strict Production release gate and exact 80-version contract
+      - name: Validate RC501 platform-admin caller search_path contract
+        run: node scripts/validate-rc501-is-platform-admin-caller-search-path.mjs
+
+      - name: Validate strict Production release gate and exact 81-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
 
       - name: Validate current backup runbook and release migration scope
