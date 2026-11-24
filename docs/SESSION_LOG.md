@@ -4270,3 +4270,11 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] RC494 settlement writer service_role-only but tenant membership-derived rather than registry-root; RC495 old storage branding role policies/filename expressions remain; RC496 ride lock present but target bid OFFERED validation and unique winner index absent.
 - [x] Evidence: `PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md`.
 - [x] No Production mutation; ledger remains 310 rows through `20261110150618`.
+
+
+## 2026-11-24 — RC485–RC496 catalog, SMM, anonymous Auth, settlement and MantiGO recheck
+- [x] RC485 catalog functions remain on old path and no registry helper calls; RC486 lacks unique version index and transaction lock; RC487 first-user SMM admin trigger still inserts the first Auth signup when allowlist empty.
+- [x] RC488–493 restrictive confirmed-auth controls absent across storage writes, 15 financial tables, medical, support, InDrive, CRM, projects and notifications. Financial tables still have RLS+FORCE RLS and permissive authenticated reads; guards are separate and missing.
+- [x] RC494 lacks settlement business_id column/index, registry authority and business_id population; RC495 storage brand admin policies remain membership-based; RC496 locks ride row but does not check target bid OFFERED state and lacks unique one-winner index.
+- [x] Evidence: `PASS_2271_2280_RC485_RC496_CATALOG_AUTH_SETTLEMENT_MANTIGO_RECHECK_20261124.md`.
+- [x] Read-only audit only; Production ledger remains 310 rows through `20261110150618`; no Production mutation.
