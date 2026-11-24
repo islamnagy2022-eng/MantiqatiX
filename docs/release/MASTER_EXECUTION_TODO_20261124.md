@@ -43,7 +43,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 ## P1 — Database and backend contracts
 ### P1.1 Migration reconciliation
 - [x] Refresh the ordered mainline release manifest (80 required identifiers at the 2026-11-24 checkpoint).
-- [ ] Classify every migration by physical effect: exact-present, alias/effect-present, safe-to-replay, superseded/forward-fixed or blocked.
+- [ ] Classify every migration by physical effect: exact-present, alias/effect-present, safe-to-replay, superseded/forward-fixed or blocked. P0 snapshot is recorded in `docs/audits/PASS_2081_2090_PRODUCTION_PHYSICAL_EFFECT_RECONCILIATION_20261124.md`; full 80-ID matrix remains open.
 - [ ] Reconcile functions, policies, ACLs, indexes, triggers and constraints; 0/80 exact ledger matches is not proof all effects are absent.
 - [x] Run full chronological forward replay on GitHub Actions PostgreSQL 17; 116 later migrations applied and the replay job passed.
 - [ ] Never blindly replay the release chain on Production.
@@ -130,4 +130,4 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Re-read live authorization definitions and measured 57 policies across 24 tables.
 - [x] Verified existing historical RC464/RC484/RC922 test evidence; did not mislabel historical runs as current full release certification.
 - [x] Completed a read-only direct dependency closure pass for nine critical Edge functions; no Production Edge or database changes.
-- [ ] Next: complete physical-effect reconciliation for all 80 required migration IDs and Edge dependency closure; then perform the final encrypted backup/restore rehearsal before any Production DB/Edge write.
+- [ ] Next: complete the remaining 80-ID physical-effect matrix and Edge dependency closure; then perform the final encrypted backup/restore rehearsal before any Production DB/Edge write.
