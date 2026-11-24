@@ -5908,5 +5908,61 @@
     },
     "production_mutation": "NONE",
     "report": "docs/audits/PASS_2201_2210_PHYSICAL_OBJECT_RECHECK_20261124.md"
+  },
+  "migration_effect_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_RECHECK",
+    "checked_at": "2026-11-24",
+    "source_baseline": "da1b17ccbaeefd501dee1456bd76b3f3e39bbbd8",
+    "required_source_versions": 82,
+    "live_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "exact_required_version_matches": 0
+    },
+    "historical_crosswalk": {
+      "source": "docs/release/REQUIRED_63_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261119.md",
+      "required_source_rows": 63,
+      "status": "HISTORICAL — object statuses must be refreshed; not treated as current"
+    },
+    "current_migrations_checked": 19,
+    "policy_targets": {
+      "expected": 30,
+      "absent": 29,
+      "present_but_incorrect": 1,
+      "rc495_named_storage_policies_present_but_legacy": 5
+    },
+    "findings": {
+      "rc484": "private.platform_admins exists, RLS on/FORCE RLS off; is_platform_admin remains SECURITY INVOKER/search_path=public and membership-derived",
+      "rc479_forward": "marketing_provider_profiles_confirmed_auth_select restrictive policy absent",
+      "rc485": "all seven catalog RPC signatures exist, all search_path=public, none references private.platform_admins; ACL parity requires separate review",
+      "rc486": "catalog_item_prices_item_branch_version_uidx absent; live price RPC lacks pg_catalog.pg_advisory_xact_lock",
+      "rc487": "trg_smm_bootstrap_admin and smm_bootstrap_first_admin() remain present",
+      "rc488": "0/3 expected Storage confirmed-Auth restrictive policies present",
+      "rc489": "0/15 expected private-financial confirmed-Auth restrictive policies present",
+      "rc490": "medical_appointments confirmed-Auth restrictive policy absent",
+      "rc491": "support_tickets confirmed-Auth restrictive policy absent",
+      "rc492": "0/4 expected InDrive restrictive policies present",
+      "rc493": "0/3 expected CRM/notification restrictive policies present",
+      "rc494": "settlement_transactions.business_id column and settlement_transactions_business_id_idx absent; live settlement function retains search_path=pg_catalog, public",
+      "rc495": "five named Storage policies exist but remain membership-SUPER_ADMIN based and use old filename predicates",
+      "rc496": "mantigo_bids_one_accepted_per_ride_idx absent; accept/create/lock functions remain search_path=public",
+      "rc921_rc922": "medical status function exists but remains search_path=public, pg_temp and lacks assigned-provider/forward-transition guards",
+      "rc923_rc925": "all seven catalog RPCs exist; four retain legacy COALESCE anonymous checks, three have no claim check; none has explicit IS DISTINCT FROM 'false'; all search_path=public",
+      "rc924": "agreements_confirmed_auth_select restrictive policy absent; existing permissive agreements_participant_read predicate incorrectly correlates ap.agreement_id=ap.id and uses COALESCE false"
+    },
+    "policy_target_details": {
+      "rc479": 1,
+      "rc488": 3,
+      "rc489": 15,
+      "rc490": 1,
+      "rc491": 1,
+      "rc492": 4,
+      "rc493": 3,
+      "rc924": 2
+    },
+    "source_file": "docs/release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md",
+    "report": "docs/audits/PASS_2211_2230_RC484_RC925_SOURCE_TO_LIVE_EFFECT_RECHECK_20261124.md",
+    "production_mutation": "NONE",
+    "limitation": "Focused read-only review of 19 later migrations, not a complete live inventory of all effects from the earlier 63 migrations. Historical crosswalk rows remain historical until refreshed."
   }
 }
