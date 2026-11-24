@@ -572,6 +572,11 @@ jobs:
             artifact_id="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?per_page=100" --jq ".artifacts[] | select(.name == \"${EXPECTED_ARTIFACT}\" and .expired == false) | .id" 2>/dev/null | head -n 1 || true)"
             if [ -n "${artifact_id}" ]; then
               echo "PAGES_ARTIFACT_METADATA_READY=PASS artifact_id=${artifact_id} attempt=${attempt}"
+              echo "PAGES_ARTIFACT_PROPAGATION_SETTLE=START seconds=20"
+              sleep 20
+              settled_artifact_id="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?per_page=100" --jq ".artifacts[] | select(.name == \"${EXPECTED_ARTIFACT}\" and .expired == false) | .id" 2>/dev/null | head -n 1 || true)"
+              test -n "${settled_artifact_id}"
+              echo "PAGES_ARTIFACT_PROPAGATION_SETTLE=PASS artifact_id=${settled_artifact_id}"
               exit 0
             fi
             echo "Waiting for GitHub Actions artifact metadata (${attempt}/15)..."
@@ -582,7 +587,7 @@ jobs:
           exit 1
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5.0.1
         with:
           artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Verify V6 production root, legacy catalog rollback, and Preview alias
