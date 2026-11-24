@@ -27,6 +27,10 @@ assert.match(getSource, /DIRECTORY_SOURCE_RIGHTS_SCAN_LIMIT/,
   "A bounded scan must fail explicitly instead of silently skipping eligible rows");
 assert.match(contract, /claiming or ownership[\s\S]{0,240}source republication permission|owner claim alone never waives that requirement/i,
   "Claim ownership must not bypass the separate source-republication requirement");
+assert.match(contract, /separatelyGovernedNonDoctorTypes = new Set\(/,
+  "Non-doctor publication must use an explicit, separate activity-type allowlist");
+assert.match(contract, /Unknown or missing listing types are not eligible/,
+  "Unknown listing types must fail closed rather than bypass the doctor source-rights gate");
 assert.match(contract, /isCurrentDoctorRepublicationEvidence\(/,
   "Doctor publication must reuse the exact source/host/scope/date/revocation validator");
 assert.match(tests, /approved exact-host and exact-source match|current exact-host/i,
