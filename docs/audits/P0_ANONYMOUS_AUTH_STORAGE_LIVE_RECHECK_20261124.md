@@ -145,3 +145,9 @@ The following workflows completed successfully; they do not modify or certify Pr
 Additional output markers from run 45407602805: RC485/RC923 anonymous-session denial for all seven catalog RPCs passed; RC486, RC487, RC488, RC489, RC490, RC491, RC492, RC494 and RC495 integrations passed; RC467/RC468/RC469 and two-tenant isolation checks passed. RC493's dedicated integration was run separately in 45410089951 because the full checkpoint replay applies the RC493 migration but does not invoke that standalone fixture/integration file.
 
 **Interpretation:** the source migrations and their isolated behavior contracts have passed the listed suites. The read-only Production checks above still show these guards are not deployed, the live platform-root helpers remain weak, and no live database write was performed. A disposable migration replay is not a Production backup restore, approval, deployment or post-release readback.
+
+
+## RC501 source-only follow-up — 2026-11-24
+- Additional read-only Production function scan found seven SECURITY DEFINER callers of `public.is_platform_admin()` with `search_path=public`. All seven owners match the registry/helper owner at the observed checkpoint, and anon/authenticated/service_role direct EXECUTE is false. This is a search_path hardening gap, not proof of an exploitable caller or live compromise.
+- RC501 adds a forward migration that requires RC484's registry-backed helper + FORCE RLS preconditions, then sets an empty path on the seven exact signatures. It snapshots and verifies body, owner, ACL, SECURITY DEFINER flag and identity metadata remain unchanged. Dedicated PG17 fixture/integration and static release-contract validator are included.
+- Exact 81-version replay and exact-head CI are pending. Production remains read-only; RC501 is not applied.
