@@ -71,10 +71,19 @@ assert.match(integration, /'role','authenticated'/);
 assert.match(integration, /auth\.uid\(\) IS DISTINCT FROM v_actor/);
 assert.match(integration, /\(auth\.jwt\(\)\s*->>\s*'is_anonymous'\) IS NOT NULL/);
 assert.match(integration, /RC925 missing is_anonymous claim denied by all seven catalog RPCs: PASS/);
+const missingClaimMarkers = {
+  adjust_catalog_stock_backend: "ADJUST_STOCK",
+  create_catalog_warehouse_backend: "CREATE_WAREHOUSE",
+  upsert_catalog_item_backend: "UPSERT_ITEM",
+  upsert_catalog_price_backend: "UPSERT_PRICE",
+  upsert_catalog_settings_backend: "UPSERT_SETTINGS",
+  update_catalog_item_status_backend: "UPDATE_ITEM_STATUS",
+  upsert_catalog_business_profile_backend: "UPSERT_BUSINESS_PROFILE",
+};
 for (const name of functions) {
   assert.ok(integration.includes(`public.${name}(`), `missing-claim integration must call ${name}`);
   assert.ok(
-    integration.includes(`RC925_MISSING_CLAIM_${name.toUpperCase()}_BYPASS`),
+    integration.includes(`RC925_MISSING_CLAIM_${missingClaimMarkers[name]}_BYPASS`),
     `missing-claim integration must assert bypass denial for ${name}`,
   );
 }
