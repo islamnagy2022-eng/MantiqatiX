@@ -6,6 +6,8 @@ const migration = read("../supabase/migrations/20261117190000_rc471_mantigo_plat
 const callers = read("../supabase/tests/r7_platform_admin_helper_callers_fixture.sql");
 const integration = read("../supabase/tests/r7_platform_admin_helper_callers_integration.sql");
 const financialReportTest = read("../supabase/tests/mantigo_financial_report_live_columns.sql");
+const rc449Integration = read("../supabase/tests/rc449_mantigo_platform_admin_integration.sql");
+const sharedCallerIntegration = read("../supabase/tests/rc464_platform_admin_shared_helper_callers.sql");
 const workflow = read("../.github/workflows/mantigo-platform-admin-scope.yml");
 
 const checks = [
@@ -21,6 +23,7 @@ const checks = [
   ["integration denies tenant OWNER and ADMIN on all four helper callers", integration.includes("assert_r7_helper_callers_denied(tenant_owner") && integration.includes("assert_r7_helper_callers_denied(tenant_admin") && integration.includes("PLATFORM_ADMIN_REQUIRED")],
   ["R7 helper integration rejects tenant-scoped SUPER_ADMIN on all four global helper callers",integration.includes("tenant_scoped_super_admin uuid := '10000000-0000-4000-8000-000000000045'")&&integration.includes("assert_r7_helper_callers_denied(tenant_scoped_super_admin,'tenant-scoped SUPER_ADMIN')")],
   ["R7 helper integration rejects MNTY-PLATFORM membership without registry on all four global helper callers",integration.includes("membership_only_platform uuid := '10000000-0000-4000-8000-000000000046'")&&integration.includes("assert_r7_helper_callers_denied(membership_only_platform,'MNTY-PLATFORM membership without registry')")],
+  ["inactive tenant SUPER_ADMIN with stale platform metadata is denied by RC449 and all four RC464 shared callers",rc449Integration.includes("inactive tenant SUPER_ADMIN must not gain platform authority")&&rc449Integration.includes("assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000049','inactive tenant SUPER_ADMIN')")&&sharedCallerIntegration.includes("v_inactive uuid := '10000000-0000-4000-8000-000000000049'")&&["admin_create_global_ad","fulfill_digital_page_publish","review_mantigo_captain_application","set_mantigo_financial_config_backend"].every((name)=>sharedCallerIntegration.includes("inactive tenant SUPER_ADMIN"))],
   ["integration permits registered platform admin through all four helper callers", integration.includes("registered platform admin could not create test global ad") && integration.includes("registered platform admin could not pass digital publish guard") && integration.includes("registered platform admin could not pass captain review guard") && integration.includes("registered platform admin could not pass commission config guard")],
   ["integration verifies anonymous EXECUTE denial for the four helper callers", integration.includes("anon must not execute the four global helper callers")],
   ["migration pins all four helper-dependent SECURITY DEFINER callers to an empty search_path", [
