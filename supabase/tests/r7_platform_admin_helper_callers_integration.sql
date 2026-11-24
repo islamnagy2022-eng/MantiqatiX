@@ -110,3 +110,65 @@ END
 $r7_search_path$;
 
 SELECT 'R7 helper caller empty search_path contract: PASS' AS result;
+
+
+
+DO $r7_platform_admin_helper_contract$
+DECLARE
+  v_registry_owner oid;
+  v_helper_owner oid;
+  v_registry_rls boolean;
+  v_is_definer boolean;
+  v_config text[];
+BEGIN
+  SELECT c.relowner,c.relrowsecurity
+    INTO v_registry_owner,v_registry_rls
+  FROM pg_catalog.pg_class c
+  JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+  WHERE n.nspname='private' AND c.relname='platform_admins';
+
+  SELECT p.proowner,p.prosecdef,p.proconfig
+    INTO v_helper_owner,v_is_definer,v_config
+  FROM pg_catalog.pg_proc p
+  WHERE p.oid='public.mnty_can_platform_admin()'::regprocedure;
+
+  IF NOT coalesce(v_registry_rls,false) THEN
+    RAISE EXCEPTION 'R7_PLATFORM_ADMIN_REGISTRY_RLS_REQUIRED';
+  END IF;
+  IF NOT coalesce(v_is_definer,false) THEN
+    RAISE EXCEPTION 'R7_PLATFORM_ADMIN_HELPER_MUST_BE_SECURITY_DEFINER';
+  END IF;
+  IF coalesce(v_config,'{}'::text[]) <> ARRAY['search_path=""']::text[] THEN
+    RAISE EXCEPTION 'R7_PLATFORM_ADMIN_HELPER_SEARCH_PATH_MUST_BE_EMPTY:%',v_config;
+  END IF;
+  IF v_registry_owner IS DISTINCT FROM v_helper_owner
+     OR NOT EXISTS (
+       SELECT 1 FROM pg_catalog.pg_roles r
+       WHERE r.oid=v_helper_owner AND r.rolbypassrls
+     ) THEN
+    RAISE EXCEPTION 'R7_PLATFORM_ADMIN_HELPER_OWNER_MUST_MATCH_BYPASS_RLS_REGISTRY_OWNER';
+  END IF;
+  IF has_function_privilege('anon','public.mnty_can_platform_admin()','EXECUTE')
+     OR has_function_privilege('anon','public.admin_create_global_ad(character varying,text,text,timestamp with time zone,timestamp with time zone)','EXECUTE')
+     OR has_function_privilege('anon','public.fulfill_digital_page_publish(uuid,uuid,uuid)','EXECUTE')
+     OR has_function_privilege('anon','public.review_mantigo_captain_application(uuid,uuid,text,text,text,text,jsonb)','EXECUTE')
+     OR has_function_privilege('anon','public.set_mantigo_financial_config_backend(uuid,numeric,text)','EXECUTE') THEN
+    RAISE EXCEPTION 'R7_ANON_MUST_NOT_EXECUTE_PLATFORM_ADMIN_GUARD_OR_GLOBAL_CALLERS';
+  END IF;
+  IF NOT has_function_privilege('authenticated','public.mnty_can_platform_admin()','EXECUTE') THEN
+    RAISE EXCEPTION 'R7_AUTHENTICATED_PLATFORM_ADMIN_GUARD_EXECUTE_MISSING';
+  END IF;
+  IF has_table_privilege('anon','private.platform_admins','SELECT')
+     OR has_table_privilege('authenticated','private.platform_admins','SELECT')
+     OR has_table_privilege('anon','private.platform_admins','INSERT')
+     OR has_table_privilege('authenticated','private.platform_admins','INSERT')
+     OR has_table_privilege('anon','private.platform_admins','UPDATE')
+     OR has_table_privilege('authenticated','private.platform_admins','UPDATE')
+     OR has_table_privilege('anon','private.platform_admins','DELETE')
+     OR has_table_privilege('authenticated','private.platform_admins','DELETE') THEN
+    RAISE EXCEPTION 'R7_CLIENT_ROLES_MUST_NOT_ACCESS_PLATFORM_ADMIN_REGISTRY';
+  END IF;
+END
+$r7_platform_admin_helper_contract$;
+
+SELECT 'R7 mnty_can_platform_admin registry/owner/ACL/search_path contract: PASS' AS result;
