@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
 **Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
-**Base:** `main @ 2607227bce13ea2ee652c13f24d05565ff5400d6`  
+**Base:** `main @ 9e6c62e25614d020eb07b6361dba6eb1c5ac8257`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -55,9 +55,8 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Refreshed all 76 previously tracked physical object contracts against Production on 2026-11-24 (tables, indexes, functions, columns, triggers): 35 present / 41 absent, zero status changes since the 2026-11-20 snapshot. Breakdown is in `docs/audits/PASS_2091_2100_PHYSICAL_OBJECT_REFRESH_20261124.md`.
 - [x] Added a focused live physical-effect sample: 18 relations (13 present / 5 absent), 12 indexes (3 present-valid / 9 absent), 17 columns (2 present / 15 absent), and 15 function families (11 absent / 4 present but contract-blocked). This is a timestamped 81-version pre-RC925 snapshot, not the full 82-version crosswalk. See `docs/audits/PASS_2161_2170_CURRENT_81_MIGRATION_PHYSICAL_EFFECT_RECHECK_20261124.md`.
 - [x] Confirmed three exact source-to-ledger SQL aliases by byte comparison and classified five historic baseline families as partial; no ledger repair or SQL replay occurred. See `docs/audits/PASS_2171_2180_HISTORICAL_MIGRATION_ALIAS_AND_PARTIAL_EFFECT_RECONCILIATION_20261124.md`.
-- [x] Published the canonical 82-source inventory and source-to-live disposition table in `docs/release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md`; it records all 82 filenames, three exact aliases, five partial historical baseline families and known forward repairs.
-- [ ] Complete fresh per-migration physical-effect/semantic classification for the remaining entries: 51/82 have a fresh 2026-11-24 live read-back, while 31/82 still need current physical/policy/constraint/trigger/overload/ACL evidence. The separate 76-object read-back is a curated sample, not exhaustive.
-- [ ] Complete the broader migration→physical effect/alias map beyond these 76 contracts: reconcile all remaining functions, policies, ACLs, indexes, triggers and constraints; 0/82 exact ledger matches is not proof all effects are absent.
+- [x] Completed the migration-level source-to-live crosswalk for all 82 required versions. Every source row has current live read-back and an explicit PASS/PARTIAL/BLOCKED disposition; this is not an all-pass result. See `docs/release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md`.
+- [ ] Expand beyond the curated 76-object sample into exhaustive per-object physical-effect, exact overload/body, owner, search_path, ACL, RLS/policy, constraint and trigger reconciliation. The migration-level crosswalk is complete; exact ID gaps alone do not prove physical effects absent.
 - [x] Run full chronological forward replay from the captured Production schema checkpoint; exact-head run 45407602805 passed after 117 forward migrations and ordered integration jobs. This is not a live Production restore/deployment.
 - [ ] Never blindly replay the release chain on Production.
 
@@ -227,7 +226,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Compared RC434–RC441 source effects with Production: RC434 atomic receiving RPC absent; RC435 subscription claim-state columns/constraint and both claim RPCs absent; RC436 five journal columns, two unique indexes and atomic posting RPC absent; RC437 purchase-order lines table, two indexes, member-read policy and line RPCs absent; RC438 order-creation RPC absent while legacy status RPC is present but has wrong search_path/ACL; RC439 all three encrypted-secret columns absent.
 - [x] Reviewed RC440 as a dynamic historical migration: its source targeted functions with exact `search_path=public` at its own execution timestamp. Current read-only snapshot has 30 exposed public SECURITY DEFINER routines matching that predicate (0 anon-executable, 30 authenticated-executable); this is not retroactive evidence that all 30 existed at RC440 execution time.
 - [x] Rechecked RC441: all five named routines exist but retain legacy non-empty paths and do not satisfy the source's explicit MNTY-PLATFORM SUPER_ADMIN boundary. Evidence: `docs/audits/PASS_2221_2230_RC434_RC441_LIVE_CONTRACT_RECHECK_20261124.md`.
-- [ ] Continue through RC442–RC453 and then reconcile the later 82-version hardening migrations against their exact live physical/body/ACL/RLS effects.
+- [x] RC442–RC453 and later RC484–RC925 effects are included in the 82-source live crosswalk. Remediation, full per-object dependency closure and production release gates remain open.
 
 
 ## 2026-11-24 — RC442–RC451 approval, CRM, matrimony and journal live recheck
@@ -254,6 +253,12 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Additional current Production read-back: Pass 2271–2280 `docs/audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md` and Pass 2281–2290 `docs/audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md` are linked below.
 - [ ] Keep SMM first-user bootstrap, confirmed-Auth boundaries, global Platform Admin, settlement, MantiGO bid acceptance, medical provider state, agreement participant scope and RC925 catalog RPCs blocked until coordinated release and deployed-origin tests pass.
 
+
+## 2026-11-24 — Final migration coverage checkpoint
+- [x] **82/82** required source migrations have current live read-back and explicit PASS/PARTIAL/BLOCKED dispositions in `docs/release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md`.
+- [x] **63/63** earlier source rows and **19/19** later hardening rows are accounted for; zero earlier source rows remain marked historical.
+- [x] PASS numbering is unique: current-main RC485–RC496 is PASS 2271–2280; RC921–RC925 is PASS 2281–2290; RC113–RC117 is PASS 2331–2340; RC102–RC106 is PASS 2341–2350.
+- [ ] This is evidence coverage, not security completion. Continue remediation of all BLOCKED/PARTIAL effects, exhaustive per-object dependency closure, Edge bundle parity, backups and restore rehearsal.
 
 ## 2026-11-24 — Three exact migration aliases and five partial historical baselines reconciled
 - [x] Reverified the third alias directly: source `20261101150000_directory_source_permission_evidence.sql` has blob SHA `3f2e0a480d7234171c3ea5359a21d3451b92d150`; live ledger row `20261101140105` stores one statement, 3,558 bytes, exact byte-for-byte equality. Together with RC424→`20261008222845` and marketing-contact source `20261027100000`→`20261027041411`, **3 source aliases are confirmed**.
