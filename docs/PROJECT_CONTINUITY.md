@@ -1,3 +1,13 @@
+## 2026-11-24 — RC924 added to the unified 81-version release gate
+
+- Current main baseline for this continuation: `ae53cf436a37c178bffa56aaac54a58472bcfe89`; RC924 is already merged by PR #1064 at `82cdebcdefc4a9c12d4e875548f1cf5f5dd3f896`.
+- Read-only Production ledger refresh: 310 rows through `20261110150618`; neither RC923 (`20261124121348`) nor RC924 (`20261124140000`) is recorded. No Production migration, policy, grant, Edge, order, payment, wallet, settlement or customer-data change was made.
+- RC924's ordered RC482 → RC924 adversarial PostgreSQL 17 test passed in run `45458313302`; the 117-migration chronological replay passed in run `45458313389`. That replay still checked an 80-version strict manifest, so it is not counted as an 81-version release-gate pass.
+- Branch `fix/rc924-81-migration-release-contract-20261124` extends the single authoritative list, production verifier, static gate, manifest, RC479/RC494 regression assertions, RC924 validator and backup/runbook documentation to 81 versions. It keeps RC924 marked required and missing from Production.
+- Next: obtain exact-head CI for the new 81-version gate and replay. Full platform remains **BLOCKED / NOT CERTIFIED** pending physical-object/alias reconciliation, encrypted DB + Storage backup, Vault/Auth recovery, independent PG17 restore/rollback, measured RPO/RTO and coordinated DB/Edge approval.
+
+---
+
 ## 2026-11-24 — Current continuation — unified directive and source map
 
 - The exact owner-supplied operating instruction is now preserved in `docs/MASTER_SOURCE_OF_TRUTH.md`; the canonical/legacy/live source matrix is `docs/SOURCE_OF_TRUTH_MAP_20261124.md`.
