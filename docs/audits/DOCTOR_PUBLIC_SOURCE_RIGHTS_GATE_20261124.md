@@ -10,7 +10,7 @@ Non-doctor listings retain their separate publication contract through an explic
 
 ## Implementation candidate
 
-- A read-only source-evidence inventory is loaded before GET responses. Registry errors or an inventory that reaches the 1,000-row scan cap fail closed.
+- A bounded read-only source-evidence inventory is loaded before GET responses. Registry errors or an inventory that reaches the 1,000-row scan cap deny doctor rows by supplying no evidence to the doctor predicate; explicitly allowlisted non-doctor categories remain available. Unknown listing types still fail closed.
 - Slug GET checks doctor evidence before serializing a row.
 - Legacy list GET filters doctor rows without qualifying evidence.
 - Keyset pagination scans ordered raw batches until it finds `limit + 1` eligible rows. The continuation cursor is the last delivered eligible row, not the last scanned row; therefore denied records cannot silently consume a page or cause an eligible record to be skipped. A 2,000-row scan cap returns an explicit 503 instead of a partial/incomplete page.
@@ -20,7 +20,7 @@ Non-doctor listings retain their separate publication contract through an explic
 
 ## Tests
 
-Pure behavioral tests cover exact approved match, wrong host/source, pending/revoked/expired/not-yet-valid records, missing evidence/provenance, claimed-vs-unclaimed behavior, the explicit non-doctor type allowlist, rejection of unknown/missing types, mixed rows, cursor scanning, scan-limit failure, and database read failure. Static validation proves slug, legacy list and keyset paths all enforce the contract. PostgreSQL/Edge source parity and deployed-origin tests remain required before release.
+Pure behavioral tests cover exact approved match, wrong host/source, pending/revoked/expired/not-yet-valid records, missing evidence/provenance, claimed-vs-unclaimed behavior, the explicit non-doctor type allowlist, rejection of unknown/missing types, mixed rows, cursor scanning, scan-limit failure, database read failure, and registry outage isolation (doctor rows denied while non-doctor categories remain available). Static validation proves slug, legacy list and keyset paths all enforce the contract. PostgreSQL/Edge source parity and deployed-origin tests remain required before release.
 
 ## Production evidence
 

@@ -52,7 +52,7 @@ export function filterPublicDirectoryListingsBySourceRights(rows, evidenceRows, 
  *   fetchBatch: (after: DirectorySourceRightsCursor | null, pageSize: number) => Promise<unknown[]>,
  *   initialCursor?: DirectorySourceRightsCursor | null,
  *   limit: number,
- *   evidenceRows: unknown[],
+ *   evidenceRows: unknown[] | null,
  *   now?: Date,
  *   batchSize?: number,
  *   maxScanned?: number
