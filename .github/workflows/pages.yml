@@ -428,9 +428,12 @@ jobs:
           # apps/catalog-frontend is the canonical production root. Its same build is retained under /legacy/ as a rollback alias.
           test -s "${SITE_DIR}/index.html"
           test -s "${SITE_DIR}/config.js"
+          grep -Fq 'منصة إدارة الأنشطة والكتالوجات' "${SITE_DIR}/index.html"
+          grep -Fq 'rel="canonical" href="https://islamnagy2022-eng.github.io/MantiqatiX/"' "${SITE_DIR}/index.html"
           grep -Fq '/MantiqatiX/assets/' "${SITE_DIR}/index.html"
           grep -Fq '/MantiqatiX/config.js' "${SITE_DIR}/index.html"
           test -s "${SITE_DIR}/legacy/index.html"
+          grep -Fq 'منصة إدارة الأنشطة والكتالوجات' "${SITE_DIR}/legacy/index.html"
           grep -Fq '/MantiqatiX/legacy/assets/' "${SITE_DIR}/legacy/index.html"
           grep -Fq '/MantiqatiX/config.js' "${SITE_DIR}/legacy/index.html"
           test -s "${SITE_DIR}/v6-preview/index.html"
