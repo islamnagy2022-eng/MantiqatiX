@@ -30,6 +30,25 @@ ALTER TABLE private.platform_admins FORCE ROW LEVEL SECURITY;
 INSERT INTO private.platform_admins(user_id)
 VALUES ('10000000-0000-4000-8000-000000000001');
 
+-- Mirror the RC482 post-migration legal-root boundary: tenant role labels
+-- are not platform legal authority unless the actor is in private.platform_admins.
+CREATE TABLE public.user_memberships (
+  id text PRIMARY KEY,
+  user_id uuid NOT NULL,
+  tenant_id varchar NOT NULL,
+  business_id uuid,
+  role varchar NOT NULL,
+  status varchar NOT NULL DEFAULT 'ACTIVE',
+  permissions jsonb
+);
+INSERT INTO public.user_memberships(id,user_id,tenant_id,business_id,role,status,permissions) VALUES
+ ('tenant-admin','70000000-0000-4000-8000-000000000001','TENANT-X','dddddddd-dddd-4ddd-8ddd-dddddddddddd','ADMIN','ACTIVE','{"admin":true}'::jsonb),
+ ('tenant-super-admin','70000000-0000-4000-8000-000000000002','TENANT-Y','eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
+ ('delegated-legal-admin','70000000-0000-4000-8000-000000000003','TENANT-Z','ffffffff-ffff-4fff-8fff-ffffffffffff','LEGAL_ADMIN','ACTIVE','{"admin":true}'::jsonb),
+ ('rc482-business-admin','20000000-0000-4000-8000-000000000002','TENANT-RC482-A','dddddddd-dddd-4ddd-8ddd-dddddddddddd','ADMIN','ACTIVE','{"admin":true}'::jsonb),
+ ('rc482-legal-admin','30000000-0000-4000-8000-000000000003','TENANT-RC482-B','eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','LEGAL_ADMIN','ACTIVE','{"admin":true}'::jsonb),
+ ('rc482-tenant-super-admin','40000000-0000-4000-8000-000000000004','TENANT-RC482-C','ffffffff-ffff-4fff-8fff-ffffffffffff','SUPER_ADMIN','ACTIVE','{"scope":"TENANT","full_control":true}'::jsonb);
+
 -- Reproduce the live pre-RC482 helper definitions. RC482 must be applied
 -- before RC924 or the participant policy would still inherit tenant-wide authority.
 CREATE FUNCTION private.legal_is_admin()
@@ -87,25 +106,6 @@ CREATE TABLE public.agreement_participants (
   status varchar NOT NULL DEFAULT 'ACTIVE'
     CHECK (status IN ('PENDING','ACTIVE','DECLINED','SUSPENDED','TERMINATED'))
 );
-
--- Mirror the RC482 post-migration legal-root boundary: tenant role labels
--- are not platform legal authority unless the actor is in private.platform_admins.
-CREATE TABLE public.user_memberships (
-  id text PRIMARY KEY,
-  user_id uuid NOT NULL,
-  tenant_id varchar NOT NULL,
-  business_id uuid,
-  role varchar NOT NULL,
-  status varchar NOT NULL DEFAULT 'ACTIVE',
-  permissions jsonb
-);
-INSERT INTO public.user_memberships(id,user_id,tenant_id,business_id,role,status,permissions) VALUES
- ('tenant-admin','70000000-0000-4000-8000-000000000001','TENANT-X','dddddddd-dddd-4ddd-8ddd-dddddddddddd','ADMIN','ACTIVE','{"admin":true}'::jsonb),
- ('tenant-super-admin','70000000-0000-4000-8000-000000000002','TENANT-Y','eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
- ('delegated-legal-admin','70000000-0000-4000-8000-000000000003','TENANT-Z','ffffffff-ffff-4fff-8fff-ffffffffffff','LEGAL_ADMIN','ACTIVE','{"admin":true}'::jsonb),
- ('rc482-business-admin','20000000-0000-4000-8000-000000000002','TENANT-RC482-A','dddddddd-dddd-4ddd-8ddd-dddddddddddd','ADMIN','ACTIVE','{"admin":true}'::jsonb),
- ('rc482-legal-admin','30000000-0000-4000-8000-000000000003','TENANT-RC482-B','eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','LEGAL_ADMIN','ACTIVE','{"admin":true}'::jsonb),
- ('rc482-tenant-super-admin','40000000-0000-4000-8000-000000000004','TENANT-RC482-C','ffffffff-ffff-4fff-8fff-ffffffffffff','SUPER_ADMIN','ACTIVE','{"scope":"TENANT","full_control":true}'::jsonb);
 
 INSERT INTO public.agreements(id,tenant_id,business_id,status) VALUES
  ('10000000-0000-4000-8000-000000000001','TENANT-A','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','ACTIVE'),
