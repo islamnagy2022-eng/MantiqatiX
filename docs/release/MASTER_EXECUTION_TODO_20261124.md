@@ -17,9 +17,10 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 ## P0 — Authorization, identity and privacy
 ### P0.1 Platform-root authorization
 - [ ] Reconcile live `is_platform_admin()` and `mnty_can_platform_admin()` with RC464, RC471, RC484, RC485 and RC923 source.
-- [ ] Test the ordered migration set on disposable PostgreSQL 17 using repo CI. Preserve the 57-policy / 24-table dependency map.
-- [ ] Test RC923 anonymous-session denial for all seven catalog RPCs on the full chronological 80-version PostgreSQL 17 replay.
-- [ ] Test registered platform admin allow; tenant ADMIN/OWNER/SUPER_ADMIN without registry deny; inactive membership deny; cross-tenant/business/branch deny; tenant-local access still works.
+- [x] Replayed the full chronological chain on disposable PostgreSQL 17: 116 forward migrations passed in timestamp order on exact main merge `751367f7ea6a7290e5c62bbff5f1979ee456dc20` (run `45393984396`); the 57-policy / 24-table dependency map was preserved.
+- [x] RC923 anonymous-session denial passed for all seven catalog RPCs as part of the full 116-migration replay; source contract and SQL integration both passed.
+- [x] Tests prove registered platform-root allow, tenant ADMIN/OWNER/SUPER_ADMIN without registry deny, cross-tenant/business/branch denial, and tenant-local scope preservation.
+- [ ] Add/confirm explicit inactive-membership denial coverage across every affected helper caller.
 - [x] RC484 integration now asserts post-migration registry FORCE RLS and registry/helper owner parity with BYPASSRLS; dedicated PostgreSQL 17 job passed on exact PR head `714bff6797345400203cb9076a40082877d8b29f` (run `45390294342`).
 - [ ] Assert function ownership, empty `search_path`, grants, FORCE RLS and caller coverage in tests.
 - [ ] Prepare one coordinated migration bundle and post-release read-back. Do not hot-patch or apply it to Production in this phase.
@@ -115,7 +116,8 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Live Edge entrypoint comparison recorded; 9 critical mismatches remain and no Edge deployment was made.
 - [x] RC484 test hardening PR #1040 merged; dedicated RC484 PG17 test passed. RC471, RC482 and related privacy/ACL jobs also passed on the merged test head. This is test evidence only; no Production migration was applied.
 - [x] Confirmed the registry-only `mnty_can_platform_admin()` source repair already exists in RC464 and is reinforced by RC471; RC471 PostgreSQL 17 integration passed on the merged test head. No duplicate migration is needed.
-- [ ] Complete the full chronological 80-version PostgreSQL 17 replay including RC923, then prepare the coordinated live release/read-back for RC464/RC471/RC484/RC485/RC923. Production remains unchanged until that gate passes.
+- [x] Full chronological PostgreSQL 17 replay including RC923 passed: 116 forward migrations; 7/7 catalog RPC anonymous-session denials; RC464/RC471/RC484 authorization suites and tenant-isolation checks passed.
+- [ ] Prepare coordinated live release/read-back for RC464/RC471/RC484/RC485/RC923 only after backup/restore proof and explicit release approval. Production remains unchanged.
 - [ ] Backup/restore remains the final work stage and a hard release blocker.
 
 ## This session
