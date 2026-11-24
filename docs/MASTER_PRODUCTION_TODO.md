@@ -5338,3 +5338,122 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Defer paid branch, independent restore and measured RPO/RTO to the final release stage.
 - **Safety:** metadata-only Production reads; no row data, DDL/DML, Auth/RLS/GRANT, Storage, Edge, payments, or deployment changed. FULL PLATFORM remains BLOCKED / NOT CERTIFIED.
 - Audit: docs/audits/PASS_2061_2070_ANONYMOUS_AUTH_POLICY_MATRIX_20261124.md.
+
+
+---
+
+## MNTX-BP-001 — Business Partners & Legal-Compliance (2026-11-24)
+
+**Priority:** P0 commercial boundary + tenant security; P1 staged feature implementation  
+**Status:** IN PROGRESS / NOT IMPLEMENTED / NOT VERIFIED  
+**Master issue:** #599  
+**Implementation record:** [docs/BUSINESS_PARTNERS_LEGAL_COMPLIANCE_IMPLEMENTATION.md](./BUSINESS_PARTNERS_LEGAL_COMPLIANCE_IMPLEMENTATION.md)  
+**Tracking PR:** [#1056](https://github.com/islamnagy2022-eng/MantiqatiX/pull/1056) (draft documentation and evidence only)  
+**Branch:** `feat/business-partners-legal-compliance-20261124`
+
+### Approved commercial model — mandatory invariant
+- Partner owns and sells partner products; partner receives customer product funds directly and issues the product invoice.
+- Partner is responsible for fulfillment, delivery, warranty, returns and product quality.
+- MantiqatiX is a marketing/referral/advertising platform and records only its own subscription, commission/referral-service, advertising and marketing-service revenue.
+- Product GMV is informational only and is never platform revenue, a platform payable, wallet balance or product-proceeds settlement.
+- This workstream must not create product payment intents, collect product proceeds, or invoice customers for partner products.
+
+### Current verified foundations
+- Reuse `businesses` + `user_memberships`; no duplicate partner/company/user identity.
+- Reuse `catalog_items` + `catalog_item_prices`; no parallel catalog.
+- Reuse `orders` + `order_status_history` only through existing trusted backend contracts.
+- Reuse `agreements` + `agreement_participants` and Legal Center only after correcting and testing the participant-read authorization.
+- Reuse `business_referral_codes` / `business_referral_events` as a base for attribution, but current event types do not implement the requested order lifecycle.
+- Reuse commission rules/transactions and financial journals only after contract-version and platform-fee separation is proven.
+
+### Production read-only finding / blocker
+- Production project `MANTIQATIX FINAL`, PostgreSQL 17.6.1.155; no writes performed.
+- **Critical RLS defect:** `agreements_participant_read` compares `agreement_participants.agreement_id = agreement_participants.id` rather than `agreement_participants.agreement_id = agreements.id`. Must be fixed through a reviewed additive migration and integration fixture; no direct Production edit.
+- `agreements`, `agreement_participants`, and `business_referral_events` each had 0 rows in the exact read-only count query.
+- Catalog tables and commission transaction tables have RLS + FORCE RLS and no direct authenticated write privileges; continue using trusted server-side paths.
+- Global release gate remains BLOCKED / NOT CERTIFIED; all feature migrations/Edge changes remain source-only until coordinated release prerequisites pass.
+
+### Dependency-ordered execution
+- [x] Register request in issue #599.
+- [x] Create branch and feature implementation record.
+- [x] Map initial canonical business, membership, merchant, catalog, commission, referral, order, settlement and Legal Center foundations.
+- [x] Inspect live Production columns, selected constraints, policies, grants and relevant SECURITY DEFINER function signatures (read-only).
+- [ ] RC924 participant-read correction and explicit non-anonymous JWT requirement are implemented in source. The earlier PG17 pass (45406678966) predates the missing-claim hardening; the corrected exact-head PG17 + forward replay checks are pending. Production remains untouched.
+- [x] Complete catalog public projection and order/payment-intent handoff audit: current storefront uses WhatsApp handoff with paymentsEnabled=false; separate payment-capable order/Paymob paths exist and must not be invoked for partner product proceeds. See implementation record §9.
+- [ ] Phase 1: partner legal profile, documents, verification state machine and publication hard gate.
+- [ ] Phase 1: company-specific agreements, immutable versions, signatures/evidence, expiry and renewal.
+- [ ] Phase 2: partner seller disclosure and unique product/campaign referral attribution.
+- [ ] Phase 2: partner-owned order lifecycle and immutable status events.
+- [ ] Phase 3: agreement-versioned commission basis, accrual/reversal, service-fee revenue and statements.
+- [ ] Phase 4: Super Admin and partner workspaces with server-side RBAC/RLS and tenant isolation.
+- [ ] Phase 5: privacy, complaints, retention, accounting and configurable tax controls.
+- [ ] Phase 6: full acceptance suite, backup/restore and coordinated production release.
+
+**Next action:** implement the isolated agreement participant RLS fix with a PostgreSQL 17 regression fixture, then continue Phase 1. Preserve this request as IN PROGRESS across all future sessions; when the user says “كمل”, resume the first unfinished checkbox here and in the linked implementation record.
+
+
+### MNTX-BP-001 continuation — 2026-11-24 RC924 source update
+- Added RC924 migration, isolated PostgreSQL 17 fixture/integration tests, static validator and dedicated GitHub Actions workflow on feat/business-partners-legal-compliance-20261124.
+- The migration corrects participant correlation to agreements.id while preserving non-anonymous auth and platform-admin checks; no grants or production data are changed.
+- CI has not yet been confirmed. Keep the RLS fix IN PROGRESS until PostgreSQL 17 integration and full forward migration replay pass.
+- Next: confirm RC924 CI; then finish the catalog public projection/order payment-intent handoff audit and begin Phase 1 partner profile/verification/contracts.
+
+
+### MNTX-BP-001 — catalog/payment and legal evidence preflight update (2026-11-24)
+- Read-only source audit confirms public-catalog and public-catalog-directory publish only display-safe item data and set paymentsEnabled=false; current storefront checkout hands off via the business owner's WhatsApp. No customer product funds pass through MantiqatiX in that storefront flow.
+- Separate order-create/payment-intent Edge paths exist and can create platform Paymob payment intents for order totals. Partner referrals must not call these endpoints or create platform-payable product orders; use a distinct referral handoff lifecycle and server-side ownership snapshot.
+- Existing provider is_verified is not legal partner verification. provider_onboarding_requests lacks legal registration/tax IDs and legal document fields. businesses has no first-class legal profile columns.
+- Storage preflight: mantiqatix-profile-media is public and must never hold legal evidence; mantiqatix-media is private but its current MIME allowlist excludes PDF. Phase 1 needs a dedicated private legal-document storage boundary.
+- RC924 source and PG17 adversarial test are on the feature branch; CI remains queued/unverified. No Production writes or payment activity.
+
+
+### RC924 CI correction — 2026-11-24
+- First attempt failed only at static validator formatting (`FOR SELECT` / `TO authenticated` line break); PostgreSQL integration was skipped, so no DB behavior result was produced.
+- Validator regex corrected and source-level checks pass; corrected RC924 PostgreSQL 17 run #15 is queued. Keep task open until PG17 integration and forward replay pass.
+
+
+### MNTX-BP-001 — RC924 test result (2026-11-24)
+- [x] RC924 static validator and isolated PostgreSQL 17 integration passed (run 45406678966).
+- [ ] Full forward migration chain replay remains in progress (run 45406678921); keep Production unchanged until it passes.
+- [ ] Begin Phase 1 partner legal profile, private legal evidence, verification lifecycle and partner agreement/signature RPCs after replay outcome.
+
+
+### MNTX-BP-001 — RC924 full forward replay result (2026-11-24)
+- [x] RC924 isolated PostgreSQL 17 static + behavioral tests passed (run 45406678966).
+- [x] Full forward migration-chain replay from captured Production schema checkpoint passed, including RC924 (run 45406678921); companion RC921/RC922 PG17 job passed.
+- [ ] RC924 still not applied to Production; wait for global release gate and coordinated DB/Edge release approval.
+- [ ] Start Phase 1: partner legal profile, private document storage, verification/publication gate, agreement commercial terms and signature evidence.
+
+
+### MNTX-BP-001 — current RC924 hardening checkpoint (2026-11-24)
+- [x] Rebased the workstream onto current main in branch `feat/mntx-bp001-rc924-hardening-20261124` while preserving the existing partner commercial-money boundary.
+- [x] Rechecked live legal schema and Storage inventory read-only: canonical businesses/memberships, agreements/participants, Legal Center documents/versions/consents and provider onboarding columns mapped; no dedicated private legal-document bucket exists. The only public bucket is profile media; private media excludes PDF and is not approved for legal evidence.
+- [x] Found and corrected an RC924 fail-open edge case: missing `is_anonymous` JWT claim previously defaulted to false. The migration now requires an explicit false claim and the PG17 integration adds a missing-claim denial test.
+- [ ] Validate corrected RC924 exact-head static + PostgreSQL 17 integration and full chronological replay; previous run 45406678966 is historical and predates this correction.
+- [ ] Phase 1 implementation remains pending: partner legal profile, private legal evidence storage boundary, verification/publication gate and partner-specific commercial agreement/signature lifecycle.
+
+
+## MNTX-BP-001 continuation — 2026-11-24 RC924 and legal-profile preflight
+- [x] Confirmed live `agreements_admin_write` is PERMISSIVE FOR ALL; added an independent restrictive confirmed-auth SELECT policy in RC924 so the existing policy cannot bypass the explicit JWT gate.
+- [x] Expanded RC924 fixture to mirror the post-RC482 private platform registry helper and client ACL, include private registry RLS/FORCE RLS, and include ACTIVE tenant ADMIN/SUPER_ADMIN/LEGAL_ADMIN actors.
+- [x] Added adversarial assertions for tenant-role escalation, root impersonation, participant A/B isolation, unrelated users, anonymous JWT, missing anonymous claim and platform-root read. Added static checks that the RESTRICTIVE policy exists while the existing admin FOR ALL policy remains.
+- [ ] Corrected exact-head RC924 PostgreSQL 17 integration rerun and full chronological forward migration replay must pass before source acceptance.
+- [x] Reconfirmed business schema: canonical businesses and user_memberships already exist, while provider_onboarding_requests lacks legal identifiers/evidence fields and Legal Center content tables are not a private document store.
+- [x] Reconfirmed no appropriate private legal-evidence bucket exists; both current buckets are unsuitable.
+- [ ] Phase 1 next: implement business-scoped legal profile, private legal-document storage boundary, verification history and partner agreement/signature lifecycle through pinned Supabase migration tooling and PG17 tests.
+- No Production writes or deployments. FULL_PLATFORM_GATE remains BLOCKED / NOT CERTIFIED.
+
+
+### MNTX-BP-001 verification checkpoint — 2026-11-24
+- [x] RC924 corrected PostgreSQL 17 exact-head run 45450116751 passed, including participant A/B, unrelated user, anonymous, missing claim, tenant-role escalation, root impersonation and platform-admin scenarios.
+- [x] Full forward chain checkpoint replay passed on the same head in run 45450116515: 117 ordered migrations applied to isolated PostgreSQL 17 plus the integration suite.
+- [ ] Module Professionalization Validation run 45450116780 remains queued; do not merge PR #1061 until it completes.
+- [ ] Next Phase 1: business-scoped legal profile + private legal-evidence storage and review history + versioned partner contract/signature lifecycle. No migration created yet because Supabase CLI/PG runtime is unavailable locally; use pinned CLI 2.122.0.
+- Production remains read-only and FULL_PLATFORM_GATE remains BLOCKED / NOT CERTIFIED.
+
+
+### MNTX-BP-001 — RC924 RC482 dependency correction (2026-11-24)
+- [x] Rechecked live `private.legal_is_admin(uuid)`: current Production body reads active `public.user_memberships` with roles SUPER_ADMIN/ADMIN/LEGAL_ADMIN; it is not yet registry-backed. This is expected until RC482 is applied.
+- [x] Made RC924 refuse to run unless the UUID helper reads `private.platform_admins`, has SECURITY DEFINER + empty search_path, authenticated EXECUTE, anon EXECUTE=false, and no zero-argument overload.
+- [x] Changed the RC924 PG17 workflow to prove pre-RC482 rejection, then apply RC482 + integration followed by RC924 + integration.
+- [ ] Exact-head ordered PG17 suite and full chronological replay must pass. No Production policy change or deployment occurred.
