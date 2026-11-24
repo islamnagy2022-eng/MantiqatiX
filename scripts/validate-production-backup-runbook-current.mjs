@@ -24,6 +24,11 @@ const runbookRequirements = [
   "20261124140000",
   "20261124150000",
   "RC925",
+  "RC925 was merged source-only in PR #1069",
+  "45477345349",
+  "PR #1071",
+  "45480436807",
+  "53b8be3784790e56775f16bb51c9c3477cfeb536",
   "RC924",
   "RC923",
   "RC922",
@@ -33,7 +38,11 @@ for (const required of runbookRequirements) {
   assert.ok(runbook.includes(required), `Backup runbook is missing required current-scope text: ${required}`);
 }
 
+assert.ok(!runbook.includes("RC925 is a new source candidate"), "Backup runbook still describes completed RC925 CI as pending.");
 const backlogRequirements = [
+  "PR #1071",
+  "45480436807",
+  "53b8be3784790e56775f16bb51c9c3477cfeb536",
   "82 required migration IDs",
   "0/82 exact required identifiers",
   "20261120193000",
