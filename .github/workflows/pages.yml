@@ -33,10 +33,10 @@ jobs:
           npm install --no-audit --no-fund
           npm run lint
           VITE_BASE_PATH=/MantiqatiX/ npm run build
-          mkdir -p "${RUNNER_TEMP}/mantiqatix-legacy-root-build"
-          cp -a dist/. "${RUNNER_TEMP}/mantiqatix-legacy-root-build/"
-          test -s "${RUNNER_TEMP}/mantiqatix-legacy-root-build/index.html"
-          grep -q '/MantiqatiX/assets/' "${RUNNER_TEMP}/mantiqatix-legacy-root-build/index.html"
+          mkdir -p "${RUNNER_TEMP}/mantiqatix-catalog-root-build"
+          cp -a dist/. "${RUNNER_TEMP}/mantiqatix-catalog-root-build/"
+          test -s "${RUNNER_TEMP}/mantiqatix-catalog-root-build/index.html"
+          grep -q '/MantiqatiX/assets/' "${RUNNER_TEMP}/mantiqatix-catalog-root-build/index.html"
           VITE_BASE_PATH=/MantiqatiX/legacy/ npm run build
           test -s dist/index.html
           test -s dist/config.js
@@ -415,22 +415,25 @@ jobs:
           grep -q "if(!branchId)" web/app.js
           grep -Fq 'branches: branches ?? []' supabase/functions/api/index.ts
 
-      - name: Publish the legacy catalog as the production root and preserve V6 preview
+      - name: Publish the catalog as the production root; preserve /legacy rollback and V6 preview
         run: |
           set -euo pipefail
           SITE_DIR="${RUNNER_TEMP}/mantiqatix-composed-site"
-          LEGACY_ROOT_DIST="${RUNNER_TEMP}/mantiqatix-legacy-root-build"
+          CATALOG_ROOT_DIST="${RUNNER_TEMP}/mantiqatix-catalog-root-build"
           rm -rf "${SITE_DIR}"
           mkdir -p "${SITE_DIR}" "${SITE_DIR}/legacy" "${SITE_DIR}/v6-preview"
-          cp -a "${LEGACY_ROOT_DIST}/." "${SITE_DIR}/"
+          cp -a "${CATALOG_ROOT_DIST}/." "${SITE_DIR}/"
           cp -a apps/catalog-frontend/dist/. "${SITE_DIR}/legacy/"
           cp -a apps/aistudio-v6/worktree/dist/. "${SITE_DIR}/v6-preview/"
-          # The production catalog is built directly for the repository root; legacy remains a rollback copy.
+          # apps/catalog-frontend is the canonical production root. Its same build is retained under /legacy/ as a rollback alias.
           test -s "${SITE_DIR}/index.html"
           test -s "${SITE_DIR}/config.js"
+          grep -Fq 'منصة إدارة الأنشطة والكتالوجات' "${SITE_DIR}/index.html"
+          grep -Fq 'rel="canonical" href="https://islamnagy2022-eng.github.io/MantiqatiX/"' "${SITE_DIR}/index.html"
           grep -Fq '/MantiqatiX/assets/' "${SITE_DIR}/index.html"
           grep -Fq '/MantiqatiX/config.js' "${SITE_DIR}/index.html"
           test -s "${SITE_DIR}/legacy/index.html"
+          grep -Fq 'منصة إدارة الأنشطة والكتالوجات' "${SITE_DIR}/legacy/index.html"
           grep -Fq '/MantiqatiX/legacy/assets/' "${SITE_DIR}/legacy/index.html"
           grep -Fq '/MantiqatiX/config.js' "${SITE_DIR}/legacy/index.html"
           test -s "${SITE_DIR}/v6-preview/index.html"
@@ -441,7 +444,7 @@ jobs:
           test ! -e "${SITE_DIR}/web"
           test ! -e "${SITE_DIR}/preview"
           test ! -e "${SITE_DIR}/smm.html"
-          echo "PAGES_COMPOSITION=PASS: legacy catalog is the production root; rollback copy preserved at /legacy/; V6 preview alias retained."
+          echo "PAGES_COMPOSITION=PASS: apps/catalog-frontend is the production root; /legacy/ rollback alias preserved; V6 preview remains isolated at /v6-preview/."
       - name: Install pinned Playwright for V6 Preview browser validation
         run: |
           set -euo pipefail
