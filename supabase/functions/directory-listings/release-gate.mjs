@@ -13,7 +13,7 @@ const disabledPostResponse = Object.freeze({
   status: 503,
   body: Object.freeze({
     error: "DIRECTORY_LISTINGS_DISABLED_FOR_V1",
-    message: "This directory is temporarily unavailable while owner contact permissions are being verified.",
+    message: "Directory claims and contact-consent changes are unavailable until the consent registry is ready.",
   }),
 });
 
@@ -23,11 +23,14 @@ const methodNotAllowedResponse = Object.freeze({
 });
 
 /**
- * Directory listing access is deny-by-default.
+ * Public discovery and private contact disclosure are separate capabilities.
  *
- * The server-side feature switch must be the exact string "true" and the
- * contact-consent registry must be reachable before any listing or mutation
- * route can execute. OPTIONS is handled by the caller before this helper.
+ * GET may expose only the public projection. The caller must still sanitize
+ * phone/address/precise-location fields against active owner consent; if the
+ * consent registry is unavailable, those scopes resolve to an empty set.
+ *
+ * POST contains owner claims and consent mutations, so it remains blocked
+ * until both the exact server-side switch and consent registry are available.
  */
 export const resolveDirectoryListingsReleaseGate = (
   method,
@@ -38,14 +41,15 @@ export const resolveDirectoryListingsReleaseGate = (
   if (normalizedMethod === "OPTIONS") return null;
 
   const explicitlyEnabled = enabledFlag === "true";
-  if (!explicitlyEnabled || consentRegistryAvailable !== true) {
-    if (normalizedMethod === "GET") return disabledGetResponse;
-    if (normalizedMethod === "POST") return disabledPostResponse;
-    return methodNotAllowedResponse;
+  if (normalizedMethod === "GET") {
+    return explicitlyEnabled ? null : disabledGetResponse;
   }
 
-  if (normalizedMethod !== "GET" && normalizedMethod !== "POST") {
-    return methodNotAllowedResponse;
+  if (normalizedMethod === "POST") {
+    return explicitlyEnabled && consentRegistryAvailable === true
+      ? null
+      : disabledPostResponse;
   }
-  return null;
+
+  return methodNotAllowedResponse;
 };
