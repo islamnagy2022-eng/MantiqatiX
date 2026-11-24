@@ -1,0 +1,37 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+
+const edge = readFileSync("supabase/functions/directory-listings/index.ts", "utf8");
+const contract = readFileSync("supabase/functions/directory-listings/doctor-publication-contract.mjs", "utf8");
+const tests = readFileSync("scripts/production/test-doctor-publication-contract.mjs", "utf8");
+
+assert.match(edge, /from "\.\/doctor-publication-contract\.mjs"/,
+  "The deployed Edge entrypoint must import the reviewed doctor publication contract");
+assert.match(edge, /\.from\("directory_source_permission_evidence"\)[\s\S]{0,1000}\.eq\("status", "APPROVED"\)[\s\S]{0,300}\.eq\("allows_doctor_profile_republication", true\)[\s\S]{0,300}\.eq\("allows_commercial_republication", true\)[\s\S]{0,300}\.lte\("valid_from", evidenceCheckedAt\)[\s\S]{0,300}\.is\("revoked_at", null\)/,
+  "Public GET must read only current approved evidence granting both explicit scopes");
+assert.match(edge, /doctorSourceEvidenceError[\s\S]{0,250}DIRECTORY_SOURCE_RIGHTS_UNAVAILABLE/,
+  "A failed or truncated permission registry read must fail closed");
+const getStart = edge.indexOf('if (req.method === "GET")');
+const postStart = edge.indexOf('if (req.method !== "POST")', getStart);
+assert.ok(getStart !== -1 && postStart > getStart, "GET and POST boundaries must remain explicit");
+const getSource = edge.slice(getStart, postStart);
+assert.match(getSource, /isDoctorPublicListingAllowed\(data, doctorSourceEvidence\)/,
+  "Slug lookup must apply the doctor source-rights check");
+assert.match(getSource, /filterPublicDirectoryListingsBySourceRights\(data \|\| \[\], doctorSourceEvidence\)/,
+  "Legacy non-paginated list must filter doctor listings");
+assert.match(getSource, /scanPublicDirectoryPageWithSourceRights\(/,
+  "Keyset pagination must use the bounded source-rights cursor scanner");
+assert.match(getSource, /nextCursor = scannedPage\.nextCursor[\s\S]{0,180}encodeDirectoryPaginationCursor/,
+  "Pagination cursor must be generated from the last delivered eligible row");
+assert.match(getSource, /DIRECTORY_SOURCE_RIGHTS_SCAN_LIMIT/,
+  "A bounded scan must fail explicitly instead of silently skipping eligible rows");
+assert.match(contract, /claiming or ownership[\s\S]{0,240}source republication permission|owner claim alone never waives that requirement/i,
+  "Claim ownership must not bypass the separate source-republication requirement");
+assert.match(contract, /isCurrentDoctorRepublicationEvidence\(/,
+  "Doctor publication must reuse the exact source/host/scope/date/revocation validator");
+assert.match(tests, /approved exact-host and exact-source match|current exact-host/i,
+  "Behavior tests must cover evidence-qualified publication");
+assert.match(tests, /cursor scan fills a page beyond blocked doctor rows/i,
+  "Behavior tests must cover pagination after source-rights filtering");
+
+console.log("Directory doctor source-publication contract validation passed.");
