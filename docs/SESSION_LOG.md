@@ -1,3 +1,12 @@
+## 2026-11-24 — RC472 / RC473 directory consent live recheck
+
+- Read-only Production: `directory_listing_contact_consents` absent; `directory_source_permission_evidence` exists with 0 rows; claim-request table exists but review/grant/revoke RPCs are absent.
+- Deployed `directory-listings` v18 remains fail-closed (GET empty + directoryDisabled=true, POST 503). Distinct `public-catalog-directory` v19 uses a narrow public projection and returns contact fields only with explicit owner opt-in plus verified consent audit.
+- Evidence: `docs/audits/PASS_2141_2150_RC472_RC473_DIRECTORY_LIVE_RECHECK_20261124.md`.
+- No Production mutation occurred. Do not publish legacy/unclaimed contact records until source-rights evidence and the coordinated RC472/RC473 database release pass review and recovery gates.
+
+---
+
 ## 2026-11-24 — RC479 / RC488 / RC489 live Production recheck
 
 - `marketing_provider_profiles`: RLS + FORCE RLS on; anon and authenticated SELECT granted; public ACTIVE whole-row policy still includes anon; RC479 restrictive confirmed-auth policy absent.
