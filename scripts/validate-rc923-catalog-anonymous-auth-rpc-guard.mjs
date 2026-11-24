@@ -25,6 +25,11 @@ for (const name of repaired) {
   const newBlock = functionBlock(rc923, name);
   assert.doesNotMatch(oldBlock, /auth\.jwt\(\)->>\s*'is_anonymous'/i,
     `${name}: immutable RC485 must not be edited`);
+  const normalizedNewBlock = newBlock.replace(
+    /auth\.uid\(\) IS NULL OR coalesce\(\(auth\.jwt\(\)->>'is_anonymous'\),\s*'false'\) = 'true'/i,
+    'auth.uid() IS NULL',
+  );
+  assert.equal(normalizedNewBlock, oldBlock, 'RC923 may only add the Anonymous Auth identity gate and must preserve all other RPC logic');
   assert.match(newBlock, /auth\.uid\(\)\s+IS\s+NULL\s+OR[\s\S]{0,180}auth\.jwt\(\)->>\s*'is_anonymous'/i,
     `${name}: RC923 must reject Anonymous Auth sessions`);
   assert.match(newBlock, /SECURITY DEFINER/i);
