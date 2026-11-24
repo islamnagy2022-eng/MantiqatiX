@@ -87,6 +87,11 @@ on:
       - "supabase/tests/rc489_financial_anonymous_auth_read_integration.sql"
       - "supabase/tests/rc482_legal_platform_admin_registry_fixture.sql"
       - "supabase/tests/rc482_legal_platform_admin_registry_integration.sql"
+      - "supabase/migrations/20261124140000_rc924_agreement_participant_read_scope.sql"
+      - "supabase/tests/rc924_agreement_participant_read_scope_fixture.sql"
+      - "supabase/tests/rc924_agreement_participant_read_scope_integration.sql"
+      - "scripts/validate-rc924-agreement-participant-read-scope.mjs"
+      - ".github/workflows/rc924-agreement-participant-read-scope.yml"
       - "supabase/tests/rc483_atomic_legal_cms_create_audit_fixture.sql"
       - "supabase/tests/rc483_atomic_legal_cms_create_audit_integration.sql"
       # Keep RC488 static validator and both fixture contracts in the PR replay trigger.
@@ -152,6 +157,11 @@ on:
       - "supabase/tests/rc485_catalog_rpc_registry_root_integration.sql"
       - "supabase/tests/rc482_legal_platform_admin_registry_fixture.sql"
       - "supabase/tests/rc482_legal_platform_admin_registry_integration.sql"
+      - "supabase/migrations/20261124140000_rc924_agreement_participant_read_scope.sql"
+      - "supabase/tests/rc924_agreement_participant_read_scope_fixture.sql"
+      - "supabase/tests/rc924_agreement_participant_read_scope_integration.sql"
+      - "scripts/validate-rc924-agreement-participant-read-scope.mjs"
+      - ".github/workflows/rc924-agreement-participant-read-scope.yml"
       - "supabase/tests/rc483_atomic_legal_cms_create_audit_fixture.sql"
       - "supabase/tests/rc483_atomic_legal_cms_create_audit_integration.sql"
       - "docs/release/production-migration-reconciliation.json"
@@ -220,7 +230,7 @@ jobs:
       - name: Validate RC469 shared caller search_path contract
         run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
 
-      - name: Validate strict Production release gate and exact 80-version contract
+      - name: Validate strict Production release gate and exact 81-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
 
       - name: Validate current backup runbook and release migration scope
@@ -236,6 +246,7 @@ jobs:
         run: |
           node scripts/validate-rc482-legal-platform-admin-registry.mjs
           node scripts/validate-rc483-atomic-legal-cms-create-audit.mjs
+          node scripts/validate-rc924-agreement-participant-read-scope.mjs
 
       - name: Validate RC485/RC923 catalog RPC registry-root and anonymous-auth contract
         run: node scripts/validate-rc485-catalog-rpc-registry-root.mjs
