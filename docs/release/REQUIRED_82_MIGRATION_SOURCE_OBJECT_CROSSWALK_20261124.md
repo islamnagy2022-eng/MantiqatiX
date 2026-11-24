@@ -11,7 +11,7 @@
 - Required ordered source migrations: **82/82**; names come from the canonical production verifier.
 - Exact required version IDs in the live ledger: **0/82**. This is an identity mismatch, not proof every physical effect is absent.
 - The historical 63-source crosswalk covers the earlier source/object set; its per-object statuses are historical and are not silently promoted to current status here.
-- The 19 later migrations from RC484 through RC925 were source-reviewed and checked against current Production catalogs/policies on 2026-11-24. Together with the 26 earlier migrations audited in PASS 2211–2250, 45 of the 82 source migrations now have fresh live read-back.
+- The 19 later migrations from RC484 through RC925 were source-reviewed and checked against current Production catalogs/policies on 2026-11-24. Together with the 26 earlier migrations audited in PASS 2211–2250, 51 of the 82 source migrations now have fresh live read-back.
 - A separate 76-object curated physical register was refreshed on 2026-11-24: 35 present / 41 absent, with object-level results in PASS 2251–2260. Presence is not semantic parity.
 - No Production mutation was performed.
 
@@ -53,12 +53,12 @@
 | `20261023040000` | `20261023040000_rc104_order_idempotency_scope.sql` | RC104 | NO_DIRECT_OBJECT_CONTRACT | Historical source/object status from 2026-11-19 crosswalk; refresh current object contracts before release. |
 | `20261023050000` | `20261023050000_rc105_order_create_service_role_identity.sql` | RC105 | NO_DIRECT_OBJECT_CONTRACT | Historical source/object status from 2026-11-19 crosswalk; refresh current object contracts before release. |
 | `20261023060000` | `20261023060000_rc106_order_status_service_role_identity.sql` | RC106 | NO_DIRECT_OBJECT_CONTRACT | Historical source/object status from 2026-11-19 crosswalk; refresh current object contracts before release. |
-| `20261027030000` | `20261027030000_rc113_super_admin_control_center_foundation.sql` | RC113 | BLOCKED/MIXED | Historical source/object status from 2026-11-19 crosswalk; refresh current object contracts before release. |
-| `20261027040000` | `20261027040000_rc114_business_employee_hiring_system.sql` | RC114 | PASS | Historical source/object status from 2026-11-19 crosswalk; refresh current object contracts before release. |
-| `20261027050000` | `20261027050000_rc115_control_center_integration.sql` | RC115 | PASS | Historical source/object status from 2026-11-19 crosswalk; refresh current object contracts before release. |
-| `20261027060000` | `20261027060000_rc116_business_subscriber_admin.sql` | RC116 | PASS | Historical source/object status from 2026-11-19 crosswalk; refresh current object contracts before release. |
-| `20261027070000` | `20261027070000_rc117_default_images_and_activity_admin.sql` | RC117 | BLOCKED/MIXED | Historical source/object status from 2026-11-19 crosswalk; refresh current object contracts before release. |
-| `20261027090000` | `20261027090000_rc113_user_membership_business_scope_idempotency.sql` | RC113 | BLOCKED/MIXED | Historical source/object status from 2026-11-19 crosswalk; refresh current object contracts before release. |
+| `20261027030000` | `20261027030000_rc113_super_admin_control_center_foundation.sql` | RC113 | BLOCKED/MIXED | 2026-11-24 live read-back: platform_custom_roles and platform_role_assignments present with RLS+FORCE, no client table grants/policies; 3 admin RPCs are SECURITY DEFINER, empty search_path, anon EXECUTE=false/authenticated=true and read private.platform_admins. Two required indexes valid. **PARTIAL/BLOCKED: second RC113 null-safe membership index is absent.** |
+| `20261027040000` | `20261027040000_rc114_business_employee_hiring_system.sql` | RC114 | PASS | 2026-11-24 live read-back: business_employees and business_job_positions present with RLS+FORCE, no direct client table grants/policies; 4 required indexes valid; employee list/position-upsert/employee-upsert RPCs are SECURITY DEFINER, empty search_path, anon EXECUTE=false/authenticated=true. **PASS for sampled schema/ACL contract; no behavioral E2E implied.** |
+| `20261027050000` | `20261027050000_rc115_control_center_integration.sql` | RC115 | PASS | 2026-11-24 live read-back: control-center permission resolver and audit/people/role-assignment/employee-list RPCs present; SECURITY DEFINER, empty search_path, anon EXECUTE=false/authenticated=true; platform admin functions directly check private.platform_admins. **PASS for sampled metadata contract; runtime caller matrix remains separate.** |
+| `20261027060000` | `20261027060000_rc116_business_subscriber_admin.sql` | RC116 | PASS | 2026-11-24 live read-back: list-businesses/manage-business/manage-membership RPCs present; SECURITY DEFINER, empty search_path, anon EXECUTE=false/authenticated=true and direct private.platform_admins checks. **PASS for sampled metadata contract; runtime caller matrix remains separate.** |
+| `20261027070000` | `20261027070000_rc117_default_images_and_activity_admin.sql` | RC117 | BLOCKED/MIXED | 2026-11-24 live read-back: five default-image columns, three triggers and mnty_default_image_url() are absent. **BLOCKED — default-image automation is not installed.** |
+| `20261027090000` | `20261027090000_rc113_user_membership_business_scope_idempotency.sql` | RC113 | BLOCKED/MIXED | 2026-11-24 live read-back: ux_user_memberships_user_business_branch_nullsafe is absent. **BLOCKED — NULL-safe membership idempotency index is not installed.** |
 | `20261027093000` | `20261027093000_add_qadam_alsaad_homewares_store.sql` | — | NO_DIRECT_OBJECT_CONTRACT | Historical source/object status from 2026-11-19 crosswalk; refresh current object contracts before release. |
 | `20261031100000` | `20261031100000_rc463_trigger_only_security_definer_acl.sql` | RC463 | NO_DIRECT_OBJECT_CONTRACT | Historical source/object status from 2026-11-19 crosswalk; refresh current object contracts before release. |
 | `20261113214500` | `20261113214500_rc464_platform_admin_live_registry_hardening.sql` | RC464 | NO_DIRECT_OBJECT_CONTRACT | Historical source/object status from 2026-11-19 crosswalk; refresh current object contracts before release. |
@@ -127,6 +127,7 @@
 - [PASS 2241–2250](../audits/PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md) — CRM tenant scope and internal campaign workflow.
 - [PASS 2251–2260](../audits/PASS_2251_2260_76_OBJECT_DETAILED_PRESENCE_20261124.md) — detailed 76-object presence read-back.
 - [PASS 2261–2270](../audits/PASS_2261_2270_RC484_RC925_SOURCE_TO_LIVE_EFFECT_RECHECK_20261124.md) — 19 later migration effects.
+- [PASS 2271–2280](../audits/PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md) — RC113–RC117 control-center, employee and default-image contracts.
 
 ## Current high-priority blockers proven by read-only evidence
 
