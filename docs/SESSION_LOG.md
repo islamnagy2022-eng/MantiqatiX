@@ -4247,3 +4247,9 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] RC453 campaign tables, four indexes, and five exact RPC signatures absent in Production. Source is an internal campaign workflow and does not publish externally to Meta/TikTok/Google.
 - [x] Evidence: `PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md`.
 - [x] No Production change; migration ledger remains 310 rows through `20261110150618`.
+
+
+## 2026-11-24 — Current-main RC446–RC483 and additional RC485–RC925 live evidence
+- [x] Preserved current-main audits: PASS 2291–2300 (RC446/456/463/525), PASS 2301–2310 (RC464–470), PASS 2311–2320 (RC471–478), and PASS 2321–2330 (Qadam/RC479–483). These latest main reports supersede duplicate older summaries of the same migration range.
+- [x] Additional read-only reports: PASS 2271–2280 (RC485–496 catalog, SMM bootstrap, Storage/confirmed-Auth, settlement and MantiGO bid acceptance) and PASS 2281–2290 (RC921–925 medical state, agreement participant scope and catalog claim guards).
+- [x] Production ledger remains 310 rows through `20261110150618`; no Production write was performed. Full release remains BLOCKED / NOT CERTIFIED.
