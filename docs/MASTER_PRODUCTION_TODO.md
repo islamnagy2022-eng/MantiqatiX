@@ -1,3 +1,7 @@
+> **Active execution order:** [Master Execution TODO — Zero-Cost Fast Track](docs/release/MASTER_EXECUTION_TODO_20261124.md). Historical Pass entries below are append-only evidence; use the linked board as the only current priority queue.
+
+---
+
 ## 2026-11-24 — Source governance — master directive and canonical map
 
 - [x] Preserved the exact uploaded owner instruction in `docs/MASTER_SOURCE_OF_TRUTH.md`; verified it was read from the exact uploaded file before committing.
