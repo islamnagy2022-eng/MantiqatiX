@@ -66,3 +66,10 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - Current-main Pass 2321–2330 — Qadam + RC479–RC483 [report](./audits/PASS_2321_2330_QADAM_RC479_RC483_LIVE_EFFECT_RECHECK_20261124.md): seed idempotency evidence, public provider/page reads, Legal registry and atomic CMS grants.
 - RC485–RC496 catalog, SMM bootstrap, confirmed-session, Storage, settlement and MantiGO bid state [PASS 2271–2280](./audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md): catalog registry/price serialization absent; first-user SMM bootstrap still live; restrictive Auth guards absent; settlement remains membership-derived; accepted-bid uniqueness/OFFERED gate incomplete.
 - RC921–RC925 medical, agreement and catalog identity [PASS 2281–2290](./audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md): medical provider state is legacy; agreement participant correlation and confirmed-session boundary are wrong; seven catalog RPCs still lack the fail-closed RC925 body.
+
+## Final 82-migration read-back — 2026-11-24
+- [82-source crosswalk](./release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md): 82/82 required migration sources have current live read-back and an explicit PASS/PARTIAL/BLOCKED disposition. This does not mean 82/82 pass.
+- Current-main [PASS 2271–2280](./audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md) and [PASS 2281–2290](./audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md) are the authoritative numbered reports for RC485–RC496 and RC921–RC925.
+- [PASS 2331–2340](./audits/PASS_2331_2340_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md) and [PASS 2341–2350](./audits/PASS_2341_2350_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md) hold the renumbered RC113–RC117 and RC102–RC106 reports.
+- 76-object sample: 35 present / 41 absent; presence is not semantic parity. Live ledger: 310 rows through 20261110150618; 0/82 exact source IDs.
+- Main checkpoint: `fe19a39018a53006a59179e3d30dd2916a8f00b5`. No Production writes occurred.
