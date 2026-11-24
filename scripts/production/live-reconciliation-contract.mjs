@@ -53,6 +53,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261123010000", // RC921 — bind medical status changes to assigned provider and enforce forward-only transitions
   "20261123221950", // RC922 — allow tenant-wide SERVICE_PROVIDER only for its own active profile in exact appointment business
   "20261124121348", // RC923 — reject Anonymous Auth sessions at direct catalog RPC boundary
+  "20261124140000", // RC924 — restrict agreement reads to participants and registry-backed Legal admins
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
