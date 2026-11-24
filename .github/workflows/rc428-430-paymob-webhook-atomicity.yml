@@ -10,6 +10,11 @@ on:
       - "scripts/test-rc475-concurrent-replay.sh"
       - "scripts/validate-finance-boundaries.mjs"
       - "scripts/validate-payment-migration-wiring.mjs"
+      - "supabase/functions/paymob-webhook/index.ts"
+      - "supabase/functions/payment-intent/index.ts"
+      - "supabase/functions/digital-page-payment-intent/index.ts"
+      - "supabase/functions/subscription-payment-intent/index.ts"
+      - "scripts/validate-paymob-webhook-order-binding.mjs"
       - "scripts/production/live-reconciliation-contract.mjs"
       - ".github/workflows/rc428-430-paymob-webhook-atomicity.yml"
   pull_request:
@@ -48,6 +53,8 @@ jobs:
         run: node scripts/validate-finance-boundaries.mjs
       - name: Validate payment migration and Edge wiring
         run: node scripts/validate-payment-migration-wiring.mjs
+      - name: Validate signed provider-order binding before processor RPCs
+        run: node scripts/validate-paymob-webhook-order-binding.mjs
       - name: Apply disposable fixtures, then the RC475 forward repair
         shell: bash
         run: |
