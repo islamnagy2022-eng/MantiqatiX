@@ -1,3 +1,15 @@
+## 2026-11-24 — Current continuation — post-merge doctor source-rights and governance
+
+- Current main at checkpoint: `be7989b0587d96d5418c9446042c60dcd4e32158`.
+- PR #1023 merged as `5ef35e5f9b0d90e05cf3e76558f614c63e194b8a`. Its source-rights gate covers doctor slug/detail, legacy list and keyset pagination. A published doctor must match exact source host/name to current APPROVED, unrevoked, in-date evidence with both doctor-profile and commercial republication scopes. Unknown/missing listing types fail closed; claim/contact consent does not substitute for source rights.
+- PR #1021 merged as `be7989b0587d96d5418c9446042c60dcd4e32158`; the source authority map and Pass 2041–2050 audit are now in main.
+- Production remains read-only and directory remains disabled: deployed directory-listings v18 is the empty-GET/503-POST stub; live source-evidence registry 0 rows; contact-consent tables absent; 568 published doctors are not retroactively cleared.
+- Latest exact-head main forward replay of all 79 required migration sources passed in disposable CI run `45373530649`; RC921/RC922 behavior/concurrency passed. Do not equate this to Production application or a real backup restore.
+- Live Platform Admin remains P0: is_platform_admin() still derives global authority from active tenant ADMIN/SUPER_ADMIN roles; mnty_can_platform_admin() still delegates to tenant membership; private.platform_admins has RLS but FORCE RLS=false. 56 public policies + 1 storage policy reference the old helper.
+- Pages run `45373530610` on latest main was in V6 Preview validation; previous scoped Catalog Pilot deployment run `45372125371` succeeded with deployed-origin browser checks. Keep those statuses separate.
+- Next tasks: operator-owned encrypted database/Storage export; Auth/Vault recovery evidence; independent PostgreSQL 17 restore/rollback with measured RPO/RTO; then coordinated RC464/RC471/RC484 Platform Admin bundle and RC472/RC473 directory consent + source-rights Edge rollout. No Production mutations until approved gates pass.
+
+---
 ## 2026-11-24 — Current continuation — unified directive and source map
 
 - The exact owner-supplied operating instruction is now preserved in `docs/MASTER_SOURCE_OF_TRUTH.md`; the canonical/legacy/live source matrix is `docs/SOURCE_OF_TRUTH_MAP_20261124.md`.
