@@ -9,10 +9,10 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 
 ## Latest verified checkpoint — 2026-11-24 18:30Z
 - Main source includes RC924 via PR #1064 merge commit `82cdebcdefc4a9c12d4e875548f1cf5f5dd3f896`; exact PR head `f5cc1da156f7a350fa1be800d926dac0ccde05cc` passed 12 required workflows, including RC924 PostgreSQL 17 run `45458313302` and full chronological forward replay `45458313389`. Replay log explicitly shows `20261124140000_rc924_agreement_participant_read_scope.sql` and `FORWARD_MIGRATIONS_APPLIED=117`.
-- RC924 is now the 81st required release migration. The release verifier, live contract, migration-chain gate, forward-replay workflow, manifest and backup runbook must all track it; exact live ledger remains 310 rows through `20261110150618`, with 0/81 required exact IDs. Missing IDs are not proof of absent physical effects.
+- RC924 is now the 81st required release migration. PR #1065 aligns the release verifier, live contract, migration-chain gate, forward-replay workflow, manifest, backup validator and runbook to 81 versions; CI is the merge gate. The live ledger remains 310 rows through `20261110150618`, with 0/81 required exact IDs. Missing IDs are not proof of absent physical effects.
 - Fresh read-only Production check: RC482 and RC924 are both absent from the migration ledger. Both legacy `private.legal_is_admin()` overloads remain membership-derived; `agreements_participant_read` still contains `ap.agreement_id = ap.id` instead of `agreements.id`. RLS and FORCE RLS are enabled on both agreement tables. No Production writes.
 - RC924 migration correctly fails closed unless RC482 has removed the zero-argument helper and installed the registry-backed UUID helper. Do not apply RC924 alone or hot-edit policies.
-- Current next dependency: merge the RC924 81-version release-gate alignment after exact-head CI, then continue the operator-owned encrypted DB + Storage export, Auth/Vault coverage and independent PostgreSQL 17 restore/RPO/RTO. Full platform remains BLOCKED / NOT CERTIFIED.
+- Current next dependency: finish exact-head CI and merge PR #1065, then continue the operator-owned encrypted DB + Storage export, Auth/Vault coverage and independent PostgreSQL 17 restore/RPO/RTO. Full platform remains BLOCKED / NOT CERTIFIED.
 
 ## Execution rules
 - Preserve the current catalog root, `/legacy/` rollback and existing production data. Do not replace current main with the R7 ZIP.
