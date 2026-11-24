@@ -1,4 +1,5 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
+import { applyRouteSeoMetadata, resolveRouteSeoMetadata } from './utils/seoMetadata';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
 import { DirectoryView } from './components/DirectoryView';
@@ -24,7 +25,7 @@ const ScreenFallback = () => (
 );
 
 const MainContent: React.FC = () => {
-  const { currentView, setCurrentView, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp, authSession, authLoading, isCartOpen, isLoginModalOpen } = useApp();
+  const { currentView, setCurrentView, adminSettings, currentBusiness, categories, requestCatalogViaAdminWhatsApp, authSession, authLoading, isCartOpen, isLoginModalOpen } = useApp();
   const params = new URLSearchParams(window.location.search);
   const hasDirectPublicCatalogLink = params.has('store') || params.has('businessId');
   const catalogRequestUrl = requestCatalogViaAdminWhatsApp(currentBusiness);
@@ -52,6 +53,57 @@ const MainContent: React.FC = () => {
             authSession.role === 'guest' && !hasDirectPublicCatalogLink
           ? 'directory'
           : currentView;
+
+  useEffect(() => {
+    const canonicalOrigin = String(
+      import.meta.env.VITE_CANONICAL_ORIGIN || 'https://islamnagy2022-eng.github.io',
+    ).replace(/\/$/, '');
+    const configuredBasePath = String(import.meta.env.VITE_CANONICAL_BASE_PATH || '/MantiqatiX/').trim();
+    const canonicalBasePath = configuredBasePath.startsWith('/')
+      ? (configuredBasePath.endsWith('/') ? configuredBasePath : configuredBasePath + '/')
+      : '/' + (configuredBasePath.endsWith('/') ? configuredBasePath : configuredBasePath + '/');
+
+    // Only the canonical deployed root may be indexed. /legacy/, /v6-preview/,
+    // local previews and other origins remain noindex even when Vite is in PROD mode.
+    const allowIndexing = import.meta.env.PROD
+      && window.location.origin === canonicalOrigin
+      && window.location.pathname === canonicalBasePath
+      && !new URLSearchParams(window.location.search).has('listing');
+    const params = new URLSearchParams(window.location.search);
+    const activityId = params.get('activity') || undefined;
+    const activityCategory = activityId
+      ? categories.find((category) => category.id === activityId)
+      : undefined;
+    const requestedSpecialty = params.get('specialty') || '';
+    const specialtyName = activityCategory?.specialties?.find((specialty) => specialty === requestedSpecialty);
+
+    applyRouteSeoMetadata(resolveRouteSeoMetadata({
+      view: visibleView,
+      business: currentBusiness,
+      origin: canonicalOrigin,
+      basePath: canonicalBasePath,
+      allowIndexing,
+      activityId: activityCategory?.id,
+      activityName: activityCategory?.name,
+      specialtyName,
+    }));
+  }, [
+    visibleView,
+    currentBusiness?.id,
+    currentBusiness?.name,
+    currentBusiness?.bio,
+    currentBusiness?.category,
+    currentBusiness?.governorate,
+    currentBusiness?.markaz,
+    currentBusiness?.isVerified,
+    currentBusiness?.isFrozen,
+    currentBusiness?.publicationStatus,
+    currentBusiness?.publicEnabled,
+    currentBusiness?.catalogPublished,
+    currentBusiness?.isOfficialShowcase,
+    currentBusiness?.operationalStatus,
+    categories,
+  ]);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50/70 text-slate-800">

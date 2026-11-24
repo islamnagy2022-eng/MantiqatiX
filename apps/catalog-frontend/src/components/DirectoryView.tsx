@@ -319,6 +319,7 @@ export const DirectoryView: React.FC = () => {
     if (selectedGroupFilter !== 'all') url.searchParams.set('group', selectedGroupFilter);
     else url.searchParams.delete('group');
     window.history.pushState({ mantiqatixActivityModule: activityId, mantiqatixGroupFolder: selectedGroupFilter }, '', url.pathname + url.search + url.hash);
+    window.dispatchEvent(new Event('mantiqatix:routechange'));
     setActivityListingSearchQuery('');
     setActivityListingSpecialty('all');
     setActivityModuleId(activityId);
@@ -332,6 +333,7 @@ export const DirectoryView: React.FC = () => {
     if (parentGroupId === 'all') url.searchParams.delete('group');
     else url.searchParams.set('group', parentGroupId);
     window.history.pushState({ mantiqatixActivityModule: null, mantiqatixGroupFolder: parentGroupId }, '', url.pathname + url.search + url.hash);
+    window.dispatchEvent(new Event('mantiqatix:routechange'));
     setSelectedGroupFilter(parentGroupId);
     setSelectedCategoryId('all');
     setSelectedSpecialty('all');

@@ -138,6 +138,9 @@ jobs:
       - name: TypeScript check
         working-directory: apps/catalog-frontend
         run: npm run lint
+      - name: Test route-aware SEO metadata and private-route noindex behavior
+        working-directory: apps/catalog-frontend
+        run: npx tsx tests/seo-metadata.test.ts
       - name: Validate the marketing button opens only the official MantiqatiX business
         run: node scripts/validate-marketing-official-storefront-target.mjs
       - name: Test public catalog quote-only visibility contract
