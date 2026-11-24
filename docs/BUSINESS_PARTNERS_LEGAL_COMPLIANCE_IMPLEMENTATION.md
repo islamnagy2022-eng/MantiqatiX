@@ -1,0 +1,165 @@
+# MNTX-BP-001 — Business Partners & Legal-Compliance Implementation
+
+**Status:** IN PROGRESS  
+**Priority:** P0 commercial model and tenant security; staged P1 feature delivery  
+**Started:** 2026-11-24  
+**Implementation branch:** `feat/business-partners-legal-compliance-20261124`  
+**Master request:** GitHub issue #599  
+**Scope owner:** MantiqatiX platform
+
+## 1. Authoritative commercial boundary
+
+MantiqatiX operates as a marketing, advertising, discovery and commercial-referral platform. It is not the product seller, reseller, merchant of record or custodian of partner product proceeds in the current operating model.
+
+- The partner owns the product and is the seller to the customer.
+- The partner receives product consideration directly from the customer.
+- The partner issues the product invoice and is responsible for fulfillment, delivery, warranty, returns, product quality and customer product obligations.
+- MantiqatiX records only its own subscription, commission/referral-service, advertising and marketing-service revenue.
+- Partner product GMV may appear only as a clearly labelled informational metric; it is not platform revenue, cash received, a platform payable or a settlement amount.
+- No product payment intent, platform wallet credit, product-sale invoice or product-proceeds settlement may be created by this workstream.
+- Any future change to this boundary requires separate legal, tax, accounting, payment-provider and product approval.
+
+## 2. Repository reconnaissance — verified on 2026-11-24
+
+Base: `main` at `80cd991f6d591c42f77f58531de995d4e1ef2f3f`.
+
+Existing components to reuse and extend:
+
+- `public.businesses` and `public.user_memberships`: canonical business and membership identity/scope. Do not create duplicate company, tenant, user or membership roots.
+- `BusinessSubscriberAdmin.tsx` and `mnty_platform_admin_list_businesses` / `mnty_platform_admin_manage_business`: existing Super Admin business and membership administration.
+- `MerchantDashboard.tsx`, `BusinessEmployeeManager.tsx`, `CatalogImportPanel.tsx`: existing merchant workspace, employee management and catalog import.
+- `public.commission_rules`, `commission_rule_audit`, `mnty_commission_rule_drafts`, commission preview/resolution RPCs: configurable commission rule drafts and previews already exist. RC467 hardens commission rule administration to platform admin.
+- `settlement_transactions`, journal entries and `settlement-financial-atomic`: existing finance infrastructure is scoped and security sensitive. It must not be repurposed to settle product proceeds.
+- `referral_codes` and `referral_events`: existing personal account invitation/referral system. It is not a company-product referral attribution ledger and must not be overloaded.
+- `digital_page_products` / `digital_page_orders`: these are MantiqatiX digital services, not partner-owned marketplace inventory.
+- `BusinessProfileHeader.tsx` and `CatalogSection.tsx`: existing public business and catalog presentation. Extend to disclose seller identity and partner terms using verified business data.
+
+Known release constraint: current repository release notes say Production is BLOCKED / NOT CERTIFIED pending physical migration reconciliation, coordinated database/Edge release, and actual encrypted backup/restore evidence. All new migrations and Edge changes remain source-only until those gates are satisfied. No Production writes were made for this request.
+
+## 3. Target domain model (reuse-first)
+
+### Canonical identity
+- Company/partner identity references `businesses.id` and `businesses.tenant_id`.
+- Human access references `auth.users` and `user_memberships`; no second identity system.
+- All child records carry tenant and business scope, with composite consistency checks/FKs where supported.
+- Partner employee authority is bounded by the existing membership/employee permission model.
+
+### New records to add only after schema preflight confirms absence
+1. Partner legal profile / verification state, linked 1:1 to canonical business.
+2. Partner legal documents, private storage references, checksums, uploader, review state and retention metadata.
+3. Partner agreements and immutable agreement versions, agreement type, effective dates, renewal policy, legal review status and signature evidence metadata.
+4. Partner referral attribution records, unique referral IDs, campaign/product/business references, minimized customer reference, event timestamps and immutable status history.
+5. Contract-versioned commission terms and accrual/adjustment ledger, reusing existing commission rule engine where compatible.
+6. Platform-service invoice/charge records for subscription, advertising, marketing and fixed referral fees only.
+7. Partner statement snapshots and two-party acknowledgement events; product GMV remains informational and excluded from platform balance.
+8. Compliance events: access audit, complaints, privacy requests, retention actions and incident references.
+
+Names and final column contracts must be reconciled against the actual schema before migration creation. Do not blindly create a second catalog, orders, company, contracts or accounting subsystem if a compatible canonical object already exists.
+
+## 4. State machines and hard gates
+
+### Partner lifecycle
+`DRAFT → PENDING_REVIEW → APPROVED → ACTIVE`; alternate terminal/paused states: `SUSPENDED`, `REJECTED`, `EXPIRED`.
+
+A partner cannot publish partner-owned products unless:
+- legal profile required fields are complete;
+- required documents are reviewed and approved;
+- required agreement is active and signature requirements are met;
+- partner is not suspended/expired;
+- catalog owner and seller identity resolve to the same canonical business.
+
+### Agreement lifecycle
+Draft → Legal Review → Partner Review → Signed/Accepted (according to legally approved method) → Active → Expiring/Expired/Terminated. Keep immutable versions and signature evidence. In-app acceptance is not described as a substitute for legally required signatures.
+
+### Referral/order lifecycle
+`REFERRED, ACCEPTED, REJECTED, CONFIRMED, DELIVERED, COMPLETED, CANCELLED, RETURNED, DISPUTED`.
+Every transition is authenticated, business-scoped, time-stamped and audited. Customer data shared with a partner is limited to what is necessary for the referral/fulfillment and lawful basis.
+
+### Commission eligibility
+A commission is accrued only against the approved agreement/rule version and its specified eligibility event. The calculation basis must explicitly state treatment of discounts, shipping, taxes, returns, cancellations and partial fulfillment. Cancelled/returned orders reverse or do not accrue unless the signed applicable agreement explicitly provides otherwise. Rule changes never retroactively rewrite prior accruals.
+
+### Financial separation
+Platform revenue categories: subscription, commission/referral services, advertising, marketing services and fixed referral fees.
+Partner product GMV: analytics-only indicator, never platform revenue or a platform-held liability.
+Partner statements show service fees/commission due to MantiqatiX and amounts collected/outstanding; do not imply MantiqatiX collected customer product money.
+Tax rates and withholding rules are configurable effective-dated accounting settings, never hard-coded assumptions. No official invoice/tax document is generated without approved legal entity, tax configuration and accountant sign-off.
+
+## 5. Implementation phases and acceptance criteria
+
+### Phase 0 — source/schema contract and request registration
+- [x] Register MNTX-BP-001 in master issue #599.
+- [x] Create a dedicated cross-session implementation record.
+- [x] Confirm canonical business, membership, merchant, commission, personal-referral and settlement components to reuse.
+- [ ] Complete exhaustive schema/RPC/Edge/RLS mapping and duplicate-object preflight.
+
+### Phase 1 — partner legal profile, verification and contracts
+- [ ] Add additive, reversible migrations only after schema preflight.
+- [ ] Add private document handling with strict owner/admin access and no public document URLs.
+- [ ] Add partner verification and publication hard gate through trusted server-side actions.
+- [ ] Add contract templates, version history, approval/signature evidence, renewal and expiry alerts.
+- [ ] Add Super Admin legal review UI and partner company workspace.
+- [ ] Tests: state transition matrix, missing-document block, expired-contract block, cross-business denial, audit immutability.
+
+### Phase 2 — partner catalog seller identity and referral attribution
+- [ ] Extend existing product/catalog records, do not create a parallel product catalog.
+- [ ] Display partner seller name/contact/terms/delivery/warranty/returns on product detail.
+- [ ] Add unique partner referral ID and campaign attribution.
+- [ ] Reuse or extend existing order model only after confirming the current product order path does not collect platform product payments.
+- [ ] Add immutable order/referral event history and partner-scoped status transitions.
+- [ ] Tests: ownership, direct partner contact/order handoff, unique attribution, customer data minimization, status permissions.
+
+### Phase 3 — commission, service fees and statements
+- [ ] Bind commission rule versions to active signed agreements and explicit basis/eligibility.
+- [ ] Add accrual, approval, invoice reference, payment, dispute and reversal lifecycle.
+- [ ] Add subscription/advertising/marketing/fixed-referral service charges.
+- [ ] Generate statements with partner product GMV explicitly informational and excluded from platform balances.
+- [ ] No product-money checkout, wallet, platform collection or product proceeds settlement.
+- [ ] Tests: completion eligibility, cancellation/return reversal, discount/shipping/tax basis, replay/idempotency and arithmetic reconciliation.
+
+### Phase 4 — Super Admin and partner dashboards
+- [ ] Super Admin partner/legal/contract/commission/compliance overview with real persisted data.
+- [ ] Partner workspace: profile, documents, products, referrals, order status, service fees, statements, contracts and renewal requests.
+- [ ] Enforce all access in RPC/Edge/RLS; UI visibility is not authorization.
+- [ ] Tests for all roles and cross-tenant/business/branch isolation.
+
+### Phase 5 — privacy, accounting and tax controls
+- [ ] Privacy notice, platform terms, partner terms, cookie notice where applicable, DPA, complaints, retention and incident workflow.
+- [ ] Data-subject request intake, identity verification, legal hold and deletion/anonymization workflow.
+- [ ] Accounting center for platform service revenue only, expenses, fee invoices, bank reconciliation and approved withholding records.
+- [ ] Effective-dated tax settings with accountant/legal approval; no tax rate defaults represented as legal advice.
+- [ ] Review current Egyptian legal requirements with qualified counsel/accountant before enabling regulated processing or issuing tax documents.
+
+### Phase 6 — integrated release
+- [ ] Test partner onboarding, verification, agreement activation and publication gate.
+- [ ] Test partner product listing and seller disclosure.
+- [ ] Test referral/order lifecycle and status history.
+- [ ] Test commission eligibility, cancellation, return and reversal.
+- [ ] Test statement arithmetic and prove product proceeds never enter platform ledgers/payment flows.
+- [ ] Test cross-tenant data isolation, RBAC, audit logs, privacy controls and restore.
+- [ ] Release only through coordinated, approved database/Edge/UI deployment and production read-back.
+
+## 6. Required roles
+
+Platform roles: `SUPER_ADMIN`, `LEGAL_MANAGER`, `FINANCIAL_MANAGER`, `PARTNER_MANAGER`, `CUSTOMER_SUPPORT`.
+Partner roles: `COMPANY_OWNER`, `COMPANY_EMPLOYEE`.
+
+Map to existing role/membership infrastructure where possible. Do not grant platform-wide authority by trusting client-supplied role strings. Financial approvals and contract changes require server-side permission checks and audit records. A partner employee cannot edit approved commission terms or contract versions.
+
+## 7. Cross-session continuation protocol
+
+This workstream is persistent and must be resumed in every MantiqatiX continuation:
+1. Read issue #599, this document, `docs/CROSS_SESSION_TODO_PROTOCOL.md`, `docs/PROJECT_CONTINUITY.md` and the current master TODO.
+2. Read current main, active PRs, exact-head CI, migration ledger and deployment state.
+3. Resume the first unfinished dependency-ordered checkbox in this document.
+4. Keep status IN PROGRESS/BLOCKED/NOT VERIFIED until evidence supports completion.
+5. Do not repeat completed work; append evidence and update the same task.
+6. If a future session lacks repository access, do not claim automatic GitHub changes; reconnect before modifying the ledger.
+
+## 8. Current status
+
+- Request registered in issue #599.
+- Feature branch created from current main.
+- Repository reconnaissance completed for the canonical business/membership, merchant, commission, personal referral and settlement foundations.
+- No application code, production schema, RLS, Auth, Edge deployment, payment or financial data has been changed by this request yet.
+- Phase 0 is partially complete; overall feature is **NOT IMPLEMENTED / NOT VERIFIED**.
+- Next action: complete schema/RPC/Edge/RLS dependency mapping, then implement Phase 1 as a compatibility-safe, tested migration + server action + UI stack.
