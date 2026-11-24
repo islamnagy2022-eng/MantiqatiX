@@ -1,12 +1,12 @@
 # MantiqatiX — Unified Source of Truth Map
-**Checkpoint:** 2026-11-24  
+**Checkpoint:** 2026-11-24 — main `d55fc4e3b53f9c069c4618b7c4b4a271213a08e6`  
 **Operating directive:** [MASTER_SOURCE_OF_TRUTH.md](./MASTER_SOURCE_OF_TRUTH.md)  
 **Canonical repository:** `islamnagy2022-eng/MantiqatiX`  
 **Production Supabase:** `MANTIQATIX FINAL` / `moyhiluyhjsujhwlyeuu`
 
 ## Authority order
 1. **Operating rules:** `docs/MASTER_SOURCE_OF_TRUTH.md` — exact owner-supplied instruction, controlling development method, priorities and release boundaries.
-2. **Application source:** GitHub `main`; after RC925 source merge, current checkpoint `53b8be3784790e56775f16bb51c9c3477cfeb536`.
+2. **Application source:** GitHub `main`; current checkpoint `d55fc4e3b53f9c069c4618b7c4b4a271213a08e6` (documentation-only updates after the validated source head; exact-head code CI is linked from PASS 2351–2360).
 3. **Production identity, authorization and business data:** the connected `MANTIQATIX FINAL` Supabase project. The paused `MantiqatiX-DEMO` project is not production and must never be merged into the production data path.
 4. **Database release state:** live `supabase_migrations.schema_migrations` plus exact source migrations and physical schema/ACL/RLS reconciliation. A missing migration version is not by itself proof that all physical effects are absent.
 5. **Runtime Edge state:** the deployed Supabase Edge Function bundle/version and settings, compared with the exact current-main source and its schema dependencies. Main source alone does not prove deployment.
@@ -74,3 +74,8 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - 76-object sample: 35 present / 41 absent; presence is not semantic parity. Live ledger: 310 rows through 20261110150618; 0/82 exact source IDs.
 - Main checkpoint: `9e6c62e25614d020eb07b6361dba6eb1c5ac8257`. No Production writes occurred.
 - Migration-history reconciliation update: **3 exact source aliases confirmed / 0 formal ledger repairs applied** (RC424→20261008222845; marketing-contact `20261027100000`→`20261027041411`; directory-source-rights `20261101150000`→`20261101140105`). Five partial baselines are now machine-classified (subscription, ERP, journal, directory, generic payments); RC451 remains a separate forward repair. See `migration_alias_resolution_check` and `historical_partial_baseline_reconciliation_20261124` in `production-migration-reconciliation.json`.
+
+## Latest platform-root read-back — 2026-11-24
+- [PASS 2361–2370](./audits/PASS_2361_2370_PLATFORM_ROOT_LIVE_RECHECK_20261124.md) records fresh read-only Production evidence: registry RLS ON/FORCE RLS OFF; membership-derived `is_platform_admin()`; legacy `mnty_can_platform_admin()`; 57 policies / 24 tables and 5 policies / 3 tables; seven catalog RPCs without explicit `is_anonymous=false` guard.
+- [Coordinated release gate](./release/PLATFORM_ROOT_COORDINATED_RELEASE_20261124.md) maps RC464/RC471/RC484/RC485/RC923/RC925 dependencies and requires the full canonical 82-version chronology, exhaustive physical/ACL/RLS reconciliation, encrypted backup/restore and DB-to-Edge E2E before Production approval.
+- No Production mutation was performed; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
