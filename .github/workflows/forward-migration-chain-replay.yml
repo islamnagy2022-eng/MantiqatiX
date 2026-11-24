@@ -73,6 +73,7 @@ on:
       - "scripts/validate-rc482-legal-platform-admin-registry.mjs"
       - "scripts/validate-rc483-atomic-legal-cms-create-audit.mjs"
       - "scripts/validate-rc485-catalog-rpc-registry-root.mjs"
+      - "scripts/validate-rc925-catalog-rpc-confirmed-auth-boundary.mjs"
       - "supabase/tests/rc485_catalog_rpc_registry_root_integration.sql"
       - "supabase/migrations/20261120210000_rc486_catalog_price_version_serialization.sql"
       - "scripts/validate-rc486-catalog-price-version-serialization.mjs"
@@ -159,6 +160,7 @@ on:
       - "scripts/validate-rc482-legal-platform-admin-registry.mjs"
       - "scripts/validate-rc483-atomic-legal-cms-create-audit.mjs"
       - "scripts/validate-rc485-catalog-rpc-registry-root.mjs"
+      - "scripts/validate-rc925-catalog-rpc-confirmed-auth-boundary.mjs"
       - "supabase/tests/rc485_catalog_rpc_registry_root_integration.sql"
       - "supabase/tests/rc482_legal_platform_admin_registry_fixture.sql"
       - "supabase/tests/rc482_legal_platform_admin_registry_integration.sql"
@@ -249,6 +251,9 @@ jobs:
 
       - name: Validate RC485/RC923 catalog RPC registry-root and anonymous-auth contract
         run: node scripts/validate-rc485-catalog-rpc-registry-root.mjs
+
+      - name: Validate RC925 explicit confirmed-Auth claim on all catalog RPCs
+        run: node scripts/validate-rc925-catalog-rpc-confirmed-auth-boundary.mjs
 
       - name: Validate RC924 agreement participant and unified 81-version release contract
         run: node scripts/validate-rc924-agreement-participant-read-scope.mjs
