@@ -112,7 +112,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 ## Latest verified status — 2026-11-24
 - [x] Zero-cost execution board is merged and remains the active priority queue.
 - [x] Marketing button responsive routing regression merged and verified.
-- [x] SEO-only route metadata/canonical-root guard merged; exact-head CI passed 34/34. Main Pages deployment is still pending verification.
+- [x] SEO-only route metadata/canonical-root guard merged; exact-head CI passed 34/34. Main Pages deployment run `45393984388` passed, including deployed-origin root, legacy catalog rollback, dashboard/mobile/QR route checks.
 - [x] Live Edge entrypoint comparison recorded; 9 critical mismatches remain and no Edge deployment was made.
 - [x] RC484 test hardening PR #1040 merged; dedicated RC484 PG17 test passed. RC471, RC482 and related privacy/ACL jobs also passed on the merged test head. This is test evidence only; no Production migration was applied.
 - [x] Confirmed the registry-only `mnty_can_platform_admin()` source repair already exists in RC464 and is reinforced by RC471; RC471 PostgreSQL 17 integration passed on the merged test head. No duplicate migration is needed.
