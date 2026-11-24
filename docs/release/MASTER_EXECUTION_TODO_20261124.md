@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
 **Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
-**Base:** `main @ 80cd991f6d591c42f77f58531de995d4e1ef2f3f`  
+**Base:** `main @ ae53cf436a37c178bffa56aaac54a58472bcfe89`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -21,8 +21,11 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Reconcile live is_platform_admin() and mnty_can_platform_admin() with RC464, RC471, RC484, RC485 and RC923 source; exact 57-policy/24-table RC484 dependency map and four direct helper callers verified read-only. Evidence: docs/audits/P0_ANONYMOUS_AUTH_STORAGE_LIVE_RECHECK_20261124.md.
 - [x] RC484's post-migration test now asserts registry FORCE RLS and registry/helper owner parity with BYPASSRLS; exact PR-head PostgreSQL 17 run `45390294342` passed (PR #1040 merged).
 - [x] PR #1049 widened the RC471/R7 actor matrix to reject tenant-scoped SUPER_ADMIN and MNTY-PLATFORM membership without registry across all four helper callers; exact-head run 45396407812 passed. PR merged as main commit 1b27efb65e32a254e34a7ae9add172de078e6fdf (31 successful checks, 2 skipped; no failures).
-- [x] Complete the ordered migration set on disposable PostgreSQL 17 using repo CI. Exact-head run 45407602805 passed the checkpoint restore, exact 80-version gate, 117 chronological forward migrations and integration suite; this is disposable-only and does not replace Production backup restore or physical-object reconciliation.
-- [x] Test RC923 anonymous-session denial for all seven catalog RPCs on the full chronological 80-version release-chain replay; RC485/RC923 integration marker passed in run 45407602805.
+- [x] Complete the prior ordered migration set on disposable PostgreSQL 17 using repo CI. Exact-head run 45407602805 passed the checkpoint restore, exact 80-version gate, 117 chronological forward migrations and integration suite; this is disposable-only and does not replace Production backup restore or physical-object reconciliation.
+- [x] RC924 ordered authorization and agreement participant scope merged in PR #1064 as `82cdebcdefc4a9c12d4e875548f1cf5f5dd3f896`; dedicated PostgreSQL 17 run `45458313302` and full 117-migration chronological replay `45458313389` passed. The replay's strict static gate still asserted 80 versions; it is not evidence for the updated 81-version count.
+- [ ] Re-run the exact 81-version release validator and full PostgreSQL 17 forward replay on the current mainline after RC924 is added to every release contract.
+- [x] Test RC923 anonymous-session denial for all seven catalog RPCs on the prior chronological 80-version release-chain replay; RC485/RC923 integration marker passed in run 45407602805.
+- [x] Test RC924 against the pre-RC482 Legal helper and confirm ordered RC482 → RC924 application in isolated PostgreSQL 17; RC924-specific job `45458313302` passed.
 - [x] Test registered platform-admin allow; tenant ADMIN/OWNER/SUPER_ADMIN and MNTY-PLATFORM membership without registry deny; cross-tenant/business/branch denial; tenant-local scope preserved (RC484 run 45390294342, RC471/R7 actor matrix run 45396407812; companion exact-head module run 45407602698 passed).
 - [x] Added an inactive tenant SUPER_ADMIN (INACTIVE membership with stale platform metadata) negative actor to the RC449 global MantiGO RPC matrix and RC464 shared-helper caller matrix; exact-head run 45411811229 and RC464 live-hardening run 45411811351 passed.
 - [x] Re-ran the existing read-only high-risk SECURITY DEFINER SQL contract against Production: 14 RPCs checked; 5 PASS, 9 FAIL_SEARCH_PATH; all 14 preserve anon EXECUTE=false and authenticated EXECUTE=true. Direct anon/authenticated write grants on five MantiGO tables are both zero; see PASS_2071_2080.
@@ -47,10 +50,10 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 
 ## P1 — Database and backend contracts
 ### P1.1 Migration reconciliation
-- [x] Refresh the ordered mainline release manifest (80 identifiers at the 2026-11-24 checkpoint) and compare it with Production's 310-row migration ledger: 0/80 exact source-version identifiers are present; physical-object aliases/effects still require reconciliation.
+- [x] Refresh the ordered mainline release manifest (81 identifiers at the 2026-11-24 checkpoint) and compare it with Production's 310-row migration ledger: 0/81 exact source-version identifiers are present; physical-object aliases/effects still require reconciliation.
 - [x] Refreshed all 76 previously tracked physical object contracts against Production on 2026-11-24 (tables, indexes, functions, columns, triggers): 35 present / 41 absent, zero status changes since the 2026-11-20 snapshot. Breakdown is in `docs/audits/PASS_2091_2100_PHYSICAL_OBJECT_REFRESH_20261124.md`.
 - [ ] Classify every migration by physical effect: exact-present, alias/effect-present, safe-to-replay, superseded/forward-fixed or blocked.
-- [ ] Complete the broader migration→physical effect/alias map beyond these 76 contracts: reconcile all remaining functions, policies, ACLs, indexes, triggers and constraints; 0/80 exact ledger matches is not proof all effects are absent.
+- [ ] Complete the broader migration→physical effect/alias map beyond these 76 contracts: reconcile all remaining functions, policies, ACLs, indexes, triggers and constraints; 0/81 exact ledger matches is not proof all effects are absent.
 - [x] Run full chronological forward replay from the captured Production schema checkpoint; exact-head run 45407602805 passed after 117 forward migrations and ordered integration jobs. This is not a live Production restore/deployment.
 - [ ] Never blindly replay the release chain on Production.
 
@@ -108,7 +111,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Mark FULL_PLATFORM_GATE PASS only with evidence for every mandatory item; otherwise retain BLOCKED / NOT CERTIFIED.
 
 ## Current factual blockers
-- Live migration ledger: 310 entries through `20261110150618`; the current 80-version source manifest has 0/80 exact version identifiers recorded. This is an identity gap, not proof all physical effects are absent; aliases and actual catalog state still require per-object reconciliation.
+- Live migration ledger: 310 entries through `20261110150618`; the current 81-version source manifest has 0/81 exact version identifiers recorded. This is an identity gap, not proof all physical effects are absent; aliases and actual catalog state still require per-object reconciliation.
 - `public.is_platform_admin()` remains SECURITY INVOKER with `search_path=public` and derives platform-wide authority from active tenant ADMIN/SUPER_ADMIN membership; 57 policies across 24 tables reference it.
 - `public.mnty_can_platform_admin()` remains SECURITY DEFINER with `search_path=public, pg_temp` and delegates to unscoped `mnty_can('admin',NULL,NULL,NULL)`; 5 policies across 3 tables and four SECURITY DEFINER callers depend on it.
 - Existing read-only high-risk SECURITY DEFINER contract: 9/14 expected search_path states fail in live Production (all 14 have anon EXECUTE=false and authenticated EXECUTE=true); the nine include the platform helper, four global-admin callers, and four MantiGO dashboard/settlement paths. No direct anon/authenticated write grants exist on five MantiGO core tables.
@@ -137,7 +140,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Re-read live authorization definitions and measured 57 policies across 24 tables.
 - [x] Verified existing historical RC464/RC484/RC922 test evidence; did not mislabel historical runs as current full release certification.
 - [x] Completed a read-only direct dependency closure pass for nine critical Edge functions; no Production Edge or database changes.
-- [x] Rechecked the 80-version exact migration ledger set (0/80 exact IDs), both live platform-root helpers, 57/24 and 5/3 policy dependencies, four SECURITY DEFINER callers, and all seven catalog RPC guard/ACL/search_path states.
+- [x] Rechecked the 81-version exact migration ledger set (0/81 exact IDs), both live platform-root helpers, 57/24 and 5/3 policy dependencies, four SECURITY DEFINER callers, and all seven catalog RPC guard/ACL/search_path states.
 - [ ] Next: await exact-head CI for PR #1049, then complete physical-object alias mapping and transitive Edge/SQL dependency closure.
 
 
