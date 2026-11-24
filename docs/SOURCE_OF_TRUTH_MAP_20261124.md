@@ -63,3 +63,8 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - RC924's existing participant policy is present but incorrect: `ap.agreement_id = ap.id`; restrictive confirmed-auth policy absent.
 - RC925 remains source-only: all seven live RPCs still lack explicit false-claim guard; four use legacy COALESCE, three have no claim guard.
 - No Production writes, DDL, policy changes, grants, Storage or Edge deployment occurred.
+
+
+## Detailed 76-object physical read-back — 2026-11-24
+- [Object-by-object presence results](./audits/PASS_2231_2240_76_OBJECT_DETAILED_PRESENCE_20261124.md) now preserve all 76 catalog checks: 35 present / 41 absent (tables 5/7, indexes 6/13, columns 2/12, functions 22/41, triggers 0/3).
+- Presence is not semantic PASS; exact overload/body, owner, search_path, ACL, RLS/FORCE RLS, policy expression and runtime behavior remain separate release checks.
