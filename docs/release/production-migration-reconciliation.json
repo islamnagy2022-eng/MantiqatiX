@@ -8052,5 +8052,56 @@
       "customer_impact_observed": false,
       "required_sandbox_negative_test": "Create pending orders A/B with equal amount/currency but different Paymob order IDs; submit valid signed event for A with merchant_order_id changed to B; require rejection and no change to either record. Repeat for digital-page/subscription."
     }
+  },
+  "backup_restore_capability_readback_20261124": {
+    "status": "BLOCKED / NOT VERIFIED",
+    "project": "MANTIQATIX FINAL",
+    "project_ref": "moyhiluyhjsujhwlyeuu",
+    "database_version": "17.6.1.155",
+    "region": "us-east-2",
+    "readback_date": "2026-11-24",
+    "project_status": "ACTIVE_HEALTHY",
+    "plan_tier": "NOT EXPOSED BY CONNECTED get_project RESPONSE",
+    "backup_inventory": "NOT EXPOSED BY CONNECTED SUPABASE TOOLS",
+    "automated_backup_latest_timestamp": null,
+    "downloadable_backup_artifact": false,
+    "backup_created_in_session": false,
+    "storage_object_bytes_exported": false,
+    "auth_configuration_exported": false,
+    "vault_key_recovery_verified": false,
+    "edge_secret_recovery_verified": false,
+    "disposable_restore_target": "NO SEPARATE RESTORE TARGET DEMONSTRATED; branch listing returned primary main entry only",
+    "database_restore_drill": "NOT PERFORMED",
+    "rollback_drill": "NOT PERFORMED",
+    "rpo_seconds": null,
+    "rto_seconds": null,
+    "ci_pg17_replay_is_production_restore": false,
+    "production_mutations": false,
+    "official_docs": [
+      "https://supabase.com/docs/guides/platform/backups",
+      "https://supabase.com/docs/reference/cli/supabase-db-dump",
+      "https://supabase.com/docs/guides/storage/management"
+    ],
+    "note": "No connection string, database password or backup artifact was supplied to the runtime. Do not infer automatic backup from project health. Storage object bytes require separate export/integrity verification."
+  },
+  "paymob_signed_order_guard_ci_20261124": {
+    "status": "SOURCE_CONTRACT_CI_PASS",
+    "pr": 1090,
+    "merge_commit": "46714e919d959e49afe5efa64e2fcd2f94a982d7",
+    "validator": "scripts/validate-paymob-webhook-order-binding.mjs",
+    "workflows": [
+      "RC425 MantiGo Paymob Atomicity",
+      "RC428-430 Paymob Webhook Atomicity"
+    ],
+    "assertions": [
+      "HMAC includes order.id",
+      "merchant_order_id excluded from signed field list",
+      "verification before selector extraction",
+      "standard/digital-page/subscription compare stored provider_order_id before processor RPCs",
+      "mismatch returns HTTP 409"
+    ],
+    "production_edge_changed": false,
+    "full_sandbox_altered_selector_e2e": "NOT PERFORMED",
+    "production_paymob_release_gate": "BLOCKED"
   }
 }

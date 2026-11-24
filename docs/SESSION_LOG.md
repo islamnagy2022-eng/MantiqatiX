@@ -1,3 +1,20 @@
+## 2026-11-24 — Backup/restore capability read-back and P6 gate
+- [x] Read Production project metadata: ACTIVE_HEALTHY, PostgreSQL 17.6.1.155, region us-east-2. get_project does not expose plan tier or backup inventory.
+- [x] Read Supabase branch list: only the primary main entry for Production was returned; no separate restore/preview branch was demonstrated. No branch was created.
+- [x] Confirmed existing GitHub Actions PG17 replay tests are disposable source-chain tests, not a restore from a Production snapshot.
+- [ ] Create encrypted owner-controlled off-site DB backup and separate Storage object bytes export; record artifact IDs, timestamps, sizes, SHA-256 and retrieval checks.
+- [ ] Recover Auth configuration, Vault/key material, Edge secret references and project settings under owner-controlled secret handling.
+- [ ] Restore into disposable PostgreSQL 17; run exact migration/effect reconciliation, E2E, rollback and measured RPO/RTO.
+- [x] Added docs/audits/PASS_2391_2400_BACKUP_RESTORE_CAPABILITY_READBACK_20261124.md and docs/release/PRODUCTION_BACKUP_RESTORE_DRILL_20261124.md.
+- No backup created or downloaded; no Production SQL, Auth, RLS/GRANT, Storage, Vault, Edge, payment or deployment mutation. BACKUP_RESTORE_GATE remains BLOCKED / NOT VERIFIED.
+
+## 2026-11-24 — Paymob signed-order source-contract CI gate
+- [x] Merged PR #1090 at 46714e919d959e49afe5efa64e2fcd2f94a982d7; exact-head tests passed.
+- [x] Added a focused validator for signed provider order ID vs unsigned merchant selector and pre-RPC guards across standard, digital-page and subscription paths.
+- [x] Wired the validator into RC425 and RC428/430 Paymob CI; Edge file changes now trigger the focused validation workflow.
+- [ ] Perform complete sandbox HTTP callback replay with a valid signed order A and altered merchant_order_id pointing at equal-value pending order B; prove HTTP 409 and no mutation to either order.
+- No Production payment or Edge deployment was changed.
+
 ## 2026-11-24 — Paymob signed order vs unsigned selector integrity gate
 - [x] Confirmed deployed Paymob webhook v10 HMAC-SHA512 signed fields include order.id but omit merchant_order_id.
 - [x] Confirmed deployed webhook selects records through merchant_order_id after HMAC verification and lacks stored provider_order_id equality checks across standard, digital-page and subscription branches.
