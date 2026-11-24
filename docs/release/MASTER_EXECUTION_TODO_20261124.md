@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
 **Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
-**Base:** `main @ cbe966edebc7e11b34c98d67f022d6ab8e809270`  
+**Base:** `main @ 53b8be3784790e56775f16bb51c9c3477cfeb536`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -18,6 +18,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 ### P0.1 Platform-root authorization
 - [x] Rechecked Production helper definitions, all dependent policy counts, helper callers, all seven catalog RPC ACLs and anonymous-session guards using read-only PostgreSQL catalog queries; see `docs/audits/PASS_2071_2080_P0_AUTHORIZATION_RECHECK_20261124.md`.
 - [x] RC925 merged in PR #1069 as source-only commit `a0a31dab110ac519f8528cbefe74c0eefb727a7c`. All seven catalog RPCs now fail closed unless `is_anonymous=false`; missing/null claims are denied. Exact-head static validation + missing-claim PostgreSQL 17 integration + 82-version chronological replay passed in run `45477345349`; module validation passed in `45477345380`; catalog build, RBAC PostgreSQL and dashboard browser E2E passed in `45477345161`. Production remains unchanged and RC925 is NOT applied.
+- [x] Added confirmed-user compatibility coverage: `is_anonymous=false` now reaches downstream validation in all seven RPCs rather than being rejected by the identity gate. PR #1071 merged as `53b8be3784790e56775f16bb51c9c3477cfeb536`; exact-head full 82-version replay and all supporting module/feature workflows passed in run `45480436807` plus `45480436782`, `45480436843`, `45480436853` and `45480437044`.
 - [x] Confirmed RC923's current source/integration contract checks all seven direct catalog RPCs for anonymous Auth sessions; exactly three RPC bodies are replaced by RC923, while the other four already guard anonymous sessions.
 - [x] Reconcile live is_platform_admin() and mnty_can_platform_admin() with RC464, RC471, RC484, RC485 and RC923 source; exact 57-policy/24-table RC484 dependency map and four direct helper callers verified read-only. Evidence: `docs/audits/P0_ANONYMOUS_AUTH_STORAGE_LIVE_RECHECK_20261124.md` and `docs/audits/PASS_2131_2140_RC479_RC488_RC489_LIVE_PRODUCTION_RECHECK_20261124.md`.
 - [x] RC484's post-migration test now asserts registry FORCE RLS and registry/helper owner parity with BYPASSRLS; exact PR-head PostgreSQL 17 run `45390294342` passed (PR #1040 merged).
@@ -208,3 +209,9 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Confirmed public directory remains fail-closed, source-rights evidence has zero rows, and the contact-consent registry/claim-review RPCs are absent.
 - [x] Confirmed the local Edge import graph but not external dependency resolution or deployed bundle parity; mismatched critical Edge Functions remain blocked from individual deployment.
 - [ ] Continue the complete 82-migration physical-effect/alias map and coordinated DB/Edge dependency plan before any Production change.
+
+
+## 2026-11-24 — RC925 positive identity compatibility and live production read-back
+- [x] PR #1071 merged as `53b8be3784790e56775f16bb51c9c3477cfeb536`, extending the RC925 PG17 test to cover explicit `is_anonymous=false` as well as missing/null claims. Exact-head 82-version strict gate and chronological replay passed in run `45480436807`; all seven supporting regression workflows passed.
+- [x] Fresh read-only Production query after both RC925 code/test merges confirmed all seven catalog RPCs remain on `SECURITY DEFINER`, `search_path=public`, `anon EXECUTE=false`, `authenticated EXECUTE=true`; only four have legacy claim checks and all four still contain COALESCE semantics; the other three have no direct claim guard. Production `private.platform_admins` still has RLS on / FORCE RLS off; ledger remains 310 rows through `20261110150618`.
+- [ ] Keep source/test pass separate from live deployment. The 82-version release remains blocked until complete physical-effect/alias reconciliation and owner-controlled recovery gates pass.
