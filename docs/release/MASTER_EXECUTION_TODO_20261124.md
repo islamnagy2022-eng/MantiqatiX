@@ -47,7 +47,8 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 
 ### P1.2 Edge parity
 - [x] Completed a read-only entrypoint comparison for 11 launch-relevant Edge Functions; 9 critical entrypoints differ from current main and 2 public-catalog entrypoints match. Audit: `docs/audits/PASS_2051_2060_EDGE_SOURCE_PARITY_20261124.md`.
-- [ ] Compare shared imported files/import maps plus SQL/RPC/ACL dependencies; no individual deployment before the full dependency slice passes.
+- [x] Read-only direct import graph and Production SQL/RPC/table/ACL snapshot completed for nine critical Edge functions; see `docs/audits/PASS_2061_2070_EDGE_DEPENDENCY_CLOSURE_20261124.md`.
+- [ ] Complete transitive import-map, function-body, grant and full dependency closure; no individual deployment before the full dependency slice passes.
 - [ ] Hash/compare the launch-critical active Edge bundles against current main and their SQL/RPC/ACL prerequisites.
 - [ ] Prioritize platform/catalog admin, consent-aware directory, registration, order-create, Paymob webhook/payment intent, subscription payment, financial journal and settlement.
 - [ ] Maintain a dependency map: migration → schema/RPC/ACL → Edge version → E2E.
@@ -118,4 +119,5 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Reconfirmed Production project identity, 310 migration records, 42 ACTIVE Edge Functions and current advisors without production writes.
 - [x] Re-read live authorization definitions and measured 57 policies across 24 tables.
 - [x] Verified existing historical RC464/RC484/RC922 test evidence; did not mislabel historical runs as current full release certification.
-- [ ] Next: complete a no-cost source/CI audit of current-main candidate PRs, then select the first mergeable zero-risk slice.
+- [x] Completed a read-only direct dependency closure pass for nine critical Edge functions; no production Edge or database changes.
+- [ ] Next: finish transitive bundle/import-map and exact SQL/ACL closure, then prepare coordinated testable release slices.
