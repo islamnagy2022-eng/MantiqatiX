@@ -4231,3 +4231,12 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] RC441 five routines are present but retain old path/scope contracts. Report: `PASS_2221_2230_RC434_RC441_LIVE_CONTRACT_RECHECK_20261124.md`.
 - [x] Production remains unchanged at 310 migration rows through `20261110150618`; no migration/DDL/DML/ACL/RLS/Auth/Storage/Edge/payment/wallet/finance write performed.
 - [ ] Continue the 82-version physical-effect/alias crosswalk, with RC440 historical candidates reconciled to the exact historical timestamp.
+
+
+## 2026-11-24 — RC442–RC451 read-only source-to-live authorization and journal recheck
+- [x] RC442 live private approval RPC exists but path differs; authenticated direct DML on approval_actions remains granted and its member INSERT policy remains present.
+- [x] RC444 CRM manager policies do not match the exact business-row/platform-full-control scope; the separate public ACTIVE provider profile read remains tracked under RC479/#928.
+- [x] RC447/RC448 matrimony privacy and lifecycle contracts are incomplete: source RPCs/verification trigger and active-pair index absent, base profile SELECT not owner-only, direct request/contact-unlock DML still granted.
+- [x] RC449 global admin functions present but old scope/path contract; RC449A journal schema and lookup index absent; RC450 journal RPC present but service_role grant/path mismatch; RC451 targeted ads function empty-path/public-anon contract passes.
+- [x] Full evidence in `PASS_2231_2240_RC442_RC451_LIVE_CONTRACT_RECHECK_20261124.md`; no Production changes.
+- [ ] Continue RC452–RC453 and subsequent hardening release migrations.
