@@ -232,3 +232,28 @@ The replacement policy correlates `agreement_participants.agreement_id` to `agre
 Fixture cases cover two independent partner users, an unrelated authenticated user, an anonymous-authenticated JWT, and the protected platform-admin registry actor. The fixture reproduces the old predicate before applying RC924.
 
 **Status:** source added; static and PostgreSQL 17 CI results are not yet confirmed. Do not mark the fix accepted or apply it to Production until the workflow passes and the full forward migration replay is green. No Production DDL/DML/RLS/GRANT was performed.
+
+
+## 12. Catalog seller disclosure and payment handoff audit — 2026-11-24 (read-only)
+
+### Current public catalog behavior
+- `public-catalog` and `public-catalog-directory` read canonical `businesses`, `marketing_provider_profiles`, `catalog_items` and `catalog_item_prices`.
+- Public product projection returns item identifiers, branch, type, names, descriptions, category/unit, public image/availability, quote flag and opted-in public prices. It does not currently return a verified legal seller identity, legal name, commercial registration/tax identity, or a partner-specific seller contract/terms block.
+- Existing provider `is_verified` is an activity/provider profile flag; it is not proof that the partner company's legal identity, documents or commercial agreement have been reviewed. Do not treat it as partner legal verification.
+- Public catalog responses explicitly set `paymentsEnabled: false` and use `PUBLIC_READ_ONLY` access. The current React storefront adds priced items to a local cart and `submitOrderViaWhatsApp` constructs a WhatsApp order URL using the current business owner's WhatsApp number. Quote-only products also open a direct WhatsApp quote link. This is the current direct-to-business handoff and does not route customer product funds through MantiqatiX.
+- Seller identity can be based on the canonical business attached to the product, but public display must distinguish the business's trading/display name from legally verified seller identity. Legal identifiers and private documents must never be exposed through public catalog projections.
+
+### Separate payment-capable path — must be excluded for partner referrals
+- The independent `order-create` Edge function validates the user, business membership, catalog items and authoritative prices, then calls `create_order_backend` and persists an order with calculated product total.
+- The separate `payment-intent` Edge function loads a pending/created order and calls `create_payment_intent_backend`, then creates a Paymob intention for the order total. Production metadata confirms both RPCs exist; service_role EXECUTE is enabled, and authenticated EXECUTE is enabled on `create_payment_intent_backend`.
+- These payment-capable endpoints are not invoked by the current public storefront's WhatsApp path, but they are an available separate order/payment workflow. Partner products must not be routed into this path. The future partner referral flow should write a dedicated referral/order-handoff event and send the customer directly to partner-owned contact/checkout channels; it must not create a platform-payable `orders` row, payment intent, wallet credit or settlement for product proceeds.
+- Any later API-level hardening must explicitly mark partner mode from trusted server-side partner profile data and reject payment-intent creation for those partner product orders; do not rely on client-supplied metadata or a UI-only flag.
+
+### Design consequences
+1. Partner legal verification requires a dedicated company-level legal profile and evidence lifecycle; existing provider `is_verified` is not a substitute.
+2. Seller disclosure should extend `public-catalog` and `public-catalog-directory` with a minimized, explicitly public seller block derived from an approved partner profile. Keep legal registry/tax IDs, bank data and uploaded documents private.
+3. Product ownership must be validated server-side: `catalog_items.business_id` must equal the approved partner business ID, and the referral record must snapshot that owner.
+4. Partner referral order state is a separate lifecycle and should not be conflated with the existing payment-enabled order workflow.
+5. Add regression tests proving partner referral flow never invokes `order-create`, `payment-intent`, Paymob, wallet or settlement APIs.
+
+**Safety:** source and metadata inspection only; no API was invoked for real orders, no payments were initiated, and no Production object or row was changed.
