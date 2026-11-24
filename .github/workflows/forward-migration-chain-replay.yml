@@ -8,6 +8,9 @@ on:
       - "supabase/tests/rc924_agreement_participant_read_scope_fixture.sql"
       - "supabase/tests/rc924_agreement_participant_read_scope_integration.sql"
       - "scripts/validate-rc924-agreement-participant-read-scope.mjs"
+      - "supabase/migrations/20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql"
+      - "supabase/tests/rc925_catalog_rpc_missing_anonymous_claim_integration.sql"
+      - "scripts/validate-rc925-catalog-rpc-missing-claim-guard.mjs"
       - ".github/workflows/rc924-agreement-participant-read-scope.yml"
       - "docs/release/production-migration-reconciliation.json"
       - "supabase/tests/rc922_medical_status_integration.sql"
@@ -125,6 +128,9 @@ on:
       - "supabase/tests/rc924_agreement_participant_read_scope_fixture.sql"
       - "supabase/tests/rc924_agreement_participant_read_scope_integration.sql"
       - "scripts/validate-rc924-agreement-participant-read-scope.mjs"
+      - "supabase/migrations/20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql"
+      - "supabase/tests/rc925_catalog_rpc_missing_anonymous_claim_integration.sql"
+      - "scripts/validate-rc925-catalog-rpc-missing-claim-guard.mjs"
       - ".github/workflows/rc924-agreement-participant-read-scope.yml"
       - "docs/release/production-migration-reconciliation.json"
       - "supabase/tests/rc922_medical_status_integration.sql"
@@ -230,7 +236,7 @@ jobs:
       - name: Validate RC469 shared caller search_path contract
         run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
 
-      - name: Validate strict Production release gate and exact 81-version contract
+      - name: Validate strict Production release gate and exact 82-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
 
       - name: Validate current backup runbook and release migration scope
@@ -250,8 +256,11 @@ jobs:
       - name: Validate RC485/RC923 catalog RPC registry-root and anonymous-auth contract
         run: node scripts/validate-rc485-catalog-rpc-registry-root.mjs
 
-      - name: Validate RC924 agreement participant and unified 81-version release contract
+      - name: Validate RC924 agreement participant and unified 82-version release contract
         run: node scripts/validate-rc924-agreement-participant-read-scope.mjs
+
+      - name: Validate RC925 explicit confirmed-identity catalog RPC guard
+        run: node scripts/validate-rc925-catalog-rpc-missing-claim-guard.mjs
 
       - name: Validate RC486 catalog price version serialization contract
         run: node scripts/validate-rc486-catalog-price-version-serialization.mjs
@@ -362,6 +371,9 @@ jobs:
 
           echo "RC485_CATALOG_RPC_REGISTRY_ROOT_INTEGRATION"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc485_catalog_rpc_registry_root_integration.sql
+
+          echo "RC925_CATALOG_RPC_MISSING_ANONYMOUS_CLAIM_INTEGRATION"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc925_catalog_rpc_missing_anonymous_claim_integration.sql
 
           echo "RC486_CATALOG_PRICE_VERSION_SERIALIZATION_INTEGRATION"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc486_catalog_price_version_serialization_integration.sql
