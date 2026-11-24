@@ -1,3 +1,14 @@
+## 2026-11-24 — RC925 direct catalog RPC confirmed-Auth boundary
+
+- Main baseline: `e5cb0c7644d63d3a1f12bd73a1f3258457ef4b53`; RC925 work is on PR #1068 / `fix/rc925-catalog-rpc-confirmed-auth-20261124`.
+- Generated migration `20261124192436_rc925_catalog_rpc_confirmed_auth_boundary.sql` with pinned Supabase CLI v2.122.0; generator run `45469873588` succeeded.
+- RC925 replaces the seven direct catalog RPC function bodies so `is_anonymous` must be explicitly false. Missing, true or malformed values fail closed. It preserves signatures, tenant role checks, registry-root checks, function owner/ACL, empty search_path and RC486 advisory lock.
+- Integration tests now cover anonymous true, missing claim and explicit false for all seven functions. Static validator and exact 82-version PostgreSQL 17 forward replay are still pending.
+- The unified release contract now contains 82 source versions. Production remains read-only: 310 ledger rows through `20261110150618`; RC925 is not recorded.
+- No Production migration, Auth/RLS/GRANT, Storage, Edge, data, payment or finance mutation occurred. Full platform remains **BLOCKED / NOT CERTIFIED** pending tests, physical-effect/alias reconciliation, encrypted backup, Vault/Auth recovery, independent restore/rollback and measured RPO/RTO.
+
+---
+
 ## 2026-11-24 — RC924 added to the unified 81-version release gate
 
 - Current main baseline for this continuation: `ae53cf436a37c178bffa56aaac54a58472bcfe89`; RC924 is already merged by PR #1064 at `82cdebcdefc4a9c12d4e875548f1cf5f5dd3f896`.
