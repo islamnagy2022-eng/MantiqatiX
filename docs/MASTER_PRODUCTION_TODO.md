@@ -5416,3 +5416,10 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] RC924 static validator and isolated PostgreSQL 17 integration passed (run 45406678966).
 - [ ] Full forward migration chain replay remains in progress (run 45406678921); keep Production unchanged until it passes.
 - [ ] Begin Phase 1 partner legal profile, private legal evidence, verification lifecycle and partner agreement/signature RPCs after replay outcome.
+
+
+### MNTX-BP-001 — RC924 full forward replay result (2026-11-24)
+- [x] RC924 isolated PostgreSQL 17 static + behavioral tests passed (run 45406678966).
+- [x] Full forward migration-chain replay from captured Production schema checkpoint passed, including RC924 (run 45406678921); companion RC921/RC922 PG17 job passed.
+- [ ] RC924 still not applied to Production; wait for global release gate and coordinated DB/Edge release approval.
+- [ ] Start Phase 1: partner legal profile, private document storage, verification/publication gate, agreement commercial terms and signature evidence.
