@@ -215,3 +215,8 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Reconfirmed key present-but-blocked objects: `private.platform_admins` FORCE RLS remains off; `public.is_platform_admin()` remains SECURITY INVOKER/search_path=public and membership-derived; `public.mnty_can_platform_admin()` remains SECURITY DEFINER/search_path=public, pg_temp.
 - [x] Reconfirmed Production ledger at 310 rows through `20261110150618`; no database, ACL, RLS, Auth, Storage, Edge, payment or business-data write occurred.
 - [ ] Expand the curated 76-object sample into the full physical-effect/alias map for all 82 required source versions, including every policy, constraint, trigger, overload and transitive Edge dependency.
+
+
+## 2026-11-24 — RC425–RC432 payment and wallet live contract recheck
+- [x] Compared eight exact source migrations with live PostgreSQL signatures, objects, RLS, search_path and effective ACLs. RC425 table/RPC absent; RC426 finalizer overload absent although both provider_order_id columns exist; RC427 active-intent unique index absent; RC428/429/430 exact webhook processors absent; RC431 function exists but has non-empty search_path; RC432 unique index and admin-credit RPC absent, with existing debit/refund routines on search_path=public. Evidence: `docs/audits/PASS_2211_2220_RC425_RC432_LIVE_CONTRACT_RECHECK_20261124.md`.
+- [ ] Continue the source-to-live map through RC434–RC439 and the remaining 82-version migration set; keep payment and wallet writes blocked.
