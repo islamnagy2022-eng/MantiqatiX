@@ -4261,3 +4261,12 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] RC484 platform_admins FORCE RLS false; public.is_platform_admin() remains SECURITY INVOKER/search_path=public and membership-derived.
 - [x] Evidence: `PASS_2261_2270_RC479_RC484_PUBLIC_LEGAL_ROOT_RECHECK_20261124.md`.
 - [x] No Production changes; ledger remains 310 rows through `20261110150618`.
+
+
+## 2026-11-24 — RC485–RC496 catalog, Auth, Storage, finance and MantiGO state recheck
+- [x] RC485 catalog RPCs remain legacy and do not call registry root; RC486 unique price index absent and allocator has no advisory lock.
+- [x] RC487 SECURITY DEFINER first-user SMM admin bootstrap and auth.users trigger remain live; RC488 confirmed-Auth Storage restrictive policies absent.
+- [x] RC489 all 15 financial tables already force RLS, but confirmed-session SELECT guards absent; RC490 medical, RC491 support, RC492 InDrive and RC493 CRM/project/notification restrictive policies absent despite RLS/FORCE RLS.
+- [x] RC494 settlement writer service_role-only but tenant membership-derived rather than registry-root; RC495 old storage branding role policies/filename expressions remain; RC496 ride lock present but target bid OFFERED validation and unique winner index absent.
+- [x] Evidence: `PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md`.
+- [x] No Production mutation; ledger remains 310 rows through `20261110150618`.
