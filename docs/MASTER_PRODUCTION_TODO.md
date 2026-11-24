@@ -1,3 +1,13 @@
+## 2026-11-24 — Source governance — master directive and canonical map
+
+- [x] Preserved the exact uploaded owner instruction in `docs/MASTER_SOURCE_OF_TRUTH.md`; verified it was read from the exact uploaded file before committing.
+- [x] Added `docs/SOURCE_OF_TRUTH_MAP_20261124.md` to classify current `main`, Production Supabase, the public catalog source, V6 candidate, deployed Edge state, migration ledger and R7 archive.
+- [x] Reconciled R7 ZIP SHA-256 with the previous forensic audit; R7 remains reference-only and its auth/local-JSON/finance/server patterns are excluded.
+- [x] Reviewed the single anonymous-callable SECURITY DEFINER ad RPC: intentional public-read boundary with empty search_path, allow-listed seven-column result, ACTIVE/APPROVED/time filters and bounded 1–50 result limit. No blind EXECUTE revoke.
+- Audit: `docs/audits/PASS_2041_2050_LIVE_PRODUCTION_RECHECK_20261124.md`.
+
+---
+
 ## 2026-11-24 — Pass 2041–2050 — Live Production recheck and release blockers
 
 - [x] Verified current main includes RC922 and PR #1020; corrected the previous branch-only RC922 wording (RC922 main commit `19c65e716ad440caa0ca314f04bc2d595acb55e2`).
