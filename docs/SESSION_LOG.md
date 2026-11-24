@@ -4278,3 +4278,10 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] RC494 lacks settlement business_id column/index, registry authority and business_id population; RC495 storage brand admin policies remain membership-based; RC496 locks ride row but does not check target bid OFFERED state and lacks unique one-winner index.
 - [x] Evidence: `PASS_2271_2280_RC485_RC496_CATALOG_AUTH_SETTLEMENT_MANTIGO_RECHECK_20261124.md`.
 - [x] Read-only audit only; Production ledger remains 310 rows through `20261110150618`; no Production mutation.
+
+
+## 2026-11-24 — RC921–RC925 medical, agreement and catalog live read-back
+- [x] Medical appointment RPC remains legacy: exact tenant membership with nullable business scope, no assigned verified-provider profile binding, no complete state matrix or independent patient cancellation, search_path=public, pg_temp.
+- [x] Agreements participant policy compares `ap.agreement_id=ap.id` instead of parent `agreements.id`; restrictive confirmed-auth agreement policy absent; Legal admin helper still membership-derived and zero-argument overload remains.
+- [x] All seven RC925 catalog RPCs remain SECURITY DEFINER/search_path=public and do not call registry helper. Four retain COALESCE claim checks, three no claim guard, zero positive-false missing-claim-deny guards. RC925 source CI passed but remains unapplied in Production.
+- [x] Production ledger remains 310 rows through `20261110150618`; no live writes. Evidence: `PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md`.
