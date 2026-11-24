@@ -546,7 +546,7 @@ DECLARE
   v_id uuid;
   v_version bigint;
 BEGIN
-  IF auth.uid() IS NULL THEN
+  IF auth.uid() IS NULL OR coalesce((auth.jwt()->>'is_anonymous'),'false') = 'true' THEN
     RAISE EXCEPTION 'AUTH_REQUIRED';
   END IF;
 
