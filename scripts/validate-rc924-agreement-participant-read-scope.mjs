@@ -10,7 +10,8 @@ assert.match(migration,/CREATE POLICY agreements_participant_read[\s\S]*?ON publ
 assert.match(migration,/ap\.agreement_id\s*=\s*agreements\.id/i);
 assert.match(migration,/ap\.user_id\s*=\s*\(SELECT auth\.uid\(\)\)/i);
 assert.match(migration,/private\.legal_is_admin\(\(SELECT auth\.uid\(\)\)\)/i);
-assert.match(migration,/COALESCE\([\s\S]*?is_anonymous[\s\S]*?false/i);
+assert.match(migration,/is_anonymous'\)::boolean\s+IS\s+FALSE/i);
+assert.doesNotMatch(migration,/COALESCE\([\s\S]*?is_anonymous/i);
 assert.doesNotMatch(migration,/GRANT\s+(?:ALL|SELECT|INSERT|UPDATE|DELETE)\s+ON\s+TABLE/i);
 assert.doesNotMatch(migration,/INSERT\s+INTO|UPDATE\s+public\.|DELETE\s+FROM/i);
 
@@ -20,6 +21,7 @@ for (const marker of [
   "RC924_PARTICIPANT_B_SCOPE_FAILURE",
   "RC924_UNRELATED_USER_READS_AGREEMENTS",
   "RC924_ANONYMOUS_AUTH_USER_READS_AGREEMENTS",
+  "RC924_MISSING_ANONYMOUS_CLAIM_READS_AGREEMENTS",
   "RC924_PLATFORM_ADMIN_SCOPE_FAILURE",
 ]) assert.ok(fixture.includes(marker) || integration.includes(marker), "missing RC924 regression case: "+marker);
 
