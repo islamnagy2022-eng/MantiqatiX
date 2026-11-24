@@ -1,11 +1,24 @@
-## 2026-11-23 — Current continuation — backup coverage and 78-version release gate
+## 2026-11-23 — Current continuation — RC922 source and 79-version gate
+
+- RC922 file: `supabase/migrations/20261123221950_rc922_medical_appointment_tenant_wide_provider_scope.sql`, generated via pinned Supabase CLI v2.122.0 in CI and committed to branch `fix/rc922-medical-tenant-wide-provider-membership-20261123`.
+- RC922 allows null-business membership only for `SERVICE_PROVIDER`, and then requires exact owned ACTIVE provider profile, exact appointment business and exact tenant. Tenant-wide ADMIN/MANAGER/OWNER are not granted the exception.
+- Dedicated PostgreSQL 17 suite passed for RC921 + RC922 behavior and row-lock concurrency: [CI run 45278540531](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45278540531).
+- Current required release set is 79 migration versions. RC922 has been added to `live-reconciliation-contract.mjs`, `verify-production.mjs`, the migration-chain gate, reconciliation manifest and backup/release documentation.
+- Standard forward-migration replay now includes RC922 fixture, migration, source validator, adversarial integration suite and concurrency checks. Do not merge until exact-head replay and all required CI checks pass.
+- Production remains unchanged. Latest recorded read-only ledger snapshot: 310 rows through `20261110150618`; RC922 source is not applied.
+- Backup/restore, Vault, Auth/Storage recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO remain NOT VERIFIED. Full platform **BLOCKED / NOT CERTIFIED**.
+- No Production DB/Auth/RLS/GRANT/Storage/Edge/payment/wallet/settlement/customer-data mutation occurred.
+
+---
+
+## Historical continuation snapshot — backup coverage and 78-version release gate (superseded 2026-11-23)
 
 - Main commit at branch start: `08e84d0b06e8532c76c9f93094659f91233de6ea` (PR #1013 merged; RC479 + RC921 included in the 78-version required release contract).
 - Fresh read-only Supabase inventory remains 310 migration rows through `20261110150618`; current reconciliation manifest records 0/78 exact required IDs. No Production migration was applied.
 - The backup runbook now requires artifact-level proof of Auth and Storage metadata coverage. Official CLI reference and self-hosted restore guidance are inconsistent about `auth.users`; never infer coverage without inspecting the dump and proving restore in a disposable PostgreSQL 17 target.
 - Actual Storage object bytes must be exported independently and compared to a separately captured `storage.objects` inventory. The runbook uses the workflow-pinned Supabase CLI v2.122.0.
 - A source-contract validator now checks these rules and the exact 78-version count in both the push and pull-request replay workflow.
-- RC922 remains pending because the current execution environment has no installed Supabase CLI and npm package retrieval failed with DNS EAI_AGAIN. Create it with `supabase migration new` when the pinned CLI is available; never hand-author its timestamped migration or push it to Production without the full P0 gate.
+- At this historical snapshot RC922 had not yet been generated; this statement is superseded by the current continuation above. RC922 was later generated with Supabase CLI v2.122.0 in CI and passed dedicated PostgreSQL 17 tests.
 - Backup artifacts, Vault recovery, isolated restore/rollback and measured RPO/RTO remain NOT VERIFIED. Full platform remains **BLOCKED / NOT CERTIFIED**.
 - No Production data-plane change occurred in this pass. Historical 76-version / 0/76 entries below are retained as historical records only; current required count is 78.
 

@@ -51,6 +51,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261121020000", // RC495 — repair Storage filename policies and use canonical platform-root registry
   "20261121030000", // RC496 — require OFFERED MantiGO bids and serialize per-ride acceptance
   "20261123010000", // RC921 — bind medical status changes to assigned provider and enforce forward-only transitions
+  "20261123221950", // RC922 — allow tenant-wide SERVICE_PROVIDER only for its own active profile in exact appointment business
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [

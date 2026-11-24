@@ -4137,3 +4137,14 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Exact-branch CI is pending; no merge is claimed yet.
 - Supabase CLI is not installed in the current execution environment; npm package resolution failed with DNS EAI_AGAIN. RC922 must be created using `supabase migration new` when the pinned CLI is available; no manually named migration was added.
 - No Production DB/Auth/RLS/GRANT/Storage/Edge/payment/wallet/settlement/customer-data mutation occurred. No backup files, Storage exports, Vault key recovery, restore or RPO/RTO evidence were created in this pass. Full platform remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-11-23 — Pass 2031–2040 — RC922 tenant-wide provider scope
+
+- Diagnosed RC921's exact business_id predicate blocking the legitimate tenant-wide SERVICE_PROVIDER membership observed in Production read-only aggregate data.
+- Added RC922 as `20261123221950_rc922_medical_appointment_tenant_wide_provider_scope.sql`; filename was created by pinned Supabase CLI v2.122.0 in CI (not manually timestamped), then artifact content was verified and committed.
+- RC922 permits `business_id IS NULL` only when `role = SERVICE_PROVIDER`, and retains exact provider profile ownership, ACTIVE status, appointment business and tenant checks. Tenant-wide MANAGER/ADMIN/OWNER remain denied.
+- Added disposable PostgreSQL 17 regression fixture/integration tests for allowed assigned provider, unowned cross-business profile denial, and null-business MANAGER/ADMIN/OWNER denial.
+- Corrected the RC921 concurrency test script to honor `PGDATABASE` so it can run against the same disposable test DB.
+- CI run [45278540531](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45278540531) passed RC921 + RC922 behavior and RC921 concurrency; CLI-generated migration artifact 14868972297 verified.
+- Added RC922 to the current required release contract and increased the gate from 78 to 79; updated the reconciliation manifest, release backlog, backup runbook, source validators and standard forward-replay workflow.
+- No Production migration or data-plane operation occurred. Last read-only Production ledger snapshot remains 310 rows through `20261110150618`; RC922 is source-only. Full platform remains BLOCKED / NOT CERTIFIED until encrypted backup/restore/Vault/RPO-RTO, live migration reconciliation, Edge/Auth/schema parity and release approval are completed.
