@@ -45,3 +45,9 @@
 
 ## Workflow rule
 Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT TASK`. Start from the first current incomplete P0/P1 item. Never infer release completion from archive status labels, local UI, empty tables, source-only fixes, historical CI or unverified deployment claims. Keep production read-only until the explicit backup, replay, authorization, payment and release gates are satisfied.
+
+
+## 2026-11-24 — PASS 2081–2090 Production physical-effect snapshot
+- Live registry exists but FORCE RLS is false; both platform-admin helpers remain non-registry-backed.
+- All seven catalog SECURITY DEFINER RPCs remain `search_path=public`, membership-derived and not registry-backed; three lack Anonymous Auth guards and the price RPC lacks the RC486 advisory lock.
+- Directory contact-consent table is absent. See `docs/audits/PASS_2081_2090_PRODUCTION_PHYSICAL_EFFECT_RECONCILIATION_20261124.md`.
