@@ -5405,3 +5405,8 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - Existing provider is_verified is not legal partner verification. provider_onboarding_requests lacks legal registration/tax IDs and legal document fields. businesses has no first-class legal profile columns.
 - Storage preflight: mantiqatix-profile-media is public and must never hold legal evidence; mantiqatix-media is private but its current MIME allowlist excludes PDF. Phase 1 needs a dedicated private legal-document storage boundary.
 - RC924 source and PG17 adversarial test are on the feature branch; CI remains queued/unverified. No Production writes or payment activity.
+
+
+### RC924 CI correction — 2026-11-24
+- First attempt failed only at static validator formatting (`FOR SELECT` / `TO authenticated` line break); PostgreSQL integration was skipped, so no DB behavior result was produced.
+- Validator regex corrected and source-level checks pass; corrected RC924 PostgreSQL 17 run #15 is queued. Keep task open until PG17 integration and forward replay pass.
