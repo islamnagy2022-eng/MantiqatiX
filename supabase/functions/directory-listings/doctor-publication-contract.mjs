@@ -36,6 +36,18 @@ export function filterPublicDirectoryListingsBySourceRights(rows, evidenceRows, 
  * fetchBatch(after, pageSize) must return rows ordered by created_at DESC, id
  * DESC and apply all normal search/geographic/taxonomy filters before limiting.
  */
+/**
+ * @typedef {{ created_at: string, id: string }} DirectorySourceRightsCursor
+ * @param {{
+ *   fetchBatch: (after: DirectorySourceRightsCursor | null, pageSize: number) => Promise<unknown[]>,
+ *   initialCursor?: DirectorySourceRightsCursor | null,
+ *   limit: number,
+ *   evidenceRows: unknown[],
+ *   now?: Date,
+ *   batchSize?: number,
+ *   maxScanned?: number
+ * }} options
+ */
 export async function scanPublicDirectoryPageWithSourceRights({
   fetchBatch,
   initialCursor = null,
