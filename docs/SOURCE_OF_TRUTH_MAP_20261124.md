@@ -66,3 +66,9 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - [PASS 2251–2260](./audits/PASS_2251_2260_76_OBJECT_DETAILED_PRESENCE_20261124.md): 76 object-level presence checks, 35 present / 41 absent.
 - [PASS 2261–2270](./audits/PASS_2261_2270_RC484_RC925_SOURCE_TO_LIVE_EFFECT_RECHECK_20261124.md): 19 later migration effects, including missing restrictive policies and present-but-incorrect agreement participant policy.
 - Current main checkpoint: `e7e0db29943ef843e43e25cc4ef31180f5a1817c`. Production remains read-only; no migration, RLS, GRANT, Auth, Storage, Edge, payment or business-data writes.
+
+
+## RC113–RC117 control-center and employee read-back — 2026-11-24
+- [PASS 2271–2280](./audits/PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md) records the live table, index, RLS/FORCE RLS, function owner/search_path and effective ACL read-back for RC113–RC117.
+- RC113 foundation and RC114–RC116 sampled metadata contracts are present; RC113 NULL-safe membership index and RC117 default-image automation are absent. Runtime behavior is not inferred from metadata alone.
+- Current source-to-live map now has 51/82 migration sources with fresh live evidence; 31 earlier rows remain historical.
