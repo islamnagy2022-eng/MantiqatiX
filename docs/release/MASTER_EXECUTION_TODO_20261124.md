@@ -281,3 +281,12 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] RC495 storage branding policies still rely on tenant SUPER_ADMIN membership; registry helper is legacy. RC496 has ride row lock, but no target-bid OFFERED check and no one-accepted-per-ride unique index; legacy client accept/submit RPCs are revoked.
 - [x] Evidence: `docs/audits/PASS_2271_2280_RC485_RC496_CATALOG_AUTH_SETTLEMENT_MANTIGO_RECHECK_20261124.md`.
 - [ ] Keep catalog price mutation, SMM admin enrollment, private read/write, settlement, storage branding and MantiGO bid acceptance gated until coordinated fixes and regression evidence pass.
+
+
+## 2026-11-24 — RC921–RC925 medical appointment, agreement scope and catalog identity recheck
+- [x] RC921/RC922 medical RPC is still the legacy body: it requires generic tenant membership, does not bind the actor to an assigned active provider profile, does not implement the full forward-only state matrix or independent patient cancellation, and remains on search_path=public, pg_temp.
+- [x] RC923/RC925 seven catalog RPCs exist but all remain SECURITY DEFINER/search_path=public, call no registry-backed is_platform_admin(); four retain legacy COALESCE anonymous checks, three have no claim guard, zero use the RC925 positive-false/missing-claim-deny check. Authenticated ACL stays true and anon false.
+- [x] RC924 agreement participant policy is wrong (`ap.agreement_id = ap.id`), its restrictive confirmed-auth policy is absent, and private.legal_is_admin remains membership-derived with zero-arg overload still present.
+- [x] CI exact-head PG17 and 82-version replay for RC925 is source evidence only; Production ledger remains 310 rows through `20261110150618`.
+- [x] Evidence: `docs/audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md`.
+- [ ] Do not mark RC921–RC925 applied until the coordinated release validates registry root, FORCE RLS, exact function bodies, ACLs and JWT cases in the deployed Production environment.
