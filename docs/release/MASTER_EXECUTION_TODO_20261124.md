@@ -16,8 +16,9 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 
 ## P0 — Authorization, identity and privacy
 ### P0.1 Platform-root authorization
-- [ ] Reconcile live `is_platform_admin()` and `mnty_can_platform_admin()` with RC464, RC471, RC484 and RC485 source.
+- [ ] Reconcile live `is_platform_admin()` and `mnty_can_platform_admin()` with RC464, RC471, RC484, RC485 and RC923 source.
 - [ ] Test the ordered migration set on disposable PostgreSQL 17 using repo CI. Preserve the 57-policy / 24-table dependency map.
+- [ ] Test RC923 anonymous-session denial for all seven catalog RPCs on the full chronological 80-version PostgreSQL 17 replay.
 - [ ] Test registered platform admin allow; tenant ADMIN/OWNER/SUPER_ADMIN without registry deny; inactive membership deny; cross-tenant/business/branch deny; tenant-local access still works.
 - [ ] Assert function ownership, empty `search_path`, grants, FORCE RLS and caller coverage in tests.
 - [ ] Prepare one coordinated migration bundle and post-release read-back. Do not hot-patch or apply it to Production in this phase.
@@ -39,9 +40,9 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 
 ## P1 — Database and backend contracts
 ### P1.1 Migration reconciliation
-- [ ] Refresh the ordered mainline release manifest (79 identifiers at the 2026-11-24 checkpoint).
+- [ ] Refresh the ordered mainline release manifest (80 identifiers at the 2026-11-24 checkpoint).
 - [ ] Classify every migration by physical effect: exact-present, alias/effect-present, safe-to-replay, superseded/forward-fixed or blocked.
-- [ ] Reconcile functions, policies, ACLs, indexes, triggers and constraints; 0/79 exact ledger matches is not proof all effects are absent.
+- [ ] Reconcile functions, policies, ACLs, indexes, triggers and constraints; 0/80 exact ledger matches is not proof all effects are absent.
 - [ ] Run full chronological forward replay on GitHub Actions PostgreSQL 17 with required integration jobs.
 - [ ] Never blindly replay the release chain on Production.
 

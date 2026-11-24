@@ -98,7 +98,8 @@ const requiredReleaseMigrations=[
   "20261121020000_rc495_storage_filename_regex_forward_repair.sql",
   "20261121030000_rc496_mantigo_bid_accept_state_invariant.sql",
   "20261123010000_rc921_medical_appointment_provider_state_machine.sql",
-  "20261123221950_rc922_medical_appointment_tenant_wide_provider_scope.sql"
+  "20261123221950_rc922_medical_appointment_tenant_wide_provider_scope.sql",
+  "20261124121348_rc923_catalog_rpc_anonymous_auth_guard.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
