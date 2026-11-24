@@ -252,3 +252,11 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Current-main Pass 2321–2330 covers Qadam seed and RC479–RC483; Qadam's idempotency-key seed effect is present though its exact migration ID is not in the ledger; raw provider-profile/digital-page anonymous reads and Legal service grants/registry/atomic RPCs remain blocked.
 - [x] Additional current Production read-back: Pass 2331–2340 `docs/audits/PASS_2331_2340_RC484_RC496_PLATFORM_CATALOG_AUTH_STORAGE_FINANCE_RECHECK_20261124.md` and Pass 2341–2350 `docs/audits/PASS_2341_2350_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md` are linked below. Pass 2281–2290 is already assigned to the existing RC102–RC106 order/provider report.
 - [ ] Keep SMM first-user bootstrap, confirmed-Auth boundaries, global Platform Admin, settlement, MantiGO bid acceptance, medical provider state, agreement participant scope and RC925 catalog RPCs blocked until coordinated release and deployed-origin tests pass.
+
+
+## 2026-11-24 — PASS 2271–2280 RC113–RC117 Control Center and employee live recheck
+- [x] RC113/114 tables (4/4) present with RLS+FORCE RLS and no direct client/service-role CRUD privileges. Six role/employee indexes are valid; only the RC113 NULL-safe membership index is absent.
+- [x] Thirteen Control Center/employee RPC signatures are present as SECURITY DEFINER, postgres-owned, empty search_path, anon EXECUTE=false, authenticated=true, service_role=false. Ten platform-admin routines reference the private registry; employee RPCs retain their own business-member scope.
+- [x] RC117 default-image URL function, three trigger functions, three attached triggers and `marketing_services.image_url/image_source` columns are absent. Business/catalog image metadata is stored in JSON, not separate columns.
+- [x] Evidence: `docs/audits/PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md`.
+- [ ] RC117 default-image automation and the RC113 NULL-safe membership uniqueness index remain release blockers.
