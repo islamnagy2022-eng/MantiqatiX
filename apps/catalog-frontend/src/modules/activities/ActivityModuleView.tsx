@@ -92,6 +92,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
     const url = new URL(window.location.href);
     url.searchParams.set('specialty', specialty);
     window.history.pushState({ mantiqatixSpecialty: specialty }, '', url.pathname + url.search + url.hash);
+    window.dispatchEvent(new Event('mantiqatix:routechange'));
     setSelectedSpecialty(specialty);
     setSearchQuery('');
   };
@@ -99,6 +100,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
     const url = new URL(window.location.href);
     url.searchParams.delete('specialty');
     window.history.pushState({ mantiqatixSpecialty: null }, '', url.pathname + url.search + url.hash);
+    window.dispatchEvent(new Event('mantiqatix:routechange'));
     setSelectedSpecialty(null);
     setSearchQuery('');
   };
