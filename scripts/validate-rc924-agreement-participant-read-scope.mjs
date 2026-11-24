@@ -39,7 +39,9 @@ for (const marker of [
 
 assert.match(integration,/agreements\.id/);
 assert.match(integration,/is_anonymous":true/);
-assert.match(fixture,/FROM private\.platform_admins pa/);
+assert.match(fixture,/CREATE TABLE private\.platform_admins/);
+assert.match(fixture,/INSERT INTO private\.platform_admins\(user_id\)/);
+assert.match(fixture,/FROM public\.user_memberships m/);
 assert.match(fixture,/CREATE TABLE public\.user_memberships/);
 assert.match(fixture,/ALTER TABLE private\.platform_admins ENABLE ROW LEVEL SECURITY/);
 assert.match(fixture,/ALTER TABLE private\.platform_admins FORCE ROW LEVEL SECURITY/);
