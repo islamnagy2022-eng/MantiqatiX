@@ -7,6 +7,10 @@ DECLARE
   v_update_count integer;
   v_delete_count integer;
   v_all_count integer;
+  v_registry_owner oid;
+  v_helper_owner oid;
+  v_registry_rls boolean;
+  v_registry_force_rls boolean;
 BEGIN
   SELECT count(*),count(DISTINCT schemaname||'.'||tablename),
     count(*) FILTER(WHERE cmd='SELECT'),
@@ -55,6 +59,26 @@ BEGIN
   END IF;
   IF NOT has_function_privilege('authenticated','public.is_platform_admin()','EXECUTE') THEN
     RAISE EXCEPTION 'RC484_AUTHENTICATED_HELPER_EXECUTE_MISSING';
+  END IF;
+
+  SELECT c.relowner,c.relrowsecurity,c.relforcerowsecurity
+    INTO v_registry_owner,v_registry_rls,v_registry_force_rls
+  FROM pg_catalog.pg_class c
+  JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+  WHERE n.nspname='private' AND c.relname='platform_admins';
+  IF NOT coalesce(v_registry_rls,false) OR NOT coalesce(v_registry_force_rls,false) THEN
+    RAISE EXCEPTION 'RC484_REGISTRY_FORCE_RLS_NOT_ENABLED';
+  END IF;
+
+  SELECT p.proowner INTO v_helper_owner
+  FROM pg_catalog.pg_proc p
+  WHERE p.oid='public.is_platform_admin()'::regprocedure;
+  IF v_registry_owner IS DISTINCT FROM v_helper_owner
+     OR NOT EXISTS (
+       SELECT 1 FROM pg_catalog.pg_roles r
+       WHERE r.oid=v_helper_owner AND r.rolbypassrls
+     ) THEN
+    RAISE EXCEPTION 'RC484_HELPER_OWNER_MUST_MATCH_BYPASS_RLS_REGISTRY_OWNER_AFTER_MIGRATION';
   END IF;
 END;
 $metadata$;

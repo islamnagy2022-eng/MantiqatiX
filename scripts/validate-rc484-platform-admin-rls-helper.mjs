@@ -19,6 +19,7 @@ const checks=[
   ["helper is SECURITY DEFINER with empty search_path",/SECURITY DEFINER[\s\S]*?SET search_path TO ''/.test(migration)],
   ["migration does not revoke trusted service-role registry operations",!migration.includes("REVOKE ALL ON TABLE private.platform_admins")],
   ["authenticated helper execute is retained",migration.includes("GRANT EXECUTE ON FUNCTION public.is_platform_admin() TO authenticated")],
+  ["integration verifies registry FORCE RLS and BYPASSRLS owner parity after migration",integration.includes("relforcerowsecurity")&&integration.includes("v_registry_owner IS DISTINCT FROM v_helper_owner")&&integration.includes("rolbypassrls")&&integration.includes("RC484_REGISTRY_FORCE_RLS_NOT_ENABLED")],
   ["fixture reproduces existing direct service-role registry grant",fixture.includes("GRANT ALL ON TABLE private.platform_admins TO service_role")],
   ["fixture reproduces live 57-policy command mix over 24 tables",fixture.includes("FOR i IN 1..24 LOOP")&&fixture.includes("FOR j IN 1..57 LOOP")&&fixture.includes("WHEN j<=18 THEN 'SELECT'")&&fixture.includes("WHEN j<=35 THEN 'UPDATE'")&&fixture.includes("WHEN j<=50 THEN 'DELETE'")&&fixture.includes("ELSE 'ALL'")],
   ["integration denies tenant ADMIN and SUPER_ADMIN across SELECT/INSERT/UPDATE/DELETE",["SELECT","INSERT","UPDATE","DELETE"].every(op=>integration.includes("CROSSTENANT_"+op+"_BYPASS"))&&integration.includes("RC484_TENANT_ADMIN_MUST_NOT_BE_PLATFORM_ADMIN")&&integration.includes("RC484_TENANT_SUPER_ADMIN_MUST_NOT_BE_PLATFORM_ADMIN")],
