@@ -7792,5 +7792,243 @@
     },
     "no_edge_deployment_performed": true,
     "full_bundle_dependency_parity": "NOT VERIFIED"
+  },
+  "edge_rpc_dependency_recheck_20261124": {
+    "status": "BLOCKED / NOT CERTIFIED",
+    "project": "MANTIQATIX FINAL",
+    "project_ref": "moyhiluyhjsujhwlyeuu",
+    "observed_date": "2026-11-24",
+    "database_version": "17.6.1.155",
+    "method": "Read-only pg_proc/pg_get_functiondef/effective EXECUTE privileges/information_schema.columns/schema_migrations, plus deployed and current-main Edge source comparison.",
+    "live_migration_ledger": {
+      "rows": 310,
+      "latest_version": "20261110150618"
+    },
+    "required_migrations_absent": [
+      {
+        "code": "RC426",
+        "version": "20261009130000"
+      },
+      {
+        "code": "RC427",
+        "version": "20261009140000"
+      },
+      {
+        "code": "RC428",
+        "version": "20261009150000"
+      },
+      {
+        "code": "RC429",
+        "version": "20261009160000"
+      },
+      {
+        "code": "RC430",
+        "version": "20261009170000"
+      },
+      {
+        "code": "RC431",
+        "version": "20261009180000"
+      },
+      {
+        "code": "RC434",
+        "version": "20261009200000"
+      },
+      {
+        "code": "RC435",
+        "version": "20261009210000"
+      },
+      {
+        "code": "RC437",
+        "version": "20261009230000"
+      },
+      {
+        "code": "RC438",
+        "version": "20261009240000"
+      },
+      {
+        "code": "RC439",
+        "version": "20261010010000"
+      },
+      {
+        "code": "RC449A",
+        "version": "20261010175000"
+      },
+      {
+        "code": "RC450",
+        "version": "20261010180000"
+      },
+      {
+        "code": "RC468",
+        "version": "20261115030000"
+      },
+      {
+        "code": "RC470",
+        "version": "20261117020000"
+      },
+      {
+        "code": "RC475",
+        "version": "20261118040000"
+      },
+      {
+        "code": "RC494",
+        "version": "20261120290000"
+      }
+    ],
+    "rpcs": {
+      "create_payment_intent_backend": {
+        "present": true,
+        "security_definer": true,
+        "search_path": "public, pg_temp",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "service_role_execute": true,
+        "main_edge_context": "authenticated user",
+        "status": "ACL_COMPATIBLE"
+      },
+      "digital_page_claim_release_finalize": {
+        "claim_present": true,
+        "release_present": true,
+        "finalize_signature": "p_order_id uuid, p_user_id uuid, p_claim_token text, p_provider_intent_id text",
+        "finalize_authenticated_execute": true,
+        "finalize_service_role_execute": false,
+        "main_finalizer_requires_fifth_provider_order_argument": true,
+        "status": "BLOCKED_SIGNATURE_DRIFT"
+      },
+      "process_verified_digital_page_payment_backend": {
+        "present": true,
+        "signature": "p_order_id uuid, p_external_event_id text, p_event_type text, p_status text, p_signature_verified boolean, p_amount numeric, p_currency text, p_provider_transaction_id text, p_provider_order_id text, p_raw_payload jsonb",
+        "service_role_execute": true,
+        "provider_order_arg_present": true,
+        "live_body_compares_stored_provider_order_id": false,
+        "live_body_writes_provider_order_id_after_selection": true,
+        "main_edge_prechecks_stored_id_against_signed_order_id": true,
+        "status": "BLOCKED_EDGE_DB_TRUST_BOUNDARY"
+      },
+      "process_verified_provider_payment": {
+        "present": true,
+        "service_role_execute": true,
+        "provider_order_id_argument": false,
+        "reconciliation_postcondition_guard": false,
+        "status": "BLOCKED_RC475_SOURCE_DRIFT"
+      },
+      "process_verified_provider_payment_failure": {
+        "present": false,
+        "status": "BLOCKED"
+      },
+      "create_subscription_payment_intent_backend": {
+        "present": true,
+        "service_role_execute": true,
+        "authenticated_execute": false,
+        "status": "LEGACY_ONLY"
+      },
+      "create_subscription_payment_intent_claimable_backend": {
+        "present": false,
+        "status": "BLOCKED_RC435"
+      },
+      "claim_subscription_provider_intent_creation_backend": {
+        "present": false,
+        "status": "BLOCKED_RC435"
+      },
+      "process_verified_subscription_payment": {
+        "present": true,
+        "service_role_execute": true,
+        "provider_order_id_argument": false,
+        "status": "LEGACY_ONLY"
+      },
+      "process_verified_subscription_payment_backend": {
+        "present": false,
+        "status": "BLOCKED_RC475"
+      },
+      "process_verified_subscription_payment_failure": {
+        "present": false,
+        "status": "BLOCKED_RC429_RC475"
+      },
+      "post_financial_journal": {
+        "present": true,
+        "security_definer": true,
+        "search_path": "public",
+        "anon_execute": false,
+        "authenticated_execute": false,
+        "service_role_execute": false,
+        "status": "OWNER_ONLY"
+      },
+      "post_financial_journal_backend": {
+        "present": true,
+        "security_definer": true,
+        "search_path": "public",
+        "anon_execute": false,
+        "authenticated_execute": false,
+        "service_role_execute": false,
+        "main_edge_invocation": "service_role",
+        "status": "BLOCKED_RC450_ACL"
+      },
+      "create_order_backend": {
+        "present": true,
+        "security_definer": true,
+        "service_role_execute": true,
+        "authenticated_execute": false,
+        "status": "ACL_COMPATIBLE"
+      },
+      "create_settlement_and_post_journal": {
+        "present": true,
+        "security_definer": true,
+        "search_path": "pg_catalog, public",
+        "service_role_execute": true,
+        "authenticated_execute": false,
+        "status": "PARTIAL_RC494"
+      },
+      "receive_purchase_stock_atomic_backend": {
+        "present": false,
+        "status": "BLOCKED_RC434"
+      },
+      "receive_purchase_stock_with_order_line_backend": {
+        "present": false,
+        "status": "BLOCKED_RC437"
+      }
+    },
+    "missing_schema": {
+      "journal_entries": [
+        "entry_number",
+        "total_debit",
+        "total_credit",
+        "posted_at"
+      ],
+      "journal_entry_lines": [
+        "line_number"
+      ],
+      "subscription_payment_intents": [
+        "provider_creation_state",
+        "provider_creation_claimed_at",
+        "client_secret_ciphertext",
+        "client_secret_iv",
+        "client_secret_key_version"
+      ],
+      "erp_purchase_order_lines_table": false,
+      "settlement_transactions_business_id": false
+    },
+    "payment_webhook_boundary": {
+      "deployed_paymob_webhook_version": 10,
+      "deployed_hmac_sha512": true,
+      "deployed_standard_stored_provider_order_compare_before_rpc": false,
+      "deployed_digital_stored_provider_order_compare_before_rpc": false,
+      "deployed_subscription_stored_provider_order_compare_before_rpc": false,
+      "main_has_all_three_provider_order_prechecks": true,
+      "digital_processor_live_accepts_provider_order_argument": true,
+      "digital_processor_live_compares_previously_stored_order_id": false,
+      "live_standard_success_processor_has_reconciliation_guards": false,
+      "main_uses_atomic_failure_processors": true,
+      "live_failure_processors_missing": true,
+      "exploitation_or_customer_impact": "NOT OBSERVED / NOT CLAIMED"
+    },
+    "operational_conclusion": {
+      "subscription_edge_current_main_not_deployable_until_rc435_rc439_rc475_live": true,
+      "financial_journal_edge_current_main_not_deployable_until_rc449a_rc450_live": true,
+      "erp_receive_edge_current_main_not_deployable_until_rc434_rc437_rc438_live": true,
+      "paymob_edge_database_pair_not_release_ready_until_rc426_rc431_rc468_rc470_rc475_and_full_negative_tests": true,
+      "settlement_requires_rc494_and_p0_platform_root_repair": true
+    },
+    "ci_isolated_tests_do_not_certify_production": true,
+    "no_production_mutation": true,
+    "full_platform_gate": "BLOCKED / NOT CERTIFIED"
   }
 }
