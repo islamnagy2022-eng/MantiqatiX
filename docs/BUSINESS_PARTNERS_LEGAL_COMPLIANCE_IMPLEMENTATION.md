@@ -282,3 +282,10 @@ Fixture cases cover two independent partner users, an unrelated authenticated us
 
 ### Public seller/contact disclosure constraint
 The existing public catalog derives phone/WhatsApp/address through `getExplicitPublicContact(profile, selectedBranch)` and only exposes contact when the profile has explicit public-contact enablement plus verified consent audit metadata. Partner seller contact disclosure must preserve this gate; do not expose a company's private phone, personal contact, address or employee details merely because the partner account is approved. Public seller display should include the approved trading name and seller responsibility notice, while contact fields are returned only when the current public-contact consent gate permits them. Legal name and registry/tax identifiers remain non-public unless counsel explicitly approves a narrow disclosure requirement.
+
+
+### Existing Legal Center RPC and agreement lifecycle gap
+- Production Legal Center exposes document/version publishing and consent RPCs: `legal_check_action`, `legal_assert_action`, `legal_publish_version`, `legal_update_document`, `legal_update_draft_version`, `legal_suspend_document`, `record_legal_consent` and `record_legal_consent_backend`. Published legal versions are protected by immutability triggers and legal document/version changes are audited.
+- No agreement-specific create/update/terminate/signature RPC was found in the inspected Production function inventory. Existing `agreements` and `agreement_participants` therefore provide storage roots but not a complete commercial agreement lifecycle.
+- Phase 1 must add narrow, actor-bound backend RPCs for partner agreement draft/submit/approve/activate/expire/terminate and participant acceptance/signature evidence. Do not grant direct authenticated INSERT/UPDATE on agreement tables or use `record_legal_consent` as a substitute for counterpart signature capture.
+- Agreement versions must reference immutable legal document versions and snapshot the commercial terms/commission basis that applied when signed. Updates create a new version/renewal rather than mutating a signed contract in place.
