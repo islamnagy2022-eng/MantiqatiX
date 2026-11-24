@@ -4210,3 +4210,10 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Catalog build, employee RBAC PostgreSQL and dashboard Browser E2E passed in run `45477345161`; module professionalization checks passed in `45477345380`.
 - The RC925 migration remains unapplied to Production. Live migration ledger was re-read at 310 entries through `20261110150618`. No Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet or settlement write occurred.
 - Overall Production remains BLOCKED / NOT CERTIFIED pending full migration physical-effect/alias reconciliation, live P0 authorization repairs, Edge parity, and actual encrypted DB+Storage backup, restore/rollback, Vault/Auth recovery and measured RPO/RTO.
+
+
+## 2026-11-24 — Fresh 76-object Production physical-contract read-back
+- [x] Rechecked all 76 curated physical-object contracts against live PostgreSQL system catalogs: 35 physically present / 41 absent; detailed per-type breakdown is in `PASS_2201_2210_PHYSICAL_OBJECT_RECHECK_20261124.md`.
+- [x] Rechecked 22 matched function entries: 21 SECURITY DEFINER / 1 SECURITY INVOKER; 13 empty and 9 non-empty search paths; anon EXECUTE 0, authenticated EXECUTE 19, service_role EXECUTE 2.
+- [x] Confirmed `private.platform_admins` FORCE RLS is false and the two live platform-admin helpers remain on legacy membership-derived contracts. Production ledger still contains 310 rows through `20261110150618`.
+- [ ] Complete the full 82-migration physical-effect/alias crosswalk. The 76-object sample is not exhaustive; no Production mutation is authorized.

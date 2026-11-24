@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
 **Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
-**Base:** `main @ a0a31dab110ac519f8528cbefe74c0eefb727a7c`  
+**Base:** `main @ ed2f36ea61c0099619613c1d3e0bd4746a570bd4`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -207,3 +207,11 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Confirmed the focused physical sample is incomplete and does not replace the 82-migration crosswalk. Exact version gaps are not proof that all physical effects are absent.
 - [x] Preserved transitive local Edge import analysis; external dependency resolution and compiled bundle parity remain unverified. No local cycles were found.
 - [ ] Continue full 82-migration physical-effect/alias mapping and coordinated DB/Edge dependency planning before any Production write.
+
+
+## 2026-11-24 — Fresh 76-object Production physical-contract read-back
+- [x] Rechecked the 76 physical-object contracts in the curated release register directly against live PostgreSQL catalogs: 35 physically present / 41 absent. Breakdown: tables 5/7, indexes 6/13, columns 2/12, function entries 22/41, triggers 0/3. Evidence: `docs/audits/PASS_2201_2210_PHYSICAL_OBJECT_RECHECK_20261124.md`.
+- [x] Rechecked the 22 matched function entries: 21 SECURITY DEFINER / 1 SECURITY INVOKER; 13 empty search_path / 9 non-empty; anon EXECUTE 0, authenticated EXECUTE 19, service_role EXECUTE 2. A name-only match is not treated as exact signature/body parity.
+- [x] Reconfirmed key present-but-blocked objects: `private.platform_admins` FORCE RLS remains off; `public.is_platform_admin()` remains SECURITY INVOKER/search_path=public and membership-derived; `public.mnty_can_platform_admin()` remains SECURITY DEFINER/search_path=public, pg_temp.
+- [x] Reconfirmed Production ledger at 310 rows through `20261110150618`; no database, ACL, RLS, Auth, Storage, Edge, payment or business-data write occurred.
+- [ ] Expand the curated 76-object sample into the full physical-effect/alias map for all 82 required source versions, including every policy, constraint, trigger, overload and transitive Edge dependency.

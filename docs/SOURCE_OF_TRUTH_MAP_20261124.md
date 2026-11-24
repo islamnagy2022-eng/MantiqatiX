@@ -54,3 +54,4 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - Physical sample: 18 relations, 12 indexes, 17 columns and 15 function families checked; 5 relations, 9 indexes, 15 columns and 11 function families absent; 4 function families present but contract-blocked.
 - Three exact byte aliases: RC424 → `20261008222845`; marketing contact duplicate → `20261027041411`; directory source-rights evidence → `20261101140105`. No Production SQL replay or ledger repair occurred.
 - Nine launch-critical Edge deployments differ from main; local import traversal found no cycles, but external dependency resolution and bundle parity remain NOT VERIFIED.
+- Fresh physical read-back [PASS 2201–2210](./audits/PASS_2201_2210_PHYSICAL_OBJECT_RECHECK_20261124.md): 76 curated contracts refreshed at 35 present / 41 absent; 22 matched function entries include 9 non-empty search paths and require separate body/ACL/scope review.
