@@ -46,6 +46,8 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Never blindly replay the release chain on Production.
 
 ### P1.2 Edge parity
+- [x] Completed a read-only entrypoint comparison for 11 launch-relevant Edge Functions; 9 critical entrypoints differ from current main and 2 public-catalog entrypoints match. Audit: `docs/audits/PASS_2051_2060_EDGE_SOURCE_PARITY_20261124.md`.
+- [ ] Compare shared imported files/import maps plus SQL/RPC/ACL dependencies; no individual deployment before the full dependency slice passes.
 - [ ] Hash/compare the launch-critical active Edge bundles against current main and their SQL/RPC/ACL prerequisites.
 - [ ] Prioritize platform/catalog admin, consent-aware directory, registration, order-create, Paymob webhook/payment intent, subscription payment, financial journal and settlement.
 - [ ] Maintain a dependency map: migration → schema/RPC/ACL → Edge version → E2E.
@@ -59,9 +61,9 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 ## P2 — Core public site (zero-cost code and CI)
 - [ ] Verify root, `/legacy/`, direct route refresh, 404/error/empty/loading states and mobile/desktop layouts.
 - [ ] Preserve Activity → Specialty, all-Egypt default search, GPS nearest-first only with permission, and 20-item pagination + See More.
-- [ ] Rebase SEO PR #994 onto current main; prior exact-head CI passed, but deploy was skipped and branch base is stale. Re-run exact-head validation and deployed-origin checks before merge.
+- [x] Merged SEO-only PR #1033 at `34a072312b29e613fb95a39050bb499eedabc786`; exact-head CI 34/34 passed, including the route metadata contract. Pages deployment from this main commit is pending verification. Scope is SPA metadata plus a root-only sitemap; no SSR/prerender or dynamic catalogue sitemap is claimed.
 - [ ] Keep storefront gallery PR #978 draft until rebased and proven compatible with live catalog-admin/public-catalog contracts.
-- [ ] Verify Marketing button opens only the MantiqatiX marketing activity on mobile and desktop; attach current-head evidence.
+- [x] Merged Marketing button regression PR #1032 at `f317a69fe186da7bff560657e161951e8794e81f`; Playwright verified the official persisted business UUID at 390px and 1440px with no horizontal overflow.
 - [ ] Verify logo, cover, favicon, PWA/install icon and Open Graph assets against the existing brand source.
 
 ## P3 — Accounts, partners and Li2Lak
@@ -102,6 +104,14 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - Some critical Edge Functions are behind current-main contracts.
 - Independent encrypted backup/restore, Auth/Vault coverage and measured RPO/RTO are not verified.
 - Li2Lak candidate has prior successful partial checks, but its latest source requires complete exact-head test evidence after rebasing; Paymob remains fail-closed.
+
+## Latest verified status — 2026-11-24
+- [x] Zero-cost execution board is merged and remains the active priority queue.
+- [x] Marketing button responsive routing regression merged and verified.
+- [x] SEO-only route metadata/canonical-root guard merged; exact-head CI passed 34/34. Main Pages deployment is still pending verification.
+- [x] Live Edge entrypoint comparison recorded; 9 critical mismatches remain and no Edge deployment was made.
+- [ ] Continue P0 authorization and Edge dependency closure, then review Li2Lak/gallery candidate PRs.
+- [ ] Backup/restore remains the final work stage and a hard release blocker.
 
 ## This session
 - [x] Re-read the uploaded owner directive and verified ZIP integrity and SHA-256; R7 remains reference-only.
