@@ -1046,7 +1046,7 @@ BEGIN
     v_compact := pg_catalog.regexp_replace(v_definition,'[[:space:]]+','','g');
 
     IF position('is_anonymous' IN v_compact)=0
-       OR position('isdinstinctfrom' IN v_compact)>0 THEN
+       THEN
       RAISE EXCEPTION 'RC925_POSTFLIGHT_ANONYMOUS_CLAIM_GUARD_MISSING:%',v_signature;
     END IF;
 
