@@ -5378,7 +5378,7 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Create branch and feature implementation record.
 - [x] Map initial canonical business, membership, merchant, catalog, commission, referral, order, settlement and Legal Center foundations.
 - [x] Inspect live Production columns, selected constraints, policies, grants and relevant SECURITY DEFINER function signatures (read-only).
-- [ ] Implement and test agreement participant RLS predicate correction in isolated CI; no Production mutation.
+- [ ] RC924 agreement participant RLS correction added on feature branch; PostgreSQL 17/static CI pending. Do not mark complete or apply to Production until CI and forward migration replay pass.
 - [ ] Complete catalog public projection and order/payment-intent handoff audit for direct-to-partner order flow.
 - [ ] Phase 1: partner legal profile, documents, verification state machine and publication hard gate.
 - [ ] Phase 1: company-specific agreements, immutable versions, signatures/evidence, expiry and renewal.
@@ -5390,3 +5390,10 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Phase 6: full acceptance suite, backup/restore and coordinated production release.
 
 **Next action:** implement the isolated agreement participant RLS fix with a PostgreSQL 17 regression fixture, then continue Phase 1. Preserve this request as IN PROGRESS across all future sessions; when the user says “كمل”, resume the first unfinished checkbox here and in the linked implementation record.
+
+
+### MNTX-BP-001 continuation — 2026-11-24 RC924 source update
+- Added RC924 migration, isolated PostgreSQL 17 fixture/integration tests, static validator and dedicated GitHub Actions workflow on feat/business-partners-legal-compliance-20261124.
+- The migration corrects participant correlation to agreements.id while preserving non-anonymous auth and platform-admin checks; no grants or production data are changed.
+- CI has not yet been confirmed. Keep the RLS fix IN PROGRESS until PostgreSQL 17 integration and full forward migration replay pass.
+- Next: confirm RC924 CI; then finish the catalog public projection/order payment-intent handoff audit and begin Phase 1 partner profile/verification/contracts.
