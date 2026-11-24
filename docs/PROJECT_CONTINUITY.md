@@ -1,3 +1,12 @@
+## 2026-11-24 — Current continuation — unified directive and source map
+
+- The exact owner-supplied operating instruction is now preserved in `docs/MASTER_SOURCE_OF_TRUTH.md`; the canonical/legacy/live source matrix is `docs/SOURCE_OF_TRUTH_MAP_20261124.md`.
+- Use the master directive as the only operating policy. TODO, continuity, session logs and historical reports are append-only technical evidence, not replacement instructions.
+- R7 ZIP SHA-256 `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b` exactly matches the previously reviewed R7 artifact. Full findings remain in PASS 1460–1469 and R7_ARCHIVE_SECURITY_REVALIDATION; do not copy its dual-authority server/auth/finance/local JSON implementation.
+- Live public ad RPC `get_mnty_targeted_advertisements` reviewed: intentional anonymous read, empty search_path, seven-field public projection, ACTIVE/APPROVED/window filters and a 1–50 limit. Preserve its reviewed contract; no blind revocation.
+
+---
+
 ## 2026-11-24 — Current continuation — Pass 2041–2050 live Production recheck
 
 - Main has advanced to `e86fa555488cf95015d67654d69c6a0f0af8ad2e` (PR #1020). RC922 is already in main via `19c65e716ad440caa0ca314f04bc2d595acb55e2`; older branch-only wording below is historical.
