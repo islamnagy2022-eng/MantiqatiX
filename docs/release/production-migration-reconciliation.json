@@ -5908,5 +5908,107 @@
     },
     "production_mutation": "NONE",
     "report": "docs/audits/PASS_2201_2210_PHYSICAL_OBJECT_RECHECK_20261124.md"
+  },
+  "rc425_rc432_live_contract_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_DIFF_CONFIRMED",
+    "checked_at": "2026-11-24",
+    "migration_versions": [
+      "20261009120000",
+      "20261009130000",
+      "20261009140000",
+      "20261009150000",
+      "20261009160000",
+      "20261009170000",
+      "20261009180000",
+      "20261009190000"
+    ],
+    "source_files": [
+      "supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql",
+      "supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql",
+      "supabase/migrations/20261009140000_rc427_one_active_payment_intent_per_order.sql",
+      "supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql",
+      "supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql",
+      "supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql",
+      "supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql",
+      "supabase/migrations/20261009190000_rc432_smm_wallet_transaction_idempotency.sql"
+    ],
+    "live_results": {
+      "rc425": {
+        "table_present": false,
+        "rpc_signature": "process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb)",
+        "rpc_present": false
+      },
+      "rc426": {
+        "finalizer_signature": "finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
+        "finalizer_present": false,
+        "provider_order_id_columns": {
+          "payment_intents": true,
+          "digital_page_orders": true
+        }
+      },
+      "rc427": {
+        "index": "uq_payment_intents_one_active_per_order",
+        "present": false
+      },
+      "rc428": {
+        "rpc_signature": "process_verified_provider_payment_failure(text,text,text,text,text,text,boolean,numeric,text,text,text,jsonb)",
+        "present": false
+      },
+      "rc429": {
+        "rpc_signature": "process_verified_subscription_payment_failure(text,text,uuid,text,numeric,text,text,boolean,jsonb)",
+        "present": false
+      },
+      "rc430": {
+        "rpc_signature": "process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb)",
+        "present": false
+      },
+      "rc431": {
+        "present": true,
+        "security_definer": true,
+        "owner": "postgres",
+        "search_path": "public, pg_temp",
+        "anon_execute": false,
+        "authenticated_execute": false,
+        "service_role_execute": true,
+        "source_expected_search_path": ""
+      },
+      "rc432": {
+        "index": "smm_wallet_transactions_reference_type_uidx",
+        "index_present": false,
+        "functions": {
+          "smm_debit_wallet": {
+            "signature": "smm_debit_wallet(uuid,numeric,uuid)",
+            "present": true,
+            "security_definer": true,
+            "search_path": "public",
+            "anon_execute": false,
+            "authenticated_execute": false,
+            "service_role_execute": true
+          },
+          "smm_refund_wallet": {
+            "signature": "smm_refund_wallet(uuid,numeric,uuid,text)",
+            "present": true,
+            "security_definer": true,
+            "search_path": "public",
+            "anon_execute": false,
+            "authenticated_execute": false,
+            "service_role_execute": true
+          },
+          "smm_admin_credit_wallet": {
+            "signature": "smm_admin_credit_wallet(uuid,uuid,numeric,text,uuid)",
+            "present": false
+          }
+        }
+      }
+    },
+    "production_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "source_required_versions": 82,
+      "exact_source_version_matches": 0
+    },
+    "production_mutation": "NONE",
+    "report": "docs/audits/PASS_2211_2220_RC425_RC432_LIVE_CONTRACT_RECHECK_20261124.md",
+    "disposition": "PAYMENT_SUBSCRIPTION_MANTIGO_PAYMENT_AND_SMM_WALLET_PATHS_BLOCKED"
   }
 }
