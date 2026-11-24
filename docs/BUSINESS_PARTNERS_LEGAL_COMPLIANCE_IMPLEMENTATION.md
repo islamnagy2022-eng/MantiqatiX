@@ -163,3 +163,18 @@ This workstream is persistent and must be resumed in every MantiqatiX continuati
 - No application code, production schema, RLS, Auth, Edge deployment, payment or financial data has been changed by this request yet.
 - Phase 0 is partially complete; overall feature is **NOT IMPLEMENTED / NOT VERIFIED**.
 - Next action: complete schema/RPC/Edge/RLS dependency mapping, then implement Phase 1 as a compatibility-safe, tested migration + server action + UI stack.
+
+
+## 9. Additional repository findings — legal and partner module inventory
+
+Further source inspection after the initial reconnaissance found:
+
+- The platform already has a Legal Center/CMS/Consent/Gate Edge family: `legal-center`, `legal-cms`, `legal-consent`, and `legal-gate`. These currently serve published legal documents, user consent records, required-consent gates and platform-admin-only Legal CMS actions.
+- Existing Legal Center consent captures `agreement_id`, but the reviewed Edge contracts do not establish a company-partner agreement lifecycle with per-company contract terms, counterpart signatures, versioned commercial clauses or expiry/renewal management. Reuse the legal document/version and audit infrastructure for templates/policies; extend the agreement contract only after reading its authoritative schema and lifecycle RPCs.
+- RC481–RC483 show that legal Edge access is intentionally narrow: column-scoped service-role grants and SECURITY DEFINER RPCs are used. New partner legal operations must follow this pattern, not broaden table-wide grants.
+- The unified module catalog lists a `PARTNERS` sector with `success_partners` and `referred_businesses` as expected data bindings, but the current module runtime contract maps PARTNERS to the generic app surface. Code search did not locate authoritative table-creation migrations for those two names. Treat these as unverified/non-canonical until the live schema inventory proves otherwise; do not query or create them based only on catalog metadata.
+- The database already references `public.business_referral_events` and `public.agreements` in guarded business-deactivation logic. This proves those object names are referenced by current SQL, but not their complete columns, constraints, policies, triggers, grants or suitability for partner-product referral and signed commercial contracts. Full schema inspection is mandatory before reuse.
+- `provider_onboarding_requests` exists as a separate onboarding workflow tied to registration requests and canonical tenant/business identity. Evaluate whether its verified identity/document steps can be extended for partner onboarding; do not treat provider approval as partner commercial-contract approval.
+- Existing personal `referral_codes/referral_events` must remain distinct from company/product attribution. Existing `orders` and payment-intent workflows are payment-enabled in some sectors, so partner referral orders must use an explicit direct-to-partner handoff and must not invoke platform payment-intent creation for product proceeds.
+
+This inventory changes the implementation sequence: finish a read-only, column-level live schema/RPC/Edge/ACL inventory of `agreements`, `business_referral_events`, `provider_onboarding_requests`, catalog ownership and order/payment contracts before selecting exact extension points. No schema changes are safe until this inventory is complete.
