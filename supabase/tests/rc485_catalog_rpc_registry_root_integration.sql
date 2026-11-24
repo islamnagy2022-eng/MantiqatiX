@@ -55,4 +55,96 @@ BEGIN
 END;
 $rc485$;
 
-SELECT 'RC485 catalog RPC registry-root + empty search_path integration: PASS (7 functions)' AS result;
+-- Direct RPC calls are granted to authenticated, which also includes Supabase
+-- Anonymous Auth sessions. A non-null auth.uid() alone is therefore insufficient.
+SET ROLE authenticated;
+DO $anonymous$
+DECLARE
+  v_actor uuid := '10000000-0000-4000-8000-000000000485';
+BEGIN
+  PERFORM pg_catalog.set_config('request.jwt.claim.sub',v_actor::text,true);
+  PERFORM pg_catalog.set_config(
+    'request.jwt.claims',
+    pg_catalog.jsonb_build_object(
+      'sub',v_actor::text,'role','authenticated','is_anonymous',true
+    )::text,
+    true
+  );
+
+  BEGIN
+    PERFORM public.adjust_catalog_stock_backend(
+      NULL::character varying,NULL::uuid,NULL::character varying,
+      NULL::character varying,NULL::uuid,NULL::numeric,NULL::numeric,
+      NULL::character varying,NULL::text
+    );
+    RAISE EXCEPTION 'RC485_ANONYMOUS_ADJUST_STOCK_BYPASS';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'UNAUTHENTICATED' THEN RAISE; END IF;
+  END;
+
+  BEGIN
+    PERFORM public.create_catalog_warehouse_backend(
+      NULL::character varying,NULL::uuid,NULL::character varying,
+      NULL::character varying,NULL::character varying
+    );
+    RAISE EXCEPTION 'RC485_ANONYMOUS_CREATE_WAREHOUSE_BYPASS';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'UNAUTHENTICATED' THEN RAISE; END IF;
+  END;
+
+  BEGIN
+    PERFORM public.upsert_catalog_item_backend(
+      NULL::character varying,NULL::uuid,NULL::character varying,
+      NULL::character varying,NULL::character varying,NULL::text,NULL::text,
+      NULL::text,NULL::character varying,NULL::numeric,NULL::jsonb,NULL::uuid
+    );
+    RAISE EXCEPTION 'RC485_ANONYMOUS_UPSERT_ITEM_BYPASS';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'AUTH_REQUIRED' THEN RAISE; END IF;
+  END;
+
+  BEGIN
+    PERFORM public.upsert_catalog_price_backend(
+      NULL::character varying,NULL::uuid,NULL::uuid,NULL::character varying,
+      NULL::character varying,NULL::numeric,NULL::timestamptz,NULL::timestamptz
+    );
+    RAISE EXCEPTION 'RC485_ANONYMOUS_UPSERT_PRICE_BYPASS';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'AUTH_REQUIRED' THEN RAISE; END IF;
+  END;
+
+  BEGIN
+    PERFORM public.upsert_catalog_settings_backend(
+      NULL::character varying,NULL::uuid,NULL::character varying,
+      NULL::numeric,NULL::boolean,NULL::boolean
+    );
+    RAISE EXCEPTION 'RC485_ANONYMOUS_UPSERT_SETTINGS_BYPASS';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'UNAUTHENTICATED' THEN RAISE; END IF;
+  END;
+
+  BEGIN
+    PERFORM public.update_catalog_item_status_backend(
+      NULL::character varying,NULL::uuid,NULL::uuid,
+      NULL::character varying,NULL::character varying
+    );
+    RAISE EXCEPTION 'RC485_ANONYMOUS_UPDATE_ITEM_STATUS_BYPASS';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'AUTH_REQUIRED' THEN RAISE; END IF;
+  END;
+
+  BEGIN
+    PERFORM public.upsert_catalog_business_profile_backend(
+      NULL::character varying,NULL::uuid,NULL::character varying,
+      NULL::text,NULL::text,NULL::text,NULL::text,NULL::text,NULL::text,
+      NULL::text,NULL::text,NULL::text,NULL::text,NULL::boolean
+    );
+    RAISE EXCEPTION 'RC485_ANONYMOUS_UPSERT_BUSINESS_PROFILE_BYPASS';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM <> 'UNAUTHENTICATED' THEN RAISE; END IF;
+  END;
+END;
+$anonymous$;
+RESET ROLE;
+
+SELECT 'RC485 catalog RPC registry-root, empty search_path and anonymous-session denial: PASS (7 functions)' AS result;
