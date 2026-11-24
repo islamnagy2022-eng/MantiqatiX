@@ -78,3 +78,11 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - [PASS 2281–2290](./audits/PASS_2281_2290_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md) records provider-service owner grants and order status/idempotency/service-role identity findings.
 - [PASS 2291–2300](./audits/PASS_2291_2300_RC446_RC456_RC463_RC525_LIVE_RECHECK_20261124.md) records MantiGO open-ride privacy, SMM service-role grants, trigger-only ACL and digital-page product admin scope.
 - The current 82-source crosswalk now has 60/82 migration sources with fresh live evidence; 22 earlier rows remain historical. Production remains read-only.
+
+
+## Final source-to-live migration evidence — 2026-11-24
+- [PASS 2301–2310](./audits/PASS_2301_2310_RC464_RC470_LIVE_EFFECT_RECHECK_20261124.md) — platform root, order/business branch, commission and digital-page payment.
+- [PASS 2311–2320](./audits/PASS_2311_2320_RC471_RC478_LIVE_EFFECT_RECHECK_20261124.md) — MantiGO platform admin, directory, Paymob and captain privacy.
+- [PASS 2321–2330](./audits/PASS_2321_2330_QADAM_RC479_RC483_LIVE_EFFECT_RECHECK_20261124.md) — Qadam seed and provider/digital-page/Legal.
+- The 82-source crosswalk now has current live read-back for all 82/82 migrations, with each classified PASS, PARTIAL or BLOCKED. This is not an all-pass release: critical effects remain absent or semantically incorrect.
+- Production remains read-only; the ledger remains 310 rows through `20261110150618`.
