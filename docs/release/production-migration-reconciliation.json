@@ -7284,7 +7284,7 @@
       "required_source_rows": 63,
       "fresh_live_rechecks": 63,
       "remaining_historical_rows": 0,
-      "status": "All 63 earlier source rows have current live read-back evidence; the 19 later source migrations are separately checked. All 82/82 required sources have an explicit PASS/PARTIAL/BLOCKED disposition."
+      "status": "All 63 earlier source rows have current live read-back evidence; 19 later source migrations are separately checked. All 82/82 required sources have an explicit PASS/PARTIAL/BLOCKED disposition."
     },
     "current_migrations_checked": 82,
     "policy_targets": {
