@@ -29,6 +29,7 @@ const checks = [
   ].every((marker) => migration.includes(marker))],
   ["PostgreSQL integration verifies all four helper callers have empty search_path", integration.includes("R7_HELPER_CALLER_SEARCH_PATH_NOT_HARDENED") && integration.includes("p.proconfig @> ARRAY['search_path=\"\"']")],
 
+  ["PostgreSQL integration verifies registry-backed mnty_can helper owner, BYPASSRLS, empty search_path, RLS and ACL boundary", integration.includes("R7_PLATFORM_ADMIN_HELPER_MUST_BE_SECURITY_DEFINER") && integration.includes("R7_PLATFORM_ADMIN_HELPER_SEARCH_PATH_MUST_BE_EMPTY") && integration.includes("R7_PLATFORM_ADMIN_HELPER_OWNER_MUST_MATCH_BYPASS_RLS_REGISTRY_OWNER") && integration.includes("R7_CLIENT_ROLES_MUST_NOT_ACCESS_PLATFORM_ADMIN_REGISTRY") && integration.includes("R7_ANON_MUST_NOT_EXECUTE_PLATFORM_ADMIN_GUARD_OR_GLOBAL_CALLERS")],
   ["workflow executes RC449 then RC462 then caller fixture then RC471 then all three integration tests in order", (() => {
     const executedSqlFiles = [...workflow.matchAll(/docker exec[^\n]*-f (\/tmp\/[^\s"]+)/g)]
       .map((match) => match[1]);
