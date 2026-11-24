@@ -119,10 +119,10 @@
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
     "checked_at": "2026-11-24",
-    "method": "Read-only live migration ledger inventory refreshed 2026-11-24; compared against 81 exact required source migration versions. Exact identifiers absent are not proof every effect is absent; reconcile renamed predecessors and physical effects separately.",
+    "method": "Read-only live migration ledger inventory refreshed 2026-11-24 and reconciled against 82 exact required source migration versions. Exact identifiers absent are not proof every physical effect is absent; aliases and physical effects are reconciled separately. Never fabricate ledger rows or blindly replay migrations against Production.",
     "live_ledger_count": 310,
     "latest_live_version": "20261110150618",
-    "expected_migration_versions": 81,
+    "expected_migration_versions": 82,
     "found_in_live_ledger": 0,
     "required_versions": [
       "20261009120000",
@@ -205,7 +205,8 @@
       "20261123010000",
       "20261123221950",
       "20261124121348",
-      "20261124140000"
+      "20261124140000",
+      "20261124150000"
     ],
     "missing_versions": [
       "20261009120000",
@@ -288,10 +289,11 @@
       "20261123010000",
       "20261123221950",
       "20261124121348",
-      "20261124140000"
+      "20261124140000",
+      "20261124150000"
     ],
     "recorded_required_versions": [],
-    "interpretation": "None of the 81 exact required source-version identifiers are recorded in the latest read-only live ledger inventory. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
+    "interpretation": "None of the 82 exact required source-version identifiers are recorded in the latest read-only live ledger inventory. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
   },
   "critical_edge_function_source_parity_check": {
     "status": "BLOCKED",
@@ -5697,5 +5699,24 @@
     "current_pr_rc924_postgres17_run": "45465701993",
     "exact_81_version_strict_gate_run": "45465702093",
     "pre_refresh_forward_replay_run": "45458313389"
+  },
+  "rc925_catalog_rpc_missing_claim_source_20261124": {
+    "status": "SOURCE_ADDED_EXACT_HEAD_TESTS_PENDING_PRODUCTION_NOT_APPLIED",
+    "migration_version": "20261124150000",
+    "migration_file": "supabase/migrations/20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql",
+    "source_contract": "All seven catalog SECURITY DEFINER RPCs require auth.jwt()->>'is_anonymous' to be exactly 'false'; a true or missing claim is rejected.",
+    "functions": [
+      "adjust_catalog_stock_backend",
+      "create_catalog_warehouse_backend",
+      "upsert_catalog_item_backend",
+      "upsert_catalog_price_backend",
+      "upsert_catalog_settings_backend",
+      "update_catalog_item_status_backend",
+      "upsert_catalog_business_profile_backend"
+    ],
+    "integration_test": "supabase/tests/rc925_catalog_rpc_missing_anonymous_claim_integration.sql",
+    "static_validator": "scripts/validate-rc925-catalog-rpc-missing-claim-guard.mjs",
+    "production_mutation": "NONE",
+    "status_note": "The source-only fix is based on live read-only evidence that four existing functions use COALESCE and allow a missing claim while three have no direct claim guard. Isolated PostgreSQL 17 exact-head tests must pass before any merge; Production remains unchanged."
   }
 }
