@@ -50,6 +50,11 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Deploy DB + Edge only as a coordinated versioned unit after exact-head CI, source-rights evidence, encrypted backup/restore and deployed-origin negative/positive tests.
 **Live evidence:** 869 listings are marked PUBLISHED and contain phone/address data, but deployed Edge v18 returns an empty fail-closed page. The RC473 registry is absent; source-rights evidence registry exists with zero rows.
 
+### P0.4 Paymob signed-order binding
+- [x] Fresh read-only check confirms deployed Paymob HMAC-SHA512 covers order.id but not merchant_order_id; deployed webhook v10 selects a row using the unsigned merchant_order_id and has no stored provider_order_id equality check for standard, digital-page or subscription intents. Current main has all three pre-RPC equality checks. Evidence: PASS 2381–2390.
+- [ ] Keep all Paymob real-money webhook/checkout release paths blocked until the coordinated RC426–RC431/RC468/RC470/RC475 database + Edge slice is verified.
+- [ ] In sandbox, replay a valid signed callback for order A with merchant_order_id changed to a different pending order B of equal amount/currency; assert HTTP rejection and zero mutation to both records. Repeat for standard, digital-page and subscription flows.
+
 ## P1 — Database and backend contracts
 ### P1.1 Migration reconciliation
 - [x] Refresh the ordered mainline release manifest (82 identifiers including RC925 at the 2026-11-24 checkpoint) and compare it with Production's 310-row migration ledger: 0/82 exact source-version identifiers are present; physical-object aliases/effects still require reconciliation.
