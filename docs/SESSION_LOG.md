@@ -4253,3 +4253,11 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] Preserved current-main audits: PASS 2291–2300 (RC446/456/463/525), PASS 2301–2310 (RC464–470), PASS 2311–2320 (RC471–478), and PASS 2321–2330 (Qadam/RC479–483). These latest main reports supersede duplicate older summaries of the same migration range.
 - [x] Additional read-only reports: PASS 2331–2340 (RC484–496 platform root, catalog, SMM bootstrap, Storage/confirmed-Auth, settlement and MantiGO bid acceptance) and PASS 2341–2350 (RC921–925 medical state, agreement participant scope and catalog claim guards). Pass 2281–2290 remains assigned to the existing RC102–RC106 order/provider scope report.
 - [x] Production ledger remains 310 rows through `20261110150618`; no Production write was performed. Full release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-24 — PASS 2271–2280 RC113–RC117 Control Center and employee live read-back
+- [x] RC113/114 four tables exist with RLS+FORCE RLS, no direct anon/authenticated/service_role CRUD grants; six role/employee indexes are valid; `ux_user_memberships_user_business_branch_nullsafe` is absent.
+- [x] Thirteen exact Control Center/employee functions exist as postgres-owned SECURITY DEFINER with empty search_path, anon EXECUTE=false, authenticated=true, service_role=false. Ten admin/permission functions directly reference private.platform_admins; employee lifecycle/list functions use business-member scope.
+- [x] RC117 `mnty_default_image_url`, the three trigger functions and attached triggers are absent; `marketing_services.image_url` and `image_source` are absent. Business/catalog images use JSON settings/metadata in source, not dedicated columns.
+- [x] Evidence: `PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md`.
+- [x] No Production changes; ledger remains 310 rows through `20261110150618`.
