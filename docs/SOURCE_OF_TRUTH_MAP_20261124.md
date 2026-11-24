@@ -44,6 +44,13 @@
 - Direct policy/ACL reconciliation: 21 policies include anon/public role (19 anon, 2 public); six explicit deny-all policies; 13 anon SELECT policy definitions, of which eight public-schema tables currently have direct anon SELECT grants. One high-priority surface remains marketing_provider_profiles (all 19 columns, including owner_user_id/settings/profile_image_path, under ACTIVE-only policy); digital pages and legal docs also expose full base-table projections and remain tracked in #928. Storage public read is scoped to mantiqatix-profile-media; no anon write RLS policy was found.
 - Latest main push run 45376506890 passed catalog build, employee RBAC PostgreSQL and dashboard Browser E2E. Pages run 45376507114 had validation and public-only gates pass; deployed-origin legacy catalog/dashboard/mobile/QR checks were still running at the checkpoint.
 
+## 82-migration live-effect reconciliation — 2026-11-24
+- Canonical ordered inventory: [82-migration source-to-live crosswalk](./release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md).
+- Later migration effects RC484–RC925: [PASS 2211–2230](./audits/PASS_2211_2230_RC484_RC925_SOURCE_TO_LIVE_EFFECT_RECHECK_20261124.md). 30 policy targets: 29 restrictive policies absent and one existing agreement participant policy incorrect; five RC495 Storage policies are present but stale; all seven catalog RPCs still lack the RC925 guard in Production.
+- Detailed 76-object sample: [PASS 2231–2240](./audits/PASS_2231_2240_76_OBJECT_DETAILED_PRESENCE_20261124.md), 35 present / 41 absent. The sample is not exhaustive and presence is not semantic parity.
+- The 63 earlier crosswalk entries retain historical statuses pending fresh per-object verification. Current required source inventory remains 82 versions; live ledger remains 310 through `20261110150618`; 0/82 exact IDs is an identity mismatch, not proof of missing physical effects.
+- RC925 migration comment and validator wording now accurately describe the null/missing-claim denial predicate; executable SQL is unchanged. Exact-head 82-version replay must be repeated after the comment-only source change.
+
 ## Workflow rule
 Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT TASK`. Start from the first current incomplete P0/P1 item. Never infer release completion from archive status labels, local UI, empty tables, source-only fixes, historical CI or unverified deployment claims. Keep production read-only until the explicit backup, replay, authorization, payment and release gates are satisfied.
 
