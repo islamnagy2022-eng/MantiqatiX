@@ -16,7 +16,13 @@ assert.match(migration,/ap\.agreement_id\s*=\s*agreements\.id/i);
 assert.match(migration,/ap\.user_id\s*=\s*\(SELECT auth\.uid\(\)\)/i);
 assert.match(migration,/private\.legal_is_admin\(\(SELECT auth\.uid\(\)\)\)/i);
 assert.match(migration,/is_anonymous'\)::boolean\s+IS\s+FALSE/i);
-assert.doesNotMatch(migration,/COALESCE\([\s\S]*?is_anonymous/i);
+const confirmedAuthPolicyStart = migration.indexOf("CREATE POLICY agreements_confirmed_auth_select");
+const participantPolicyStart = migration.indexOf("CREATE POLICY agreements_participant_read");
+assert.ok(confirmedAuthPolicyStart >= 0 && participantPolicyStart > confirmedAuthPolicyStart,
+  "RC924 must define its restrictive confirmed-auth policy before participant visibility");
+const confirmedAuthPolicy = migration.slice(confirmedAuthPolicyStart, participantPolicyStart);
+assert.doesNotMatch(confirmedAuthPolicy,/COALESCE\([\s\S]*?is_anonymous/i,
+  "the restrictive policy must reject a missing anonymous claim rather than defaulting it to false");
 assert.doesNotMatch(migration,/GRANT\s+(?:ALL|SELECT|INSERT|UPDATE|DELETE)\s+ON\s+TABLE/i);
 assert.doesNotMatch(migration,/INSERT\s+INTO|UPDATE\s+public\.|DELETE\s+FROM/i);
 
