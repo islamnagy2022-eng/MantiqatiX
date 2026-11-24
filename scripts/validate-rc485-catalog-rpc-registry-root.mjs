@@ -71,6 +71,16 @@ for (const name of functions) {
   assert.ok(oldBlock.length > 0);
 }
 
+const priceBlock = functionBlock(effectiveMigration, "upsert_catalog_price_backend");
+assert.match(priceBlock, /pg_catalog\.pg_advisory_xact_lock\s*\(/i,
+  "RC923 must preserve RC486 transaction-scoped price serialization");
+assert.ok(
+  priceBlock.indexOf("pg_catalog.pg_advisory_xact_lock") < priceBlock.indexOf("SELECT coalesce(max(version)"),
+  "RC923 must preserve the RC486 lock-before-MAX invariant",
+);
+assert.match(anonymousGuard, /RC923_RC486_PRICE_SERIALIZATION_PRECONDITION_REQUIRED/);
+assert.match(anonymousGuard, /RC923_PRICE_SERIALIZATION_LOCK_LOST/);
+
 assert.equal((anonymousGuard.match(/CREATE OR REPLACE FUNCTION public\./g) || []).length, 3,
   "RC923 must only replace the three RPCs missing the anonymous-session guard");
 assert.equal((anonymousGuard.match(/auth\.jwt\(\)->>'is_anonymous'/g) || []).length, 3,
