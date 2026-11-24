@@ -19,8 +19,9 @@ assert.match(index, /rel="icon"[^>]*mantiqatix-approved\.svg/,
 assert.match(index, /rel="apple-touch-icon"[^>]*mantiqatix-192\.png/,
   'the mobile home-screen icon link must remain the official MantiqatiX brand');
 assert.equal(manifest.display, 'standalone', 'the installable app must remain a standalone platform app');
-assert.ok(manifest.icons.length >= 2 && manifest.icons.every((icon) => /mantiqatix/i.test(icon.src)),
-  'every installed-app icon must remain a platform-owned MantiqatiX icon');
+assert.ok(manifest.icons.some((icon) => icon.src === '/MantiqatiX/icons/mantiqatix-red-gold-app-icon.jpg'
+  && icon.sizes === '256x256' && icon.type === 'image/jpeg' && icon.purpose === 'any maskable'),
+  'the installed-app icon must use the approved red-and-gold MantiqatiX artwork');
 assert.ok(manifest.icons.every((icon) => !/business|merchant|currentBusiness/i.test(icon.src)),
   'business context must never replace the installed application icon');
 
