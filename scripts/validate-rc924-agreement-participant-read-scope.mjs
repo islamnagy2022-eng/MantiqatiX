@@ -8,6 +8,10 @@ const rc482 = fs.readFileSync("supabase/migrations/20261119020000_rc482_legal_pl
 const rc482Integration = fs.readFileSync("supabase/tests/rc482_legal_platform_admin_registry_integration.sql", "utf8");
 const rc482Validator = fs.readFileSync("scripts/validate-rc482-legal-platform-admin-registry.mjs", "utf8");
 const workflow = fs.readFileSync(".github/workflows/rc924-agreement-participant-read-scope.yml", "utf8");
+const liveContract = fs.readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
+const productionVerifier = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
+const migrationGate = fs.readFileSync("scripts/validate-production-migration-chain-gate.mjs", "utf8");
+const manifest = JSON.parse(fs.readFileSync("docs/release/production-migration-reconciliation.json", "utf8"));
 
 assert.match(migration,/DROP POLICY IF EXISTS agreements_participant_read ON public\.agreements/i);
 assert.match(migration,/CREATE POLICY agreements_participant_read[\s\S]*?ON public\.agreements[\s\S]*?FOR SELECT\s+TO authenticated/i);
@@ -76,5 +80,13 @@ assert.ok(workflow.indexOf("rc482-integration.sql") < workflow.indexOf("rc924.sq
 assert.ok(workflow.includes("grep -Fq 'RC924_LEGAL_ADMIN_HELPER_IS_NOT_REGISTRY_BACKED'"),"workflow must verify the expected RC924 fail-closed preflight");
 assert.ok(workflow.includes("grep -Fq 'RC924_REQUIRES_RC482_REMOVAL_OF_ZERO_ARGUMENT_LEGAL_ADMIN_OVERLOAD'"),"workflow must prove the overloaded zero-argument helper is rejected");
 assert.ok(workflow.includes("DROP FUNCTION private.legal_is_admin();"),"workflow must then isolate the membership-derived UUID helper check");
+
+assert.ok(liveContract.includes('"20261124140000"'), "RC924 must be included in the live release migration contract");
+assert.ok(productionVerifier.includes("20261124140000_rc924_agreement_participant_read_scope.sql"), "Production verifier must require RC924");
+assert.ok(migrationGate.includes("20261124140000_rc924_agreement_participant_read_scope.sql"), "strict migration gate must require RC924");
+assert.match(migrationGate, /required\.length, 81/, "strict gate must count RC924 in the 81-version chain");
+assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 81, "live release manifest must carry the 81-version chain");
+assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261124140000"), "manifest must include RC924");
+assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261124140000"), "manifest must show RC924 is not applied to Production");
 
 console.log("RC924 agreement participant read-scope contract: PASS");
