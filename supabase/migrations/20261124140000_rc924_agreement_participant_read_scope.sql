@@ -11,10 +11,7 @@ CREATE POLICY agreements_participant_read
   TO authenticated
   USING (
     (SELECT auth.uid()) IS NOT NULL
-    AND COALESCE(
-      (((SELECT auth.jwt() AS jwt) ->> 'is_anonymous')::boolean),
-      false
-    ) = false
+    AND (((SELECT auth.jwt()) ->> 'is_anonymous')::boolean IS FALSE)
     AND (
       private.legal_is_admin((SELECT auth.uid()))
       OR EXISTS (
