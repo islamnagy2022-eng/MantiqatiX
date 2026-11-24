@@ -123,20 +123,29 @@ assert.match(integration, /'is_anonymous',true/,
   "anonymous Auth behavior remains explicitly tested");
 assert.match(integration, /'is_anonymous',false/,
   "confirmed-user behavior must be explicitly tested");
+const missingClaimMarkers = [
+  "RC925_MISSING_CLAIM_ADJUST_STOCK_BYPASS",
+  "RC925_MISSING_CLAIM_CREATE_WAREHOUSE_BYPASS",
+  "RC925_MISSING_CLAIM_UPSERT_ITEM_BYPASS",
+  "RC925_MISSING_CLAIM_UPSERT_PRICE_BYPASS",
+  "RC925_MISSING_CLAIM_UPSERT_SETTINGS_BYPASS",
+  "RC925_MISSING_CLAIM_UPDATE_STATUS_BYPASS",
+  "RC925_MISSING_CLAIM_UPSERT_PROFILE_BYPASS",
+];
+const confirmedUserMarkers = [
+  "RC925_CONFIRMED_USER_REJECTED_ADJUST_STOCK",
+  "RC925_CONFIRMED_USER_REJECTED_CREATE_WAREHOUSE",
+  "RC925_CONFIRMED_USER_REJECTED_UPSERT_ITEM",
+  "RC925_CONFIRMED_USER_REJECTED_UPSERT_PRICE",
+  "RC925_CONFIRMED_USER_REJECTED_UPSERT_SETTINGS",
+  "RC925_CONFIRMED_USER_REJECTED_UPDATE_STATUS",
+  "RC925_CONFIRMED_USER_REJECTED_UPSERT_PROFILE",
+];
 for (const name of functions) {
-  const suffix = name.replace("backend", "").replaceAll("_", "_").toUpperCase();
-  assert.ok(
-    integration.includes(`public.${name}(`),
-    `integration must directly call ${name}`,
-  );
-  assert.ok(
-    integration.includes(`RC925_MISSING_CLAIM_${suffix}`)
-      || integration.includes(`RC925_MISSING_CLAIM_${name.replaceAll("_", "").toUpperCase()}`)
-      || integration.includes(`RC925_MISSING_CLAIM_${name.replace(/_([a-z])/g, (_, c) => c.toUpperCase()).toUpperCase()}`)
-      || integration.includes("RC925_MISSING_CLAIM_"),
-    `integration must mark the missing-claim rejection for ${name}`,
-  );
+  assert.ok(integration.includes(`public.${name}(`), `integration must directly call ${name}`);
 }
+for (const marker of missingClaimMarkers) assert.ok(integration.includes(marker), `missing claim denial test missing: ${marker}`);
+for (const marker of confirmedUserMarkers) assert.ok(integration.includes(marker), `confirmed-user compatibility test missing: ${marker}`);
 
 assert.ok(liveContract.includes('"20261124192436"'), "RC925 must be in the live version contract");
 assert.ok(productionVerifier.includes("20261124192436_rc925_catalog_rpc_confirmed_auth_boundary.sql"),
