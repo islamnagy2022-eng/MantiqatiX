@@ -21,13 +21,13 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Reconcile live `is_platform_admin()` and `mnty_can_platform_admin()` with RC464, RC471, RC484, RC485 and RC923 source.
 - [x] RC484's post-migration test now asserts registry FORCE RLS and registry/helper owner parity with BYPASSRLS; exact PR-head PostgreSQL 17 run `45390294342` passed (PR #1040 merged).
 - [x] PR #1049 widened the RC471/R7 actor matrix to reject tenant-scoped SUPER_ADMIN and MNTY-PLATFORM membership without registry across all four helper callers; exact-head run 45396407812 passed. PR merged as main commit 1b27efb65e32a254e34a7ae9add172de078e6fdf (31 successful checks, 2 skipped; no failures).
-- [ ] Complete the ordered migration set on disposable PostgreSQL 17 using repo CI. Preserve the 57-policy / 24-table dependency map; this PR-head replay passed, but production backup restore and physical-object reconciliation remain separate gates.
-- [ ] Test RC923 anonymous-session denial for all seven catalog RPCs on the full chronological 80-version PostgreSQL 17 replay.
-- [ ] Test registered platform admin allow; tenant ADMIN/OWNER/SUPER_ADMIN without registry deny; inactive membership deny; cross-tenant/business/branch deny; tenant-local access still works.
+- [x] Completed the ordered 80-version migration set on disposable PostgreSQL 17; exact-head replay applied 116 later migrations and passed (run [45393984396](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45393984396)). Production backup/restore and physical-object reconciliation remain separate gates.
+- [x] Tested RC923 anonymous-session denial for all seven catalog RPCs on the full chronological 80-version PostgreSQL 17 replay; RC485/RC923 integration passed.
+- [x] Tested registered platform-admin allow; tenant ADMIN/OWNER/SUPER_ADMIN without registry deny; inactive membership and cross-tenant/business/branch boundaries; tenant-local access remains covered.
 - [x] Re-ran the existing read-only high-risk SECURITY DEFINER SQL contract against Production: 14 RPCs checked; 5 PASS, 9 FAIL_SEARCH_PATH; all 14 preserve anon EXECUTE=false and authenticated EXECUTE=true. Direct anon/authenticated write grants on five MantiGO tables are both zero; see PASS_2071_2080.
-- [ ] Assert function ownership, empty `search_path`, grants, FORCE RLS and caller coverage in tests.
-- [ ] Prepare one coordinated migration bundle and post-release read-back. Do not hot-patch or apply it to Production in this phase.
-**Live evidence:** Production still uses membership-derived helpers; registry RLS is on but FORCE RLS is false. See `docs/audits/PASS_2041_2050_LIVE_PRODUCTION_RECHECK_20261124.md`.
+- [x] Asserted function ownership, empty `search_path`, grants, FORCE RLS and caller coverage in isolated PostgreSQL 17 tests.
+- [x] Prepared the coordinated migration release bundle and post-release read-back checklist: `docs/release/RC923_PRODUCTION_RELEASE_BUNDLE_20261124.md`. Production application remains blocked until final recovery and physical-effect gates pass.
+**Live evidence:** Production still uses membership-derived helpers; registry RLS is on but FORCE RLS is false. The 80-version replay is isolated CI evidence only; no Production migration was applied. See `docs/audits/PASS_2041_2050_LIVE_PRODUCTION_RECHECK_20261124.md`.
 
 ### P0.2 Anonymous Auth and private profile boundaries
 - [x] Refreshed Advisor + live ACL snapshot: 90 anonymous-Auth table warnings, 9 RLS-no-policy tables with all client grants denied, 65 exposed authenticated SECURITY DEFINER functions (18 empty search_path, 47 other pinned, 0 unset); see PASS_2081_2090 and Issue #928.
@@ -50,7 +50,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Refreshed all 76 previously tracked physical object contracts against Production on 2026-11-24 (tables, indexes, functions, columns, triggers): 35 present / 41 absent, zero status changes since the 2026-11-20 snapshot. Breakdown is in `docs/audits/PASS_2091_2100_PHYSICAL_OBJECT_REFRESH_20261124.md`.
 - [ ] Classify every migration by physical effect: exact-present, alias/effect-present, safe-to-replay, superseded/forward-fixed or blocked.
 - [ ] Complete the broader migration→physical effect/alias map beyond these 76 contracts: reconcile all remaining functions, policies, ACLs, indexes, triggers and constraints; 0/80 exact ledger matches is not proof all effects are absent.
-- [ ] Run full chronological forward replay on GitHub Actions PostgreSQL 17 with required integration jobs.
+- [x] Full chronological forward replay passed on GitHub Actions PostgreSQL 17; 116 later migrations applied in the disposable environment (run [45393984396](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45393984396)).
 - [ ] Never blindly replay the release chain on Production.
 
 ### P1.2 Edge parity
