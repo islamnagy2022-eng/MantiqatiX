@@ -3141,10 +3141,10 @@
   },
   "migration_alias_resolution_check": {
     "status": "SOURCE_ALIASES_CONFIRMED_LEDGER_REPAIR_PENDING",
-    "checked_at": "2026-11-06T15:55:00Z",
-    "expected_aliases": 2,
+    "checked_at": "2026-11-24",
+    "expected_aliases": 3,
     "resolved_aliases": 0,
-    "procedure": "Both duplicate source aliases are now confirmed by exact stored-statement and/or source-blob evidence. No migration-ledger repair has been applied. Preserve the existing production ledger rows; any formal history reconciliation remains a separate production write requiring verified backup/restore, completed chronological rehearsal, review, rollback plan and explicit release approval. Never execute duplicate SQL.",
+    "procedure": "All three source-to-ledger aliases are confirmed by exact stored-statement and/or source-blob evidence. Their SQL effects are already represented by existing Production ledger rows. Do not replay them or synthesize ledger rows. Formal migration-history repair is still pending and remains a separate controlled write requiring verified backup/restore, completed chronological rehearsal, review, rollback plan and explicit release approval.",
     "aliases": [
       {
         "source_version": "20261009010000",
@@ -3177,10 +3177,25 @@
         "target_ledger_statement_bytes": 1114,
         "target_ledger_statement_md5": "d09b822bea5dfc5e3e4103dcfa02601c",
         "live_statement_exact_source_match": true
+      },
+      {
+        "source_version": "20261101150000",
+        "source_file": "supabase/migrations/20261101150000_directory_source_permission_evidence.sql",
+        "target_ledger_version": "20261101140105",
+        "evidence_type": "EXACT_STATEMENT_ALIAS",
+        "status": "SOURCE_ALIAS_CONFIRMED_LEDGER_REPAIR_PENDING",
+        "source_effect_verified": true,
+        "ledger_repair_applied": false,
+        "note": "Read-only comparison of the exact stored statement at ledger version 20261101140105 against the current-main source file returned byte-for-byte equality. One stored statement, 3,558 bytes. This source alias is already represented by the existing ledger row; do not replay the SQL.",
+        "evidence_checked_at": "2026-11-24",
+        "source_blob_sha": "3f2e0a480d7234171c3ea5359a21d3451b92d150",
+        "live_ledger_statement_count": 1,
+        "live_ledger_statement_bytes": 3558,
+        "live_statement_exact_source_match": true
       }
     ],
     "evidence_checked_at": "2026-11-06T15:55:00Z",
-    "source_confirmed_aliases": 2,
+    "source_confirmed_aliases": 3,
     "ledger_repairs_applied": 0
   },
   "catalog_platform_admin_paid_subscription_gate": {
@@ -6625,5 +6640,164 @@
     },
     "production_mutation": "NONE",
     "report": "docs/audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md"
+  },
+  "historical_partial_baseline_reconciliation_20261124": {
+    "status": "READ_ONLY_PARTIAL_BASELINES_CLASSIFIED",
+    "checked_at": "2026-11-24",
+    "method": "PASS 2171–2180 source/ledger statement comparison plus read-only PostgreSQL object, function, RLS and ACL checks. No application/payment/directory rows were read; directory source-rights registry count was inspected only as an aggregate.",
+    "families": [
+      {
+        "name": "subscription_payments",
+        "historical_ledger_versions": [
+          "20260921223349",
+          "20260921223417"
+        ],
+        "historical_effects_present": [
+          "subscription_tier_prices",
+          "subscription_payment_intents",
+          "create_subscription_payment_intent_backend(uuid,text,text,text,text,uuid)",
+          "process_verified_subscription_payment(text,text,uuid,text,numeric,text,boolean)",
+          "payment_intents.provider_order_id",
+          "uq_payment_intents_provider_order"
+        ],
+        "forward_effects_missing": [
+          "create_subscription_payment_intent_claimable_backend(uuid,text,text,text,text,uuid)",
+          "claim_subscription_provider_intent_creation_backend(uuid,uuid)",
+          "subscription_payment_intents.provider_creation_state",
+          "subscription_payment_intents.provider_creation_claimed_at",
+          "subscription_payment_intents.client_secret_ciphertext",
+          "subscription_payment_intents.client_secret_iv",
+          "subscription_payment_intents.client_secret_key_version"
+        ],
+        "classification": "PARTIAL_BASE_PRESENT_RC435_RC439_BLOCKED"
+      },
+      {
+        "name": "erp_purchase_orders_and_receipts",
+        "historical_ledger_versions": [
+          "20260926215401",
+          "20260926215717",
+          "20260926215725",
+          "20260926220351"
+        ],
+        "historical_effects_present": [
+          "erp_purchase_receipts",
+          "erp_purchase_orders",
+          "receive_purchase_stock_backend",
+          "create_purchase_order_backend",
+          "legacy ERP scope indexes"
+        ],
+        "forward_effects_missing": [
+          "erp_purchase_order_lines",
+          "receive_purchase_stock_atomic_backend",
+          "set_purchase_order_lines_backend",
+          "receive_purchase_stock_with_order_line_backend",
+          "create_purchase_order_with_lines_backend",
+          "erp_purchase_orders_business_order_number_uidx",
+          "erp_purchase_order_lines_scope_idx"
+        ],
+        "present_but_contract_blocked": [
+          "receive_purchase_stock_backend — search_path=public and expected service_role EXECUTE absent",
+          "create_purchase_order_backend — search_path=public and authenticated/service_role EXECUTE absent"
+        ],
+        "classification": "PARTIAL_BASE_PRESENT_RC434_RC437_RC438_BLOCKED"
+      },
+      {
+        "name": "financial_journal",
+        "historical_ledger_versions": [
+          "20260928123245"
+        ],
+        "historical_effects_present": [
+          "post_financial_journal_backend(uuid,jsonb,jsonb)"
+        ],
+        "source_parity": {
+          "historical_source_commit": "bb777f13969f87a8228a6ee025292b47da4ea037",
+          "historical_source_file": "supabase/migrations/20260928170000_rc159_financial_journal_backend.sql",
+          "historical_source_bytes": 4267,
+          "live_stored_statement_bytes": 4424,
+          "exact_source_alias": false
+        },
+        "present_but_contract_blocked": [
+          "post_financial_journal_backend — SECURITY DEFINER/search_path=public/service_role EXECUTE=false"
+        ],
+        "forward_effects_missing": [
+          "journal_entries.entry_number",
+          "journal_entries.total_debit",
+          "journal_entries.total_credit",
+          "journal_entries.posted_at",
+          "journal_entries.updated_at",
+          "journal_entries.reversed_by_entry_id",
+          "journal_entry_lines.line_number",
+          "journal_entries_tenant_entry_number_uidx",
+          "journal_entry_lines_entry_line_uidx",
+          "general_ledger_running_balance_lookup_idx"
+        ],
+        "required_ordered_path": [
+          "RC449A",
+          "RC450"
+        ],
+        "substitute_not_allowed": "RC436 post_financial_journal_atomic_backend is a separate absent contract and is not a substitute for the approved RC449A → RC450 path.",
+        "classification": "PARTIAL_BASE_PRESENT_SOURCE_PARITY_UNRESOLVED_SCHEMA_AND_ACL_BLOCKED"
+      },
+      {
+        "name": "public_directory_and_source_rights",
+        "historical_ledger_versions": [
+          "20261029051004",
+          "20261101140105"
+        ],
+        "historical_effects_present": [
+          "public_directory_listings",
+          "directory_listing_claim_requests",
+          "set_public_directory_updated_at()",
+          "directory_source_permission_evidence registry",
+          "directory_source_permission_evidence indexes"
+        ],
+        "aggregate_state": {
+          "directory_source_permission_evidence_rows": 0
+        },
+        "forward_effects_missing": [
+          "review_directory_listing_claim_atomic(uuid,text,uuid,text,uuid,boolean,boolean)",
+          "ux_user_memberships_user_business_branch_nullsafe",
+          "directory_listing_contact_consents",
+          "ux_directory_listing_contact_consents_active",
+          "ix_directory_listing_contact_consents_listing"
+        ],
+        "classification": "PARTIAL_BASE_PRESENT_RC472_RC473_BLOCKED"
+      },
+      {
+        "name": "generic_payment_provider",
+        "historical_ledger_versions": [],
+        "historical_effects_present": [
+          "public.payment_provider_events",
+          "legacy process_verified_provider_payment(...)"
+        ],
+        "present_but_contract_blocked": [
+          "legacy process_verified_provider_payment — search_path=public; service_role EXECUTE exists but exact current atomic webhook contract is not met"
+        ],
+        "forward_effects_missing": [
+          "public.mantigo_payment_provider_events",
+          "process_verified_mantigo_payment_backend(...)",
+          "process_verified_provider_payment_failure(...)",
+          "process_verified_subscription_payment_failure(...)",
+          "process_verified_subscription_payment_backend(...)"
+        ],
+        "classification": "GENERIC_LEGACY_BASE_PRESENT_RC425_RC428_RC429_RC430_BLOCKED"
+      }
+    ],
+    "separate_forward_repairs": [
+      {
+        "source_version": "20261010200000",
+        "source_release": "RC451",
+        "forward_repair_ledger_version": "20261027223523",
+        "forward_repair_name": "rc451_targeted_ads_search_path_forward_repair",
+        "classification": "FORWARD_REPAIR_APPLIED_NOT_EXACT_ALIAS",
+        "note": "The live targeted-ad RPC has empty search_path and intentional public anon/authenticated EXECUTE. Preserve its public discovery boundary; do not blanket-revoke."
+      }
+    ],
+    "exact_source_aliases": {
+      "confirmed": 3,
+      "formal_ledger_repairs_applied": 0,
+      "details_ref": "migration_alias_resolution_check"
+    },
+    "interpretation": "A present historical baseline is not full forward contract parity. Do not replay an aliased migration or treat a legacy table/function as proof the newer atomicity, branch/tenant scope, encryption, search_path or ACL contract is met."
   }
 }

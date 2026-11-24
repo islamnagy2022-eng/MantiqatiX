@@ -4253,3 +4253,10 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] Preserved current-main audits: PASS 2291–2300 (RC446/456/463/525), PASS 2301–2310 (RC464–470), PASS 2311–2320 (RC471–478), and PASS 2321–2330 (Qadam/RC479–483). These latest main reports supersede duplicate older summaries of the same migration range.
 - [x] Additional read-only reports: PASS 2271–2280 (RC485–496 catalog, SMM bootstrap, Storage/confirmed-Auth, settlement and MantiGO bid acceptance) and PASS 2281–2290 (RC921–925 medical state, agreement participant scope and catalog claim guards).
 - [x] Production ledger remains 310 rows through `20261110150618`; no Production write was performed. Full release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-24 — Corrected exact-alias manifest and partial historical baseline classification
+- [x] Directly verified directory source-rights alias: source blob SHA `3f2e0a480d7234171c3ea5359a21d3451b92d150`; live ledger `20261101140105` has one 3,558-byte statement, exact match to source version `20261101150000`.
+- [x] Reconciled manifest and canonical release contract from two to three exact aliases: RC424 → `20261008222845`; marketing-contact → `20261027041411`; directory-source-rights → `20261101140105`. Formal ledger repairs remain 0; gate remains blocked until separately approved history reconciliation.
+- [x] Added structured partial-baseline classification for subscription, ERP, journal, directory and generic payments; RC451 forward repair remains a separate classification.
+- [x] No ledger rewrite, SQL replay or Production mutation performed.

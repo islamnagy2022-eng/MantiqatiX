@@ -30,3 +30,14 @@ A read-only SQL comparison of `supabase_migrations.schema_migrations.statements[
 ## Side effects
 
 Read-only GitHub source/tree inspection and read-only Supabase catalog/ledger SELECTs only. **No production write, migration, function deployment, Auth/RLS/GRANT change, financial operation, or business-data mutation occurred.**
+
+
+## Addendum — third exact source alias confirmed on 2026-11-24
+
+The document above records the two aliases known on 2026-11-06. PASS 2171–2180 and a fresh direct read-only check on 2026-11-24 confirm a third alias:
+
+| Source version/file | Existing Production ledger version | Evidence | Ledger repair |
+|---|---|---|---|
+| `20261101150000` / `supabase/migrations/20261101150000_directory_source_permission_evidence.sql` | `20261101140105` / `directory_source_permission_evidence` | Source blob SHA `3f2e0a480d7234171c3ea5359a21d3451b92d150`; live row contains one 3,558-byte statement; exact byte-for-byte match = TRUE | NOT APPLIED |
+
+**Current total:** 3/3 source aliases have exact source/effect evidence. Formal migration-ledger repair remains 0/3; `resolved_aliases=0` retains its formal-repair meaning. Do not replay any of the three aliases or synthesize ledger rows. The controlled migration-history repair process remains a separately approved Production write requiring current backup/restore evidence, chronological rehearsal, rollback plan and explicit release approval.
