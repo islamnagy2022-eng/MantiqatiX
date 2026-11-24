@@ -5839,5 +5839,74 @@
     },
     "production_mutation": "NONE",
     "limitation": "The 81-version focused physical-effect report is a historical pre-RC925 snapshot, not the current 82-version crosswalk. The sample is not exhaustive. No Production migration, RLS, GRANT, Auth, Storage, Edge, finance or business-data mutation occurred."
+  },
+  "physical_presence_refresh_20261124_current": {
+    "status": "READ_ONLY_REFRESHED",
+    "checked_at": "2026-11-24",
+    "source": "Existing required_release_object_presence_check.observed (76 registered contracts)",
+    "method": "Direct read-only PostgreSQL catalog queries over pg_class/to_regclass, pg_attribute, pg_proc/to_regprocedure and pg_trigger. No application rows or customer data selected.",
+    "total_contracts": 76,
+    "physical_presence": {
+      "present": 35,
+      "absent": 41
+    },
+    "by_type": {
+      "tables": {
+        "checked": 7,
+        "present": 5,
+        "absent": 2
+      },
+      "indexes": {
+        "checked": 13,
+        "present": 6,
+        "absent": 7
+      },
+      "columns": {
+        "checked": 12,
+        "present": 2,
+        "absent": 10
+      },
+      "function_entries": {
+        "checked": 41,
+        "present": 22,
+        "absent": 19
+      },
+      "triggers": {
+        "checked": 3,
+        "present": 0,
+        "absent": 3
+      }
+    },
+    "limitations": [
+      "This is the existing 76-object curated register, not a complete object inventory for all 82 required source migrations.",
+      "Function entries include both family-name and exact-signature checks; name-only presence does not prove overload, body or tenant-scope parity.",
+      "Physical presence is not semantic PASS; owner, security mode, search_path, effective EXECUTE ACL, RLS/FORCE RLS, constraints and runtime behavior require separate verification."
+    ],
+    "function_contract_readback": {
+      "matched_entries": 22,
+      "security_definer": 21,
+      "security_invoker": 1,
+      "empty_search_path": 13,
+      "non_empty_search_path": 9,
+      "anon_execute": 0,
+      "authenticated_execute": 19,
+      "service_role_execute": 2
+    },
+    "known_present_but_contract_blocked": [
+      "private.platform_admins — RLS enabled, FORCE RLS disabled",
+      "public.is_platform_admin() — SECURITY INVOKER, search_path=public, membership-derived",
+      "public.mnty_can_platform_admin() — SECURITY DEFINER, search_path=public, pg_temp; legacy unscoped helper behavior",
+      "public.process_verified_digital_page_payment_backend(...) — SECURITY DEFINER, search_path=public, pg_temp",
+      "public.process_verified_provider_payment(...) — SECURITY DEFINER, search_path=public",
+      "public.update_purchase_order_status_backend(varchar,varchar) — search_path=public; authenticated/service_role EXECUTE absent"
+    ],
+    "production_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "required_source_versions": 82,
+      "exact_required_version_matches": 0
+    },
+    "production_mutation": "NONE",
+    "report": "docs/audits/PASS_2201_2210_PHYSICAL_OBJECT_RECHECK_20261124.md"
   }
 }
