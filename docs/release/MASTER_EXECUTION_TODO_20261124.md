@@ -144,7 +144,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 ## 2026-11-24 — P0.1/P0.2 read-only live reconciliation checkpoint
 - [x] P0.1 helper, registry, policy blast-radius, helper-caller and ACL reconciliation complete. Live remains on membership-derived helpers; registry FORCE RLS is false, so source repair is not deployed.
 - [x] P0.2 RC479/RC488–RC495 source-to-live policy/ACL/Storage reconciliation complete. RC479 confirmed-user SELECT guard is absent and raw anon SELECT remains; RC488 three Storage restrictive write guards are absent; RC489 15 finance restrictive read guards are 0/15; RC490 medical restrictive guard absent (and authenticated table SELECT is not granted); RC491 support guard absent; RC492 four InDrive guards absent; RC493 three CRM/notification guards absent; RC494 settlement RPC still has legacy search_path and is not registry scope hardened; RC495 branding Storage policies remain tenant-SUPER_ADMIN based and old filename pattern.
-- [ ] Run exact-head PostgreSQL 17/JWT suites for raw anon, anonymous Auth, missing is_anonymous claim, confirmed user, owner/provider and platform root; current feature-branch forward replay run 45407602805 and module validation run 45407602698 must complete before recording test PASS.
+- [x] Exact-head PostgreSQL/JWT suites passed on PR #1057 head `2aa19b187024c47244b19db1131cfb867ba3f70b`: RC464/RC479 run 45413186145, PG17 parity run 45413185910, full forward replay run 45413186193, module validation run 45413186141, RC493 run 45413186167 and platform-admin scope run 45413187718. All required jobs succeeded; these are disposable/source tests only.
 - [ ] Production remains read-only. Apply neither individual policy fixes nor Storage policy updates before encrypted backup/restore and the ordered RC464/RC471/RC479/RC484/RC485/RC488–RC495 dependency bundle is reconciled and approved.
 
 
@@ -169,7 +169,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Retrieved deployed Edge source: directory-listings v18, ACTIVE, verify_jwt=false, one file only, SHA-256 bb65d74325f8bdf08f060f7ae2517bb30901630635d1de4f35523d7cef6afe48; GET empty with directoryDisabled=true, POST 503. It does not return listing/contact rows.
 - [x] Corrected the release manifest and validator from stale v16 live metadata to the current v18 fail-closed evidence.
 - [x] Verified current source contract: non-doctor types use the explicit allowlist (business, clinic, pharmacy, medical_center, hospital, laboratory, health_provider); doctor republication uses the separate evidence registry, and all contact disclosure still requires the matching RC473 scope.
-- [ ] Complete exact-head RC472/RC473/source-contract CI, owner consent workflow tests, then coordinated backup-backed DB + Edge release and deployed-origin tests. Production remains read-only.
+- [x] RC472 claim review atomicity/concurrency workflow passed on source head `2aa19b187024c47244b19db1131cfb867ba3f70b` (run 45413186008). RC473 contact-consent PostgreSQL integration, source contract, Edge type checks and catalog frontend lint/build passed on exact audit branch head `f37f21b6d11733a83d954d02029b4b775476b62b` (run 45447555248). Coordinated backup-backed DB + Edge release and deployed-origin tests remain pending; Production remains read-only.
 
 
 ## 2026-11-24 — Catalog pilot Pages deployment verified
@@ -178,3 +178,9 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Deployed-origin browser E2E passed: catalog/search pagination, marketing button at 390px/1440px, admin and employee role views, direct route refresh, QR/permanent links, GPS consent/manual fallback, storefronts, and axe checks with no critical/serious violations.
 - [x] Deployment validation passed Google OAuth handshake, public catalog/Qadam storefront smoke, CORS, public sponsored ads contract, legacy directory-disabled guard and production catalog scope checks.
 - [ ] Full platform remains BLOCKED / NOT CERTIFIED. No Supabase migration, Auth/RLS/GRANT, Storage, Edge Function, payment, webhook, settlement or partner-finance release was included in this Pages deployment.
+
+
+## 2026-11-24 — PR #1057 P0.1/P0.2 exact-head verification
+- [x] PR #1057 merged as `016a8952513ac860b9248c6b561e6cf9216c3f2e`; it contains read-only live audit evidence and disposable tests only, not Production security changes.
+- [x] Exact-head run `2aa19b187024c47244b19db1131cfb867ba3f70b` passed RC464 platform-admin registry tests, PG17 parity, full forward migration replay, RC479/RC493/module suites and related isolation workflows. Live authorization/Storage policies remain unchanged and unrepaired.
+- [x] Inactive tenant SUPER_ADMIN negative case is now covered against the shared platform helper and the four global MantiGO helper callers in the passing exact-head platform-admin suite.
