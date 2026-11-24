@@ -130,13 +130,21 @@ export function resolveRouteSeoMetadata(input: ResolveSeoInput): RouteSeoMetadat
     };
   }
 
-  const title = input.view === 'contact_us'
-    ? 'تواصل معنا | MantiqatiX'
-    : input.view === 'site_map'
-      ? 'خريطة الموقع | MantiqatiX'
-      : input.view === 'marketplace_home'
-        ? 'MantiqatiX | اكتشف الأنشطة والخدمات والمنتجات'
-        : 'دليل الأنشطة والكتالوجات في مصر | MantiqatiX';
+  if (input.view === 'contact_us' || input.view === 'site_map') {
+    const canonical = new URL(rootUrl);
+    canonical.searchParams.set('view', input.view);
+    return {
+      title: input.view === 'contact_us' ? 'تواصل معنا | MantiqatiX' : 'خريطة الموقع | MantiqatiX',
+      description: FALLBACK_DESCRIPTION,
+      robots: 'index,follow',
+      canonicalUrl: canonical.toString(),
+      openGraphType: 'website',
+    };
+  }
+
+  const title = input.view === 'marketplace_home'
+    ? 'MantiqatiX | اكتشف الأنشطة والخدمات والمنتجات'
+    : 'دليل الأنشطة والكتالوجات في مصر | MantiqatiX';
 
   return {
     title,
