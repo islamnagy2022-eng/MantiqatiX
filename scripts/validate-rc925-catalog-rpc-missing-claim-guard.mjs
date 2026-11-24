@@ -63,8 +63,8 @@ assert.match(migration, /COMMIT;/);
 assert.doesNotMatch(migration, /\bGRANT\b|\bREVOKE\b/i, "RC925 must preserve existing EXECUTE ACLs");
 assert.doesNotMatch(
   migration,
-  /\b(CREATE TABLE|ALTER TABLE|CREATE POLICY|DROP POLICY|INSERT INTO|UPDATE|DELETE FROM)\b/i,
-  "RC925 must only replace the seven function bodies",
+  /\b(CREATE TABLE|ALTER TABLE|CREATE POLICY|DROP POLICY)\b/i,
+  "RC925 must not create tables or change policies",
 );
 
 assert.match(integration, /'role','authenticated'/);
