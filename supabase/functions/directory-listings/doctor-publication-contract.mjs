@@ -8,8 +8,18 @@ import { isCurrentDoctorRepublicationEvidence } from "./doctor-import-contract.m
 export function isDoctorPublicListingAllowed(listing, evidenceRows, now = new Date()) {
   if (!listing || typeof listing !== "object" || Array.isArray(listing)) return false;
   const listingType = String(listing.listing_type ?? "").trim().toLowerCase();
-  if (listingType !== "doctor") return true;
-  if (!Array.isArray(evidenceRows) || evidenceRows.length === 0) return false;
+  const separatelyGovernedNonDoctorTypes = new Set([
+    "business", "clinic", "pharmacy", "medical_center",
+    "hospital", "laboratory", "health_provider",
+  ]);
+  if (listingType === "doctor") {
+    if (!Array.isArray(evidenceRows) || evidenceRows.length === 0) return false;
+  } else if (separatelyGovernedNonDoctorTypes.has(listingType)) {
+    return true;
+  } else {
+    // Unknown or missing listing types are not eligible for public discovery.
+    return false;
+  }
   return evidenceRows.some((evidence) =>
     isCurrentDoctorRepublicationEvidence(
       evidence,
