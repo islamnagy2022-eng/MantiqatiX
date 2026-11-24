@@ -257,3 +257,9 @@ Fixture cases cover two independent partner users, an unrelated authenticated us
 5. Add regression tests proving partner referral flow never invokes `order-create`, `payment-intent`, Paymob, wallet or settlement APIs.
 
 **Safety:** source and metadata inspection only; no API was invoked for real orders, no payments were initiated, and no Production object or row was changed.
+
+
+### Partner onboarding and document storage preflight
+- `provider_onboarding_requests` is an existing workflow, but its verified columns are provider/business name, user/tenant/organization IDs, provider kind, description, specialties, service areas, portfolio, profile image path, status and review metadata. It has no legal registration/tax identifiers, authorized signatory, contract terms or legal document evidence columns. Reuse it only for initial provider onboarding context; add a separate legal partner profile linked to the canonical business.
+- Production Storage buckets observed: `mantiqatix-media` is private but limited to JPEG/PNG/WebP and 5 MB; `mantiqatix-profile-media` is public and allows SVG. Neither is appropriate for legal contracts, commercial-register extracts, tax cards or bank documents. Do not place legal evidence in the public profile bucket or broaden public access. Phase 1 needs a dedicated private legal-document bucket with PDF/image allowlist, strict per-business object path authorization, short-lived signed reads, checksum/size validation and audit events.
+- Current `businesses` table has canonical `id, tenant_id, organization_id, name, code, status, settings`; no first-class legal company identity columns. Keep sensitive legal data out of public `settings` JSON and create a dedicated business-scoped legal profile table with RLS/FORCE RLS and trusted server-side access.
