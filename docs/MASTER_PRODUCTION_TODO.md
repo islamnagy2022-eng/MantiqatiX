@@ -1,3 +1,17 @@
+## 2026-11-24 — Post-merge checkpoint — doctor source-rights gate and governance
+
+- [x] Merged PR #1023 (`5ef35e5f9b0d90e05cf3e76558f614c63e194b8a`): public doctor slug, legacy list and keyset GET routes now require current approved exact-source evidence with doctor-profile + commercial scopes; unknown listing types fail closed; cursor scan is bounded and preserves delivered-row continuation.
+- [x] Exact-head PR CI for #1023 passed: Deno/type + behavior contract, doctor source-rights validator, directory contact consent, backend-only boundaries, RC425 Paymob atomicity, MantiGO privacy, module/Platform Admin/Legal PostgreSQL tests, primary catalog build and browser E2E. Pages PR deploy was correctly skipped.
+- [x] Read-only Production recheck after merge: directory-listings remains ACTIVE v18 with fail-closed empty GET / 503 POST; source evidence registry is 0 rows; 568 doctor rows remain published without source-evidence references. No Edge deploy, migration, data or feature-flag mutation.
+- [x] Merged PR #1021 (`be7989b0587d96d5418c9446042c60dcd4e32158`): master source map and Pass 2041–2050 audit are part of main.
+- [x] Main exact-head forward replay of the 79-version migration chain passed in disposable PostgreSQL/Supabase CI (run `45373530649`); RC921/RC922 behavior/concurrency and associated security integration tests passed. This is not a Production restore.
+- [ ] Continue P0: operator-owned encrypted DB + Storage backup, Auth/Vault recovery coverage, independent PG17 restore/rollback and measured RPO/RTO.
+- [ ] Continue P0: RC464/RC471/RC484 registry-backed Platform Admin rollout after backup gates; live helper still tenant-role-derived and 57 policy consumers remain.
+- [ ] Continue P0: RC472/RC473 contact-consent registry, source-rights evidence for existing records and coordinated directory-listings Edge release. Keep the national directory disabled.
+- [ ] Latest Pages main run `45373530610`: public-only validation passed; full validate was still building V6 Preview at checkpoint. Re-read exact run before claiming this newest commit deployed.
+- Overall: **Catalog Pilot deployed earlier; FULL PLATFORM BLOCKED / NOT CERTIFIED**.
+
+---
 ## 2026-11-24 — Source governance — master directive and canonical map
 
 - [x] Preserved the exact uploaded owner instruction in `docs/MASTER_SOURCE_OF_TRUTH.md`; verified it was read from the exact uploaded file before committing.
