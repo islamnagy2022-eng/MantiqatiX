@@ -24,4 +24,19 @@ assert.ok(manifest.icons.some((icon) => icon.src === '/MantiqatiX/icons/mantiqat
 assert.ok(manifest.icons.every((icon) => !/business|merchant|currentBusiness/i.test(icon.src)),
   'business context must never replace the installed application icon');
 
+const serviceWorker = fs.readFileSync('apps/catalog-frontend/public/sw.js', 'utf8');
+assert.match(serviceWorker, /const CACHE_NAME = 'mantiqatix-primary-catalog-shell-v\\d+';/,
+  'offline cache must be versioned in the catalog-only namespace');
+for (const asset of [
+  '/MantiqatiX/icons/mantiqatix-approved.svg',
+  '/MantiqatiX/brand/mantiqatix-approved-logo.jpg',
+  '/MantiqatiX/icons/mantiqatix-192.png',
+  '/MantiqatiX/icons/mantiqatix-512.png',
+  '/MantiqatiX/icons/mantiqatix-red-gold-app-icon.jpg',
+]) {
+  assert.ok(serviceWorker.includes(asset), `offline install shell must cache approved brand asset: ${asset}`);
+}
+assert.ok(!serviceWorker.includes('/MantiqatiX/icons/mantiqatix.svg'),
+  'offline shell must not retain the retired generic app icon');
+
 console.log('NAVBAR_BUSINESS_LOGO_PLATFORM_INSTALL_ICON_SEPARATION=PASS');
