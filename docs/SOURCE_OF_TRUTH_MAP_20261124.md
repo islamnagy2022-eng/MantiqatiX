@@ -6,7 +6,7 @@
 
 ## Authority order
 1. **Operating rules:** `docs/MASTER_SOURCE_OF_TRUTH.md` — exact owner-supplied instruction, controlling development method, priorities and release boundaries.
-2. **Application source:** GitHub `main`; at this checkpoint `e86fa555488cf95015d67654d69c6a0f0af8ad2e`.
+2. **Application source:** GitHub `main`; at this checkpoint `be7989b0587d96d5418c9446042c60dcd4e32158`.
 3. **Production identity, authorization and business data:** the connected `MANTIQATIX FINAL` Supabase project. The paused `MantiqatiX-DEMO` project is not production and must never be merged into the production data path.
 4. **Database release state:** live `supabase_migrations.schema_migrations` plus exact source migrations and physical schema/ACL/RLS reconciliation. A missing migration version is not by itself proof that all physical effects are absent.
 5. **Runtime Edge state:** the deployed Supabase Edge Function bundle/version and settings, compared with the exact current-main source and its schema dependencies. Main source alone does not prove deployment.
@@ -34,7 +34,10 @@
 - Platform Admin: live `is_platform_admin()` still derives global authority from active tenant ADMIN/SUPER_ADMIN roles (57 policy references); live `mnty_can_platform_admin()` still delegates to a null-scope tenant helper (5 policy references). Registry-backed forward migrations are source-only.
 - Directory: 965 records (869 PUBLISHED / 87 DRAFT / 9 HIDDEN); zero source-rights evidence rows and no contact-consent table. Deployed `directory-listings` v18 is intentionally fail-closed.
 - R7 archive forensic source review: [PASS 1460–1469](./audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md) and [R7 archive security revalidation](./audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md). The R7 archive is the same SHA-256 listed above; known source-level findings include client-controlled role/session state, local JSON treated as authoritative, browser-client service-role key fallback reference, weak/default session and Paymob secrets, and unauthenticated state/token/finance route patterns. These are archive source findings, not proof of a live production compromise.
-- Production release: **BLOCKED / NOT CERTIFIED** until encrypted database + Storage exports, Auth/Vault coverage/recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO, exact 79-version/physical-object reconciliation, coordinated DB/Edge parity and deployed-origin adversarial tests pass.
+- Doctor publication source-rights gate is now in current main and covered by exact-head CI; it does not qualify existing records by itself. Live source-evidence registry remains empty and directory-listings remains deployed v18 fail-closed.
+- Latest main push be7989b has a forward 79-version isolated replay SUCCESS (45373530649); RC921/RC922 behavior/concurrency and module security integration suites also passed. This proves disposable replay only, not Production migrations.
+- Latest Pages main run 45373530610 had completed public-only validation but its broader validate job was still building/testing V6 Preview at checkpoint; do not mark that newest run deployed. A previous scoped Catalog Pilot Pages run 45372125371 completed deployed-origin checks successfully.
+- Production release: **BLOCKED / NOT CERTIFIED** until encrypted database + Storage exports, Auth/Vault coverage/recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO, exact 79-version/physical-object reconciliation, coordinated DB/Edge parity, source-rights/contact-consent approval and deployed-origin adversarial tests pass.
 
 ## Workflow rule
 Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT TASK`. Start from the first current incomplete P0/P1 item. Never infer release completion from archive status labels, local UI, empty tables, source-only fixes, historical CI or unverified deployment claims. Keep production read-only until the explicit backup, replay, authorization, payment and release gates are satisfied.
