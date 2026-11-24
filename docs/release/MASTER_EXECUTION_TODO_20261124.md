@@ -261,3 +261,12 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] RC484 `private.platform_admins` FORCE RLS remains false; `public.is_platform_admin()` is still SECURITY INVOKER/search_path=public and membership-derived.
 - [x] Evidence: `docs/audits/PASS_2261_2270_RC479_RC484_PUBLIC_LEGAL_ROOT_RECHECK_20261124.md`.
 - [ ] Treat provider-profile raw reads, digital-page column exposure, Legal CMS and global root as release blockers.
+
+
+## 2026-11-24 — RC485–RC496 catalog, Auth-session, Storage, finance and MantiGO bid state recheck
+- [x] RC485 seven catalog RPCs remain old SECURITY DEFINER/search_path=public bodies and do not call registry-backed `is_platform_admin()`. RC486 price version unique index is absent and live allocator has no advisory lock.
+- [x] RC487 first-user SMM bootstrap SECURITY DEFINER function and auth.users trigger remain live; function inserts the first Auth user into `smm_admins`. RC488's three restrictive Storage anonymous-Auth write guards are absent.
+- [x] RC489 all 15 financial tables have RLS/FORCE RLS, but all 15 confirmed-auth restrictive read policies are absent. RC490 medical and RC491 support guards are absent despite forced RLS. RC492 InDrive and RC493 CRM/project/notification guard policies absent.
+- [x] RC494 settlement writer remains tenant-membership-derived rather than registry-backed explicit root/business scope. RC495 Storage brand policies remain membership-SUPER_ADMIN-based with legacy filename predicates. RC496 unique accepted-bid index absent and selected OFFERED status validation missing; ride row lock and legacy-RPC revocations exist.
+- [x] Evidence: `docs/audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md`.
+- [ ] Keep SMM admin, global catalog admin, Storage writes, private reads, settlement and MantiGO acceptance blocked until exact source contracts and adversarial tests pass.
