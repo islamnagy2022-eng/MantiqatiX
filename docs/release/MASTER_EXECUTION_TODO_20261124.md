@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
 **Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
-**Base:** `main @ 00a8d369ccc8d5b1fb6ef29db87178c65ebddd27`  
+**Base:** `main @ c802c01c639c9d64919c2cb90c64815843cac089`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -62,6 +62,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Never blindly replay the release chain on Production.
 
 ### P1.2 Edge parity
+- [x] Fresh read-only Edge↔RPC↔migration contract inventory (2026-11-24): verified 17 required source migration IDs absent, exact RPC signatures/ACLs, missing subscription/journal/ERP/settlement schema contracts, and current-main vs deployed Paymob webhook binding checks. This identifies real deploy blockers: the new subscription claim RPCs and ERP line-receive RPC are absent; journal service_role EXECUTE is false and five journal columns are absent; RC475 processors are incomplete; current deployed webhook misses stored provider-order equality checks. Evidence: `docs/audits/PASS_2381_2390_EDGE_RPC_PRODUCTION_DEPENDENCY_RECHECK_20261124.md` and `docs/release/EDGE_RPC_PRODUCTION_DEPENDENCY_MATRIX_20261124.md`. No Production mutation.
 - [x] Fresh live Edge runtime comparison (2026-11-24): nine launch-critical entrypoints differ from current `main` (`payment-intent`, `paymob-webhook`, `digital-page-payment-intent`, `subscription-payment-intent`, `settlement-financial-atomic`, `financial-journal`, `order-create`, `catalog-admin`, `erp-purchase-receive`); `public-catalog` and `public-catalog-directory` entrypoints match exactly. Additional drift: `catalog-platform-admin`, `mnty-push-dispatch`, `health`; `directory-listings` v18 remains intentionally fail-closed. Evidence: `docs/audits/PASS_2371_2380_EDGE_RUNTIME_SOURCE_PARITY_20261124.md`. No Edge deployment performed.
 - [x] Completed a read-only entrypoint comparison for 11 launch-relevant Edge Functions; 9 critical entrypoints differ from current main and 2 public-catalog entrypoints match. Audit: `docs/audits/PASS_2051_2060_EDGE_SOURCE_PARITY_20261124.md`.
 - [x] Read-only direct import graph and Production SQL/RPC/table/ACL snapshot completed for nine critical Edge functions; see `docs/audits/PASS_2061_2070_EDGE_DEPENDENCY_CLOSURE_20261124.md`.
