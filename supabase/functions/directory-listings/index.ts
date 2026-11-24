@@ -153,11 +153,16 @@ Deno.serve(async (req: Request) => {
       .is("revoked_at", null)
       .order("source_host", { ascending: true })
       .limit(1000);
-    if (doctorSourceEvidenceError || !doctorSourceEvidenceRows || doctorSourceEvidenceRows.length >= 1000) {
-      console.error("directory doctor source-rights registry unavailable or over inventory limit");
-      return out(origin, { error: "DIRECTORY_SOURCE_RIGHTS_UNAVAILABLE" }, 503);
+    const doctorSourceEvidenceReady = !doctorSourceEvidenceError &&
+      Array.isArray(doctorSourceEvidenceRows) && doctorSourceEvidenceRows.length < 1000;
+    // If the private rights registry is unavailable or its bounded inventory is
+    // incomplete, deny doctor rows by passing null evidence to the source-rights
+    // predicate. The explicit non-doctor allowlist remains available; a registry
+    // outage must not silently turn into a full business-directory outage.
+    if (!doctorSourceEvidenceReady) {
+      console.error("directory doctor source-rights registry unavailable or over inventory limit; doctor rows will fail closed");
     }
-    const doctorSourceEvidence = doctorSourceEvidenceRows;
+    const doctorSourceEvidence = doctorSourceEvidenceReady ? doctorSourceEvidenceRows : null;
     const url = new URL(req.url);
     const slug = clean(url.searchParams.get("slug"), 140);
     if (slug) {
