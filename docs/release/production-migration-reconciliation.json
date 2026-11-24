@@ -7072,11 +7072,11 @@
     "historical_crosswalk": {
       "source": "docs/release/REQUIRED_63_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261119.md",
       "required_source_rows": 63,
-      "fresh_live_rechecks": 41,
-      "remaining_historical_rows": 22,
-      "status": "41 earlier source migrations now have current PASS 2211–2250, PASS 2271–2280 and PASS 2281–2300 evidence; 22 remain historical until refreshed"
+      "fresh_live_rechecks": 63,
+      "remaining_historical_rows": 0,
+      "status": "All 63 earlier source rows now have live read-back evidence across PASS 2211–2330; no earlier source row remains historical. Together with 19 later migration checks, 82/82 source migrations have an explicit PASS/PARTIAL/BLOCKED disposition."
     },
-    "current_migrations_checked": 60,
+    "current_migrations_checked": 82,
     "policy_targets": {
       "expected": 30,
       "absent": 29,
@@ -7124,10 +7124,16 @@
       "docs/audits/PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md",
       "docs/audits/PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md",
       "docs/audits/PASS_2281_2290_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md",
-      "docs/audits/PASS_2291_2300_RC446_RC456_RC463_RC525_LIVE_RECHECK_20261124.md"
+      "docs/audits/PASS_2291_2300_RC446_RC456_RC463_RC525_LIVE_RECHECK_20261124.md",
+      "docs/audits/PASS_2301_2310_RC464_RC470_LIVE_EFFECT_RECHECK_20261124.md",
+      "docs/audits/PASS_2311_2320_RC471_RC478_LIVE_EFFECT_RECHECK_20261124.md",
+      "docs/audits/PASS_2321_2330_QADAM_RC479_RC483_LIVE_EFFECT_RECHECK_20261124.md"
     ],
     "rc113_rc117_report": "docs/audits/PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md",
     "rc102_rc106_report": "docs/audits/PASS_2281_2290_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md",
-    "rc446_rc456_rc463_rc525_report": "docs/audits/PASS_2291_2300_RC446_RC456_RC463_RC525_LIVE_RECHECK_20261124.md"
+    "rc446_rc456_rc463_rc525_report": "docs/audits/PASS_2291_2300_RC446_RC456_RC463_RC525_LIVE_RECHECK_20261124.md",
+    "rc464_rc470_report": "docs/audits/PASS_2301_2310_RC464_RC470_LIVE_EFFECT_RECHECK_20261124.md",
+    "rc471_rc478_report": "docs/audits/PASS_2311_2320_RC471_RC478_LIVE_EFFECT_RECHECK_20261124.md",
+    "rc479_rc483_qadam_report": "docs/audits/PASS_2321_2330_QADAM_RC479_RC483_LIVE_EFFECT_RECHECK_20261124.md"
   }
 }
