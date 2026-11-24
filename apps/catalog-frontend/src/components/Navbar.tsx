@@ -39,8 +39,7 @@ export const Navbar: React.FC = () => {
     requestCatalogViaAdminWhatsApp,
   } = useApp();
 
-  const contextLogoUrl = currentBusiness?.logoUrl?.trim()
-    || `${import.meta.env.BASE_URL}brand/mantiqatix-approved-logo.jpg`;
+  const contextLogoUrl = `${import.meta.env.BASE_URL}brand/mantiqatix-approved-logo.jpg`;
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const [marketingOpening, setMarketingOpening] = React.useState(false);
   const catalogRequestUrl = requestCatalogViaAdminWhatsApp(currentBusiness);
@@ -186,7 +185,7 @@ export const Navbar: React.FC = () => {
             >
               <img
                 src={contextLogoUrl}
-                alt={currentBusiness?.name ? `شعار ${currentBusiness.name}` : 'شعار منطقتي X'}
+                alt="شعار منطقتي X"
                 width={48}
                 height={48}
                 className="h-12 w-12 shrink-0 rounded-full object-contain shadow-md ring-1 ring-amber-500/30 transition-transform group-hover:scale-105"
