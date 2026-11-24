@@ -4163,3 +4163,10 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - No production changes, edge deployment, public publication, financial operation or Pages deployment. Backup/restore/Vault/Auth/Storage coverage, independent PostgreSQL 17 restore/rollback and measured RPO/RTO remain unverified. Full platform BLOCKED / NOT CERTIFIED.
 - Full evidence: `docs/audits/PASS_2041_2050_LIVE_PRODUCTION_RECHECK_20261124.md`.
 - Next: operator backup/recovery evidence → isolated restore/RPO/RTO → exact 79-version and physical-object reconciliation → coordinated platform-admin/consent/Edge release → deployed-origin adversarial tests.
+
+
+## 2026-11-24 — Master source governance and public ad RPC re-review
+
+- Committed exact owner-supplied operating directive to `docs/MASTER_SOURCE_OF_TRUTH.md` and source authority matrix to `docs/SOURCE_OF_TRUTH_MAP_20261124.md` on the Pass 2041–2050 audit branch.
+- R7 ZIP SHA-256 was confirmed identical to the previous forensic artifact. Its local JSON authority, browser role/session, client service-role key fallback, weak secret defaults and unauthenticated token/state/finance route findings remain archive-only source risks; no R7 code was copied or executed.
+- Reviewed live `get_mnty_targeted_advertisements`: anonymous execution is intentional for public ad serving; empty search_path; explicitly schema-qualified tables; only seven public ad fields; ACTIVE/APPROVED/window filters; active geo areas; deduplication to best match; 1–50 limit. Existing RC257/RC335/RC381/RC451 evidence documents the same contract. No privilege change was performed.
