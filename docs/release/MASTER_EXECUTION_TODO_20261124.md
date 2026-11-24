@@ -308,3 +308,9 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] RC113/RC114 tables, indexes and forced-RLS/RPC-only layer present. RC115 role/people/audit/permission RPCs are empty-path and registry-backed; RC116 subscriber admin RPCs also present and registry-backed. End-to-end platform root remains dependent on fixing the separate legacy global helper.
 - [x] RC117 image columns, four helpers and three triggers all absent. `ux_user_memberships_user_business_branch_nullsafe` remains absent. Qadam Al-Saad seed is present ACTIVE with 15 catalog items.
 - [x] Evidence: `docs/audits/PASS_2291_2300_RC456_RC525_RC102_RC115_FOUNDATION_ORDER_RECHECK_20261124.md` and `docs/audits/PASS_2301_2310_RC116_RC117_MEMBERSHIP_INDEX_QADAM_RECHECK_20261124.md`.
+
+
+## 2026-11-24 — RC446/RC478 open-ride location disclosure confirmation
+- [x] Live `list_open_mantigo_rides_backend(uuid)` only binds p_user_id to auth.uid; no active/verified/available captain profile check, anonymous-session guard or vehicle-category filter. It returns pickup/destination fields to authenticated callers. RC446 and RC478 source contracts are not deployed.
+- [x] Evidence: `docs/audits/PASS_2311_RC446_RC478_OPEN_RIDE_LOCATION_RECHECK_20261124.md`.
+- [ ] Keep open-ride discovery disabled until the exact guarded function is deployed and tested.
