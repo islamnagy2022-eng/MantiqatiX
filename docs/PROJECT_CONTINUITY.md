@@ -3577,3 +3577,11 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 - Production read-only schema inspection found an existing agreements_participant_read RLS predicate defect: it compares agreement_participants.agreement_id to agreement_participants.id rather than agreements.id. Fix only through reviewed additive migration + regression tests; never edit Production directly.
 - No production schema/Auth/RLS/GRANT/Edge/payment/settlement/data writes were made for this feature. Current feature status: IN PROGRESS / NOT IMPLEMENTED / NOT VERIFIED.
 - Next task: implement isolated PostgreSQL 17 regression coverage and migration for agreement participant read scope, then Phase 1 partner legal profile, verification, documents and commercial agreement lifecycle. Continue this workstream whenever the user says “كمل”; do not restart or ask the user to restate it.
+
+
+## 2026-11-24 — MNTX-BP-001 RC924 source implementation
+- Continued from the first unfinished cross-session task and added migration `20261124140000_rc924_agreement_participant_read_scope.sql` plus isolated PostgreSQL 17 fixture/integration coverage, static validator and GitHub Actions workflow.
+- RC924 fixes the `agreements_participant_read` correlation to `ap.agreement_id = agreements.id`, preserving authenticated non-anonymous and protected platform-admin gates.
+- Source and tests are on `feat/business-partners-legal-compliance-20261124`; no Production schema/RLS/GRANT/data/payment/settlement change was made.
+- CI and forward migration replay are still pending verification. Do not mark this security repair complete until all checks pass.
+- Resume next by checking RC924 CI, then inspect partner catalog public seller projection and order/payment-intent paths before Phase 1 onboarding/contracts.
