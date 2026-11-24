@@ -4292,3 +4292,16 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] Live three RC923 catalog RPCs remain path public, without registry helper or anonymous claim guard; price lock/index absent; registry helper precondition not satisfied.
 - [x] Live Legal UUID and zero-argument helpers remain membership-derived; RC924 restrictive confirmed-auth policy absent and participant read policy uses `ap.agreement_id = ap.id`, not `agreements.id`.
 - [x] Evidence: `PASS_2281_2290_RC921_RC924_MEDICAL_CATALOG_LEGAL_RECHECK_20261124.md`; read-only only, no Production changes.
+
+
+## 2026-11-24 — RC456/RC525/RC102–RC115 foundation and order recheck
+- [x] SMM expected service_role grants are missing; RC525 product writes still use broad tenant ADMIN/SUPER_ADMIN; RC102 provider-service writes lack authenticated privileges.
+- [x] Live order-status function lacks branch_id matching; create-order idempotency replay is tenant+key only without customer/business/branch comparison; RC105/106 service-role identity branches absent.
+- [x] RC113/114 foundation tables/indexes exist with RLS/FORCE RLS and no direct table grants; RC115 admin/control-center RPCs are empty-path and registry-backed; dependencies on global root remain.
+- [x] Evidence: `PASS_2291_2300_RC456_RC525_RC102_RC115_FOUNDATION_ORDER_RECHECK_20261124.md`.
+
+## 2026-11-24 — RC116/RC117, membership idempotency and Qadam seed
+- [x] RC116 three business/subscriber admin RPCs present, empty-path and registry-backed.
+- [x] RC117 marketing_services image columns, default-image functions and triggers absent. Null-safe membership unique index absent.
+- [x] Qadam Al-Saad seed present ACTIVE with 15 catalog items. No row details queried.
+- [x] Evidence: `PASS_2301_2310_RC116_RC117_MEMBERSHIP_INDEX_QADAM_RECHECK_20261124.md`.
