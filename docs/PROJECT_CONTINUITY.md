@@ -1,3 +1,18 @@
+## 2026-11-24 — Current continuation — Pass 2041–2050 live Production recheck
+
+- Main has advanced to `e86fa555488cf95015d67654d69c6a0f0af8ad2e` (PR #1020). RC922 is already in main via `19c65e716ad440caa0ca314f04bc2d595acb55e2`; older branch-only wording below is historical.
+- Supabase Production `MANTIQATIX FINAL` (`moyhiluyhjsujhwlyeuu`) is ACTIVE_HEALTHY on PostgreSQL 17.6.1.155. DEMO was not used.
+- Fresh read-only comparison: 310 migration rows through `20261110150618`; exact current required chain is 79 identifiers, of which 0/79 are in the live ledger.
+- P0: live `is_platform_admin()` still trusts any ACTIVE tenant membership role ADMIN/SUPER_ADMIN; 57 policies reference it. Live `mnty_can_platform_admin()` remains SECURITY DEFINER with `search_path=public, pg_temp`, delegates to `mnty_can('admin',NULL,NULL,NULL)`, and is used by 5 policies. `private.platform_admins` exists (1 row), RLS enabled but FORCE RLS false; no direct anon/authenticated SELECT.
+- Directory: 965 rows (869 PUBLISHED / 87 DRAFT / 9 HIDDEN), but `directory_source_permission_evidence` has 0 rows and `directory_listing_contact_consents` is absent. Production `directory-listings` remains ACTIVE v18 fail-closed. PR #1020's sanitized GET/consent-gated POST code is source-only and must not be deployed/enabled before lawful source evidence and coordinated consent release.
+- Security Advisor: 9 RLS-no-policy INFO, 65 authenticated SECURITY DEFINER WARN, 1 anon SECURITY DEFINER WARN; Performance Advisor 28 multiple-permissive-policy WARN; Health Advisor no lints. No blanket ACL/policy repair.
+- Backup/restore, Vault/Auth/Storage coverage, independent PostgreSQL 17 restore/rollback and measured RPO/RTO remain NOT VERIFIED. Full platform remains BLOCKED / NOT CERTIFIED.
+- RC922 dedicated PostgreSQL 17 workflow `45278540531` was read back: generate-and-test job SUCCESS. It is still not applied to Production.
+- Audit: `docs/audits/PASS_2041_2050_LIVE_PRODUCTION_RECHECK_20261124.md`.
+- No Production mutation or public deployment was performed. Next order: operator backup artifacts → isolated restore/RPO/RTO → exact 79-version/physical-object reconciliation and full replay → coordinated security/consent schema + Edge release → deployed-origin adversarial checks.
+
+---
+
 ## 2026-11-23 — Current continuation — RC922 source and 79-version gate
 
 - RC922 file: `supabase/migrations/20261123221950_rc922_medical_appointment_tenant_wide_provider_scope.sql`, generated via pinned Supabase CLI v2.122.0 in CI and committed to branch `fix/rc922-medical-tenant-wide-provider-membership-20261123`.
