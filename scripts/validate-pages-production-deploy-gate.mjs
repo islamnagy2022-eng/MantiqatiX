@@ -72,6 +72,10 @@ assert.match(deployBlock, /if: always\(\).*needs\.validate\.result == 'success'/
   'Deploy must evaluate after dependencies finish and require full validation to succeed');
 assert.match(deployBlock, /name: mantiqatix-composed-pages-site[\s\S]*?path: \.\/site/,
   'Deploy must download and publish the composed site artifact');
+assert.match(deployBlock, /PAGES_ARTIFACT_PROPAGATION_SETTLE=PASS[\s\S]*?sleep 20/,
+  'Pages deploy must allow the uploaded artifact metadata to propagate before calling the deploy API');
+assert.match(deployBlock, /actions\/deploy-pages@v5\.0\.1/,
+  'Pages deploy must use the current Node 24 deploy action release');
 assert.ok(deployBlock.includes('/MantiqatiX/assets/'), 'Post-deploy verification must check legacy catalog root assets');
 assert.ok(deployBlock.includes('MANTIQATIX_LEGACY_PRIMARY_ROOT_DEPLOY=PASS'),
   'Post-deploy verification must confirm the legacy catalog is the public root');
