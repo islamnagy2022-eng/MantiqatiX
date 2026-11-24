@@ -5457,3 +5457,11 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Made RC924 refuse to run unless the UUID helper reads `private.platform_admins`, has SECURITY DEFINER + empty search_path, authenticated EXECUTE, anon EXECUTE=false, and no zero-argument overload.
 - [x] Changed the RC924 PG17 workflow to prove pre-RC482 rejection, then apply RC482 + integration followed by RC924 + integration.
 - [ ] Exact-head ordered PG17 suite and full chronological replay must pass. No Production policy change or deployment occurred.
+
+
+## 2026-11-24 — MNTX-BP-001 RC924 ordered security gate merged
+- [x] PR #1064 merged to main as `82cdebcdefc4a9c12d4e875548f1cf5f5dd3f896`; tested head `f5cc1da156f7a350fa1be800d926dac0ccde05cc`.
+- [x] Exact-head RC924 PostgreSQL 17 workflow passed (run 45458313302): legacy zero-argument overload rejection, membership-derived UUID helper rejection, RC482 registry helper + adversarial tests, then RC924 policy repair and participant/anonymous/missing-claim tests.
+- [x] Full forward migration replay passed from the captured Production schema checkpoint (run 45458313389); RC471/RC479/RC480/RC481/RC482/RC483, RC425, directory claim, migration collision/immutability/version and module tests passed on the same PR head.
+- [x] Pages workflow validation passed, but its deploy job was skipped for the PR event; no post-merge public-origin deployment has been independently confirmed.
+- [ ] Production is still read-only. Live migration ledger remains 310 rows through `20261110150618`; read-only query confirms RC482 `20261119020000` and RC924 `20261124140000` are absent. Live `private.legal_is_admin()` and `private.legal_is_admin(uuid)` still derive global Legal authority from active `user_memberships` roles. Do not claim the agreement security repair is live until the coordinated migration release is completed.
