@@ -3610,3 +3610,43 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 - RC472 claim atomicity workflow 45413186008 passed on that same source head, including claim conflict, rollback, uniqueness and concurrency behavior.
 - PR #1060 adds a CI path trigger so updates to `docs/audits/P0_3_DIRECTORY_CONSENT_LIVE_RECHECK_20261124.md` rerun the Directory Contact Consent suite. Exact branch head `f37f21b6d11733a83d954d02029b4b775476b62b` run 45447555248 passed: RC473 isolated PostgreSQL integration, consent/source contract, directory and related Edge type checks, settlement authorization tests and catalog frontend lint/build. A documentation update then triggered the same workflow again; its rerun is tracked before PR merge.
 - Production directory remains fail-closed: consent registry and RC472/RC473 are not deployed; deployed directory Edge remains v18 stub; no directory data/contact fields are published. No Production writes or deployments occurred. Full platform remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-24 — MNTX-BP-001 current-main continuation and RC924 hardening review
+- Preserved the partner legal-compliance workstream from PR #1056 on a fresh branch based on current main: `feat/mntx-bp001-rc924-hardening-20261124`. The original PR #1056 is stale/behind main and should be superseded after the current branch passes exact-head CI.
+- Rechecked the Production legal schema and Storage bucket inventory read-only. Canonical `businesses`/`user_memberships`, `agreements`/`agreement_participants`, Legal Center documents/versions/consents and provider onboarding fields are mapped. Only two buckets exist: private `mantiqatix-media` (JPEG/PNG/WebP, 5 MiB) and public `mantiqatix-profile-media` (JPEG/PNG/WebP/SVG, 5 MiB). There is no private legal-evidence bucket; neither current bucket is an approved legal-document solution.
+- Found a fail-open edge case in the initial RC924 policy: `COALESCE(is_anonymous,false)=false` allows a missing JWT claim. Corrected RC924 to require explicit `is_anonymous = false` and added a dedicated missing-claim denial case to the PostgreSQL 17 integration test and static validator.
+- Earlier RC924 run 45406678966 and full replay 45406678921 passed the previous migration/test version only. They do NOT validate the current missing-claim correction. Corrected exact-head runs are pending; do not mark RC924 complete until they pass.
+- Current branch includes the RC924 migration, fixture, adversarial integration, validator, workflow, partner implementation record and master TODO updates. No Production migration, RLS/Auth/GRANT, Storage, Edge, payment, settlement or data writes were made.
+- First unfinished task: verify corrected RC924 exact-head CI, then continue Phase 1 partner legal profile/private evidence/verification/publication gate/agreement signature lifecycle. Keep product money direct to partner and keep MNTX product proceeds out of platform payment/wallet/settlement.
+
+
+## 2026-11-24 — MNTX-BP-001 RC924 policy and Phase 1 data-model preflight
+- RC924 now includes an explicit RESTRICTIVE SELECT policy because the live `agreements_admin_write` policy is PERMISSIVE FOR ALL and otherwise also contributes to SELECT.
+- Current RC924 integration fixture models the post-RC482 registry-backed `private.legal_is_admin(uuid)` contract, helper ACL, and private platform-admin registry RLS/FORCE RLS. Adversarial tenant ADMIN/SUPER_ADMIN/LEGAL_ADMIN roles must not gain global agreement visibility or impersonate a registered platform administrator.
+- Initial expanded PostgreSQL 17 run 45449613298 failed only because the unrelated-user assertion executed after RESET ROLE as the database owner. The integration was corrected to re-enter authenticated role; current exact-head rerun must pass before RC924 acceptance.
+- Live schema preflight confirmed canonical `businesses` and `user_memberships` should be reused; provider_onboarding_requests is missing legal registration/tax/signatory/document fields; Legal Center document/version tables store published terms, not private company evidence.
+- Existing private media bucket excludes PDF, and profile-media is public. Phase 1 requires a dedicated private legal-evidence bucket with strict per-business paths and signed-read access.
+- No next-phase migration was created because local pinned Supabase CLI and PostgreSQL tooling are unavailable in this runtime. Follow the repo's pinned Supabase CLI migration workflow; no migration version should be invented.
+- Production remained read-only. No legal partner profile, documents, buckets, grants, RLS, Auth, Edge or financial rows were changed.
+
+
+## 2026-11-24 — MNTX-BP-001 RC924 exact-head test PASS
+- Corrected RC924 exact-head PostgreSQL 17 run 45450116751 passed: validator, migration application and all adversarial integration cases. The initial failure from run 45449613298 was fixed by re-entering the authenticated role after the tenant-role test block.
+- Full chronological replay run 45450116515 passed on the same head, restoring the Production schema checkpoint and applying 117 forward migrations in timestamp order. RC485/RC923, RC488–RC492, RC494/RC495 and tenant-isolation integrations passed.
+- PR #1061 remains Draft pending the dependent Module Professionalization Validation workflow 45450116780.
+- Next MNTX-BP-001 stage is Phase 1 business legal profile, private evidence storage, verification/review history and bilateral commercial contract lifecycle. Existing businesses/user_memberships and Legal Center terms tables are reused; no duplicate company identity is planned.
+- No Production DB, Auth, RLS, GRANT, Storage, Edge, payment, settlement or business row was changed.
+
+
+## 2026-11-24 — RC924 ordered RC482 dependency
+- Production still has the pre-RC482 `private.legal_is_admin(uuid)` membership-role implementation; RC482 is absent from the live migration ledger. No Production write was made.
+- RC924 now fails closed unless that helper is registry-backed, SECURITY DEFINER with empty search_path, authenticated EXECUTE and anon denied; it also rejects the old zero-argument overload.
+- The dedicated CI now checks the expected pre-RC482 rejection, then runs RC482 and its adversarial integration before RC924 and its agreement isolation integration.
+- Exact-head tests remain pending on the new branch; do not merge or deploy until both ordered suites and the full replay pass.
+
+
+## 2026-11-24 — MNTX-BP-001 branch replacement
+- PR #1061 closed without merge after its head branch was reset to current main. No application or database changes from that PR were merged.
+- The corrected ordered RC482 → RC924 implementation and tests are now on `feat/mntx-bp001-rc924-ordered-rc482-20261124`, based directly on current main `4c6b82e8fb4dd3264980887e3518064c28444e0c`.
+- Dedicated CI push filters now target the active branch; Production remains read-only.
