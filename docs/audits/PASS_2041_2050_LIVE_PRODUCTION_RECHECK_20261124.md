@@ -119,3 +119,16 @@ No connector operation in this pass created or verified these backup artifacts. 
 6. Keep directory public discovery gated until source-republication permissions are evidenced; keep Li2Lak Paymob/payment expansion, wallets, settlements, and accounting deferred until their independent server-side contracts pass.
 
 **Closeout:** documentation candidate only; no production change. **FULL PLATFORM: BLOCKED / NOT CERTIFIED.**
+
+## 11. Post-merge continuation — PR #1023 and PR #1021
+
+**Current main:** `be7989b0587d96d5418c9446042c60dcd4e32158`.
+
+- PR #1023 merged as `5ef35e5f9b0d90e05cf3e76558f614c63e194b8a`. The current-main public directory handler applies the doctor source-rights contract to slug/detail GET, legacy list GET and cursor-paginated GET. It requires a current approved exact source-host/source-name match, explicit doctor-profile and commercial republication scopes, valid dates and no revocation. Unknown/missing listing types fail closed. Claiming and contact consent do not substitute for source permission.
+- PR #1023 exact-head CI passed Deno/type checking, doctor publication/import/output contracts, contact-consent PostgreSQL/source checks, backend-only and MantiGO privacy suites, RC425 Paymob atomicity, module Platform Admin/Legal PostgreSQL suites, catalog build, employee RBAC PostgreSQL and dashboard browser E2E.
+- PR #1021 merged as `be7989b0587d96d5418c9446042c60dcd4e32158`; the master source authority map and this audit are in main.
+- Latest main forward migration replay run `45373530649` passed the exact 79-version chain on disposable PostgreSQL/Supabase. RC921/RC922 behavioral and concurrency suite passed. No Production migrations were applied by this CI.
+- Fresh read-only Production recheck after the merges: 310 migration rows through `20261110150618`; 0/79 exact required IDs in ledger; 568 PUBLISHED doctor listings; source permission registry 0 rows; contact-consent tables absent. Live directory-listings remains ACTIVE v18 and is intentionally fail-closed. No live schema/data/Edge/Auth/RLS/GRANT/feature-flag mutation occurred.
+- Platform Admin P0 remains: is_platform_admin() remains tenant-role-derived, mnty_can_platform_admin() delegates to tenant RBAC, registry FORCE RLS remains false, and 56 public + 1 storage policy still reference the old helper. Issue #867 remains open.
+- Current Pages run `45373530610` had public-only validation succeeded while full V6 Preview validation remained in progress at checkpoint. Earlier Catalog Pilot deployment `45372125371` completed its deployed-origin browser tests successfully. These are separate checkpoints.
+- Full Production remains **BLOCKED / NOT CERTIFIED** pending operator-controlled encrypted DB + Storage backup, Auth/Vault recovery, independent PostgreSQL 17 restore/rollback with measured RPO/RTO, physical schema/79-migration reconciliation, coordinated Platform Admin and directory consent/source-rights migrations + Edge parity, and deployed-origin adversarial tests.
