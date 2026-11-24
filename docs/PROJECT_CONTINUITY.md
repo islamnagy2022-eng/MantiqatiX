@@ -3567,3 +3567,14 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 - No paid Supabase branch was created. Keep Production read-only; use GitHub Actions/PostgreSQL fixtures for source and adversarial work. Defer paid branch/restore rehearsal to the final gate.
 - Audit: docs/audits/PASS_2061_2070_ANONYMOUS_AUTH_POLICY_MATRIX_20261124.md.
 - Full platform remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-24 — P0.1/P0.2 live authorization and anonymous Auth reconciliation
+- Added docs/audits/P0_ANONYMOUS_AUTH_STORAGE_LIVE_RECHECK_20261124.md with the read-only Production source-to-policy/ACL crosswalk.
+- Verified is_platform_admin() still trusts ACTIVE tenant ADMIN/SUPER_ADMIN membership and affects exactly 57 policies across 24 tables; mnty_can_platform_admin() still delegates to null-scope mnty_can('admin',NULL,NULL,NULL) and affects five policies plus four SECDEF callers. Registry RLS is enabled, FORCE RLS remains false.
+- RC479: marketing_provider_profiles still has anon SELECT + an ACTIVE-only {anon,authenticated} permissive policy; confirmed-auth restrictive guard is absent.
+- RC488: the three confirmed-auth restrictive Storage write guards are absent. Existing policies use mixed claim handling; mantiqatix-profile-media remains intentionally public and must never store private legal documents.
+- RC489: all 15 financial guard policies are absent; tables have RLS/FORCE RLS. Source was re-opened and confirmed to correctly use AS RESTRICTIVE; this is a deployment gap, not a source policy-type bug.
+- RC490: medical guard absent, but live authenticated SELECT grant is false; preserve this no-grant boundary. RC491 support guard absent; RC492 four InDrive guards absent; RC493 three CRM/notification SELECT guards absent.
+- RC494 settlement RPC remains SECDEF with search_path=pg_catalog, public and service_role-only EXECUTE; live helper/FORCE RLS requirements remain unsatisfied. RC495 branding Storage policies remain tenant role based and have old filename expression.
+- No Production mutation. Next: complete exact-head PG17/JWT workflows and then proceed only through backup-backed ordered release gates.
