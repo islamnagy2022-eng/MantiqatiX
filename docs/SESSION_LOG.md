@@ -4217,3 +4217,9 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] Rechecked 22 matched function entries: 21 SECURITY DEFINER / 1 SECURITY INVOKER; 13 empty and 9 non-empty search paths; anon EXECUTE 0, authenticated EXECUTE 19, service_role EXECUTE 2.
 - [x] Confirmed `private.platform_admins` FORCE RLS is false and the two live platform-admin helpers remain on legacy membership-derived contracts. Production ledger still contains 310 rows through `20261110150618`.
 - [ ] Complete the full 82-migration physical-effect/alias crosswalk. The 76-object sample is not exhaustive; no Production mutation is authorized.
+
+
+## 2026-11-24 — RC425–RC432 source-to-live payment and wallet contract recheck
+- [x] Read-only comparison against eight exact migration files: RC425 MantiGo provider-event table/RPC absent; RC426 five-argument finalizer absent while the two provider-order columns exist; RC427 active-payment index absent; RC428–RC430 processors absent; RC431 exact function exists but search_path is public, pg_temp; RC432 index/admin-credit RPC absent and existing debit/refund routines use search_path=public.
+- [x] Production migration ledger remains 310 rows through `20261110150618`; no Production migration, SQL write, ACL change, payment, wallet or business-data mutation occurred.
+- [ ] Continue RC434–RC439 physical-effect and exact contract reconciliation before any coordinated payment release.
