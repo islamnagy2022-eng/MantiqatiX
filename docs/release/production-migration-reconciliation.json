@@ -6536,6 +6536,20 @@
         "legacy_accept_auth_execute": false,
         "legacy_submit_auth_execute": false,
         "disposition": "PARTIAL_P0_STATE_INVARIANT"
+      },
+      "RC484": {
+        "table_present": true,
+        "rls_enabled": true,
+        "force_rls": false,
+        "anon_select": false,
+        "authenticated_select": false,
+        "public_helper_present": true,
+        "helper_security_definer": false,
+        "helper_search_path": "public",
+        "helper_owner": "postgres",
+        "helper_body": "queries active public.user_memberships ADMIN/SUPER_ADMIN roles; not private.platform_admins",
+        "registry_reference": false,
+        "disposition": "P0_GLOBAL_ROOT_BLOCKER"
       }
     },
     "production_ledger": {
@@ -6545,7 +6559,7 @@
       "exact_source_version_matches": 0
     },
     "production_mutation": "NONE",
-    "report": "docs/audits/PASS_2271_2280_RC485_RC496_CATALOG_AUTH_SETTLEMENT_MANTIGO_RECHECK_20261124.md"
+    "report": "docs/audits/PASS_2331_2340_RC484_RC496_PLATFORM_CATALOG_AUTH_STORAGE_FINANCE_RECHECK_20261124.md"
   },
   "rc921_rc925_live_recheck_20261124": {
     "status": "READ_ONLY_SOURCE_TO_LIVE_DIFF_CONFIRMED",
@@ -6624,6 +6638,6 @@
       "exact_required_version_matches": 0
     },
     "production_mutation": "NONE",
-    "report": "docs/audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md"
+    "report": "docs/audits/PASS_2341_2350_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md"
   }
 }
