@@ -54,6 +54,11 @@ check("integration rejects tenant OWNER, ADMIN and OPERATIONS_MANAGER",
 check("integration rejects platform membership without a private registry entry",
   integration.includes("MNTY-PLATFORM membership without private registry entry must be denied") &&
   integration.includes("MNTY-PLATFORM membership without registry"));
+check("inactive tenant SUPER_ADMIN with stale platform metadata is denied by the shared guard and all four global MantiGO RPCs",
+  integration.includes("inactive_tenant_super_admin uuid := '10000000-0000-4000-8000-000000000049'") &&
+  integration.includes("('inactive-tenant-super-admin',inactive_tenant_super_admin,'TENANT-F','SUPER_ADMIN','INACTIVE'") &&
+  integration.includes("inactive tenant SUPER_ADMIN must not gain platform authority") &&
+  integration.includes("assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000049','inactive tenant SUPER_ADMIN')"));
 check("integration permits a registry-only platform admin without tenant membership",
   integration.includes("private registry platform admin without tenant membership should pass") &&
   integration.includes("registry-only platform admin could not read MantiGO dashboard"));
