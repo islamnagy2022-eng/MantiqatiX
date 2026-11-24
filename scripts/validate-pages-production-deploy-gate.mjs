@@ -44,8 +44,8 @@ assert.match(validateBlock, /FULL_PLATFORM_GATE=BLOCKED; CATALOG_PILOT_GATE=PASS
   'A blocked full platform gate may only be non-fatal for the independently verified catalog pilot');
 assert.match(validateBlock, /if \[ "\$\{GATE\}" = "BLOCKED" \]/,
   'Only an explicit BLOCKED report may be non-fatal; unexpected verifier failures must stop release');
-assert.match(validateBlock, /Publish the catalog as the production root; preserve /legacy rollback and V6 preview/,
-  'Pages artifact must publish the reviewed legacy catalog at root and retain V6 preview');
+assert.ok(validateBlock.includes('Publish the catalog as the production root; preserve /legacy rollback and V6 preview'),
+  'Pages artifact must publish the canonical catalog at root, retain /legacy rollback, and preserve V6 preview');
 assert.match(validateBlock, /VITE_BASE_PATH=\/MantiqatiX\/ npm run build[\s\S]*?VITE_BASE_PATH=\/MantiqatiX\/legacy\/ npm run build/,
   'The catalog app must be built for the public root and retained rollback subpath');
 assert.match(validateBlock, /VITE_BASE_PATH=\/MantiqatiX\/ bun run build/,
