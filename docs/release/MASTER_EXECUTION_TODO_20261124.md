@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
 **Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
-**Base:** `main @ ed2f36ea61c0099619613c1d3e0bd4746a570bd4`  
+**Base:** `main @ d67bfc5e424ecd6fb59ec9dd111587ba49181133`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -243,3 +243,58 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] RC453 internal marketing campaign feature is absent from Production: both campaign tables, all four indexes, and five exact RPC signatures are absent. The source describes an internal workflow only, not an external Meta/TikTok/Google publishing integration.
 - [x] Evidence: `docs/audits/PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md`.
 - [ ] Keep CRM scope and campaign features gated until the ordered migration, RLS, RPC, UI and deployed-origin contracts are verified.
+
+
+## 2026-11-24 — RC463–RC478 platform, order, directory and payment recheck
+- [x] RC463 trigger functions remain attached and deny client EXECUTE, but `assign_default_owner_to_unowned_business()` still uses `search_path=public,auth`; the commission audit trigger function has empty path.
+- [x] RC464/RC471 canonical platform root not live: `mnty_can_platform_admin()` still calls `public.mnty_can('admin',null,null,null)` and uses `search_path=public, pg_temp`; global helper callers also retain non-empty paths.
+- [x] RC465/RC466 live order, history, business, branch, department, warehouse and inventory policies still use tenant-only predicates where exact parent business/branch scope is required.
+- [x] RC467 commission functions exist but canonical registry guard is missing; `preview_commission_backend` path remains public. RC468 claim/release paths remain public, pg_temp and finalizer absent. RC469 four shared callers retain non-empty paths.
+- [x] RC470 event table, six columns and unique event index exist, but live webhook path/body misses the three source-required postcondition guards. RC472 claim RPC/index absent; RC473 consent table absent.
+- [x] RC474 payment-intent body has no branch-scope predicate; RC475 three webhook processors absent and provider processor path remains public; RC476 path drift; RC477 full bid object serialization; RC478 lacks anonymous/verified/available captain gates.
+- [x] Evidence: `docs/audits/PASS_2251_2260_RC463_RC478_LIVE_SECURITY_RECHECK_20261124.md`.
+- [ ] Keep global-admin, order scope, directory consent, Paymob, digital-page payment and MantiGO contact/location disclosure blocked pending ordered repairs and tests.
+
+## 2026-11-24 — RC479–RC484 public data, Legal CMS and global root recheck
+- [x] RC479 anon SELECT remains true on `marketing_provider_profiles`; the restrictive confirmed-user policy is absent. RC480 anon SELECT still covers all 19 digital_pages columns, not the source allowlist of 10.
+- [x] RC481 sampled service_role Legal SELECT column privileges are absent. RC482 `private.legal_is_admin(uuid)` does not reference the platform registry and the zero-argument overload remains; `public.legal_assert_admin_backend(uuid)` is absent. RC483 both atomic Legal CMS RPCs are absent.
+- [x] RC484 `private.platform_admins` FORCE RLS remains false; `public.is_platform_admin()` is still SECURITY INVOKER/search_path=public and membership-derived.
+- [x] Evidence: `docs/audits/PASS_2261_2270_RC479_RC484_PUBLIC_LEGAL_ROOT_RECHECK_20261124.md`.
+- [ ] Treat provider-profile raw reads, digital-page column exposure, Legal CMS and global root as release blockers.
+
+
+## 2026-11-24 — RC485–RC496 catalog, Auth-session, Storage, finance and MantiGO bid state recheck
+- [x] RC485 seven catalog RPCs remain old SECURITY DEFINER/search_path=public bodies and do not call registry-backed `is_platform_admin()`. RC486 price version unique index is absent and live allocator has no advisory lock.
+- [x] RC487 first-user SMM bootstrap SECURITY DEFINER function and auth.users trigger remain live; function inserts the first Auth user into `smm_admins`. RC488's three restrictive Storage anonymous-Auth write guards are absent.
+- [x] RC489 all 15 financial tables have RLS/FORCE RLS, but all 15 confirmed-auth restrictive read policies are absent. RC490 medical and RC491 support guards are absent despite forced RLS. RC492 InDrive and RC493 CRM/project/notification guard policies absent.
+- [x] RC494 settlement writer remains tenant-membership-derived rather than registry-backed explicit root/business scope. RC495 Storage brand policies remain membership-SUPER_ADMIN-based with legacy filename predicates. RC496 unique accepted-bid index absent and selected OFFERED status validation missing; ride row lock and legacy-RPC revocations exist.
+- [x] Evidence: `docs/audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md`.
+- [ ] Keep SMM admin, global catalog admin, Storage writes, private reads, settlement and MantiGO acceptance blocked until exact source contracts and adversarial tests pass.
+
+
+## 2026-11-24 — RC485–RC496 catalog, SMM, anonymous Auth, settlement and MantiGO recheck
+- [x] RC485 seven catalog RPCs remain SECURITY DEFINER/search_path=public and none calls the registry-backed `is_platform_admin()` helper; live catalog price function retains SUPER_ADMIN membership metadata as platform override.
+- [x] RC486 version allocator still does `MAX(version)+1` with no advisory/row lock; unique item/branch/version index absent.
+- [x] RC487 critical: first-user SMM Auth trigger and function still active; when `smm_admins` is empty it inserts the new Auth user. API roles cannot read/write allowlist; expected service_role SELECT is also absent.
+- [x] RC488–RC493 restrictive confirmed-auth policies absent: Storage 0/3; financial tables 0/15 despite RLS+FORCE RLS and authenticated permissive read; medical/support both missing guards; InDrive 0/4; CRM/projects/notifications 0/3.
+- [x] RC494 settlement business_id column/index absent; live writer is service_role-only but uses tenant finance-role checks, no platform registry, and doesn't populate settlement_transactions.business_id.
+- [x] RC495 storage branding policies still rely on tenant SUPER_ADMIN membership; registry helper is legacy. RC496 has ride row lock, but no target-bid OFFERED check and no one-accepted-per-ride unique index; legacy client accept/submit RPCs are revoked.
+- [x] Evidence: `docs/audits/PASS_2271_2280_RC485_RC496_CATALOG_AUTH_SETTLEMENT_MANTIGO_RECHECK_20261124.md`.
+- [ ] Keep catalog price mutation, SMM admin enrollment, private read/write, settlement, storage branding and MantiGO bid acceptance gated until coordinated fixes and regression evidence pass.
+
+
+## 2026-11-24 — RC921–RC925 medical appointment, agreement scope and catalog identity recheck
+- [x] RC921/RC922 medical RPC is still the legacy body: it requires generic tenant membership, does not bind the actor to an assigned active provider profile, does not implement the full forward-only state matrix or independent patient cancellation, and remains on search_path=public, pg_temp.
+- [x] RC923/RC925 seven catalog RPCs exist but all remain SECURITY DEFINER/search_path=public, call no registry-backed is_platform_admin(); four retain legacy COALESCE anonymous checks, three have no claim guard, zero use the RC925 positive-false/missing-claim-deny check. Authenticated ACL stays true and anon false.
+- [x] RC924 agreement participant policy is wrong (`ap.agreement_id = ap.id`), its restrictive confirmed-auth policy is absent, and private.legal_is_admin remains membership-derived with zero-arg overload still present.
+- [x] CI exact-head PG17 and 82-version replay for RC925 is source evidence only; Production ledger remains 310 rows through `20261110150618`.
+- [x] Evidence: `docs/audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md`.
+- [ ] Do not mark RC921–RC925 applied until the coordinated release validates registry root, FORCE RLS, exact function bodies, ACLs and JWT cases in the deployed Production environment.
+
+
+## 2026-11-24 — RC921–RC924 medical, catalog and Legal agreement read recheck
+- [x] RC921/RC922 medical status RPC remains old SECURITY DEFINER/search_path=public, pg_temp body; row lock is present, but patient self-cancel is not membership-independent, transition matrix absent, and tenant-wide SERVICE_PROVIDER does not prove own active provider profile on the exact appointment business.
+- [x] RC923 three catalog RPCs remain pre-guard: path public, no registry helper/no `is_anonymous` guard; price allocator lock/index absent. Its registry-root precondition is currently unsatisfied.
+- [x] RC924 Legal helper UUID and zero-argument overload both remain; UUID helper is membership-backed, not registry-backed. Restrictive confirmed-auth policy absent; participant policy compares `ap.agreement_id = ap.id` instead of `agreements.id`.
+- [x] Evidence: `docs/audits/PASS_2281_2290_RC921_RC924_MEDICAL_CATALOG_LEGAL_RECHECK_20261124.md`.
+- [ ] Keep medical state transitions, catalog write surfaces and Legal agreement participant reads blocked until source contracts and tests pass.
