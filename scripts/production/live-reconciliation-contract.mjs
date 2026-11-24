@@ -52,6 +52,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261121030000", // RC496 — require OFFERED MantiGO bids and serialize per-ride acceptance
   "20261123010000", // RC921 — bind medical status changes to assigned provider and enforce forward-only transitions
   "20261123221950", // RC922 — allow tenant-wide SERVICE_PROVIDER only for its own active profile in exact appointment business
+  "20261124010000", // RC923 — reject Anonymous Auth in catalog write RPCs
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
