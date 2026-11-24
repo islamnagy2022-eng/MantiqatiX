@@ -13,7 +13,7 @@ on:
       - ".github/workflows/rc924-agreement-participant-read-scope.yml"
   push:
     branches:
-      - "feat/business-partners-legal-compliance-20261124"
+      - "feat/mntx-bp001-rc924-ordered-rc482-20261124"
     paths:
       - "supabase/migrations/20261124140000_rc924_agreement_participant_read_scope.sql"
       - "supabase/migrations/20261119020000_rc482_legal_platform_admin_registry_guard.sql"
