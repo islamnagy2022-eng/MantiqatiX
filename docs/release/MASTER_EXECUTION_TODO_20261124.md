@@ -110,7 +110,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - `private.platform_admins` has RLS enabled but FORCE RLS=false. The registry-backed forward migrations and seven-RPC RC485/RC923 contract are not applied to Production.
 - Of the seven direct catalog RPCs, four live definitions contain an anonymous-Auth guard and three (item upsert, price upsert, item-status update) do not. All seven deny direct `anon` EXECUTE but permit `authenticated` EXECUTE; all seven remain `search_path=public`.
 - Directory consent registry and source-permission evidence are absent; the directory endpoint remains fail-closed.
-- Supabase Auth leaked-password protection is disabled; 47 of 65 authenticated-callable SECURITY DEFINER functions still have non-empty search_path (public / public, pg_temp); these require targeted review, not blanket changes.
+- Supabase Auth leaked-password protection is disabled; 47 of 65 authenticated-callable SECURITY DEFINER functions still have non-empty search_path (30 public, 17 public, pg_temp); 0 are unset. Prioritize 17 public, pg_temp entries and the P0 mnty_can_platform_admin() helper; targeted review only, not blanket changes.
 - Some critical Edge Functions are behind current-main contracts.
 - Independent encrypted backup/restore, Auth/Vault coverage and measured RPO/RTO are not verified.
 - Li2Lak candidate has prior successful partial checks, but its latest source requires complete exact-head test evidence after rebasing; Paymob remains fail-closed.
