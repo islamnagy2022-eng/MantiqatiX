@@ -5697,5 +5697,84 @@
     "current_pr_rc924_postgres17_run": "45465701993",
     "exact_81_version_strict_gate_run": "45465702093",
     "pre_refresh_forward_replay_run": "45458313389"
+  },
+  "rc924_live_production_recheck_20261124": {
+    "status": "LIVE_DRIFT_CONFIRMED_NOT_APPLIED",
+    "checked_at": "2026-11-24T19:15:00Z",
+    "method": "Read-only SQL against supabase_migrations.schema_migrations, pg_catalog, pg_policies, pg_get_functiondef, and has_table_privilege; no application or legal-document rows queried.",
+    "production_ledger": {
+      "rows": 310,
+      "latest_version": "20261110150618",
+      "rc923_recorded": false,
+      "rc924_recorded": false
+    },
+    "agreements_table": {
+      "rls_enabled": true,
+      "force_rls": true,
+      "anon_select": false,
+      "authenticated_select": true
+    },
+    "agreements_policies": {
+      "participant_read_present": true,
+      "participant_read_status": "PRESENT_BUT_MISCORRELATED",
+      "participant_read_observed_correlation": "agreement_participants.agreement_id = agreement_participants.id",
+      "expected_correlation": "agreement_participants.agreement_id = agreements.id",
+      "confirmed_auth_restrictive_policy_present": false,
+      "other_restrictive_policies": [
+        {
+          "name": "mnt_non_anonymous_boundary",
+          "issue": "COALESCE(is_anonymous,false)=false permits missing JWT claim"
+        },
+        {
+          "name": "non_anonymous_authenticated_guard",
+          "issue": "COALESCE(is_anonymous,'false') <> 'true' permits missing JWT claim"
+        }
+      ]
+    },
+    "legal_helpers": {
+      "private_zero_argument_overload": {
+        "exists": true,
+        "security_definer": true,
+        "owner": "postgres",
+        "search_path": "",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "authority_source": "public.user_memberships ACTIVE SUPER_ADMIN/ADMIN/LEGAL_ADMIN"
+      },
+      "private_uuid_overload": {
+        "exists": true,
+        "has_default_null_argument": true,
+        "security_definer": true,
+        "owner": "postgres",
+        "search_path": "",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "authority_source": "public.user_memberships ACTIVE SUPER_ADMIN/ADMIN/LEGAL_ADMIN"
+      },
+      "public_uuid_overload": {
+        "exists": true,
+        "security_definer": true,
+        "owner": "postgres",
+        "search_path": "public",
+        "anon_execute": false,
+        "authenticated_execute": false,
+        "authority_source": "public.user_memberships ACTIVE SUPER_ADMIN/ADMIN/LEGAL_ADMIN"
+      }
+    },
+    "prerequisite": "RC482 must first install the registry-backed private.legal_is_admin(uuid) contract and remove the private zero-argument overload. RC924 alone must fail closed.",
+    "source_expectation": {
+      "migration": "supabase/migrations/20261124140000_rc924_agreement_participant_read_scope.sql",
+      "parent_correlation": "ap.agreement_id = agreements.id",
+      "confirmed_auth_policy": "(SELECT auth.jwt()) ->> 'is_anonymous' IS FALSE",
+      "no_application_row_write": true
+    },
+    "verification": {
+      "pr1066_merge_commit": "e5cb0c7644d63d3a1f12bd73a1f3258457ef4b53",
+      "rc924_postgres17_run": "45466369028",
+      "strict_81_version_replay_run": "45466369023",
+      "result": "SOURCE_TESTS_PASS_PRODUCTION_EFFECTS_ABSENT"
+    },
+    "production_mutation": "NONE",
+    "next_required": "Keep RC482 → RC924 together in the controlled 81-migration DB release after full 81-ID physical-effect/alias reconciliation and verified backup/restore gates."
   }
 }
