@@ -10,10 +10,16 @@ on:
       - "supabase/tests/rc924_agreement_participant_read_scope_fixture.sql"
       - "supabase/tests/rc924_agreement_participant_read_scope_integration.sql"
       - "scripts/validate-rc924-agreement-participant-read-scope.mjs"
+      - "scripts/production/live-reconciliation-contract.mjs"
+      - "scripts/production/verify-production.mjs"
+      - "scripts/validate-production-migration-chain-gate.mjs"
+      - "docs/release/production-migration-reconciliation.json"
+      - ".github/workflows/forward-migration-chain-replay.yml"
       - ".github/workflows/rc924-agreement-participant-read-scope.yml"
   push:
     branches:
       - "feat/mntx-bp001-rc924-ordered-rc482-20261124"
+      - "fix/rc924-81-migration-release-contract-20261124"
     paths:
       - "supabase/migrations/20261124140000_rc924_agreement_participant_read_scope.sql"
       - "supabase/migrations/20261119020000_rc482_legal_platform_admin_registry_guard.sql"
@@ -22,6 +28,11 @@ on:
       - "supabase/tests/rc924_agreement_participant_read_scope_fixture.sql"
       - "supabase/tests/rc924_agreement_participant_read_scope_integration.sql"
       - "scripts/validate-rc924-agreement-participant-read-scope.mjs"
+      - "scripts/production/live-reconciliation-contract.mjs"
+      - "scripts/production/verify-production.mjs"
+      - "scripts/validate-production-migration-chain-gate.mjs"
+      - "docs/release/production-migration-reconciliation.json"
+      - ".github/workflows/forward-migration-chain-replay.yml"
       - ".github/workflows/rc924-agreement-participant-read-scope.yml"
 
 permissions:
