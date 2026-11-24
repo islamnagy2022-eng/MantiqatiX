@@ -493,7 +493,56 @@ if (new URL(baseUrl).origin === 'https://islamnagy2022-eng.github.io') {
       await page.setViewportSize(viewport);
       await assertNoHorizontalOverflow(page, 'marketplace homepage at ' + viewport.width + 'px');
     }
+
     results.push('canonical-marketplace-home-root-and-separate-reload-safe-directory-search');
+  } finally { await context.close(); }
+}
+
+// The Marketing action must resolve the canonical MNTY-MARKETING business from
+// the public directory and open that exact verified storefront on mobile/desktop.
+{
+  const verifiedBase = liveDirectory.businesses.find((business) =>
+    business?.status === 'ACTIVE' && business?.provider?.verified === true
+  );
+  assert.ok(verifiedBase, 'live directory must provide a verified fixture base');
+  const marketingBusinessId = '8d8d1d10-9fd1-4f1b-a9d1-c84d2e9e9b10';
+  const marketingBusiness = {
+    ...verifiedBase,
+    id: marketingBusinessId,
+    name: 'MantiqatiX',
+    code: 'MNTY-MARKETING',
+    status: 'ACTIVE',
+    isOfficialShowcase: true,
+    category: 'خدمات التسويق الإلكتروني',
+    branches: Array.isArray(verifiedBase.branches) ? verifiedBase.branches : [],
+    items: [],
+    provider: { ...(verifiedBase.provider || {}), verified: true },
+    profile: { ...(verifiedBase.profile || {}), bio: 'صفحة نشاط التسويق الرسمية لمنصة MantiqatiX' },
+  };
+  const marketingDirectory = liveDirectory.businesses.filter((business) =>
+    String(business.code || '').trim().toUpperCase() !== 'MNTY-MARKETING' &&
+    !(business.isOfficialShowcase === true && String(business.name || '').trim().toLowerCase() === 'mantiqatix')
+  );
+  marketingDirectory.push(marketingBusiness);
+
+  for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
+    const { context, page } = await newScenario(browser, null, marketingDirectory);
+    try {
+      await page.setViewportSize(viewport);
+      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
+      const marketingButton = page.getByTitle('فتح صفحة نشاط MantiqatiX للتسويق الإلكتروني');
+      await marketingButton.waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(await marketingButton.isDisabled(), false, 'Marketing button must be enabled when the canonical activity is present');
+      await marketingButton.click();
+      await page.waitForFunction((expectedId) => new URL(window.location.href).searchParams.get('store') === expectedId, marketingBusinessId, { timeout: 15000 });
+      await page.getByRole('heading', { name: 'MantiqatiX', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(new URL(page.url()).searchParams.get('store'), marketingBusinessId, 'Marketing must open only the canonical MNTY-MARKETING business');
+      await assertNoHorizontalOverflow(page, 'official marketing storefront at ' + viewport.width + 'px');
+      results.push('official-marketing-storefront-routing-' + viewport.width + 'px');
+    } finally { await context.close(); }
+  }
+}
   } finally { await context.close(); }
 }
 
