@@ -1,3 +1,22 @@
+## 2026-11-24 — Pass 2041–2050 — Live Production recheck and release blockers
+
+- [x] Verified current main includes RC922 and PR #1020; corrected the previous branch-only RC922 wording (RC922 main commit `19c65e716ad440caa0ca314f04bc2d595acb55e2`).
+- [x] Read back RC922 dedicated PostgreSQL 17 workflow `45278540531`; the `generate-and-test` job completed SUCCESS.
+- [x] Connected to the correct Production project `MANTIQATIX FINAL` (`moyhiluyhjsujhwlyeuu`), PostgreSQL 17.6.1.155; did not use the paused DEMO project.
+- [x] Rechecked live migration ledger: 310 rows through `20261110150618`; direct SQL comparison confirms 0/79 exact required release identifiers present.
+- [x] Confirmed the canonical `private.platform_admins` registry exists, but FORCE RLS is false; live `is_platform_admin()` still maps any ACTIVE tenant ADMIN/SUPER_ADMIN membership to global authority (57 policy dependencies); live `mnty_can_platform_admin()` still delegates to a null-scope tenant helper (5 policy dependencies). Candidate registry-backed migrations remain unapplied.
+- [x] Confirmed public directory inventory: 965 rows (869 PUBLISHED, 87 DRAFT, 9 HIDDEN), zero source-permission evidence rows, and no contact-consent registry. Deployed `directory-listings` v18 remains the one-file fail-closed stub. Do not deploy PR #1020's current-main implementation until source rights and coordinated consent dependencies pass.
+- [x] Rechecked Supabase Advisor: 9 RLS-enabled/no-policy INFO, 65 authenticated SECURITY DEFINER WARN, 1 anon SECURITY DEFINER WARN, 28 multiple-permissive-policy performance WARN, and no health lints. No blanket revokes or policy changes.
+- [ ] Operator-owned encrypted database + Storage export, integrity/retrieval proof, Auth/Vault coverage and key recovery.
+- [ ] Independent disposable PostgreSQL 17 restore/rollback and measured RPO/RTO.
+- [ ] Reconcile all 79 exact IDs with physical schema, functions, RLS and grants; run full ordered forward replay.
+- [ ] Coordinated platform-admin + directory consent migration and exact Edge bundle release with adversarial authorization/privacy tests.
+- [ ] Payment/order/finance live parity, signed Paymob sandbox/webhook E2E and settlement rollback remain separate launch blockers.
+- **Safety:** read-only inspection and documentation only; no Production migration, database/Auth/RLS/GRANT/Storage/Edge/payment/wallet/settlement/customer-data mutation and no public deployment. **FULL PLATFORM BLOCKED / NOT CERTIFIED.**
+- Audit: `docs/audits/PASS_2041_2050_LIVE_PRODUCTION_RECHECK_20261124.md`.
+
+---
+
 ## 2026-11-23 — Pass 2031–2040 — RC922 tenant-wide medical provider scope
 
 - [x] Created RC922 using the repository-pinned Supabase CLI v2.122.0 in CI; timestamped filename: `20261123221950_rc922_medical_appointment_tenant_wide_provider_scope.sql`.
