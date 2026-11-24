@@ -106,6 +106,11 @@ test('descriptions are sanitized and bounded', () => {
   assert.ok(!result.description.includes('<b>'));
 });
 
+test('static fallback title preserves the legacy deployment contract', () => {
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.ok(html.includes('<title>MantiqatiX | منصة إدارة الأنشطة والكتالوجات</title>'));
+});
+
 test('SEO hook is restricted to the canonical root base path and no AI support action is enabled', () => {
   const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
   assert.match(appSource, /VITE_CANONICAL_BASE_PATH/);
