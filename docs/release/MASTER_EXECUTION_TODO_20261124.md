@@ -252,3 +252,11 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Current-main Pass 2321–2330 covers Qadam seed and RC479–RC483; Qadam's idempotency-key seed effect is present though its exact migration ID is not in the ledger; raw provider-profile/digital-page anonymous reads and Legal service grants/registry/atomic RPCs remain blocked.
 - [x] Additional current Production read-back: Pass 2271–2280 `docs/audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md` and Pass 2281–2290 `docs/audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md` are linked below.
 - [ ] Keep SMM first-user bootstrap, confirmed-Auth boundaries, global Platform Admin, settlement, MantiGO bid acceptance, medical provider state, agreement participant scope and RC925 catalog RPCs blocked until coordinated release and deployed-origin tests pass.
+
+
+## 2026-11-24 — Three exact migration aliases and five partial historical baselines reconciled
+- [x] Reverified the third alias directly: source `20261101150000_directory_source_permission_evidence.sql` has blob SHA `3f2e0a480d7234171c3ea5359a21d3451b92d150`; live ledger row `20261101140105` stores one statement, 3,558 bytes, exact byte-for-byte equality. Together with RC424→`20261008222845` and marketing-contact source `20261027100000`→`20261027041411`, **3 source aliases are confirmed**.
+- [x] Updated `REQUIRED_MIGRATION_ALIASES` in `scripts/production/live-reconciliation-contract.mjs` to include all three confirmed aliases. The release gate still requires formal migration-history reconciliation; it remains blocked while no ledger repairs are applied.
+- [x] Added structured classification of the five partial historical baseline families: subscription payments, ERP purchasing/receipts, financial journal, public directory/source rights, and generic provider payments. Each distinguishes historical effects present from newer forward contracts still absent or contract-blocked.
+- [x] RC451 is classified separately as an applied forward repair, not an alias. Its intentional public targeted-ad read boundary remains unchanged.
+- [ ] Formal ledger repair remains a separate controlled operation requiring verified DB/Storage backup, restore rehearsal, rollback plan and explicit release approval. No Production ledger rewrite or SQL replay was performed.
