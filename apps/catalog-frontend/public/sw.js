@@ -1,8 +1,12 @@
-const CACHE_NAME = 'mantiqatix-primary-catalog-shell-v3';
+const CACHE_NAME = 'mantiqatix-primary-catalog-shell-v4';
 const APP_SHELL = [
   '/MantiqatiX/',
   '/MantiqatiX/manifest.webmanifest',
-  '/MantiqatiX/icons/mantiqatix.svg'
+  '/MantiqatiX/icons/mantiqatix-approved.svg',
+  '/MantiqatiX/brand/mantiqatix-approved-logo.jpg',
+  '/MantiqatiX/icons/mantiqatix-192.png',
+  '/MantiqatiX/icons/mantiqatix-512.png',
+  '/MantiqatiX/icons/mantiqatix-red-gold-app-icon.jpg'
 ];
 
 self.addEventListener('install', (event) => {
