@@ -108,7 +108,7 @@ The directory consent validator now asserts the current v18 fail-closed live bou
 Release requires, in order:
 1. Complete migration/physical-effect reconciliation and encrypted recoverable backup/restore.
 2. Coordinated ordered DB release of RC472 + RC473 with all authorization prerequisites; post-release read-back of index, RPC, FORCE RLS and exact service-role/browser ACL.
-3. Verify non-doctor listing source-rights rules separately from doctor republication evidence.
+3. Preserve the fixed non-doctor allowlist (business, clinic, pharmacy, medical_center, hospital, laboratory, health_provider); the doctor evidence registry applies to doctor-profile republication. Any new non-doctor category or altered provenance/publication rule requires separate review.
 4. Run exact-head PostgreSQL and source-contract suites, owner grant/revoke/expiry tests, no-consent/revoked/each-scope public projection tests, cross-business owner negatives, registry outage behavior, and pagination limits.
 5. Deploy the complete Edge bundle as a single coordinated version, verify source hash/file inventory, and run deployed-origin negative and positive GET/POST tests.
 6. Keep the directory disabled until all gates pass.
