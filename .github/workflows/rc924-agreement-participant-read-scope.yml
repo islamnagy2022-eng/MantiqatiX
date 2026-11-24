@@ -65,12 +65,20 @@ jobs:
           docker cp supabase/migrations/20261124140000_rc924_agreement_participant_read_scope.sql "$pg_container:/tmp/rc924.sql"
           docker cp supabase/tests/rc924_agreement_participant_read_scope_integration.sql "$pg_container:/tmp/integration.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc924_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
-          if docker exec "$pg_container" psql -U postgres -d mantiqatix_rc924_test -v ON_ERROR_STOP=1 -f /tmp/rc924.sql > /tmp/rc924-preflight.log 2>&1; then
-            echo "RC924 unexpectedly accepted the pre-RC482 tenant-role helper"
+          if docker exec "$pg_container" psql -U postgres -d mantiqatix_rc924_test -v ON_ERROR_STOP=1 -f /tmp/rc924.sql > /tmp/rc924-overload-preflight.log 2>&1; then
+            echo "RC924 unexpectedly accepted the ambiguous pre-RC482 zero-argument helper"
             exit 1
           else
-            grep -Fq 'RC924_LEGAL_ADMIN_HELPER_IS_NOT_REGISTRY_BACKED' /tmp/rc924-preflight.log
-            echo "RC924_BLOCKS_UNHARDENED_LEGAL_HELPER=PASS"
+            grep -Fq 'RC924_REQUIRES_RC482_REMOVAL_OF_ZERO_ARGUMENT_LEGAL_ADMIN_OVERLOAD' /tmp/rc924-overload-preflight.log
+            echo "RC924_BLOCKS_ZERO_ARGUMENT_LEGAL_ADMIN_OVERLOAD=PASS"
+          fi
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc924_test -v ON_ERROR_STOP=1 -c 'DROP FUNCTION private.legal_is_admin();'
+          if docker exec "$pg_container" psql -U postgres -d mantiqatix_rc924_test -v ON_ERROR_STOP=1 -f /tmp/rc924.sql > /tmp/rc924-membership-preflight.log 2>&1; then
+            echo "RC924 unexpectedly accepted the membership-derived UUID legal helper"
+            exit 1
+          else
+            grep -Fq 'RC924_LEGAL_ADMIN_HELPER_IS_NOT_REGISTRY_BACKED' /tmp/rc924-membership-preflight.log
+            echo "RC924_BLOCKS_MEMBERSHIP_DERIVED_LEGAL_HELPER=PASS"
           fi
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc924_test -v ON_ERROR_STOP=1 -f /tmp/rc482.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc924_test -v ON_ERROR_STOP=1 -f /tmp/rc482-integration.sql
