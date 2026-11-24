@@ -1,3 +1,13 @@
+## 2026-11-24 — Launch-critical Edge bundle recheck
+
+- Refreshed nine deployed Edge functions against merged main: catalog-admin v20, order-create v8, paymob-webhook v10, payment-intent v8, subscription-payment-intent v4, financial-journal v3, settlement-financial-atomic v4, business-register v9 and directory-listings v18 all differ from current main.
+- Main adds shared imports missing from deployed payment-intent, subscription-payment-intent, settlement and directory bundles. Directory v18 remains intentionally fail-closed. Public-catalog v9 and public-catalog-directory v19 retain their prior entrypoint-match status.
+- Evidence: `docs/audits/PASS_2151_2160_LIVE_EDGE_BUNDLE_RECHECK_20261124.md`.
+- No Edge deployment or Production mutation occurred. Keep payment, settlement, subscription checkout and legacy directory publication fail-closed.
+- Next: finish transitive import/config closure and exact DB/RPC/ACL dependency map before a coordinated deployment manifest.
+
+---
+
 ## 2026-11-24 — RC472 / RC473 directory consent live recheck
 
 - Read-only Production: `directory_listing_contact_consents` absent; `directory_source_permission_evidence` exists with 0 rows; claim-request table exists but review/grant/revoke RPCs are absent.
