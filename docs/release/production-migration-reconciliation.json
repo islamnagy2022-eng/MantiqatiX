@@ -119,10 +119,10 @@
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
     "checked_at": "2026-11-23",
-    "method": "Read-only live migration ledger inventory refreshed 2026-11-23; compared against 79 exact required source migration versions. Exact identifiers absent are not proof every effect is absent; reconcile renamed predecessors and physical effects separately.",
+    "method": "Read-only live migration ledger inventory refreshed 2026-11-23; compared against 79 exact required source migration versions. Exact identifiers absent are not proof every effect is absent; reconcile renamed predecessors and physical effects separately. Source inventory now includes RC923 (20261124010000) as of 2026-11-24; live ledger evidence remains the read-only 2026-11-23 snapshot.",
     "live_ledger_count": 310,
     "latest_live_version": "20261110150618",
-    "expected_migration_versions": 79,
+    "expected_migration_versions": 80,
     "found_in_live_ledger": 0,
     "required_versions": [
       "20261009120000",
@@ -203,7 +203,8 @@
       "20261121020000",
       "20261121030000",
       "20261123010000",
-      "20261123221950"
+      "20261123221950",
+      "20261124010000"
     ],
     "missing_versions": [
       "20261009120000",
@@ -284,7 +285,8 @@
       "20261121020000",
       "20261121030000",
       "20261123010000",
-      "20261123221950"
+      "20261123221950",
+      "20261124010000"
     ],
     "recorded_required_versions": [],
     "interpretation": "None of the 79 exact required source-version identifiers are recorded in the latest read-only live ledger inventory. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
