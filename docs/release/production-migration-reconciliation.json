@@ -6697,7 +6697,7 @@
       "signatures": [
         "mnty_platform_admin_list_custom_roles()",
         "mnty_platform_admin_upsert_custom_role(text,text,text,text,jsonb,uuid,boolean)",
-        "mnty_platform_admin_assign_custom_role(uuid,uuid,varchar,varchar,boolean,uuid)",
+        "mnty_platform_admin_assign_custom_role(uuid,uuid,varchar,uuid,varchar,boolean,uuid)",
         "mnty_business_employee_position_upsert(varchar,uuid,text,text,text,text,jsonb,boolean,boolean,varchar,uuid)",
         "mnty_business_employee_upsert(varchar,uuid,uuid,text,text,text,uuid,text,jsonb,varchar,uuid)",
         "mnty_platform_has_permission(text,varchar,uuid,varchar)",
