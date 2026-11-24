@@ -1,3 +1,10 @@
+## 2026-11-24 — Paymob signed order vs unsigned selector integrity gate
+- [x] Confirmed deployed Paymob webhook v10 HMAC-SHA512 signed fields include order.id but omit merchant_order_id.
+- [x] Confirmed deployed webhook selects records through merchant_order_id after HMAC verification and lacks stored provider_order_id equality checks across standard, digital-page and subscription branches.
+- [x] Confirmed current-main webhook performs the equality check for all three paths before invoking RPC processors.
+- [ ] Add sandbox replay negative test: valid signed callback for order A with altered unsigned merchant_order_id targeting pending order B with equal amount/currency must be rejected and leave both records untouched; repeat across standard/digital-page/subscription.
+- No Production payments or data changed; this is a code-path integrity risk, not evidence of exploitation.
+
 ## 2026-11-24 — Live Edge↔RPC↔migration dependency closure
 - [x] Rechecked 17 required payment/digital-page/subscription/ERP/journal/settlement migration IDs in Production schema_migrations; all 17 absent. Live ledger is still 310 rows through 20261110150618.
 - [x] Verified subscription claim RPCs absent and all five claim/encrypted-checkout columns absent. Legacy subscription creation remains present, but the current-main Edge uses the absent claimable/atomic RPCs.
