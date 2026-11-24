@@ -6,7 +6,7 @@
 
 ## Authority order
 1. **Operating rules:** `docs/MASTER_SOURCE_OF_TRUTH.md` — exact owner-supplied instruction, controlling development method, priorities and release boundaries.
-2. **Application source:** GitHub `main`; at this checkpoint `ec40a52cee475b550e89974fac2669f82ff873d2`.
+2. **Application source:** GitHub `main`; latest verified base for the RC501 source branch `ae53cf436a37c178bffa56aaac54a58472bcfe89`.
 3. **Production identity, authorization and business data:** the connected `MANTIQATIX FINAL` Supabase project. The paused `MantiqatiX-DEMO` project is not production and must never be merged into the production data path.
 4. **Database release state:** live `supabase_migrations.schema_migrations` plus exact source migrations and physical schema/ACL/RLS reconciliation. A missing migration version is not by itself proof that all physical effects are absent.
 5. **Runtime Edge state:** the deployed Supabase Edge Function bundle/version and settings, compared with the exact current-main source and its schema dependencies. Main source alone does not prove deployment.
@@ -30,12 +30,12 @@
 
 ## Verified checkpoint (2026-11-24)
 - Main: `ec40a52cee475b550e89974fac2669f82ff873d2`; recent merged changes include separate business-logo/app-icon handling, official navbar logo restoration, Pages deployment stabilization, RC922, and contact-consent-gated directory discovery.
-- Production DB: ACTIVE_HEALTHY PostgreSQL 17.6.1.155, 310 migration rows through `20261110150618`; 80 required release migration identifiers, 0 exact IDs present in the live ledger at this check. This requires physical-object/alias reconciliation before any migration execution.
+- Production DB: ACTIVE_HEALTHY PostgreSQL 17.6.1.155, 310 migration rows through `20261110150618`; 81 required release migration identifiers (including RC501), 0 exact IDs present in the live ledger at this check. This requires physical-object/alias reconciliation before any migration execution.
 - Platform Admin: live `is_platform_admin()` still derives global authority from active tenant ADMIN/SUPER_ADMIN roles (57 policy references); live `mnty_can_platform_admin()` still delegates to a null-scope tenant helper (5 policy references). Registry-backed forward migrations are source-only.
 - Directory: 965 records (869 PUBLISHED / 87 DRAFT / 9 HIDDEN); zero source-rights evidence rows and no contact-consent table. Deployed `directory-listings` v18 is intentionally fail-closed.
 - R7 archive forensic source review: [PASS 1460–1469](./audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md) and [R7 archive security revalidation](./audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md). The R7 archive is the same SHA-256 listed above; known source-level findings include client-controlled role/session state, local JSON treated as authoritative, browser-client service-role key fallback reference, weak/default session and Paymob secrets, and unauthenticated state/token/finance route patterns. These are archive source findings, not proof of a live production compromise.
-- RC923 is a source-only forward migration; its PostgreSQL 17 full-chain test must pass before the catalog RPC change is eligible for release.
-- Production release: **BLOCKED / NOT CERTIFIED** until encrypted database + Storage exports, Auth/Vault coverage/recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO, exact 80-version/physical-object reconciliation, coordinated DB/Edge parity and deployed-origin adversarial tests pass.
+- RC923 is merged in source and passed exact-head PostgreSQL 17 replay but remains unapplied in Production. RC501 is a source-only forward migration for seven SECURITY DEFINER platform-admin helper callers; its exact-head PostgreSQL 17 and 81-version replay are pending.
+- Production release: **BLOCKED / NOT CERTIFIED** until encrypted database + Storage exports, Auth/Vault coverage/recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO, exact 81-version/physical-object reconciliation, coordinated DB/Edge parity and deployed-origin adversarial tests pass.
 
 - PR #1027 exact-head CI passed: Doctor Incremental Import Contract, Directory Contact Consent, RC425 Paymob, MantiGO privacy, Backend-only, Module Professionalization (Platform Admin/Legal/Privacy PG suites), Primary Catalog build/RBAC/Browser E2E and Pages validation. The PR deploy job was skipped, as required for pull_request events.
 - Fresh Production snapshot after #1027: 310 migration ledger rows through 20261110150618; 0/80 exact required IDs; 965 directory rows (869 PUBLISHED, 568 PUBLISHED doctors, 567 unclaimed); source-rights registry 0 rows; contact-consent tables absent; private Platform Admin registry 1 row.
