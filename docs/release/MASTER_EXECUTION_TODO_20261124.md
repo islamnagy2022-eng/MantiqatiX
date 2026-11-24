@@ -236,3 +236,10 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] RC449 helper and four administrative functions remain present but on old unscoped helper/non-empty search_path contracts. RC449A seven journal columns and running-balance index absent. RC450 posting function exists but lacks service_role EXECUTE and uses wrong path; trigger exists. RC451 targeted ads RPC meets empty-path public read contract and must remain anon-accessible.
 - [x] Evidence: `docs/audits/PASS_2231_2240_RC442_RC451_LIVE_CONTRACT_RECHECK_20261124.md`.
 - [ ] Continue through RC452–RC453 and then the remaining later 82-version hardening migrations.
+
+
+## 2026-11-24 — RC452–RC453 CRM and marketing campaign live recheck
+- [x] RC452 CRM policies remain broader than the source's matching-business or explicit MNTY-PLATFORM full_control rules. The separate public ACTIVE provider profile base-table read remains tracked under RC479/#928.
+- [x] RC453 internal marketing campaign feature is absent from Production: both campaign tables, all four indexes, and five exact RPC signatures are absent. The source describes an internal workflow only, not an external Meta/TikTok/Google publishing integration.
+- [x] Evidence: `docs/audits/PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md`.
+- [ ] Keep CRM scope and campaign features gated until the ordered migration, RLS, RPC, UI and deployed-origin contracts are verified.
