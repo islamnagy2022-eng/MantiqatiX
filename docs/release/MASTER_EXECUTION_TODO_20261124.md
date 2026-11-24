@@ -215,3 +215,31 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Reconfirmed key present-but-blocked objects: `private.platform_admins` FORCE RLS remains off; `public.is_platform_admin()` remains SECURITY INVOKER/search_path=public and membership-derived; `public.mnty_can_platform_admin()` remains SECURITY DEFINER/search_path=public, pg_temp.
 - [x] Reconfirmed Production ledger at 310 rows through `20261110150618`; no database, ACL, RLS, Auth, Storage, Edge, payment or business-data write occurred.
 - [ ] Expand the curated 76-object sample into the full physical-effect/alias map for all 82 required source versions, including every policy, constraint, trigger, overload and transitive Edge dependency.
+
+
+## 2026-11-24 — RC425–RC432 payment and wallet live contract recheck
+- [x] Compared eight exact source migrations with live PostgreSQL signatures, objects, RLS, search_path and effective ACLs. RC425 table/RPC absent; RC426 finalizer overload absent although both provider_order_id columns exist; RC427 active-intent unique index absent; RC428/429/430 exact webhook processors absent; RC431 function exists but has non-empty search_path; RC432 unique index and admin-credit RPC absent, with existing debit/refund routines on search_path=public. Evidence: `docs/audits/PASS_2211_2220_RC425_RC432_LIVE_CONTRACT_RECHECK_20261124.md`.
+- [ ] Continue the source-to-live map through RC434–RC439 and the remaining 82-version migration set; keep payment and wallet writes blocked.
+
+
+## 2026-11-24 — RC434–RC441 ERP, subscription, journal and platform-scope live recheck
+- [x] Compared RC434–RC441 source effects with Production: RC434 atomic receiving RPC absent; RC435 subscription claim-state columns/constraint and both claim RPCs absent; RC436 five journal columns, two unique indexes and atomic posting RPC absent; RC437 purchase-order lines table, two indexes, member-read policy and line RPCs absent; RC438 order-creation RPC absent while legacy status RPC is present but has wrong search_path/ACL; RC439 all three encrypted-secret columns absent.
+- [x] Reviewed RC440 as a dynamic historical migration: its source targeted functions with exact `search_path=public` at its own execution timestamp. Current read-only snapshot has 30 exposed public SECURITY DEFINER routines matching that predicate (0 anon-executable, 30 authenticated-executable); this is not retroactive evidence that all 30 existed at RC440 execution time.
+- [x] Rechecked RC441: all five named routines exist but retain legacy non-empty paths and do not satisfy the source's explicit MNTY-PLATFORM SUPER_ADMIN boundary. Evidence: `docs/audits/PASS_2221_2230_RC434_RC441_LIVE_CONTRACT_RECHECK_20261124.md`.
+- [ ] Continue through RC442–RC453 and then reconcile the later 82-version hardening migrations against their exact live physical/body/ACL/RLS effects.
+
+
+## 2026-11-24 — RC442–RC451 approval, CRM, matrimony and journal live recheck
+- [x] RC442 private approval RPC exists but still uses search_path=public, pg_temp; authenticated retains direct approval_actions DML and the old member INSERT policy remains.
+- [x] RC444 live CRM manager SELECT policies are broader than the source's matching-business or explicit MNTY-PLATFORM/full_control boundary. marketing_provider_profiles also retains its separate public ACTIVE whole-row read surface tracked under RC479/#928.
+- [x] RC447 matrimony discovery/unlocked-contact functions, private verification guard and trigger are absent; the live matrimony profile SELECT policy is not owner-only. RC448 has one unlock-per-request unique index, but active-pair index and four exact lifecycle/contact RPCs are absent; direct authenticated request/unlock DML remains granted.
+- [x] RC449 helper and four administrative functions remain present but on old unscoped helper/non-empty search_path contracts. RC449A seven journal columns and running-balance index absent. RC450 posting function exists but lacks service_role EXECUTE and uses wrong path; trigger exists. RC451 targeted ads RPC meets empty-path public read contract and must remain anon-accessible.
+- [x] Evidence: `docs/audits/PASS_2231_2240_RC442_RC451_LIVE_CONTRACT_RECHECK_20261124.md`.
+- [ ] Continue through RC452–RC453 and then the remaining later 82-version hardening migrations.
+
+
+## 2026-11-24 — RC452–RC453 CRM and marketing campaign live recheck
+- [x] RC452 CRM policies remain broader than the source's matching-business or explicit MNTY-PLATFORM full_control rules. The separate public ACTIVE provider profile base-table read remains tracked under RC479/#928.
+- [x] RC453 internal marketing campaign feature is absent from Production: both campaign tables, all four indexes, and five exact RPC signatures are absent. The source describes an internal workflow only, not an external Meta/TikTok/Google publishing integration.
+- [x] Evidence: `docs/audits/PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md`.
+- [ ] Keep CRM scope and campaign features gated until the ordered migration, RLS, RPC, UI and deployed-origin contracts are verified.

@@ -4217,3 +4217,33 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] Rechecked 22 matched function entries: 21 SECURITY DEFINER / 1 SECURITY INVOKER; 13 empty and 9 non-empty search paths; anon EXECUTE 0, authenticated EXECUTE 19, service_role EXECUTE 2.
 - [x] Confirmed `private.platform_admins` FORCE RLS is false and the two live platform-admin helpers remain on legacy membership-derived contracts. Production ledger still contains 310 rows through `20261110150618`.
 - [ ] Complete the full 82-migration physical-effect/alias crosswalk. The 76-object sample is not exhaustive; no Production mutation is authorized.
+
+
+## 2026-11-24 — RC425–RC432 source-to-live payment and wallet contract recheck
+- [x] Read-only comparison against eight exact migration files: RC425 MantiGo provider-event table/RPC absent; RC426 five-argument finalizer absent while the two provider-order columns exist; RC427 active-payment index absent; RC428–RC430 processors absent; RC431 exact function exists but search_path is public, pg_temp; RC432 index/admin-credit RPC absent and existing debit/refund routines use search_path=public.
+- [x] Production migration ledger remains 310 rows through `20261110150618`; no Production migration, SQL write, ACL change, payment, wallet or business-data mutation occurred.
+- [ ] Continue RC434–RC439 physical-effect and exact contract reconciliation before any coordinated payment release.
+
+
+## 2026-11-24 — RC434–RC441 source-to-live backend contract recheck
+- [x] RC434 atomic receiving RPC absent. RC435 subscription provider-creation state/claim RPCs absent. RC436 journal columns/indexes/atomic RPC absent. RC437 purchase line table/indexes/policy/RPCs absent. RC438 order creation absent and legacy status RPC is present but lacks expected search_path/ACL. RC439 encrypted checkout columns absent.
+- [x] RC440 source is a timestamp-dependent dynamic migration; current-state read-only snapshot includes 30 matching exposed SECURITY DEFINER routines (0 anon, 30 authenticated), not a claim about what existed at the historical migration time.
+- [x] RC441 five routines are present but retain old path/scope contracts. Report: `PASS_2221_2230_RC434_RC441_LIVE_CONTRACT_RECHECK_20261124.md`.
+- [x] Production remains unchanged at 310 migration rows through `20261110150618`; no migration/DDL/DML/ACL/RLS/Auth/Storage/Edge/payment/wallet/finance write performed.
+- [ ] Continue the 82-version physical-effect/alias crosswalk, with RC440 historical candidates reconciled to the exact historical timestamp.
+
+
+## 2026-11-24 — RC442–RC451 read-only source-to-live authorization and journal recheck
+- [x] RC442 live private approval RPC exists but path differs; authenticated direct DML on approval_actions remains granted and its member INSERT policy remains present.
+- [x] RC444 CRM manager policies do not match the exact business-row/platform-full-control scope; the separate public ACTIVE provider profile read remains tracked under RC479/#928.
+- [x] RC447/RC448 matrimony privacy and lifecycle contracts are incomplete: source RPCs/verification trigger and active-pair index absent, base profile SELECT not owner-only, direct request/contact-unlock DML still granted.
+- [x] RC449 global admin functions present but old scope/path contract; RC449A journal schema and lookup index absent; RC450 journal RPC present but service_role grant/path mismatch; RC451 targeted ads function empty-path/public-anon contract passes.
+- [x] Full evidence in `PASS_2231_2240_RC442_RC451_LIVE_CONTRACT_RECHECK_20261124.md`; no Production changes.
+- [ ] Continue RC452–RC453 and subsequent hardening release migrations.
+
+
+## 2026-11-24 — RC452–RC453 CRM and marketing campaign live recheck
+- [x] RC452 CRM manager read policies still omit source tenant/business row correlation and explicit platform full_control criteria; provider profile's separate anon ACTIVE base-table read remains tracked separately.
+- [x] RC453 campaign tables, four indexes, and five exact RPC signatures absent in Production. Source is an internal campaign workflow and does not publish externally to Meta/TikTok/Google.
+- [x] Evidence: `PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md`.
+- [x] No Production change; migration ledger remains 310 rows through `20261110150618`.

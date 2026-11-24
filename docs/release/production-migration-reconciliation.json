@@ -5908,5 +5908,512 @@
     },
     "production_mutation": "NONE",
     "report": "docs/audits/PASS_2201_2210_PHYSICAL_OBJECT_RECHECK_20261124.md"
+  },
+  "rc425_rc432_live_contract_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_DIFF_CONFIRMED",
+    "checked_at": "2026-11-24",
+    "migration_versions": [
+      "20261009120000",
+      "20261009130000",
+      "20261009140000",
+      "20261009150000",
+      "20261009160000",
+      "20261009170000",
+      "20261009180000",
+      "20261009190000"
+    ],
+    "source_files": [
+      "supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql",
+      "supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql",
+      "supabase/migrations/20261009140000_rc427_one_active_payment_intent_per_order.sql",
+      "supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql",
+      "supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql",
+      "supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql",
+      "supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql",
+      "supabase/migrations/20261009190000_rc432_smm_wallet_transaction_idempotency.sql"
+    ],
+    "live_results": {
+      "rc425": {
+        "table_present": false,
+        "rpc_signature": "process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb)",
+        "rpc_present": false
+      },
+      "rc426": {
+        "finalizer_signature": "finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
+        "finalizer_present": false,
+        "provider_order_id_columns": {
+          "payment_intents": true,
+          "digital_page_orders": true
+        }
+      },
+      "rc427": {
+        "index": "uq_payment_intents_one_active_per_order",
+        "present": false
+      },
+      "rc428": {
+        "rpc_signature": "process_verified_provider_payment_failure(text,text,text,text,text,text,boolean,numeric,text,text,text,jsonb)",
+        "present": false
+      },
+      "rc429": {
+        "rpc_signature": "process_verified_subscription_payment_failure(text,text,uuid,text,numeric,text,text,boolean,jsonb)",
+        "present": false
+      },
+      "rc430": {
+        "rpc_signature": "process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb)",
+        "present": false
+      },
+      "rc431": {
+        "present": true,
+        "security_definer": true,
+        "owner": "postgres",
+        "search_path": "public, pg_temp",
+        "anon_execute": false,
+        "authenticated_execute": false,
+        "service_role_execute": true,
+        "source_expected_search_path": ""
+      },
+      "rc432": {
+        "index": "smm_wallet_transactions_reference_type_uidx",
+        "index_present": false,
+        "functions": {
+          "smm_debit_wallet": {
+            "signature": "smm_debit_wallet(uuid,numeric,uuid)",
+            "present": true,
+            "security_definer": true,
+            "search_path": "public",
+            "anon_execute": false,
+            "authenticated_execute": false,
+            "service_role_execute": true
+          },
+          "smm_refund_wallet": {
+            "signature": "smm_refund_wallet(uuid,numeric,uuid,text)",
+            "present": true,
+            "security_definer": true,
+            "search_path": "public",
+            "anon_execute": false,
+            "authenticated_execute": false,
+            "service_role_execute": true
+          },
+          "smm_admin_credit_wallet": {
+            "signature": "smm_admin_credit_wallet(uuid,uuid,numeric,text,uuid)",
+            "present": false
+          }
+        }
+      }
+    },
+    "production_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "source_required_versions": 82,
+      "exact_source_version_matches": 0
+    },
+    "production_mutation": "NONE",
+    "report": "docs/audits/PASS_2211_2220_RC425_RC432_LIVE_CONTRACT_RECHECK_20261124.md",
+    "disposition": "PAYMENT_SUBSCRIPTION_MANTIGO_PAYMENT_AND_SMM_WALLET_PATHS_BLOCKED"
+  },
+  "rc434_rc441_live_contract_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_DIFF_CONFIRMED",
+    "checked_at": "2026-11-24",
+    "migrations": [
+      {
+        "version": "20261009200000",
+        "code": "RC434",
+        "required": [
+          "receive_purchase_stock_atomic_backend(varchar,varchar,uuid,varchar,varchar,varchar,uuid,numeric,numeric,uuid)"
+        ],
+        "live": {
+          "rpc_present": false
+        },
+        "disposition": "BLOCKED"
+      },
+      {
+        "version": "20261009210000",
+        "code": "RC435",
+        "required": [
+          "subscription_payment_intents.provider_creation_state",
+          "subscription_payment_intents.provider_creation_claimed_at",
+          "subscription_payment_intents_provider_creation_state_check",
+          "create_subscription_payment_intent_claimable_backend(uuid,text,text,text,text,uuid)",
+          "claim_subscription_provider_intent_creation_backend(uuid,uuid)"
+        ],
+        "live": {
+          "columns_present": false,
+          "check_constraint_contract_present": false,
+          "claimable_rpc_present": false,
+          "claim_rpc_present": false
+        },
+        "disposition": "BLOCKED"
+      },
+      {
+        "version": "20261009220000",
+        "code": "RC436",
+        "required": [
+          "journal_entries.entry_number",
+          "journal_entries.total_debit",
+          "journal_entries.total_credit",
+          "journal_entries.posted_at",
+          "journal_entry_lines.line_number",
+          "journal_entries_tenant_entry_number_uidx",
+          "journal_entry_lines_entry_line_uidx",
+          "post_financial_journal_atomic_backend(uuid,jsonb,jsonb)"
+        ],
+        "live": {
+          "columns_present": 0,
+          "columns_checked": 5,
+          "indexes_present": 0,
+          "indexes_checked": 2,
+          "rpc_present": false
+        },
+        "disposition": "BLOCKED"
+      },
+      {
+        "version": "20261009230000",
+        "code": "RC437",
+        "required": [
+          "erp_purchase_order_lines",
+          "erp_purchase_orders_business_order_number_uidx",
+          "erp_purchase_order_lines_scope_idx",
+          "erp_purchase_order_lines_read_member",
+          "set_purchase_order_lines_backend(varchar,varchar,uuid,jsonb,uuid)",
+          "receive_purchase_stock_with_order_line_backend(varchar,varchar,uuid,varchar,varchar,varchar,uuid,numeric,numeric,uuid)"
+        ],
+        "live": {
+          "table_present": false,
+          "indexes_present": 0,
+          "indexes_checked": 2,
+          "policy_present": false,
+          "rpcs_present": 0
+        },
+        "disposition": "BLOCKED"
+      },
+      {
+        "version": "20261009240000",
+        "code": "RC438",
+        "required": [
+          "create_purchase_order_with_lines_backend(varchar,varchar,uuid,varchar,varchar,varchar,numeric,numeric,text,jsonb,uuid)",
+          "update_purchase_order_status_backend(varchar,varchar)"
+        ],
+        "live": {
+          "create_rpc_present": false,
+          "status_rpc_present": true,
+          "status_rpc_security_definer": true,
+          "status_rpc_search_path": "public",
+          "status_rpc_acl": {
+            "anon": false,
+            "authenticated": false,
+            "service_role": false
+          }
+        },
+        "disposition": "BLOCKED"
+      },
+      {
+        "version": "20261010010000",
+        "code": "RC439",
+        "required": [
+          "subscription_payment_intents.client_secret_ciphertext",
+          "subscription_payment_intents.client_secret_iv",
+          "subscription_payment_intents.client_secret_key_version",
+          "subscription_payment_intents_checkout_secret_ciphertext_check"
+        ],
+        "live": {
+          "columns_present": 0,
+          "columns_checked": 3,
+          "constraint_contract_present": false
+        },
+        "disposition": "BLOCKED"
+      },
+      {
+        "version": "20261010020000",
+        "code": "RC440",
+        "required": [
+          "At migration time, change exposed public SECURITY DEFINER functions whose function-level search_path is exactly public to public, pg_temp"
+        ],
+        "live": {
+          "current_candidates": 30,
+          "anon_executable": 0,
+          "authenticated_executable": 30,
+          "interpretation": "Current-state candidates only; not a reconstruction of the set that existed when the historical migration executed."
+        },
+        "disposition": "HISTORICAL_DYNAMIC_EFFECT_REQUIRES_TIMESTAMP_AWARE_RECONCILIATION"
+      },
+      {
+        "version": "20261010030000",
+        "code": "RC441",
+        "required": [
+          "mnty_can_platform_admin()",
+          "get_mantigo_admin_dashboard_backend(uuid)",
+          "get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz)",
+          "settle_mantigo_captain_backend(uuid,text,text)",
+          "expire_stale_mantigo_rides_backend(uuid,integer)"
+        ],
+        "live": {
+          "routines_present": 5,
+          "security_definer": 5,
+          "search_path_nonempty": 5,
+          "anon_execute": 0,
+          "authenticated_execute": 5,
+          "service_role_execute": 0,
+          "explicit_MNTY_PLATFORM_scope_contract": false
+        },
+        "disposition": "PRESENT_CONTRACT_BLOCKED"
+      }
+    ],
+    "production_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "source_required_versions": 82,
+      "exact_source_version_matches": 0
+    },
+    "production_mutation": "NONE",
+    "report": "docs/audits/PASS_2221_2230_RC434_RC441_LIVE_CONTRACT_RECHECK_20261124.md"
+  },
+  "rc442_rc451_live_contract_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_DIFF_CONFIRMED",
+    "checked_at": "2026-11-24",
+    "migrations": [
+      {
+        "version": "20261010120000",
+        "code": "RC442",
+        "required": [
+          "private.review_business_approval_atomic(uuid,varchar,varchar)",
+          "approval_actions direct authenticated INSERT/UPDATE/DELETE revoked",
+          "approval_actions_member_insert dropped"
+        ],
+        "live": {
+          "atomic_rpc_present": true,
+          "security_definer": true,
+          "search_path": "public, pg_temp",
+          "anon_execute": false,
+          "authenticated_execute": false,
+          "service_role_execute": true,
+          "authenticated_table_dml": {
+            "insert": true,
+            "update": true,
+            "delete": true
+          },
+          "member_insert_policy_present": true
+        },
+        "disposition": "PRESENT_CONTRACT_BLOCKED"
+      },
+      {
+        "version": "20261010140000",
+        "code": "RC444",
+        "required": [
+          "CRM manager SELECT scoped by requester business or explicit MNTY-PLATFORM full_control"
+        ],
+        "live": {
+          "marketing_leads_policy": "active SUPER_ADMIN/ADMIN/OWNER/MANAGER/BUSINESS_OWNER membership without source business-row correlation",
+          "marketing_provider_profiles_policy": "active broad role list without source business-row correlation",
+          "provider_profiles_anon_select": true,
+          "public_active_policy_present": true
+        },
+        "disposition": "POLICY_DRIFT"
+      },
+      {
+        "version": "20261010150000",
+        "code": "RC447",
+        "required": [
+          "owner-only matrimony_profiles SELECT",
+          "matrimony_discover_profiles_backend(integer,text,text)",
+          "matrimony_get_unlocked_contact_backend(uuid)",
+          "private.guard_matrimony_profile_verification()",
+          "matrimony_profile_verification_guard trigger"
+        ],
+        "live": {
+          "discovery_rpc_present": false,
+          "unlocked_contact_rpc_present": false,
+          "guard_function_present": false,
+          "trigger_present": false,
+          "profile_select_policy": "authenticated sessions; not owner_user_id=auth.uid()",
+          "authenticated_profile_table_dml": {
+            "select": true,
+            "insert": true,
+            "update": true,
+            "delete": true
+          },
+          "anon_profile_table_dml": false
+        },
+        "disposition": "BLOCKED_PRIVATE_PROFILE_BOUNDARY"
+      },
+      {
+        "version": "20261010161000",
+        "code": "RC448",
+        "required": [
+          "matrimony_contact_unlocks_request_id_key",
+          "matrimony_requests_active_pair_unique",
+          "matrimony_create_request_backend(uuid,text)",
+          "matrimony_respond_request_backend(uuid,boolean)",
+          "matrimony_unlock_contact_backend(uuid)",
+          "matrimony_get_unlocked_contact_backend(uuid)"
+        ],
+        "live": {
+          "unlock_unique_index_present": true,
+          "active_pair_index_present": false,
+          "request_lifecycle_rpcs_present": 0,
+          "contact_rpc_present": false,
+          "authenticated_request_dml": {
+            "insert": true,
+            "update": true
+          },
+          "authenticated_unlock_dml": {
+            "insert": true,
+            "update": true,
+            "delete": true
+          }
+        },
+        "disposition": "PARTIAL_BLOCKED"
+      },
+      {
+        "version": "20261010170000",
+        "code": "RC449",
+        "required": [
+          "mnty_can_platform_admin() with MNTY-PLATFORM explicit full_control",
+          "get_mantigo_admin_dashboard_backend(uuid)",
+          "get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz)",
+          "settle_mantigo_captain_backend(uuid,text,text)",
+          "expire_stale_mantigo_rides_backend(uuid,integer)"
+        ],
+        "live": {
+          "five_routines_present": true,
+          "nonempty_search_path": true,
+          "legacy_unscoped_helper": true,
+          "anon_execute": false,
+          "authenticated_execute": true,
+          "service_role_execute": false
+        },
+        "disposition": "PRESENT_CONTRACT_BLOCKED"
+      },
+      {
+        "version": "20261010175000",
+        "code": "RC449A",
+        "required": [
+          "journal_entries.entry_number",
+          "journal_entries.total_debit",
+          "journal_entries.total_credit",
+          "journal_entries.posted_at",
+          "journal_entries.updated_at",
+          "journal_entries.reversed_by_entry_id",
+          "journal_entry_lines.line_number",
+          "general_ledger_running_balance_lookup_idx"
+        ],
+        "live": {
+          "required_journal_columns_present": 0,
+          "checked_columns": 7,
+          "running_balance_index_present": false
+        },
+        "disposition": "BLOCKED"
+      },
+      {
+        "version": "20261010180000",
+        "code": "RC450",
+        "required": [
+          "post_financial_journal_backend(uuid,jsonb,jsonb) service_role only",
+          "trg_post_journal_to_general_ledger()",
+          "trg_post_journal_to_gl"
+        ],
+        "live": {
+          "posting_rpc_present": true,
+          "security_definer": true,
+          "search_path": "public",
+          "anon_execute": false,
+          "authenticated_execute": false,
+          "service_role_execute": false,
+          "trigger_function_present": true,
+          "trigger_present": true,
+          "trigger_function_search_path": "public",
+          "expected_source_search_path": "public, pg_temp"
+        },
+        "disposition": "PARTIAL_CONTRACT_BLOCKED"
+      },
+      {
+        "version": "20261010200000",
+        "code": "RC451",
+        "required": [
+          "get_mnty_targeted_advertisements(... seven args) empty search_path; preserve public anon read"
+        ],
+        "live": {
+          "function_present": true,
+          "security_definer": true,
+          "search_path": "",
+          "anon_execute": true,
+          "authenticated_execute": true,
+          "service_role_execute": false
+        },
+        "disposition": "PASS_INTENTIONAL_PUBLIC_READ"
+      }
+    ],
+    "production_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "required_source_versions": 82,
+      "exact_source_version_matches": 0
+    },
+    "production_mutation": "NONE",
+    "report": "docs/audits/PASS_2231_2240_RC442_RC451_LIVE_CONTRACT_RECHECK_20261124.md"
+  },
+  "rc452_rc453_live_contract_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_DIFF_CONFIRMED",
+    "checked_at": "2026-11-24",
+    "migrations": [
+      {
+        "version": "20261010210000",
+        "code": "RC452",
+        "required": [
+          "CRM managers view marketing leads business-row/platform-full-control scope",
+          "CRM managers view marketing providers business-row/platform-full-control scope"
+        ],
+        "live": {
+          "marketing_leads_policy_present": true,
+          "marketing_leads_policy_matches_source": false,
+          "marketing_leads_live_role_scope": "active SUPER_ADMIN/ADMIN/OWNER/MANAGER/BUSINESS_OWNER without tenant/business row correlation or explicit platform full_control check",
+          "marketing_provider_profiles_policy_present": true,
+          "marketing_provider_profiles_policy_matches_source": false,
+          "marketing_provider_profiles_live_role_scope": "active broad role membership without exact business-row correlation",
+          "separate_provider_public_surface": {
+            "anon_select": true,
+            "public_active_policy": true,
+            "tracked_under": "RC479/#928"
+          }
+        },
+        "disposition": "POLICY_DRIFT"
+      },
+      {
+        "version": "20261010220000",
+        "code": "RC453",
+        "required": [
+          "public.marketing_campaigns",
+          "public.marketing_campaign_participants",
+          "marketing_campaigns_business_status_idx",
+          "marketing_campaigns_tenant_created_idx",
+          "marketing_campaign_participants_provider_status_idx",
+          "marketing_campaign_participants_business_campaign_idx",
+          "mnty_can_manage_marketing_business(uuid)",
+          "create_marketing_campaign_backend(uuid,uuid,text,text,text[],numeric,text,character varying,timestamp with time zone,timestamp with time zone,jsonb,text)",
+          "invite_marketing_campaign_partner_backend(uuid,uuid,uuid,character varying,numeric,numeric)",
+          "respond_marketing_campaign_invitation_backend(uuid,uuid,character varying)",
+          "update_marketing_campaign_status_backend(uuid,uuid,character varying)",
+          "marketing_campaigns_scoped_read",
+          "marketing_campaign_participants_scoped_read"
+        ],
+        "live": {
+          "tables_present": 0,
+          "tables_checked": 2,
+          "indexes_present": 0,
+          "indexes_checked": 4,
+          "rpc_signatures_present": 0,
+          "rpc_signatures_checked": 5,
+          "source_scope": "internal campaign planning and partner collaboration only; no external ad platform publishing"
+        },
+        "disposition": "BLOCKED_NOT_APPLIED"
+      }
+    ],
+    "production_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "required_source_versions": 82,
+      "exact_source_version_matches": 0
+    },
+    "production_mutation": "NONE",
+    "report": "docs/audits/PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md"
   }
 }
