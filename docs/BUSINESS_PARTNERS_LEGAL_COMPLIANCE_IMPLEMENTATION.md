@@ -298,3 +298,9 @@ The existing public catalog derives phone/WhatsApp/address through `getExplicitP
 - Participant A/B isolation, unrelated-user denial, anonymous-authenticated denial and protected platform-admin access all passed.
 - RC924 is accepted as a source-level migration/test change. It remains unapplied to Production pending the separate full forward migration-chain replay and coordinated release gate.
 - Full forward migration replay run `45406678921` is still IN PROGRESS; the isolated Supabase instance startup/replay stage has not yet completed.
+
+
+### Business registration integration point
+- Existing `business-register` Edge flow creates the canonical `businesses` row in `INACTIVE` status and a `PENDING` `approval_requests` record for a BUSINESS/CREATE request. It checks an allowed owner/service-provider membership or the protected platform-admin registry and performs duplicate checks.
+- Reuse this canonical registration path for new company identity creation; do not create a second company/tenant record. Partner legal onboarding begins against the resulting canonical `business_id` after the business creation/owner membership approval path is complete.
+- Existing business approval is not equivalent to legal partner approval. A separate partner verification state and publication gate must be required before partner-owned products can be published or referrals activated.
