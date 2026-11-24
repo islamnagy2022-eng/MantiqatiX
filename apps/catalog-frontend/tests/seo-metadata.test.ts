@@ -23,6 +23,13 @@ test('public root uses the canonical project URL', () => {
   assert.equal(result.canonicalUrl, 'https://islamnagy2022-eng.github.io/MantiqatiX/');
 });
 
+test('public contact and site-map views have distinct canonical routes', () => {
+  const contact = resolveRouteSeoMetadata({ ...base, view: 'contact_us' });
+  const siteMap = resolveRouteSeoMetadata({ ...base, view: 'site_map' });
+  assert.equal(contact.canonicalUrl, 'https://islamnagy2022-eng.github.io/MantiqatiX/?view=contact_us');
+  assert.equal(siteMap.canonicalUrl, 'https://islamnagy2022-eng.github.io/MantiqatiX/?view=site_map');
+});
+
 test('verified and explicitly public storefront gets a stable canonical URL', () => {
   const result = resolveRouteSeoMetadata({
     ...base,
