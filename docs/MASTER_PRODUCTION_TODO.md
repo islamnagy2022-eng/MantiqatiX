@@ -5378,7 +5378,7 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Create branch and feature implementation record.
 - [x] Map initial canonical business, membership, merchant, catalog, commission, referral, order, settlement and Legal Center foundations.
 - [x] Inspect live Production columns, selected constraints, policies, grants and relevant SECURITY DEFINER function signatures (read-only).
-- [ ] RC924 agreement participant RLS correction added on feature branch; PostgreSQL 17/static CI pending. Do not mark complete or apply to Production until CI and forward migration replay pass.
+- [x] RC924 agreement participant RLS correction implemented and passed isolated PostgreSQL 17/static CI (run 45406678966); source-level migration accepted. Production remains untouched.
 - [ ] Complete catalog public projection and order/payment-intent handoff audit for direct-to-partner order flow.
 - [ ] Phase 1: partner legal profile, documents, verification state machine and publication hard gate.
 - [ ] Phase 1: company-specific agreements, immutable versions, signatures/evidence, expiry and renewal.
@@ -5410,3 +5410,9 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 ### RC924 CI correction — 2026-11-24
 - First attempt failed only at static validator formatting (`FOR SELECT` / `TO authenticated` line break); PostgreSQL integration was skipped, so no DB behavior result was produced.
 - Validator regex corrected and source-level checks pass; corrected RC924 PostgreSQL 17 run #15 is queued. Keep task open until PG17 integration and forward replay pass.
+
+
+### MNTX-BP-001 — RC924 test result (2026-11-24)
+- [x] RC924 static validator and isolated PostgreSQL 17 integration passed (run 45406678966).
+- [ ] Full forward migration chain replay remains in progress (run 45406678921); keep Production unchanged until it passes.
+- [ ] Begin Phase 1 partner legal profile, private legal evidence, verification lifecycle and partner agreement/signature RPCs after replay outcome.
