@@ -3650,3 +3650,11 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 - PR #1061 closed without merge after its head branch was reset to current main. No application or database changes from that PR were merged.
 - The corrected ordered RC482 → RC924 implementation and tests are now on `feat/mntx-bp001-rc924-ordered-rc482-20261124`, based directly on current main `4c6b82e8fb4dd3264980887e3518064c28444e0c`.
 - Dedicated CI push filters now target the active branch; Production remains read-only.
+
+
+## 2026-11-24 — RC924/RC482 source merge and Production post-merge read-back
+- PR #1064 merged as `82cdebcdefc4a9c12d4e875548f1cf5f5dd3f896` on main after 12 exact-head workflow runs completed successfully. RC924-specific PG17 run 45458313302 and full 117-migration forward replay run 45458313389 both passed.
+- RC924 now explicitly rejects the live pre-RC482 Legal helper; its integration path proves the old zero-argument overload and membership-derived UUID overload fail, then applies RC482 + tests before RC924 + tests.
+- Read-only Production post-merge verification: migration ledger still 310 rows through `20261110150618`; RC482/RC924 versions absent; both live Legal helper overloads still exist and query active `public.user_memberships` for SUPER_ADMIN/ADMIN/LEGAL_ADMIN. No Production migration or write was performed.
+- Pages validation passed on the PR; deploy skipped. The post-merge public URL and v4 service-worker cache were not independently verified from the deployed origin.
+- Next priority: close the generic `is_platform_admin()` / `mnty_can_platform_admin()` Production blast radius under issue #867, while preserving the read-only backup gate.
