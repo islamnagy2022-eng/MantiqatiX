@@ -7530,7 +7530,6 @@
     "project": "MANTIQATIX FINAL",
     "project_ref": "moyhiluyhjsujhwlyeuu",
     "database_version": "17.6.1.155",
-    "observed_at": "2026-11-24T22:01:16.162Z",
     "method": "Read-only PostgreSQL pg_catalog, pg_policies, function-definition and effective privilege queries. No production writes.",
     "registry": {
       "table": "private.platform_admins",
@@ -7629,6 +7628,8 @@
       "deploy_job": "SKIPPED — no web deployment",
       "production_release": "NOT AUTHORIZED / NOT PERFORMED"
     },
-    "no_production_mutation": true
+    "no_production_mutation": true,
+    "live_sql_readback_date": "2026-11-24",
+    "security_advisor_snapshot_observed_at": "2026-11-24T22:01:16.162Z"
   }
 }
