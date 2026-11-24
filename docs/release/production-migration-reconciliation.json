@@ -8061,7 +8061,10 @@
     "region": "us-east-2",
     "readback_date": "2026-11-24",
     "project_status": "ACTIVE_HEALTHY",
-    "plan_tier": "NOT EXPOSED BY CONNECTED get_project RESPONSE",
+    "plan_tier": "FREE (organization get_organization read-back, 2026-11-25)",
+    "plan_tier_source": "Supabase organization manteqti / uahatcrnwfexfdmkrdkr; plan=free; tier=tier_free",
+    "automatic_backup_policy": "Free plan has no automatic daily database backups; owner-run CLI logical backup required",
+    "official_backup_policy_checked_at": "2026-11-25",
     "backup_inventory": "NOT EXPOSED BY CONNECTED SUPABASE TOOLS",
     "automated_backup_latest_timestamp": null,
     "downloadable_backup_artifact": false,
@@ -8082,7 +8085,7 @@
       "https://supabase.com/docs/reference/cli/supabase-db-dump",
       "https://supabase.com/docs/guides/storage/management"
     ],
-    "note": "No connection string, database password or backup artifact was supplied to the runtime. Do not infer automatic backup from project health. Storage object bytes require separate export/integrity verification."
+    "note": "Organization-level Supabase plan was verified as Free on 2026-11-25. Supabase official guidance says Free projects have no automatic daily database backups and require manual CLI exports. Backup inventory/latest owner-created artifact remains unavailable to connected tools; do not infer that none exists without artifact evidence. No connection string, database password or backup artifact was supplied to the runtime. Storage object bytes require separate export/integrity verification."
   },
   "paymob_signed_order_guard_ci_20261124": {
     "status": "SOURCE_CONTRACT_CI_PASS",

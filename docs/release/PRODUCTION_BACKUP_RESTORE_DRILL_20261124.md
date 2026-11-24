@@ -2,14 +2,15 @@
 
 **Production:** \`MANTIQATIX FINAL / moyhiluyhjsujhwlyeuu\`  
 **Region / database:** \`us-east-2 / PostgreSQL 17.6.1.155\`  
-**Status:** **BLOCKED — no verified backup artifact or restore drill exists in the connected evidence.**  
+**Status:** **BLOCKED — organization plan is Free; no automatic daily database backup is included, and no retrievable owner-created export or restore drill has been demonstrated.**  
 **Rule:** This runbook prepares a safe owner-controlled drill. It does not authorize a Production write, create a paid Supabase branch, or ask anyone to paste credentials into GitHub/ChatGPT.
 
 ## A. Evidence to collect before release
 
 1. **Plan and automated-backup evidence**
-   - Have the project owner inspect the Supabase Billing/Backups pages and record the current plan tier, latest completed backup timestamp, retention window, backup encryption/at-rest posture and whether the artifact can be downloaded.
-   - If automated backups are unavailable or unsuitable, use an owner-controlled logical export. Do not assume the project is on a paid plan based on its health/status.
+   - Connected organization read-back on 2026-11-25 confirms organization \`manteqti\` is on the **Free** plan. Supabase's current Free-plan policy does not include automatic daily database backups; owner-run CLI exports are required.
+   - Record any existing owner-created export's timestamp, location, size, SHA-256 and retrieval proof. The connected tools do not expose a backup inventory, so do not infer that a manual backup exists—or that it does not—without artifact evidence.
+   - Do not upgrade the plan or create billable resources as part of this runbook. Evaluate paid backup retention separately with explicit cost approval if the owner chooses that path.
    - Capture only metadata (timestamps, artifact IDs, sizes, SHA-256, retention); never place database passwords or secret values in this repository.
 
 2. **Database export**

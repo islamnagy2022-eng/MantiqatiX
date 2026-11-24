@@ -4320,3 +4320,11 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] Reconciled the 76-object read-back and the migration-level source-to-live evidence in the machine-readable reconciliation manifest.
 - [x] Investigated PR #1084's immutable-history CI failure: the workflow rejected a comment-only edit to existing migration `20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql`. The immutable file is retained byte-for-byte from main; the executable fail-closed predicate is already covered by the current-main validator.
 - [ ] Run exact-head CI on the replacement documentation-only branch. Keep the Production database, Auth/RLS/GRANT, Storage, Edge, payments, and public deployment unchanged.
+
+
+## 2026-11-25 — Supabase Free plan and manual backup requirement
+- [x] Read organization-level Supabase billing metadata: organization `manteqti` is `plan=free`, `tier=tier_free`; this corrects the earlier assumption that the plan tier was not exposed by connected reads.
+- [x] Verified official Supabase guidance: Free projects have no automatic daily database backup and should use manual CLI exports; Storage object bytes require a separate export.
+- [x] Updated backup capability report, machine-readable reconciliation manifest, owner backup/restore drill, master TODO and source-of-truth map.
+- [ ] Owner must provide retrievable evidence for any existing manual export, or perform an encrypted CLI DB dump and separate Storage object export. Restore in an independent PostgreSQL 17 environment and measure RPO/RTO.
+- [x] No plan upgrade, billing change, backup, restore, migration or Production mutation performed.
