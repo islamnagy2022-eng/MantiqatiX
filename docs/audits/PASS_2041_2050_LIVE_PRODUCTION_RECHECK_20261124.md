@@ -95,7 +95,15 @@ Still **NOT VERIFIED**:
 
 No connector operation in this pass created or verified these backup artifacts. This dependency requires the project operator's approved backup destination and key-recovery process.
 
-## 8. Work performed and next sequence
+
+## 9. Unified source-of-truth and R7 archive cross-reference
+
+- The exact owner-supplied operating directive is committed as `docs/MASTER_SOURCE_OF_TRUTH.md`; the authority hierarchy and source classifications are summarized in `docs/SOURCE_OF_TRUTH_MAP_20261124.md`. Historical TODO/continuity/session/audit files remain evidence and append-only history, not competing operating instructions.
+- The uploaded R7 ZIP SHA-256 is `210da1638eb9b1f02c9db9d27ff5ef14d22bd497fec8b2fc8d9ada0f98df2d8b`, matching the previously reviewed artifact in `docs/audits/PASS_1460_1469_R7_ARCHIVE_SECURITY_REVIEW_20261120.md` and `docs/audits/R7_ARCHIVE_SECURITY_REVALIDATION_20261119.md`. Reuse those detailed forensic findings; do not re-run or copy the R7 server/auth/local-JSON/finance implementation.
+- R7's own 2026-11-10 release report and 100%/VERIFIED labels are not current production evidence. The archive's dual-authoritative local JSON + Supabase design conflicts with the controlling directive; it remains selective UI/assets reference only. Keep its Android files preserved as reference, not a certified native build.
+- One current Advisor anonymous SECURITY DEFINER finding, `public.get_mnty_targeted_advertisements(...)`, was reviewed live: it uses empty `search_path`, schema-qualified relations, returns only seven public ad fields, filters to ACTIVE/APPROVED/in-window ads, targets active Egyptian geo areas, deduplicates to the best location match, and clamps result count to 1–50. Existing mainline documents RC257/RC335/RC381/RC451 define this as the intentional public advertisement-read boundary. Do not revoke anon EXECUTE blindly; preserve the explicit output contract and continue adversarial tests for unsafe URL/content handling.
+
+## 10. Work performed and next sequence
 
 **Completed in this pass:** read-only repository/source review, live Production project identification, migration ledger comparison (0/79), Edge version inventory, aggregate directory/consent inventory, focused P0 platform-admin function/policy inspection, and Supabase Advisor review. RC922 CI run was independently read back as successful.
 
