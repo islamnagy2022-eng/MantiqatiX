@@ -3644,3 +3644,9 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 - RC924 now fails closed unless that helper is registry-backed, SECURITY DEFINER with empty search_path, authenticated EXECUTE and anon denied; it also rejects the old zero-argument overload.
 - The dedicated CI now checks the expected pre-RC482 rejection, then runs RC482 and its adversarial integration before RC924 and its agreement isolation integration.
 - Exact-head tests remain pending on the new branch; do not merge or deploy until both ordered suites and the full replay pass.
+
+
+## 2026-11-24 — MNTX-BP-001 branch replacement
+- PR #1061 closed without merge after its head branch was reset to current main. No application or database changes from that PR were merged.
+- The corrected ordered RC482 → RC924 implementation and tests are now on `feat/mntx-bp001-rc924-ordered-rc482-20261124`, based directly on current main `4c6b82e8fb4dd3264980887e3518064c28444e0c`.
+- Dedicated CI push filters now target the active branch; Production remains read-only.
