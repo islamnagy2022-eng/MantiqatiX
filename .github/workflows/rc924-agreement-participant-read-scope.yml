@@ -20,7 +20,7 @@ on:
       - "supabase/tests/rc482_legal_platform_admin_registry_integration.sql"
       - "scripts/validate-rc482-legal-platform-admin-registry.mjs"
       - "supabase/tests/rc924_agreement-participant-read-scope_fixture.sql"
-      - "supabase/tests/rc924-agreement-participant-read-scope_integration.sql"
+      - "supabase/tests/rc924_agreement_participant_read_scope_integration.sql"
       - "scripts/validate-rc924-agreement-participant-read-scope.mjs"
       - ".github/workflows/rc924-agreement-participant-read-scope.yml"
 
