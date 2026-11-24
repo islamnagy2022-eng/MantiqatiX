@@ -55,7 +55,8 @@ const MainContent: React.FC = () => {
           : currentView;
 
   useEffect(() => {
-    const canonicalOrigin = String(
+    const syncRouteSeo = () => {
+      const canonicalOrigin = String(
       import.meta.env.VITE_CANONICAL_ORIGIN || 'https://islamnagy2022-eng.github.io',
     ).replace(/\/$/, '');
     const configuredBasePath = String(import.meta.env.VITE_CANONICAL_BASE_PATH || '/MantiqatiX/').trim();
@@ -86,7 +87,15 @@ const MainContent: React.FC = () => {
       activityId: activityCategory?.id,
       activityName: activityCategory?.name,
       specialtyName,
-    }));
+      }));
+    };
+    syncRouteSeo();
+    window.addEventListener('popstate', syncRouteSeo);
+    window.addEventListener('mantiqatix:routechange', syncRouteSeo);
+    return () => {
+      window.removeEventListener('popstate', syncRouteSeo);
+      window.removeEventListener('mantiqatix:routechange', syncRouteSeo);
+    };
   }, [
     visibleView,
     currentBusiness?.id,
