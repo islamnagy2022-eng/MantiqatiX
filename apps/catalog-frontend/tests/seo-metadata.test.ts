@@ -108,7 +108,7 @@ test('descriptions are sanitized and bounded', () => {
 
 test('static fallback title preserves the legacy deployment contract', () => {
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-  assert.match(html, /<title>MantiqatiX \\| منصة إدارة الأنشطة والكتالوجات<\\/title>/);
+  assert.ok(html.includes('<title>MantiqatiX | منصة إدارة الأنشطة والكتالوجات</title>'));
 });
 
 test('SEO hook is restricted to the canonical root base path and no AI support action is enabled', () => {
