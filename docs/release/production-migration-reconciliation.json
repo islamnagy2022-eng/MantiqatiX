@@ -8029,6 +8029,28 @@
     },
     "ci_isolated_tests_do_not_certify_production": true,
     "no_production_mutation": true,
-    "full_platform_gate": "BLOCKED / NOT CERTIFIED"
+    "full_platform_gate": "BLOCKED / NOT CERTIFIED",
+    "paymob_webhook_integrity": {
+      "status": "HIGH_PAYMENT_INTEGRITY_BLOCKER",
+      "deployed_function": "paymob-webhook v10",
+      "hmac_algorithm": "HMAC-SHA512",
+      "signed_provider_order_field": "order.id",
+      "merchant_order_field_in_hmac_field_list": false,
+      "row_selection_uses_merchant_order_id_after_hmac": true,
+      "deployed_stored_provider_order_equality_check": {
+        "standard": false,
+        "digital_page": false,
+        "subscription": false
+      },
+      "current_main_pre_rpc_equality_checks": {
+        "standard": true,
+        "digital_page": true,
+        "subscription": true
+      },
+      "risk": "Potential cross-order misbinding if a valid HMAC callback's unsigned merchant_order_id is altered to select a different pending record with matching amount/currency; this is a code-path risk only.",
+      "exploitation_observed": false,
+      "customer_impact_observed": false,
+      "required_sandbox_negative_test": "Create pending orders A/B with equal amount/currency but different Paymob order IDs; submit valid signed event for A with merchant_order_id changed to B; require rejection and no change to either record. Repeat for digital-page/subscription."
+    }
   }
 }
