@@ -6957,5 +6957,169 @@
     },
     "production_mutation": "NONE",
     "report": "docs/audits/PASS_2281_2290_RC921_RC924_MEDICAL_CATALOG_LEGAL_RECHECK_20261124.md"
+  },
+  "rc456_rc525_rc102_rc115_live_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_DIFF_CONFIRMED",
+    "checked_at": "2026-11-24",
+    "findings": {
+      "RC456": {
+        "expected_service_role_grants": {
+          "smm_admins": [
+            "SELECT"
+          ],
+          "smm_providers": [
+            "SELECT"
+          ],
+          "smm_wallets": [
+            "SELECT"
+          ],
+          "smm_services": [
+            "SELECT",
+            "INSERT",
+            "UPDATE"
+          ],
+          "smm_orders": [
+            "SELECT",
+            "INSERT",
+            "UPDATE"
+          ],
+          "smm_order_events": [
+            "INSERT"
+          ]
+        },
+        "actual_all_expected_privileges": false,
+        "service_role_table_privileges_for_expected_gateway_tables": false,
+        "provider_credentials_rpc_only": true,
+        "wallet_transactions_rpc_only": true,
+        "disposition": "BLOCKED_SMM_GATEWAY"
+      },
+      "RC525": {
+        "old_policy_present": true,
+        "old_policy_roles": [
+          "SUPER_ADMIN",
+          "ADMIN"
+        ],
+        "tenant_restriction": false,
+        "platform_scope_required": false,
+        "full_control_required": false,
+        "public_active_product_read_policy_present": true,
+        "disposition": "P0_POLICY_DRIFT"
+      },
+      "RC102": {
+        "marketing_provider_services_authenticated_insert": false,
+        "authenticated_update": false,
+        "authenticated_delete": false,
+        "disposition": "BLOCKED_OWNER_UI_WRITES"
+      },
+      "RC103": {
+        "update_rpc_present": true,
+        "security_definer": true,
+        "search_path": "public",
+        "row_lock": true,
+        "membership_branch_id_used": false,
+        "exact_branch_match": false,
+        "owner_admin_fully_unscoped_check": false,
+        "disposition": "P0_SCOPE_DRIFT"
+      },
+      "RC104": {
+        "create_rpc_present": true,
+        "tenant_key_lookup": true,
+        "row_lock": true,
+        "replay_customer_business_branch_comparison": false,
+        "disposition": "P0_REPLAY_SCOPE_RISK"
+      },
+      "RC105": {
+        "create_rpc_service_role_execute": true,
+        "live_service_role_identity_branch": false,
+        "live_unconditional_auth_uid_customer_binding": true,
+        "disposition": "BLOCKED_EDGE_CALLER_CONTRACT"
+      },
+      "RC106": {
+        "status_rpc_service_role_execute": true,
+        "live_service_role_identity_branch": false,
+        "live_unconditional_auth_uid_actor_binding": true,
+        "disposition": "BLOCKED_EDGE_CALLER_CONTRACT"
+      },
+      "RC113": {
+        "platform_custom_roles_table_present": true,
+        "platform_role_assignments_table_present": true,
+        "all_expected_role_indexes_present": true,
+        "rls_and_force_rls_enabled": true,
+        "direct_client_table_grants": false,
+        "custom_role_rpcs_present": 3,
+        "empty_search_path": true,
+        "registry_backed": true,
+        "disposition": "PASS_FOUNDATION"
+      },
+      "RC114": {
+        "business_job_positions_present": true,
+        "business_employees_present": true,
+        "all_expected_indexes_present": true,
+        "rls_and_force_rls_enabled": true,
+        "direct_client_table_grants": false,
+        "employee_rpcs_present": true,
+        "empty_search_path": true,
+        "disposition": "PASS_FOUNDATION"
+      },
+      "RC115": {
+        "platform_permission_and_admin_rpcs_present": true,
+        "empty_search_path": true,
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "platform_functions_registry_backed": true,
+        "business_employee_rpcs_present": true,
+        "disposition": "PASS_WITH_GLOBAL_ROOT_DEPENDENCY"
+      },
+      "production_ledger": {
+        "rows": 310,
+        "last_version": "20261110150618"
+      }
+    },
+    "production_mutation": "NONE",
+    "report": "docs/audits/PASS_2291_2300_RC456_RC525_RC102_RC115_FOUNDATION_ORDER_RECHECK_20261124.md"
+  },
+  "rc116_rc117_membership_qadam_live_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_DIFF_CONFIRMED",
+    "checked_at": "2026-11-24",
+    "findings": {
+      "RC116": {
+        "list_businesses_rpc": true,
+        "manage_business_rpc": true,
+        "manage_membership_rpc": true,
+        "all_security_definer": true,
+        "all_empty_search_path": true,
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "all_direct_private_registry_reference": true,
+        "disposition": "PASS_FUNCTION_LAYER"
+      },
+      "RC117": {
+        "marketing_services_image_url_column": false,
+        "marketing_services_image_source_column": false,
+        "default_image_url_function": false,
+        "default_business_trigger_function": false,
+        "default_catalog_item_trigger_function": false,
+        "default_marketing_service_trigger_function": false,
+        "expected_triggers_present": 0,
+        "expected_triggers": 3,
+        "disposition": "BLOCKED_NOT_DEPLOYED"
+      },
+      "RC113_membership_idempotency": {
+        "index": "ux_user_memberships_user_business_branch_nullsafe",
+        "present": false,
+        "disposition": "BLOCKED"
+      },
+      "qadam_alsaad_seed": {
+        "business_present": true,
+        "code": "MNTY-HOMEWARES-QADAM-ALSAAD",
+        "tenant_id": "MNTY-PLATFORM",
+        "status": "ACTIVE",
+        "catalog_item_count": 15,
+        "individual_rows_read": false,
+        "disposition": "PRESENT"
+      }
+    },
+    "production_mutation": "NONE",
+    "report": "docs/audits/PASS_2301_2310_RC116_RC117_MEMBERSHIP_INDEX_QADAM_RECHECK_20261124.md"
   }
 }
