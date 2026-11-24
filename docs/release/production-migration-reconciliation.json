@@ -7072,11 +7072,11 @@
     "historical_crosswalk": {
       "source": "docs/release/REQUIRED_63_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261119.md",
       "required_source_rows": 63,
-      "fresh_live_rechecks": 32,
-      "remaining_historical_rows": 31,
-      "status": "32 earlier source migrations now have current PASS 2211–2250 and PASS 2271–2280 evidence; 31 remain historical until refreshed"
+      "fresh_live_rechecks": 41,
+      "remaining_historical_rows": 22,
+      "status": "41 earlier source migrations now have current PASS 2211–2250, PASS 2271–2280 and PASS 2281–2300 evidence; 22 remain historical until refreshed"
     },
-    "current_migrations_checked": 51,
+    "current_migrations_checked": 60,
     "policy_targets": {
       "expected": 30,
       "absent": 29,
@@ -7122,8 +7122,12 @@
       "docs/audits/PASS_2221_2230_RC434_RC441_LIVE_CONTRACT_RECHECK_20261124.md",
       "docs/audits/PASS_2231_2240_RC442_RC451_LIVE_CONTRACT_RECHECK_20261124.md",
       "docs/audits/PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md",
-      "docs/audits/PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md"
+      "docs/audits/PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md",
+      "docs/audits/PASS_2281_2290_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md",
+      "docs/audits/PASS_2291_2300_RC446_RC456_RC463_RC525_LIVE_RECHECK_20261124.md"
     ],
-    "rc113_rc117_report": "docs/audits/PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md"
+    "rc113_rc117_report": "docs/audits/PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md",
+    "rc102_rc106_report": "docs/audits/PASS_2281_2290_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md",
+    "rc446_rc456_rc463_rc525_report": "docs/audits/PASS_2291_2300_RC446_RC456_RC463_RC525_LIVE_RECHECK_20261124.md"
   }
 }
