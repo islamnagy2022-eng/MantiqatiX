@@ -38,10 +38,11 @@ Read-only pg_proc / effective EXECUTE checks found 65 public SECURITY DEFINER fu
 | search_path classification | Count |
 |---|---:|
 | Explicit empty path (search_path='') | 18 |
-| Other pinned path (public or public, pg_temp) | 47 |
+| public only | 30 |
+| public, pg_temp | 17 |
 | Unset path | 0 |
 
-No exposed function in this 65-function set had an unset search_path. The 47 non-empty paths remain a hardening/review queue, not 47 proven exploit paths. Source review must confirm object names are schema-qualified, dynamic SQL is safe, caller identity and tenant/business/branch authorization are enforced, and any temp-object risk is excluded before changing the path to empty.
+No exposed function in this 65-function set had an unset search_path. The 47 non-empty paths remain a hardening/review queue, not 47 proven exploit paths. The live split is 30 functions pinned to public and 17 pinned to public, pg_temp. Prioritize the 17 public, pg_temp entries for adversarial temp-object review; mnty_can_platform_admin() is a known P0 because it also delegates to the unscoped membership helper. Source review must confirm object names are schema-qualified, dynamic SQL is safe, caller identity and tenant/business/branch authorization are enforced, and any temp-object risk is excluded before changing the path to empty.
 
 Only one exposed SECURITY DEFINER function is executable by raw anon: get_mnty_targeted_advertisements. It has search_path='' and reads only active, approved advertisement rows, applies geographic/ad-space matching, caps output at 50, and returns public creative/target fields. This is an intentional public ad-discovery RPC in the current contract; do not revoke it without a replacement public route.
 
