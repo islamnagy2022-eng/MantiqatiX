@@ -4247,3 +4247,48 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] RC453 campaign tables, four indexes, and five exact RPC signatures absent in Production. Source is an internal campaign workflow and does not publish externally to Meta/TikTok/Google.
 - [x] Evidence: `PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md`.
 - [x] No Production change; migration ledger remains 310 rows through `20261110150618`.
+
+
+## 2026-11-24 — RC463–RC478 live source/security reconciliation
+- [x] RC463 has one trigger-only SECURITY DEFINER function still on `search_path=public, auth`; the second is empty-path. RC464/RC471 root helper still calls legacy `mnty_can('admin',NULL,NULL,NULL)` rather than private registry.
+- [x] RC465/RC466 order, history, business, branch, warehouse and inventory policies remain tenant-only. RC467 commission preview path is public; RC468 claim/release paths are public, pg_temp and finalizer absent; all four RC469 shared callers have non-empty path.
+- [x] RC470 table/columns/index present, but webhook function path/body guards fail source postconditions. RC472 index/RPC absent; RC473 consent table absent; RC474 branch check absent; RC475 three webhook processors absent; RC476 path drift; RC477 full bid row is serialized; RC478 lacks anonymous/verified/available captain gate.
+- [x] Evidence: `PASS_2251_2260_RC463_RC478_LIVE_SECURITY_RECHECK_20261124.md`.
+
+## 2026-11-24 — RC479–RC484 live public-data and legal/admin root reconciliation
+- [x] RC479 anon SELECT still enabled on provider-profile base table and the confirmed-auth restrictive policy absent. RC480 anon can SELECT all 19 digital_pages columns rather than ten allowlisted fields.
+- [x] RC481 service_role select column grants absent; RC482 legal admin helper still not registry-backed and zero-argument overload remains; public Legal admin assertion absent; RC483 both atomic CMS create RPCs absent.
+- [x] RC484 platform_admins FORCE RLS false; public.is_platform_admin() remains SECURITY INVOKER/search_path=public and membership-derived.
+- [x] Evidence: `PASS_2261_2270_RC479_RC484_PUBLIC_LEGAL_ROOT_RECHECK_20261124.md`.
+- [x] No Production changes; ledger remains 310 rows through `20261110150618`.
+
+
+## 2026-11-24 — RC485–RC496 catalog, Auth, Storage, finance and MantiGO state recheck
+- [x] RC485 catalog RPCs remain legacy and do not call registry root; RC486 unique price index absent and allocator has no advisory lock.
+- [x] RC487 SECURITY DEFINER first-user SMM admin bootstrap and auth.users trigger remain live; RC488 confirmed-Auth Storage restrictive policies absent.
+- [x] RC489 all 15 financial tables already force RLS, but confirmed-session SELECT guards absent; RC490 medical, RC491 support, RC492 InDrive and RC493 CRM/project/notification restrictive policies absent despite RLS/FORCE RLS.
+- [x] RC494 settlement writer service_role-only but tenant membership-derived rather than registry-root; RC495 old storage branding role policies/filename expressions remain; RC496 ride lock present but target bid OFFERED validation and unique winner index absent.
+- [x] Evidence: `PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md`.
+- [x] No Production mutation; ledger remains 310 rows through `20261110150618`.
+
+
+## 2026-11-24 — RC485–RC496 catalog, SMM, anonymous Auth, settlement and MantiGO recheck
+- [x] RC485 catalog functions remain on old path and no registry helper calls; RC486 lacks unique version index and transaction lock; RC487 first-user SMM admin trigger still inserts the first Auth signup when allowlist empty.
+- [x] RC488–493 restrictive confirmed-auth controls absent across storage writes, 15 financial tables, medical, support, InDrive, CRM, projects and notifications. Financial tables still have RLS+FORCE RLS and permissive authenticated reads; guards are separate and missing.
+- [x] RC494 lacks settlement business_id column/index, registry authority and business_id population; RC495 storage brand admin policies remain membership-based; RC496 locks ride row but does not check target bid OFFERED state and lacks unique one-winner index.
+- [x] Evidence: `PASS_2271_2280_RC485_RC496_CATALOG_AUTH_SETTLEMENT_MANTIGO_RECHECK_20261124.md`.
+- [x] Read-only audit only; Production ledger remains 310 rows through `20261110150618`; no Production mutation.
+
+
+## 2026-11-24 — RC921–RC925 medical, agreement and catalog live read-back
+- [x] Medical appointment RPC remains legacy: exact tenant membership with nullable business scope, no assigned verified-provider profile binding, no complete state matrix or independent patient cancellation, search_path=public, pg_temp.
+- [x] Agreements participant policy compares `ap.agreement_id=ap.id` instead of parent `agreements.id`; restrictive confirmed-auth agreement policy absent; Legal admin helper still membership-derived and zero-argument overload remains.
+- [x] All seven RC925 catalog RPCs remain SECURITY DEFINER/search_path=public and do not call registry helper. Four retain COALESCE claim checks, three no claim guard, zero positive-false missing-claim-deny guards. RC925 source CI passed but remains unapplied in Production.
+- [x] Production ledger remains 310 rows through `20261110150618`; no live writes. Evidence: `PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md`.
+
+
+## 2026-11-24 — RC921–RC924 medical/catalog/Legal read recheck
+- [x] Live medical status RPC remains old membership-only function: row lock present but no RC921/922 state machine or assigned-provider ownership/profile-status check; path is public, pg_temp.
+- [x] Live three RC923 catalog RPCs remain path public, without registry helper or anonymous claim guard; price lock/index absent; registry helper precondition not satisfied.
+- [x] Live Legal UUID and zero-argument helpers remain membership-derived; RC924 restrictive confirmed-auth policy absent and participant read policy uses `ap.agreement_id = ap.id`, not `agreements.id`.
+- [x] Evidence: `PASS_2281_2290_RC921_RC924_MEDICAL_CATALOG_LEGAL_RECHECK_20261124.md`; read-only only, no Production changes.
