@@ -215,3 +215,20 @@ These counts do not prove the absence of historical records in other stores or b
 3. Design partner legal-profile fields and evidence storage around the verified canonical business ID and existing Legal Center, without reusing consent as a substitute for signatures.
 4. Implement partner lifecycle and publication gate before product attribution.
 5. Keep the order/referral workflow as a direct-to-partner handoff; never call product payment-intent creation or platform settlement for partner goods.
+
+
+## 11. RC924 agreement participant read-scope repair — source added, CI pending
+
+On 2026-11-24, added an isolated forward migration and PostgreSQL 17 adversarial test suite on the feature branch:
+
+- Migration: `supabase/migrations/20261124140000_rc924_agreement_participant_read_scope.sql`.
+- Fixture: `supabase/tests/rc924_agreement_participant_read_scope_fixture.sql`.
+- Integration assertions: `supabase/tests/rc924_agreement_participant_read_scope_integration.sql`.
+- Static contract validator: `scripts/validate-rc924-agreement-participant-read-scope.mjs`.
+- Workflow: `.github/workflows/rc924-agreement-participant-read-scope.yml`.
+
+The replacement policy correlates `agreement_participants.agreement_id` to `agreements.id`, requires the authenticated non-anonymous actor, preserves the protected platform-admin check, and permits a participant to read their own agreement. No role grants, table definitions, row data or other policies are changed by the migration.
+
+Fixture cases cover two independent partner users, an unrelated authenticated user, an anonymous-authenticated JWT, and the protected platform-admin registry actor. The fixture reproduces the old predicate before applying RC924.
+
+**Status:** source added; static and PostgreSQL 17 CI results are not yet confirmed. Do not mark the fix accepted or apply it to Production until the workflow passes and the full forward migration replay is green. No Production DDL/DML/RLS/GRANT was performed.
