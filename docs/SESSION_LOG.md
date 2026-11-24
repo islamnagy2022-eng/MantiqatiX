@@ -1,3 +1,14 @@
+## 2026-11-24 — RC479 / RC488 / RC489 live Production recheck
+
+- `marketing_provider_profiles`: RLS + FORCE RLS on; anon and authenticated SELECT granted; public ACTIVE whole-row policy still includes anon; RC479 restrictive confirmed-auth policy absent.
+- `storage.objects`: RLS on; RC488 restrictive INSERT/UPDATE/DELETE guards all absent. Existing authenticated write policies use COALESCE predicates that permit a missing `is_anonymous` claim. Preserve bucket-scoped public read for `mantiqatix-profile-media`.
+- Financial read boundary: 15 target tables exist; RC489 confirmed-auth restrictive guard absent on all 15. Raw anon SELECT denied on all; authenticated SELECT granted on 12 and denied by ACL on 3. This shows an unguarded authenticated-role policy path, not proven unauthorized data retrieval.
+- Fresh Advisor snapshot: 9 RLS-no-policy INFO, 1 anon-callable SECURITY DEFINER WARN, 65 authenticated-callable SECURITY DEFINER WARN, leaked-password protection disabled, 90 anonymous-session policy findings.
+- Evidence: `docs/audits/PASS_2131_2140_RC479_RC488_RC489_LIVE_PRODUCTION_RECHECK_20261124.md`.
+- No Production mutation occurred. Keep RC479/RC488/RC489 in the coordinated 81-migration release after backup/restore and approval.
+
+---
+
 ## 2026-11-24 — RC485 / RC923 live catalog RPC authorization recheck
 
 - Read-only Production query: all seven catalog SECURITY DEFINER RPCs remain on `search_path=public`, use tenant membership authorization, and do not use the registry-backed root helper. All deny direct anon EXECUTE and allow authenticated EXECUTE.
