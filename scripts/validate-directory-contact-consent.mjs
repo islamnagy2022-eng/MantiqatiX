@@ -25,12 +25,25 @@ const release = JSON.parse(readFileSync("docs/release/production-migration-recon
 const releaseContract = readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
 const directoryBoundary = release.directory_contact_consent_boundary;
 const directoryBoundaryEvidenceValid = directoryBoundary?.status === "BLOCKED"
-  ? directoryBoundary.live_function?.version === 16 &&
+  ? directoryBoundary.live_function?.version === 18 &&
+    directoryBoundary.live_function?.status === "ACTIVE" &&
+    directoryBoundary.live_function?.verify_jwt === false &&
+    directoryBoundary.live_function?.deployed_bundle_sha256 === "bb65d74325f8bdf08f060f7ae2517bb30901630635d1de4f35523d7cef6afe48" &&
     directoryBoundary.live_function?.complete_bundle_match === false &&
-    directoryBoundary.live_function?.missing_live_files?.includes("consent-pagination.mjs") &&
+    directoryBoundary.live_function?.required_files_present === false &&
+    directoryBoundary.live_function?.directory_disabled_by_default === true &&
+    directoryBoundary.live_function?.public_get_returns_empty_page === true &&
+    directoryBoundary.live_function?.post_returns_503 === true &&
+    directoryBoundary.live_function?.returns_contact_fields_without_consent === false &&
+    directoryBoundary.live_function?.live_source_files?.length === 1 &&
+    directoryBoundary.live_function?.live_source_files?.includes("index.ts") &&
+    directoryBoundary.live_function?.missing_live_files?.includes("contact-consent-pagination.mjs") &&
     directoryBoundary.consent_table_exists === false &&
     directoryBoundary.consent_table?.exists === false &&
-    directoryBoundary.published_contact_rows_without_consent_exposure > 0
+    directoryBoundary.source_rights_registry?.exists === true &&
+    directoryBoundary.source_rights_registry?.rows === 0 &&
+    directoryBoundary.published_contact_rows_without_consent_exposure === 0 &&
+    directoryBoundary.registry_outage_fail_closed === true
   : directoryBoundary?.status === "PASS"
     ? directoryBoundary.live_function?.exact_source_match === true &&
       directoryBoundary.live_function?.complete_bundle_match === true &&

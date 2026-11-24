@@ -38,12 +38,12 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Keep leaked-password protection marked NOT AVAILABLE/NOT VERIFIED while the current plan does not expose the setting.
 
 ### P0.3 Directory and public-contact consent
-- [ ] Keep `directory-listings` fail-closed.
-- [ ] Reconcile RC472/RC473 consent schema, owner grant/revoke/expiry audit and matching Edge bundle.
-- [ ] Require source/republication rights before importing or publishing directory listings.
-- [ ] Test no-consent, revoked-consent and explicitly consented public projection; omit phone, address and precise location unless their individual consent scopes are present.
-- [ ] Deploy DB + Edge only as a coordinated versioned unit after exact-head CI and evidence review.
-**Live evidence:** consent registry absent; source-permission evidence count is zero; deployed `directory-listings` v18 is fail-closed.
+- [x] Keep `directory-listings` fail-closed: verified Production v18 is a single-file stub; GET returns an empty page with `directoryDisabled=true` and POST returns 503. No unconsented rows are exposed through this endpoint.
+- [x] Reconcile RC472/RC473 schema, owner grant/revoke/expiry source contract and deployed Edge bundle read-only. RC472 claim-review RPC and null-safe membership index are absent; RC473 contact-consent table is absent; current deployed Edge v18 has only `index.ts` and is fail-closed. Evidence: `docs/audits/P0_3_DIRECTORY_CONSENT_LIVE_RECHECK_20261124.md`.
+- [x] Verified the current non-doctor publication contract is an explicit allowlist: business, clinic, pharmacy, medical_center, hospital, laboratory and health_provider; unknown/missing types fail closed. The doctor-profile republication evidence gate is distinct and has 0 approved rows. Contact fields remain separately gated by RC473 scope consent. Do not expand the allowlist without separate review.
+- [x] Current-source/isolated tests cover no-consent, revoked-consent and explicitly consented field-by-field public projections; phone, address and precise location require their individual consent scopes. These are source/isolated tests, not deployed-origin evidence.
+- [ ] Deploy DB + Edge only as a coordinated versioned unit after exact-head CI, source-rights evidence, encrypted backup/restore and deployed-origin negative/positive tests.
+**Live evidence:** 869 listings are marked PUBLISHED and contain phone/address data, but deployed Edge v18 returns an empty fail-closed page. The RC473 registry is absent; source-rights evidence registry exists with zero rows.
 
 ## P1 — Database and backend contracts
 ### P1.1 Migration reconciliation
@@ -71,7 +71,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 ## P2 — Core public site (zero-cost code and CI)
 - [ ] Verify root, `/legacy/`, direct route refresh, 404/error/empty/loading states and mobile/desktop layouts.
 - [ ] Preserve Activity → Specialty, all-Egypt default search, GPS nearest-first only with permission, and 20-item pagination + See More.
-- [x] Merged SEO-only PR #1033 at `34a072312b29e613fb95a39050bb499eedabc786`; exact-head CI 34/34 passed, including the route metadata contract. Pages deployment from this main commit is pending verification. Scope is SPA metadata plus a root-only sitemap; no SSR/prerender or dynamic catalogue sitemap is claimed.
+- [x] Merged SEO-only PR #1033 at `34a072312b29e613fb95a39050bb499eedabc786`; exact-head CI 34/34 passed, including the route metadata contract. Pages deployment is verified by run 45413600172 (main @ 016a8952513ac860b9248c6b561e6cf9216c3f2e): production root, /legacy rollback, /v6-preview, brand assets, and deployed-origin browser E2E passed. Scope is SPA metadata plus a root-only sitemap; no SSR/prerender or dynamic catalogue sitemap is claimed.
 - [ ] Keep storefront gallery PR #978 draft until rebased and proven compatible with live catalog-admin/public-catalog contracts.
 - [x] Merged Marketing button regression PR #1032 at `f317a69fe186da7bff560657e161951e8794e81f`; Playwright verified the official persisted business UUID at 390px and 1440px with no horizontal overflow.
 - [ ] Verify logo, cover, favicon, PWA/install icon and Open Graph assets against the existing brand source.
@@ -123,7 +123,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 ## Latest verified status — 2026-11-24
 - [x] Zero-cost execution board is merged and remains the active priority queue.
 - [x] Marketing button responsive routing regression merged and verified.
-- [x] SEO-only route metadata/canonical-root guard merged; exact-head CI passed 34/34. Main Pages deployment is still pending verification.
+- [x] SEO-only route metadata/canonical-root guard merged; exact-head CI passed 34/34. Main Pages deployment is verified by run 45413600172; catalog root, /legacy rollback, /v6-preview and deployed-origin browser E2E passed. This is catalog-pilot deployment only, not full platform certification.
 - [x] Live Edge entrypoint comparison recorded; 9 critical mismatches remain and no Edge deployment was made.
 - [x] Live P0 authorization and seven catalog-RPC contracts rechecked read-only on 2026-11-24; exact evidence in `PASS_2071_2080`.
 - [x] Anonymous Auth/SECURITY DEFINER Advisor snapshot refreshed read-only; 9 no-policy tables have no client grants, 47 exposed authenticated definers still use non-empty pinned search paths; full policy test matrix remains open under #928.
@@ -160,3 +160,21 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - Branch head `7b585ba393ee076aabf04671ac9da21a69598f95` passed exact-head platform-admin scope run 45411811229, RC464 + RC479 run 45411811351, PG17 parity run 45411811012, full forward replay run 45411811582, module professionalization run 45411811026, RC493 run 45411811175, directory claim atomicity run 45411810983, financial journal/backend audit run 45411811536, MantiGO privacy run 45411811109 and RC425 atomicity run 45411811613. All required jobs succeeded; Pages validate passed but deploy and validate_public_only were skipped because this was a PR event, so no website deployment is claimed.
 - The inactive tenant SUPER_ADMIN test was included in the above exact-head suite; old metadata does not restore global authority and the actor is denied on all covered global helper callers.
 - Production remains read-only and live helpers/RLS/Storage guards remain uncorrected until the coordinated, backup-backed release. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+## 2026-11-24 — P0.3 directory consent live recheck
+- [x] Verified RC472 claim-review RPC and null-safe owner index are absent from Production; claim queue has one REVIEWING row (aggregate only).
+- [x] Verified RC473 contact-consent table is absent and its migration ID is absent from the live ledger; source migration/test contracts were reviewed.
+- [x] Verified directory_source_permission_evidence exists with RLS + FORCE RLS, service-role-only grants, and 0 total/approved evidence rows.
+- [x] Verified public_directory_listings and directory_listing_claim_requests have RLS + FORCE RLS and no direct anon/authenticated SELECT; aggregate inventory is 965 total / 869 PUBLISHED / 87 DRAFT / 9 HIDDEN, with 568 published doctor rows.
+- [x] Retrieved deployed Edge source: directory-listings v18, ACTIVE, verify_jwt=false, one file only, SHA-256 bb65d74325f8bdf08f060f7ae2517bb30901630635d1de4f35523d7cef6afe48; GET empty with directoryDisabled=true, POST 503. It does not return listing/contact rows.
+- [x] Corrected the release manifest and validator from stale v16 live metadata to the current v18 fail-closed evidence.
+- [x] Verified current source contract: non-doctor types use the explicit allowlist (business, clinic, pharmacy, medical_center, hospital, laboratory, health_provider); doctor republication uses the separate evidence registry, and all contact disclosure still requires the matching RC473 scope.
+- [ ] Complete exact-head RC472/RC473/source-contract CI, owner consent workflow tests, then coordinated backup-backed DB + Edge release and deployed-origin tests. Production remains read-only.
+
+
+## 2026-11-24 — Catalog pilot Pages deployment verified
+- [x] Main push deployment run 45413600172 on commit 016a8952513ac860b9248c6b561e6cf9216c3f2e completed successfully. `CATALOG_PILOT_GATE=PASS`; the run explicitly recorded `FULL_PLATFORM_GATE=BLOCKED` and allowed only the scoped catalog frontend.
+- [x] Public root deployed at https://islamnagy2022-eng.github.io/MantiqatiX/; /legacy/ rollback path and /v6-preview/ alias deployed and verified. First-party logo/cover assets passed root + preview checks.
+- [x] Deployed-origin browser E2E passed: catalog/search pagination, marketing button at 390px/1440px, admin and employee role views, direct route refresh, QR/permanent links, GPS consent/manual fallback, storefronts, and axe checks with no critical/serious violations.
+- [x] Deployment validation passed Google OAuth handshake, public catalog/Qadam storefront smoke, CORS, public sponsored ads contract, legacy directory-disabled guard and production catalog scope checks.
+- [ ] Full platform remains BLOCKED / NOT CERTIFIED. No Supabase migration, Auth/RLS/GRANT, Storage, Edge Function, payment, webhook, settlement or partner-finance release was included in this Pages deployment.
