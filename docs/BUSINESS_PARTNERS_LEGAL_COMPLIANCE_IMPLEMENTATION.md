@@ -178,3 +178,40 @@ Further source inspection after the initial reconnaissance found:
 - Existing personal `referral_codes/referral_events` must remain distinct from company/product attribution. Existing `orders` and payment-intent workflows are payment-enabled in some sectors, so partner referral orders must use an explicit direct-to-partner handoff and must not invoke platform payment-intent creation for product proceeds.
 
 This inventory changes the implementation sequence: finish a read-only, column-level live schema/RPC/Edge/ACL inventory of `agreements`, `business_referral_events`, `provider_onboarding_requests`, catalog ownership and order/payment contracts before selecting exact extension points. No schema changes are safe until this inventory is complete.
+
+
+## 10. Read-only Production schema and authorization findings — 2026-11-24
+
+Target inspected: Supabase project `MANTIQATIX FINAL` (`moyhiluyhjsujhwlyeuu`), PostgreSQL 17.6.1.155. Queries were SELECT-only. No production writes were performed.
+
+### Confirmed reusable structures
+- `agreements`: `id, tenant_id, agreement_type, document_id, document_version_id, business_id, status, effective_at, created_by, created_at, metadata`. Status constraint: PENDING / ACTIVE / SUSPENDED / EXPIRED / TERMINATED. It links to legal document/version and canonical business/tenant.
+- `agreement_participants`: `agreement_id, user_id, account_type, participant_role, status, joined_at, left_at, metadata`; statuses PENDING / ACTIVE / DECLINED / SUSPENDED / TERMINATED. FK to agreements and auth.users.
+- `business_referral_codes` and `business_referral_events`: existing business-owned referral code and event records. Event types are SCAN / VISIT / SIGNUP / LEAD / ORDER. These do not yet provide the requested order state machine, product/campaign attribution, order reference, commission eligibility snapshot or immutable per-order status lifecycle.
+- `catalog_items`: canonical tenant/business/branch-owned product/service inventory with `item_type, name_ar, description, status, tax_rate, metadata`; prices live in `catalog_item_prices`. Do not create a parallel catalog.
+- `orders`: canonical business/tenant/branch order with customer contact/address, items JSON, subtotal, discount, tax, delivery fee, total, payment/pricing binding and assigned partner. Existing status workflow is narrower than requested partner referral workflow.
+- `commission_transactions`: currently keyed to tenant/business/order and commission rule, with gross amount, commission amount and status. It is not yet proven to contain the full signed-contract basis snapshot, fee categories, invoice/paid/disputed/reversed lifecycle and tax treatment required by this request.
+- `commission_rules`: already has draft/approval/version/effective-window/eligibility-event fields and preview/resolution RPCs. Reuse only after validating the live rule engine and binding it to an immutable agreement version.
+- Legal Center tables and Edge functions already support legal document/version publication, consent and admin controls. They do not by themselves prove counterpart signature capture or partner-specific commercial terms.
+
+### Confirmed authorization findings
+- `agreements` and `agreement_participants` have RLS enabled and FORCE RLS enabled; anon SELECT is false. Their current policies include admin writes and participant reads.
+- **Critical existing policy defect:** the `agreements_participant_read` policy tests `agreement_participants.agreement_id = agreement_participants.id` rather than matching `agreement_participants.agreement_id = agreements.id`. This prevents the intended participant membership check from matching the parent agreement. A participant may therefore be unable to read their own agreement. Fix requires a dedicated, reviewed migration and regression fixture/integration test; do not edit Production directly.
+- `business_referral_codes` and `business_referral_events` have RLS + FORCE RLS and no direct anon/authenticated table privileges; access is through RPCs. Member-read policies are scoped by active business membership.
+- `catalog_items` and `catalog_item_prices` have RLS + FORCE RLS and no direct anon/authenticated table privileges; server-side catalog APIs remain the intended write/read boundary.
+- `orders` has RLS + FORCE RLS, no anon SELECT, no direct authenticated INSERT/UPDATE table privileges, and business/tenant-scoped read policies. Order writes/status changes use trusted server-side functions.
+- `commission_transactions` has RLS + FORCE RLS, no direct authenticated writes, and finance-role tenant read policy.
+- Existing SECURITY DEFINER functions found include `track_business_referral_event`, `get_or_create_business_referral_profile`, `update_order_status_backend`, commission creation/resolution and Legal Gate triggers. Some legacy definitions use `search_path=public`; any new/modified privileged routine must use the current project's approved hardened pattern and exact grants, not copy older implementations.
+
+### Production row counts observed
+- `agreements`: 0 rows.
+- `agreement_participants`: 0 rows.
+- `business_referral_events`: 0 rows.
+These counts do not prove the absence of historical records in other stores or branches; they are the exact counts observed in this read-only check.
+
+### Updated next actions
+1. Add a focused security fix for the agreement participant read policy with a fixture and live-contract validator; keep it source-only until release gates permit.
+2. Complete schema/ACL inspection of `business_referral_codes`, legal gate requirements, catalog public projections and all payment-intent creation paths.
+3. Design partner legal-profile fields and evidence storage around the verified canonical business ID and existing Legal Center, without reusing consent as a substitute for signatures.
+4. Implement partner lifecycle and publication gate before product attribution.
+5. Keep the order/referral workflow as a direct-to-partner handoff; never call product payment-intent creation or platform settlement for partner goods.
