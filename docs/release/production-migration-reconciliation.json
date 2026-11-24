@@ -6010,5 +6010,161 @@
     "production_mutation": "NONE",
     "report": "docs/audits/PASS_2211_2220_RC425_RC432_LIVE_CONTRACT_RECHECK_20261124.md",
     "disposition": "PAYMENT_SUBSCRIPTION_MANTIGO_PAYMENT_AND_SMM_WALLET_PATHS_BLOCKED"
+  },
+  "rc434_rc441_live_contract_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_DIFF_CONFIRMED",
+    "checked_at": "2026-11-24",
+    "migrations": [
+      {
+        "version": "20261009200000",
+        "code": "RC434",
+        "required": [
+          "receive_purchase_stock_atomic_backend(varchar,varchar,uuid,varchar,varchar,varchar,uuid,numeric,numeric,uuid)"
+        ],
+        "live": {
+          "rpc_present": false
+        },
+        "disposition": "BLOCKED"
+      },
+      {
+        "version": "20261009210000",
+        "code": "RC435",
+        "required": [
+          "subscription_payment_intents.provider_creation_state",
+          "subscription_payment_intents.provider_creation_claimed_at",
+          "subscription_payment_intents_provider_creation_state_check",
+          "create_subscription_payment_intent_claimable_backend(uuid,text,text,text,text,uuid)",
+          "claim_subscription_provider_intent_creation_backend(uuid,uuid)"
+        ],
+        "live": {
+          "columns_present": false,
+          "check_constraint_contract_present": false,
+          "claimable_rpc_present": false,
+          "claim_rpc_present": false
+        },
+        "disposition": "BLOCKED"
+      },
+      {
+        "version": "20261009220000",
+        "code": "RC436",
+        "required": [
+          "journal_entries.entry_number",
+          "journal_entries.total_debit",
+          "journal_entries.total_credit",
+          "journal_entries.posted_at",
+          "journal_entry_lines.line_number",
+          "journal_entries_tenant_entry_number_uidx",
+          "journal_entry_lines_entry_line_uidx",
+          "post_financial_journal_atomic_backend(uuid,jsonb,jsonb)"
+        ],
+        "live": {
+          "columns_present": 0,
+          "columns_checked": 5,
+          "indexes_present": 0,
+          "indexes_checked": 2,
+          "rpc_present": false
+        },
+        "disposition": "BLOCKED"
+      },
+      {
+        "version": "20261009230000",
+        "code": "RC437",
+        "required": [
+          "erp_purchase_order_lines",
+          "erp_purchase_orders_business_order_number_uidx",
+          "erp_purchase_order_lines_scope_idx",
+          "erp_purchase_order_lines_read_member",
+          "set_purchase_order_lines_backend(varchar,varchar,uuid,jsonb,uuid)",
+          "receive_purchase_stock_with_order_line_backend(varchar,varchar,uuid,varchar,varchar,varchar,uuid,numeric,numeric,uuid)"
+        ],
+        "live": {
+          "table_present": false,
+          "indexes_present": 0,
+          "indexes_checked": 2,
+          "policy_present": false,
+          "rpcs_present": 0
+        },
+        "disposition": "BLOCKED"
+      },
+      {
+        "version": "20261009240000",
+        "code": "RC438",
+        "required": [
+          "create_purchase_order_with_lines_backend(varchar,varchar,uuid,varchar,varchar,varchar,numeric,numeric,text,jsonb,uuid)",
+          "update_purchase_order_status_backend(varchar,varchar)"
+        ],
+        "live": {
+          "create_rpc_present": false,
+          "status_rpc_present": true,
+          "status_rpc_security_definer": true,
+          "status_rpc_search_path": "public",
+          "status_rpc_acl": {
+            "anon": false,
+            "authenticated": false,
+            "service_role": false
+          }
+        },
+        "disposition": "BLOCKED"
+      },
+      {
+        "version": "20261010010000",
+        "code": "RC439",
+        "required": [
+          "subscription_payment_intents.client_secret_ciphertext",
+          "subscription_payment_intents.client_secret_iv",
+          "subscription_payment_intents.client_secret_key_version",
+          "subscription_payment_intents_checkout_secret_ciphertext_check"
+        ],
+        "live": {
+          "columns_present": 0,
+          "columns_checked": 3,
+          "constraint_contract_present": false
+        },
+        "disposition": "BLOCKED"
+      },
+      {
+        "version": "20261010020000",
+        "code": "RC440",
+        "required": [
+          "At migration time, change exposed public SECURITY DEFINER functions whose function-level search_path is exactly public to public, pg_temp"
+        ],
+        "live": {
+          "current_candidates": 30,
+          "anon_executable": 0,
+          "authenticated_executable": 30,
+          "interpretation": "Current-state candidates only; not a reconstruction of the set that existed when the historical migration executed."
+        },
+        "disposition": "HISTORICAL_DYNAMIC_EFFECT_REQUIRES_TIMESTAMP_AWARE_RECONCILIATION"
+      },
+      {
+        "version": "20261010030000",
+        "code": "RC441",
+        "required": [
+          "mnty_can_platform_admin()",
+          "get_mantigo_admin_dashboard_backend(uuid)",
+          "get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz)",
+          "settle_mantigo_captain_backend(uuid,text,text)",
+          "expire_stale_mantigo_rides_backend(uuid,integer)"
+        ],
+        "live": {
+          "routines_present": 5,
+          "security_definer": 5,
+          "search_path_nonempty": 5,
+          "anon_execute": 0,
+          "authenticated_execute": 5,
+          "service_role_execute": 0,
+          "explicit_MNTY_PLATFORM_scope_contract": false
+        },
+        "disposition": "PRESENT_CONTRACT_BLOCKED"
+      }
+    ],
+    "production_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "source_required_versions": 82,
+      "exact_source_version_matches": 0
+    },
+    "production_mutation": "NONE",
+    "report": "docs/audits/PASS_2221_2230_RC434_RC441_LIVE_CONTRACT_RECHECK_20261124.md"
   }
 }
