@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
-**Base:** `main @ ed2f36ea61c0099619613c1d3e0bd4746a570bd4`  
+**Updated:** 2026-11-24 — 82-migration crosswalk, 45 live migration checks and P0 authorization findings  
+**Base:** `main @ 9325d7334cac569f8daf6cf8b87b6f1bbd29e969`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -55,7 +55,8 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Refreshed all 76 previously tracked physical object contracts against Production on 2026-11-24 (tables, indexes, functions, columns, triggers): 35 present / 41 absent, zero status changes since the 2026-11-20 snapshot. Breakdown is in `docs/audits/PASS_2091_2100_PHYSICAL_OBJECT_REFRESH_20261124.md`.
 - [x] Added a focused live physical-effect sample: 18 relations (13 present / 5 absent), 12 indexes (3 present-valid / 9 absent), 17 columns (2 present / 15 absent), and 15 function families (11 absent / 4 present but contract-blocked). This is a timestamped 81-version pre-RC925 snapshot, not the full 82-version crosswalk. See `docs/audits/PASS_2161_2170_CURRENT_81_MIGRATION_PHYSICAL_EFFECT_RECHECK_20261124.md`.
 - [x] Confirmed three exact source-to-ledger SQL aliases by byte comparison and classified five historic baseline families as partial; no ledger repair or SQL replay occurred. See `docs/audits/PASS_2171_2180_HISTORICAL_MIGRATION_ALIAS_AND_PARTIAL_EFFECT_RECONCILIATION_20261124.md`.
-- [ ] Complete classification of all 82 required migrations by physical effect: exact-present, alias/effect-present, safe-to-replay, superseded/forward-fixed or blocked. Three exact aliases and five partial historic baselines are known; full crosswalk remains outstanding.
+- [x] Built `docs/release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md` from the canonical 82-file release list. 26 earlier migrations (RC425–RC453) now have fresh live audits; 19 later migrations (RC484, RC479 forward repair, RC485–RC496, RC921–RC925) were also source-reviewed and checked. Total: 82/82 with fresh live evidence.
+- [ ] Refresh the remaining 37 earlier source rows and expand beyond the curated 76-object sample to every policy, constraint, trigger, overload, owner, ACL and transitive Edge dependency.
 - [ ] Complete the broader migration→physical effect/alias map beyond these 76 contracts: reconcile all remaining functions, policies, ACLs, indexes, triggers and constraints; 0/82 exact ledger matches is not proof all effects are absent.
 - [x] Run full chronological forward replay from the captured Production schema checkpoint; exact-head run 45407602805 passed after 117 forward migrations and ordered integration jobs. This is not a live Production restore/deployment.
 - [ ] Never blindly replay the release chain on Production.
@@ -214,6 +215,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Rechecked the 22 matched function entries: 21 SECURITY DEFINER / 1 SECURITY INVOKER; 13 empty search_path / 9 non-empty; anon EXECUTE 0, authenticated EXECUTE 19, service_role EXECUTE 2. A name-only match is not treated as exact signature/body parity.
 - [x] Reconfirmed key present-but-blocked objects: `private.platform_admins` FORCE RLS remains off; `public.is_platform_admin()` remains SECURITY INVOKER/search_path=public and membership-derived; `public.mnty_can_platform_admin()` remains SECURITY DEFINER/search_path=public, pg_temp.
 - [x] Reconfirmed Production ledger at 310 rows through `20261110150618`; no database, ACL, RLS, Auth, Storage, Edge, payment or business-data write occurred.
+- [x] Preserved object-by-object read-back for all 76 curated objects: 35 present / 41 absent. Presence remains separate from semantic contract verification; see `docs/audits/PASS_2251_2260_76_OBJECT_DETAILED_PRESENCE_20261124.md`.
 - [ ] Expand the curated 76-object sample into the full physical-effect/alias map for all 82 required source versions, including every policy, constraint, trigger, overload and transitive Edge dependency.
 
 
@@ -243,3 +245,38 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] RC453 internal marketing campaign feature is absent from Production: both campaign tables, all four indexes, and five exact RPC signatures are absent. The source describes an internal workflow only, not an external Meta/TikTok/Google publishing integration.
 - [x] Evidence: `docs/audits/PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md`.
 - [ ] Keep CRM scope and campaign features gated until the ordered migration, RLS, RPC, UI and deployed-origin contracts are verified.
+
+
+## 2026-11-24 — RC484–RC925 and detailed physical-object reconciliation
+- [x] Rebased the 82-migration crosswalk on current main `e7e0db29943ef843e43e25cc4ef31180f5a1817c`; the 26 older source migrations with fresh PASS 2211–2250 evidence are no longer marked historical in the crosswalk.
+- [x] Added 76 object-level physical-presence results (35 present / 41 absent) in `docs/audits/PASS_2251_2260_76_OBJECT_DETAILED_PRESENCE_20261124.md`.
+- [x] Added the 19 later RC484–RC925 live effect checks in `docs/audits/PASS_2261_2270_RC484_RC925_SOURCE_TO_LIVE_EFFECT_RECHECK_20261124.md`.
+- [x] RC925 executable guards already require explicit false; corrected its contradictory top comment and extended the static validator to prevent the stale fail-open description. No SQL behavior changed.
+- [ ] Complete fresh live effect checks for the remaining 37 earlier source migrations and full Edge dependency closure.
+
+
+## 2026-11-24 — RC113–RC117 control-center and employee live recheck
+- [x] RC113 role tables and indexes: tables have RLS+FORCE and no direct client grants; three registry-backed admin RPCs have empty search_path and narrow ACLs. The forward NULL-safe membership index is absent and remains blocked.
+- [x] RC114 employee tables/indexes and three employee RPCs are present with RLS+FORCE, no direct client table grants, empty search_path and anon EXECUTE denied.
+- [x] RC115/RC116 control-center functions are present with empty search_path and direct private.platform_admins checks; runtime tenant/branch behavior remains a separate test gate.
+- [x] RC117 default-image columns, triggers and helper are absent; default-image automation remains blocked.
+- [x] Evidence: `docs/audits/PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md`.
+
+
+## 2026-11-24 — RC102–RC106 and RC446/RC456/RC463/RC525 live recheck
+- [x] RC102 owner-manage policy exists but authenticated DML table grants are absent.
+- [x] RC103 live order-status RPC lacks exact branch match; RC104 live order-create RPC lacks cross-customer/business/branch idempotency-key conflict rejection.
+- [x] RC105/RC106 live order RPCs grant service_role EXECUTE but still require auth.uid() actor binding, so verified service-role Edge invocations cannot pass.
+- [x] RC446 live open-ride RPC lacks ACTIVE/VERIFIED/AVAILABLE captain-profile gate and remains search_path=public.
+- [x] RC456 all six SMM gateway tables still deny service_role access; gateway grants are absent.
+- [x] RC463 trigger ACLs are postgres-only and triggers are enabled, but assign_default_owner_to_unowned_business retains search_path=public, auth (partial).
+- [x] RC525 digital-page product admin policy still trusts active tenant SUPER_ADMIN/ADMIN without MNTY-PLATFORM/full_control scope.
+- [x] Evidence: `docs/audits/PASS_2281_2290_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md` and `docs/audits/PASS_2291_2300_RC446_RC456_RC463_RC525_LIVE_RECHECK_20261124.md`.
+
+
+## 2026-11-24 — Final earlier source migrations RC464–RC483 and Qadam seed
+- [x] Completed read-only live effect rechecks for RC464/464B/465/466/467/468/469/470; orders/history policy set is intact but remains tenant-wide, commission/payment/helper paths are partially or fully stale.
+- [x] Completed read-only live effect rechecks for RC471–RC478; MantiGO global admin, directory claim/consent, payment webhook, captain earnings/contact privacy and open-ride privacy remain blocked as recorded.
+- [x] Confirmed Qadam seed effects by aggregate counts only: business 1, owner membership 1, active branch 1, active products 15, active prices 12; no stock/orders fabricated. Exact migration ID remains absent from ledger.
+- [x] Completed RC479–RC483 live read-back: provider-profile anon SELECT remains, digital_pages anon column grants remain broad, Legal Edge grants are absent, Legal admin registry guard is absent, and atomic Legal CMS RPCs are absent.
+- [x] Evidence: `docs/audits/PASS_2301_2310_RC464_RC470_LIVE_EFFECT_RECHECK_20261124.md`, `docs/audits/PASS_2311_2320_RC471_RC478_LIVE_EFFECT_RECHECK_20261124.md`, `docs/audits/PASS_2321_2330_QADAM_RC479_RC483_LIVE_EFFECT_RECHECK_20261124.md`.
