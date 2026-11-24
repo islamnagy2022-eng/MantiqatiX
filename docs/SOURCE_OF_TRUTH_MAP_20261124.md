@@ -72,3 +72,9 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - [PASS 2271–2280](./audits/PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md) records the live table, index, RLS/FORCE RLS, function owner/search_path and effective ACL read-back for RC113–RC117.
 - RC113 foundation and RC114–RC116 sampled metadata contracts are present; RC113 NULL-safe membership index and RC117 default-image automation are absent. Runtime behavior is not inferred from metadata alone.
 - Current source-to-live map now has 51/82 migration sources with fresh live evidence; 31 earlier rows remain historical.
+
+
+## RC102–RC106 and RC446/RC456/RC463/RC525 read-back — 2026-11-24
+- [PASS 2281–2290](./audits/PASS_2281_2290_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md) records provider-service owner grants and order status/idempotency/service-role identity findings.
+- [PASS 2291–2300](./audits/PASS_2291_2300_RC446_RC456_RC463_RC525_LIVE_RECHECK_20261124.md) records MantiGO open-ride privacy, SMM service-role grants, trigger-only ACL and digital-page product admin scope.
+- The current 82-source crosswalk now has 60/82 migration sources with fresh live evidence; 22 earlier rows remain historical. Production remains read-only.
