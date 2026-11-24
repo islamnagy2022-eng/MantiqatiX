@@ -141,3 +141,7 @@
 4. Only then prepare the coordinated, explicitly approved Production release window.
 
 **Production mutations:** NONE.
+
+## Detailed current object read-back
+
+The 76-object curated register has object-by-object Production presence evidence in [PASS 2231–2240](../audits/PASS_2231_2240_76_OBJECT_DETAILED_PRESENCE_20261124.md). It is a sample, not a full physical-effect map for all 82 required migrations. Presence is not semantic parity.
