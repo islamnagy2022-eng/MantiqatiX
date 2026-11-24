@@ -1,6 +1,6 @@
 # Required 82-Migration Source-to-Live Effect Crosswalk — 2026-11-24
 
-**Repository baseline:** `main @ 2607227bce13ea2ee652c13f24d05565ff5400d6`
+**Repository baseline:** `main @ 9e6c62e25614d020eb07b6361dba6eb1c5ac8257`
 **Live Supabase project:** `moyhiluyhjsujhwlyeuu`
 **Required migration set:** `scripts/production/verify-production.mjs` and `scripts/production/live-reconciliation-contract.mjs`
 **Live ledger:** 310 rows through `20261110150618`
@@ -10,8 +10,8 @@
 
 - Required ordered source migrations: **82/82**; names come from the canonical production verifier.
 - Exact required version IDs in the live ledger: **0/82**. This is an identity mismatch, not proof every physical effect is absent.
-- The historical 63-source crosswalk covers the earlier source/object set; its per-object statuses are historical and are not silently promoted to current status here.
-- The 19 later migrations from RC484 through RC925 were source-reviewed and checked against current Production catalogs/policies on 2026-11-24. Together with the 26 earlier migrations audited in PASS 2211–2250, 51 of the 82 source migrations now have fresh live read-back.
+- All 63 earlier source migrations now have current live read-back across PASS 2211–2250 and PASS 2291–2341, each with an explicit PASS/PARTIAL/BLOCKED disposition. The 19 later migrations have separate current live read-back; none is assumed compliant from presence alone.
+- The 19 later migrations from RC484 through RC925 were source-reviewed and checked against current Production catalogs/policies on 2026-11-24, with current-main reports for RC485–RC496 and RC921–RC925. Together with all 63 earlier sources, **82/82 required migrations now have live read-back and an explicit disposition**; this is not an all-pass release.
 - A separate 76-object curated physical register was refreshed on 2026-11-24: 35 present / 41 absent, with object-level results in PASS 2251–2260. Presence is not semantic parity.
 - No Production mutation was performed.
 
@@ -127,14 +127,18 @@
 - [PASS 2241–2250](../audits/PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md) — CRM tenant scope and internal campaign workflow.
 - [PASS 2251–2260](../audits/PASS_2251_2260_76_OBJECT_DETAILED_PRESENCE_20261124.md) — detailed 76-object presence read-back.
 - [PASS 2261–2270](../audits/PASS_2261_2270_RC484_RC925_SOURCE_TO_LIVE_EFFECT_RECHECK_20261124.md) — 19 later migration effects.
-- [PASS 2271–2280](../audits/PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md) — RC113–RC117 control-center, employee and default-image contracts.
-- [PASS 2281–2290](../audits/PASS_2281_2290_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md) — provider-service grants and order branch/idempotency/service-role boundaries.
+- [PASS 2271–2280](../audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md) — RC485–RC496 catalog, SMM bootstrap, confirmed-Auth, Storage, settlement and MantiGO bid contracts.
+- [PASS 2281–2290](../audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md) — medical, agreement and catalog identity contracts.
 - [PASS 2291–2300](../audits/PASS_2291_2300_RC446_RC456_RC463_RC525_LIVE_RECHECK_20261124.md) — MantiGO open rides, SMM service-role grants, trigger ACL and digital-page product scope.
 - [PASS 2301–2310](../audits/PASS_2301_2310_RC464_RC470_LIVE_EFFECT_RECHECK_20261124.md) — platform root, orders, business/branch, commission, payment claims and webhook.
 - [PASS 2311–2320](../audits/PASS_2311_2320_RC471_RC478_LIVE_EFFECT_RECHECK_20261124.md) — MantiGO admin, directory, payment and MantiGO privacy/earnings.
 - [PASS 2321–2330](../audits/PASS_2321_2330_QADAM_RC479_RC483_LIVE_EFFECT_RECHECK_20261124.md) — Qadam seed, provider-profile, digital-page, Legal Edge and Legal CMS.
+- [PASS 2331–2340](../audits/PASS_2331_2340_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md) — RC113–RC117 control-center, employee and default-image contracts.
+- [PASS 2341–2350](../audits/PASS_2341_2350_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md) — provider-service grants and order branch/idempotency/service-role boundaries.
 
 ## Current high-priority blockers proven by read-only evidence
+
+- Current-main PASS 2271–2280 and PASS 2281–2290 are authoritative for RC485–RC496 and RC921–RC925; they supersede overlapping details in PASS 2261–2270 where more specific live read-back is available.
 
 - Platform Admin registry exists but FORCE RLS is off; is_platform_admin() remains SECURITY INVOKER and membership-derived.
 - mnty_can_platform_admin() remains SECURITY DEFINER with search_path=public, pg_temp and legacy unscoped helper behavior.
