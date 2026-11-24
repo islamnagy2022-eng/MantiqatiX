@@ -291,7 +291,7 @@
       "20261124150000"
     ],
     "recorded_required_versions": [],
-    "interpretation": "None of the 80 exact required source-version identifiers are recorded in the latest read-only live ledger inventory. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
+    "interpretation": "None of the 81 exact required source-version identifiers are recorded in the latest read-only live ledger inventory. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
   },
   "critical_edge_function_source_parity_check": {
     "status": "BLOCKED",
