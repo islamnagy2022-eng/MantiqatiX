@@ -1,3 +1,14 @@
+## 2026-11-24 — RC485 / RC923 live catalog RPC authorization recheck
+
+- Read-only Production query: all seven catalog SECURITY DEFINER RPCs remain on `search_path=public`, use tenant membership authorization, and do not use the registry-backed root helper. All deny direct anon EXECUTE and allow authenticated EXECUTE.
+- Three RPCs lack a direct Anonymous Auth guard; four guard explicit `is_anonymous=true` but permit a missing claim through COALESCE.
+- `private.platform_admins` exists with RLS enabled but FORCE RLS disabled; `public.is_platform_admin()` remains SECURITY INVOKER, membership-derived and search_path=public. `public.mnty_can_platform_admin()` remains SECURITY DEFINER, search_path=public, pg_temp, and delegates to legacy unscoped `mnty_can`.
+- Evidence: `docs/audits/PASS_2121_2130_RC485_RC923_LIVE_CATALOG_RPC_RECHECK_20261124.md`.
+- Exact 81-version gate and 117-migration chronological replay passed in disposable PostgreSQL 17 run `45466369023`. This is not Production deployment evidence. No Production mutation occurred.
+- Next: complete the 81-ID physical-effect/alias crosswalk and retain RC464 → RC471 → RC484 → RC485 → RC486 → RC923 as a coordinated dependency slice.
+
+---
+
 ## 2026-11-24 — RC924 live Production agreement-boundary recheck
 
 - Fresh read-only query of MANTIQATIX FINAL: 310 migration rows through `20261110150618`; RC923/RC924 are absent.
