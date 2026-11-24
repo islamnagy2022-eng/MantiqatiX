@@ -3592,3 +3592,8 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 - Separate order-create/payment-intent APIs can create Paymob intents; partner referral flow must be separate and must never call these payment-capable endpoints.
 - provider_onboarding_requests is insufficient for legal partner verification; business legal profile needs a dedicated table. Public profile-media bucket is unsuitable for private legal documents; media bucket MIME allowlist excludes PDF.
 - RC924 PG17 workflow run 45406123008 is still queued; do not mark security repair complete. Continue with CI verification and then Phase 1 legal profile/private evidence/agreement lifecycle.
+
+
+## 2026-11-24 — RC924 validator correction
+- Initial workflow run 45406123008 failed at static source regex because the SQL policy clause is multiline; the PostgreSQL fixture was skipped, not failed.
+- Corrected validator and reran source assertions successfully. Corrected RC924 run 45406678966 is queued; no production changes.
