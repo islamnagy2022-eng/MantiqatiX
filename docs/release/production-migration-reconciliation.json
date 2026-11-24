@@ -5891,5 +5891,75 @@
     },
     "production_mutation": "NONE",
     "next_required": "Complete the 81-ID physical-effect/alias map and coordinated DB release readiness; no individual hot-patching of SECURITY DEFINER functions."
+  },
+  "rc479_rc488_rc489_live_production_recheck_20261124": {
+    "status": "LIVE_POLICY_GAP_CONFIRMED_NOT_APPLIED",
+    "checked_at": "2026-11-24T19:15:00Z",
+    "method": "Read-only pg_policies, pg_class, has_table_privilege and Supabase Security Advisor; no profile, financial or Storage object rows read.",
+    "provider_profiles": {
+      "rls_enabled": true,
+      "force_rls": true,
+      "anon_select": true,
+      "authenticated_select": true,
+      "rc479_confirmed_auth_guard_present": false,
+      "active_public_policy_present": true,
+      "active_public_policy_roles": [
+        "anon",
+        "authenticated"
+      ],
+      "active_public_policy_scope": "whole-row SELECT on ACTIVE profiles, not a narrow public projection"
+    },
+    "storage": {
+      "rls_enabled": true,
+      "rc488_restrictive_guards": {
+        "insert": false,
+        "update": false,
+        "delete": false
+      },
+      "existing_authenticated_write_policies": "Permissive policies exist for mantiqatix-media and profile-media; COALESCE claim tests accept missing is_anonymous claims.",
+      "profile_media_public_read": "Present and bucket-scoped; preserve intentional public profile logo/cover read."
+    },
+    "financial_tables": {
+      "total": 15,
+      "rc489_confirmed_auth_guard_present": 0,
+      "anon_select_grants": 0,
+      "authenticated_select_grants": 12,
+      "authenticated_select_denied_by_acl": 3,
+      "affected_authenticated_tables": [
+        "commission_rules",
+        "commission_transactions",
+        "general_ledger",
+        "journal_entries",
+        "journal_entry_lines",
+        "payment_financial_reconciliations",
+        "payment_intents",
+        "payment_provider_events",
+        "settlement_transactions",
+        "subscription_payment_intents",
+        "wallet_accounts",
+        "wallet_transactions"
+      ],
+      "acl_denied_authenticated_tables": [
+        "payment_events",
+        "refund_transactions",
+        "settlement_attempts"
+      ],
+      "interpretation": "The missing restrictive guard leaves these authenticated-role table policies without the RC489 explicit confirmed-identity boundary. This is a possible Anonymous Auth membership-path exposure, not evidence that unauthorized Production financial rows were read."
+    },
+    "security_advisor_2026_11_24": {
+      "rls_enabled_no_policy_info": 9,
+      "anon_executable_security_definer_warn": 1,
+      "authenticated_executable_security_definer_warn": 65,
+      "leaked_password_protection_disabled_warn": 1,
+      "anonymous_session_policy_findings": 90
+    },
+    "source_chain": [
+      "20261118190000 RC479 provider profile anonymous base read revoke",
+      "20261120193000 RC479 confirmed-auth provider profile SELECT guard",
+      "20261120230000 RC488 Storage anonymous Auth write guard",
+      "20261120240000 RC489 financial anonymous Auth read guard"
+    ],
+    "production_mutation": "NONE",
+    "next_required": "Keep RC479/RC488/RC489 inside the coordinated 81-migration security release after exact object/ACL and consumer reconciliation, encrypted DB+Storage backup/restore, Auth/Vault recovery and approved deployment."
   }
 }
