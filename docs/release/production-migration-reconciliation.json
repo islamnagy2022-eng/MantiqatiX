@@ -6326,5 +6326,123 @@
       "classification": "FORWARD_REPAIR_APPLIED_NOT_ALIAS"
     },
     "note": "These historical ledger entries prove that earlier baseline effects were applied; they do not prove the newer required release contracts are satisfied. Do not re-run historical SQL or mark new migrations applied based only on overlapping object names."
+  },
+  "launch_critical_rpc_contract_recheck_20261124": {
+    "status": "LIVE_FUNCTIONS_PRESENT_BUT_MULTIPLE_RELEASE_CONTRACTS_NOT_APPLIED",
+    "checked_at": "2026-11-24T20:05:00Z",
+    "method": "Read-only pg_proc signatures, SECURITY DEFINER, proconfig, effective EXECUTE ACL and function-body marker checks compared with RC468/RC471/RC474/RC475/RC496/RC921/RC922 source.",
+    "rc468_digital_page_claim": {
+      "claim_signature_present": true,
+      "release_signature_present": true,
+      "source_expected_search_path": "",
+      "live_search_path": "public, pg_temp",
+      "finalize_expected_signature": "finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
+      "live_finalize_signature": "finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)",
+      "anon_execute": false,
+      "authenticated_execute": true,
+      "service_role_execute": false,
+      "status": "PARTIAL_BASELINE_SIGNATURE_AND_SEARCH_PATH_DRIFT"
+    },
+    "rc474_payment_intent": {
+      "signature_present": true,
+      "live_search_path": "public, pg_temp",
+      "expected_search_path": "",
+      "anon_execute": false,
+      "authenticated_execute": true,
+      "service_role_execute": true,
+      "status": "BASE_FUNCTION_PRESENT_RC474_SEARCH_PATH_AND_BODY_PARITY_NOT_VERIFIED"
+    },
+    "rc475_paymob": {
+      "provider_success_signature_present": true,
+      "provider_success_live_search_path": "public",
+      "provider_success_expected_search_path": "",
+      "provider_success_service_role_execute": true,
+      "provider_success_authenticated_execute": false,
+      "provider_success_body_marker_external_event_replay_mismatch": true,
+      "provider_success_body_marker_financial_reconciliation_binding": false,
+      "absent_functions": [
+        "process_verified_provider_payment_failure(text,text,text,text,text,text,boolean,numeric,text,text,text,jsonb)",
+        "process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb)",
+        "process_verified_subscription_payment_failure(text,text,uuid,text,numeric,text,text,boolean,jsonb)"
+      ],
+      "legacy_process_verified_subscription_payment_exists": true,
+      "legacy_subscription_success_search_path": "",
+      "legacy_subscription_success_service_role_execute": true,
+      "status": "PROVIDER_SUCCESS_BASELINE_PRESENT_FAILURE_AND_ATOMIC_SUBSCRIPTION_FUNCTIONS_ABSENT"
+    },
+    "rc471_shared_platform_admin_callers": {
+      "functions": [
+        {
+          "name": "admin_create_global_ad",
+          "live_search_path": "public, pg_temp",
+          "calls_helper": true
+        },
+        {
+          "name": "fulfill_digital_page_publish",
+          "live_search_path": "public, pg_temp",
+          "calls_helper": true
+        },
+        {
+          "name": "review_mantigo_captain_application",
+          "live_search_path": "public",
+          "calls_helper": true
+        },
+        {
+          "name": "set_mantigo_financial_config_backend",
+          "live_search_path": "public",
+          "calls_helper": true
+        }
+      ],
+      "expected_search_path": "",
+      "live_helper_still_membership_derived": true,
+      "status": "BODY_CALLERS_EXIST_HELPER_AND_EMPTY_PATH_CONTRACT_NOT_APPLIED"
+    },
+    "rc496_mantigo_bid": {
+      "functions": [
+        {
+          "name": "create_mantigo_bid_backend",
+          "signature_present": true,
+          "live_search_path": "public",
+          "anon_execute": false,
+          "authenticated_execute": true,
+          "service_role_execute": false
+        },
+        {
+          "name": "lock_mantigo_fare_backend(uuid,text)",
+          "signature_present": true,
+          "live_search_path": "public",
+          "anon_execute": false,
+          "authenticated_execute": true,
+          "service_role_execute": false
+        },
+        {
+          "name": "accept_mantigo_bid_backend(uuid,text,text)",
+          "signature_present": true,
+          "live_search_path": "public",
+          "anon_execute": false,
+          "authenticated_execute": true,
+          "service_role_execute": false,
+          "live_body_bid_not_offered_guard": false,
+          "live_body_bid_acceptance_race_guard": false
+        }
+      ],
+      "required_unique_index": "mantigo_bids_one_accepted_per_ride_idx",
+      "required_unique_index_present": false,
+      "expected_search_path": "",
+      "status": "LEGACY_BID_FUNCTIONS_PRESENT_RC496_STATE_AND_UNIQUE_INVARIANT_ABSENT"
+    },
+    "rc921_rc922_medical": {
+      "function": "update_medical_appointment_status_backend(uuid,text,text)",
+      "signature_present": true,
+      "live_search_path": "public, pg_temp",
+      "expected_search_path": "",
+      "anon_execute": false,
+      "authenticated_execute": true,
+      "live_body_service_provider_marker": true,
+      "live_body_assigned_provider_required_marker": false,
+      "status": "LEGACY_STATUS_FUNCTION_PRESENT_ASSIGNED_PROVIDER_FORWARD_CONTRACT_NOT_APPLIED"
+    },
+    "production_mutation": "NONE",
+    "next_required": "Complete exact source/body/ACL crosswalk and include all affected RPCs in coordinated 81-migration DB+Edge release after backup/restore and explicit approval."
   }
 }
