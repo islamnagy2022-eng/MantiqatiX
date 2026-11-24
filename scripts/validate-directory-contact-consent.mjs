@@ -310,15 +310,17 @@ const checks = [
     source.includes('revoked_at: new Date().toISOString()') &&
     source.includes('revocation_reason: "OWNER_WITHDREW_CONSENT"') &&
     source.includes('.eq("listing_id", listingId).eq("scope", scope).is("revoked_at", null)')],
-   ["directory remains disabled by default unless exact server flag and consent registry are both ready",
+   ["public discovery requires exact server flag while contact mutations additionally require the consent registry",
      source.includes('Deno.env.get("DIRECTORY_LISTINGS_ENABLED")') &&
      source.includes('if (directoryListingsEnabled !== "true")') &&
      source.includes("resolveDirectoryListingsReleaseGate(") &&
      source.includes("consentRegistryAvailable = !consentRegistryProbeError") &&
      source.indexOf('resolveDirectoryListingsReleaseGate(req.method, directoryListingsEnabled, false)') < source.indexOf('const supabaseUrl = Deno.env.get("SUPABASE_URL")')],
-   ["directory release gate only allows exact true and requires registry availability",
+   ["directory release gate separates sanitized GET discovery from consent-protected POST mutations",
      releaseGate.includes('enabledFlag === "true"') &&
-     releaseGate.includes('consentRegistryAvailable !== true') &&
+     releaseGate.includes('normalizedMethod === "GET"') &&
+     releaseGate.includes('normalizedMethod === "POST"') &&
+     releaseGate.includes('consentRegistryAvailable === true') &&
      releaseGate.includes('DIRECTORY_LISTINGS_DISABLED_FOR_V1') &&
      releaseGate.includes('directoryDisabled: true')],
 
