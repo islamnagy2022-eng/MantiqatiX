@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
 **Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
-**Base:** `main @ ae53cf436a37c178bffa56aaac54a58472bcfe89`  
+**Base:** `main @ e5cb0c7644d63d3a1f12bd73a1f3258457ef4b53`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -23,6 +23,8 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] PR #1049 widened the RC471/R7 actor matrix to reject tenant-scoped SUPER_ADMIN and MNTY-PLATFORM membership without registry across all four helper callers; exact-head run 45396407812 passed. PR merged as main commit 1b27efb65e32a254e34a7ae9add172de078e6fdf (31 successful checks, 2 skipped; no failures).
 - [x] Complete the prior ordered migration set on disposable PostgreSQL 17 using repo CI. Exact-head run 45407602805 passed the checkpoint restore, exact 80-version gate, 117 chronological forward migrations and integration suite; this is disposable-only and does not replace Production backup restore or physical-object reconciliation.
 - [x] RC924 ordered authorization and agreement participant scope merged in PR #1064 as `82cdebcdefc4a9c12d4e875548f1cf5f5dd3f896`; dedicated PostgreSQL 17 run `45458313302` and full 117-migration chronological replay `45458313389` passed. The replay's strict static gate still asserted 80 versions; it is not evidence for the updated 81-version count.
+- [x] Fresh read-only Production recheck confirms the live `agreements_participant_read` policy compares `ap.agreement_id = ap.id` instead of `ap.agreement_id = agreements.id`; the restrictive `agreements_confirmed_auth_select` policy is absent, and both private `legal_is_admin` overloads still derive authority from tenant membership roles. Evidence: `docs/audits/PASS_2111_2120_RC924_LIVE_PRODUCTION_RECHECK_20261124.md`.
+- [ ] Release RC482 → RC924 only as one coordinated unit; do not apply either migration alone. The live `agreements` table has RLS + FORCE RLS and denies raw anon SELECT, but authenticated access remains subject to the miscorrelated participant policy and membership-derived admin helper.
 - [x] Re-ran the exact 81-version strict release validator and full PostgreSQL 17 forward replay on PR #1066: workflow run `45465702093` passed all static release validators, restored the captured schema checkpoint, and applied 117 later migrations in timestamp order, including RC924. This is disposable-only evidence; it does not replace Production backup/restore or physical-object reconciliation.
 - [x] Test RC923 anonymous-session denial for all seven catalog RPCs on the prior chronological 80-version release-chain replay; RC485/RC923 integration marker passed in run 45407602805.
 - [x] Test RC924 against the pre-RC482 Legal helper and confirm ordered RC482 → RC924 application in isolated PostgreSQL 17; RC924-specific job `45458313302` passed.
