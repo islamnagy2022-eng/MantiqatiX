@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
 **Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
-**Base:** `main @ 9e6c62e25614d020eb07b6361dba6eb1c5ac8257`  
+**Base:** `main @ d55fc4e3b53f9c069c4618b7c4b4a271213a08e6`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -31,8 +31,9 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Added an inactive tenant SUPER_ADMIN (INACTIVE membership with stale platform metadata) negative actor to the RC449 global MantiGO RPC matrix and RC464 shared-helper caller matrix; exact-head run 45411811229 and RC464 live-hardening run 45411811351 passed.
 - [x] Re-ran the existing read-only high-risk SECURITY DEFINER SQL contract against Production: 14 RPCs checked; 5 PASS, 9 FAIL_SEARCH_PATH; all 14 preserve anon EXECUTE=false and authenticated EXECUTE=true. Direct anon/authenticated write grants on five MantiGO tables are both zero; see PASS_2071_2080.
 - [x] Assert function ownership, empty `search_path`, grants, FORCE RLS and caller coverage in the RC464/RC471/RC484/RC485 suites; exact-head module and forward replay workflows passed.
-- [ ] Prepare one coordinated migration bundle and post-release read-back. Do not hot-patch or apply it to Production in this phase.
-**Live evidence:** Production still uses membership-derived helpers; registry RLS is on but FORCE RLS is false. See `docs/audits/PASS_2041_2050_LIVE_PRODUCTION_RECHECK_20261124.md`.
+- [x] Fresh read-only Production recheck confirmed 57 `is_platform_admin()` policies / 24 tables plus five legacy-helper policies / three tables; registry FORCE RLS remains off, the generic root helper is membership-derived, and all seven catalog RPCs still lack the explicit false anonymous-claim predicate. Evidence: `docs/audits/PASS_2361_2370_PLATFORM_ROOT_LIVE_RECHECK_20261124.md`.
+- [ ] Complete one coordinated, timestamp-ordered 82-source migration + RPC/ACL/RLS + Edge bundle and post-release read-back plan; do not hot-patch, cherry-pick, or apply it to Production in this phase. Execution gates: `docs/release/PLATFORM_ROOT_COORDINATED_RELEASE_20261124.md`.
+**Live evidence:** Production still uses membership-derived helpers; registry RLS is on but FORCE RLS is false. Fresh exact counts and the catalog RPC guard inventory are in `docs/audits/PASS_2361_2370_PLATFORM_ROOT_LIVE_RECHECK_20261124.md`.
 
 ### P0.2 Anonymous Auth and private profile boundaries
 - [x] Refreshed Advisor + live ACL snapshot: 90 anonymous-Auth table warnings, 9 RLS-no-policy tables with all client grants denied, 65 exposed authenticated SECURITY DEFINER functions (18 empty search_path, 47 other pinned, 0 unset); see PASS_2081_2090 and Issue #928.
