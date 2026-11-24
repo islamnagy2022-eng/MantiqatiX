@@ -13,6 +13,7 @@ export interface SeoBusiness {
   isFrozen?: boolean;
   publicEnabled?: boolean;
   catalogPublished?: boolean;
+  isOfficialShowcase?: boolean;
   publicationStatus?: string;
   operationalStatus?: string;
 }
@@ -74,7 +75,7 @@ export function resolveRouteSeoMetadata(input: ResolveSeoInput): RouteSeoMetadat
 
   if (input.view === 'public_storefront') {
     const business = input.business;
-    const hasPublicPublication = business?.publicEnabled === true || business?.catalogPublished === true;
+    const hasPublicPublication = business?.publicEnabled === true || business?.catalogPublished === true || business?.isOfficialShowcase === true;
     const isPubliclyEligible = Boolean(
       business?.id &&
       business.name?.trim() &&
