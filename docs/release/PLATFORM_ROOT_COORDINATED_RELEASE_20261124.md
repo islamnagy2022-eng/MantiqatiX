@@ -23,11 +23,10 @@ The following is a dependency map, not permission to cherry-pick migrations. The
 | Stage | Source chain | Dependency / required result |
 |---|---|---|
 | A — tenant and global authorization | RC464 → RC464B → RC465–RC470 → RC471 | Registry owner/BYPASSRLS and eight exact function identities; correct global root without broadening tenant/branch access; order, commission and payment preflights must pass. |
-| B — directory and provider privacy | RC472–RC483, including RC479 forward repair | Claim atomicity, consent scopes, provider profile anon/anonymous-session boundary, Legal grants/admin registry and atomic CMS. Directory remains fail-closed until deployed DB + Edge checks pass. |
+| B — directory and provider privacy | RC472–RC483 (original RC479 source) | Claim atomicity, consent scopes, provider profile base-read boundary, Legal grants/admin registry and atomic CMS. Directory remains fail-closed until deployed DB + Edge checks pass. |
 | C — canonical global root | RC484 | FORCE RLS on the protected registry; owner parity; SECURITY DEFINER helper with empty search_path; exact ≥57 policies / ≥24 tables preflight. |
-| D — catalog and price writes | RC485–RC486 → RC923 → RC925 | Seven RPC bodies, price serialization/invariant and explicit confirmed-Auth claim. RC925 must reject both explicit anonymous and missing/null `is_anonymous` claims. |
-| E — identity/storage/finance/order gates | RC487–RC496 | Remove first-user SMM admin bootstrap; confirmed-session restrictive guards; settlement registry scope; Storage filename/platform-root policies; MantiGO bid state invariant. |
-| F — medical and agreement gates | RC921–RC924 (in canonical timestamp order) | Assigned-provider, own-profile, forward-only appointment transitions and agreement participant/registry-admin scope. |
+| D — forward privacy repair and catalog/finance/order guards | RC479 forward repair (`20261120193000`) → RC485–RC496 | Apply the later restrictive provider-profile policy after RC484, then catalog/price RPCs, SMM bootstrap removal, confirmed-session guards, settlement scope, Storage policies and MantiGO bid invariant. |
+| E — medical and agreement gates | RC921 → RC922 → RC923 → RC924 → RC925 | Assigned-provider and forward-only medical transitions, exact agreement participant/admin scope, then direct catalog RPC claim hardening. RC925 must reject both explicit anonymous and missing/null `is_anonymous` claims. |
 
 The labels above are functional groups only; execute by version timestamp from the authoritative list, not by this table's presentation order. No historical migration file may be edited. New corrections require a new timestamped forward migration and a source-specific immutability test.
 
