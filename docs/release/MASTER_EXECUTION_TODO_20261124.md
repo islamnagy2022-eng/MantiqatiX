@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
 **Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
-**Base:** `main @ d55fc4e3b53f9c069c4618b7c4b4a271213a08e6`  
+**Base:** `main @ 00a8d369ccc8d5b1fb6ef29db87178c65ebddd27`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -62,6 +62,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Never blindly replay the release chain on Production.
 
 ### P1.2 Edge parity
+- [x] Fresh live Edge runtime comparison (2026-11-24): nine launch-critical entrypoints differ from current `main` (`payment-intent`, `paymob-webhook`, `digital-page-payment-intent`, `subscription-payment-intent`, `settlement-financial-atomic`, `financial-journal`, `order-create`, `catalog-admin`, `erp-purchase-receive`); `public-catalog` and `public-catalog-directory` entrypoints match exactly. Additional drift: `catalog-platform-admin`, `mnty-push-dispatch`, `health`; `directory-listings` v18 remains intentionally fail-closed. Evidence: `docs/audits/PASS_2371_2380_EDGE_RUNTIME_SOURCE_PARITY_20261124.md`. No Edge deployment performed.
 - [x] Completed a read-only entrypoint comparison for 11 launch-relevant Edge Functions; 9 critical entrypoints differ from current main and 2 public-catalog entrypoints match. Audit: `docs/audits/PASS_2051_2060_EDGE_SOURCE_PARITY_20261124.md`.
 - [x] Read-only direct import graph and Production SQL/RPC/table/ACL snapshot completed for nine critical Edge functions; see `docs/audits/PASS_2061_2070_EDGE_DEPENDENCY_CLOSURE_20261124.md`.
 - [x] Refreshed deployed Edge parity: 9 launch-critical deployments differ from main; deployed payment-intent, subscription-payment-intent, settlement-financial-atomic and directory-listings bundles omit local mainline modules. Keep affected endpoints fail-closed. See `docs/audits/PASS_2151_2160_LIVE_EDGE_BUNDLE_RECHECK_20261124.md`.
