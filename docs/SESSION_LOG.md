@@ -4223,3 +4223,11 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] Read-only comparison against eight exact migration files: RC425 MantiGo provider-event table/RPC absent; RC426 five-argument finalizer absent while the two provider-order columns exist; RC427 active-payment index absent; RC428–RC430 processors absent; RC431 exact function exists but search_path is public, pg_temp; RC432 index/admin-credit RPC absent and existing debit/refund routines use search_path=public.
 - [x] Production migration ledger remains 310 rows through `20261110150618`; no Production migration, SQL write, ACL change, payment, wallet or business-data mutation occurred.
 - [ ] Continue RC434–RC439 physical-effect and exact contract reconciliation before any coordinated payment release.
+
+
+## 2026-11-24 — RC434–RC441 source-to-live backend contract recheck
+- [x] RC434 atomic receiving RPC absent. RC435 subscription provider-creation state/claim RPCs absent. RC436 journal columns/indexes/atomic RPC absent. RC437 purchase line table/indexes/policy/RPCs absent. RC438 order creation absent and legacy status RPC is present but lacks expected search_path/ACL. RC439 encrypted checkout columns absent.
+- [x] RC440 source is a timestamp-dependent dynamic migration; current-state read-only snapshot includes 30 matching exposed SECURITY DEFINER routines (0 anon, 30 authenticated), not a claim about what existed at the historical migration time.
+- [x] RC441 five routines are present but retain old path/scope contracts. Report: `PASS_2221_2230_RC434_RC441_LIVE_CONTRACT_RECHECK_20261124.md`.
+- [x] Production remains unchanged at 310 migration rows through `20261110150618`; no migration/DDL/DML/ACL/RLS/Auth/Storage/Edge/payment/wallet/finance write performed.
+- [ ] Continue the 82-version physical-effect/alias crosswalk, with RC440 historical candidates reconciled to the exact historical timestamp.
