@@ -6350,5 +6350,70 @@
     },
     "production_mutation": "NONE",
     "report": "docs/audits/PASS_2231_2240_RC442_RC451_LIVE_CONTRACT_RECHECK_20261124.md"
+  },
+  "rc452_rc453_live_contract_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_DIFF_CONFIRMED",
+    "checked_at": "2026-11-24",
+    "migrations": [
+      {
+        "version": "20261010210000",
+        "code": "RC452",
+        "required": [
+          "CRM managers view marketing leads business-row/platform-full-control scope",
+          "CRM managers view marketing providers business-row/platform-full-control scope"
+        ],
+        "live": {
+          "marketing_leads_policy_present": true,
+          "marketing_leads_policy_matches_source": false,
+          "marketing_leads_live_role_scope": "active SUPER_ADMIN/ADMIN/OWNER/MANAGER/BUSINESS_OWNER without tenant/business row correlation or explicit platform full_control check",
+          "marketing_provider_profiles_policy_present": true,
+          "marketing_provider_profiles_policy_matches_source": false,
+          "marketing_provider_profiles_live_role_scope": "active broad role membership without exact business-row correlation",
+          "separate_provider_public_surface": {
+            "anon_select": true,
+            "public_active_policy": true,
+            "tracked_under": "RC479/#928"
+          }
+        },
+        "disposition": "POLICY_DRIFT"
+      },
+      {
+        "version": "20261010220000",
+        "code": "RC453",
+        "required": [
+          "public.marketing_campaigns",
+          "public.marketing_campaign_participants",
+          "marketing_campaigns_business_status_idx",
+          "marketing_campaigns_tenant_created_idx",
+          "marketing_campaign_participants_provider_status_idx",
+          "marketing_campaign_participants_business_campaign_idx",
+          "mnty_can_manage_marketing_business(uuid)",
+          "create_marketing_campaign_backend(uuid,uuid,text,text,text[],numeric,text,character varying,timestamp with time zone,timestamp with time zone,jsonb,text)",
+          "invite_marketing_campaign_partner_backend(uuid,uuid,uuid,character varying,numeric,numeric)",
+          "respond_marketing_campaign_invitation_backend(uuid,uuid,character varying)",
+          "update_marketing_campaign_status_backend(uuid,uuid,character varying)",
+          "marketing_campaigns_scoped_read",
+          "marketing_campaign_participants_scoped_read"
+        ],
+        "live": {
+          "tables_present": 0,
+          "tables_checked": 2,
+          "indexes_present": 0,
+          "indexes_checked": 4,
+          "rpc_signatures_present": 0,
+          "rpc_signatures_checked": 5,
+          "source_scope": "internal campaign planning and partner collaboration only; no external ad platform publishing"
+        },
+        "disposition": "BLOCKED_NOT_APPLIED"
+      }
+    ],
+    "production_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "required_source_versions": 82,
+      "exact_source_version_matches": 0
+    },
+    "production_mutation": "NONE",
+    "report": "docs/audits/PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md"
   }
 }
