@@ -6,7 +6,7 @@
 
 ## Authority order
 1. **Operating rules:** `docs/MASTER_SOURCE_OF_TRUTH.md` — exact owner-supplied instruction, controlling development method, priorities and release boundaries.
-2. **Application source:** GitHub `main`; after RC925 source merge, current checkpoint `53b8be3784790e56775f16bb51c9c3477cfeb536`.
+2. **Application source:** GitHub `main`; after RC925 source merge, current checkpoint `da1b17ccbaeefd501dee1456bd76b3f3e39bbbd8`.
 3. **Production identity, authorization and business data:** the connected `MANTIQATIX FINAL` Supabase project. The paused `MantiqatiX-DEMO` project is not production and must never be merged into the production data path.
 4. **Database release state:** live `supabase_migrations.schema_migrations` plus exact source migrations and physical schema/ACL/RLS reconciliation. A missing migration version is not by itself proof that all physical effects are absent.
 5. **Runtime Edge state:** the deployed Supabase Edge Function bundle/version and settings, compared with the exact current-main source and its schema dependencies. Main source alone does not prove deployment.
@@ -29,7 +29,7 @@
 | This operating directive | **CONTROLLING INSTRUCTION** | One workflow and priority order across sessions; historical notes are append-only evidence. |
 
 ## Verified checkpoint (2026-11-24)
-- Main: `53b8be3784790e56775f16bb51c9c3477cfeb536` (RC925 source merge plus confirmed-user positive compatibility integration tests); recent merged changes include separate business-logo/app-icon handling, official navbar logo restoration, Pages deployment stabilization, contact-consent-gated directory discovery, RC924 Legal agreement participant authorization, and RC925 fail-closed confirmed-identity guards for all seven direct catalog RPCs.
+- Main: `da1b17ccbaeefd501dee1456bd76b3f3e39bbbd8` (latest 76-object Production physical-contract refresh; includes RC925 source merge and confirmed-user positive compatibility tests); recent merged changes include separate business-logo/app-icon handling, official navbar logo restoration, Pages deployment stabilization, contact-consent-gated directory discovery, RC924 Legal agreement participant authorization, and RC925 fail-closed confirmed-identity guards for all seven direct catalog RPCs.
 - RC925 `20261124150000` is merged in PR #1069 (source-only) at `a0a31dab110ac519f8528cbefe74c0eefb727a7c`. All seven direct catalog RPCs now require `(auth.jwt() ->> 'is_anonymous') IS DISTINCT FROM 'false'`, denying both anonymous=true and a missing/null claim. Exact-head static validation, missing-claim adversarial PG17 test, and full 82-version chronological replay passed in run `45477345349`; catalog build and dashboard browser E2E passed in `45477345161`. PR #1071 added positive `is_anonymous=false` compatibility coverage to all seven RPCs; all exact-head workflows passed and the change merged as `53b8be3784790e56775f16bb51c9c3477cfeb536`. Production remains at 310 rows through `20261110150618`; RC925 is not applied.
 - Production DB: ACTIVE_HEALTHY PostgreSQL 17.6.1.155, 310 migration rows through `20261110150618`; 82 required release migration identifiers, 0 exact IDs present in the live ledger at this check. RC923 and RC924 are not applied. PR #1066's exact 81-version strict gate and 117-migration chronological PostgreSQL 17 replay passed in isolated CI run `45465702093`; no Production migration was executed. This still requires physical-object/alias reconciliation before any Production release.
 - Platform Admin: live `is_platform_admin()` still derives global authority from active tenant ADMIN/SUPER_ADMIN roles (57 policy references); live `mnty_can_platform_admin()` still delegates to a null-scope tenant helper (5 policy references). Registry-backed forward migrations are source-only.
@@ -55,3 +55,11 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - Three exact byte aliases: RC424 → `20261008222845`; marketing contact duplicate → `20261027041411`; directory source-rights evidence → `20261101140105`. No Production SQL replay or ledger repair occurred.
 - Nine launch-critical Edge deployments differ from main; local import traversal found no cycles, but external dependency resolution and bundle parity remain NOT VERIFIED.
 - Fresh physical read-back [PASS 2201–2210](./audits/PASS_2201_2210_PHYSICAL_OBJECT_RECHECK_20261124.md): 76 curated contracts refreshed at 35 present / 41 absent; 22 matched function entries include 9 non-empty search paths and require separate body/ACL/scope review.
+
+
+## 82-migration source/live effect crosswalk — 2026-11-24
+- [Full ordered 82-migration crosswalk](./release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md) uses the canonical verifier list. It separates the historical 63-source map from the 19 later migration effects checked against live Production on 2026-11-24.
+- Live ledger: 310 rows through `20261110150618`; 0/82 exact IDs. Do not infer missing physical effects from ID gaps.
+- RC924's existing participant policy is present but incorrect: `ap.agreement_id = ap.id`; restrictive confirmed-auth policy absent.
+- RC925 remains source-only: all seven live RPCs still lack explicit false-claim guard; four use legacy COALESCE, three have no claim guard.
+- No Production writes, DDL, policy changes, grants, Storage or Edge deployment occurred.
