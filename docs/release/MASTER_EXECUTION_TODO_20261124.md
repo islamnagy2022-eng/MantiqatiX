@@ -243,3 +243,21 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] RC453 internal marketing campaign feature is absent from Production: both campaign tables, all four indexes, and five exact RPC signatures are absent. The source describes an internal workflow only, not an external Meta/TikTok/Google publishing integration.
 - [x] Evidence: `docs/audits/PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md`.
 - [ ] Keep CRM scope and campaign features gated until the ordered migration, RLS, RPC, UI and deployed-origin contracts are verified.
+
+
+## 2026-11-24 — RC463–RC478 platform, order, directory and payment recheck
+- [x] RC463 trigger functions remain attached and deny client EXECUTE, but `assign_default_owner_to_unowned_business()` still uses `search_path=public,auth`; the commission audit trigger function has empty path.
+- [x] RC464/RC471 canonical platform root not live: `mnty_can_platform_admin()` still calls `public.mnty_can('admin',null,null,null)` and uses `search_path=public, pg_temp`; global helper callers also retain non-empty paths.
+- [x] RC465/RC466 live order, history, business, branch, department, warehouse and inventory policies still use tenant-only predicates where exact parent business/branch scope is required.
+- [x] RC467 commission functions exist but canonical registry guard is missing; `preview_commission_backend` path remains public. RC468 claim/release paths remain public, pg_temp and finalizer absent. RC469 four shared callers retain non-empty paths.
+- [x] RC470 event table, six columns and unique event index exist, but live webhook path/body misses the three source-required postcondition guards. RC472 claim RPC/index absent; RC473 consent table absent.
+- [x] RC474 payment-intent body has no branch-scope predicate; RC475 three webhook processors absent and provider processor path remains public; RC476 path drift; RC477 full bid object serialization; RC478 lacks anonymous/verified/available captain gates.
+- [x] Evidence: `docs/audits/PASS_2251_2260_RC463_RC478_LIVE_SECURITY_RECHECK_20261124.md`.
+- [ ] Keep global-admin, order scope, directory consent, Paymob, digital-page payment and MantiGO contact/location disclosure blocked pending ordered repairs and tests.
+
+## 2026-11-24 — RC479–RC484 public data, Legal CMS and global root recheck
+- [x] RC479 anon SELECT remains true on `marketing_provider_profiles`; the restrictive confirmed-user policy is absent. RC480 anon SELECT still covers all 19 digital_pages columns, not the source allowlist of 10.
+- [x] RC481 sampled service_role Legal SELECT column privileges are absent. RC482 `private.legal_is_admin(uuid)` does not reference the platform registry and the zero-argument overload remains; `public.legal_assert_admin_backend(uuid)` is absent. RC483 both atomic Legal CMS RPCs are absent.
+- [x] RC484 `private.platform_admins` FORCE RLS remains false; `public.is_platform_admin()` is still SECURITY INVOKER/search_path=public and membership-derived.
+- [x] Evidence: `docs/audits/PASS_2261_2270_RC479_RC484_PUBLIC_LEGAL_ROOT_RECHECK_20261124.md`.
+- [ ] Treat provider-profile raw reads, digital-page column exposure, Legal CMS and global root as release blockers.
