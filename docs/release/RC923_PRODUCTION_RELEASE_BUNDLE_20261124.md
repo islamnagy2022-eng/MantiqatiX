@@ -22,11 +22,13 @@ The latest read-only query against `MANTIQATIX FINAL` confirmed:
 - Migration ledger: 310 rows through `20261110150618`.
 - RC923 is **not applied**.
 - `private.platform_admins`: RLS enabled, but FORCE RLS is false.
-- Live `public.is_platform_admin()` is not yet registry-backed.
-- Live `upsert_catalog_item_backend` does not yet contain the RC923 anonymous-session guard.
+- Live `public.is_platform_admin()` is SECURITY INVOKER, `search_path=public`, and reads `user_memberships`; live `mnty_can_platform_admin()` is SECURITY DEFINER with `search_path=public, pg_temp` and delegates through `mnty_can`. Neither references `private.platform_admins`.
+- All seven catalog RPCs are SECURITY DEFINER, owned by `postgres`, use `search_path=public`, allow authenticated EXECUTE, deny anon EXECUTE, and still reference `user_memberships` rather than the registry helper.
+- Four of seven catalog RPCs already have an anonymous-session guard; the three missing guards are `upsert_catalog_item_backend`, `upsert_catalog_price_backend` and `update_catalog_item_status_backend`. The live price RPC also lacks the RC486 advisory lock.
+- Full read-only physical snapshot: `docs/audits/PASS_2081_2090_PRODUCTION_PHYSICAL_EFFECT_RECONCILIATION_20261124.md`.
 - The previous live audit also found `mnty_can_platform_admin()` still delegates through tenant membership.
 - The exact 80 required release identifiers are not recorded in the live ledger. This is not proof that every intended physical effect is absent; physical schema/function/ACL/RLS reconciliation is still required.
-- Directory consent registry and source/republication-rights evidence remain absent. `directory-listings` v18 remains fail-closed.
+- Directory consent registry and source/republication-rights evidence remain absent. `directory-listings` v18 remains fail-closed. `marketing_provider_profiles` has RLS + FORCE RLS, but its policy/column-grant review remains separate.
 - Critical Edge bundle drift remains; 42 Edge Functions were active at the latest audit checkpoint.
 - Paymob and financial settlement remain fail-closed.
 
