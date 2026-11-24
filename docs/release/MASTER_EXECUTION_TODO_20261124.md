@@ -26,7 +26,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 
 ### P0.2 Anonymous Auth and private profile boundaries
 - [ ] Reconcile RC479 and RC488–RC495 against live policy and ACL state.
-- [ ] Run the broader PG17/JWT matrix for raw anon, anonymous Auth session, confirmed user, owner and platform admin across all private-profile surfaces.
+- [ ] Run the broader PG17/JWT matrix for raw anon, anonymous Auth session, confirmed user, owner and platform admin across all private-profile surfaces. Current Advisor matrix: 90 anonymous-Auth policy findings across public/storage; seven priority tables remain for targeted adversarial testing (see PASS_2061–2070).
 - [x] RC923 direct-RPC tests reject Anonymous Auth sessions for all seven catalog RPCs; RC479 anonymous-session and RC480 column-boundary tests also passed.
 - [ ] Preserve intentional public discovery and ad reads; no blanket policy denial or privilege revocation.
 - [ ] Keep leaked-password protection marked NOT AVAILABLE/NOT VERIFIED while the current plan does not expose the setting.
