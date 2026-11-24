@@ -28,7 +28,10 @@ The latest read-only query against `MANTIQATIX FINAL` confirmed:
 - Full read-only physical snapshot: `docs/audits/PASS_2081_2090_PRODUCTION_PHYSICAL_EFFECT_RECONCILIATION_20261124.md`.
 - The previous live audit also found `mnty_can_platform_admin()` still delegates through tenant membership.
 - The exact 80 required release identifiers are not recorded in the live ledger. This is not proof that every intended physical effect is absent; physical schema/function/ACL/RLS reconciliation is still required.
-- Directory consent registry and source/republication-rights evidence remain absent. `directory-listings` v18 remains fail-closed. `marketing_provider_profiles` has RLS + FORCE RLS, but its policy/column-grant review remains separate.
+- Directory consent registry and source/republication-rights evidence remain absent; the latest directory audit counted 878 public-directory rows with no owner contact consent flags. `directory-listings` v18 remains fail-closed. `marketing_provider_profiles` has RLS + FORCE RLS, but its policy/column-grant review remains separate.
+- Supabase Advisor reported 90 anonymous-Auth policy findings across public/storage; seven priority tables remain for exact command/role/grant/policy adversarial review. See `docs/audits/PASS_2061_2070_ANONYMOUS_AUTH_POLICY_MATRIX_20261124.md`.
+- Edge audit: 42 ACTIVE functions, 9 source/version mismatches; shared imports and SQL/RPC/ACL dependencies still need closure. See `docs/audits/PASS_2051_2060_EDGE_SOURCE_PARITY_20261124.md`.
+- Finance audit found missing current atomic payment/failure RPCs, subscription claim/encrypted-secret columns and provider-order-bound finalizer; no signed Paymob sandbox E2E or settlement readiness is claimed. See `docs/audits/PASS_1931_1940_EXACT_MIGRATION_AND_FINANCE_RECHECK_20261123.md`.
 - Critical Edge bundle drift remains; 42 Edge Functions were active at the latest audit checkpoint.
 - Paymob and financial settlement remain fail-closed.
 
