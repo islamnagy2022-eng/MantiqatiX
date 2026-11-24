@@ -74,5 +74,7 @@ assert.ok(workflow.includes("node scripts/validate-rc482-legal-platform-admin-re
 assert.ok(workflow.indexOf("rc482.sql") < workflow.indexOf("rc924.sql"),"RC482 must run before RC924");
 assert.ok(workflow.indexOf("rc482-integration.sql") < workflow.indexOf("rc924.sql"),"RC482 integration must pass before RC924");
 assert.ok(workflow.includes("grep -Fq 'RC924_LEGAL_ADMIN_HELPER_IS_NOT_REGISTRY_BACKED'"),"workflow must verify the expected RC924 fail-closed preflight");
+assert.ok(workflow.includes("grep -Fq 'RC924_REQUIRES_RC482_REMOVAL_OF_ZERO_ARGUMENT_LEGAL_ADMIN_OVERLOAD'"),"workflow must prove the overloaded zero-argument helper is rejected");
+assert.ok(workflow.includes("DROP FUNCTION private.legal_is_admin();"),"workflow must then isolate the membership-derived UUID helper check");
 
 console.log("RC924 agreement participant read-scope contract: PASS");
