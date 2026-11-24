@@ -298,3 +298,13 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] RC924 Legal helper UUID and zero-argument overload both remain; UUID helper is membership-backed, not registry-backed. Restrictive confirmed-auth policy absent; participant policy compares `ap.agreement_id = ap.id` instead of `agreements.id`.
 - [x] Evidence: `docs/audits/PASS_2281_2290_RC921_RC924_MEDICAL_CATALOG_LEGAL_RECHECK_20261124.md`.
 - [ ] Keep medical state transitions, catalog write surfaces and Legal agreement participant reads blocked until source contracts and tests pass.
+
+
+## 2026-11-24 — RC456/RC525/RC102–RC115 SMM, catalog and Control Center foundation recheck
+- [x] RC456 required service_role privileges are absent across SMM gateway tables: smm_admins/providers/wallets SELECT, services/orders SELECT+INSERT+UPDATE and order_events INSERT. Provider credentials and wallet transactions remain correctly RPC-only. RC487's expected `smm_admins` service SELECT is absent too.
+- [x] RC525 digital_page_products retains old write policy allowing active tenant SUPER_ADMIN/ADMIN without MNTY-PLATFORM+PLATFORM/full_control.
+- [x] RC102 authenticated INSERT/UPDATE/DELETE on marketing_provider_services all false.
+- [x] RC103/RC106 live order-status RPC omits branch_id checks and allows OWNER/ADMIN without requiring fully unscoped membership. RC104 replay returns existing order by tenant+key without comparing customer/business/branch. RC105/RC106 service_role identity branch missing from live code despite service_role-only ACL.
+- [x] RC113/RC114 tables, indexes and forced-RLS/RPC-only layer present. RC115 role/people/audit/permission RPCs are empty-path and registry-backed; RC116 subscriber admin RPCs also present and registry-backed. End-to-end platform root remains dependent on fixing the separate legacy global helper.
+- [x] RC117 image columns, four helpers and three triggers all absent. `ux_user_memberships_user_business_branch_nullsafe` remains absent. Qadam Al-Saad seed is present ACTIVE with 15 catalog items.
+- [x] Evidence: `docs/audits/PASS_2291_2300_RC456_RC525_RC102_RC115_FOUNDATION_ORDER_RECHECK_20261124.md` and `docs/audits/PASS_2301_2310_RC116_RC117_MEMBERSHIP_INDEX_QADAM_RECHECK_20261124.md`.
