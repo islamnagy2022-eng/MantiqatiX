@@ -20,6 +20,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Test the ordered migration set on disposable PostgreSQL 17 using repo CI. Preserve the 57-policy / 24-table dependency map.
 - [ ] Test RC923 anonymous-session denial for all seven catalog RPCs on the full chronological 80-version PostgreSQL 17 replay.
 - [ ] Test registered platform admin allow; tenant ADMIN/OWNER/SUPER_ADMIN without registry deny; inactive membership deny; cross-tenant/business/branch deny; tenant-local access still works.
+- [x] RC484 integration now asserts post-migration registry FORCE RLS and registry/helper owner parity with BYPASSRLS; dedicated PostgreSQL 17 job passed on exact PR head `714bff6797345400203cb9076a40082877d8b29f` (run `45390294342`).
 - [ ] Assert function ownership, empty `search_path`, grants, FORCE RLS and caller coverage in tests.
 - [ ] Prepare one coordinated migration bundle and post-release read-back. Do not hot-patch or apply it to Production in this phase.
 **Live evidence:** Production still uses membership-derived helpers; registry RLS is on but FORCE RLS is false. See `docs/audits/PASS_2041_2050_LIVE_PRODUCTION_RECHECK_20261124.md`.
@@ -112,7 +113,8 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Marketing button responsive routing regression merged and verified.
 - [x] SEO-only route metadata/canonical-root guard merged; exact-head CI passed 34/34. Main Pages deployment is still pending verification.
 - [x] Live Edge entrypoint comparison recorded; 9 critical mismatches remain and no Edge deployment was made.
-- [ ] Continue P0 authorization and Edge dependency closure, then review Li2Lak/gallery candidate PRs.
+- [x] RC484 test hardening PR #1040 merged; dedicated RC484 PG17 test passed. RC471, RC482 and related privacy/ACL jobs also passed on the merged test head. This is test evidence only; no Production migration was applied.
+- [ ] Resolve the separate `mnty_can_platform_admin()` P0 finding (Issue #909/#867) and complete the ordered live authorization migration rehearsal; then continue Edge dependency closure and review Li2Lak/gallery candidates.
 - [ ] Backup/restore remains the final work stage and a hard release blocker.
 
 ## This session
