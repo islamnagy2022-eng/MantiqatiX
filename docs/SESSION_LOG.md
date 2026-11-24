@@ -1,3 +1,13 @@
+## 2026-11-24 — Fresh live platform-root authorization read-back and coordinated gate
+- [x] Queried Production `MANTIQATIX FINAL` read-only. `private.platform_admins` is RLS-enabled but FORCE RLS is off; owner is postgres/BYPASSRLS; client roles have no table privileges; service_role retains CRUD.
+- [x] Rechecked global helper definitions: `is_platform_admin()` is SECURITY INVOKER/search_path=public and derives authority from ACTIVE tenant ADMIN/SUPER_ADMIN membership; `mnty_can_platform_admin()` is SECURITY DEFINER/search_path=public, pg_temp and calls the legacy unscoped helper.
+- [x] Counted the live RLS dependency blast radius: 57 policies across 24 tables call `is_platform_admin()`; five across three tables call `mnty_can_platform_admin()`; 62 policies across 27 tables in total.
+- [x] Rechecked seven direct catalog write RPCs: all SECURITY DEFINER/search_path=public; no anon EXECUTE; all authenticated EXECUTE; three service_role EXECUTE; four use COALESCE anonymous guards and three have no direct claim guard; zero require `is_anonymous=false`.
+- [x] Verified eight exact RC464/RC471 global/MantiGO function identities and four legacy helper callers. No user identity or business data was selected.
+- [x] Prepared `docs/release/PLATFORM_ROOT_COORDINATED_RELEASE_20261124.md` as a dependency/runbook gate; it forbids selective migration replay, hot-patching or Production writes before backup/restore, exhaustive effect reconciliation, exact-head tests and explicit release approval.
+- [ ] Continue coordinated P0.1 bundle verification; keep Production read-only.
+- Production mutations: NONE. FULL_PLATFORM_GATE remains BLOCKED / NOT CERTIFIED.
+
 ## 2026-11-24 — RC925 missing Anonymous Auth claim fail-closed candidate
 
 - Read-only Production recheck found seven catalog SECURITY DEFINER RPCs still use legacy guards: three lacked a direct identity guard before RC923, and four used COALESCE expressions that allow a JWT with no `is_anonymous` claim.
