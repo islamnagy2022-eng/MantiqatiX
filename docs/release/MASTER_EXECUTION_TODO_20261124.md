@@ -270,3 +270,14 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] RC494 settlement writer remains tenant-membership-derived rather than registry-backed explicit root/business scope. RC495 Storage brand policies remain membership-SUPER_ADMIN-based with legacy filename predicates. RC496 unique accepted-bid index absent and selected OFFERED status validation missing; ride row lock and legacy-RPC revocations exist.
 - [x] Evidence: `docs/audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md`.
 - [ ] Keep SMM admin, global catalog admin, Storage writes, private reads, settlement and MantiGO acceptance blocked until exact source contracts and adversarial tests pass.
+
+
+## 2026-11-24 — RC485–RC496 catalog, SMM, anonymous Auth, settlement and MantiGO recheck
+- [x] RC485 seven catalog RPCs remain SECURITY DEFINER/search_path=public and none calls the registry-backed `is_platform_admin()` helper; live catalog price function retains SUPER_ADMIN membership metadata as platform override.
+- [x] RC486 version allocator still does `MAX(version)+1` with no advisory/row lock; unique item/branch/version index absent.
+- [x] RC487 critical: first-user SMM Auth trigger and function still active; when `smm_admins` is empty it inserts the new Auth user. API roles cannot read/write allowlist; expected service_role SELECT is also absent.
+- [x] RC488–RC493 restrictive confirmed-auth policies absent: Storage 0/3; financial tables 0/15 despite RLS+FORCE RLS and authenticated permissive read; medical/support both missing guards; InDrive 0/4; CRM/projects/notifications 0/3.
+- [x] RC494 settlement business_id column/index absent; live writer is service_role-only but uses tenant finance-role checks, no platform registry, and doesn't populate settlement_transactions.business_id.
+- [x] RC495 storage branding policies still rely on tenant SUPER_ADMIN membership; registry helper is legacy. RC496 has ride row lock, but no target-bid OFFERED check and no one-accepted-per-ride unique index; legacy client accept/submit RPCs are revoked.
+- [x] Evidence: `docs/audits/PASS_2271_2280_RC485_RC496_CATALOG_AUTH_SETTLEMENT_MANTIGO_RECHECK_20261124.md`.
+- [ ] Keep catalog price mutation, SMM admin enrollment, private read/write, settlement, storage branding and MantiGO bid acceptance gated until coordinated fixes and regression evidence pass.
