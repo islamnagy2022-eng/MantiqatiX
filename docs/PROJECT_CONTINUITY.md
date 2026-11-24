@@ -3604,3 +3604,9 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 - Participant A/B agreement isolation, unrelated-user denial, anonymous-authenticated denial and platform-admin access all passed.
 - RC924 source migration is accepted; it remains unapplied to Production pending full forward migration-chain replay and the global release gate.
 - Full replay run 45406678921 remains in progress. Next: confirm replay, then start Phase 1 partner legal profile/private documents/verification and agreement-signature lifecycle.
+
+
+## 2026-11-24 — RC924 full forward migration replay PASS
+- Full forward migration chain replay run 45406678921 completed successfully from the captured Production schema checkpoint, including RC924; the companion RC921/RC922 PG17 job also passed.
+- RC924 now has isolated PostgreSQL 17 behavior PASS and full forward replay PASS. It remains unapplied to Production until global release gate and explicit coordinated deployment approval.
+- Resume MNTX-BP-001 at Phase 1: implement partner legal profile, private legal-document storage, verification/publication hard gate and immutable partner agreement terms/signature evidence.
