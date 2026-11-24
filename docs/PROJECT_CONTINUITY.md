@@ -3585,3 +3585,10 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 - Source and tests are on `feat/business-partners-legal-compliance-20261124`; no Production schema/RLS/GRANT/data/payment/settlement change was made.
 - CI and forward migration replay are still pending verification. Do not mark this security repair complete until all checks pass.
 - Resume next by checking RC924 CI, then inspect partner catalog public seller projection and order/payment-intent paths before Phase 1 onboarding/contracts.
+
+
+## 2026-11-24 — MNTX-BP-001 catalog/payment and legal evidence audit
+- Verified public catalog projections omit partner legal identity fields and expose only display-safe product data; current storefront hands order details directly to business WhatsApp and declares paymentsEnabled=false.
+- Separate order-create/payment-intent APIs can create Paymob intents; partner referral flow must be separate and must never call these payment-capable endpoints.
+- provider_onboarding_requests is insufficient for legal partner verification; business legal profile needs a dedicated table. Public profile-media bucket is unsuitable for private legal documents; media bucket MIME allowlist excludes PDF.
+- RC924 PG17 workflow run 45406123008 is still queued; do not mark security repair complete. Continue with CI verification and then Phase 1 legal profile/private evidence/agreement lifecycle.
