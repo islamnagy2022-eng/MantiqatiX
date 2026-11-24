@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
 **Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
-**Base:** `main @ 2607227bce13ea2ee652c13f24d05565ff5400d6`  
+**Base:** `main @ bc4f6e2ce3560d5c3a9b4fd7a4c7f807fa06af00`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -250,5 +250,5 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Current-main Pass 2301–2310 covers RC464–RC470; registry root, exact order/branch scopes, commission preview path, payment finalizer and webhook forward repair remain blocked/partial.
 - [x] Current-main Pass 2311–2320 covers RC471–RC478; MantiGO root, directory consent, Paymob processors, captain earnings ledger fields, bid contact privacy and open-ride eligibility remain blocked.
 - [x] Current-main Pass 2321–2330 covers Qadam seed and RC479–RC483; Qadam's idempotency-key seed effect is present though its exact migration ID is not in the ledger; raw provider-profile/digital-page anonymous reads and Legal service grants/registry/atomic RPCs remain blocked.
-- [x] Additional current Production read-back: Pass 2271–2280 `docs/audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md` and Pass 2281–2290 `docs/audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md` are linked below.
+- [x] Additional current Production read-back: Pass 2331–2340 `docs/audits/PASS_2331_2340_RC484_RC496_PLATFORM_CATALOG_AUTH_STORAGE_FINANCE_RECHECK_20261124.md` and Pass 2341–2350 `docs/audits/PASS_2341_2350_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md` are linked below. Pass 2281–2290 is already assigned to the existing RC102–RC106 order/provider report.
 - [ ] Keep SMM first-user bootstrap, confirmed-Auth boundaries, global Platform Admin, settlement, MantiGO bid acceptance, medical provider state, agreement participant scope and RC925 catalog RPCs blocked until coordinated release and deployed-origin tests pass.
