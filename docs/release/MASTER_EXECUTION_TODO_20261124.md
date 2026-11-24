@@ -20,7 +20,8 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Confirmed RC923's current source/integration contract checks all seven direct catalog RPCs for anonymous Auth sessions; exactly three RPC bodies are replaced by RC923, while the other four already guard anonymous sessions.
 - [ ] Reconcile live `is_platform_admin()` and `mnty_can_platform_admin()` with RC464, RC471, RC484, RC485 and RC923 source.
 - [x] RC484's post-migration test now asserts registry FORCE RLS and registry/helper owner parity with BYPASSRLS; exact PR-head PostgreSQL 17 run `45390294342` passed (PR #1040 merged).
-- [ ] Complete the ordered migration set on disposable PostgreSQL 17 using repo CI. Preserve the 57-policy / 24-table dependency map; PR #1049's widened RC471 actor matrix is still awaiting exact-head CI completion.
+- [x] PR #1049 widened the RC471/R7 actor matrix to reject tenant-scoped SUPER_ADMIN and MNTY-PLATFORM membership without registry across all four helper callers; exact-head run 45396407812 passed. PR merged as main commit 1b27efb65e32a254e34a7ae9add172de078e6fdf (31 successful checks, 2 skipped; no failures).
+- [ ] Complete the ordered migration set on disposable PostgreSQL 17 using repo CI. Preserve the 57-policy / 24-table dependency map; this PR-head replay passed, but production backup restore and physical-object reconciliation remain separate gates.
 - [ ] Test RC923 anonymous-session denial for all seven catalog RPCs on the full chronological 80-version PostgreSQL 17 replay.
 - [ ] Test registered platform admin allow; tenant ADMIN/OWNER/SUPER_ADMIN without registry deny; inactive membership deny; cross-tenant/business/branch deny; tenant-local access still works.
 - [ ] Assert function ownership, empty `search_path`, grants, FORCE RLS and caller coverage in tests.
@@ -122,8 +123,8 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Live Edge entrypoint comparison recorded; 9 critical mismatches remain and no Edge deployment was made.
 - [x] Live P0 authorization and seven catalog-RPC contracts rechecked read-only on 2026-11-24; exact evidence in `PASS_2071_2080`.
 - [x] Anonymous Auth/SECURITY DEFINER Advisor snapshot refreshed read-only; 9 no-policy tables have no client grants, 47 exposed authenticated definers still use non-empty pinned search paths; full policy test matrix remains open under #928.
-- [ ] Finish PR #1049 exact-head PostgreSQL 17 CI for tenant-scoped SUPER_ADMIN and MNTY-PLATFORM-membership-only negative tests across all four `mnty_can_platform_admin()` callers; no merge until CI is green.
-- [ ] Continue per-object migration/alias reconciliation, then review Li2Lak/gallery candidate PRs.
+- [x] PR #1049 merged after exact-head 31-success / 2-skipped CI; dedicated R7 PostgreSQL 17 helper-caller test passed and forward-chain replay passed. Main merge commit: 1b27efb65e32a254e34a7ae9add172de078e6fdf.
+- [ ] Continue per-object migration/alias reconciliation and exact Production schema-vs-source object mapping, then review Li2Lak/gallery candidate PRs.
 - [ ] Backup/restore remains the final work stage and a hard release blocker.
 
 ## This session
