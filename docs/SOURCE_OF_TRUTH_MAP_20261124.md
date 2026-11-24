@@ -6,7 +6,7 @@
 
 ## Authority order
 1. **Operating rules:** `docs/MASTER_SOURCE_OF_TRUTH.md` — exact owner-supplied instruction, controlling development method, priorities and release boundaries.
-2. **Application source:** GitHub `main`; current checkpoint `d55fc4e3b53f9c069c4618b7c4b4a271213a08e6` (documentation-only updates after the validated source head; exact-head code CI is linked from PASS 2351–2360).
+2. **Application source:** GitHub `main`; current checkpoint `00a8d369ccc8d5b1fb6ef29db87178c65ebddd27` (the application source is canonical; current runtime parity is tracked in the latest Edge audit).
 3. **Production identity, authorization and business data:** the connected `MANTIQATIX FINAL` Supabase project. The paused `MantiqatiX-DEMO` project is not production and must never be merged into the production data path.
 4. **Database release state:** live `supabase_migrations.schema_migrations` plus exact source migrations and physical schema/ACL/RLS reconciliation. A missing migration version is not by itself proof that all physical effects are absent.
 5. **Runtime Edge state:** the deployed Supabase Edge Function bundle/version and settings, compared with the exact current-main source and its schema dependencies. Main source alone does not prove deployment.
