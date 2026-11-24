@@ -1,5 +1,5 @@
 -- RC925: require a positively confirmed non-anonymous Auth identity at all seven direct catalog RPC boundaries.
--- COALESCE(..., 'false') = 'true' rejects explicit Anonymous Auth tokens but allows a missing is_anonymous claim.
+-- (auth.jwt() ->> 'is_anonymous') IS DISTINCT FROM 'false' rejects both explicit Anonymous Auth and missing/NULL claims.
 -- RC925 changes only the guard predicate; it preserves the current tenant/business/branch authorization and ACLs.
 BEGIN;
 
