@@ -1,5 +1,12 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+const liveContract = fs.readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
+const productionVerifier = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
+const migrationGate = fs.readFileSync("scripts/validate-production-migration-chain-gate.mjs", "utf8");
+const forwardReplay = fs.readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
+const liveManifest = JSON.parse(fs.readFileSync("docs/release/production-migration-reconciliation.json", "utf8"));
+const backupRunbook = fs.readFileSync("docs/runbooks/PRODUCTION_BACKUP_RESTORE_RC484_20261119.md", "utf8");
+
 
 const migration = fs.readFileSync("supabase/migrations/20261124140000_rc924_agreement_participant_read_scope.sql", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc924_agreement_participant_read_scope_fixture.sql", "utf8");
@@ -76,5 +83,15 @@ assert.ok(workflow.indexOf("rc482-integration.sql") < workflow.indexOf("rc924.sq
 assert.ok(workflow.includes("grep -Fq 'RC924_LEGAL_ADMIN_HELPER_IS_NOT_REGISTRY_BACKED'"),"workflow must verify the expected RC924 fail-closed preflight");
 assert.ok(workflow.includes("grep -Fq 'RC924_REQUIRES_RC482_REMOVAL_OF_ZERO_ARGUMENT_LEGAL_ADMIN_OVERLOAD'"),"workflow must prove the overloaded zero-argument helper is rejected");
 assert.ok(workflow.includes("DROP FUNCTION private.legal_is_admin();"),"workflow must then isolate the membership-derived UUID helper check");
+
+assert.ok(liveContract.includes('"20261124140000"'), "RC924 must be in the live release migration contract");
+assert.ok(productionVerifier.includes("20261124140000_rc924_agreement_participant_read_scope.sql"), "RC924 must be in the Production migration verifier");
+assert.ok(migrationGate.includes("20261124140000_rc924_agreement_participant_read_scope.sql"), "RC924 must be in the exact migration-chain gate");
+assert.match(migrationGate, /required\.length, 81/);
+assert.ok(forwardReplay.includes("node scripts/validate-rc924-agreement-participant-read-scope.mjs"), "full forward replay must run the RC924 static contract");
+assert.equal(liveManifest.required_release_migration_ledger_check.expected_migration_versions, 81);
+assert.ok(liveManifest.required_release_migration_ledger_check.required_versions.includes("20261124140000"));
+assert.ok(liveManifest.required_release_migration_ledger_check.missing_versions.includes("20261124140000"), "Production manifest must keep unapplied RC924 blocked");
+assert.ok(backupRunbook.includes("81-version") && backupRunbook.includes("20261124140000"), "backup/release runbook must include RC924 in the 81-version gate");
 
 console.log("RC924 agreement participant read-scope contract: PASS");
