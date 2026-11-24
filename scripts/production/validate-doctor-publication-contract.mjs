@@ -9,8 +9,14 @@ assert.match(edge, /from "\.\/doctor-publication-contract\.mjs"/,
   "The deployed Edge entrypoint must import the reviewed doctor publication contract");
 assert.match(edge, /\.from\("directory_source_permission_evidence"\)[\s\S]{0,1000}\.eq\("status", "APPROVED"\)[\s\S]{0,300}\.eq\("allows_doctor_profile_republication", true\)[\s\S]{0,300}\.eq\("allows_commercial_republication", true\)[\s\S]{0,300}\.lte\("valid_from", evidenceCheckedAt\)[\s\S]{0,300}\.is\("revoked_at", null\)/,
   "Public GET must read only current approved evidence granting both explicit scopes");
-assert.match(edge, /doctorSourceEvidenceError[\s\S]{0,250}DIRECTORY_SOURCE_RIGHTS_UNAVAILABLE/,
-  "A failed or truncated permission registry read must fail closed");
+assert.match(edge, /doctorSourceEvidenceReady = !doctorSourceEvidenceError[\s\S]{0,250}doctorSourceEvidenceRows\.length < 1000/,
+  "A failed or truncated permission registry read must be detected before filtering");
+assert.match(edge, /doctorSourceEvidence = doctorSourceEvidenceReady \? doctorSourceEvidenceRows : null/,
+  "Registry failure must pass no evidence to the doctor predicate, which denies doctor rows");
+assert.doesNotMatch(edge, /DIRECTORY_SOURCE_RIGHTS_UNAVAILABLE/,
+  "A source-rights registry outage must not globally block explicitly allowlisted non-doctor discovery");
+assert.match(tests, /registry outage blocks doctor rows but preserves allowlisted non-doctor discovery/,
+  "Behavior tests must prove registry outages fail closed for doctors without taking down non-doctor categories");
 const getStart = edge.indexOf('if (req.method === "GET")');
 const postStart = edge.indexOf('if (req.method !== "POST")', getStart);
 assert.ok(getStart !== -1 && postStart > getStart, "GET and POST boundaries must remain explicit");
