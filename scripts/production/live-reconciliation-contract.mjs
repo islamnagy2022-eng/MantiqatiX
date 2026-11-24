@@ -68,6 +68,11 @@ export const REQUIRED_MIGRATION_ALIASES = [
     target_ledger_version: "20261027041411",
     evidence_type: "EXACT_SOURCE_BLOB_ALIAS",
   },
+  {
+    source_version: "20261101150000",
+    target_ledger_version: "20261101140105",
+    evidence_type: "EXACT_STATEMENT_ALIAS",
+  },
 ];
 
 export const REQUIRED_CORE_OBJECTS = [
