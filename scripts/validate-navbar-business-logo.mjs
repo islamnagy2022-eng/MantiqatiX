@@ -25,7 +25,7 @@ assert.ok(manifest.icons.every((icon) => !/business|merchant|currentBusiness/i.t
   'business context must never replace the installed application icon');
 
 const serviceWorker = fs.readFileSync('apps/catalog-frontend/public/sw.js', 'utf8');
-assert.match(serviceWorker, /const CACHE_NAME = 'mantiqatix-primary-catalog-shell-v\\d+';/,
+assert.match(serviceWorker, /const CACHE_NAME = 'mantiqatix-primary-catalog-shell-v\d+';/,
   'offline cache must be versioned in the catalog-only namespace');
 for (const asset of [
   '/MantiqatiX/icons/mantiqatix-approved.svg',
