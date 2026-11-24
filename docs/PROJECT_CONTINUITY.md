@@ -1,3 +1,14 @@
+## 2026-11-24 — Focused 81-migration physical effect recheck
+
+- Live migration ledger remains 310 rows through `20261110150618`; 0/81 exact required source identifiers recorded. This is not proof all physical effects are absent.
+- Current read-only focused sample: 18 relations (13 present/5 absent), 12 indexes (3 present-valid/9 absent), 17 columns (2 present/15 absent), and 15 function families (11 absent; 4 present but contract-blocked).
+- Important gaps: RC425 Paymob event/payment RPC, RC427 active-payment-intent index, RC432 SMM wallet idempotency index, RC434/437/438 purchase-order objects, RC435/439 subscription claim/encryption columns/RPCs, RC436/RC449A journal fields/indexes, RC472/473 consent, RC486 price-version index, RC494 settlement business_id/index and RC496 accepted-bid invariant.
+- Evidence: `docs/audits/PASS_2161_2170_CURRENT_81_MIGRATION_PHYSICAL_EFFECT_RECHECK_20261124.md`.
+- Historical PASS 2091–2100 checked 76 contracts with 35 present / 41 absent at 13:12 UTC; this focused query adds newer contract samples but does not yet complete the full 81-migration object map.
+- No Production mutation occurred. Continue exact/alias/semantic-mismatch/safe-to-replay/superseded/blocked classification before any DB writes.
+
+---
+
 ## 2026-11-24 — Launch-critical Edge bundle recheck
 
 - Refreshed nine deployed Edge functions against merged main: catalog-admin v20, order-create v8, paymob-webhook v10, payment-intent v8, subscription-payment-intent v4, financial-journal v3, settlement-financial-atomic v4, business-register v9 and directory-listings v18 all differ from current main.
