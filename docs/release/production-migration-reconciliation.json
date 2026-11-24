@@ -3919,7 +3919,7 @@
     "interpretation": "Advisor findings are not vulnerability counts. No-policy findings require effective grant/RPC path review. The two SECURITY DEFINER lint findings refer to trigger-only functions assign_default_owner_to_unowned_business and capture_commission_rule_audit; their attached triggers are enabled, but direct EXECUTE ACL remains broader than desired. RC463 remains unrecorded and unapplied. Auth leaked-password protection remains NOT VERIFIED."
   },
   "full_platform_gate": "BLOCKED / NOT CERTIFIED",
-  "full_platform_gate_last_checked_at": "2026-11-21",
+  "full_platform_gate_last_checked_at": "2026-11-24",
   "rc431_rc438_live_rpc_recheck_20261104": {
     "checked_at": "2026-11-04",
     "method": "Read-only pg_proc function identity, proconfig and has_function_privilege queries.",
@@ -7524,5 +7524,111 @@
     "current_main_checkpoint": "fe19a39018a53006a59179e3d30dd2916a8f00b5",
     "rc485_rc496_report": "docs/audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md",
     "rc921_rc925_report": "docs/audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md"
+  },
+  "platform_root_live_recheck_20261124": {
+    "status": "BLOCKED / NOT CERTIFIED",
+    "project": "MANTIQATIX FINAL",
+    "project_ref": "moyhiluyhjsujhwlyeuu",
+    "database_version": "17.6.1.155",
+    "observed_at": "2026-11-24T22:01:16.162Z",
+    "method": "Read-only PostgreSQL pg_catalog, pg_policies, function-definition and effective privilege queries. No production writes.",
+    "registry": {
+      "table": "private.platform_admins",
+      "owner": "postgres",
+      "owner_bypass_rls": true,
+      "rls_enabled": true,
+      "force_rls": false,
+      "rows": 1
+    },
+    "grants": {
+      "anon": {
+        "select": false,
+        "insert": false,
+        "update": false,
+        "delete": false
+      },
+      "authenticated": {
+        "select": false,
+        "insert": false,
+        "update": false,
+        "delete": false
+      },
+      "service_role": {
+        "select": true,
+        "insert": true,
+        "update": true,
+        "delete": true
+      }
+    },
+    "helpers": {
+      "is_platform_admin": {
+        "security_definer": false,
+        "search_path": "public",
+        "authority": "ACTIVE tenant ADMIN/SUPER_ADMIN membership",
+        "status": "BLOCKED — not registry-backed"
+      },
+      "mnty_can_platform_admin": {
+        "security_definer": true,
+        "search_path": "public, pg_temp",
+        "authority": "mnty_can('admin', NULL, NULL, NULL)",
+        "status": "BLOCKED — legacy unscoped helper"
+      }
+    },
+    "policy_dependencies": {
+      "is_platform_admin": {
+        "policies": 57,
+        "tables": 24
+      },
+      "mnty_can_platform_admin": {
+        "policies": 5,
+        "tables": 3
+      },
+      "combined": {
+        "policies": 62,
+        "tables": 27
+      }
+    },
+    "root_callers": {
+      "named_function_identities": 8,
+      "legacy_shared_helper_callers": 4,
+      "status": "BLOCKED — RC464/RC471 coordinated caller replacement required"
+    },
+    "catalog_write_rpcs": {
+      "count": 7,
+      "security_definer": 7,
+      "search_path_public": 7,
+      "anon_execute": 0,
+      "authenticated_execute": 7,
+      "service_role_execute": 3,
+      "coalesce_anonymous_guard": 4,
+      "missing_direct_anonymous_claim_guard": 3,
+      "explicit_is_anonymous_false_guard": 0,
+      "status": "BLOCKED — RC485/RC923/RC925 source chain not applied"
+    },
+    "production_migration_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "exact_required_source_id_matches": "0/82"
+    },
+    "dependencies": [
+      "RC464",
+      "RC464B",
+      "RC465-RC470",
+      "RC471",
+      "RC472-RC483",
+      "RC484",
+      "RC485-RC486",
+      "RC487-RC496",
+      "RC921-RC925"
+    ],
+    "ci_evidence": {
+      "pr": 1086,
+      "head": "ba5b4deb1fb4575d1fcfc926f956cc411fe751f3",
+      "full_forward_replay_run": 45496742405,
+      "module_professionalization_run": 45496743088,
+      "deploy_job": "SKIPPED — no web deployment",
+      "production_release": "NOT AUTHORIZED / NOT PERFORMED"
+    },
+    "no_production_mutation": true
   }
 }
