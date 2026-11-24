@@ -6625,5 +6625,75 @@
     },
     "production_mutation": "NONE",
     "report": "docs/audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md"
+  },
+  "rc102_rc106_rc117_current_live_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_DIFF_CONFIRMED",
+    "checked_at": "2026-11-24",
+    "findings": {
+      "RC102": {
+        "authenticated_insert": false,
+        "authenticated_update": false,
+        "authenticated_delete": false,
+        "anon_insert": false,
+        "service_role_insert": false,
+        "disposition": "BLOCKED_OWNER_WRITE_PRIVILEGES"
+      },
+      "RC103": {
+        "rpc_present": true,
+        "security_definer": true,
+        "search_path": "public",
+        "row_lock": true,
+        "owner_admin_fully_unscoped_check": false,
+        "staff_business_match": true,
+        "staff_branch_match": false,
+        "disposition": "P0_BRANCH_SCOPE_DRIFT"
+      },
+      "RC104": {
+        "rpc_present": true,
+        "tenant_plus_key_lookup": true,
+        "row_lock": true,
+        "replay_customer_match": false,
+        "replay_business_match": false,
+        "replay_branch_match": false,
+        "disposition": "P0_IDEMPOTENCY_REPLAY_SCOPE_GAP"
+      },
+      "RC105": {
+        "rpc_present": true,
+        "service_role_execute": true,
+        "authenticated_execute": false,
+        "body_service_role_identity_branch": false,
+        "body_unconditional_auth_uid_customer_match": true,
+        "disposition": "BLOCKED_SERVICE_EDGE_BODY_MISMATCH"
+      },
+      "RC106": {
+        "rpc_present": true,
+        "service_role_execute": true,
+        "authenticated_execute": false,
+        "body_service_role_identity_branch": false,
+        "body_unconditional_auth_uid_actor_match": true,
+        "disposition": "BLOCKED_SERVICE_EDGE_BODY_MISMATCH"
+      },
+      "RC117": {
+        "marketing_services_table_present": true,
+        "image_url_present": false,
+        "image_source_present": false,
+        "helper_function_present": false,
+        "trigger_functions_present": 0,
+        "expected_trigger_functions": 3,
+        "expected_triggers_present": 0,
+        "expected_triggers": 3,
+        "historical_evidence": "2026-11-14 manifest recorded image_url column present",
+        "current_drift": "image_url now absent; disappearance time/cause unknown",
+        "disposition": "BLOCKED_CURRENT_EFFECT_INCOMPLETE"
+      }
+    },
+    "production_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "required_source_versions": 82,
+      "exact_source_version_matches": 0
+    },
+    "production_mutation": "NONE",
+    "report": "docs/audits/PASS_2331_2340_RC102_RC106_RC117_CURRENT_LIVE_RECHECK_20261124.md"
   }
 }
