@@ -117,7 +117,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Produce a candidate manifest: commit, exact CI runs, Edge versions, migration status and unresolved exceptions.
 
 ## P6 — Recovery and launch (last, as requested)
-- [ ] Create encrypted owner-controlled off-site DB backup and separate Storage object export; verify hashes and retrieval. Current read-back: plan/backup inventory NOT EXPOSED; no separate populated restore target or downloaded artifact has been demonstrated. See `docs/audits/PASS_2391_2400_BACKUP_RESTORE_CAPABILITY_READBACK_20261124.md` and `docs/release/PRODUCTION_BACKUP_RESTORE_DRILL_20261124.md`.
+- [ ] Create encrypted owner-controlled off-site DB backup and separate Storage object export; verify hashes and retrieval. Current read-back: organization plan **Free** (verified 2026-11-25); Free has no automatic daily backups per official Supabase guidance. Backup inventory/latest owner-created export remains unavailable to connected tools; no retrievable artifact or separate populated restore target has been demonstrated. See `docs/audits/PASS_2391_2400_BACKUP_RESTORE_CAPABILITY_READBACK_20261124.md` and `docs/release/PRODUCTION_BACKUP_RESTORE_DRILL_20261124.md`.
 - [ ] Prove Auth users/identities coverage, Storage metadata/object bytes, Edge/config/extensions and Vault/key recovery.
 - [ ] Restore into a disposable PostgreSQL 17 environment; test rollback and measure RPO/RTO.
 - [ ] Prefer a local/owner-controlled zero-cost restore path. No paid Supabase branch is assumed.
