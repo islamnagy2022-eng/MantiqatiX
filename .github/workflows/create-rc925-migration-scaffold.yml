@@ -8,7 +8,7 @@ on:
       - ".github/workflows/create-rc925-migration-scaffold.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   generate:
@@ -16,6 +16,8 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: true
       - name: Install pinned Supabase CLI
         uses: supabase/setup-cli@v1
         with:
@@ -31,10 +33,8 @@ jobs:
           test -f "${generated[0]}"
           printf 'GENERATED_MIGRATION=%s\n' "${generated[0]}"
           cat "${generated[0]}"
-      - name: Upload generated migration scaffold
-        uses: actions/upload-artifact@v4
-        with:
-          name: rc925-supabase-cli-migration-scaffold
-          path: supabase/migrations/*_rc925_catalog_rpc_confirmed_auth_boundary.sql
-          if-no-files-found: error
-          retention-days: 1
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "${generated[0]}"
+          git commit -m "chore(db): generate RC925 scaffold with Supabase CLI"
+          git push origin "HEAD:fix/rc925-catalog-rpc-confirmed-auth-20261124"
