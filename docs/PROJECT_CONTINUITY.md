@@ -1,3 +1,14 @@
+## 2026-11-24 — RC925 missing Anonymous Auth claim fail-closed candidate
+
+- Read-only Production recheck found seven catalog SECURITY DEFINER RPCs still use legacy guards: three lacked a direct identity guard before RC923, and four used COALESCE expressions that allow a JWT with no `is_anonymous` claim.
+- Added source-only RC925 `20261124150000` to require `(auth.jwt() ->> 'is_anonymous') IS DISTINCT FROM 'false'` in all seven RPCs; no tenant/business/branch predicates or EXECUTE ACLs are intentionally changed.
+- Added a disposable PG17 integration test that creates an authenticated JWT with a valid `auth.uid()` but no `is_anonymous` claim and asserts all seven RPCs reject it before membership authorization.
+- Added an exact static validator; updated the live source contract, Production verifier, strict migration gate, RC479/RC494/RC924 regression validators, backup validator and chronological replay workflow to 82 versions.
+- Branch: `fix/rc925-catalog-rpc-missing-anon-claim-20261124`. Exact-head static, adversarial PG17 and full 82-version chronological replay are **PENDING**. No Production migration or other write was performed.
+- Next: finish manifest/runbook/workflow path updates, open PR, require exact-head CI, fix any failures, and only then merge the source candidate. Production remains **BLOCKED / NOT CERTIFIED**.
+
+---
+
 ## 2026-11-24 — RC924 added to the unified 81-version release gate
 
 - Current main baseline for this continuation: `ae53cf436a37c178bffa56aaac54a58472bcfe89`; RC924 is already merged by PR #1064 at `82cdebcdefc4a9c12d4e875548f1cf5f5dd3f896`.
