@@ -6819,5 +6819,84 @@
     },
     "production_mutation": "NONE",
     "report": "docs/audits/PASS_2271_2280_RC485_RC496_CATALOG_AUTH_SETTLEMENT_MANTIGO_RECHECK_20261124.md"
+  },
+  "rc921_rc925_live_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_DIFF_CONFIRMED",
+    "checked_at": "2026-11-24",
+    "findings": {
+      "RC921": {
+        "function": "public.update_medical_appointment_status_backend(uuid,text,text)",
+        "present": true,
+        "security_definer": true,
+        "search_path": "public, pg_temp",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "tenant_scope": "membership tenant match",
+        "business_scope": "membership business NULL or appointment business",
+        "assigned_provider_profile_check": false,
+        "provider_verification_check": false,
+        "forward_only_status_matrix": false,
+        "patient_independent_cancel": false,
+        "disposition": "BLOCKED_LEGACY_MEDICAL_BODY"
+      },
+      "RC922": {
+        "same_function_live_body_as_RC921": true,
+        "tenant_wide_provider_rule": "legacy nullable business membership; no own active provider profile binding",
+        "verified_provider_scope": false,
+        "disposition": "BLOCKED"
+      },
+      "RC923": {
+        "target_rpcs_present": 3,
+        "security_definer": true,
+        "search_path": "public",
+        "registry_helper_calls": 0,
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "legacy_coalesce_claim_guard_count": 2,
+        "missing_claim_unchecked_count": 1,
+        "explicit_false_guard_count": 0,
+        "disposition": "BLOCKED"
+      },
+      "RC924": {
+        "agreements_rls_enabled": true,
+        "confirmed_auth_restrictive_policy_present": false,
+        "participant_policy_present": true,
+        "participant_policy_live_predicate": "ap.agreement_id = ap.id AND ap.user_id = auth.uid()",
+        "source_expected_predicate": "ap.agreement_id = agreements.id AND ap.user_id = auth.uid()",
+        "legal_helper_registry_backed": false,
+        "zero_arg_legal_helper_overload_present": true,
+        "disposition": "BLOCKED_POLICY_CORRELATION_AND_AUTH_BOUNDARY"
+      },
+      "RC925": {
+        "catalog_rpcs_present": 7,
+        "security_definer": 7,
+        "search_path_public": 7,
+        "registry_helper_calls": 0,
+        "anon_execute": 0,
+        "authenticated_execute": 7,
+        "legacy_coalesce_claim_guards": 4,
+        "no_direct_claim_guard": 3,
+        "explicit_false_missing_claim_fail_closed": 0,
+        "live_registry_helper_security_definer": false,
+        "live_registry_helper_search_path": "public",
+        "live_registry_helper_body": "public.user_memberships ADMIN/SUPER_ADMIN",
+        "platform_admin_registry_force_rls": false,
+        "disposition": "BLOCKED_NOT_APPLIED"
+      }
+    },
+    "source_ci": {
+      "rc925_negative_missing_and_anonymous_tests": "PASS",
+      "rc925_confirmed_user_positive_test": "PASS",
+      "exact_head_postgres17_and_82_version_chronological_replay": "PASS",
+      "note": "Source CI is not Production deployment evidence."
+    },
+    "production_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "required_source_versions": 82,
+      "exact_required_version_matches": 0
+    },
+    "production_mutation": "NONE",
+    "report": "docs/audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md"
   }
 }
