@@ -9,6 +9,7 @@ declare
   tenant_scoped_super_admin uuid := '10000000-0000-4000-8000-000000000045';
   platform_membership_only uuid := '10000000-0000-4000-8000-000000000046';
   registry_only_admin uuid := '10000000-0000-4000-8000-000000000047';
+  inactive_tenant_super_admin uuid := '10000000-0000-4000-8000-000000000049';
   rejected boolean;
   result jsonb;
 begin
@@ -19,9 +20,10 @@ begin
     ('ops',tenant_ops,'TENANT-C','OPERATIONS_MANAGER','ACTIVE','{"admin":true}'::jsonb),
     ('tenant-super',tenant_scoped_super_admin,'TENANT-D','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
     ('platform',platform_admin,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
-    ('membership-only-platform',platform_membership_only,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb);
+    ('membership-only-platform',platform_membership_only,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
+    ('inactive-tenant-super-admin',inactive_tenant_super_admin,'TENANT-F','SUPER_ADMIN','INACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb);
 
-  insert into auth.users(id) values (platform_admin),(registry_only_admin);
+  insert into auth.users(id) values (platform_admin),(registry_only_admin),(inactive_tenant_super_admin);
   insert into private.platform_admins(user_id) values (platform_admin),(registry_only_admin);
 
   insert into public.mantigo_rides(id,customer_id,status,updated_at) values
@@ -94,6 +96,12 @@ begin
   perform pg_catalog.set_config('request.jwt.claim.sub',platform_membership_only::text,false);
   if public.mnty_can_platform_admin() then
     raise exception 'MNTY-PLATFORM membership without private registry entry must be denied';
+  end if;
+
+  -- An inactive tenant membership with stale platform metadata never grants global authority.
+  perform pg_catalog.set_config('request.jwt.claim.sub',inactive_tenant_super_admin::text,false);
+  if public.mnty_can_platform_admin() then
+    raise exception 'inactive tenant SUPER_ADMIN must not gain platform authority from stale membership metadata';
   end if;
 
   -- The canonical registry is sufficient even when no MNTY-PLATFORM membership exists.
@@ -241,6 +249,7 @@ select pg_temp.assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000
 select pg_temp.assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000043','tenant OPERATIONS_MANAGER');
 select pg_temp.assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000045','tenant-scoped SUPER_ADMIN');
 select pg_temp.assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000046','MNTY-PLATFORM membership without registry');
+select pg_temp.assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000049','inactive tenant SUPER_ADMIN');
 
 -- SECURITY DEFINER hardening must be consistent across all four global RPCs.
 do $contract$

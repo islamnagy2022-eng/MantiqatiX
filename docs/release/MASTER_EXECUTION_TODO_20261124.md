@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-24 — live Production recheck and PR #1049 actor matrix  
-**Base:** `main @ 3e8bee5eff855ee903bab29fe3b6241d15cf2cbb`  
+**Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
+**Base:** `main @ 80cd991f6d591c42f77f58531de995d4e1ef2f3f`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -18,22 +18,23 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 ### P0.1 Platform-root authorization
 - [x] Rechecked Production helper definitions, all dependent policy counts, helper callers, all seven catalog RPC ACLs and anonymous-session guards using read-only PostgreSQL catalog queries; see `docs/audits/PASS_2071_2080_P0_AUTHORIZATION_RECHECK_20261124.md`.
 - [x] Confirmed RC923's current source/integration contract checks all seven direct catalog RPCs for anonymous Auth sessions; exactly three RPC bodies are replaced by RC923, while the other four already guard anonymous sessions.
-- [ ] Reconcile live `is_platform_admin()` and `mnty_can_platform_admin()` with RC464, RC471, RC484, RC485 and RC923 source.
+- [x] Reconcile live is_platform_admin() and mnty_can_platform_admin() with RC464, RC471, RC484, RC485 and RC923 source; exact 57-policy/24-table RC484 dependency map and four direct helper callers verified read-only. Evidence: docs/audits/P0_ANONYMOUS_AUTH_STORAGE_LIVE_RECHECK_20261124.md.
 - [x] RC484's post-migration test now asserts registry FORCE RLS and registry/helper owner parity with BYPASSRLS; exact PR-head PostgreSQL 17 run `45390294342` passed (PR #1040 merged).
 - [x] PR #1049 widened the RC471/R7 actor matrix to reject tenant-scoped SUPER_ADMIN and MNTY-PLATFORM membership without registry across all four helper callers; exact-head run 45396407812 passed. PR merged as main commit 1b27efb65e32a254e34a7ae9add172de078e6fdf (31 successful checks, 2 skipped; no failures).
-- [ ] Complete the ordered migration set on disposable PostgreSQL 17 using repo CI. Preserve the 57-policy / 24-table dependency map; this PR-head replay passed, but production backup restore and physical-object reconciliation remain separate gates.
-- [ ] Test RC923 anonymous-session denial for all seven catalog RPCs on the full chronological 80-version PostgreSQL 17 replay.
-- [ ] Test registered platform admin allow; tenant ADMIN/OWNER/SUPER_ADMIN without registry deny; inactive membership deny; cross-tenant/business/branch deny; tenant-local access still works.
+- [x] Complete the ordered migration set on disposable PostgreSQL 17 using repo CI. Exact-head run 45407602805 passed the checkpoint restore, exact 80-version gate, 117 chronological forward migrations and integration suite; this is disposable-only and does not replace Production backup restore or physical-object reconciliation.
+- [x] Test RC923 anonymous-session denial for all seven catalog RPCs on the full chronological 80-version release-chain replay; RC485/RC923 integration marker passed in run 45407602805.
+- [x] Test registered platform-admin allow; tenant ADMIN/OWNER/SUPER_ADMIN and MNTY-PLATFORM membership without registry deny; cross-tenant/business/branch denial; tenant-local scope preserved (RC484 run 45390294342, RC471/R7 actor matrix run 45396407812; companion exact-head module run 45407602698 passed).
+- [x] Added an inactive tenant SUPER_ADMIN (INACTIVE membership with stale platform metadata) negative actor to the RC449 global MantiGO RPC matrix and RC464 shared-helper caller matrix; exact-head run 45411811229 and RC464 live-hardening run 45411811351 passed.
 - [x] Re-ran the existing read-only high-risk SECURITY DEFINER SQL contract against Production: 14 RPCs checked; 5 PASS, 9 FAIL_SEARCH_PATH; all 14 preserve anon EXECUTE=false and authenticated EXECUTE=true. Direct anon/authenticated write grants on five MantiGO tables are both zero; see PASS_2071_2080.
-- [ ] Assert function ownership, empty `search_path`, grants, FORCE RLS and caller coverage in tests.
+- [x] Assert function ownership, empty `search_path`, grants, FORCE RLS and caller coverage in the RC464/RC471/RC484/RC485 suites; exact-head module and forward replay workflows passed.
 - [ ] Prepare one coordinated migration bundle and post-release read-back. Do not hot-patch or apply it to Production in this phase.
 **Live evidence:** Production still uses membership-derived helpers; registry RLS is on but FORCE RLS is false. See `docs/audits/PASS_2041_2050_LIVE_PRODUCTION_RECHECK_20261124.md`.
 
 ### P0.2 Anonymous Auth and private profile boundaries
 - [x] Refreshed Advisor + live ACL snapshot: 90 anonymous-Auth table warnings, 9 RLS-no-policy tables with all client grants denied, 65 exposed authenticated SECURITY DEFINER functions (18 empty search_path, 47 other pinned, 0 unset); see PASS_2081_2090 and Issue #928.
-- [ ] Reconcile RC479 and RC488–RC495 against live policy and ACL state.
-- [ ] Run PG17/JWT cases for raw anon, anonymous Auth session, confirmed user, owner and platform admin.
-- [ ] Preserve intentional public discovery and ad reads; no blanket policy denial or privilege revocation.
+- [x] Reconcile RC479 and RC488–RC495 against live policy and ACL state; 28 required restrictive guard policies are absent, raw anon profile SELECT and several authenticated-role grants remain, and RC494/RC495 have ordered root/schema dependencies. Evidence: docs/audits/P0_ANONYMOUS_AUTH_STORAGE_LIVE_RECHECK_20261124.md.
+- [x] Run raw anon, anonymous Auth session, missing is_anonymous claim, confirmed user, owner/provider and platform-root cases across RC479, RC488–RC493, RC471/RC484/RC485; forward replay run 45407602805, module validation run 45407602698 and RC493 isolated run 45410089951 passed.
+- [x] Preserve intentional public discovery and ad reads; RC479 raw anon profile-base grant removal is isolated from the public projection, RC488 preserves public profile-media SELECT, and no blanket privilege revocation was added.
 - [ ] Keep leaked-password protection marked NOT AVAILABLE/NOT VERIFIED while the current plan does not expose the setting.
 
 ### P0.3 Directory and public-contact consent
@@ -50,7 +51,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Refreshed all 76 previously tracked physical object contracts against Production on 2026-11-24 (tables, indexes, functions, columns, triggers): 35 present / 41 absent, zero status changes since the 2026-11-20 snapshot. Breakdown is in `docs/audits/PASS_2091_2100_PHYSICAL_OBJECT_REFRESH_20261124.md`.
 - [ ] Classify every migration by physical effect: exact-present, alias/effect-present, safe-to-replay, superseded/forward-fixed or blocked.
 - [ ] Complete the broader migration→physical effect/alias map beyond these 76 contracts: reconcile all remaining functions, policies, ACLs, indexes, triggers and constraints; 0/80 exact ledger matches is not proof all effects are absent.
-- [ ] Run full chronological forward replay on GitHub Actions PostgreSQL 17 with required integration jobs.
+- [x] Run full chronological forward replay from the captured Production schema checkpoint; exact-head run 45407602805 passed after 117 forward migrations and ordered integration jobs. This is not a live Production restore/deployment.
 - [ ] Never blindly replay the release chain on Production.
 
 ### P1.2 Edge parity
@@ -138,3 +139,24 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Completed a read-only direct dependency closure pass for nine critical Edge functions; no Production Edge or database changes.
 - [x] Rechecked the 80-version exact migration ledger set (0/80 exact IDs), both live platform-root helpers, 57/24 and 5/3 policy dependencies, four SECURITY DEFINER callers, and all seven catalog RPC guard/ACL/search_path states.
 - [ ] Next: await exact-head CI for PR #1049, then complete physical-object alias mapping and transitive Edge/SQL dependency closure.
+
+
+## 2026-11-24 — P0.1/P0.2 read-only live reconciliation checkpoint
+- [x] P0.1 helper, registry, policy blast-radius, helper-caller and ACL reconciliation complete. Live remains on membership-derived helpers; registry FORCE RLS is false, so source repair is not deployed.
+- [x] P0.2 RC479/RC488–RC495 source-to-live policy/ACL/Storage reconciliation complete. RC479 confirmed-user SELECT guard is absent and raw anon SELECT remains; RC488 three Storage restrictive write guards are absent; RC489 15 finance restrictive read guards are 0/15; RC490 medical restrictive guard absent (and authenticated table SELECT is not granted); RC491 support guard absent; RC492 four InDrive guards absent; RC493 three CRM/notification guards absent; RC494 settlement RPC still has legacy search_path and is not registry scope hardened; RC495 branding Storage policies remain tenant-SUPER_ADMIN based and old filename pattern.
+- [ ] Run exact-head PostgreSQL 17/JWT suites for raw anon, anonymous Auth, missing is_anonymous claim, confirmed user, owner/provider and platform root; current feature-branch forward replay run 45407602805 and module validation run 45407602698 must complete before recording test PASS.
+- [ ] Production remains read-only. Apply neither individual policy fixes nor Storage policy updates before encrypted backup/restore and the ordered RC464/RC471/RC479/RC484/RC485/RC488–RC495 dependency bundle is reconciled and approved.
+
+
+## 2026-11-24 — P0 disposable test acceptance checkpoint
+- RC924 agreement-read boundary passed PostgreSQL 17 in run 45407602669 on the feature branch.
+- P0.2 source/live reconciliation is documented in docs/audits/P0_ANONYMOUS_AUTH_STORAGE_LIVE_RECHECK_20261124.md.
+- Full forward replay and RC479/RC471/RC482/RC483 module validation passed on tested source head e9fa4e0a354ca6428d6d7e95e7ea46306180921d (runs 45407602805 and 45407602698).
+- RC493 dedicated PostgreSQL 16 integration passed on audit branch head ecf8dd1242901a893a730dfd7aba8ae48df13815 (run 45410089951); validator now explicitly requires the migration to create RESTRICTIVE policies.
+- Production source/ACL reconciliation still shows RC479/RC488–RC495 and platform-root fixes are not deployed. No Production writes, deployments, grants or data mutations occurred. FULL_PLATFORM_GATE remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-24 — P0.1/P0.2 exact-head CI acceptance
+- Branch head `7b585ba393ee076aabf04671ac9da21a69598f95` passed exact-head platform-admin scope run 45411811229, RC464 + RC479 run 45411811351, PG17 parity run 45411811012, full forward replay run 45411811582, module professionalization run 45411811026, RC493 run 45411811175, directory claim atomicity run 45411810983, financial journal/backend audit run 45411811536, MantiGO privacy run 45411811109 and RC425 atomicity run 45411811613. All required jobs succeeded; Pages validate passed but deploy and validate_public_only were skipped because this was a PR event, so no website deployment is claimed.
+- The inactive tenant SUPER_ADMIN test was included in the above exact-head suite; old metadata does not restore global authority and the actor is denied on all covered global helper callers.
+- Production remains read-only and live helpers/RLS/Storage guards remain uncorrected until the coordinated, backup-backed release. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
