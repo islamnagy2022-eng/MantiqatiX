@@ -304,3 +304,11 @@ The existing public catalog derives phone/WhatsApp/address through `getExplicitP
 - Existing `business-register` Edge flow creates the canonical `businesses` row in `INACTIVE` status and a `PENDING` `approval_requests` record for a BUSINESS/CREATE request. It checks an allowed owner/service-provider membership or the protected platform-admin registry and performs duplicate checks.
 - Reuse this canonical registration path for new company identity creation; do not create a second company/tenant record. Partner legal onboarding begins against the resulting canonical `business_id` after the business creation/owner membership approval path is complete.
 - Existing business approval is not equivalent to legal partner approval. A separate partner verification state and publication gate must be required before partner-owned products can be published or referrals activated.
+
+
+### RC924 full forward migration replay — PASS
+- Workflow run `45406678921` completed successfully on 2026-11-24.
+- The disposable Supabase instance started from the captured Production schema checkpoint, restored successfully, and applied all later repository migrations in timestamp order, including RC924.
+- The companion RC921/RC922 PostgreSQL 17 behavioral/concurrency job also passed.
+- RC924 therefore passed isolated PG17 behavior and full forward migration-chain replay. It is source/replay verified, but remains unapplied to Production pending the overall release gate and explicit coordinated deployment approval.
+- Next dependency-ordered task: Phase 1 partner legal profile, private evidence storage, verification state machine, publication hard gate, and partner-specific agreement/terms/signature lifecycle.
