@@ -43,6 +43,11 @@ BEGIN
       RAISE EXCEPTION 'RC923_RC485_PRECONDITION_FAILED:%',v_signature;
     END IF;
 
+    IF v_signature = 'public.upsert_catalog_price_backend(character varying,uuid,uuid,character varying,character varying,numeric,timestamp with time zone,timestamp with time zone)'
+       AND position('pg_catalog.pg_advisory_xact_lock' IN v_definition) = 0 THEN
+      RAISE EXCEPTION 'RC923_RC486_PRICE_SERIALIZATION_PRECONDITION_REQUIRED';
+    END IF;
+
     IF NOT pg_catalog.has_function_privilege('authenticated',v_oid,'EXECUTE')
        OR pg_catalog.has_function_privilege('anon',v_oid,'EXECUTE') THEN
       RAISE EXCEPTION 'RC923_DIRECT_RPC_ACL_UNEXPECTED:%',v_signature;
@@ -309,6 +314,12 @@ BEGIN
     RAISE EXCEPTION 'INVALID_CURRENCY';
   END IF;
 
+  -- Serialize writers for this item/branch before reading MAX(version).
+  -- Hash collisions only cause harmless extra serialization.
+  PERFORM pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtext(p_catalog_item_id::text || ':' || coalesce(p_branch_id, ''))::bigint
+  );
+
   SELECT coalesce(max(version), 0) + 1
     INTO v_version
     FROM public.catalog_item_prices
@@ -446,6 +457,15 @@ BEGIN
        OR NOT pg_catalog.has_function_privilege('authenticated',v_oid,'EXECUTE')
        OR pg_catalog.has_function_privilege('anon',v_oid,'EXECUTE') THEN
       RAISE EXCEPTION 'RC923_POSTFLIGHT_ANONYMOUS_AUTH_GUARD_OR_ACL_FAILED:%',v_signature;
+    END IF;
+
+    IF v_signature = 'public.upsert_catalog_price_backend(character varying,uuid,uuid,character varying,character varying,numeric,timestamp with time zone,timestamp with time zone)'
+       AND (
+         position('pg_catalog.pg_advisory_xact_lock' IN v_definition) = 0
+         OR position('pg_catalog.pg_advisory_xact_lock' IN v_definition)
+              >= position('SELECT coalesce(max(version)' IN v_definition)
+       ) THEN
+      RAISE EXCEPTION 'RC923_PRICE_SERIALIZATION_LOCK_LOST';
     END IF;
   END LOOP;
 END;
