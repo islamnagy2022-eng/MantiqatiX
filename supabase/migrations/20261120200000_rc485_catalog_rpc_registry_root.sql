@@ -368,7 +368,7 @@ DECLARE
   v_compare_price numeric;
   v_active_count integer;
 BEGIN
-  IF auth.uid() IS NULL THEN
+  IF auth.uid() IS NULL OR coalesce((auth.jwt()->>'is_anonymous'),'false') = 'true' THEN
     RAISE EXCEPTION 'AUTH_REQUIRED';
   END IF;
 
@@ -726,7 +726,7 @@ DECLARE
   v_id uuid;
   v_active_count integer;
 BEGIN
-  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'AUTH_REQUIRED'; END IF;
+  IF auth.uid() IS NULL OR coalesce((auth.jwt()->>'is_anonymous'),'false') = 'true' THEN RAISE EXCEPTION 'AUTH_REQUIRED'; END IF;
   IF v_status NOT IN ('ACTIVE', 'INACTIVE') THEN RAISE EXCEPTION 'INVALID_CATALOG_ITEM_STATUS'; END IF;
 
   IF NOT EXISTS (
