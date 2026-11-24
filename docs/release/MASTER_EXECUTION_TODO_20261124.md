@@ -290,3 +290,11 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] CI exact-head PG17 and 82-version replay for RC925 is source evidence only; Production ledger remains 310 rows through `20261110150618`.
 - [x] Evidence: `docs/audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md`.
 - [ ] Do not mark RC921–RC925 applied until the coordinated release validates registry root, FORCE RLS, exact function bodies, ACLs and JWT cases in the deployed Production environment.
+
+
+## 2026-11-24 — RC921–RC924 medical, catalog and Legal agreement read recheck
+- [x] RC921/RC922 medical status RPC remains old SECURITY DEFINER/search_path=public, pg_temp body; row lock is present, but patient self-cancel is not membership-independent, transition matrix absent, and tenant-wide SERVICE_PROVIDER does not prove own active provider profile on the exact appointment business.
+- [x] RC923 three catalog RPCs remain pre-guard: path public, no registry helper/no `is_anonymous` guard; price allocator lock/index absent. Its registry-root precondition is currently unsatisfied.
+- [x] RC924 Legal helper UUID and zero-argument overload both remain; UUID helper is membership-backed, not registry-backed. Restrictive confirmed-auth policy absent; participant policy compares `ap.agreement_id = ap.id` instead of `agreements.id`.
+- [x] Evidence: `docs/audits/PASS_2281_2290_RC921_RC924_MEDICAL_CATALOG_LEGAL_RECHECK_20261124.md`.
+- [ ] Keep medical state transitions, catalog write surfaces and Legal agreement participant reads blocked until source contracts and tests pass.
