@@ -1,6 +1,6 @@
 # Coordinated Platform-Root Authorization Release Gate
 
-**Prepared from:** `main @ d55fc4e3b53f9c069c4618b7c4b4a271213a08e6`  
+**Prepared from:** `main @ c802c01c639c9d64919c2cb90c64815843cac089`  
 **Production:** `MANTIQATIX FINAL / moyhiluyhjsujhwlyeuu`  
 **Current state:** **BLOCKED / NOT CERTIFIED — read-only preparation only**
 
@@ -48,6 +48,10 @@ The labels above are functional groups only; execute by version timestamp from t
 - Current CI evidence includes run `45496742405` (full forward replay) and `45496743088` (module/RC471-related PG17 tests), plus catalog, dashboard, privacy, directory, Paymob and agreement suites on the exact PR #1086 head. CI pass is not Production certification.
 - The leaked-password protection setting remains NOT AVAILABLE / NOT VERIFIED on the current plan. Do not claim it is enabled.
 
-## 5. Explicit non-actions in this phase
+## 5. Edge runtime dependency gate
+
+The live Edge/RPC/ACL/schema inventory is maintained in [EDGE_RPC_PRODUCTION_DEPENDENCY_MATRIX_20261124.md](./EDGE_RPC_PRODUCTION_DEPENDENCY_MATRIX_20261124.md). No payment, financial-journal, ERP, subscription or settlement Edge function may be promoted independently of its exact migration/RPC/ACL contract and deployed-origin negative tests.
+
+## 6. Explicit non-actions in this phase
 
 No Production SQL write or `apply_migration`; no Auth configuration, RLS/GRANT, Storage policy, Edge deployment, payment/webhook, wallet, settlement, business-data, migration-ledger, or website deployment changes. The only permitted work before release approval is source review, isolated tests, backup/restore rehearsal in disposable infrastructure, and read-only live verification.
