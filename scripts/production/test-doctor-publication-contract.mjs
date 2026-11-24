@@ -78,6 +78,14 @@ test("unknown and missing listing types fail closed instead of bypassing the sou
   }
 });
 
+test("source-rights registry outage blocks doctor rows but preserves allowlisted non-doctor discovery", () => {
+  assert.equal(isDoctorPublicListingAllowed(doctor(), null, NOW), false);
+  for (const listing_type of ["business", "clinic", "pharmacy", "medical_center", "hospital", "laboratory", "health_provider"]) {
+    assert.equal(isDoctorPublicListingAllowed(doctor({ listing_type }), null, NOW), true);
+  }
+  assert.equal(isDoctorPublicListingAllowed(doctor({ listing_type: "unknown" }), null, NOW), false);
+});
+
 test("mixed listing filtering preserves order and retains only evidenced doctors", () => {
   const rows = [
     doctor({ id: "doctor-denied", source_name: "No Evidence" }),
