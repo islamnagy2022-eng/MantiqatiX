@@ -24,7 +24,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] RC484 integration now asserts post-migration registry FORCE RLS and registry/helper owner parity with BYPASSRLS; dedicated PostgreSQL 17 job passed on exact PR head `714bff6797345400203cb9076a40082877d8b29f` (run `45390294342`).
 - [ ] Assert function ownership, empty `search_path`, grants, FORCE RLS and caller coverage in tests.
 - [ ] Prepare one coordinated migration bundle and post-release read-back. Do not hot-patch or apply it to Production in this phase.
-**Live evidence:** Production still uses membership-derived helpers; registry RLS is on but FORCE RLS is false. See `docs/audits/PASS_2041_2050_LIVE_PRODUCTION_RECHECK_20261124.md`.
+**Live evidence:** fresh read-only recheck on 2026-11-24 confirms both helpers remain membership-derived in Production, registry RLS=true/FORCE RLS=false, 57 `is_platform_admin()` policies and 5 `mnty_can_platform_admin()` policies. See `docs/audits/PASS_2071_2080_PLATFORM_ROOT_LIVE_RECHECK_20261124.md`.
 
 ### P0.2 Anonymous Auth and private profile boundaries
 - [ ] Reconcile RC479 and RC488–RC495 against live policy and ACL state.
