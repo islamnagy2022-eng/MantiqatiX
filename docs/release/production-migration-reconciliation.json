@@ -6639,5 +6639,100 @@
     },
     "production_mutation": "NONE",
     "report": "docs/audits/PASS_2341_2350_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md"
+  },
+  "rc113_rc117_live_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_DIFF_CONFIRMED",
+    "checked_at": "2026-11-24",
+    "migrations": [
+      "20261027030000",
+      "20261027040000",
+      "20261027050000",
+      "20261027060000",
+      "20261027070000",
+      "20261027090000"
+    ],
+    "table_contracts": {
+      "checked": 4,
+      "present": 4,
+      "rls_enabled": 4,
+      "force_rls": 4,
+      "anon_crud_privileges": 0,
+      "authenticated_crud_privileges": 0,
+      "service_role_crud_privileges": 0,
+      "rls_policies_present": 0,
+      "tables": [
+        "public.platform_custom_roles",
+        "public.platform_role_assignments",
+        "public.business_job_positions",
+        "public.business_employees"
+      ]
+    },
+    "index_contracts": {
+      "checked": 7,
+      "present": [
+        "platform_role_assignments_active_unique",
+        "platform_role_assignments_user_scope_idx",
+        "business_employees_email_per_business_unique",
+        "business_job_positions_business_active_idx",
+        "business_employees_business_status_idx",
+        "business_employees_user_active_idx"
+      ],
+      "valid_present": 6,
+      "unique_present": 2,
+      "missing": [
+        "ux_user_memberships_user_business_branch_nullsafe"
+      ]
+    },
+    "function_contracts": {
+      "checked": 13,
+      "present": 13,
+      "security_definer": 13,
+      "owner": "postgres",
+      "empty_search_path": 13,
+      "anon_execute": 0,
+      "authenticated_execute": 13,
+      "service_role_execute": 0,
+      "private_platform_admins_reference": 10,
+      "business_member_scoped_employee_functions": 3,
+      "signatures": [
+        "mnty_platform_admin_list_custom_roles()",
+        "mnty_platform_admin_upsert_custom_role(text,text,text,text,jsonb,uuid,boolean)",
+        "mnty_platform_admin_assign_custom_role(uuid,uuid,varchar,varchar,boolean,uuid)",
+        "mnty_business_employee_position_upsert(varchar,uuid,text,text,text,text,jsonb,boolean,boolean,varchar,uuid)",
+        "mnty_business_employee_upsert(varchar,uuid,uuid,text,text,text,uuid,text,jsonb,varchar,uuid)",
+        "mnty_platform_has_permission(text,varchar,uuid,varchar)",
+        "mnty_platform_admin_list_people(text)",
+        "mnty_platform_admin_list_role_assignments()",
+        "mnty_business_employee_list(varchar,uuid)",
+        "mnty_platform_admin_list_audit(text)",
+        "mnty_platform_admin_list_businesses(text)",
+        "mnty_platform_admin_manage_business(uuid,text,jsonb,text)",
+        "mnty_platform_admin_manage_membership(uuid,text,text)"
+      ]
+    },
+    "RC117": {
+      "default_image_function_present": false,
+      "default_image_trigger_functions_present": 0,
+      "attached_triggers_present": 0,
+      "missing_triggers": [
+        "mnty_business_default_images on public.businesses",
+        "mnty_catalog_item_default_image on public.catalog_items",
+        "mnty_marketing_service_default_image on public.marketing_services"
+      ],
+      "marketing_services_columns": {
+        "image_url": false,
+        "image_source": false
+      },
+      "note": "Business and catalog item image defaults are written into JSON settings/metadata by triggers; they are not dedicated SQL columns.",
+      "disposition": "BLOCKED_DEFAULT_IMAGE_AUTOMATION_ABSENT"
+    },
+    "production_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "required_source_versions": 82,
+      "exact_required_version_matches": 0
+    },
+    "production_mutation": "NONE",
+    "report": "docs/audits/PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md"
   }
 }
