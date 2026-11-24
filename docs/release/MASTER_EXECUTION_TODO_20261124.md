@@ -55,7 +55,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Refreshed all 76 previously tracked physical object contracts against Production on 2026-11-24 (tables, indexes, functions, columns, triggers): 35 present / 41 absent, zero status changes since the 2026-11-20 snapshot. Breakdown is in `docs/audits/PASS_2091_2100_PHYSICAL_OBJECT_REFRESH_20261124.md`.
 - [x] Added a focused live physical-effect sample: 18 relations (13 present / 5 absent), 12 indexes (3 present-valid / 9 absent), 17 columns (2 present / 15 absent), and 15 function families (11 absent / 4 present but contract-blocked). This is a timestamped 81-version pre-RC925 snapshot, not the full 82-version crosswalk. See `docs/audits/PASS_2161_2170_CURRENT_81_MIGRATION_PHYSICAL_EFFECT_RECHECK_20261124.md`.
 - [x] Confirmed three exact source-to-ledger SQL aliases by byte comparison and classified five historic baseline families as partial; no ledger repair or SQL replay occurred. See `docs/audits/PASS_2171_2180_HISTORICAL_MIGRATION_ALIAS_AND_PARTIAL_EFFECT_RECONCILIATION_20261124.md`.
-- [x] Built `docs/release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md` from the canonical 82-file release list. 26 earlier migrations (RC425–RC453) now have fresh live audits; 19 later migrations (RC484, RC479 forward repair, RC485–RC496, RC921–RC925) were also source-reviewed and checked. Total: 45/82 with fresh live evidence.
+- [x] Built `docs/release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md` from the canonical 82-file release list. 26 earlier migrations (RC425–RC453) now have fresh live audits; 19 later migrations (RC484, RC479 forward repair, RC485–RC496, RC921–RC925) were also source-reviewed and checked. Total: 51/82 with fresh live evidence.
 - [ ] Refresh the remaining 37 earlier source rows and expand beyond the curated 76-object sample to every policy, constraint, trigger, overload, owner, ACL and transitive Edge dependency.
 - [ ] Complete the broader migration→physical effect/alias map beyond these 76 contracts: reconcile all remaining functions, policies, ACLs, indexes, triggers and constraints; 0/82 exact ledger matches is not proof all effects are absent.
 - [x] Run full chronological forward replay from the captured Production schema checkpoint; exact-head run 45407602805 passed after 117 forward migrations and ordered integration jobs. This is not a live Production restore/deployment.
@@ -253,3 +253,11 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Added the 19 later RC484–RC925 live effect checks in `docs/audits/PASS_2261_2270_RC484_RC925_SOURCE_TO_LIVE_EFFECT_RECHECK_20261124.md`.
 - [x] RC925 executable guards already require explicit false; corrected its contradictory top comment and extended the static validator to prevent the stale fail-open description. No SQL behavior changed.
 - [ ] Complete fresh live effect checks for the remaining 37 earlier source migrations and full Edge dependency closure.
+
+
+## 2026-11-24 — RC113–RC117 control-center and employee live recheck
+- [x] RC113 role tables and indexes: tables have RLS+FORCE and no direct client grants; three registry-backed admin RPCs have empty search_path and narrow ACLs. The forward NULL-safe membership index is absent and remains blocked.
+- [x] RC114 employee tables/indexes and three employee RPCs are present with RLS+FORCE, no direct client table grants, empty search_path and anon EXECUTE denied.
+- [x] RC115/RC116 control-center functions are present with empty search_path and direct private.platform_admins checks; runtime tenant/branch behavior remains a separate test gate.
+- [x] RC117 default-image columns, triggers and helper are absent; default-image automation remains blocked.
+- [x] Evidence: `docs/audits/PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md`.
