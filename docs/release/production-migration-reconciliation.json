@@ -5776,5 +5776,120 @@
     },
     "production_mutation": "NONE",
     "next_required": "Keep RC482 → RC924 together in the controlled 81-migration DB release after full 81-ID physical-effect/alias reconciliation and verified backup/restore gates."
+  },
+  "rc923_live_catalog_rpc_recheck_20261124": {
+    "status": "LIVE_LEGACY_CONTRACT_CONFIRMED_NOT_APPLIED",
+    "checked_at": "2026-11-24T19:15:00Z",
+    "method": "Read-only pg_proc, pg_get_functiondef, pg_get_function_identity_arguments, has_function_privilege and registry metadata inspection; no business/application rows queried.",
+    "production_ledger": {
+      "rows": 310,
+      "latest_version": "20261110150618",
+      "rc464": false,
+      "rc471": false,
+      "rc484": false,
+      "rc485": false,
+      "rc486": false,
+      "rc923": false
+    },
+    "platform_registry": {
+      "exists": true,
+      "rls_enabled": true,
+      "force_rls": false,
+      "owner": "postgres"
+    },
+    "platform_helpers": {
+      "is_platform_admin": {
+        "security_definer": false,
+        "search_path": "public",
+        "authority_source": "user_memberships",
+        "uses_private_platform_admins": false,
+        "anon_execute": false,
+        "authenticated_execute": true
+      },
+      "mnty_can_platform_admin": {
+        "security_definer": true,
+        "search_path": "public, pg_temp",
+        "authority_source": "unscoped mnty_can('admin',NULL,NULL,NULL)",
+        "uses_private_platform_admins": false,
+        "anon_execute": false,
+        "authenticated_execute": true
+      }
+    },
+    "catalog_functions": [
+      {
+        "name": "adjust_catalog_stock_backend",
+        "security_definer": true,
+        "search_path": "public",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "direct_anonymous_auth_guard": true,
+        "guard_semantics": "COALESCE(missing,is_anonymous=false) permits missing claim",
+        "registry_root": false
+      },
+      {
+        "name": "create_catalog_warehouse_backend",
+        "security_definer": true,
+        "search_path": "public",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "direct_anonymous_auth_guard": true,
+        "guard_semantics": "COALESCE(missing,is_anonymous=false) permits missing claim",
+        "registry_root": false
+      },
+      {
+        "name": "upsert_catalog_item_backend",
+        "security_definer": true,
+        "search_path": "public",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "direct_anonymous_auth_guard": false,
+        "registry_root": false
+      },
+      {
+        "name": "upsert_catalog_price_backend",
+        "security_definer": true,
+        "search_path": "public",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "direct_anonymous_auth_guard": false,
+        "registry_root": false
+      },
+      {
+        "name": "upsert_catalog_settings_backend",
+        "security_definer": true,
+        "search_path": "public",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "direct_anonymous_auth_guard": true,
+        "guard_semantics": "COALESCE(missing,is_anonymous=false) permits missing claim",
+        "registry_root": false
+      },
+      {
+        "name": "update_catalog_item_status_backend",
+        "security_definer": true,
+        "search_path": "public",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "direct_anonymous_auth_guard": false,
+        "registry_root": false
+      },
+      {
+        "name": "upsert_catalog_business_profile_backend",
+        "security_definer": true,
+        "search_path": "public",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "direct_anonymous_auth_guard": true,
+        "guard_semantics": "COALESCE(missing,is_anonymous=false) permits missing claim",
+        "registry_root": false
+      }
+    ],
+    "source_expectation": "RC464 → RC471 → RC484 → RC485 → RC486 → RC923 coordinated ordered release; empty search_path, registry-backed root, FORCE RLS and direct Anonymous Auth guards.",
+    "isolated_verification": {
+      "strict_81_version_gate_and_117_migration_replay": "45466369023",
+      "result": "PASS_DISPOSABLE_POSTGRESQL_17_ONLY"
+    },
+    "production_mutation": "NONE",
+    "next_required": "Complete the 81-ID physical-effect/alias map and coordinated DB release readiness; no individual hot-patching of SECURITY DEFINER functions."
   }
 }
