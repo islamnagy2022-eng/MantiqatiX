@@ -5158,3 +5158,14 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Full Node validator, TypeScript/Deno build and API runtime authorization tests remain pending exact-head CI.
 - **Audit:** `docs/audits/PASS_2011_2020_API_ORDER_READ_SCOPE_RLS_PARITY_20261122.md`.
 - **Release:** PR #971 remains open/unmerged; no Production mutation/deployment; **PRODUCTION BLOCKED / NOT CERTIFIED**.
+
+
+### Pass 2021–2030 — Li2Lak authenticated order assertion boundary — 2026-11-24
+- [x] Re-read the RC498 authenticated order integration test and confirmed the order-creation RPC executes under the authenticated role with anon denied.
+- [x] Confirmed the persisted-order ownership and authoritative-price assertion runs after `RESET ROLE`, avoiding a test-only SELECT privilege failure under the authenticated role.
+- [x] Strengthened the combined RC497/RC498 validator to pin the post-role assertion, exact customer UUID, and EGP total of 125.
+- [x] Re-read RC498 currency selection and fixture: a higher-version USD price (999) must not override the EGP price (125).
+- [x] Eight focused source-contract checks passed, including evaluation of the committed validator regex against the fetched SQL source.
+- [ ] Exact-head Node validator, PostgreSQL 17 integration/race test, full forward migration replay, frontend build and security workflows still require terminal CI success.
+- **Audit:** `docs/audits/PASS_2021_2030_LI2LAK_AUTHENTICATED_ORDER_ASSERTION_20261124.md`.
+- **Safety:** isolated PR #971 source/docs only; no Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, customer data or public deployment changes. **PRODUCTION BLOCKED / NOT CERTIFIED.**
