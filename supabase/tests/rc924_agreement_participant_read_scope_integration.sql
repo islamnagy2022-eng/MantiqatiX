@@ -72,6 +72,19 @@ BEGIN
 END;
 $anonymous$;
 
+-- A missing is_anonymous claim must fail closed, even for a matching participant.
+SELECT set_config('request.jwt.claim.sub','30000000-0000-4000-8000-000000000001',false);
+SELECT set_config('request.jwt.claims','{"sub":"30000000-0000-4000-8000-000000000001","role":"authenticated"}',false);
+DO $missing_claim$
+DECLARE v_count integer;
+BEGIN
+  SELECT count(*) INTO v_count FROM public.agreements;
+  IF v_count <> 0 THEN
+    RAISE EXCEPTION 'RC924_MISSING_ANONYMOUS_CLAIM_READS_AGREEMENTS: %',v_count;
+  END IF;
+END;
+$missing_claim$;
+
 -- Platform admin registry actor can read all agreements.
 SELECT set_config('request.jwt.claim.sub','90000000-0000-4000-8000-000000000009',false);
 SELECT set_config('request.jwt.claims','{"sub":"90000000-0000-4000-8000-000000000009","role":"authenticated","is_anonymous":false}',false);
