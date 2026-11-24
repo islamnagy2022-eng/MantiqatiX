@@ -51,7 +51,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Refresh the ordered mainline release manifest (81 identifiers at the 2026-11-24 checkpoint) and compare it with Production's 310-row migration ledger: 0/81 exact source-version identifiers are present; physical-object aliases/effects still require reconciliation.
 - [x] Refreshed all 76 previously tracked physical object contracts against Production on 2026-11-24 (tables, indexes, functions, columns, triggers): 35 present / 41 absent, zero status changes since the 2026-11-20 snapshot. Breakdown is in `docs/audits/PASS_2091_2100_PHYSICAL_OBJECT_REFRESH_20261124.md`.
 - [ ] Classify every migration by physical effect: exact-present, alias/effect-present, safe-to-replay, superseded/forward-fixed or blocked.
-- [ ] Complete the broader migration→physical effect/alias map beyond these 76 contracts: reconcile all remaining functions, policies, ACLs, indexes, triggers and constraints; 0/80 exact ledger matches is not proof all effects are absent.
+- [ ] Complete the broader migration→physical effect/alias map beyond these 76 contracts: reconcile all remaining functions, policies, ACLs, indexes, triggers and constraints; 0/81 exact ledger matches is not proof all effects are absent.
 - [x] Run full chronological forward replay from the captured Production schema checkpoint; exact-head run 45407602805 passed after 117 forward migrations and ordered integration jobs. This is not a live Production restore/deployment.
 - [ ] Never blindly replay the release chain on Production.
 
@@ -109,7 +109,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Mark FULL_PLATFORM_GATE PASS only with evidence for every mandatory item; otherwise retain BLOCKED / NOT CERTIFIED.
 
 ## Current factual blockers
-- Live migration ledger: 310 entries through `20261110150618`; the current 80-version source manifest has 0/80 exact version identifiers recorded. This is an identity gap, not proof all physical effects are absent; aliases and actual catalog state still require per-object reconciliation.
+- Live migration ledger: 310 entries through `20261110150618`; the current 81-version source manifest has 0/81 exact version identifiers recorded. This is an identity gap, not proof all physical effects are absent; aliases and actual catalog state still require per-object reconciliation.
 - `public.is_platform_admin()` remains SECURITY INVOKER with `search_path=public` and derives platform-wide authority from active tenant ADMIN/SUPER_ADMIN membership; 57 policies across 24 tables reference it.
 - `public.mnty_can_platform_admin()` remains SECURITY DEFINER with `search_path=public, pg_temp` and delegates to unscoped `mnty_can('admin',NULL,NULL,NULL)`; 5 policies across 3 tables and four SECURITY DEFINER callers depend on it.
 - Existing read-only high-risk SECURITY DEFINER contract: 9/14 expected search_path states fail in live Production (all 14 have anon EXECUTE=false and authenticated EXECUTE=true); the nine include the platform helper, four global-admin callers, and four MantiGO dashboard/settlement paths. No direct anon/authenticated write grants exist on five MantiGO core tables.
