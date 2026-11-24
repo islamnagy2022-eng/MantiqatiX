@@ -1,6 +1,6 @@
 # Required 82-Migration Source-to-Live Effect Crosswalk — 2026-11-24
 
-**Repository baseline:** `main @ 2607227bce13ea2ee652c13f24d05565ff5400d6`
+**Repository baseline:** `main @ bc4f6e2ce3560d5c3a9b4fd7a4c7f807fa06af00`
 **Live Supabase project:** `moyhiluyhjsujhwlyeuu`
 **Required migration set:** `scripts/production/verify-production.mjs` and `scripts/production/live-reconciliation-contract.mjs`
 **Live ledger:** 310 rows through `20261110150618`
@@ -11,7 +11,7 @@
 - Required ordered source migrations: **82/82**; names come from the canonical production verifier.
 - Exact required version IDs in the live ledger: **0/82**. This is an identity mismatch, not proof every physical effect is absent.
 - The historical 63-source crosswalk covers the earlier source/object set; its per-object statuses are historical and are not silently promoted to current status here.
-- The 19 later migrations from RC484 through RC925 were source-reviewed and checked against current Production catalogs/policies on 2026-11-24. Together with the 26 earlier migrations audited in PASS 2211–2250, 51 of the 82 source migrations now have fresh live read-back.
+- Current live source-to-Production checks are linked by exact Pass report below. Coverage spans payment/ERP/approval/CRM, Platform Admin, order and branch scope, directory consent, Storage, financial/medical/support/CRM confirmed-session policies, Legal CMS, MantiGO, and the final RC921–RC925 source chain. Some report groups overlap in migration naming; do not derive a cumulative coverage count by summing Pass ranges.
 - A separate 76-object curated physical register was refreshed on 2026-11-24: 35 present / 41 absent, with object-level results in PASS 2251–2260. Presence is not semantic parity.
 - No Production mutation was performed.
 
@@ -125,10 +125,10 @@
 - [PASS 2221–2230](../audits/PASS_2221_2230_RC434_RC441_LIVE_CONTRACT_RECHECK_20261124.md) — ERP, subscription, journal and platform scope.
 - [PASS 2231–2240](../audits/PASS_2231_2240_RC442_RC451_LIVE_CONTRACT_RECHECK_20261124.md) — approval, CRM, matrimony, journal and ads.
 - [PASS 2241–2250](../audits/PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md) — CRM tenant scope and internal campaign workflow.
-- [PASS 2251–2260](../audits/PASS_2251_2260_76_OBJECT_DETAILED_PRESENCE_20261124.md) — detailed 76-object presence read-back.
-- [PASS 2261–2270](../audits/PASS_2261_2270_RC484_RC925_SOURCE_TO_LIVE_EFFECT_RECHECK_20261124.md) — 19 later migration effects.
-- [PASS 2271–2280](../audits/PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md) — RC113–RC117 control-center, employee and default-image contracts.
+- [PASS 2201–2210](../audits/PASS_2201_2210_PHYSICAL_OBJECT_RECHECK_20261124.md) — detailed 76-object curated presence and function ACL read-back.
+- [PASS 2331–2340](../audits/PASS_2331_2340_RC484_RC496_PLATFORM_CATALOG_AUTH_STORAGE_FINANCE_RECHECK_20261124.md) — RC484–RC496 platform root, catalog, SMM bootstrap, Auth/Storage/finance and MantiGO bid state.
 - [PASS 2281–2290](../audits/PASS_2281_2290_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md) — provider-service grants and order branch/idempotency/service-role boundaries.
+- [PASS 2341–2350](../audits/PASS_2341_2350_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md) — RC921–RC925 medical state machine, agreement participant scope and catalog missing-claim fail-closed boundary.
 - [PASS 2291–2300](../audits/PASS_2291_2300_RC446_RC456_RC463_RC525_LIVE_RECHECK_20261124.md) — MantiGO open rides, SMM service-role grants, trigger ACL and digital-page product scope.
 - [PASS 2301–2310](../audits/PASS_2301_2310_RC464_RC470_LIVE_EFFECT_RECHECK_20261124.md) — platform root, orders, business/branch, commission, payment claims and webhook.
 - [PASS 2311–2320](../audits/PASS_2311_2320_RC471_RC478_LIVE_EFFECT_RECHECK_20261124.md) — MantiGO admin, directory, payment and MantiGO privacy/earnings.
@@ -159,4 +159,4 @@
 
 ## Detailed current object read-back
 
-The 76-object curated register has object-by-object Production presence evidence in [PASS 2231–2240](../audits/PASS_2231_2240_76_OBJECT_DETAILED_PRESENCE_20261124.md). It is a sample, not a full physical-effect map for all 82 required migrations. Presence is not semantic parity.
+The 76-object curated register has object-by-object Production presence evidence in [PASS 2201–2210](../audits/PASS_2201_2210_PHYSICAL_OBJECT_RECHECK_20261124.md). It is a sample, not a full physical-effect map for all 82 required migrations. Presence is not semantic parity.
