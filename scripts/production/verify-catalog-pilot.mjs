@@ -115,7 +115,7 @@ assert.ok(directoryE2E.includes('unclaimed-directory-api-and-direct-listing-rout
 assert.ok(vite.includes("base: process.env.VITE_BASE_PATH || '/MantiqatiX/'"), 'Catalog frontend must support the retained legacy subpath without claiming the platform root');
 assert.equal(manifest.scope, '/MantiqatiX/', 'Catalog PWA scope must not claim the platform root');
 assert.equal(manifest.start_url, '/MantiqatiX/', 'Catalog PWA start URL must use its subpath');
-assert.match(serviceWorker, /const CACHE_NAME = 'mantiqatix-primary-catalog-shell-v\\d+';/, 'Catalog service worker must use a versioned catalog-only cache namespace');
+assert.match(serviceWorker, /const CACHE_NAME = 'mantiqatix-primary-catalog-shell-v\d+';/, 'Catalog service worker must use a versioned catalog-only cache namespace');
 assert.ok(serviceWorker.includes("key.startsWith('mantiqatix-primary-catalog-shell-')"), 'Catalog service worker must not delete unrelated platform caches');
 for (const asset of [
   '/MantiqatiX/icons/mantiqatix-approved.svg',
