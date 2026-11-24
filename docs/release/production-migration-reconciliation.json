@@ -5907,7 +5907,650 @@
       "exact_required_version_matches": 0
     },
     "production_mutation": "NONE",
-    "report": "docs/audits/PASS_2201_2210_PHYSICAL_OBJECT_RECHECK_20261124.md"
+    "report": "docs/audits/PASS_2201_2210_PHYSICAL_OBJECT_RECHECK_20261124.md",
+    "observed": [
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.claim_subscription_provider_intent_creation_backend",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.create_subscription_payment_intent_claimable_backend",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.erp_purchase_order_lines",
+        "kind": "TABLE",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.erp_purchase_order_lines_scope_idx",
+        "kind": "INDEX",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.erp_purchase_orders_business_order_number_uidx",
+        "kind": "INDEX",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.expire_stale_mantigo_rides_backend",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.get_mantigo_admin_dashboard_backend",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.get_mantigo_admin_financial_report_backend",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.journal_entries_tenant_entry_number_uidx",
+        "kind": "INDEX",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.journal_entry_lines_entry_line_uidx",
+        "kind": "INDEX",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.mnty_can_platform_admin",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.post_financial_journal_atomic_backend",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.receive_purchase_stock_with_order_line_backend",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.set_purchase_order_lines_backend",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "CURRENT_RECHECK",
+        "object": "public.settle_mantigo_captain_backend",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.mnty_platform_admin_assign_custom_role",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.mnty_platform_admin_list_custom_roles",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.mnty_platform_admin_upsert_custom_role",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_custom_roles",
+        "kind": "TABLE",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_role_assignments",
+        "kind": "TABLE",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_role_assignments_active_unique",
+        "kind": "INDEX",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_role_assignments_user_scope_idx",
+        "kind": "INDEX",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.ux_user_memberships_user_business_branch_nullsafe",
+        "kind": "INDEX",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_employees",
+        "kind": "TABLE",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_employees_business_status_idx",
+        "kind": "INDEX",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_employees_email_per_business_unique",
+        "kind": "INDEX",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_employees_user_active_idx",
+        "kind": "INDEX",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_job_positions",
+        "kind": "TABLE",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_job_positions_business_active_idx",
+        "kind": "INDEX",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC114/RC115",
+        "object": "public.mnty_business_employee_position_upsert",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC114/RC115",
+        "object": "public.mnty_business_employee_upsert",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_business_employee_list",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_admin_list_audit",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_admin_list_people",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_admin_list_role_assignments",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_has_permission",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC116",
+        "object": "public.mnty_platform_admin_manage_membership",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC116/RC117",
+        "object": "public.mnty_platform_admin_list_businesses",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC116/RC117",
+        "object": "public.mnty_platform_admin_manage_business",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.businesses.mnty_business_default_images",
+        "kind": "COLUMN",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.catalog_items.mnty_catalog_item_default_image",
+        "kind": "COLUMN",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.image_source",
+        "kind": "COLUMN",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.image_url",
+        "kind": "COLUMN",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.mnty_marketing_service_default_image",
+        "kind": "COLUMN",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_business_images_trigger",
+        "kind": "TRIGGER",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_catalog_item_image_trigger",
+        "kind": "TRIGGER",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_image_url",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_marketing_service_image_trigger",
+        "kind": "TRIGGER",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC425",
+        "object": "public.mantigo_payment_provider_events",
+        "kind": "TABLE",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC425",
+        "object": "public.process_verified_mantigo_payment_backend",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC425",
+        "object": "public.process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb)",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC426",
+        "object": "public.digital_page_orders.provider_order_id",
+        "kind": "COLUMN",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC426",
+        "object": "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC426/RC475",
+        "object": "public.payment_intents.provider_order_id",
+        "kind": "COLUMN",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC427",
+        "object": "public.uq_payment_intents_one_active_per_order",
+        "kind": "INDEX",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC428",
+        "object": "public.process_verified_provider_payment_failure",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC428/RC475",
+        "object": "public.process_verified_provider_payment_failure(text,text,text,text,text,text,boolean,numeric,text,text,text,jsonb)",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC429",
+        "object": "public.process_verified_subscription_payment_failure",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC429/RC475",
+        "object": "public.process_verified_subscription_payment_failure(text,text,uuid,text,numeric,text,text,boolean,jsonb)",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC430",
+        "object": "public.process_verified_subscription_payment_backend",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC430/RC475",
+        "object": "public.process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb)",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC431",
+        "object": "public.process_verified_digital_page_payment_backend",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC432",
+        "object": "public.smm_wallet_transactions_reference_type_uidx",
+        "kind": "INDEX",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC434",
+        "object": "public.receive_purchase_stock_atomic_backend",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC435",
+        "object": "public.claim_subscription_provider_intent_creation_backend(uuid,uuid)",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC435",
+        "object": "public.create_subscription_payment_intent_claimable_backend(uuid,text,text,text,text,uuid)",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC435",
+        "object": "public.subscription_payment_intents.provider_creation_claimed_at",
+        "kind": "COLUMN",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC435",
+        "object": "public.subscription_payment_intents.provider_creation_state",
+        "kind": "COLUMN",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC438",
+        "object": "public.create_purchase_order_with_lines_backend",
+        "kind": "FUNCTION",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC438",
+        "object": "public.update_purchase_order_status_backend(varchar,varchar)",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC439",
+        "object": "public.subscription_payment_intents.client_secret_ciphertext",
+        "kind": "COLUMN",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC439",
+        "object": "public.subscription_payment_intents.client_secret_iv",
+        "kind": "COLUMN",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC439",
+        "object": "public.subscription_payment_intents.client_secret_key_version",
+        "kind": "COLUMN",
+        "exists": false,
+        "status": "ABSENT",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC475",
+        "object": "public.process_verified_provider_payment(character varying,character varying,character varying,character varying,character varying,character varying,boolean,numeric,character varying,numeric)",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC484",
+        "object": "private.platform_admins",
+        "kind": "TABLE",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      },
+      {
+        "migration": "RC484",
+        "object": "public.is_platform_admin()",
+        "kind": "FUNCTION",
+        "exists": true,
+        "status": "PRESENT_NEEDS_SEMANTIC_REVIEW",
+        "checked_at": "2026-11-24"
+      }
+    ],
+    "object_level_status": "PRESENCE_ONLY — semantic contracts require separate owner/body/ACL/RLS/policy/runtime verification",
+    "counts": {
+      "total": 76,
+      "present": 35,
+      "absent": 41,
+      "byKind": {
+        "FUNCTION": {
+          "checked": 41,
+          "present": 22,
+          "absent": 19
+        },
+        "TABLE": {
+          "checked": 7,
+          "present": 5,
+          "absent": 2
+        },
+        "INDEX": {
+          "checked": 13,
+          "present": 6,
+          "absent": 7
+        },
+        "COLUMN": {
+          "checked": 12,
+          "present": 2,
+          "absent": 10
+        },
+        "TRIGGER": {
+          "checked": 3,
+          "present": 0,
+          "absent": 3
+        }
+      }
+    }
   },
   "migration_effect_recheck_20261124": {
     "status": "READ_ONLY_SOURCE_TO_LIVE_RECHECK",
