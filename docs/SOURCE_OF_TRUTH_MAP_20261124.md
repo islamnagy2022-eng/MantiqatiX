@@ -92,7 +92,7 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - All SQL and Edge checks were read-only. No Production migration, ACL, payment, settlement or function deployment occurred. FULL_PLATFORM_GATE remains BLOCKED / NOT CERTIFIED.
 
 ## Backup/restore evidence gate — 2026-11-24
-- [PASS 2391–2400](./audits/PASS_2391_2400_BACKUP_RESTORE_CAPABILITY_READBACK_20261124.md) records the Supabase project/branch read-back. Plan tier and backup inventory are not exposed; no separate populated restore target or retrievable export has been demonstrated.
+- [PASS 2391–2400](./audits/PASS_2391_2400_BACKUP_RESTORE_CAPABILITY_READBACK_20261124.md) records the Supabase project/branch read-back. Organization plan is confirmed **Free** by \`get_organization\` on 2026-11-25; Free has no automatic daily backups per current Supabase guidance. Backup inventory/latest owner-created export remains unavailable; no separate populated restore target or retrievable export has been demonstrated.
 - [Owner-controlled drill](./release/PRODUCTION_BACKUP_RESTORE_DRILL_20261124.md) details database/Auth/schema export, separate Storage object bytes, Vault/secret recovery, disposable PostgreSQL 17 restore, checksum validation, rollback and RPO/RTO evidence.
 - No backup was created, no restore was performed and no Production mutation took place. P6 remains **BLOCKED / NOT VERIFIED**.
 
