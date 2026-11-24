@@ -55,7 +55,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Refreshed all 76 previously tracked physical object contracts against Production on 2026-11-24 (tables, indexes, functions, columns, triggers): 35 present / 41 absent, zero status changes since the 2026-11-20 snapshot. Breakdown is in `docs/audits/PASS_2091_2100_PHYSICAL_OBJECT_REFRESH_20261124.md`.
 - [x] Added a focused live physical-effect sample: 18 relations (13 present / 5 absent), 12 indexes (3 present-valid / 9 absent), 17 columns (2 present / 15 absent), and 15 function families (11 absent / 4 present but contract-blocked). This is a timestamped 81-version pre-RC925 snapshot, not the full 82-version crosswalk. See `docs/audits/PASS_2161_2170_CURRENT_81_MIGRATION_PHYSICAL_EFFECT_RECHECK_20261124.md`.
 - [x] Confirmed three exact source-to-ledger SQL aliases by byte comparison and classified five historic baseline families as partial; no ledger repair or SQL replay occurred. See `docs/audits/PASS_2171_2180_HISTORICAL_MIGRATION_ALIAS_AND_PARTIAL_EFFECT_RECONCILIATION_20261124.md`.
-- [x] Built `docs/release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md` from the canonical 82-file release list. 26 earlier migrations (RC425–RC453) now have fresh live audits; 19 later migrations (RC484, RC479 forward repair, RC485–RC496, RC921–RC925) were also source-reviewed and checked. Total: 51/82 with fresh live evidence.
+- [x] Built `docs/release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md` from the canonical 82-file release list. 26 earlier migrations (RC425–RC453) now have fresh live audits; 19 later migrations (RC484, RC479 forward repair, RC485–RC496, RC921–RC925) were also source-reviewed and checked. Total: 60/82 with fresh live evidence.
 - [ ] Refresh the remaining 37 earlier source rows and expand beyond the curated 76-object sample to every policy, constraint, trigger, overload, owner, ACL and transitive Edge dependency.
 - [ ] Complete the broader migration→physical effect/alias map beyond these 76 contracts: reconcile all remaining functions, policies, ACLs, indexes, triggers and constraints; 0/82 exact ledger matches is not proof all effects are absent.
 - [x] Run full chronological forward replay from the captured Production schema checkpoint; exact-head run 45407602805 passed after 117 forward migrations and ordered integration jobs. This is not a live Production restore/deployment.
@@ -261,3 +261,14 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] RC115/RC116 control-center functions are present with empty search_path and direct private.platform_admins checks; runtime tenant/branch behavior remains a separate test gate.
 - [x] RC117 default-image columns, triggers and helper are absent; default-image automation remains blocked.
 - [x] Evidence: `docs/audits/PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md`.
+
+
+## 2026-11-24 — RC102–RC106 and RC446/RC456/RC463/RC525 live recheck
+- [x] RC102 owner-manage policy exists but authenticated DML table grants are absent.
+- [x] RC103 live order-status RPC lacks exact branch match; RC104 live order-create RPC lacks cross-customer/business/branch idempotency-key conflict rejection.
+- [x] RC105/RC106 live order RPCs grant service_role EXECUTE but still require auth.uid() actor binding, so verified service-role Edge invocations cannot pass.
+- [x] RC446 live open-ride RPC lacks ACTIVE/VERIFIED/AVAILABLE captain-profile gate and remains search_path=public.
+- [x] RC456 all six SMM gateway tables still deny service_role access; gateway grants are absent.
+- [x] RC463 trigger ACLs are postgres-only and triggers are enabled, but assign_default_owner_to_unowned_business retains search_path=public, auth (partial).
+- [x] RC525 digital-page product admin policy still trusts active tenant SUPER_ADMIN/ADMIN without MNTY-PLATFORM/full_control scope.
+- [x] Evidence: `docs/audits/PASS_2281_2290_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md` and `docs/audits/PASS_2291_2300_RC446_RC456_RC463_RC525_LIVE_RECHECK_20261124.md`.
