@@ -235,7 +235,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] RC447 matrimony discovery/unlocked-contact functions, private verification guard and trigger are absent; the live matrimony profile SELECT policy is not owner-only. RC448 has one unlock-per-request unique index, but active-pair index and four exact lifecycle/contact RPCs are absent; direct authenticated request/unlock DML remains granted.
 - [x] RC449 helper and four administrative functions remain present but on old unscoped helper/non-empty search_path contracts. RC449A seven journal columns and running-balance index absent. RC450 posting function exists but lacks service_role EXECUTE and uses wrong path; trigger exists. RC451 targeted ads RPC meets empty-path public read contract and must remain anon-accessible.
 - [x] Evidence: `docs/audits/PASS_2231_2240_RC442_RC451_LIVE_CONTRACT_RECHECK_20261124.md`.
-- [ ] Continue through RC452–RC453 and then the remaining later 82-version hardening migrations.
+- [ ] All 82 source migration effects now have current live read-back; continue remediation and coordinated release gates.
 
 
 ## 2026-11-24 — RC452–RC453 CRM and marketing campaign live recheck
@@ -252,3 +252,30 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Current-main Pass 2321–2330 covers Qadam seed and RC479–RC483; Qadam's idempotency-key seed effect is present though its exact migration ID is not in the ledger; raw provider-profile/digital-page anonymous reads and Legal service grants/registry/atomic RPCs remain blocked.
 - [x] Additional current Production read-back: Pass 2271–2280 `docs/audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md` and Pass 2281–2290 `docs/audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md` are linked below.
 - [ ] Keep SMM first-user bootstrap, confirmed-Auth boundaries, global Platform Admin, settlement, MantiGO bid acceptance, medical provider state, agreement participant scope and RC925 catalog RPCs blocked until coordinated release and deployed-origin tests pass.
+
+
+## 2026-11-24 — RC113–RC117 control-center and employee live recheck
+- [x] RC113 role tables and indexes: tables have RLS+FORCE and no direct client grants; three registry-backed admin RPCs have empty search_path and narrow ACLs. The forward NULL-safe membership index is absent and remains blocked.
+- [x] RC114 employee tables/indexes and three employee RPCs are present with RLS+FORCE, no direct client table grants, empty search_path and anon EXECUTE denied.
+- [x] RC115/RC116 control-center functions are present with empty search_path and direct private.platform_admins checks; runtime tenant/branch behavior remains a separate test gate.
+- [x] RC117 default-image columns, triggers and helper are absent; default-image automation remains blocked.
+- [x] Evidence: `docs/audits/PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md`.
+
+
+## 2026-11-24 — RC102–RC106 and RC446/RC456/RC463/RC525 live recheck
+- [x] RC102 owner-manage policy exists but authenticated DML table grants are absent.
+- [x] RC103 live order-status RPC lacks exact branch match; RC104 live order-create RPC lacks cross-customer/business/branch idempotency-key conflict rejection.
+- [x] RC105/RC106 live order RPCs grant service_role EXECUTE but still require auth.uid() actor binding, so verified service-role Edge invocations cannot pass.
+- [x] RC446 live open-ride RPC lacks ACTIVE/VERIFIED/AVAILABLE captain-profile gate and remains search_path=public.
+- [x] RC456 all six SMM gateway tables still deny service_role access; gateway grants are absent.
+- [x] RC463 trigger ACLs are postgres-only and triggers are enabled, but assign_default_owner_to_unowned_business retains search_path=public, auth (partial).
+- [x] RC525 digital-page product admin policy still trusts active tenant SUPER_ADMIN/ADMIN without MNTY-PLATFORM/full_control scope.
+- [x] Evidence: `docs/audits/PASS_2281_2290_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md` and `docs/audits/PASS_2291_2300_RC446_RC456_RC463_RC525_LIVE_RECHECK_20261124.md`.
+
+
+## 2026-11-24 — Final earlier source migrations RC464–RC483 and Qadam seed
+- [x] Completed read-only live effect rechecks for RC464/464B/465/466/467/468/469/470; orders/history policy set is intact but remains tenant-wide, commission/payment/helper paths are partially or fully stale.
+- [x] Completed read-only live effect rechecks for RC471–RC478; MantiGO global admin, directory claim/consent, payment webhook, captain earnings/contact privacy and open-ride privacy remain blocked as recorded.
+- [x] Confirmed Qadam seed effects by aggregate counts only: business 1, owner membership 1, active branch 1, active products 15, active prices 12; no stock/orders fabricated. Exact migration ID remains absent from ledger.
+- [x] Completed RC479–RC483 live read-back: provider-profile anon SELECT remains, digital_pages anon column grants remain broad, Legal Edge grants are absent, Legal admin registry guard is absent, and atomic Legal CMS RPCs are absent.
+- [x] Evidence: `docs/audits/PASS_2301_2310_RC464_RC470_LIVE_EFFECT_RECHECK_20261124.md`, `docs/audits/PASS_2311_2320_RC471_RC478_LIVE_EFFECT_RECHECK_20261124.md`, `docs/audits/PASS_2321_2330_QADAM_RC479_RC483_LIVE_EFFECT_RECHECK_20261124.md`.
