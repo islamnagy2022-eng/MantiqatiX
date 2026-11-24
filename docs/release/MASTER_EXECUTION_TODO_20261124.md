@@ -227,3 +227,12 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Reviewed RC440 as a dynamic historical migration: its source targeted functions with exact `search_path=public` at its own execution timestamp. Current read-only snapshot has 30 exposed public SECURITY DEFINER routines matching that predicate (0 anon-executable, 30 authenticated-executable); this is not retroactive evidence that all 30 existed at RC440 execution time.
 - [x] Rechecked RC441: all five named routines exist but retain legacy non-empty paths and do not satisfy the source's explicit MNTY-PLATFORM SUPER_ADMIN boundary. Evidence: `docs/audits/PASS_2221_2230_RC434_RC441_LIVE_CONTRACT_RECHECK_20261124.md`.
 - [ ] Continue through RC442–RC453 and then reconcile the later 82-version hardening migrations against their exact live physical/body/ACL/RLS effects.
+
+
+## 2026-11-24 — RC442–RC451 approval, CRM, matrimony and journal live recheck
+- [x] RC442 private approval RPC exists but still uses search_path=public, pg_temp; authenticated retains direct approval_actions DML and the old member INSERT policy remains.
+- [x] RC444 live CRM manager SELECT policies are broader than the source's matching-business or explicit MNTY-PLATFORM/full_control boundary. marketing_provider_profiles also retains its separate public ACTIVE whole-row read surface tracked under RC479/#928.
+- [x] RC447 matrimony discovery/unlocked-contact functions, private verification guard and trigger are absent; the live matrimony profile SELECT policy is not owner-only. RC448 has one unlock-per-request unique index, but active-pair index and four exact lifecycle/contact RPCs are absent; direct authenticated request/unlock DML remains granted.
+- [x] RC449 helper and four administrative functions remain present but on old unscoped helper/non-empty search_path contracts. RC449A seven journal columns and running-balance index absent. RC450 posting function exists but lacks service_role EXECUTE and uses wrong path; trigger exists. RC451 targeted ads RPC meets empty-path public read contract and must remain anon-accessible.
+- [x] Evidence: `docs/audits/PASS_2231_2240_RC442_RC451_LIVE_CONTRACT_RECHECK_20261124.md`.
+- [ ] Continue through RC452–RC453 and then the remaining later 82-version hardening migrations.
