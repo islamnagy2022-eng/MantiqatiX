@@ -6415,5 +6415,215 @@
     },
     "production_mutation": "NONE",
     "report": "docs/audits/PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md"
+  },
+  "rc485_rc496_live_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_DIFF_CONFIRMED",
+    "checked_at": "2026-11-24",
+    "findings": {
+      "RC485": {
+        "catalog_rpcs_present": 7,
+        "security_definer": 7,
+        "search_path_public": 7,
+        "anon_execute": 0,
+        "authenticated_execute": 7,
+        "registry_helper_references": 0,
+        "price_rpc_legacy_super_admin_membership_override": true,
+        "disposition": "BLOCKED"
+      },
+      "RC486": {
+        "price_version_unique_index_present": false,
+        "live_allocator": "MAX(version)+1",
+        "advisory_lock": false,
+        "row_lock": false,
+        "search_path": "public",
+        "disposition": "P0_CONCURRENCY_BLOCKER"
+      },
+      "RC487": {
+        "bootstrap_function_present": true,
+        "bootstrap_trigger_present": true,
+        "security_definer": true,
+        "search_path": "public",
+        "body": "If public.smm_admins is empty, insert NEW.id; return NEW.",
+        "first_user_can_become_admin": true,
+        "api_table_dml": false,
+        "service_role_select": false,
+        "disposition": "P0_PRIVILEGE_BOOTSTRAP_BLOCKER"
+      },
+      "RC488": {
+        "storage_objects_rls": true,
+        "force_rls": false,
+        "restrictive_write_policies_present": 0,
+        "expected": 3,
+        "disposition": "BLOCKED"
+      },
+      "RC489": {
+        "financial_tables_checked": 15,
+        "rls_enabled": 15,
+        "force_rls": 15,
+        "permissive_authenticated_read": 15,
+        "restrictive_confirmed_auth_guard": 0,
+        "disposition": "BLOCKED"
+      },
+      "RC490": {
+        "medical_appointments_rls": true,
+        "force_rls": true,
+        "confirmed_auth_guard": false,
+        "disposition": "BLOCKED"
+      },
+      "RC491": {
+        "support_tickets_rls": true,
+        "force_rls": true,
+        "confirmed_auth_guard": false,
+        "disposition": "BLOCKED"
+      },
+      "RC492": {
+        "indrive_requests_rls": true,
+        "force_rls": true,
+        "confirmed_auth_policies_present": 0,
+        "expected": 4,
+        "existing_policy_null_claim_semantics": "COALESCE missing claim to false then allow when not true",
+        "disposition": "BLOCKED"
+      },
+      "RC493": {
+        "tables": {
+          "marketing_leads": {
+            "rls": true,
+            "force_rls": true,
+            "guard": false
+          },
+          "marketing_projects": {
+            "rls": true,
+            "force_rls": true,
+            "guard": false
+          },
+          "notifications": {
+            "rls": true,
+            "force_rls": true,
+            "guard": false
+          }
+        },
+        "disposition": "BLOCKED"
+      },
+      "RC494": {
+        "settlement_transactions_business_id_column": false,
+        "business_id_index": false,
+        "writer_present": true,
+        "security_definer": true,
+        "search_path": "pg_catalog, public",
+        "service_role_only": true,
+        "uses_registry": false,
+        "uses_platform_admin_helper": false,
+        "legacy_tenant_finance_role_check": true,
+        "populates_business_id": false,
+        "disposition": "BLOCKED"
+      },
+      "RC495": {
+        "five_storage_policies_present": true,
+        "platform_brand_policies_use_legacy_tenant_super_admin": true,
+        "canonical_registry_helper_live": false,
+        "rc488_confirmed_auth_restrictive_policies_present": 0,
+        "disposition": "POLICY_DRIFT"
+      },
+      "RC496": {
+        "accept_rpc_present": true,
+        "security_definer": true,
+        "search_path": "public",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "ride_row_lock_for_update": true,
+        "target_bid_offered_status_check": false,
+        "one_accepted_per_ride_unique_index": false,
+        "legacy_accept_auth_execute": false,
+        "legacy_submit_auth_execute": false,
+        "disposition": "PARTIAL_P0_STATE_INVARIANT"
+      }
+    },
+    "production_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "required_source_versions": 82,
+      "exact_source_version_matches": 0
+    },
+    "production_mutation": "NONE",
+    "report": "docs/audits/PASS_2271_2280_RC485_RC496_CATALOG_AUTH_SETTLEMENT_MANTIGO_RECHECK_20261124.md"
+  },
+  "rc921_rc925_live_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_DIFF_CONFIRMED",
+    "checked_at": "2026-11-24",
+    "findings": {
+      "RC921": {
+        "function": "public.update_medical_appointment_status_backend(uuid,text,text)",
+        "present": true,
+        "security_definer": true,
+        "search_path": "public, pg_temp",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "tenant_scope": "membership tenant match",
+        "business_scope": "membership business NULL or appointment business",
+        "assigned_provider_profile_check": false,
+        "provider_verification_check": false,
+        "forward_only_status_matrix": false,
+        "patient_independent_cancel": false,
+        "disposition": "BLOCKED_LEGACY_MEDICAL_BODY"
+      },
+      "RC922": {
+        "same_function_live_body_as_RC921": true,
+        "tenant_wide_provider_rule": "legacy nullable business membership; no own active provider profile binding",
+        "verified_provider_scope": false,
+        "disposition": "BLOCKED"
+      },
+      "RC923": {
+        "target_rpcs_present": 3,
+        "security_definer": true,
+        "search_path": "public",
+        "registry_helper_calls": 0,
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "legacy_coalesce_claim_guard_count": 2,
+        "missing_claim_unchecked_count": 1,
+        "explicit_false_guard_count": 0,
+        "disposition": "BLOCKED"
+      },
+      "RC924": {
+        "agreements_rls_enabled": true,
+        "confirmed_auth_restrictive_policy_present": false,
+        "participant_policy_present": true,
+        "participant_policy_live_predicate": "ap.agreement_id = ap.id AND ap.user_id = auth.uid()",
+        "source_expected_predicate": "ap.agreement_id = agreements.id AND ap.user_id = auth.uid()",
+        "legal_helper_registry_backed": false,
+        "zero_arg_legal_helper_overload_present": true,
+        "disposition": "BLOCKED_POLICY_CORRELATION_AND_AUTH_BOUNDARY"
+      },
+      "RC925": {
+        "catalog_rpcs_present": 7,
+        "security_definer": 7,
+        "search_path_public": 7,
+        "registry_helper_calls": 0,
+        "anon_execute": 0,
+        "authenticated_execute": 7,
+        "legacy_coalesce_claim_guards": 4,
+        "no_direct_claim_guard": 3,
+        "explicit_false_missing_claim_fail_closed": 0,
+        "live_registry_helper_security_definer": false,
+        "live_registry_helper_search_path": "public",
+        "live_registry_helper_body": "public.user_memberships ADMIN/SUPER_ADMIN",
+        "platform_admin_registry_force_rls": false,
+        "disposition": "BLOCKED_NOT_APPLIED"
+      }
+    },
+    "source_ci": {
+      "rc925_negative_missing_and_anonymous_tests": "PASS",
+      "rc925_confirmed_user_positive_test": "PASS",
+      "exact_head_postgres17_and_82_version_chronological_replay": "PASS",
+      "note": "Source CI is not Production deployment evidence."
+    },
+    "production_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "required_source_versions": 82,
+      "exact_required_version_matches": 0
+    },
+    "production_mutation": "NONE",
+    "report": "docs/audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md"
   }
 }
