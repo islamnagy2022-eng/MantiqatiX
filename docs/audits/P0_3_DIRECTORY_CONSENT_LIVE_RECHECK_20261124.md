@@ -118,4 +118,4 @@ Release requires, in order:
 
 ## CI evidence follow-up — 2026-11-24
 - The Directory Contact Consent workflow path filters now include this audit record for both pull requests and branch pushes. Updating the live-evidence record will therefore rerun the isolated RC473 database fixture, source-contract validator, directory Edge type-check and catalog frontend checks.
-- Exact-head workflow result is intentionally pending until the branch CI completes. This does not change the Production fail-closed state or authorize a database/Edge deployment.
+- Exact-head branch `f37f21b6d11733a83d954d02029b4b775476b62b` passed Directory Contact Consent run `45447555248`: isolated RC473 PostgreSQL fixture/migration/integration, public projection and consent source-contract tests, directory/admin Edge type checks, settlement authorization tests, and primary catalog frontend lint/build all succeeded. No Production migration or Edge deployment was performed.
