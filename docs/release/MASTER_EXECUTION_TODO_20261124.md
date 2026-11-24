@@ -25,7 +25,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 
 ### P0.2 Anonymous Auth and private profile boundaries
 - [ ] Reconcile RC479 and RC488–RC495 against live policy and ACL state.
-- [ ] Validate RC923's forward-only rejection of Anonymous Auth on the three remaining catalog RPCs; the disposable fixture must set both `request.jwt.claim` and `request.jwt.claims` to match Supabase `auth.jwt()` precedence.
+- [ ] Re-run exact-head PostgreSQL 17 replay and RC923 anonymous-session integration after the RC479/RC494 80-version validator updates; do not merge until all exact-head checks pass.
 - [ ] Run PG17/JWT cases for raw anon, anonymous Auth session, confirmed user, owner and platform admin.
 - [ ] Preserve intentional public discovery and ad reads; no blanket policy denial or privilege revocation.
 - [ ] Keep leaked-password protection marked NOT AVAILABLE/NOT VERIFIED while the current plan does not expose the setting.
@@ -99,8 +99,10 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] After approval, release the coordinated DB + Edge set in a controlled window and run deployed-origin security/privacy/payment smoke tests.
 - [ ] Mark FULL_PLATFORM_GATE PASS only with evidence for every mandatory item; otherwise retain BLOCKED / NOT CERTIFIED.
 
+- [x] Updated the release version count to 80 after adding forward-only RC923; historical migration source RC485 remains byte-for-byte unchanged.
+
 ## Current factual blockers
-- Live migration ledger: 310 entries through `20261110150618`; exact required-ID intersection was 0/79 at this checkpoint, with physical effects still requiring reconciliation.
+- Live migration ledger: 310 entries through `20261110150618`; exact required-ID intersection was 0/80 at this checkpoint, with physical effects still requiring reconciliation.
 - Both platform-root helpers remain membership-derived in Production; registry FORCE RLS is false.
 - Directory consent registry and source-permission evidence are absent; directory endpoint remains disabled.
 - Some critical Edge Functions are behind current-main contracts.
