@@ -289,3 +289,12 @@ The existing public catalog derives phone/WhatsApp/address through `getExplicitP
 - No agreement-specific create/update/terminate/signature RPC was found in the inspected Production function inventory. Existing `agreements` and `agreement_participants` therefore provide storage roots but not a complete commercial agreement lifecycle.
 - Phase 1 must add narrow, actor-bound backend RPCs for partner agreement draft/submit/approve/activate/expire/terminate and participant acceptance/signature evidence. Do not grant direct authenticated INSERT/UPDATE on agreement tables or use `record_legal_consent` as a substitute for counterpart signature capture.
 - Agreement versions must reference immutable legal document versions and snapshot the commercial terms/commission basis that applied when signed. Updates create a new version/renewal rather than mutating a signed contract in place.
+
+
+### RC924 isolated PostgreSQL 17 result — PASS
+- Corrected workflow run `45406678966` completed successfully on 2026-11-24.
+- Static RC924 contract validator: PASS.
+- Disposable PostgreSQL 17 fixture + migration + adversarial integration assertions: PASS.
+- Participant A/B isolation, unrelated-user denial, anonymous-authenticated denial and protected platform-admin access all passed.
+- RC924 is accepted as a source-level migration/test change. It remains unapplied to Production pending the separate full forward migration-chain replay and coordinated release gate.
+- Full forward migration replay run `45406678921` is still IN PROGRESS; the isolated Supabase instance startup/replay stage has not yet completed.
