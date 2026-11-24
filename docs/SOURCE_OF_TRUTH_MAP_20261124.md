@@ -6,7 +6,7 @@
 
 ## Authority order
 1. **Operating rules:** `docs/MASTER_SOURCE_OF_TRUTH.md` — exact owner-supplied instruction, controlling development method, priorities and release boundaries.
-2. **Application source:** GitHub `main`; at this checkpoint `ec40a52cee475b550e89974fac2669f82ff873d2`.
+2. **Application source:** GitHub `main`; at this checkpoint `e5cb0c7644d63d3a1f12bd73a1f3258457ef4b53`.
 3. **Production identity, authorization and business data:** the connected `MANTIQATIX FINAL` Supabase project. The paused `MantiqatiX-DEMO` project is not production and must never be merged into the production data path.
 4. **Database release state:** live `supabase_migrations.schema_migrations` plus exact source migrations and physical schema/ACL/RLS reconciliation. A missing migration version is not by itself proof that all physical effects are absent.
 5. **Runtime Edge state:** the deployed Supabase Edge Function bundle/version and settings, compared with the exact current-main source and its schema dependencies. Main source alone does not prove deployment.
@@ -29,7 +29,8 @@
 | This operating directive | **CONTROLLING INSTRUCTION** | One workflow and priority order across sessions; historical notes are append-only evidence. |
 
 ## Verified checkpoint (2026-11-24)
-- Main: `ae53cf436a37c178bffa56aaac54a58472bcfe89`; recent merged changes include separate business-logo/app-icon handling, official navbar logo restoration, Pages deployment stabilization, contact-consent-gated directory discovery, and RC924 Legal agreement participant authorization.
+- Main: `e5cb0c7644d63d3a1f12bd73a1f3258457ef4b53`; RC924 agreement participant repair and its 81-version release-contract update are now merged; its isolated PostgreSQL 17 checks passed.
+- Fresh read-only agreement boundary evidence: the Production participant policy is miscorrelated (`ap.agreement_id = ap.id`), the explicit confirmed-auth restrictive policy is absent, and both private Legal helper overloads remain membership-derived. RC482 → RC924 must be released as one unit. Audit: `PASS_2111_2120_RC924_LIVE_PRODUCTION_RECHECK_20261124.md`.
 - Production DB: ACTIVE_HEALTHY PostgreSQL 17.6.1.155, 310 migration rows through `20261110150618`; 81 required release migration identifiers, 0 exact IDs present in the live ledger at this check. RC923 and RC924 are not applied. PR #1066's exact 81-version strict gate and 117-migration chronological PostgreSQL 17 replay passed in isolated CI run `45465702093`; no Production migration was executed. This still requires physical-object/alias reconciliation before any Production release.
 - Platform Admin: live `is_platform_admin()` still derives global authority from active tenant ADMIN/SUPER_ADMIN roles (57 policy references); live `mnty_can_platform_admin()` still delegates to a null-scope tenant helper (5 policy references). Registry-backed forward migrations are source-only.
 - Directory: 965 records (869 PUBLISHED / 87 DRAFT / 9 HIDDEN); zero source-rights evidence rows and no contact-consent table. Deployed `directory-listings` v18 is intentionally fail-closed.
