@@ -43,5 +43,11 @@
 - Direct policy/ACL reconciliation: 21 policies include anon/public role (19 anon, 2 public); six explicit deny-all policies; 13 anon SELECT policy definitions, of which eight public-schema tables currently have direct anon SELECT grants. One high-priority surface remains marketing_provider_profiles (all 19 columns, including owner_user_id/settings/profile_image_path, under ACTIVE-only policy); digital pages and legal docs also expose full base-table projections and remain tracked in #928. Storage public read is scoped to mantiqatix-profile-media; no anon write RLS policy was found.
 - Latest main push run 45376506890 passed catalog build, employee RBAC PostgreSQL and dashboard Browser E2E. Pages run 45376507114 had validation and public-only gates pass; deployed-origin legacy catalog/dashboard/mobile/QR checks were still running at the checkpoint.
 
+
+## Updated RC501 checkpoint — 2026-11-24
+- Current source release contract is now 81 identifiers after adding RC501 `20261124150000`; the 310-row Production ledger still ends at `20261110150618`, and 0/81 exact required identifiers are recorded. Historical 0/80 text below is a prior snapshot before RC501 and is not the current count.
+- RC501 is source-only: pin seven remaining SECURITY DEFINER callers of `public.is_platform_admin()` to an empty search_path after RC484. Exact-head PostgreSQL 17 validation and 81-version chronological replay are pending. No Production function, ACL, policy, migration ledger, or Edge function was changed.
+- RC923 is merged in source and has passed its exact-head 80-version replay; it remains unapplied in Production.
+
 ## Workflow rule
 Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT TASK`. Start from the first current incomplete P0/P1 item. Never infer release completion from archive status labels, local UI, empty tables, source-only fixes, historical CI or unverified deployment claims. Keep production read-only until the explicit backup, replay, authorization, payment and release gates are satisfied.
