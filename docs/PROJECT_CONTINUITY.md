@@ -3578,3 +3578,9 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 - RC490: medical guard absent, but live authenticated SELECT grant is false; preserve this no-grant boundary. RC491 support guard absent; RC492 four InDrive guards absent; RC493 three CRM/notification SELECT guards absent.
 - RC494 settlement RPC remains SECDEF with search_path=pg_catalog, public and service_role-only EXECUTE; live helper/FORCE RLS requirements remain unsatisfied. RC495 branding Storage policies remain tenant role based and have old filename expression.
 - No Production mutation. Next: complete exact-head PG17/JWT workflows and then proceed only through backup-backed ordered release gates.
+
+
+## 2026-11-24 — P0.1/P0.2 exact-head CI verification
+- Branch `audit/p0-anonymous-auth-storage-live-recheck-20261124` current checked head `7b585ba393ee076aabf04671ac9da21a69598f95` passed runs 45411811229, 45411811351, 45411811012, 45411811582, 45411811026, 45411811175, 45411810983, 45411811536, 45411811109 and 45411811613. All relevant jobs reported success, including exact chronological replay and PG17 actor matrix with inactive tenant SUPER_ADMIN rejection.
+- Pages workflow 45411811562 passed source validation; deployment and public-only deployment steps were skipped for the PR event. No web deployment occurred.
+- PR #1057 remains an audit/tests-only branch. Production remains read-only; security fixes have not been applied. Do not claim P0 closure or Production certification.
