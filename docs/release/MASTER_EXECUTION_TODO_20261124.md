@@ -1,10 +1,22 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
-**Base:** `main @ ae53cf436a37c178bffa56aaac54a58472bcfe89`  
+**Updated:** 2026-11-24 — P0.1/P0.2 policy/ACL reconciliation plus RC925 catalog confirmed-Auth boundary  
+**Base:** `main @ e5cb0c7644d63d3a1f12bd73a1f3258457ef4b53`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
 This is the active priority queue. Older Pass logs remain append-only evidence, not a competing work queue. Ordering is based on dependencies and work that can be completed without a paid Supabase branch or paid tooling.
+
+## 2026-11-24 — RC925 direct catalog confirmed-Auth boundary
+
+- [x] Confirmed the seven direct catalog RPCs use the `authenticated` role and that the current RC485/RC923 guard treats a missing `is_anonymous` claim as false. Supabase's current Auth documentation specifies the claim for Auth JWTs, and the project hardening contract requires a missing claim to fail closed.
+- [x] Generated `20261124192436_rc925_catalog_rpc_confirmed_auth_boundary.sql` using pinned Supabase CLI v2.122.0 in CI run `45469873588`.
+- [x] Forward-replaced all seven catalog RPC definitions with `(auth.jwt()->>'is_anonymous') IS DISTINCT FROM 'false'`; retained signatures, registry-root checks, empty search_path, tenant/business/branch role checks, owners, EXECUTE ACLs and the RC486 price advisory lock.
+- [x] Extended the PostgreSQL integration to check `is_anonymous=true`, absent `is_anonymous`, and explicit `is_anonymous=false` across all seven RPCs.
+- [x] Added RC925 as the 82nd required source version in the canonical contract, production verifier, strict gate and release regression validators.
+- [ ] Pass RC925 static validation and the exact 82-version PostgreSQL 17 forward replay on the latest PR head.
+- [ ] Reconcile all 82 required source IDs against physical Production effects/aliases; the live migration ledger remains 310 entries through `20261110150618`, with RC925 not applied.
+- **Safety:** no Production migration, DDL, DML, RLS, GRANT, Auth, Storage, Edge, payment, wallet, settlement or business-data mutation.
+
 
 ## Execution rules
 - Preserve the current catalog root, `/legacy/` rollback and existing production data. Do not replace current main with the R7 ZIP.
