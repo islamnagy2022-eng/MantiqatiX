@@ -167,6 +167,8 @@ assert.match(apiEdge, /supabaseAdmin\.auth\.getUser\(token\)[\s\S]*?supabaseUser
   "legacy Orders API must verify the bearer token before invoking the customer-scoped RPC");
 assert.match(orderIntegration, /SET ROLE authenticated[\s\S]*?RC498_AUTHENTICATED_EXECUTE_MISSING[\s\S]*?RC498_ANON_EXECUTE_PRESENT[\s\S]*?RESET ROLE/,
   "RC498 integration must exercise authenticated grants and anonymous denial under the actual authenticated role");
+assert.match(orderIntegration, /RESET ROLE;[\s\S]*?DO \$rc498_persisted_order\$[\s\S]*?customer_id='10000000-0000-4000-8000-000000000001'[\s\S]*?total_amount=125[\s\S]*?\$rc498_persisted_order\$;/,
+  "the persisted-order assertion must run after RESET ROLE and verify authenticated ownership plus authoritative EGP pricing");
 assert.match(orderIntegration, /request\.jwt\.claim\.role', 'service_role'[\s\S]*?service-role path could not create a new order/,
   "RC498 integration must preserve the verified service-role backend path");
 assert.doesNotMatch(orderCreateEdge, /admin\.rpc\("create_order_backend"/,
