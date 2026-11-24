@@ -114,3 +114,8 @@ Release requires, in order:
 6. Keep the directory disabled until all gates pass.
 
 **Safety:** this pass used aggregate counts and schema/function metadata only. No phone, address, listing-level contact row, owner identity, Auth data or object content was read. No Production DDL/DML, RLS, GRANT, Storage, Edge, directory, payment or business-data write occurred.
+
+
+## CI evidence follow-up — 2026-11-24
+- The Directory Contact Consent workflow path filters now include this audit record for both pull requests and branch pushes. Updating the live-evidence record will therefore rerun the isolated RC473 database fixture, source-contract validator, directory Edge type-check and catalog frontend checks.
+- Exact-head branch `f37f21b6d11733a83d954d02029b4b775476b62b` passed Directory Contact Consent run `45447555248`: isolated RC473 PostgreSQL fixture/migration/integration, public projection and consent source-contract tests, directory/admin Edge type checks, settlement authorization tests, and primary catalog frontend lint/build all succeeded. No Production migration or Edge deployment was performed.
