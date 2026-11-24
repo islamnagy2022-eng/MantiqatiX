@@ -100,6 +100,7 @@ const MainContent: React.FC = () => {
     currentBusiness?.publicationStatus,
     currentBusiness?.publicEnabled,
     currentBusiness?.catalogPublished,
+    currentBusiness?.isOfficialShowcase,
     currentBusiness?.operationalStatus,
     categories,
   ]);
