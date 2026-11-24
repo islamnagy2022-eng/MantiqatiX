@@ -6444,5 +6444,122 @@
     },
     "production_mutation": "NONE",
     "next_required": "Complete exact source/body/ACL crosswalk and include all affected RPCs in coordinated 81-migration DB+Edge release after backup/restore and explicit approval."
+  },
+  "edge_transitive_local_import_recheck_20261124": {
+    "status": "LOCAL_IMPORT_CLOSURE_INVENTORIED_EXTERNAL_DEPENDENCIES_AND_BUILT_BUNDLE_NOT_VERIFIED",
+    "checked_at": "2026-11-24T20:20:00Z",
+    "main_commit": "e5cb0c7644d63d3a1f12bd73a1f3258457ef4b53",
+    "functions_checked": 9,
+    "main_local_import_graph": {
+      "catalog-admin": [],
+      "order-create": [],
+      "paymob-webhook": [],
+      "payment-intent": [
+        "_shared/paymob-intent-correlation.mjs"
+      ],
+      "subscription-payment-intent": [
+        "_shared/paymob-intent-correlation.mjs",
+        "_shared/checkout-secret-crypto.mjs"
+      ],
+      "financial-journal": [],
+      "settlement-financial-atomic": [
+        "settlement-financial-atomic/authorization.mjs"
+      ],
+      "business-register": [],
+      "directory-listings": [
+        "directory-listings/pagination-filter.mjs",
+        "directory-listings/doctor-import-contract.mjs",
+        "directory-listings/public-directory-output-contract.mjs",
+        "directory-listings/consent-pagination.mjs",
+        "directory-listings/contact-consent-pagination.mjs",
+        "directory-listings/platform-admin-registry.mjs",
+        "directory-listings/release-gate.mjs",
+        "directory-listings/doctor-publication-contract.mjs",
+        "directory-listings/doctor-import-contract.mjs [transitive dependency of doctor-publication-contract.mjs]"
+      ]
+    },
+    "direct_local_import_edges": 11,
+    "unique_local_modules": 11,
+    "additional_transitive_edges": 1,
+    "local_cycles_detected": 0,
+    "deployed_files": {
+      "catalog-admin": {
+        "version": 20,
+        "files": [
+          "index.ts"
+        ]
+      },
+      "order-create": {
+        "version": 8,
+        "files": [
+          "index.ts"
+        ]
+      },
+      "paymob-webhook": {
+        "version": 10,
+        "files": [
+          "index.ts"
+        ]
+      },
+      "payment-intent": {
+        "version": 8,
+        "files": [
+          "index.ts"
+        ],
+        "missing": [
+          "../_shared/paymob-intent-correlation.mjs"
+        ]
+      },
+      "subscription-payment-intent": {
+        "version": 4,
+        "files": [
+          "index.ts"
+        ],
+        "missing": [
+          "../_shared/paymob-intent-correlation.mjs",
+          "../_shared/checkout-secret-crypto.mjs"
+        ]
+      },
+      "financial-journal": {
+        "version": 3,
+        "files": [
+          "index.ts"
+        ]
+      },
+      "settlement-financial-atomic": {
+        "version": 4,
+        "files": [
+          "index.ts",
+          "deno.json"
+        ],
+        "missing": [
+          "./authorization.mjs",
+          "https://esm.sh/@supabase/supabase-js@2/cors"
+        ]
+      },
+      "business-register": {
+        "version": 9,
+        "files": [
+          "index.ts"
+        ]
+      },
+      "directory-listings": {
+        "version": 18,
+        "files": [
+          "index.ts"
+        ],
+        "disposition": "FAIL_CLOSED_STUB",
+        "missing_current_main_local_modules": 8
+      }
+    },
+    "dependency_locks": {
+      "supabase_config_toml_exists": true,
+      "settlement_function_deno_json_exists": true,
+      "settlement_function_deno_json_content": "{\"compilerOptions\":{\"strict\":true}}",
+      "deno_lock_found_paths": [],
+      "external_dependency_resolution": "NOT_VERIFIED"
+    },
+    "production_mutation": "NONE",
+    "next_required": "Create reviewed dependency lock/import-map and release bundle manifest; complete external resolution, compile and SQL/RPC/ACL closure before any coordinated deployment."
   }
 }
