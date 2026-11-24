@@ -6,7 +6,7 @@ Doctor profiles are a distinct publication category. A public URL, prior PUBLISH
 
 The existing private evidence workflow supports `LICENSED`, `OWNER_PROVIDED`, and `PUBLIC_PERMISSION_CONFIRMED` bases. An owner-provided record is accepted only through that same private, two-person review; merely claiming an existing third-party sourced listing does not change its source attribution or bypass the gate. If an owner later supplies a new profile, the provenance must be deliberately changed through an authorized and auditable owner workflow, and evidence must cover the new source before the doctor profile is published.
 
-Non-doctor listings retain their separate publication contract; the doctor-only rule does not imply that every business listing has a doctor republication license requirement. Contact fields remain independently subject to the directory contact-consent rules.
+Non-doctor listings retain their separate publication contract through an explicit current allowlist: `business`, `clinic`, `pharmacy`, `medical_center`, `hospital`, `laboratory`, and `health_provider`. Unknown or missing listing types fail closed rather than accidentally bypassing the rights gate. The doctor-only rule does not imply that every business listing has a doctor republication license requirement. Contact fields remain independently subject to the directory contact-consent rules.
 
 ## Implementation candidate
 
@@ -20,7 +20,7 @@ Non-doctor listings retain their separate publication contract; the doctor-only 
 
 ## Tests
 
-Pure behavioral tests cover exact approved match, wrong host/source, pending/revoked/expired/not-yet-valid records, missing evidence/provenance, claimed-vs-unclaimed behavior, non-doctor preservation, mixed rows, cursor scanning, scan-limit failure, and database read failure. Static validation proves slug, legacy list and keyset paths all enforce the contract. PostgreSQL/Edge source parity and deployed-origin tests remain required before release.
+Pure behavioral tests cover exact approved match, wrong host/source, pending/revoked/expired/not-yet-valid records, missing evidence/provenance, claimed-vs-unclaimed behavior, the explicit non-doctor type allowlist, rejection of unknown/missing types, mixed rows, cursor scanning, scan-limit failure, and database read failure. Static validation proves slug, legacy list and keyset paths all enforce the contract. PostgreSQL/Edge source parity and deployed-origin tests remain required before release.
 
 ## Production evidence
 

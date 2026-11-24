@@ -392,13 +392,13 @@ assert.match(directoryListingsFunction, /\.is\("revoked_at", null\)/,
   "Exact address search must exclude revoked owner consent records.");
 assert.match(directoryListingsFunction, /\.range\(offset, offset \+ pageSize - 1\)/,
   "Exact address search must paginate the entire consent registry without a fixed 1,000-row cutoff.");
-assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(search, cursor, taxonomySpecialty \|\| specialty\)/,
+assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(search, (?:cursor|after), taxonomySpecialty \|\| specialty\)/,
   'Selected specialty must be applied before the page limit through the combined server-side filter expression.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.in\("functional_group_id", expandDirectoryFunctionalGroupIds\(functionalGroupId\)\)/,
   'Functional group must be applied to the database query with legacy ID compatibility before the page limit.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.in\("taxonomy_category_id", expandDirectoryTaxonomyCategoryIds\(taxonomyCategoryId\)\)/,
   'Taxonomy category must be applied to the database query with legacy ID compatibility before the page limit.');
-assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(search, cursor, taxonomySpecialty \|\| specialty\)/,
+assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(search, (?:cursor|after), taxonomySpecialty \|\| specialty\)/,
   'Selected taxonomy specialty must be applied across canonical and legacy fields inside the same search/cursor logic tree.');
 assert.match(directoryPaginationHelper, /taxonomy_specialty\.ilike\./,
   'Specialty filter helper must match the taxonomy specialty field.');
@@ -433,7 +433,7 @@ assert.match(directoryListingsFunction, /decodeDirectoryPaginationCursor\(clean\
   'The Edge Function must reject malformed cursors through the tested decoder.');
 assert.match(directoryListingsFunction, /encodeDirectoryPaginationCursor\(/,
   'The Edge Function must return URL-safe keyset cursors through the tested encoder.');
-assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(search, cursor, taxonomySpecialty \|\| specialty\)/,
+assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(search, (?:cursor|after), taxonomySpecialty \|\| specialty\)/,
   'The Edge Function must apply the combined search, specialty and cursor filter builder.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.or\(logicalFilter\)/,
   'A paginated request must attach its logical filter tree exactly once.');

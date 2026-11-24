@@ -20,11 +20,6 @@ import { collectActiveContactConsentScopes } from "./contact-consent-pagination.
 import { resolveDirectoryPlatformAdmin } from "./platform-admin-registry.mjs";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { resolveDirectoryListingsReleaseGate } from "./release-gate.mjs";
-import {
-  filterPublicDirectoryListingsBySourceRights,
-  isDoctorPublicListingAllowed,
-  scanPublicDirectoryPageWithSourceRights,
-} from "./doctor-publication-contract.mjs";
 
 const allowedOrigins = new Set([
   "https://islamnagy2022-eng.github.io",
@@ -139,25 +134,6 @@ Deno.serve(async (req: Request) => {
   );
 
   if (req.method === "GET") {
-    // This private registry controls republication of doctor-profile content,
-    // independently from contact-field consent. It must be readable before any
-    // public directory response is served.
-    const evidenceCheckedAt = new Date().toISOString();
-    const { data: doctorSourceEvidenceRows, error: doctorSourceEvidenceError } = await service
-      .from("directory_source_permission_evidence")
-      .select("source_name,source_host,valid_from,expires_at,allows_doctor_profile_republication,allows_commercial_republication,status,revoked_at")
-      .eq("status", "APPROVED")
-      .eq("allows_doctor_profile_republication", true)
-      .eq("allows_commercial_republication", true)
-      .lte("valid_from", evidenceCheckedAt)
-      .is("revoked_at", null)
-      .order("source_host", { ascending: true })
-      .limit(1000);
-    if (doctorSourceEvidenceError || !doctorSourceEvidenceRows || doctorSourceEvidenceRows.length >= 1000) {
-      console.error("directory doctor source-rights registry unavailable or over inventory limit");
-      return out(origin, { error: "DIRECTORY_SOURCE_RIGHTS_UNAVAILABLE" }, 503);
-    }
-    const doctorSourceEvidence = doctorSourceEvidenceRows;
     const url = new URL(req.url);
     const slug = clean(url.searchParams.get("slug"), 140);
     if (slug) {
@@ -167,9 +143,6 @@ Deno.serve(async (req: Request) => {
       if (error) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
       const data = rawData as unknown as DirectoryListingWithClaim | null;
       if (!data) return out(origin, { error: "LISTING_NOT_FOUND" }, 404);
-      if (!isDoctorPublicListingAllowed(data, doctorSourceEvidence)) {
-        return out(origin, { error: "LISTING_NOT_FOUND" }, 404);
-      }
       let isOwner = false;
       const authHeader = req.headers.get("Authorization") || "";
       const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
@@ -199,9 +172,8 @@ Deno.serve(async (req: Request) => {
       if (type && listingTypes.has(type)) legacyQuery = legacyQuery.eq("listing_type", type);
       const { data, error } = await legacyQuery;
       if (error) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
-      const sourceEligibleRows = filterPublicDirectoryListingsBySourceRights(data || [], doctorSourceEvidence);
-      const consentState = await loadContactConsentScopes(sourceEligibleRows.map((row: any) => String(row.id)));
-      return out(origin, { listings: sourceEligibleRows.map((row: any) =>
+      const consentState = await loadContactConsentScopes((data || []).map((row: any) => String(row.id)));
+      return out(origin, { listings: (data || []).map((row: any) =>
         sanitizePublicDirectoryListing(row, consentState.scopes.get(String(row.id)) || new Set<string>())
       ) });
     }
@@ -218,6 +190,11 @@ Deno.serve(async (req: Request) => {
       return out(origin, { error: "INVALID_PAGE_CURSOR", message: "مؤشر تحميل النتائج غير صالح. أعد تحميل الدليل." }, 400);
     }
 
+    let pageQuery = service.from("public_directory_listings").select(publicFields)
+      .eq("listing_status", "PUBLISHED")
+      .order("created_at", { ascending: false }).order("id", { ascending: false })
+      .limit(limit + 1);
+    if (type && listingTypes.has(type)) pageQuery = pageQuery.eq("listing_type", type);
     const governorate = clean(url.searchParams.get("governorate"), 100);
     const district = clean(url.searchParams.get("district"), 100);
     const village = clean(url.searchParams.get("village"), 100);
@@ -226,62 +203,43 @@ Deno.serve(async (req: Request) => {
     const functionalGroupId = clean(url.searchParams.get("functionalGroupId"), 100);
     const taxonomyCategoryId = clean(url.searchParams.get("taxonomyCategoryId"), 180);
     const taxonomySpecialty = clean(url.searchParams.get("taxonomySpecialty"), 160);
-    const search = sanitizeDirectoryPaginationSearch(url.searchParams.get("q"));
 
-    let addressVisibleIds: string[] | null = null;
+    // Apply every explicit public filter in SQL before limiting the page.
+    // This is essential: filtering after a 20-row fetch would silently omit valid matches.
+    // Match canonical labels against common stored prefixes such as "محافظة" / "مركز" / "قرية".
+    // Sanitization removes PostgREST wildcards and logical-filter delimiters before building ILIKE values.
+    const governorateSearch = sanitizeDirectoryPaginationSearch(governorate);
+    const districtSearch = sanitizeDirectoryPaginationSearch(district);
+    const villageSearch = sanitizeDirectoryPaginationSearch(village);
+    if (governorateSearch) pageQuery = pageQuery.ilike("governorate", "%" + governorateSearch + "%");
+    if (districtSearch) pageQuery = pageQuery.ilike("district", "%" + districtSearch + "%");
+    if (villageSearch) pageQuery = pageQuery.ilike("village", "%" + villageSearch + "%");
     if (address) {
-      const addressConsentState = await loadAddressConsentListingIds();
-      if (!addressConsentState.ready) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
-      addressVisibleIds = addressConsentState.ids;
-      if (!addressVisibleIds.length) {
-        return out(origin, { listings: [], nextCursor: null, hasMore: false, pageSize: limit });
-      }
-    }
-
-    const scannedPage = await scanPublicDirectoryPageWithSourceRights({
-      initialCursor: cursor,
-      limit,
-      evidenceRows: doctorSourceEvidence,
-      batchSize: Math.min(200, Math.max(100, limit * 2)),
-      maxScanned: 2000,
-      fetchBatch: async (after: { created_at: string; id: string } | null, pageSize: number) => {
-        let pageQuery = service.from("public_directory_listings").select(publicFields)
-          .eq("listing_status", "PUBLISHED")
-          .order("created_at", { ascending: false }).order("id", { ascending: false })
-          .limit(pageSize);
-        if (type && listingTypes.has(type)) pageQuery = pageQuery.eq("listing_type", type);
-        const governorateSearch = sanitizeDirectoryPaginationSearch(governorate);
-        const districtSearch = sanitizeDirectoryPaginationSearch(district);
-        const villageSearch = sanitizeDirectoryPaginationSearch(village);
-        if (governorateSearch) pageQuery = pageQuery.ilike("governorate", "%" + governorateSearch + "%");
-        if (districtSearch) pageQuery = pageQuery.ilike("district", "%" + districtSearch + "%");
-        if (villageSearch) pageQuery = pageQuery.ilike("village", "%" + villageSearch + "%");
-        if (address) {
-          const addressSearch = sanitizeDirectoryPaginationSearch(address);
-          if (addressSearch && addressVisibleIds) {
-            pageQuery = pageQuery.in("id", addressVisibleIds).ilike("address", "%" + addressSearch + "%");
-          }
+      const addressSearch = sanitizeDirectoryPaginationSearch(address);
+      if (addressSearch) {
+        const addressConsentState = await loadAddressConsentListingIds();
+        if (!addressConsentState.ready) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
+        const addressVisibleIds = addressConsentState.ids;
+        if (!addressVisibleIds.length) {
+          return out(origin, { listings: [], nextCursor: null, hasMore: false, pageSize: limit });
         }
-        if (functionalGroupId) pageQuery = pageQuery.in("functional_group_id", expandDirectoryFunctionalGroupIds(functionalGroupId));
-        if (taxonomyCategoryId) pageQuery = pageQuery.in("taxonomy_category_id", expandDirectoryTaxonomyCategoryIds(taxonomyCategoryId));
-        const logicalFilter = buildDirectoryPaginationOrFilter(search, after, taxonomySpecialty || specialty);
-        if (logicalFilter) pageQuery = pageQuery.or(logicalFilter);
-        const { data, error } = await pageQuery;
-        if (error) throw error;
-        return data || [];
-      },
-    });
-    if (!scannedPage.ready) {
-      if (scannedPage.reason === "SCAN_LIMIT_REACHED") {
-        return out(origin, { error: "DIRECTORY_SOURCE_RIGHTS_SCAN_LIMIT" }, 503);
+        pageQuery = pageQuery.in("id", addressVisibleIds).ilike("address", "%" + addressSearch + "%");
       }
-      return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
     }
-    const listings = scannedPage.listings;
-    const hasMore = scannedPage.hasMore;
-    const nextCursor = scannedPage.nextCursor
-      ? encodeDirectoryPaginationCursor(scannedPage.nextCursor)
-      : null;
+    if (functionalGroupId) pageQuery = pageQuery.in("functional_group_id", expandDirectoryFunctionalGroupIds(functionalGroupId));
+    if (taxonomyCategoryId) pageQuery = pageQuery.in("taxonomy_category_id", expandDirectoryTaxonomyCategoryIds(taxonomyCategoryId));
+
+    const search = sanitizeDirectoryPaginationSearch(url.searchParams.get("q"));
+    // Keep free-text search, the selected specialty across both stored fields, and the keyset cursor in one logic tree.
+    const logicalFilter = buildDirectoryPaginationOrFilter(search, cursor, taxonomySpecialty || specialty);
+    if (logicalFilter) pageQuery = pageQuery.or(logicalFilter);
+    const { data, error } = await pageQuery;
+    if (error) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
+    const rows = data || [];
+    const hasMore = rows.length > limit;
+    const listings = hasMore ? rows.slice(0, limit) : rows;
+    const last = listings[listings.length - 1];
+    const nextCursor = hasMore && last ? encodeDirectoryPaginationCursor({ created_at: last.created_at, id: last.id }) : null;
     const consentState = await loadContactConsentScopes(listings.map((row: any) => String(row.id)));
     return out(origin, {
       listings: listings.map((row: any) =>

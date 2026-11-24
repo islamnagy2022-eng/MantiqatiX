@@ -66,9 +66,15 @@ test("claiming or owning a doctor listing never bypasses source republication pe
   }
 });
 
-test("non-doctor listings retain their separately governed publication behavior", () => {
-  for (const listing_type of ["business", "clinic", "pharmacy", "hospital", "laboratory"]) {
+test("known non-doctor listing types retain their separately governed publication behavior", () => {
+  for (const listing_type of ["business", "clinic", "pharmacy", "medical_center", "hospital", "laboratory", "health_provider"]) {
     assert.equal(isDoctorPublicListingAllowed(doctor({ listing_type }), [], NOW), true);
+  }
+});
+
+test("unknown and missing listing types fail closed instead of bypassing the source-rights allowlist", () => {
+  for (const listing_type of ["", "unknown", "provider", null, undefined]) {
+    assert.equal(isDoctorPublicListingAllowed(doctor({ listing_type }), [evidence()], NOW), false);
   }
 });
 
