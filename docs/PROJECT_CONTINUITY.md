@@ -3567,3 +3567,13 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 - No paid Supabase branch was created. Keep Production read-only; use GitHub Actions/PostgreSQL fixtures for source and adversarial work. Defer paid branch/restore rehearsal to the final gate.
 - Audit: docs/audits/PASS_2061_2070_ANONYMOUS_AUTH_POLICY_MATRIX_20261124.md.
 - Full platform remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-24 — Priority cross-session workstream MNTX-BP-001
+- User explicitly prioritized the Business Partners & Legal-Compliance implementation as a critical MantiqatiX workstream.
+- Resume source: issue #599, master TODO section MNTX-BP-001, and docs/BUSINESS_PARTNERS_LEGAL_COMPLIANCE_IMPLEMENTATION.md.
+- Approved model: partner owns/sells product, receives product funds directly, issues product invoice and handles delivery/warranty/returns; MantiqatiX records only its own subscription, referral/commission-service, advertising and marketing-service revenue. Do not route product money through platform payment/wallet/settlement.
+- Current branch: feat/business-partners-legal-compliance-20261124; draft tracking PR #1056 is documentation/evidence only.
+- Production read-only schema inspection found an existing agreements_participant_read RLS predicate defect: it compares agreement_participants.agreement_id to agreement_participants.id rather than agreements.id. Fix only through reviewed additive migration + regression tests; never edit Production directly.
+- No production schema/Auth/RLS/GRANT/Edge/payment/settlement/data writes were made for this feature. Current feature status: IN PROGRESS / NOT IMPLEMENTED / NOT VERIFIED.
+- Next task: implement isolated PostgreSQL 17 regression coverage and migration for agreement participant read scope, then Phase 1 partner legal profile, verification, documents and commercial agreement lifecycle. Continue this workstream whenever the user says “كمل”; do not restart or ask the user to restate it.
