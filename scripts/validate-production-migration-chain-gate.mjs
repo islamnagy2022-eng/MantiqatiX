@@ -86,9 +86,10 @@ const required = [
   "20261121030000_rc496_mantigo_bid_accept_state_invariant.sql",
   "20261123010000_rc921_medical_appointment_provider_state_machine.sql",
   "20261123221950_rc922_medical_appointment_tenant_wide_provider_scope.sql",
-  "20261124121348_rc923_catalog_rpc_anonymous_auth_guard.sql"
+  "20261124121348_rc923_catalog_rpc_anonymous_auth_guard.sql",
+  "20261124140000_rc924_agreement_participant_read_scope.sql"
 ];
-assert.equal(required.length, 80, "release gate must track all distinct required post-RC424 migration effects, including RC464B, both RC479 migrations, RC476–RC496, RC921, RC922 and RC923");
+assert.equal(required.length, 81, "release gate must track all distinct required post-RC424 migration effects, including RC464B, both RC479 migrations, RC476–RC496, RC921, RC922, RC923 and RC924");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");
