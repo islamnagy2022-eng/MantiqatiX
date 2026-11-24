@@ -32,6 +32,15 @@ Read-only live definitions show two distinct legacy paths:
 
 The canonical `private.platform_admins` table exists and contains one row. RLS is enabled, but FORCE RLS is false. Direct SELECT is denied to both `anon` and `authenticated`. Source migrations RC464/RC471 and later registry-backed repairs exist in the repository, but they are not applied to this Production project. Do not patch either helper or its dependent policies in isolation: use the ordered, versioned migration release after backup/restore and exact-schema preflight.
 
+
+### 3.1 Forward-migration preflight dry-run (read-only)
+
+- RC464 preflight predicates were reproduced with read-only catalog queries and all current dependencies passed: registry RLS enabled; no anon/authenticated SELECT/INSERT/UPDATE/DELETE table grants; registry and helper owner both `postgres` with BYPASSRLS; all four exact SECURITY DEFINER MantiGO RPCs exist; all four exact shared-helper callers exist; and the three expected digital-pages/MantiGO policies are present. Registry FORCE RLS is currently false, which RC464 changes after its preflight.
+- RC471 dependency checks passed: the settlement/journal function signature exists, none of its 33 required MantiGO/audit/notification columns is missing, the registry `user_id` column exists, and all four exact helper-dependent SECURITY DEFINER callers are present.
+- RC484 preflight predicates also passed: registry RLS and UUID `user_id` column exist; registry/helper owner parity and BYPASSRLS are correct; client table ACLs are clean; exactly 57 dependent policy references across 24 tables were observed. RC484 is the source migration that sets FORCE RLS and replaces `is_platform_admin()` with the registry-backed helper.
+- RC485's helper precondition is **not yet ready**: live `is_platform_admin()` is still SECURITY INVOKER, uses `search_path=public`, and does not consult `private.platform_admins`. This is expected until RC484 runs first.
+- These are read-only replicas of migration preconditions, not an execution or transactional test of the migrations. Do not apply RC464/RC471/RC484 independently; preserve their dependency order inside the full 79-version, backed-up release. RC485 must follow RC484.
+
 ## 4. Public directory and consent gate
 
 Fresh aggregate-only Production inventory:
