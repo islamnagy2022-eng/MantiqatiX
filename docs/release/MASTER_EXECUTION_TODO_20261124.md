@@ -28,6 +28,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 **Live evidence:** Production still uses membership-derived helpers; registry RLS is on but FORCE RLS is false. See `docs/audits/PASS_2041_2050_LIVE_PRODUCTION_RECHECK_20261124.md`.
 
 ### P0.2 Anonymous Auth and private profile boundaries
+- [x] Refreshed Advisor + live ACL snapshot: 90 anonymous-Auth table warnings, 9 RLS-no-policy tables with all client grants denied, 65 exposed authenticated SECURITY DEFINER functions (18 empty search_path, 47 other pinned, 0 unset); see PASS_2081_2090 and Issue #928.
 - [ ] Reconcile RC479 and RC488–RC495 against live policy and ACL state.
 - [ ] Run PG17/JWT cases for raw anon, anonymous Auth session, confirmed user, owner and platform admin.
 - [ ] Preserve intentional public discovery and ad reads; no blanket policy denial or privilege revocation.
@@ -109,6 +110,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - `private.platform_admins` has RLS enabled but FORCE RLS=false. The registry-backed forward migrations and seven-RPC RC485/RC923 contract are not applied to Production.
 - Of the seven direct catalog RPCs, four live definitions contain an anonymous-Auth guard and three (item upsert, price upsert, item-status update) do not. All seven deny direct `anon` EXECUTE but permit `authenticated` EXECUTE; all seven remain `search_path=public`.
 - Directory consent registry and source-permission evidence are absent; the directory endpoint remains fail-closed.
+- Supabase Auth leaked-password protection is disabled; 47 of 65 authenticated-callable SECURITY DEFINER functions still have non-empty search_path (public / public, pg_temp); these require targeted review, not blanket changes.
 - Some critical Edge Functions are behind current-main contracts.
 - Independent encrypted backup/restore, Auth/Vault coverage and measured RPO/RTO are not verified.
 - Li2Lak candidate has prior successful partial checks, but its latest source requires complete exact-head test evidence after rebasing; Paymob remains fail-closed.
@@ -119,6 +121,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] SEO-only route metadata/canonical-root guard merged; exact-head CI passed 34/34. Main Pages deployment is still pending verification.
 - [x] Live Edge entrypoint comparison recorded; 9 critical mismatches remain and no Edge deployment was made.
 - [x] Live P0 authorization and seven catalog-RPC contracts rechecked read-only on 2026-11-24; exact evidence in `PASS_2071_2080`.
+- [x] Anonymous Auth/SECURITY DEFINER Advisor snapshot refreshed read-only; 9 no-policy tables have no client grants, 47 exposed authenticated definers still use non-empty pinned search paths; full policy test matrix remains open under #928.
 - [ ] Finish PR #1049 exact-head PostgreSQL 17 CI for tenant-scoped SUPER_ADMIN and MNTY-PLATFORM-membership-only negative tests across all four `mnty_can_platform_admin()` callers; no merge until CI is green.
 - [ ] Continue per-object migration/alias reconciliation, then review Li2Lak/gallery candidate PRs.
 - [ ] Backup/restore remains the final work stage and a hard release blocker.
