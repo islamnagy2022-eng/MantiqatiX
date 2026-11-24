@@ -31,6 +31,8 @@ jobs:
         run: node scripts/test-checkout-secret-crypto.mjs
       - name: Validate Paymob atomicity source wiring
         run: node scripts/validate-payment-migration-wiring.mjs
+      - name: Validate signed provider-order binding before processor RPCs
+        run: node scripts/validate-paymob-webhook-order-binding.mjs
       - name: Run RC425 atomic payment integration tests
         shell: bash
         run: |
