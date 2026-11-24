@@ -1,12 +1,12 @@
 # MantiqatiX — Unified Source of Truth Map
-**Checkpoint:** 2026-11-24 — main `d55fc4e3b53f9c069c4618b7c4b4a271213a08e6`  
+**Checkpoint:** 2026-11-24 — main `00a8d369ccc8d5b1fb6ef29db87178c65ebddd27`  
 **Operating directive:** [MASTER_SOURCE_OF_TRUTH.md](./MASTER_SOURCE_OF_TRUTH.md)  
 **Canonical repository:** `islamnagy2022-eng/MantiqatiX`  
 **Production Supabase:** `MANTIQATIX FINAL` / `moyhiluyhjsujhwlyeuu`
 
 ## Authority order
 1. **Operating rules:** `docs/MASTER_SOURCE_OF_TRUTH.md` — exact owner-supplied instruction, controlling development method, priorities and release boundaries.
-2. **Application source:** GitHub `main`; current checkpoint `d55fc4e3b53f9c069c4618b7c4b4a271213a08e6` (documentation-only updates after the validated source head; exact-head code CI is linked from PASS 2351–2360).
+2. **Application source:** GitHub `main`; current checkpoint `00a8d369ccc8d5b1fb6ef29db87178c65ebddd27` (the application source is canonical; current runtime parity is tracked in the latest Edge audit).
 3. **Production identity, authorization and business data:** the connected `MANTIQATIX FINAL` Supabase project. The paused `MantiqatiX-DEMO` project is not production and must never be merged into the production data path.
 4. **Database release state:** live `supabase_migrations.schema_migrations` plus exact source migrations and physical schema/ACL/RLS reconciliation. A missing migration version is not by itself proof that all physical effects are absent.
 5. **Runtime Edge state:** the deployed Supabase Edge Function bundle/version and settings, compared with the exact current-main source and its schema dependencies. Main source alone does not prove deployment.
@@ -79,3 +79,8 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - [PASS 2361–2370](./audits/PASS_2361_2370_PLATFORM_ROOT_LIVE_RECHECK_20261124.md) records fresh read-only Production evidence: registry RLS ON/FORCE RLS OFF; membership-derived `is_platform_admin()`; legacy `mnty_can_platform_admin()`; 57 policies / 24 tables and 5 policies / 3 tables; seven catalog RPCs without explicit `is_anonymous=false` guard.
 - [Coordinated release gate](./release/PLATFORM_ROOT_COORDINATED_RELEASE_20261124.md) maps RC464/RC471/RC484/RC485/RC923/RC925 dependencies and requires the full canonical 82-version chronology, exhaustive physical/ACL/RLS reconciliation, encrypted backup/restore and DB-to-Edge E2E before Production approval.
 - No Production mutation was performed; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+## Latest Edge runtime parity — 2026-11-24
+- [PASS 2371–2380](./audits/PASS_2371_2380_EDGE_RUNTIME_SOURCE_PARITY_20261124.md) confirmed nine launch-critical Edge entrypoint mismatches, two public-catalog entrypoint matches, three additional runtime differences and the intentionally fail-closed `directory-listings` v18 stub.
+- Entry-point parity does not certify the complete compiled bundle, external imports or runtime dependencies. No individual Edge deployment is permitted before DB/RPC/ACL parity and deployed-origin E2E.
+- Production Edge functions remain unchanged; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.

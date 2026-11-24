@@ -1,3 +1,12 @@
+## 2026-11-24 — Fresh Production Edge runtime source-parity read-back
+- [x] Read current Supabase Edge versions and deployed source for 15 launch/public/administrative functions; no deployment was attempted.
+- [x] Confirmed nine launch-critical entrypoints differ from current main: payment-intent, paymob-webhook, digital-page-payment-intent, subscription-payment-intent, settlement-financial-atomic, financial-journal, order-create, catalog-admin and erp-purchase-receive.
+- [x] Confirmed public-catalog v9 and public-catalog-directory v19 match current-main entrypoints; both public-catalog shared visibility helpers also match byte-for-byte.
+- [x] Identified additional drift in catalog-platform-admin v23, mnty-push-dispatch v4 and health v3. directory-listings v18 remains an intentionally fail-closed stub (GET empty / POST 503) until RC472/RC473 source-rights and consent gates are live.
+- [x] Confirmed deployed manual authentication/signature controls in catalog-admin, paymob-webhook and mnty-push-dispatch; verify_jwt=false alone is not proof of bypass. Complete helper, rate-limit, bundle/import and runtime behavior remains to be verified.
+- [ ] Complete transitive dependency/import-map/secret-name and SQL/RPC/ACL dependency closure. No individual Edge deployment before coordinated DB + Edge release.
+- No Production Edge deployment or database change performed. FULL_PLATFORM_GATE remains BLOCKED / NOT CERTIFIED.
+
 ## 2026-11-24 — Fresh live platform-root authorization read-back and coordinated gate
 - [x] Queried Production `MANTIQATIX FINAL` read-only. `private.platform_admins` is RLS-enabled but FORCE RLS is off; owner is postgres/BYPASSRLS; client roles have no table privileges; service_role retains CRUD.
 - [x] Rechecked global helper definitions: `is_platform_admin()` is SECURITY INVOKER/search_path=public and derives authority from ACTIVE tenant ADMIN/SUPER_ADMIN membership; `mnty_can_platform_admin()` is SECURITY DEFINER/search_path=public, pg_temp and calls the legacy unscoped helper.
