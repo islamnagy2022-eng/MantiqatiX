@@ -252,3 +252,16 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Current-main Pass 2321–2330 covers Qadam seed and RC479–RC483; Qadam's idempotency-key seed effect is present though its exact migration ID is not in the ledger; raw provider-profile/digital-page anonymous reads and Legal service grants/registry/atomic RPCs remain blocked.
 - [x] Additional current Production read-back: Pass 2271–2280 `docs/audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md` and Pass 2281–2290 `docs/audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md` are linked below.
 - [ ] Keep SMM first-user bootstrap, confirmed-Auth boundaries, global Platform Admin, settlement, MantiGO bid acceptance, medical provider state, agreement participant scope and RC925 catalog RPCs blocked until coordinated release and deployed-origin tests pass.
+
+
+## 2026-11-24 — RC102–RC106 exact order/provider service live body and ACL recheck
+- [x] RC102 authenticated INSERT/UPDATE/DELETE on `marketing_provider_services` are all false; owner policy alone cannot enable writes without the table grants.
+- [x] RC103 live order status function remains weaker than source: OWNER/ADMIN not required to be fully unscoped, other staff match business but not exact branch_id.
+- [x] RC104 idempotency replay remains keyed by tenant+client key and returns the old order without comparing customer/business/branch scope.
+- [x] RC105/RC106 live service_role-only RPC bodies lack the explicit `auth.role()='service_role'` branch; they still require `auth.uid()` to equal the p_customer_id/p_user_id.
+- [x] Evidence: `docs/audits/PASS_2331_2340_RC102_RC106_RC117_CURRENT_LIVE_RECHECK_20261124.md`.
+- [ ] Keep provider-service editing and order create/status Edge workflows gated pending forward repairs and owner/branch/replay/service-role tests.
+
+## 2026-11-24 — RC117 current schema discrepancy follow-up
+- [x] Earlier 2026-11-14 evidence recorded `marketing_services.image_url` present; fresh 2026-11-24 direct information_schema/pg_attribute queries now find both `image_url` and `image_source` absent. Helper and three triggers remain absent. Record as current drift; cause/date of removal not established.
+- [ ] Reconcile the historical image_url observation against current table history before writing a forward repair.
