@@ -46,4 +46,4 @@ assert.ok(!backlog.includes("0/76 present") && !backlog.includes("0/78 exact req
 
 console.log("PRODUCTION_BACKUP_RUNBOOK_CURRENT_RELEASE_CONTRACT=PASS");
 console.log("BACKUP_COVERAGE_AUTH_STORAGE_EXPLICIT=PASS");
-console.log("CURRENT_RELEASE_MIGRATION_COUNT=79");
+console.log("CURRENT_RELEASE_MIGRATION_COUNT=80");
