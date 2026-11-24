@@ -17,7 +17,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 ## P0 — Authorization, identity and privacy
 ### P0.1 Platform-root authorization
 - [x] Rechecked Production helper definitions, all dependent policy counts, helper callers, all seven catalog RPC ACLs and anonymous-session guards using read-only PostgreSQL catalog queries; see `docs/audits/PASS_2071_2080_P0_AUTHORIZATION_RECHECK_20261124.md`.
-- [x] RC925 merged in PR #1069 as source-only commit `a0a31dab110ac519f8528cbefe74c0eefb727a7c`. All seven catalog RPCs now fail closed unless `is_anonymous=false`; missing/null claims are denied. Exact-head static validation + missing-claim PostgreSQL 17 integration + 82-version chronological replay passed in run `45477345349`; module validation passed in `45477345380`; catalog build, RBAC PostgreSQL and dashboard browser E2E passed in `45477345161`. Production remains unchanged and RC925 is NOT applied.
+- [x] RC925 merged in PR #1069 as source-only commit `a0a31dab110ac519f8528cbefe74c0eefb727a7c`. All seven catalog RPCs now fail closed unless `is_anonymous=false`; missing/null claims are denied. Exact-head static validation, missing-claim PostgreSQL 17 integration and 82-version chronological replay passed in `45477345349`; module validation passed in `45477345380`; catalog build, RBAC PostgreSQL and dashboard browser E2E passed in `45477345161`. Positive `is_anonymous=false` compatibility coverage for all seven RPCs was added and merged in PR #1071 as `53b8be3784790e56775f16bb51c9c3477cfeb536`; all exact-head workflows passed (runs `45480436807`, `45480436782`, `45480436843`, `45480436853`, `45480436991`, `45480437044`). Production remains unchanged and RC925 is NOT applied.
 - [x] Confirmed RC923's current source/integration contract checks all seven direct catalog RPCs for anonymous Auth sessions; exactly three RPC bodies are replaced by RC923, while the other four already guard anonymous sessions.
 - [x] Reconcile live is_platform_admin() and mnty_can_platform_admin() with RC464, RC471, RC484, RC485 and RC923 source; exact 57-policy/24-table RC484 dependency map and four direct helper callers verified read-only. Evidence: docs/audits/P0_ANONYMOUS_AUTH_STORAGE_LIVE_RECHECK_20261124.md.
 - [x] RC484's post-migration test now asserts registry FORCE RLS and registry/helper owner parity with BYPASSRLS; exact PR-head PostgreSQL 17 run `45390294342` passed (PR #1040 merged).
@@ -53,7 +53,9 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 ### P1.1 Migration reconciliation
 - [x] Refresh the ordered mainline release manifest (82 identifiers including RC925 at the 2026-11-24 checkpoint) and compare it with Production's 310-row migration ledger: 0/82 exact source-version identifiers are present; physical-object aliases/effects still require reconciliation.
 - [x] Refreshed all 76 previously tracked physical object contracts against Production on 2026-11-24 (tables, indexes, functions, columns, triggers): 35 present / 41 absent, zero status changes since the 2026-11-20 snapshot. Breakdown is in `docs/audits/PASS_2091_2100_PHYSICAL_OBJECT_REFRESH_20261124.md`.
-- [ ] Classify every migration by physical effect: exact-present, alias/effect-present, safe-to-replay, superseded/forward-fixed or blocked.
+- [x] Added a focused live physical-effect sample: 18 relations (13 present / 5 absent), 12 indexes (3 present-valid / 9 absent), 17 columns (2 present / 15 absent), and 15 function families (11 absent / 4 present but contract-blocked). This is a timestamped 81-version pre-RC925 snapshot, not the full 82-version crosswalk. See `docs/audits/PASS_2161_2170_CURRENT_81_MIGRATION_PHYSICAL_EFFECT_RECHECK_20261124.md`.
+- [x] Confirmed three exact source-to-ledger SQL aliases by byte comparison and classified five historic baseline families as partial; no ledger repair or SQL replay occurred. See `docs/audits/PASS_2171_2180_HISTORICAL_MIGRATION_ALIAS_AND_PARTIAL_EFFECT_RECONCILIATION_20261124.md`.
+- [ ] Complete classification of all 82 required migrations by physical effect: exact-present, alias/effect-present, safe-to-replay, superseded/forward-fixed or blocked. Three exact aliases and five partial historic baselines are known; full crosswalk remains outstanding.
 - [ ] Complete the broader migration→physical effect/alias map beyond these 76 contracts: reconcile all remaining functions, policies, ACLs, indexes, triggers and constraints; 0/82 exact ledger matches is not proof all effects are absent.
 - [x] Run full chronological forward replay from the captured Production schema checkpoint; exact-head run 45407602805 passed after 117 forward migrations and ordered integration jobs. This is not a live Production restore/deployment.
 - [ ] Never blindly replay the release chain on Production.
@@ -61,7 +63,9 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 ### P1.2 Edge parity
 - [x] Completed a read-only entrypoint comparison for 11 launch-relevant Edge Functions; 9 critical entrypoints differ from current main and 2 public-catalog entrypoints match. Audit: `docs/audits/PASS_2051_2060_EDGE_SOURCE_PARITY_20261124.md`.
 - [x] Read-only direct import graph and Production SQL/RPC/table/ACL snapshot completed for nine critical Edge functions; see `docs/audits/PASS_2061_2070_EDGE_DEPENDENCY_CLOSURE_20261124.md`.
-- [ ] Complete transitive import-map, function-body, grant and full dependency closure; no individual deployment before the full dependency slice passes.
+- [x] Refreshed deployed Edge parity: 9 launch-critical deployments differ from main; deployed payment-intent, subscription-payment-intent, settlement-financial-atomic and directory-listings bundles omit local mainline modules. Keep affected endpoints fail-closed. See `docs/audits/PASS_2151_2160_LIVE_EDGE_BUNDLE_RECHECK_20261124.md`.
+- [x] Completed transitive local import traversal across nine critical Edge entrypoints: 11 local edges/modules, one additional transitive edge and zero cycles. External dependency resolution and compiled bundle parity remain NOT VERIFIED; no Deno lockfile found. See `docs/audits/PASS_2191_2200_EDGE_TRANSITIVE_LOCAL_IMPORT_CLOSURE_20261124.md`.
+- [ ] Complete external import-map/dependency lock, compiled bundle hashes, function-body, grant and SQL/RPC dependency closure; no individual deployment before the full dependency slice passes.
 - [ ] Hash/compare the launch-critical active Edge bundles against current main and their SQL/RPC/ACL prerequisites.
 - [ ] Prioritize platform/catalog admin, consent-aware directory, registration, order-create, Paymob webhook/payment intent, subscription payment, financial journal and settlement.
 - [ ] Maintain a dependency map: migration → schema/RPC/ACL → Edge version → E2E.
@@ -196,3 +200,10 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Catalog build, employee RBAC PostgreSQL suite and dashboard browser E2E passed in run `45477345161`; module professionalization validation passed in `45477345380`.
 - [x] Production migration ledger re-read remains 310 rows through `20261110150618`; RC925 has not been applied. No Production DB, Auth, RLS, GRANT, Storage, Edge, payment, settlement or business data was modified.
 - [ ] Continue the P0/P1 release queue: full migration-to-physical-effect/alias crosswalk, live authorization gaps, Edge bundle/dependency parity, and owner-controlled backup/restore with measured RPO/RTO.
+
+
+## 2026-11-24 — Live Production evidence preservation
+- [x] Preserved eight read-only live Production audit reports in `docs/audits/PASS_2111_2120` through `PASS_2181_2190`, covering Legal, catalog RPC, provider profile/Storage/finance, directory consent, deployed Edge parity, physical effects, migration aliases and payment/MantiGO/medical contracts.
+- [x] Confirmed the focused physical sample is incomplete and does not replace the 82-migration crosswalk. Exact version gaps are not proof that all physical effects are absent.
+- [x] Preserved transitive local Edge import analysis; external dependency resolution and compiled bundle parity remain unverified. No local cycles were found.
+- [ ] Continue full 82-migration physical-effect/alias mapping and coordinated DB/Edge dependency planning before any Production write.
