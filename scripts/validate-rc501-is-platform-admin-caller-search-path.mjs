@@ -29,7 +29,7 @@ for (const caller of callers) {
   assert.ok(migration.includes(caller), "missing exact RC501 function identity: " + caller);
   assert.ok(migration.includes("ALTER FUNCTION " + caller + "\n  SET search_path TO '';"),
     "caller is not pinned to the empty search_path: " + caller);
-  assert.ok(fixture.includes("CREATE FUNCTION " + caller.replace(/^public\./,"").replace(/\([^)]*\)$/,"")),
+  assert.ok(fixture.includes("CREATE FUNCTION " + caller.split("(")[0]),
     "fixture must model caller: " + caller);
 }
 assert.match(migration,/RC501_REGISTRY_BACKED_PLATFORM_ADMIN_HELPER_NOT_HARDENED/);
