@@ -129,3 +129,19 @@ For 12 of the 15, effective SELECT is granted to authenticated and an existing p
 7. Full platform remains **BLOCKED / NOT CERTIFIED** until every mandatory security, data recovery, Edge parity and deployed-origin release gate is proven.
 
 **Safety:** all Production queries in this review were read-only. No migrations, DDL/DML, grants, RLS, Auth, Storage, Edge, payment, settlement, directory publication or customer/business rows were mutated.
+
+
+## 11. Disposable CI evidence (source only)
+
+The following workflows completed successfully; they do not modify or certify Production:
+
+| Run | Exact tested branch head | Result | Verified scope |
+|---|---|---|---|
+| 45407602805 | feat/business-partners-legal-compliance-20261124 @ e9fa4e0a354ca6428d6d7e95e7ea46306180921d | SUCCESS | Restored the captured Production schema checkpoint to an isolated local Supabase instance, validated the exact 80-version release contract, applied 117 later migrations in timestamp order, and passed the listed database integrations and tenant-isolation checks. |
+| 45407602698 | feat/business-partners-legal-compliance-20261124 @ e9fa4e0a354ca6428d6d7e95e7ea46306180921d | SUCCESS | Dedicated jobs passed for RC479 provider-profile anonymous read, RC471 platform-root caller matrix, RC480 digital-page columns, RC482 registry root, RC481 legal Edge ACL, RC483 atomic Legal CMS audit, and companion module validations. |
+| 45410089951 | audit/p0-anonymous-auth-storage-live-recheck-20261124 @ ecf8dd1242901a893a730dfd7aba8ae48df13815 | SUCCESS | RC493 static validator + isolated PostgreSQL fixture/migration/adversarial integration passed for marketing_leads, marketing_projects and notifications. It verifies anonymous JWT and missing is_anonymous claim are denied while confirmed owner reads remain available. |
+| 45407602669 | feat/business-partners-legal-compliance-20261124 @ e9fa4e0a354ca6428d6d7e95e7ea46306180921d | SUCCESS | RC924 disposable PostgreSQL 17 agreement participant RLS regression test. |
+
+Additional output markers from run 45407602805: RC485/RC923 anonymous-session denial for all seven catalog RPCs passed; RC486, RC487, RC488, RC489, RC490, RC491, RC492, RC494 and RC495 integrations passed; RC467/RC468/RC469 and two-tenant isolation checks passed. RC493's dedicated integration was run separately in 45410089951 because the full checkpoint replay applies the RC493 migration but does not invoke that standalone fixture/integration file.
+
+**Interpretation:** the source migrations and their isolated behavior contracts have passed the listed suites. The read-only Production checks above still show these guards are not deployed, the live platform-root helpers remain weak, and no live database write was performed. A disposable migration replay is not a Production backup restore, approval, deployment or post-release readback.
