@@ -16,10 +16,12 @@ const runbookRequirements = [
   "storage.buckets",
   "storage.objects",
   "NOT INCLUDED / NOT VERIFIED",
-  "79-version",
+  "80-version",
   "20261120193000",
   "20261123010000",
   "20261123221950",
+  "20261124121348",
+  "RC923",
   "RC922",
   "PR #1013",
 ];
@@ -28,14 +30,16 @@ for (const required of runbookRequirements) {
 }
 
 const backlogRequirements = [
-  "79 required migration IDs",
-  "0/79 exact required identifiers",
+  "80 required migration IDs",
+  "0/80 exact required identifiers",
   "20261120193000",
   "20261123010000",
   "20261123221950",
+  "20261124121348",
+  "RC923",
 ];
 for (const required of backlogRequirements) {
-  assert.ok(backlog.includes(required), `Release backlog is missing current 79-version gate text: ${required}`);
+  assert.ok(backlog.includes(required), `Release backlog is missing current 80-version gate text: ${required}`);
 }
 assert.ok(!backlog.includes("76 required migration IDs"), "Release backlog still describes 76 as the current required migration count.");
 assert.ok(!backlog.includes("0/76 present") && !backlog.includes("0/78 exact required identifiers"), "Release backlog still uses a superseded migration status.");
