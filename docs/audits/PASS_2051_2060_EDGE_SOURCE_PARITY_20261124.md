@@ -38,3 +38,16 @@ The static `health` responder entrypoint also differed from main; it is not incl
 - [ ] Verify live versions/hashes and deployed-origin smoke tests after an approved release.
 
 **Disposition:** read-only parity inventory completed; Edge release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Addendum — shared dependency bundle comparison — 2026-11-24
+A second read-only comparison retrieved every file returned by Supabase for the two public catalog functions and matched it against the shared source files on current main:
+
+| Function | Deployed version | Files compared | Result |
+|---|---:|---:|---|
+| `public-catalog` | 9 | `source/index.ts`, `_shared/public-price-visibility.mjs`, `_shared/public-contact-visibility.mjs` | **3/3 identical** |
+| `public-catalog-directory` | 19 | `source/index.ts`, `_shared/activity-module-overrides.mjs`, `_shared/public-price-visibility.mjs`, `_shared/public-contact-visibility.mjs` | **4/4 identical** |
+
+The comparison normalized only CRLF/LF and outer whitespace. Each deployed file's UTF-8 content matched the corresponding current-main file exactly after normalization. The functions report `import_map=false`; no separate import-map drift was observed. This proves source parity for the files returned by the Supabase function detail API, not runtime behavior or unrelated environment settings.
+
+**Updated disposition:** the two public catalog functions are now source-file parity verified across all returned files in this sample. No redeploy is required for these two functions. The nine critical mismatched functions in the main table remain unchanged and must stay coordinated with DB/RPC/ACL dependencies.
