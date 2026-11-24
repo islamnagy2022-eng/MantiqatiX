@@ -6,6 +6,10 @@ on:
       - "fix/rc925-catalog-rpc-confirmed-auth-20261124"
     paths:
       - ".github/workflows/create-rc925-migration-scaffold.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/create-rc925-migration-scaffold.yml"
 
 permissions:
   contents: write
