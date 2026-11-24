@@ -3013,8 +3013,8 @@
     "interpretation": "These migrations are in main and referenced by the current catalog/module workflows, but their exact versions and required objects are absent in the live ledger/catalog. They are now added to the release-required source inventory. No live changes performed."
   },
   "recent_live_migration_source_parity": {
-    "status": "VERIFIED_WITH_NORMALIZATION_NOTES",
-    "checked_at": "2026-10-27",
+    "status": "VERIFIED_WITH_THREE_EXACT_ALIASES_AND_PARTIAL_BASELINES",
+    "checked_at": "2026-11-24",
     "method": "Read-only comparison of source SQL text with supabase_migrations.schema_migrations.statements[1]; exact equality where supported, otherwise whole-line comments and leading/trailing whitespace were normalized before comparison.",
     "entries": [
       {
@@ -3092,6 +3092,15 @@
         "comparison": "EXACT_MATCH",
         "source_chars": 1106,
         "live_chars": 1106
+      },
+      {
+        "version": "20261101140105",
+        "name": "directory_source_permission_evidence",
+        "source_file": "supabase/migrations/20261101150000_directory_source_permission_evidence.sql",
+        "comparison": "EXACT_MATCH",
+        "source_chars": 3558,
+        "live_chars": 3558,
+        "note": "Ledger version timestamp differs from the source filename version; the complete stored statement matches byte-for-byte. Exact alias; no replay or ledger repair."
       }
     ],
     "alias_notes": [
@@ -3140,9 +3149,9 @@
   "migration_alias_resolution_check": {
     "status": "SOURCE_ALIASES_CONFIRMED_LEDGER_REPAIR_PENDING",
     "checked_at": "2026-11-06T15:55:00Z",
-    "expected_aliases": 2,
+    "expected_aliases": 3,
     "resolved_aliases": 0,
-    "procedure": "Both duplicate source aliases are now confirmed by exact stored-statement and/or source-blob evidence. No migration-ledger repair has been applied. Preserve the existing production ledger rows; any formal history reconciliation remains a separate production write requiring verified backup/restore, completed chronological rehearsal, review, rollback plan and explicit release approval. Never execute duplicate SQL.",
+    "procedure": "Exact comparison of live schema_migrations.statements[1] against checked-in SQL. All three confirmed aliases are already represented by historical ledger rows. No ledger repair, replay or history rewrite was performed.",
     "aliases": [
       {
         "source_version": "20261009010000",
@@ -3175,10 +3184,26 @@
         "target_ledger_statement_bytes": 1114,
         "target_ledger_statement_md5": "d09b822bea5dfc5e3e4103dcfa02601c",
         "live_statement_exact_source_match": true
+      },
+      {
+        "source_version": "20261101150000",
+        "source_file": "supabase/migrations/20261101150000_directory_source_permission_evidence.sql",
+        "target_ledger_version": "20261101140105",
+        "target_ledger_name": "directory_source_permission_evidence",
+        "evidence_type": "EXACT_STATEMENT_ALIAS",
+        "status": "SOURCE_ALIAS_CONFIRMED_LEDGER_REPAIR_PENDING",
+        "source_effect_verified": true,
+        "ledger_repair_applied": false,
+        "note": "Read-only query retrieved one stored statement of 3,558 bytes from live ledger 20261101140105; it matched the 3,558-byte source file exactly. Preserve the existing ledger version and do not execute the same CREATE TABLE/index SQL again.",
+        "evidence_checked_at": "2026-11-24T20:00:00Z",
+        "source_blob_sha": "3f2e0a480d7234171c3ea5359a21d3451b92d150",
+        "live_ledger_statement_count": 1,
+        "live_ledger_statement_bytes": 3558,
+        "live_statement_exact_source_match": true
       }
     ],
-    "evidence_checked_at": "2026-11-06T15:55:00Z",
-    "source_confirmed_aliases": 2,
+    "evidence_checked_at": "2026-11-24T20:00:00Z",
+    "source_confirmed_aliases": 3,
     "ledger_repairs_applied": 0
   },
   "catalog_platform_admin_paid_subscription_gate": {
@@ -6197,5 +6222,109 @@
     "limitation": "This is a focused sample, not the complete 81-migration object map. No alias has been marked resolved merely from object name presence; the full policy/owner/ACL/trigger/constraint/cross-module dependency map remains open.",
     "production_mutation": "NONE",
     "next_required": "Expand per-migration effects to every table/column/function/policy/index/constraint/trigger and imported Edge contract; classify exact/alias/semantic mismatch/safe-to-replay/superseded/blocked before any Production writes."
+  },
+  "historical_migration_partial_effect_reconciliation_20261124": {
+    "status": "READ_ONLY_BASELINES_AND_PARTIAL_OVERLAPS_CLASSIFIED",
+    "checked_at": "2026-11-24T20:00:00Z",
+    "exact_source_aliases_confirmed": 3,
+    "ledger_repairs": 0,
+    "historical_baselines": [
+      {
+        "family": "subscription_phase_362",
+        "ledger_versions": [
+          "20260921223349",
+          "20260921223417"
+        ],
+        "ledger_effects": "subscription_tier_prices and subscription_payment_intents; legacy create_subscription_payment_intent_backend and process_verified_subscription_payment; payment_intents.provider_order_id and uq_payment_intents_provider_order",
+        "current_baseline": "tables and legacy functions exist; provider_order_id column and unique index present/valid; base functions use empty search_path and service_role EXECUTE",
+        "remaining_missing": [
+          "create_subscription_payment_intent_claimable_backend",
+          "claim_subscription_provider_intent_creation_backend",
+          "provider_creation_state",
+          "provider_creation_claimed_at",
+          "client_secret_ciphertext",
+          "client_secret_iv",
+          "client_secret_key_version"
+        ],
+        "classification": "BASELINE_PRESENT_RC435_RC439_FORWARD_EFFECTS_MISSING"
+      },
+      {
+        "family": "erp_purchase_receipts_and_orders",
+        "ledger_versions": [
+          "20260926215401",
+          "20260926215717",
+          "20260926215725",
+          "20260926220351"
+        ],
+        "ledger_effects": "erp_purchase_receipts, erp_purchase_orders, legacy receive_purchase_stock_backend and create_purchase_order_backend, scope indexes",
+        "current_baseline": "both tables and their scope indexes exist; legacy functions exist but remain search_path=public and service_role EXECUTE=false",
+        "remaining_missing": [
+          "erp_purchase_order_lines",
+          "set_purchase_order_lines_backend",
+          "receive_purchase_stock_with_order_line_backend",
+          "receive_purchase_stock_atomic_backend",
+          "create_purchase_order_with_lines_backend",
+          "erp_purchase_orders_business_order_number_uidx"
+        ],
+        "classification": "BASELINE_PRESENT_RC434_RC437_RC438_FORWARD_EFFECTS_MISSING"
+      },
+      {
+        "family": "financial_journal_rc159",
+        "ledger_version": "20260928123245",
+        "ledger_name": "rc159_financial_journal_backend",
+        "ledger_effects": "post_financial_journal_backend(uuid,jsonb,jsonb)",
+        "source_comparison": "Historical source file recovered at commit bb777f13969f87a8228a6ee025292b47da4ea037 (20260928170000 filename, 4,267 bytes) does not byte-match the 4,424-byte live stored statement. This is not an exact alias.",
+        "current_baseline": "function exists; search_path=public; service_role EXECUTE=false",
+        "remaining_missing": [
+          "journal_entries.entry_number",
+          "journal_entries.total_debit",
+          "journal_entries.total_credit",
+          "journal_entries.posted_at",
+          "journal_entries.updated_at",
+          "journal_entries.reversed_by_entry_id",
+          "journal_entry_lines.line_number",
+          "journal_entries_tenant_entry_number_uidx",
+          "journal_entry_lines_entry_line_uidx"
+        ],
+        "approved_forward_sequence": [
+          "20261010175000 RC449A",
+          "20261010180000 RC450"
+        ],
+        "classification": "LEGACY_FUNCTION_PRESENT_SOURCE_PARITY_UNRESOLVED_RC449A_RC450_CONTRACT_BLOCKED"
+      },
+      {
+        "family": "public_directory_legacy",
+        "ledger_version": "20261029051004",
+        "ledger_name": "public_directory_listings_and_claim_requests",
+        "ledger_effects": "public_directory_listings, directory_listing_claim_requests, legacy indexes and set_public_directory_updated_at()",
+        "current_baseline": "both tables exist with RLS and FORCE RLS; directory_listing_claim_requests_one_open unique index valid; directory_source_permission_evidence exists with two valid indexes and 0 rows",
+        "remaining_missing": [
+          "review_directory_listing_claim_atomic",
+          "ux_user_memberships_user_business_branch_nullsafe",
+          "directory_listing_contact_consents"
+        ],
+        "classification": "LEGACY_DIRECTORY_TABLES_PRESENT_RC472_RC473_CONSENT_AND_REVIEW_EFFECTS_MISSING"
+      },
+      {
+        "family": "generic_payment_provider",
+        "ledger_baseline": "historical payment_provider_events and process_verified_provider_payment(...) exist",
+        "current_baseline": "legacy function search_path=public, service_role EXECUTE=true",
+        "remaining_missing": [
+          "mantigo_payment_provider_events",
+          "process_verified_mantigo_payment_backend",
+          "process_verified_provider_payment_failure",
+          "process_verified_subscription_payment_backend",
+          "process_verified_subscription_payment_failure"
+        ],
+        "classification": "GENERIC_PROVIDER_BASELINE_PRESENT_RC425_RC428_RC429_RC430_EFFECTS_MISSING"
+      }
+    ],
+    "separate_forward_repair": {
+      "original_source_version": "20261010200000",
+      "applied_forward_version": "20261027223523",
+      "name": "rc451_targeted_ads_search_path_forward_repair",
+      "classification": "FORWARD_REPAIR_APPLIED_NOT_ALIAS"
+    },
+    "note": "These historical ledger entries prove that earlier baseline effects were applied; they do not prove the newer required release contracts are satisfied. Do not re-run historical SQL or mark new migrations applied based only on overlapping object names."
   }
 }
