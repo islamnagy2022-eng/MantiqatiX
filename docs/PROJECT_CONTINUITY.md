@@ -1,3 +1,13 @@
+## 2026-11-24 — Three exact migration aliases and partial baselines
+
+- Confirmed three exact source/ledger aliases by byte-for-byte stored statement comparison: RC424 source → live ledger `20261008222845`; marketing contact duplicate source → `20261027041411`; directory source permission evidence source → `20261101140105`. No ledger repair/replay/history rewrite.
+- Classified partial baselines separately: subscription Phase 3.62 applied; provider_order_id column/index present; RC435 claim fields/RPC and RC439 encryption fields absent. ERP receipts/orders base and legacy functions present; RC434/437/438 atomic line/order effects absent. RC159 journal function present but source exactness unproven, search_path/ACL/schema contract blocked; RC449A→RC450 remains required. Legacy directory listing/claim tables present; RC472 review RPC/index and RC473 consent table absent. Generic provider processing exists, but RC425/428/429/430 atomic MantiGO/subscription functions missing.
+- RC451 is a distinct forward repair recorded at `20261027223523`, not an alias.
+- Evidence: `docs/audits/PASS_2171_2180_HISTORICAL_MIGRATION_ALIAS_AND_PARTIAL_EFFECT_RECONCILIATION_20261124.md`.
+- No Production mutation occurred. Keep all remaining source/physical effects blocked pending full 81-ID classification and recovery gates.
+
+---
+
 ## 2026-11-24 — Focused 81-migration physical effect recheck
 
 - Live migration ledger remains 310 rows through `20261110150618`; 0/81 exact required source identifiers recorded. This is not proof all physical effects are absent.
