@@ -5338,3 +5338,55 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Defer paid branch, independent restore and measured RPO/RTO to the final release stage.
 - **Safety:** metadata-only Production reads; no row data, DDL/DML, Auth/RLS/GRANT, Storage, Edge, payments, or deployment changed. FULL PLATFORM remains BLOCKED / NOT CERTIFIED.
 - Audit: docs/audits/PASS_2061_2070_ANONYMOUS_AUTH_POLICY_MATRIX_20261124.md.
+
+
+---
+
+## MNTX-BP-001 — Business Partners & Legal-Compliance (2026-11-24)
+
+**Priority:** P0 commercial boundary + tenant security; P1 staged feature implementation  
+**Status:** IN PROGRESS / NOT IMPLEMENTED / NOT VERIFIED  
+**Master issue:** #599  
+**Implementation record:** [docs/BUSINESS_PARTNERS_LEGAL_COMPLIANCE_IMPLEMENTATION.md](./BUSINESS_PARTNERS_LEGAL_COMPLIANCE_IMPLEMENTATION.md)  
+**Tracking PR:** [#1056](https://github.com/islamnagy2022-eng/MantiqatiX/pull/1056) (draft documentation and evidence only)  
+**Branch:** `feat/business-partners-legal-compliance-20261124`
+
+### Approved commercial model — mandatory invariant
+- Partner owns and sells partner products; partner receives customer product funds directly and issues the product invoice.
+- Partner is responsible for fulfillment, delivery, warranty, returns and product quality.
+- MantiqatiX is a marketing/referral/advertising platform and records only its own subscription, commission/referral-service, advertising and marketing-service revenue.
+- Product GMV is informational only and is never platform revenue, a platform payable, wallet balance or product-proceeds settlement.
+- This workstream must not create product payment intents, collect product proceeds, or invoice customers for partner products.
+
+### Current verified foundations
+- Reuse `businesses` + `user_memberships`; no duplicate partner/company/user identity.
+- Reuse `catalog_items` + `catalog_item_prices`; no parallel catalog.
+- Reuse `orders` + `order_status_history` only through existing trusted backend contracts.
+- Reuse `agreements` + `agreement_participants` and Legal Center only after correcting and testing the participant-read authorization.
+- Reuse `business_referral_codes` / `business_referral_events` as a base for attribution, but current event types do not implement the requested order lifecycle.
+- Reuse commission rules/transactions and financial journals only after contract-version and platform-fee separation is proven.
+
+### Production read-only finding / blocker
+- Production project `MANTIQATIX FINAL`, PostgreSQL 17.6.1.155; no writes performed.
+- **Critical RLS defect:** `agreements_participant_read` compares `agreement_participants.agreement_id = agreement_participants.id` rather than `agreement_participants.agreement_id = agreements.id`. Must be fixed through a reviewed additive migration and integration fixture; no direct Production edit.
+- `agreements`, `agreement_participants`, and `business_referral_events` each had 0 rows in the exact read-only count query.
+- Catalog tables and commission transaction tables have RLS + FORCE RLS and no direct authenticated write privileges; continue using trusted server-side paths.
+- Global release gate remains BLOCKED / NOT CERTIFIED; all feature migrations/Edge changes remain source-only until coordinated release prerequisites pass.
+
+### Dependency-ordered execution
+- [x] Register request in issue #599.
+- [x] Create branch and feature implementation record.
+- [x] Map initial canonical business, membership, merchant, catalog, commission, referral, order, settlement and Legal Center foundations.
+- [x] Inspect live Production columns, selected constraints, policies, grants and relevant SECURITY DEFINER function signatures (read-only).
+- [ ] Implement and test agreement participant RLS predicate correction in isolated CI; no Production mutation.
+- [ ] Complete catalog public projection and order/payment-intent handoff audit for direct-to-partner order flow.
+- [ ] Phase 1: partner legal profile, documents, verification state machine and publication hard gate.
+- [ ] Phase 1: company-specific agreements, immutable versions, signatures/evidence, expiry and renewal.
+- [ ] Phase 2: partner seller disclosure and unique product/campaign referral attribution.
+- [ ] Phase 2: partner-owned order lifecycle and immutable status events.
+- [ ] Phase 3: agreement-versioned commission basis, accrual/reversal, service-fee revenue and statements.
+- [ ] Phase 4: Super Admin and partner workspaces with server-side RBAC/RLS and tenant isolation.
+- [ ] Phase 5: privacy, complaints, retention, accounting and configurable tax controls.
+- [ ] Phase 6: full acceptance suite, backup/restore and coordinated production release.
+
+**Next action:** implement the isolated agreement participant RLS fix with a PostgreSQL 17 regression fixture, then continue Phase 1. Preserve this request as IN PROGRESS across all future sessions; when the user says “كمل”, resume the first unfinished checkbox here and in the linked implementation record.
