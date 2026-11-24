@@ -4799,36 +4799,45 @@
   },
   "directory_contact_consent_boundary": {
     "status": "BLOCKED",
-    "checked_at": "2026-11-21",
+    "checked_at": "2026-11-24",
     "live_function": {
       "slug": "directory-listings",
-      "version": 16,
+      "version": 18,
       "status": "ACTIVE",
       "verify_jwt": false,
       "exact_source_match": false,
-      "deployed_bundle_sha256": "13f83fcf2faec148af34c08a006ab7bd8f9aa5946bc8af971ebf3e58a9120de0",
+      "deployed_bundle_sha256": "bb65d74325f8bdf08f060f7ae2517bb30901630635d1de4f35523d7cef6afe48",
       "public_get_requires_bearer": false,
-      "returns_contact_fields_without_consent": true,
+      "returns_contact_fields_without_consent": false,
+      "directory_disabled_by_default": true,
+      "public_get_returns_empty_page": true,
+      "post_returns_503": true,
       "live_source_files": [
-        "index.ts",
-        "pagination-filter.mjs",
-        "doctor-import-contract.mjs"
+        "index.ts"
       ],
       "complete_bundle_match": false,
       "required_files_present": false,
       "missing_live_files": [
+        "pagination-filter.mjs",
+        "doctor-import-contract.mjs",
+        "public-directory-output-contract.mjs",
         "consent-pagination.mjs",
-        "public-directory-output-contract.mjs"
+        "contact-consent-pagination.mjs",
+        "platform-admin-registry.mjs",
+        "release-gate.mjs"
       ],
       "unexpected_live_files": []
     },
     "public_data_aggregate": {
       "total_rows": 965,
       "published_rows": 869,
+      "draft_rows": 87,
+      "hidden_rows": 9,
       "with_phone": 869,
       "with_address": 869,
       "with_secondary_phone": 178,
-      "contact_rows_returned_without_consent": 869
+      "contact_rows_returned_without_consent": 0,
+      "note": "Database rows contain contact values, but the deployed v18 directory endpoint returns an empty fail-closed GET page."
     },
     "consent_table": {
       "qualified_name": "public.directory_listing_contact_consents",
@@ -4837,22 +4846,47 @@
       "migration_version": "20261118020000",
       "migration_applied": false
     },
+    "source_rights_registry": {
+      "qualified_name": "public.directory_source_permission_evidence",
+      "exists": true,
+      "rows": 0,
+      "approved_rows": 0,
+      "rls_enabled": true,
+      "force_rls": true,
+      "anon_select": false,
+      "authenticated_select": false,
+      "service_role_select": true
+    },
+    "claim_review": {
+      "rpc_signature": "public.review_directory_listing_claim_atomic(uuid,text,uuid,text,uuid,boolean,boolean)",
+      "rpc_exists": false,
+      "nullsafe_membership_index": "ux_user_memberships_user_business_branch_nullsafe",
+      "nullsafe_membership_index_exists": false,
+      "claim_request_rows": 1,
+      "reviewing_rows": 1
+    },
     "public_get_contact_fields_consent_scoped": false,
-    "published_contact_rows_without_consent_exposure": 869,
+    "published_contact_rows_without_consent_exposure": 0,
     "anonymous_contract_tests": "BLOCKED",
     "owner_consent_grant_revoke_tests": "BLOCKED",
-    "registry_outage_fail_closed": false,
+    "registry_outage_fail_closed": true,
     "required_main_source_modules": [
       "public-directory-output-contract.mjs",
-      "consent-pagination.mjs"
+      "consent-pagination.mjs",
+      "contact-consent-pagination.mjs",
+      "platform-admin-registry.mjs",
+      "release-gate.mjs"
     ],
-    "reason": "Fresh 2026-11-21 read-only database and deployed-bundle checks reconfirm 869 PUBLISHED rows with phone and address and 178 with a secondary phone. The deployed directory-listings v16 bundle lacks the consent pagination and public output sanitizer modules; neither public nor private contact-consent registry table exists. Do not deploy the consent-aware Edge bundle before the chronological RC472/RC473 migration sequence and verified release prerequisites.",
+    "reason": "Read-only Production recheck on 2026-11-24 confirms directory-listings v18 is an ACTIVE single-file fail-closed stub: GET returns an empty page with directoryDisabled=true and POST returns 503. The live RC472 claim-review RPC and null-safe owner index are absent. The RC473 contact-consent registry is absent. The source-rights evidence table exists but has zero rows. Although 869 listings are marked PUBLISHED and contain primary phone/address values, the deployed stub returns no directory rows, so no unconsented contact records are exposed through this endpoint. Do not enable or deploy the consent-aware bundle until the ordered RC472/RC473 schema, source-rights evidence, complete Edge bundle, owner consent tests, deployed-origin negative/positive tests and recovery gates pass.",
     "required_main_source_files": [
       "index.ts",
-      "doctor-import-contract.mjs",
       "pagination-filter.mjs",
+      "doctor-import-contract.mjs",
+      "public-directory-output-contract.mjs",
       "consent-pagination.mjs",
-      "public-directory-output-contract.mjs"
+      "contact-consent-pagination.mjs",
+      "platform-admin-registry.mjs",
+      "release-gate.mjs"
     ],
     "consent_table_exists": false
   },
