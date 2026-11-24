@@ -25,5 +25,5 @@ for (const marker of [
 
 assert.match(integration,/agreements\.id/);
 assert.match(integration,/is_anonymous":true/);
-assert.match(integration,/private\.legal_is_admin/);
+assert.match(fixture,/private\.legal_is_admin/);
 console.log("RC924 agreement participant read-scope contract: PASS");
