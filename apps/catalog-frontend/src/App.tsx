@@ -67,7 +67,8 @@ const MainContent: React.FC = () => {
     // local previews and other origins remain noindex even when Vite is in PROD mode.
     const allowIndexing = import.meta.env.PROD
       && window.location.origin === canonicalOrigin
-      && window.location.pathname === canonicalBasePath;
+      && window.location.pathname === canonicalBasePath
+      && !new URLSearchParams(window.location.search).has('listing');
     const params = new URLSearchParams(window.location.search);
     const activityId = params.get('activity') || undefined;
     const activityCategory = activityId
