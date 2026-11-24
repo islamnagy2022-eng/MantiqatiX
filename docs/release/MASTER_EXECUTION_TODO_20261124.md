@@ -37,11 +37,11 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Keep leaked-password protection marked NOT AVAILABLE/NOT VERIFIED while the current plan does not expose the setting.
 
 ### P0.3 Directory and public-contact consent
-- [ ] Keep `directory-listings` fail-closed.
-- [ ] Reconcile RC472/RC473 consent schema, owner grant/revoke/expiry audit and matching Edge bundle.
-- [ ] Require source/republication rights before importing or publishing directory listings.
-- [ ] Test no-consent, revoked-consent and explicitly consented public projection; omit phone, address and precise location unless their individual consent scopes are present.
-- [ ] Deploy DB + Edge only as a coordinated versioned unit after exact-head CI and evidence review.
+- [x] Keep `directory-listings` fail-closed: verified Production v18 is a single-file stub; GET returns an empty page with `directoryDisabled=true` and POST returns 503. No unconsented rows are exposed through this endpoint.
+- [x] Reconcile RC472/RC473 schema, owner grant/revoke/expiry source contract and deployed Edge bundle read-only. RC472 claim-review RPC and null-safe membership index are absent; RC473 contact-consent table is absent; current deployed Edge v18 has only `index.ts` and is fail-closed. Evidence: `docs/audits/P0_3_DIRECTORY_CONSENT_LIVE_RECHECK_20261124.md`.
+- [ ] Verify documented source/republication rights for separately governed non-doctor listing types. Doctor publication source has a two-person approved-evidence gate; current evidence registry has 0 rows, so new doctor records remain staged/excluded. Do not assume database PUBLISHED status grants republication rights.
+- [x] Current-source/isolated tests cover no-consent, per-scope PHONE/SECONDARY_PHONE/ADDRESS/PRECISE_LOCATION disclosure, revoked-row filtering, unsafe map URLs and partial registry pagination failure; RC473 schema tests cover grant/revoke audit and browser-role denial. These are source/isolated tests, not deployed-origin evidence.
+- [ ] Deploy DB + Edge only as a coordinated versioned unit after exact-head CI, source-rights evidence, encrypted backup/restore and deployed-origin negative/positive tests.
 **Live evidence:** consent registry absent; source-permission evidence count is zero; deployed `directory-listings` v18 is fail-closed.
 
 ## P1 — Database and backend contracts
@@ -138,3 +138,14 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Completed a read-only direct dependency closure pass for nine critical Edge functions; no Production Edge or database changes.
 - [x] Rechecked the 80-version exact migration ledger set (0/80 exact IDs), both live platform-root helpers, 57/24 and 5/3 policy dependencies, four SECURITY DEFINER callers, and all seven catalog RPC guard/ACL/search_path states.
 - [ ] Next: await exact-head CI for PR #1049, then complete physical-object alias mapping and transitive Edge/SQL dependency closure.
+
+
+## 2026-11-24 — P0.3 directory consent live recheck
+- [x] Verified RC472 claim-review RPC and null-safe owner index are absent from Production; claim queue has one REVIEWING row (aggregate only).
+- [x] Verified RC473 contact-consent table is absent and its migration ID is absent from the live ledger; source migration/test contracts were reviewed.
+- [x] Verified directory_source_permission_evidence exists with RLS + FORCE RLS, service-role-only grants, and 0 total/approved evidence rows.
+- [x] Verified public_directory_listings and directory_listing_claim_requests have RLS + FORCE RLS and no direct anon/authenticated SELECT; aggregate inventory is 965 total / 869 PUBLISHED / 87 DRAFT / 9 HIDDEN, with 568 published doctor rows.
+- [x] Retrieved deployed Edge source: directory-listings v18, ACTIVE, verify_jwt=false, one file only, SHA-256 bb65d74325f8bdf08f060f7ae2517bb30901630635d1de4f35523d7cef6afe48; GET empty with directoryDisabled=true, POST 503. It does not return listing/contact rows.
+- [x] Corrected the release manifest and validator from stale v16 live metadata to the current v18 fail-closed evidence.
+- [ ] Verify documented source/republication rights for non-doctor listing types separately from doctor-profile rights.
+- [ ] Complete exact-head RC472/RC473/source-contract CI, owner consent workflow tests, then coordinated backup-backed DB + Edge release and deployed-origin tests. Production remains read-only.
