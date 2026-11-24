@@ -1,3 +1,16 @@
+## 2026-11-24 — Payment, MantiGO and medical RPC live contract recheck
+
+- RC468 claim/release functions exist but retain `search_path=public, pg_temp`; finalizer has only the legacy four-argument overload, while RC468 source expects five arguments and empty search_path.
+- RC474 `create_payment_intent_backend` exists but retains `search_path=public, pg_temp`, not empty.
+- RC475 provider-success function exists and service_role can execute, but search_path remains public; three failure/subscription atomic RPCs are absent. Legacy subscription-success function exists separately.
+- RC471 four shared platform-admin callers exist and invoke the old helper, but all retain non-empty search_path; the helper is still membership-derived.
+- RC496 MantiGO create/lock/accept RPCs exist but retain search_path=public; the accepted-state body markers and unique one-accepted-bid index are absent.
+- RC921/922 medical status RPC exists but remains search_path=public, pg_temp and lacks the assigned-provider-required marker.
+- Evidence: `docs/audits/PASS_2181_2190_PAYMENT_MANTIGO_MEDICAL_RPC_CONTRACT_RECHECK_20261124.md`.
+- No Production mutation occurred; keep payment, settlement, ride and medical writes blocked until the coordinated source contracts are approved and deployed.
+
+---
+
 ## 2026-11-24 — Three exact migration aliases and partial baselines
 
 - Confirmed three exact source/ledger aliases by byte-for-byte stored statement comparison: RC424 source → live ledger `20261008222845`; marketing contact duplicate source → `20261027041411`; directory source permission evidence source → `20261101140105`. No ledger repair/replay/history rewrite.
