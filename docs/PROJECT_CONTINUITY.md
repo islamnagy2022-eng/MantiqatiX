@@ -3597,3 +3597,10 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 ## 2026-11-24 — RC924 validator correction
 - Initial workflow run 45406123008 failed at static source regex because the SQL policy clause is multiline; the PostgreSQL fixture was skipped, not failed.
 - Corrected validator and reran source assertions successfully. Corrected RC924 run 45406678966 is queued; no production changes.
+
+
+## 2026-11-24 — RC924 PostgreSQL 17 isolated test PASS
+- Corrected RC924 workflow run 45406678966 completed successfully: static contract validator and disposable PostgreSQL 17 fixture/migration/adversarial integration assertions all passed.
+- Participant A/B agreement isolation, unrelated-user denial, anonymous-authenticated denial and platform-admin access all passed.
+- RC924 source migration is accepted; it remains unapplied to Production pending full forward migration-chain replay and the global release gate.
+- Full replay run 45406678921 remains in progress. Next: confirm replay, then start Phase 1 partner legal profile/private documents/verification and agreement-signature lifecycle.
