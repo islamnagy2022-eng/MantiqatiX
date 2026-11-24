@@ -126,7 +126,7 @@ assert.ok(REQUIRED_PAYMENT_CONTRACT_OBJECTS.includes("public.claim_subscription_
 assert.ok(REQUIRED_PAYMENT_CONTRACT_OBJECTS.includes("public.subscription_payment_intents.client_secret_ciphertext"));
 assert.ok(REQUIRED_PAYMENT_CONTRACT_OBJECTS.includes("public.subscription_payment_intents.client_secret_key_version"));
 assert.match(liveContract, /REQUIRED_PAYMENT_CONTRACT_OBJECTS/, "live release contract must require exact payment/subscription runtime objects");
-assert.equal(REQUIRED_MIGRATION_ALIASES.length, 2, "release gate must reconcile duplicate source aliases through controlled migration repair");
+assert.equal(REQUIRED_MIGRATION_ALIASES.length, 3, "release gate must reconcile all three confirmed source-to-ledger aliases through controlled migration repair");
 assert.equal(REQUIRED_CONTROL_CENTER_OBJECTS.length, 33, "release gate must require every RC113–RC117 feature object");
 assert.match(liveContract, /REQUIRED_CONTROL_CENTER_OBJECTS/, "control-center, hiring, subscriber-admin and default-image objects must be required");
 assert.match(liveContract, /required_release_migration_ledger_check/, "exact live ledger version verification must be required");
