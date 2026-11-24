@@ -3,7 +3,7 @@
 **Status:** IN PROGRESS  
 **Priority:** P0 commercial model and tenant security; staged P1 feature delivery  
 **Started:** 2026-11-24  
-**Implementation branch:** `feat/business-partners-legal-compliance-20261124`  
+**Implementation branch:** `feat/mntx-bp001-rc924-ordered-rc482-20261124`  
 **Master request:** GitHub issue #599  
 **Scope owner:** MantiqatiX platform
 
