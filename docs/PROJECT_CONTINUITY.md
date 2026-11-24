@@ -3594,3 +3594,11 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 - Supabase returned exact deployed directory-listings v18 source: single-file fail-closed stub, hash bb65d74325f8bdf08f060f7ae2517bb30901630635d1de4f35523d7cef6afe48, verify_jwt=false; GET empty with directoryDisabled=true, POST 503. The endpoint returns no listing or contact values.
 - Updated docs/release/production-migration-reconciliation.json and scripts/validate-directory-contact-consent.mjs to reflect live v18 and distinguish stored DB contact fields from actual public endpoint exposure. No Production changes or deployments.
 - Keep directory disabled until RC472/RC473, source-rights, exact-head CI, backup/restore, full Edge bundle parity and deployed-origin tests pass.
+
+
+## 2026-11-24 — Catalog pilot Pages deployment verified
+- GitHub Pages push workflow 45413600172 succeeded on main commit 016a8952513ac860b9248c6b561e6cf9216c3f2e. `CATALOG_PILOT_GATE=PASS`; the production verifier explicitly kept `FULL_PLATFORM_GATE=BLOCKED` and allowed only the scoped catalog frontend.
+- Deployed origin: https://islamnagy2022-eng.github.io/MantiqatiX/. Root, /legacy/ rollback and /v6-preview/ aliases passed HTTP/asset verification; first-party logo and cover assets loaded at root and preview.
+- Deployed-origin Playwright/browser E2E passed the catalog/search, 20-item pagination, directory-disabled fallback, marketing nav route at 390px and 1440px, owner/admin and employee RBAC, branch scoping, permanent business link/QR, GPS consent/manual fallback, storefronts, direct-route refresh/history and accessibility checks.
+- Deployment validation also passed Google OAuth handshake, live public catalog/Qadam smoke, sponsored-ad RPC, CORS and public asset/security checks. Pages deploy job succeeded.
+- No Supabase DB migration, Auth/RLS/GRANT, Storage, Edge Function, Paymob, webhook, payment, wallet, settlement or partner-finance deployment was part of this run. Full platform still BLOCKED / NOT CERTIFIED.
