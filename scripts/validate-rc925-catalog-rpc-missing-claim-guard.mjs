@@ -56,6 +56,8 @@ for (const name of functions) {
 }
 
 assert.match(migration, /RC925_REGISTRY_ROOT_CONTRACT_REQUIRED/);
+assert.match(migration, /IS DISTINCT FROM 'false' rejects both explicit Anonymous Auth and missing\/NULL claims/i);
+assert.doesNotMatch(migration, /allows a missing is_anonymous claim/i, "RC925 source comments must not describe the old fail-open predicate");
 assert.match(migration, /RC925_RC486_PRICE_SERIALIZATION_PREREQUISITE_FAILED/);
 assert.match(migration, /RC925_POSTFLIGHT_MISSING_CLAIM_NOT_FAIL_CLOSED/);
 assert.match(migration, /BEGIN;/);
