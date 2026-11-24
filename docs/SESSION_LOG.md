@@ -4260,3 +4260,9 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] Reconciled manifest and canonical release contract from two to three exact aliases: RC424 → `20261008222845`; marketing-contact → `20261027041411`; directory-source-rights → `20261101140105`. Formal ledger repairs remain 0; gate remains blocked until separately approved history reconciliation.
 - [x] Added structured partial-baseline classification for subscription, ERP, journal, directory and generic payments; RC451 forward repair remains a separate classification.
 - [x] No ledger rewrite, SQL replay or Production mutation performed.
+## 2026-11-24 — 82-migration source-to-live crosswalk and immutable-migration correction
+- [x] Consolidated the 82 required source migration rows into `docs/release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md`, each with a PASS/PARTIAL/BLOCKED disposition. **82/82 evidence coverage is not an all-pass release**; the live ledger remains 310 rows through `20261110150618` with 0/82 exact required IDs.
+- [x] Merged the three exact source aliases and five partial historical baseline classifications without replaying SQL or rewriting migration history.
+- [x] Reconciled the 76-object read-back and the migration-level source-to-live evidence in the machine-readable reconciliation manifest.
+- [x] Investigated PR #1084's immutable-history CI failure: the workflow rejected a comment-only edit to existing migration `20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql`. The immutable file is retained byte-for-byte from main; the executable fail-closed predicate is already covered by the current-main validator.
+- [ ] Run exact-head CI on the replacement documentation-only branch. Keep the Production database, Auth/RLS/GRANT, Storage, Edge, payments, and public deployment unchanged.
