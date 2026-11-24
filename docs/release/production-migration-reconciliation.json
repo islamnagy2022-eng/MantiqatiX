@@ -6415,5 +6415,53 @@
     },
     "production_mutation": "NONE",
     "report": "docs/audits/PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md"
+  },
+  "rc484_rc925_source_live_effect_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_RECHECK_COMPLETE_PRODUCTION_RELEASE_BLOCKED",
+    "checked_at": "2026-11-24",
+    "source_baseline": "e7e0db29943ef843e43e25cc4ef31180f5a1817c",
+    "crosswalk": "docs/release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md",
+    "audit": "docs/audits/PASS_2211_2230_RC484_RC925_SOURCE_TO_LIVE_EFFECT_RECHECK_20261124.md",
+    "detailed_76_object_audit": "docs/audits/PASS_2231_2240_76_OBJECT_DETAILED_PRESENCE_20261124.md",
+    "source_versions": 82,
+    "historical_source_versions_with_current_status_pending": 63,
+    "later_source_versions_currently_read_back": 19,
+    "live_ledger_rows": 310,
+    "live_ledger_last_version": "20261110150618",
+    "exact_source_version_matches": 0,
+    "policy_targets": {
+      "expected": 30,
+      "restrictive_missing": 29,
+      "incorrect_existing": 1
+    },
+    "rc495_storage_policies": {
+      "present": 5,
+      "semantic_contract": "STALE_MEMBERSHIP_AND_FILENAME_PREDICATES"
+    },
+    "catalog_rpcs": {
+      "checked": 7,
+      "explicit_rc925_confirmed_identity_guard_present": 0
+    },
+    "platform_admin": {
+      "registry_rls_enabled": true,
+      "registry_force_rls": false,
+      "helper_contract": "LEGACY_MEMBERSHIP_DERIVED"
+    },
+    "physical_sample": {
+      "objects": 76,
+      "present": 35,
+      "absent": 41,
+      "exhaustive": false
+    },
+    "production_mutation": "NONE",
+    "limitation": "The 82-source inventory is complete as an ordered list, but the first 63 object-effect statuses remain historical. Exact version-ID gaps do not prove physical effects are absent. Presence does not certify body, signature, owner, search_path, grants, RLS, policy semantics or runtime behavior."
+  },
+  "rc925_comment_contract_refresh_20261124": {
+    "status": "SOURCE_COMMENT_AND_STATIC_VALIDATOR_CORRECTED_REPLAY_PENDING",
+    "migration": "20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql",
+    "executable_sql_changed": false,
+    "comment_now_matches": "(auth.jwt() ->> 'is_anonymous') IS DISTINCT FROM 'false' rejects explicit anonymous and missing/null claims.",
+    "static_validator_requires_no_fail_open_comment": true,
+    "required_next": "Re-run exact-head static validator and full 82-version PostgreSQL 17 chronological replay on the updated migration source SHA."
   }
 }
