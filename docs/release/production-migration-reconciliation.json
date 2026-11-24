@@ -27,7 +27,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED — no actual Production database/Storage export, off-site upload/retrieval, Vault recovery, separate-project PostgreSQL 17 restore, measured RPO/RTO or rollback rehearsal occurred. PR #875 merged a read-only encrypted backup manifest/evidence validator; exact-head CI passed 12/12 disposable tests (run 44640871190). The tool validates operator-created artifacts/evidence only and does not create backups or perform restores.",
   "evidence_ref": "docs/audits/PRODUCTION_RECONCILIATION_20261114.md",
   "checked_at": "2026-11-24",
-  "reason": "BLOCKED / NOT CERTIFIED: fresh read-only Production checks on 2026-11-24 confirm 310 migration rows through 20261110150618 and 0/82 exact required release identifiers. RC472/RC473 are not applied and public.directory_listing_contact_consents is absent. The deployed directory-listings Edge Function is now ACTIVE v18 with a one-file, fail-closed temporary disable: GET returns HTTP 200 with an empty listings array and directoryDisabled=true; POST returns HTTP 503 DIRECTORY_LISTINGS_DISABLED_FOR_V1. This currently suppresses contact disclosure through that endpoint but does not implement consent or restore directory functionality. Aggregate-only inspection found 869 published rows, all 869 with primary phone and address, and 178 with secondary phone; no contact values were retrieved. The remaining coordinated release blockers include registry-backed global-admin and catalog RPC hardening (RC484/RC485), six other critical payment/order/subscription/finance Edge mismatches identified in the prior 2026-11-20 parity inspection, missing payment/finance physical contracts, and the absence of an actual encrypted off-site database/Storage backup, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO. RC488–RC496, RC921, RC922, RC923, RC924 and RC925 remain source-only. The prior 80-version chronological replay that included RC923 passed in CI. RC924's ordered isolated tests and 117-migration replay passed under PR #1064, but RC925 was added as the 82nd source migration; its exact-head static validator, missing-claim adversarial PostgreSQL 17 test and full exact 82-version chronological replay are pending. No Production migrations were applied. No Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement or customer-data mutation occurred during this audit. RC922 was added only to source and the required release ledger; it has not been applied to Production. GitHub Pages deployment is verified separately from Supabase production certification. RC923 passed isolated PostgreSQL 17 tests and the prior 80-version full replay. RC924 was merged under PR #1064 and passed its dedicated PostgreSQL 17 suite plus the 117-migration forward replay; the exact 81-version strict gate and full 117-migration chronological replay passed in isolated PostgreSQL 17 run 45465702093, including RC924. This remains disposable CI evidence and does not mean Production was migrated.",
+  "reason": "BLOCKED / NOT CERTIFIED: fresh read-only Production checks on 2026-11-24 confirm 310 migration rows through 20261110150618 and 0/82 exact required release identifiers. RC472/RC473 are not applied and public.directory_listing_contact_consents is absent. The deployed directory-listings Edge Function is now ACTIVE v18 with a one-file, fail-closed temporary disable: GET returns HTTP 200 with an empty listings array and directoryDisabled=true; POST returns HTTP 503 DIRECTORY_LISTINGS_DISABLED_FOR_V1. This currently suppresses contact disclosure through that endpoint but does not implement consent or restore directory functionality. Aggregate-only inspection found 869 published rows, all 869 with primary phone and address, and 178 with secondary phone; no contact values were retrieved. The remaining coordinated release blockers include registry-backed global-admin and catalog RPC hardening (RC484/RC485), six other critical payment/order/subscription/finance Edge mismatches identified in the prior 2026-11-20 parity inspection, missing payment/finance physical contracts, and the absence of an actual encrypted off-site database/Storage backup, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO. RC488–RC496, RC921, RC922, RC923, RC924 and RC925 remain unapplied to Production. The prior 80-version chronological replay that included RC923 passed in CI. RC924's ordered isolated tests and 117-migration replay passed under PR #1064, but RC925 was added as the 82nd source migration; its exact-head static validator, missing-claim adversarial PostgreSQL 17 test and full exact 82-version chronological replay are pending. No Production migrations were applied. No Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement or customer-data mutation occurred during this audit. RC922 was added only to source and the required release ledger; it has not been applied to Production. GitHub Pages deployment is verified separately from Supabase production certification. RC923 passed isolated PostgreSQL 17 tests and the prior 80-version full replay. RC924 was merged under PR #1064 and passed its dedicated PostgreSQL 17 suite plus the 117-migration forward replay; the exact 81-version strict gate and full 117-migration chronological replay passed in isolated PostgreSQL 17 run 45465702093, including RC924. This remains disposable CI evidence and does not mean Production was migrated.",
   "edge_function_contracts": "PARTIAL — 13 high-impact deployed Edge entrypoints were compared byte-for-byte with current main. Nine matched exactly (public-catalog, public-catalog-directory, payment-webhook, mantigo-payment-intent, api, order-status-update, post-financial-journal, settlement-create, subscription-start-trial). Material drift remains in paymob-webhook v10, payment-intent v8, subscription-payment-intent v4, digital-page-payment-intent v5, settlement-financial-atomic v4, financial-journal v3, order-create v8, catalog-admin v20, mnty-push-dispatch v4, health v3 and erp-purchase-receive v3. directory-listings v18 is intentionally fail-closed and must remain so until RC472/RC473 consent gates are live. Do not deploy individual mismatched functions; coordinate exact DB contracts, migrations and Edge bundles.",
   "smm_gateway_parity": "PARTIAL — live SMM gateway remains ACTIVE v13, verify_jwt=true, and source matches main with SMM_INITIAL_LAUNCH_DEFERRED=true. Anonymous/authenticated negative runtime tests still unverified; keep deferred.",
   "auth_security_settings": "NOT VERIFIED — fresh 2026-11-23 Security Advisor reports leaked-password protection disabled and anonymous Auth sign-ins enabled. No connector exposes a safe Auth-setting mutation path; no Auth settings were changed. Owner must enable leaked-password protection and confirm whether external clients depend on anonymous Auth before disabling it.",
@@ -5701,7 +5701,7 @@
     "pre_refresh_forward_replay_run": "45458313389"
   },
   "rc925_catalog_rpc_missing_claim_source_20261124": {
-    "status": "SOURCE_ADDED_EXACT_HEAD_TESTS_PENDING_PRODUCTION_NOT_APPLIED",
+    "status": "SOURCE_MERGED_EXACT_HEAD_VERIFIED_PRODUCTION_NOT_APPLIED",
     "migration_version": "20261124150000",
     "migration_file": "supabase/migrations/20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql",
     "source_contract": "All seven catalog SECURITY DEFINER RPCs require auth.jwt()->>'is_anonymous' to be exactly 'false'; a true or missing claim is rejected.",
@@ -5717,13 +5717,28 @@
     "integration_test": "supabase/tests/rc925_catalog_rpc_missing_anonymous_claim_integration.sql",
     "static_validator": "scripts/validate-rc925-catalog-rpc-missing-claim-guard.mjs",
     "production_mutation": "NONE",
-    "status_note": "The source-only fix is based on live read-only evidence that four existing functions use COALESCE and allow a missing claim while three have no direct claim guard. Isolated PostgreSQL 17 exact-head tests must pass before any merge; Production remains unchanged.",
+    "status_note": "RC925 was merged source-only in PR #1069 at merge commit a0a31dab110ac519f8528cbefe74c0eefb727a7c. All seven catalog SECURITY DEFINER RPCs now reject anonymous=true and missing/null is_anonymous claims. Exact-head static validator, missing-claim PostgreSQL 17 integration, and full 82-version chronological replay passed in run 45477345349. The migration remains unapplied to Production; the live ledger remains 310 rows through 20261110150618.",
     "ci": {
-      "status": "PENDING",
-      "exact_head": null,
-      "static_validator": "NOT YET RUN",
-      "missing_claim_integration": "NOT YET RUN",
-      "full_82_version_replay": "NOT YET RUN"
-    }
+      "status": "PASS",
+      "exact_head": "9d04fd25f667452eff8a724fcd08f3b7cfa25839",
+      "static_validator": "PASS — run 45477345349",
+      "missing_claim_integration": "PASS — run 45477345349",
+      "full_82_version_replay": "PASS — run 45477345349",
+      "frontend_build_and_dashboard_browser_e2e": "PASS — run 45477345161",
+      "module_validation": "PASS — run 45477345380"
+    },
+    "merge_commit": "a0a31dab110ac519f8528cbefe74c0eefb727a7c",
+    "merged_pr": 1069
+  },
+  "latest_82_version_candidate_replay": {
+    "status": "PASS",
+    "checked_at": "2026-11-24",
+    "pr": 1069,
+    "merge_commit": "a0a31dab110ac519f8528cbefe74c0eefb727a7c",
+    "exact_head": "9d04fd25f667452eff8a724fcd08f3b7cfa25839",
+    "workflow_run": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45477345349",
+    "result": "Exact 82-version strict gate, RC925 source-contract validation, missing-is_anonymous PostgreSQL 17 adversarial integration, and full chronological replay from captured schema checkpoint passed. Separate catalog build, RBAC PostgreSQL and browser E2E passed in run 45477345161; module professionalization validation passed in run 45477345380.",
+    "production_effect": "NONE — source-only merge; no Production migration or database/runtime change.",
+    "limitation": "Disposable PostgreSQL 17 replay is not a genuine Production backup restore and does not certify physical-object reconciliation, deployed Edge parity, Vault/Auth recovery, RPO/RTO, or full-platform readiness."
   }
 }

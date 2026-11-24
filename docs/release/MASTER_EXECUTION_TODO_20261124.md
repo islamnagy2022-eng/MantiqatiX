@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
 **Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
-**Base:** `main @ e5cb0c7644d63d3a1f12bd73a1f3258457ef4b53`  
+**Base:** `main @ a0a31dab110ac519f8528cbefe74c0eefb727a7c`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -17,7 +17,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 ## P0 — Authorization, identity and privacy
 ### P0.1 Platform-root authorization
 - [x] Rechecked Production helper definitions, all dependent policy counts, helper callers, all seven catalog RPC ACLs and anonymous-session guards using read-only PostgreSQL catalog queries; see `docs/audits/PASS_2071_2080_P0_AUTHORIZATION_RECHECK_20261124.md`.
-- [ ] RC925 candidate: require `auth.jwt()->>'is_anonymous' IS FALSE` (explicit confirmed identity) in all seven direct catalog RPCs; isolated missing-claim integration and exact 82-version replay are not yet passed. Source: `supabase/migrations/20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql`.
+- [x] RC925 merged in PR #1069 as source-only commit `a0a31dab110ac519f8528cbefe74c0eefb727a7c`. All seven catalog RPCs now fail closed unless `is_anonymous=false`; missing/null claims are denied. Exact-head static validation + missing-claim PostgreSQL 17 integration + 82-version chronological replay passed in run `45477345349`; module validation passed in `45477345380`; catalog build, RBAC PostgreSQL and dashboard browser E2E passed in `45477345161`. Production remains unchanged and RC925 is NOT applied.
 - [x] Confirmed RC923's current source/integration contract checks all seven direct catalog RPCs for anonymous Auth sessions; exactly three RPC bodies are replaced by RC923, while the other four already guard anonymous sessions.
 - [x] Reconcile live is_platform_admin() and mnty_can_platform_admin() with RC464, RC471, RC484, RC485 and RC923 source; exact 57-policy/24-table RC484 dependency map and four direct helper callers verified read-only. Evidence: docs/audits/P0_ANONYMOUS_AUTH_STORAGE_LIVE_RECHECK_20261124.md.
 - [x] RC484's post-migration test now asserts registry FORCE RLS and registry/helper owner parity with BYPASSRLS; exact PR-head PostgreSQL 17 run `45390294342` passed (PR #1040 merged).
@@ -188,3 +188,11 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] PR #1057 merged as `016a8952513ac860b9248c6b561e6cf9216c3f2e`; it contains read-only live audit evidence and disposable tests only, not Production security changes.
 - [x] Exact-head run `2aa19b187024c47244b19db1131cfb867ba3f70b` passed RC464 platform-admin registry tests, PG17 parity, full forward migration replay, RC479/RC493/module suites and related isolation workflows. Live authorization/Storage policies remain unchanged and unrepaired.
 - [x] Inactive tenant SUPER_ADMIN negative case is now covered against the shared platform helper and the four global MantiGO helper callers in the passing exact-head platform-admin suite.
+
+
+## 2026-11-24 — RC925 exact-head verification and source merge
+- [x] PR #1069 merged source-only after all its exact-head CI workflows completed successfully; merge commit `a0a31dab110ac519f8528cbefe74c0eefb727a7c`.
+- [x] Exact 82-version strict gate, captured-checkpoint PostgreSQL 17 chronological replay, RC925 static validator and missing-claim adversarial integration passed in run `45477345349`.
+- [x] Catalog build, employee RBAC PostgreSQL suite and dashboard browser E2E passed in run `45477345161`; module professionalization validation passed in `45477345380`.
+- [x] Production migration ledger re-read remains 310 rows through `20261110150618`; RC925 has not been applied. No Production DB, Auth, RLS, GRANT, Storage, Edge, payment, settlement or business data was modified.
+- [ ] Continue the P0/P1 release queue: full migration-to-physical-effect/alias crosswalk, live authorization gaps, Edge bundle/dependency parity, and owner-controlled backup/restore with measured RPO/RTO.

@@ -4202,3 +4202,11 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Committed exact owner-supplied operating directive to `docs/MASTER_SOURCE_OF_TRUTH.md` and source authority matrix to `docs/SOURCE_OF_TRUTH_MAP_20261124.md` on the Pass 2041–2050 audit branch.
 - R7 ZIP SHA-256 was confirmed identical to the previous forensic artifact. Its local JSON authority, browser role/session, client service-role key fallback, weak secret defaults and unauthenticated token/state/finance route findings remain archive-only source risks; no R7 code was copied or executed.
 - Reviewed live `get_mnty_targeted_advertisements`: anonymous execution is intentional for public ad serving; empty search_path; explicitly schema-qualified tables; only seven public ad fields; ACTIVE/APPROVED/window filters; active geo areas; deduplication to best match; 1–50 limit. Existing RC257/RC335/RC381/RC451 evidence documents the same contract. No privilege change was performed.
+
+
+## 2026-11-24 — RC925 source merge and exact-head verification
+- PR #1069 merged as `a0a31dab110ac519f8528cbefe74c0eefb727a7c` after exact-head checks passed.
+- PostgreSQL 17 exact 82-version gate, RC925 static contract validator, missing-claim adversarial integration and chronological replay passed in workflow run `45477345349`.
+- Catalog build, employee RBAC PostgreSQL and dashboard Browser E2E passed in run `45477345161`; module professionalization checks passed in `45477345380`.
+- The RC925 migration remains unapplied to Production. Live migration ledger was re-read at 310 entries through `20261110150618`. No Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet or settlement write occurred.
+- Overall Production remains BLOCKED / NOT CERTIFIED pending full migration physical-effect/alias reconciliation, live P0 authorization repairs, Edge parity, and actual encrypted DB+Storage backup, restore/rollback, Vault/Auth recovery and measured RPO/RTO.
