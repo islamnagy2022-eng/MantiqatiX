@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
 **Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
-**Base:** `main @ ed2f36ea61c0099619613c1d3e0bd4746a570bd4`  
+**Base:** `main @ e7e0db29943ef843e43e25cc4ef31180f5a1817c`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -20,6 +20,8 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] RC925 merged in PR #1069 as source-only commit `a0a31dab110ac519f8528cbefe74c0eefb727a7c`. All seven catalog RPCs now fail closed unless `is_anonymous=false`; missing/null claims are denied. Exact-head static validation, missing-claim PostgreSQL 17 integration and 82-version chronological replay passed in `45477345349`; module validation passed in `45477345380`; catalog build, RBAC PostgreSQL and dashboard browser E2E passed in `45477345161`. Positive `is_anonymous=false` compatibility coverage for all seven RPCs was added and merged in PR #1071 as `53b8be3784790e56775f16bb51c9c3477cfeb536`; all exact-head workflows passed (runs `45480436807`, `45480436782`, `45480436843`, `45480436853`, `45480436991`, `45480437044`). Production remains unchanged and RC925 is NOT applied.
 - [x] Confirmed RC923's current source/integration contract checks all seven direct catalog RPCs for anonymous Auth sessions; exactly three RPC bodies are replaced by RC923, while the other four already guard anonymous sessions.
 - [x] Reconcile live is_platform_admin() and mnty_can_platform_admin() with RC464, RC471, RC484, RC485 and RC923 source; exact 57-policy/24-table RC484 dependency map and four direct helper callers verified read-only. Evidence: docs/audits/P0_ANONYMOUS_AUTH_STORAGE_LIVE_RECHECK_20261124.md.
+- [x] Rechecked RC484–RC925 live effects read-only: 30 policy targets include 29 absent restrictive policies and one incorrect permissive agreement policy; five RC495 Storage policies exist but retain stale membership/filename predicates; all seven catalog RPCs lack the RC925 explicit confirmed-identity guard in Production. Evidence: `docs/audits/PASS_2211_2230_RC484_RC925_SOURCE_TO_LIVE_EFFECT_RECHECK_20261124.md`.
+- [x] Corrected the RC925 migration comment and static validator description so they match the executable `IS DISTINCT FROM 'false'` predicate; SQL behavior is unchanged. Exact-head 82-version replay is required for this source-comment change.
 - [x] RC484's post-migration test now asserts registry FORCE RLS and registry/helper owner parity with BYPASSRLS; exact PR-head PostgreSQL 17 run `45390294342` passed (PR #1040 merged).
 - [x] PR #1049 widened the RC471/R7 actor matrix to reject tenant-scoped SUPER_ADMIN and MNTY-PLATFORM membership without registry across all four helper callers; exact-head run 45396407812 passed. PR merged as main commit 1b27efb65e32a254e34a7ae9add172de078e6fdf (31 successful checks, 2 skipped; no failures).
 - [x] Complete the prior ordered migration set on disposable PostgreSQL 17 using repo CI. Exact-head run 45407602805 passed the checkpoint restore, exact 80-version gate, 117 chronological forward migrations and integration suite; this is disposable-only and does not replace Production backup restore or physical-object reconciliation.
@@ -53,9 +55,11 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 ### P1.1 Migration reconciliation
 - [x] Refresh the ordered mainline release manifest (82 identifiers including RC925 at the 2026-11-24 checkpoint) and compare it with Production's 310-row migration ledger: 0/82 exact source-version identifiers are present; physical-object aliases/effects still require reconciliation.
 - [x] Refreshed all 76 previously tracked physical object contracts against Production on 2026-11-24 (tables, indexes, functions, columns, triggers): 35 present / 41 absent, zero status changes since the 2026-11-20 snapshot. Breakdown is in `docs/audits/PASS_2091_2100_PHYSICAL_OBJECT_REFRESH_20261124.md`.
+- [x] Published the object-by-object 76-contract detail report with corrected object identifiers; 35 present / 41 absent. Presence remains distinct from semantic/ACL/RLS/runtime contract parity. See `docs/audits/PASS_2231_2240_76_OBJECT_DETAILED_PRESENCE_20261124.md`.
 - [x] Added a focused live physical-effect sample: 18 relations (13 present / 5 absent), 12 indexes (3 present-valid / 9 absent), 17 columns (2 present / 15 absent), and 15 function families (11 absent / 4 present but contract-blocked). This is a timestamped 81-version pre-RC925 snapshot, not the full 82-version crosswalk. See `docs/audits/PASS_2161_2170_CURRENT_81_MIGRATION_PHYSICAL_EFFECT_RECHECK_20261124.md`.
 - [x] Confirmed three exact source-to-ledger SQL aliases by byte comparison and classified five historic baseline families as partial; no ledger repair or SQL replay occurred. See `docs/audits/PASS_2171_2180_HISTORICAL_MIGRATION_ALIAS_AND_PARTIAL_EFFECT_RECONCILIATION_20261124.md`.
-- [ ] Complete classification of all 82 required migrations by physical effect: exact-present, alias/effect-present, safe-to-replay, superseded/forward-fixed or blocked. Three exact aliases and five partial historic baselines are known; full crosswalk remains outstanding.
+- [x] Created the canonical ordered 82-migration source-to-live crosswalk: `docs/release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md`. The 19 later migrations RC484, RC479 forward repair, RC485–RC496 and RC921–RC925 have current 2026-11-24 read-only source/effect checks; the earlier 63-source object statuses remain historical and are not treated as current verification. See `docs/audits/PASS_2211_2230_RC484_RC925_SOURCE_TO_LIVE_EFFECT_RECHECK_20261124.md`.
+- [ ] Complete fresh per-object classification for the historical 63-source set and reconcile every migration effect, including exact aliases, safe-to-replay, superseded/forward-fixed and blocked states. The crosswalk is complete as an ordered source inventory, not as a complete current physical-effect certification.
 - [ ] Complete the broader migration→physical effect/alias map beyond these 76 contracts: reconcile all remaining functions, policies, ACLs, indexes, triggers and constraints; 0/82 exact ledger matches is not proof all effects are absent.
 - [x] Run full chronological forward replay from the captured Production schema checkpoint; exact-head run 45407602805 passed after 117 forward migrations and ordered integration jobs. This is not a live Production restore/deployment.
 - [ ] Never blindly replay the release chain on Production.
@@ -243,3 +247,12 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] RC453 internal marketing campaign feature is absent from Production: both campaign tables, all four indexes, and five exact RPC signatures are absent. The source describes an internal workflow only, not an external Meta/TikTok/Google publishing integration.
 - [x] Evidence: `docs/audits/PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md`.
 - [ ] Keep CRM scope and campaign features gated until the ordered migration, RLS, RPC, UI and deployed-origin contracts are verified.
+
+
+## 2026-11-24 — 82-migration source-to-live effect audit
+- [x] Published the ordered 82-source migration crosswalk and current live effect review for the 19 later migrations RC484–RC925.
+- [x] Reconciled 30 policy targets: 29 restrictive targets absent, one existing agreement participant policy semantically incorrect; five named RC495 Storage policies remain present but stale.
+- [x] Reconciled platform-admin and catalog RPC contracts: registry FORCE RLS remains false; helpers retain legacy membership-derived/unscoped behavior; all seven catalog RPCs lack the explicit RC925 guard in Production.
+- [x] Corrected the detailed 76-object report's escaped identifier rendering; retained its 35 present / 41 absent summary and limitations.
+- [ ] Re-run exact-head RC925 validator and full 82-version PostgreSQL 17 replay after the migration-comment correction; do not treat the prior run as evidence for the new source SHA.
+- [ ] Continue fresh physical-effect mapping for the historical 63-source set; no Production writes until backup/restore and coordinated DB/Edge release gates pass.
