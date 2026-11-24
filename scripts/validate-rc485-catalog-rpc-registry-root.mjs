@@ -48,6 +48,8 @@ for (const name of functions) {
   assert.doesNotMatch(newBlock, /SET search_path TO 'public'/i, `${name} must not retain public search_path`);
   assert.match(newBlock, /public\.is_platform_admin\(\)/,
     `${name} platform-root path must use the RC484 registry helper`);
+  assert.match(newBlock, /auth\.jwt\(\)->>'is_anonymous'/i,
+    `${name} must reject Anonymous Auth sessions at the direct RPC boundary`);
   assert.doesNotMatch(newBlock, /permissions\s*->>\s*'scope'|permissions\s*->>\s*'full_control'/i,
     `${name} must not trust mutable tenant membership metadata for platform-root authority`);
   assert.match(newBlock, /'OWNER'|'BUSINESS_OWNER'|'ADMIN'/,
