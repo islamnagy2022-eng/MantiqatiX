@@ -3658,3 +3658,10 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 - Read-only Production post-merge verification: migration ledger still 310 rows through `20261110150618`; RC482/RC924 versions absent; both live Legal helper overloads still exist and query active `public.user_memberships` for SUPER_ADMIN/ADMIN/LEGAL_ADMIN. No Production migration or write was performed.
 - Pages validation passed on the PR; deploy skipped. The post-merge public URL and v4 service-worker cache were not independently verified from the deployed origin.
 - Next priority: close the generic `is_platform_admin()` / `mnty_can_platform_admin()` Production blast radius under issue #867, while preserving the read-only backup gate.
+
+
+## 2026-11-24 — RC501 platform-admin caller path hardening
+- Live read-only catalog checks found seven remaining SECURITY DEFINER callers of registry-backed `public.is_platform_admin()` still pinned to `search_path=public`: create_notification_backend, deactivate_business, fashion_erp_mutate, resolve_legacy_scope, restaurant_erp_mutate, restaurant_table_mutate and set_platform_feature_flag_backend.
+- All seven bodies use schema-qualified `public.is_platform_admin()` and their live ACL is owner-only; direct anon/authenticated/service_role EXECUTE is false. RC501 changes only `proconfig.search_path` to empty after RC484, and snapshots/preserves each function body, owner, SECURITY DEFINER flag, identity signature and ACL.
+- RC497–RC499 remain reserved for Li2Lak order/review/cash-confirmation PR #971; RC501 uses unique migration version `20261124150000`.
+- Source-only at this checkpoint. No Production function, ACL, policy, migration ledger, Edge bundle or business data was changed. Exact-head PG17 integration and full 81-version replay are pending.
