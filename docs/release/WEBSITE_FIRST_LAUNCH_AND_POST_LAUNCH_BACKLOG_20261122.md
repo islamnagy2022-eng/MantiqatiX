@@ -4,7 +4,7 @@
 
 **Website V1 is deployed.**  
 Production URL: https://islamnagy2022-eng.github.io/MantiqatiX/  
-Deployment: [GitHub Pages run 45076054135](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45076054135) — SUCCESS. Deployed-origin browser checks passed for the public root, dashboard, mobile layout and QR routes.
+Deployment: [GitHub Pages run 45393984388](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45393984388) — SUCCESS on main commit `751367f7ea6a7290e5c62bbff5f1979ee456dc20`. Deployed-origin smoke and Playwright passed for the root, `/legacy/` rollback, V6 Preview, directory/search, owner dashboard, mobile layout, guest/employee/branch permissions and merchant QR routes.
 
 Main commit: `c95ccc0d891e0670fe34d97c4c1beca6bd0f4fa2`.  
 Rollback copy: `/legacy/`. V6 preview: `/v6-preview/`.
