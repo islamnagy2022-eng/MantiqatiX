@@ -1,5 +1,5 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-24  
+**Updated:** 2026-11-24 — live Production recheck and PR #1049 actor matrix  
 **Base:** `main @ 3e8bee5eff855ee903bab29fe3b6241d15cf2cbb`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
@@ -16,8 +16,12 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 
 ## P0 — Authorization, identity and privacy
 ### P0.1 Platform-root authorization
+- [x] Rechecked Production helper definitions, all dependent policy counts, helper callers, all seven catalog RPC ACLs and anonymous-session guards using read-only PostgreSQL catalog queries; see `docs/audits/PASS_2071_2080_P0_AUTHORIZATION_RECHECK_20261124.md`.
+- [x] Confirmed RC923's current source/integration contract checks all seven direct catalog RPCs for anonymous Auth sessions; exactly three RPC bodies are replaced by RC923, while the other four already guard anonymous sessions.
 - [ ] Reconcile live `is_platform_admin()` and `mnty_can_platform_admin()` with RC464, RC471, RC484, RC485 and RC923 source.
-- [ ] Test the ordered migration set on disposable PostgreSQL 17 using repo CI. Preserve the 57-policy / 24-table dependency map.
+- [x] RC484's post-migration test now asserts registry FORCE RLS and registry/helper owner parity with BYPASSRLS; exact PR-head PostgreSQL 17 run `45390294342` passed (PR #1040 merged).
+- [x] PR #1049 widened the RC471/R7 actor matrix to reject tenant-scoped SUPER_ADMIN and MNTY-PLATFORM membership without registry across all four helper callers; exact-head run 45396407812 passed. PR merged as main commit 1b27efb65e32a254e34a7ae9add172de078e6fdf (31 successful checks, 2 skipped; no failures).
+- [ ] Complete the ordered migration set on disposable PostgreSQL 17 using repo CI. Preserve the 57-policy / 24-table dependency map; this PR-head replay passed, but production backup restore and physical-object reconciliation remain separate gates.
 - [ ] Test RC923 anonymous-session denial for all seven catalog RPCs on the full chronological 80-version PostgreSQL 17 replay.
 - [ ] Test registered platform admin allow; tenant ADMIN/OWNER/SUPER_ADMIN without registry deny; inactive membership deny; cross-tenant/business/branch deny; tenant-local access still works.
 - [ ] Assert function ownership, empty `search_path`, grants, FORCE RLS and caller coverage in tests.
@@ -25,6 +29,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 **Live evidence:** Production still uses membership-derived helpers; registry RLS is on but FORCE RLS is false. See `docs/audits/PASS_2041_2050_LIVE_PRODUCTION_RECHECK_20261124.md`.
 
 ### P0.2 Anonymous Auth and private profile boundaries
+- [x] Refreshed Advisor + live ACL snapshot: 90 anonymous-Auth table warnings, 9 RLS-no-policy tables with all client grants denied, 65 exposed authenticated SECURITY DEFINER functions (18 empty search_path, 47 other pinned, 0 unset); see PASS_2081_2090 and Issue #928.
 - [ ] Reconcile RC479 and RC488–RC495 against live policy and ACL state.
 - [ ] Run PG17/JWT cases for raw anon, anonymous Auth session, confirmed user, owner and platform admin.
 - [ ] Preserve intentional public discovery and ad reads; no blanket policy denial or privilege revocation.
@@ -40,7 +45,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 
 ## P1 — Database and backend contracts
 ### P1.1 Migration reconciliation
-- [ ] Refresh the ordered mainline release manifest (80 identifiers at the 2026-11-24 checkpoint).
+- [x] Refresh the ordered mainline release manifest (80 identifiers at the 2026-11-24 checkpoint) and compare it with Production's 310-row migration ledger: 0/80 exact source-version identifiers are present; physical-object aliases/effects still require reconciliation.
 - [ ] Classify every migration by physical effect: exact-present, alias/effect-present, safe-to-replay, superseded/forward-fixed or blocked.
 - [ ] Reconcile functions, policies, ACLs, indexes, triggers and constraints; 0/80 exact ledger matches is not proof all effects are absent.
 - [ ] Run full chronological forward replay on GitHub Actions PostgreSQL 17 with required integration jobs.
@@ -100,9 +105,13 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Mark FULL_PLATFORM_GATE PASS only with evidence for every mandatory item; otherwise retain BLOCKED / NOT CERTIFIED.
 
 ## Current factual blockers
-- Live migration ledger: 310 entries through `20261110150618`; exact required-ID intersection was 0/79 at this checkpoint, with physical effects still requiring reconciliation.
-- Both platform-root helpers remain membership-derived in Production; registry FORCE RLS is false.
-- Directory consent registry and source-permission evidence are absent; directory endpoint remains disabled.
+- Live migration ledger: 310 entries through `20261110150618`; the current 80-version source manifest has 0/80 exact version identifiers recorded. This is an identity gap, not proof all physical effects are absent; aliases and actual catalog state still require per-object reconciliation.
+- `public.is_platform_admin()` remains SECURITY INVOKER with `search_path=public` and derives platform-wide authority from active tenant ADMIN/SUPER_ADMIN membership; 57 policies across 24 tables reference it.
+- `public.mnty_can_platform_admin()` remains SECURITY DEFINER with `search_path=public, pg_temp` and delegates to unscoped `mnty_can('admin',NULL,NULL,NULL)`; 5 policies across 3 tables and four SECURITY DEFINER callers depend on it.
+- `private.platform_admins` has RLS enabled but FORCE RLS=false. The registry-backed forward migrations and seven-RPC RC485/RC923 contract are not applied to Production.
+- Of the seven direct catalog RPCs, four live definitions contain an anonymous-Auth guard and three (item upsert, price upsert, item-status update) do not. All seven deny direct `anon` EXECUTE but permit `authenticated` EXECUTE; all seven remain `search_path=public`.
+- Directory consent registry and source-permission evidence are absent; the directory endpoint remains fail-closed.
+- Supabase Auth leaked-password protection is disabled; 47 of 65 authenticated-callable SECURITY DEFINER functions still have non-empty search_path (30 public, 17 public, pg_temp); 0 are unset. Prioritize 17 public, pg_temp entries and the P0 mnty_can_platform_admin() helper; targeted review only, not blanket changes.
 - Some critical Edge Functions are behind current-main contracts.
 - Independent encrypted backup/restore, Auth/Vault coverage and measured RPO/RTO are not verified.
 - Li2Lak candidate has prior successful partial checks, but its latest source requires complete exact-head test evidence after rebasing; Paymob remains fail-closed.
@@ -112,7 +121,10 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Marketing button responsive routing regression merged and verified.
 - [x] SEO-only route metadata/canonical-root guard merged; exact-head CI passed 34/34. Main Pages deployment is still pending verification.
 - [x] Live Edge entrypoint comparison recorded; 9 critical mismatches remain and no Edge deployment was made.
-- [ ] Continue P0 authorization and Edge dependency closure, then review Li2Lak/gallery candidate PRs.
+- [x] Live P0 authorization and seven catalog-RPC contracts rechecked read-only on 2026-11-24; exact evidence in `PASS_2071_2080`.
+- [x] Anonymous Auth/SECURITY DEFINER Advisor snapshot refreshed read-only; 9 no-policy tables have no client grants, 47 exposed authenticated definers still use non-empty pinned search paths; full policy test matrix remains open under #928.
+- [x] PR #1049 merged after exact-head 31-success / 2-skipped CI; dedicated R7 PostgreSQL 17 helper-caller test passed and forward-chain replay passed. Main merge commit: 1b27efb65e32a254e34a7ae9add172de078e6fdf.
+- [ ] Continue per-object migration/alias reconciliation and exact Production schema-vs-source object mapping, then review Li2Lak/gallery candidate PRs.
 - [ ] Backup/restore remains the final work stage and a hard release blocker.
 
 ## This session
@@ -121,4 +133,5 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Re-read live authorization definitions and measured 57 policies across 24 tables.
 - [x] Verified existing historical RC464/RC484/RC922 test evidence; did not mislabel historical runs as current full release certification.
 - [x] Completed a read-only direct dependency closure pass for nine critical Edge functions; no Production Edge or database changes.
-- [ ] Next: finish transitive bundle/import-map and exact SQL/ACL closure, then prepare coordinated testable release slices.
+- [x] Rechecked the 80-version exact migration ledger set (0/80 exact IDs), both live platform-root helpers, 57/24 and 5/3 policy dependencies, four SECURITY DEFINER callers, and all seven catalog RPC guard/ACL/search_path states.
+- [ ] Next: await exact-head CI for PR #1049, then complete physical-object alias mapping and transitive Edge/SQL dependency closure.
