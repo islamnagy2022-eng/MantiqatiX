@@ -5907,7 +5907,7 @@
       "exact_required_version_matches": 0
     },
     "production_mutation": "NONE",
-    "report": "docs/audits/PASS_2201_2210_PHYSICAL_OBJECT_RECHECK_20261124.md",
+    "report": "docs/audits/PASS_2231_2240_76_OBJECT_DETAILED_PRESENCE_20261124.md",
     "observed": [
       {
         "migration": "CURRENT_RECHECK",
@@ -6606,6 +6606,7 @@
     "source_file": "docs/release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md",
     "report": "docs/audits/PASS_2211_2230_RC484_RC925_SOURCE_TO_LIVE_EFFECT_RECHECK_20261124.md",
     "production_mutation": "NONE",
-    "limitation": "Focused read-only review of 19 later migrations, not a complete live inventory of all effects from the earlier 63 migrations. Historical crosswalk rows remain historical until refreshed."
+    "limitation": "Focused read-only review of 19 later migrations, not a complete live inventory of all effects from the earlier 63 migrations. Historical crosswalk rows remain historical until refreshed.",
+    "physical_object_readback_report": "docs/audits/PASS_2231_2240_76_OBJECT_DETAILED_PRESENCE_20261124.md"
   }
 }
