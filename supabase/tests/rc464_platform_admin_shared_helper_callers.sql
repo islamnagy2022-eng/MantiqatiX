@@ -4,6 +4,7 @@ DO $test$
 DECLARE
   v_owner uuid := '10000000-0000-4000-8000-000000000041';
   v_platform uuid := '10000000-0000-4000-8000-000000000044';
+  v_inactive uuid := '10000000-0000-4000-8000-000000000049';
   v_rejected boolean;
   v_id uuid;
   v_result jsonb;
@@ -52,6 +53,44 @@ BEGIN
     IF SQLERRM = 'PLATFORM_ADMIN_REQUIRED' THEN v_rejected := true; ELSE RAISE; END IF;
   END;
   IF NOT v_rejected THEN RAISE EXCEPTION 'tenant OWNER changed global MantiGO financial configuration'; END IF;
+
+  -- Inactive tenant SUPER_ADMIN metadata is not a platform-root credential.
+  PERFORM pg_catalog.set_config('request.jwt.claim.sub',v_inactive::text,false);
+  IF public.mnty_can_platform_admin() THEN
+    RAISE EXCEPTION 'inactive tenant SUPER_ADMIN retained platform helper authority';
+  END IF;
+
+  v_rejected := false;
+  BEGIN
+    PERFORM public.admin_create_global_ad('test ad','https://example.invalid/creative.png',NULL,NULL,NULL);
+  EXCEPTION WHEN others THEN
+    IF SQLERRM = 'PLATFORM_ADMIN_REQUIRED' THEN v_rejected := true; ELSE RAISE; END IF;
+  END;
+  IF NOT v_rejected THEN RAISE EXCEPTION 'inactive tenant SUPER_ADMIN created a platform global advertisement'; END IF;
+
+  v_rejected := false;
+  BEGIN
+    PERFORM public.fulfill_digital_page_publish(v_inactive,gen_random_uuid(),gen_random_uuid());
+  EXCEPTION WHEN others THEN
+    IF SQLERRM = 'PLATFORM_ADMIN_REQUIRED' THEN v_rejected := true; ELSE RAISE; END IF;
+  END;
+  IF NOT v_rejected THEN RAISE EXCEPTION 'inactive tenant SUPER_ADMIN fulfilled a global digital page publish'; END IF;
+
+  v_rejected := false;
+  BEGIN
+    PERFORM public.review_mantigo_captain_application(v_inactive,gen_random_uuid(),'APPROVE',NULL,NULL,NULL,NULL);
+  EXCEPTION WHEN others THEN
+    IF SQLERRM = 'PLATFORM_ADMIN_REQUIRED' THEN v_rejected := true; ELSE RAISE; END IF;
+  END;
+  IF NOT v_rejected THEN RAISE EXCEPTION 'inactive tenant SUPER_ADMIN reviewed a MantiGO captain application'; END IF;
+
+  v_rejected := false;
+  BEGIN
+    PERFORM public.set_mantigo_financial_config_backend(v_inactive,12.5,'EGP');
+  EXCEPTION WHEN others THEN
+    IF SQLERRM = 'PLATFORM_ADMIN_REQUIRED' THEN v_rejected := true; ELSE RAISE; END IF;
+  END;
+  IF NOT v_rejected THEN RAISE EXCEPTION 'inactive tenant SUPER_ADMIN changed global MantiGO financial configuration'; END IF;
 
   PERFORM pg_catalog.set_config('request.jwt.claim.sub',v_platform::text,false);
 
