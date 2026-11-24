@@ -137,7 +137,9 @@ assert.ok(!admin.includes("setActiveAdminTab('backup')"), 'Unverified backup/res
 assert.ok(!admin.includes("setActiveAdminTab('control_center')"), 'Unverified advanced control-center UI must not be exposed');
 
 assert.ok(report.status === 'BLOCKED' || report.status === 'PASS', 'Full platform gate status must remain explicit');
-assert.ok(pagesWorkflow.includes('Publish the legacy catalog as the production root and preserve V6 preview'), 'Pages artifact must publish the legacy catalog at the root and retain V6 preview separately.');
+assert.ok(pagesWorkflow.includes('Publish the catalog as the production root; preserve /legacy rollback and V6 preview'), 'Pages artifact must publish apps/catalog-frontend at the root, preserve its /legacy rollback alias, and retain V6 preview separately.');
+assert.ok(pagesWorkflow.includes('CATALOG_ROOT_DIST') && pagesWorkflow.includes('mantiqatix-catalog-root-build'), 'The root artifact must be explicitly named as the catalog build.');
+assert.ok(pagesWorkflow.includes('cp -a apps/catalog-frontend/dist/. "${SITE_DIR}/legacy/"'), 'The legacy alias must be a separate copy of the same catalog app, not the production root source.');
 assert.ok(pagesWorkflow.includes('mantiqatix-composed-pages-site'), 'Pages must publish the composed legacy catalog root, rollback copy, and V6 preview alias');
 assert.ok(!pagesWorkflow.includes('cp -a web/'), 'Legacy UI must not be copied into the production artifact');
 
