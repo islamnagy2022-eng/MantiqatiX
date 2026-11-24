@@ -5,6 +5,11 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/**"
+      - "supabase/tests/rc924_agreement_participant_read_scope_fixture.sql"
+      - "supabase/tests/rc924_agreement_participant_read_scope_integration.sql"
+      - "scripts/validate-rc924-agreement-participant-read-scope.mjs"
+      - ".github/workflows/rc924-agreement-participant-read-scope.yml"
+      - "docs/release/production-migration-reconciliation.json"
       - "supabase/tests/rc922_medical_status_integration.sql"
       - "supabase/tests/rc922_medical_status_fixture.sql"
       - "scripts/validate-rc922-medical-tenant-wide-provider-scope.mjs"
@@ -117,6 +122,11 @@ on:
     branches: ["main"]
     paths:
       - "supabase/migrations/**"
+      - "supabase/tests/rc924_agreement_participant_read_scope_fixture.sql"
+      - "supabase/tests/rc924_agreement_participant_read_scope_integration.sql"
+      - "scripts/validate-rc924-agreement-participant-read-scope.mjs"
+      - ".github/workflows/rc924-agreement-participant-read-scope.yml"
+      - "docs/release/production-migration-reconciliation.json"
       - "supabase/tests/rc922_medical_status_integration.sql"
       - "supabase/tests/rc922_medical_status_fixture.sql"
       - "scripts/validate-rc922-medical-tenant-wide-provider-scope.mjs"
@@ -220,7 +230,7 @@ jobs:
       - name: Validate RC469 shared caller search_path contract
         run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
 
-      - name: Validate strict Production release gate and exact 80-version contract
+      - name: Validate strict Production release gate and exact 81-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
 
       - name: Validate current backup runbook and release migration scope
@@ -239,6 +249,9 @@ jobs:
 
       - name: Validate RC485/RC923 catalog RPC registry-root and anonymous-auth contract
         run: node scripts/validate-rc485-catalog-rpc-registry-root.mjs
+
+      - name: Validate RC924 agreement participant and unified 81-version release contract
+        run: node scripts/validate-rc924-agreement-participant-read-scope.mjs
 
       - name: Validate RC486 catalog price version serialization contract
         run: node scripts/validate-rc486-catalog-price-version-serialization.mjs
