@@ -5397,3 +5397,11 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - The migration corrects participant correlation to agreements.id while preserving non-anonymous auth and platform-admin checks; no grants or production data are changed.
 - CI has not yet been confirmed. Keep the RLS fix IN PROGRESS until PostgreSQL 17 integration and full forward migration replay pass.
 - Next: confirm RC924 CI; then finish the catalog public projection/order payment-intent handoff audit and begin Phase 1 partner profile/verification/contracts.
+
+
+### MNTX-BP-001 — catalog/payment and legal evidence preflight update (2026-11-24)
+- Read-only source audit confirms public-catalog and public-catalog-directory publish only display-safe item data and set paymentsEnabled=false; current storefront checkout hands off via the business owner's WhatsApp. No customer product funds pass through MantiqatiX in that storefront flow.
+- Separate order-create/payment-intent Edge paths exist and can create platform Paymob payment intents for order totals. Partner referrals must not call these endpoints or create platform-payable product orders; use a distinct referral handoff lifecycle and server-side ownership snapshot.
+- Existing provider is_verified is not legal partner verification. provider_onboarding_requests lacks legal registration/tax IDs and legal document fields. businesses has no first-class legal profile columns.
+- Storage preflight: mantiqatix-profile-media is public and must never hold legal evidence; mantiqatix-media is private but its current MIME allowlist excludes PDF. Phase 1 needs a dedicated private legal-document storage boundary.
+- RC924 source and PG17 adversarial test are on the feature branch; CI remains queued/unverified. No Production writes or payment activity.
