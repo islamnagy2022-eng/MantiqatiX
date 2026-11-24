@@ -41,6 +41,8 @@ The canonical `private.platform_admins` table exists and contains one row. RLS i
 - RC485's helper precondition is **not yet ready**: live `is_platform_admin()` is still SECURITY INVOKER, uses `search_path=public`, and does not consult `private.platform_admins`. This is expected until RC484 runs first.
 - These are read-only replicas of migration preconditions, not an execution or transactional test of the migrations. Do not apply RC464/RC471/RC484 independently; preserve their dependency order inside the full 79-version, backed-up release. RC485 must follow RC484.
 
+- Historical isolated PostgreSQL CI was independently read back: RC464 platform-admin test job 44803731787 SUCCESS; RC484 registry-backed RLS test job 44598309128 SUCCESS. Both test source migrations in disposable environments, not Production. The older replay job 44598309101 validates a 63-version contract and is not evidence that the current 79-version release chain passes.
+
 ## 4. Public directory and consent gate
 
 Fresh aggregate-only Production inventory:
