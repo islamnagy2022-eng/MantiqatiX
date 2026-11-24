@@ -4148,3 +4148,25 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - CI run [45278540531](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45278540531) passed RC921 + RC922 behavior and RC921 concurrency; CLI-generated migration artifact 14868972297 verified.
 - Added RC922 to the current required release contract and increased the gate from 78 to 79; updated the reconciliation manifest, release backlog, backup runbook, source validators and standard forward-replay workflow.
 - No Production migration or data-plane operation occurred. Last read-only Production ledger snapshot remains 310 rows through `20261110150618`; RC922 is source-only. Full platform remains BLOCKED / NOT CERTIFIED until encrypted backup/restore/Vault/RPO-RTO, live migration reconciliation, Edge/Auth/schema parity and release approval are completed.
+
+
+## 2026-11-24 — Pass 2041–2050 — Live Production recheck
+
+- Main baseline: `e86fa555488cf95015d67654d69c6a0f0af8ad2e`; RC922 already merged into main via `19c65e716ad440caa0ca314f04bc2d595acb55e2`. PR #1020 separates public discovery from owner contact-consent mutations; its code has not been verified as deployed.
+- Correct Supabase Production project: `MANTIQATIX FINAL` / `moyhiluyhjsujhwlyeuu`; ACTIVE_HEALTHY, PostgreSQL 17.6.1.155. No DEMO queries/writes.
+- Read-only live ledger has 310 rows through `20261110150618`; exact comparison against the 79-version release contract returned 0 present. The directory contact-consent registry is absent.
+- Read-only live P0 inspection: `is_platform_admin()` trusts active tenant ADMIN/SUPER_ADMIN memberships and has 57 RLS-policy dependencies; `mnty_can_platform_admin()` remains SECURITY DEFINER with `search_path=public, pg_temp`, delegates to `mnty_can('admin',NULL,NULL,NULL)`, and has 5 policy dependencies. `private.platform_admins` exists with one row, RLS enabled but FORCE RLS false; client SELECT is denied.
+- Directory inventory: 965 total (869 PUBLISHED, 87 DRAFT, 9 HIDDEN); zero source-permission evidence rows and no `directory_listing_contact_consents` table. Live Edge `directory-listings` v18 is still a one-file empty/503 fail-closed stub. Do not enable publication from status counts alone.
+- Read-only dry-run of RC464/RC471/RC484 preflight predicates passed; historical isolated PostgreSQL CI RC464 44803731787 and RC484 44598309128 independently completed SUCCESS (not Production deployment). Older replay job 44598309101 covered a 63-version contract, not today's 79-version chain. RC464/RC471/RC484 conditions: correct registry/helper owner parity and BYPASSRLS, no client table grants, required RPC/helper/policy dependencies present, 0 missing RC471 columns, and RC484's 57-policy/24-table blast radius present. RC485 preflight is expected to fail until RC484 has first changed the helper; no migration was applied.
+- Advisor snapshot: 9 RLS-no-policy INFO, 65 authenticated SECURITY DEFINER WARN, 1 anon SECURITY DEFINER WARN, 28 multiple-permissive-policy performance WARN, 0 health lints. No mass revokes or policy changes.
+- Read back run `45278540531`: RC921/RC922 pinned-CLI generation, source validation, adversarial PostgreSQL 17 behavior and concurrency job all SUCCESS. RC922 remains unapplied in Production.
+- No production changes, edge deployment, public publication, financial operation or Pages deployment. Backup/restore/Vault/Auth/Storage coverage, independent PostgreSQL 17 restore/rollback and measured RPO/RTO remain unverified. Full platform BLOCKED / NOT CERTIFIED.
+- Full evidence: `docs/audits/PASS_2041_2050_LIVE_PRODUCTION_RECHECK_20261124.md`.
+- Next: operator backup/recovery evidence → isolated restore/RPO/RTO → exact 79-version and physical-object reconciliation → coordinated platform-admin/consent/Edge release → deployed-origin adversarial tests.
+
+
+## 2026-11-24 — Master source governance and public ad RPC re-review
+
+- Committed exact owner-supplied operating directive to `docs/MASTER_SOURCE_OF_TRUTH.md` and source authority matrix to `docs/SOURCE_OF_TRUTH_MAP_20261124.md` on the Pass 2041–2050 audit branch.
+- R7 ZIP SHA-256 was confirmed identical to the previous forensic artifact. Its local JSON authority, browser role/session, client service-role key fallback, weak secret defaults and unauthenticated token/state/finance route findings remain archive-only source risks; no R7 code was copied or executed.
+- Reviewed live `get_mnty_targeted_advertisements`: anonymous execution is intentional for public ad serving; empty search_path; explicitly schema-qualified tables; only seven public ad fields; ACTIVE/APPROVED/window filters; active geo areas; deduplication to best match; 1–50 limit. Existing RC257/RC335/RC381/RC451 evidence documents the same contract. No privilege change was performed.
