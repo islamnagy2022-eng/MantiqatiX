@@ -38,6 +38,9 @@ This is a scoped website launch, not certification of every backend module. Full
 4. Reconcile the exact 81 required migration IDs and physical object/ACL dependencies. The current release contract includes RC479 (`20261120193000`), RC921 (`20261123010000`) and RC922 (`20261123221950`) and RC923 (`20261124121348`) and RC501 (`20261124150000`). The latest recorded read-only Production ledger baseline is 310 rows through `20261110150618`, with 0/81 exact required identifiers present. RC922 passed isolated PostgreSQL 17 behavioral/concurrency tests; RC923 anonymous-session denial passed the exact-head 80-version replay; RC501 adds empty-search_path hardening for seven SECURITY DEFINER callers and is pending exact-head 81-version replay; no Production migration execution occurred.
 5. Triage Security Advisor findings per function and caller: 9 RLS-enabled/no-policy INFO, 65 authenticated-callable and 1 anon-callable SECURITY DEFINER WARN, leaked-password protection disabled. No blanket EXECUTE revocation.
 
+
+**Current 2026-11-24 migration checkpoint:** RC501 adds `20261124150000` to the release contract, making it 81 required source identifiers (0/81 in the live 310-row ledger). The 80-version replay above is historical evidence for the pre-RC501 contract; the exact 81-version replay is pending on the RC501 branch. Production migrations remain unapplied.
+
 ### P1 — Monthly subscription checkout
 1. Reconcile current-main claim-based subscription payment intent with live v4.
 2. Verify all required RPCs, schema, ACLs, idempotency, encrypted checkout recovery and provider-order binding.
