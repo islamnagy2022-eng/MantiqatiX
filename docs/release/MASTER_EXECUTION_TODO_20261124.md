@@ -71,7 +71,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 ## P2 — Core public site (zero-cost code and CI)
 - [ ] Verify root, `/legacy/`, direct route refresh, 404/error/empty/loading states and mobile/desktop layouts.
 - [ ] Preserve Activity → Specialty, all-Egypt default search, GPS nearest-first only with permission, and 20-item pagination + See More.
-- [x] Merged SEO-only PR #1033 at `34a072312b29e613fb95a39050bb499eedabc786`; exact-head CI 34/34 passed, including the route metadata contract. Pages deployment from this main commit is pending verification. Scope is SPA metadata plus a root-only sitemap; no SSR/prerender or dynamic catalogue sitemap is claimed.
+- [x] Merged SEO-only PR #1033 at `34a072312b29e613fb95a39050bb499eedabc786`; exact-head CI 34/34 passed, including the route metadata contract. Pages deployment is verified by run 45413600172 (main @ 016a8952513ac860b9248c6b561e6cf9216c3f2e): production root, /legacy rollback, /v6-preview, brand assets, and deployed-origin browser E2E passed. Scope is SPA metadata plus a root-only sitemap; no SSR/prerender or dynamic catalogue sitemap is claimed.
 - [ ] Keep storefront gallery PR #978 draft until rebased and proven compatible with live catalog-admin/public-catalog contracts.
 - [x] Merged Marketing button regression PR #1032 at `f317a69fe186da7bff560657e161951e8794e81f`; Playwright verified the official persisted business UUID at 390px and 1440px with no horizontal overflow.
 - [ ] Verify logo, cover, favicon, PWA/install icon and Open Graph assets against the existing brand source.
@@ -123,7 +123,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 ## Latest verified status — 2026-11-24
 - [x] Zero-cost execution board is merged and remains the active priority queue.
 - [x] Marketing button responsive routing regression merged and verified.
-- [x] SEO-only route metadata/canonical-root guard merged; exact-head CI passed 34/34. Main Pages deployment is still pending verification.
+- [x] SEO-only route metadata/canonical-root guard merged; exact-head CI passed 34/34. Main Pages deployment is verified by run 45413600172; catalog root, /legacy rollback, /v6-preview and deployed-origin browser E2E passed. This is catalog-pilot deployment only, not full platform certification.
 - [x] Live Edge entrypoint comparison recorded; 9 critical mismatches remain and no Edge deployment was made.
 - [x] Live P0 authorization and seven catalog-RPC contracts rechecked read-only on 2026-11-24; exact evidence in `PASS_2071_2080`.
 - [x] Anonymous Auth/SECURITY DEFINER Advisor snapshot refreshed read-only; 9 no-policy tables have no client grants, 47 exposed authenticated definers still use non-empty pinned search paths; full policy test matrix remains open under #928.
@@ -170,3 +170,11 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Corrected the release manifest and validator from stale v16 live metadata to the current v18 fail-closed evidence.
 - [x] Verified current source contract: non-doctor types use the explicit allowlist (business, clinic, pharmacy, medical_center, hospital, laboratory, health_provider); doctor republication uses the separate evidence registry, and all contact disclosure still requires the matching RC473 scope.
 - [ ] Complete exact-head RC472/RC473/source-contract CI, owner consent workflow tests, then coordinated backup-backed DB + Edge release and deployed-origin tests. Production remains read-only.
+
+
+## 2026-11-24 — Catalog pilot Pages deployment verified
+- [x] Main push deployment run 45413600172 on commit 016a8952513ac860b9248c6b561e6cf9216c3f2e completed successfully. `CATALOG_PILOT_GATE=PASS`; the run explicitly recorded `FULL_PLATFORM_GATE=BLOCKED` and allowed only the scoped catalog frontend.
+- [x] Public root deployed at https://islamnagy2022-eng.github.io/MantiqatiX/; /legacy/ rollback path and /v6-preview/ alias deployed and verified. First-party logo/cover assets passed root + preview checks.
+- [x] Deployed-origin browser E2E passed: catalog/search pagination, marketing button at 390px/1440px, admin and employee role views, direct route refresh, QR/permanent links, GPS consent/manual fallback, storefronts, and axe checks with no critical/serious violations.
+- [x] Deployment validation passed Google OAuth handshake, public catalog/Qadam storefront smoke, CORS, public sponsored ads contract, legacy directory-disabled guard and production catalog scope checks.
+- [ ] Full platform remains BLOCKED / NOT CERTIFIED. No Supabase migration, Auth/RLS/GRANT, Storage, Edge Function, payment, webhook, settlement or partner-finance release was included in this Pages deployment.
