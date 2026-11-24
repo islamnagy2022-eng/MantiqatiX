@@ -39,6 +39,8 @@ const backlogRequirements = [
   "20261123221950",
   "20261124121348",
   "RC923",
+  "20261124140000",
+  "RC924",
 ];
 for (const required of backlogRequirements) {
   assert.ok(backlog.includes(required), `Release backlog is missing current 81-version gate text: ${required}`);
