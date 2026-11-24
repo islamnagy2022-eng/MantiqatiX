@@ -9,6 +9,8 @@ on:
       - "apps/catalog-frontend/src/lib/directoryListings.ts"
       - "apps/catalog-frontend/src/components/admin/DirectoryListingsAdmin.tsx"
       - "scripts/production/validate-doctor-incremental-import.mjs"
+      - "scripts/production/validate-doctor-publication-contract.mjs"
+      - "scripts/production/test-doctor-publication-contract.mjs"
       - "scripts/production/test-doctor-import-contract.mjs"
       - "scripts/production/test-public-directory-output-contract.mjs"
       - ".github/workflows/doctor-incremental-import-contract.yml"
@@ -42,5 +44,7 @@ jobs:
         run: deno check --node-modules-dir=auto --no-lock supabase/functions/directory-listings/index.ts
       - name: Validate incremental doctor import contract
         run: node scripts/production/validate-doctor-incremental-import.mjs
+      - name: Validate public doctor source-rights boundary
+        run: node scripts/production/validate-doctor-publication-contract.mjs
       - name: Run doctor import behavior tests
-        run: node --test scripts/production/test-doctor-import-contract.mjs scripts/production/test-public-directory-output-contract.mjs
+        run: node --test scripts/production/test-doctor-import-contract.mjs scripts/production/test-public-directory-output-contract.mjs scripts/production/test-doctor-publication-contract.mjs
