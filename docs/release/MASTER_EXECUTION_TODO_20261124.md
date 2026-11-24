@@ -114,7 +114,8 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] SEO-only route metadata/canonical-root guard merged; exact-head CI passed 34/34. Main Pages deployment is still pending verification.
 - [x] Live Edge entrypoint comparison recorded; 9 critical mismatches remain and no Edge deployment was made.
 - [x] RC484 test hardening PR #1040 merged; dedicated RC484 PG17 test passed. RC471, RC482 and related privacy/ACL jobs also passed on the merged test head. This is test evidence only; no Production migration was applied.
-- [ ] Resolve the separate `mnty_can_platform_admin()` P0 finding (Issue #909/#867) and complete the ordered live authorization migration rehearsal; then continue Edge dependency closure and review Li2Lak/gallery candidates.
+- [x] Confirmed the registry-only `mnty_can_platform_admin()` source repair already exists in RC464 and is reinforced by RC471; RC471 PostgreSQL 17 integration passed on the merged test head. No duplicate migration is needed.
+- [ ] Complete the full chronological 80-version PostgreSQL 17 replay including RC923, then prepare the coordinated live release/read-back for RC464/RC471/RC484/RC485/RC923. Production remains unchanged until that gate passes.
 - [ ] Backup/restore remains the final work stage and a hard release blocker.
 
 ## This session
