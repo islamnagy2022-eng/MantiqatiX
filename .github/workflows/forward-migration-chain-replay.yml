@@ -255,7 +255,7 @@ jobs:
       - name: Validate RC925 explicit confirmed-Auth claim on all catalog RPCs
         run: node scripts/validate-rc925-catalog-rpc-confirmed-auth-boundary.mjs
 
-      - name: Validate RC924 agreement participant and unified 81-version release contract
+      - name: Validate RC924 agreement participant and unified 82-version release contract
         run: node scripts/validate-rc924-agreement-participant-read-scope.mjs
 
       - name: Validate RC486 catalog price version serialization contract
