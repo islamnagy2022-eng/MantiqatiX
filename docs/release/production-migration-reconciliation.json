@@ -6688,5 +6688,125 @@
     },
     "production_mutation": "NONE",
     "report": "docs/audits/PASS_2261_2270_RC479_RC484_PUBLIC_LEGAL_ROOT_RECHECK_20261124.md"
+  },
+  "rc485_rc496_live_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_DIFF_CONFIRMED",
+    "checked_at": "2026-11-24",
+    "findings": {
+      "RC485": {
+        "rpc_count": 7,
+        "rpcs_present": 7,
+        "all_security_definer": true,
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "all_search_path": "public",
+        "calls_registry_guard": 0,
+        "disposition": "BLOCKED_LEGACY_CATALOG_BODIES"
+      },
+      "RC486": {
+        "unique_item_branch_version_index_present": false,
+        "upsert_price_rpc_present": true,
+        "search_path": "public",
+        "advisory_transaction_lock_present": false,
+        "disposition": "BLOCKED_VERSION_SERIALIZATION"
+      },
+      "RC487": {
+        "smm_bootstrap_function_present": true,
+        "smm_bootstrap_trigger_present": true,
+        "bootstrap_body": "if smm_admins empty then insert new Auth user as SMM admin",
+        "security_definer": true,
+        "search_path": "public",
+        "service_role_select_on_smm_admins": false,
+        "client_write_privileges": false,
+        "disposition": "P0_FIRST_USER_PRIVILEGE_BOOTSTRAP_STILL_LIVE"
+      },
+      "RC488": {
+        "storage_confirmed_auth_restrictive_policies": {
+          "insert": false,
+          "update": false,
+          "delete": false
+        },
+        "disposition": "BLOCKED_ANONYMOUS_AUTH_STORAGE_WRITES"
+      },
+      "RC489": {
+        "financial_tables_checked": 15,
+        "all_rls_enabled": true,
+        "all_force_rls": true,
+        "confirmed_auth_restrictive_policies_present": 0,
+        "confirmed_auth_restrictive_policies_expected": 15,
+        "disposition": "BLOCKED_CONFIRMED_AUTH_READ_BOUNDARY"
+      },
+      "RC490": {
+        "medical_appointments_rls": true,
+        "force_rls": true,
+        "confirmed_auth_policy_present": false,
+        "disposition": "BLOCKED"
+      },
+      "RC491": {
+        "support_tickets_rls": true,
+        "force_rls": true,
+        "confirmed_auth_policy_present": false,
+        "disposition": "BLOCKED"
+      },
+      "RC492": {
+        "indrive_requests_rls": true,
+        "indrive_requests_force_rls": true,
+        "indrive_bids_rls": true,
+        "indrive_bids_force_rls": true,
+        "confirmed_auth_restrictive_policies_present": 0,
+        "expected": 4,
+        "disposition": "BLOCKED"
+      },
+      "RC493": {
+        "marketing_leads_rls": true,
+        "marketing_projects_rls": true,
+        "notifications_rls": true,
+        "all_force_rls": true,
+        "confirmed_auth_restrictive_policies_present": 0,
+        "expected": 3,
+        "disposition": "BLOCKED"
+      },
+      "RC494": {
+        "settlement_function_present": true,
+        "security_definer": true,
+        "search_path": "pg_catalog, public",
+        "anon_execute": false,
+        "authenticated_execute": false,
+        "service_role_execute": true,
+        "source_expected_registry_root": true,
+        "live_calls_is_platform_admin": false,
+        "live_direct_registry_reference": false,
+        "live_actor_check": "tenant-wide user_memberships role selection",
+        "disposition": "PRESENT_CONTRACT_BLOCKED"
+      },
+      "RC495": {
+        "five_storage_policies_present": true,
+        "platform_brand_policy_uses_user_membership_super_admin": true,
+        "uses_registry_guard": false,
+        "filename_regex_legacy_form": true,
+        "disposition": "POLICY_DRIFT"
+      },
+      "RC496": {
+        "unique_one_accepted_bid_per_ride_index_present": false,
+        "accept_rpc_present": true,
+        "security_definer": true,
+        "search_path": "public",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "ride_row_lock_present": true,
+        "target_bid_status_offered_gate": false,
+        "legacy_accept_authenticated_execute": false,
+        "legacy_submit_authenticated_execute": false,
+        "disposition": "PARTIAL_ACCEPTED_BID_STATE_INVARIANT"
+      }
+    },
+    "production_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "required_source_versions": 82,
+      "exact_source_version_matches": 0
+    },
+    "production_mutation": "NONE",
+    "report": "docs/audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md"
   }
 }
