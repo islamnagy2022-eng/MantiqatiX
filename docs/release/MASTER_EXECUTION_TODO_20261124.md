@@ -61,12 +61,13 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Mark unavailable settings and untested providers NOT VERIFIED.
 
 ## P2 — Core public site (zero-cost code and CI)
-- [ ] Verify root, `/legacy/`, direct route refresh, 404/error/empty/loading states and mobile/desktop layouts.
+- [x] Deployed-origin GitHub Pages verification passed in run [45393984388](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45393984388): root, `/legacy/` rollback, `/v6-preview/` alias, brand assets, retired `preview/` and `smm.html` routes not published; Playwright confirmed root/history/route refresh, empty catalog, guest denial and mobile/desktop/dashboard/QR flows.
 - [ ] Preserve Activity → Specialty, all-Egypt default search, GPS nearest-first only with permission, and 20-item pagination + See More.
-- [x] Merged SEO-only PR #1033 at `34a072312b29e613fb95a39050bb499eedabc786`; exact-head CI 34/34 passed, including the route metadata contract. Pages deployment from this main commit is pending verification. Scope is SPA metadata plus a root-only sitemap; no SSR/prerender or dynamic catalogue sitemap is claimed.
+- [x] Merged SEO-only PR #1033 at `34a072312b29e613fb95a39050bb499eedabc786`; exact-head CI 34/34 passed. Mainline Pages deployment and deployed-origin browser verification later passed in run `45393984388`. Scope is SPA metadata plus a root-only sitemap; no SSR/prerender or dynamic catalogue sitemap is claimed.
 - [ ] Keep storefront gallery PR #978 draft until rebased and proven compatible with live catalog-admin/public-catalog contracts.
 - [x] Merged Marketing button regression PR #1032 at `f317a69fe186da7bff560657e161951e8794e81f`; Playwright verified the official persisted business UUID at 390px and 1440px with no horizontal overflow.
-- [ ] Verify logo, cover, favicon, PWA/install icon and Open Graph assets against the existing brand source.
+- [x] Verified existing logo, cover, favicon and fixed PWA/install icon on the mainline validation and Pages root/preview smoke checks.
+- [ ] Verify Open Graph image delivery and external social-crawler previews separately.
 
 ## P3 — Accounts, partners and Li2Lak
 - [ ] Test registration → company review → activity/specialty → branch → product with synthetic CI identities.
@@ -100,6 +101,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Mark FULL_PLATFORM_GATE PASS only with evidence for every mandatory item; otherwise retain BLOCKED / NOT CERTIFIED.
 
 - [x] RC923 full-chain replay and seven direct Anonymous Auth denial cases passed on main commit `751367f7ea6a7290e5c62bbff5f1979ee456dc20` (116 migrations; run 45393984396); no Production mutations. Evidence: `docs/audits/PASS_2071_2080_RC923_FULL_REPLAY_20261124.md`.
+- [x] Pages deployment smoke + deployed-origin Playwright passed on main commit `751367f7ea6a7290e5c62bbff5f1979ee456dc20`; run 45393984388 covers root, legacy, V6 preview, catalog, dashboard, responsive and QR.
 
 ## Current factual blockers
 - Live migration ledger: 310 entries through `20261110150618`; exact required-ID intersection was 0/79 at this checkpoint, with physical effects still requiring reconciliation.
@@ -123,4 +125,4 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Re-read live authorization definitions and measured 57 policies across 24 tables.
 - [x] Verified existing historical RC464/RC484/RC922 test evidence; did not mislabel historical runs as current full release certification.
 - [x] Completed a read-only direct dependency closure pass for nine critical Edge functions; no Production Edge or database changes.
-- [ ] Next: finish transitive Edge bundle/import-map and exact SQL/ACL closure, then verify the current deployed-origin browser run; keep backup/restore and all Production deployment steps in P6.
+- [ ] Next: finish transitive Edge bundle/import-map and exact SQL/ACL closure, then reconcile deployed Edge versions with their database contracts. Keep encrypted backup/restore and all Production deployment steps in P6.
