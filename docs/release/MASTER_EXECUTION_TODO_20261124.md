@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
 **Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
-**Base:** `main @ c802c01c639c9d64919c2cb90c64815843cac089`  
+**Base:** `main @ 46714e919d959e49afe5efa64e2fcd2f94a982d7`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -54,6 +54,8 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Fresh read-only check confirms deployed Paymob HMAC-SHA512 covers order.id but not merchant_order_id; deployed webhook v10 selects a row using the unsigned merchant_order_id and has no stored provider_order_id equality check for standard, digital-page or subscription intents. Current main has all three pre-RPC equality checks. Evidence: PASS 2381–2390.
 - [ ] Keep all Paymob real-money webhook/checkout release paths blocked until the coordinated RC426–RC431/RC468/RC470/RC475 database + Edge slice is verified.
 - [ ] In sandbox, replay a valid signed callback for order A with merchant_order_id changed to a different pending order B of equal amount/currency; assert HTTP rejection and zero mutation to both records. Repeat for standard, digital-page and subscription flows.
+
+- [x] Added `scripts/validate-paymob-webhook-order-binding.mjs` and wired it into RC425/RC428 CI; exact-head PR #1090 passed the validator, PG17 payment suites and complete validation workflow. The test asserts HMAC covers `order.id`, excludes unsigned `merchant_order_id`, and requires selected-row equality checks before standard/digital-page/subscription processor RPCs. This is source-contract CI, not proof the deployed webhook is fixed or the altered-selector HTTP sandbox replay has passed.
 
 ## P1 — Database and backend contracts
 ### P1.1 Migration reconciliation
@@ -115,7 +117,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Produce a candidate manifest: commit, exact CI runs, Edge versions, migration status and unresolved exceptions.
 
 ## P6 — Recovery and launch (last, as requested)
-- [ ] Create encrypted owner-controlled off-site DB backup and separate Storage object export; verify hashes and retrieval.
+- [ ] Create encrypted owner-controlled off-site DB backup and separate Storage object export; verify hashes and retrieval. Current read-back: plan/backup inventory NOT EXPOSED; no separate populated restore target or downloaded artifact has been demonstrated. See `docs/audits/PASS_2391_2400_BACKUP_RESTORE_CAPABILITY_READBACK_20261124.md` and `docs/release/PRODUCTION_BACKUP_RESTORE_DRILL_20261124.md`.
 - [ ] Prove Auth users/identities coverage, Storage metadata/object bytes, Edge/config/extensions and Vault/key recovery.
 - [ ] Restore into a disposable PostgreSQL 17 environment; test rollback and measure RPO/RTO.
 - [ ] Prefer a local/owner-controlled zero-cost restore path. No paid Supabase branch is assumed.
