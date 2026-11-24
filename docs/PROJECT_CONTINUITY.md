@@ -1,3 +1,15 @@
+## 2026-11-24 — RC924 live Production agreement-boundary recheck
+
+- Fresh read-only query of MANTIQATIX FINAL: 310 migration rows through `20261110150618`; RC923/RC924 are absent.
+- `public.agreements` has RLS and FORCE RLS enabled; anon SELECT is denied and authenticated SELECT is granted.
+- Existing `agreements_participant_read` policy is miscorrelated (`ap.agreement_id = ap.id`, not `agreements.id`). The restrictive `agreements_confirmed_auth_select` policy is absent. Existing non-anonymous restrictive predicates use COALESCE and therefore allow a missing `is_anonymous` claim.
+- Both private `legal_is_admin` overloads remain membership-derived from ACTIVE ADMIN/SUPER_ADMIN/LEGAL_ADMIN memberships. The zero-argument overload remains present; RC482 must precede RC924.
+- Evidence: `docs/audits/PASS_2111_2120_RC924_LIVE_PRODUCTION_RECHECK_20261124.md`.
+- RC924 ordered PostgreSQL 17 run `45466369028` and exact 81-version/117-migration replay `45466369023` passed in isolation. No Production migration, policy, grant or data write occurred.
+- Next: continue the 81-ID migration-to-physical-effect/alias crosswalk. Keep RC482 → RC924 for one coordinated release after owner-controlled backup, restore, RPO/RTO and approval.
+
+---
+
 ## 2026-11-24 — RC924 added to the unified 81-version release gate
 
 - Current main baseline for this continuation: `ae53cf436a37c178bffa56aaac54a58472bcfe89`; RC924 is already merged by PR #1064 at `82cdebcdefc4a9c12d4e875548f1cf5f5dd3f896`.
