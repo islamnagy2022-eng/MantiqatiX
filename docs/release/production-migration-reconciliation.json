@@ -5961,5 +5961,41 @@
     ],
     "production_mutation": "NONE",
     "next_required": "Keep RC479/RC488/RC489 inside the coordinated 81-migration security release after exact object/ACL and consumer reconciliation, encrypted DB+Storage backup/restore, Auth/Vault recovery and approved deployment."
+  },
+  "rc472_rc473_directory_live_recheck_20261124": {
+    "status": "DIRECTORY_CLAIM_AND_CONTACT_CONSENT_NOT_READY_PRODUCTION_FAIL_CLOSED",
+    "checked_at": "2026-11-24T19:30:00Z",
+    "method": "Read-only relation/procedure existence checks, safe evidence-registry row count, deployed Edge metadata and source inspection.",
+    "database": {
+      "directory_listing_contact_consents_exists": false,
+      "directory_source_permission_evidence_exists": true,
+      "directory_source_permission_evidence_rows": 0,
+      "directory_listing_claim_requests_exists": true,
+      "review_directory_listing_claim_exists": false,
+      "grant_directory_listing_contact_consent_exists": false,
+      "revoke_directory_listing_contact_consent_exists": false
+    },
+    "edge": {
+      "directory_listings": {
+        "version": 18,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "behavior": "GET_200_EMPTY_DIRECTORY_DISABLED_TRUE_POST_503",
+        "deployed_sha256": "bb65d74325f8bdf08f060f7ae2517bb30901630635d1de4f35523d7cef6afe48"
+      },
+      "public_catalog_directory": {
+        "version": 19,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "contact_projection": "explicit owner flag AND server-verified consent-audit flag required; otherwise empty contact fields"
+      }
+    },
+    "source_release": [
+      "20261118010000 RC472 directory claim review atomicity",
+      "20261118020000 RC473 directory listing contact consent"
+    ],
+    "production_mutation": "NONE",
+    "disposition": "Keep legacy unclaimed directory fail-closed. Preserve separate consent-filtered public catalog directory; do not republish legacy listing contact data.",
+    "next_required": "Complete per-listing source-rights evidence, classify RC472/RC473 physical effects and dependencies, and include both in the coordinated 81-ID release only after backup/restore and approval."
   }
 }
