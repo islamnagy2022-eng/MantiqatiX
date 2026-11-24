@@ -1,3 +1,13 @@
+## 2026-11-24 — Edge transitive local import closure
+
+- Traversed local relative imports for nine launch-critical Edge functions. Only one further local edge was found: directory `doctor-publication-contract.mjs` → `doctor-import-contract.mjs`; no local import cycles detected.
+- Live deployments omit mainline local modules for payment-intent, subscription-payment-intent, settlement-financial-atomic and directory-listings.
+- No Deno lockfile was found at repository root, `supabase/`, `supabase/functions/` or inspected function-local paths. External package resolution and compiled bundle hash parity remain unverified.
+- Evidence: `docs/audits/PASS_2191_2200_EDGE_TRANSITIVE_LOCAL_IMPORT_CLOSURE_20261124.md`.
+- No Edge invocation/deployment or Production mutation occurred. Next: version and lock external dependencies, generate a bundle manifest tied to database/RPC/ACL prerequisites, then re-test in isolation.
+
+---
+
 ## 2026-11-24 — Payment, MantiGO and medical RPC live contract recheck
 
 - RC468 claim/release functions exist but retain `search_path=public, pg_temp`; finalizer has only the legacy four-argument overload, while RC468 source expects five arguments and empty search_path.
