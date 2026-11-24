@@ -1,5 +1,5 @@
 # MantiqatiX — Unified Source of Truth Map
-**Checkpoint:** 2026-11-24 — main `c802c01c639c9d64919c2cb90c64815843cac089`  
+**Checkpoint:** 2026-11-24 — main `46714e919d959e49afe5efa64e2fcd2f94a982d7`  
 **Operating directive:** [MASTER_SOURCE_OF_TRUTH.md](./MASTER_SOURCE_OF_TRUTH.md)  
 **Canonical repository:** `islamnagy2022-eng/MantiqatiX`  
 **Production Supabase:** `MANTIQATIX FINAL` / `moyhiluyhjsujhwlyeuu`
@@ -90,3 +90,12 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - [Edge/RPC dependency matrix](./release/EDGE_RPC_PRODUCTION_DEPENDENCY_MATRIX_20261124.md) maps each deployment slice to its exact source migrations, Edge entrypoints, RPCs and ACL requirements.
 - HIGH payment-integrity blocker: deployed Paymob HMAC-SHA512 signs order.id but not merchant_order_id; deployed webhook v10 selects by the unsigned field and lacks stored provider_order_id equality checks for standard/digital-page/subscription flows. A valid signed event may be misbound to a different pending row if the selector is altered and amount/currency match. No exploitation is known. Current main rejects this by checking stored provider_order_id against signed order.id before each processor. A sandbox altered-selector replay test is mandatory before release.
 - All SQL and Edge checks were read-only. No Production migration, ACL, payment, settlement or function deployment occurred. FULL_PLATFORM_GATE remains BLOCKED / NOT CERTIFIED.
+
+## Backup/restore evidence gate — 2026-11-24
+- [PASS 2391–2400](./audits/PASS_2391_2400_BACKUP_RESTORE_CAPABILITY_READBACK_20261124.md) records the Supabase project/branch read-back. Plan tier and backup inventory are not exposed; no separate populated restore target or retrievable export has been demonstrated.
+- [Owner-controlled drill](./release/PRODUCTION_BACKUP_RESTORE_DRILL_20261124.md) details database/Auth/schema export, separate Storage object bytes, Vault/secret recovery, disposable PostgreSQL 17 restore, checksum validation, rollback and RPO/RTO evidence.
+- No backup was created, no restore was performed and no Production mutation took place. P6 remains **BLOCKED / NOT VERIFIED**.
+
+## Paymob CI source guard — 2026-11-24
+- PR #1090 merged at `46714e919d959e49afe5efa64e2fcd2f94a982d7`; the validator now checks signed order binding before standard, digital-page and subscription processor RPCs and is wired into RC425/RC428 CI.
+- Full HTTP altered-selector replay remains pending in an isolated sandbox; deployed Production webhook remains behind current main.
