@@ -52,6 +52,16 @@ test('verified and explicitly public storefront gets a stable canonical URL', ()
   assert.match(result.title, /نشاط موثق/);
 });
 
+test('verified official platform showcase may be indexed without a commercial catalogue', () => {
+  const result = resolveRouteSeoMetadata({
+    ...base,
+    view: 'public_storefront',
+    business: { id: 'official-1', name: 'MantiqatiX', isVerified: true, isOfficialShowcase: true },
+  });
+  assert.equal(result.robots, 'index,follow');
+  assert.equal(result.canonicalUrl, 'https://islamnagy2022-eng.github.io/MantiqatiX/?store=official-1');
+});
+
 test('unverified, unpublished, frozen, inactive and private storefronts remain noindex', () => {
   const invalidBusinesses = [
     { id: 'b1', name: 'نشاط', isVerified: false, publicEnabled: true },
