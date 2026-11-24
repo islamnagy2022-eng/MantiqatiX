@@ -6898,5 +6898,64 @@
     },
     "production_mutation": "NONE",
     "report": "docs/audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md"
+  },
+  "rc921_rc924_live_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_DIFF_CONFIRMED",
+    "checked_at": "2026-11-24",
+    "findings": {
+      "RC921": {
+        "rpc_present": true,
+        "security_definer": true,
+        "search_path": "public, pg_temp",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "appointment_row_lock": true,
+        "patient_cancel_independent_of_membership": false,
+        "explicit_transition_matrix": false,
+        "assigned_provider_check": false,
+        "disposition": "BLOCKED"
+      },
+      "RC922": {
+        "rpc_present": true,
+        "tenant_membership_check": true,
+        "tenant_wide_service_provider_supported_by_live_body": true,
+        "own_active_provider_profile_check": false,
+        "doctor_id_owner_match": false,
+        "profile_active_check": false,
+        "exact_business_membership_required": false,
+        "disposition": "BLOCKED"
+      },
+      "RC923": {
+        "target_rpcs_present": 3,
+        "empty_search_path_count": 0,
+        "registry_helper_calls": 0,
+        "anonymous_claim_guard_count": 0,
+        "price_advisory_lock": false,
+        "price_unique_version_index": false,
+        "registry_helper_precondition_satisfied": false,
+        "disposition": "BLOCKED"
+      },
+      "RC924": {
+        "agreements_rls": true,
+        "agreements_force_rls": true,
+        "legal_is_admin_uuid_present": true,
+        "legal_is_admin_zero_arg_present": true,
+        "legal_uuid_helper_registry_backed": false,
+        "confirmed_auth_restrictive_policy_present": false,
+        "participant_policy_present": true,
+        "participant_join_predicate": "ap.agreement_id = ap.id",
+        "required_join_predicate": "ap.agreement_id = agreements.id",
+        "legacy_coalesce_anonymous_policies": true,
+        "disposition": "BLOCKED"
+      }
+    },
+    "production_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "required_source_versions": 82,
+      "exact_source_version_matches": 0
+    },
+    "production_mutation": "NONE",
+    "report": "docs/audits/PASS_2281_2290_RC921_RC924_MEDICAL_CATALOG_LEGAL_RECHECK_20261124.md"
   }
 }
