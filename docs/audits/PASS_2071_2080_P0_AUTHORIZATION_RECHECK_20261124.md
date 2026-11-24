@@ -76,3 +76,33 @@ A zero exact-version intersection is an **identity mismatch**, not proof that al
 - Dedicated MantiGO platform-admin PostgreSQL 17 job: run 45396407812 — PASS.
 - RC471 platform-admin PostgreSQL 17, RC482, RC483, RC480, RC481, RC479, financial journal RC450, targeted ads, MantiGO privacy, RC425 payment atomicity and other integration jobs: PASS at exact PR head.
 - Forward migration chain replay job: PASS at exact PR head. This is disposable replay evidence, not a Production backup restore and not deployment.
+
+
+## 6. Existing high-risk SECURITY DEFINER contract executed against Production — 2026-11-24
+
+The repository's `scripts/verify-mantigo-high-risk-definers.sql` is explicitly read-only. It was executed as SELECT-only against the live project with the following results:
+
+| Contract result | Count |
+|---|---:|
+| Expected RPC signatures evaluated | 14 |
+| PASS (exact expected search_path and EXECUTE ACL) | 5 |
+| FAIL_SEARCH_PATH | 9 |
+| FAIL_ACL / raw anon EXECUTE | 0 |
+| Missing RPC signatures | 0 |
+
+**Five PASS:** `create_payment_intent_backend`, `mnty_active_membership`, `mnty_can`, `preview_commission_backend`, `get_mantigo_captain_earnings_backend`.
+
+**Nine FAIL_SEARCH_PATH:**
+- `mnty_can_platform_admin()`: expected empty; live `public, pg_temp`.
+- `admin_create_global_ad(...)`: expected empty; live `public, pg_temp`.
+- `fulfill_digital_page_publish(...)`: expected empty; live `public, pg_temp`.
+- `get_mantigo_admin_dashboard_backend(uuid)`: expected empty; live `public`.
+- `get_mantigo_admin_financial_report_backend(...)`: expected empty; live `public`.
+- `review_mantigo_captain_application(...)`: expected empty; live `public`.
+- `set_mantigo_financial_config_backend(...)`: expected empty; live `public`.
+- `settle_mantigo_captain_backend(...)`: expected empty; live `public`.
+- `expire_stale_mantigo_rides_backend(...)`: expected empty; live `public`.
+
+All 14 preserve the intended direct EXECUTE boundary: `anon=false`, `authenticated=true`. A second read-only aggregate query found **zero direct INSERT/UPDATE/DELETE grants** to anon or authenticated on `mantigo_rides`, `mantigo_bids`, `mantigo_captain_profiles`, `mantigo_financial_ledger`, and `mantigo_financial_config`. These tables therefore rely on guarded RPC entrypoints rather than direct client writes.
+
+This is a live contract mismatch, not proof of an exploitable search_path attack by itself. The code must be reviewed for unqualified relation/function references and possible temp-object shadowing before changing paths. The existing RC464/RC469/RC471 forward migrations and PG17 tests are the intended correction path; no live function was altered or invoked.
