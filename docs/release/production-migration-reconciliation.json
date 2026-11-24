@@ -5997,5 +5997,120 @@
     "production_mutation": "NONE",
     "disposition": "Keep legacy unclaimed directory fail-closed. Preserve separate consent-filtered public catalog directory; do not republish legacy listing contact data.",
     "next_required": "Complete per-listing source-rights evidence, classify RC472/RC473 physical effects and dependencies, and include both in the coordinated 81-ID release only after backup/restore and approval."
+  },
+  "launch_critical_edge_bundle_recheck_20261124": {
+    "status": "NINE_CRITICAL_ENTRYPOINTS_DIFFER_FROM_MAIN_NO_EDGE_DEPLOYMENT",
+    "checked_at": "2026-11-24T19:40:00Z",
+    "main_commit": "e5cb0c7644d63d3a1f12bd73a1f3258457ef4b53",
+    "method": "Fetched nine live Supabase Edge bundles/metadata and matching main entrypoint files; compared live versions, verify_jwt, provider bundle identifiers, source lengths and import lists.",
+    "functions": [
+      {
+        "slug": "catalog-admin",
+        "live_version": 20,
+        "verify_jwt": false,
+        "live_bytes": 37862,
+        "main_bytes": 44115,
+        "main_git_blob": "88d2f2ef4e1c3a7ca160125e595110b4e6c7b80b",
+        "source_diff": true,
+        "dependency": "registry-root admin helper absent in live DB"
+      },
+      {
+        "slug": "order-create",
+        "live_version": 8,
+        "verify_jwt": true,
+        "live_bytes": 10083,
+        "main_bytes": 13988,
+        "main_git_blob": "3a6777683e537dcff1ad30cbd1c89e431f77d926",
+        "source_diff": true,
+        "dependency": "current order RPC/branch/JWT/idempotency contract requires matching schema and grants"
+      },
+      {
+        "slug": "paymob-webhook",
+        "live_version": 10,
+        "verify_jwt": false,
+        "live_bytes": 11538,
+        "main_bytes": 12376,
+        "main_git_blob": "2eee7c80756e3c9a6b4310b65c90b7d8d2464c67",
+        "source_diff": true,
+        "dependency": "atomic provider/subscription event RPCs and event table not all present live"
+      },
+      {
+        "slug": "payment-intent",
+        "live_version": 8,
+        "verify_jwt": true,
+        "live_bytes": 8114,
+        "main_bytes": 10146,
+        "main_git_blob": "5fd63573a8229bb65ef999293ed17520a0eaf8b9",
+        "source_diff": true,
+        "missing_main_imports": [
+          "../_shared/paymob-intent-correlation.mjs"
+        ]
+      },
+      {
+        "slug": "subscription-payment-intent",
+        "live_version": 4,
+        "verify_jwt": true,
+        "live_bytes": 5196,
+        "main_bytes": 11100,
+        "main_git_blob": "c702d7a70ea85727ec5e14695ebf8fb26158514e",
+        "source_diff": true,
+        "missing_main_imports": [
+          "../_shared/paymob-intent-correlation.mjs",
+          "../_shared/checkout-secret-crypto.mjs"
+        ],
+        "dependency": "5 checkout claim/encryption columns and 2 claim RPCs absent live"
+      },
+      {
+        "slug": "financial-journal",
+        "live_version": 3,
+        "verify_jwt": true,
+        "live_bytes": 1591,
+        "main_bytes": 3387,
+        "main_git_blob": "49706589cc6d77af713ae44bcc0818066de72243",
+        "source_diff": true,
+        "dependency": "backend journal RPC service_role EXECUTE was absent in previous live audit; RC449A -> RC450 prerequisite"
+      },
+      {
+        "slug": "settlement-financial-atomic",
+        "live_version": 4,
+        "verify_jwt": true,
+        "live_bytes": 2314,
+        "main_bytes": 7442,
+        "main_git_blob": "f1d3b439c59dff88668b54667bf371ec7411087",
+        "source_diff": true,
+        "missing_main_imports": [
+          "https://esm.sh/@supabase/supabase-js@2/cors",
+          "./authorization.mjs"
+        ]
+      },
+      {
+        "slug": "business-register",
+        "live_version": 9,
+        "verify_jwt": true,
+        "live_bytes": 5288,
+        "main_bytes": 5709,
+        "main_git_blob": "932d32f17d36573f991dc138d1d21231e150d806",
+        "source_diff": true,
+        "dependency": "registry-backed platform root helper not present live"
+      },
+      {
+        "slug": "directory-listings",
+        "live_version": 18,
+        "verify_jwt": false,
+        "live_bytes": 2054,
+        "main_bytes": 54284,
+        "main_git_blob": "78bd91897cc9071e1b23cd2a56714e582c0661d5",
+        "source_diff": true,
+        "missing_main_local_modules": 8,
+        "live_behavior": "GET empty and disabled; POST 503",
+        "disposition": "INTENTIONALLY_FAIL_CLOSED"
+      }
+    ],
+    "entrypoint_matched_public_functions": [
+      "public-catalog v9",
+      "public-catalog-directory v19"
+    ],
+    "production_mutation": "NONE",
+    "next_required": "Complete transitive import/config closure and bind each of the nine critical functions to exact DB/RPC/ACL/Edge contracts, then prepare coordinated deployment manifest; no individual function deployment."
   }
 }
