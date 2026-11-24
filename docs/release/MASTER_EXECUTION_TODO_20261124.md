@@ -1,170 +1,261 @@
-# Required 82-Migration Source-to-Live Effect Crosswalk — 2026-11-24
+# MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
+**Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
+**Base:** `main @ 2607227bce13ea2ee652c13f24d05565ff5400d6`  
+**Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
+**Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
-**Repository baseline:** `main @ fe19a39018a53006a59179e3d30dd2916a8f00b5`
-**Live Supabase project:** `moyhiluyhjsujhwlyeuu`
-**Required migration set:** `scripts/production/verify-production.mjs` and `scripts/production/live-reconciliation-contract.mjs`
-**Live ledger:** 310 rows through `20261110150618`
-**Release status:** **BLOCKED / NOT CERTIFIED**
+This is the active priority queue. Older Pass logs remain append-only evidence, not a competing work queue. Ordering is based on dependencies and work that can be completed without a paid Supabase branch or paid tooling.
 
-## Executive result
+## Execution rules
+- Preserve the current catalog root, `/legacy/` rollback and existing production data. Do not replace current main with the R7 ZIP.
+- Default to GitHub Actions disposable PostgreSQL 17 tests; do not create a paid Supabase branch.
+- Production remains read-only until the relevant release gates pass. No unsanctioned DDL/DML, Auth, RLS, GRANT, Storage, Edge, payment or finance writes.
+- Use focused tests for each changed slice. Re-run broader suites only when dependencies or source change.
+- PASS is valid only for the exact tested commit. A skipped deploy job is not a deployment.
+- Keep directory publication and Paymob fail-closed. Backup/restore is intentionally last, but remains a hard launch blocker.
 
-- Required ordered source migrations: **82/82**; names come from the canonical production verifier.
-- Exact required version IDs in the live ledger: **0/82**. This is an identity mismatch, not proof every physical effect is absent.
-- All 63 earlier source migrations now have current live read-back across PASS 2211–2250 and PASS 2291–2341, each with an explicit PASS/PARTIAL/BLOCKED disposition. The 19 later migrations have separate current live read-back; none is assumed compliant from presence alone.
-- The 19 later migrations from RC484 through RC925 were source-reviewed and checked against current Production catalogs/policies on 2026-11-24, with additional current-main reports for RC485–RC496 and RC921–RC925. Together with all 63 earlier sources, **82/82 required migrations now have live read-back and an explicit disposition**; this is not an all-pass release.
-- A separate 76-object curated physical register was refreshed on 2026-11-24: 35 present / 41 absent, with object-level results in PASS 2251–2260. Presence is not semantic parity.
-- No Production mutation was performed.
+## P0 — Authorization, identity and privacy
+### P0.1 Platform-root authorization
+- [x] Rechecked Production helper definitions, all dependent policy counts, helper callers, all seven catalog RPC ACLs and anonymous-session guards using read-only PostgreSQL catalog queries; see `docs/audits/PASS_2071_2080_P0_AUTHORIZATION_RECHECK_20261124.md`.
+- [x] RC925 merged in PR #1069 as source-only commit `a0a31dab110ac519f8528cbefe74c0eefb727a7c`. All seven catalog RPCs now fail closed unless `is_anonymous=false`; missing/null claims are denied. Exact-head static validation, missing-claim PostgreSQL 17 integration and 82-version chronological replay passed in `45477345349`; module validation passed in `45477345380`; catalog build, RBAC PostgreSQL and dashboard browser E2E passed in `45477345161`. Positive `is_anonymous=false` compatibility coverage for all seven RPCs was added and merged in PR #1071 as `53b8be3784790e56775f16bb51c9c3477cfeb536`; all exact-head workflows passed (runs `45480436807`, `45480436782`, `45480436843`, `45480436853`, `45480436991`, `45480437044`). Production remains unchanged and RC925 is NOT applied.
+- [x] Confirmed RC923's current source/integration contract checks all seven direct catalog RPCs for anonymous Auth sessions; exactly three RPC bodies are replaced by RC923, while the other four already guard anonymous sessions.
+- [x] Reconcile live is_platform_admin() and mnty_can_platform_admin() with RC464, RC471, RC484, RC485 and RC923 source; exact 57-policy/24-table RC484 dependency map and four direct helper callers verified read-only. Evidence: docs/audits/P0_ANONYMOUS_AUTH_STORAGE_LIVE_RECHECK_20261124.md.
+- [x] RC484's post-migration test now asserts registry FORCE RLS and registry/helper owner parity with BYPASSRLS; exact PR-head PostgreSQL 17 run `45390294342` passed (PR #1040 merged).
+- [x] PR #1049 widened the RC471/R7 actor matrix to reject tenant-scoped SUPER_ADMIN and MNTY-PLATFORM membership without registry across all four helper callers; exact-head run 45396407812 passed. PR merged as main commit 1b27efb65e32a254e34a7ae9add172de078e6fdf (31 successful checks, 2 skipped; no failures).
+- [x] Complete the prior ordered migration set on disposable PostgreSQL 17 using repo CI. Exact-head run 45407602805 passed the checkpoint restore, exact 80-version gate, 117 chronological forward migrations and integration suite; this is disposable-only and does not replace Production backup restore or physical-object reconciliation.
+- [x] RC924 ordered authorization and agreement participant scope merged in PR #1064 as `82cdebcdefc4a9c12d4e875548f1cf5f5dd3f896`; dedicated PostgreSQL 17 run `45458313302` and full 117-migration chronological replay `45458313389` passed. The replay's strict static gate still asserted 80 versions; it is not evidence for the updated 81-version count.
+- [x] Re-ran the exact 81-version strict release validator and full PostgreSQL 17 forward replay on PR #1066: workflow run `45465702093` passed all static release validators, restored the captured schema checkpoint, and applied 117 later migrations in timestamp order, including RC924. This is disposable-only evidence; it does not replace Production backup/restore or physical-object reconciliation.
+- [x] Test RC923 anonymous-session denial for all seven catalog RPCs on the prior chronological 80-version release-chain replay; RC485/RC923 integration marker passed in run 45407602805.
+- [x] Test RC924 against the pre-RC482 Legal helper and confirm ordered RC482 → RC924 application in isolated PostgreSQL 17; RC924-specific job `45458313302` passed.
+- [x] Test registered platform-admin allow; tenant ADMIN/OWNER/SUPER_ADMIN and MNTY-PLATFORM membership without registry deny; cross-tenant/business/branch denial; tenant-local scope preserved (RC484 run 45390294342, RC471/R7 actor matrix run 45396407812; companion exact-head module run 45407602698 passed).
+- [x] Added an inactive tenant SUPER_ADMIN (INACTIVE membership with stale platform metadata) negative actor to the RC449 global MantiGO RPC matrix and RC464 shared-helper caller matrix; exact-head run 45411811229 and RC464 live-hardening run 45411811351 passed.
+- [x] Re-ran the existing read-only high-risk SECURITY DEFINER SQL contract against Production: 14 RPCs checked; 5 PASS, 9 FAIL_SEARCH_PATH; all 14 preserve anon EXECUTE=false and authenticated EXECUTE=true. Direct anon/authenticated write grants on five MantiGO tables are both zero; see PASS_2071_2080.
+- [x] Assert function ownership, empty `search_path`, grants, FORCE RLS and caller coverage in the RC464/RC471/RC484/RC485 suites; exact-head module and forward replay workflows passed.
+- [ ] Prepare one coordinated migration bundle and post-release read-back. Do not hot-patch or apply it to Production in this phase.
+**Live evidence:** Production still uses membership-derived helpers; registry RLS is on but FORCE RLS is false. See `docs/audits/PASS_2041_2050_LIVE_PRODUCTION_RECHECK_20261124.md`.
 
-## Full ordered source list and current evidence
+### P0.2 Anonymous Auth and private profile boundaries
+- [x] Refreshed Advisor + live ACL snapshot: 90 anonymous-Auth table warnings, 9 RLS-no-policy tables with all client grants denied, 65 exposed authenticated SECURITY DEFINER functions (18 empty search_path, 47 other pinned, 0 unset); see PASS_2081_2090 and Issue #928.
+- [x] Reconcile RC479 and RC488–RC495 against live policy and ACL state; 28 required restrictive guard policies are absent, raw anon profile SELECT and several authenticated-role grants remain, and RC494/RC495 have ordered root/schema dependencies. Evidence: docs/audits/P0_ANONYMOUS_AUTH_STORAGE_LIVE_RECHECK_20261124.md.
+- [x] Run raw anon, anonymous Auth session, missing is_anonymous claim, confirmed user, owner/provider and platform-root cases across RC479, RC488–RC493, RC471/RC484/RC485; forward replay run 45407602805, module validation run 45407602698 and RC493 isolated run 45410089951 passed.
+- [x] Preserve intentional public discovery and ad reads; RC479 raw anon profile-base grant removal is isolated from the public projection, RC488 preserves public profile-media SELECT, and no blanket privilege revocation was added.
+- [ ] Keep leaked-password protection marked NOT AVAILABLE/NOT VERIFIED while the current plan does not expose the setting.
 
-| Required source version | Exact source file | Release/effect | Source object contract | Latest Production read-back / disposition |
-|---|---|---|---|---|
-| `20261009120000` | `20261009120000_rc425_atomic_mantigo_paymob_payment.sql` | RC425 | BLOCKED/MIXED | 2026-11-24 read-only live audit: Table absent; exact RPC signature absent ****BLOCKED — atomic MantiGo Paymob path not present**** |
-| `20261009130000` | `20261009130000_rc426_digital_page_provider_order_binding.sql` | RC426 | BLOCKED/MIXED | 2026-11-24 read-only live audit: Exact overload absent. `payment_intents.provider_order_id` and `digital_page_orders.provider_order_id` columns are present ****BLOCKED — columns alone do not satisfy claim/finalization contract**** |
-| `20261009140000` | `20261009140000_rc427_one_active_payment_intent_per_order.sql` | RC427 | BLOCKED/MIXED | 2026-11-24 read-only live audit: Index absent ****BLOCKED — concurrent active-intent invariant not installed**** |
-| `20261009150000` | `20261009150000_rc428_atomic_provider_failure_webhook.sql` | RC428 | BLOCKED/MIXED | 2026-11-24 read-only live audit: Exact RPC absent ****BLOCKED — provider failure webhook processor not present**** |
-| `20261009160000` | `20261009160000_rc429_atomic_subscription_failure_webhook.sql` | RC429 | BLOCKED/MIXED | 2026-11-24 read-only live audit: Exact RPC absent ****BLOCKED — subscription failure processor not present**** |
-| `20261009170000` | `20261009170000_rc430_atomic_subscription_success_webhook.sql` | RC430 | BLOCKED/MIXED | 2026-11-24 read-only live audit: Exact RPC absent ****BLOCKED — atomic subscription success processor not present**** |
-| `20261009180000` | `20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql` | RC431 | BLOCKED/MIXED | 2026-11-24 read-only live audit: Exact function exists as SECURITY DEFINER, owner `postgres`, but `search_path=public, pg_temp`; anon EXECUTE=false, authenticated EXECUTE=false, service_role EXECUTE=true ****BLOCKED — live search_path does not meet source contract**** |
-| `20261009190000` | `20261009190000_rc432_smm_wallet_transaction_idempotency.sql` | RC432 | BLOCKED/MIXED | 2026-11-24 read-only live audit: Index absent. `smm_debit_wallet(uuid,numeric,uuid)` and `smm_refund_wallet(uuid,numeric,uuid,text)` exist as SECURITY DEFINER, but both use `search_path=public`; anon=false, authenticated=false, service_role=true. Exact `smm_admin_credit_wallet(uuid,uuid,numeric,text,uuid)` is absent ****BLOCKED — legacy wallet routines do not satisfy full RC432 contract**** |
-| `20261009200000` | `20261009200000_rc434_atomic_erp_purchase_receiving.sql` | RC434 | BLOCKED/MIXED | 2026-11-24 read-only live audit: Exact signature absent ****BLOCKED**** |
-| `20261009210000` | `20261009210000_rc435_subscription_provider_intent_claim.sql` | RC435 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 read-only live audit: Both columns, both exact RPC signatures and state constraint contract absent ****BLOCKED**** |
-| `20261009220000` | `20261009220000_rc436_atomic_financial_journal.sql` | RC436 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 read-only live audit: `entry_number`, `total_debit`, `total_credit`, `posted_at`, `line_number` absent; both unique indexes absent; atomic RPC absent ****BLOCKED**** |
-| `20261009230000` | `20261009230000_rc437_purchase_order_lines_receiving_limits.sql` | RC437 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 read-only live audit: Table, both indexes, both exact RPCs and policy target absent ****BLOCKED**** |
-| `20261009240000` | `20261009240000_rc438_purchase_order_creation_with_lines.sql` | RC438 | BLOCKED/MIXED | 2026-11-24 read-only live audit: Creation RPC absent. Existing `update_purchase_order_status_backend(varchar,varchar)` is SECURITY DEFINER, search_path=public, and has no anon/authenticated/service_role EXECUTE in the inspected live ACL ****BLOCKED**** |
-| `20261010010000` | `20261010010000_rc439_encrypted_checkout_recovery.sql` | RC439 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 read-only live audit: All three columns absent ****BLOCKED**** |
-| `20261010020000` | `20261010020000_rc440_exposed_security_definer_search_path.sql` | RC440 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 read-only live audit: Current snapshot: 30 public SECURITY DEFINER routines currently match the dynamic search-path/role predicate (0 anon-executable, 30 authenticated-executable). This is a current inventory, not proof all 30 existed at RC440's historical execution time. ****HISTORICAL DYNAMIC EFFECT; CURRENT SET REQUIRES PER-FUNCTION RECONCILIATION**** |
-| `20261010030000` | `20261010030000_rc441_platform_admin_scope_hardening.sql` | RC441 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 read-only live audit: All five named routines exist, but live functions retain search_path=public (helper is public, pg_temp). The live helper body remains the earlier unscoped `mnty_can('admin', NULL, NULL, NULL)` style boundary, not the RC441 explicit platform tenant contract. All five are SECURITY DEFINER, anon EXECUTE=false, authenticated EXECUTE=true, service_role EXECUTE=false. ****PRESENT, CONTRACT-BLOCKED**** |
-| `20261010060000` | `20261010060000_rc446_mantigo_open_ride_privacy_boundary.sql` | RC446 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: list_open_mantigo_rides_backend exists, SECURITY DEFINER/authenticated EXECUTE, but search_path=public and live body lacks active+verified+available captain-profile check. **BLOCKED — open-ride location privacy repair absent.** |
-| `20261010120000` | `20261010120000_rc442_approval_action_audit_atomicity.sql` | RC442 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 read-only live audit: RPC exists as SECURITY DEFINER, owner postgres, but search_path is `public, pg_temp`; anon EXECUTE=false, authenticated=false, service_role=true. Authenticated still has direct SELECT/INSERT/UPDATE/DELETE table privileges and `approval_actions_member_insert` still exists. ****PRESENT, CONTRACT-BLOCKED — direct audit writes remain granted**** |
-| `20261010140000` | `20261010140000_rc444_crm_business_scope_rls.sql` | RC444 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 read-only live audit: Live “CRM managers view marketing leads” and “CRM managers view marketing providers” policies authorize active broad role names without the source's full platform scope/business-row checks. ****POLICY DRIFT — cross-business scope predicate differs from source**** |
-| `20261010150000` | `20261010150000_rc447_matrimony_profile_privacy_boundary.sql` | RC447 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 read-only live audit: Discovery RPC, unlocked-contact RPC, private verification guard and verification trigger are absent. Existing `matrimony_profiles_select` predicate is non-anonymous session logic, not `owner_user_id = auth.uid()`; authenticated can SELECT the base table. ****BLOCKED — private profile base-row boundary is not the source contract**** |
-| `20261010161000` | `20261010161000_rc448_matrimony_request_lifecycle_authority.sql` | RC448 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 read-only live audit: Unlock unique index is present. Active-pair unique index absent. Four exact request/contact RPCs absent. Authenticated retains INSERT/UPDATE on `matrimony_requests` and INSERT/UPDATE/DELETE on `matrimony_contact_unlocks`. ****PARTIAL / BLOCKED — lifecycle RPCs and active-pair invariant absent; direct mutations remain**** |
-| `20261010170000` | `20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql` | RC449 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 read-only live audit: The five routine identities exist, but current main/live recheck records the old unscoped `mnty_can('admin',NULL,NULL,NULL)` helper behavior. All five remain on non-empty search_path. ****PRESENT, CONTRACT-BLOCKED**** |
-| `20261010175000` | `20261010175000_rc449a_financial_journal_schema_prerequisites.sql` | RC449A | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 read-only live audit: The seven source columns are absent in the current direct column check; `general_ledger_running_balance_lookup_idx` is absent. ****BLOCKED — prerequisites absent**** |
-| `20261010180000` | `20261010180000_rc450_financial_journal_service_role_boundary.sql` | RC450 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 read-only live audit: Function exists as SECURITY DEFINER, but live `search_path=public` rather than `public, pg_temp`, and service_role EXECUTE is false. Trigger function and `trg_post_journal_to_gl` trigger exist; trigger function's live path is `public` rather than source `public, pg_temp`. ****PARTIAL / CONTRACT-BLOCKED**** |
-| `20261010200000` | `20261010200000_rc451_targeted_ads_empty_search_path.sql` | RC451 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 read-only live audit: Exact seven-argument function exists, SECURITY DEFINER, empty search_path, anon EXECUTE=true, authenticated EXECUTE=true. ****PASS — preserve the intentional public read boundary**** |
-| `20261010210000` | `20261010210000_rc452_marketing_crm_tenant_scope.sql` | RC452 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 read-only live audit: Both live CRM manager SELECT policies remain broader than source matching-business or MNTY-PLATFORM full_control rules. **POLICY DRIFT / BLOCKED** |
-| `20261010220000` | `20261010220000_rc453_marketing_campaign_backend.sql` | RC453 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 read-only live audit: Both marketing campaign tables, four indexes and five exact RPC signatures are absent. **BLOCKED / NOT APPLIED** |
-| `20261011010000` | `20261011010000_rc456_smm_service_role_access_boundary.sql` | RC456 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: service_role has no SELECT/INSERT/UPDATE on any of the six SMM gateway tables; anon/authenticated table grants are also absent. Credential and wallet-transaction tables remain closed as expected. **BLOCKED — RC456 service-role least-privilege grants not applied; gateway cannot operate.** |
-| `20261014230000` | `20261014230000_rc525_digital_page_product_platform_admin_scope.sql` | RC525 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: legacy digital_page_products_admin_write policy still permits active tenant SUPER_ADMIN/ADMIN roles without MNTY-PLATFORM tenant and explicit PLATFORM/full_control; source target policy absent. **BLOCKED — RC525 platform-scope policy not applied.** |
-| `20261023020000` | `20261023020000_rc102_provider_services_owner_write_grants.sql` | RC102 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: owner_manage RLS policy exists, but authenticated INSERT/UPDATE/DELETE table grants remain false. **BLOCKED — RC102 grants not applied; owner UI writes cannot execute.** |
-| `20261023030000` | `20261023030000_rc103_order_status_branch_scope.sql` | RC103 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: exact update_order_status_backend signature exists, SECURITY DEFINER/search_path=public; body checks business membership but does not compare exact order branch. **BLOCKED — RC103 branch-scope repair absent.** |
-| `20261023040000` | `20261023040000_rc104_order_idempotency_scope.sql` | RC104 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: exact create_order_backend signature exists, search_path=public; live body lacks idempotency-key conflict rejection across customer/business/branch and exact branch scope. **BLOCKED — RC104 replay boundary absent.** |
-| `20261023050000` | `20261023050000_rc105_order_create_service_role_identity.sql` | RC105 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: create_order_backend has service_role EXECUTE but still requires auth.uid()=p_customer_id; no service_role identity branch exists. **BLOCKED — verified Edge service-role order creation will fail actor binding.** |
-| `20261023060000` | `20261023060000_rc106_order_status_service_role_identity.sql` | RC106 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: update_order_status_backend has service_role EXECUTE but still requires auth.uid()=p_user_id; no service_role identity branch or exact branch check exists. **BLOCKED — Edge status update path fails actor binding and branch scope.** |
-| `20261027030000` | `20261027030000_rc113_super_admin_control_center_foundation.sql` | RC113 | BLOCKED/MIXED | 2026-11-24 live read-back: platform_custom_roles and platform_role_assignments present with RLS+FORCE, no client table grants/policies; 3 admin RPCs are SECURITY DEFINER, empty search_path, anon EXECUTE=false/authenticated=true and read private.platform_admins. Two required indexes valid. **PARTIAL/BLOCKED: second RC113 null-safe membership index is absent.** |
-| `20261027040000` | `20261027040000_rc114_business_employee_hiring_system.sql` | RC114 | PASS | 2026-11-24 live read-back: business_employees and business_job_positions present with RLS+FORCE, no direct client table grants/policies; 4 required indexes valid; employee list/position-upsert/employee-upsert RPCs are SECURITY DEFINER, empty search_path, anon EXECUTE=false/authenticated=true. **PASS for sampled schema/ACL contract; no behavioral E2E implied.** |
-| `20261027050000` | `20261027050000_rc115_control_center_integration.sql` | RC115 | PASS | 2026-11-24 live read-back: control-center permission resolver and audit/people/role-assignment/employee-list RPCs present; SECURITY DEFINER, empty search_path, anon EXECUTE=false/authenticated=true; platform admin functions directly check private.platform_admins. **PASS for sampled metadata contract; runtime caller matrix remains separate.** |
-| `20261027060000` | `20261027060000_rc116_business_subscriber_admin.sql` | RC116 | PASS | 2026-11-24 live read-back: list-businesses/manage-business/manage-membership RPCs present; SECURITY DEFINER, empty search_path, anon EXECUTE=false/authenticated=true and direct private.platform_admins checks. **PASS for sampled metadata contract; runtime caller matrix remains separate.** |
-| `20261027070000` | `20261027070000_rc117_default_images_and_activity_admin.sql` | RC117 | BLOCKED/MIXED | 2026-11-24 live read-back: five default-image columns, three triggers and mnty_default_image_url() are absent. **BLOCKED — default-image automation is not installed.** |
-| `20261027090000` | `20261027090000_rc113_user_membership_business_scope_idempotency.sql` | RC113 | BLOCKED/MIXED | 2026-11-24 live read-back: ux_user_memberships_user_business_branch_nullsafe is absent. **BLOCKED — NULL-safe membership idempotency index is not installed.** |
-| `20261027093000` | `20261027093000_add_qadam_alsaad_homewares_store.sql` | — | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 aggregate read-back: Qadam Al-Saad business=1, active owner membership=1, active branch=1, active catalog products=15, active unexpired prices=12. No stock or orders were fabricated. **DATA EFFECT PRESENT BY IDEMPOTENCY KEY; migration ID still absent from ledger.** |
-| `20261031100000` | `20261031100000_rc463_trigger_only_security_definer_acl.sql` | RC463 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: both trigger functions and enabled triggers exist; proacl is postgres-only and PUBLIC/API roles cannot EXECUTE. capture_commission_rule_audit has empty search_path; assign_default_owner_to_unowned_business still uses search_path=public, auth. **PARTIAL — ACL repair present, one trigger function path remains non-empty.** |
-| `20261113214500` | `20261113214500_rc464_platform_admin_live_registry_hardening.sql` | RC464 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: private.platform_admins exists, RLS ON/FORCE RLS OFF; is_platform_admin remains SECURITY INVOKER/search_path=public and membership-derived. **BLOCKED — registry root not active.** |
-| `20261113220000` | `20261113220000_rc464b_orders_select_policy_preflight.sql` | RC464B | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: orders/history RLS, authenticated SELECT grants and exact expected policy names/sets remain present; policy predicates still tenant-wide. Preflight conditions pass, but RC465 scope rewrite is not live. **PREFLIGHT PASS / RELEASE BLOCKED.** |
-| `20261114010000` | `20261114010000_rc465_orders_read_scope_hardening.sql` | RC465 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: orders_member_select and history_member_read still authorize by tenant membership without exact business/branch; provider SELECT checks business but not branch. **BLOCKED — RC465 read-scope repair absent.** |
-| `20261114020000` | `20261114020000_rc466_business_branch_read_scope_hardening.sql` | RC466 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: businesses/branches/department/warehouse/stock/inventory policies remain primarily tenant-wide; branch reads do not require exact business/branch hierarchy. **BLOCKED — RC466 scope repair absent.** |
-| `20261115010000` | `20261115010000_rc467_commission_scope_hardening.sql` | RC467 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: three commission RPCs have empty search_path and business/branch scope; preview_commission_backend remains search_path=public and lacks branch scope. Platform helper remains legacy. **PARTIAL — commission administration not registry-hardened.** |
-| `20261115030000` | `20261115030000_rc468_digital_page_payment_claim_hardening.sql` | RC468 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: claim/release functions remain search_path=public, pg_temp; only legacy four-argument finalizer exists; required five-argument provider-bound finalizer absent; service_role EXECUTE false. **BLOCKED — RC468 payment claim/finalize contract absent.** |
-| `20261117010000` | `20261117010000_rc469_shared_platform_admin_caller_search_path.sql` | RC469 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: shared admin callers still invoke legacy mnty_can_platform_admin; four caller search_paths remain public or public,pg_temp. **BLOCKED — RC469 shared helper path hardening absent.** |
-| `20261117020000` | `20261117020000_rc470_digital_page_webhook_forward_repair.sql` | RC470 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: digital-page payment processor exists, provider_order_id check present, but search_path=public, pg_temp and atomic reconciliation mismatch guard absent. **BLOCKED — RC470 forward processor repair incomplete.** |
-| `20261117190000` | `20261117190000_rc471_mantigo_platform_admin_forward_hardening.sql` | RC471 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: four MantiGO/global admin callers still use the legacy helper and non-empty search_path; private.platform_admins FORCE RLS remains off. **BLOCKED — RC471 platform-root caller hardening absent.** |
-| `20261118010000` | `20261118010000_rc472_directory_claim_review_atomicity.sql` | RC472 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: review_directory_listing_claim_atomic RPC absent and ux_user_memberships_user_business_branch_nullsafe absent. **BLOCKED — RC472 claim/listing atomicity not installed.** |
-| `20261118020000` | `20261118020000_rc473_directory_listing_contact_consent.sql` | RC473 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: directory contact-consent registry/table and required service-role consent scopes absent; deployed directory remains fail-closed. **BLOCKED — RC473 consent schema not installed.** |
-| `20261118030000` | `20261118030000_rc474_payment_intent_business_branch_scope.sql` | RC474 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: exact create_payment_intent_backend signature exists, but search_path=public, pg_temp and no exact branch scope; service_role EXECUTE true. **BLOCKED — RC474 branch-bound payment authorization not installed.** |
-| `20261118040000` | `20261118040000_rc475_paymob_atomic_webhook_forward_repair.sql` | RC475 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: provider success processor exists but lacks PAYMENT_INTENT_EVENT_WITHOUT_MATCHING_RECONCILIATION guard; provider failure and both subscription atomic processors absent. **BLOCKED — RC475 atomic webhook path incomplete.** |
-| `20261118050000` | `20261118050000_rc476_mantigo_captain_earnings_live_ledger_columns.sql` | RC476 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: get_mantigo_captain_earnings_backend remains search_path=public and references legacy l.amount/captain_amount instead of canonical gross_amount/captain_net_amount. **BLOCKED — RC476 earnings RPC will not match live ledger schema.** |
-| `20261118060000` | `20261118060000_rc477_mantigo_customer_bid_contact_privacy.sql` | RC477 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: list_mantigo_customer_rides_backend remains search_path=public and serializes full bid rows with to_jsonb(b), without masking captain phone/vehicle plate until ACCEPTED. **BLOCKED — RC477 contact privacy repair absent.** |
-| `20261118070000` | `20261118070000_rc478_mantigo_open_ride_privacy_forward_repair.sql` | RC478 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: list_open_mantigo_rides_backend remains search_path=public and has no ACTIVE/VERIFIED/AVAILABLE captain gate. **BLOCKED — RC478 open-ride privacy repair absent.** |
-| `20261118190000` | `20261118190000_rc479_revoke_anon_provider_profile_base_read.sql` | RC479 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: anon SELECT remains granted on marketing_provider_profiles; permissive active-provider policy remains; restrictive confirmed-user policy absent. **BLOCKED — RC479 raw base-table read remains exposed.** |
-| `20261118210000` | `20261118210000_rc480_digital_pages_anon_column_boundary.sql` | RC480 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: anon has SELECT on every current digital_pages column, including business_id/provider_profile_id/created_by/updated_by/metadata-like internal fields; RC480's 10-column allowlist is not applied. **BLOCKED — overbroad public column visibility.** |
-| `20261118220000` | `20261118220000_rc481_legal_edge_service_role_column_grants.sql` | RC481 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: service_role SELECT/INSERT column grants on legal_documents/legal_document_versions/legal_requirements/user_consents/consent_audit_log are absent; Legal Edge read/write projection contract not installed. **BLOCKED — RC481 Edge grants absent.** |
-| `20261119020000` | `20261119020000_rc482_legal_platform_admin_registry_guard.sql` | RC482 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: private.legal_is_admin has both zero-arg and UUID overloads, neither reads private.platform_admins; legal_assert_admin_backend(uuid) absent. **BLOCKED — RC482 Legal admin registry guard not installed.** |
-| `20261119030000` | `20261119030000_rc483_atomic_legal_cms_create_audit.sql` | RC483 | NO_DIRECT_OBJECT_CONTRACT | 2026-11-24 live read-back: legal_create_document_backend and legal_create_draft_version_backend are absent; service_role direct INSERT grants are also absent. **BLOCKED — RC483 atomic CMS RPCs absent; Legal CMS create flow cannot complete.** |
-| `20261119040000` | `20261119040000_rc484_registry_backed_is_platform_admin.sql` | RC484 | private.platform_admins; public.is_platform_admin() | Registry exists; RLS ON/FORCE RLS OFF. Helper remains SECURITY INVOKER, search_path=public, membership-derived. **BLOCKED: present but not source contract.** |
-| `20261120193000` | `20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql` | RC479 forward repair | RESTRICTIVE SELECT policy marketing_provider_profiles_confirmed_auth_select | Expected restrictive policy absent. **BLOCKED: missing.** |
-| `20261120200000` | `20261120200000_rc485_catalog_rpc_registry_root.sql` | RC485 | Seven direct catalog RPC definitions and registry-root helper precondition | All seven signatures exist; all remain search_path=public and none references private.platform_admins. Three expose service_role EXECUTE; ACL parity needs separate review. **BLOCKED: present but contract-incompatible.** |
-| `20261120210000` | `20261120210000_rc486_catalog_price_version_serialization.sql` | RC486 | catalog_item_prices_item_branch_version_uidx; serialized upsert_catalog_price_backend | Index absent; live price RPC remains search_path=public and lacks pg_catalog.pg_advisory_xact_lock. **BLOCKED: missing index and function behavior.** |
-| `20261120220000` | `20261120220000_rc487_remove_smm_first_user_admin_bootstrap.sql` | RC487 | Drop auth.users.trg_smm_bootstrap_admin and public.smm_bootstrap_first_admin(); service_role SELECT-only allowlist | Trigger and bootstrap function both still exist. **BLOCKED: prohibited bootstrap path remains.** |
-| `20261120230000` | `20261120230000_rc488_storage_anonymous_auth_write_guard.sql` | RC488 | Three RESTRICTIVE policies on storage.objects for INSERT/UPDATE/DELETE | All three expected confirmed-Auth restrictive policies absent. **BLOCKED: 0/3 policies present.** |
-| `20261120240000` | `20261120240000_rc489_financial_anonymous_auth_read_guard.sql` | RC489 | 15 RESTRICTIVE confirmed-Auth SELECT policies across private financial/payment tables | All 15 expected policies absent in latest direct policy inventory. **BLOCKED: 0/15 policies present.** |
-| `20261120250000` | `20261120250000_rc490_medical_anonymous_auth_read_guard.sql` | RC490 | RESTRICTIVE confirmed-Auth SELECT policy on public.medical_appointments | Expected policy absent. **BLOCKED: missing.** |
-| `20261120260000` | `20261120260000_rc491_support_anonymous_auth_boundary.sql` | RC491 | RESTRICTIVE confirmed-Auth SELECT policy on public.support_tickets | Expected policy absent. **BLOCKED: missing.** |
-| `20261120270000` | `20261120270000_rc492_indrive_anonymous_auth_write_guard.sql` | RC492 | Three RESTRICTIVE request-write policies and one bid-read policy for InDrive | All four expected policies absent. **BLOCKED: 0/4 policies present.** |
-| `20261120280000` | `20261120280000_rc493_private_crm_notification_read_guards.sql` | RC493 | RESTRICTIVE confirmed-Auth SELECT policies on marketing_leads, marketing_projects, notifications | All three expected policies absent. **BLOCKED: 0/3 policies present.** |
-| `20261120290000` | `20261120290000_rc494_settlement_financial_atomic_registry_scope_hardening.sql` | RC494 | settlement_transactions.business_id, FK, index, registry-scoped settlement writer | Business column and index absent. Settlement writer exists but uses search_path=pg_catalog, public; platform registry helper remains legacy. **BLOCKED: partial base only; scope/owner contract absent.** |
-| `20261121020000` | `20261121020000_rc495_storage_filename_regex_forward_repair.sql` | RC495 | Five Storage policy replacements: platform branding INSERT/UPDATE/DELETE and profile-media owner INSERT/UPDATE | All five policies exist but remain membership-SUPER_ADMIN based and use old filename predicates, not registry-backed/[.] source contract. **BLOCKED: present but semantically stale.** |
-| `20261121030000` | `20261121030000_rc496_mantigo_bid_accept_state_invariant.sql` | RC496 | mantigo_bids_one_accepted_per_ride_idx; accept/create bid and fare-lock replacements | Three functions exist but remain search_path=public; required partial unique index absent. **BLOCKED: partial base; invariant not installed.** |
-| `20261123010000` | `20261123010000_rc921_medical_appointment_provider_state_machine.sql` | RC921 | update_medical_appointment_status_backend(uuid,text,text) assigned-provider/forward-only state machine | Function exists but remains search_path=public, pg_temp; live body lacks assigned-provider and forward-transition guards. **BLOCKED: legacy body.** |
-| `20261123221950` | `20261123221950_rc922_medical_appointment_tenant_wide_provider_scope.sql` | RC922 | Forward replacement of medical status RPC with tenant-wide SERVICE_PROVIDER scope only for its own active profile in exact appointment business | Same live function remains legacy search_path=public, pg_temp and lacks assigned-provider guard. **BLOCKED: forward repair not applied.** |
-| `20261124121348` | `20261124121348_rc923_catalog_rpc_anonymous_auth_guard.sql` | RC923 | Forward replacements for three direct catalog RPCs with anonymous Auth denial | Three target RPCs still have no anonymous-claim guard; other four use old COALESCE guard. All seven remain search_path=public. **BLOCKED: source replacement not applied.** |
-| `20261124140000` | `20261124140000_rc924_agreement_participant_read_scope.sql` | RC924 | RESTRICTIVE confirmed-Auth agreement SELECT guard and participant-only read policy | Restrictive agreements_confirmed_auth_select absent. Existing agreements_participant_read is PERMISSIVE, correlates ap.agreement_id=ap.id instead of agreements.id, and uses COALESCE false. **BLOCKED: present but incorrect; privacy-critical.** |
-| `20261124150000` | `20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql` | RC925 | Explicit is_anonymous IS DISTINCT FROM 'false' guard in all seven catalog RPCs | All seven signatures exist; four retain COALESCE guard and three have no claim guard. None has explicit-false guard; all remain search_path=public. **BLOCKED: source-only; not applied.** |
+### P0.3 Directory and public-contact consent
+- [x] Keep `directory-listings` fail-closed: verified Production v18 is a single-file stub; GET returns an empty page with `directoryDisabled=true` and POST returns 503. No unconsented rows are exposed through this endpoint.
+- [x] Reconcile RC472/RC473 schema, owner grant/revoke/expiry source contract and deployed Edge bundle read-only. RC472 claim-review RPC and null-safe membership index are absent; RC473 contact-consent table is absent; current deployed Edge v18 has only `index.ts` and is fail-closed. Evidence: `docs/audits/P0_3_DIRECTORY_CONSENT_LIVE_RECHECK_20261124.md`.
+- [x] Verified the current non-doctor publication contract is an explicit allowlist: business, clinic, pharmacy, medical_center, hospital, laboratory and health_provider; unknown/missing types fail closed. The doctor-profile republication evidence gate is distinct and has 0 approved rows. Contact fields remain separately gated by RC473 scope consent. Do not expand the allowlist without separate review.
+- [x] Current-source/isolated tests cover no-consent, revoked-consent and explicitly consented field-by-field public projections; phone, address and precise location require their individual consent scopes. These are source/isolated tests, not deployed-origin evidence.
+- [ ] Deploy DB + Edge only as a coordinated versioned unit after exact-head CI, source-rights evidence, encrypted backup/restore and deployed-origin negative/positive tests.
+**Live evidence:** 869 listings are marked PUBLISHED and contain phone/address data, but deployed Edge v18 returns an empty fail-closed page. The RC473 registry is absent; source-rights evidence registry exists with zero rows.
 
-## Exact aliases already proven — do not replay
+## P1 — Database and backend contracts
+### P1.1 Migration reconciliation
+- [x] Refresh the ordered mainline release manifest (82 identifiers including RC925 at the 2026-11-24 checkpoint) and compare it with Production's 310-row migration ledger: 0/82 exact source-version identifiers are present; physical-object aliases/effects still require reconciliation.
+- [x] Refreshed all 76 previously tracked physical object contracts against Production on 2026-11-24 (tables, indexes, functions, columns, triggers): 35 present / 41 absent, zero status changes since the 2026-11-20 snapshot. Breakdown is in `docs/audits/PASS_2091_2100_PHYSICAL_OBJECT_REFRESH_20261124.md`.
+- [x] Added a focused live physical-effect sample: 18 relations (13 present / 5 absent), 12 indexes (3 present-valid / 9 absent), 17 columns (2 present / 15 absent), and 15 function families (11 absent / 4 present but contract-blocked). This is a timestamped 81-version pre-RC925 snapshot, not the full 82-version crosswalk. See `docs/audits/PASS_2161_2170_CURRENT_81_MIGRATION_PHYSICAL_EFFECT_RECHECK_20261124.md`.
+- [x] Confirmed three exact source-to-ledger SQL aliases by byte comparison and classified five historic baseline families as partial; no ledger repair or SQL replay occurred. See `docs/audits/PASS_2171_2180_HISTORICAL_MIGRATION_ALIAS_AND_PARTIAL_EFFECT_RECONCILIATION_20261124.md`.
+- [x] Completed the migration-level source-to-live crosswalk for all 82 required versions. Every source row has current live read-back and an explicit PASS/PARTIAL/BLOCKED disposition; this is not an all-pass result. See `docs/release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md`.
+- [ ] Expand beyond the curated 76-object sample into exhaustive per-object physical-effect, exact overload/body, owner, search_path, ACL, RLS/policy, constraint and trigger reconciliation. The migration-level crosswalk is complete; exact ID gaps alone do not prove physical effects absent.
+- [x] Run full chronological forward replay from the captured Production schema checkpoint; exact-head run 45407602805 passed after 117 forward migrations and ordered integration jobs. This is not a live Production restore/deployment.
+- [ ] Never blindly replay the release chain on Production.
 
-| Source version/file | Existing ledger version | Evidence | Disposition |
-|---|---|---|---|
-| `20261009010000_rc424_atomic_digital_page_payment_webhook.sql` | `20261008222845` | Exact stored SQL statement byte match | Alias confirmed; preserve immutable ledger |
-| `20261027100000_mantiqatix_marketing_contact_details.sql` | `20261027041411` | Exact source blob alias | Alias confirmed; preserve immutable ledger |
-| `20261101150000_directory_source_permission_evidence.sql` | `20261101140105` | Exact stored SQL statement byte match | Alias confirmed; preserve immutable ledger |
+### P1.2 Edge parity
+- [x] Completed a read-only entrypoint comparison for 11 launch-relevant Edge Functions; 9 critical entrypoints differ from current main and 2 public-catalog entrypoints match. Audit: `docs/audits/PASS_2051_2060_EDGE_SOURCE_PARITY_20261124.md`.
+- [x] Read-only direct import graph and Production SQL/RPC/table/ACL snapshot completed for nine critical Edge functions; see `docs/audits/PASS_2061_2070_EDGE_DEPENDENCY_CLOSURE_20261124.md`.
+- [x] Refreshed deployed Edge parity: 9 launch-critical deployments differ from main; deployed payment-intent, subscription-payment-intent, settlement-financial-atomic and directory-listings bundles omit local mainline modules. Keep affected endpoints fail-closed. See `docs/audits/PASS_2151_2160_LIVE_EDGE_BUNDLE_RECHECK_20261124.md`.
+- [x] Completed transitive local import traversal across nine critical Edge entrypoints: 11 local edges/modules, one additional transitive edge and zero cycles. External dependency resolution and compiled bundle parity remain NOT VERIFIED; no Deno lockfile found. See `docs/audits/PASS_2191_2200_EDGE_TRANSITIVE_LOCAL_IMPORT_CLOSURE_20261124.md`.
+- [ ] Complete external import-map/dependency lock, compiled bundle hashes, function-body, grant and SQL/RPC dependency closure; no individual deployment before the full dependency slice passes.
+- [ ] Hash/compare the launch-critical active Edge bundles against current main and their SQL/RPC/ACL prerequisites.
+- [ ] Prioritize platform/catalog admin, consent-aware directory, registration, order-create, Paymob webhook/payment intent, subscription payment, financial journal and settlement.
+- [ ] Maintain a dependency map: migration → schema/RPC/ACL → Edge version → E2E.
+- [ ] Keep affected endpoints fail-closed until the complete dependency slice passes.
 
-## Interpretation rules
+### P1.3 Auth, realtime and offline
+- [ ] Verify Google OAuth callback, session refresh, logout and recovery against current Auth configuration.
+- [ ] Test Realtime and offline conflict/idempotency only for shipped flows.
+- [ ] Mark unavailable settings and untested providers NOT VERIFIED.
 
-1. Exact ID absent is a ledger fact only. It does not prove the migration's physical effect is absent.
-2. Object present is not semantic pass. Verify exact function overload/body, owner, SECURITY DEFINER mode, empty search_path, effective ACL, RLS/FORCE RLS, policy permissiveness/restrictiveness and caller behavior.
-3. Policy present is not a pass if the predicate is wrong, permissive when restrictive is required, or correlates the wrong row.
-4. Partial/historical base must not be classified as the full forward contract.
-5. Do not rewrite migration history, synthesize ledger rows or replay the 82-migration chain directly on Production.
-6. Keep affected Edge/payment/settlement/directory endpoints fail-closed until their DB + Edge dependency slice is reconciled and independently tested.
+## P2 — Core public site (zero-cost code and CI)
+- [ ] Verify root, `/legacy/`, direct route refresh, 404/error/empty/loading states and mobile/desktop layouts.
+- [ ] Preserve Activity → Specialty, all-Egypt default search, GPS nearest-first only with permission, and 20-item pagination + See More.
+- [x] Merged SEO-only PR #1033 at `34a072312b29e613fb95a39050bb499eedabc786`; exact-head CI 34/34 passed, including the route metadata contract. Pages deployment is verified by run 45413600172 (main @ 016a8952513ac860b9248c6b561e6cf9216c3f2e): production root, /legacy rollback, /v6-preview, brand assets, and deployed-origin browser E2E passed. Scope is SPA metadata plus a root-only sitemap; no SSR/prerender or dynamic catalogue sitemap is claimed.
+- [ ] Keep storefront gallery PR #978 draft until rebased and proven compatible with live catalog-admin/public-catalog contracts.
+- [x] Merged Marketing button regression PR #1032 at `f317a69fe186da7bff560657e161951e8794e81f`; Playwright verified the official persisted business UUID at 390px and 1440px with no horizontal overflow.
+- [ ] Verify logo, cover, favicon, PWA/install icon and Open Graph assets against the existing brand source.
 
-## Earlier live audit evidence (RC425–RC453)
+## P3 — Accounts, partners and Li2Lak
+- [ ] Test registration → company review → activity/specialty → branch → product with synthetic CI identities.
+- [ ] Rebase Li2Lak PR #971 on current main; reconcile RC497/RC498 with RC922 and refresh the release manifest.
+- [ ] Require exact-head PostgreSQL 17 review lifecycle, authenticated order RPC, idempotency race, full replay, frontend build and RBAC tests before merge.
+- [ ] Keep Paymob disabled/fail-closed until amount binding, signed webhooks, duplicate protection, failure/refund and reconciliation pass in Sandbox.
+- [ ] Verify merchant/customer views deny cross-business orders and private customer data.
 
-- [PASS 2211–2220](../audits/PASS_2211_2220_RC425_RC432_LIVE_CONTRACT_RECHECK_20261124.md) — payment and wallet contracts.
-- [PASS 2221–2230](../audits/PASS_2221_2230_RC434_RC441_LIVE_CONTRACT_RECHECK_20261124.md) — ERP, subscription, journal and platform scope.
-- [PASS 2231–2240](../audits/PASS_2231_2240_RC442_RC451_LIVE_CONTRACT_RECHECK_20261124.md) — approval, CRM, matrimony, journal and ads.
-- [PASS 2241–2250](../audits/PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md) — CRM tenant scope and internal campaign workflow.
-- [PASS 2251–2260](../audits/PASS_2251_2260_76_OBJECT_DETAILED_PRESENCE_20261124.md) — detailed 76-object presence read-back.
-- [PASS 2261–2270](../audits/PASS_2261_2270_RC484_RC925_SOURCE_TO_LIVE_EFFECT_RECHECK_20261124.md) — 19 later migration effects.
-- [PASS 2271–2280](../audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md) — RC485–RC496 catalog, SMM bootstrap, confirmed-Auth, Storage, settlement and MantiGO bid contracts.
-- [PASS 2281–2290](../audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md) — medical, agreement and catalog identity contracts.
-- [PASS 2291–2300](../audits/PASS_2291_2300_RC446_RC456_RC463_RC525_LIVE_RECHECK_20261124.md) — MantiGO open rides, SMM service-role grants, trigger ACL and digital-page product scope.
-- [PASS 2301–2310](../audits/PASS_2301_2310_RC464_RC470_LIVE_EFFECT_RECHECK_20261124.md) — platform root, orders, business/branch, commission, payment claims and webhook.
-- [PASS 2311–2320](../audits/PASS_2311_2320_RC471_RC478_LIVE_EFFECT_RECHECK_20261124.md) — MantiGO admin, directory, payment and MantiGO privacy/earnings.
-- [PASS 2321–2330](../audits/PASS_2321_2330_QADAM_RC479_RC483_LIVE_EFFECT_RECHECK_20261124.md) — Qadam seed, provider-profile, digital-page, Legal Edge and Legal CMS.
-- [PASS 2331–2340](../audits/PASS_2331_2340_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md) — RC113–RC117 control-center, employee and default-image contracts.
-- [PASS 2341–2350](../audits/PASS_2341_2350_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md) — provider-service grants and order branch/idempotency/service-role boundaries.
-- [PASS 2331–2340](../audits/PASS_2331_2340_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md) — RC113–RC117 control-center, employee and default-image contracts.
-- [PASS 2341–2350](../audits/PASS_2341_2350_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md) — provider-service grants and order branch/idempotency/service-role boundaries.
+## P4 — Commercial and finance
+- [ ] Inventory existing subscription, commission, wallet, inventory and accounting contracts; implement only missing pieces.
+- [ ] Keep subscription, commission, ads, marketing services and fixed referral fees separate.
+- [ ] Test commission snapshots/idempotency, cancellations/returns and journal invariants with fixtures.
+- [ ] Do not enable live Paymob, real payouts or cash settlement in this phase.
+- [ ] Keep legal/tax templates and invoice rules pending qualified Egyptian legal/accounting review.
 
-## Current high-priority blockers proven by read-only evidence
+## P5 — Release candidate quality
+- [ ] Exact-main TypeScript, lint, frontend build, dependency/security audit and source-contract tests.
+- [ ] Focused PG17 tests for each changed module; E2E for public/customer/merchant/admin critical journeys.
+- [ ] Responsive/accessibility smoke tests and measured performance checks.
+- [ ] Verify launch-critical Edge health and source/database parity.
+- [ ] Check canonical links, SEO metadata, sitemap/robots and broken routes.
+- [ ] Produce a candidate manifest: commit, exact CI runs, Edge versions, migration status and unresolved exceptions.
 
-- Current-main PASS 2271–2280 and PASS 2281–2290 are the authoritative numbered reports for RC485–RC496 and RC921–RC925; they supersede overlapping detail in PASS 2261–2270 where more specific read-back is available.
+## P6 — Recovery and launch (last, as requested)
+- [ ] Create encrypted owner-controlled off-site DB backup and separate Storage object export; verify hashes and retrieval.
+- [ ] Prove Auth users/identities coverage, Storage metadata/object bytes, Edge/config/extensions and Vault/key recovery.
+- [ ] Restore into a disposable PostgreSQL 17 environment; test rollback and measure RPO/RTO.
+- [ ] Prefer a local/owner-controlled zero-cost restore path. No paid Supabase branch is assumed.
+- [ ] Re-run migration reconciliation against the backup and confirm the forward/rollback plan.
+- [ ] After approval, release the coordinated DB + Edge set in a controlled window and run deployed-origin security/privacy/payment smoke tests.
+- [ ] Mark FULL_PLATFORM_GATE PASS only with evidence for every mandatory item; otherwise retain BLOCKED / NOT CERTIFIED.
 
-- Current-main PASS 2271–2280 and PASS 2281–2290 add detailed live evidence for RC485–RC496 and RC921–RC925; these newer reports supersede the overlapping sections in PASS 2261–2270 where they provide more specific read-back.
+## Current factual blockers
+- Live migration ledger: 310 entries through `20261110150618`; the current 82-version source manifest has 0/82 exact version identifiers recorded. This is an identity gap, not proof all physical effects are absent; aliases and actual catalog state still require per-object reconciliation. PR #1066 exact-head isolated replay passed run `45465702093`; Production remains unchanged and the exact source-version identity gap still needs physical-effect reconciliation.
+- `public.is_platform_admin()` remains SECURITY INVOKER with `search_path=public` and derives platform-wide authority from active tenant ADMIN/SUPER_ADMIN membership; 57 policies across 24 tables reference it.
+- `public.mnty_can_platform_admin()` remains SECURITY DEFINER with `search_path=public, pg_temp` and delegates to unscoped `mnty_can('admin',NULL,NULL,NULL)`; 5 policies across 3 tables and four SECURITY DEFINER callers depend on it.
+- Existing read-only high-risk SECURITY DEFINER contract: 9/14 expected search_path states fail in live Production (all 14 have anon EXECUTE=false and authenticated EXECUTE=true); the nine include the platform helper, four global-admin callers, and four MantiGO dashboard/settlement paths. No direct anon/authenticated write grants exist on five MantiGO core tables.
+- `private.platform_admins` has RLS enabled but FORCE RLS=false. The registry-backed forward migrations and seven-RPC RC485/RC923 contract are not applied to Production.
+- Of the seven direct catalog RPCs, four live definitions contain an anonymous-Auth guard and three (item upsert, price upsert, item-status update) do not. All seven deny direct `anon` EXECUTE but permit `authenticated` EXECUTE; all seven remain `search_path=public`.
+- Directory consent registry and source-permission evidence are absent; the directory endpoint remains fail-closed.
+- Supabase Auth leaked-password protection is disabled; 47 of 65 authenticated-callable SECURITY DEFINER functions still have non-empty search_path (30 public, 17 public, pg_temp); 0 are unset. Prioritize 17 public, pg_temp entries and the P0 mnty_can_platform_admin() helper; targeted review only, not blanket changes.
+- Some critical Edge Functions are behind current-main contracts.
+- Independent encrypted backup/restore, Auth/Vault coverage and measured RPO/RTO are not verified.
+- Li2Lak candidate has prior successful partial checks, but its latest source requires complete exact-head test evidence after rebasing; Paymob remains fail-closed.
 
-- Platform Admin registry exists but FORCE RLS is off; is_platform_admin() remains SECURITY INVOKER and membership-derived.
-- mnty_can_platform_admin() remains SECURITY DEFINER with search_path=public, pg_temp and legacy unscoped helper behavior.
-- Seven catalog RPCs remain search_path=public; four use legacy COALESCE anonymous checks and three have no claim check. None requires an explicit false claim.
-- RC488/RC489/RC490/RC491/RC492/RC493 restrictive policies are absent in the checked scope.
-- RC487's first-user SMM admin trigger/function remain present.
-- RC494 settlement business column/index are absent; settlement writer remains on a legacy search path.
-- RC495 Storage policies remain membership-based with old filename predicates.
-- RC496 partial unique accepted-bid index is absent.
-- RC921/RC922 medical status RPC remains on the old definition and search_path; assigned-provider/forward-only guards are absent.
-- RC924 restrictive agreement guard is absent and existing participant policy has a wrong parent-row correlation predicate.
-- RC925 is source-only and not applied to Production.
+## Latest verified status — 2026-11-24
+- [x] Zero-cost execution board is merged and remains the active priority queue.
+- [x] Marketing button responsive routing regression merged and verified.
+- [x] SEO-only route metadata/canonical-root guard merged; exact-head CI passed 34/34. Main Pages deployment is verified by run 45413600172; catalog root, /legacy rollback, /v6-preview and deployed-origin browser E2E passed. This is catalog-pilot deployment only, not full platform certification.
+- [x] Live Edge entrypoint comparison recorded; 9 critical mismatches remain and no Edge deployment was made.
+- [x] Live P0 authorization and seven catalog-RPC contracts rechecked read-only on 2026-11-24; exact evidence in `PASS_2071_2080`.
+- [x] Anonymous Auth/SECURITY DEFINER Advisor snapshot refreshed read-only; 9 no-policy tables have no client grants, 47 exposed authenticated definers still use non-empty pinned search paths; full policy test matrix remains open under #928.
+- [x] PR #1049 merged after exact-head 31-success / 2-skipped CI; dedicated R7 PostgreSQL 17 helper-caller test passed and forward-chain replay passed. Main merge commit: 1b27efb65e32a254e34a7ae9add172de078e6fdf.
+- [ ] Continue per-object migration/alias reconciliation and exact Production schema-vs-source object mapping, then review Li2Lak/gallery candidate PRs.
+- [ ] Backup/restore remains the final work stage and a hard release blocker.
 
-## Next work
+## This session
+- [x] Re-read the uploaded owner directive and verified ZIP integrity and SHA-256; R7 remains reference-only.
+- [x] Reconfirmed Production project identity, 310 migration records, 42 ACTIVE Edge Functions and current advisors without production writes.
+- [x] Re-read live authorization definitions and measured 57 policies across 24 tables.
+- [x] Verified existing historical RC464/RC484/RC922 test evidence; did not mislabel historical runs as current full release certification.
+- [x] Completed a read-only direct dependency closure pass for nine critical Edge functions; no Production Edge or database changes.
+- [x] Rechecked the 82-version exact migration ledger set (0/82 exact IDs), both live platform-root helpers, 57/24 and 5/3 policy dependencies, four SECURITY DEFINER callers, and all seven catalog RPC guard/ACL/search_path states.
+- [ ] Next: await exact-head CI for PR #1049, then complete physical-object alias mapping and transitive Edge/SQL dependency closure.
 
-1. Expand current live physical-effect read-back beyond the 76-object curated sample, especially policy definitions, constraints, triggers, overloads and all 82 migration dependencies.
-2. Build the coordinated DB → RPC/ACL/RLS → Edge bundle/version → deployed-origin E2E dependency graph.
-3. Obtain owner-controlled encrypted DB + Storage backups, prove Auth/Vault coverage, and complete isolated PostgreSQL 17 restore/rollback with measured RPO/RTO.
-4. Only then prepare the coordinated, explicitly approved Production release window.
 
-**Production mutations:** NONE.
+## 2026-11-24 — P0.1/P0.2 read-only live reconciliation checkpoint
+- [x] P0.1 helper, registry, policy blast-radius, helper-caller and ACL reconciliation complete. Live remains on membership-derived helpers; registry FORCE RLS is false, so source repair is not deployed.
+- [x] P0.2 RC479/RC488–RC495 source-to-live policy/ACL/Storage reconciliation complete. RC479 confirmed-user SELECT guard is absent and raw anon SELECT remains; RC488 three Storage restrictive write guards are absent; RC489 15 finance restrictive read guards are 0/15; RC490 medical restrictive guard absent (and authenticated table SELECT is not granted); RC491 support guard absent; RC492 four InDrive guards absent; RC493 three CRM/notification guards absent; RC494 settlement RPC still has legacy search_path and is not registry scope hardened; RC495 branding Storage policies remain tenant-SUPER_ADMIN based and old filename pattern.
+- [x] Exact-head PostgreSQL/JWT suites passed on PR #1057 head `2aa19b187024c47244b19db1131cfb867ba3f70b`: RC464/RC479 run 45413186145, PG17 parity run 45413185910, full forward replay run 45413186193, module validation run 45413186141, RC493 run 45413186167 and platform-admin scope run 45413187718. All required jobs succeeded; these are disposable/source tests only.
+- [ ] Production remains read-only. Apply neither individual policy fixes nor Storage policy updates before encrypted backup/restore and the ordered RC464/RC471/RC479/RC484/RC485/RC488–RC495 dependency bundle is reconciled and approved.
 
-## Detailed current object read-back
 
-The 76-object curated register has object-by-object Production presence evidence in [PASS 2231–2240](../audits/PASS_2231_2240_76_OBJECT_DETAILED_PRESENCE_20261124.md). It is a sample, not a full physical-effect map for all 82 required migrations. Presence is not semantic parity.
+## 2026-11-24 — P0 disposable test acceptance checkpoint
+- RC924 agreement-read boundary passed PostgreSQL 17 in run 45407602669 on the feature branch.
+- P0.2 source/live reconciliation is documented in docs/audits/P0_ANONYMOUS_AUTH_STORAGE_LIVE_RECHECK_20261124.md.
+- Full forward replay and RC479/RC471/RC482/RC483 module validation passed on tested source head e9fa4e0a354ca6428d6d7e95e7ea46306180921d (runs 45407602805 and 45407602698).
+- RC493 dedicated PostgreSQL 16 integration passed on audit branch head ecf8dd1242901a893a730dfd7aba8ae48df13815 (run 45410089951); validator now explicitly requires the migration to create RESTRICTIVE policies.
+- Production source/ACL reconciliation still shows RC479/RC488–RC495 and platform-root fixes are not deployed. No Production writes, deployments, grants or data mutations occurred. FULL_PLATFORM_GATE remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-24 — P0.1/P0.2 exact-head CI acceptance
+- Branch head `7b585ba393ee076aabf04671ac9da21a69598f95` passed exact-head platform-admin scope run 45411811229, RC464 + RC479 run 45411811351, PG17 parity run 45411811012, full forward replay run 45411811582, module professionalization run 45411811026, RC493 run 45411811175, directory claim atomicity run 45411810983, financial journal/backend audit run 45411811536, MantiGO privacy run 45411811109 and RC425 atomicity run 45411811613. All required jobs succeeded; Pages validate passed but deploy and validate_public_only were skipped because this was a PR event, so no website deployment is claimed.
+- The inactive tenant SUPER_ADMIN test was included in the above exact-head suite; old metadata does not restore global authority and the actor is denied on all covered global helper callers.
+- Production remains read-only and live helpers/RLS/Storage guards remain uncorrected until the coordinated, backup-backed release. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+## 2026-11-24 — P0.3 directory consent live recheck
+- [x] Verified RC472 claim-review RPC and null-safe owner index are absent from Production; claim queue has one REVIEWING row (aggregate only).
+- [x] Verified RC473 contact-consent table is absent and its migration ID is absent from the live ledger; source migration/test contracts were reviewed.
+- [x] Verified directory_source_permission_evidence exists with RLS + FORCE RLS, service-role-only grants, and 0 total/approved evidence rows.
+- [x] Verified public_directory_listings and directory_listing_claim_requests have RLS + FORCE RLS and no direct anon/authenticated SELECT; aggregate inventory is 965 total / 869 PUBLISHED / 87 DRAFT / 9 HIDDEN, with 568 published doctor rows.
+- [x] Retrieved deployed Edge source: directory-listings v18, ACTIVE, verify_jwt=false, one file only, SHA-256 bb65d74325f8bdf08f060f7ae2517bb30901630635d1de4f35523d7cef6afe48; GET empty with directoryDisabled=true, POST 503. It does not return listing/contact rows.
+- [x] Corrected the release manifest and validator from stale v16 live metadata to the current v18 fail-closed evidence.
+- [x] Verified current source contract: non-doctor types use the explicit allowlist (business, clinic, pharmacy, medical_center, hospital, laboratory, health_provider); doctor republication uses the separate evidence registry, and all contact disclosure still requires the matching RC473 scope.
+- [x] RC472 claim review atomicity/concurrency workflow passed on source head `2aa19b187024c47244b19db1131cfb867ba3f70b` (run 45413186008). RC473 contact-consent PostgreSQL integration, source contract, Edge type checks and catalog frontend lint/build passed on exact audit branch head `f37f21b6d11733a83d954d02029b4b775476b62b` (run 45447555248). Coordinated backup-backed DB + Edge release and deployed-origin tests remain pending; Production remains read-only.
+
+
+## 2026-11-24 — Catalog pilot Pages deployment verified
+- [x] Main push deployment run 45413600172 on commit 016a8952513ac860b9248c6b561e6cf9216c3f2e completed successfully. `CATALOG_PILOT_GATE=PASS`; the run explicitly recorded `FULL_PLATFORM_GATE=BLOCKED` and allowed only the scoped catalog frontend.
+- [x] Public root deployed at https://islamnagy2022-eng.github.io/MantiqatiX/; /legacy/ rollback path and /v6-preview/ alias deployed and verified. First-party logo/cover assets passed root + preview checks.
+- [x] Deployed-origin browser E2E passed: catalog/search pagination, marketing button at 390px/1440px, admin and employee role views, direct route refresh, QR/permanent links, GPS consent/manual fallback, storefronts, and axe checks with no critical/serious violations.
+- [x] Deployment validation passed Google OAuth handshake, public catalog/Qadam storefront smoke, CORS, public sponsored ads contract, legacy directory-disabled guard and production catalog scope checks.
+- [ ] Full platform remains BLOCKED / NOT CERTIFIED. No Supabase migration, Auth/RLS/GRANT, Storage, Edge Function, payment, webhook, settlement or partner-finance release was included in this Pages deployment.
+
+
+## 2026-11-24 — PR #1057 P0.1/P0.2 exact-head verification
+- [x] PR #1057 merged as `016a8952513ac860b9248c6b561e6cf9216c3f2e`; it contains read-only live audit evidence and disposable tests only, not Production security changes.
+- [x] Exact-head run `2aa19b187024c47244b19db1131cfb867ba3f70b` passed RC464 platform-admin registry tests, PG17 parity, full forward migration replay, RC479/RC493/module suites and related isolation workflows. Live authorization/Storage policies remain unchanged and unrepaired.
+- [x] Inactive tenant SUPER_ADMIN negative case is now covered against the shared platform helper and the four global MantiGO helper callers in the passing exact-head platform-admin suite.
+
+
+## 2026-11-24 — RC925 exact-head verification and source merge
+- [x] PR #1069 merged source-only after all its exact-head CI workflows completed successfully; merge commit `a0a31dab110ac519f8528cbefe74c0eefb727a7c`.
+- [x] Exact 82-version strict gate, captured-checkpoint PostgreSQL 17 chronological replay, RC925 static validator and missing-claim adversarial integration passed in run `45477345349`.
+- [x] Catalog build, employee RBAC PostgreSQL suite and dashboard browser E2E passed in run `45477345161`; module professionalization validation passed in `45477345380`.
+- [x] Production migration ledger re-read remains 310 rows through `20261110150618`; RC925 has not been applied. No Production DB, Auth, RLS, GRANT, Storage, Edge, payment, settlement or business data was modified.
+- [ ] Continue the P0/P1 release queue: full migration-to-physical-effect/alias crosswalk, live authorization gaps, Edge bundle/dependency parity, and owner-controlled backup/restore with measured RPO/RTO.
+
+
+## 2026-11-24 — Live Production evidence preservation
+- [x] Preserved eight read-only live Production audit reports in `docs/audits/PASS_2111_2120` through `PASS_2181_2190`, covering Legal, catalog RPC, provider profile/Storage/finance, directory consent, deployed Edge parity, physical effects, migration aliases and payment/MantiGO/medical contracts.
+- [x] Confirmed the focused physical sample is incomplete and does not replace the 82-migration crosswalk. Exact version gaps are not proof that all physical effects are absent.
+- [x] Preserved transitive local Edge import analysis; external dependency resolution and compiled bundle parity remain unverified. No local cycles were found.
+- [ ] Continue full 82-migration physical-effect/alias mapping and coordinated DB/Edge dependency planning before any Production write.
+
+
+## 2026-11-24 — Fresh 76-object Production physical-contract read-back
+- [x] Rechecked the 76 physical-object contracts in the curated release register directly against live PostgreSQL catalogs: 35 physically present / 41 absent. Breakdown: tables 5/7, indexes 6/13, columns 2/12, function entries 22/41, triggers 0/3. Evidence: `docs/audits/PASS_2201_2210_PHYSICAL_OBJECT_RECHECK_20261124.md`.
+- [x] Rechecked the 22 matched function entries: 21 SECURITY DEFINER / 1 SECURITY INVOKER; 13 empty search_path / 9 non-empty; anon EXECUTE 0, authenticated EXECUTE 19, service_role EXECUTE 2. A name-only match is not treated as exact signature/body parity.
+- [x] Reconfirmed key present-but-blocked objects: `private.platform_admins` FORCE RLS remains off; `public.is_platform_admin()` remains SECURITY INVOKER/search_path=public and membership-derived; `public.mnty_can_platform_admin()` remains SECURITY DEFINER/search_path=public, pg_temp.
+- [x] Reconfirmed Production ledger at 310 rows through `20261110150618`; no database, ACL, RLS, Auth, Storage, Edge, payment or business-data write occurred.
+- [ ] Expand the curated 76-object sample into the full physical-effect/alias map for all 82 required source versions, including every policy, constraint, trigger, overload and transitive Edge dependency.
+
+
+## 2026-11-24 — RC425–RC432 payment and wallet live contract recheck
+- [x] Compared eight exact source migrations with live PostgreSQL signatures, objects, RLS, search_path and effective ACLs. RC425 table/RPC absent; RC426 finalizer overload absent although both provider_order_id columns exist; RC427 active-intent unique index absent; RC428/429/430 exact webhook processors absent; RC431 function exists but has non-empty search_path; RC432 unique index and admin-credit RPC absent, with existing debit/refund routines on search_path=public. Evidence: `docs/audits/PASS_2211_2220_RC425_RC432_LIVE_CONTRACT_RECHECK_20261124.md`.
+- [ ] Continue the source-to-live map through RC434–RC439 and the remaining 82-version migration set; keep payment and wallet writes blocked.
+
+
+## 2026-11-24 — RC434–RC441 ERP, subscription, journal and platform-scope live recheck
+- [x] Compared RC434–RC441 source effects with Production: RC434 atomic receiving RPC absent; RC435 subscription claim-state columns/constraint and both claim RPCs absent; RC436 five journal columns, two unique indexes and atomic posting RPC absent; RC437 purchase-order lines table, two indexes, member-read policy and line RPCs absent; RC438 order-creation RPC absent while legacy status RPC is present but has wrong search_path/ACL; RC439 all three encrypted-secret columns absent.
+- [x] Reviewed RC440 as a dynamic historical migration: its source targeted functions with exact `search_path=public` at its own execution timestamp. Current read-only snapshot has 30 exposed public SECURITY DEFINER routines matching that predicate (0 anon-executable, 30 authenticated-executable); this is not retroactive evidence that all 30 existed at RC440 execution time.
+- [x] Rechecked RC441: all five named routines exist but retain legacy non-empty paths and do not satisfy the source's explicit MNTY-PLATFORM SUPER_ADMIN boundary. Evidence: `docs/audits/PASS_2221_2230_RC434_RC441_LIVE_CONTRACT_RECHECK_20261124.md`.
+- [x] RC442–RC453 and later RC484–RC925 effects are included in the 82-source live crosswalk. Remediation, full per-object dependency closure and production release gates remain open.
+
+
+## 2026-11-24 — RC442–RC451 approval, CRM, matrimony and journal live recheck
+- [x] RC442 private approval RPC exists but still uses search_path=public, pg_temp; authenticated retains direct approval_actions DML and the old member INSERT policy remains.
+- [x] RC444 live CRM manager SELECT policies are broader than the source's matching-business or explicit MNTY-PLATFORM/full_control boundary. marketing_provider_profiles also retains its separate public ACTIVE whole-row read surface tracked under RC479/#928.
+- [x] RC447 matrimony discovery/unlocked-contact functions, private verification guard and trigger are absent; the live matrimony profile SELECT policy is not owner-only. RC448 has one unlock-per-request unique index, but active-pair index and four exact lifecycle/contact RPCs are absent; direct authenticated request/unlock DML remains granted.
+- [x] RC449 helper and four administrative functions remain present but on old unscoped helper/non-empty search_path contracts. RC449A seven journal columns and running-balance index absent. RC450 posting function exists but lacks service_role EXECUTE and uses wrong path; trigger exists. RC451 targeted ads RPC meets empty-path public read contract and must remain anon-accessible.
+- [x] Evidence: `docs/audits/PASS_2231_2240_RC442_RC451_LIVE_CONTRACT_RECHECK_20261124.md`.
+- [ ] Continue through RC452–RC453 and then the remaining later 82-version hardening migrations.
+
+
+## 2026-11-24 — RC452–RC453 CRM and marketing campaign live recheck
+- [x] RC452 CRM policies remain broader than the source's matching-business or explicit MNTY-PLATFORM full_control rules. The separate public ACTIVE provider profile base-table read remains tracked under RC479/#928.
+- [x] RC453 internal marketing campaign feature is absent from Production: both campaign tables, all four indexes, and five exact RPC signatures are absent. The source describes an internal workflow only, not an external Meta/TikTok/Google publishing integration.
+- [x] Evidence: `docs/audits/PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md`.
+- [ ] Keep CRM scope and campaign features gated until the ordered migration, RLS, RPC, UI and deployed-origin contracts are verified.
+
+
+## 2026-11-24 — Latest current-main security audit chain and remaining RC485–RC925 checks
+- [x] Current-main Pass 2291–2300 covers RC446, RC456, RC463 and RC525; it confirms RC463's trigger-only ACL effect is present but one function path remains public/auth, RC446 open-ride eligibility gates and RC456 service-role gateway grants remain blocked, and RC525 platform product policy remains membership-derived.
+- [x] Current-main Pass 2301–2310 covers RC464–RC470; registry root, exact order/branch scopes, commission preview path, payment finalizer and webhook forward repair remain blocked/partial.
+- [x] Current-main Pass 2311–2320 covers RC471–RC478; MantiGO root, directory consent, Paymob processors, captain earnings ledger fields, bid contact privacy and open-ride eligibility remain blocked.
+- [x] Current-main Pass 2321–2330 covers Qadam seed and RC479–RC483; Qadam's idempotency-key seed effect is present though its exact migration ID is not in the ledger; raw provider-profile/digital-page anonymous reads and Legal service grants/registry/atomic RPCs remain blocked.
+- [x] Additional current Production read-back: Pass 2271–2280 `docs/audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md` and Pass 2281–2290 `docs/audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md` are linked below.
+- [ ] Keep SMM first-user bootstrap, confirmed-Auth boundaries, global Platform Admin, settlement, MantiGO bid acceptance, medical provider state, agreement participant scope and RC925 catalog RPCs blocked until coordinated release and deployed-origin tests pass.
+
+
+## 2026-11-24 — Final migration coverage checkpoint
+- [x] **82/82** required source migrations have current live read-back and explicit PASS/PARTIAL/BLOCKED dispositions in `docs/release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md`.
+- [x] **63/63** earlier source rows and **19/19** later hardening rows are accounted for; zero earlier source rows remain marked historical.
+- [x] PASS numbering is unique: current-main RC485–RC496 is PASS 2271–2280; RC921–RC925 is PASS 2281–2290; RC113–RC117 is PASS 2331–2340; RC102–RC106 is PASS 2341–2350.
+- [ ] This is evidence coverage, not security completion. Continue remediation of all BLOCKED/PARTIAL effects, exhaustive per-object dependency closure, Edge bundle parity, backups and restore rehearsal.
