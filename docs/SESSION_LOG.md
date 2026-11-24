@@ -4045,3 +4045,13 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Full Node validator execution, frontend/Edge build and runtime authorization tests remain unverified pending exact-head CI.
 - No Production or Android changes. PR #971 stays open/unmerged; Production blocked/not certified.
 - Audit: `docs/audits/PASS_2011_2020_API_ORDER_READ_SCOPE_RLS_PARITY_20261122.md`.
+
+
+## 2026-11-24 — Pass 2021–2030 — Li2Lak authenticated order assertion boundary
+- Re-read RC498's authenticated order integration test, migration and disposable fixture.
+- Confirmed the authenticated RPC test runs with the authenticated JWT subject and role, verifies authenticated EXECUTE and anon denial, and checks the persisted order only after `RESET ROLE`. The post-role assertion pins the expected customer UUID and authoritative EGP total of 125.
+- Strengthened `scripts/validate-rc497-business-reviews.mjs` so the committed source validator requires the persisted-order assertion to remain outside the authenticated role block and retain the ownership/price predicates.
+- Rechecked the cross-currency fixture and RPC predicate: the higher-version USD price (999) cannot supersede the EGP price (125) for an EGP business.
+- Eight focused source checks passed, including evaluating the validator's actual regex literal against the fetched SQL file. This is manual source-level evidence only; the Node validator and PostgreSQL 17 integration have not been executed here.
+- Audit: `docs/audits/PASS_2021_2030_LI2LAK_AUTHENTICATED_ORDER_ASSERTION_20261124.md`.
+- One validator source change plus the audit/TODO/session records are on PR #971's isolated branch. No Production database, Auth/RLS/GRANT, Storage, Edge Function, payment, wallet, customer-data or public deployment change. PR #971 remains open/unmerged; **PRODUCTION BLOCKED / NOT CERTIFIED**.
