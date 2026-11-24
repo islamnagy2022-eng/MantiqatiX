@@ -106,6 +106,8 @@ jobs:
         run: node scripts/validate-professional-dashboard.mjs
       - name: Validate additive subscriber account portal contract
         run: node scripts/validate-unified-account-portal.mjs
+      - name: Validate business-context navbar logo and fixed install icon
+        run: node scripts/validate-navbar-business-logo.mjs
       - name: Validate per-activity admin settings and audit contract
         run: node scripts/validate-activity-module-admin.mjs
       - name: Test professional dashboard permission matrix
