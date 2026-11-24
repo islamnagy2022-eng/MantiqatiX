@@ -25,6 +25,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 
 ### P0.2 Anonymous Auth and private profile boundaries
 - [ ] Reconcile RC479 and RC488–RC495 against live policy and ACL state.
+- [ ] Validate RC923's forward-only rejection of Anonymous Auth on the three remaining catalog RPCs; the disposable fixture must set both `request.jwt.claim` and `request.jwt.claims` to match Supabase `auth.jwt()` precedence.
 - [ ] Run PG17/JWT cases for raw anon, anonymous Auth session, confirmed user, owner and platform admin.
 - [ ] Preserve intentional public discovery and ad reads; no blanket policy denial or privilege revocation.
 - [ ] Keep leaked-password protection marked NOT AVAILABLE/NOT VERIFIED while the current plan does not expose the setting.
@@ -39,9 +40,9 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 
 ## P1 — Database and backend contracts
 ### P1.1 Migration reconciliation
-- [ ] Refresh the ordered mainline release manifest (79 identifiers at the 2026-11-24 checkpoint).
+- [ ] Refresh the ordered mainline release manifest (80 identifiers at the 2026-11-24 checkpoint).
 - [ ] Classify every migration by physical effect: exact-present, alias/effect-present, safe-to-replay, superseded/forward-fixed or blocked.
-- [ ] Reconcile functions, policies, ACLs, indexes, triggers and constraints; 0/79 exact ledger matches is not proof all effects are absent.
+- [ ] Reconcile functions, policies, ACLs, indexes, triggers and constraints; 0/80 exact ledger matches is not proof all effects are absent.
 - [ ] Run full chronological forward replay on GitHub Actions PostgreSQL 17 with required integration jobs.
 - [ ] Never blindly replay the release chain on Production.
 
