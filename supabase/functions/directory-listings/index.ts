@@ -218,6 +218,26 @@ Deno.serve(async (req: Request) => {
       return out(origin, { error: "INVALID_PAGE_CURSOR", message: "مؤشر تحميل النتائج غير صالح. أعد تحميل الدليل." }, 400);
     }
 
+    const governorate = clean(url.searchParams.get("governorate"), 100);
+    const district = clean(url.searchParams.get("district"), 100);
+    const village = clean(url.searchParams.get("village"), 100);
+    const address = clean(url.searchParams.get("address"), 250);
+    const specialty = clean(url.searchParams.get("specialty"), 160);
+    const functionalGroupId = clean(url.searchParams.get("functionalGroupId"), 100);
+    const taxonomyCategoryId = clean(url.searchParams.get("taxonomyCategoryId"), 180);
+    const taxonomySpecialty = clean(url.searchParams.get("taxonomySpecialty"), 160);
+    const search = sanitizeDirectoryPaginationSearch(url.searchParams.get("q"));
+
+    let addressVisibleIds: string[] | null = null;
+    if (address) {
+      const addressConsentState = await loadAddressConsentListingIds();
+      if (!addressConsentState.ready) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
+      addressVisibleIds = addressConsentState.ids;
+      if (!addressVisibleIds.length) {
+        return out(origin, { listings: [], nextCursor: null, hasMore: false, pageSize: limit });
+      }
+    }
+
     const scannedPage = await scanPublicDirectoryPageWithSourceRights({
       initialCursor: cursor,
       limit,
@@ -238,11 +258,7 @@ Deno.serve(async (req: Request) => {
         if (villageSearch) pageQuery = pageQuery.ilike("village", "%" + villageSearch + "%");
         if (address) {
           const addressSearch = sanitizeDirectoryPaginationSearch(address);
-          if (addressSearch) {
-            const addressConsentState = await loadAddressConsentListingIds();
-            if (!addressConsentState.ready) throw new Error("ADDRESS_CONSENT_LOOKUP_FAILED");
-            const addressVisibleIds = addressConsentState.ids;
-            if (!addressVisibleIds.length) return [];
+          if (addressSearch && addressVisibleIds) {
             pageQuery = pageQuery.in("id", addressVisibleIds).ilike("address", "%" + addressSearch + "%");
           }
         }
