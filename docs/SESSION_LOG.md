@@ -4305,3 +4305,8 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] RC117 marketing_services image columns, default-image functions and triggers absent. Null-safe membership unique index absent.
 - [x] Qadam Al-Saad seed present ACTIVE with 15 catalog items. No row details queried.
 - [x] Evidence: `PASS_2301_2310_RC116_RC117_MEMBERSHIP_INDEX_QADAM_RECHECK_20261124.md`.
+
+
+## 2026-11-24 — RC446/RC478 MantiGO open-ride readback
+- [x] Live open-ride RPC checks only actor UUID equality; lacks active/verified/available captain profile gate, explicit anonymous guard and matching vehicle category. It returns pickup and destination fields to authenticated callers.
+- [x] Report `PASS_2311_RC446_RC478_OPEN_RIDE_LOCATION_RECHECK_20261124.md`; no ride/customer rows or Production writes.
