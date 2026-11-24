@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: 10
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: mantiqatix_rc452_marketing_test
@@ -50,7 +50,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          pg_container="$(docker ps --filter 'ancestor=postgres:17' --format '{{.ID}}' | head -n 1)"
           test -n "$pg_container"
           docker cp supabase/tests/rc452_marketing_crm_scope_fixture.sql "$pg_container:/tmp/rc452_fixture.sql"
           docker cp supabase/migrations/20261010210000_rc452_marketing_crm_tenant_scope.sql "$pg_container:/tmp/rc452_migration.sql"
