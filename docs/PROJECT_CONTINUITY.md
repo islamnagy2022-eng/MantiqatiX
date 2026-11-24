@@ -3558,3 +3558,12 @@ Live status RPC remains pre-RC921; RC921 source merged in PR #1008 and exact-hea
 ## 2026-11-23 — RC479 forward migration added to required release chain
 
 The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main and passed its dedicated Postgres fixture, but was omitted from the required Production migration list. Added its exact version and filename to `live-reconciliation-contract.mjs`, `verify-production.mjs`, migration-chain validator and release manifest; total required versions now 78. Added RC479 release-contract assertions and forward replay validator wiring. Live migration remains unapplied. Confirmed-user base-table SELECT remains a separate residual exposure. No Production changes; BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-24 — Current continuation — Pass 2061–2070 no-cost security matrix
+- Production Security Advisor refreshed at 11:18 UTC; 90 anonymous-session policy findings across public/storage were reconciled to live policy and effective privilege metadata.
+- Current aggregate: 86 authenticated-permissive tables; 46 restrictive anonymous-claim tables; 40 without table-wide restrictive anonymous guard; 8 anon/public policy tables; 5 direct anon SELECT grants; 1 direct anon write grant; 56 authenticated SELECT grants; 18 authenticated write grants; 16 without FORCE RLS; 7 priority tables with authenticated writes and no restrictive anonymous-claim policy.
+- Seven test priorities: storage.objects, public.digital_page_sections, public.digital_pages, public.indrive_requests, public.marketing_leads, public.marketing_provider_profiles, public.notifications. These are not proven exploits; each needs per-command anonymous-JWT tests.
+- No paid Supabase branch was created. Keep Production read-only; use GitHub Actions/PostgreSQL fixtures for source and adversarial work. Defer paid branch/restore rehearsal to the final gate.
+- Audit: docs/audits/PASS_2061_2070_ANONYMOUS_AUTH_POLICY_MATRIX_20261124.md.
+- Full platform remains BLOCKED / NOT CERTIFIED.

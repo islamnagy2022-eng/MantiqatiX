@@ -5324,3 +5324,13 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Both RC479 migrations remain unapplied in live Production; verify raw anon and anonymous Auth-session denial after the coordinated release.
 - [ ] Confirmed-user base-table SELECT remains a separate privacy issue requiring curated projection/owner backend work.
 - Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-24 — Pass 2061–2070 — no-cost anonymous Auth policy recheck
+- [x] Refreshed Security Advisor at 2026-11-24 11:18 UTC and extracted all 90 anonymous-session policy findings across public/storage.
+- [x] Read-only live metadata matrix: 86/90 with authenticated permissive policies; 46/90 with restrictive is_anonymous claim policy; 40/90 without that table-wide restrictive guard; 8 with anon/public policies; 5 with direct anon SELECT; 1 with direct anon write privilege; 56 authenticated SELECT grants; 18 authenticated write grants; 16 without FORCE RLS; 7 priority tables combine authenticated write grants and no restrictive anonymous-claim policy.
+- [x] Reviewed policy expressions for the seven priority tables: storage.objects, digital_page_sections, digital_pages, indrive_requests, marketing_leads, marketing_provider_profiles, notifications. These are test priorities, not confirmed anonymous exploits.
+- [ ] Continue source-level review and add exact PostgreSQL 17 adversarial fixtures to free GitHub Actions; no paid Supabase branch created.
+- [ ] Defer paid branch, independent restore and measured RPO/RTO to the final release stage.
+- **Safety:** metadata-only Production reads; no row data, DDL/DML, Auth/RLS/GRANT, Storage, Edge, payments, or deployment changed. FULL PLATFORM remains BLOCKED / NOT CERTIFIED.
+- Audit: docs/audits/PASS_2061_2070_ANONYMOUS_AUTH_POLICY_MATRIX_20261124.md.
