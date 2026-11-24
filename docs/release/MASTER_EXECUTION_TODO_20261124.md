@@ -67,6 +67,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 
 ### P1.2 Edge parity
 - [x] Completed a read-only entrypoint comparison for 11 launch-relevant Edge Functions; 9 critical entrypoints differ from current main and 2 public-catalog entrypoints match. Audit: `docs/audits/PASS_2051_2060_EDGE_SOURCE_PARITY_20261124.md`.
+- [x] Rechecked payment/MantiGO/medical live RPC signatures, search_path and effective grants against RC468/471/474/475/496/921/922. RC468 finalizer is only 4 args vs expected 5; RC475 failure/subscription atomic RPCs absent; RC471 callers keep non-empty search_path; RC496 unique accepted-bid index and body guards absent; RC921/922 status RPC remains legacy. Evidence: `docs/audits/PASS_2181_2190_PAYMENT_MANTIGO_MEDICAL_RPC_CONTRACT_RECHECK_20261124.md`.
 - [x] Refreshed live versions, JWT modes, bundle file lists and direct imports for nine launch-critical Edge functions against current main. All nine entrypoints differ; payment-intent, subscription-payment-intent and settlement bundles are missing current shared modules; directory-listings v18 remains intentionally fail-closed. Evidence: `docs/audits/PASS_2151_2160_LIVE_EDGE_BUNDLE_RECHECK_20261124.md`.
 - [x] Read-only direct import graph and Production SQL/RPC/table/ACL snapshot completed for nine critical Edge functions; see `docs/audits/PASS_2061_2070_EDGE_DEPENDENCY_CLOSURE_20261124.md`.
 - [ ] Complete transitive import-map, function-body, grant and full dependency closure; no individual deployment before the full dependency slice passes.
