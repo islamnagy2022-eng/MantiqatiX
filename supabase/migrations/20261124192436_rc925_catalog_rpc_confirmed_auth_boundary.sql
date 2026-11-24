@@ -1009,6 +1009,7 @@ DECLARE
   v_oid oid;
   v_definition text;
   v_definition_compact text;
+  v_claim_pos integer;
 BEGIN
   FOREACH v_signature IN ARRAY ARRAY[
     'public.adjust_catalog_stock_backend(character varying,uuid,character varying,character varying,uuid,numeric,numeric,character varying,text)',
@@ -1026,7 +1027,12 @@ BEGIN
      WHERE p.oid = v_oid;
     v_definition_compact := pg_catalog.regexp_replace(v_definition, '[[:space:]]+', '', 'g');
 
-    IF pg_catalog.strpos(v_definition_compact, '(auth.jwt()->>''is_anonymous'')ISDISTINCTFROM''false''') = 0 THEN
+    v_claim_pos := pg_catalog.strpos(v_definition_compact, 'auth.jwt()->>''is_anonymous''');
+    IF v_claim_pos = 0
+       OR pg_catalog.strpos(
+            pg_catalog.substr(v_definition_compact, v_claim_pos),
+            'ISDISTINCTFROM''false'''
+          ) = 0 THEN
       RAISE EXCEPTION 'RC925_EXPLICIT_CONFIRMED_AUTH_GUARD_MISSING:%', v_signature;
     END IF;
     IF NOT pg_catalog.has_function_privilege('authenticated', v_oid, 'EXECUTE')
