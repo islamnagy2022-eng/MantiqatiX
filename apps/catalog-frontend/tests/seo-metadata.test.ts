@@ -110,5 +110,12 @@ test('SEO hook is restricted to the canonical root base path and no AI support a
   const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
   assert.match(appSource, /VITE_CANONICAL_BASE_PATH/);
   assert.match(appSource, /window\.location\.pathname === canonicalBasePath/);
+  assert.match(appSource, /window\.addEventListener\('popstate', syncRouteSeo\)/);
+  assert.match(appSource, /window\.addEventListener\('mantiqatix:routechange', syncRouteSeo\)/);
+  assert.match(appSource, /window\.removeEventListener\('mantiqatix:routechange', syncRouteSeo\)/);
+  const directorySource = readFileSync(new URL('../src/components/DirectoryView.tsx', import.meta.url), 'utf8');
+  const activitySource = readFileSync(new URL('../src/modules/activities/ActivityModuleView.tsx', import.meta.url), 'utf8');
+  assert.match(directorySource, /dispatchEvent\(new Event\('mantiqatix:routechange'\)\)/);
+  assert.match(activitySource, /dispatchEvent\(new Event\('mantiqatix:routechange'\)\)/);
   assert.doesNotMatch(appSource, /SupportAssistant|technical_support/);
 });
