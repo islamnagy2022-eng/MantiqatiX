@@ -6,7 +6,7 @@ const fixture = fs.readFileSync("supabase/tests/rc924_agreement_participant_read
 const integration = fs.readFileSync("supabase/tests/rc924_agreement_participant_read_scope_integration.sql", "utf8");
 
 assert.match(migration,/DROP POLICY IF EXISTS agreements_participant_read ON public\.agreements/i);
-assert.match(migration,/CREATE POLICY agreements_participant_read[\s\S]*?ON public\.agreements[\s\S]*?FOR SELECT TO authenticated/i);
+assert.match(migration,/CREATE POLICY agreements_participant_read[\s\S]*?ON public\.agreements[\s\S]*?FOR SELECT\\s+TO authenticated/i);
 assert.match(migration,/ap\.agreement_id\s*=\s*agreements\.id/i);
 assert.match(migration,/ap\.user_id\s*=\s*\(SELECT auth\.uid\(\)\)/i);
 assert.match(migration,/private\.legal_is_admin\(\(SELECT auth\.uid\(\)\)\)/i);
