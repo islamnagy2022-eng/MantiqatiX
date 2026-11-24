@@ -6112,5 +6112,90 @@
     ],
     "production_mutation": "NONE",
     "next_required": "Complete transitive import/config closure and bind each of the nine critical functions to exact DB/RPC/ACL/Edge contracts, then prepare coordinated deployment manifest; no individual function deployment."
+  },
+  "focused_physical_crosswalk_20261124": {
+    "status": "READ_ONLY_FOCUSED_RECHECK_MIXED_PHYSICAL_DRIFT",
+    "checked_at": "2026-11-24T19:45:00Z",
+    "migration_ledger": {
+      "rows": 310,
+      "latest": "20261110150618",
+      "required_versions": 81,
+      "exact_required_ids_found": 0,
+      "exact_required_ids_missing": 81
+    },
+    "sample_inventory": {
+      "tables_checked": 18,
+      "tables_present": 13,
+      "tables_absent": 5,
+      "indexes_checked": 12,
+      "indexes_present_valid": 3,
+      "indexes_absent": 9,
+      "columns_checked": 17,
+      "columns_present": 2,
+      "columns_absent": 15,
+      "function_families_checked": 15,
+      "function_families_absent": 11,
+      "function_families_present_but_contract_blocked": 4
+    },
+    "key_absent_objects": [
+      "public.mantigo_payment_provider_events",
+      "public.erp_purchase_order_lines",
+      "public.marketing_campaigns",
+      "public.marketing_campaign_participants",
+      "public.directory_listing_contact_consents",
+      "public.uq_payment_intents_one_active_per_order",
+      "public.smm_wallet_transactions_reference_type_uidx",
+      "public.journal_entries_tenant_entry_number_uidx",
+      "public.journal_entry_lines_entry_line_uidx",
+      "public.erp_purchase_orders_business_order_number_uidx",
+      "public.ux_user_memberships_user_business_branch_nullsafe",
+      "public.catalog_item_prices_item_branch_version_uidx",
+      "public.mantigo_bids_one_accepted_per_ride_idx",
+      "public.settlement_transactions_business_id_idx",
+      "public.subscription_payment_intents.provider_creation_state",
+      "public.subscription_payment_intents.provider_creation_claimed_at",
+      "public.subscription_payment_intents.client_secret_ciphertext",
+      "public.subscription_payment_intents.client_secret_iv",
+      "public.subscription_payment_intents.client_secret_key_version",
+      "public.journal_entries.entry_number",
+      "public.journal_entries.total_debit",
+      "public.journal_entries.total_credit",
+      "public.journal_entries.posted_at",
+      "public.journal_entries.updated_at",
+      "public.journal_entries.reversed_by_entry_id",
+      "public.journal_entry_lines.line_number",
+      "public.marketing_services.image_url",
+      "public.marketing_services.image_source",
+      "public.settlement_transactions.business_id"
+    ],
+    "present_but_contract_blocked": [
+      "private.platform_admins exists, RLS on, FORCE RLS off",
+      "public.finalize_digital_page_payment_intent_backend only has legacy 4-argument overload; expected 5-argument overload absent; service_role EXECUTE false",
+      "public.post_financial_journal_backend(uuid,jsonb,jsonb) exists, but service_role EXECUTE false and search_path=public",
+      "public.process_verified_digital_page_payment_backend exists, but search_path=public, pg_temp"
+    ],
+    "absent_function_families": [
+      "process_verified_mantigo_payment_backend",
+      "process_verified_provider_payment_failure",
+      "process_verified_subscription_payment_backend",
+      "process_verified_subscription_payment_failure",
+      "create_subscription_payment_intent_claimable_backend",
+      "claim_subscription_provider_intent_creation_backend",
+      "create_purchase_order_with_lines_backend",
+      "receive_purchase_stock_atomic_backend",
+      "set_purchase_order_lines_backend",
+      "post_financial_journal_atomic_backend",
+      "review_directory_listing_claim_atomic"
+    ],
+    "historical_76_object_snapshot": {
+      "checked_at": "2026-11-24T13:12:00Z",
+      "tracked": 76,
+      "present": 35,
+      "absent": 41,
+      "change_since_2026_11_20": 0
+    },
+    "limitation": "This is a focused sample, not the complete 81-migration object map. No alias has been marked resolved merely from object name presence; the full policy/owner/ACL/trigger/constraint/cross-module dependency map remains open.",
+    "production_mutation": "NONE",
+    "next_required": "Expand per-migration effects to every table/column/function/policy/index/constraint/trigger and imported Edge contract; classify exact/alias/semantic mismatch/safe-to-replay/superseded/blocked before any Production writes."
   }
 }
