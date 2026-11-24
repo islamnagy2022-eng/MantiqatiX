@@ -270,3 +270,11 @@ Fixture cases cover two independent partner users, an unrelated authenticated us
 - Corrected the validator to accept multiline SQL formatting and independently reran the source-level contract checks; all 12 source checks passed.
 - A new RC924 PostgreSQL 17 workflow run (`45406678966`) is queued against the corrected branch. The migration remains unaccepted until this run completes successfully.
 - Migration version uniqueness and cross-PR migration collision guards passed on the earlier source commit; the latest commit has a new set of workflows running/queued.
+
+
+### RBAC preflight — reuse existing permission authority
+- Production already has `public.mnty_platform_has_permission(text, varchar, uuid, varchar)`, SECURITY DEFINER with empty search_path, and EXECUTE granted to authenticated but not anon. It grants root authority only from `private.platform_admins`; scoped staff/role assignments are evaluated against tenant/business/branch and module/action permission JSON.
+- Existing membership role values include `BUSINESS_OWNER`, `OWNER`, `EMPLOYEE`, `STAFF`, `MANAGER`, `ADMIN`, `SUPER_ADMIN`, and `CUSTOMER`. Partner company ownership must be scoped to active memberships for the exact business; do not infer owner authority from a generic tenant role.
+- Current `platform_custom_roles` and `platform_role_assignments` have RLS + FORCE RLS; the inspected production role registries currently returned no custom role/scope rows. Partner module roles/permissions therefore need explicit setup through the existing role administration workflow before those custom roles can be relied on.
+- Proposed permission keys: `PARTNERS.READ`, `PARTNERS.MANAGE`, `PARTNERS.REVIEW`, `PARTNERS.CONTRACT_APPROVE`, `PARTNERS.FINANCE_READ`, `PARTNERS.FINANCE_APPROVE`, `PARTNERS.COMPLAINTS`. These are design names, not yet seeded or enabled.
+- Legal identifiers and uploaded documents should be restricted to the company owner and explicitly authorized legal roles; ordinary company employees should not receive them by default. Financial records should be separately gated to financial manager/approved company owner.
