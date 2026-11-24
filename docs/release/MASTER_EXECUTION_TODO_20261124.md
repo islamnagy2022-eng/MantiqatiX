@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
-**Base:** `main @ ed2f36ea61c0099619613c1d3e0bd4746a570bd4`  
+**Updated:** 2026-11-24 — 82-migration source/live crosswalk and P0.1/P0.2 read-only reconciliation  
+**Base:** `main @ da1b17ccbaeefd501dee1456bd76b3f3e39bbbd8`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -55,7 +55,8 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Refreshed all 76 previously tracked physical object contracts against Production on 2026-11-24 (tables, indexes, functions, columns, triggers): 35 present / 41 absent, zero status changes since the 2026-11-20 snapshot. Breakdown is in `docs/audits/PASS_2091_2100_PHYSICAL_OBJECT_REFRESH_20261124.md`.
 - [x] Added a focused live physical-effect sample: 18 relations (13 present / 5 absent), 12 indexes (3 present-valid / 9 absent), 17 columns (2 present / 15 absent), and 15 function families (11 absent / 4 present but contract-blocked). This is a timestamped 81-version pre-RC925 snapshot, not the full 82-version crosswalk. See `docs/audits/PASS_2161_2170_CURRENT_81_MIGRATION_PHYSICAL_EFFECT_RECHECK_20261124.md`.
 - [x] Confirmed three exact source-to-ledger SQL aliases by byte comparison and classified five historic baseline families as partial; no ledger repair or SQL replay occurred. See `docs/audits/PASS_2171_2180_HISTORICAL_MIGRATION_ALIAS_AND_PARTIAL_EFFECT_RECONCILIATION_20261124.md`.
-- [ ] Complete classification of all 82 required migrations by physical effect: exact-present, alias/effect-present, safe-to-replay, superseded/forward-fixed or blocked. Three exact aliases and five partial historic baselines are known; full crosswalk remains outstanding.
+- [x] Built `docs/release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md` from the canonical 82-file release list. The 19 later migrations (RC484, RC479 forward repair, RC485–RC496, RC921–RC925) were source-reviewed and directly checked against Production catalogs/policies; the earlier 63-source map remains historical and requires current live refresh.
+- [ ] Complete current live physical-effect classification for all 82 migrations: refresh the 63 earlier source rows and expand beyond the 76-object sample to every policy, constraint, trigger, overload, owner, ACL and transitive Edge dependency.
 - [ ] Complete the broader migration→physical effect/alias map beyond these 76 contracts: reconcile all remaining functions, policies, ACLs, indexes, triggers and constraints; 0/82 exact ledger matches is not proof all effects are absent.
 - [x] Run full chronological forward replay from the captured Production schema checkpoint; exact-head run 45407602805 passed after 117 forward migrations and ordered integration jobs. This is not a live Production restore/deployment.
 - [ ] Never blindly replay the release chain on Production.
@@ -117,13 +118,15 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 
 ## Current factual blockers
 - Live migration ledger: 310 entries through `20261110150618`; the current 82-version source manifest has 0/82 exact version identifiers recorded. This is an identity gap, not proof all physical effects are absent; aliases and actual catalog state still require per-object reconciliation. PR #1066 exact-head isolated replay passed run `45465702093`; Production remains unchanged and the exact source-version identity gap still needs physical-effect reconciliation.
-- `public.is_platform_admin()` remains SECURITY INVOKER with `search_path=public` and derives platform-wide authority from active tenant ADMIN/SUPER_ADMIN membership; 57 policies across 24 tables reference it.
+- `public.is_platform_admin()` remains SECURITY INVOKER with `search_path=public` and derives platform-wide authority from active tenant ADMIN/SUPER_ADMIN membership; 57 policies across 24 tables reference it. `private.platform_admins` RLS is on but FORCE RLS remains off.
 - `public.mnty_can_platform_admin()` remains SECURITY DEFINER with `search_path=public, pg_temp` and delegates to unscoped `mnty_can('admin',NULL,NULL,NULL)`; 5 policies across 3 tables and four SECURITY DEFINER callers depend on it.
 - Existing read-only high-risk SECURITY DEFINER contract: 9/14 expected search_path states fail in live Production (all 14 have anon EXECUTE=false and authenticated EXECUTE=true); the nine include the platform helper, four global-admin callers, and four MantiGO dashboard/settlement paths. No direct anon/authenticated write grants exist on five MantiGO core tables.
 - `private.platform_admins` has RLS enabled but FORCE RLS=false. The registry-backed forward migrations and seven-RPC RC485/RC923 contract are not applied to Production.
-- Of the seven direct catalog RPCs, four live definitions contain an anonymous-Auth guard and three (item upsert, price upsert, item-status update) do not. All seven deny direct `anon` EXECUTE but permit `authenticated` EXECUTE; all seven remain `search_path=public`.
+- Of the seven direct catalog RPCs, four live definitions use the legacy COALESCE anonymous-Auth guard and three (item upsert, price upsert, item-status update) have no claim guard. None requires `is_anonymous IS DISTINCT FROM 'false'`; all seven remain `search_path=public`. RC925 is source-only.
 - Directory consent registry and source-permission evidence are absent; the directory endpoint remains fail-closed.
+- RC924 live agreement read policy is unsafe/incomplete: the restrictive confirmed-auth policy is absent, and the existing permissive participant policy correlates `ap.agreement_id = ap.id` instead of the parent agreement row.
 - Supabase Auth leaked-password protection is disabled; 47 of 65 authenticated-callable SECURITY DEFINER functions still have non-empty search_path (30 public, 17 public, pg_temp); 0 are unset. Prioritize 17 public, pg_temp entries and the P0 mnty_can_platform_admin() helper; targeted review only, not blanket changes.
+- RC487's SMM first-user bootstrap trigger/function remain live; RC488–RC493 restrictive policies are absent; RC494 settlement business scope is absent; RC495 Storage policies remain legacy; RC496 accepted-bid unique index is absent; RC921/RC922 medical status RPC remains legacy.
 - Some critical Edge Functions are behind current-main contracts.
 - Independent encrypted backup/restore, Auth/Vault coverage and measured RPO/RTO are not verified.
 - Li2Lak candidate has prior successful partial checks, but its latest source requires complete exact-head test evidence after rebasing; Paymob remains fail-closed.
@@ -215,3 +218,12 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Reconfirmed key present-but-blocked objects: `private.platform_admins` FORCE RLS remains off; `public.is_platform_admin()` remains SECURITY INVOKER/search_path=public and membership-derived; `public.mnty_can_platform_admin()` remains SECURITY DEFINER/search_path=public, pg_temp.
 - [x] Reconfirmed Production ledger at 310 rows through `20261110150618`; no database, ACL, RLS, Auth, Storage, Edge, payment or business-data write occurred.
 - [ ] Expand the curated 76-object sample into the full physical-effect/alias map for all 82 required source versions, including every policy, constraint, trigger, overload and transitive Edge dependency.
+
+
+## 2026-11-24 — 82-migration source/live effect reconciliation
+- [x] Reviewed the 19 required migration files added after the historical 63-source crosswalk (RC484, RC479 forward repair, RC485–RC496, RC921–RC925) and checked their expected effects against live Production catalogs and policy definitions.
+- [x] Confirmed 30 new policy targets: 29 expected restrictive policies are absent; the one existing agreements_participant_read policy is permissive and has a wrong parent-row correlation. RC495's five named Storage policies exist but retain old membership-based authorization and filename predicates.
+- [x] Confirmed all seven catalog RPC signatures exist, but none uses the explicit RC925 false-claim guard; four still use COALESCE and three have no claim guard. All seven remain search_path=public.
+- [x] Confirmed RC487's SMM bootstrap trigger/function remain present; RC486 and RC496 required unique indexes are absent; RC494 settlement business_id column/index are absent; RC921/RC922 medical status function remains on the old search_path/body.
+- [x] Created `docs/release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md`. Historical 63-source rows are explicitly labeled historical; 19 later rows have current live read-back evidence.
+- [ ] Continue full 82-migration live physical-effect mapping and coordinated DB/Edge release dependency closure. Production remains read-only.
