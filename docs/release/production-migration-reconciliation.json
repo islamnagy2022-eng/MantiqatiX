@@ -7121,5 +7121,30 @@
     },
     "production_mutation": "NONE",
     "report": "docs/audits/PASS_2301_2310_RC116_RC117_MEMBERSHIP_INDEX_QADAM_RECHECK_20261124.md"
+  },
+  "rc446_rc478_open_ride_recheck_20261124": {
+    "status": "READ_ONLY_SOURCE_TO_LIVE_DIFF_CONFIRMED",
+    "checked_at": "2026-11-24",
+    "live_function": {
+      "present": true,
+      "security_definer": true,
+      "search_path": "public",
+      "anon_execute": false,
+      "authenticated_execute": true,
+      "auth_uid_match": true,
+      "active_captain_profile_check": false,
+      "verified_check": false,
+      "availability_check": false,
+      "anonymous_auth_guard": false,
+      "vehicle_category_filter": false,
+      "returns_pickup_destination": true
+    },
+    "source_contract": {
+      "RC446": "active, verified, available captain profile required",
+      "RC478": "explicit non-anonymous Auth guard and matching vehicle category required"
+    },
+    "disposition": "P0_LOCATION_DISCLOSURE_BLOCKER",
+    "production_mutation": "NONE",
+    "report": "docs/audits/PASS_2311_RC446_RC478_OPEN_RIDE_LOCATION_RECHECK_20261124.md"
   }
 }
