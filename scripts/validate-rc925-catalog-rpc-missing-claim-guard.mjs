@@ -70,7 +70,18 @@ assert.doesNotMatch(
 assert.match(integration, /'role','authenticated'/);
 assert.match(integration, /auth\.uid\(\) IS DISTINCT FROM v_actor/);
 assert.match(integration, /\(auth\.jwt\(\)\s*->>\s*'is_anonymous'\) IS NOT NULL/);
-assert.match(integration, /RC925 missing is_anonymous claim denied by all seven catalog RPCs: PASS/);
+assert.match(integration, /RC925 confirmed-user and missing-claim boundaries verified across all seven catalog RPCs: PASS/);
+assert.match(integration, /'is_anonymous',false/);
+const confirmedUserMarkers = [
+  "RC925_CONFIRMED_USER_REJECTED_ADJUST_STOCK",
+  "RC925_CONFIRMED_USER_REJECTED_CREATE_WAREHOUSE",
+  "RC925_CONFIRMED_USER_REJECTED_UPSERT_ITEM",
+  "RC925_CONFIRMED_USER_REJECTED_UPSERT_PRICE",
+  "RC925_CONFIRMED_USER_REJECTED_UPSERT_SETTINGS",
+  "RC925_CONFIRMED_USER_REJECTED_UPDATE_STATUS",
+  "RC925_CONFIRMED_USER_REJECTED_UPSERT_PROFILE",
+];
+for (const marker of confirmedUserMarkers) assert.ok(integration.includes(marker), `confirmed-user compatibility test missing: ${marker}`);
 const missingClaimMarkers = {
   adjust_catalog_stock_backend: "ADJUST_STOCK",
   create_catalog_warehouse_backend: "CREATE_WAREHOUSE",
@@ -118,4 +129,4 @@ assert.ok(
   "backup runbook validator must use 82 required migrations",
 );
 
-console.log("RC925 explicit confirmed-identity catalog RPC contract: PASS (7 RPCs, missing claim denied, ACLs preserved)");
+console.log("RC925 explicit confirmed-identity catalog RPC contract: PASS (7 RPCs; missing claim denied; confirmed-user identity gate preserved; ACLs preserved)");
