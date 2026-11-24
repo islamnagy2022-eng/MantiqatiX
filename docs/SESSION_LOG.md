@@ -4240,3 +4240,10 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] RC449 global admin functions present but old scope/path contract; RC449A journal schema and lookup index absent; RC450 journal RPC present but service_role grant/path mismatch; RC451 targeted ads function empty-path/public-anon contract passes.
 - [x] Full evidence in `PASS_2231_2240_RC442_RC451_LIVE_CONTRACT_RECHECK_20261124.md`; no Production changes.
 - [ ] Continue RC452–RC453 and subsequent hardening release migrations.
+
+
+## 2026-11-24 — RC452–RC453 CRM and marketing campaign live recheck
+- [x] RC452 CRM manager read policies still omit source tenant/business row correlation and explicit platform full_control criteria; provider profile's separate anon ACTIVE base-table read remains tracked separately.
+- [x] RC453 campaign tables, four indexes, and five exact RPC signatures absent in Production. Source is an internal campaign workflow and does not publish externally to Meta/TikTok/Google.
+- [x] Evidence: `PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md`.
+- [x] No Production change; migration ledger remains 310 rows through `20261110150618`.
