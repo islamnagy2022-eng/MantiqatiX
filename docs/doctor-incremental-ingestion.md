@@ -135,3 +135,7 @@ Do not change the historical migration file, manually edit `schema_migrations` w
 
 ### Status
 **IN PROGRESS — coverage baseline documented; additional locality ingestion is blocked until a suitable source/owner-consent basis is recorded and approved.** No doctor rows were inserted or modified by this inventory update.
+
+
+### 2026-11-24 migration alias status update
+The source/ledger mismatch for `20261101150000_directory_source_permission_evidence.sql` is now confirmed as an exact statement alias of Production ledger row `20261101140105` (`directory_source_permission_evidence`): source blob `3f2e0a480d7234171c3ea5359a21d3451b92d150`, one stored statement, 3,558 bytes, exact match. This is the third confirmed source alias across the release set. The existing ledger row is preserved; no `schema_migrations` edit, SQL replay, or ledger repair was performed. Any formal history reconciliation must use a supported controlled migration-repair workflow after current backup/restore and rollback gates are satisfied.
