@@ -127,6 +127,7 @@
 - [PASS 2241–2250](../audits/PASS_2241_2250_RC452_RC453_CRM_CAMPAIGNS_LIVE_RECHECK_20261124.md) — CRM tenant scope and internal campaign workflow.
 - [PASS 2201–2210](../audits/PASS_2201_2210_PHYSICAL_OBJECT_RECHECK_20261124.md) — detailed 76-object curated presence and function ACL read-back.
 - [PASS 2331–2340](../audits/PASS_2331_2340_RC484_RC496_PLATFORM_CATALOG_AUTH_STORAGE_FINANCE_RECHECK_20261124.md) — RC484–RC496 platform root, catalog, SMM bootstrap, Auth/Storage/finance and MantiGO bid state.
+- [PASS 2271–2280](../audits/PASS_2271_2280_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md) — RC113–RC116 control-center/employee schema, valid indexes, registry-backed RPC metadata; RC113 null-safe membership index and all RC117 default-image triggers/columns remain absent.
 - [PASS 2281–2290](../audits/PASS_2281_2290_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md) — provider-service grants and order branch/idempotency/service-role boundaries.
 - [PASS 2341–2350](../audits/PASS_2341_2350_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md) — RC921–RC925 medical state machine, agreement participant scope and catalog missing-claim fail-closed boundary.
 - [PASS 2291–2300](../audits/PASS_2291_2300_RC446_RC456_RC463_RC525_LIVE_RECHECK_20261124.md) — MantiGO open rides, SMM service-role grants, trigger ACL and digital-page product scope.
