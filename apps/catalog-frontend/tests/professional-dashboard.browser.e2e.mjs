@@ -543,8 +543,6 @@ if (new URL(baseUrl).origin === 'https://islamnagy2022-eng.github.io') {
     } finally { await context.close(); }
   }
 }
-  } finally { await context.close(); }
-}
 
 async function auditAccessibility(page, label) {
   const axePath = process.env.AXE_CORE_SCRIPT;
