@@ -21,7 +21,6 @@
 - Fresh SQL comparison against all 79 identifiers: **0/79 present** in the live ledger.
 - This is an exact-ledger result, not proof that every intended schema effect is absent; reconcile existing objects, historical aliases, grants, and function bodies before any replay.
 - `public.directory_listing_contact_consents` is absent.
-- `public.migration_release_registry` and `private.migration_release_registry` are absent.
 - No Production migration, schema, Auth, RLS, GRANT, Storage, Edge, payment, wallet, settlement, or customer-data mutation was performed.
 
 ## 3. Platform-root authorization — P0
