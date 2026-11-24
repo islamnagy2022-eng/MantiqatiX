@@ -18,7 +18,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 ### P0.1 Platform-root authorization
 - [ ] Reconcile live `is_platform_admin()` and `mnty_can_platform_admin()` with RC464, RC471, RC484, RC485 and RC923 source.
 - [ ] Test the ordered migration set on disposable PostgreSQL 17 using repo CI. Preserve the 57-policy / 24-table dependency map.
-- [ ] Test RC923 anonymous-session denial for all seven catalog RPCs on the full chronological 80-version PostgreSQL 17 replay.
+- [x] RC923 Anonymous Auth denial passed on `main` commit `751367f7ea6a7290e5c62bbff5f1979ee456dc20`: the full chronological 80-version replay and post-migration integration rejected Anonymous Auth on all seven catalog RPCs while preserving the RC486 price-serialization lock.
 - [ ] Test registered platform admin allow; tenant ADMIN/OWNER/SUPER_ADMIN without registry deny; inactive membership deny; cross-tenant/business/branch deny; tenant-local access still works.
 - [ ] Assert function ownership, empty `search_path`, grants, FORCE RLS and caller coverage in tests.
 - [ ] Prepare one coordinated migration bundle and post-release read-back. Do not hot-patch or apply it to Production in this phase.
@@ -43,7 +43,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Refresh the ordered mainline release manifest (80 identifiers at the 2026-11-24 checkpoint).
 - [ ] Classify every migration by physical effect: exact-present, alias/effect-present, safe-to-replay, superseded/forward-fixed or blocked.
 - [ ] Reconcile functions, policies, ACLs, indexes, triggers and constraints; 0/80 exact ledger matches is not proof all effects are absent.
-- [ ] Run full chronological forward replay on GitHub Actions PostgreSQL 17 with required integration jobs.
+- [x] Full chronological PostgreSQL 17 replay passed in GitHub Actions run [45393984396](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45393984396); 116 migrations after the captured schema checkpoint applied in the isolated local Supabase environment. This is not a Production migration.
 - [ ] Never blindly replay the release chain on Production.
 
 ### P1.2 Edge parity
@@ -99,6 +99,8 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] After approval, release the coordinated DB + Edge set in a controlled window and run deployed-origin security/privacy/payment smoke tests.
 - [ ] Mark FULL_PLATFORM_GATE PASS only with evidence for every mandatory item; otherwise retain BLOCKED / NOT CERTIFIED.
 
+- [x] RC923 full-chain replay and seven direct Anonymous Auth denial cases passed on main commit `751367f7ea6a7290e5c62bbff5f1979ee456dc20` (116 migrations; run 45393984396); no Production mutations. Evidence: `docs/audits/PASS_2071_2080_RC923_FULL_REPLAY_20261124.md`.
+
 ## Current factual blockers
 - Live migration ledger: 310 entries through `20261110150618`; exact required-ID intersection was 0/79 at this checkpoint, with physical effects still requiring reconciliation.
 - Both platform-root helpers remain membership-derived in Production; registry FORCE RLS is false.
@@ -121,4 +123,4 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Re-read live authorization definitions and measured 57 policies across 24 tables.
 - [x] Verified existing historical RC464/RC484/RC922 test evidence; did not mislabel historical runs as current full release certification.
 - [x] Completed a read-only direct dependency closure pass for nine critical Edge functions; no Production Edge or database changes.
-- [ ] Next: finish transitive bundle/import-map and exact SQL/ACL closure, then prepare coordinated testable release slices.
+- [ ] Next: finish transitive Edge bundle/import-map and exact SQL/ACL closure, then verify the current deployed-origin browser run; keep backup/restore and all Production deployment steps in P6.
