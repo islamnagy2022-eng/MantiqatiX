@@ -4253,3 +4253,10 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] Preserved current-main audits: PASS 2291–2300 (RC446/456/463/525), PASS 2301–2310 (RC464–470), PASS 2311–2320 (RC471–478), and PASS 2321–2330 (Qadam/RC479–483). These latest main reports supersede duplicate older summaries of the same migration range.
 - [x] Additional read-only reports: PASS 2271–2280 (RC485–496 catalog, SMM bootstrap, Storage/confirmed-Auth, settlement and MantiGO bid acceptance) and PASS 2281–2290 (RC921–925 medical state, agreement participant scope and catalog claim guards).
 - [x] Production ledger remains 310 rows through `20261110150618`; no Production write was performed. Full release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-24 — RC102–RC106 and RC117 current live recheck
+- [x] RC102 provider-service authenticated write grants absent. RC103 live order-status lacks exact branch matching and fully unscoped owner/admin requirement. RC104 replay remains tenant+key only without customer/business/branch comparison.
+- [x] RC105/106 service_role-only live RPC bodies lack source's auth.role service-role exception and still require auth.uid to equal the supplied actor.
+- [x] RC117 historical/current discrepancy: image_url was reported present 2026-11-14, but both image_url and image_source are absent in the fresh 2026-11-24 schema check; helper/triggers absent.
+- [x] Evidence: `PASS_2331_2340_RC102_RC106_RC117_CURRENT_LIVE_RECHECK_20261124.md`; no Production changes.
