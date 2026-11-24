@@ -1,3 +1,21 @@
+## 2026-11-24 — Paymob signed order vs unsigned selector integrity gate
+- [x] Confirmed deployed Paymob webhook v10 HMAC-SHA512 signed fields include order.id but omit merchant_order_id.
+- [x] Confirmed deployed webhook selects records through merchant_order_id after HMAC verification and lacks stored provider_order_id equality checks across standard, digital-page and subscription branches.
+- [x] Confirmed current-main webhook performs the equality check for all three paths before invoking RPC processors.
+- [ ] Add sandbox replay negative test: valid signed callback for order A with altered unsigned merchant_order_id targeting pending order B with equal amount/currency must be rejected and leave both records untouched; repeat across standard/digital-page/subscription.
+- No Production payments or data changed; this is a code-path integrity risk, not evidence of exploitation.
+
+## 2026-11-24 — Live Edge↔RPC↔migration dependency closure
+- [x] Rechecked 17 required payment/digital-page/subscription/ERP/journal/settlement migration IDs in Production schema_migrations; all 17 absent. Live ledger is still 310 rows through 20261110150618.
+- [x] Verified subscription claim RPCs absent and all five claim/encrypted-checkout columns absent. Legacy subscription creation remains present, but the current-main Edge uses the absent claimable/atomic RPCs.
+- [x] Verified journal schema lacks entry_number, total_debit, total_credit, posted_at and line_number. Both journal RPCs exist as owner-only SECURITY DEFINER functions; service_role and authenticated EXECUTE are false, while current-main financial-journal uses a service-role client.
+- [x] Verified ERP line-aware receive RPC and erp_purchase_order_lines table absent. Current-main ERP Edge requires the missing RC437 contract; RC434/RC437/RC438 are absent.
+- [x] Verified settlement_transactions.business_id absent; existing settlement writer has service_role EXECUTE, but RC494 and registry/root authorization closure remain outstanding.
+- [x] Re-read Paymob functions: digital-page processor accepts p_provider_order_id but updates it after order selection without stored-ID equality check; four-argument finalizer remains live. Standard success processor lacks RC475 reconciliation postcondition and failure processors are absent. The current-main webhook contains pre-RPC stored-order-ID equality checks for standard, digital-page and subscription.
+- [x] Documented exact RPC/ACL/schema map in docs/audits/PASS_2381_2390_EDGE_RPC_PRODUCTION_DEPENDENCY_RECHECK_20261124.md and docs/release/EDGE_RPC_PRODUCTION_DEPENDENCY_MATRIX_20261124.md.
+- [ ] Continue with exact isolated migrations + negative/positive DB/Edge contract tests; Production stays read-only.
+- Production mutations: NONE. FULL_PLATFORM_GATE remains BLOCKED / NOT CERTIFIED.
+
 ## 2026-11-24 — Fresh Production Edge runtime source-parity read-back
 - [x] Read current Supabase Edge versions and deployed source for 15 launch/public/administrative functions; no deployment was attempted.
 - [x] Confirmed nine launch-critical entrypoints differ from current main: payment-intent, paymob-webhook, digital-page-payment-intent, subscription-payment-intent, settlement-financial-atomic, financial-journal, order-create, catalog-admin and erp-purchase-receive.

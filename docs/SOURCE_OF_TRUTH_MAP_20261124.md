@@ -1,5 +1,5 @@
 # MantiqatiX — Unified Source of Truth Map
-**Checkpoint:** 2026-11-24 — main `00a8d369ccc8d5b1fb6ef29db87178c65ebddd27`  
+**Checkpoint:** 2026-11-24 — main `c802c01c639c9d64919c2cb90c64815843cac089`  
 **Operating directive:** [MASTER_SOURCE_OF_TRUTH.md](./MASTER_SOURCE_OF_TRUTH.md)  
 **Canonical repository:** `islamnagy2022-eng/MantiqatiX`  
 **Production Supabase:** `MANTIQATIX FINAL` / `moyhiluyhjsujhwlyeuu`
@@ -84,3 +84,9 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - [PASS 2371–2380](./audits/PASS_2371_2380_EDGE_RUNTIME_SOURCE_PARITY_20261124.md) confirmed nine launch-critical Edge entrypoint mismatches, two public-catalog entrypoint matches, three additional runtime differences and the intentionally fail-closed `directory-listings` v18 stub.
 - Entry-point parity does not certify the complete compiled bundle, external imports or runtime dependencies. No individual Edge deployment is permitted before DB/RPC/ACL parity and deployed-origin E2E.
 - Production Edge functions remain unchanged; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+## Latest Edge ↔ RPC ↔ migration contract — 2026-11-24
+- [PASS 2381–2390](./audits/PASS_2381_2390_EDGE_RPC_PRODUCTION_DEPENDENCY_RECHECK_20261124.md) records a fresh read-only Production inventory: 17 required migration IDs absent; subscription claim and ERP line-receive RPCs absent; five journal columns and the purchase-order-line table absent; journal service-role EXECUTE denied; settlement business scope incomplete.
+- [Edge/RPC dependency matrix](./release/EDGE_RPC_PRODUCTION_DEPENDENCY_MATRIX_20261124.md) maps each deployment slice to its exact source migrations, Edge entrypoints, RPCs and ACL requirements.
+- HIGH payment-integrity blocker: deployed Paymob HMAC-SHA512 signs order.id but not merchant_order_id; deployed webhook v10 selects by the unsigned field and lacks stored provider_order_id equality checks for standard/digital-page/subscription flows. A valid signed event may be misbound to a different pending row if the selector is altered and amount/currency match. No exploitation is known. Current main rejects this by checking stored provider_order_id against signed order.id before each processor. A sandbox altered-selector replay test is mandatory before release.
+- All SQL and Edge checks were read-only. No Production migration, ACL, payment, settlement or function deployment occurred. FULL_PLATFORM_GATE remains BLOCKED / NOT CERTIFIED.
