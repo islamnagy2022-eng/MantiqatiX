@@ -130,3 +130,12 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - Current canonical source/live-effect crosswalk: [REQUIRED_83_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md](./release/REQUIRED_83_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md). Preserve the 82-source November 24 file as a historical snapshot; do not rewrite it.
 - Current direct Production recheck: [PASS 2441–2450](./audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md). It confirms 310 migration rows through `20261110150618`, 0/83 exact IDs; provider-profile anon SELECT remains effective; Platform Admin registry FORCE RLS remains off; old global helper remains membership-derived; and RC486 price concurrency objects remain absent.
 - All evidence above is read-only or isolated CI. RC926 remains not applied; no Production grants, policies, migration, Edge, payment or business data were changed. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains authoritative.
+
+
+## 2026-11-25 — Free-plan backup and recovery readiness
+
+- Organization `manteqti` is confirmed on the Free plan; no automatic daily DB backup is included. Current Supabase docs direct Free projects to owner-created CLI dumps and off-site copies.
+- The CLI logical dump excludes Supabase-managed `auth`, `storage` and extension schemas; it is not a complete Supabase project backup. Storage object bytes are always a separate export. Auth user/identity and Vault recovery need a separately proven method.
+- No owner-created export artifact or independent restore drill was available in the connected workspace. This state is **UNKNOWN / NOT EVIDENCED**, not assumed absent.
+- Corrected runbook: [PRODUCTION_BACKUP_RESTORE_DRILL_20261124.md](./release/PRODUCTION_BACKUP_RESTORE_DRILL_20261124.md). Evidence: [PASS 2451–2460](./audits/PASS_2451_2460_FREE_PLAN_BACKUP_RESTORE_CAPABILITY_20261125.md).
+- No project/branch or paid resource was created, no backup was exported, and no Production mutation occurred. Backup/restore and measured RPO/RTO remain hard release blockers.
