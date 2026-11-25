@@ -12,7 +12,7 @@ assert.match(migration, /um\.business_id is null[\s\S]*?in \('SUPER_ADMIN', 'ADM
 assert.match(migration, /um\.tenant_id = b\.tenant_id/);
 assert.match(migration, /um\.tenant_id = 'MNTY-PLATFORM'/);
 assert.match(migration, /um\.permissions->>'full_control'/);
-assert.match(migration, /coalesce\(um\.permissions->>'full_control','false'\) = 'true'/);
+assert.match(migration, /coalesce\(um\.permissions->>'full_control',\s*'false'\) = 'true'/);
 assert.doesNotMatch(migration, /permissions->>'full_control'\)::boolean/);
 assert.match(migration, /upper\(coalesce\(marketing_provider_profiles\.status,''\)\) = 'ACTIVE'/);
 assert.match(migration, /upper\(coalesce\(um\.role,''\)\) in \('SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER'\)/);
