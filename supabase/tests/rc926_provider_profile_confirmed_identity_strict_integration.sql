@@ -1,3 +1,48 @@
+-- The full chronological replay starts from a schema-only Production checkpoint.
+-- It has no provider-profile rows. Seed only deterministic disposable test data here.
+-- The RC479 unit fixture already has the row, so this is an idempotent upsert.
+DO $fixture$
+DECLARE
+  v_owner uuid := 'f7914ac7-4b03-4456-afdd-e386f2ac6a5b';
+  v_id uuid := '10000000-0000-4000-8000-000000000001';
+  v_has_full_schema boolean;
+BEGIN
+  IF pg_catalog.to_regclass('auth.users') IS NOT NULL
+     AND NOT EXISTS (SELECT 1 FROM auth.users WHERE id=v_owner) THEN
+    RAISE EXCEPTION 'RC926_DISPOSABLE_OWNER_AUTH_USER_FIXTURE_MISSING';
+  END IF;
+
+  SELECT EXISTS (
+    SELECT 1
+      FROM information_schema.columns
+     WHERE table_schema='public'
+       AND table_name='marketing_provider_profiles'
+       AND column_name='provider_kind'
+  ) INTO v_has_full_schema;
+
+  IF v_has_full_schema THEN
+    INSERT INTO public.marketing_provider_profiles
+      (id,provider_kind,business_id,owner_user_id,name_ar,slug,status,settings)
+    VALUES
+      (v_id,'OFFICIAL',NULL,v_owner,'RC926 Synthetic Provider','rc926-synthetic-provider','ACTIVE','{"test_fixture":true}'::jsonb)
+    ON CONFLICT (id) DO UPDATE
+      SET business_id=NULL,
+          owner_user_id=EXCLUDED.owner_user_id,
+          status='ACTIVE',
+          settings=EXCLUDED.settings;
+  ELSE
+    INSERT INTO public.marketing_provider_profiles
+      (id,owner_user_id,name_ar,settings,status)
+    VALUES
+      (v_id,v_owner,'RC926 Synthetic Provider','{"test_fixture":true}'::jsonb,'ACTIVE')
+    ON CONFLICT (id) DO UPDATE
+      SET owner_user_id=EXCLUDED.owner_user_id,
+          settings=EXCLUDED.settings,
+          status='ACTIVE';
+  END IF;
+END;
+$fixture$;
+
 -- RC926 adversarial regression. Disposable PostgreSQL / Supabase replay only.
 -- Tests raw anon, Anonymous Auth, missing claim, confirmed user and owner DML compatibility.
 
@@ -92,7 +137,7 @@ RESET ROLE;
 SET ROLE authenticated;
 SELECT set_config(
   'request.jwt.claims',
-  '{"sub":"20000000-0000-4000-8000-000000000001","role":"authenticated","is_anonymous":false}',
+  '{"sub":"f7914ac7-4b03-4456-afdd-e386f2ac6a5b","role":"authenticated","is_anonymous":false}',
   false
 );
 DO $owner_update$
