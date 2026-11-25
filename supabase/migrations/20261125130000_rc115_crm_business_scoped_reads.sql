@@ -5,17 +5,16 @@ create policy "CRM managers view marketing leads"
   using (
     coalesce(auth.jwt()->>'is_anonymous','false') <> 'true'
     and (
-      requester_user_id = auth.uid()
-      or exists (
-      select 1 from public.user_memberships um
-      where um.user_id = auth.uid()
-        and um.tenant_id = 'MNTY-PLATFORM'
-        and um.status = 'ACTIVE'
-        and upper(coalesce(um.role,'')) in ('SUPER_ADMIN','ADMIN')
-        and coalesce(um.permissions->>'scope','') = 'PLATFORM'
-        and coalesce(um.permissions->>'full_control','false') = 'true'
-    )
-    or (
+      exists (
+        select 1 from public.user_memberships um
+        where um.user_id = auth.uid()
+          and um.tenant_id = 'MNTY-PLATFORM'
+          and um.status = 'ACTIVE'
+          and upper(coalesce(um.role,'')) in ('SUPER_ADMIN','ADMIN')
+          and coalesce(um.permissions->>'scope','') = 'PLATFORM'
+          and coalesce(um.permissions->>'full_control','false') = 'true'
+      )
+      or (
       requester_business_id is not null
       and exists (
         select 1
@@ -46,15 +45,15 @@ create policy "CRM managers view marketing providers"
     coalesce(auth.jwt()->>'is_anonymous','false') <> 'true'
     and (
       exists (
-      select 1 from public.user_memberships um
-      where um.user_id = auth.uid()
-        and um.tenant_id = 'MNTY-PLATFORM'
-        and um.status = 'ACTIVE'
-        and upper(coalesce(um.role,'')) in ('SUPER_ADMIN','ADMIN')
-        and coalesce(um.permissions->>'scope','') = 'PLATFORM'
-        and coalesce(um.permissions->>'full_control','false') = 'true'
-    )
-    or (
+        select 1 from public.user_memberships um
+        where um.user_id = auth.uid()
+          and um.tenant_id = 'MNTY-PLATFORM'
+          and um.status = 'ACTIVE'
+          and upper(coalesce(um.role,'')) in ('SUPER_ADMIN','ADMIN')
+          and coalesce(um.permissions->>'scope','') = 'PLATFORM'
+          and coalesce(um.permissions->>'full_control','false') = 'true'
+      )
+      or (
       business_id is not null
       and exists (
         select 1
