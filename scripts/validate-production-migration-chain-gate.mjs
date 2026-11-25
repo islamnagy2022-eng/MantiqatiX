@@ -88,9 +88,10 @@ const required = [
   "20261123221950_rc922_medical_appointment_tenant_wide_provider_scope.sql",
   "20261124121348_rc923_catalog_rpc_anonymous_auth_guard.sql",
   "20261124140000_rc924_agreement_participant_read_scope.sql",
-  "20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql"
+  "20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql",
+  "20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql"
 ];
-assert.equal(required.length, 82, "release gate must track all distinct required post-RC424 migration effects, including RC464B, both RC479 migrations, RC476–RC496, RC921, RC922, RC923, RC924 and RC925");
+assert.equal(required.length, 83, "release gate must track all distinct required post-RC424 migration effects, including RC464B, both RC479 migrations, RC476–RC496, RC921, RC922, RC923, RC924, RC925 and RC926");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");
@@ -141,6 +142,7 @@ const rc496Validator = fs.readFileSync("scripts/validate-rc496-mantigo-bid-accep
 const rc921Validator = fs.readFileSync("scripts/validate-rc921-medical-appointment-state-machine.mjs", "utf8");
 const rc922Validator = fs.readFileSync("scripts/validate-rc922-medical-tenant-wide-provider-scope.mjs", "utf8");
 const rc479Validator = fs.readFileSync("scripts/validate-rc479-anonymous-auth-session-boundary.mjs", "utf8");
+const rc926Validator = fs.readFileSync("scripts/validate-rc926-provider-profile-confirmed-identity-strict-guard.mjs", "utf8");
 const forwardReplay = fs.readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
 const rc486Validator = fs.readFileSync("scripts/validate-rc486-catalog-price-version-serialization.mjs", "utf8");
 const rc487Validator = fs.readFileSync("scripts/validate-rc487-smm-first-user-bootstrap-removal.mjs", "utf8");
@@ -167,6 +169,9 @@ assert.ok(forwardReplay.includes("node scripts/validate-rc922-medical-tenant-wid
 assert.ok(forwardReplay.includes("supabase/tests/rc922_medical_status_integration.sql"), "forward replay must run RC922 adversarial integration tests");
 assert.ok(rc479Validator.includes("20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql"), "RC479 validator must pin the anonymous Auth-session forward migration");
 assert.ok(forwardReplay.includes("node scripts/validate-rc479-anonymous-auth-session-boundary.mjs"), "forward replay must validate the RC479 anonymous Auth provider-profile boundary");
+assert.ok(forwardReplay.includes("node scripts/validate-rc926-provider-profile-confirmed-identity-strict-guard.mjs"), "forward replay must validate RC926 strict provider-profile identity");
+assert.ok(forwardReplay.includes("supabase/tests/rc926_provider_profile_confirmed_identity_strict_integration.sql"), "forward replay must run RC926 anonymous/missing/confirmed identity regression");
+assert.ok(rc926Validator.includes("IS NOT DISTINCT FROM"), "RC926 must require an explicit false anonymous claim");
 assert.ok(rc488Validator.includes("storage_objects_confirmed_auth_delete"), "RC488 validator must check restrictive Storage write policies");
 const forwardReplayLines = forwardReplay.split(/\r?\n/);
 assert.ok(
