@@ -8188,9 +8188,9 @@
     "interpretation": "Advisor findings are review signals, not a count of confirmed exploitable vulnerabilities. Reconcile each finding against effective grants, RLS and caller intent."
   },
   "rc926_provider_profile_confirmed_identity_strict_guard_20261125": {
-    "status": "SOURCE_CANDIDATE_PENDING_EXACT_HEAD_CI",
+    "status": "SOURCE_CANDIDATE_PENDING_REBASED_EXACT_HEAD_CI_AND_FULL_PG17_REPLAY",
     "checked_at": "2026-11-25",
-    "source_base_main": "3f67694a5a1da9c8f217d1883dda4a324710bc0e",
+    "source_base_main": "b90155040bdbd72d4472f1f7bd964d988b82ac0f",
     "migration_version": "20261125110000",
     "migration_file": "supabase/migrations/20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql",
     "live_findings": {
@@ -8251,6 +8251,8 @@
       "wrong-owner update denied"
     ],
     "production_mutation": "NONE",
-    "production_release_gate": "BLOCKED / NOT CERTIFIED"
+    "production_release_gate": "BLOCKED / NOT CERTIFIED",
+    "audit_report": "docs/audits/PASS_2421_2430_READ_ONLY_RLS_RC926_RECHECK_20261125.md",
+    "full_replay_test_fixture_note": "Previous full replay failed because schema-only baseline contained no provider row; deterministic idempotent synthetic profile seed added to integration test. Re-run pending."
   }
 }
