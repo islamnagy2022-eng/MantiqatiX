@@ -1,29 +1,42 @@
 # Autonomous Development Progress
 
-## Session checkpoint — 2026-11-26 (continued)
+## Session checkpoint — 2026-11-26 (autonomous continuation)
 
 ### Repository baseline
 - Repository: `islamnagy2022-eng/MantiqatiX`; default branch `main`.
-- Main at the prior checkpoint: `14cf6ba87b1beb46774fef8883d16dbde699abc4`; PR #1115 has since been merged as `bdb95370ba4ab7128d88d32d7ae24d0fa849a3d8`.
+- Current main after the source-only merges in this pass: `f885d5c0669349ffad5d3ffa10ba241186eb3178`.
 - Central task list: `TODO_PRODUCTION.md`.
 - Production remains **BLOCKED / NOT CERTIFIED**.
 
-### Completed in this work
-- PR #1115 CRM read-scope source change merged after reviewing its scope and reported exact-head checks.
-- Created this progress log on isolated branch `autonomous/progress-checkpoint-20261126`.
-- Rechecked open PRs #1116, #1114, and #1113 plus their latest reported head workflow runs.
-- PR #1116 has successful recorded checks on head `335552256762c32597c2c73a774edf3ed3e10f67`, but GitHub currently reports `mergeable=false`; it remains unmerged pending a compatible update/revalidation after #1115.
-- PR #1114 has successful reported CI on head `df3346fe7bf844b4db911621b188c5f9661a0802`. Its changed files overlap files changed on main since its base, so it was not transplanted or merged without a fresh conflict-aware review and tests.
-- PR #1113 has successful reported workflows on head `33292947b960bc11ebabf6231be07c9e9539741f`, including RC919 integration and migration replay. Reviewed the migration and integration test: active jobs are accepted; inactive jobs rejected without insert; missing jobs rejected. GitHub reports `mergeable=false`, so it remains unmerged pending conflict resolution/revalidation.
-- No production data, database, secrets, security settings, or deployment changed.
+### Completed and merged
+- PR #1113 — reject applications for inactive job postings. Merged by squash as `affe3ddb8e0328d6b6166a417373d6789d19b086`.
+  - Exact-head PostgreSQL integration passed: active job accepted, inactive job rejected with no insert, missing job rejected.
+  - Forward migration replay passed.
+- PR #1116 — scope direct CRM writes to an exact ACTIVE business membership and restrict provider-profile owner writes to branding columns. Merged by squash as `f885d5c0669349ffad5d3ffa10ba241186eb3178`.
+  - Exact-head CRM PostgreSQL write tests passed, including same-tenant cross-business, cross-tenant, spoofed requester, anonymous, profile business reassignment, self-approval, self-verification, direct insert/delete and legacy-profile controls.
+  - Forward migration replay and all listed PR workflows passed.
+- Neither merge applied a database migration to Production. The Pages `validate_public_only` and `deploy` jobs were skipped on the relevant PR validation run.
 
-### Next safe execution order
-1. Resolve current base conflicts for #1116, #1113, and #1114 using a real Git working tree; rerun exact-head checks after rebasing/merging.
-2. Merge only candidates whose current-head tests pass and whose diffs are compatible with current main.
-3. Continue independent source/CI-only P0 tasks from the full TODO.
-4. Keep Production database, Auth, RLS, grants, Storage, Edge, payment, wallet, settlement, and customer-data mutations blocked pending documented operator-owned backup/restore and coordinated release gates.
+### Work carried onto the current mainline; validation pending
+- PR #1117 replaces stale PR #1114. It carries only the selected-membership homepage/account-center fix, its validator, and the corresponding workflow step onto a branch created from the current main. The exact current diff is four files; head `a365cafefb35af5ad8853e0dd3306e49bd120447`.
+  - CI was still running at this checkpoint. Already successful: Marketing Workspace Contract, Legacy Catalog Module Validation, MantiGO Open Ride Privacy Boundary. RC425, Deploy validation and Module Professionalization were still running/queued.
+  - No production deployment or database change was made.
+- PR #1118 replaces stale PR #1112. It carries only the Pages case-redirect test adjustment onto a branch created from current main; head `5ddc98db43cc02ac541b19f020c569a4c9d74e6f`.
+  - Exact-head CI was pending at this checkpoint.
+  - This corrects the test to exercise nested-path case normalization within GitHub Pages' canonical repository base path; the project 404 page cannot repair a differently cased repository path that the server does not route to it.
 
-### Blockers and limits
-- The available GitHub connector can inspect and commit files but does not provide a safe branch rebase/conflict-resolution operation here. No local repository working tree/test runner is available.
-- Therefore stale/conflicting PRs were deliberately not merged. No production mutation or deployment was performed.
-- This progress checkpoint branch is isolated and not merged; it does not change the published site.
+### Intentionally not merged
+- PR #1110 Paymob provider-scope source fix still requires the signed altered-selector HTTP Sandbox replay described in its release notes. Its disposable CI passed, but do not treat that as a substitute for the missing signed Sandbox evidence.
+- PR #1109 RC927 has unresolved mergeability and exact-head validation/rebase work; it changes an important public-page anonymous-session boundary and must not be merged on stale status.
+- Other stale or draft PRs remain candidates for review/rebase, not presumed safe.
+
+### Safety and rollback boundary
+- No Production Supabase migration, DDL/DML, GRANT, RLS, Auth, Storage, Edge Function, payment, wallet, settlement, customer-data mutation, or manual website deployment was performed.
+- The two merged PRs are source-level commits and can be reverted with Git if a regression is found. The two new PRs are isolated and can be closed without changing main.
+- Production release remains blocked pending operator-owned encrypted DB + Storage backup, off-site retrieval, Vault recovery, isolated PostgreSQL 17 restore/rollback with measured RPO/RTO, chronological migration reconciliation, coordinated Edge parity, signed Sandbox payment replay and negative authorization/privacy E2E.
+
+### Next actions
+1. Finish exact-head CI for #1117; merge only after every required check is green and confirm the deploy job remains skipped.
+2. Finish exact-head CI for #1118; merge only after every required check is green.
+3. Close superseded #1114 and #1112 after their replacements are verified.
+4. Continue source/CI-only work from `TODO_PRODUCTION.md`; keep production release gates intact.
