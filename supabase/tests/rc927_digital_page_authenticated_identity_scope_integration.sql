@@ -150,7 +150,7 @@ RESET ROLE;
 -- broad published-page policy or execute owner-management writes.
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claims',
-  '{"sub":"30000000-0000-4000-8000-000000000091","role":"authenticated","is_anonymous":true}',false);
+  '{"sub":"f7914ac7-4b03-4456-afdd-e386f2ac6a5b","role":"authenticated","is_anonymous":true}',false);
 DO $anonymous_auth$
 DECLARE
   v_count integer;
@@ -170,7 +170,7 @@ BEGIN
   END IF;
 
   UPDATE public.digital_pages
-     SET title='anonymous overwrite',updated_by='30000000-0000-4000-8000-000000000091'
+     SET title='anonymous overwrite',updated_by='f7914ac7-4b03-4456-afdd-e386f2ac6a5b'
    WHERE slug='rc927-owner-draft';
   GET DIAGNOSTICS v_affected = ROW_COUNT;
   IF v_affected <> 0 THEN
@@ -197,6 +197,23 @@ BEGIN
   IF NOT v_denied THEN
     RAISE EXCEPTION 'RC927_ANON_AUTH_SECTION_INSERT_SUCCEEDED';
   END IF;
+
+  v_denied := false;
+  BEGIN
+    INSERT INTO public.digital_pages
+      (id,page_type,provider_profile_id,slug,title,theme,status,version,created_by,updated_by)
+    VALUES
+      ('50000000-0000-4000-8000-000000000005','MENU',
+       '10000000-0000-4000-8000-000000000001',
+       'rc927-anon-auth-insert','Unauthorized page','{}'::jsonb,'DRAFT',1,
+       'f7914ac7-4b03-4456-afdd-e386f2ac6a5b',
+       'f7914ac7-4b03-4456-afdd-e386f2ac6a5b');
+  EXCEPTION WHEN insufficient_privilege THEN
+    v_denied := true;
+  END;
+  IF NOT v_denied THEN
+    RAISE EXCEPTION 'RC927_ANON_AUTH_PAGE_INSERT_SUCCEEDED';
+  END IF;
 END;
 $anonymous_auth$;
 RESET ROLE;
@@ -204,11 +221,12 @@ RESET ROLE;
 -- Missing/null is_anonymous is not interpreted as a confirmed identity.
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claims',
-  '{"sub":"30000000-0000-4000-8000-000000000092","role":"authenticated"}',false);
+  '{"sub":"f7914ac7-4b03-4456-afdd-e386f2ac6a5b","role":"authenticated"}',false);
 DO $missing_claim$
 DECLARE
   v_count integer;
   v_affected integer;
+  v_denied boolean := false;
 BEGIN
   SELECT count(*) INTO v_count FROM public.digital_pages WHERE slug='rc927-public-page';
   IF v_count <> 0 THEN
@@ -216,11 +234,27 @@ BEGIN
   END IF;
 
   UPDATE public.digital_pages
-     SET title='missing claim overwrite',updated_by='30000000-0000-4000-8000-000000000092'
+     SET title='missing claim overwrite',updated_by='f7914ac7-4b03-4456-afdd-e386f2ac6a5b'
    WHERE slug='rc927-owner-draft';
   GET DIAGNOSTICS v_affected = ROW_COUNT;
   IF v_affected <> 0 THEN
     RAISE EXCEPTION 'RC927_MISSING_CLAIM_PAGE_UPDATE_SUCCEEDED:%',v_affected;
+  END IF;
+
+  BEGIN
+    INSERT INTO public.digital_pages
+      (id,page_type,provider_profile_id,slug,title,theme,status,version,created_by,updated_by)
+    VALUES
+      ('50000000-0000-4000-8000-000000000006','MENU',
+       '10000000-0000-4000-8000-000000000001',
+       'rc927-missing-claim-insert','Unauthorized page','{}'::jsonb,'DRAFT',1,
+       'f7914ac7-4b03-4456-afdd-e386f2ac6a5b',
+       'f7914ac7-4b03-4456-afdd-e386f2ac6a5b');
+  EXCEPTION WHEN insufficient_privilege THEN
+    v_denied := true;
+  END;
+  IF NOT v_denied THEN
+    RAISE EXCEPTION 'RC927_MISSING_CLAIM_PAGE_INSERT_SUCCEEDED';
   END IF;
 END;
 $missing_claim$;
