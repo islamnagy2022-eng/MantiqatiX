@@ -4328,3 +4328,12 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] Updated backup capability report, machine-readable reconciliation manifest, owner backup/restore drill, master TODO and source-of-truth map.
 - [ ] Owner must provide retrievable evidence for any existing manual export, or perform an encrypted CLI DB dump and separate Storage object export. Restore in an independent PostgreSQL 17 environment and measure RPO/RTO.
 - [x] No plan upgrade, billing change, backup, restore, migration or Production mutation performed.
+
+
+## 2026-11-25 — Corrected exact Paymob RPC signature inventory
+- [x] Re-queried `pg_proc` identity arguments and exact `to_regprocedure` signatures on MANTIQATIX FINAL; checked `anon`, `authenticated` and `service_role` EXECUTE privileges.
+- [x] Corrected previous audit false-negative: digital-page atomic payment RPC exists with the exact 10-argument current-main signature and EXECUTE restricted to `service_role`; earlier 9-argument lookup omitted `p_provider_transaction_id`.
+- [x] Confirmed six required current-main payment/recovery RPC contracts remain absent: standard failure, subscription success backend, subscription failure, MantiGO processor, subscription provider-intent claim and claimable intent creation.
+- [x] Confirmed current standard success and legacy subscription success processors exist but do not replace the missing current-main contracts; standard success does not accept provider_order_id as an argument, and current-main webhook checks it before RPC.
+- [x] Updated `PASS_2401_2410_LIVE_PAYMOB_SECURITY_ADVISOR_RECHECK_20261125.md` and `production-migration-reconciliation.json` with corrected evidence.
+- [x] Read-only only; no Production SQL mutation, Edge deployment, payment or migration was performed.
