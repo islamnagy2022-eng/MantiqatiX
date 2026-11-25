@@ -686,3 +686,25 @@ jobs:
           AXE_CORE_SCRIPT=/tmp/playwright-runner/node_modules/axe-core/axe.min.js \
           MANTIQUATIX_E2E_BASE_URL="${ROOT_URL}" \
           node apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs
+
+  # This PR-only smoke test validates the changed browser harness against the
+  # already deployed public origin without deploying or modifying Production.
+  deployed-origin-redirect-regression:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install pinned Playwright
+        run: npm install --prefix /tmp/pages-redirect-playwright --no-audit --no-fund playwright@1.64.1
+      - name: Install Chromium
+        run: /tmp/pages-redirect-playwright/node_modules/.bin/playwright install --with-deps chromium
+      - name: Verify redirects on the currently deployed GitHub Pages site
+        env:
+          PAGE_URL: https://islamnagy2022-eng.github.io/MantiqatiX/
+          PLAYWRIGHT_MODULE: /tmp/pages-redirect-playwright/node_modules/playwright/index.mjs
+        run: node scripts/test-pages-deployed-case-redirect.mjs
