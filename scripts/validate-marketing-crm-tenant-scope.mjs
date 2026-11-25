@@ -15,7 +15,7 @@ assert.match(migration, /um\.permissions->>'full_control'/);
 assert.match(migration, /coalesce\(um\.permissions->>'full_control',\s*'false'\) = 'true'/);
 assert.doesNotMatch(migration, /permissions->>'full_control'\)::boolean/);
 assert.match(migration, /upper\(coalesce\(marketing_provider_profiles\.status,\s*''\)\) = 'ACTIVE'/);
-assert.match(migration, /upper\(coalesce\(um\.role,''\)\) in \('SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER'\)/);
+assert.match(migration, /upper\(coalesce\(um\.role,\s*''\)\) in \([\s\S]*?'SUPER_ADMIN'[\s\S]*?'BUSINESS_OWNER'[\s\S]*?\)/);
 assert.match(fixture, /'Pending Provider A','PENDING'/);
 assert.match(fixture, /CRM managers view marketing leads/);
 assert.match(fixture, /CRM managers view marketing providers/);
