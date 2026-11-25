@@ -8,7 +8,8 @@
 - [ ] Verify the public catalog and activity deep links open when alphabetic characters in the path use different uppercase/lowercase combinations; preserve query strings and hashes.
 - [ ] Confirm behavior for the project base path and nested activity routes; add regression checks for valid routes, unknown routes, and redirect loops.
 - [ ] Verify the 404 fallback is included in the built Pages artifact, then confirm the exact deployed origin after the Pages workflow succeeds. Do not mark complete based on a source commit alone.
-- [ ] Current source candidate: `apps/catalog-frontend/public/404.html` at commit `eb7d71d4c36526e1375fd92cf3330ba5ca0acc26`; Pages deployment and live behavior remain NOT VERIFIED.
+- [x] Added a Node regression test for mixed-case base paths, nested path normalization, query/hash preservation and fallback behavior: `scripts/test-pages-case-redirect.mjs`; wired it into the Pages build and required `dist/404.html` to exist.
+- [ ] Current implementation is source-only: `apps/catalog-frontend/public/404.html`; test/build results and Pages deployment remain NOT VERIFIED (latest commit `dc31106ee0268f7c0663f0d7604706ad51798285`; no status checks returned).
 
 ## 2026-11-25 — Backup and restore capability recheck
 
