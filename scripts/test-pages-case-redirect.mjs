@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 const html = readFileSync(new URL('../apps/catalog-frontend/public/404.html', import.meta.url), 'utf8');
-const script = html.match(/<script>([\\s\\S]*?)<\\/script>/i)?.[1];
+const script = html.match(/<script>([\s\S]*?)<\/script>/i)?.[1];
 assert.ok(script, '404.html must include its redirect handler');
 
 function redirectedPath(input) {
