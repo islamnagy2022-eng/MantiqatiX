@@ -15,13 +15,110 @@ create policy businesses_member_select on public.businesses for select to authen
 create table public.marketing_provider_profiles(id uuid primary key,business_id uuid,owner_user_id uuid,name_ar text not null,status text not null);
 alter table public.marketing_provider_profiles enable row level security;
 create policy "CRM managers view marketing providers" on public.marketing_provider_profiles for select to authenticated using(exists(select 1 from public.user_memberships um where um.user_id=auth.uid() and um.status='ACTIVE' and upper(coalesce(um.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')));
-create policy "Owners manage their marketing provider profile" on public.marketing_provider_profiles for all to authenticated using(auth.uid()=owner_user_id) with check(auth.uid()=owner_user_id);
+create policy "Owners manage their marketing provider profile"
+  on public.marketing_provider_profiles
+  for all
+  to authenticated
+  using (
+    owner_user_id = auth.uid()
+    and (
+      business_id is null
+      or exists (
+        select 1
+        from public.user_memberships um
+        join public.businesses b on b.id = public.marketing_provider_profiles.business_id
+        where um.user_id = auth.uid()
+          and um.status = 'ACTIVE'
+          and um.tenant_id = b.tenant_id
+          and (
+            um.business_id = b.id
+            or (
+              um.business_id is null
+              and upper(coalesce(um.role, '')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
+            )
+          )
+      )
+      or exists (
+        select 1 from public.user_memberships platform_admin
+        where platform_admin.user_id = auth.uid()
+          and platform_admin.status = 'ACTIVE'
+          and upper(platform_admin.role) = 'SUPER_ADMIN'
+          and platform_admin.tenant_id = 'MNTY-PLATFORM'
+          and platform_admin.permissions ->> 'scope' = 'PLATFORM'
+          and platform_admin.permissions ->> 'full_control' = 'true'
+      )
+    )
+  )
+  with check (
+    owner_user_id = auth.uid()
+    and (
+      business_id is null
+      or exists (
+        select 1
+        from public.user_memberships um
+        join public.businesses b on b.id = public.marketing_provider_profiles.business_id
+        where um.user_id = auth.uid()
+          and um.status = 'ACTIVE'
+          and um.tenant_id = b.tenant_id
+          and (
+            um.business_id = b.id
+            or (
+              um.business_id is null
+              and upper(coalesce(um.role, '')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
+            )
+          )
+      )
+      or exists (
+        select 1 from public.user_memberships platform_admin
+        where platform_admin.user_id = auth.uid()
+          and platform_admin.status = 'ACTIVE'
+          and upper(platform_admin.role) = 'SUPER_ADMIN'
+          and platform_admin.tenant_id = 'MNTY-PLATFORM'
+          and platform_admin.permissions ->> 'scope' = 'PLATFORM'
+          and platform_admin.permissions ->> 'full_control' = 'true'
+      )
+    )
+  );
 create policy "Public can view active marketing providers" on public.marketing_provider_profiles for select to authenticated using(status='ACTIVE');
 create table public.marketing_leads(id uuid primary key,requester_user_id uuid,requester_business_id uuid,title text not null,status text not null default 'OPEN',source text not null default 'PLATFORM',assigned_provider_id uuid);
 alter table public.marketing_leads enable row level security;
 create policy "CRM managers view marketing leads" on public.marketing_leads for select to authenticated using(exists(select 1 from public.user_memberships um where um.user_id=auth.uid() and um.status='ACTIVE' and upper(coalesce(um.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')));
 create policy "Users view own marketing leads" on public.marketing_leads for select to authenticated using(requester_user_id=auth.uid());
-create policy "Users create marketing leads" on public.marketing_leads for insert to authenticated with check(requester_user_id=auth.uid());
+create policy "Users create marketing leads"
+  on public.marketing_leads
+  for insert
+  to authenticated
+  with check (
+    requester_user_id = auth.uid()
+    and (
+      requester_business_id is null
+      or exists (
+        select 1
+        from public.user_memberships um
+        join public.businesses b on b.id = public.marketing_leads.requester_business_id
+        where um.user_id = auth.uid()
+          and um.status = 'ACTIVE'
+          and um.tenant_id = b.tenant_id
+          and (
+            um.business_id = b.id
+            or (
+              um.business_id is null
+              and upper(coalesce(um.role, '')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
+            )
+          )
+      )
+      or exists (
+        select 1
+        from public.user_memberships platform_admin
+        where platform_admin.user_id = auth.uid()
+          and platform_admin.status = 'ACTIVE'
+          and upper(platform_admin.role) = 'SUPER_ADMIN'
+          and platform_admin.tenant_id = 'MNTY-PLATFORM'
+          and platform_admin.permissions ->> 'scope' = 'PLATFORM'
+          and platform_admin.permissions ->> 'full_control' = 'true'
+      )
+    )
+  );
 
 -- Baseline behavior from RC452: providers can read only leads assigned to their
 -- own active provider profile. RC115 intentionally preserves this policy.
