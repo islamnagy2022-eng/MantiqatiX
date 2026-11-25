@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { filterRowsToPubliclyPricedItems, getExplicitlyPublicComparePrice, requiresPublicQuote } from "../_shared/public-price-visibility.mjs";
 import { getExplicitPublicContact } from "../_shared/public-contact-visibility.mjs";
+import { sanitizePublicPromotionalImages } from "../_shared/promotional-images.mjs";
 
 const allowedOrigins = new Set([
   "https://islamnagy2022-eng.github.io",
@@ -228,6 +229,7 @@ Deno.serve(async (req: Request) => {
         workingHours: String(profile.working_hours || ""),
         logoUrl: safeImageUrl(profile.logo_url),
         coverUrl: safeImageUrl(profile.cover_url),
+        promotionalImages: sanitizePublicPromotionalImages(profile.promotional_images),
         externalLogoUrl: safeImageUrl(profile.logo_url),
         externalCoverUrl: safeImageUrl(profile.cover_url),
         google_maps_url: publicContact.googleMapsUrl,

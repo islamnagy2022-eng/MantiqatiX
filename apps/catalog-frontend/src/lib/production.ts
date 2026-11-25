@@ -3,6 +3,7 @@ import type { ActivityModuleOverrides, AdminSettings, AuthSession, Business, Fun
 import { DEFAULT_CATEGORIES, DEFAULT_FUNCTIONAL_GROUPS, DEFAULT_PAYMOB_CONFIG, INITIAL_ADMIN_SETTINGS, normalizeCanonicalTaxonomySettings, resolveCanonicalGroupId, resolveCanonicalActivityCategoryId } from '../data/productionDefaults';
 import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from '../utils/defaultImages';
 import { resolvePublicCatalogAvailability } from './catalogPricing';
+import { normalizePromotionalImageLines } from '../utils/promotionalImages';
 
 const runtime = (window as any).MANTIQATIX_CONFIG || (window as any).MNTY_CONFIG;
 if (!runtime?.supabaseUrl || !runtime?.supabaseKey) {
@@ -304,6 +305,7 @@ export function mapBusiness(raw: any, provider: any): Business {
     activitySpecialty: String(raw.activitySpecialty || raw.activity_specialty || raw.settings?.activity_specialty || meta.activity_specialty || profile.activity_specialty || '') || undefined,
     logoUrl: doctorFallbackLogo || pharmacyFallbackLogo || (logoNeedsDefault ? categoryDefaultLogo : savedLogo),
     coverUrl: doctorFallbackCover || pharmacyFallbackCover || (coverNeedsDefault ? categoryDefaultCover : savedCover),
+    promotionalImages: normalizePromotionalImageLines(Array.isArray(profile.promotionalImages || profile.promotional_images) ? (profile.promotionalImages || profile.promotional_images).join('\n') : '').images,
     externalLogoUrl: /^https:\/\//i.test(externalLogoUrl) ? externalLogoUrl : '',
     externalCoverUrl: /^https:\/\//i.test(externalCoverUrl) ? externalCoverUrl : '',
     bio: String(profile.bio || raw.bio || provider?.description || ''),
