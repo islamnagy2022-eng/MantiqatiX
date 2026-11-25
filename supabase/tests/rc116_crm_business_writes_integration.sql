@@ -5,6 +5,7 @@ declare
   provider_a uuid := '30000000-0000-4000-8000-000000000011';
   provider_a2 uuid := '30000000-0000-4000-8000-000000000012';
   provider_b uuid := '30000000-0000-4000-8000-000000000013';
+  legacy_owner uuid := '30000000-0000-4000-8000-000000000021';
   tenant_admin_no_business uuid := '30000000-0000-4000-8000-000000000014';
   affected integer;
 begin
@@ -148,6 +149,53 @@ begin
     delete from public.marketing_provider_profiles
      where id = '40000000-0000-4000-8000-000000000001';
     raise exception 'provider owner deleted provider profile';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  -- Legacy profiles without a business association retain owner-only branding access.
+  -- No membership is needed for this legacy row, but business linkage remains immutable.
+  perform set_config('request.jwt.claim.sub', legacy_owner::text, false);
+  perform set_config('request.jwt.claims', jsonb_build_object('sub', legacy_owner::text, 'is_anonymous', false)::text, false);
+  update public.marketing_provider_profiles
+     set settings = jsonb_build_object('legacy_owner_branding', true),
+         updated_at = now()
+   where id = '40000000-0000-4000-8000-000000000004';
+  get diagnostics affected = row_count;
+  if affected <> 1 then
+    raise exception 'legacy owner could not update branding on unassigned profile';
+  end if;
+
+  if not exists (
+    select 1 from public.marketing_provider_profiles
+     where id = '40000000-0000-4000-8000-000000000004'
+       and owner_user_id = legacy_owner
+       and business_id is null
+       and settings @> '{"legacy_owner_branding":true}'::jsonb
+  ) then
+    raise exception 'legacy owner profile branding update did not persist';
+  end if;
+
+  begin
+    update public.marketing_provider_profiles
+       set business_id = '30000000-0000-4000-8000-000000000001'
+     where id = '40000000-0000-4000-8000-000000000004';
+    raise exception 'legacy owner attached unassigned provider profile to a business';
+  exception when insufficient_privilege then
+    null;
+  end;
+  begin
+    update public.marketing_provider_profiles
+       set status = 'ACTIVE'
+     where id = '40000000-0000-4000-8000-000000000004';
+    raise exception 'legacy owner changed profile approval state';
+  exception when insufficient_privilege then
+    null;
+  end;
+  begin
+    delete from public.marketing_provider_profiles
+     where id = '40000000-0000-4000-8000-000000000004';
+    raise exception 'legacy owner deleted unassigned provider profile';
   exception when insufficient_privilege then
     null;
   end;
