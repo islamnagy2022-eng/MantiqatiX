@@ -36,6 +36,20 @@
 - Keep PR #1120 as **Draft**. Even after CI passes, do not merge/deploy until the live `catalog-admin`, `public-catalog` and `public-catalog-directory` Edge versions are reconciled and an approved coordinated release can prove save/read parity on the deployed origin. The gallery is not live today.
 - Old PR #1098 was commented and closed as superseded by #1120.
 
+
+### Corrected gallery candidate CI — updated 2026-11-26
+- PR #1120 corrected head `bbea4d5651f0dd102f6b6897f030434fc782ff6a` now has every required exact-head workflow green, including Primary Catalog Frontend Validation with browser E2E, Module Professionalization, CORS, privacy, directory consent, MantiGO, RC425, backend boundary and Pages checks.
+- Browser E2E verified exactly one fixed cover and one separate gallery with the expected two public image URLs. The duplicate found on the first candidate was removed before this successful run.
+- Pages run `45724571906` completed successfully; deployed-origin redirect smoke test passed, `validate_public_only` and `deploy` were both skipped. No site deployment occurred.
+- PR #1120 remains Draft because live Edge compatibility and deployed-origin save/read parity are still release blockers. The feature currently accepts owner-entered HTTPS image URLs (not file uploads), and is not live.
+- Older gallery PR #978 has been commented and closed as superseded by #1120.
+
+### Brand asset validation candidate
+- PR #1121 — `test(branding): verify approved logo and app icon files exist`, head `f6092d05b8c08a0edf3332d365f052222f0ad13a`.
+- Test-only change checks five official platform brand/PWA assets exist and are non-empty.
+- Exact-head build and employee RBAC PostgreSQL checks passed; Module Professionalization, Backend-only, MantiGO and RC425 workflows passed. Browser E2E and all checks finalization were pending at checkpoint. Pages PR validation completed successfully with no deployment.
+- Older PR #1101 is superseded by #1121; close after #1121 passes and is merged.
+
 ### Reviewed but intentionally not merged
 - PR #1117 / old #1114 — selected-membership activity-label fix was written to dormant `web/` files, while current Pages production build composes `apps/catalog-frontend` and excludes `web/`. This patch would not reach the live UI. Both PRs closed; Issue #96 left open with a documented topology finding. A real fix requires a fresh deployed repro and change in the current React application.
 - PR #1110 — Paymob provider scoping still needs the signed altered-selector HTTP Sandbox replay. Disposable CI alone is insufficient.
