@@ -755,6 +755,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       workingHours: updated.workingHours || '',
       logoUrl,
       coverUrl,
+      promotionalImages: updated.promotionalImages || [],
       publicEnabled: Boolean(updated.publicEnabled),
     });
     // Profile edits must not rewrite billing metadata from a potentially stale client snapshot.
