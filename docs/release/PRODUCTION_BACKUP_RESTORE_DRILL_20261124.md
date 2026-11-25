@@ -12,6 +12,7 @@
 - Do not interpret zero exact identifier matches as proof that every SQL effect is absent. The historical source-to-live crosswalk records partial baselines and separate confirmed source/ledger aliases. The three catalogued aliases are outside the current 84-version release list; their formal migration-history repairs remain pending. Never replay an alias, fabricate migration-ledger rows, or treat physical object presence alone as contract parity.
 - A successful chronological PostgreSQL 17 replay in disposable CI is not a Production migration, backup, restore, or rollback rehearsal.
 - Before approval, reconcile each required source effect against the live ledger and physical schema, including exact RPC signatures and bodies, function owners and `search_path`, effective ACL/RLS policies, constraints, and triggers.
+- RC927 (`20261125120000`) is a source-only candidate to separate public digital-page rendering from authenticated access. It requires RC480's raw-anon column allowlist, exact-head PostgreSQL 17 tests and the full 84-version replay; it is not applied to Production.
 
 ## A. Evidence to collect before release
 
