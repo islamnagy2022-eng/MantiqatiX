@@ -4345,3 +4345,11 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] Recorded static fallback secrets, local JSON as claimed authoritative state, and an unreferenced shared client module that prefers `SUPABASE_SERVICE_ROLE_KEY`. No evidence that this key was bundled; no secret value was exposed in this review.
 - [x] Kept the ZIP intact as a historical/reference artifact. No import, Production mutation, Auth/RLS/GRANT change, Edge/payment deployment, or Pages deployment was performed.
 - [ ] Reuse candidate components only through an incremental current-main port with security review and exact-head validation.
+
+
+## 2026-11-25 — RC926 strict provider-profile identity recheck (rebased on archive-review main)
+
+- Rebased the security candidate on latest main `b90155040bdbd72d4472f1f7bd964d988b82ac0f`; preserved the separate R7 archive safety review and PASS 2411–2420.
+- Fresh Production read-only audit: `marketing_provider_profiles` still has direct anon SELECT; its public-active policy returns full base rows; RC479 restrictive confirmed-Auth SELECT policy is absent. RLS and FORCE RLS are enabled.
+- RC926 remains a forward-only new migration. The first full chronological replay showed the schema-only baseline contained no provider profile row; the test now seeds its own idempotent synthetic row and uses the replay prerequisite's known synthetic Auth principal. No Production data was read or modified.
+- RC926 targeted PostgreSQL 16 six-case test had passed on the earlier candidate; corrected full chronological PostgreSQL 17 replay and exact-head CI are pending on the rebased branch. Production mutation NONE.
