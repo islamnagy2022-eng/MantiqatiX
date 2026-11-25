@@ -1,5 +1,10 @@
 name: RC919 job application integration
 on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/20261125150000_rc919_reject_inactive_job_applications.sql'
+      - 'supabase/tests/rc919_job_application_*.sql'
+      - '.github/workflows/rc919-job-application-integration.yml'
   workflow_dispatch:
 jobs:
   test:
