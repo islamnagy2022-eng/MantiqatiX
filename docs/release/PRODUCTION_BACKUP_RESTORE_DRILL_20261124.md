@@ -65,8 +65,8 @@
 3. Restore roles, application schema and application data in the documented order with stop-on-error behavior. Resolve restore warnings explicitly; do not ignore missing extensions, failed grants, invalid policies, triggers or functions. This is only the database logical-dump leg.
 4. Restore Auth user/identity records only through the separately documented and proven recovery mechanism. Verify login, identity-provider linkage, session revocation and confirmed/anonymous boundaries with synthetic test accounts; never copy production credentials into CI.
 5. Restore Storage bucket/policy metadata and upload the separately exported object bytes; verify checksums and representative private/public access behavior. The DB dump is not a Storage-file backup.
-6. Reconnect Auth/Edge/Vault settings
-6. Run:
+6. Reconnect Auth/Edge/Vault settings only through controlled owner credentials in the isolated environment. Confirm that no real payment provider credential points at live-money flows.
+7. Run:
    - exact 83-source migration identity/effect reconciliation;
    - chronological forward replay and PostgreSQL 17 integration tests;
    - RLS/ACL/function-owner/search_path checks, including positive platform-admin and negative tenant-admin cases;
