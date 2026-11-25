@@ -101,7 +101,8 @@ const requiredReleaseMigrations=[
   "20261123221950_rc922_medical_appointment_tenant_wide_provider_scope.sql",
   "20261124121348_rc923_catalog_rpc_anonymous_auth_guard.sql",
   "20261124140000_rc924_agreement_participant_read_scope.sql",
-  "20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql"
+  "20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql",
+  "20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
