@@ -18,6 +18,7 @@ on:
     branches:
       - "fix/rc479-anonymous-auth-forward-select-guard-20261120"
       - "security/rc926-strict-provider-profile-auth-20261125"
+      - "security/rc926-strict-provider-profile-auth-20261125-r2"
     paths:
       - "supabase/migrations/20261118190000_rc479_revoke_anon_provider_profile_base_read.sql"
       - "supabase/migrations/20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql"
