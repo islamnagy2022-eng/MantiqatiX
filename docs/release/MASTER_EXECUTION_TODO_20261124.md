@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-25 — Free-tier backup/restore scope and owner recovery evidence  
-**Base:** `main @ 1419477b39312e65134494251264452b170e1efe`  
+**Updated:** 2026-11-25 — RC927 digital-page identity boundary and 84-version release map  
+**Base:** `main @ 17329ba27effad52a316ad0aa94ef1a93ab975a7`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
