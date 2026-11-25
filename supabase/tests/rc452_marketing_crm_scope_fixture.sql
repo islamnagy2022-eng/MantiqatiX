@@ -22,6 +22,21 @@ alter table public.marketing_leads enable row level security;
 create policy "CRM managers view marketing leads" on public.marketing_leads for select to authenticated using(exists(select 1 from public.user_memberships um where um.user_id=auth.uid() and um.status='ACTIVE' and upper(coalesce(um.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')));
 create policy "Users view own marketing leads" on public.marketing_leads for select to authenticated using(requester_user_id=auth.uid());
 create policy "Users create marketing leads" on public.marketing_leads for insert to authenticated with check(requester_user_id=auth.uid());
+
+-- Baseline behavior from RC452: providers can read only leads assigned to their
+-- own active provider profile. RC115 intentionally preserves this policy.
+create policy "Assigned providers view assigned marketing leads"
+  on public.marketing_leads for select to authenticated
+  using (
+    exists (
+      select 1
+      from public.marketing_provider_profiles p
+      where p.id = public.marketing_leads.assigned_provider_id
+        and p.owner_user_id = auth.uid()
+        and p.status = 'ACTIVE'
+    )
+  );
+
 grant select on public.businesses,public.user_memberships,public.marketing_provider_profiles,public.marketing_leads to authenticated;
 grant insert on public.marketing_leads to authenticated;
 grant insert, update on public.marketing_provider_profiles to authenticated;
