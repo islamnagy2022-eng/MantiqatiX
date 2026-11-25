@@ -13,18 +13,21 @@ The live `public.digital_pages` table currently reports:
 |---|---|
 | RLS enabled | **Yes** |
 | FORCE RLS | **No** |
-| `anon SELECT` table privilege | **Granted** |
+| `anon SELECT` table privilege | **Granted directly to anon** |
 | `anon SELECT` on `created_by` | **Granted** |
 | `authenticated SELECT` | **Granted** |
-| `authenticated INSERT / UPDATE` | **Granted** |
+| `authenticated INSERT / UPDATE / DELETE` | **Granted** |
+| `service_role SELECT` | **Not granted** |
 | Permissive `digital_pages_public_read` | **Present** for roles `anon, authenticated`, predicate `status='PUBLISHED'` |
 | Restrictive SELECT policy requiring `is_anonymous=false` | **Absent** |
 | Live `20261118210000` RC480 ledger ID | **Absent** |
 | Live `20261125120000` RC927 ledger ID | **Absent** |
 
-The current live policy inventory also includes owner SELECT/INSERT/UPDATE policies and a platform-admin ALL policy. No restrictive SELECT policy was present to separate anonymous Auth identities from confirmed Auth identities.
+The table ACL read-back shows direct table-level SELECT grants to `anon`, `authenticated` and `postgres`; no SELECT grant to `PUBLIC` was observed. Effective raw-anon column access includes all 19 current columns, including `business_id`, `provider_profile_id`, `digital_page_order_id`, `created_by`, `updated_by`, `theme`, and timestamps.
 
-This is a confirmed effective ACL + permissive-policy path to published base-table rows, including internal columns such as `created_by`; it is **not** evidence that a specific person used the path or that a row was downloaded. No row values were queried.
+The live policy inventory also includes owner SELECT/INSERT/UPDATE policies and a platform-admin ALL policy. No restrictive SELECT policy was present to separate anonymous Auth identities from confirmed Auth identities.
+
+This is a confirmed effective ACL + permissive-policy path to published base-table rows, including internal columns. It is **not** evidence that a specific person used the path or that a row was downloaded. No row values were queried.
 
 ## 2. First-party public renderer and RC480 source
 
@@ -34,9 +37,11 @@ Current `web/digital-page.js`:
 - Creates its Supabase client with `persistSession:false` and `autoRefreshToken:false`.
 - Source search found no first-party `signInAnonymously()` call.
 
-That narrows the first-party page-renderer behavior, but does not prove that there are no external integrations or existing anonymous Auth sessions.
+That narrows the first-party page-renderer behavior, but does not prove there are no external integrations or existing anonymous Auth sessions.
 
-RC480 source `20261118210000_rc480_digital_pages_anon_column_boundary.sql` intends to revoke raw anon table-level SELECT and grant only the ten public renderer columns. Its existing PostgreSQL integration test checks raw `anon` and ordinary `authenticated` owner read. However, the RC480 source migration is **not applied to Production**; current live `anon SELECT` and `anon created_by SELECT` remain granted.
+RC480 source `20261118210000_rc480_digital_pages_anon_column_boundary.sql` intends to revoke raw anon table-level SELECT and grant only the ten public renderer columns. Its existing PostgreSQL integration test checks raw `anon` and ordinary `authenticated` owner access. However, the RC480 source migration is **not applied to Production**; current live `anon SELECT` and `anon created_by SELECT` remain granted.
+
+The direct live `service_role SELECT` privilege is also false. RC480 is limited to the raw-anon grant and column allowlist; neither RC480 nor RC927 grants `service_role SELECT`. Any Edge caller requiring direct database SELECT must be reviewed against its own RPC/ACL contract rather than receiving an implicit privilege expansion here.
 
 ## 3. RC927 source candidate and required order
 
@@ -46,7 +51,7 @@ RC927 candidate `20261125120000_rc927_digital_pages_anonymous_auth_read_guard.sq
 - denies both `is_anonymous=true` and a missing/NULL claim;
 - preserves confirmed-user reads through the existing permissive public-page/owner policies;
 - leaves raw-anon public access governed by RC480's ten-column allowlist;
-- preflight-fails unless RC480's table-level revoke and public-column allowlist are already installed.
+- preflight-fails unless RC480's table-level anon revoke and public-column allowlist are already installed.
 
 **Order is mandatory:** RC480 first, then RC927. RC927 alone is not a fix while raw anon still has table-level SELECT, and it deliberately refuses to install before RC480's allowlist prerequisite is present.
 
