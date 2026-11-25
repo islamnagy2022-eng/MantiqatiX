@@ -29,7 +29,7 @@ BEGIN
     ('50000000-0000-4000-8000-000000000001','MENU',NULL,v_provider,
      'rc927-public-page','RC927 Public Page','Public subtitle','Public description',
      'RC927 SEO title','RC927 SEO description',
-     '{"owner_internal_note":"private-owner-value"}'::jsonb,
+     '{"layout":"clean","primary_color":"#202020"}'::jsonb,
      'PUBLISHED',1,now(),v_owner,v_owner)
   ON CONFLICT (id) DO UPDATE
     SET provider_profile_id=EXCLUDED.provider_profile_id,
@@ -47,7 +47,7 @@ BEGIN
     ('50000000-0000-4000-8000-000000000003','PORTFOLIO',NULL,v_provider,
      'rc927-owner-draft','RC927 Owner Draft','Private subtitle','Private description',
      'Private SEO title','Private SEO description',
-     '{"owner_internal_note":"private-draft-value"}'::jsonb,
+     '{"layout":"clean","primary_color":"#404040"}'::jsonb,
      'DRAFT',1,NULL,v_owner,v_owner)
   ON CONFLICT (id) DO UPDATE
     SET provider_profile_id=EXCLUDED.provider_profile_id,
@@ -254,6 +254,20 @@ BEGIN
   GET DIAGNOSTICS v_affected = ROW_COUNT;
   IF v_affected <> 1 THEN
     RAISE EXCEPTION 'RC927_CONFIRMED_OWNER_SECTION_UPDATE_REGRESSED:%',v_affected;
+  END IF;
+
+  INSERT INTO public.digital_pages
+    (id,page_type,business_id,provider_profile_id,slug,title,theme,status,version,created_by,updated_by)
+  VALUES
+    ('50000000-0000-4000-8000-000000000005','PORTFOLIO',NULL,
+     '10000000-0000-4000-8000-000000000001',
+     'rc927-owner-insert','RC927 Owner Insert',
+     '{"layout":"clean"}'::jsonb,'DRAFT',1,
+     'f7914ac7-4b03-4456-afdd-e386f2ac6a5b',
+     'f7914ac7-4b03-4456-afdd-e386f2ac6a5b');
+  GET DIAGNOSTICS v_affected = ROW_COUNT;
+  IF v_affected <> 1 THEN
+    RAISE EXCEPTION 'RC927_CONFIRMED_OWNER_PAGE_INSERT_REGRESSED:%',v_affected;
   END IF;
 END;
 $confirmed_owner$;
