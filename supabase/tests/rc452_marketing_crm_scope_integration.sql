@@ -6,6 +6,7 @@ declare
   manager_a uuid := '30000000-0000-4000-8000-000000000011';
   inactive_manager_a uuid := '30000000-0000-4000-8000-000000000019';
   owner_a uuid := '30000000-0000-4000-8000-000000000018';
+  manager_null_tenant_a uuid := '30000000-0000-4000-8000-000000000020';
   tenant_admin_a uuid := '30000000-0000-4000-8000-000000000012';
   manager_b uuid := '30000000-0000-4000-8000-000000000013';
   tenant_super_c uuid := '30000000-0000-4000-8000-000000000014';
@@ -50,6 +51,13 @@ begin
   end if;
   if exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000002') then
     raise exception 'inactive business membership can read pending provider';
+  end if;
+  perform set_config('request.jwt.claim.sub',manager_null_tenant_a::text,false);
+  if exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000001') then
+    raise exception 'unscoped tenant MANAGER gained cross-business CRM access';
+  end if;
+  if exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000002') then
+    raise exception 'unscoped tenant MANAGER gained pending-profile review access';
   end if;
 
   perform set_config('request.jwt.claim.sub',tenant_admin_a::text,false);
@@ -96,6 +104,12 @@ begin
   end if;
   if exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000006') then
     raise exception 'business OWNER crossed business boundary for pending providers';
+  end if;
+  if not exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000001') then
+    raise exception 'business OWNER cannot read own-business lead';
+  end if;
+  if exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000002') then
+    raise exception 'business OWNER crossed business boundary for leads';
   end if;
 
   -- Provider owners retain access to their own onboarding/profile row.
