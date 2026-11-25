@@ -18,7 +18,7 @@ See [PASS 2361–2370](../audits/PASS_2361_2370_PLATFORM_ROOT_LIVE_RECHECK_20261
 
 ## 2. Required ordered source slice
 
-The following is a dependency map, not permission to cherry-pick migrations. The actual release chain must follow the exact canonical 84-version order in [REQUIRED_83_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md](./REQUIRED_83_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md) and the gate in `scripts/production/live-reconciliation-contract.mjs`.
+The following is a dependency map, not permission to cherry-pick migrations. The actual release chain must follow the exact canonical 84-version order in [REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md](./REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md) and the gate in `scripts/production/live-reconciliation-contract.mjs`.
 
 | Stage | Source chain | Dependency / required result |
 |---|---|---|
