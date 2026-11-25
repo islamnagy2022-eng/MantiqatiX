@@ -18,7 +18,7 @@ assert.ok(publicRenderer.includes("persistSession:false"),
   "The public digital-page renderer must remain stateless and use raw anon credentials");
 assert.ok(publicRenderer.includes("autoRefreshToken:false"),
   "The public digital-page renderer must not establish a refreshable authenticated session");
-assert.doesNotMatch(publicRenderer, /signInAnonymously\\s*\\(/,
+assert.doesNotMatch(publicRenderer, /signInAnonymously\s*\(/,
   "The public digital-page renderer must not create Anonymous Auth sessions");
 assert.match(migration, /RC927_DIGITAL_PAGES_RLS_REQUIRED/);
 assert.match(migration, /RC927_DIGITAL_PAGE_SECTIONS_RLS_REQUIRED/);
