@@ -180,6 +180,15 @@ Deno.serve(async (req: Request) => {
   if (!body || typeof body !== "object" || Array.isArray(body)) return out(origin, { error: "INVALID_BODY" }, 400);
 
   const action = String(body.action || "").toUpperCase();
+
+  // Fail closed until RC486's serialized version allocator and unique index
+  // are confirmed in Production. Existing price rows remain readable.
+  if (action === "ITEM_PRICE_UPSERT" || action === "PRICE_UPSERT") {
+    return out(origin, {
+      error: "CATALOG_PRICE_WRITES_TEMPORARILY_DISABLED",
+      reason: "RC486_PRODUCTION_VERIFICATION_REQUIRED",
+    }, 503);
+  }
   const tenantId = String(body.tenantId || "").trim();
   const businessId = String(body.businessId || "").trim();
   const branchId = body.branchId == null || body.branchId === "" ? null : String(body.branchId).trim();
