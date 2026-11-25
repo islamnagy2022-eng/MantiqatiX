@@ -6,6 +6,9 @@ on:
       - "supabase/migrations/20261118190000_rc479_revoke_anon_provider_profile_base_read.sql"
       - "supabase/migrations/20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql"
       - "supabase/tests/rc479_provider_profile_anon_read_fixture.sql"
+      - "supabase/migrations/20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql"
+      - "supabase/tests/rc926_provider_profile_confirmed_identity_strict_integration.sql"
+      - "scripts/validate-rc926-provider-profile-confirmed-identity-strict-guard.mjs"
       - "supabase/tests/rc479_provider_profile_anon_read_integration.sql"
       - "supabase/tests/rc479_anonymous_auth_session_baseline.sql"
       - "supabase/tests/rc479_anonymous_auth_session_boundary_integration.sql"
@@ -14,10 +17,14 @@ on:
   push:
     branches:
       - "fix/rc479-anonymous-auth-forward-select-guard-20261120"
+      - "security/rc926-strict-provider-profile-auth-20261125"
     paths:
       - "supabase/migrations/20261118190000_rc479_revoke_anon_provider_profile_base_read.sql"
       - "supabase/migrations/20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql"
       - "supabase/tests/rc479_provider_profile_anon_read_fixture.sql"
+      - "supabase/migrations/20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql"
+      - "supabase/tests/rc926_provider_profile_confirmed_identity_strict_integration.sql"
+      - "scripts/validate-rc926-provider-profile-confirmed-identity-strict-guard.mjs"
       - "supabase/tests/rc479_provider_profile_anon_read_integration.sql"
       - "supabase/tests/rc479_anonymous_auth_session_baseline.sql"
       - "supabase/tests/rc479_anonymous_auth_session_boundary_integration.sql"
@@ -69,3 +76,7 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc479_anon_test -v ON_ERROR_STOP=1 -f /tmp/anonymous-auth-baseline.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc479_anon_test -v ON_ERROR_STOP=1 -f /tmp/rc479-forward.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc479_anon_test -v ON_ERROR_STOP=1 -f /tmp/anonymous-auth-post-migration.sql
+          docker cp supabase/migrations/20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql "$pg_container:/tmp/rc926.sql"
+          docker cp supabase/tests/rc926_provider_profile_confirmed_identity_strict_integration.sql "$pg_container:/tmp/rc926-integration.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc479_anon_test -v ON_ERROR_STOP=1 -f /tmp/rc926.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc479_anon_test -v ON_ERROR_STOP=1 -f /tmp/rc926-integration.sql
