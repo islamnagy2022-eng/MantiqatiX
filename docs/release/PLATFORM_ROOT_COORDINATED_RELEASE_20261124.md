@@ -46,7 +46,7 @@ The labels above are functional groups only; execute by version timestamp from t
 
 - Production's live migration ledger is 310 rows through `20261110150618`, with 0/84 exact required source-version IDs. Three aliases are confirmed, but formal ledger repairs remain zero. Do not treat the mismatch itself as absence of physical effects.
 - The 76-object curated physical read-back is 35 present / 41 absent and is not the exhaustive release contract.
-- RC464/RC471/RC484/RC485/RC925/RC926/RC927 are source-side fixes, not live Production changes.
+- RC464/RC471/RC484/RC485/RC925/RC926/RC927 are source-side fixes, not live Production changes. RC927 does not add `service_role` table grants; current direct SELECT is absent and unchanged.
 - Current CI evidence includes run `45496742405` (full forward replay) and `45496743088` (module/RC471-related PG17 tests), plus catalog, dashboard, privacy, directory, Paymob and agreement suites on the exact PR #1086 head. CI pass is not Production certification.
 - The leaked-password protection setting remains NOT AVAILABLE / NOT VERIFIED on the current plan. Do not claim it is enabled.
 
