@@ -9,6 +9,8 @@ CREATE TABLE public.jobs(id uuid PRIMARY KEY, owner_user_id uuid NOT NULL, title
 CREATE TABLE public.job_applications(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), job_id uuid NOT NULL REFERENCES public.jobs(id) ON DELETE CASCADE, applicant_user_id uuid NOT NULL, applicant_name varchar NOT NULL, applicant_phone varchar NOT NULL, qualifications text NOT NULL DEFAULT '', cv_summary_text text NOT NULL DEFAULT '', created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(job_id,applicant_user_id));
 GRANT USAGE ON SCHEMA public,auth TO authenticated,anon;
 GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated,anon;
+-- Test role needs read access to assert that rejected submissions do not persist.
+GRANT SELECT ON public.jobs, public.job_applications TO authenticated;
 INSERT INTO public.jobs VALUES
 ('a0000000-0000-4000-8000-000000000001','b0000000-0000-4000-8000-000000000001','Active job','Fixture Co','Test',true),
 ('a0000000-0000-4000-8000-000000000002','b0000000-0000-4000-8000-000000000001','Inactive job','Fixture Co','Test',false);
