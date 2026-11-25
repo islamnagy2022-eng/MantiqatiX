@@ -27,6 +27,11 @@ assert.doesNotMatch(migration, /FOR (ALL|INSERT|UPDATE|DELETE)/i,
 assert.doesNotMatch(migration, /\bDROP TABLE\b|\bTRUNCATE\b|\bDELETE FROM\b/i,
   "RC926 must not delete business data");
 
+assert.ok(integration.includes("RC926 Synthetic Provider"), "RC926 must seed its own disposable provider row for schema-only replay");
+assert.ok(integration.includes("RC926_DISPOSABLE_OWNER_AUTH_USER_FIXTURE_MISSING"), "RC926 must fail clearly if the disposable owner Auth fixture is absent");
+assert.ok(integration.includes("f7914ac7-4b03-4456-afdd-e386f2ac6a5b"), "RC926 must use the deterministic replay prerequisite owner");
+assert.ok(integration.includes("ON CONFLICT (id) DO UPDATE"), "RC926 fixture must be idempotent across the isolated test paths");
+
 for (const marker of [
   "RC926_RAW_ANON_SELECT_STILL_GRANTED",
   "RC926_RAW_ANON_PROVIDER_PROFILE_READ_SUCCEEDED",
