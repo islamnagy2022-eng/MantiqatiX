@@ -4,6 +4,15 @@ CREATE ROLE anon NOLOGIN;
 CREATE ROLE authenticated NOLOGIN;
 CREATE ROLE service_role NOLOGIN;
 
+CREATE SCHEMA auth;
+CREATE OR REPLACE FUNCTION auth.jwt()
+RETURNS jsonb
+LANGUAGE sql
+STABLE
+AS $function$
+  SELECT coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb
+$function$;
+
 CREATE TABLE public.digital_pages (
   id uuid PRIMARY KEY,
   page_type text NOT NULL,
@@ -33,6 +42,8 @@ CREATE POLICY digital_pages_public_read
   USING (status = 'PUBLISHED');
 
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION auth.jwt() TO authenticated;
 GRANT SELECT ON TABLE public.digital_pages TO anon, authenticated, service_role;
 GRANT INSERT, UPDATE, DELETE ON TABLE public.digital_pages TO authenticated;
 
