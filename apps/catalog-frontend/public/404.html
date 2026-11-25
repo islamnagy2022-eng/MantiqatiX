@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Redirecting…</title>
+</head>
+<body>
+  <p>Redirecting to the matching page…</p>
+  <script>
+    (() => {
+      const url = new URL(window.location.href);
+      const segments = url.pathname.split("/");
+      const repoIndex = segments.findIndex((part) => part.toLowerCase() === "mantiqatix");
+      if (repoIndex !== -1) {
+        segments[repoIndex] = "MantiqatiX";
+        for (let i = repoIndex + 1; i < segments.length; i += 1) {
+          segments[i] = segments[i].toLowerCase();
+        }
+        const normalized = segments.join("/");
+        if (normalized !== url.pathname) {
+          url.pathname = normalized;
+          window.location.replace(url.href);
+          return;
+        }
+      }
+      window.location.replace("/MantiqatiX/");
+    })();
+  </script>
+</body>
+</html>
