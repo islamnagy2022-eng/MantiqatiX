@@ -118,7 +118,7 @@
 2. Object present is not semantic pass. Verify exact function overload/body, owner, SECURITY DEFINER mode, empty search_path, effective ACL, RLS/FORCE RLS, policy permissiveness/restrictiveness and caller behavior.
 3. Policy present is not a pass if the predicate is wrong, permissive when restrictive is required, or correlates the wrong row.
 4. Partial/historical base must not be classified as the full forward contract.
-5. Do not rewrite migration history, synthesize ledger rows or replay the 83-migration chain directly on Production.
+5. Do not rewrite migration history, synthesize ledger rows or replay the 84-migration chain directly on Production.
 6. Keep affected Edge/payment/settlement/directory endpoints fail-closed until their DB + Edge dependency slice is reconciled and independently tested.
 
 ## Earlier live audit evidence (RC425–RC453)
@@ -156,7 +156,7 @@
 
 ## Next work
 
-1. Expand current live physical-effect read-back beyond the 76-object curated sample, especially policy definitions, constraints, triggers, overloads and all 83 migration dependencies.
+1. Expand current live physical-effect read-back beyond the 76-object curated sample, especially policy definitions, constraints, triggers, overloads and all 84 migration dependencies.
 2. Build the coordinated DB → RPC/ACL/RLS → Edge bundle/version → deployed-origin E2E dependency graph.
 3. Obtain owner-controlled encrypted DB + Storage backups, prove Auth/Vault coverage, and complete isolated PostgreSQL 17 restore/rollback with measured RPO/RTO.
 4. Only then prepare the coordinated, explicitly approved Production release window.
