@@ -1,0 +1,60 @@
+name: Marketing CRM Business Writes
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "supabase/migrations/20261125140000_rc116_crm_business_scoped_writes.sql"
+      - "supabase/tests/rc116_crm_business_writes_*.sql"
+      - "scripts/validate-crm-business-scoped-writes.mjs"
+      - ".github/workflows/marketing-crm-business-writes.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261125140000_rc116_crm_business_scoped_writes.sql"
+      - "supabase/tests/rc116_crm_business_writes_*.sql"
+      - "scripts/validate-crm-business-scoped-writes.mjs"
+      - ".github/workflows/marketing-crm-business-writes.yml"
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: node scripts/validate-crm-business-scoped-writes.mjs
+
+  crm-business-writes-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc116_crm_write_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc116_crm_write_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply live-baseline fixture, write-scope migration, and behavior tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:17' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc116_crm_business_writes_fixture.sql "$pg_container:/tmp/rc116_fixture.sql"
+          docker cp supabase/migrations/20261125140000_rc116_crm_business_scoped_writes.sql "$pg_container:/tmp/rc116_migration.sql"
+          docker cp supabase/tests/rc116_crm_business_writes_integration.sql "$pg_container:/tmp/rc116_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc116_crm_write_test -v ON_ERROR_STOP=1 -f /tmp/rc116_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc116_crm_write_test -v ON_ERROR_STOP=1 -f /tmp/rc116_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc116_crm_write_test -v ON_ERROR_STOP=1 -f /tmp/rc116_test.sql
