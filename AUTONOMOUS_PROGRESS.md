@@ -1,28 +1,29 @@
 # Autonomous Development Progress
 
-## Session checkpoint — 2026-11-26
+## Session checkpoint — 2026-11-26 (continued)
 
 ### Repository baseline
-- Repository: `islamnagy2022-eng/MantiqatiX`
-- Default branch: `main`
-- Main commit at session start: `14cf6ba87b1beb46774fef8883d16dbde699abc4`
-- Central task list: `TODO_PRODUCTION.md`
-- Production remains **BLOCKED / NOT CERTIFIED**. Source/CI success is not evidence of production deployment or certification.
+- Repository: `islamnagy2022-eng/MantiqatiX`; default branch `main`.
+- Main at the prior checkpoint: `14cf6ba87b1beb46774fef8883d16dbde699abc4`; PR #1115 has since been merged as `bdb95370ba4ab7128d88d32d7ae24d0fa849a3d8`.
+- Central task list: `TODO_PRODUCTION.md`.
+- Production remains **BLOCKED / NOT CERTIFIED**.
 
-### Work performed
-- Read current TODO/security and deployment checkpoints.
-- Confirmed this file was absent on `main`; created it on isolated branch `autonomous/progress-checkpoint-20261126`.
-- Reviewed PRs #1115 and #1116 and their changed-file sets.
-- Queried exact-head GitHub Actions runs for both PRs; returned runs were completed/successful for the listed workflows. This is source/CI evidence only.
-- Marked PR #1115 ready and merged it after reviewing its scope and reported exact-head CI: merge commit `bdb95370ba4ab7128d88d32d7ae24d0fa849a3d8`.
-- PR #1116 remains open; do not merge until compatibility with the newly updated main and current exact-head checks are verified.
+### Completed in this work
+- PR #1115 CRM read-scope source change merged after reviewing its scope and reported exact-head checks.
+- Created this progress log on isolated branch `autonomous/progress-checkpoint-20261126`.
+- Rechecked open PRs #1116, #1114, and #1113 plus their latest reported head workflow runs.
+- PR #1116 has successful recorded checks on head `335552256762c32597c2c73a774edf3ed3e10f67`, but GitHub currently reports `mergeable=false`; it remains unmerged pending a compatible update/revalidation after #1115.
+- PR #1114 has successful reported CI on head `df3346fe7bf844b4db911621b188c5f9661a0802`. Its changed files overlap files changed on main since its base, so it was not transplanted or merged without a fresh conflict-aware review and tests.
+- PR #1113 has successful reported workflows on head `33292947b960bc11ebabf6231be07c9e9539741f`, including RC919 integration and migration replay. Reviewed the migration and integration test: active jobs are accepted; inactive jobs rejected without insert; missing jobs rejected. GitHub reports `mergeable=false`, so it remains unmerged pending conflict resolution/revalidation.
+- No production data, database, secrets, security settings, or deployment changed.
 
 ### Next safe execution order
-1. Verify PR #1116 still applies cleanly after #1115 and that its relevant checks remain successful; resolve conflicts or rerun CI if needed.
-2. Continue independent source/CI-only P0 tasks from the central TODO.
-3. Keep Production database, Auth, RLS, grants, Storage, Edge, payment, wallet, settlement, and customer-data mutations blocked pending the documented operator-owned backup/restore and coordinated release gates.
+1. Resolve current base conflicts for #1116, #1113, and #1114 using a real Git working tree; rerun exact-head checks after rebasing/merging.
+2. Merge only candidates whose current-head tests pass and whose diffs are compatible with current main.
+3. Continue independent source/CI-only P0 tasks from the full TODO.
+4. Keep Production database, Auth, RLS, grants, Storage, Edge, payment, wallet, settlement, and customer-data mutations blocked pending documented operator-owned backup/restore and coordinated release gates.
 
 ### Blockers and limits
-- No local repository working tree or test runner is available in this session; validation relies on GitHub source/CI evidence.
-- No live Supabase mutations or deployment were performed or authorized.
-- This progress checkpoint branch is isolated and has not been merged; it does not change the published site.
+- The available GitHub connector can inspect and commit files but does not provide a safe branch rebase/conflict-resolution operation here. No local repository working tree/test runner is available.
+- Therefore stale/conflicting PRs were deliberately not merged. No production mutation or deployment was performed.
+- This progress checkpoint branch is isolated and not merged; it does not change the published site.
