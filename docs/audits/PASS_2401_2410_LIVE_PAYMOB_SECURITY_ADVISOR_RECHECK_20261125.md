@@ -34,24 +34,27 @@ The deployed `paymob-webhook` is ACTIVE **v10**, `verify_jwt=false`, last update
 
 This is a **source/runtime integrity gap**, not proof that a malicious callback has occurred. The exact altered-selector negative HTTP replay remains required: sign an event for pending order A, alter the unsigned merchant selector to equal-value/equal-currency pending order B, and prove HTTP rejection with zero mutation to either order. Repeat for standard, digital-page and subscription flows, plus replay and failure cases.
 
-### Exact required database RPC signatures
+### Exact required database RPC signatures — corrected 2026-11-25 read-back
 
-A read-only PostgreSQL `to_regprocedure` check returned `present=false` for all seven exact signatures required by the current payment/recovery source contract:
+A follow-up read-only PostgreSQL catalog query enumerated the actual `pg_proc` signatures, then checked each exact current-main signature with `to_regprocedure` and `has_function_privilege`. **Six of the seven new current-main contracts are absent; the digital-page processor is present.** The earlier check used a nine-argument digital-page signature and omitted `p_provider_transaction_id`; it therefore produced a false negative for that function. This correction supersedes the earlier seven-of-seven statement.
 
-| Required contract | Exact signature present |
-|---|---:|
-| Standard provider payment failure | NO |
-| Subscription payment success | NO |
-| Subscription payment failure | NO |
-| MantiGO payment processor | NO |
-| Digital-page payment processor | NO |
-| Subscription provider-intent claim | NO |
-| Subscription claimable-intent creation | NO |
+| Required contract | Exact current-main signature present | EXECUTE for anon / authenticated / service_role |
+|---|---:|---|
+| Standard provider payment failure | NO | N/A |
+| Subscription payment success (`_backend` contract) | NO | N/A |
+| Subscription payment failure | NO | N/A |
+| MantiGO payment processor | NO | N/A |
+| Digital-page payment processor | **YES** | NO / NO / YES |
+| Subscription provider-intent claim | NO | N/A |
+| Subscription claimable-intent creation | NO | N/A |
 
-These results mean the exact requested signatures are not present; they do not rule out similarly named overloads or alternate historical implementations. They are sufficient to block a standalone Edge deployment: current-main webhook code must not be deployed until its matching database contracts are reconciled, staged, and verified.
+Additional exact catalog results:
 
-**Required release order:** reconcile and stage the database contracts first; pass PostgreSQL 17 behavioral/concurrency tests; run the provider-signed altered-selector sandbox replay; then deploy the coordinated Edge bundle and verify its deployed hash/version. Do not deploy only the Edge Function or blindly apply the 82 migrations in order to Production.
+- Current standard-payment success processor `process_verified_provider_payment(varchar,varchar,varchar,varchar,varchar,varchar,boolean,numeric,varchar,numeric)`: **present**, EXECUTE is NO / NO / YES. Its argument list does not include `provider_order_id`; the current-main webhook performs the stored-order equality guard before invoking it.
+- Legacy subscription processor `process_verified_subscription_payment(text,text,uuid,text,numeric,text,boolean)`: **present**, EXECUTE is NO / NO / YES. It is not the current-main `process_verified_subscription_payment_backend(..., provider_order_id, ..., raw_payload)` contract and cannot satisfy that call.
+- Digital-page processor `process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)`: exact 10-argument signature present; it is SECURITY DEFINER and EXECUTE is restricted to `service_role` in the observed privilege check. Its function setting reports `search_path=public, pg_temp`, which still requires body/ACL/search-path review; presence alone is not certification.
 
+These results mean six required current-main payment/recovery contracts are absent as exact signatures. They are enough to block a coordinated payment release, but not a reason to deploy Edge functions separately. Reconcile the missing contracts and their underlying migration dependencies on an isolated PostgreSQL 17 restore, while separately reviewing the present digital-page and standard-success processors for body, ownership, grants and search-path parity.
 ## 3. Supabase Security Advisor read-back
 
 Latest advisor observation timestamp: `2026-11-24T23:50:18.922Z`.
@@ -91,7 +94,7 @@ These findings need targeted query-plan, policy-equivalence and workload review.
 1. Obtain an owner-controlled encrypted database backup and separate Storage object-byte export; record checksums and prove retrieval. Recover Auth configuration, Vault/key material and Edge secret references without placing secret values in GitHub or chat.
 2. Restore into an independent disposable PostgreSQL 17 target and measure RPO/RTO; run rollback tests before any Production write.
 3. Complete the source-to-live effect crosswalk for all 82 release migrations, resolving exact-version aliases and already-applied equivalent effects. Build an idempotent candidate plan from the actual live schema; never fabricate migration-ledger rows or replay historical SQL blindly.
-4. Reconcile the seven exact payment RPC signatures, payment columns/indexes, function owner/search_path/ACL, RLS and Edge dependencies on the isolated restore.
+4. Reconcile the six absent exact payment RPC contracts, and review the present digital-page, standard-success and legacy-subscription processor bodies/owners/search_path/ACL alongside payment columns/indexes and Edge dependencies on the isolated restore.
 5. Pass signed Paymob HTTP negative/positive tests for altered merchant selector, equal-value collision, wrong currency/amount, provider replay, duplicate callbacks, and failed callbacks across standard, digital-page and subscription orders; include MantiGO where its payment path is enabled.
 6. Complete the coordinated database + Edge rollout, verify deployed source hashes/versions, and run deployed-origin browser/API tests.
 7. Enable and verify leaked-password protection; resolve anonymous Auth configuration intentionally; review the SECURITY DEFINER and anonymous-policy findings against a route/function allowlist.

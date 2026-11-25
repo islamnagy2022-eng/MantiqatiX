@@ -8106,5 +8106,70 @@
     "production_edge_changed": false,
     "full_sandbox_altered_selector_e2e": "NOT PERFORMED",
     "production_paymob_release_gate": "BLOCKED"
+  },
+  "paymob_rpc_exact_signature_readback_20261125": {
+    "status": "READ_ONLY_RECHECK_CORRECTED",
+    "checked_at": "2026-11-25",
+    "method": "pg_proc identity arguments + to_regprocedure exact signatures + has_function_privilege",
+    "required_current_main_contracts": {
+      "standard_payment_failure": {
+        "present": false,
+        "signature": "public.process_verified_provider_payment_failure(text,text,text,text,text,text,boolean,numeric,text,text,text,jsonb)"
+      },
+      "subscription_payment_success": {
+        "present": false,
+        "signature": "public.process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb)"
+      },
+      "subscription_payment_failure": {
+        "present": false,
+        "signature": "public.process_verified_subscription_payment_failure(text,text,uuid,text,numeric,text,text,boolean,jsonb)"
+      },
+      "mantigo_payment_processor": {
+        "present": false,
+        "signature": "public.process_verified_mantigo_payment_backend(uuid,text,text,boolean,numeric,text,text,jsonb)"
+      },
+      "digital_page_payment_processor": {
+        "present": true,
+        "signature": "public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)",
+        "security_definer": true,
+        "anon_execute": false,
+        "authenticated_execute": false,
+        "service_role_execute": true,
+        "search_path": "public, pg_temp",
+        "review_required": true
+      },
+      "subscription_provider_intent_claim": {
+        "present": false,
+        "signature": "public.claim_subscription_provider_intent_creation_backend(uuid,uuid)"
+      },
+      "subscription_claimable_intent_creation": {
+        "present": false,
+        "signature": "public.create_subscription_payment_intent_claimable_backend(uuid,text,text,text,text,uuid)"
+      }
+    },
+    "absent_required_contract_count": 6,
+    "present_required_contract_count": 1,
+    "additional_legacy_functions": {
+      "standard_payment_success": {
+        "present": true,
+        "signature": "public.process_verified_provider_payment(character varying,character varying,character varying,character varying,character varying,character varying,boolean,numeric,character varying,numeric)",
+        "anon_execute": false,
+        "authenticated_execute": false,
+        "service_role_execute": true,
+        "provider_order_id_argument": false,
+        "webhook_guard_precedes_rpc": true
+      },
+      "legacy_subscription_success": {
+        "present": true,
+        "signature": "public.process_verified_subscription_payment(text,text,uuid,text,numeric,text,boolean)",
+        "anon_execute": false,
+        "authenticated_execute": false,
+        "service_role_execute": true,
+        "matches_current_main_backend_contract": false
+      }
+    },
+    "correction": "The prior seven-of-seven absence statement used a nine-argument digital-page signature and omitted p_provider_transaction_id. The exact 10-argument current-main signature is present and service_role-only.",
+    "release_gate": "BLOCKED",
+    "production_mutations": false
   }
 }
