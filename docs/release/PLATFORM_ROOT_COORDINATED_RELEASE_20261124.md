@@ -1,6 +1,6 @@
 # Coordinated Platform-Root Authorization Release Gate
 
-**Prepared from:** `main @ 1419477b39312e65134494251264452b170e1efe`  
+**Prepared from:** `main @ 17329ba27effad52a316ad0aa94ef1a93ab975a`  
 **Production:** `MANTIQATIX FINAL / moyhiluyhjsujhwlyeuu`  
 **Current state:** **BLOCKED / NOT CERTIFIED — read-only preparation only**
 
