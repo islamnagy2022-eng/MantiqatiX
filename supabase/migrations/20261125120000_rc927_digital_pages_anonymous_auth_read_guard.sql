@@ -1,6 +1,8 @@
 -- RC927: keep public published-page reads for raw anon while denying
 -- Anonymous Auth sessions direct SELECT on the full digital_pages base row.
 -- RC480's column allowlist remains the raw-anon public renderer boundary.
+-- Release order is strict: RC480 (`20261118210000`) must run first; this preflight
+-- intentionally rejects the live baseline until anon table SELECT is revoked.
 -- Authenticated, confirmed users retain the existing page-owner read path.
 BEGIN;
 
