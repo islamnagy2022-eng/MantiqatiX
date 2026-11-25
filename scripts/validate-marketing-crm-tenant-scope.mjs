@@ -14,7 +14,7 @@ assert.match(migration, /um\.tenant_id = 'MNTY-PLATFORM'/);
 assert.match(migration, /um\.permissions->>'full_control'/);
 assert.match(migration, /coalesce\(um\.permissions->>'full_control',\s*'false'\) = 'true'/);
 assert.doesNotMatch(migration, /permissions->>'full_control'\)::boolean/);
-assert.match(migration, /upper\(coalesce\(marketing_provider_profiles\.status,''\)\) = 'ACTIVE'/);
+assert.match(migration, /upper\(coalesce\(marketing_provider_profiles\.status,\s*''\)\) = 'ACTIVE'/);
 assert.match(migration, /upper\(coalesce\(um\.role,''\)\) in \('SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER'\)/);
 assert.match(fixture, /'Pending Provider A','PENDING'/);
 assert.match(fixture, /CRM managers view marketing leads/);
