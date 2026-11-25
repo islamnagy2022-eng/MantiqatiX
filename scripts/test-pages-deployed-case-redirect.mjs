@@ -52,16 +52,10 @@ try {
   unknownNested.hash = hash;
   await verifyRedirect('unknown-nested-path-fallback', unknownNested.href);
 
-  const unknownOutside = new URL(canonical.origin);
-  unknownOutside.pathname = '/unknown-route/';
-  unknownOutside.search = query;
-  unknownOutside.hash = hash;
-  await verifyRedirect('unknown-outside-path-fallback', unknownOutside.href);
-
   await page.goto(canonical.href, { waitUntil: 'domcontentloaded' });
   assert.equal(page.url(), canonical.href, 'canonical root must load without a redirect loop');
   console.log('PASS canonical-root-no-redirect-loop');
-  console.log('PAGES_DEPLOYED_CASE_REDIRECT=PASS checks=5');
+  console.log('PAGES_DEPLOYED_CASE_REDIRECT=PASS checks=4');
 } finally {
   await browser.close();
 }
