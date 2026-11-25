@@ -9,9 +9,9 @@
 - [x] Preserved PASS 2411–2420 R7 archive safety review; all current development remains on canonical main.
 - [x] Fresh read-only Production audit: `marketing_provider_profiles` still has direct anon SELECT and its active-row policy exposes base-table fields; restrictive RC479 confirmed-Auth SELECT policy is absent.
 - [x] Added RC926 forward-only migration `20261125110000` requiring explicit `is_anonymous=false`, plus integration/static tests for raw anon, anonymous Auth, missing claim, confirmed user, owner update and wrong-owner denial.
-- [x] Full replay failure traced to schema-only test baseline missing the provider profile row; integration now seeds a deterministic synthetic row and uses the replay's known synthetic Auth owner. Corrected PostgreSQL 17 replay is pending.
-- [ ] Complete exact-head RC926/RC479 checks and chronological 83-version PostgreSQL 17 replay before merge.
-- [ ] Keep Production read-only until encrypted DB + Storage backup and independent restore, migration identity/effect reconciliation, signed Paymob verification, ACL/RLS parity and coordinated Edge/source release gates pass.
+- [x] Fixed the full-replay fixture: the schema-only baseline is seeded with a deterministic synthetic provider row and the replay's known synthetic Auth owner. The corrected full PostgreSQL 17 replay result is recorded in the next acceptance item.
+- [x] Exact-head RC926/RC479 validation and chronological 83-version PostgreSQL 17 replay passed before merge: PR-head `d2e265f581a39b80ca8bdbbf472b68b84a098ac2`; full replay/83-version strict gate/RC926+RC479 validators run `45520980163`; targeted RC479 anonymous-Auth PostgreSQL run `45520979889`. PR #1097 merged source-only as `a2dba687848998da0dff3d40e6db44c578a85692`; no Production change.
+- [x] Corrected the RC926 test fixture and passed exact-head checks; this is isolated CI evidence only. Production remains read-only until encrypted DB + Storage backup and independent restore, migration identity/effect reconciliation, signed Paymob verification, ACL/RLS parity and coordinated Edge/source release gates pass.
 - [ ] Leaked-password protection remains unavailable on current Free plan; this is an owner/plan dependency, not a SQL migration.
 
 This is the active priority queue. Older Pass logs remain append-only evidence, not a competing work queue. Ordering is based on dependencies and work that can be completed without a paid Supabase branch or paid tooling.
@@ -42,7 +42,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Re-ran the existing read-only high-risk SECURITY DEFINER SQL contract against Production: 14 RPCs checked; 5 PASS, 9 FAIL_SEARCH_PATH; all 14 preserve anon EXECUTE=false and authenticated EXECUTE=true. Direct anon/authenticated write grants on five MantiGO tables are both zero; see PASS_2071_2080.
 - [x] Assert function ownership, empty `search_path`, grants, FORCE RLS and caller coverage in the RC464/RC471/RC484/RC485 suites; exact-head module and forward replay workflows passed.
 - [x] Fresh read-only Production recheck confirmed 57 `is_platform_admin()` policies / 24 tables plus five legacy-helper policies / three tables; registry FORCE RLS remains off, the generic root helper is membership-derived, and all seven catalog RPCs still lack the explicit false anonymous-claim predicate. Evidence: `docs/audits/PASS_2361_2370_PLATFORM_ROOT_LIVE_RECHECK_20261124.md`.
-- [ ] Complete one coordinated, timestamp-ordered 82-source migration + RPC/ACL/RLS + Edge bundle and post-release read-back plan; do not hot-patch, cherry-pick, or apply it to Production in this phase. Execution gates: `docs/release/PLATFORM_ROOT_COORDINATED_RELEASE_20261124.md`.
+- [ ] Complete one coordinated, timestamp-ordered 83-source migration + RPC/ACL/RLS + Edge bundle and post-release read-back plan; do not hot-patch, cherry-pick, or apply it to Production in this phase. Execution gates: `docs/release/PLATFORM_ROOT_COORDINATED_RELEASE_20261124.md`.
 **Live evidence:** Production still uses membership-derived helpers; registry RLS is on but FORCE RLS is false. Fresh exact counts and the catalog RPC guard inventory are in `docs/audits/PASS_2361_2370_PLATFORM_ROOT_LIVE_RECHECK_20261124.md`.
 
 ### P0.2 Anonymous Auth and private profile boundaries

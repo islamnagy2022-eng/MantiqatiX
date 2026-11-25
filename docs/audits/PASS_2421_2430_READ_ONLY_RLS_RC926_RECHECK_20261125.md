@@ -97,5 +97,12 @@ Anonymous Auth sign-ins also remain enabled. Do not switch them off blindly: the
 
 - Production mutation: **NONE**.
 - Production RLS/GRANT/Auth/Storage/Edge/Payment changes: **NONE**.
-- RC926: **SOURCE CANDIDATE / CI PENDING**.
+- RC926: **SOURCE MERGED / EXACT-HEAD CI PASS / NOT DEPLOYED TO PRODUCTION**.
 - Overall platform release: **BLOCKED / NOT CERTIFIED** pending the immutable 83-version chronology, exhaustive physical effect and ACL/RLS reconciliation, signed payment runtime contracts, and encrypted backup + independent restore rehearsal with measured RPO/RTO.
+
+
+## Exact-head CI and merge verification — 2026-11-25
+- PR #1097 exact head: `d2e265f581a39b80ca8bdbbf472b68b84a098ac2`.
+- Full forward-chain run `45520980163` passed the strict exact 83-version release gate, RC926 static source validation, RC479 anonymous-Auth boundary validation, and chronological PostgreSQL 17 checkpoint restore plus timestamp-ordered migration replay. The RC926 validation ran before the restore/replay steps.
+- Targeted RC479 anonymous-Auth PostgreSQL workflow `45520979889` passed both the source-contract step and the disposable migration/boundary regression step.
+- PR #1097 merged source-only as `a2dba687848998da0dff3d40e6db44c578a85692`. No Production SQL, migration, GRANT, RLS, Auth, Storage, Edge, payment, settlement or customer-data mutation was performed. The pass evidence does not certify Production deployment.

@@ -1,5 +1,5 @@
 # MantiqatiX — Unified Source of Truth Map
-**Checkpoint:** 2026-11-25 — main `b90155040bdbd72d4472f1f7bd964d988b82ac0f`; RC926 candidate on `security/rc926-strict-provider-profile-auth-20261125-r2`  
+**Checkpoint:** 2026-11-25 — main `a2dba687848998da0dff3d40e6db44c578a85692`; RC926 merged source-only in PR #1097. Exact-head 83-version replay and RC479/RC926 tests passed.  
 **Operating directive:** [MASTER_SOURCE_OF_TRUTH.md](./MASTER_SOURCE_OF_TRUTH.md)  
 **Canonical repository:** `islamnagy2022-eng/MantiqatiX`  
 **Production Supabase:** `MANTIQATIX FINAL` / `moyhiluyhjsujhwlyeuu`
@@ -113,5 +113,12 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - Preserved the R7 ZIP review (PASS 2411–2420) and continued RC926 as PASS 2421–2430 on a branch based on latest main `b90155040bdbd72d4472f1f7bd964d988b82ac0f`.
 - Production read-only evidence confirms direct anon SELECT remains on `marketing_provider_profiles`, with a permissive active-row base-table policy and no restrictive RC479 confirmed-Auth policy. RLS + FORCE RLS are enabled.
 - RC926 adds a new forward-only migration requiring explicit `is_anonymous=false`, revoking direct anon SELECT and preserving authenticated/service-role SELECT grants and owner DML policy definitions.
-- The first full replay showed the schema-only checkpoint did not contain the provider row assumed by the test. The integration now seeds an idempotent synthetic profile and uses the existing synthetic Auth user from the disposable replay prerequisite. Retest pending.
+- The first full replay showed the schema-only checkpoint did not contain the provider row assumed by the test. The integration now seeds an idempotent synthetic profile and uses the existing synthetic Auth user from the disposable replay prerequisite. Exact-head PostgreSQL 17 full replay, strict 83-version gate and RC926 static validator passed in run `45520980163`; targeted RC479 anonymous-Auth PostgreSQL suite passed in run `45520979889` on PR head `d2e265f581a39b80ca8bdbbf472b68b84a098ac2`.
 - No historical migration edited; no Production SQL/GRANT/RLS/Auth/Storage/Edge/Payment mutation. Overall gate remains BLOCKED / NOT CERTIFIED.
+
+
+## RC926 exact-head verification and merge — 2026-11-25
+- PR #1097 merged source-only at `a2dba687848998da0dff3d40e6db44c578a85692`.
+- Exact PR head `d2e265f581a39b80ca8bdbbf472b68b84a098ac2`: strict 83-version release validator and PostgreSQL 17 chronological restore/replay passed in run `45520980163`; the same run validates RC926's strict provider-profile confirmed-identity guard.
+- Targeted RC479 anonymous-Auth PostgreSQL regression passed in run `45520979889`. All workflow runs associated with the exact PR head completed successfully.
+- These are source/disposable-CI results only. The live Supabase migration ledger, grants/policies and Edge runtime were not changed. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains in force.

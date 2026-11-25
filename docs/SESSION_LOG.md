@@ -4353,3 +4353,10 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - Fresh Production read-only audit: `marketing_provider_profiles` still has direct anon SELECT; its public-active policy returns full base rows; RC479 restrictive confirmed-Auth SELECT policy is absent. RLS and FORCE RLS are enabled.
 - RC926 remains a forward-only new migration. The first full chronological replay showed the schema-only baseline contained no provider profile row; the test now seeds its own idempotent synthetic row and uses the replay prerequisite's known synthetic Auth principal. No Production data was read or modified.
 - RC926 targeted PostgreSQL 16 six-case test had passed on the earlier candidate; corrected full chronological PostgreSQL 17 replay and exact-head CI are pending on the rebased branch. Production mutation NONE.
+
+
+## 2026-11-25 — RC926 exact-head replay acceptance
+- PR #1097 merged source-only at `a2dba687848998da0dff3d40e6db44c578a85692`; exact tested head `d2e265f581a39b80ca8bdbbf472b68b84a098ac2`.
+- Full PostgreSQL 17 chronological restore/replay and strict 83-version release gate passed in run `45520980163`, including RC926 static validation and the RC479 provider-profile identity boundary contract.
+- Targeted RC479 anonymous-Auth PostgreSQL regression passed in run `45520979889`.
+- No Production migration, grant, policy, Auth, Storage, Edge, payment, settlement or business-data change. Full platform remains BLOCKED / NOT CERTIFIED.
