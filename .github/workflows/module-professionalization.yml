@@ -45,6 +45,7 @@ jobs:
           node scripts/validate-security-definer-contract.mjs
           node scripts/validate-rc479-provider-profile-anon-read.mjs
           node scripts/validate-rc480-digital-pages-anon-columns.mjs
+          node scripts/validate-rc927-digital-pages-anonymous-auth-read-guard.mjs
           node scripts/validate-rc481-legal-edge-acl.mjs
           node scripts/validate-rc479-health-db-probe.mjs
           node scripts/validate-rc451-forward-repair.mjs
@@ -230,6 +231,10 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc480_test -v ON_ERROR_STOP=1 -f /tmp/rc480_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc480_test -v ON_ERROR_STOP=1 -f /tmp/rc480_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc480_test -v ON_ERROR_STOP=1 -f /tmp/rc480_test.sql
+          docker cp supabase/migrations/20261125120000_rc927_digital_pages_anonymous_auth_read_guard.sql "$pg_container:/tmp/rc927_migration.sql"
+          docker cp supabase/tests/rc927_digital_pages_anonymous_auth_read_guard_integration.sql "$pg_container:/tmp/rc927_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc480_test -v ON_ERROR_STOP=1 -f /tmp/rc927_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc480_test -v ON_ERROR_STOP=1 -f /tmp/rc927_test.sql
 
   rc481-legal-edge-service-role-acl-postgres:
     runs-on: ubuntu-latest
