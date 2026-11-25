@@ -5,6 +5,14 @@
 **Status:** **BLOCKED — organization plan is Free; no automatic daily database backup is included, and no retrievable owner-created export or restore drill has been demonstrated.**  
 **Rule:** This runbook prepares a safe owner-controlled drill. It does not authorize a Production write, create a paid Supabase branch, or ask anyone to paste credentials into GitHub/ChatGPT.
 
+## Current migration reconciliation (2026-11-25)
+
+- The current release contract tracks **83 exact migration versions**, defined in `scripts/production/live-reconciliation-contract.mjs` and checked by `scripts/validate-production-migration-chain-gate.mjs`.
+- A fresh read-only Supabase ledger read-back reports **310 rows**, latest version `20261110150618`, and **0/83 exact required version identifiers** present.
+- Do not interpret zero exact identifier matches as proof that every SQL effect is absent. The historical source-to-live crosswalk records partial baselines and separate confirmed source/ledger aliases. The three catalogued aliases are outside the current 83-version release list; their formal migration-history repairs remain pending. Never replay an alias, fabricate migration-ledger rows, or treat physical object presence alone as contract parity.
+- A successful chronological PostgreSQL 17 replay in disposable CI is not a Production migration, backup, restore, or rollback rehearsal.
+- Before approval, reconcile each required source effect against the live ledger and physical schema, including exact RPC signatures and bodies, function owners and `search_path`, effective ACL/RLS policies, constraints, and triggers.
+
 ## A. Evidence to collect before release
 
 1. **Plan and automated-backup evidence**
@@ -48,7 +56,7 @@
 4. Restore Storage buckets/metadata and upload the separately exported object bytes; verify checksums and representative private/public access behavior.
 5. Reconnect Auth/Edge/Vault settings only through controlled owner credentials in the isolated environment. Confirm that no real payment provider credential points at live-money flows.
 6. Run:
-   - exact 82-source migration identity/effect reconciliation;
+   - exact 83-source migration identity/effect reconciliation;
    - chronological forward replay and PostgreSQL 17 integration tests;
    - RLS/ACL/function-owner/search_path checks, including positive platform-admin and negative tenant-admin cases;
    - Paymob altered-merchant_order_id negative replay (standard, digital page and subscription), with equal-amount/currency orders A/B and zero writes to the wrong order;
@@ -73,7 +81,7 @@ Production approval remains blocked until:
 - Auth identities/configuration, Vault keys, external secrets and Edge configuration have documented recovery paths;
 - a disposable PostgreSQL 17 restore is clean and reproducible;
 - measured RPO/RTO and rollback evidence meet the owner's recovery target;
-- the exact ordered 82-source migration effects, RPC signatures, owners, search_path, ACL, RLS/policies, constraints and triggers reconcile;
+- the exact ordered 83-source migration effects, RPC signatures, owners, search_path, ACL, RLS/policies, constraints and triggers reconcile;
 - the coordinated database + Edge plan passes exact-head and deployed-origin negative/positive tests;
 - the owner explicitly approves the exact Production release commit, migration list, deployment list, backup artifact and rollback steps.
 
