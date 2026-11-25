@@ -13,6 +13,14 @@
 - [x] Published [PASS 2451–2460](../audits/PASS_2451_2460_FREE_PLAN_BACKUP_RESTORE_CAPABILITY_20261125.md); no backup, restore, project creation or Production mutation was performed.
 - [ ] Owner must create and verify encrypted off-site DB exports, separate Storage object exports, a supported Auth/Vault recovery package, and an independent PostgreSQL 17 restore/rollback with measured RPO/RTO. This remains a hard launch blocker; no paid plan/branch is assumed.
 
+## 2026-11-25 — Anonymous Auth matrix / RC927 exact-owner regression
+
+- [x] Reconciled all 90 current Security Advisor Anonymous Auth warnings against actual table existence, RLS, grants and policy roles; recorded 5 raw-anon SELECT tables and one raw-anon DML grant with no anon write policy.
+- [x] Identified the seven authenticated-write review candidates and separated confirmed grant/policy gaps from merely missing explicit restrictive claim markers.
+- [x] Added PASS 2461–2470 audit and updated Issue #928 with the 2026-11-25 matrix.
+- [x] Strengthened RC927 regression identities: the Anonymous Auth and missing-claim JWT subjects now equal the actual digital-page owner. Owner policies would otherwise pass; the test therefore proves the new restrictive identity condition denies read, insert, update and delete paths.
+- [ ] Exact-head static and PostgreSQL 17 full chronological 84-version replay pending on PR. Do not merge/deploy until all checks pass.
+
 ## 2026-11-25 — RC927 digital-page anonymous Auth boundary (source candidate)
 
 - [x] Read live pg_policies and role privileges for digital_pages and digital_page_sections. The public read policies currently target both anon and authenticated; page owner access is split into owner SELECT, INSERT and draft UPDATE policies plus a global admin policy.
