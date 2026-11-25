@@ -1,8 +1,17 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-25 — 83-source live crosswalk and Platform Admin/provider-profile read-back  
+**Updated:** 2026-11-25 — Free-tier backup/restore scope and owner recovery evidence  
 **Base:** `main @ 1419477b39312e65134494251264452b170e1efe`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
+
+## 2026-11-25 — Backup and restore capability recheck
+
+- [x] Direct organization lookup confirms the Production org is on Free; current Supabase docs say automatic daily DB backups are Pro/Team/Enterprise, not Free.
+- [x] Confirmed the connected Supabase tools do not expose a backup inventory function; manual export existence/retrievability remains UNKNOWN / NOT EVIDENCED, not an assumed absence.
+- [x] Corrected the backup runbook: ordinary `supabase db dump` excludes managed `auth`, `storage` and extension schemas; schema/role/data outputs are separate; Storage object bytes require a separate export.
+- [x] Split Auth schema-diff capture from Auth user/identity recovery. The paid-only project-restore capability is not assumed available on this Free plan.
+- [x] Published [PASS 2451–2460](../audits/PASS_2451_2460_FREE_PLAN_BACKUP_RESTORE_CAPABILITY_20261125.md); no backup, restore, project creation or Production mutation was performed.
+- [ ] Owner must create and verify encrypted off-site DB exports, separate Storage object exports, a supported Auth/Vault recovery package, and an independent PostgreSQL 17 restore/rollback with measured RPO/RTO. This remains a hard launch blocker; no paid plan/branch is assumed.
 
 ## 2026-11-25 — RC926 strict provider-profile identity boundary
 
@@ -137,7 +146,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Produce a candidate manifest: commit, exact CI runs, Edge versions, migration status and unresolved exceptions.
 
 ## P6 — Recovery and launch (last, as requested)
-- [ ] Create encrypted owner-controlled off-site DB backup and separate Storage object export; verify hashes and retrieval. Current read-back: organization plan **Free** (verified 2026-11-25); Free has no automatic daily backups per official Supabase guidance. Backup inventory/latest owner-created export remains unavailable to connected tools; no retrievable artifact or separate populated restore target has been demonstrated. See `docs/audits/PASS_2391_2400_BACKUP_RESTORE_CAPABILITY_READBACK_20261124.md` and `docs/release/PRODUCTION_BACKUP_RESTORE_DRILL_20261124.md`.
+- [ ] Create encrypted owner-controlled off-site DB exports and a separate Storage object export; verify hashes and retrieval. Current Free plan has no automatic daily backups; standard `db dump` excludes Auth/Storage managed schemas, so Auth user recovery and object bytes need separate proved paths. See [PASS 2451–2460](../audits/PASS_2451_2460_FREE_PLAN_BACKUP_RESTORE_CAPABILITY_20261125.md) and `docs/release/PRODUCTION_BACKUP_RESTORE_DRILL_20261124.md`.
 - [ ] Prove Auth users/identities coverage, Storage metadata/object bytes, Edge/config/extensions and Vault/key recovery.
 - [ ] Restore into a disposable PostgreSQL 17 environment; test rollback and measure RPO/RTO.
 - [ ] Prefer a local/owner-controlled zero-cost restore path. No paid Supabase branch is assumed.
