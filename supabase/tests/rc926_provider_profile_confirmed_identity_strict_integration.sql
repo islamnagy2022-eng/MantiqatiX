@@ -127,9 +127,13 @@ SELECT set_config(
 DO $confirmed$
 DECLARE visible_rows integer;
 BEGIN
+  -- Assert the deterministic RC926 row is readable. Do not assume it is the
+  -- only active provider in a full chronological replay with other fixtures.
   SELECT count(*) INTO visible_rows
   FROM public.marketing_provider_profiles
-  WHERE owner_user_id IS NOT NULL AND settings IS NOT NULL;
+  WHERE id='10000000-0000-4000-8000-000000000001'
+    AND owner_user_id IS NOT NULL
+    AND settings IS NOT NULL;
   IF visible_rows <> 1 THEN
     RAISE EXCEPTION 'RC926_CONFIRMED_USER_READ_REGRESSED:%',visible_rows;
   END IF;
@@ -182,8 +186,6 @@ DO $policy$
 DECLARE
   v_policy_count integer;
 BEGIN
-  -- Inspect policy metadata here; the static validator pins the exact source
-  -- expression and the preceding behavioral tests prove its runtime semantics.
   SELECT count(*) INTO v_policy_count
     FROM pg_catalog.pg_policies
    WHERE schemaname='public'
