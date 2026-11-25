@@ -62,7 +62,7 @@ The connected project was re-read directly after RC927 source preparation:
 - All 42 inventoried Edge Functions are ACTIVE; nine launch-critical functions were previously confirmed source-mismatched. `catalog-admin` is v20; `directory-listings` is v18 and intentionally fail-closed.
 - Current Security Advisor returned 166 categorized findings (9 RLS/no-policy, 1 anon SECURITY DEFINER, 65 authenticated SECURITY DEFINER, 90 Anonymous Auth policy warnings, 1 leaked-password protection). These are review findings, not 166 confirmed vulnerabilities.
 
-Full results: [PASS 2441–2450](../audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md). This remains a read-only snapshot, not Production release approval.
+Full results: [PASS 2441–2450](../audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md) and [PASS 2461–2470](../audits/PASS_2461_2470_RC480_RC927_DIGITAL_PAGE_ANONYMOUS_AUTH_READ_RECHECK_20261125.md). These are read-only snapshots, not Production release approval.
 
 ## 5. Edge runtime dependency gate
 
