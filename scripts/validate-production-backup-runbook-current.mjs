@@ -11,8 +11,8 @@ const runbookRequirements = [
   "supabase --version",
   "https://supabase.com/docs/reference/cli/supabase-db-dump",
   "excludes Supabase-managed schemas",
-  "\`auth\`",
-  "\`storage\`",
+  '\`auth\`',
+  '\`storage\`',
   "UNKNOWN / NOT EVIDENCED",
   "Restore to a new project",
   "Storage object bytes",
@@ -23,7 +23,7 @@ const runbookRequirements = [
   "not applied to Production",
 ];
 for (const required of runbookRequirements) {
-  assert.ok(runbook.includes(required), \`Current backup runbook is missing required scope: \${required}\`);
+  assert.ok(runbook.includes(required), "Current backup runbook is missing required scope: " + required);
 }
 
 const backlogRequirements = [
@@ -37,7 +37,7 @@ const backlogRequirements = [
   "exact-head static and PostgreSQL 17 tests are pending",
 ];
 for (const required of backlogRequirements) {
-  assert.ok(backlog.includes(required), \`Release backlog is missing current 84-version gate text: \${required}\`);
+  assert.ok(backlog.includes(required), "Release backlog is missing current 84-version gate text: " + required);
 }
 assert.ok(!backlog.includes("76 required migration IDs"), "Release backlog still describes 76 as the current required migration count.");
 assert.ok(!backlog.includes("0/76 present") && !backlog.includes("0/78 exact required identifiers"), "Release backlog still uses a superseded migration status.");
