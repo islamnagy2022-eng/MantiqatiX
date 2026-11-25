@@ -50,6 +50,15 @@ for (const marker of [
 }
 
 assert.ok(liveContract.includes('"20261125120000"'), "live migration contract must include RC927");
+const releaseVersionsMatch = liveContract.match(/REQUIRED_RELEASE_MIGRATION_VERSIONS\s*=\s*\[([\s\S]*?)\]/);
+assert.ok(releaseVersionsMatch, "release version array must be discoverable");
+const releaseVersions = [...releaseVersionsMatch[1].matchAll(/"(\d{14})"/g)].map((match) => match[1]);
+assert.ok(releaseVersions.includes("20261118210000"), "RC480 must be a required release migration");
+assert.ok(releaseVersions.indexOf("20261125120000") > releaseVersions.indexOf("20261118210000"),
+  "RC927 must follow RC480 in the immutable release order");
+assert.equal(releaseVersions.at(-1), "20261125120000", "RC927 must be the latest ordered release migration");
+assert.match(migration, /RC927_RC480_ANON_TABLE_LEVEL_SELECT_STILL_GRANTED/);
+assert.match(migration, /RC927_RC480_PUBLIC_COLUMN_ALLOWLIST_NOT_PRESENT/);
 assert.ok(productionVerifier.includes("20261125120000_rc927_digital_pages_anonymous_auth_read_guard.sql"));
 assert.ok(migrationGate.includes("20261125120000_rc927_digital_pages_anonymous_auth_read_guard.sql"));
 assert.match(migrationGate, /required\.length, 84/);
