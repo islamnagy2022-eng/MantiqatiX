@@ -41,7 +41,7 @@ The two present functions do not satisfy the full release contract: the digital-
 
 ## 2A. Security Advisor and catalog-write hardening
 
-A fresh Supabase Security Advisor read-back at `2026-11-25T02:27:16Z` returned these lint findings:
+A fresh Supabase Security Advisor read-back at `2026-11-25T02:27:16Z` returned **166 lint findings across five categories** (9 + 1 + 65 + 90 + 1):
 
 | Advisor category | Count | Severity / interpretation |
 |---|---:|---|
