@@ -39,6 +39,31 @@ Exact RPC signature checks were performed against `pg_proc`, with effective role
 
 The two present functions do not satisfy the full release contract: the digital-page function retains a non-empty search path, and the financial-journal backend is not executable by `service_role`.
 
+## 2A. Security Advisor and catalog-write hardening
+
+A fresh Supabase Security Advisor read-back at `2026-11-25T02:27:16Z` returned these lint findings:
+
+| Advisor category | Count | Severity / interpretation |
+|---|---:|---|
+| RLS enabled without policies | 9 | INFO; access is denied by default in these cases, but intended policy design must be verified |
+| Anonymous can execute SECURITY DEFINER | 1 | WARN; the reported function is the targeted-advertisement read RPC and needs an explicit public-read contract review |
+| Authenticated can execute SECURITY DEFINER | 65 | WARN; each routine needs body/ACL/tenant-scope review; not 65 confirmed vulnerabilities |
+| Policies permit Anonymous Auth role | 90 | WARN; policy intent must be reviewed individually, especially on business, finance, storage and owner data |
+| Leaked-password protection disabled | 1 | WARN; Auth security setting remains to be enabled and verified |
+
+These are advisor findings, not a count of confirmed exploitable vulnerabilities. Several catalog-related functions flagged by the advisor were inspected read-only. The live item, price, profile, settings and status RPC bodies include `auth.uid()` and tenant/business/branch membership predicates. The live `catalog-admin` Edge Function also requires a Bearer token, validates the user with Supabase Auth, rejects Anonymous Auth users, and checks active memberships before forwarding writes. Those controls reduce the significance of a generic SECURITY DEFINER warning, but do not close the separate source-contract and database-hardening gaps below.
+
+**Catalog price-write blocker — RC486:**
+- Live `upsert_catalog_price_backend` is still `SECURITY DEFINER` with `search_path=public`.
+- Its current body allocates `MAX(version)+1` without a transaction-scoped advisory lock.
+- The unique null-safe item/branch/version index `catalog_item_prices_item_branch_version_uidx` is absent.
+- The live `catalog-admin` Edge Function exposes both `ITEM_PRICE_UPSERT` and `PRICE_UPSERT`, which call this RPC through the authenticated user client.
+- The source migration `20261120210000_rc486_catalog_price_version_serialization.sql` and its integration test exist in the repository. The migration performs duplicate/null preflight, adds the unique index, sets an empty `search_path`, and locks the item/branch key before reading `MAX(version)`. It is not recorded as applied in Production.
+
+Therefore the current `CATALOG_PILOT_GATE=PASS` must not be read as proof that concurrent catalog price writes are production-safe. Keep concurrent price mutation outside the approved pilot/write scope until RC485/RC486/RC923/RC925 and their preceding registry dependencies are reconciled, replayed and tested as one ordered chain. Do not hot-patch a live RPC or apply RC486 by itself.
+
+**Directory-specific advisor findings:** `directory_listing_claim_requests`, `directory_source_permission_evidence`, and `public_directory_listings` are among the nine RLS-enabled tables with no policies. The public unclaimed-directory endpoint and contact-consent flow must remain disabled/fail-closed until its consent registry and reviewed policy set are installed. The zero-row source-permission evidence result is a separate blocker.
+
 ## 3. Physical relation, RLS and consent checks
 
 | Relation | Present | RLS | FORCE RLS | Result |
