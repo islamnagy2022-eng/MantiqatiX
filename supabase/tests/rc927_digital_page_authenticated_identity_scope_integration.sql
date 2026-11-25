@@ -90,6 +90,14 @@ BEGIN
      OR pg_catalog.has_column_privilege('anon','public.digital_pages','created_by','SELECT') THEN
     RAISE EXCEPTION 'RC927_RC480_ANON_PAGE_COLUMN_BOUNDARY_REGRESSED';
   END IF;
+  IF has_table_privilege('anon','public.digital_pages','INSERT')
+     OR has_table_privilege('anon','public.digital_pages','UPDATE')
+     OR has_table_privilege('anon','public.digital_pages','DELETE')
+     OR has_table_privilege('anon','public.digital_page_sections','INSERT')
+     OR has_table_privilege('anon','public.digital_page_sections','UPDATE')
+     OR has_table_privilege('anon','public.digital_page_sections','DELETE') THEN
+    RAISE EXCEPTION 'RC927_RAW_ANON_WRITE_PRIVILEGE_PRESENT';
+  END IF;
   IF NOT pg_catalog.has_table_privilege('authenticated','public.digital_pages','SELECT')
      OR NOT pg_catalog.has_table_privilege('authenticated','public.digital_pages','UPDATE')
      OR NOT pg_catalog.has_table_privilege('authenticated','public.digital_page_sections','SELECT')
