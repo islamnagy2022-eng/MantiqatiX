@@ -40,7 +40,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Re-read provider-profile grants/policies: RLS + FORCE RLS are ON, but `anon SELECT` remains granted and the permissive active-provider base-row policy remains; the strict RC926 policy is source-only and absent in Production.
 - [x] Re-read Platform Admin root: `private.platform_admins` RLS ON / FORCE RLS OFF; `is_platform_admin()` still does not reference the registry; `mnty_can_platform_admin()` remains on the legacy null-scope helper. Current blast radius: 57 policies / 24 tables and 5 policies / 3 tables.
 - [x] Re-read RC486 runtime dependency: live price RPC still has no transaction advisory lock and its required unique version index is absent.
-- [x] Published the current 84-source crosswalk and current live evidence: `docs/release/REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md` and [PASS 2441–2450](../audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md).
+- [x] Published the current 84-source crosswalk and current live evidence: `docs/release/REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md`, [PASS 2441–2450](../audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md), and [PASS 2461–2470](../audits/PASS_2461_2470_RC480_RC927_DIGITAL_PAGE_ANONYMOUS_AUTH_READ_RECHECK_20261125.md).
 - [ ] Complete the coordinated 84-source Platform Admin/provider-privacy/RPC/Edge release bundle only after exhaustive physical effect reconciliation, encrypted DB + Storage backup, independent restore/rollback, measured RPO/RTO and explicit owner release approval.
 
 ## Execution rules
