@@ -39,10 +39,27 @@ BEGIN
   END IF;
 
   -- RC480 must already have restricted raw anon to the public renderer projection.
-  IF NOT pg_catalog.has_column_privilege('anon','public.digital_pages','slug','SELECT')
+  IF NOT pg_catalog.has_column_privilege('anon','public.digital_pages','id','SELECT')
+     OR NOT pg_catalog.has_column_privilege('anon','public.digital_pages','page_type','SELECT')
+     OR NOT pg_catalog.has_column_privilege('anon','public.digital_pages','slug','SELECT')
+     OR NOT pg_catalog.has_column_privilege('anon','public.digital_pages','title','SELECT')
+     OR NOT pg_catalog.has_column_privilege('anon','public.digital_pages','subtitle','SELECT')
+     OR NOT pg_catalog.has_column_privilege('anon','public.digital_pages','description','SELECT')
+     OR NOT pg_catalog.has_column_privilege('anon','public.digital_pages','seo_title','SELECT')
+     OR NOT pg_catalog.has_column_privilege('anon','public.digital_pages','seo_description','SELECT')
+     OR NOT pg_catalog.has_column_privilege('anon','public.digital_pages','status','SELECT')
+     OR NOT pg_catalog.has_column_privilege('anon','public.digital_pages','version','SELECT')
+     OR pg_catalog.has_column_privilege('anon','public.digital_pages','business_id','SELECT')
+     OR pg_catalog.has_column_privilege('anon','public.digital_pages','provider_profile_id','SELECT')
+     OR pg_catalog.has_column_privilege('anon','public.digital_pages','theme','SELECT')
+     OR pg_catalog.has_column_privilege('anon','public.digital_pages','published_at','SELECT')
      OR pg_catalog.has_column_privilege('anon','public.digital_pages','created_by','SELECT')
+     OR pg_catalog.has_column_privilege('anon','public.digital_pages','updated_by','SELECT')
+     OR pg_catalog.has_column_privilege('anon','public.digital_pages','created_at','SELECT')
+     OR pg_catalog.has_column_privilege('anon','public.digital_pages','updated_at','SELECT')
+     OR pg_catalog.has_column_privilege('anon','public.digital_pages','digital_page_order_id','SELECT')
      OR pg_catalog.has_table_privilege('anon','public.digital_pages','SELECT') THEN
-    RAISE EXCEPTION 'RC927_RC480_ANON_COLUMN_ALLOWLIST_REQUIRED';
+    RAISE EXCEPTION 'RC927_RC480_EXACT_TEN_COLUMN_ANON_ALLOWLIST_REQUIRED';
   END IF;
 
   -- Preserve the owner and backend privileges established by the existing schema.
