@@ -12,6 +12,9 @@ assert.match(migration, /upper\(coalesce\(marketing_provider_profiles\.status,''
 assert.match(migration, /upper\(coalesce\(um\.role,''\)\) in \('SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER'\)/);
 assert.match(fixture, /'Pending Provider A','PENDING'/);
 assert.match(fixture, /Assigned providers view assigned marketing leads/);
+assert.match(fixture, /Owners manage their marketing provider profile/);
+assert.match(fixture, /requester_business_id is null/);
+assert.match(fixture, /um\.tenant_id = b\.tenant_id/);
 assert.match(integration, /manager A must not read pending provider in own business/);
 assert.match(integration, /manager B must not read pending provider in own business/);
 assert.match(integration, /platform SUPER_ADMIN should see pending providers across tenants/);
