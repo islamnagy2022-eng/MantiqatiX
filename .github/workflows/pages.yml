@@ -668,6 +668,11 @@ jobs:
           mkdir -p /tmp/playwright-runner
           npm install --prefix /tmp/playwright-runner --no-audit --no-fund playwright@1.64.1 axe-core@4.10.3
           /tmp/playwright-runner/node_modules/.bin/playwright install --with-deps chromium
+      - name: Verify case-insensitive catalog URLs on the deployed Pages origin
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          PLAYWRIGHT_MODULE: /tmp/playwright-runner/node_modules/playwright/index.mjs
+        run: node scripts/test-pages-deployed-case-redirect.mjs
       - name: Test deployed legacy catalog root and dashboard/mobile/QR routes
         env:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
