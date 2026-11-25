@@ -28,7 +28,7 @@ The following is a dependency map, not permission to cherry-pick migrations. The
 | D — forward privacy repair and catalog/finance/order guards | RC479 forward repair (`20261120193000`) → RC485–RC496 | Apply the later restrictive provider-profile policy after RC484, then catalog/price RPCs, SMM bootstrap removal, confirmed-session guards, settlement scope, Storage policies and MantiGO bid invariant. |
 | E — medical and agreement gates | RC921 → RC922 → RC923 → RC924 → RC925 | Assigned-provider and forward-only medical transitions, exact agreement participant/admin scope, then direct catalog RPC claim hardening. RC925 must reject both explicit anonymous and missing/null `is_anonymous` claims. |
 | F — strict provider-profile identity | RC926 (`20261125110000`) after RC479 | Revoke raw anon base-table SELECT and replace the RC479 COALESCE-based restrictive policy with exact `is_anonymous = false` semantics; deny missing/null claims while preserving confirmed-user and owner compatibility. Source merged and PG17 replay-tested, but not applied to Production. |
-| G — digital-page Anonymous Auth boundary | RC927 (`20261125120000`) after RC480 | Keep raw `anon` public reads on RC480's column allowlist; apply a restrictive `digital_pages` SELECT policy to role `authenticated` requiring explicit `is_anonymous=false`, denying anonymous and missing-claim sessions while preserving confirmed-user access. Source candidate; exact-head CI pending; not applied to Production. |
+| G — digital-page Anonymous Auth boundary | RC480 (`20261118210000`) → RC927 (`20261125120000`) | First revoke raw `anon` table SELECT and install the exact ten-column allowlist; then apply a restrictive `digital_pages` SELECT policy to role `authenticated` requiring explicit `is_anonymous=false`, denying anonymous and missing-claim sessions while preserving confirmed-user access. Source candidate; exact-head CI pending; not applied to Production. |
 
 The labels above are functional groups only; execute by version timestamp from the authoritative list, not by this table's presentation order. No historical migration file may be edited. New corrections require a new timestamped forward migration and a source-specific immutability test.
 
@@ -52,7 +52,7 @@ The labels above are functional groups only; execute by version timestamp from t
 
 ## 4A. Fresh read-only Production recheck — 2026-11-25
 
-The connected project was re-read directly after RC926 merged:
+The connected project was re-read directly after RC927 source preparation:
 
 - Project is `ACTIVE_HEALTHY`, PostgreSQL 17.6.1.155. Migration ledger remains 310 rows through `20261110150618`; exact source IDs remain **0/84**.
 - Provider profile table has RLS + FORCE RLS enabled, but direct `anon SELECT` is still granted. The permissive `Public can view active marketing providers` SELECT policy remains present for `anon, authenticated`; the strict RC926 restrictive policy is absent from Production.
@@ -71,3 +71,11 @@ The live Edge/RPC/ACL/schema inventory is maintained in [EDGE_RPC_PRODUCTION_DEP
 ## 6. Explicit non-actions in this phase
 
 No Production SQL write or `apply_migration`; no Auth configuration, RLS/GRANT, Storage policy, Edge deployment, payment/webhook, wallet, settlement, business-data, migration-ledger, or website deployment changes. The only permitted work before release approval is source review, isolated tests, backup/restore rehearsal in disposable infrastructure, and read-only live verification.
+
+
+## RC480 → RC927 privacy sequence — read-only evidence, 2026-11-25
+
+- Direct Production check confirms RC480 has not been applied: `public.digital_pages` RLS ON / FORCE RLS OFF, raw `anon SELECT` remains granted, and `anon SELECT(created_by)` remains true.
+- RC927 is intentionally downstream of RC480. It creates a restrictive SELECT guard for role `authenticated` requiring explicit `is_anonymous=false`, but its migration preflight will refuse to run before the RC480 column allowlist and table-level anon revoke are present.
+- The public renderer uses RC480's ten-column projection and disables session persistence. This source behavior does not replace the missing live database grant boundary.
+- Evidence: [PASS 2461–2470](../audits/PASS_2461_2470_RC480_RC927_DIGITAL_PAGE_ANONYMOUS_AUTH_READ_RECHECK_20261125.md). Both migrations remain source-only.
