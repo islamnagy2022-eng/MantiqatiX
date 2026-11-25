@@ -1,9 +1,18 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
-**Base:** `main @ 46714e919d959e49afe5efa64e2fcd2f94a982d7`  
+**Updated:** 2026-11-25 — RC926 strict provider-profile identity boundary; latest read-only Production security recheck  
+**Base:** `main @ 3f67694a5a1da9c8f217d1883dda4a324710bc0e`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
+## 2026-11-25 — RC926 strict provider-profile identity boundary
+
+- [x] Latest source verified against main after PR #1094; no historical migration file is modified.
+- [x] Fresh read-only Production audit: `marketing_provider_profiles` still has direct anon SELECT and its `Public can view active marketing providers` policy exposes active base rows; the restrictive RC479 confirmed-Auth SELECT policy is absent.
+- [x] Fresh Advisor snapshot: 94 findings (90 anonymous-session warnings, one leaked-password-protection warning, one anon-executable SECURITY DEFINER warning, 65 authenticated-executable SECURITY DEFINER warnings, and 9 RLS-enabled/no-policy INFO findings). These are review findings, not 94 confirmed exploits.
+- [x] Added RC926 forward-only source candidate `20261125110000` with exact-confirmed claim semantics; added adversarial tests for raw anon, anonymous Auth, missing claim, confirmed user, owner update and wrong-owner denial.
+- [ ] Run exact-head RC926 PostgreSQL integration and the full 83-version PostgreSQL 17 replay; fix every failure before merge.
+- [ ] Keep Production read-only. RC926, RC479, RC488–RC495 and payment/finance dependencies remain unapplied or contract-blocked until encrypted backup, restore, identity and coordinated release gates pass.
+- [ ] Recheck leaked-password protection: Supabase documents this feature as Pro-plan-and-above; current project plan is Free. This is an owner/plan dependency, not a database SQL fix.
 This is the active priority queue. Older Pass logs remain append-only evidence, not a competing work queue. Ordering is based on dependencies and work that can be completed without a paid Supabase branch or paid tooling.
 
 ## Execution rules
