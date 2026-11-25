@@ -38,7 +38,7 @@ assert.match(production, /longitude_deg/, 'alternate explicit longitude fields m
 assert.match(production, /parseOptionalCoordinate\(/, 'stored coordinates must be range-validated before use');
 
 
-assert.match(view, /const availableCategories = categories\\.filter\\(\\(category\\) => \\(category\\.classificationType \\|\\| 'activity'\\) === 'activity'\\)/,
+assert.ok(view.includes("const availableCategories = categories.filter((category) => (category.classificationType || 'activity') === 'activity')"),
   'the public directory must begin with all Activity categories');
 assert.match(view, /aria-label="الأنشطة والتخصصات"/, 'Activity must be the first visible taxonomy level');
 assert.match(view, /data-testid="activity-category-list"/, 'the direct Activity grid must remain testable');
