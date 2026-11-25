@@ -37,4 +37,16 @@ assert.match(production, /latitude_deg/, 'alternate explicit latitude fields mus
 assert.match(production, /longitude_deg/, 'alternate explicit longitude fields must be supported');
 assert.match(production, /parseOptionalCoordinate\(/, 'stored coordinates must be range-validated before use');
 
+
+assert.ok(view.includes("const availableCategories = categories.filter((category) => (category.classificationType || 'activity') === 'activity')"),
+  'the public directory must begin with all Activity categories');
+assert.match(view, /aria-label="الأنشطة والتخصصات"/, 'Activity must be the first visible taxonomy level');
+assert.match(view, /data-testid="activity-category-list"/, 'the direct Activity grid must remain testable');
+assert.doesNotMatch(view, /المجموعات الوظيفية|المجموعات والأنشطة|selectedGroupFilter|availableGroups|DEFAULT_FUNCTIONAL_GROUPS/,
+  'functional groups must not become an intermediate public classification layer');
+assert.ok(view.includes('setVisibleActivityCount(20)'), 'directory initially shows twenty activities');
+assert.ok(view.includes('setVisibleActivityCount((current) => current + 20)'), 'See More reveals another twenty results');
+assert.match(view, /limit: 20,/, 'directory backend pages remain twenty items');
+assert.match(view, /رؤية المزيد من الأنشطة/, 'the user-facing See More control remains available');
+
 console.log('Catalog geographic search contract: PASS');
