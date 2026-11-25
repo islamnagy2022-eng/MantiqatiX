@@ -72,7 +72,7 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
     const result=processed&&typeof processed==="object"?processed as Record<string,unknown>:{};
     return json({ok:true,idempotent:result.idempotent===true,status:value(result.status)||nextStatus,requestId},200,requestId);
   }
-const {data:intentByRef}=await admin.from("payment_intents").select("id,tenant_id,order_id,amount,currency,status,pricing_version,pricing_hash,provider_order_id").eq("id",merchantRef).maybeSingle()
+const {data:intentByRef}=await admin.from("payment_intents").select("id,tenant_id,order_id,amount,currency,status,pricing_version,pricing_hash,provider_order_id").eq("provider","PAYMOB").eq("id",merchantRef).maybeSingle()
  const {data:intentByOrder}=intentByRef?{data:null}:await admin.from("payment_intents").select("id,tenant_id,order_id,amount,currency,status,pricing_version,pricing_hash,provider_order_id").eq("provider","PAYMOB").eq("provider_order_id",paymobOrderId).maybeSingle()
  const intent=intentByRef??intentByOrder;if(!intent)return json({error:"PAYMENT_INTENT_NOT_FOUND",requestId},404,requestId)
  if(!paymobOrderId||String(intent.provider_order_id??"")!==paymobOrderId)return json({error:"PAYMENT_PROVIDER_ORDER_MISMATCH",requestId},409,requestId)
