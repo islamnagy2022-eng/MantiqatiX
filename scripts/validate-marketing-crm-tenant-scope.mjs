@@ -19,6 +19,7 @@ assert.match(fixture, /auth\.jwt\(\) ->> 'is_anonymous'/);
 assert.doesNotMatch(fixture, /Assigned providers view assigned marketing leads/);
 assert.doesNotMatch(integration, /assigned provider cannot read assigned lead/);
 assert.match(integration, /manager A cannot read active provider in own business/);
+assert.match(integration, /public active provider directory read regressed/);
 assert.match(integration, /manager A must not read pending provider in own business/);
 assert.match(integration, /manager B must not read pending provider in own business/);
 assert.match(integration, /platform SUPER_ADMIN should see pending providers across tenants/);
