@@ -44,8 +44,8 @@ assert.match(view, /aria-label="الأنشطة والتخصصات"/, 'Activity m
 assert.match(view, /data-testid="activity-category-list"/, 'the direct Activity grid must remain testable');
 assert.doesNotMatch(view, /المجموعات الوظيفية|المجموعات والأنشطة|selectedGroupFilter|availableGroups|DEFAULT_FUNCTIONAL_GROUPS/,
   'functional groups must not become an intermediate public classification layer');
-assert.match(view, /setVisibleActivityCount\\(20\\)/, 'directory initially shows twenty activities');
-assert.match(view, /setVisibleActivityCount\\(\\(current\\) => current \\+ 20\\)/, 'See More reveals another twenty results');
+assert.ok(view.includes('setVisibleActivityCount(20)'), 'directory initially shows twenty activities');
+assert.ok(view.includes('setVisibleActivityCount((current) => current + 20)'), 'See More reveals another twenty results');
 assert.match(view, /limit: 20,/, 'directory backend pages remain twenty items');
 assert.match(view, /رؤية المزيد من الأنشطة/, 'the user-facing See More control remains available');
 
