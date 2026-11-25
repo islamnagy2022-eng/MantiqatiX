@@ -200,43 +200,6 @@ export const BusinessProfileHeader: React.FC = () => {
         </section>
       )}
 
-      {promotionalImages.length > 0 && (
-        <section
-          aria-label={`الصور الترويجية لنشاط ${currentBusiness.name}`}
-          data-testid="storefront-promotional-gallery"
-          className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8"
-        >
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-black text-slate-900">صور وأعمال النشاط</h2>
-              <p className="mt-1 text-xs text-slate-500">معرض الصور الترويجية</p>
-            </div>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-600">
-              {promotionalImages.length} صور
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {promotionalImages.map((image, index) => (
-              <a
-                key={image}
-                href={image}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`فتح الصورة الترويجية رقم ${index + 1}`}
-                className="group overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <img
-                  src={image}
-                  alt={`صورة ترويجية ${index + 1} لنشاط ${currentBusiness.name}`}
-                  loading="lazy"
-                  className="aspect-square w-full object-cover transition duration-300 group-hover:scale-105"
-                />
-              </a>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* 2. Profile Details Bar */}
       <section aria-label={`بيانات نشاط ${currentBusiness.name}`} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative pb-6 border-b border-slate-100">
