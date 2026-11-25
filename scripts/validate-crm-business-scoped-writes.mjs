@@ -16,6 +16,8 @@ assert.match(migration, /currency = 'EGP'/);
 assert.match(migration, /drop policy if exists "Owners manage their marketing provider profile"/);
 assert.match(migration, /create policy "Owners view own marketing provider profile"/);
 assert.match(migration, /create policy "Owners update own provider profile branding"/);
+assert.equal((migration.match(/business_id is null/g) || []).length, 3);
+assert.match(migration, /business_id cannot be changed because it is not included/i);
 assert.match(migration, /revoke insert, update, delete[\s\S]*?from authenticated/i);
 assert.match(migration, /grant update \(profile_image_path, settings, updated_at\)/i);
 assert.equal((migration.match(/auth\.jwt\(\)->>'is_anonymous'/g) || []).length, 4);
@@ -39,6 +41,10 @@ for (const marker of [
   "provider owner directly inserted a provider profile",
   "provider owner deleted provider profile",
   "second provider modified another provider profile",
+  "legacy owner could not update branding on unassigned profile",
+  "legacy owner attached unassigned provider profile to a business",
+  "legacy owner changed profile approval state",
+  "legacy owner deleted unassigned provider profile",
 ]) {
   assert.ok(integration.includes(marker), `Missing integration assertion: ${marker}`);
 }
