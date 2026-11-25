@@ -1,0 +1,26 @@
+name: RC919 job application integration
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/20261125150000_rc919_reject_inactive_job_applications.sql'
+      - 'supabase/tests/rc919_job_application_*.sql'
+      - '.github/workflows/rc919-job-application-integration.yml'
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rc919_test
+        ports:
+          - 5432:5432
+        options: --health-cmd "pg_isready -U postgres -d rc919_test" --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - run: psql "postgresql://postgres:postgres@localhost:5432/rc919_test" -v ON_ERROR_STOP=1 -f supabase/tests/rc919_job_application_fixture.sql
+      - run: psql "postgresql://postgres:postgres@localhost:5432/rc919_test" -v ON_ERROR_STOP=1 -f supabase/migrations/20261125150000_rc919_reject_inactive_job_applications.sql
+      - run: psql "postgresql://postgres:postgres@localhost:5432/rc919_test" -v ON_ERROR_STOP=1 -f supabase/tests/rc919_job_application_integration.sql
