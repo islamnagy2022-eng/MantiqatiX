@@ -4,14 +4,14 @@ on:
     branches:
       - "**"
     paths:
-      - "supabase/migrations/20261010210000_rc452_marketing_crm_tenant_scope.sql"
+      - "supabase/migrations/20261125130000_rc115_crm_business_scoped_reads.sql"
       - "supabase/tests/rc452_marketing_crm_scope_*.sql"
       - "scripts/validate-marketing-crm-tenant-scope.mjs"
       - ".github/workflows/marketing-crm-tenant-scope.yml"
   pull_request:
     branches: [main]
     paths:
-      - "supabase/migrations/20261010210000_rc452_marketing_crm_tenant_scope.sql"
+      - "supabase/migrations/20261125130000_rc115_crm_business_scoped_reads.sql"
       - "supabase/tests/rc452_marketing_crm_scope_*.sql"
       - "scripts/validate-marketing-crm-tenant-scope.mjs"
       - ".github/workflows/marketing-crm-tenant-scope.yml"
@@ -53,7 +53,7 @@ jobs:
           pg_container="$(docker ps --filter 'ancestor=postgres:17' --format '{{.ID}}' | head -n 1)"
           test -n "$pg_container"
           docker cp supabase/tests/rc452_marketing_crm_scope_fixture.sql "$pg_container:/tmp/rc452_fixture.sql"
-          docker cp supabase/migrations/20261010210000_rc452_marketing_crm_tenant_scope.sql "$pg_container:/tmp/rc452_migration.sql"
+          docker cp supabase/migrations/20261125130000_rc115_crm_business_scoped_reads.sql "$pg_container:/tmp/rc452_migration.sql"
           docker cp supabase/tests/rc452_marketing_crm_scope_integration.sql "$pg_container:/tmp/rc452_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc452_marketing_test -v ON_ERROR_STOP=1 -f /tmp/rc452_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc452_marketing_test -v ON_ERROR_STOP=1 -f /tmp/rc452_migration.sql
