@@ -71,7 +71,7 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - [84-source crosswalk](./release/REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md): 84/84 required migration sources have current live/effect read-back and an explicit PASS/PARTIAL/BLOCKED disposition. The 82-source file remains a historical 2026-11-24 snapshot; this is not an all-pass release.
 - Current-main [PASS 2271–2280](./audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md) and [PASS 2281–2290](./audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md) are authoritative for RC485–RC496 and RC921–RC925.
 - [PASS 2331–2340](./audits/PASS_2331_2340_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md) and [PASS 2341–2350](./audits/PASS_2341_2350_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md) hold renumbered RC113–RC117 and RC102–RC106 reports.
-- 76-object sample: 35 present / 41 absent; presence is not semantic parity. Live ledger: 310 rows through 20261110150618; current required source set: 84; exact IDs in ledger: 0/83.
+- 76-object sample: 35 present / 41 absent; presence is not semantic parity. Live ledger: 310 rows through 20261110150618; current required source set: 84; exact IDs in ledger: 0/84.
 - Main checkpoint: `9e6c62e25614d020eb07b6361dba6eb1c5ac8257`. No Production writes occurred.
 - Migration-history reconciliation update: **3 exact source aliases confirmed / 0 formal ledger repairs applied** (RC424→20261008222845; marketing-contact `20261027100000`→`20261027041411`; directory-source-rights `20261101150000`→`20261101140105`). Five partial baselines are now machine-classified (subscription, ERP, journal, directory, generic payments); RC451 remains a separate forward repair. See `migration_alias_resolution_check` and `historical_partial_baseline_reconciliation_20261124` in `production-migration-reconciliation.json`.
 
@@ -127,7 +127,7 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 ## 2026-11-25 — Prior 83-source Production recheck (superseded by 84-source ledger map)
 
 - Main checkpoint: `1419477b39312e65134494251264452b170e1efe`; PR #1097 merged the RC926 source migration, PR #1104 recorded its exact-head CI, and PR #1102 aligned release documentation to 83 versions.
-- Current canonical source/live-effect crosswalk: [REQUIRED_83_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md](./release/REQUIRED_83_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md). Preserve the 82-source November 24 file as a historical snapshot; do not rewrite it.
+- Current canonical source/live-effect crosswalk: [REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md](./release/REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md). Preserve the 82-source November 24 file as a historical snapshot; do not rewrite it.
 - Current direct Production recheck: [PASS 2441–2450](./audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md). It confirms 310 migration rows through `20261110150618`, 0/84 exact IDs; provider-profile anon SELECT remains effective; Platform Admin registry FORCE RLS remains off; old global helper remains membership-derived; and RC486 price concurrency objects remain absent.
 - All evidence above is read-only or isolated CI. RC926 remains not applied; no Production grants, policies, migration, Edge, payment or business data were changed. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains authoritative.
 
@@ -161,7 +161,7 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 
 ## 2026-11-25 — Anonymous Auth matrix and RC927 adversarial test scope
 
-- Fresh 90-table matrix and findings: [PASS 2461–2470](./audits/PASS_2461_2470_ANONYMOUS_AUTH_POLICY_TRIAGE_RC927_20261125.md); Issue #928 updated with the same counts and seven authenticated-write review candidates.
+- Fresh 90-table matrix and findings: [PASS 2461–2470](./audits/PASS_2461_2470_ANONYMOUS_AUTH_POLICY_TRIAGE_RC927_20261125.md); Issue #928 updated with the same counts and seven authenticated-write review candidates. Advisor warnings are triage findings, not 90 confirmed vulnerabilities.
 - RC927 test subjects for `is_anonymous=true` and missing/null claim now use the same UUID as the owner of the seeded page. The owner SELECT/INSERT/draft UPDATE policies would otherwise authorize those operations; test expectations therefore isolate the restrictive identity guard.
 - Raw anon remains the intended public renderer role and is checked against RC480's exact ten-column page projection. Confirmed owners keep private read and draft edit/create compatibility; non-owners remain denied.
 - RC927 is source-only on `security/rc927-digital-page-auth-scope-20261125`; full exact-head 84-version PG17 replay is pending. No Production changes.
