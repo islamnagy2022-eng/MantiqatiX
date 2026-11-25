@@ -62,6 +62,16 @@ BEGIN
     RAISE EXCEPTION 'RC927_RC480_EXACT_TEN_COLUMN_ANON_ALLOWLIST_REQUIRED';
   END IF;
 
+  -- Raw anon may read the intended public projections only; no direct write grants.
+  IF pg_catalog.has_table_privilege('anon','public.digital_pages','INSERT')
+     OR pg_catalog.has_table_privilege('anon','public.digital_pages','UPDATE')
+     OR pg_catalog.has_table_privilege('anon','public.digital_pages','DELETE')
+     OR pg_catalog.has_table_privilege('anon','public.digital_page_sections','INSERT')
+     OR pg_catalog.has_table_privilege('anon','public.digital_page_sections','UPDATE')
+     OR pg_catalog.has_table_privilege('anon','public.digital_page_sections','DELETE') THEN
+    RAISE EXCEPTION 'RC927_RAW_ANON_WRITE_PRIVILEGE_PRESENT';
+  END IF;
+
   -- Preserve the existing authenticated owner privileges. RC927 does not
   -- add service_role table grants; any backend caller must use its existing
   -- RPC/ACL contract rather than expanding table privileges here.
