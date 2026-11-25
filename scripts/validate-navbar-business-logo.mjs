@@ -41,4 +41,17 @@ for (const asset of [
 assert.ok(!serviceWorker.includes('/MantiqatiX/icons/mantiqatix.svg'),
   'offline shell must not retain the retired generic app icon');
 
+
+const requiredBrandAssets = [
+  'apps/catalog-frontend/public/brand/mantiqatix-approved-logo.jpg',
+  'apps/catalog-frontend/public/icons/mantiqatix-approved.svg',
+  'apps/catalog-frontend/public/icons/mantiqatix-192.png',
+  'apps/catalog-frontend/public/icons/mantiqatix-512.png',
+  'apps/catalog-frontend/public/icons/mantiqatix-red-gold-app-icon.jpg',
+];
+for (const asset of requiredBrandAssets) {
+  assert.ok(fs.existsSync(asset), `required platform brand asset is missing: ${asset}`);
+  assert.ok(fs.statSync(asset).size > 0, `required platform brand asset is empty: ${asset}`);
+}
+
 console.log('NAVBAR_BUSINESS_LOGO_PLATFORM_INSTALL_ICON_SEPARATION=PASS');
