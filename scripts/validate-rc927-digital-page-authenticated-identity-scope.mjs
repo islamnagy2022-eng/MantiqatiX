@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 const migrationPath = "supabase/migrations/20261125120000_rc927_digital_page_authenticated_identity_scope.sql";
 const testPath = "supabase/tests/rc927_digital_page_authenticated_identity_scope_integration.sql";
 const migration = fs.readFileSync(migrationPath, "utf8");
+const publicRenderer = fs.readFileSync("web/digital-page.js", "utf8");
 const integration = fs.readFileSync(testPath, "utf8");
 const liveContract = fs.readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
 const productionVerifier = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
@@ -13,6 +14,12 @@ const manifest = JSON.parse(fs.readFileSync("docs/release/production-migration-r
 const forwardReplay = fs.readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
 const crosswalk = fs.readFileSync("docs/release/REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md", "utf8");
 
+assert.ok(publicRenderer.includes("persistSession:false"),
+  "The public digital-page renderer must remain stateless and use raw anon credentials");
+assert.ok(publicRenderer.includes("autoRefreshToken:false"),
+  "The public digital-page renderer must not establish a refreshable authenticated session");
+assert.doesNotMatch(publicRenderer, /signInAnonymously\\s*\\(/,
+  "The public digital-page renderer must not create Anonymous Auth sessions");
 assert.match(migration, /RC927_DIGITAL_PAGES_RLS_REQUIRED/);
 assert.match(migration, /RC927_DIGITAL_PAGE_SECTIONS_RLS_REQUIRED/);
 assert.match(migration, /RC927_RC480_EXACT_TEN_COLUMN_ANON_ALLOWLIST_REQUIRED/);
