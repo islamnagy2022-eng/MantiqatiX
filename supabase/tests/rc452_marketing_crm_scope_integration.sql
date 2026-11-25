@@ -14,7 +14,7 @@ begin
   if not exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000001') then raise exception 'manager A cannot read own-business lead'; end if;
   if exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000002') then raise exception 'manager A crossed into another business in same tenant'; end if;
   if exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000003') then raise exception 'manager A crossed tenant boundary'; end if;
-  if not exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000002') then raise exception 'manager A cannot read pending provider in own business'; end if;
+  if exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000002') then raise exception 'manager A must not read pending provider in own business'; end if;
   if exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000003') then raise exception 'manager A read pending provider from another tenant'; end if;
 
   perform set_config('request.jwt.claim.sub',tenant_admin_a::text,false);
@@ -27,7 +27,7 @@ begin
   perform set_config('request.jwt.claim.sub',manager_b::text,false);
   if not exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000003') then raise exception 'manager B cannot read own-business lead'; end if;
   if exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000001') then raise exception 'manager B crossed tenant boundary'; end if;
-  if not exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000003') then raise exception 'manager B cannot read pending provider in own business'; end if;
+  if exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000003') then raise exception 'manager B must not read pending provider in own business'; end if;
 
   perform set_config('request.jwt.claim.sub',provider_a::text,false);
   if not exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000006') then raise exception 'assigned provider cannot read assigned lead'; end if;
