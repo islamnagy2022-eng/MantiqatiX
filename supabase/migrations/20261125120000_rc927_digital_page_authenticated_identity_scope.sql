@@ -62,22 +62,22 @@ BEGIN
     RAISE EXCEPTION 'RC927_RC480_EXACT_TEN_COLUMN_ANON_ALLOWLIST_REQUIRED';
   END IF;
 
-  -- Preserve the owner and backend privileges established by the existing schema.
+  -- Preserve the existing authenticated owner privileges. RC927 does not
+  -- add service_role table grants; any backend caller must use its existing
+  -- RPC/ACL contract rather than expanding table privileges here.
   IF NOT pg_catalog.has_table_privilege('authenticated','public.digital_pages','SELECT')
      OR NOT pg_catalog.has_table_privilege('authenticated','public.digital_pages','INSERT')
      OR NOT pg_catalog.has_table_privilege('authenticated','public.digital_pages','UPDATE')
-     OR NOT pg_catalog.has_table_privilege('authenticated','public.digital_pages','DELETE')
-     OR NOT pg_catalog.has_table_privilege('service_role','public.digital_pages','SELECT') THEN
-    RAISE EXCEPTION 'RC927_DIGITAL_PAGES_OWNER_OR_SERVICE_PRIVILEGES_REQUIRED';
+     OR NOT pg_catalog.has_table_privilege('authenticated','public.digital_pages','DELETE') THEN
+    RAISE EXCEPTION 'RC927_DIGITAL_PAGES_OWNER_PRIVILEGES_REQUIRED';
   END IF;
 
   IF NOT pg_catalog.has_table_privilege('anon','public.digital_page_sections','SELECT')
      OR NOT pg_catalog.has_table_privilege('authenticated','public.digital_page_sections','SELECT')
      OR NOT pg_catalog.has_table_privilege('authenticated','public.digital_page_sections','INSERT')
      OR NOT pg_catalog.has_table_privilege('authenticated','public.digital_page_sections','UPDATE')
-     OR NOT pg_catalog.has_table_privilege('authenticated','public.digital_page_sections','DELETE')
-     OR NOT pg_catalog.has_table_privilege('service_role','public.digital_page_sections','SELECT') THEN
-    RAISE EXCEPTION 'RC927_DIGITAL_PAGE_SECTIONS_OWNER_OR_PUBLIC_PRIVILEGES_REQUIRED';
+     OR NOT pg_catalog.has_table_privilege('authenticated','public.digital_page_sections','DELETE') THEN
+    RAISE EXCEPTION 'RC927_DIGITAL_PAGE_SECTIONS_OWNER_PRIVILEGES_REQUIRED';
   END IF;
 
   SELECT EXISTS (
