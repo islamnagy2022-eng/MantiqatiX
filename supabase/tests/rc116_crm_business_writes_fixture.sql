@@ -111,4 +111,5 @@ insert into public.marketing_provider_profiles(
   id, business_id, owner_user_id, provider_kind, name_ar, slug, status, is_verified
 ) values
   ('40000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000011', 'FREELANCER', 'Provider A', 'provider-a', 'PENDING', false),
-  ('40000000-0000-4000-8000-000000000002', '30000000-0000-4000-8000-000000000003', '30000000-0000-4000-8000-000000000013', 'FREELANCER', 'Provider B', 'provider-b', 'PENDING', false);
+  ('40000000-0000-4000-8000-000000000002', '30000000-0000-4000-8000-000000000003', '30000000-0000-4000-8000-000000000013', 'FREELANCER', 'Provider B', 'provider-b', 'PENDING', false),
+  ('40000000-0000-4000-8000-000000000004', null, '30000000-0000-4000-8000-000000000021', 'FREELANCER', 'Legacy Owner Profile', 'legacy-owner-profile', 'ACTIVE', false);
