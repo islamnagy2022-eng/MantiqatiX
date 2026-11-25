@@ -11,6 +11,7 @@ assert.match(migration, /um\.permissions->>'full_control'/);
 assert.match(migration, /upper\(coalesce\(marketing_provider_profiles\.status,''\)\) = 'ACTIVE'/);
 assert.match(migration, /upper\(coalesce\(um\.role,''\)\) in \('SUPER_ADMIN','ADMIN','OWNER','BUSINESS_OWNER'\)/);
 assert.match(fixture, /'Pending Provider A','PENDING'/);
+assert.match(fixture, /Assigned providers view assigned marketing leads/);
 assert.match(integration, /manager A must not read pending provider in own business/);
 assert.match(integration, /manager B must not read pending provider in own business/);
 assert.match(integration, /platform SUPER_ADMIN should see pending providers across tenants/);
