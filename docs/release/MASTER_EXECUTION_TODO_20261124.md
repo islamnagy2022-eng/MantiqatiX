@@ -4,6 +4,12 @@
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
+## P1 — Catalog URL case-insensitive routing (user-requested)
+- [ ] Verify the public catalog and activity deep links open when alphabetic characters in the path use different uppercase/lowercase combinations; preserve query strings and hashes.
+- [ ] Confirm behavior for the project base path and nested activity routes; add regression checks for valid routes, unknown routes, and redirect loops.
+- [ ] Verify the 404 fallback is included in the built Pages artifact, then confirm the exact deployed origin after the Pages workflow succeeds. Do not mark complete based on a source commit alone.
+- [ ] Current source candidate: `apps/catalog-frontend/public/404.html` at commit `eb7d71d4c36526e1375fd92cf3330ba5ca0acc26`; Pages deployment and live behavior remain NOT VERIFIED.
+
 ## 2026-11-25 — Backup and restore capability recheck
 
 - [x] Direct organization lookup confirms the Production org is on Free; current Supabase docs say automatic daily DB backups are Pro/Team/Enterprise, not Free.
