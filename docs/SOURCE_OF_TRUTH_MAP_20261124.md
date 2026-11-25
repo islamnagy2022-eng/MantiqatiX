@@ -99,3 +99,10 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 ## Paymob CI source guard — 2026-11-24
 - PR #1090 merged at `46714e919d959e49afe5efa64e2fcd2f94a982d7`; the validator now checks signed order binding before standard, digital-page and subscription processor RPCs and is wired into RC425/RC428 CI.
 - Full HTTP altered-selector replay remains pending in an isolated sandbox; deployed Production webhook remains behind current main.
+
+
+## Uploaded AI Studio R7 archive review — 2026-11-25
+- [PASS 2411–2420](./audits/PASS_2411_2420_R7_AI_STUDIO_ARCHIVE_SOURCE_AND_SECURITY_REVIEW_20261125.md) inspects `bizcatalog-manager (11).zip` against current `main` and the connected Production Supabase identity.
+- The archive is a separate root Express/Vite implementation, not a drop-in update to `apps/catalog-frontend`; its manifest/server use Supabase ref `moyhiluyhjsujhwlyweuu`, which does not match Production `moyhiluyhjsujhwlyeuu`.
+- R7 claims a local authoritative JSON database alongside Supabase and contains static fallback secrets for Paymob HMAC, session signing and backup encryption. Its shared client module also selects the service-role key, although no import of that module was found in the archive.
+- Preserve the ZIP as a reference only. Do not import wholesale or point it at Production. Current `main` and Supabase remain canonical; any reuse must be an incremental, reviewed port with exact-head tests.
