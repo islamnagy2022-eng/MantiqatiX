@@ -1,0 +1,27 @@
+name: Pages Deployed Redirect Regression
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/test-pages-deployed-case-redirect.mjs'
+      - '.github/workflows/pages-deployed-redirect-regression.yml'
+permissions:
+  contents: read
+jobs:
+  current-deployment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install pinned Playwright
+        run: npm install --prefix /tmp/pages-redirect-playwright --no-audit --no-fund playwright@1.64.1
+      - name: Install Chromium
+        run: /tmp/pages-redirect-playwright/node_modules/.bin/playwright install --with-deps chromium
+      - name: Verify redirects on the currently deployed GitHub Pages site
+        env:
+          PAGE_URL: https://islamnagy2022-eng.github.io/MantiqatiX/
+          PLAYWRIGHT_MODULE: /tmp/pages-redirect-playwright/node_modules/playwright/index.mjs
+        run: node scripts/test-pages-deployed-case-redirect.mjs
