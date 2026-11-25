@@ -53,7 +53,7 @@ assert.match(integration, /ROLLBACK;/);
 assert.match(contract, /"20261120290000"/);
 assert.match(verify, /20261120290000_rc494_settlement_financial_atomic_registry_scope_hardening\.sql/);
 assert.match(gate, /required.length, 82/);
-assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 82);
+assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 83);
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261123221950"));
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261123221950"));
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261120290000"));
@@ -73,3 +73,6 @@ assert.match(aclOverlay, /GRANT EXECUTE ON FUNCTION public\.create_settlement_an
 assert.match(aclOverlay, /TEST ONLY[\s\S]*Never apply this fixture to a hosted or production database/);
 
 console.log("RC494_SETTLEMENT_REGISTRY_SCOPE=PASS");
+
+assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261125110000"), "manifest must require RC926");
+assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261125110000"), "manifest must keep RC926 unapplied until coordinated release");
