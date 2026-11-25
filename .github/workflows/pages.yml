@@ -33,6 +33,8 @@ jobs:
           npm install --no-audit --no-fund
           npm run lint
           VITE_BASE_PATH=/MantiqatiX/ npm run build
+          test -s dist/404.html
+          node ../../scripts/test-pages-case-redirect.mjs
           mkdir -p "${RUNNER_TEMP}/mantiqatix-legacy-root-build"
           cp -a dist/. "${RUNNER_TEMP}/mantiqatix-legacy-root-build/"
           test -s "${RUNNER_TEMP}/mantiqatix-legacy-root-build/index.html"
