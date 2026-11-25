@@ -142,7 +142,7 @@ try{
    }catch(_){}
  }
  const savedId=window.MNTYActiveMembershipId||localStorage.getItem('MNTYActiveMembershipId');
- const active=live.memberships.find(m=>m.id===savedId)||live.memberships[0];
+ const active=savedId?live.memberships.find(m=>String(m.id)===String(savedId)):live.memberships[0];
  if(active){window.MNTYActiveMembershipId=active.id;localStorage.setItem('MNTYActiveMembershipId',active.id);}
  live.activeMembershipId=active?.id||null;
  live.role=String(active?.role||'CUSTOMER').toUpperCase();
@@ -155,7 +155,9 @@ try{
    live.loading=false;
    return;
  }
- const myProviderRes=await sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,profile_image_path,settings,updated_at,status,is_verified,is_featured').eq('owner_user_id',uid).order('updated_at',{ascending:false}).limit(1).maybeSingle();
+ const myProviderRes=live.businessId
+   ? await sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,profile_image_path,settings,updated_at,status,is_verified,is_featured').eq('business_id',live.businessId).eq('status','ACTIVE').order('updated_at',{ascending:false}).limit(1).maybeSingle()
+   : {data:null,error:null};
  if(myProviderRes.error)throw myProviderRes.error;
  live.myProviderProfile=myProviderRes.data||null;
  if(live.myProviderProfile){const ps=await sb.from('marketing_provider_services').select('id,provider_id,service_id,service_description,pricing_from,pricing_to,currency,status,created_at').eq('provider_id',live.myProviderProfile.id).order('created_at',{ascending:false}).limit(50);if(ps.error)throw ps.error;live.records.providerServices=ps.data||[];}
