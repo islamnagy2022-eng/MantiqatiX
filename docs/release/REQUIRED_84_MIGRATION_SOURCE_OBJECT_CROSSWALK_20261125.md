@@ -1,6 +1,6 @@
 # Required 84-Migration Source-to-Live Effect Crosswalk — 2026-11-25
 
-**Repository baseline:** `main @ 1419477b39312e65134494251264452b170e1efe` (after source-only RC926 and release-gate documentation merges)
+**Repository baseline:** `main @ 17329ba27effad52a316ad0aa94ef1a93ab975a7` (after source-only RC926 and release-gate documentation merges)
 **Live Supabase project:** `moyhiluyhjsujhwlyeuu`
 **Required migration set:** `scripts/production/verify-production.mjs` and `scripts/production/live-reconciliation-contract.mjs`
 **Live ledger:** 310 rows through `20261110150618`
@@ -11,7 +11,7 @@
 - Required ordered source migrations: **84/84**; names come from the canonical production verifier.
 - Exact required version IDs in the live ledger: **0/84**. This is an identity mismatch, not proof every physical effect is absent; rechecked directly against the connected Production migration inventory on 2026-11-25.
 - All 63 earlier source migrations retain their live read-back across PASS 2211–2250 and PASS 2291–2341, each with an explicit PASS/PARTIAL/BLOCKED disposition. The 21 later migrations have separate source/live effect coverage; none is assumed compliant from presence alone.
-- The 21 later migrations from RC484 through RC926 have source/live effect coverage. RC926's 2026-11-25 direct recheck is recorded in [PASS 2441–2450](../audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md). Together with all 63 earlier sources, **84/84 required migrations have live read-back and an explicit PASS/PARTIAL/BLOCKED disposition**; this is not an all-pass release.
+- The 21 later migrations from RC484 through RC927 have source/live effect coverage, including the 2026-11-25 RC927 source candidate. RC926's 2026-11-25 direct recheck is recorded in [PASS 2441–2450](../audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md). Together with all 63 earlier sources, **84/84 required migrations have live read-back and an explicit PASS/PARTIAL/BLOCKED disposition**; this is not an all-pass release.
 - A separate 76-object curated physical register was refreshed on 2026-11-24: 35 present / 41 absent, with object-level results in PASS 2251–2260. Presence is not semantic parity.
 - No Production mutation was performed.
 
