@@ -886,7 +886,7 @@ try {
     const displayLogo = 'https://assets.example.test/fallback-logo.svg';
     const displayCover = 'https://assets.example.test/fallback-cover.svg';
     const fixtures = [
-      { id: '40000000-0000-0000-0000-000000000001', name: 'نشاط رابطين خارجيين', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: 'https://cdn.example.test/both-logo.svg', externalCoverUrl: 'https://cdn.example.test/both-cover.svg' }, provider: { verified: true } },
+      { id: '40000000-0000-0000-0000-000000000001', name: 'نشاط رابطين خارجيين', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, promotionalImages: ['https://cdn.example.test/promo-1.webp', 'https://cdn.example.test/promo-2.webp'], externalLogoUrl: 'https://cdn.example.test/both-logo.svg', externalCoverUrl: 'https://cdn.example.test/both-cover.svg' }, provider: { verified: true } },
       { id: '40000000-0000-0000-0000-000000000002', name: 'نشاط رابط لوجو فقط', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: 'https://cdn.example.test/logo-only.svg', externalCoverUrl: '' }, provider: { verified: true } },
       { id: '40000000-0000-0000-0000-000000000003', name: 'نشاط رابط غلاف فقط', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: '', externalCoverUrl: 'https://cdn.example.test/cover-only.svg' }, provider: { verified: true } },
       { id: '40000000-0000-0000-0000-000000000004', name: 'نشاط بلا روابط خارجية', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: '', externalCoverUrl: '' }, provider: { verified: true } },
@@ -917,10 +917,14 @@ try {
       const coverHero = page.getByTestId('storefront-cover-hero');
       await coverHero.waitFor({ state: 'visible' });
       assert.equal(await coverHero.getAttribute('aria-label'), 'غلاف نشاط نشاط رابطين خارجيين');
-      const coverNavigation = coverHero.getByRole('group', { name: 'التنقل بين صور الغلاف' });
-      await coverNavigation.waitFor({ state: 'visible' });
-      assert.ok(await coverNavigation.getByRole('button').count() >= 1, 'cover slides must expose keyboard-operable navigation controls');
-      assert.equal(await coverNavigation.getByRole('button').first().getAttribute('aria-pressed'), 'true', 'the active cover slide must be announced');
+      assert.equal(await coverHero.locator('img').count(), 1, 'storefront must display exactly one fixed cover image');
+      assert.equal(await coverHero.locator('img').getAttribute('src'), displayCover, 'the fixed cover must use the business cover URL');
+      assert.equal(await coverHero.getByRole('group', { name: 'التنقل بين صور الغلاف' }).count(), 0, 'the cover must not render legacy multi-cover navigation');
+      const promotionalGallery = page.getByTestId('storefront-promotional-gallery');
+      await promotionalGallery.waitFor({ state: 'visible' });
+      assert.equal(await promotionalGallery.locator('img').count(), 2, 'promotional images must render in a separate gallery');
+      assert.equal(await promotionalGallery.locator('img').nth(0).getAttribute('src'), 'https://cdn.example.test/promo-1.webp');
+      assert.equal(await promotionalGallery.locator('img').nth(1).getAttribute('src'), 'https://cdn.example.test/promo-2.webp');
       assert.match(await coverHero.getAttribute('class') || '', /mx-v4-storefront-cover/, 'storefront hero must use the shared V4 surface token');
       assert.equal(await page.getByTestId('business-verification-indicator').getAttribute('aria-label'), 'حالة النشاط: موثّق رسمياً');
       assert.equal(await page.locator('.mx-v4-storefront-category').count(), 1, 'business category must use the V4 storefront token');
