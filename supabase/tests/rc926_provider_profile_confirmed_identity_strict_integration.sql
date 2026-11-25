@@ -6,10 +6,14 @@ DECLARE
   v_owner uuid := 'f7914ac7-4b03-4456-afdd-e386f2ac6a5b';
   v_id uuid := '10000000-0000-4000-8000-000000000001';
   v_has_full_schema boolean;
+  v_owner_exists boolean;
 BEGIN
-  IF pg_catalog.to_regclass('auth.users') IS NOT NULL
-     AND NOT EXISTS (SELECT 1 FROM auth.users WHERE id=v_owner) THEN
-    RAISE EXCEPTION 'RC926_DISPOSABLE_OWNER_AUTH_USER_FIXTURE_MISSING';
+  IF pg_catalog.to_regclass('auth.users') IS NOT NULL THEN
+    EXECUTE 'SELECT EXISTS (SELECT 1 FROM auth.users WHERE id=$1)'
+      INTO v_owner_exists USING v_owner;
+    IF v_owner_exists IS DISTINCT FROM true THEN
+      RAISE EXCEPTION 'RC926_DISPOSABLE_OWNER_AUTH_USER_FIXTURE_MISSING';
+    END IF;
   END IF;
 
   SELECT EXISTS (
