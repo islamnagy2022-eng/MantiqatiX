@@ -24,6 +24,9 @@ assert.doesNotMatch(fixture, /Assigned providers view assigned marketing leads/)
 assert.doesNotMatch(integration, /assigned provider cannot read assigned lead/);
 assert.match(integration, /manager A cannot read active provider in own business/);
 assert.match(integration, /public active provider directory read regressed/);
+assert.match(integration, /inactive business membership can read CRM lead/);
+assert.match(integration, /manager A crossed into another business pending provider in same tenant/);
+assert.match(integration, /tenant admin cannot review pending provider in second own-tenant business/);
 assert.match(integration, /manager A must not read pending provider in own business/);
 assert.match(integration, /business OWNER cannot review pending provider in own business/);
 assert.match(integration, /provider owner cannot read own pending profile/);
