@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-25 — RC926 strict provider-profile identity boundary after R7 archive review  
-**Base:** `main @ b90155040bdbd72d4472f1f7bd964d988b82ac0f`  
+**Updated:** 2026-11-25 — 83-source live crosswalk and Platform Admin/provider-profile read-back  
+**Base:** `main @ 1419477b39312e65134494251264452b170e1efe`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -15,6 +15,15 @@
 - [ ] Leaked-password protection remains unavailable on current Free plan; this is an owner/plan dependency, not a SQL migration.
 
 This is the active priority queue. Older Pass logs remain append-only evidence, not a competing work queue. Ordering is based on dependencies and work that can be completed without a paid Supabase branch or paid tooling.
+
+## 2026-11-25 — Current Production recheck and 83-source release map
+
+- [x] Re-read the live Supabase migration inventory directly: 310 rows through `20261110150618`; exact current source version set is 83 and **0/83** exact IDs are present. This is an identity mismatch; it is not proof all physical effects are absent.
+- [x] Re-read provider-profile grants/policies: RLS + FORCE RLS are ON, but `anon SELECT` remains granted and the permissive active-provider base-row policy remains; the strict RC926 policy is source-only and absent in Production.
+- [x] Re-read Platform Admin root: `private.platform_admins` RLS ON / FORCE RLS OFF; `is_platform_admin()` still does not reference the registry; `mnty_can_platform_admin()` remains on the legacy null-scope helper. Current blast radius: 57 policies / 24 tables and 5 policies / 3 tables.
+- [x] Re-read RC486 runtime dependency: live price RPC still has no transaction advisory lock and its required unique version index is absent.
+- [x] Published the current 83-source crosswalk and current live evidence: `docs/release/REQUIRED_83_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md` and [PASS 2441–2450](../audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md).
+- [ ] Complete the coordinated 83-source Platform Admin/provider-privacy/RPC/Edge release bundle only after exhaustive physical effect reconciliation, encrypted DB + Storage backup, independent restore/rollback, measured RPO/RTO and explicit owner release approval.
 
 ## Execution rules
 - Preserve the current catalog root, `/legacy/` rollback and existing production data. Do not replace current main with the R7 ZIP.
@@ -42,8 +51,9 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Re-ran the existing read-only high-risk SECURITY DEFINER SQL contract against Production: 14 RPCs checked; 5 PASS, 9 FAIL_SEARCH_PATH; all 14 preserve anon EXECUTE=false and authenticated EXECUTE=true. Direct anon/authenticated write grants on five MantiGO tables are both zero; see PASS_2071_2080.
 - [x] Assert function ownership, empty `search_path`, grants, FORCE RLS and caller coverage in the RC464/RC471/RC484/RC485 suites; exact-head module and forward replay workflows passed.
 - [x] Fresh read-only Production recheck confirmed 57 `is_platform_admin()` policies / 24 tables plus five legacy-helper policies / three tables; registry FORCE RLS remains off, the generic root helper is membership-derived, and all seven catalog RPCs still lack the explicit false anonymous-claim predicate. Evidence: `docs/audits/PASS_2361_2370_PLATFORM_ROOT_LIVE_RECHECK_20261124.md`.
-- [ ] Complete one coordinated, timestamp-ordered 83-source migration + RPC/ACL/RLS + Edge bundle and post-release read-back plan; do not hot-patch, cherry-pick, or apply it to Production in this phase. Execution gates: `docs/release/PLATFORM_ROOT_COORDINATED_RELEASE_20261124.md`.
-**Live evidence:** Production still uses membership-derived helpers; registry RLS is on but FORCE RLS is false. Fresh exact counts and the catalog RPC guard inventory are in `docs/audits/PASS_2361_2370_PLATFORM_ROOT_LIVE_RECHECK_20261124.md`.
+- [x] Updated the coordinated, timestamp-ordered 83-source Platform Admin/provider-privacy/RPC/Edge release plan, including RC926 and current direct Production read-back; source-only, not Production authorization. Execution gates: `docs/release/PLATFORM_ROOT_COORDINATED_RELEASE_20261124.md`.
+- [ ] Execute no Production change until the plan's backup/restore, physical-effect reconciliation, Edge dependency closure, exact-head CI, deployed-origin positive/negative tests and explicit approval are complete.
+**Live evidence:** 2026-11-25 direct read-back confirms the global helper/registry gap, provider-profile anon base-table SELECT and RC486 price-write race condition remain. See `docs/audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md`.
 
 ### P0.2 Anonymous Auth and private profile boundaries
 - [x] Refreshed Advisor + live ACL snapshot: 90 anonymous-Auth table warnings, 9 RLS-no-policy tables with all client grants denied, 65 exposed authenticated SECURITY DEFINER functions (18 empty search_path, 47 other pinned, 0 unset); see PASS_2081_2090 and Issue #928.
@@ -73,7 +83,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Refreshed all 76 previously tracked physical object contracts against Production on 2026-11-24 (tables, indexes, functions, columns, triggers): 35 present / 41 absent, zero status changes since the 2026-11-20 snapshot. Breakdown is in `docs/audits/PASS_2091_2100_PHYSICAL_OBJECT_REFRESH_20261124.md`.
 - [x] Added a focused live physical-effect sample: 18 relations (13 present / 5 absent), 12 indexes (3 present-valid / 9 absent), 17 columns (2 present / 15 absent), and 15 function families (11 absent / 4 present but contract-blocked). This is a timestamped 81-version pre-RC925 snapshot, not the full 82-version crosswalk. See `docs/audits/PASS_2161_2170_CURRENT_81_MIGRATION_PHYSICAL_EFFECT_RECHECK_20261124.md`.
 - [x] Confirmed three exact source-to-ledger SQL aliases by byte comparison and classified five historic baseline families as partial; no ledger repair or SQL replay occurred. See `docs/audits/PASS_2171_2180_HISTORICAL_MIGRATION_ALIAS_AND_PARTIAL_EFFECT_RECONCILIATION_20261124.md`.
-- [x] Completed the migration-level source-to-live crosswalk for all 82 required versions. Every source row has current live read-back and an explicit PASS/PARTIAL/BLOCKED disposition; this is not an all-pass result. See `docs/release/REQUIRED_82_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261124.md`.
+- [x] The 2026-11-24 historical checkpoint covered 82 versions; the current 2026-11-25 set contains 83 versions after RC926. The updated 83-source crosswalk records each source's live/effect disposition, and the live ledger still has 0/83 exact IDs. See `docs/release/REQUIRED_83_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md`.
 - [ ] Expand beyond the curated 76-object sample into exhaustive per-object physical-effect, exact overload/body, owner, search_path, ACL, RLS/policy, constraint and trigger reconciliation. The migration-level crosswalk is complete; exact ID gaps alone do not prove physical effects absent.
 - [x] Run full chronological forward replay from the captured Production schema checkpoint; exact-head run 45407602805 passed after 117 forward migrations and ordered integration jobs. This is not a live Production restore/deployment.
 - [ ] Never blindly replay the release chain on Production.
