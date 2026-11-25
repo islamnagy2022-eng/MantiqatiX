@@ -1049,7 +1049,7 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      await page.locator('section[aria-label="المجموعات والأنشطة"]').waitFor({ state: 'visible', timeout: 15000 });
+      await page.locator('section[aria-label="الأنشطة والتخصصات"]').waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(await page.getByText('دليل الأنشطة والمطالبات', { exact: true }).count(), 0, 'non-platform roles must not render the directory admin tab');
       assert.equal(directoryAdminRequests.some((request) => request.action === 'ADMIN_LIST'), false, 'non-platform roles must not request the admin directory bundle');
       results.push('non-platform-role-denied-directory-admin-route');
@@ -1178,13 +1178,12 @@ try {
     const { context, page } = await newScenario(browser, null, [conflictingLegacyBusiness]);
     try {
       await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
-      const activitySection = page.locator('section[aria-label="المجموعات والأنشطة"]');
-      await activitySection.getByRole('button', { name: /الطب والصحة/ }).first().click();
-      const activityGrid = activitySection.locator('.grid.grid-cols-3').first();
+      const activitySection = page.locator('section[aria-label="الأنشطة والتخصصات"]');
+      const activityGrid = page.getByTestId('activity-category-list');
       const columnCount = await activityGrid.evaluate((element) =>
         getComputedStyle(element).gridTemplateColumns.split(' ').length
       );
-      assert.equal(columnCount, 3, 'activity directory must show three activity cards per row at a 390px phone viewport');
+      assert.equal(columnCount, 2, 'Activity directory must show two Activity cards per row at a 390px phone viewport');
 
       const pharmacy = activitySection.getByRole('button', { name: /صيدليات/ }).first();
       await pharmacy.waitFor({ state: 'visible' });
@@ -1196,7 +1195,7 @@ try {
       await pharmacy.click();
       await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'صيدليات', exact: true }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px canonical activity grid');
-      results.push('canonical-activity-code-precedence-and-three-column-mobile-grid');
+      results.push('canonical-activity-code-precedence-and-two-column-mobile-grid');
     } finally { await context.close(); }
   }
 
@@ -1210,23 +1209,21 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
-      const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
+      const activityCard = page.getByTestId('activity-category-list').getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
       await activityCard.waitFor({ state: 'visible' });
       await activityCard.click();
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
       assert.equal(new URL(page.url()).searchParams.get('activity'), 'cat_medical_health_medical_practices', 'activity module route must be shareable and refreshable');
-      assert.equal(new URL(page.url()).searchParams.get('group'), 'medical_health', 'activity route must preserve its parent group folder across refreshes');
+      assert.equal(new URL(page.url()).searchParams.has('group'), false, 'Activity route must not retain the obsolete public group folder parameter');
       await modulePage.getByRole('button', { name: 'التخصصات', exact: true }).click();
       await modulePage.getByRole('button', { name: /^باطنة/ }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px direct activity module');
       await page.reload({ waitUntil: 'domcontentloaded' });
       await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
-      await page.getByRole('button', { name: /العودة إلى الطب والصحة/ }).click();
-      await page.getByRole('heading', { name: 'الطب والصحة', exact: true }).waitFor({ state: 'visible' });
-      await page.getByRole('button', { name: 'كل المجموعات', exact: true }).click();
-      await page.getByRole('heading', { name: 'المجموعات الوظيفية', exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: 'العودة إلى الأنشطة', exact: true }).click();
+      await page.locator('section[aria-label="الأنشطة والتخصصات"]').getByRole('heading', { name: 'الأنشطة', exact: true }).waitFor({ state: 'visible' });
+      assert.equal(new URL(page.url()).searchParams.has('activity'), false, 'back navigation must return to the Activity list');
       await assertNoHorizontalOverflow(page, '390px direct activity return');
       results.push('direct-activity-module-route-refresh-specialty-and-back-navigation');
     } finally { await context.close(); }
