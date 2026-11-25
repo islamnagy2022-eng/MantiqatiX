@@ -185,6 +185,13 @@ BEGIN
     RAISE EXCEPTION 'RC927_ANON_AUTH_PAGE_UPDATE_SUCCEEDED:%',v_affected;
   END IF;
 
+  UPDATE public.digital_page_sections SET title='anonymous section overwrite'
+   WHERE id='50000000-0000-4000-8000-000000000004';
+  GET DIAGNOSTICS v_affected = ROW_COUNT;
+  IF v_affected <> 0 THEN
+    RAISE EXCEPTION 'RC927_ANON_AUTH_SECTION_UPDATE_SUCCEEDED:%',v_affected;
+  END IF;
+
   DELETE FROM public.digital_page_sections
    WHERE id='50000000-0000-4000-8000-000000000004';
   GET DIAGNOSTICS v_affected = ROW_COUNT;
@@ -241,12 +248,49 @@ BEGIN
     RAISE EXCEPTION 'RC927_MISSING_CLAIM_PAGE_READ_SUCCEEDED:%',v_count;
   END IF;
 
+  SELECT count(*) INTO v_count
+    FROM public.digital_page_sections s
+    JOIN public.digital_pages p ON p.id=s.page_id
+   WHERE p.slug='rc927-public-page';
+  IF v_count <> 0 THEN
+    RAISE EXCEPTION 'RC927_MISSING_CLAIM_SECTION_READ_SUCCEEDED:%',v_count;
+  END IF;
+
   UPDATE public.digital_pages
      SET title='missing claim overwrite',updated_by='f7914ac7-4b03-4456-afdd-e386f2ac6a5b'
    WHERE slug='rc927-owner-draft';
   GET DIAGNOSTICS v_affected = ROW_COUNT;
   IF v_affected <> 0 THEN
     RAISE EXCEPTION 'RC927_MISSING_CLAIM_PAGE_UPDATE_SUCCEEDED:%',v_affected;
+  END IF;
+
+  UPDATE public.digital_page_sections SET title='missing-claim section overwrite'
+   WHERE id='50000000-0000-4000-8000-000000000004';
+  GET DIAGNOSTICS v_affected = ROW_COUNT;
+  IF v_affected <> 0 THEN
+    RAISE EXCEPTION 'RC927_MISSING_CLAIM_SECTION_UPDATE_SUCCEEDED:%',v_affected;
+  END IF;
+
+  DELETE FROM public.digital_page_sections
+   WHERE id='50000000-0000-4000-8000-000000000004';
+  GET DIAGNOSTICS v_affected = ROW_COUNT;
+  IF v_affected <> 0 THEN
+    RAISE EXCEPTION 'RC927_MISSING_CLAIM_SECTION_DELETE_SUCCEEDED:%',v_affected;
+  END IF;
+
+  v_denied := false;
+  BEGIN
+    INSERT INTO public.digital_page_sections
+      (id,page_id,section_type,sort_order,title,content,data,active)
+    VALUES
+      ('50000000-0000-4000-8000-000000000098',
+       '50000000-0000-4000-8000-000000000003',
+       'ABOUT',98,'Missing claim','Missing claim','{}'::jsonb,true);
+  EXCEPTION WHEN insufficient_privilege THEN
+    v_denied := true;
+  END;
+  IF NOT v_denied THEN
+    RAISE EXCEPTION 'RC927_MISSING_CLAIM_SECTION_INSERT_SUCCEEDED';
   END IF;
 
   BEGIN
@@ -332,6 +376,20 @@ BEGIN
   SELECT count(*) INTO v_count FROM public.digital_pages WHERE slug='rc927-owner-draft';
   IF v_count <> 0 THEN
     RAISE EXCEPTION 'RC927_CONFIRMED_NON_OWNER_PRIVATE_PAGE_READ_SUCCEEDED:%',v_count;
+  END IF;
+
+  SELECT count(*) INTO v_count
+    FROM public.digital_page_sections
+   WHERE id='50000000-0000-4000-8000-000000000004';
+  IF v_count <> 0 THEN
+    RAISE EXCEPTION 'RC927_CONFIRMED_NON_OWNER_PRIVATE_SECTION_READ_SUCCEEDED:%',v_count;
+  END IF;
+
+  UPDATE public.digital_page_sections SET title='confirmed non-owner section overwrite'
+   WHERE id='50000000-0000-4000-8000-000000000004';
+  GET DIAGNOSTICS v_affected = ROW_COUNT;
+  IF v_affected <> 0 THEN
+    RAISE EXCEPTION 'RC927_CONFIRMED_NON_OWNER_SECTION_UPDATE_SUCCEEDED:%',v_affected;
   END IF;
 
   UPDATE public.digital_pages
