@@ -68,7 +68,7 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - RC921–RC925 medical, agreement and catalog identity [PASS 2281–2290](./audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md): medical provider state is legacy; agreement participant correlation and confirmed-session boundary are wrong; seven catalog RPCs still lack the fail-closed RC925 body.
 
 ## Current 84-migration read-back — 2026-11-25 (82/83-source files retained as historical snapshots)
-- [83-source crosswalk](./release/REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md): 84/84 required migration sources have current live/effect read-back and an explicit PASS/PARTIAL/BLOCKED disposition. The 82-source file remains a historical 2026-11-24 snapshot; this is not an all-pass release.
+- [84-source crosswalk](./release/REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md): 84/84 required migration sources have current live/effect read-back and an explicit PASS/PARTIAL/BLOCKED disposition. The 82-source file remains a historical 2026-11-24 snapshot; this is not an all-pass release.
 - Current-main [PASS 2271–2280](./audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md) and [PASS 2281–2290](./audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md) are authoritative for RC485–RC496 and RC921–RC925.
 - [PASS 2331–2340](./audits/PASS_2331_2340_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md) and [PASS 2341–2350](./audits/PASS_2341_2350_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md) hold renumbered RC113–RC117 and RC102–RC106 reports.
 - 76-object sample: 35 present / 41 absent; presence is not semantic parity. Live ledger: 310 rows through 20261110150618; current required source set: 84; exact IDs in ledger: 0/84.
@@ -127,8 +127,8 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 ## 2026-11-25 — Current 84-source Production recheck
 
 - Main checkpoint: `17329ba27effad52a316ad0aa94ef1a93ab975a7`; PR #1097 merged the RC926 source migration, PR #1104 recorded its exact-head CI, PR #1102/1105 aligned 83-version release evidence, and PR #1106 corrected the backup runbook.
-- Current canonical source/live-effect crosswalk: [REQUIRED_83_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md](./release/REQUIRED_83_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md). Preserve the 82-source November 24 file as a historical snapshot; do not rewrite it.
-- Current direct Production recheck: [PASS 2441–2450](./audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md). It confirms 310 migration rows through `20261110150618`, 0/84 exact IDs; provider-profile anon SELECT remains effective; Platform Admin registry FORCE RLS remains off; old global helper remains membership-derived; and RC486 price concurrency objects remain absent.
+- Current canonical source/live-effect crosswalk: [REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md](./release/REQUIRED_83_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md). Preserve the 82-source November 24 file as a historical snapshot; do not rewrite it.
+- Current direct Production recheck: [PASS 2441–2450](./audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md) confirms the Platform Admin/provider-profile/RC486 blockers; [PASS 2461–2470](./audits/PASS_2461_2470_RC480_RC927_DIGITAL_PAGE_ANONYMOUS_AUTH_READ_RECHECK_20261125.md) confirms RC480 is not live (raw anon table SELECT and `created_by` remain), `service_role SELECT` is absent, and RC927 must be ordered after RC480.
 - All evidence above is read-only or isolated CI. RC926 and RC927 remain not applied; no Production grants, policies, migration, Edge, payment or business data were changed. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains authoritative.
 
 
