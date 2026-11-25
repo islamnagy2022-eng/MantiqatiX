@@ -118,11 +118,11 @@
   },
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
-    "checked_at": "2026-11-24",
-    "method": "Read-only live migration ledger inventory refreshed 2026-11-24 and reconciled against 82 exact required source migration versions. Exact identifiers absent are not proof every physical effect is absent; aliases and physical effects are reconciled separately. Never fabricate ledger rows or blindly replay migrations against Production.",
+    "checked_at": "2026-11-25",
+    "method": "Read-only live migration ledger inventory refreshed 2026-11-25 and reconciled against 83 exact required source migration versions. RC926 is source-only and is not applied. Exact identifiers absent are not proof every physical effect is absent; aliases and physical effects are reconciled separately. Never fabricate ledger rows or blindly replay migrations against Production.",
     "live_ledger_count": 310,
     "latest_live_version": "20261110150618",
-    "expected_migration_versions": 82,
+    "expected_migration_versions": 83,
     "found_in_live_ledger": 0,
     "required_versions": [
       "20261009120000",
@@ -206,7 +206,8 @@
       "20261123221950",
       "20261124121348",
       "20261124140000",
-      "20261124150000"
+      "20261124150000",
+      "20261125110000"
     ],
     "missing_versions": [
       "20261009120000",
@@ -290,10 +291,11 @@
       "20261123221950",
       "20261124121348",
       "20261124140000",
-      "20261124150000"
+      "20261124150000",
+      "20261125110000"
     ],
     "recorded_required_versions": [],
-    "interpretation": "None of the 82 exact required source-version identifiers are recorded in the latest read-only live ledger inventory. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
+    "interpretation": "None of the 83 exact required source-version identifiers are recorded in the latest read-only live ledger inventory. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
   },
   "critical_edge_function_source_parity_check": {
     "status": "BLOCKED",
@@ -8171,5 +8173,86 @@
     "correction": "The prior seven-of-seven absence statement used a nine-argument digital-page signature and omitted p_provider_transaction_id. The exact 10-argument current-main signature is present and service_role-only.",
     "release_gate": "BLOCKED",
     "production_mutations": false
+  },
+  "security_advisor_snapshot_20261125_002016": {
+    "status": "READ_ONLY_SECURITY_ADVISOR_RECHECK",
+    "observed_at": "2026-11-25T00:20:16.773Z",
+    "total_findings": 94,
+    "counts": {
+      "rls_enabled_no_policy_info": 9,
+      "anon_security_definer_function_executable_warn": 1,
+      "authenticated_security_definer_function_executable_warn": 65,
+      "auth_allow_anonymous_sign_ins_warn": 90,
+      "auth_leaked_password_protection_warn": 1
+    },
+    "interpretation": "Advisor findings are review signals, not a count of confirmed exploitable vulnerabilities. Reconcile each finding against effective grants, RLS and caller intent."
+  },
+  "rc926_provider_profile_confirmed_identity_strict_guard_20261125": {
+    "status": "SOURCE_CANDIDATE_PENDING_REBASED_EXACT_HEAD_CI_AND_FULL_PG17_REPLAY",
+    "checked_at": "2026-11-25",
+    "source_base_main": "b90155040bdbd72d4472f1f7bd964d988b82ac0f",
+    "migration_version": "20261125110000",
+    "migration_file": "supabase/migrations/20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql",
+    "live_findings": {
+      "marketing_provider_profiles_rls_enabled": true,
+      "force_rls": true,
+      "anon_select_granted": true,
+      "anon_policy": "Public can view active marketing providers",
+      "anon_policy_roles": [
+        "anon",
+        "authenticated"
+      ],
+      "anon_policy_predicate": "status = 'ACTIVE'",
+      "restrictive_confirmed_auth_select_policy_present": false,
+      "column_count": 19,
+      "sensitive_column_names": [
+        "owner_user_id",
+        "settings",
+        "profile_image_path",
+        "portfolio",
+        "service_areas",
+        "ranking_weight"
+      ]
+    },
+    "policy_scan": {
+      "total_public_policies": 485,
+      "legacy_or_fail_open_anon_guard": {
+        "policies": 283,
+        "tables": 81,
+        "anon_targeted": 2,
+        "authenticated_targeted": 283
+      },
+      "no_explicit_anon_claim_check": {
+        "policies": 202,
+        "tables": 101,
+        "anon_targeted": 16,
+        "authenticated_targeted": 200
+      },
+      "strict_explicit_false_match": 0,
+      "note": "Syntactic triage only. These counts are not exploit counts and do not account for every effective ACL, role path or policy combination."
+    },
+    "direct_anon_select_tables": [
+      "digital_page_sections",
+      "digital_pages",
+      "legal_document_versions",
+      "legal_documents",
+      "marketing_provider_profiles",
+      "marketing_provider_services",
+      "marketing_services",
+      "platform_geo_areas"
+    ],
+    "proposed_fix": "Revoke raw anon SELECT and replace the RC479 restrictive SELECT predicate with exact-confirmed semantics: (auth.jwt() ->> 'is_anonymous') IS NOT DISTINCT FROM 'false'. Preserve authenticated and service_role SELECT; preserve owner DML; keep public discovery on curated service-role Edge projections.",
+    "tests_added": [
+      "raw anon table privilege denial",
+      "anonymous Auth JWT is_anonymous=true denied",
+      "missing/null is_anonymous claim denied",
+      "confirmed Auth is_anonymous=false read compatibility",
+      "confirmed owner update preserved",
+      "wrong-owner update denied"
+    ],
+    "production_mutation": "NONE",
+    "production_release_gate": "BLOCKED / NOT CERTIFIED",
+    "audit_report": "docs/audits/PASS_2421_2430_READ_ONLY_RLS_RC926_RECHECK_20261125.md",
+    "full_replay_test_fixture_note": "Previous full replay failed because schema-only baseline contained no provider row; deterministic idempotent synthetic profile seed added to integration test. Re-run pending."
   }
 }

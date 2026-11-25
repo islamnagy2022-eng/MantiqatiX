@@ -1,5 +1,5 @@
 # MantiqatiX — Unified Source of Truth Map
-**Checkpoint:** 2026-11-24 — main `46714e919d959e49afe5efa64e2fcd2f94a982d7`  
+**Checkpoint:** 2026-11-25 — main `b90155040bdbd72d4472f1f7bd964d988b82ac0f`; RC926 candidate on `security/rc926-strict-provider-profile-auth-20261125-r2`  
 **Operating directive:** [MASTER_SOURCE_OF_TRUTH.md](./MASTER_SOURCE_OF_TRUTH.md)  
 **Canonical repository:** `islamnagy2022-eng/MantiqatiX`  
 **Production Supabase:** `MANTIQATIX FINAL` / `moyhiluyhjsujhwlyeuu`
@@ -106,3 +106,12 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - The archive is a separate root Express/Vite implementation, not a drop-in update to `apps/catalog-frontend`; its manifest/server use Supabase ref `moyhiluyhjsujhwlyweuu`, which does not match Production `moyhiluyhjsujhwlyeuu`.
 - R7 claims a local authoritative JSON database alongside Supabase and contains static fallback secrets for Paymob HMAC, session signing and backup encryption. Its shared client module also selects the service-role key, although no import of that module was found in the archive.
 - Preserve the ZIP as a reference only. Do not import wholesale or point it at Production. Current `main` and Supabase remain canonical; any reuse must be an incremental, reviewed port with exact-head tests.
+
+
+## 2026-11-25 — RC926 strict provider-profile identity boundary
+
+- Preserved the R7 ZIP review (PASS 2411–2420) and continued RC926 as PASS 2421–2430 on a branch based on latest main `b90155040bdbd72d4472f1f7bd964d988b82ac0f`.
+- Production read-only evidence confirms direct anon SELECT remains on `marketing_provider_profiles`, with a permissive active-row base-table policy and no restrictive RC479 confirmed-Auth policy. RLS + FORCE RLS are enabled.
+- RC926 adds a new forward-only migration requiring explicit `is_anonymous=false`, revoking direct anon SELECT and preserving authenticated/service-role SELECT grants and owner DML policy definitions.
+- The first full replay showed the schema-only checkpoint did not contain the provider row assumed by the test. The integration now seeds an idempotent synthetic profile and uses the existing synthetic Auth user from the disposable replay prerequisite. Retest pending.
+- No historical migration edited; no Production SQL/GRANT/RLS/Auth/Storage/Edge/Payment mutation. Overall gate remains BLOCKED / NOT CERTIFIED.

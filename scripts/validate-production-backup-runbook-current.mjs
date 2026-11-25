@@ -16,13 +16,15 @@ const runbookRequirements = [
   "storage.buckets",
   "storage.objects",
   "NOT INCLUDED / NOT VERIFIED",
-  "82-version",
+  "83-version",
   "20261120193000",
   "20261123010000",
   "20261123221950",
   "20261124121348",
   "20261124140000",
   "20261124150000",
+  "20261125110000",
+  "RC926",
   "RC925",
   "RC925 was merged source-only in PR #1069",
   "45477345349",
@@ -43,24 +45,26 @@ const backlogRequirements = [
   "PR #1071",
   "45480436807",
   "53b8be3784790e56775f16bb51c9c3477cfeb536",
-  "82 required migration IDs",
-  "0/82 exact required identifiers",
+  "83 required migration IDs",
+  "0/83 exact required identifiers",
   "20261120193000",
   "20261123010000",
   "20261123221950",
   "20261124121348",
   "20261124140000",
   "20261124150000",
+  "20261125110000",
+  "RC926",
   "RC925",
   "RC924",
   "RC923",
 ];
 for (const required of backlogRequirements) {
-  assert.ok(backlog.includes(required), `Release backlog is missing current 82-version gate text: ${required}`);
+  assert.ok(backlog.includes(required), `Release backlog is missing current 83-version gate text: ${required}`);
 }
 assert.ok(!backlog.includes("76 required migration IDs"), "Release backlog still describes 76 as the current required migration count.");
 assert.ok(!backlog.includes("0/76 present") && !backlog.includes("0/78 exact required identifiers"), "Release backlog still uses a superseded migration status.");
 
 console.log("PRODUCTION_BACKUP_RUNBOOK_CURRENT_RELEASE_CONTRACT=PASS");
 console.log("BACKUP_COVERAGE_AUTH_STORAGE_EXPLICIT=PASS");
-console.log("CURRENT_RELEASE_MIGRATION_COUNT=82");
+console.log("CURRENT_RELEASE_MIGRATION_COUNT=83");

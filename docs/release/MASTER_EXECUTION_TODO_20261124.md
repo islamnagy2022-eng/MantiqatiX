@@ -1,8 +1,18 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-24 — P0.1/P0.2 read-only Production policy and ACL reconciliation  
-**Base:** `main @ 46714e919d959e49afe5efa64e2fcd2f94a982d7`  
+**Updated:** 2026-11-25 — RC926 strict provider-profile identity boundary after R7 archive review  
+**Base:** `main @ b90155040bdbd72d4472f1f7bd964d988b82ac0f`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
+
+## 2026-11-25 — RC926 strict provider-profile identity boundary
+
+- [x] Preserved PASS 2411–2420 R7 archive safety review; all current development remains on canonical main.
+- [x] Fresh read-only Production audit: `marketing_provider_profiles` still has direct anon SELECT and its active-row policy exposes base-table fields; restrictive RC479 confirmed-Auth SELECT policy is absent.
+- [x] Added RC926 forward-only migration `20261125110000` requiring explicit `is_anonymous=false`, plus integration/static tests for raw anon, anonymous Auth, missing claim, confirmed user, owner update and wrong-owner denial.
+- [x] Full replay failure traced to schema-only test baseline missing the provider profile row; integration now seeds a deterministic synthetic row and uses the replay's known synthetic Auth owner. Corrected PostgreSQL 17 replay is pending.
+- [ ] Complete exact-head RC926/RC479 checks and chronological 83-version PostgreSQL 17 replay before merge.
+- [ ] Keep Production read-only until encrypted DB + Storage backup and independent restore, migration identity/effect reconciliation, signed Paymob verification, ACL/RLS parity and coordinated Edge/source release gates pass.
+- [ ] Leaked-password protection remains unavailable on current Free plan; this is an owner/plan dependency, not a SQL migration.
 
 This is the active priority queue. Older Pass logs remain append-only evidence, not a competing work queue. Ordering is based on dependencies and work that can be completed without a paid Supabase branch or paid tooling.
 
