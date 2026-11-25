@@ -14,7 +14,7 @@ assert.match(index, /rel="icon"[^>]*mantiqatix-approved\.svg/,
   'browser favicon must remain the official MantiqatiX brand');
 assert.match(index, /rel="apple-touch-icon"[^>]*sizes="256x256"[^>]*type="image\/jpeg"[^>]*mantiqatix-red-gold-app-icon\.jpg/,
   'the iOS home-screen icon must use the approved red-and-gold MantiqatiX app artwork');
-assert.ok(existsSync('apps/catalog-frontend/public/icons/mantiqatix-red-gold-app-icon.jpg'),
+assert.ok(fs.existsSync('apps/catalog-frontend/public/icons/mantiqatix-red-gold-app-icon.jpg'),
   'the approved iOS home-screen icon asset must exist');
 assert.equal(manifest.display, 'standalone', 'the installable app must remain a standalone platform app');
 assert.ok(manifest.icons.some((icon) => icon.src === '/MantiqatiX/icons/mantiqatix-approved.svg'
