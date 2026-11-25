@@ -1,5 +1,5 @@
 # MantiqatiX — Unified Source of Truth Map
-**Checkpoint:** 2026-11-24 — main `46714e919d959e49afe5efa64e2fcd2f94a982d7`  
+**Checkpoint:** 2026-11-25 — main base `3f67694a5a1da9c8f217d1883dda4a324710bc0e`; RC926 candidate on `security/rc926-strict-provider-profile-auth-20261125`  
 **Operating directive:** [MASTER_SOURCE_OF_TRUTH.md](./MASTER_SOURCE_OF_TRUTH.md)  
 **Canonical repository:** `islamnagy2022-eng/MantiqatiX`  
 **Production Supabase:** `MANTIQATIX FINAL` / `moyhiluyhjsujhwlyeuu`
@@ -99,3 +99,12 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 ## Paymob CI source guard — 2026-11-24
 - PR #1090 merged at `46714e919d959e49afe5efa64e2fcd2f94a982d7`; the validator now checks signed order binding before standard, digital-page and subscription processor RPCs and is wired into RC425/RC428 CI.
 - Full HTTP altered-selector replay remains pending in an isolated sandbox; deployed Production webhook remains behind current main.
+
+
+## 2026-11-25 — Latest P0 security source-to-live checkpoint
+
+- Canonical `main` base: `3f67694a5a1da9c8f217d1883dda4a324710bc0e`; PR #1094 Paymob inventory correction merged documentation-only. Current RC926 work is a new forward-only candidate branch; no earlier migration is edited.
+- Production read-only audit confirms `marketing_provider_profiles` has RLS + FORCE RLS, but direct `anon SELECT` remains granted and the permissive public-active policy covers the full base row. The expected restrictive RC479 confirmed-Auth guard is absent.
+- The old RC479 forward guard uses COALESCE semantics that accept a missing claim; RC926 replaces only its SELECT guard with exact-confirmed semantics requiring the claim value `false`, after the prior migration runs.
+- Public direct anon SELECT remains intentionally present on eight separately named tables; do not blanket-revoke public catalog, legal-version, geo-area or marketing discovery surfaces. The provider-profile base table is the sensitive case; public discovery must continue through curated Edge projections.
+- RC926 adds source-only migration + PostgreSQL integration/static contracts. Exact-head CI is pending. Production remains read-only; the release gate is BLOCKED / NOT CERTIFIED.
