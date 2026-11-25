@@ -157,3 +157,11 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - Public renderer remains a raw `anon` client in `web/digital-page.js`; no `signInAnonymously` call was found in the app source. RC927 retargets public page/section policies to raw `anon` and requires explicit `is_anonymous=false` for every authenticated page/section access, with owner/admin policies preserved.
 - RC927 SQL regression now uses the existing synthetic provider owner as Anonymous Auth and missing-claim `sub`, so the owner policies would otherwise allow the tested updates/inserts. This specifically tests the restrictive claim guard rather than merely relying on owner mismatch. It also covers raw anon, confirmed-owner, and confirmed non-owner paths.
 - Pending exact-head CI. No Production migration or deployment has occurred.
+
+
+## 2026-11-25 — Anonymous Auth matrix and RC927 adversarial test scope
+
+- Fresh 90-table matrix and findings: [PASS 2461–2470](./audits/PASS_2461_2470_ANONYMOUS_AUTH_POLICY_TRIAGE_RC927_20261125.md); Issue #928 updated with the same counts and seven authenticated-write review candidates.
+- RC927 test subjects for `is_anonymous=true` and missing/null claim now use the same UUID as the owner of the seeded page. The owner SELECT/INSERT/draft UPDATE policies would otherwise authorize those operations; test expectations therefore isolate the restrictive identity guard.
+- Raw anon remains the intended public renderer role and is checked against RC480's exact ten-column page projection. Confirmed owners keep private read and draft edit/create compatibility; non-owners remain denied.
+- RC927 is source-only on `security/rc927-digital-page-auth-scope-20261125`; full exact-head 84-version PG17 replay is pending. No Production changes.
