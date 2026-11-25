@@ -21,7 +21,7 @@ create policy "CRM managers view marketing leads"
         join public.businesses b on b.id = requester_business_id
         where um.user_id = auth.uid()
           and um.status = 'ACTIVE'
-          and um.business_id = requester_business_id
+          and (um.business_id is null or um.business_id = requester_business_id)
           and um.tenant_id = b.tenant_id
           and upper(coalesce(um.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
       )
@@ -49,7 +49,7 @@ create policy "CRM managers view marketing providers"
         join public.businesses b on b.id = marketing_provider_profiles.business_id
         where um.user_id = auth.uid()
           and um.status = 'ACTIVE'
-          and um.business_id = marketing_provider_profiles.business_id
+          and (um.business_id is null or um.business_id = marketing_provider_profiles.business_id)
           and um.tenant_id = b.tenant_id
           and upper(coalesce(um.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
           and (
