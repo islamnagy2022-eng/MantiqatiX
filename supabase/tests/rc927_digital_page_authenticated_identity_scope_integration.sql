@@ -21,12 +21,13 @@ BEGIN
     RAISE EXCEPTION 'RC927_RC926_PROVIDER_FIXTURE_MISSING';
   END IF;
 
+  -- Public page: used to prove that the raw anon renderer still works.
   INSERT INTO public.digital_pages
     (id,page_type,business_id,provider_profile_id,slug,title,subtitle,description,
      seo_title,seo_description,theme,status,version,published_at,created_by,updated_by)
   VALUES
     ('50000000-0000-4000-8000-000000000001','MENU',NULL,v_provider,
-     'rc927-owner-page','RC927 Owner Page','Public subtitle','Public description',
+     'rc927-public-page','RC927 Public Page','Public subtitle','Public description',
      'RC927 SEO title','RC927 SEO description',
      '{"owner_internal_note":"private-owner-value"}'::jsonb,
      'PUBLISHED',1,now(),v_owner,v_owner)
@@ -35,7 +36,26 @@ BEGIN
         slug=EXCLUDED.slug,title=EXCLUDED.title,subtitle=EXCLUDED.subtitle,
         description=EXCLUDED.description,seo_title=EXCLUDED.seo_title,
         seo_description=EXCLUDED.seo_description,theme=EXCLUDED.theme,
-        status='PUBLISHED',created_by=EXCLUDED.created_by,updated_by=EXCLUDED.updated_by;
+        status='PUBLISHED',published_at=now(),
+        created_by=EXCLUDED.created_by,updated_by=EXCLUDED.updated_by;
+
+  -- Draft owner page: used to prove confirmed owner edit compatibility.
+  INSERT INTO public.digital_pages
+    (id,page_type,business_id,provider_profile_id,slug,title,subtitle,description,
+     seo_title,seo_description,theme,status,version,published_at,created_by,updated_by)
+  VALUES
+    ('50000000-0000-4000-8000-000000000003','PORTFOLIO',NULL,v_provider,
+     'rc927-owner-draft','RC927 Owner Draft','Private subtitle','Private description',
+     'Private SEO title','Private SEO description',
+     '{"owner_internal_note":"private-draft-value"}'::jsonb,
+     'DRAFT',1,NULL,v_owner,v_owner)
+  ON CONFLICT (id) DO UPDATE
+    SET provider_profile_id=EXCLUDED.provider_profile_id,
+        slug=EXCLUDED.slug,title=EXCLUDED.title,subtitle=EXCLUDED.subtitle,
+        description=EXCLUDED.description,seo_title=EXCLUDED.seo_title,
+        seo_description=EXCLUDED.seo_description,theme=EXCLUDED.theme,
+        status='DRAFT',published_at=NULL,
+        created_by=EXCLUDED.created_by,updated_by=EXCLUDED.updated_by;
 
   INSERT INTO public.digital_page_sections
     (id,page_id,section_type,sort_order,title,content,data,active)
@@ -44,6 +64,18 @@ BEGIN
      '50000000-0000-4000-8000-000000000001',
      'MENU',1,'RC927 Public Menu','Public menu content',
      '{"items":[{"name":"Test item","price":"10"}]}'::jsonb,true)
+  ON CONFLICT (id) DO UPDATE
+    SET page_id=EXCLUDED.page_id,section_type=EXCLUDED.section_type,
+        sort_order=EXCLUDED.sort_order,title=EXCLUDED.title,
+        content=EXCLUDED.content,data=EXCLUDED.data,active=true;
+
+  INSERT INTO public.digital_page_sections
+    (id,page_id,section_type,sort_order,title,content,data,active)
+  VALUES
+    ('50000000-0000-4000-8000-000000000004',
+     '50000000-0000-4000-8000-000000000003',
+     'ABOUT',1,'RC927 Owner Section','Private draft section',
+     '{"owner_only":true}'::jsonb,true)
   ON CONFLICT (id) DO UPDATE
     SET page_id=EXCLUDED.page_id,section_type=EXCLUDED.section_type,
         sort_order=EXCLUDED.sort_order,title=EXCLUDED.title,
@@ -79,7 +111,7 @@ DECLARE
 BEGIN
   SELECT count(*) INTO v_count
     FROM public.digital_pages
-   WHERE slug='rc927-owner-page' AND status='PUBLISHED';
+   WHERE slug='rc927-public-page' AND status='PUBLISHED';
   IF v_count <> 1 THEN
     RAISE EXCEPTION 'RC927_RAW_ANON_PUBLISHED_PAGE_READ_FAILED:%',v_count;
   END IF;
@@ -87,13 +119,13 @@ BEGIN
   SELECT count(*) INTO v_count
     FROM public.digital_page_sections s
     JOIN public.digital_pages p ON p.id=s.page_id
-   WHERE p.slug='rc927-owner-page' AND s.active=true;
+   WHERE p.slug='rc927-public-page' AND s.active=true;
   IF v_count <> 1 THEN
     RAISE EXCEPTION 'RC927_RAW_ANON_PUBLIC_SECTION_READ_FAILED:%',v_count;
   END IF;
 
   BEGIN
-    EXECUTE 'SELECT created_by FROM public.digital_pages WHERE slug=''rc927-owner-page''' INTO v_owner;
+    EXECUTE 'SELECT created_by FROM public.digital_pages WHERE slug=''rc927-public-page''' INTO v_owner;
   EXCEPTION WHEN insufficient_privilege THEN
     v_denied := true;
   END;
@@ -103,7 +135,7 @@ BEGIN
 
   v_denied := false;
   BEGIN
-    EXECUTE 'SELECT * FROM public.digital_pages WHERE slug=''rc927-owner-page''' INTO v_row;
+    EXECUTE 'SELECT * FROM public.digital_pages WHERE slug=''rc927-public-page''' INTO v_row;
   EXCEPTION WHEN insufficient_privilege THEN
     v_denied := true;
   END;
@@ -115,7 +147,7 @@ $raw_anon$;
 RESET ROLE;
 
 -- Anonymous Auth carries the authenticated SQL role; it must not inherit the
--- broad public-read policy or execute owner-management writes.
+-- broad published-page policy or execute owner-management writes.
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claims',
   '{"sub":"30000000-0000-4000-8000-000000000091","role":"authenticated","is_anonymous":true}',false);
@@ -125,26 +157,28 @@ DECLARE
   v_affected integer;
   v_denied boolean := false;
 BEGIN
-  SELECT count(*) INTO v_count FROM public.digital_pages WHERE slug='rc927-owner-page';
+  SELECT count(*) INTO v_count FROM public.digital_pages WHERE slug='rc927-public-page';
   IF v_count <> 0 THEN
     RAISE EXCEPTION 'RC927_ANON_AUTH_PAGE_READ_SUCCEEDED:%',v_count;
   END IF;
   SELECT count(*) INTO v_count
     FROM public.digital_page_sections s
     JOIN public.digital_pages p ON p.id=s.page_id
-   WHERE p.slug='rc927-owner-page';
+   WHERE p.slug='rc927-public-page';
   IF v_count <> 0 THEN
     RAISE EXCEPTION 'RC927_ANON_AUTH_SECTION_READ_SUCCEEDED:%',v_count;
   END IF;
 
-  UPDATE public.digital_pages SET title='anonymous overwrite' WHERE slug='rc927-owner-page';
+  UPDATE public.digital_pages
+     SET title='anonymous overwrite',updated_by='30000000-0000-4000-8000-000000000091'
+   WHERE slug='rc927-owner-draft';
   GET DIAGNOSTICS v_affected = ROW_COUNT;
   IF v_affected <> 0 THEN
     RAISE EXCEPTION 'RC927_ANON_AUTH_PAGE_UPDATE_SUCCEEDED:%',v_affected;
   END IF;
 
   DELETE FROM public.digital_page_sections
-   WHERE id='50000000-0000-4000-8000-000000000002';
+   WHERE id='50000000-0000-4000-8000-000000000004';
   GET DIAGNOSTICS v_affected = ROW_COUNT;
   IF v_affected <> 0 THEN
     RAISE EXCEPTION 'RC927_ANON_AUTH_SECTION_DELETE_SUCCEEDED:%',v_affected;
@@ -155,8 +189,8 @@ BEGIN
       (id,page_id,section_type,sort_order,title,content,data,active)
     VALUES
       ('50000000-0000-4000-8000-000000000099',
-       '50000000-0000-4000-8000-000000000001',
-       'MENU',99,'Unauthorized','Unauthorized','{}'::jsonb,true);
+       '50000000-0000-4000-8000-000000000003',
+       'ABOUT',99,'Unauthorized','Unauthorized','{}'::jsonb,true);
   EXCEPTION WHEN insufficient_privilege THEN
     v_denied := true;
   END;
@@ -176,12 +210,14 @@ DECLARE
   v_count integer;
   v_affected integer;
 BEGIN
-  SELECT count(*) INTO v_count FROM public.digital_pages WHERE slug='rc927-owner-page';
+  SELECT count(*) INTO v_count FROM public.digital_pages WHERE slug='rc927-public-page';
   IF v_count <> 0 THEN
     RAISE EXCEPTION 'RC927_MISSING_CLAIM_PAGE_READ_SUCCEEDED:%',v_count;
   END IF;
 
-  UPDATE public.digital_pages SET title='missing claim overwrite' WHERE slug='rc927-owner-page';
+  UPDATE public.digital_pages
+     SET title='missing claim overwrite',updated_by='30000000-0000-4000-8000-000000000092'
+   WHERE slug='rc927-owner-draft';
   GET DIAGNOSTICS v_affected = ROW_COUNT;
   IF v_affected <> 0 THEN
     RAISE EXCEPTION 'RC927_MISSING_CLAIM_PAGE_UPDATE_SUCCEEDED:%',v_affected;
@@ -190,7 +226,7 @@ END;
 $missing_claim$;
 RESET ROLE;
 
--- A confirmed owner retains full internal read and owner update behavior.
+-- A confirmed owner retains full internal read and draft editing behavior.
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claims',
   '{"sub":"f7914ac7-4b03-4456-afdd-e386f2ac6a5b","role":"authenticated","is_anonymous":false}',false);
@@ -200,20 +236,21 @@ DECLARE
   v_affected integer;
 BEGIN
   SELECT created_by INTO v_creator
-    FROM public.digital_pages WHERE slug='rc927-owner-page';
+    FROM public.digital_pages WHERE slug='rc927-owner-draft';
   IF v_creator IS DISTINCT FROM 'f7914ac7-4b03-4456-afdd-e386f2ac6a5b'::uuid THEN
     RAISE EXCEPTION 'RC927_CONFIRMED_OWNER_PRIVATE_PAGE_READ_REGRESSED';
   END IF;
 
-  UPDATE public.digital_pages SET title='RC927 owner updated page'
-   WHERE slug='rc927-owner-page';
+  UPDATE public.digital_pages
+     SET title='RC927 owner updated page',updated_by='f7914ac7-4b03-4456-afdd-e386f2ac6a5b'
+   WHERE slug='rc927-owner-draft';
   GET DIAGNOSTICS v_affected = ROW_COUNT;
   IF v_affected <> 1 THEN
     RAISE EXCEPTION 'RC927_CONFIRMED_OWNER_PAGE_UPDATE_REGRESSED:%',v_affected;
   END IF;
 
   UPDATE public.digital_page_sections SET title='RC927 owner updated section'
-   WHERE id='50000000-0000-4000-8000-000000000002';
+   WHERE id='50000000-0000-4000-8000-000000000004';
   GET DIAGNOSTICS v_affected = ROW_COUNT;
   IF v_affected <> 1 THEN
     RAISE EXCEPTION 'RC927_CONFIRMED_OWNER_SECTION_UPDATE_REGRESSED:%',v_affected;
@@ -222,8 +259,7 @@ END;
 $confirmed_owner$;
 RESET ROLE;
 
--- A different confirmed user is not allowed to use a public-read policy or
--- another provider's owner-management policy.
+-- A different confirmed user cannot use public read or another provider's owner policy.
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claims',
   '{"sub":"20000000-0000-4000-8000-000000000099","role":"authenticated","is_anonymous":false}',false);
@@ -232,12 +268,19 @@ DECLARE
   v_count integer;
   v_affected integer;
 BEGIN
-  SELECT count(*) INTO v_count FROM public.digital_pages WHERE slug='rc927-owner-page';
+  SELECT count(*) INTO v_count FROM public.digital_pages WHERE slug='rc927-public-page';
+  IF v_count <> 0 THEN
+    RAISE EXCEPTION 'RC927_CONFIRMED_NON_OWNER_PUBLIC_PAGE_READ_SUCCEEDED:%',v_count;
+  END IF;
+
+  SELECT count(*) INTO v_count FROM public.digital_pages WHERE slug='rc927-owner-draft';
   IF v_count <> 0 THEN
     RAISE EXCEPTION 'RC927_CONFIRMED_NON_OWNER_PRIVATE_PAGE_READ_SUCCEEDED:%',v_count;
   END IF;
 
-  UPDATE public.digital_pages SET title='non-owner overwrite' WHERE slug='rc927-owner-page';
+  UPDATE public.digital_pages
+     SET title='non-owner overwrite',updated_by='20000000-0000-4000-8000-000000000099'
+   WHERE slug='rc927-owner-draft';
   GET DIAGNOSTICS v_affected = ROW_COUNT;
   IF v_affected <> 0 THEN
     RAISE EXCEPTION 'RC927_CONFIRMED_NON_OWNER_PAGE_UPDATE_SUCCEEDED:%',v_affected;
