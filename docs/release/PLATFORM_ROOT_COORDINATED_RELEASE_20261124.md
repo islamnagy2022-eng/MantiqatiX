@@ -18,7 +18,7 @@ See [PASS 2361–2370](../audits/PASS_2361_2370_PLATFORM_ROOT_LIVE_RECHECK_20261
 
 ## 2. Required ordered source slice
 
-The following is a dependency map, not permission to cherry-pick migrations. The actual release chain must follow the exact canonical 83-version order in [REQUIRED_83_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md](./REQUIRED_83_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md) and the gate in `scripts/production/live-reconciliation-contract.mjs`.
+The following is a dependency map, not permission to cherry-pick migrations. The actual release chain must follow the exact canonical 84-version order in [REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md](./REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md) and the gate in `scripts/production/live-reconciliation-contract.mjs`.
 
 | Stage | Source chain | Dependency / required result |
 |---|---|---|
@@ -28,32 +28,33 @@ The following is a dependency map, not permission to cherry-pick migrations. The
 | D — forward privacy repair and catalog/finance/order guards | RC479 forward repair (`20261120193000`) → RC485–RC496 | Apply the later restrictive provider-profile policy after RC484, then catalog/price RPCs, SMM bootstrap removal, confirmed-session guards, settlement scope, Storage policies and MantiGO bid invariant. |
 | E — medical and agreement gates | RC921 → RC922 → RC923 → RC924 → RC925 | Assigned-provider and forward-only medical transitions, exact agreement participant/admin scope, then direct catalog RPC claim hardening. RC925 must reject both explicit anonymous and missing/null `is_anonymous` claims. |
 | F — strict provider-profile identity | RC926 (`20261125110000`) after RC479 | Revoke raw anon base-table SELECT and replace the RC479 COALESCE-based restrictive policy with exact `is_anonymous = false` semantics; deny missing/null claims while preserving confirmed-user and owner compatibility. Source merged and PG17 replay-tested, but not applied to Production. |
+| G — digital-page Anonymous Auth boundary | RC480 (`20261118210000`) → RC927 (`20261125120000`) | First revoke raw `anon` table SELECT and install the exact ten-column allowlist; then apply a restrictive `digital_pages` SELECT policy to role `authenticated` requiring explicit `is_anonymous=false`, denying anonymous and missing-claim sessions while preserving confirmed-user access. Source candidate; exact-head CI pending; not applied to Production. |
 
 The labels above are functional groups only; execute by version timestamp from the authoritative list, not by this table's presentation order. No historical migration file may be edited. New corrections require a new timestamped forward migration and a source-specific immutability test.
 
 ## 3. Mandatory pre-release gates
 
-1. **Source integrity:** verify the 83 required source files, unique version IDs, collision/immutability checks, three exact aliases and five partial-baseline classifications. Keep the migration ledger unchanged until the formal ledger reconciliation gate passes.
+1. **Source integrity:** verify the 84 required source files, unique version IDs, collision/immutability checks, three exact aliases and five partial-baseline classifications. Keep the migration ledger unchanged until the formal ledger reconciliation gate passes.
 2. **Exhaustive effect reconciliation:** expand beyond the 76-object sample. Compare every affected table, column, index, constraint, trigger, policy predicate, function overload/body, owner, SECURITY DEFINER flag, search_path, and effective ACL against the source contracts. Presence alone is not semantic parity.
 3. **Backup and restore:** obtain owner-controlled encrypted off-site database and Storage-object exports; verify retrieval and checksums; account for Auth users/identities, Vault keys/secrets, configuration and Storage metadata/object bytes. Restore into disposable PostgreSQL 17 and prove rollback; measure RPO/RTO. Do not use a paid Supabase branch as an assumed prerequisite.
-4. **Exact-head isolated tests:** run the full strict 83-source gate and chronological forward replay from the verified checkpoint, plus all module-specific PostgreSQL 17 integration tests. Include positive registered-platform-root access and negative tenant ADMIN/OWNER/SUPER_ADMIN, stale platform metadata, tenant-scoped SUPER_ADMIN, MNTY-PLATFORM membership without registry, anonymous Auth, missing/null JWT claim, cross-business and cross-branch cases. Preserve tenant-local owners/managers and public read projections intentionally allowed by contract.
+4. **Exact-head isolated tests:** run the full strict 84-source gate and chronological forward replay from the verified checkpoint, plus all module-specific PostgreSQL 17 integration tests. Include positive registered-platform-root access and negative tenant ADMIN/OWNER/SUPER_ADMIN, stale platform metadata, tenant-scoped SUPER_ADMIN, MNTY-PLATFORM membership without registry, anonymous Auth, missing/null JWT claim, cross-business and cross-branch cases. Preserve tenant-local owners/managers and public read projections intentionally allowed by contract.
 5. **Database-to-Edge closure:** map every migration to physical schema → RPC/ACL/RLS → exact deployed Edge bundle/version → deployed-origin E2E. Nine launch-critical Edge deployments were previously found different from current main. No individual Edge deployment is allowed until its entire dependency slice passes.
 6. **Release review:** prepare exact commit, ordered migration list, verified backup identifiers, rollback steps, affected services, CI run IDs, Edge versions, expected post-release SQL read-back and smoke tests. Obtain explicit Production release approval before any Production write.
 7. **Post-release verification:** read back FORCE RLS, registry/helper owner and BYPASSRLS, empty search_path, helper ACL, all 62 policy references and the exact eight caller definitions; verify all seven catalog RPCs deny anonymous/missing-claim tokens and preserve confirmed-user tenant/business/branch behavior; run deployed-origin E2E. Any mismatch reverts the release and keeps affected endpoints fail-closed.
 
 ## 4. Known non-approval blockers
 
-- Production's live migration ledger is 310 rows through `20261110150618`, with 0/83 exact required source-version IDs. Three aliases are confirmed, but formal ledger repairs remain zero. Do not treat the mismatch itself as absence of physical effects.
+- Production's live migration ledger is 310 rows through `20261110150618`, with 0/84 exact required source-version IDs. Three aliases are confirmed, but formal ledger repairs remain zero. Do not treat the mismatch itself as absence of physical effects.
 - The 76-object curated physical read-back is 35 present / 41 absent and is not the exhaustive release contract.
-- RC464/RC471/RC484/RC485/RC925/RC926 are source-side fixes, not live Production changes.
+- RC464/RC471/RC484/RC485/RC925/RC926/RC927 are source-side fixes, not live Production changes.
 - Current CI evidence includes run `45496742405` (full forward replay) and `45496743088` (module/RC471-related PG17 tests), plus catalog, dashboard, privacy, directory, Paymob and agreement suites on the exact PR #1086 head. CI pass is not Production certification.
 - The leaked-password protection setting remains NOT AVAILABLE / NOT VERIFIED on the current plan. Do not claim it is enabled.
 
 ## 4A. Fresh read-only Production recheck — 2026-11-25
 
-The connected project was re-read directly after RC926 merged:
+The connected project was re-read directly after RC927 source preparation:
 
-- Project is `ACTIVE_HEALTHY`, PostgreSQL 17.6.1.155. Migration ledger remains 310 rows through `20261110150618`; exact source IDs remain **0/83**.
+- Project is `ACTIVE_HEALTHY`, PostgreSQL 17.6.1.155. Migration ledger remains 310 rows through `20261110150618`; exact source IDs remain **0/84**.
 - Provider profile table has RLS + FORCE RLS enabled, but direct `anon SELECT` is still granted. The permissive `Public can view active marketing providers` SELECT policy remains present for `anon, authenticated`; the strict RC926 restrictive policy is absent from Production.
 - `private.platform_admins` still has RLS ON / FORCE RLS OFF. Registry SELECT remains server-only (`service_role` true; `anon` and `authenticated` false). `is_platform_admin()` remains SECURITY INVOKER/search_path=public and does not reference the registry; `mnty_can_platform_admin()` remains SECURITY DEFINER/search_path=public, pg_temp and delegates to the legacy null-scope helper.
 - The 62-policy dependency count remains 57 references across 24 tables for `is_platform_admin()` and five references across three tables for `mnty_can_platform_admin()`.
@@ -61,7 +62,7 @@ The connected project was re-read directly after RC926 merged:
 - All 42 inventoried Edge Functions are ACTIVE; nine launch-critical functions were previously confirmed source-mismatched. `catalog-admin` is v20; `directory-listings` is v18 and intentionally fail-closed.
 - Current Security Advisor returned 166 categorized findings (9 RLS/no-policy, 1 anon SECURITY DEFINER, 65 authenticated SECURITY DEFINER, 90 Anonymous Auth policy warnings, 1 leaked-password protection). These are review findings, not 166 confirmed vulnerabilities.
 
-Full results: [PASS 2441–2450](../audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md). This remains a read-only snapshot, not Production release approval.
+Full results: [PASS 2441–2450](../audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md) and [PASS 2461–2470](../audits/PASS_2461_2470_RC480_RC927_DIGITAL_PAGE_ANONYMOUS_AUTH_READ_RECHECK_20261125.md). These are read-only snapshots, not Production release approval.
 
 ## 5. Edge runtime dependency gate
 
@@ -70,3 +71,11 @@ The live Edge/RPC/ACL/schema inventory is maintained in [EDGE_RPC_PRODUCTION_DEP
 ## 6. Explicit non-actions in this phase
 
 No Production SQL write or `apply_migration`; no Auth configuration, RLS/GRANT, Storage policy, Edge deployment, payment/webhook, wallet, settlement, business-data, migration-ledger, or website deployment changes. The only permitted work before release approval is source review, isolated tests, backup/restore rehearsal in disposable infrastructure, and read-only live verification.
+
+
+## RC480 → RC927 privacy sequence — read-only evidence, 2026-11-25
+
+- Direct Production check confirms RC480 has not been applied: `public.digital_pages` RLS ON / FORCE RLS OFF, raw `anon SELECT` remains granted, and `anon SELECT(created_by)` remains true.
+- RC927 is intentionally downstream of RC480. It creates a restrictive SELECT guard for role `authenticated` requiring explicit `is_anonymous=false`, but its migration preflight will refuse to run before the RC480 column allowlist and table-level anon revoke are present.
+- The public renderer uses RC480's ten-column projection and disables session persistence. This source behavior does not replace the missing live database grant boundary.
+- Evidence: [PASS 2461–2470](../audits/PASS_2461_2470_RC480_RC927_DIGITAL_PAGE_ANONYMOUS_AUTH_READ_RECHECK_20261125.md). Both migrations remain source-only.
