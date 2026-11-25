@@ -11,7 +11,7 @@ create policy "CRM managers view marketing leads"
         and um.status = 'ACTIVE'
         and upper(coalesce(um.role,'')) in ('SUPER_ADMIN','ADMIN')
         and coalesce(um.permissions->>'scope','') = 'PLATFORM'
-        and coalesce((um.permissions->>'full_control')::boolean,false) = true
+        and coalesce(um.permissions->>'full_control','false') = 'true'
     )
     or (
       requester_business_id is not null
@@ -39,7 +39,7 @@ create policy "CRM managers view marketing providers"
         and um.status = 'ACTIVE'
         and upper(coalesce(um.role,'')) in ('SUPER_ADMIN','ADMIN')
         and coalesce(um.permissions->>'scope','') = 'PLATFORM'
-        and coalesce((um.permissions->>'full_control')::boolean,false) = true
+        and coalesce(um.permissions->>'full_control','false') = 'true'
     )
     or (
       business_id is not null
