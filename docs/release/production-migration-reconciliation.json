@@ -119,10 +119,10 @@
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
     "checked_at": "2026-11-25",
-    "method": "Read-only live migration ledger inventory refreshed 2026-11-25 and reconciled against 83 exact required source migration versions. RC926 is source-only and is not applied. Exact identifiers absent are not proof every physical effect is absent; aliases and physical effects are reconciled separately. Never fabricate ledger rows or blindly replay migrations against Production.",
+    "method": "Read-only live migration ledger inventory refreshed 2026-11-25 and reconciled against 84 exact required source migration versions. RC927 is source-only and is not applied. Exact identifiers absent are not proof every physical effect is absent; aliases and physical effects are reconciled separately. Never fabricate ledger rows or blindly replay migrations against Production.",
     "live_ledger_count": 310,
     "latest_live_version": "20261110150618",
-    "expected_migration_versions": 83,
+    "expected_migration_versions": 84,
     "found_in_live_ledger": 0,
     "required_versions": [
       "20261009120000",
@@ -207,7 +207,8 @@
       "20261124121348",
       "20261124140000",
       "20261124150000",
-      "20261125110000"
+      "20261125110000",
+      "20261125120000"
     ],
     "missing_versions": [
       "20261009120000",
@@ -292,10 +293,11 @@
       "20261124121348",
       "20261124140000",
       "20261124150000",
-      "20261125110000"
+      "20261125110000",
+      "20261125120000"
     ],
     "recorded_required_versions": [],
-    "interpretation": "None of the 83 exact required source-version identifiers are recorded in the latest read-only live ledger inventory. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production."
+    "interpretation": "The exact required release migration identifiers are an immutable source/ledger identity check; 0/84 is not proof that every physical SQL effect is absent. Preserve alias and physical-effect reconciliation separately."
   },
   "critical_edge_function_source_parity_check": {
     "status": "BLOCKED",
