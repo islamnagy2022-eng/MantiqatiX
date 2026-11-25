@@ -20,7 +20,7 @@
 - [x] Reviewed RC480 regression: it covers raw `anon` and ordinary authenticated access, but it does not simulate `role=authenticated` with `is_anonymous=true` or a missing claim.
 - [x] Added forward-only source migration `20261125120000_rc927_digital_pages_anonymous_auth_read_guard.sql` with a restrictive SELECT policy for `authenticated` requiring explicit `is_anonymous=false`. It preserves raw-`anon` published-page reads and RC480 column grants.
 - [x] Added PostgreSQL 16 fixture/integration tests for Anonymous Auth, missing claim, confirmed Auth and raw anon public-column access; wired RC927 into the RC480 module-professionalization job and full migration replay validator.
-- [ ] Exact-head CI and 84-version chronological PostgreSQL 17 replay pending. RC927 is not applied to Production; no grants, RLS, Auth, Storage, Edge or customer data were changed.
+- [ ] Exact-head CI and 84-version chronological PostgreSQL 17 replay pending. RC480 and RC927 must execute in timestamp order; RC927 preflight intentionally blocks until RC480's grant/column allowlist is present. RC927 is not applied to Production; no grants, RLS, Auth, Storage, Edge or customer data were changed.
 
 ## 2026-11-25 — RC926 strict provider-profile identity boundary
 
