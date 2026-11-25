@@ -16,7 +16,7 @@ assert.match(migration, /currency = 'EGP'/);
 assert.match(migration, /drop policy if exists "Owners manage their marketing provider profile"/);
 assert.match(migration, /create policy "Owners view own marketing provider profile"/);
 assert.match(migration, /create policy "Owners update own provider profile branding"/);
-assert.equal((migration.match(/business_id is null/g) || []).length, 3);
+assert.equal((migration.match(/^\s+business_id is null$/gm) || []).length, 3);
 assert.match(migration, /business_id cannot be changed because it is not included/i);
 assert.match(migration, /revoke insert, update, delete[\s\S]*?from authenticated/i);
 assert.match(migration, /grant update \(profile_image_path, settings, updated_at\)/i);
