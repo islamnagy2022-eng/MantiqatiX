@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 const html = readFileSync(new URL('../apps/catalog-frontend/public/404.html', import.meta.url), 'utf8');
-const script = html.match(/<script>([\s\S]*?)<\/script>/i)?.[1];
+const script = html.match(/<script>([\\s\\S]*?)<\\/script>/i)?.[1];
 assert.ok(script, '404.html must include its redirect handler');
 
 function redirectedPath(input) {
@@ -14,7 +14,8 @@ function redirectedPath(input) {
   };
   vm.runInNewContext(script, { window: { location }, URL });
   assert.ok(destination, `expected redirect for ${input}`);
-  return new URL(destination).pathname + new URL(destination).search + new URL(destination).hash;
+  const resolved = new URL(destination, input);
+  return resolved.pathname + resolved.search + resolved.hash;
 }
 
 assert.equal(redirectedPath('https://islamnagy2022-eng.github.io/mantiqatix/ABC?store=1#top'), '/MantiqatiX/abc?store=1#top');
