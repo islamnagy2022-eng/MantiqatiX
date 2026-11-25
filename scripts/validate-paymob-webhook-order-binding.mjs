@@ -48,6 +48,7 @@ const branches = [
     mismatch: "PAYMENT_PROVIDER_ORDER_MISMATCH",
     successRpc: 'admin.rpc("process_verified_provider_payment"',
     failureRpc: 'admin.rpc("process_verified_provider_payment_failure"',
+    providerScope: true,
   },
 ];
 
@@ -61,6 +62,11 @@ for (const branch of branches) {
 
   assert.ok(lookup >= 0 && selected > lookup && guard > selected,
     branch.name + " lookup must be followed by selecting a candidate then validating its stored provider_order_id");
+  if (branch.providerScope) {
+    const referenceLookup = webhook.slice(lookup, selected);
+    assert.ok(referenceLookup.includes('.eq("provider","PAYMOB")'),
+      branch.name + " unsigned merchant_order_id lookup must be scoped to the PAYMOB provider");
+  }
   assert.ok(mismatchResponse > guard,
     branch.name + " provider-order mismatch must have an explicit fail-closed response");
   assert.ok(successRpc > guard && (!branch.failureRpc || failureRpc > guard),
