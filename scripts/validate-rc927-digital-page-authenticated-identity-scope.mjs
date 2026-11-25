@@ -15,7 +15,13 @@ const crosswalk = fs.readFileSync("docs/release/REQUIRED_84_MIGRATION_SOURCE_OBJ
 
 assert.match(migration, /RC927_DIGITAL_PAGES_RLS_REQUIRED/);
 assert.match(migration, /RC927_DIGITAL_PAGE_SECTIONS_RLS_REQUIRED/);
-assert.match(migration, /RC927_RC480_ANON_COLUMN_ALLOWLIST_REQUIRED/);
+assert.match(migration, /RC927_RC480_EXACT_TEN_COLUMN_ANON_ALLOWLIST_REQUIRED/);
+for (const column of ["id", "page_type", "slug", "title", "subtitle", "description", "seo_title", "seo_description", "status", "version"]) {
+  assert.ok(migration.includes(`has_column_privilege('anon','public.digital_pages','${column}','SELECT')`), `RC927 must preserve the RC480 public column: ${column}`);
+}
+for (const column of ["business_id", "provider_profile_id", "theme", "published_at", "created_by", "updated_by", "created_at", "updated_at", "digital_page_order_id"]) {
+  assert.ok(migration.includes(`has_column_privilege('anon','public.digital_pages','${column}','SELECT')`), `RC927 must assert a negative grant boundary for ${column}`);
+}
 assert.match(migration, /has_column_privilege\('anon','public\.digital_pages','slug','SELECT'\)/);
 assert.match(migration, /has_column_privilege\('anon','public\.digital_pages','created_by','SELECT'\)/);
 assert.match(migration, /ALTER POLICY digital_pages_public_read[\s\S]*?TO anon/);
