@@ -47,6 +47,7 @@ const branches = [
   {
     name: "standard",
     lookup: 'const {data:intentByRef}',
+    fallbackLookup: 'const {data:intentByOrder}',
     selected: "const intent=intentByRef??intentByOrder",
     guard: 'if(!paymobOrderId||String(intent.provider_order_id??"")!==paymobOrderId)',
     mismatch: "PAYMENT_PROVIDER_ORDER_MISMATCH",
