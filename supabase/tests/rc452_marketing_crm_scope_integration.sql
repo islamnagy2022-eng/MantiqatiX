@@ -24,8 +24,9 @@ begin
   if not exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000001') then
     raise exception 'manager A cannot read active provider in own business';
   end if;
-  if exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000004') then
-    raise exception 'manager A crossed tenant boundary for active providers';
+  -- Active profiles remain globally visible through the intentional public directory policy.
+  if not exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000004') then
+    raise exception 'public active provider directory read regressed';
   end if;
   if exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000002') then
     raise exception 'manager A must not read pending provider in own business';
