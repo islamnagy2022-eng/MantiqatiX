@@ -2,7 +2,7 @@ name: Forward Migration Chain Replay from Production Schema Checkpoint
 
 on:
   push:
-    branches: [main, security/rc926-strict-provider-profile-auth-20261125]
+    branches: [main]
     paths:
       - "supabase/migrations/**"
       - "supabase/tests/rc924_agreement_participant_read_scope_fixture.sql"
