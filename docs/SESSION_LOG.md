@@ -4337,3 +4337,11 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] Confirmed current standard success and legacy subscription success processors exist but do not replace the missing current-main contracts; standard success does not accept provider_order_id as an argument, and current-main webhook checks it before RPC.
 - [x] Updated `PASS_2401_2410_LIVE_PAYMOB_SECURITY_ADVISOR_RECHECK_20261125.md` and `production-migration-reconciliation.json` with corrected evidence.
 - [x] Read-only only; no Production SQL mutation, Edge deployment, payment or migration was performed.
+
+## 2026-11-25 — RC926 strict provider-profile identity recheck
+
+- Reverified latest main base `3f67694a5a1da9c8f217d1883dda4a324710bc0e` and merged documentation-only Paymob signature correction PR #1094.
+- Confirmed stale crosswalk PRs #1078/#1079 were superseded by merged immutable-safe PR #1086; closed the stale copies without changing mainline migrations.
+- Fresh Production read-only audit: `marketing_provider_profiles` still has direct anon SELECT; its public-active policy returns full base rows; RC479 restrictive confirmed-Auth SELECT policy is absent. RLS and FORCE RLS are enabled.
+- Fresh Security Advisor snapshot at 2026-11-25T00:20:16.773Z has 94 findings. Raw count is not exploit count; details are stored in the reconciliation manifest and PASS 2411–2420 report.
+- Added RC926 forward-only strict confirmed-identity policy candidate and adversarial SQL/static tests. Old migration files remain unchanged. Exact-head CI pending; Production mutation NONE.
