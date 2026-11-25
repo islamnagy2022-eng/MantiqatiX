@@ -8,7 +8,10 @@ DECLARE
   v_pages_rls boolean;
   v_sections_rls boolean;
   v_public_page_policy boolean;
-  v_owner_page_policy boolean;
+  v_owner_page_select boolean;
+  v_owner_page_insert boolean;
+  v_owner_page_update boolean;
+  v_admin_page_policy boolean;
   v_public_section_policy boolean;
   v_owner_section_policy boolean;
 BEGIN
@@ -69,9 +72,27 @@ BEGIN
   SELECT EXISTS (
     SELECT 1 FROM pg_catalog.pg_policies
      WHERE schemaname='public' AND tablename='digital_pages'
-       AND policyname='digital_pages_owner_manage' AND permissive='PERMISSIVE'
+       AND policyname='digital_pages_owner_select' AND permissive='PERMISSIVE'
+       AND cmd='SELECT' AND 'authenticated'=ANY(roles)
+  ) INTO v_owner_page_select;
+  SELECT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_policies
+     WHERE schemaname='public' AND tablename='digital_pages'
+       AND policyname='digital_pages_owner_insert' AND permissive='PERMISSIVE'
+       AND cmd='INSERT' AND 'authenticated'=ANY(roles)
+  ) INTO v_owner_page_insert;
+  SELECT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_policies
+     WHERE schemaname='public' AND tablename='digital_pages'
+       AND policyname='digital_pages_owner_update_draft' AND permissive='PERMISSIVE'
+       AND cmd='UPDATE' AND 'authenticated'=ANY(roles)
+  ) INTO v_owner_page_update;
+  SELECT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_policies
+     WHERE schemaname='public' AND tablename='digital_pages'
+       AND policyname='digital_pages_admin_manage' AND permissive='PERMISSIVE'
        AND cmd='ALL' AND 'authenticated'=ANY(roles)
-  ) INTO v_owner_page_policy;
+  ) INTO v_admin_page_policy;
   SELECT EXISTS (
     SELECT 1 FROM pg_catalog.pg_policies
      WHERE schemaname='public' AND tablename='digital_page_sections'
@@ -85,9 +106,10 @@ BEGIN
        AND cmd='ALL' AND 'authenticated'=ANY(roles)
   ) INTO v_owner_section_policy;
 
-  IF NOT v_public_page_policy OR NOT v_owner_page_policy
+  IF NOT v_public_page_policy OR NOT v_owner_page_select OR NOT v_owner_page_insert
+     OR NOT v_owner_page_update OR NOT v_admin_page_policy
      OR NOT v_public_section_policy OR NOT v_owner_section_policy THEN
-    RAISE EXCEPTION 'RC927_EXPECTED_PUBLIC_AND_OWNER_POLICIES_REQUIRED';
+    RAISE EXCEPTION 'RC927_EXPECTED_PUBLIC_OWNER_AND_ADMIN_POLICIES_REQUIRED';
   END IF;
 
   IF EXISTS (
