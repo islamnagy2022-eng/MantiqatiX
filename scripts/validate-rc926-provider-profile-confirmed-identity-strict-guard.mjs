@@ -57,6 +57,6 @@ assert.ok(manifest.required_release_migration_ledger_check.required_versions.inc
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261125110000"),
   "RC926 must remain unapplied in Production until coordinated release");
 assert.ok(backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=84"),
-  "backup runbook validator must use the 83-version contract");
+  "backup runbook validator must use the 84-version contract");
 
 console.log("RC926 strict provider-profile confirmed-identity source contract: PASS");
