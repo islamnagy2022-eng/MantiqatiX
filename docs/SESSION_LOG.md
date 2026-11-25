@@ -4337,3 +4337,11 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] Confirmed current standard success and legacy subscription success processors exist but do not replace the missing current-main contracts; standard success does not accept provider_order_id as an argument, and current-main webhook checks it before RPC.
 - [x] Updated `PASS_2401_2410_LIVE_PAYMOB_SECURITY_ADVISOR_RECHECK_20261125.md` and `production-migration-reconciliation.json` with corrected evidence.
 - [x] Read-only only; no Production SQL mutation, Edge deployment, payment or migration was performed.
+
+
+## 2026-11-25 — Uploaded AI Studio R7 archive safety review (PASS 2411–2420)
+- [x] Read the uploaded master technical instruction and inspected the R7 ZIP manifest, release claims, package scripts, test-file inventory, root Express server, Supabase client module, seed initialization, and environment template.
+- [x] Compared the archive with canonical `main`: current frontend source is under `apps/catalog-frontend`; archive root `server.ts`/`src/App.tsx` is a distinct implementation. Archive Supabase ref `moyhiluyhjsujhwlyweuu` does not match connected Production `moyhiluyhjsujhwlyeuu`.
+- [x] Recorded static fallback secrets, local JSON as claimed authoritative state, and an unreferenced shared client module that prefers `SUPABASE_SERVICE_ROLE_KEY`. No evidence that this key was bundled; no secret value was exposed in this review.
+- [x] Kept the ZIP intact as a historical/reference artifact. No import, Production mutation, Auth/RLS/GRANT change, Edge/payment deployment, or Pages deployment was performed.
+- [ ] Reuse candidate components only through an incremental current-main port with security review and exact-head validation.
