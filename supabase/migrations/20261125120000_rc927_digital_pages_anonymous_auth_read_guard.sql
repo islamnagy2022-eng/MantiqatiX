@@ -14,6 +14,10 @@ BEGIN
     RAISE EXCEPTION 'RC927_AUTH_JWT_HELPER_MISSING';
   END IF;
 
+  IF NOT pg_catalog.has_function_privilege('authenticated','auth.jwt()','EXECUTE') THEN
+    RAISE EXCEPTION 'RC927_AUTHENTICATED_CANNOT_EXECUTE_AUTH_JWT';
+  END IF;
+
   IF NOT EXISTS (
     SELECT 1
     FROM pg_catalog.pg_policies
