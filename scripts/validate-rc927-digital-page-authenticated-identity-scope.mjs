@@ -33,6 +33,10 @@ assert.doesNotMatch(migration, /COALESCE\s*\([^)]*is_anonymous/i,
   "RC927 must not treat a missing/null anonymous claim as confirmed");
 assert.doesNotMatch(migration, /\bDROP TABLE\b|\bTRUNCATE\b|\bDELETE FROM\b/i,
   "RC927 must not delete or truncate digital-page business data");
+assert.doesNotMatch(migration, /\\bGRANT\\b|\\bREVOKE\\b/i,
+  "RC927 must not expand or revoke table privileges; it changes only RLS policy roles and predicates");
+assert.doesNotMatch(migration, /has_table_privilege\\('service_role'/i,
+  "RC927 must not require service_role table grants that are absent in the current live contract");
 assert.ok(migration.includes("digital_pages_owner_select"), "RC927 preflight must preserve the actual owner SELECT policy");
 assert.ok(migration.includes("digital_pages_owner_insert"), "RC927 preflight must preserve the actual owner INSERT policy");
 assert.ok(migration.includes("digital_pages_owner_update_draft"), "RC927 preflight must preserve the actual owner draft UPDATE policy");
