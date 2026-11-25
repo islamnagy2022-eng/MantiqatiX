@@ -494,3 +494,41 @@ jobs:
           psql -h 127.0.0.1 -U postgres -d medical_test -v ON_ERROR_STOP=1 -f supabase/tests/rc921_medical_status_integration.sql
           psql -h 127.0.0.1 -U postgres -d medical_test -v ON_ERROR_STOP=1 -f supabase/tests/rc922_medical_status_integration.sql
           bash scripts/test-rc921-medical-status-concurrency.sh
+
+  rc927-digital-pages-anonymous-auth-postgres17:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rc927_digital_pages_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rc927_digital_pages_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Validate RC480 and RC927 public-page source contracts
+        run: |
+          node scripts/validate-rc480-digital-pages-anon-columns.mjs
+          node scripts/validate-rc927-digital-pages-anonymous-auth-read-guard.mjs
+      - name: Run RC480 then RC927 PostgreSQL 17 privacy regressions
+        env:
+          PGPASSWORD: postgres
+          PGDATABASE: rc927_digital_pages_test
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d rc927_digital_pages_test -v ON_ERROR_STOP=1 -f supabase/tests/rc480_digital_pages_anon_columns_fixture.sql
+          psql -h 127.0.0.1 -U postgres -d rc927_digital_pages_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261118210000_rc480_digital_pages_anon_column_boundary.sql
+          psql -h 127.0.0.1 -U postgres -d rc927_digital_pages_test -v ON_ERROR_STOP=1 -f supabase/tests/rc480_digital_pages_anon_columns_integration.sql
+          psql -h 127.0.0.1 -U postgres -d rc927_digital_pages_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261125120000_rc927_digital_pages_anonymous_auth_read_guard.sql
+          psql -h 127.0.0.1 -U postgres -d rc927_digital_pages_test -v ON_ERROR_STOP=1 -f supabase/tests/rc927_digital_pages_anonymous_auth_read_guard_integration.sql
