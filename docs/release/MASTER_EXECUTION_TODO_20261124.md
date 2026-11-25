@@ -276,3 +276,9 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Added structured classification of the five partial historical baseline families: subscription payments, ERP purchasing/receipts, financial journal, public directory/source rights, and generic provider payments. Each distinguishes historical effects present from newer forward contracts still absent or contract-blocked.
 - [x] RC451 is classified separately as an applied forward repair, not an alias. Its intentional public targeted-ad read boundary remains unchanged.
 - [ ] Formal ledger repair remains a separate controlled operation requiring verified DB/Storage backup, restore rehearsal, rollback plan and explicit release approval. No Production ledger rewrite or SQL replay was performed.
+
+
+## 2026-11-25 — Uploaded AI Studio R7 archive source/safety review
+- [x] Inspected the uploaded `bizcatalog-manager (11).zip` and `الامر-التقني.txt`; compared root app/runtime/package layout with canonical `apps/catalog-frontend` on current `main`.
+- [x] Identified the R7 Supabase ref mismatch, competing local-authoritative JSON store, hardcoded fallback HMAC/JWT/backup secrets, and unverified release claims. Preserved the original ZIP; no source was copied or deployed.
+- [ ] Any R7 reuse must be incremental and pass current-main architecture, secret-handling, backend contract, tenant/RLS, exact-head CI and deployed-origin review. Keep wholesale import blocked.
