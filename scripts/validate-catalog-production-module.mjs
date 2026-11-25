@@ -138,6 +138,20 @@ check("guest_catalog_navigation_is_not_an_owner_entrypoint", () => {
   includes(navbar, "authSession.role !== 'guest' && (");
   includes(navbar, "Guests still access a public catalog through its direct shared link.");
 });
+check("catalog_price_writes_fail_closed_until_rc486_is_verified", () => {
+  const actionParse = adminFn.indexOf('const action = String(body.action || "").toUpperCase();');
+  const guard = adminFn.indexOf('CATALOG_PRICE_WRITES_TEMPORARILY_DISABLED');
+  const membershipRead = adminFn.indexOf('.from("user_memberships")');
+  const priceRpc = adminFn.indexOf('userClient.rpc("upsert_catalog_price_backend"');
+  const combinedRpc = adminFn.indexOf('userClient.rpc("upsert_catalog_item_and_price_backend"');
+  assert.ok(actionParse >= 0 && guard > actionParse, "price-write guard must follow action parsing");
+  assert.ok(membershipRead > guard, "price-write guard must run before membership/database reads");
+  assert.ok(priceRpc > guard && combinedRpc > guard, "guard must precede both price RPC paths");
+  assert.match(adminFn, /action === "ITEM_PRICE_UPSERT" \\|\\| action === "PRICE_UPSERT"/,
+    "both item+price creation and standalone price updates must be blocked");
+  assert.match(adminFn, /RC486_PRODUCTION_VERIFICATION_REQUIRED/);
+  assert.match(adminFn, /CATALOG_PRICE_WRITES_TEMPORARILY_DISABLED[\\s\\S]*?\\}, 503\\)/);
+});
 check("edge_function_auth_and_tenant_selection", () => {
   includes(adminFn, 'auth.getUser(token)');
   includes(adminFn, "BUSINESS_LIST");
