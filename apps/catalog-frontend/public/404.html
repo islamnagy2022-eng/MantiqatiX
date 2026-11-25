@@ -24,7 +24,13 @@
           return;
         }
       }
-      window.location.replace("/MantiqatiX/");
+
+      // Unknown paths fall back to the app root while preserving activity/store query routes and hashes.
+      const fallbackPath = "/MantiqatiX/";
+      if (url.pathname !== fallbackPath) {
+        url.pathname = fallbackPath;
+        window.location.replace(url.href);
+      }
     })();
   </script>
 </body>
