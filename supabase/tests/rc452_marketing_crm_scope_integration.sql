@@ -4,6 +4,7 @@ set role authenticated;
 do $test$
 declare
   manager_a uuid := '30000000-0000-4000-8000-000000000011';
+  owner_a uuid := '30000000-0000-4000-8000-000000000018';
   tenant_admin_a uuid := '30000000-0000-4000-8000-000000000012';
   manager_b uuid := '30000000-0000-4000-8000-000000000013';
   tenant_super_c uuid := '30000000-0000-4000-8000-000000000014';
@@ -31,6 +32,9 @@ begin
   if exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000002') then
     raise exception 'manager A must not read pending provider in own business';
   end if;
+  if exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000005') then
+    raise exception 'manager A must not read provider-owned pending profile';
+  end if;
   if exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000003') then
     raise exception 'manager A read pending provider from another tenant';
   end if;
@@ -45,6 +49,9 @@ begin
   end if;
   if not exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000002') then
     raise exception 'tenant admin cannot review pending provider in own tenant';
+  end if;
+  if not exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000005') then
+    raise exception 'tenant admin cannot review provider-owned pending profile in own tenant';
   end if;
   if exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000003') then
     raise exception 'tenant admin crossed tenant boundary for pending providers';
@@ -64,10 +71,24 @@ begin
     raise exception 'manager B must not read pending provider in own business';
   end if;
 
+  perform set_config('request.jwt.claim.sub',owner_a::text,false);
+  if not exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000002') then
+    raise exception 'business OWNER cannot review pending provider in own business';
+  end if;
+  if exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000003') then
+    raise exception 'business OWNER crossed tenant boundary for pending providers';
+  end if;
+
   -- Provider owners retain access to their own onboarding/profile row.
   perform set_config('request.jwt.claim.sub',provider_a::text,false);
   if not exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000001') then
     raise exception 'provider owner lost access to own profile';
+  end if;
+  if not exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000005') then
+    raise exception 'provider owner cannot read own pending profile';
+  end if;
+  if exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000002') then
+    raise exception 'provider owner can read another owner pending profile';
   end if;
 
   perform set_config('request.jwt.claim.sub',tenant_super_c::text,false);
@@ -82,7 +103,7 @@ begin
   if (select count(*) from public.marketing_leads) <> 6 then
     raise exception 'explicit platform SUPER_ADMIN should see all six fixture leads';
   end if;
-  if (select count(*) from public.marketing_provider_profiles where status='PENDING') <> 2 then
+  if (select count(*) from public.marketing_provider_profiles where status='PENDING') <> 3 then
     raise exception 'explicit platform SUPER_ADMIN should see pending providers across tenants';
   end if;
 
@@ -92,6 +113,26 @@ begin
   end if;
   if exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000001') then
     raise exception 'lead requester can read another business lead';
+  end if;
+
+  -- Anonymous Auth sessions use the authenticated Postgres role but cannot read private CRM rows.
+  perform set_config('request.jwt.claim.sub',manager_a::text,false);
+  perform set_config('request.jwt.claims',jsonb_build_object('sub',manager_a::text,'is_anonymous',true)::text,false);
+  if exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000001') then
+    raise exception 'anonymous session can read business CRM lead';
+  end if;
+  if exists(select 1 from public.marketing_provider_profiles where id='40000000-0000-4000-8000-000000000002') then
+    raise exception 'anonymous session can read pending provider profile';
+  end if;
+
+  perform set_config('request.jwt.claim.sub',lead_owner::text,false);
+  perform set_config('request.jwt.claims',jsonb_build_object('sub',lead_owner::text,'is_anonymous',true)::text,false);
+  if exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000005') then
+    raise exception 'anonymous session can read own marketing lead';
+  end if;
+  perform set_config('request.jwt.claims',jsonb_build_object('sub',lead_owner::text,'is_anonymous',false)::text,false);
+  if not exists(select 1 from public.marketing_leads where id='50000000-0000-4000-8000-000000000005') then
+    raise exception 'confirmed user lost own marketing lead access';
   end if;
 end;
 $test$;
