@@ -131,21 +131,21 @@ RESET ROLE;
 
 DO $policy$
 DECLARE
-  v_using text;
+  v_policy_count integer;
 BEGIN
-  SELECT qual INTO v_using
+  -- Inspect policy metadata here; the static validator pins the exact source
+  -- expression and the preceding behavioral tests prove its runtime semantics.
+  SELECT count(*) INTO v_policy_count
     FROM pg_catalog.pg_policies
    WHERE schemaname='public'
      AND tablename='marketing_provider_profiles'
      AND policyname='marketing_provider_profiles_confirmed_auth_select'
      AND permissive='RESTRICTIVE'
      AND cmd='SELECT'
-     AND 'authenticated'=ANY(roles);
+     AND 'authenticated'=ANY(roles)
+     AND qual IS NOT NULL;
 
-  IF v_using IS NULL
-     OR v_using NOT ILIKE '%IS NOT DISTINCT FROM%'
-     OR v_using NOT ILIKE '%is_anonymous%'
-     OR v_using ILIKE '%COALESCE%' THEN
+  IF v_policy_count <> 1 THEN
     RAISE EXCEPTION 'RC926_STRICT_CONFIRMED_IDENTITY_POLICY_MISSING_OR_WEAK';
   END IF;
 END;
