@@ -1,42 +1,48 @@
 # Autonomous Development Progress
 
-## Session checkpoint — 2026-11-26 (autonomous continuation)
+## Session checkpoint — 2026-11-26
 
 ### Repository baseline
 - Repository: `islamnagy2022-eng/MantiqatiX`; default branch `main`.
-- Current main after the source-only merges in this pass: `f885d5c0669349ffad5d3ffa10ba241186eb3178`.
-- Central task list: `TODO_PRODUCTION.md`.
+- Current main after this pass's source and CI merges: `86df8c82d2652a46e72575e5b04be23999f22427`.
+- Central task list: `TODO_PRODUCTION.md` and `docs/release/MASTER_EXECUTION_TODO_20261124.md`.
 - Production remains **BLOCKED / NOT CERTIFIED**.
 
-### Completed and merged
-- PR #1113 — reject applications for inactive job postings. Merged by squash as `affe3ddb8e0328d6b6166a417373d6789d19b086`.
-  - Exact-head PostgreSQL integration passed: active job accepted, inactive job rejected with no insert, missing job rejected.
-  - Forward migration replay passed.
-- PR #1116 — scope direct CRM writes to an exact ACTIVE business membership and restrict provider-profile owner writes to branding columns. Merged by squash as `f885d5c0669349ffad5d3ffa10ba241186eb3178`.
-  - Exact-head CRM PostgreSQL write tests passed, including same-tenant cross-business, cross-tenant, spoofed requester, anonymous, profile business reassignment, self-approval, self-verification, direct insert/delete and legacy-profile controls.
-  - Forward migration replay and all listed PR workflows passed.
-- Neither merge applied a database migration to Production. The Pages `validate_public_only` and `deploy` jobs were skipped on the relevant PR validation run.
+### Merged to main
+- PR #1113 — reject new applications to inactive jobs. Squash merge `affe3ddb8e0328d6b6166a417373d6789d19b086`.
+  - Exact-head PostgreSQL 17 integration passed: active job accepted; inactive job rejected without insert; missing job rejected.
+  - Forward migration chain replay passed. Migration remains source-only; it was not applied to Production.
+- PR #1116 — constrain direct CRM writes to an exact ACTIVE business membership and restrict provider-profile owner updates to branding columns. Squash merge `f885d5c0669349ffad5d3ffa10ba241186eb3178`.
+  - Exact-head CRM PostgreSQL integration, static validator and chronological migration replay passed.
+  - Cross-business/cross-tenant writes, requester spoofing, anonymous writes, self-approval, self-verification, profile reassignment, direct profile create/delete and legacy-profile escalation cases were covered.
+  - Migration remains source-only; it was not applied to Production.
+- PR #1118 — correct Pages case-redirect test scope and add a pull-request-only smoke test against the current deployed Pages origin. Squash merge `86df8c82d2652a46e72575e5b04be23999f22427`.
+  - Exact-head Primary Catalog Frontend Validation, Module Professionalization, SMM contract, MantiGO privacy, Backend-only boundary, RC425 atomicity and Pages workflow passed.
+  - The deployed-origin redirect regression job passed. On PR validation, `validate_public_only` and `deploy` were skipped; no PR-triggered production deployment took place.
+  - Original stale PR #1112 was closed as superseded.
 
-### Work carried onto the current mainline; validation pending
-- PR #1117 replaces stale PR #1114. It carries only the selected-membership homepage/account-center fix, its validator, and the corresponding workflow step onto a branch created from the current main. The exact current diff is four files; head `a365cafefb35af5ad8853e0dd3306e49bd120447`.
-  - CI was still running at this checkpoint. Already successful: Marketing Workspace Contract, Legacy Catalog Module Validation, MantiGO Open Ride Privacy Boundary. RC425, Deploy validation and Module Professionalization were still running/queued.
-  - No production deployment or database change was made.
-- PR #1118 replaces stale PR #1112. It carries only the Pages case-redirect test adjustment onto a branch created from current main; head `5ddc98db43cc02ac541b19f020c569a4c9d74e6f`.
-  - Exact-head CI was pending at this checkpoint.
-  - This corrects the test to exercise nested-path case normalization within GitHub Pages' canonical repository base path; the project 404 page cannot repair a differently cased repository path that the server does not route to it.
+### Current validation candidate
+- PR #1119 — fail closed on direct catalog price writes until RC486's live serialized allocator and unique index are verified. Current head `bcf97f0aca4b59381af80ee601c4ae74af4c662d`.
+  - Narrow 2-file change: `supabase/functions/catalog-admin/index.ts` returns HTTP 503 for `ITEM_PRICE_UPSERT` and `PRICE_UPSERT` before membership/database reads and either price RPC; catalog reads and other actions remain unchanged.
+  - Added a source validator to require this ordering and stable error code.
+  - Exact-head checks passed so far: Catalog Admin CORS Boundary, Public Catalog Contact Privacy, Legacy Catalog Module Validation, MantiGO privacy, Backend-only boundary, RC425 atomicity, Directory Contact Consent, Module Professionalization, and Pages validation. Primary Catalog Frontend Validation's browser E2E was still running at this checkpoint.
+  - PR Pages deploy job was skipped. No Edge function was deployed and no Production data/database state was changed.
+  - Do not deploy the Edge function without the coordinated schema/ACL/RC486 release evidence and deployed-origin negative tests.
 
-### Intentionally not merged
-- PR #1110 Paymob provider-scope source fix still requires the signed altered-selector HTTP Sandbox replay described in its release notes. Its disposable CI passed, but do not treat that as a substitute for the missing signed Sandbox evidence.
-- PR #1109 RC927 has unresolved mergeability and exact-head validation/rebase work; it changes an important public-page anonymous-session boundary and must not be merged on stale status.
-- Other stale or draft PRs remain candidates for review/rebase, not presumed safe.
+### Reviewed but intentionally not merged
+- PR #1117 / old #1114 — selected-membership activity-label fix was written to dormant `web/` files, while current Pages production build composes `apps/catalog-frontend` and excludes `web/`. This patch would not reach the live UI. Both PRs closed; Issue #96 left open with a documented topology finding. A real fix requires a fresh deployed repro and change in the current React application.
+- PR #1110 — Paymob provider scoping still needs the signed altered-selector HTTP Sandbox replay. Disposable CI alone is insufficient.
+- PR #1109 — RC927 anonymous-session database boundary is stale, mergeability unresolved and exact-head replay/revalidation needed. Do not merge on stale status.
+- PR #1098 — user's one-cover + separate 10-image promotional gallery is in an older draft. It modifies frontend and public/catalog-admin Edge projections; source CI passed on its old head but it is not safe to publish as a live feature until current-main revalidation and coordinated Edge compatibility/deployment gates are satisfied.
+- Other stale drafts are not assumed safe merely because GitHub reports them open.
 
 ### Safety and rollback boundary
-- No Production Supabase migration, DDL/DML, GRANT, RLS, Auth, Storage, Edge Function, payment, wallet, settlement, customer-data mutation, or manual website deployment was performed.
-- The two merged PRs are source-level commits and can be reverted with Git if a regression is found. The two new PRs are isolated and can be closed without changing main.
-- Production release remains blocked pending operator-owned encrypted DB + Storage backup, off-site retrieval, Vault recovery, isolated PostgreSQL 17 restore/rollback with measured RPO/RTO, chronological migration reconciliation, coordinated Edge parity, signed Sandbox payment replay and negative authorization/privacy E2E.
+- No Production Supabase migration, DDL/DML, GRANT, RLS, Auth, Storage, Edge Function, payment, wallet, settlement or customer-data mutation was performed.
+- Merged changes are source/CI commits and can be reverted with Git if a regression is found. PR #1119 remains isolated until all required checks pass.
+- Production release remains blocked pending operator-owned encrypted DB + Storage backup, off-site retrieval, Vault/Auth recovery, independent PostgreSQL 17 restore and rollback with measured RPO/RTO, chronological migration reconciliation, coordinated Edge parity, signed Sandbox payment replay, and negative authorization/privacy E2E.
 
 ### Next actions
-1. Finish exact-head CI for #1117; merge only after every required check is green and confirm the deploy job remains skipped.
-2. Finish exact-head CI for #1118; merge only after every required check is green.
-3. Close superseded #1114 and #1112 after their replacements are verified.
-4. Continue source/CI-only work from `TODO_PRODUCTION.md`; keep production release gates intact.
+1. Finish exact-head Primary Catalog Frontend browser E2E for #1119; merge only if every required workflow is green and PR deploy job remains skipped.
+2. Close superseded PR #1103 after #1119 is merged.
+3. Continue current-main source/CI work from the TODO, prioritizing P0 authorization/privacy and verified user-facing features.
+4. Keep Production read-only until the documented backup/restore and coordinated release gates pass.
