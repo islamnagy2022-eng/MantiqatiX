@@ -33,6 +33,10 @@ create policy "Users create marketing leads"
 -- cannot create/delete profiles or change its business, ownership, or approval state.
 drop policy if exists "Owners manage their marketing provider profile" on public.marketing_provider_profiles;
 
+-- Legacy owner profiles with business_id NULL (including the RC926 owner fixture)
+-- retain owner-only branding access. Their business_id cannot be changed because it
+-- is not included in the authenticated UPDATE column grants below. A bound profile
+-- still requires an exact ACTIVE membership for that business and tenant.
 create policy "Owners view own marketing provider profile"
   on public.marketing_provider_profiles
   for select
@@ -40,16 +44,18 @@ create policy "Owners view own marketing provider profile"
   using (
     coalesce(auth.jwt()->>'is_anonymous', 'false') <> 'true'
     and owner_user_id = auth.uid()
-    and business_id is not null
-    and exists (
-      select 1
-      from public.user_memberships um
-      join public.businesses b
-        on b.id = public.marketing_provider_profiles.business_id
-      where um.user_id = auth.uid()
-        and um.status = 'ACTIVE'
-        and um.business_id = b.id
-        and um.tenant_id = b.tenant_id
+    and (
+      business_id is null
+      or exists (
+        select 1
+        from public.user_memberships um
+        join public.businesses b
+          on b.id = public.marketing_provider_profiles.business_id
+        where um.user_id = auth.uid()
+          and um.status = 'ACTIVE'
+          and um.business_id = b.id
+          and um.tenant_id = b.tenant_id
+      )
     )
   );
 
@@ -60,31 +66,35 @@ create policy "Owners update own provider profile branding"
   using (
     coalesce(auth.jwt()->>'is_anonymous', 'false') <> 'true'
     and owner_user_id = auth.uid()
-    and business_id is not null
-    and exists (
-      select 1
-      from public.user_memberships um
-      join public.businesses b
-        on b.id = public.marketing_provider_profiles.business_id
-      where um.user_id = auth.uid()
-        and um.status = 'ACTIVE'
-        and um.business_id = b.id
-        and um.tenant_id = b.tenant_id
+    and (
+      business_id is null
+      or exists (
+        select 1
+        from public.user_memberships um
+        join public.businesses b
+          on b.id = public.marketing_provider_profiles.business_id
+        where um.user_id = auth.uid()
+          and um.status = 'ACTIVE'
+          and um.business_id = b.id
+          and um.tenant_id = b.tenant_id
+      )
     )
   )
   with check (
     coalesce(auth.jwt()->>'is_anonymous', 'false') <> 'true'
     and owner_user_id = auth.uid()
-    and business_id is not null
-    and exists (
-      select 1
-      from public.user_memberships um
-      join public.businesses b
-        on b.id = public.marketing_provider_profiles.business_id
-      where um.user_id = auth.uid()
-        and um.status = 'ACTIVE'
-        and um.business_id = b.id
-        and um.tenant_id = b.tenant_id
+    and (
+      business_id is null
+      or exists (
+        select 1
+        from public.user_memberships um
+        join public.businesses b
+          on b.id = public.marketing_provider_profiles.business_id
+        where um.user_id = auth.uid()
+          and um.status = 'ACTIVE'
+          and um.business_id = b.id
+          and um.tenant_id = b.tenant_id
+      )
     )
   );
 
