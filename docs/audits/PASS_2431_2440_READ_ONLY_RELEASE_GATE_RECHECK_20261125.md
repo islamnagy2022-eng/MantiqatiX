@@ -78,9 +78,14 @@ An `ACTIVE` status proves that a function version is deployed, not that its sour
 |---|---:|---|
 | Primary Catalog Frontend Validation | `45530237012` | All 3 jobs succeeded: build, employee RBAC PostgreSQL tests, browser E2E |
 | Deploy MantiqatiX Web validation | `45530237064` | Validation job succeeded |
-| Deploy MantiqatiX Web deployment job | `45530237064` | **Skipped** — no website deployment occurred |
+| Deploy MantiqatiX Web deployment job | `45530237064` | **Skipped** — this was a pull-request event, not a push/workflow dispatch to `main`; no website deployment occurred |
 
-The successful frontend CI validates the candidate branch and its tested contracts. It does not override the fail-closed Production migration gate or certify the complete platform.
+The workflow log explicitly recorded:
+- `CATALOG_PILOT_GATE=PASS`
+- `FULL_PLATFORM_GATE=BLOCKED; CATALOG_PILOT_GATE=PASS; continuing only with the scoped catalog frontend.`
+- Backend deployment scope limited to `catalog-platform-admin`, `catalog-admin`, `public-catalog`, and `public-catalog-directory`; it excluded payment-intent, webhook, order, finance, SMM, and MantiGO deployments.
+
+This proves that the **scoped catalog pilot gate** passed for this candidate workflow. It does not mean the site was deployed by this PR run, nor does it override the blocked full-platform gate or certify the complete platform. The Pages deploy job is separately conditioned on a `main` push or `workflow_dispatch`, after the required validation jobs pass.
 
 ## 6. Backup and recovery gate
 
