@@ -1275,8 +1275,7 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      await page.getByRole('button', { name: /الأغذية والضيافة/ }).first().click();
-      await page.getByRole('button', { name: /مطاعم/ }).first().click();
+      await page.getByTestId('activity-category-list').getByRole('button', { name: /مطاعم/ }).first().click();
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'مطاعم', exact: true }).waitFor({ state: 'visible' });
       await modulePage.getByRole('button', { name: 'التسويق والإعلان', exact: true }).click();
