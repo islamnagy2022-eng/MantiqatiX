@@ -16,6 +16,8 @@ const crosswalk = fs.readFileSync("docs/release/REQUIRED_84_MIGRATION_SOURCE_OBJ
 assert.match(migration, /RC927_DIGITAL_PAGES_RLS_REQUIRED/);
 assert.match(migration, /RC927_DIGITAL_PAGE_SECTIONS_RLS_REQUIRED/);
 assert.match(migration, /RC927_RC480_EXACT_TEN_COLUMN_ANON_ALLOWLIST_REQUIRED/);
+assert.match(migration, /RC927_RAW_ANON_WRITE_PRIVILEGE_PRESENT/);
+assert.ok(integration.includes("RC927_RAW_ANON_WRITE_PRIVILEGE_PRESENT"), "RC927 test must assert raw-anon write ACL is absent");
 for (const column of ["id", "page_type", "slug", "title", "subtitle", "description", "seo_title", "seo_description", "status", "version"]) {
   assert.ok(migration.includes(`has_column_privilege('anon','public.digital_pages','${column}','SELECT')`), `RC927 must preserve the RC480 public column: ${column}`);
 }
