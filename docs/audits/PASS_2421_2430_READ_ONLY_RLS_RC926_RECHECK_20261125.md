@@ -97,7 +97,7 @@ Anonymous Auth sign-ins also remain enabled. Do not switch them off blindly: the
 
 - Production mutation: **NONE**.
 - Production RLS/GRANT/Auth/Storage/Edge/Payment changes: **NONE**.
-- RC926: **SOURCE CANDIDATE / CI PENDING**.
+- RC926: **SOURCE MERGED / EXACT-HEAD CI PASS / NOT DEPLOYED TO PRODUCTION**.
 - Overall platform release: **BLOCKED / NOT CERTIFIED** pending the immutable 83-version chronology, exhaustive physical effect and ACL/RLS reconciliation, signed payment runtime contracts, and encrypted backup + independent restore rehearsal with measured RPO/RTO.
 
 
