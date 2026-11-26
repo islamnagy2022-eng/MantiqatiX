@@ -95,7 +95,7 @@ Production approval remains blocked until:
 - Auth identities/configuration, Vault keys, external secrets and Edge configuration have documented recovery paths;
 - a disposable PostgreSQL 17 restore is clean and reproducible;
 - measured RPO/RTO and rollback evidence meet the owner's recovery target;
-- the exact ordered 85-source migration effects, RPC signatures, owners, search_path, ACL, RLS/policies, constraints and triggers reconcile;
+- the exact ordered 86-source migration effects, RPC signatures, owners, search_path, ACL, RLS/policies, constraints and triggers reconcile;
 - the coordinated database + Edge plan passes exact-head and deployed-origin negative/positive tests;
 - the owner explicitly approves the exact Production release commit, migration list, deployment list, backup artifact and rollback steps.
 
