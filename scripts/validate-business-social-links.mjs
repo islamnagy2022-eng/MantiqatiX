@@ -22,7 +22,10 @@ assert.match(merchant, /setBizTikTokUrl\(currentBusiness\?\.tiktokUrl \|\| ''\)/
 assert.match(merchant, /facebookUrl,\s*instagramUrl,\s*tiktokUrl/, "Owner form must persist validated social links together");
 assert.match(context, /facebookUrl: updated\.facebookUrl \|\| ''/, "Profile save must transmit Facebook URL");
 assert.match(catalogAdmin, /INVALID_SOCIAL_PROFILE_URL/, "Server must reject malformed or unsafe social URLs");
-assert.match(catalogAdmin, /catalog_profile: \{ \.\.\.currentProfile, \.\.\.submittedSocialFields \}/, "Server must persist social links without clobbering other profile fields");
+assert.match(catalogAdmin, /userClient\.rpc\("upsert_catalog_business_profile_atomic_backend"/, "Server must persist social links through the atomic catalog profile RPC");
+assert.match(catalogAdmin, /submittedProfileMetadata\[columnKey\] = normalizedUrl \|\| null/, "Cleared social links must be written as explicit null metadata");
+assert.match(catalogAdmin, /p_profile_metadata: submittedProfileMetadata/, "Social URLs must share the same locked transaction as owner profile updates");
+assert.match(fs.readFileSync("supabase/migrations/20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql", "utf8"), /coalesce\(v_profile, '\{\}'::jsonb\) \|\| v_metadata/, "Social URL metadata must merge without clobbering other profile fields");
 assert.match(publicCatalog, /facebookUrl: String\(profile\.facebook_url \|\| ""\)/, "Public catalog must return saved Facebook URLs");
 assert.match(publicCatalog, /getExplicitPublicContact\(profile, selectedBranch\)/, "Public catalog must apply audited owner-consent contact projection");
 assert.match(publicCatalog, /additionalContactPhones: publicContact\.additionalContactPhones/, "Public catalog must return contact numbers only from the consent-gated projection");
