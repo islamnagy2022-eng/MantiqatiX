@@ -161,6 +161,8 @@ jobs:
         run: node --test supabase/functions/_shared/promotional-images.test.mjs
       - name: Validate single-cover and promotional-gallery wiring
         run: node scripts/validate-promotional-image-gallery.mjs
+      - name: Validate atomic catalog profile and RC928 database contract
+        run: node scripts/validate-rc928-catalog-profile-promotional-gallery-atomic-write.mjs
       - name: Test directory contact-consent privacy and pagination contracts
         run: node --test supabase/functions/directory-listings/*.test.mjs
       - name: Test explicit disabled-directory user messaging
