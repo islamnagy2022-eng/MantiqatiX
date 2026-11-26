@@ -11,7 +11,7 @@
 - [x] PR #1148 Pages workflow [45885027044](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45885027044): validation and redirect regression passed; public-only deployment jobs were skipped because the change was documentation-only.
 - [x] Main's existing public activity pagination is already implemented and browser-tested: 20 initial cards, then 20 more per explicit action, with the final partial page rendered without duplicate IDs.
 - [x] Confirmed public unclaimed-directory listings remain intentionally disabled by `PUBLIC_UNCLAIMED_DIRECTORY_LISTINGS_ENABLED=false`; publication rights and contact-consent release dependencies are not cleared.
-- [x] Recorded current open-PR disposition: #726 and #725 remain drafts/non-mergeable and their old branches are 88 commits behind/diverged from current main. Their older focused checks do not replace exact-current-main CI or review.
+- [x] Recorded current open-PR disposition: #726 and #725 remain drafts/non-mergeable and their branches have diverged from main: current main has 526 commits beyond each old head; PR #726 has 88 unique commits and PR #725 has 27 unique commits. Their older focused checks do not replace exact-current-main CI or review.
 - [ ] Reconcile PR #726 and PR #725 against current main; resolve conflicts, rerun exact-head workflows and complete the required privacy/pagination or SQL review before considering merge.
 - [ ] Continue full 87-source physical-effect/alias reconciliation and coordinated database/RPC/ACL/RLS/Edge release planning.
 - [ ] Continue direct-route, mobile/desktop, empty/error/loading and critical customer/merchant/admin browser coverage.
