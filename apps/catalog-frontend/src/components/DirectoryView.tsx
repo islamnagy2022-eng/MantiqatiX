@@ -369,6 +369,67 @@ export const DirectoryView: React.FC = () => {
   const [selectedMarkazFilter, setSelectedMarkazFilter] = useState<string>(initialGeoPreference?.markaz || 'all');
   const [selectedVillageFilter, setSelectedVillageFilter] = useState<string>(initialGeoPreference?.village || 'all');
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>(initialGeoPreference?.area || 'all');
+  const publicDirectoryPageFilters = useMemo<PublicDirectoryPageFilters>(() => {
+    const insideActivityModule = Boolean(activityModuleId);
+    const query = (insideActivityModule ? activityListingSearchQuery : searchQuery).trim();
+    const specialty = insideActivityModule ? activityListingSpecialty : selectedSpecialty;
+    const filters: PublicDirectoryPageFilters = {};
+    if (insideActivityModule) filters.activity = activityModuleId;
+    else if (selectedCategoryId !== 'all') filters.activity = selectedCategoryId;
+    if (specialty !== 'all') filters.specialty = specialty;
+    if (selectedGovFilter !== 'all') filters.governorate = selectedGovFilter;
+    if (selectedMarkazFilter !== 'all') filters.markaz = selectedMarkazFilter;
+    if (selectedVillageFilter !== 'all') filters.village = selectedVillageFilter;
+    if (query) filters.query = query;
+    // Exact street/address filtering remains client-side because that field is separately consent-gated.
+    return filters;
+  }, [
+    activityModuleId, activityListingSearchQuery, activityListingSpecialty, searchQuery,
+    selectedCategoryId, selectedSpecialty, selectedGovFilter, selectedMarkazFilter, selectedVillageFilter,
+  ]);
+
+  useEffect(() => {
+    const generation = ++scopedDirectoryGenerationRef.current;
+    const filters = publicDirectoryPageFilters;
+    scopedDirectoryFiltersRef.current = filters;
+    scopedDirectoryCursorRef.current = null;
+    if (Object.keys(filters).length === 0) {
+      setScopedDirectoryBusinesses(null);
+      setScopedDirectoryProducts([]);
+      setScopedDirectoryHasMore(false);
+      setScopedDirectoryLoading(false);
+      setScopedDirectoryLoadingMore(false);
+      setScopedDirectoryError('');
+      return;
+    }
+
+    setScopedDirectoryBusinesses([]);
+    setScopedDirectoryProducts([]);
+    setScopedDirectoryHasMore(false);
+    setScopedDirectoryLoading(true);
+    setScopedDirectoryLoadingMore(false);
+    setScopedDirectoryError('');
+    const timer = window.setTimeout(async () => {
+      try {
+        const page = await fetchPublicDirectoryPage(null, filters);
+        if (generation !== scopedDirectoryGenerationRef.current) return;
+        setScopedDirectoryBusinesses(page.businesses);
+        setScopedDirectoryProducts(page.products);
+        scopedDirectoryCursorRef.current = page.nextCursor;
+        setScopedDirectoryHasMore(page.hasMore);
+      } catch (error) {
+        if (generation !== scopedDirectoryGenerationRef.current) return;
+        setScopedDirectoryBusinesses([]);
+        setScopedDirectoryProducts([]);
+        setScopedDirectoryHasMore(false);
+        setScopedDirectoryError(error instanceof Error ? error.message : 'تعذر تحميل الأنشطة المطابقة للبحث.');
+      } finally {
+        if (generation === scopedDirectoryGenerationRef.current) setScopedDirectoryLoading(false);
+      }
+    }, publicDirectoryPageFilters.query ? 300 : 0);
+    return () => window.clearTimeout(timer);
+  }, [publicDirectoryPageFilters]);
+
   const handleActivityListingFiltersChange = useCallback((query: string, specialty: string) => {
     setActivityListingSearchQuery(query);
     setActivityListingSpecialty(specialty || 'all');
