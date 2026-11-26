@@ -35,7 +35,7 @@ for (const table of ["public.digital_pages", "public.digital_page_sections"]) {
 }
 assert.ok(aclOverlay.includes("REVOKE INSERT, UPDATE, DELETE") && aclOverlay.includes("FROM anon"),
   "test-only overlay must revoke raw-anon DML from the two digital-page tables");
-assert.match(aclOverlay, /has_table_privilege\\('anon'/);
+assert.ok(aclOverlay.includes("has_table_privilege('anon'"), "disposable ACL overlay must verify effective raw-anon write privileges");
 for (const column of ["id", "page_type", "slug", "title", "subtitle", "description", "seo_title", "seo_description", "status", "version"]) {
   assert.ok(migration.includes(`has_column_privilege('anon','public.digital_pages','${column}','SELECT')`), `RC927 must preserve the RC480 public column: ${column}`);
 }
