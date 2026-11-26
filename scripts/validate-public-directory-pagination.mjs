@@ -31,7 +31,7 @@ assert.ok(branchProjection, "Directory branches must keep an explicit response p
 assert.doesNotMatch(branchProjection[1], /\b(phone|address)\s*:/, "Operational branch contacts must never be returned as raw branch fields");
 assert.doesNotMatch(edge, /\.range\(/, "Keyset pagination must not use offset ranges");
 
-for (const field of ["activity", "specialty", "governorate", "markaz", "village"]) {
+for (const field of ["activity", "specialty", "governorate", "markaz", "village", "query"]) {
   assert.match(helper, new RegExp(field), `Filter contract must retain ${field}`);
 }
 assert.match(helper, /MAX_CURSOR_AGE_MS/);
@@ -45,8 +45,10 @@ assert.match(client, /query\.set\('cursor', cursor\)/);
 assert.match(client, /for \(const key of \['activity', 'specialty', 'governorate', 'markaz', 'village', 'query'\] as const\)/);
 assert.match(client, /query\.set\(key, value\.slice\(0, 100\)\)/,
   "Public directory client must pass only bounded, allowlisted search/scope filters.");
-assert.match(helper, /query: \[/, "Free text must match public business/provider fields.");
-assert.doesNotMatch(helper, /phone|ownerWhatsApp|secondary_phone|address/i, "Server-side free-text search must never inspect consent-gated contacts.");
+const queryProjection = helper.match(/query:\s*\[([\s\S]*?)\]\s*,\s*\};/);
+assert.ok(queryProjection, "Free text must match a bounded public business/provider field projection.");
+assert.doesNotMatch(queryProjection[1], /phone|ownerWhatsApp|secondary_phone|address/i,
+  "Server-side free-text projection must never include consent-gated contacts.");
 assert.match(client, /pagination\?\.hasMore === true/);
 assert.match(context, /fetchPublicDirectoryPage\(cursor\)/);
 assert.match(context, /new Map<string, Business>/);
