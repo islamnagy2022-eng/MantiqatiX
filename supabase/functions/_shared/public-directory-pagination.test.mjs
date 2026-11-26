@@ -65,6 +65,7 @@ test("free-text search matches public profile data but never private contact fie
   };
   const provider = { name_ar: "مركز الروضة", description: "رعاية صحية", specialties: ["أطفال"] };
   assert.equal(matchesDirectoryBusinessFilters(business, provider, { query: "الروضة طبي" }), true);
+  assert.equal(matchesDirectoryBusinessFilters(business, provider, { query: "المنوفية" }), true);
   assert.equal(matchesDirectoryBusinessFilters(business, provider, { query: "01012345678" }), false);
   assert.equal(matchesDirectoryBusinessFilters(business, provider, { query: "شارع سري" }), false);
 });
