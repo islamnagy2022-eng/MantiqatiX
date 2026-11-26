@@ -101,7 +101,7 @@ test("free-text search matches public profile data but never private contact fie
     phone: "01012345678",
     address: "شارع سري لا يظهر بدون موافقة",
     settings: {
-      catalog_profile: { description: "خدمات طبية متخصصة", category: "مخابز" },
+      catalog_profile: { description: "خدمات طبية متخصصة", category: "مخابز", governorate: "المنوفية" },
     },
   };
   const provider = { name_ar: "مركز الروضة", description: "رعاية صحية", specialties: ["أطفال"] };
