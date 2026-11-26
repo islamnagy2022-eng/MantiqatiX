@@ -689,6 +689,9 @@ jobs:
           AXE_CORE_SCRIPT=/tmp/playwright-runner/node_modules/axe-core/axe.min.js \
           MANTIQUATIX_E2E_BASE_URL="${ROOT_URL}" \
           node apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs
+          PLAYWRIGHT_MODULE=/tmp/playwright-runner/node_modules/playwright/index.mjs \
+          MANTIQUATIX_E2E_BASE_URL="${ROOT_URL}" \
+          node apps/catalog-frontend/tests/activity-share-dialog.browser.e2e.mjs
 
   # This PR-only smoke test validates the changed browser harness against the
   # already deployed public origin without deploying or modifying Production.
