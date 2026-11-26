@@ -163,6 +163,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
   const catalogAdminRequests = [];
   const catalogProfileState = {
     bio: 'نبذة اختبارية للنشاط',
+    phone: '01012345678',
     governorate: 'المنوفية',
     markaz: 'بركة السبع',
     village: '',
@@ -316,7 +317,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
       }
       if (body.action === 'BUSINESS_PROFILE_UPSERT') {
         catalogAdminRequests.push({ ...body });
-        for (const key of ['bio', 'governorate', 'markaz', 'village', 'workingHours', 'logoUrl', 'coverUrl']) {
+        for (const key of ['bio', 'phone', 'governorate', 'markaz', 'village', 'workingHours', 'logoUrl', 'coverUrl']) {
           const value = body[key];
           if (typeof value === 'string') catalogProfileState[key] = value;
         }
