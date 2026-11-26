@@ -1,3 +1,19 @@
+## 2026-11-26 — Current execution checkpoint after PR #1148
+
+- [x] Confirmed current `main` is `111db15e30182e6f21ef9d91630a187d73601c36`; PR #1148 merged the direct RC117 image-provenance prerequisite read-back and refreshed the 87-source source-to-live disposition.
+- [x] Exact-head PR #1148 forward replay run [45885026552](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45885026552) passed the strict 87-version release validators and chronological disposable PostgreSQL replay. It is not Production migration evidence and is not a backup/restore drill.
+- [x] PR #1148 Pages workflow [45885027044](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45885027044): validation and redirect regression passed; public-only deployment jobs were skipped because the change was documentation-only.
+- [x] Main's existing public activity pagination is already implemented and browser-tested: 20 initial cards, then 20 more per explicit action, with the final partial page rendered without duplicate IDs.
+- [x] Confirmed public unclaimed-directory listings remain intentionally disabled by `PUBLIC_UNCLAIMED_DIRECTORY_LISTINGS_ENABLED=false`; publication rights and contact-consent release dependencies are not cleared.
+- [x] Recorded current open-PR disposition: #726 and #725 remain drafts/non-mergeable and their old branches are 88 commits behind/diverged from current main. Their older focused checks do not replace exact-current-main CI or review.
+- [ ] Reconcile PR #726 and PR #725 against current main; resolve conflicts, rerun exact-head workflows and complete the required privacy/pagination or SQL review before considering merge.
+- [ ] Continue full 87-source physical-effect/alias reconciliation and coordinated database/RPC/ACL/RLS/Edge release planning.
+- [ ] Continue direct-route, mobile/desktop, empty/error/loading and critical customer/merchant/admin browser coverage.
+- **Safety:** Production remains read-only. Live ledger is 310 rows through `20261110150618`; exact required migration identity is 0/87. This is an identity mismatch, not proof all intended effects are absent.
+- **Release status:** gallery/admin Edge deployment remains blocked; platform-root authorization gap remains; backup/restore remains deferred and unverified; **FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED**.
+
+---
+
 ## 2026-11-26 — RC117 image-provenance repair direct Production prerequisite read-back (read-only)
 
 - Production `public.marketing_services` exists, but `image_url` and `image_source` columns are absent; `public.mnty_default_image_url(text,text,text,text)` is absent; all three expected default-image triggers (`mnty_business_default_images`, `mnty_catalog_item_default_image`, `mnty_marketing_service_default_image`) are absent.
