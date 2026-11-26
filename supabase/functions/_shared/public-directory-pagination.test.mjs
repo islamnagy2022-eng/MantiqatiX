@@ -54,6 +54,24 @@ test("Specialty filter also matches provider specialties string arrays", () => {
   assert.equal(matchesDirectoryBusinessFilters(business, provider, { specialty: "قلب" }), false);
 });
 
+test("area filter reads address only from verified public-contact consent", () => {
+  const withoutConsent = {
+    settings: { catalog_profile: {
+      address: "شارع الجمهورية",
+      public_contact_enabled: false,
+      public_contact_consent_audit_verified: false,
+    } },
+  };
+  const withConsent = {
+    settings: { catalog_profile: {
+      address: "شارع الجمهورية",
+      public_contact_enabled: true,
+      public_contact_consent_audit_verified: true,
+    } },
+  };
+  assert.equal(matchesDirectoryBusinessFilters(withoutConsent, {}, { area: "الجمهورية" }), false);
+  assert.equal(matchesDirectoryBusinessFilters(withConsent, {}, { area: "الجمهورية" }), true);
+});
 test("free-text search matches public profile data but never private contact fields", () => {
   const business = {
     name: "مركز الروضة الطبي",
