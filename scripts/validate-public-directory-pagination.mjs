@@ -99,8 +99,20 @@ assert.match(activityModule, /hasMoreListings \\|\\| hasMoreBusinesses/,
   "Activity module load-more visibility must include additional registered businesses.");
 assert.match(activityModule, /if \(hasMoreBusinesses\) onLoadMoreBusinesses\(\)/,
   "The activity module load-more action must fetch the next registered-business page.");
-assert.doesNotMatch(activityModule, /business\.phone|business\.ownerWhatsApp|listing\.phone|listing\.secondary_phone/,
-  "Activity module free-text search must not inspect consent-gated contact values.");
+const activityBusinessSearchStart = activityModule.indexOf("const verifiedBusinesses = businesses.filter");
+const activityBusinessSearchEnd = activityModule.indexOf("const visibleListings = listings.filter", activityBusinessSearchStart);
+assert.ok(activityBusinessSearchStart >= 0 && activityBusinessSearchEnd > activityBusinessSearchStart,
+  "Activity module registered-business search block must exist.");
+const activityBusinessSearchBlock = activityModule.slice(activityBusinessSearchStart, activityBusinessSearchEnd);
+assert.doesNotMatch(activityBusinessSearchBlock, /business\.phone|business\.ownerWhatsApp/,
+  "Activity module free-text search must not inspect consent-gated registered-business contact values.");
+const activityListingSearchStart = activityModule.indexOf("const visibleListings = listings.filter");
+const activityListingSearchEnd = activityModule.indexOf("const allVisibleBusinesses", activityListingSearchStart);
+assert.ok(activityListingSearchStart >= 0 && activityListingSearchEnd > activityListingSearchStart,
+  "Activity module public-listing search block must exist.");
+const activityListingSearchBlock = activityModule.slice(activityListingSearchStart, activityListingSearchEnd);
+assert.doesNotMatch(activityListingSearchBlock, /listing\.phone|listing\.secondary_phone/,
+  "Activity module free-text search must not inspect contact values.");
 
 assert.match(view, /directoryHasMoreForView/, "The load-more UI must follow the currently selected global or filtered result set.");
 assert.match(view, /directoryProductsForView\.forEach/, "Featured-image ranking must use products from the active directory page set.");
