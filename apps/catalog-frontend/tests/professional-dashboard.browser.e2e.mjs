@@ -1003,6 +1003,36 @@ try {
       assert.equal(await promotionalGallery.locator('img').count(), 2, 'promotional images must render in a separate gallery');
       assert.equal(await promotionalGallery.locator('img').nth(0).getAttribute('src'), 'https://cdn.example.test/promo-1.webp');
       assert.equal(await promotionalGallery.locator('img').nth(1).getAttribute('src'), 'https://cdn.example.test/promo-2.webp');
+
+      const firstGalleryImage = promotionalGallery.getByRole('button', { name: 'عرض الصورة الترويجية رقم 1' });
+      await firstGalleryImage.click();
+      const galleryDialog = page.getByRole('dialog', { name: 'معرض الصور الترويجية لنشاط نشاط رابطين خارجيين' });
+      await galleryDialog.waitFor({ state: 'visible', timeout: 5000 });
+      assert.equal(await galleryDialog.getAttribute('aria-modal'), 'true', 'image viewer must be modal for assistive technology');
+      const galleryCloseButton = galleryDialog.getByRole('button', { name: 'إغلاق معرض الصور' });
+      assert.equal(await galleryDialog.locator('img').getAttribute('src'), 'https://cdn.example.test/promo-1.webp');
+      assert.equal(await galleryCloseButton.evaluate((button) => document.activeElement === button), true,
+        'opening the gallery must move keyboard focus into the dialog');
+
+      await galleryCloseButton.focus();
+      await page.keyboard.press('Shift+Tab');
+      assert.equal(await galleryDialog.getByRole('link', { name: 'فتح الصورة الأصلية' }).evaluate((link) => document.activeElement === link), true,
+        'Shift+Tab from the first control must wrap to the last dialog control');
+      await page.keyboard.press('Tab');
+      assert.equal(await galleryCloseButton.evaluate((button) => document.activeElement === button), true,
+        'Tab from the last control must wrap to the first dialog control');
+
+      await page.keyboard.press('ArrowLeft');
+      assert.equal(await galleryDialog.locator('img').getAttribute('src'), 'https://cdn.example.test/promo-2.webp',
+        'left arrow must advance the gallery in right-to-left layout');
+      await page.keyboard.press('ArrowRight');
+      assert.equal(await galleryDialog.locator('img').getAttribute('src'), 'https://cdn.example.test/promo-1.webp',
+        'right arrow must return to the previous gallery image');
+      await page.keyboard.press('Escape');
+      await galleryDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      assert.equal(await firstGalleryImage.evaluate((button) => document.activeElement === button), true,
+        'closing the gallery must restore focus to the image that opened it');
+
       assert.match(await coverHero.getAttribute('class') || '', /mx-v4-storefront-cover/, 'storefront hero must use the shared V4 surface token');
       assert.equal(await page.getByTestId('business-verification-indicator').getAttribute('aria-label'), 'حالة النشاط: موثّق رسمياً');
       assert.equal(await page.locator('.mx-v4-storefront-category').count(), 1, 'business category must use the V4 storefront token');
