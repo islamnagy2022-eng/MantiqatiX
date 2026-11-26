@@ -25,6 +25,18 @@ A single read-only query inspected the migration ledger, both global platform-ad
 
 The query returned no matching migration versions for this selected set. This is an exact ledger-identity observation; it is not proof that every historical physical effect is absent.
 
+## 1A. Full required migration ledger crosswalk
+
+The exact current-main `REQUIRED_RELEASE_MIGRATION_VERSIONS` array was parsed from `scripts/production/live-reconciliation-contract.mjs` and compared with the live `supabase_migrations.schema_migrations` ledger using a read-only query.
+
+- Required versions: **86**.
+- Duplicate required version IDs: **0**.
+- Matching source migration files in the current-main Git tree: **86/86**.
+- Required IDs recorded in the live Production ledger: **0/86**.
+- Live ledger rows: **310**; latest version: `20261110150618`.
+
+The source check used the complete, non-truncated current-main Git tree. Every required ID has exactly one matching migration file; no required ID is missing or duplicated in source. This confirms source-file presence and exact ledger divergence only. It does not prove that every migration effect is physically absent or that the ledger can safely be repaired without a separately approved, effect-by-effect reconciliation.
+
 ## 2. Live helper definitions and blast radius
 
 ### `public.is_platform_admin()`
