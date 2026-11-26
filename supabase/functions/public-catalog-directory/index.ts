@@ -123,7 +123,9 @@ Deno.serve(async (req: Request) => {
     const rawCursor = requestUrl.searchParams.get("cursor");
     if (rawCursor) {
       const verified = await verifyDirectoryCursor(rawCursor, { scopeHash, secret: serviceKey });
-      if (!verified.ok) return response(origin, { error: "INVALID_CURSOR" }, 400);
+      if (!verified.ok || typeof verified.lastId !== "string" || typeof verified.snapshotAt !== "string") {
+        return response(origin, { error: "INVALID_CURSOR" }, 400);
+      }
       cursorState = { ok: true, lastId: verified.lastId, snapshotAt: verified.snapshotAt };
     }
     const snapshotAt = cursorState?.snapshotAt || new Date().toISOString();
