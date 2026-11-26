@@ -81,6 +81,8 @@ test("area filter reads address only from verified public-contact consent", () =
   assert.equal(matchesDirectoryBusinessFilters(withConsent, {}, { area: "الجمهورية" }), true);
   assert.equal(matchesDirectoryBusinessFilters(withConsent, {}, { query: "الجمهورية" }), false,
     "Consent-gated address must not become a general free-text search field.");
+  assert.equal(matchesDirectoryBusinessFilters(withoutConsent, {}, { query: "شارع الجمهورية" }), false);
+  assert.equal(matchesDirectoryBusinessFilters(withConsent, {}, { query: "شارع الجمهورية" }), false);
 });
 test("free-text search matches public profile data but never private contact fields", () => {
   const business = {
