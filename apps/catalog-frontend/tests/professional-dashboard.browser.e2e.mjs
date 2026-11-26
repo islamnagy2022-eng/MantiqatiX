@@ -673,7 +673,7 @@ try {
         provider: { ...(paginationSource.provider || {}), name, verified: index >= 20 && index < 23 },
       };
     }).sort((a, b) => Number(Boolean(b.provider?.verified)) - Number(Boolean(a.provider?.verified)) || a.id.localeCompare(b.id));
-    const { context, page, directoryPageRequests } = await newScenario(browser, null, paginationFixtures);
+    const { context, page, directoryPageRequests } = await newScenario(browser, null, paginationFixtures, { initialRoute: '?view=directory' });
     try {
       await page.getByText('نتائج البحث الموحدة (20)', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       const testCards = page.getByRole('heading').filter({ hasText: /^نشاط اختبار التصفح [0-9]{2}$/ });
