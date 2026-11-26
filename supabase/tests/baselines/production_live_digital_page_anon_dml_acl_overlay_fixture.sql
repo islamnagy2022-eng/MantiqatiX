@@ -8,7 +8,7 @@ BEGIN;
 
 REVOKE INSERT, UPDATE, DELETE
   ON TABLE public.digital_pages, public.digital_page_sections
-  FROM anon;
+  FROM PUBLIC, anon;
 
 DO $rc927_anon_dml_overlay$
 BEGIN
