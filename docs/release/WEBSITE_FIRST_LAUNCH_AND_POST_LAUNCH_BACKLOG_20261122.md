@@ -4,9 +4,9 @@
 
 **Website V1 is deployed.**  
 Production URL: https://islamnagy2022-eng.github.io/MantiqatiX/  
-Deployment: [GitHub Pages run 45076054135](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45076054135) — SUCCESS. Deployed-origin browser checks passed for the public root, dashboard, mobile layout and QR routes.
+Latest deployment: [GitHub Pages run 45865039338](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45865039338) — SUCCESS on 2026-11-26. Deployed-origin browser checks passed for the public root, dashboard, mobile layout, QR routes and activity-share dialog keyboard accessibility.
 
-Main commit: `c95ccc0d891e0670fe34d97c4c1beca6bd0f4fa2`.  
+Latest main commit: `2cc6639fc0f8af04d04311910c94bc9b959e1d8b` (PR #1142).  
 Rollback copy: `/legacy/`. V6 preview: `/v6-preview/`.
 
 This is a scoped website launch, not certification of every backend module. Full platform remains **BLOCKED / NOT CERTIFIED**.
@@ -20,6 +20,13 @@ This is a scoped website launch, not certification of every backend module. Full
 - Stable business/activity share links, with deployed-origin route and QR checks.
 - Existing public contact pages and site map.
 - The public catalog root is deployed from `apps/catalog-frontend`; rollback copy and V6 preview alias are retained.
+
+## 2026-11-26 — Activity share accessibility shipped
+
+- PR #1142 is merged and deployed. The activity share dialog moves keyboard focus into the dialog, keeps Tab/Shift+Tab inside it, closes with Escape and restores focus to the invoking button.
+- The exact-head local browser regression passed; the post-merge deployed-origin regression also passed: `ACTIVITY_SHARE_DIALOG_BROWSER_E2E=PASS focus_trap=true focus_restore=true direct_link=true`.
+- The deployed-origin primary catalog browser suite, case-insensitive route checks, root/legacy/V6 checks and V6 desktop/mobile preview checks passed.
+- This is a scoped frontend deployment only. It does not certify Production database migrations, RLS/ACL, Edge dependencies, payment, wallet or settlement workflows.
 
 ## V1 privacy and safety boundaries
 

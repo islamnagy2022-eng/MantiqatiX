@@ -1,21 +1,24 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-26 — PR #1136 gallery-save guard deployed; RC929 orders identity guard is the 87th source-only candidate  
-**Base:** `main @ d695316a69426d71c65891a6bbe2cd379b77a33d`  
+**Updated:** 2026-11-26 — PR #1142 activity-share accessibility fix merged and deployed; RC929 remains the 87th source-only migration candidate  
+**Base:** `main @ 2cc6639fc0f8af04d04311910c94bc9b959e1d8b`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
-## 2026-11-26 — Current execution checkpoint (post-merge reconciliation)
+## 2026-11-26 — Current execution checkpoint (PR #1142 post-merge verification)
 
-- [x] PR #1136 gallery-save capability guard is in main at `d695316a69426d71c65891a6bbe2cd379b77a33d`; its post-merge Pages deployment and catalog/browser/security validations passed (runs `45779486714`, `45779486990`, `45779486718`, `45779486734`).
-- [x] RC929 order-resource explicit confirmed-Auth guard was merged from PR #1137; merge commit `476180ecd027d435558c7d435c1b2804daf2e92f`. Exact-head workflows passed, including RC929/RC465 PostgreSQL 17, the full 126-migration chronological replay, Primary Catalog build/RBAC/browser E2E and module/security boundaries. This is source/CI evidence only.
-- [x] PR #1139 added per-activity stable share links and QR codes; merged to main after exact-head catalog validation and browser E2E passed. The URL uses the existing site base path and activity identifier; no per-activity domain is required.
-- [ ] Verify a new post-merge GitHub Pages deployment for commits after PR #1139 and test the exact live origin, including direct activity-link refresh, case-insensitive routing, query/hash preservation and QR target.
+- [x] PR #1142 added keyboard-accessible activity sharing: focus moves into the dialog, Tab/Shift+Tab stay inside it, Escape closes it, and focus returns to the invoking share button. Merge commit: `2cc6639fc0f8af04d04311910c94bc9b959e1d8b`.
+- [x] All exact-head PR #1142 workflows passed, including Primary Catalog build, employee RBAC PostgreSQL, complete browser E2E, module professionalization, backend-only boundary, MantiGO privacy, Paymob atomicity and SMM contract validation.
+- [x] Post-merge Primary Catalog validation passed: [run 45865039208](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45865039208). Build, employee RBAC PostgreSQL and browser E2E all succeeded.
+- [x] Post-merge module/security validation passed: [run 45865039264](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45865039264). All nine jobs succeeded.
+- [x] Main GitHub Pages deployment passed: [run 45865039338](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45865039338). The root catalog, `/legacy/` rollback copy and `/v6-preview/` alias were verified; V6 desktop/mobile checks and deployed-origin catalog browser tests passed.
+- [x] The deployed-origin browser log explicitly reports `ACTIVITY_SHARE_DIALOG_BROWSER_E2E=PASS focus_trap=true focus_restore=true direct_link=true`; `PRIMARY_CATALOG_BROWSER_E2E=PASS` also completed on the live origin.
+- [x] Case-insensitive Pages route regression passed. The share URL continues to use the existing site base path and stable activity identifier; no per-activity domain is required.
 - [ ] Resolve PR #1138 documentation-only conflict before carrying forward its PASS 2481–2490 live platform-root audit. Its 86-source crosswalk is stale against the current 87-source contract; do not merge its old documentation wholesale.
 - [ ] Continue coordinated DB + Edge source/production parity for RC928. Live `catalog-admin` v20 still lacks gallery write capability; frontend guard must remain fail-closed. Do not deploy catalog Edge functions individually.
 - [ ] Keep Production DB/Auth/RLS/GRANT/Storage/Edge/payment/customer data read-only. No RC929 or other migration is authorized for Production until complete 87-source migration/effect/alias reconciliation and coordinated release gates pass.
 - [ ] Backup/restore remains a hard launch blocker and unverified. Do not treat disposable CI replay as a Production backup/restore drill.
 
-**Current disposition:** PR #1137 and PR #1139 are merged to source. Their exact-head CI passed. Post-merge Pages deployment for these commits is not yet independently confirmed. Production remains **BLOCKED / NOT CERTIFIED**.
+**Current disposition:** PR #1137, #1139 and #1142 are merged to source. PR #1142's activity-share keyboard accessibility fix is live and its deployed-origin regression passed. The catalog website is deployed; the full platform remains **BLOCKED / NOT CERTIFIED** because Production security/dependency reconciliation and backup/restore gates remain open.
 - [x] Ported the dated PASS 2481–2490 platform-root live audit from the conflicted PR #1138 into `docs/audits/PASS_2481_2490_PLATFORM_ROOT_LIVE_RECHECK_20261126.md`, with an explicit addendum distinguishing its 86-source snapshot from the later 87-source RC929 checkpoint. Production findings remain unresolved; no live mutation.
 
 ## 2026-11-26 — Previous 86-source checkpoint (historical baseline; superseded by the 87-source checkpoint above)
@@ -33,11 +36,12 @@
 **Current disposition:** Source/CI repair merged; Production migrations not applied; no Production data or Edge deployment changed. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 
 ## P1 — Catalog URL case-insensitive routing (user-requested)
-- [ ] Verify the public catalog and activity deep links open when alphabetic characters in the path use different uppercase/lowercase combinations; preserve query strings and hashes.
-- [ ] Confirm behavior for the project base path and nested activity routes; add regression checks for valid routes, unknown routes, and redirect loops.
-- [ ] Verify the 404 fallback is included in the built Pages artifact, then confirm the exact deployed origin after the Pages workflow succeeds. Do not mark complete based on a source commit alone.
-- [x] Added a Node regression test for mixed-case base paths, nested path normalization, query/hash preservation and fallback behavior: `scripts/test-pages-case-redirect.mjs`; wired it into the Pages build and required `dist/404.html` to exist.
-- [ ] Current implementation is source-only: `apps/catalog-frontend/public/404.html`; test/build results and Pages deployment remain NOT VERIFIED (latest commit `dc31106ee0268f7c0663f0d7604706ad51798285`; no status checks returned).
+
+- [x] Added a Node regression test for mixed-case nested paths, query/hash preservation and fallback behavior: `scripts/test-pages-case-redirect.mjs`; wired it into the Pages build and required `dist/404.html` to exist.
+- [x] Verified the exact deployed GitHub Pages origin after the 2026-11-26 deployment. `PAGES_DEPLOYED_CASE_REDIRECT=PASS checks=3`: mixed-case nested path fallback, unknown nested path fallback, and canonical root without redirect loop. Both activity/store query parameters and the hash survived the redirect.
+- [x] Confirmed the fallback is included in the deployed Pages artifact; main Pages deployment run `45865039338` completed SUCCESS.
+- [ ] GitHub Pages resolves the repository base path case-sensitively before serving `404.html`; therefore the repository base path must retain canonical casing `/MantiqatiX/`. Full case-insensitivity of the repository-name segment is a hosting-platform limitation, not something the nested-path fallback can repair. A custom-domain redirect front door would be needed if base-segment case-insensitivity is mandatory.
+
 
 ## 2026-11-25 — Backup and restore capability recheck
 
