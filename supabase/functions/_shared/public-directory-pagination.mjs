@@ -26,6 +26,8 @@ const isUuid = (value) => typeof value === "string" &&
 const normalizedMatchValue = (value) => safeText(value, 200).toLocaleLowerCase("ar-EG")
   .replace(/[أإآ]/g, "ا").replace(/[ىي]/g, "ي").replace(/ة/g, "ه")
   .replace(/[\u064B-\u065F\u0670]/g, "").replace(/\s+/g, " ").trim();
+const normalizedAdministrativeValue = (value) =>
+  normalizedMatchValue(value).replace(/^(?:محافظة|مركز|مدينة|قسم|قرية|شياخة|حي|نجع)\s*/, "");
 
 export const PUBLIC_DIRECTORY_PAGE_SIZE = PAGE_SIZE;
 
@@ -91,6 +93,10 @@ export function matchesDirectoryBusinessFilters(business, provider, filters) {
     }
     if (key === "area") {
       return values.area.some((candidate) => normalizedMatchValue(candidate).includes(expected));
+    }
+    if (["governorate", "markaz", "village"].includes(key)) {
+      const administrativeExpected = normalizedAdministrativeValue(expected);
+      return values[key].some((candidate) => normalizedAdministrativeValue(candidate) === administrativeExpected);
     }
     return values[key].some((candidate) => normalizedMatchValue(candidate) === expected);
   });
