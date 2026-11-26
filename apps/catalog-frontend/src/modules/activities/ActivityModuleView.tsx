@@ -148,8 +148,8 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
         <p className="mt-2 max-w-3xl text-sm leading-7 text-white/75">{category.description || `الوحدة المستقلة لنشاط ${category.name} وتخصصاته والجهات العاملة فيه.`}</p>
         <div className="mt-5 flex flex-wrap gap-2 text-xs font-bold">
           <span className="rounded-full bg-white/10 px-3 py-2">التخصصات: {specialties.length.toLocaleString('ar-EG')}</span>
-          <span className="rounded-full bg-emerald-400/15 px-3 py-2 text-emerald-100">موثق: {confirmedCount.toLocaleString('ar-EG')}</span>
-          <span className="rounded-full bg-red-400/15 px-3 py-2 text-red-100">غير موثق: {unconfirmedCount.toLocaleString('ar-EG')}</span>
+          <span className="rounded-full bg-emerald-400/15 px-3 py-2 text-emerald-100">موثق (محمّل): {confirmedCount.toLocaleString('ar-EG')}</span>
+          <span className="rounded-full bg-red-400/15 px-3 py-2 text-red-100">غير موثق (محمّل): {unconfirmedCount.toLocaleString('ar-EG')}</span>
         </div>
       </header>
 
@@ -160,8 +160,8 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
 
       {activeSection === 'overview' && <section className="space-y-4">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <Metric label="الأنشطة الموثقة" value={confirmedCount} color="border-emerald-200 bg-emerald-50 text-emerald-800" />
-          <Metric label="صفحات غير موثقة" value={unconfirmedCount} color="border-red-200 bg-red-50 text-red-700" />
+          <Metric label="الأنشطة الموثقة (المحمّل)" value={confirmedCount} color="border-emerald-200 bg-emerald-50 text-emerald-800" />
+          <Metric label="صفحات غير موثقة (المحمّل)" value={unconfirmedCount} color="border-red-200 bg-red-50 text-red-700" />
           <Metric label="التخصصات" value={specialties.length} color="border-slate-200 bg-slate-50 text-slate-800" />
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
@@ -209,8 +209,8 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
               className="min-h-12 w-full rounded-2xl border border-slate-200 bg-white py-3 pr-12 pl-4 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" />
           </label>
           <div className="flex flex-wrap gap-2 text-xs font-bold">
-            <span className="rounded-full bg-emerald-50 px-3 py-2 text-emerald-800">موثق: {verifiedBusinesses.length.toLocaleString('ar-EG')}</span>
-            <span className="rounded-full bg-red-50 px-3 py-2 text-red-700">غير موثق: {(unverifiedBusinesses.length + visibleListings.length).toLocaleString('ar-EG')}</span>
+            <span className="rounded-full bg-emerald-50 px-3 py-2 text-emerald-800">موثق (محمّل): {verifiedBusinesses.length.toLocaleString('ar-EG')}</span>
+            <span className="rounded-full bg-red-50 px-3 py-2 text-red-700">غير موثق (محمّل): {(unverifiedBusinesses.length + visibleListings.length).toLocaleString('ar-EG')}</span>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {visibleBusinesses.map((business) => <article key={business.id} className={`overflow-hidden rounded-2xl border bg-white shadow-sm ${business.isVerified ? 'border-emerald-200' : 'border-red-200'}`}>
@@ -262,8 +262,8 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
         </header>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Metric label="الجهات الموثقة" value={confirmedCount} color="border-emerald-200 bg-emerald-50 text-emerald-800" />
-          <Metric label="الجهات غير الموثقة" value={unconfirmedCount} color="border-red-200 bg-red-50 text-red-700" />
+          <Metric label="الجهات الموثقة (المحمّل)" value={confirmedCount} color="border-emerald-200 bg-emerald-50 text-emerald-800" />
+          <Metric label="الجهات غير الموثقة (المحمّل)" value={unconfirmedCount} color="border-red-200 bg-red-50 text-red-700" />
           <Metric label="محاور المحتوى" value={marketing.contentPillars.length} color="border-slate-200 bg-slate-50 text-slate-800" />
           <Metric label="أفكار الحملات" value={marketing.campaignIdeas.length} color="border-blue-200 bg-blue-50 text-blue-800" />
         </div>
