@@ -4,6 +4,8 @@ import assert from "node:assert/strict";
 const migrationPath = "supabase/migrations/20261125120000_rc927_digital_page_authenticated_identity_scope.sql";
 const testPath = "supabase/tests/rc927_digital_page_authenticated_identity_scope_integration.sql";
 const migration = fs.readFileSync(migrationPath, "utf8");
+const aclOverlayPath = "supabase/tests/baselines/production_live_digital_page_anon_dml_acl_overlay_fixture.sql";
+const aclOverlay = fs.readFileSync(aclOverlayPath, "utf8");
 const publicRenderer = fs.readFileSync("web/digital-page.js", "utf8");
 const integration = fs.readFileSync(testPath, "utf8");
 const liveContract = fs.readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
@@ -25,6 +27,14 @@ assert.match(migration, /RC927_DIGITAL_PAGE_SECTIONS_RLS_REQUIRED/);
 assert.match(migration, /RC927_RC480_EXACT_TEN_COLUMN_ANON_ALLOWLIST_REQUIRED/);
 assert.match(migration, /RC927_RAW_ANON_WRITE_PRIVILEGE_PRESENT/);
 assert.ok(integration.includes("RC927_RAW_ANON_WRITE_PRIVILEGE_PRESENT"), "RC927 test must assert raw-anon write ACL is absent");
+assert.ok(forwardReplay.includes(aclOverlayPath), "disposable replay must align local default ACL with the read-only Production snapshot before RC927");
+assert.ok(aclOverlay.includes("TEST-ONLY") && aclOverlay.includes("Never run this fixture against a hosted/Production database"),
+  "ACL alignment must remain isolated to the disposable replay");
+for (const table of ["public.digital_pages", "public.digital_page_sections"]) {
+  assert.ok(aclOverlay.includes(table), `disposable ACL overlay must cover ${table}`);
+}
+assert.match(aclOverlay, /REVOKE INSERT, UPDATE, DELETE[\\s\\S]*FROM anon/);
+assert.match(aclOverlay, /has_table_privilege\\('anon'/);
 for (const column of ["id", "page_type", "slug", "title", "subtitle", "description", "seo_title", "seo_description", "status", "version"]) {
   assert.ok(migration.includes(`has_column_privilege('anon','public.digital_pages','${column}','SELECT')`), `RC927 must preserve the RC480 public column: ${column}`);
 }
