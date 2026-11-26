@@ -23,8 +23,9 @@ assert.match(context, /hasPromotionalGalleryChanges\(currentGallery, updated\.pr
 assert.match(context, /Array\.isArray\(updated\.promotionalImages\) \? \{ promotionalImages: updated\.promotionalImages \} : \{\}/, "omitted optional gallery fields must not be sent as an empty list that clears stored images");
 assert.match(context, /action: 'CATALOG_READ'[\s\S]*?hasPromotionalGalleryCapability\(capabilityRead\)/, "gallery writes must probe the deployed Edge read contract before any mutation");
 const updateBusinessBlock = context.slice(context.indexOf("const updateBusiness ="), context.indexOf("const addBusiness ="));
-assert.ok(updateBusinessBlock.indexOf("if (hasPromotionalGalleryChanges") >= 0
-  && updateBusinessBlock.indexOf("if (hasPromotionalGalleryChanges") < updateBusinessBlock.indexOf("action: 'BUSINESS_PROFILE_UPSERT'"),
+const galleryChangeGuardIndex = updateBusinessBlock.indexOf("hasPromotionalGalleryChanges(currentGallery, updated.promotionalImages)");
+assert.ok(galleryChangeGuardIndex >= 0
+  && galleryChangeGuardIndex < updateBusinessBlock.indexOf("action: 'BUSINESS_PROFILE_UPSERT'"),
   "unsupported gallery changes must fail before the legacy profile write can return a false success");
 assert.match(galleryCapability, /hasPromotionalGalleryCapability/);
 assert.match(galleryCapability, /hasPromotionalGalleryChanges/);
