@@ -3691,3 +3691,13 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 - Read-only Production post-merge verification: migration ledger still 310 rows through `20261110150618`; RC482/RC924 versions absent; both live Legal helper overloads still exist and query active `public.user_memberships` for SUPER_ADMIN/ADMIN/LEGAL_ADMIN. No Production migration or write was performed.
 - Pages validation passed on the PR; deploy skipped. The post-merge public URL and v4 service-worker cache were not independently verified from the deployed origin.
 - Next priority: close the generic `is_platform_admin()` / `mnty_can_platform_admin()` Production blast radius under issue #867, while preserving the read-only backup gate.
+
+
+## 2026-11-26 — PASS 2471–2480 catalog gallery Edge dependency recheck
+
+- PR #1123 merged the single-cover and ten-image gallery source. Exact-head Primary Catalog Frontend Validation run 45741231838 and Forward Migration Chain Replay run 45741232181 both passed. Pages deploy run 45753994611 also passed deployed-origin catalog route checks; it is not an Edge deployment.
+- Read-only live Edge source comparison: catalog-admin v20, public-catalog v9 and public-catalog-directory v19 omit the new gallery persistence/projection and shared promotional-image module. The live catalog-admin additionally retains the old inline isPlatformAdmin membership helper, which current main no longer contains.
+- Direct current-main release-contract comparison found 0/86 exact required migration version IDs in the live 310-row ledger through 20261110150618. This is an identity mismatch only; it is not proof every source effect is physically absent.
+- The live platform-root registry still has FORCE RLS OFF. The membership-derived is_platform_admin helper and legacy mnty_can_platform_admin helper remain referenced by 62 policies across 27 tables.
+- Full evidence: PASS_2471_2480_CATALOG_GALLERY_EDGE_RELEASE_GATE_20261126.md. No Production mutation. Backup/restore remained deferred by current direction and was not attempted.
+- Keep the public gallery and all three dependent Edge functions closed until the ordered DB/RPC/ACL/RLS and bundle set passes together. Full platform remains BLOCKED / NOT CERTIFIED.

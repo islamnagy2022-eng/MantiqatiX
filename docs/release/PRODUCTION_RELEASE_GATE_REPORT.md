@@ -101,9 +101,23 @@ This dated addendum supersedes older live-state values above where they conflict
 
 ### Read-only Production evidence
 - Supabase project reports `ACTIVE_HEALTHY`; PostgreSQL is `17.6.1.155`.
-- Migration ledger: 310 rows, latest `20261110150618`. Required RC928 `20261125120000` is absent.
+- Migration ledger: 310 rows, latest `20261110150618`. Required RC927 `20261125120000` and RC928 `20261126010000` are absent.
 - Deployed Edge functions: `catalog-admin` v20, `public-catalog` v9, and `public-catalog-directory` v19.
 - Read-back of all three deployed function sources found neither the `promotional_images` projection nor `upsert_catalog_business_profile_atomic_backend`. The new gallery contract is therefore not live; frontend-only deployment would be incompatible.
 
 ### Release decision
 `BLOCKED / NOT CERTIFIED`. No Production migration, Edge deployment, Auth/RLS/GRANT, Storage, payment, wallet, settlement, or business-data mutation was performed during this recheck. The next release must remain coordinated across the approved migration and all three dependent Edge bundles, with encrypted off-site backup, isolated restore/rollback evidence, and deployed-origin save/read verification. Do not infer approval or readiness from merged source or CI success.
+
+
+## 2026-11-26 — Gallery Edge parity update (PASS 2471–2480)
+
+Current-main source includes the fixed single cover and up-to-ten promotional-image gallery (PR #1123 merged source-only; exact-head catalog validation and PostgreSQL 17 migration replay passed). This does not mean the gallery is live.
+
+Fresh read-only Supabase Edge source comparison confirms:
+- `catalog-admin` v20 is missing the RC928 atomic profile gallery write call and still contains the old inline `isPlatformAdmin` helper.
+- `public-catalog` v9 and `public-catalog-directory` v19 are missing the public promotional-image projection and shared sanitizer.
+- None of the three deployed bundles includes the new shared promotional-image module.
+
+The Production migration ledger is still 310 rows through `20261110150618`; all 86 exact required source version IDs are absent from the ledger. This is an identity mismatch only and does not replace per-object physical-effect reconciliation. The coordinated release remains **BLOCKED / NOT CERTIFIED**; do not publish the frontend or any one Edge function as a partial gallery release.
+
+Full evidence: [PASS 2471–2480](../audits/PASS_2471_2480_CATALOG_GALLERY_EDGE_RELEASE_GATE_20261126.md). No Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement or business-data mutation was performed. Backup/restore work remains deferred by current direction and is not recorded as complete.
