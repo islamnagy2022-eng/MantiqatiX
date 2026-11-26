@@ -114,4 +114,32 @@ if (!/googleMapsUrl:\s*isPublicProjection && !hasAuditedPublicContact \? '' : St
   throw new Error('FAIL: frontend mapper must restore the Google Maps URL supplied by the consent-gated server projection.');
 }
 
+
+const atomicGalleryMigration = read("supabase/migrations/20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql");
+const catalogAdminSource = read("supabase/functions/catalog-admin/index.ts");
+const ownerActionStart = catalogAdminSource.indexOf('if (action === "BUSINESS_PROFILE_UPSERT")');
+const ownerActionEnd = catalogAdminSource.indexOf('if (action === "ITEM_PRICE_UPSERT")', ownerActionStart);
+const ownerAction = ownerActionStart >= 0 && ownerActionEnd > ownerActionStart
+  ? catalogAdminSource.slice(ownerActionStart, ownerActionEnd)
+  : "";
+if (!ownerAction.includes('upsert_catalog_business_profile_atomic_backend')
+    || !ownerAction.includes('p_profile_metadata: submittedProfileMetadata')) {
+  throw new Error('FAIL: owner profile Edge writes must use the atomic profile metadata RPC.');
+}
+if (/imageSourceWriteError|socialWriteError|savedProfileSettings/.test(ownerAction)) {
+  throw new Error('FAIL: non-atomic profile metadata read/merge/write must not be used.');
+}
+for (const marker of [
+  'FOR UPDATE',
+  "coalesce(v_profile, '{}'::jsonb) || v_metadata",
+  "jsonb_array_length(v_metadata->'promotional_images') > 10",
+  "IS DISTINCT FROM 'false'",
+  'REVOKE ALL ON FUNCTION public.upsert_catalog_business_profile_atomic_backend',
+  'GRANT EXECUTE ON FUNCTION public.upsert_catalog_business_profile_atomic_backend',
+]) {
+  if (!atomicGalleryMigration.includes(marker)) {
+    throw new Error('FAIL: atomic profile metadata migration missing contract: ' + marker);
+  }
+}
+
 console.log('Owner profile persistence contract: PASS');
