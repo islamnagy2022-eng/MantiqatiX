@@ -21,13 +21,13 @@ assert.match(migration, /^COMMIT;/m, "RC929 must commit only after all preflight
 assert.match(migration, /RC929_ORDER_RESOURCE_RLS_MUST_REMAIN_ENABLED/);
 assert.match(migration, /RC929_EXPECTED_ORDER_AND_HISTORY_POLICIES_MISSING/);
 assert.match(migration, /RC929_UNEXPECTED_ANON_ORDER_READ_GRANT/);
-assert.match(orderAclOverlay, /REVOKE SELECT ON TABLE public\\.orders FROM PUBLIC, anon/i,
+assert.match(orderAclOverlay, /REVOKE SELECT ON TABLE public\.orders FROM PUBLIC, anon/i,
   "disposable replay must clear only anon/PUBLIC SELECT from orders");
-assert.match(orderAclOverlay, /REVOKE SELECT ON TABLE public\\.order_status_history FROM PUBLIC, anon/i,
+assert.match(orderAclOverlay, /REVOKE SELECT ON TABLE public\.order_status_history FROM PUBLIC, anon/i,
   "disposable replay must clear only anon/PUBLIC SELECT from order history");
-assert.match(orderAclOverlay, /GRANT SELECT ON TABLE public\\.orders TO authenticated/i,
+assert.match(orderAclOverlay, /GRANT SELECT ON TABLE public\.orders TO authenticated/i,
   "disposable replay must preserve authenticated order reads");
-assert.match(orderAclOverlay, /GRANT SELECT ON TABLE public\\.order_status_history TO authenticated/i,
+assert.match(orderAclOverlay, /GRANT SELECT ON TABLE public\.order_status_history TO authenticated/i,
   "disposable replay must preserve authenticated history reads");
 assert.ok(orderAclOverlay.includes("anon_orders_select") && orderAclOverlay.includes("anon_history_select"),
   "ACL overlay must report the exact resource whose anonymous SELECT privilege remains");
