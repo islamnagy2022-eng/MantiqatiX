@@ -42,6 +42,25 @@ test("global and branch catalogue rows share one sorted page cap", () => {
     500,
   );
   assert.equal(overLimit.length, 150, "The helper must retain the public response cap even if a caller requests more.");
+
+  const fullGlobal = Array.from({ length: 150 }, (_, index) => ({
+    id: `full-global-${String(index).padStart(3, "0")}`,
+    name_ar: `أ عام ${index}`,
+  }));
+  const fullBranch = Array.from({ length: 150 }, (_, index) => ({
+    id: `full-branch-${String(index).padStart(3, "0")}`,
+    name_ar: `ز فرع ${index}`,
+  }));
+  const balanced = mergePublicDirectoryCatalogItems(fullGlobal, fullBranch, 150);
+  assert.equal(balanced.length, 150);
+  assert.equal(balanced.filter((item) => item.id.startsWith("full-global-")).length, 75,
+    "A full global catalogue must not consume the entire mixed-scope response cap.");
+  assert.equal(balanced.filter((item) => item.id.startsWith("full-branch-")).length, 75,
+    "A full branch catalogue must receive its fair share of the mixed-scope response cap.");
+
+  const sparseBranch = mergePublicDirectoryCatalogItems(fullGlobal, fullBranch.slice(0, 10), 150);
+  assert.equal(sparseBranch.length, 150, "Unused branch quota must be filled from remaining global items.");
+  assert.equal(sparseBranch.filter((item) => item.id.startsWith("full-branch-")).length, 10);
 });
 
 test("normalizes only approved filters and bounds values", () => {
