@@ -5474,3 +5474,5 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Added `docs/audits/PASS_2481_2490_PLATFORM_ROOT_LIVE_RECHECK_20261126.md` on `audit/platform-root-live-recheck-20261126`.
 - [ ] Continue the current 86-version source-to-physical-effect crosswalk, including aliases and partial-baseline classifications; preserve strict chronological ordering and immutable migration history.
 - [ ] Keep Production read-only; no isolated helper/policy migration or individual dependent Edge deployment. Full platform remains BLOCKED / NOT CERTIFIED.
+- [x] Cross-checked all 86 unique required release migration IDs against the complete current-main Git tree: 86/86 source files present, no missing/duplicate IDs.
+- [x] Cross-checked all 86 IDs against the live ledger: 0/86 exact matches, 310 rows through `20261110150618`; treat as ledger divergence, not proof of absent physical effects.
