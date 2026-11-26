@@ -18,7 +18,7 @@ See [PASS 2361–2370](../audits/PASS_2361_2370_PLATFORM_ROOT_LIVE_RECHECK_20261
 
 ## 2. Required ordered source slice
 
-The following is a dependency map, not permission to cherry-pick migrations. The actual release chain must follow the exact canonical 85-version order in [REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md](./REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md) and the gate in `scripts/production/live-reconciliation-contract.mjs`.
+The following is a dependency map, not permission to cherry-pick migrations. The actual release chain must follow the exact canonical 85-version order in [REQUIRED_85_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261126.md](./REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md) and the gate in `scripts/production/live-reconciliation-contract.mjs`.
 
 | Stage | Source chain | Dependency / required result |
 |---|---|---|
@@ -71,3 +71,17 @@ The live Edge/RPC/ACL/schema inventory is maintained in [EDGE_RPC_PRODUCTION_DEP
 ## 6. Explicit non-actions in this phase
 
 No Production SQL write or `apply_migration`; no Auth configuration, RLS/GRANT, Storage policy, Edge deployment, payment/webhook, wallet, settlement, business-data, migration-ledger, or website deployment changes. The only permitted work before release approval is source review, isolated tests, backup/restore rehearsal in disposable infrastructure, and read-only live verification.
+
+
+## RC928 — catalog profile metadata and promotional gallery
+
+RC928 (`20261126010000`) extends the existing owner/admin-scoped business-profile RPC with an authenticated atomic metadata patch. It retains the canonical business row lock while merging only social URLs, additional phone numbers, up to ten HTTPS promotional images, image-source markers and a fail-closed public-contact consent value. It does not introduce new table privileges for anonymous access.
+
+Release dependencies:
+- [x] Source candidate and static contract validator prepared.
+- [x] Owner-profile PG17 integration covers atomic JSONB preservation, ten-image limit, HTTPS-only input, invalid-input rollback, Anonymous Auth/missing-claim denial and branch-manager denial.
+- [ ] Exact-head 85-version chronological PG17 replay and full CI must pass before merge.
+- [ ] All three Edge bundles (`catalog-admin`, `public-catalog`, `public-catalog-directory`) must be released together only after dependency/ACL parity, encrypted DB + Storage backup, restore/rollback and deployed-origin negative/positive tests.
+- [ ] Do not deploy only the UI or one Edge Function. The current Production Edge versions do not support the gallery contract.
+
+Status: source-only candidate; RC928 is absent from Production. No Production migration, Edge deployment, Storage, customer-data or payment mutation has been performed.
