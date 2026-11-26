@@ -19,7 +19,8 @@ assert.match(merchant, /id="business-promotional-images"/, "merchant dashboard m
 assert.match(merchant, /MAX_PROMOTIONAL_IMAGES|normalizePromotionalImageLines/, "merchant editor must use the URL validation helper");
 assert.match(merchant, /promotionalImages: promotionalImages\.images/, "merchant save must send the normalized image list");
 assert.match(context, /promotionalImages: updated\.promotionalImages \|\| \[\]/, "business profile updates must send the gallery list");
-assert.match(context, /hasPromotionalGalleryChanges\(currentGallery, requestedGallery\)/, "profile saves must detect gallery changes separately");
+assert.match(context, /hasPromotionalGalleryChanges\(currentGallery, updated\.promotionalImages\)/, "profile saves must detect gallery changes separately");
+assert.match(context, /Array\.isArray\(updated\.promotionalImages\) \? \{ promotionalImages: updated\.promotionalImages \} : \{\}/, "omitted optional gallery fields must not be sent as an empty list that clears stored images");
 assert.match(context, /action: 'CATALOG_READ'[\s\S]*?hasPromotionalGalleryCapability\(capabilityRead\)/, "gallery writes must probe the deployed Edge read contract before any mutation");
 const updateBusinessBlock = context.slice(context.indexOf("const updateBusiness ="), context.indexOf("const addBusiness ="));
 assert.ok(updateBusinessBlock.indexOf("if (hasPromotionalGalleryChanges") >= 0
