@@ -19,8 +19,10 @@ try {
   });
 
   const page = await context.newPage();
-  await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-  const shareButton = page.getByRole('button', { name: /^مشاركة نشاط / }).first();
+  const directoryUrl = new URL(baseUrl);
+  directoryUrl.searchParams.set('view', 'directory');
+  await page.goto(directoryUrl.toString(), { waitUntil: 'domcontentloaded' });
+  const shareButton = page.getByTestId('activity-category-list').getByRole('button', { name: /^مشاركة نشاط / }).first();
   await shareButton.waitFor({ state: 'visible', timeout: 30000 });
 
   const shareLabel = await shareButton.getAttribute('aria-label');
