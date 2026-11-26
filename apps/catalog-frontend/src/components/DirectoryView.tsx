@@ -712,7 +712,8 @@ export const DirectoryView: React.FC = () => {
     const a = Math.sin(dLat / 2) ** 2 + Math.cos(radians(from.latitude)) * Math.cos(radians(to.latitude)) * Math.sin(dLon / 2) ** 2;
     return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
   };
-  const queryTokens = normalizeSearch(searchQuery).split(' ').filter(Boolean);
+  const activeDirectorySearchQuery = activityModuleId ? activityListingSearchQuery : searchQuery;
+  const queryTokens = normalizeSearch(activeDirectorySearchQuery).split(' ').filter(Boolean);
   // Rank only configured image URLs; placeholders do not count as real assets.
   const hasConfiguredImage = (value: unknown) => {
     const url = String(value || '').trim().toLowerCase();
@@ -731,9 +732,11 @@ export const DirectoryView: React.FC = () => {
   const filteredBusinesses = businesses.filter((biz) => {
     // Public safety: never expose unpublished, inactive, or frozen registered businesses.
     if ((!biz.publicEnabled && !biz.isOfficialShowcase) || biz.operationalStatus !== 'ACTIVE' || biz.isFrozen) return false;
+    // Free-text search covers only public business/profile data. Consent-gated phone
+    // and WhatsApp values are never used as search fields.
     const haystack = normalizeSearch([
-      biz.name, biz.category, biz.bio, biz.address, biz.governorate, biz.markaz, biz.village,
-      biz.phone, biz.ownerWhatsApp, biz.activitySpecialty,
+      biz.name, biz.category, biz.bio, biz.governorate, biz.markaz, biz.village,
+      biz.activitySpecialty,
     ].join(' '));
     const matchesSearch = queryTokens.every((token) => haystack.includes(token));
     const matchedCategory = categoryForBusiness(biz);
