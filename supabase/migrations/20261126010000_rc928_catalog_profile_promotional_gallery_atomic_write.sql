@@ -156,15 +156,9 @@ BEGIN
     v_metadata := pg_catalog.jsonb_set(v_metadata, '{promotional_images}', pg_catalog.to_jsonb(v_urls), true);
   END IF;
 
-  IF v_metadata ? 'public_contact_enabled' THEN
-    IF pg_catalog.jsonb_typeof(v_metadata->'public_contact_enabled') <> 'boolean' THEN
-      RAISE EXCEPTION 'INVALID_PUBLIC_CONTACT_CONSENT';
-    END IF;
-    -- Consent is not publicly active until the separate durable audit insert
-    -- and compare-and-set activation in catalog-admin succeed.
-    v_metadata := v_metadata || pg_catalog.jsonb_build_object(
-      'public_contact_consent_audit_verified', false
-    );
+  IF v_metadata ? 'public_contact_enabled'
+     AND pg_catalog.jsonb_typeof(v_metadata->'public_contact_enabled') <> 'boolean' THEN
+    RAISE EXCEPTION 'INVALID_PUBLIC_CONTACT_CONSENT';
   END IF;
 
   v_logo_source := CASE
@@ -209,6 +203,12 @@ BEGIN
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'BUSINESS_NOT_ACTIVE';
+  END IF;
+
+  IF v_metadata ? 'public_contact_enabled' THEN
+    v_metadata := v_metadata || pg_catalog.jsonb_build_object(
+      'public_contact_consent_audit_verified', false
+    );
   END IF;
 
   UPDATE public.businesses b
