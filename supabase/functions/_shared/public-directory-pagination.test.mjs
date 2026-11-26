@@ -49,11 +49,17 @@ test("Activity/Specialty/geographic filters match public business projection fie
   assert.equal(matchesDirectoryBusinessFilters(business, provider, { specialty: "حلويات" }), false);
 });
 
-test("Specialty filter also matches provider specialties string arrays", () => {
-  const business = { settings: { catalog_profile: { governorate: "المنوفية" } } };
-  const provider = { provider_kind: "HEALTH", specialties: ["طب الأطفال", "جلدية"] };
+test("Specialty filter uses only public business/profile fields and ignores unapproved provider fields", () => {
+  const business = {
+    settings: {
+      activity_specialty: "طب الأطفال",
+      catalog_profile: { specialty: "جلدية", governorate: "المنوفية" },
+    },
+  };
+  const provider = { provider_kind: "HEALTH", specialties: ["باطنة خاصة لا يجوز طلبها"] };
   assert.equal(matchesDirectoryBusinessFilters(business, provider, { specialty: "طب الأطفال" }), true);
-  assert.equal(matchesDirectoryBusinessFilters(business, provider, { specialty: "قلب" }), false);
+  assert.equal(matchesDirectoryBusinessFilters(business, provider, { specialty: "جلدية" }), true);
+  assert.equal(matchesDirectoryBusinessFilters(business, provider, { specialty: "باطنة خاصة لا يجوز طلبها" }), false);
 });
 
 test("area filter matches only the consent-projected branch-aware address", () => {
