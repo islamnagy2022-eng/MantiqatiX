@@ -4,7 +4,7 @@ const MAX_FILTER_LENGTH = 100;
 const MAX_SLUGS = 20;
 const MAX_CURSOR_AGE_MS = 6 * 60 * 60 * 1000;
 const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000;
-const FILTER_KEYS = ["activity", "specialty", "governorate", "markaz", "village"];
+const FILTER_KEYS = ["activity", "specialty", "governorate", "markaz", "village", "query"];
 const encoder = new TextEncoder();
 
 const isRecord = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -64,10 +64,24 @@ export function matchesDirectoryBusinessFilters(business, provider, filters) {
     governorate: [profile.governorate],
     markaz: [profile.markaz],
     village: [profile.village],
+    // Search is intentionally restricted to public profile/category text. Never probe
+    // phone, WhatsApp, precise address, or other consent-gated contact values.
+    query: [
+      business?.name, business?.code, settings.category, settings.activity_specialty,
+      profile.headline, profile.description, profile.bio, profile.category,
+      provider?.name_ar, provider?.name_en, provider?.description, provider?.provider_kind,
+      ...(Array.isArray(provider?.specialties) ? provider.specialties : []),
+    ],
   };
   return FILTER_KEYS.every((key) => {
     const expected = normalizedMatchValue(filters?.[key]);
     if (!expected) return true;
+    if (key === "query") {
+      const tokens = expected.split(" ").filter(Boolean);
+      return tokens.every((token) =>
+        values.query.some((candidate) => normalizedMatchValue(candidate).includes(token))
+      );
+    }
     return values[key].some((candidate) => normalizedMatchValue(candidate) === expected);
   });
 }
