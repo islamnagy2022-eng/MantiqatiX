@@ -428,7 +428,7 @@ export const DirectoryView: React.FC = () => {
       } finally {
         if (generation === scopedDirectoryGenerationRef.current) setScopedDirectoryLoading(false);
       }
-    }, publicDirectoryPageFilters.query ? 300 : 0);
+    }, publicDirectoryPageFilters.query || publicDirectoryPageFilters.area ? 300 : 0);
     return () => window.clearTimeout(timer);
   }, [publicDirectoryPageFilters]);
 
