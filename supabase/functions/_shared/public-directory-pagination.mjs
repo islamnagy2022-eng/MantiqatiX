@@ -40,21 +40,39 @@ export const PUBLIC_DIRECTORY_PAGE_SIZE = PAGE_SIZE;
  */
 export function mergePublicDirectoryCatalogItems(globalItems, branchItems, limit = 150) {
   const safeLimit = Number.isSafeInteger(limit) && limit > 0 ? Math.min(limit, 150) : 150;
-  const unique = new Map();
-  for (const item of [
-    ...(Array.isArray(branchItems) ? branchItems : []),
-    ...(Array.isArray(globalItems) ? globalItems : []),
-  ]) {
-    if (!isRecord(item) || item.id == null) continue;
-    const id = String(item.id);
-    if (!unique.has(id)) unique.set(id, item);
-  }
   const compareText = (left, right) => left < right ? -1 : left > right ? 1 : 0;
-  return [...unique.values()]
-    .sort((left, right) =>
-      compareText(String(left.name_ar || ""), String(right.name_ar || "")) ||
-      compareText(String(left.id), String(right.id))
-    )
+  const byName = (left, right) =>
+    compareText(String(left.name_ar || ""), String(right.name_ar || "")) ||
+    compareText(String(left.id), String(right.id));
+  const toUniqueRows = (items) => {
+    const unique = new Map();
+    for (const item of Array.isArray(items) ? items : []) {
+      if (!isRecord(item) || item.id == null) continue;
+      const id = String(item.id);
+      if (!unique.has(id)) unique.set(id, item);
+    }
+    return [...unique.values()].sort(byName);
+  };
+
+  const branchRows = toUniqueRows(branchItems);
+  const branchIds = new Set(branchRows.map((item) => String(item.id)));
+  // If an item is unexpectedly returned by both scoped queries, the exact
+  // branch projection takes precedence over its global projection.
+  const globalRows = toUniqueRows(globalItems).filter((item) => !branchIds.has(String(item.id)));
+  const hasBothScopes = globalRows.length > 0 && branchRows.length > 0;
+  const globalQuota = hasBothScopes ? Math.ceil(safeLimit / 2) : safeLimit;
+  const branchQuota = hasBothScopes ? Math.floor(safeLimit / 2) : safeLimit;
+  const selectedGlobal = globalRows.slice(0, globalQuota);
+  const selectedBranch = branchRows.slice(0, branchQuota);
+  const remaining = safeLimit - selectedGlobal.length - selectedBranch.length;
+  const leftovers = [
+    ...globalRows.slice(selectedGlobal.length),
+    ...branchRows.slice(selectedBranch.length),
+  ].sort(byName);
+  // When one scope has fewer items than its fair share, use the unused slots
+  // for the other scope instead of returning a short page.
+  return [...selectedGlobal, ...selectedBranch, ...leftovers.slice(0, remaining)]
+    .sort(byName)
     .slice(0, safeLimit);
 }
 
