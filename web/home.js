@@ -173,8 +173,11 @@
               const membershipRes=await sb.from('user_memberships').select('business_id').eq('id',selectedMembershipId).eq('user_id',authUser.id).eq('status','ACTIVE').maybeSingle();
               const businessId=membershipRes?.data?.business_id;
               if(businessId){
-                const pr=await sb.from('marketing_provider_profiles').select('name_ar,name_en').eq('owner_user_id',authUser.id).eq('business_id',businessId).eq('status','ACTIVE').order('updated_at',{ascending:false}).limit(1).maybeSingle();
-                activityName=pr?.data?.name_ar||pr?.data?.name_en||'';
+                const [businessRes,pr]=await Promise.all([
+                  sb.from('businesses').select('name').eq('id',businessId).maybeSingle(),
+                  sb.from('marketing_provider_profiles').select('name_ar,name_en').eq('owner_user_id',authUser.id).eq('business_id',businessId).eq('status','ACTIVE').order('updated_at',{ascending:false}).limit(1).maybeSingle()
+                ]);
+                activityName=pr?.data?.name_ar||pr?.data?.name_en||businessRes?.data?.name||'';
               }
             }
           }catch(_){}
