@@ -94,9 +94,10 @@ const required = [
   "20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql",
   "20261125120000_rc927_digital_page_authenticated_identity_scope.sql",
   "20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql",
-  "20261126020000_preserve_marketing_service_image_provenance.sql"
+  "20261126020000_preserve_marketing_service_image_provenance.sql",
+  "20261126030000_rc929_orders_confirmed_auth_claim_guard.sql"
 ];
-assert.equal(required.length, 86, "release gate must track all distinct required post-RC424 migration effects, including RC464B, both RC479 migrations, RC476–RC496, RC921, RC922, RC923, RC924, RC925, RC926, RC927, RC928 and the RC117 image-provenance forward repair");
+assert.equal(required.length, 87, "release gate must track all distinct required post-RC424 migration effects, including RC464B, both RC479 migrations, RC476–RC496, RC921–RC929 and the RC117 image-provenance forward repair");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");
