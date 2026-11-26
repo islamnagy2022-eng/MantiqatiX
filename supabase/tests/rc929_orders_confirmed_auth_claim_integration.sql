@@ -117,12 +117,17 @@ BEGIN
     WHERE schemaname = 'public'
       AND tablename = 'orders'
       AND policyname = 'orders_confirmed_auth_only'
-      AND permissive = 'RESTRICTIVE'
-      AND cmd = 'ALL'
+      AND upper(permissive) = 'RESTRICTIVE'
+      AND upper(cmd) = 'ALL'
       AND roles @> ARRAY['authenticated']::name[]
-      AND qual LIKE '%is_anonymous%'
-      AND qual LIKE '%IS NOT DISTINCT FROM%'
-      AND with_check LIKE '%IS NOT DISTINCT FROM%'
+      AND lower(qual) LIKE '%is_anonymous%'
+      AND lower(qual) LIKE '%is not distinct from%'
+      AND lower(qual) LIKE '%auth.uid()%'
+      AND lower(qual) LIKE '%is not null%'
+      AND lower(with_check) LIKE '%is_anonymous%'
+      AND lower(with_check) LIKE '%is not distinct from%'
+      AND lower(with_check) LIKE '%auth.uid()%'
+      AND lower(with_check) LIKE '%is not null%'
   ) THEN
     RAISE EXCEPTION 'RC929_ORDERS_RESTRICTIVE_CONFIRMED_AUTH_POLICY_MISSING';
   END IF;
@@ -132,12 +137,17 @@ BEGIN
     WHERE schemaname = 'public'
       AND tablename = 'order_status_history'
       AND policyname = 'order_status_history_confirmed_auth_only'
-      AND permissive = 'RESTRICTIVE'
-      AND cmd = 'ALL'
+      AND upper(permissive) = 'RESTRICTIVE'
+      AND upper(cmd) = 'ALL'
       AND roles @> ARRAY['authenticated']::name[]
-      AND qual LIKE '%is_anonymous%'
-      AND qual LIKE '%IS NOT DISTINCT FROM%'
-      AND with_check LIKE '%IS NOT DISTINCT FROM%'
+      AND lower(qual) LIKE '%is_anonymous%'
+      AND lower(qual) LIKE '%is not distinct from%'
+      AND lower(qual) LIKE '%auth.uid()%'
+      AND lower(qual) LIKE '%is not null%'
+      AND lower(with_check) LIKE '%is_anonymous%'
+      AND lower(with_check) LIKE '%is not distinct from%'
+      AND lower(with_check) LIKE '%auth.uid()%'
+      AND lower(with_check) LIKE '%is not null%'
   ) THEN
     RAISE EXCEPTION 'RC929_HISTORY_RESTRICTIVE_CONFIRMED_AUTH_POLICY_MISSING';
   END IF;
