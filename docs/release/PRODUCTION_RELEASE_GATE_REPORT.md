@@ -89,3 +89,21 @@
 ## القرار
 
 `NOT CERTIFIED` — لا توجد موافقة على الإطلاق الفعلي. اجتياز اختبارات المصدر والتكامل المعزولة تقدم مهم، لكنه لا يثبت اكتمال سلسلة الترحيلات أو تطابق الإنتاج أو نجاح E2E والاستعادة.
+
+## 2026-11-26 — Current-main and live release-gate recheck
+
+This dated addendum supersedes older live-state values above where they conflict; historical findings remain as historical evidence.
+
+### Source and CI
+- PR #1123 merged the single-cover + up-to-ten promotional gallery source changes as `8cd611dbe89a9f4288ceb81ad5ac9c4c4c17f7c6`. Exact-head catalog validation and chronological migration replay passed in runs `45741231838` and `45741232181`. These are disposable CI checks, not a Production rollout.
+- PR #1110 merged Paymob provider-scope hardening as `e1835d3fb776acc9fc304854d46bae63d86873f8`. Its exact-head checks passed; the deploy job was skipped. Signed altered-selector Paymob Sandbox replay remains outstanding.
+- PR #1124 and PR #1125 refreshed the execution TODO and recorded the live gallery blocker. Current main includes those documentation updates.
+
+### Read-only Production evidence
+- Supabase project reports `ACTIVE_HEALTHY`; PostgreSQL is `17.6.1.155`.
+- Migration ledger: 310 rows, latest `20261110150618`. Required RC928 `20261125120000` is absent.
+- Deployed Edge functions: `catalog-admin` v20, `public-catalog` v9, and `public-catalog-directory` v19.
+- Read-back of all three deployed function sources found neither the `promotional_images` projection nor `upsert_catalog_business_profile_atomic_backend`. The new gallery contract is therefore not live; frontend-only deployment would be incompatible.
+
+### Release decision
+`BLOCKED / NOT CERTIFIED`. No Production migration, Edge deployment, Auth/RLS/GRANT, Storage, payment, wallet, settlement, or business-data mutation was performed during this recheck. The next release must remain coordinated across the approved migration and all three dependent Edge bundles, with encrypted off-site backup, isolated restore/rollback evidence, and deployed-origin save/read verification. Do not infer approval or readiness from merged source or CI success.
