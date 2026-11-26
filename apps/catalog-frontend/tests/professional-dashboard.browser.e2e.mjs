@@ -547,8 +547,12 @@ if (new URL(baseUrl).origin === 'https://islamnagy2022-eng.github.io') {
     const directorySearchPanel = page.getByTestId('directory-search-panel');
     await directorySearchPanel.waitFor({ state: 'visible', timeout: 10000 });
     assert.equal(await directorySearchPanel.getByLabel('بحث عن نشاط أو خدمة', { exact: true }).count(), 1, 'the V4 directory search field must have an accessible label');
-    assert.equal(await directorySearchPanel.locator('select').count(), 4, 'the search workspace must retain all four geographic filters');
-    assert.equal(await directorySearchPanel.locator('select.mx-v4-search-select').count(), 4, 'all four geographic filters must use the token-backed V4 treatment');
+    assert.equal(await directorySearchPanel.locator('select').count(), 3, 'the governorate, center, and village filters must remain native selects');
+    assert.equal(await directorySearchPanel.locator('select.mx-v4-search-select').count(), 3, 'all geographic selects must use the token-backed V4 treatment');
+    const areaFilter = directorySearchPanel.getByLabel('المنطقة / العنوان', { exact: true });
+    assert.equal(await areaFilter.count(), 1, 'the area filter must be an accessible free-text input');
+    assert.equal(await areaFilter.getAttribute('type'), 'text', 'the area filter must accept custom street/area names');
+    assert.ok((await areaFilter.getAttribute('class')).includes('mx-v4-search-select'), 'the area input must use the centralized V4 treatment');
     const directoryLocationAction = directorySearchPanel.getByRole('button', { name: 'حدد موقعي', exact: true });
     assert.ok((await directoryLocationAction.getAttribute('class')).includes('mx-v4-search-location'), 'location action must use the centralized V4 style');
     const directoryLocationGradient = await directoryLocationAction.evaluate((element) => getComputedStyle(element).backgroundImage);
