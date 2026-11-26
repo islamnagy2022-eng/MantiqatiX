@@ -59,7 +59,7 @@ export function matchesDirectoryBusinessFilters(business, provider, filters) {
       profile.category, profile.activity_category_code, profile.taxonomy_category_id,
       settings.category_code, settings.activity_code, settings.activity_category_code,
       settings.taxonomy_category_id, settings.activity_group_code, settings.taxonomy_group_code,
-      provider?.provider_kind, provider?.name_ar, provider?.name_en,
+      provider?.provider_kind,
     ],
     specialty: [settings.activity_specialty, profile.activity_specialty, profile.specialty,
       ...(Array.isArray(provider?.specialties) ? provider.specialties : [])],
