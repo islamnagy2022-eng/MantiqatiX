@@ -35,7 +35,7 @@ This is a scoped website launch, not certification of every backend module. Full
 1. Obtain genuine encrypted off-site database and Storage backups.
 2. Verify Vault recovery and perform an independent PostgreSQL 17 restore/rollback.
 3. Measure and record RPO/RTO.
-   - Current release scope contains 85 required migration IDs; the live ledger still has 0/85 exact required identifiers. RC926 (`20261125110000`) is the prior strict provider-profile identity boundary; RC927 and RC928 are source-only and remain unapplied to Production.
+   - Current release scope contains 85 required migration IDs; the live ledger still has 0/85 exact required identifiers. RC480 (`20261118210000`) remains the public digital-page anonymous-column boundary and prerequisite for RC927. RC926 (`20261125110000`) is the prior strict provider-profile identity boundary; RC927 and RC928 are source-only and remain unapplied to Production.
 - RC927 (`20261125120000`) was merged source-only in PR #1122 as `ffd91df42c0cc70bfce692cc79045132cff5c383`; exact-head 17/17 workflows passed, including the 85-source strict gate and chronological PostgreSQL 17 replay (123 forward migrations). It remains unapplied to Production. RC928 (`20261126010000`) is the next source-only candidate for atomic catalog-profile/gallery persistence; its exact-head static, owner-profile PG17 and full 85-source replay are still pending. Neither release is applied to Production.
 5. Triage Security Advisor findings per function and caller: 9 RLS-enabled/no-policy INFO, 65 authenticated-callable and 1 anon-callable SECURITY DEFINER WARN, leaked-password protection disabled. No blanket EXECUTE revocation.
 
