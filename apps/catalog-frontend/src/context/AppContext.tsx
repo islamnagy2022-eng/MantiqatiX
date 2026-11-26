@@ -717,7 +717,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const currentGallery = businesses.find((business) => business.id === updated.id)?.promotionalImages || [];
-    const requestedGallery = updated.promotionalImages || [];
     if (Array.isArray(updated.promotionalImages) && hasPromotionalGalleryChanges(currentGallery, updated.promotionalImages)) {
       // Older catalog-admin bundles accept BUSINESS_PROFILE_UPSERT but silently
       // ignore promotionalImages. Probe its read contract before any profile write.
