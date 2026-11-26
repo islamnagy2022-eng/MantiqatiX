@@ -1,0 +1,45 @@
+name: Public Directory Keyset Pagination
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "supabase/functions/_shared/public-directory-pagination.mjs"
+      - "supabase/functions/_shared/public-directory-pagination.test.mjs"
+      - "supabase/functions/public-catalog-directory/index.ts"
+      - "apps/catalog-frontend/src/lib/production.ts"
+      - "apps/catalog-frontend/src/context/AppContext.tsx"
+      - "apps/catalog-frontend/src/components/DirectoryView.tsx"
+      - "scripts/validate-public-directory-pagination.mjs"
+      - ".github/workflows/public-directory-keyset-pagination.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/functions/_shared/public-directory-pagination.mjs"
+      - "supabase/functions/_shared/public-directory-pagination.test.mjs"
+      - "supabase/functions/public-catalog-directory/index.ts"
+      - "apps/catalog-frontend/src/lib/production.ts"
+      - "apps/catalog-frontend/src/context/AppContext.tsx"
+      - "apps/catalog-frontend/src/components/DirectoryView.tsx"
+      - "scripts/validate-public-directory-pagination.mjs"
+      - ".github/workflows/public-directory-keyset-pagination.yml"
+permissions:
+  contents: read
+jobs:
+  public-directory-keyset:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Validate keyset pagination source contract
+        run: node scripts/validate-public-directory-pagination.mjs
+      - name: Test signed cursor and filter contract
+        run: node --test supabase/functions/_shared/public-directory-pagination.test.mjs
+      - name: Type-check public catalog Edge Functions
+        run: deno check --node-modules-dir=auto supabase/functions/public-catalog-directory/index.ts supabase/functions/public-catalog/index.ts
