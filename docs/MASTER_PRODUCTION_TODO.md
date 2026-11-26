@@ -5476,3 +5476,4 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Keep Production read-only; no isolated helper/policy migration or individual dependent Edge deployment. Full platform remains BLOCKED / NOT CERTIFIED.
 - [x] Cross-checked all 86 unique required release migration IDs against the complete current-main Git tree: 86/86 source files present, no missing/duplicate IDs.
 - [x] Cross-checked all 86 IDs against the live ledger: 0/86 exact matches, 310 rows through `20261110150618`; treat as ledger divergence, not proof of absent physical effects.
+- [x] Enumerated 12 additional public-schema helper callers from live `pg_proc` definitions and checked effective registry privileges: 11 SECURITY DEFINER, one invoker; registry CRUD remains service_role-only.
