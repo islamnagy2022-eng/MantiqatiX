@@ -47,11 +47,15 @@ test("Activity/Specialty/geographic filters match public business projection fie
   assert.equal(matchesDirectoryBusinessFilters(business, provider, { specialty: "حلويات" }), false);
 });
 
-test("Specialty filter also matches an explicitly supplied provider specialties array", () => {
-  const business = { settings: { catalog_profile: { governorate: "المنوفية" } } };
-  const provider = { provider_kind: "HEALTH", specialties: ["طب الأطفال", "جلدية"] };
-  assert.equal(matchesDirectoryBusinessFilters(business, provider, { specialty: "طب الأطفال" }), true);
-  assert.equal(matchesDirectoryBusinessFilters(business, provider, { specialty: "قلب" }), false);
+test("Specialty filters use curated public business settings, not private provider profile fields", () => {
+  const privateProvider = { provider_kind: "HEALTH", specialties: ["طب الأطفال", "جلدية"] };
+  assert.equal(matchesDirectoryBusinessFilters({ settings: {} }, privateProvider, { specialty: "طب الأطفال" }), false);
+  assert.equal(matchesDirectoryBusinessFilters({
+    settings: { activity_specialty: "طب الأطفال", catalog_profile: { specialty: "أطفال" } },
+  }, privateProvider, { specialty: "طب الأطفال" }), true);
+  assert.equal(matchesDirectoryBusinessFilters({
+    settings: { catalog_profile: { specialty: "أطفال" } },
+  }, {}, { specialty: "أطفال" }), true);
 });
 
 test("scope hash is stable and changes when a filter or slug changes", async () => {
