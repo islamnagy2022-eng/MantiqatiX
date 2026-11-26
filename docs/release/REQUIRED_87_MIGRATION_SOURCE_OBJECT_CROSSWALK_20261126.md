@@ -1,6 +1,6 @@
 # Required 87-Migration Source-to-Live Effect Crosswalk — 2026-11-26
 
-**Repository baseline:** `main @ 8b5f8b003ccec5e30c8a72942a6da06b1f418a24` (after PR #1145 live Edge parity evidence and PR #1146 RC484 PostgreSQL 17 behavioral workflow; PR #1137 RC929 source, PR #1142 activity-share accessibility and PR #1143 execution docs are merged)
+**Repository baseline:** `main @ fd2cc9d49507d5ee4db874d4d29a4e9a9a15a149` (after PR #1145 live Edge parity evidence, PR #1146 RC484 PostgreSQL 17 behavioral workflow and PR #1147 platform-root preflight documentation; PR #1137 RC929 source, PR #1142 activity-share accessibility and PR #1143 execution docs are merged)
 **Live Supabase project:** `moyhiluyhjsujhwlyeuu`
 **Required migration set:** `scripts/production/verify-production.mjs` and `scripts/production/live-reconciliation-contract.mjs`
 **Live ledger:** 310 rows through `20261110150618`
