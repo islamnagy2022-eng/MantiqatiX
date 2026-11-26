@@ -38,7 +38,7 @@ const backlogRequirements = [
   "20261126010000",
   "RC928",
   "RC480",
-  "exact-head static and PostgreSQL 17 tests are pending",
+  "RC927 is merged source-only",
 ];
 for (const required of backlogRequirements) {
   assert.ok(backlog.includes(required), "Release backlog is missing current 85-version gate text: " + required);
