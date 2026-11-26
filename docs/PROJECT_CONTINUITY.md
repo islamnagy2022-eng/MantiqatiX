@@ -3701,3 +3701,11 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 - The live platform-root registry still has FORCE RLS OFF. The membership-derived is_platform_admin helper and legacy mnty_can_platform_admin helper remain referenced by 62 policies across 27 tables.
 - Full evidence: PASS_2471_2480_CATALOG_GALLERY_EDGE_RELEASE_GATE_20261126.md. No Production mutation. Backup/restore remained deferred by current direction and was not attempted.
 - Keep the public gallery and all three dependent Edge functions closed until the ordered DB/RPC/ACL/RLS and bundle set passes together. Full platform remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-26 — PASS 2481–2490 platform-root Production read-back
+- Fresh read-only query confirms Production still has 310 migration ledger rows through `20261110150618`; the selected RC464/RC471/RC484/RC485/RC923/RC928/RC117-repair/RC929 IDs are not recorded.
+- Live `is_platform_admin()` remains SECURITY INVOKER with `search_path=public` and accepts any ACTIVE tenant ADMIN/SUPER_ADMIN membership. Live `mnty_can_platform_admin()` remains SECURITY DEFINER with `search_path=public, pg_temp` and delegates to null-scope `mnty_can('admin',NULL,NULL,NULL)`.
+- Policy references remain 57 across 24 tables plus five across three tables; `private.platform_admins` has RLS ON / FORCE RLS OFF and owner postgres.
+- Evidence: `docs/audits/PASS_2481_2490_PLATFORM_ROOT_LIVE_RECHECK_20261126.md` (branch `audit/platform-root-live-recheck-20261126`). No Production mutation.
+- Continue source-side 86-version and physical-effect reconciliation; keep platform-root and dependent Edge releases blocked until all ordered tests and release gates pass.
