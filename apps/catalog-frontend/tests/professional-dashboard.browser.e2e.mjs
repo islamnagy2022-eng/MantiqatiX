@@ -913,14 +913,14 @@ try {
     try {
       const merchantTabs = page.getByTestId('merchant-dashboard-tabs');
       await merchantTabs.waitFor({ state: 'visible', timeout: 15000 });
-      await merchantTabs.getByRole('button', { name: 'بيانات النشاط', exact: true }).click();
+      await merchantTabs.getByRole('button', { name: 'الهوية البصرية', exact: true }).click();
 
       const galleryInput = page.getByLabel('روابط الصور الترويجية');
       await galleryInput.waitFor({ state: 'visible', timeout: 10000 });
       const elevenUrls = Array.from({ length: 11 }, (_, index) => `https://cdn.example.test/over-limit-${index}.webp`).join('\n');
       await galleryInput.fill(elevenUrls);
       await page.getByRole('alert').filter({ hasText: 'الحد الأقصى 10 صور ترويجية' }).waitFor({ state: 'visible', timeout: 5000 });
-      await page.getByRole('button', { name: 'حفظ التعديلات', exact: true }).click();
+      await page.getByRole('button', { name: 'حفظ هوية النشاط', exact: true }).click();
       assert.equal(catalogAdminRequests.filter((entry) => entry.action === 'BUSINESS_PROFILE_UPSERT').length, 0,
         'invalid promotional gallery must be rejected before the profile write request');
 
@@ -932,7 +932,7 @@ try {
       ].join('\n');
       await galleryInput.fill(validInput);
       await page.getByRole('button', { name: 'حفظ التعديلات', exact: true }).click();
-      await page.getByRole('status').filter({ hasText: 'تأكد حفظ بيانات النشاط في قاعدة الإنتاج' }).waitFor({ state: 'visible', timeout: 10000 });
+      await page.getByRole('status').filter({ hasText: 'تأكد حفظ هوية النشاط في قاعدة الإنتاج' }).waitFor({ state: 'visible', timeout: 10000 });
 
       const saveRequest = catalogAdminRequests.find((entry) => entry.action === 'BUSINESS_PROFILE_UPSERT');
       assert.ok(saveRequest, 'owner profile save must reach the authenticated catalog-admin action');
