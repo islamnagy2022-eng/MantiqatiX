@@ -666,15 +666,18 @@ try {
         publicEnabled: true,
         settings: { ...(paginationSource.settings || {}), catalog_public_enabled: true },
         profile: { ...(paginationSource.profile || {}), bio: 'نشاط تجريبي لاختبار التحميل التدريجي' },
-        provider: { ...(paginationSource.provider || {}), name, verified: index < 3 },
+        provider: { ...(paginationSource.provider || {}), name, verified: index >= 20 && index < 23 },
       };
-    });
+    }).sort((a, b) => Number(Boolean(b.provider?.verified)) - Number(Boolean(a.provider?.verified)) || a.id.localeCompare(b.id));
     const { context, page, directoryPageRequests } = await newScenario(browser, null, paginationFixtures);
     try {
       await page.getByText('نتائج البحث الموحدة (20)', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       const testCards = page.getByRole('heading').filter({ hasText: /^نشاط اختبار التصفح [0-9]{2}$/ });
       await testCards.first().waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(await testCards.count(), 20, 'directory must render exactly the first 20 activity cards');
+      assert.deepEqual((await testCards.allTextContents()).slice(0, 3).map((value) => value.trim()), [
+        'نشاط اختبار التصفح 21', 'نشاط اختبار التصفح 22', 'نشاط اختبار التصفح 23',
+      ], 'verified activities beyond the first UUID range must still lead the first cursor page');
       assert.deepEqual(directoryPageRequests.map((request) => request.offset), [0],
         'first directory request must retrieve only the first 20-row page');
       assert.equal(directoryPageRequests[0].cursor, '', 'first directory request must not include a cursor');
@@ -705,6 +708,7 @@ try {
       assert.equal(new Set((await testCards.allTextContents()).map((value) => value.trim())).size, 45,
         'cursor pagination must not duplicate activity cards across page boundaries');
       results.push('directory-progressive-cursor-pagination-20-20-remaining-five');
+      results.push('directory-verified-first-cursor-pages');
     } finally { await context.close(); }
   }
 
