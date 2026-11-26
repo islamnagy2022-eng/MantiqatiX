@@ -22,6 +22,10 @@ interface Props {
   hasMoreListings: boolean;
   loadingMoreListings: boolean;
   listingsLoading: boolean;
+  onLoadMoreBusinesses: () => void;
+  hasMoreBusinesses: boolean;
+  loadingMoreBusinesses: boolean;
+  businessesLoadError: string;
   parentGroupName?: string;
 }
 
@@ -36,7 +40,7 @@ const Metric: React.FC<{ label: string; value: number; color: string }> = ({ lab
   <article className={`rounded-2xl border p-4 ${color}`}><p className="text-xs font-bold">{label}</p><p className="mt-2 text-2xl font-black">{value.toLocaleString('ar-EG')}</p></article>
 );
 
-export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, unconfirmedCount, onBack, businesses, listings, onOpenListing, onOpenBusiness, onDirectoryListingFiltersChange, onLoadMoreListings, hasMoreListings, loadingMoreListings, listingsLoading, parentGroupName }) => {
+export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, unconfirmedCount, onBack, businesses, listings, onOpenListing, onOpenBusiness, onDirectoryListingFiltersChange, onLoadMoreListings, hasMoreListings, loadingMoreListings, listingsLoading, onLoadMoreBusinesses, hasMoreBusinesses, loadingMoreBusinesses, businessesLoadError, parentGroupName }) => {
   const [activeSection, setActiveSection] = useState<Section>('specialties');
   const specialtyFromUrl = new URLSearchParams(window.location.search).get('specialty');
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(specialtyFromUrl);
@@ -69,22 +73,25 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
     return resolveCanonicalSpecialty(business.activitySpecialty || '', category.id) === target ||
       resolveCanonicalSpecialty(categorySuffix, category.id) === target;
   };
-  const normalizedQuery = normalizeDirectorySearch(searchQuery);
-  const matchesSearch = (values: Array<string | null | undefined>) => !normalizedQuery ||
-    normalizeDirectorySearch(values.filter(Boolean).join(' ')).includes(normalizedQuery);
+  const normalizedQueryTokens = normalizeDirectorySearch(searchQuery).split(' ').filter(Boolean);
+  const matchesSearch = (values: Array<string | null | undefined>) => {
+    if (normalizedQueryTokens.length === 0) return true;
+    const haystack = normalizeDirectorySearch(values.filter(Boolean).join(' '));
+    return normalizedQueryTokens.every((token) => haystack.includes(token));
+  };
   const verifiedBusinesses = businesses.filter((business) => business.isVerified &&
     matchesBusinessSpecialty(business) &&
-    matchesSearch([business.name, business.activitySpecialty, business.category, business.phone, business.ownerWhatsApp, business.village, business.markaz, business.governorate]));
+    matchesSearch([business.name, business.activitySpecialty, business.category, business.bio, business.village, business.markaz, business.governorate]));
   const unverifiedBusinesses = businesses.filter((business) => !business.isVerified &&
     matchesBusinessSpecialty(business) &&
-    matchesSearch([business.name, business.activitySpecialty, business.category, business.phone, business.ownerWhatsApp, business.village, business.markaz, business.governorate]));
+    matchesSearch([business.name, business.activitySpecialty, business.category, business.bio, business.village, business.markaz, business.governorate]));
   const visibleListings = listings.filter((listing) =>
     (!selectedSpecialty || matchesSpecialty(listing.taxonomy_specialty || listing.specialty || '')) &&
-    matchesSearch([listing.display_name, listing.taxonomy_specialty, listing.specialty, listing.phone, listing.secondary_phone, listing.village, listing.district, listing.governorate]));
+    matchesSearch([listing.display_name, listing.taxonomy_specialty, listing.specialty, listing.village, listing.district, listing.governorate]));
     const allVisibleBusinesses = [...verifiedBusinesses, ...unverifiedBusinesses];
   const visibleBusinesses = allVisibleBusinesses.slice(0, visibleActivityCount);
   const renderedListings = visibleListings.slice(0, Math.max(0, visibleActivityCount - visibleBusinesses.length));
-  const hasMoreActivityResults = allVisibleBusinesses.length + visibleListings.length > visibleActivityCount || hasMoreListings;
+  const hasMoreActivityResults = allVisibleBusinesses.length + visibleListings.length > visibleActivityCount || hasMoreListings || hasMoreBusinesses;
   const countForSpecialty = (specialty: string) => businesses.filter((business) =>
     matchesBusinessSpecialty(business, specialty)).length +
     listings.filter((listing) => resolveCanonicalSpecialty(listing.taxonomy_specialty || listing.specialty || '', category.id) === resolveCanonicalSpecialty(specialty, category.id)).length;
@@ -141,8 +148,8 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
         <p className="mt-2 max-w-3xl text-sm leading-7 text-white/75">{category.description || `الوحدة المستقلة لنشاط ${category.name} وتخصصاته والجهات العاملة فيه.`}</p>
         <div className="mt-5 flex flex-wrap gap-2 text-xs font-bold">
           <span className="rounded-full bg-white/10 px-3 py-2">التخصصات: {specialties.length.toLocaleString('ar-EG')}</span>
-          <span className="rounded-full bg-emerald-400/15 px-3 py-2 text-emerald-100">موثق: {confirmedCount.toLocaleString('ar-EG')}</span>
-          <span className="rounded-full bg-red-400/15 px-3 py-2 text-red-100">غير موثق: {unconfirmedCount.toLocaleString('ar-EG')}</span>
+          <span className="rounded-full bg-emerald-400/15 px-3 py-2 text-emerald-100">موثق (محمّل): {confirmedCount.toLocaleString('ar-EG')}</span>
+          <span className="rounded-full bg-red-400/15 px-3 py-2 text-red-100">غير موثق (محمّل): {unconfirmedCount.toLocaleString('ar-EG')}</span>
         </div>
       </header>
 
@@ -153,8 +160,8 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
 
       {activeSection === 'overview' && <section className="space-y-4">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <Metric label="الأنشطة الموثقة" value={confirmedCount} color="border-emerald-200 bg-emerald-50 text-emerald-800" />
-          <Metric label="صفحات غير موثقة" value={unconfirmedCount} color="border-red-200 bg-red-50 text-red-700" />
+          <Metric label="الأنشطة الموثقة (المحمّل)" value={confirmedCount} color="border-emerald-200 bg-emerald-50 text-emerald-800" />
+          <Metric label="صفحات غير موثقة (المحمّل)" value={unconfirmedCount} color="border-red-200 bg-red-50 text-red-700" />
           <Metric label="التخصصات" value={specialties.length} color="border-slate-200 bg-slate-50 text-slate-800" />
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
@@ -202,8 +209,8 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
               className="min-h-12 w-full rounded-2xl border border-slate-200 bg-white py-3 pr-12 pl-4 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" />
           </label>
           <div className="flex flex-wrap gap-2 text-xs font-bold">
-            <span className="rounded-full bg-emerald-50 px-3 py-2 text-emerald-800">موثق: {verifiedBusinesses.length.toLocaleString('ar-EG')}</span>
-            <span className="rounded-full bg-red-50 px-3 py-2 text-red-700">غير موثق: {(unverifiedBusinesses.length + visibleListings.length).toLocaleString('ar-EG')}</span>
+            <span className="rounded-full bg-emerald-50 px-3 py-2 text-emerald-800">موثق (محمّل): {verifiedBusinesses.length.toLocaleString('ar-EG')}</span>
+            <span className="rounded-full bg-red-50 px-3 py-2 text-red-700">غير موثق (محمّل): {(unverifiedBusinesses.length + visibleListings.length).toLocaleString('ar-EG')}</span>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {visibleBusinesses.map((business) => <article key={business.id} className={`overflow-hidden rounded-2xl border bg-white shadow-sm ${business.isVerified ? 'border-emerald-200' : 'border-red-200'}`}>
@@ -230,14 +237,16 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
             {!listingsLoading && verifiedBusinesses.length + unverifiedBusinesses.length + visibleListings.length === 0 &&
               <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">{selectedSpecialty ? 'لا توجد نتائج مطابقة داخل هذا التخصص والنطاق الجغرافي المحدد.' : 'لا توجد نتائج مطابقة داخل هذا النشاط والنطاق الجغرافي المحدد.'}</p>}
           </div>
+          {businessesLoadError && <p role="status" className="text-center text-xs font-bold text-amber-800">{businessesLoadError}</p>}
           {hasMoreActivityResults && (
             <div className="flex justify-center pt-2">
               <button type="button" onClick={() => {
                 setVisibleActivityCount((current) => current + 20);
+                if (hasMoreBusinesses) onLoadMoreBusinesses();
                 if (hasMoreListings) onLoadMoreListings();
-              }} disabled={loadingMoreListings}
+              }} disabled={loadingMoreListings || loadingMoreBusinesses}
                 className="min-h-11 rounded-xl border border-emerald-200 bg-white px-6 py-3 text-xs font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60">
-                {loadingMoreListings ? 'جارٍ تحميل المزيد…' : selectedSpecialty ? 'رؤية المزيد من هذا التخصص' : 'رؤية المزيد من النتائج'}
+                {loadingMoreListings || loadingMoreBusinesses ? 'جارٍ تحميل المزيد…' : selectedSpecialty ? 'رؤية المزيد من هذا التخصص' : 'رؤية المزيد من النتائج'}
               </button>
             </div>
           )}
@@ -253,8 +262,8 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
         </header>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Metric label="الجهات الموثقة" value={confirmedCount} color="border-emerald-200 bg-emerald-50 text-emerald-800" />
-          <Metric label="الجهات غير الموثقة" value={unconfirmedCount} color="border-red-200 bg-red-50 text-red-700" />
+          <Metric label="الجهات الموثقة (المحمّل)" value={confirmedCount} color="border-emerald-200 bg-emerald-50 text-emerald-800" />
+          <Metric label="الجهات غير الموثقة (المحمّل)" value={unconfirmedCount} color="border-red-200 bg-red-50 text-red-700" />
           <Metric label="محاور المحتوى" value={marketing.contentPillars.length} color="border-slate-200 bg-slate-50 text-slate-800" />
           <Metric label="أفكار الحملات" value={marketing.campaignIdeas.length} color="border-blue-200 bg-blue-50 text-blue-800" />
         </div>

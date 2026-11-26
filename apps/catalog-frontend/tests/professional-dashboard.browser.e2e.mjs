@@ -10,11 +10,53 @@ const supabaseAnonKey = config.match(/supabaseKey:\s*'([^']+)'/)?.[1];
 assert.ok(supabaseUrl, 'public config must expose the configured Supabase URL');
 assert.ok(supabaseAnonKey, 'public config must expose the public Supabase key');
 const supabaseOrigin = new URL(supabaseUrl).origin;
-const liveDirectoryResponse = await fetch(`${supabaseUrl}/functions/v1/public-catalog-directory`, {
-  headers: { apikey: supabaseAnonKey, Accept: 'application/json' },
-});
-assert.equal(liveDirectoryResponse.status, 200, 'live public directory must respond HTTP 200');
-const liveDirectory = await liveDirectoryResponse.json();
+
+async function fetchLivePublicDirectoryPages() {
+  const businesses = [];
+  const seenBusinessIds = new Set();
+  const seenCursors = new Set();
+  let cursor = null;
+  let accessMode = null;
+
+  for (let pageNumber = 0; pageNumber < 500; pageNumber += 1) {
+    const requestUrl = new URL(`${supabaseUrl}/functions/v1/public-catalog-directory`);
+    if (cursor) requestUrl.searchParams.set('cursor', cursor);
+    const response = await fetch(requestUrl.toString(), {
+      headers: { apikey: supabaseAnonKey, Accept: 'application/json' },
+    });
+    assert.equal(response.status, 200, 'live public directory page ' + String(pageNumber + 1) + ' must respond HTTP 200');
+    const body = await response.json();
+    assert.equal(body.accessMode, 'PUBLIC_DIRECTORY_READ_ONLY');
+    assert.ok(Array.isArray(body.businesses), 'live public directory must return a businesses array');
+    accessMode = body.accessMode;
+
+    for (const business of body.businesses) {
+      assert.ok(!seenBusinessIds.has(business.id), 'live keyset pagination must not repeat business IDs: ' + business.id);
+      seenBusinessIds.add(business.id);
+      businesses.push(business);
+    }
+
+    // Older already-deployed Edge bundles do not expose pagination yet. Keep
+    // their fixture-read compatibility while testing all pages when the new
+    // signed-cursor response is deployed.
+    const pagination = body.pagination;
+    if (!pagination) break;
+    assert.equal(pagination.pageSize, 20, 'live public directory must keep a fixed 20-row page');
+    if (pagination.hasMore !== true) {
+      assert.equal(pagination.nextCursor, null, 'the final public page must not return a next cursor');
+      break;
+    }
+    assert.equal(typeof pagination.nextCursor, 'string', 'non-final public pages must include a signed cursor');
+    assert.ok(!seenCursors.has(pagination.nextCursor), 'live public directory cursor must advance without loops');
+    seenCursors.add(pagination.nextCursor);
+    cursor = pagination.nextCursor;
+    assert.ok(pageNumber < 499, 'live public directory pagination must terminate within the safety bound');
+  }
+
+  return { accessMode, businesses };
+}
+
+const liveDirectory = await fetchLivePublicDirectoryPages();
 assert.equal(liveDirectory.accessMode, 'PUBLIC_DIRECTORY_READ_ONLY');
 assert.ok(Array.isArray(liveDirectory.businesses), 'live public directory must return businesses');
 const verifiedBusinessTargets = [
@@ -173,6 +215,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
     promotionalImages: [],
   };
   const directoryAdminRequests = [];
+  const directoryPageRequests = [];
   const platformAdminRequests = [];
   const platformSettingsState = { settings: options.platformSettings || {} };
   const directoryListingsState = options.directoryListingsState || { listings: [] };
@@ -266,7 +309,21 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
       });
     }
     if (url.pathname.endsWith('/functions/v1/public-catalog-directory')) {
-      return json({ accessMode: 'PUBLIC_DIRECTORY_READ_ONLY', businesses: publicDirectoryBusinesses });
+      const requestedLimit = Number(url.searchParams.get('limit') || 20);
+      if (requestedLimit !== 20) return json({ error: 'PAGE_SIZE_NOT_SUPPORTED' }, 400);
+      const cursor = url.searchParams.get('cursor') || '';
+      const cursorMatch = cursor ? /^e2e-directory-cursor:(\d+)$/.exec(cursor) : null;
+      if (cursor && !cursorMatch) return json({ error: 'INVALID_CURSOR' }, 400);
+      const offset = cursorMatch ? Number(cursorMatch[1]) : 0;
+      directoryPageRequests.push({ limit: requestedLimit, cursor, offset });
+      const businesses = publicDirectoryBusinesses.slice(offset, offset + requestedLimit);
+      const hasMore = offset + businesses.length < publicDirectoryBusinesses.length;
+      const nextCursor = hasMore ? 'e2e-directory-cursor:' + String(offset + businesses.length) : null;
+      return json({
+        accessMode: 'PUBLIC_DIRECTORY_READ_ONLY',
+        businesses,
+        pagination: { pageSize: requestedLimit, hasMore, nextCursor },
+      });
     }
     if (url.pathname.endsWith('/functions/v1/public-catalog')) {
       const businessId = url.searchParams.get('businessId');
@@ -406,7 +463,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
   });
 
   await page.goto(baseUrl + (options.initialRoute || '?view=professional_dashboard'), { waitUntil: 'domcontentloaded' });
-  return { context, page, rpcObservation, catalogReadRequests, catalogAdminRequests, catalogProfileState, directoryAdminRequests, directoryListingsState, directoryListingPageRequests, platformAdminRequests, platformSettingsState };
+  return { context, page, rpcObservation, catalogReadRequests, catalogAdminRequests, catalogProfileState, directoryAdminRequests, directoryListingsState, directoryListingPageRequests, directoryPageRequests, platformAdminRequests, platformSettingsState };
 }
 
 async function waitForDashboard(page) {
@@ -490,8 +547,12 @@ if (new URL(baseUrl).origin === 'https://islamnagy2022-eng.github.io') {
     const directorySearchPanel = page.getByTestId('directory-search-panel');
     await directorySearchPanel.waitFor({ state: 'visible', timeout: 10000 });
     assert.equal(await directorySearchPanel.getByLabel('بحث عن نشاط أو خدمة', { exact: true }).count(), 1, 'the V4 directory search field must have an accessible label');
-    assert.equal(await directorySearchPanel.locator('select').count(), 4, 'the search workspace must retain all four geographic filters');
-    assert.equal(await directorySearchPanel.locator('select.mx-v4-search-select').count(), 4, 'all four geographic filters must use the token-backed V4 treatment');
+    assert.equal(await directorySearchPanel.locator('select').count(), 3, 'the governorate, center, and village filters must remain native selects');
+    assert.equal(await directorySearchPanel.locator('select.mx-v4-search-select').count(), 3, 'all geographic selects must use the token-backed V4 treatment');
+    const areaFilter = directorySearchPanel.getByLabel('المنطقة / العنوان', { exact: true });
+    assert.equal(await areaFilter.count(), 1, 'the area filter must be an accessible free-text input');
+    assert.equal(await areaFilter.getAttribute('type'), 'text', 'the area filter must accept custom street/area names');
+    assert.ok((await areaFilter.getAttribute('class')).includes('mx-v4-search-select'), 'the area input must use the centralized V4 treatment');
     const directoryLocationAction = directorySearchPanel.getByRole('button', { name: 'حدد موقعي', exact: true });
     assert.ok((await directoryLocationAction.getAttribute('class')).includes('mx-v4-search-location'), 'location action must use the centralized V4 style');
     const directoryLocationGradient = await directoryLocationAction.evaluate((element) => getComputedStyle(element).backgroundImage);
@@ -609,24 +670,49 @@ try {
         publicEnabled: true,
         settings: { ...(paginationSource.settings || {}), catalog_public_enabled: true },
         profile: { ...(paginationSource.profile || {}), bio: 'نشاط تجريبي لاختبار التحميل التدريجي' },
-        provider: { ...(paginationSource.provider || {}), name, verified: index < 3 },
+        provider: { ...(paginationSource.provider || {}), name, verified: index >= 20 && index < 23 },
       };
-    });
-    const { context, page } = await newScenario(browser, null, paginationFixtures);
+    }).sort((a, b) => Number(Boolean(b.provider?.verified)) - Number(Boolean(a.provider?.verified)) || a.id.localeCompare(b.id));
+    const { context, page, directoryPageRequests } = await newScenario(browser, null, paginationFixtures, { initialRoute: '?view=directory' });
     try {
-      await page.getByText('نتائج البحث الموحدة (45)', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByText('نتائج البحث الموحدة (20+)', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       const testCards = page.getByRole('heading').filter({ hasText: /^نشاط اختبار التصفح [0-9]{2}$/ });
       await testCards.first().waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(await testCards.count(), 20, 'directory must render exactly the first 20 activity cards');
-      await page.getByRole('button', { name: 'رؤية المزيد من الأنشطة', exact: true }).click();
+      assert.deepEqual((await testCards.allTextContents()).slice(0, 3).map((value) => value.trim()), [
+        'نشاط اختبار التصفح 21', 'نشاط اختبار التصفح 22', 'نشاط اختبار التصفح 23',
+      ], 'verified activities beyond the first UUID range must still lead the first cursor page');
+      assert.deepEqual(directoryPageRequests.map((request) => request.offset), [0],
+        'first directory request must retrieve only the first 20-row page');
+      assert.equal(directoryPageRequests[0].cursor, '', 'first directory request must not include a cursor');
+
+      const loadMoreButton = page.getByRole('button', { name: 'رؤية المزيد من الأنشطة', exact: true });
+      // Dispatch two click events synchronously: only one request may consume the
+      // current cursor even before React has time to disable the button.
+      await loadMoreButton.evaluate((button) => {
+        button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+      });
       await page.waitForFunction(() => [...document.querySelectorAll('h3')]
         .filter((node) => /^نشاط اختبار التصفح [0-9]{2}$/.test((node.textContent || '').trim())).length === 40);
       assert.equal(await testCards.count(), 40, 'first load-more action must append exactly 20 activity cards');
+      await page.getByText('نتائج البحث الموحدة (40+)', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(directoryPageRequests.length, 2, 'first load-more action must issue exactly one next-page request');
+      assert.equal(directoryPageRequests[1].offset, 20, 'second request must use the next-page cursor offset');
+      assert.equal(directoryPageRequests[1].cursor, 'e2e-directory-cursor:20');
+
       await page.getByRole('button', { name: 'رؤية المزيد من الأنشطة', exact: true }).click();
       await page.waitForFunction(() => [...document.querySelectorAll('h3')]
         .filter((node) => /^نشاط اختبار التصفح [0-9]{2}$/.test((node.textContent || '').trim())).length === 45);
       assert.equal(await testCards.count(), 45, 'last load-more action must append the remaining activities without duplicates');
-      results.push('directory-progressive-pagination-20-20-remaining-five');
+      await page.getByText('نتائج البحث الموحدة (45)', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(directoryPageRequests.length, 3, 'last load-more action must issue exactly one final-page request');
+      assert.equal(directoryPageRequests[2].offset, 40, 'final request must start at the final five records');
+      assert.equal(directoryPageRequests[2].cursor, 'e2e-directory-cursor:40');
+      assert.equal(new Set((await testCards.allTextContents()).map((value) => value.trim())).size, 45,
+        'cursor pagination must not duplicate activity cards across page boundaries');
+      results.push('directory-progressive-cursor-pagination-20-20-remaining-five');
+      results.push('directory-verified-first-cursor-pages');
     } finally { await context.close(); }
   }
 

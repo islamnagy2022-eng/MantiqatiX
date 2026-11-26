@@ -1,6 +1,6 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Business } from '../types';
+import { Business, Product } from '../types';
 import { ActivityShareDialog } from './ActivityShareDialog';
 import {
   Store,
@@ -45,6 +45,7 @@ const DirectorySubViewFallback = () => (
   </div>
 );
 import { fetchPublicDirectoryListingPage, type PublicDirectoryListing, type PublicDirectoryListingFilters } from '../lib/directoryListings';
+import { fetchPublicDirectoryPage, type PublicDirectoryPageFilters } from '../lib/production';
 import { resolveCanonicalSpecialty } from '../data/productionDefaults';
 import { EGYPT_GEO_DISTRICTS, EGYPT_GEO_GOVERNORATES, loadEgyptDistrictShiyakhas, resolveEgyptAdministrativeLocation, type EgyptGeoShiyakha } from '../data/egyptGeoDiscovery';
 
@@ -153,14 +154,33 @@ const writeStoredGeoPreference = (preference: StoredGeoPreference) => {
 export const DirectoryView: React.FC = () => {
   const {
     directoryBusinesses,
+    directoryProducts,
     directoryLoading,
+    directoryHasMore,
+    directoryLoadingMore,
+    directoryLoadMoreError,
+    loadMoreDirectoryBusinesses,
     categories,
     setSelectedBusinessId,
     setCurrentView,
     adminSettings,
-    products,
   } = useApp();
-  const businesses = directoryBusinesses;
+  const [scopedDirectoryBusinesses, setScopedDirectoryBusinesses] = useState<Business[] | null>(null);
+  const [scopedDirectoryProducts, setScopedDirectoryProducts] = useState<Product[]>([]);
+  const [scopedDirectoryHasMore, setScopedDirectoryHasMore] = useState(false);
+  const [scopedDirectoryLoading, setScopedDirectoryLoading] = useState(false);
+  const [scopedDirectoryLoadingMore, setScopedDirectoryLoadingMore] = useState(false);
+  const [scopedDirectoryError, setScopedDirectoryError] = useState('');
+  const scopedDirectoryCursorRef = useRef<string | null>(null);
+  const scopedDirectoryGenerationRef = useRef(0);
+  const scopedDirectoryInFlightRef = useRef(false);
+  const scopedDirectoryFiltersRef = useRef<PublicDirectoryPageFilters>({});
+  const businesses = scopedDirectoryBusinesses ?? directoryBusinesses;
+  const directoryProductsForView = scopedDirectoryBusinesses !== null ? scopedDirectoryProducts : directoryProducts;
+  const directoryLoadingForView = scopedDirectoryBusinesses !== null ? scopedDirectoryLoading : directoryLoading;
+  const directoryHasMoreForView = scopedDirectoryBusinesses !== null ? scopedDirectoryHasMore : directoryHasMore;
+  const directoryLoadingMoreForView = scopedDirectoryBusinesses !== null ? scopedDirectoryLoadingMore : directoryLoadingMore;
+  const directoryLoadMoreErrorForView = scopedDirectoryBusinesses !== null ? scopedDirectoryError : directoryLoadMoreError;
   const [initialGeoPreference] = useState<StoredGeoPreference | null>(() => readStoredGeoPreference());
   const [geoSetupCompleted, setGeoSetupCompleted] = useState(Boolean(initialGeoPreference?.completed));
   const [geoPreferenceMode, setGeoPreferenceMode] = useState<'auto' | 'manual'>(initialGeoPreference?.mode || 'manual');
@@ -350,6 +370,68 @@ export const DirectoryView: React.FC = () => {
   const [selectedMarkazFilter, setSelectedMarkazFilter] = useState<string>(initialGeoPreference?.markaz || 'all');
   const [selectedVillageFilter, setSelectedVillageFilter] = useState<string>(initialGeoPreference?.village || 'all');
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>(initialGeoPreference?.area || 'all');
+  const publicDirectoryPageFilters = useMemo<PublicDirectoryPageFilters>(() => {
+    const insideActivityModule = Boolean(activityModuleId);
+    const query = (insideActivityModule ? activityListingSearchQuery : searchQuery).trim();
+    const specialty = insideActivityModule ? activityListingSpecialty : selectedSpecialty;
+    const filters: PublicDirectoryPageFilters = {};
+    if (insideActivityModule) filters.activity = activityModuleId;
+    else if (selectedCategoryId !== 'all') filters.activity = selectedCategoryId;
+    if (specialty !== 'all') filters.specialty = specialty;
+    if (selectedGovFilter !== 'all') filters.governorate = selectedGovFilter;
+    if (selectedMarkazFilter !== 'all') filters.markaz = selectedMarkazFilter;
+    if (selectedVillageFilter !== 'all') filters.village = selectedVillageFilter;
+    if (selectedAreaFilter !== 'all') filters.area = selectedAreaFilter;
+    if (query) filters.query = query;
+    return filters;
+  }, [
+    activityModuleId, activityListingSearchQuery, activityListingSpecialty, searchQuery,
+    selectedCategoryId, selectedSpecialty, selectedGovFilter, selectedMarkazFilter, selectedVillageFilter, selectedAreaFilter,
+  ]);
+
+  useEffect(() => {
+    const generation = ++scopedDirectoryGenerationRef.current;
+    const filters = publicDirectoryPageFilters;
+    scopedDirectoryFiltersRef.current = filters;
+    scopedDirectoryCursorRef.current = null;
+    scopedDirectoryInFlightRef.current = false;
+    if (Object.keys(filters).length === 0) {
+      setScopedDirectoryBusinesses(null);
+      setScopedDirectoryProducts([]);
+      setScopedDirectoryHasMore(false);
+      setScopedDirectoryLoading(false);
+      setScopedDirectoryLoadingMore(false);
+      setScopedDirectoryError('');
+      return;
+    }
+
+    setScopedDirectoryBusinesses([]);
+    setScopedDirectoryProducts([]);
+    setScopedDirectoryHasMore(false);
+    setScopedDirectoryLoading(true);
+    setScopedDirectoryLoadingMore(false);
+    setScopedDirectoryError('');
+    const timer = window.setTimeout(async () => {
+      try {
+        const page = await fetchPublicDirectoryPage(null, filters);
+        if (generation !== scopedDirectoryGenerationRef.current) return;
+        setScopedDirectoryBusinesses(page.businesses);
+        setScopedDirectoryProducts(page.products);
+        scopedDirectoryCursorRef.current = page.nextCursor;
+        setScopedDirectoryHasMore(page.hasMore);
+      } catch (error) {
+        if (generation !== scopedDirectoryGenerationRef.current) return;
+        setScopedDirectoryBusinesses([]);
+        setScopedDirectoryProducts([]);
+        setScopedDirectoryHasMore(false);
+        setScopedDirectoryError(error instanceof Error ? error.message : 'تعذر تحميل الأنشطة المطابقة للبحث.');
+      } finally {
+        if (generation === scopedDirectoryGenerationRef.current) setScopedDirectoryLoading(false);
+      }
+    }, publicDirectoryPageFilters.query || publicDirectoryPageFilters.area ? 300 : 0);
+    return () => window.clearTimeout(timer);
+  }, [publicDirectoryPageFilters]);
+
   const handleActivityListingFiltersChange = useCallback((query: string, specialty: string) => {
     setActivityListingSearchQuery(query);
     setActivityListingSpecialty(specialty || 'all');
@@ -448,10 +530,51 @@ export const DirectoryView: React.FC = () => {
       if (requestGeneration === directoryPaginationGeneration.current) setDirectoryListingsLoadingMore(false);
     }
   }, [directoryListingsHasMore, directoryListingsCursor, directoryListingsLoadingMore, directoryListingRequestFilters]);
+  const loadMoreScopedDirectoryBusinesses = useCallback(async () => {
+    const cursor = scopedDirectoryCursorRef.current;
+    if (!cursor || !scopedDirectoryHasMore || scopedDirectoryLoadingMore || scopedDirectoryInFlightRef.current) return;
+    const generation = scopedDirectoryGenerationRef.current;
+    scopedDirectoryInFlightRef.current = true;
+    setScopedDirectoryLoadingMore(true);
+    setScopedDirectoryError('');
+    try {
+      const page = await fetchPublicDirectoryPage(cursor, scopedDirectoryFiltersRef.current);
+      if (generation !== scopedDirectoryGenerationRef.current) return;
+      setScopedDirectoryBusinesses((current) => {
+        const unique = new Map<string, Business>((current || []).map((business) => [business.id, business] as const));
+        page.businesses.forEach((business) => unique.set(business.id, business));
+        return Array.from(unique.values());
+      });
+      setScopedDirectoryProducts((current) => {
+        const unique = new Map<string, Product>(current.map((product) => [product.id, product] as const));
+        page.products.forEach((product) => unique.set(product.id, product));
+        return Array.from(unique.values());
+      });
+      scopedDirectoryCursorRef.current = page.nextCursor;
+      setScopedDirectoryHasMore(page.hasMore);
+    } catch (error) {
+      if (generation !== scopedDirectoryGenerationRef.current) return;
+      setScopedDirectoryError(error instanceof Error ? error.message : 'تعذر تحميل الدفعة التالية من الأنشطة.');
+    } finally {
+      if (generation === scopedDirectoryGenerationRef.current) {
+        scopedDirectoryInFlightRef.current = false;
+        setScopedDirectoryLoadingMore(false);
+      }
+    }
+  }, [scopedDirectoryHasMore, scopedDirectoryLoadingMore]);
+
   const showMoreDirectoryActivities = useCallback(() => {
     setVisibleActivityCount((current) => current + 20);
+    if (scopedDirectoryBusinesses !== null) {
+      if (scopedDirectoryHasMore) void loadMoreScopedDirectoryBusinesses();
+    } else if (directoryHasMore) {
+      void loadMoreDirectoryBusinesses();
+    }
     if (directoryListingsHasMore) void loadMoreDirectoryListings();
-  }, [directoryListingsHasMore, loadMoreDirectoryListings]);
+  }, [
+    scopedDirectoryBusinesses, scopedDirectoryHasMore, loadMoreScopedDirectoryBusinesses,
+    directoryHasMore, loadMoreDirectoryBusinesses, directoryListingsHasMore, loadMoreDirectoryListings,
+  ]);
 
   const [administrativeShiyakhas, setAdministrativeShiyakhas] = useState<EgyptGeoShiyakha[]>([]);
   const [shiyakhaLoadStatus, setShiyakhaLoadStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
@@ -595,14 +718,17 @@ export const DirectoryView: React.FC = () => {
     const a = Math.sin(dLat / 2) ** 2 + Math.cos(radians(from.latitude)) * Math.cos(radians(to.latitude)) * Math.sin(dLon / 2) ** 2;
     return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
   };
-  const queryTokens = normalizeSearch(searchQuery).split(' ').filter(Boolean);
+  const activeDirectorySearchQuery = activityModuleId ? activityListingSearchQuery : searchQuery;
+  const activeDirectorySpecialty = activityModuleId ? activityListingSpecialty : selectedSpecialty;
+  const activeDirectoryCategoryId = activityModuleId ? 'all' : selectedCategoryId;
+  const queryTokens = normalizeSearch(activeDirectorySearchQuery).split(' ').filter(Boolean);
   // Rank only configured image URLs; placeholders do not count as real assets.
   const hasConfiguredImage = (value: unknown) => {
     const url = String(value || '').trim().toLowerCase();
     return Boolean(url) && !['business-placeholder.svg', 'product-placeholder.svg', 'default-image', 'placeholder'].some((token) => url.includes(token));
   };
   const productPhotoCounts = new Map<string, number>();
-  products.forEach((product) => {
+  directoryProductsForView.forEach((product) => {
     if (!hasConfiguredImage(product.imageUrl)) return;
     productPhotoCounts.set(product.businessId, (productPhotoCounts.get(product.businessId) || 0) + 1);
   });
@@ -614,18 +740,20 @@ export const DirectoryView: React.FC = () => {
   const filteredBusinesses = businesses.filter((biz) => {
     // Public safety: never expose unpublished, inactive, or frozen registered businesses.
     if ((!biz.publicEnabled && !biz.isOfficialShowcase) || biz.operationalStatus !== 'ACTIVE' || biz.isFrozen) return false;
+    // Free-text search covers only public business/profile data. Consent-gated phone
+    // and WhatsApp values are never used as search fields.
     const haystack = normalizeSearch([
-      biz.name, biz.category, biz.bio, biz.address, biz.governorate, biz.markaz, biz.village,
-      biz.phone, biz.ownerWhatsApp, biz.activitySpecialty,
+      biz.name, biz.category, biz.bio, biz.governorate, biz.markaz, biz.village,
+      biz.activitySpecialty,
     ].join(' '));
     const matchesSearch = queryTokens.every((token) => haystack.includes(token));
     const matchedCategory = categoryForBusiness(biz);
-    const matchesCategory = selectedCategoryId === 'all' ||
-      Boolean(matchedCategory && selectedActivityCategory && matchedCategory.id === selectedActivityCategory.id);
+    const matchesCategory = activeDirectoryCategoryId === 'all' ||
+      Boolean(matchedCategory && (activityModuleId ? matchedCategory.id === activityModuleId : selectedActivityCategory && matchedCategory.id === selectedActivityCategory.id));
     const storedSpecialty = String(biz.activitySpecialty || '');
     const categorySuffix = matchedCategory ? biz.category.slice(matchedCategory.name.length).replace(/^\s*—\s*/, '') : '';
-    const requestedSpecialty = resolveCanonicalSpecialty(selectedSpecialty, matchedCategory?.id);
-    const matchesSpecialty = selectedSpecialty === 'all' ||
+    const requestedSpecialty = resolveCanonicalSpecialty(activeDirectorySpecialty, matchedCategory?.id);
+    const matchesSpecialty = activeDirectorySpecialty === 'all' ||
       resolveCanonicalSpecialty(storedSpecialty, matchedCategory?.id) === requestedSpecialty ||
       resolveCanonicalSpecialty(categorySuffix, matchedCategory?.id) === requestedSpecialty;
     const matchesGov = selectedGovFilter === 'all' || normalizeAdministrativeName(biz.governorate) === normalizeAdministrativeName(selectedGovFilter);
@@ -689,7 +817,7 @@ export const DirectoryView: React.FC = () => {
   const totalFilteredActivities = filteredBusinesses.length + filteredUnconfirmedListings.length;
   const visibleActivityTotal = visibleBusinesses.length + visibleUnconfirmedListings.length;
 
-  const hasNoSearchResults = !directoryLoading && directoryListingsLoaded &&
+  const hasNoSearchResults = !directoryLoadingForView && directoryListingsLoaded &&
     filteredBusinesses.length + filteredUnconfirmedListings.length === 0;
   const canWidenGeographicSearch = selectedAreaFilter !== 'all' ||
     selectedVillageFilter !== 'all' || selectedMarkazFilter !== 'all' || selectedGovFilter !== 'all';
@@ -712,7 +840,7 @@ export const DirectoryView: React.FC = () => {
   };
 
   const locationRecords = [
-    ...businesses.filter((b) => Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen)
+    ...directoryBusinesses.filter((b) => Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen)
       .map((b) => ({ governorate: b.governorate, markaz: b.markaz, village: b.village, address: b.address })),
     ...unconfirmedListings.filter((l) => l.listing_status === 'PUBLISHED' && l.claim_status !== 'CLAIMED')
       .map((l) => ({ governorate: l.governorate, markaz: l.district, village: l.village || '', address: l.address || '' })),
@@ -809,6 +937,10 @@ export const DirectoryView: React.FC = () => {
         hasMoreListings={directoryListingsHasMore}
         loadingMoreListings={directoryListingsLoadingMore}
         listingsLoading={!directoryListingsLoaded}
+        onLoadMoreBusinesses={() => { void loadMoreScopedDirectoryBusinesses(); }}
+        hasMoreBusinesses={scopedDirectoryHasMore}
+        loadingMoreBusinesses={scopedDirectoryLoadingMore}
+        businessesLoadError={scopedDirectoryError}
       /></Suspense>;
     }
   }
@@ -1028,10 +1160,18 @@ export const DirectoryView: React.FC = () => {
               </select>
             </label>
             <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المنطقة / العنوان
-              <select value={selectedAreaFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedAreaFilter(e.target.value); }} className="mx-v4-search-select mt-1 min-h-11 w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-800 outline-none transition hover:border-slate-300">
-                <option value="all">كل المناطق</option>
-                {uniqueAreas.map((value) => <option key={value} value={value}>{value}</option>)}
-              </select>
+              <input
+                type="text"
+                list="directory-area-options"
+                value={selectedAreaFilter === 'all' ? '' : selectedAreaFilter}
+                onChange={(e) => { completeGeoSetup('manual'); setSelectedAreaFilter(e.target.value.trim() || 'all'); }}
+                placeholder="كل المناطق — اكتب اسم المنطقة أو الشارع"
+                autoComplete="off"
+                className="mx-v4-search-select mt-1 min-h-11 w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-800 outline-none transition hover:border-slate-300"
+              />
+              <datalist id="directory-area-options">
+                {uniqueAreas.map((value) => <option key={value} value={value} />)}
+              </datalist>
             </label>
             </div>
           </div>
@@ -1043,7 +1183,7 @@ export const DirectoryView: React.FC = () => {
           <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="font-black text-lg text-slate-900 flex items-center gap-2">
               <Store className="w-5 h-5 text-emerald-600" />
-              <span>نتائج البحث الموحدة ({filteredBusinesses.length + filteredUnconfirmedListings.length})</span>
+              <span>نتائج البحث الموحدة ({filteredBusinesses.length + filteredUnconfirmedListings.length}{directoryHasMoreForView || directoryListingsHasMore ? '+' : ''})</span>
             </h2>
             <div
               aria-label="ملخص حالة توثيق النتائج"
@@ -1065,16 +1205,16 @@ export const DirectoryView: React.FC = () => {
                 <Store className="w-8 h-8" />
               </div>
               <h3 className="font-bold text-slate-800 text-base">
-                {directoryLoading ? 'جارٍ تحميل الأنشطة المنشورة' : businesses.length === 0 ? 'لا توجد أنشطة متاحة للعرض حاليا' : 'لا توجد أنشطة مطابقة للبحث'}
+                {directoryLoadingForView ? 'جارٍ تحميل الأنشطة المنشورة' : businesses.length === 0 ? 'لا توجد أنشطة متاحة للعرض حاليا' : 'لا توجد أنشطة مطابقة للبحث'}
               </h3>
               <p className="text-xs text-slate-500 max-w-lg mx-auto">
-                {directoryLoading
+                {directoryLoadingForView
                   ? 'يتم الآن تحميل الأنشطة المنشورة من المنصة، وستظهر هنا تلقائيًا.'
                   : businesses.length === 0
                   ? 'ستظهر هنا الأنشطة النشطة المتاحة للزوار. تواصل مع إدارة المنصة إذا كنت تبحث عن نشاط غير موجود.'
                   : 'جرب تغيير كلمات البحث أو القطاع أو المحافظة أو ابحث باسم المركز أو القرية أو المنطقة.'}
               </p>
-              {!directoryLoading && businesses.length === 0 && catalogRequestPhone && (
+              {!directoryLoadingForView && businesses.length === 0 && catalogRequestPhone && (
                 <a
                   href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد تفعيل كتالوج لنشاطي على MantiqatiX')}`}
                   target="_blank"
@@ -1247,16 +1387,22 @@ export const DirectoryView: React.FC = () => {
               ))}
             </div>
           )}
-          {(visibleActivityTotal < totalFilteredActivities || directoryListingsHasMore) && (
+          {(visibleActivityTotal < totalFilteredActivities || directoryHasMoreForView || directoryListingsHasMore || directoryLoadMoreErrorForView || directoryListingsError) && (
             <div className="flex flex-col items-center gap-2 pt-2">
-              <button type="button" onClick={showMoreDirectoryActivities} disabled={directoryListingsLoadingMore}
-                className="min-h-11 rounded-xl border border-emerald-200 bg-white px-6 py-3 text-xs font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60">
-                {directoryListingsLoadingMore ? 'جارٍ تحميل المزيد…' : 'رؤية المزيد من الأنشطة'}
-              </button>
+              {(visibleActivityTotal < totalFilteredActivities || directoryHasMoreForView || directoryListingsHasMore) && (
+                <button type="button" onClick={showMoreDirectoryActivities} disabled={directoryListingsLoadingMore || directoryLoadingMoreForView}
+                  className="min-h-11 rounded-xl border border-emerald-200 bg-white px-6 py-3 text-xs font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60">
+                  {directoryListingsLoadingMore || directoryLoadingMoreForView ? 'جارٍ تحميل المزيد…' : 'رؤية المزيد من الأنشطة'}
+                </button>
+              )}
               <p className="text-[11px] text-slate-500">يتم عرض الأنشطة على دفعات من 20، مع الاحتفاظ بنطاق المحافظة والمركز والقرية المحدد.</p>
             </div>
           )}
-          {directoryListingsError && <p role="status" className="text-center text-xs font-bold text-amber-800">{directoryListingsError}</p>}
+          {(directoryListingsError || directoryLoadMoreErrorForView) && (
+            <p role="status" className="text-center text-xs font-bold text-amber-800">
+              {[directoryListingsError, directoryLoadMoreErrorForView].filter(Boolean).join(' ')}
+            </p>
+          )}
         </div>
       </div>
       {shareActivity && (
