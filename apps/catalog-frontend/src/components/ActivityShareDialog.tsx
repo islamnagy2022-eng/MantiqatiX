@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Check, Copy, ExternalLink, QrCode, Share2, X } from 'lucide-react';
-import { getCurrentAppBasePath } from '../../utils/rules';
+import { getCurrentAppBasePath } from '../utils/rules';
 
 interface ActivityShareDialogProps {
   activityId: string;
