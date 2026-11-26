@@ -100,7 +100,7 @@ assert.ok(productionVerifier.includes("20261125120000_rc927_digital_page_authent
   "production verifier must enumerate RC927");
 assert.ok(migrationGate.includes("20261125120000_rc927_digital_page_authenticated_identity_scope.sql"),
   "strict release gate must enumerate RC927");
-assert.match(migrationGate, /required\.length,\s*86/, "strict release gate must enforce 85 exact source migrations");
+assert.match(migrationGate, /required\.length,\s*86/, "strict release gate must enforce 86 exact source migrations");
 assert.ok(forwardReplay.includes("node scripts/validate-rc927-digital-page-authenticated-identity-scope.mjs"),
   "forward replay must execute RC927 source validation");
 assert.ok(forwardReplay.includes(testPath), "forward replay must execute RC927 PostgreSQL integration");
@@ -115,6 +115,6 @@ assert.ok(manifest.required_release_migration_ledger_check.missing_versions.incl
 assert.ok(backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=86"),
   "backup validator must use the 86-source contract");
 assert.ok(crosswalk.includes("20261125120000") && crosswalk.includes("RC927"),
-  "the 85-source source-to-live crosswalk must include RC927");
+  "the 86-source source-to-live crosswalk must include RC927");
 
 console.log("RC927 digital-page anonymous Auth isolation source contract: PASS");
