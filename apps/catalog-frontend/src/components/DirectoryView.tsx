@@ -937,6 +937,10 @@ export const DirectoryView: React.FC = () => {
         hasMoreListings={directoryListingsHasMore}
         loadingMoreListings={directoryListingsLoadingMore}
         listingsLoading={!directoryListingsLoaded}
+        onLoadMoreBusinesses={() => { void loadMoreScopedDirectoryBusinesses(); }}
+        hasMoreBusinesses={scopedDirectoryHasMore}
+        loadingMoreBusinesses={scopedDirectoryLoadingMore}
+        businessesLoadError={scopedDirectoryError}
       /></Suspense>;
     }
   }
