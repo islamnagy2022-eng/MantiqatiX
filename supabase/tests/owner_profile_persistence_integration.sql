@@ -238,11 +238,12 @@ BEGIN
     true);
 
   BEGIN
-    PERFORM public.upsert_catalog_business_profile_backend(
+    PERFORM public.upsert_catalog_business_profile_atomic_backend(
       v_tenant_id, v_business_id, v_branch_id,
       'Unauthorized Manager Edit', 'should be denied', '+201000000000',
       'Test Street', 'Test Governorate', 'Test Markaz', 'Test District',
-      'Sun-Thu 9:00-17:00', '', '', false
+      'Sun-Thu 9:00-17:00', '', '', false,
+      jsonb_build_object('promotional_images', jsonb_build_array('https://cdn.example.test/manager-spoof.webp'))
     );
     RAISE EXCEPTION 'OWNER_PROFILE_BRANCH_MANAGER_WRITE_WAS_ALLOWED';
   EXCEPTION WHEN OTHERS THEN
