@@ -28,6 +28,7 @@ import {
 import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPlatformSubscribers, fetchPublicCatalog, fetchPublicDirectory, generateCatalogAiImage, isReferralSharingEnabled, mapBusiness, mapProducts, supabase } from '../lib/production';
 import { capturePendingReferralFromLocation, clearPendingReferral, getPendingReferralCode } from '../utils/referrals';
 import { resolveDefaultImage } from '../utils/defaultImages';
+import { hasPromotionalGalleryCapability, hasPromotionalGalleryChanges } from '../utils/promotionalGalleryCapability';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../utils/dashboardAccess';
 
 export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'account_portal' | 'marketplace_home' | 'contact_us' | 'site_map' | 'login' | 'directory';
@@ -715,6 +716,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       throw new Error('لا يوجد نطاق إنتاجي صالح لهذا النشاط أو الفرع.');
     }
 
+    const currentGallery = businesses.find((business) => business.id === updated.id)?.promotionalImages || [];
+    if (Array.isArray(updated.promotionalImages) && hasPromotionalGalleryChanges(currentGallery, updated.promotionalImages)) {
+      // Older catalog-admin bundles accept BUSINESS_PROFILE_UPSERT but silently
+      // ignore promotionalImages. Probe its read contract before any profile write.
+      const capabilityRead: any = await callCatalogAdmin({
+        action: 'CATALOG_READ',
+        tenantId: updated.tenantId,
+        businessId: updated.id,
+        branchId: updated.branchId,
+      });
+      if (!hasPromotionalGalleryCapability(capabilityRead)) {
+        throw new Error('خادم الكتالوج الحالي لا يدعم معرض الصور الترويجية بعد. لم يتم حفظ أي تعديل. أعد المحاولة بعد تحديث خوادم الكتالوج.');
+      }
+    }
+
     const defaultCover = !updated.coverUrl?.trim() ||
       /(?:business-cover-placeholder\.svg|business-placeholder\.svg|catalog-item-placeholder\.svg|\/legacy\/activity\/|\/legacy\/mnty-cover-ad-)/i.test(updated.coverUrl);
     let coverUrl = updated.coverUrl?.trim() || '';
@@ -755,7 +771,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       workingHours: updated.workingHours || '',
       logoUrl,
       coverUrl,
-      promotionalImages: updated.promotionalImages || [],
+      ...(Array.isArray(updated.promotionalImages) ? { promotionalImages: updated.promotionalImages } : {}),
       publicEnabled: Boolean(updated.publicEnabled),
     });
     // Profile edits must not rewrite billing metadata from a potentially stale client snapshot.
