@@ -56,6 +56,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261124140000", // RC924 — restrict agreement reads to participants and registry-backed Legal admins
   "20261124150000", // RC925 — deny catalog RPC calls unless is_anonymous is explicitly false
   "20261125110000", // RC926 — require explicitly confirmed identity for provider-profile SELECT
+  "20261125120000", // RC927 — isolate public digital-page reads from anonymous Auth sessions
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
