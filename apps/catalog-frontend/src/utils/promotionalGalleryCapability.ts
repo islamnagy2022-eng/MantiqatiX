@@ -32,4 +32,4 @@ const normalizeImageList = (value: unknown): string[] => {
 
 /** Compare normalized gallery state to avoid blocking ordinary profile saves. */
 export const hasPromotionalGalleryChanges = (current: unknown, requested: unknown): boolean =>
-  JSON.stringify(normalizeImageList(current)) !== JSON.stringify(normalizeImageList(requested));
+  Array.isArray(requested) && JSON.stringify(normalizeImageList(current)) !== JSON.stringify(normalizeImageList(requested));
