@@ -1,3 +1,14 @@
+## 2026-11-26 — RC464/RC469/RC484 Production preflight recheck (read-only)
+
+- [x] RC464: registry RLS ON; registry owner and canonical guard owner both postgres/BYPASSRLS; anon/authenticated direct registry CRUD denied; four expected MantiGO global SECURITY DEFINER RPCs and four additional shared guard callers present; required three policy predicates match.
+- [x] RC484: registry user_id is UUID; registry/helper owner parity and BYPASSRLS match; anon/authenticated registry privileges absent; service_role CRUD preserved; 57 policies across 24 tables match.
+- [x] RC469: all four exact SECURITY DEFINER callers exist with anon EXECUTE denied and authenticated EXECUTE allowed. Their search_path remains non-empty; RC469 requires RC464 first.
+- Required coordinated order remains RC464 → RC469 → RC484 within the complete certified migration chain. Production ledger remains 310 through 20261110150618; no Production mutation occurred.
+- [x] Added PR #1146 isolated PostgreSQL 17 RC484 behavioral parity workflow; the exact migration plus full integration test passed: https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45883930727. Merged as 8b5f8b003ccec5e30c8a72942a6da06b1f418a24.
+- [x] PR #1145 source/Edge audit deployed; deployed-origin activity-share E2E passed: https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45868764532.
+
+---
+
 ## 2026-11-26 — Critical platform-root authorization read-back (read-only)
 
 - [x] Read `public.mnty_can_platform_admin()`: SECURITY DEFINER, owner postgres, `search_path=public,pg_temp`, delegates to `public.mnty_can('admin',NULL,NULL,NULL)`.

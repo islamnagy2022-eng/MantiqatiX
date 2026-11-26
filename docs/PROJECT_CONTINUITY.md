@@ -1,3 +1,14 @@
+## 2026-11-26 — RC464/RC469/RC484 Production preflight recheck (read-only)
+
+- RC464 preflight matches current Production schema: `private.platform_admins` exists with RLS enabled; table owner and `mnty_can_platform_admin()` owner are both `postgres` with BYPASSRLS; anon/authenticated have no direct SELECT/INSERT/UPDATE/DELETE; all four expected global MantiGO SECURITY DEFINER RPCs and all four additional shared-helper callers exist; the required digital-pages and two MantiGO policies call the shared guard in both USING and WITH CHECK.
+- RC484 preflight matches: registry `user_id` is UUID; registry and `is_platform_admin()` owners match and have BYPASSRLS; anon/authenticated have no direct registry table privileges; service_role retains SELECT/INSERT/UPDATE/DELETE; the expected blast radius is exactly 57 policies across 24 tables.
+- RC469 caller identities and ACLs match: all four exact SECURITY DEFINER callers exist, anon EXECUTE is false and authenticated EXECUTE is true. Their current search_path values remain non-empty, and RC469 requires the canonical guard to be hardened by RC464 first.
+- Required release order is RC464 → RC469 → RC484, within the complete certified migration sequence. Preflight matches do not mean migrations are applied: Production ledger remains 310 rows through `20261110150618`; no Production mutation was performed.
+- Added PR #1146's isolated PostgreSQL 17 workflow for the existing RC484 fixture/migration/integration test. The full 57-policy tenant-vs-platform behavioral test passed on disposable PostgreSQL 17: [run 45883930727](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45883930727). PR #1146 merged as `8b5f8b003ccec5e30c8a72942a6da06b1f418a24`.
+- PR #1145 merged as `250e1e1afed1d589edfb84b10059b9654a2e501e`; Pages deployment and deployed-origin activity-share keyboard/direct-link regression passed: [run 45868764532](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45868764532).
+
+---
+
 ## 2026-11-26 — Critical platform-root authorization drift (read-only)
 
 - Production `public.mnty_can_platform_admin()` is SECURITY DEFINER, owner `postgres`, `search_path=public,pg_temp`, and delegates to `public.mnty_can('admin',NULL,NULL,NULL)`.
