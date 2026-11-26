@@ -15,7 +15,7 @@ const releaseGate = read("scripts/validate-production-migration-chain-gate.mjs")
 const productionVerifier = read("scripts/production/verify-production.mjs");
 const liveContract = read("scripts/production/live-reconciliation-contract.mjs");
 const manifest = JSON.parse(read("docs/release/production-migration-reconciliation.json"));
-const crosswalk = read("docs/release/REQUIRED_85_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261126.md");
+const crosswalk = read("docs/release/REQUIRED_86_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261126.md");
 const galleryValidator = read("scripts/validate-promotional-image-gallery.mjs");
 const ownerValidator = read("scripts/validate-owner-profile-persistence.mjs");
 
@@ -104,7 +104,7 @@ assert.ok(ownerIntegration.includes("set_config('request.jwt.claim.sub', v_owner
 assert.ok(releaseGate.includes("20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql"));
 assert.ok(productionVerifier.includes("20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql"));
 assert.ok(liveContract.includes('"20261126010000"'));
-assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 85);
+assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 86);
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261126010000"));
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261126010000"));
 assert.ok(crosswalk.includes("20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql"));

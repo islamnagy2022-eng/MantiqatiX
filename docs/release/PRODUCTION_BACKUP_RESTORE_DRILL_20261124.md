@@ -7,13 +7,14 @@
 
 ## Current migration reconciliation (2026-11-25)
 
-- The current release contract tracks **85 exact migration versions**, defined in `scripts/production/live-reconciliation-contract.mjs` and checked by `scripts/validate-production-migration-chain-gate.mjs`.
-- A fresh read-only Supabase ledger read-back reports **310 rows**, latest version `20261110150618`, and **0/85 exact required version identifiers** present.
-- Do not interpret zero exact identifier matches as proof that every SQL effect is absent. The historical source-to-live crosswalk records partial baselines and separate confirmed source/ledger aliases. The three catalogued aliases are outside the current 85-version release list; their formal migration-history repairs remain pending. Never replay an alias, fabricate migration-ledger rows, or treat physical object presence alone as contract parity.
+- The current release contract tracks **86 exact migration versions**, defined in `scripts/production/live-reconciliation-contract.mjs` and checked by `scripts/validate-production-migration-chain-gate.mjs`.
+- A fresh read-only Supabase ledger read-back reports **310 rows**, latest version `20261110150618`, and **0/86 exact required version identifiers** present.
+- Do not interpret zero exact identifier matches as proof that every SQL effect is absent. The historical source-to-live crosswalk records partial baselines and separate confirmed source/ledger aliases. The three catalogued aliases are outside the current 86-version release list; their formal migration-history repairs remain pending. Never replay an alias, fabricate migration-ledger rows, or treat physical object presence alone as contract parity.
 - A successful chronological PostgreSQL 17 replay in disposable CI is not a Production migration, backup, restore, or rollback rehearsal.
 - Before approval, reconcile each required source effect against the live ledger and physical schema, including exact RPC signatures and bodies, function owners and `search_path`, effective ACL/RLS policies, constraints, and triggers.
 - RC927 (`20261125120000`) merged source-only in PR #1122 after 17/17 exact-head workflows passed, including the 85-version chronological PostgreSQL 17 replay and 123 forward migrations. It is not applied to Production.
-- RC928 (`20261126010000`) is a source-only candidate for atomic catalog-profile metadata and promotional-gallery persistence. It requires the existing owner-scoped profile RPC, same-transaction row locking, URL/authorization PostgreSQL tests and the full 85-version replay; it is not applied to Production.
+- RC928 (`20261126010000`) is a source-only candidate for atomic catalog-profile metadata and promotional-gallery persistence. It requires the existing owner-scoped profile RPC, same-transaction row locking, URL/authorization PostgreSQL tests and the full 86-version replay; it is not applied to Production.
+- RC117 image-provenance forward repair (`20261126020000`) is source-only and is the 86th required version. The focused PostgreSQL 17 test preserves non-empty custom URLs with NULL/blank provenance, retains `ai_generated` and existing `auto` provenance, generates a default only for blank URLs and verifies an idempotent re-run. It remains unapplied to Production.
 
 ## A. Evidence to collect before release
 
@@ -69,7 +70,7 @@
 5. Restore Storage bucket/policy metadata and upload the separately exported object bytes; verify checksums and representative private/public access behavior. The DB dump is not a Storage-file backup.
 6. Reconnect Auth/Edge/Vault settings only through controlled owner credentials in the isolated environment. Confirm that no real payment provider credential points at live-money flows.
 7. Run:
-   - exact 85-source migration identity/effect reconciliation;
+   - exact 86-source migration identity/effect reconciliation;
    - chronological forward replay and PostgreSQL 17 integration tests;
    - RLS/ACL/function-owner/search_path checks, including positive platform-admin and negative tenant-admin cases;
    - Paymob altered-merchant_order_id negative replay (standard, digital page and subscription), with equal-amount/currency orders A/B and zero writes to the wrong order;
@@ -95,7 +96,7 @@ Production approval remains blocked until:
 - Auth identities/configuration, Vault keys, external secrets and Edge configuration have documented recovery paths;
 - a disposable PostgreSQL 17 restore is clean and reproducible;
 - measured RPO/RTO and rollback evidence meet the owner's recovery target;
-- the exact ordered 85-source migration effects, RPC signatures, owners, search_path, ACL, RLS/policies, constraints and triggers reconcile;
+- the exact ordered 86-source migration effects, RPC signatures, owners, search_path, ACL, RLS/policies, constraints and triggers reconcile;
 - the coordinated database + Edge plan passes exact-head and deployed-origin negative/positive tests;
 - the owner explicitly approves the exact Production release commit, migration list, deployment list, backup artifact and rollback steps.
 

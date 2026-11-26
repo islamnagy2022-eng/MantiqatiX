@@ -1,5 +1,5 @@
 # MantiqatiX — Unified Source of Truth Map
-**Checkpoint:** 2026-11-26 — main `ffd91df42c0cc70bfce692cc79045132cff5c383`; RC927 merged source-only after 17/17 exact-head checks; current candidate source manifest now tracks 85 versions with RC928 as source-only and not applied. Production remains BLOCKED / NOT CERTIFIED.  
+**Checkpoint:** 2026-11-26 — main `ffd91df42c0cc70bfce692cc79045132cff5c383`; RC927 merged source-only after 17/17 exact-head checks; main now includes the RC117 image repair source file from PR #1129; the active release gate branch extends the canonical source list to 86 versions. RC928 and the repair remain source-only and unapplied. Production remains BLOCKED / NOT CERTIFIED.  
 **Operating directive:** [MASTER_SOURCE_OF_TRUTH.md](./MASTER_SOURCE_OF_TRUTH.md)  
 **Canonical repository:** `islamnagy2022-eng/MantiqatiX`  
 **Production Supabase:** `MANTIQATIX FINAL` / `moyhiluyhjsujhwlyeuu`
@@ -67,25 +67,25 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - RC485–RC496 catalog, SMM bootstrap, confirmed-session, Storage, settlement and MantiGO bid state [PASS 2271–2280](./audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md): catalog registry/price serialization absent; first-user SMM bootstrap still live; restrictive Auth guards absent; settlement remains membership-derived; accepted-bid uniqueness/OFFERED gate incomplete.
 - RC921–RC925 medical, agreement and catalog identity [PASS 2281–2290](./audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md): medical provider state is legacy; agreement participant correlation and confirmed-session boundary are wrong; seven catalog RPCs still lack the fail-closed RC925 body.
 
-## Current 85-migration source contract — 2026-11-26
+## Current 86-migration source contract — 2026-11-26
 
-- [85-source crosswalk](./release/REQUIRED_85_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261126.md): 85 required migration sources are inventoried with explicit source/live disposition. This is not an all-pass Production release.
-- RC927 is merged source-only at `ffd91df42c0cc70bfce692cc79045132cff5c383`; exact-head 85-source strict gate and chronological PostgreSQL 17 replay passed. The disposable replay applied 123 later migrations in timestamp order and passed the RC927 adversarial identity tests.
-- RC928 `20261126010000` adds atomic owner-scoped promotional-gallery/profile metadata persistence. It is a source-only candidate under review and remains absent from the Production migration ledger.
-- Read-only Production ledger remains 310 rows through `20261110150618`, with 0/85 exact required identifiers. This is an identity gap, not proof every physical SQL effect is absent.
+- [86-source crosswalk](./release/REQUIRED_86_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261126.md): 86 required migration sources are inventoried with explicit source/live disposition. This is not an all-pass Production release.
+- RC927 is merged source-only at `ffd91df42c0cc70bfce692cc79045132cff5c383`; exact-head 86-source strict gate and chronological PostgreSQL 17 replay passed. The disposable replay applied 123 later migrations in timestamp order and passed the RC927 adversarial identity tests.
+- RC928 `20261126010000` adds atomic owner-scoped promotional-gallery/profile metadata persistence and remains source-only. RC117 image-provenance repair `20261126020000` is the 86th source migration; PR #1129 merged the forward-only SQL, and this branch adds its focused integration test plus the 86-version gate. Both remain absent from the Production migration ledger.
+- Read-only Production ledger remains 310 rows through `20261110150618`, with 0/86 exact required identifiers. This is an identity gap, not proof every physical SQL effect is absent.
 - No DB, Auth, RLS/GRANT, Storage, Edge, payment, wallet, settlement or customer-data change was made as part of these source/CI updates. Backup/restore, physical-effect reconciliation and coordinated release remain mandatory.
 
 ## Current 84-migration read-back — 2026-11-25
 - [84-source crosswalk](./release/REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md): 84/84 required migration sources have current live/effect read-back and an explicit PASS/PARTIAL/BLOCKED disposition. The 82-source file remains a historical 2026-11-24 snapshot; this is not an all-pass release.
 - Current-main [PASS 2271–2280](./audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md) and [PASS 2281–2290](./audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md) are authoritative for RC485–RC496 and RC921–RC925.
 - [PASS 2331–2340](./audits/PASS_2331_2340_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md) and [PASS 2341–2350](./audits/PASS_2341_2350_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md) hold renumbered RC113–RC117 and RC102–RC106 reports.
-- 76-object sample: 35 present / 41 absent; presence is not semantic parity. Live ledger: 310 rows through 20261110150618; current required source set: 85; exact IDs in ledger: 0/85.
+- 76-object sample: 35 present / 41 absent; presence is not semantic parity. Live ledger: 310 rows through 20261110150618; current required source set: 86; exact IDs in ledger: 0/86.
 - Main checkpoint: `9e6c62e25614d020eb07b6361dba6eb1c5ac8257`. No Production writes occurred.
 - Migration-history reconciliation update: **3 exact source aliases confirmed / 0 formal ledger repairs applied** (RC424→20261008222845; marketing-contact `20261027100000`→`20261027041411`; directory-source-rights `20261101150000`→`20261101140105`). Five partial baselines are now machine-classified (subscription, ERP, journal, directory, generic payments); RC451 remains a separate forward repair. See `migration_alias_resolution_check` and `historical_partial_baseline_reconciliation_20261124` in `production-migration-reconciliation.json`.
 
 ## Latest platform-root read-back — 2026-11-24
 - [PASS 2361–2370](./audits/PASS_2361_2370_PLATFORM_ROOT_LIVE_RECHECK_20261124.md) records fresh read-only Production evidence: registry RLS ON/FORCE RLS OFF; membership-derived `is_platform_admin()`; legacy `mnty_can_platform_admin()`; 57 policies / 24 tables and 5 policies / 3 tables; seven catalog RPCs without explicit `is_anonymous=false` guard.
-- [Coordinated release gate](./release/PLATFORM_ROOT_COORDINATED_RELEASE_20261124.md) maps RC464/RC471/RC479/RC480/RC484/RC485/RC923/RC925/RC926/RC927 dependencies and requires the full canonical 85-version chronology, exhaustive physical/ACL/RLS reconciliation, encrypted backup/restore and DB-to-Edge E2E before Production approval.
+- [Coordinated release gate](./release/PLATFORM_ROOT_COORDINATED_RELEASE_20261124.md) maps RC464/RC471/RC479/RC480/RC484/RC485/RC923/RC925/RC926/RC927 dependencies and requires the full canonical 86-version chronology, exhaustive physical/ACL/RLS reconciliation, encrypted backup/restore and DB-to-Edge E2E before Production approval.
 - No Production mutation was performed; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 
 ## Latest Edge runtime parity — 2026-11-24
@@ -135,7 +135,7 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 ## 2026-11-25 — Prior 83-source Production recheck (superseded by 84-source ledger map)
 
 - Main checkpoint: `1419477b39312e65134494251264452b170e1efe`; PR #1097 merged the RC926 source migration, PR #1104 recorded its exact-head CI, and PR #1102 aligned release documentation to 83 versions.
-- Current canonical source/live-effect crosswalk: [REQUIRED_85_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261126.md](./release/REQUIRED_85_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261126.md). Preserve the 82-source November 24 file as a historical snapshot; do not rewrite it.
+- Current canonical source/live-effect crosswalk: [REQUIRED_86_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261126.md](./release/REQUIRED_86_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261126.md). Preserve the 82-source November 24 file as a historical snapshot; do not rewrite it.
 - Current direct Production recheck: [PASS 2441–2450](./audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md). It confirms 310 migration rows through `20261110150618`, 0/84 exact IDs; provider-profile anon SELECT remains effective; Platform Admin registry FORCE RLS remains off; old global helper remains membership-derived; and RC486 price concurrency objects remain absent.
 - All evidence above is read-only or isolated CI. RC926 remains not applied; no Production grants, policies, migration, Edge, payment or business data were changed. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains authoritative.
 

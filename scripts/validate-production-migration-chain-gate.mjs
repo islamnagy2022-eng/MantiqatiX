@@ -4,7 +4,9 @@ import { spawnSync } from "node:child_process";
 import { isLiveReconciliationVerified, REQUIRED_RELEASE_MIGRATION_VERSIONS, REQUIRED_CORE_OBJECTS, REQUIRED_PAYMENT_CONTRACT_OBJECTS, REQUIRED_CONTROL_CENTER_OBJECTS, REQUIRED_MIGRATION_ALIASES } from "./production/live-reconciliation-contract.mjs";
 
 const source = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
+const rc117ImageRepairValidator = fs.readFileSync("scripts/validate-rc117-image-provenance-forward-repair.mjs", "utf8");
 const workflow = fs.readFileSync(".github/workflows/pages.yml", "utf8");
+const forwardReplayWorkflow = fs.readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
 const liveContract = fs.readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
 const required = [
   "20261009120000_rc425_atomic_mantigo_paymob_payment.sql",
@@ -91,9 +93,10 @@ const required = [
   "20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql",
   "20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql",
   "20261125120000_rc927_digital_page_authenticated_identity_scope.sql",
-  "20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql"
+  "20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql",
+  "20261126020000_preserve_marketing_service_image_provenance.sql"
 ];
-assert.equal(required.length, 85, "release gate must track all distinct required post-RC424 migration effects, including RC464B, both RC479 migrations, RC476–RC496, RC921, RC922, RC923, RC924, RC925, RC926, RC927 and RC928");
+assert.equal(required.length, 86, "release gate must track all distinct required post-RC424 migration effects, including RC464B, both RC479 migrations, RC476–RC496, RC921, RC922, RC923, RC924, RC925, RC926, RC927, RC928 and the RC117 image-provenance forward repair");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");
@@ -102,6 +105,9 @@ assert.match(source, /migrationChainBlocked\?"BLOCKED":"PASS"/, "missing migrati
 assert.match(source, /r=>\(r\.status==="FAIL"\|\|r\.status==="BLOCKED"\)&&r\.severity==="P0"/, "P0 FAIL or BLOCKED checks must set production_gate=BLOCKED");
 assert.match(source, /const nonProductionValidation=process\.env\.GITHUB_EVENT_NAME==="pull_request"\|\|\(process\.env\.GITHUB_EVENT_NAME==="push"&&process\.env\.GITHUB_REF!=="refs\/heads\/main"\);if\(results\.some\(r=>\(r\.status==="FAIL"\|\|r\.status==="BLOCKED"\)&&r\.severity==="P0"\)&&!nonProductionValidation\)process\.exitCode=1;/, "P0 gate blocks main/dispatch deployment while allowing PR and non-main branch validation");
 assert.ok(workflow.includes("node scripts/validate-production-migration-chain-gate.mjs"), "Pages validation must run the release-chain gate contract");
+assert.ok(forwardReplayWorkflow.includes("node scripts/validate-rc117-image-provenance-forward-repair.mjs"), "forward replay must run the RC117 image-provenance static contract");
+assert.ok(forwardReplayWorkflow.includes("supabase/tests/rc117_marketing_service_image_provenance_forward_repair.sql"), "forward replay must execute the RC117 image-provenance integration test");
+assert.ok(rc117ImageRepairValidator.includes("20261126020000_preserve_marketing_service_image_provenance.sql"), "RC117 repair validator must be present and bound to the exact migration");
 assert.match(source, /migrationTimestampOrderViolations/, "migration timestamp/order conflicts must be checked");
 assert.match(source, /const reconciliationPath="docs\/release\/production-migration-reconciliation\.json"/, "live reconciliation manifest must be read");
 assert.match(liveContract, /source_ledger_identity_reconciled\s*===\s*true/, "source/ledger identity must be reconciled");
