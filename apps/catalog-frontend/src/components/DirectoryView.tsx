@@ -154,6 +154,7 @@ const writeStoredGeoPreference = (preference: StoredGeoPreference) => {
 export const DirectoryView: React.FC = () => {
   const {
     directoryBusinesses,
+    directoryProducts,
     directoryLoading,
     directoryHasMore,
     directoryLoadingMore,
@@ -176,7 +177,7 @@ export const DirectoryView: React.FC = () => {
   const scopedDirectoryInFlightRef = useRef(false);
   const scopedDirectoryFiltersRef = useRef<PublicDirectoryPageFilters>({});
   const businesses = scopedDirectoryBusinesses ?? directoryBusinesses;
-  const directoryProductsForView = scopedDirectoryBusinesses !== null ? scopedDirectoryProducts : products;
+  const directoryProductsForView = scopedDirectoryBusinesses !== null ? scopedDirectoryProducts : directoryProducts;
   const directoryLoadingForView = scopedDirectoryBusinesses !== null ? scopedDirectoryLoading : directoryLoading;
   const directoryHasMoreForView = scopedDirectoryBusinesses !== null ? scopedDirectoryHasMore : directoryHasMore;
   const directoryLoadingMoreForView = scopedDirectoryBusinesses !== null ? scopedDirectoryLoadingMore : directoryLoadingMore;
