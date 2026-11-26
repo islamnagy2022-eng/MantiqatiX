@@ -44,11 +44,11 @@
 - PR #1120 remains Draft because live Edge compatibility and deployed-origin save/read parity are still release blockers. The feature currently accepts owner-entered HTTPS image URLs (not file uploads), and is not live.
 - Older gallery PR #978 has been commented and closed as superseded by #1120.
 
-### Brand asset validation candidate
-- PR #1121 — `test(branding): verify approved logo and app icon files exist`, head `f6092d05b8c08a0edf3332d365f052222f0ad13a`.
+### Merged branding asset validation
+- PR #1121 — `test(branding): verify approved logo and app icon files exist`, squash-merged as `bc4695f03755dd6e99020ab7f772aed4ec5d7f96`.
 - Test-only change checks five official platform brand/PWA assets exist and are non-empty.
-- Exact-head build and employee RBAC PostgreSQL checks passed; Module Professionalization, Backend-only, MantiGO and RC425 workflows passed. Browser E2E and all checks finalization were pending at checkpoint. Pages PR validation completed successfully with no deployment.
-- PR #1121 squash-merged to main as `bc4695f03755dd6e99020ab7f772aed4ec5d7f96` after all six exact-head workflows passed, including browser E2E. Old PR #1101 was commented and closed as superseded.
+- All six exact-head workflows passed, including build, employee RBAC PostgreSQL, dashboard browser E2E, Module Professionalization, Backend-only, MantiGO and RC425. Old PR #1101 was commented and closed as superseded.
+- Comparison between previous main `8e88bed845c0e9fff33d40768cb3540ad296fc77` and new main confirms the merge changed exactly one file: `scripts/validate-navbar-business-logo.mjs`, with 13 additions and no deletions. No frontend behavior changed.
 
 ### Live Supabase Edge parity evidence — read-only inspection
 - Project `MANTIQATIX FINAL` (`moyhiluyhjsujhwlyeuu`) was inspected read-only on 2026-11-26.
@@ -56,8 +56,11 @@
 - Deployed `public-catalog` version 9 and `public-catalog-directory` version 19 (both updated 2026-11-22) contain no `promotional_images` projection/sanitizer.
 - This confirms #1119's price-write guard is source-only and #1120 must remain Draft. No Edge Function was deployed.
 
-### Mainline Pages validation after test-only merge
-- PR #1121's test-only merge to main triggered push workflow run `45725376297`; at checkpoint, full Pages validation was still running. Its PR-triggered Pages workflow had passed with `validate_public_only` and `deploy` skipped. The push workflow's eventual deploy status must be verified before claiming publication status.
+### Mainline Pages deployment after test-only merge
+- PR #1121's test-only merge triggered push workflow run `45725376297`.
+- Full validation, catalog-pilot verification, Pages artifact creation, GitHub Pages deployment, V6 root/legacy/Preview checks, case-insensitive URL redirect browser check, and deployed dashboard/mobile/QR browser checks all completed successfully.
+- The public site was rebuilt and deployed from current main. Because the only change since the previous main was a test script, this deployment did not add the gallery feature or otherwise change frontend behavior.
+- The PR-triggered workflow for #1121 had `validate_public_only=success` and `deploy=skipped`; the main push run completed deployment successfully.
 
 ### Reviewed but intentionally not merged
 - PR #1117 / old #1114 — selected-membership activity-label fix was written to dormant `web/` files, while current Pages production build composes `apps/catalog-frontend` and excludes `web/`. This patch would not reach the live UI. Both PRs closed; Issue #96 left open with a documented topology finding. A real fix requires a fresh deployed repro and change in the current React application.
@@ -66,6 +69,7 @@
 - Other stale drafts are not assumed safe merely because GitHub reports them open.
 
 ### Safety and rollback boundary
+- A GitHub Pages site deployment did occur after the test-only #1121 merge; all post-deploy checks passed, and the frontend source diff was unchanged.
 - No Production Supabase migration, DDL/DML, GRANT, RLS, Auth, Storage, Edge Function, payment, wallet, settlement or customer-data mutation was performed.
 - Merged changes are source/CI commits and can be reverted with Git if a regression is found.
 - Production release remains blocked pending operator-owned encrypted DB + Storage backup, off-site retrieval, Vault/Auth recovery, independent PostgreSQL 17 restore and rollback with measured RPO/RTO, chronological migration reconciliation, coordinated Edge parity, signed Sandbox payment replay, and negative authorization/privacy E2E.
@@ -75,4 +79,4 @@
 1. Keep #1120 Draft despite green CI until live Edge compatibility, coordinated release and deployed-origin owner save/public read verification pass.
 2. Even with green CI, keep gallery feature out of Production until live Edge compatibility and deployed-origin save/read verification are proven in an approved release.
 3. Continue current-main source/CI work from the master TODO, prioritizing P0 authorization/privacy and verified user-facing features.
-4. Verify the mainline Pages push workflow run `45725376297` to completion; keep Production database/Auth/RLS/GRANT/Storage/Edge/payment/finance changes blocked until documented backup/restore and coordinated release gates pass.
+4. Continue source/CI-only work from the master TODO. Keep Production DB/Auth/RLS/GRANT/Storage/Edge/payment/finance changes blocked until documented backup/restore and coordinated release gates pass.
