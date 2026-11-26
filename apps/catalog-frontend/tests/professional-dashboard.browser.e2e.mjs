@@ -10,11 +10,53 @@ const supabaseAnonKey = config.match(/supabaseKey:\s*'([^']+)'/)?.[1];
 assert.ok(supabaseUrl, 'public config must expose the configured Supabase URL');
 assert.ok(supabaseAnonKey, 'public config must expose the public Supabase key');
 const supabaseOrigin = new URL(supabaseUrl).origin;
-const liveDirectoryResponse = await fetch(`${supabaseUrl}/functions/v1/public-catalog-directory`, {
-  headers: { apikey: supabaseAnonKey, Accept: 'application/json' },
-});
-assert.equal(liveDirectoryResponse.status, 200, 'live public directory must respond HTTP 200');
-const liveDirectory = await liveDirectoryResponse.json();
+
+async function fetchLivePublicDirectoryPages() {
+  const businesses = [];
+  const seenBusinessIds = new Set();
+  const seenCursors = new Set();
+  let cursor = null;
+  let accessMode = null;
+
+  for (let pageNumber = 0; pageNumber < 500; pageNumber += 1) {
+    const requestUrl = new URL(`${supabaseUrl}/functions/v1/public-catalog-directory`);
+    if (cursor) requestUrl.searchParams.set('cursor', cursor);
+    const response = await fetch(requestUrl.toString(), {
+      headers: { apikey: supabaseAnonKey, Accept: 'application/json' },
+    });
+    assert.equal(response.status, 200, 'live public directory page ' + String(pageNumber + 1) + ' must respond HTTP 200');
+    const body = await response.json();
+    assert.equal(body.accessMode, 'PUBLIC_DIRECTORY_READ_ONLY');
+    assert.ok(Array.isArray(body.businesses), 'live public directory must return a businesses array');
+    accessMode = body.accessMode;
+
+    for (const business of body.businesses) {
+      assert.ok(!seenBusinessIds.has(business.id), 'live keyset pagination must not repeat business IDs: ' + business.id);
+      seenBusinessIds.add(business.id);
+      businesses.push(business);
+    }
+
+    // Older already-deployed Edge bundles do not expose pagination yet. Keep
+    // their fixture-read compatibility while testing all pages when the new
+    // signed-cursor response is deployed.
+    const pagination = body.pagination;
+    if (!pagination) break;
+    assert.equal(pagination.pageSize, 20, 'live public directory must keep a fixed 20-row page');
+    if (pagination.hasMore !== true) {
+      assert.equal(pagination.nextCursor, null, 'the final public page must not return a next cursor');
+      break;
+    }
+    assert.equal(typeof pagination.nextCursor, 'string', 'non-final public pages must include a signed cursor');
+    assert.ok(!seenCursors.has(pagination.nextCursor), 'live public directory cursor must advance without loops');
+    seenCursors.add(pagination.nextCursor);
+    cursor = pagination.nextCursor;
+    assert.ok(pageNumber < 499, 'live public directory pagination must terminate within the safety bound');
+  }
+
+  return { accessMode, businesses };
+}
+
+const liveDirectory = await fetchLivePublicDirectoryPages();
 assert.equal(liveDirectory.accessMode, 'PUBLIC_DIRECTORY_READ_ONLY');
 assert.ok(Array.isArray(liveDirectory.businesses), 'live public directory must return businesses');
 const verifiedBusinessTargets = [
