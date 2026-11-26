@@ -224,10 +224,13 @@ Deno.serve(async (req: Request) => {
             throw globalPriceResult.error || branchPriceResult.error;
           }
           // Stored prices are returned only when the owner explicitly opted in with show_price=true.
-          prices = filterRowsToPubliclyPricedItems(items, [
+          // Keep the shared V6 public-price contract stable while querying global
+          // and branch prices separately with parameterized branch predicates.
+          const p = [
             ...(globalPriceResult.data || []),
             ...(branchPriceResult.data || []),
-          ]);
+          ];
+          prices = filterRowsToPubliclyPricedItems(items, p || []);
         }
       }
       const profile = business.settings?.catalog_profile || {};
@@ -306,8 +309,8 @@ Deno.serve(async (req: Request) => {
       scanRounds += 1;
       if (rows.length < scanBatchSize) exhausted = true;
 
-      const directoryBusinesses = rows.filter((business: any) =>
-        business.settings?.catalog_public_enabled === true || isOfficialShowcase(business)
+      const directoryBusinesses = rows.filter((b: any) =>
+        b.settings?.catalog_public_enabled === true || isOfficialShowcase(b)
       );
       if (!directoryBusinesses.length) continue;
 
