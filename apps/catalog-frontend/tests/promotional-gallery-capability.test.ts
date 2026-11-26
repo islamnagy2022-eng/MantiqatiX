@@ -22,6 +22,10 @@ test("fails closed for older catalog-admin responses without the gallery propert
   assert.equal(hasPromotionalGalleryCapability([]), false);
 });
 
+test("does not force a capability probe when a caller omits the optional gallery field", () => {
+  assert.equal(hasPromotionalGalleryChanges(["https://cdn.example.test/kept.webp"], undefined), false);
+});
+
 test("does not force a capability probe for unchanged normalized galleries", () => {
   assert.equal(hasPromotionalGalleryChanges([], []), false);
   assert.equal(hasPromotionalGalleryChanges(
