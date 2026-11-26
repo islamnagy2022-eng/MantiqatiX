@@ -6,6 +6,7 @@ const helper = fs.readFileSync("supabase/functions/_shared/public-directory-pagi
 const client = fs.readFileSync("apps/catalog-frontend/src/lib/production.ts", "utf8");
 const context = fs.readFileSync("apps/catalog-frontend/src/context/AppContext.tsx", "utf8");
 const view = fs.readFileSync("apps/catalog-frontend/src/components/DirectoryView.tsx", "utf8");
+const browserE2E = fs.readFileSync("apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs", "utf8");
 
 assert.match(edge, /type PublicDirectoryFilters = \{[\s\S]*?area\?: string;[\s\S]*?query\?: string;/);
 assert.match(edge, /normalizeDirectoryFilters\(requestUrl\.searchParams\) as PublicDirectoryFilters/);
@@ -83,5 +84,12 @@ assert.doesNotMatch(businessSearchBlock, /biz\.phone|biz\.ownerWhatsApp/,
   "Client free-text search must not inspect consent-gated phone or WhatsApp values.");
 assert.match(edge, /\.gt\("id", scanAfterId\)/, "Server scan must use stable ID continuation.");
 assert.match(edge, /DIRECTORY_SCAN_LIMIT_EXCEEDED/, "Large scans must fail closed instead of returning silently truncated results.");
+assert.match(browserE2E, /fetchLivePublicDirectoryPages/,
+  "Live browser fixtures must follow all signed cursor pages when the paginated Edge bundle is deployed.");
+assert.match(browserE2E, /e2e-directory-cursor:/,
+  "Browser directory mocks must return an explicit continuation cursor.");
+assert.match(browserE2E, /directoryPageRequests\[1\]\.cursor/);
+assert.match(browserE2E, /directoryPageRequests\[2\]\.cursor/);
+assert.match(browserE2E, /directory-progressive-cursor-pagination-20-20-remaining-five/);
 
-console.log("PUBLIC_DIRECTORY_KEYSET_STATIC=PASS (39 assertions)");
+console.log("PUBLIC_DIRECTORY_KEYSET_STATIC=PASS");
