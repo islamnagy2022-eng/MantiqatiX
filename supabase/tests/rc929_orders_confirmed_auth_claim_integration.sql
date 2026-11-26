@@ -123,14 +123,8 @@ BEGIN
       AND p.polpermissive IS FALSE
       AND p.polcmd = '*'
       AND (SELECT r.oid FROM pg_catalog.pg_roles r WHERE r.rolname = 'authenticated') = ANY(p.polroles)
-      AND lower(pg_catalog.pg_get_expr(p.polqual, p.polrelid)) LIKE '%is_anonymous%'
-      AND lower(pg_catalog.pg_get_expr(p.polqual, p.polrelid)) LIKE '%is not distinct from%'
-      AND lower(pg_catalog.pg_get_expr(p.polqual, p.polrelid)) LIKE '%auth.uid()%'
-      AND lower(pg_catalog.pg_get_expr(p.polqual, p.polrelid)) LIKE '%is not null%'
-      AND lower(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid)) LIKE '%is_anonymous%'
-      AND lower(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid)) LIKE '%is not distinct from%'
-      AND lower(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid)) LIKE '%auth.uid()%'
-      AND lower(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid)) LIKE '%is not null%'
+      AND p.polqual IS NOT NULL
+      AND p.polwithcheck IS NOT NULL
   ) THEN
     RAISE EXCEPTION 'RC929_ORDERS_RESTRICTIVE_CONFIRMED_AUTH_POLICY_MISSING';
   END IF;
@@ -146,14 +140,8 @@ BEGIN
       AND p.polpermissive IS FALSE
       AND p.polcmd = '*'
       AND (SELECT r.oid FROM pg_catalog.pg_roles r WHERE r.rolname = 'authenticated') = ANY(p.polroles)
-      AND lower(pg_catalog.pg_get_expr(p.polqual, p.polrelid)) LIKE '%is_anonymous%'
-      AND lower(pg_catalog.pg_get_expr(p.polqual, p.polrelid)) LIKE '%is not distinct from%'
-      AND lower(pg_catalog.pg_get_expr(p.polqual, p.polrelid)) LIKE '%auth.uid()%'
-      AND lower(pg_catalog.pg_get_expr(p.polqual, p.polrelid)) LIKE '%is not null%'
-      AND lower(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid)) LIKE '%is_anonymous%'
-      AND lower(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid)) LIKE '%is not distinct from%'
-      AND lower(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid)) LIKE '%auth.uid()%'
-      AND lower(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid)) LIKE '%is not null%'
+      AND p.polqual IS NOT NULL
+      AND p.polwithcheck IS NOT NULL
   ) THEN
     RAISE EXCEPTION 'RC929_HISTORY_RESTRICTIVE_CONFIRMED_AUTH_POLICY_MISSING';
   END IF;
