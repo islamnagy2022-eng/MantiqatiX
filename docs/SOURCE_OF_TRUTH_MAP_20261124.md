@@ -173,3 +173,11 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - RC927 test subjects for `is_anonymous=true` and missing/null claim now use the same UUID as the owner of the seeded page. The owner SELECT/INSERT/draft UPDATE policies would otherwise authorize those operations; test expectations therefore isolate the restrictive identity guard.
 - Raw anon remains the intended public renderer role and is checked against RC480's exact ten-column page projection. Confirmed owners keep private read and draft edit/create compatibility; non-owners remain denied.
 - RC927 merged source-only as PR #1122 at `ffd91df42c0cc70bfce692cc79045132cff5c383`; exact-head 85-version PG17 replay passed. No Production changes.
+
+
+## 2026-11-26 — Catalog gallery and dependent Edge release recheck
+- PR #1123 is merged source-only; its exact-head catalog validation and PostgreSQL 17 chronological replay passed. The current Pages deploy run also passed, but does not deploy Supabase Edge functions.
+- Live `catalog-admin` v20, `public-catalog` v9 and `public-catalog-directory` v19 are behind current main for the gallery: the persistence RPC and public promotional-image projections are absent from the deployed entrypoints and the shared promotional-image module is not deployed. `catalog-admin` v20 also retains the former inline platform-admin membership helper, unlike current main.
+- Production migration ledger remains 310 rows through `20261110150618`; the current release contract enumerates 86 required versions and 0 exact version IDs are recorded live. RC928 `20261126010000` and RC117 forward repair `20261126020000` remain source-only.
+- Live global platform-root correction remains blocked: FORCE RLS on `private.platform_admins` is off; the old membership-derived helper remains, referenced by 57 policies across 24 tables plus five legacy-helper policies across three tables.
+- Evidence: [PASS 2471–2480](./audits/PASS_2471_2480_CATALOG_GALLERY_EDGE_RELEASE_GATE_20261126.md). No Production mutation was performed. Keep the full release blocked until the ordered database and three Edge dependencies are verified together. Backup/restore is deferred by current direction, not passed.
