@@ -85,6 +85,10 @@ assert.match(context, /new Map<string, Business>/);
 assert.match(context, /directoryNextCursorRef\.current = page\.nextCursor/);
 assert.match(view, /fetchPublicDirectoryPage\(null, filters\)/, "Filtered searches must request a server-side page instead of searching only the first global 20.");
 assert.match(view, /filters\.area = selectedAreaFilter/, "Area search must use the consent-scoped server-side filter.");
+assert.match(view, /list="directory-area-options"/,
+  "Visitors must be able to type any area/address instead of being limited to addresses present in the first 20 activities.");
+assert.match(view, /datalist id="directory-area-options"/,
+  "Public consent-projected address suggestions must remain available as area-search hints.");
 assert.match(view, /loadMoreScopedDirectoryBusinesses/, "Filtered activity searches must have a cursor-backed load-more action.");
 assert.match(view, /directoryHasMoreForView/, "The load-more UI must follow the currently selected global or filtered result set.");
 assert.match(view, /directoryProductsForView\.forEach/, "Featured-image ranking must use products from the active directory page set.");
