@@ -4370,3 +4370,13 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - The live platform-root registry still has FORCE RLS OFF. The membership-derived is_platform_admin helper and legacy mnty_can_platform_admin helper remain referenced by 62 policies across 27 tables.
 - Full evidence: PASS_2471_2480_CATALOG_GALLERY_EDGE_RELEASE_GATE_20261126.md. No Production mutation. Backup/restore remained deferred by current direction and was not attempted.
 - Keep the public gallery and all three dependent Edge functions closed until the ordered DB/RPC/ACL/RLS and bundle set passes together. Full platform remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-26 — PASS 2481–2490 platform-root Production read-back
+- [x] Re-read the connected Production project (PostgreSQL 17.6.1.155, ACTIVE_HEALTHY) using a read-only catalog query; selected no application rows or user identities.
+- [x] Confirmed migration ledger remains 310 rows through `20261110150618`; selected platform-root migrations RC464, RC471, RC484, RC485, RC923, RC928, RC117 repair and RC929 are not recorded.
+- [x] Confirmed live `is_platform_admin()` remains SECURITY INVOKER / `search_path=public` and membership-derived; live `mnty_can_platform_admin()` remains SECURITY DEFINER / `search_path=public, pg_temp` and delegates to null-scope `mnty_can('admin',NULL,NULL,NULL)`.
+- [x] Reconfirmed 57 policy references across 24 tables for `is_platform_admin()` and five across three tables for `mnty_can_platform_admin()`; registry RLS ON / FORCE RLS OFF, owner postgres.
+- [x] Added dated evidence `docs/audits/PASS_2481_2490_PLATFORM_ROOT_LIVE_RECHECK_20261126.md` on branch `audit/platform-root-live-recheck-20261126`.
+- [ ] Keep Production unchanged. Continue the exact 86-version source/physical-effect crosswalk and coordinated source/PG17/replay gates; no helper or policy hot-edit and no individual Edge deployment.
+- Evidence mode: read-only. No Production DDL/DML, grants, RLS, Auth, Storage, Edge, payment or deployment changes.
