@@ -12,6 +12,7 @@ import {
   matchesDirectoryAreaFilter,
   matchesDirectoryVerificationPhase,
   matchesDirectoryBusinessFilters,
+  mergePublicDirectoryCatalogItems,
   normalizeDirectoryFilters,
   parseDirectorySlugs,
   verifyDirectoryCursor,
@@ -223,9 +224,11 @@ Deno.serve(async (req: Request) => {
         if (globalItemResult.error || branchItemResult.error) {
           throw globalItemResult.error || branchItemResult.error;
         }
-        items = [...(globalItemResult.data || []), ...(branchItemResult.data || [])]
-          .filter((i: any) => i.metadata?.catalog_public?.is_available === true)
-          .slice(0, 150);
+        items = mergePublicDirectoryCatalogItems(
+          (globalItemResult.data || []).filter((item: any) => item.metadata?.catalog_public?.is_available === true),
+          (branchItemResult.data || []).filter((item: any) => item.metadata?.catalog_public?.is_available === true),
+          150,
+        );
         const itemIds = items.map((i: any) => i.id);
         if (itemIds.length) {
           const now = new Date().toISOString();
