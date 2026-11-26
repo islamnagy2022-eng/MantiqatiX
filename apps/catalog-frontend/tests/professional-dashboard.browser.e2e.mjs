@@ -177,6 +177,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
   const platformSettingsState = { settings: options.platformSettings || {} };
   const directoryListingsState = options.directoryListingsState || { listings: [] };
   const directoryListingPageRequests = [];
+  const directoryPageRequests = [];
   const page = await context.newPage();
   await page.route(supabaseOrigin + '/**', async (route) => {
     const request = route.request();
@@ -266,6 +267,21 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
       });
     }
     if (url.pathname.endsWith('/functions/v1/public-catalog-directory')) {
+      if (Array.isArray(options.publicDirectoryPages)) {
+        const requestedCursor = url.searchParams.get('cursor');
+        const parsedPage = requestedCursor ? Number(String(requestedCursor).replace(/^e2e-page-/, '')) - 1 : 0;
+        const pageIndex = Number.isInteger(parsedPage) && parsedPage >= 0 ? parsedPage : -1;
+        directoryPageRequests.push({ cursor: requestedCursor, limit: url.searchParams.get('limit'), pageIndex });
+        const pageBusinesses = options.publicDirectoryPages[pageIndex];
+        if (!Array.isArray(pageBusinesses)) return json({ error: 'INVALID_E2E_DIRECTORY_CURSOR' }, 400);
+        const nextPageIndex = pageIndex + 1;
+        const nextCursor = nextPageIndex < options.publicDirectoryPages.length ? 'e2e-page-' + String(nextPageIndex + 1) : null;
+        return json({
+          accessMode: 'PUBLIC_DIRECTORY_READ_ONLY',
+          businesses: pageBusinesses,
+          pagination: { pageSize: 20, hasMore: Boolean(nextCursor), nextCursor },
+        });
+      }
       return json({ accessMode: 'PUBLIC_DIRECTORY_READ_ONLY', businesses: publicDirectoryBusinesses });
     }
     if (url.pathname.endsWith('/functions/v1/public-catalog')) {
@@ -406,7 +422,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
   });
 
   await page.goto(baseUrl + (options.initialRoute || '?view=professional_dashboard'), { waitUntil: 'domcontentloaded' });
-  return { context, page, rpcObservation, catalogReadRequests, catalogAdminRequests, catalogProfileState, directoryAdminRequests, directoryListingsState, directoryListingPageRequests, platformAdminRequests, platformSettingsState };
+  return { context, page, rpcObservation, catalogReadRequests, catalogAdminRequests, catalogProfileState, directoryAdminRequests, directoryListingsState, directoryListingPageRequests, directoryPageRequests, platformAdminRequests, platformSettingsState };
 }
 
 async function waitForDashboard(page) {
@@ -612,9 +628,14 @@ try {
         provider: { ...(paginationSource.provider || {}), name, verified: index < 3 },
       };
     });
-    const { context, page } = await newScenario(browser, null, paginationFixtures);
+    const publicDirectoryPages = [
+      paginationFixtures.slice(0, 20),
+      paginationFixtures.slice(20, 40),
+      paginationFixtures.slice(40, 45),
+    ];
+    const { context, page, directoryPageRequests } = await newScenario(browser, null, paginationFixtures, { publicDirectoryPages });
     try {
-      await page.getByText('نتائج البحث الموحدة (45)', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByText('نتائج البحث الموحدة (20)', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       const testCards = page.getByRole('heading').filter({ hasText: /^نشاط اختبار التصفح [0-9]{2}$/ });
       await testCards.first().waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(await testCards.count(), 20, 'directory must render exactly the first 20 activity cards');
@@ -626,7 +647,9 @@ try {
       await page.waitForFunction(() => [...document.querySelectorAll('h3')]
         .filter((node) => /^نشاط اختبار التصفح [0-9]{2}$/.test((node.textContent || '').trim())).length === 45);
       assert.equal(await testCards.count(), 45, 'last load-more action must append the remaining activities without duplicates');
-      results.push('directory-progressive-pagination-20-20-remaining-five');
+      assert.deepEqual(directoryPageRequests.map((request) => request.cursor), [null, 'e2e-page-2', 'e2e-page-3'], 'See more must request each next server cursor exactly once');
+      assert.deepEqual(directoryPageRequests.map((request) => request.limit), ['20', '20', '20'], 'every server page must preserve the 20-item page-size contract');
+      results.push('directory-server-cursor-pagination-20-20-remaining-five');
     } finally { await context.close(); }
   }
 
