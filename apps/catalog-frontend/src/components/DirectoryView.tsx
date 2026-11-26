@@ -154,6 +154,10 @@ export const DirectoryView: React.FC = () => {
   const {
     directoryBusinesses,
     directoryLoading,
+    directoryHasMore,
+    directoryLoadingMore,
+    directoryLoadMoreError,
+    loadMoreDirectoryBusinesses,
     categories,
     setSelectedBusinessId,
     setCurrentView,
@@ -450,8 +454,9 @@ export const DirectoryView: React.FC = () => {
   }, [directoryListingsHasMore, directoryListingsCursor, directoryListingsLoadingMore, directoryListingRequestFilters]);
   const showMoreDirectoryActivities = useCallback(() => {
     setVisibleActivityCount((current) => current + 20);
+    if (directoryHasMore) void loadMoreDirectoryBusinesses();
     if (directoryListingsHasMore) void loadMoreDirectoryListings();
-  }, [directoryListingsHasMore, loadMoreDirectoryListings]);
+  }, [directoryHasMore, loadMoreDirectoryBusinesses, directoryListingsHasMore, loadMoreDirectoryListings]);
 
   const [administrativeShiyakhas, setAdministrativeShiyakhas] = useState<EgyptGeoShiyakha[]>([]);
   const [shiyakhaLoadStatus, setShiyakhaLoadStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
@@ -689,7 +694,7 @@ export const DirectoryView: React.FC = () => {
   const totalFilteredActivities = filteredBusinesses.length + filteredUnconfirmedListings.length;
   const visibleActivityTotal = visibleBusinesses.length + visibleUnconfirmedListings.length;
 
-  const hasNoSearchResults = !directoryLoading && directoryListingsLoaded &&
+  const hasNoSearchResults = !directoryLoading && directoryListingsLoaded && !directoryHasMore &&
     filteredBusinesses.length + filteredUnconfirmedListings.length === 0;
   const canWidenGeographicSearch = selectedAreaFilter !== 'all' ||
     selectedVillageFilter !== 'all' || selectedMarkazFilter !== 'all' || selectedGovFilter !== 'all';
@@ -1247,16 +1252,20 @@ export const DirectoryView: React.FC = () => {
               ))}
             </div>
           )}
-          {(visibleActivityTotal < totalFilteredActivities || directoryListingsHasMore) && (
+          {(visibleActivityTotal < totalFilteredActivities || directoryHasMore || directoryListingsHasMore) && (
             <div className="flex flex-col items-center gap-2 pt-2">
-              <button type="button" onClick={showMoreDirectoryActivities} disabled={directoryListingsLoadingMore}
+              <button type="button" onClick={showMoreDirectoryActivities} disabled={directoryLoadingMore || directoryListingsLoadingMore}
                 className="min-h-11 rounded-xl border border-emerald-200 bg-white px-6 py-3 text-xs font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60">
-                {directoryListingsLoadingMore ? 'جارٍ تحميل المزيد…' : 'رؤية المزيد من الأنشطة'}
+                {directoryLoadingMore || directoryListingsLoadingMore ? 'جارٍ تحميل المزيد…' : 'رؤية المزيد من الأنشطة'}
               </button>
               <p className="text-[11px] text-slate-500">يتم عرض الأنشطة على دفعات من 20، مع الاحتفاظ بنطاق المحافظة والمركز والقرية المحدد.</p>
             </div>
           )}
-          {directoryListingsError && <p role="status" className="text-center text-xs font-bold text-amber-800">{directoryListingsError}</p>}
+          {(directoryListingsError || directoryLoadMoreError) && (
+            <p role="status" className="text-center text-xs font-bold text-amber-800">
+              {[directoryListingsError, directoryLoadMoreError].filter(Boolean).join(' ')}
+            </p>
+          )}
         </div>
       </div>
       {shareActivity && (
