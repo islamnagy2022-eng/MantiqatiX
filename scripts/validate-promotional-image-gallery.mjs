@@ -41,6 +41,12 @@ assert.match(publicDirectory, /sanitizePublicPromotionalImages\(profile\.promoti
 assert.match(publicCatalog, /sanitizePublicPromotionalImages\(profile\.promotional_images\)/, "storefront projection must sanitize public gallery URLs");
 assert.match(shared, /MAX_PROMOTIONAL_IMAGES = 10/, "server contract must cap the gallery at ten images");
 assert.match(storefront, /data-testid="storefront-promotional-gallery"/, "storefront must render a separate promotional gallery");
+assert.match(storefront, /aria-haspopup="dialog"/, "promotional thumbnails must open the accessible in-page viewer");
+assert.match(storefront, /role="dialog"[\\s\\S]*?aria-modal="true"/, "promotional viewer must expose modal dialog semantics");
+assert.match(storefront, /event.key === 'Escape'/, "promotional viewer must close with Escape");
+assert.match(storefront, /event.key === 'ArrowLeft'[\\s\\S]*?event.key === 'ArrowRight'/, "promotional viewer must support RTL keyboard navigation");
+assert.match(storefront, /galleryTriggerRef.current\\?\\.focus\\(\\)/, "closing the viewer must restore focus to its trigger");
+assert.match(storefront, /فتح الصورة الأصلية/, "the viewer must preserve access to the original image URL");
 assert.match(storefront, /const coverImage =/, "storefront must use one fixed cover image");
 assert.doesNotMatch(storefront, /currentBusiness\.coverImages|currentSlideIndex|slides\.map/, "legacy multi-cover rotation must not control the storefront cover");
 
