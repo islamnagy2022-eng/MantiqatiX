@@ -27,7 +27,7 @@ const normalizedMatchValue = (value) => safeText(value, 200).toLocaleLowerCase("
   .replace(/[أإآ]/g, "ا").replace(/[ىي]/g, "ي").replace(/ة/g, "ه")
   .replace(/[\u064B-\u065F\u0670]/g, "").replace(/\s+/g, " ").trim();
 const normalizedAdministrativeValue = (value) =>
-  normalizedMatchValue(value).replace(/^(?:محافظة|مركز|مدينة|قسم|قرية|شياخة|حي|نجع)\s*/, "");
+  normalizedMatchValue(value).replace(/^(?:محافظ(?:ة|ه)|مركز|مدين(?:ة|ه)|قسم|قري(?:ة|ه)|شياخ(?:ة|ه)|حي|نجع)\s*/, "");
 
 export const PUBLIC_DIRECTORY_PAGE_SIZE = PAGE_SIZE;
 
