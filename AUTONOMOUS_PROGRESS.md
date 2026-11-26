@@ -4,7 +4,7 @@
 
 ### Repository baseline
 - Repository: `islamnagy2022-eng/MantiqatiX`; default branch `main`.
-- Latest main source commit from this pass: `bc4695f03755dd6e99020ab7f772aed4ec5d7f96`.
+- Latest main source commit from this pass: `ffd91df42c0cc70bfce692cc79045132cff5c383`.
 - Central task list: `TODO_PRODUCTION.md` and `docs/release/MASTER_EXECUTION_TODO_20261124.md`.
 - Production remains **BLOCKED / NOT CERTIFIED**.
 
@@ -62,10 +62,20 @@
 - The public site was rebuilt and deployed from current main. Because the only change since the previous main was a test script, this deployment did not add the gallery feature or otherwise change frontend behavior.
 - The PR-triggered workflow for #1121 had `validate_public_only=success` and `deploy=skipped`; the main push run completed deployment successfully.
 
+### Merged RC927 anonymous Auth digital-page boundary
+- PR #1122 merged as `ffd91df42c0cc70bfce692cc79045132cff5c383`, source-only.
+- Added RC927 migration `20261125120000_rc927_digital_page_authenticated_identity_scope.sql`: raw `anon` remains the public page renderer role under RC480's exact ten-column allowlist; `authenticated` sessions require explicit `is_anonymous=false` for page and section reads/writes; existing confirmed-owner/admin policies remain in place.
+- Added adversarial PG17 integration covering raw anon public read/internal-column denial, Anonymous Auth and missing claim read/write denial, confirmed-owner compatibility, and confirmed non-owner restrictions.
+- Updated the release map to 84 required source migration IDs and corrected RC479 + RC494 migration-count checks to 84.
+- CI on exact head `3d349c12064b7d109060885695ecf41592ec02f0`: **17/17 workflows passed**, including the full chronological PostgreSQL 17 forward replay from the Production schema checkpoint. The replay applied 123 forward migration files in timestamp order and passed RC927 integration; this is disposable-only evidence, not a Production restore or migration.
+- A test-only ACL overlay was added for the disposable replay because local Supabase defaults differed from the read-only Production snapshot. It removes DML grants from `PUBLIC` and `anon` only in the isolated replay fixture; the RC927 Production migration contains no GRANT/REVOKE.
+- The Pages PR validation had `validate_public_only=skipped` and `deploy=skipped`; deployed-origin redirect smoke test passed. No website deployment was triggered by the PR workflow.
+- No Production migration, RLS/GRANT/Auth change, Edge deployment, Storage mutation or customer data change was performed. RC927 remains unapplied in Production pending the complete release gate.
+
 ### Reviewed but intentionally not merged
 - PR #1117 / old #1114 — selected-membership activity-label fix was written to dormant `web/` files, while current Pages production build composes `apps/catalog-frontend` and excludes `web/`. This patch would not reach the live UI. Both PRs closed; Issue #96 left open with a documented topology finding. A real fix requires a fresh deployed repro and change in the current React application.
 - PR #1110 — Paymob provider scoping still needs the signed altered-selector HTTP Sandbox replay. Disposable CI alone is insufficient.
-- PR #1109 — RC927 anonymous-session database boundary is stale, mergeability unresolved and exact-head replay/revalidation needed. Do not merge on stale status.
+- PR #1109 — stale RC927 branch was closed after its focused source changes were ported to current-main PR #1122 and all exact-head checks passed.
 - Other stale drafts are not assumed safe merely because GitHub reports them open.
 
 ### Safety and rollback boundary
@@ -80,3 +90,12 @@
 2. Even with green CI, keep gallery feature out of Production until live Edge compatibility and deployed-origin save/read verification are proven in an approved release.
 3. Continue current-main source/CI work from the master TODO, prioritizing P0 authorization/privacy and verified user-facing features.
 4. Continue source/CI-only work from the master TODO. Keep Production DB/Auth/RLS/GRANT/Storage/Edge/payment/finance changes blocked until documented backup/restore and coordinated release gates pass.
+
+
+### Continuation checkpoint — 2026-11-26
+- Current main: `ffd91df42c0cc70bfce692cc79045132cff5c383`.
+- PR #1122 RC927 is merged source-only; all 17 exact-head checks green, including full 84-version/123-forward-file chronological PG17 replay and exact RC927 adversarial integration.
+- PR #1120 gallery remains Draft. Its exact-head browser E2E for owner URL validation, save payload and reload succeeded, but the live Edge bundles lack persistence/projection support. Atomic profile persistence and coordinated three-Edge compatibility are still required before merge/release.
+- Issue #96 remains open: prior patch touched dormant `web/` files excluded from the current Pages composition.
+- PR #1110 Paymob provider scoping remains unmerged until the signed altered-selector Sandbox HTTP replay is evidenced.
+- Production remains **BLOCKED / NOT CERTIFIED**; no Production mutation was performed in RC927.
