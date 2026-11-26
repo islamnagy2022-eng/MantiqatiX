@@ -1,3 +1,14 @@
+## 2026-11-26 — Production catalog Edge source parity recheck (read-only)
+
+- Production project `moyhiluyhjsujhwlyeuu` remains `ACTIVE_HEALTHY`, PostgreSQL 17.6.1.155. The live migration ledger is 310 rows through `20261110150618`; RC928, RC117 forward repair and RC929 are not recorded.
+- Read-only SQL confirms RC928's exact atomic profile RPC is absent, while the canonical owner profile RPC and the platform-admin registry helper/table are present. The RC929 confirmed-Auth restrictive policies are absent from `orders` and `order_status_history`.
+- Live `catalog-admin` v20 differs materially from current main: no RC928 atomic RPC/metadata patch or gallery validation, old membership-derived platform-root check, and no current RC486 price-write fail-closed guard or durable contact-consent audit path.
+- Live `catalog-platform-admin` v23 also uses membership-derived platform-root authority rather than the current private-registry helper.
+- Live `public-catalog` v11 and `public-catalog-directory` v20 match current main after normalizing only the expected deployment packaging import path.
+- Do not deploy either admin Edge function alone. RC928 and platform-admin registry parity require coordinated DB + Edge dependencies and full release gates. All checks were read-only; no Production mutation or Edge deployment occurred.
+
+---
+
 ## 2026-11-26 — PR #1142 activity-share accessibility and deployed-origin verification
 
 - PR #1142 merged to `main` as `2cc6639fc0f8af04d04311910c94bc9b959e1d8b`.
