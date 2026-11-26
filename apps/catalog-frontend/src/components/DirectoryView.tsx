@@ -164,7 +164,6 @@ export const DirectoryView: React.FC = () => {
     setSelectedBusinessId,
     setCurrentView,
     adminSettings,
-    products,
   } = useApp();
   const [scopedDirectoryBusinesses, setScopedDirectoryBusinesses] = useState<Business[] | null>(null);
   const [scopedDirectoryProducts, setScopedDirectoryProducts] = useState<Product[]>([]);
