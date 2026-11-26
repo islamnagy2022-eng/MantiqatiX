@@ -65,7 +65,7 @@ assert.match(businessSearchBlock, /biz\.name, biz\.category, biz\.bio, biz\.gove
   "Client search must remain on public profile text.");
 assert.doesNotMatch(businessSearchBlock, /biz\.phone|biz\.ownerWhatsApp/,
   "Client free-text search must not inspect consent-gated phone or WhatsApp values.");
-assert.match(view, /\.gt\("id", scanAfterId\)/, "Server scan must use stable ID continuation.");
-assert.match(view, /DIRECTORY_SCAN_LIMIT_EXCEEDED/, "Large scans must fail closed instead of returning silently truncated results.");
+assert.match(edge, /\.gt\("id", scanAfterId\)/, "Server scan must use stable ID continuation.");
+assert.match(edge, /DIRECTORY_SCAN_LIMIT_EXCEEDED/, "Large scans must fail closed instead of returning silently truncated results.");
 
 console.log("PUBLIC_DIRECTORY_KEYSET_STATIC=PASS (39 assertions)");
