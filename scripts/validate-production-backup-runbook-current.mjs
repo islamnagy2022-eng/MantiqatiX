@@ -16,14 +16,16 @@ const runbookRequirements = [
   "UNKNOWN / NOT EVIDENCED",
   "Restore to a new project",
   "Storage object bytes",
-  "86 exact migration versions",
-  "0/86 exact required version identifiers",
+  "87 exact migration versions",
+  "0/87 exact required version identifiers",
   "20261125120000",
   "RC927",
   "20261126010000",
   "RC928",
   "20261126020000",
   "RC117",
+  "20261126030000",
+  "RC929",
   "not applied to Production",
 ];
 for (const required of runbookRequirements) {
