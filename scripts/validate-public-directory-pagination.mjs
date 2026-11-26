@@ -92,6 +92,16 @@ assert.match(view, /list="directory-area-options"/,
 assert.match(view, /datalist id="directory-area-options"/,
   "Public consent-projected address suggestions must remain available as area-search hints.");
 assert.match(view, /loadMoreScopedDirectoryBusinesses/, "Filtered activity searches must have a cursor-backed load-more action.");
+const activityModule = fs.readFileSync("apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx", "utf8");
+assert.match(view, /onLoadMoreBusinesses=\{\(\) => \{ void loadMoreScopedDirectoryBusinesses\(\); \}\}/,
+  "Activity module must receive cursor-backed business pagination.");
+assert.match(activityModule, /hasMoreListings \\|\\| hasMoreBusinesses/,
+  "Activity module load-more visibility must include additional registered businesses.");
+assert.match(activityModule, /if \(hasMoreBusinesses\) onLoadMoreBusinesses\(\)/,
+  "The activity module load-more action must fetch the next registered-business page.");
+assert.doesNotMatch(activityModule, /business\.phone|business\.ownerWhatsApp|listing\.phone|listing\.secondary_phone/,
+  "Activity module free-text search must not inspect consent-gated contact values.");
+
 assert.match(view, /directoryHasMoreForView/, "The load-more UI must follow the currently selected global or filtered result set.");
 assert.match(view, /directoryProductsForView\.forEach/, "Featured-image ranking must use products from the active directory page set.");
 const businessSearchBlockStart = view.indexOf("const filteredBusinesses = businesses.filter");
