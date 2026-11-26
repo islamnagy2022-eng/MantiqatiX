@@ -153,7 +153,7 @@ BEGIN
      OR v_settings->'catalog_profile'->>'facebook_url' IS DISTINCT FROM 'https://facebook.com/owner-profile-gallery-test'
      OR v_settings->'catalog_profile'->'promotional_images' IS DISTINCT FROM
        '["https://cdn.example.test/promo-1.webp","https://cdn.example.test/promo-2.webp"]'::jsonb
-     OR jsonb_array_length(v_settings->'catalog_profile'->'additional_contact_phones') <> 2
+     OR jsonb_array_length(v_settings->'catalog_profile'->'additional_contact_phones') IS DISTINCT FROM 2
      OR v_settings->'catalog_profile'->>'google_maps_url' IS DISTINCT FROM 'https://maps.google.com/?q=owner-profile-test'
      OR v_settings->'catalog_profile'->>'custom_preserved_key' IS DISTINCT FROM 'keep-me'
      OR v_settings->'catalog_profile'->>'public_contact_enabled' IS DISTINCT FROM 'false'
@@ -185,6 +185,35 @@ BEGIN
      OR v_settings->'catalog_profile'->'promotional_images' IS DISTINCT FROM
        '["https://cdn.example.test/promo-1.webp","https://cdn.example.test/promo-2.webp"]'::jsonb THEN
     RAISE EXCEPTION 'RC928_INVALID_GALLERY_PARTIALLY_CHANGED_PROFILE: %', v_settings->'catalog_profile';
+  END IF;
+
+  -- More than ten URLs is rejected; no partial profile update is allowed.
+  BEGIN
+    PERFORM public.upsert_catalog_business_profile_atomic_backend(
+      v_tenant_id, v_business_id, v_branch_id,
+      'Gallery Limit Edit', 'must not persist', '+201000000000',
+      'Test Street', 'Test Governorate', 'Test Markaz', 'Test District',
+      'Sun-Thu 9:00-17:00', '', '', false,
+      jsonb_build_object('promotional_images', (
+        SELECT pg_catalog.jsonb_agg('https://cdn.example.test/limit-' || n || '.webp')
+          FROM generate_series(1, 11) AS n
+      ))
+    );
+    RAISE EXCEPTION 'RC928_OVER_LIMIT_GALLERY_WAS_ALLOWED';
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS v_error = MESSAGE_TEXT;
+    IF v_error = 'RC928_OVER_LIMIT_GALLERY_WAS_ALLOWED' THEN RAISE; END IF;
+    IF v_error NOT LIKE '%INVALID_PROMOTIONAL_IMAGES%' THEN
+      RAISE EXCEPTION 'RC928_EXPECTED_OVER_LIMIT_DENIAL_BUT_GOT: %', v_error;
+    END IF;
+  END;
+
+  SELECT settings INTO v_settings
+    FROM public.businesses WHERE id = v_business_id AND tenant_id = v_tenant_id;
+  IF v_settings->'catalog_profile'->>'bio' IS DISTINCT FROM 'atomic gallery bio'
+     OR v_settings->'catalog_profile'->'promotional_images' IS DISTINCT FROM
+       '["https://cdn.example.test/promo-1.webp","https://cdn.example.test/promo-2.webp"]'::jsonb THEN
+    RAISE EXCEPTION 'RC928_OVER_LIMIT_GALLERY_PARTIALLY_CHANGED_PROFILE: %', v_settings->'catalog_profile';
   END IF;
 
   -- Authenticated identity with a missing is_anonymous claim is denied.
