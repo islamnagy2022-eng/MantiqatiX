@@ -127,7 +127,7 @@ assert.ok(
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261125110000"), "manifest must include RC926");
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261125110000"), "RC926 must remain unapplied in Production");
 assert.ok(
-  backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=85"),
+  backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=86"),
   "backup runbook validator must use 86 required migrations",
 );
 
