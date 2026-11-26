@@ -54,6 +54,21 @@ test("Specialty filter also matches provider specialties string arrays", () => {
   assert.equal(matchesDirectoryBusinessFilters(business, provider, { specialty: "قلب" }), false);
 });
 
+test("free-text search matches public profile data but never private contact fields", () => {
+  const business = {
+    name: "مركز الروضة الطبي",
+    phone: "01012345678",
+    address: "شارع سري لا يظهر بدون موافقة",
+    settings: {
+      catalog_profile: { description: "خدمات طبية متخصصة" },
+    },
+  };
+  const provider = { name_ar: "مركز الروضة", description: "رعاية صحية", specialties: ["أطفال"] };
+  assert.equal(matchesDirectoryBusinessFilters(business, provider, { query: "الروضة طبي" }), true);
+  assert.equal(matchesDirectoryBusinessFilters(business, provider, { query: "01012345678" }), false);
+  assert.equal(matchesDirectoryBusinessFilters(business, provider, { query: "شارع سري" }), false);
+});
+
 test("scope hash is stable and changes when a filter changes", async () => {
   const a = await hashDirectoryScope({ activity: "مطاعم", governorate: "المنوفية" }, ["b", "a"]);
   const b = await hashDirectoryScope({ governorate: "المنوفية", activity: "مطاعم" }, ["a", "b"]);
