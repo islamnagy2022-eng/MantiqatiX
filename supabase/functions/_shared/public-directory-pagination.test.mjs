@@ -35,6 +35,13 @@ test("global and branch catalogue rows share one sorted page cap", () => {
   assert.equal(merged.filter((item) => item.id === "global-000").length, 1,
     "Unexpected duplicate IDs must be emitted once, preferring the branch projection.");
   assert.equal(merged.find((item) => item.id === "global-000").name_ar, "أ نسخة مكررة من المنتج العام");
+
+  const overLimit = mergePublicDirectoryCatalogItems(
+    Array.from({ length: 160 }, (_, index) => ({ id: `item-${index}`, name_ar: `عنصر ${index}` })),
+    [],
+    500,
+  );
+  assert.equal(overLimit.length, 150, "The helper must retain the public response cap even if a caller requests more.");
 });
 
 test("normalizes only approved filters and bounds values", () => {
