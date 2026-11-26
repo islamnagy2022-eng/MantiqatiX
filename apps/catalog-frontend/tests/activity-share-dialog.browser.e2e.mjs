@@ -20,7 +20,7 @@ try {
 
   const page = await context.newPage();
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-  const shareButton = page.locator('button[aria-label^="مشاركة نشاط "').first();
+  const shareButton = page.getByRole('button', { name: /^مشاركة نشاط / }).first();
   await shareButton.waitFor({ state: 'visible', timeout: 30000 });
 
   const shareLabel = await shareButton.getAttribute('aria-label');
