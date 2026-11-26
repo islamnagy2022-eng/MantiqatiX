@@ -21,6 +21,7 @@ assert.doesNotMatch(helper, /provider\?\.specialties/, "Directory filters must n
 assert.match(edge, /\.select\("business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured"\)/, "Public pagination must preserve the approved public provider column allowlist");
 assert.match(edge, /itemQuery\(\)\.is\("branch_id", null\)/);
 assert.match(edge, /itemQuery\(\)\.eq\("branch_id", branchId\)/);
+assert.match(edge, /\.sort\(\(a: any, b: any\) => String\(a\.name_ar \|\| ""\)\.localeCompare\(String\(b\.name_ar \|\| ""\), "ar"\)\)/, "Global and branch catalog items must retain the combined Arabic-name ordering");
 assert.match(edge, /priceQuery\(\)\.is\("branch_id", null\)/);
 assert.match(edge, /priceQuery\(\)\.eq\("branch_id", branchId\)/);
 assert.doesNotMatch(edge, /\.or\(\x60branch_id\.is\.null,branch_id\.eq\.\$\{branchId\}\x60\)/);
