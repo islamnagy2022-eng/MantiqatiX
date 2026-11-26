@@ -18,7 +18,7 @@ See [PASS 2361–2370](../audits/PASS_2361_2370_PLATFORM_ROOT_LIVE_RECHECK_20261
 
 ## 2. Required ordered source slice
 
-The following is a dependency map, not permission to cherry-pick migrations. The actual release chain must follow the exact canonical 84-version order in [REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md](./REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md) and the gate in `scripts/production/live-reconciliation-contract.mjs`.
+The following is a dependency map, not permission to cherry-pick migrations. The actual release chain must follow the exact canonical 85-version order in [REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md](./REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md) and the gate in `scripts/production/live-reconciliation-contract.mjs`.
 
 | Stage | Source chain | Dependency / required result |
 |---|---|---|
@@ -34,17 +34,17 @@ The labels above are functional groups only; execute by version timestamp from t
 
 ## 3. Mandatory pre-release gates
 
-1. **Source integrity:** verify the 84 required source files, unique version IDs, collision/immutability checks, three exact aliases and five partial-baseline classifications. Keep the migration ledger unchanged until the formal ledger reconciliation gate passes.
+1. **Source integrity:** verify the 85 required source files, unique version IDs, collision/immutability checks, three exact aliases and five partial-baseline classifications. Keep the migration ledger unchanged until the formal ledger reconciliation gate passes.
 2. **Exhaustive effect reconciliation:** expand beyond the 76-object sample. Compare every affected table, column, index, constraint, trigger, policy predicate, function overload/body, owner, SECURITY DEFINER flag, search_path, and effective ACL against the source contracts. Presence alone is not semantic parity.
 3. **Backup and restore:** obtain owner-controlled encrypted off-site database and Storage-object exports; verify retrieval and checksums; account for Auth users/identities, Vault keys/secrets, configuration and Storage metadata/object bytes. Restore into disposable PostgreSQL 17 and prove rollback; measure RPO/RTO. Do not use a paid Supabase branch as an assumed prerequisite.
-4. **Exact-head isolated tests:** run the full strict 84-source gate and chronological forward replay from the verified checkpoint, plus all module-specific PostgreSQL 17 integration tests. Include positive registered-platform-root access and negative tenant ADMIN/OWNER/SUPER_ADMIN, stale platform metadata, tenant-scoped SUPER_ADMIN, MNTY-PLATFORM membership without registry, anonymous Auth, missing/null JWT claim, cross-business and cross-branch cases. Preserve tenant-local owners/managers and public read projections intentionally allowed by contract.
+4. **Exact-head isolated tests:** run the full strict 85-source gate and chronological forward replay from the verified checkpoint, plus all module-specific PostgreSQL 17 integration tests. Include positive registered-platform-root access and negative tenant ADMIN/OWNER/SUPER_ADMIN, stale platform metadata, tenant-scoped SUPER_ADMIN, MNTY-PLATFORM membership without registry, anonymous Auth, missing/null JWT claim, cross-business and cross-branch cases. Preserve tenant-local owners/managers and public read projections intentionally allowed by contract.
 5. **Database-to-Edge closure:** map every migration to physical schema → RPC/ACL/RLS → exact deployed Edge bundle/version → deployed-origin E2E. Nine launch-critical Edge deployments were previously found different from current main. No individual Edge deployment is allowed until its entire dependency slice passes.
 6. **Release review:** prepare exact commit, ordered migration list, verified backup identifiers, rollback steps, affected services, CI run IDs, Edge versions, expected post-release SQL read-back and smoke tests. Obtain explicit Production release approval before any Production write.
 7. **Post-release verification:** read back FORCE RLS, registry/helper owner and BYPASSRLS, empty search_path, helper ACL, all 62 policy references and the exact eight caller definitions; verify all seven catalog RPCs deny anonymous/missing-claim tokens and preserve confirmed-user tenant/business/branch behavior; run deployed-origin E2E. Any mismatch reverts the release and keeps affected endpoints fail-closed.
 
 ## 4. Known non-approval blockers
 
-- Production's live migration ledger is 310 rows through `20261110150618`, with 0/84 exact required source-version IDs. Three aliases are confirmed, but formal ledger repairs remain zero. Do not treat the mismatch itself as absence of physical effects.
+- Production's live migration ledger is 310 rows through `20261110150618`, with 0/85 exact required source-version IDs. Three aliases are confirmed, but formal ledger repairs remain zero. Do not treat the mismatch itself as absence of physical effects.
 - The 76-object curated physical read-back is 35 present / 41 absent and is not the exhaustive release contract.
 - RC464/RC471/RC484/RC485/RC925/RC926/RC927 are source-side fixes, not live Production changes. RC927 does not add `service_role` table grants; current direct SELECT is absent and unchanged.
 - Current CI evidence includes run `45496742405` (full forward replay) and `45496743088` (module/RC471-related PG17 tests), plus catalog, dashboard, privacy, directory, Paymob and agreement suites on the exact PR #1086 head. CI pass is not Production certification.
