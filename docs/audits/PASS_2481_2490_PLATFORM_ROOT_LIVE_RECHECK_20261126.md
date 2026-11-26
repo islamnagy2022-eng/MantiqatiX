@@ -118,6 +118,19 @@ Prior source/PG17 and chronological replay evidence is recorded in:
 
 Those historical CI results remain source/fixture evidence. They do not supersede this current Production read-back and do not authorize a live rollout.
 
+## 3A. Current source/CI evidence on the same main baseline
+
+The source correction family was re-exercised on the adjacent RC929 security branch based directly on this audit's same main baseline `d695316a69426d71c65891a6bbe2cd379b77a33d`; tested code head was `0f1d1cb748a9f15ba85a60d7708e81772d2258f5`.
+
+- RC464 PostgreSQL 17 platform-admin integration: **PASS**, run `45851878600`.
+- RC471 PostgreSQL 17 platform-admin integration: **PASS**, run `45851878311`.
+- RC484 PostgreSQL 17 registry/RLS integration: **PASS**, run `45851878700`.
+- RC465 order read-scope PostgreSQL integration: **PASS**, run `45851878442`.
+- Full chronological forward replay: **PASS**, run `45851878325`; 126 forward migrations applied in timestamp order from the isolated Production schema checkpoint. This replay included RC928, the RC117 image-provenance forward repair, the test-only order ACL overlay, and RC929. The overlay reported PASS immediately before RC929; RC929 committed successfully.
+- The exact-head check inventory for that code head reported 28 successful checks, no failures, and two expected skips (`deploy`, `validate_public_only`).
+
+These runs validate the source and disposable PostgreSQL contracts. They do not alter or certify Production, and they do not replace the live read-back in this report. The tested code head is not the head of this documentation-only PR.
+
 ## 4. Release disposition
 
 **P0 Issue #867 remains OPEN. Full platform remains BLOCKED / NOT CERTIFIED.**
