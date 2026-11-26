@@ -1184,7 +1184,7 @@ export const DirectoryView: React.FC = () => {
           <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="font-black text-lg text-slate-900 flex items-center gap-2">
               <Store className="w-5 h-5 text-emerald-600" />
-              <span>نتائج البحث الموحدة ({filteredBusinesses.length + filteredUnconfirmedListings.length})</span>
+              <span>نتائج البحث الموحدة ({filteredBusinesses.length + filteredUnconfirmedListings.length}{directoryHasMoreForView || directoryListingsHasMore ? '+' : ''})</span>
             </h2>
             <div
               aria-label="ملخص حالة توثيق النتائج"
