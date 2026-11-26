@@ -103,7 +103,8 @@ const requiredReleaseMigrations=[
   "20261124140000_rc924_agreement_participant_read_scope.sql",
   "20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql",
   "20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql",
-  "20261125120000_rc927_digital_page_authenticated_identity_scope.sql"
+  "20261125120000_rc927_digital_page_authenticated_identity_scope.sql",
+  "20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
