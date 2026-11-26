@@ -185,13 +185,6 @@ Deno.serve(async (req: Request) => {
       }
     }
     // The public feed is keyset-paginated; never load an unbounded directory into the browser.
-    const providerMap = new Map<string, any>();
-    const results: any[] = [];
-    const scanBatchSize = 100;
-    const maxScanRounds = 50;
-    let scanAfterId = cursorState?.lastId || null;
-    let scanRounds = 0;
-    let exhausted = false;
     const buildPublicBusiness = async (business: any): Promise<any | null> => {
       const tenantId = String(business.tenant_id || "");
       const { data: branches, error: branchError } = await db.from("branches")
