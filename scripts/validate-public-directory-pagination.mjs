@@ -39,14 +39,25 @@ assert.match(helper, /crypto\.subtle\.sign\("HMAC"/);
 assert.match(helper, /crypto\.subtle\.verify\("HMAC"/);
 assert.match(helper, /scopeHash/);
 assert.match(helper, /PUBLIC_DIRECTORY_PAGE_SIZE = PAGE_SIZE/);
-assert.match(client, /fetchPublicDirectoryPage\(cursor\?: string \| null\)/);
+assert.match(client, /fetchPublicDirectoryPage\([\s\S]{0,180}cursor\?: string \| null,[\s\S]{0,120}filters: PublicDirectoryPageFilters/);
 assert.match(client, /query\.set\('limit', '20'\)/);
 assert.match(client, /query\.set\('cursor', cursor\)/);
+for (const field of ["activity", "specialty", "governorate", "markaz", "village", "query"]) {
+  assert.match(client, new RegExp("query\\.set\\('" + field + "'"), `Public directory client must send the ${field} filter.`);
+}
+assert.match(helper, /query: \[/, "Free text must match public business/provider fields.");
+assert.doesNotMatch(helper, /phone|ownerWhatsApp|secondary_phone|address/i, "Server-side free-text search must never inspect consent-gated contacts.");
 assert.match(client, /pagination\?\.hasMore === true/);
 assert.match(context, /fetchPublicDirectoryPage\(cursor\)/);
 assert.match(context, /new Map<string, Business>/);
 assert.match(context, /directoryNextCursorRef\.current = page\.nextCursor/);
-assert.match(view, /if \(directoryHasMore\) void loadMoreDirectoryBusinesses\(\)/);
-assert.match(view, /directoryHasMore \|\| directoryListingsHasMore/);
+assert.match(view, /fetchPublicDirectoryPage\(null, filters\)/, "Filtered searches must request a server-side page instead of searching only the first global 20.");
+assert.match(view, /loadMoreScopedDirectoryBusinesses/, "Filtered activity searches must have a cursor-backed load-more action.");
+assert.match(view, /directoryHasMoreForView/, "The load-more UI must follow the currently selected global or filtered result set.");
+assert.match(view, /directoryProductsForView\.forEach/, "Featured-image ranking must use products from the active directory page set.");
+assert.match(view, /biz\.name, biz\.category, biz\.bio, biz\.governorate, biz\.markaz, biz\.village/, "Client search must remain on public profile text.");
+assert.doesNotMatch(view, /biz\.phone|biz\.ownerWhatsApp/, "Client free-text search must not inspect consent-gated phone or WhatsApp values.");
+assert.match(view, /\.gt\("id", scanAfterId\)/, "Server scan must use stable ID continuation.");
+assert.match(view, /DIRECTORY_SCAN_LIMIT_EXCEEDED/, "Large scans must fail closed instead of returning silently truncated results.");
 
 console.log("PUBLIC_DIRECTORY_KEYSET_STATIC=PASS (39 assertions)");
