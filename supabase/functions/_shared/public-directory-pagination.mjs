@@ -31,6 +31,33 @@ const normalizedAdministrativeValue = (value) =>
 
 export const PUBLIC_DIRECTORY_PAGE_SIZE = PAGE_SIZE;
 
+/**
+ * Merge globally scoped and branch-scoped public catalogue rows using one
+ * deterministic name order before applying the public response cap. Keeping
+ * the two queries separate avoids interpolating branch IDs into PostgREST,
+ * while sorting the union prevents global rows from starving branch rows.
+ * When an item ID is unexpectedly present in both scopes, the branch row wins.
+ */
+export function mergePublicDirectoryCatalogItems(globalItems, branchItems, limit = 150) {
+  const safeLimit = Number.isSafeInteger(limit) && limit > 0 ? Math.min(limit, 300) : 150;
+  const unique = new Map();
+  for (const item of [
+    ...(Array.isArray(branchItems) ? branchItems : []),
+    ...(Array.isArray(globalItems) ? globalItems : []),
+  ]) {
+    if (!isRecord(item) || item.id == null) continue;
+    const id = String(item.id);
+    if (!unique.has(id)) unique.set(id, item);
+  }
+  const compareText = (left, right) => left < right ? -1 : left > right ? 1 : 0;
+  return [...unique.values()]
+    .sort((left, right) =>
+      compareText(String(left.name_ar || ""), String(right.name_ar || "")) ||
+      compareText(String(left.id), String(right.id))
+    )
+    .slice(0, safeLimit);
+}
+
 export function normalizeDirectoryFilters(input) {
   const get = (key) => input && typeof input.get === "function"
     ? input.get(key)
