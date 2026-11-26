@@ -157,6 +157,9 @@ jobs:
       - name: Test merchant promotional image URL editor
         working-directory: apps/catalog-frontend
         run: npx tsx tests/promotional-images.test.ts
+      - name: Test fail-closed promotional gallery capability against stale Edge bundles
+        working-directory: apps/catalog-frontend
+        run: npx tsx tests/promotional-gallery-capability.test.ts
       - name: Test public promotional image URL validation
         run: node --test supabase/functions/_shared/promotional-images.test.mjs
       - name: Validate single-cover and promotional-gallery wiring
