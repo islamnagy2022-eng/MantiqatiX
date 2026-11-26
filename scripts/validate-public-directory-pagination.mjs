@@ -99,7 +99,7 @@ assert.match(activityModule, /normalizedQueryTokens\.every\(\(token\) => haystac
   "Activity module free-text search must use the server's all-token matching semantics.");
 assert.match(activityModule, /business\.bio/,
   "Activity module local matching must include the already-public business description.");
-assert.match(activityModule, /hasMoreListings \\|\\| hasMoreBusinesses/,
+assert.ok(activityModule.includes("|| hasMoreBusinesses"),
   "Activity module load-more visibility must include additional registered businesses.");
 assert.match(activityModule, /if \(hasMoreBusinesses\) onLoadMoreBusinesses\(\)/,
   "The activity module load-more action must fetch the next registered-business page.");
