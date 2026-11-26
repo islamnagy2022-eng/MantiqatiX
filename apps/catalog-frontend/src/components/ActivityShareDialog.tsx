@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Copy, ExternalLink, QrCode, Share2, X } from 'lucide-react';
 import { getCurrentAppBasePath } from '../utils/rules';
 
@@ -15,6 +15,8 @@ export const ActivityShareDialog: React.FC<ActivityShareDialogProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [shareMessage, setShareMessage] = useState('');
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
   const activityUrl = useMemo(() => {
     const basePath = getCurrentAppBasePath(window.location.pathname);
@@ -29,11 +31,48 @@ export const ActivityShareDialog: React.FC<ActivityShareDialogProps> = ({
   );
 
   useEffect(() => {
+    previouslyFocusedRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    closeButtonRef.current?.focus();
+
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+
+      if (event.key !== 'Tab') return;
+      const dialog = closeButtonRef.current?.closest('[role="dialog"]');
+      if (!dialog) return;
+
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )).filter((element) => element.getAttribute('aria-hidden') !== 'true');
+      if (focusable.length === 0) {
+        event.preventDefault();
+        closeButtonRef.current?.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || !dialog.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (active === last || !dialog.contains(active))) {
+        event.preventDefault();
+        first.focus();
+      }
     };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      if (previouslyFocusedRef.current?.isConnected) previouslyFocusedRef.current.focus();
+    };
   }, [onClose]);
 
   const copyLink = async () => {
@@ -76,10 +115,12 @@ export const ActivityShareDialog: React.FC<ActivityShareDialogProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="activity-share-title"
+        aria-describedby="activity-share-description"
         dir="rtl"
         className="relative my-auto w-full max-w-md rounded-3xl border border-slate-200 bg-white p-5 text-right shadow-2xl sm:p-7"
       >
         <button
+          ref={closeButtonRef}
           type="button"
           onClick={onClose}
           aria-label="إغلاق نافذة مشاركة النشاط"
@@ -98,7 +139,7 @@ export const ActivityShareDialog: React.FC<ActivityShareDialogProps> = ({
           </div>
         </div>
 
-        <p className="mb-4 text-xs leading-6 text-slate-600">
+        <p id="activity-share-description" className="mb-4 text-xs leading-6 text-slate-600">
           افتح الرابط مباشرة لعرض هذا النشاط وتخصصاته، أو شاركه أو اطبع رمز QR للوصول السريع.
         </p>
 
