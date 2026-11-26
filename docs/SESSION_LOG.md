@@ -1,3 +1,14 @@
+## 2026-11-26 — Critical platform-root authorization read-back (read-only)
+
+- [x] Read `public.mnty_can_platform_admin()`: SECURITY DEFINER, owner postgres, `search_path=public,pg_temp`, delegates to `public.mnty_can('admin',NULL,NULL,NULL)`.
+- [x] Read `public.mnty_can` and `public.mnty_active_membership`: null scope arguments return all active memberships; the `ADMIN` role grants the `admin` permission. Read `public.is_platform_admin()`: it returns true for any active `ADMIN` or `SUPER_ADMIN` membership.
+- [x] Confirmed `private.platform_admins` exists with RLS on but FORCE RLS off; neither live helper uses the registry.
+- [x] Quantified policy references: 57 policies / 24 tables use `is_platform_admin()`; 5 policies / 3 tables use `mnty_can_platform_admin()`.
+- [x] Confirmed RC464, RC469 and RC484 are absent from the live migration ledger. Their registry-backed helper, FORCE RLS and empty-search_path postconditions remain outstanding.
+- This confirms a fail-open global-authorization condition, not exploitation or a confirmed breach. No Production SQL mutation, migration, Edge deployment or user-data write was performed. Admin Edge deployments remain blocked.
+
+---
+
 ## 2026-11-26 — Production catalog Edge source parity recheck (read-only)
 
 - [x] Confirmed Production project `moyhiluyhjsujhwlyeuu` is ACTIVE_HEALTHY on PostgreSQL 17.6.1.155.
