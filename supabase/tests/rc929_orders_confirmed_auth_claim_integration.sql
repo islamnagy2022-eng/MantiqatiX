@@ -109,45 +109,51 @@ BEGIN
 END;
 $test$;
 
--- Read back the exact restrictive policy contracts, including write predicates.
+-- Read back the exact catalog policy contracts, independent of pg_policies formatting.
 DO $policy_contract$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_catalog.pg_policies
-    WHERE schemaname = 'public'
-      AND tablename = 'orders'
-      AND policyname = 'orders_confirmed_auth_only'
-      AND upper(permissive) = 'RESTRICTIVE'
-      AND upper(cmd) = 'ALL'
-      AND roles @> ARRAY['authenticated']::name[]
-      AND lower(qual) LIKE '%is_anonymous%'
-      AND lower(qual) LIKE '%is not distinct from%'
-      AND lower(qual) LIKE '%auth.uid()%'
-      AND lower(qual) LIKE '%is not null%'
-      AND lower(with_check) LIKE '%is_anonymous%'
-      AND lower(with_check) LIKE '%is not distinct from%'
-      AND lower(with_check) LIKE '%auth.uid()%'
-      AND lower(with_check) LIKE '%is not null%'
+    SELECT 1
+    FROM pg_catalog.pg_policy p
+    JOIN pg_catalog.pg_class t ON t.oid = p.polrelid
+    JOIN pg_catalog.pg_namespace n ON n.oid = t.relnamespace
+    WHERE n.nspname = 'public'
+      AND t.relname = 'orders'
+      AND p.polname = 'orders_confirmed_auth_only'
+      AND p.polpermissive IS FALSE
+      AND p.polcmd = '*'
+      AND (SELECT r.oid FROM pg_catalog.pg_roles r WHERE r.rolname = 'authenticated') = ANY(p.polroles)
+      AND lower(pg_catalog.pg_get_expr(p.polqual, p.polrelid)) LIKE '%is_anonymous%'
+      AND lower(pg_catalog.pg_get_expr(p.polqual, p.polrelid)) LIKE '%is not distinct from%'
+      AND lower(pg_catalog.pg_get_expr(p.polqual, p.polrelid)) LIKE '%auth.uid()%'
+      AND lower(pg_catalog.pg_get_expr(p.polqual, p.polrelid)) LIKE '%is not null%'
+      AND lower(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid)) LIKE '%is_anonymous%'
+      AND lower(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid)) LIKE '%is not distinct from%'
+      AND lower(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid)) LIKE '%auth.uid()%'
+      AND lower(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid)) LIKE '%is not null%'
   ) THEN
     RAISE EXCEPTION 'RC929_ORDERS_RESTRICTIVE_CONFIRMED_AUTH_POLICY_MISSING';
   END IF;
 
   IF NOT EXISTS (
-    SELECT 1 FROM pg_catalog.pg_policies
-    WHERE schemaname = 'public'
-      AND tablename = 'order_status_history'
-      AND policyname = 'order_status_history_confirmed_auth_only'
-      AND upper(permissive) = 'RESTRICTIVE'
-      AND upper(cmd) = 'ALL'
-      AND roles @> ARRAY['authenticated']::name[]
-      AND lower(qual) LIKE '%is_anonymous%'
-      AND lower(qual) LIKE '%is not distinct from%'
-      AND lower(qual) LIKE '%auth.uid()%'
-      AND lower(qual) LIKE '%is not null%'
-      AND lower(with_check) LIKE '%is_anonymous%'
-      AND lower(with_check) LIKE '%is not distinct from%'
-      AND lower(with_check) LIKE '%auth.uid()%'
-      AND lower(with_check) LIKE '%is not null%'
+    SELECT 1
+    FROM pg_catalog.pg_policy p
+    JOIN pg_catalog.pg_class t ON t.oid = p.polrelid
+    JOIN pg_catalog.pg_namespace n ON n.oid = t.relnamespace
+    WHERE n.nspname = 'public'
+      AND t.relname = 'order_status_history'
+      AND p.polname = 'order_status_history_confirmed_auth_only'
+      AND p.polpermissive IS FALSE
+      AND p.polcmd = '*'
+      AND (SELECT r.oid FROM pg_catalog.pg_roles r WHERE r.rolname = 'authenticated') = ANY(p.polroles)
+      AND lower(pg_catalog.pg_get_expr(p.polqual, p.polrelid)) LIKE '%is_anonymous%'
+      AND lower(pg_catalog.pg_get_expr(p.polqual, p.polrelid)) LIKE '%is not distinct from%'
+      AND lower(pg_catalog.pg_get_expr(p.polqual, p.polrelid)) LIKE '%auth.uid()%'
+      AND lower(pg_catalog.pg_get_expr(p.polqual, p.polrelid)) LIKE '%is not null%'
+      AND lower(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid)) LIKE '%is_anonymous%'
+      AND lower(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid)) LIKE '%is not distinct from%'
+      AND lower(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid)) LIKE '%auth.uid()%'
+      AND lower(pg_catalog.pg_get_expr(p.polwithcheck, p.polrelid)) LIKE '%is not null%'
   ) THEN
     RAISE EXCEPTION 'RC929_HISTORY_RESTRICTIVE_CONFIRMED_AUTH_POLICY_MISSING';
   END IF;
