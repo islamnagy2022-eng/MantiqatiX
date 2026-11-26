@@ -7,6 +7,7 @@ import {
   issueDirectoryCursor,
   matchesDirectoryAreaFilter,
   matchesDirectoryVerificationPhase,
+  mergePublicDirectoryCatalogItems,
   matchesDirectoryBusinessFilters,
   normalizeDirectoryFilters,
   parseDirectorySlugs,
@@ -15,6 +16,26 @@ import {
 
 const secret = "test-only-cursor-secret-that-is-at-least-32-bytes-long";
 const id = "123e4567-e89b-42d3-a456-426614174000";
+
+test("global and branch catalogue rows share one sorted page cap", () => {
+  const globalItems = Array.from({ length: 150 }, (_, index) => ({
+    id: `global-${String(index).padStart(3, "0")}`,
+    name_ar: `ز منتج عام ${index}`,
+  }));
+  const branchItems = [
+    { id: "branch-first", name_ar: "أ منتج خاص بالفرع" },
+    { id: "global-000", name_ar: "أ نسخة مكررة من المنتج العام" },
+  ];
+
+  const merged = mergePublicDirectoryCatalogItems(globalItems, branchItems, 150);
+
+  assert.equal(merged.length, 150);
+  assert.equal(merged[0].id, "branch-first",
+    "An earlier-sorting branch row must not be discarded merely because global rows were concatenated first.");
+  assert.equal(merged.filter((item) => item.id === "global-000").length, 1,
+    "Unexpected duplicate IDs must be emitted once, preferring the branch projection.");
+  assert.equal(merged.find((item) => item.id === "global-000").name_ar, "أ نسخة مكررة من المنتج العام");
+});
 
 test("normalizes only approved filters and bounds values", () => {
   assert.deepEqual(normalizeDirectoryFilters(new URLSearchParams(
