@@ -1,10 +1,24 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-26 — RC117 image-provenance repair merged; active release contract includes 86 source migrations  
-**Base:** `main @ 17329ba27effad52a316ad0aa94ef1a93ab975a7`  
+**Updated:** 2026-11-26 — PR #1136 gallery-save guard deployed; RC929 orders identity guard is the 87th source-only candidate  
+**Base:** `main @ d695316a69426d71c65891a6bbe2cd379b77a33d`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
-## 2026-11-26 — Current execution checkpoint (86-source release contract)
+## 2026-11-26 — Current execution checkpoint (87-source release contract)
+
+- [x] PR #1136 merged to `main` as `d695316a69426d71c65891a6bbe2cd379b77a33d`. The frontend now fails closed when the deployed catalog-admin bundle does not prove promotional-gallery write capability; omitted optional gallery values no longer clear stored images.
+- [x] GitHub Pages deployment after PR #1136 passed: [run 45779486714](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45779486714). Primary Catalog build, employee RBAC PostgreSQL and dashboard browser E2E passed: [run 45779486990](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45779486990). Backend-only module boundary and financial journal/approval PostgreSQL tests passed: [run 45779486718](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45779486718). MantiGO open-ride privacy PostgreSQL passed: [run 45779486734](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45779486734).
+- [x] Fresh read-only Production read-back: `orders` and `order_status_history` have RLS + FORCE RLS enabled; anon SELECT is false; authenticated SELECT is true; neither has the strict RC929 `IS NOT DISTINCT FROM 'false'` restrictive guard. The existing COALESCE predicates permit a missing/null `is_anonymous` claim to be treated as non-anonymous. This is a fail-open policy condition, not evidence of a confirmed data breach.
+- [x] Added source-only RC929 migration `20261126030000` on `security/rc929-orders-explicit-confirmed-auth-guard-20261126`: restrictive FOR ALL policies for both order resources require a non-null `auth.uid()` and explicit `is_anonymous=false`; USING and WITH CHECK both enforce the condition. Migration preflight requires RLS, expected policies and no anon SELECT; no grants, table structures, order rows or customer data are changed.
+- [x] Added a pre-RC929 PostgreSQL baseline proving the prior missing-claim behavior, plus positive/negative PG17 integration cases for missing/null/true claims, missing uid, confirmed branch manager, customer-own-order reads and no client write grants. Added static validator and wired the dedicated RC465 PG17 workflow and chronological replay static gate.
+- [x] Expanded the release source contract to **87 versions**. The manifest now lists all 87 as required and missing, with 310 live ledger rows through `20261110150618`; `0/87` exact required versions are present. Added the 87-source source-to-live crosswalk.
+- [ ] Run exact-head RC929 dedicated PostgreSQL 17, static, and full 87-version chronological replay workflows; fix any failures before creating or merging the PR.
+- [ ] Continue coordinated DB + Edge source/production parity for RC928. Current `catalog-admin` v20 does not expose gallery write capability; frontend guard correctly blocks changed-gallery saves. Do not deploy catalog Edge functions individually.
+- [ ] Keep Production DB/Auth/RLS/GRANT/Storage/Edge/payment/customer data read-only. Do not apply RC929 or any migration until the complete 87-source migration/effect/alias reconciliation and coordinated release gates pass.
+
+**Current disposition:** Website deployed and browser-verified; PR #1136 source guard merged; RC929 is a pending source-only security candidate; Production remains **BLOCKED / NOT CERTIFIED**. Backup/restore was not performed.
+
+## 2026-11-26 — Previous 86-source checkpoint (historical baseline; superseded by the 87-source checkpoint above)
 
 - [x] PR #1129 merged source-only as `a0abff68428a4a8334ac09cb117898c90d2d520a`; added forward-only RC117 repair `20261126020000` to preserve non-empty owner URLs with missing provenance and generate defaults only for blank image URLs. Historical RC117 migration remains unchanged.
 - [x] PR #1130 merged to current `main` as `e935b77902fa082218e3db01c7b20ec6db0a2ede`. It made the repair the 86th required source version and aligned the strict gate, verifier, backup validator and reconciliation manifest.
