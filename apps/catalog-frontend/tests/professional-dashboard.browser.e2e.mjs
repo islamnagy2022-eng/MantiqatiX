@@ -679,7 +679,13 @@ try {
         'first directory request must retrieve only the first 20-row page');
       assert.equal(directoryPageRequests[0].cursor, '', 'first directory request must not include a cursor');
 
-      await page.getByRole('button', { name: 'رؤية المزيد من الأنشطة', exact: true }).click();
+      const loadMoreButton = page.getByRole('button', { name: 'رؤية المزيد من الأنشطة', exact: true });
+      // Dispatch two click events synchronously: only one request may consume the
+      // current cursor even before React has time to disable the button.
+      await loadMoreButton.evaluate((button) => {
+        button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+      });
       await page.waitForFunction(() => [...document.querySelectorAll('h3')]
         .filter((node) => /^نشاط اختبار التصفح [0-9]{2}$/.test((node.textContent || '').trim())).length === 40);
       assert.equal(await testCards.count(), 40, 'first load-more action must append exactly 20 activity cards');
