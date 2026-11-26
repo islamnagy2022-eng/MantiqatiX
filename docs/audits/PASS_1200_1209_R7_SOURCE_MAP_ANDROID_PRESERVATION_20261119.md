@@ -19,7 +19,7 @@
 | R7 Android WebView wrapper | Three-file historical source | Preserve it. It is not a complete buildable/signable Android application and is not the current mobile-web/PWA implementation. |
 | Existing R6/R7 mapping docs | Historical and current contract crosswalks | Use `docs/audits/PASS_1090_1099_R7_CONTRACT_MAP_AND_SHARED_AUTHORIZATION_RECHECK_20261119.md` and `docs/integration/R6_TO_SUPABASE_DOMAIN_MAPPING_20261108.md` before porting features. |
 
-The deployed public root remains the legacy catalog; V6 Preview is a separate path. Do not replace either deployment or create a parallel catalog.
+The original deployment description above is a historical snapshot and is superseded by the current `.github/workflows/pages.yml` composition: primary catalog at `/`, rollback copy at `/legacy/`, and isolated V6 preview at `/v6-preview/`. Do not replace the primary catalog or promote V6 independently.
 
 ## 2. Archive integrity and critical blockers
 

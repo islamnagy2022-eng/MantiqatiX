@@ -1,5 +1,11 @@
 # MantiqatiX Continuous Execution Status
 
+## Current Pages composition — 2026-11-26
+
+- Current `.github/workflows/pages.yml` builds `apps/catalog-frontend` at the public root `/`, retains a path-adjusted rollback copy at `/legacy/`, and keeps V6 isolated at `/v6-preview/`.
+- The old `web/**` source tree is retained and statically validated but is not copied into the Pages artifact; its reverse-bidding UI is not the active production catalog.
+- This is a source/workflow topology clarification only. It does not deploy a new artifact or authorize a V6 cutover.
+
 ## Latest checkpoint — 2026-11-22 — PR982 merged; live Production still blocked
 
 - PR #982 merged as `dbf40f6b9f8087fd5a274749c4a4db3ceb7c7564` after all nine exact-head workflow runs passed, including Primary Catalog build, dashboard browser E2E and employee RBAC PostgreSQL.
