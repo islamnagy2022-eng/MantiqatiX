@@ -931,7 +931,7 @@ try {
         'https://cdn.example.test/promo-1.webp',
       ].join('\n');
       await galleryInput.fill(validInput);
-      await page.getByRole('button', { name: 'حفظ التعديلات', exact: true }).click();
+      await page.getByRole('button', { name: 'حفظ هوية النشاط', exact: true }).click();
       await page.getByRole('status').filter({ hasText: 'تأكد حفظ هوية النشاط في قاعدة الإنتاج' }).waitFor({ state: 'visible', timeout: 10000 });
 
       const saveRequest = catalogAdminRequests.find((entry) => entry.action === 'BUSINESS_PROFILE_UPSERT');
