@@ -128,6 +128,7 @@ export type PublicDirectoryPageFilters = {
   governorate?: string;
   markaz?: string;
   village?: string;
+  area?: string;
   query?: string;
 };
 
@@ -140,7 +141,7 @@ export async function fetchPublicDirectoryPage(
   const query = new URLSearchParams();
   query.set('limit', '20');
   if (cursor) query.set('cursor', cursor);
-  for (const key of ['activity', 'specialty', 'governorate', 'markaz', 'village', 'query'] as const) {
+  for (const key of ['activity', 'specialty', 'governorate', 'markaz', 'village', 'area', 'query'] as const) {
     const value = String(filters[key] || '').trim();
     if (value) query.set(key, value.slice(0, 100));
   }
