@@ -90,9 +90,10 @@ const required = [
   "20261124140000_rc924_agreement_participant_read_scope.sql",
   "20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql",
   "20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql",
-  "20261125120000_rc927_digital_page_authenticated_identity_scope.sql"
+  "20261125120000_rc927_digital_page_authenticated_identity_scope.sql",
+  "20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql"
 ];
-assert.equal(required.length, 84, "release gate must track all distinct required post-RC424 migration effects, including RC464B, both RC479 migrations, RC476–RC496, RC921, RC922, RC923, RC924, RC925, RC926 and RC927");
+assert.equal(required.length, 85, "release gate must track all distinct required post-RC424 migration effects, including RC464B, both RC479 migrations, RC476–RC496, RC921, RC922, RC923, RC924, RC925, RC926, RC927 and RC928");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");
@@ -177,6 +178,12 @@ assert.ok(rc926Validator.includes("IS NOT DISTINCT FROM"), "RC926 must require a
 assert.ok(forwardReplay.includes("node scripts/validate-rc927-digital-page-authenticated-identity-scope.mjs"), "forward replay must validate RC927 digital-page identity scope");
 assert.ok(forwardReplay.includes("supabase/tests/rc927_digital_page_authenticated_identity_scope_integration.sql"), "forward replay must run RC927 public/anonymous/owner page regression");
 assert.ok(rc927Validator.includes("digital_pages_confirmed_auth_identity"), "RC927 validator must pin the restrictive authenticated page identity policy");
+const rc928Validator = fs.readFileSync("scripts/validate-rc928-catalog-profile-promotional-gallery-atomic-write.mjs", "utf8");
+assert.ok(required.includes("20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql"), "release gate must include RC928");
+assert.ok(forwardReplay.includes("node scripts/validate-rc928-catalog-profile-promotional-gallery-atomic-write.mjs"), "forward replay must validate RC928 atomic catalog profile persistence");
+assert.ok(forwardReplay.includes("supabase/tests/owner_profile_persistence_integration.sql"), "forward replay must run RC928 owner profile and gallery integration tests");
+assert.ok(rc928Validator.includes("upsert_catalog_business_profile_atomic_backend"), "RC928 validator must pin atomic profile persistence");
+
 assert.ok(rc488Validator.includes("storage_objects_confirmed_auth_delete"), "RC488 validator must check restrictive Storage write policies");
 const forwardReplayLines = forwardReplay.split(/\r?\n/);
 assert.ok(

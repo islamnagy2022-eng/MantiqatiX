@@ -110,11 +110,11 @@ assert.ok(
   migrationGate.includes("20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql"),
   "strict migration gate must require RC925",
 );
-assert.match(migrationGate, /required\.length, 84/);
+assert.match(migrationGate, /required\.length, 85/);
 assert.equal(
   manifest.required_release_migration_ledger_check.expected_migration_versions,
-  84,
-  "manifest must use the 84-version contract",
+  85,
+  "manifest must use the 85-version contract",
 );
 assert.ok(
   manifest.required_release_migration_ledger_check.required_versions.includes("20261124150000"),
@@ -127,8 +127,8 @@ assert.ok(
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261125110000"), "manifest must include RC926");
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261125110000"), "RC926 must remain unapplied in Production");
 assert.ok(
-  backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=84"),
-  "backup runbook validator must use 84 required migrations",
+  backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=85"),
+  "backup runbook validator must use 85 required migrations",
 );
 
 console.log("RC925 explicit confirmed-identity catalog RPC contract: PASS (7 RPCs; missing claim denied; confirmed-user identity gate preserved; ACLs preserved)");

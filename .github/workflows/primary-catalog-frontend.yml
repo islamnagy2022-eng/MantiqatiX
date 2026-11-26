@@ -154,6 +154,15 @@ jobs:
         run: npx tsx tests/marketplace-targeted-ads.test.ts
       - name: Test public catalog price-disclosure allowlist
         run: node --test supabase/functions/_shared/public-price-visibility.test.mjs
+      - name: Test merchant promotional image URL editor
+        working-directory: apps/catalog-frontend
+        run: npx tsx tests/promotional-images.test.ts
+      - name: Test public promotional image URL validation
+        run: node --test supabase/functions/_shared/promotional-images.test.mjs
+      - name: Validate single-cover and promotional-gallery wiring
+        run: node scripts/validate-promotional-image-gallery.mjs
+      - name: Validate atomic catalog profile and RC928 database contract
+        run: node scripts/validate-rc928-catalog-profile-promotional-gallery-atomic-write.mjs
       - name: Test directory contact-consent privacy and pagination contracts
         run: node --test supabase/functions/directory-listings/*.test.mjs
       - name: Test explicit disabled-directory user messaging

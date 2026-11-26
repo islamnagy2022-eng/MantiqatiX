@@ -11,6 +11,7 @@ const merchant = read("../apps/catalog-frontend/src/components/merchant/Merchant
 const appContext = read("../apps/catalog-frontend/src/context/AppContext.tsx");
 const production = read("../apps/catalog-frontend/src/lib/production.ts");
 const types = read("../apps/catalog-frontend/src/types/index.ts");
+const atomicProfileMigration = read("../supabase/migrations/20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql");
 
 const responseBlock = (source, expression) => {
   const start = source.indexOf(expression);
@@ -36,7 +37,7 @@ const checks = [
   ["catalogue does not return operational branch phone or address in branch objects", /branches: branches\.map\(\(branch: any\) => \(\{\s*id: branch\.id,\s*name: branch\.name,\s*code: branch\.code,\s*\}\)\)/.test(catalog)],
   ["top-level public contactPhone cannot bypass consent", /contactPhone: publicContact\.phoneDisplay \|\| publicContact\.whatsappNumber/.test(directory) && /contactPhone: publicContact\.phoneDisplay \|\| publicContact\.whatsappNumber/.test(catalog)],
   ["server validates consent input as a boolean", /hasOwnProperty\.call\(body, "publicContactEnabled"\)/.test(admin) && /INVALID_PUBLIC_CONTACT_CONSENT/.test(admin)],
-  ["server forces audit verification false before persisting changed consent", /submittedSocialFields\["public_contact_consent_audit_verified"\] = false/.test(admin)],
+  ["atomic profile RPC forces audit verification false before persisting changed consent", atomicProfileMigration.includes("'public_contact_consent_audit_verified', false") && admin.includes('userClient.rpc("upsert_catalog_business_profile_atomic_backend"')],
   ["server writes a durable consent-granted/revoked audit record", /PUBLIC_CONTACT_CONSENT_GRANTED/.test(admin) && /PUBLIC_CONTACT_CONSENT_REVOKED/.test(admin) && /service\.from\("audit_logs"\)\.insert/.test(admin)],
   ["server fails closed when consent audit persistence fails", /PUBLIC_CONTACT_CONSENT_AUDIT_FAILED/.test(admin)],
   ["server activates public consent only after audit and a compare-and-set update", admin.indexOf("service.from(\"audit_logs\").insert") < admin.indexOf("public_contact_consent_audit_verified: true") && admin.includes('.eq("updated_at", pendingBusiness.updated_at)') && admin.includes("PUBLIC_CONTACT_CONSENT_ACTIVATION_CONFLICT")],

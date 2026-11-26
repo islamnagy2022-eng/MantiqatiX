@@ -34,6 +34,7 @@ const storefrontHeader = fs.readFileSync('apps/catalog-frontend/src/components/s
 const storefrontCatalog = fs.readFileSync('apps/catalog-frontend/src/components/storefront/CatalogSection.tsx', 'utf8');
 const merchantDashboard = fs.readFileSync('apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx', 'utf8');
 const catalogAdminFunction = fs.readFileSync('supabase/functions/catalog-admin/index.ts', 'utf8');
+const catalogProfileMigration = fs.readFileSync('supabase/migrations/20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql', 'utf8');
 const publicDirectoryFunction = fs.readFileSync('supabase/functions/public-catalog-directory/index.ts', 'utf8');
 const publicCatalogFunction = fs.readFileSync('supabase/functions/public-catalog/index.ts', 'utf8');
 const aiGeminiProxy = fs.readFileSync('supabase/functions/ai-gemini-proxy/index.ts', 'utf8');
@@ -69,7 +70,7 @@ assert.match(defaultImages, /business-cover-placeholder\.svg/, 'unknown categori
 assert.match(productionMapper, /business-cover-placeholder/, 'the production mapper must not treat the neutral cover as an owner upload');
 assert.ok(appContext.includes(String.raw`business-cover-placeholder\.svg`), 'new businesses must regenerate or preserve the neutral wide cover as an automatic image');
 assert.ok(merchantDashboard.includes(String.raw`business-cover-placeholder\.svg`), 'merchant dashboard must recognize the neutral wide cover as an automatic image');
-assert.match(catalogAdminFunction, /business-cover-placeholder/, 'catalog admin must classify the neutral wide cover as automatic, not owner-supplied');
+assert.match(catalogProfileMigration, /business-cover-placeholder/, 'atomic profile RPC must classify the neutral wide cover as automatic, not owner-supplied');
 assert.doesNotMatch(defaultImages, /images\.unsplash\.com|PHOTO_RULES/, 'missing owner images must not be replaced by stock photos that could be mistaken for real catalog imagery');
 assert.match(defaultImages, /catalog-item-placeholder\.svg/, 'products and services must use the local neutral placeholder');
 assert.match(productionMapper, /const isStockImageUrl/, 'production mapper must identify legacy stock-image URLs');
@@ -160,8 +161,9 @@ assert.doesNotMatch(merchantDashboard, /images\.unsplash\.com/, 'merchant produc
 assert.doesNotMatch(catalogAdminFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'catalog admin must not generate stock-photo URLs for item imagery');
 assert.match(catalogAdminFunction, /legacyStockUrl = \/\^https:/, 'catalog admin must clear legacy stock-photo URLs when an item is edited');
 assert.match(catalogAdminFunction, /neutralPlaceholderUrl/, 'catalog admin must keep neutral placeholders out of owner image metadata');
-assert.match(catalogAdminFunction, /url\.includes\("\/catalog-ai\/"\)/, 'catalog profile writes must preserve AI-generated source metadata.');
-assert.match(catalogAdminFunction, /logo_image_source: imageSourceForUrl\(savedProfile\.logo_url\)[\s\S]*cover_image_source: imageSourceForUrl\(savedProfile\.cover_url\)/, 'profile metadata must separately identify AI, owner, and default images.');
+assert.match(catalogProfileMigration, /strpos\(pg_catalog\.lower\(p_logo_url\), '\/catalog-ai\/'\)/, 'atomic profile RPC must preserve AI-generated logo source metadata.');
+assert.match(catalogProfileMigration, /strpos\(pg_catalog\.lower\(p_cover_url\), '\/catalog-ai\/'\)/, 'atomic profile RPC must preserve AI-generated cover source metadata.');
+assert.match(catalogProfileMigration, /'logo_image_source', v_logo_source[\s\S]*'cover_image_source', v_cover_source/, 'atomic profile RPC must separately identify AI, owner, and default images.');
 assert.doesNotMatch(publicDirectoryFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'public directory API must not generate stock-photo URLs for businesses');
 assert.match(publicDirectoryFunction, /allowLegacyShowcaseImage[\s\S]{0,180}return ""/, 'public directory API must suppress stock-photo URLs except for verified platform-owned showcase activities');
 assert.match(publicDirectoryFunction, /isOfficialShowcase\(b\)/, 'public directory may include platform-owned showcase activity records without enabling their catalog modules');

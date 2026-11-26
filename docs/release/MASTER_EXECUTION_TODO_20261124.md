@@ -1,5 +1,5 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-25 — RC927 digital-page identity boundary and 84-version release map  
+**Updated:** 2026-11-26 — RC928 atomic catalog profile/gallery persistence and 85-version release map  
 **Base:** `main @ 17329ba27effad52a316ad0aa94ef1a93ab975a7`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
@@ -26,15 +26,15 @@
 - [x] Identified the seven authenticated-write review candidates and separated confirmed grant/policy gaps from merely missing explicit restrictive claim markers.
 - [x] Added PASS 2461–2470 audit and updated Issue #928 with the 2026-11-25 matrix.
 - [x] Strengthened RC927 regression identities: the Anonymous Auth and missing-claim JWT subjects now equal the actual digital-page owner. Owner policies would otherwise pass; the test therefore proves the new restrictive identity condition denies read, insert, update and delete paths.
-- [ ] Exact-head static and PostgreSQL 17 full chronological 84-version replay pending on PR. Do not merge/deploy until all checks pass.
+- [x] Exact-head static and PostgreSQL 17 full chronological 85-version replay passed on PR #1122; 17/17 workflows passed. Source-only merge `ffd91df42c0cc70bfce692cc79045132cff5c383`; RC927 remains unapplied to Production.
 
 ## 2026-11-25 — RC927 digital-page anonymous Auth boundary (source candidate)
 
 - [x] Read live pg_policies and role privileges for digital_pages and digital_page_sections. The public read policies currently target both anon and authenticated; page owner access is split into owner SELECT, INSERT and draft UPDATE policies plus a global admin policy.
 - [x] Confirmed repository public renderer web/digital-page.js uses a dedicated stateless anon-key client; no signInAnonymously call was found in the app source. Preserve raw-anon public reading and do not depend on a signed-in anonymous session.
-- [ ] RC927 source candidate: retarget published page/section read policies to raw anon only and add restrictive FOR ALL TO authenticated policies requiring explicit is_anonymous=false; keep RC480's 10-column raw-anon page allowlist, existing owner/admin policies and service-role behavior.
+- [x] RC927 retargets published page/section reads to raw anon only and adds restrictive FOR ALL TO authenticated policies requiring explicit is_anonymous=false; preserves RC480's 10-column raw-anon page allowlist and existing owner/admin policies. Merged source-only in PR #1122.
 - [ ] Add adversarial PG17 tests: raw anon published page + active sections still work; internal page columns and SELECT * stay denied; Anonymous Auth + missing/null claim cannot read or write; confirmed owner retains internal read and draft updates; another confirmed user remains denied.
-- [ ] Keep RC927 dependent on RC480 and exact chronological 84-version replay. Do not merge as complete until its exact-head PostgreSQL 17 and all static/CI gates pass. It is source-only and is not applied to Production.
+- [x] RC927 depends on RC480 and passed exact chronological 85-version replay plus its adversarial PG17 tests. It is source-only and is not applied to Production.
 
 ## 2026-11-25 — RC926 strict provider-profile identity boundary
 
@@ -108,6 +108,16 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] In sandbox, replay a valid signed callback for order A with merchant_order_id changed to a different pending order B of equal amount/currency; assert HTTP rejection and zero mutation to both records. Repeat for standard, digital-page and subscription flows.
 
 - [x] Added `scripts/validate-paymob-webhook-order-binding.mjs` and wired it into RC425/RC428 CI; exact-head PR #1090 passed the validator, PG17 payment suites and complete validation workflow. The test asserts HMAC covers `order.id`, excludes unsigned `merchant_order_id`, and requires selected-row equality checks before standard/digital-page/subscription processor RPCs. This is source-contract CI, not proof the deployed webhook is fixed or the altered-selector HTTP sandbox replay has passed.
+
+## 2026-11-26 — RC928 atomic catalog profile and promotional gallery source candidate
+
+- [x] Ported the requested fixed single-cover + separate ten-image HTTPS gallery frontend, validation, public projections and browser coverage to a branch based on current main.
+- [x] Added `upsert_catalog_business_profile_atomic_backend`, composing the existing owner/admin-scoped business profile RPC and applying only allowlisted metadata after its business-row lock is held. Gallery/social/phone metadata no longer uses a separate Edge service-role JSONB read/merge/write.
+- [x] Preserved the separate public-contact consent audit: the atomic RPC resets public-contact audit verification on a new consent value, Edge records the durable audit row, and only then performs updated_at compare-and-set activation.
+- [x] Added owner integration cases for deduped gallery persistence, preserved unrelated JSONB profile keys, max-ten/HTTPS denial, missing identity and Anonymous Auth denial, and branch-manager cross-scope denial.
+- [ ] RC928 static, owner-profile PostgreSQL, full 85-source chronological PG17 replay and current-main browser tests must pass before merge. No Edge deployment or Production migration has occurred.
+- [ ] Deployed behavior remains unavailable until the coordinated three-Edge release (catalog-admin, public-catalog, public-catalog-directory) and DB release gates pass with the verified backup/restore rehearsal.
+- [x] Increased the source-only release manifest to 85 required migration IDs; RC928 is explicitly marked missing from the live ledger, not applied.
 
 ## P1 — Database and backend contracts
 ### P1.1 Migration reconciliation
