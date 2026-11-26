@@ -75,7 +75,8 @@ export interface Business {
   coverUrl: string;
   externalLogoUrl?: string; // Explicit owner/admin-provided external URL; excludes generated display fallback.
   externalCoverUrl?: string; // Explicit owner/admin-provided external URL; excludes generated display fallback.
-  coverImages?: string[]; // من 1 إلى صورتين لصاحب النشاط لعرضها في السلايدر المتغير
+  coverImages?: string[]; // Legacy only; storefronts use one cover image and a separate promotional gallery.
+  promotionalImages?: string[]; // Up to 10 owner-provided public HTTPS image URLs, separate from the cover.
   bio: string;
   ownerWhatsApp: string; // The merchant's WhatsApp for incoming orders
   phone?: string;
