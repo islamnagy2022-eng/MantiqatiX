@@ -73,3 +73,5 @@ This is a scoped website launch, not certification of every backend module. Full
 ## Final release statement
 
 The public website V1 is deployed and browser-verified. Backend national directory, public-contact consent, gallery, monthly checkout and finance/payment expansion remain gated as listed above. **Full platform remains BLOCKED / NOT CERTIFIED.**
+
+- RC927 is merged source-only (PR #1122, `ffd91df42c0cc70bfce692cc79045132cff5c383`); exact-head PostgreSQL 17 and 85-source chronological replay passed. RC927 remains unapplied to Production. RC928 is still a source-only candidate pending exact-head validation and must not be deployed independently.
