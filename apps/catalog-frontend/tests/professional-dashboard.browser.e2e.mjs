@@ -675,7 +675,7 @@ try {
     }).sort((a, b) => Number(Boolean(b.provider?.verified)) - Number(Boolean(a.provider?.verified)) || a.id.localeCompare(b.id));
     const { context, page, directoryPageRequests } = await newScenario(browser, null, paginationFixtures, { initialRoute: '?view=directory' });
     try {
-      await page.getByText('نتائج البحث الموحدة (20)', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByText('نتائج البحث الموحدة (20+)', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       const testCards = page.getByRole('heading').filter({ hasText: /^نشاط اختبار التصفح [0-9]{2}$/ });
       await testCards.first().waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(await testCards.count(), 20, 'directory must render exactly the first 20 activity cards');
@@ -696,7 +696,7 @@ try {
       await page.waitForFunction(() => [...document.querySelectorAll('h3')]
         .filter((node) => /^نشاط اختبار التصفح [0-9]{2}$/.test((node.textContent || '').trim())).length === 40);
       assert.equal(await testCards.count(), 40, 'first load-more action must append exactly 20 activity cards');
-      await page.getByText('نتائج البحث الموحدة (40)', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+      await page.getByText('نتائج البحث الموحدة (40+)', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
       assert.equal(directoryPageRequests.length, 2, 'first load-more action must issue exactly one next-page request');
       assert.equal(directoryPageRequests[1].offset, 20, 'second request must use the next-page cursor offset');
       assert.equal(directoryPageRequests[1].cursor, 'e2e-directory-cursor:20');
