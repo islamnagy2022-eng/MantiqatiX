@@ -528,11 +528,47 @@ export const DirectoryView: React.FC = () => {
       if (requestGeneration === directoryPaginationGeneration.current) setDirectoryListingsLoadingMore(false);
     }
   }, [directoryListingsHasMore, directoryListingsCursor, directoryListingsLoadingMore, directoryListingRequestFilters]);
+  const loadMoreScopedDirectoryBusinesses = useCallback(async () => {
+    const cursor = scopedDirectoryCursorRef.current;
+    if (!cursor || !scopedDirectoryHasMore || scopedDirectoryLoadingMore) return;
+    const generation = scopedDirectoryGenerationRef.current;
+    setScopedDirectoryLoadingMore(true);
+    setScopedDirectoryError('');
+    try {
+      const page = await fetchPublicDirectoryPage(cursor, scopedDirectoryFiltersRef.current);
+      if (generation !== scopedDirectoryGenerationRef.current) return;
+      setScopedDirectoryBusinesses((current) => {
+        const unique = new Map<string, Business>((current || []).map((business) => [business.id, business] as const));
+        page.businesses.forEach((business) => unique.set(business.id, business));
+        return Array.from(unique.values());
+      });
+      setScopedDirectoryProducts((current) => {
+        const unique = new Map<string, Product>(current.map((product) => [product.id, product] as const));
+        page.products.forEach((product) => unique.set(product.id, product));
+        return Array.from(unique.values());
+      });
+      scopedDirectoryCursorRef.current = page.nextCursor;
+      setScopedDirectoryHasMore(page.hasMore);
+    } catch (error) {
+      if (generation !== scopedDirectoryGenerationRef.current) return;
+      setScopedDirectoryError(error instanceof Error ? error.message : 'تعذر تحميل الدفعة التالية من الأنشطة.');
+    } finally {
+      if (generation === scopedDirectoryGenerationRef.current) setScopedDirectoryLoadingMore(false);
+    }
+  }, [scopedDirectoryHasMore, scopedDirectoryLoadingMore]);
+
   const showMoreDirectoryActivities = useCallback(() => {
     setVisibleActivityCount((current) => current + 20);
-    if (directoryHasMore) void loadMoreDirectoryBusinesses();
+    if (scopedDirectoryBusinesses !== null) {
+      if (scopedDirectoryHasMore) void loadMoreScopedDirectoryBusinesses();
+    } else if (directoryHasMore) {
+      void loadMoreDirectoryBusinesses();
+    }
     if (directoryListingsHasMore) void loadMoreDirectoryListings();
-  }, [directoryHasMore, loadMoreDirectoryBusinesses, directoryListingsHasMore, loadMoreDirectoryListings]);
+  }, [
+    scopedDirectoryBusinesses, scopedDirectoryHasMore, loadMoreScopedDirectoryBusinesses,
+    directoryHasMore, loadMoreDirectoryBusinesses, directoryListingsHasMore, loadMoreDirectoryListings,
+  ]);
 
   const [administrativeShiyakhas, setAdministrativeShiyakhas] = useState<EgyptGeoShiyakha[]>([]);
   const [shiyakhaLoadStatus, setShiyakhaLoadStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
@@ -683,7 +719,7 @@ export const DirectoryView: React.FC = () => {
     return Boolean(url) && !['business-placeholder.svg', 'product-placeholder.svg', 'default-image', 'placeholder'].some((token) => url.includes(token));
   };
   const productPhotoCounts = new Map<string, number>();
-  products.forEach((product) => {
+  directoryProductsForView.forEach((product) => {
     if (!hasConfiguredImage(product.imageUrl)) return;
     productPhotoCounts.set(product.businessId, (productPhotoCounts.get(product.businessId) || 0) + 1);
   });
@@ -770,7 +806,7 @@ export const DirectoryView: React.FC = () => {
   const totalFilteredActivities = filteredBusinesses.length + filteredUnconfirmedListings.length;
   const visibleActivityTotal = visibleBusinesses.length + visibleUnconfirmedListings.length;
 
-  const hasNoSearchResults = !directoryLoading && directoryListingsLoaded &&
+  const hasNoSearchResults = !directoryLoadingForView && directoryListingsLoaded &&
     filteredBusinesses.length + filteredUnconfirmedListings.length === 0;
   const canWidenGeographicSearch = selectedAreaFilter !== 'all' ||
     selectedVillageFilter !== 'all' || selectedMarkazFilter !== 'all' || selectedGovFilter !== 'all';
@@ -793,7 +829,7 @@ export const DirectoryView: React.FC = () => {
   };
 
   const locationRecords = [
-    ...businesses.filter((b) => Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen)
+    ...directoryBusinesses.filter((b) => Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen)
       .map((b) => ({ governorate: b.governorate, markaz: b.markaz, village: b.village, address: b.address })),
     ...unconfirmedListings.filter((l) => l.listing_status === 'PUBLISHED' && l.claim_status !== 'CLAIMED')
       .map((l) => ({ governorate: l.governorate, markaz: l.district, village: l.village || '', address: l.address || '' })),
@@ -1146,16 +1182,16 @@ export const DirectoryView: React.FC = () => {
                 <Store className="w-8 h-8" />
               </div>
               <h3 className="font-bold text-slate-800 text-base">
-                {directoryLoading ? 'جارٍ تحميل الأنشطة المنشورة' : businesses.length === 0 ? 'لا توجد أنشطة متاحة للعرض حاليا' : 'لا توجد أنشطة مطابقة للبحث'}
+                {directoryLoadingForView ? 'جارٍ تحميل الأنشطة المنشورة' : businesses.length === 0 ? 'لا توجد أنشطة متاحة للعرض حاليا' : 'لا توجد أنشطة مطابقة للبحث'}
               </h3>
               <p className="text-xs text-slate-500 max-w-lg mx-auto">
-                {directoryLoading
+                {directoryLoadingForView
                   ? 'يتم الآن تحميل الأنشطة المنشورة من المنصة، وستظهر هنا تلقائيًا.'
                   : businesses.length === 0
                   ? 'ستظهر هنا الأنشطة النشطة المتاحة للزوار. تواصل مع إدارة المنصة إذا كنت تبحث عن نشاط غير موجود.'
                   : 'جرب تغيير كلمات البحث أو القطاع أو المحافظة أو ابحث باسم المركز أو القرية أو المنطقة.'}
               </p>
-              {!directoryLoading && businesses.length === 0 && catalogRequestPhone && (
+              {!directoryLoadingForView && businesses.length === 0 && catalogRequestPhone && (
                 <a
                   href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد تفعيل كتالوج لنشاطي على MantiqatiX')}`}
                   target="_blank"
@@ -1328,18 +1364,20 @@ export const DirectoryView: React.FC = () => {
               ))}
             </div>
           )}
-          {(visibleActivityTotal < totalFilteredActivities || directoryHasMore || directoryListingsHasMore) && (
+          {(visibleActivityTotal < totalFilteredActivities || directoryHasMoreForView || directoryListingsHasMore || directoryLoadMoreErrorForView || directoryListingsError) && (
             <div className="flex flex-col items-center gap-2 pt-2">
-              <button type="button" onClick={showMoreDirectoryActivities} disabled={directoryListingsLoadingMore || directoryLoadingMore}
-                className="min-h-11 rounded-xl border border-emerald-200 bg-white px-6 py-3 text-xs font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60">
-                {directoryListingsLoadingMore || directoryLoadingMore ? 'جارٍ تحميل المزيد…' : 'رؤية المزيد من الأنشطة'}
-              </button>
+              {(visibleActivityTotal < totalFilteredActivities || directoryHasMoreForView || directoryListingsHasMore) && (
+                <button type="button" onClick={showMoreDirectoryActivities} disabled={directoryListingsLoadingMore || directoryLoadingMoreForView}
+                  className="min-h-11 rounded-xl border border-emerald-200 bg-white px-6 py-3 text-xs font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60">
+                  {directoryListingsLoadingMore || directoryLoadingMoreForView ? 'جارٍ تحميل المزيد…' : 'رؤية المزيد من الأنشطة'}
+                </button>
+              )}
               <p className="text-[11px] text-slate-500">يتم عرض الأنشطة على دفعات من 20، مع الاحتفاظ بنطاق المحافظة والمركز والقرية المحدد.</p>
             </div>
           )}
-          {(directoryListingsError || directoryLoadMoreError) && (
+          {(directoryListingsError || directoryLoadMoreErrorForView) && (
             <p role="status" className="text-center text-xs font-bold text-amber-800">
-              {[directoryListingsError, directoryLoadMoreError].filter(Boolean).join(' ')}
+              {[directoryListingsError, directoryLoadMoreErrorForView].filter(Boolean).join(' ')}
             </p>
           )}
         </div>
