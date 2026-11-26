@@ -106,6 +106,23 @@ export function matchesDirectoryAreaFilter(publicAddress, area) {
     normalizedMatchValue(publicAddress).includes(expected);
 }
 
+export function matchesDirectoryVerificationPhase(provider, phase) {
+  if (phase !== "verified" && phase !== "unverified") return false;
+  const verified = provider?.is_verified === true;
+  return phase === "verified" ? verified : !verified;
+}
+
+export function getNextDirectoryCursorPosition({ lastId, lastPhase, lookaheadPhase }) {
+  if (!isUuid(lastId) || !["verified", "unverified"].includes(lastPhase) ||
+      !["verified", "unverified"].includes(lookaheadPhase)) {
+    throw new Error("INVALID_CURSOR_POSITION");
+  }
+  if (lastPhase === "verified" && lookaheadPhase === "unverified") {
+    return { phase: "unverified", lastId: null };
+  }
+  return { phase: lastPhase, lastId: lastId.toLowerCase() };
+}
+
 export async function hashDirectoryScope(filters, slugs = []) {
   const canonicalFilters = {};
   for (const key of FILTER_KEYS) if (filters?.[key]) canonicalFilters[key] = safeText(filters[key]);
@@ -119,12 +136,17 @@ async function getSigningKey(secret) {
   return crypto.subtle.importKey("raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
 }
 
-export async function issueDirectoryCursor({ lastId, snapshotAt, scopeHash, secret, now = Date.now() }) {
-  if (!isUuid(lastId) || typeof snapshotAt !== "string" || !Number.isFinite(Date.parse(snapshotAt)) ||
+export async function issueDirectoryCursor({
+  lastId, phase = "verified", snapshotAt, scopeHash, secret, now = Date.now(),
+}) {
+  const validPhase = phase === "verified" || phase === "unverified";
+  const validLastId = isUuid(lastId) || (phase === "unverified" && lastId === null);
+  if (!validPhase || !validLastId || typeof snapshotAt !== "string" || !Number.isFinite(Date.parse(snapshotAt)) ||
       typeof scopeHash !== "string" || !scopeHash) throw new Error("INVALID_CURSOR_PAYLOAD");
   const payload = {
-    v: 1,
-    lastId: lastId.toLowerCase(),
+    v: 2,
+    phase,
+    lastId: isUuid(lastId) ? lastId.toLowerCase() : null,
     snapshotAt: new Date(snapshotAt).toISOString(),
     scopeHash,
     issuedAt: now,
@@ -148,14 +170,22 @@ export async function verifyDirectoryCursor(token, { scopeHash, secret, now = Da
     const valid = await crypto.subtle.verify("HMAC", key, signature, body);
     if (!valid) return { ok: false, code: "INVALID_CURSOR" };
     const payload = JSON.parse(new TextDecoder().decode(body));
-    if (!isRecord(payload) || payload.v !== 1 || !isUuid(payload.lastId) ||
+    const validPhase = payload?.phase === "verified" || payload?.phase === "unverified";
+    const validLastId = isUuid(payload?.lastId) ||
+      (payload?.phase === "unverified" && payload?.lastId === null);
+    if (!isRecord(payload) || payload.v !== 2 || !validPhase || !validLastId ||
         payload.scopeHash !== scopeHash || !Number.isFinite(payload.issuedAt) ||
         typeof payload.snapshotAt !== "string") return { ok: false, code: "INVALID_CURSOR" };
     const snapshotMs = Date.parse(payload.snapshotAt);
     if (!Number.isFinite(snapshotMs) || snapshotMs > now + MAX_CLOCK_SKEW_MS ||
         now - snapshotMs > MAX_CURSOR_AGE_MS || payload.issuedAt > now + MAX_CLOCK_SKEW_MS ||
         now - payload.issuedAt > MAX_CURSOR_AGE_MS) return { ok: false, code: "INVALID_CURSOR" };
-    return { ok: true, lastId: payload.lastId.toLowerCase(), snapshotAt: new Date(snapshotMs).toISOString() };
+    return {
+      ok: true,
+      phase: payload.phase,
+      lastId: isUuid(payload.lastId) ? payload.lastId.toLowerCase() : null,
+      snapshotAt: new Date(snapshotMs).toISOString(),
+    };
   } catch {
     return { ok: false, code: "INVALID_CURSOR" };
   }
