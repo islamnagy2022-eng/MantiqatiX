@@ -122,12 +122,28 @@ type PublicDirectoryResult = {
   hasMore: boolean;
   nextCursor: string | null;
 };
+export type PublicDirectoryPageFilters = {
+  activity?: string;
+  specialty?: string;
+  governorate?: string;
+  markaz?: string;
+  village?: string;
+  query?: string;
+};
+
 let publicDirectoryInFlight: Promise<PublicDirectoryResult> | null = null;
 
-export async function fetchPublicDirectoryPage(cursor?: string | null): Promise<PublicDirectoryResult> {
+export async function fetchPublicDirectoryPage(
+  cursor?: string | null,
+  filters: PublicDirectoryPageFilters = {},
+): Promise<PublicDirectoryResult> {
   const query = new URLSearchParams();
   query.set('limit', '20');
   if (cursor) query.set('cursor', cursor);
+  for (const key of ['activity', 'specialty', 'governorate', 'markaz', 'village', 'query'] as const) {
+    const value = String(filters[key] || '').trim();
+    if (value) query.set(key, value.slice(0, 100));
+  }
   const { data, error } = await supabase.functions.invoke(`public-catalog-directory?${query.toString()}`, { method: 'GET' } as any);
   if (error) throw new Error(error.message || 'تعذر تحميل دليل الأنشطة المنشورة');
   if (data?.error) throw new Error(String(data.message || data.error));
