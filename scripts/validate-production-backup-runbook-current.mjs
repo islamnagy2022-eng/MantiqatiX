@@ -49,6 +49,8 @@ assert.ok(!backlog.includes("0/76 present") && !backlog.includes("0/78 exact req
 assert.equal(ledger.expected_migration_versions, 85, "manifest must use the 85-version contract");
 assert.ok(ledger.required_versions.includes("20261125120000"), "manifest must list RC927");
 assert.ok(ledger.missing_versions.includes("20261125120000"), "RC927 must remain explicitly unapplied in Production");
+assert.ok(ledger.required_versions.includes("20261126010000"), "manifest must list RC928");
+assert.ok(ledger.missing_versions.includes("20261126010000"), "RC928 must remain explicitly unapplied in Production");
 assert.equal(ledger.found_in_live_ledger, 0, "do not manufacture or overstate Production migration ledger entries");
 
 console.log("PRODUCTION_BACKUP_RUNBOOK_CURRENT_RELEASE_CONTRACT=PASS");
