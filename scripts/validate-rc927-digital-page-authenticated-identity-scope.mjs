@@ -33,7 +33,7 @@ assert.ok(aclOverlay.includes("TEST-ONLY") && aclOverlay.includes("Never run thi
 for (const table of ["public.digital_pages", "public.digital_page_sections"]) {
   assert.ok(aclOverlay.includes(table), `disposable ACL overlay must cover ${table}`);
 }
-assert.ok(aclOverlay.includes("REVOKE INSERT, UPDATE, DELETE") && aclOverlay.includes("FROM anon"),
+assert.ok(aclOverlay.includes("REVOKE INSERT, UPDATE, DELETE") && aclOverlay.includes("FROM PUBLIC, anon"),
   "test-only overlay must revoke raw-anon DML from the two digital-page tables");
 assert.ok(aclOverlay.includes("has_table_privilege('anon'"), "disposable ACL overlay must verify effective raw-anon write privileges");
 for (const column of ["id", "page_type", "slug", "title", "subtitle", "description", "seo_title", "seo_description", "status", "version"]) {
