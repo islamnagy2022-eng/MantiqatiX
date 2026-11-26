@@ -65,7 +65,7 @@ assert.ok(postMigration.includes("RC479_ANONYMOUS_AUTH_PRIVATE_PROFILE_READ_REMA
 assert.ok(liveContract.includes('"20261120193000"'), "RC479 forward migration must be in the live release version contract");
 assert.ok(productionVerifier.includes("20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql"), "RC479 forward migration must be in the Production verifier");
 assert.ok(migrationGate.includes("20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql"), "RC479 forward migration must be in the migration-chain gate");
-assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 84, "manifest must use the current 84-version release contract including RC927");
+assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 85, "manifest must use the current 85-version release contract including RC927");
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261120193000"), "manifest must require RC479 forward migration");
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261120193000"), "live manifest must keep unapplied RC479 forward migration blocked");
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261124121348"), "manifest must require RC923 anonymous catalog RPC guard");
@@ -80,3 +80,5 @@ assert.ok(manifest.required_release_migration_ledger_check.required_versions.inc
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261125110000"), "manifest must keep RC926 unapplied until coordinated release");
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261125120000"), "manifest must require RC927");
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261125120000"), "manifest must keep RC927 unapplied until coordinated release");
+assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261126010000"), "manifest must require RC928");
+assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261126010000"), "manifest must keep RC928 unapplied until coordinated release");
