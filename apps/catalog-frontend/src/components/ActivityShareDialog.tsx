@@ -17,6 +17,8 @@ export const ActivityShareDialog: React.FC<ActivityShareDialogProps> = ({
   const [shareMessage, setShareMessage] = useState('');
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   const activityUrl = useMemo(() => {
     const basePath = getCurrentAppBasePath(window.location.pathname);
@@ -39,7 +41,7 @@ export const ActivityShareDialog: React.FC<ActivityShareDialogProps> = ({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
 
@@ -73,7 +75,7 @@ export const ActivityShareDialog: React.FC<ActivityShareDialogProps> = ({
       window.removeEventListener('keydown', handleKeyDown);
       if (previouslyFocusedRef.current?.isConnected) previouslyFocusedRef.current.focus();
     };
-  }, [onClose]);
+  }, []);
 
   const copyLink = async () => {
     try {
