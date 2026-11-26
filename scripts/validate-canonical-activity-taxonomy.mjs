@@ -301,6 +301,8 @@ assert.ok(directory.includes('setVisibleActivityCount((current) => current + 20)
 assert.ok(directoryListingsView.includes('useState(20)') && directoryListingsView.includes('filtered.slice(0, visibleListingCount)'), 'Public unverified directory pages must initially render no more than 20 entries.');
 assert.ok(directoryListingsView.includes('setVisibleListingCount((current) => current + 20)') && directoryListingsView.includes('رؤية المزيد'), 'Public unverified directory pages must append the next 20 entries on demand.');
 assert.ok(directory.includes('setVisibleActivityCount(20)') && directoryListingsView.includes('setVisibleListingCount(20)'), 'Changing search or taxonomy/geographic filters must reset the visible batch to 20.');
-assert.ok(browserE2E.includes('directory-progressive-pagination-20-20-remaining-five'), 'Browser E2E must verify initial 20 cards and subsequent 20-item progressive batches.');
+assert.ok(browserE2E.includes('directory-server-cursor-pagination-20-20-remaining-five'), 'Browser E2E must verify initial 20 cards and subsequent server-cursor batches.');
+assert.ok(browserE2E.includes("directoryPageRequests.map((request) => request.cursor), [null, 'e2e-page-2', 'e2e-page-3']"), 'Browser E2E must verify that each continuation cursor is requested in order.');
+assert.ok(browserE2E.includes("directoryPageRequests.map((request) => request.limit), ['20', '20', '20']"), 'Browser E2E must verify the server page-size contract remains 20.');
 
 console.log(`Canonical taxonomy contract: PASS — ${groups.length} groups, ${rows.length} activities (5 per group), specialties, legacy mapping, admin UI, and server persistence.`);
