@@ -1,3 +1,25 @@
+## 2026-11-26 — Critical platform-root authorization read-back (read-only)
+
+- [x] Read `public.mnty_can_platform_admin()`: SECURITY DEFINER, owner postgres, `search_path=public,pg_temp`, delegates to `public.mnty_can('admin',NULL,NULL,NULL)`.
+- [x] Read `public.mnty_can` and `public.mnty_active_membership`: null scope arguments return all active memberships; the `ADMIN` role grants the `admin` permission. Read `public.is_platform_admin()`: it returns true for any active `ADMIN` or `SUPER_ADMIN` membership.
+- [x] Confirmed `private.platform_admins` exists with RLS on but FORCE RLS off; neither live helper uses the registry.
+- [x] Quantified policy references: 57 policies / 24 tables use `is_platform_admin()`; 5 policies / 3 tables use `mnty_can_platform_admin()`.
+- [x] Confirmed RC464, RC469 and RC484 are absent from the live migration ledger. Their registry-backed helper, FORCE RLS and empty-search_path postconditions remain outstanding.
+- This confirms a fail-open global-authorization condition, not exploitation or a confirmed breach. No Production SQL mutation, migration, Edge deployment or user-data write was performed. Admin Edge deployments remain blocked.
+
+---
+
+## 2026-11-26 — Production catalog Edge source parity recheck (read-only)
+
+- [x] Confirmed Production project `moyhiluyhjsujhwlyeuu` is ACTIVE_HEALTHY on PostgreSQL 17.6.1.155.
+- [x] Read migration inventory: 310 rows through `20261110150618`; RC928, RC117 forward repair and RC929 are absent.
+- [x] Read-only SQL confirmed the RC928 atomic profile RPC is absent; the canonical base profile RPC and platform-admin registry helper/table are present; RC929 confirmed-Auth policies are absent on orders and order history.
+- [x] Compared live Edge function source to current main. `catalog-admin` v20 (691 live lines vs 777 source) is missing the RC928 atomic gallery/profile metadata path, registry-backed platform-root check, RC486 fail-closed price-write guard and durable contact-consent audit path. `catalog-platform-admin` v23 (975 vs 1,033 lines) also lacks the registry-backed helper call.
+- [x] `public-catalog` v11 and `public-catalog-directory` v20 match current main after normalizing only deployment packaging import paths.
+- No Production migration, SQL mutation, Edge deployment, Auth, RLS/GRANT, payment, wallet, settlement or customer-data write was performed. Admin Edge functions remain blocked from individual deployment pending coordinated DB + Edge release evidence.
+
+---
+
 ## 2026-11-26 — PR #1142 merge, Pages deployment and activity-share browser proof
 
 - [x] Fixed the share-dialog browser test to open `?view=directory` and locate the share control inside the activity list; the prior failure was caused by testing the home route where that control is not rendered.
