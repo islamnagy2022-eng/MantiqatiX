@@ -76,7 +76,7 @@ SQL
 # Writer B starts while A holds the lock and writes a different metadata key. Once
 # B resumes, it must merge against A's committed row, not a stale JSONB snapshot.
 (
-  psql "$db_url" -v ON_ERROR_STOP=1 \
+  PGAPPNAME=rc928_writer_a psql "$db_url" -v ON_ERROR_STOP=1 \
     -v tenant_id="$tenant_id" -v business_id="$business_id" \
     -v branch_id="$branch_id" -v owner_id="$owner_id" <<'SQL'
 BEGIN;
@@ -102,11 +102,169 @@ SQL
 ) &
 writer_a_pid=$!
 
-sleep 0.35
+# Do not start writer B until PostgreSQL confirms writer A holds the
+# business row lock and is inside its deliberate sleep window.
+writer_a_ready=0
+for _attempt in $(seq 1 60); do
+  if psql "$db_url" -X -v ON_ERROR_STOP=1 -Atc "
+    select 1
+      from pg_catalog.pg_stat_activity
+     where application_name = 'rc928_writer_a'
+       and state = 'active'
+       and query ilike '%pg_sleep(2)%'
+     limit 1
+  " | grep -q '^1
+BEGIN;
+SELECT set_config('request.jwt.claim.sub', :'owner_id', true);
+SELECT set_config('request.jwt.claims',
+  jsonb_build_object('sub', :'owner_id', 'role', 'authenticated', 'is_anonymous', false)::text, true);
+SET LOCAL ROLE authenticated;
+SELECT public.upsert_catalog_business_profile_atomic_backend(
+  :'tenant_id', :'business_id'::uuid, :'branch_id',
+  'RC928 Concurrency B', 'writer B', '+201000000000',
+  'RC928 Concurrency Street', 'Monufia', 'Berkat Al Sabaa', '',
+  'Sun-Thu 9:00-17:00', '', '', false,
+  jsonb_build_object('facebook_url', 'https://facebook.com/rc928-concurrent-owner')
+);
+RESET ROLE;
+COMMIT;
+SQL
+writer_b_pid=$!
 
-psql "$db_url" -v ON_ERROR_STOP=1 \
+# Prove writer B reached and is waiting on the row lock held by writer A.
+writer_b_waiting=0
+for _attempt in $(seq 1 60); do
+  if psql "$db_url" -X -v ON_ERROR_STOP=1 -Atc "
+    select 1
+      from pg_catalog.pg_stat_activity
+     where application_name = 'rc928_writer_b'
+       and wait_event_type = 'Lock'
+     limit 1
+  " | grep -q '^1
+SELECT set_config('rc928.test_business_id', :'business_id', false);
+DO $verify$
+DECLARE
+  v_profile jsonb;
+  v_business_id uuid := current_setting('rc928.test_business_id')::uuid;
+BEGIN
+  SELECT settings->'catalog_profile'
+    INTO v_profile
+    FROM public.businesses
+   WHERE id = v_business_id;
+
+  IF v_profile->'promotional_images' IS DISTINCT FROM
+       '["https://cdn.example.test/rc928-concurrent-a.webp","https://cdn.example.test/rc928-concurrent-b.webp"]'::jsonb THEN
+    RAISE EXCEPTION 'RC928_CONCURRENT_GALLERY_PATCH_LOST: %', v_profile;
+  END IF;
+  IF v_profile->>'facebook_url' IS DISTINCT FROM 'https://facebook.com/rc928-concurrent-owner' THEN
+    RAISE EXCEPTION 'RC928_CONCURRENT_SOCIAL_PATCH_LOST: %', v_profile;
+  END IF;
+END
+$verify$;
+SQL
+
+echo "RC928_ATOMIC_PROFILE_METADATA_CONCURRENCY=PASS"
+; then
+    writer_a_ready=1
+    break
+  fi
+  sleep 0.1
+done
+test "$writer_a_ready" = "1"
+
+PGAPPNAME=rc928_writer_b psql "$db_url" -v ON_ERROR_STOP=1 \
   -v tenant_id="$tenant_id" -v business_id="$business_id" \
-  -v branch_id="$branch_id" -v owner_id="$owner_id" <<'SQL'
+  -v branch_id="$branch_id" -v owner_id="$owner_id" <<'SQL' &
+
+BEGIN;
+SELECT set_config('request.jwt.claim.sub', :'owner_id', true);
+SELECT set_config('request.jwt.claims',
+  jsonb_build_object('sub', :'owner_id', 'role', 'authenticated', 'is_anonymous', false)::text, true);
+SET LOCAL ROLE authenticated;
+SELECT public.upsert_catalog_business_profile_atomic_backend(
+  :'tenant_id', :'business_id'::uuid, :'branch_id',
+  'RC928 Concurrency B', 'writer B', '+201000000000',
+  'RC928 Concurrency Street', 'Monufia', 'Berkat Al Sabaa', '',
+  'Sun-Thu 9:00-17:00', '', '', false,
+  jsonb_build_object('facebook_url', 'https://facebook.com/rc928-concurrent-owner')
+);
+RESET ROLE;
+COMMIT;
+SQL
+
+wait "$writer_a_pid"
+
+psql "$db_url" -v ON_ERROR_STOP=1 -v business_id="$business_id" <<'SQL'
+SELECT set_config('rc928.test_business_id', :'business_id', false);
+DO $verify$
+DECLARE
+  v_profile jsonb;
+  v_business_id uuid := current_setting('rc928.test_business_id')::uuid;
+BEGIN
+  SELECT settings->'catalog_profile'
+    INTO v_profile
+    FROM public.businesses
+   WHERE id = v_business_id;
+
+  IF v_profile->'promotional_images' IS DISTINCT FROM
+       '["https://cdn.example.test/rc928-concurrent-a.webp","https://cdn.example.test/rc928-concurrent-b.webp"]'::jsonb THEN
+    RAISE EXCEPTION 'RC928_CONCURRENT_GALLERY_PATCH_LOST: %', v_profile;
+  END IF;
+  IF v_profile->>'facebook_url' IS DISTINCT FROM 'https://facebook.com/rc928-concurrent-owner' THEN
+    RAISE EXCEPTION 'RC928_CONCURRENT_SOCIAL_PATCH_LOST: %', v_profile;
+  END IF;
+END
+$verify$;
+SQL
+
+echo "RC928_ATOMIC_PROFILE_METADATA_CONCURRENCY=PASS"
+; then
+    writer_b_waiting=1
+    break
+  fi
+  sleep 0.1
+done
+test "$writer_b_waiting" = "1"
+
+wait "$writer_a_pid"
+wait "$writer_b_pid"
+
+psql "$db_url" -v ON_ERROR_STOP=1 -v business_id="$business_id" <<'SQL'
+SELECT set_config('rc928.test_business_id', :'business_id', false);
+DO $verify$
+DECLARE
+  v_profile jsonb;
+  v_business_id uuid := current_setting('rc928.test_business_id')::uuid;
+BEGIN
+  SELECT settings->'catalog_profile'
+    INTO v_profile
+    FROM public.businesses
+   WHERE id = v_business_id;
+
+  IF v_profile->'promotional_images' IS DISTINCT FROM
+       '["https://cdn.example.test/rc928-concurrent-a.webp","https://cdn.example.test/rc928-concurrent-b.webp"]'::jsonb THEN
+    RAISE EXCEPTION 'RC928_CONCURRENT_GALLERY_PATCH_LOST: %', v_profile;
+  END IF;
+  IF v_profile->>'facebook_url' IS DISTINCT FROM 'https://facebook.com/rc928-concurrent-owner' THEN
+    RAISE EXCEPTION 'RC928_CONCURRENT_SOCIAL_PATCH_LOST: %', v_profile;
+  END IF;
+END
+$verify$;
+SQL
+
+echo "RC928_ATOMIC_PROFILE_METADATA_CONCURRENCY=PASS"
+; then
+    writer_a_ready=1
+    break
+  fi
+  sleep 0.1
+done
+test "$writer_a_ready" = "1"
+
+PGAPPNAME=rc928_writer_b psql "$db_url" -v ON_ERROR_STOP=1 \
+  -v tenant_id="$tenant_id" -v business_id="$business_id" \
+  -v branch_id="$branch_id" -v owner_id="$owner_id" <<'SQL' &
+
 BEGIN;
 SELECT set_config('request.jwt.claim.sub', :'owner_id', true);
 SELECT set_config('request.jwt.claims',
