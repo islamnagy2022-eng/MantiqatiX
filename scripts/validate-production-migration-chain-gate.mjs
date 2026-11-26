@@ -178,6 +178,12 @@ assert.ok(rc926Validator.includes("IS NOT DISTINCT FROM"), "RC926 must require a
 assert.ok(forwardReplay.includes("node scripts/validate-rc927-digital-page-authenticated-identity-scope.mjs"), "forward replay must validate RC927 digital-page identity scope");
 assert.ok(forwardReplay.includes("supabase/tests/rc927_digital_page_authenticated_identity_scope_integration.sql"), "forward replay must run RC927 public/anonymous/owner page regression");
 assert.ok(rc927Validator.includes("digital_pages_confirmed_auth_identity"), "RC927 validator must pin the restrictive authenticated page identity policy");
+const rc928Validator = fs.readFileSync("scripts/validate-rc928-catalog-profile-promotional-gallery-atomic-write.mjs", "utf8");
+assert.ok(required.includes("20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql"), "release gate must include RC928");
+assert.ok(forwardReplay.includes("node scripts/validate-rc928-catalog-profile-promotional-gallery-atomic-write.mjs"), "forward replay must validate RC928 atomic catalog profile persistence");
+assert.ok(forwardReplay.includes("supabase/tests/owner_profile_persistence_integration.sql"), "forward replay must run RC928 owner profile and gallery integration tests");
+assert.ok(rc928Validator.includes("upsert_catalog_business_profile_atomic_backend"), "RC928 validator must pin atomic profile persistence");
+
 assert.ok(rc488Validator.includes("storage_objects_confirmed_auth_delete"), "RC488 validator must check restrictive Storage write policies");
 const forwardReplayLines = forwardReplay.split(/\r?\n/);
 assert.ok(
