@@ -18,6 +18,8 @@ on:
       - "supabase/tests/rc927_digital_page_authenticated_identity_scope_integration.sql"
       - "scripts/validate-rc927-digital-page-authenticated-identity-scope.mjs"
       - "scripts/validate-rc928-catalog-profile-promotional-gallery-atomic-write.mjs"
+    - "scripts/test-rc928-profile-metadata-concurrency.sh"
+      - "scripts/test-rc928-profile-metadata-concurrency.sh"
       - ".github/workflows/rc924-agreement-participant-read-scope.yml"
       - "docs/release/production-migration-reconciliation.json"
       - "supabase/tests/rc922_medical_status_integration.sql"
@@ -436,6 +438,8 @@ jobs:
 
           echo "RC928_ATOMIC_CATALOG_PROFILE_PROMOTIONAL_GALLERY_INTEGRATION"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/owner_profile_persistence_integration.sql
+          echo "RC928_ATOMIC_CATALOG_PROFILE_METADATA_CONCURRENCY"
+          bash scripts/test-rc928-profile-metadata-concurrency.sh "$db_url"
 
           echo "RC455_COMMISSION_PREVIEW_INTEGRATION"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc455_commission_preview_integration.sql
