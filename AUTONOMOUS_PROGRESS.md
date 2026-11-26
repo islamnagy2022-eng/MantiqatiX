@@ -16,7 +16,7 @@
 
 ## Open source candidates — do not merge as-is
 - PR #726 (`security/public-catalog-contact-consent-20261114`) is still a draft and GitHub reports it non-mergeable. Its head `6aeb418ae3ae6f390999ab04ae4c6fd7917c37c4` diverges from current main: main has 526 commits beyond that head, while the PR branch has 88 unique commits. Its earlier checks passed, but the branch has not been reconciled with current main and it still requires pagination/contact-consent deployed-origin tests. Rebase/resolve against current main, rerun exact-head CI and review before considering merge.
-- PR #725 (`security/orders-read-business-branch-scope-20261114`) is also a draft and non-mergeable on an old base. The RC465 focused PostgreSQL workflow passed on its previous head, but it still requires current-main reconciliation and human SQL review before merge.
+- PR #725 (`security/orders-read-business-branch-scope-20261114`) is also a draft and non-mergeable on an old base; main has 526 commits beyond its previous head, while the PR branch has 27 unique commits. The RC465 focused PostgreSQL workflow passed on its previous head, but it still requires current-main reconciliation and human SQL review before merge.
 
 ## Verified Production release blockers
 - Production Supabase project remains `ACTIVE_HEALTHY`, PostgreSQL `17.6.1.155`; its migration ledger has 310 rows through `20261110150618`.
