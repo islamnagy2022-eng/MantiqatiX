@@ -1156,10 +1156,18 @@ export const DirectoryView: React.FC = () => {
               </select>
             </label>
             <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المنطقة / العنوان
-              <select value={selectedAreaFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedAreaFilter(e.target.value); }} className="mx-v4-search-select mt-1 min-h-11 w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-800 outline-none transition hover:border-slate-300">
-                <option value="all">كل المناطق</option>
-                {uniqueAreas.map((value) => <option key={value} value={value}>{value}</option>)}
-              </select>
+              <input
+                type="text"
+                list="directory-area-options"
+                value={selectedAreaFilter === 'all' ? '' : selectedAreaFilter}
+                onChange={(e) => { completeGeoSetup('manual'); setSelectedAreaFilter(e.target.value.trim() || 'all'); }}
+                placeholder="كل المناطق — اكتب اسم المنطقة أو الشارع"
+                autoComplete="off"
+                className="mx-v4-search-select mt-1 min-h-11 w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-800 outline-none transition hover:border-slate-300"
+              />
+              <datalist id="directory-area-options">
+                {uniqueAreas.map((value) => <option key={value} value={value} />)}
+              </datalist>
             </label>
             </div>
           </div>
