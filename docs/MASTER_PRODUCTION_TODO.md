@@ -5465,3 +5465,12 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Full forward migration replay passed from the captured Production schema checkpoint (run 45458313389); RC471/RC479/RC480/RC481/RC482/RC483, RC425, directory claim, migration collision/immutability/version and module tests passed on the same PR head.
 - [x] Pages workflow validation passed, but its deploy job was skipped for the PR event; no post-merge public-origin deployment has been independently confirmed.
 - [ ] Production is still read-only. Live migration ledger remains 310 rows through `20261110150618`; read-only query confirms RC482 `20261119020000` and RC924 `20261124140000` are absent. Live `private.legal_is_admin()` and `private.legal_is_admin(uuid)` still derive global Legal authority from active `user_memberships` roles. Do not claim the agreement security repair is live until the coordinated migration release is completed.
+
+
+## 2026-11-26 — Fresh platform-root Production checkpoint (PASS 2481–2490)
+- [x] Re-read live helper definitions, search_path/security mode, policy reference counts, canonical registry RLS/FORCE RLS and migration ledger through a read-only query.
+- [x] Confirmed the live global authorization defect remains: 57 `is_platform_admin()` references / 24 tables plus five `mnty_can_platform_admin()` references / three tables; both helpers still use tenant-membership-derived global authority.
+- [x] Confirmed the selected forward migration IDs RC464/RC471/RC484/RC485/RC923/RC928/RC117 repair/RC929 are not in the 310-row live ledger (latest `20261110150618`). This exact-ID result is not a claim that every physical effect is absent.
+- [x] Added `docs/audits/PASS_2481_2490_PLATFORM_ROOT_LIVE_RECHECK_20261126.md` on `audit/platform-root-live-recheck-20261126`.
+- [ ] Continue the current 86-version source-to-physical-effect crosswalk, including aliases and partial-baseline classifications; preserve strict chronological ordering and immutable migration history.
+- [ ] Keep Production read-only; no isolated helper/policy migration or individual dependent Edge deployment. Full platform remains BLOCKED / NOT CERTIFIED.
