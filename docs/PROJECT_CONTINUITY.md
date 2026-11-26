@@ -1,3 +1,12 @@
+## 2026-11-26 — RC117 image-provenance repair direct Production prerequisite read-back (read-only)
+
+- Production `public.marketing_services` exists, but `image_url` and `image_source` columns are absent; `public.mnty_default_image_url(text,text,text,text)` is absent; all three expected default-image triggers (`mnty_business_default_images`, `mnty_catalog_item_default_image`, `mnty_marketing_service_default_image`) are absent.
+- The forward repair `20261126020000_preserve_marketing_service_image_provenance.sql` therefore cannot have taken effect and must follow the original RC117 schema/function migration in the complete chronological chain. Its disposable PostgreSQL test already covers owner URLs, legacy NULL/blank provenance, blank URL defaults, `ai_generated`, existing `auto` provenance and idempotency.
+- This direct read-back closes the last missing source-to-live evidence item: all 87/87 required migrations now have an explicit PASS/PARTIAL/BLOCKED disposition. It does not change the 0/87 exact migration ledger identity result or certify Production.
+- No Production mutation was performed.
+
+---
+
 ## 2026-11-26 — RC464/RC469/RC484 Production preflight recheck (read-only)
 
 - RC464 preflight matches current Production schema: `private.platform_admins` exists with RLS enabled; table owner and `mnty_can_platform_admin()` owner are both `postgres` with BYPASSRLS; anon/authenticated have no direct SELECT/INSERT/UPDATE/DELETE; all four expected global MantiGO SECURITY DEFINER RPCs and all four additional shared-helper callers exist; the required digital-pages and two MantiGO policies call the shared guard in both USING and WITH CHECK.
