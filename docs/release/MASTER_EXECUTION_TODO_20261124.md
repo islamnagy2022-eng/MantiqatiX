@@ -4,19 +4,18 @@
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
-## 2026-11-26 — Current execution checkpoint (87-source release contract)
+## 2026-11-26 — Current execution checkpoint (post-merge reconciliation)
 
-- [x] PR #1136 merged to `main` as `d695316a69426d71c65891a6bbe2cd379b77a33d`. The frontend now fails closed when the deployed catalog-admin bundle does not prove promotional-gallery write capability; omitted optional gallery values no longer clear stored images.
-- [x] GitHub Pages deployment after PR #1136 passed: [run 45779486714](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45779486714). Primary Catalog build, employee RBAC PostgreSQL and dashboard browser E2E passed: [run 45779486990](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45779486990). Backend-only module boundary and financial journal/approval PostgreSQL tests passed: [run 45779486718](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45779486718). MantiGO open-ride privacy PostgreSQL passed: [run 45779486734](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45779486734).
-- [x] Fresh read-only Production read-back: `orders` and `order_status_history` have RLS + FORCE RLS enabled; anon SELECT is false; authenticated SELECT is true; neither has the strict RC929 `IS NOT DISTINCT FROM 'false'` restrictive guard. The existing COALESCE predicates permit a missing/null `is_anonymous` claim to be treated as non-anonymous. This is a fail-open policy condition, not evidence of a confirmed data breach.
-- [x] Added source-only RC929 migration `20261126030000` on `security/rc929-orders-explicit-confirmed-auth-guard-20261126`: restrictive FOR ALL policies for both order resources require a non-null `auth.uid()` and explicit `is_anonymous=false`; USING and WITH CHECK both enforce the condition. Migration preflight requires RLS, expected policies and no anon SELECT; no grants, table structures, order rows or customer data are changed.
-- [x] Added a pre-RC929 PostgreSQL baseline proving the prior missing-claim behavior, plus positive/negative PG17 integration cases for missing/null/true claims, missing uid, confirmed branch manager, customer-own-order reads and no client write grants. Added static validator and wired the dedicated RC465 PG17 workflow and chronological replay static gate.
-- [x] Expanded the release source contract to **87 versions**. The manifest now lists all 87 as required and missing, with 310 live ledger rows through `20261110150618`; `0/87` exact required versions are present. Added the 87-source source-to-live crosswalk.
-- [ ] Run exact-head RC929 dedicated PostgreSQL 17, static, and full 87-version chronological replay workflows; fix any failures before creating or merging the PR.
-- [ ] Continue coordinated DB + Edge source/production parity for RC928. Current `catalog-admin` v20 does not expose gallery write capability; frontend guard correctly blocks changed-gallery saves. Do not deploy catalog Edge functions individually.
-- [ ] Keep Production DB/Auth/RLS/GRANT/Storage/Edge/payment/customer data read-only. Do not apply RC929 or any migration until the complete 87-source migration/effect/alias reconciliation and coordinated release gates pass.
+- [x] PR #1136 gallery-save capability guard is in main at `d695316a69426d71c65891a6bbe2cd379b77a33d`; its post-merge Pages deployment and catalog/browser/security validations passed (runs `45779486714`, `45779486990`, `45779486718`, `45779486734`).
+- [x] RC929 order-resource explicit confirmed-Auth guard was merged from PR #1137; merge commit `476180ecd027d435558c7d435c1b2804daf2e92f`. Exact-head workflows passed, including RC929/RC465 PostgreSQL 17, the full 126-migration chronological replay, Primary Catalog build/RBAC/browser E2E and module/security boundaries. This is source/CI evidence only.
+- [x] PR #1139 added per-activity stable share links and QR codes; merged to main after exact-head catalog validation and browser E2E passed. The URL uses the existing site base path and activity identifier; no per-activity domain is required.
+- [ ] Verify a new post-merge GitHub Pages deployment for commits after PR #1139 and test the exact live origin, including direct activity-link refresh, case-insensitive routing, query/hash preservation and QR target.
+- [ ] Resolve PR #1138 documentation-only conflict before carrying forward its PASS 2481–2490 live platform-root audit. Its 86-source crosswalk is stale against the current 87-source contract; do not merge its old documentation wholesale.
+- [ ] Continue coordinated DB + Edge source/production parity for RC928. Live `catalog-admin` v20 still lacks gallery write capability; frontend guard must remain fail-closed. Do not deploy catalog Edge functions individually.
+- [ ] Keep Production DB/Auth/RLS/GRANT/Storage/Edge/payment/customer data read-only. No RC929 or other migration is authorized for Production until complete 87-source migration/effect/alias reconciliation and coordinated release gates pass.
+- [ ] Backup/restore remains a hard launch blocker and unverified. Do not treat disposable CI replay as a Production backup/restore drill.
 
-**Current disposition:** Website deployed and browser-verified; PR #1136 source guard merged; RC929 is a pending source-only security candidate; Production remains **BLOCKED / NOT CERTIFIED**. Backup/restore was not performed.
+**Current disposition:** PR #1137 and PR #1139 are merged to source. Their exact-head CI passed. Post-merge Pages deployment for these commits is not yet independently confirmed. Production remains **BLOCKED / NOT CERTIFIED**.
 
 ## 2026-11-26 — Previous 86-source checkpoint (historical baseline; superseded by the 87-source checkpoint above)
 
