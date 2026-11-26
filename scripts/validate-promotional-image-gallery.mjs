@@ -45,7 +45,7 @@ assert.match(storefront, /aria-haspopup="dialog"/, "promotional thumbnails must 
 assert.ok(storefront.includes('role="dialog"') && storefront.includes('aria-modal="true"'), "promotional viewer must expose modal dialog semantics");
 assert.match(storefront, /event.key === 'Escape'/, "promotional viewer must close with Escape");
 assert.ok(storefront.includes("event.key === 'ArrowLeft'") && storefront.includes("event.key === 'ArrowRight'"), "promotional viewer must support RTL keyboard navigation");
-assert.ok(storefront.includes('galleryTriggerRef.current?.focus()'), "closing the viewer must restore focus to its trigger");
+assert.ok(storefront.includes('galleryTriggerRef.current?.isConnected') && storefront.includes('galleryTriggerRef.current.focus()'), "closing the viewer must restore focus to its connected trigger");
 assert.match(storefront, /فتح الصورة الأصلية/, "the viewer must preserve access to the original image URL");
 assert.match(storefront, /const coverImage =/, "storefront must use one fixed cover image");
 assert.doesNotMatch(storefront, /currentBusiness\.coverImages|currentSlideIndex|slides\.map/, "legacy multi-cover rotation must not control the storefront cover");
