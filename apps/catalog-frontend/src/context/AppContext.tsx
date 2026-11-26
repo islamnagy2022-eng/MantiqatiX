@@ -718,7 +718,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const currentGallery = businesses.find((business) => business.id === updated.id)?.promotionalImages || [];
     const requestedGallery = updated.promotionalImages || [];
-    if (hasPromotionalGalleryChanges(currentGallery, requestedGallery)) {
+    if (Array.isArray(updated.promotionalImages) && hasPromotionalGalleryChanges(currentGallery, updated.promotionalImages)) {
       // Older catalog-admin bundles accept BUSINESS_PROFILE_UPSERT but silently
       // ignore promotionalImages. Probe its read contract before any profile write.
       const capabilityRead: any = await callCatalogAdmin({
@@ -772,7 +772,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       workingHours: updated.workingHours || '',
       logoUrl,
       coverUrl,
-      promotionalImages: updated.promotionalImages || [],
+      ...(Array.isArray(updated.promotionalImages) ? { promotionalImages: updated.promotionalImages } : {}),
       publicEnabled: Boolean(updated.publicEnabled),
     });
     // Profile edits must not rewrite billing metadata from a potentially stale client snapshot.
