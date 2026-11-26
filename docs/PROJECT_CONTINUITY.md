@@ -3709,3 +3709,4 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 - Policy references remain 57 across 24 tables plus five across three tables; `private.platform_admins` has RLS ON / FORCE RLS OFF and owner postgres.
 - Evidence: `docs/audits/PASS_2481_2490_PLATFORM_ROOT_LIVE_RECHECK_20261126.md` (branch `audit/platform-root-live-recheck-20261126`). No Production mutation.
 - Continue source-side 86-version and physical-effect reconciliation; keep platform-root and dependent Edge releases blocked until all ordered tests and release gates pass.
+- The complete 86-ID release contract has **86/86 matching source migration files** in the current-main Git tree, with no missing or duplicate source filenames; the live Production ledger contains **0/86 exact IDs** (310 rows through `20261110150618`). This is a ledger identity gap, not a physical-effect conclusion.
