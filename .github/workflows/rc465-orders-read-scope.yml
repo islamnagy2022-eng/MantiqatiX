@@ -8,6 +8,10 @@ on:
       - "supabase/migrations/20261114010000_rc465_orders_read_scope_hardening.sql"
       - "supabase/tests/rc465_orders_read_scope_*.sql"
       - "scripts/validate-rc465-orders-read-scope.mjs"
+      - "supabase/migrations/20261126030000_rc929_orders_confirmed_auth_claim_guard.sql"
+      - "supabase/tests/rc929_orders_missing_claim_baseline.sql"
+      - "supabase/tests/rc929_orders_confirmed_auth_claim_integration.sql"
+      - "scripts/validate-rc929-orders-confirmed-auth-guard.mjs"
       - ".github/workflows/rc465-orders-read-scope.yml"
   pull_request:
     branches: [main]
@@ -16,6 +20,10 @@ on:
       - "supabase/migrations/20261114010000_rc465_orders_read_scope_hardening.sql"
       - "supabase/tests/rc465_orders_read_scope_*.sql"
       - "scripts/validate-rc465-orders-read-scope.mjs"
+      - "supabase/migrations/20261126030000_rc929_orders_confirmed_auth_claim_guard.sql"
+      - "supabase/tests/rc929_orders_missing_claim_baseline.sql"
+      - "supabase/tests/rc929_orders_confirmed_auth_claim_integration.sql"
+      - "scripts/validate-rc929-orders-confirmed-auth-guard.mjs"
       - ".github/workflows/rc465-orders-read-scope.yml"
 permissions:
   contents: read
@@ -29,6 +37,7 @@ jobs:
         with:
           node-version: 22
       - run: node scripts/validate-rc465-orders-read-scope.mjs
+      - run: node scripts/validate-rc929-orders-confirmed-auth-guard.mjs
 
   orders-read-scope-postgres:
     runs-on: ubuntu-latest
@@ -62,11 +71,18 @@ jobs:
           docker cp supabase/tests/rc465_orders_read_scope_policy_drift_history_assert.sql "$pg_container:/tmp/rc465_drift_history_assert.sql"
           docker cp supabase/migrations/20261114010000_rc465_orders_read_scope_hardening.sql "$pg_container:/tmp/rc465_migration.sql"
           docker cp supabase/tests/rc465_orders_read_scope_integration.sql "$pg_container:/tmp/rc465_integration.sql"
+          docker cp supabase/tests/rc929_orders_missing_claim_baseline.sql "$pg_container:/tmp/rc929_baseline.sql"
+          docker cp supabase/migrations/20261126030000_rc929_orders_confirmed_auth_claim_guard.sql "$pg_container:/tmp/rc929_migration.sql"
+          docker cp supabase/tests/rc929_orders_confirmed_auth_claim_integration.sql "$pg_container:/tmp/rc929_integration.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_orders_scope_test -v ON_ERROR_STOP=1 -f /tmp/rc465_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_orders_scope_test -v ON_ERROR_STOP=1 -f /tmp/rc465_baseline.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_orders_scope_test -v ON_ERROR_STOP=1 -f /tmp/rc465_preflight.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_orders_scope_test -v ON_ERROR_STOP=1 -f /tmp/rc465_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_orders_scope_test -v ON_ERROR_STOP=1 -f /tmp/rc465_integration.sql
+          # Demonstrate the legacy missing-claim allow before RC929, then prove the strict guard blocks it.
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_orders_scope_test -v ON_ERROR_STOP=1 -f /tmp/rc929_baseline.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_orders_scope_test -v ON_ERROR_STOP=1 -f /tmp/rc929_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_orders_scope_test -v ON_ERROR_STOP=1 -f /tmp/rc929_integration.sql
           # Policy drift must be rejected before the immutable RC465 migration runs.
           docker exec "$pg_container" createdb -U postgres mantiqatix_rc465_policy_drift_test
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc465_policy_drift_test -v ON_ERROR_STOP=1 -f /tmp/rc465_fixture.sql
