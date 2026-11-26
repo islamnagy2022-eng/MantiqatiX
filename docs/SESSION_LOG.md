@@ -4380,3 +4380,5 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] Added dated evidence `docs/audits/PASS_2481_2490_PLATFORM_ROOT_LIVE_RECHECK_20261126.md` on branch `audit/platform-root-live-recheck-20261126`.
 - [ ] Keep Production unchanged. Continue the exact 86-version source/physical-effect crosswalk and coordinated source/PG17/replay gates; no helper or policy hot-edit and no individual Edge deployment.
 - Evidence mode: read-only. No Production DDL/DML, grants, RLS, Auth, Storage, Edge, payment or deployment changes.
+- [x] Parsed all 86 unique required migration IDs from the current-main release contract and compared them with the complete non-truncated Git tree: **86/86 source files present, zero missing, zero duplicate files**.
+- [x] Compared the same 86 IDs against the live Production ledger: **0/86 recorded**, 310 live rows through `20261110150618`. This is exact ledger divergence only, not proof all physical effects are absent.
