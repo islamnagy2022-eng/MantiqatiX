@@ -84,7 +84,7 @@ assert.ok(workflow.includes("DROP FUNCTION private.legal_is_admin();"),"workflow
 assert.ok(liveContract.includes('"20261124140000"'), "RC924 must be included in the live release migration contract");
 assert.ok(productionVerifier.includes("20261124140000_rc924_agreement_participant_read_scope.sql"), "Production verifier must require RC924");
 assert.ok(migrationGate.includes("20261124140000_rc924_agreement_participant_read_scope.sql"), "strict migration gate must require RC924");
-assert.match(migrationGate, /required\\.length, 87/, "strict gate must count RC928 in the 87-version chain");
+assert.match(migrationGate, /required\.length, 87/, "strict gate must count RC928 in the 87-version chain");
 assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 87, "live release manifest must carry the 87-version chain");
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261124140000"), "manifest must include RC924");
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261124140000"), "manifest must show RC924 is not applied to Production");
