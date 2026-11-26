@@ -42,9 +42,9 @@ assert.match(helper, /PUBLIC_DIRECTORY_PAGE_SIZE = PAGE_SIZE/);
 assert.match(client, /fetchPublicDirectoryPage\([\s\S]{0,180}cursor\?: string \| null,[\s\S]{0,120}filters: PublicDirectoryPageFilters/);
 assert.match(client, /query\.set\('limit', '20'\)/);
 assert.match(client, /query\.set\('cursor', cursor\)/);
-for (const field of ["activity", "specialty", "governorate", "markaz", "village", "query"]) {
-  assert.match(client, new RegExp("query\\.set\\('" + field + "'"), `Public directory client must send the ${field} filter.`);
-}
+assert.match(client, /for \(const key of \['activity', 'specialty', 'governorate', 'markaz', 'village', 'query'\] as const\)/);
+assert.match(client, /query\.set\(key, value\.slice\(0, 100\)\)/,
+  "Public directory client must pass only bounded, allowlisted search/scope filters.");
 assert.match(helper, /query: \[/, "Free text must match public business/provider fields.");
 assert.doesNotMatch(helper, /phone|ownerWhatsApp|secondary_phone|address/i, "Server-side free-text search must never inspect consent-gated contacts.");
 assert.match(client, /pagination\?\.hasMore === true/);
