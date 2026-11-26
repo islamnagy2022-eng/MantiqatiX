@@ -1902,10 +1902,10 @@ export const AdminDashboard: React.FC = () => {
         <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-xs space-y-6">
           <div>
             <h3 className="font-extrabold text-lg text-slate-900">
-              النسخ الاحتياطي واستعادة قاعدة بيانات MantiqatiX
+              تصدير بيانات الإدارة (نسخة محدودة)
             </h3>
             <p className="text-xs text-slate-500">
-              تصدير واستيراد بيانات المشتركين والأنشطة، الكتالوجات (حتى 150 صنف)، والتصنيف الوظيفي.
+              هذا التصدير لا يشمل قاعدة بيانات Supabase كاملة أو ملفات Storage أو ملفات الموقع. لا يُعد نسخة احتياطية كاملة ولا يصلح وحده لاستعادة المنصة.
             </p>
           </div>
 
@@ -1928,7 +1928,7 @@ export const AdminDashboard: React.FC = () => {
                 <span>تصدير نسخة احتياطية (Export JSON)</span>
               </h4>
               <p className="text-xs text-amber-900 leading-relaxed">
-                حفظ ملف JSON كامل على جهازك يشمل بيانات الأنشطة والمشتركين والعمولات.
+                تنزيل ملف JSON بالبيانات المتاحة داخل لوحة الإدارة فقط. قد لا يشمل كل بيانات المنصة أو الملفات والصور.
               </p>
               <div className="flex gap-2">
                 <button
@@ -1936,7 +1936,7 @@ export const AdminDashboard: React.FC = () => {
                   className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer"
                 >
                   <Download className="w-4 h-4" />
-                  <span>تنزيل ملف النسخة الاحتياطية (.json)</span>
+                  <span>تنزيل تصدير البيانات المحدودة (.json)</span>
                 </button>
                 <button
                   onClick={() => {
@@ -1960,7 +1960,7 @@ export const AdminDashboard: React.FC = () => {
                 <span>استعادة نسخة احتياطية (Import JSON)</span>
               </h4>
               <p className="text-xs text-slate-600 leading-relaxed">
-                الصق نص النسخة الاحتياطية أو اختر ملفاً لاسترجاع كافة الأنشطة والمشتركين بدقة.
+                أداة الاستيراد الحالية لا تستعيد قاعدة البيانات أو ملفات المنصة. استخدمها فقط بعد مراجعة محتوى الملف وتأكد من مصدره.
               </p>
               <textarea
                 rows={3}
@@ -1991,7 +1991,7 @@ export const AdminDashboard: React.FC = () => {
                 }}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-xs cursor-pointer"
               >
-                تطبيق واستعادة البيانات
+                تطبيق بيانات JSON المحدودة
               </button>
             </div>
           </div>
