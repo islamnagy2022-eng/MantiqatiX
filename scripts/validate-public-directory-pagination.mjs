@@ -95,6 +95,10 @@ assert.match(view, /loadMoreScopedDirectoryBusinesses/, "Filtered activity searc
 const activityModule = fs.readFileSync("apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx", "utf8");
 assert.match(view, /onLoadMoreBusinesses=\{\(\) => \{ void loadMoreScopedDirectoryBusinesses\(\); \}\}/,
   "Activity module must receive cursor-backed business pagination.");
+assert.match(activityModule, /normalizedQueryTokens\.every\(\(token\) => haystack\.includes\(token\)\)/,
+  "Activity module free-text search must use the server's all-token matching semantics.");
+assert.match(activityModule, /business\.bio/,
+  "Activity module local matching must include the already-public business description.");
 assert.match(activityModule, /hasMoreListings \\|\\| hasMoreBusinesses/,
   "Activity module load-more visibility must include additional registered businesses.");
 assert.match(activityModule, /if \(hasMoreBusinesses\) onLoadMoreBusinesses\(\)/,
