@@ -8,6 +8,7 @@ const edge = read("supabase/functions/catalog-admin/index.ts");
 const shared = read("supabase/functions/_shared/promotional-images.mjs");
 const sharedTests = read("supabase/functions/_shared/promotional-images.test.mjs");
 const ownerIntegration = read("supabase/tests/owner_profile_persistence_integration.sql");
+const concurrencyScript = read("scripts/test-rc928-profile-metadata-concurrency.sh");
 const primaryWorkflow = read(".github/workflows/primary-catalog-frontend.yml");
 const replayWorkflow = read(".github/workflows/forward-migration-chain-replay.yml");
 const releaseGate = read("scripts/validate-production-migration-chain-gate.mjs");
@@ -88,6 +89,12 @@ assert.ok(primaryWorkflow.includes("node scripts/validate-rc928-catalog-profile-
 assert.ok(replayWorkflow.includes("node scripts/validate-rc928-catalog-profile-promotional-gallery-atomic-write.mjs"));
 assert.ok(replayWorkflow.includes("supabase/tests/owner_profile_persistence_integration.sql"));
 assert.ok(replayWorkflow.includes("OWNER_PROFILE_PERSISTENCE_INTEGRATION"));
+assert.ok(replayWorkflow.includes("bash scripts/test-rc928-profile-metadata-concurrency.sh \"$db_url\""),
+  "full chronological PG17 replay must execute the two-session metadata preservation concurrency test");
+assert.ok(concurrencyScript.includes("SELECT pg_sleep(2)"));
+assert.ok(concurrencyScript.includes("SET LOCAL ROLE authenticated"));
+assert.ok(concurrencyScript.includes("RC928_CONCURRENT_GALLERY_PATCH_LOST"));
+assert.ok(concurrencyScript.includes("RC928_CONCURRENT_SOCIAL_PATCH_LOST"));
 assert.ok(releaseGate.includes("20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql"));
 assert.ok(productionVerifier.includes("20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql"));
 assert.ok(liveContract.includes('"20261126010000"'));
