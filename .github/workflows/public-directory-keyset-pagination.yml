@@ -10,6 +10,7 @@ on:
       - "apps/catalog-frontend/src/lib/production.ts"
       - "apps/catalog-frontend/src/context/AppContext.tsx"
       - "apps/catalog-frontend/src/components/DirectoryView.tsx"
+      - "apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs"
       - "scripts/validate-public-directory-pagination.mjs"
       - ".github/workflows/public-directory-keyset-pagination.yml"
   pull_request:
@@ -21,6 +22,7 @@ on:
       - "apps/catalog-frontend/src/lib/production.ts"
       - "apps/catalog-frontend/src/context/AppContext.tsx"
       - "apps/catalog-frontend/src/components/DirectoryView.tsx"
+      - "apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs"
       - "scripts/validate-public-directory-pagination.mjs"
       - ".github/workflows/public-directory-keyset-pagination.yml"
 permissions:
