@@ -380,12 +380,12 @@ export const DirectoryView: React.FC = () => {
     if (selectedGovFilter !== 'all') filters.governorate = selectedGovFilter;
     if (selectedMarkazFilter !== 'all') filters.markaz = selectedMarkazFilter;
     if (selectedVillageFilter !== 'all') filters.village = selectedVillageFilter;
+    if (selectedAreaFilter !== 'all') filters.area = selectedAreaFilter;
     if (query) filters.query = query;
-    // Exact street/address filtering remains client-side because that field is separately consent-gated.
     return filters;
   }, [
     activityModuleId, activityListingSearchQuery, activityListingSpecialty, searchQuery,
-    selectedCategoryId, selectedSpecialty, selectedGovFilter, selectedMarkazFilter, selectedVillageFilter,
+    selectedCategoryId, selectedSpecialty, selectedGovFilter, selectedMarkazFilter, selectedVillageFilter, selectedAreaFilter,
   ]);
 
   useEffect(() => {
