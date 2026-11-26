@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sanitizePublicPromotionalImages, validatePromotionalImages } from "../_shared/promotional-images.mjs";
 
 type DefaultImageKind = "activity" | "product" | "service" | "cover";
 interface DefaultImageInput { name?: string | null; description?: string | null; category?: string | null; kind?: DefaultImageKind; }
@@ -363,6 +364,7 @@ Deno.serve(async (req: Request) => {
               workingHours: String(profile.working_hours || ""),
               logoUrl: String(profile.logo_url || ""),
               coverUrl: String(profile.cover_url || ""),
+               promotionalImages: sanitizePublicPromotionalImages(profile.promotional_images),
               google_maps_url: String(profile.google_maps_url || ""),
               facebookUrl: String(profile.facebook_url || ""),
               instagramUrl: String(profile.instagram_url || ""),
@@ -470,6 +472,7 @@ Deno.serve(async (req: Request) => {
             workingHours: String(profile.working_hours || ""),
             logoUrl: String(profile.logo_url || ""),
             coverUrl: String(profile.cover_url || ""),
+               promotionalImages: sanitizePublicPromotionalImages(profile.promotional_images),
             google_maps_url: String(profile.google_maps_url || ""),
             facebookUrl: String(profile.facebook_url || ""),
             instagramUrl: String(profile.instagram_url || ""),
@@ -530,6 +533,13 @@ Deno.serve(async (req: Request) => {
           return out(origin, { error: "INVALID_ADDITIONAL_CONTACT_PHONES" }, 400);
         }
         submittedSocialFields["additional_contact_phones"] = normalizedPhones;
+      }
+      if (Object.prototype.hasOwnProperty.call(body, "promotionalImages")) {
+        const promotionalImages = validatePromotionalImages(body.promotionalImages);
+        if (!promotionalImages.valid) {
+          return out(origin, { error: promotionalImages.error || "INVALID_PROMOTIONAL_IMAGES" }, 400);
+        }
+        submittedSocialFields["promotional_images"] = promotionalImages.images;
       }
       const consentSubmitted = Object.prototype.hasOwnProperty.call(body, "publicContactEnabled");
       if (consentSubmitted) {
