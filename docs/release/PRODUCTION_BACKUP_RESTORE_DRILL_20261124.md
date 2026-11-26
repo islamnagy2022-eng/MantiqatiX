@@ -9,10 +9,10 @@
 
 - The current release contract tracks **85 exact migration versions**, defined in `scripts/production/live-reconciliation-contract.mjs` and checked by `scripts/validate-production-migration-chain-gate.mjs`.
 - A fresh read-only Supabase ledger read-back reports **310 rows**, latest version `20261110150618`, and **0/85 exact required version identifiers** present.
-- Do not interpret zero exact identifier matches as proof that every SQL effect is absent. The historical source-to-live crosswalk records partial baselines and separate confirmed source/ledger aliases. The three catalogued aliases are outside the current 84-version release list; their formal migration-history repairs remain pending. Never replay an alias, fabricate migration-ledger rows, or treat physical object presence alone as contract parity.
+- Do not interpret zero exact identifier matches as proof that every SQL effect is absent. The historical source-to-live crosswalk records partial baselines and separate confirmed source/ledger aliases. The three catalogued aliases are outside the current 85-version release list; their formal migration-history repairs remain pending. Never replay an alias, fabricate migration-ledger rows, or treat physical object presence alone as contract parity.
 - A successful chronological PostgreSQL 17 replay in disposable CI is not a Production migration, backup, restore, or rollback rehearsal.
 - Before approval, reconcile each required source effect against the live ledger and physical schema, including exact RPC signatures and bodies, function owners and `search_path`, effective ACL/RLS policies, constraints, and triggers.
-- RC927 (`20261125120000`) is a source-only candidate to separate public digital-page rendering from authenticated access. It requires RC480's raw-anon column allowlist, exact-head PostgreSQL 17 tests and the full 85-version replay; it is not applied to Production.
+- RC927 (`20261125120000`) merged source-only in PR #1122 after 17/17 exact-head workflows passed, including the 85-version chronological PostgreSQL 17 replay and 123 forward migrations. It is not applied to Production.
 - RC928 (`20261126010000`) is a source-only candidate for atomic catalog-profile metadata and promotional-gallery persistence. It requires the existing owner-scoped profile RPC, same-transaction row locking, URL/authorization PostgreSQL tests and the full 85-version replay; it is not applied to Production.
 
 ## A. Evidence to collect before release
