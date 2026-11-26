@@ -63,6 +63,7 @@ on:
       - "supabase/tests/baselines/production_data_prerequisites_fixture.sql"
       - "supabase/tests/baselines/production_live_trigger_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_order_status_history_acl_overlay_fixture.sql"
+      - "supabase/tests/baselines/production_live_order_resources_anon_select_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_business_branch_anon_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/rc484_live_storage_policy_overlay_fixture.sql"
       - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
@@ -173,6 +174,7 @@ on:
       - "supabase/tests/baselines/production_data_prerequisites_fixture.sql"
       - "supabase/tests/baselines/production_live_trigger_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_order_status_history_acl_overlay_fixture.sql"
+      - "supabase/tests/baselines/production_live_order_resources_anon_select_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_business_branch_anon_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/rc484_live_storage_policy_overlay_fixture.sql"
       - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
@@ -403,6 +405,10 @@ jobs:
               if [[ "$filename" == "20261125120000_rc927_digital_page_authenticated_identity_scope.sql" ]]; then
                 echo "RESTORE_TEST_ONLY_CURRENT_PRODUCTION_DIGITAL_PAGE_ANON_DML_ACL"
                 psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/production_live_digital_page_anon_dml_acl_overlay_fixture.sql
+              fi
+              if [[ "$filename" == "20261126030000_rc929_orders_confirmed_auth_claim_guard.sql" ]]; then
+                echo "RESTORE_TEST_ONLY_KNOWN_LIVE_ORDER_RESOURCES_ANON_SELECT_ACL_OVERLAY"
+                psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/production_live_order_resources_anon_select_acl_overlay_fixture.sql
               fi
               echo "REPLAY_MIGRATION=$filename"
               psql "$db_url" -v ON_ERROR_STOP=1 -f "$migration"
