@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-25 — Free-tier backup/restore scope and owner recovery evidence  
-**Base:** `main @ 1419477b39312e65134494251264452b170e1efe`  
+**Updated:** 2026-11-25 — RC927 digital-page identity boundary and 84-version release map  
+**Base:** `main @ 17329ba27effad52a316ad0aa94ef1a93ab975a7`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -20,6 +20,22 @@
 - [x] Published [PASS 2451–2460](../audits/PASS_2451_2460_FREE_PLAN_BACKUP_RESTORE_CAPABILITY_20261125.md); no backup, restore, project creation or Production mutation was performed.
 - [ ] Owner must create and verify encrypted off-site DB exports, separate Storage object exports, a supported Auth/Vault recovery package, and an independent PostgreSQL 17 restore/rollback with measured RPO/RTO. This remains a hard launch blocker; no paid plan/branch is assumed.
 
+## 2026-11-25 — Anonymous Auth matrix / RC927 exact-owner regression
+
+- [x] Reconciled all 90 current Security Advisor Anonymous Auth warnings against actual table existence, RLS, grants and policy roles; recorded 5 raw-anon SELECT tables and one raw-anon DML grant with no anon write policy.
+- [x] Identified the seven authenticated-write review candidates and separated confirmed grant/policy gaps from merely missing explicit restrictive claim markers.
+- [x] Added PASS 2461–2470 audit and updated Issue #928 with the 2026-11-25 matrix.
+- [x] Strengthened RC927 regression identities: the Anonymous Auth and missing-claim JWT subjects now equal the actual digital-page owner. Owner policies would otherwise pass; the test therefore proves the new restrictive identity condition denies read, insert, update and delete paths.
+- [ ] Exact-head static and PostgreSQL 17 full chronological 84-version replay pending on PR. Do not merge/deploy until all checks pass.
+
+## 2026-11-25 — RC927 digital-page anonymous Auth boundary (source candidate)
+
+- [x] Read live pg_policies and role privileges for digital_pages and digital_page_sections. The public read policies currently target both anon and authenticated; page owner access is split into owner SELECT, INSERT and draft UPDATE policies plus a global admin policy.
+- [x] Confirmed repository public renderer web/digital-page.js uses a dedicated stateless anon-key client; no signInAnonymously call was found in the app source. Preserve raw-anon public reading and do not depend on a signed-in anonymous session.
+- [ ] RC927 source candidate: retarget published page/section read policies to raw anon only and add restrictive FOR ALL TO authenticated policies requiring explicit is_anonymous=false; keep RC480's 10-column raw-anon page allowlist, existing owner/admin policies and service-role behavior.
+- [ ] Add adversarial PG17 tests: raw anon published page + active sections still work; internal page columns and SELECT * stay denied; Anonymous Auth + missing/null claim cannot read or write; confirmed owner retains internal read and draft updates; another confirmed user remains denied.
+- [ ] Keep RC927 dependent on RC480 and exact chronological 84-version replay. Do not merge as complete until its exact-head PostgreSQL 17 and all static/CI gates pass. It is source-only and is not applied to Production.
+
 ## 2026-11-25 — RC926 strict provider-profile identity boundary
 
 - [x] Preserved PASS 2411–2420 R7 archive safety review; all current development remains on canonical main.
@@ -32,14 +48,14 @@
 
 This is the active priority queue. Older Pass logs remain append-only evidence, not a competing work queue. Ordering is based on dependencies and work that can be completed without a paid Supabase branch or paid tooling.
 
-## 2026-11-25 — Current Production recheck and 83-source release map
+## 2026-11-25 — Current Production recheck and 84-source release map
 
-- [x] Re-read the live Supabase migration inventory directly: 310 rows through `20261110150618`; exact current source version set is 83 and **0/83** exact IDs are present. This is an identity mismatch; it is not proof all physical effects are absent.
+- [x] Re-read the live Supabase migration inventory directly: 310 rows through `20261110150618`; exact current source version set is 84 and **0/84** exact IDs are present. This is an identity mismatch; it is not proof all physical effects are absent.
 - [x] Re-read provider-profile grants/policies: RLS + FORCE RLS are ON, but `anon SELECT` remains granted and the permissive active-provider base-row policy remains; the strict RC926 policy is source-only and absent in Production.
 - [x] Re-read Platform Admin root: `private.platform_admins` RLS ON / FORCE RLS OFF; `is_platform_admin()` still does not reference the registry; `mnty_can_platform_admin()` remains on the legacy null-scope helper. Current blast radius: 57 policies / 24 tables and 5 policies / 3 tables.
 - [x] Re-read RC486 runtime dependency: live price RPC still has no transaction advisory lock and its required unique version index is absent.
-- [x] Published the current 83-source crosswalk and current live evidence: `docs/release/REQUIRED_83_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md` and [PASS 2441–2450](../audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md).
-- [ ] Complete the coordinated 83-source Platform Admin/provider-privacy/RPC/Edge release bundle only after exhaustive physical effect reconciliation, encrypted DB + Storage backup, independent restore/rollback, measured RPO/RTO and explicit owner release approval.
+- [x] Published the current 84-source crosswalk and current live evidence: `docs/release/REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md` and [PASS 2441–2450](../audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md), plus [PASS 2461–2470 Anonymous Auth triage](../audits/PASS_2461_2470_ANONYMOUS_AUTH_POLICY_TRIAGE_RC927_20261125.md).
+- [ ] Complete the coordinated 84-source Platform Admin/provider-privacy/RPC/Edge release bundle only after exhaustive physical effect reconciliation, encrypted DB + Storage backup, independent restore/rollback, measured RPO/RTO and explicit owner release approval.
 
 ## Execution rules
 - Preserve the current catalog root, `/legacy/` rollback and existing production data. Do not replace current main with the R7 ZIP.
@@ -67,7 +83,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Re-ran the existing read-only high-risk SECURITY DEFINER SQL contract against Production: 14 RPCs checked; 5 PASS, 9 FAIL_SEARCH_PATH; all 14 preserve anon EXECUTE=false and authenticated EXECUTE=true. Direct anon/authenticated write grants on five MantiGO tables are both zero; see PASS_2071_2080.
 - [x] Assert function ownership, empty `search_path`, grants, FORCE RLS and caller coverage in the RC464/RC471/RC484/RC485 suites; exact-head module and forward replay workflows passed.
 - [x] Fresh read-only Production recheck confirmed 57 `is_platform_admin()` policies / 24 tables plus five legacy-helper policies / three tables; registry FORCE RLS remains off, the generic root helper is membership-derived, and all seven catalog RPCs still lack the explicit false anonymous-claim predicate. Evidence: `docs/audits/PASS_2361_2370_PLATFORM_ROOT_LIVE_RECHECK_20261124.md`.
-- [x] Updated the coordinated, timestamp-ordered 83-source Platform Admin/provider-privacy/RPC/Edge release plan, including RC926 and current direct Production read-back; source-only, not Production authorization. Execution gates: `docs/release/PLATFORM_ROOT_COORDINATED_RELEASE_20261124.md`.
+- [x] Updated the coordinated, timestamp-ordered 84-source Platform Admin/provider-privacy/RPC/Edge release plan, including RC926/RC927 and current direct Production read-back; source-only, not Production authorization. Execution gates: `docs/release/PLATFORM_ROOT_COORDINATED_RELEASE_20261124.md`.
 - [ ] Execute no Production change until the plan's backup/restore, physical-effect reconciliation, Edge dependency closure, exact-head CI, deployed-origin positive/negative tests and explicit approval are complete.
 **Live evidence:** 2026-11-25 direct read-back confirms the global helper/registry gap, provider-profile anon base-table SELECT and RC486 price-write race condition remain. See `docs/audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md`.
 
@@ -99,7 +115,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Refreshed all 76 previously tracked physical object contracts against Production on 2026-11-24 (tables, indexes, functions, columns, triggers): 35 present / 41 absent, zero status changes since the 2026-11-20 snapshot. Breakdown is in `docs/audits/PASS_2091_2100_PHYSICAL_OBJECT_REFRESH_20261124.md`.
 - [x] Added a focused live physical-effect sample: 18 relations (13 present / 5 absent), 12 indexes (3 present-valid / 9 absent), 17 columns (2 present / 15 absent), and 15 function families (11 absent / 4 present but contract-blocked). This is a timestamped 81-version pre-RC925 snapshot, not the full 82-version crosswalk. See `docs/audits/PASS_2161_2170_CURRENT_81_MIGRATION_PHYSICAL_EFFECT_RECHECK_20261124.md`.
 - [x] Confirmed three exact source-to-ledger SQL aliases by byte comparison and classified five historic baseline families as partial; no ledger repair or SQL replay occurred. See `docs/audits/PASS_2171_2180_HISTORICAL_MIGRATION_ALIAS_AND_PARTIAL_EFFECT_RECONCILIATION_20261124.md`.
-- [x] The 2026-11-24 historical checkpoint covered 82 versions; the current 2026-11-25 set contains 83 versions after RC926. The updated 83-source crosswalk records each source's live/effect disposition, and the live ledger still has 0/83 exact IDs. See `docs/release/REQUIRED_83_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md`.
+- [x] The 2026-11-24 historical checkpoint covered 82 versions; the current 2026-11-25 set contains 84 versions after RC927. The updated 84-source crosswalk records each source's live/effect disposition, and the live ledger still has 0/84 exact IDs. See `docs/release/REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md`.
 - [ ] Expand beyond the curated 76-object sample into exhaustive per-object physical-effect, exact overload/body, owner, search_path, ACL, RLS/policy, constraint and trigger reconciliation. The migration-level crosswalk is complete; exact ID gaps alone do not prove physical effects absent.
 - [x] Run full chronological forward replay from the captured Production schema checkpoint; exact-head run 45407602805 passed after 117 forward migrations and ordered integration jobs. This is not a live Production restore/deployment.
 - [ ] Never blindly replay the release chain on Production.
