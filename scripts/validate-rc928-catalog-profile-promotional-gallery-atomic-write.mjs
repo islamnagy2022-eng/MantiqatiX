@@ -70,7 +70,7 @@ assert.match(shared, /!url\.username/);
 assert.match(shared, /!url\.password/);
 assert.match(shared, /!url\.port/);
 assert.match(sharedTests, /PROMOTIONAL_IMAGES_LIMIT_EXCEEDED/);
-assert.match(sharedTests, /PROMOTIONAL_IMAGE_URL_INVALID/);
+assert.match(shared, /PROMOTIONAL_IMAGE_URL_INVALID/);
 
 for (const marker of [
   "RC928_ATOMIC_PROFILE_RPC_DID_NOT_SUCCEED",
