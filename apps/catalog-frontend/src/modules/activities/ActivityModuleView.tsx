@@ -73,15 +73,18 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
     return resolveCanonicalSpecialty(business.activitySpecialty || '', category.id) === target ||
       resolveCanonicalSpecialty(categorySuffix, category.id) === target;
   };
-  const normalizedQuery = normalizeDirectorySearch(searchQuery);
-  const matchesSearch = (values: Array<string | null | undefined>) => !normalizedQuery ||
-    normalizeDirectorySearch(values.filter(Boolean).join(' ')).includes(normalizedQuery);
+  const normalizedQueryTokens = normalizeDirectorySearch(searchQuery).split(' ').filter(Boolean);
+  const matchesSearch = (values: Array<string | null | undefined>) => {
+    if (normalizedQueryTokens.length === 0) return true;
+    const haystack = normalizeDirectorySearch(values.filter(Boolean).join(' '));
+    return normalizedQueryTokens.every((token) => haystack.includes(token));
+  };
   const verifiedBusinesses = businesses.filter((business) => business.isVerified &&
     matchesBusinessSpecialty(business) &&
-    matchesSearch([business.name, business.activitySpecialty, business.category, business.village, business.markaz, business.governorate]));
+    matchesSearch([business.name, business.activitySpecialty, business.category, business.bio, business.village, business.markaz, business.governorate]));
   const unverifiedBusinesses = businesses.filter((business) => !business.isVerified &&
     matchesBusinessSpecialty(business) &&
-    matchesSearch([business.name, business.activitySpecialty, business.category, business.village, business.markaz, business.governorate]));
+    matchesSearch([business.name, business.activitySpecialty, business.category, business.bio, business.village, business.markaz, business.governorate]));
   const visibleListings = listings.filter((listing) =>
     (!selectedSpecialty || matchesSpecialty(listing.taxonomy_specialty || listing.specialty || '')) &&
     matchesSearch([listing.display_name, listing.taxonomy_specialty, listing.specialty, listing.village, listing.district, listing.governorate]));
