@@ -14,6 +14,9 @@ on:
       - "supabase/migrations/20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql"
       - "supabase/tests/rc926_provider_profile_confirmed_identity_strict_integration.sql"
       - "scripts/validate-rc926-provider-profile-confirmed-identity-strict-guard.mjs"
+      - "supabase/migrations/20261125120000_rc927_digital_page_authenticated_identity_scope.sql"
+      - "supabase/tests/rc927_digital_page_authenticated_identity_scope_integration.sql"
+      - "scripts/validate-rc927-digital-page-authenticated-identity-scope.mjs"
       - ".github/workflows/rc924-agreement-participant-read-scope.yml"
       - "docs/release/production-migration-reconciliation.json"
       - "supabase/tests/rc922_medical_status_integration.sql"
@@ -137,6 +140,9 @@ on:
       - "supabase/migrations/20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql"
       - "supabase/tests/rc926_provider_profile_confirmed_identity_strict_integration.sql"
       - "scripts/validate-rc926-provider-profile-confirmed-identity-strict-guard.mjs"
+      - "supabase/migrations/20261125120000_rc927_digital_page_authenticated_identity_scope.sql"
+      - "supabase/tests/rc927_digital_page_authenticated_identity_scope_integration.sql"
+      - "scripts/validate-rc927-digital-page-authenticated-identity-scope.mjs"
       - ".github/workflows/rc924-agreement-participant-read-scope.yml"
       - "docs/release/production-migration-reconciliation.json"
       - "supabase/tests/rc922_medical_status_integration.sql"
@@ -242,7 +248,7 @@ jobs:
       - name: Validate RC469 shared caller search_path contract
         run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
 
-      - name: Validate strict Production release gate and exact 83-version contract
+      - name: Validate strict Production release gate and exact 84-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
 
       - name: Validate current backup runbook and release migration scope
@@ -262,13 +268,15 @@ jobs:
       - name: Validate RC485/RC923 catalog RPC registry-root and anonymous-auth contract
         run: node scripts/validate-rc485-catalog-rpc-registry-root.mjs
 
-      - name: Validate RC924 agreement participant and unified 83-version release contract
+      - name: Validate RC924 agreement participant and unified 84-version release contract
         run: node scripts/validate-rc924-agreement-participant-read-scope.mjs
 
       - name: Validate RC925 explicit confirmed-identity catalog RPC guard
         run: node scripts/validate-rc925-catalog-rpc-missing-claim-guard.mjs
       - name: Validate RC926 strict provider-profile confirmed-identity guard
         run: node scripts/validate-rc926-provider-profile-confirmed-identity-strict-guard.mjs
+      - name: Validate RC927 digital-page authenticated identity boundary
+        run: node scripts/validate-rc927-digital-page-authenticated-identity-scope.mjs
 
       - name: Validate RC486 catalog price version serialization contract
         run: node scripts/validate-rc486-catalog-price-version-serialization.mjs
@@ -385,6 +393,9 @@ jobs:
 
           echo "RC926_PROVIDER_PROFILE_CONFIRMED_IDENTITY_STRICT_INTEGRATION"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc926_provider_profile_confirmed_identity_strict_integration.sql
+
+          echo "RC927_DIGITAL_PAGE_AUTHENTICATED_IDENTITY_SCOPE_INTEGRATION"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc927_digital_page_authenticated_identity_scope_integration.sql
 
           echo "RC486_CATALOG_PRICE_VERSION_SERIALIZATION_INTEGRATION"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc486_catalog_price_version_serialization_integration.sql
