@@ -60,7 +60,7 @@ export function matchesDirectoryBusinessFilters(business, provider, filters) {
       provider?.provider_kind, provider?.name_ar, provider?.name_en,
     ],
     specialty: [settings.activity_specialty, profile.activity_specialty, profile.specialty,
-      ...(Array.isArray(provider?.specialties) ? provider.specialties : [])],
+    ],
     governorate: [profile.governorate],
     markaz: [profile.markaz],
     village: [profile.village],
