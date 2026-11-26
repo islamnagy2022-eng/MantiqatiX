@@ -5,6 +5,12 @@ on:
     paths:
       - "supabase/functions/_shared/public-contact-visibility.mjs"
       - "supabase/functions/_shared/public-contact-visibility.test.mjs"
+      - "supabase/functions/_shared/public-directory-pagination.mjs"
+      - "supabase/functions/_shared/public-directory-pagination.test.mjs"
+      - "scripts/validate-public-directory-pagination.mjs"
+      - "supabase/functions/_shared/public-directory-pagination.mjs"
+      - "supabase/functions/_shared/public-directory-pagination.test.mjs"
+      - "scripts/validate-public-directory-pagination.mjs"
       - "supabase/functions/public-catalog/index.ts"
       - "supabase/functions/public-catalog-directory/index.ts"
       - "supabase/functions/catalog-admin/index.ts"
@@ -53,5 +59,9 @@ jobs:
         run: node --test supabase/functions/_shared/public-contact-visibility.test.mjs
       - name: Validate public contact source contract
         run: node scripts/validate-public-contact-visibility.mjs
+      - name: Test signed public directory cursor
+        run: node --test supabase/functions/_shared/public-directory-pagination.test.mjs
+      - name: Validate public directory keyset pagination
+        run: node scripts/validate-public-directory-pagination.mjs
       - name: Type-check affected public Supabase Edge Functions
         run: deno check --node-modules-dir=auto supabase/functions/public-catalog-directory/index.ts supabase/functions/public-catalog/index.ts supabase/functions/catalog-admin/index.ts
