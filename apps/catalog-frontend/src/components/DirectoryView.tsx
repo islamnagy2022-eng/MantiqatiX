@@ -713,6 +713,8 @@ export const DirectoryView: React.FC = () => {
     return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
   };
   const activeDirectorySearchQuery = activityModuleId ? activityListingSearchQuery : searchQuery;
+  const activeDirectorySpecialty = activityModuleId ? activityListingSpecialty : selectedSpecialty;
+  const activeDirectoryCategoryId = activityModuleId ? 'all' : selectedCategoryId;
   const queryTokens = normalizeSearch(activeDirectorySearchQuery).split(' ').filter(Boolean);
   // Rank only configured image URLs; placeholders do not count as real assets.
   const hasConfiguredImage = (value: unknown) => {
@@ -740,12 +742,12 @@ export const DirectoryView: React.FC = () => {
     ].join(' '));
     const matchesSearch = queryTokens.every((token) => haystack.includes(token));
     const matchedCategory = categoryForBusiness(biz);
-    const matchesCategory = selectedCategoryId === 'all' ||
-      Boolean(matchedCategory && selectedActivityCategory && matchedCategory.id === selectedActivityCategory.id);
+    const matchesCategory = activeDirectoryCategoryId === 'all' ||
+      Boolean(matchedCategory && (activityModuleId ? matchedCategory.id === activityModuleId : selectedActivityCategory && matchedCategory.id === selectedActivityCategory.id));
     const storedSpecialty = String(biz.activitySpecialty || '');
     const categorySuffix = matchedCategory ? biz.category.slice(matchedCategory.name.length).replace(/^\s*—\s*/, '') : '';
-    const requestedSpecialty = resolveCanonicalSpecialty(selectedSpecialty, matchedCategory?.id);
-    const matchesSpecialty = selectedSpecialty === 'all' ||
+    const requestedSpecialty = resolveCanonicalSpecialty(activeDirectorySpecialty, matchedCategory?.id);
+    const matchesSpecialty = activeDirectorySpecialty === 'all' ||
       resolveCanonicalSpecialty(storedSpecialty, matchedCategory?.id) === requestedSpecialty ||
       resolveCanonicalSpecialty(categorySuffix, matchedCategory?.id) === requestedSpecialty;
     const matchesGov = selectedGovFilter === 'all' || normalizeAdministrativeName(biz.governorate) === normalizeAdministrativeName(selectedGovFilter);
