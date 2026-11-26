@@ -291,8 +291,8 @@ Deno.serve(async (req: Request) => {
       scanRounds += 1;
       if (rows.length < scanBatchSize) exhausted = true;
 
-      const directoryBusinesses = rows.filter((business: any) =>
-        business.settings?.catalog_public_enabled === true || isOfficialShowcase(business)
+      const directoryBusinesses = rows.filter((b: any) =>
+        b.settings?.catalog_public_enabled === true || isOfficialShowcase(b)
       );
       if (!directoryBusinesses.length) continue;
 
