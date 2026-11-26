@@ -1,3 +1,14 @@
+## 2026-11-26 — Production catalog Edge source parity recheck (read-only)
+
+- [x] Confirmed Production project `moyhiluyhjsujhwlyeuu` is ACTIVE_HEALTHY on PostgreSQL 17.6.1.155.
+- [x] Read migration inventory: 310 rows through `20261110150618`; RC928, RC117 forward repair and RC929 are absent.
+- [x] Read-only SQL confirmed the RC928 atomic profile RPC is absent; the canonical base profile RPC and platform-admin registry helper/table are present; RC929 confirmed-Auth policies are absent on orders and order history.
+- [x] Compared live Edge function source to current main. `catalog-admin` v20 (691 live lines vs 777 source) is missing the RC928 atomic gallery/profile metadata path, registry-backed platform-root check, RC486 fail-closed price-write guard and durable contact-consent audit path. `catalog-platform-admin` v23 (975 vs 1,033 lines) also lacks the registry-backed helper call.
+- [x] `public-catalog` v11 and `public-catalog-directory` v20 match current main after normalizing only deployment packaging import paths.
+- No Production migration, SQL mutation, Edge deployment, Auth, RLS/GRANT, payment, wallet, settlement or customer-data write was performed. Admin Edge functions remain blocked from individual deployment pending coordinated DB + Edge release evidence.
+
+---
+
 ## 2026-11-26 — PR #1142 merge, Pages deployment and activity-share browser proof
 
 - [x] Fixed the share-dialog browser test to open `?view=directory` and locate the share control inside the activity list; the prior failure was caused by testing the home route where that control is not rendered.
