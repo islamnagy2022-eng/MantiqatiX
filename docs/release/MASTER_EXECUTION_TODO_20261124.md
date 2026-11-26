@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-26 — PR #1145 live Edge parity audit and PR #1146 RC484 PostgreSQL 17 behavioral workflow merged; activity-share accessibility deployed; RC929 remains the 87th source-only migration candidate  
-**Base:** `main @ 8b5f8b003ccec5e30c8a72942a6da06b1f418a24`  
+**Updated:** 2026-11-26 — PR #1145 live Edge parity audit, PR #1146 RC484 PostgreSQL 17 behavioral workflow and PR #1147 platform-root preflight documentation merged; activity-share accessibility deployed; RC929 remains the 87th source-only migration candidate  
+**Base:** `main @ fd2cc9d49507d5ee4db874d4d29a4e9a9a15a149`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
