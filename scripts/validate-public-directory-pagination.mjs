@@ -19,6 +19,16 @@ assert.match(edge, /\.gt\("id", scanAfterId\)/);
 assert.match(edge, /\.lte\("created_at", snapshotAt\)/);
 assert.match(edge, /\.limit\(scanBatchSize\)/);
 assert.match(edge, /matchesDirectoryBusinessFilters\(business, provider, filters\)/);
+assert.match(edge, /matchesDirectoryVerificationPhase\(provider, phase\)/,
+  "The server must partition verified and unverified activities before pagination.");
+assert.match(edge, /if \(phase === "verified" && exhausted && results.length < PUBLIC_DIRECTORY_PAGE_SIZE \+ 1\)/,
+  "The unverified phase must start only after verified activities are exhausted.");
+assert.match(edge, /lookaheadPhase: results\[PUBLIC_DIRECTORY_PAGE_SIZE\]\.phase/,
+  "The next cursor must account for the phase of the look-ahead result.");
+assert.match(helper, /export function matchesDirectoryVerificationPhase/);
+assert.match(helper, /export function getNextDirectoryCursorPosition/);
+assert.match(helper, /lastPhase === "verified" && lookaheadPhase === "unverified"/,
+  "The cursor must start unverified results from the beginning when the page ends with verified records.");
 assert.match(edge, /\.select\(["\']business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured["\']\)/, "Directory must use the approved public provider field allowlist");
 assert.doesNotMatch(edge, /\.select\(["\'][^"\']*specialties[^"\']*["\']\)/, "Directory must not expand the approved provider field projection with unapproved specialties");
 assert.match(edge, /itemQuery\(\)\.is\("branch_id", null\)/, "Global catalog items must use a parameterized null-branch filter");
