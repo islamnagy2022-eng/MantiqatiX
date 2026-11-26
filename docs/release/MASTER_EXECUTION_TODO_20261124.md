@@ -36,11 +36,12 @@
 **Current disposition:** Source/CI repair merged; Production migrations not applied; no Production data or Edge deployment changed. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 
 ## P1 — Catalog URL case-insensitive routing (user-requested)
-- [ ] Verify the public catalog and activity deep links open when alphabetic characters in the path use different uppercase/lowercase combinations; preserve query strings and hashes.
-- [ ] Confirm behavior for the project base path and nested activity routes; add regression checks for valid routes, unknown routes, and redirect loops.
-- [ ] Verify the 404 fallback is included in the built Pages artifact, then confirm the exact deployed origin after the Pages workflow succeeds. Do not mark complete based on a source commit alone.
-- [x] Added a Node regression test for mixed-case base paths, nested path normalization, query/hash preservation and fallback behavior: `scripts/test-pages-case-redirect.mjs`; wired it into the Pages build and required `dist/404.html` to exist.
-- [ ] Current implementation is source-only: `apps/catalog-frontend/public/404.html`; test/build results and Pages deployment remain NOT VERIFIED (latest commit `dc31106ee0268f7c0663f0d7604706ad51798285`; no status checks returned).
+
+- [x] Added a Node regression test for mixed-case nested paths, query/hash preservation and fallback behavior: `scripts/test-pages-case-redirect.mjs`; wired it into the Pages build and required `dist/404.html` to exist.
+- [x] Verified the exact deployed GitHub Pages origin after the 2026-11-26 deployment. `PAGES_DEPLOYED_CASE_REDIRECT=PASS checks=3`: mixed-case nested path fallback, unknown nested path fallback, and canonical root without redirect loop. Both activity/store query parameters and the hash survived the redirect.
+- [x] Confirmed the fallback is included in the deployed Pages artifact; main Pages deployment run `45865039338` completed SUCCESS.
+- [ ] GitHub Pages resolves the repository base path case-sensitively before serving `404.html`; therefore the repository base path must retain canonical casing `/MantiqatiX/`. Full case-insensitivity of the repository-name segment is a hosting-platform limitation, not something the nested-path fallback can repair. A custom-domain redirect front door would be needed if base-segment case-insensitivity is mandatory.
+
 
 ## 2026-11-25 — Backup and restore capability recheck
 
