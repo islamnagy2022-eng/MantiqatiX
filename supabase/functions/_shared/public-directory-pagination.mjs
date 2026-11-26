@@ -66,12 +66,12 @@ export function matchesDirectoryBusinessFilters(business, provider, filters) {
     village: [profile.village],
     // Search is intentionally restricted to public profile/category text. Never probe
     // phone, WhatsApp, precise address, or other consent-gated contact values.
+    // Every search field below is part of the actual public Business projection.
+    // Hidden operational codes and unprojected profile metadata are deliberately omitted.
     query: [
-      business?.name, business?.code, settings.category, settings.activity_specialty,
-      profile.headline, profile.description, profile.bio, profile.category,
+      business?.name, settings.activity_specialty, profile.bio, profile.activity_specialty,
       profile.governorate, profile.markaz, profile.village,
       provider?.name_ar, provider?.name_en, provider?.description, provider?.provider_kind,
-      ...(Array.isArray(provider?.specialties) ? provider.specialties : []),
     ],
   };
   return FILTER_KEYS.every((key) => {
