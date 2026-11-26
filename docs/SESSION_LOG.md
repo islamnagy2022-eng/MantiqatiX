@@ -1,3 +1,12 @@
+## 2026-11-26 — RC117 image-provenance direct Production prerequisite read-back (read-only)
+
+- [x] Confirmed `public.marketing_services` exists, but `image_url` and `image_source` columns are absent.
+- [x] Confirmed `public.mnty_default_image_url(text,text,text,text)` is absent and all three expected default-image triggers are absent.
+- RC117 forward repair `20261126020000` cannot have taken effect without these prerequisites; it must follow the original RC117 schema/function migration in the full chronological chain.
+- This closes the last missing source-to-live read-back item: 87/87 required migrations now have explicit PASS/PARTIAL/BLOCKED dispositions. Exact live migration identity remains 0/87; no Production mutation was performed.
+
+---
+
 ## 2026-11-26 — RC464/RC469/RC484 Production preflight recheck (read-only)
 
 - [x] RC464: registry RLS ON; registry owner and canonical guard owner both postgres/BYPASSRLS; anon/authenticated direct registry CRUD denied; four expected MantiGO global SECURITY DEFINER RPCs and four additional shared guard callers present; required three policy predicates match.
