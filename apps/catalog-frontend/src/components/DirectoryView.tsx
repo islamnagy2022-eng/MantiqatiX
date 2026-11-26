@@ -1,6 +1,6 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Business } from '../types';
+import { Business, Product } from '../types';
 import { ActivityShareDialog } from './ActivityShareDialog';
 import {
   Store,
@@ -45,6 +45,7 @@ const DirectorySubViewFallback = () => (
   </div>
 );
 import { fetchPublicDirectoryListingPage, type PublicDirectoryListing, type PublicDirectoryListingFilters } from '../lib/directoryListings';
+import { fetchPublicDirectoryPage, type PublicDirectoryPageFilters } from '../lib/production';
 import { resolveCanonicalSpecialty } from '../data/productionDefaults';
 import { EGYPT_GEO_DISTRICTS, EGYPT_GEO_GOVERNORATES, loadEgyptDistrictShiyakhas, resolveEgyptAdministrativeLocation, type EgyptGeoShiyakha } from '../data/egyptGeoDiscovery';
 
@@ -164,7 +165,21 @@ export const DirectoryView: React.FC = () => {
     adminSettings,
     products,
   } = useApp();
-  const businesses = directoryBusinesses;
+  const [scopedDirectoryBusinesses, setScopedDirectoryBusinesses] = useState<Business[] | null>(null);
+  const [scopedDirectoryProducts, setScopedDirectoryProducts] = useState<Product[]>([]);
+  const [scopedDirectoryHasMore, setScopedDirectoryHasMore] = useState(false);
+  const [scopedDirectoryLoading, setScopedDirectoryLoading] = useState(false);
+  const [scopedDirectoryLoadingMore, setScopedDirectoryLoadingMore] = useState(false);
+  const [scopedDirectoryError, setScopedDirectoryError] = useState('');
+  const scopedDirectoryCursorRef = useRef<string | null>(null);
+  const scopedDirectoryGenerationRef = useRef(0);
+  const scopedDirectoryFiltersRef = useRef<PublicDirectoryPageFilters>({});
+  const businesses = scopedDirectoryBusinesses ?? directoryBusinesses;
+  const directoryProductsForView = scopedDirectoryBusinesses !== null ? scopedDirectoryProducts : products;
+  const directoryLoadingForView = scopedDirectoryBusinesses !== null ? scopedDirectoryLoading : directoryLoading;
+  const directoryHasMoreForView = scopedDirectoryBusinesses !== null ? scopedDirectoryHasMore : directoryHasMore;
+  const directoryLoadingMoreForView = scopedDirectoryBusinesses !== null ? scopedDirectoryLoadingMore : directoryLoadingMore;
+  const directoryLoadMoreErrorForView = scopedDirectoryBusinesses !== null ? scopedDirectoryError : directoryLoadMoreError;
   const [initialGeoPreference] = useState<StoredGeoPreference | null>(() => readStoredGeoPreference());
   const [geoSetupCompleted, setGeoSetupCompleted] = useState(Boolean(initialGeoPreference?.completed));
   const [geoPreferenceMode, setGeoPreferenceMode] = useState<'auto' | 'manual'>(initialGeoPreference?.mode || 'manual');
