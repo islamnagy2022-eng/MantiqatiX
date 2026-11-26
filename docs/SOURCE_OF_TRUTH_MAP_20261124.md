@@ -1,5 +1,5 @@
 # MantiqatiX — Unified Source of Truth Map
-**Checkpoint:** 2026-11-25 — main `17329ba27effad52a316ad0aa94ef1a93ab975a7`; PRs #1097, #1102, #1104, #1105 and #1106 merged source/evidence only. Exact-head 83-version RC926 replay passed; current release candidate now tracks 84 versions and RC927 awaits exact-head PostgreSQL 17 replay. Production remains BLOCKED / NOT CERTIFIED.  
+**Checkpoint:** 2026-11-26 — main `ffd91df42c0cc70bfce692cc79045132cff5c383`; RC927 merged source-only after 17/17 exact-head checks; current candidate source manifest now tracks 85 versions with RC928 as source-only and not applied. Production remains BLOCKED / NOT CERTIFIED.  
 **Operating directive:** [MASTER_SOURCE_OF_TRUTH.md](./MASTER_SOURCE_OF_TRUTH.md)  
 **Canonical repository:** `islamnagy2022-eng/MantiqatiX`  
 **Production Supabase:** `MANTIQATIX FINAL` / `moyhiluyhjsujhwlyeuu`
@@ -66,6 +66,14 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - Current-main Pass 2321–2330 — Qadam + RC479–RC483 [report](./audits/PASS_2321_2330_QADAM_RC479_RC483_LIVE_EFFECT_RECHECK_20261124.md): seed idempotency evidence, public provider/page reads, Legal registry and atomic CMS grants.
 - RC485–RC496 catalog, SMM bootstrap, confirmed-session, Storage, settlement and MantiGO bid state [PASS 2271–2280](./audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md): catalog registry/price serialization absent; first-user SMM bootstrap still live; restrictive Auth guards absent; settlement remains membership-derived; accepted-bid uniqueness/OFFERED gate incomplete.
 - RC921–RC925 medical, agreement and catalog identity [PASS 2281–2290](./audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md): medical provider state is legacy; agreement participant correlation and confirmed-session boundary are wrong; seven catalog RPCs still lack the fail-closed RC925 body.
+
+## Current 85-migration source contract — 2026-11-26
+
+- [85-source crosswalk](./release/REQUIRED_85_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261126.md): 85 required migration sources are inventoried with explicit source/live disposition. This is not an all-pass Production release.
+- RC927 is merged source-only at `ffd91df42c0cc70bfce692cc79045132cff5c383`; exact-head 85-source strict gate and chronological PostgreSQL 17 replay passed. The disposable replay applied 123 later migrations in timestamp order and passed the RC927 adversarial identity tests.
+- RC928 `20261126010000` adds atomic owner-scoped promotional-gallery/profile metadata persistence. It is source-only, not yet merged, and remains absent from the Production migration ledger.
+- Read-only Production ledger remains 310 rows through `20261110150618`, with 0/85 exact required identifiers. This is an identity gap, not proof every physical SQL effect is absent.
+- No DB, Auth, RLS/GRANT, Storage, Edge, payment, wallet, settlement or customer-data change was made as part of these source/CI updates. Backup/restore, physical-effect reconciliation and coordinated release remain mandatory.
 
 ## Current 84-migration read-back — 2026-11-25
 - [84-source crosswalk](./release/REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md): 84/84 required migration sources have current live/effect read-back and an explicit PASS/PARTIAL/BLOCKED disposition. The 82-source file remains a historical 2026-11-24 snapshot; this is not an all-pass release.
