@@ -139,7 +139,7 @@ BEGIN
       IF v_authority IS NULL
          OR v_authority !~ '^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$'
          OR v_authority ~ '\.\.'
-         OR v_authority ~ '\.-|\.-'
+         OR v_authority ~ '\.-|-\.'
          OR v_authority ~ '^[0-9.]+$'
          OR pg_catalog.lower(v_authority) = 'localhost'
          OR pg_catalog.lower(v_authority) LIKE '%.localhost'
