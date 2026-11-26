@@ -120,6 +120,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] PR #1123 exact-head CI passed, including the Primary Catalog build/RBAC/browser suite (run `45741231838`) and the full chronological migration replay (run `45741232181`). The PR's merge gate also required owner-profile PostgreSQL integration and the RC928 gallery cases. This is disposable CI evidence only; no Production migration or Edge deployment occurred.
 - [ ] Deployed behavior remains unavailable until the coordinated three-Edge release (catalog-admin, public-catalog, public-catalog-directory) and DB release gates pass with the verified backup/restore rehearsal.
 - [x] Increased the source-only release manifest to 85 required migration IDs; RC928 is explicitly marked missing from the live ledger, not applied.
+- [x] Fresh read-only Production read-back (2026-11-26): project `ACTIVE_HEALTHY`, PostgreSQL `17.6.1.155`; live migration ledger remains 310 rows through `20261110150618`, and RC928 (`20261125120000`) is absent. Deployed Edge versions are `catalog-admin` v20 (`7732207160cf`), `public-catalog` v9 (`e12cb7794c40`), and `public-catalog-directory` v19 (`9eec1b65e5f8`). Retrieved deployed source for all three does not contain the `promotional_images` projection or `upsert_catalog_business_profile_atomic_backend` contract. No Production mutation performed.
 
 ## P1 — Database and backend contracts
 ### P1.1 Migration reconciliation
