@@ -338,3 +338,4 @@ jobs:
           done
           if [ "$ready" != true ]; then cat /tmp/catalog-preview.log; exit 1; fi
           PLAYWRIGHT_MODULE=/tmp/playwright-runner/node_modules/playwright/index.mjs node tests/professional-dashboard.browser.e2e.mjs
+          PLAYWRIGHT_MODULE=/tmp/playwright-runner/node_modules/playwright/index.mjs node tests/activity-share-dialog.browser.e2e.mjs
