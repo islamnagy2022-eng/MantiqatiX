@@ -6,9 +6,11 @@ import { getExplicitPublicContact } from "../_shared/public-contact-visibility.m
 import { sanitizePublicPromotionalImages } from "../_shared/promotional-images.mjs";
 import {
   PUBLIC_DIRECTORY_PAGE_SIZE,
+  getNextDirectoryCursorPosition,
   hashDirectoryScope,
   issueDirectoryCursor,
   matchesDirectoryAreaFilter,
+  matchesDirectoryVerificationPhase,
   matchesDirectoryBusinessFilters,
   normalizeDirectoryFilters,
   parseDirectorySlugs,
@@ -130,14 +132,22 @@ Deno.serve(async (req: Request) => {
       return response(origin, { error: "PAGE_SIZE_NOT_SUPPORTED", pageSize: PUBLIC_DIRECTORY_PAGE_SIZE }, 400);
     }
     const scopeHash = await hashDirectoryScope(filters, parsedSlugs.slugs);
-    let cursorState: { ok: true; lastId: string; snapshotAt: string } | null = null;
+    let cursorState: { ok: true; phase: "verified" | "unverified"; lastId: string | null; snapshotAt: string } | null = null;
     const rawCursor = requestUrl.searchParams.get("cursor");
     if (rawCursor) {
       const verified = await verifyDirectoryCursor(rawCursor, { scopeHash, secret: serviceKey });
-      if (!verified.ok || typeof verified.lastId !== "string" || typeof verified.snapshotAt !== "string") {
+      if (!verified.ok || (verified.phase !== "verified" && verified.phase !== "unverified") ||
+          (verified.phase === "verified" && typeof verified.lastId !== "string") ||
+          (verified.phase === "unverified" && verified.lastId !== null && typeof verified.lastId !== "string") ||
+          typeof verified.snapshotAt !== "string") {
         return response(origin, { error: "INVALID_CURSOR" }, 400);
       }
-      cursorState = { ok: true, lastId: verified.lastId, snapshotAt: verified.snapshotAt };
+      cursorState = {
+        ok: true,
+        phase: verified.phase,
+        lastId: verified.lastId,
+        snapshotAt: verified.snapshotAt,
+      };
     }
     const snapshotAt = cursorState?.snapshotAt || new Date().toISOString();
 
@@ -286,70 +296,99 @@ Deno.serve(async (req: Request) => {
       };
     };
 
-    // Scan stable UUID batches until a full page plus one look-ahead record is found.
-    // The cursor is anchored to the last returned record so the look-ahead is not skipped.
-    while (results.length < PUBLIC_DIRECTORY_PAGE_SIZE + 1 && !exhausted && scanRounds < maxScanRounds) {
-      let businessQuery = db.from("businesses")
-        .select("id,tenant_id,organization_id,name,code,status,settings,created_at")
-        .in("tenant_id", productionTenantIds)
-        .eq("status", "ACTIVE")
-        .lte("created_at", snapshotAt)
-        .order("id", { ascending: true })
-        .limit(scanBatchSize);
-      if (scanAfterId) businessQuery = businessQuery.gt("id", scanAfterId);
-      const { data: businessRows, error: businessError } = await businessQuery;
-      if (businessError) throw businessError;
-      const rows = businessRows || [];
-      if (!rows.length) { exhausted = true; break; }
-      scanAfterId = String(rows[rows.length - 1].id || "");
-      scanRounds += 1;
-      if (rows.length < scanBatchSize) exhausted = true;
+    // Keep the established verified-first ranking across page boundaries.
+    // The verified phase is exhausted before the unverified phase begins.
+    const providerMap = new Map<string, any>();
+    const results: Array<{ business: any; phase: "verified" | "unverified" }> = [];
+    const scanBatchSize = 100;
+    const maxScanRounds = 50;
+    let phase: "verified" | "unverified" = cursorState?.phase || "verified";
+    let scanAfterId = cursorState?.lastId ?? null;
+    let scanRounds = 0;
+    let exhausted = false;
+    const scanCurrentPhase = async () => {
+      while (results.length < PUBLIC_DIRECTORY_PAGE_SIZE + 1 && !exhausted && scanRounds < maxScanRounds) {
+        let businessQuery = db.from("businesses")
+          .select("id,tenant_id,organization_id,name,code,status,settings,created_at")
+          .in("tenant_id", productionTenantIds)
+          .eq("status", "ACTIVE")
+          .lte("created_at", snapshotAt)
+          .order("id", { ascending: true })
+          .limit(scanBatchSize);
+        if (scanAfterId) businessQuery = businessQuery.gt("id", scanAfterId);
+        const { data: businessRows, error: businessError } = await businessQuery;
+        if (businessError) throw businessError;
+        const rows = businessRows || [];
+        if (!rows.length) { exhausted = true; break; }
+        scanAfterId = String(rows[rows.length - 1].id || "");
+        scanRounds += 1;
+        if (rows.length < scanBatchSize) exhausted = true;
 
-      const directoryBusinesses = rows.filter((b: any) =>
-        b.settings?.catalog_public_enabled === true || isOfficialShowcase(b)
-      );
-      if (!directoryBusinesses.length) continue;
+        const directoryBusinesses = rows.filter((b: any) =>
+          b.settings?.catalog_public_enabled === true || isOfficialShowcase(b)
+        );
+        if (!directoryBusinesses.length) continue;
 
-      const businessIds = directoryBusinesses.map((business: any) => business.id);
-      const { data: providers, error: providerError } = await db.from("marketing_provider_profiles")
-        .select("business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured")
-        .in("business_id", businessIds).eq("status", "ACTIVE").limit(250);
-      if (providerError) throw providerError;
-      providerMap.clear();
-      for (const provider of providers || []) providerMap.set(String(provider.business_id), provider);
+        const businessIds = directoryBusinesses.map((business: any) => business.id);
+        const { data: providers, error: providerError } = await db.from("marketing_provider_profiles")
+          .select("business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured")
+          .in("business_id", businessIds).eq("status", "ACTIVE").limit(250);
+        if (providerError) throw providerError;
+        providerMap.clear();
+        for (const provider of providers || []) providerMap.set(String(provider.business_id), provider);
 
-      const matchingBusinesses = directoryBusinesses.filter((business: any) => {
-        const provider: any = providerMap.get(String(business.id));
-        return Boolean(provider) &&
-          (requestedSlugs.size === 0 || requestedSlugs.has(String(provider?.slug || "").trim())) &&
-          matchesDirectoryBusinessFilters(business, provider, filters);
-      });
+        const matchingBusinesses = directoryBusinesses.filter((business: any) => {
+          const provider: any = providerMap.get(String(business.id));
+          return Boolean(provider) &&
+            matchesDirectoryVerificationPhase(provider, phase) &&
+            (requestedSlugs.size === 0 || requestedSlugs.has(String(provider?.slug || "").trim())) &&
+            matchesDirectoryBusinessFilters(business, provider, filters);
+        });
 
-      // Keep DB ordering while limiting concurrent branch/catalog reads.
-      for (let offset = 0; offset < matchingBusinesses.length && results.length < PUBLIC_DIRECTORY_PAGE_SIZE + 1; offset += 8) {
-        const batch = matchingBusinesses.slice(offset, offset + 8);
-        const built = await Promise.all(batch.map((business: any) => buildPublicBusiness(business)));
-        for (const business of built) {
-          if (!business) continue;
-          results.push(business);
-          if (results.length >= PUBLIC_DIRECTORY_PAGE_SIZE + 1) break;
+        // Keep DB ordering within each verified/unverified phase while limiting
+        // concurrent branch/catalog reads.
+        for (let offset = 0; offset < matchingBusinesses.length && results.length < PUBLIC_DIRECTORY_PAGE_SIZE + 1; offset += 8) {
+          const batch = matchingBusinesses.slice(offset, offset + 8);
+          const built = await Promise.all(batch.map((business: any) => buildPublicBusiness(business)));
+          for (const business of built) {
+            if (!business) continue;
+            results.push({ business, phase });
+            if (results.length >= PUBLIC_DIRECTORY_PAGE_SIZE + 1) break;
+          }
         }
       }
+    };
+
+    await scanCurrentPhase();
+    if (phase === "verified" && exhausted && results.length < PUBLIC_DIRECTORY_PAGE_SIZE + 1) {
+      phase = "unverified";
+      scanAfterId = null;
+      scanRounds = 0;
+      exhausted = false;
+      await scanCurrentPhase();
     }
 
     if (!exhausted && results.length <= PUBLIC_DIRECTORY_PAGE_SIZE && scanRounds >= maxScanRounds) {
       return response(origin, { error: "DIRECTORY_SCAN_LIMIT_EXCEEDED", retryable: true }, 503);
     }
     const hasMore = results.length > PUBLIC_DIRECTORY_PAGE_SIZE;
-    const pageBusinesses = results.slice(0, PUBLIC_DIRECTORY_PAGE_SIZE);
-    const nextCursor = hasMore && pageBusinesses.length
-      ? await issueDirectoryCursor({
-          lastId: String(pageBusinesses[pageBusinesses.length - 1].id),
-          snapshotAt,
-          scopeHash,
-          secret: serviceKey,
-        })
-      : null;
+    const pageEntries = results.slice(0, PUBLIC_DIRECTORY_PAGE_SIZE);
+    const pageBusinesses = pageEntries.map((entry) => entry.business);
+    let nextCursor: string | null = null;
+    if (hasMore && pageEntries.length) {
+      const lastEntry = pageEntries[pageEntries.length - 1];
+      const nextPosition = getNextDirectoryCursorPosition({
+        lastId: String(lastEntry.business.id),
+        lastPhase: lastEntry.phase,
+        lookaheadPhase: results[PUBLIC_DIRECTORY_PAGE_SIZE].phase,
+      });
+      nextCursor = await issueDirectoryCursor({
+        ...nextPosition,
+        snapshotAt,
+        scopeHash,
+        secret: serviceKey,
+      });
+    }
     return response(origin, {
       businesses: pageBusinesses,
       activityModuleOverrides,
