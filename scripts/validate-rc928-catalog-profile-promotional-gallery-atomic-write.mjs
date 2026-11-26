@@ -47,6 +47,8 @@ assert.ok(edgeStart >= 0 && edgeEnd > edgeStart, "catalog-admin profile write ac
 const profileAction = edge.slice(edgeStart, edgeEnd);
 assert.ok(profileAction.includes('userClient.rpc("upsert_catalog_business_profile_atomic_backend"'),
   "catalog-admin must call the atomic database RPC");
+assert.ok(profileAction.includes("submittedProfileMetadata[columnKey] = normalizedUrl || null"),
+  "cleared social links must be represented as JSON null, not rejected empty strings");
 assert.ok(profileAction.includes("p_profile_metadata: submittedProfileMetadata"),
   "the metadata patch must be submitted in the same RPC transaction as canonical profile writes");
 assert.ok(profileAction.includes("validatePromotionalImages(body.promotionalImages)"),
