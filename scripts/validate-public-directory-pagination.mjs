@@ -50,6 +50,9 @@ assert.ok(
     edge.indexOf('db.from("catalog_items")'),
   "Area filtering must happen before loading catalog items and prices for non-matching activities."
 );
+assert.match(helper, /export function mergePublicDirectoryCatalogItems\(/);
+assert.match(edge, /mergePublicDirectoryCatalogItems\(/,
+  "Global and branch catalog rows must be merged and sorted together before the 150-item cap.");
 assert.match(helper, /export function matchesDirectoryAreaFilter\(publicAddress, area\)/);
 assert.match(client, /'village', 'area', 'query'/);
 assert.match(edge, /\.select\(["']id,name,code,status,address,phone["']\)/, "Branch contact columns may be read only as inputs to the explicit-consent projection");
