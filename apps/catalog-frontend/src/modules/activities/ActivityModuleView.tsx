@@ -22,6 +22,10 @@ interface Props {
   hasMoreListings: boolean;
   loadingMoreListings: boolean;
   listingsLoading: boolean;
+  onLoadMoreBusinesses: () => void;
+  hasMoreBusinesses: boolean;
+  loadingMoreBusinesses: boolean;
+  businessesLoadError: string;
   parentGroupName?: string;
 }
 
@@ -36,7 +40,7 @@ const Metric: React.FC<{ label: string; value: number; color: string }> = ({ lab
   <article className={`rounded-2xl border p-4 ${color}`}><p className="text-xs font-bold">{label}</p><p className="mt-2 text-2xl font-black">{value.toLocaleString('ar-EG')}</p></article>
 );
 
-export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, unconfirmedCount, onBack, businesses, listings, onOpenListing, onOpenBusiness, onDirectoryListingFiltersChange, onLoadMoreListings, hasMoreListings, loadingMoreListings, listingsLoading, parentGroupName }) => {
+export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, unconfirmedCount, onBack, businesses, listings, onOpenListing, onOpenBusiness, onDirectoryListingFiltersChange, onLoadMoreListings, hasMoreListings, loadingMoreListings, listingsLoading, onLoadMoreBusinesses, hasMoreBusinesses, loadingMoreBusinesses, businessesLoadError, parentGroupName }) => {
   const [activeSection, setActiveSection] = useState<Section>('specialties');
   const specialtyFromUrl = new URLSearchParams(window.location.search).get('specialty');
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(specialtyFromUrl);
@@ -74,17 +78,17 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
     normalizeDirectorySearch(values.filter(Boolean).join(' ')).includes(normalizedQuery);
   const verifiedBusinesses = businesses.filter((business) => business.isVerified &&
     matchesBusinessSpecialty(business) &&
-    matchesSearch([business.name, business.activitySpecialty, business.category, business.phone, business.ownerWhatsApp, business.village, business.markaz, business.governorate]));
+    matchesSearch([business.name, business.activitySpecialty, business.category, business.village, business.markaz, business.governorate]));
   const unverifiedBusinesses = businesses.filter((business) => !business.isVerified &&
     matchesBusinessSpecialty(business) &&
-    matchesSearch([business.name, business.activitySpecialty, business.category, business.phone, business.ownerWhatsApp, business.village, business.markaz, business.governorate]));
+    matchesSearch([business.name, business.activitySpecialty, business.category, business.village, business.markaz, business.governorate]));
   const visibleListings = listings.filter((listing) =>
     (!selectedSpecialty || matchesSpecialty(listing.taxonomy_specialty || listing.specialty || '')) &&
-    matchesSearch([listing.display_name, listing.taxonomy_specialty, listing.specialty, listing.phone, listing.secondary_phone, listing.village, listing.district, listing.governorate]));
+    matchesSearch([listing.display_name, listing.taxonomy_specialty, listing.specialty, listing.village, listing.district, listing.governorate]));
     const allVisibleBusinesses = [...verifiedBusinesses, ...unverifiedBusinesses];
   const visibleBusinesses = allVisibleBusinesses.slice(0, visibleActivityCount);
   const renderedListings = visibleListings.slice(0, Math.max(0, visibleActivityCount - visibleBusinesses.length));
-  const hasMoreActivityResults = allVisibleBusinesses.length + visibleListings.length > visibleActivityCount || hasMoreListings;
+  const hasMoreActivityResults = allVisibleBusinesses.length + visibleListings.length > visibleActivityCount || hasMoreListings || hasMoreBusinesses;
   const countForSpecialty = (specialty: string) => businesses.filter((business) =>
     matchesBusinessSpecialty(business, specialty)).length +
     listings.filter((listing) => resolveCanonicalSpecialty(listing.taxonomy_specialty || listing.specialty || '', category.id) === resolveCanonicalSpecialty(specialty, category.id)).length;
@@ -230,14 +234,16 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
             {!listingsLoading && verifiedBusinesses.length + unverifiedBusinesses.length + visibleListings.length === 0 &&
               <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">{selectedSpecialty ? 'لا توجد نتائج مطابقة داخل هذا التخصص والنطاق الجغرافي المحدد.' : 'لا توجد نتائج مطابقة داخل هذا النشاط والنطاق الجغرافي المحدد.'}</p>}
           </div>
+          {businessesLoadError && <p role="status" className="text-center text-xs font-bold text-amber-800">{businessesLoadError}</p>}
           {hasMoreActivityResults && (
             <div className="flex justify-center pt-2">
               <button type="button" onClick={() => {
                 setVisibleActivityCount((current) => current + 20);
+                if (hasMoreBusinesses) onLoadMoreBusinesses();
                 if (hasMoreListings) onLoadMoreListings();
-              }} disabled={loadingMoreListings}
+              }} disabled={loadingMoreListings || loadingMoreBusinesses}
                 className="min-h-11 rounded-xl border border-emerald-200 bg-white px-6 py-3 text-xs font-black text-emerald-800 shadow-sm transition hover:bg-emerald-50 disabled:cursor-wait disabled:opacity-60">
-                {loadingMoreListings ? 'جارٍ تحميل المزيد…' : selectedSpecialty ? 'رؤية المزيد من هذا التخصص' : 'رؤية المزيد من النتائج'}
+                {loadingMoreListings || loadingMoreBusinesses ? 'جارٍ تحميل المزيد…' : selectedSpecialty ? 'رؤية المزيد من هذا التخصص' : 'رؤية المزيد من النتائج'}
               </button>
             </div>
           )}
