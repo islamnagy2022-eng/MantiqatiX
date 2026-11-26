@@ -14,7 +14,7 @@ const migrationGate = fs.readFileSync("scripts/validate-production-migration-cha
 const backupValidator = fs.readFileSync("scripts/validate-production-backup-runbook-current.mjs", "utf8");
 const manifest = JSON.parse(fs.readFileSync("docs/release/production-migration-reconciliation.json", "utf8"));
 const forwardReplay = fs.readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
-const crosswalk = fs.readFileSync("docs/release/REQUIRED_85_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261126.md", "utf8");
+const crosswalk = fs.readFileSync("docs/release/REQUIRED_86_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261126.md", "utf8");
 
 assert.ok(publicRenderer.includes("persistSession:false"),
   "The public digital-page renderer must remain stateless and use raw anon credentials");
@@ -100,20 +100,20 @@ assert.ok(productionVerifier.includes("20261125120000_rc927_digital_page_authent
   "production verifier must enumerate RC927");
 assert.ok(migrationGate.includes("20261125120000_rc927_digital_page_authenticated_identity_scope.sql"),
   "strict release gate must enumerate RC927");
-assert.match(migrationGate, /required\.length,\s*85/, "strict release gate must enforce 85 exact source migrations");
+assert.match(migrationGate, /required\.length,\s*86/, "strict release gate must enforce 85 exact source migrations");
 assert.ok(forwardReplay.includes("node scripts/validate-rc927-digital-page-authenticated-identity-scope.mjs"),
   "forward replay must execute RC927 source validation");
 assert.ok(forwardReplay.includes(testPath), "forward replay must execute RC927 PostgreSQL integration");
-assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 85,
-  "live reconciliation manifest must use the 85-source contract");
+assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 86,
+  "live reconciliation manifest must use the 86-source contract");
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261125120000"),
   "manifest must list RC927 as required");
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261125120000"),
   "RC927 must remain unapplied in Production until the coordinated release");
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261126010000"), "manifest must require RC928");
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261126010000"), "manifest must keep RC928 unapplied until coordinated release");
-assert.ok(backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=85"),
-  "backup validator must use the 85-source contract");
+assert.ok(backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=86"),
+  "backup validator must use the 86-source contract");
 assert.ok(crosswalk.includes("20261125120000") && crosswalk.includes("RC927"),
   "the 85-source source-to-live crosswalk must include RC927");
 
