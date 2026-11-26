@@ -211,8 +211,8 @@ Deno.serve(async (req: Request) => {
         if (globalItemResult.error || branchItemResult.error) {
           throw globalItemResult.error || branchItemResult.error;
         }
-        items = [...(globalItemResult.data || []), ...(branchItemResult.data || [])]
-          .filter((i: any) => i.metadata?.catalog_public?.is_available === true)
+        const itemRows = [...(globalItemResult.data || []), ...(branchItemResult.data || [])];
+        items = (itemRows || []).filter((i: any) => i.metadata?.catalog_public?.is_available === true)
           .slice(0, 150);
         const itemIds = items.map((i: any) => i.id);
         if (itemIds.length) {
@@ -230,10 +230,11 @@ Deno.serve(async (req: Request) => {
             throw globalPriceResult.error || branchPriceResult.error;
           }
           // Stored prices are returned only when the owner explicitly opted in with show_price=true.
-          prices = filterRowsToPubliclyPricedItems(items, [
+          const p = [
             ...(globalPriceResult.data || []),
             ...(branchPriceResult.data || []),
-          ]);
+          ];
+          prices = filterRowsToPubliclyPricedItems(items, p || []);
         }
       }
       const profile = business.settings?.catalog_profile || {};
@@ -301,8 +302,8 @@ Deno.serve(async (req: Request) => {
       scanRounds += 1;
       if (rows.length < scanBatchSize) exhausted = true;
 
-      const directoryBusinesses = rows.filter((business: any) =>
-        business.settings?.catalog_public_enabled === true || isOfficialShowcase(business)
+      const directoryBusinesses = rows.filter((b: any) =>
+        b.settings?.catalog_public_enabled === true || isOfficialShowcase(b)
       );
       if (!directoryBusinesses.length) continue;
 
