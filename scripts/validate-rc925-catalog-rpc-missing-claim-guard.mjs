@@ -113,8 +113,8 @@ assert.ok(
 assert.match(migrationGate, /required\.length, 84/);
 assert.equal(
   manifest.required_release_migration_ledger_check.expected_migration_versions,
-  84,
-  "manifest must use the 84-version contract",
+  85,
+  "manifest must use the 85-version contract",
 );
 assert.ok(
   manifest.required_release_migration_ledger_check.required_versions.includes("20261124150000"),
