@@ -312,7 +312,7 @@ Deno.serve(async (req: Request) => {
 
       const businessIds = directoryBusinesses.map((business: any) => business.id);
       const { data: providers, error: providerError } = await db.from("marketing_provider_profiles")
-        .select("business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured,specialties")
+        .select("business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured")
         .in("business_id", businessIds).eq("status", "ACTIVE").limit(250);
       if (providerError) throw providerError;
       providerMap.clear();
