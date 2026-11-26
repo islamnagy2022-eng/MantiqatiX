@@ -160,6 +160,17 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
 
   const rpcObservation = { scopedBranchId: undefined };
   const catalogReadRequests = [];
+  const catalogAdminRequests = [];
+  const catalogProfileState = {
+    bio: 'نبذة اختبارية للنشاط',
+    governorate: 'المنوفية',
+    markaz: 'بركة السبع',
+    village: '',
+    workingHours: '',
+    logoUrl: 'https://cdn.example.test/business-logo.webp',
+    coverUrl: 'https://cdn.example.test/business-cover.webp',
+    promotionalImages: [],
+  };
   const directoryAdminRequests = [];
   const platformAdminRequests = [];
   const platformSettingsState = { settings: options.platformSettings || {} };
@@ -295,13 +306,22 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
       if (body.action === 'CATALOG_READ') {
         catalogReadRequests.push({ businessId: body.businessId, branchId: body.branchId });
         return json({
-          business: fakeBusiness,
+          business: { ...fakeBusiness, profile: { ...catalogProfileState } },
           provider: { name: fakeBusiness.name, kind: fakeBusiness.category, verified: false },
           branches: fakeBusiness.branches,
           selectedBranchId: body.branchId || null,
           items: [],
           prices: [],
         });
+      }
+      if (body.action === 'BUSINESS_PROFILE_UPSERT') {
+        catalogAdminRequests.push({ ...body });
+        for (const key of ['bio', 'governorate', 'markaz', 'village', 'workingHours', 'logoUrl', 'coverUrl']) {
+          const value = body[key];
+          if (typeof value === 'string') catalogProfileState[key] = value;
+        }
+        if (Array.isArray(body.promotionalImages)) catalogProfileState.promotionalImages = [...body.promotionalImages];
+        return json({ success: true, businessId: body.businessId, publicEnabled: false });
       }
       if (body.action === 'BUSINESS_LIST') return json({ businesses: [fakeBusiness] });
       return json({ businesses: [], items: [], prices: [], branches: [] });
@@ -385,7 +405,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
   });
 
   await page.goto(baseUrl + (options.initialRoute || '?view=professional_dashboard'), { waitUntil: 'domcontentloaded' });
-  return { context, page, rpcObservation, catalogReadRequests, directoryAdminRequests, directoryListingsState, directoryListingPageRequests, platformAdminRequests, platformSettingsState };
+  return { context, page, rpcObservation, catalogReadRequests, catalogAdminRequests, catalogProfileState, directoryAdminRequests, directoryListingsState, directoryListingPageRequests, platformAdminRequests, platformSettingsState };
 }
 
 async function waitForDashboard(page) {
@@ -880,6 +900,56 @@ try {
     } finally { await context.close(); }
   }
 
+
+  // 8. Merchant owners can manage a separate ten-image gallery; save payload is normalized and reloadable.
+  {
+    const { context, page, catalogAdminRequests, catalogProfileState } = await newScenario(
+      browser,
+      roles.businessOwner,
+      [],
+      { initialRoute: '?view=merchant_admin' },
+    );
+    try {
+      const merchantTabs = page.getByTestId('merchant-dashboard-tabs');
+      await merchantTabs.waitFor({ state: 'visible', timeout: 15000 });
+      await merchantTabs.getByRole('button', { name: 'بيانات النشاط', exact: true }).click();
+
+      const galleryInput = page.getByLabel('روابط الصور الترويجية');
+      await galleryInput.waitFor({ state: 'visible', timeout: 10000 });
+      const elevenUrls = Array.from({ length: 11 }, (_, index) => `https://cdn.example.test/over-limit-${index}.webp`).join('\n');
+      await galleryInput.fill(elevenUrls);
+      await page.getByRole('alert').filter({ hasText: 'الحد الأقصى 10 صور ترويجية' }).waitFor({ state: 'visible', timeout: 5000 });
+      await page.getByRole('button', { name: 'حفظ التعديلات', exact: true }).click();
+      assert.equal(catalogAdminRequests.filter((entry) => entry.action === 'BUSINESS_PROFILE_UPSERT').length, 0,
+        'invalid promotional gallery must be rejected before the profile write request');
+
+      const validInput = [
+        '  https://cdn.example.test/promo-1.webp  ',
+        '',
+        'https://cdn.example.test/promo-2.webp',
+        'https://cdn.example.test/promo-1.webp',
+      ].join('\n');
+      await galleryInput.fill(validInput);
+      await page.getByRole('button', { name: 'حفظ التعديلات', exact: true }).click();
+      await page.getByRole('status').filter({ hasText: 'تأكد حفظ بيانات النشاط في قاعدة الإنتاج' }).waitFor({ state: 'visible', timeout: 10000 });
+
+      const saveRequest = catalogAdminRequests.find((entry) => entry.action === 'BUSINESS_PROFILE_UPSERT');
+      assert.ok(saveRequest, 'owner profile save must reach the authenticated catalog-admin action');
+      assert.deepEqual(saveRequest.promotionalImages, [
+        'https://cdn.example.test/promo-1.webp',
+        'https://cdn.example.test/promo-2.webp',
+      ], 'save request must trim and deduplicate the validated URL list');
+      await page.waitForFunction(() => {
+        const field = document.getElementById('business-promotional-images');
+        return field instanceof HTMLTextAreaElement && field.value.includes('promo-2.webp');
+      }, null, { timeout: 10000 });
+      assert.deepEqual(catalogProfileState.promotionalImages, [
+        'https://cdn.example.test/promo-1.webp',
+        'https://cdn.example.test/promo-2.webp',
+      ], 'profile refresh must rehydrate the saved promotional image list');
+      results.push('merchant-promotional-gallery-validation-save-and-reload');
+    } finally { await context.close(); }
+  }
 
   // 9. Verified activities expose only explicitly configured external brand URLs.
   {
