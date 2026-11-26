@@ -122,14 +122,16 @@ SQL
 wait "$writer_a_pid"
 
 psql "$db_url" -v ON_ERROR_STOP=1 -v business_id="$business_id" <<'SQL'
+SELECT set_config('rc928.test_business_id', :'business_id', false);
 DO $verify$
 DECLARE
   v_profile jsonb;
+  v_business_id uuid := current_setting('rc928.test_business_id')::uuid;
 BEGIN
   SELECT settings->'catalog_profile'
     INTO v_profile
     FROM public.businesses
-   WHERE id=:'business_id'::uuid;
+   WHERE id = v_business_id;
 
   IF v_profile->'promotional_images' IS DISTINCT FROM
        '["https://cdn.example.test/rc928-concurrent-a.webp","https://cdn.example.test/rc928-concurrent-b.webp"]'::jsonb THEN
