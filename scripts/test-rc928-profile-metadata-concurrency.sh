@@ -39,9 +39,13 @@ END
 
 INSERT INTO public.marketing_provider_profiles
   (provider_kind,business_id,owner_user_id,name_ar,slug,status)
-VALUES
-  ('OFFICIAL','$business_id','$owner_id','RC928 Concurrency Owner',
-   'rc928-concurrency-' || lower(replace(gen_random_uuid()::text,'-','')),'ACTIVE');
+SELECT
+  'OFFICIAL', :'business_id'::uuid, '$owner_id'::uuid, 'RC928 Concurrency Owner',
+  'rc928-concurrency-' || lower(replace(gen_random_uuid()::text,'-','')), 'ACTIVE'
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.marketing_provider_profiles
+   WHERE business_id = :'business_id'::uuid AND upper(status) = 'ACTIVE'
+);
 SQL
 
 # The atomic profile RPC is callable by a confirmed authenticated owner only.
