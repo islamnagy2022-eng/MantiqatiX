@@ -92,9 +92,15 @@ assert.ok(replayWorkflow.includes("RC928_ATOMIC_CATALOG_PROFILE_PROMOTIONAL_GALL
 assert.ok(replayWorkflow.includes("bash scripts/test-rc928-profile-metadata-concurrency.sh \"$db_url\""),
   "full chronological PG17 replay must execute the two-session metadata preservation concurrency test");
 assert.ok(concurrencyScript.includes("SELECT pg_sleep(2)"));
+assert.ok(concurrencyScript.includes("PGAPPNAME=rc928_writer_a"));
+assert.ok(concurrencyScript.includes("PGAPPNAME=rc928_writer_b"));
+assert.ok(concurrencyScript.includes("wait_event_type = 'Lock'"),
+  "concurrency test must prove writer B is blocked on writer A's held row lock");
 assert.ok(concurrencyScript.includes("SET LOCAL ROLE authenticated"));
 assert.ok(concurrencyScript.includes("RC928_CONCURRENT_GALLERY_PATCH_LOST"));
 assert.ok(concurrencyScript.includes("RC928_CONCURRENT_SOCIAL_PATCH_LOST"));
+assert.ok(ownerIntegration.includes("set_config('request.jwt.claim.sub', v_owner_id::text, true)"),
+  "missing/anonymous claim tests must retain a valid authenticated subject and fail only on identity claim state");
 assert.ok(releaseGate.includes("20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql"));
 assert.ok(productionVerifier.includes("20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql"));
 assert.ok(liveContract.includes('"20261126010000"'));
