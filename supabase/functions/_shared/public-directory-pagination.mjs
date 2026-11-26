@@ -4,7 +4,7 @@ const MAX_FILTER_LENGTH = 100;
 const MAX_SLUGS = 20;
 const MAX_CURSOR_AGE_MS = 6 * 60 * 60 * 1000;
 const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000;
-const FILTER_KEYS = ["activity", "specialty", "governorate", "markaz", "village", "query"];
+const FILTER_KEYS = ["activity", "specialty", "governorate", "markaz", "village", "area", "query"];
 const encoder = new TextEncoder();
 
 const isRecord = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -23,7 +23,9 @@ const base64UrlDecode = (value) => {
 };
 const isUuid = (value) => typeof value === "string" &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
-const normalizedMatchValue = (value) => safeText(value, 200).toLocaleLowerCase("ar-EG");
+const normalizedMatchValue = (value) => safeText(value, 200).toLocaleLowerCase("ar-EG")
+  .replace(/[أإآ]/g, "ا").replace(/[ىي]/g, "ي").replace(/ة/g, "ه")
+  .replace(/[\u064B-\u065F\u0670]/g, "").replace(/\s+/g, " ").trim();
 
 export const PUBLIC_DIRECTORY_PAGE_SIZE = PAGE_SIZE;
 
@@ -64,6 +66,10 @@ export function matchesDirectoryBusinessFilters(business, provider, filters) {
     governorate: [profile.governorate],
     markaz: [profile.markaz],
     village: [profile.village],
+    // Address filtering is separate from free-text and follows the verified
+    // public-contact consent projection used by mapBusiness.
+    area: profile.public_contact_enabled === true && profile.public_contact_consent_audit_verified === true
+      ? [profile.address] : [],
     // Search is intentionally restricted to public profile/category text. Never probe
     // phone, WhatsApp, precise address, or other consent-gated contact values.
     // Every search field below is part of the actual public Business projection.
@@ -82,6 +88,9 @@ export function matchesDirectoryBusinessFilters(business, provider, filters) {
       return tokens.every((token) =>
         values.query.some((candidate) => normalizedMatchValue(candidate).includes(token))
       );
+    }
+    if (key === "area") {
+      return values.area.some((candidate) => normalizedMatchValue(candidate).includes(expected));
     }
     return values[key].some((candidate) => normalizedMatchValue(candidate) === expected);
   });
