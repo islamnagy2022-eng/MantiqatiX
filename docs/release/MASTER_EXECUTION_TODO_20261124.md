@@ -1,5 +1,5 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-26 — RC928 atomic catalog profile/gallery persistence and 85-version release map  
+**Updated:** 2026-11-26 — RC928 atomic catalog profile/gallery source merge and 85-version release map  
 **Base:** `main @ 17329ba27effad52a316ad0aa94ef1a93ab975a7`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
@@ -50,7 +50,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 
 ## 2026-11-25 — Current Production recheck and 84-source release map
 
-- [x] Re-read the live Supabase migration inventory directly: 310 rows through `20261110150618`; exact current source version set is 84 and **0/84** exact IDs are present. This is an identity mismatch; it is not proof all physical effects are absent.
+- [x] Re-read the live Supabase migration inventory directly: 310 rows through `20261110150618`; the current source release set is 85 and **0/85** exact IDs are present. This is an identity mismatch; it is not proof all physical effects are absent.
 - [x] Re-read provider-profile grants/policies: RLS + FORCE RLS are ON, but `anon SELECT` remains granted and the permissive active-provider base-row policy remains; the strict RC926 policy is source-only and absent in Production.
 - [x] Re-read Platform Admin root: `private.platform_admins` RLS ON / FORCE RLS OFF; `is_platform_admin()` still does not reference the registry; `mnty_can_platform_admin()` remains on the legacy null-scope helper. Current blast radius: 57 policies / 24 tables and 5 policies / 3 tables.
 - [x] Re-read RC486 runtime dependency: live price RPC still has no transaction advisory lock and its required unique version index is absent.
@@ -106,17 +106,18 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Fresh read-only check confirms deployed Paymob HMAC-SHA512 covers order.id but not merchant_order_id; deployed webhook v10 selects a row using the unsigned merchant_order_id and has no stored provider_order_id equality check for standard, digital-page or subscription intents. Current main has all three pre-RPC equality checks. Evidence: PASS 2381–2390.
 - [ ] Keep all Paymob real-money webhook/checkout release paths blocked until the coordinated RC426–RC431/RC468/RC470/RC475 database + Edge slice is verified.
 - [ ] In sandbox, replay a valid signed callback for order A with merchant_order_id changed to a different pending order B of equal amount/currency; assert HTTP rejection and zero mutation to both records. Repeat for standard, digital-page and subscription flows.
+- [x] Merged the source-only provider-scope hardening in PR #1110 (`e1835d3fb776acc9fc304854d46bae63d86873f8`); exact-head RC475 and companion CI passed. Deploy job was skipped. The signed altered-selector Sandbox replay and coordinated DB+Edge rollout remain outstanding.
 
 - [x] Added `scripts/validate-paymob-webhook-order-binding.mjs` and wired it into RC425/RC428 CI; exact-head PR #1090 passed the validator, PG17 payment suites and complete validation workflow. The test asserts HMAC covers `order.id`, excludes unsigned `merchant_order_id`, and requires selected-row equality checks before standard/digital-page/subscription processor RPCs. This is source-contract CI, not proof the deployed webhook is fixed or the altered-selector HTTP sandbox replay has passed.
 - [x] Follow-up source hardening in branch `security/paymob-standard-provider-scope-20261125`: the standard `payment_intents` lookup by unsigned `merchant_order_id` is now also constrained to `provider='PAYMOB'`; the source validator requires that filter. This is source-only pending exact-head CI; no Edge deployment or Production change.
 
-## 2026-11-26 — RC928 atomic catalog profile and promotional gallery source candidate
+## 2026-11-26 — RC928 atomic catalog profile and promotional gallery source merge
 
-- [x] Ported the requested fixed single-cover + separate ten-image HTTPS gallery frontend, validation, public projections and browser coverage to a branch based on current main.
+- [x] Merged the fixed single-cover + separate ten-image HTTPS gallery frontend, validation, public projections and browser coverage in PR #1123 (`8cd611dbe89a9f4288ceb81ad5ac9c4c4c17f7c6`). Exact-head CI passed on `cff63ae577b8d22cdc8eed7f795719bedde21337`.
 - [x] Added `upsert_catalog_business_profile_atomic_backend`, composing the existing owner/admin-scoped business profile RPC and applying only allowlisted metadata after its business-row lock is held. Gallery/social/phone metadata no longer uses a separate Edge service-role JSONB read/merge/write.
 - [x] Preserved the separate public-contact consent audit: the atomic RPC resets public-contact audit verification on a new consent value, Edge records the durable audit row, and only then performs updated_at compare-and-set activation.
 - [x] Added owner integration cases for deduped gallery persistence, preserved unrelated JSONB profile keys, max-ten/HTTPS denial, missing identity and Anonymous Auth denial, and branch-manager cross-scope denial.
-- [ ] RC928 static, owner-profile PostgreSQL, full 85-source chronological PG17 replay and current-main browser tests must pass before merge. No Edge deployment or Production migration has occurred.
+- [x] PR #1123 exact-head CI passed, including the Primary Catalog build/RBAC/browser suite (run `45741231838`) and the full chronological migration replay (run `45741232181`). The PR's merge gate also required owner-profile PostgreSQL integration and the RC928 gallery cases. This is disposable CI evidence only; no Production migration or Edge deployment occurred.
 - [ ] Deployed behavior remains unavailable until the coordinated three-Edge release (catalog-admin, public-catalog, public-catalog-directory) and DB release gates pass with the verified backup/restore rehearsal.
 - [x] Increased the source-only release manifest to 85 required migration IDs; RC928 is explicitly marked missing from the live ledger, not applied.
 
@@ -153,7 +154,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Verify root, `/legacy/`, direct route refresh, 404/error/empty/loading states and mobile/desktop layouts.
 - [ ] Preserve Activity → Specialty, all-Egypt default search, GPS nearest-first only with permission, and 20-item pagination + See More.
 - [x] Merged SEO-only PR #1033 at `34a072312b29e613fb95a39050bb499eedabc786`; exact-head CI 34/34 passed, including the route metadata contract. Pages deployment is verified by run 45413600172 (main @ 016a8952513ac860b9248c6b561e6cf9216c3f2e): production root, /legacy rollback, /v6-preview, brand assets, and deployed-origin browser E2E passed. Scope is SPA metadata plus a root-only sitemap; no SSR/prerender or dynamic catalogue sitemap is claimed.
-- [ ] Keep storefront gallery PR #978 draft until rebased and proven compatible with live catalog-admin/public-catalog contracts.
+- [x] Storefront gallery source work is merged in PR #1123. Production feature activation remains blocked until RC928 is applied through the approved coordinated DB + `catalog-admin` + `public-catalog` + `public-catalog-directory` release, with backup/restore and deployed-origin save/read checks.
 - [x] Merged Marketing button regression PR #1032 at `f317a69fe186da7bff560657e161951e8794e81f`; Playwright verified the official persisted business UUID at 390px and 1440px with no horizontal overflow.
 - [ ] Verify logo, cover, favicon, PWA/install icon and Open Graph assets against the existing brand source.
 
