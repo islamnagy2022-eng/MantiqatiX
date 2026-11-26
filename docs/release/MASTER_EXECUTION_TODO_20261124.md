@@ -361,3 +361,15 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Inspected the uploaded `bizcatalog-manager (11).zip` and `الامر-التقني.txt`; compared root app/runtime/package layout with canonical `apps/catalog-frontend` on current `main`.
 - [x] Identified the R7 Supabase ref mismatch, competing local-authoritative JSON store, hardcoded fallback HMAC/JWT/backup secrets, and unverified release claims. Preserved the original ZIP; no source was copied or deployed.
 - [ ] Any R7 reuse must be incremental and pass current-main architecture, secret-handling, backend contract, tenant/RLS, exact-head CI and deployed-origin review. Keep wholesale import blocked.
+
+
+## 2026-11-26 — PR #1123 post-merge and catalog gallery Edge dependency recheck (PASS 2471–2480)
+- [x] Confirmed PR #1123 merged source-only as `8cd611dbe89a9f4288ceb81ad5ac9c4c4c17f7c6`; exact-head Primary Catalog Frontend Validation run 45741231838 and PostgreSQL 17 chronological migration replay run 45741232181 both passed.
+- [x] Confirmed current Pages deploy run 45753994611 completed successfully, including validation and deployed-origin route checks. This is website/catalog Pages evidence only.
+- [x] Re-read live Supabase Edge source and compared all three gallery-dependent functions against current main. `catalog-admin` v20, `public-catalog` v9 and `public-catalog-directory` v19 do not contain the gallery persistence/read projection; no deployed bundle contains the new `_shared/promotional-images.mjs`.
+- [x] Confirmed `catalog-admin` v20 retains the old inline `isPlatformAdmin` helper while current-main source no longer contains that helper. This is a source/deployment drift finding, not an exploit test.
+- [x] Rechecked Production migration ledger: 310 entries through `20261110150618`; 0/86 exact required release version IDs found. This identity check is not a substitute for physical-effect reconciliation.
+- [x] Rechecked shared platform-root authorization: registry FORCE RLS remains OFF; `is_platform_admin()` remains SECURITY INVOKER/membership-derived; 57 + 5 policy references span 27 tables. Existing RC464/RC469/RC471/RC484 source and isolated tests do not make those Production changes live.
+- [x] Recorded full evidence in [docs/audits/PASS_2471_2480_CATALOG_GALLERY_EDGE_RELEASE_GATE_20261126.md](../audits/PASS_2471_2480_CATALOG_GALLERY_EDGE_RELEASE_GATE_20261126.md).
+- [ ] Keep gallery deployment blocked until the ordered DB/RPC/ACL/RLS dependencies and all three exact Edge bundles are released together and verified by deployed-origin save/read tests. No piecemeal frontend or Edge release.
+- [ ] Backup/restore remains deferred by current direction and is not marked complete. No Production DB, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement or business-data mutation was performed in this pass.
