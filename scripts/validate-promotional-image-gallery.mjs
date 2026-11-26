@@ -18,7 +18,7 @@ assert.match(typeSource, /promotionalImages\?: string\[\]/, "Business type must 
 assert.match(merchant, /id="business-promotional-images"/, "merchant dashboard must expose the promotional image editor");
 assert.match(merchant, /MAX_PROMOTIONAL_IMAGES|normalizePromotionalImageLines/, "merchant editor must use the URL validation helper");
 assert.match(merchant, /promotionalImages: promotionalImages\.images/, "merchant save must send the normalized image list");
-assert.match(context, /promotionalImages: updated\.promotionalImages \|\| \[\]/, "business profile updates must send the gallery list");
+assert.match(context, /Array\\.isArray\\(updated\\.promotionalImages\\) \\? \\{ promotionalImages: updated\\.promotionalImages \\} : \\{\\}/, "business profile updates must send the gallery only when explicitly provided and must not clear it when omitted");
 assert.match(context, /hasPromotionalGalleryChanges\(currentGallery, updated\.promotionalImages\)/, "profile saves must detect gallery changes separately");
 assert.match(context, /Array\.isArray\(updated\.promotionalImages\) \? \{ promotionalImages: updated\.promotionalImages \} : \{\}/, "omitted optional gallery fields must not be sent as an empty list that clears stored images");
 assert.match(context, /action: 'CATALOG_READ'[\s\S]*?hasPromotionalGalleryCapability\(capabilityRead\)/, "gallery writes must probe the deployed Edge read contract before any mutation");
