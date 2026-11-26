@@ -160,6 +160,18 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
 
   const rpcObservation = { scopedBranchId: undefined };
   const catalogReadRequests = [];
+  const catalogAdminRequests = [];
+  const catalogProfileState = {
+    bio: 'نبذة اختبارية للنشاط',
+    phone: '01012345678',
+    governorate: 'المنوفية',
+    markaz: 'بركة السبع',
+    village: '',
+    workingHours: '',
+    logoUrl: 'https://cdn.example.test/business-logo.webp',
+    coverUrl: 'https://cdn.example.test/business-cover.webp',
+    promotionalImages: [],
+  };
   const directoryAdminRequests = [];
   const platformAdminRequests = [];
   const platformSettingsState = { settings: options.platformSettings || {} };
@@ -295,13 +307,22 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
       if (body.action === 'CATALOG_READ') {
         catalogReadRequests.push({ businessId: body.businessId, branchId: body.branchId });
         return json({
-          business: fakeBusiness,
+          business: { ...fakeBusiness, profile: { ...catalogProfileState } },
           provider: { name: fakeBusiness.name, kind: fakeBusiness.category, verified: false },
           branches: fakeBusiness.branches,
           selectedBranchId: body.branchId || null,
           items: [],
           prices: [],
         });
+      }
+      if (body.action === 'BUSINESS_PROFILE_UPSERT') {
+        catalogAdminRequests.push({ ...body });
+        for (const key of ['bio', 'phone', 'governorate', 'markaz', 'village', 'workingHours', 'logoUrl', 'coverUrl']) {
+          const value = body[key];
+          if (typeof value === 'string') catalogProfileState[key] = value;
+        }
+        if (Array.isArray(body.promotionalImages)) catalogProfileState.promotionalImages = [...body.promotionalImages];
+        return json({ success: true, businessId: body.businessId, publicEnabled: false });
       }
       if (body.action === 'BUSINESS_LIST') return json({ businesses: [fakeBusiness] });
       return json({ businesses: [], items: [], prices: [], branches: [] });
@@ -385,7 +406,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
   });
 
   await page.goto(baseUrl + (options.initialRoute || '?view=professional_dashboard'), { waitUntil: 'domcontentloaded' });
-  return { context, page, rpcObservation, catalogReadRequests, directoryAdminRequests, directoryListingsState, directoryListingPageRequests, platformAdminRequests, platformSettingsState };
+  return { context, page, rpcObservation, catalogReadRequests, catalogAdminRequests, catalogProfileState, directoryAdminRequests, directoryListingsState, directoryListingPageRequests, platformAdminRequests, platformSettingsState };
 }
 
 async function waitForDashboard(page) {
@@ -881,12 +902,62 @@ try {
   }
 
 
+  // 8. Merchant owners can manage a separate ten-image gallery; save payload is normalized and reloadable.
+  {
+    const { context, page, catalogAdminRequests, catalogProfileState } = await newScenario(
+      browser,
+      roles.businessOwner,
+      [],
+      { initialRoute: '?view=merchant_admin' },
+    );
+    try {
+      const merchantTabs = page.getByTestId('merchant-dashboard-tabs');
+      await merchantTabs.waitFor({ state: 'visible', timeout: 15000 });
+      await merchantTabs.getByRole('button', { name: 'الهوية البصرية', exact: true }).click();
+
+      const galleryInput = page.getByLabel('روابط الصور الترويجية');
+      await galleryInput.waitFor({ state: 'visible', timeout: 10000 });
+      const elevenUrls = Array.from({ length: 11 }, (_, index) => `https://cdn.example.test/over-limit-${index}.webp`).join('\n');
+      await galleryInput.fill(elevenUrls);
+      await page.getByRole('alert').filter({ hasText: 'الحد الأقصى 10 صور ترويجية' }).waitFor({ state: 'visible', timeout: 5000 });
+      await page.getByRole('button', { name: 'حفظ هوية النشاط', exact: true }).click();
+      assert.equal(catalogAdminRequests.filter((entry) => entry.action === 'BUSINESS_PROFILE_UPSERT').length, 0,
+        'invalid promotional gallery must be rejected before the profile write request');
+
+      const validInput = [
+        '  https://cdn.example.test/promo-1.webp  ',
+        '',
+        'https://cdn.example.test/promo-2.webp',
+        'https://cdn.example.test/promo-1.webp',
+      ].join('\n');
+      await galleryInput.fill(validInput);
+      await page.getByRole('button', { name: 'حفظ هوية النشاط', exact: true }).click();
+      await page.getByRole('status').filter({ hasText: 'تأكد حفظ هوية النشاط في قاعدة الإنتاج' }).waitFor({ state: 'visible', timeout: 10000 });
+
+      const saveRequest = catalogAdminRequests.find((entry) => entry.action === 'BUSINESS_PROFILE_UPSERT');
+      assert.ok(saveRequest, 'owner profile save must reach the authenticated catalog-admin action');
+      assert.deepEqual(saveRequest.promotionalImages, [
+        'https://cdn.example.test/promo-1.webp',
+        'https://cdn.example.test/promo-2.webp',
+      ], 'save request must trim and deduplicate the validated URL list');
+      await page.waitForFunction(() => {
+        const field = document.getElementById('business-promotional-images');
+        return field instanceof HTMLTextAreaElement && field.value.includes('promo-2.webp');
+      }, null, { timeout: 10000 });
+      assert.deepEqual(catalogProfileState.promotionalImages, [
+        'https://cdn.example.test/promo-1.webp',
+        'https://cdn.example.test/promo-2.webp',
+      ], 'profile refresh must rehydrate the saved promotional image list');
+      results.push('merchant-promotional-gallery-validation-save-and-reload');
+    } finally { await context.close(); }
+  }
+
   // 9. Verified activities expose only explicitly configured external brand URLs.
   {
     const displayLogo = 'https://assets.example.test/fallback-logo.svg';
     const displayCover = 'https://assets.example.test/fallback-cover.svg';
     const fixtures = [
-      { id: '40000000-0000-0000-0000-000000000001', name: 'نشاط رابطين خارجيين', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: 'https://cdn.example.test/both-logo.svg', externalCoverUrl: 'https://cdn.example.test/both-cover.svg' }, provider: { verified: true } },
+      { id: '40000000-0000-0000-0000-000000000001', name: 'نشاط رابطين خارجيين', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, promotionalImages: ['https://cdn.example.test/promo-1.webp', 'https://cdn.example.test/promo-2.webp'], externalLogoUrl: 'https://cdn.example.test/both-logo.svg', externalCoverUrl: 'https://cdn.example.test/both-cover.svg' }, provider: { verified: true } },
       { id: '40000000-0000-0000-0000-000000000002', name: 'نشاط رابط لوجو فقط', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: 'https://cdn.example.test/logo-only.svg', externalCoverUrl: '' }, provider: { verified: true } },
       { id: '40000000-0000-0000-0000-000000000003', name: 'نشاط رابط غلاف فقط', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: '', externalCoverUrl: 'https://cdn.example.test/cover-only.svg' }, provider: { verified: true } },
       { id: '40000000-0000-0000-0000-000000000004', name: 'نشاط بلا روابط خارجية', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: '', externalCoverUrl: '' }, provider: { verified: true } },
@@ -917,10 +988,14 @@ try {
       const coverHero = page.getByTestId('storefront-cover-hero');
       await coverHero.waitFor({ state: 'visible' });
       assert.equal(await coverHero.getAttribute('aria-label'), 'غلاف نشاط نشاط رابطين خارجيين');
-      const coverNavigation = coverHero.getByRole('group', { name: 'التنقل بين صور الغلاف' });
-      await coverNavigation.waitFor({ state: 'visible' });
-      assert.ok(await coverNavigation.getByRole('button').count() >= 1, 'cover slides must expose keyboard-operable navigation controls');
-      assert.equal(await coverNavigation.getByRole('button').first().getAttribute('aria-pressed'), 'true', 'the active cover slide must be announced');
+      assert.equal(await coverHero.locator('img').count(), 1, 'storefront must display exactly one fixed cover image');
+      assert.equal(await coverHero.locator('img').getAttribute('src'), displayCover, 'the fixed cover must use the business cover URL');
+      assert.equal(await coverHero.getByRole('group', { name: 'التنقل بين صور الغلاف' }).count(), 0, 'the cover must not render legacy multi-cover navigation');
+      const promotionalGallery = page.getByTestId('storefront-promotional-gallery');
+      await promotionalGallery.waitFor({ state: 'visible' });
+      assert.equal(await promotionalGallery.locator('img').count(), 2, 'promotional images must render in a separate gallery');
+      assert.equal(await promotionalGallery.locator('img').nth(0).getAttribute('src'), 'https://cdn.example.test/promo-1.webp');
+      assert.equal(await promotionalGallery.locator('img').nth(1).getAttribute('src'), 'https://cdn.example.test/promo-2.webp');
       assert.match(await coverHero.getAttribute('class') || '', /mx-v4-storefront-cover/, 'storefront hero must use the shared V4 surface token');
       assert.equal(await page.getByTestId('business-verification-indicator').getAttribute('aria-label'), 'حالة النشاط: موثّق رسمياً');
       assert.equal(await page.locator('.mx-v4-storefront-category').count(), 1, 'business category must use the V4 storefront token');
