@@ -373,6 +373,10 @@ jobs:
                 echo "RESTORE_TEST_ONLY_KNOWN_LIVE_RC495_STORAGE_BRAND_POLICY_OVERLAY"
                 psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/production_live_storage_brand_policy_overlay_fixture.sql
               fi
+              if [[ "$filename" == "20261125120000_rc927_digital_page_authenticated_identity_scope.sql" ]]; then
+                echo "RESTORE_TEST_ONLY_CURRENT_PRODUCTION_DIGITAL_PAGE_ANON_DML_ACL"
+                psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/production_live_digital_page_anon_dml_acl_overlay_fixture.sql
+              fi
               echo "REPLAY_MIGRATION=$filename"
               psql "$db_url" -v ON_ERROR_STOP=1 -f "$migration"
               migration_count=$((migration_count + 1))
