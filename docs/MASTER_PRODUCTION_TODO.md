@@ -5477,3 +5477,4 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Cross-checked all 86 unique required release migration IDs against the complete current-main Git tree: 86/86 source files present, no missing/duplicate IDs.
 - [x] Cross-checked all 86 IDs against the live ledger: 0/86 exact matches, 310 rows through `20261110150618`; treat as ledger divergence, not proof of absent physical effects.
 - [x] Enumerated 12 additional public-schema helper callers from live `pg_proc` definitions and checked effective registry privileges: 11 SECURITY DEFINER, one invoker; registry CRUD remains service_role-only.
+- [x] Confirmed source/PG17/replay evidence on adjacent RC929 code head based on the same main baseline: RC464, RC471, RC484 and RC465 tests passed; 126-migration chronological replay passed (runs 45851878600, 45851878311, 45851878700, 45851878442, 45851878325). This does not change live Production status.
