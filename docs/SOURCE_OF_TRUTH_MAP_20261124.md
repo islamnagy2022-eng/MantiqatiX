@@ -1,5 +1,5 @@
 # MantiqatiX — Unified Source of Truth Map
-**Checkpoint:** 2026-11-25 — main `1419477b39312e65134494251264452b170e1efe`; PRs #1097, #1102 and #1104 merged source/evidence only. Exact-head 83-version replay and RC479/RC926 tests passed; current Production remains BLOCKED / NOT CERTIFIED.  
+**Checkpoint:** 2026-11-25 — main `17329ba27effad52a316ad0aa94ef1a93ab975a7`; PRs #1097, #1102, #1104, #1105 and #1106 merged source/evidence only. Exact-head 83-version RC926 replay passed; current release candidate now tracks 84 versions and RC927 awaits exact-head PostgreSQL 17 replay. Production remains BLOCKED / NOT CERTIFIED.  
 **Operating directive:** [MASTER_SOURCE_OF_TRUTH.md](./MASTER_SOURCE_OF_TRUTH.md)  
 **Canonical repository:** `islamnagy2022-eng/MantiqatiX`  
 **Production Supabase:** `MANTIQATIX FINAL` / `moyhiluyhjsujhwlyeuu`
@@ -67,17 +67,17 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - RC485–RC496 catalog, SMM bootstrap, confirmed-session, Storage, settlement and MantiGO bid state [PASS 2271–2280](./audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md): catalog registry/price serialization absent; first-user SMM bootstrap still live; restrictive Auth guards absent; settlement remains membership-derived; accepted-bid uniqueness/OFFERED gate incomplete.
 - RC921–RC925 medical, agreement and catalog identity [PASS 2281–2290](./audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md): medical provider state is legacy; agreement participant correlation and confirmed-session boundary are wrong; seven catalog RPCs still lack the fail-closed RC925 body.
 
-## Current 83-migration read-back — 2026-11-25 (82-source snapshot retained as history)
-- [83-source crosswalk](./release/REQUIRED_83_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md): 83/83 required migration sources have current live/effect read-back and an explicit PASS/PARTIAL/BLOCKED disposition. The 82-source file remains a historical 2026-11-24 snapshot; this is not an all-pass release.
+## Current 84-migration read-back — 2026-11-25
+- [84-source crosswalk](./release/REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md): 84/84 required migration sources have current live/effect read-back and an explicit PASS/PARTIAL/BLOCKED disposition. The 82-source file remains a historical 2026-11-24 snapshot; this is not an all-pass release.
 - Current-main [PASS 2271–2280](./audits/PASS_2271_2280_RC485_RC496_AUTH_STORAGE_FINANCE_RECHECK_20261124.md) and [PASS 2281–2290](./audits/PASS_2281_2290_RC921_RC925_MEDICAL_AGREEMENTS_CATALOG_RECHECK_20261124.md) are authoritative for RC485–RC496 and RC921–RC925.
 - [PASS 2331–2340](./audits/PASS_2331_2340_RC113_RC117_CONTROL_CENTER_EMPLOYEE_LIVE_RECHECK_20261124.md) and [PASS 2341–2350](./audits/PASS_2341_2350_RC102_RC106_ORDER_PROVIDER_SCOPE_LIVE_RECHECK_20261124.md) hold renumbered RC113–RC117 and RC102–RC106 reports.
-- 76-object sample: 35 present / 41 absent; presence is not semantic parity. Live ledger: 310 rows through 20261110150618; current required source set: 83; exact IDs in ledger: 0/83.
+- 76-object sample: 35 present / 41 absent; presence is not semantic parity. Live ledger: 310 rows through 20261110150618; current required source set: 84; exact IDs in ledger: 0/84.
 - Main checkpoint: `9e6c62e25614d020eb07b6361dba6eb1c5ac8257`. No Production writes occurred.
 - Migration-history reconciliation update: **3 exact source aliases confirmed / 0 formal ledger repairs applied** (RC424→20261008222845; marketing-contact `20261027100000`→`20261027041411`; directory-source-rights `20261101150000`→`20261101140105`). Five partial baselines are now machine-classified (subscription, ERP, journal, directory, generic payments); RC451 remains a separate forward repair. See `migration_alias_resolution_check` and `historical_partial_baseline_reconciliation_20261124` in `production-migration-reconciliation.json`.
 
 ## Latest platform-root read-back — 2026-11-24
 - [PASS 2361–2370](./audits/PASS_2361_2370_PLATFORM_ROOT_LIVE_RECHECK_20261124.md) records fresh read-only Production evidence: registry RLS ON/FORCE RLS OFF; membership-derived `is_platform_admin()`; legacy `mnty_can_platform_admin()`; 57 policies / 24 tables and 5 policies / 3 tables; seven catalog RPCs without explicit `is_anonymous=false` guard.
-- [Coordinated release gate](./release/PLATFORM_ROOT_COORDINATED_RELEASE_20261124.md) maps RC464/RC471/RC479/RC484/RC485/RC923/RC925/RC926 dependencies and requires the full canonical 83-version chronology, exhaustive physical/ACL/RLS reconciliation, encrypted backup/restore and DB-to-Edge E2E before Production approval.
+- [Coordinated release gate](./release/PLATFORM_ROOT_COORDINATED_RELEASE_20261124.md) maps RC464/RC471/RC479/RC480/RC484/RC485/RC923/RC925/RC926/RC927 dependencies and requires the full canonical 84-version chronology, exhaustive physical/ACL/RLS reconciliation, encrypted backup/restore and DB-to-Edge E2E before Production approval.
 - No Production mutation was performed; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 
 ## Latest Edge runtime parity — 2026-11-24
@@ -124,11 +124,11 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - These are source/disposable-CI results only. The live Supabase migration ledger, grants/policies and Edge runtime were not changed. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains in force.
 
 
-## 2026-11-25 — Current 83-source Production recheck
+## 2026-11-25 — Prior 83-source Production recheck (superseded by 84-source ledger map)
 
 - Main checkpoint: `1419477b39312e65134494251264452b170e1efe`; PR #1097 merged the RC926 source migration, PR #1104 recorded its exact-head CI, and PR #1102 aligned release documentation to 83 versions.
-- Current canonical source/live-effect crosswalk: [REQUIRED_83_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md](./release/REQUIRED_83_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md). Preserve the 82-source November 24 file as a historical snapshot; do not rewrite it.
-- Current direct Production recheck: [PASS 2441–2450](./audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md). It confirms 310 migration rows through `20261110150618`, 0/83 exact IDs; provider-profile anon SELECT remains effective; Platform Admin registry FORCE RLS remains off; old global helper remains membership-derived; and RC486 price concurrency objects remain absent.
+- Current canonical source/live-effect crosswalk: [REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md](./release/REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md). Preserve the 82-source November 24 file as a historical snapshot; do not rewrite it.
+- Current direct Production recheck: [PASS 2441–2450](./audits/PASS_2441_2450_CURRENT_PLATFORM_ROOT_RC926_PRODUCTION_RECHECK_20261125.md). It confirms 310 migration rows through `20261110150618`, 0/84 exact IDs; provider-profile anon SELECT remains effective; Platform Admin registry FORCE RLS remains off; old global helper remains membership-derived; and RC486 price concurrency objects remain absent.
 - All evidence above is read-only or isolated CI. RC926 remains not applied; no Production grants, policies, migration, Edge, payment or business data were changed. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains authoritative.
 
 
@@ -139,3 +139,29 @@ Use `DISCOVER → IMPLEMENT → TEST → FIX → VERIFY → INTEGRATE → NEXT T
 - No owner-created export artifact or independent restore drill was available in the connected workspace. This state is **UNKNOWN / NOT EVIDENCED**, not assumed absent.
 - Corrected runbook: [PRODUCTION_BACKUP_RESTORE_DRILL_20261124.md](./release/PRODUCTION_BACKUP_RESTORE_DRILL_20261124.md). Evidence: [PASS 2451–2460](./audits/PASS_2451_2460_FREE_PLAN_BACKUP_RESTORE_CAPABILITY_20261125.md).
 - No project/branch or paid resource was created, no backup was exported, and no Production mutation occurred. Backup/restore and measured RPO/RTO remain hard release blockers.
+
+
+## 2026-11-25 — RC927 digital-page anonymous Auth boundary candidate
+
+- Live policy read-back confirms the digital_pages_public_read and digital_page_sections_public_read policies both target anon and authenticated, while page ownership is split across digital_pages_owner_select, digital_pages_owner_insert, digital_pages_owner_update_draft and digital_pages_admin_manage.
+- Source RC480 limits raw-anon page columns, but it preserves broad authenticated grants. Because Anonymous Auth sessions also use the authenticated database role, they can otherwise inherit the broad public page policy.
+- RC927 candidate migration changes public policies to raw anon only and adds restrictive FOR ALL TO authenticated explicit-false identity guards for both pages and sections. It is sequenced after RC480 and must preserve existing owner/admin policy composition.
+- The repo's public renderer uses a stateless raw-anon client; no app call to signInAnonymously was found. External anonymous-Auth clients must use raw anon public access or a curated server projection instead of a signed-in anonymous user.
+- RC927 remains unmerged source-only until exact-head static and PostgreSQL 17 full-chain replay pass; not applied to Production.
+
+
+## 2026-11-25 — RC927 exact source/dependency checkpoint
+
+- Current candidate main before this PR is `17329ba27effad52a316ad0aa94ef1a93ab975a7`; the isolated RC927 branch adds migration `20261125120000` after RC480 and the RC926 integration fixture.
+- The current source contract, production verifier and strict gate each enumerate 84 migrations; the reconciliation manifest records all 84 as `missing_versions` and `found_in_live_ledger=0`. This is a source candidate count, not a live migration application.
+- Public renderer remains a raw `anon` client in `web/digital-page.js`; no `signInAnonymously` call was found in the app source. RC927 retargets public page/section policies to raw `anon` and requires explicit `is_anonymous=false` for every authenticated page/section access, with owner/admin policies preserved.
+- RC927 SQL regression now uses the existing synthetic provider owner as Anonymous Auth and missing-claim `sub`, so the owner policies would otherwise allow the tested updates/inserts. This specifically tests the restrictive claim guard rather than merely relying on owner mismatch. It also covers raw anon, confirmed-owner, and confirmed non-owner paths.
+- Pending exact-head CI. No Production migration or deployment has occurred.
+
+
+## 2026-11-25 — Anonymous Auth matrix and RC927 adversarial test scope
+
+- Fresh 90-table matrix and findings: [PASS 2461–2470](./audits/PASS_2461_2470_ANONYMOUS_AUTH_POLICY_TRIAGE_RC927_20261125.md); Issue #928 updated with the same counts and seven authenticated-write review candidates. Advisor warnings are triage findings, not 90 confirmed vulnerabilities.
+- RC927 test subjects for `is_anonymous=true` and missing/null claim now use the same UUID as the owner of the seeded page. The owner SELECT/INSERT/draft UPDATE policies would otherwise authorize those operations; test expectations therefore isolate the restrictive identity guard.
+- Raw anon remains the intended public renderer role and is checked against RC480's exact ten-column page projection. Confirmed owners keep private read and draft edit/create compatibility; non-owners remain denied.
+- RC927 is source-only on `security/rc927-digital-page-auth-scope-20261125`; full exact-head 84-version PG17 replay is pending. No Production changes.
