@@ -27,7 +27,7 @@ assert.ok(updateBusinessBlock.indexOf("if (hasPromotionalGalleryChanges") >= 0
   "unsupported gallery changes must fail before the legacy profile write can return a false success");
 assert.match(galleryCapability, /hasPromotionalGalleryCapability/);
 assert.match(galleryCapability, /hasPromotionalGalleryChanges/);
-assert.match(galleryCapabilityTests, /older catalog-admin bundles silently ignore promotionalImages/);
+assert.match(galleryCapabilityTests, /fails closed for older catalog-admin responses/);
 assert.match(mapper, /promotionalImages: normalizePromotionalImageLines/, "catalog mapping must normalize persisted gallery URLs");
 assert.match(catalogAdmin, /validatePromotionalImages\(body\.promotionalImages\)/, "server-side profile action must validate owner-submitted URLs");
 assert.match(catalogAdmin, /promotional_images/, "server-side profile action must pass gallery URLs to the persistence layer");
