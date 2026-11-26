@@ -1,3 +1,15 @@
+## 2026-11-26 — PR #1142 merge, Pages deployment and activity-share browser proof
+
+- [x] Fixed the share-dialog browser test to open `?view=directory` and locate the share control inside the activity list; the prior failure was caused by testing the home route where that control is not rendered.
+- [x] Merged PR #1142 as `2cc6639fc0f8af04d04311910c94bc9b959e1d8b` after all exact-head workflows passed and review-thread checks found no unresolved comments.
+- [x] Post-merge Primary Catalog run `45865039208`: build, employee RBAC PostgreSQL and browser E2E all SUCCESS.
+- [x] Post-merge module/security run `45865039264`: all nine jobs SUCCESS.
+- [x] Pages deployment run `45865039338`: validate and deploy jobs SUCCESS; deployed root, `/legacy/`, `/v6-preview/`, case-insensitive routes, V6 desktop/mobile and live catalog browser checks passed.
+- [x] Live browser log: `ACTIVITY_SHARE_DIALOG_BROWSER_E2E=PASS focus_trap=true focus_restore=true direct_link=true`; `PRIMARY_CATALOG_BROWSER_E2E=PASS`.
+- No Production database, Auth, RLS/GRANT, Storage, Edge, payment, wallet, settlement or customer data was changed. Full platform remains **BLOCKED / NOT CERTIFIED**. The 87-source Production physical-effect/alias reconciliation, coordinated DB/Edge parity and owner-controlled backup/restore gates remain open.
+
+---
+
 ## 2026-11-24 — Backup/restore capability read-back and P6 gate
 - [x] Read Production project metadata: ACTIVE_HEALTHY, PostgreSQL 17.6.1.155, region us-east-2. get_project does not expose plan tier or backup inventory.
 - [x] Read Supabase branch list: only the primary main entry for Production was returned; no separate restore/preview branch was demonstrated. No branch was created.
