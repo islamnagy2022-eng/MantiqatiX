@@ -110,7 +110,7 @@ assert.ok(
   migrationGate.includes("20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql"),
   "strict migration gate must require RC925",
 );
-assert.match(migrationGate, /required\\.length, 87/);
+assert.match(migrationGate, /required\.length, 87/);
 assert.equal(
   manifest.required_release_migration_ledger_check.expected_migration_versions,
   87,
