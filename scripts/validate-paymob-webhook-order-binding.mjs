@@ -25,6 +25,8 @@ const branches = [
   {
     name: "subscription",
     lookup: 'const {data:subByRef}',
+    fallbackLookup: 'const {data:subByOrder}',
+    providerScope: true,
     selected: "const sub=subByRef??subByOrder",
     guard: 'if(!paymobOrderId||String(sub.provider_order_id??"")!==paymobOrderId)',
     mismatch: "SUBSCRIPTION_PROVIDER_ORDER_MISMATCH",
@@ -34,6 +36,8 @@ const branches = [
   {
     name: "digital-page",
     lookup: 'const {data:digitalByRef}',
+    fallbackLookup: 'const {data:digitalByOrder}',
+    providerScope: true,
     selected: "const digital=digitalByRef??digitalByOrder",
     guard: 'if(!paymobOrderId||String(digital.provider_order_id??"")!==paymobOrderId)',
     mismatch: "DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH",
@@ -43,11 +47,13 @@ const branches = [
   {
     name: "standard",
     lookup: 'const {data:intentByRef}',
+    fallbackLookup: 'const {data:intentByOrder}',
     selected: "const intent=intentByRef??intentByOrder",
     guard: 'if(!paymobOrderId||String(intent.provider_order_id??"")!==paymobOrderId)',
     mismatch: "PAYMENT_PROVIDER_ORDER_MISMATCH",
     successRpc: 'admin.rpc("process_verified_provider_payment"',
     failureRpc: 'admin.rpc("process_verified_provider_payment_failure"',
+    providerScope: true,
   },
 ];
 
@@ -61,6 +67,16 @@ for (const branch of branches) {
 
   assert.ok(lookup >= 0 && selected > lookup && guard > selected,
     branch.name + " lookup must be followed by selecting a candidate then validating its stored provider_order_id");
+  if (branch.providerScope) {
+    const referenceLookup = webhook.slice(lookup, selected);
+    const fallbackLookup = webhook.indexOf(branch.fallbackLookup, lookup);
+    assert.ok(referenceLookup.includes('.eq("provider","PAYMOB")'),
+      branch.name + " unsigned merchant_order_id lookup must be scoped to the PAYMOB provider");
+    assert.ok(fallbackLookup > lookup && fallbackLookup < selected,
+      branch.name + " must retain its provider_order_id fallback lookup");
+    assert.ok(webhook.slice(fallbackLookup, selected).includes('.eq("provider","PAYMOB")'),
+      branch.name + " provider_order_id fallback must be scoped to the PAYMOB provider");
+  }
   assert.ok(mismatchResponse > guard,
     branch.name + " provider-order mismatch must have an explicit fail-closed response");
   assert.ok(successRpc > guard && (!branch.failureRpc || failureRpc > guard),

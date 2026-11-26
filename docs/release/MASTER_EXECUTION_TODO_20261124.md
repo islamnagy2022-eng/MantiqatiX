@@ -108,6 +108,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] In sandbox, replay a valid signed callback for order A with merchant_order_id changed to a different pending order B of equal amount/currency; assert HTTP rejection and zero mutation to both records. Repeat for standard, digital-page and subscription flows.
 
 - [x] Added `scripts/validate-paymob-webhook-order-binding.mjs` and wired it into RC425/RC428 CI; exact-head PR #1090 passed the validator, PG17 payment suites and complete validation workflow. The test asserts HMAC covers `order.id`, excludes unsigned `merchant_order_id`, and requires selected-row equality checks before standard/digital-page/subscription processor RPCs. This is source-contract CI, not proof the deployed webhook is fixed or the altered-selector HTTP sandbox replay has passed.
+- [x] Follow-up source hardening in branch `security/paymob-standard-provider-scope-20261125`: the standard `payment_intents` lookup by unsigned `merchant_order_id` is now also constrained to `provider='PAYMOB'`; the source validator requires that filter. This is source-only pending exact-head CI; no Edge deployment or Production change.
 
 ## 2026-11-26 — RC928 atomic catalog profile and promotional gallery source candidate
 
