@@ -14,7 +14,7 @@ test("recognizes the RC928 read contract when the gallery field is explicitly re
   }), true);
 });
 
-test("fails closed for older catalog-admin responses without the gallery property", () => {
+test("fails closed for older catalog-admin bundles without the gallery property", () => {
   assert.equal(hasPromotionalGalleryCapability({ business: { profile: {} } }), false);
   assert.equal(hasPromotionalGalleryCapability({ business: { profile: { promotional_images: [] } } }), false);
   assert.equal(hasPromotionalGalleryCapability({ business: {} }), false);
