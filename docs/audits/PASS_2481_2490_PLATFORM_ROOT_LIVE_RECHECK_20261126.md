@@ -53,6 +53,35 @@ The source check used the complete, non-truncated current-main Git tree. Every r
 - Delegates to `public.mnty_can('admin', NULL, NULL, NULL)`.
 - This remains an unscoped membership-derived global authority path.
 
+### Additional helper callers and registry ACL
+
+A second read-only `pg_proc` / effective-privilege query identified **12 other public-schema functions** whose definitions reference one of the two helpers:
+
+| Function | SECURITY DEFINER | Live `search_path` |
+|---|---:|---|
+| `admin_create_global_ad` | Yes | `public, pg_temp` |
+| `create_notification_backend` | Yes | `public` |
+| `deactivate_business` | Yes | `public` |
+| `fashion_erp_mutate` | Yes | `public` |
+| `fulfill_digital_page_publish` | Yes | `public, pg_temp` |
+| `get_credit_status` | No | `public` |
+| `mnty_commission_rule_drafts` | Yes | empty |
+| `resolve_legacy_scope` | Yes | `public` |
+| `restaurant_erp_mutate` | Yes | `public` |
+| `restaurant_table_mutate` | Yes | `public` |
+| `review_mantigo_captain_application` | Yes | `public` |
+| `set_mantigo_financial_config_backend` | Yes | `public` |
+
+This is a fresh name/body match inventory, not a claim that all 12 functions are directly client-callable. Their grants and callers must be reviewed individually before any privilege change.
+
+Effective registry table privileges in the same read-only query:
+
+- `anon`: SELECT=false, INSERT=false.
+- `authenticated`: SELECT=false, INSERT=false.
+- `service_role`: SELECT/INSERT/UPDATE/DELETE=true.
+
+This confirms the registry remains client-isolated; it does not replace the missing FORCE RLS and helper-body correction.
+
 ### Policy references
 
 The live catalog query returned:
