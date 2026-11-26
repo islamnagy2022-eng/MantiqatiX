@@ -1,6 +1,6 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-26 — PR #1145 live Edge parity audit and PR #1146 RC484 PostgreSQL 17 behavioral workflow merged; activity-share accessibility deployed; RC929 remains the 87th source-only migration candidate  
-**Base:** `main @ 8b5f8b003ccec5e30c8a72942a6da06b1f418a24`  
+**Updated:** 2026-11-26 — PR #1145 live Edge parity audit, PR #1146 RC484 PostgreSQL 17 behavioral workflow and PR #1147 platform-root preflight documentation merged; activity-share accessibility deployed; RC929 remains the 87th source-only migration candidate  
+**Base:** `main @ fd2cc9d49507d5ee4db874d4d29a4e9a9a15a149`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
@@ -17,6 +17,7 @@
 - [x] PR #1145 Pages deployment passed: [run 45868764532](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45868764532). Live deployed-origin activity-share browser regression passed with focus trap, focus restore and direct-link checks.
 - [x] PR #1146 merged as `8b5f8b003ccec5e30c8a72942a6da06b1f418a24`; added an isolated PostgreSQL 17 behavioral workflow for RC484's 57-policy/24-table registry-backed authorization boundary. The exact migration and full integration test passed: [run 45883930727](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45883930727).
 - [x] Fresh read-only RC464/RC469/RC484 Production preflight recheck: RC464 owner/BYPASSRLS, registry RLS, client ACL, four MantiGO RPC, four shared caller and three policy predicates match; RC484 UUID registry, owner/BYPASSRLS, client/service ACL and 57-policy/24-table predicates match. RC469 caller ACL/identity matches but remains dependent on RC464's hardened guard. These are preflight matches, not applied migrations.
+- [x] Closed the final source-to-live evidence gap for RC117: read-only Production inspection confirms `marketing_services.image_url`, `image_source`, `mnty_default_image_url(...)` and all three default-image triggers are absent. The RC117 forward repair is therefore explicitly BLOCKED on its original schema/function prerequisites. All 87/87 required source migrations now have direct PASS/PARTIAL/BLOCKED dispositions; exact migration IDs remain 0/87.
 
 - [ ] Resolve PR #1138 documentation-only conflict before carrying forward its PASS 2481–2490 live platform-root audit. Its 86-source crosswalk is stale against the current 87-source contract; do not merge its old documentation wholesale.
 - [ ] Resolve the critical live platform-root authorization drift before any admin Edge deployment. Live `mnty_can_platform_admin()` still delegates to tenant-wide `mnty_can('admin',NULL,NULL,NULL)` and `is_platform_admin()` still accepts active tenant `ADMIN`/`SUPER_ADMIN`; blast radius remains 57 RLS policies across 24 tables plus 5 policies across 3 tables. The 2026-11-26 read-only preflight confirms the RC464 and RC484 schema/owner/ACL/policy prerequisites match, and RC469's four caller identities/ACLs match; however the live helpers remain weak, FORCE RLS is off, and caller search_paths remain non-empty. Execute RC464 → RC469 → RC484 only as part of the complete certified migration chain and coordinated release. Do not deploy admin Edge functions individually.
