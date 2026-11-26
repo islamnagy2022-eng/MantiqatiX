@@ -16,6 +16,7 @@
 - [ ] Backup/restore remains a hard launch blocker and unverified. Do not treat disposable CI replay as a Production backup/restore drill.
 
 **Current disposition:** PR #1137 and PR #1139 are merged to source. Their exact-head CI passed. Post-merge Pages deployment for these commits is not yet independently confirmed. Production remains **BLOCKED / NOT CERTIFIED**.
+- [x] Ported the dated PASS 2481–2490 platform-root live audit from the conflicted PR #1138 into `docs/audits/PASS_2481_2490_PLATFORM_ROOT_LIVE_RECHECK_20261126.md`, with an explicit addendum distinguishing its 86-source snapshot from the later 87-source RC929 checkpoint. Production findings remain unresolved; no live mutation.
 
 ## 2026-11-26 — Previous 86-source checkpoint (historical baseline; superseded by the 87-source checkpoint above)
 
