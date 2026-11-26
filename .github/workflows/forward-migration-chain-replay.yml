@@ -18,6 +18,10 @@ on:
       - "supabase/tests/rc927_digital_page_authenticated_identity_scope_integration.sql"
       - "scripts/validate-rc927-digital-page-authenticated-identity-scope.mjs"
       - "scripts/validate-rc928-catalog-profile-promotional-gallery-atomic-write.mjs"
+      - "supabase/migrations/20261126030000_rc929_orders_confirmed_auth_claim_guard.sql"
+      - "supabase/tests/rc929_orders_missing_claim_baseline.sql"
+      - "supabase/tests/rc929_orders_confirmed_auth_claim_integration.sql"
+      - "scripts/validate-rc929-orders-confirmed-auth-guard.mjs"
       - "scripts/validate-rc117-image-provenance-forward-repair.mjs"
       - "supabase/tests/rc117_marketing_service_image_provenance_forward_repair.sql"
       - "scripts/test-rc928-profile-metadata-concurrency.sh"
@@ -59,6 +63,7 @@ on:
       - "supabase/tests/baselines/production_data_prerequisites_fixture.sql"
       - "supabase/tests/baselines/production_live_trigger_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_order_status_history_acl_overlay_fixture.sql"
+      - "supabase/tests/baselines/production_live_order_resources_anon_select_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_business_branch_anon_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/rc484_live_storage_policy_overlay_fixture.sql"
       - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
@@ -150,6 +155,10 @@ on:
       - "supabase/tests/rc927_digital_page_authenticated_identity_scope_integration.sql"
       - "scripts/validate-rc927-digital-page-authenticated-identity-scope.mjs"
       - "scripts/validate-rc928-catalog-profile-promotional-gallery-atomic-write.mjs"
+      - "supabase/migrations/20261126030000_rc929_orders_confirmed_auth_claim_guard.sql"
+      - "supabase/tests/rc929_orders_missing_claim_baseline.sql"
+      - "supabase/tests/rc929_orders_confirmed_auth_claim_integration.sql"
+      - "scripts/validate-rc929-orders-confirmed-auth-guard.mjs"
       - "scripts/validate-rc117-image-provenance-forward-repair.mjs"
       - "supabase/tests/rc117_marketing_service_image_provenance_forward_repair.sql"
       - "scripts/test-rc928-profile-metadata-concurrency.sh"
@@ -165,6 +174,7 @@ on:
       - "supabase/tests/baselines/production_data_prerequisites_fixture.sql"
       - "supabase/tests/baselines/production_live_trigger_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_order_status_history_acl_overlay_fixture.sql"
+      - "supabase/tests/baselines/production_live_order_resources_anon_select_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/production_live_business_branch_anon_acl_overlay_fixture.sql"
       - "supabase/tests/baselines/rc484_live_storage_policy_overlay_fixture.sql"
       - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
@@ -260,7 +270,7 @@ jobs:
       - name: Validate RC469 shared caller search_path contract
         run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
 
-      - name: Validate strict Production release gate and exact 86-version contract
+      - name: Validate strict Production release gate and exact 87-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
 
       - name: Validate current backup runbook and release migration scope
@@ -280,7 +290,7 @@ jobs:
       - name: Validate RC485/RC923 catalog RPC registry-root and anonymous-auth contract
         run: node scripts/validate-rc485-catalog-rpc-registry-root.mjs
 
-      - name: Validate RC924 agreement participant and unified 86-version release contract
+      - name: Validate RC924 agreement participant and unified 87-version release contract
         run: node scripts/validate-rc924-agreement-participant-read-scope.mjs
 
       - name: Validate RC925 explicit confirmed-identity catalog RPC guard
@@ -291,6 +301,8 @@ jobs:
         run: node scripts/validate-rc927-digital-page-authenticated-identity-scope.mjs
       - name: Validate RC928 atomic catalog profile metadata and promotional gallery
         run: node scripts/validate-rc928-catalog-profile-promotional-gallery-atomic-write.mjs
+      - name: Validate RC929 explicit confirmed-Auth claim for order resources
+        run: node scripts/validate-rc929-orders-confirmed-auth-guard.mjs
 
       - name: Validate RC117 marketing-service image provenance forward repair
         run: node scripts/validate-rc117-image-provenance-forward-repair.mjs
@@ -393,6 +405,10 @@ jobs:
               if [[ "$filename" == "20261125120000_rc927_digital_page_authenticated_identity_scope.sql" ]]; then
                 echo "RESTORE_TEST_ONLY_CURRENT_PRODUCTION_DIGITAL_PAGE_ANON_DML_ACL"
                 psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/production_live_digital_page_anon_dml_acl_overlay_fixture.sql
+              fi
+              if [[ "$filename" == "20261126030000_rc929_orders_confirmed_auth_claim_guard.sql" ]]; then
+                echo "RESTORE_TEST_ONLY_KNOWN_LIVE_ORDER_RESOURCES_ANON_SELECT_ACL_OVERLAY"
+                psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/production_live_order_resources_anon_select_acl_overlay_fixture.sql
               fi
               echo "REPLAY_MIGRATION=$filename"
               psql "$db_url" -v ON_ERROR_STOP=1 -f "$migration"

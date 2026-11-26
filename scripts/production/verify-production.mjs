@@ -105,7 +105,8 @@ const requiredReleaseMigrations=[
   "20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql",
   "20261125120000_rc927_digital_page_authenticated_identity_scope.sql",
   "20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql",
-  "20261126020000_preserve_marketing_service_image_provenance.sql"
+  "20261126020000_preserve_marketing_service_image_provenance.sql",
+  "20261126030000_rc929_orders_confirmed_auth_claim_guard.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));

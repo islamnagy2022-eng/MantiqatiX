@@ -5465,3 +5465,16 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Full forward migration replay passed from the captured Production schema checkpoint (run 45458313389); RC471/RC479/RC480/RC481/RC482/RC483, RC425, directory claim, migration collision/immutability/version and module tests passed on the same PR head.
 - [x] Pages workflow validation passed, but its deploy job was skipped for the PR event; no post-merge public-origin deployment has been independently confirmed.
 - [ ] Production is still read-only. Live migration ledger remains 310 rows through `20261110150618`; read-only query confirms RC482 `20261119020000` and RC924 `20261124140000` are absent. Live `private.legal_is_admin()` and `private.legal_is_admin(uuid)` still derive global Legal authority from active `user_memberships` roles. Do not claim the agreement security repair is live until the coordinated migration release is completed.
+
+
+---
+
+## 2026-11-26 — Current source and security checkpoint: PR #1136 + RC929
+
+- Current execution queue: `docs/release/MASTER_EXECUTION_TODO_20261124.md`; source-of-truth map: `docs/SOURCE_OF_TRUTH_MAP_20261124.md`.
+- Main: `d695316a69426d71c65891a6bbe2cd379b77a33d`; PR #1136 merged. Pages deployment [45779486714](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45779486714) and post-merge primary catalog, backend boundary and MantiGO privacy checks passed.
+- Current migration release contract has 87 required versions; live Production ledger has 310 entries through `20261110150618`, with 0/87 exact required IDs present. No Production migration was applied.
+- Direct read-only policy check: `orders` and `order_status_history` have RLS + FORCE RLS, anon SELECT denied, authenticated SELECT granted; strict confirmed-Auth guards rejecting a missing/null `is_anonymous` claim are absent.
+- RC929 `20261126030000` is a source-only candidate on `security/rc929-orders-explicit-confirmed-auth-guard-20261126`. It adds two restrictive identity policies requiring non-null `auth.uid()` and explicit `is_anonymous=false`; baseline and PostgreSQL 17 negative/positive regression tests are added. Exact-head CI and chronological replay must pass before PR merge.
+- RC928 gallery writes remain unavailable on the live catalog-admin v20; PR #1136 now safely blocks unsupported changed-gallery saves. The two public reader functions have gallery read projection changes, but coordinated DB/admin/public reader parity is still required.
+- No Production DB/Auth/RLS/GRANT/Storage/Edge/payment/order/customer or backup mutation occurred. Backup/restore remains deferred and unverified. Full platform remains **BLOCKED / NOT CERTIFIED**.
