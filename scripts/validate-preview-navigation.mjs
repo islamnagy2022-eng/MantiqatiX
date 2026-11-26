@@ -70,7 +70,7 @@ const checks = [
   ["Legacy homepage source remains preserved for future development", fs.existsSync("web/index.html")],
   ["Homepage has a visible boot failure fallback", /تعذر تحميل واجهة المنصة/.test(home)],
   ["Homepage keeps Supabase failure in public mode", /public mode remains open/.test(home)],
-  ["Pages artifact publishes the legacy catalog at the root, keeps a rollback copy and V6 preview", pages.includes("Publish the legacy catalog as the production root and preserve V6 preview") && pages.includes("mantiqatix-composed-pages-site") && /cp -a "\$\{LEGACY_ROOT_DIST\}\/\." "\$\{SITE_DIR\}\/"/.test(pages) && /cp -a apps\/catalog-frontend\/dist\/\. "\$\{SITE_DIR\}\/legacy\//.test(pages) && /cp -a apps\/aistudio-v6\/worktree\/dist\/\. "\$\{SITE_DIR\}\/v6-preview\//.test(pages) && !pages.includes("cp -a web/.")],
+  ["Pages artifact publishes the canonical catalog at root, keeps /legacy/ rollback and V6 preview", pages.includes("Publish the catalog as the production root; preserve /legacy rollback and V6 preview") && pages.includes("mantiqatix-composed-pages-site") && pages.includes("CATALOG_ROOT_DIST") && pages.includes("mantiqatix-catalog-root-build") && pages.includes("cp -a apps/catalog-frontend/dist/.") && pages.includes("/legacy/") && pages.includes("/v6-preview/") && !pages.includes("cp -a web/")],
   ["Production deploy is restricted to main", /github\.ref == 'refs\/heads\/main'/.test(pages)],
   ["Service worker uses network-first navigation with cached homepage fallback", /event\.request\.mode==='navigate'[\s\S]*?caches\.match\('\.\/index\.html'\)/.test(sw)],
   ["Demo dashboard declares Arabic RTL and mobile viewport", /<html lang="ar" dir="rtl">/.test(dashboard) && /name="viewport"/.test(dashboard)],

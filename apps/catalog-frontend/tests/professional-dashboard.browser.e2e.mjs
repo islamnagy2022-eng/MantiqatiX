@@ -965,6 +965,13 @@ try {
     ];
     const { context, page } = await newScenario(browser, null, fixtures);
     try {
+      // The fixture uses reserved example.test URLs. Serve a valid image so the
+      // storefront's real image-error fallback does not replace the URL under test.
+      await page.route('https://assets.example.test/**', async (route) => route.fulfill({
+        status: 200,
+        contentType: 'image/svg+xml',
+        body: '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>',
+      }));
       await page.getByRole('heading', { name: 'نشاط رابطين خارجيين', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       const logoLinks = page.locator('a[aria-label="فتح الرابط الخارجي للصورة التعريفية"]');
       const coverLinks = page.locator('a[aria-label="فتح الرابط الخارجي لصورة الغلاف"]');
