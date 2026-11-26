@@ -55,9 +55,20 @@ def has_explicit_public_price_guard(edge: str, helper: str) -> bool:
         and "../_shared/public-price-visibility.mjs" in line
         for line in edge.splitlines()
     )
+    single_scope_price_query = "filterRowsToPubliclyPricedItems(items, p || [])" in edge
+    split_branch_price_queries = all(
+        marker in edge
+        for marker in (
+            'priceQuery().is("branch_id", null)',
+            'priceQuery().eq("branch_id", branchId)',
+            "...(globalPriceResult.data || [])",
+            "...(branchPriceResult.data || [])",
+            "prices = filterRowsToPubliclyPricedItems(items, [",
+        )
+    )
     shared_helper_guard = (
         shared_import
-        and "filterRowsToPubliclyPricedItems(items, p || [])" in edge
+        and (single_scope_price_query or split_branch_price_queries)
         and "metadata?.catalog_public?.show_price === true" in helper
         and "getExplicitlyPublicComparePrice({ metadata: { catalog_public: rawPublic } })" in edge
         and "if (!hasExplicitPublicPricePermission(item)) return null;" in helper
@@ -82,6 +93,14 @@ def self_test() -> None:
     shared_edge = 'import { filterRowsToPubliclyPricedItems, getExplicitlyPublicComparePrice } from "../_shared/public-price-visibility.mjs";\\nitems = rows.filter((i) => i.metadata?.catalog_public?.is_available === true);\\nprices = filterRowsToPubliclyPricedItems(items, p || []);\\ncompare_price = getExplicitlyPublicComparePrice({ metadata: { catalog_public: rawPublic } });'
     shared_helper = "item?.metadata?.catalog_public?.show_price === true\\nif (!hasExplicitPublicPricePermission(item)) return null;"
     assert has_explicit_public_price_guard(shared_edge, shared_helper)
+    split_branch_edge = (
+        'import { filterRowsToPubliclyPricedItems, getExplicitlyPublicComparePrice } from "../_shared/public-price-visibility.mjs";\\n'
+        'items = rows.filter((item) => item.metadata?.catalog_public?.is_available === true);\\n'
+        'priceQuery().is("branch_id", null); priceQuery().eq("branch_id", branchId);\\n'
+        'prices = filterRowsToPubliclyPricedItems(items, [ ...(globalPriceResult.data || []), ...(branchPriceResult.data || []) ]);\\n'
+        'compare_price = getExplicitlyPublicComparePrice({ metadata: { catalog_public: rawPublic } });'
+    )
+    assert has_explicit_public_price_guard(split_branch_edge, shared_helper)
     assert not has_explicit_public_price_guard("items = rows.filter((i) => i.metadata?.catalog_public?.is_available === true); prices = rows.filter((item) => item.metadata?.catalog_public?.show_price === false);", "")
     assert not has_explicit_public_price_guard('import { filterRowsToPubliclyPricedItems } from "../_shared/public-price-visibility.mjs";\\nitems = rows.filter((i) => i.metadata?.catalog_public?.is_available === true); prices = filterRowsToPubliclyPricedItems(items, p || []);', "metadata?.catalog_public?.show_price === true")
     for old, new, label in [
