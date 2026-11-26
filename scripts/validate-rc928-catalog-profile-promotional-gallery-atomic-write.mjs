@@ -88,7 +88,7 @@ for (const marker of [
 assert.ok(primaryWorkflow.includes("node scripts/validate-rc928-catalog-profile-promotional-gallery-atomic-write.mjs"));
 assert.ok(replayWorkflow.includes("node scripts/validate-rc928-catalog-profile-promotional-gallery-atomic-write.mjs"));
 assert.ok(replayWorkflow.includes("supabase/tests/owner_profile_persistence_integration.sql"));
-assert.ok(replayWorkflow.includes("OWNER_PROFILE_PERSISTENCE_INTEGRATION"));
+assert.ok(replayWorkflow.includes("RC928_ATOMIC_CATALOG_PROFILE_PROMOTIONAL_GALLERY_INTEGRATION"));
 assert.ok(replayWorkflow.includes("bash scripts/test-rc928-profile-metadata-concurrency.sh \"$db_url\""),
   "full chronological PG17 replay must execute the two-session metadata preservation concurrency test");
 assert.ok(concurrencyScript.includes("SELECT pg_sleep(2)"));
