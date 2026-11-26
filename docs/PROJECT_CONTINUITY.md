@@ -1,3 +1,14 @@
+## 2026-11-26 — PR #1142 activity-share accessibility and deployed-origin verification
+
+- PR #1142 merged to `main` as `2cc6639fc0f8af04d04311910c94bc9b959e1d8b`.
+- Activity share dialog now moves focus to Close on open, traps Tab/Shift+Tab, closes on Escape and restores focus to the invoking share button.
+- Exact-head Primary Catalog build, employee RBAC PostgreSQL and browser E2E passed. The browser log reports `ACTIVITY_SHARE_DIALOG_BROWSER_E2E=PASS focus_trap=true focus_restore=true direct_link=true`.
+- Post-merge Pages deployment run `45865039338` completed SUCCESS. Deployed-origin browser verification reports both `PRIMARY_CATALOG_BROWSER_E2E=PASS` and `ACTIVITY_SHARE_DIALOG_BROWSER_E2E=PASS focus_trap=true focus_restore=true direct_link=true`.
+- Post-merge Primary Catalog validation run `45865039208` and module/security validation run `45865039264` completed SUCCESS. The Pages run also verified root, `/legacy/`, `/v6-preview/`, case-insensitive routes and V6 desktop/mobile rendering.
+- No Production database, Auth, RLS/GRANT, Storage, Edge, payment, wallet, settlement or customer data was changed. Full platform remains **BLOCKED / NOT CERTIFIED**; 87-source physical-effect/alias reconciliation, coordinated DB/Edge parity and owner-controlled backup/restore remain outstanding.
+
+---
+
 ## 2026-11-24 — RC925 missing Anonymous Auth claim fail-closed candidate
 
 - Read-only Production recheck found seven catalog SECURITY DEFINER RPCs still use legacy guards: three lacked a direct identity guard before RC923, and four used COALESCE expressions that allow a JWT with no `is_anonymous` claim.
