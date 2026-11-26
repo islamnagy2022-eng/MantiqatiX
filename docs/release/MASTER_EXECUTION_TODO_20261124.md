@@ -1,8 +1,22 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-26 — RC928 atomic catalog profile/gallery source merge and 85-version release map  
+**Updated:** 2026-11-26 — RC117 image-provenance repair merged; active release contract includes 86 source migrations  
 **Base:** `main @ 17329ba27effad52a316ad0aa94ef1a93ab975a7`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
+
+## 2026-11-26 — Current execution checkpoint (86-source release contract)
+
+- [x] PR #1129 merged source-only as `a0abff68428a4a8334ac09cb117898c90d2d520a`; added forward-only RC117 repair `20261126020000` to preserve non-empty owner URLs with missing provenance and generate defaults only for blank image URLs. Historical RC117 migration remains unchanged.
+- [x] PR #1130 merged to current `main` as `e935b77902fa082218e3db01c7b20ec6db0a2ede`. It made the repair the 86th required source version and aligned the strict gate, verifier, backup validator and reconciliation manifest.
+- [x] Exact-head 86-version strict gate and chronological PostgreSQL 17 replay passed on PR #1130: [run 45749358798](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45749358798). The focused RC117 test passed owner URL, legacy URL + NULL/blank provenance, blank-image default, `ai_generated`, existing `auto` and idempotent re-run cases. The test ran against a disposable database and ended with ROLLBACK.
+- [x] Primary catalog build, TypeScript checks, employee RBAC PostgreSQL, dashboard browser E2E, deployed-origin redirect regression and companion security/tenant workflows passed on the exact PR #1130 head. The Pages deployment job was correctly skipped for the pull request.
+- [x] Fresh read-only Production migration inventory on 2026-11-26: **310 rows**, latest `20261110150618`; exact required release versions **0/86** present. RC928 (`20261126010000`) and RC117 repair (`20261126020000`) remain absent. This is an identity reconciliation gap, not proof that every SQL effect is physically absent.
+- [x] Supabase organization is confirmed on the Free plan. Automatic daily backups and leaked-password protection are Pro+ features; no upgrade, paid branch or paid project was created.
+- [ ] Owner-controlled encrypted off-site database export, separate Storage object-byte export, Auth/Vault recovery coverage, integrity/retrieval proof and independent PostgreSQL 17 restore/rollback with measured RPO/RTO remain NOT VERIFIED. These stay hard release blockers; ordinary CI replay is not a Production backup/restore drill.
+- [ ] Complete current source-to-live physical effect, migration identity/alias and Edge-function parity reconciliation; resolve all BLOCKED/PARTIAL effects with their exact dependencies.
+- [ ] Keep Production DB/Auth/RLS/GRANT/Storage/Edge/payment/customer data read-only. No coordinated release or public directory activation until backup/restore, authorization/privacy tests and deployed-origin positive/negative tests pass.
+
+**Current disposition:** Source/CI repair merged; Production migrations not applied; no Production data or Edge deployment changed. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 
 ## P1 — Catalog URL case-insensitive routing (user-requested)
 - [ ] Verify the public catalog and activity deep links open when alphabetic characters in the path use different uppercase/lowercase combinations; preserve query strings and hashes.
