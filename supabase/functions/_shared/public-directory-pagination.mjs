@@ -39,7 +39,7 @@ export const PUBLIC_DIRECTORY_PAGE_SIZE = PAGE_SIZE;
  * When an item ID is unexpectedly present in both scopes, the branch row wins.
  */
 export function mergePublicDirectoryCatalogItems(globalItems, branchItems, limit = 150) {
-  const safeLimit = Number.isSafeInteger(limit) && limit > 0 ? Math.min(limit, 300) : 150;
+  const safeLimit = Number.isSafeInteger(limit) && limit > 0 ? Math.min(limit, 150) : 150;
   const unique = new Map();
   for (const item of [
     ...(Array.isArray(branchItems) ? branchItems : []),
