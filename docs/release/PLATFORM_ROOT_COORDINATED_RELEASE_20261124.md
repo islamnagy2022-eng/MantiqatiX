@@ -18,7 +18,7 @@ See [PASS 2361–2370](../audits/PASS_2361_2370_PLATFORM_ROOT_LIVE_RECHECK_20261
 
 ## 2. Required ordered source slice
 
-The following is a dependency map, not permission to cherry-pick migrations. The actual release chain must follow the exact canonical 85-version order in [REQUIRED_85_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261126.md](./REQUIRED_84_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261125.md) and the gate in `scripts/production/live-reconciliation-contract.mjs`.
+The following is a dependency map, not permission to cherry-pick migrations. The actual release chain must follow the exact canonical 85-version order in [REQUIRED_85_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261126.md](./REQUIRED_85_MIGRATION_SOURCE_OBJECT_CROSSWALK_20261126.md) and the gate in `scripts/production/live-reconciliation-contract.mjs`.
 
 | Stage | Source chain | Dependency / required result |
 |---|---|---|
@@ -46,7 +46,7 @@ The labels above are functional groups only; execute by version timestamp from t
 
 - Production's live migration ledger is 310 rows through `20261110150618`, with 0/85 exact required source-version IDs. Three aliases are confirmed, but formal ledger repairs remain zero. Do not treat the mismatch itself as absence of physical effects.
 - The 76-object curated physical read-back is 35 present / 41 absent and is not the exhaustive release contract.
-- RC464/RC471/RC484/RC485/RC925/RC926/RC927 are source-side fixes, not live Production changes. RC927 does not add `service_role` table grants; current direct SELECT is absent and unchanged.
+- RC464/RC471/RC484/RC485/RC925/RC926/RC927/RC928 are source-side fixes, not live Production changes. RC927 does not add `service_role` table grants; current direct SELECT is absent and unchanged.
 - Current CI evidence includes run `45496742405` (full forward replay) and `45496743088` (module/RC471-related PG17 tests), plus catalog, dashboard, privacy, directory, Paymob and agreement suites on the exact PR #1086 head. CI pass is not Production certification.
 - The leaked-password protection setting remains NOT AVAILABLE / NOT VERIFIED on the current plan. Do not claim it is enabled.
 
@@ -54,7 +54,7 @@ The labels above are functional groups only; execute by version timestamp from t
 
 The connected project was re-read directly after RC926 merged:
 
-- Project is `ACTIVE_HEALTHY`, PostgreSQL 17.6.1.155. Migration ledger remains 310 rows through `20261110150618`; exact source IDs remain **0/84**.
+- Project is `ACTIVE_HEALTHY`, PostgreSQL 17.6.1.155. Migration ledger remains 310 rows through `20261110150618`; exact source IDs remain **0/85**.
 - Provider profile table has RLS + FORCE RLS enabled, but direct `anon SELECT` is still granted. The permissive `Public can view active marketing providers` SELECT policy remains present for `anon, authenticated`; the strict RC926 restrictive policy is absent from Production.
 - `private.platform_admins` still has RLS ON / FORCE RLS OFF. Registry SELECT remains server-only (`service_role` true; `anon` and `authenticated` false). `is_platform_admin()` remains SECURITY INVOKER/search_path=public and does not reference the registry; `mnty_can_platform_admin()` remains SECURITY DEFINER/search_path=public, pg_temp and delegates to the legacy null-scope helper.
 - The 62-policy dependency count remains 57 references across 24 tables for `is_platform_admin()` and five references across three tables for `mnty_can_platform_admin()`.
