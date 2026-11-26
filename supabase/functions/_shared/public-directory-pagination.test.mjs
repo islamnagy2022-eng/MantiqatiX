@@ -2,9 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { getExplicitPublicContact } from "./public-contact-visibility.mjs";
 import {
+  getNextDirectoryCursorPosition,
   hashDirectoryScope,
   issueDirectoryCursor,
   matchesDirectoryAreaFilter,
+  matchesDirectoryVerificationPhase,
   matchesDirectoryBusinessFilters,
   normalizeDirectoryFilters,
   parseDirectorySlugs,
@@ -144,10 +146,42 @@ test("signed cursor round-trips and is bound to filter scope", async () => {
     lastId: id, snapshotAt: "2026-11-14T00:00:00.000Z", scopeHash, secret, now: Date.parse("2026-11-14T00:01:00.000Z"),
   });
   const decoded = await verifyDirectoryCursor(token, { scopeHash, secret, now: Date.parse("2026-11-14T00:02:00.000Z") });
-  assert.deepEqual(decoded, { ok: true, lastId: id, snapshotAt: "2026-11-14T00:00:00.000Z" });
+  assert.deepEqual(decoded, { ok: true, phase: "verified", lastId: id, snapshotAt: "2026-11-14T00:00:00.000Z" });
   assert.deepEqual(await verifyDirectoryCursor(token, {
     scopeHash: await hashDirectoryScope({ governorate: "الغربية" }, []), secret, now: Date.parse("2026-11-14T00:02:00.000Z"),
   }), { ok: false, code: "INVALID_CURSOR" });
+});
+
+test("verified-first cursor phases safely cross from verified results to unverified results", async () => {
+  assert.equal(matchesDirectoryVerificationPhase({ is_verified: true }, "verified"), true);
+  assert.equal(matchesDirectoryVerificationPhase({ is_verified: false }, "verified"), false);
+  assert.equal(matchesDirectoryVerificationPhase({ is_verified: null }, "unverified"), true);
+  assert.equal(matchesDirectoryVerificationPhase({ is_verified: true }, "unverified"), false);
+
+  assert.deepEqual(getNextDirectoryCursorPosition({
+    lastId: id, lastPhase: "verified", lookaheadPhase: "unverified",
+  }), { phase: "unverified", lastId: null });
+  assert.deepEqual(getNextDirectoryCursorPosition({
+    lastId: id, lastPhase: "unverified", lookaheadPhase: "unverified",
+  }), { phase: "unverified", lastId: id });
+  assert.deepEqual(getNextDirectoryCursorPosition({
+    lastId: id, lastPhase: "verified", lookaheadPhase: "verified",
+  }), { phase: "verified", lastId: id });
+
+  const scopeHash = await hashDirectoryScope({}, []);
+  const token = await issueDirectoryCursor({
+    lastId: null, phase: "unverified", snapshotAt: "2026-11-14T12:00:00.000Z",
+    scopeHash, secret, now: Date.parse("2026-11-14T12:01:00.000Z"),
+  });
+  assert.deepEqual(await verifyDirectoryCursor(token, {
+    scopeHash, secret, now: Date.parse("2026-11-14T12:02:00.000Z"),
+  }), {
+    ok: true, phase: "unverified", lastId: null, snapshotAt: "2026-11-14T12:00:00.000Z",
+  });
+  await assert.rejects(() => issueDirectoryCursor({
+    lastId: null, phase: "verified", snapshotAt: "2026-11-14T12:00:00.000Z",
+    scopeHash, secret,
+  }), /INVALID_CURSOR_PAYLOAD/);
 });
 
 test("tampered, expired and malformed cursors are rejected", async () => {
