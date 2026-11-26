@@ -100,6 +100,18 @@ test("free-text search matches public profile data but never private contact fie
   assert.equal(matchesDirectoryBusinessFilters(business, provider, { query: "شارع سري" }), false);
 });
 
+test("geographic filters ignore administrative prefixes and Arabic spelling variants", () => {
+  const business = { settings: { catalog_profile: {
+    governorate: "المنوفيه",
+    markaz: "بركه السبع",
+    village: "قرية الروضة",
+  } } };
+  assert.equal(matchesDirectoryBusinessFilters(business, {}, {
+    governorate: "محافظة المنوفية",
+    markaz: "مركز بركة السبع",
+    village: "الروضة",
+  }), true);
+});
 test("scope hash is stable and changes when a filter changes", async () => {
   const a = await hashDirectoryScope({ activity: "مطاعم", governorate: "المنوفية" }, ["b", "a"]);
   const b = await hashDirectoryScope({ governorate: "المنوفية", activity: "مطاعم" }, ["a", "b"]);
