@@ -216,7 +216,8 @@ BEGIN
     RAISE EXCEPTION 'RC928_OVER_LIMIT_GALLERY_PARTIALLY_CHANGED_PROFILE: %', v_settings->'catalog_profile';
   END IF;
 
-  -- Authenticated identity with a missing is_anonymous claim is denied.
+  -- Authenticated identity with a valid subject but a missing is_anonymous claim is denied.
+  PERFORM set_config('request.jwt.claim.sub', v_owner_id::text, true);
   PERFORM set_config('request.jwt.claims',
     jsonb_build_object('sub', v_owner_id::text, 'role', 'authenticated')::text, true);
   BEGIN
@@ -235,7 +236,8 @@ BEGIN
     END IF;
   END;
 
-  -- Anonymous Auth is denied even when the subject is the actual owner.
+  -- Anonymous Auth is denied even when auth.uid() is the actual owner.
+  PERFORM set_config('request.jwt.claim.sub', v_owner_id::text, true);
   PERFORM set_config('request.jwt.claims',
     jsonb_build_object('sub', v_owner_id::text, 'role', 'authenticated', 'is_anonymous', true)::text, true);
   BEGIN
