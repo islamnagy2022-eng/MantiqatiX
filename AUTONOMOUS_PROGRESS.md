@@ -15,7 +15,7 @@
 - `PUBLIC_UNCLAIMED_DIRECTORY_LISTINGS_ENABLED` remains false. Do not enable unclaimed public directory listings until publication/source rights, contact-consent schema/RPC/ACL/RLS and deployed Edge contracts are verified.
 
 ## Open source candidates — do not merge as-is
-- PR #726 (`security/public-catalog-contact-consent-20261114`) is still a draft and GitHub reports it non-mergeable. Its head `6aeb418ae3ae6f390999ab04ae4c6fd7917c37c4` diverges from current main by 88 commits. Its earlier checks passed, but the branch has not been reconciled with current main and it still requires pagination/contact-consent deployed-origin tests. Rebase/resolve against current main, rerun exact-head CI and review before considering merge.
+- PR #726 (`security/public-catalog-contact-consent-20261114`) is still a draft and GitHub reports it non-mergeable. Its head `6aeb418ae3ae6f390999ab04ae4c6fd7917c37c4` diverges from current main: main has 526 commits beyond that head, while the PR branch has 88 unique commits. Its earlier checks passed, but the branch has not been reconciled with current main and it still requires pagination/contact-consent deployed-origin tests. Rebase/resolve against current main, rerun exact-head CI and review before considering merge.
 - PR #725 (`security/orders-read-business-branch-scope-20261114`) is also a draft and non-mergeable on an old base. The RC465 focused PostgreSQL workflow passed on its previous head, but it still requires current-main reconciliation and human SQL review before merge.
 
 ## Verified Production release blockers
