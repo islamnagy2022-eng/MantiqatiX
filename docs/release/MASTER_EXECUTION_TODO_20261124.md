@@ -26,15 +26,15 @@
 - [x] Identified the seven authenticated-write review candidates and separated confirmed grant/policy gaps from merely missing explicit restrictive claim markers.
 - [x] Added PASS 2461–2470 audit and updated Issue #928 with the 2026-11-25 matrix.
 - [x] Strengthened RC927 regression identities: the Anonymous Auth and missing-claim JWT subjects now equal the actual digital-page owner. Owner policies would otherwise pass; the test therefore proves the new restrictive identity condition denies read, insert, update and delete paths.
-- [ ] Exact-head static and PostgreSQL 17 full chronological 84-version replay pending on PR. Do not merge/deploy until all checks pass.
+- [x] Exact-head static and PostgreSQL 17 full chronological 85-version replay passed on PR #1122; 17/17 workflows passed. Source-only merge `ffd91df42c0cc70bfce692cc79045132cff5c383`; RC927 remains unapplied to Production.
 
 ## 2026-11-25 — RC927 digital-page anonymous Auth boundary (source candidate)
 
 - [x] Read live pg_policies and role privileges for digital_pages and digital_page_sections. The public read policies currently target both anon and authenticated; page owner access is split into owner SELECT, INSERT and draft UPDATE policies plus a global admin policy.
 - [x] Confirmed repository public renderer web/digital-page.js uses a dedicated stateless anon-key client; no signInAnonymously call was found in the app source. Preserve raw-anon public reading and do not depend on a signed-in anonymous session.
-- [ ] RC927 source candidate: retarget published page/section read policies to raw anon only and add restrictive FOR ALL TO authenticated policies requiring explicit is_anonymous=false; keep RC480's 10-column raw-anon page allowlist, existing owner/admin policies and service-role behavior.
+- [x] RC927 retargets published page/section reads to raw anon only and adds restrictive FOR ALL TO authenticated policies requiring explicit is_anonymous=false; preserves RC480's 10-column raw-anon page allowlist and existing owner/admin policies. Merged source-only in PR #1122.
 - [ ] Add adversarial PG17 tests: raw anon published page + active sections still work; internal page columns and SELECT * stay denied; Anonymous Auth + missing/null claim cannot read or write; confirmed owner retains internal read and draft updates; another confirmed user remains denied.
-- [ ] Keep RC927 dependent on RC480 and exact chronological 84-version replay. Do not merge as complete until its exact-head PostgreSQL 17 and all static/CI gates pass. It is source-only and is not applied to Production.
+- [x] RC927 depends on RC480 and passed exact chronological 85-version replay plus its adversarial PG17 tests. It is source-only and is not applied to Production.
 
 ## 2026-11-25 — RC926 strict provider-profile identity boundary
 
