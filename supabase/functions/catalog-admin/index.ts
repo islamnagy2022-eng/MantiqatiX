@@ -530,7 +530,7 @@ Deno.serve(async (req: Request) => {
         if (normalizedUrl === null) {
           return out(origin, { error: "INVALID_SOCIAL_PROFILE_URL", field: requestKey }, 400);
         }
-        submittedProfileMetadata[columnKey] = normalizedUrl;
+        submittedProfileMetadata[columnKey] = normalizedUrl || null;
       }
 
       if (Object.prototype.hasOwnProperty.call(body, "additionalContactPhones")) {
