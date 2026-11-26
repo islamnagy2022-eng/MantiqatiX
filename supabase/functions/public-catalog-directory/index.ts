@@ -207,6 +207,7 @@ Deno.serve(async (req: Request) => {
         }
         items = [...(globalItemResult.data || []), ...(branchItemResult.data || [])]
           .filter((i: any) => i.metadata?.catalog_public?.is_available === true)
+          .sort((a: any, b: any) => String(a.name_ar || "").localeCompare(String(b.name_ar || ""), "ar"))
           .slice(0, 150);
         const itemIds = items.map((i: any) => i.id);
         if (itemIds.length) {
