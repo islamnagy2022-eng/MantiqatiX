@@ -31,7 +31,7 @@ assert.ok(branchProjection, "Directory branches must keep an explicit response p
 assert.doesNotMatch(branchProjection[1], /\b(phone|address)\s*:/, "Operational branch contacts must never be returned as raw branch fields");
 assert.doesNotMatch(edge, /\.range\(/, "Keyset pagination must not use offset ranges");
 
-for (const field of ["activity", "specialty", "governorate", "markaz", "village", "query"]) {
+for (const field of ["activity", "specialty", "governorate", "markaz", "village", "area", "query"]) {
   assert.match(helper, new RegExp(field), `Filter contract must retain ${field}`);
 }
 assert.match(helper, /MAX_CURSOR_AGE_MS/);
