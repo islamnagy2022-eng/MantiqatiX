@@ -52,8 +52,8 @@ assert.match(integration, /ROLLBACK;/);
 
 assert.match(contract, /"20261120290000"/);
 assert.match(verify, /20261120290000_rc494_settlement_financial_atomic_registry_scope_hardening\.sql/);
-assert.match(gate, /required.length, 83/);
-assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 83);
+assert.match(gate, /required.length, 84/);
+assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 84);
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261123221950"));
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261123221950"));
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261120290000"));
@@ -76,3 +76,5 @@ console.log("RC494_SETTLEMENT_REGISTRY_SCOPE=PASS");
 
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261125110000"), "manifest must require RC926");
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261125110000"), "manifest must keep RC926 unapplied until coordinated release");
+assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261125120000"), "manifest must require RC927");
+assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261125120000"), "manifest must keep RC927 unapplied until coordinated release");
