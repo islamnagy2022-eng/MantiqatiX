@@ -1,10 +1,27 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
-**Updated:** 2026-11-26 — PR #1145 live Edge parity audit, PR #1146 RC484 PostgreSQL 17 behavioral workflow and PR #1147 platform-root preflight documentation merged; activity-share accessibility deployed; RC929 remains the 87th source-only migration candidate  
-**Base:** `main @ fd2cc9d49507d5ee4db874d4d29a4e9a9a15a149`  
+**Updated:** 2026-11-26 — PR #1148 merged; current-main continuation checkpoint refreshed  
+**Base:** `main @ 111db15e30182e6f21ef9d91630a187d73601c36`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
 **Release gate:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`
 
-## 2026-11-26 — Current execution checkpoint (PR #1145/#1146 post-merge verification)
+## 2026-11-26 — Current execution checkpoint after PR #1148
+
+- [x] Confirmed current `main` is `111db15e30182e6f21ef9d91630a187d73601c36`; PR #1148 merged the direct RC117 image-provenance prerequisite read-back and refreshed the 87-source source-to-live disposition.
+- [x] Exact-head PR #1148 forward replay run [45885026552](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45885026552) passed the strict 87-version release validators and chronological disposable PostgreSQL replay. It is not Production migration evidence and is not a backup/restore drill.
+- [x] PR #1148 Pages workflow [45885027044](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45885027044): validation and redirect regression passed; public-only deployment jobs were skipped because the change was documentation-only.
+- [x] Main's existing public activity pagination is already implemented and browser-tested: 20 initial cards, then 20 more per explicit action, with the final partial page rendered without duplicate IDs.
+- [x] Confirmed public unclaimed-directory listings remain intentionally disabled by `PUBLIC_UNCLAIMED_DIRECTORY_LISTINGS_ENABLED=false`; publication rights and contact-consent release dependencies are not cleared.
+- [x] Recorded current open-PR disposition: #726 and #725 remain drafts/non-mergeable and their old branches are 88 commits behind/diverged from current main. Their older focused checks do not replace exact-current-main CI or review.
+- [ ] Reconcile PR #726 and PR #725 against current main; resolve conflicts, rerun exact-head workflows and complete the required privacy/pagination or SQL review before considering merge.
+- [ ] Continue full 87-source physical-effect/alias reconciliation and coordinated database/RPC/ACL/RLS/Edge release planning.
+- [ ] Continue direct-route, mobile/desktop, empty/error/loading and critical customer/merchant/admin browser coverage.
+- **Safety:** Production remains read-only. Live ledger is 310 rows through `20261110150618`; exact required migration identity is 0/87. This is an identity mismatch, not proof all intended effects are absent.
+- **Release status:** gallery/admin Edge deployment remains blocked; platform-root authorization gap remains; backup/restore remains deferred and unverified; **FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED**.
+
+---
+
+
+## 2026-11-26 — Previous execution checkpoint (PR #1145/#1146 post-merge verification)
 
 - [x] PR #1142 added keyboard-accessible activity sharing: focus moves into the dialog, Tab/Shift+Tab stay inside it, Escape closes it, and focus returns to the invoking share button. Merge commit: `2cc6639fc0f8af04d04311910c94bc9b959e1d8b`.
 - [x] All exact-head PR #1142 workflows passed, including Primary Catalog build, employee RBAC PostgreSQL, complete browser E2E, module professionalization, backend-only boundary, MantiGO privacy, Paymob atomicity and SMM contract validation.
@@ -19,7 +36,7 @@
 - [x] Fresh read-only RC464/RC469/RC484 Production preflight recheck: RC464 owner/BYPASSRLS, registry RLS, client ACL, four MantiGO RPC, four shared caller and three policy predicates match; RC484 UUID registry, owner/BYPASSRLS, client/service ACL and 57-policy/24-table predicates match. RC469 caller ACL/identity matches but remains dependent on RC464's hardened guard. These are preflight matches, not applied migrations.
 - [x] Closed the final source-to-live evidence gap for RC117: read-only Production inspection confirms `marketing_services.image_url`, `image_source`, `mnty_default_image_url(...)` and all three default-image triggers are absent. The RC117 forward repair is therefore explicitly BLOCKED on its original schema/function prerequisites. All 87/87 required source migrations now have direct PASS/PARTIAL/BLOCKED dispositions; exact migration IDs remain 0/87.
 
-- [ ] Resolve PR #1138 documentation-only conflict before carrying forward its PASS 2481–2490 live platform-root audit. Its 86-source crosswalk is stale against the current 87-source contract; do not merge its old documentation wholesale.
+- [x] Closed PR #1138 without merging its stale 86-source snapshot; preserved its dated PASS 2481–2490 audit as a historical artifact and added the explicit 87-source reconciliation addendum.
 - [ ] Resolve the critical live platform-root authorization drift before any admin Edge deployment. Live `mnty_can_platform_admin()` still delegates to tenant-wide `mnty_can('admin',NULL,NULL,NULL)` and `is_platform_admin()` still accepts active tenant `ADMIN`/`SUPER_ADMIN`; blast radius remains 57 RLS policies across 24 tables plus 5 policies across 3 tables. The 2026-11-26 read-only preflight confirms the RC464 and RC484 schema/owner/ACL/policy prerequisites match, and RC469's four caller identities/ACLs match; however the live helpers remain weak, FORCE RLS is off, and caller search_paths remain non-empty. Execute RC464 → RC469 → RC484 only as part of the complete certified migration chain and coordinated release. Do not deploy admin Edge functions individually.
 - [ ] Continue coordinated DB + Edge source/production parity for RC928. The live ledger remains 310 migrations through `20261110150618`; RC928/RC117/RC929 IDs are absent and the exact RC928 atomic profile RPC is absent. Live `catalog-admin` v20 and `catalog-platform-admin` v23 are source-drifted; `public-catalog` v11 and `public-catalog-directory` v20 match current source after packaging-import normalization. Keep gallery writes fail-closed.
 - [ ] Keep Production DB/Auth/RLS/GRANT/Storage/Edge/payment/customer data read-only. No RC929 or other migration is authorized for Production until complete 87-source migration/effect/alias reconciliation and coordinated release gates pass.
@@ -191,6 +208,7 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [ ] Mark unavailable settings and untested providers NOT VERIFIED.
 
 ## P2 — Core public site (zero-cost code and CI)
+- [x] Current main retains the Activity → Specialty directory and tested progressive loading for the verified activity feed: 20 first-page cards, +20 on explicit See More, and a final partial page without duplicate IDs. Public unclaimed-directory listings remain disabled until source-rights and consent dependencies pass.
 - [ ] Verify root, `/legacy/`, direct route refresh, 404/error/empty/loading states and mobile/desktop layouts.
 - [ ] Preserve Activity → Specialty, all-Egypt default search, GPS nearest-first only with permission, and 20-item pagination + See More.
 - [x] Merged SEO-only PR #1033 at `34a072312b29e613fb95a39050bb499eedabc786`; exact-head CI 34/34 passed, including the route metadata contract. Pages deployment is verified by run 45413600172 (main @ 016a8952513ac860b9248c6b561e6cf9216c3f2e): production root, /legacy rollback, /v6-preview, brand assets, and deployed-origin browser E2E passed. Scope is SPA metadata plus a root-only sitemap; no SSR/prerender or dynamic catalogue sitemap is claimed.
