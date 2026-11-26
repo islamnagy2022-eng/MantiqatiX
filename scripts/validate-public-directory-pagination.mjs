@@ -121,9 +121,9 @@ assert.doesNotMatch(activityListingSearchBlock, /listing\.phone|listing\.seconda
 assert.match(view, /directoryHasMoreForView/, "The load-more UI must follow the currently selected global or filtered result set.");
 assert.match(view, /directoryProductsForView = scopedDirectoryBusinesses !== null \? scopedDirectoryProducts : directoryProducts/,
   "Unfiltered public directory image ranking must use public directory products, not the signed-in account product list.");
-assert.match(view, /directoryHasMoreForView \\|\\| directoryListingsHasMore \\? '\\+' : ''/,
+assert.ok(view.includes("directoryHasMoreForView || directoryListingsHasMore ? '+' : ''"),
   "The unified result count must signal when more pages remain.");
-assert.match(activityModule, /موثق \\(محمّل\\)/,
+assert.ok(activityModule.includes("موثق (محمّل):"),
   "Activity-module verification counts must be identified as loaded-page counts.");
 assert.match(view, /directoryProductsForView\.forEach/, "Featured-image ranking must use products from the active directory page set.");
 const businessSearchBlockStart = view.indexOf("const filteredBusinesses = businesses.filter");
