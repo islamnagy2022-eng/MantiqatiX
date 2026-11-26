@@ -204,10 +204,13 @@ assert.ok(
   publicCatalogFunction.includes('requiresQuote: requiresPublicQuote(item)'),
   'public storefront must require explicit availability, filter prices/compare_price, and mark unpriced services as quote-only.'
 );
-assert.match(
-  publicDirectoryFunction,
-  /prices = filterRowsToPubliclyPricedItems\(items, p \|\| \[\]\)/,
-  'public directory price rows must require explicit show_price=true permission.'
+assert.ok(
+  publicDirectoryFunction.includes('priceQuery().is("branch_id", null)') &&
+  publicDirectoryFunction.includes('priceQuery().eq("branch_id", branchId)') &&
+  publicDirectoryFunction.includes('...(globalPriceResult.data || [])') &&
+  publicDirectoryFunction.includes('...(branchPriceResult.data || [])') &&
+  /prices = filterRowsToPubliclyPricedItems\(items, \[/.test(publicDirectoryFunction),
+  'public directory prices must merge only global and exact-branch rows before the strict show_price=true allowlist.'
 );
 assert.ok(
   publicDirectoryFunction.includes('getExplicitlyPublicComparePrice({ metadata: { catalog_public: rawPublic } })'),
