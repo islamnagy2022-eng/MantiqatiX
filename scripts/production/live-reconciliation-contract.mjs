@@ -58,6 +58,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261125110000", // RC926 — require explicitly confirmed identity for provider-profile SELECT
   "20261125120000", // RC927 — isolate public digital-page reads from anonymous Auth sessions
   "20261126010000", // RC928 — atomically persist promotional gallery and catalog-profile metadata
+  "20261126020000", // RC117 forward repair — preserve existing marketing-service image URLs and provenance
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
