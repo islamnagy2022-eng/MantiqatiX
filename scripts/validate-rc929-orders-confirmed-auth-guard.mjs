@@ -9,6 +9,7 @@ const integration = read("supabase/tests/rc929_orders_confirmed_auth_claim_integ
 const fixture = read("supabase/tests/rc465_orders_read_scope_fixture.sql");
 const rc465Workflow = read(".github/workflows/rc465-orders-read-scope.yml");
 const replayWorkflow = read(".github/workflows/forward-migration-chain-replay.yml");
+const orderAclOverlay = read("supabase/tests/baselines/production_live_order_resources_anon_select_acl_overlay_fixture.sql");
 const productionVerifier = read("scripts/production/verify-production.mjs");
 const liveContract = read("scripts/production/live-reconciliation-contract.mjs");
 const gateValidator = read("scripts/validate-production-migration-chain-gate.mjs");
@@ -20,6 +21,22 @@ assert.match(migration, /^COMMIT;/m, "RC929 must commit only after all preflight
 assert.match(migration, /RC929_ORDER_RESOURCE_RLS_MUST_REMAIN_ENABLED/);
 assert.match(migration, /RC929_EXPECTED_ORDER_AND_HISTORY_POLICIES_MISSING/);
 assert.match(migration, /RC929_UNEXPECTED_ANON_ORDER_READ_GRANT/);
+assert.match(orderAclOverlay, /REVOKE SELECT ON TABLE public\\.orders FROM PUBLIC, anon/i,
+  "disposable replay must clear only anon/PUBLIC SELECT from orders");
+assert.match(orderAclOverlay, /REVOKE SELECT ON TABLE public\\.order_status_history FROM PUBLIC, anon/i,
+  "disposable replay must clear only anon/PUBLIC SELECT from order history");
+assert.match(orderAclOverlay, /GRANT SELECT ON TABLE public\\.orders TO authenticated/i,
+  "disposable replay must preserve authenticated order reads");
+assert.match(orderAclOverlay, /GRANT SELECT ON TABLE public\\.order_status_history TO authenticated/i,
+  "disposable replay must preserve authenticated history reads");
+assert.ok(orderAclOverlay.includes("anon_orders_select") && orderAclOverlay.includes("anon_history_select"),
+  "ACL overlay must report the exact resource whose anonymous SELECT privilege remains");
+assert.ok(replayWorkflow.includes("production_live_order_resources_anon_select_acl_overlay_fixture.sql"),
+  "chronological replay must include the test-only order ACL overlay");
+const orderAclOverlayPosition = replayWorkflow.indexOf("RESTORE_TEST_ONLY_KNOWN_LIVE_ORDER_RESOURCES_ANON_SELECT_ACL_OVERLAY");
+const rc929ReplayPosition = replayWorkflow.indexOf('echo "REPLAY_MIGRATION=$filename"', orderAclOverlayPosition);
+assert.ok(orderAclOverlayPosition >= 0 && rc929ReplayPosition > orderAclOverlayPosition,
+  "captured order ACL overlay must execute immediately before RC929 replay");
 assert.equal((migration.match(/CREATE POLICY /g) || []).length, 2,
   "RC929 must add only one restrictive identity policy per order resource");
 
