@@ -57,8 +57,14 @@ assert.match(view, /fetchPublicDirectoryPage\(null, filters\)/, "Filtered search
 assert.match(view, /loadMoreScopedDirectoryBusinesses/, "Filtered activity searches must have a cursor-backed load-more action.");
 assert.match(view, /directoryHasMoreForView/, "The load-more UI must follow the currently selected global or filtered result set.");
 assert.match(view, /directoryProductsForView\.forEach/, "Featured-image ranking must use products from the active directory page set.");
-assert.match(view, /biz\.name, biz\.category, biz\.bio, biz\.governorate, biz\.markaz, biz\.village/, "Client search must remain on public profile text.");
-assert.doesNotMatch(view, /biz\.phone|biz\.ownerWhatsApp/, "Client free-text search must not inspect consent-gated phone or WhatsApp values.");
+const businessSearchBlockStart = view.indexOf("const filteredBusinesses = businesses.filter");
+const businessSearchBlockEnd = view.indexOf("// Public-directory entries and registered businesses", businessSearchBlockStart);
+assert.ok(businessSearchBlockStart >= 0 && businessSearchBlockEnd > businessSearchBlockStart, "Public activity search filter block must exist.");
+const businessSearchBlock = view.slice(businessSearchBlockStart, businessSearchBlockEnd);
+assert.match(businessSearchBlock, /biz\.name, biz\.category, biz\.bio, biz\.governorate, biz\.markaz, biz\.village/,
+  "Client search must remain on public profile text.");
+assert.doesNotMatch(businessSearchBlock, /biz\.phone|biz\.ownerWhatsApp/,
+  "Client free-text search must not inspect consent-gated phone or WhatsApp values.");
 assert.match(view, /\.gt\("id", scanAfterId\)/, "Server scan must use stable ID continuation.");
 assert.match(view, /DIRECTORY_SCAN_LIMIT_EXCEEDED/, "Large scans must fail closed instead of returning silently truncated results.");
 
