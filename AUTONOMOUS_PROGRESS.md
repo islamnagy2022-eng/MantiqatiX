@@ -152,3 +152,13 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 - [x] The prior non-production ODbL artifact #15170886614 remains temporarily retained by GitHub until its automatic expiry on 2026-12-11; it was not imported, published, or written to Production. The available GitHub connection does not expose artifact deletion. No further collection or artifact generation will occur.
 - [x] `docs/SESSION_LOG.md` remains untouched.
 - **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. Passing frontend/Pages CI does not certify the database migration chain, root authorization, Edge parity, payment/finance, or backup/restore.
+
+## 2026-11-27 — RC930 added to canonical release gate (PR #1190)
+
+- [x] Added RC930 (`20261127010000`) to the canonical migration contract, Production verifier and static release-chain gate. The ordered required source set is now 88 entries; all three lists were compared and matched exactly.
+- [x] Updated the live reconciliation manifest to 0/88 exact required IDs and marked RC930 NOT APPLIED. The connected Production ledger remains 310 rows through `20261110150618`; the live job-application RPC has no `FOR SHARE` job-row lock.
+- [x] Updated all active dependent migration-count validators, the current backup runbook and release backlog. Earlier 87-version crosswalks and dated audit records remain historical snapshots.
+- [x] PR #1190 re-triggers the RC919/RC930 PostgreSQL 17 integration/concurrency workflow when release-contract, manifest, verifier or static gate files change. Full chronological replay and the wider platform checks are also triggered on the PR.
+- [ ] Exact-head CI for PR #1190 is running; merge only after all required checks pass.
+- [x] GitHub Pages run `46060522675` completed successfully; public root, legacy, dashboard, mobile, QR and activity-sharing checks passed. This is web deployment evidence only, not backend production certification.
+- **Production safety:** no Production migration, SQL write, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement or business/customer-data mutation occurred. `docs/SESSION_LOG.md` remains untouched. Full platform stays **BLOCKED / NOT CERTIFIED**.
