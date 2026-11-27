@@ -194,3 +194,11 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 
 ---
 
+## 2026-11-28 01:03 EET — Complete Production SECURITY DEFINER inventory
+
+- [x] Direct read-only public-schema routine catalog: 149 SECURITY DEFINER functions owned by postgres; 65 effective authenticated EXECUTE, one effective anon EXECUTE (`get_mnty_targeted_advertisements`), 28 empty function search_paths, 121 non-empty, and zero unset.
+- [x] Within the 65 authenticated-executable functions, 18 use an empty path and 47 a non-empty path. The sole anon-executable public advertising RPC has an empty path and remains an intentionally narrow public-read contract for individual review.
+- [x] Current Supabase Security Advisor returned 166 findings (157 WARN, 9 INFO): 90 anonymous-Auth policy warnings, 65 authenticated SECURITY DEFINER warnings, one anon SECURITY DEFINER warning, nine RLS-enabled/no-policy INFO and leaked-password protection disabled.
+- [x] Updated Issue #98 with the full aggregate and the requirement for function-by-function caller/body/tenant/ACL review; no blanket revoke or function change was made.
+- **Safety:** read-only inspection only. No production database, function, policy, grants, Auth, Edge, Storage or business/customer data changed.
+- **Status:** the 65-function exposure surface remains IN PROGRESS / NOT VERIFIED for intended caller and behavior classification; do not equate an Advisor warning or non-empty search_path with a confirmed exploit.
