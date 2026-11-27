@@ -214,6 +214,14 @@ A source-text scan found six of the 65 authenticated-callable SECURITY DEFINER f
 **Direct Production read-back:** SECURITY DEFINER, owner `postgres`, `search_path=public`, authenticated EXECUTE=true / anon EXECUTE=false. RC477 `supabase/migrations/20261118060000_rc477_mantigo_customer_bid_contact_privacy.sql` replaces full-row serialization with an explicit masking projection: phone and plate are JSON null until bid status is `ACCEPTED`, while remaining offer fields are preserved. It pins an empty search_path and retains authenticated-only EXECUTE. The disposable PostgreSQL test proves OFFERED fields hidden, ACCEPTED fields visible, non-sensitive bid fields unchanged, actor mismatch rejected, and expected grants/path. RC477's exact ID is absent from Production; issue #913 remains open.
 
 **Disposition:** confirmed P1 pre-acceptance contact disclosure mismatch. No customer rows, phone numbers, plates or function results were read. No RPC was invoked or Production mutation performed. Keep RC477 inside the coordinated migration/Edge/backup release and verify OFFERED/ACCEPTED/REJECTED/WITHDRAWN/EXPIRED cases after deployment.
+
+## Authenticated captain-earnings RPC — live schema/function incompatibility
+
+`public.get_mantigo_captain_earnings_backend(uuid)` binds the supplied captain ID to `auth.uid()` and requires a captain profile, but its live aggregate uses `sum(l.amount)` and `sum(l.captain_amount)`. A read-only `information_schema.columns` inspection found that `public.mantigo_financial_ledger` has `gross_amount`, `commission_amount`, and `captain_net_amount`, but **does not have** `amount` or `captain_amount`. The function therefore contains a direct schema/body mismatch and is expected to fail when its earnings aggregation executes. No financial rows or aggregates were selected and the RPC was not invoked.
+
+RC476 `supabase/migrations/20261118050000_rc476_mantigo_captain_earnings_live_ledger_columns.sql` replaces the old names with canonical columns, preserves the caller/profile checks and JSON keys, pins an empty `search_path`, and retains authenticated-only EXECUTE. Its disposable test deliberately seeds conflicting legacy values to prove only canonical columns affect results, plus caller/profile negative cases. RC476 follows the RC471 MantiGO platform-admin fixture/workflow sequence. The RC476 ID is absent from the Production ledger; issue #914 remains open.
+
+**Disposition:** confirmed P1 captain earnings functionality mismatch. Include RC476 in the full chronological release after RC471, then verify the exact live function body/GUC/ACL and captain-scoped positive/negative results. No RPC or financial row was read or changed.
 **Limit:** this section records a direct body/delegation triage of the six no-direct-token entries. It is not a full review of all 65 authenticated-callable routines or a replacement for deployed-caller/Edge parity verification.
 ## Required next classification
 
