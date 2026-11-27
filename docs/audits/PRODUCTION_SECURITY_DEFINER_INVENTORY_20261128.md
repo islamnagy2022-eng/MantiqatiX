@@ -185,6 +185,17 @@ A source-text scan found six of the 65 authenticated-callable SECURITY DEFINER f
 | `preview_commission_backend(tenant,business,module,gross)` | Calls `assert_financial_membership(tenant)`, which binds `auth.uid()` and requires an ACTIVE finance-capable role within the tenant, but does not bind the user to the requested business and does not reject branch-only finance actors for a branch-less preview. | **CONFIRMED P1 SCOPE DEFECT**. RC467 (`20261115010000`) adds exact business/tenant binding and denies branch-scoped finance; it depends on RC464. Production RC467 remains unapplied; `commission_rules` row count was 0 in the fresh read-only check, so no rule disclosure was observed. |
 | `upsert_catalog_item_and_price_backend(...)` | Delegates to `upsert_catalog_item_backend` and `upsert_catalog_price_backend`; both require `auth.uid()`, verify active membership, exact tenant/business, branch/business hierarchy and allowed owner/manager role (with platform-root route). | **DELEGATED USER SCOPE** in the inspected call chain. Preserve downstream positive/negative business/branch tests; do not add redundant user-ID parameters to the wrapper solely to satisfy a regex scan. |
 
+
+## Additional authenticated-caller scope finding — MantiGO open rides
+
+`public.list_open_mantigo_rides_backend(uuid)` does contain a direct `auth.uid()` equality check, so it is not part of the six no-direct-token list. That check only proves the caller supplied their own user ID; it does **not** prove the caller is a MantiGO captain or authorized to view pickup/destination data.
+
+**Fresh read-only Production body/ACL read-back:** SECURITY DEFINER, owner `postgres`, `search_path=public`, authenticated EXECUTE=true, anon EXECUTE=false. It filters to OPEN/OPEN_FOR_BIDS rides, excludes the caller's own rides, but returns customer names, pickup/destination locations and notes without checking `mantigo_captain_profiles` ACTIVE/VERIFIED/AVAILABLE status or the caller's vehicle category. Therefore any confirmed authenticated user who can invoke the RPC can reach this location-disclosure path. No RPC was invoked and no customer/ride rows were selected.
+
+**Existing source repair:** RC478 `supabase/migrations/20261118070000_rc478_mantigo_open_ride_privacy_forward_repair.sql` is a current-schema forward repair. It rejects anonymous Auth JWTs, binds the caller, requires the caller's own ACTIVE + VERIFIED + AVAILABLE captain profile, restricts results to the profile's vehicle category, pins `search_path=pg_catalog`, revokes PUBLIC/anon, and keeps authenticated EXECUTE. Its PG16 disposable integration covers ordinary authenticated users, pending/unverified/offline captains, anonymous sessions, category separation, own-ride exclusion and closed rides. Static validator and workflow are present. RC478 exact ID remains absent from the Production 310-row ledger; no Production mutation was made.
+
+**Disposition:** confirmed P1 location-privacy boundary mismatch; tracked in issue #911. Do not hot-apply RC478 or deploy a separate Edge change. Include it in the full ordered, backed-up release and verify the exact live function definition/ACL and negative/positive cases post-deployment.
+
 **Limit:** this section records a direct body/delegation triage of the six no-direct-token entries. It is not a full review of all 65 authenticated-callable routines or a replacement for deployed-caller/Edge parity verification.
 ## Required next classification
 
