@@ -117,7 +117,7 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 ### Platform-root authorization semantics and source repair sequence — 2026-11-27 02:46 UTC
 
 - [x] Read the live definitions of mnty_active_membership, mnty_can, and mnty_can_platform_admin. With all scope arguments NULL, mnty_active_membership returns ACTIVE memberships across all tenants; mnty_can('admin',NULL,NULL,NULL) explicitly treats OWNER and ADMIN roles as admin-capable.
-- [x] Confirmed the live mnty_can_platform_admin() delegates to that generic evaluator rather than private.platform_admins. A tenant OWNER/ADMIN can therefore satisfy this named platform-root helper without a registry row.
+- [x] Confirmed the live mnty_can_platform_admin() delegates to that generic evaluator rather than private.platform_admins. The logic would accept an active tenant OWNER/ADMIN (or explicit permissions.admin=true) without a registry row; aggregate-only current-state review found no such non-registry accounts/overrides at this check.
 - [x] Confirmed live is_platform_admin() checks any ACTIVE ADMIN/SUPER_ADMIN membership with no tenant/business/branch predicate; 57 RLS policy references across 24 tables use this helper, often as an OR branch. Classified this as a CRITICAL/P0 source-derived cross-tenant authorization risk; no user impersonation or data-access exploit was attempted.
 - [x] Verified that corrective source migrations already exist: RC464 (20261113214500), RC471 (20261117190000), RC484 (20261119040000), RC485 (20261120200000). RC464/RC471 repair the private-registry MantiGO platform guard and callers; RC484 repairs the 57-policy is_platform_admin helper; RC485 aligns seven catalog RPCs while preserving tenant-local scope.
 - [ ] Keep this entire migration sequence blocked until the required chronological release, physical preflight, backup/restore/rollback gates and negative/positive PostgreSQL tests all pass. Do not create duplicate migration IDs or hot-patch Production.
@@ -138,3 +138,6 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 - [x] Main Primary Catalog Frontend Validation run [45930249165](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45930249165) completed successfully: build, professional dashboard browser E2E and employee-RBAC PostgreSQL job passed.
 - **Scope:** website/Pages verification only. It does not close the separate Supabase migration, Edge Function authorization/parity, database ACL/RLS, privacy, finance, backup/restore, or rollback gates.
 
+
+- [x] Aggregate-only current registry review: 1 registry row, 1 matching Auth account present/unbanned; non-registry active memberships were 4 BUSINESS_OWNER users (7 memberships) and 12 CUSTOMER users. No non-registry active OWNER/ADMIN/SUPER_ADMIN and no non-registry permissions.admin=true override was found. No identifiers were selected.
+- **Impact qualification:** retain P0 priority for the defective authorization predicate and future privilege-escalation risk; do not claim a current unauthorized admin account or demonstrated data access.
