@@ -781,7 +781,7 @@ function enterpriseCommandCenter(){
 function bindEnterpriseCommandCenter(){
  const root=document.querySelector('.mx-ec-bind'); if(!root||root.dataset.ecBound==='1')return;
  root.dataset.ecBound='1';
- const go=name=>{if(!name)return;if(name==='التحكم الكامل')return showToast('أنت بالفعل داخل مركز التحكم الكامل.','info');selectModule(name)};
+ const go=name=>{if(!name)return;selectModule(name)};
  document.querySelectorAll('[data-ec-module]').forEach(el=>el.addEventListener('click',()=>go(el.dataset.ecModule)));
  const input=document.getElementById('mx-ec-search'),out=document.getElementById('mx-ec-search-results'),btn=document.getElementById('mx-ec-search-btn');
  const run=()=>{const q=String(input?.value||'').trim().toLowerCase();if(!out)return;const hits=modules.filter(m=>String(m[1]||'').toLowerCase().includes(q)||String(m[2]||'').toLowerCase().includes(q)).slice(0,8);out.innerHTML=q?(hits.length?hits.map(m=>'<button class="mx-ec-search-hit" data-ec-module="'+esc(m[1])+'"><span>'+m[0]+'</span><b>'+esc(m[1])+'</b><small>'+esc(m[2])+'</small></button>').join(''):'<span class="muted">لا توجد وحدة مطابقة.</span>'):'<span class="muted">ابدأ بكتابة اسم الوحدة.</span>';out.querySelectorAll('[data-ec-module]').forEach(el=>el.addEventListener('click',()=>go(el.dataset.ecModule)))};
