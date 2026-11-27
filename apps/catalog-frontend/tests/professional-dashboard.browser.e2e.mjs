@@ -1374,7 +1374,7 @@ try {
       await page.getByRole('heading', { name: 'إدارة الكتالوج والمنتجات', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       await page.getByTestId('platform-catalog-item-row').waitFor({ state: 'visible', timeout: 10000 });
       assert.equal(await page.getByText('قهوة اختبار المنصة', { exact: true }).count(), 1);
-      assert.equal(await page.getByText('١٢٥٫٠٠ ج.م.', { exact: false }).count() + await page.getByText(/١٢٥/).count() > 0, true, 'the active branch price must be displayed as read-only data');
+      assert.ok((await page.getByText(/١٢٥/).count()) > 0, 'the active branch price must be displayed as read-only data');
       assert.equal(await page.getByText('قراءة فقط', { exact: true }).count(), 1, 'the platform catalog section must declare its read-only state');
       assert.equal(await page.getByRole('button', { name: /تعديل|حذف|إيقاف|تنشيط/ }).count(), 0, 'the platform catalog review must not expose unverified write actions');
       assert.ok(catalogReadRequests.some((request) => request.businessId === businessId && request.tenantId === tenantId), 'catalog read must be scoped to the selected tenant and business');
