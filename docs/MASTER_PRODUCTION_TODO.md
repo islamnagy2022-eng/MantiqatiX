@@ -1,3 +1,19 @@
+# CURRENT CHECKPOINT — 2026-11-27 — Main after PR #1184
+
+This block supersedes older snapshot dates below for current execution status. Historical audit snapshots remain append-only evidence and must not be read as a fresh Production check.
+
+- Current verified main: `7e477e25911438f3601574393edc089c14b50c3d` (PR #1184 merged).
+- Catalog build/type-check, public V6 preview build/bundle audit, existing-section/unverified directory contract, Smart Geo consent/privacy and source/security workflow suites passed on this main head.
+- Pages deployment run `46017699004`: publish and root/legacy/preview/case-insensitive URL checks passed. Final dashboard/mobile/QR deployed-origin browser step was still running at last read-back; final site deployment verification remains WAIT until the run reports success.
+- Dedicated Menoufia catalog remains stopped. PR #1182 now reuses existing sections and canonical categories; current-main validator passed. PRs #1179 and #1180 remain paused and untouched. New directory entries remain hidden DRAFT / UNVERIFIED; public unclaimed listing publication remains disabled.
+- Issue #96 selected-business runtime logic is source-scoped to the selected active membership/business and the source-contract validator passes, but real authenticated multi-business E2E remains NOT VERIFIED; issue remains open.
+- Latest documented Production ledger snapshot remains 310 rows through `20261110150618`, with 0/87 exact required migration IDs at the 2026-11-27 00:04 UTC comparison. This mismatch is not proof all physical effects are absent.
+- Production stays read-only. No Production SQL/migration, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, settlement or business/customer-data mutation is authorized by this checkpoint.
+- `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. Remaining release blockers include platform-root authorization, physical-effect/alias reconciliation, migration sequence, catalog Edge parity, and verified backup/restore/rollback. A successful Production Health Monitor workflow does not mean protected Edge `/health` was checked; `HEALTH_MONITOR_TOKEN` is still required.
+- Next: complete deployed-origin Pages verification; continue read-only coordinated release preparation; add authenticated multi-business E2E before closing #96; preserve the Menoufia pause.
+
+---
+
 > **Active execution order:** [Master Execution TODO — Zero-Cost Fast Track](docs/release/MASTER_EXECUTION_TODO_20261124.md). Historical Pass entries below are append-only evidence; use the linked board as the only current priority queue.
 
 ---
