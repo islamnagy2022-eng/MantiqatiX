@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { QRCodeModal } from '../common/QRCodeModal';
 import { normalizeDialPhone, normalizeSocialUrl, normalizeWhatsAppPhone } from '../../utils/socialLinks';
@@ -18,6 +18,9 @@ import {
   AlertTriangle,
   Ban,
   QrCode,
+  ChevronLeft,
+  ChevronRight,
+  X,
 } from 'lucide-react';
 
 const isMantiqatiXBrandProfile = (name?: string | null): boolean =>
@@ -42,6 +45,74 @@ export const BusinessProfileHeader: React.FC = () => {
   const promotionalImages = Array.isArray(currentBusiness?.promotionalImages)
     ? currentBusiness.promotionalImages.filter((url) => typeof url === 'string' && url.startsWith('https://')).slice(0, 10)
     : [];
+  const [selectedPromotionalImageIndex, setSelectedPromotionalImageIndex] = useState<number | null>(null);
+  const galleryTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const galleryDialogRef = useRef<HTMLDivElement | null>(null);
+  const galleryCloseButtonRef = useRef<HTMLButtonElement | null>(null);
+  const isPromotionalGalleryOpen = selectedPromotionalImageIndex !== null;
+  const activePromotionalImage = selectedPromotionalImageIndex === null
+    ? null
+    : promotionalImages[selectedPromotionalImageIndex] || null;
+
+  useEffect(() => {
+    if (!isPromotionalGalleryOpen) return;
+    if (promotionalImages.length === 0) {
+      setSelectedPromotionalImageIndex(null);
+      return;
+    }
+
+    const dialog = galleryDialogRef.current;
+    const previousBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    galleryCloseButtonRef.current?.focus();
+
+    const handleGalleryKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setSelectedPromotionalImageIndex(null);
+        return;
+      }
+
+      if (event.key === 'ArrowLeft' && promotionalImages.length > 1) {
+        event.preventDefault();
+        setSelectedPromotionalImageIndex((current) => current === null
+          ? null
+          : (current + 1) % promotionalImages.length);
+        return;
+      }
+
+      if (event.key === 'ArrowRight' && promotionalImages.length > 1) {
+        event.preventDefault();
+        setSelectedPromotionalImageIndex((current) => current === null
+          ? null
+          : (current - 1 + promotionalImages.length) % promotionalImages.length);
+        return;
+      }
+
+      if (event.key !== 'Tab' || !dialog) return;
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+      ));
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleGalleryKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleGalleryKeyDown);
+      document.body.style.overflow = previousBodyOverflow;
+      if (galleryTriggerRef.current?.isConnected) galleryTriggerRef.current.focus();
+    };
+  }, [isPromotionalGalleryOpen, promotionalImages.length]);
 
   if (!currentBusiness) {
     return (
@@ -180,13 +251,16 @@ export const BusinessProfileHeader: React.FC = () => {
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {promotionalImages.map((image, index) => (
-              <a
+              <button
                 key={image}
-                href={image}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`فتح الصورة الترويجية رقم ${index + 1}`}
-                className="group overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                type="button"
+                onClick={(event) => {
+                  galleryTriggerRef.current = event.currentTarget;
+                  setSelectedPromotionalImageIndex(index);
+                }}
+                aria-label={`عرض الصورة الترويجية رقم ${index + 1}`}
+                aria-haspopup="dialog"
+                className="group overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 text-right shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500"
               >
                 <img
                   src={image}
@@ -194,7 +268,7 @@ export const BusinessProfileHeader: React.FC = () => {
                   loading="lazy"
                   className="aspect-square w-full object-cover transition duration-300 group-hover:scale-105"
                 />
-              </a>
+              </button>
             ))}
           </div>
         </section>
@@ -332,6 +406,88 @@ export const BusinessProfileHeader: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {isPromotionalGalleryOpen && activePromotionalImage && (
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/95 p-3 backdrop-blur-sm sm:p-6"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setSelectedPromotionalImageIndex(null);
+          }}
+        >
+          <div
+            ref={galleryDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="storefront-promotional-gallery-title"
+            tabIndex={-1}
+            className="flex max-h-[94dvh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950 text-white shadow-2xl sm:rounded-3xl"
+            dir="rtl"
+          >
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-6">
+              <div className="min-w-0">
+                <h2 id="storefront-promotional-gallery-title" className="truncate text-sm font-black sm:text-base">
+                  معرض الصور الترويجية لنشاط {currentBusiness.name}
+                </h2>
+                <p aria-live="polite" className="mt-1 text-xs text-slate-300">
+                  الصورة {(selectedPromotionalImageIndex ?? 0) + 1} من {promotionalImages.length}
+                </p>
+              </div>
+              <button
+                ref={galleryCloseButtonRef}
+                type="button"
+                onClick={() => setSelectedPromotionalImageIndex(null)}
+                aria-label="إغلاق معرض الصور"
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="flex min-h-0 flex-1 items-center justify-center gap-2 p-2 sm:gap-5 sm:p-5">
+              <button
+                type="button"
+                onClick={() => setSelectedPromotionalImageIndex((current) => current === null
+                  ? null
+                  : (current - 1 + promotionalImages.length) % promotionalImages.length)}
+                disabled={promotionalImages.length < 2}
+                aria-label="الصورة السابقة"
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 sm:h-12 sm:w-12"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+              <div className="flex min-h-0 min-w-0 flex-1 items-center justify-center">
+                <img
+                  src={activePromotionalImage}
+                  alt={`صورة ترويجية لنشاط ${currentBusiness.name} — رقم ${(selectedPromotionalImageIndex ?? 0) + 1}`}
+                  className="max-h-[68dvh] max-w-full rounded-xl object-contain sm:max-h-[74dvh]"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedPromotionalImageIndex((current) => current === null
+                  ? null
+                  : (current + 1) % promotionalImages.length)}
+                disabled={promotionalImages.length < 2}
+                aria-label="الصورة التالية"
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 sm:h-12 sm:w-12"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="flex shrink-0 justify-center border-t border-white/10 px-4 py-3">
+              <a
+                href={activePromotionalImage}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-xl border border-white/20 px-4 py-2 text-xs font-bold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+              >
+                فتح الصورة الأصلية
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       <QRCodeModal
         business={currentBusiness}
