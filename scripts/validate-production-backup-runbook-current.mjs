@@ -119,7 +119,7 @@ for (const required of [
   "20261126030000_rc929_orders_confirmed_auth_claim_guard.sql",
   "20261127010000_rc930_serialize_job_deactivation_and_application.sql",
   "20261127235334_rc932_mantigo_open_ride_explicit_confirmed_auth.sql",
-  "requires the is_anonymous JWT claim to be explicitly false",
+  "requires the `is_anonymous` JWT claim to be explicitly false",
 ]) {
   assert.ok(currentRunbook.includes(required), "Current Production backup overlay is missing: " + required);
 }
