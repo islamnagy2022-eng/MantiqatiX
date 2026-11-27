@@ -119,3 +119,11 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 - [x] RC484 blast radius observed: 57 is_platform_admin policy references across 24 tables; helper owner matches registry owner and has BYPASSRLS.
 - [x] RC485 precondition remains BLOCKED until RC484 replaces is_platform_admin(): live helper remains SECURITY INVOKER, search_path=public and membership-derived.
 - **Boundary:** These are catalog preflight observations only, not migration execution. Preserve RC464 → RC471 → RC484 → RC485 inside the complete chronological release; do not run them individually.
+
+## Main Pages deployment after Super Admin overview — 2026-11-27 02:52 UTC
+
+- [x] Confirmed the post-merge GitHub Pages deployment for main commit `7cb8e96ae1bf6a739039c0ec0e8673d0025ef4cb` completed successfully (workflow run [45930249106](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45930249106)).
+- [x] Deploy job completed successfully after deployed-origin checks, including the legacy catalog root and dashboard/mobile/QR routes.
+- [x] Main Primary Catalog Frontend Validation run [45930249165](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45930249165) completed successfully: build, professional dashboard browser E2E and employee-RBAC PostgreSQL job passed.
+- **Scope:** website/Pages verification only. It does not close the separate Supabase migration, Edge Function authorization/parity, database ACL/RLS, privacy, finance, backup/restore, or rollback gates.
+
