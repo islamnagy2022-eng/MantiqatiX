@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BadgeCheck, Check, ClipboardList, KeyRound, RefreshCw, Save, Search, ShieldCheck, UserCog, Users } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/production';
 import { BusinessEmployeeManager } from '../merchant/BusinessEmployeeManager';
 import { BusinessSubscriberAdmin } from './BusinessSubscriberAdmin';
+import { findVisiblePerson, resolveVisiblePersonId } from './superAdminControlSelection';
 
 type Scope = 'TENANT'|'BUSINESS'|'BRANCH'|'PROVIDER';
 type CustomRole = {
@@ -77,28 +78,34 @@ export const SuperAdminControlCenter: React.FC = () => {
   const [roleActive,setRoleActive]=useState(true);
   const [permissionMap,setPermissionMap]=useState<Record<string,string[]>>({HOME:['view']});
   const [auditSearch,setAuditSearch]=useState('');
+  const loadSequence=useRef(0);
 
   const selectedRole=useMemo(()=>roles.find((r)=>r.id===roleId),[roles,roleId]);
   const selectedBusiness=useMemo(()=>businesses.find((b)=>b.id===assignmentBusinessId)||businesses[0],[businesses,assignmentBusinessId]);
 
   const loadAll=useCallback(async()=>{
+    const requestId=++loadSequence.current;
     setLoading(true); setNotice(null);
     const [rolesResult,peopleResult,assignmentsResult]=await Promise.all([
       supabase.rpc('mnty_platform_admin_list_custom_roles'),
       supabase.rpc('mnty_platform_admin_list_people',{p_search:personSearch.trim()||null}),
       supabase.rpc('mnty_platform_admin_list_role_assignments'),
     ]);
+    if(requestId!==loadSequence.current)return;
     setLoading(false);
     const firstError=rolesResult.error||peopleResult.error||assignmentsResult.error;
     if(firstError){
+      setRoles([]);setPeople([]);setAssignments([]);setRoleId('');setSelectedPersonId('');
       setNotice({type:'error',text:'تعذر تحميل مركز التحكم. تأكد من نشر ترحيل RC115 على بيئة الاختبار أولًا، وأن الحساب مسجل في private.platform_admins.'});
       return;
     }
-    setRoles(Array.isArray(rolesResult.data)?rolesResult.data:[]);
-    setPeople(Array.isArray(peopleResult.data)?peopleResult.data:[]);
+    const nextRoles=Array.isArray(rolesResult.data)?rolesResult.data:[];
+    const nextPeople=Array.isArray(peopleResult.data)?peopleResult.data:[];
+    setRoles(nextRoles);
+    setPeople(nextPeople);
     setAssignments(Array.isArray(assignmentsResult.data)?assignmentsResult.data:[]);
-    setRoleId((current)=>current||(Array.isArray(rolesResult.data)?rolesResult.data.find((r:any)=>r.is_active)?.id||'':''));
-    setSelectedPersonId((current)=>current||(Array.isArray(peopleResult.data)?peopleResult.data[0]?.id||'':''));
+    setRoleId(current=>nextRoles.some((role:any)=>role.id===current&&role.is_active)?current:nextRoles.find((role:any)=>role.is_active)?.id||'');
+    setSelectedPersonId(current=>resolveVisiblePersonId(current,nextPeople));
   },[personSearch]);
 
   const loadAudit=useCallback(async()=>{
@@ -133,7 +140,9 @@ export const SuperAdminControlCenter: React.FC = () => {
   };
   const assignRole=async(event:React.FormEvent)=>{
     event.preventDefault();
-    if(!selectedPersonId||!selectedRole?.is_active||!selectedBusiness?.tenantId){setNotice({type:'error',text:'اختر حسابًا ودورًا نشطًا ونشاطًا لتحديد نطاق الإسناد.'});return;}
+    const targetPerson=findVisiblePerson(selectedPersonId,people);
+    if(!targetPerson){setNotice({type:'error',text:'الحساب المحدد لم يعد ضمن نتائج البحث الحالية. حدّث القائمة واختر حسابًا ظاهرًا.'});return;}
+    if(!selectedRole?.is_active||!selectedBusiness?.tenantId){setNotice({type:'error',text:'اختر دورًا نشطًا ونشاطًا لتحديد نطاق الإسناد.'});return;}
     if(selectedRole.scope==='BRANCH'&&!branchId.trim()){setNotice({type:'error',text:'أدخل معرف الفرع عند إسناد دور بنطاق فرع.'});return;}
     if(!window.confirm('تأكيد إسناد الدور ضمن النطاق المحدد؟ هذا لا يمنح صلاحيات مالك المنصة.'))return;
     setSaving(true);setNotice(null);
@@ -201,7 +210,7 @@ export const SuperAdminControlCenter: React.FC = () => {
     {tab==='assignments'&&<div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
       <form onSubmit={assignRole} className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
         <h3 className="flex items-center gap-2 text-lg font-black text-slate-900"><UserCog className="h-5 w-5 text-indigo-700"/>إسناد دور إلى حساب</h3>
-        <div className="flex gap-2"><input value={personSearch} onChange={(e)=>setPersonSearch(e.target.value)} className={inputClass} placeholder="ابحث بالاسم أو البريد"/><button className="rounded-xl border border-slate-200 px-3" type="button" onClick={()=>void loadAll()}><Search className="h-4 w-4"/></button></div>
+        <div className="flex gap-2"><input value={personSearch} onChange={(e)=>setPersonSearch(e.target.value)} onKeyDown={(event)=>{if(event.key==='Enter'){event.preventDefault();void loadAll();}}} className={inputClass} placeholder="ابحث بالاسم أو البريد" aria-label="ابحث عن حساب بالاسم أو البريد"/><button className="rounded-xl border border-slate-200 px-3" type="button" onClick={()=>void loadAll()}><Search className="h-4 w-4"/></button></div>
         <label className="block text-xs font-bold text-slate-600">حساب Supabase<select required value={selectedPersonId} onChange={(e)=>setSelectedPersonId(e.target.value)} className={'mt-1 '+inputClass}><option value="">اختر حسابًا</option>{people.map((person)=><option key={person.id} value={person.id}>{person.full_name||person.email} — {person.email}</option>)}</select></label>
         {chosenPerson&&<p className="rounded-xl bg-slate-50 p-3 text-xs text-slate-600">الحساب: {chosenPerson.email} · {chosenPerson.email_confirmed?'البريد مؤكد':'البريد غير مؤكد'} · {chosenPerson.memberships?.length||0} عضوية</p>}
         <label className="block text-xs font-bold text-slate-600">الدور المخصص<select required value={roleId} onChange={(e)=>setRoleId(e.target.value)} className={'mt-1 '+inputClass}><option value="">اختر دورًا</option>{roles.filter(r=>r.is_active).map((role)=><option key={role.id} value={role.id}>{role.display_name} ({role.scope})</option>)}</select></label>
