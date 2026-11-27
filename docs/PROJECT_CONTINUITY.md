@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST CONTINUATION STATE — 2026-11-27:** PR #299 remains open and Draft on `feat/marketing-campaign-operations-summary-20261019`. The Super Admin control workspace includes read-only activity, module/feature-flag, current-account membership and active subscription pricing views. This continuation adds tenant-scoped finance evidence and closes a fail-open count-query boundary. Global user/role administration and subscription entitlement controls remain blocked pending verified private server-side contracts. Production remains **BLOCKED / NOT CERTIFIED**.
+> **LATEST CONTINUATION STATE — 2026-11-27:** PR #299 remains open and Draft on `feat/marketing-campaign-operations-summary-20261019`, exact head `5761ee8a459e8bb46929afff2b1319980e1971b0`. The Super Admin control workspace now includes read-only activity details, active catalog inspection by branch, module/feature-flag registry, current-account membership context, active tier pricing and tenant-scoped financial counts. Catalog price resolution prioritizes the selected branch and has executable CI vectors. Module Professionalization, Backend-only Module Boundary and MantiGO privacy CI all pass on this exact head. Browser/device and production verification remain open; Production is **BLOCKED / NOT CERTIFIED**.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -1144,3 +1144,11 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 - Updated initial storefront cards to use the default branch's price.
 - Added executable pure-function regressions in the enterprise dashboard contract workflow and refreshed app/PWA assets to `catalog-branch-price-precedence-20261127` / `mnty-web-v162`.
 - [ ] Exact-head CI and browser cart/order totals remain pending. No transaction, order or price row was changed.
+
+
+## 2026-11-27 — Exact-head CI verification: Super Admin catalog and branch price scope
+
+- Exact code head `5761ee8a459e8bb46929afff2b1319980e1971b0` passed Module Professionalization Validation (`45925670331`), Backend-only Module Boundary (`45925670235`) and MantiGO Open Ride Privacy Boundary (`45925670240`).
+- The Module Professionalization run passed JavaScript syntax, enterprise dashboard interaction contract, read-only catalog scope checks, executable branch-price resolver vectors, production security validators, RC451 PostgreSQL integration and matrimony privacy PostgreSQL integration.
+- This verifies source contracts and isolated CI behavior only. It does not verify browser interaction, live business/customer authorization, cart/checkout totals, production schema parity, or deployment.
+- PR #299 remains open and Draft. No merge, production deployment, production migration or live price/catalog mutation was performed.
