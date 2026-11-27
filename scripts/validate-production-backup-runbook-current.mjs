@@ -48,6 +48,13 @@ for (const required of [
   "matched 37",
   "42 absent or non-matching",
   "NOT VERIFIED / BLOCKED",
+  "post_financial_journal_backend(uuid,jsonb,jsonb)",
+  "service_role EXECUTE = false",
+  "finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)",
+  "search_path=public, pg_temp",
+  "finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
+  "create_subscription_payment_intent_claimable_backend(uuid,text,text,text,text,uuid)",
+  "process_verified_mantigo_payment_backend",
 ]) {
   assert.ok(currentRunbook.includes(required), "Current Production backup overlay is missing: " + required);
 }
