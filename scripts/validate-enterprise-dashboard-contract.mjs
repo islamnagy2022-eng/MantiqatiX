@@ -5,6 +5,7 @@ import vm from "node:vm";
 const app = fs.readFileSync("web/app.js", "utf8");
 const index = fs.readFileSync("web/index.html", "utf8");
 const sw = fs.readFileSync("web/sw.js", "utf8");
+const blueprints = fs.readFileSync("web/module-blueprints.js", "utf8");
 
 assert.match(app, /function enterpriseCommandCenter\(\)/, "enterprise command center must be rendered");
 assert.match(app, /function bindEnterpriseCommandCenter\(\)/, "enterprise command center must have an interaction binder");
@@ -127,5 +128,15 @@ assert.equal(resolveCatalogPrice(catalogPriceFixture,"item-1","branch-c").unit_p
 assert.equal(resolveCatalogPrice(catalogPriceFixture,"item-1",null).unit_price,50, "no selected branch must use only the global price");
 assert.equal(resolveCatalogPrice({prices:[{catalog_item_id:"item-1",branch_id:"branch-a",unit_price:35,version:1}]},"item-1",null),null, "branch-only prices must not leak into an unselected branch view");
 assert.ok(app.includes("catalogCurrentPrice(catalog,item.id,defaultBranch.id)"), "storefront default branch display must use that branch's price");
+
+assert.match(blueprints, /role="tablist"/, "module workspace must expose a tablist");
+assert.match(blueprints, /role="tab" aria-selected=/, "module navigation controls must expose tab semantics");
+assert.match(blueprints, /tab\.setAttribute\('aria-controls',panelId\)/, "every module tab must reference its content panel");
+assert.match(blueprints, /panel\.setAttribute\('role','tabpanel'\)/, "module content cards must be exposed as tabpanels");
+assert.match(blueprints, /panel\.setAttribute\('aria-labelledby',tabId\)/, "every module panel must be labelled by its controlling tab");
+assert.match(blueprints, /panel\.tabIndex=0/, "module tabpanels must be keyboard focusable");
+assert.match(blueprints, /const itemCount=Math\.min\(tabs\.length,cards\.length\);\s*if\(!itemCount\)return;/, "empty or mismatched module tab content must not create an invalid selected index");
+assert.match(blueprints, /root\.dataset\.mntyBlueprintBound==='true'\)return/, "module binding must not attach duplicate keyboard handlers to the same rendered root");
+assert.match(blueprints, /event\.key==='Home'\?0:event\.key==='End'\?tabs\.length-1/, "module tabs must support Home and End keyboard navigation");
 
 console.log("Enterprise dashboard interaction source contract: PASS");
