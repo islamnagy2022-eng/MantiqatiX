@@ -44,3 +44,5 @@ for (const marker of [
   assert.ok(integration.includes(marker), "RC932 integration missing: " + marker);
 }
 console.log("RC932 explicit confirmed identity source contract: PASS");
+
+// Keep this validator coupled to the CLI-generated, timestamped forward migration.
