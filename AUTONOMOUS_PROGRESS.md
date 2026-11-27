@@ -2,7 +2,7 @@
 
 **Updated:** 2026-11-27  
 **Repository:** `islamnagy2022-eng/MantiqatiX`  
-**Verified main:** `7cb8e96ae1bf6a739039c0ec0e8673d0025ef4cb`  
+**Verified main:** `036c6655b3796d649abd9e603c24f518f8ee361e`  
 **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`  
 **Production boundary:** read-only; no Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement, or customer-data mutation.
 
@@ -59,8 +59,8 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 
 ## Next execution order
 
-1. Complete exact-head review and CI for PR #1174 (read-only production evidence) and PR #1175 (accurate health-monitor reporting); merge only when all required checks pass.
-2. Keep the Edge `/health` result explicitly **NOT CHECKED** until the owner-configured `HEALTH_MONITOR_TOKEN` is available to the workflow; do not mistake the legacy anon read probe for an Edge health check.
+1. Complete exact-head review and CI for PR #1174 (read-only Production evidence); merge only after its strict migration replay and all required source/privacy checks pass.
+2. Confirm the new main health-monitor run [45931067599](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45931067599) reports Edge `/health` as **NOT CHECKED** while `HEALTH_MONITOR_TOKEN` is absent. The token must be configured by an authorized repository/project owner before a protected Edge health check can pass.
 3. Reconcile all 87 canonical migration identities against aliases and live physical schema/function/ACL/RLS effects; preserve the fail-closed release gate.
 4. Prepare the coordinated platform-root sequence (RC464 → RC471 → RC484 → RC485) and dependent policy/caller work with disposable PostgreSQL positive/negative tests and exact live preflight evidence. Do not hot-edit Production helpers or bulk-rewrite policies.
 5. Keep Production read-only until the complete chronological migration chain, ACL/RLS, Edge parity, deployed-origin positive/negative tests, and verified backup/restore/rollback gates are complete.
@@ -76,15 +76,16 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 - [x] PR #1171 merged as `730515fa1082c7063bab84499bc45102cce363d4`; exact-head build, dashboard browser E2E, Employee RBAC/PostgreSQL, and related CI checks passed.
 - [x] PR #1172 merged as `7cb8e96ae1bf6a739039c0ec0e8673d0025ef4cb`; overview/KPI/shortcut browser tests, build, Employee RBAC/PostgreSQL and related CI checks passed.
 - [x] Main Pages deployment for `7cb8e96ae1bf6a739039c0ec0e8673d0025ef4cb` completed successfully in run [45930249106](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45930249106), including deployed-origin checks for the catalog, legacy rollback and dashboard/mobile/QR routes.
-- [ ] PR #1175 adds accurate health-monitor status output and a CI contract test. The current main health run [45930248943](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45930248943) used the legacy anon read-only database probe because `HEALTH_MONITOR_TOKEN` is missing, but still printed an unconditional Edge `/health` success line. PR #1175 corrects this; its exact-head CI is still running.
+- [x] PR #1175 merged as `036c6655b3796d649abd9e603c24f518f8ee361e`. Its exact-head CI passed the health-monitor contract test, build, dashboard browser E2E, Employee RBAC/PostgreSQL, module/security checks, and PR Pages validation.
+- [ ] Main health-monitor run [45931067599](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45931067599) is queued. The last pre-fix run [45930248943](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45930248943) had an empty `HEALTH_MONITOR_TOKEN`, skipped protected Edge `/health`, and used only the legacy anon database read probe; the merged fix now reports this accurately as **NOT CHECKED**.
 - [ ] Keep `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` until the separate live database migration, ACL/RLS, Edge, privacy, finance, backup/restore and rollback gates are satisfied.
 - **Non-actions:** no Production database write, migration, Auth/RLS/GRANT change, Edge Function deployment, payment, wallet, settlement, or customer/business-data mutation was performed as part of the Pages deployment closeout.
 
-## Main deployment and monitoring closeout — 2026-11-27 02:52 UTC
+## Main deployment and monitoring closeout — 2026-11-27 02:55 UTC
 
 - The current main source includes PR #1171 and PR #1172; the latter provides the new Super Admin overview as the default landing page with explicit published-catalog, active-subscriber, pending-publication, and payment-attention indicators plus nine section shortcuts.
 - Main commit `7cb8e96ae1bf6a739039c0ec0e8673d0025ef4cb` is deployed to GitHub Pages. The deploy workflow run [45930249106](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45930249106) completed successfully; the post-deploy dashboard/mobile/QR route check passed.
-- The production health-monitor workflow run [45930248943](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45930248943) completed, but its log confirms `HEALTH_MONITOR_TOKEN` was empty. Therefore the protected Edge `/health` endpoint was skipped; only the legacy anon PostgREST read-only probe passed. The old workflow summary incorrectly reported Edge `/health` as checked. PR #1175 adds truthful mode reporting and a source-contract CI test; it remains unmerged pending full CI.
+- The production health-monitor workflow run [45930248943](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45930248943) completed with an empty `HEALTH_MONITOR_TOKEN`: the protected Edge `/health` endpoint was skipped and only the legacy anon PostgREST read-only probe passed. The old summary incorrectly reported Edge `/health` as checked. PR #1175 fixed this and merged as `036c6655b3796d649abd9e603c24f518f8ee361e`; its first main run [45931067599](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45931067599) is queued, so the corrected runtime output has not yet been observed.
 - **Release status remains `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.** Pages deployment does not certify database migration, Edge parity, authorization, payments, wallets or backup/restore.
 
 
