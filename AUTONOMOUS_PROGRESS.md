@@ -136,3 +136,19 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 - Re-read the current-main 87 required IDs and compared them in one read-only SQL query: live ledger 310 rows through `20261110150618`; exact matches 0/87, missing 87/87. This is an identity mismatch, not proof every intended physical effect is absent.
 - Main commit `036c6655b3796d649abd9e603c24f518f8ee361e` Pages deployment run [45931067591](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45931067591) completed successfully, including root/legacy/preview, case-insensitive catalog URLs, dashboard/mobile/QR deployed-origin checks.
 - Updated the read-only audit and reconciliation manifest through PR #1176. No Production SQL/DDL/DML, migration, Auth, GRANT/RLS, Edge, Storage, payment, wallet, settlement, or customer/business-data mutation. Full platform remains **BLOCKED / NOT CERTIFIED**.
+
+
+
+## Current-main and live Production read-only checkpoint — 2026-11-27
+
+- [x] Confirmed current `main` head is `5565fcdeba4c1c20048f3cbaac5e9fbdb285acb3`.
+- [x] PR #1186 merged at 14:50 UTC and PR #1187 merged at 15:03 UTC. Their selected-business identity and multi-membership browser coverage is now part of `main`.
+- [x] Exact-head Primary Catalog validation: build, Professional Dashboard browser E2E, and employee RBAC/PostgreSQL job all passed. GitHub Pages deployment run [46021520393](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/46021520393) succeeded; post-deploy root/legacy/preview and browser route checks completed.
+- [x] Rechecked Supabase `MANTIQATIX FINAL` using read-only calls. Live ledger remains 310 rows through `20261110150618`; the current manifest requires 87 source versions and an exact-ID comparison found 0/87. Treat this strictly as an identity gap; reconcile aliases and physical effects separately.
+- [x] Read-only authorization refresh: `private.platform_admins` exists with RLS enabled but FORCE RLS disabled. `is_platform_admin()` still derives authority from active tenant ADMIN/SUPER_ADMIN membership; `mnty_can_platform_admin()` remains SECURITY DEFINER and delegates to `mnty_can('admin', NULL, NULL, NULL)`. The current predicate inventory is 57 policy references / 24 tables plus five / three, 62 references over 27 tables combined. Both helpers are executable by authenticated and not anon; the registry table SELECT is unavailable to anon/authenticated and available to service_role.
+- [x] Refreshed `docs/release/production-migration-reconciliation.json` with the latest-main commit and read-only evidence. No SQL/DDL/DML, migration, Auth setting, grant, RLS, Edge deployment, Storage, payment, wallet, settlement, or customer/business-data mutation was performed.
+- [x] At the repository owner's direction, permanently cancelled the separate Menoufia catalog work: closed PR #1179 (shareable catalog route) and PR #1180 (separate ODbL candidate collection/staging). Neither PR was merged. Do not reopen or revive either track.
+- [x] Menoufia now uses only the existing activity and medical sections and the existing Activity → Specialty taxonomy. Any newly entered activity remains hidden DRAFT / UNVERIFIED until independently checked and approved. No Menoufia-specific catalog, medical catalog, separate intake template, or OSM staging is authorized.
+- [x] The prior non-production ODbL artifact #15170886614 remains temporarily retained by GitHub until its automatic expiry on 2026-12-11; it was not imported, published, or written to Production. The available GitHub connection does not expose artifact deletion. No further collection or artifact generation will occur.
+- [x] `docs/SESSION_LOG.md` remains untouched.
+- **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. Passing frontend/Pages CI does not certify the database migration chain, root authorization, Edge parity, payment/finance, or backup/restore.
