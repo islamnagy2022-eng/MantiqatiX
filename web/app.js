@@ -96,7 +96,7 @@ const sectors=Object.freeze((window.MX_SECTOR_REGISTRY?.CANONICAL_SECTORS||[]).m
 let current='الرئيسية', query='', user=null, deferredInstallPrompt=null, authBooted=false, authRenderLock=false, authIntent='login', authRegistrationType='CUSTOMER', authSendInFlight=false, authVerificationInFlight=false;
 const live={memberships:[],activeMembershipId:null,role:'CUSTOMER',businessId:null,tenantId:null,organizationId:null,branchId:null,permissions:{},counts:{},flags:{},records:{leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],providerServices:[],registrationRequests:[]},catalogByBusiness:{},moduleData:{},marketingCampaigns:[],marketingCampaignParticipants:[],marketingCampaignProviders:[],marketingCampaignErrors:[],marketingCampaignUnavailable:false,marketingCampaignUnavailableReason:null,myProviderProfile:null,loading:false,error:null};
 const countOrDash=key=>Object.prototype.hasOwnProperty.call(live.counts,key)?String(live.counts[key]):'—';
-async function safeCount(table,column,value){try{let q=sb.from(table).select('*',{count:'exact',head:true});if(column&&value)q=q.eq(column,value);const {count,error}=await q;return error?null:(count??0)}catch(_){return null}}
+async function safeCount(table,column,value){try{let q=sb.from(table).select('*',{count:'exact',head:true});if(column&&(value===null||value===undefined||value===''))return null;if(column)q=q.eq(column,value);const {count,error}=await q;return error?null:(count??0)}catch(_){return null}}
 async function loadLiveData(){
 const uid=user?.id;
 if(!uid)return;
@@ -1107,6 +1107,28 @@ function superAdminMembershipContextDirectory(){
   +'<p class="muted">تبديل الدور يتم من محدد العضوية أعلى الصفحة. هذا العرض يقرأ العضويات المحملة للحساب الحالي، ولا ينشئ أو يعدل أو يعطل عضويات. قرارات السماح النهائية تظل لدى RBAC وRLS وواجهات الخادم.</p></section>';
 }
 
+function superAdminFinanceOperationsSnapshot(){
+ const finance=live.finance;
+ const hasTenantScope=Boolean(live.tenantId);
+ if(!finance)return '<section class="card" style="margin:18px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">FINANCIAL OPERATIONS</span><h3>ملخص العمليات المالية</h3><p class="muted">لا توجد صلاحية مالية محملة في سياق العضوية الحالي.</p></div></div><div class="empty-state">المؤشرات المالية غير متاحة لهذا السياق.</div></section>';
+ const metrics=[
+  ['القيود المحاسبية','journals','journal_entries'],
+  ['عمليات العمولات','commissions','commission_transactions'],
+  ['نوايا الدفع','paymentIntents','payment_intents'],
+  ['المطابقات المالية','reconciliations','payment_financial_reconciliations'],
+  ['التسويات','settlements','settlement_transactions'],
+  ['المحافظ','wallets','wallet_accounts']
+ ];
+ const cards=metrics.map(([label,key,source])=>{
+  const available=hasTenantScope&&finance[key]!==null&&finance[key]!==undefined;
+  const value=available?String(finance[key]):'غير متاح';
+  return '<article class="card mnty-kpi-card"><div class="row"><strong>'+esc(label)+'</strong><span class="dot"></span></div><div class="kpi" style="font-size:24px">'+esc(value)+'</div><p class="muted">'+esc(source)+'</p><div class="mnty-card-state'+(available?'':' mnty-card-state--pending')+'"><span class="mnty-status-dot"></span><span>'+(available?'عدد سجلات مثبت ضمن النطاق':'لم يتوفر نطاق أو مصدر موثوق')+'</span></div></article>';
+ }).join('');
+ return '<section class="card" style="margin:18px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">FINANCIAL OPERATIONS · READ ONLY</span><h3>ملخص العمليات المالية</h3><p class="muted">أعداد السجلات المتاحة للنطاق المالي للعضوية الحالية، وليست إجماليات المنصة أو أرصدة مالية.</p></div><span class="count">'+(hasTenantScope?'نطاق عضوية محدد':'لا يوجد نطاق محدد')+'</span></div>'
+  +(hasTenantScope?'<div class="grid3">'+cards+'</div>':'<div class="notice" role="status">لا يوجد Tenant نشط مرتبط بالعضوية الحالية؛ لذلك لن نعرض أعدادًا عامة قد تختلط ببيانات نطاقات أخرى.</div>')
+  +'<p class="muted">كل قيمة تمثل عدد السجلات فقط. عند غياب النطاق أو تعذر قراءة المصدر تظهر «غير متاح» بدلًا من الصفر. لا يعرض هذا الملخص مبالغ أو أرصدة أو حالة استحقاق الاشتراكات؛ إدارة الاشتراكات تحتاج إلى اعتماد مصدرها وعقد صلاحيات مستقل.</p></section>';
+}
+
 function superAdminControlWorkspace(){
  if(!canSuperAdmin())return workspaceHead('PLATFORM CONTROL','التحكم الكامل','هذه المساحة مخصصة لـ SUPER_ADMIN فقط.','RESTRICTED')+'<div class="empty-state">لا تملك صلاحية التحكم الكامل.</div>';
  const tenants=[...new Map((live.memberships||[]).filter(m=>String(m.role||'').toUpperCase()==='SUPER_ADMIN'&&m.status==='ACTIVE').map(m=>[m.tenant_id,m])).values()];
@@ -1114,6 +1136,7 @@ function superAdminControlWorkspace(){
  return MNTY_ADMIN_SHOWCASE_STYLE+workspaceHead('SUPER ADMIN','التحكم الكامل','مسار تشغيلي موحد لإنشاء النشاط ثم اعتماده وإنشاء الفرع والخدمات والأسعار، مع بقاء كل الكتابات الحساسة عبر الخادم.','PLATFORM')
  +workspaceCards([['النطاقات النشطة',String(tenants.length),'Tenant contexts المرتبطة بدور SUPER_ADMIN'],['صلاحية الحساب','Full Control','نطاق المنصة فقط'],['الاعتماد','Server-side','الاعتماد يمر عبر مسار الخادم'],['مقدمو الخدمة','هوية حقيقية','لا يتم إنشاء هوية وهمية من الواجهة']])
  +superAdminMembershipContextDirectory()
+ +superAdminFinanceOperationsSnapshot()
  +superAdminFeatureFlagDirectory()
  +'<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">SUBSCRIPTION PRICING</span><h3>أسعار باقات المنصة</h3><p class="muted">قراءة من جدول الأسعار المعتمد للمستخدمين المسجلين فقط. هذه الأسعار لا تثبت وجود اشتراك قائم لأي نشاط ولا تنفذ ترقية أو تحصيلًا.</p></div><button class="btn btn-outline" type="button" id="sa-subscription-prices-refresh" style="width:auto">تحديث الأسعار</button></div><div id="sa-subscription-price-list" aria-live="polite"><div class="empty-state">جاري تحميل أسعار الباقات…</div></div></section>'
  +'<section class="card"><div class="section-head"><div><span class="eyebrow">CREATE ACTIVITY</span><h3>إنشاء نشاط كامل</h3><p class="muted">سيتم إنشاء طلب نشاط، ثم اعتماده، ثم إنشاء الفرع والخدمات والأسعار عند نجاح كل خطوة.</p></div></div>'
