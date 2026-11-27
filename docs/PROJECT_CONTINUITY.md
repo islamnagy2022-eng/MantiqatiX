@@ -1061,3 +1061,11 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 
 - Exact-head syntax checks showed \`loadOfficialShowcaseAdmin()\` still used \`await\` after losing its \`async\` modifier while the new loader was inserted. Restored the modifier and updated the static validator's function-boundary marker.
 - Added explicit async-loader contract and rotated cache to \`mnty-web-v154\`. Await exact-head CI before considering this complete.
+
+
+## 2026-11-27 — Super Admin module / feature-flag registry (read-only)
+
+- Added a protected module and feature-flag registry to the Super Admin control workspace. It derives rows from \`domainModules\` and the existing \`live.flags\` map rather than issuing new database queries.
+- Shows explicit flags only, distinguishes an absent toggle flag from explicit enablement, and omits configuration payload values.
+- Added static source-contract checks for inclusion and read-only behavior. Asset/PWA cache advanced to \`mnty-web-v155\`.
+- Runtime/browser and exact-head CI verification remain pending. Do not add enable/disable writes until the server-side feature-flag contract and permission scope are reviewed.

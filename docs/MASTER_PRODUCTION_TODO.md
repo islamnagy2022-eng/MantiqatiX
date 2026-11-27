@@ -2278,3 +2278,13 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Restored \`async function loadOfficialShowcaseAdmin()\` and aligned the validator's loader boundary with the corrected declaration.
 - [x] Added a dedicated assertion that the showcase loader remains async; rotated app/PWA cache to \`mnty-web-v154\`.
 - [ ] Corrected exact-head JavaScript syntax and dashboard source-contract workflows remain pending.
+
+
+## 2026-11-27 — Super Admin module / feature-flag registry (read-only)
+
+- [x] Added a protected module/feature-flag registry to the Super Admin control workspace using \`domainModules\` and already-loaded \`live.flags\`.
+- [x] Shows explicit module flags only, feature-code enabled/disabled state, module source count and counts of explicit enable/disable/no-explicit-toggle modules.
+- [x] Avoids exposing flag \`configuration\` values and does not interpret missing flags as verified-enabled.
+- [x] Added source-contract assertions that the registry exists, is included in the Super Admin workspace, reads current loaded flags, and contains no direct writes.
+- [x] Rotated app/PWA asset keys to \`super-admin-module-flag-registry-20261127\` and \`mnty-web-v155\`.
+- [ ] Exact-head CI and responsive/browser/accessibility verification remain pending. No module toggle action has been added; first inspect the authoritative feature-flag mutation RPC/Edge Function and its RBAC scope.

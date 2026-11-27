@@ -292,3 +292,13 @@ The exact code head `2b8d6e93bc757d1c8b2645845db23ebd338da19f` passed the public
 - The read-only activity directory now exposes a detail panel per visible business record.
 - Detail fields remain limited to business identity/status and provider-profile/module summaries; owner personal data and editable controls are excluded.
 - Keyboard focus and disclosure state are authored; browser/assistive-technology verification is still pending.
+
+
+## 2026-11-27 — Super Admin module / feature-flag registry (read-only)
+
+- [x] Added a protected module registry to the Super Admin control workspace using the already-loaded \`live.flags\` data and canonical \`domainModules\` catalog.
+- [x] Shows module code, defined source-table count, matching explicit feature flags and enable/disable state when a module toggle flag exists.
+- [x] Distinguishes “no explicit enablement flag” from enabled/verified; does not expose feature-flag \`configuration\` payloads.
+- [x] Kept the registry read-only because no verified platform-level mutation contract was established in this step.
+- [x] Added source-contract coverage for the registry and its no-write boundary.
+- **Status:** SOURCE UPDATED; exact-head CI and browser verification pending. Feature-flag contents are limited to those visible in the current loaded account/scope, not a certified platform-wide inventory.

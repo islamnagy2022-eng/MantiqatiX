@@ -27,6 +27,14 @@ assert.match(app, /loadSuperAdminActivityDirectory\(\);/, "Super Admin activity 
 assert.match(app, /sb\.from\('businesses'\)\.select\('id,name,code,status,updated_at'\)/, "activity directory must read an explicit business field allowlist");
 const activityLoaderStart = app.indexOf("async function loadSuperAdminActivityDirectory()");
 assert.match(app, /async function loadOfficialShowcaseAdmin\(\)/, "the existing official-showcase loader must remain async because it awaits Supabase queries");
+assert.match(app, /function superAdminFeatureFlagDirectory\(\)/, "Super Admin must render a module/feature-flag registry");
+assert.match(app, /superAdminFeatureFlagDirectory\(\)/, "the protected control workspace must include the module/feature-flag registry");
+const flagRegistryStart = app.indexOf("function superAdminFeatureFlagDirectory()");
+const flagRegistryEnd = app.indexOf("\nfunction superAdminControlWorkspace()", flagRegistryStart);
+assert.ok(flagRegistryStart >= 0 && flagRegistryEnd > flagRegistryStart, "module/feature-flag registry boundaries must be present");
+const flagRegistry = app.slice(flagRegistryStart, flagRegistryEnd);
+assert.match(flagRegistry, /Object\.entries\(live\.flags\|\|\{\}\)/, "module registry must use already-loaded feature flags");
+assert.doesNotMatch(flagRegistry, /\.insert\(|\.update\(|\.upsert\(|\.delete\(/, "module/feature-flag registry must remain read-only");
 const activityLoaderEnd = app.indexOf("\nasync function loadOfficialShowcaseAdmin()", activityLoaderStart);
 assert.ok(activityLoaderStart >= 0 && activityLoaderEnd > activityLoaderStart, "activity directory loader boundaries must be present");
 const activityLoader = app.slice(activityLoaderStart, activityLoaderEnd);
