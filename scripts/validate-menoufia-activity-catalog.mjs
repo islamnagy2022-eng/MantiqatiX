@@ -8,6 +8,7 @@ const app = read('apps/catalog-frontend/src/App.tsx');
 const seo = read('apps/catalog-frontend/src/utils/seoMetadata.ts');
 const geo = read('apps/catalog-frontend/src/data/egyptGeoDiscovery.ts');
 const taxonomy = read('apps/catalog-frontend/src/data/productionDefaults.ts');
+const browserE2E = read('apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs');
 
 assert.ok(directory.includes("get('governorate')"), 'Directory must read a shareable governorate scope from the URL.');
 assert.ok(directory.includes('initialRouteGovernorate'), 'A valid governorate route must take precedence over a saved location preference.');
@@ -25,6 +26,9 @@ assert.ok(seo.includes('governorateName?: string'), 'Route SEO must accept a geo
 assert.ok(seo.includes("searchParams.set('governorate', input.governorateName.trim())"), 'Activity canonical URLs must preserve the validated governorate.');
 assert.ok(seo.includes('دليل الأنشطة والخدمات في محافظة ${governorate}'), 'Governorate landing pages must have dedicated metadata.');
 assert.ok(geo.includes('"id":"EG17","name":"المنوفية"'), 'The canonical geographic dataset must include Menoufia (EG17).');
+assert.ok(browserE2E.includes("initialRoute: '?view=directory&governorate=المنوفية'"), 'Browser E2E must cover the shareable Menoufia deep link.');
+assert.ok(browserE2E.includes("request.governorate === 'المنوفية'"), 'Browser E2E must verify the governorate filter reaches the public API.');
+assert.ok(browserE2E.includes('the requested governorate must override a saved different province'), 'Browser E2E must verify the deep link overrides persisted location preference.');
 
 const categories = Array.from(
   taxonomy.matchAll(/^\s*s\('([^']+)','([^']+)','activity','([^']+)'/gm),
