@@ -93,7 +93,21 @@ The current-main webhook source contains the corrected signed-order binding and 
 
 The live-read comparison also confirmed that the current-main `paymob-webhook` source has a MantiGO signed-order guard: it compares signed `order.id` with `mantigo.metadata.paymob_intention_order_id` before calling `process_verified_mantigo_payment_backend`.
 
-The initial `validate-paymob-webhook-order-binding.mjs` validator covered standard orders, digital pages, and subscriptions, but omitted the MantiGO branch. This audit branch now extends the validator to assert the MantiGO lookup, signed order extraction, stored-order equality guard, HTTP 409 mismatch response, and ordering before the atomic RPC. The updated validator is **pending exact-branch CI**; no passing result is claimed here.
+The initial `validate-paymob-webhook-order-binding.mjs` validator covered standard orders, digital pages, and subscriptions, but omitted the MantiGO branch. This audit branch now extends the validator to assert the MantiGO lookup, signed order extraction, stored-order equality guard, HTTP 409 mismatch response, and ordering before the atomic RPC. The updated validator passed on the exact PR #1189 head in the RC475 workflow run [46060385246](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/46060385246). The log records: `Paymob signed provider-order binding (standard, digital-page, subscription, MantiGO): PASS`. The same run completed the RC475 disposable migration/integration and two-session concurrency tests successfully.
+
+
+### Exact-head follow-up validation on PR #1189
+
+The RC475 workflow run [46060385246](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/46060385246) completed successfully on PR #1189 head `04df0ff141fa75048b2b32e82e72eb2d082613e5`. It passed:
+- `validate-finance-boundaries.mjs`
+- `validate-payment-migration-wiring.mjs`
+- Updated `validate-paymob-webhook-order-binding.mjs`, including the MantiGO guard
+- Disposable RC475 migration and integration
+- Two-session concurrent replay
+
+The workflow log records `RC475 Paymob webhook forward-repair integration: PASS` and `RC475 concurrent Paymob replay: PASS` with one idempotent replay, one provider event, one reconciliation, and one commission transaction.
+
+The separate RC425 MantiGO atomicity job on the same PR head also completed successfully, including its payment-order-binding validator step and disposable atomic-payment integration. These are source/isolated-database results only, not Production rollout evidence.
 
 ## 5. Required coordinated release sequence
 
