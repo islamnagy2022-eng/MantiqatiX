@@ -13,8 +13,8 @@ Latest read-only evidence-document commit recorded previously: `9aa0a4cca803f6d6
 
 - Supabase project status: `ACTIVE_HEALTHY`; PostgreSQL `17.6.1.155`.
 - Live migration inventory: 310 rows; latest version `20261110150618`.
-- The canonical source contract in `scripts/production/live-reconciliation-contract.mjs` contains 88 unique, strictly ordered required migration versions.
-- Exact source-version intersection with the live migration ledger: **0/88**; 88 required IDs are absent as exact IDs.
+- The canonical source contract in `scripts/production/live-reconciliation-contract.mjs` contains 90 unique, strictly ordered required migration versions.
+- Exact source-version intersection with the live migration ledger: **0/90**; 90 required IDs are absent as exact IDs.
 - Three previously declared legacy aliases have their target ledger versions present while their source filename versions are absent:
   - `20261009010000 → 20261008222845` (RC424).
   - `20261027100000 → 20261027041411` (marketing contact).
@@ -113,4 +113,4 @@ The current Supabase Security Advisor snapshot returned 166 findings total (157 
 
 ## Evidence boundaries
 
-This report records source and metadata reads only. It does not claim that all 88 migrations' physical effects are absent, that all 42 Edge Functions were byte-compared, that payments are safe, that a Production backup exists, or that the platform is launch-certified.
+The release contract now includes RC115 (`20261125130000`, tenant/business-scoped marketing CRM) and RC931 (`20261128010000`, removal of global provider-profile base-table reads). Both are source-only and depend on the complete RC479 → RC926 → RC115 → RC931 security chain.\n\nThis report records source and metadata reads only. It does not claim that all 88 migrations' physical effects are absent, that all 42 Edge Functions were byte-compared, that payments are safe, that a Production backup exists, or that the platform is launch-certified.
