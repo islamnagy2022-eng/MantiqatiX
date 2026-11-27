@@ -52,6 +52,8 @@ CREATE TABLE public.marketing_provider_profiles (
   name_ar text NOT NULL,
   slug text,
   description text,
+  is_verified boolean NOT NULL DEFAULT false,
+  is_featured boolean NOT NULL DEFAULT false,
   service_areas jsonb NOT NULL DEFAULT '[]'::jsonb,
   settings jsonb NOT NULL DEFAULT '{}'::jsonb,
   status text NOT NULL
