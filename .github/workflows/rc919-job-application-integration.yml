@@ -9,6 +9,8 @@ on:
       - 'scripts/production/live-reconciliation-contract.mjs'
       - 'scripts/production/verify-production.mjs'
       - 'scripts/validate-production-migration-chain-gate.mjs'
+      - 'scripts/validate-production-backup-runbook-current.mjs'
+      - 'docs/release/production-migration-reconciliation.json'
       - '.github/workflows/rc919-job-application-integration.yml'
   workflow_dispatch:
 jobs:
