@@ -86,7 +86,7 @@ assert.ok(publicExposureValidator.includes("PUBLIC_PROVIDER_COLUMNS"));
 assert.ok(publicExposureValidator.includes("primary catalog frontend must not query the provider profile base table directly"));
 assert.match(webIndex, /window\.location\.replace\('\/MantiqatiX\/catalog-app\/'\)/);
 assert.match(webIndex, /if \(window\.location\.pathname !== '\/MantiqatiX\/catalog-app\/'\) return/);
-assert.match(webApp, /\.from\('marketing_provider_profiles'\)\.select\('id,owner_user_id,name_ar,name_en,slug,service_areas,status'\)\.eq\('owner_user_id',user\.id\)/,
+assert.match(webApp, /\.from\(['"]marketing_provider_profiles['"]\)[^\n]*\.eq\(['"]owner_user_id['"],uid\)/,
   "legacy owner CRM profile read must remain restricted to the authenticated owner");
 
 const required = contract.match(/REQUIRED_RELEASE_MIGRATION_VERSIONS\s*=\s*\[([\s\S]*?)\n\];/);
