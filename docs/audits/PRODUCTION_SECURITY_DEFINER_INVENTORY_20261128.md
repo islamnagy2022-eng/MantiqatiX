@@ -206,6 +206,14 @@ A source-text scan found six of the 65 authenticated-callable SECURITY DEFINER f
 **Existing repair:** RC478 `20261118070000_rc478_mantigo_open_ride_privacy_forward_repair.sql` is source-only and requires a non-anonymous Auth JWT, exact caller identity, an ACTIVE + VERIFIED + AVAILABLE captain profile, and a vehicle-category match. It pins `search_path=pg_catalog` and preserves authenticated-only EXECUTE. Disposable PostgreSQL 16 tests cover ordinary authenticated users, pending/unverified/offline captains, anonymous Auth sessions, vehicle-category separation, own-ride exclusion and closed rides. The migration is not in the Production ledger; issue #911 remains open.
 
 **Disposition:** confirmed P1 location-privacy boundary mismatch in Production. Do not hot-apply RC478 or deploy a separate backend function; include it in the coordinated release and verify exact live function body/ACL plus positive/negative cases after rollout.
+
+## Additional authenticated-role privacy boundary — MantiGO customer bid contacts
+
+`public.list_mantigo_customer_rides_backend(uuid,text)` correctly binds the caller to `auth.uid()` and limits rides to the caller's own rides, but the live body builds its `bids` JSON using `jsonb_agg(to_jsonb(b))` without masking contact fields. The `mantigo_bids` row includes `captain_phone` and `vehicle_plate`, so the customer can receive those identifiers for OFFERED/non-accepted bids.
+
+**Direct Production read-back:** SECURITY DEFINER, owner `postgres`, `search_path=public`, authenticated EXECUTE=true / anon EXECUTE=false. RC477 `supabase/migrations/20261118060000_rc477_mantigo_customer_bid_contact_privacy.sql` replaces full-row serialization with an explicit masking projection: phone and plate are JSON null until bid status is `ACCEPTED`, while remaining offer fields are preserved. It pins an empty search_path and retains authenticated-only EXECUTE. The disposable PostgreSQL test proves OFFERED fields hidden, ACCEPTED fields visible, non-sensitive bid fields unchanged, actor mismatch rejected, and expected grants/path. RC477's exact ID is absent from Production; issue #913 remains open.
+
+**Disposition:** confirmed P1 pre-acceptance contact disclosure mismatch. No customer rows, phone numbers, plates or function results were read. No RPC was invoked or Production mutation performed. Keep RC477 inside the coordinated migration/Edge/backup release and verify OFFERED/ACCEPTED/REJECTED/WITHDRAWN/EXPIRED cases after deployment.
 **Limit:** this section records a direct body/delegation triage of the six no-direct-token entries. It is not a full review of all 65 authenticated-callable routines or a replacement for deployed-caller/Edge parity verification.
 ## Required next classification
 
