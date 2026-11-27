@@ -2,9 +2,19 @@
 
 **Updated:** 2026-11-27  
 **Repository:** `islamnagy2022-eng/MantiqatiX`  
-**Verified main:** `db5f015ba2ada4e385f816215671f74b17fa338a`  
+**Verified main:** `1b9b343e1521a94fc13e93db06bf810987daa296`  
 **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`  
 **Production boundary:** read-only; no Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement, or customer-data mutation.
+
+## 2026-11-27 — Current-main closeout after PR #1183
+
+- [x] Verified the current `main` head directly: `1b9b343e1521a94fc13e93db06bf810987daa296` (`test(auth): guard selected business identity context`, PR #1183).
+- [x] Exact-head GitHub check inventory: 20 checks completed; 18 succeeded, two were intentionally skipped, and zero failed. The skipped entries include the standalone deployed-origin redirect-regression check; do not report that check as passing.
+- [x] GitHub Pages deployment run [45943888810](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45943888810) completed successfully for this `main` head. The deployment workflow's deployed-origin browser step covered the root catalog, legacy/preview routes, case-insensitive catalog URLs, and dashboard/mobile/QR routes.
+- [x] PR #1159's RC930 source repair is already merged. It serializes job-application submission against job deactivation and includes disposable PostgreSQL regression coverage. The open Production finding remains unresolved until its coordinated release is completed; no Production migration was run.
+- [x] Inspected open continuation PRs. Older RBAC/settings branches (#387/#388/#439/#441/#442) target stale base SHAs and were not merged blindly. The open Monufia activity PRs #1179/#1180 were left untouched under the current pause.
+- **Production boundary:** no Production SQL/migration, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, settlement, or business/customer-data mutation was performed.
+- **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. The latest documented read-only migration inventory remains 310 rows through `20261110150618`, with 0/87 exact source-ID matches at the 2026-11-27 00:04 UTC read-back. This is an identity discrepancy, not proof that all physical effects are absent. Authorization, Edge parity, physical-effect/alias reconciliation, and backup/restore evidence remain release blockers.
 
 ## Latest verified source work
 
