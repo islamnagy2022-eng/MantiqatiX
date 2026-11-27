@@ -76,3 +76,17 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 - [ ] Continue exact-head review of Super Admin fixes and overview work in PRs #1171 and #1172. Do not merge either until all required checks pass.
 - [ ] Keep `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` until the separate live database migration, ACL/RLS, Edge, privacy, finance, backup/restore and rollback gates are satisfied.
 - **Non-actions:** no Production database write, migration, Auth/RLS/GRANT change, Edge Function deployment, payment, wallet, settlement, or customer/business-data mutation was performed as part of the Pages deployment closeout.
+
+
+## Supabase production read-only recheck — 2026-11-27 02:42 UTC
+
+- [x] Confirmed the connected `MANTIQATIX FINAL` Supabase project is ACTIVE_HEALTHY on PostgreSQL 17.6.1.155.
+- [x] Refreshed the live migration inventory: 310 rows through `20261110150618`; direct comparison against the canonical 87 required exact release versions found 0/87 exact IDs. This is an identity mismatch, not proof that all physical effects are absent; aliases and schema/function/ACL/RLS effects must be separately reconciled.
+- [x] Re-read deployed Edge source. `catalog-admin` v20 still derives platform-root scope from membership role/permissions and does not use current-main `mnty_can_platform_admin()`. It does manually validate a bearer token and reject anonymous users.
+- [x] Verified shared `public-contact-visibility.mjs` parity for `public-catalog` v11 and `public-catalog-directory` v20; verified `promotional-images.mjs` parity for `public-catalog-directory` v20. Their deployed entrypoints are not byte-identical to current main, so full Edge parity remains unverified.
+- [x] Confirmed `directory-listings` v18 remains deliberately fail-closed: GET returns an empty result with `directoryDisabled=true`, POST returns 503 `DIRECTORY_LISTINGS_DISABLED_FOR_V1`.
+- [x] Refreshed Supabase Advisor snapshots: Security 166 findings (157 WARN, 9 INFO); Performance 600 findings (403 WARN, 197 INFO). Each warning is a triage signal; no bulk ACL/policy/index action was taken.
+- [x] Recorded evidence and release disposition in [docs/audits/PRODUCTION_READ_ONLY_RECHECK_20261127.md](audits/PRODUCTION_READ_ONLY_RECHECK_20261127.md) and `docs/release/production-migration-reconciliation.json`.
+- **Non-actions:** no Production SQL write, migration, Auth setting, GRANT/RLS/policy change, Edge deployment, Storage write, payment, wallet, settlement, or customer/business-data mutation.
+- **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
