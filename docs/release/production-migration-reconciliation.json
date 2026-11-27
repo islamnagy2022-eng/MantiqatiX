@@ -27,7 +27,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED — no actual Production database/Storage export, off-site upload/retrieval, Vault recovery, separate-project PostgreSQL 17 restore, measured RPO/RTO or rollback rehearsal occurred. PR #875 merged a read-only encrypted backup manifest/evidence validator; exact-head CI passed 12/12 disposable tests (run 44640871190). The tool validates operator-created artifacts/evidence only and does not create backups or perform restores.",
   "evidence_ref": "docs/audits/PRODUCTION_RECONCILIATION_20261114.md",
   "checked_at": "2026-11-27",
-  "reason": "Fresh read-only Supabase recheck on 2026-11-27: live migration ledger remains at 310 rows through 20261110150618 and 0/87 required exact release IDs are present. Deployed catalog-admin v20 still uses the legacy membership-derived platform-root helper rather than current registry-backed main source. public-catalog v11 and public-catalog-directory v20 have exact shared contact-consent parity (and directory promotional-image parity) but their entrypoints are not byte-identical to current main. directory-listings v18 intentionally remains fail-closed (GET empty + directoryDisabled; POST 503) until RC472/RC473 consent gates. Security Advisor: 166 findings (157 WARN, 9 INFO); Performance Advisor: 600 findings (403 WARN, 197 INFO). Advisor labels are triage signals and require per-policy/caller review. No Production writes, migrations, Auth/RLS/GRANT changes, Edge deployments, Storage, payment, wallet, settlement or business-data mutations were made. Direct PostgreSQL read-back on 2026-11-27 further confirms private.platform_admins RLS=on/FORCE RLS=off; public.is_platform_admin() remains SECURITY INVOKER and derives root status from any ACTIVE ADMIN/SUPER_ADMIN membership; public.mnty_can_platform_admin() remains SECURITY DEFINER delegating to mnty_can(); 57/24 and 5/3 policy reference/table counts respectively; orders/order_status_history have RLS+FORCE RLS but no RC929 strict confirmed-Auth restrictive policy; public.directory_listing_contact_consents is absent. Keep the release coordinated and fail-closed.",
+  "reason": "Fresh read-only Supabase recheck on 2026-11-27: live migration ledger remains at 310 rows through 20261110150618 and 0/87 required exact release IDs are present. Deployed catalog-admin v20 still uses the legacy membership-derived platform-root helper rather than current registry-backed main source. public-catalog v11 and public-catalog-directory v20 have exact shared contact-consent parity (and directory promotional-image parity) but their entrypoints are not byte-identical to current main. directory-listings v18 intentionally remains fail-closed (GET empty + directoryDisabled; POST 503) until RC472/RC473 consent gates. Security Advisor: 166 findings (157 WARN, 9 INFO); Performance Advisor: 600 findings (403 WARN, 197 INFO). Advisor labels are triage signals and require per-policy/caller review. No Production writes, migrations, Auth/RLS/GRANT changes, Edge deployments, Storage, payment, wallet, settlement or business-data mutations were made. Direct PostgreSQL read-back on 2026-11-27 further confirms private.platform_admins RLS=on/FORCE RLS=off; public.is_platform_admin() remains SECURITY INVOKER and derives root status from any ACTIVE ADMIN/SUPER_ADMIN membership; public.mnty_can_platform_admin() remains SECURITY DEFINER delegating to mnty_can(); 57/24 and 5/3 policy reference/table counts respectively; orders/order_status_history have RLS+FORCE RLS but no RC929 strict confirmed-Auth restrictive policy; public.directory_listing_contact_consents is absent. Keep the release coordinated and fail-closed. The live helper behavior is now characterized: mnty_active_membership(NULL,NULL,NULL) returns all caller ACTIVE memberships, mnty_can('admin',NULL,NULL,NULL) explicitly grants admin to OWNER and ADMIN roles, and live mnty_can_platform_admin() delegates to that generic evaluator rather than the private registry; public.is_platform_admin() returns true for any ACTIVE ADMIN/SUPER_ADMIN membership and 57 RLS policies across 24 tables reference it. This is a CRITICAL/P0 source-derived cross-tenant authorization risk. Forward repairs already exist in source RC464→RC471→RC484→RC485; do not duplicate IDs or hot-patch. Require the full ordered release and negative/positive tests.",
   "edge_function_contracts": "PARTIAL — 13 high-impact deployed Edge entrypoints were compared byte-for-byte with current main. Nine matched exactly (public-catalog, public-catalog-directory, payment-webhook, mantigo-payment-intent, api, order-status-update, post-financial-journal, settlement-create, subscription-start-trial). Material drift remains in paymob-webhook v10, payment-intent v8, subscription-payment-intent v4, digital-page-payment-intent v5, settlement-financial-atomic v4, financial-journal v3, order-create v8, catalog-admin v20, mnty-push-dispatch v4, health v3 and erp-purchase-receive v3. directory-listings v18 is intentionally fail-closed and must remain so until RC472/RC473 consent gates are live. Do not deploy individual mismatched functions; coordinate exact DB contracts, migrations and Edge bundles.",
   "smm_gateway_parity": "PARTIAL — live SMM gateway remains ACTIVE v13, verify_jwt=true, and source matches main with SMM_INITIAL_LAUNCH_DEFERRED=true. Anonymous/authenticated negative runtime tests still unverified; keep deferred.",
   "auth_security_settings": "NOT VERIFIED — fresh 2026-11-23 Security Advisor reports leaked-password protection disabled and anonymous Auth sign-ins enabled. No connector exposes a safe Auth-setting mutation path; no Auth settings were changed. Owner must enable leaked-password protection and confirm whether external clients depend on anonymous Auth before disabling it.",
@@ -8438,6 +8438,43 @@
         "note": "Reference sets may overlap; do not add table counts as distinct tables."
       },
       "risk": "High authorization blast radius. Do not hot-replace the helper or bulk-rewrite policies. Prepare a coordinated migration preserving tenant/business/branch boundaries with positive/negative PostgreSQL integration tests."
+    },
+    "authorization_semantics": {
+      "severity": "CRITICAL / P0",
+      "observed_live_logic": {
+        "membership_helper": "public.mnty_active_membership(NULL,NULL,NULL) returns the caller's ACTIVE memberships without tenant/business/branch filters.",
+        "generic_permission_helper": "public.mnty_can('admin',NULL,NULL,NULL) includes 'admin' in the built-in permission lists for OWNER and ADMIN roles and also accepts a permissions.admin boolean.",
+        "platform_guard": "public.mnty_can_platform_admin() delegates directly to public.mnty_can('admin',NULL,NULL,NULL) and does not consult private.platform_admins.",
+        "legacy_rls_helper": "public.is_platform_admin() returns true for any ACTIVE ADMIN or SUPER_ADMIN membership and is referenced by 57 policies across 24 tables."
+      },
+      "impact_statement": "An active tenant OWNER/ADMIN may satisfy mnty_can_platform_admin without a private-registry row. An active tenant ADMIN/SUPER_ADMIN may satisfy is_platform_admin() and thereby satisfy OR predicates in policies across multiple tables. This is a source-derived cross-tenant authorization risk; no impersonation or data-access exploit test was performed.",
+      "existing_forward_source_repairs": [
+        {
+          "version": "20261113214500",
+          "id": "RC464",
+          "path": "supabase/migrations/20261113214500_rc464_platform_admin_live_registry_hardening.sql",
+          "purpose": "Registry-only mnty_can_platform_admin; force registry RLS; empty search_path; function ACLs; four MantiGO RPCs."
+        },
+        {
+          "version": "20261117190000",
+          "id": "RC471",
+          "path": "supabase/migrations/20261117190000_rc471_mantigo_platform_admin_forward_hardening.sql",
+          "purpose": "Forward hardening of shared MantiGO global SECURITY DEFINER callers."
+        },
+        {
+          "version": "20261119040000",
+          "id": "RC484",
+          "path": "supabase/migrations/20261119040000_rc484_registry_backed_is_platform_admin.sql",
+          "purpose": "Registry-only is_platform_admin for 57 policy references; force RLS and harden function ACL/search_path."
+        },
+        {
+          "version": "20261120200000",
+          "id": "RC485",
+          "path": "supabase/migrations/20261120200000_rc485_catalog_rpc_registry_root.sql",
+          "purpose": "Registry-root checks in seven direct catalog RPCs while preserving tenant/business/branch roles."
+        }
+      ],
+      "disposition": "Source repair already exists; do not create duplicate migration IDs, apply individual migrations, or hot-patch Production. Deploy only in the full ordered, preflighted, backed-up release after adversarial positive/negative PostgreSQL tests."
     }
   }
 }
