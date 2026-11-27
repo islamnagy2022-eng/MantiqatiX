@@ -22,7 +22,7 @@ for (const forbidden of ['phone:', 'email:', 'website:', 'ownerWhatsApp:', 'addr
 }
 assert.ok(query.includes('rel(3824207)'), 'Overpass query must use the verified Monufia relation.');
 assert.ok(query.includes('map_to_area'), 'Overpass query must use the administrative relation area.');
-assert.ok(workflow.includes('types: [opened]'), 'One-time extraction must run only when the source PR is first opened.');
+assert.ok(workflow.includes('types: [opened, synchronize, reopened]'), 'Static contracts must rerun on open, synchronize and explicit reopen events.');
 assert.ok(workflow.includes('retention-days: 14'), 'Candidate artifact retention must be short and explicit.');
 assert.ok(workflow.includes('No fallback scraping or alternate directory source will be attempted.'), 'Source failure must never trigger unlicensed fallback scraping.');
 assert.ok(docs.includes('ODbL 1.0') && docs.includes('© OpenStreetMap contributors'), 'License and attribution obligations must be explicit.');
