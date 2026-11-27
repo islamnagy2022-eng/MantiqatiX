@@ -1,4 +1,19 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
+## 2026-11-27 — Post-pagination merge and gallery-viewer continuation checkpoint
+
+- [x] PR #1155 merged into `main` as `5bc82aa8c2fcb49588764a57e288c1a32c711aa9`. Exact-head CI: 28 successes, two expected skips, zero failures. The post-merge catalog build, dashboard E2E, employee RBAC, keyset pagination, contact privacy, and source/module/financial tests passed.
+- [x] Closed duplicate pagination PRs #1152 and #1153 after #1155 became the canonical signed, filter-bound 20-row directory pagination implementation.
+- [x] Recreated the accessible gallery viewer from the stale PR #1150 directly on the post-merge main baseline as PR #1157. Its changes are source-only; exact-head build/TypeScript and multiple privacy/authorization suites passed at the latest checkpoint. Its dashboard browser E2E remained in progress; do not merge until all exact-head checks finish.
+- [x] Closed stale PR #1150 as superseded by #1157. Do not reopen the diverged branch.
+- [ ] Confirm actual Pages deployment job for main commit #1155; at this checkpoint the deploy job had not yet completed. PR-only validation or build artifacts do not establish a live deployment.
+- [ ] Refresh the full 87-source Production physical-effect/alias reconciliation and retain fail-closed release gates. The last documented Production ledger has 310 rows through `20261110150618`, with 0/87 exact IDs; this is an identity mismatch, not proof all physical effects are absent.
+- [ ] Correct the live platform-root authorization drift only through the coordinated RC464/RC469/RC471/RC484 + policy/caller release chain; the last documented read-only state still has broad membership-derived helpers, registry FORCE RLS off, and the 62-policy/27-table review surface.
+- [ ] Keep gallery-dependent Edge parity/deployment blocked until schema/RPC/ACL/RLS dependencies and all three bundles are verified together.
+- **Production safety:** no Production SQL, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement, or customer/business-data mutation. Backup/restore remains deferred and unverified.
+- **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
 **Updated:** 2026-11-26 — PR #1148 merged; current-main continuation checkpoint refreshed  
 **Base:** `main @ 111db15e30182e6f21ef9d91630a187d73601c36`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
