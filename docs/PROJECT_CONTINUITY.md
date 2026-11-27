@@ -1091,3 +1091,13 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 
 - Latest CI confirmed JS syntax and RC450 role-parity validation success. The enterprise dashboard validator exposed a source-test boundary assumption: \`superAdminFeatureFlagDirectory()\` is defined before \`superAdminMembershipContextDirectory()\`, so the membership helper slice must end at \`superAdminControlWorkspace()\`. Corrected only the test boundary; no application behavior changed.
 - Await corrected exact-head test and PR CI.
+
+
+## 2026-11-27 — Enterprise command-center shortcut navigation correction
+
+- [x] Fixed the command-center navigation binder so every shortcut calls `selectModule(name)`, including the “إضافة نشاط” shortcut targeting the protected “التحكم الكامل” workspace. Removed the toast-only interception that prevented navigation.
+- [x] Added regression assertions to `scripts/validate-enterprise-dashboard-contract.mjs` requiring the shared navigation path and forbidding the toast-only branch.
+- [x] Rotated the application asset query key to `super-admin-control-navigation-20261127` and the service-worker cache to `mnty-web-v158`; verified HTML registration/precache alignment.
+- [x] Performed source-level JavaScript parse checks for `web/app.js` and `web/sw.js` using the current branch contents; both parsed successfully. Source-contract assertions and browser interaction remain pending CI/runtime verification.
+- [ ] No workflow runs or status checks were returned for exact commit `f4d0eccf10484cb3c2847dfa3352a748949411fc` at verification time. Do not mark CI passed until a fresh exact-head run is available.
+- Production remains **BLOCKED / NOT CERTIFIED**. No merge, deployment, database mutation, or production write was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
