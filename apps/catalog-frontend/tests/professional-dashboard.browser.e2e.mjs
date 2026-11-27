@@ -1382,7 +1382,13 @@ try {
       assert.ok((await page.getByText(/١٢٥/).count()) > 0, 'the active branch price must be displayed as read-only data');
       assert.equal(await page.getByText('قراءة فقط', { exact: true }).count(), 1, 'the platform catalog section must declare its read-only state');
       assert.equal(await page.getByRole('button', { name: /تعديل|حذف|إيقاف|تنشيط/ }).count(), 0, 'the platform catalog review must not expose unverified write actions');
+      const secondaryBranchRead = page.waitForResponse((response) =>
+        response.url().endsWith('/functions/v1/catalog-admin')
+        && response.request().method() === 'POST'
+        && response.request().postDataJSON()?.branchId === 'branch-e2e-secondary',
+      );
       await page.getByLabel('الفرع').selectOption('branch-e2e-secondary');
+      await secondaryBranchRead;
       assert.ok(catalogReadRequests.some((request) => request.businessId === businessId && request.tenantId === tenantId && request.branchId === 'branch-e2e-secondary'), 'changing branch must issue a read scoped to the selected branch');
       assert.equal(new URL(page.url()).searchParams.get('controlTab'), 'catalog', 'catalog tab state must be preserved in the URL');
       for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
