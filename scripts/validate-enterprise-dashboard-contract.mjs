@@ -93,19 +93,19 @@ assert.ok(financeSnapshot.includes("غير متاح"), "missing scope/source cou
 assert.ok(app.includes("superAdminMembershipContextDirectory()"+String.fromCharCode(10)+" +superAdminFinanceOperationsSnapshot()"+String.fromCharCode(10)+" +superAdminFeatureFlagDirectory()"), "finance snapshot must be included in the protected Super Admin control workspace");
 
 
-assert.match(app, /async function loadSuperAdminActivityCatalog\\(business,root\\)/, "Super Admin read-only catalog loader must exist");
-assert.match(app, /select\\('id,tenant_id,name,code,status,updated_at'\\)/, "activity directory must load tenant scope for the catalog endpoint");
-assert.match(app, /data-sa-activity-catalog=/, "active activity rows must expose a read-only catalog action");
-assert.match(app, /id="sa-activity-catalog-panel"/, "activity details must contain the catalog inspector panel");
+assert.ok(app.includes("async function loadSuperAdminActivityCatalog(business,root)"), "Super Admin read-only catalog loader must exist");
+assert.ok(app.includes("select('id,tenant_id,name,code,status,updated_at')"), "activity directory must load tenant scope for the catalog endpoint");
+assert.ok(app.includes("data-sa-activity-catalog="), "active activity rows must expose a read-only catalog action");
+assert.ok(app.includes('id="sa-activity-catalog-panel"'), "activity details must contain the catalog inspector panel");
 const adminCatalogStart = app.indexOf("async function loadSuperAdminActivityCatalog(business,root)");
 const adminCatalogEnd = app.indexOf(String.fromCharCode(10)+"async function loadSuperAdminActivityDirectory()", adminCatalogStart);
 assert.ok(adminCatalogStart >= 0 && adminCatalogEnd > adminCatalogStart, "Super Admin catalog loader boundaries must be present");
 const adminCatalog = app.slice(adminCatalogStart, adminCatalogEnd);
-assert.match(adminCatalog, /canSuperAdmin\\(\\)/, "catalog inspector must require Super Admin access");
-assert.match(adminCatalog, /loadBusinessCatalog\\(business\\.id,null,business\\.tenant_id\\)/, "catalog inspector must use the existing authenticated catalog route and exact tenant context");
-assert.match(adminCatalog, /catalogCurrentPrice\\(catalog,item\\.id,branchId\\)/, "catalog inspector must use the existing current-price resolver");
-assert.doesNotMatch(adminCatalog, /sb\\.from\\(|\\.rpc\\(|\\.insert\\(|\\.update\\(|\\.upsert\\(|\\.delete\\(/, "catalog inspector must not issue direct queries or mutate catalog records");
-assert.match(adminCatalog, /READ-ONLY|القراءة فقط|للقراءة فقط/, "catalog inspector must explicitly disclose its read-only boundary");
-assert.match(adminCatalog, /catalog\\.branches/, "catalog inspector must expose active branch selection");
+assert.ok(adminCatalog.includes("canSuperAdmin()"), "catalog inspector must require Super Admin access");
+assert.ok(adminCatalog.includes("loadBusinessCatalog(business.id,null,business.tenant_id)"), "catalog inspector must use the existing authenticated catalog route and exact tenant context");
+assert.ok(adminCatalog.includes("catalogCurrentPrice(catalog,item.id,branchId)"), "catalog inspector must use the existing current-price resolver");
+assert.ok(!["sb.from(", ".rpc(", ".insert(", ".update(", ".upsert(", ".delete("].some(token => adminCatalog.includes(token)), "catalog inspector must not issue direct queries or mutate catalog records");
+assert.ok(adminCatalog.includes("الكتالوج للقراءة فقط"), "catalog inspector must explicitly disclose its read-only boundary");
+assert.ok(adminCatalog.includes("catalog.branches"), "catalog inspector must expose branch selection");
 
 console.log("Enterprise dashboard interaction source contract: PASS");
