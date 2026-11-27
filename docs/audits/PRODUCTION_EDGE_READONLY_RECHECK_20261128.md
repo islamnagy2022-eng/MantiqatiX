@@ -20,7 +20,7 @@ Latest read-only evidence-document commit recorded previously: `9aa0a4cca803f6d6
   - `20261027100000 → 20261027041411` (marketing contact).
   - `20261101150000 → 20261101140105` (directory permission evidence).
 - The 2026-11-27 21:42 UTC read-only audit recorded exact SQL/blob alias comparisons and relevant physical effects for these three cases. Their formal reconciliation/repair states must not be silently treated as complete if the current manifest still says pending.
-- Do not fabricate migration ledger entries, rewrite history, or replay the 88-version chain blindly against Production. A zero exact-ID match is an identity gap, not proof that every physical object is absent.
+- Do not fabricate migration ledger entries, rewrite history, or replay the 90-version chain blindly against Production. A zero exact-ID match is an identity gap, not proof that every physical object is absent.
 
 ## Platform-root authorization
 
@@ -104,7 +104,7 @@ The current Supabase Security Advisor snapshot returned 166 findings total (157 
 
 1. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 2. Owner-controlled encrypted Production database and Storage exports, integrity/retrieval proof, Auth/Vault recovery coverage, independent PostgreSQL 17 restore/rollback and measured RPO/RTO remain NOT VERIFIED. Disposable CI replay is not a Production backup/restore drill.
-3. Finish the complete 88-version source-to-ledger/alias/physical-effect reconciliation and database/RPC/ACL/RLS dependency closure.
+3. Finish the complete 90-version source-to-ledger/alias/physical-effect reconciliation and database/RPC/ACL/RLS dependency closure.
 4. Correct platform-root registry enforcement only through the coordinated ordered migration/caller/policy release, after its required backup and exact-head adversarial tests.
 5. Reconcile all critical Edge source bundles and their database dependencies; do not ship a partial admin/payment deployment.
 6. Keep payment, webhook, wallet, payout, settlement, and customer-data operations blocked until signed sandbox tests and finance/journal/idempotency/rollback evidence pass.
@@ -113,4 +113,4 @@ The current Supabase Security Advisor snapshot returned 166 findings total (157 
 
 ## Evidence boundaries
 
-The release contract now includes RC115 (`20261125130000`, tenant/business-scoped marketing CRM) and RC931 (`20261128010000`, removal of global provider-profile base-table reads). Both are source-only and depend on the complete RC479 → RC926 → RC115 → RC931 security chain.\n\nThis report records source and metadata reads only. It does not claim that all 88 migrations' physical effects are absent, that all 42 Edge Functions were byte-compared, that payments are safe, that a Production backup exists, or that the platform is launch-certified.
+The release contract now includes RC115 (`20261125130000`, tenant/business-scoped marketing CRM) and RC931 (`20261128010000`, removal of global provider-profile base-table reads). Both are source-only and depend on the complete RC479 → RC926 → RC115 → RC931 security chain.\n\nThis report records source and metadata reads only. It does not claim that all 90 migrations' physical effects are absent, that all 42 Edge Functions were byte-compared, that payments are safe, that a Production backup exists, or that the platform is launch-certified.
