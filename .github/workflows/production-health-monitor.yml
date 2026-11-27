@@ -33,7 +33,9 @@ jobs:
         run: |
           set -euo pipefail
           if [[ -z "${HEALTH_MONITOR_TOKEN:-}" ]]; then
-            echo "HEALTH_MONITOR_TOKEN is not configured; retaining the temporary legacy database probe."
+            echo "HEALTH_MONITOR_TOKEN is not configured; Edge /health was not checked."
+            echo "::warning::HEALTH_MONITOR_TOKEN is missing; only the legacy anonymous database read probe will run."
+            echo "health_function_mode=not_checked" >> "$GITHUB_OUTPUT"
             echo "database_probe_mode=legacy_anon" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -41,6 +43,7 @@ jobs:
           BODY="$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 -H "Authorization: Bearer ${HEALTH_MONITOR_TOKEN}" "$URL")"
           grep -Fq '"status":"ok"' <<<"$BODY"
           grep -Fq '"service":"mantiqatix-health"' <<<"$BODY"
+          echo "health_function_mode=checked" >> "$GITHUB_OUTPUT"
           if grep -Fq '"database":{"status":"ok","mode":"service_role_read_only"}' <<<"$BODY"; then
             echo "database_probe_mode=service_role" >> "$GITHUB_OUTPUT"
           else
@@ -98,9 +101,20 @@ jobs:
           echo "MANTIQATIX_PRODUCTION_ROOT_AND_LEGACY_ASSETS=PASS"
 
       - name: Health summary
+        env:
+          HEALTH_FUNCTION_MODE: ${{ steps.supabase_health.outputs.health_function_mode }}
+          DATABASE_PROBE_MODE: ${{ steps.supabase_health.outputs.database_probe_mode }}
         run: |
-          echo "Production health checks passed."
+          echo "Production endpoint checks completed."
           echo "Pages: reachable"
-          echo "Edge Function /health: runtime and database contract checked"
-          echo "Database: read-only"
+          if [[ "$HEALTH_FUNCTION_MODE" == "checked" ]]; then
+            echo "Edge Function /health: PASS"
+          else
+            echo "Edge Function /health: NOT CHECKED (HEALTH_MONITOR_TOKEN missing)"
+          fi
+          if [[ "$DATABASE_PROBE_MODE" == "service_role" ]]; then
+            echo "Database read probe: PASS (service_role, read-only)"
+          else
+            echo "Database read probe: PASS (legacy anon fallback, read-only)"
+          fi
           echo "Core web assets: reachable"
