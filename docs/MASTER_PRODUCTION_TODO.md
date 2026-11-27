@@ -2251,3 +2251,11 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Replaced fixed PWA asset-version expectations in the dashboard source validator with dynamic parity checks between \`web/index.html\` and \`web/sw.js\`.
 - [x] This prevents every legitimate asset/cache rotation from making the contract stale.
 - [ ] Exact-head CI must confirm the amended validator.
+
+
+### Super Admin activity directory — syntax correction
+
+- [x] Exact-head Module Professionalization, Backend-only Module Boundary and Marketing Workspace Contract checks exposed a JavaScript parse error from a duplicated \`async\` token at the activity-directory loader insertion point.
+- [x] Corrected the declaration and added a source assertion against duplicated \`async function\` prefixes.
+- [x] Rotated the app URL and service-worker shell cache to \`mnty-web-v152\` to avoid stale cached source.
+- [ ] The corrected exact-head JavaScript syntax/contract workflows must pass before treating this batch as validated.

@@ -955,7 +955,7 @@ async function superAdminFunction(name,body){
  if(!canSuperAdmin())throw new Error('SUPER_ADMIN_REQUIRED');
  return invokeMntyFunction(name,body);
 }
-async async function loadSuperAdminActivityDirectory(){
+async function loadSuperAdminActivityDirectory(){
  const root=document.getElementById('sa-activity-directory-list');if(!root)return;
  if(!canSuperAdmin()){root.innerHTML='<div class="empty-state">لا تملك صلاحية عرض دليل الأنشطة.</div>';return}
  const escapeValue=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));

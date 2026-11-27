@@ -20,6 +20,7 @@ assert.ok(swRegistrationVersion, "HTML must version the service worker");
 assert.match(cacheVersion || "", /^mnty-web-v\d+$/, "service-worker shell cache must use a versioned key");
 assert.ok(sw.includes("./app.js?v=" + appAssetVersion), "service-worker precache must match the current app asset version");
 
+assert.doesNotMatch(app, /async\s+async\s+function/, "duplicate async function prefixes must not enter the application bundle");
 assert.match(app, /async function loadSuperAdminActivityDirectory\(\)/, "Super Admin activity directory loader must exist");
 assert.match(app, /id="sa-activity-directory-list"/, "Super Admin activity directory must have a render target");
 assert.match(app, /loadSuperAdminActivityDirectory\(\);/, "Super Admin activity directory must load when the control workspace initializes");

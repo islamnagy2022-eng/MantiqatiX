@@ -1037,3 +1037,10 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 
 - The dashboard source validator now compares the live HTML asset keys with the service-worker precache key and checks the cache-key format instead of hard-coding a previous version number.
 - Exact-head workflow verification remains pending.
+
+
+### Super Admin activity directory — syntax correction
+
+- CI identified \`async async function loadSuperAdminActivityDirectory()\` in the first activity-directory commit. The root cause was retaining the original \`async\` token while inserting a new async declaration at the \`function\` token.
+- Corrected the declaration, added a validator assertion against duplicate async prefixes, and rotated assets/cache to \`mnty-web-v152\`.
+- The follow-up exact-head validation is pending. Treat the earlier CI failures as genuine failures; only the corrected exact-head results can close this item.
