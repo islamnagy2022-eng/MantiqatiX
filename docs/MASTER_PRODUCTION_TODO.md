@@ -2354,3 +2354,12 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Added source-contract assertions for Super Admin gating, tenant binding, existing API usage, branch selection and no-write behavior.
 - [ ] Exact-head CI and browser/keyboard/responsive verification remain pending. This inspector only shows published ACTIVE catalog entries and current prices; it does not expose drafts, catalog settings, inactive rows or edit actions.
 - Production remains **BLOCKED / NOT CERTIFIED**. No production data or catalog record was changed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+
+## 2026-11-27 — Branch-aware catalog price precedence
+
+- [x] Corrected current catalog price selection so an exact selected-branch price takes precedence over a higher-version global price; a global price is used only when that branch has no price.
+- [x] When no branch is selected, the resolver now returns only a global price. Branch-only prices no longer leak into an unscoped storefront display.
+- [x] Made the initial provider catalog display use the default selected branch rather than an unspecified branch.
+- [x] Added executable resolver regressions for branch override, newest branch version, global fallback, unselected-branch global-only behavior and branch-only non-leakage.
+- [ ] Exact-head CI and browser checkout/cart price display remain pending. No prices or orders were modified.
