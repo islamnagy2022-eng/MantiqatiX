@@ -54,7 +54,7 @@ window.MNTYBindModuleBlueprint=()=>{
   const sourceStatus=sourceStates.length&&sourceStates.every(x=>x.textContent.trim()==='بيانات فعلية')?'بيانات مقروءة':sourceStates.some(x=>x.textContent.trim()==='بيانات فعلية')?'قراءة جزئية':'غير متحقق';
   const activate=(rawIndex,scroll=false)=>{
    const index=Math.max(0,Math.min(cards.length-1,Number(rawIndex)||0));
-   tabs.forEach((x,i)=>{const active=i===index;x.classList.toggle('active',active);x.setAttribute('aria-selected',active?'true':'false')});
+   tabs.forEach((x,i)=>{const active=i===index;x.classList.toggle('active',active);x.setAttribute('aria-selected',active?'true':'false');x.tabIndex=active?0:-1});
    cards.forEach((c,i)=>{c.hidden=i!==index});
    const card=cards[index],title=card?.querySelector('h3')?.textContent?.trim()||tabs[index]?.textContent?.trim()||'القسم';
    if(detailTitle)detailTitle.textContent=title;
