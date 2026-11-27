@@ -265,11 +265,23 @@ Deno.serve(async (req: Request) => {
       return out(origin, {
         businesses: rows.map((b: any) => {
           const p: any = profileMap.get(String(b.id));
+          const bizcatalog = b.settings?.bizcatalog && typeof b.settings.bizcatalog === "object"
+            ? b.settings.bizcatalog
+            : {};
+          const catalogPublished = b.settings?.catalog_public_enabled === true;
           return {
             id: b.id, tenantId: b.tenant_id, organizationId: b.organization_id,
             name: p?.name_ar || p?.name_en || b.name,
             code: b.code, status: b.status,
             sector: p?.provider_kind || b.settings?.activity_code || b.settings?.category_code || "",
+            publicEnabled: catalogPublished,
+            catalogPublished,
+            bizcatalog: {
+              operationalStatus: bizcatalog.operationalStatus,
+              isFrozen: bizcatalog.isFrozen === true,
+              paymentStatus: bizcatalog.paymentStatus,
+              publicationStatus: bizcatalog.publicationStatus,
+            },
           };
         }),
       });
