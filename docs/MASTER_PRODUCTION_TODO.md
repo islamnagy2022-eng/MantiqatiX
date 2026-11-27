@@ -5509,3 +5509,13 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - RC929 `20261126030000` is a source-only candidate on `security/rc929-orders-explicit-confirmed-auth-guard-20261126`. It adds two restrictive identity policies requiring non-null `auth.uid()` and explicit `is_anonymous=false`; baseline and PostgreSQL 17 negative/positive regression tests are added. Exact-head CI and chronological replay must pass before PR merge.
 - RC928 gallery writes remain unavailable on the live catalog-admin v20; PR #1136 now safely blocks unsupported changed-gallery saves. The two public reader functions have gallery read projection changes, but coordinated DB/admin/public reader parity is still required.
 - No Production DB/Auth/RLS/GRANT/Storage/Edge/payment/order/customer or backup mutation occurred. Backup/restore remains deferred and unverified. Full platform remains **BLOCKED / NOT CERTIFIED**.
+
+## RC930 — required coordinated-release migration (2026-11-27)
+
+- [x] RC930 source migration and PostgreSQL 17 active/inactive/missing/duplicate plus two-session concurrency tests exist; PR #1159 merged the source repair.
+- [ ] Add RC930 `20261127010000` to the canonical live migration release contract, source verifier, and 88-entry static migration-chain gate. Keep the earlier 87-version crosswalk immutable; record the update in a separate addendum.
+- [ ] Ensure edits to the release contract/verifier/gate trigger the dedicated RC919/RC930 PostgreSQL 17 workflow, so the row-lock concurrency regression reruns on the exact PR head.
+- [ ] Confirm production read-only evidence before any release: current production ledger is 310 rows through `20261110150618`; RC930 is not recorded and the live `submit_job_application_backend` definition has no `FOR SHARE` row lock.
+- Production status: **NOT APPLIED**. Do not apply RC930 alone; include it only in the reviewed coordinated chronological release after authorization, payment/Edge, backup/restore, and full release gates pass.
+- No Production migration, SQL write, permission, Auth/RLS, Edge, payment, wallet, settlement, or business/customer data mutation was made during this checkpoint.
+
