@@ -42,7 +42,7 @@ const canonicalSpecialtyLabel = (value: string | null | undefined, categoryId: s
 const emptyForm: FormState = {
   id: "", displayName: "", slug: "", listingType: "doctor", specialty: "",
   functionalGroupId: "medical_health", taxonomyCategoryId: "cat_medical_health_medical_practices", taxonomySpecialty: "", phone: "",
-  secondaryPhone: "", address: "", governorate: MENOUFIA_GOVERNORATE_NAME, district: "",
+  secondaryPhone: "", address: "", governorate: "", district: "",
   village: "", sourceName: "إدخال إدارة المنصة", sourceUrl: "", listingStatus: "DRAFT",
   outreachStatus: "NEW", outreachNotes: "", lastContactedAt: "", subscriptionOfferAt: "", nextFollowUpAt: "",
 };
@@ -335,7 +335,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
           </div>
           <form onSubmit={handleSave} className="h-fit space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between gap-2"><h3 className="font-black text-slate-900">{form.id ? "استكمال بيانات الصفحة" : "إضافة صفحة جديدة"}</h3>{form.id && <button type="button" onClick={() => setForm(emptyForm)} className="text-xs font-bold text-slate-600 underline">جديد</button>}</div>
-            <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-[11px] leading-5 text-amber-950">الموقع الافتراضي للسجل الجديد هو محافظة المنوفية. كل سجل جديد يبدأ كمسودة غير موثقة ولا يظهر للزوار تلقائيًا. لا تنقل أسماء أو أرقام أو صورًا من دليل خارجي إلا بإذن صريح يسمح بإعادة الاستخدام التجاري، ولا تُظهر بيانات التواصل دون موافقة صاحبها.</p>
+            <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-[11px] leading-5 text-amber-950">موقع السجل لا يُفترض تلقائيًا؛ اختر محافظة المنوفية فقط إذا كان النشاط تابعًا لها. كل سجل جديد يبدأ كمسودة غير موثقة ولا يظهر للزوار تلقائيًا. لا تنقل أسماء أو أرقام أو صورًا من دليل خارجي إلا بإذن صريح يسمح بإعادة الاستخدام التجاري، ولا تُظهر بيانات التواصل دون موافقة صاحبها.</p>
             <label className="block text-xs font-bold text-slate-700">اسم النشاط أو الجهة *<input required minLength={2} value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>
             <label className="block text-xs font-bold text-slate-700">الرابط المختصر (اختياري)<input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder="يُنشأ تلقائيًا عند تركه فارغًا" dir="ltr" className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-left" /></label>
             <div className="grid grid-cols-2 gap-3">
@@ -343,6 +343,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
               <label className="block text-xs font-bold text-slate-700">حالة الظهور<select value={form.listingStatus} onChange={(e) => setForm({ ...form, listingStatus: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-2 py-2.5 text-xs"><option value="DRAFT">مسودة مخفية</option><option value="PUBLISHED">منشورة للزوار</option><option value="HIDDEN">إخفاء الصفحة</option></select></label>
             </div>
             {form.listingType === "doctor" && form.listingStatus === "PUBLISHED" && <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">نشر ملف الطبيب يتطلب مصدرًا واضحًا وإذنًا معتمدًا وساريًا لإعادة نشر ملفات الأطباء والاستخدام التجاري. سجلات الاستيراد الجديدة تظل مسودات حتى استيفاء مراجعة النشر.</p>}
+            <button type="button" onClick={() => setForm({ ...form, governorate: MENOUFIA_GOVERNORATE_NAME, district: "" })} className="min-h-9 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-black text-emerald-900">تحديد محافظة المنوفية</button>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="block text-xs font-bold text-slate-700">المجموعة الوظيفية *<select required value={form.functionalGroupId} onChange={(e) => { const groupId = e.target.value; const firstCategory = categories.find((item) => item.functionalGroupId === groupId); setForm({ ...form, functionalGroupId: groupId, listingType: groupId === "medical_health" ? "doctor" : "business", taxonomyCategoryId: firstCategory?.id || "", taxonomySpecialty: "", specialty: "" }); }} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs">{functionalGroups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}</select></label>
               <label className="block text-xs font-bold text-slate-700">النشاط الرئيسي داخل المجموعة *<select required value={form.taxonomyCategoryId} onChange={(e) => setForm({ ...form, taxonomyCategoryId: e.target.value, taxonomySpecialty: "", specialty: "" })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs">{categories.filter((item) => item.functionalGroupId === form.functionalGroupId).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
