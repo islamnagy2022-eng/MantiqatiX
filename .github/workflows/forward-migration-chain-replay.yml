@@ -352,7 +352,6 @@ jobs:
           # The default Supabase DB port (54322) can already be occupied on a hosted runner.
           # Allocate free host ports for this disposable stack instead of failing before replay.
           python - <<'PY'
-          import re
           import socket
           from pathlib import Path
 
@@ -368,26 +367,34 @@ jobs:
           }
           section = None
           reserved = set()
+          changed = set()
           updated = []
+
           for line in lines:
-              header = re.match(r"^\\s*\\[([^\\]]+)\\]\\s*(?:#.*)?$", line)
-              if header:
-                  section = header.group(1)
-              match = re.match(r"^(\\s*)([a-z_]+)(\\s*=\\s*)[0-9]+(\\s*(?:#.*)?)$", line)
-              if match and match.group(2) in port_keys.get(section, set()):
-                  while True:
-                      with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                          sock.bind(("0.0.0.0", 0))
-                          port = sock.getsockname()[1]
-                      if port not in reserved:
-                          reserved.add(port)
-                          break
-                  line = f"{match.group(1)}{match.group(2)}{match.group(3)}{port}{match.group(4)}"
+              stripped = line.strip()
+              if stripped.startswith("[") and stripped.endswith("]"):
+                  section = stripped[1:-1].strip()
+              else:
+                  left, separator, right = line.partition("=")
+                  key = left.strip()
+                  value, comment_separator, comment = right.partition("#")
+                  if separator and key in port_keys.get(section, set()) and value.strip().isdigit():
+                      while True:
+                          with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                              sock.bind(("0.0.0.0", 0))
+                              port = sock.getsockname()[1]
+                          if port not in reserved:
+                              reserved.add(port)
+                              break
+                      line = f"{left.rstrip()} = {port}"
+                      if comment_separator:
+                          line += "  #" + comment
+                      changed.add(f"{section}.{key}")
               updated.append(line)
 
-          if not any(re.match(r"^\\s*port\\s*=", line) for line in updated):
-              raise SystemExit("Supabase config did not expose the expected port settings.")
-          config.write_text("\\n".join(updated) + "\\n")
+          if "db.port" not in changed:
+              raise SystemExit("Supabase config did not expose the expected [db].port setting.")
+          config.write_text("\n".join(updated) + "\n")
           print("Allocated isolated Supabase host ports: " + ", ".join(map(str, sorted(reserved))))
           PY
 
