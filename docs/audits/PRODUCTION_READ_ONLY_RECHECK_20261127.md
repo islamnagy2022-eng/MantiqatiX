@@ -37,6 +37,24 @@ A separate read-only SQL snapshot on 2026-11-27 confirmed:
 
 This read-back confirms the source/deployed authorization drift is also reflected in live database helpers and policy dependencies. Because the legacy helper is referenced by many policies, a direct helper replacement or bulk policy rewrite would have a broad authorization blast radius. The coordinated migration plan must preserve tenant/business/branch scopes and include positive and negative regression tests before any Production rollout.
 
+## Authorization finding and already-existing source repair
+
+The live SQL definitions establish a high-priority cross-tenant authorization risk:
+
+- **mnty_active_membership(NULL, NULL, NULL)** returns the caller's ACTIVE membership rows without a tenant, business, or branch filter.
+- **mnty_can('admin', NULL, NULL, NULL)** delegates to that list and explicitly includes 'admin' in the permission sets for both OWNER and ADMIN; it also accepts a JSON permissions.admin=true value.
+- The deployed **mnty_can_platform_admin()** simply calls that generic evaluator. It does not query private.platform_admins. Consequently, an ordinary active tenant OWNER/ADMIN membership can satisfy the function named mnty_can_platform_admin() without a registry record.
+- The separate **public.is_platform_admin()** helper returns true for any ACTIVE membership with role ADMIN or SUPER_ADMIN, with no tenant/business/branch predicate. Its 57 policy references across 24 tables commonly use it as an OR branch beside owner/tenant checks; this can turn a tenant-local role into a platform-wide RLS bypass on those policies. This conclusion follows from the live function body and policy predicates; no real user session was impersonated and no data was read through those policies.
+
+**The repository already contains the forward-only repair; do not create duplicate migration IDs or hot-patch Production:**
+
+1. **RC464 — 20261113214500_rc464_platform_admin_live_registry_hardening.sql**: verifies the private registry, table/guard ownership and BYPASSRLS prerequisites, requires the expected current callers/policies, enables FORCE RLS, replaces mnty_can_platform_admin() with a SECURITY DEFINER lookup of private.platform_admins.user_id = auth.uid(), pins an empty search path, revokes PUBLIC/anon execution, grants authenticated execution, and replaces the four global MantiGO RPCs.
+2. **RC471 — 20261117190000_rc471_mantigo_platform_admin_forward_hardening.sql**: follow-forward repair for additional MantiGO SECURITY DEFINER callers and scope/authorization checks.
+3. **RC484 — 20261119040000_rc484_registry_backed_is_platform_admin.sql**: replaces is_platform_admin() with a registry-only SECURITY DEFINER lookup, forces RLS on the registry, pins empty search path, and removes PUBLIC/anon/service_role function execution.
+4. **RC485 — 20261120200000_rc485_catalog_rpc_registry_root.sql**: updates the seven direct catalog RPCs to use the registry-backed helper while retaining tenant-local OWNER/ADMIN/MANAGER/BUSINESS_OWNER business/branch scope checks.
+
+The live database still has none of those exact source IDs in the current 87-version release list, and the direct SQL read-back still shows the pre-repair function bodies. Apply only as part of the complete, reviewed, backed-up chronological release after all preflights pass. RC464/RC471/RC484/RC485 are not independently deployable hot fixes.
+
 ## Supabase advisors
 
 Security Advisor reported **94 lint categories / 166 findings**: **157 WARN** and **9 INFO**. Major counts include 65 authenticated-callable SECURITY DEFINER warnings, one anon-callable SECURITY DEFINER warning, 90 anonymous-access-policy checks, one leaked-password-protection warning, and nine RLS-enabled tables without policies.
