@@ -295,7 +295,7 @@ export const AdminDashboard: React.FC = () => {
   const handleAddBusiness = async (e: React.FormEvent) => {
     e.preventDefault();
     const identity = validateBusinessCreationIdentity({
-      name: identity.name,
+      name: newBizName,
       governorate: identity.governorate,
       markaz: identity.markaz,
     });
@@ -335,7 +335,7 @@ export const AdminDashboard: React.FC = () => {
 
     try {
     const createdBizId = await addBusiness({
-      name: newBizName,
+      name: identity.name,
       slug: `${slug}-${Date.now().toString().slice(-4)}`,
       category: selectedBusinessCategory,
       categoryId: matchedCat?.id,
