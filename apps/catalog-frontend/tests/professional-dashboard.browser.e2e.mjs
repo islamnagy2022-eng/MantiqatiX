@@ -366,8 +366,14 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
         const requestedPlatformBusiness = Array.isArray(options.platformBusinesses)
           ? options.platformBusinesses.find((business) => String(business.id) === String(body.businessId))
           : null;
+        const requestedBizcatalog = requestedPlatformBusiness?.bizcatalog || requestedPlatformBusiness?.settings?.bizcatalog || {};
         return json({
-          business: { ...(requestedPlatformBusiness || fakeBusiness), profile: { ...catalogProfileState } },
+          business: {
+            ...(requestedPlatformBusiness || fakeBusiness),
+            profile: { ...catalogProfileState },
+            // Mirror catalog-admin CATALOG_READ, which projects nested settings into bizcatalog.
+            bizcatalog: requestedBizcatalog,
+          },
           provider: { name: (requestedPlatformBusiness || fakeBusiness).name, kind: (requestedPlatformBusiness || fakeBusiness).category, verified: false },
           branches: fakeBusiness.branches,
           selectedBranchId: body.branchId || null,
