@@ -62,6 +62,7 @@ export const SuperAdminControlCenter: React.FC = () => {
   const [assignments,setAssignments]=useState<Assignment[]>([]);
   const [auditRows,setAuditRows]=useState<AuditRow[]>([]);
   const [loading,setLoading]=useState(false);
+  const [auditLoading,setAuditLoading]=useState(false);
   const [saving,setSaving]=useState(false);
   const [notice,setNotice]=useState<{type:'success'|'error';text:string}|null>(null);
   const [personSearch,setPersonSearch]=useState('');
@@ -83,32 +84,47 @@ export const SuperAdminControlCenter: React.FC = () => {
 
   const loadAll=useCallback(async()=>{
     setLoading(true); setNotice(null);
-    const [rolesResult,peopleResult,assignmentsResult]=await Promise.all([
-      supabase.rpc('mnty_platform_admin_list_custom_roles'),
-      supabase.rpc('mnty_platform_admin_list_people',{p_search:personSearch.trim()||null}),
-      supabase.rpc('mnty_platform_admin_list_role_assignments'),
-    ]);
-    setLoading(false);
-    const firstError=rolesResult.error||peopleResult.error||assignmentsResult.error;
-    if(firstError){
-      setNotice({type:'error',text:'تعذر تحميل مركز التحكم. تأكد من نشر ترحيل RC115 على بيئة الاختبار أولًا، وأن الحساب مسجل في private.platform_admins.'});
-      return;
+    try {
+      const [rolesResult,peopleResult,assignmentsResult]=await Promise.all([
+        supabase.rpc('mnty_platform_admin_list_custom_roles'),
+        supabase.rpc('mnty_platform_admin_list_people',{p_search:personSearch.trim()||null}),
+        supabase.rpc('mnty_platform_admin_list_role_assignments'),
+      ]);
+      const firstError=rolesResult.error||peopleResult.error||assignmentsResult.error;
+      if(firstError){
+        setNotice({type:'error',text:'تعذر تحميل مركز التحكم. تأكد من نشر ترحيل RC115 على بيئة الاختبار أولًا، وأن الحساب مسجل في private.platform_admins.'});
+        return false;
+      }
+      setRoles(Array.isArray(rolesResult.data)?rolesResult.data:[]);
+      setPeople(Array.isArray(peopleResult.data)?peopleResult.data:[]);
+      setAssignments(Array.isArray(assignmentsResult.data)?assignmentsResult.data:[]);
+      setRoleId((current)=>current||(Array.isArray(rolesResult.data)?rolesResult.data.find((r:any)=>r.is_active)?.id||'':''));
+      setSelectedPersonId((current)=>current||(Array.isArray(peopleResult.data)?peopleResult.data[0]?.id||'':''));
+      return true;
+    } catch(error) {
+      setNotice({type:'error',text:error instanceof Error?'تعذر تحميل مركز التحكم: '+error.message:'تعذر تحميل مركز التحكم بسبب خطأ اتصال غير متوقع.'});
+      return false;
+    } finally {
+      setLoading(false);
     }
-    setRoles(Array.isArray(rolesResult.data)?rolesResult.data:[]);
-    setPeople(Array.isArray(peopleResult.data)?peopleResult.data:[]);
-    setAssignments(Array.isArray(assignmentsResult.data)?assignmentsResult.data:[]);
-    setRoleId((current)=>current||(Array.isArray(rolesResult.data)?rolesResult.data.find((r:any)=>r.is_active)?.id||'':''));
-    setSelectedPersonId((current)=>current||(Array.isArray(peopleResult.data)?peopleResult.data[0]?.id||'':''));
   },[personSearch]);
 
   const loadAudit=useCallback(async()=>{
-    const {data,error}=await supabase.rpc('mnty_platform_admin_list_audit',{p_search:auditSearch.trim()||null});
-    if(error){setNotice({type:'error',text:'تعذر تحميل سجل العمليات؛ تحقق من وجود دالة سجل التدقيق في ترحيل RC115.'});return;}
-    setAuditRows(Array.isArray(data)?data:[]);
+    setAuditLoading(true);
+    try {
+      const {data,error}=await supabase.rpc('mnty_platform_admin_list_audit',{p_search:auditSearch.trim()||null});
+      if(error){setNotice({type:'error',text:error.message||'تعذر تحميل سجل العمليات؛ تحقق من دالة سجل التدقيق.'});return;}
+      setAuditRows(Array.isArray(data)?data:[]);
+    } catch(error) {
+      setNotice({type:'error',text:error instanceof Error?'تعذر تحميل سجل العمليات: '+error.message:'تعذر تحميل سجل العمليات بسبب خطأ اتصال غير متوقع.'});
+    } finally {
+      setAuditLoading(false);
+    }
   },[auditSearch]);
 
   useEffect(()=>{void loadAll();},[]);
-  useEffect(()=>{if(tab==='audit')void loadAudit();},[tab,loadAudit]);
+  // Search in the audit tab is explicit: typing must not trigger a request for every keystroke.
+  useEffect(()=>{if(tab==='audit')void loadAudit();},[tab]);
 
   const resetRole=()=>{setRoleEditId('');setRoleKey('');setRoleName('');setRoleDescription('');setRoleScope('BUSINESS');setRoleActive(true);setPermissionMap({HOME:['view']});};
   const editRole=(role:CustomRole)=>{setRoleEditId(role.id);setRoleKey(role.role_key);setRoleName(role.display_name);setRoleDescription(role.description||'');setRoleScope(role.scope);setRoleActive(Boolean(role.is_active));setPermissionMap(role.permissions?.modules||{HOME:['view']});};
@@ -122,14 +138,21 @@ export const SuperAdminControlCenter: React.FC = () => {
     const cleanKey=roleKey.trim().toUpperCase().replace(/[^A-Z0-9_]/g,'_');
     if(cleanKey.length<2||!roleName.trim()){setNotice({type:'error',text:'أدخل مفتاح دور صحيحًا واسمًا للدور.'});return;}
     setSaving(true);setNotice(null);
-    const {error}=await supabase.rpc('mnty_platform_admin_upsert_custom_role',{
-      p_role_key:cleanKey,p_display_name:roleName.trim(),p_description:roleDescription.trim(),
-      p_scope:roleScope,p_permissions:{modules:permissionMap},p_role_id:roleEditId||null,p_is_active:roleActive,
-    });
-    setSaving(false);
-    if(error){setNotice({type:'error',text:error.message||'تعذر حفظ الدور.'});return;}
-    setNotice({type:'success',text:roleEditId?'تم تحديث الدور وحفظ صلاحياته.':'تم إنشاء الدور وحفظ صلاحياته.'});
-    resetRole();await loadAll();
+    try {
+      const {error}=await supabase.rpc('mnty_platform_admin_upsert_custom_role',{
+        p_role_key:cleanKey,p_display_name:roleName.trim(),p_description:roleDescription.trim(),
+        p_scope:roleScope,p_permissions:{modules:permissionMap},p_role_id:roleEditId||null,p_is_active:roleActive,
+      });
+      if(error)throw new Error(error.message||'تعذر حفظ الدور.');
+      const successText=roleEditId?'تم تحديث الدور وحفظ صلاحياته.':'تم إنشاء الدور وحفظ صلاحياته.';
+      resetRole();
+      const refreshed=await loadAll();
+      setNotice({type:refreshed?'success':'error',text:refreshed?successText:successText+' لكن تعذر تحديث القائمة؛ اضغط تحديث المركز.'});
+    } catch(error) {
+      setNotice({type:'error',text:error instanceof Error?error.message:'تعذر حفظ الدور بسبب خطأ اتصال غير متوقع.'});
+    } finally {
+      setSaving(false);
+    }
   };
   const assignRole=async(event:React.FormEvent)=>{
     event.preventDefault();
@@ -137,29 +160,42 @@ export const SuperAdminControlCenter: React.FC = () => {
     if(selectedRole.scope==='BRANCH'&&!branchId.trim()){setNotice({type:'error',text:'أدخل معرف الفرع عند إسناد دور بنطاق فرع.'});return;}
     if(!window.confirm('تأكيد إسناد الدور ضمن النطاق المحدد؟ هذا لا يمنح صلاحيات مالك المنصة.'))return;
     setSaving(true);setNotice(null);
-    const tenantId=selectedBusiness.tenantId;
-    const {error}=await supabase.rpc('mnty_platform_admin_assign_custom_role',{
-      p_user_id:selectedPersonId,p_role_id:selectedRole.id,
-      p_tenant_id:selectedRole.scope==='TENANT'||selectedRole.scope==='BUSINESS'||selectedRole.scope==='BRANCH'||selectedRole.scope==='PROVIDER'?tenantId:null,
-      p_business_id:selectedRole.scope==='BUSINESS'||selectedRole.scope==='BRANCH'?selectedBusiness.id:null,
-      p_branch_id:selectedRole.scope==='BRANCH'?branchId.trim():null,
-      p_is_active:true,p_assignment_id:null,
-    });
-    setSaving(false);
-    if(error){setNotice({type:'error',text:error.message||'تعذر إسناد الدور.'});return;}
-    setNotice({type:'success',text:'تم إسناد الدور وتسجيل العملية في سجل التدقيق.'});setBranchId('');await loadAll();
+    try {
+      const tenantId=selectedBusiness.tenantId;
+      const {error}=await supabase.rpc('mnty_platform_admin_assign_custom_role',{
+        p_user_id:selectedPersonId,p_role_id:selectedRole.id,
+        p_tenant_id:selectedRole.scope==='TENANT'||selectedRole.scope==='BUSINESS'||selectedRole.scope==='BRANCH'||selectedRole.scope==='PROVIDER'?tenantId:null,
+        p_business_id:selectedRole.scope==='BUSINESS'||selectedRole.scope==='BRANCH'?selectedBusiness.id:null,
+        p_branch_id:selectedRole.scope==='BRANCH'?branchId.trim():null,
+        p_is_active:true,p_assignment_id:null,
+      });
+      if(error)throw new Error(error.message||'تعذر إسناد الدور.');
+      setBranchId('');
+      const refreshed=await loadAll();
+      setNotice({type:refreshed?'success':'error',text:refreshed?'تم إسناد الدور وتسجيل العملية في سجل التدقيق.':'تم إسناد الدور لكن تعذر تحديث القائمة؛ اضغط تحديث المركز.'});
+    } catch(error) {
+      setNotice({type:'error',text:error instanceof Error?error.message:'تعذر إسناد الدور بسبب خطأ اتصال غير متوقع.'});
+    } finally {
+      setSaving(false);
+    }
   };
   const revokeAssignment=async(assignment:Assignment)=>{
     if(!window.confirm('سيتم سحب هذا الدور فورًا. هل تريد المتابعة؟'))return;
     setSaving(true);setNotice(null);
-    const {error}=await supabase.rpc('mnty_platform_admin_assign_custom_role',{
-      p_user_id:assignment.user_id,p_role_id:assignment.role_id,p_tenant_id:assignment.tenant_id||null,
-      p_business_id:assignment.business_id||null,p_branch_id:assignment.branch_id||null,
-      p_is_active:false,p_assignment_id:assignment.id,
-    });
-    setSaving(false);
-    if(error){setNotice({type:'error',text:error.message||'تعذر سحب الدور.'});return;}
-    setNotice({type:'success',text:'تم سحب الدور. أي API تستخدم بوابة الصلاحيات المركزية ستتحقق من الحالة الجديدة.'});await loadAll();
+    try {
+      const {error}=await supabase.rpc('mnty_platform_admin_assign_custom_role',{
+        p_user_id:assignment.user_id,p_role_id:assignment.role_id,p_tenant_id:assignment.tenant_id||null,
+        p_business_id:assignment.business_id||null,p_branch_id:assignment.branch_id||null,
+        p_is_active:false,p_assignment_id:assignment.id,
+      });
+      if(error)throw new Error(error.message||'تعذر سحب الدور.');
+      const refreshed=await loadAll();
+      setNotice({type:refreshed?'success':'error',text:refreshed?'تم سحب الدور وتسجيل العملية في سجل التدقيق.':'تم سحب الدور لكن تعذر تحديث القائمة؛ اضغط تحديث المركز.'});
+    } catch(error) {
+      setNotice({type:'error',text:error instanceof Error?error.message:'تعذر سحب الدور بسبب خطأ اتصال غير متوقع.'});
+    } finally {
+      setSaving(false);
+    }
   };
   const statusText=(row:AuditRow)=>row.result||'—';
   const chosenPerson=people.find((p)=>p.id===selectedPersonId);
@@ -225,7 +261,7 @@ export const SuperAdminControlCenter: React.FC = () => {
     {tab==='management'&&<BusinessSubscriberAdmin/>}
 
     {tab==='audit'&&<div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h3 className="flex items-center gap-2 text-lg font-black text-slate-900"><ClipboardList className="h-5 w-5 text-indigo-700"/>سجل العمليات الإدارية</h3><p className="mt-1 text-xs text-slate-500">يعرض آخر السجلات المتاحة من قاعدة البيانات؛ لا يغيّر السجلات الأصلية.</p></div><form onSubmit={(e)=>{e.preventDefault();void loadAudit();}} className="flex gap-2"><input value={auditSearch} onChange={(e)=>setAuditSearch(e.target.value)} className={inputClass} placeholder="بحث بالإجراء أو الكيان"/><button className={primaryClass}><Search className="h-4 w-4"/>بحث</button></form></div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h3 className="flex items-center gap-2 text-lg font-black text-slate-900"><ClipboardList className="h-5 w-5 text-indigo-700"/>سجل العمليات الإدارية</h3><p className="mt-1 text-xs text-slate-500">يعرض آخر السجلات المتاحة من قاعدة البيانات؛ لا يغيّر السجلات الأصلية.</p></div><form onSubmit={(e)=>{e.preventDefault();void loadAudit();}} className="flex gap-2"><input value={auditSearch} onChange={(e)=>setAuditSearch(e.target.value)} className={inputClass} placeholder="بحث بالإجراء أو الكيان"/><button disabled={auditLoading} className={primaryClass}><Search className="h-4 w-4"/>{auditLoading?'جار البحث…':'بحث'}</button></form></div>
       {auditRows.length===0?<p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-500">لا توجد سجلات مطابقة أو أن دالة سجل العمليات لم تُفعّل بعد.</p>:<div className="overflow-x-auto"><table className="w-full min-w-[850px] text-right text-xs"><thead className="bg-slate-50 text-slate-500"><tr><th className="p-3">الوقت</th><th className="p-3">المنفذ</th><th className="p-3">الإجراء</th><th className="p-3">الكيان</th><th className="p-3">النتيجة</th><th className="p-3">القيم السابقة والجديدة</th></tr></thead><tbody>{auditRows.map((row,index)=><tr key={row.id||index} className="border-t border-slate-100"><td className="p-3 whitespace-nowrap">{row.created_at?new Date(row.created_at).toLocaleString('ar-EG'):'—'}</td><td className="p-3">{row.actor_email||row.actor_user_id||'—'}</td><td className="p-3 font-bold">{row.action||'—'}</td><td className="p-3">{row.entity_type||'—'} / {row.entity_id||'—'}</td><td className="p-3">{statusText(row)}</td><td className="max-w-sm whitespace-pre-wrap break-words p-3">{JSON.stringify({old:row.old_values??null,new:row.new_values??null})}</td></tr>)}</tbody></table></div>}
     </div>}
   </div>;
