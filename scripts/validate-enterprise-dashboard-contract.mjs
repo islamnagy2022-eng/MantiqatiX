@@ -30,5 +30,14 @@ const activityLoaderEnd = app.indexOf("\nfunction loadOfficialShowcaseAdmin()", 
 assert.ok(activityLoaderStart >= 0 && activityLoaderEnd > activityLoaderStart, "activity directory loader boundaries must be present");
 const activityLoader = app.slice(activityLoaderStart, activityLoaderEnd);
 assert.doesNotMatch(activityLoader, /\.insert\(|\.update\(|\.upsert\(|\.delete\(/, "activity directory must remain read-only");
+assert.match(activityLoader, /data-sa-activity-detail=/, "activity rows must expose a detail action");
+assert.match(activityLoader, /id="sa-activity-detail"/, "activity detail panel must be present");
+assert.match(activityLoader, /aria-expanded="false"/, "activity detail controls must expose disclosure state");
+assert.match(activityLoader, /detailPanel\.hidden=false/, "activity detail action must reveal the selected record");
+assert.match(activityLoader, /root\.querySelector\('#sa-activity-detail-close'\)/, "activity detail panel must provide a close action");
+assert.match(activityLoader, /detailFields\.innerHTML=values\.map\(\(\[label,value\]\)=>'<div><dt>'\+escapeValue\(label\)\+'<\/dt><dd>'\+escapeValue\(value\)\+'<\/dd><\/div>'\)/, "activity details must HTML-escape all displayed values");
+
+
+assert.match(app, /data-sa-activity-detail=/, "activity detail action must remain in the application source");
 
 console.log("Enterprise dashboard interaction source contract: PASS");

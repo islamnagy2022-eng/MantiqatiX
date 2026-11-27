@@ -1044,3 +1044,14 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 - CI identified \`async async function loadSuperAdminActivityDirectory()\` in the first activity-directory commit. The root cause was retaining the original \`async\` token while inserting a new async declaration at the \`function\` token.
 - Corrected the declaration, added a validator assertion against duplicate async prefixes, and rotated assets/cache to \`mnty-web-v152\`.
 - The follow-up exact-head validation is pending. Treat the earlier CI failures as genuine failures; only the corrected exact-head results can close this item.
+
+
+## 2026-11-27 — Super Admin activity record detail (read-only)
+
+- Added a per-activity details action to the protected activity directory, reusing its existing RLS-scoped result set; no extra data source or mutation path was introduced.
+- The detail panel displays only the activity's name, code, internal record ID, status, linked provider-profile summary/verification, enabled-module count and last update. It intentionally omits owner identity, contact details, membership permissions and private settings.
+- Added keyboard-focus handling, disclosure state, and a close action that returns focus to the activating row button. All displayed values are escaped before HTML insertion.
+- Extended the enterprise dashboard source contract for the action, detail panel, focus/disclosure controls, output escaping and read-only boundary.
+- Rotated the app/service-worker asset key to `super-admin-activity-details-20261127` and PWA shell cache to `mnty-web-v152`.
+- Exact-head CI, JavaScript syntax and browser/device accessibility checks remain pending; do not claim runtime verification until those checks pass.
+- Production remains **BLOCKED / NOT CERTIFIED**. No merge, deployment, database mutation, user/role change or production write was performed. Keep `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.

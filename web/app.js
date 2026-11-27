@@ -981,18 +981,51 @@ async function loadSuperAdminActivityDirectory(){
     provider:profile?(profile.name_ar||'ملف مقدم خدمة'):'—',
     verification:profile?(profile.is_verified?'موثق':'غير موثق'):(profilesResult.error?'غير متاح':'لا يوجد ملف'),
     modules:moduleCounts?(moduleCounts.get(String(row.id))||0):'غير متاح',
-    updated:row.updated_at?new Date(row.updated_at).toLocaleString('ar-EG'):'—'
+    updated:row.updated_at?new Date(row.updated_at).toLocaleString('ar-EG'):'—',
+    action:'<button type="button" class="linkbtn" data-sa-activity-detail="'+escapeValue(row.id)+'" aria-controls="sa-activity-detail" aria-expanded="false">عرض التفاصيل</button>'
    };
   });
   const statusSummary={ACTIVE:businesses.filter(row=>String(row.status||'').toUpperCase()==='ACTIVE').length,PENDING:businesses.filter(row=>String(row.status||'').toUpperCase()==='PENDING').length,INACTIVE:businesses.filter(row=>String(row.status||'').toUpperCase()==='INACTIVE').length};
   const partial=[profilesResult.error?'بيانات ملفات مقدمي الخدمة غير متاحة':'',modulesResult.error?'بيانات تفعيل الموديولات غير متاحة':''].filter(Boolean);
-  root.innerHTML='<div class="mnty-stat-strip"><div><b>'+businesses.length+'</b><span>نشاط معروض (حد أقصى 200)</span></div><div><b>'+statusSummary.ACTIVE+'</b><span>نشط</span></div><div><b>'+statusSummary.PENDING+'</b><span>قيد المراجعة</span></div><div><b>'+statusSummary.INACTIVE+'</b><span>غير نشط</span></div></div>'+(partial.length?'<div class="empty-state" role="status">'+escapeValue(partial.join(' · '))+'</div>':'')+recordsTable('دليل الأنشطة — أحدث السجلات',rows,[['اسم النشاط',row=>row.name],['الكود',row=>row.code],['الحالة',row=>row.status],['ملف مقدم الخدمة',row=>row.provider],['التحقق',row=>row.verification],['الموديولات المفعلة',row=>row.modules],['آخر تحديث',row=>row.updated]])+'<p class="muted">هذا الدليل للقراءة فقط ويعرض أحدث 200 سجل مرئي؛ لا ينفذ تعديلات أو اعتمادًا أو حذفًا.</p>';
+  root.innerHTML='<div class="mnty-stat-strip"><div><b>'+businesses.length+'</b><span>نشاط معروض (حد أقصى 200)</span></div><div><b>'+statusSummary.ACTIVE+'</b><span>نشط</span></div><div><b>'+statusSummary.PENDING+'</b><span>قيد المراجعة</span></div><div><b>'+statusSummary.INACTIVE+'</b><span>غير نشط</span></div></div>'+(partial.length?'<div class="empty-state" role="status">'+escapeValue(partial.join(' · '))+'</div>':'')+recordsTable('دليل الأنشطة — أحدث السجلات',rows,[['اسم النشاط',row=>row.name],['الكود',row=>row.code],['الحالة',row=>row.status],['ملف مقدم الخدمة',row=>row.provider],['التحقق',row=>row.verification],['الموديولات المفعلة',row=>row.modules],['آخر تحديث',row=>row.updated],['التفاصيل',row=>row.action]])+
+  '<section class="card" id="sa-activity-detail" tabindex="-1" aria-labelledby="sa-activity-detail-title" aria-live="polite" hidden style="margin-top:16px;padding:18px"><div class="section-head"><div><span class="eyebrow">READ-ONLY ACTIVITY RECORD</span><h3 id="sa-activity-detail-title">تفاصيل النشاط</h3><p class="muted">بيانات تعريفية وتشغيلية ظاهرة ضمن صلاحيات الحساب الحالي فقط.</p></div><button type="button" class="btn btn-outline" id="sa-activity-detail-close" style="width:auto">إغلاق التفاصيل</button></div><dl class="mnty-activity-detail-grid" id="sa-activity-detail-fields"></dl></section>'+
+  '<p class="muted">هذا الدليل للقراءة فقط ويعرض أحدث 200 سجل مرئي؛ لا ينفذ تعديلات أو اعتمادًا أو حذفًا أو يعرض بيانات المالك الخاصة.</p>';
+  let lastTrigger=null;
+  const detailPanel=root.querySelector('#sa-activity-detail');
+  const detailFields=root.querySelector('#sa-activity-detail-fields');
+  const closeDetail=()=>{
+   detailPanel.hidden=true;
+   root.querySelectorAll('[data-sa-activity-detail]').forEach(button=>button.setAttribute('aria-expanded','false'));
+   lastTrigger?.focus();
+   lastTrigger=null;
+  };
+  root.querySelectorAll('[data-sa-activity-detail]').forEach(button=>button.addEventListener('click',()=>{
+   const business=businesses.find(row=>String(row.id)===String(button.dataset.saActivityDetail));
+   if(!business)return;
+   const profile=profileMap?.get(String(business.id));
+   const values=[
+    ['اسم النشاط',business.name||'—'],
+    ['الكود',business.code||'—'],
+    ['المعرف الداخلي',business.id||'—'],
+    ['الحالة',String(business.status||'UNKNOWN').toUpperCase()],
+    ['ملف مقدم الخدمة',profile?.name_ar||'لا يوجد ملف مرتبط'],
+    ['حالة ملف مقدم الخدمة',profile?(profile.status||'غير محدد'):(profilesResult.error?'غير متاح':'لا يوجد ملف')],
+    ['التحقق',profile?(profile.is_verified?'موثق':'غير موثق'):(profilesResult.error?'غير متاح':'لا يوجد ملف')],
+    ['الموديولات المفعلة',moduleCounts?(moduleCounts.get(String(business.id))||0):'غير متاح'],
+    ['آخر تحديث',business.updated_at?new Date(business.updated_at).toLocaleString('ar-EG'):'—']
+   ];
+   detailFields.innerHTML=values.map(([label,value])=>'<div><dt>'+escapeValue(label)+'</dt><dd>'+escapeValue(value)+'</dd></div>').join('');
+   root.querySelectorAll('[data-sa-activity-detail]').forEach(item=>item.setAttribute('aria-expanded',String(item===button)));
+   lastTrigger=button;
+   detailPanel.hidden=false;
+   detailPanel.focus();
+  }));
+  root.querySelector('#sa-activity-detail-close')?.addEventListener('click',closeDetail);
  }catch(error){
   console.warn('[MNTY admin activity directory] unavailable',error);
   root.innerHTML='<div class="empty-state">تعذر تحميل دليل الأنشطة: '+escapeValue(error?.message||'خطأ غير معروف')+'</div>';
  }
 }
-
 function loadOfficialShowcaseAdmin(){
  const root=document.getElementById('sa-showcase-list'); if(!root)return;
  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));

@@ -285,3 +285,10 @@ The exact code head `2b8d6e93bc757d1c8b2645845db23ebd338da19f` passed the public
 - [x] Kept the directory read-only. No status change, approval, delete, owner edit or cross-tenant write action was added.
 - [x] Extended the enterprise-dashboard source contract to require the list and prohibit direct writes in its loader.
 - **Status:** SOURCE UPDATED; exact-head CI and browser verification pending. The listing is not proof of complete global coverage beyond the latest 200 visible rows. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-11-27 — Super Admin activity detail
+
+- The read-only activity directory now exposes a detail panel per visible business record.
+- Detail fields remain limited to business identity/status and provider-profile/module summaries; owner personal data and editable controls are excluded.
+- Keyboard focus and disclosure state are authored; browser/assistive-technology verification is still pending.

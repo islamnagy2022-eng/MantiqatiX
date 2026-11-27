@@ -2259,3 +2259,14 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Corrected the declaration and added a source assertion against duplicated \`async function\` prefixes.
 - [x] Rotated the app URL and service-worker shell cache to \`mnty-web-v152\` to avoid stale cached source.
 - [ ] The corrected exact-head JavaScript syntax/contract workflows must pass before treating this batch as validated.
+
+
+## 2026-11-27 — Super Admin activity record detail (read-only)
+
+- Added a per-activity details action to the protected activity directory, reusing its existing RLS-scoped result set; no extra data source or mutation path was introduced.
+- The detail panel displays only the activity's name, code, internal record ID, status, linked provider-profile summary/verification, enabled-module count and last update. It intentionally omits owner identity, contact details, membership permissions and private settings.
+- Added keyboard-focus handling, disclosure state, and a close action that returns focus to the activating row button. All displayed values are escaped before HTML insertion.
+- Extended the enterprise dashboard source contract for the action, detail panel, focus/disclosure controls, output escaping and read-only boundary.
+- Rotated the app/service-worker asset key to `super-admin-activity-details-20261127` and PWA shell cache to `mnty-web-v152`.
+- Exact-head CI, JavaScript syntax and browser/device accessibility checks remain pending; do not claim runtime verification until those checks pass.
+- Production remains **BLOCKED / NOT CERTIFIED**. No merge, deployment, database mutation, user/role change or production write was performed. Keep `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
