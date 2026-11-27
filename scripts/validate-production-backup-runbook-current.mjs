@@ -62,7 +62,7 @@ for (const required of [
   "get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz)",
   "settle_mantigo_captain_backend(uuid,text,text)",
   "expire_stale_mantigo_rides_backend(uuid,integer)",
-  "The financial report aggregates the full MantiGO ledger",
+  "the financial report aggregates the full MantiGO ledger",
   "20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql",
   "NOT VERIFIED / BLOCKED",
   "post_financial_journal_backend(uuid,jsonb,jsonb)",
