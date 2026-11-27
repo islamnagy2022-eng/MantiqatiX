@@ -660,10 +660,10 @@ if (new URL(baseUrl).origin === 'https://islamnagy2022-eng.github.io') {
       'a governorate deep link must reset the center filter to all');
     assert.equal(await directorySearchPanel.locator('select').nth(2).inputValue(), 'all',
       'a governorate deep link must reset the village filter to all');
-    await page.waitForFunction(() => document.title.includes('محافظة المنوفية'), null, { timeout: 10000 });
-    const canonicalUrl = await page.locator('link[rel="canonical"]').getAttribute('href');
-    assert.equal(new URL(canonicalUrl).searchParams.get('governorate'), 'المنوفية',
-      'canonical SEO URL must preserve the validated Menoufia scope');
+    assert.equal(await page.locator('meta[name="robots"]').getAttribute('content'), 'noindex,nofollow',
+      'local CI preview must remain noindex even for a public governorate route');
+    assert.equal(await page.locator('link[rel="canonical"]').count(), 0,
+      'local CI preview must not publish a canonical URL outside the approved production root');
     assert.ok(directoryPageRequests.some((request) => request.governorate === 'المنوفية'),
       'the public directory request must carry the exact Menoufia governorate filter');
     assert.ok(await page.getByText('غير موثق', { exact: true }).count() >= 1,

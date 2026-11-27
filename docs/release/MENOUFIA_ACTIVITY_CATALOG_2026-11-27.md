@@ -32,7 +32,7 @@ Therefore this release does **not** scrape or copy either site's entries, descri
 The Pages validation workflow runs:
 
 - `scripts/validate-menoufia-activity-catalog.mjs`
-- The dashboard browser E2E also opens the Menoufia deep link over a saved different governorate, verifies API filtering, excludes out-of-province results, checks the canonical URL, and returns to all Egypt.
+- The dashboard browser E2E opens the Menoufia deep link over a saved different governorate, verifies API filtering, excludes out-of-province results, preserves unverified status, confirms the local CI preview stays noindex, and returns to all Egypt. The focused SEO unit test separately verifies the canonical indexable title/description/URL for the approved production origin.
 - The existing 50-category / 10-group canonical activity taxonomy validation.
 - TypeScript lint and production build.
 - Existing privacy, authorization, browser and deployed-origin checks.

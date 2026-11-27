@@ -77,6 +77,21 @@ test('unverified, unpublished, frozen, inactive and private storefronts remain n
   }
 });
 
+test('governorate-scoped directory route has a localized canonical URL on the approved production origin', () => {
+  const result = resolveRouteSeoMetadata({
+    ...base,
+    view: 'directory',
+    governorateName: 'المنوفية',
+  });
+  assert.equal(result.robots, 'index,follow');
+  assert.equal(
+    result.canonicalUrl,
+    'https://islamnagy2022-eng.github.io/MantiqatiX/?governorate=%D8%A7%D9%84%D9%85%D9%86%D9%88%D9%81%D9%8A%D8%A9',
+  );
+  assert.match(result.title, /محافظة المنوفية/);
+  assert.match(result.description, /محافظة المنوفية/);
+});
+
 test('directory activity and specialty routes use stable canonical query URLs', () => {
   const result = resolveRouteSeoMetadata({
     ...base,
