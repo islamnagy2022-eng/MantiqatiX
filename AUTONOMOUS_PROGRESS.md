@@ -2,7 +2,7 @@
 
 **Updated:** 2026-11-27  
 **Repository:** `islamnagy2022-eng/MantiqatiX`  
-**Verified main:** `82eb082bf7afffe349bb50ed20db07a0651bf04e`  
+**Verified main:** `db5f015ba2ada4e385f816215671f74b17fa338a`  
 **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`  
 **Production boundary:** read-only; no Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement, or customer-data mutation.
 
@@ -24,6 +24,13 @@
 - PR #1164 exact-head CI completed 36/36 checks: zero failures, two expected deployment-only skips. The browser run reported `PRIMARY_CATALOG_BROWSER_E2E=PASS` and `ACTIVITY_SHARE_DIALOG_BROWSER_E2E=PASS`: [45918613427](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45918613427).
 - The primary catalog validation for main commit `78deab1` completed successfully, including the dashboard browser E2E. The Pages deployment for that commit was still running at the time of this checkpoint; the post-PR #1164 Pages deployment run [45918953383](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45918953383) had been queued.
 - Production remains read-only. No Production migration, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, settlement, or customer-data mutation was made by these merges or CI runs.
+
+## 2026-11-27 — Super Admin control-center resilience
+
+- PR #1169 merged as `db5f015ba2ada4e385f816215671f74b17fa338a`: control-center role/audit RPC flows now release loading/saving states in `finally`, surface rejected network requests, keep audit search explicit rather than firing on every keystroke, and disable duplicate in-flight audit searches.
+- Exact-head CI for PR #1169 completed with 33 successful checks, two expected deployment-only skips, and zero failures. Build, dashboard browser E2E, and employee RBAC all passed.
+- The merge changed frontend request handling and source-contract tests only. It did not change database schema, Production data, Auth/RLS/GRANT, Edge deployments, payments, wallets, or settlement.
+- The merge is not a Production release certification. The production migration/authorization/Edge/backup-restore gates below remain blocked.
 
 ## Verified Production release blockers — carried forward from the 2026-11-26 read-only audits
 
