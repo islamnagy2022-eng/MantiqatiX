@@ -368,7 +368,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
             id: '40000000-0000-0000-0000-' + String(index + 1).padStart(12, '0'),
             tenant_id: tenantId,
             business_id: businessId,
-            branch_id: branchId,
+            branch_id: body.branchId || branchId,
             item_type: index % 3 === 0 ? 'SERVICE' : 'PRODUCT',
             name_ar: index === 0 ? 'قهوة اختبار المنصة' : 'عنصر اختبار ' + (index + 1),
             name_en: index === 0 ? 'Platform Test Coffee' : 'Platform Test Item ' + (index + 1),
@@ -382,13 +382,13 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
         return json({
           business: { ...fakeBusiness, profile: { ...catalogProfileState } },
           provider: { name: fakeBusiness.name, kind: fakeBusiness.category, verified: false },
-          branches: fakeBusiness.branches,
+          branches: options.platformCatalogAdmin ? [...fakeBusiness.branches, { id: 'branch-e2e-secondary', tenantId, businessId, name: 'فرع الاختبار الثاني' }] : fakeBusiness.branches,
           selectedBranchId: body.branchId || (options.platformCatalogAdmin ? branchId : null),
           items: platformCatalogItems,
           prices: platformCatalogItems.map((item, index) => ({
             id: '50000000-0000-0000-0000-' + String(index + 1).padStart(12, '0'),
             catalog_item_id: item.id,
-            branch_id: branchId,
+            branch_id: body.branchId || branchId,
             currency: 'EGP',
             unit_price: 125 + index,
             version: 1,
@@ -1382,8 +1382,8 @@ try {
       assert.ok((await page.getByText(/١٢٥/).count()) > 0, 'the active branch price must be displayed as read-only data');
       assert.equal(await page.getByText('قراءة فقط', { exact: true }).count(), 1, 'the platform catalog section must declare its read-only state');
       assert.equal(await page.getByRole('button', { name: /تعديل|حذف|إيقاف|تنشيط/ }).count(), 0, 'the platform catalog review must not expose unverified write actions');
-      await page.getByLabel('الفرع').selectOption(branchId);
-      assert.ok(catalogReadRequests.some((request) => request.businessId === businessId && request.tenantId === tenantId && request.branchId === branchId), 'changing branch must issue a read scoped to the selected branch');
+      await page.getByLabel('الفرع').selectOption('branch-e2e-secondary');
+      assert.ok(catalogReadRequests.some((request) => request.businessId === businessId && request.tenantId === tenantId && request.branchId === 'branch-e2e-secondary'), 'changing branch must issue a read scoped to the selected branch');
       assert.equal(new URL(page.url()).searchParams.get('controlTab'), 'catalog', 'catalog tab state must be preserved in the URL');
       for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
         await page.setViewportSize(viewport);
