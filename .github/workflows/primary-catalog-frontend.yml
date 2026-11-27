@@ -308,7 +308,9 @@ jobs:
           echo "PROFESSIONAL_DASHBOARD_EMPLOYEE_RBAC_POSTGRES=PASS"
 
   professional_dashboard_browser_e2e:
-    runs-on: ubuntu-latest
+    # Use the supported Ubuntu 24.04 image: the ubuntu-latest image's Microsoft feed
+    # currently returns 403 during Playwright's OS dependency installation.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
