@@ -102,3 +102,12 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 - [x] Confirmed orders and order_status_history have RLS and FORCE RLS enabled, but the RC929 strict confirmed-Auth restrictive policies are not live. `public.directory_listing_contact_consents` is absent.
 - **Release implication:** the root-helper/policy sequence has a broad authorization blast radius. Do not hot-replace helpers or bulk-rewrite policies; require coordinated migrations and adversarial positive/negative tests.
 - **Non-actions:** read-only SQL only; no Production database, migration ledger, Auth, GRANT, RLS, Edge, payment, wallet, settlement, or business-data write.
+
+### Platform-root authorization semantics and source repair sequence — 2026-11-27 02:46 UTC
+
+- [x] Read the live definitions of mnty_active_membership, mnty_can, and mnty_can_platform_admin. With all scope arguments NULL, mnty_active_membership returns ACTIVE memberships across all tenants; mnty_can('admin',NULL,NULL,NULL) explicitly treats OWNER and ADMIN roles as admin-capable.
+- [x] Confirmed the live mnty_can_platform_admin() delegates to that generic evaluator rather than private.platform_admins. A tenant OWNER/ADMIN can therefore satisfy this named platform-root helper without a registry row.
+- [x] Confirmed live is_platform_admin() checks any ACTIVE ADMIN/SUPER_ADMIN membership with no tenant/business/branch predicate; 57 RLS policy references across 24 tables use this helper, often as an OR branch. Classified this as a CRITICAL/P0 source-derived cross-tenant authorization risk; no user impersonation or data-access exploit was attempted.
+- [x] Verified that corrective source migrations already exist: RC464 (20261113214500), RC471 (20261117190000), RC484 (20261119040000), RC485 (20261120200000). RC464/RC471 repair the private-registry MantiGO platform guard and callers; RC484 repairs the 57-policy is_platform_admin helper; RC485 aligns seven catalog RPCs while preserving tenant-local scope.
+- [ ] Keep this entire migration sequence blocked until the required chronological release, physical preflight, backup/restore/rollback gates and negative/positive PostgreSQL tests all pass. Do not create duplicate migration IDs or hot-patch Production.
+- **Non-actions:** read-only SQL and source review only; no Production table/function/policy/ACL changes, no migration application, no Edge deployment, no customer/business-data changes.
