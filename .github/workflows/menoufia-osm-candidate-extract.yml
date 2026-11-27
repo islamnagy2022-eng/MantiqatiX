@@ -78,7 +78,7 @@ jobs:
         run: |
           node scripts/prepare-monufia-osm-candidates.mjs \
             --input /tmp/monufia-osm-source/overpass.json \
-            --output /tmp/monufia-osm-candidates
+            --output /tmp/monufia-osm-candidates \
             --source-endpoint "${{ steps.fetch.outputs.endpoint }}"
       - name: Record source-unavailable status without inventing records
         if: steps.fetch.outputs.fetch_status != 'available'

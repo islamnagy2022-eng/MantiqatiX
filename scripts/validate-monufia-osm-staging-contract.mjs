@@ -34,6 +34,7 @@ assert.ok(workflow.includes('node scripts/validate-monufia-osm-staging-contract.
 assert.ok(script.includes('extractionApiUrl'), 'The manifest must preserve the actual source endpoint used.');
 assert.ok(workflow.includes('https://ovp.dresel.systems/api-af/interpreter'), 'The workflow must include the public Africa-region Overpass fallback.');
 assert.ok(workflow.includes('https://overpass.private.coffee/api/interpreter'), 'The workflow must include the documented public Overpass fallback.');
+assert.ok(workflow.includes('--output /tmp/monufia-osm-candidates \\\n            --source-endpoint'), 'The actual responding endpoint must be passed to the extractor as a continued command.');
 
 console.log('MENOUFIA_OSM_ODBL_STAGING=PASS');
 console.log('PUBLICATION=DISABLED; PRODUCTION_WRITES=NONE; CONTACT_FIELDS=EXCLUDED');
