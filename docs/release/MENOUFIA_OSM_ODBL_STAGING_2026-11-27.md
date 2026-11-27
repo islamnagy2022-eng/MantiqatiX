@@ -11,7 +11,7 @@ Prepare a separate, source-attributed candidate dataset from OpenStreetMap for t
 - Boundary: OpenStreetMap administrative relation 3824207 for Monufia Governorate; the pipeline checks the relation ID, boundary=administrative and a Monufia name tag before processing candidate features.
 - Source license: Open Database License 1.0 (ODbL).
 - Attribution: © OpenStreetMap contributors.
-- The extraction is limited to named objects tagged as shops, selected amenities, offices, crafts, healthcare providers, hotels/guest houses and sports facilities.
+- The extraction is limited to named objects tagged as shops, selected amenities, offices, crafts, healthcare providers, hotels/guest houses and sports facilities. Any class marked for taxonomy review is kept out of the mapped-candidate file; a provisional group/category suggestion is stored separately for human review.
 - Generic `office=company` and `office=estate_agent` elements are not guessed into business-consulting or development categories; they are placed in the taxonomy-review queue.
 
 ## ODbL separation

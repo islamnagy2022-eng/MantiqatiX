@@ -28,6 +28,7 @@ const fixture = () => ({
     { type: 'node', id: 105, lat: 30.48, lon: 31.04, tags: { amenity: 'parking', name: 'موقف سيارات' } },
     { type: 'node', id: 106, lat: 30.47, lon: 31.05, tags: { shop: 'bakery' } },
     { type: 'node', id: 107, lat: 30.46, lon: 31.06, tags: { shop: 'clothes', name: 'متجر ملابس', phone: '01000000000' } },
+    { type: 'node', id: 108, lat: 30.45, lon: 31.07, tags: { shop: 'mobile_phone', name: 'متجر هواتف غير محدد التخصص' } },
     { type: 'node', id: 107, lat: 30.46, lon: 31.06, tags: { shop: 'clothes', name: 'متجر ملابس مكرر' } },
   ],
 });
@@ -67,10 +68,19 @@ test('maps OSM shop and amenity tags to canonical MantiqatiX category IDs', () =
 
 test('unmapped commercial classifications go to a review queue rather than being misclassified', () => {
   const result = prepareMonufiaCandidates(fixture(), { snapshotAt: '2026-11-27T00:00:00.000Z' });
-  assert.equal(result.needs_review.length, 1);
-  assert.equal(result.needs_review[0].source_id, 'osm:node:104');
-  assert.equal(result.needs_review[0].activity_category_id, null);
-  assert.equal(result.needs_review[0].taxonomy_review_required, true);
+  assert.equal(result.needs_review.length, 2);
+  const genericOffice = result.needs_review.find((row) => row.source_id === 'osm:node:104');
+  const ambiguousShop = result.needs_review.find((row) => row.source_id === 'osm:node:108');
+  assert.ok(genericOffice);
+  assert.equal(genericOffice.activity_category_id, null);
+  assert.equal(genericOffice.taxonomy_review_required, true);
+  assert.ok(ambiguousShop);
+  assert.equal(ambiguousShop.activity_category_id, null,
+    'an unfamiliar shop class must not be treated as an accepted taxonomy assignment');
+  assert.equal(ambiguousShop.suggested_functional_group_id, 'fashion_beauty',
+    'the review queue may preserve a provisional group suggestion');
+  assert.equal(ambiguousShop.suggested_activity_category_code, 'general_retail');
+  assert.equal(ambiguousShop.taxonomy_review_required, true);
 });
 
 test('all exported records are unverified drafts and contact fields are omitted', () => {

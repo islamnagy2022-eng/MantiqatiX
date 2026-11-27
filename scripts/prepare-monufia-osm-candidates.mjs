@@ -194,11 +194,13 @@ function makeRecord(element, classification, snapshotAt) {
     name,
     latitude: coordinates.latitude,
     longitude: coordinates.longitude,
-    functional_group_id: classification.groupId,
-    activity_category_id: classification.groupId && classification.code
+    functional_group_id: classification.taxonomyReviewRequired ? null : classification.groupId,
+    activity_category_id: !classification.taxonomyReviewRequired && classification.groupId && classification.code
       ? 'cat_' + classification.groupId + '_' + classification.code
       : null,
-    activity_category_code: classification.code,
+    activity_category_code: classification.taxonomyReviewRequired ? null : classification.code,
+    suggested_functional_group_id: classification.taxonomyReviewRequired ? classification.groupId : null,
+    suggested_activity_category_code: classification.taxonomyReviewRequired ? classification.code : null,
     specialty_suggestion: classification.specialty,
     source_tag_key: classification.sourceTagKey,
     source_tag_value: classification.sourceTagValue,
@@ -244,7 +246,7 @@ export function prepareMonufiaCandidates(overpassPayload, { snapshotAt = new Dat
     if (!classification) { ignored += 1; continue; }
 
     const record = makeRecord(element, classification, snapshotAt);
-    if (classification.groupId && classification.code) candidates.push(record);
+    if (classification.groupId && classification.code && !classification.taxonomyReviewRequired) candidates.push(record);
     else needsReview.push(record);
     if (candidates.length + needsReview.length > MAX_OUTPUT_RECORDS) {
       throw new Error('Candidate output exceeds the safe cap of ' + MAX_OUTPUT_RECORDS + ' records.');
