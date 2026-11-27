@@ -5496,6 +5496,7 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 
 - [x] Added a Super Admin Control Center section for selecting a tenant/business and reading its active branch catalog through the authenticated `catalog-admin` `CATALOG_READ` contract.
 - [x] Added product/service counts, active-item counts, search, branch selection, and the currently effective branch/global price when returned by the server.
+- [x] Preserved the requested 20-item initial view with a “رؤية المزيد” control; browser coverage checks pagination and confirms branch changes issue a scoped read request.
 - [x] Kept this slice strictly read-only. No edit, delete, status-toggle, price-upsert, stock-adjustment or publication write is exposed.
 - [x] Documented the backend reason for the write boundary: catalog price upsert currently fails closed with `CATALOG_PRICE_WRITES_TEMPORARILY_DISABLED` pending RC486 Production verification; the legacy item-status RPC still uses a membership-derived platform SUPER_ADMIN predicate and must be aligned with the protected registry before it can be exposed to platform-root users.
 - [ ] PR #1167 exact-head lint/build, branch-scoped catalog browser E2E, dashboard RBAC PostgreSQL, and full companion CI must pass before merge. No deployment is claimed.
