@@ -2333,3 +2333,14 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Added and executed source-contract assertions for allowlist, active-only filtering, read-only behavior and truthful UI state. JS parse and app/PWA asset parity checks passed; current asset key is `super-admin-pricing-directory-20261127`, cache `mnty-web-v159`.
 - [ ] GitHub Actions and browser/device E2E remain pending; no exact-head CI result was available during this pass.
 - Actual subscription/customer and commission management remains blocked pending a reviewed private-registry-backed server read/write contract and audit controls. No production data or financial state was changed. Production remains **BLOCKED / NOT CERTIFIED**. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+
+## 2026-11-27 — Super Admin financial operations snapshot and tenant count boundary
+
+- [x] Hardened the shared `safeCount` helper: when a caller supplies a required scope column but no scope value, it now returns unavailable instead of silently issuing an unfiltered count query.
+- [x] Added a read-only finance snapshot to the Super Admin control workspace using the already-loaded `live.finance` counts for journal entries, commission transactions, payment intents, reconciliations, settlements and wallet accounts.
+- [x] The panel explicitly identifies its scope as the active membership tenant, displays record counts only (not money balances or platform-wide totals), and distinguishes failed/missing sources from a real zero count.
+- [x] Extended the enterprise dashboard contract to enforce scope refusal, tenant-scoped display, source labels and the no-write boundary.
+- [ ] Exact-head Module Professionalization CI and browser/responsive/accessibility verification remain pending. Do not mark this screen runtime-verified until those checks pass.
+- [ ] Subscription entitlement/plan management remains unimplemented here. Inspect and verify authoritative subscription tables/RPCs, tenant authorization and audit behavior before adding controls.
+- Production remains **BLOCKED / NOT CERTIFIED**. No merge, deployment, financial mutation or production write was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
