@@ -1748,6 +1748,55 @@ try {
     } finally { await context.close(); }
   }
 
+  // A subscriber with two active business memberships must render only the
+  // business chosen by the authenticated bootstrap. Navbar and account portal
+  // must share the same authSession.businessId rather than independently infer it.
+  {
+    const secondaryBusinessId = '10000000-0000-0000-0000-000000000002';
+    const primaryBusinessName = 'نشاط العضوية الأساسية للاختبار';
+    const secondaryBusinessName = 'النشاط الثاني للاختبار';
+    const multiBusinessOwner = {
+      ...roles.businessOwner,
+      extraMemberships: [{
+        id: 'membership-owner-secondary',
+        role: 'OWNER',
+        businessId: secondaryBusinessId,
+        permissions: {},
+        created_at: '2026-02-01T00:00:00.000Z',
+      }],
+    };
+    const { context, page } = await newScenario(browser, multiBusinessOwner, [], {
+      platformBusinesses: [
+        { ...fakeBusiness, id: secondaryBusinessId, name: secondaryBusinessName, category: 'عيادة' },
+        { ...fakeBusiness, id: businessId, name: primaryBusinessName, category: 'أنشطة تجارية' },
+      ],
+    });
+    try {
+      await waitForDashboard(page);
+      // The extra membership is returned first by the isolated Auth fixture;
+      // bootstrap therefore binds the session to that exact business.
+      await page.getByText(secondaryBusinessName, { exact: true }).first()
+        .waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByRole('button', { name: 'حسابي / اشتراكي', exact: true }).click();
+      await page.getByRole('heading', { name: 'حسابي واشتراكاتي', exact: true })
+        .waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByRole('button', { name: 'اشتراكاتي', exact: true }).click();
+      await page.getByRole('heading', { name: secondaryBusinessName, exact: true })
+        .waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(
+        await page.getByRole('heading', { name: primaryBusinessName, exact: true }).count(),
+        0,
+        'the account portal must not mix the other active business into the session-bound account',
+      );
+      assert.equal(
+        await page.getByRole('heading', { name: secondaryBusinessName, exact: true }).count(),
+        1,
+        'the account portal must render exactly the business selected by the authenticated session',
+      );
+      results.push('multi-membership-account-portal-stays-bound-to-authenticated-business-context');
+    } finally { await context.close(); }
+  }
+
   // A signed-out visitor cannot open the protected account portal by URL.
   {
     const { context, page } = await newScenario(browser);
