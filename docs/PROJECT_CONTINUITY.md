@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST CONTINUATION STATE — 2026-10-19:** The active build branch is `feat/marketing-campaign-operations-summary-20261019`; PR #299 is open and Draft. Its work includes marketing campaign/partner lifecycle controls, public service/provider catalog boundaries (RC457–RC458), profile-media policy hardening (RC459), and production-gate migration-manifest coverage through RC459. The latest documented exact-head CI checkpoint is `64393c9581a66d7f68bf424ad150313d1e4eba47`; subsequent work must be checked against the live branch before relying on that checkpoint. Production remains **BLOCKED / NOT CERTIFIED**.
+> **LATEST CONTINUATION STATE — 2026-11-27:** PR #299 remains open and Draft on `feat/marketing-campaign-operations-summary-20261019`. The Super Admin control workspace includes read-only activity, module/feature-flag, current-account membership and active subscription pricing views. This continuation adds tenant-scoped finance evidence and closes a fail-open count-query boundary. Global user/role administration and subscription entitlement controls remain blocked pending verified private server-side contracts. Production remains **BLOCKED / NOT CERTIFIED**.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -1113,3 +1113,15 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 - [ ] GitHub Actions exact-head CI and live browser/responsive/accessibility verification remain pending. Source-contract execution is not a substitute for those checks.
 - [ ] Actual business subscription records and commission transactions remain unavailable to a platform-only view until a separately reviewed, registry-backed server read contract is wired. No direct financial table access or client-side activation is added.
 - Production remains **BLOCKED / NOT CERTIFIED**. No merge, deployment, financial write, or production mutation was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+
+## 2026-11-27 — Super Admin financial operations snapshot and strict tenant count scoping
+
+- Hardened `safeCount(table,column,value)`: if a filter column is supplied without its tenant/business/user scope value, the helper now returns `null` instead of counting the table without that required filter. Intentionally unscoped calls that pass no column remain unchanged and continue to rely on RLS.
+- Added a read-only Super Admin dashboard summary for journal entries, commission transactions, payment intents, financial reconciliations, settlements and wallet accounts, sourced only from the preloaded `live.finance` counters.
+- The panel requires an active tenant context, never displays a global/platform-wide count, and renders unavailable sources distinctly from an actual zero result. It does not expose payment amounts, wallet balances, subscription entitlements, or mutation controls.
+- Added source-contract assertions for the missing-scope guard, tenant context requirement, all six source labels and the read-only boundary.
+- Refreshed the application asset key to `super-admin-finance-scope-snapshot-20261127` and service-worker cache to `mnty-web-v160`.
+- [ ] Exact-head Module Professionalization workflow and browser/responsive/accessibility checks remain pending. This is a source-level change, not production runtime verification.
+- Next: inspect authoritative subscription entitlement/plan state and backend permission/audit contracts before implementing any lifecycle management actions.
+- PR #299 remains open/Draft. Production remains **BLOCKED / NOT CERTIFIED**. No merge, deployment, production data mutation or payment was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
