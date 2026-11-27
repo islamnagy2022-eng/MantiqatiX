@@ -1,0 +1,252 @@
+name: Generate and test RC932 MantiGO explicit confirmed-auth repair
+
+on:
+  push:
+    branches:
+      - "fix/rc932-mantigo-open-ride-explicit-confirmed-auth-20261128"
+    paths:
+      - ".github/workflows/generate-rc932-mantigo-open-ride-confirmed-auth.yml"
+  pull_request:
+    branches:
+      - "docs/backup-restore-current-main-rebase-20261128"
+    paths:
+      - ".github/workflows/generate-rc932-mantigo-open-ride-confirmed-auth.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rc932_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rc932_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.122.0
+
+      - name: Generate the forward migration using Supabase CLI
+        id: migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase --version
+          supabase migration new --help
+          existing="$(find supabase/migrations -maxdepth 1 -type f -name '*_rc932_mantigo_open_ride_explicit_confirmed_auth.sql' -print)"
+          if [[ -n "$existing" ]]; then
+            migration_file="$existing"
+          else
+            supabase migration new rc932_mantigo_open_ride_explicit_confirmed_auth
+            migration_file="$(find supabase/migrations -maxdepth 1 -type f -name '*_rc932_mantigo_open_ride_explicit_confirmed_auth.sql' -print)"
+          fi
+          test -n "$migration_file"
+          test "$(printf '%s\n' "$migration_file" | wc -l)" -eq 1
+          printf 'migration_file=%s\n' "$migration_file" >> "$GITHUB_OUTPUT"
+
+      - name: Define RC932 forward repair
+        env:
+          MIGRATION_FILE: ${{ steps.migration.outputs.migration_file }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$MIGRATION_FILE" <<'SQL'
+          -- RC932: require a positively confirmed Auth identity before exposing MantiGO open-ride locations.
+          -- Forward-only strict repair; do not edit historical RC478 migration history.
+          BEGIN;
+
+          DO $rc932_preflight$
+          DECLARE
+            v_rpc oid := pg_catalog.to_regprocedure('public.list_open_mantigo_rides_backend(uuid)');
+            v_missing text;
+          BEGIN
+            IF v_rpc IS NULL THEN
+              RAISE EXCEPTION 'RC932_OPEN_RIDE_RPC_MISSING';
+            END IF;
+
+            WITH expected(table_name,column_name) AS (
+              VALUES
+                ('mantigo_captain_profiles','captain_id'),
+                ('mantigo_captain_profiles','status'),
+                ('mantigo_captain_profiles','verification_status'),
+                ('mantigo_captain_profiles','availability_status'),
+                ('mantigo_captain_profiles','vehicle_category'),
+                ('mantigo_rides','id'),
+                ('mantigo_rides','customer_id'),
+                ('mantigo_rides','customer_name'),
+                ('mantigo_rides','vehicle_category'),
+                ('mantigo_rides','ride_type'),
+                ('mantigo_rides','pickup_location'),
+                ('mantigo_rides','destination_location'),
+                ('mantigo_rides','proposed_price'),
+                ('mantigo_rides','note'),
+                ('mantigo_rides','status'),
+                ('mantigo_rides','created_at'),
+                ('mantigo_bids','id'),
+                ('mantigo_bids','ride_id'),
+                ('mantigo_bids','status')
+            )
+            SELECT pg_catalog.string_agg(e.table_name||'.'||e.column_name,', ' ORDER BY e.table_name,e.column_name)
+              INTO v_missing
+              FROM expected e
+              LEFT JOIN pg_catalog.pg_attribute a
+                ON a.attrelid=pg_catalog.to_regclass('public.'||e.table_name)
+               AND a.attname=e.column_name
+               AND a.attnum>0
+               AND NOT a.attisdropped
+             WHERE a.attname IS NULL;
+
+            IF v_missing IS NOT NULL THEN
+              RAISE EXCEPTION 'RC932_OPEN_RIDE_SCHEMA_DEPENDENCY_MISSING: %',v_missing;
+            END IF;
+
+            IF NOT EXISTS (
+              SELECT 1
+                FROM pg_catalog.pg_proc p
+               WHERE p.oid=v_rpc
+                 AND p.prosecdef
+                 AND pg_catalog.has_function_privilege('authenticated',v_rpc,'EXECUTE')
+                 AND NOT pg_catalog.has_function_privilege('anon',v_rpc,'EXECUTE')
+            ) THEN
+              RAISE EXCEPTION 'RC932_OPEN_RIDE_EXISTING_FUNCTION_SECURITY_CONTRACT_MISMATCH';
+            END IF;
+          END;
+          $rc932_preflight$;
+
+          CREATE OR REPLACE FUNCTION public.list_open_mantigo_rides_backend(p_user_id uuid)
+          RETURNS TABLE(
+            id text,
+            customer_name text,
+            vehicle_category text,
+            ride_type text,
+            pickup_location text,
+            destination_location text,
+            proposed_price numeric,
+            note text,
+            status text,
+            created_at timestamptz,
+            bid_count bigint
+          )
+          LANGUAGE plpgsql
+          SECURITY DEFINER
+          SET search_path = pg_catalog
+          AS $function$
+          DECLARE
+            v_vehicle_category text;
+          BEGIN
+            IF auth.uid() IS NULL
+               OR (auth.jwt()->>'is_anonymous') IS DISTINCT FROM 'false' THEN
+              RAISE EXCEPTION 'MANTIGO_AUTH_REQUIRED';
+            END IF;
+
+            IF p_user_id IS NULL OR p_user_id IS DISTINCT FROM auth.uid() THEN
+              RAISE EXCEPTION 'USER_CONTEXT_MISMATCH';
+            END IF;
+
+            SELECT cp.vehicle_category
+              INTO v_vehicle_category
+              FROM public.mantigo_captain_profiles cp
+             WHERE cp.captain_id=p_user_id
+               AND cp.status='ACTIVE'
+               AND cp.verification_status='VERIFIED'
+               AND cp.availability_status='AVAILABLE';
+
+            IF NOT FOUND OR nullif(pg_catalog.btrim(v_vehicle_category),'') IS NULL THEN
+              RAISE EXCEPTION 'MANTIGO_CAPTAIN_PROFILE_REQUIRED';
+            END IF;
+
+            RETURN QUERY
+            SELECT
+              r.id,
+              r.customer_name,
+              r.vehicle_category,
+              r.ride_type,
+              r.pickup_location,
+              r.destination_location,
+              r.proposed_price,
+              r.note,
+              r.status,
+              r.created_at,
+              pg_catalog.count(b.id)::bigint
+            FROM public.mantigo_rides r
+            LEFT JOIN public.mantigo_bids b
+              ON b.ride_id=r.id
+             AND b.status='OFFERED'
+            WHERE r.status IN ('OPEN','OPEN_FOR_BIDS')
+              AND r.customer_id<>p_user_id
+              AND r.vehicle_category=v_vehicle_category
+            GROUP BY
+              r.id,r.customer_name,r.vehicle_category,r.ride_type,
+              r.pickup_location,r.destination_location,r.proposed_price,
+              r.note,r.status,r.created_at
+            ORDER BY r.created_at DESC
+            LIMIT 100;
+          END;
+          $function$;
+
+          REVOKE ALL ON FUNCTION public.list_open_mantigo_rides_backend(uuid) FROM PUBLIC,anon;
+          GRANT EXECUTE ON FUNCTION public.list_open_mantigo_rides_backend(uuid) TO authenticated;
+
+          COMMENT ON FUNCTION public.list_open_mantigo_rides_backend(uuid) IS
+            'RC932: rejects JWTs unless is_anonymous is explicitly false; preserves active verified available captain and vehicle-category filtering.';
+
+          COMMIT;
+          SQL
+
+      - name: Run strict MantiGO privacy source validators
+        run: |
+          node scripts/validate-rc477-mantigo-customer-bid-contact-privacy.mjs
+          node scripts/validate-rc478-mantigo-open-ride-forward-privacy.mjs
+          node scripts/validate-rc932-mantigo-open-ride-explicit-confirmed-auth.mjs
+
+      - name: Prepare disposable PostgreSQL roles
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/rc932_test
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+
+      - name: Reproduce the existing MantiGO read contracts, then apply RC932
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/rc932_test
+          MIGRATION_FILE: ${{ steps.migration.outputs.migration_file }}
+        run: |
+          set -euo pipefail
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rc446_mantigo_open_ride_fixture.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261010060000_rc446_mantigo_open_ride_privacy_boundary.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rc446_mantigo_open_ride_integration.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261118060000_rc477_mantigo_customer_bid_contact_privacy.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rc477_mantigo_customer_bid_contact_privacy_integration.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261118070000_rc478_mantigo_open_ride_privacy_forward_repair.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rc478_mantigo_open_ride_forward_privacy_integration.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$MIGRATION_FILE"
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rc932_mantigo_open_ride_explicit_confirmed_auth_integration.sql
+
+      - name: Commit the CLI-generated forward migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add supabase/migrations/*_rc932_mantigo_open_ride_explicit_confirmed_auth.sql
+          git diff --cached --check
+          git commit -m "fix(db): require explicit confirmed Auth for MantiGO open rides"
+          target_ref="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
+          git push origin "HEAD:${target_ref}"
