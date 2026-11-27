@@ -118,8 +118,8 @@
   },
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
-    "checked_at": "2026-11-25",
-    "method": "Read-only live migration ledger inventory refreshed 2026-11-25 and reconciled against 85 exact required source migration versions. RC926 is source-only and is not applied. Exact identifiers absent are not proof every physical effect is absent; aliases and physical effects are reconciled separately. Never fabricate ledger rows or blindly replay migrations against Production. RC927 and RC928 are source-only candidates and are not applied. Updated 2026-11-26 to include source-only RC117 image-provenance forward repair 20261126020000; no Production application is claimed. RC929 (20261126030000) is a source-only strict confirmed-Auth guard for orders and order_status_history; direct live policy read-back on 2026-11-26 found RLS/FORCE RLS enabled, anon SELECT false, authenticated SELECT true, and no RC929 restrictive guard on either table. It is not applied to Production.",
+    "checked_at": "2026-11-27",
+    "method": "Read-only direct SQL exact-ID comparison on 2026-11-27. The current-main live-reconciliation-contract.mjs array contains 87 required source versions; live supabase_migrations.schema_migrations contains 310 rows through 20261110150618; exact matches 0/87 and missing exact IDs 87/87. The result is an identity gap only; aliases and physical effects must be reconciled independently. No production migration or ledger write was performed.",
     "live_ledger_count": 310,
     "latest_live_version": "20261110150618",
     "expected_migration_versions": 87,
@@ -303,7 +303,7 @@
       "20261126030000"
     ],
     "recorded_required_versions": [],
-    "interpretation": "None of the 85 exact required source-version identifiers are recorded in the latest read-only live ledger inventory. This is a migration-identity gap, not proof that every intended physical effect is absent. Independently inspect physical schema, function bodies, ACLs, RLS and Edge bundles. Never fabricate ledger rows or blindly replay migrations against Production. RC117 image-provenance forward repair is source-only and is not recorded in Production. RC929 is a source-only candidate; its missing exact ID is expected until a separately approved coordinated release."
+    "interpretation": "None of the 87 exact required source-version identifiers is recorded in the 310-row live ledger. This is a migration-identity gap, not proof every corresponding physical effect is absent. Reconcile the three exact aliases and physical schema/function/ACL/RLS/Edge effects separately. Never fabricate ledger rows or blindly replay migrations against Production. RC928, RC117 forward repair, and RC929 remain source-only and are not applied to Production."
   },
   "critical_edge_function_source_parity_check": {
     "status": "BLOCKED",
@@ -3396,8 +3396,8 @@
     ],
     "interpretation": "Dashboard-specific live dependencies are installed and verified by read-only queries. Historical migrations were not edited and the 41-version full-platform release chain, finance/payment/Edge Function parity, backup/restore rehearsal, Auth hardening, monitoring, and unrelated release evidence remain BLOCKED. Deployment may proceed only through the existing scoped catalog/dashboard gate; do not mark the full platform production-certified."
   },
-  "live_ledger_checked_at": "2026-11-17",
-  "live_ledger_verification_method": "Read-only Supabase list_migrations on 2026-11-17 returned 310 records through 20261110150618. The 42 canonical required source-version identifiers were compared against the live ledger: 0 exact matches. Exact migration statement recovery was performed separately for 20261110150618; no migration was re-applied.",
+  "live_ledger_checked_at": "2026-11-27",
+  "live_ledger_verification_method": "Read-only Supabase inventory plus a direct SQL comparison of the 87 exact source versions in scripts/production/live-reconciliation-contract.mjs against supabase_migrations.schema_migrations on 2026-11-27. Exact matches: 0/87; live rows: 310; latest 20261110150618. This is a migration-identity gap, not proof all physical effects are absent. No writes or migration history changes.",
   "professional_dashboard_post_deploy_browser_e2e": {
     "status": "PASS",
     "checked_at": "2026-10-29",
@@ -8582,5 +8582,92 @@
       "deployed_origin_route_check": "IN_PROGRESS",
       "note": "Do not mark deployed-origin browser verification complete until the deploy job itself concludes success."
     }
+  },
+  "platform_root_live_recheck_20261127": {
+    "status": "BLOCKED / NOT CERTIFIED",
+    "checked_at": "2026-11-27",
+    "source_main_commit": "036c6655b3796d649abd9e603c24f518f8ee361e",
+    "project": "MANTIQATIX FINAL",
+    "project_ref": "moyhiluyhjsujhwlyeuu",
+    "database_version": "17.6.1.155",
+    "method": "Direct read-only PostgreSQL catalog and effective privilege SQL: pg_proc/pg_get_functiondef/pg_roles/pg_class/has_table_privilege/has_function_privilege/pg_policy, plus exact 87-version join against supabase_migrations.schema_migrations. No application rows selected; no function invoked; no production writes.",
+    "registry": {
+      "table": "private.platform_admins",
+      "exists": true,
+      "owner": "postgres",
+      "owner_bypass_rls": true,
+      "rls_enabled": true,
+      "force_rls": false,
+      "anon": {
+        "select": false,
+        "insert": false,
+        "update": false,
+        "delete": false
+      },
+      "authenticated": {
+        "select": false,
+        "insert": false,
+        "update": false,
+        "delete": false
+      },
+      "service_role": {
+        "select": true,
+        "insert": true,
+        "update": true,
+        "delete": true
+      }
+    },
+    "helpers": {
+      "is_platform_admin": {
+        "owner": "postgres",
+        "security_definer": false,
+        "search_path": "public",
+        "body": "EXISTS public.user_memberships for auth.uid() where status='ACTIVE' and upper(role) in ('ADMIN','SUPER_ADMIN')",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "service_role_execute": false,
+        "status": "BLOCKED — tenant membership-derived; not registry-backed"
+      },
+      "mnty_can_platform_admin": {
+        "owner": "postgres",
+        "security_definer": true,
+        "search_path": "public, pg_temp",
+        "body": "SELECT public.mnty_can('admin', NULL, NULL, NULL)",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "service_role_execute": false,
+        "status": "BLOCKED — SECURITY DEFINER legacy unscoped helper"
+      }
+    },
+    "policy_dependencies": {
+      "is_platform_admin": {
+        "policies": 57,
+        "tables": 24
+      },
+      "mnty_can_platform_admin": {
+        "policies": 5,
+        "tables": 3
+      },
+      "combined": {
+        "policy_references": 62,
+        "unique_tables": 27
+      }
+    },
+    "production_migration_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "required_source_ids": 87,
+      "exact_required_source_id_matches": 0,
+      "missing_exact_required_source_ids": 87,
+      "interpretation": "Identity mismatch only; aliases and physical effects must be reconciled separately."
+    },
+    "release_sequence": [
+      "RC464",
+      "RC469",
+      "RC471",
+      "RC484",
+      "RC485"
+    ],
+    "no_production_mutation": true
   }
 }

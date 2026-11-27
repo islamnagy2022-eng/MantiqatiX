@@ -90,3 +90,12 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 - [ ] PR #1176 (current-main version of Supabase read-only audit) must pass exact-head migration replay, Primary Catalog E2E/RBAC, privacy and module checks before merge.
 - **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. No Production migrations, SQL writes, Auth/ACL/RLS changes, Edge deployments, payments, wallets, settlements, Storage or customer/business data were changed.
 - **Owner action:** repository/project owner must configure `HEALTH_MONITOR_TOKEN` as a protected GitHub Actions secret to enable actual protected Edge /health monitoring. Do not paste secrets into chat or commit them.
+
+## 2026-11-27 — Follow-up exact Supabase SQL and Pages verification
+
+- Re-ran a focused read-only SQL check against `MANTIQATIX FINAL`. `private.platform_admins` exists, is owned by `postgres` (BYPASSRLS), has RLS enabled and FORCE RLS disabled. Direct table privileges are denied to anon/authenticated; service_role retains its privileged CRUD grant.
+- Re-read both global helper definitions and effective EXECUTE ACLs: `is_platform_admin()` is SECURITY INVOKER / `search_path=public` and still derives from ACTIVE tenant ADMIN/SUPER_ADMIN memberships; `mnty_can_platform_admin()` is SECURITY DEFINER / `search_path=public, pg_temp` and still delegates to `mnty_can('admin',NULL,NULL,NULL)`. Both deny anon, allow authenticated, and deny service_role EXECUTE.
+- Fresh RLS predicate inventory: 57 policy references / 24 tables for `is_platform_admin()`, plus five / three for `mnty_can_platform_admin()`; 62 references across 27 unique tables.
+- Re-read the current-main 87 required IDs and compared them in one read-only SQL query: live ledger 310 rows through `20261110150618`; exact matches 0/87, missing 87/87. This is an identity mismatch, not proof every intended physical effect is absent.
+- Main commit `036c6655b3796d649abd9e603c24f518f8ee361e` Pages deployment run [45931067591](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45931067591) completed successfully, including root/legacy/preview, case-insensitive catalog URLs, dashboard/mobile/QR deployed-origin checks.
+- Updated the read-only audit and reconciliation manifest through PR #1176. No Production SQL/DDL/DML, migration, Auth, GRANT/RLS, Edge, Storage, payment, wallet, settlement, or customer/business-data mutation. Full platform remains **BLOCKED / NOT CERTIFIED**.

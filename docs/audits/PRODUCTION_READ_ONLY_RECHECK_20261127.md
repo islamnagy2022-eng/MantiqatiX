@@ -139,3 +139,52 @@ The current aggregate therefore found no non-registry account satisfying the liv
 - [x] The corrected log explicitly reports **Edge Function /health: NOT CHECKED** because `HEALTH_MONITOR_TOKEN` is absent. The database probe passed only through the legacy anonymous read-only fallback. Do not report this as a successful protected Edge health check.
 - [x] Main Pages deployment validation (site build/validation phase) completed successfully for the same commit; deployed-origin browser verification of the legacy catalog root and dashboard/mobile/QR routes was still running at the time of this snapshot (run [45931067591](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45931067591)).
 - **Required owner-side follow-up:** configure the repository Actions secret `HEALTH_MONITOR_TOKEN` with the health function's protected bearer token so a future scheduled/manual monitor can actually query Edge `/health`. This task is not executable through the available GitHub connector and was not attempted. Do not paste the token into chat or source files.
+
+## Follow-up direct PostgreSQL verification — 2026-11-27
+
+A second focused SQL read-back was run against the connected Production project after the earlier inventory snapshot. It queried catalog metadata and effective privileges only; it did not select application rows or invoke authorization functions.
+
+### Exact platform-root helper definitions and effective privileges
+
+| Object | Live definition | Effective EXECUTE |
+|---|---|---|
+| `public.is_platform_admin()` | SECURITY INVOKER; owner `postgres`; `search_path=public`; returns true for any ACTIVE `user_memberships` row where role is `ADMIN` or `SUPER_ADMIN`. | anon: no; authenticated: yes; service_role: no |
+| `public.mnty_can_platform_admin()` | SECURITY DEFINER; owner `postgres`; `search_path=public, pg_temp`; delegates to `public.mnty_can('admin', NULL, NULL, NULL)`. | anon: no; authenticated: yes; service_role: no |
+
+Both exact function bodies were fetched from `pg_get_functiondef`; neither body is registry-backed. The authorization problem is the breadth of the predicate granted to signed-in callers and the dependent policies/callers, not anonymous EXECUTE.
+
+### Registry table ACL and RLS posture
+
+The private registry exists and is owned by `postgres` (the owner has BYPASSRLS). RLS is enabled, but FORCE RLS remains disabled.
+
+| Role | SELECT | INSERT | UPDATE | DELETE |
+|---|---:|---:|---:|---:|
+| anon | denied | denied | denied | denied |
+| authenticated | denied | denied | denied | denied |
+| service_role | granted | granted | granted | granted |
+
+The service-role grant is the existing privileged server boundary; this read-back did not exercise it or read registry rows.
+
+### Current policy reference counts
+
+- `is_platform_admin()`: **57 policies across 24 tables**.
+- `mnty_can_platform_admin()`: **5 policies across 3 tables**.
+- Combined: **62 policy references across 27 tables**. The two sets are counted separately; combined table count is the union, not the sum of the two table counts.
+
+### Exact required migration identity recheck
+
+The required-version array was read directly from current-main `scripts/production/live-reconciliation-contract.mjs` and contained **87** IDs. A single read-only SQL comparison against `supabase_migrations.schema_migrations` returned:
+
+- Live ledger: **310 rows**, latest `20261110150618`.
+- Exact required source-ID matches: **0/87**.
+- Missing exact source IDs: **87/87**.
+
+This confirms the release identity gap only. It does **not** prove that all intended physical effects are absent; the three documented exact aliases and the independent physical schema/function/ACL/RLS checks remain separate evidence categories. No ledger row was inserted, rewritten, or replayed.
+
+## Main Pages deployment closeout — 2026-11-27
+
+- [x] Main commit `036c6655b3796d649abd9e603c24f518f8ee361e` GitHub Pages workflow [45931067591](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45931067591) completed successfully.
+- [x] The deploy job passed publishing and deployed-origin checks for the V6 root, legacy catalog rollback, Preview alias, case-insensitive catalog URLs, and dashboard/mobile/QR routes.
+- **Scope:** website deployment only. This does not deploy the Supabase database migrations or Edge Functions and does not clear the platform authorization, payment, privacy, or backup/restore release blockers.
+
+**Production mutation: NONE.** No database, migration ledger, Auth, GRANT/RLS, Edge, Storage, payment, wallet, settlement, or customer/business data was changed.
