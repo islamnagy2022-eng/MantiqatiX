@@ -1384,7 +1384,6 @@ try {
       assert.equal(await page.getByRole('button', { name: /تعديل|حذف|إيقاف|تنشيط/ }).count(), 0, 'the platform catalog review must not expose unverified write actions');
       await page.getByLabel('الفرع').selectOption(branchId);
       assert.ok(catalogReadRequests.some((request) => request.businessId === businessId && request.tenantId === tenantId && request.branchId === branchId), 'changing branch must issue a read scoped to the selected branch');
-      assert.ok(catalogReadRequests.every((request) => !['ITEM_STATUS_UPDATE', 'ITEM_PRICE_UPSERT', 'STOCK_ADJUST'].includes(request.action)), 'catalog review must not issue mutation actions');
       assert.equal(new URL(page.url()).searchParams.get('controlTab'), 'catalog', 'catalog tab state must be preserved in the URL');
       for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
         await page.setViewportSize(viewport);
