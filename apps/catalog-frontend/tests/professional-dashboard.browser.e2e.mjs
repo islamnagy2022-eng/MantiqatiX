@@ -363,9 +363,12 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
       try { body = request.postDataJSON() || {}; } catch { /* GET/no JSON body */ }
       if (body.action === 'CATALOG_READ') {
         catalogReadRequests.push({ businessId: body.businessId, branchId: body.branchId });
+        const requestedPlatformBusiness = Array.isArray(options.platformBusinesses)
+          ? options.platformBusinesses.find((business) => String(business.id) === String(body.businessId))
+          : null;
         return json({
-          business: { ...fakeBusiness, profile: { ...catalogProfileState } },
-          provider: { name: fakeBusiness.name, kind: fakeBusiness.category, verified: false },
+          business: { ...(requestedPlatformBusiness || fakeBusiness), profile: { ...catalogProfileState } },
+          provider: { name: (requestedPlatformBusiness || fakeBusiness).name, kind: (requestedPlatformBusiness || fakeBusiness).category, verified: false },
           branches: fakeBusiness.branches,
           selectedBranchId: body.branchId || null,
           items: [],
