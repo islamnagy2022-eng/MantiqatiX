@@ -13,7 +13,13 @@ const employeeManager = read('../apps/catalog-frontend/src/components/merchant/B
 const merchantDashboard = read('../apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx');
 const permissionRepair = read('../supabase/migrations/20261028225000_rc457_business_employee_permission_ceiling.sql');
 const browserE2E = read('../apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs');
+const controlCenter = read('../apps/catalog-frontend/src/components/admin/SuperAdminControlCenter.tsx');
 
+assert.match(controlCenter, /finally\s*\{\s*setLoading\(false\);\s*\}/, 'control-center data refresh must always release its loading state');
+assert.match(controlCenter, /finally\s*\{\s*setAuditLoading\(false\);\s*\}/, 'audit search must always release its loading state');
+assert.equal((controlCenter.match(/finally\s*\{\s*setSaving\(false\);\s*\}/g) || []).length, 3, 'role save, assignment, and revocation must each release the saving state');
+assert.match(controlCenter, /useEffect\(\(\)=>\{if\(tab==='audit'\)void loadAudit\(\);\},\[tab\]\);/, 'audit data must load on tab entry, not on each search keystroke');
+assert.match(controlCenter, /disabled=\{auditLoading\}[^>]*>[\s\S]*?auditLoading\?'جار البحث…':'بحث'/, 'audit search must prevent duplicate in-flight requests');
 assert.match(dashboard, /export const ProfessionalDashboard/);
 assert.match(dashboard, /authLoading/);
 assert.match(dashboard, /authBootstrapError/);
