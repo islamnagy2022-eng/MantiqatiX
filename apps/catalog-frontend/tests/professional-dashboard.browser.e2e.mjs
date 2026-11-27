@@ -1305,6 +1305,7 @@ try {
         ...fakeBusiness,
         id: '40000000-0000-0000-0000-000000000105',
         name: 'نشاط بلا حالة تشغيل',
+        status: 'REVIEW_PENDING',
         isFrozen: false,
         operationalStatus: undefined,
         paymentStatus: 'free',

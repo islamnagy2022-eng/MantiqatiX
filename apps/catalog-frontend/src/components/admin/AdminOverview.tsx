@@ -101,12 +101,15 @@ export const AdminOverview: React.FC<Props> = ({ businesses, subscribers, subscr
     business.isFrozen === true ||
     business.operationalStatus === 'FROZEN' ||
     business.paymentStatus === 'frozen';
+  const isUnspecifiedBusiness = (business: Business) =>
+    business.operationalStatusUnspecified === true ||
+    !['ACTIVE', 'INACTIVE', 'FROZEN'].includes(String(business.operationalStatus || '').toUpperCase());
   const activeBusinesses = businesses.filter((business) =>
-    !isFrozenBusiness(business) && business.operationalStatus === 'ACTIVE'
+    !isFrozenBusiness(business) && !isUnspecifiedBusiness(business) && business.operationalStatus === 'ACTIVE'
   ).length;
   const frozenBusinesses = businesses.filter(isFrozenBusiness).length;
   const inactiveBusinesses = businesses.filter((business) =>
-    !isFrozenBusiness(business) && business.operationalStatus === 'INACTIVE'
+    !isFrozenBusiness(business) && !isUnspecifiedBusiness(business) && business.operationalStatus === 'INACTIVE'
   ).length;
   // Missing or unrecognized operational states must remain visible as unknown, not silently become inactive.
   const unspecifiedBusinesses = Math.max(

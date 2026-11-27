@@ -396,6 +396,11 @@ export function mapBusiness(raw: any, provider: any): Business {
     totalOrdersCount: Number(meta.totalOrdersCount || 0), paymentStatus: meta.paymentStatus || 'pending',
     overdueDaysCount: Number(meta.overdueDaysCount || 0), isFrozen: Boolean(meta.operationalStatus === 'FROZEN' || meta.isFrozen || String(meta.paymentStatus || '').toLowerCase() === 'frozen'),
     operationalStatus: (['ACTIVE', 'INACTIVE', 'FROZEN'].includes(String(meta.operationalStatus || raw.operationalStatus || '').toUpperCase()) ? String(meta.operationalStatus || raw.operationalStatus).toUpperCase() : (Boolean(meta.isFrozen) || String(meta.paymentStatus || '').toLowerCase() === 'frozen' || String(raw.status || '').toUpperCase() === 'SUSPENDED' ? 'FROZEN' : (String(raw.status || '').toUpperCase() === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE'))) as 'ACTIVE' | 'INACTIVE' | 'FROZEN',
+    operationalStatusUnspecified:
+      !['ACTIVE', 'INACTIVE', 'FROZEN'].includes(String(meta.operationalStatus || raw.operationalStatus || '').toUpperCase()) &&
+      !Boolean(meta.isFrozen) &&
+      String(meta.paymentStatus || '').toLowerCase() !== 'frozen' &&
+      !['ACTIVE', 'INACTIVE', 'SUSPENDED'].includes(String(raw.status || '').toUpperCase()),
     lastPaymentDate: meta.lastPaymentDate, paymentConfirmedByAdmin: Boolean(meta.paymentConfirmedByAdmin),
     paymobConfig: { ...DEFAULT_PAYMOB_CONFIG, enabled: false },
     tenantId: String(raw.tenantId || raw.tenant_id || ''),

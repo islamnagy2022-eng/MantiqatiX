@@ -1,3 +1,9 @@
+## 2026-11-27 — Preserve unspecified business-status provenance
+- The first exact-head dashboard browser run caught an important mapping detail: the shared business mapper keeps unknown operational states fail-closed as INACTIVE at runtime.
+- Added a separate `operationalStatusUnspecified` provenance flag for admin reporting, without weakening runtime access/order checks or changing the operational-state fallback.
+- Updated the overview classification and browser fixture to verify that an unknown legacy state remains visible as "unspecified" rather than counted as inactive.
+- Exact-head validation is being rerun on the amended PR #1177 head. No Production or financial writes.
+
 ## 2026-11-27 — Super Admin operational dashboard status breakdown
 - Added an operational-state breakdown to the existing platform-admin overview: active, frozen, inactive, and unspecified records are counted separately from the loaded business dataset.
 - Unknown or missing operational states remain explicitly unspecified; frozen records take precedence over active/inactive labels. The panel displays its loaded-record denominator and accessible progress indicators, and introduces no new backend query or permission.
