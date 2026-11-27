@@ -5512,10 +5512,13 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 
 ## RC930 — required coordinated-release migration (2026-11-27)
 
-- [x] RC930 source migration and PostgreSQL 17 active/inactive/missing/duplicate plus two-session concurrency tests exist; PR #1159 merged the source repair.
-- [ ] Add RC930 `20261127010000` to the canonical live migration release contract, source verifier, and 88-entry static migration-chain gate. Keep the earlier 87-version crosswalk immutable; record the update in a separate addendum.
-- [ ] Ensure edits to the release contract/verifier/gate trigger the dedicated RC919/RC930 PostgreSQL 17 workflow, so the row-lock concurrency regression reruns on the exact PR head.
-- [ ] Confirm production read-only evidence before any release: current production ledger is 310 rows through `20261110150618`; RC930 is not recorded and the live `submit_job_application_backend` definition has no `FOR SHARE` row lock.
+- [x] RC930 source migration and PostgreSQL 17 active/inactive/missing/duplicate plus two-session concurrency tests exist; source repair merged in PR #1159.
+- [x] Added RC930 `20261127010000` to the canonical live migration release contract, Production verifier, and 88-entry static migration-chain gate in PR #1190 (merge `db2fe846c5ebe49c30b575fe392c780054cfaed3`). The earlier 87-version crosswalk remains an unchanged historical snapshot; the 88-version update is documented separately.
+- [x] Updated the dedicated RC919/RC930 workflow path filters so edits to the release contract, verifier, static gate, backup validator, or reconciliation manifest rerun the PostgreSQL 17 behavior and concurrency tests.
+- [x] Exact-head CI for PR #1190: 28 successful checks, 2 expected deployment-only skips, 0 failures. RC930 active/inactive/missing/duplicate integration and two-session row-lock regression passed.
+- [x] Post-merge main forward replay run `46070889382` passed: isolated PostgreSQL 17 checkpoint restore and all later migrations applied in timestamp order; the strict 88-version gate and related source validators passed.
+- [x] Direct read-only Production comparison against all 88 canonical versions: 0 exact matches, 88 missing; live ledger remains 310 rows through `20261110150618`; RC930 is not recorded. The live `submit_job_application_backend` still lacks `FOR SHARE`.
 - Production status: **NOT APPLIED**. Do not apply RC930 alone; include it only in the reviewed coordinated chronological release after authorization, payment/Edge, backup/restore, and full release gates pass.
-- No Production migration, SQL write, permission, Auth/RLS, Edge, payment, wallet, settlement, or business/customer data mutation was made during this checkpoint.
+- No Production migration, SQL write, permission, Auth/RLS, Edge, Storage, payment, wallet, settlement, or business/customer-data mutation was made during this checkpoint.
+
 
