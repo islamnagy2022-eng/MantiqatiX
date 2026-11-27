@@ -2297,3 +2297,13 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Static contract ensures this view uses the current account's loaded \`live.memberships\` and \`live.activeMembershipId\`, does not query arbitrary memberships, and contains no writes.
 - [ ] Exact-head CI and browser/responsive/accessibility validation remain pending.
 - [ ] Global user/employee/role assignment remains blocked until a private-registry-backed server API, audit trail, and tenant/business/branch assignment contract are verified. Do not query private platform-admin registry from the browser.
+
+
+## 2026-11-27 — Finance journal action visibility aligned with backend authorization
+
+- [x] Matched front-end journal action visibility to RC450's exact server-side active-membership allowlist: OWNER, BUSINESS_OWNER, ADMIN, MANAGER, ACCOUNTANT, FINANCE and FINANCE_MANAGER.
+- [x] Removed the contradictory UI behavior that offered journal posting to SUPER_ADMIN even though the authoritative RPC denied that role.
+- [x] Preserved read-only finance indicators for Super Admin and added an explicit explanation where journal posting is not available in the current role context.
+- [x] Added a regression assertion comparing the frontend allowlist to the backend SQL role allowlist and requiring both the UI and handler to use the shared gate.
+- [x] Updated app asset and PWA cache key to \`super-admin-finance-role-gate-20261127\` / \`mnty-web-v157\`.
+- [ ] Exact-head JS syntax, service-role contract, and full PR CI are pending. No journal was posted; no database or production state was changed.

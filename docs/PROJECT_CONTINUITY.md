@@ -1077,3 +1077,11 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 - Labels PLATFORM / FULL CONTROL only when the existing membership contains exact scope/full_control values. No arbitrary user or cross-tenant membership query and no role/permission write was added.
 - Added source-contract coverage for the account-only read boundary and no-write behavior; refreshed assets and PWA cache to \`mnty-web-v156\`.
 - This is not global user/employee administration. Continue only after a private-registry-backed server-side membership administration contract is verified.
+
+
+## 2026-11-27 — Finance journal action visibility aligned with backend authorization
+
+- RC450 source review showed the journal RPC accepts only ACTIVE OWNER / BUSINESS_OWNER / ADMIN / MANAGER / ACCOUNTANT / FINANCE / FINANCE_MANAGER memberships, not SUPER_ADMIN by default. The frontend had a broader finance-read visibility flag and incorrectly displayed the posting button to SUPER_ADMIN although the handler denied it.
+- Added one shared frontend role gate with exact allowlist parity to the backend; both Finance workspace button visibility and click handler use it. Super Admin retains the read-only finance view and sees a clear message in place of the unavailable posting action.
+- Extended the existing RC450 service-role validator with exact role-list parity assertions; rotated asset and PWA cache to \`mnty-web-v157\`.
+- Exact-head CI is pending. No financial movement or production mutation performed.

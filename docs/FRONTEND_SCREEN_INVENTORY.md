@@ -310,3 +310,13 @@ The exact code head `2b8d6e93bc757d1c8b2645845db23ebd338da19f` passed the public
 - [x] Super Admin context is labeled PLATFORM / FULL CONTROL only when the membership's existing \`scope=PLATFORM\` and \`full_control=true\` claims are both present.
 - [x] No cross-user membership query, role assignment, permission grant, status change, or membership mutation was added.
 - **Status:** SOURCE UPDATED; exact-head CI and browser verification pending. This is an audit of the current account's membership contexts, not a global employee/user administration screen.
+
+
+## 2026-11-27 — Finance journal action visibility aligned with backend authorization
+
+- [x] Reviewed RC450 \`post_financial_journal_backend\`: its service-role-only RPC requires an ACTIVE membership whose role is one of OWNER, BUSINESS_OWNER, ADMIN, MANAGER, ACCOUNTANT, FINANCE or FINANCE_MANAGER, and also binds tenant/business/branch/organization context.
+- [x] Found the Finance workspace showed the journal-post action for SUPER_ADMIN because it used the wider read-only \`live.finance\` visibility gate, while the handler/backend correctly denied SUPER_ADMIN absent one of the explicit financial roles.
+- [x] Extracted a single frontend \`canPostFinancialJournal()\` allowlist and reused it in both the handler and Finance workspace.
+- [x] The Finance workspace now retains read-only financial indicators for SUPER_ADMIN but shows an explicit explanation instead of a nonfunctional posting button.
+- [x] Extended the RC450 service-role contract validator to compare the frontend role allowlist exactly with the backend SQL allowlist.
+- **Status:** SOURCE UPDATED; exact-head CI pending. No financial transaction was created or posted.

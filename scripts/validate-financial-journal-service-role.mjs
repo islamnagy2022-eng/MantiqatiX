@@ -53,3 +53,22 @@ assert.match(integration, /organization mismatch unexpectedly succeeded/);
 assert.match(integration, /running balances are not cumulative/);
 
 console.log("RC450 financial journal service-role boundary PASS");
+
+const appSource = fs.readFileSync("web/app.js", "utf8");
+const frontendRoleGate = appSource.match(/function canPostFinancialJournal\(\)\{[\s\S]*?return \[([^\]]+)\]\.includes\(String\(live\.role\|\|'CUSTOMER'\)\.toUpperCase\(\)\);[\s\S]*?\}/)?.[1]
+  || appSource.match(/function canPostFinancialJournal\(\)\{[\s\S]*?return \[([^\]]+)\]\.includes\(String\(live\.role\|\|''\)\.toUpperCase\(\)\);[\s\S]*?\}/)?.[1];
+assert.ok(frontendRoleGate, "frontend journal posting role gate must exist");
+const backendRoleGate = migration.match(/upper\(um\.role\)=any\(array\[([^\]]+)\]\)/)?.[1];
+assert.ok(backendRoleGate, "backend journal posting role gate must exist");
+assert.equal(frontendRoleGate.replace(/\s/g, ""), backendRoleGate.replace(/\s/g, ""), "frontend posting roles must exactly match the service-role-only backend membership allowlist");
+assert.match(appSource, /if\(!canPostFinancialJournal\(\)\)return showToast\('لا تملك صلاحية ترحيل قيد مالي\.'/,
+  "journal posting handler must reuse the canonical frontend role gate");
+const financeStart = appSource.indexOf("function financeWorkspace()");
+const financeEnd = appSource.indexOf("\nfunction crmWorkspace()", financeStart);
+assert.ok(financeStart >= 0 && financeEnd > financeStart, "finance workspace boundaries must exist");
+const financeUi = appSource.slice(financeStart, financeEnd);
+assert.match(financeUi, /const canPostJournal=canPostFinancialJournal\(\)/, "finance workspace must derive posting visibility from the same role gate");
+assert.match(financeUi, /canPostJournal\?'<button[\s\S]*?onclick="postFinancialJournal\(\)"/,
+  "finance workspace must render the posting button only when its role gate is true");
+assert.match(financeUi, /ترحيل القيود يتطلب عضوية مالية معتمدة/,
+  "read-only finance contexts must receive an explicit explanation instead of a disabled-looking action");
