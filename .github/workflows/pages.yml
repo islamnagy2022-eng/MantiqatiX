@@ -119,6 +119,8 @@ jobs:
         run: node scripts/validate-smart-geo-discovery.mjs
       - name: Validate Menoufia activity catalog scope and publication boundary
         run: node scripts/validate-menoufia-activity-catalog.mjs
+      - name: Validate Menoufia activity intake template and consent-safe defaults
+        run: node scripts/validate-menoufia-activity-intake-template.mjs
       - name: Validate Egypt boundary GeoJSON structural gate
         run: node scripts/validate-egypt-geo-boundaries.mjs --self-test
       - name: Validate Facebook page import ownership and token handling
