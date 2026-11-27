@@ -8514,5 +8514,21 @@
       },
       "interpretation": "These are read-only catalog preconditions only. They do not prove the full migration transactions will pass or authorize isolated application. Preserve RC464→RC471→RC484→RC485 inside the complete ordered release with all alias, physical-effect and backup/restore checks."
     }
+  },
+  "main_pages_deployment_after_admin_overview": {
+    "checked_at": "2026-11-27T02:52:18Z",
+    "main_sha": "7cb8e96ae1bf6a739039c0ec0e8673d0025ef4cb",
+    "workflow_run_id": 45930249106,
+    "deployment": "SUCCESS",
+    "deployed_origin_routes": "SUCCESS",
+    "primary_catalog_validation_run_id": 45930249165,
+    "primary_catalog_validation": "SUCCESS",
+    "passed_jobs": [
+      "build",
+      "professional_dashboard_browser_e2e",
+      "professional_dashboard_employee_rbac_postgres"
+    ],
+    "scope": "GitHub Pages website deployment only; does not certify Supabase production migrations, Edge parity, database authorization, payments, finance, backup/restore or rollback.",
+    "full_platform_gate": "BLOCKED / NOT CERTIFIED"
   }
 }
