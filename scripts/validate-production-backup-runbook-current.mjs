@@ -150,7 +150,7 @@ console.log("CURRENT_RELEASE_MIGRATION_COUNT=88");
 const missingObjectRows = requiredObjectAudit.match(/^\| `public\.[^`]+` \|/gm) ?? [];
 const missingObjectNames = missingObjectRows.map((line) => line.split("|")[1].trim().slice(1, -1));
 assert.equal(missingObjectRows.length, 42, "79-object read-back must itemize all 42 not-found exact contracts.");
-assert.equal(new Set(missingObjectNames).size, 42, "Missing-object inventory must not duplicate object names.");
+assert.equal(new Set(missingObjectNames).size, 36, "42 grouped entries must represent 36 unique object/signature names with six documented Core/Payment overlaps.");
 for (const required of [
   "RC425_atomic_mantigo_paymob_payment.sql",
   "RC426_digital_page_provider_order_binding.sql",
