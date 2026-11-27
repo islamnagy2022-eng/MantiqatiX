@@ -5,18 +5,19 @@
 **Status:** **BLOCKED — organization plan is Free; no automatic daily database backup is included, and no retrievable owner-created export or restore drill has been demonstrated.**  
 **Rule:** This runbook prepares a safe owner-controlled drill. It does not authorize a Production write, create a paid Supabase branch, or ask anyone to paste credentials into GitHub/ChatGPT.
 
-## Current migration reconciliation (2026-11-25)
+## Current migration reconciliation (refreshed 2026-11-28)
 
-- The current release contract tracks **88 exact migration versions**, defined in `scripts/production/live-reconciliation-contract.mjs` and checked by `scripts/validate-production-migration-chain-gate.mjs`.
-- A fresh read-only Supabase ledger read-back reports **310 rows**, latest version `20261110150618`, and **0/88 exact required version identifiers** present.
-- Do not interpret zero exact identifier matches as proof that every SQL effect is absent. The historical source-to-live crosswalk records partial baselines and separate confirmed source/ledger aliases. The three catalogued aliases are outside the current 88-version release list; their formal migration-history repairs remain pending. Never replay an alias, fabricate migration-ledger rows, or treat physical object presence alone as contract parity.
+- The current release contract tracks **90 exact migration versions**, defined in `scripts/production/live-reconciliation-contract.mjs` and checked by `scripts/validate-production-migration-chain-gate.mjs`.
+- A fresh read-only Supabase ledger read-back reports **310 rows**, latest version `20261110150618`, and **0/90 exact required version identifiers** present.
+- Do not interpret zero exact identifier matches as proof that every SQL effect is absent. The historical source-to-live crosswalk records partial baselines and separate confirmed source/ledger aliases. The three catalogued aliases are outside the current 90-version release list; their formal migration-history repairs remain pending. Never replay an alias, fabricate migration-ledger rows, or treat physical object presence alone as contract parity.
 - A successful chronological PostgreSQL 17 replay in disposable CI is not a Production migration, backup, restore, or rollback rehearsal.
 - Before approval, reconcile each required source effect against the live ledger and physical schema, including exact RPC signatures and bodies, function owners and `search_path`, effective ACL/RLS policies, constraints, and triggers.
 - RC927 (`20261125120000`) merged source-only in PR #1122 after 17/17 exact-head workflows passed, including the 85-version chronological PostgreSQL 17 replay and 123 forward migrations. It is not applied to Production.
-- RC928 (`20261126010000`) is a source-only candidate for atomic catalog-profile metadata and promotional-gallery persistence. It requires the existing owner-scoped profile RPC, same-transaction row locking, URL/authorization PostgreSQL tests and the full 88-version replay; it is not applied to Production.
-- RC117 image-provenance forward repair (`20261126020000`) is source-only and is the 86th required version. The focused PostgreSQL 17 test preserves non-empty custom URLs with NULL/blank provenance, retains `ai_generated` and existing `auto` provenance, generates a default only for blank URLs and verifies an idempotent re-run. It remains unapplied to Production.
-- RC929 (`20261126030000`) is the 87th source migration in the current set. It adds restrictive confirmed-Auth claim guards to `orders` and `order_status_history`; live read-back shows RLS + FORCE RLS enabled, anon SELECT false, authenticated SELECT true, and no strict guard yet. The migration remains unapplied to Production.
-- RC930 (`20261127010000`) is the 88th source migration. It serializes job-application submission against concurrent job deactivation with a `FOR SHARE` job-row lock. The live `submit_job_application_backend` RPC still lacks this lock and the RC930 ledger row is absent. Its PostgreSQL 17 behavior and concurrency tests must pass before any coordinated release; it remains unapplied.
+- RC928 (`20261126010000`) is a source-only candidate for atomic catalog-profile metadata and promotional-gallery persistence. It requires the existing owner-scoped profile RPC, same-transaction row locking, URL/authorization PostgreSQL tests and the full 90-version replay; it is not applied to Production.
+- RC115 CRM business-scope migration (`20261125130000`) is now explicitly included as the 84th required version; it replaces the old role-only marketing CRM read with exact tenant/business scoping and is not applied to Production. RC117 image-provenance forward repair (`20261126020000`) is now the 87th required version after RC115 is included. The focused PostgreSQL 17 test preserves non-empty custom URLs with NULL/blank provenance, retains `ai_generated` and existing `auto` provenance, generates a default only for blank URLs and verifies an idempotent re-run. It remains unapplied to Production.
+- RC929 (`20261126030000`) is the 88th required migration in the current set. It adds restrictive confirmed-Auth claim guards to `orders` and `order_status_history`; live read-back shows RLS + FORCE RLS enabled, anon SELECT false, authenticated SELECT true, and no strict guard yet. The migration remains unapplied to Production.
+- RC931 (`20261128010000`) is the 90th required migration in the refreshed 90-version contract. It removes only the globally permissive active-provider base-table SELECT policy after preflighting RC479 raw-anon denial, RC926's strict explicit-confirmed-identity guard, RC115 tenant/business-scoped CRM policy, and owner/service-role SELECT compatibility. Curated public catalog reads continue through the service-role Edge projection; owner and CRM access paths stay scoped. Its PostgreSQL 17 adversarial fixture and integration workflow are source-only; it is not applied to Production.
+- RC930 (`20261127010000`) is the 89th required migration. It serializes job-application submission against concurrent job deactivation with a `FOR SHARE` job-row lock. The live `submit_job_application_backend` RPC still lacks this lock and the RC930 ledger row is absent. Its PostgreSQL 17 behavior and concurrency tests must pass before any coordinated release; it remains unapplied.
 
 ## A. Evidence to collect before release
 
@@ -72,7 +73,7 @@
 5. Restore Storage bucket/policy metadata and upload the separately exported object bytes; verify checksums and representative private/public access behavior. The DB dump is not a Storage-file backup.
 6. Reconnect Auth/Edge/Vault settings only through controlled owner credentials in the isolated environment. Confirm that no real payment provider credential points at live-money flows.
 7. Run:
-   - exact 88-source migration identity/effect reconciliation;
+   - exact 90-source migration identity/effect reconciliation;
    - chronological forward replay and PostgreSQL 17 integration tests;
    - RLS/ACL/function-owner/search_path checks, including positive platform-admin and negative tenant-admin cases;
    - Paymob altered-merchant_order_id negative replay (standard, digital page and subscription), with equal-amount/currency orders A/B and zero writes to the wrong order;
