@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
+import vm from "node:vm";
 
 const app = fs.readFileSync("web/app.js", "utf8");
 const index = fs.readFileSync("web/index.html", "utf8");
@@ -107,5 +108,24 @@ assert.ok(adminCatalog.includes("catalogCurrentPrice(catalog,item.id,branchId)")
 assert.ok(!["sb.from(", ".rpc(", ".insert(", ".update(", ".upsert(", ".delete("].some(token => adminCatalog.includes(token)), "catalog inspector must not issue direct queries or mutate catalog records");
 assert.ok(adminCatalog.includes("الكتالوج للقراءة فقط"), "catalog inspector must explicitly disclose its read-only boundary");
 assert.ok(adminCatalog.includes("catalog.branches"), "catalog inspector must expose branch selection");
+
+
+const catalogPriceStart = app.indexOf("function catalogCurrentPrice(catalog,itemId,branchId=null)");
+const catalogPriceEnd = app.indexOf(String.fromCharCode(10)+"function closeMxModal()", catalogPriceStart);
+assert.ok(catalogPriceStart >= 0 && catalogPriceEnd > catalogPriceStart, "catalog price resolver boundaries must be present");
+const catalogPriceSource = app.slice(catalogPriceStart, catalogPriceEnd);
+const resolveCatalogPrice = vm.runInNewContext("(()=>{"+catalogPriceSource+";return catalogCurrentPrice;})()");
+const catalogPriceFixture = {prices:[
+ {catalog_item_id:"item-1",branch_id:null,unit_price:50,version:12},
+ {catalog_item_id:"item-1",branch_id:"branch-a",unit_price:35,version:1},
+ {catalog_item_id:"item-1",branch_id:"branch-a",unit_price:36,version:2},
+ {catalog_item_id:"item-1",branch_id:"branch-b",unit_price:42,version:3}
+]};
+assert.equal(resolveCatalogPrice(catalogPriceFixture,"item-1","branch-a").unit_price,36, "selected branch price must override a higher-version global price");
+assert.equal(resolveCatalogPrice(catalogPriceFixture,"item-1","branch-b").unit_price,42, "another selected branch must use its own price");
+assert.equal(resolveCatalogPrice(catalogPriceFixture,"item-1","branch-c").unit_price,50, "missing branch price must fall back to global price");
+assert.equal(resolveCatalogPrice(catalogPriceFixture,"item-1",null).unit_price,50, "no selected branch must use only the global price");
+assert.equal(resolveCatalogPrice({prices:[{catalog_item_id:"item-1",branch_id:"branch-a",unit_price:35,version:1}]},"item-1",null),null, "branch-only prices must not leak into an unselected branch view");
+assert.ok(app.includes("catalogCurrentPrice(catalog,item.id,defaultBranch.id)"), "storefront default branch display must use that branch's price");
 
 console.log("Enterprise dashboard interaction source contract: PASS");
