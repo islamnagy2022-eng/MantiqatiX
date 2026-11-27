@@ -162,8 +162,8 @@ assert.doesNotMatch(directoryUpsert, /governorate: clean\(body\.governorate \|\|
 assert.doesNotMatch(directoryUpsert, /district: clean\(body\.district \|\| "بركة السبع"/, "Directory API must not silently assign Berket El-Sabaa");
 assert.match(directoryAdmin, /governorate: "", district: ""/, "New directory entries must start without an invented location");
 assert.match(directoryAdmin, /governorate: listing\.governorate \|\| "", district: listing\.district \|\| ""/, "Editing a record with missing location must not invent one");
-assert.match(directoryAdmin, /المحافظة \*<input required value=\{form\.governorate\}/, "Admin form must require the actual governorate");
-assert.match(directoryAdmin, /المركز \/ المدينة \*<input required value=\{form\.district\}/, "Admin form must require the actual district");
+assert.match(directoryAdmin, /المحافظة \*<select required value=\{form\.governorate\}/, "Admin form must require the actual governorate from the canonical list");
+assert.match(directoryAdmin, /المركز \/ المدينة \*<select required value=\{form\.district\}/, "Admin form must require the actual district from the canonical list");
 
 const directoryOwnerView = readFileSync("apps/catalog-frontend/src/components/DirectoryListingsView.tsx", "utf8");
 const ownerUpdateLocationGuard = edge.slice(edge.indexOf('if (action === "UPDATE_OWNED_LISTING")'), edge.indexOf('if (action === "ADMIN_LIST_SOURCE_PERMISSION_EVIDENCE")'));

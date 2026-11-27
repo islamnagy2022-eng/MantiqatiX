@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, ClipboardList, Edit, ExternalLink, Plus, RefreshCw, Save, Search, UserRoundCheck } from "lucide-react";
 import type { ActivityCategory, Business, FunctionalGroup } from "../../types";
 import { resolveCanonicalSpecialty } from "../../data/productionDefaults";
+import { EGYPT_GEO_DISTRICTS, EGYPT_GEO_GOVERNORATES } from "../../data/egyptGeoDiscovery";
+
+const MENOUFIA_GOVERNORATE_NAME = EGYPT_GEO_GOVERNORATES.find((governorate) => governorate.id === "EG17")?.name || "المنوفية";
 import {
   fetchDirectoryAdminBundle,
   fetchDirectorySourcePermissionEvidence,
@@ -99,6 +102,9 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
     [x.display_name, x.specialty, x.phone, x.address, x.district].some((v) => String(v || "").toLocaleLowerCase().includes(search.toLocaleLowerCase()))
   ), [bundle.listings, search]);
   const openRequests = bundle.claims.filter((x) => ["PENDING", "REVIEWING"].includes(x.status));
+  const formDistrictOptions = EGYPT_GEO_DISTRICTS.filter((district) => district.governorateName === form.governorate);
+  const knownFormGovernorate = EGYPT_GEO_GOVERNORATES.some((governorate) => governorate.name === form.governorate);
+  const knownFormDistrict = formDistrictOptions.some((district) => district.name === form.district);
   const listingTypeOptions = form.functionalGroupId === "medical_health"
     ? [
         { value: "doctor", label: "ممارس طبي" },
@@ -256,7 +262,10 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
           <h2 className="flex items-center gap-2 text-xl font-black text-slate-900"><ClipboardList className="h-6 w-6 text-emerald-700" /> دليل الأنشطة والمهن العامة</h2>
           <p className="mt-1 text-xs leading-6 text-slate-500">إضافة الصفحات الأولية واستكمال بياناتها ومراجعة طلبات استلام الملكية. لا يتم تفعيل مالك جديد إلا بعد إثبات الملكية والاشتراك المدفوع.</p>
         </div>
-        <button type="button" onClick={() => void load()} disabled={loading || busy} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> تحديث البيانات</button>
+        <div className="flex flex-wrap items-center gap-2">
+          <a href={`${import.meta.env.BASE_URL}templates/menoufia-activity-intake-template.csv`} download className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-900 hover:bg-emerald-100">تنزيل قالب المنوفية (600 صف فارغ)</a>
+          <button type="button" onClick={() => void load()} disabled={loading || busy} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> تحديث البيانات</button>
+        </div>
       </div>
       {message && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-bold text-emerald-900">{message}</div>}
       {error && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-bold text-rose-900">{error}</div>}
@@ -326,6 +335,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
           </div>
           <form onSubmit={handleSave} className="h-fit space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between gap-2"><h3 className="font-black text-slate-900">{form.id ? "استكمال بيانات الصفحة" : "إضافة صفحة جديدة"}</h3>{form.id && <button type="button" onClick={() => setForm(emptyForm)} className="text-xs font-bold text-slate-600 underline">جديد</button>}</div>
+            <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-[11px] leading-5 text-amber-950">موقع السجل لا يُفترض تلقائيًا؛ اختر محافظة المنوفية فقط إذا كان النشاط تابعًا لها. كل سجل جديد يبدأ كمسودة غير موثقة ولا يظهر للزوار تلقائيًا. لا تنقل أسماء أو أرقام أو صورًا من دليل خارجي إلا بإذن صريح يسمح بإعادة الاستخدام التجاري، ولا تُظهر بيانات التواصل دون موافقة صاحبها.</p>
             <label className="block text-xs font-bold text-slate-700">اسم النشاط أو الجهة *<input required minLength={2} value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>
             <label className="block text-xs font-bold text-slate-700">الرابط المختصر (اختياري)<input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder="يُنشأ تلقائيًا عند تركه فارغًا" dir="ltr" className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-left" /></label>
             <div className="grid grid-cols-2 gap-3">
@@ -333,6 +343,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
               <label className="block text-xs font-bold text-slate-700">حالة الظهور<select value={form.listingStatus} onChange={(e) => setForm({ ...form, listingStatus: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-2 py-2.5 text-xs"><option value="DRAFT">مسودة مخفية</option><option value="PUBLISHED">منشورة للزوار</option><option value="HIDDEN">إخفاء الصفحة</option></select></label>
             </div>
             {form.listingType === "doctor" && form.listingStatus === "PUBLISHED" && <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">نشر ملف الطبيب يتطلب مصدرًا واضحًا وإذنًا معتمدًا وساريًا لإعادة نشر ملفات الأطباء والاستخدام التجاري. سجلات الاستيراد الجديدة تظل مسودات حتى استيفاء مراجعة النشر.</p>}
+            <button type="button" onClick={() => setForm({ ...form, governorate: MENOUFIA_GOVERNORATE_NAME, district: "" })} className="min-h-9 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-black text-emerald-900">تحديد محافظة المنوفية</button>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="block text-xs font-bold text-slate-700">المجموعة الوظيفية *<select required value={form.functionalGroupId} onChange={(e) => { const groupId = e.target.value; const firstCategory = categories.find((item) => item.functionalGroupId === groupId); setForm({ ...form, functionalGroupId: groupId, listingType: groupId === "medical_health" ? "doctor" : "business", taxonomyCategoryId: firstCategory?.id || "", taxonomySpecialty: "", specialty: "" }); }} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs">{functionalGroups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}</select></label>
               <label className="block text-xs font-bold text-slate-700">النشاط الرئيسي داخل المجموعة *<select required value={form.taxonomyCategoryId} onChange={(e) => setForm({ ...form, taxonomyCategoryId: e.target.value, taxonomySpecialty: "", specialty: "" })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs">{categories.filter((item) => item.functionalGroupId === form.functionalGroupId).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
@@ -342,7 +353,17 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
             <label className="block text-xs font-bold text-slate-700">التخصص<input value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>
             <div className="grid grid-cols-2 gap-3"><label className="block text-xs font-bold text-slate-700">رقم الهاتف<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} dir="ltr" className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-left" /></label><label className="block text-xs font-bold text-slate-700">رقم إضافي<input value={form.secondaryPhone} onChange={(e) => setForm({ ...form, secondaryPhone: e.target.value })} dir="ltr" className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-left" /></label></div>
             <label className="block text-xs font-bold text-slate-700">العنوان<textarea value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} rows={2} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>
-            <div className="grid grid-cols-2 gap-3"><label className="block text-xs font-bold text-slate-700">المحافظة *<input required value={form.governorate} onChange={(e) => setForm({ ...form, governorate: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label><label className="block text-xs font-bold text-slate-700">المركز / المدينة *<input required value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label></div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className="block text-xs font-bold text-slate-700">المحافظة *<select required value={form.governorate} onChange={(e) => setForm({ ...form, governorate: e.target.value, district: "" })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm">
+                {!knownFormGovernorate && form.governorate && <option value={form.governorate}>{form.governorate} (قيمة محفوظة)</option>}
+                {EGYPT_GEO_GOVERNORATES.map((governorate) => <option key={governorate.id} value={governorate.name}>{governorate.name}</option>)}
+              </select></label>
+              <label className="block text-xs font-bold text-slate-700">المركز / المدينة *<select required value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm">
+                <option value="">اختر المركز أو المدينة</option>
+                {!knownFormDistrict && form.district && <option value={form.district}>{form.district} (قيمة محفوظة)</option>}
+                {formDistrictOptions.map((district) => <option key={district.id} value={district.name}>{district.name}</option>)}
+              </select></label>
+            </div>
             <label className="block text-xs font-bold text-slate-700">القرية / الحي<input value={form.village} onChange={(e) => setForm({ ...form, village: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>
             <label className="block text-xs font-bold text-slate-700">اسم مصدر البيانات<input value={form.sourceName} onChange={(e) => setForm({ ...form, sourceName: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>
             <label className="block text-xs font-bold text-slate-700">رابط المصدر<input type="url" value={form.sourceUrl} onChange={(e) => setForm({ ...form, sourceUrl: e.target.value })} dir="ltr" className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-left" /></label>

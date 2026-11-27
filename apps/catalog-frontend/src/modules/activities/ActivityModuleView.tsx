@@ -6,6 +6,7 @@ import { useApp } from '../../context/AppContext';
 import { resolveActivityModuleConfig } from './activityModuleRegistry';
 import { resolveCanonicalSpecialty } from '../../data/productionDefaults';
 import { isMantiqatiXBrandName, resolveDefaultImage } from '../../utils/defaultImages';
+import { EGYPT_GEO_GOVERNORATES } from '../../data/egyptGeoDiscovery';
 
 type Section = 'overview' | 'specialties' | 'marketing' | 'operations';
 interface Props {
@@ -42,7 +43,10 @@ const Metric: React.FC<{ label: string; value: number; color: string }> = ({ lab
 
 export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, unconfirmedCount, onBack, businesses, listings, onOpenListing, onOpenBusiness, onDirectoryListingFiltersChange, onLoadMoreListings, hasMoreListings, loadingMoreListings, listingsLoading, onLoadMoreBusinesses, hasMoreBusinesses, loadingMoreBusinesses, businessesLoadError, parentGroupName }) => {
   const [activeSection, setActiveSection] = useState<Section>('specialties');
-  const specialtyFromUrl = new URLSearchParams(window.location.search).get('specialty');
+  const routeParams = new URLSearchParams(window.location.search);
+  const specialtyFromUrl = routeParams.get('specialty');
+  const requestedGovernorate = routeParams.get('governorate') || '';
+  const activityGovernorate = EGYPT_GEO_GOVERNORATES.find((governorate) => governorate.name === requestedGovernorate)?.name || '';
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(specialtyFromUrl);
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleActivityCount, setVisibleActivityCount] = useState(20);
@@ -144,8 +148,12 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
       <header className="rounded-3xl bg-gradient-to-l from-slate-950 via-emerald-950 to-slate-900 p-5 text-white shadow-lg sm:p-8">
         <button type="button" onClick={onBack} className="mb-5 inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-bold hover:bg-white/15"><ArrowRight className="h-4 w-4" /> {parentGroupName ? 'العودة إلى ' + parentGroupName : 'العودة إلى الأنشطة'}</button>
         <p className="text-xs font-bold text-emerald-300">MantiqatiX / وحدة النشاط</p>
-        <h1 className="mt-2 text-2xl font-black sm:text-4xl">{category.name}</h1>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <h1 className="text-2xl font-black sm:text-4xl">{category.name}</h1>
+          {activityGovernorate && <span data-testid="activity-geographic-scope" className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-black text-emerald-100">دليل محافظة {activityGovernorate}</span>}
+        </div>
         <p className="mt-2 max-w-3xl text-sm leading-7 text-white/75">{category.description || `الوحدة المستقلة لنشاط ${category.name} وتخصصاته والجهات العاملة فيه.`}</p>
+        {activityGovernorate && <p className="mt-2 text-xs leading-6 text-white/65">هذا كتالوج تصنيفي لنطاق المحافظة؛ لا يعني وجود منشآت مسجلة في كل تخصص. لا تُعرض أي جهة إلا بعد إدخال بياناتها من مصدر يجيز استخدامها أو من صاحب النشاط.</p>}
         <div className="mt-5 flex flex-wrap gap-2 text-xs font-bold">
           <span className="rounded-full bg-white/10 px-3 py-2">التخصصات: {specialties.length.toLocaleString('ar-EG')}</span>
           <span className="rounded-full bg-emerald-400/15 px-3 py-2 text-emerald-100">موثق (محمّل): {confirmedCount.toLocaleString('ar-EG')}</span>
@@ -235,7 +243,10 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
             </button>)}
             {listingsLoading && <p role="status" className="col-span-full rounded-xl bg-slate-50 p-4 text-center text-xs font-bold text-slate-600">جارٍ تحميل نتائج الدليل لهذا النشاط…</p>}
             {!listingsLoading && verifiedBusinesses.length + unverifiedBusinesses.length + visibleListings.length === 0 &&
-              <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">{selectedSpecialty ? 'لا توجد نتائج مطابقة داخل هذا التخصص والنطاق الجغرافي المحدد.' : 'لا توجد نتائج مطابقة داخل هذا النشاط والنطاق الجغرافي المحدد.'}</p>}
+              <div data-testid="activity-empty-directory-state" className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+                <p className="text-sm font-black text-slate-800">{selectedSpecialty ? `لا توجد جهات منشورة أو سجلات غير موثقة متاحة في تخصص ${selectedSpecialty} حتى الآن.` : `لا توجد جهات منشورة أو سجلات غير موثقة متاحة لنشاط ${category.name} حتى الآن.`}</p>
+                <p className="mx-auto mt-2 max-w-2xl text-xs leading-6 text-slate-600">{activityGovernorate ? `التصنيف والتخصصات متاحان ضمن دليل محافظة ${activityGovernorate}، لكن لا نعرض أسماء منشآت أو أرقام تواصل منقولة دون حق استخدام وموافقة مناسبة.` : 'التصنيفات والتخصصات جاهزة؛ ستظهر الجهات بعد إدخال بياناتها ومراجعة مصدرها وموافقات النشر اللازمة.'}</p>
+              </div>}
           </div>
           {businessesLoadError && <p role="status" className="text-center text-xs font-bold text-amber-800">{businessesLoadError}</p>}
           {hasMoreActivityResults && (

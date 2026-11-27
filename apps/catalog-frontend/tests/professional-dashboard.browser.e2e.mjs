@@ -1219,8 +1219,8 @@ try {
       await page.getByLabel('نوع الجهة').selectOption('clinic');
       await page.getByLabel('التخصص', { exact: true }).fill('أطفال');
       await specialtySelect.selectOption('أطفال');
-      await page.getByLabel('المحافظة *').fill('القاهرة');
-      await page.getByLabel('المركز / المدينة *').fill('مدينة نصر');
+      await page.getByLabel('المحافظة *').selectOption({ label: 'القاهرة' });
+      await page.getByLabel('المركز / المدينة *').selectOption({ label: 'قسم أول مدينة نصر' });
       await page.getByRole('button', { name: 'حفظ البيانات' }).click();
       await page.getByText('تم إنشاء الصفحة.', { exact: true }).waitFor({ state: 'visible' });
       await page.getByText('مركز اختبار جديد', { exact: true }).waitFor({ state: 'visible' });
@@ -1232,7 +1232,7 @@ try {
       assert.equal(createRequest.payload.taxonomyCategoryId, 'cat_medical_health_medical_practices');
       assert.equal(createRequest.payload.taxonomySpecialty, 'أطفال');
       assert.equal(createRequest.payload.governorate, 'القاهرة', 'new listing must submit the explicitly selected governorate');
-      assert.equal(createRequest.payload.district, 'مدينة نصر', 'new listing must submit the explicitly selected district');
+      assert.equal(createRequest.payload.district, 'قسم أول مدينة نصر', 'new listing must submit the canonical district selected from the official geography list');
       await groupSelect.selectOption('food_grocery');
       assert.equal(await page.getByLabel('نوع الجهة').inputValue(), 'business', 'non-medical groups must default to a general business record type');
       assert.equal(await page.getByLabel('نوع الجهة').locator('option').count(), 1, 'non-medical groups must not expose medical-only record types');
