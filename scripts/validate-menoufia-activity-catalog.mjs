@@ -22,12 +22,12 @@ assert.ok(app.includes("import { EGYPT_GEO_GOVERNORATES } from './data/egyptGeoD
 assert.ok(app.includes('governorate.name === requestedGovernorate'), 'SEO must reject arbitrary or unrecognized governorate query values.');
 assert.ok(app.includes('governorateName,'), 'Validated governorate scope must be passed to route SEO.');
 assert.ok(seo.includes('governorateName?: string'), 'Route SEO must accept a geographic scope.');
-assert.ok(seo.includes('searchParams.set(\'governorate\', input.governorateName.trim())'), 'Activity canonical URLs must preserve the validated governorate.');
+assert.ok(seo.includes("searchParams.set('governorate', input.governorateName.trim())"), 'Activity canonical URLs must preserve the validated governorate.');
 assert.ok(seo.includes('دليل الأنشطة والخدمات في محافظة ${governorate}'), 'Governorate landing pages must have dedicated metadata.');
 assert.ok(geo.includes('"id":"EG17","name":"المنوفية"'), 'The canonical geographic dataset must include Menoufia (EG17).');
 
 const categories = Array.from(
-  taxonomy.matchAll(/^\\s*s\\('([^']+)','([^']+)','activity','([^']+)'/gm),
+  taxonomy.matchAll(/^\s*s\('([^']+)','([^']+)','activity','([^']+)'/gm),
   (match) => ({ group: match[1], code: match[2], name: match[3] }),
 );
 assert.equal(categories.length, 50, 'Menoufia catalog must reuse the existing 50 canonical activity categories.');
