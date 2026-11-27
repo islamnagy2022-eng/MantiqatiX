@@ -328,3 +328,11 @@ The exact code head `2b8d6e93bc757d1c8b2645845db23ebd338da19f` passed the public
 - Displays count-only evidence from the active membership tenant for journals, commissions, payment intents, reconciliations, settlements and wallets.
 - Missing scope or failed source reads are shown as unavailable, not as zero. No monetary values, subscription entitlements or mutation controls are exposed.
 - Status: SOURCE UPDATED / NOT VERIFIED. Exact-head CI and browser/responsive/accessibility checks remain pending.
+
+
+## 2026-11-27 — Super Admin active catalog inspector
+
+- Added a read-only inspector for active published catalog items and effective prices from the existing authenticated catalog route, scoped to the selected activity tenant and business.
+- Provides active branch selection and shows only name, type, description, current price and option count; no item metadata or write actions.
+- This is not full catalog administration: inactive/draft entries, catalog settings and edit operations require a dedicated audited backend contract.
+- Status: SOURCE UPDATED / NOT VERIFIED until exact-head CI and browser/accessibility checks complete.
