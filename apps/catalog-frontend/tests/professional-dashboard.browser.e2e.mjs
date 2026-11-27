@@ -324,6 +324,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
         : publicDirectoryBusinesses;
       const businesses = filteredBusinesses.slice(offset, offset + requestedLimit);
       const hasMore = offset + businesses.length < filteredBusinesses.length;
+      const nextCursor = hasMore ? 'e2e-directory-cursor:' + String(offset + businesses.length) : null;
       return json({
         accessMode: 'PUBLIC_DIRECTORY_READ_ONLY',
         businesses,
