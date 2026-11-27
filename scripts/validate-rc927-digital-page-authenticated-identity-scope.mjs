@@ -113,7 +113,7 @@ assert.ok(manifest.required_release_migration_ledger_check.missing_versions.incl
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261126010000"), "manifest must require RC928");
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261126010000"), "manifest must keep RC928 unapplied until coordinated release");
 assert.ok(backupValidator.includes("CURRENT_RELEASE_MIGRATION_COUNT=88"),
-  "backup validator must use the 87-source contract");
+  "backup validator must use the 88-source contract");
 assert.ok(crosswalk.includes("20261125120000") && crosswalk.includes("RC927"),
   "the 87-source source-to-live crosswalk must include RC927");
 
