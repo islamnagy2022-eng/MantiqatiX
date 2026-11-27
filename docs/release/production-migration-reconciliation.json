@@ -26,8 +26,8 @@
   "payment_finance_e2e": "NOT VERIFIED — current read-only aggregate counts were zero for orders, payment_intents, payment_provider_events, subscription_payment_intents, digital_page_orders, digital_page_payment_events and mantigo_financial_ledger. No Paymob sandbox request, callback replay, refund, settlement or journal posting was initiated. Physical DB contracts remain incomplete: RC427 active-order unique index absent; subscription RC435 claim and RC439 encrypted-checkout columns absent; new atomic standard/subscription/MantiGO failure/success processors absent; provider-order binding and RC450 journal ACL not fully live. Empty tables do not establish safe payment readiness.",
   "backup_restore_rehearsal": "NOT VERIFIED — no actual Production database/Storage export, off-site upload/retrieval, Vault recovery, separate-project PostgreSQL 17 restore, measured RPO/RTO or rollback rehearsal occurred. PR #875 merged a read-only encrypted backup manifest/evidence validator; exact-head CI passed 12/12 disposable tests (run 44640871190). The tool validates operator-created artifacts/evidence only and does not create backups or perform restores.",
   "evidence_ref": "docs/audits/PRODUCTION_RECONCILIATION_20261114.md",
-  "checked_at": "2026-11-24",
-  "reason": "BLOCKED / NOT CERTIFIED: fresh read-only Production checks on 2026-11-24 confirm 310 migration rows through 20261110150618 and 0/82 exact required release identifiers. RC472/RC473 are not applied and public.directory_listing_contact_consents is absent. The deployed directory-listings Edge Function is now ACTIVE v18 with a one-file, fail-closed temporary disable: GET returns HTTP 200 with an empty listings array and directoryDisabled=true; POST returns HTTP 503 DIRECTORY_LISTINGS_DISABLED_FOR_V1. This currently suppresses contact disclosure through that endpoint but does not implement consent or restore directory functionality. Aggregate-only inspection found 869 published rows, all 869 with primary phone and address, and 178 with secondary phone; no contact values were retrieved. The remaining coordinated release blockers include registry-backed global-admin and catalog RPC hardening (RC484/RC485), six other critical payment/order/subscription/finance Edge mismatches identified in the prior 2026-11-20 parity inspection, missing payment/finance physical contracts, and the absence of an actual encrypted off-site database/Storage backup, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO. RC488–RC496, RC921, RC922, RC923, RC924 and RC925 remain unapplied to Production. The prior 80-version chronological replay that included RC923 passed in CI. RC924's ordered isolated tests and 117-migration replay passed under PR #1064, RC925 is merged source-only in PR #1069 and its missing-claim static validator, adversarial PostgreSQL 17 integration and full 82-version chronological replay passed in run 45477345349. PR #1071 subsequently added the positive confirmed-user compatibility case across all seven catalog RPCs; exact-head full replay and related module, backend, MantiGO, Paymob and website validation workflows passed (runs 45480436807, 45480436782, 45480436843, 45480436853, 45480436991 and 45480437044). RC925 remains unapplied to Production. No Production migrations were applied. No Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement or customer-data mutation occurred during this audit. RC922 was added only to source and the required release ledger; it has not been applied to Production. GitHub Pages deployment is verified separately from Supabase production certification. RC923 passed isolated PostgreSQL 17 tests and the prior 80-version full replay. RC924 was merged under PR #1064 and passed its dedicated PostgreSQL 17 suite plus the 117-migration forward replay; the exact 81-version strict gate and full 117-migration chronological replay passed in isolated PostgreSQL 17 run 45465702093, including RC924. This remains disposable CI evidence and does not mean Production was migrated. The current canonical source contract is now 86 exact versions after adding the RC117 image-provenance forward repair 20261126020000. This change is source-only and is not applied to Production.",
+  "checked_at": "2026-11-27",
+  "reason": "BLOCKED / NOT CERTIFIED: fresh read-only Production checks on 2026-11-24 confirm 310 migration rows through 20261110150618 and 0/82 exact required release identifiers. RC472/RC473 are not applied and public.directory_listing_contact_consents is absent. The deployed directory-listings Edge Function is now ACTIVE v18 with a one-file, fail-closed temporary disable: GET returns HTTP 200 with an empty listings array and directoryDisabled=true; POST returns HTTP 503 DIRECTORY_LISTINGS_DISABLED_FOR_V1. This currently suppresses contact disclosure through that endpoint but does not implement consent or restore directory functionality. Aggregate-only inspection found 869 published rows, all 869 with primary phone and address, and 178 with secondary phone; no contact values were retrieved. The remaining coordinated release blockers include registry-backed global-admin and catalog RPC hardening (RC484/RC485), six other critical payment/order/subscription/finance Edge mismatches identified in the prior 2026-11-20 parity inspection, missing payment/finance physical contracts, and the absence of an actual encrypted off-site database/Storage backup, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO. RC488–RC496, RC921, RC922, RC923, RC924 and RC925 remain unapplied to Production. The prior 80-version chronological replay that included RC923 passed in CI. RC924's ordered isolated tests and 117-migration replay passed under PR #1064, RC925 is merged source-only in PR #1069 and its missing-claim static validator, adversarial PostgreSQL 17 integration and full 82-version chronological replay passed in run 45477345349. PR #1071 subsequently added the positive confirmed-user compatibility case across all seven catalog RPCs; exact-head full replay and related module, backend, MantiGO, Paymob and website validation workflows passed (runs 45480436807, 45480436782, 45480436843, 45480436853, 45480436991 and 45480437044). RC925 remains unapplied to Production. No Production migrations were applied. No Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement or customer-data mutation occurred during this audit. RC922 was added only to source and the required release ledger; it has not been applied to Production. GitHub Pages deployment is verified separately from Supabase production certification. RC923 passed isolated PostgreSQL 17 tests and the prior 80-version full replay. RC924 was merged under PR #1064 and passed its dedicated PostgreSQL 17 suite plus the 117-migration forward replay; the exact 81-version strict gate and full 117-migration chronological replay passed in isolated PostgreSQL 17 run 45465702093, including RC924. This remains disposable CI evidence and does not mean Production was migrated. The current canonical source contract is now 86 exact versions after adding the RC117 image-provenance forward repair 20261126020000. This change is source-only and is not applied to Production. Fresh 2026-11-27 audit is appended under read_only_recheck_2026_11_27_current_main. Current main required migration contract contains 87 exact versions; read-only comparison against 310 live ledger rows found 0 exact IDs, with aliases and physical effects requiring separate reconciliation. Current main health monitor run 45931207565 explicitly reports protected Edge /health NOT CHECKED because HEALTH_MONITOR_TOKEN is absent; only legacy anon read-only database probe passed. Main Pages deployed-origin route verification for commit 036c665 was still in progress at the audit snapshot. Keep FULL_PLATFORM_GATE BLOCKED / NOT CERTIFIED.",
   "edge_function_contracts": "PARTIAL — 13 high-impact deployed Edge entrypoints were compared byte-for-byte with current main. Nine matched exactly (public-catalog, public-catalog-directory, payment-webhook, mantigo-payment-intent, api, order-status-update, post-financial-journal, settlement-create, subscription-start-trial). Material drift remains in paymob-webhook v10, payment-intent v8, subscription-payment-intent v4, digital-page-payment-intent v5, settlement-financial-atomic v4, financial-journal v3, order-create v8, catalog-admin v20, mnty-push-dispatch v4, health v3 and erp-purchase-receive v3. directory-listings v18 is intentionally fail-closed and must remain so until RC472/RC473 consent gates are live. Do not deploy individual mismatched functions; coordinate exact DB contracts, migrations and Edge bundles.",
   "smm_gateway_parity": "PARTIAL — live SMM gateway remains ACTIVE v13, verify_jwt=true, and source matches main with SMM_INITIAL_LAUNCH_DEFERRED=true. Anonymous/authenticated negative runtime tests still unverified; keep deferred.",
   "auth_security_settings": "NOT VERIFIED — fresh 2026-11-23 Security Advisor reports leaked-password protection disabled and anonymous Auth sign-ins enabled. No connector exposes a safe Auth-setting mutation path; no Auth settings were changed. Owner must enable leaked-password protection and confirm whether external clients depend on anonymous Auth before disabling it.",
@@ -8262,5 +8262,325 @@
     "production_release_gate": "BLOCKED / NOT CERTIFIED",
     "audit_report": "docs/audits/PASS_2421_2430_READ_ONLY_RLS_RC926_RECHECK_20261125.md",
     "full_replay_test_fixture_note": "Previous full replay failed because schema-only baseline contained no provider row; deterministic idempotent synthetic profile seed added to integration test. Re-run pending."
+  },
+  "read_only_recheck_2026_11_27_current_main": {
+    "checked_at": "2026-11-27T02:59:00Z",
+    "method": "Read-only Supabase Management API inventory and Edge Function source retrieval; no SQL writes or deployments.",
+    "project_id": "moyhiluyhjsujhwlyeuu",
+    "live_migrations": {
+      "count": 310,
+      "latest_version": "20261110150618",
+      "latest_name": "revoke_public_execute_from_trigger_functions"
+    },
+    "required_release_migration_ledger_check": {
+      "source_contract_versions": 87,
+      "exact_versions_found_in_live_ledger": 0,
+      "exact_versions_missing_from_live_ledger": 87,
+      "interpretation": "Exact migration-ID mismatch only. It does not prove each intended physical database effect is absent; inspect schema/function/ACL/RLS aliases and live statement bodies separately. Do not fabricate ledger rows or replay the source chain blindly."
+    },
+    "edge_functions": {
+      "catalog-admin": {
+        "live_version": 20,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "source_parity": "NOT_EXACT",
+        "finding": "Deployed index.ts still defines membership-derived isPlatformAdmin (SUPER_ADMIN + unscoped + permissions.scope PLATFORM + full_control) and uses it for hasPlatformScope. Current main source instead calls mnty_can_platform_admin() using the protected registry. The deployed function manually validates bearer token with auth.getUser and rejects anonymous users, but its global-root authorization semantics lag current source."
+      },
+      "public-catalog": {
+        "live_version": 11,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "entrypoint_parity": "NOT_EXACT",
+        "shared_contact_visibility_parity": "EXACT",
+        "finding": "Deployed shared public-contact-visibility.mjs matches current main byte-for-byte and enforces owner opt-in plus server-audited consent; entrypoint is not byte-identical to current main (14,140 vs 14,143 characters)."
+      },
+      "public-catalog-directory": {
+        "live_version": 20,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "entrypoint_parity": "NOT_EXACT",
+        "shared_contact_visibility_parity": "EXACT",
+        "promotional_images_shared_parity": "EXACT",
+        "finding": "Deployed public contact and promotional-image shared modules both match current main byte-for-byte; entrypoint is not byte-identical (19,965 vs 25,693 characters)."
+      },
+      "directory-listings": {
+        "live_version": 18,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "entrypoint_parity": "NOT_EXACT",
+        "finding": "Intentionally fail-closed. GET returns an empty listings payload with directoryDisabled=true; POST returns 503 DIRECTORY_LISTINGS_DISABLED_FOR_V1 pending RC472/RC473 owner-consent and source-rights release gates."
+      }
+    },
+    "security_advisor": {
+      "lint_categories": 94,
+      "total_findings": 166,
+      "warn": 157,
+      "info": 9,
+      "major_categories": [
+        {
+          "name": "authenticated_security_definer_function_executable",
+          "count": 65,
+          "level": "WARN"
+        },
+        {
+          "name": "anon_security_definer_function_executable",
+          "count": 1,
+          "level": "WARN"
+        },
+        {
+          "name": "anonymous_access_policy_checks",
+          "count": 90,
+          "level": "WARN"
+        },
+        {
+          "name": "auth_leaked_password_protection",
+          "count": 1,
+          "level": "WARN"
+        },
+        {
+          "name": "rls_enabled_no_policy",
+          "count": 9,
+          "level": "INFO"
+        }
+      ],
+      "qualification": "Advisor labels are triage signals, not a standalone exploit determination. Each function, policy predicate, GRANT, exposed caller path and intended public-read contract requires individual review."
+    },
+    "performance_advisor": {
+      "lint_categories": 4,
+      "total_findings": 600,
+      "warn": 403,
+      "info": 197,
+      "major_categories": [
+        {
+          "name": "auth_rls_initplan",
+          "count": 375,
+          "level": "WARN"
+        },
+        {
+          "name": "multiple_permissive_policies",
+          "count": 28,
+          "level": "WARN"
+        },
+        {
+          "name": "unindexed_foreign_keys",
+          "count": 132,
+          "level": "INFO"
+        },
+        {
+          "name": "unused_index",
+          "count": 65,
+          "level": "INFO"
+        }
+      ],
+      "qualification": "Optimize after query-plan and workload review; do not drop indexes based on unused-index lint alone."
+    },
+    "non_actions": [
+      "No Production SQL write or migration",
+      "No Auth configuration change",
+      "No GRANT/RLS/policy modification",
+      "No Edge Function deployment",
+      "No Storage/payment/wallet/settlement/customer/business-data mutation"
+    ],
+    "status": "BLOCKED / NOT CERTIFIED",
+    "database_authorization_readback": {
+      "checked_at": "2026-11-27T02:43:00Z",
+      "method": "Read-only SQL SELECT from PostgreSQL catalogs (pg_proc, pg_class, pg_policies, has_function_privilege, to_regclass).",
+      "functions": [
+        {
+          "name": "public.is_platform_admin()",
+          "security": "SECURITY INVOKER",
+          "search_path": "public",
+          "logic": "Any ACTIVE user_memberships row for auth.uid() with upper(role) in ('ADMIN','SUPER_ADMIN')",
+          "anon_execute": false,
+          "authenticated_execute": true
+        },
+        {
+          "name": "public.mnty_can_platform_admin()",
+          "security": "SECURITY DEFINER",
+          "search_path": "public, pg_temp",
+          "logic": "Delegates to public.mnty_can('admin', NULL, NULL, NULL)",
+          "anon_execute": false,
+          "authenticated_execute": true
+        }
+      ],
+      "tables": [
+        {
+          "name": "private.platform_admins",
+          "rls": true,
+          "force_rls": false
+        },
+        {
+          "name": "public.orders",
+          "rls": true,
+          "force_rls": true,
+          "rc929_strict_confirmed_auth_policy_present": false
+        },
+        {
+          "name": "public.order_status_history",
+          "rls": true,
+          "force_rls": true,
+          "rc929_strict_confirmed_auth_policy_present": false
+        },
+        {
+          "name": "public.directory_listing_contact_consents",
+          "exists": false
+        }
+      ],
+      "policy_dependency_counts": {
+        "is_platform_admin": {
+          "policy_references": 57,
+          "tables": 24
+        },
+        "mnty_can_platform_admin": {
+          "policy_references": 5,
+          "tables": 3
+        },
+        "note": "Reference sets may overlap; do not add table counts as distinct tables."
+      },
+      "risk": "High authorization blast radius. Do not hot-replace the helper or bulk-rewrite policies. Prepare a coordinated migration preserving tenant/business/branch boundaries with positive/negative PostgreSQL integration tests."
+    },
+    "authorization_semantics": {
+      "severity": "P0 authorization logic defect / future privilege-escalation condition",
+      "observed_live_logic": {
+        "membership_helper": "public.mnty_active_membership(NULL,NULL,NULL) returns the caller's ACTIVE memberships without tenant/business/branch filters.",
+        "generic_permission_helper": "public.mnty_can('admin',NULL,NULL,NULL) includes 'admin' in the built-in permission lists for OWNER and ADMIN roles and also accepts a permissions.admin boolean.",
+        "platform_guard": "public.mnty_can_platform_admin() delegates directly to public.mnty_can('admin',NULL,NULL,NULL) and does not consult private.platform_admins.",
+        "legacy_rls_helper": "public.is_platform_admin() returns true for any ACTIVE ADMIN or SUPER_ADMIN membership and is referenced by 57 policies across 24 tables."
+      },
+      "impact_statement": "The helper implementation is not registry-backed and can grant platform-root permission to any active tenant OWNER/ADMIN, a SUPER_ADMIN carrying scope=PLATFORM and full_control=true, or any membership with permissions.admin=true. Aggregate-only current-state review found no non-registry active OWNER, ADMIN, or SUPER_ADMIN users and no non-registry permissions.admin=true memberships; the four non-registry BUSINESS_OWNER users do not receive built-in admin permission from the current live mnty_can() role switch. This is a source-derived latent authorization defect, not evidence of an exploited account or observed cross-tenant data access.",
+      "existing_forward_source_repairs": [
+        {
+          "version": "20261113214500",
+          "id": "RC464",
+          "path": "supabase/migrations/20261113214500_rc464_platform_admin_live_registry_hardening.sql",
+          "purpose": "Registry-only mnty_can_platform_admin; force registry RLS; empty search_path; function ACLs; four MantiGO RPCs."
+        },
+        {
+          "version": "20261117190000",
+          "id": "RC471",
+          "path": "supabase/migrations/20261117190000_rc471_mantigo_platform_admin_forward_hardening.sql",
+          "purpose": "Forward hardening of shared MantiGO global SECURITY DEFINER callers."
+        },
+        {
+          "version": "20261119040000",
+          "id": "RC484",
+          "path": "supabase/migrations/20261119040000_rc484_registry_backed_is_platform_admin.sql",
+          "purpose": "Registry-only is_platform_admin for 57 policy references; force RLS and harden function ACL/search_path."
+        },
+        {
+          "version": "20261120200000",
+          "id": "RC485",
+          "path": "supabase/migrations/20261120200000_rc485_catalog_rpc_registry_root.sql",
+          "purpose": "Registry-root checks in seven direct catalog RPCs while preserving tenant/business/branch roles."
+        }
+      ],
+      "disposition": "Source repair already exists; do not create duplicate migration IDs, apply individual migrations, or hot-patch Production. Deploy only in the full ordered, preflighted, backed-up release after adversarial positive/negative PostgreSQL tests.",
+      "live_mnty_can_admin_role_matrix": {
+        "checked_at": "2026-11-27T02:57:00Z",
+        "built_in_admin_roles": [
+          "OWNER",
+          "ADMIN"
+        ],
+        "super_admin_requires": [
+          "permissions.scope=PLATFORM",
+          "permissions.full_control=true"
+        ],
+        "built_in_non_admin_roles": [
+          "BUSINESS_OWNER",
+          "MANAGER",
+          "FINANCE_MANAGER",
+          "SERVICE_PROVIDER",
+          "STAFF",
+          "SUPPORT_MANAGER",
+          "SUPPORT",
+          "EMPLOYEE",
+          "CUSTOMER"
+        ],
+        "explicit_permission_override": "permissions.admin=true can grant the requested admin permission irrespective of role.",
+        "aggregate_current_state": {
+          "non_registry_active_OWNER": 0,
+          "non_registry_active_ADMIN": 0,
+          "non_registry_active_SUPER_ADMIN": 0,
+          "non_registry_permissions_admin_true": 0,
+          "non_registry_business_owner_users": 4
+        },
+        "fixture_qualification": "rc464_platform_admin_live_baseline.sql models a broader weak legacy role matrix than the current live mnty_can() definition; treat it as a conservative denial baseline, not a byte-for-byte copy of current Production."
+      }
+    },
+    "migration_preflight_matrix": {
+      "checked_at": "2026-11-27T02:50:00Z",
+      "method": "Read-only catalog SELECTs only; no migration was executed.",
+      "rc464": {
+        "registry_exists": true,
+        "registry_rls": true,
+        "registry_owner": "postgres",
+        "registry_owner_bypassrls": true,
+        "registry_user_id_type": "uuid",
+        "registry_user_id_not_null": true,
+        "direct_client_table_grants": false,
+        "mgo_global_security_definer_signatures_found": 4,
+        "shared_security_definer_callers_found": 4,
+        "expected_rls_policy_contracts_found": 3,
+        "catalog_preconditions": "OBSERVED_PASS"
+      },
+      "rc484": {
+        "registry_exists": true,
+        "registry_rls": true,
+        "registry_owner": "postgres",
+        "registry_owner_bypassrls": true,
+        "registry_user_id_type": "uuid",
+        "registry_user_id_not_null": true,
+        "direct_client_table_grants": false,
+        "is_platform_admin_owner_matches_registry": true,
+        "is_platform_admin_owner_bypassrls": true,
+        "legacy_policy_references": 57,
+        "legacy_policy_tables": 24,
+        "catalog_preconditions": "OBSERVED_PASS"
+      },
+      "rc485": {
+        "current_is_platform_admin_security_definer": false,
+        "current_is_platform_admin_empty_search_path": false,
+        "current_is_platform_admin_registry_only": false,
+        "catalog_precondition": "BLOCKED_UNTIL_RC484"
+      },
+      "interpretation": "These are read-only catalog preconditions only. They do not prove the full migration transactions will pass or authorize isolated application. Preserve RC464→RC471→RC484→RC485 inside the complete ordered release with all alias, physical-effect and backup/restore checks."
+    },
+    "current_membership_aggregate": {
+      "checked_at": "2026-11-27T02:54:00Z",
+      "pii_scope": "Aggregate-only; no user IDs, emails, or individual membership rows selected.",
+      "registry_total": 1,
+      "registry_auth_accounts_present": 1,
+      "registry_auth_accounts_unbanned": 1,
+      "non_registry_active_users_by_role": {
+        "BUSINESS_OWNER": 4,
+        "CUSTOMER": 12
+      },
+      "non_registry_active_memberships_by_role": {
+        "BUSINESS_OWNER": 7,
+        "CUSTOMER": 12
+      },
+      "non_registry_active_owner_admin_users": 0,
+      "non_registry_active_super_admin_users": 0,
+      "non_registry_memberships_with_permissions_admin_true": 0,
+      "non_registry_business_owner_users": 4,
+      "interpretation": "Current aggregate state contains no non-registry active OWNER/ADMIN/SUPER_ADMIN and no explicit admin permission override. BUSINESS_OWNER is not included in the built-in mnty_can('admin') role case. The faulty generic helper remains a latent privilege escalation if such membership state appears later."
+    },
+    "main_health_monitor_2026_11_27": {
+      "main_sha": "036c6655b3796d649abd9e603c24f518f8ee361e",
+      "workflow_run_id": 45931207565,
+      "status": "SUCCESS",
+      "edge_health": "NOT_CHECKED",
+      "reason": "HEALTH_MONITOR_TOKEN missing",
+      "database_read_probe": "PASS_LEGACY_ANON_READ_ONLY",
+      "owner_action_required": "Configure the protected HEALTH_MONITOR_TOKEN secret for future Edge /health checks. Never store token in source or chat."
+    },
+    "main_pages_deployment_2026_11_27": {
+      "main_sha": "036c6655b3796d649abd9e603c24f518f8ee361e",
+      "workflow_run_id": 45931067591,
+      "status_at_snapshot": "IN_PROGRESS",
+      "validation_job": "SUCCESS",
+      "deployed_origin_route_check": "IN_PROGRESS",
+      "note": "Do not mark deployed-origin browser verification complete until the deploy job itself concludes success."
+    }
   }
 }
