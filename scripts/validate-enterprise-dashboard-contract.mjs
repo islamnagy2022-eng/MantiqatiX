@@ -42,12 +42,12 @@ assert.match(app, /function superAdminFeatureFlagDirectory\(\)/, "Super Admin mu
 assert.match(app, /id="sa-subscription-price-list"/, "Super Admin workspace must render a subscription-pricing read target");
 assert.match(app, /loadSuperAdminSubscriptionPrices\(\);/, "subscription pricing must load when the protected control workspace initializes");
 const pricingLoaderStart = app.indexOf("async function loadSuperAdminSubscriptionPrices()");
-const pricingLoaderEnd = app.indexOf("\\nasync function loadOfficialShowcaseAdmin()", pricingLoaderStart);
+const pricingLoaderEnd = app.indexOf("\nasync function loadOfficialShowcaseAdmin()", pricingLoaderStart);
 assert.ok(pricingLoaderStart >= 0 && pricingLoaderEnd > pricingLoaderStart, "subscription pricing loader boundaries must be present");
 const pricingLoader = app.slice(pricingLoaderStart, pricingLoaderEnd);
-assert.match(pricingLoader, /sb\\.from\\('subscription_tier_prices'\\)\\.select\\('tier_code,monthly_price,annual_price,currency'\\)/, "pricing loader must use the explicit authenticated pricing-field allowlist");
-assert.match(pricingLoader, /\\.eq\\('active',true\\)/, "pricing loader must show active tiers only");
-assert.doesNotMatch(pricingLoader, /\\.insert\\(|\\.update\\(|\\.upsert\\(|\\.delete\\(/, "subscription pricing directory must remain read-only");
+assert.match(pricingLoader, /sb\.from\('subscription_tier_prices'\)\.select\('tier_code,monthly_price,annual_price,currency'\)/, "pricing loader must use the explicit authenticated pricing-field allowlist");
+assert.match(pricingLoader, /\.eq\('active',true\)/, "pricing loader must show active tiers only");
+assert.doesNotMatch(pricingLoader, /\.insert\(|\.update\(|\.upsert\(|\.delete\(/, "subscription pricing directory must remain read-only");
 assert.match(app, /لا تثبت وجود اشتراك قائم لأي نشاط/, "pricing UI must not imply that a listed tier is an active business subscription");
 assert.match(app, /superAdminFeatureFlagDirectory\(\)/, "the protected control workspace must include the module/feature-flag registry");
 const flagRegistryStart = app.indexOf("function superAdminFeatureFlagDirectory()");
