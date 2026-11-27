@@ -90,3 +90,15 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 - **Non-actions:** no Production SQL write, migration, Auth setting, GRANT/RLS/policy change, Edge deployment, Storage write, payment, wallet, settlement, or customer/business-data mutation.
 - **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 
+
+
+### Direct PostgreSQL authorization read-back — 2026-11-27 02:43 UTC
+
+- [x] Queried live function definitions, function ACLs, RLS flags, and policy dependencies using read-only catalog SQL.
+- [x] Confirmed `private.platform_admins` has RLS enabled but FORCE RLS disabled.
+- [x] Confirmed `public.is_platform_admin()` remains SECURITY INVOKER and derives global authority from any ACTIVE membership role ADMIN/SUPER_ADMIN; anon EXECUTE=false, authenticated EXECUTE=true.
+- [x] Confirmed `public.mnty_can_platform_admin()` remains SECURITY DEFINER and delegates to `public.mnty_can('admin', NULL, NULL, NULL)`; anon EXECUTE=false, authenticated EXECUTE=true.
+- [x] Counted 57 `is_platform_admin()` policy references across 24 tables and five `mnty_can_platform_admin()` references across three tables. The sets may overlap; do not treat them as distinct table totals.
+- [x] Confirmed orders and order_status_history have RLS and FORCE RLS enabled, but the RC929 strict confirmed-Auth restrictive policies are not live. `public.directory_listing_contact_consents` is absent.
+- **Release implication:** the root-helper/policy sequence has a broad authorization blast radius. Do not hot-replace helpers or bulk-rewrite policies; require coordinated migrations and adversarial positive/negative tests.
+- **Non-actions:** read-only SQL only; no Production database, migration ledger, Auth, GRANT, RLS, Edge, payment, wallet, settlement, or business-data write.
