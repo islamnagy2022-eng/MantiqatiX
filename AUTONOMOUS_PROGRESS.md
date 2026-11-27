@@ -111,3 +111,11 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 - [x] Verified that corrective source migrations already exist: RC464 (20261113214500), RC471 (20261117190000), RC484 (20261119040000), RC485 (20261120200000). RC464/RC471 repair the private-registry MantiGO platform guard and callers; RC484 repairs the 57-policy is_platform_admin helper; RC485 aligns seven catalog RPCs while preserving tenant-local scope.
 - [ ] Keep this entire migration sequence blocked until the required chronological release, physical preflight, backup/restore/rollback gates and negative/positive PostgreSQL tests all pass. Do not create duplicate migration IDs or hot-patch Production.
 - **Non-actions:** read-only SQL and source review only; no Production table/function/policy/ACL changes, no migration application, no Edge deployment, no customer/business-data changes.
+
+### RC464 / RC484 / RC485 read-only preflight matrix — 2026-11-27 02:50 UTC
+
+- [x] RC464/RC484 catalog prerequisites observed: private.platform_admins exists, RLS enabled, owner postgres with BYPASSRLS, user_id UUID NOT NULL, no direct anon/authenticated table grants.
+- [x] RC464 expected callers/policies observed: four MantiGO global SECURITY DEFINER signatures, four additional helper-dependent SECURITY DEFINER callers, and three shared-helper RLS policy contracts present.
+- [x] RC484 blast radius observed: 57 is_platform_admin policy references across 24 tables; helper owner matches registry owner and has BYPASSRLS.
+- [x] RC485 precondition remains BLOCKED until RC484 replaces is_platform_admin(): live helper remains SECURITY INVOKER, search_path=public and membership-derived.
+- **Boundary:** These are catalog preflight observations only, not migration execution. Preserve RC464 → RC471 → RC484 → RC485 inside the complete chronological release; do not run them individually.
