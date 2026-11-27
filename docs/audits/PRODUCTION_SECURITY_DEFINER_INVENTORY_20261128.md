@@ -196,6 +196,16 @@ A source-text scan found six of the 65 authenticated-callable SECURITY DEFINER f
 
 **Disposition:** confirmed P1 location-privacy boundary mismatch; tracked in issue #911. Do not hot-apply RC478 or deploy a separate Edge change. Include it in the full ordered, backed-up release and verify the exact live function definition/ACL and negative/positive cases post-deployment.
 
+
+## Additional authenticated-role privacy boundary — MantiGO open ride list
+
+`public.list_open_mantigo_rides_backend(uuid)` contains a direct `auth.uid()` equality check, so it is not part of the six no-direct-token list. However, the caller-ID equality check alone does **not** prove the caller is an eligible captain.
+
+**Direct Production read-back:** SECURITY DEFINER, owner `postgres`, `search_path=public`, authenticated EXECUTE=true / anon EXECUTE=false. The live body filters to OPEN/OPEN_FOR_BIDS rides, excludes the caller's own rides, but returns customer names, pickup/destination locations and notes without checking the caller's captain profile ACTIVE/VERIFIED/AVAILABLE state or vehicle category. Any authenticated user could reach this location-disclosure path. No RPC was invoked and no ride/customer rows were selected.
+
+**Existing repair:** RC478 `20261118070000_rc478_mantigo_open_ride_privacy_forward_repair.sql` is source-only and requires a non-anonymous Auth JWT, exact caller identity, an ACTIVE + VERIFIED + AVAILABLE captain profile, and a vehicle-category match. It pins `search_path=pg_catalog` and preserves authenticated-only EXECUTE. Disposable PostgreSQL 16 tests cover ordinary authenticated users, pending/unverified/offline captains, anonymous Auth sessions, vehicle-category separation, own-ride exclusion and closed rides. The migration is not in the Production ledger; issue #911 remains open.
+
+**Disposition:** confirmed P1 location-privacy boundary mismatch in Production. Do not hot-apply RC478 or deploy a separate backend function; include it in the coordinated release and verify exact live function body/ACL plus positive/negative cases after rollout.
 **Limit:** this section records a direct body/delegation triage of the six no-direct-token entries. It is not a full review of all 65 authenticated-callable routines or a replacement for deployed-caller/Edge parity verification.
 ## Required next classification
 
