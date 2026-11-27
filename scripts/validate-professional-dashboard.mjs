@@ -15,12 +15,12 @@ const permissionRepair = read('../supabase/migrations/20261028225000_rc457_busin
 const browserE2E = read('../apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs');
 const controlCenter = read('../apps/catalog-frontend/src/components/admin/SuperAdminControlCenter.tsx');
 
-const hasSequencedControlCenterRefresh = /const requestId=\\+\\+loadSequence\\.current/.test(controlCenter);
+const hasSequencedControlCenterRefresh = controlCenter.includes('const requestId=++loadSequence.current');
 if (hasSequencedControlCenterRefresh) {
-  assert.match(controlCenter, /finally\\s*\\{\\s*if\\(requestId===loadSequence\\.current\\)setLoading\\(false\\);\\s*\\}/,
+  assert.ok(controlCenter.includes('if(requestId===loadSequence.current)setLoading(false);'),
     'only the latest control-center refresh may release its loading state');
 } else {
-  assert.match(controlCenter, /finally\\s*\\{\\s*setLoading\\(false\\);\\s*\\}/,
+  assert.match(controlCenter, /finally\s*\{\s*setLoading\(false\);\s*\}/,
     'control-center data refresh must always release its loading state');
 }
 assert.match(controlCenter, /finally\s*\{\s*setAuditLoading\(false\);\s*\}/, 'audit search must always release its loading state');
