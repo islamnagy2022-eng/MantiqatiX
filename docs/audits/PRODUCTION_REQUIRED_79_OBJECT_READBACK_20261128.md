@@ -15,6 +15,8 @@
 
 “Not found” means the probe did not resolve the exact name/signature/column/trigger/index contract. It is not a blanket statement that every associated feature or physical effect is absent. Each item still needs dependency, alias, body, ACL, RLS and caller reconciliation before a release decision.
 
+The 42 not-found entries are counted by the three required-contract groups. Six payment RPC signatures are deliberately present in both the core and payment groups, so the list represents **36 unique object/signature names**. This overlap is expected and does not indicate six additional missing physical objects.
+
 ## Exact not-found entries and source mapping
 
 ### Core objects — 21
@@ -72,7 +74,7 @@
 | `public.mnty_default_catalog_item_image_trigger` | `20261027070000_rc117_default_images_and_activity_admin.sql` | Default catalog item image trigger function. |
 | `public.mnty_default_image_url` | `20261027070000_rc117_default_images_and_activity_admin.sql` | Name/category-aware placeholder image selector. |
 | `public.mnty_default_marketing_service_image_trigger` | `20261027070000_rc117_default_images_and_activity_admin.sql` | Default marketing-service image trigger function. |
-| `public.ux_user_memberships_user_business_branch_nullsafe` | `20261118010000_rc472_directory_claim_review_atomicity.sql` | **Important correction:** RC472 itself contains a forward repair that creates this null-safe index because the original RC113 migration is absent from the live ledger. Do not describe RC113 as a prerequisite that must be deployed separately; RC472 includes the forward repair and claim-review RPC. |
+| `public.ux_user_memberships_user_business_branch_nullsafe` | `20261118010000_rc472_directory_claim_review_atomicity.sql` | **Important correction:** RC472 itself contains a forward repair that creates this null-safe index because the original RC113 migration is absent from the live ledger. RC472 itself repairs the missing index and creates the claim-review RPC; do not describe RC113 as a runtime prerequisite that must be deployed separately. |
 
 ## Dependency and release interpretation
 
