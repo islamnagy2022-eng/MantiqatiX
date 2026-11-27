@@ -5492,3 +5492,11 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [ ] Keep platform-root authorization and dashboard dependency rollout blocked until live schema, migration, ACL/RLS and deployed Edge contracts are reconciled. Do not deploy migrations or functions from this UI-only PR.
 - [ ] Keep `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` until the independent production, Auth, privacy, payment/finance, backup/restore, monitoring and rollback gates pass.
 
+## 2026-11-27 — Super Admin catalog review slice
+
+- [x] Added a Super Admin Control Center section for selecting a tenant/business and reading its active branch catalog through the authenticated `catalog-admin` `CATALOG_READ` contract.
+- [x] Added product/service counts, active-item counts, search, branch selection, and the currently effective branch/global price when returned by the server.
+- [x] Kept this slice strictly read-only. No edit, delete, status-toggle, price-upsert, stock-adjustment or publication write is exposed.
+- [x] Documented the backend reason for the write boundary: catalog price upsert currently fails closed with `CATALOG_PRICE_WRITES_TEMPORARILY_DISABLED` pending RC486 Production verification; the legacy item-status RPC still uses a membership-derived platform SUPER_ADMIN predicate and must be aligned with the protected registry before it can be exposed to platform-root users.
+- [ ] PR #1167 exact-head lint/build, branch-scoped catalog browser E2E, dashboard RBAC PostgreSQL, and full companion CI must pass before merge. No deployment is claimed.
+- [ ] Implement a reviewed backend authorization convergence candidate and isolated positive/negative tests before enabling product status or price mutations. Do not deploy this backend change to Production without the release/migration/ACL gates.
