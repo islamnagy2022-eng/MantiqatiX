@@ -66,6 +66,19 @@ for (const required of [
   "RC464 → RC469 → RC471 → RC484 → RC485",
   "RC929",
   "RC930",
+  "20261009120000_rc425_atomic_mantigo_paymob_payment.sql",
+  "20261010175000_rc449a_financial_journal_schema_prerequisites.sql",
+  "20261010180000_rc450_financial_journal_service_role_boundary.sql",
+  "20261009200000_rc434_atomic_erp_purchase_receiving.sql",
+  "20261009230000_rc437_purchase_order_lines_receiving_limits.sql",
+  "20261009240000_rc438_purchase_order_creation_with_lines.sql",
+  "20261118010000_rc472_directory_claim_review_atomicity.sql",
+  "20261118020000_rc473_directory_listing_contact_consent.sql",
+  "20261027070000_rc117_default_images_and_activity_admin.sql",
+  "20261113214500_rc464_platform_admin_live_registry_hardening.sql",
+  "20261120200000_rc485_catalog_rpc_registry_root.sql",
+  "20261126030000_rc929_orders_confirmed_auth_claim_guard.sql",
+  "20261127010000_rc930_serialize_job_deactivation_and_application.sql",
 ]) {
   assert.ok(currentRunbook.includes(required), "Current Production backup overlay is missing: " + required);
 }
