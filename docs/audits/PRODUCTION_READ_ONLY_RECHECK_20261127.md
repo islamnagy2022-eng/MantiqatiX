@@ -115,3 +115,19 @@ No account IDs, emails, or individual membership rows were selected. Aggregate r
 - The 4 BUSINESS_OWNER users do not match the built-in `mnty_can('admin')` branch, which explicitly grants `admin` to OWNER and ADMIN; there are no explicit permissions.admin overrides in the non-registry membership set.
 
 **Interpretation:** the live helper implementation is still broader than a registry-only platform-root contract and remains a P0 authorization-logic defect to repair. However, this aggregate inventory did **not** find a current non-registry active account that satisfies the observed OWNER/ADMIN/permission override branches. Do not describe this as an observed account compromise or demonstrated cross-tenant data access. Keep the fix mandatory before any new admin-role onboarding or full production certification.
+
+
+### Exact live mnty_can('admin') role semantics
+
+The live function body is more specific than the generic summary above:
+
+- `OWNER`: built-in `admin` permission.
+- `ADMIN`: built-in `admin` permission.
+- `SUPER_ADMIN`: platform authority only when `permissions.scope='PLATFORM'` and `permissions.full_control=true`.
+- `BUSINESS_OWNER`, `MANAGER`, `FINANCE_MANAGER`, `SERVICE_PROVIDER`, and other tenant-local roles do **not** get the built-in `admin` permission from their role case.
+- Any role could still qualify through an explicit `permissions.admin=true` override; the aggregate-only query found zero active non-registry overrides.
+
+The current aggregate therefore found no non-registry account satisfying the live helper's current role/permission predicate. The four non-registry BUSINESS_OWNER users are not currently platform-admin eligible by their role alone.
+
+**Test-fixture qualification:** `supabase/tests/rc464_platform_admin_live_baseline.sql` intentionally models a broader weak pre-RC464 role matrix that includes BUSINESS_OWNER/MANAGER/OPERATIONS-style roles in the generic admin case. Treat it as a conservative baseline fixture for denial testing, not a byte-for-byte copy of the current live `mnty_can()` definition. The current live PostgreSQL definition plus the aggregate-only membership snapshot are the authoritative observations for this recheck.
+
