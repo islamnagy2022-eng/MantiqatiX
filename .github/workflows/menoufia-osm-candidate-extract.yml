@@ -2,12 +2,13 @@ name: Prepare ODbL Monufia Activity Candidates
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened]
     paths:
       - '.github/workflows/menoufia-osm-candidate-extract.yml'
       - 'scripts/prepare-monufia-osm-candidates.mjs'
       - 'scripts/queries/monufia-overpass.ql'
       - 'scripts/tests/prepare-monufia-osm-candidates.test.mjs'
+      - 'scripts/validate-monufia-osm-staging-contract.mjs'
 
 permissions:
   contents: read
@@ -25,7 +26,7 @@ jobs:
           node --test scripts/tests/prepare-monufia-osm-candidates.test.mjs
           node scripts/validate-monufia-osm-staging-contract.mjs
   prepare-candidates:
-    if: github.event.action == 'opened' && github.event.pull_request.head.repo.full_name == github.repository
+    if: (github.event.action == 'opened' || github.event.action == 'reopened') && github.event.pull_request.head.repo.full_name == github.repository
     needs: validate
     runs-on: ubuntu-24.04
     timeout-minutes: 15

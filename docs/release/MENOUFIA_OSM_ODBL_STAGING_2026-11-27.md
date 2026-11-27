@@ -41,7 +41,7 @@ The extractor deduplicates repeated OSM object type/ID pairs. It does not claim 
 
 ## Execution and safety
 
-The workflow validates the mapping and privacy contract whenever the PR is opened or synchronized. The data-fetch job runs only on the first open event from a same-repository PR. It makes one bounded Overpass request and uploads an artifact with 14-day retention. If Overpass is unavailable, the workflow uploads an explicit UNAVAILABLE manifest with empty arrays; it does not invent records or scrape an unlicensed directory.
+The workflow validates the mapping and privacy contract whenever the PR is opened, synchronized or reopened. The data-fetch job runs only on the initial open or an explicit reopen from a same-repository PR; ordinary synchronize events do not repeat the external extraction. It makes one bounded Overpass request and uploads an artifact with 14-day retention. If Overpass is unavailable, the workflow uploads an explicit UNAVAILABLE manifest with empty arrays; it does not invent records or scrape an unlicensed directory.
 
 The workflow does not write to Supabase, Production, public directory, Edge Functions, Storage, Auth, RLS/GRANT, payments, wallets or settlements. Public unclaimed listings remain disabled. The artifact is a review source, not a deployment.
 
