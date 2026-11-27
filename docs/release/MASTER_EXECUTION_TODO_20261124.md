@@ -10,6 +10,9 @@
 - [ ] Correct the live platform-root authorization drift only through the coordinated RC464/RC469/RC471/RC484 + policy/caller release chain; the last documented read-only state still has broad membership-derived helpers, registry FORCE RLS off, and the 62-policy/27-table review surface.
 - [ ] Keep gallery-dependent Edge parity/deployment blocked until schema/RPC/ACL/RLS dependencies and all three bundles are verified together.
 - **Production safety:** no Production SQL, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement, or customer/business-data mutation. Backup/restore remains deferred and unverified.
+- [x] Rechecked Production Supabase read-only at 2026-11-27 00:04 UTC: ledger remains 310 rows through `20261110150618`; registry RLS ON / FORCE RLS OFF; `is_platform_admin()` still uses ACTIVE tenant ADMIN/SUPER_ADMIN membership; `mnty_can_platform_admin()` still delegates to the unscoped legacy admin helper. Blast radius reconfirmed at 62 policies / 27 tables.
+- [x] Security Advisor snapshot: 166 findings (157 WARN, 9 INFO) including 90 anon-role policy warnings, 65 authenticated-callable SECURITY DEFINER functions, one anon-callable SECURITY DEFINER targeted-advertisements RPC, and leaked-password protection disabled. Review individual predicates/grants/callers; do not mass-revoke from advisor labels alone.
+- **Production remains read-only:** no SQL writes or Auth/RLS/GRANT/Edge/Storage/payment/customer-data changes in this recheck.
 - **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 
 ---
