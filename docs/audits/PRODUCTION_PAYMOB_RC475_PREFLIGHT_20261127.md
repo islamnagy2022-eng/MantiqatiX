@@ -88,6 +88,13 @@ The same deployed v10 handler also:
 
 The current-main webhook source contains the corrected signed-order binding and RPC calls, but the production v10 bundle is not that source. Do not certify or independently deploy this Edge function until all matching database contracts and the negative replay tests are ready.
 
+
+### Follow-up: MantiGO validator coverage
+
+The live-read comparison also confirmed that the current-main `paymob-webhook` source has a MantiGO signed-order guard: it compares signed `order.id` with `mantigo.metadata.paymob_intention_order_id` before calling `process_verified_mantigo_payment_backend`.
+
+The initial `validate-paymob-webhook-order-binding.mjs` validator covered standard orders, digital pages, and subscriptions, but omitted the MantiGO branch. This audit branch now extends the validator to assert the MantiGO lookup, signed order extraction, stored-order equality guard, HTTP 409 mismatch response, and ordering before the atomic RPC. The updated validator is **pending exact-branch CI**; no passing result is claimed here.
+
 ## 5. Required coordinated release sequence
 
 1. Finish the 87-source migration alias/effect crosswalk. Preserve the existing migration ledger; do not synthesize version rows or replay historical migrations out of order.
