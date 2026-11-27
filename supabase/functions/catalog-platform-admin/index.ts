@@ -436,13 +436,13 @@ Deno.serve(async (req: Request) => {
       const subscriptionAmount = subscriptionMode === "FREE" ? 0 : Number(input.subscriptionAmount);
       const paymentDueDate = String(input.paymentDueDate || "").trim();
       const paymentGracePeriodDays = Number(input.paymentGracePeriodDays ?? 7);
-      if (name.length < 2 || name.length > 200) return response(origin, { error: "INVALID_BUSINESS_NAME" }, 400);
+      if (Array.from(name).length < 2 || Array.from(name).length > 200) return response(origin, { error: "INVALID_BUSINESS_NAME" }, 400);
       if (category.length < 2 || category.length > 100) return response(origin, { error: "INVALID_BUSINESS_CATEGORY" }, 400);
       if (activityGroupCode && !canonicalActivityGroups.has(activityGroupCode)) return response(origin, { error: "INVALID_ACTIVITY_GROUP" }, 400);
       if (activityClassificationType !== "activity") return response(origin, { error: "INVALID_ACTIVITY_CLASSIFICATION_TYPE" }, 400);
       if (activitySpecialty.length > 120) return response(origin, { error: "INVALID_ACTIVITY_SPECIALTY" }, 400);
       if (phoneDigits.length > 0 && (phoneDigits.length < 10 || phoneDigits.length > 15)) return response(origin, { error: "INVALID_BUSINESS_WHATSAPP", message: "If provided, the owner WhatsApp number must contain 10 to 15 digits." }, 400);
-      if ([governorate, markaz].some((value) => value.length > 100 || (value.length > 0 && value.length < 2)) || village.length > 100) return response(origin, { error: "INVALID_BUSINESS_LOCATION" }, 400);
+      if (governorate.length < 2 || governorate.length > 100 || markaz.length < 2 || markaz.length > 100 || village.length > 100) return response(origin, { error: "INVALID_BUSINESS_LOCATION" }, 400);
       if (!["PAID", "FREE"].includes(subscriptionMode)) return response(origin, { error: "INVALID_SUBSCRIPTION_MODE" }, 400);
       if (subscriptionMode === "PAID" && (!Number.isFinite(subscriptionAmount) || subscriptionAmount <= 0 || subscriptionAmount > 100000000)) return response(origin, { error: "INVALID_SUBSCRIPTION_AMOUNT" }, 400);
       if (subscriptionMode === "PAID") {
