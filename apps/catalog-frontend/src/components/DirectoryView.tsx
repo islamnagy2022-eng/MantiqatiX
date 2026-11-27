@@ -1082,26 +1082,20 @@ export const DirectoryView: React.FC = () => {
             <div>
               <h2 className="flex items-center gap-2 text-lg font-black text-slate-900"><Store className="h-5 w-5 text-emerald-600" />الأنشطة</h2>
               <p className="mt-1 text-xs text-slate-500">اختر النشاط لعرض التخصصات التابعة له والجهات المنشورة ضمن النطاق الجغرافي.</p>
-              <p data-testid="menoufia-directory-scope" className="mt-2 text-xs leading-5 text-slate-600">
-                {selectedGovFilter === 'المنوفية'
-                  ? 'كتالوج محافظة المنوفية: تصنيفات الأنشطة وتخصصاتها، مع عرض المنشآت المنشورة التي تستوفي شروط النشر فقط.'
-                  : `النطاق الحالي: ${selectedGovFilter === 'all' ? 'جميع المحافظات' : selectedGovFilter} — التصنيفات لا تعني وجود منشآت مسجلة في كل تخصص.`}
+              <p data-testid="directory-geography-scope" className="mt-2 text-xs leading-5 text-slate-600">
+                النطاق الحالي: {selectedGovFilter === 'all' ? 'جميع المحافظات' : selectedGovFilter} — تُعرض الأنشطة داخل أقسامها وتصنيفاتها المعتادة، وتظهر السجلات غير الموثقة بعلامة واضحة.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-bold text-slate-500">{availableCategories.length.toLocaleString('ar-EG')} تصنيف نشاط</span>
-              {selectedGovFilter === 'المنوفية' ? (
-                <button type="button" onClick={() => applyGovernorateScope('all')} className="min-h-10 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 transition hover:border-emerald-300 hover:text-emerald-800">عرض كل المحافظات</button>
-              ) : (
-                <button type="button" onClick={() => applyGovernorateScope('المنوفية')} className="min-h-10 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-800 transition hover:bg-emerald-100">كتالوج المنوفية</button>
-              )}
+
             </div>
           </div>
           <div data-testid="activity-category-list" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {availableCategories.map((category) => {
-              const eligibleCategoryBusinesses = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && categoryForBusiness(business)?.id === category.id);
+              const eligibleCategoryBusinesses = filteredBusinesses.filter((business) => categoryForBusiness(business)?.id === category.id);
               const confirmedCount = eligibleCategoryBusinesses.filter((business) => business.isVerified).length;
-              const unconfirmedCount = eligibleCategoryBusinesses.filter((business) => !business.isVerified).length + unconfirmedListings.filter((listing) => listing.taxonomy_category_id === category.id && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
+              const unconfirmedCount = eligibleCategoryBusinesses.filter((business) => !business.isVerified).length + filteredUnconfirmedListings.filter((listing) => listing.taxonomy_category_id === category.id).length;
               const totalCount = confirmedCount + unconfirmedCount;
               return (
                 <div key={category.id} className="flex min-w-0 flex-col rounded-2xl border border-slate-200 bg-white p-2 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md sm:p-3">
