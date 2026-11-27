@@ -14,6 +14,12 @@ on:
       - "supabase/migrations/20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql"
       - "supabase/tests/rc926_provider_profile_confirmed_identity_strict_integration.sql"
       - "scripts/validate-rc926-provider-profile-confirmed-identity-strict-guard.mjs"
+      - "supabase/migrations/20261125130000_rc115_crm_business_scoped_reads.sql"
+      - "supabase/migrations/20261128010000_rc931_provider_profile_public_base_read_retirement.sql"
+      - "supabase/tests/rc931_provider_profile_public_read_fixture.sql"
+      - "supabase/tests/rc931_provider_profile_public_read_integration.sql"
+      - "scripts/validate-rc931-provider-profile-public-read-retirement.mjs"
+      - ".github/workflows/rc931-provider-profile-public-read-retirement.yml"
       - "supabase/migrations/20261125120000_rc927_digital_page_authenticated_identity_scope.sql"
       - "supabase/tests/rc927_digital_page_authenticated_identity_scope_integration.sql"
       - "scripts/validate-rc927-digital-page-authenticated-identity-scope.mjs"
@@ -270,7 +276,7 @@ jobs:
       - name: Validate RC469 shared caller search_path contract
         run: node scripts/validate-rc469-shared-platform-admin-caller-search-path.mjs
 
-      - name: Validate strict Production release gate and exact 88-version contract
+      - name: Validate strict Production release gate and exact 90-version contract
         run: node scripts/validate-production-migration-chain-gate.mjs
 
       - name: Validate current backup runbook and release migration scope
@@ -303,6 +309,9 @@ jobs:
         run: node scripts/validate-rc928-catalog-profile-promotional-gallery-atomic-write.mjs
       - name: Validate RC929 explicit confirmed-Auth claim for order resources
         run: node scripts/validate-rc929-orders-confirmed-auth-guard.mjs
+
+      - name: Validate RC931 provider-profile public base-read retirement and caller compatibility
+        run: node scripts/validate-rc931-provider-profile-public-read-retirement.mjs
 
       - name: Validate RC117 marketing-service image provenance forward repair
         run: node scripts/validate-rc117-image-provenance-forward-repair.mjs
