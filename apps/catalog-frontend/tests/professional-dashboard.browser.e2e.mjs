@@ -1780,6 +1780,7 @@ try {
       await page.getByRole('button', { name: 'حسابي / اشتراكي', exact: true }).click();
       await page.getByRole('heading', { name: 'حسابي واشتراكاتي', exact: true })
         .waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByRole('button', { name: 'اشتراكاتي', exact: true }).click();
       await page.getByRole('heading', { name: secondaryBusinessName, exact: true })
         .waitFor({ state: 'visible', timeout: 10000 });
       assert.equal(
