@@ -2288,3 +2288,12 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Added source-contract assertions that the registry exists, is included in the Super Admin workspace, reads current loaded flags, and contains no direct writes.
 - [x] Rotated app/PWA asset keys to \`super-admin-module-flag-registry-20261127\` and \`mnty-web-v155\`.
 - [ ] Exact-head CI and responsive/browser/accessibility verification remain pending. No module toggle action has been added; first inspect the authoritative feature-flag mutation RPC/Edge Function and its RBAC scope.
+
+
+## 2026-11-27 — Super Admin role and scope review (current account only)
+
+- [x] Added a read-only view of active membership contexts already loaded for the authenticated account, with role, activity/specialty, scope and selected context.
+- [x] Shows PLATFORM / FULL CONTROL only for a SUPER_ADMIN membership that explicitly has both \`permissions.scope=PLATFORM\` and \`permissions.full_control=true\`.
+- [x] Static contract ensures this view uses the current account's loaded \`live.memberships\` and \`live.activeMembershipId\`, does not query arbitrary memberships, and contains no writes.
+- [ ] Exact-head CI and browser/responsive/accessibility validation remain pending.
+- [ ] Global user/employee/role assignment remains blocked until a private-registry-backed server API, audit trail, and tenant/business/branch assignment contract are verified. Do not query private platform-admin registry from the browser.

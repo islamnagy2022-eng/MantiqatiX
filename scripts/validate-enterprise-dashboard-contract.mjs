@@ -27,6 +27,15 @@ assert.match(app, /loadSuperAdminActivityDirectory\(\);/, "Super Admin activity 
 assert.match(app, /sb\.from\('businesses'\)\.select\('id,name,code,status,updated_at'\)/, "activity directory must read an explicit business field allowlist");
 const activityLoaderStart = app.indexOf("async function loadSuperAdminActivityDirectory()");
 assert.match(app, /async function loadOfficialShowcaseAdmin\(\)/, "the existing official-showcase loader must remain async because it awaits Supabase queries");
+assert.match(app, /function superAdminMembershipContextDirectory\(\)/, "Super Admin must render current-account role/scope review");
+assert.match(app, /superAdminMembershipContextDirectory\(\)/, "protected Super Admin workspace must include current-account role/scope review");
+const membershipPanelStart = app.indexOf("function superAdminMembershipContextDirectory()");
+const membershipPanelEnd = app.indexOf("\nfunction superAdminFeatureFlagDirectory()", membershipPanelStart);
+assert.ok(membershipPanelStart >= 0 && membershipPanelEnd > membershipPanelStart, "membership context panel boundaries must be present");
+const membershipPanel = app.slice(membershipPanelStart, membershipPanelEnd);
+assert.match(membershipPanel, /live\.memberships/, "membership panel must use the authenticated account's already-loaded membership records");
+assert.match(membershipPanel, /live\.activeMembershipId/, "membership panel must identify the currently selected membership");
+assert.doesNotMatch(membershipPanel, /sb\.from\(|\.insert\(|\.update\(|\.upsert\(|\.delete\(/, "membership context panel must not query other users or mutate memberships");
 assert.match(app, /function superAdminFeatureFlagDirectory\(\)/, "Super Admin must render a module/feature-flag registry");
 assert.match(app, /superAdminFeatureFlagDirectory\(\)/, "the protected control workspace must include the module/feature-flag registry");
 const flagRegistryStart = app.indexOf("function superAdminFeatureFlagDirectory()");

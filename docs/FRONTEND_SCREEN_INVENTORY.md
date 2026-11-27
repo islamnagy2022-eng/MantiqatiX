@@ -302,3 +302,11 @@ The exact code head `2b8d6e93bc757d1c8b2645845db23ebd338da19f` passed the public
 - [x] Kept the registry read-only because no verified platform-level mutation contract was established in this step.
 - [x] Added source-contract coverage for the registry and its no-write boundary.
 - **Status:** SOURCE UPDATED; exact-head CI and browser verification pending. Feature-flag contents are limited to those visible in the current loaded account/scope, not a certified platform-wide inventory.
+
+
+## 2026-11-27 — Super Admin role and scope review (current account only)
+
+- [x] Added an access-context view showing the active memberships already loaded for the signed-in account: role, linked activity/specialty, effective UI scope, and currently selected context.
+- [x] Super Admin context is labeled PLATFORM / FULL CONTROL only when the membership's existing \`scope=PLATFORM\` and \`full_control=true\` claims are both present.
+- [x] No cross-user membership query, role assignment, permission grant, status change, or membership mutation was added.
+- **Status:** SOURCE UPDATED; exact-head CI and browser verification pending. This is an audit of the current account's membership contexts, not a global employee/user administration screen.

@@ -1069,3 +1069,11 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 - Shows explicit flags only, distinguishes an absent toggle flag from explicit enablement, and omits configuration payload values.
 - Added static source-contract checks for inclusion and read-only behavior. Asset/PWA cache advanced to \`mnty-web-v155\`.
 - Runtime/browser and exact-head CI verification remain pending. Do not add enable/disable writes until the server-side feature-flag contract and permission scope are reviewed.
+
+
+## 2026-11-27 — Super Admin role and scope review (current account only)
+
+- Added an explicitly read-only panel for active membership contexts already loaded for the signed-in account. Shows role, associated activity/specialty, scope and selected context.
+- Labels PLATFORM / FULL CONTROL only when the existing membership contains exact scope/full_control values. No arbitrary user or cross-tenant membership query and no role/permission write was added.
+- Added source-contract coverage for the account-only read boundary and no-write behavior; refreshed assets and PWA cache to \`mnty-web-v156\`.
+- This is not global user/employee administration. Continue only after a private-registry-backed server-side membership administration contract is verified.

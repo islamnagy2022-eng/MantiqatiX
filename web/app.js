@@ -1067,12 +1067,33 @@ function superAdminFeatureFlagDirectory(){
   +'<p class="muted">«بلا علم تفعيل صريح» لا تعني نجاح فحص التشغيل؛ تعني فقط أن البيانات المحملة لا تحتوي علمًا صريحًا مطابقًا لهذا الموديول.</p></section>';
 }
 
+function superAdminMembershipContextDirectory(){
+ const contexts=(live.memberships||[]).filter(m=>m?.id&&String(m.status||'').toUpperCase()==='ACTIVE');
+ const currentId=String(live.activeMembershipId||'');
+ const rows=contexts.map(m=>{
+  const role=String(m.role||'CUSTOMER').toUpperCase();
+  const isPlatformRoot=role==='SUPER_ADMIN'&&m.permissions?.scope==='PLATFORM'&&m.permissions?.full_control===true;
+  const scope=role==='SUPER_ADMIN'?(isPlatformRoot?'PLATFORM / FULL CONTROL':'PLATFORM ROLE / LIMITED'):String(window.MNTY_RBAC?.scope(role)||'USER');
+  return {
+   role:roleLabel(role),
+   activity:m.business_name||'نطاق المنصة',
+   specialty:m.business_section||'—',
+   scope,
+   status:String(m.id)===currentId?'السياق المستخدم الآن':'متاح للتبديل'
+  };
+ });
+ return '<section class="card" style="margin:18px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">ROLE & ACCESS CONTEXT</span><h3>مراجعة الأدوار ونطاقات حسابك</h3><p class="muted">هذه القائمة تخص العضويات النشطة المرتبطة بحسابك الحالي فقط. لا تعرض مستخدمين آخرين ولا تمنح صلاحيات جديدة.</p></div><span class="count">'+contexts.length+' سياقات نشطة</span></div>'
+  +recordsTable('سياقات الوصول المتاحة',rows,[['الدور',row=>row.role],['النشاط / النطاق',row=>row.activity],['التخصص',row=>row.specialty],['نطاق الصلاحية',row=>row.scope],['الحالة',row=>row.status]])
+  +'<p class="muted">تبديل الدور يتم من محدد العضوية أعلى الصفحة. هذا العرض يقرأ العضويات المحملة للحساب الحالي، ولا ينشئ أو يعدل أو يعطل عضويات. قرارات السماح النهائية تظل لدى RBAC وRLS وواجهات الخادم.</p></section>';
+}
+
 function superAdminControlWorkspace(){
  if(!canSuperAdmin())return workspaceHead('PLATFORM CONTROL','التحكم الكامل','هذه المساحة مخصصة لـ SUPER_ADMIN فقط.','RESTRICTED')+'<div class="empty-state">لا تملك صلاحية التحكم الكامل.</div>';
  const tenants=[...new Map((live.memberships||[]).filter(m=>String(m.role||'').toUpperCase()==='SUPER_ADMIN'&&m.status==='ACTIVE').map(m=>[m.tenant_id,m])).values()];
  const tenantOptions=tenants.map(m=>'<option value="'+esc(m.tenant_id)+'" '+(m.tenant_id===live.tenantId?'selected':'')+'>'+esc(m.tenant_id)+'</option>').join('');
  return MNTY_ADMIN_SHOWCASE_STYLE+workspaceHead('SUPER ADMIN','التحكم الكامل','مسار تشغيلي موحد لإنشاء النشاط ثم اعتماده وإنشاء الفرع والخدمات والأسعار، مع بقاء كل الكتابات الحساسة عبر الخادم.','PLATFORM')
  +workspaceCards([['النطاقات النشطة',String(tenants.length),'Tenant contexts المرتبطة بدور SUPER_ADMIN'],['صلاحية الحساب','Full Control','نطاق المنصة فقط'],['الاعتماد','Server-side','الاعتماد يمر عبر مسار الخادم'],['مقدمو الخدمة','هوية حقيقية','لا يتم إنشاء هوية وهمية من الواجهة']])
+ +superAdminMembershipContextDirectory()
  +superAdminFeatureFlagDirectory()
  +'<section class="card"><div class="section-head"><div><span class="eyebrow">CREATE ACTIVITY</span><h3>إنشاء نشاط كامل</h3><p class="muted">سيتم إنشاء طلب نشاط، ثم اعتماده، ثم إنشاء الفرع والخدمات والأسعار عند نجاح كل خطوة.</p></div></div>'
  +'<form id="mx-super-admin-create-form"><div class="grid2">'
