@@ -60,7 +60,7 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 ## Next execution order
 
 1. Complete exact-head review and CI for PR #1174 (read-only Production evidence); merge only after its strict migration replay and all required source/privacy checks pass.
-2. Confirm the new main health-monitor run [45931067599](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45931067599) reports Edge `/health` as **NOT CHECKED** while `HEALTH_MONITOR_TOKEN` is absent. The token must be configured by an authorized repository/project owner before a protected Edge health check can pass.
+2. Confirm the new main health-monitor run [45931067599](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45931067599) reports Edge `/health` as **NOT CHECKED** while `HEALTH_MONITOR_TOKEN` is absent. To enable the protected probe later, an authorized owner must configure the same token in both GitHub Actions repository secrets and the Supabase health Edge Function secrets; do not commit or transmit the token. The deployed health Edge bundle must also be verified against source before relying on the result.
 3. Reconcile all 87 canonical migration identities against aliases and live physical schema/function/ACL/RLS effects; preserve the fail-closed release gate.
 4. Prepare the coordinated platform-root sequence (RC464 → RC471 → RC484 → RC485) and dependent policy/caller work with disposable PostgreSQL positive/negative tests and exact live preflight evidence. Do not hot-edit Production helpers or bulk-rewrite policies.
 5. Keep Production read-only until the complete chronological migration chain, ACL/RLS, Edge parity, deployed-origin positive/negative tests, and verified backup/restore/rollback gates are complete.
