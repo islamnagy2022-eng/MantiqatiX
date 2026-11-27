@@ -161,7 +161,7 @@ jobs:
                AND cp.verification_status='VERIFIED'
                AND cp.availability_status='AVAILABLE';
 
-            IF NOT FOUND OR pg_catalog.nullif(pg_catalog.btrim(v_vehicle_category),'') IS NULL THEN
+            IF NOT FOUND OR nullif(pg_catalog.btrim(v_vehicle_category),'') IS NULL THEN
               RAISE EXCEPTION 'MANTIGO_CAPTAIN_PROFILE_REQUIRED';
             END IF;
 
@@ -203,8 +203,11 @@ jobs:
           COMMIT;
           SQL
 
-      - name: Run strict RC932 source validator
-        run: node scripts/validate-rc932-mantigo-open-ride-explicit-confirmed-auth.mjs
+      - name: Run strict MantiGO privacy source validators
+        run: |
+          node scripts/validate-rc477-mantigo-customer-bid-contact-privacy.mjs
+          node scripts/validate-rc478-mantigo-open-ride-forward-privacy.mjs
+          node scripts/validate-rc932-mantigo-open-ride-explicit-confirmed-auth.mjs
 
       - name: Prepare disposable PostgreSQL roles
         env:
@@ -221,8 +224,11 @@ jobs:
           set -euo pipefail
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rc446_mantigo_open_ride_fixture.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261010060000_rc446_mantigo_open_ride_privacy_boundary.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rc446_mantigo_open_ride_integration.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261118060000_rc477_mantigo_customer_bid_contact_privacy.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rc477_mantigo_customer_bid_contact_privacy_integration.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261118070000_rc478_mantigo_open_ride_privacy_forward_repair.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rc478_mantigo_open_ride_forward_privacy_integration.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$MIGRATION_FILE"
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rc932_mantigo_open_ride_explicit_confirmed_auth_integration.sql
 
