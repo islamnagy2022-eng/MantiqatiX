@@ -363,34 +363,36 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
       try { body = request.postDataJSON() || {}; } catch { /* GET/no JSON body */ }
       if (body.action === 'CATALOG_READ') {
         catalogReadRequests.push({ businessId: body.businessId, tenantId: body.tenantId, branchId: body.branchId });
-        const platformCatalogItemId = '40000000-0000-0000-0000-000000000001';
+        const platformCatalogItems = options.platformCatalogAdmin
+          ? Array.from({ length: options.platformCatalogItemCount || 1 }, (_, index) => ({
+            id: '40000000-0000-0000-0000-' + String(index + 1).padStart(12, '0'),
+            tenant_id: tenantId,
+            business_id: businessId,
+            branch_id: branchId,
+            item_type: index % 3 === 0 ? 'SERVICE' : 'PRODUCT',
+            name_ar: index === 0 ? 'قهوة اختبار المنصة' : 'عنصر اختبار ' + (index + 1),
+            name_en: index === 0 ? 'Platform Test Coffee' : 'Platform Test Item ' + (index + 1),
+            description: 'عنصر اختبار للعرض فقط',
+            sku: 'TEST-ITEM-' + String(index + 1).padStart(2, '0'),
+            status: 'ACTIVE',
+            metadata: { catalog_public: { category: 'اختبار', image_source: 'auto' } },
+            updated_at: '2026-11-27T00:00:00.000Z',
+          }))
+          : [];
         return json({
           business: { ...fakeBusiness, profile: { ...catalogProfileState } },
           provider: { name: fakeBusiness.name, kind: fakeBusiness.category, verified: false },
           branches: fakeBusiness.branches,
           selectedBranchId: body.branchId || (options.platformCatalogAdmin ? branchId : null),
-          items: options.platformCatalogAdmin ? [{
-            id: platformCatalogItemId,
-            tenant_id: tenantId,
-            business_id: businessId,
-            branch_id: branchId,
-            item_type: 'PRODUCT',
-            name_ar: 'قهوة اختبار المنصة',
-            name_en: 'Platform Test Coffee',
-            description: 'عنصر اختبار للعرض فقط',
-            sku: 'TEST-COFFEE-01',
-            status: 'ACTIVE',
-            metadata: { catalog_public: { category: 'قهوة', image_source: 'auto' } },
-            updated_at: '2026-11-27T00:00:00.000Z',
-          }] : [],
-          prices: options.platformCatalogAdmin ? [{
-            id: '50000000-0000-0000-0000-000000000001',
-            catalog_item_id: platformCatalogItemId,
+          items: platformCatalogItems,
+          prices: platformCatalogItems.map((item, index) => ({
+            id: '50000000-0000-0000-0000-' + String(index + 1).padStart(12, '0'),
+            catalog_item_id: item.id,
             branch_id: branchId,
             currency: 'EGP',
-            unit_price: 125,
+            unit_price: 125 + index,
             version: 1,
-          }] : [],
+          })),
           catalogReadiness: 'READY',
         });
       }
@@ -1368,12 +1370,15 @@ try {
       browser,
       roles.platformAdmin,
       [],
-      { initialRoute: '?view=super_admin&tab=control_center&controlTab=catalog', platformCatalogAdmin: true },
+      { initialRoute: '?view=super_admin&tab=control_center&controlTab=catalog', platformCatalogAdmin: true, platformCatalogItemCount: 21 },
     );
     try {
       await page.getByRole('heading', { name: 'إدارة الكتالوج والمنتجات', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
-      await page.getByTestId('platform-catalog-item-row').waitFor({ state: 'visible', timeout: 10000 });
+      await page.getByTestId('platform-catalog-item-row').first().waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(await page.getByTestId('platform-catalog-item-row').count(), 20, 'the platform catalog should initially render twenty items');
       assert.equal(await page.getByText('قهوة اختبار المنصة', { exact: true }).count(), 1);
+      await page.getByTestId('platform-catalog-see-more').click();
+      assert.equal(await page.getByTestId('platform-catalog-item-row').count(), 21, 'the see-more control should reveal the next catalog page');
       assert.ok((await page.getByText(/١٢٥/).count()) > 0, 'the active branch price must be displayed as read-only data');
       assert.equal(await page.getByText('قراءة فقط', { exact: true }).count(), 1, 'the platform catalog section must declare its read-only state');
       assert.equal(await page.getByRole('button', { name: /تعديل|حذف|إيقاف|تنشيط/ }).count(), 0, 'the platform catalog review must not expose unverified write actions');
