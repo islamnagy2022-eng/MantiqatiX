@@ -12,10 +12,13 @@ assert.match(app, /document\.querySelectorAll\('\[data-ec-module\]'\)/, "the bin
 assert.match(app, /input\?\.addEventListener\('keydown',event=>\{if\(event\.key==='Enter'\)\{event\.preventDefault\(\);run\(\)\}\}\)/, "quick search must execute on Enter");
 assert.match(app, /async function renderApp\([\s\S]*?bindRoleCommandCenter\(\);bindEnterpriseCommandCenter\(\);bindAttentionCenter\(\)/, "the binder must run after the authenticated workspace is rendered");
 assert.equal((app.match(/bindEnterpriseCommandCenter\(\);/g) || []).length, 1, "the enterprise binder must not be called from the unauthenticated auth view");
-assert.match(index, /app\.js\?v=enterprise-command-center-binding-20261127/, "HTML must request the refreshed app asset");
-assert.match(index, /sw\.js\?v=enterprise-command-center-binding-20261127/, "HTML must request the refreshed service worker");
-assert.match(sw, /const CACHE='mnty-web-v150'/, "service-worker shell cache must rotate");
-assert.match(sw, /\.\/app\.js\?v=enterprise-command-center-binding-20261127/, "service-worker precache must match the app asset version");
+const appAssetVersion = index.match(/app\.js\?v=([^'"]+)/)?.[1];
+const swRegistrationVersion = index.match(/sw\.js\?v=([^'"]+)/)?.[1];
+const cacheVersion = sw.match(/const CACHE='([^']+)'/)?.[1];
+assert.ok(appAssetVersion, "HTML must version the app asset");
+assert.ok(swRegistrationVersion, "HTML must version the service worker");
+assert.match(cacheVersion || "", /^mnty-web-v\d+$/, "service-worker shell cache must use a versioned key");
+assert.ok(sw.includes("./app.js?v=" + appAssetVersion), "service-worker precache must match the current app asset version");
 
 assert.match(app, /async function loadSuperAdminActivityDirectory\(\)/, "Super Admin activity directory loader must exist");
 assert.match(app, /id="sa-activity-directory-list"/, "Super Admin activity directory must have a render target");

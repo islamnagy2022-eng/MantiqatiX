@@ -1031,3 +1031,9 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 - The loader does not write data. Profile/module query failures are surfaced as partial/unavailable rather than silently reported as zero.
 - Added source-contract assertions for the loader, explicit business selection and absence of direct write calls. Rotated assets and PWA cache to \`mnty-web-v151\`.
 - Exact-head CI and browser/runtime checks remain pending. Read-only listing does not prove full global tenant coverage or grant management permissions.
+
+
+### Follow-up — dashboard asset-version validator correction
+
+- The dashboard source validator now compares the live HTML asset keys with the service-worker precache key and checks the cache-key format instead of hard-coding a previous version number.
+- Exact-head workflow verification remains pending.

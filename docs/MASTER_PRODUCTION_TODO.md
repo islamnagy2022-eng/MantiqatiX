@@ -2244,3 +2244,10 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Rotated app/service-worker asset keys and advanced the PWA cache to \`mnty-web-v151\`.
 - [ ] Exact-head CI and browser/keyboard/accessibility verification remain pending. The directory is read-only; management actions require a separate verified server-side/RBAC implementation.
 - Continue with people/roles, modules/feature flags, subscriptions/commissions, catalog management and settings only after inspecting the existing backend contracts. Production remains **BLOCKED / NOT CERTIFIED**; no merge/deploy/production mutation occurred. Preserve \`SMM_INITIAL_LAUNCH_DEFERRED=true\`; do not modify \`docs/SESSION_LOG.md\`.
+
+
+### Follow-up — make the dashboard asset contract version-agnostic
+
+- [x] Replaced fixed PWA asset-version expectations in the dashboard source validator with dynamic parity checks between \`web/index.html\` and \`web/sw.js\`.
+- [x] This prevents every legitimate asset/cache rotation from making the contract stale.
+- [ ] Exact-head CI must confirm the amended validator.
