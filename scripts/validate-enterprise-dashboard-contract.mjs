@@ -70,4 +70,26 @@ assert.match(activityLoader, /detailFields\.innerHTML=values\.map\(\(\[label,val
 
 assert.match(app, /data-sa-activity-detail=/, "activity detail action must remain in the application source");
 
+
+const safeCountStart = app.indexOf("async function safeCount(table,column,value)");
+const safeCountEnd = app.indexOf(String.fromCharCode(10)+"async function loadLiveData()", safeCountStart);
+assert.ok(safeCountStart >= 0 && safeCountEnd > safeCountStart, "safeCount source boundaries must be present");
+const safeCount = app.slice(safeCountStart, safeCountEnd);
+assert.ok(safeCount.includes("if(column&&(value===null||value===undefined||value===''))return null;"), "scoped counts must refuse to query without a required scope value");
+assert.ok(safeCount.includes("if(column)q=q.eq(column,value);"), "scoped counts must apply the requested equality filter");
+assert.ok(app.includes("function superAdminFinanceOperationsSnapshot()"), "Super Admin finance snapshot must exist");
+assert.ok(app.includes(" +superAdminFinanceOperationsSnapshot()"), "Super Admin control workspace must include the finance snapshot");
+const financeSnapshotStart = app.indexOf("function superAdminFinanceOperationsSnapshot()");
+const financeSnapshotEnd = app.indexOf(String.fromCharCode(10)+"function superAdminControlWorkspace()", financeSnapshotStart);
+assert.ok(financeSnapshotStart >= 0 && financeSnapshotEnd > financeSnapshotStart, "finance snapshot boundaries must be present");
+const financeSnapshot = app.slice(financeSnapshotStart, financeSnapshotEnd);
+assert.ok(financeSnapshot.includes("live.finance"), "finance snapshot must use preloaded finance evidence");
+assert.ok(financeSnapshot.includes("Boolean(live.tenantId)"), "finance counts must require an active tenant scope");
+for (const source of ["journal_entries", "commission_transactions", "payment_intents", "payment_financial_reconciliations", "settlement_transactions", "wallet_accounts"]) {
+  assert.ok(financeSnapshot.includes(source), "finance snapshot must retain source label " + source);
+}
+assert.ok(!["sb.from(", ".rpc(", ".insert(", ".update(", ".upsert(", ".delete("].some(token => financeSnapshot.includes(token)), "finance snapshot must remain read-only and consume only preloaded evidence");
+assert.ok(financeSnapshot.includes("غير متاح"), "missing scope/source counts must not be rendered as zero");
+assert.ok(app.includes("superAdminMembershipContextDirectory()"+String.fromCharCode(10)+" +superAdminFinanceOperationsSnapshot()"+String.fromCharCode(10)+" +superAdminFeatureFlagDirectory()"), "finance snapshot must be included in the protected Super Admin control workspace");
+
 console.log("Enterprise dashboard interaction source contract: PASS");
