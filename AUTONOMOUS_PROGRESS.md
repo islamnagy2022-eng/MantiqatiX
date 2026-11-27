@@ -2,7 +2,7 @@
 
 **Updated:** 2026-11-27  
 **Repository:** `islamnagy2022-eng/MantiqatiX`  
-**Verified main:** `5bc82aa8c2fcb49588764a57e288c1a32c711aa9`  
+**Verified main:** `9f6824750ab21bb754ad0c0253732f9b49919c64`  
 **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`  
 **Production boundary:** read-only; no Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement, or customer-data mutation.
 
@@ -13,7 +13,7 @@
 - Exact PR-head CI for #1155 completed with 28 successes, two expected skipped deployment-only checks, and no failures. Post-merge main checks also passed catalog build, dashboard browser E2E, employee RBAC, public-directory pagination, contact privacy, and the module/financial integration suites. The Pages deployment job was still running at the time of this checkpoint; do not treat it as deployed until its deploy job completes successfully.
 - Subsequent verification on 2026-11-27: Pages deployment run [45913948208](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45913948208) completed successfully. It published the root catalog and verified `/legacy/` rollback, `/v6-preview/`, mixed-case catalog URLs, and dashboard/mobile/QR routes. This verifies the website deployment only; it does not clear the database or Edge release blockers.
 - Duplicate pagination PRs #1152 and #1153 were closed after #1155 merged.
-- Older gallery-viewer PR #1150 was closed as superseded. Its change was recreated on current main as PR #1157, adding an accessible promotional-image viewer, RTL keyboard navigation, Escape/backdrop close, focus containment/restoration, and browser/source-contract coverage. At checkpoint, its exact-head checks had 27 successes, two expected skips, no failures, and the dashboard browser E2E was still running. Do not merge until all exact-head checks finish successfully.
+- Gallery-viewer PR #1150 was closed as superseded; the change was recreated on current main and merged as PR #1157, commit `9f6824750ab21bb754ad0c0253732f9b49919c64`. It adds the accessible promotional-image viewer, RTL keyboard navigation, Escape/backdrop close, focus containment/restoration, and browser/source-contract coverage. Exact-head CI completed with 28 successes, two expected skips, and no failures, including the dashboard browser E2E.
 - Public unclaimed-directory listings remain disabled. Do not enable them until publication/source rights, consent schema/RPC/ACL/RLS, and deployed Edge contracts are verified.
 
 ## Verified Production release blockers — carried forward from the 2026-11-26 read-only audits
@@ -40,8 +40,8 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 
 ## Next execution order
 
-1. Complete exact-head CI and review for PR #1157; only merge after browser E2E and all required checks pass.
-2. Confirm the post-merge Pages deployment for #1155; verify the deployed catalog root and route checks from the actual deployment job.
+1. Confirm the post-merge Pages deployment and deployed-origin checks for main commit `9f6824750ab21bb754ad0c0253732f9b49919c64`, which includes the gallery viewer.
+2. Continue the coordinated Production authorization/migration release preparation; do not weaken the fail-closed migration gate.
 3. Continue source-to-live physical-effect and alias reconciliation for all 87 required migrations; preserve the fail-closed gate.
 4. Continue the coordinated platform-root sequence (RC464/RC469/RC471/RC484 and dependent policy/caller scope) with disposable PostgreSQL tests and exact production preflight evidence. Do not hot-edit Production helpers or bulk-rewrite policies.
 5. Keep Production read-only until the entire migration chain, ACL/RLS, Edge parity, deployed-origin positive/negative tests, and verified backup/restore/rollback gates are complete.
