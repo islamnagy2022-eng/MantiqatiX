@@ -1,4 +1,17 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
+## 2026-11-27 — Current-main continuation closeout
+
+- [x] Verified `main @ 1b9b343e1521a94fc13e93db06bf810987daa296` after PR #1183.
+- [x] Exact-head check inventory: 20 completed; 18 success, two skipped, zero failures. The standalone deployed-origin redirect-regression check was skipped and is not counted as a pass.
+- [x] GitHub Pages deployment [45943888810](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45943888810) succeeded; deployed-origin browser route checks for the catalog, legacy/preview, mixed-case URLs, and dashboard/mobile/QR paths passed.
+- [x] RC930 source repair is included through merged PR #1159, with disposable PostgreSQL coverage. The Production issue remains open pending the coordinated release; no live migration was executed.
+- [x] Stale RBAC/settings PRs #387/#388/#439/#441/#442 were inspected and not merged because their base history is old and needs current-main reconciliation.
+- [x] Monufia activity work in PRs #1179/#1180 remains untouched under the current pause.
+- [ ] Continue the full 87-source physical-effect/alias reconciliation, platform-root authorization release preparation, Edge bundle parity review, and backup/restore evidence. Keep the release gate fail-closed.
+- **Production remains read-only.** No database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement, or customer/business-data mutation was performed.
+- **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. The latest documented 0/87 exact-ID comparison comes from the 2026-11-27 00:04 UTC read-back; it is an identity gap, not proof that all physical effects are absent.
+
+---
 ## 2026-11-27 — Post-pagination merge and gallery-viewer continuation checkpoint
 
 - [x] PR #1155 merged into `main` as `5bc82aa8c2fcb49588764a57e288c1a32c711aa9`. Exact-head CI: 28 successes, two expected skips, zero failures. The post-merge catalog build, dashboard E2E, employee RBAC, keyset pagination, contact privacy, and source/module/financial tests passed.
@@ -6,7 +19,7 @@
 - [x] Recreated the accessible gallery viewer from stale PR #1150 on current main and merged it as PR #1157, commit `9f6824750ab21bb754ad0c0253732f9b49919c64`. Exact-head CI completed: 28 successes, two expected skips, zero failures, including the dashboard browser E2E.
 - [x] Closed stale PR #1150 as superseded by #1157. Do not reopen the diverged branch.
 - [x] Confirmed main Pages deployment run [45913948208](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45913948208) for the pagination merge completed successfully. It verified the deployed root catalog, `/legacy/` rollback, `/v6-preview/`, mixed-case catalog URLs, and dashboard/mobile/QR routes. This is website deployment evidence only; no database migration or Edge deployment was performed.
-- [ ] Verify the post-merge Pages deployment and deployed-origin browser checks for gallery commit `9f6824750ab21bb754ad0c0253732f9b49919c64`; PR-head CI does not establish deployment.
+- [x] Verified the deployed gallery routes on the later `main` deployment run [45943888810](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45943888810), after PR #1183. Deployed-origin browser coverage passed for the root catalog, legacy/preview routes, case-insensitive catalog URLs, and dashboard/mobile/QR routes. This does not establish database or Edge deployment.
 - [ ] Refresh the full 87-source Production physical-effect/alias reconciliation and retain fail-closed release gates. The last documented Production ledger has 310 rows through `20261110150618`, with 0/87 exact IDs; this is an identity mismatch, not proof all physical effects are absent.
 - [ ] Correct the live platform-root authorization drift only through the coordinated RC464/RC469/RC471/RC484 + policy/caller release chain; the last documented read-only state still has broad membership-derived helpers, registry FORCE RLS off, and the 62-policy/27-table review surface.
 - [ ] Keep gallery-dependent Edge parity/deployment blocked until schema/RPC/ACL/RLS dependencies and all three bundles are verified together.
