@@ -8669,5 +8669,91 @@
       "RC485"
     ],
     "no_production_mutation": true
+  },
+  "platform_root_post_merge_recheck_20261127": {
+    "status": "BLOCKED / NOT CERTIFIED",
+    "checked_at": "2026-11-27",
+    "source_main_commit": "5565fcdeba4c1c20048f3cbaac5e9fbdb285acb3",
+    "method": "Fresh read-only Supabase project readback: project status, live migration inventory, pg_class RLS flags, pg_proc definitions/ACLs, pg_policies dependency inventory, and effective table/function privileges. No application rows selected; no function invoked; no Production write.",
+    "project": {
+      "name": "MANTIQATIX FINAL",
+      "ref": "moyhiluyhjsujhwlyeuu",
+      "status": "ACTIVE_HEALTHY",
+      "postgres_version": "17.6.1.155"
+    },
+    "registry": {
+      "table": "private.platform_admins",
+      "owner": "postgres",
+      "rls_enabled": true,
+      "force_rls": false,
+      "privileges": {
+        "anon_select": false,
+        "authenticated_select": false,
+        "service_role_select": true
+      },
+      "status": "BLOCKED — RLS is enabled but FORCE RLS is not enabled; registry-only authority is not yet established."
+    },
+    "helpers": {
+      "is_platform_admin": {
+        "security_definer": false,
+        "search_path": "public",
+        "authenticated_execute": true,
+        "anon_execute": false,
+        "service_role_execute": false,
+        "authority": "EXISTS active public.user_memberships row for auth.uid() with role ADMIN or SUPER_ADMIN",
+        "status": "BLOCKED — authority remains derived from tenant membership, not private.platform_admins."
+      },
+      "mnty_can_platform_admin": {
+        "security_definer": true,
+        "search_path": "public, pg_temp",
+        "authenticated_execute": true,
+        "anon_execute": false,
+        "service_role_execute": false,
+        "authority": "SELECT public.mnty_can('admin', NULL, NULL, NULL)",
+        "status": "BLOCKED — SECURITY DEFINER wrapper delegates to the legacy unscoped helper."
+      }
+    },
+    "policy_dependencies": {
+      "is_platform_admin": {
+        "policy_references": 57,
+        "tables": 24
+      },
+      "mnty_can_platform_admin": {
+        "policy_references": 5,
+        "tables": 3
+      },
+      "combined": {
+        "policy_references": 62,
+        "unique_tables": 27
+      }
+    },
+    "production_migration_ledger": {
+      "rows": 310,
+      "last_version": "20261110150618",
+      "last_name": "revoke_public_execute_from_trigger_functions",
+      "required_source_versions": 87,
+      "exact_required_source_id_matches": 0,
+      "missing_exact_required_source_ids": 87,
+      "interpretation": "Migration identity mismatch only. Reconcile known aliases and verify physical object, function, ACL, RLS and Edge effects independently. Do not fabricate ledger rows or blindly replay migrations on Production."
+    },
+    "exact_main_ci": {
+      "primary_catalog_validation_run": 46021520254,
+      "professional_dashboard_build": "PASS",
+      "professional_dashboard_browser_e2e": "PASS",
+      "employee_rbac_postgres": "PASS",
+      "pages_deploy_run": 46021520393,
+      "pages_deploy": "PASS",
+      "production_health_monitor_run": 46021520220,
+      "production_health_monitor": "PASS — only its configured probes; this does not prove protected Edge health without the token."
+    },
+    "release_sequence": [
+      "RC464",
+      "RC469",
+      "RC471",
+      "RC484",
+      "RC485"
+    ],
+    "production_mutation": "NONE",
+    "interpretation": "The latest-main frontend build/browser/Pages validation is green. This is not full Production certification. Keep all Production schema, grant, RLS, Auth, Edge, payment and finance changes gated until the coordinated migration/authorization sequence and its live post-deploy tests are independently verified."
   }
 }
