@@ -6,6 +6,11 @@ on:
       - "fix/rc932-mantigo-open-ride-explicit-confirmed-auth-20261128"
     paths:
       - ".github/workflows/generate-rc932-mantigo-open-ride-confirmed-auth.yml"
+  pull_request:
+    branches:
+      - "docs/backup-restore-current-main-rebase-20261128"
+    paths:
+      - ".github/workflows/generate-rc932-mantigo-open-ride-confirmed-auth.yml"
   workflow_dispatch:
 
 permissions:
@@ -30,6 +35,8 @@ jobs:
           --health-retries 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Install pinned Supabase CLI
         uses: supabase/setup-cli@v1
@@ -241,4 +248,5 @@ jobs:
           git add supabase/migrations/*_rc932_mantigo_open_ride_explicit_confirmed_auth.sql
           git diff --cached --check
           git commit -m "fix(db): require explicit confirmed Auth for MantiGO open rides"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          target_ref="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
+          git push origin "HEAD:${target_ref}"
