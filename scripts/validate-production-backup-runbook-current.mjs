@@ -32,6 +32,7 @@ const runbookRequirements = [
   "RC930",
   "20261127235334",
   "RC932",
+  "requires the `is_anonymous` JWT claim to be explicitly false",
   "not applied to Production",
 ];
 for (const required of runbookRequirements) {
@@ -101,6 +102,8 @@ for (const required of [
   "20261120200000_rc485_catalog_rpc_registry_root.sql",
   "Order/application source files",
   "20261126030000_rc929_orders_confirmed_auth_claim_guard.sql",
+  "MantiGO privacy source file",
+  "20261127235334_rc932_mantigo_open_ride_explicit_confirmed_auth.sql",
   "20261127010000_rc930_serialize_job_deactivation_and_application.sql",
   "20261009120000_rc425_atomic_mantigo_paymob_payment.sql",
   "20261010175000_rc449a_financial_journal_schema_prerequisites.sql",
