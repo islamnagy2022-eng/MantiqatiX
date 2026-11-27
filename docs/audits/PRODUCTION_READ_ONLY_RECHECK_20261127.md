@@ -1,0 +1,141 @@
+# Supabase Production Read-Only Recheck — 2026-11-27
+
+## Scope and method
+
+Read-only inspection of the connected Supabase project `MANTIQATIX FINAL` (`moyhiluyhjsujhwlyeuu`) using the Supabase project, migration, Edge Function, and advisor inventory APIs. The project reported `ACTIVE_HEALTHY` on PostgreSQL 17.6.1.155.
+
+No SQL mutation, migration application, Auth setting change, grant/RLS/policy change, Edge deployment, Storage write, payment, wallet, settlement, or business/customer-data mutation was performed.
+
+## Migration ledger
+
+The live migration inventory contains **310 rows**, with latest version **`20261110150618`** (`revoke_public_execute_from_trigger_functions`). Current release manifest lists **87 exact source migration versions** required for the coordinated production release; a direct ID comparison found **0/87** exact IDs in the live ledger.
+
+This is an exact migration-identity gap. It is not proof that every intended database effect is absent: legacy aliases and physical schema/function/ACL/RLS effects need their own inspection. Do not invent ledger rows or replay the source migration chain blindly against Production.
+
+## Deployed Edge Function parity
+
+| Function | Live version | Read-only finding |
+|---|---:|---|
+| `catalog-admin` | 20 | **Authorization drift.** Deployed `index.ts` uses a membership-derived `isPlatformAdmin` check (unscoped `SUPER_ADMIN` plus `permissions.scope=PLATFORM` and `full_control=true`). It does not call the current-main `mnty_can_platform_admin()` registry-backed check. It does manually validate bearer tokens with `auth.getUser` and rejects anonymous users, but global-root authorization semantics are behind source. |
+| `public-catalog` | 11 | Shared `public-contact-visibility.mjs` matches current main byte-for-byte and requires owner opt-in plus a verified consent audit marker. The deployed entrypoint is not byte-identical to current main (14,140 vs 14,143 characters); this small difference still needs exact source comparison before claiming full parity. |
+| `public-catalog-directory` | 20 | Shared `public-contact-visibility.mjs` and `promotional-images.mjs` match current main byte-for-byte. The entrypoint is not byte-identical to current main (19,965 vs 25,693 characters), so do not claim complete bundle parity. |
+| `directory-listings` | 18 | Intentionally fail-closed pending RC472/RC473 consent and source-rights gates. GET returns an empty listings payload with `directoryDisabled=true`; POST returns HTTP 503 `DIRECTORY_LISTINGS_DISABLED_FOR_V1`. Do not reactivate this route until the coordinated consent release passes. |
+
+All four functions were reported ACTIVE. Their deployed `verify_jwt` metadata was false; functions that require user identity perform their own bearer-token validation. This metadata alone does not establish an authorization defect, but each entrypoint's internal authentication and authorization path must remain part of parity review.
+
+
+## Direct PostgreSQL authorization read-back
+
+A separate read-only SQL snapshot on 2026-11-27 confirmed:
+
+- `private.platform_admins`: RLS enabled, FORCE RLS disabled.
+- `public.is_platform_admin()`: SECURITY INVOKER with `search_path=public`; it returns true when the caller has any ACTIVE membership whose role is `ADMIN` or `SUPER_ADMIN`. EXECUTE is denied to `anon` and granted to `authenticated`.
+- `public.mnty_can_platform_admin()`: SECURITY DEFINER with `search_path=public, pg_temp`; it delegates to `public.mnty_can('admin', NULL, NULL, NULL)`. EXECUTE is denied to `anon` and granted to `authenticated`.
+- The current policy inventory contains **57 references across 24 tables** to `is_platform_admin()`, plus **5 references across 3 tables** to `mnty_can_platform_admin()`. The two sets overlap; they should not be treated as 62 distinct tables.
+- `orders` and `order_status_history` both have RLS and FORCE RLS enabled. The strict RC929 confirmed-Auth restrictive policy was not present in the live policy inventory at this check.
+- `public.directory_listing_contact_consents` does not exist in the live schema at this check.
+
+This read-back confirms the source/deployed authorization drift is also reflected in live database helpers and policy dependencies. Because the legacy helper is referenced by many policies, a direct helper replacement or bulk policy rewrite would have a broad authorization blast radius. The coordinated migration plan must preserve tenant/business/branch scopes and include positive and negative regression tests before any Production rollout.
+
+## Authorization finding and already-existing source repair
+
+The live SQL definitions establish a high-priority cross-tenant authorization risk:
+
+- **mnty_active_membership(NULL, NULL, NULL)** returns the caller's ACTIVE membership rows without a tenant, business, or branch filter.
+- **mnty_can('admin', NULL, NULL, NULL)** delegates to that list and explicitly includes 'admin' in the permission sets for both OWNER and ADMIN; it also accepts a JSON permissions.admin=true value.
+- The deployed **mnty_can_platform_admin()** simply calls that generic evaluator. It does not query private.platform_admins. Consequently, an ordinary active tenant OWNER/ADMIN membership can satisfy the function named mnty_can_platform_admin() without a registry record.
+- The separate **public.is_platform_admin()** helper returns true for any ACTIVE membership with role ADMIN or SUPER_ADMIN, with no tenant/business/branch predicate. Its 57 policy references across 24 tables commonly use it as an OR branch beside owner/tenant checks; this can turn a tenant-local role into a platform-wide RLS bypass on those policies. This is a source-derived authorization logic defect and future privilege-escalation condition. An aggregate-only snapshot found no current non-registry active OWNER or ADMIN users, no non-registry active SUPER_ADMIN users, and no non-registry membership with permissions.admin=true. The four non-registry BUSINESS_OWNER users do not satisfy the built-in mnty_can('admin') role branch. No real user session was impersonated and no data was read through those policies.
+
+**The repository already contains the forward-only repair; do not create duplicate migration IDs or hot-patch Production:**
+
+1. **RC464 — 20261113214500_rc464_platform_admin_live_registry_hardening.sql**: verifies the private registry, table/guard ownership and BYPASSRLS prerequisites, requires the expected current callers/policies, enables FORCE RLS, replaces mnty_can_platform_admin() with a SECURITY DEFINER lookup of private.platform_admins.user_id = auth.uid(), pins an empty search path, revokes PUBLIC/anon execution, grants authenticated execution, and replaces the four global MantiGO RPCs.
+2. **RC471 — 20261117190000_rc471_mantigo_platform_admin_forward_hardening.sql**: follow-forward repair for additional MantiGO SECURITY DEFINER callers and scope/authorization checks.
+3. **RC484 — 20261119040000_rc484_registry_backed_is_platform_admin.sql**: replaces is_platform_admin() with a registry-only SECURITY DEFINER lookup, forces RLS on the registry, pins empty search path, and removes PUBLIC/anon/service_role function execution.
+4. **RC485 — 20261120200000_rc485_catalog_rpc_registry_root.sql**: updates the seven direct catalog RPCs to use the registry-backed helper while retaining tenant-local OWNER/ADMIN/MANAGER/BUSINESS_OWNER business/branch scope checks.
+
+The live database still has none of those exact source IDs in the current 87-version release list, and the direct SQL read-back still shows the pre-repair function bodies. Apply only as part of the complete, reviewed, backed-up chronological release after all preflights pass. RC464/RC471/RC484/RC485 are not independently deployable hot fixes.
+
+## RC464 / RC484 / RC485 read-only preflight matrix
+
+A separate catalog SQL read-back checked the source migration preconditions without executing any migration:
+
+| Check | Live result | Meaning |
+|---|---|---|
+| Registry exists, RLS enabled, owner postgres with BYPASSRLS | PASS | Compatible with the RC464/RC484 SECURITY DEFINER owner requirement. |
+| Registry user_id column UUID NOT NULL | PASS | Matches RC484 registry contract. |
+| Direct anon/authenticated SELECT/INSERT/UPDATE/DELETE grants on private.platform_admins | None found | Matches RC464/RC484 client-table ACL precondition. |
+| Four expected MantiGO global SECURITY DEFINER signatures | 4/4 present | Matches the RC464 caller preflight. |
+| Four additional shared SECURITY DEFINER callers using mnty_can_platform_admin() | 4/4 present | Matches the RC464 shared-caller preflight. |
+| digital_pages / MantiGO financial / rate-limit shared-helper RLS policies | 3/3 present | Matches the RC464 expected policy preflight. |
+| RC484 policy blast radius | 57 references / 24 tables | Meets the minimum RC484 preflight count. |
+| RC485 registry-backed helper precondition | FAIL | Current is_platform_admin() is SECURITY INVOKER, search_path=public and membership-derived; it does not read private.platform_admins. RC485 must follow RC484. |
+
+This means the exact RC464 and RC484 *catalog preconditions* were observed as present, while the current helper contract is deliberately still weak and is the object those migrations replace. It is not permission to execute RC464/RC484 separately. RC471's full preflight and every remaining migration dependency, schema effect, alias and backup/restore condition still belong to the complete chronological release.
+
+## Supabase advisors
+
+Security Advisor reported **94 lint categories / 166 findings**: **157 WARN** and **9 INFO**. Major counts include 65 authenticated-callable SECURITY DEFINER warnings, one anon-callable SECURITY DEFINER warning, 90 anonymous-access-policy checks, one leaked-password-protection warning, and nine RLS-enabled tables without policies.
+
+Performance Advisor reported **4 lint categories / 600 findings**: **403 WARN** and **197 INFO**. Major counts include 375 auth/RLS init-plan warnings, 28 multiple-permissive-policy warnings, 132 unindexed-foreign-key notices, and 65 unused-index notices.
+
+These advisor results are triage signals, not a standalone exploit determination. Review each function, policy predicate, direct GRANT, caller path, and intended public-read contract independently. Do not bulk-revoke access or drop indexes solely because a lint is present.
+
+## Release disposition
+
+**`FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.**
+
+Priority work remains:
+1. Reconcile the 87 exact required migration identities with aliases and physical effects; preserve chronological release order.
+2. Prepare the coordinated registry-backed platform-root and catalog-admin authorization repair, with adversarial PostgreSQL positive/negative tests and exact deployed-origin checks.
+3. Keep `directory-listings` disabled until RC472/RC473 owner-consent and source-rights contracts are live and verified.
+4. Complete full Edge bundle parity, Auth/RLS/GRANT review, payment/finance tests, and an actual verified backup/restore/rollback rehearsal.
+
+**Non-actions:** no Production SQL write, migration, Auth setting change, GRANT/RLS change, Edge deployment, Storage, payment, wallet, settlement, or customer/business-data mutation occurred during this check.
+
+---
+Evidence timestamp: `2026-11-27 02:42 UTC`.
+
+## Main Pages deployment after Super Admin overview — 2026-11-27 02:52 UTC
+
+- [x] Confirmed the post-merge GitHub Pages deployment for main commit `7cb8e96ae1bf6a739039c0ec0e8673d0025ef4cb` completed successfully (workflow run [45930249106](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45930249106)).
+- [x] Deploy job completed successfully after deployed-origin checks, including the legacy catalog root and dashboard/mobile/QR routes.
+- [x] Main Primary Catalog Frontend Validation run [45930249165](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45930249165) completed successfully: build, professional dashboard browser E2E and employee-RBAC PostgreSQL job passed.
+- **Scope:** website/Pages verification only. It does not close the separate Supabase migration, Edge Function authorization/parity, database ACL/RLS, privacy, finance, backup/restore, or rollback gates.
+
+
+
+## Aggregate-only check of currently qualifying registry membership — 2026-11-27 02:54 UTC
+
+No account IDs, emails, or individual membership rows were selected. Aggregate results only:
+
+- Registry rows: **1**; matching Auth account present and not banned/deleted: **1**.
+- Non-registry active users by role: 4 BUSINESS_OWNER and 12 CUSTOMER; no non-registry active OWNER, ADMIN, or SUPER_ADMIN users.
+- Non-registry active BUSINESS_OWNER memberships: 7 across 4 users.
+- Non-registry active membership rows with explicit `permissions.admin=true`: **0**.
+- The 4 BUSINESS_OWNER users do not match the built-in `mnty_can('admin')` branch, which explicitly grants `admin` to OWNER and ADMIN; there are no explicit permissions.admin overrides in the non-registry membership set.
+
+**Interpretation:** the live helper implementation is still broader than a registry-only platform-root contract and remains a P0 authorization-logic defect to repair. However, this aggregate inventory did **not** find a current non-registry active account that satisfies the observed OWNER/ADMIN/permission override branches. Do not describe this as an observed account compromise or demonstrated cross-tenant data access. Keep the fix mandatory before any new admin-role onboarding or full production certification.
+
+
+### Exact live mnty_can('admin') role semantics
+
+The live function body is more specific than the generic summary above:
+
+- `OWNER`: built-in `admin` permission.
+- `ADMIN`: built-in `admin` permission.
+- `SUPER_ADMIN`: platform authority only when `permissions.scope='PLATFORM'` and `permissions.full_control=true`.
+- `BUSINESS_OWNER`, `MANAGER`, `FINANCE_MANAGER`, `SERVICE_PROVIDER`, and other tenant-local roles do **not** get the built-in `admin` permission from their role case.
+- Any role could still qualify through an explicit `permissions.admin=true` override; the aggregate-only query found zero active non-registry overrides.
+
+The current aggregate therefore found no non-registry account satisfying the live helper's current role/permission predicate. The four non-registry BUSINESS_OWNER users are not currently platform-admin eligible by their role alone.
+
+**Test-fixture qualification:** `supabase/tests/rc464_platform_admin_live_baseline.sql` intentionally models a broader weak pre-RC464 role matrix that includes BUSINESS_OWNER/MANAGER/OPERATIONS-style roles in the generic admin case. Treat it as a conservative baseline fixture for denial testing, not a byte-for-byte copy of the current live `mnty_can()` definition. The current live PostgreSQL definition plus the aggregate-only membership snapshot are the authoritative observations for this recheck.
+
+
+
+## Updated main health monitor and deployment check — 2026-11-27 02:59 UTC
+
+- [x] Main commit `036c6655b3796d649abd9e603c24f518f8ee361e` completed Production Health Monitor run [45931207565](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45931207565).
+- [x] The corrected log explicitly reports **Edge Function /health: NOT CHECKED** because `HEALTH_MONITOR_TOKEN` is absent. The database probe passed only through the legacy anonymous read-only fallback. Do not report this as a successful protected Edge health check.
+- [x] Main Pages deployment validation (site build/validation phase) completed successfully for the same commit; deployed-origin browser verification of the legacy catalog root and dashboard/mobile/QR routes was still running at the time of this snapshot (run [45931067591](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45931067591)).
+- **Required owner-side follow-up:** configure the repository Actions secret `HEALTH_MONITOR_TOKEN` with the health function's protected bearer token so a future scheduled/manual monitor can actually query Edge `/health`. This task is not executable through the available GitHub connector and was not attempted. Do not paste the token into chat or source files.
