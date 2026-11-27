@@ -1,0 +1,82 @@
+name: RC931 Provider Profile Public Base-Read Retirement
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "supabase/migrations/20261118190000_rc479_revoke_anon_provider_profile_base_read.sql"
+      - "supabase/migrations/20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql"
+      - "supabase/migrations/20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql"
+      - "supabase/migrations/20261125130000_rc115_crm_business_scoped_reads.sql"
+      - "supabase/migrations/20261128010000_rc931_provider_profile_public_base_read_retirement.sql"
+      - "supabase/tests/rc926_provider_profile_confirmed_identity_strict_integration.sql"
+      - "supabase/tests/rc931_provider_profile_public_read_fixture.sql"
+      - "supabase/tests/rc931_provider_profile_public_read_integration.sql"
+      - "scripts/validate-rc931-provider-profile-public-read-retirement.mjs"
+      - ".github/workflows/rc931-provider-profile-public-read-retirement.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  rc931-provider-profile-public-read:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rc931_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rc931_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Validate RC931 source, release contract and public caller boundary
+        run: node scripts/validate-rc931-provider-profile-public-read-retirement.mjs
+      - name: Reproduce historical pre-RC479 access boundary in disposable PostgreSQL 17
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d rc931_test -v ON_ERROR_STOP=1 -f supabase/tests/rc931_provider_profile_public_read_fixture.sql
+      - name: Apply raw-anon and anonymous-session provider profile guards
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d rc931_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261118190000_rc479_revoke_anon_provider_profile_base_read.sql
+          psql -h 127.0.0.1 -U postgres -d rc931_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql
+          psql -h 127.0.0.1 -U postgres -d rc931_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql
+      - name: Apply tenant-business CRM scope before retiring the global read
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d rc931_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261125130000_rc115_crm_business_scoped_reads.sql
+      - name: Verify RC926 strict identity and owner compatibility before RC931
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d rc931_test -v ON_ERROR_STOP=1 -f supabase/tests/rc926_provider_profile_confirmed_identity_strict_integration.sql
+      - name: Apply RC931 only after RC479, RC926 and RC115 prerequisites
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d rc931_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261128010000_rc931_provider_profile_public_base_read_retirement.sql
+      - name: Verify public denial, tenant isolation, owner and platform access
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d rc931_test -v ON_ERROR_STOP=1 -f supabase/tests/rc931_provider_profile_public_read_integration.sql
