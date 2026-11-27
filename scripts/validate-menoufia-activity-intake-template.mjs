@@ -117,7 +117,9 @@ assert.equal(seen.size, 600, 'All 600 activity/district combinations must be uni
 assert.ok([...perCategory.values()].every((count) => count === 12), 'Every activity must cover all 12 Menoufia districts.');
 assert.ok([...perDistrict.values()].every((count) => count === 50), 'Every Menoufia district must contain all 50 activity categories.');
 
-assert.ok(admin.includes('MENOUFIA_GOVERNORATE_NAME'), 'New admin directory forms must default to Menoufia.');
+assert.ok(admin.includes('MENOUFIA_GOVERNORATE_NAME'), 'Admin intake must offer a canonical Menoufia preset.');
+assert.ok(admin.includes('governorate: "", district: ""'), 'New records must not be assigned a fabricated location by default.');
+assert.ok(admin.includes('تحديد محافظة المنوفية'), 'The admin form must require an explicit Menoufia selection action.');
 assert.ok(admin.includes('EGYPT_GEO_DISTRICTS.filter((district) => district.governorateName === form.governorate)'),
   'Admin district selector must use the canonical governorate/district hierarchy.');
 assert.ok(admin.includes('templates/menoufia-activity-intake-template.csv'), 'The admin directory panel must expose the blank intake template.');
