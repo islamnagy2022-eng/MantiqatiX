@@ -5,6 +5,7 @@ import { Navbar } from './components/Navbar';
 import { DirectoryView } from './components/DirectoryView';
 import { MessageCircle } from 'lucide-react';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from './utils/dashboardAccess';
+import { EGYPT_GEO_GOVERNORATES } from './data/egyptGeoDiscovery';
 
 const MarketplaceHome = lazy(() => import('./components/MarketplaceHome').then((module) => ({ default: module.MarketplaceHome })));
 const BusinessProfileHeader = lazy(() => import('./components/storefront/BusinessProfileHeader').then((module) => ({ default: module.BusinessProfileHeader })));
@@ -77,6 +78,8 @@ const MainContent: React.FC = () => {
       : undefined;
     const requestedSpecialty = params.get('specialty') || '';
     const specialtyName = activityCategory?.specialties?.find((specialty) => specialty === requestedSpecialty);
+    const requestedGovernorate = params.get('governorate') || '';
+    const governorateName = EGYPT_GEO_GOVERNORATES.find((governorate) => governorate.name === requestedGovernorate)?.name;
 
     applyRouteSeoMetadata(resolveRouteSeoMetadata({
       view: visibleView,
@@ -87,6 +90,7 @@ const MainContent: React.FC = () => {
       activityId: activityCategory?.id,
       activityName: activityCategory?.name,
       specialtyName,
+      governorateName,
       }));
     };
     syncRouteSeo();

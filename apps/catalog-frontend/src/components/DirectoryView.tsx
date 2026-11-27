@@ -182,9 +182,13 @@ export const DirectoryView: React.FC = () => {
   const directoryLoadingMoreForView = scopedDirectoryBusinesses !== null ? scopedDirectoryLoadingMore : directoryLoadingMore;
   const directoryLoadMoreErrorForView = scopedDirectoryBusinesses !== null ? scopedDirectoryError : directoryLoadMoreError;
   const [initialGeoPreference] = useState<StoredGeoPreference | null>(() => readStoredGeoPreference());
-  const [geoSetupCompleted, setGeoSetupCompleted] = useState(Boolean(initialGeoPreference?.completed));
-  const [geoPreferenceMode, setGeoPreferenceMode] = useState<'auto' | 'manual'>(initialGeoPreference?.mode || 'manual');
-  const [showLocationWelcome, setShowLocationWelcome] = useState(!initialGeoPreference?.completed);
+  const [initialRouteGovernorate] = useState<string>(() => {
+    const requested = new URLSearchParams(window.location.search).get('governorate') || '';
+    return EGYPT_GEO_GOVERNORATES.find((governorate) => normalizeGeoName(governorate.name) === normalizeGeoName(requested))?.name || '';
+  });
+  const [geoSetupCompleted, setGeoSetupCompleted] = useState(Boolean(initialGeoPreference?.completed || initialRouteGovernorate));
+  const [geoPreferenceMode, setGeoPreferenceMode] = useState<'auto' | 'manual'>(initialRouteGovernorate ? 'manual' : initialGeoPreference?.mode || 'manual');
+  const [showLocationWelcome, setShowLocationWelcome] = useState(!initialGeoPreference?.completed && !initialRouteGovernorate);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [userCoordinates, setUserCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -366,10 +370,36 @@ export const DirectoryView: React.FC = () => {
     window.addEventListener('popstate', syncActivityModuleRoute);
     return () => window.removeEventListener('popstate', syncActivityModuleRoute);
   }, []);
-  const [selectedGovFilter, setSelectedGovFilter] = useState<string>(initialGeoPreference?.governorate || 'all');
-  const [selectedMarkazFilter, setSelectedMarkazFilter] = useState<string>(initialGeoPreference?.markaz || 'all');
-  const [selectedVillageFilter, setSelectedVillageFilter] = useState<string>(initialGeoPreference?.village || 'all');
-  const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>(initialGeoPreference?.area || 'all');
+  const [selectedGovFilter, setSelectedGovFilter] = useState<string>(initialRouteGovernorate || initialGeoPreference?.governorate || 'all');
+  const [selectedMarkazFilter, setSelectedMarkazFilter] = useState<string>(initialRouteGovernorate ? 'all' : initialGeoPreference?.markaz || 'all');
+  const [selectedVillageFilter, setSelectedVillageFilter] = useState<string>(initialRouteGovernorate ? 'all' : initialGeoPreference?.village || 'all');
+  const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>(initialRouteGovernorate ? 'all' : initialGeoPreference?.area || 'all');
+
+  const applyGovernorateScope = (requestedGovernorate: string) => {
+    const governorate = requestedGovernorate === 'all'
+      ? 'all'
+      : EGYPT_GEO_GOVERNORATES.find((item) => normalizeGeoName(item.name) === normalizeGeoName(requestedGovernorate))?.name;
+    if (!governorate) return;
+
+    setSelectedGovFilter(governorate);
+    setSelectedMarkazFilter('all');
+    setSelectedVillageFilter('all');
+    setSelectedAreaFilter('all');
+    setUserCoordinates(null);
+    setGeoSetupCompleted(true);
+    setGeoPreferenceMode('manual');
+    setShowLocationWelcome(false);
+    writeStoredGeoPreference({ completed: true, mode: 'manual', governorate, markaz: 'all', village: 'all', area: 'all' });
+
+    const url = new URL(window.location.href);
+    if (governorate === 'all') url.searchParams.delete('governorate');
+    else url.searchParams.set('governorate', governorate);
+    window.history.pushState({ mantiqatixGovernorate: governorate }, '', url.pathname + url.search + url.hash);
+    window.dispatchEvent(new Event('mantiqatix:routechange'));
+    setLocationMessage(governorate === 'all'
+      ? 'يتم الآن عرض الأنشطة المنشورة في جميع المحافظات.'
+      : `تم فتح دليل الأنشطة المنشورة في محافظة ${governorate}.`);
+  };
   const publicDirectoryPageFilters = useMemo<PublicDirectoryPageFilters>(() => {
     const insideActivityModule = Boolean(activityModuleId);
     const query = (insideActivityModule ? activityListingSearchQuery : searchQuery).trim();
@@ -1048,12 +1078,24 @@ export const DirectoryView: React.FC = () => {
         </section>
 
         <section aria-label="الأنشطة والتخصصات" className="space-y-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="flex items-center gap-2 text-lg font-black text-slate-900"><Store className="h-5 w-5 text-emerald-600" />الأنشطة</h2>
-              <p className="mt-1 text-xs text-slate-500">اختر النشاط لعرض التخصصات التابعة له والجهات العاملة فيه.</p>
+              <p className="mt-1 text-xs text-slate-500">اختر النشاط لعرض التخصصات التابعة له والجهات المنشورة ضمن النطاق الجغرافي.</p>
+              <p data-testid="menoufia-directory-scope" className="mt-2 text-xs leading-5 text-slate-600">
+                {selectedGovFilter === 'المنوفية'
+                  ? 'كتالوج محافظة المنوفية: تصنيفات الأنشطة وتخصصاتها، مع عرض المنشآت المنشورة التي تستوفي شروط النشر فقط.'
+                  : `النطاق الحالي: ${selectedGovFilter === 'all' ? 'جميع المحافظات' : selectedGovFilter} — التصنيفات لا تعني وجود منشآت مسجلة في كل تخصص.`}
+              </p>
             </div>
-            <span className="text-xs font-bold text-slate-500">{availableCategories.length.toLocaleString('ar-EG')} نشاط متاح</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold text-slate-500">{availableCategories.length.toLocaleString('ar-EG')} تصنيف نشاط</span>
+              {selectedGovFilter === 'المنوفية' ? (
+                <button type="button" onClick={() => applyGovernorateScope('all')} className="min-h-10 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 transition hover:border-emerald-300 hover:text-emerald-800">عرض كل المحافظات</button>
+              ) : (
+                <button type="button" onClick={() => applyGovernorateScope('المنوفية')} className="min-h-10 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-800 transition hover:bg-emerald-100">كتالوج المنوفية</button>
+              )}
+            </div>
           </div>
           <div data-testid="activity-category-list" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {availableCategories.map((category) => {
@@ -1142,7 +1184,7 @@ export const DirectoryView: React.FC = () => {
             )}
             <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
             <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المحافظة
-              <select value={selectedGovFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedGovFilter(e.target.value); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); }} className="mx-v4-search-select mt-1 min-h-11 w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-800 outline-none transition hover:border-slate-300">
+              <select value={selectedGovFilter} onChange={(e) => applyGovernorateScope(e.target.value)} className="mx-v4-search-select mt-1 min-h-11 w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-800 outline-none transition hover:border-slate-300">
                 <option value="all">مصر بالكامل — كل المحافظات</option>
                 {uniqueGovernorships.map((gov) => <option key={gov} value={gov}>{gov}</option>)}
               </select>

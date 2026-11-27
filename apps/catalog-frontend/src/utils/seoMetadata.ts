@@ -35,6 +35,7 @@ interface ResolveSeoInput {
   activityId?: string;
   activityName?: string;
   specialtyName?: string;
+  governorateName?: string;
 }
 
 const PRIVATE_VIEWS = new Set<SeoView>([
@@ -115,16 +116,34 @@ export function resolveRouteSeoMetadata(input: ResolveSeoInput): RouteSeoMetadat
   if (input.view === 'directory' && input.activityId && input.activityName?.trim()) {
     const canonical = new URL(rootUrl);
     canonical.searchParams.set('activity', input.activityId);
+    if (input.governorateName?.trim()) canonical.searchParams.set('governorate', input.governorateName.trim());
     if (input.specialtyName?.trim()) canonical.searchParams.set('specialty', input.specialtyName.trim());
+    const location = input.governorateName?.trim() || 'مصر';
     const title = input.specialtyName?.trim()
-      ? `${input.specialtyName} في ${input.activityName} | MantiqatiX`
-      : `${input.activityName} في مصر | MantiqatiX`;
+      ? `${input.specialtyName} في ${input.activityName} — ${location} | MantiqatiX`
+      : `${input.activityName} في ${location} | MantiqatiX`;
     const description = input.specialtyName?.trim()
-      ? `اكتشف الأنشطة والخدمات المنشورة في تخصص ${input.specialtyName} ضمن ${input.activityName} عبر MantiqatiX.`
-      : `تصفح الأنشطة والخدمات المنشورة في مجال ${input.activityName} في مصر عبر MantiqatiX.`;
+      ? `اكتشف تصنيف ${input.activityName} وتخصص ${input.specialtyName} والجهات المنشورة في ${location} عبر MantiqatiX.`
+      : `تصفح تصنيف ${input.activityName} وتخصصاته والجهات المنشورة في ${location} عبر MantiqatiX.`;
     return {
       title,
       description: cleanDescription(description, FALLBACK_DESCRIPTION),
+      robots: 'index,follow',
+      canonicalUrl: canonical.toString(),
+      openGraphType: 'website',
+    };
+  }
+
+  if (input.view === 'directory' && input.governorateName?.trim()) {
+    const governorate = input.governorateName.trim();
+    const canonical = new URL(rootUrl);
+    canonical.searchParams.set('governorate', governorate);
+    return {
+      title: `دليل الأنشطة والخدمات في محافظة ${governorate} | MantiqatiX`,
+      description: cleanDescription(
+        `تصفح تصنيفات الأنشطة والتخصصات والجهات المنشورة في محافظة ${governorate} عبر MantiqatiX. تُعرض المنشآت وفق حالة النشر والتوثيق المعتمدة.`,
+        FALLBACK_DESCRIPTION,
+      ),
       robots: 'index,follow',
       canonicalUrl: canonical.toString(),
       openGraphType: 'website',
