@@ -34,6 +34,26 @@ for (const required of runbookRequirements) {
   assert.ok(runbook.includes(required), "Current backup runbook is missing required scope: " + required);
 }
 
+const currentRunbookStart = runbook.indexOf("# CURRENT PRODUCTION RECHECK — 2026-11-28");
+assert.ok(currentRunbookStart >= 0, "Backup runbook must start with the current 2026-11-28 Production gate.");
+const currentRunbookEnd = runbook.indexOf("\n---\n", currentRunbookStart);
+const currentRunbook = currentRunbookEnd > currentRunbookStart
+  ? runbook.slice(currentRunbookStart, currentRunbookEnd)
+  : runbook.slice(currentRunbookStart);
+for (const required of [
+  "310 rows through",
+  "88 unique, chronologically ordered migration versions",
+  "0/88",
+  "79 canonical core/payment/control-center objects",
+  "matched 37",
+  "42 absent or non-matching",
+  "NOT VERIFIED / BLOCKED",
+  "exact ordered 88-source migration effects",
+]) {
+  assert.ok(currentRunbook.includes(required), "Current Production backup overlay is missing: " + required);
+}
+assert.ok(!currentRunbook.includes("87-source"), "Current Production backup overlay must not retain a superseded 87-source gate.");
+
 const backlogRequirements = [
   "88 required migration IDs",
   "0/88 exact required identifiers",
