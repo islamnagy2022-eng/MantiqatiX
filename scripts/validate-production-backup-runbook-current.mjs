@@ -6,6 +6,7 @@ const runbook = read("docs/release/PRODUCTION_BACKUP_RESTORE_DRILL_20261124.md")
 const backlog = read("docs/release/WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md");
 const manifest = JSON.parse(read("docs/release/production-migration-reconciliation.json"));
 const securityDefinerInventory = read("docs/audits/PRODUCTION_SECURITY_DEFINER_INVENTORY_20261128.md");
+const requiredObjectAudit = read("docs/audits/PRODUCTION_REQUIRED_79_OBJECT_READBACK_20261128.md");
 const ledger = manifest.required_release_migration_ledger_check;
 
 const runbookRequirements = [
@@ -146,6 +147,28 @@ assert.equal(ledger.found_in_live_ledger, 0, "do not manufacture or overstate Pr
 console.log("PRODUCTION_BACKUP_RUNBOOK_CURRENT_RELEASE_CONTRACT=PASS");
 console.log("BACKUP_COVERAGE_AUTH_STORAGE_EXPLICIT=PASS");
 console.log("CURRENT_RELEASE_MIGRATION_COUNT=88");
+const missingObjectRows = requiredObjectAudit.match(/^\| `public\.[^`]+` \|/gm) ?? [];
+const missingObjectNames = missingObjectRows.map((line) => line.split("|")[1].trim().slice(1, -1));
+assert.equal(missingObjectRows.length, 42, "79-object read-back must itemize all 42 not-found exact contracts.");
+assert.equal(new Set(missingObjectNames).size, 42, "Missing-object inventory must not duplicate object names.");
+for (const required of [
+  "RC425_atomic_mantigo_paymob_payment.sql",
+  "RC426_digital_page_provider_order_binding.sql",
+  "RC427_one_active_payment_intent_per_order.sql",
+  "RC428_atomic_provider_failure_webhook.sql",
+  "RC429_atomic_subscription_failure_webhook.sql",
+  "RC430_atomic_subscription_success_webhook.sql",
+  "RC432_smm_wallet_transaction_idempotency.sql",
+  "RC434_atomic_erp_purchase_receiving.sql",
+  "RC435_subscription_provider_intent_claim.sql",
+  "RC436_atomic_financial_journal.sql",
+  "RC437_purchase_order_lines_receiving_limits.sql",
+  "RC438_purchase_order_creation_with_lines.sql",
+  "RC439_encrypted_checkout_recovery.sql",
+  "RC472_directory_claim_review_atomicity.sql",
+  "RC472 itself repairs the missing index",
+  "image-provenance forward repair",
+]) assert.ok(requiredObjectAudit.includes(required), "79-object read-back is missing source mapping: " + required);
 const inventoryTableStart = securityDefinerInventory.indexOf("## Function-by-function metadata");
 const inventoryTableEnd = securityDefinerInventory.indexOf("\n## Delegation review", inventoryTableStart);
 assert.ok(inventoryTableStart >= 0 && inventoryTableEnd > inventoryTableStart, "SECURITY DEFINER inventory must include a complete function metadata table.");
