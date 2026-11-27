@@ -3,7 +3,9 @@ on:
   pull_request:
     paths:
       - 'supabase/migrations/20261125150000_rc919_reject_inactive_job_applications.sql'
+      - 'supabase/migrations/20261127010000_rc930_serialize_job_deactivation_and_application.sql'
       - 'supabase/tests/rc919_job_application_*.sql'
+      - 'supabase/tests/rc930_job_application_*'
       - '.github/workflows/rc919-job-application-integration.yml'
   workflow_dispatch:
 jobs:
@@ -24,3 +26,11 @@ jobs:
       - run: psql "postgresql://postgres:postgres@localhost:5432/rc919_test" -v ON_ERROR_STOP=1 -f supabase/tests/rc919_job_application_fixture.sql
       - run: psql "postgresql://postgres:postgres@localhost:5432/rc919_test" -v ON_ERROR_STOP=1 -f supabase/migrations/20261125150000_rc919_reject_inactive_job_applications.sql
       - run: psql "postgresql://postgres:postgres@localhost:5432/rc919_test" -v ON_ERROR_STOP=1 -f supabase/tests/rc919_job_application_integration.sql
+      - name: Apply RC930 row-lock serialization repair
+        run: psql "postgresql://postgres:postgres@localhost:5432/rc919_test" -v ON_ERROR_STOP=1 -f supabase/migrations/20261127010000_rc930_serialize_job_deactivation_and_application.sql
+      - name: Verify active, inactive, missing and duplicate application behavior
+        run: psql "postgresql://postgres:postgres@localhost:5432/rc919_test" -v ON_ERROR_STOP=1 -f supabase/tests/rc930_job_application_integration.sql
+      - name: Verify concurrent deactivation serializes before application
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rc919_test
+        run: bash supabase/tests/rc930_job_application_concurrency.sh
