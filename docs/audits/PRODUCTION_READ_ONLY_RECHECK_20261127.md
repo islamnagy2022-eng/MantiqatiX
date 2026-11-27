@@ -23,6 +23,20 @@ This is an exact migration-identity gap. It is not proof that every intended dat
 
 All four functions were reported ACTIVE. Their deployed `verify_jwt` metadata was false; functions that require user identity perform their own bearer-token validation. This metadata alone does not establish an authorization defect, but each entrypoint's internal authentication and authorization path must remain part of parity review.
 
+
+## Direct PostgreSQL authorization read-back
+
+A separate read-only SQL snapshot on 2026-11-27 confirmed:
+
+- `private.platform_admins`: RLS enabled, FORCE RLS disabled.
+- `public.is_platform_admin()`: SECURITY INVOKER with `search_path=public`; it returns true when the caller has any ACTIVE membership whose role is `ADMIN` or `SUPER_ADMIN`. EXECUTE is denied to `anon` and granted to `authenticated`.
+- `public.mnty_can_platform_admin()`: SECURITY DEFINER with `search_path=public, pg_temp`; it delegates to `public.mnty_can('admin', NULL, NULL, NULL)`. EXECUTE is denied to `anon` and granted to `authenticated`.
+- The current policy inventory contains **57 references across 24 tables** to `is_platform_admin()`, plus **5 references across 3 tables** to `mnty_can_platform_admin()`. The two sets overlap; they should not be treated as 62 distinct tables.
+- `orders` and `order_status_history` both have RLS and FORCE RLS enabled. The strict RC929 confirmed-Auth restrictive policy was not present in the live policy inventory at this check.
+- `public.directory_listing_contact_consents` does not exist in the live schema at this check.
+
+This read-back confirms the source/deployed authorization drift is also reflected in live database helpers and policy dependencies. Because the legacy helper is referenced by many policies, a direct helper replacement or bulk policy rewrite would have a broad authorization blast radius. The coordinated migration plan must preserve tenant/business/branch scopes and include positive and negative regression tests before any Production rollout.
+
 ## Supabase advisors
 
 Security Advisor reported **94 lint categories / 166 findings**: **157 WARN** and **9 INFO**. Major counts include 65 authenticated-callable SECURITY DEFINER warnings, one anon-callable SECURITY DEFINER warning, 90 anonymous-access-policy checks, one leaked-password-protection warning, and nine RLS-enabled tables without policies.
