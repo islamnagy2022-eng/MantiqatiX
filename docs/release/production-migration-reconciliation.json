@@ -27,7 +27,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED — no actual Production database/Storage export, off-site upload/retrieval, Vault recovery, separate-project PostgreSQL 17 restore, measured RPO/RTO or rollback rehearsal occurred. PR #875 merged a read-only encrypted backup manifest/evidence validator; exact-head CI passed 12/12 disposable tests (run 44640871190). The tool validates operator-created artifacts/evidence only and does not create backups or perform restores.",
   "evidence_ref": "docs/audits/PRODUCTION_RECONCILIATION_20261114.md",
   "checked_at": "2026-11-27",
-  "reason": "BLOCKED / NOT CERTIFIED: fresh read-only Production checks on 2026-11-24 confirm 310 migration rows through 20261110150618 and 0/82 exact required release identifiers. RC472/RC473 are not applied and public.directory_listing_contact_consents is absent. The deployed directory-listings Edge Function is now ACTIVE v18 with a one-file, fail-closed temporary disable: GET returns HTTP 200 with an empty listings array and directoryDisabled=true; POST returns HTTP 503 DIRECTORY_LISTINGS_DISABLED_FOR_V1. This currently suppresses contact disclosure through that endpoint but does not implement consent or restore directory functionality. Aggregate-only inspection found 869 published rows, all 869 with primary phone and address, and 178 with secondary phone; no contact values were retrieved. The remaining coordinated release blockers include registry-backed global-admin and catalog RPC hardening (RC484/RC485), six other critical payment/order/subscription/finance Edge mismatches identified in the prior 2026-11-20 parity inspection, missing payment/finance physical contracts, and the absence of an actual encrypted off-site database/Storage backup, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO. RC488–RC496, RC921, RC922, RC923, RC924 and RC925 remain unapplied to Production. The prior 80-version chronological replay that included RC923 passed in CI. RC924's ordered isolated tests and 117-migration replay passed under PR #1064, RC925 is merged source-only in PR #1069 and its missing-claim static validator, adversarial PostgreSQL 17 integration and full 82-version chronological replay passed in run 45477345349. PR #1071 subsequently added the positive confirmed-user compatibility case across all seven catalog RPCs; exact-head full replay and related module, backend, MantiGO, Paymob and website validation workflows passed (runs 45480436807, 45480436782, 45480436843, 45480436853, 45480436991 and 45480437044). RC925 remains unapplied to Production. No Production migrations were applied. No Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement or customer-data mutation occurred during this audit. RC922 was added only to source and the required release ledger; it has not been applied to Production. GitHub Pages deployment is verified separately from Supabase production certification. RC923 passed isolated PostgreSQL 17 tests and the prior 80-version full replay. RC924 was merged under PR #1064 and passed its dedicated PostgreSQL 17 suite plus the 117-migration forward replay; the exact 81-version strict gate and full 117-migration chronological replay passed in isolated PostgreSQL 17 run 45465702093, including RC924. This remains disposable CI evidence and does not mean Production was migrated. The current canonical source contract is now 86 exact versions after adding the RC117 image-provenance forward repair 20261126020000. This change is source-only and is not applied to Production. Fresh 2026-11-27 audit is appended under read_only_recheck_2026_11_27_current_main. Current main required migration contract contains 87 exact versions; read-only comparison against 310 live ledger rows found 0 exact IDs, with aliases and physical effects requiring separate reconciliation. Current main health monitor run 45931207565 explicitly reports protected Edge /health NOT CHECKED because HEALTH_MONITOR_TOKEN is absent; only legacy anon read-only database probe passed. Main Pages deployed-origin route verification for commit 036c665 was still in progress at the audit snapshot. Keep FULL_PLATFORM_GATE BLOCKED / NOT CERTIFIED.",
+  "reason": "BLOCKED / NOT CERTIFIED: fresh read-only Production checks on 2026-11-24 confirm 310 migration rows through 20261110150618 and 0/82 exact required release identifiers. RC472/RC473 are not applied and public.directory_listing_contact_consents is absent. The deployed directory-listings Edge Function is now ACTIVE v18 with a one-file, fail-closed temporary disable: GET returns HTTP 200 with an empty listings array and directoryDisabled=true; POST returns HTTP 503 DIRECTORY_LISTINGS_DISABLED_FOR_V1. This currently suppresses contact disclosure through that endpoint but does not implement consent or restore directory functionality. Aggregate-only inspection found 869 published rows, all 869 with primary phone and address, and 178 with secondary phone; no contact values were retrieved. The remaining coordinated release blockers include registry-backed global-admin and catalog RPC hardening (RC484/RC485), six other critical payment/order/subscription/finance Edge mismatches identified in the prior 2026-11-20 parity inspection, missing payment/finance physical contracts, and the absence of an actual encrypted off-site database/Storage backup, Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO. RC488–RC496, RC921, RC922, RC923, RC924 and RC925 remain unapplied to Production. The prior 80-version chronological replay that included RC923 passed in CI. RC924's ordered isolated tests and 117-migration replay passed under PR #1064, RC925 is merged source-only in PR #1069 and its missing-claim static validator, adversarial PostgreSQL 17 integration and full 82-version chronological replay passed in run 45477345349. PR #1071 subsequently added the positive confirmed-user compatibility case across all seven catalog RPCs; exact-head full replay and related module, backend, MantiGO, Paymob and website validation workflows passed (runs 45480436807, 45480436782, 45480436843, 45480436853, 45480436991 and 45480437044). RC925 remains unapplied to Production. No Production migrations were applied. No Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement or customer-data mutation occurred during this audit. RC922 was added only to source and the required release ledger; it has not been applied to Production. GitHub Pages deployment is verified separately from Supabase production certification. RC923 passed isolated PostgreSQL 17 tests and the prior 80-version full replay. RC924 was merged under PR #1064 and passed its dedicated PostgreSQL 17 suite plus the 117-migration forward replay; the exact 81-version strict gate and full 117-migration chronological replay passed in isolated PostgreSQL 17 run 45465702093, including RC924. This remains disposable CI evidence and does not mean Production was migrated. The current canonical source contract is now 86 exact versions after adding the RC117 image-provenance forward repair 20261126020000. This change is source-only and is not applied to Production. Fresh 2026-11-27 audit is appended under read_only_recheck_2026_11_27_current_main. Current main required migration contract contains 88 exact versions; read-only comparison against 310 live ledger rows found 0 exact IDs, with aliases and physical effects requiring separate reconciliation. RC930 (20261127010000) is also absent from the live ledger; the deployed job-application RPC still lacks the FOR SHARE row lock. No Production migration was applied. Current main health monitor run 45931207565 explicitly reports protected Edge /health NOT CHECKED because HEALTH_MONITOR_TOKEN is absent; only legacy anon read-only database probe passed. Main Pages deployed-origin route verification for commit 036c665 was still in progress at the audit snapshot. Keep FULL_PLATFORM_GATE BLOCKED / NOT CERTIFIED.",
   "edge_function_contracts": "PARTIAL — 13 high-impact deployed Edge entrypoints were compared byte-for-byte with current main. Nine matched exactly (public-catalog, public-catalog-directory, payment-webhook, mantigo-payment-intent, api, order-status-update, post-financial-journal, settlement-create, subscription-start-trial). Material drift remains in paymob-webhook v10, payment-intent v8, subscription-payment-intent v4, digital-page-payment-intent v5, settlement-financial-atomic v4, financial-journal v3, order-create v8, catalog-admin v20, mnty-push-dispatch v4, health v3 and erp-purchase-receive v3. directory-listings v18 is intentionally fail-closed and must remain so until RC472/RC473 consent gates are live. Do not deploy individual mismatched functions; coordinate exact DB contracts, migrations and Edge bundles.",
   "smm_gateway_parity": "PARTIAL — live SMM gateway remains ACTIVE v13, verify_jwt=true, and source matches main with SMM_INITIAL_LAUNCH_DEFERRED=true. Anonymous/authenticated negative runtime tests still unverified; keep deferred.",
   "auth_security_settings": "NOT VERIFIED — fresh 2026-11-23 Security Advisor reports leaked-password protection disabled and anonymous Auth sign-ins enabled. No connector exposes a safe Auth-setting mutation path; no Auth settings were changed. Owner must enable leaked-password protection and confirm whether external clients depend on anonymous Auth before disabling it.",
@@ -119,10 +119,10 @@
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
     "checked_at": "2026-11-27",
-    "method": "Read-only direct SQL exact-ID comparison on 2026-11-27. The current-main live-reconciliation-contract.mjs array contains 87 required source versions; live supabase_migrations.schema_migrations contains 310 rows through 20261110150618; exact matches 0/87 and missing exact IDs 87/87. The result is an identity gap only; aliases and physical effects must be reconciled independently. No production migration or ledger write was performed.",
+    "method": "Read-only direct SQL exact-ID comparison on 2026-11-27. The current-main live-reconciliation-contract.mjs array contains 88 required source versions; live supabase_migrations.schema_migrations contains 310 rows through 20261110150618; exact matches 0/88 and missing exact IDs 88/88. The result is an identity gap only; aliases and physical effects must be reconciled independently. No production migration or ledger write was performed.",
     "live_ledger_count": 310,
     "latest_live_version": "20261110150618",
-    "expected_migration_versions": 87,
+    "expected_migration_versions": 88,
     "found_in_live_ledger": 0,
     "required_versions": [
       "20261009120000",
@@ -211,7 +211,8 @@
       "20261125120000",
       "20261126010000",
       "20261126020000",
-      "20261126030000"
+      "20261126030000",
+      "20261127010000"
     ],
     "missing_versions": [
       "20261009120000",
@@ -300,10 +301,11 @@
       "20261125120000",
       "20261126010000",
       "20261126020000",
-      "20261126030000"
+      "20261126030000",
+      "20261127010000"
     ],
     "recorded_required_versions": [],
-    "interpretation": "None of the 87 exact required source-version identifiers is recorded in the 310-row live ledger. This is a migration-identity gap, not proof every corresponding physical effect is absent. Reconcile the three exact aliases and physical schema/function/ACL/RLS/Edge effects separately. Never fabricate ledger rows or blindly replay migrations against Production. RC928, RC117 forward repair, and RC929 remain source-only and are not applied to Production."
+    "interpretation": "None of the 88 exact required source-version identifiers is recorded in the 310-row live ledger. This is a migration-identity gap, not proof every corresponding physical effect is absent. Reconcile the three exact aliases and physical schema/function/ACL/RLS/Edge effects separately. Never fabricate ledger rows or blindly replay migrations against Production. RC928, RC117 forward repair, and RC929 remain source-only and are not applied to Production."
   },
   "critical_edge_function_source_parity_check": {
     "status": "BLOCKED",
@@ -3397,7 +3399,7 @@
     "interpretation": "Dashboard-specific live dependencies are installed and verified by read-only queries. Historical migrations were not edited and the 41-version full-platform release chain, finance/payment/Edge Function parity, backup/restore rehearsal, Auth hardening, monitoring, and unrelated release evidence remain BLOCKED. Deployment may proceed only through the existing scoped catalog/dashboard gate; do not mark the full platform production-certified."
   },
   "live_ledger_checked_at": "2026-11-27",
-  "live_ledger_verification_method": "Read-only Supabase inventory plus a direct SQL comparison of the 87 exact source versions in scripts/production/live-reconciliation-contract.mjs against supabase_migrations.schema_migrations on 2026-11-27. Exact matches: 0/87; live rows: 310; latest 20261110150618. This is a migration-identity gap, not proof all physical effects are absent. No writes or migration history changes.",
+  "live_ledger_verification_method": "Read-only Supabase inventory plus a direct SQL comparison of the 88 exact source versions in scripts/production/live-reconciliation-contract.mjs against supabase_migrations.schema_migrations on 2026-11-27. Exact matches: 0/88; live rows: 310; latest 20261110150618. This is a migration-identity gap, not proof all physical effects are absent. No writes or migration history changes.",
   "professional_dashboard_post_deploy_browser_e2e": {
     "status": "PASS",
     "checked_at": "2026-10-29",
@@ -8786,5 +8788,21 @@
       "note": "The connected GitHub toolset exposes artifact listing/download but not artifact deletion. It remains an unmerged temporary artifact and expires automatically; no future collection or upload will be initiated."
     },
     "no_production_mutation": true
+  },
+  "rc930_live_read_only_recheck_2026_11_27": {
+    "checked_at": "2026-11-27",
+    "method": "Read-only Supabase migration inventory plus SELECT from pg_proc/pg_get_functiondef and has_function_privilege; no application rows read.",
+    "live_ledger_count": 310,
+    "latest_live_version": "20261110150618",
+    "rc930_version": "20261127010000",
+    "rc930_recorded": false,
+    "rpc": "public.submit_job_application_backend(uuid,uuid,text,text,text,text)",
+    "rpc_has_for_share_job_row_lock": false,
+    "function_owner": "postgres",
+    "security_definer": true,
+    "search_path": "public, pg_temp",
+    "anon_execute": false,
+    "authenticated_execute": true,
+    "production_mutation": "NONE"
   }
 }
