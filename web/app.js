@@ -955,13 +955,46 @@ async function superAdminFunction(name,body){
  if(!canSuperAdmin())throw new Error('SUPER_ADMIN_REQUIRED');
  return invokeMntyFunction(name,body);
 }
+async function loadSuperAdminActivityCatalog(business,root){
+ const panel=root?.querySelector('#sa-activity-catalog-panel');
+ const target=root?.querySelector('#sa-activity-catalog-content');
+ if(!panel||!target)return;
+ if(!canSuperAdmin()||!business?.id||!business?.tenant_id||String(business.status||'').toUpperCase()!=='ACTIVE'){
+  panel.hidden=false;target.innerHTML='<div class="empty-state">الكتالوج غير متاح لهذا النشاط أو لهذا السياق.</div>';return;
+ }
+ panel.hidden=false;
+ target.innerHTML='<div class="empty-state">جاري تحميل الكتالوج النشط…</div>';
+ try{
+  const catalog=await loadBusinessCatalog(business.id,null,business.tenant_id);
+  const branches=Array.isArray(catalog.branches)?catalog.branches:[];
+  const activeBranches=branches.filter(branch=>String(branch.status||'').toUpperCase()==='ACTIVE');
+  if(!activeBranches.length){target.innerHTML='<div class="empty-state">لا يوجد فرع نشط لعرض كتالوجه.</div>';return;}
+  const render=(branchId)=>{
+   const visibleItems=(catalog.items||[]).filter(item=>!branchId||!item.branch_id||String(item.branch_id)===String(branchId));
+   const rows=visibleItems.map(item=>{
+    const price=catalogCurrentPrice(catalog,item.id,branchId);
+    const amount=price&&Number.isFinite(Number(price.unit_price))?Number(price.unit_price).toLocaleString('ar-EG',{maximumFractionDigits:2})+' '+String(price.currency||''):'غير متاح';
+    const options=(catalog.options||[]).filter(option=>String(option.catalog_item_id)===String(item.id)).length;
+    return {name:item.name_ar||item.name_en||'—',type:item.item_type||'—',description:item.description||'—',price:amount,options:String(options)};
+   });
+   const branchOptions=activeBranches.map(branch=>'<option value="'+esc(branch.id)+'" '+(String(branch.id)===String(branchId)?'selected':'')+'>'+esc(branch.name||branch.code||branch.id)+'</option>').join('');
+   target.innerHTML='<div class="grid2"><label class="field"><span>الفرع النشط</span><select id="sa-activity-catalog-branch">'+branchOptions+'</select></label><div class="notice">العناصر المعروضة: '+visibleItems.length+' · الكتالوج للقراءة فقط</div></div>'+recordsTable('الأصناف والخدمات المنشورة',rows,[['الاسم',row=>row.name],['النوع',row=>row.type],['الوصف',row=>row.description],['السعر الساري',row=>row.price],['الخيارات',row=>row.options]])+'<p class="muted">يعرض هذا المسار العناصر النشطة والأسعار السارية فقط. المسودات والعناصر غير المنشورة وإجراءات التحرير غير متاحة عبر واجهة القراءة الحالية.</p>';
+   target.querySelector('#sa-activity-catalog-branch')?.addEventListener('change',event=>render(event.target.value));
+  };
+  render(activeBranches[0].id);
+ }catch(error){
+  console.warn('[Super Admin active catalog] unavailable',error?.message||error);
+  target.innerHTML='<div class="empty-state" role="status">تعذر تحميل الكتالوج عبر مسار القراءة الحالي. لم يتم إظهار بيانات بديلة أو تقديرية.</div>';
+ }
+}
+
 async function loadSuperAdminActivityDirectory(){
  const root=document.getElementById('sa-activity-directory-list');if(!root)return;
  if(!canSuperAdmin()){root.innerHTML='<div class="empty-state">لا تملك صلاحية عرض دليل الأنشطة.</div>';return}
  const escapeValue=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
  root.innerHTML='<div class="empty-state">جاري تحميل أحدث الأنشطة المتاحة…</div>';
  try{
-  const base=await sb.from('businesses').select('id,name,code,status,updated_at').order('updated_at',{ascending:false}).limit(200);
+  const base=await sb.from('businesses').select('id,tenant_id,name,code,status,updated_at').order('updated_at',{ascending:false}).limit(200);
   if(base.error)throw base.error;
   const businesses=base.data||[];
   if(!businesses.length){root.innerHTML='<div class="empty-state">لا توجد أنشطة متاحة ضمن نطاق الصلاحيات الحالي.</div>';return}
@@ -982,20 +1015,20 @@ async function loadSuperAdminActivityDirectory(){
     verification:profile?(profile.is_verified?'موثق':'غير موثق'):(profilesResult.error?'غير متاح':'لا يوجد ملف'),
     modules:moduleCounts?(moduleCounts.get(String(row.id))||0):'غير متاح',
     updated:row.updated_at?new Date(row.updated_at).toLocaleString('ar-EG'):'—',
-    action:'<button type="button" class="linkbtn" data-sa-activity-detail="'+escapeValue(row.id)+'" aria-controls="sa-activity-detail" aria-expanded="false">عرض التفاصيل</button>'
+    action:'<button type="button" class="linkbtn" data-sa-activity-detail="'+escapeValue(row.id)+'" aria-controls="sa-activity-detail" aria-expanded="false">عرض التفاصيل</button>',catalogAction:String(row.status||'').toUpperCase()==='ACTIVE'&&row.tenant_id?'<button type="button" class="linkbtn" data-sa-activity-catalog="'+escapeValue(row.id)+'" aria-controls="sa-activity-detail" aria-expanded="false">الكتالوج</button>':'غير متاح'
    };
   });
   const statusSummary={ACTIVE:businesses.filter(row=>String(row.status||'').toUpperCase()==='ACTIVE').length,PENDING:businesses.filter(row=>String(row.status||'').toUpperCase()==='PENDING').length,INACTIVE:businesses.filter(row=>String(row.status||'').toUpperCase()==='INACTIVE').length};
   const partial=[profilesResult.error?'بيانات ملفات مقدمي الخدمة غير متاحة':'',modulesResult.error?'بيانات تفعيل الموديولات غير متاحة':''].filter(Boolean);
-  root.innerHTML='<div class="mnty-stat-strip"><div><b>'+businesses.length+'</b><span>نشاط معروض (حد أقصى 200)</span></div><div><b>'+statusSummary.ACTIVE+'</b><span>نشط</span></div><div><b>'+statusSummary.PENDING+'</b><span>قيد المراجعة</span></div><div><b>'+statusSummary.INACTIVE+'</b><span>غير نشط</span></div></div>'+(partial.length?'<div class="empty-state" role="status">'+escapeValue(partial.join(' · '))+'</div>':'')+recordsTable('دليل الأنشطة — أحدث السجلات',rows,[['اسم النشاط',row=>row.name],['الكود',row=>row.code],['الحالة',row=>row.status],['ملف مقدم الخدمة',row=>row.provider],['التحقق',row=>row.verification],['الموديولات المفعلة',row=>row.modules],['آخر تحديث',row=>row.updated],['التفاصيل',row=>row.action]])+
-  '<section class="card" id="sa-activity-detail" tabindex="-1" aria-labelledby="sa-activity-detail-title" aria-live="polite" hidden style="margin-top:16px;padding:18px"><div class="section-head"><div><span class="eyebrow">READ-ONLY ACTIVITY RECORD</span><h3 id="sa-activity-detail-title">تفاصيل النشاط</h3><p class="muted">بيانات تعريفية وتشغيلية ظاهرة ضمن صلاحيات الحساب الحالي فقط.</p></div><button type="button" class="btn btn-outline" id="sa-activity-detail-close" style="width:auto">إغلاق التفاصيل</button></div><dl class="mnty-activity-detail-grid" id="sa-activity-detail-fields"></dl></section>'+
+  root.innerHTML='<div class="mnty-stat-strip"><div><b>'+businesses.length+'</b><span>نشاط معروض (حد أقصى 200)</span></div><div><b>'+statusSummary.ACTIVE+'</b><span>نشط</span></div><div><b>'+statusSummary.PENDING+'</b><span>قيد المراجعة</span></div><div><b>'+statusSummary.INACTIVE+'</b><span>غير نشط</span></div></div>'+(partial.length?'<div class="empty-state" role="status">'+escapeValue(partial.join(' · '))+'</div>':'')+recordsTable('دليل الأنشطة — أحدث السجلات',rows,[['اسم النشاط',row=>row.name],['الكود',row=>row.code],['الحالة',row=>row.status],['ملف مقدم الخدمة',row=>row.provider],['التحقق',row=>row.verification],['الموديولات المفعلة',row=>row.modules],['آخر تحديث',row=>row.updated],['التفاصيل',row=>row.action],['الكتالوج',row=>row.catalogAction]])+
+  '<section class="card" id="sa-activity-detail" tabindex="-1" aria-labelledby="sa-activity-detail-title" aria-live="polite" hidden style="margin-top:16px;padding:18px"><div class="section-head"><div><span class="eyebrow">READ-ONLY ACTIVITY RECORD</span><h3 id="sa-activity-detail-title">تفاصيل النشاط</h3><p class="muted">بيانات تعريفية وتشغيلية ظاهرة ضمن صلاحيات الحساب الحالي فقط.</p></div><button type="button" class="btn btn-outline" id="sa-activity-detail-close" style="width:auto">إغلاق التفاصيل</button></div><dl class="mnty-activity-detail-grid" id="sa-activity-detail-fields"></dl><section class="card" id="sa-activity-catalog-panel" hidden style="margin-top:16px;padding:16px"><div class="section-head"><div><span class="eyebrow">READ-ONLY ACTIVE CATALOG</span><h4>الكتالوج النشط</h4><p class="muted">العناصر المنشورة والأسعار السارية فقط من مسار الكتالوج الحالي. لا توجد عمليات تعديل في هذه الشاشة.</p></div><button type="button" class="btn btn-outline" id="sa-activity-catalog-refresh" style="width:auto">تحديث</button></div><div id="sa-activity-catalog-content" aria-live="polite"></div></section></section>'+
   '<p class="muted">هذا الدليل للقراءة فقط ويعرض أحدث 200 سجل مرئي؛ لا ينفذ تعديلات أو اعتمادًا أو حذفًا أو يعرض بيانات المالك الخاصة.</p>';
   let lastTrigger=null;
   const detailPanel=root.querySelector('#sa-activity-detail');
   const detailFields=root.querySelector('#sa-activity-detail-fields');
   const closeDetail=()=>{
    detailPanel.hidden=true;
-   root.querySelectorAll('[data-sa-activity-detail]').forEach(button=>button.setAttribute('aria-expanded','false'));
+   root.querySelectorAll('[data-sa-activity-detail],[data-sa-activity-catalog]').forEach(button=>button.setAttribute('aria-expanded','false'));
    lastTrigger?.focus();
    lastTrigger=null;
   };
@@ -1019,6 +1052,16 @@ async function loadSuperAdminActivityDirectory(){
    lastTrigger=button;
    detailPanel.hidden=false;
    detailPanel.focus();
+  }));
+  root.querySelectorAll('[data-sa-activity-catalog]').forEach(button=>button.addEventListener('click',async()=>{
+   const business=businesses.find(row=>String(row.id)===String(button.dataset.saActivityCatalog));
+   if(!business||String(business.status||'').toUpperCase()!=='ACTIVE'||!business.tenant_id)return;
+   const detailButton=[...root.querySelectorAll('[data-sa-activity-detail]')].find(item=>String(item.dataset.saActivityDetail)===String(business.id));
+   detailButton?.click();
+   lastTrigger=button;
+   root.querySelectorAll('[data-sa-activity-catalog]').forEach(item=>item.setAttribute('aria-expanded',String(item===button)));
+   await loadSuperAdminActivityCatalog(business,root);
+   root.querySelector('#sa-activity-catalog-refresh')?.addEventListener('click',()=>loadSuperAdminActivityCatalog(business,root));
   }));
   root.querySelector('#sa-activity-detail-close')?.addEventListener('click',closeDetail);
  }catch(error){
