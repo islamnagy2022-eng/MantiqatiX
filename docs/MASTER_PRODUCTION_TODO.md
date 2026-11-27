@@ -2315,3 +2315,12 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] The enterprise-dashboard source validator failed only because its membership-panel slice expected the module-flag function to follow the panel; the source order correctly places the module-flag helper before the membership helper.
 - [x] Corrected the validator boundary to terminate at \`superAdminControlWorkspace()\`, which follows both helper functions.
 - [ ] Re-run the corrected exact-head dashboard contract and all PR workflows before marking the dashboard batch green.
+
+
+## 2026-11-27 — Enterprise command-center shortcut navigation correction
+
+- [x] Fixed the “إضافة نشاط” command-center shortcut: it previously routed to “التحكم الكامل” but was intercepted by a toast; all shortcuts now navigate through the shared `selectModule(name)` path.
+- [x] Added static regression assertions in `scripts/validate-enterprise-dashboard-contract.mjs` for the navigation path and against toast-only interception.
+- [x] Refreshed the app/service-worker asset key and advanced the shell cache to `mnty-web-v158`; source-level app/service-worker parsing and asset parity checks passed.
+- [ ] Exact-head CI and browser/keyboard verification remain pending; no workflow run or commit status was returned for `f4d0eccf10484cb3c2847dfa3352a748949411fc` at verification time.
+- This is a navigation correction only. No server write, role change, production deployment, or database mutation was performed. Production remains **BLOCKED / NOT CERTIFIED**. Keep `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
