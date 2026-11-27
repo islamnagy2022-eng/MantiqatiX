@@ -142,3 +142,6 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 
 - [x] Aggregate-only current registry review: 1 registry row, 1 matching Auth account present/unbanned; non-registry active memberships were 4 BUSINESS_OWNER users (7 memberships) and 12 CUSTOMER users. No non-registry active OWNER/ADMIN/SUPER_ADMIN and no non-registry permissions.admin=true override was found. No identifiers were selected.
 - **Impact qualification:** retain P0 priority for the defective authorization predicate and future privilege-escalation risk; do not claim a current unauthorized admin account or demonstrated data access.
+
+- [x] Read the exact live `mnty_can('admin')` role matrix: built-in admin for OWNER/ADMIN; SUPER_ADMIN requires PLATFORM scope + full_control; BUSINESS_OWNER is not built-in admin; explicit permissions.admin=true can override. Aggregate query found no non-registry users satisfying OWNER/ADMIN/SUPER_ADMIN or explicit override.
+- [x] Qualified `rc464_platform_admin_live_baseline.sql` as a deliberately broader legacy denial fixture, not a byte-for-byte clone of the current live mnty_can function.
