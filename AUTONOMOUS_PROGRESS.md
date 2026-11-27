@@ -23,6 +23,21 @@
 - Gallery-dependent Edge bundles remain behind current source and depend on coordinated schema/RPC/ACL/RLS changes. Do not deploy `catalog-admin`, `public-catalog`, or `public-catalog-directory` individually.
 - Full platform remains **BLOCKED / NOT CERTIFIED**. Backup/restore remains deferred and unverified; disposable CI replay is not Production backup/restore evidence.
 
+## Fresh read-only Supabase recheck — 2026-11-27 00:04 UTC
+
+The connected Supabase project `MANTIQATIX FINAL` is `ACTIVE_HEALTHY` on PostgreSQL 17.6.1.155. Read-only catalog queries reconfirmed:
+
+- Migration ledger: 310 rows; latest version `20261110150618`.
+- `private.platform_admins`: RLS enabled, FORCE RLS disabled.
+- `public.is_platform_admin()`: SECURITY INVOKER, `search_path=public`, derives global authority from any ACTIVE tenant ADMIN/SUPER_ADMIN membership; it does not read the private registry.
+- `public.mnty_can_platform_admin()`: SECURITY DEFINER, `search_path=public, pg_temp`, delegates to `public.mnty_can('admin', NULL, NULL, NULL)`; it does not read the private registry.
+- Both helpers are executable by `authenticated`, not `anon`. The issue is the authority semantics for signed-in callers, not public execution.
+- Policy blast radius: 57 policies / 24 tables reference `is_platform_admin()`; five policies / three tables reference `mnty_can_platform_admin()` (62 / 27 combined).
+
+The Supabase Security Advisor returned 94 lint types and 166 counted findings: 157 WARN and nine INFO. Warn categories include 90 RLS-policy role warnings for `anon`, 65 authenticated-callable SECURITY DEFINER functions, one anon-callable SECURITY DEFINER targeted-advertisements RPC, and disabled leaked-password protection. Nine INFO findings flag tables with RLS enabled and no policies. These advisor categories are triage signals, not proof that every listed policy/function is exploitable; inspect each policy predicate, direct grant, caller path, and intended public-read contract before changing it. Do not bulk-revoke or modify policies based only on the lint label.
+
+No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data change was made during this recheck.
+
 ## Next execution order
 
 1. Complete exact-head CI and review for PR #1157; only merge after browser E2E and all required checks pass.
