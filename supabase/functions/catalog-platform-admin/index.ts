@@ -1,6 +1,7 @@
 // Supabase Edge Runtime provides Deno.serve at runtime; no runtime import is needed for its ambient type declarations.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sanitizeActivityModuleOverrides } from "../_shared/activity-module-overrides.mjs";
+import { deduplicateSubscriberMemberships } from "../_shared/subscriber-membership-dedupe.mjs";
 
 const allowedOrigins = new Set([
   "https://islamnagy2022-eng.github.io",
@@ -351,7 +352,10 @@ Deno.serve(async (req: Request) => {
       const userMap = new Map(authUsers.map((u: any) => [String(u.id), u]));
       const rows = (membershipRows || []).filter((m: any) => userMap.has(String(m.user_id)));
       const ignoredOrphanMemberships = (membershipRows || []).length - rows.length;
+      // Account-only rows depend on the full membership set, not the deduplicated
+      // display set: one user with several legitimate branch memberships is assigned.
       const assignedUserIds = new Set(rows.map((m: any) => String(m.user_id)));
+      const deduplicated = deduplicateSubscriberMemberships(rows);
 
       const providerOf = (u: any) => {
         const providers = [
@@ -377,7 +381,7 @@ Deno.serve(async (req: Request) => {
         authMethod: providerOf(u) === "google" ? "gmail_invite" : "direct_password",
         inviteStatus: "pending",
       });
-      const subscribers = rows.map((m: any) => {
+      const subscribers = deduplicated.rows.map((m: any) => {
         const u: any = userMap.get(String(m.user_id));
         const b: any = businessMap.get(String(m.business_id || ""));
         return {
@@ -407,7 +411,12 @@ Deno.serve(async (req: Request) => {
         });
       }
       subscribers.sort((a: any, b: any) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
-      return response(origin, { subscribers, ignoredOrphanMemberships, source: "SUPABASE_AUTH_AND_USER_MEMBERSHIPS" });
+      return response(origin, {
+        subscribers,
+        ignoredOrphanMemberships,
+        ignoredDuplicateMemberships: deduplicated.duplicatesRemoved,
+        source: "SUPABASE_AUTH_AND_USER_MEMBERSHIPS",
+      });
     }
 
     if (action === "CREATE_BUSINESS") {
