@@ -168,6 +168,7 @@ export const AdminOverview: React.FC<Props> = ({ businesses, subscribers, produc
             <button
               key={item.id}
               type="button"
+              data-testid={`admin-overview-shortcut-${item.id}`}
               onClick={() => onNavigate(item.id)}
               className="group flex min-h-28 items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
