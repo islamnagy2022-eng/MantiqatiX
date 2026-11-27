@@ -55,6 +55,27 @@ Do not deploy any of these functions individually. Their current source referenc
 
 `directory-listings` remains active v18 and is intentionally fail-closed. Do not re-enable unclaimed-directory listings or contact disclosure until the source-permission and owner-consent schema/RPC/ACL/RLS plus complete Edge bundle have passed the required tests.
 
+## Required physical-object contract read-back
+
+A separate read-only SQL catalog probe checked the 79 entries in the three canonical arrays `REQUIRED_CORE_OBJECTS`, `REQUIRED_PAYMENT_CONTRACT_OBJECTS`, and `REQUIRED_CONTROL_CENTER_OBJECTS`. The check used exact `to_regprocedure` resolution for declared function signatures, relation/index resolution for two-part names, and column/trigger catalog checks for three-part names.
+
+| Contract group | Required | Matched by name/signature | Missing or non-matching |
+|---|---:|---:|---:|
+| Core objects | 32 | 11 | 21 |
+| Payment contracts | 14 | 3 | 11 |
+| Control-center objects | 33 | 23 | 10 |
+| **Total** | **79** | **37** | **42** |
+
+This is a source-contract presence check only. A mismatch can mean an absent object, a different overload/name, or a missing required column/index/trigger; it does not prove that every related physical effect is absent. It does not certify ACLs, RLS predicates, object owners, runtime behavior, or atomicity. Those require separate exact definition/privilege and adversarial behavior checks.
+
+Selected critical non-matches include the provider-order claim/finalizer RPCs, MantiGO verified-payment processor, provider/subscription payment failure and success overloads, financial journal backend RPC, journal idempotency indexes, ERP purchase-order lines/constraints, payment-intent uniqueness index, subscription provider-creation state and encrypted client-secret columns, marketing-service image provenance columns/default-image function/triggers, and the null-safe user-membership uniqueness index. Keep these dependencies fail-closed; do not hand-create or hot-patch them in Production.
+
+Missing contract entries by group:
+
+- **Core (21):** `claim_subscription_provider_intent_creation_backend`, `create_purchase_order_with_lines_backend`, `create_subscription_payment_intent_claimable_backend`, `erp_purchase_order_lines`, `erp_purchase_order_lines_scope_idx`, `erp_purchase_orders_business_order_number_uidx`, `finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)`, `journal_entries_tenant_entry_number_uidx`, `journal_entry_lines_entry_line_uidx`, `mantigo_payment_provider_events`, `post_financial_journal_atomic_backend`, `process_verified_mantigo_payment_backend`, `process_verified_provider_payment_failure`, `process_verified_subscription_payment_backend`, `process_verified_subscription_payment_failure`, `receive_purchase_stock_atomic_backend`, `receive_purchase_stock_with_order_line_backend`, `review_directory_listing_claim_atomic(uuid,text,uuid,text,uuid,boolean,boolean)`, `set_purchase_order_lines_backend`, `smm_wallet_transactions_reference_type_uidx`, `uq_payment_intents_one_active_per_order`.
+- **Payment (11):** `claim_subscription_provider_intent_creation_backend(uuid,uuid)`, `create_subscription_payment_intent_claimable_backend(uuid,text,text,text,text,uuid)`, `process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb)`, `process_verified_provider_payment_failure(text,text,text,text,text,text,boolean,numeric,text,text,text,jsonb)`, `process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb)`, `process_verified_subscription_payment_failure(text,text,uuid,text,numeric,text,text,boolean,jsonb)`, `subscription_payment_intents.client_secret_ciphertext`, `subscription_payment_intents.client_secret_iv`, `subscription_payment_intents.client_secret_key_version`, `subscription_payment_intents.provider_creation_claimed_at`, `subscription_payment_intents.provider_creation_state`.
+- **Control center (10):** `businesses.mnty_business_default_images`, `catalog_items.mnty_catalog_item_default_image`, `marketing_services.image_source`, `marketing_services.image_url`, `marketing_services.mnty_marketing_service_default_image`, `mnty_default_business_images_trigger`, `mnty_default_catalog_item_image_trigger`, `mnty_default_image_url`, `mnty_default_marketing_service_image_trigger`, `ux_user_memberships_user_business_branch_nullsafe`.
+
 ## Website and monitoring status
 
 - The latest recorded Pages deployment and deployed-origin browser checks passed for the root catalog, `/legacy/`, `/v6-preview/`, catalog routes, dashboard desktop/mobile, QR and activity-share accessibility.
