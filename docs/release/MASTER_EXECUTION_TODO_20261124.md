@@ -435,3 +435,16 @@ This is the active priority queue. Older Pass logs remain append-only evidence, 
 - [x] Recorded full evidence in [docs/audits/PASS_2471_2480_CATALOG_GALLERY_EDGE_RELEASE_GATE_20261126.md](../audits/PASS_2471_2480_CATALOG_GALLERY_EDGE_RELEASE_GATE_20261126.md).
 - [ ] Keep gallery deployment blocked until the ordered DB/RPC/ACL/RLS dependencies and all three exact Edge bundles are released together and verified by deployed-origin save/read tests. No piecemeal frontend or Edge release.
 - [ ] Backup/restore remains deferred by current direction and is not marked complete. No Production DB, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement or business-data mutation was performed in this pass.
+
+
+## 2026-11-27 — Super Admin stale person-selection and refresh-race fix
+
+- [x] Started from current `main` commit `5566873823f69033233cff796440409beed2294e`; did not continue the stale PR #299 branch, which is 421 commits ahead and 1,300 behind current main.
+- [x] Added `findVisiblePerson` / `resolveVisiblePersonId` helpers so the selected target is reconciled to the latest filtered people list; removed selections are replaced with a visible result or cleared when no results remain.
+- [x] Added a monotonically increasing request sequence to ignore out-of-order role/people/assignment refresh responses. On any list RPC error, clear previously loaded privileged lists and selected IDs rather than leaving stale values visible.
+- [x] Revalidate the target person against current visible results before `mnty_platform_admin_assign_custom_role`; pressing Enter now submits the people search.
+- [x] Added `apps/catalog-frontend/tests/super-admin-control-selection.test.ts` and wired it into Primary Catalog CI.
+- [x] Exact code head `8ae0a48d88a48db438db1bd609048f935f1f2e0d`: TypeScript, new person-selection regression, full Primary Catalog build/source checks, primary asset/PWA checks and employee-RBAC PostgreSQL job passed. Primary Catalog browser E2E remained in progress at last read-back.
+- [x] Additional exact-head checks passed: Backend-only Module Boundary [45925261164], Module Professionalization [45925261243], MantiGO Open Ride Privacy [45925261137], RC425 MantiGO/Paymob atomicity [45925261152], Flexible Commission Drafts [45925261157], and PR Pages validation/deployed-origin redirect regression [45925261135]. PR Pages deployment job is main-only and did not run for this PR; no deployment occurred.
+- [ ] Keep PR #1168 as Draft until the dashboard browser E2E completes and final exact-head status is reviewed. No role assignment, membership mutation, database change, production write or deployment was performed.
+- **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`; no Production state change is implied by source CI.
