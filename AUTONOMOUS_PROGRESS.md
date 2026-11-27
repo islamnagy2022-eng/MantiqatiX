@@ -2,7 +2,7 @@
 
 **Updated:** 2026-11-27  
 **Repository:** `islamnagy2022-eng/MantiqatiX`  
-**Verified main:** `9f6824750ab21bb754ad0c0253732f9b49919c64`  
+**Verified main:** `82eb082bf7afffe349bb50ed20db07a0651bf04e`  
 **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`  
 **Production boundary:** read-only; no Production database, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement, or customer-data mutation.
 
@@ -15,6 +15,15 @@
 - Duplicate pagination PRs #1152 and #1153 were closed after #1155 merged.
 - Gallery-viewer PR #1150 was closed as superseded; the change was recreated on current main and merged as PR #1157, commit `9f6824750ab21bb754ad0c0253732f9b49919c64`. It adds the accessible promotional-image viewer, RTL keyboard navigation, Escape/backdrop close, focus containment/restoration, and browser/source-contract coverage. Exact-head CI completed with 28 successes, two expected skips, and no failures, including the dashboard browser E2E.
 - Public unclaimed-directory listings remain disabled. Do not enable them until publication/source rights, consent schema/RPC/ACL/RLS, and deployed Edge contracts are verified.
+
+## 2026-11-27 — Latest merged source work after PR #1157
+
+- PR #1163 merged as `77271bcb82eb4f09ee7e6a3eedca23265df76a13`: the disposable Supabase forward-replay workflow now allocates non-conflicting local host ports. Exact-head CI completed 34/34 checks with no failures; the 87-version strict gate and chronological PostgreSQL 17 replay passed. Main replay run: [45918214620](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45918214620).
+- PR #1162 merged as `78deab17b26d528a637e4eedadab34b4185350f0`: `CREATE_BUSINESS` now enforces name length by Unicode code points and requires normalized governorate + markaz values server-side; village remains optional. Exact-head CI completed successfully, including build, dashboard browser E2E, Employee RBAC, and source-contract checks.
+- PR #1164 merged as `82eb082bf7afffe349bb50ed20db07a0651bf04e`: subscriber memberships are deduplicated only when user, tenant, organization, business, branch, role, and canonical permission payload all match. Active duplicate rows take precedence; the latest timestamp is used within the same status priority. Different branch and permission scopes remain separate. Account-only detection uses the full pre-deduplication membership set. Node regression tests were added.
+- PR #1164 exact-head CI completed 36/36 checks: zero failures, two expected deployment-only skips. The browser run reported `PRIMARY_CATALOG_BROWSER_E2E=PASS` and `ACTIVITY_SHARE_DIALOG_BROWSER_E2E=PASS`: [45918613427](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45918613427).
+- The primary catalog validation for main commit `78deab1` completed successfully, including the dashboard browser E2E. The Pages deployment for that commit was still running at the time of this checkpoint; the post-PR #1164 Pages deployment run [45918953383](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45918953383) had been queued.
+- Production remains read-only. No Production migration, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, settlement, or customer-data mutation was made by these merges or CI runs.
 
 ## Verified Production release blockers — carried forward from the 2026-11-26 read-only audits
 
