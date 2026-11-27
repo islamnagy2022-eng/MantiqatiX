@@ -172,6 +172,20 @@ The only anon-executable routine in this inventory is `public.get_mnty_targeted_
 | `upsert_catalog_settings_backend(character varying,uuid,character varying,numeric,boolean,boolean)` | `postgres` | plpgsql | `search_path=public` | no | YES | YES |
 | `validate_mantigo_ride_acceptance_integrity()` | `postgres` | plpgsql | `search_path=public` | no | no | no |
 
+## Delegation review — six authenticated-callable routines without a direct `auth.uid()` token
+
+A source-text scan found six of the 65 authenticated-callable SECURITY DEFINER functions without a literal direct `auth.uid()` call in their own body. A missing token is only a triage signal: the immediate delegated function must be reviewed before drawing an authorization conclusion.
+
+| Routine | Immediate authorization path | Current Production disposition |
+|---|---|---|
+| `get_mnty_targeted_advertisements(...)` | Deliberate anonymous public-read query; empty search_path; schema-qualified relations; only active, approved, in-window ad metadata; result limit clamped 1–50. | **INTENTIONAL PUBLIC READ**. Preserve the contract; do not revoke anon based on Advisor label alone. Re-verify the exact seven-column projection and deployed caller after changes. |
+| `mnty_business_employee_list(tenant,business)` | Delegates to `mnty_business_employee_list_scoped(tenant,business,NULL)`, which binds `auth.uid()`, rejects anonymous JWTs, validates business↔tenant and optional branch↔business, then requires an active eligible business membership or explicit scoped employee permission. | **DELEGATED USER SCOPE**. The wrapper's direct body is thin; the scoped helper is the effective boundary. Keep the professional-dashboard branch/mobile tests. |
+| `mnty_can(permission,tenant,business,branch)` | Delegates to `mnty_active_membership(...)`, which filters by `auth.uid()`, ACTIVE membership and supplied tenant/business/branch scopes. | **DELEGATED MEMBERSHIP SCOPE** when scope parameters are supplied. Null-scope calls intentionally enumerate all active memberships and must not be repurposed as proof of platform-root authority. |
+| `mnty_can_platform_admin()` | Calls `mnty_can('admin',NULL,NULL,NULL)`, which uses the null-scope helper. Any eligible tenant OWNER/ADMIN role can satisfy the broad admin permission branch. | **CONFIRMED P0 PLATFORM-ROOT DEFECT**. This is not a missing-actor-token false positive; it is an overbroad authorization decision. RC464 → RC469 → RC471 → RC484 → RC485 source chain exists but is not applied to Production. |
+| `preview_commission_backend(tenant,business,module,gross)` | Calls `assert_financial_membership(tenant)`, which binds `auth.uid()` and requires an ACTIVE finance-capable role within the tenant, but does not bind the user to the requested business and does not reject branch-only finance actors for a branch-less preview. | **CONFIRMED P1 SCOPE DEFECT**. RC467 (`20261115010000`) adds exact business/tenant binding and denies branch-scoped finance; it depends on RC464. Production RC467 remains unapplied; `commission_rules` row count was 0 in the fresh read-only check, so no rule disclosure was observed. |
+| `upsert_catalog_item_and_price_backend(...)` | Delegates to `upsert_catalog_item_backend` and `upsert_catalog_price_backend`; both require `auth.uid()`, verify active membership, exact tenant/business, branch/business hierarchy and allowed owner/manager role (with platform-root route). | **DELEGATED USER SCOPE** in the inspected call chain. Preserve downstream positive/negative business/branch tests; do not add redundant user-ID parameters to the wrapper solely to satisfy a regex scan. |
+
+**Limit:** this section records a direct body/delegation triage of the six no-direct-token entries. It is not a full review of all 65 authenticated-callable routines or a replacement for deployed-caller/Edge parity verification.
 ## Required next classification
 
 1. Trace each routine's current callers in browser code and deployed/current Edge bundles.
