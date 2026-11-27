@@ -1135,3 +1135,12 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 - Updated the dashboard source validator and refreshed application/PWA asset versions to `super-admin-readonly-catalog-inspector-20261127` / `mnty-web-v161`.
 - [ ] Exact-head CI and browser/keyboard/responsive validation remain pending. Draft/inactive catalog management is still blocked pending a dedicated backend admin read/write contract and audit requirements.
 - Production remains **BLOCKED / NOT CERTIFIED**. No merge, deployment, production database change or catalog write was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+
+## 2026-11-27 — Branch-aware catalog price precedence
+
+- Fixed the shared current-price resolver to prioritize the selected branch price over the global price and use global fallback only when no branch-specific price exists.
+- When no branch context is selected, the resolver now returns only a global price instead of picking an arbitrary branch's price.
+- Updated initial storefront cards to use the default branch's price.
+- Added executable pure-function regressions in the enterprise dashboard contract workflow and refreshed app/PWA assets to `catalog-branch-price-precedence-20261127` / `mnty-web-v162`.
+- [ ] Exact-head CI and browser cart/order totals remain pending. No transaction, order or price row was changed.
