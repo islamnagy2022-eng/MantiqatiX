@@ -17,17 +17,19 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Session A owns the job row first, then deactivates it before committing.
-psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "
-  begin;
-  select id from public.jobs where id = '$job_id' for update;
-  select pg_sleep(5);
-  update public.jobs set is_active = false where id = '$job_id';
-  commit;
-" >"$lock_log" 2>&1 &
+# Session A holds a row-level UPDATE lock while the separate statements run.
+(
+  psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<SQL
+begin;
+select id from public.jobs where id = '$job_id' for update;
+select pg_sleep(5);
+update public.jobs set is_active = false where id = '$job_id';
+commit;
+SQL
+) >"$lock_log" 2>&1 &
 lock_pid=$!
 
-# Wait until Session A is demonstrably holding the row lock.
+# Wait until Session A is demonstrably in pg_sleep with the job lock held.
 ready=0
 for _ in $(seq 1 100); do
   count="$(psql "$DATABASE_URL" -Atq -c "select count(*) from pg_stat_activity where state='active' and query like 'select pg_sleep(5)%';")"
@@ -39,7 +41,7 @@ if [[ "$ready" -ne 1 ]]; then
   exit 1
 fi
 
-# Session B calls the application RPC and must wait for Session A's lock.
+# Session B calls the RPC and must block on the row lock until deactivation commits.
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<SQL >"$application_log" 2>&1 &
 set role authenticated;
 select set_config('request.jwt.claim.sub', '$actor_id', false);
@@ -49,7 +51,6 @@ select public.submit_job_application_backend(
 SQL
 application_pid=$!
 
-# Prove the RPC is blocked on a PostgreSQL lock rather than merely starting later.
 waiting=0
 for _ in $(seq 1 100); do
   count="$(psql "$DATABASE_URL" -Atq -c "select count(*) from pg_stat_activity where state='active' and wait_event_type='Lock' and query like '%submit_job_application_backend%';")"
@@ -58,18 +59,9 @@ for _ in $(seq 1 100); do
   sleep 0.05
 done
 if [[ "$waiting" -ne 1 ]]; then
-  wait "$lock_pid" || true
-  if wait "$application_pid"; then
-    echo "RC930_CONCURRENCY_FAIL: submission did not wait for deactivation" >&2
-    exit 1
-  fi
-  if ! grep -q "JOB_NOT_ACTIVE" "$application_log"; then
-    cat "$application_log" >&2
-    echo "RC930_CONCURRENCY_FAIL: expected JOB_NOT_ACTIVE after deactivation" >&2
-    exit 1
-  fi
-  echo "RC930_CONCURRENCY_PASS"
-  exit 0
+  echo "RC930_CONCURRENCY_FAIL: application RPC did not wait on the job row lock" >&2
+  cat "$application_log" >&2
+  exit 1
 fi
 
 wait "$lock_pid"
@@ -79,6 +71,7 @@ wait "$application_pid"
 application_status=$?
 set -e
 application_pid=""
+
 if [[ "$application_status" -eq 0 ]] || ! grep -q "JOB_NOT_ACTIVE" "$application_log"; then
   cat "$application_log" >&2
   echo "RC930_CONCURRENCY_FAIL: application was not rejected after serialized deactivation" >&2
