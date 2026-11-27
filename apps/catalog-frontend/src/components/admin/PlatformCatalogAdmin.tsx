@@ -61,6 +61,7 @@ export const PlatformCatalogAdmin: React.FC = () => {
   const [selectedBranchId, setSelectedBranchId] = useState('');
   const [snapshot, setSnapshot] = useState<CatalogReadResult | null>(null);
   const [search, setSearch] = useState('');
+  const [visibleCount, setVisibleCount] = useState(20);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const requestSequence = useRef(0);
@@ -121,6 +122,11 @@ export const PlatformCatalogAdmin: React.FC = () => {
       item.name_ar, item.name_en, item.sku, item.description,
     ].some((value) => String(value || '').toLocaleLowerCase().includes(query)));
   }, [items, search]);
+  const visibleItems = filteredItems.slice(0, visibleCount);
+
+  useEffect(() => {
+    setVisibleCount(20);
+  }, [search, selectedBusinessId, selectedBranchId]);
 
   const priceForItem = (itemId: string) => {
     const matches = prices.filter((price) => price.catalog_item_id === itemId);
@@ -265,7 +271,7 @@ export const PlatformCatalogAdmin: React.FC = () => {
             </div>
           ) : (
             <div className="grid gap-3 xl:grid-cols-2">
-              {filteredItems.map((item) => {
+              {visibleItems.map((item) => {
                 const price = priceForItem(item.id);
                 const name = item.name_ar || item.name_en || 'عنصر بدون اسم';
                 const kind = String(item.item_type || '').toUpperCase() === 'SERVICE' ? 'خدمة' : 'منتج';
@@ -291,6 +297,18 @@ export const PlatformCatalogAdmin: React.FC = () => {
                   </article>
                 );
               })}
+            </div>
+          )}
+          {visibleItems.length < filteredItems.length && (
+            <div className="flex justify-center">
+              <button
+                type="button"
+                data-testid="platform-catalog-see-more"
+                onClick={() => setVisibleCount((current) => Math.min(filteredItems.length, current + 20))}
+                className="rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-800 hover:bg-slate-50"
+              >
+                رؤية المزيد ({Math.min(filteredItems.length - visibleItems.length, 20).toLocaleString('ar-EG')})
+              </button>
             </div>
           )}
         </>
