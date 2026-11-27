@@ -315,10 +315,15 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
       const cursorMatch = cursor ? /^e2e-directory-cursor:(\d+)$/.exec(cursor) : null;
       if (cursor && !cursorMatch) return json({ error: 'INVALID_CURSOR' }, 400);
       const offset = cursorMatch ? Number(cursorMatch[1]) : 0;
-      directoryPageRequests.push({ limit: requestedLimit, cursor, offset });
-      const businesses = publicDirectoryBusinesses.slice(offset, offset + requestedLimit);
-      const hasMore = offset + businesses.length < publicDirectoryBusinesses.length;
-      const nextCursor = hasMore ? 'e2e-directory-cursor:' + String(offset + businesses.length) : null;
+      const governorate = String(url.searchParams.get('governorate') || '').trim();
+      directoryPageRequests.push({ limit: requestedLimit, cursor, offset, governorate });
+      const filteredBusinesses = governorate
+        ? publicDirectoryBusinesses.filter((business) =>
+            String(business.governorate || business.profile?.governorate || '').trim() === governorate
+          )
+        : publicDirectoryBusinesses;
+      const businesses = filteredBusinesses.slice(offset, offset + requestedLimit);
+      const hasMore = offset + businesses.length < filteredBusinesses.length;
       return json({
         accessMode: 'PUBLIC_DIRECTORY_READ_ONLY',
         businesses,
@@ -586,6 +591,89 @@ if (new URL(baseUrl).origin === 'https://islamnagy2022-eng.github.io') {
     }
 
     results.push('canonical-marketplace-home-root-and-separate-reload-safe-directory-search');
+  } finally { await context.close(); }
+}
+
+// Menoufia deep links override a saved province, pass the exact geographic filter
+// to the public API, keep other provinces out of the results, and return to all Egypt.
+{
+  const baseBusiness = liveDirectory.businesses[0];
+  assert.ok(baseBusiness, 'live public directory must provide a canonical business fixture');
+  const menoufiaFixture = {
+    ...baseBusiness,
+    id: 'menoufia-catalog-e2e-001',
+    name: 'نشاط اختبار المنوفية غير موثق',
+    governorate: 'المنوفية',
+    markaz: 'بركة السبع',
+    village: 'قرية الاختبار',
+    status: 'ACTIVE',
+    operationalStatus: 'ACTIVE',
+    publicEnabled: true,
+    catalogPublished: true,
+    isVerified: false,
+    provider: { ...(baseBusiness.provider || {}), verified: false },
+    profile: { ...(baseBusiness.profile || {}), governorate: 'المنوفية', markaz: 'بركة السبع', village: 'قرية الاختبار' },
+  };
+  const outsideGovernorateFixture = {
+    ...baseBusiness,
+    id: 'menoufia-catalog-e2e-002',
+    name: 'نشاط خارج المنوفية',
+    governorate: 'الجيزة',
+    markaz: 'الدقي',
+    village: 'شارع الاختبار',
+    status: 'ACTIVE',
+    operationalStatus: 'ACTIVE',
+    publicEnabled: true,
+    catalogPublished: true,
+    isVerified: false,
+    provider: { ...(baseBusiness.provider || {}), verified: false },
+    profile: { ...(baseBusiness.profile || {}), governorate: 'الجيزة', markaz: 'الدقي', village: 'شارع الاختبار' },
+  };
+  const { context, page, directoryPageRequests } = await newScenario(
+    browser,
+    null,
+    [menoufiaFixture, outsideGovernorateFixture],
+    {
+      initialRoute: '?view=directory&governorate=المنوفية',
+      geoPreference: {
+        completed: true,
+        mode: 'manual',
+        governorate: 'الجيزة',
+        markaz: 'الدقي',
+        village: 'شارع الاختبار',
+        area: 'شارع جانبي',
+      },
+    },
+  );
+  try {
+    await page.getByTestId('menoufia-directory-scope').waitFor({ state: 'visible', timeout: 15000 });
+    await page.getByText('نشاط اختبار المنوفية غير موثق', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+    assert.equal(await page.getByText('نشاط خارج المنوفية', { exact: true }).count(), 0,
+      'the Menoufia deep link must not render a business from another governorate');
+    const directorySearchPanel = page.getByTestId('directory-search-panel');
+    const governorateSelect = directorySearchPanel.getByLabel('المحافظة', { exact: true });
+    await governorateSelect.waitFor({ state: 'visible', timeout: 10000 });
+    assert.equal(await governorateSelect.inputValue(), 'المنوفية',
+      'the requested governorate must override a saved different province');
+    assert.equal(await directorySearchPanel.locator('select').nth(1).inputValue(), 'all',
+      'a governorate deep link must reset the center filter to all');
+    assert.equal(await directorySearchPanel.locator('select').nth(2).inputValue(), 'all',
+      'a governorate deep link must reset the village filter to all');
+    await page.waitForFunction(() => document.title.includes('محافظة المنوفية'), null, { timeout: 10000 });
+    const canonicalUrl = await page.locator('link[rel="canonical"]').getAttribute('href');
+    assert.equal(new URL(canonicalUrl).searchParams.get('governorate'), 'المنوفية',
+      'canonical SEO URL must preserve the validated Menoufia scope');
+    assert.ok(directoryPageRequests.some((request) => request.governorate === 'المنوفية'),
+      'the public directory request must carry the exact Menoufia governorate filter');
+    assert.ok(await page.getByText('غير موثق', { exact: true }).count() >= 1,
+      'new/unverified activity fixtures must keep the unverified label');
+    await page.getByRole('button', { name: 'عرض كل المحافظات', exact: true }).click();
+    await page.getByText('نشاط خارج المنوفية', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+    assert.equal(new URL(page.url()).searchParams.has('governorate'), false,
+      'the all-governorates action must remove the governorate deep-link filter');
+    assert.equal(await governorateSelect.inputValue(), 'all',
+      'the all-governorates action must reset the visible province selector');
+    results.push('menoufia-shareable-route-overrides-saved-location-filters-results-and-seo');
   } finally { await context.close(); }
 }
 
