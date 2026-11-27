@@ -32,6 +32,9 @@ export type AdminDashboardTab =
 type Props = {
   businesses: Business[];
   subscribers: Subscriber[];
+  subscribersLoading: boolean;
+  subscriberDirectoryError?: string;
+  refreshPlatformSubscribers: () => Promise<void>;
   products: Product[];
   onNavigate: (tab: AdminDashboardTab) => void;
 };
@@ -55,7 +58,7 @@ const shortcuts: Array<{
 
 const MetricCard: React.FC<{
   label: string;
-  value: number;
+  value: number | string;
   hint: string;
   icon: React.ReactNode;
   tone: 'blue' | 'green' | 'amber' | 'rose';
@@ -71,7 +74,7 @@ const MetricCard: React.FC<{
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-bold text-slate-500">{label}</p>
-          <p className="mt-2 text-3xl font-black tracking-tight text-slate-950" data-testid="admin-overview-metric">{value.toLocaleString('ar-EG')}</p>
+          <p className="mt-2 text-3xl font-black tracking-tight text-slate-950" data-testid="admin-overview-metric">{typeof value === 'number' ? value.toLocaleString('ar-EG') : value}</p>
         </div>
         <span className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${tones[tone]}`}>{icon}</span>
       </div>
@@ -80,7 +83,7 @@ const MetricCard: React.FC<{
   );
 };
 
-export const AdminOverview: React.FC<Props> = ({ businesses, subscribers, products, onNavigate }) => {
+export const AdminOverview: React.FC<Props> = ({ businesses, subscribers, subscribersLoading, subscriberDirectoryError, refreshPlatformSubscribers, products, onNavigate }) => {
   const activeSubscribers = subscribers.filter((subscriber) => subscriber.status === 'active').length;
   const publishedBusinesses = businesses.filter((business) => business.publicEnabled === true && !business.isFrozen).length;
   const pendingPublication = businesses.filter((business) => business.publicationStatus === 'PENDING_PUBLICATION').length;
@@ -117,9 +120,24 @@ export const AdminOverview: React.FC<Props> = ({ businesses, subscribers, produc
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <MetricCard label="الأنشطة المسجلة" value={businesses.length} hint="إجمالي سجلات الأنشطة المتاحة في جلسة الإدارة" tone="blue" icon={<Building2 className="h-5 w-5" />} />
         <MetricCard label="الكتالوجات المنشورة" value={publishedBusinesses} hint="منشورة للعامة وغير مجمدة حسب البيانات المحمّلة" tone="green" icon={<Store className="h-5 w-5" />} />
-        <MetricCard label="المشتركون النشطون" value={activeSubscribers} hint={`من إجمالي ${subscribers.length.toLocaleString('ar-EG')} حساب/عضوية محمّلة`} tone="blue" icon={<Users className="h-5 w-5" />} />
+        <MetricCard
+          label="المشتركون النشطون"
+          value={subscribersLoading ? 'جار التحميل' : subscriberDirectoryError ? 'غير متاح' : activeSubscribers}
+          hint={subscribersLoading ? 'جار تحميل دليل المشتركين من الخادم' : subscriberDirectoryError ? 'تعذر تحميل الدليل؛ لم نعرض رقمًا تقديريًا' : `من إجمالي ${subscribers.length.toLocaleString('ar-EG')} حساب/عضوية محمّلة`}
+          tone="blue"
+          icon={<Users className="h-5 w-5" />}
+        />
         <MetricCard label="منتجات وخدمات الكتالوج" value={products.length} hint="إجمالي عناصر الكتالوج المتاحة في جلسة الإدارة" tone="amber" icon={<Boxes className="h-5 w-5" />} />
       </div>
+
+      {subscriberDirectoryError && !subscribersLoading && (
+        <div role="status" className="flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 sm:flex-row sm:items-center sm:justify-between">
+          <span>دليل المشتركين غير متاح حاليًا؛ لا تعتبر قيمة الصفر دليلًا على عدم وجود مشتركين.</span>
+          <button type="button" onClick={() => void refreshPlatformSubscribers()} className="shrink-0 rounded-lg border border-amber-300 bg-white px-3 py-2 font-black hover:bg-amber-100">
+            إعادة تحميل المشتركين
+          </button>
+        </div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <article className="rounded-2xl border border-slate-200 bg-white p-5">
