@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import vm from "node:vm";
 
 const app = fs.readFileSync("web/app.js", "utf8");
 const home = fs.readFileSync("web/home.js", "utf8");
@@ -86,6 +87,102 @@ if (!liveData.includes("localStorage.removeItem('MNTYActiveMembershipId')")) {
 }
 if (!liveData.includes(".eq('owner_user_id',uid).eq('business_id',active.business_id).eq('status','ACTIVE')")) {
   failures.push("Account workspace provider profile must be scoped to the selected active business");
+}
+
+
+// Execute the actual homepage account-label function against isolated membership/profile fixtures.
+// This catches cross-business name leakage that static source markers alone cannot detect.
+const executableHomeAuth = homeAuth + "\n    };";
+
+async function renderHomepageActivityLabel({ selectedMembershipId, memberships, businesses, profiles }) {
+  const loginButton = {
+    innerHTML: "",
+    attributes: {},
+    setAttribute(name, value) { this.attributes[name] = value; }
+  };
+  const user = {
+    id: "user-1",
+    email: "account@example.test",
+    user_metadata: { full_name: "اسم الحساب" }
+  };
+  const client = {
+    auth: { getSession: async () => ({ data: { session: { user } }, error: null }) },
+    from(table) {
+      const filters = {};
+      let ordering = null;
+      let rowLimit = null;
+      const builder = {
+        select() { return builder; },
+        eq(column, value) { filters[column] = value; return builder; },
+        order(column, options) { ordering = { column, ascending: options?.ascending !== false }; return builder; },
+        limit(value) { rowLimit = value; return builder; },
+        async maybeSingle() {
+          const source = table === "user_memberships" ? memberships
+            : table === "businesses" ? businesses
+            : table === "marketing_provider_profiles" ? profiles
+            : [];
+          let rows = source.filter(row => Object.entries(filters).every(([key, value]) => row[key] === value));
+          if (ordering) rows.sort((a, b) => {
+            const av = String(a[ordering.column] || "");
+            const bv = String(b[ordering.column] || "");
+            return ordering.ascending ? av.localeCompare(bv) : bv.localeCompare(av);
+          });
+          if (rowLimit !== null) rows = rows.slice(0, rowLimit);
+          return { data: rows[0] || null, error: null };
+        }
+      };
+      return builder;
+    }
+  };
+  const context = {
+    getClient: () => client,
+    window: { MNTYActiveMembershipId: selectedMembershipId || "", MNTYAuthState: {} },
+    localStorage: { getItem: key => key === "MNTYActiveMembershipId" ? selectedMembershipId || "" : null },
+    document: { getElementById: id => id === "mx-login" ? loginButton : null },
+    escapeHtml: value => String(value ?? ""),
+    openActivityRequestModal() {}
+  };
+  await vm.runInNewContext(`(async () => { ${executableHomeAuth}\nawait syncHomeAuthState(); })()`, context, { timeout: 2000 });
+  return loginButton.innerHTML;
+}
+
+const membershipFixtures = [
+  { id: "membership-food", user_id: "user-1", business_id: "business-food", status: "ACTIVE" },
+  { id: "membership-health", user_id: "user-1", business_id: "business-health", status: "ACTIVE" },
+  { id: "membership-foreign", user_id: "someone-else", business_id: "business-foreign", status: "ACTIVE" }
+];
+const businessFixtures = [
+  { id: "business-food", name: "مطعم الشرق" },
+  { id: "business-health", name: "عيادة النور" },
+  { id: "business-foreign", name: "نشاط مستخدم آخر" }
+];
+const profileFixtures = [
+  { owner_user_id: "user-1", business_id: "business-food", status: "ACTIVE", name_ar: "مطعم الشرق", updated_at: "2026-11-20T00:00:00Z" },
+  { owner_user_id: "user-1", business_id: "business-health", status: "ACTIVE", name_ar: "عيادة النور", updated_at: "2026-11-19T00:00:00Z" },
+  { owner_user_id: "someone-else", business_id: "business-food", status: "ACTIVE", name_ar: "ملف لا يخص صاحب الحساب", updated_at: "2026-11-21T00:00:00Z" }
+];
+const identityScenarios = [
+  { name: "selected FOOD membership", selectedMembershipId: "membership-food", memberships: membershipFixtures, businesses: businessFixtures, profiles: profileFixtures, expected: "مطعم الشرق", forbidden: "عيادة النور" },
+  { name: "selected HEALTH membership", selectedMembershipId: "membership-health", memberships: membershipFixtures, businesses: businessFixtures, profiles: profileFixtures, expected: "عيادة النور", forbidden: "مطعم الشرق" },
+  { name: "stale membership ID", selectedMembershipId: "membership-deleted", memberships: membershipFixtures, businesses: businessFixtures, profiles: profileFixtures, expected: "اسم الحساب", forbidden: "مطعم الشرق" },
+  { name: "membership owned by another user", selectedMembershipId: "membership-foreign", memberships: membershipFixtures, businesses: businessFixtures, profiles: profileFixtures, expected: "اسم الحساب", forbidden: "نشاط مستخدم آخر" },
+  { name: "selected business name fallback", selectedMembershipId: "membership-food", memberships: membershipFixtures, businesses: businessFixtures, profiles: profileFixtures.filter(p => p.business_id !== "business-food" || p.owner_user_id !== "user-1"), expected: "مطعم الشرق", forbidden: "ملف لا يخص صاحب الحساب" }
+];
+try {
+  for (const scenario of identityScenarios) {
+    const html = await renderHomepageActivityLabel(scenario);
+    if (!html.includes(scenario.expected)) throw new Error(`${scenario.name}: expected "${scenario.expected}" in rendered account label`);
+    if (html.includes(scenario.forbidden)) throw new Error(`${scenario.name}: unrelated activity "${scenario.forbidden}" leaked into rendered account label`);
+    if (scenario.selectedMembershipId.startsWith("membership-") && !scenario.name.includes("stale") && !scenario.name.includes("another user")) {
+      if (!html.includes("نشاط نشط")) throw new Error(`${scenario.name}: selected business should be labelled active`);
+    }
+    if (scenario.name.includes("stale") || scenario.name.includes("another user")) {
+      if (!html.includes("مسجل الدخول")) throw new Error(`${scenario.name}: invalid selection must fall back to account-only status`);
+    }
+  }
+  console.log("HOMEPAGE_SELECTED_BUSINESS_IDENTITY_FIXTURE=PASS scenarios=5 food_health_stale_foreign_owner_business_fallback=true");
+} catch (error) {
+  failures.push(`Homepage selected-business identity fixture: ${error.message}`);
 }
 
 if (failures.length) {
