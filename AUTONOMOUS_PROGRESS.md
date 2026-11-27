@@ -177,3 +177,20 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 - [x] Refreshed the live payment dependency gate: Paymob webhook remains deployed v10; current required provider-order compare is absent in that deployed source; the new atomic standard-failure, subscription-success/failure, MantiGO payment, subscription-claim and five-argument digital-page finalizer RPC contracts remain absent. The old standard-success RPC exists; payment release remains **BLOCKED / NOT CERTIFIED**. No payment replay or live financial operation was performed.
 - [x] No Production migration, SQL write, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, refund, settlement or customer/business-data mutation was performed. `docs/SESSION_LOG.md` remains untouched.
 - **Remaining release blockers:** resolve the 88-version source/ledger history gap without fabricated rows or blind replay; finish exact physical-effect, authorization and Edge parity reconciliation; complete owner-controlled database/Storage/Auth/Vault backup and isolated restore/rollback evidence with measured RPO/RTO; obtain approval for one coordinated release window. Full platform remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-11-28 00:55 EET — Fresh Production and deployed Edge read-only recheck
+
+- [x] Rechecked the connected Production project `MANTIQATIX FINAL` (`moyhiluyhjsujhwlyeuu`): ACTIVE_HEALTHY, PostgreSQL 17.6.1.155; live migration ledger is 310 rows through `20261110150618`.
+- [x] Re-read the canonical release contract from current main: 88 unique, strictly ordered required migration versions. Exact live-ledger ID intersection is 0/88; this is an identity discrepancy, not proof that every physical effect is absent. The three declared historical alias targets are present; no ledger entries or migration history were written.
+- [x] Read-only SQL reconfirmed `private.platform_admins` RLS ON / FORCE RLS OFF; `is_platform_admin()` remains membership-derived; `mnty_can_platform_admin()` remains a broad SECURITY DEFINER delegation. The known blast radius is 62 policy references across 27 tables.
+- [x] Enumerated 42 live Edge Functions and compared the deployed entrypoint bytes for nine critical functions with current-main tracked files: `catalog-admin`, `catalog-platform-admin`, `payment-intent`, `paymob-webhook`, `order-create`, `financial-journal`, `subscription-payment-intent`, `digital-page-payment-intent`, and `settlement-financial-atomic`. All nine selected entrypoints differ. The supplemental `deno.json` for `settlement-financial-atomic` matches. This is code parity evidence, not proof of a specific exploit.
+- [x] Created read-only audit report: `docs/audits/PRODUCTION_EDGE_READONLY_RECHECK_20261128.md`.
+- [x] No Production SQL/migration, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, settlement, or customer/business-data mutation occurred.
+- [ ] Complete exhaustive physical-effect and all-bundle Edge dependency reconciliation; resolve root authorization and payment dependencies only through a coordinated, tested release.
+- [ ] Owner-controlled encrypted DB + Storage backup, retrieval/integrity verification, Auth/Vault recovery and an independent PostgreSQL 17 restore/rollback with measured RPO/RTO remain NOT VERIFIED.
+- **Health:** protected Edge `/health` remains NOT CHECKED because `HEALTH_MONITOR_TOKEN` is missing.
+- **Directory scope:** keep the Menoufia-specific catalog and OSM collection cancelled; use existing Activity → Specialty sections only. New unverified rows remain hidden DRAFT / UNVERIFIED.
+- **Release:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. Do not deploy admin/payment Edge functions individually or blindly replay Production migrations.
+
+---
+
