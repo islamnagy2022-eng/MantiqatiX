@@ -4483,3 +4483,21 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] Updated source release arrays, strict migration gate, manifest, backup release validator, RC928 validator and crosswalk to 87 versions. Production manifest still reads 310 ledger rows through 20261110150618, 0/87 exact required IDs recorded, 87/87 missing.
 - [ ] Exact-head dedicated PostgreSQL 17 test, RC929 validator, and full 87-version chronological replay must pass before opening/merging PR.
 - [ ] Keep Production DB/Auth/RLS/GRANT/Storage/Edge/payment/order/customer state read-only. RC929 and RC928 remain unapplied; no live mutation was performed. Backup/restore was deferred and not attempted. Full platform remains BLOCKED / NOT CERTIFIED.
+
+
+---
+
+## 2026-11-27 — Current-main checkpoint after PR #1184
+
+- [x] PR #1184 merged to main as `7e477e25911438f3601574393edc089c14b50c3d`; it refreshes the current-main closeout and master execution checkpoint without changing application runtime or Production data.
+- [x] Latest main source validations passed: catalog build/type-check, V6 public preview build and bundle-boundary audit, dashboard/employee source contracts, Smart Geo consent/privacy, existing-section/unverified directory validator, Egypt GeoJSON validation, social/contact links, OAuth redirect, public catalog/Qadam smoke, public ad RPC/CORS, directory-disabled fallback and production-gate contracts.
+- [x] Same-main module/security workflows passed: Module Professionalization `46017699072`, MantiGO Open Ride Privacy `46017699316`, and Backend-only Module Boundary `46017699349`.
+- [x] GitHub Pages run `46017699004` for this main SHA completed deployment and passed production-root, legacy rollback, V6-preview and case-insensitive URL checks. The final deployed-origin dashboard/mobile/QR route browser step was still running at the last read-back; do not mark that final step complete until its conclusion is SUCCESS. The standalone redirect regression was skipped by workflow conditions and is not a pass.
+- [x] Menoufia scope remains as directed: PR #1182 removes the dedicated Menoufia catalog CTA and blank intake template, reuses existing activity sections and canonical taxonomy, and counts unverified records within the active geographic filter. The dedicated existing-section/unverified validator passed on current main.
+- [x] PRs #1179 and #1180 remain untouched and paused. Do not resume the Menoufia shareable-catalog route or OSM candidate staging unless the owner changes this pause. New admin records remain hidden DRAFT / UNVERIFIED; public unclaimed directory listings remain disabled.
+- [x] Reviewed the existing selected-business identity repair from PR #1183: homepage activity label and account workspace code are scoped to the selected active membership/business; static source-contract checks passed. Real authenticated two-business browser journey remains NOT VERIFIED, so issue #96 stays open.
+- **Production boundary:** read-only. No Production SQL/migration, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, settlement, or customer/business-data mutation was performed.
+- **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. Last documented live migration-ledger read-back remains 310 rows through `20261110150618`, with 0/87 exact required source-ID matches at 2026-11-27 00:04 UTC. This is an identity discrepancy, not proof every physical effect is absent. Platform-root authorization, schema/RPC/ACL/RLS reconciliation, catalog Edge parity, physical-effect/alias reconciliation and backup/restore evidence remain blockers.
+- **Monitoring note:** Production Health Monitor workflow success is not evidence that the protected Edge `/health` endpoint was checked while `HEALTH_MONITOR_TOKEN` is missing; retain this as NOT CHECKED.
+- **Next execution:** finish read-back of Pages run `46017699004`; continue the coordinated platform-root/migration/Edge release preparation with read-only Production access; add genuine multi-business E2E coverage before closing issue #96; keep all paused Menoufia candidate/catalog PRs untouched.
+
