@@ -320,3 +320,11 @@ The exact code head `2b8d6e93bc757d1c8b2645845db23ebd338da19f` passed the public
 - [x] The Finance workspace now retains read-only financial indicators for SUPER_ADMIN but shows an explicit explanation instead of a nonfunctional posting button.
 - [x] Extended the RC450 service-role contract validator to compare the frontend role allowlist exactly with the backend SQL allowlist.
 - **Status:** SOURCE UPDATED; exact-head CI pending. No financial transaction was created or posted.
+
+
+## 2026-11-27 — Super Admin financial operations snapshot
+
+- Added a read-only financial operations panel to the protected control workspace.
+- Displays count-only evidence from the active membership tenant for journals, commissions, payment intents, reconciliations, settlements and wallets.
+- Missing scope or failed source reads are shown as unavailable, not as zero. No monetary values, subscription entitlements or mutation controls are exposed.
+- Status: SOURCE UPDATED / NOT VERIFIED. Exact-head CI and browser/responsive/accessibility checks remain pending.
