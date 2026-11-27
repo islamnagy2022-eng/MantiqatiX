@@ -327,7 +327,7 @@ The exact code head `2b8d6e93bc757d1c8b2645845db23ebd338da19f` passed the public
 - Added a read-only financial operations panel to the protected control workspace.
 - Displays count-only evidence from the active membership tenant for journals, commissions, payment intents, reconciliations, settlements and wallets.
 - Missing scope or failed source reads are shown as unavailable, not as zero. No monetary values, subscription entitlements or mutation controls are exposed.
-- Status: SOURCE UPDATED / NOT VERIFIED. Exact-head CI and browser/responsive/accessibility checks remain pending.
+- Status: SOURCE + EXACT-HEAD CONTRACT CI VERIFIED at 5761ee8a459e8bb46929afff2b1319980e1971b0. Browser/responsive/accessibility checks remain NOT VERIFIED.
 
 
 ## 2026-11-27 — Super Admin active catalog inspector
@@ -335,7 +335,7 @@ The exact code head `2b8d6e93bc757d1c8b2645845db23ebd338da19f` passed the public
 - Added a read-only inspector for active published catalog items and effective prices from the existing authenticated catalog route, scoped to the selected activity tenant and business.
 - Provides active branch selection and shows only name, type, description, current price and option count; no item metadata or write actions.
 - This is not full catalog administration: inactive/draft entries, catalog settings and edit operations require a dedicated audited backend contract.
-- Status: SOURCE UPDATED / NOT VERIFIED until exact-head CI and browser/accessibility checks complete.
+- Status: SOURCE + EXACT-HEAD CONTRACT CI VERIFIED at 5761ee8a459e8bb46929afff2b1319980e1971b0. Browser/accessibility checks remain NOT VERIFIED.
 
 
 ## 2026-11-27 — Branch-aware catalog price presentation
@@ -343,3 +343,10 @@ The exact code head `2b8d6e93bc757d1c8b2645845db23ebd338da19f` passed the public
 - Corrected price display to prefer the selected branch's current price, with global price fallback only when that branch has no specific price.
 - Unselected-branch views no longer show an arbitrary branch-only price.
 - Added executable price-resolver regression cases. Browser checkout/cart integration remains NOT VERIFIED.
+
+
+## 2026-11-27 — Exact-head CI evidence for current Super Admin dashboard batch
+
+- Exact head `5761ee8a459e8bb46929afff2b1319980e1971b0`: Module Professionalization Validation, Backend-only Module Boundary and MantiGO Open Ride Privacy Boundary all passed.
+- Enterprise dashboard source contract and executable catalog branch-price scenarios passed; both PostgreSQL integration jobs included in the Module Professionalization workflow completed successfully.
+- Browser, real-session authorization, responsive layout, assistive technology, cart/checkout and live production behavior remain NOT VERIFIED.
