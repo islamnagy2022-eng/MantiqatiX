@@ -52,6 +52,7 @@ import { CommissionRulesManager } from './CommissionRulesManager';
 import { DirectoryListingsAdmin } from './DirectoryListingsAdmin';
 import { resolveDefaultImage } from '../../utils/defaultImages';
 import { callPlatformAdmin } from '../../lib/production';
+import { validateBusinessCreationIdentity } from '../../lib/businessCreationValidation';
 
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
 
@@ -293,8 +294,13 @@ export const AdminDashboard: React.FC = () => {
 
   const handleAddBusiness = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newBizName.trim()) {
-      window.alert('أدخل اسم النشاط التجاري.');
+    const identity = validateBusinessCreationIdentity({
+      name: newBizName,
+      governorate: newBizGov,
+      markaz: newBizMarkaz,
+    });
+    if (!identity.ok) {
+      window.alert(identity.message);
       return;
     }
     const phoneDigits = newBizOwnerWhatsApp.replace(/\D/g, '');
@@ -323,14 +329,13 @@ export const AdminDashboard: React.FC = () => {
       ? `${matchedCat?.name || newBizCategory} — ${newBizSpecialty.trim()}`
       : (matchedCat?.name || newBizCategory);
 
-    const slug = newBizName
-      .trim()
+    const slug = identity.name
       .toLowerCase()
       .replace(/[\s\W-]+/g, '-');
 
     try {
     const createdBizId = await addBusiness({
-      name: newBizName,
+      name: identity.name,
       slug: `${slug}-${Date.now().toString().slice(-4)}`,
       category: selectedBusinessCategory,
       categoryId: matchedCat?.id,
@@ -341,10 +346,10 @@ export const AdminDashboard: React.FC = () => {
       coverUrl: newBizCoverUrl.trim(),
       bio: newBizBio.trim(),
       ownerWhatsApp: newBizOwnerWhatsApp.trim(),
-      address: newBizAddress,
-      governorate: newBizGov,
-      markaz: newBizMarkaz,
-      village: newBizVillage,
+      address: newBizAddress.trim(),
+      governorate: identity.governorate,
+      markaz: identity.markaz,
+      village: newBizVillage.trim(),
       workingHours: newBizWorkingHours.trim(),
       isVerified: false,
       maxProductsLimit: 150,
@@ -2121,6 +2126,7 @@ export const AdminDashboard: React.FC = () => {
                 <input
                   type="text"
                   required
+                  minLength={2}
                   value={newBizName}
                   onChange={(e) => setNewBizName(e.target.value)}
                   placeholder="مثال: مطعم شواية الديرة أو سوبرماركت الفلاح"
@@ -2218,13 +2224,14 @@ export const AdminDashboard: React.FC = () => {
               <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
                 <span className="block text-[11px] font-black text-slate-800 flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>تحديد مكان النشاط (قرية أو مركز أو محافظة في مصر):</span>
+                  <span>حدد المحافظة والمركز أو القسم؛ القرية أو الحي اختيارية:</span>
                 </span>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 mb-0.5">المحافظة</label>
+                    <label className="block text-[10px] font-bold text-slate-600 mb-0.5">المحافظة <span className="text-rose-500">*</span></label>
                     <input
                       type="text"
+                      required
                       value={newBizGov}
                       onChange={(e) => setNewBizGov(e.target.value)}
                       placeholder="مثال: الدقهلية"
@@ -2232,9 +2239,10 @@ export const AdminDashboard: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 mb-0.5">المركز / القسم</label>
+                    <label className="block text-[10px] font-bold text-slate-600 mb-0.5">المركز / القسم <span className="text-rose-500">*</span></label>
                     <input
                       type="text"
+                      required
                       value={newBizMarkaz}
                       onChange={(e) => setNewBizMarkaz(e.target.value)}
                       placeholder="مثال: المنصورة"
