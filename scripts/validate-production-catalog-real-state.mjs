@@ -218,7 +218,9 @@ assert.ok(
 );
 assert.doesNotMatch(sharedDefaultImages, /images\.unsplash\.com|const rules:/, 'shared catalog image helper must not generate stock-photo URLs');
 assert.match(createUi, /phoneDigits\.length > 0 && \(phoneDigits\.length < 10 \|\| phoneDigits\.length > 15\)/, 'owner WhatsApp is optional but validated when provided');
-assert.doesNotMatch(createUi, /if \(!newBizGov\.trim\(\) \|\| !newBizMarkaz\.trim\(\)\)/, 'optional location data must not block admin activity creation');
+assert.match(createUi, /validateBusinessCreationIdentity\(\{[\s\S]*?governorate: newBizGov,[\s\S]*?markaz: newBizMarkaz[\s\S]*?\}\)/, 'admin activity creation validates a real governorate and markaz before submission');
+assert.match(createUi, /if \(!identity\.ok\)/, 'admin activity creation fails closed when the business identity or location is incomplete');
+assert.doesNotMatch(createUi, /if \(!newBizGov\.trim\(\) \|\| !newBizMarkaz\.trim\(\)\)/, 'legacy ad-hoc location validation stays removed in favor of the shared identity validator');
 assert.match(createUi, /paymentStatus: newBizSubscriptionMode === 'FREE' \? 'free' : 'pending'/, 'new business must distinguish admin-approved free activation from unpaid subscription');
 assert.match(createUi, /paymentConfirmedByAdmin: false/, 'new business must not be marked as payment-confirmed by default');
 assert.match(createUi, /paymentDueDate: newBizSubscriptionMode === 'FREE' \? '' : newBizPaymentDueDate/, 'paid subscription persists selected due date while free activation has no due date');
@@ -255,7 +257,7 @@ const createEnd = backend.indexOf('if (action === "CREATE_SUBSCRIBER")', createS
 assert.ok(createStart >= 0 && createEnd > createStart, 'server-side business creation action must exist');
 const createServer = backend.slice(createStart, createEnd);
 assert.match(createServer, /phoneDigits\.length > 0 && \(phoneDigits\.length < 10 \|\| phoneDigits\.length > 15\)/, 'server validates contact only when optional contact is provided');
-assert.match(createServer, /governorate, markaz\].some\(\(value\) => value.length > 100 \|\| \(value.length > 0 && value.length < 2\)\)/, 'server validates optional location fields without requiring them');
+assert.match(createServer, /governorate\.length < 2[\s\S]*?markaz\.length < 2[\s\S]*?village\.length > 100[\s\S]*?INVALID_BUSINESS_LOCATION/, 'server requires a governorate and markaz while keeping village optional');
 assert.match(createServer, /catalog_public_enabled: false/, 'new business records must remain unpublished until explicit server-side approval');
 assert.match(createServer, /status: "INACTIVE"/, 'new business records must not activate operationally at creation time');
 assert.match(createServer, /paymentDueDate: subscriptionMode === "FREE" \? "" : paymentDueDate/, 'backend must leave due date blank for approved free activation');
