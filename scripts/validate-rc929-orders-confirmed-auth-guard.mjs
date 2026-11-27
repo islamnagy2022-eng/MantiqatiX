@@ -95,7 +95,7 @@ assert.ok(replayWorkflow.includes("node scripts/validate-rc929-orders-confirmed-
 assert.ok(productionVerifier.includes("20261126030000_rc929_orders_confirmed_auth_claim_guard.sql"));
 assert.ok(liveContract.includes('"20261126030000"'));
 assert.ok(gateValidator.includes("20261126030000_rc929_orders_confirmed_auth_claim_guard.sql"));
-assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 87);
+assert.equal(manifest.required_release_migration_ledger_check.expected_migration_versions, 88);
 assert.ok(manifest.required_release_migration_ledger_check.required_versions.includes("20261126030000"));
 assert.ok(manifest.required_release_migration_ledger_check.missing_versions.includes("20261126030000"),
   "RC929 must remain explicitly unapplied to Production");
