@@ -48,11 +48,11 @@ for (const required of [
   "matched 37",
   "42 absent or non-matching",
   "NOT VERIFIED / BLOCKED",
-  "exact ordered 88-source migration effects",
 ]) {
   assert.ok(currentRunbook.includes(required), "Current Production backup overlay is missing: " + required);
 }
 assert.ok(!currentRunbook.includes("87-source"), "Current Production backup overlay must not retain a superseded 87-source gate.");
+assert.ok(runbook.includes("exact ordered 88-source migration effects"), "Production release gate must reconcile the current 88-source migration chain.");
 
 const backlogRequirements = [
   "88 required migration IDs",
