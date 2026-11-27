@@ -222,6 +222,14 @@ A source-text scan found six of the 65 authenticated-callable SECURITY DEFINER f
 RC476 `supabase/migrations/20261118050000_rc476_mantigo_captain_earnings_live_ledger_columns.sql` replaces the old names with canonical columns, preserves the caller/profile checks and JSON keys, pins an empty `search_path`, and retains authenticated-only EXECUTE. Its disposable test deliberately seeds conflicting legacy values to prove only canonical columns affect results, plus caller/profile negative cases. RC476 follows the RC471 MantiGO platform-admin fixture/workflow sequence. The RC476 ID is absent from the Production ledger; issue #914 remains open.
 
 **Disposition:** confirmed P1 captain earnings functionality mismatch. Include RC476 in the full chronological release after RC471, then verify the exact live function body/GUC/ACL and captain-scoped positive/negative results. No RPC or financial row was read or changed.
+
+## Global MantiGO financial report — authorization and schema incompatibility
+
+`public.get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz)` is live SECURITY DEFINER, owner `postgres`, `search_path=public`, authenticated EXECUTE=true / anon=false. It binds the actor ID to `auth.uid()`, but its current authorization accepts a broad ACTIVE tenant role set rather than the platform-admin registry. The same live body aggregates `sum(l.amount)` and `sum(l.captain_amount)`, while those columns are absent from `mantigo_financial_ledger` (which has `gross_amount`, `commission_amount`, `captain_net_amount`). It is therefore both a global authorization-design mismatch and expected to fail at its finance aggregate.
+
+RC471 `supabase/migrations/20261117190000_rc471_mantigo_platform_admin_forward_hardening.sql` replaces the report guard with `mnty_can_platform_admin()` and uses the canonical ledger columns. RC471 itself depends on the preceding RC464/RC469 chain and remains unapplied. In contrast, the live MantiGO dashboard summary already reads canonical ledger columns, but its role check remains broad; distinguish the two.
+
+**Disposition:** confirmed P0 global authorization mismatch plus P1 schema/body incompatibility for the financial-report RPC. No RPC was invoked, no financial ledger rows were read, and no Production change occurred.
 **Limit:** this section records a direct body/delegation triage of the six no-direct-token entries. It is not a full review of all 65 authenticated-callable routines or a replacement for deployed-caller/Edge parity verification.
 ## Required next classification
 
