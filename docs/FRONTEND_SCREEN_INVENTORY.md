@@ -265,3 +265,13 @@ The `domainModules` registry and `web/module-blueprints.js` describe these domai
 ### Public marketing discovery data-boundary CI (2026-10-19)
 
 The exact code head `2b8d6e93bc757d1c8b2645845db23ebd338da19f` passed the public catalog RLS/source contract workflow (run [39243530776](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39243530776)). The public homepage reads service/provider listings from the RC457/RC458 allowlisted views, with ACTIVE-row filters and tests proving private service/provider columns are absent. Marketing backend lifecycle PostgreSQL/source checks also passed (run [39243530754](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39243530754)). This does not establish browser E2E or production schema parity; keep those checks open and production blocked.
+
+
+## 2026-11-27 — Super Admin command-center interaction wiring
+
+- [x] Traced the enterprise command-center renderer and its binder. The dashboard emitted KPI, attention, quick-action, module-map, and search controls with \`data-ec-module\`, but the authenticated \`renderApp()\` lifecycle did not call \`bindEnterpriseCommandCenter()\`. The only existing call was in the unauthenticated auth view, where the dashboard root does not exist.
+- [x] Moved the binder invocation into the authenticated post-render lifecycle, immediately after the role command-center binder.
+- [x] Added Enter-key execution to the enterprise quick search.
+- [x] Added a source-contract validator and wired it into Module Professionalization Validation.
+- [x] Rotated the app script URL and PWA cache to \`mnty-web-v150\`.
+- **Status:** SOURCE UPDATED. Static validator and browser interaction have not yet been executed in this continuation; dashboard runtime, keyboard/screen-reader behavior and small-screen layout remain NOT VERIFIED. No production deployment or privileged business operation was performed.

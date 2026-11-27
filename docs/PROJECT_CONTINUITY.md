@@ -1011,3 +1011,14 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 - Added a source-contract assertion in `scripts/validate-production-gate-contract.mjs` so these table names remain in the production gate's mutation scan.
 - Source commits: `e211eca231a638b84aa1f3f7a29f6c9297e0cc6e` and `2bfa1366419b90013385162540c24c9b7e0db1ba`.
 - This is a source-level guard for literal table references, not a complete static-analysis proof and not an executed test. Dynamic table access and runtime behavior still require broader validation. No tests/CI were run in this build-first batch. Keep PR #299 Draft, production **BLOCKED / NOT CERTIFIED**, and `docs/SESSION_LOG.md` untouched.
+
+
+## 2026-11-27 — Enterprise dashboard interaction wiring
+
+- Branch remains \`feat/marketing-campaign-operations-summary-20261019\`; PR #299 remains open/Draft. The baseline head inspected before this change was \`02cf9cbbbd102170b94cdfed608f7749b49a1c40\`.
+- Fixed the Super Admin enterprise command-center interaction lifecycle by binding its controls after authenticated dashboard rendering. Removed the no-op binder call from the unauthenticated auth view and added Enter-key execution for quick search.
+- Added static source contract \`scripts/validate-enterprise-dashboard-contract.mjs\`, wired into Module Professionalization Validation.
+- Refreshed app/service-worker asset keys and advanced PWA shell cache to \`mnty-web-v150\`.
+- Source update only. Exact-head CI and browser/runtime checks are still pending; do not claim the dashboard is runtime-verified.
+- Next frontend priority: implement and verify Super Admin child screens for activities, people/roles, modules/feature flags, subscriptions/commissions, catalogs and settings. Keep each mutation behind existing server-side functions and RBAC.
+- Production remains **BLOCKED / NOT CERTIFIED**. Do not merge PR #299, apply candidate migrations, deploy, publish ads, run real payments, or alter \`docs/SESSION_LOG.md\`. Preserve \`SMM_INITIAL_LAUNCH_DEFERRED=true\`.

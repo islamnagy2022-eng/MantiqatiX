@@ -2221,3 +2221,15 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Added source-validator checks requiring both regression assertions.
 - [ ] **NOT VERIFIED:** latest SQL integration and source-validator execution are pending CI; do not count these assertions as test success.
 - Source commits: `dd49d6a497d45105a29b0be1e0569e360401c220`, `0a67ecae1b397951295451f45f6029f8f0dd5e64`. PR #299 remains Draft; production remains **BLOCKED / NOT CERTIFIED**. No merge or production deployment was performed. Do not modify `docs/SESSION_LOG.md`.
+
+
+## 2026-11-27 — Enterprise dashboard interaction wiring
+
+- [x] Confirmed the active PR #299 remains open/Draft and inspected the current branch head before editing.
+- [x] Fixed a functional dashboard defect: \`enterpriseCommandCenter()\` rendered navigation/KPI/attention controls, but \`bindEnterpriseCommandCenter()\` was not called during the authenticated \`renderApp()\` flow. Its previous call in \`authView()\` could not bind dashboard controls because the enterprise dashboard DOM was not present there.
+- [x] Added the binder to the authenticated post-render binding sequence and added Enter-key execution for quick search.
+- [x] Added \`scripts/validate-enterprise-dashboard-contract.mjs\` and wired it into \`.github/workflows/module-professionalization.yml\`.
+- [x] Rotated \`web/app.js\` URL, service-worker registration URL and precache asset key; cache version advanced to \`mnty-web-v150\`.
+- [ ] Static validator / exact-head CI and browser-level verification remain pending for this change. Do not describe the dashboard as runtime-verified until tested.
+- [ ] Continue Super Admin child screens next: activity directory and detail, people/roles, modules and feature flags, subscriptions/commissions, catalogs and settings. Only expose write actions where a verified server-side contract and permission check exist.
+- Production remains **BLOCKED / NOT CERTIFIED**. No PR merge, production migration, release deployment, real payment, external campaign publication, or production business mutation was performed. Preserve \`SMM_INITIAL_LAUNCH_DEFERRED=true\`; do not modify \`docs/SESSION_LOG.md\`.

@@ -30,6 +30,8 @@ jobs:
           grep -q "window.MNTYModuleRuntime" web/app.js
           grep -q "syncModuleRuntime" web/app.js
           grep -q "MNTYModuleRuntime" web/module-blueprints.js
+      - name: Enterprise dashboard interaction contract
+        run: node scripts/validate-enterprise-dashboard-contract.mjs
       - name: Matrimony privacy boundary source contract
         run: node scripts/validate-matrimony-privacy-boundary.mjs
       - name: Canonical module feature-flag codes
