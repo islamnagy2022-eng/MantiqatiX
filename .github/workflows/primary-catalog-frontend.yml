@@ -160,6 +160,8 @@ jobs:
         run: npx tsx tests/marketplace-targeted-ads.test.ts
       - name: Test public catalog price-disclosure allowlist
         run: node --test supabase/functions/_shared/public-price-visibility.test.mjs
+      - name: Test platform subscriber membership deduplication contract
+        run: node --test supabase/functions/_shared/subscriber-membership-dedupe.test.mjs
       - name: Test merchant promotional image URL editor
         working-directory: apps/catalog-frontend
         run: npx tsx tests/promotional-images.test.ts
@@ -309,7 +311,8 @@ jobs:
           echo "PROFESSIONAL_DASHBOARD_EMPLOYEE_RBAC_POSTGRES=PASS"
 
   professional_dashboard_browser_e2e:
-    runs-on: ubuntu-latest
+    # Ubuntu 24.04 avoids the broken Microsoft apt feed on the current ubuntu-latest image.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
