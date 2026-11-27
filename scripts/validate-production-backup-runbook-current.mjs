@@ -16,8 +16,8 @@ const runbookRequirements = [
   "UNKNOWN / NOT EVIDENCED",
   "Restore to a new project",
   "Storage object bytes",
-  "88 exact migration versions",
-  "0/88 exact required version identifiers",
+  "90 exact migration versions",
+  "0/90 exact required version identifiers",
   "20261125120000",
   "RC927",
   "20261126010000",
@@ -35,8 +35,8 @@ for (const required of runbookRequirements) {
 }
 
 const backlogRequirements = [
-  "88 required migration IDs",
-  "0/88 exact required identifiers",
+  "90 required migration IDs",
+  "0/90 exact required identifiers",
   "20261125110000",
   "RC926",
   "20261125120000",
@@ -51,12 +51,12 @@ const backlogRequirements = [
   "RC927 is merged source-only",
 ];
 for (const required of backlogRequirements) {
-  assert.ok(backlog.includes(required), "Release backlog is missing current 88-version gate text: " + required);
+  assert.ok(backlog.includes(required), "Release backlog is missing current 90-version gate text: " + required);
 }
 assert.ok(!backlog.includes("76 required migration IDs"), "Release backlog still describes 76 as the current required migration count.");
 assert.ok(!backlog.includes("0/76 present") && !backlog.includes("0/78 exact required identifiers"), "Release backlog still uses a superseded migration status.");
 
-assert.equal(ledger.expected_migration_versions, 88, "manifest must use the 88-version contract");
+assert.equal(ledger.expected_migration_versions, 90, "manifest must use the 90-version contract");
 assert.ok(ledger.required_versions.includes("20261125120000"), "manifest must list RC927");
 assert.ok(ledger.missing_versions.includes("20261125120000"), "RC927 must remain explicitly unapplied in Production");
 assert.ok(ledger.required_versions.includes("20261126010000"), "manifest must list RC928");
@@ -71,4 +71,4 @@ assert.equal(ledger.found_in_live_ledger, 0, "do not manufacture or overstate Pr
 
 console.log("PRODUCTION_BACKUP_RUNBOOK_CURRENT_RELEASE_CONTRACT=PASS");
 console.log("BACKUP_COVERAGE_AUTH_STORAGE_EXPLICIT=PASS");
-console.log("CURRENT_RELEASE_MIGRATION_COUNT=88");
+console.log("CURRENT_RELEASE_MIGRATION_COUNT=90");
