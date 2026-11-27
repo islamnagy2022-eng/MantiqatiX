@@ -145,6 +145,9 @@ jobs:
       - name: Test business creation identity and geographic validation
         working-directory: apps/catalog-frontend
         run: npx tsx tests/business-creation-validation.test.ts
+      - name: Test Super Admin person search selection and stale response guard
+        working-directory: apps/catalog-frontend
+        run: npx tsx tests/super-admin-control-selection.test.ts
       - name: Validate catalog business identity parity across UI and API
         run: node scripts/validate-catalog-business-identity-contract.mjs
       - name: Test route-aware SEO metadata and private-route noindex behavior
