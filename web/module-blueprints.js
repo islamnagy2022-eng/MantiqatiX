@@ -63,7 +63,19 @@ window.MNTYBindModuleBlueprint=()=>{
    if(detailStatus)detailStatus.textContent='حالة المصادر: '+sourceStatus;
    if(scroll)root.querySelector('.mnty-blueprint-detail')?.scrollIntoView({behavior:'smooth',block:'nearest'});
   };
-  tabs.forEach(btn=>btn.onclick=()=>activate(btn.dataset.blueprintTab));
+  tabs.forEach((btn,i)=>{
+   btn.tabIndex=i===0?0:-1;
+   btn.onclick=()=>activate(btn.dataset.blueprintTab);
+   btn.addEventListener('keydown',event=>{
+    if(!['ArrowRight','ArrowLeft','Home','End'].includes(event.key))return;
+    event.preventDefault();
+    const current=tabs.indexOf(btn);
+    const next=event.key==='Home'?0:event.key==='End'?tabs.length-1:
+      (current+(event.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;
+    tabs[next]?.focus();
+    activate(next);
+   });
+  });
   root.querySelectorAll('.mnty-blueprint-btn').forEach(btn=>btn.onclick=()=>activate(btn.closest('[data-module-card]')?.dataset.moduleCard,true));
   activate(0);
  });
