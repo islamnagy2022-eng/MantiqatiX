@@ -2324,3 +2324,12 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Refreshed the app/service-worker asset key and advanced the shell cache to `mnty-web-v158`; source-level app/service-worker parsing and asset parity checks passed.
 - [ ] Exact-head CI and browser/keyboard verification remain pending; no workflow run or commit status was returned for `f4d0eccf10484cb3c2847dfa3352a748949411fc` at verification time.
 - This is a navigation correction only. No server write, role change, production deployment, or database mutation was performed. Production remains **BLOCKED / NOT CERTIFIED**. Keep `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+
+## 2026-11-27 — Super Admin active subscription-tier pricing directory
+
+- [x] Added a Super Admin read-only directory for active subscription-tier prices from `subscription_tier_prices`, using an explicit field allowlist and `active=true` filter.
+- [x] The panel does not query business subscription records, alter tier prices, start checkout, activate subscriptions, or create payments. It states clearly that price availability does not mean a business currently holds that subscription.
+- [x] Added and executed source-contract assertions for allowlist, active-only filtering, read-only behavior and truthful UI state. JS parse and app/PWA asset parity checks passed; current asset key is `super-admin-pricing-directory-20261127`, cache `mnty-web-v159`.
+- [ ] GitHub Actions and browser/device E2E remain pending; no exact-head CI result was available during this pass.
+- Actual subscription/customer and commission management remains blocked pending a reviewed private-registry-backed server read/write contract and audit controls. No production data or financial state was changed. Production remains **BLOCKED / NOT CERTIFIED**. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
