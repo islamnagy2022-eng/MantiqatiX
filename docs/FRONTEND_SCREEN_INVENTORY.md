@@ -336,3 +336,10 @@ The exact code head `2b8d6e93bc757d1c8b2645845db23ebd338da19f` passed the public
 - Provides active branch selection and shows only name, type, description, current price and option count; no item metadata or write actions.
 - This is not full catalog administration: inactive/draft entries, catalog settings and edit operations require a dedicated audited backend contract.
 - Status: SOURCE UPDATED / NOT VERIFIED until exact-head CI and browser/accessibility checks complete.
+
+
+## 2026-11-27 — Branch-aware catalog price presentation
+
+- Corrected price display to prefer the selected branch's current price, with global price fallback only when that branch has no specific price.
+- Unselected-branch views no longer show an arbitrary branch-only price.
+- Added executable price-resolver regression cases. Browser checkout/cart integration remains NOT VERIFIED.
