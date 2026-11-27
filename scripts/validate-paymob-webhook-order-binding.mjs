@@ -86,4 +86,22 @@ for (const branch of branches) {
   assert.ok(mismatchHandler.includes("409"), branch.name + " provider-order mismatch must return HTTP 409");
 }
 
-console.log("Paymob signed provider-order binding (standard, digital-page, subscription): PASS");
+const mantigoLookup = webhook.indexOf('const {data:mantigo}=await admin.from("mantigo_financial_ledger")');
+const mantigoBranch = webhook.indexOf("if(mantigo){", mantigoLookup);
+const mantigoOrderExtraction = webhook.indexOf("const providerOrderId=value(order.id)", mantigoBranch);
+const mantigoOrderGuard = webhook.indexOf(
+  'if(!providerOrderId||providerOrderId!==value((mantigo.metadata as Record<string,unknown>|null)?.paymob_intention_order_id))',
+  mantigoOrderExtraction,
+);
+const mantigoMismatch = webhook.indexOf("MANTIGO_PROVIDER_ORDER_MISMATCH", mantigoOrderGuard);
+const mantigoProcessor = webhook.indexOf('admin.rpc("process_verified_mantigo_payment_backend"', mantigoOrderGuard);
+
+assert.ok(mantigoLookup >= 0 && mantigoBranch > mantigoLookup &&
+  mantigoOrderExtraction > mantigoBranch && mantigoOrderGuard > mantigoOrderExtraction,
+  "MantiGO must load the ledger row, extract signed order.id, and compare it with the stored Paymob intention order ID");
+assert.ok(mantigoMismatch > mantigoOrderGuard && mantigoProcessor > mantigoOrderGuard,
+  "MantiGO must reject a provider-order mismatch before calling its atomic payment processor");
+assert.ok(webhook.slice(mantigoOrderGuard, mantigoProcessor).includes("409"),
+  "MantiGO provider-order mismatch must return HTTP 409");
+
+console.log("Paymob signed provider-order binding (standard, digital-page, subscription, MantiGO): PASS");
