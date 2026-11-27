@@ -22,7 +22,7 @@ trap cleanup EXIT
   psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<SQL
 begin;
 select id from public.jobs where id = '$job_id' for update;
-select pg_sleep(5);
+select pg_sleep(10);
 update public.jobs set is_active = false where id = '$job_id';
 commit;
 SQL
@@ -31,8 +31,8 @@ lock_pid=$!
 
 # Wait until Session A is demonstrably in pg_sleep with the job lock held.
 ready=0
-for _ in $(seq 1 100); do
-  count="$(psql "$DATABASE_URL" -Atq -c "select count(*) from pg_stat_activity where state='active' and query like 'select pg_sleep(5)%';")"
+for _ in $(seq 1 200); do
+  count="$(psql "$DATABASE_URL" -Atq -c "select count(*) from pg_stat_activity where state='active' and query like 'select pg_sleep(10)%';")"
   if [[ "$count" -ge 1 ]]; then ready=1; break; fi
   sleep 0.05
 done
@@ -52,7 +52,7 @@ SQL
 application_pid=$!
 
 waiting=0
-for _ in $(seq 1 100); do
+for _ in $(seq 1 200); do
   count="$(psql "$DATABASE_URL" -Atq -c "select count(*) from pg_stat_activity where state='active' and wait_event_type='Lock' and query like '%submit_job_application_backend%';")"
   if [[ "$count" -ge 1 ]]; then waiting=1; break; fi
   if ! kill -0 "$application_pid" 2>/dev/null; then break; fi
