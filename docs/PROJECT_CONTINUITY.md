@@ -1101,3 +1101,15 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 - [x] Performed source-level JavaScript parse checks for `web/app.js` and `web/sw.js` using the current branch contents; both parsed successfully. Source-contract assertions and browser interaction remain pending CI/runtime verification.
 - [ ] No workflow runs or status checks were returned for exact commit `f4d0eccf10484cb3c2847dfa3352a748949411fc` at verification time. Do not mark CI passed until a fresh exact-head run is available.
 - Production remains **BLOCKED / NOT CERTIFIED**. No merge, deployment, database mutation, or production write was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+
+## 2026-11-27 — Super Admin active subscription-tier pricing directory
+
+- [x] Added an internal Super Admin view of active subscription-tier prices using the authenticated `subscription_tier_prices` read policy.
+- [x] The loader selects only `tier_code, monthly_price, annual_price, currency`, filters `active=true`, and displays only values returned by the database; no fallback/static price values are used.
+- [x] The panel explicitly states that a price tier is not evidence of an active business subscription. It does not query subscription customer records, initiate checkout, activate plans, edit pricing, or create payment activity.
+- [x] Added source-contract assertions for the explicit field allowlist, active-only filter, read-only behavior, initialization path, and truthful subscription-state wording. Corrected the validator's escaping, then executed the complete enterprise-dashboard source contract successfully against the current fetched branch files.
+- [x] JavaScript parse checks passed for `web/app.js`, `web/sw.js`, and the validator; app/service-worker asset parity is aligned at `super-admin-pricing-directory-20261127` / `mnty-web-v159`.
+- [ ] GitHub Actions exact-head CI and live browser/responsive/accessibility verification remain pending. Source-contract execution is not a substitute for those checks.
+- [ ] Actual business subscription records and commission transactions remain unavailable to a platform-only view until a separately reviewed, registry-backed server read contract is wired. No direct financial table access or client-side activation is added.
+- Production remains **BLOCKED / NOT CERTIFIED**. No merge, deployment, financial write, or production mutation was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
