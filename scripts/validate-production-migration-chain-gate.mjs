@@ -5,6 +5,7 @@ import { isLiveReconciliationVerified, REQUIRED_RELEASE_MIGRATION_VERSIONS, REQU
 
 const source = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
 const rc117ImageRepairValidator = fs.readFileSync("scripts/validate-rc117-image-provenance-forward-repair.mjs", "utf8");
+const rc932Validator = fs.readFileSync("scripts/validate-rc932-mantigo-open-ride-explicit-confirmed-auth.mjs", "utf8");
 const workflow = fs.readFileSync(".github/workflows/pages.yml", "utf8");
 const forwardReplayWorkflow = fs.readFileSync(".github/workflows/forward-migration-chain-replay.yml", "utf8");
 const liveContract = fs.readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
@@ -96,9 +97,10 @@ const required = [
   "20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql",
   "20261126020000_preserve_marketing_service_image_provenance.sql",
   "20261126030000_rc929_orders_confirmed_auth_claim_guard.sql",
-  "20261127010000_rc930_serialize_job_deactivation_and_application.sql"
+  "20261127010000_rc930_serialize_job_deactivation_and_application.sql",
+  "20261127235334_rc932_mantigo_open_ride_explicit_confirmed_auth.sql"
 ];
-assert.equal(required.length, 88, "release gate must track all distinct required post-RC424 migration effects, including RC464B, both RC479 migrations, RC476–RC496, RC921–RC930 and the RC117 image-provenance forward repair");
+assert.equal(required.length, 89, "release gate must track all distinct required post-RC424 migration effects, including RC464B, both RC479 migrations, RC476–RC496, RC921–RC932 and the RC117 image-provenance forward repair");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");
@@ -110,6 +112,9 @@ assert.ok(workflow.includes("node scripts/validate-production-migration-chain-ga
 assert.ok(forwardReplayWorkflow.includes("node scripts/validate-rc117-image-provenance-forward-repair.mjs"), "forward replay must run the RC117 image-provenance static contract");
 assert.ok(forwardReplayWorkflow.includes("supabase/tests/rc117_marketing_service_image_provenance_forward_repair.sql"), "forward replay must execute the RC117 image-provenance integration test");
 assert.ok(rc117ImageRepairValidator.includes("20261126020000_preserve_marketing_service_image_provenance.sql"), "RC117 repair validator must be present and bound to the exact migration");
+assert.ok(rc932Validator.includes("(auth.jwt()->>'is_anonymous') IS DISTINCT FROM 'false'"), "RC932 must strictly reject missing/null/anonymous JWT claims");
+assert.ok(forwardReplayWorkflow.includes("node scripts/validate-rc932-mantigo-open-ride-explicit-confirmed-auth.mjs"), "full forward replay must run the RC932 source validator");
+assert.ok(forwardReplayWorkflow.includes("supabase/tests/rc932_mantigo_open_ride_explicit_confirmed_auth_integration.sql"), "full forward replay must execute RC932 missing/null-claim regression tests");
 assert.match(source, /migrationTimestampOrderViolations/, "migration timestamp/order conflicts must be checked");
 assert.match(source, /const reconciliationPath="docs\/release\/production-migration-reconciliation\.json"/, "live reconciliation manifest must be read");
 assert.match(liveContract, /source_ledger_identity_reconciled\s*===\s*true/, "source/ledger identity must be reconciled");
