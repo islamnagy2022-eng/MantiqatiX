@@ -75,7 +75,7 @@ assert.match(workflow, /20261128010000_rc931_provider_profile_public_base_read_r
 assert.match(workflow, /rc926_provider_profile_confirmed_identity_strict_integration\.sql/);
 assert.match(workflow, /rc931_provider_profile_public_read_integration\.sql/);
 assert.match(replayWorkflow, /validate-rc931-provider-profile-public-read-retirement\.mjs/);
-assert.match(replayWorkflow, /rc931_provider_profile_public_read_integration\.sql/);
+assert.match(replayWorkflow, /rc931-provider-profile-public-read-retirement\.yml/);
 
 const projection = "business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured";
 for (const [source, label] of [[publicCatalog, "public-catalog"], [publicDirectory, "public-catalog-directory"]]) {
