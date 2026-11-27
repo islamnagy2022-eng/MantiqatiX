@@ -296,8 +296,8 @@ export const AdminDashboard: React.FC = () => {
     e.preventDefault();
     const identity = validateBusinessCreationIdentity({
       name: newBizName,
-      governorate: identity.governorate,
-      markaz: identity.markaz,
+      governorate: newBizGov,
+      markaz: newBizMarkaz,
     });
     if (!identity.ok) {
       window.alert(identity.message);
@@ -347,8 +347,8 @@ export const AdminDashboard: React.FC = () => {
       bio: newBizBio.trim(),
       ownerWhatsApp: newBizOwnerWhatsApp.trim(),
       address: newBizAddress.trim(),
-      governorate: newBizGov,
-      markaz: newBizMarkaz,
+      governorate: identity.governorate,
+      markaz: identity.markaz,
       village: newBizVillage.trim(),
       workingHours: newBizWorkingHours.trim(),
       isVerified: false,
