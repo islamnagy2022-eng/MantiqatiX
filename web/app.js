@@ -1061,7 +1061,7 @@ async function loadSuperAdminActivityDirectory(){
    lastTrigger=button;
    root.querySelectorAll('[data-sa-activity-catalog]').forEach(item=>item.setAttribute('aria-expanded',String(item===button)));
    await loadSuperAdminActivityCatalog(business,root);
-   root.querySelector('#sa-activity-catalog-refresh')?.addEventListener('click',()=>loadSuperAdminActivityCatalog(business,root));
+   root.querySelector('#sa-activity-catalog-refresh').onclick=()=>loadSuperAdminActivityCatalog(business,root);
   }));
   root.querySelector('#sa-activity-detail-close')?.addEventListener('click',closeDetail);
  }catch(error){
