@@ -76,3 +76,11 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 - [ ] Continue exact-head review of Super Admin fixes and overview work in PRs #1171 and #1172. Do not merge either until all required checks pass.
 - [ ] Keep `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` until the separate live database migration, ACL/RLS, Edge, privacy, finance, backup/restore and rollback gates are satisfied.
 - **Non-actions:** no Production database write, migration, Auth/RLS/GRANT change, Edge Function deployment, payment, wallet, settlement, or customer/business-data mutation was performed as part of the Pages deployment closeout.
+
+## 2026-11-27 — First ODbL Monufia OSM snapshot completed
+- Successfully queried the OSM Monufia administrative relation 3824207 through the primary Overpass endpoint at `2026-11-27T03:49:21Z`.
+- Initial extract retained 227 unique OSM objects: 206 with a tag-based category suggestion, 21 unclassified taxonomy-review rows, and 37 ignored elements.
+- Reviewed classification policy places all `taxonomy_review_required=true` elements in the review queue, including 21 generic/uncommon shop tags that had provisional general-retail suggestions. The reviewed package therefore contains **185 exact mapped candidates** and **42 taxonomy-review records**.
+- Integrity checks passed: 227/227 unique OSM object IDs, 227/227 valid coordinate pairs, zero contact/website/social/opening-hours/address fields, and 100% of retained rows marked UNVERIFIED / DRAFT / UNCLAIMED / non-publishable.
+- GitHub artifact run [45936233952](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45936233952), artifact `15170886614`, contains the initial generator output. A separate reviewed ZIP was generated with accepted taxonomy matches separated from provisional review rows.
+- ODbL data remains separate from proprietary MantiqatiX business records. No Supabase, Production, public directory, Edge, Storage, Auth/RLS/GRANT, payment, wallet, or settlement write occurred. PR #1180 remains Draft pending review; no merge or publication.
