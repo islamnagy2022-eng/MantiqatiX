@@ -55,6 +55,23 @@ The live SQL definitions establish a high-priority cross-tenant authorization ri
 
 The live database still has none of those exact source IDs in the current 87-version release list, and the direct SQL read-back still shows the pre-repair function bodies. Apply only as part of the complete, reviewed, backed-up chronological release after all preflights pass. RC464/RC471/RC484/RC485 are not independently deployable hot fixes.
 
+## RC464 / RC484 / RC485 read-only preflight matrix
+
+A separate catalog SQL read-back checked the source migration preconditions without executing any migration:
+
+| Check | Live result | Meaning |
+|---|---|---|
+| Registry exists, RLS enabled, owner postgres with BYPASSRLS | PASS | Compatible with the RC464/RC484 SECURITY DEFINER owner requirement. |
+| Registry user_id column UUID NOT NULL | PASS | Matches RC484 registry contract. |
+| Direct anon/authenticated SELECT/INSERT/UPDATE/DELETE grants on private.platform_admins | None found | Matches RC464/RC484 client-table ACL precondition. |
+| Four expected MantiGO global SECURITY DEFINER signatures | 4/4 present | Matches the RC464 caller preflight. |
+| Four additional shared SECURITY DEFINER callers using mnty_can_platform_admin() | 4/4 present | Matches the RC464 shared-caller preflight. |
+| digital_pages / MantiGO financial / rate-limit shared-helper RLS policies | 3/3 present | Matches the RC464 expected policy preflight. |
+| RC484 policy blast radius | 57 references / 24 tables | Meets the minimum RC484 preflight count. |
+| RC485 registry-backed helper precondition | FAIL | Current is_platform_admin() is SECURITY INVOKER, search_path=public and membership-derived; it does not read private.platform_admins. RC485 must follow RC484. |
+
+This means the exact RC464 and RC484 *catalog preconditions* were observed as present, while the current helper contract is deliberately still weak and is the object those migrations replace. It is not permission to execute RC464/RC484 separately. RC471's full preflight and every remaining migration dependency, schema effect, alias and backup/restore condition still belong to the complete chronological release.
+
 ## Supabase advisors
 
 Security Advisor reported **94 lint categories / 166 findings**: **157 WARN** and **9 INFO**. Major counts include 65 authenticated-callable SECURITY DEFINER warnings, one anon-callable SECURITY DEFINER warning, 90 anonymous-access-policy checks, one leaked-password-protection warning, and nine RLS-enabled tables without policies.
