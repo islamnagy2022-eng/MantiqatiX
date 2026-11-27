@@ -8440,14 +8440,14 @@
       "risk": "High authorization blast radius. Do not hot-replace the helper or bulk-rewrite policies. Prepare a coordinated migration preserving tenant/business/branch boundaries with positive/negative PostgreSQL integration tests."
     },
     "authorization_semantics": {
-      "severity": "CRITICAL / P0",
+      "severity": "P0 authorization logic defect / future privilege-escalation condition",
       "observed_live_logic": {
         "membership_helper": "public.mnty_active_membership(NULL,NULL,NULL) returns the caller's ACTIVE memberships without tenant/business/branch filters.",
         "generic_permission_helper": "public.mnty_can('admin',NULL,NULL,NULL) includes 'admin' in the built-in permission lists for OWNER and ADMIN roles and also accepts a permissions.admin boolean.",
         "platform_guard": "public.mnty_can_platform_admin() delegates directly to public.mnty_can('admin',NULL,NULL,NULL) and does not consult private.platform_admins.",
         "legacy_rls_helper": "public.is_platform_admin() returns true for any ACTIVE ADMIN or SUPER_ADMIN membership and is referenced by 57 policies across 24 tables."
       },
-      "impact_statement": "An active tenant OWNER/ADMIN may satisfy mnty_can_platform_admin without a private-registry row. An active tenant ADMIN/SUPER_ADMIN may satisfy is_platform_admin() and thereby satisfy OR predicates in policies across multiple tables. This is a source-derived cross-tenant authorization risk; no impersonation or data-access exploit test was performed.",
+      "impact_statement": "The helper implementation is not registry-backed and can grant platform-root permission to any active tenant OWNER/ADMIN or membership with permissions.admin=true. Aggregate-only current-state review found no non-registry active OWNER, ADMIN, or SUPER_ADMIN users and no non-registry permissions.admin=true memberships; four non-registry BUSINESS_OWNER users do not satisfy the built-in mnty_can('admin') role branch. This is a source-derived latent authorization defect, not evidence of an exploited account or observed cross-tenant data access.",
       "existing_forward_source_repairs": [
         {
           "version": "20261113214500",
@@ -8513,6 +8513,26 @@
         "catalog_precondition": "BLOCKED_UNTIL_RC484"
       },
       "interpretation": "These are read-only catalog preconditions only. They do not prove the full migration transactions will pass or authorize isolated application. Preserve RC464→RC471→RC484→RC485 inside the complete ordered release with all alias, physical-effect and backup/restore checks."
+    },
+    "current_membership_aggregate": {
+      "checked_at": "2026-11-27T02:54:00Z",
+      "pii_scope": "Aggregate-only; no user IDs, emails, or individual membership rows selected.",
+      "registry_total": 1,
+      "registry_auth_accounts_present": 1,
+      "registry_auth_accounts_unbanned": 1,
+      "non_registry_active_users_by_role": {
+        "BUSINESS_OWNER": 4,
+        "CUSTOMER": 12
+      },
+      "non_registry_active_memberships_by_role": {
+        "BUSINESS_OWNER": 7,
+        "CUSTOMER": 12
+      },
+      "non_registry_active_owner_admin_users": 0,
+      "non_registry_active_super_admin_users": 0,
+      "non_registry_memberships_with_permissions_admin_true": 0,
+      "non_registry_business_owner_users": 4,
+      "interpretation": "Current aggregate state contains no non-registry active OWNER/ADMIN/SUPER_ADMIN and no explicit admin permission override. BUSINESS_OWNER is not included in the built-in mnty_can('admin') role case. The faulty generic helper remains a latent privilege escalation if such membership state appears later."
     }
   },
   "main_pages_deployment_after_admin_overview": {
