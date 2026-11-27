@@ -20,14 +20,20 @@ const runbookRequirements = [
   "0/90 exact required version identifiers",
   "20261125120000",
   "RC927",
+  "20261125130000",
+  "RC115",
   "20261126010000",
   "RC928",
   "20261126020000",
   "RC117",
   "20261126030000",
   "RC929",
+  "20261128010000",
+  "RC931",
   "20261127010000",
   "RC930",
+  "20261128010000",
+  "RC931",
   "not applied to Production",
 ];
 for (const required of runbookRequirements) {
@@ -39,6 +45,8 @@ const backlogRequirements = [
   "0/90 exact required identifiers",
   "20261125110000",
   "RC926",
+  "20261125130000",
+  "RC115",
   "20261125120000",
   "RC927",
   "20261126010000",
@@ -67,6 +75,10 @@ assert.ok(ledger.required_versions.includes("20261126030000"), "manifest must li
 assert.ok(ledger.missing_versions.includes("20261126030000"), "RC929 must remain unapplied to Production until coordinated release approval");
 assert.ok(ledger.required_versions.includes("20261127010000"), "manifest must list RC930");
 assert.ok(ledger.missing_versions.includes("20261127010000"), "RC930 must remain unapplied to Production until coordinated release approval");
+assert.ok(ledger.required_versions.includes("20261125130000"), "manifest must list RC115 tenant/business-scoped marketing CRM reads");
+assert.ok(ledger.missing_versions.includes("20261125130000"), "RC115 must remain unapplied to Production until coordinated release approval");
+assert.ok(ledger.required_versions.includes("20261128010000"), "manifest must list RC931 provider-profile public-read retirement");
+assert.ok(ledger.missing_versions.includes("20261128010000"), "RC931 must remain unapplied to Production until coordinated release approval");
 assert.equal(ledger.found_in_live_ledger, 0, "do not manufacture or overstate Production migration ledger entries");
 
 console.log("PRODUCTION_BACKUP_RUNBOOK_CURRENT_RELEASE_CONTRACT=PASS");
