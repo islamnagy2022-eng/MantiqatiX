@@ -3799,3 +3799,20 @@ The 20261120193000 RC479 anonymous Auth-session SELECT guard was present in main
 - **Monitoring note:** Production Health Monitor workflow success is not evidence that the protected Edge `/health` endpoint was checked while `HEALTH_MONITOR_TOKEN` is missing; retain this as NOT CHECKED.
 - **Next execution:** finish read-back of Pages run `46017699004`; continue the coordinated platform-root/migration/Edge release preparation with read-only Production access; add genuine multi-business E2E coverage before closing issue #96; keep all paused Menoufia candidate/catalog PRs untouched.
 
+
+
+---
+
+## 2026-11-27 14:42 UTC — Post-merge Pages and live Production read-back
+
+- [x] Main `7e477e25911438f3601574393edc089c14b50c3d` Pages deployment run [46017699004](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/46017699004) completed SUCCESS. Root/legacy rollback/V6 preview, mixed-case catalog routes, and deployed legacy/dashboard/mobile/QR route checks all completed successfully. The separate deployed-origin redirect regression remained intentionally skipped; it is not a pass.
+- [x] Refreshed live project identity: `MANTIQATIX FINAL` / `moyhiluyhjsujhwlyeuu`, `ACTIVE_HEALTHY`, PostgreSQL `17.6.1.155`. This was not the inactive DEMO project.
+- [x] Direct live migration inventory: 310 rows, latest `20261110150618`. Comparing the current required list of 87 source migration IDs against this inventory returned 0 exact IDs. This is an identity mismatch only; the three previously confirmed exact aliases and actual physical effects must be reconciled separately. Do not synthesize ledger rows or replay aliases.
+- [x] Direct read-only SQL catalog recheck: `private.platform_admins` is owned by postgres, RLS enabled, FORCE RLS disabled. `public.is_platform_admin()` is SECURITY INVOKER / `search_path=public`, but still derives root access from any ACTIVE tenant ADMIN/SUPER_ADMIN membership. `public.mnty_can_platform_admin()` remains SECURITY DEFINER / `search_path=public, pg_temp` and delegates to `public.mnty_can('admin',NULL,NULL,NULL)`.
+- [x] Current helper blast radius remains 57 `is_platform_admin` policy references across 24 tables, plus five `mnty_can_platform_admin` references across three tables: 62 references / 27 tables. The read-only query found anon EXECUTE denied and authenticated EXECUTE granted for both functions; no policy or grant was changed.
+- [x] Latest Edge Function inventory read-back (versions only; not an exact bundle-parity test): `catalog-admin` v20, `catalog-platform-admin` v23, `public-catalog` v11, `public-catalog-directory` v20, `directory-listings` v18, `health` v3; payment/order functions remain at the versions recorded in the release inventory. Known Edge source/dependency parity blockers remain open. `directory-listings` remains intentionally fail-closed.
+- [x] No Production SQL, migration, Auth/RLS/GRANT, Storage, Edge deploy, payment, wallet, settlement, or business/customer-data mutation was performed.
+- **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. Platform-root registry enforcement, chronological migration/physical-effect/alias reconciliation, critical Edge bundle parity, and verified backup/restore/rollback evidence remain blockers. Health Monitor workflow success does not prove protected Edge `/health` was called while `HEALTH_MONITOR_TOKEN` is unavailable.
+- **Menoufia:** PR #1182's existing-section/unverified change remains active and its current-main validator passed. PRs #1179/#1180 remain paused and untouched. New rows stay hidden DRAFT / UNVERIFIED; public unclaimed listing publication remains disabled.
+- **Next:** continue read-only coordinated release preparation; do not deploy individual admin/payment Edge functions or apply migrations alone. Keep issue #96 open until a real authenticated multi-business E2E passes.
+
