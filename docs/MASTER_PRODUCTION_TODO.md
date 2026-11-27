@@ -2233,3 +2233,14 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [ ] Static validator / exact-head CI and browser-level verification remain pending for this change. Do not describe the dashboard as runtime-verified until tested.
 - [ ] Continue Super Admin child screens next: activity directory and detail, people/roles, modules and feature flags, subscriptions/commissions, catalogs and settings. Only expose write actions where a verified server-side contract and permission check exist.
 - Production remains **BLOCKED / NOT CERTIFIED**. No PR merge, production migration, release deployment, real payment, external campaign publication, or production business mutation was performed. Preserve \`SMM_INITIAL_LAUNCH_DEFERRED=true\`; do not modify \`docs/SESSION_LOG.md\`.
+
+
+## 2026-11-27 — Super Admin activity directory (read-only)
+
+- [x] Added a searchable/sortable/paginated activity directory to the protected Super Admin control workspace.
+- [x] Reads only \`businesses(id,name,code,status,updated_at)\` in the current signed-in/RLS scope, limited to the latest 200 rows.
+- [x] Enriched rows with provider-profile verification and enabled-module counts where those read sources are available; partial source failures are explicitly disclosed.
+- [x] Extended the dashboard source contract to assert the loader exists and contains no direct insert/update/upsert/delete calls.
+- [x] Rotated app/service-worker asset keys and advanced the PWA cache to \`mnty-web-v151\`.
+- [ ] Exact-head CI and browser/keyboard/accessibility verification remain pending. The directory is read-only; management actions require a separate verified server-side/RBAC implementation.
+- Continue with people/roles, modules/feature flags, subscriptions/commissions, catalog management and settings only after inspecting the existing backend contracts. Production remains **BLOCKED / NOT CERTIFIED**; no merge/deploy/production mutation occurred. Preserve \`SMM_INITIAL_LAUNCH_DEFERRED=true\`; do not modify \`docs/SESSION_LOG.md\`.

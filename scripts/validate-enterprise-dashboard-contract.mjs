@@ -17,4 +17,14 @@ assert.match(index, /sw\.js\?v=enterprise-command-center-binding-20261127/, "HTM
 assert.match(sw, /const CACHE='mnty-web-v150'/, "service-worker shell cache must rotate");
 assert.match(sw, /\.\/app\.js\?v=enterprise-command-center-binding-20261127/, "service-worker precache must match the app asset version");
 
+assert.match(app, /async function loadSuperAdminActivityDirectory\(\)/, "Super Admin activity directory loader must exist");
+assert.match(app, /id="sa-activity-directory-list"/, "Super Admin activity directory must have a render target");
+assert.match(app, /loadSuperAdminActivityDirectory\(\);/, "Super Admin activity directory must load when the control workspace initializes");
+assert.match(app, /sb\.from\('businesses'\)\.select\('id,name,code,status,updated_at'\)/, "activity directory must read an explicit business field allowlist");
+const activityLoaderStart = app.indexOf("async function loadSuperAdminActivityDirectory()");
+const activityLoaderEnd = app.indexOf("\nfunction loadOfficialShowcaseAdmin()", activityLoaderStart);
+assert.ok(activityLoaderStart >= 0 && activityLoaderEnd > activityLoaderStart, "activity directory loader boundaries must be present");
+const activityLoader = app.slice(activityLoaderStart, activityLoaderEnd);
+assert.doesNotMatch(activityLoader, /\.insert\(|\.update\(|\.upsert\(|\.delete\(/, "activity directory must remain read-only");
+
 console.log("Enterprise dashboard interaction source contract: PASS");

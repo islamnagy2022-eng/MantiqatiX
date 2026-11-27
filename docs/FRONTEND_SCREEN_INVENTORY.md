@@ -275,3 +275,13 @@ The exact code head `2b8d6e93bc757d1c8b2645845db23ebd338da19f` passed the public
 - [x] Added a source-contract validator and wired it into Module Professionalization Validation.
 - [x] Rotated the app script URL and PWA cache to \`mnty-web-v150\`.
 - **Status:** SOURCE UPDATED. Static validator and browser interaction have not yet been executed in this continuation; dashboard runtime, keyboard/screen-reader behavior and small-screen layout remain NOT VERIFIED. No production deployment or privileged business operation was performed.
+
+
+## 2026-11-27 — Super Admin activity directory (read-only)
+
+- [x] Added an activity directory to the Super Admin control workspace using an explicit business-field allowlist and the current authenticated Supabase/RLS context.
+- [x] Added visible activity totals by known status, provider-profile verification state, enabled-module counts, last-update information, table search, sorting and pagination.
+- [x] Bounded the listing to the latest 200 visible businesses and disclosed partial profile/module source failures instead of converting them to zero.
+- [x] Kept the directory read-only. No status change, approval, delete, owner edit or cross-tenant write action was added.
+- [x] Extended the enterprise-dashboard source contract to require the list and prohibit direct writes in its loader.
+- **Status:** SOURCE UPDATED; exact-head CI and browser verification pending. The listing is not proof of complete global coverage beyond the latest 200 visible rows. Production remains BLOCKED / NOT CERTIFIED.

@@ -955,7 +955,45 @@ async function superAdminFunction(name,body){
  if(!canSuperAdmin())throw new Error('SUPER_ADMIN_REQUIRED');
  return invokeMntyFunction(name,body);
 }
-async function loadOfficialShowcaseAdmin(){
+async async function loadSuperAdminActivityDirectory(){
+ const root=document.getElementById('sa-activity-directory-list');if(!root)return;
+ if(!canSuperAdmin()){root.innerHTML='<div class="empty-state">لا تملك صلاحية عرض دليل الأنشطة.</div>';return}
+ const escapeValue=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+ root.innerHTML='<div class="empty-state">جاري تحميل أحدث الأنشطة المتاحة…</div>';
+ try{
+  const base=await sb.from('businesses').select('id,name,code,status,updated_at').order('updated_at',{ascending:false}).limit(200);
+  if(base.error)throw base.error;
+  const businesses=base.data||[];
+  if(!businesses.length){root.innerHTML='<div class="empty-state">لا توجد أنشطة متاحة ضمن نطاق الصلاحيات الحالي.</div>';return}
+  const ids=businesses.map(row=>row.id).filter(Boolean);
+  const [profilesResult,modulesResult]=await Promise.all([
+   sb.from('marketing_provider_profiles').select('business_id,name_ar,status,is_verified').in('business_id',ids),
+   sb.from('business_modules').select('business_id,enabled').in('business_id',ids)
+  ]);
+  const profileMap=profilesResult.error?null:new Map((profilesResult.data||[]).map(row=>[String(row.business_id),row]));
+  const moduleCounts=modulesResult.error?null:new Map();
+  if(moduleCounts)(modulesResult.data||[]).forEach(row=>{if(row.enabled){const key=String(row.business_id);moduleCounts.set(key,(moduleCounts.get(key)||0)+1)}});
+  const rows=businesses.map(row=>{
+   const profile=profileMap?.get(String(row.id));
+   return {
+    name:row.name||'—',code:row.code||'—',
+    status:String(row.status||'UNKNOWN').toUpperCase(),
+    provider:profile?(profile.name_ar||'ملف مقدم خدمة'):'—',
+    verification:profile?(profile.is_verified?'موثق':'غير موثق'):(profilesResult.error?'غير متاح':'لا يوجد ملف'),
+    modules:moduleCounts?(moduleCounts.get(String(row.id))||0):'غير متاح',
+    updated:row.updated_at?new Date(row.updated_at).toLocaleString('ar-EG'):'—'
+   };
+  });
+  const statusSummary={ACTIVE:businesses.filter(row=>String(row.status||'').toUpperCase()==='ACTIVE').length,PENDING:businesses.filter(row=>String(row.status||'').toUpperCase()==='PENDING').length,INACTIVE:businesses.filter(row=>String(row.status||'').toUpperCase()==='INACTIVE').length};
+  const partial=[profilesResult.error?'بيانات ملفات مقدمي الخدمة غير متاحة':'',modulesResult.error?'بيانات تفعيل الموديولات غير متاحة':''].filter(Boolean);
+  root.innerHTML='<div class="mnty-stat-strip"><div><b>'+businesses.length+'</b><span>نشاط معروض (حد أقصى 200)</span></div><div><b>'+statusSummary.ACTIVE+'</b><span>نشط</span></div><div><b>'+statusSummary.PENDING+'</b><span>قيد المراجعة</span></div><div><b>'+statusSummary.INACTIVE+'</b><span>غير نشط</span></div></div>'+(partial.length?'<div class="empty-state" role="status">'+escapeValue(partial.join(' · '))+'</div>':'')+recordsTable('دليل الأنشطة — أحدث السجلات',rows,[['اسم النشاط',row=>row.name],['الكود',row=>row.code],['الحالة',row=>row.status],['ملف مقدم الخدمة',row=>row.provider],['التحقق',row=>row.verification],['الموديولات المفعلة',row=>row.modules],['آخر تحديث',row=>row.updated]])+'<p class="muted">هذا الدليل للقراءة فقط ويعرض أحدث 200 سجل مرئي؛ لا ينفذ تعديلات أو اعتمادًا أو حذفًا.</p>';
+ }catch(error){
+  console.warn('[MNTY admin activity directory] unavailable',error);
+  root.innerHTML='<div class="empty-state">تعذر تحميل دليل الأنشطة: '+escapeValue(error?.message||'خطأ غير معروف')+'</div>';
+ }
+}
+
+function loadOfficialShowcaseAdmin(){
  const root=document.getElementById('sa-showcase-list'); if(!root)return;
  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
  try{
@@ -996,6 +1034,7 @@ function superAdminControlWorkspace(){
  +'<label class="field"><span>الخدمات *</span><input id="sa-services" maxlength="2000" placeholder="خدمة 1، خدمة 2، خدمة 3" required></label>'
  +'<label class="field"><span>السعر الافتراضي لكل خدمة</span><input id="sa-price" type="number" min="0" step="0.01" value="0"></label>'
  +'</div><div class="action-bar"><button class="btn btn-primary" id="sa-submit" type="submit" style="width:auto">إنشاء النشاط وتشغيل المسار</button></div><p id="sa-progress" class="muted" aria-live="polite"></p></form></section>'
+ +'<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">ACTIVITY DIRECTORY</span><h3>دليل الأنشطة</h3><p class="muted">أحدث الأنشطة المسجلة التي تظهر ضمن صلاحيات السوبر أدمن، مع البحث والفرز وحالة الملف والموديولات. هذا العرض للقراءة فقط.</p></div><button class="btn btn-outline" type="button" id="sa-activities-refresh">تحديث</button></div><div id="sa-activity-directory-list"><div class="empty-state">جاري تحميل دليل الأنشطة…</div></div></section>'
  +'<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">OFFICIAL SHOWCASE</span><h3>أنشطة منطقتي — إدارة السوبر أدمن</h3><p class="muted">السجلات الرسمية الفعلية التي أنشأها النظام، مع المالك والموديولات والخدمات وحالة الظهور.</p></div><button class="btn btn-outline" type="button" id="sa-showcase-refresh">تحديث</button></div><div id="sa-showcase-list"><div class="empty-state">جاري تحميل الأنشطة الرسمية…</div></div></section>'
  +'<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">PROVIDER APPROVAL</span><h3>اعتماد مقدمي الخدمة</h3><p class="muted">يعتمد فقط طلبًا حقيقيًا مقدمًا من حساب موثق؛ لا يتم إنشاء مستخدم أو هوية بديلة.</p></div></div><div id="sa-provider-review-list"><div class="empty-state">جاري تحميل الطلبات…</div></div></section>';
 }
@@ -1087,6 +1126,8 @@ async function initSuperAdminControlWorkspace(){
  }
  loadProviderOnboardingReview();
  loadOfficialShowcaseAdmin();
+ loadSuperAdminActivityDirectory();
+ document.getElementById('sa-activities-refresh')?.addEventListener('click',loadSuperAdminActivityDirectory);
  document.getElementById('sa-showcase-refresh')?.addEventListener('click',loadOfficialShowcaseAdmin);
 }
 let recordsTableSeq=0;

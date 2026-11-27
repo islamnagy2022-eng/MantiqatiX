@@ -1022,3 +1022,12 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 - Source update only. Exact-head CI and browser/runtime checks are still pending; do not claim the dashboard is runtime-verified.
 - Next frontend priority: implement and verify Super Admin child screens for activities, people/roles, modules/feature flags, subscriptions/commissions, catalogs and settings. Keep each mutation behind existing server-side functions and RBAC.
 - Production remains **BLOCKED / NOT CERTIFIED**. Do not merge PR #299, apply candidate migrations, deploy, publish ads, run real payments, or alter \`docs/SESSION_LOG.md\`. Preserve \`SMM_INITIAL_LAUNCH_DEFERRED=true\`.
+
+
+## 2026-11-27 — Super Admin activity directory (read-only)
+
+- Added a protected read-only activity directory to \`superAdminControlWorkspace()\`. It reads an explicit business allowlist in the current Supabase/RLS context, capped at the latest 200 visible rows.
+- Shows business status, provider-profile presence/verification, enabled-module counts and last update, using the existing searchable/sortable/paginated \`recordsTable()\` component.
+- The loader does not write data. Profile/module query failures are surfaced as partial/unavailable rather than silently reported as zero.
+- Added source-contract assertions for the loader, explicit business selection and absence of direct write calls. Rotated assets and PWA cache to \`mnty-web-v151\`.
+- Exact-head CI and browser/runtime checks remain pending. Read-only listing does not prove full global tenant coverage or grant management permissions.
