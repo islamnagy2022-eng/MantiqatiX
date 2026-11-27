@@ -2,7 +2,7 @@ name: Prepare ODbL Monufia Activity Candidates
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, synchronize]
     paths:
       - '.github/workflows/menoufia-osm-candidate-extract.yml'
       - 'scripts/prepare-monufia-osm-candidates.mjs'
@@ -13,8 +13,20 @@ permissions:
   contents: read
 
 jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Test source attribution, taxonomy mapping, privacy and unverified defaults
+        run: |
+          node --test scripts/tests/prepare-monufia-osm-candidates.test.mjs
+          node scripts/validate-monufia-osm-staging-contract.mjs
   prepare-candidates:
     if: github.event.action == 'opened' && github.event.pull_request.head.repo.full_name == github.repository
+    needs: validate
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -22,8 +34,6 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - name: Test source attribution, taxonomy mapping, privacy and unverified defaults
-        run: node --test scripts/tests/prepare-monufia-osm-candidates.test.mjs
       - name: Fetch one-time OSM candidate snapshot for Monufia
         id: fetch
         shell: bash

@@ -86,6 +86,17 @@ test('all exported records are unverified drafts and contact fields are omitted'
   }
 });
 
+test('generic company and estate-agent tags are not forced into an inaccurate category', () => {
+  const company = classifyOsmTags({ office: 'company' });
+  const estateAgent = classifyOsmTags({ office: 'estate_agent' });
+  assert.equal(company.groupId, null);
+  assert.equal(company.code, null);
+  assert.equal(company.taxonomyReviewRequired, true);
+  assert.equal(estateAgent.groupId, null);
+  assert.equal(estateAgent.code, null);
+  assert.equal(estateAgent.taxonomyReviewRequired, true);
+});
+
 test('unknown shop types use the general-retail category but stay flagged for specialty review', () => {
   const classified = classifyOsmTags({ shop: 'mobile_phone' });
   assert.equal(classified.groupId, 'fashion_beauty');

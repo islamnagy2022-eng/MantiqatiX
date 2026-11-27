@@ -26,6 +26,11 @@ assert.ok(workflow.includes('types: [opened]'), 'One-time extraction must run on
 assert.ok(workflow.includes('retention-days: 14'), 'Candidate artifact retention must be short and explicit.');
 assert.ok(workflow.includes('No fallback scraping or alternate directory source will be attempted.'), 'Source failure must never trigger unlicensed fallback scraping.');
 assert.ok(docs.includes('ODbL 1.0') && docs.includes('© OpenStreetMap contributors'), 'License and attribution obligations must be explicit.');
+assert.ok(!script.includes("value:'company', groupId:"), 'Generic office=company tags must not be forced into a taxonomy category.');
+assert.ok(!script.includes("value:'estate_agent', groupId:"), 'Estate-agent tags must remain in human taxonomy review until a suitable canonical category exists.');
+assert.ok(workflow.includes('types: [opened, synchronize]'), 'Static contracts must rerun when the PR changes.');
+assert.ok(workflow.includes("github.event.action == 'opened'"), 'The external OSM data fetch must remain one-time per PR open event.');
+assert.ok(workflow.includes('node scripts/validate-monufia-osm-staging-contract.mjs'), 'The staging contract validator must run in CI.');
 
 console.log('MENOUFIA_OSM_ODBL_STAGING=PASS');
 console.log('PUBLICATION=DISABLED; PRODUCTION_WRITES=NONE; CONTACT_FIELDS=EXCLUDED');

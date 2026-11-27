@@ -12,6 +12,7 @@ Prepare a separate, source-attributed candidate dataset from OpenStreetMap for t
 - Source license: Open Database License 1.0 (ODbL).
 - Attribution: © OpenStreetMap contributors.
 - The extraction is limited to named objects tagged as shops, selected amenities, offices, crafts, healthcare providers, hotels/guest houses and sports facilities.
+- Generic `office=company` and `office=estate_agent` elements are not guessed into business-consulting or development categories; they are placed in the taxonomy-review queue.
 
 ## ODbL separation
 
@@ -40,7 +41,7 @@ The extractor deduplicates repeated OSM object type/ID pairs. It does not claim 
 
 ## Execution and safety
 
-The workflow runs once when this source-pipeline PR is opened in the same repository. It makes one bounded Overpass request and uploads an artifact with 14-day retention. If Overpass is unavailable, the workflow uploads an explicit UNAVAILABLE manifest with empty arrays; it does not invent records or scrape an unlicensed directory.
+The workflow validates the mapping and privacy contract whenever the PR is opened or synchronized. The data-fetch job runs only on the first open event from a same-repository PR. It makes one bounded Overpass request and uploads an artifact with 14-day retention. If Overpass is unavailable, the workflow uploads an explicit UNAVAILABLE manifest with empty arrays; it does not invent records or scrape an unlicensed directory.
 
 The workflow does not write to Supabase, Production, public directory, Edge Functions, Storage, Auth, RLS/GRANT, payments, wallets or settlements. Public unclaimed listings remain disabled. The artifact is a review source, not a deployment.
 
