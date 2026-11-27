@@ -141,6 +141,9 @@ jobs:
       - name: TypeScript check
         working-directory: apps/catalog-frontend
         run: npm run lint
+      - name: Test business creation identity and geographic validation
+        working-directory: apps/catalog-frontend
+        run: npx tsx tests/business-creation-validation.test.ts
       - name: Test route-aware SEO metadata and private-route noindex behavior
         working-directory: apps/catalog-frontend
         run: npx tsx tests/seo-metadata.test.ts
