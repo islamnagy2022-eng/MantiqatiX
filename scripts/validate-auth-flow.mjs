@@ -1,6 +1,7 @@
 import fs from "node:fs";
 
 const app = fs.readFileSync("web/app.js", "utf8");
+const home = fs.readFileSync("web/home.js", "utf8");
 
 const required = [
   ["Google OAuth primary", "sb.auth.signInWithOAuth({provider:'google',options:", app],
@@ -51,7 +52,41 @@ const migration = fs.readFileSync("supabase/migrations/20260927150000_owner_role
 for (const role of ["ADMIN","MANAGER","BUSINESS_OWNER","SUPPORT","SUPPORT_MANAGER","EMPLOYEE","STAFF","CUSTOMER","SERVICE_PROVIDER"]) {
   if (!migration.includes(`('${role}')`)) failures.push(`Owner role context: ${role}`);
 }
-if (/cross join[\s\S]*SUPER_ADMIN/i.test(migration) || /values\s*\([\s\S]*['\"]SUPER_ADMIN['\"]/i.test(migration)) failures.push("Owner role contexts must not bootstrap SUPER_ADMIN");
+if (/cross join[\s\S]*SUPER_ADMIN/i.test(migration) || /values\s*\([\s\S]*['"]SUPER_ADMIN['"]/i.test(migration)) failures.push("Owner role contexts must not bootstrap SUPER_ADMIN");
+
+// The account activity label must always follow the authenticated user's selected,
+// active business membership. Never infer the activity from the owner's latest profile.
+const homeAuthStart = home.indexOf("const syncHomeAuthState = async () =>");
+const homeAuthEnd = home.indexOf("\n    };", homeAuthStart);
+const homeAuth = homeAuthStart >= 0 && homeAuthEnd > homeAuthStart
+  ? home.slice(homeAuthStart, homeAuthEnd)
+  : "";
+if (!homeAuth.includes(".eq('id',selectedMembershipId).eq('user_id',authUser.id).eq('status','ACTIVE')")) {
+  failures.push("Homepage activity label must resolve the selected active membership for the signed-in user");
+}
+if (!homeAuth.includes(".eq('owner_user_id',authUser.id).eq('business_id',businessId).eq('status','ACTIVE')")) {
+  failures.push("Homepage provider profile must be scoped to the selected membership business");
+}
+if (!homeAuth.includes("(activityName||name)")) {
+  failures.push("Homepage must fall back to the account name when no selected activity is available");
+}
+
+// The account workspace uses that same selected membership; an invalid stored selection
+// is cleared rather than silently switching to another owned business.
+const liveDataStart = app.indexOf("async function loadLiveData(){");
+const liveDataEnd = app.indexOf("const financeRoles=", liveDataStart);
+const liveData = liveDataStart >= 0 && liveDataEnd > liveDataStart
+  ? app.slice(liveDataStart, liveDataEnd)
+  : "";
+if (!liveData.includes("live.memberships.find(m=>m.id===savedId)")) {
+  failures.push("Account workspace must resolve the saved selection from the user's loaded active memberships");
+}
+if (!liveData.includes("localStorage.removeItem('MNTYActiveMembershipId')")) {
+  failures.push("Account workspace must clear a stale selected membership ID");
+}
+if (!liveData.includes(".eq('owner_user_id',uid).eq('business_id',active.business_id).eq('status','ACTIVE')")) {
+  failures.push("Account workspace provider profile must be scoped to the selected active business");
+}
 
 if (failures.length) {
   console.error("Auth/registration production invariant check failed:");
@@ -59,4 +94,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`Auth/registration production invariants passed: ${required.length} checks + Owner role-switch invariants.`);
+console.log(`Auth/registration production invariants passed: ${required.length} checks + Owner role-switch invariants + selected-business identity checks.`);
