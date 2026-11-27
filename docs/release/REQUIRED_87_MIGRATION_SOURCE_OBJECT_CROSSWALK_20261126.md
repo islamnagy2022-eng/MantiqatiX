@@ -1,6 +1,6 @@
 # Required 87-Migration Source-to-Live Effect Crosswalk — 2026-11-26
 
-**Repository baseline:** `main @ fd2cc9d49507d5ee4db874d4d29a4e9a9a15a149` (after PR #1145 live Edge parity evidence, PR #1146 RC484 PostgreSQL 17 behavioral workflow and PR #1147 platform-root preflight documentation; PR #1137 RC929 source, PR #1142 activity-share accessibility and PR #1143 execution docs are merged)
+**Repository baseline:** `main @ 9f6824750ab21bb754ad0c0253732f9b49919c64` (after PR #1155 pagination and PR #1157 accessible gallery viewer merged; 2026-11-27)
 **Live Supabase project:** `moyhiluyhjsujhwlyeuu`
 **Required migration set:** `scripts/production/verify-production.mjs` and `scripts/production/live-reconciliation-contract.mjs`
 **Live ledger:** 310 rows through `20261110150618`
@@ -207,3 +207,23 @@ The 86th version does not make the earlier RC117 source defect safe to skip or a
 | `20261126030000` | `20261126030000_rc929_orders_confirmed_auth_claim_guard.sql` | RC929 | **BLOCKED — source-only security candidate.** Direct Production read-back on 2026-11-26 confirms `public.orders` and `public.order_status_history` both have RLS and FORCE RLS enabled; anon SELECT is false and authenticated SELECT is true. Neither table has the new restrictive confirmed-Auth guard. Existing order-member/customer policies and four order-history restrictive policies use legacy COALESCE checks that allow a missing/null `is_anonymous` claim to be treated as non-anonymous. The new forward-only RC929 adds a RESTRICTIVE FOR ALL authenticated policy on each table, requiring a non-null `auth.uid()` and explicit `is_anonymous=false` for USING and WITH CHECK. The migration preflights RLS, expected policy identities and anon grants. It changes no grants, table definitions or order/customer rows. Dedicated PostgreSQL 17 baseline + negative/positive integration and policy-drift tests passed in [RC465 Orders Read Scope run 45851878442](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45851878442); the complete 87-version chronological replay passed in [run 45851878325](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45851878325). PR #1137 merged the source-only candidate to main as `476180ecd027d435558c7d435c1b2804daf2e92f`. The exact required migration ID remains absent from the live ledger; not applied to Production. |
 
 RC929 is the 87th required source migration after RC928 and the RC117 forward repair. The source candidate branch `security/rc929-orders-explicit-confirmed-auth-guard-20261126` was merged by PR #1137. Missing/null/true claim denial and confirmed member/customer compatibility are covered by the passing dedicated PG17 tests and full chronological replay. This finding describes a fail-open policy condition; it is not evidence that a user accessed another account's orders or that a data breach occurred. Production remains read-only and **BLOCKED / NOT CERTIFIED**.
+
+
+## Fresh connected Production read-only recheck — 2026-11-27 00:04 UTC
+
+**Project:** `MANTIQATIX FINAL / moyhiluyhjsujhwlyeuu` — `ACTIVE_HEALTHY`, PostgreSQL 17.6.1.155. No writes or deployments were performed as part of this check.
+
+| Check | Live result | Disposition |
+|---|---|---|
+| `supabase_migrations.schema_migrations` | 310 rows; latest `20261110150618` | Reconfirmed |
+| Required source IDs | 0 exact matches among 87 current versions from `scripts/production/live-reconciliation-contract.mjs` | BLOCKED; identity mismatch alone does not prove all effects are absent |
+| Declared aliases | 3/3 target ledger versions exist: `20261008222845`, `20261027041411`, `20261101140105` | Alias identity evidence exists; physical/source semantics still require their recorded object read-backs |
+| `private.platform_admins` | RLS ON; FORCE RLS OFF | BLOCKED |
+| `public.is_platform_admin()` | SECURITY INVOKER; `search_path=public`; derives from ACTIVE tenant ADMIN/SUPER_ADMIN memberships | BLOCKED; not registry-backed |
+| `public.mnty_can_platform_admin()` | SECURITY DEFINER; `search_path=public, pg_temp`; delegates to `mnty_can('admin', NULL, NULL, NULL)` | BLOCKED; not registry-backed |
+| Platform-root policies | 57 / 24 tables on `is_platform_admin()`; 5 / 3 tables on `mnty_can_platform_admin()` | 62 / 27 combined blast radius |
+| `orders` and `order_status_history` | RLS ON; FORCE RLS ON; anon SELECT OFF; authenticated SELECT ON; RC929 strict explicit-confirmed-auth restrictive policy absent on both | BLOCKED; RC929 not applied |
+
+The Supabase Security Advisor snapshot contained 166 counted findings (157 WARN, nine INFO): 90 anonymous-role policy warnings, 65 authenticated-executable SECURITY DEFINER functions, one anon-executable SECURITY DEFINER targeted-advertisements RPC, and leaked-password protection disabled; nine INFO findings reported RLS-enabled tables with no policies. These are review signals, not proof that all reported policies are exploitable. Inspect each policy predicate, direct grant, caller and intended public-read design; do not mass-revoke from the advisor label alone.
+
+**Release decision remains BLOCKED / NOT CERTIFIED.** Do not apply an isolated migration or perform direct helper/policy edits. The ordered 87-source chain, alias/effect read-back, Edge parity and full preflight remain required. No Production SQL write, migration, grant, Auth setting, Edge deployment, Storage, payment, wallet, settlement or customer-data change occurred in this recheck.

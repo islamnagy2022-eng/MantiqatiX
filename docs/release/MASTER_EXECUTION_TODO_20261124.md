@@ -1,4 +1,23 @@
 # MantiqatiX — Master Execution TODO | Zero-Cost Fast Track
+## 2026-11-27 — Post-pagination merge and gallery-viewer continuation checkpoint
+
+- [x] PR #1155 merged into `main` as `5bc82aa8c2fcb49588764a57e288c1a32c711aa9`. Exact-head CI: 28 successes, two expected skips, zero failures. The post-merge catalog build, dashboard E2E, employee RBAC, keyset pagination, contact privacy, and source/module/financial tests passed.
+- [x] Closed duplicate pagination PRs #1152 and #1153 after #1155 became the canonical signed, filter-bound 20-row directory pagination implementation.
+- [x] Recreated the accessible gallery viewer from stale PR #1150 on current main and merged it as PR #1157, commit `9f6824750ab21bb754ad0c0253732f9b49919c64`. Exact-head CI completed: 28 successes, two expected skips, zero failures, including the dashboard browser E2E.
+- [x] Closed stale PR #1150 as superseded by #1157. Do not reopen the diverged branch.
+- [x] Confirmed main Pages deployment run [45913948208](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45913948208) for the pagination merge completed successfully. It verified the deployed root catalog, `/legacy/` rollback, `/v6-preview/`, mixed-case catalog URLs, and dashboard/mobile/QR routes. This is website deployment evidence only; no database migration or Edge deployment was performed.
+- [ ] Verify the post-merge Pages deployment and deployed-origin browser checks for gallery commit `9f6824750ab21bb754ad0c0253732f9b49919c64`; PR-head CI does not establish deployment.
+- [ ] Refresh the full 87-source Production physical-effect/alias reconciliation and retain fail-closed release gates. The last documented Production ledger has 310 rows through `20261110150618`, with 0/87 exact IDs; this is an identity mismatch, not proof all physical effects are absent.
+- [ ] Correct the live platform-root authorization drift only through the coordinated RC464/RC469/RC471/RC484 + policy/caller release chain; the last documented read-only state still has broad membership-derived helpers, registry FORCE RLS off, and the 62-policy/27-table review surface.
+- [ ] Keep gallery-dependent Edge parity/deployment blocked until schema/RPC/ACL/RLS dependencies and all three bundles are verified together.
+- **Production safety:** no Production SQL, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement, or customer/business-data mutation. Backup/restore remains deferred and unverified.
+- [x] Rechecked Production Supabase read-only at 2026-11-27 00:04 UTC: ledger remains 310 rows through `20261110150618`; registry RLS ON / FORCE RLS OFF; `is_platform_admin()` still uses ACTIVE tenant ADMIN/SUPER_ADMIN membership; `mnty_can_platform_admin()` still delegates to the unscoped legacy admin helper. Blast radius reconfirmed at 62 policies / 27 tables.
+- [x] Security Advisor snapshot: 166 findings (157 WARN, 9 INFO) including 90 anon-role policy warnings, 65 authenticated-callable SECURITY DEFINER functions, one anon-callable SECURITY DEFINER targeted-advertisements RPC, and leaked-password protection disabled. Review individual predicates/grants/callers; do not mass-revoke from advisor labels alone.
+- **Production remains read-only:** no SQL writes or Auth/RLS/GRANT/Edge/Storage/payment/customer-data changes in this recheck.
+- **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
 **Updated:** 2026-11-26 — PR #1148 merged; current-main continuation checkpoint refreshed  
 **Base:** `main @ 111db15e30182e6f21ef9d91630a187d73601c36`  
 **Authority:** `docs/MASTER_SOURCE_OF_TRUTH.md` + `docs/SOURCE_OF_TRUTH_MAP_20261124.md`  
