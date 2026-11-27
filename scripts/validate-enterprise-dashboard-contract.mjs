@@ -26,7 +26,7 @@ assert.doesNotMatch(app, /async\s+async\s+function/, "duplicate async function p
 assert.match(app, /async function loadSuperAdminActivityDirectory\(\)/, "Super Admin activity directory loader must exist");
 assert.match(app, /id="sa-activity-directory-list"/, "Super Admin activity directory must have a render target");
 assert.match(app, /loadSuperAdminActivityDirectory\(\);/, "Super Admin activity directory must load when the control workspace initializes");
-assert.match(app, /sb\.from\('businesses'\)\.select\('id,name,code,status,updated_at'\)/, "activity directory must read an explicit business field allowlist");
+assert.ok(app.includes("sb.from('businesses').select('id,tenant_id,name,code,status,updated_at')"), "activity directory must read its explicit display and tenant-scope field allowlist");
 const activityLoaderStart = app.indexOf("async function loadSuperAdminActivityDirectory()");
 assert.match(app, /async function loadOfficialShowcaseAdmin\(\)/, "the existing official-showcase loader must remain async because it awaits Supabase queries");
 assert.match(app, /function superAdminMembershipContextDirectory\(\)/, "Super Admin must render current-account role/scope review");
