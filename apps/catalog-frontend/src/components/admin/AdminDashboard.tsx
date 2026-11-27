@@ -735,6 +735,9 @@ export const AdminDashboard: React.FC = () => {
         <AdminOverview
           businesses={businesses}
           subscribers={subscribers}
+          subscribersLoading={subscribersLoading}
+          subscriberDirectoryError={authSession.subscriberDirectoryError}
+          refreshPlatformSubscribers={refreshPlatformSubscribers}
           products={products}
           onNavigate={setActiveAdminTab}
         />
