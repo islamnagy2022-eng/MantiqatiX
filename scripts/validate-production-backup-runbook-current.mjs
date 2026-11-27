@@ -32,8 +32,6 @@ const runbookRequirements = [
   "RC930",
   "20261127235334",
   "RC932",
-  "20261127235334",
-  "RC932",
   "not applied to Production",
 ];
 for (const required of runbookRequirements) {
@@ -117,11 +115,13 @@ for (const required of [
   "20261120200000_rc485_catalog_rpc_registry_root.sql",
   "20261126030000_rc929_orders_confirmed_auth_claim_guard.sql",
   "20261127010000_rc930_serialize_job_deactivation_and_application.sql",
+  "20261127235334_rc932_mantigo_open_ride_explicit_confirmed_auth.sql",
+  "requires the is_anonymous JWT claim to be explicitly false",
 ]) {
   assert.ok(currentRunbook.includes(required), "Current Production backup overlay is missing: " + required);
 }
 assert.ok(!currentRunbook.includes("87-source"), "Current Production backup overlay must not retain a superseded 87-source gate.");
-assert.ok(runbook.includes("exact ordered 89-source migration effects"), "Production release gate must reconcile the current 88-source migration chain.");
+assert.ok(runbook.includes("exact ordered 89-source migration effects"), "Production release gate must reconcile the current 89-source migration chain.");
 
 
 const backlogRequirements = [
