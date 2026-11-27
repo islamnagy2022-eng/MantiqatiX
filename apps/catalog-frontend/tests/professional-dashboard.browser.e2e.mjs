@@ -1293,6 +1293,22 @@ try {
         operationalStatus: 'FROZEN',
         settings: { bizcatalog: { operationalStatus: 'FROZEN', isFrozen: true, paymentStatus: 'frozen' } },
       },
+      {
+        ...fakeBusiness,
+        id: '40000000-0000-0000-0000-000000000104',
+        name: 'نشاط غير نشط',
+        isFrozen: false,
+        operationalStatus: 'INACTIVE',
+        paymentStatus: 'free',
+      },
+      {
+        ...fakeBusiness,
+        id: '40000000-0000-0000-0000-000000000105',
+        name: 'نشاط بلا حالة تشغيل',
+        isFrozen: false,
+        operationalStatus: undefined,
+        paymentStatus: 'free',
+      },
     ];
     const { context, page } = await newScenario(
       browser,
@@ -1306,7 +1322,24 @@ try {
       await publishedMetric.waitFor({ state: 'visible', timeout: 10000 });
       assert.equal(await publishedMetric.getAttribute('data-metric-value'), '1',
         'only explicitly published catalogues on active, unfrozen businesses count as published');
+      const expectedStatusCounts = { active: 2, frozen: 1, inactive: 1, unspecified: 1 };
+      for (const [status, count] of Object.entries(expectedStatusCounts)) {
+        const row = page.getByTestId(`admin-business-status-row-${status}`);
+        assert.equal(await row.getAttribute('data-count'), String(count),
+          status + ' operational status count must match only its explicit state');
+        assert.equal(await row.getAttribute('data-percent'), String(Math.round((count / 5) * 100)),
+          status + ' percentage must be calculated from the loaded business records');
+      }
+      assert.equal(
+        await page.getByTestId('admin-business-status-total').textContent(),
+        '٥ سجل',
+        'the breakdown must disclose its loaded-record denominator'
+      );
+      const activeProgress = page.getByRole('progressbar', { name: 'نشطة تشغيليًا' });
+      assert.equal(await activeProgress.getAttribute('aria-valuemax'), '5');
+      assert.equal(await activeProgress.getAttribute('aria-valuenow'), '2');
       results.push('platform-admin-published-catalog-kpi-requires-publication-active-state-and-not-frozen');
+      results.push('platform-admin-operational-status-breakdown-counts-explicit-frozen-inactive-and-unknown-states');
     } finally { await context.close(); }
   }
 
