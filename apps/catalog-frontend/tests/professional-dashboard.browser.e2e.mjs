@@ -381,7 +381,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
         if (Array.isArray(body.promotionalImages)) catalogProfileState.promotionalImages = [...body.promotionalImages];
         return json({ success: true, businessId: body.businessId, publicEnabled: false });
       }
-      if (body.action === 'BUSINESS_LIST') return json({ businesses: [fakeBusiness] });
+      if (body.action === 'BUSINESS_LIST') return json({ businesses: Array.isArray(options.platformBusinesses) ? options.platformBusinesses : [fakeBusiness] });
       return json({ businesses: [], items: [], prices: [], branches: [] });
     }
     if (url.pathname.endsWith('/functions/v1/catalog-platform-admin')) {
@@ -1254,7 +1254,81 @@ try {
     } finally { await context.close(); }
   }
 
-  // Super Admin can edit one canonical activity and persist its marketing/capability copy through the guarded platform settings endpoint.
+  // Published-catalog KPI must require explicit catalogue publication and an active, unfrozen business.
+  {
+    const platformBusinesses = [
+      {
+        ...fakeBusiness,
+        id: '40000000-0000-0000-0000-000000000101',
+        name: 'نشاط كتالوجه منشور',
+        publicEnabled: true,
+        catalogPublished: true,
+        operationalStatus: 'ACTIVE',
+        settings: { bizcatalog: { operationalStatus: 'ACTIVE' } },
+      },
+      {
+        ...fakeBusiness,
+        id: '40000000-0000-0000-0000-000000000102',
+        name: 'نشاط ظاهر دون نشر كتالوج',
+        publicEnabled: true,
+        catalogPublished: false,
+        operationalStatus: 'ACTIVE',
+        settings: { bizcatalog: { operationalStatus: 'ACTIVE' } },
+      },
+      {
+        ...fakeBusiness,
+        id: '40000000-0000-0000-0000-000000000103',
+        name: 'نشاط مجمد رغم وجود سجل نشر',
+        publicEnabled: true,
+        catalogPublished: true,
+        operationalStatus: 'FROZEN',
+        settings: { bizcatalog: { operationalStatus: 'FROZEN', isFrozen: true, paymentStatus: 'frozen' } },
+      },
+    ];
+    const { context, page } = await newScenario(
+      browser,
+      roles.platformAdmin,
+      [],
+      { initialRoute: '?view=super_admin', platformBusinesses },
+    );
+    try {
+      await page.getByTestId('platform-admin-overview').waitFor({ state: 'visible', timeout: 15000 });
+      const publishedMetric = page.locator('[data-testid="admin-overview-metric"][data-metric-key="published-catalogs"]');
+      await publishedMetric.waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(await publishedMetric.getAttribute('data-metric-value'), '1',
+        'only explicitly published catalogues on active, unfrozen businesses count as published');
+      results.push('platform-admin-published-catalog-kpi-requires-publication-active-state-and-not-frozen');
+    } finally { await context.close(); }
+  }
+
+  // The default Super Admin route opens a real overview with working shortcuts into existing admin sections.
+  {
+    const { context, page } = await newScenario(
+      browser,
+      roles.platformAdmin,
+      [],
+      { initialRoute: '?view=super_admin' },
+    );
+    try {
+      await page.getByTestId('platform-admin-overview').waitFor({ state: 'visible', timeout: 15000 });
+      const platformAdminTabs = page.getByTestId('platform-admin-tabs');
+      await platformAdminTabs.waitFor({ state: 'visible', timeout: 10000 });
+      const overviewTab = platformAdminTabs.getByTestId('platform-admin-overview-tab');
+      assert.equal(await overviewTab.getAttribute('aria-pressed'), 'true', 'the default Super Admin route must select the overview tab');
+      assert.equal(await page.getByTestId('admin-overview-metric').count(), 4, 'the overview must show four operational summary metrics');
+      assert.equal(await page.locator('[data-testid^="admin-overview-shortcut-"]').count(), 9, 'all nine existing admin destinations must be reachable');
+      await page.getByTestId('admin-overview-shortcut-businesses').click();
+      assert.equal(await platformAdminTabs.getByRole('button', { name: /الأنشطة التجارية/ }).getAttribute('aria-pressed'), 'true', 'an overview shortcut must navigate to the requested admin section');
+      assert.equal(new URL(page.url()).searchParams.get('tab'), 'businesses', 'shortcut navigation must preserve the selected admin tab in the URL');
+      for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+        await page.setViewportSize(viewport);
+        await assertNoHorizontalOverflow(page, 'platform admin overview at ' + viewport.width + 'px');
+      }
+      results.push('platform-admin-overview-default-route-metrics-shortcuts-and-responsive-layout');
+    } finally { await context.close(); }
+  }
+
+    // Super Admin can edit one canonical activity and persist its marketing/capability copy through the guarded platform settings endpoint.
   {
     const { context, page, platformAdminRequests, platformSettingsState } = await newScenario(
       browser,
@@ -1267,7 +1341,7 @@ try {
       const platformAdminTabs = page.getByTestId('platform-admin-tabs');
       await platformAdminTabs.waitFor({ state: 'visible', timeout: 10000 });
       assert.equal(await platformAdminTabs.getAttribute('aria-label'), 'أقسام إدارة المنصة');
-      assert.equal(await platformAdminTabs.locator('button').count(), 8, 'all existing platform-admin navigation entries must remain available');
+      assert.equal(await platformAdminTabs.locator('button').count(), 9, 'all platform-admin navigation entries including the overview must remain available');
       const activityModulesTab = platformAdminTabs.getByRole('button', { name: 'إعدادات وحدات الأنشطة', exact: true });
       assert.equal(await activityModulesTab.getAttribute('aria-pressed'), 'true', 'the direct activity-module admin route must select its tab');
       assert.ok((await activityModulesTab.getAttribute('class')).includes('mx-v4-admin-tab-active'));
