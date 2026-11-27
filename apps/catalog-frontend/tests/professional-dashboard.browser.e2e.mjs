@@ -362,14 +362,36 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
       let body = {};
       try { body = request.postDataJSON() || {}; } catch { /* GET/no JSON body */ }
       if (body.action === 'CATALOG_READ') {
-        catalogReadRequests.push({ businessId: body.businessId, branchId: body.branchId });
+        catalogReadRequests.push({ businessId: body.businessId, tenantId: body.tenantId, branchId: body.branchId });
+        const platformCatalogItemId = '40000000-0000-0000-0000-000000000001';
         return json({
           business: { ...fakeBusiness, profile: { ...catalogProfileState } },
           provider: { name: fakeBusiness.name, kind: fakeBusiness.category, verified: false },
           branches: fakeBusiness.branches,
-          selectedBranchId: body.branchId || null,
-          items: [],
-          prices: [],
+          selectedBranchId: body.branchId || (options.platformCatalogAdmin ? branchId : null),
+          items: options.platformCatalogAdmin ? [{
+            id: platformCatalogItemId,
+            tenant_id: tenantId,
+            business_id: businessId,
+            branch_id: branchId,
+            item_type: 'PRODUCT',
+            name_ar: 'قهوة اختبار المنصة',
+            name_en: 'Platform Test Coffee',
+            description: 'عنصر اختبار للعرض فقط',
+            sku: 'TEST-COFFEE-01',
+            status: 'ACTIVE',
+            metadata: { catalog_public: { category: 'قهوة', image_source: 'auto' } },
+            updated_at: '2026-11-27T00:00:00.000Z',
+          }] : [],
+          prices: options.platformCatalogAdmin ? [{
+            id: '50000000-0000-0000-0000-000000000001',
+            catalog_item_id: platformCatalogItemId,
+            branch_id: branchId,
+            currency: 'EGP',
+            unit_price: 125,
+            version: 1,
+          }] : [],
+          catalogReadiness: 'READY',
         });
       }
       if (body.action === 'BUSINESS_PROFILE_UPSERT') {
@@ -1327,7 +1349,7 @@ try {
       const controlTabs = page.getByTestId('super-admin-control-tabs');
       await controlTabs.waitFor({ state: 'visible', timeout: 10000 });
       assert.equal(await controlTabs.getAttribute('aria-label'), 'أقسام مركز التحكم');
-      assert.equal(await controlTabs.locator('button').count(), 5, 'all five Super Admin control-center areas must remain available');
+      assert.equal(await controlTabs.locator('button').count(), 6, 'all six Super Admin control-center areas must remain available');
       assert.equal(await controlTabs.getByRole('button', { name: 'الأدوار والصلاحيات', exact: true }).getAttribute('aria-pressed'), 'true');
       await controlTabs.getByRole('button', { name: 'سجل العمليات', exact: true }).click();
       await page.getByRole('heading', { name: 'سجل العمليات الإدارية', exact: true }).waitFor({ state: 'visible', timeout: 10000 });
@@ -1336,7 +1358,32 @@ try {
         await page.setViewportSize(viewport);
         await assertNoHorizontalOverflow(page, 'V4 Super Admin control tabs at ' + viewport.width + 'px');
       }
-      results.push('super-admin-control-center-v4-tabs-preserve-five-areas-and-url-state');
+      results.push('super-admin-control-center-v4-tabs-preserve-six-areas-and-url-state');
+    } finally { await context.close(); }
+  }
+
+  // Platform catalog review is branch-scoped and read-only; no product/status/price mutation controls are exposed.
+  {
+    const { context, page, catalogReadRequests } = await newScenario(
+      browser,
+      roles.platformAdmin,
+      [],
+      { initialRoute: '?view=super_admin&tab=control_center&controlTab=catalog', platformCatalogAdmin: true },
+    );
+    try {
+      await page.getByRole('heading', { name: 'إدارة الكتالوج والمنتجات', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByTestId('platform-catalog-item-row').waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(await page.getByText('قهوة اختبار المنصة', { exact: true }).count(), 1);
+      assert.equal(await page.getByText('١٢٥٫٠٠ ج.م.', { exact: false }).count() + await page.getByText(/١٢٥/).count() > 0, true, 'the active branch price must be displayed as read-only data');
+      assert.equal(await page.getByText('قراءة فقط', { exact: true }).count(), 1, 'the platform catalog section must declare its read-only state');
+      assert.equal(await page.getByRole('button', { name: /تعديل|حذف|إيقاف|تنشيط/ }).count(), 0, 'the platform catalog review must not expose unverified write actions');
+      assert.ok(catalogReadRequests.some((request) => request.businessId === businessId && request.tenantId === tenantId), 'catalog read must be scoped to the selected tenant and business');
+      assert.equal(new URL(page.url()).searchParams.get('controlTab'), 'catalog', 'catalog tab state must be preserved in the URL');
+      for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+        await page.setViewportSize(viewport);
+        await assertNoHorizontalOverflow(page, 'platform catalog admin at ' + viewport.width + 'px');
+      }
+      results.push('platform-catalog-admin-branch-scoped-read-only-review');
     } finally { await context.close(); }
   }
 
