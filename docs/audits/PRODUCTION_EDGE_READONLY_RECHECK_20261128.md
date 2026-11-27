@@ -33,48 +33,65 @@ A fresh read-only PostgreSQL catalog query confirmed:
 
 This is a confirmed authorization design defect in the live helper definitions; it is not evidence that exploitation occurred or that a breach happened. Keep admin Edge deployments blocked until the ordered registry-backed migration, caller, policy, ACL and adversarial-test chain is released as one reviewed unit.
 
-## Selected deployed Edge Function source comparison
+## Complete deployed Edge Function source comparison
 
-The live project reports 42 active Edge Functions. Direct file-content comparison was performed for the deployed `index.ts` of these nine high-impact functions against the matching tracked file on current `main`:
+All **42 ACTIVE Edge Functions** were enumerated from the connected Production project. Every deployed file returned by the function read was compared byte-for-byte with its corresponding tracked `main` source where a source path exists. The shared `_shared/*` files were correctly compared with `supabase/functions/_shared/*` rather than a function-local folder.
 
-| Function | Live version | `verify_jwt` | Entrypoint equal to current `main` |
-|---|---:|---:|---|
-| `catalog-admin` | 20 | false | NO |
-| `catalog-platform-admin` | 23 | true | NO |
-| `payment-intent` | 8 | true | NO |
-| `paymob-webhook` | 10 | false | NO |
-| `order-create` | 8 | true | NO |
-| `financial-journal` | 3 | true | NO |
-| `subscription-payment-intent` | 4 | true | NO |
-| `digital-page-payment-intent` | 5 | true | NO |
-| `settlement-financial-atomic` | 4 | true | NO |
+### Summary
 
-For `settlement-financial-atomic`, the additional deployed `deno.json` did match the tracked source; its entrypoint did not. This is a direct source-bundle drift finding for the inspected files, not by itself proof of a specific runtime exploit. It does mean current-main code cannot be assumed to be what Production is executing.
+| Result | Count |
+|---|---:|
+| Complete deployed bundle matches current tracked source | **21 / 42** |
+| Function entrypoint differs from tracked current source | **19 / 42** |
+| Entrypoint matches but a deployed Deno configuration file is not tracked at the expected source path | **2 / 42** |
 
-Do not deploy any of these functions individually. Their current source references database RPCs, migration effects, permissions and security helpers that are not yet proven live. Reconcile the full function file set, import-map/dependency locks, environment contracts, exact RPC signatures, ACL/RLS requirements and deployed positive/negative tests before any coordinated release.
+The `public-catalog` entrypoint matches after normalizing only the expected packaging import prefix (`../_shared/` in Git source → `./_shared/` in the deployed bundle); all three of its deployed shared modules match byte-for-byte. The four shared modules used by `public-catalog-directory` also match byte-for-byte, but its deployed entrypoint remains materially older than current source.
 
-`directory-listings` remains active v18 and is intentionally fail-closed. Do not re-enable unclaimed-directory listings or contact disclosure until the source-permission and owner-consent schema/RPC/ACL/RLS plus complete Edge bundle have passed the required tests.
+### 19 entrypoints with source drift
 
-## Required physical-object contract read-back
+| Function | Live version | Comparison note |
+|---|---:|---|
+| `business-branch-admin` | 5 | Entrypoint differs |
+| `mnty-push-dispatch` | 4 | Entrypoint differs |
+| `financial-journal` | 3 | Entrypoint differs; live entrypoint is substantially shorter |
+| `settlement-financial-atomic` | 4 | Entrypoint differs; deployed `deno.json` matches |
+| `legal-cms` | 6 | Entrypoint differs |
+| `catalog-platform-admin` | 23 | Entrypoint differs |
+| `subscription-payment-intent` | 4 | Entrypoint differs; current source includes claim/idempotency and encrypted checkout-secret flow |
+| `digital-page-payment-intent` | 5 | Entrypoint differs; current source includes claim/idempotency correlation |
+| `catalog-admin` | 20 | Entrypoint differs; current source includes later catalog/admin guards and gallery boundaries |
+| `public-catalog-directory` | 20 | Entrypoint differs; current source adds signed, scope-bound keyset pagination and bounded scans |
+| `paymob-webhook` | 10 | Entrypoint differs; current source includes additional subscription/digital-order processing |
+| `order-create` | 8 | Entrypoint differs |
+| `business-register` | 9 | Entrypoint differs |
+| `mnty-customer-registration` | 4 | Entrypoint differs |
+| `ai-gemini-proxy` | 5 | Entrypoint differs |
+| `health` | 3 | Entrypoint differs; deployed entrypoint is a small stub relative to current source |
+| `payment-intent` | 8 | Entrypoint differs; current source uses the user-scoped payment authorization RPC and Paymob correlation checks |
+| `erp-purchase-receive` | 3 | Entrypoint differs |
+| `directory-listings` | 18 | Deployed code is a 2 KB fail-closed stub; current source is a larger consent/source-gated implementation. Keep the deployed fail-closed behavior until legal source evidence and owner/contact consent gates are independently satisfied. |
 
-A separate read-only SQL catalog probe checked the 79 entries in the three canonical arrays `REQUIRED_CORE_OBJECTS`, `REQUIRED_PAYMENT_CONTRACT_OBJECTS`, and `REQUIRED_CONTROL_CENTER_OBJECTS`. The check used exact `to_regprocedure` resolution for declared function signatures, relation/index resolution for two-part names, and column/trigger catalog checks for three-part names.
+### Two deployed Deno configuration files without tracked counterparts
 
-| Contract group | Required | Matched by name/signature | Missing or non-matching |
-|---|---:|---:|---:|
-| Core objects | 32 | 11 | 21 |
-| Payment contracts | 14 | 3 | 11 |
-| Control-center objects | 33 | 23 | 10 |
-| **Total** | **79** | **37** | **42** |
+| Function | Live version | Entrypoint | Untracked deployed file |
+|---|---:|---|---|
+| `mnty-provider-onboarding-review` | 3 | Matches | `deno.json` (Supabase JS import map) |
+| `payment-webhook` | 3 | Matches | `deno.json` (strict compiler option) |
 
-This is a source-contract presence check only. A mismatch can mean an absent object, a different overload/name, or a missing required column/index/trigger; it does not prove that every related physical effect is absent. It does not certify ACLs, RLS predicates, object owners, runtime behavior, or atomicity. Those require separate exact definition/privilege and adversarial behavior checks.
+The expected function-local `deno.json` path is absent in current `main` for these two functions. No configuration was copied or deployed in this audit.
 
-Selected critical non-matches include the provider-order claim/finalizer RPCs, MantiGO verified-payment processor, provider/subscription payment failure and success overloads, financial journal backend RPC, journal idempotency indexes, ERP purchase-order lines/constraints, payment-intent uniqueness index, subscription provider-creation state and encrypted client-secret columns, marketing-service image provenance columns/default-image function/triggers, and the null-safe user-membership uniqueness index. Keep these dependencies fail-closed; do not hand-create or hot-patch them in Production.
+### 21 complete bundle matches
 
-Missing contract entries by group:
+`legal-center`, `settlement-create`, `api`, `legal-gate`, `smm-gateway`, `post-financial-journal`, `approval-list`, `marketing-lead-create`, `business-deactivate`, `facebook-page-import`, `mnty-provider-onboarding-submit`, `subscription-start-trial`, `mnty-registration-review`, `business-onboarding-status`, `mantigo-payment-intent`, `public-catalog` (after the packaging import-prefix normalization described above), `order-status-update`, `erp-product-create`, `digital-page-order-create`, `legal-consent`, and `business-approval`.
 
-- **Core (21):** `claim_subscription_provider_intent_creation_backend`, `create_purchase_order_with_lines_backend`, `create_subscription_payment_intent_claimable_backend`, `erp_purchase_order_lines`, `erp_purchase_order_lines_scope_idx`, `erp_purchase_orders_business_order_number_uidx`, `finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)`, `journal_entries_tenant_entry_number_uidx`, `journal_entry_lines_entry_line_uidx`, `mantigo_payment_provider_events`, `post_financial_journal_atomic_backend`, `process_verified_mantigo_payment_backend`, `process_verified_provider_payment_failure`, `process_verified_subscription_payment_backend`, `process_verified_subscription_payment_failure`, `receive_purchase_stock_atomic_backend`, `receive_purchase_stock_with_order_line_backend`, `review_directory_listing_claim_atomic(uuid,text,uuid,text,uuid,boolean,boolean)`, `set_purchase_order_lines_backend`, `smm_wallet_transactions_reference_type_uidx`, `uq_payment_intents_one_active_per_order`.
-- **Payment (11):** `claim_subscription_provider_intent_creation_backend(uuid,uuid)`, `create_subscription_payment_intent_claimable_backend(uuid,text,text,text,text,uuid)`, `process_verified_mantigo_payment_backend(text,text,text,boolean,numeric,text,text,jsonb)`, `process_verified_provider_payment_failure(text,text,text,text,text,text,boolean,numeric,text,text,text,jsonb)`, `process_verified_subscription_payment_backend(text,text,uuid,text,numeric,text,text,boolean,jsonb)`, `process_verified_subscription_payment_failure(text,text,uuid,text,numeric,text,text,boolean,jsonb)`, `subscription_payment_intents.client_secret_ciphertext`, `subscription_payment_intents.client_secret_iv`, `subscription_payment_intents.client_secret_key_version`, `subscription_payment_intents.provider_creation_claimed_at`, `subscription_payment_intents.provider_creation_state`.
-- **Control center (10):** `businesses.mnty_business_default_images`, `catalog_items.mnty_catalog_item_default_image`, `marketing_services.image_source`, `marketing_services.image_url`, `marketing_services.mnty_marketing_service_default_image`, `mnty_default_business_images_trigger`, `mnty_default_catalog_item_image_trigger`, `mnty_default_image_url`, `mnty_default_marketing_service_image_trigger`, `ux_user_memberships_user_business_branch_nullsafe`.
+### Release consequences
+
+- The 19 entrypoint differences are **source-to-live parity gaps**, not proof by themselves of exploitable vulnerabilities. Current source must not be deployed just to eliminate a byte difference; some changes depend on unapplied migrations, RPC signatures, ACL/RLS policies, keys and tested business flows.
+- Do not deploy `catalog-admin` or `catalog-platform-admin` until the platform-admin registry and exact caller/policy release chain is applied and verified.
+- Do not deploy payment, webhook, journal, subscription, digital-page-order or settlement functions individually. Their source dependencies and atomicity/idempotency behavior must be released together after the backup and sandbox gates.
+- Do not replace the deployed fail-closed `directory-listings` stub with current source until source provenance, owner publication rights, contact consent, claim authorization and the full deployed-origin negative/positive tests are proven.
+- Keep `public-catalog-directory` deployment blocked until pagination RPC/schema, token/cursor tests and all shared Edge bundles are reconciled as one deployment.
+- No Edge Function was deployed or changed during this read-only comparison.
 
 ## Website and monitoring status
 
