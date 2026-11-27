@@ -1125,3 +1125,13 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 - [ ] Exact-head Module Professionalization workflow and browser/responsive/accessibility checks remain pending. This is a source-level change, not production runtime verification.
 - Next: inspect authoritative subscription entitlement/plan state and backend permission/audit contracts before implementing any lifecycle management actions.
 - PR #299 remains open/Draft. Production remains **BLOCKED / NOT CERTIFIED**. No merge, deployment, production data mutation or payment was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+
+## 2026-11-27 — Super Admin active catalog inspector (read-only)
+
+- Added a read-only catalog inspector action on active activity rows in the protected Super Admin directory.
+- Uses the existing authenticated `/api/v1/catalog` route with the business's tenant ID. The view only renders active published items, active branches and effective prices, using an explicit presentation allowlist; no raw item metadata or mutation path is exposed.
+- Branch selection filters the already-loaded catalog locally. Empty/unavailable/error states remain explicit.
+- Updated the dashboard source validator and refreshed application/PWA asset versions to `super-admin-readonly-catalog-inspector-20261127` / `mnty-web-v161`.
+- [ ] Exact-head CI and browser/keyboard/responsive validation remain pending. Draft/inactive catalog management is still blocked pending a dedicated backend admin read/write contract and audit requirements.
+- Production remains **BLOCKED / NOT CERTIFIED**. No merge, deployment, production database change or catalog write was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
