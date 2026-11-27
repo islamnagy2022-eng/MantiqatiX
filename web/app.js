@@ -1026,6 +1026,26 @@ async function loadSuperAdminActivityDirectory(){
   root.innerHTML='<div class="empty-state">تعذر تحميل دليل الأنشطة: '+escapeValue(error?.message||'خطأ غير معروف')+'</div>';
  }
 }
+
+async function loadSuperAdminSubscriptionPrices(){
+ const root=document.getElementById('sa-subscription-price-list');if(!root)return;
+ if(!canSuperAdmin()){root.innerHTML='<div class="empty-state">لا تملك صلاحية عرض أسعار الباقات.</div>';return}
+ root.innerHTML='<div class="empty-state">جاري قراءة الأسعار النشطة من قاعدة البيانات…</div>';
+ try{
+  const result=await sb.from('subscription_tier_prices').select('tier_code,monthly_price,annual_price,currency').eq('active',true).order('monthly_price',{ascending:true});
+  if(result.error)throw result.error;
+  const rows=(result.data||[]).map(row=>{
+   const amount=value=>Number.isFinite(Number(value))?Number(value).toFixed(2):'غير متاح';
+   const currency=String(row.currency||'—');
+   return {tier:String(row.tier_code||'—'),monthly:amount(row.monthly_price)+' '+currency,annual:amount(row.annual_price)+' '+currency};
+  });
+  root.innerHTML=rows.length?recordsTable('أسعار الباقات النشطة — من المصدر المعتمد',rows,[['كود الباقة',row=>row.tier],['السعر الشهري',row=>row.monthly],['السعر السنوي',row=>row.annual]]):'<div class="empty-state">لا توجد أسعار باقات نشطة في المصدر الحالي.</div>';
+ }catch(error){
+  root.innerHTML='<div class="empty-state" role="status">تعذر قراءة أسعار الباقات ضمن صلاحيات الحساب الحالي. لم نستخدم أسعارًا ثابتة أو تقديرية.</div>';
+  console.warn('[Super Admin subscription pricing] unavailable',error?.message||error);
+ }
+}
+
 async function loadOfficialShowcaseAdmin(){
  const root=document.getElementById('sa-showcase-list'); if(!root)return;
  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -1095,6 +1115,7 @@ function superAdminControlWorkspace(){
  +workspaceCards([['النطاقات النشطة',String(tenants.length),'Tenant contexts المرتبطة بدور SUPER_ADMIN'],['صلاحية الحساب','Full Control','نطاق المنصة فقط'],['الاعتماد','Server-side','الاعتماد يمر عبر مسار الخادم'],['مقدمو الخدمة','هوية حقيقية','لا يتم إنشاء هوية وهمية من الواجهة']])
  +superAdminMembershipContextDirectory()
  +superAdminFeatureFlagDirectory()
+ +'<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">SUBSCRIPTION PRICING</span><h3>أسعار باقات المنصة</h3><p class="muted">قراءة من جدول الأسعار المعتمد للمستخدمين المسجلين فقط. هذه الأسعار لا تثبت وجود اشتراك قائم لأي نشاط ولا تنفذ ترقية أو تحصيلًا.</p></div><button class="btn btn-outline" type="button" id="sa-subscription-prices-refresh" style="width:auto">تحديث الأسعار</button></div><div id="sa-subscription-price-list" aria-live="polite"><div class="empty-state">جاري تحميل أسعار الباقات…</div></div></section>'
  +'<section class="card"><div class="section-head"><div><span class="eyebrow">CREATE ACTIVITY</span><h3>إنشاء نشاط كامل</h3><p class="muted">سيتم إنشاء طلب نشاط، ثم اعتماده، ثم إنشاء الفرع والخدمات والأسعار عند نجاح كل خطوة.</p></div></div>'
  +'<form id="mx-super-admin-create-form"><div class="grid2">'
  +'<label class="field"><span>Tenant *</span><select id="sa-tenant" required>'+tenantOptions+'</select></label>'
@@ -1201,6 +1222,8 @@ async function initSuperAdminControlWorkspace(){
  loadProviderOnboardingReview();
  loadOfficialShowcaseAdmin();
  loadSuperAdminActivityDirectory();
+ loadSuperAdminSubscriptionPrices();
+ document.getElementById('sa-subscription-prices-refresh')?.addEventListener('click',loadSuperAdminSubscriptionPrices);
  document.getElementById('sa-activities-refresh')?.addEventListener('click',loadSuperAdminActivityDirectory);
  document.getElementById('sa-showcase-refresh')?.addEventListener('click',loadOfficialShowcaseAdmin);
 }
