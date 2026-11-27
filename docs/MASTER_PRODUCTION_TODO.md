@@ -2373,3 +2373,13 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Backend-only Module Boundary run `45925670235` and MantiGO Open Ride Privacy Boundary run `45925670240` also completed successfully on the same exact head.
 - [ ] Browser/mobile device, actual account authorization, cart/order price display, accessibility and responsive checks remain unverified.
 - [ ] These are candidate-branch CI checks only. No merge, production deployment, live database migration or live catalog/price change was performed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-11-27 — Module workspace accessibility and PWA cache integrity
+
+- [x] Added explicit ARIA relationships between module tabs and their content panels, focusable panels, stable instance IDs and duplicate-binding protection.
+- [x] Extended the enterprise dashboard source contract for tab semantics, panel relationships, keyboard navigation boundaries and safe initialization.
+- [x] Rotated the module blueprint asset URL, matched its Service Worker precache entry, updated Service Worker registration and advanced the shell cache to `mnty-web-v163`.
+- [x] Application-code head `ad28365eeeac5c317d5fab04b1dd977f0ffeb936` passed all 7 GitHub check runs across Module Professionalization, Backend-only Module Boundary and MantiGO Open Ride Privacy workflows.
+- [ ] Browser/screen-reader, responsive and real-device PWA update verification remain NOT VERIFIED.
+- No merge, deployment, production migration, live data mutation or payment was performed. PR #299 remains Draft; production remains **BLOCKED / NOT CERTIFIED**.
