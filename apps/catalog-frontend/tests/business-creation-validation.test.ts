@@ -22,6 +22,10 @@ assert.equal(
   false,
 );
 assert.deepEqual(
+  validateBusinessCreationIdentity({ name: '😀', governorate: 'الغربية', markaz: 'طنطا' }),
+  { ok: false, message: 'اكتب اسم النشاط الحقيقي (حرفان على الأقل).' },
+);
+assert.deepEqual(
   validateBusinessCreationIdentity({ name: 'مطعم النيل', governorate: ' ', markaz: 'طنطا' }),
   { ok: false, message: 'حدد المحافظة الفعلية للنشاط.' },
 );
