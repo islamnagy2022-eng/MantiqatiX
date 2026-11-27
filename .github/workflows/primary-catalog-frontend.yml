@@ -37,6 +37,7 @@ on:
       - "scripts/validate-edge-jwt-config.mjs"
       - "supabase/config.toml"
       - ".github/workflows/pages.yml"
+      - ".github/workflows/production-health-monitor.yml"
       - ".github/workflows/primary-catalog-frontend.yml"
       - "supabase/functions/catalog-platform-admin/**"
       - "supabase/functions/catalog-admin/**"
