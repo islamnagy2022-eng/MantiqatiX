@@ -63,7 +63,7 @@ INSERT INTO public.job_applications(
   'Applicant', '+201000000000', 'Experience', 'CV'
 );
 SET ROLE authenticated;
-DO $
+DO $$
 DECLARE
   actor uuid := 'c0000000-0000-4000-8000-000000000003';
   payload jsonb;
@@ -76,7 +76,7 @@ BEGIN
   IF payload->>'status' <> 'ALREADY_APPLIED' THEN
     RAISE EXCEPTION 'existing application retry on closed job must remain idempotent: %', payload;
   END IF;
-END $;
+END $$;
 RESET ROLE;
 
 SELECT 'RC930_INTEGRATION_PASS' AS result;
