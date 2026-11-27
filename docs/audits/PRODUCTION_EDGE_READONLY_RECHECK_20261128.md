@@ -81,6 +81,25 @@ Missing contract entries by group:
 - The latest recorded Pages deployment and deployed-origin browser checks passed for the root catalog, `/legacy/`, `/v6-preview/`, catalog routes, dashboard desktop/mobile, QR and activity-share accessibility.
 - The associated Production Health Monitor reported the protected Edge `/health` endpoint as **NOT CHECKED** because `HEALTH_MONITOR_TOKEN` was missing. A successful website/legacy database probe is not evidence that protected Edge health was checked.
 
+## Complete public-schema SECURITY DEFINER inventory
+
+A fresh read-only `pg_proc` + effective EXECUTE privilege inventory over all 149 public-schema SECURITY DEFINER functions found:
+
+| Measure | Count |
+|---|---:|
+| Public SECURITY DEFINER functions | 149 |
+| Effective EXECUTE for `authenticated` | 65 |
+| Effective EXECUTE for `anon` | 1 |
+| Empty function-level `search_path` | 28 |
+| Non-empty explicit `search_path` | 121 |
+| Unset function-level `search_path` | 0 |
+
+Among the 65 authenticated-executable functions, 18 have an empty path and 47 have a non-empty path. All 149 inspected functions are owned by `postgres`. The only anon-executable function is `public.get_mnty_targeted_advertisements(...)`, and its path is empty. It is a documented public ad-read contract and must be checked against its allowlisted projection and predicates rather than blindly revoked.
+
+These are aggregate exposure counts, not a declaration that all 65 routines are unsafe. A non-empty path may still be defensible when the function body is schema-qualified and all referenced schemas are trusted; each routine requires body, caller, tenant/auth, grants and intended-audience classification. A separate focused sample found eight shared SECURITY DEFINER helper/caller routines using non-empty paths; only `mnty_can_platform_admin()` in that sample was directly authenticated-executable. Do not mass-revoke or mass-alter function paths.
+
+The current Supabase Security Advisor snapshot returned 166 findings total (157 WARN, 9 INFO): 90 anonymous-Auth policy warnings, 65 authenticated SECURITY DEFINER warnings, one anon SECURITY DEFINER warning, nine RLS-enabled/no-policy INFO, and leaked-password protection disabled. Advisor categories are signals for predicate-by-predicate review; anonymous Auth-session policies are not equivalent to raw anon-role grants.
+
 ## Release blockers and operating decisions
 
 1. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
