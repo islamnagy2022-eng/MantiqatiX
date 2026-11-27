@@ -22,14 +22,6 @@ CREATE TABLE public.businesses (
   name text NOT NULL
 );
 ALTER TABLE public.businesses ENABLE ROW LEVEL SECURITY;
-CREATE POLICY businesses_member_select ON public.businesses
-  FOR SELECT TO authenticated
-  USING (EXISTS (
-    SELECT 1 FROM public.user_memberships um
-    WHERE um.user_id = auth.uid()
-      AND um.tenant_id = businesses.tenant_id
-      AND um.status = 'ACTIVE'
-  ));
 
 CREATE TABLE public.user_memberships (
   id text PRIMARY KEY,
@@ -43,6 +35,14 @@ CREATE TABLE public.user_memberships (
 ALTER TABLE public.user_memberships ENABLE ROW LEVEL SECURITY;
 CREATE POLICY memberships_select_self ON public.user_memberships
   FOR SELECT TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY businesses_member_select ON public.businesses
+  FOR SELECT TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM public.user_memberships um
+    WHERE um.user_id = auth.uid()
+      AND um.tenant_id = businesses.tenant_id
+      AND um.status = 'ACTIVE'
+  ));
 
 CREATE TABLE public.marketing_provider_profiles (
   id uuid PRIMARY KEY,
