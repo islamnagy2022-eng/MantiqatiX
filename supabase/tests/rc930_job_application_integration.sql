@@ -52,5 +52,31 @@ BEGIN
   END;
   IF NOT rejected THEN RAISE EXCEPTION 'missing job was not rejected'; END IF;
 END $$;
+
+-- A prior application remains idempotent after the employer closes the job.
 RESET ROLE;
+INSERT INTO public.job_applications(
+  job_id, applicant_user_id, applicant_name, applicant_phone, qualifications, cv_summary_text
+) VALUES (
+  'a0000000-0000-4000-8000-000000000002',
+  'c0000000-0000-4000-8000-000000000003',
+  'Applicant', '+201000000000', 'Experience', 'CV'
+);
+SET ROLE authenticated;
+DO $
+DECLARE
+  actor uuid := 'c0000000-0000-4000-8000-000000000003';
+  payload jsonb;
+BEGIN
+  PERFORM set_config('request.jwt.claim.sub', actor::text, false);
+  payload := public.submit_job_application_backend(
+    actor, 'a0000000-0000-4000-8000-000000000002',
+    'Applicant', '+201000000000', 'Experience', 'CV'
+  );
+  IF payload->>'status' <> 'ALREADY_APPLIED' THEN
+    RAISE EXCEPTION 'existing application retry on closed job must remain idempotent: %', payload;
+  END IF;
+END $;
+RESET ROLE;
+
 SELECT 'RC930_INTEGRATION_PASS' AS result;
