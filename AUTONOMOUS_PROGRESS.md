@@ -32,6 +32,9 @@ The connected Supabase project `MANTIQATIX FINAL` is `ACTIVE_HEALTHY` on Postgre
 - `public.is_platform_admin()`: SECURITY INVOKER, `search_path=public`, derives global authority from any ACTIVE tenant ADMIN/SUPER_ADMIN membership; it does not read the private registry.
 - `public.mnty_can_platform_admin()`: SECURITY DEFINER, `search_path=public, pg_temp`, delegates to `public.mnty_can('admin', NULL, NULL, NULL)`; it does not read the private registry.
 - Both helpers are executable by `authenticated`, not `anon`. The issue is the authority semantics for signed-in callers, not public execution.
+
+- Current canonical release contract: 87 required migration versions; direct comparison with the connected 310-row Production ledger found 0/87 exact IDs, while all three declared alias target versions are present. This does not certify physical-effect parity.
+- RC929 live order guard recheck: `orders` and `order_status_history` both have RLS and FORCE RLS enabled, anon SELECT denied and authenticated SELECT granted, but the new strict `is_anonymous=false` restrictive policies are absent. RC929 remains unapplied.
 - Policy blast radius: 57 policies / 24 tables reference `is_platform_admin()`; five policies / three tables reference `mnty_can_platform_admin()` (62 / 27 combined).
 
 The Supabase Security Advisor returned 94 lint types and 166 counted findings: 157 WARN and nine INFO. Warn categories include 90 RLS-policy role warnings for `anon`, 65 authenticated-callable SECURITY DEFINER functions, one anon-callable SECURITY DEFINER targeted-advertisements RPC, and disabled leaked-password protection. Nine INFO findings flag tables with RLS enabled and no policies. These advisor categories are triage signals, not proof that every listed policy/function is exploitable; inspect each policy predicate, direct grant, caller path, and intended public-read contract before changing it. Do not bulk-revoke or modify policies based only on the lint label.
