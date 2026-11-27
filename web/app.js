@@ -1072,6 +1072,61 @@ async function loadSuperAdminActivityDirectory(){
  }
 }
 
+async function loadSuperAdminCommercialOverview(){
+ const root=document.getElementById('sa-commercial-overview');if(!root)return;
+ if(!canSuperAdmin()){root.setAttribute('aria-busy','false');root.innerHTML='<div class="empty-state">لا تملك صلاحية عرض الملخص التجاري للمنصة.</div>';return}
+ root.setAttribute('aria-busy','true');
+ root.innerHTML='<div class="empty-state">جاري قراءة الاشتراكات والعمولات من المسار الخادمي المعتمد…</div>';
+ try{
+  const {data,error}=await sb.functions.invoke('platform-commercial-overview',{body:{action:'OVERVIEW'}});
+  if(error)throw error;
+  if(!data||data.error)throw new Error(data?.error||'COMMERCIAL_OVERVIEW_UNAVAILABLE');
+  const summary=data.summary||{};
+  const metrics=[
+   ['الأنشطة ضمن النطاق',summary.businessCount??0],
+   ['الاشتراكات النشطة',summary.activeSubscriptionCount??0],
+   ['الفترات التجريبية',summary.trialingSubscriptionCount??0],
+   ['طلبات دفع الاشتراك المعلقة',summary.pendingPaymentIntentCount??0],
+   ['سجلات العمولات',summary.commissionTransactionCount??0],
+   ['الالتزامات المالية',summary.obligationCount??0],
+   ['التسويات المعلقة',summary.pendingSettlementCount??0]
+  ];
+  const stats='<div class="mnty-stat-strip">'+metrics.map(([label,value])=>'<div><b>'+esc(value)+'</b><span>'+esc(label)+'</span></div>').join('')+'</div>';
+  const statusLabel=value=>({
+   ACTIVE:'نشط',TRIALING:'تجريبي',PENDING_PAYMENT:'بانتظار الدفع',EXPIRED:'منتهي',
+   CANCELLED:'ملغي',SUSPENDED:'موقوف',CREATED:'تم الإنشاء',PENDING:'معلق',
+   SUCCEEDED:'ناجح',FAILED:'فشل',SETTLED:'تمت التسوية',UNKNOWN:'غير محدد'
+  }[String(value||'UNKNOWN').toUpperCase()]||String(value||'غير محدد'));
+  const dateLabel=value=>{if(!value)return'—';const date=new Date(value);return Number.isNaN(date.getTime())?'—':date.toLocaleDateString('ar-EG')};
+  const rows=(data.subscriptions||[]).map(row=>({
+   business:row.businessName||'—',
+   tier:row.tierCode||'—',
+   cycle:String(row.billingCycle||'').toUpperCase()==='ANNUAL'?'سنوي':String(row.billingCycle||'').toUpperCase()==='MONTHLY'?'شهري':row.billingCycle||'—',
+   status:statusLabel(row.status),
+   starts:dateLabel(row.startsAt),
+   ends:dateLabel(row.endsAt)
+  }));
+  const directory=rows.length
+   ?recordsTable('اشتراكات الأنشطة المسجلة',rows,[['النشاط',row=>row.business],['الباقة',row=>row.tier],['الدورة',row=>row.cycle],['الحالة',row=>row.status],['بداية الاشتراك',row=>row.starts],['نهاية الاشتراك',row=>row.ends]])
+   :'<div class="empty-state">لا توجد اشتراكات مسجلة في المصدر الحالي حتى الآن.</div>';
+  const commissions=summary.commissionByStatus||{};
+  const commissionStatus=Object.keys(commissions).length
+   ?Object.entries(commissions).map(([key,value])=>'<span class="mnty-badge">'+esc(statusLabel(key))+': '+esc(value)+'</span>').join(' ')
+   :'<span class="muted">لا توجد معاملات عمولة مسجلة.</span>';
+  const truncated=Object.values(data.truncated||{}).some(Boolean)
+   ?'<div class="notice" role="status">بعض المصادر تجاوزت حد القراءة الآمن؛ الأعداد المعروضة حد أدنى وتحتاج إلى ترحيل صفحات إضافية.</div>'
+   :'';
+  const generated=data.generatedAt?dateLabel(data.generatedAt):'—';
+  root.innerHTML=stats
+   +'<section class="card" style="padding:14px;margin:14px 0"><div class="section-head"><div><h4>حالة سجلات العمولات</h4><p class="muted">إحصاءات حسب الحالة فقط؛ لا يتم عرض قيم مالية أو تفاصيل أوامر.</p></div></div>'+commissionStatus+'</section>'
+   +directory+truncated
+   +'<p class="muted" style="margin-top:10px">آخر تحديث: '+esc(generated)+'. '+esc(data.disclosure||'قراءة إدارية فقط، دون تنفيذ عمليات مالية.')+'</p>';
+ }catch(error){
+  root.innerHTML='<div class="empty-state" role="status">تعذر تحميل الملخص التجاري من المسار الخادمي. لم نعرض بيانات افتراضية أو نستخدم أرقامًا تقديرية.</div>';
+  console.warn('[Super Admin commercial overview] unavailable',error?.message||error);
+ }finally{root.setAttribute('aria-busy','false')}
+}
+
 async function loadSuperAdminSubscriptionPrices(){
  const root=document.getElementById('sa-subscription-price-list');if(!root)return;
  if(!canSuperAdmin()){root.innerHTML='<div class="empty-state">لا تملك صلاحية عرض أسعار الباقات.</div>';return}
@@ -1174,6 +1229,10 @@ function superAdminFinanceOperationsSnapshot(){
   +'<p class="muted">كل قيمة تمثل عدد السجلات فقط. عند غياب النطاق أو تعذر قراءة المصدر تظهر «غير متاح» بدلًا من الصفر. لا يعرض هذا الملخص مبالغ أو أرصدة أو حالة استحقاق الاشتراكات؛ إدارة الاشتراكات تحتاج إلى اعتماد مصدرها وعقد صلاحيات مستقل.</p></section>';
 }
 
+function superAdminCommercialOverviewPanel(){
+ return '<section class="card" style="margin:18px 0;padding:18px"><div class="section-head"><div><span class="eyebrow">COMMERCIAL OPERATIONS</span><h3>الاشتراكات والعمولات والتسويات</h3><p class="muted">ملخص إداري للقراءة فقط من المصادر المالية المعتمدة، مع تسجيل عملية الاطلاع. لا توجد أزرار تحصيل أو تفعيل أو تعديل في هذه الشاشة.</p></div><button class="btn btn-outline" type="button" id="sa-commercial-overview-refresh" style="width:auto">تحديث البيانات</button></div><div id="sa-commercial-overview" aria-live="polite" aria-busy="true"><div class="empty-state">جاري تحميل المؤشرات التجارية…</div></div></section>';
+}
+
 function superAdminControlWorkspace(){
  if(!canSuperAdmin())return workspaceHead('PLATFORM CONTROL','التحكم الكامل','هذه المساحة مخصصة لـ SUPER_ADMIN فقط.','RESTRICTED')+'<div class="empty-state">لا تملك صلاحية التحكم الكامل.</div>';
  const tenants=[...new Map((live.memberships||[]).filter(m=>String(m.role||'').toUpperCase()==='SUPER_ADMIN'&&m.status==='ACTIVE').map(m=>[m.tenant_id,m])).values()];
@@ -1182,6 +1241,7 @@ function superAdminControlWorkspace(){
  +workspaceCards([['النطاقات النشطة',String(tenants.length),'Tenant contexts المرتبطة بدور SUPER_ADMIN'],['صلاحية الحساب','Full Control','نطاق المنصة فقط'],['الاعتماد','Server-side','الاعتماد يمر عبر مسار الخادم'],['مقدمو الخدمة','هوية حقيقية','لا يتم إنشاء هوية وهمية من الواجهة']])
  +superAdminMembershipContextDirectory()
  +superAdminFinanceOperationsSnapshot()
+ +superAdminCommercialOverviewPanel()
  +superAdminFeatureFlagDirectory()
  +'<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">SUBSCRIPTION PRICING</span><h3>أسعار باقات المنصة</h3><p class="muted">قراءة من جدول الأسعار المعتمد للمستخدمين المسجلين فقط. هذه الأسعار لا تثبت وجود اشتراك قائم لأي نشاط ولا تنفذ ترقية أو تحصيلًا.</p></div><button class="btn btn-outline" type="button" id="sa-subscription-prices-refresh" style="width:auto">تحديث الأسعار</button></div><div id="sa-subscription-price-list" aria-live="polite"><div class="empty-state">جاري تحميل أسعار الباقات…</div></div></section>'
  +'<section class="card"><div class="section-head"><div><span class="eyebrow">CREATE ACTIVITY</span><h3>إنشاء نشاط كامل</h3><p class="muted">سيتم إنشاء طلب نشاط، ثم اعتماده، ثم إنشاء الفرع والخدمات والأسعار عند نجاح كل خطوة.</p></div></div>'
@@ -1291,7 +1351,9 @@ async function initSuperAdminControlWorkspace(){
  loadOfficialShowcaseAdmin();
  loadSuperAdminActivityDirectory();
  loadSuperAdminSubscriptionPrices();
+ loadSuperAdminCommercialOverview();
  document.getElementById('sa-subscription-prices-refresh')?.addEventListener('click',loadSuperAdminSubscriptionPrices);
+ document.getElementById('sa-commercial-overview-refresh')?.addEventListener('click',loadSuperAdminCommercialOverview);
  document.getElementById('sa-activities-refresh')?.addEventListener('click',loadSuperAdminActivityDirectory);
  document.getElementById('sa-showcase-refresh')?.addEventListener('click',loadOfficialShowcaseAdmin);
 }
