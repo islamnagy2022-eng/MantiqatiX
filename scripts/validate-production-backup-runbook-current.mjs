@@ -5,6 +5,7 @@ const read = (path) => readFileSync(path, "utf8");
 const runbook = read("docs/release/PRODUCTION_BACKUP_RESTORE_DRILL_20261124.md");
 const backlog = read("docs/release/WEBSITE_FIRST_LAUNCH_AND_POST_LAUNCH_BACKLOG_20261122.md");
 const manifest = JSON.parse(read("docs/release/production-migration-reconciliation.json"));
+const securityDefinerInventory = read("docs/audits/PRODUCTION_SECURITY_DEFINER_INVENTORY_20261128.md");
 const ledger = manifest.required_release_migration_ledger_check;
 
 const runbookRequirements = [
@@ -145,3 +146,26 @@ assert.equal(ledger.found_in_live_ledger, 0, "do not manufacture or overstate Pr
 console.log("PRODUCTION_BACKUP_RUNBOOK_CURRENT_RELEASE_CONTRACT=PASS");
 console.log("BACKUP_COVERAGE_AUTH_STORAGE_EXPLICIT=PASS");
 console.log("CURRENT_RELEASE_MIGRATION_COUNT=88");
+const inventoryTableStart = securityDefinerInventory.indexOf("## Function-by-function metadata");
+const inventoryTableEnd = securityDefinerInventory.indexOf("\n## Delegation review", inventoryTableStart);
+assert.ok(inventoryTableStart >= 0 && inventoryTableEnd > inventoryTableStart, "SECURITY DEFINER inventory must include a complete function metadata table.");
+const inventoryTable = securityDefinerInventory.slice(inventoryTableStart, inventoryTableEnd);
+const inventoryRows = inventoryTable.match(/^\| `[^`]+` \| `postgres` \|/gm) ?? [];
+const inventorySignatures = inventoryRows.map((line) => line.split("|")[1].trim().slice(1, -1));
+assert.equal(inventoryRows.length, 149, "SECURITY DEFINER inventory must include all 149 live public-schema signatures.");
+assert.equal(new Set(inventorySignatures).size, 149, "SECURITY DEFINER inventory signatures must be unique.");
+for (const required of [
+  "Effective anon EXECUTE: 1.",
+  "Effective authenticated EXECUTE: 65.",
+  "Effective service_role EXECUTE: 34.",
+  "mnty_business_employee_list(tenant,business)",
+  "mnty_can(permission,tenant,business,branch)",
+  "mnty_can_platform_admin()",
+  "preview_commission_backend(tenant,business,module,gross)",
+  "upsert_catalog_item_and_price_backend(...)",
+  "CONFIRMED P0 PLATFORM-ROOT DEFECT",
+  "CONFIRMED P1 SCOPE DEFECT",
+  "RC467 (`20261115010000`)",
+]) {
+  assert.ok(securityDefinerInventory.includes(required), "SECURITY DEFINER inventory is missing: " + required);
+}
