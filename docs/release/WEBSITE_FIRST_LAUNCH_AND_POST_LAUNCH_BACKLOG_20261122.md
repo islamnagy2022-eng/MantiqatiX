@@ -11,6 +11,15 @@ Rollback copy: `/legacy/`. V6 preview: `/v6-preview/`.
 
 This is a scoped website launch, not certification of every backend module. Full platform remains **BLOCKED / NOT CERTIFIED**.
 
+## 2026-11-28 — RC115 / RC931 provider-profile privacy overlay
+
+- Current release scope now contains **90 required migration IDs**; the live ledger remains 310 rows through `20261110150618`, with **0/90 exact IDs**. This is a migration-identity gap and does not prove all SQL effects are absent.
+- RC115 (`20261125130000`) is included in the canonical chain to enforce tenant/business-scoped marketing CRM reads; the current live policy is older and lacks the business join.
+- RC931 (`20261128010000`) retires the global `Public can view active marketing providers` base-table policy only after RC479, RC926 and RC115 prerequisites pass. Public discovery stays on the allowlisted service-role catalog Edge projection. Owner-scoped CRM updates, tenant/business CRM reads and explicit platform-root access are retained and covered by disposable PostgreSQL 17 tests.
+- RC115 and RC931 remain source-only. Neither is applied to Production. No raw-grant or Production policy change was performed.
+- Production launch remains blocked by the 90-version physical-effect/alias reconciliation, coordinated database/Edge parity, owner-controlled backup/restore and measured RPO/RTO, plus deployed adversarial and financial tests.
+- The Menoufia-specific catalog and OSM-candidate intake remain cancelled; do not create a separate medical or Menoufia activity catalog.
+
 ## V1 scope now live
 
 - Public catalog root and public business/catalog pages.
@@ -42,11 +51,11 @@ This is a scoped website launch, not certification of every backend module. Full
 1. Obtain genuine encrypted off-site database and Storage backups.
 2. Verify Vault recovery and perform an independent PostgreSQL 17 restore/rollback.
 3. Measure and record RPO/RTO.
-   - Current release scope contains 88 required migration IDs; the live ledger still has 0/88 exact required identifiers. RC480 (`20261118210000`) remains the public digital-page anonymous-column boundary and prerequisite for RC927. RC926 (`20261125110000`) is the prior strict provider-profile identity boundary; RC927 and RC928 are source-only and remain unapplied to Production.
+   - Current release scope contains 90 required migration IDs; the live ledger still has 0/90 exact required identifiers. RC115 and RC931 are now included as source-only privacy dependencies. RC480 (`20261118210000`) remains the public digital-page anonymous-column boundary and prerequisite for RC927. RC926 (`20261125110000`) is the prior strict provider-profile identity boundary; RC927 and RC928 are source-only and remain unapplied to Production.
 - RC927 (`20261125120000`) was merged source-only in PR #1122 as `ffd91df42c0cc70bfce692cc79045132cff5c383`; exact-head 17/17 workflows passed, including the 85-source strict gate and chronological PostgreSQL 17 replay (123 forward migrations). It remains unapplied to Production. RC928 (`20261126010000`) remains a source-only candidate for atomic catalog-profile/gallery persistence; its exact-head static, owner-profile PG17 and full 85-source replay were not part of PR #1122. The current combined release candidate is tracked by the 88-source gate. Neither release is applied to Production.
-- RC117 image-provenance repair (`20261126020000`) was merged source-only in PR #1129; the 88-version release-gate branch adds a focused PostgreSQL 17 preservation/idempotency test and keeps it unapplied to Production.
+- RC117 image-provenance repair (`20261126020000`) was merged source-only in PR #1129; the 90-version release-gate branch adds a focused PostgreSQL 17 preservation/idempotency test and keeps it unapplied to Production.
 - RC929 (`20261126030000`) remains the 87th source entry. It adds restrictive explicit-confirmed-Auth guards to order and order-history access; direct live read-back shows RLS/FORCE RLS on, anon SELECT off, but no strict missing-claim guard. Its dedicated PostgreSQL 17 baseline and positive/negative integration are wired into RC465 and full chronological replay. It remains unapplied to Production.
-- RC930 (`20261127010000`) is the 88th required source migration. It serializes job-application submission against concurrent job deactivation using a `FOR SHARE` job-row lock. Its PostgreSQL 17 tests cover active, inactive, missing and duplicate applications plus two-session lock ordering. Production has no RC930 ledger row and its live RPC still lacks this lock.
+- RC930 (`20261127010000`) is the 89th required source migration. It serializes job-application submission against concurrent job deactivation using a `FOR SHARE` job-row lock. Its PostgreSQL 17 tests cover active, inactive, missing and duplicate applications plus two-session lock ordering. Production has no RC930 ledger row and its live RPC still lacks this lock.
 5. Triage Security Advisor findings per function and caller: 9 RLS-enabled/no-policy INFO, 65 authenticated-callable and 1 anon-callable SECURITY DEFINER WARN, leaked-password protection disabled. No blanket EXECUTE revocation.
 
 ### P1 — Monthly subscription checkout
@@ -85,7 +94,7 @@ This is a scoped website launch, not certification of every backend module. Full
 The public website V1 is deployed and browser-verified. Backend national directory, public-contact consent, gallery, monthly checkout and finance/payment expansion remain gated as listed above. **Full platform remains BLOCKED / NOT CERTIFIED.**
 
 - RC927 is merged source-only (PR #1122, `ffd91df42c0cc70bfce692cc79045132cff5c383`); exact-head PostgreSQL 17 and 85-source chronological replay passed. RC927 remains unapplied to Production. RC928 is still a source-only candidate pending exact-head validation and must not be deployed independently.
-- RC117 image-provenance repair is merged source-only (PR #1129) and must be included after RC928 and before RC929 in the chronological 88-version chain; no Production migration was applied.
+- RC117 image-provenance repair is merged source-only (PR #1129) and must be included after RC928 and before RC929 in the chronological 90-version chain; no Production migration was applied.
 
 
 ## 2026-11-26 — RC929 orders identity boundary
@@ -93,4 +102,4 @@ The public website V1 is deployed and browser-verified. Backend national directo
 - Source candidate branch: `security/rc929-orders-explicit-confirmed-auth-guard-20261126`.
 - Direct Production read-back: `orders` and `order_status_history` have RLS/FORCE RLS enabled, anon SELECT disabled, authenticated SELECT enabled; strict explicit-confirmed-Auth restrictive guard is absent on both. Missing/null `is_anonymous` claims are a fail-open policy condition, not evidence of a confirmed breach.
 - RC929 adds restrictive `FOR ALL TO authenticated` policies requiring non-null `auth.uid()` and explicit `is_anonymous=false`, preserving current RC465 branch/business scope and customer-own-order access. It is source-only and not applied to Production.
-- Production contract is now 88 migrations; live ledger remains 310 rows through `20261110150618`, 0/88 exact required IDs. Full platform remains **BLOCKED / NOT CERTIFIED**.
+- Production contract is now 90 migrations; live ledger remains 310 rows through `20261110150618`, 0/90 exact required IDs. Full platform remains **BLOCKED / NOT CERTIFIED**.
