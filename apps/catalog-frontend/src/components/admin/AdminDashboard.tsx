@@ -53,6 +53,7 @@ import { DirectoryListingsAdmin } from './DirectoryListingsAdmin';
 import { resolveDefaultImage } from '../../utils/defaultImages';
 import { callPlatformAdmin } from '../../lib/production';
 import { validateBusinessCreationIdentity } from '../../lib/businessCreationValidation';
+import { AdminOverview } from './AdminOverview';
 
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
 
@@ -109,11 +110,11 @@ export const AdminDashboard: React.FC = () => {
     deleteBusiness,
   } = useApp();
 
-  type AdminTab = 'billing' | 'commissions' | 'taxonomy' | 'businesses' | 'subscribers' | 'directory_listings' | 'activity_modules' | 'settings' | 'backup' | 'control_center';
-  const ADMIN_TABS: AdminTab[] = ['billing', 'commissions', 'taxonomy', 'businesses', 'subscribers', 'directory_listings', 'activity_modules', 'settings', 'backup', 'control_center'];
+  type AdminTab = 'overview' | 'billing' | 'commissions' | 'taxonomy' | 'businesses' | 'subscribers' | 'directory_listings' | 'activity_modules' | 'settings' | 'backup' | 'control_center';
+  const ADMIN_TABS: AdminTab[] = ['overview', 'billing', 'commissions', 'taxonomy', 'businesses', 'subscribers', 'directory_listings', 'activity_modules', 'settings', 'backup', 'control_center'];
   const readAdminTabFromUrl = (): AdminTab => {
     const requested = new URLSearchParams(window.location.search).get('tab') as AdminTab | null;
-    return requested && ADMIN_TABS.includes(requested) ? requested : 'billing';
+    return requested && ADMIN_TABS.includes(requested) ? requested : 'overview';
   };
   const [activeAdminTab, setActiveAdminTabState] = useState<AdminTab>(readAdminTabFromUrl);
   const adminTabClass = (tab: AdminTab) =>
@@ -604,7 +605,7 @@ export const AdminDashboard: React.FC = () => {
           </div>
           <div>
             <div className="text-2xl font-black text-slate-900">{totalSubscribers}</div>
-            <div className="text-xs text-slate-500 font-medium">مشتركين نشطين</div>
+            <div className="text-xs text-slate-500 font-medium">إجمالي حسابات المشتركين</div>
           </div>
         </div>
 
@@ -623,6 +624,17 @@ export const AdminDashboard: React.FC = () => {
 
       {/* V4 admin navigation — presentation only; tab routes and actions stay unchanged. */}
       <nav aria-label="أقسام إدارة المنصة" data-testid="platform-admin-tabs" className="mx-v4-admin-tabs flex items-center gap-2 border-b pb-2 overflow-x-auto no-scrollbar">
+        <button
+          type="button"
+          aria-pressed={activeAdminTab === 'overview'}
+          onClick={() => setActiveAdminTab('overview')}
+          className={adminTabClass('overview')}
+          data-testid="platform-admin-overview-tab"
+        >
+          <ShieldCheck className="w-4 h-4 text-indigo-500" />
+          <span>الرئيسية</span>
+        </button>
+
         {/* Tab 1: Billing & Secret Commissions */}
         <button
           type="button"
@@ -718,6 +730,15 @@ export const AdminDashboard: React.FC = () => {
         
         
       </nav>
+
+      {activeAdminTab === 'overview' && (
+        <AdminOverview
+          businesses={businesses}
+          subscribers={subscribers}
+          products={products}
+          onNavigate={setActiveAdminTab}
+        />
+      )}
 
       {activeAdminTab === 'commissions' && <CommissionRulesManager />}
 
