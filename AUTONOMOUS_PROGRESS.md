@@ -76,3 +76,17 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 - [ ] Continue exact-head review of Super Admin fixes and overview work in PRs #1171 and #1172. Do not merge either until all required checks pass.
 - [ ] Keep `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` until the separate live database migration, ACL/RLS, Edge, privacy, finance, backup/restore and rollback gates are satisfied.
 - **Non-actions:** no Production database write, migration, Auth/RLS/GRANT change, Edge Function deployment, payment, wallet, settlement, or customer/business-data mutation was performed as part of the Pages deployment closeout.
+
+
+## Consolidated project continuation — 2026-11-27 02:59 UTC
+
+- [x] PR #1171 merged: Super Admin stale person selection and refresh-race fix. Exact-head build, dashboard browser E2E, Employee RBAC/PostgreSQL and companion checks passed.
+- [x] PR #1172 merged: Super Admin overview is now the default platform-admin landing page with operational KPIs and nine section shortcuts; published-catalog KPI now requires explicit publication, ACTIVE operation and not frozen. Exact-head browser/build/RBAC checks passed.
+- [x] PR #1173 merged: recorded the successful earlier GitHub Pages deployment.
+- [x] PR #1175 merged as `036c6655b3796d649abd9e603c24f518f8ee361e`: Production Health Monitor now labels the protected Edge `/health` endpoint accurately. The current run [45931207565](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45931207565) succeeded but explicitly says **Edge /health NOT CHECKED** because `HEALTH_MONITOR_TOKEN` is missing; only the legacy anonymous DB read-only probe passed.
+- [ ] Main Pages deployment for `036c6655b3796d649abd9e603c24f518f8ee361e` run [45931067591](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45931067591) had successful validation but deployed-origin browser route verification was still running at this snapshot.
+- [x] Supabase read-only review has been recorded in `docs/audits/PRODUCTION_READ_ONLY_RECHECK_20261127.md`. Main manifest's current canonical required version list is **87**; direct live ledger comparison is 0/87 exact IDs out of 310 live rows. This is an ID gap, not proof all physical effects are absent.
+- [x] Direct authorization read-back recorded the latent root-helper defect and the existing RC464 → RC471 → RC484 → RC485 source repair order. Aggregate-only current-state check found no non-registry active OWNER/ADMIN/SUPER_ADMIN and no `permissions.admin=true` overrides; no current unauthorized account/data access is claimed.
+- [ ] PR #1176 (current-main version of Supabase read-only audit) must pass exact-head migration replay, Primary Catalog E2E/RBAC, privacy and module checks before merge.
+- **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. No Production migrations, SQL writes, Auth/ACL/RLS changes, Edge deployments, payments, wallets, settlements, Storage or customer/business data were changed.
+- **Owner action:** repository/project owner must configure `HEALTH_MONITOR_TOKEN` as a protected GitHub Actions secret to enable actual protected Edge /health monitoring. Do not paste secrets into chat or commit them.
