@@ -4483,3 +4483,38 @@ PR #948 exact head `5a475124cb6076f21940a64334ea94f5751f6395`: RC493 disposable 
 - [x] Updated source release arrays, strict migration gate, manifest, backup release validator, RC928 validator and crosswalk to 87 versions. Production manifest still reads 310 ledger rows through 20261110150618, 0/87 exact required IDs recorded, 87/87 missing.
 - [ ] Exact-head dedicated PostgreSQL 17 test, RC929 validator, and full 87-version chronological replay must pass before opening/merging PR.
 - [ ] Keep Production DB/Auth/RLS/GRANT/Storage/Edge/payment/order/customer state read-only. RC929 and RC928 remain unapplied; no live mutation was performed. Backup/restore was deferred and not attempted. Full platform remains BLOCKED / NOT CERTIFIED.
+
+
+---
+
+## 2026-11-27 — Current-main checkpoint after PR #1184
+
+- [x] PR #1184 merged to main as `7e477e25911438f3601574393edc089c14b50c3d`; it refreshes the current-main closeout and master execution checkpoint without changing application runtime or Production data.
+- [x] Latest main source validations passed: catalog build/type-check, V6 public preview build and bundle-boundary audit, dashboard/employee source contracts, Smart Geo consent/privacy, existing-section/unverified directory validator, Egypt GeoJSON validation, social/contact links, OAuth redirect, public catalog/Qadam smoke, public ad RPC/CORS, directory-disabled fallback and production-gate contracts.
+- [x] Same-main module/security workflows passed: Module Professionalization `46017699072`, MantiGO Open Ride Privacy `46017699316`, and Backend-only Module Boundary `46017699349`.
+- [x] GitHub Pages run `46017699004` for this main SHA completed deployment and passed production-root, legacy rollback, V6-preview and case-insensitive URL checks. The final deployed-origin dashboard/mobile/QR route browser step was still running at the last read-back; do not mark that final step complete until its conclusion is SUCCESS. The standalone redirect regression was skipped by workflow conditions and is not a pass.
+- [x] Menoufia scope remains as directed: PR #1182 removes the dedicated Menoufia catalog CTA and blank intake template, reuses existing activity sections and canonical taxonomy, and counts unverified records within the active geographic filter. The dedicated existing-section/unverified validator passed on current main.
+- [x] PRs #1179 and #1180 remain untouched and paused. Do not resume the Menoufia shareable-catalog route or OSM candidate staging unless the owner changes this pause. New admin records remain hidden DRAFT / UNVERIFIED; public unclaimed directory listings remain disabled.
+- [x] Reviewed the existing selected-business identity repair from PR #1183: homepage activity label and account workspace code are scoped to the selected active membership/business; static source-contract checks passed. Real authenticated two-business browser journey remains NOT VERIFIED, so issue #96 stays open.
+- **Production boundary:** read-only. No Production SQL/migration, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, settlement, or customer/business-data mutation was performed.
+- **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. Last documented live migration-ledger read-back remains 310 rows through `20261110150618`, with 0/87 exact required source-ID matches at 2026-11-27 00:04 UTC. This is an identity discrepancy, not proof every physical effect is absent. Platform-root authorization, schema/RPC/ACL/RLS reconciliation, catalog Edge parity, physical-effect/alias reconciliation and backup/restore evidence remain blockers.
+- **Monitoring note:** Production Health Monitor workflow success is not evidence that the protected Edge `/health` endpoint was checked while `HEALTH_MONITOR_TOKEN` is missing; retain this as NOT CHECKED.
+- **Next execution:** finish read-back of Pages run `46017699004`; continue the coordinated platform-root/migration/Edge release preparation with read-only Production access; add genuine multi-business E2E coverage before closing issue #96; keep all paused Menoufia candidate/catalog PRs untouched.
+
+
+
+---
+
+## 2026-11-27 14:42 UTC — Post-merge Pages and live Production read-back
+
+- [x] Main `7e477e25911438f3601574393edc089c14b50c3d` Pages deployment run [46017699004](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/46017699004) completed SUCCESS. Root/legacy rollback/V6 preview, mixed-case catalog routes, and deployed legacy/dashboard/mobile/QR route checks all completed successfully. The separate deployed-origin redirect regression remained intentionally skipped; it is not a pass.
+- [x] Refreshed live project identity: `MANTIQATIX FINAL` / `moyhiluyhjsujhwlyeuu`, `ACTIVE_HEALTHY`, PostgreSQL `17.6.1.155`. This was not the inactive DEMO project.
+- [x] Direct live migration inventory: 310 rows, latest `20261110150618`. Comparing the current required list of 87 source migration IDs against this inventory returned 0 exact IDs. This is an identity mismatch only; the three previously confirmed exact aliases and actual physical effects must be reconciled separately. Do not synthesize ledger rows or replay aliases.
+- [x] Direct read-only SQL catalog recheck: `private.platform_admins` is owned by postgres, RLS enabled, FORCE RLS disabled. `public.is_platform_admin()` is SECURITY INVOKER / `search_path=public`, but still derives root access from any ACTIVE tenant ADMIN/SUPER_ADMIN membership. `public.mnty_can_platform_admin()` remains SECURITY DEFINER / `search_path=public, pg_temp` and delegates to `public.mnty_can('admin',NULL,NULL,NULL)`.
+- [x] Current helper blast radius remains 57 `is_platform_admin` policy references across 24 tables, plus five `mnty_can_platform_admin` references across three tables: 62 references / 27 tables. The read-only query found anon EXECUTE denied and authenticated EXECUTE granted for both functions; no policy or grant was changed.
+- [x] Latest Edge Function inventory read-back (versions only; not an exact bundle-parity test): `catalog-admin` v20, `catalog-platform-admin` v23, `public-catalog` v11, `public-catalog-directory` v20, `directory-listings` v18, `health` v3; payment/order functions remain at the versions recorded in the release inventory. Known Edge source/dependency parity blockers remain open. `directory-listings` remains intentionally fail-closed.
+- [x] No Production SQL, migration, Auth/RLS/GRANT, Storage, Edge deploy, payment, wallet, settlement, or business/customer-data mutation was performed.
+- **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. Platform-root registry enforcement, chronological migration/physical-effect/alias reconciliation, critical Edge bundle parity, and verified backup/restore/rollback evidence remain blockers. Health Monitor workflow success does not prove protected Edge `/health` was called while `HEALTH_MONITOR_TOKEN` is unavailable.
+- **Menoufia:** PR #1182's existing-section/unverified change remains active and its current-main validator passed. PRs #1179/#1180 remain paused and untouched. New rows stay hidden DRAFT / UNVERIFIED; public unclaimed listing publication remains disabled.
+- **Next:** continue read-only coordinated release preparation; do not deploy individual admin/payment Edge functions or apply migrations alone. Keep issue #96 open until a real authenticated multi-business E2E passes.
+
