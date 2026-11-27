@@ -575,7 +575,9 @@ async function loadBusinessCatalog(businessId,branchId=null,tenantId=null){
 }
 function catalogCurrentPrice(catalog,itemId,branchId=null){
  const rows=(catalog?.prices||[]).filter(p=>p.catalog_item_id===itemId);
- const eligible=rows.filter(p=>!branchId||!p.branch_id||p.branch_id===branchId);
+ const branchPrices=branchId?rows.filter(p=>String(p.branch_id||'')===String(branchId)):[];
+ const globalPrices=rows.filter(p=>!p.branch_id);
+ const eligible=branchId?(branchPrices.length?branchPrices:globalPrices):globalPrices;
  eligible.sort((a,b)=>Number(b.version||0)-Number(a.version||0));
  return eligible[0]||null;
 }
@@ -588,7 +590,7 @@ async function openProviderCatalog(businessId,providerName,providerTenantId=null
   if(!activeBranches.length)return showToast('لا يوجد فرع نشط متاح لهذا النشاط بعد.','error');
   const defaultBranch=activeBranches[0];
   const cards=(catalog.items||[]).map(item=>{
-   const price=catalogCurrentPrice(catalog,item.id,catalog.branchId||null);
+   const price=catalogCurrentPrice(catalog,item.id,defaultBranch.id);
    const amount=price?String(price.unit_price)+' '+String(price.currency||''):'السعر غير متاح';
    return '<article class="card"><div class="row"><strong>'+esc(item.name_ar||item.name_en||'صنف')+'</strong><span class="dot"></span></div><p class="muted">'+esc(item.description||item.item_type||'خدمة/صنف')+'</p><div class="row"><b>'+esc(amount)+'</b>'+(price?'<div class="mx-catalog-actions"><button class="text-btn mx-cart-add" data-business-id="'+esc(businessId)+'" data-item-id="'+esc(item.id)+'">أضف للسلة</button><button class="text-btn mx-order-trigger" data-business-id="'+esc(businessId)+'" data-item-id="'+esc(item.id)+'">طلب الآن</button></div>':'')+'</div></article>';
   }).join('')||'<div class="muted">لا توجد أصناف نشطة متاحة حاليًا.</div>';
