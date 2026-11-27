@@ -2,7 +2,7 @@
 SET ROLE authenticated;
 DO $$
 DECLARE
-  actor uuid := 'c0000000-0000-4000-8000-000000000001';
+  actor uuid := 'c0000000-0000-4000-8000-000000000003';
   payload jsonb;
   first_id uuid;
   rejected boolean;
