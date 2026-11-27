@@ -52,7 +52,7 @@ const migration = fs.readFileSync("supabase/migrations/20260927150000_owner_role
 for (const role of ["ADMIN","MANAGER","BUSINESS_OWNER","SUPPORT","SUPPORT_MANAGER","EMPLOYEE","STAFF","CUSTOMER","SERVICE_PROVIDER"]) {
   if (!migration.includes(`('${role}')`)) failures.push(`Owner role context: ${role}`);
 }
-if (/cross join[\\s\\S]*SUPER_ADMIN/i.test(migration) || /values\\s*\\([\\s\\S]*['"]SUPER_ADMIN['"]/i.test(migration)) failures.push("Owner role contexts must not bootstrap SUPER_ADMIN");
+if (/cross join[\s\S]*SUPER_ADMIN/i.test(migration) || /values\s*\([\s\S]*['"]SUPER_ADMIN['"]/i.test(migration)) failures.push("Owner role contexts must not bootstrap SUPER_ADMIN");
 
 // The account activity label must always follow the authenticated user's selected,
 // active business membership. Never infer the activity from the owner's latest profile.
