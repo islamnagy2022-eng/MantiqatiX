@@ -23,6 +23,7 @@ on:
       - "scripts/validate-paid-subscription-gate.mjs"
       - "scripts/validate-business-create-inflight-guard.mjs"
       - "scripts/validate-catalog-membership-bootstrap.mjs"
+      - "scripts/validate-catalog-business-identity-contract.mjs"
       - "scripts/validate-directory-listings-origin-allowlist.mjs"
       - "scripts/validate-production-catalog-real-state.mjs"
       - "scripts/validate-canonical-activity-taxonomy.mjs"
@@ -144,6 +145,8 @@ jobs:
       - name: Test business creation identity and geographic validation
         working-directory: apps/catalog-frontend
         run: npx tsx tests/business-creation-validation.test.ts
+      - name: Validate catalog business identity parity across UI and API
+        run: node scripts/validate-catalog-business-identity-contract.mjs
       - name: Test route-aware SEO metadata and private-route noindex behavior
         working-directory: apps/catalog-frontend
         run: npx tsx tests/seo-metadata.test.ts
