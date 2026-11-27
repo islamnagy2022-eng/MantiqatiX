@@ -1184,7 +1184,7 @@ export const DirectoryView: React.FC = () => {
             )}
             <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
             <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المحافظة
-              <select value={selectedGovFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedGovFilter(e.target.value); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); }} className="mx-v4-search-select mt-1 min-h-11 w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-800 outline-none transition hover:border-slate-300">
+              <select value={selectedGovFilter} onChange={(e) => applyGovernorateScope(e.target.value)} className="mx-v4-search-select mt-1 min-h-11 w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-800 outline-none transition hover:border-slate-300">
                 <option value="all">مصر بالكامل — كل المحافظات</option>
                 {uniqueGovernorships.map((gov) => <option key={gov} value={gov}>{gov}</option>)}
               </select>
