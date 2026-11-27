@@ -17,12 +17,15 @@ assert.match(app, /input\?\.addEventListener\('keydown',event=>\{if\(event\.key=
 assert.match(app, /async function renderApp\([\s\S]*?bindRoleCommandCenter\(\);bindEnterpriseCommandCenter\(\);bindAttentionCenter\(\)/, "the binder must run after the authenticated workspace is rendered");
 assert.equal((app.match(/bindEnterpriseCommandCenter\(\);/g) || []).length, 1, "the enterprise binder must not be called from the unauthenticated auth view");
 const appAssetVersion = index.match(/app\.js\?v=([^'"]+)/)?.[1];
+const moduleBlueprintAssetVersion = index.match(/module-blueprints\.js\?v=([A-Za-z0-9_-]+)/)?.[1];
 const swRegistrationVersion = index.match(/sw\.js\?v=([^'"]+)/)?.[1];
 const cacheVersion = sw.match(/const CACHE='([^']+)'/)?.[1];
 assert.ok(appAssetVersion, "HTML must version the app asset");
 assert.ok(swRegistrationVersion, "HTML must version the service worker");
 assert.match(cacheVersion || "", /^mnty-web-v\d+$/, "service-worker shell cache must use a versioned key");
 assert.ok(sw.includes("./app.js?v=" + appAssetVersion), "service-worker precache must match the current app asset version");
+assert.ok(moduleBlueprintAssetVersion, "HTML must version the module blueprint asset");
+assert.ok(sw.includes("./module-blueprints.js?v=" + moduleBlueprintAssetVersion), "service-worker precache must match the current module blueprint asset version");
 
 assert.doesNotMatch(app, /async\s+async\s+function/, "duplicate async function prefixes must not enter the application bundle");
 assert.match(app, /async function loadSuperAdminActivityDirectory\(\)/, "Super Admin activity directory loader must exist");
