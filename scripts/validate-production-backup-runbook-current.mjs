@@ -55,6 +55,17 @@ for (const required of [
   "finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
   "create_subscription_payment_intent_claimable_backend(uuid,text,text,text,text,uuid)",
   "process_verified_mantigo_payment_backend",
+  "Migration dependency map (source-only",
+  "RC449A",
+  "RC449A → RC450",
+  "RC434 atomic receipt",
+  "RC437 adds approved purchase-order lines",
+  "RC113",
+  "RC472",
+  "RC473",
+  "RC464 → RC469 → RC471 → RC484 → RC485",
+  "RC929",
+  "RC930",
 ]) {
   assert.ok(currentRunbook.includes(required), "Current Production backup overlay is missing: " + required);
 }
