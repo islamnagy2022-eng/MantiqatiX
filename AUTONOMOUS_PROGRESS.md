@@ -155,10 +155,12 @@ No SQL write, migration, grant, Auth setting, Edge deployment, or customer-data 
 
 ## 2026-11-27 — RC930 added to canonical release gate (PR #1190)
 
-- [x] Added RC930 (`20261127010000`) to the canonical migration contract, Production verifier and static release-chain gate. The ordered required source set is now 88 entries; all three lists were compared and matched exactly.
-- [x] Updated the live reconciliation manifest to 0/88 exact required IDs and marked RC930 NOT APPLIED. The connected Production ledger remains 310 rows through `20261110150618`; the live job-application RPC has no `FOR SHARE` job-row lock.
-- [x] Updated all active dependent migration-count validators, the current backup runbook and release backlog. Earlier 87-version crosswalks and dated audit records remain historical snapshots.
-- [x] PR #1190 re-triggers the RC919/RC930 PostgreSQL 17 integration/concurrency workflow when release-contract, manifest, verifier or static gate files change. Full chronological replay and the wider platform checks are also triggered on the PR.
-- [ ] Exact-head CI for PR #1190 is running; merge only after all required checks pass.
-- [x] GitHub Pages run `46060522675` completed successfully; public root, legacy, dashboard, mobile, QR and activity-sharing checks passed. This is web deployment evidence only, not backend production certification.
+- [x] Added RC930 (`20261127010000`) to the canonical migration contract, Production verifier and static release-chain gate. The ordered required source set is now 88 entries; all three lists match exactly and are chronologically ordered.
+- [x] Updated the live reconciliation manifest to 0/88 exact required IDs and marked RC930 NOT APPLIED. A direct SQL comparison against the live Production ledger confirmed 88 required IDs, 0 matches, 88 missing; the ledger remains 310 rows through `20261110150618`.
+- [x] Updated all active dependent migration-count validators, the current backup runbook and release backlog. Earlier 87-version crosswalks and dated audit reports remain historical snapshots.
+- [x] PR #1190 merged as `db2fe846c5ebe49c30b575fe392c780054cfaed3`.
+- [x] Exact-head PR CI: 28 checks passed, two expected deployment-only checks skipped, zero failed. RC919/RC930 PostgreSQL 17 behavior tests and two-session concurrency regression passed.
+- [x] Post-merge chronological PostgreSQL 17 replay [46070889382](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/46070889382) passed using a disposable copy of the captured Production schema checkpoint and all later source migrations in order. This is not a Production migration or backup/restore rehearsal.
+- [x] Post-merge Production Health Monitor [46070889338](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/46070889338) passed website checks and a read-only legacy-anon database probe. Protected Edge `/health` was **NOT CHECKED** because `HEALTH_MONITOR_TOKEN` is missing.
+- [ ] Post-merge primary catalog dashboard browser E2E and GitHub Pages deployment/browser verification are still running at the latest checkpoint.
 - **Production safety:** no Production migration, SQL write, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement or business/customer-data mutation occurred. `docs/SESSION_LOG.md` remains untouched. Full platform stays **BLOCKED / NOT CERTIFIED**.
