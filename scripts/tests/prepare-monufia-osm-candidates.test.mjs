@@ -80,6 +80,7 @@ test('unmapped commercial classifications go to a review queue rather than being
   assert.equal(ambiguousShop.suggested_functional_group_id, 'fashion_beauty',
     'the review queue may preserve a provisional group suggestion');
   assert.equal(ambiguousShop.suggested_activity_category_code, 'general_retail');
+  assert.equal(ambiguousShop.suggested_activity_category_id, 'cat_fashion_beauty_general_retail');
   assert.equal(ambiguousShop.taxonomy_review_required, true);
 });
 

@@ -201,6 +201,9 @@ function makeRecord(element, classification, snapshotAt) {
     activity_category_code: classification.taxonomyReviewRequired ? null : classification.code,
     suggested_functional_group_id: classification.taxonomyReviewRequired ? classification.groupId : null,
     suggested_activity_category_code: classification.taxonomyReviewRequired ? classification.code : null,
+    suggested_activity_category_id: classification.taxonomyReviewRequired && classification.groupId && classification.code
+      ? 'cat_' + classification.groupId + '_' + classification.code
+      : null,
     specialty_suggestion: classification.specialty,
     source_tag_key: classification.sourceTagKey,
     source_tag_value: classification.sourceTagValue,

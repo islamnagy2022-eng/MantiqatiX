@@ -28,6 +28,7 @@ assert.ok(workflow.includes('No fallback scraping or alternate directory source 
 assert.ok(docs.includes('ODbL 1.0') && docs.includes('© OpenStreetMap contributors'), 'License and attribution obligations must be explicit.');
 assert.ok(script.includes("!classification.taxonomyReviewRequired"), 'Taxonomy-review flags must prevent uncertain classifications entering the mapped candidate list.');
 assert.ok(script.includes("suggested_activity_category_code"), 'Uncertain classifications may retain a suggestion separately from accepted taxonomy IDs.');
+assert.ok(script.includes("suggested_activity_category_id"), 'The provisional category identifier must remain explicitly separate from the accepted category ID.');
 assert.ok(!script.includes("value:'company', groupId:"), 'Generic office=company tags must not be forced into a taxonomy category.');
 assert.ok(!script.includes("value:'estate_agent', groupId:"), 'Estate-agent tags must remain in human taxonomy review until a suitable canonical category exists.');
 assert.ok(workflow.includes('types: [opened, synchronize, reopened]'), 'Static contracts must rerun when the PR opens, changes or reopens.');
