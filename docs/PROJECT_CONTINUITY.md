@@ -1,3 +1,18 @@
+## 2026-11-28 01:20 EET — RC931 provider-profile privacy release candidate
+
+- [x] Re-read the live Production project `MANTIQATIX FINAL`: ACTIVE_HEALTHY, PostgreSQL 17.6.1.155, migration ledger 310 rows through `20261110150618`. Production remains read-only.
+- [x] Current canonical release set now contains 90 unique, strictly ascending versions after adding previously omitted RC115 (`20261125130000`) and new RC931 (`20261128010000`). Current manifest records 0/90 exact IDs in the live ledger; this is an identity gap, not proof of absent physical effects.
+- [x] RC931 removes only the globally permissive active-provider profile SELECT policy after fail-closed prerequisites RC479 → RC926 → RC115; it does not change grants or business data. Public directory discovery remains through curated service-role Edge projections.
+- [x] Added disposable PostgreSQL 17 fixture/integration coverage for anonymous and missing JWT claims, raw anon denial, unrelated confirmed-user denial, tenant/business isolation, tenant admin review scope, owner read/update, tenant-local SUPER_ADMIN denial, explicit platform-root access, and trusted service-role read.
+- [x] Added exact-release contract, backup validator, strict 90-version gate, forward-replay path, and dedicated RC931 workflow. RC115 and RC931 remain source-only.
+- [ ] PR #1197 exact-head CI, RC931 PostgreSQL 17 test, and full chronological 90-version replay are running / awaiting final conclusions. Do not merge until exact-head evidence is all green.
+- **Production:** no migration, SQL DDL/DML, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, settlement, or customer/business data was changed.
+- **Open release blockers:** owner-controlled encrypted DB + Storage backup/retrieval, Auth/Vault recovery, independent PostgreSQL 17 restore/rollback with measured RPO/RTO, full physical-effect/alias reconciliation, platform-root registry hardening, critical Edge/RPC/ACL parity, and financial sandbox acceptance.
+- **Scope:** Menoufia-specific catalog/OSM intake remains cancelled. Keep existing Activity → Specialty sections only; unverified additions remain hidden DRAFT / UNVERIFIED.
+- **Status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
 ## 2026-11-26 — Current execution checkpoint after PR #1148
 
 - [x] Confirmed current `main` is `111db15e30182e6f21ef9d91630a187d73601c36`; PR #1148 merged the direct RC117 image-provenance prerequisite read-back and refreshed the 87-source source-to-live disposition.
