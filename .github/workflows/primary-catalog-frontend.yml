@@ -33,6 +33,7 @@ on:
       - "docs/release/production-migration-reconciliation.json"
       - "scripts/validate-production-gate-contract.mjs"
       - "scripts/validate-pages-production-deploy-gate.mjs"
+      - "scripts/validate-production-health-monitor.mjs"
       - "scripts/validate-edge-jwt-config.mjs"
       - "supabase/config.toml"
       - ".github/workflows/pages.yml"
@@ -132,6 +133,8 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
+      - name: Validate production health monitor reporting
+        run: node scripts/validate-production-health-monitor.mjs
       - name: Validate approved brand image bytes
         run: |
           python -m pip install --disable-pip-version-check --no-input Pillow==11.3.0
