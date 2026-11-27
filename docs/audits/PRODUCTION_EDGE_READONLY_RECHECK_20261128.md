@@ -113,4 +113,6 @@ The current Supabase Security Advisor snapshot returned 166 findings total (157 
 
 ## Evidence boundaries
 
-The release contract now includes RC115 (`20261125130000`, tenant/business-scoped marketing CRM) and RC931 (`20261128010000`, removal of global provider-profile base-table reads). Both are source-only and depend on the complete RC479 → RC926 → RC115 → RC931 security chain.\n\nThis report records source and metadata reads only. It does not claim that all 90 migrations' physical effects are absent, that all 42 Edge Functions were byte-compared, that payments are safe, that a Production backup exists, or that the platform is launch-certified.
+The release contract now includes RC115 (`20261125130000`, tenant/business-scoped marketing CRM) and RC931 (`20261128010000`, removal of global provider-profile base-table reads). Both are source-only and depend on the complete RC479 → RC926 → RC115 → RC931 security chain.
+
+This report records source and metadata reads only. It does not claim that all 90 migrations' physical effects are absent, that all 42 Edge Functions were byte-compared, that payments are safe, that a Production backup exists, or that the platform is launch-certified.
