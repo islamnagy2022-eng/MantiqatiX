@@ -1254,6 +1254,33 @@ try {
     } finally { await context.close(); }
   }
 
+  // The default Super Admin route opens a real overview with working shortcuts into existing admin sections.
+  {
+    const { context, page } = await newScenario(
+      browser,
+      roles.platformAdmin,
+      [],
+      { initialRoute: '?view=super_admin' },
+    );
+    try {
+      await page.getByTestId('platform-admin-overview').waitFor({ state: 'visible', timeout: 15000 });
+      const platformAdminTabs = page.getByTestId('platform-admin-tabs');
+      await platformAdminTabs.waitFor({ state: 'visible', timeout: 10000 });
+      const overviewTab = platformAdminTabs.getByTestId('platform-admin-overview-tab');
+      assert.equal(await overviewTab.getAttribute('aria-pressed'), 'true', 'the default Super Admin route must select the overview tab');
+      assert.equal(await page.getByTestId('admin-overview-metric').count(), 4, 'the overview must show four operational summary metrics');
+      assert.equal(await page.locator('[data-testid^="admin-overview-shortcut-"]').count(), 9, 'all nine existing admin destinations must be reachable');
+      await page.getByTestId('admin-overview-shortcut-businesses').click();
+      assert.equal(await platformAdminTabs.getByRole('button', { name: /الأنشطة التجارية/ }).getAttribute('aria-pressed'), 'true', 'an overview shortcut must navigate to the requested admin section');
+      assert.equal(new URL(page.url()).searchParams.get('tab'), 'businesses', 'shortcut navigation must preserve the selected admin tab in the URL');
+      for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+        await page.setViewportSize(viewport);
+        await assertNoHorizontalOverflow(page, 'platform admin overview at ' + viewport.width + 'px');
+      }
+      results.push('platform-admin-overview-default-route-metrics-shortcuts-and-responsive-layout');
+    } finally { await context.close(); }
+  }
+
   // Super Admin can edit one canonical activity and persist its marketing/capability copy through the guarded platform settings endpoint.
   {
     const { context, page, platformAdminRequests, platformSettingsState } = await newScenario(
@@ -1267,7 +1294,7 @@ try {
       const platformAdminTabs = page.getByTestId('platform-admin-tabs');
       await platformAdminTabs.waitFor({ state: 'visible', timeout: 10000 });
       assert.equal(await platformAdminTabs.getAttribute('aria-label'), 'أقسام إدارة المنصة');
-      assert.equal(await platformAdminTabs.locator('button').count(), 8, 'all existing platform-admin navigation entries must remain available');
+      assert.equal(await platformAdminTabs.locator('button').count(), 9, 'all platform-admin navigation entries including the overview must remain available');
       const activityModulesTab = platformAdminTabs.getByRole('button', { name: 'إعدادات وحدات الأنشطة', exact: true });
       assert.equal(await activityModulesTab.getAttribute('aria-pressed'), 'true', 'the direct activity-module admin route must select its tab');
       assert.ok((await activityModulesTab.getAttribute('class')).includes('mx-v4-admin-tab-active'));
