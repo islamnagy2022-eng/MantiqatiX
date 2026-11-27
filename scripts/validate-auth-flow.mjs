@@ -92,6 +92,8 @@ if (!liveData.includes(".eq('owner_user_id',uid).eq('business_id',active.busines
 
 // Execute the actual homepage account-label function against isolated membership/profile fixtures.
 // This catches cross-business name leakage that static source markers alone cannot detect.
+const executableHomeAuth = homeAuth + "\n    };";
+
 async function renderHomepageActivityLabel({ selectedMembershipId, memberships, businesses, profiles }) {
   const loginButton = {
     innerHTML: "",
@@ -140,7 +142,7 @@ async function renderHomepageActivityLabel({ selectedMembershipId, memberships, 
     escapeHtml: value => String(value ?? ""),
     openActivityRequestModal() {}
   };
-  await vm.runInNewContext(`(async () => { ${homeAuth}\nawait syncHomeAuthState(); })()`, context, { timeout: 2000 });
+  await vm.runInNewContext(`(async () => { ${executableHomeAuth}\nawait syncHomeAuthState(); })()`, context, { timeout: 2000 });
   return loginButton.innerHTML;
 }
 
