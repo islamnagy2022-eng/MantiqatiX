@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { BadgeCheck, Check, ClipboardList, KeyRound, RefreshCw, Save, Search, ShieldCheck, UserCog, Users } from 'lucide-react';
+import { BadgeCheck, Check, ClipboardList, KeyRound, Package, RefreshCw, Save, Search, ShieldCheck, UserCog, Users } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/production';
 import { BusinessEmployeeManager } from '../merchant/BusinessEmployeeManager';
 import { BusinessSubscriberAdmin } from './BusinessSubscriberAdmin';
+import { PlatformCatalogAdmin } from './PlatformCatalogAdmin';
 
 type Scope = 'TENANT'|'BUSINESS'|'BRANCH'|'PROVIDER';
 type CustomRole = {
@@ -38,10 +39,10 @@ const primaryClass='mx-v4-admin-primary inline-flex items-center justify-center 
 
 export const SuperAdminControlCenter: React.FC = () => {
   const { businesses, currentBusiness, setSelectedBusinessId } = useApp();
-  type ControlTab = 'roles'|'assignments'|'employees'|'management'|'audit';
+  type ControlTab = 'roles'|'assignments'|'employees'|'management'|'catalog'|'audit';
   const readControlTabFromUrl = (): ControlTab => {
     const requested = new URLSearchParams(window.location.search).get('controlTab');
-    const allowed: ControlTab[] = ['roles', 'assignments', 'employees', 'management', 'audit'];
+    const allowed: ControlTab[] = ['roles', 'assignments', 'employees', 'management', 'catalog', 'audit'];
     return requested && allowed.includes(requested as ControlTab) ? requested as ControlTab : 'roles';
   };
   const [tab,setTabState]=useState<ControlTab>(readControlTabFromUrl);
@@ -173,7 +174,7 @@ export const SuperAdminControlCenter: React.FC = () => {
     </header>
     {notice&&<div role="status" className={'rounded-xl border p-3 text-sm '+(notice.type==='error'?'border-rose-200 bg-rose-50 text-rose-800':'border-emerald-200 bg-emerald-50 text-emerald-800')}>{notice.text}</div>}
     <nav aria-label="أقسام مركز التحكم" data-testid="super-admin-control-tabs" className="mx-v4-admin-tabs flex gap-2 overflow-x-auto border-b pb-2">
-      {[{id:'roles',label:'الأدوار والصلاحيات',icon:<KeyRound className="h-4 w-4"/>},{id:'assignments',label:'إسناد الصلاحيات',icon:<UserCog className="h-4 w-4"/>},{id:'employees',label:'توظيف وموظفو الأنشطة',icon:<Users className="h-4 w-4"/>},{id:'management',label:'إدارة الأنشطة والمشتركين',icon:<Users className="h-4 w-4"/>},{id:'audit',label:'سجل العمليات',icon:<ClipboardList className="h-4 w-4"/>}].map((item)=> <button key={item.id} type="button" aria-pressed={tab===item.id} onClick={()=>setTab(item.id as typeof tab)} className={'mx-v4-admin-tab inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-3 text-sm font-black '+(tab===item.id?'mx-v4-admin-tab-active':'')}>{item.icon}{item.label}</button>)}
+      {[{id:'roles',label:'الأدوار والصلاحيات',icon:<KeyRound className="h-4 w-4"/>},{id:'assignments',label:'إسناد الصلاحيات',icon:<UserCog className="h-4 w-4"/>},{id:'employees',label:'توظيف وموظفو الأنشطة',icon:<Users className="h-4 w-4"/>},{id:'management',label:'إدارة الأنشطة والمشتركين',icon:<Users className="h-4 w-4"/>},{id:'catalog',label:'الكتالوج والمنتجات',icon:<Package className="h-4 w-4"/>},{id:'audit',label:'سجل العمليات',icon:<ClipboardList className="h-4 w-4"/>}].map((item)=> <button key={item.id} type="button" aria-pressed={tab===item.id} onClick={()=>setTab(item.id as typeof tab)} className={'mx-v4-admin-tab inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-3 text-sm font-black '+(tab===item.id?'mx-v4-admin-tab-active':'')}>{item.icon}{item.label}</button>)}
     </nav>
 
     {tab==='roles'&&<div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
@@ -223,6 +224,8 @@ export const SuperAdminControlCenter: React.FC = () => {
     </div>}
 
     {tab==='management'&&<BusinessSubscriberAdmin/>}
+
+    {tab==='catalog'&&<PlatformCatalogAdmin/>}
 
     {tab==='audit'&&<div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h3 className="flex items-center gap-2 text-lg font-black text-slate-900"><ClipboardList className="h-5 w-5 text-indigo-700"/>سجل العمليات الإدارية</h3><p className="mt-1 text-xs text-slate-500">يعرض آخر السجلات المتاحة من قاعدة البيانات؛ لا يغيّر السجلات الأصلية.</p></div><form onSubmit={(e)=>{e.preventDefault();void loadAudit();}} className="flex gap-2"><input value={auditSearch} onChange={(e)=>setAuditSearch(e.target.value)} className={inputClass} placeholder="بحث بالإجراء أو الكيان"/><button className={primaryClass}><Search className="h-4 w-4"/>بحث</button></form></div>
