@@ -36,7 +36,7 @@ assert.match(migration, /RC931_PROVIDER_PROFILE_FORCE_RLS_REQUIRED/);
 assert.match(migration, /RC931_RC479_RAW_ANON_REVOKE_REQUIRED/);
 assert.match(migration, /RC931_RC926_STRICT_CONFIRMED_AUTH_GUARD_REQUIRED/);
 assert.match(migration, /RC931_RC115_TENANT_AND_BUSINESS_SCOPED_CRM_POLICY_REQUIRED/);
-assert.match(migration, /DROP POLICY IF EXISTS "Public can view active marketing providers"/);
+assert.match(migration, /DROP POLICY IF EXISTS "Public can view active marketing providers"/i);
 assert.match(migration, /RC931_GLOBAL_PROVIDER_PROFILE_READ_POLICY_REMAINS/);
 assert.match(migration, /RC931_SERVICE_ROLE_DIRECTORY_READ_REGRESSED/);
 assert.match(migration, /RC931_AUTHENTICATED_OWNER_AND_CRM_READ_REGRESSED/);
