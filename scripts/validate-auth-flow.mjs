@@ -57,7 +57,7 @@ if (/cross join[\\s\\S]*SUPER_ADMIN/i.test(migration) || /values\\s*\\([\\s\\S]*
 // The account activity label must always follow the authenticated user's selected,
 // active business membership. Never infer the activity from the owner's latest profile.
 const homeAuthStart = home.indexOf("const syncHomeAuthState = async () =>");
-const homeAuthEnd = home.indexOf("\\n    };", homeAuthStart);
+const homeAuthEnd = home.indexOf("\n    };", homeAuthStart);
 const homeAuth = homeAuthStart >= 0 && homeAuthEnd > homeAuthStart
   ? home.slice(homeAuthStart, homeAuthEnd)
   : "";
