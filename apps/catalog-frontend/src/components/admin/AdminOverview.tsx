@@ -97,6 +97,32 @@ export const AdminOverview: React.FC<Props> = ({ businesses, subscribers, subscr
     business.isFrozen || business.paymentStatus === 'overdue' || business.paymentStatus === 'frozen'
   ).length;
 
+  const isFrozenBusiness = (business: Business) =>
+    business.isFrozen === true ||
+    business.operationalStatus === 'FROZEN' ||
+    business.paymentStatus === 'frozen';
+  const isUnspecifiedBusiness = (business: Business) =>
+    business.operationalStatusUnspecified === true ||
+    !['ACTIVE', 'INACTIVE', 'FROZEN'].includes(String(business.operationalStatus || '').toUpperCase());
+  const activeBusinesses = businesses.filter((business) =>
+    !isFrozenBusiness(business) && !isUnspecifiedBusiness(business) && business.operationalStatus === 'ACTIVE'
+  ).length;
+  const frozenBusinesses = businesses.filter(isFrozenBusiness).length;
+  const inactiveBusinesses = businesses.filter((business) =>
+    !isFrozenBusiness(business) && !isUnspecifiedBusiness(business) && business.operationalStatus === 'INACTIVE'
+  ).length;
+  // Missing or unrecognized operational states must remain visible as unknown, not silently become inactive.
+  const unspecifiedBusinesses = Math.max(
+    0,
+    businesses.length - activeBusinesses - frozenBusinesses - inactiveBusinesses
+  );
+  const businessStatusRows = [
+    { key: 'active', label: 'نشطة تشغيليًا', count: activeBusinesses, color: 'bg-emerald-500' },
+    { key: 'frozen', label: 'مجمّدة', count: frozenBusinesses, color: 'bg-rose-500' },
+    { key: 'inactive', label: 'غير نشطة', count: inactiveBusinesses, color: 'bg-slate-500' },
+    { key: 'unspecified', label: 'غير محددة الحالة', count: unspecifiedBusinesses, color: 'bg-amber-500' },
+  ];
+
   return (
     <section className="space-y-6" dir="rtl" data-testid="platform-admin-overview">
       <header className="rounded-3xl bg-gradient-to-l from-slate-950 via-slate-900 to-indigo-950 p-6 text-white shadow-lg sm:p-8">
@@ -179,6 +205,57 @@ export const AdminOverview: React.FC<Props> = ({ businesses, subscribers, subscr
           </ul>
         </article>
       </div>
+
+      <section
+        className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        data-testid="admin-business-status-breakdown"
+        aria-labelledby="admin-business-status-title"
+      >
+        <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 id="admin-business-status-title" className="text-lg font-black text-slate-900">التوزيع التشغيلي للأنشطة</h3>
+            <p className="mt-1 text-xs text-slate-500">حالة الأنشطة ضمن السجلات المحمّلة في جلسة الإدارة الحالية.</p>
+          </div>
+          <span className="text-xs font-bold text-slate-600" data-testid="admin-business-status-total">
+            {businesses.length.toLocaleString('ar-EG')} سجل
+          </span>
+        </header>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {businessStatusRows.map((row) => {
+            const percent = businesses.length > 0 ? Math.round((row.count / businesses.length) * 100) : 0;
+            return (
+              <div
+                key={row.key}
+                className="rounded-xl border border-slate-100 p-3"
+                data-testid={`admin-business-status-row-${row.key}`}
+                data-count={row.count}
+                data-percent={percent}
+              >
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <span className="font-bold text-slate-800">{row.label}</span>
+                  <span className="shrink-0 text-xs font-black text-slate-700">
+                    {row.count.toLocaleString('ar-EG')} · {percent}%
+                  </span>
+                </div>
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    role="progressbar"
+                    aria-label={row.label}
+                    aria-valuemin={0}
+                    aria-valuemax={Math.max(businesses.length, 1)}
+                    aria-valuenow={row.count}
+                    className={`h-full rounded-full ${row.color}`}
+                    style={{ width: `${percent}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <p className="mt-3 text-[11px] leading-5 text-slate-500">
+          السجلات التي لا تحتوي حالة تشغيل واضحة تظهر كـ «غير محددة» ولا تُحتسب تلقائيًا كنشطة أو غير نشطة. الأرقام ليست إحصاءً شاملًا خارج البيانات المحمّلة.
+        </p>
+      </section>
 
       <section>
         <div className="mb-3 flex items-center justify-between gap-3">

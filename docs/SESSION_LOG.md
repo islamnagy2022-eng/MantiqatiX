@@ -1,3 +1,15 @@
+## 2026-11-27 — Preserve unspecified business-status provenance
+- The first exact-head dashboard browser run caught an important mapping detail: the shared business mapper keeps unknown operational states fail-closed as INACTIVE at runtime.
+- Added a separate `operationalStatusUnspecified` provenance flag for admin reporting, without weakening runtime access/order checks or changing the operational-state fallback.
+- Updated the overview classification and browser fixture to verify that an unknown legacy state remains visible as "unspecified" rather than counted as inactive.
+- Exact-head validation is being rerun on the amended PR #1177 head. No Production or financial writes.
+
+## 2026-11-27 — Super Admin operational dashboard status breakdown
+- Added an operational-state breakdown to the existing platform-admin overview: active, frozen, inactive, and unspecified records are counted separately from the loaded business dataset.
+- Unknown or missing operational states remain explicitly unspecified; frozen records take precedence over active/inactive labels. The panel displays its loaded-record denominator and accessible progress indicators, and introduces no new backend query or permission.
+- Extended the existing dashboard browser E2E fixture to cover the four state categories, count/percentage calculations, denominator, and accessible progress values while preserving the published-catalog KPI checks.
+- Source change is isolated on `feat/admin-overview-operational-status-breakdown-20261127`; pending exact-head CI and PR review. No Supabase migration, Production SQL/Auth/RLS/GRANT, Edge, Storage, payment, wallet, settlement, or customer/business data write was performed. Full platform remains BLOCKED / NOT CERTIFIED.
+
 ## 2026-11-27 — Merge and CI checkpoint after PR #1164
 
 - [x] PR #1163 merged to main as `77271bcb82eb4f09ee7e6a3eedca23265df76a13`. Fixed the isolated Supabase replay workflow's default-port collision by allocating unused ports for its disposable local stack.
