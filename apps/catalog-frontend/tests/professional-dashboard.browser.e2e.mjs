@@ -652,7 +652,7 @@ if (new URL(baseUrl).origin === 'https://islamnagy2022-eng.github.io') {
     assert.equal(await page.getByRole('heading', { name: 'نشاط خارج المنوفية', exact: true }).count(), 0,
       'the Menoufia deep link must not render a business from another governorate');
     const directorySearchPanel = page.getByTestId('directory-search-panel');
-    const governorateSelect = directorySearchPanel.getByLabel('المحافظة', { exact: true });
+    const governorateSelect = directorySearchPanel.locator('select').nth(0);
     await governorateSelect.waitFor({ state: 'visible', timeout: 10000 });
     assert.equal(await governorateSelect.inputValue(), 'المنوفية',
       'the requested governorate must override a saved different province');
