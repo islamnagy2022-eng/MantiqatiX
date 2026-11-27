@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST CONTINUATION STATE — 2026-11-27:** PR #299 remains open and Draft on `feat/marketing-campaign-operations-summary-20261019`, exact head `5761ee8a459e8bb46929afff2b1319980e1971b0`. The Super Admin control workspace now includes read-only activity details, active catalog inspection by branch, module/feature-flag registry, current-account membership context, active tier pricing and tenant-scoped financial counts. Catalog price resolution prioritizes the selected branch and has executable CI vectors. Module Professionalization, Backend-only Module Boundary and MantiGO privacy CI all pass on this exact head. Browser/device and production verification remain open; Production is **BLOCKED / NOT CERTIFIED**.
+> **LATEST CONTINUATION STATE — 2026-11-27:** PR #299 remains open and Draft on `feat/marketing-campaign-operations-summary-20261019`; latest application-code head `ad28365eeeac5c317d5fab04b1dd977f0ffeb936` (subsequent commits in this pass are documentation-only). The Super Admin control workspace includes read-only activity details, active catalog inspection by branch, module/feature-flag registry, current-account membership context, active tier pricing and tenant-scoped finance counts. Module workspace tabs now have linked ARIA tab/panel semantics, focusable panels and duplicate-binding protection; the module asset and PWA precache are version-aligned at `module-tabs-accessibility-20261127` / `mnty-web-v163`. Exact application-code head passed all 7 GitHub check runs: Module Professionalization `45926591081`, Backend-only Module Boundary `45926591001`, and MantiGO Open Ride Privacy `45926591051`. Browser/assistive-technology/device verification and production gates remain open; Production is **BLOCKED / NOT CERTIFIED**.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -1152,3 +1152,15 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 - The Module Professionalization run passed JavaScript syntax, enterprise dashboard interaction contract, read-only catalog scope checks, executable branch-price resolver vectors, production security validators, RC451 PostgreSQL integration and matrimony privacy PostgreSQL integration.
 - This verifies source contracts and isolated CI behavior only. It does not verify browser interaction, live business/customer authorization, cart/checkout totals, production schema parity, or deployment.
 - PR #299 remains open and Draft. No merge, production deployment, production migration or live price/catalog mutation was performed.
+
+
+## 2026-11-27 — Module workspace accessibility and PWA cache integrity
+
+- [x] Added stable per-render instance IDs and explicit `aria-controls` links between every module tab and its corresponding panel.
+- [x] Exposed each module card as a labelled `tabpanel`, made panels keyboard-focusable, retained single-selected-tab roving focus, and guarded against duplicate event binding on repeated initialization.
+- [x] Extended `scripts/validate-enterprise-dashboard-contract.mjs` to enforce tablist/tab/panel relationships, empty/mismatched tab safety, Home/End navigation and duplicate-binding protection.
+- [x] Versioned the loaded `module-blueprints.js` URL and matching Service Worker precache entry as `module-tabs-accessibility-20261127`; advanced the PWA shell cache to `mnty-web-v163` and updated the Service Worker registration URL.
+- [x] Exact application-code head `ad28365eeeac5c317d5fab04b1dd977f0ffeb936` passed all 7 check runs: Module Professionalization Validation (`45926591081`), Backend-only Module Boundary (`45926591001`) and MantiGO Open Ride Privacy Boundary (`45926591051`), including dashboard source contract, JavaScript validation and their configured PostgreSQL integration jobs.
+- [ ] Browser keyboard interaction, screen-reader announcement, responsive layout and real-device PWA update behavior remain NOT VERIFIED; CI source contracts do not replace those checks.
+- No merge, production deployment, production migration, live data mutation, payment, user/role change or external ad publication was performed. Keep PR #299 Draft, preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`, and leave `docs/SESSION_LOG.md` untouched.
+- Production remains **BLOCKED / NOT CERTIFIED**. Continue with the first open P0/runtime gate; inspect subscription entitlement and commission authority before adding any lifecycle controls.
