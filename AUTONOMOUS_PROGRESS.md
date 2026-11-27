@@ -1,3 +1,13 @@
+## 2026-11-28 01:20 EET — Current execution checkpoint (PR #1197)
+
+- [x] Source branch `security/rc931-provider-profile-public-read-retirement-20261128` contains RC931 public provider-profile policy retirement, its synthetic PostgreSQL 17 fixture/integration test, and a dedicated workflow.
+- [x] RC115 was added to the canonical release chain because it exists in source but had been omitted from the previous 88-version contract. RC931 is now the 90th required migration. Canonical list is 90 unique, timestamp ordered; manifest records 0/90 live exact IDs.
+- [x] Public catalog continues through the curated service-role Edge projection; the legacy profile-owner query remains owner-filtered. CRM scope is tenant/business-bound through RC115.
+- [ ] PR #1197 is open pending exact-head dedicated RC931, full 90-version replay, and all companion checks. Do not merge if any required check fails.
+- **Production:** unchanged/read-only. RC115 and RC931 are not applied. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
 # Autonomous Progress — MantiqatiX
 
 **Updated:** 2026-11-27  
