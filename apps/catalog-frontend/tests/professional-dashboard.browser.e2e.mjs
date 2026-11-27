@@ -648,8 +648,8 @@ if (new URL(baseUrl).origin === 'https://islamnagy2022-eng.github.io') {
   );
   try {
     await page.getByTestId('menoufia-directory-scope').waitFor({ state: 'visible', timeout: 15000 });
-    await page.getByText('نشاط اختبار المنوفية غير موثق', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
-    assert.equal(await page.getByText('نشاط خارج المنوفية', { exact: true }).count(), 0,
+    await page.getByRole('heading', { name: 'نشاط اختبار المنوفية غير موثق', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+    assert.equal(await page.getByRole('heading', { name: 'نشاط خارج المنوفية', exact: true }).count(), 0,
       'the Menoufia deep link must not render a business from another governorate');
     const directorySearchPanel = page.getByTestId('directory-search-panel');
     const governorateSelect = directorySearchPanel.getByLabel('المحافظة', { exact: true });
@@ -669,7 +669,7 @@ if (new URL(baseUrl).origin === 'https://islamnagy2022-eng.github.io') {
     assert.ok(await page.getByText('غير موثق', { exact: true }).count() >= 1,
       'new/unverified activity fixtures must keep the unverified label');
     await page.getByRole('button', { name: 'عرض كل المحافظات', exact: true }).click();
-    await page.getByText('نشاط خارج المنوفية', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+    await page.getByRole('heading', { name: 'نشاط خارج المنوفية', exact: true }).waitFor({ state: 'visible', timeout: 10000 });
     assert.equal(new URL(page.url()).searchParams.has('governorate'), false,
       'the all-governorates action must remove the governorate deep-link filter');
     assert.equal(await governorateSelect.inputValue(), 'all',
