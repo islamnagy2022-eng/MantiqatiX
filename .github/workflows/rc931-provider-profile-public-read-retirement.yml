@@ -12,6 +12,9 @@ on:
       - "supabase/tests/rc926_provider_profile_confirmed_identity_strict_integration.sql"
       - "supabase/tests/rc931_provider_profile_public_read_fixture.sql"
       - "supabase/tests/rc931_provider_profile_public_read_integration.sql"
+      - "supabase/tests/rc452_marketing_crm_scope_fixture.sql"
+      - "supabase/tests/rc452_marketing_crm_scope_integration.sql"
+      - "scripts/validate-marketing-crm-tenant-scope.mjs"
       - "scripts/validate-rc931-provider-profile-public-read-retirement.mjs"
       - ".github/workflows/rc931-provider-profile-public-read-retirement.yml"
 
@@ -42,6 +45,16 @@ jobs:
           node-version: "22"
       - name: Validate RC931 source, release contract and public caller boundary
         run: node scripts/validate-rc931-provider-profile-public-read-retirement.mjs
+      - name: Validate and run the complete RC115 tenant/business CRM integration
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          node scripts/validate-marketing-crm-tenant-scope.mjs
+          psql -h 127.0.0.1 -U postgres -d rc931_test -v ON_ERROR_STOP=1 -c "CREATE DATABASE rc115_test"
+          psql -h 127.0.0.1 -U postgres -d rc115_test -v ON_ERROR_STOP=1 -f supabase/tests/rc452_marketing_crm_scope_fixture.sql
+          psql -h 127.0.0.1 -U postgres -d rc115_test -v ON_ERROR_STOP=1 -f supabase/migrations/20261125130000_rc115_crm_business_scoped_reads.sql
+          psql -h 127.0.0.1 -U postgres -d rc115_test -v ON_ERROR_STOP=1 -f supabase/tests/rc452_marketing_crm_scope_integration.sql
       - name: Reproduce historical pre-RC479 access boundary in disposable PostgreSQL 17
         env:
           PGPASSWORD: postgres
