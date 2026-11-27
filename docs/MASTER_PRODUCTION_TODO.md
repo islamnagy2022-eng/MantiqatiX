@@ -2270,3 +2270,11 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - Rotated the app/service-worker asset key to `super-admin-activity-details-20261127` and PWA shell cache to `mnty-web-v152`.
 - Exact-head CI, JavaScript syntax and browser/device accessibility checks remain pending; do not claim runtime verification until those checks pass.
 - Production remains **BLOCKED / NOT CERTIFIED**. No merge, deployment, database mutation, user/role change or production write was performed. Keep `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+
+### Super Admin directory — restore async on adjacent showcase loader
+
+- [x] Inspected exact-head CI failure: \`loadOfficialShowcaseAdmin()\` still contained \`await\` but had lost its \`async\` declaration during directory insertion.
+- [x] Restored \`async function loadOfficialShowcaseAdmin()\` and aligned the validator's loader boundary with the corrected declaration.
+- [x] Added a dedicated assertion that the showcase loader remains async; rotated app/PWA cache to \`mnty-web-v154\`.
+- [ ] Corrected exact-head JavaScript syntax and dashboard source-contract workflows remain pending.

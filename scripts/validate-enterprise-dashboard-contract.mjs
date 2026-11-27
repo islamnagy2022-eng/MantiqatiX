@@ -26,7 +26,8 @@ assert.match(app, /id="sa-activity-directory-list"/, "Super Admin activity direc
 assert.match(app, /loadSuperAdminActivityDirectory\(\);/, "Super Admin activity directory must load when the control workspace initializes");
 assert.match(app, /sb\.from\('businesses'\)\.select\('id,name,code,status,updated_at'\)/, "activity directory must read an explicit business field allowlist");
 const activityLoaderStart = app.indexOf("async function loadSuperAdminActivityDirectory()");
-const activityLoaderEnd = app.indexOf("\nfunction loadOfficialShowcaseAdmin()", activityLoaderStart);
+assert.match(app, /async function loadOfficialShowcaseAdmin\(\)/, "the existing official-showcase loader must remain async because it awaits Supabase queries");
+const activityLoaderEnd = app.indexOf("\nasync function loadOfficialShowcaseAdmin()", activityLoaderStart);
 assert.ok(activityLoaderStart >= 0 && activityLoaderEnd > activityLoaderStart, "activity directory loader boundaries must be present");
 const activityLoader = app.slice(activityLoaderStart, activityLoaderEnd);
 assert.doesNotMatch(activityLoader, /\.insert\(|\.update\(|\.upsert\(|\.delete\(/, "activity directory must remain read-only");

@@ -1055,3 +1055,9 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 - Rotated the app/service-worker asset key to `super-admin-activity-details-20261127` and PWA shell cache to `mnty-web-v152`.
 - Exact-head CI, JavaScript syntax and browser/device accessibility checks remain pending; do not claim runtime verification until those checks pass.
 - Production remains **BLOCKED / NOT CERTIFIED**. No merge, deployment, database mutation, user/role change or production write was performed. Keep `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+
+### Super Admin directory — restore async on adjacent showcase loader
+
+- Exact-head syntax checks showed \`loadOfficialShowcaseAdmin()\` still used \`await\` after losing its \`async\` modifier while the new loader was inserted. Restored the modifier and updated the static validator's function-boundary marker.
+- Added explicit async-loader contract and rotated cache to \`mnty-web-v154\`. Await exact-head CI before considering this complete.

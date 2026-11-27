@@ -1026,7 +1026,7 @@ async function loadSuperAdminActivityDirectory(){
   root.innerHTML='<div class="empty-state">تعذر تحميل دليل الأنشطة: '+escapeValue(error?.message||'خطأ غير معروف')+'</div>';
  }
 }
-function loadOfficialShowcaseAdmin(){
+async function loadOfficialShowcaseAdmin(){
  const root=document.getElementById('sa-showcase-list'); if(!root)return;
  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
  try{
