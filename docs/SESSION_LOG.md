@@ -1,3 +1,21 @@
+## 2026-11-27 — Merge and CI checkpoint after PR #1164
+
+- [x] PR #1163 merged to main as `77271bcb82eb4f09ee7e6a3eedca23265df76a13`. Fixed the isolated Supabase replay workflow's default-port collision by allocating unused ports for its disposable local stack.
+- [x] PR #1163 exact-head CI: 34/34 checks completed without failures. The strict 87-version release validator passed; isolated Supabase started, the captured schema checkpoint restored, the complete later migration chain applied in timestamp order, and the local stack stopped successfully.
+- [x] Main forward replay run [45918214620](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45918214620) completed SUCCESS. This is disposable PostgreSQL 17 evidence, not Production migration or backup/restore evidence.
+- [x] PR #1162 merged to main as `78deab17b26d528a637e4eedadab34b4185350f0`. Server-side `CREATE_BUSINESS` validation now enforces a 2–200 Unicode-code-point name and requires governorate and markaz values of 2–100 characters; village remains optional.
+- [x] PR #1162 exact-head checks completed successfully, including primary catalog build, dashboard browser E2E, Employee RBAC PostgreSQL, and frontend/backend identity parity.
+- [x] PR #1164 merged to main as `82eb082bf7afffe349bb50ed20db07a0651bf04e`. The subscriber directory now removes only exact duplicate membership scopes and reports the count; distinct branch/business/role/permission scopes remain distinct. Account-only users are detected using the full original membership set.
+- [x] PR #1164 exact-head CI completed 36/36 checks with zero failures and two expected deployment-only skips. Its browser job passed `PRIMARY_CATALOG_BROWSER_E2E` and `ACTIVITY_SHARE_DIALOG_BROWSER_E2E`; [run 45918613427](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45918613427).
+- [ ] Verify Pages deployment and deployed-origin checks for the post-PR #1164 main commit. Latest Pages run at this checkpoint: [45918953383](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45918953383).
+- [ ] Refresh direct Production read-only reconciliation when the next release review begins. Last verified Production state remains 310 ledger rows through `20261110150618`, 0/87 exact required IDs, and `private.platform_admins` RLS enabled / FORCE RLS disabled.
+- [ ] Continue coordinated platform-root authorization release preparation (RC464 → RC469 → RC484 with dependent policies/callers); do not deploy dependent Edge Functions individually.
+- [ ] Continue exhaustive physical-effect/alias reconciliation, Edge source/runtime parity, payment/finance E2E, and operator-owned encrypted backup/restore + RPO/RTO evidence.
+- **Production boundary:** read-only; no Production SQL migration, Auth/RLS/GRANT, Storage, Edge, payment, wallet, settlement, or customer-data mutation was made during this work.
+- **Release status:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+---
+
 ## 2026-11-26 — Current execution checkpoint after PR #1148
 
 - [x] Confirmed current `main` is `111db15e30182e6f21ef9d91630a187d73601c36`; PR #1148 merged the direct RC117 image-provenance prerequisite read-back and refreshed the 87-source source-to-live disposition.
