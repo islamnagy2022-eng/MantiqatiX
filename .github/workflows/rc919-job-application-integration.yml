@@ -6,6 +6,9 @@ on:
       - 'supabase/migrations/20261127010000_rc930_serialize_job_deactivation_and_application.sql'
       - 'supabase/tests/rc919_job_application_*.sql'
       - 'supabase/tests/rc930_job_application_*'
+      - 'scripts/production/live-reconciliation-contract.mjs'
+      - 'scripts/production/verify-production.mjs'
+      - 'scripts/validate-production-migration-chain-gate.mjs'
       - '.github/workflows/rc919-job-application-integration.yml'
   workflow_dispatch:
 jobs:
