@@ -5502,3 +5502,12 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - [x] Documented the backend reason for the write boundary: catalog price upsert currently fails closed with `CATALOG_PRICE_WRITES_TEMPORARILY_DISABLED` pending RC486 Production verification; the legacy item-status RPC still uses a membership-derived platform SUPER_ADMIN predicate and must be aligned with the protected registry before it can be exposed to platform-root users.
 - [ ] PR #1167 exact-head lint/build, branch-scoped catalog browser E2E, dashboard RBAC PostgreSQL, and full companion CI must pass before merge. No deployment is claimed.
 - [ ] Implement a reviewed backend authorization convergence candidate and isolated positive/negative tests before enabling product status or price mutations. Do not deploy this backend change to Production without the release/migration/ACL gates.
+
+
+## 2026-11-27 — Published catalogue KPI truth condition
+
+- Tightened the Super Admin overview's published-catalogue count to require all of: `catalogPublished === true`, `publicEnabled === true`, `operationalStatus === 'ACTIVE'`, and `isFrozen === false`.
+- The previous count could overstate published catalogues when a business was merely public-enabled while its catalog publication flag was explicitly false, or when a published record was frozen.
+- Added stable metric data attributes and browser coverage with three fixtures: published/active, public-enabled-but-not-published, and frozen.
+- The fixture exercises the existing mapped platform business response and the metric only; it does not mutate Production or relax any authorization.
+- Exact-head lint/build/browser and companion CI are pending for the updated PR. No merge or deployment is claimed. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`; Production remains read-only.

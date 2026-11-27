@@ -62,7 +62,8 @@ const MetricCard: React.FC<{
   hint: string;
   icon: React.ReactNode;
   tone: 'blue' | 'green' | 'amber' | 'rose';
-}> = ({ label, value, hint, icon, tone }) => {
+  metricKey?: string;
+}> = ({ label, value, hint, icon, tone, metricKey }) => {
   const tones = {
     blue: 'bg-blue-50 text-blue-700',
     green: 'bg-emerald-50 text-emerald-700',
@@ -74,7 +75,7 @@ const MetricCard: React.FC<{
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-bold text-slate-500">{label}</p>
-          <p className="mt-2 text-3xl font-black tracking-tight text-slate-950" data-testid="admin-overview-metric">{typeof value === 'number' ? value.toLocaleString('ar-EG') : value}</p>
+          <p className="mt-2 text-3xl font-black tracking-tight text-slate-950" data-testid="admin-overview-metric" data-metric-key={metricKey} data-metric-value={String(value)}>{typeof value === 'number' ? value.toLocaleString('ar-EG') : value}</p>
         </div>
         <span className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${tones[tone]}`}>{icon}</span>
       </div>
@@ -85,7 +86,12 @@ const MetricCard: React.FC<{
 
 export const AdminOverview: React.FC<Props> = ({ businesses, subscribers, subscribersLoading, subscriberDirectoryError, refreshPlatformSubscribers, products, onNavigate }) => {
   const activeSubscribers = subscribers.filter((subscriber) => subscriber.status === 'active').length;
-  const publishedBusinesses = businesses.filter((business) => business.publicEnabled === true && !business.isFrozen).length;
+  const publishedBusinesses = businesses.filter((business) =>
+    business.catalogPublished === true &&
+    business.publicEnabled === true &&
+    business.operationalStatus === 'ACTIVE' &&
+    !business.isFrozen
+  ).length;
   const pendingPublication = businesses.filter((business) => business.publicationStatus === 'PENDING_PUBLICATION').length;
   const paymentAttention = businesses.filter((business) =>
     business.isFrozen || business.paymentStatus === 'overdue' || business.paymentStatus === 'frozen'
@@ -119,7 +125,7 @@ export const AdminOverview: React.FC<Props> = ({ businesses, subscribers, subscr
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <MetricCard label="الأنشطة المسجلة" value={businesses.length} hint="إجمالي سجلات الأنشطة المتاحة في جلسة الإدارة" tone="blue" icon={<Building2 className="h-5 w-5" />} />
-        <MetricCard label="الكتالوجات المنشورة" value={publishedBusinesses} hint="منشورة للعامة وغير مجمدة حسب البيانات المحمّلة" tone="green" icon={<Store className="h-5 w-5" />} />
+        <MetricCard label="الكتالوجات المنشورة" value={publishedBusinesses} hint="نشر الكتالوج مؤكد وحالة النشاط نشطة وغير مجمدة ضمن البيانات المحمّلة" tone="green" icon={<Store className="h-5 w-5" />} metricKey="published-catalogs" />
         <MetricCard
           label="المشتركون النشطون"
           value={subscribersLoading ? 'جار التحميل' : subscriberDirectoryError ? 'غير متاح' : activeSubscribers}

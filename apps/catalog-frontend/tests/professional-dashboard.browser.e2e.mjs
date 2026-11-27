@@ -379,8 +379,11 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
             updated_at: '2026-11-27T00:00:00.000Z',
           }))
           : [];
+        const requestedPlatformBusiness = Array.isArray(options.platformBusinesses)
+          ? options.platformBusinesses.find((business) => String(business.id) === String(body.businessId))
+          : null;
         return json({
-          business: { ...fakeBusiness, profile: { ...catalogProfileState } },
+          business: { ...(requestedPlatformBusiness || fakeBusiness), profile: { ...catalogProfileState } },
           provider: { name: fakeBusiness.name, kind: fakeBusiness.category, verified: false },
           branches: options.platformCatalogAdmin ? [...fakeBusiness.branches, { id: 'branch-e2e-secondary', tenantId, businessId, name: 'فرع الاختبار الثاني' }] : fakeBusiness.branches,
           selectedBranchId: body.branchId || (options.platformCatalogAdmin ? branchId : null),
@@ -405,7 +408,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
         if (Array.isArray(body.promotionalImages)) catalogProfileState.promotionalImages = [...body.promotionalImages];
         return json({ success: true, businessId: body.businessId, publicEnabled: false });
       }
-      if (body.action === 'BUSINESS_LIST') return json({ businesses: [fakeBusiness] });
+      if (body.action === 'BUSINESS_LIST') return json({ businesses: Array.isArray(options.platformBusinesses) ? options.platformBusinesses : [fakeBusiness] });
       return json({ businesses: [], items: [], prices: [], branches: [] });
     }
     if (url.pathname.endsWith('/functions/v1/catalog-platform-admin')) {
@@ -1275,6 +1278,53 @@ try {
       assert.equal(await page.getByText('دليل الأنشطة والمطالبات', { exact: true }).count(), 0, 'non-platform roles must not render the directory admin tab');
       assert.equal(directoryAdminRequests.some((request) => request.action === 'ADMIN_LIST'), false, 'non-platform roles must not request the admin directory bundle');
       results.push('non-platform-role-denied-directory-admin-route');
+    } finally { await context.close(); }
+  }
+
+  // Published-catalog KPI must require explicit catalogue publication and an active, unfrozen business.
+  {
+    const platformBusinesses = [
+      {
+        ...fakeBusiness,
+        id: '40000000-0000-0000-0000-000000000101',
+        name: 'نشاط كتالوجه منشور',
+        publicEnabled: true,
+        catalogPublished: true,
+        operationalStatus: 'ACTIVE',
+        settings: { bizcatalog: { operationalStatus: 'ACTIVE' } },
+      },
+      {
+        ...fakeBusiness,
+        id: '40000000-0000-0000-0000-000000000102',
+        name: 'نشاط ظاهر دون نشر كتالوج',
+        publicEnabled: true,
+        catalogPublished: false,
+        operationalStatus: 'ACTIVE',
+        settings: { bizcatalog: { operationalStatus: 'ACTIVE' } },
+      },
+      {
+        ...fakeBusiness,
+        id: '40000000-0000-0000-0000-000000000103',
+        name: 'نشاط مجمد رغم وجود سجل نشر',
+        publicEnabled: true,
+        catalogPublished: true,
+        operationalStatus: 'FROZEN',
+        settings: { bizcatalog: { operationalStatus: 'FROZEN', isFrozen: true, paymentStatus: 'frozen' } },
+      },
+    ];
+    const { context, page } = await newScenario(
+      browser,
+      roles.platformAdmin,
+      [],
+      { initialRoute: '?view=super_admin', platformBusinesses },
+    );
+    try {
+      await page.getByTestId('platform-admin-overview').waitFor({ state: 'visible', timeout: 15000 });
+      const publishedMetric = page.locator('[data-testid="admin-overview-metric"][data-metric-key="published-catalogs"]');
+      await publishedMetric.waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(await publishedMetric.getAttribute('data-metric-value'), '1',
+        'only explicitly published catalogues on active, unfrozen businesses count as published');
+      results.push('platform-admin-published-catalog-kpi-requires-publication-active-state-and-not-frozen');
     } finally { await context.close(); }
   }
 
