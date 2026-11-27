@@ -5478,3 +5478,17 @@ Safety: documentation/source inventory only. No Production DB/Auth/RLS/GRANT/Sto
 - RC929 `20261126030000` is a source-only candidate on `security/rc929-orders-explicit-confirmed-auth-guard-20261126`. It adds two restrictive identity policies requiring non-null `auth.uid()` and explicit `is_anonymous=false`; baseline and PostgreSQL 17 negative/positive regression tests are added. Exact-head CI and chronological replay must pass before PR merge.
 - RC928 gallery writes remain unavailable on the live catalog-admin v20; PR #1136 now safely blocks unsupported changed-gallery saves. The two public reader functions have gallery read projection changes, but coordinated DB/admin/public reader parity is still required.
 - No Production DB/Auth/RLS/GRANT/Storage/Edge/payment/order/customer or backup mutation occurred. Backup/restore remains deferred and unverified. Full platform remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-11-27 — Pre-launch Super Admin dashboard workstream
+
+- User reprioritized the deferred Super Admin dashboard into the pre-launch scope. Do not treat the previous deferred status as permission to omit it from the release plan.
+- [x] Audited the current catalog frontend and confirmed the existing AdminDashboard, SuperAdminControlCenter, BusinessSubscriberAdmin, ActivityModulesAdmin, DirectoryListingsAdmin, and RC113–RC117 backend contracts. Continue incrementally on these existing surfaces; do not create a duplicate admin app.
+- [x] Added a dedicated default overview screen with session-loaded metrics, publication/payment follow-up counts, and nine shortcuts into existing admin sections. Corrected the legacy subscriber KPI label so it no longer describes the total row count as active subscribers.
+- [x] Added browser E2E coverage for the default admin route, overview KPI/shortcut presence, URL-backed navigation, and responsive overflow at 390/768/1440px.
+- [ ] PR #1167 exact-head TypeScript/build, browser E2E, and companion security/tenant workflows must pass before merge. PR: https://github.com/islamnagy2022-eng/MantiqatiX/pull/1167. The current implementation is source-only and must not be described as deployed.
+- [ ] Complete the remaining Super Admin scope inventory: people/accounts, activity review, custom roles and scoped permission assignment, subscriptions, products/catalogs, employee hiring, audit log, platform settings, and marketing/CRM entry points. Reuse only existing server-authorized operations; label unavailable backend integrations clearly.
+- [ ] Close module × action × role × tenant × business × branch authorization coverage, including negative tests for unauthorized reads and writes. UI visibility is not proof of backend authorization.
+- [ ] Add full section-level browser coverage for empty/loading/error/persistence/accessibility states. Verify each dashboard action against real persisted state or explicitly mark it unavailable.
+- [ ] Keep platform-root authorization and dashboard dependency rollout blocked until live schema, migration, ACL/RLS and deployed Edge contracts are reconciled. Do not deploy migrations or functions from this UI-only PR.
+- [ ] Keep `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` until the independent production, Auth, privacy, payment/finance, backup/restore, monitoring and rollback gates pass.
+
