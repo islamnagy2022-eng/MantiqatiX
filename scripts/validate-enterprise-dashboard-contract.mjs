@@ -7,6 +7,8 @@ const sw = fs.readFileSync("web/sw.js", "utf8");
 
 assert.match(app, /function enterpriseCommandCenter\(\)/, "enterprise command center must be rendered");
 assert.match(app, /function bindEnterpriseCommandCenter\(\)/, "enterprise command center must have an interaction binder");
+assert.match(app, /const go=name=>\{if\(!name\)return;selectModule\(name\)\}/, "all command-center shortcuts, including add activity, must navigate to their destination");
+assert.ok(!app.includes("if(name==='التحكم الكامل')return showToast("), "Super Admin shortcuts must not be intercepted by a toast-only branch");
 assert.match(app, /data-ec-module=/, "enterprise dashboard actions must declare their navigation target");
 assert.match(app, /document\.querySelectorAll\('\[data-ec-module\]'\)/, "the binder must attach navigation to command-center actions");
 assert.match(app, /input\?\.addEventListener\('keydown',event=>\{if\(event\.key==='Enter'\)\{event\.preventDefault\(\);run\(\)\}\}\)/, "quick search must execute on Enter");
