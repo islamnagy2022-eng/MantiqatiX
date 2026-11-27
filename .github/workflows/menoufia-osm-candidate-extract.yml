@@ -1,0 +1,81 @@
+name: Prepare ODbL Monufia Activity Candidates
+
+on:
+  pull_request:
+    types: [opened]
+    paths:
+      - '.github/workflows/menoufia-osm-candidate-extract.yml'
+      - 'scripts/prepare-monufia-osm-candidates.mjs'
+      - 'scripts/queries/monufia-overpass.ql'
+      - 'scripts/tests/prepare-monufia-osm-candidates.test.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  prepare-candidates:
+    if: github.event.action == 'opened' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Test source attribution, taxonomy mapping, privacy and unverified defaults
+        run: node --test scripts/tests/prepare-monufia-osm-candidates.test.mjs
+      - name: Fetch one-time OSM candidate snapshot for Monufia
+        id: fetch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/monufia-osm-source /tmp/monufia-osm-candidates
+          set +e
+          curl --fail --show-error --silent --compressed \
+            --max-time 300 \
+            --retry 1 --retry-delay 5 \
+            -A "MantiqatiX ODbL Monufia Candidate Extract/1.0" \
+            --data-urlencode data@scripts/queries/monufia-overpass.ql \
+            https://overpass-api.de/api/interpreter \
+            -o /tmp/monufia-osm-source/overpass.json
+          result=$?
+          set -e
+          if [ "$result" -eq 0 ] && [ -s /tmp/monufia-osm-source/overpass.json ]; then
+            echo "fetch_status=available" >> "$GITHUB_OUTPUT"
+          else
+            echo "fetch_status=unavailable" >> "$GITHUB_OUTPUT"
+            echo "The public Overpass endpoint did not return a snapshot. No fallback scraping or alternate directory source will be attempted." >&2
+          fi
+      - name: Generate separate ODbL candidate and taxonomy-review files
+        if: steps.fetch.outputs.fetch_status == 'available'
+        run: |
+          node scripts/prepare-monufia-osm-candidates.mjs \
+            --input /tmp/monufia-osm-source/overpass.json \
+            --output /tmp/monufia-osm-candidates
+      - name: Record source-unavailable status without inventing records
+        if: steps.fetch.outputs.fetch_status != 'available'
+        run: |
+          cat > /tmp/monufia-osm-candidates/manifest.json <<'JSON'
+          {
+            "schema_version": 1,
+            "source": "OpenStreetMap",
+            "source_license": "ODbL-1.0",
+            "source_attribution": "© OpenStreetMap contributors",
+            "boundary_relation_id": 3824207,
+            "fetch_status": "UNAVAILABLE",
+            "mapped_candidate_count": 0,
+            "taxonomy_review_count": 0,
+            "production_write_performed": false,
+            "publication_enabled": false
+          }
+          JSON
+          printf '# Monufia OSM snapshot unavailable\n\nThe public Overpass endpoint did not return a response during this one-time extraction attempt. No business records were fabricated or substituted from a directory without reuse rights.\n' > /tmp/monufia-osm-candidates/README.md
+          printf '[]\n' > /tmp/monufia-osm-candidates/candidates.json
+          printf '[]\n' > /tmp/monufia-osm-candidates/needs-taxonomy-review.json
+      - name: Upload the separate ODbL candidate artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: monufia-osm-candidates-odbl
+          path: /tmp/monufia-osm-candidates/
+          retention-days: 14
+          if-no-files-found: error
