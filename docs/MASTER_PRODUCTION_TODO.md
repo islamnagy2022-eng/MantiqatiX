@@ -2307,3 +2307,11 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [x] Added a regression assertion comparing the frontend allowlist to the backend SQL role allowlist and requiring both the UI and handler to use the shared gate.
 - [x] Updated app asset and PWA cache key to \`super-admin-finance-role-gate-20261127\` / \`mnty-web-v157\`.
 - [ ] Exact-head JS syntax, service-role contract, and full PR CI are pending. No journal was posted; no database or production state was changed.
+
+
+### Finance / dashboard exact-head validator follow-up
+
+- [x] Exact-head CI confirmed JavaScript syntax, the RC450 frontend/backend role-parity assertion, backend module boundaries, and Marketing Workspace Contract.
+- [x] The enterprise-dashboard source validator failed only because its membership-panel slice expected the module-flag function to follow the panel; the source order correctly places the module-flag helper before the membership helper.
+- [x] Corrected the validator boundary to terminate at \`superAdminControlWorkspace()\`, which follows both helper functions.
+- [ ] Re-run the corrected exact-head dashboard contract and all PR workflows before marking the dashboard batch green.

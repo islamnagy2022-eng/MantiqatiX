@@ -30,7 +30,7 @@ assert.match(app, /async function loadOfficialShowcaseAdmin\(\)/, "the existing 
 assert.match(app, /function superAdminMembershipContextDirectory\(\)/, "Super Admin must render current-account role/scope review");
 assert.match(app, /superAdminMembershipContextDirectory\(\)/, "protected Super Admin workspace must include current-account role/scope review");
 const membershipPanelStart = app.indexOf("function superAdminMembershipContextDirectory()");
-const membershipPanelEnd = app.indexOf("\nfunction superAdminFeatureFlagDirectory()", membershipPanelStart);
+const membershipPanelEnd = app.indexOf("\nfunction superAdminControlWorkspace()", membershipPanelStart);
 assert.ok(membershipPanelStart >= 0 && membershipPanelEnd > membershipPanelStart, "membership context panel boundaries must be present");
 const membershipPanel = app.slice(membershipPanelStart, membershipPanelEnd);
 assert.match(membershipPanel, /live\.memberships/, "membership panel must use the authenticated account's already-loaded membership records");

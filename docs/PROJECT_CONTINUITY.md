@@ -1085,3 +1085,9 @@ The isolated public-catalog PostgreSQL test now checks exact public view column 
 - Added one shared frontend role gate with exact allowlist parity to the backend; both Finance workspace button visibility and click handler use it. Super Admin retains the read-only finance view and sees a clear message in place of the unavailable posting action.
 - Extended the existing RC450 service-role validator with exact role-list parity assertions; rotated asset and PWA cache to \`mnty-web-v157\`.
 - Exact-head CI is pending. No financial movement or production mutation performed.
+
+
+### Finance / dashboard exact-head validator follow-up
+
+- Latest CI confirmed JS syntax and RC450 role-parity validation success. The enterprise dashboard validator exposed a source-test boundary assumption: \`superAdminFeatureFlagDirectory()\` is defined before \`superAdminMembershipContextDirectory()\`, so the membership helper slice must end at \`superAdminControlWorkspace()\`. Corrected only the test boundary; no application behavior changed.
+- Await corrected exact-head test and PR CI.
