@@ -8,7 +8,7 @@ A blank CSV workbook is available at:
 
 It contains **600 blank intake rows**: the 50 canonical activity categories crossed with the 12 Menoufia administrative district/city records in the platform's geographic dataset. Each row carries the canonical group/category IDs and the specialty options for that activity.
 
-The admin directory screen exposes the download. New directory entry forms default to Menoufia and use the canonical governorate/district lists rather than free-typed geographic names. Activity modules preserve the governorate label and give an explicit empty state where no listing is available.
+The admin directory screen exposes the download. New directory entry forms keep location blank until explicitly chosen; an administrator may select the Menoufia preset and then choose the correct district from the canonical list. Activity modules preserve the governorate label and give an explicit empty state where no listing is available.
 
 ## CSV fields
 
