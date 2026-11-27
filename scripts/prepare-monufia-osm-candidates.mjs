@@ -214,7 +214,7 @@ function makeRecord(element, classification, snapshotAt) {
   };
 }
 
-export function prepareMonufiaCandidates(overpassPayload, { snapshotAt = new Date().toISOString() } = {}) {
+export function prepareMonufiaCandidates(overpassPayload, { snapshotAt = new Date().toISOString(), extractionApiUrl = 'https://overpass-api.de/api/interpreter' } = {}) {
   const elements = overpassPayload?.elements;
   if (!Array.isArray(elements)) throw new Error('Invalid Overpass response: expected an elements array.');
   if (elements.length > MAX_INPUT_ELEMENTS) throw new Error('Overpass response exceeds the safe input cap of ' + MAX_INPUT_ELEMENTS + ' elements.');
@@ -268,7 +268,7 @@ export function prepareMonufiaCandidates(overpassPayload, { snapshotAt = new Dat
       source_attribution: SOURCE_ATTRIBUTION,
       source_attribution_url: 'https://www.openstreetmap.org/copyright',
       extraction_provider: 'Overpass API',
-      extraction_api_url: 'https://overpass-api.de/api/interpreter',
+      extraction_api_url: extractionApiUrl,
       boundary,
       mapped_candidate_count: candidates.length,
       taxonomy_review_count: needsReview.length,
@@ -293,6 +293,7 @@ function parseArgs(argv) {
     if (argv[i] === '--input') args.input = argv[++i];
     else if (argv[i] === '--output') args.output = argv[++i];
     else if (argv[i] === '--snapshot-at') args.snapshotAt = argv[++i];
+    else if (argv[i] === '--source-endpoint') args.sourceEndpoint = argv[++i];
     else throw new Error('Unknown argument: ' + argv[i]);
   }
   if (!args.input || !args.output) throw new Error('Usage: node scripts/prepare-monufia-osm-candidates.mjs --input overpass.json --output output-dir [--snapshot-at ISO]');
@@ -302,7 +303,10 @@ function parseArgs(argv) {
 function main(argv) {
   const args = parseArgs(argv);
   const input = JSON.parse(fs.readFileSync(args.input, 'utf8'));
-  const result = prepareMonufiaCandidates(input, { snapshotAt: args.snapshotAt || new Date().toISOString() });
+  const result = prepareMonufiaCandidates(input, {
+    snapshotAt: args.snapshotAt || new Date().toISOString(),
+    extractionApiUrl: args.sourceEndpoint || 'https://overpass-api.de/api/interpreter',
+  });
   fs.mkdirSync(args.output, { recursive: true });
   fs.writeFileSync(path.join(args.output, 'manifest.json'), JSON.stringify(result.manifest, null, 2) + '\n');
   fs.writeFileSync(path.join(args.output, 'candidates.json'), JSON.stringify(result.candidates, null, 2) + '\n');

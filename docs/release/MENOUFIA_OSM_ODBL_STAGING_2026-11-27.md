@@ -6,7 +6,7 @@ Prepare a separate, source-attributed candidate dataset from OpenStreetMap for t
 
 ## Source and boundary
 
-- Source data: OpenStreetMap, queried once through the public Overpass API.
+- Source data: OpenStreetMap, queried once through a documented public Overpass instance. The workflow tries the FOSSGIS primary instance, the Africa regional instance at dresel.systems, then the Private.coffee public instance; the actual successful endpoint is recorded in the manifest.
 - Geofabrik's Egypt extract is an alternate downloadable raw-data source; its public Egypt extract is refreshed frequently and includes PBF, GeoPackage and Shapefile formats.
 - Boundary: OpenStreetMap administrative relation 3824207 for Monufia Governorate; the pipeline checks the relation ID, boundary=administrative and a Monufia name tag before processing candidate features.
 - Source license: Open Database License 1.0 (ODbL).
@@ -41,7 +41,7 @@ The extractor deduplicates repeated OSM object type/ID pairs. It does not claim 
 
 ## Execution and safety
 
-The workflow validates the mapping and privacy contract whenever the PR is opened, synchronized or reopened. The data-fetch job runs only on the initial open or an explicit reopen from a same-repository PR; ordinary synchronize events do not repeat the external extraction. It makes one bounded Overpass request and uploads an artifact with 14-day retention. If Overpass is unavailable, the workflow uploads an explicit UNAVAILABLE manifest with empty arrays; it does not invent records or scrape an unlicensed directory.
+The workflow validates the mapping and privacy contract whenever the PR is opened, synchronized or reopened. The data-fetch job runs only on the initial open or an explicit reopen from a same-repository PR; ordinary synchronize events do not repeat the external extraction. It makes at most one bounded query per listed Overpass instance (primary plus two public fallbacks), records the responding endpoint in the manifest, and uploads an artifact with 14-day retention. If Overpass is unavailable, the workflow uploads an explicit UNAVAILABLE manifest with empty arrays; it does not invent records or scrape an unlicensed directory.
 
 The workflow does not write to Supabase, Production, public directory, Edge Functions, Storage, Auth, RLS/GRANT, payments, wallets or settlements. Public unclaimed listings remain disabled. The artifact is a review source, not a deployment.
 

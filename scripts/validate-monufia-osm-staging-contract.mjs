@@ -31,6 +31,9 @@ assert.ok(!script.includes("value:'estate_agent', groupId:"), 'Estate-agent tags
 assert.ok(workflow.includes('types: [opened, synchronize, reopened]'), 'Static contracts must rerun when the PR opens, changes or reopens.');
 assert.ok(workflow.includes("github.event.action == 'opened' || github.event.action == 'reopened'"), 'The external OSM data fetch must run only on the initial open or an explicit reopen.');
 assert.ok(workflow.includes('node scripts/validate-monufia-osm-staging-contract.mjs'), 'The staging contract validator must run in CI.');
+assert.ok(script.includes('extractionApiUrl'), 'The manifest must preserve the actual source endpoint used.');
+assert.ok(workflow.includes('https://ovp.dresel.systems/api-af/interpreter'), 'The workflow must include the public Africa-region Overpass fallback.');
+assert.ok(workflow.includes('https://overpass.private.coffee/api/interpreter'), 'The workflow must include the documented public Overpass fallback.');
 
 console.log('MENOUFIA_OSM_ODBL_STAGING=PASS');
 console.log('PUBLICATION=DISABLED; PRODUCTION_WRITES=NONE; CONTACT_FIELDS=EXCLUDED');

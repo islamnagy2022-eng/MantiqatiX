@@ -41,21 +41,37 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/monufia-osm-source /tmp/monufia-osm-candidates
-          set +e
-          curl --fail --show-error --silent --compressed \
-            --max-time 300 \
-            --retry 1 --retry-delay 5 \
-            -A "MantiqatiX ODbL Monufia Candidate Extract/1.0" \
-            --data-urlencode data@scripts/queries/monufia-overpass.ql \
-            https://overpass-api.de/api/interpreter \
-            -o /tmp/monufia-osm-source/overpass.json
-          result=$?
-          set -e
-          if [ "$result" -eq 0 ] && [ -s /tmp/monufia-osm-source/overpass.json ]; then
-            echo "fetch_status=available" >> "$GITHUB_OUTPUT"
-          else
-            echo "fetch_status=unavailable" >> "$GITHUB_OUTPUT"
-            echo "The public Overpass endpoint did not return a snapshot. No fallback scraping or alternate directory source will be attempted." >&2
+          endpoints=(
+            "https://overpass-api.de/api/interpreter"
+            "https://ovp.dresel.systems/api-af/interpreter"
+            "https://overpass.private.coffee/api/interpreter"
+          )
+          fetch_status=unavailable
+          selected_endpoint=""
+          for endpoint in "${endpoints[@]}"; do
+            echo "Trying OpenStreetMap Overpass endpoint: $endpoint"
+            if curl --fail --show-error --silent --compressed \
+              --max-time 300 \
+              --retry 1 --retry-delay 5 \
+              -A "MantiqatiX ODbL Monufia Candidate Extract/1.0" \
+              --data-urlencode data@scripts/queries/monufia-overpass.ql \
+              "$endpoint" \
+              -o /tmp/monufia-osm-source/overpass.json; then
+              if jq -e '.elements | type == "array"' /tmp/monufia-osm-source/overpass.json >/dev/null; then
+                fetch_status=available
+                selected_endpoint="$endpoint"
+                break
+              fi
+              echo "Endpoint returned a non-Overpass JSON payload; trying the next documented instance." >&2
+            else
+              echo "Endpoint unavailable; trying the next documented instance." >&2
+            fi
+            rm -f /tmp/monufia-osm-source/overpass.json
+          done
+          echo "fetch_status=$fetch_status" >> "$GITHUB_OUTPUT"
+          echo "endpoint=$selected_endpoint" >> "$GITHUB_OUTPUT"
+          if [ "$fetch_status" = "unavailable" ]; then
+            echo "All documented public Overpass endpoints were unavailable. No fallback scraping or alternate directory source will be attempted." >&2
           fi
       - name: Generate separate ODbL candidate and taxonomy-review files
         if: steps.fetch.outputs.fetch_status == 'available'
@@ -63,6 +79,7 @@ jobs:
           node scripts/prepare-monufia-osm-candidates.mjs \
             --input /tmp/monufia-osm-source/overpass.json \
             --output /tmp/monufia-osm-candidates
+            --source-endpoint "${{ steps.fetch.outputs.endpoint }}"
       - name: Record source-unavailable status without inventing records
         if: steps.fetch.outputs.fetch_status != 'available'
         run: |

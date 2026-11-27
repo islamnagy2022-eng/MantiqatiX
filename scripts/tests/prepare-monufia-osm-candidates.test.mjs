@@ -44,6 +44,15 @@ test('requires the exact Monufia administrative relation and rejects lookalikes'
   assert.throws(() => prepareMonufiaCandidates(lookalike), /do not identify Monufia/);
 });
 
+test('records the actual Overpass instance used for extraction in the manifest', () => {
+  const endpoint = 'https://ovp.dresel.systems/api-af/interpreter';
+  const result = prepareMonufiaCandidates(fixture(), {
+    snapshotAt: '2026-11-27T00:00:00.000Z',
+    extractionApiUrl: endpoint,
+  });
+  assert.equal(result.manifest.extraction_api_url, endpoint);
+});
+
 test('maps OSM shop and amenity tags to canonical MantiqatiX category IDs', () => {
   const result = prepareMonufiaCandidates(fixture(), { snapshotAt: '2026-11-27T00:00:00.000Z' });
   const restaurant = result.candidates.find((row) => row.source_id === 'osm:node:101');
