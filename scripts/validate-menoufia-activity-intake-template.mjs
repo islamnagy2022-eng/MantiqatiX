@@ -52,9 +52,10 @@ for (const line of taxonomy.split('\n')) {
 }
 
 const districtDeclaration = geo.indexOf('export const EGYPT_GEO_DISTRICTS');
-const districtArrayStart = geo.indexOf('[', districtDeclaration);
+const districtAssignment = geo.indexOf('=', districtDeclaration);
+const districtArrayStart = geo.indexOf('[', districtAssignment);
 const districtArrayEnd = geo.indexOf('];', districtArrayStart);
-assert.ok(districtDeclaration >= 0 && districtArrayStart > districtDeclaration && districtArrayEnd > districtArrayStart,
+assert.ok(districtDeclaration >= 0 && districtAssignment > districtDeclaration && districtArrayStart > districtAssignment && districtArrayEnd > districtArrayStart,
   'Canonical Egypt district dataset must remain parseable.');
 const menoufiaDistricts = JSON.parse(geo.slice(districtArrayStart, districtArrayEnd + 1))
   .filter((district) => district.governorateId === 'EG17');
