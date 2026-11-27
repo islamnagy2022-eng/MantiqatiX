@@ -1,3 +1,18 @@
+# CURRENT PRODUCTION RECHECK — 2026-11-28
+
+This dated overlay supersedes the older current-status statements below. Historical observations remain preserved with their original dates.
+
+- The connected project `MANTIQATIX FINAL` is ACTIVE_HEALTHY on PostgreSQL 17.6.1.155. The live migration ledger contains 310 rows through `20261110150618`.
+- The current canonical release contract contains 88 unique, chronologically ordered migration versions. The current exact-version intersection with the live ledger is 0/88. This is an identity mismatch, not proof every physical effect is absent. Three documented legacy alias targets are present; do not fabricate ledger rows or replay aliases.
+- A direct read-only catalog probe of 79 canonical core/payment/control-center objects matched 37 and found 42 absent or non-matching by the required name/signature (core 11/32, payment 3/14, control-center 23/33). The probe does not verify ACL/RLS/ownership/runtime semantics.
+- The platform-admin registry has RLS ON / FORCE RLS OFF; both platform-root helper definitions remain membership-derived or delegated to an unscoped tenant-admin helper. Admin Edge deployment remains blocked.
+- Nine selected critical deployed Edge entrypoints differ from current-main source: `catalog-admin`, `catalog-platform-admin`, `payment-intent`, `paymob-webhook`, `order-create`, `financial-journal`, `subscription-payment-intent`, `digital-page-payment-intent`, and `settlement-financial-atomic`. Do not deploy any one of these independently.
+- No owner-controlled encrypted Production DB export, separate Storage object export, Auth/Vault recovery package, independent PostgreSQL 17 restore/rollback or measured RPO/RTO has been demonstrated. The backup/restore gate remains **NOT VERIFIED / BLOCKED**.
+- Passing disposable PostgreSQL replay is not a Production backup or restore drill. Keep `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` until the owner supplies recoverable artifacts and the full coordinated release gate passes.
+- No Production database, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, settlement or customer-data mutation was performed during this recheck.
+
+---
+
 # MantiqatiX Production Backup, Restore and Rollback Drill
 
 **Production:** \`MANTIQATIX FINAL / moyhiluyhjsujhwlyeuu\`  
@@ -98,7 +113,7 @@ Production approval remains blocked until:
 - Auth identities/configuration, Vault keys, external secrets and Edge configuration have documented recovery paths;
 - a disposable PostgreSQL 17 restore is clean and reproducible;
 - measured RPO/RTO and rollback evidence meet the owner's recovery target;
-- the exact ordered 87-source migration effects, RPC signatures, owners, search_path, ACL, RLS/policies, constraints and triggers reconcile;
+- the exact ordered 88-source migration effects, RPC signatures, owners, search_path, ACL, RLS/policies, constraints and triggers reconcile;
 - the coordinated database + Edge plan passes exact-head and deployed-origin negative/positive tests;
 - the owner explicitly approves the exact Production release commit, migration list, deployment list, backup artifact and rollback steps.
 
