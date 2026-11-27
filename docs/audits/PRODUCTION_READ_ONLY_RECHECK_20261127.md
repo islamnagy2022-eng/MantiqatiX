@@ -44,7 +44,7 @@ The live SQL definitions establish a high-priority cross-tenant authorization ri
 - **mnty_active_membership(NULL, NULL, NULL)** returns the caller's ACTIVE membership rows without a tenant, business, or branch filter.
 - **mnty_can('admin', NULL, NULL, NULL)** delegates to that list and explicitly includes 'admin' in the permission sets for both OWNER and ADMIN; it also accepts a JSON permissions.admin=true value.
 - The deployed **mnty_can_platform_admin()** simply calls that generic evaluator. It does not query private.platform_admins. Consequently, an ordinary active tenant OWNER/ADMIN membership can satisfy the function named mnty_can_platform_admin() without a registry record.
-- The separate **public.is_platform_admin()** helper returns true for any ACTIVE membership with role ADMIN or SUPER_ADMIN, with no tenant/business/branch predicate. Its 57 policy references across 24 tables commonly use it as an OR branch beside owner/tenant checks; this can turn a tenant-local role into a platform-wide RLS bypass on those policies. This conclusion follows from the live function body and policy predicates; no real user session was impersonated and no data was read through those policies.
+- The separate **public.is_platform_admin()** helper returns true for any ACTIVE membership with role ADMIN or SUPER_ADMIN, with no tenant/business/branch predicate. Its 57 policy references across 24 tables commonly use it as an OR branch beside owner/tenant checks; this can turn a tenant-local role into a platform-wide RLS bypass on those policies. This is a source-derived authorization logic defect and future privilege-escalation condition. An aggregate-only snapshot found no current non-registry active OWNER or ADMIN users, no non-registry active SUPER_ADMIN users, and no non-registry membership with permissions.admin=true. The four non-registry BUSINESS_OWNER users do not satisfy the built-in mnty_can('admin') role branch. No real user session was impersonated and no data was read through those policies.
 
 **The repository already contains the forward-only repair; do not create duplicate migration IDs or hot-patch Production:**
 
@@ -102,3 +102,16 @@ Evidence timestamp: `2026-11-27 02:42 UTC`.
 - [x] Main Primary Catalog Frontend Validation run [45930249165](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/45930249165) completed successfully: build, professional dashboard browser E2E and employee-RBAC PostgreSQL job passed.
 - **Scope:** website/Pages verification only. It does not close the separate Supabase migration, Edge Function authorization/parity, database ACL/RLS, privacy, finance, backup/restore, or rollback gates.
 
+
+
+## Aggregate-only check of currently qualifying registry membership — 2026-11-27 02:54 UTC
+
+No account IDs, emails, or individual membership rows were selected. Aggregate results only:
+
+- Registry rows: **1**; matching Auth account present and not banned/deleted: **1**.
+- Non-registry active users by role: 4 BUSINESS_OWNER and 12 CUSTOMER; no non-registry active OWNER, ADMIN, or SUPER_ADMIN users.
+- Non-registry active BUSINESS_OWNER memberships: 7 across 4 users.
+- Non-registry active membership rows with explicit `permissions.admin=true`: **0**.
+- The 4 BUSINESS_OWNER users do not match the built-in `mnty_can('admin')` branch, which explicitly grants `admin` to OWNER and ADMIN; there are no explicit permissions.admin overrides in the non-registry membership set.
+
+**Interpretation:** the live helper implementation is still broader than a registry-only platform-root contract and remains a P0 authorization-logic defect to repair. However, this aggregate inventory did **not** find a current non-registry active account that satisfies the observed OWNER/ADMIN/permission override branches. Do not describe this as an observed account compromise or demonstrated cross-tenant data access. Keep the fix mandatory before any new admin-role onboarding or full production certification.
