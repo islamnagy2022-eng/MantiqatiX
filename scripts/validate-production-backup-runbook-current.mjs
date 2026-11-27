@@ -34,6 +34,58 @@ for (const required of runbookRequirements) {
   assert.ok(runbook.includes(required), "Current backup runbook is missing required scope: " + required);
 }
 
+const currentRunbookStart = runbook.indexOf("# CURRENT PRODUCTION RECHECK — 2026-11-28");
+assert.ok(currentRunbookStart >= 0, "Backup runbook must start with the current 2026-11-28 Production gate.");
+const currentRunbookEnd = runbook.indexOf("\n---\n", currentRunbookStart);
+const currentRunbook = currentRunbookEnd > currentRunbookStart
+  ? runbook.slice(currentRunbookStart, currentRunbookEnd)
+  : runbook.slice(currentRunbookStart);
+for (const required of [
+  "310 rows through",
+  "88 unique, chronologically ordered migration versions",
+  "0/88",
+  "79 canonical core/payment/control-center objects",
+  "matched 37",
+  "42 absent or non-matching",
+  "NOT VERIFIED / BLOCKED",
+  "post_financial_journal_backend(uuid,jsonb,jsonb)",
+  "service_role EXECUTE = false",
+  "finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)",
+  "search_path=public, pg_temp",
+  "finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
+  "create_subscription_payment_intent_claimable_backend(uuid,text,text,text,text,uuid)",
+  "process_verified_mantigo_payment_backend",
+  "Migration dependency map (source-only",
+  "RC449A",
+  "RC449A → RC450",
+  "RC434 atomic receipt",
+  "RC437 adds approved purchase-order lines",
+  "RC113",
+  "RC472",
+  "RC473",
+  "RC464 → RC469 → RC471 → RC484 → RC485",
+  "RC929",
+  "RC930",
+  "20261009120000_rc425_atomic_mantigo_paymob_payment.sql",
+  "20261010175000_rc449a_financial_journal_schema_prerequisites.sql",
+  "20261010180000_rc450_financial_journal_service_role_boundary.sql",
+  "20261009200000_rc434_atomic_erp_purchase_receiving.sql",
+  "20261009230000_rc437_purchase_order_lines_receiving_limits.sql",
+  "20261009240000_rc438_purchase_order_creation_with_lines.sql",
+  "20261118010000_rc472_directory_claim_review_atomicity.sql",
+  "20261118020000_rc473_directory_listing_contact_consent.sql",
+  "20261027070000_rc117_default_images_and_activity_admin.sql",
+  "20261113214500_rc464_platform_admin_live_registry_hardening.sql",
+  "20261120200000_rc485_catalog_rpc_registry_root.sql",
+  "20261126030000_rc929_orders_confirmed_auth_claim_guard.sql",
+  "20261127010000_rc930_serialize_job_deactivation_and_application.sql",
+]) {
+  assert.ok(currentRunbook.includes(required), "Current Production backup overlay is missing: " + required);
+}
+assert.ok(!currentRunbook.includes("87-source"), "Current Production backup overlay must not retain a superseded 87-source gate.");
+assert.ok(runbook.includes("exact ordered 88-source migration effects"), "Production release gate must reconcile the current 88-source migration chain.");
+
+
 const backlogRequirements = [
   "88 required migration IDs",
   "0/88 exact required identifiers",
