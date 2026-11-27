@@ -1,3 +1,21 @@
+# CURRENT PRODUCTION GATE — 2026-11-28 00:55 EET
+
+This dated overlay supersedes every older migration-count and Production-status snapshot below it. Historical records are retained as evidence, not as current instructions.
+
+- Current application/source baseline recorded after RC930: `6581ba937f7075987bd1d6055412afb9a73ad44e`; latest read-only progress evidence commit recorded previously: `9aa0a4cca803f6d6d71ea06720fe9f15d23cb34f`.
+- Direct Production check: project `MANTIQATIX FINAL` is ACTIVE_HEALTHY on PostgreSQL 17.6.1.155; ledger 310 rows through `20261110150618`.
+- Current canonical source release contract: 88 unique, ordered required versions; live exact-ID intersection 0/88. This is not proof that every physical effect is missing. Three known alias target IDs remain present; do not synthesize history rows or blindly replay.
+- Platform authorization is still BLOCKED: private registry RLS is ON / FORCE RLS OFF; `is_platform_admin()` is membership-derived; `mnty_can_platform_admin()` delegates to the unscoped membership helper. Known impact: 62 policy references / 27 tables.
+- Direct byte comparison of nine selected critical deployed Edge entrypoints against current main found all nine different: catalog-admin v20, catalog-platform-admin v23, payment-intent v8, paymob-webhook v10, order-create v8, financial-journal v3, subscription-payment-intent v4, digital-page-payment-intent v5, settlement-financial-atomic v4. No individual function deployment is authorized by this audit.
+- Full production backup/restore, Auth/Vault recovery, measured RPO/RTO, complete physical-effect/alias reconciliation, full Edge dependency parity and financial sandbox evidence remain NOT VERIFIED.
+- Health Monitor's protected Edge `/health` endpoint remains NOT CHECKED because `HEALTH_MONITOR_TOKEN` is missing.
+- Keep directory-listings v18 fail-closed. Menoufia-specific catalog/OSM work is cancelled; use only existing Activity → Specialty sections and keep unverified rows hidden DRAFT / UNVERIFIED.
+- No Production writes, migrations, grant changes, Auth changes, Edge deployment, payment, wallet or settlement actions were performed.
+- Canonical evidence: [PRODUCTION_EDGE_READONLY_RECHECK_20261128.md](audits/PRODUCTION_EDGE_READONLY_RECHECK_20261128.md).
+- **Current decision: `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.** First external dependencies are owner-controlled encrypted DB + Storage backup/recovery/restore evidence and an approved coordinated release window. Do not deploy admin/payment Edge bundles separately.
+
+---
+
 ## 2026-11-27 14:42 UTC — Post-merge Pages and live Production read-back
 
 - [x] Main `7e477e25911438f3601574393edc089c14b50c3d` Pages deployment run [46017699004](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/46017699004) completed SUCCESS. Root/legacy rollback/V6 preview, mixed-case catalog routes, and deployed legacy/dashboard/mobile/QR route checks all completed successfully. The separate deployed-origin redirect regression remained intentionally skipped; it is not a pass.
