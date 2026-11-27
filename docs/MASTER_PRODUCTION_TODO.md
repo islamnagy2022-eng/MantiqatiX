@@ -2344,3 +2344,13 @@ No production deploy or merge was performed. Production remains **BLOCKED / NOT 
 - [ ] Exact-head Module Professionalization CI and browser/responsive/accessibility verification remain pending. Do not mark this screen runtime-verified until those checks pass.
 - [ ] Subscription entitlement/plan management remains unimplemented here. Inspect and verify authoritative subscription tables/RPCs, tenant authorization and audit behavior before adding controls.
 - Production remains **BLOCKED / NOT CERTIFIED**. No merge, deployment, financial mutation or production write was performed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
+
+
+## 2026-11-27 — Super Admin active catalog inspector (read-only)
+
+- [x] Added a catalog action to active activity records in the Super Admin activity directory; inactive businesses do not receive the action.
+- [x] Reads through the existing authenticated `/api/v1/catalog` client path, passing the activity's own tenant ID and business ID. The existing route requires a signed-in user with an active membership in the business tenant and returns active branches, active items and currently effective prices.
+- [x] Added branch selection and a read-only table for item/service name, type, description, effective price and option count. Raw metadata, SKUs, owner details and write controls are not rendered.
+- [x] Added source-contract assertions for Super Admin gating, tenant binding, existing API usage, branch selection and no-write behavior.
+- [ ] Exact-head CI and browser/keyboard/responsive verification remain pending. This inspector only shows published ACTIVE catalog entries and current prices; it does not expose drafts, catalog settings, inactive rows or edit actions.
+- Production remains **BLOCKED / NOT CERTIFIED**. No production data or catalog record was changed. Preserve `SMM_INITIAL_LAUNCH_DEFERRED=true`; do not modify `docs/SESSION_LOG.md`.
