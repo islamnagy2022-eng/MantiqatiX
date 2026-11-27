@@ -8755,5 +8755,36 @@
     ],
     "production_mutation": "NONE",
     "interpretation": "The latest-main frontend build/browser/Pages validation is green. This is not full Production certification. Keep all Production schema, grant, RLS, Auth, Edge, payment and finance changes gated until the coordinated migration/authorization sequence and its live post-deploy tests are independently verified."
+  },
+  "menoufia_catalog_scope_20261127": {
+    "status": "CANCELLED_PERMANENTLY_AT_OWNER_DIRECTION",
+    "checked_at": "2026-11-27",
+    "policy": "No dedicated Menoufia activity catalog, medical catalog, public catalog route, standalone candidate dataset, automatic OSM collection, production import, or Menoufia-specific intake template.",
+    "closure": {
+      "pr_1179": {
+        "state": "CLOSED",
+        "merged": false,
+        "scope": "Menoufia shareable catalog route and its browser tests"
+      },
+      "pr_1180": {
+        "state": "CLOSED",
+        "merged": false,
+        "scope": "Separate ODbL Monufia OSM candidate staging/extraction"
+      }
+    },
+    "remaining_allowed_behavior": "Use only the existing activity and medical sections and canonical activity/specialty taxonomy. Any new Menoufia activity is hidden DRAFT / UNVERIFIED until independently verified and approved under the normal platform workflow.",
+    "current_main_policy_files": [
+      "docs/release/EXISTING_SECTIONS_UNVERIFIED_DIRECTORY_2026-11-27.md",
+      "scripts/validate-existing-sections-unverified-directory.mjs"
+    ],
+    "prior_temporary_artifact": {
+      "id": 15170886614,
+      "name": "monufia-osm-candidates-odbl",
+      "created_at": "2026-11-27T03:49:22Z",
+      "expires_at": "2026-12-11T03:49:21Z",
+      "status": "EXISTING_TEMPORARY_REVIEW_ARTIFACT_FROM_CLOSED_PR; NOT_IMPORTED_OR_PUBLISHED",
+      "note": "The connected GitHub toolset exposes artifact listing/download but not artifact deletion. It remains an unmerged temporary artifact and expires automatically; no future collection or upload will be initiated."
+    },
+    "no_production_mutation": true
   }
 }
