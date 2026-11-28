@@ -96,6 +96,8 @@ CREATE TABLE public.marketing_provider_profiles (
   is_featured boolean NOT NULL DEFAULT false,
   service_areas jsonb NOT NULL DEFAULT '[]'::jsonb,
   settings jsonb NOT NULL DEFAULT '{}'::jsonb,
+  profile_image_path text,
+  updated_at timestamptz NOT NULL DEFAULT now(),
   status text NOT NULL
 );
 ALTER TABLE public.marketing_provider_profiles ENABLE ROW LEVEL SECURITY;
@@ -130,7 +132,8 @@ CREATE TABLE public.marketing_leads (
   title text NOT NULL,
   status text NOT NULL DEFAULT 'OPEN',
   source text NOT NULL DEFAULT 'PLATFORM',
-  assigned_provider_id uuid
+  assigned_provider_id uuid,
+  currency text NOT NULL DEFAULT 'EGP'
 );
 ALTER TABLE public.marketing_leads ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "CRM managers view marketing leads"
