@@ -15,6 +15,12 @@ BEGIN
     RAISE EXCEPTION 'RC932 authenticated EXECUTE must remain enabled';
   END IF;
 
+  -- Seed both synthetic principals in the Auth schema before inserting rows
+  -- whose foreign keys reference auth.users.
+  INSERT INTO auth.users(id)
+  VALUES (v_captain),(v_customer)
+  ON CONFLICT (id) DO NOTHING;
+
   INSERT INTO public.mantigo_captain_profiles(
     captain_id,status,verification_status,availability_status,vehicle_category
   ) VALUES (v_captain,'ACTIVE','VERIFIED','AVAILABLE','SEDAN')
