@@ -41,6 +41,8 @@ assert.match(backend, /_shared\/activity-module-overrides\.mjs/, 'The Edge Funct
 assert.match(sanitizer, /entries\.length > 50/, 'The shared validator must enforce the 50-activity limit.');
 assert.match(sanitizer, /120000/, 'The shared validator must enforce a bounded settings payload.');
 assert.match(backend, /"activityModuleOverrides"/, 'The existing settings allowlist must explicitly permit only the new settings key.');
+assert.match(backend, /ACTIVITY_MODULE_SETTINGS_WRITE_ENABLED = false/, 'Activity-module settings writes must remain disabled at the server boundary until atomic audit support exists.');
+assert.match(backend, /ACTIVITY_MODULE_SETTINGS_NOT_READY/, 'The Edge handler must reject direct activity-module settings writes before any database update.');
 assert.match(backend, /PLATFORM_ACTIVITY_MODULE_SETTINGS_UPDATED/, 'Activity module settings changes must be audited server-side.');
 assert.match(backend, /auditLogged/, 'The server response must disclose audit logging status.');
 assert.match(backend, /productionTenantIds\[0\]/, 'The audit entry must use a verified production tenant from the authenticated platform-admin scope.');
