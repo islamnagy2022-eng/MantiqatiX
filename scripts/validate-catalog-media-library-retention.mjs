@@ -67,8 +67,10 @@ assert.ok(resumeCleanupMigration.includes("cron.alter_job(v_job_id, null, null, 
 assert.ok(unusedWindowIntegration.includes('MEDIA_RETENTION_DELETED_BEFORE_FIVE_UNUSED_DAYS') &&
   unusedWindowIntegration.includes('MEDIA_RETENTION_LIVE_REFERENCE_DID_NOT_RESET_CLOCK') &&
   unusedWindowIntegration.includes('MEDIA_RETENTION_DID_NOT_RELEASE_IMAGE_AFTER_FIVE_UNUSED_DAYS') &&
+  unusedWindowIntegration.includes('mnty_confirm_catalog_media_deletion(array[v_path])') &&
+  unusedWindowIntegration.includes('MEDIA_RETENTION_FINAL_BATCH_CONFIRMATION_FAILED') &&
   unusedWindowIntegration.includes('mnty_clear_catalog_media_retention_state'),
-  'PostgreSQL integration must prove the five-day timer starts on becoming unused, resets on reuse, and expires after five continuous unused days');
+  'PostgreSQL integration must prove continuous five-day retention, reuse resets, and the final batched reference check');
 assert.ok(migration.includes('cron.schedule(') && migration.includes("'17 * * * *'"),
   'unused media cleanup must be scheduled automatically every hour');
 assert.ok(migration.includes('revoke all on function public.mnty_catalog_media_cleanup_token_valid(text) from public, anon, authenticated'),
@@ -78,9 +80,13 @@ assert.ok(migration.includes('grant execute on function public.mnty_list_expired
 
 assert.ok(cleanup.includes('mnty_catalog_media_cleanup_token_valid'), 'scheduled cleanup must authenticate with the Vault-backed token');
 assert.ok(cleanup.includes('mnty_list_expired_catalog_media') &&
-  cleanup.includes('mnty_catalog_media_object_is_referenced') &&
-  cleanup.includes('mnty_clear_catalog_media_retention_state'),
-  'scheduled cleanup must re-check live references before Storage deletion and clear retention state afterward');
+  cleanup.includes('mnty_confirm_catalog_media_deletion') &&
+  cleanup.includes('mnty_clear_catalog_media_retention_state') &&
+  !cleanup.includes('mnty_catalog_media_object_is_referenced'),
+  'scheduled cleanup must re-check all live references in one batch before Storage deletion and clear retention state afterward');
+assert.ok(unusedWindowMigration.includes('mnty_confirm_catalog_media_deletion(text[])') &&
+  unusedWindowMigration.includes('foreach v_path in array v_paths'),
+  'the final reference check must scan a whole candidate batch rather than re-scanning every table for every image');
 assert.ok(unusedWindowMigration.includes("c.relname not in ('audit_logs', 'mnty_catalog_media_retention_state')") &&
   unusedWindowMigration.includes('grant execute on function public.mnty_catalog_media_object_is_referenced(text) to service_role'),
   'the final reference checker must ignore retention bookkeeping but remain service-role-only');
