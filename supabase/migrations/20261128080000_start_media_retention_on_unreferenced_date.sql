@@ -223,3 +223,87 @@ $function$;
 
 revoke all on function public.mnty_catalog_media_object_is_referenced(text) from public, anon, authenticated;
 grant execute on function public.mnty_catalog_media_object_is_referenced(text) to service_role;
+
+create or replace function public.mnty_confirm_catalog_media_deletion(p_object_paths text[])
+returns table(object_path text)
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_paths text[];
+  v_referenced_paths text[] := array[]::text[];
+  v_table record;
+  v_hits text[];
+  v_path text;
+begin
+  select array_agg(distinct input.path)
+  into v_paths
+  from unnest(coalesce(p_object_paths, array[]::text[])) as input(path)
+  where input.path ~ '^businesses/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/owner-uploads/(activity|cover|product|service)/[A-Za-z0-9._-]+$';
+
+  if coalesce(array_length(v_paths, 1), 0) = 0 then
+    return;
+  end if;
+
+  -- Re-scan the entire candidate batch once per public content table, not once
+  -- per image. Audit events and retention bookkeeping are not live references.
+  for v_table in
+    select
+      n.nspname as table_schema,
+      c.relname as table_name,
+      string_agg(
+        format('strpos(coalesce(content.%I::text, %L), ref.object_path) > 0', a.attname, ''),
+        ' OR ' order by a.attnum
+      ) as reference_predicate
+    from pg_catalog.pg_class c
+    join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+    join pg_catalog.pg_attribute a on a.attrelid = c.oid
+    where n.nspname = 'public'
+      and c.relkind in ('r', 'p', 'm')
+      and c.relname not in ('audit_logs', 'mnty_catalog_media_retention_state')
+      and a.attnum > 0
+      and not a.attisdropped
+      and a.atttypid in (
+        'pg_catalog.text'::regtype,
+        'pg_catalog.varchar'::regtype,
+        'pg_catalog.bpchar'::regtype,
+        'pg_catalog.json'::regtype,
+        'pg_catalog.jsonb'::regtype
+      )
+    group by n.nspname, c.relname
+  loop
+    execute format(
+      'select array_agg(distinct ref.object_path)
+       from %I.%I as content
+       cross join lateral unnest($1::text[]) as ref(object_path)
+       where (%s)',
+      v_table.table_schema,
+      v_table.table_name,
+      v_table.reference_predicate
+    )
+    into v_hits
+    using v_paths;
+
+    if v_hits is not null then
+      v_referenced_paths := v_referenced_paths || v_hits;
+    end if;
+  end loop;
+
+  foreach v_path in array v_paths
+  loop
+    if v_path = any(v_referenced_paths) then
+      update public.mnty_catalog_media_retention_state
+      set unreferenced_since = null,
+          last_scanned_at = now()
+      where mnty_catalog_media_retention_state.object_path = v_path;
+    else
+      object_path := v_path;
+      return next;
+    end if;
+  end loop;
+end;
+$function$;
+
+revoke all on function public.mnty_confirm_catalog_media_deletion(text[]) from public, anon, authenticated;
+grant execute on function public.mnty_confirm_catalog_media_deletion(text[]) to service_role;
