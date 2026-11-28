@@ -49,33 +49,23 @@ Deno.serve(async (req: Request) => {
       )
     : [];
 
-  // The database RPC returns only paths that have been continuously unreferenced
-  // for five days. Re-check each candidate immediately before Storage deletion so
-  // a newly added catalog reference is not deleted because of a concurrent write.
-  const safeToDelete: string[] = [];
-  for (const path of paths) {
-    const { data: referenced, error: referenceError } = await service.rpc(
-      "mnty_catalog_media_object_is_referenced",
-      { p_object_path: path },
-    );
-    if (referenceError) {
-      console.error("Catalog media final reference check failed", referenceError.code || referenceError.message);
-      return reply({ error: "cleanup_reference_check_failed" }, 503);
-    }
-    if (referenced === true) {
-      const { error: resetError } = await service.rpc(
-        "mnty_clear_catalog_media_retention_state",
-        { p_object_paths: [path] },
-      );
-      if (resetError) {
-        console.error("Catalog media retention reset failed", resetError.code || resetError.message);
-        return reply({ error: "cleanup_retention_reset_failed" }, 503);
-      }
-      continue;
-    }
-    if (referenced !== false) return reply({ error: "cleanup_reference_state_unknown" }, 503);
-    safeToDelete.push(path);
+  // Re-scan all deletion candidates in one database pass per public table.
+  // If a reference appeared after the hourly scan, its timer is reset and the file is retained.
+  const { data: confirmedCandidates, error: confirmationError } = await service.rpc(
+    "mnty_confirm_catalog_media_deletion",
+    { p_object_paths: paths },
+  );
+  if (confirmationError) {
+    console.error("Catalog media final batch reference check failed", confirmationError.code || confirmationError.message);
+    return reply({ error: "cleanup_reference_check_failed" }, 503);
   }
+
+  const safeToDelete = Array.isArray(confirmedCandidates)
+    ? confirmedCandidates.map((row: any) => String(row?.object_path || "")).filter((path: string) =>
+        paths.includes(path) &&
+        /^businesses\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/owner-uploads\/(activity|cover|product|service)\/[A-Za-z0-9._-]+$/.test(path)
+      )
+    : [];
 
   let deleted = 0;
   for (let offset = 0; offset < safeToDelete.length; offset += MAX_DELETE_BATCH) {
@@ -100,7 +90,7 @@ Deno.serve(async (req: Request) => {
 
   console.log("CATALOG_MEDIA_RETENTION_RUN", JSON.stringify({
     unreferencedForFiveDays: paths.length,
-    retainedAsReferencedOrUnconfirmed: 0,
+    retainedAsReferencedOrUnconfirmed: paths.length - safeToDelete.length,
     deleted,
   }));
   return reply({
