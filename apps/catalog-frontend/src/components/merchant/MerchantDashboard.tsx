@@ -1022,7 +1022,7 @@ export const MerchantDashboard: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleApplyFacebookProfile}
-                    className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-4 py-2.5"
+                    className="w-full rounded-xl bg-[#7a0000] hover:bg-[#5a0000] text-white font-black text-xs px-4 py-2.5"
                   >
                     استخدام البيانات في نموذج النشاط
                   </button>
@@ -1146,7 +1146,7 @@ export const MerchantDashboard: React.FC = () => {
                 <button
                   type="submit"
                   disabled={profileSaving}
-                  className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-black text-xs px-6 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer"
+                  className="bg-[#7a0000] hover:bg-[#5a0000] disabled:opacity-50 text-white font-black text-xs px-6 py-2.5 rounded-xl shadow-md shadow-[#7a0000]/20 flex items-center gap-2 cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
                   <span>{profileSaving ? 'جارٍ حفظ الهوية...' : 'حفظ هوية النشاط'}</span>
@@ -1370,7 +1370,7 @@ export const MerchantDashboard: React.FC = () => {
                 <button
                   type="submit"
                   disabled={profileSaving}
-                  className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-black text-xs px-6 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer"
+                  className="bg-[#7a0000] hover:bg-[#5a0000] disabled:opacity-50 text-white font-black text-xs px-6 py-2.5 rounded-xl shadow-md shadow-[#7a0000]/20 flex items-center gap-2 cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
                   <span>{profileSaving ? 'جارٍ حفظ التعديلات...' : 'حفظ التعديلات'}</span>
@@ -1491,7 +1491,7 @@ export const MerchantDashboard: React.FC = () => {
 
             <button
               onClick={() => setIsQrModalOpen(true)}
-              className="bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs px-5 py-3 rounded-xl shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer transition-all"
+              className="bg-[#7a0000] hover:bg-[#5a0000] text-white font-black text-xs px-5 py-3 rounded-xl shadow-md shadow-[#7a0000]/20 flex items-center gap-2 cursor-pointer transition-all"
             >
               <QrCode className="w-4 h-4" />
               <span>عرض و طباعة الكود بالكامل</span>
@@ -1668,7 +1668,7 @@ export const MerchantDashboard: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 cursor-pointer"
+                  className="bg-[#7a0000] hover:bg-[#5a0000] text-white font-black text-xs px-5 py-2.5 rounded-xl shadow-md shadow-[#7a0000]/20 cursor-pointer"
                 >
                   {editingProduct ? 'حفظ التعديلات' : 'إضافة للكتالوج'}
                 </button>
