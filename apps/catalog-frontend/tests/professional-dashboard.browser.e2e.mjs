@@ -1527,9 +1527,9 @@ try {
       await editor.locator('select').selectOption('MANAGER');
       page.once('dialog', (dialog) => dialog.accept());
       await editor.getByRole('button', { name: 'حفظ الدور', exact: true }).click();
-      const saveRequest = platformAdminRequests.find((request) => request.action === 'SAVE_MEMBERSHIP');
       await page.getByText('تم تغيير دور العضوية مع الحفاظ على نطاق النشاط والفرع.', { exact: true })
         .waitFor({ state: 'visible', timeout: 10000 });
+      const saveRequest = platformAdminRequests.find((request) => request.action === 'SAVE_MEMBERSHIP');
       assert.ok(saveRequest, 'changing an approved role must call the guarded membership endpoint');
       assert.equal(saveRequest.payload.branchId, branchId, 'role update must retain the branch assignment');
       assert.equal(saveRequest.payload.status, 'SUSPENDED', 'role update must retain suspended membership state');
