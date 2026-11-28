@@ -100,7 +100,9 @@ The core platform-root sequence is RC464 → RC469 → RC471 → RC484 → RC485
 - [x] Two missing internal-helper client revokes added to the migration source.
 - [x] Live DEMO root-helper implementation, registry counts, table ACL, helper callers, and dependent RLS policies read back without mutation.
 - [x] Static validation source added for RPC ACLs, internal-helper ACLs, forced RLS, and absence of a seeded platform administrator.
-- [x] SQL integration contract added to the chronological PostgreSQL 17 replay workflow; it checks the RC472 null-safe membership index, admin RPC ACLs, all relevant SECURITY DEFINER search paths, registry ACL/RLS, and privileged table grants. Exact-head result pending.
+- [x] SQL integration contract added to the chronological PostgreSQL 17 replay workflow; it checks the RC472 null-safe membership index, admin RPC ACLs, all relevant SECURITY DEFINER search paths, registry ACL/RLS, privileged table grants, RC117 activity-name synchronization, and untruncated admin business listing.
+- [x] Preserved the two later RC117 forward-repair implementations in the new migration after the first full replay exposed regression risk: `marketing_provider_profiles` name/description sync and removal of the 300-business cap.
+- [ ] Re-run the full chronological PostgreSQL 17 replay after the RC117 compatibility correction.
 - [x] Source-level static contract checked in this session: 50/50 assertions passed.
 - [ ] Run `npm run validate:demo-admin-compatibility` on the exact PR head in GitHub Actions; the step is wired into Pages PR validation.
 - [ ] Complete the isolated PostgreSQL 17 forward replay from the captured Production schema checkpoint and its newly added admin ACL/RLS SQL contract; this is not an exact DEMO baseline replay.
