@@ -49,7 +49,7 @@ export const Navbar: React.FC = () => {
   );
 
   return (
-    <header className="sticky top-0 z-40 w-full max-w-full overflow-x-clip border-b border-slate-200/80 bg-white/95 shadow-lg shadow-slate-950/[0.04] backdrop-blur-xl">
+    <header className="sticky top-0 z-40 w-full max-w-full overflow-x-clip border-b border-[#ead5c5] bg-white/95 shadow-lg shadow-[#3a0000]/[0.06] backdrop-blur-xl">
       {/* Top Banner with Platform Context */}
       <div className="bg-[#3a0000] px-3 py-2 text-[11px] text-[#f8e7d3] border-b border-[#f6c04d]/25 sm:px-6">
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-2">
@@ -193,7 +193,7 @@ export const Navbar: React.FC = () => {
               />
               <div>
                 <div className="flex items-baseline gap-1">
-                  <h1 className="font-black text-base sm:text-lg text-slate-900 tracking-tight leading-tight">
+                  <h1 className="font-black text-base sm:text-lg text-[#3a0000] tracking-tight leading-tight">
                     منطقتي <span className="text-[#7a0000] bg-[#fff3e0] px-1.5 py-0.5 rounded-md border border-[#ead5c5] text-xs sm:text-sm font-black">X</span>
                   </h1>
                 </div>
