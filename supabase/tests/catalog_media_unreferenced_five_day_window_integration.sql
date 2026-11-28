@@ -58,6 +58,9 @@ begin
   if v_since is null or v_since < now() - interval '2 minutes' then
     raise exception 'MEDIA_RETENTION_UNUSED_CLOCK_NOT_STARTED:%',v_since;
   end if;
+  if public.mnty_catalog_media_object_is_referenced(v_path) then
+    raise exception 'MEDIA_RETENTION_STATE_ROW_MISTAKEN_FOR_LIVE_REFERENCE';
+  end if;
 
   -- Simulate an image that has been unused long enough to qualify, but is now
   -- attached to live site content. The next scan must reset its unused clock.
@@ -66,6 +69,9 @@ begin
   where object_path=v_path;
 
   insert into public.mnty_catalog_media_retention_test_refs(content) values (v_path);
+  if not public.mnty_catalog_media_object_is_referenced(v_path) then
+    raise exception 'MEDIA_RETENTION_LIVE_CONTENT_REFERENCE_NOT_DETECTED';
+  end if;
 
   select count(*) into v_candidates
   from public.mnty_list_expired_catalog_media(100)
@@ -83,6 +89,9 @@ begin
 
   -- Once the live reference disappears, the unused period starts over.
   delete from public.mnty_catalog_media_retention_test_refs where content=v_path;
+  if public.mnty_catalog_media_object_is_referenced(v_path) then
+    raise exception 'MEDIA_RETENTION_REFERENCE_NOT_CLEARED_AFTER_CONTENT_REMOVAL';
+  end if;
 
   select count(*) into v_candidates
   from public.mnty_list_expired_catalog_media(100)
