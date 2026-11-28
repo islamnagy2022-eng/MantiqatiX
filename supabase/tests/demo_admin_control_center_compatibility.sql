@@ -301,9 +301,32 @@ VALUES (
   'MNTY-PLATFORM',
   'DEMO Admin Delete Fixture',
   'DEMO-ADMIN-DELETE-FIXTURE-901',
-  'ACTIVE',
+  'INACTIVE',
   '{"test_fixture":"demo_admin_compatibility"}'::jsonb
 );
+
+-- Satisfy the real legal activation trigger before changing the synthetic
+-- business to ACTIVE. Do not disable the trigger or bypass its owner check.
+INSERT INTO public.user_memberships
+  (id,user_id,tenant_id,organization_id,business_id,branch_id,role,permissions,status,created_at)
+VALUES (
+  'DEMO-ADMIN-DELETE-OWNER-901',
+  'f7914ac7-4b03-4456-afdd-e386f2ac6a5b',
+  'MNTY-PLATFORM',
+  NULL,
+  '00000000-0000-4000-8000-000000009901',
+  NULL,
+  'OWNER',
+  '{}'::jsonb,
+  'ACTIVE',
+  pg_catalog.now()
+);
+
+UPDATE public.businesses
+SET status='ACTIVE'
+WHERE id='00000000-0000-4000-8000-000000009901'
+  AND tenant_id='MNTY-PLATFORM';
+
 INSERT INTO public.branches(id,tenant_id,business_id,name,code,status)
 VALUES (
   'demo-admin-delete-branch-901',
@@ -337,6 +360,9 @@ BEGIN
   END IF;
   IF EXISTS (SELECT 1 FROM public.branches WHERE id='demo-admin-delete-branch-901') THEN
     RAISE EXCEPTION 'DEMO_ADMIN_BUSINESS_DELETE_LEFT_BRANCH_ROW';
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.user_memberships WHERE id='DEMO-ADMIN-DELETE-OWNER-901') THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_BUSINESS_DELETE_LEFT_OWNER_MEMBERSHIP';
   END IF;
   IF NOT EXISTS (
     SELECT 1 FROM public.audit_logs
