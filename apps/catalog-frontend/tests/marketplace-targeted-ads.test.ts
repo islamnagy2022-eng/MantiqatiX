@@ -11,6 +11,23 @@ const validAd = (id: string, overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
+test('rejects unmatched regional ads mislabeled as global and preserves real platform-global ads', async () => {
+  const ads = await loadTargetedAdvertisements(async () => ({
+    data: [
+      validAd('normal-center-ad-mislabeled-global', { match_level: 'GLOBAL' }),
+      validAd('GLOBAL-00000000-0000-4000-8000-000000000101', { match_level: 'GLOBAL' }),
+      validAd('GLOBAL-00000000-0000-4000-8000-000000000102', { match_level: 'CENTER' }),
+    ],
+    error: null,
+  }), { adSpaces: ['HOME_HERO'] });
+
+  assert.deepEqual(
+    ads.map((ad) => ad.advertisement_id),
+    ['GLOBAL-00000000-0000-4000-8000-000000000101'],
+    'only the RPC global-ad identity prefix may carry GLOBAL match level',
+  );
+});
+
 test('keeps successful placement ads when the other placement rejects', async () => {
   const calls: string[] = [];
   const ads = await loadTargetedAdvertisements(async (_name, args) => {
