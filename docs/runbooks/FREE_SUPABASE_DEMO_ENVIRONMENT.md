@@ -28,10 +28,10 @@
 
 ```bash
 npm ci
-npm run dev
+npm run dev:demo
 ```
 
-يجب تشغيل Vite من `apps/catalog-frontend`.
+يجب تشغيل Vite من `apps/catalog-frontend` باستخدام `npm run dev:demo`؛ المنفذ 8080 موجود ضمن عناوين CORS لوظائف Demo الحالية.
 
 ## حماية الإنتاج
 
