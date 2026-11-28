@@ -262,19 +262,27 @@ begin
   if pg_catalog.has_table_privilege('anon', 'public.marketing_provider_profiles', 'SELECT') then
     raise exception 'RC931_RAW_ANON_READ_REAPPEARED';
   end if;
-  if not exists (
-    select 1
-    from pg_catalog.pg_policies p
-    where p.schemaname = 'public'
-      and p.tablename = 'marketing_provider_profiles'
-      and p.policyname = 'CRM managers view marketing providers'
-      and p.permissive = 'PERMISSIVE'
-      and p.cmd = 'SELECT'
-      and 'authenticated' = any (p.roles)
-      -- pg_get_expr may omit the schema for a function resolved through the policy's search_path.
-      and coalesce(p.qual, '') ilike '%is_platform_admin()%'
-      and coalesce(p.qual, '') ilike '%b.tenant_id <> ''MNTY-PLATFORM''%'
-  ) then
+  -- Re-read the deparsed policy after CREATE POLICY. PostgreSQL may insert
+  -- explicit casts and parentheses around both tenant_id and text literals.
+  select p.qual into v_crm_qual
+  from pg_catalog.pg_policies p
+  where p.schemaname = 'public'
+    and p.tablename = 'marketing_provider_profiles'
+    and p.policyname = 'CRM managers view marketing providers'
+    and p.permissive = 'PERMISSIVE'
+    and p.cmd = 'SELECT'
+    and 'authenticated' = any (p.roles);
+
+  v_crm_qual_normalized := lower(
+    regexp_replace(
+      regexp_replace(coalesce(v_crm_qual, ''), '::[a-z0-9_." ]+', '', 'g'),
+      '[[:space:]()]', '', 'g'
+    )
+  );
+
+  if v_crm_qual is null
+     or position('is_platform_admin()' in v_crm_qual_normalized) = 0
+     or position($rc931_tenant$b.tenant_id<>'mnty-platform'$rc931_tenant$ in v_crm_qual_normalized) = 0 then
     raise exception 'RC931_REGISTRY_ONLY_CRM_POLICY_REQUIRED';
   end if;
 end;
