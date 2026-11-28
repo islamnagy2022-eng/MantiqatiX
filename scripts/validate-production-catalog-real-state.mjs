@@ -269,6 +269,11 @@ assert.match(targetedAdvertisements, /p_center_code: centerCode/);
 assert.match(targetedAdvertisements, /export const getTargetedAdvertisementAudienceLabel/);
 assert.match(targetedAdvertisements, /export const getPublicCenterAdCode/);
 assert.match(targetedAdvertisements, /export const getPublicAreaDisplayLabel/);
+assert.match(targetedAdvertisements, /const isPlatformGlobalAdvertisement = id\.startsWith\('GLOBAL-'\)/);
+assert.match(targetedAdvertisements, /if \(matchLevel === 'GLOBAL' && !isPlatformGlobalAdvertisement\) continue;/,
+  'unmatched geographic ads must never be widened into an all-Egypt global placement');
+assert.match(targetedAdvertisements, /if \(isPlatformGlobalAdvertisement && matchLevel !== 'GLOBAL'\) continue;/,
+  'platform-global identity and the RPC global match level must agree');
 assert.ok(directory.includes('const selectedAdAreaLabel = getPublicAreaDisplayLabel(selectedGovFilter, selectedMarkazFilter)') &&
   directory.includes('selectedAdAreaLabel +') &&
   directory.includes('encodeURIComponent') &&
