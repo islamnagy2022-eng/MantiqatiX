@@ -1525,9 +1525,8 @@ try {
       const editor = page.getByRole('dialog', { name: 'تعديل دور العضوية' });
       await editor.waitFor({ state: 'visible', timeout: 5000 });
       await editor.locator('select').selectOption('MANAGER');
-      await editor.getByRole('button', { name: 'حفظ الدور', exact: true }).click();
       page.once('dialog', (dialog) => dialog.accept());
-      // If the confirmation already appeared, Playwright handles it through the registered listener below.
+      await editor.getByRole('button', { name: 'حفظ الدور', exact: true }).click();
       const saveRequest = platformAdminRequests.find((request) => request.action === 'SAVE_MEMBERSHIP');
       await page.getByText('تم تغيير دور العضوية مع الحفاظ على نطاق النشاط والفرع.', { exact: true })
         .waitFor({ state: 'visible', timeout: 10000 });
