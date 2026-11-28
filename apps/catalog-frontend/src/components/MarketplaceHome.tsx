@@ -19,7 +19,6 @@ const BusinessCard: React.FC<{ business: Business; onOpen: (business: Business) 
   const defaultCover = resolveDefaultImage({
     name: business.name, description: business.bio, category: business.category, kind: 'cover',
   });
-  const isPlatformBrandProfile = isMantiqatiXBrandName(business.name);
   const logo = business.logoUrl || defaultLogo;
   const cover = business.coverUrl || defaultCover;
   return (
@@ -90,6 +89,9 @@ const ProductCard: React.FC<{
               if (target.dataset.defaultFallbackApplied !== 'true') {
                 target.dataset.defaultFallbackApplied = 'true';
                 target.src = defaultImage;
+              } else {
+                target.onerror = null;
+                target.style.visibility = 'hidden';
               }
             }} />
           {hasDiscount && <span className="absolute right-2 top-2 rounded-full bg-rose-600 px-2.5 py-1 text-[10px] font-black text-white">خصم {discount}%</span>}
