@@ -41,6 +41,27 @@ import { CatalogImportPanel } from './CatalogImportPanel';
 import { normalizeSocialUrl } from '../../utils/socialLinks';
 import { normalizePromotionalImageLines } from '../../utils/promotionalImages';
 
+const DASHBOARD_BUSINESS_IMAGE_FALLBACK = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
+const DASHBOARD_BUSINESS_COVER_FALLBACK = `${import.meta.env.BASE_URL || '/'}business-cover-placeholder.svg`;
+const DASHBOARD_CATALOG_IMAGE_FALLBACK = `${import.meta.env.BASE_URL || '/'}catalog-item-placeholder.svg`;
+
+const applyDashboardImageFallback = (
+  image: HTMLImageElement,
+  preferred: string,
+  emergency: string,
+): void => {
+  if (!image.dataset.preferredFallbackApplied) {
+    image.dataset.preferredFallbackApplied = 'true';
+    image.src = preferred;
+  } else if (!image.dataset.emergencyFallbackApplied) {
+    image.dataset.emergencyFallbackApplied = 'true';
+    image.src = emergency;
+  } else {
+    image.onerror = null;
+    image.style.visibility = 'hidden';
+  }
+};
+
 
 type FacebookPageOption = { id: string; name: string; link?: string; category?: string };
 type FacebookPageProfile = {
@@ -832,13 +853,24 @@ export const MerchantDashboard: React.FC = () => {
                       <tr key={p.id} className="hover:bg-slate-50/70 transition-colors">
                         <td className="py-3 px-4">
                           <img
-                            src={p.imageUrl}
+                            src={p.imageUrl || resolveDefaultImage({
+                              name: p.name,
+                              description: p.description,
+                              category: p.category,
+                              kind: p.type === 'service' ? 'service' : 'product',
+                            })}
                             alt={p.name}
                             className="w-12 h-12 rounded-xl object-cover bg-slate-100 border border-slate-200"
-                            onError={(e) => {
-                              const image = e.currentTarget;
-                              if (!image.src.endsWith('/catalog-item-placeholder.svg')) image.src = resolveDefaultImage({ kind: 'product' });
-                            }}
+                            onError={(event) => applyDashboardImageFallback(
+                              event.currentTarget,
+                              resolveDefaultImage({
+                                name: p.name,
+                                description: p.description,
+                                category: p.category,
+                                kind: p.type === 'service' ? 'service' : 'product',
+                              }),
+                              DASHBOARD_CATALOG_IMAGE_FALLBACK,
+                            )}
                           />
                         </td>
                         <td className="py-3 px-4 font-extrabold text-slate-900 max-w-[200px]">
@@ -1001,7 +1033,18 @@ export const MerchantDashboard: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-14 h-14 shrink-0 rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
-                        {facebookPreview.logoUrl ? <img src={facebookPreview.logoUrl} alt="صورة الصفحة الشخصية" className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[10px] text-slate-500">لا توجد صورة</div>}
+                        {facebookPreview.logoUrl ? (
+                          <img
+                            src={facebookPreview.logoUrl}
+                            alt="صورة الصفحة الشخصية"
+                            className="w-full h-full object-cover"
+                            onError={(event) => applyDashboardImageFallback(
+                              event.currentTarget,
+                              resolveDefaultImage({ name: facebookPreview.name, category: facebookPreview.category, kind: 'activity' }),
+                              DASHBOARD_BUSINESS_IMAGE_FALLBACK,
+                            )}
+                          />
+                        ) : <div className="h-full flex items-center justify-center text-[10px] text-slate-500">لا توجد صورة</div>}
                       </div>
                       <div className="min-w-0">
                         <div className="text-[11px] text-slate-500">صورة الصفحة الشخصية / الشعار</div>
@@ -1011,7 +1054,18 @@ export const MerchantDashboard: React.FC = () => {
                     <div className="min-w-0">
                       <div className="text-[11px] text-slate-500 mb-1">صورة الغلاف</div>
                       <div className="aspect-[16/9] sm:aspect-[851/315] max-h-24 overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
-                        {facebookPreview.coverUrl ? <img src={facebookPreview.coverUrl} alt="غلاف صفحة فيسبوك" className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[10px] text-slate-500">لا يوجد غلاف متاح</div>}
+                        {facebookPreview.coverUrl ? (
+                          <img
+                            src={facebookPreview.coverUrl}
+                            alt="غلاف صفحة فيسبوك"
+                            className="w-full h-full object-cover"
+                            onError={(event) => applyDashboardImageFallback(
+                              event.currentTarget,
+                              resolveDefaultImage({ name: facebookPreview.name, category: facebookPreview.category, kind: 'cover' }),
+                              DASHBOARD_BUSINESS_COVER_FALLBACK,
+                            )}
+                          />
+                        ) : <div className="h-full flex items-center justify-center text-[10px] text-slate-500">لا يوجد غلاف متاح</div>}
                       </div>
                     </div>
                   </div>
@@ -1034,9 +1088,14 @@ export const MerchantDashboard: React.FC = () => {
             <div className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
               <div className="relative aspect-[16/9] sm:aspect-[851/315] bg-slate-700">
                 <img
-                  src={bizCoverUrl}
+                  src={bizCoverUrl || resolveDefaultImage({ name: bizName, category: currentBusiness.category, kind: 'cover' })}
                   alt="معاينة الغلاف"
                   className="w-full h-full object-cover"
+                  onError={(event) => applyDashboardImageFallback(
+                    event.currentTarget,
+                    resolveDefaultImage({ name: bizName, category: currentBusiness.category, kind: 'cover' }),
+                    DASHBOARD_BUSINESS_COVER_FALLBACK,
+                  )}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                 <div className="absolute top-3 right-3 bg-black/60 text-white text-[11px] font-bold px-3 py-1 rounded-full">
@@ -1045,9 +1104,14 @@ export const MerchantDashboard: React.FC = () => {
               </div>
               <div className="p-4 relative -mt-10 flex items-center gap-4">
                 <img
-                  src={bizLogoUrl}
+                  src={bizLogoUrl || resolveDefaultImage({ name: bizName, category: currentBusiness.category, kind: 'activity' })}
                   alt="شعار النشاط"
                   className="w-20 h-20 rounded-2xl ring-4 ring-white object-cover bg-white shadow-md"
+                  onError={(event) => applyDashboardImageFallback(
+                    event.currentTarget,
+                    resolveDefaultImage({ name: bizName, category: currentBusiness.category, kind: 'activity' }),
+                    DASHBOARD_BUSINESS_IMAGE_FALLBACK,
+                  )}
                 />
                 <div className="pt-8">
                   <h4 className="font-extrabold text-base text-slate-900">{bizName}</h4>
@@ -1119,7 +1183,17 @@ export const MerchantDashboard: React.FC = () => {
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-5" aria-label="معاينة الصور الترويجية">
                   {promotionalImagePreview.images.map((image, index) => (
                     <div key={image} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                      <img src={image} alt={`معاينة الصورة الترويجية ${index + 1}`} loading="lazy" className="aspect-square w-full object-cover" />
+                      <img
+                        src={image}
+                        alt={`معاينة الصورة الترويجية ${index + 1}`}
+                        loading="lazy"
+                        className="aspect-square w-full object-cover"
+                        onError={(event) => applyDashboardImageFallback(
+                          event.currentTarget,
+                          resolveDefaultImage({ name: currentBusiness.name, category: currentBusiness.category, kind: 'cover' }),
+                          DASHBOARD_BUSINESS_COVER_FALLBACK,
+                        )}
+                      />
                       <p className="px-2 py-1 text-center text-[10px] font-bold text-slate-500">{index + 1} / 10</p>
                     </div>
                   ))}
@@ -1639,7 +1713,16 @@ export const MerchantDashboard: React.FC = () => {
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-hidden"
                 />
                 <div className="mt-2 flex flex-wrap items-center gap-3">
-                  <img src={formImageUrl || resolveDefaultImage({ name: formName, description: formDescription, category: formCategory, kind: formType === 'service' ? 'service' : 'product' })} alt="معاينة الصورة" className="h-16 w-20 rounded-lg border border-slate-200 bg-white object-cover" />
+                  <img
+                    src={formImageUrl || resolveDefaultImage({ name: formName, description: formDescription, category: formCategory, kind: formType === 'service' ? 'service' : 'product' })}
+                    alt="معاينة الصورة"
+                    className="h-16 w-20 rounded-lg border border-slate-200 bg-white object-cover"
+                    onError={(event) => applyDashboardImageFallback(
+                      event.currentTarget,
+                      resolveDefaultImage({ name: formName, description: formDescription, category: formCategory, kind: formType === 'service' ? 'service' : 'product' }),
+                      DASHBOARD_CATALOG_IMAGE_FALLBACK,
+                    )}
+                  />
                   <button type="button" onClick={() => setFormImageSource('auto')} className="text-xs font-bold text-emerald-700 underline">استخدام الصورة التلقائية المناسبة للاسم والوصف</button>
                   <span className="text-[11px] text-slate-500">{formImageSource === 'auto' ? 'صورة تلقائية حسب المجال' : formImageSource === 'ai' ? 'صورة مولدة بالذكاء الاصطناعي' : 'صورة مخصصة'}</span>
                 </div>
