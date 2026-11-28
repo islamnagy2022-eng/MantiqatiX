@@ -108,3 +108,51 @@ revoke insert, update, delete
 grant update (profile_image_path, settings, updated_at)
   on table public.marketing_provider_profiles
   to authenticated;
+
+ 
+-- Column-level UPDATE grants still expose a whole JSONB column. Keep the owner
+-- branding contract narrow: only branding.logo_path may change through the
+-- authenticated owner API; every other profile settings key stays immutable.
+create or replace function public.mnty_guard_provider_profile_branding_only()
+returns trigger
+language plpgsql
+set search_path to ''
+as $function$
+declare
+  v_old_settings jsonb;
+  v_new_settings jsonb;
+begin
+  if current_user <> 'authenticated' then
+    return new;
+  end if;
+
+  v_old_settings := coalesce(old.settings, '{}'::jsonb);
+  v_new_settings := coalesce(new.settings, '{}'::jsonb);
+
+  if (v_new_settings - 'branding') is distinct from (v_old_settings - 'branding') then
+    raise exception 'PROVIDER_PROFILE_OWNER_SETTINGS_NOT_BRANDING'
+      using errcode = '42501';
+  end if;
+
+  if v_new_settings ? 'branding'
+     and pg_catalog.jsonb_typeof(v_new_settings->'branding') is distinct from 'object' then
+    raise exception 'PROVIDER_PROFILE_OWNER_BRANDING_OBJECT_REQUIRED'
+      using errcode = '42501';
+  end if;
+
+  if (coalesce(v_new_settings->'branding', '{}'::jsonb) - 'logo_path')
+       is distinct from
+     (coalesce(v_old_settings->'branding', '{}'::jsonb) - 'logo_path') then
+    raise exception 'PROVIDER_PROFILE_OWNER_SETTINGS_NOT_BRANDING'
+      using errcode = '42501';
+  end if;
+
+  return new;
+end;
+$function$;
+
+drop trigger if exists mnty_provider_profile_branding_only on public.marketing_provider_profiles;
+create trigger mnty_provider_profile_branding_only
+  before update of settings on public.marketing_provider_profiles
+  for each row
+  execute function public.mnty_guard_provider_profile_branding_only();
