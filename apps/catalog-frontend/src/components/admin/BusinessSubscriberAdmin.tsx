@@ -56,8 +56,9 @@ export const BusinessSubscriberAdmin: React.FC = () => {
   const [saving,setSaving]=useState('');
   const [notice,setNotice]=useState<{error:boolean;text:string}|null>(null);
   const [roleEdit,setRoleEdit]=useState<{membership:Membership;role:string}|null>(null);
-  const load=useCallback(async()=>{
-    setLoading(true);setNotice(null);
+  const load=useCallback(async(preserveNotice=false)=>{
+    setLoading(true);
+    if(!preserveNotice)setNotice(null);
     const {data,error}=await supabase.functions.invoke('catalog-platform-admin',{body:{action:'LIST_BUSINESSES',search:search.trim()}});
     setLoading(false);
     if(error||!Array.isArray(data?.businesses)){setNotice({error:true,text:data?.message||error?.message||'تعذر تحميل الأنشطة والمشتركين. تحقق من صلاحيات مالك المنصة.'});return;}
@@ -94,7 +95,7 @@ export const BusinessSubscriberAdmin: React.FC = () => {
     if(error||!data?.success){setNotice({error:true,text:data?.message||error?.message||data?.error||'تعذر حفظ النشاط.'});return;}
     setNotice({error:false,text:action==='UPDATE'?'تم تحديث بيانات النشاط وتصنيفاته وصوره.':action==='DEACTIVATE'?'تم إيقاف النشاط مع الاحتفاظ بسجلاته.':'تمت إعادة تنشيط النشاط.'});
     if(action==='UPDATE')setEditingId(null);
-    await load();
+    await load(true);
   };
   const updateDraft=(id:string,key:keyof BusinessDraft,value:string)=>{
     const row=rows.find(x=>x.id===id);
@@ -114,7 +115,7 @@ export const BusinessSubscriberAdmin: React.FC = () => {
     setSaving('');
     if(error||!data?.success){setNotice({error:true,text:data?.message||error?.message||data?.error||'تعذر تحديث حالة النشر.'});return;}
     setNotice({error:false,text:published?'تم إلغاء النشر وإيقاف النشاط.':'تم نشر النشاط وتفعيله.'});
-    await load();
+    await load(true);
   };
   const openRoleEditor=(membership:Membership)=>{
     const currentRole=String(membership.role||'').toUpperCase();
@@ -153,7 +154,7 @@ export const BusinessSubscriberAdmin: React.FC = () => {
     if(error||data?.error){setNotice({error:true,text:data?.message||error?.message||data?.error||'تعذر تعديل العضوية.'});return;}
     setNotice({error:false,text:action==='SUSPEND'?'تم تعليق العضوية.':action==='RESTORE'?'تمت إعادة تفعيل العضوية.':'تم تغيير دور العضوية مع الحفاظ على نطاق النشاط والفرع.'});
     if(action==='CHANGE_ROLE')setRoleEdit(null);
-    await load();
+    await load(true);
   };
   return <section dir="rtl" className="space-y-4">
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
