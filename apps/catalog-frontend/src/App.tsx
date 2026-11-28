@@ -123,7 +123,7 @@ const MainContent: React.FC = () => {
       <Navbar />
 
       {authLoading && !hasDirectPublicCatalogLink && (
-        <div role="status" aria-live="polite" className="mx-auto mt-3 w-[calc(100%-2rem)] max-w-7xl rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-semibold text-sky-900">
+        <div role="status" aria-live="polite" className="mx-auto mt-3 w-[calc(100%-2rem)] max-w-7xl rounded-xl border border-[#ead5c5] bg-[#fff3e0] px-4 py-3 text-sm font-semibold text-[#7a0000]">
           جارٍ التحقق من تسجيل الدخول وتجهيز الصلاحيات… يمكنك تصفح الأنشطة المنشورة أثناء ذلك.
         </div>
       )}
