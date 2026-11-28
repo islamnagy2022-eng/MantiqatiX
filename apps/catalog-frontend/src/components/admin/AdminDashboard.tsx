@@ -2018,7 +2018,7 @@ export const AdminDashboard: React.FC = () => {
                     });
                   }
                 }}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-xs cursor-pointer"
+                className="bg-[#7a0000] hover:bg-[#5a0000] text-white font-black text-xs px-4 py-2.5 rounded-xl shadow-xs cursor-pointer"
               >
                 تطبيق بيانات JSON المحدودة
               </button>
@@ -2116,7 +2116,7 @@ export const AdminDashboard: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md shadow-emerald-600/20 cursor-pointer"
+                  className="px-5 py-2 text-xs font-black bg-[#7a0000] hover:bg-[#5a0000] text-white rounded-xl shadow-md shadow-[#7a0000]/20 cursor-pointer"
                 >
                   حفظ الاشتراك وربطه بحساب Google
                 </button>
@@ -2355,7 +2355,7 @@ export const AdminDashboard: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md shadow-emerald-600/20 cursor-pointer"
+                  className="px-5 py-2 text-xs font-black bg-[#7a0000] hover:bg-[#5a0000] text-white rounded-xl shadow-md shadow-[#7a0000]/20 cursor-pointer"
                 >
                   إضافة النشاط التجاري
                 </button>
@@ -2454,7 +2454,7 @@ export const AdminDashboard: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-black bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md cursor-pointer"
+                  className="px-5 py-2 text-xs font-black bg-[#f6c04d] hover:bg-[#ffe1a3] text-[#3a0000] rounded-xl shadow-md cursor-pointer"
                 >
                   حفظ التصنيف
                 </button>
