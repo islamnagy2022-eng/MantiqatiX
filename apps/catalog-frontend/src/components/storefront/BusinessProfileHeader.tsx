@@ -177,6 +177,9 @@ export const BusinessProfileHeader: React.FC = () => {
               if (image.dataset.defaultFallbackApplied !== 'true') {
                 image.dataset.defaultFallbackApplied = 'true';
                 image.src = defaultCover;
+              } else {
+                image.onerror = null;
+                image.style.visibility = 'hidden';
               }
             }}
           />
@@ -312,6 +315,9 @@ export const BusinessProfileHeader: React.FC = () => {
                     if (image.dataset.defaultFallbackApplied !== 'true') {
                       image.dataset.defaultFallbackApplied = 'true';
                       image.src = defaultLogo;
+                    } else {
+                      image.onerror = null;
+                      image.style.visibility = 'hidden';
                     }
                   }}
                 />
