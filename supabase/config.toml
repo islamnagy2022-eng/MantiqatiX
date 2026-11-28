@@ -39,3 +39,7 @@ verify_jwt = false
 # Admin actions validate the Supabase user and protected platform-admin registry in-handler.
 [functions.catalog-admin]
 verify_jwt = false
+
+# Scheduled cleanup endpoint authenticates with a Vault-backed high-entropy bearer token.
+[functions.cleanup-catalog-media]
+verify_jwt = false
