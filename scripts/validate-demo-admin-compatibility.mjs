@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const migration = readFileSync(
-  'supabase/migrations/20261128090000_demo_admin_control_center_compatibility.sql',
+  'supabase/migrations/20261128112119_demo_admin_control_center_compatibility.sql',
   'utf8',
 ).toLowerCase();
 
@@ -17,11 +17,11 @@ const platformAdminEdge = readFileSync(
 ).toLowerCase();
 
 const permissionRepairSource = readFileSync(
-  'supabase/migrations/20261128090000_demo_admin_control_center_compatibility.sql',
+  'supabase/migrations/20261128112119_demo_admin_control_center_compatibility.sql',
   'utf8',
 );
 const demoPlatformRootMigration = readFileSync(
-  'supabase/migrations/20261128085000_demo_platform_root_authority_convergence.sql',
+  'supabase/migrations/20261128112058_demo_platform_root_authority_convergence.sql',
   'utf8',
 ).toLowerCase();
 
