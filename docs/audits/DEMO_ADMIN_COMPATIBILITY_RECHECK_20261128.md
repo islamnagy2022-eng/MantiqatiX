@@ -4,7 +4,8 @@
 **Project:** `MantiqatiX-DEMO` — `lkijdgqanbqjudiducjt`  
 **Repository:** `islamnagy2022-eng/MantiqatiX`  
 **Branch:** `dev/demo-admin-compat-20261128`  
-**Checked head:** `1dfcef0cab2725f70d19e5d1d2df35bec14e0e2b`  
+**Verified application-code head:** `1dfcef0cab2725f70d19e5d1d2df35bec14e0e2b`  
+**Latest branch head at documentation refresh:** `96b6258d3d87a3e1aacfc9d6ae6bebc53ac42935` (documentation-only changes after the tested code head)  
 **Pull request:** [#1216 — isolated admin control-center compatibility](https://github.com/islamnagy2022-eng/MantiqatiX/pull/1216) (Draft)
 
 ## Applied migrations in DEMO
@@ -35,23 +36,26 @@ supabase login
 supabase link --project-ref lkijdgqanbqjudiducjt
 ```
 
-For current Supabase CLI v3, database commands are local-first. Specify the hosted target explicitly, inspect the remote history, and include `--yes` for the intentional hosted history write:
+The repository's forward-replay workflow pins Supabase CLI `2.122.0`. For that repository-pinned version, use the linked-target form after explicitly linking to DEMO:
 
 ```bash
-supabase migration list --remote=lkijdgqanbqjudiducjt
-supabase migration repair 20261128112652 --status applied --remote=lkijdgqanbqjudiducjt --yes
-supabase migration list --remote=lkijdgqanbqjudiducjt
-```
-
-For the repository-pinned Supabase CLI v2.122.0, use the linked-target form instead:
-
-```bash
+supabase --version
+supabase link --project-ref lkijdgqanbqjudiducjt
 supabase migration list --linked
 supabase migration repair 20261128112652 --status applied --linked
 supabase migration list --linked
 ```
 
-Proceed only after confirming the project is exactly `lkijdgqanbqjudiducjt`, the version is absent before repair, and the ACL effects described above remain present. The repair inserts the missing migration-history record; it does **not** execute the migration SQL. Afterward, verify that remote history contains `20261128112652` and still contains `20261128112653`. Do not use `db push`, `migration up`, `db reset`, or direct SQL writes to `supabase_migrations.schema_migrations` for this reconciliation. Never run the repair against Production. The v3 remote-target and confirmation behavior is described in the [CLI v2-to-v3 migration guide](https://supabase.com/docs/guides/local-development/cli/migrating-to-v3); the [migration repair CLI reference](https://supabase.com/docs/reference/cli/supabase-migration-repair) confirms the command records history as applied without executing SQL.
+For CLI v3 and newer, the current remote-target syntax is:
+
+```bash
+supabase link --project-ref lkijdgqanbqjudiducjt
+supabase migration list --remote=lkijdgqanbqjudiducjt
+supabase migration repair 20261128112652 --status applied --remote=lkijdgqanbqjudiducjt
+supabase migration list --remote=lkijdgqanbqjudiducjt
+```
+
+Use the interactive confirmation prompt; do not add `--yes` to a manual run. In a non-interactive script, `--yes` bypasses the hosted-database prompt and must only be used after a separate explicit operator approval and a verified DEMO target. In either CLI version, proceed only after confirming the project is exactly `lkijdgqanbqjudiducjt`, version `20261128112652` is absent before repair, and the ACL effects described above remain present. The repair inserts the missing migration-history record; it does **not** execute the migration SQL. Afterward, verify remote history contains `20261128112652` and still contains `20261128112653`. Do not use `db push`, `migration up`, `db reset`, or direct SQL writes to `supabase_migrations.schema_migrations` for this reconciliation. Never run the repair against Production. References: [Supabase CLI v2-to-v3 migration guide](https://supabase.com/docs/guides/local-development/cli/migrating-to-v3), [migration repair CLI reference](https://supabase.com/docs/reference/cli/supabase-migration-repair), and [database migration history repair](https://supabase.com/docs/guides/deployment/database-migrations).
 
 ## Verified DEMO schema and authorization state
 
@@ -74,7 +78,12 @@ Read-after-apply and current read-only checks confirm:
 - Shared activity-module sanitization and subscriber-membership deduplication modules are included.
 - A fresh read-back compared the deployed `index.ts` content with branch source `supabase/functions/catalog-platform-admin/index.ts`: the contents match byte-for-byte (68,536 characters); both shared modules are present in the deployed bundle. This establishes DEMO Edge source parity for this function, not HTTP behavior.
 
-Direct live-origin smoke tests remain incomplete. Attempts against both the GitHub Pages catalog URL and the DEMO Supabase Edge URL failed before establishing an HTTP connection because this execution environment could not resolve the hostnames (`curl: (6) Could not resolve host`). Requests did not reach GitHub Pages or the Edge Function; do not treat CORS, unauthenticated rejection, or page rendering as network-verified.
+Direct DEMO Edge HTTP smoke was completed successfully by GitHub Actions on application-code head `1dfcef0cab2725f70d19e5d1d5df35bec14e0e2b`, Pages workflow run `46145201046`:
+- OPTIONS from the existing Pages origin passed CORS checks for POST/OPTIONS and the requested headers.
+- Anonymous POST to `TENANT_LIST` returned HTTP 401 with `AUTH_REQUIRED`.
+- POST from `https://not-allowed.example` returned HTTP 403 with `ORIGIN_NOT_ALLOWED`, without granting that origin CORS access.
+
+This verifies only the DEMO function's public preflight, anonymous rejection, and origin rejection. It does not verify a successful authenticated platform-admin action. No admin JWT was created or used. The live Pages origin was also checked by the deployed-origin redirect regression; that test validates the existing published site, not this Draft PR's build or a fresh deployment.
 
 ## Operator bootstrap still required
 
@@ -122,7 +131,7 @@ Latest read of the Supabase Security Advisor reports:
 
 ## Environment boundaries and remaining closure items
 
-- Only the three listed migrations and the `catalog-platform-admin` Edge Function changes were applied to MantiqatiX-DEMO; no Production schema/data/Auth/Edge Function was changed.
+- Only the three listed migrations and the `catalog-platform-admin` Edge Function changes were applied to MantiqatiX-DEMO; the fourth ACL migration's effect is already present but its migration-history row is missing. No Production schema/data/Auth/Edge Function was changed.
 - The ACL helper preflight migration `20261128112652` is in source and passed chronological replay; its SQL effect is already verified in live DEMO, but the one missing history record still needs the explicit CLI repair above.
 - The DEMO HTTP/CORS negative-boundary smoke passed; authenticated platform-admin browser acceptance remains outstanding because no approved DEMO admin identity exists.
 - The Professional Dashboard browser E2E passed, but it is not a substitute for a dedicated authenticated Super Admin Control Center E2E.
