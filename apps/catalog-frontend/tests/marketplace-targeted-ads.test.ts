@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getPublicGovernorateAdCode, loadTargetedAdvertisements } from '../src/utils/targetedAdvertisements';
+import { getPublicGovernorateAdCode, getTargetedAdvertisementAudienceLabel, loadTargetedAdvertisements } from '../src/utils/targetedAdvertisements';
 
 const validAd = (id: string, overrides: Record<string, unknown> = {}) => ({
   advertisement_id: id,
@@ -209,4 +209,17 @@ test('rejects out-of-Egypt or partial coordinates for location targeting', async
 
   assert.equal(seenArgs[0]?.p_lat, null);
   assert.equal(seenArgs[0]?.p_lon, null);
+});
+
+
+test('describes paid cover ads using the actual geographic match level', () => {
+  assert.equal(getTargetedAdvertisementAudienceLabel('CENTER', 'المنوفية', 'بركة السبع'), 'موجه لمركز بركة السبع');
+  assert.equal(getTargetedAdvertisementAudienceLabel('GOVERNORATE', 'المنوفية'), 'موجه لمحافظة المنوفية');
+  assert.equal(getTargetedAdvertisementAudienceLabel('COUNTRY', 'المنوفية'), 'حملة عامة على مستوى مصر');
+  assert.equal(getTargetedAdvertisementAudienceLabel('NEAREST', 'المنوفية'), 'أقرب نطاق إعلاني متاح لموقعك');
+});
+
+test('does not invent a precise region when the ad RPC returns no match level', () => {
+  assert.equal(getTargetedAdvertisementAudienceLabel(null, 'المنوفية'), 'إعلان متاح ضمن نطاق المنوفية');
+  assert.equal(getTargetedAdvertisementAudienceLabel(undefined, 'all'), 'إعلان متاح داخل مصر');
 });
