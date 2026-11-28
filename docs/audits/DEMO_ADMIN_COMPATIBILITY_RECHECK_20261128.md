@@ -1,94 +1,110 @@
 # MantiqatiX-DEMO — Admin Control Center Delivery & Security Recheck
 
-**Checkpoint:** 2026-11-28  
+**Checkpoint:** 2026-11-28 12:30 UTC  
 **Project:** `MantiqatiX-DEMO` — `lkijdgqanbqjudiducjt`  
 **Repository:** `islamnagy2022-eng/MantiqatiX`  
 **Branch:** `dev/demo-admin-compat-20261128`  
+**Checked head:** `12a55ce05d3f6cbf358a95021f1360a2b30f8d1c`  
 **Pull request:** [#1216 — isolated admin control-center compatibility](https://github.com/islamnagy2022-eng/MantiqatiX/pull/1216) (Draft)
 
-## Applied migrations
+## Applied migrations in DEMO
 
-The DEMO migration ledger contains these three applied versions. A fourth source migration (`20261128112652_demo_permission_helper_execute_acl.sql`) is now present in the PR to make the clean Production-checkpoint replay establish the authenticated helper ACL before the following search_path contract. It is not in the live DEMO ledger; the live ACL was verified independently and already satisfies the same contract. Do not edit the three applied migration files or apply the pending earlier-version migration without reconciling the migration ledger/order.
+The live DEMO migration ledger contains these three applied versions. The PR also contains `20261128112652_demo_permission_helper_execute_acl.sql`; this migration passed the clean forward replay but is not recorded in the live DEMO ledger.
 
 | Ledger version | Migration file | Purpose |
 |---|---|---|
-| `20261128112058` | `20261128112058_demo_platform_root_authority_convergence.sql` | Registry-backed root authority, FORCE RLS, coordinated RC464/469/471/472-index/484/485 chain, then RC486/923/925 later catalog protections |
-| `20261128112119` | `20261128112119_demo_admin_control_center_compatibility.sql` | Custom platform roles and assignments, people/audit/business RPCs, employee job positions and employees, BizCatalog settings, guarded business deletion |
-| `20261128112653` | `20261128112653_demo_mnty_permission_helper_empty_search_path.sql` | Empty search_path on legacy `mnty_active_membership` and `mnty_can` helpers |
+| `20261128112058` | `20261128112058_demo_platform_root_authority_convergence.sql` | Registry-backed root authority, FORCE RLS, and coordinated platform authorization/catalog protections. |
+| `20261128112119` | `20261128112119_demo_admin_control_center_compatibility.sql` | Custom platform roles and assignments, people/audit/business RPCs, employee positions/employees, BizCatalog settings, guarded business deletion. |
+| `20261128112653` | `20261128112653_demo_mnty_permission_helper_empty_search_path.sql` | Empty search_path on legacy `mnty_active_membership` and `mnty_can` helpers. |
 
-The GitHub files are named to match the actual migration ledger versions. Do not reapply these migrations manually.
+Do not edit the three applied migration files.
+
+## Migration history reconciliation — one operator action remains
+
+Read-only inspection of the live DEMO functions confirms that the SQL effect of source migration `20261128112652` already exists:
+- Both helper ACLs are exactly `{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}`.
+- `PUBLIC` and `anon` do not have EXECUTE; `authenticated` does.
+- Both helpers have `search_path=""`.
+- The live migration ledger still does not contain version `20261128112652`.
+
+The source migration is therefore a history-alignment item, not a missing live ACL change. The current execution environment has no Supabase CLI installed, so no repair command was run. From an authorized terminal linked only to MantiqatiX-DEMO, run the documented Supabase CLI history repair:
+
+```bash
+supabase migration repair 20261128112652 --status applied
+supabase migration list
+```
+
+This command records the migration as applied without rerunning its SQL. Verify the remote list shows `20261128112652` after repair. Do not insert rows manually into `supabase_migrations.schema_migrations`, do not use `db reset --linked`, and never run the repair against Production. Supabase documentation: [Database migrations and history repair](https://supabase.com/docs/guides/deployment/database-migrations) and [migration repair CLI](https://supabase.com/docs/reference/cli/supabase-migration-repair).
 
 ## Verified DEMO schema and authorization state
 
-Read-after-apply checks confirm:
-- `mnty_can_platform_admin()` and `is_platform_admin()` both consult `private.platform_admins`.
-- `private.platform_admins` has RLS and FORCE RLS enabled. Browser roles cannot read the registry directly.
-- Anonymous users cannot execute the root guards; authenticated users may invoke the guarded root check.
-- Registry row count remains **0**; no user has been promoted.
-- All 36 public `SECURITY DEFINER` functions executable by `authenticated` have empty `search_path`. The legacy `mnty_active_membership` and `mnty_can` helpers were hardened in the third migration without changing their ACL or permission logic.
-- The four admin/employee tables (`platform_custom_roles`, `platform_role_assignments`, `business_job_positions`, `business_employees`) have RLS enabled, no permissive policies and no direct anon/auth table privileges. The resulting Advisor INFO finding is intentionally fail-closed.
-- `bizcatalog_platform_settings` has RLS, a service-role-only policy, and no direct browser table privileges.
-- `mnty_platform_admin_delete_business(text,uuid,uuid)` is SECURITY INVOKER, has empty search_path, and is executable only by service_role. It blocks deletion when historical order/payment/inventory/accounting/legal records exist and writes an audit event.
-- Final employee RPC definitions preserve the RC457 permission ceiling and override-subset checks.
+Read-after-apply and current read-only checks confirm:
+- `mnty_can_platform_admin()` and `is_platform_admin()` consult `private.platform_admins`.
+- `private.platform_admins` has RLS and FORCE RLS enabled; browser roles cannot read the registry directly.
+- The registry row count remains **0**; no identity was promoted.
+- The two legacy helpers have no PUBLIC/anon EXECUTE, retain authenticated EXECUTE, and have empty search_path.
+- The four admin/employee tables (`platform_custom_roles`, `platform_role_assignments`, `business_job_positions`, `business_employees`) remain fail-closed with RLS enabled and no browser table grants.
+- `bizcatalog_platform_settings` is service-role-only with RLS.
+- `mnty_platform_admin_delete_business(text,uuid,uuid)` remains SECURITY INVOKER, has empty search_path, and is service_role-only; it protects historical records and writes an audit event.
+- Employee RPC permission ceilings and override-subset checks remain preserved.
 
 ## Edge Function deployment
 
 `catalog-platform-admin` is deployed to MantiqatiX-DEMO only:
-- Status: ACTIVE
-- Version: 1
-- Gateway `verify_jwt=false` so CORS OPTIONS requests can reach the handler.
-- The handler requires a Bearer token, validates the user with Supabase Auth, rejects anonymous users, and requires `mnty_can_platform_admin()` before any platform action.
-- Shared activity-module sanitization and subscriber-membership deduplication modules are included in the deployed bundle.
+- Status: ACTIVE; version: 1.
+- Gateway `verify_jwt=false` permits CORS OPTIONS to reach the handler.
+- The handler performs its own Bearer-token validation, Auth user validation, rejects anonymous users, and checks `mnty_can_platform_admin()` before platform actions.
+- Shared activity-module sanitization and subscriber-membership deduplication modules are included.
 
-Supabase read-back confirms the deployed function is ACTIVE version 1. A direct HTTP smoke test has **not** completed: the execution environment could not resolve the Supabase hostname, so the request did not reach the Edge Function. Do not describe CORS or unauthenticated HTTP behavior as network-verified yet.
+A direct unauthenticated HTTP/CORS test of this specific DEMO function has not been completed. The current execution environment cannot resolve the Supabase hostname (curl DNS error 6); the request did not reach the function. Do not treat the handler response or CORS behavior as network-verified.
 
 ## Operator bootstrap still required
 
-The platform-admin registry contains zero identities. The migration intentionally does not invent or seed a privileged user. An authorized project operator must create/verify a separate confirmed Auth account inside DEMO and follow [the bootstrap runbook](../runbooks/DEMO_PLATFORM_ADMIN_BOOTSTRAP_20261128.md). Never copy a Production identity, session, or credential into DEMO.
+The platform-admin registry contains zero identities. No privileged user is seeded automatically. An authorized project operator must select and confirm a separate Auth account inside DEMO, verify its confirmed email and exact Auth UUID, then follow [the bootstrap runbook](../runbooks/DEMO_PLATFORM_ADMIN_BOOTSTRAP_20261128.md). Never copy a Production identity, session, or credential into DEMO.
 
-Until an approved DEMO account is registered, the admin UI correctly denies users. Do not substitute a tenant OWNER/ADMIN/SUPER_ADMIN membership for the protected platform registry.
+Until that explicit operator action is completed, the admin UI correctly denies platform-root access. A tenant OWNER, ADMIN, or SUPER_ADMIN membership is not a substitute for the protected platform registry.
 
 ## Deliberately disabled function
 
-The activity-module override editor remains fail-closed at the server boundary. Any direct `activityModuleOverrides` write receives HTTP 409 (`ACTIVITY_MODULE_SETTINGS_NOT_READY`) until settings persistence and audit insertion can be committed atomically. This is an intentional safety lock, not a front-end-only restriction.
+The activity-module override editor remains fail-closed at the server boundary. A direct `activityModuleOverrides` write returns HTTP 409 (`ACTIVITY_MODULE_SETTINGS_NOT_READY`) until settings persistence and audit insertion can be committed atomically. This is intentional.
 
-## PostgreSQL rehearsal and CI evidence
+## PostgreSQL rehearsal and latest CI evidence
 
-Before applying the migrations, the complete ordered root + admin chain was executed against the actual DEMO schema inside one transaction and rolled back. The rehearsal passed:
-- registry-only root behavior (tenant ADMIN/SUPER_ADMIN denied; registry-only user allowed);
-- admin RPC ACLs, internal helper denial, FORCE RLS, exact DEMO policy-inventory fingerprint;
-- RC472 null-safe membership index preflight;
-- BizCatalog service-role settings write and history-protected business delete + audit;
-- employee RBAC, tenant/business/branch isolation and RC457 permission ceilings;
-- RC485 registry root, RC486 price serialization and RC925 missing-anonymous-claim tests.
+The exact DEMO-schema transaction rehearsal passed and was rolled back; a read-after-rollback confirmed no rehearsal schema or data remained. It covered registry-only root behavior, tenant ADMIN/SUPER_ADMIN denial, admin RPC ACLs, internal helper denial, FORCE RLS, policy inventory, RC472 index preflight, BizCatalog service-role settings/history-protected deletion, employee RBAC and RC457 ceilings, and RC485/RC486/RC925 catalog contracts.
 
-The rehearsal returned `DEMO_EXACT_SCHEMA_ROOT_ADMIN_RBAC_RC485_RC486_RC925_ROLLED_BACK`; a read-after-rollback confirmed no rehearsal schema or data remained. The migrations were then applied individually and verified through the live DEMO ledger and catalog queries.
+On checked head `12a55ce05d3f6cbf358a95021f1360a2b30f8d1c`: 
+- The full chronological PostgreSQL 17 forward migration replay passed: workflow run `46143565888`.
+- Migration uniqueness, migration-history immutability, collision guard, module boundaries, consent, audit atomicity, payment atomicity, and platform contract checks passed.
+- Primary catalog frontend validation and Module Professionalization validation passed.
+- The Pages workflow validation passed; the deployed-origin redirect regression passed all 3 checks on the already-published GitHub Pages origin.
+- The V6 preview browser E2E passed in the isolated composed build, including desktop/mobile pagination (20 initial / 25 total), directory search, activity/specialty filter, image loading, and accessibility scan with 0 critical violations.
+- Production smoke checks in CI passed for Google OAuth initiation, selected existing Edge Function CORS preflights, the public targeted-ads RPC (4 sanitized rows), and the public directory/Qadam response (10 businesses / 15 Qadam items). These tests do not exercise `catalog-platform-admin` on DEMO.
+- The PR Pages `deploy` job was **skipped** because this is a pull-request branch. The redirect test only checked the already-deployed origin; no GitHub Pages publication was performed from this Draft PR.
 
-The separate chronological PostgreSQL 17 GitHub replay applies the migration chain on a disposable localhost Supabase instance restored from the captured Production schema checkpoint. It is not an exact DEMO schema replay. On the latest PR head, this replay was in progress after source-contract checks; final completion is pending.
+## Production release gate — still BLOCKED
 
-## Supabase Advisor findings
+The same production verification report explicitly returns `PRODUCTION_GATE=BLOCKED`; only the scoped catalog pilot gate passes. The blockers include:
+- The required release migration ledger check reports 89 expected versions and 0 recorded in the live Production ledger.
+- Payment/finance end-to-end readiness is not verified; several required database columns, processors, provider binding, and journal ACL contracts are absent or incomplete.
+- Backup/restore is not verified: no full Production database/Storage export, off-site restore, measured RPO/RTO, or rollback rehearsal was evidenced.
+- Multiple high-impact deployed Edge Functions still differ from source and require coordinated DB-contract review before any deployment.
+- SMM parity remains partial/deferred.
+- Auth security settings remain unverified; leaked-password protection is disabled and anonymous Auth sign-ins require an owner decision.
 
-Latest security advisor findings to keep visible:
-- 6 RLS-enabled tables without policies: the four new admin/employee tables above, plus the pre-existing `digital_page_payment_events` and `mantigo_payment_provider_events`. Direct browser grants remain denied.
-- 1 anon-executable SECURITY DEFINER function: `get_mnty_targeted_advertisements`, the intentionally public targeted-advertising read endpoint.
-- 36 authenticated-executable SECURITY DEFINER functions. All have empty search_path. They are user-callable RPCs and rely on their own auth/tenant/permission logic; continue targeted review. Do not remove required product RPC access indiscriminately.
-- Leaked-password protection remains disabled (pre-existing Auth setting).
-- Performance Advisor still reports unrelated baseline items (unindexed foreign keys, RLS initplan notices, unused/duplicate indexes and multiple permissive policies). They were not bulk-modified in this scoped task.
+Passing CI is not Production release approval. Do not merge or deploy the full platform until these Production blockers are reconciled and reverified. The catalog pilot scope must remain separate from financial, payments, SMM, and MantiGO deployment scope.
 
-## Latest CI state
+## Current security advisor findings in DEMO
 
-On the most recent checked PR head:
-- Migration version uniqueness, migration-history immutability and cross-PR collision guard: passed.
-- Forward PostgreSQL 17 replay on the current head: pending after the permission-helper ACL preflight was added; the prior replay failed at the old helper ACL contract, and the latest run must confirm the new preflight fixes it.
-- Primary catalog build and professional-dashboard browser checks: running.
-- Module Professionalization / platform-admin, Pages/V6 and related validation: running or queued.
-- PR deployment workflow is main-gated; no GitHub Pages production publication was performed from this Draft PR.
+Latest read of the Supabase Security Advisor reports:
+- 6 RLS-enabled tables without policies: the four admin/employee tables above plus the pre-existing `digital_page_payment_events` and `mantigo_payment_provider_events`. Direct browser grants remain denied.
+- 1 anon-executable SECURITY DEFINER function: `get_mnty_targeted_advertisements`, the intentionally public targeted-advertising endpoint. Keep its input/output contract under review.
+- 36 authenticated-executable SECURITY DEFINER functions. These require continued targeted review of their own authorization checks; do not indiscriminately remove required user RPC grants.
+- Performance Advisor baseline findings remain outside this scoped change.
 
-## Environment boundaries
+## Environment boundaries and remaining closure items
 
-- Three migrations applied only to Supabase project `MantiqatiX-DEMO`; the new `20261128112652` replay-preflight migration is source-only and not recorded in the live ledger.
-- `catalog-platform-admin` deployed only to MantiqatiX-DEMO.
-- No Production schema/data/Auth/Edge Function was changed.
-- No GitHub Pages production publication occurred.
+- Only the three listed migrations and the `catalog-platform-admin` Edge Function changes were applied to MantiqatiX-DEMO; no Production schema/data/Auth/Edge Function was changed.
+- The ACL helper preflight migration `20261128112652` is in source and passed chronological replay; its live DEMO history record remains to be repaired with Supabase CLI as documented above.
+- No GitHub Pages production publication occurred from this Draft PR.
 - No Auth identity or platform-admin registry row was created.
-- PR #1216 remains Draft pending final latest-head CI, direct DEMO HTTP/browser authorization tests and an explicitly approved DEMO-only administrator bootstrap.
+- PR #1216 remains Draft. Remaining work: reconcile the single DEMO migration-history entry, perform direct DEMO HTTP/CORS/auth smoke tests from a network that can reach Supabase, obtain explicit approval for a DEMO-only platform-admin identity, and close the separate Production release blockers before any full release.
