@@ -2,7 +2,7 @@
 
 ## Current branch additions — PR #1216
 
-- Added `20261128085000_demo_platform_root_authority_convergence.sql` before the control-center migration. It coordinates RC464/RC469/RC471/RC472-index/RC484/RC485, then reapplies later RC486 price serialization, RC923 anonymous-session guards, and RC925 fail-closed missing-claim guards, so replaying RC485 cannot undo later catalog protection. It applies only the null-safe index subset of RC472 because DEMO has no directory-claim tables, and accepts the DEMO policy surface only when its exact 56-policy/23-table fingerprint is `f307f246e905c9dc1a3964184718b570` (or the canonical 57/24+ checkpoint).
+- Added `20261128112058_demo_platform_root_authority_convergence.sql` before the control-center migration. It coordinates RC464/RC469/RC471/RC472-index/RC484/RC485, then reapplies later RC486 price serialization, RC923 anonymous-session guards, and RC925 fail-closed missing-claim guards, so replaying RC485 cannot undo later catalog protection. It applies only the null-safe index subset of RC472 because DEMO has no directory-claim tables, and accepts the DEMO policy surface only when its exact 56-policy/23-table fingerprint is `f307f246e905c9dc1a3964184718b570` (or the canonical 57/24+ checkpoint).
 - The exact-DEMO single-transaction dry-run ran the root sequence, control-center migration, BizCatalog/delete rollback behavior, employee permission-ceiling tests, and tenant-admin-denied / registry-admin-allowed root checks. It returned `DEMO_PLATFORM_ROOT_AND_ADMIN_DRY_RUN_ROLLED_BACK`; all DDL and synthetic test records were rolled back.
 
 - The compatibility migration now adds the missing `bizcatalog_platform_settings` table with RLS, no browser grants, and a service-role-only policy.
