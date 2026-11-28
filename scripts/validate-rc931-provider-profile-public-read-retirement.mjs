@@ -12,8 +12,8 @@ const fixture = read("supabase/tests/rc931_provider_profile_public_read_fixture.
 const integration = read("supabase/tests/rc931_provider_profile_public_read_integration.sql");
 const workflow = read(".github/workflows/rc931-provider-profile-public-read-retirement.yml");
 assert.match(workflow, /validate-marketing-crm-tenant-scope\.mjs/);
-assert.match(workflow, /rc452_marketing_crm_scope_fixture\\.sql/);
-assert.match(workflow, /rc452_marketing_crm_scope_integration\\.sql/);
+assert.match(workflow, /rc452_marketing_crm_scope_fixture\.sql/);
+assert.match(workflow, /rc452_marketing_crm_scope_integration\.sql/);
 assert.match(workflow, /CREATE DATABASE rc115_test/);
 const rc926Integration = read("supabase/tests/rc926_provider_profile_confirmed_identity_strict_integration.sql");
 const replayWorkflow = read(".github/workflows/forward-migration-chain-replay.yml");
