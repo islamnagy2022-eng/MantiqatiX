@@ -6,6 +6,11 @@ const migration = readFileSync(
   'utf8',
 ).toLowerCase();
 
+const postgresTest = readFileSync(
+  'supabase/tests/demo_admin_control_center_compatibility.sql',
+  'utf8',
+).toLowerCase();
+
 const externalRpcSignatures = [
   'mnty_platform_admin_list_custom_roles()',
   'mnty_platform_admin_upsert_custom_role(text,text,text,text,jsonb,uuid,boolean)',
@@ -97,6 +102,17 @@ assert.ok(
   !/service_role\s+key|supabase_service_role_key/i.test(migration),
   'A server-side service-role secret must not be embedded in the migration.',
 );
+
+for (const marker of [
+  'demo_admin_definer_search_path_not_empty',
+  'demo_admin_internal_definer_path_failed',
+  'demo_admin_root_helper_not_registry_backed',
+  'demo_admin_root_helper_anon_execute_granted',
+  'demo_admin_root_helper_search_path_not_empty',
+  'demo_admin_root_registry_rls_not_forced',
+]) {
+  assert.ok(postgresTest.includes(marker), 'PostgreSQL integration contract missing assertion marker: ' + marker);
+}
 
 console.log('DEMO_ADMIN_COMPATIBILITY_STATIC_CONTRACT=PASS');
 console.log(
