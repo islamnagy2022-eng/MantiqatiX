@@ -181,24 +181,24 @@ test('requests only HOME_HERO ads for the selected governorate and consented coo
 });
 
 test('manual governorate targeting does not send precise coordinates', async () => {
-  let argsSeen: Record<string, unknown> | null = null;
+  const seenArgs: Array<Record<string, unknown>> = [];
   await loadTargetedAdvertisements(async (_name, args) => {
-    argsSeen = args;
+    seenArgs.push(args);
     return { data: [validAd('cover-manual', { ad_space_id: 'HOME_HERO' })], error: null };
   }, {
     adSpaces: ['HOME_HERO'],
     governorate: 'المنوفية',
   });
 
-  assert.equal(argsSeen?.p_governorate_code, '17');
-  assert.equal(argsSeen?.p_lat, null);
-  assert.equal(argsSeen?.p_lon, null);
+  assert.equal(seenArgs[0]?.p_governorate_code, '17');
+  assert.equal(seenArgs[0]?.p_lat, null);
+  assert.equal(seenArgs[0]?.p_lon, null);
 });
 
 test('rejects out-of-Egypt or partial coordinates for location targeting', async () => {
-  let argsSeen: Record<string, unknown> | null = null;
+  const seenArgs: Array<Record<string, unknown>> = [];
   await loadTargetedAdvertisements(async (_name, args) => {
-    argsSeen = args;
+    seenArgs.push(args);
     return { data: [validAd('cover-invalid-coordinates', { ad_space_id: 'HOME_HERO' })], error: null };
   }, {
     adSpaces: ['HOME_HERO'],
@@ -207,6 +207,6 @@ test('rejects out-of-Egypt or partial coordinates for location targeting', async
     longitude: 31,
   });
 
-  assert.equal(argsSeen?.p_lat, null);
-  assert.equal(argsSeen?.p_lon, null);
+  assert.equal(seenArgs[0]?.p_lat, null);
+  assert.equal(seenArgs[0]?.p_lon, null);
 });
