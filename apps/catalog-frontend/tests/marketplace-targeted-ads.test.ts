@@ -210,3 +210,27 @@ test('rejects out-of-Egypt or partial coordinates for location targeting', async
   assert.equal(seenArgs[0]?.p_lat, null);
   assert.equal(seenArgs[0]?.p_lon, null);
 });
+
+test('requests both homepage placements within the selected governorate', async () => {
+  const seen: Array<Record<string, unknown>> = [];
+  const ads = await loadTargetedAdvertisements(async (_name, args) => {
+    seen.push(args);
+    return {
+      data: [validAd(String(args.p_ad_space_id), { ad_space_id: args.p_ad_space_id })],
+      error: null,
+    };
+  }, {
+    adSpaces: ['HOME_HERO', 'HOME_SPONSORED'],
+    governorate: 'الغربية',
+    limit: 8,
+  });
+
+  assert.equal(seen.length, 2);
+  assert.deepEqual(
+    seen.map((args) => args.p_ad_space_id).sort(),
+    ['HOME_HERO', 'HOME_SPONSORED'],
+  );
+  assert.ok(seen.every((args) => args.p_governorate_code === '16'));
+  assert.ok(seen.every((args) => args.p_lat === null && args.p_lon === null));
+  assert.equal(ads.length, 2);
+});

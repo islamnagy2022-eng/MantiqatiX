@@ -232,9 +232,12 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
                   className="relative h-full w-full object-cover"
                   onError={(event) => {
                     const image = event.currentTarget;
-                    if (image.dataset.fallbackApplied !== 'true') {
+                    if (!image.dataset.fallbackApplied) {
                       image.dataset.fallbackApplied = 'true';
                       image.src = resolveDefaultImage({ name: business.name, description: business.bio, category: business.category, kind: 'cover' });
+                    } else if (!image.dataset.emergencyFallbackApplied) {
+                      image.dataset.emergencyFallbackApplied = 'true';
+                      image.src = (import.meta.env.BASE_URL || '/') + 'business-placeholder.svg';
                     } else {
                       image.onerror = null;
                       image.style.visibility = 'hidden';
@@ -254,9 +257,12 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
                     className="absolute inset-0 h-full w-full object-cover"
                     onError={(event) => {
                       const image = event.currentTarget;
-                      if (image.dataset.fallbackApplied !== 'true') {
+                      if (!image.dataset.fallbackApplied) {
                         image.dataset.fallbackApplied = 'true';
                         image.src = resolveDefaultImage({ name: business.name, description: business.bio, category: business.category, kind: 'activity' });
+                      } else if (!image.dataset.emergencyFallbackApplied) {
+                        image.dataset.emergencyFallbackApplied = 'true';
+                        image.src = (import.meta.env.BASE_URL || '/') + 'business-placeholder.svg';
                       } else {
                         image.onerror = null;
                         image.style.visibility = 'hidden';

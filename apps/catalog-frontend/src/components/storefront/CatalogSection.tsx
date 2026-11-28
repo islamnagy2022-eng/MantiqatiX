@@ -282,9 +282,12 @@ export const CatalogSection: React.FC = () => {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     onError={(e) => {
                       const image = e.currentTarget;
-                      if (product.imageUrl && image.dataset.defaultFallbackApplied !== 'true') {
+                      if (product.imageUrl && !image.dataset.defaultFallbackApplied) {
                         image.dataset.defaultFallbackApplied = 'true';
                         image.src = defaultProductImage;
+                      } else if (!image.dataset.emergencyFallbackApplied) {
+                        image.dataset.emergencyFallbackApplied = 'true';
+                        image.src = (import.meta.env.BASE_URL || '/') + 'catalog-item-placeholder.svg';
                       } else {
                         image.onerror = null;
                         image.style.visibility = 'hidden';
