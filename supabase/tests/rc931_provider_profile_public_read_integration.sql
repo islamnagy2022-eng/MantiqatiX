@@ -169,7 +169,7 @@ END;
 $business_owner$;
 RESET ROLE;
 
--- Profile owner keeps their own active/pending profile rows and owner UPDATE.
+-- Profile owner keeps their own active/pending row and can change only the logo path.
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claims',
   '{"sub":"30000000-0000-4000-8000-000000000016","role":"authenticated","is_anonymous":false}', false);
@@ -183,13 +183,60 @@ BEGIN
   IF EXISTS (SELECT 1 FROM public.marketing_provider_profiles WHERE id='40000000-0000-4000-8000-000000000002') THEN
     RAISE EXCEPTION 'RC931_PROFILE_OWNER_READ_ANOTHER_ONBOARDING_ROW';
   END IF;
+
   UPDATE public.marketing_provider_profiles
-     SET settings=jsonb_set(settings,'{rc931_owner_update}','true'::jsonb,true)
+     SET settings = jsonb_set(
+       coalesce(settings, '{}'::jsonb),
+       '{branding}',
+       coalesce(settings->'branding', '{}'::jsonb)
+         || jsonb_build_object('logo_path', 'users/provider-a/logo.webp'),
+       true
+     )
    WHERE id='40000000-0000-4000-8000-000000000001';
   GET DIAGNOSTICS affected = ROW_COUNT;
   IF affected <> 1 THEN
     RAISE EXCEPTION 'RC931_PROFILE_OWNER_UPDATE_REGRESSED:%', affected;
   END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM public.marketing_provider_profiles
+    WHERE id='40000000-0000-4000-8000-000000000001'
+      AND settings->>'official_showcase' = 'true'
+      AND settings->>'managed_by' = 'SUPER_ADMIN'
+      AND settings->>'activity_code' = 'HEALTH'
+      AND settings->'branding'->>'logo_path' = 'users/provider-a/logo.webp'
+      AND settings->'branding'->>'preserve_me' = 'platform-owned'
+  ) THEN
+    RAISE EXCEPTION 'RC931_OWNER_LOGO_UPDATE_CHANGED_NON_BRANDING_SETTINGS';
+  END IF;
+
+  BEGIN
+    UPDATE public.marketing_provider_profiles
+       SET settings = jsonb_set(settings, '{official_showcase}', 'false'::jsonb, true)
+     WHERE id='40000000-0000-4000-8000-000000000001';
+    RAISE EXCEPTION 'RC931_OWNER_NON_BRANDING_SETTINGS_MUTATION_ALLOWED';
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL;
+  END;
+
+  BEGIN
+    UPDATE public.marketing_provider_profiles
+       SET settings = jsonb_set(settings, '{branding,preserve_me}', '"owner-controlled"'::jsonb, true)
+     WHERE id='40000000-0000-4000-8000-000000000001';
+    RAISE EXCEPTION 'RC931_OWNER_NON_LOGO_BRANDING_MUTATION_ALLOWED';
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL;
+  END;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM public.marketing_provider_profiles
+    WHERE id='40000000-0000-4000-8000-000000000001'
+      AND settings->>'official_showcase' = 'true'
+      AND settings->'branding'->>'preserve_me' = 'platform-owned'
+  ) THEN
+    RAISE EXCEPTION 'RC931_OWNER_SETTINGS_CHANGED_OUTSIDE_BRANDING_LOGO';
+  END IF;
+
   UPDATE public.marketing_provider_profiles
      SET settings=jsonb_set(settings,'{rc931_wrong_owner_update}','true'::jsonb,true)
    WHERE id='40000000-0000-4000-8000-000000000002';
