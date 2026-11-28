@@ -14,8 +14,8 @@ The root-convergence migration makes `private.platform_admins` the only source o
 
 1. PR #1216 has been reviewed and intentionally applied to the DEMO project only.
 2. The DEMO migration ledger shows both:
-   - `20261128085000_demo_platform_root_authority_convergence`
-   - `20261128090000_demo_admin_control_center_compatibility`
+   - `20261128112058_demo_platform_root_authority_convergence`
+   - `20261128112119_demo_admin_control_center_compatibility`
 3. An authorized project owner has approved the exact DEMO account that should receive platform-root authority.
 4. The chosen user is an Auth account in this DEMO project with a confirmed email.
 5. The operator has verified the Auth UUID from the DEMO Auth Users view. Do not identify a target from a display name alone.
