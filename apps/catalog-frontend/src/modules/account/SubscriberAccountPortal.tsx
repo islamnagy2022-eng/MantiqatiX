@@ -75,7 +75,7 @@ export const SubscriberAccountPortal: React.FC = () => {
       <section dir="rtl" className="mx-auto max-w-3xl p-10 text-center">
         <h1 className="text-2xl font-black">يلزم تسجيل الدخول</h1>
         <p className="mt-2 text-slate-600">سجّل الدخول لعرض حسابك واشتراكاتك.</p>
-        <button type="button" onClick={() => setCurrentView('directory')} className="mt-5 rounded-xl bg-emerald-700 px-5 py-3 font-bold text-white">
+        <button type="button" onClick={() => setCurrentView('directory')} className="mt-5 rounded-xl bg-[#7a0000] px-5 py-3 font-bold text-white">
           العودة إلى الدليل
         </button>
       </section>
@@ -192,7 +192,7 @@ export const SubscriberAccountPortal: React.FC = () => {
                     <article className="rounded-2xl border border-slate-200 bg-white p-5">
                       <h3 className="font-black">إدارة نشاطك</h3>
                       <p className="mt-2 text-sm text-slate-500">افتح أدوات الإدارة المسموح بها في العضوية الحالية.</p>
-                      <button type="button" disabled={!canMerchant && !canProfessional} onClick={openManagement} className="mt-4 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-black text-white disabled:opacity-40">
+                      <button type="button" disabled={!canMerchant && !canProfessional} onClick={openManagement} className="mt-4 rounded-xl bg-[#7a0000] px-4 py-2.5 text-sm font-black text-white disabled:opacity-40">
                         فتح لوحة النشاط
                       </button>
                     </article>
@@ -274,7 +274,7 @@ export const SubscriberAccountPortal: React.FC = () => {
                         <p className="mt-1 text-xs text-slate-500">{business.publicationStatus === 'PUBLISHED' || business.publicEnabled ? 'منشور' : 'غير منشور'} • {business.isVerified ? 'موثق' : 'غير موثق'}</p>
                       </div>
                     </div>
-                    <button type="button" disabled={!canMerchant && !canProfessional} onClick={openManagement} className="rounded-xl bg-emerald-700 px-4 py-2.5 text-xs font-black text-white disabled:opacity-40">
+                    <button type="button" disabled={!canMerchant && !canProfessional} onClick={openManagement} className="rounded-xl bg-[#7a0000] px-4 py-2.5 text-xs font-black text-white disabled:opacity-40">
                       إدارة النشاط
                     </button>
                   </div>
@@ -286,7 +286,7 @@ export const SubscriberAccountPortal: React.FC = () => {
               <article className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-7">
                 <div className="flex items-center gap-2 text-emerald-800"><LockKeyhole className="h-5 w-5" /><h2 className="text-xl font-black">{isAdmin ? 'مركز تحكم المنصة' : 'أدوات إدارة النشاط'}</h2></div>
                 <p className="mt-2 text-sm text-slate-500">الانتقال يفتح اللوحة الحالية المحمية بنفس صلاحياتها؛ لا تُنشأ صلاحيات جديدة من شاشة الحساب.</p>
-                <button type="button" onClick={openManagement} className="mt-5 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-black text-white">
+                <button type="button" onClick={openManagement} className="mt-5 rounded-xl bg-[#7a0000] px-5 py-3 text-sm font-black text-white">
                   {isAdmin ? 'فتح مركز تحكم المنصة' : canMerchant ? 'فتح لوحة صاحب النشاط' : 'فتح الداشبورد الاحترافية'}
                 </button>
               </article>
