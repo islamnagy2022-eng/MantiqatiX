@@ -9,7 +9,7 @@
 - [x] PR #1196 merged to `main` as `c32bdb47ff3db2cebf19e38fd3e97f880b8e1f74` after its exact-head workflows passed, including the strict 88-version chronological PostgreSQL 17 replay; no Production writes were made.
 - [x] Supabase CLI 2.122.0 generation and focused PostgreSQL 17 RC446 → RC477 → RC478 → RC932 integration passed, including missing/null/true/false claims and mismatched caller-ID rejection.
 - [x] PR #1199 merged to `main` as `160228ee40590c27992cee5952895d0ed90b3ff6`; the focused RC932 PostgreSQL 17 suite and full chronological replay passed on its exact head.
-- [ ] RC115 + RC931 are being revalidated with RC932 on a fresh branch and unified 92-version release contract; exact-head RC931 and full 92-version replay remain pending.
+- [ ] RC115 + RC116 + RC931 are being revalidated with RC932 on a fresh branch and unified 92-version release contract; exact-head RC931 and full 92-version replay remain pending.
 - [ ] Owner-controlled encrypted database + Storage export, Auth/Vault recovery, independent PostgreSQL 17 restore/rollback and measured RPO/RTO remain NOT VERIFIED.
 - [ ] Full physical-effect/alias and Edge DB/RPC/ACL/RLS reconciliation, platform-root correction, payment/finance sandbox evidence and post-deploy negative/positive E2E remain release blockers.
 - **Production safety:** no Production migration/SQL write, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, payout, settlement, or customer/business/ride/financial-row mutation was performed.
