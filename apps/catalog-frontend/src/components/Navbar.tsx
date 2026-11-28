@@ -51,11 +51,11 @@ export const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 w-full max-w-full overflow-x-clip border-b border-slate-200/80 bg-white/95 shadow-lg shadow-slate-950/[0.04] backdrop-blur-xl">
       {/* Top Banner with Platform Context */}
-      <div className="bg-[#101b2d] px-3 py-2 text-[11px] text-slate-300 sm:px-6">
+      <div className="bg-[#3a0000] px-3 py-2 text-[11px] text-[#f8e7d3] border-b border-[#f6c04d]/25 sm:px-6">
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2">
-            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              <Sparkles className="w-3 h-3 ml-1 text-emerald-400" />
+            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-[#f6c04d]/15 text-[#ffe1a3] border border-[#f6c04d]/30">
+              <Sparkles className="w-3 h-3 ml-1 text-[#f6c04d]" />
               منصة MantiqatiX الذكية
             </span>
             <div
@@ -91,18 +91,18 @@ export const Navbar: React.FC = () => {
               `}</style>
               <div className="mantiqati-ticker-track w-max">
                 <div className="flex shrink-0 items-center gap-8 whitespace-nowrap pl-8" dir="rtl">
-                  <span className="text-emerald-300 font-bold">صاحب نشاط؟ اطلب تفعيل اشتراكك من إدارة منطقتي X وابدأ عرض منتجاتك وخدماتك</span>
+                  <span className="text-amber-300 font-bold">صاحب نشاط؟ اطلب تفعيل اشتراكك من إدارة منطقتي X وابدأ عرض منتجاتك وخدماتك</span>
                   <span>قرّب عملاء منطقتك منك بكتالوج رقمي واضح وأسعار محدثة</span>
                   <span className="text-amber-300 font-bold">تابع منطقتي X لاكتشاف الأنشطة والخدمات والعروض الجديدة</span>
                   <span>ساعد مشروعك على الوصول لعملاء جدد واطلب مساعدة الإدارة في الانضمام</span>
-                  <span className="text-emerald-300 font-bold">تابع الموقع وشارك رابطه مع أصدقائك لدعم الأنشطة المحلية</span>
+                  <span className="text-amber-300 font-bold">تابع الموقع وشارك رابطه مع أصدقائك لدعم الأنشطة المحلية</span>
                 </div>
                 <div className="flex shrink-0 items-center gap-8 whitespace-nowrap pl-8" dir="rtl" aria-hidden="true">
-                  <span className="text-emerald-300 font-bold">صاحب نشاط؟ اطلب تفعيل اشتراكك من إدارة منطقتي X وابدأ عرض منتجاتك وخدماتك</span>
+                  <span className="text-amber-300 font-bold">صاحب نشاط؟ اطلب تفعيل اشتراكك من إدارة منطقتي X وابدأ عرض منتجاتك وخدماتك</span>
                   <span>قرّب عملاء منطقتك منك بكتالوج رقمي واضح وأسعار محدثة</span>
                   <span className="text-amber-300 font-bold">تابع منطقتي X لاكتشاف الأنشطة والخدمات والعروض الجديدة</span>
                   <span>ساعد مشروعك على الوصول لعملاء جدد واطلب مساعدة الإدارة في الانضمام</span>
-                  <span className="text-emerald-300 font-bold">تابع الموقع وشارك رابطه مع أصدقائك لدعم الأنشطة المحلية</span>
+                  <span className="text-amber-300 font-bold">تابع الموقع وشارك رابطه مع أصدقائك لدعم الأنشطة المحلية</span>
                 </div>
               </div>
             </div>
@@ -262,7 +262,7 @@ export const Navbar: React.FC = () => {
                     setMarketingOpening(false);
                   }
                 }}
-                className={`bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs px-3 py-1.5 rounded-xl shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition-all flex-shrink-0 ${marketingBusiness && !marketingOpening ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
+                className={`bg-[#a00000] hover:bg-[#7a0000] text-white font-black text-xs px-3 py-1.5 rounded-xl shadow-md shadow-[#7a0000]/20 flex items-center gap-1.5 transition-all flex-shrink-0 ${marketingBusiness && !marketingOpening ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
                 title={marketingBusiness ? "فتح صفحة نشاط MantiqatiX للتسويق الإلكتروني" : "صفحة نشاط MantiqatiX غير متاحة حالياً"}
                 aria-disabled={!marketingBusiness || marketingOpening}
                 aria-busy={marketingOpening}
@@ -274,7 +274,7 @@ export const Navbar: React.FC = () => {
               {/* Shopping Cart Button */}
               <button
                 onClick={() => setIsCartOpen(true)}
-                className="relative flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 flex-shrink-0 cursor-pointer active:scale-95"
+                className="relative flex items-center gap-1.5 bg-[#7a0000] hover:bg-[#5a0000] text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-md shadow-[#7a0000]/20 flex-shrink-0 cursor-pointer active:scale-95"
                 aria-label="فتح سلة الطلبات"
               >
                 <ShoppingBag className="w-4 h-4" />
@@ -299,19 +299,19 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Bottom Line: Accessible View Mode Tabs */}
-          <div className="flex items-center justify-start overflow-x-auto rounded-2xl border border-slate-200/80 bg-slate-50/80 p-1.5 no-scrollbar sm:rounded-3xl">
+          <div className="flex items-center justify-start overflow-x-auto rounded-2xl border border-slate-200/80 bg-[#fff8f0] p-1.5 no-scrollbar sm:rounded-3xl">
             <nav aria-label="التنقل الرئيسي في MantiqatiX" data-testid="mantiqatix-primary-navigation" className="flex min-w-max items-center gap-1 text-xs font-semibold sm:w-auto">
               {/* Canonical marketplace homepage. */}
               <button
                 onClick={() => setCurrentView('marketplace_home')}
                 aria-current={currentView === 'marketplace_home' ? 'page' : undefined}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d] ${
                   currentView === 'marketplace_home'
-                    ? 'bg-slate-950 text-white font-black shadow-md shadow-slate-900/10'
-                    : 'text-slate-600 hover:bg-white hover:text-slate-950'
+                    ? 'bg-[#7a0000] text-white font-black shadow-md shadow-[#7a0000]/20'
+                    : 'text-slate-600 hover:bg-[#fff3e0] hover:text-[#7a0000]'
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
+                <Sparkles className="w-3.5 h-3.5 text-[#b8862b]" />
                 <span>الرئيسية</span>
               </button>
 
@@ -319,10 +319,10 @@ export const Navbar: React.FC = () => {
               <button
                 onClick={() => setCurrentView('directory')}
                 aria-current={currentView === 'directory' ? 'page' : undefined}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d] ${
                   currentView === 'directory'
-                    ? 'bg-slate-950 text-white font-black shadow-md shadow-slate-900/10'
-                    : 'text-slate-600 hover:bg-white hover:text-slate-950'
+                    ? 'bg-[#7a0000] text-white font-black shadow-md shadow-[#7a0000]/20'
+                    : 'text-slate-600 hover:bg-[#fff3e0] hover:text-[#7a0000]'
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
@@ -334,10 +334,10 @@ export const Navbar: React.FC = () => {
               {authSession.role !== 'guest' && (
                 <button
                   onClick={() => setCurrentView('public_storefront')}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d] ${
                     currentView === 'public_storefront'
-                      ? 'bg-slate-950 text-white font-black shadow-md shadow-slate-900/10'
-                      : 'text-slate-600 hover:bg-white hover:text-slate-950'
+                      ? 'bg-[#7a0000] text-white font-black shadow-md shadow-[#7a0000]/20'
+                      : 'text-slate-600 hover:bg-[#fff3e0] hover:text-[#7a0000]'
                   }`}
                 >
                   <Store className="w-3.5 h-3.5" />
@@ -354,10 +354,10 @@ export const Navbar: React.FC = () => {
                   type="button"
                   onClick={() => setCurrentView('account_portal')}
                   aria-current={currentView === 'account_portal' ? 'page' : undefined}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d] ${
                     currentView === 'account_portal'
-                      ? 'bg-slate-950 text-white font-black shadow-md shadow-slate-900/10'
-                      : 'text-slate-600 hover:bg-white hover:text-slate-950'
+                      ? 'bg-[#7a0000] text-white font-black shadow-md shadow-[#7a0000]/20'
+                      : 'text-slate-600 hover:bg-[#fff3e0] hover:text-[#7a0000]'
                   }`}
                 >
                   <UserCheck className="w-3.5 h-3.5" />
@@ -369,10 +369,10 @@ export const Navbar: React.FC = () => {
               {canAccessMerchantDashboard(authSession) && (
                 <button
                   onClick={() => setCurrentView('merchant_admin')}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d] ${
                     currentView === 'merchant_admin'
-                      ? 'bg-slate-950 text-white font-black shadow-md shadow-slate-900/10'
-                      : 'text-slate-600 hover:bg-white hover:text-slate-950'
+                      ? 'bg-[#7a0000] text-white font-black shadow-md shadow-[#7a0000]/20'
+                      : 'text-slate-600 hover:bg-[#fff3e0] hover:text-[#7a0000]'
                   }`}
                 >
                   <LayoutDashboard className="w-3.5 h-3.5" />
@@ -388,14 +388,14 @@ export const Navbar: React.FC = () => {
               {canAccessProfessionalDashboard(authSession) && (
                 <button
                   onClick={() => setCurrentView('professional_dashboard')}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d] ${
                     currentView === 'professional_dashboard'
-                      ? 'bg-slate-950 text-white font-black shadow-md shadow-slate-900/10'
-                      : 'text-slate-600 hover:bg-white hover:text-slate-950'
+                      ? 'bg-[#7a0000] text-white font-black shadow-md shadow-[#7a0000]/20'
+                      : 'text-slate-600 hover:bg-[#fff3e0] hover:text-[#7a0000]'
                   }`}
                   aria-current={currentView === 'professional_dashboard' ? 'page' : undefined}
                 >
-                  <LayoutDashboard className="w-3.5 h-3.5 text-emerald-700" />
+                  <LayoutDashboard className="w-3.5 h-3.5 text-[#b8862b]" />
                   <span>الداشبورد الاحترافية</span>
                 </button>
               )}
@@ -404,10 +404,10 @@ export const Navbar: React.FC = () => {
               {authSession.role === 'admin' && (
                 <button
                   onClick={() => setCurrentView('super_admin')}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c04d] ${
                     currentView === 'super_admin'
-                      ? 'bg-slate-950 text-white font-black shadow-md shadow-slate-900/10'
-                      : 'text-slate-600 hover:bg-white hover:text-slate-950'
+                      ? 'bg-[#7a0000] text-white font-black shadow-md shadow-[#7a0000]/20'
+                      : 'text-slate-600 hover:bg-[#fff3e0] hover:text-[#7a0000]'
                   }`}
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
