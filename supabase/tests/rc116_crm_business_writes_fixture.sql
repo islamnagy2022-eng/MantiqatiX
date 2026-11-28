@@ -61,6 +61,54 @@ create table public.marketing_provider_profiles (
   updated_at timestamptz not null default now()
 );
 alter table public.marketing_provider_profiles enable row level security;
+
+-- Test mirror of the forward-only RC931 owner branding guard. RC116 stays immutable.
+-- The JSONB settings column is wider than the owner branding capability.
+-- Keep owner self-service to the provider logo path; platform-managed metadata
+-- remains writable only through trusted platform/service-role workflows.
+create or replace function public.mnty_guard_provider_profile_branding_only()
+returns trigger
+language plpgsql
+set search_path to ''
+as $function$
+declare
+  v_old_settings jsonb;
+  v_new_settings jsonb;
+begin
+  if current_user <> 'authenticated' then
+    return new;
+  end if;
+
+  v_old_settings := coalesce(old.settings, '{}'::jsonb);
+  v_new_settings := coalesce(new.settings, '{}'::jsonb);
+
+  if (v_new_settings - 'branding') is distinct from (v_old_settings - 'branding') then
+    raise exception 'PROVIDER_PROFILE_OWNER_SETTINGS_NOT_BRANDING'
+      using errcode = '42501';
+  end if;
+
+  if v_new_settings ? 'branding'
+     and pg_catalog.jsonb_typeof(v_new_settings->'branding') is distinct from 'object' then
+    raise exception 'PROVIDER_PROFILE_OWNER_BRANDING_OBJECT_REQUIRED'
+      using errcode = '42501';
+  end if;
+
+  if (coalesce(v_new_settings->'branding', '{}'::jsonb) - 'logo_path')
+       is distinct from
+     (coalesce(v_old_settings->'branding', '{}'::jsonb) - 'logo_path') then
+    raise exception 'PROVIDER_PROFILE_OWNER_SETTINGS_NOT_BRANDING'
+      using errcode = '42501';
+  end if;
+
+  return new;
+end;
+$function$;
+
+drop trigger if exists mnty_provider_profile_branding_only on public.marketing_provider_profiles;
+create trigger mnty_provider_profile_branding_only
+  before update of settings on public.marketing_provider_profiles
+  for each row
+  execute function public.mnty_guard_provider_profile_branding_only();
 create policy "Owners manage their marketing provider profile"
   on public.marketing_provider_profiles for all to authenticated
   using (
@@ -113,3 +161,24 @@ insert into public.marketing_provider_profiles(
   ('40000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000011', 'FREELANCER', 'Provider A', 'provider-a', 'PENDING', false),
   ('40000000-0000-4000-8000-000000000002', '30000000-0000-4000-8000-000000000003', '30000000-0000-4000-8000-000000000013', 'FREELANCER', 'Provider B', 'provider-b', 'PENDING', false),
   ('40000000-0000-4000-8000-000000000004', null, '30000000-0000-4000-8000-000000000021', 'FREELANCER', 'Legacy Owner Profile', 'legacy-owner-profile', 'ACTIVE', false);
+
+ 
+-- Seed non-brand metadata to prove an owner logo update preserves it.
+update public.marketing_provider_profiles
+set settings = jsonb_build_object(
+  'official_showcase', true,
+  'managed_by', 'SUPER_ADMIN',
+  'activity_code', 'HEALTH',
+  'branding', jsonb_build_object(
+    'logo_path', 'assets/original-provider-a.svg',
+    'preserve_me', 'platform-owned'
+  )
+)
+where id = '40000000-0000-4000-8000-000000000001';
+
+update public.marketing_provider_profiles
+set settings = jsonb_build_object(
+  'managed_by', 'PLATFORM',
+  'branding', jsonb_build_object('logo_path', 'assets/original-legacy.svg')
+)
+where id = '40000000-0000-4000-8000-000000000004';

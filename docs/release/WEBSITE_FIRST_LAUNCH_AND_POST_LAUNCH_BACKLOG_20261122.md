@@ -1,12 +1,13 @@
-# CURRENT RELEASE GATE — 2026-11-28 — RC932
+# CURRENT RELEASE GATE — 2026-11-28 — RC115 / RC116 / RC931 / RC932
 
 This overlay supersedes older migration-count and Production-state summaries below; historical entries remain unchanged.
 
-- Current canonical source contract: **89 required migration IDs**, chronologically ordered.
-- Latest direct read-only Production ledger: 310 rows through `20261110150618`; **0/89 exact required identifiers** are recorded. This is an identity gap, not proof every physical effect is absent.
-- RC930 remains source-only; new RC932 (`20261127235334`) is the 89th candidate and requires `is_anonymous=false` explicitly for MantiGO open-ride location disclosure.
-- RC932 regression cases: missing claim, JSON null and true denied; explicit false preserves verified/available captain access. The timestamped file was generated using pinned Supabase CLI 2.122.0 and is pending exact-head/full replay CI.
-- RC932 is not applied to Production. Do not apply or deploy any migration/function separately. Backup/restore, global authorization, full DB/Edge parity, payment/finance sandbox and release approvals remain blocked.
+- Current canonical source contract: **92 required migration IDs**, chronologically ordered.
+- Latest direct read-only Production ledger: 310 rows through `20261110150618`; **0/92 exact required identifiers** are recorded. This is an identity gap, not proof every physical effect is absent.
+- RC932 (`20261127235334`) was merged source-only in PR #1199. Its focused PostgreSQL 17 regression and full chronological replay passed before merge. It requires `is_anonymous=false` explicitly for MantiGO open-ride location disclosure.
+- RC115 (`20261125130000`) binds provider CRM reads to tenant/business scope. RC116 (`20261125140000`) adds exact-business write constraints and separates owner profile reads from limited branding updates. RC931 (`20261128010000`) retires the global public provider-profile base-table read only after RC479, RC926, RC115/RC116 and RC484 prerequisites.
+- RC115, RC116 and RC931 remain source-only in the unified branch with RC932; dedicated RC931 PostgreSQL 17 and full 92-version replay checks are pending.
+- None of these versions is applied to Production. Do not apply or deploy any migration/function separately. Backup/restore, global authorization, full DB/Edge parity, payment/finance sandbox and release approvals remain blocked.
 - `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 
 ---

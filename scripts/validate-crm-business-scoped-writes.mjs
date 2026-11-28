@@ -2,6 +2,7 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const migration = fs.readFileSync("supabase/migrations/20261125140000_rc116_crm_business_scoped_writes.sql", "utf8");
+const brandingGuardMigration = fs.readFileSync("supabase/migrations/20261128010000_rc931_provider_profile_public_base_read_retirement.sql", "utf8");
 const fixture = fs.readFileSync("supabase/tests/rc116_crm_business_writes_fixture.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc116_crm_business_writes_integration.sql", "utf8");
 
@@ -20,10 +21,22 @@ assert.equal((migration.match(/^\s+business_id is null$/gm) || []).length, 3);
 assert.match(migration, /business_id cannot be changed because it[\s\S]*?is not included/i);
 assert.match(migration, /revoke insert, update, delete[\s\S]*?from authenticated/i);
 assert.match(migration, /grant update \(profile_image_path, settings, updated_at\)/i);
+// RC116 is immutable historical SQL. The JSONB branding guard is introduced
+// by the forward-only RC931 migration and mirrored only in disposable fixtures.
+assert.doesNotMatch(migration, /mnty_guard_provider_profile_branding_only/);
+assert.ok(brandingGuardMigration.includes("create or replace function public.mnty_guard_provider_profile_branding_only()"));
+assert.ok(brandingGuardMigration.includes("current_user <> 'authenticated'"));
+assert.ok(brandingGuardMigration.includes("v_new_settings - 'branding'"));
+assert.ok(brandingGuardMigration.includes("coalesce(v_new_settings->'branding', '{}'::jsonb) - 'logo_path'"));
+assert.ok(brandingGuardMigration.includes("before update of settings on public.marketing_provider_profiles"));
 assert.equal((migration.match(/auth\.jwt\(\)->>'is_anonymous'/g) || []).length, 4);
 
 assert.match(fixture, /create policy "Owners manage their marketing provider profile"/);
 assert.match(fixture, /grant select, insert, update, delete on public\.marketing_provider_profiles to authenticated/);
+assert.ok(fixture.includes("create or replace function public.mnty_guard_provider_profile_branding_only()"));
+assert.ok(fixture.includes("current_user <> 'authenticated'"));
+assert.ok(fixture.includes("coalesce(v_new_settings->'branding', '{}'::jsonb) - 'logo_path'"));
+assert.ok(fixture.includes("before update of settings on public.marketing_provider_profiles"));
 assert.match(fixture, /'TENANT-A', 'Business A2'/);
 
 for (const marker of [
@@ -35,6 +48,7 @@ for (const marker of [
   "unscoped tenant admin created a business lead",
   "anonymous session created a marketing lead",
   "provider owner could not update own branding",
+  "owner logo update changed non-brand profile settings",
   "provider owner changed profile business_id",
   "provider owner self-approved profile",
   "provider owner self-verified profile",

@@ -104,11 +104,14 @@ const requiredReleaseMigrations=[
   "20261124150000_rc925_catalog_rpc_missing_anonymous_claim_guard.sql",
   "20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql",
   "20261125120000_rc927_digital_page_authenticated_identity_scope.sql",
+  "20261125130000_rc115_crm_business_scoped_reads.sql",
+  "20261125140000_rc116_crm_business_scoped_writes.sql",
   "20261126010000_rc928_catalog_profile_promotional_gallery_atomic_write.sql",
   "20261126020000_preserve_marketing_service_image_provenance.sql",
   "20261126030000_rc929_orders_confirmed_auth_claim_guard.sql",
   "20261127010000_rc930_serialize_job_deactivation_and_application.sql",
-  "20261127235334_rc932_mantigo_open_ride_explicit_confirmed_auth.sql"
+  "20261127235334_rc932_mantigo_open_ride_explicit_confirmed_auth.sql",
+  "20261128010000_rc931_provider_profile_public_base_read_retirement.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
