@@ -462,3 +462,28 @@ END;
 $demo_platform_root_authorization_behavior$;
 ROLLBACK;
 SELECT 'DEMO_PLATFORM_ROOT_AUTHORIZATION_BEHAVIOR=PASS' AS result;
+
+DO $demo_mnty_permission_helpers_empty_path$
+DECLARE
+  v_active oid := pg_catalog.to_regprocedure('public.mnty_active_membership(character varying,uuid,character varying)');
+  v_can oid := pg_catalog.to_regprocedure('public.mnty_can(text,character varying,uuid,character varying)');
+BEGIN
+  IF v_active IS NULL OR v_can IS NULL THEN
+    RAISE EXCEPTION 'DEMO_PERMISSION_HELPER_FUNCTION_MISSING';
+  END IF;
+  IF NOT (SELECT coalesce(p.proconfig,ARRAY[]::text[]) @> ARRAY['search_path=""']::text[] FROM pg_catalog.pg_proc p WHERE p.oid=v_active) THEN
+    RAISE EXCEPTION 'DEMO_MNTY_ACTIVE_MEMBERSHIP_SEARCH_PATH_NOT_EMPTY';
+  END IF;
+  IF NOT (SELECT coalesce(p.proconfig,ARRAY[]::text[]) @> ARRAY['search_path=""']::text[] FROM pg_catalog.pg_proc p WHERE p.oid=v_can) THEN
+    RAISE EXCEPTION 'DEMO_MNTY_CAN_SEARCH_PATH_NOT_EMPTY';
+  END IF;
+  IF pg_catalog.has_function_privilege('anon',v_active,'EXECUTE')
+     OR pg_catalog.has_function_privilege('anon',v_can,'EXECUTE')
+     OR NOT pg_catalog.has_function_privilege('authenticated',v_active,'EXECUTE')
+     OR NOT pg_catalog.has_function_privilege('authenticated',v_can,'EXECUTE') THEN
+    RAISE EXCEPTION 'DEMO_PERMISSION_HELPER_EXECUTE_ACL_CHANGED';
+  END IF;
+END;
+$demo_mnty_permission_helpers_empty_path$;
+
+SELECT 'DEMO_MNTY_PERMISSION_HELPERS_EMPTY_PATH=PASS' AS result;
