@@ -80,6 +80,7 @@ console.log('BUSINESS_SUBSCRIBER_UNKNOWN_ROLE_FAILS_CLOSED=PASS');
 // Branch-scoped role updates stay disabled until the deployed Edge Function advertises the required read contract.
 assert.ok(platformAdminEndpointSource.includes('capabilities: { branchScopedRoleEdits: true }'), 'The list endpoint must advertise branch-scoped role edit capability explicitly.');
 assert.ok(businessSubscriberSource.includes('data.capabilities?.branchScopedRoleEdits === true'), 'The UI must fail closed when the deployed list endpoint is old.');
+assert.ok(businessSubscriberSource.includes('    setRoleEditorSupported(false);'), 'Every refresh must clear stale server capability until the new response proves support.');
 assert.ok(businessSubscriberSource.includes('تغيير الدور متوقف مؤقتًا حتى تؤكد خدمة الإدارة دعم نطاق الفرع'), 'The UI must explain the deployment compatibility guard.');
 assert.ok(browserE2ESource.includes('omitScopedRoleCapabilities'), 'Browser E2E must exercise an older API response without the capability marker.');
 console.log('BUSINESS_SUBSCRIBER_ROLE_EDITOR_REQUIRES_SERVER_CAPABILITY=PASS');
