@@ -8,6 +8,7 @@ import {
   CircleDollarSign,
   ClipboardCheck,
   FileText,
+  Database,
   Layers3,
   Settings2,
   ShieldCheck,
@@ -27,7 +28,8 @@ export type AdminDashboardTab =
   | 'directory_listings'
   | 'activity_modules'
   | 'settings'
-  | 'control_center';
+  | 'control_center'
+  | 'backup';
 
 type Props = {
   businesses: Business[];
@@ -54,6 +56,7 @@ const shortcuts: Array<{
   { id: 'commissions', title: 'قواعد العمولات', description: 'مراجعة مسودات قواعد العمولات', icon: <FileText className="h-5 w-5" /> },
   { id: 'settings', title: 'إعدادات المنصة', description: 'إعدادات الإدارة ووسائل التواصل', icon: <Settings2 className="h-5 w-5" /> },
   { id: 'control_center', title: 'مركز التحكم والصلاحيات', description: 'الأدوار والإسناد والموظفون وسجل العمليات', icon: <ShieldCheck className="h-5 w-5" /> },
+  { id: 'backup', title: 'التصدير المحدود والاستعادة', description: 'تصدير واستيراد البيانات المتاحة في لوحة الإدارة فقط', icon: <Database className="h-5 w-5" /> },
 ];
 
 const MetricCard: React.FC<{
