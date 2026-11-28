@@ -9,6 +9,7 @@ const migration = readFileSync('supabase/migrations/20261128070000_mnty_catalog_
 const optimizedMigration = readFileSync('supabase/migrations/20261128071000_optimize_catalog_media_reference_scan.sql', 'utf8');
 const allTextMigration = readFileSync('supabase/migrations/20261128072000_include_all_text_catalog_media_references.sql', 'utf8');
 const unusedWindowMigration = readFileSync('supabase/migrations/20261128080000_start_media_retention_on_unreferenced_date.sql', 'utf8');
+const resumeCleanupMigration = readFileSync('supabase/migrations/20261128081000_resume_catalog_media_cleanup_after_safe_retention.sql', 'utf8');
 const unusedWindowIntegration = readFileSync('supabase/tests/catalog_media_unreferenced_five_day_window_integration.sql', 'utf8');
 const config = readFileSync('supabase/config.toml', 'utf8');
 
@@ -60,6 +61,9 @@ assert.ok(!unusedWindowMigration.includes("o.created_at <= now() - interval '5 d
   'an old upload that was used recently must not be deleted until it has been continuously unreferenced for five days');
 assert.ok(unusedWindowMigration.includes('mnty_clear_catalog_media_retention_state(text[])'),
   'successful Storage deletion must clear its retention-state row');
+assert.ok(resumeCleanupMigration.includes("cron.alter_job(v_job_id, null, null, null, null, true)") &&
+  resumeCleanupMigration.includes("MNTY_CATALOG_MEDIA_CLEANUP_JOB_MISSING"),
+  'the hourly cleanup job may resume only through an explicit post-fix migration that refuses to silently skip a missing job');
 assert.ok(unusedWindowIntegration.includes('MEDIA_RETENTION_DELETED_BEFORE_FIVE_UNUSED_DAYS') &&
   unusedWindowIntegration.includes('MEDIA_RETENTION_LIVE_REFERENCE_DID_NOT_RESET_CLOCK') &&
   unusedWindowIntegration.includes('MEDIA_RETENTION_DID_NOT_RELEASE_IMAGE_AFTER_FIVE_UNUSED_DAYS') &&
