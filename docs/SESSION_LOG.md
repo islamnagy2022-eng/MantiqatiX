@@ -1,10 +1,10 @@
 ## 2026-11-28 — RC932 merged; unify RC115 and RC931 with release contract
 
 - PR #1199 was merged source-only at `160228ee40590c27992cee5952895d0ed90b3ff6`. Its exact-head RC932 PostgreSQL 17 migration/integration suite, MantiGO privacy tests and full chronological replay completed successfully.
-- Started a new integration branch from merged `main` to avoid carrying the diverged RC931 branch. Added RC115 (`20261125130000`) and RC931 (`20261128010000`) alongside RC932 in one unified 91-version release contract.
+- Started a new integration branch from merged `main` to avoid carrying the diverged RC931 branch. Added RC115 (`20261125130000`), RC116 (`20261125140000`) and RC931 (`20261128010000`) alongside RC932 in one unified 92-version release contract.
 - RC931 removes the unrestricted public provider-profile base-table read while retaining curated service-role directory projection, confirmed-user guards, tenant/business CRM isolation, registry-only platform-root access and the RC116 owner read/branding-update split.
 - The first RC931 integration run caught a stale assertion that searched for PostgreSQL's original `IS NOT DISTINCT FROM` spelling; PostgreSQL exposes the equivalent `NOT (... IS DISTINCT FROM 'false')` expression. The integration assertion was aligned. Latest unified RC931 exact-head and 91-version replay checks remain pending.
-- No Production migration, SQL write, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, settlement, or business/customer/ride/financial-row mutation was performed. The live ledger read-only baseline remains 310 rows through `20261110150618`; exact source-version match is 0/91.
+- No Production migration, SQL write, Auth/RLS/GRANT, Storage, Edge deployment, payment, wallet, settlement, or business/customer/ride/financial-row mutation was performed. The live ledger read-only baseline remains 310 rows through `20261110150618`; exact source-version match is 0/92.
 - Release remains `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` pending unified CI, full parity, backup/restore proof, financial sandbox evidence and coordinated release approval.
 
 ---
