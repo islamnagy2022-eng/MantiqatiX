@@ -20,6 +20,11 @@ DECLARE
   v_registry_force_rls boolean;
   v_membership_index_unique boolean;
   v_membership_index_definition text;
+  v_bizcatalog_rls boolean;
+  v_delete_oid oid;
+  v_delete_definer boolean;
+  v_delete_config text[];
+  v_delete_body text;
 
   v_rpc_signatures text[] := ARRAY[
     'public.mnty_platform_admin_list_custom_roles()',
@@ -147,6 +152,43 @@ BEGIN
     RAISE EXCEPTION 'DEMO_ADMIN_MEMBERSHIP_SCOPE_INDEX_MISSING_OR_INVALID: %', v_membership_index_definition;
   END IF;
 
+  -- BizCatalog platform settings are server-role-only.
+  SELECT c.relrowsecurity INTO v_bizcatalog_rls
+  FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+  WHERE n.nspname='public' AND c.relname='bizcatalog_platform_settings';
+  IF NOT FOUND OR NOT v_bizcatalog_rls THEN RAISE EXCEPTION 'DEMO_ADMIN_BIZCATALOG_SETTINGS_RLS_MISSING'; END IF;
+  IF pg_catalog.has_table_privilege('anon','public.bizcatalog_platform_settings','SELECT')
+     OR pg_catalog.has_table_privilege('anon','public.bizcatalog_platform_settings','INSERT')
+     OR pg_catalog.has_table_privilege('authenticated','public.bizcatalog_platform_settings','SELECT')
+     OR pg_catalog.has_table_privilege('authenticated','public.bizcatalog_platform_settings','INSERT')
+     OR pg_catalog.has_table_privilege('authenticated','public.bizcatalog_platform_settings','UPDATE') THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_BIZCATALOG_SETTINGS_CLIENT_PRIVILEGE_GRANTED';
+  END IF;
+  IF NOT pg_catalog.has_table_privilege('service_role','public.bizcatalog_platform_settings','SELECT')
+     OR NOT pg_catalog.has_table_privilege('service_role','public.bizcatalog_platform_settings','INSERT')
+     OR NOT pg_catalog.has_table_privilege('service_role','public.bizcatalog_platform_settings','UPDATE') THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_BIZCATALOG_SETTINGS_SERVICE_PRIVILEGE_MISSING';
+  END IF;
+
+  -- Business deletion is invoker-safe and server-role-only; its body must retain history guards/audit.
+  v_delete_oid := pg_catalog.to_regprocedure('public.mnty_platform_admin_delete_business(text,uuid,uuid)');
+  IF v_delete_oid IS NULL THEN RAISE EXCEPTION 'DEMO_ADMIN_DELETE_RPC_MISSING'; END IF;
+  SELECT p.prosecdef,p.proconfig,p.prosrc INTO v_delete_definer,v_delete_config,v_delete_body
+  FROM pg_catalog.pg_proc p WHERE p.oid=v_delete_oid;
+  IF v_delete_definer THEN RAISE EXCEPTION 'DEMO_ADMIN_DELETE_RPC_MUST_BE_INVOKER'; END IF;
+  IF NOT coalesce(v_delete_config,ARRAY[]::text[]) @> ARRAY['search_path=""']::text[] THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_DELETE_RPC_SEARCH_PATH_NOT_EMPTY';
+  END IF;
+  IF pg_catalog.has_function_privilege('anon',v_delete_oid,'EXECUTE')
+     OR pg_catalog.has_function_privilege('authenticated',v_delete_oid,'EXECUTE')
+     OR NOT pg_catalog.has_function_privilege('service_role',v_delete_oid,'EXECUTE') THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_DELETE_RPC_ACL_FAILED';
+  END IF;
+  IF position('business_delete_blocked_by_history' IN lower(coalesce(v_delete_body,'')))=0
+     OR position('bizcatalog_business_deleted' IN lower(coalesce(v_delete_body,'')))=0 THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_DELETE_RPC_HISTORY_OR_AUDIT_GUARD_MISSING';
+  END IF;
+
   -- The full replay must include the canonical registry-backed root helper,
   -- with its execution path pinned. A standalone helper hot patch is not enough.
   SELECT p.prosrc, p.proconfig, p.prosecdef
@@ -193,4 +235,4 @@ BEGIN
 END;
 $demo_admin_compatibility$;
 
-SELECT 'DEMO_ADMIN_COMPATIBILITY_ACL_RLS_AND_DEFINER_PATH=PASS' AS result;
+SELECT 'DEMO_ADMIN_COMPATIBILITY_ACL_RLS_DEFINER_AND_EDGE_DEPS=PASS' AS result;
