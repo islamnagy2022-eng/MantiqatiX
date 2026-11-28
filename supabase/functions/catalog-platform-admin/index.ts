@@ -227,7 +227,7 @@ Deno.serve(async (req: Request) => {
       );
       const ids = filteredBusinesses.map((b: any) => String(b.id));
       const { data: membershipRows, error: membershipError } = ids.length
-        ? await service.from("user_memberships").select("id,user_id,tenant_id,business_id,role,status").in("business_id", ids).limit(5000)
+        ? await service.from("user_memberships").select("id,user_id,tenant_id,business_id,branch_id,role,status").in("business_id", ids).limit(5000)
         : { data: [], error: null };
       if (membershipError) throw new Error("BUSINESS_MEMBERSHIP_LIST_FAILED");
       const userIds = [...new Set((membershipRows || []).map((m: any) => String(m.user_id)))];
@@ -244,8 +244,8 @@ Deno.serve(async (req: Request) => {
         const key = String(m.business_id);
         if (!membershipsByBusiness.has(key)) membershipsByBusiness.set(key, []);
         membershipsByBusiness.get(key)!.push({
-          id: String(m.id), user_id: String(m.user_id), role: String(m.role || "CUSTOMER"),
-          status: String(m.status || "INACTIVE"), email: String(u?.email || ""),
+          id: String(m.id), user_id: String(m.user_id), branch_id: m.branch_id ? String(m.branch_id) : null,
+          role: String(m.role || "CUSTOMER"), status: String(m.status || "INACTIVE"), email: String(u?.email || ""),
           full_name: String(u?.user_metadata?.full_name || u?.user_metadata?.name || u?.email || ""),
         });
       }
