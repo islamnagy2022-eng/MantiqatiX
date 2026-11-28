@@ -200,6 +200,9 @@ create policy "CRM managers view marketing providers"
                 and upper(coalesce(um.role, '')) in ('SUPER_ADMIN', 'ADMIN')
               )
             )
+            -- MNTY-PLATFORM is a protected platform namespace. A tenant
+            -- membership must never grant platform-wide CRM reads through it.
+            and b.tenant_id <> 'MNTY-PLATFORM'
             and um.tenant_id = b.tenant_id
             and upper(coalesce(um.role, '')) in (
               'SUPER_ADMIN', 'ADMIN', 'OWNER', 'MANAGER', 'BUSINESS_OWNER'
@@ -246,7 +249,7 @@ begin
       and 'authenticated' = any (p.roles)
       -- pg_get_expr may omit the schema for a function resolved through the policy's search_path.
       and coalesce(p.qual, '') ilike '%is_platform_admin()%'
-      and coalesce(p.qual, '') not ilike '%MNTY-PLATFORM%'
+      and coalesce(p.qual, '') ilike '%b.tenant_id <> ''MNTY-PLATFORM''%'
   ) then
     raise exception 'RC931_REGISTRY_ONLY_CRM_POLICY_REQUIRED';
   end if;
