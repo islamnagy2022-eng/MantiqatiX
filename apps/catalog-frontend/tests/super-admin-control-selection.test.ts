@@ -56,4 +56,5 @@ assert.ok(businessSubscriberSource.includes("status:['ACTIVE','INACTIVE','SUSPEN
 assert.ok(!businessSubscriberSource.includes('catalogEnabled:true,catalogWrite:true,accountRestricted:false'), 'Role changes must not silently grant catalog read/write permissions.');
 assert.ok(platformAdminEndpointSource.includes('typeof body.catalogEnabled === "boolean" ? body.catalogEnabled : previousPermissions.catalog !== false'), 'Omitted catalog settings must retain the existing membership permissions.');
 assert.ok(platformAdminEndpointSource.includes('typeof body.catalogWrite === "boolean" ? body.catalogWrite : previousPermissions.catalog_write !== false'), 'Omitted catalog write settings must retain the existing write permissions.');
+assert.ok(platformAdminEndpointSource.includes('typeof body.accountRestricted === "boolean"'), 'Omitted account restriction settings must retain the current restriction state.');
 console.log('BUSINESS_SUBSCRIBER_ROLE_UPDATE_PRESERVES_MEMBERSHIP_PERMISSIONS=PASS');
