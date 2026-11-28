@@ -193,11 +193,34 @@ SELECT set_config('request.jwt.claims',
   '{"sub":"30000000-0000-4000-8000-000000000014","role":"authenticated","is_anonymous":false}', false);
 DO $tenant_super$
 BEGIN
-  IF EXISTS (SELECT 1 FROM public.marketing_provider_profiles WHERE id='40000000-0000-4000-8000-000000000001') THEN
+  IF (SELECT count(*) FROM public.marketing_provider_profiles) <> 2 THEN
+    RAISE EXCEPTION 'RC931_TENANT_SUPER_ADMIN_LOCAL_SCOPE_REGRESSED:%',
+      (SELECT count(*) FROM public.marketing_provider_profiles);
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.marketing_provider_profiles WHERE id IN (
+    '40000000-0000-4000-8000-000000000001',
+    '40000000-0000-4000-8000-000000000002',
+    '40000000-0000-4000-8000-000000000005',
+    '40000000-0000-4000-8000-000000000006'
+  )) THEN
     RAISE EXCEPTION 'RC931_TENANT_SUPER_ADMIN_GAINED_CROSS_TENANT_READ';
   END IF;
 END;
 $tenant_super$;
+RESET ROLE;
+
+-- An MNTY-PLATFORM membership and full_control metadata are not platform-root
+-- authority unless the user is present in private.platform_admins.
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims',
+  '{"sub":"30000000-0000-4000-8000-000000000020","role":"authenticated","is_anonymous":false}', false);
+DO $unregistered_platform$
+BEGIN
+  IF EXISTS (SELECT 1 FROM public.marketing_provider_profiles) THEN
+    RAISE EXCEPTION 'RC931_UNREGISTERED_MNTY_PLATFORM_MEMBERSHIP_GAINED_GLOBAL_READ';
+  END IF;
+END;
+$unregistered_platform$;
 RESET ROLE;
 
 SET ROLE authenticated;
@@ -205,7 +228,7 @@ SELECT set_config('request.jwt.claims',
   '{"sub":"30000000-0000-4000-8000-000000000015","role":"authenticated","is_anonymous":false}', false);
 DO $platform_admin$
 BEGIN
-  IF (SELECT count(*) FROM public.marketing_provider_profiles) <> 7 THEN
+  IF (SELECT count(*) FROM public.marketing_provider_profiles) <> 6 THEN
     RAISE EXCEPTION 'RC931_PLATFORM_ADMIN_GLOBAL_READ_REGRESSED:%',
       (SELECT count(*) FROM public.marketing_provider_profiles);
   END IF;
@@ -246,7 +269,7 @@ DO $service_role$
 DECLARE visible integer; active_public integer;
 BEGIN
   SELECT count(*) INTO visible FROM public.marketing_provider_profiles;
-  IF visible <> 7 THEN
+  IF visible <> 6 THEN
     RAISE EXCEPTION 'RC931_SERVICE_ROLE_READ_REGRESSED:%', visible;
   END IF;
   SELECT count(*) INTO active_public FROM (
@@ -254,7 +277,7 @@ BEGIN
     FROM public.marketing_provider_profiles
     WHERE status='ACTIVE'
   ) approved_projection;
-  IF active_public <> 3 THEN
+  IF active_public <> 2 THEN
     RAISE EXCEPTION 'RC931_SERVICE_ROLE_PUBLIC_PROJECTION_SOURCE_REGRESSED:%', active_public;
   END IF;
 END;
