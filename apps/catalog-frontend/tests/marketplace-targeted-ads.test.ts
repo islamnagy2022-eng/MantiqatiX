@@ -214,7 +214,7 @@ test('rejects out-of-Egypt or partial coordinates for location targeting', async
 
 
 test('describes paid cover ads using the actual geographic match level', () => {
-  assert.equal(getTargetedAdvertisementAudienceLabel('CENTER', 'المنوفية', 'بركة السبع'), 'موجه لمركز بركة السبع');
+  assert.equal(getTargetedAdvertisementAudienceLabel('CENTER', 'المنوفية', 'مركز بركة السبع'), 'موجه لمركز بركة السبع');
   assert.equal(getTargetedAdvertisementAudienceLabel('GOVERNORATE', 'المنوفية'), 'موجه لمحافظة المنوفية');
   assert.equal(getTargetedAdvertisementAudienceLabel('COUNTRY', 'المنوفية'), 'حملة عامة على مستوى مصر');
   assert.equal(getTargetedAdvertisementAudienceLabel('NEAREST', 'المنوفية'), 'أقرب نطاق إعلاني متاح');
