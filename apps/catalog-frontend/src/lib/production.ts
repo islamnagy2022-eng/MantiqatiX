@@ -5,10 +5,40 @@ import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_I
 import { resolvePublicCatalogAvailability } from './catalogPricing';
 import { normalizePromotionalImageLines } from '../utils/promotionalImages';
 
-const runtime = (window as any).MANTIQATIX_CONFIG || (window as any).MNTY_CONFIG;
-if (!runtime?.supabaseUrl || !runtime?.supabaseKey) {
-  throw new Error('تعذر تحميل إعدادات الاتصال الإنتاجي لمنصة MantiqatiX');
-}
+const isViteDevelopment = import.meta.env.DEV === true;
+const DEVELOPMENT_SUPABASE_URL = 'https://lkijdgqanbqjudiducjt.supabase.co';
+
+const runtime = (() => {
+  if (isViteDevelopment) {
+    const configuredUrl = String(import.meta.env.VITE_SUPABASE_URL || '').trim();
+    const configuredKey = String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '').trim();
+
+    // Local Vite sessions are pinned to the isolated Free DEMO project.
+    // Missing or mismatched values must never fall back to Production.
+    if (configuredUrl !== DEVELOPMENT_SUPABASE_URL) {
+      throw new Error('بيئة التطوير يجب أن تستخدم مشروع MantiqatiX-DEMO فقط.');
+    }
+    if (!/^sb_publishable_[A-Za-z0-9_-]+$/.test(configuredKey)) {
+      throw new Error('أضف مفتاح Supabase Publishable الخاص بمشروع MantiqatiX-DEMO إلى .env.development.local.');
+    }
+
+    const demoRuntime = {
+      supabaseUrl: DEVELOPMENT_SUPABASE_URL,
+      supabaseKey: configuredKey,
+      referralSharingEnabled: false,
+    };
+    (window as any).MANTIQATIX_CONFIG = demoRuntime;
+    (window as any).MNTY_CONFIG = demoRuntime;
+    (window as any).MNTY_DATA_SOURCE = 'DEMO_SUPABASE';
+    return demoRuntime;
+  }
+
+  const browserRuntime = (window as any).MANTIQATIX_CONFIG || (window as any).MNTY_CONFIG;
+  if (!browserRuntime?.supabaseUrl || !browserRuntime?.supabaseKey) {
+    throw new Error('تعذر تحميل إعدادات الاتصال الإنتاجي لمنصة MantiqatiX');
+  }
+  return browserRuntime;
+})();
 
 // Referral UI stays fail-closed until the coordinated Production RPC migration is released.
 export const isReferralSharingEnabled = runtime?.referralSharingEnabled === true;
@@ -50,7 +80,7 @@ export const supabase = createClient(runtime.supabaseUrl, runtime.supabaseKey, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    storageKey: 'mantiqatix.production.auth',
+    storageKey: isViteDevelopment ? 'mantiqatix.demo.auth' : 'mantiqatix.production.auth',
   },
 });
 
