@@ -142,66 +142,74 @@ END;
 $confirmed$;
 RESET ROLE;
 
--- RC931 narrows the confirmed owner's settings write to branding.logo_path.
--- Keep the positive owner test within that explicitly allowed nested field.
+-- Keep the RC926 owner-update regression valid both before and after RC931.
+-- Earlier isolated workflows exercise RC926 without the later trigger; full forward
+-- replay applies RC931 first and must enforce the branding.logo_path-only update.
 SET ROLE authenticated;
 SELECT set_config(
   'request.jwt.claims',
   '{"sub":"f7914ac7-4b03-4456-afdd-e386f2ac6a5b","role":"authenticated","is_anonymous":false}',
   false
 );
-DO $owner_branding_update$
-DECLARE affected integer;
-BEGIN
-  UPDATE public.marketing_provider_profiles
-     SET settings=jsonb_set(
-       settings,
-       '{branding}',
-       jsonb_set(
-         coalesce(settings->'branding','{}'::jsonb),
-         '{logo_path}',
-         '"rc926-owner-logo.svg"'::jsonb,
-         true
-       ),
-       true
-     )
-   WHERE id='10000000-0000-4000-8000-000000000001';
-  GET DIAGNOSTICS affected = ROW_COUNT;
-  IF affected <> 1 THEN
-    RAISE EXCEPTION 'RC926_CONFIRMED_OWNER_BRANDING_UPDATE_REGRESSED:%',affected;
-  END IF;
-END;
-$owner_branding_update$;
-RESET ROLE;
-
--- Owner must not be able to modify root settings outside the branding object.
-SET ROLE authenticated;
-SELECT set_config(
-  'request.jwt.claims',
-  '{"sub":"f7914ac7-4b03-4456-afdd-e386f2ac6a5b","role":"authenticated","is_anonymous":false}',
-  false
-);
-DO $owner_non_branding_update$
+DO $owner_update_compatibility$
 DECLARE
+  affected integer;
+  has_branding_guard boolean;
   denied boolean := false;
   v_message text;
 BEGIN
-  BEGIN
+  SELECT EXISTS (
+    SELECT 1
+    FROM pg_catalog.pg_trigger t
+    WHERE t.tgrelid = 'public.marketing_provider_profiles'::regclass
+      AND t.tgname = 'mnty_provider_profile_branding_only'
+      AND NOT t.tgisinternal
+  ) INTO has_branding_guard;
+
+  IF has_branding_guard THEN
+    UPDATE public.marketing_provider_profiles
+       SET settings=jsonb_set(
+         settings,
+         '{branding}',
+         jsonb_set(
+           coalesce(settings->'branding','{}'::jsonb),
+           '{logo_path}',
+           '"rc926-owner-logo.svg"'::jsonb,
+           true
+         ),
+         true
+       )
+     WHERE id='10000000-0000-4000-8000-000000000001';
+    GET DIAGNOSTICS affected = ROW_COUNT;
+    IF affected <> 1 THEN
+      RAISE EXCEPTION 'RC926_CONFIRMED_OWNER_BRANDING_UPDATE_REGRESSED:%',affected;
+    END IF;
+
+    BEGIN
+      UPDATE public.marketing_provider_profiles
+         SET settings=jsonb_set(settings,'{rc926_owner_regression}','true'::jsonb,true)
+       WHERE id='10000000-0000-4000-8000-000000000001';
+    EXCEPTION WHEN insufficient_privilege THEN
+      GET STACKED DIAGNOSTICS v_message = MESSAGE_TEXT;
+      IF v_message <> 'PROVIDER_PROFILE_OWNER_SETTINGS_NOT_BRANDING' THEN
+        RAISE;
+      END IF;
+      denied := true;
+    END;
+    IF NOT denied THEN
+      RAISE EXCEPTION 'RC931_OWNER_NON_BRANDING_SETTINGS_UPDATE_SUCCEEDED';
+    END IF;
+  ELSE
     UPDATE public.marketing_provider_profiles
        SET settings=jsonb_set(settings,'{rc926_owner_regression}','true'::jsonb,true)
      WHERE id='10000000-0000-4000-8000-000000000001';
-  EXCEPTION WHEN insufficient_privilege THEN
-    GET STACKED DIAGNOSTICS v_message = MESSAGE_TEXT;
-    IF v_message <> 'PROVIDER_PROFILE_OWNER_SETTINGS_NOT_BRANDING' THEN
-      RAISE;
+    GET DIAGNOSTICS affected = ROW_COUNT;
+    IF affected <> 1 THEN
+      RAISE EXCEPTION 'RC926_CONFIRMED_OWNER_UPDATE_REGRESSED:%',affected;
     END IF;
-    denied := true;
-  END;
-  IF NOT denied THEN
-    RAISE EXCEPTION 'RC931_OWNER_NON_BRANDING_SETTINGS_UPDATE_SUCCEEDED';
   END IF;
 END;
-$owner_non_branding_update$;
+$owner_update_compatibility$;
 RESET ROLE;
 
 SET ROLE authenticated;
