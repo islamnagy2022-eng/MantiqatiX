@@ -67,9 +67,9 @@ assert.ok(demoPlatformRootMigration.includes("is distinct from 'false'"),
   'RC925 missing-claim guard must remain fail-closed.');
 assert.ok(demoPlatformRootMigration.includes('pg_catalog.pg_advisory_xact_lock'),
   'RC486 price version serialization must be replayed after RC485.');
-assert.equal((demoPlatformRootMigration.match(/^\\s*begin;\\s*$/gim) || []).length, 1,
+assert.equal((demoPlatformRootMigration.match(/^\s*begin;\s*$/gim) || []).length, 1,
   'Root convergence migration must contain exactly one BEGIN.');
-assert.equal((demoPlatformRootMigration.match(/^\\s*commit;\\s*$/gim) || []).length, 1,
+assert.equal((demoPlatformRootMigration.match(/^\s*commit;\s*$/gim) || []).length, 1,
   'Root convergence migration must contain exactly one COMMIT.');
 assert.ok(demoPlatformRootMigration.includes('pg_catalog.pg_advisory_xact_lock'), 'RC486 catalog price serialization must be preserved after RC485.');
 assert.ok(demoPlatformRootMigration.includes('is_anonymous'), 'RC923/RC925 anonymous-session and missing-claim guards must be preserved.');
