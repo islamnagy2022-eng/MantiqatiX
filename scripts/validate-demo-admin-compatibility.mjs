@@ -28,6 +28,8 @@ const externalRpcSignatures = [
   'mnty_platform_admin_manage_membership(uuid,text,text)',
 ];
 
+const serviceOnlyRpcSignature = 'mnty_platform_admin_delete_business';
+
 const internalHelperSignatures = [
   'mnty_business_employee_permission_ceiling_allows(jsonb,varchar,uuid,varchar)',
   'mnty_business_employee_permissions_subset(jsonb,jsonb)',
@@ -102,6 +104,13 @@ assert.ok(
   !/service_role\s+key|supabase_service_role_key/i.test(migration),
   'A server-side service-role secret must not be embedded in the migration.',
 );
+
+assert.ok(migration.includes('create table if not exists public.bizcatalog_platform_settings'), 'BizCatalog settings dependency is missing.');
+assert.ok(migration.includes('revoke all on table public.bizcatalog_platform_settings from public, anon, authenticated;'), 'BizCatalog settings must remain closed to browser roles.');
+assert.ok(migration.includes('revoke all on function public.' + serviceOnlyRpcSignature) && migration.includes('to service_role;'), 'Business delete RPC must be service-role-only.');
+for (const marker of ['demo_admin_bizcatalog_settings_client_privilege_granted','demo_admin_delete_rpc_must_be_invoker','demo_admin_delete_rpc_acl_failed','demo_admin_delete_rpc_history_or_audit_guard_missing']) {
+  assert.ok(postgresTest.includes(marker), 'PostgreSQL integration contract missing assertion marker: ' + marker);
+}
 
 for (const marker of [
   'demo_admin_definer_search_path_not_empty',
