@@ -74,8 +74,12 @@ assert.ok(migration.includes('grant execute on function public.mnty_list_expired
 
 assert.ok(cleanup.includes('mnty_catalog_media_cleanup_token_valid'), 'scheduled cleanup must authenticate with the Vault-backed token');
 assert.ok(cleanup.includes('mnty_list_expired_catalog_media') &&
+  cleanup.includes('mnty_catalog_media_object_is_referenced') &&
   cleanup.includes('mnty_clear_catalog_media_retention_state'),
-  'scheduled cleanup must remove only expired unused objects and clear state after successful Storage deletion');
+  'scheduled cleanup must re-check live references before Storage deletion and clear retention state afterward');
+assert.ok(unusedWindowMigration.includes("c.relname not in ('audit_logs', 'mnty_catalog_media_retention_state')") &&
+  unusedWindowMigration.includes('grant execute on function public.mnty_catalog_media_object_is_referenced(text) to service_role'),
+  'the final reference checker must ignore retention bookkeeping but remain service-role-only');
 assert.ok(cleanup.includes('.storage.from(IMAGE_BUCKET).remove(batch)'), 'files must be removed through the Storage API');
 assert.ok(config.includes('[functions.cleanup-catalog-media]') && /\[functions\.cleanup-catalog-media\][\s\S]*?verify_jwt = false/.test(config),
   'the isolated cleanup function must use its own high-entropy bearer validation');
