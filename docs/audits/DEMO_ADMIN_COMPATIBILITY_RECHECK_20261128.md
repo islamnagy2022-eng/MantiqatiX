@@ -67,3 +67,14 @@ Performance notices include unindexed foreign keys and multiple permissive polic
 - [ ] Admin compatibility migration implemented and applied.
 - [ ] Admin Edge Functions deployed to DEMO.
 - [ ] Synthetic admin fixtures and negative authorization tests complete.
+
+## Follow-up static ACL audit
+
+A second static pass found an important deployment blocker in the generated migration: it defines 19 unique function names, but only 15 function names have an explicit `REVOKE ... FROM PUBLIC, anon` statement. Several mutating/permission-related RPCs are not covered by the explicit ACL statements in this migration. PostgreSQL's default function EXECUTE grant can be PUBLIC unless revoked, so counting SECURITY DEFINER functions with an empty search_path is not sufficient.
+
+- [x] Identified ACL coverage gap in the migration source.
+- [ ] Enumerate every exact function signature and define least-privilege EXECUTE grants.
+- [ ] Run ACL verification in disposable PostgreSQL 17 replay.
+- [ ] Do not apply this migration to DEMO until the ACL gap is closed and tests pass.
+
+The previous static check statement in the PR description should be read as a search_path check only, not proof that function EXECUTE privileges are safe. This migration remains unapproved and unapplied.
