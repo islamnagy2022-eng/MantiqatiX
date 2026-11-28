@@ -18,10 +18,12 @@ const runbookRequirements = [
   "UNKNOWN / NOT EVIDENCED",
   "Restore to a new project",
   "Storage object bytes",
-  "88 exact migration versions",
-  "0/88 exact required version identifiers",
+  "90 exact migration versions",
+  "0/90 exact required version identifiers",
   "20261125120000",
   "RC927",
+  "20261125130000",
+  "RC115",
   "20261126010000",
   "RC928",
   "20261126020000",
@@ -30,6 +32,8 @@ const runbookRequirements = [
   "RC929",
   "20261127010000",
   "RC930",
+  "20261128010000",
+  "RC931",
   "not applied to Production",
 ];
 for (const required of runbookRequirements) {
@@ -44,8 +48,10 @@ const currentRunbook = currentRunbookEnd > currentRunbookStart
   : runbook.slice(currentRunbookStart);
 for (const required of [
   "310 rows through",
-  "88 unique, chronologically ordered migration versions",
-  "0/88",
+  "90 unique, chronologically ordered migration versions",
+  "0/90",
+  "RC115",
+  "RC931",
   "79 canonical core/payment/control-center objects",
   "matched 37",
   "42 absent or non-matching",
@@ -100,6 +106,8 @@ for (const required of [
   "Order/application source files",
   "20261126030000_rc929_orders_confirmed_auth_claim_guard.sql",
   "20261127010000_rc930_serialize_job_deactivation_and_application.sql",
+  "20261125130000_rc115_crm_business_scoped_reads.sql",
+  "20261128010000_rc931_provider_profile_public_base_read_retirement.sql",
   "20261009120000_rc425_atomic_mantigo_paymob_payment.sql",
   "20261010175000_rc449a_financial_journal_schema_prerequisites.sql",
   "20261010180000_rc450_financial_journal_service_role_boundary.sql",
@@ -117,32 +125,36 @@ for (const required of [
   assert.ok(currentRunbook.includes(required), "Current Production backup overlay is missing: " + required);
 }
 assert.ok(!currentRunbook.includes("87-source"), "Current Production backup overlay must not retain a superseded 87-source gate.");
-assert.ok(runbook.includes("exact ordered 88-source migration effects"), "Production release gate must reconcile the current 88-source migration chain.");
+assert.ok(runbook.includes("exact ordered 90-source migration effects"), "Production release gate must reconcile the current 88-source migration chain.");
 
 
 const backlogRequirements = [
-  "88 required migration IDs",
-  "0/88 exact required identifiers",
+  "90 required migration IDs",
+  "0/90 exact required identifiers",
   "20261125110000",
   "RC926",
   "20261125120000",
   "RC927",
+  "20261125130000",
+  "RC115",
   "20261126010000",
   "RC928",
   "20261126020000",
   "RC117",
   "20261126030000",
   "RC929",
+  "20261128010000",
+  "RC931",
   "RC480",
   "RC927 is merged source-only",
 ];
 for (const required of backlogRequirements) {
-  assert.ok(backlog.includes(required), "Release backlog is missing current 88-version gate text: " + required);
+  assert.ok(backlog.includes(required), "Release backlog is missing current 90-version gate text: " + required);
 }
 assert.ok(!backlog.includes("76 required migration IDs"), "Release backlog still describes 76 as the current required migration count.");
 assert.ok(!backlog.includes("0/76 present") && !backlog.includes("0/78 exact required identifiers"), "Release backlog still uses a superseded migration status.");
 
-assert.equal(ledger.expected_migration_versions, 88, "manifest must use the 88-version contract");
+assert.equal(ledger.expected_migration_versions, 90, "manifest must use the 88-version contract");
 assert.ok(ledger.required_versions.includes("20261125120000"), "manifest must list RC927");
 assert.ok(ledger.missing_versions.includes("20261125120000"), "RC927 must remain explicitly unapplied in Production");
 assert.ok(ledger.required_versions.includes("20261126010000"), "manifest must list RC928");
@@ -153,11 +165,15 @@ assert.ok(ledger.required_versions.includes("20261126030000"), "manifest must li
 assert.ok(ledger.missing_versions.includes("20261126030000"), "RC929 must remain unapplied to Production until coordinated release approval");
 assert.ok(ledger.required_versions.includes("20261127010000"), "manifest must list RC930");
 assert.ok(ledger.missing_versions.includes("20261127010000"), "RC930 must remain unapplied to Production until coordinated release approval");
+assert.ok(ledger.required_versions.includes("20261125130000"), "manifest must list RC115 business-scoped CRM reads");
+assert.ok(ledger.missing_versions.includes("20261125130000"), "RC115 must remain unapplied to Production until coordinated release approval");
+assert.ok(ledger.required_versions.includes("20261128010000"), "manifest must list RC931 provider-profile public-read retirement");
+assert.ok(ledger.missing_versions.includes("20261128010000"), "RC931 must remain unapplied to Production until coordinated release approval");
 assert.equal(ledger.found_in_live_ledger, 0, "do not manufacture or overstate Production migration ledger entries");
 
 console.log("PRODUCTION_BACKUP_RUNBOOK_CURRENT_RELEASE_CONTRACT=PASS");
 console.log("BACKUP_COVERAGE_AUTH_STORAGE_EXPLICIT=PASS");
-console.log("CURRENT_RELEASE_MIGRATION_COUNT=88");
+console.log("CURRENT_RELEASE_MIGRATION_COUNT=90");
 const missingObjectRows = requiredObjectAudit.match(/^\| `public\.[^`]+` \|/gm) ?? [];
 const missingObjectNames = missingObjectRows.map((line) => line.split("|")[1].trim().slice(1, -1));
 assert.equal(missingObjectRows.length, 42, "79-object read-back must itemize all 42 not-found exact contracts.");
