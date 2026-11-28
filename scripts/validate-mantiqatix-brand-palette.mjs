@@ -34,6 +34,10 @@ const requiredFiles = [
   ['apps/catalog-frontend/src/components/admin/AdminDashboard.tsx', ['from-[#3a0000]', 'bg-[#7a0000]', 'bg-[#f6c04d]']],
   ['apps/catalog-frontend/src/components/storefront/BusinessProfileHeader.tsx', ['mx-v4-storefront-shell', 'mx-v4-storefront-primary']],
   ['apps/catalog-frontend/src/components/storefront/CatalogSection.tsx', ['mx-v4-catalog-section', 'mx-v4-catalog-primary-action']],
+  ['apps/catalog-frontend/src/components/cart/CartDrawer.tsx', ['bg-[#7a0000]', 'bg-[#fff3e0]/70', 'PAYMOB']],
+  ['apps/catalog-frontend/src/components/common/MarketingServicesModal.tsx', ['bg-[#fff3e0]', 'bg-[#7a0000]']],
+  ['apps/catalog-frontend/src/components/merchant/CatalogImportPanel.tsx', ['from-[#3a0000]', 'bg-[#7a0000]']],
+  ['apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx', ['from-[#3a0000]', 'bg-[#7a0000]', '#f6c04d']],
 ];
 for (const [path, markers] of requiredFiles) {
   const source = read(path);
@@ -48,6 +52,10 @@ expect('payment confirmation remains a success action', admin.includes('تأكي
 expect('publication approval remains a success action', admin.includes("handlePublicationReview(business, 'APPROVE')") && admin.includes('bg-emerald-600'));
 const directory = read('apps/catalog-frontend/src/components/DirectoryView.tsx');
 expect('verified and unverified listing states remain distinct', directory.includes('bg-emerald-500') && directory.includes('bg-red-600'));
+const cart = read('apps/catalog-frontend/src/components/cart/CartDrawer.tsx');
+expect('Paymob provider identity is retained while checkout uses the site palette', cart.includes('PAYMOB') && cart.includes("'bg-[#7a0000] hover:bg-[#5a0000] shadow-[#7a0000]/25'"));
+const importPanel = read('apps/catalog-frontend/src/components/merchant/CatalogImportPanel.tsx');
+expect('import readiness and result statuses remain semantic', importPanel.includes('notice.type===\'success\'') && importPanel.includes('text-emerald-800') && importPanel.includes('text-rose-800'));
 
 const failures = checks.filter((check) => !check.pass);
 for (const check of checks) console.log(`[${check.pass ? 'PASS' : 'FAIL'}] ${check.label}`);
