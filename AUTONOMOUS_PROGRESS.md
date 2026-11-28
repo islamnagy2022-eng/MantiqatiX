@@ -1,3 +1,14 @@
+## 2026-11-28 — RC932 full replay fixture FK repair
+
+- [x] Read the failed full 128-migration chronological replay log. RC932 migration itself applied successfully in the disposable database; the RC932 integration then failed because the synthetic captain ID (and customer ID) were not seeded in auth.users before inserting into FK-backed MantiGO rows.
+- [x] Added idempotent auth.users fixture seeding for both v_captain and v_customer before inserting the captain profile and ride.
+- [x] Added a static validator assertion requiring both test principals to be seeded in auth.users.
+- [ ] Corrected-head dedicated RC932 suite and full chronological replay are queued; no pass is claimed until GitHub Actions completes.
+- **Production:** unchanged and read-only. RC932 remains source-only; no MantiGO ride/captain/customer/financial rows were read or changed.
+- **Next:** inspect exact-head workflow conclusions/logs, fix any new failure, and keep PR #1199 draft until the entire replay and companion checks pass.
+
+---
+
 ## 2026-11-28 — Autonomous Production gate recheck and source evidence inventory
 
 - [x] Reconfirmed Production project `MANTIQATIX FINAL` ACTIVE_HEALTHY, PostgreSQL 17.6.1.155; live ledger 310 migrations through `20261110150618`.
