@@ -391,11 +391,24 @@ export const MarketplaceHome: React.FC = () => {
           {sponsoredAdvertisements.length ? <div className="grid gap-4 md:grid-cols-2">
             {sponsoredAdvertisements.slice(0, 4).map((ad) => {
               const href = isSafeHttpsUrl(ad.target_url);
-              const adFallback = AD_CREATIVE_FALLBACK;
+              const adFallback = resolveDefaultImage({ name: ad.title || 'إعلان المنصة', kind: 'cover' });
+              const adEmergencyFallback = AD_CREATIVE_FALLBACK;
               const card = <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
-                <div className="relative aspect-[16/5] min-h-36 overflow-hidden bg-[#f5eee7]">
+                <div className="relative aspect-[16/7] min-h-36 overflow-hidden bg-[#f5eee7]">
                   <img src={ad.creative_url || adFallback} alt={ad.title || 'إعلان المنصة'} className="h-full w-full object-contain" loading="lazy" decoding="async"
-                    onError={(event) => applyImageFallback(event.currentTarget, adFallback, BUSINESS_CARD_IMAGE_FALLBACK)} />
+                    onError={(event) => {
+                      const image = event.currentTarget;
+                      if (!image.dataset.fallbackApplied) {
+                        image.dataset.fallbackApplied = 'true';
+                        image.src = adFallback;
+                      } else if (!image.dataset.emergencyFallbackApplied) {
+                        image.dataset.emergencyFallbackApplied = 'true';
+                        image.src = adEmergencyFallback;
+                      } else {
+                        image.onerror = null;
+                        image.style.visibility = 'hidden';
+                      }
+                    }} />
                   <span className="absolute right-3 top-3 rounded-full bg-[#7a0000]/90 px-3 py-1 text-[10px] font-black text-white shadow">إعلان ممول</span>
                 </div>
                 <div className="flex items-center justify-between gap-3 p-3"><p className="line-clamp-1 text-sm font-black">{ad.title || 'إعلان من شركاء المنصة'}</p><span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">معتمد</span></div>
