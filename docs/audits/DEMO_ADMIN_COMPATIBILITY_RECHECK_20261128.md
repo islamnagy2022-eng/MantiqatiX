@@ -4,7 +4,7 @@
 **Project:** `MantiqatiX-DEMO` — `lkijdgqanbqjudiducjt`  
 **Repository:** `islamnagy2022-eng/MantiqatiX`  
 **Branch:** `dev/demo-admin-compat-20261128`  
-**Checked head:** `12a55ce05d3f6cbf358a95021f1360a2b30f8d1c`  
+**Checked head:** `1dfcef0cab2725f70d19e5d1d2df35bec14e0e2b`  
 **Pull request:** [#1216 — isolated admin control-center compatibility](https://github.com/islamnagy2022-eng/MantiqatiX/pull/1216) (Draft)
 
 ## Applied migrations in DEMO
@@ -88,17 +88,18 @@ The activity-module override editor remains fail-closed at the server boundary. 
 
 ## PostgreSQL rehearsal and latest CI evidence
 
-The exact DEMO-schema transaction rehearsal passed and was rolled back; a read-after-rollback confirmed no rehearsal schema or data remained. It covered registry-only root behavior, tenant ADMIN/SUPER_ADMIN denial, admin RPC ACLs, internal helper denial, FORCE RLS, policy inventory, RC472 index preflight, BizCatalog service-role settings/history-protected deletion, employee RBAC and RC457 ceilings, and RC485/RC486/RC925 catalog contracts.
+On checked head `1dfcef0cab2725f70d19e5d1d2df35bec14e0e2b` all 15 workflow runs associated with PR #1216 completed successfully:
+- Chronological PostgreSQL 17 forward migration replay from the captured Production schema checkpoint passed: workflow run `46145201116`. This ran in an isolated CI database and did not change DEMO or Production.
+- Primary Catalog Frontend Validation passed: workflow run `46145201172`, including build/type-check, employee RBAC PostgreSQL contract tests, and its Professional Dashboard browser E2E.
+- Module Professionalization, migration uniqueness/immutability/collision guards, backend-only module boundary, consent, approval audit atomicity, MantiGO privacy, RC924 agreement read scope, RC425 Paymob atomicity, SMM deferred storefront, and legacy catalog validation all passed.
+- The Pages workflow validation passed: run `46145201046`. The deployed-origin redirect regression passed against the already-published Pages origin. The new DEMO platform-admin HTTP smoke passed in the same run (CORS preflight, anonymous 401, disallowed-origin 403).
+- The V6 preview browser E2E passed in the isolated composed build, including desktop/mobile directory behavior, pagination (20 initial / 25 total), search, activity/specialty filters, image loading, and accessibility checks.
+- Production-scope smoke checks included Google OAuth initiation, selected existing Edge Function CORS preflights, public targeted-ad RPC output, and public directory/Qadam response.
 
-On checked head `12a55ce05d3f6cbf358a95021f1360a2b30f8d1c`: 
-- The full chronological PostgreSQL 17 forward migration replay passed: workflow run `46143565888`.
-- Migration uniqueness, migration-history immutability, collision guard, module boundaries, consent, audit atomicity, payment atomicity, and platform contract checks passed.
-- Primary catalog frontend validation and Module Professionalization validation passed.
-- The Pages workflow validation passed; the deployed-origin redirect regression passed all 3 checks on the already-published GitHub Pages origin.
-- The V6 preview browser E2E passed in the isolated composed build, including desktop/mobile pagination (20 initial / 25 total), directory search, activity/specialty filter, image loading, and accessibility scan with 0 critical violations.
-- Production smoke checks in CI passed for Google OAuth initiation, selected existing Edge Function CORS preflights, the public targeted-ads RPC (4 sanitized rows), and the public directory/Qadam response (10 businesses / 15 Qadam items). These tests do not exercise `catalog-platform-admin` on DEMO.
-- The PR Pages `deploy` job was **skipped** because this is a pull-request branch. The redirect test only checked the already-deployed origin; no GitHub Pages publication was performed from this Draft PR.
+**Coverage distinction:** the browser E2E in `Primary Catalog Frontend Validation` currently exercises the Professional/Business Dashboard. The Super Admin Control Center has source-level selection/authorization regression coverage and SQL contract coverage, but this run does not constitute an authenticated end-to-end browser acceptance of the Super Admin Control Center. The DEMO HTTP smoke deliberately tests only anonymous and origin rejection, not an authenticated admin action.
 
+The Pages workflow `deploy` job was **skipped** because the workflow only publishes from `main`; this Draft PR only ran validation. The redirect smoke checked the already-deployed public origin. No GitHub Pages publication was performed from this PR.
+ 
 ## Production release gate — still BLOCKED
 
 The same production verification report explicitly returns `PRODUCTION_GATE=BLOCKED`; only the scoped catalog pilot gate passes. The blockers include:
@@ -122,7 +123,9 @@ Latest read of the Supabase Security Advisor reports:
 ## Environment boundaries and remaining closure items
 
 - Only the three listed migrations and the `catalog-platform-admin` Edge Function changes were applied to MantiqatiX-DEMO; no Production schema/data/Auth/Edge Function was changed.
-- The ACL helper preflight migration `20261128112652` is in source and passed chronological replay; its live DEMO history record remains to be repaired with Supabase CLI as documented above.
+- The ACL helper preflight migration `20261128112652` is in source and passed chronological replay; its SQL effect is already verified in live DEMO, but the one missing history record still needs the explicit CLI repair above.
+- The DEMO HTTP/CORS negative-boundary smoke passed; authenticated platform-admin browser acceptance remains outstanding because no approved DEMO admin identity exists.
+- The Professional Dashboard browser E2E passed, but it is not a substitute for a dedicated authenticated Super Admin Control Center E2E.
 - No GitHub Pages production publication occurred from this Draft PR.
 - No Auth identity or platform-admin registry row was created.
-- PR #1216 remains Draft. Remaining work: reconcile the single DEMO migration-history entry, perform direct DEMO HTTP/CORS/auth smoke tests from a network that can reach Supabase, obtain explicit approval for a DEMO-only platform-admin identity, and close the separate Production release blockers before any full release.
+- PR #1216 remains Draft. Remaining work: perform the documented DEMO-only migration-history repair, get explicit approval for an exact DEMO Auth identity and run a least-privilege authenticated Super Admin acceptance test, then separately close the Production release blockers before any full release.
