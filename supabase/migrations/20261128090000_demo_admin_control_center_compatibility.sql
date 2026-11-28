@@ -4,6 +4,47 @@
 -- No data is seeded, and no production project is targeted.
 -- Review the SECURITY DEFINER/authorization contracts before any deployment.
 
+-- Fail before any DDL unless the coordinated RC464/RC471 root-authority
+-- repair is already installed. This intentionally blocks direct application to
+-- the current DEMO baseline, whose shared helper still uses legacy membership.
+DO $demo_admin_root_authority_preflight$
+DECLARE
+  v_root_source text;
+  v_root_config text[];
+  v_root_definer boolean;
+  v_registry_rls boolean;
+  v_registry_force boolean;
+BEGIN
+  SELECT p.prosrc,p.proconfig,p.prosecdef
+    INTO v_root_source,v_root_config,v_root_definer
+  FROM pg_catalog.pg_proc p
+  JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace
+  WHERE n.nspname='public'
+    AND p.proname='mnty_can_platform_admin'
+    AND pg_catalog.pg_get_function_identity_arguments(p.oid)='';
+
+  IF NOT FOUND
+     OR NOT v_root_definer
+     OR position('private.platform_admins' IN lower(coalesce(v_root_source,'')))=0 THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_REQUIRES_RC464_REGISTRY_BACKED_ROOT';
+  END IF;
+
+  IF NOT coalesce(v_root_config,ARRAY[]::text[]) @> ARRAY['search_path=""']::text[] THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_REQUIRES_RC464_EMPTY_SEARCH_PATH';
+  END IF;
+
+  SELECT c.relrowsecurity,c.relforcerowsecurity
+    INTO v_registry_rls,v_registry_force
+  FROM pg_catalog.pg_class c
+  JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+  WHERE n.nspname='private' AND c.relname='platform_admins';
+
+  IF NOT FOUND OR NOT v_registry_rls OR NOT v_registry_force THEN
+    RAISE EXCEPTION 'DEMO_ADMIN_REQUIRES_RC464_REGISTRY_FORCE_RLS';
+  END IF;
+END;
+$demo_admin_root_authority_preflight$;
+
 -- Preflight requirements: all referenced base tables and columns must exist.
 -- RLS remains enabled/forced for the privileged role registry and employee tables.
 -- The user-membership index is intentionally created only after duplicate preflight.
