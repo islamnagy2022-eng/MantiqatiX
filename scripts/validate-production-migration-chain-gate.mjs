@@ -8,6 +8,7 @@ const rc117ImageRepairValidator = fs.readFileSync("scripts/validate-rc117-image-
 const rc932Validator = fs.readFileSync("scripts/validate-rc932-mantigo-open-ride-explicit-confirmed-auth.mjs", "utf8");
 const mediaCleanupVaultFixture = fs.readFileSync("supabase/tests/baselines/production_replay_catalog_media_cleanup_vault_fixture.sql", "utf8");
 const mediaRetentionIntegration = fs.readFileSync("supabase/tests/catalog_media_unreferenced_five_day_window_integration.sql", "utf8");
+const mediaRetentionResumeMigration = fs.readFileSync("supabase/migrations/20261128081000_resume_catalog_media_cleanup_after_safe_retention.sql", "utf8");
 
 const dependentReleaseCountValidators = [
   "scripts/validate-rc117-image-provenance-forward-repair.mjs",
@@ -156,6 +157,9 @@ assert.ok(mediaCleanupVaultFixture.includes("repeat('c', 64)") &&
 assert.ok(forwardReplayWorkflow.includes("CATALOG_MEDIA_CONTINUOUS_FIVE_DAY_RETENTION") &&
   forwardReplayWorkflow.includes("supabase/tests/catalog_media_unreferenced_five_day_window_integration.sql"),
   "forward replay must test the continuous five-day unused-media timer and reference-reset behavior");
+assert.ok(mediaRetentionResumeMigration.includes("cron.alter_job(v_job_id, null, null, null, null, true)") &&
+  mediaRetentionResumeMigration.includes("MNTY_CATALOG_MEDIA_CLEANUP_JOB_MISSING"),
+  "the replay must restore the hourly cleanup only after the corrected retention functions and deployed cleanup endpoint are in place");
 assert.ok(mediaRetentionIntegration.includes("MEDIA_RETENTION_LIVE_REFERENCE_DID_NOT_RESET_CLOCK") &&
   mediaRetentionIntegration.includes("MEDIA_RETENTION_DID_NOT_RELEASE_IMAGE_AFTER_FIVE_UNUSED_DAYS"),
   "media retention integration must prove a live reference resets the timer and five unused days releases the file");
@@ -268,7 +272,8 @@ for (const contractPath of [
   "supabase/tests/rc482_legal_platform_admin_registry_integration.sql",
   "supabase/tests/rc483_atomic_legal_cms_create_audit_integration.sql",
   "supabase/tests/baselines/production_replay_catalog_media_cleanup_vault_fixture.sql",
-  "supabase/tests/catalog_media_unreferenced_five_day_window_integration.sql"
+  "supabase/tests/catalog_media_unreferenced_five_day_window_integration.sql",
+  "supabase/migrations/20261128081000_resume_catalog_media_cleanup_after_safe_retention.sql"
 ]) {
   assert.ok(forwardReplay.includes(contractPath), `forward replay trigger paths must include ${contractPath}`);
 }
