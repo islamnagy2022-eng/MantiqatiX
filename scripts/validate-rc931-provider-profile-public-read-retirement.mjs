@@ -8,6 +8,7 @@ const rc479Raw = read("supabase/migrations/20261118190000_rc479_revoke_anon_prov
 const rc479Forward = read("supabase/migrations/20261120193000_rc479_restrict_anonymous_auth_provider_profile_select.sql");
 const rc926 = read("supabase/migrations/20261125110000_rc926_provider_profile_confirmed_identity_strict_guard.sql");
 const rc115 = read("supabase/migrations/20261125130000_rc115_crm_business_scoped_reads.sql");
+const rc116 = read("supabase/migrations/20261125140000_rc116_crm_business_scoped_writes.sql");
 const fixture = read("supabase/tests/rc931_provider_profile_public_read_fixture.sql");
 const integration = read("supabase/tests/rc931_provider_profile_public_read_integration.sql");
 const workflow = read(".github/workflows/rc931-provider-profile-public-read-retirement.yml");
