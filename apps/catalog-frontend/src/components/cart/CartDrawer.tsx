@@ -225,7 +225,7 @@ export const CartDrawer: React.FC = () => {
           {/* Header */}
           <div className="p-5 border-b border-slate-200/80 bg-slate-50 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/20">
+              <div className="w-9 h-9 rounded-xl bg-[#7a0000] text-white flex items-center justify-center shadow-md shadow-[#7a0000]/20">
                 <ShoppingBag className="w-5 h-5" />
               </div>
               <div>
@@ -421,7 +421,7 @@ export const CartDrawer: React.FC = () => {
                         placeholder="مثال: محمد عبدالله"
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pr-9 pl-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:outline-hidden"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pr-9 pl-3 py-2 text-xs focus:ring-2 focus:ring-[#f6c04d]/30 focus:border-[#a00000] focus:outline-hidden"
                       />
                     </div>
                   </div>
@@ -439,7 +439,7 @@ export const CartDrawer: React.FC = () => {
                         placeholder="010xxxxxxxx أو 011xxxxxxxx"
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pr-9 pl-3 py-2 text-xs text-right focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:outline-hidden"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pr-9 pl-3 py-2 text-xs text-right focus:ring-2 focus:ring-[#f6c04d]/30 focus:border-[#a00000] focus:outline-hidden"
                       />
                     </div>
                   </div>
@@ -455,7 +455,7 @@ export const CartDrawer: React.FC = () => {
                         placeholder="المدينة، الحي، الشارع"
                         value={customerAddress}
                         onChange={(e) => setCustomerAddress(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pr-9 pl-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:outline-hidden"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pr-9 pl-3 py-2 text-xs focus:ring-2 focus:ring-[#f6c04d]/30 focus:border-[#a00000] focus:outline-hidden"
                       />
                     </div>
                   </div>
@@ -471,7 +471,7 @@ export const CartDrawer: React.FC = () => {
                         placeholder="أوقات التوصيل المفضلة، تعليمات التجهيز..."
                         value={deliveryNotes}
                         onChange={(e) => setDeliveryNotes(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pr-9 pl-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:outline-hidden resize-none"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pr-9 pl-3 py-2 text-xs focus:ring-2 focus:ring-[#f6c04d]/30 focus:border-[#a00000] focus:outline-hidden resize-none"
                       />
                     </div>
                   </div>
@@ -492,7 +492,7 @@ export const CartDrawer: React.FC = () => {
                       <label
                         className={`flex items-start gap-3 p-3 rounded-2xl border transition-all cursor-pointer ${
                           paymentMethod === 'cod'
-                            ? 'bg-emerald-50/70 border-emerald-500 shadow-xs'
+                            ? 'bg-[#fff3e0]/70 border-[#a00000] shadow-xs'
                             : 'bg-slate-50/60 border-slate-200 hover:bg-slate-50'
                         }`}
                       >
@@ -502,7 +502,7 @@ export const CartDrawer: React.FC = () => {
                           value="cod"
                           checked={paymentMethod === 'cod'}
                           onChange={() => setPaymentMethod('cod')}
-                          className="mt-0.5 text-emerald-600 focus:ring-emerald-500"
+                          className="mt-0.5 accent-[#7a0000] focus:ring-[#f6c04d]"
                         />
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
@@ -523,7 +523,7 @@ export const CartDrawer: React.FC = () => {
                         <label
                           className={`flex items-start gap-3 p-3 rounded-2xl border transition-all cursor-pointer ${
                             paymentMethod === 'paymob'
-                              ? 'bg-blue-50/70 border-blue-600 shadow-xs ring-1 ring-blue-600/20'
+                              ? 'bg-[#fff3e0]/70 border-[#a00000] shadow-xs ring-1 ring-[#a00000]/20'
                               : 'bg-slate-50/60 border-slate-200 hover:bg-slate-50'
                           }`}
                         >
@@ -533,15 +533,15 @@ export const CartDrawer: React.FC = () => {
                             value="paymob"
                             checked={paymentMethod === 'paymob'}
                             onChange={() => setPaymentMethod('paymob')}
-                            className="mt-0.5 text-blue-600 focus:ring-blue-500"
+                            className="mt-0.5 accent-[#7a0000] focus:ring-[#f6c04d]"
                           />
                           <div className="flex-1">
                             <div className="flex items-center justify-between flex-wrap gap-1">
-                              <span className="font-extrabold text-xs text-blue-950 flex items-center gap-1.5">
-                                <CreditCard className="w-4 h-4 text-blue-600" />
+                              <span className="font-extrabold text-xs text-[#7a0000] flex items-center gap-1.5">
+                                <CreditCard className="w-4 h-4 text-[#a00000]" />
                                 سداد إلكتروني فوري (PAYMOB مصر)
                               </span>
-                              <span className="text-[10px] bg-blue-100 text-blue-800 font-extrabold px-1.5 py-0.5 rounded">
+                              <span className="text-[10px] bg-[#fff3e0] text-[#7a0000] font-extrabold px-1.5 py-0.5 rounded">
                                 ميزة • فيزا • محافظ كاش
                               </span>
                             </div>
@@ -611,7 +611,7 @@ export const CartDrawer: React.FC = () => {
                               onClick={() => setPaymobChannel('card')}
                               className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                                 paymobChannel === 'card'
-                                  ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                                  ? 'bg-[#7a0000] text-white border-[#7a0000] shadow-xs'
                                   : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                               }`}
                             >
@@ -626,7 +626,7 @@ export const CartDrawer: React.FC = () => {
                               onClick={() => setPaymobChannel('wallet')}
                               className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                                 paymobChannel === 'wallet'
-                                  ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                                  ? 'bg-[#7a0000] text-white border-[#7a0000] shadow-xs'
                                   : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                               }`}
                             >
@@ -641,7 +641,7 @@ export const CartDrawer: React.FC = () => {
                               onClick={() => setPaymobChannel('kiosk')}
                               className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                                 paymobChannel === 'kiosk'
-                                  ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                                  ? 'bg-[#7a0000] text-white border-[#7a0000] shadow-xs'
                                   : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                               }`}
                             >
@@ -677,9 +677,9 @@ export const CartDrawer: React.FC = () => {
 
                 {/* Paymob Added Cost Row */}
                 {paymentMethod === 'paymob' && isPaymobAllowed && (
-                  <div className="flex items-center justify-between text-blue-900 bg-blue-50/80 px-2.5 py-1.5 rounded-lg border border-blue-200/70 font-bold">
+                  <div className="flex items-center justify-between text-[#7a0000] bg-[#fff3e0] px-2.5 py-1.5 rounded-lg border border-[#ead5c5] font-bold">
                     <span className="flex items-center gap-1">
-                      <CreditCard className="w-3.5 h-3.5 text-blue-600" />
+                      <CreditCard className="w-3.5 h-3.5 text-[#a00000]" />
                       <span>تكلفة الدفع الإلكتروني (Paymob):</span>
                     </span>
                     <span className="font-black">+{paymobFee.toFixed(2)} {adminSettings.currency}</span>
@@ -688,7 +688,7 @@ export const CartDrawer: React.FC = () => {
 
                 <div className="flex items-center justify-between text-slate-900 font-black text-base pt-2 border-t border-slate-200">
                   <span>المجموع الإجمالي النهائي</span>
-                  <span className={paymentMethod === 'paymob' ? 'text-blue-700' : 'text-emerald-700'}>
+                  <span className={'text-[#7a0000]'}>
                     {finalTotal.toFixed(2)} {adminSettings.currency}
                   </span>
                 </div>
